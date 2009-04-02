@@ -155,7 +155,7 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         //prefix
-        inline Vector &operator++() { return ++m_data; }
+        inline Vector &operator++() { ++m_data; return *this; }
         //postfix
         inline Vector operator++(int) { return m_data++; }
         inline void increment(Mask mask) { if (mask) ++m_data; }
