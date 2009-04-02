@@ -21,22 +21,9 @@
 #include "../vector.h"
 #include "unittest.h"
 #include <iostream>
+#include "vecio.h"
 
 using namespace Vc;
-
-template<typename T>
-std::ostream &operator<<(std::ostream &out, const Vector<T> &v)
-{
-    out << "[";
-    for (int i = 0; i < v.Size; ++i) {
-        if (i > 0) {
-            out << ", ";
-        }
-        out << v[i];
-    }
-    out << "]";
-    return out;
-}
 
 template<typename Vec> void testZero()
 {
