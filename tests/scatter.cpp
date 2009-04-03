@@ -33,7 +33,7 @@ template<typename Vec> void scatterArray()
         array[i] = i;
     }
     Mask mask;
-    for (int_v i = IndexesFromZero; (mask = (i < count)); i += Vec::Size) {
+    for (uint_v i = uint_v::IndexesFromZero; (mask = (i < count)); i += Vec::Size) {
         Vec a(array, i, mask);
         a.scatter(out, i, mask);
     }
@@ -63,7 +63,7 @@ template<typename Vec> void scatterStruct()
         array[i].c = i + 2;
     }
     Mask mask;
-    for (int_v i = IndexesFromZero; (mask = (i < count)); i += Vec::Size) {
+    for (uint_v i = uint_v::IndexesFromZero; (mask = (i < count)); i += Vec::Size) {
         Vec a(array, &S::a, i, mask);
         Vec b(array, &S::b, i, mask);
         Vec c(array, &S::c, i, mask);

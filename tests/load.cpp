@@ -35,7 +35,32 @@ template<typename Vec> void loadArray()
         array[i] = i;
     }
 
-    const Vec &offsets = int_v(IndexesFromZero).staticCast<T>();
+    const Vec &offsets = int_v(int_v::IndexesFromZero).staticCast<T>();
+    for (int i = 0; i < count; i += Vec::Size) {
+        const T *const addr = &array[i];
+        Vec ii(i);
+        ii += offsets;
+
+        Vec a(addr);
+        VERIFY(FullMask == (a == ii));
+
+        Vec b(Zero);
+        b.load(addr);
+        VERIFY(FullMask == (b == ii));
+    }
+}
+
+template<typename Vec> void loadArrayShort()
+{
+    typedef typename Vec::Type T;
+
+    const int count = 32 * 1024;
+    T array[count];
+    for (int i = 0; i < count; ++i) {
+        array[i] = i;
+    }
+
+    const Vec &offsets = ushort_v(ushort_v::IndexesFromZero).staticCast<T>();
     for (int i = 0; i < count; i += Vec::Size) {
         const T *const addr = &array[i];
         Vec ii(i);
@@ -56,5 +81,7 @@ int main()
     runTest(loadArray<uint_v>);
     runTest(loadArray<float_v>);
     runTest(loadArray<double_v>);
+    runTest(loadArrayShort<short_v>);
+    runTest(loadArrayShort<ushort_v>);
     return 0;
 }

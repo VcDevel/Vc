@@ -48,6 +48,8 @@ namespace Vc
   using ::Larrabee::cos;
   using ::Larrabee::maskNthElement;
   using ::Larrabee::cmpeq32_64;
+  typedef Vector<signed int> short_v;
+  typedef Vector<unsigned int> ushort_v;
 #elif USE_SSE
   using ::SSE::Vector;
   using ::SSE::SwizzledVector;
@@ -64,6 +66,8 @@ namespace Vc
   using ::SSE::cos;
   using ::SSE::maskNthElement;
   using ::SSE::cmpeq32_64;
+  typedef Vector<signed short> short_v;
+  typedef Vector<unsigned short> ushort_v;
 #else
   using ::Simple::Vector;
   using ::Simple::SwizzledVector;
@@ -80,6 +84,8 @@ namespace Vc
   using ::Simple::cos;
   using ::Simple::maskNthElement;
   using ::Simple::cmpeq32_64;
+  typedef Vector<signed short> short_v;
+  typedef Vector<unsigned short> ushort_v;
 #endif
 
   typedef Vector<double> double_v;
@@ -117,31 +123,6 @@ namespace Vc
 
   typedef EuclideanVector<uint_v, 2> uint_v2;
   typedef EuclideanVector<uint_v, 3> uint_v3;
-
-#ifdef __LRB__
-  typedef signed char PackedIndexes;
-#else
-  typedef signed int PackedIndexes;
-#endif
-
-#ifndef ALIGN
-# ifdef __GNUC__
-#  define ALIGN(n) __attribute__((aligned(n)))
-# else
-#  define ALIGN(n) __declspec(align(n))
-# endif
-#endif
-  ALIGN( 16 ) static const PackedIndexes IndexesFromZero[int_v::Size] = {
-#ifdef __LRB__
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
-#elif USE_SSE
-    0, 1, 2, 3
-#else
-    0
-#endif
-  };
-#undef ALIGN
-
 } // namespace Vc
 
 #endif // VECTOR_H

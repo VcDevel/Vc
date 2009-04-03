@@ -27,10 +27,7 @@
 
 namespace Simple
 {
-    namespace
-    {
-        template<typename T1> void UNUSED_PARAM1( const T1 & ) {}
-    }
+    namespace { template<typename T1> void UNUSED_PARAM1( const T1 & ) {} }
 
     enum { VectorAlignment = 8 };
 
@@ -38,56 +35,48 @@ namespace Simple
 
 #define PARENT_DATA (static_cast<Parent *>(this)->m_data)
 #define PARENT_DATA_CONST (static_cast<const Parent *>(this)->m_data)
-    template<typename T, typename Parent> struct VectorBase;
+    template<typename T, typename Parent> struct VectorBase {};
 
-    template<typename Parent>
-    struct VectorBase<float, Parent>
-    {
-        //operator float &() { return PARENT_DATA; }
-        //operator float() const { return PARENT_DATA_CONST; }
-        enum Upconvert { UpconvertNone = 0x00   /* no conversion      */ };
-        Vector<int> toInt() const;
-        Vector<unsigned int> toUInt() const;
-    };
-
-    template<typename Parent>
-    struct VectorBase<double, Parent>
-    {
-        //operator double &() { return PARENT_DATA; }
-        //operator double() const { return PARENT_DATA_CONST; }
-        enum Upconvert { UpconvertNone = 0x00   /* no conversion      */ };
-    };
-
-    template<typename Parent>
-    struct VectorBase<int, Parent>
-    {
-        //operator int &() { return PARENT_DATA; }
-        //operator int() const { return PARENT_DATA_CONST; }
-
-        Vector<float> toFloat() const;
-        Vector<unsigned int> toUInt() const;
-
-        enum Upconvert { UpconvertNone = 0x00  /* no conversion      */ };
 #define OP_DECL(symbol, fun) \
-        inline Vector<int> &operator symbol##=(const Vector<int> &x); \
-        inline Vector<int> &operator symbol##=(const int &x); \
-        inline Vector<int> operator symbol(const Vector<int> &x) const; \
-        inline Vector<int> operator symbol(const int &x) const;
-
+        inline Vector<T> &operator symbol##=(const Vector<T> &x); \
+        inline Vector<T> &operator symbol##=(const T &x); \
+        inline Vector<T> operator symbol(const Vector<T> &x) const; \
+        inline Vector<T> operator symbol(const T &x) const;
+    template<typename Parent> struct VectorBase<int, Parent>
+    {
+#define T int
         OP_DECL(|, or_)
         OP_DECL(&, and_)
         OP_DECL(^, xor_)
-#undef OP_DECL
+#undef T
+        static const int IndexesFromZero[1];
     };
-
-    template<typename Parent>
-    struct VectorBase<unsigned int, Parent>
+    template<typename Parent> struct VectorBase<unsigned int, Parent>
     {
-        //operator unsigned int &() { return PARENT_DATA; }
-        //operator unsigned int() const { return PARENT_DATA_CONST; }
-        enum Upconvert { UpconvertNone = 0x00  /* no conversion      */ };
-        Vector<float> toFloat() const;
-        Vector<int> toInt() const;
+#define T unsigned int
+        OP_DECL(|, or_)
+        OP_DECL(&, and_)
+        OP_DECL(^, xor_)
+#undef T
+        static const unsigned int IndexesFromZero[1];
+    };
+    template<typename Parent> struct VectorBase<short, Parent>
+    {
+#define T short
+        OP_DECL(|, or_)
+        OP_DECL(&, and_)
+        OP_DECL(^, xor_)
+#undef T
+        static const short IndexesFromZero[1];
+    };
+    template<typename Parent> struct VectorBase<unsigned short, Parent>
+    {
+#define T unsigned short
+        OP_DECL(|, or_)
+        OP_DECL(&, and_)
+        OP_DECL(^, xor_)
+#undef T
+        static const unsigned short IndexesFromZero[1];
     };
 #undef PARENT_DATA
 #undef PARENT_DATA_CONST
@@ -138,34 +127,65 @@ class Vector : public VectorBase<T, Vector<T> >
         inline const Vector<T> dddd() const { return *this; }
         inline const Vector<T> dbac() const { return *this; }
 
-        inline Vector(const T *array, const Vector<int> &indexes) : m_data(array[indexes[0]]) {}
-        inline Vector(const T *array, const Vector<int> &indexes, Mask m) : m_data(m ? array[indexes[0]] : 0) {}
-        inline void gather(const T *array, const Vector<int> &indexes) { m_data = array[indexes[0]]; }
-        inline void gather(const T *array, const Vector<int> &indexes, Mask m) { if (m) m_data = array[indexes[0]]; }
+        inline Vector(const T *array, const Vector<unsigned int> &indexes) : m_data(array[indexes[0]]) {}
+        inline Vector(const T *array, const Vector<unsigned int> &indexes, Mask m) : m_data(m ? array[indexes[0]] : 0) {}
+        inline void gather(const T *array, const Vector<unsigned int> &indexes) { m_data = array[indexes[0]]; }
+        inline void gather(const T *array, const Vector<unsigned int> &indexes, Mask m) { if (m) m_data = array[indexes[0]]; }
+
+        inline Vector(const T *array, const Vector<unsigned short> &indexes) : m_data(array[indexes[0]]) {}
+        inline Vector(const T *array, const Vector<unsigned short> &indexes, Mask m) : m_data(m ? array[indexes[0]] : 0) {}
+        inline void gather(const T *array, const Vector<unsigned short> &indexes) { m_data = array[indexes[0]]; }
+        inline void gather(const T *array, const Vector<unsigned short> &indexes, Mask m) { if (m) m_data = array[indexes[0]]; }
 
         template<typename S> inline Vector(const S *array, const T S::* member1,
-                const Vector<int> &indexes, Mask mask = true)
+                const Vector<unsigned int> &indexes, Mask mask = true)
             : m_data(mask ? (&array[indexes[0]])->*(member1) : 0) {}
 
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<int> &indexes, Mask mask = true)
+                const T S2::* member2, const Vector<unsigned int> &indexes, Mask mask = true)
             : m_data(mask ? array[indexes[0]].*(member1).*(member2) : 0) {}
 
         template<typename S> inline void gather(const S *array, const T S::* member1,
-                const Vector<int> &indexes, Mask mask = true) {
+                const Vector<unsigned int> &indexes, Mask mask = true) {
             if (mask) m_data = (&array[indexes[0]])->*(member1);
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<int> &indexes, Mask mask = true) {
+                const T S2::* member2, const Vector<unsigned int> &indexes, Mask mask = true) {
             if (mask) m_data = array[indexes[0]].*(member1).*(member2);
         }
 
-        inline void scatter(T *array, const Vector<int> &indexes, Mask m ) const { if (m) array[indexes[0]] = m_data; }
-        template<typename S> inline void scatter(S *array, T S::* member, const Vector<int> &indexes, Mask m) const {
+        inline void scatter(T *array, const Vector<unsigned int> &indexes, Mask m ) const { if (m) array[indexes[0]] = m_data; }
+        template<typename S> inline void scatter(S *array, T S::* member, const Vector<unsigned int> &indexes, Mask m) const {
             if (m) array[indexes[0]].*(member) = m_data;
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1, T S2::* member2,
-                const Vector<int> &indexes, Mask m) const {
+                const Vector<unsigned int> &indexes, Mask m) const {
+            if (m) array[indexes[0]].*(member1).*(member2) = m_data;
+        }
+
+        template<typename S> inline Vector(const S *array, const T S::* member1,
+                const Vector<unsigned short> &indexes, Mask mask = true)
+            : m_data(mask ? (&array[indexes[0]])->*(member1) : 0) {}
+
+        template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, const Vector<unsigned short> &indexes, Mask mask = true)
+            : m_data(mask ? array[indexes[0]].*(member1).*(member2) : 0) {}
+
+        template<typename S> inline void gather(const S *array, const T S::* member1,
+                const Vector<unsigned short> &indexes, Mask mask = true) {
+            if (mask) m_data = (&array[indexes[0]])->*(member1);
+        }
+        template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, const Vector<unsigned short> &indexes, Mask mask = true) {
+            if (mask) m_data = array[indexes[0]].*(member1).*(member2);
+        }
+
+        inline void scatter(T *array, const Vector<unsigned short> &indexes, Mask m ) const { if (m) array[indexes[0]] = m_data; }
+        template<typename S> inline void scatter(S *array, T S::* member, const Vector<unsigned short> &indexes, Mask m) const {
+            if (m) array[indexes[0]].*(member) = m_data;
+        }
+        template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1, T S2::* member2,
+                const Vector<unsigned short> &indexes, Mask m) const {
             if (m) array[indexes[0]].*(member1).*(member2) = m_data;
         }
 
@@ -257,25 +277,36 @@ template<typename T> inline Mask  operator>=(const T &x, const Vector<T> &v) { r
 template<typename T> inline Mask  operator==(const T &x, const Vector<T> &v) { return Vector<T>(x) == v; }
 template<typename T> inline Mask  operator!=(const T &x, const Vector<T> &v) { return Vector<T>(x) != v; }
 
-#define PARENT_DATA (static_cast<Vector<int> *>(this)->m_data)
-#define PARENT_DATA_CONST (static_cast<const Vector<int> *>(this)->m_data)
+#define PARENT_DATA (static_cast<Vector<T> *>(this)->m_data)
+#define PARENT_DATA_CONST (static_cast<const Vector<T> *>(this)->m_data)
 #define OP_IMPL(symbol, fun) \
-  template<> inline Vector<int> &VectorBase<int, Vector<int> >::operator symbol##=(const Vector<int> &x) { PARENT_DATA symbol##= x.m_data; return *static_cast<Vector<int> *>(this); } \
-  template<> inline Vector<int> &VectorBase<int, Vector<int> >::operator symbol##=(const int &x) { return operator symbol##=(Vector<int>(x)); } \
-  template<> inline Vector<int> VectorBase<int, Vector<int> >::operator symbol(const Vector<int> &x) const { return Vector<int>(PARENT_DATA_CONST symbol x.m_data); } \
-  template<> inline Vector<int> VectorBase<int, Vector<int> >::operator symbol(const int &x) const { return operator symbol(Vector<int>(x)); }
+  template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const Vector<T> &x) { PARENT_DATA symbol##= x.m_data; return *static_cast<Vector<T> *>(this); } \
+  template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const T &x) { return operator symbol##=(Vector<T>(x)); } \
+  template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const Vector<T> &x) const { return Vector<T>(PARENT_DATA_CONST symbol x.m_data); } \
+  template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
+
+#define T int
   OP_IMPL(&, and_)
   OP_IMPL(|, or_)
   OP_IMPL(^, xor_)
+#undef T
+#define T unsigned int
+  OP_IMPL(&, and_)
+  OP_IMPL(|, or_)
+  OP_IMPL(^, xor_)
+#undef T
+#define T short
+  OP_IMPL(&, and_)
+  OP_IMPL(|, or_)
+  OP_IMPL(^, xor_)
+#undef T
+#define T unsigned short
+  OP_IMPL(&, and_)
+  OP_IMPL(|, or_)
+  OP_IMPL(^, xor_)
+#undef T
 #undef OP_IMPL
 #undef ALIGN
-
-  template<> inline Vector<float> VectorBase<int, Vector<int> >::toFloat() const { return Vector<float>(static_cast<float>(static_cast<const Vector<int> *>(this)->m_data)); }
-  template<> inline Vector<float> VectorBase<unsigned int, Vector<unsigned int> >::toFloat() const { return Vector<float>(static_cast<float>(static_cast<const Vector<unsigned int> *>(this)->m_data)); }
-  template<> inline Vector<int> VectorBase<float, Vector<float> >::toInt() const { return Vector<int>(static_cast<int>(static_cast<const Vector<float> *>(this)->m_data)); }
-  template<> inline Vector<unsigned int> VectorBase<float, Vector<float> >::toUInt() const { return Vector<unsigned int>(static_cast<unsigned int>(static_cast<const Vector<float> *>(this)->m_data)); }
-  template<> inline Vector<int> VectorBase<unsigned int, Vector<unsigned int> >::toInt() const { return Vector<int>(static_cast<int>(static_cast<const Vector<unsigned int> *>(this)->m_data)); }
-  template<> inline Vector<unsigned int> VectorBase<int, Vector<int> >::toUInt() const { return Vector<unsigned int>(static_cast<unsigned int>(static_cast<const Vector<int> *>(this)->m_data)); }
 #undef PARENT_DATA_CONST
 #undef PARENT_DATA
 
@@ -289,20 +320,11 @@ template<typename T> inline Mask  operator!=(const T &x, const Vector<T> &v) { r
   template<typename T> static inline Simple::Vector<T> abs (const Simple::Vector<T> &x) { return std::abs( x.data() ); }
   template<typename T> static inline Simple::Vector<T> sin (const Simple::Vector<T> &x) { return std::sin( x.data() ); }
   template<typename T> static inline Simple::Vector<T> cos (const Simple::Vector<T> &x) { return std::cos( x.data() ); }
-} // namespace Simple
 
-//X #include <iostream>
-//X 
-//X template<typename T>
-//X static inline std::ostream &operator<<( std::ostream &out, const Simple::Vector<T> &v )
-//X {
-//X   return out << v[0];
-//X }
-//X 
-//X template<typename T>
-//X static inline std::istream &operator>>( std::istream &in, Simple::Vector<T> &v )
-//X {
-//X   return in >> reinterpret_cast<T &>( v );
-//X }
+  template<> const int VectorBase<int, Vector<int> >::IndexesFromZero[1] = { 0 };
+  template<> const unsigned int VectorBase<unsigned int, Vector<unsigned int> >::IndexesFromZero[1] = { 0 };
+  template<> const short VectorBase<short, Vector<short> >::IndexesFromZero[1] = { 0 };
+  template<> const unsigned short VectorBase<unsigned short, Vector<unsigned short> >::IndexesFromZero[1] = { 0 };
+} // namespace Simple
 
 #endif // SIMPLE_VECTOR_H

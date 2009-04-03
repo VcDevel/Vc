@@ -31,6 +31,9 @@ template<typename Vec> void storeArray()
 
     const int count = 256 * 1024 / sizeof(T);
     T array[count];
+    // do the memset to make sure the array doesn't have the old data from a previous call which
+    // would mask a real problem
+    memset(array, 0xff, count * sizeof(T));
     T xValue = 1;
     const Vec x(xValue);
     for (int i = 0; i < count; i += Vec::Size) {
@@ -48,5 +51,7 @@ int main()
     runTest(storeArray<uint_v>);
     runTest(storeArray<float_v>);
     runTest(storeArray<double_v>);
+    runTest(storeArray<short_v>);
+    runTest(storeArray<ushort_v>);
     return 0;
 }
