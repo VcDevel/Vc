@@ -121,8 +121,13 @@ class Vector : public VectorBase<T, Vector<T> >
         inline void makeZero(Mask k) { if (k) m_data = 0; }
         inline void makeRandom() { m_data = std::rand(); }
         inline void makeRandom(Mask k) { if (k) m_data = std::rand(); }
-        inline void store(void *mem) const { reinterpret_cast<T *>(mem)[0] = m_data; }
-        inline void storeStreaming(void *mem) const { store(mem); }
+
+        template<typename Other> inline void load(const Other *mem) { m_data = mem[0]; }
+        template<typename Other> inline void load(const Other *mem, Mask m) { if (m) m_data = mem[0]; }
+        template<typename Other> inline void store(Other *mem) const { mem[0] = m_data; }
+        template<typename Other> inline void store(Other *mem, Mask m) const { if (m) mem[0] = m_data; }
+        template<typename Other> inline void storeStreaming(Other *mem) const { mem[0] = m_data; }
+        template<typename Other> inline void storeStreaming(Other *mem, Mask m) const { if (m) mem[0] = m_data; }
 
         inline const Vector<T> &dcba() const { return *this; }
         inline const Vector<T> cdab() const { return *this; }
@@ -134,6 +139,7 @@ class Vector : public VectorBase<T, Vector<T> >
         inline const Vector<T> dbac() const { return *this; }
 
         inline Vector(const T *array, const Vector<int> &indexes) : m_data(array[indexes[0]]) {}
+        inline Vector(const T *array, const Vector<int> &indexes, Mask m) : m_data(m ? array[indexes[0]] : 0) {}
         inline void gather(const T *array, const Vector<int> &indexes) { m_data = array[indexes[0]]; }
         inline void gather(const T *array, const Vector<int> &indexes, Mask m) { if (m) m_data = array[indexes[0]]; }
 
@@ -154,11 +160,13 @@ class Vector : public VectorBase<T, Vector<T> >
             if (mask) m_data = array[indexes[0]].*(member1).*(member2);
         }
 
-        void scatter(T *array, const Vector<int> &indexes, Mask m ) const { if (m) array[indexes[0]] = m_data; }
-
-        template<typename S> void scatter(S *array, const T S::* member, const Vector<int> &indexes, Mask m, unsigned int arrayStride = sizeof(S)) const
-        {
-            (&(array->*(member)))[arrayStride / sizeof(T) * indexes[0]] = m_data;
+        inline void scatter(T *array, const Vector<int> &indexes, Mask m ) const { if (m) array[indexes[0]] = m_data; }
+        template<typename S> inline void scatter(S *array, T S::* member, const Vector<int> &indexes, Mask m) const {
+            if (m) array[indexes[0]].*(member) = m_data;
+        }
+        template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1, T S2::* member2,
+                const Vector<int> &indexes, Mask m) const {
+            if (m) array[indexes[0]].*(member1).*(member2) = m_data;
         }
 
         //prefix

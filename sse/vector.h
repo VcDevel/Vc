@@ -187,7 +187,7 @@ namespace SSE
             static inline void store1(T *mem, TYPE x) { return _mm_store1_ps(reinterpret_cast<float *>(mem), CAT_HELPER(CAT_HELPER(_mm_cast, SUFFIX), _ps)(x)); } \
             static inline void store (T *mem, TYPE x) { return _mm_store_ps (reinterpret_cast<float *>(mem), CAT_HELPER(CAT_HELPER(_mm_cast, SUFFIX), _ps)(x)); } \
             static inline void storeStreaming(T *mem, TYPE x) { return _mm_stream_ps(reinterpret_cast<float *>(mem), CAT_HELPER(CAT_HELPER(_mm_cast, SUFFIX), _ps)(x)); }
-#define GATHER(T) \
+#define GATHER_SCATTER(T) \
             static inline void gather(TYPE &v, const _M128I &indexes, const T *baseAddr) { \
                 const int *const i = reinterpret_cast<const int *>(&indexes); \
                 v = CAT_HELPER(_mm_setr_, SUFFIX)(baseAddr[i[0]], baseAddr[i[1]], baseAddr[i[2]], baseAddr[i[3]]); \
@@ -201,6 +201,32 @@ namespace SSE
             static inline void gather(TYPE &v, const _M128I &indexes, const S1 *baseAddr, const S2 S1::* member1, const T S2::* member2) { \
                 const int *const i = reinterpret_cast<const int *>(&indexes); \
                 v = CAT_HELPER(_mm_setr_, SUFFIX)(baseAddr[i[0]].*(member1).*(member2), baseAddr[i[1]].*(member1).*(member2), baseAddr[i[2]].*(member1).*(member2), baseAddr[i[3]].*(member1).*(member2)); \
+            } \
+            static inline void scatter(const TYPE &v, const _M128I &indexes, T *baseAddr) { \
+                const int *const i = reinterpret_cast<const int *>(&indexes); \
+                const T *const vv = reinterpret_cast<const T *>(&v); \
+                baseAddr[i[0]] = vv[0]; \
+                baseAddr[i[1]] = vv[1]; \
+                baseAddr[i[2]] = vv[2]; \
+                baseAddr[i[3]] = vv[3]; \
+            } \
+            template<typename S> \
+            static inline void scatter(const TYPE &v, const _M128I &indexes, S *baseAddr, T S::* member1) { \
+                const int *const i = reinterpret_cast<const int *>(&indexes); \
+                const T *const vv = reinterpret_cast<const T *>(&v); \
+                baseAddr[i[0]].*(member1) = vv[0]; \
+                baseAddr[i[1]].*(member1) = vv[1]; \
+                baseAddr[i[2]].*(member1) = vv[2]; \
+                baseAddr[i[3]].*(member1) = vv[3]; \
+            } \
+            template<typename S1, typename S2> \
+            static inline void scatter(const TYPE &v, const _M128I &indexes, S1 *baseAddr, S2 S1::* member1, T S2::* member2) { \
+                const int *const i = reinterpret_cast<const int *>(&indexes); \
+                const T *const vv = reinterpret_cast<const T *>(&v); \
+                baseAddr[i[0]].*(member1).*(member2) = vv[0]; \
+                baseAddr[i[1]].*(member1).*(member2) = vv[1]; \
+                baseAddr[i[2]].*(member1).*(member2) = vv[2]; \
+                baseAddr[i[3]].*(member1).*(member2) = vv[3]; \
             }
 
         template<> struct VectorHelper<double> {
@@ -221,6 +247,23 @@ namespace SSE
             static inline void gather(TYPE &v, const _M128I &indexes, const S1 *baseAddr, const S2 S1::* member1, const double S2::* member2) {
                 const int *const i = reinterpret_cast<const int *>(&indexes);
                 v = CAT_HELPER(_mm_setr_, SUFFIX)(baseAddr[i[0]].*(member1).*(member2), baseAddr[i[1]].*(member1).*(member2));
+            }
+            static inline void scatter(const TYPE &v, const _M128I &indexes, double *baseAddr) {
+                const int *const i = reinterpret_cast<const int *>(&indexes);
+                _mm_storel_pd(&baseAddr[i[0]], v);
+                _mm_storeh_pd(&baseAddr[i[1]], v);
+            }
+            template<typename S>
+            static inline void scatter(const TYPE &v, const _M128I &indexes, S *baseAddr, double S::* member1) {
+                const int *const i = reinterpret_cast<const int *>(&indexes);
+                _mm_storel_pd(&(baseAddr[i[0]].*(member1)), v);
+                _mm_storeh_pd(&(baseAddr[i[1]].*(member1)), v);
+            }
+            template<typename S1, typename S2>
+            static inline void scatter(const TYPE &v, const _M128I &indexes, S1 *baseAddr, S2 S1::* member1, double S2::* member2) {
+                const int *const i = reinterpret_cast<const int *>(&indexes);
+                _mm_storel_pd(&(baseAddr[i[0]].*(member1).*(member2)), v);
+                _mm_storeh_pd(&(baseAddr[i[1]].*(member1).*(member2)), v);
             }
 
 
@@ -251,7 +294,7 @@ namespace SSE
 #define SUFFIX ps
             LOAD(float)
             STORE(float)
-            GATHER(float)
+            GATHER_SCATTER(float)
 
             static inline TYPE set(const float a) { return CAT_HELPER(_mm_set1_, SUFFIX)(a); }
             static inline TYPE set(const float a, const float b, const float c, const float d) { return CAT_HELPER(_mm_set_, SUFFIX)(a, b, c, d); }
@@ -285,7 +328,7 @@ namespace SSE
             static inline void setZero(TYPE &v) { v = CAT_HELPER(_mm_setzero_, SUFFIX)(); }
 #undef SUFFIX
 #define SUFFIX epi32
-            GATHER(int)
+            GATHER_SCATTER(int)
 
             static inline TYPE set(const int a) { return CAT_HELPER(_mm_set1_, SUFFIX)(a); }
             static inline TYPE set(const int a, const int b, const int c, const int d) { return CAT_HELPER(_mm_set_, SUFFIX)(a, b, c, d); }
@@ -385,7 +428,7 @@ namespace SSE
 
 #undef SUFFIX
 #define SUFFIX epi32
-            GATHER(unsigned int)
+            GATHER_SCATTER(unsigned int)
             static inline TYPE set(const unsigned int a) { return CAT_HELPER(_mm_set1_, SUFFIX)(a); }
             static inline TYPE set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) { return CAT_HELPER(_mm_set_, SUFFIX)(a, b, c, d); }
 
@@ -397,7 +440,7 @@ namespace SSE
             static inline TYPE cmpnlt(const TYPE &a, const TYPE &b) { return _mm_xor_si128(cmplt(a, b), _FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
             static inline TYPE cmple (const TYPE &a, const TYPE &b) { return _mm_xor_si128(cmpgt(a, b), _FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
             static inline TYPE cmpnle(const TYPE &a, const TYPE &b) { return cmpgt(a, b); }
-#undef GATHER
+#undef GATHER_SCATTER
 #undef STORE
 #undef LOAD
 #undef TYPE
@@ -495,39 +538,24 @@ class Vector : public VectorBase<T, Vector<T> >
          * Initialize the vector with the given data. \param x must point to 64 byte aligned 512
          * byte data.
          */
-        template<typename Other>
-        inline Vector(const Other *x)
-        {
-            data = VectorHelper<T>::load(x);
-        }
+        template<typename Other> inline Vector(const Other *x) : data(VectorHelper<T>::load(x)) {}
 
-        template<typename Other>
-        static inline Vector broadcast4(const Other *x)
-        {
-            return Vector<T>(x);
-        }
+        template<typename Other> static inline Vector broadcast4(const Other *x) { return Vector<T>(x); }
 
-        inline void makeZero()
-        {
-            VectorHelper<T>::setZero(data);
-        }
+        inline void makeZero() { VectorHelper<T>::setZero(data); }
+
+        template<typename Other> inline void load(const Other *mem) { data = VectorHelper<T>::load(mem); }
 
         /**
          * Store the vector data to the given memory. The memory must be 64 byte aligned and of 512
          * bytes size.
          */
-        inline void store(void *mem) const
-        {
-            VectorHelper<T>::store(mem, data);
-        }
+        template<typename Other> inline void store(Other *mem) const { VectorHelper<T>::store(mem, data); }
 
         /**
          * Non-temporal store variant. Writes to the memory without polluting the cache.
          */
-        inline void storeStreaming(void *mem) const
-        {
-            VectorHelper<T>::storeStreaming(mem, data);
-        }
+        template<typename Other> inline void storeStreaming(Other *mem) const { VectorHelper<T>::storeStreaming(mem, data); }
 
         inline const Vector<T> &dcba() const { return *this; }
         inline const Vector<T> cdab() const { return _mm_shuffle_epi32(data, _MM_SHUFFLE(2, 3, 0, 1)); }
@@ -545,6 +573,11 @@ class Vector : public VectorBase<T, Vector<T> >
         inline void gather(const T *array, const Vector<int> &indexes) { VectorHelper<T>::gather(data, indexes, array); }
         inline void gather(const T *array, const Vector<int> &indexes, const Mask &m) {
             VectorHelper<T>::gather(data, indexes & Vector<int>(m), array);
+        }
+
+        inline void scatter(T *array, const Vector<int> &indexes) const { VectorHelper<T>::scatter(data, indexes, array); }
+        inline void scatter(T *array, const Vector<int> &indexes, const Mask &m) const {
+            VectorHelper<T>::scatter(data, indexes & Vector<int>(m), array);
         }
 
         /**
@@ -569,6 +602,15 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
                 const T S2::* member2, const Vector<int> &indexes, const Mask &mask = Mask()) {
             VectorHelper<T>::gather(data, (indexes & Vector<int>(mask)), array, member1, member2);
+        }
+
+        template<typename S1> inline void scatter(S1 *array, T S1::* member1,
+                const Vector<int> &indexes, const Mask &mask = Mask()) const {
+            VectorHelper<T>::scatter(data, (indexes & Vector<int>(mask)), array, member1);
+        }
+        template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
+                T S2::* member2, const Vector<int> &indexes, const Mask &mask = Mask()) const {
+            VectorHelper<T>::scatter(data, (indexes & Vector<int>(mask)), array, member1, member2);
         }
 
         //prefix

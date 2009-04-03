@@ -104,6 +104,16 @@ template<typename Vec> void testDiv()
     }
 }
 
+template<typename Vec> void testAnd()
+{
+    Vec a(0xffff);
+    Vec b(0xf);
+    VERIFY(FullMask == ((a & 0xf) == b));
+    Vec c(int_v(IndexesFromZero).staticCast<typename Vec::Type>());
+    VERIFY(FullMask == (c == (c & 0xf)));
+    VERIFY(FullMask == ((c & 0xfff0) == 0));
+}
+
 int main()
 {
     runTest(testZero<int_v>);
@@ -130,5 +140,8 @@ int main()
     runTest(testDiv<uint_v>);
     runTest(testDiv<float_v>);
     runTest(testDiv<double_v>);
+    runTest(testAnd<int_v>);
+    runTest(testAnd<uint_v>);
+    // no operator& for float/double
     return 0;
 }

@@ -38,10 +38,11 @@ template<typename Vec> void gatherArray()
         if (FullMask == mask) {
             Vec a(array, i);
             VERIFY(FullMask == (a == ii));
-            a.gather(array, i);
-            VERIFY(FullMask == (a == ii));
+            Vec b(Zero);
+            b.gather(array, i);
+            VERIFY(FullMask == (b == ii));
         }
-        Vec b;
+        Vec b(Zero);
         b.gather(array, i, mask);
         if (sizeof(typename Vec::Type) == 8) {
             // mask is for a 32bit entries vector whereas with double_v (b == ii)
@@ -61,6 +62,7 @@ template<typename T> struct Struct
     T b;
     short y;
     T c;
+    char z;
 };
 
 template<typename Vec> void gatherStruct()
@@ -77,22 +79,39 @@ template<typename Vec> void gatherStruct()
     for (int_v i = IndexesFromZero; (mask = (i < count)); i += Vec::Size) {
         // if Vec is double_v the staticCast keeps only the lower two values, which is why the ==
         // comparison works
-        const Vec &ii = i.staticCast<typename Vec::Type>();
+        const Vec &i0 = i.staticCast<typename Vec::Type>();
+        const Vec &i1 = (i + 1).staticCast<typename Vec::Type>();
+        const Vec &i2 = (i + 2).staticCast<typename Vec::Type>();
         if (FullMask == mask) {
             Vec a(array, &S::a, i);
-            VERIFY(FullMask == (a == ii));
-            a.gather(array, &S::a, i);
-            VERIFY(FullMask == (a == ii));
+            VERIFY(FullMask == (a == i0));
+            a.gather(array, &S::b, i);
+            VERIFY(FullMask == (a == i1));
+            a.gather(array, &S::c, i);
+            VERIFY(FullMask == (a == i2));
         }
+
+        // mask is for a 32bit entries vector whereas with double_v (b == ii)
+        // returns a mask for a 64bit entries vector => half the mask size.
+        // Therefore we need to use cmpeq32_64
         Vec b;
         b.gather(array, &S::a, i, mask);
         if (sizeof(typename Vec::Type) == 8) {
-            // mask is for a 32bit entries vector whereas with double_v (b == ii)
-            // returns a mask for a 64bit entries vector => half the mask size.
-            // Therefore we need to use cmpeq32_64
-            VERIFY(cmpeq32_64(mask, b == ii));
+            VERIFY(cmpeq32_64(mask, b == i0));
         } else {
-            VERIFY(mask == (b == ii));
+            VERIFY(mask == (b == i0));
+        }
+        b.gather(array, &S::b, i, mask);
+        if (sizeof(typename Vec::Type) == 8) {
+            VERIFY(cmpeq32_64(mask, b == i1));
+        } else {
+            VERIFY(mask == (b == i1));
+        }
+        b.gather(array, &S::c, i, mask);
+        if (sizeof(typename Vec::Type) == 8) {
+            VERIFY(cmpeq32_64(mask, b == i2));
+        } else {
+            VERIFY(mask == (b == i2));
         }
     }
 }
