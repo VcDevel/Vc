@@ -96,7 +96,7 @@ namespace VectorSpecialInitializerZero { enum Enum { Zero }; }
 namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
 
 typedef bool Mask;
-static const Mask kFullMask = true;
+static const Mask FullMask = true;
 static inline Mask maskNthElement( int n ) { return 0 == n; }
 
 template<typename T>
@@ -132,19 +132,25 @@ class Vector : public VectorBase<T, Vector<T> >
         inline const Vector<T> dddd() const { return *this; }
         inline const Vector<T> dbac() const { return *this; }
 
-        Vector(const T *array, const Vector<int> &indexes) : m_data(array[indexes[0]]) {}
-        void gather(const T *array, const Vector<int> &indexes) { m_data = array[indexes[0]]; }
-        void gather(const T *array, const Vector<int> &indexes, Mask m) { if (m) m_data = array[indexes[0]]; }
+        inline Vector(const T *array, const Vector<int> &indexes) : m_data(array[indexes[0]]) {}
+        inline void gather(const T *array, const Vector<int> &indexes) { m_data = array[indexes[0]]; }
+        inline void gather(const T *array, const Vector<int> &indexes, Mask m) { if (m) m_data = array[indexes[0]]; }
 
-        template<typename S> Vector(const S *array, const T S::* member, const Vector<int> &indexes, Mask = true, unsigned int arrayStride = sizeof(S))
-            : m_data((&(array->*(member)))[arrayStride / sizeof(T) * indexes[0]]) {}
+        template<typename S> inline Vector(const S *array, const T S::* member1,
+                const Vector<int> &indexes, Mask mask = true)
+            : m_data(mask ? (&array[indexes[0]])->*(member1) : 0) {}
 
-        template<typename S1, typename S2> Vector(const S1 *array, const S2 S1::* member1, const T S2::* member2, const Vector<int> &indexes, Mask = true, unsigned int arrayStride = sizeof(S1))
-            : m_data((&(array->*(member1).*(member2)))[arrayStride / sizeof(T) * indexes[0]]) {}
+        template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, const Vector<int> &indexes, Mask mask = true)
+            : m_data(mask ? array[indexes[0]].*(member1).*(member2) : 0) {}
 
-        template<typename S> void gather(const S *array, const T S::* member, const Vector<int> &indexes, Mask = true, unsigned int arrayStride = sizeof(S))
-        {
-            m_data = (&(array->*(member)))[arrayStride / sizeof(T) * indexes[0]];
+        template<typename S> inline void gather(const S *array, const T S::* member1,
+                const Vector<int> &indexes, Mask mask = true) {
+            if (mask) m_data = (&array[indexes[0]])->*(member1);
+        }
+        template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, const Vector<int> &indexes, Mask mask = true) {
+            if (mask) m_data = array[indexes[0]].*(member1).*(member2);
         }
 
         void scatter(T *array, const Vector<int> &indexes, Mask m ) const { if (m) array[indexes[0]] = m_data; }
@@ -224,6 +230,9 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         inline T max() const { return m_data; }
+
+        template<typename T2> inline Vector<T2> staticCast() const { return static_cast<T2>(m_data); }
+        template<typename T2> inline Vector<T2> reinterpretCast() const { return reinterpret_cast<T2>(m_data); }
 };
 
 template<typename T> class SwizzledVector : public Vector<T> {};

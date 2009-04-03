@@ -48,9 +48,9 @@ namespace SSE
     enum { VectorAlignment = 16 };
     template<typename T> class Vector;
 
-    ALIGN(16) static const int _kOneMaskData[4]  = { 0x00000001, 0x00000001, 0x00000001, 0x00000001 };
-    ALIGN(16) static const int _kFullMaskData[4] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff };
-#define _FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF *reinterpret_cast<const _M128I *const>(_kFullMaskData)
+    ALIGN(16) static const int _OneMaskData[4]  = { 0x00000001, 0x00000001, 0x00000001, 0x00000001 };
+    ALIGN(16) static const int _FullMaskData[4] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff };
+#define _FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF *reinterpret_cast<const _M128I *const>(_FullMaskData)
 
 #define PARENT_DATA (static_cast<Parent *>(this)->data)
 #define PARENT_DATA_CONST (static_cast<const Parent *>(this)->data)
@@ -70,8 +70,6 @@ namespace SSE
             enum Upconvert {
                 UpconvertNone     = 0x00   /* no conversion      */
             };
-            Vector<int> toInt() const;
-            Vector<unsigned int> toUInt() const;
         };
         template<typename Parent>
         struct VectorBase<double, Parent>
@@ -89,8 +87,6 @@ namespace SSE
             typedef _M128I IntrinType;
             operator _M128I() { return PARENT_DATA; }
             operator const _M128I() const { return PARENT_DATA_CONST; }
-
-            Vector<float> toFloat() const;
 
             enum Upconvert {
                 UpconvertNone  = 0x00  /* no conversion      */
@@ -115,28 +111,45 @@ namespace SSE
             enum Upconvert {
                 UpconvertNone   = 0x00  /* no conversion      */
             };
-            Vector<float> toFloat() const;
         };
 #undef PARENT_DATA
 #undef PARENT_DATA_CONST
 
-        template<typename From, typename To> struct CastHelper {};
-        template<> struct CastHelper<float       , int         > { static _M128I cast(const _M128  &v) { return _mm_castps_si128(v); } };
-        template<> struct CastHelper<double      , int         > { static _M128I cast(const _M128D &v) { return _mm_castpd_si128(v); } };
-        template<> struct CastHelper<int         , int         > { static _M128I cast(const _M128I &v) { return v; } };
-        template<> struct CastHelper<unsigned int, int         > { static _M128I cast(const _M128I &v) { return v; } };
-        template<> struct CastHelper<float       , unsigned int> { static _M128I cast(const _M128  &v) { return _mm_castps_si128(v); } };
-        template<> struct CastHelper<double      , unsigned int> { static _M128I cast(const _M128D &v) { return _mm_castpd_si128(v); } };
-        template<> struct CastHelper<int         , unsigned int> { static _M128I cast(const _M128I &v) { return v; } };
-        template<> struct CastHelper<unsigned int, unsigned int> { static _M128I cast(const _M128I &v) { return v; } };
-        template<> struct CastHelper<float       , float       > { static _M128  cast(const _M128  &v) { return v; } };
-        template<> struct CastHelper<double      , float       > { static _M128  cast(const _M128D &v) { return _mm_castpd_ps(v); } };
-        template<> struct CastHelper<int         , float       > { static _M128  cast(const _M128I &v) { return _mm_castsi128_ps(v); } };
-        template<> struct CastHelper<unsigned int, float       > { static _M128  cast(const _M128I &v) { return _mm_castsi128_ps(v); } };
-        template<> struct CastHelper<float       , double      > { static _M128D cast(const _M128  &v) { return _mm_castps_pd(v); } };
-        template<> struct CastHelper<double      , double      > { static _M128D cast(const _M128D &v) { return v; } };
-        template<> struct CastHelper<int         , double      > { static _M128D cast(const _M128I &v) { return _mm_castsi128_pd(v); } };
-        template<> struct CastHelper<unsigned int, double      > { static _M128D cast(const _M128I &v) { return _mm_castsi128_pd(v); } };
+        template<typename From, typename To> struct StaticCastHelper {};
+        template<> struct StaticCastHelper<float       , int         > { static _M128I cast(const _M128  &v) { return _mm_cvtps_epi32(v); } };
+        template<> struct StaticCastHelper<double      , int         > { static _M128I cast(const _M128D &v) { return _mm_cvtpd_epi32(v); } };
+        template<> struct StaticCastHelper<int         , int         > { static _M128I cast(const _M128I &v) { return v; } };
+        template<> struct StaticCastHelper<unsigned int, int         > { static _M128I cast(const _M128I &v) { return v; } };
+        template<> struct StaticCastHelper<float       , unsigned int> { static _M128I cast(const _M128  &v) { return _mm_cvtps_epi32(v); } };
+        template<> struct StaticCastHelper<double      , unsigned int> { static _M128I cast(const _M128D &v) { return _mm_cvtpd_epi32(v); } };
+        template<> struct StaticCastHelper<int         , unsigned int> { static _M128I cast(const _M128I &v) { return v; } };
+        template<> struct StaticCastHelper<unsigned int, unsigned int> { static _M128I cast(const _M128I &v) { return v; } };
+        template<> struct StaticCastHelper<float       , float       > { static _M128  cast(const _M128  &v) { return v; } };
+        template<> struct StaticCastHelper<double      , float       > { static _M128  cast(const _M128D &v) { return _mm_cvtpd_ps(v); } };
+        template<> struct StaticCastHelper<int         , float       > { static _M128  cast(const _M128I &v) { return _mm_cvtepi32_ps(v); } };
+        template<> struct StaticCastHelper<unsigned int, float       > { static _M128  cast(const _M128I &v) { return _mm_cvtepi32_ps(v); } };
+        template<> struct StaticCastHelper<float       , double      > { static _M128D cast(const _M128  &v) { return _mm_cvtps_pd(v); } };
+        template<> struct StaticCastHelper<double      , double      > { static _M128D cast(const _M128D &v) { return v; } };
+        template<> struct StaticCastHelper<int         , double      > { static _M128D cast(const _M128I &v) { return _mm_cvtepi32_pd(v); } };
+        template<> struct StaticCastHelper<unsigned int, double      > { static _M128D cast(const _M128I &v) { return _mm_cvtepi32_pd(v); } };
+
+        template<typename From, typename To> struct ReinterpretCastHelper {};
+        template<> struct ReinterpretCastHelper<float       , int         > { static _M128I cast(const _M128  &v) { return _mm_castps_si128(v); } };
+        template<> struct ReinterpretCastHelper<double      , int         > { static _M128I cast(const _M128D &v) { return _mm_castpd_si128(v); } };
+        template<> struct ReinterpretCastHelper<int         , int         > { static _M128I cast(const _M128I &v) { return v; } };
+        template<> struct ReinterpretCastHelper<unsigned int, int         > { static _M128I cast(const _M128I &v) { return v; } };
+        template<> struct ReinterpretCastHelper<float       , unsigned int> { static _M128I cast(const _M128  &v) { return _mm_castps_si128(v); } };
+        template<> struct ReinterpretCastHelper<double      , unsigned int> { static _M128I cast(const _M128D &v) { return _mm_castpd_si128(v); } };
+        template<> struct ReinterpretCastHelper<int         , unsigned int> { static _M128I cast(const _M128I &v) { return v; } };
+        template<> struct ReinterpretCastHelper<unsigned int, unsigned int> { static _M128I cast(const _M128I &v) { return v; } };
+        template<> struct ReinterpretCastHelper<float       , float       > { static _M128  cast(const _M128  &v) { return v; } };
+        template<> struct ReinterpretCastHelper<double      , float       > { static _M128  cast(const _M128D &v) { return _mm_castpd_ps(v); } };
+        template<> struct ReinterpretCastHelper<int         , float       > { static _M128  cast(const _M128I &v) { return _mm_castsi128_ps(v); } };
+        template<> struct ReinterpretCastHelper<unsigned int, float       > { static _M128  cast(const _M128I &v) { return _mm_castsi128_ps(v); } };
+        template<> struct ReinterpretCastHelper<float       , double      > { static _M128D cast(const _M128  &v) { return _mm_castps_pd(v); } };
+        template<> struct ReinterpretCastHelper<double      , double      > { static _M128D cast(const _M128D &v) { return v; } };
+        template<> struct ReinterpretCastHelper<int         , double      > { static _M128D cast(const _M128I &v) { return _mm_castsi128_pd(v); } };
+        template<> struct ReinterpretCastHelper<unsigned int, double      > { static _M128D cast(const _M128I &v) { return _mm_castsi128_pd(v); } };
 
         template<typename T> struct VectorHelper {};
 
@@ -174,13 +187,42 @@ namespace SSE
             static inline void store1(T *mem, TYPE x) { return _mm_store1_ps(reinterpret_cast<float *>(mem), CAT_HELPER(CAT_HELPER(_mm_cast, SUFFIX), _ps)(x)); } \
             static inline void store (T *mem, TYPE x) { return _mm_store_ps (reinterpret_cast<float *>(mem), CAT_HELPER(CAT_HELPER(_mm_cast, SUFFIX), _ps)(x)); } \
             static inline void storeStreaming(T *mem, TYPE x) { return _mm_stream_ps(reinterpret_cast<float *>(mem), CAT_HELPER(CAT_HELPER(_mm_cast, SUFFIX), _ps)(x)); }
-#define GATHER(T)
+#define GATHER(T) \
+            static inline void gather(TYPE &v, const _M128I &indexes, const T *baseAddr) { \
+                const int *const i = reinterpret_cast<const int *>(&indexes); \
+                v = CAT_HELPER(_mm_setr_, SUFFIX)(baseAddr[i[0]], baseAddr[i[1]], baseAddr[i[2]], baseAddr[i[3]]); \
+            } \
+            template<typename S> \
+            static inline void gather(TYPE &v, const _M128I &indexes, const S *baseAddr, const T S::* member1) { \
+                const int *const i = reinterpret_cast<const int *>(&indexes); \
+                v = CAT_HELPER(_mm_setr_, SUFFIX)(baseAddr[i[0]].*(member1), baseAddr[i[1]].*(member1), baseAddr[i[2]].*(member1), baseAddr[i[3]].*(member1)); \
+            } \
+            template<typename S1, typename S2> \
+            static inline void gather(TYPE &v, const _M128I &indexes, const S1 *baseAddr, const S2 S1::* member1, const T S2::* member2) { \
+                const int *const i = reinterpret_cast<const int *>(&indexes); \
+                v = CAT_HELPER(_mm_setr_, SUFFIX)(baseAddr[i[0]].*(member1).*(member2), baseAddr[i[1]].*(member1).*(member2), baseAddr[i[2]].*(member1).*(member2), baseAddr[i[3]].*(member1).*(member2)); \
+            }
 
         template<> struct VectorHelper<double> {
 #define TYPE _M128D
 #define SUFFIX pd
             LOAD(double)
             STORE(double)
+            static inline void gather(TYPE &v, const _M128I &indexes, const double *baseAddr) {
+                const int *const i = reinterpret_cast<const int *>(&indexes);
+                v = _mm_setr_pd(baseAddr[i[0]], baseAddr[i[1]]);
+            }
+            template<typename S>
+            static inline void gather(TYPE &v, const _M128I &indexes, const S *baseAddr, const double S::* member1) {
+                const int *const i = reinterpret_cast<const int *>(&indexes);
+                v = CAT_HELPER(_mm_setr_, SUFFIX)(baseAddr[i[0]].*(member1), baseAddr[i[1]].*(member1));
+            }
+            template<typename S1, typename S2>
+            static inline void gather(TYPE &v, const _M128I &indexes, const S1 *baseAddr, const S2 S1::* member1, const double S2::* member2) {
+                const int *const i = reinterpret_cast<const int *>(&indexes);
+                v = CAT_HELPER(_mm_setr_, SUFFIX)(baseAddr[i[0]].*(member1).*(member2), baseAddr[i[1]].*(member1).*(member2));
+            }
+
 
             static inline TYPE set(const double a) { return CAT_HELPER(_mm_set1_, SUFFIX)(a); }
             static inline TYPE set(const double a, const double b) { return CAT_HELPER(_mm_set_, SUFFIX)(a, b); }
@@ -238,12 +280,12 @@ namespace SSE
 #define SUFFIX si128
             LOAD_CAST(int)
             STORE_CAST(int)
-            GATHER(int)
 
             OP_(or_) OP_(and_) OP_(xor_)
             static inline void setZero(TYPE &v) { v = CAT_HELPER(_mm_setzero_, SUFFIX)(); }
 #undef SUFFIX
 #define SUFFIX epi32
+            GATHER(int)
 
             static inline TYPE set(const int a) { return CAT_HELPER(_mm_set1_, SUFFIX)(a); }
             static inline TYPE set(const int a, const int b, const int c, const int d) { return CAT_HELPER(_mm_set_, SUFFIX)(a, b, c, d); }
@@ -310,7 +352,6 @@ namespace SSE
 #define SUFFIX si128
             LOAD_CAST(unsigned int)
             STORE_CAST(unsigned int)
-            GATHER(unsigned int)
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
             static inline void setZero(TYPE &v) { v = CAT_HELPER(_mm_setzero_, SUFFIX)(); }
 
@@ -344,6 +385,7 @@ namespace SSE
 
 #undef SUFFIX
 #define SUFFIX epi32
+            GATHER(unsigned int)
             static inline TYPE set(const unsigned int a) { return CAT_HELPER(_mm_set1_, SUFFIX)(a); }
             static inline TYPE set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) { return CAT_HELPER(_mm_set_, SUFFIX)(a, b, c, d); }
 
@@ -371,6 +413,8 @@ namespace SSE
 namespace VectorSpecialInitializerZero { enum Enum { Zero }; }
 namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
 
+class Mask;
+extern bool isFullMask(const Mask &);
 class Mask : public VectorBase<int, Mask>
 {
     friend struct VectorBase<int, Mask>;
@@ -378,18 +422,24 @@ class Mask : public VectorBase<int, Mask>
         _M128I data;
     public:
         enum { Size = 16 / sizeof(int) };
-        Mask() {}
-        Mask(const __m128 &x) : data(_mm_castps_si128(x)) {}
-        Mask(const __m128d &x) : data(_mm_castpd_si128(x)) {}
-        Mask(const __m128i &x) : data(x) {}
+        inline Mask() : data(*reinterpret_cast<const _M128I *>(_FullMaskData)) {}
+        inline Mask(const __m128 &x) : data(_mm_castps_si128(x)) {}
+        inline Mask(const __m128d &x) : data(_mm_castpd_si128(x)) {}
+        inline Mask(const __m128i &x) : data(x) {}
 
-        operator bool() const {
+        inline operator const Vector<int> &() const { return *reinterpret_cast<const Vector<int> *>(this); }
+        inline operator bool() const {
             const unsigned long long int *x = reinterpret_cast<const unsigned long long int *>( &data );
             return x[0] || x[1];
         }
+        inline bool operator==(const Mask &m) const {
+            const unsigned long long int *x1 = reinterpret_cast<const unsigned long long int *>( &data );
+            const unsigned long long int *x2 = reinterpret_cast<const unsigned long long int *>( &m.data );
+            return x1[0] == x2[0] && x1[1] == x2[1];
+        }
 };
-static const Mask &kOneMask = *reinterpret_cast<const Mask *const>(_kOneMaskData);
-static const Mask &kFullMask = *reinterpret_cast<const Mask *const>(_kFullMaskData);
+static const Mask &OneMask = *reinterpret_cast<const Mask *const>(_OneMaskData);
+static const Mask &FullMask = *reinterpret_cast<const Mask *const>(_FullMaskData);
 
 template<typename T>
 class Vector : public VectorBase<T, Vector<T> >
@@ -413,6 +463,7 @@ class Vector : public VectorBase<T, Vector<T> >
          * initialize with given _M128 vector
          */
         inline Vector(const IntrinType &x) : data(x) {}
+        inline Vector(const Mask &m) : data(m) {}
         /**
          * initialize all 16 or 8 values with the given value
          */
@@ -475,54 +526,38 @@ class Vector : public VectorBase<T, Vector<T> >
         inline const Vector<T> dddd() const { return _mm_shuffle_epi32(data, _MM_SHUFFLE(3, 3, 3, 3)); }
         inline const Vector<T> dbac() const { return _mm_shuffle_epi32(data, _MM_SHUFFLE(3, 1, 0, 2)); }
 
-        Vector(const T &member, const Vector<int> &indexes)
-        {
-            VectorHelper<T>::gather(data, indexes, &member);
+        inline Vector(const T *array, const Vector<int> &indexes) { VectorHelper<T>::gather(data, indexes, array); }
+        inline Vector(const T *array, const Vector<int> &indexes, const Mask &m) {
+            VectorHelper<T>::gather(data, indexes & Vector<int>(m), array);
         }
-
-        void gather(const T &member, const Vector<int> &indexes)
-        {
-            VectorHelper<T>::gather(data, indexes, &member);
+        inline void gather(const T *array, const Vector<int> &indexes) { VectorHelper<T>::gather(data, indexes, array); }
+        inline void gather(const T *array, const Vector<int> &indexes, const Mask &m) {
+            VectorHelper<T>::gather(data, indexes & Vector<int>(m), array);
         }
 
         /**
          * \param array An array of objects where one member should be gathered
-         * \param member A member pointer to the member of the class/struct that should be gathered
+         * \param member1 A member pointer to the member of the class/struct that should be gathered
          * \param indexes The indexes in the array. The correct offsets are calculated
          *                automatically.
          * \param mask Optional mask to select only parts of the vector that should be gathered
          */
-        template<typename S>
-        Vector(const S *array, const T S::* member, const Vector<int> &_indexes, const Mask &mask = Mask(), unsigned int arrayStride = sizeof(S))
-        {
-            // i array contains four indexes that are non-zero only when the corresponding element
-            // in mask is set
-//X             Vector<int> indexes(_indexes);
-//X             indexes *= (mask & kOneMask);
-//X             indexes *= arrayStride;
-            const Vector<int> &indexes = _indexes * (mask & kOneMask) * arrayStride;
-            const int *const i = reinterpret_cast<const int *>(static_cast<const _M128>(indexes));
-            const char *const m = reinterpret_cast<const char *>(&(array->*(member)));
-            data = VectorHelper<T>::set(*(m + arrayStride * i[0]), *(m + arrayStride * i[1]), *(m + arrayStride * i[2]), *(m + arrayStride * i[3]));
+        template<typename S> inline Vector(const S *array, const T S::* member1,
+                const Vector<int> &indexes, const Mask &mask = Mask()) {
+            VectorHelper<T>::gather(data, (indexes & Vector<int>(mask)), array, member1);
         }
-
-        template<typename S1, typename S2>
-        Vector(const S1 *array, const S2 S1::* member1, const T S2::* member2, const Vector<int> &indexes, Mask = Mask(), unsigned int arrayStride = sizeof(S1))
-        // mask is ignored here because it's too expensive to use
-        {
-            const int *const i = reinterpret_cast<const int *>(static_cast<const _M128>(indexes));
-            const T *m = &(array->*(member1).*(member2));
-            arrayStride /= sizeof(T);
-            data = VectorHelper<T>::set(*(m + arrayStride * i[0]), *(m + arrayStride * i[1]), *(m + arrayStride * i[2]), *(m + arrayStride * i[3]));
+        template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, const Vector<int> &indexes, const Mask &mask = Mask()) {
+            VectorHelper<T>::gather(data, (indexes & Vector<int>(mask)), array, member1, member2);
         }
-
-        /*
-        template<typename S>
-        void gather(const S *array, const T S::* member, const Vector<int> &indexes, unsigned int arrayStride = sizeof(S))
-        {
-            const Vector<int> &offsets = indexes * arrayStride;
-            VectorHelper<T>::gather(data, offsets, &(array->*(member)), mask);
-        }*/
+        template<typename S> inline void gather(const S *array, const T S::* member1,
+                const Vector<int> &indexes, const Mask &mask = Mask()) {
+            VectorHelper<T>::gather(data, (indexes & Vector<int>(mask)), array, member1);
+        }
+        template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, const Vector<int> &indexes, const Mask &mask = Mask()) {
+            VectorHelper<T>::gather(data, (indexes & Vector<int>(mask)), array, member1, member2);
+        }
 
         //prefix
         inline Vector &operator++() { data = VectorHelper<T>::add(data, Vector<T>(1)); return *this; }
@@ -530,9 +565,8 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector operator++(int) { const Vector<T> r = *this; data = VectorHelper<T>::add(data, Vector<T>(1)); return r; }
 
         inline T operator[](int index) const {
-            ALIGN(64) T ret[Size];
-            VectorHelper<T>::store(ret, data);
-            return ret[index];
+            const T *const x = reinterpret_cast<const T *>(&data);
+            return x[index];
         }
 
 #define OP1(fun) \
@@ -576,7 +610,8 @@ class Vector : public VectorBase<T, Vector<T> >
           // TODO
         }
 
-        template<typename T2> inline Vector<T2> cast() const { return CastHelper<T, T2>::cast(data); }
+        template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data); }
+        template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data); }
 };
 
 static inline Mask maskNthElement( int n ) {
@@ -615,10 +650,6 @@ template<typename T> inline Mask  operator!=(const T &x, const Vector<T> &v) { r
 #undef OP_IMPL
 #undef ALIGN
 
-  template<> inline Vector<float> VectorBase<int, Vector<int> >::toFloat() const { return Vector<float>(_mm_cvtepi32_ps(static_cast<const Vector<int> *>(this)->data)); }
-  template<> inline Vector<float> VectorBase<unsigned int, Vector<unsigned int> >::toFloat() const { return Vector<float>(_mm_cvtepi32_ps(static_cast<const Vector<unsigned int> *>(this)->data)); }
-  template<> inline Vector<int> VectorBase<float, Vector<float> >::toInt() const { return Vector<int>(_mm_cvtps_epi32(static_cast<const Vector<float> *>(this)->data)); }
-  template<> inline Vector<unsigned int> VectorBase<float, Vector<float> >::toUInt() const { return Vector<unsigned int>(_mm_cvtps_epi32(static_cast<const Vector<float> *>(this)->data)); }
 #undef PARENT_DATA_CONST
 #undef PARENT_DATA
 

@@ -36,7 +36,7 @@ namespace Vc
   using ::Larrabee::Vector;
   using ::Larrabee::SwizzledVector;
   using ::Larrabee::Mask;
-  using ::Larrabee::kFullMask;
+  using ::Larrabee::FullMask;
   using ::Larrabee::VectorAlignment;
   using namespace ::Larrabee::VectorSpecialInitializerZero;
   using namespace ::Larrabee::VectorSpecialInitializerRandom;
@@ -51,7 +51,7 @@ namespace Vc
   using ::SSE::Vector;
   using ::SSE::SwizzledVector;
   using ::SSE::Mask;
-  using ::SSE::kFullMask;
+  using ::SSE::FullMask;
   using ::SSE::VectorAlignment;
   using namespace ::SSE::VectorSpecialInitializerZero;
   using namespace ::SSE::VectorSpecialInitializerRandom;
@@ -66,7 +66,7 @@ namespace Vc
   using ::Simple::Vector;
   using ::Simple::SwizzledVector;
   using ::Simple::Mask;
-  using ::Simple::kFullMask;
+  using ::Simple::FullMask;
   using ::Simple::VectorAlignment;
   using namespace ::Simple::VectorSpecialInitializerZero;
   using namespace ::Simple::VectorSpecialInitializerRandom;
@@ -128,7 +128,7 @@ namespace Vc
 #  define ALIGN(n) __declspec(align(n))
 # endif
 #endif
-  ALIGN( 16 ) static const PackedIndexes kIndexesFromZero[int_v::Size] = {
+  ALIGN( 16 ) static const PackedIndexes IndexesFromZero[int_v::Size] = {
 #ifdef __LRB__
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
 #elif USE_SSE
