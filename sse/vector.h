@@ -414,10 +414,15 @@ namespace VectorSpecialInitializerZero { enum Enum { Zero }; }
 namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
 
 class Mask;
-extern bool isFullMask(const Mask &);
+extern bool cmpeq32_64(const Mask &, const Mask &);
 class Mask : public VectorBase<int, Mask>
 {
     friend struct VectorBase<int, Mask>;
+    friend inline bool cmpeq32_64(const Mask &m1, const Mask &m2) {
+        // ps gives 4 bits (MSB from 4 32bit values)
+        // pd gives 2 bits (MSB from 2 64bit values)
+        return (_mm_movemask_ps(_mm_castsi128_ps(m1.data)) & 3) == _mm_movemask_pd(_mm_castsi128_pd(m2.data));
+    }
     protected:
         _M128I data;
     public:
@@ -429,17 +434,24 @@ class Mask : public VectorBase<int, Mask>
 
         inline operator const Vector<int> &() const { return *reinterpret_cast<const Vector<int> *>(this); }
         inline operator bool() const {
-            const unsigned long long int *x = reinterpret_cast<const unsigned long long int *>( &data );
-            return x[0] || x[1];
+            // _mm_movemask_epi8 creates a 16 bit mask containing the most significant bit of every byte in data
+            return _mm_movemask_epi8(data);
         }
         inline bool operator==(const Mask &m) const {
-            const unsigned long long int *x1 = reinterpret_cast<const unsigned long long int *>( &data );
-            const unsigned long long int *x2 = reinterpret_cast<const unsigned long long int *>( &m.data );
-            return x1[0] == x2[0] && x1[1] == x2[1];
+            return _mm_movemask_epi8(data) == _mm_movemask_epi8(m.data);
         }
 };
 static const Mask &OneMask = *reinterpret_cast<const Mask *const>(_OneMaskData);
 static const Mask &FullMask = *reinterpret_cast<const Mask *const>(_FullMaskData);
+static inline Mask maskNthElement( int n ) {
+    ALIGN(16) union
+    {
+        int i[4];
+        _M128I m;
+    } x = { { 0, 0, 0, 0 } };
+    x.i[n] = 0xffffffff;
+    return x.m;
+}
 
 template<typename T>
 class Vector : public VectorBase<T, Vector<T> >
@@ -613,16 +625,6 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data); }
         template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data); }
 };
-
-static inline Mask maskNthElement( int n ) {
-    ALIGN(16) union
-    {
-        int i[4];
-        _M128I m;
-    } x = { { 0, 0, 0, 0 } };
-    x.i[n] = 0xffffffff;
-    return x.m;
-}
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 

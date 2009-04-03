@@ -98,6 +98,7 @@ namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
 typedef bool Mask;
 static const Mask FullMask = true;
 static inline Mask maskNthElement( int n ) { return 0 == n; }
+static inline bool cmpeq32_64(const Mask &m1, const Mask &m2) { return m1 == m2; }
 
 template<typename T>
 class Vector : public VectorBase<T, Vector<T> >

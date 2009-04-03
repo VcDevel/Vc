@@ -47,6 +47,7 @@ namespace Vc
   using ::Larrabee::sin;
   using ::Larrabee::cos;
   using ::Larrabee::maskNthElement;
+  using ::Larrabee::cmpeq32_64;
 #elif USE_SSE
   using ::SSE::Vector;
   using ::SSE::SwizzledVector;
@@ -62,6 +63,7 @@ namespace Vc
   using ::SSE::sin;
   using ::SSE::cos;
   using ::SSE::maskNthElement;
+  using ::SSE::cmpeq32_64;
 #else
   using ::Simple::Vector;
   using ::Simple::SwizzledVector;
@@ -77,6 +79,7 @@ namespace Vc
   using ::Simple::sin;
   using ::Simple::cos;
   using ::Simple::maskNthElement;
+  using ::Simple::cmpeq32_64;
 #endif
 
   typedef Vector<double> double_v;
