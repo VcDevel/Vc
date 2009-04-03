@@ -32,6 +32,8 @@ endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+add_library(vector STATIC vector.cpp)
+
 add_subdirectory(tests)
 enable_testing()
 

@@ -320,11 +320,6 @@ template<typename T> inline Mask  operator!=(const T &x, const Vector<T> &v) { r
   template<typename T> static inline Simple::Vector<T> abs (const Simple::Vector<T> &x) { return std::abs( x.data() ); }
   template<typename T> static inline Simple::Vector<T> sin (const Simple::Vector<T> &x) { return std::sin( x.data() ); }
   template<typename T> static inline Simple::Vector<T> cos (const Simple::Vector<T> &x) { return std::cos( x.data() ); }
-
-  template<> const int VectorBase<int, Vector<int> >::IndexesFromZero[1] = { 0 };
-  template<> const unsigned int VectorBase<unsigned int, Vector<unsigned int> >::IndexesFromZero[1] = { 0 };
-  template<> const short VectorBase<short, Vector<short> >::IndexesFromZero[1] = { 0 };
-  template<> const unsigned short VectorBase<unsigned short, Vector<unsigned short> >::IndexesFromZero[1] = { 0 };
 } // namespace Simple
 
 #endif // SIMPLE_VECTOR_H

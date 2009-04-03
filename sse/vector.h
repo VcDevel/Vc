@@ -962,12 +962,6 @@ template<typename T> inline Mask  operator!=(const T &x, const Vector<T> &v) { r
   template<typename T> static inline Vector<T> abs (const Vector<T> &x) { return VectorHelper<T>::abs(x); }
   template<typename T> static inline Vector<T> sin (const Vector<T> &x) { return VectorHelper<T>::sin(x); }
   template<typename T> static inline Vector<T> cos (const Vector<T> &x) { return VectorHelper<T>::cos(x); }
-
-  template<> ALIGN(16) const int VectorBase<int, Vector<int> >::IndexesFromZero[Vector<int>::Size] = { 0, 1, 2, 3 };
-  template<> ALIGN(16) const int VectorBase<int, Mask>::IndexesFromZero[Mask::Size] = { 0, 1, 2, 3 };
-  template<> ALIGN(16) const unsigned int VectorBase<unsigned int, Vector<unsigned int> >::IndexesFromZero[Vector<unsigned int>::Size] = { 0, 1, 2, 3 };
-  template<> ALIGN(16) const short VectorBase<short, Vector<short> >::IndexesFromZero[Vector<short>::Size] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-  template<> ALIGN(16) const unsigned short VectorBase<unsigned short, Vector<unsigned short> >::IndexesFromZero[Vector<unsigned short>::Size] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 #undef ALIGN
 } // namespace SSE
 
