@@ -391,6 +391,153 @@ namespace SSE
             static inline TYPE set(const float a, const float b, const float c, const float d) { return CAT_HELPER(_mm_set_, SUFFIX)(a, b, c, d); }
             static inline void setZero(TYPE &v) { v = CAT_HELPER(_mm_setzero_, SUFFIX)(); }
 
+            static void pack(TYPE &v1, _M128I &_m1, TYPE &v2, _M128I &_m2) {
+                // there are 256 different m1.m2 combinations
+                TYPE &m1 = reinterpret_cast<TYPE &>(_m1);
+                TYPE &m2 = reinterpret_cast<TYPE &>(_m2);
+                const int m1Mask = _mm_movemask_ps(m1);
+                switch (m1Mask) {
+                case 15: // v1 is full, nothing to do
+                    return true;
+                // 240 left
+                case 0:  // v1 is empty, take v2
+                    m1 = m2;
+                    v1 = v2;
+                    setZero(m2);
+                    return _mm_movemask_ps(m1) == 15;
+                // 224 left
+                default:
+                    {
+                        TYPE tmp;
+                        const int m2Mask = _mm_movemask_ps(m2);
+                        switch (m2Mask) {
+                        case 15: // v2 is full, just swap
+                            tmp = v1;
+                            v1 = v2;
+                            v2 = tmp;
+                            tmp = m1;
+                            m1 = m2;
+                            m2 = tmp;
+                            return true;
+                // 210 left
+                        case 0: // v2 is empty, nothing to be gained from packing
+                            return false;
+                // 196 left
+                        case 0: // v2 is empty, nothing to be gained from packing
+                        }
+                        // m1 and m2 are neither full nor empty
+                        tmp = _mm_or_ps(m1, m2);
+                        const int m3Mask = _mm_movemask_ps(tmp);
+                        // m3Mask tells use where both vectors have no entries
+                        const int m4Mask = _mm_movemask_ps(_mm_and_ps(m1, m2));
+                        // m3Mask tells use where both vectors have entries
+                        if (m4Mask == 0 || m3Mask == 15) {
+                            // m4Mask == 0: No overlap, simply move all we can from v2 into v1.
+                            //              Empties v2.
+                            // m3Mask == 15: Simply merge the parts from v2 into v1 where v1 is
+                            //               empty.
+                            const TYPE m2Move = _mm_andnot_ps(m1, m2); // the part to be moved into v1
+                            v1 = _mm_add_ps(
+                                    _mm_and_ps(v1, m1),
+                                    _mm_and_ps(v2, m2Move)
+                                    );
+                            m1 = tmp;
+                            m2 = _mm_andnot_ps(m2Move, m2);
+                            return m3Mask == 15;
+                // 
+                        }
+                        if ((m4Mask & 3) == 3) {
+                            // the high values are available
+                            tmp = _mm_unpackhi_ps(v1, v2);
+                            v2  = _mm_unpacklo_ps(v1, v2);
+                            v1  = tmp;
+                            tmp = _mm_unpackhi_ps(m1, m2);
+                            m2  = _mm_unpacklo_ps(m1, m2);
+                            m1  = tmp;
+                            return true;
+                        }
+                        if ((m4Mask & 12) == 12) {
+                            // the low values are available
+                            tmp = _mm_unpacklo_ps(v1, v2);
+                            v2  = _mm_unpackhi_ps(v1, v2);
+                            v1  = tmp;
+                            tmp = _mm_unpacklo_ps(m1, m2);
+                            m2  = _mm_unpackhi_ps(m1, m2);
+                            m1  = tmp;
+                            return true;
+                        }
+                        if ((m4Mask & 5) == 5) {
+                            tmp = _mm_shuffle_ps(v1, v2, _MM_SHUFFLE(0, 2, 0, 2));
+                            v2  = _mm_shuffle_ps(v1, v2, _MM_SHUFFLE(1, 3, 1, 3));
+                            v1  = tmp;
+                            tmp = _mm_shuffle_ps(m1, m2, _MM_SHUFFLE(0, 2, 0, 2));
+                            m2  = _mm_shuffle_ps(m1, m2, _MM_SHUFFLE(1, 3, 1, 3));
+                            m1  = tmp;
+                            return true;
+                        }
+                        if ((m4Mask & 6) == 6) {
+                            tmp = _mm_shuffle_ps(v1, v2, _MM_SHUFFLE(1, 2, 1, 2));
+                            v2  = _mm_shuffle_ps(v1, v2, _MM_SHUFFLE(0, 3, 0, 3));
+                            v1  = tmp;
+                            tmp = _mm_shuffle_ps(m1, m2, _MM_SHUFFLE(1, 2, 1, 2));
+                            m2  = _mm_shuffle_ps(m1, m2, _MM_SHUFFLE(0, 3, 0, 3));
+                            m1  = tmp;
+                            return true;
+                        }
+                        if ((m4Mask & 9) == 9) {
+                            tmp = _mm_shuffle_ps(v1, v2, _MM_SHUFFLE(0, 3, 0, 3));
+                            v2  = _mm_shuffle_ps(v1, v2, _MM_SHUFFLE(1, 2, 1, 2));
+                            v1  = tmp;
+                            tmp = _mm_shuffle_ps(m1, m2, _MM_SHUFFLE(0, 3, 0, 3));
+                            m2  = _mm_shuffle_ps(m1, m2, _MM_SHUFFLE(1, 2, 1, 2));
+                            m1  = tmp;
+                            return true;
+                        }
+                        if ((m4Mask & 10) == 10) {
+                            tmp = _mm_shuffle_ps(v1, v2, _MM_SHUFFLE(1, 3, 1, 3));
+                            v2  = _mm_shuffle_ps(v1, v2, _MM_SHUFFLE(0, 2, 0, 2));
+                            v1  = tmp;
+                            tmp = _mm_shuffle_ps(m1, m2, _MM_SHUFFLE(1, 3, 1, 3));
+                            m2  = _mm_shuffle_ps(m1, m2, _MM_SHUFFLE(0, 2, 0, 2));
+                            m1  = tmp;
+                            return true;
+                        }
+                        float *const vv1 = reinterpret_cast<float *>(&v1);
+                        float *const vv2 = reinterpret_cast<float *>(&v2);
+                        unsigned int *const mm1 = reinterpret_cast<unsigned int *>(&_m1);
+                        unsigned int *const mm2 = reinterpret_cast<unsigned int *>(&_m2);
+                        int j = 0;
+                        for (int i = 0; i < 4; ++i) {
+                            if (!(m1Mask & (1 << i))) { // v1 entry not set, take the first from v2
+                                while (j < 4 && !(m2Mask & (1 << j))) {
+                                    ++j;
+                                }
+                                if (j < 4) {
+                                    vv1[i] = vv2[j];
+                                    mm1[i] = 0xffffffff;
+                                    mm2[j] = 0;
+                                    ++j;
+                                }
+                            }
+                        }
+                        return _mm_movemask_ps(m1) == 15;
+//X                         // m4Mask has exactly one bit set
+//X                         switch (m4Mask) {
+//X                         case 1:
+//X                             // x___    xx__    xx__    xx__    xxx_    x_x_    x_x_    x_xx    x__x  + mirrored horizontally
+//X                             // x___    x___    x_x_    x__x    x___    x___    x__x    x___    x___
+//X                             break;
+//X                         case 2:
+//X                             break;
+//X                         case 4:
+//X                             break;
+//X                         case 8:
+//X                             break;
+//X                         }
+                    }
+                }
+            }
+
             static inline void multiplyAndAdd(TYPE &v1, TYPE v2, TYPE v3) { v1 = add(mul(v1, v2), v3); }
 
             OP(add) OP(sub) OP(mul) OP(div)
@@ -906,6 +1053,15 @@ class Vector : public VectorBase<T, Vector<T> >
 
         template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data); }
         template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data); }
+
+        /**
+         * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have
+         *                  to test this.
+         *         \p false This vector was not completely filled. m2 is all 0.
+         */
+        inline bool pack(Mask &m1, Vector<T> &v2, Mask &m2) {
+            return VectorHelper<T>::pack(data, m1, v2.data, m2);
+        }
 };
 
 template<typename T> class SwizzledVector : public Vector<T> {};

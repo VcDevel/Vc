@@ -262,6 +262,16 @@ class Vector : public VectorBase<T, Vector<T> >
 
         template<typename T2> inline Vector<T2> staticCast() const { return static_cast<T2>(m_data); }
         template<typename T2> inline Vector<T2> reinterpretCast() const { return reinterpret_cast<T2>(m_data); }
+
+        inline bool pack(Mask &m1, Vector<T> &v2, Mask &m2) {
+            if (!m1 && m2) {
+                m_data = v2.m_data;
+                m1 = true;
+                m2 = false;
+                return true;
+            }
+            return m1;
+        }
 };
 
 template<typename T> class SwizzledVector : public Vector<T> {};
