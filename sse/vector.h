@@ -391,7 +391,7 @@ namespace SSE
             static inline TYPE set(const float a, const float b, const float c, const float d) { return CAT_HELPER(_mm_set_, SUFFIX)(a, b, c, d); }
             static inline void setZero(TYPE &v) { v = CAT_HELPER(_mm_setzero_, SUFFIX)(); }
 
-            static void pack(TYPE &v1, _M128I &_m1, TYPE &v2, _M128I &_m2) {
+            static bool pack(TYPE &v1, _M128I &_m1, TYPE &v2, _M128I &_m2) {
                 // there are 256 different m1.m2 combinations
                 TYPE &m1 = reinterpret_cast<TYPE &>(_m1);
                 TYPE &m2 = reinterpret_cast<TYPE &>(_m2);
@@ -423,7 +423,6 @@ namespace SSE
                         case 0: // v2 is empty, nothing to be gained from packing
                             return false;
                 // 196 left
-                        case 0: // v2 is empty, nothing to be gained from packing
                         }
                         // m1 and m2 are neither full nor empty
                         tmp = _mm_or_ps(m1, m2);
