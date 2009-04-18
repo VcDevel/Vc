@@ -25,6 +25,24 @@
 
 using namespace Vc;
 
+template<typename Vec> void checkAlignment()
+{
+    std::cout << sizeof(Vec) << std::endl;
+    unsigned char i = 1;
+    Vec a[10];
+    unsigned long mask = VectorAlignment - 1;
+    if (Vec::Size == 1 && sizeof(typename Vec::Type) != VectorAlignment) {
+        mask = sizeof(typename Vec::Type) - 1;
+    }
+    for (i = 0; i < 10; ++i) {
+        VERIFY((reinterpret_cast<unsigned long>(&a[i]) & mask) == 0);
+    }
+    const char *data = reinterpret_cast<const char *>(&a[0]);
+    for (i = 0; i < 10; ++i) {
+        VERIFY(&data[i * Vec::Size * sizeof(typename Vec::Type)] == reinterpret_cast<const char *>(&a[i]));
+    }
+}
+
 template<typename Vec> void loadArray()
 {
     typedef typename Vec::Type T;
@@ -77,6 +95,12 @@ template<typename Vec> void loadArrayShort()
 
 int main()
 {
+    runTest(checkAlignment<int_v>);
+    runTest(checkAlignment<uint_v>);
+    runTest(checkAlignment<float_v>);
+    runTest(checkAlignment<double_v>);
+    runTest(checkAlignment<short_v>);
+    runTest(checkAlignment<ushort_v>);
     runTest(loadArray<int_v>);
     runTest(loadArray<uint_v>);
     runTest(loadArray<float_v>);
