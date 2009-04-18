@@ -25,11 +25,19 @@
 #include <algorithm>
 #include <cmath>
 
+#ifndef ALIGN
+# ifdef __GNUC__
+#  define ALIGN(n) __attribute__((aligned(n)))
+# else
+#  define ALIGN(n) __declspec(align(n))
+# endif
+#endif
+
 namespace Simple
 {
     namespace { template<typename T1> void UNUSED_PARAM1( const T1 & ) {} }
 
-    enum { VectorAlignment = 8 };
+    enum { VectorAlignment = 4 };
 
     template<typename T> class Vector;
 
