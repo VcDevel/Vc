@@ -45,7 +45,7 @@ namespace Simple
 #define PARENT_DATA_CONST (static_cast<const Parent *>(this)->m_data)
     template<typename T, typename Parent> struct VectorBase {};
 
-#define OP_DECL(symbol, fun) \
+#define OP_DECL(symbol) \
         inline Vector<T> &operator symbol##=(const Vector<T> &x); \
         inline Vector<T> &operator symbol##=(const T &x); \
         inline Vector<T> operator symbol(const Vector<T> &x) const; \
@@ -53,36 +53,44 @@ namespace Simple
     template<typename Parent> struct VectorBase<int, Parent>
     {
 #define T int
-        OP_DECL(|, or_)
-        OP_DECL(&, and_)
-        OP_DECL(^, xor_)
+        OP_DECL(|)
+        OP_DECL(&)
+        OP_DECL(^)
+        OP_DECL(<<)
+        OP_DECL(>>)
 #undef T
         static const int IndexesFromZero[1];
     };
     template<typename Parent> struct VectorBase<unsigned int, Parent>
     {
 #define T unsigned int
-        OP_DECL(|, or_)
-        OP_DECL(&, and_)
-        OP_DECL(^, xor_)
+        OP_DECL(|)
+        OP_DECL(&)
+        OP_DECL(^)
+        OP_DECL(<<)
+        OP_DECL(>>)
 #undef T
         static const unsigned int IndexesFromZero[1];
     };
     template<typename Parent> struct VectorBase<short, Parent>
     {
 #define T short
-        OP_DECL(|, or_)
-        OP_DECL(&, and_)
-        OP_DECL(^, xor_)
+        OP_DECL(|)
+        OP_DECL(&)
+        OP_DECL(^)
+        OP_DECL(<<)
+        OP_DECL(>>)
 #undef T
         static const short IndexesFromZero[1];
     };
     template<typename Parent> struct VectorBase<unsigned short, Parent>
     {
 #define T unsigned short
-        OP_DECL(|, or_)
-        OP_DECL(&, and_)
-        OP_DECL(^, xor_)
+        OP_DECL(|)
+        OP_DECL(&)
+        OP_DECL(^)
+        OP_DECL(<<)
+        OP_DECL(>>)
 #undef T
         static const unsigned short IndexesFromZero[1];
     };
@@ -297,31 +305,39 @@ template<typename T> inline Mask  operator!=(const T &x, const Vector<T> &v) { r
 
 #define PARENT_DATA (static_cast<Vector<T> *>(this)->m_data)
 #define PARENT_DATA_CONST (static_cast<const Vector<T> *>(this)->m_data)
-#define OP_IMPL(symbol, fun) \
+#define OP_IMPL(symbol) \
   template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const Vector<T> &x) { PARENT_DATA symbol##= x.m_data; return *static_cast<Vector<T> *>(this); } \
   template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const T &x) { return operator symbol##=(Vector<T>(x)); } \
   template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const Vector<T> &x) const { return Vector<T>(PARENT_DATA_CONST symbol x.m_data); } \
   template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
 
 #define T int
-  OP_IMPL(&, and_)
-  OP_IMPL(|, or_)
-  OP_IMPL(^, xor_)
+  OP_IMPL(&)
+  OP_IMPL(|)
+  OP_IMPL(^)
+  OP_IMPL(<<)
+  OP_IMPL(>>)
 #undef T
 #define T unsigned int
-  OP_IMPL(&, and_)
-  OP_IMPL(|, or_)
-  OP_IMPL(^, xor_)
+  OP_IMPL(&)
+  OP_IMPL(|)
+  OP_IMPL(^)
+  OP_IMPL(<<)
+  OP_IMPL(>>)
 #undef T
 #define T short
-  OP_IMPL(&, and_)
-  OP_IMPL(|, or_)
-  OP_IMPL(^, xor_)
+  OP_IMPL(&)
+  OP_IMPL(|)
+  OP_IMPL(^)
+  OP_IMPL(<<)
+  OP_IMPL(>>)
 #undef T
 #define T unsigned short
-  OP_IMPL(&, and_)
-  OP_IMPL(|, or_)
-  OP_IMPL(^, xor_)
+  OP_IMPL(&)
+  OP_IMPL(|)
+  OP_IMPL(^)
+  OP_IMPL(<<)
+  OP_IMPL(>>)
 #undef T
 #undef OP_IMPL
 #undef ALIGN

@@ -21,6 +21,7 @@
 #include "../vector.h"
 #include "unittest.h"
 #include <iostream>
+#include <cstring>
 #include "vecio.h"
 
 using namespace Vc;
@@ -33,7 +34,7 @@ template<typename Vec> void storeArray()
     T array[count];
     // do the memset to make sure the array doesn't have the old data from a previous call which
     // would mask a real problem
-    memset(array, 0xff, count * sizeof(T));
+    std::memset(array, 0xff, count * sizeof(T));
     T xValue = 1;
     const Vec x(xValue);
     for (int i = 0; i < count; i += Vec::Size) {

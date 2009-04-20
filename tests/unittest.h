@@ -29,7 +29,7 @@
 #define runTest(name) _unit_test_global.runTestInt(&name, #name)
 
 typedef void (*testFunction)();
-static class _UnitTest_Global_Object
+class _UnitTest_Global_Object
 {
     public:
         _UnitTest_Global_Object()
@@ -56,7 +56,9 @@ static class _UnitTest_Global_Object
     private:
         int failedTests;
         int passedTests;
-} _unit_test_global;
+};
+
+static _UnitTest_Global_Object _unit_test_global;
 
 void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
 {
@@ -74,7 +76,7 @@ void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
 
 template<typename T> static inline void setFuzzyness( T );
 
-template<> static inline void setFuzzyness<float>( float fuzz ) { _unit_test_global.float_fuzzyness = fuzz; }
+template<> inline void setFuzzyness<float>( float fuzz ) { _unit_test_global.float_fuzzyness = fuzz; }
 
 #define VERIFY(cond) if (cond) {} else { std::cout << "       " << #cond << " at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
 
@@ -84,22 +86,22 @@ static inline bool unittest_compareHelper( const T &a, const T &b )
   return a == b;
 }
 
-template<> static inline bool unittest_compareHelper<float>( const float &a, const float &b )
+template<> inline bool unittest_compareHelper<float>( const float &a, const float &b )
 {
   return ( a * ( 1.f + _unit_test_global.float_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) <= b );
 }
 
-template<> static inline bool unittest_compareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b )
+template<> inline bool unittest_compareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b )
 {
   return ( a * ( 1.f + _unit_test_global.float_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) <= b );
 }
 
-template<> static inline bool unittest_compareHelper<double>( const double &a, const double &b )
+template<> inline bool unittest_compareHelper<double>( const double &a, const double &b )
 {
   return ( a * ( 1. + 1.e-20 ) >= b ) && ( a * ( 1. - 1.e-20 ) <= b );
 }
 
-template<> static inline bool unittest_compareHelper<Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b )
+template<> inline bool unittest_compareHelper<Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b )
 {
   return ( a * ( 1. + 1.e-20 ) >= b ) && ( a * ( 1. - 1.e-20 ) <= b );
 }
@@ -117,9 +119,10 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
         }
     }
 }
-#ifndef assert
-#define assert(cond) unittest_assert(cond, #cond, __FILE__, __LINE__)
+#ifdef assert
+#undef assert
 #endif
+#define assert(cond) unittest_assert(cond, #cond, __FILE__, __LINE__)
 
 #define EXPECT_ASSERT_FAILURE(code) \
     _unit_test_global.expect_assert_failure = true; \

@@ -28,7 +28,9 @@
 // SSE2
 #include <emmintrin.h>
 // SSE3
+#ifdef __SSE3__
 #include <pmmintrin.h>
+#endif
 // SSSE3
 #ifdef __SSSE3__
 #include <tmmintrin.h>

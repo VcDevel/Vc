@@ -111,7 +111,7 @@ template<typename Vec> void testAnd()
     VERIFY(FullMask == ((a & 0xf) == b));
     Vec c(Vec::IndexesFromZero);
     VERIFY(FullMask == (c == (c & 0xf)));
-    VERIFY(FullMask == ((c & 0xfff0) == 0));
+    VERIFY(FullMask == ((c & 0x7ff0) == 0));
 }
 
 int main()

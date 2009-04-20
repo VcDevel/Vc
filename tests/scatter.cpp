@@ -21,6 +21,7 @@
 #include "../vector.h"
 #include "unittest.h"
 #include <iostream>
+#include <cstring>
 #include "vecio.h"
 
 using namespace Vc;
@@ -37,7 +38,7 @@ template<typename Vec> void scatterArray()
         Vec a(array, i, mask);
         a.scatter(out, i, mask);
     }
-    VERIFY(0 == memcmp(array, out, count * sizeof(typename Vec::Type)));
+    COMPARE(0, std::memcmp(array, out, count * sizeof(typename Vec::Type)));
 }
 
 template<typename T> struct Struct
