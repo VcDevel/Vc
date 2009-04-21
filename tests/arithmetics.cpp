@@ -114,6 +114,35 @@ template<typename Vec> void testAnd()
     VERIFY(FullMask == ((c & 0x7ff0) == 0));
 }
 
+template<typename Vec> void testShift()
+{
+    Vec a(1);
+    Vec b(2);
+
+    // left shifts
+    COMPARE((a << 1), b);
+    COMPARE((a << 2), (a << 2));
+    COMPARE((a << 2), (b << 1));
+
+    Vec shifts(Vec::IndexesFromZero);
+    a <<= shifts;
+    for (typename Vec::Type i = 0, x = 1; i < Vec::Size; ++i, x <<= 1) {
+        COMPARE(a[i], x);
+    }
+
+    // right shifts
+    a = 4;
+    COMPARE((a >> 1), b);
+    COMPARE((a >> 2), (a >> 2));
+    COMPARE((a >> 2), (b >> 1));
+
+    a = 16;
+    a >>= shifts;
+    for (typename Vec::Type i = 0, x = 16; i < Vec::Size; ++i, x >>= 1) {
+        COMPARE(a[i], x);
+    }
+}
+
 int main()
 {
     runTest(testZero<int_v>);
@@ -157,5 +186,9 @@ int main()
     runTest(testAnd<short_v>);
     runTest(testAnd<ushort_v>);
     // no operator& for float/double
+    runTest(testShift<int_v>);
+    runTest(testShift<uint_v>);
+    runTest(testShift<short_v>);
+    runTest(testShift<ushort_v>);
     return 0;
 }
