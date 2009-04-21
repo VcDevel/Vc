@@ -229,6 +229,59 @@ namespace SSE
 #define STORE_CAST(T) \
             static inline void store (T *mem, TYPE x) { return CAT(_mm_store_, SUFFIX)(reinterpret_cast<TYPE *>(mem), x); } \
             static inline void storeStreaming(T *mem, TYPE x) { return CAT(_mm_stream_, SUFFIX)(reinterpret_cast<TYPE *>(mem), x); }
+
+        // _mm_sll_* does not take a count parameter with different counts per vector element. So we
+        // have to do it manually
+#define SHIFT4 \
+            static inline TYPE sll(TYPE v, __m128i count) { \
+                STORE_VECTOR(unsigned int, shifts, count); \
+                union { __m128i v; unsigned int i[4]; } data; \
+                _mm_store_si128(&data.v, v); \
+                data.i[0] <<= shifts[0]; \
+                data.i[1] <<= shifts[1]; \
+                data.i[2] <<= shifts[2]; \
+                data.i[3] <<= shifts[3]; \
+                return data.v; } \
+            static inline TYPE slli(TYPE v, int count) { return CAT(_mm_slli_, SUFFIX)(v, count); } \
+            static inline TYPE srl(TYPE v, __m128i count) { \
+                STORE_VECTOR(unsigned int, shifts, count); \
+                union { __m128i v; unsigned int i[4]; } data; \
+                _mm_store_si128(&data.v, v); \
+                data.i[0] >>= shifts[0]; \
+                data.i[1] >>= shifts[1]; \
+                data.i[2] >>= shifts[2]; \
+                data.i[3] >>= shifts[3]; \
+                return data.v; } \
+            static inline TYPE srli(TYPE v, int count) { return CAT(_mm_srli_, SUFFIX)(v, count); }
+#define SHIFT8 \
+            static inline TYPE sll(TYPE v, __m128i count) { \
+                STORE_VECTOR(unsigned short, shifts, count); \
+                union { __m128i v; unsigned short i[8]; } data; \
+                _mm_store_si128(&data.v, v); \
+                data.i[0] <<= shifts[0]; \
+                data.i[1] <<= shifts[1]; \
+                data.i[2] <<= shifts[2]; \
+                data.i[3] <<= shifts[3]; \
+                data.i[4] <<= shifts[4]; \
+                data.i[5] <<= shifts[5]; \
+                data.i[6] <<= shifts[6]; \
+                data.i[7] <<= shifts[7]; \
+                return data.v; } \
+            static inline TYPE slli(TYPE v, int count) { return CAT(_mm_slli_, SUFFIX)(v, count); } \
+            static inline TYPE srl(TYPE v, __m128i count) { \
+                STORE_VECTOR(unsigned short, shifts, count); \
+                union { __m128i v; unsigned short i[8]; } data; \
+                _mm_store_si128(&data.v, v); \
+                data.i[0] >>= shifts[0]; \
+                data.i[1] >>= shifts[1]; \
+                data.i[2] >>= shifts[2]; \
+                data.i[3] >>= shifts[3]; \
+                data.i[4] >>= shifts[4]; \
+                data.i[5] >>= shifts[5]; \
+                data.i[6] >>= shifts[6]; \
+                data.i[7] >>= shifts[7]; \
+                return data.v; } \
+            static inline TYPE srli(TYPE v, int count) { return CAT(_mm_srli_, SUFFIX)(v, count); }
 #define GATHER_SCATTER(T) \
             static inline void gather(TYPE &v, const _M128I &indexes, const T *baseAddr) { \
                 union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes); \
@@ -626,13 +679,7 @@ namespace SSE
 
             static inline void multiplyAndAdd(TYPE &v1, TYPE v2, TYPE v3) { v1 = add(mul(v1, v2), v3); }
 
-#define SHIFT \
-            static inline TYPE sll(TYPE v, __m128i count) { return CAT(_mm_sll_, SUFFIX)(v, count); } \
-            static inline TYPE slli(TYPE v, int count) { return CAT(_mm_slli_, SUFFIX)(v, count); } \
-            static inline TYPE srl(TYPE v, __m128i count) { return CAT(_mm_srl_, SUFFIX)(v, count); } \
-            static inline TYPE srli(TYPE v, int count) { return CAT(_mm_srli_, SUFFIX)(v, count); }
-
-            SHIFT
+            SHIFT4
 
 
 #ifdef __SSSE3__
@@ -732,7 +779,7 @@ namespace SSE
             static inline TYPE set(const unsigned int a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline TYPE set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
 
-            SHIFT
+            SHIFT4
             OP(add) OP(sub)
             OPcmp(eq)
             OPcmp(lt)
@@ -756,7 +803,7 @@ namespace SSE
 #undef SUFFIX
 #define SUFFIX epi16
             GATHER_SCATTER_16(signed short)
-            SHIFT
+            SHIFT8
 
             static inline TYPE set(const short a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline TYPE set(const short a, const short b, const short c, const short d,
@@ -836,7 +883,7 @@ namespace SSE
 
 #undef SUFFIX
 #define SUFFIX epi16
-            SHIFT
+            SHIFT8
             OPx(mul, mullo) // should work correctly for all values
             OP(min) OP(max) // XXX breaks for values with MSB set
             GATHER_SCATTER_16(unsigned short)
@@ -860,6 +907,8 @@ namespace SSE
         };
 #undef GATHER_SCATTER_16
 #undef GATHER_SCATTER
+#undef SHIFT4
+#undef SHIFT8
 #undef STORE
 #undef LOAD
 #undef OP1
