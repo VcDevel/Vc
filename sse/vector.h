@@ -988,6 +988,8 @@ template<unsigned int VectorSize> class Mask
         inline bool isFull () const { return _mm_movemask_epi8(dataI()) == 0xffff; }
         inline bool isEmpty() const { return _mm_movemask_epi8(dataI()) == 0x0000; }
 
+        inline operator bool() const { return isFull(); }
+
         inline _M128  data () const { return k; }
         inline _M128I dataI() const { return _mm_castps_si128(k); }
         inline _M128D dataD() const { return _mm_castps_pd(k); }

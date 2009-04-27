@@ -86,7 +86,11 @@ namespace Larrabee
             inline bool isFull () const { return MaskHelper<VectorSize>::isFull (k); }
             inline bool isEmpty() const { return MaskHelper<VectorSize>::isEmpty(k); }
 
-            inline __mmask data() const { return k; }
+            inline operator bool() const { return isFull(); }
+
+            inline __mmask data () const { return k; }
+            inline __mmask dataI() const { return k; }
+            inline __mmask dataD() const { return k; }
 
             template<unsigned int OtherSize>
             inline Mask<OtherSize> cast() const { return Mask<OtherSize>(k); }

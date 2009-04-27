@@ -109,7 +109,12 @@ class Mask
         inline Mask operator||(const Mask &rhs) const { return m || rhs.m; }
         inline bool isFull () const { return  m; }
         inline bool isEmpty() const { return !m; }
-        inline bool data() const { return m; }
+
+        inline bool data () const { return m; }
+        inline bool dataI() const { return m; }
+        inline bool dataD() const { return m; }
+
+        inline operator bool() const { return isFull(); }
 
         template<unsigned int OtherSize>
         inline Mask cast() const { return *this; }
