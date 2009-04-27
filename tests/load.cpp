@@ -27,7 +27,6 @@ using namespace Vc;
 
 template<typename Vec> void checkAlignment()
 {
-    std::cout << sizeof(Vec) << std::endl;
     unsigned char i = 1;
     Vec a[10];
     unsigned long mask = VectorAlignment - 1;
@@ -53,18 +52,18 @@ template<typename Vec> void loadArray()
         array[i] = i;
     }
 
-    const Vec &offsets = int_v(int_v::IndexesFromZero).staticCast<T>();
+    const Vec &offsets = int_v(IndexesFromZero).staticCast<T>();
     for (int i = 0; i < count; i += Vec::Size) {
         const T *const addr = &array[i];
         Vec ii(i);
         ii += offsets;
 
         Vec a(addr);
-        VERIFY(FullMask == (a == ii));
+        COMPARE(a, ii);
 
         Vec b(Zero);
         b.load(addr);
-        VERIFY(FullMask == (b == ii));
+        COMPARE(b, ii);
     }
 }
 
@@ -78,29 +77,31 @@ template<typename Vec> void loadArrayShort()
         array[i] = i;
     }
 
-    const Vec &offsets = ushort_v(ushort_v::IndexesFromZero).staticCast<T>();
+    const Vec &offsets = ushort_v(IndexesFromZero).staticCast<T>();
     for (int i = 0; i < count; i += Vec::Size) {
         const T *const addr = &array[i];
         Vec ii(i);
         ii += offsets;
 
         Vec a(addr);
-        VERIFY(FullMask == (a == ii));
+        COMPARE(a, ii);
 
         Vec b(Zero);
         b.load(addr);
-        VERIFY(FullMask == (b == ii));
+        COMPARE(b, ii);
     }
 }
 
 int main()
 {
+#if !defined(ENABLE_LARRABEE) && !defined(__LRB__)
     runTest(checkAlignment<int_v>);
     runTest(checkAlignment<uint_v>);
     runTest(checkAlignment<float_v>);
     runTest(checkAlignment<double_v>);
     runTest(checkAlignment<short_v>);
     runTest(checkAlignment<ushort_v>);
+#endif
     runTest(loadArray<int_v>);
     runTest(loadArray<uint_v>);
     runTest(loadArray<float_v>);

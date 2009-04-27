@@ -15,19 +15,16 @@ std::ostream &operator<<(std::ostream &out, const Vc::Vector<T> &v)
     return out;
 }
 
-#ifdef USE_SSE
-template<typename T>
-std::ostream &operator<<(std::ostream &out, const Vc::Mask &m)
+template<unsigned int VectorSize>
+std::ostream &operator<<(std::ostream &out, const Vc::Mask<VectorSize> &m)
 {
-    const int *const mm = reinterpret_cast<const int *>(&m);
     out << "m[";
-    for (int i = 0; i < m.Size; ++i) {
-        if (i > 0) {
-            out << ", ";
+    for (unsigned int i = 0; i < VectorSize; ++i) {
+        if (i > 0 && (i % 4) == 0) {
+            out << " ";
         }
-        out << mm[i];
+        out << m[i];
     }
     out << "]";
     return out;
 }
-#endif

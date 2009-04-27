@@ -80,33 +80,41 @@ template<> inline void setFuzzyness<float>( float fuzz ) { _unit_test_global.flo
 
 #define VERIFY(cond) if (cond) {} else { std::cout << "       " << #cond << " at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
 
-template<typename T>
-static inline bool unittest_compareHelper( const T &a, const T &b )
-{
-  return a == b;
-}
+template<typename T1, typename T2> static inline bool unittest_compareHelper( const T1 &a, const T2 &b ) { return a == b; }
+template<> inline bool unittest_compareHelper<Vc::int_v, Vc::int_v>( const Vc::int_v &a, const Vc::int_v &b ) { return (a == b).isFull(); }
+template<> inline bool unittest_compareHelper<Vc::uint_v, Vc::uint_v>( const Vc::uint_v &a, const Vc::uint_v &b ) { return (a == b).isFull(); }
+template<> inline bool unittest_compareHelper<Vc::float_v, Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b ) { return (a == b).isFull(); }
+template<> inline bool unittest_compareHelper<Vc::double_v, Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b ) { return (a == b).isFull(); }
+#ifndef ENABLE_LARRABEE
+template<> inline bool unittest_compareHelper<Vc::ushort_v, Vc::ushort_v>( const Vc::ushort_v &a, const Vc::ushort_v &b ) { return (a == b).isFull(); }
+template<> inline bool unittest_compareHelper<Vc::short_v, Vc::short_v>( const Vc::short_v &a, const Vc::short_v &b ) { return (a == b).isFull(); }
+#endif
 
-template<> inline bool unittest_compareHelper<float>( const float &a, const float &b )
+template<typename T> static inline bool unittest_fuzzyCompareHelper( const T &a, const T &b ) { return a == b; }
+
+template<> inline bool unittest_fuzzyCompareHelper<float>( const float &a, const float &b )
 {
   return ( a * ( 1.f + _unit_test_global.float_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) <= b );
 }
 
-template<> inline bool unittest_compareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b )
+template<> inline bool unittest_fuzzyCompareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b )
 {
-  return ( a * ( 1.f + _unit_test_global.float_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) <= b );
+  return ( ( a * ( 1.f + _unit_test_global.float_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) <= b ) ).isFull();
 }
 
-template<> inline bool unittest_compareHelper<double>( const double &a, const double &b )
-{
-  return ( a * ( 1. + 1.e-20 ) >= b ) && ( a * ( 1. - 1.e-20 ) <= b );
-}
-
-template<> inline bool unittest_compareHelper<Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b )
+template<> inline bool unittest_fuzzyCompareHelper<double>( const double &a, const double &b )
 {
   return ( a * ( 1. + 1.e-20 ) >= b ) && ( a * ( 1. - 1.e-20 ) <= b );
 }
 
-#define COMPARE( a, b ) if ( unittest_compareHelper( a, b ) ) {} else { std::cout << "       " << #a << "(" << a << ") == " << #b << "(" << b << ") at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
+template<> inline bool unittest_fuzzyCompareHelper<Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b )
+{
+  return ( ( a * ( 1. + 1.e-20 ) >= b ) && ( a * ( 1. - 1.e-20 ) <= b ) ).isFull();
+}
+
+#define FUZZY_COMPARE( a, b ) if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { std::cout << "       " << #a << " (" << (a) << ") ~== " << #b << " (" << (b) << ") with fuzzyness " << 1.e-20 << " at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
+
+#define COMPARE( a, b ) if ( unittest_compareHelper( a, b ) ) {} else { std::cout << "       " << #a << " (" << (a) << ") == " << #b << " (" << (b) << ") at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
 
 static void unittest_assert(bool cond, const char *code, const char *file, int line)
 {

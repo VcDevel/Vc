@@ -19,9 +19,9 @@
 */
 
 #include "../vector.h"
+#include "vecio.h"
 #include "unittest.h"
 #include <iostream>
-#include "vecio.h"
 
 using namespace Vc;
 
@@ -35,26 +35,20 @@ template<typename Vec> void gatherArray()
     for (int i = 0; i < count; ++i) {
         array[i] = i;
     }
-    Mask mask;
-    for (It i = It::IndexesFromZero; (mask = (i < count)); i += Vec::Size) {
+    typename It::Mask mask;
+    for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         const Vec &ii = i.staticCast<T>();
-        if (FullMask == mask) {
+        if (mask.isFull()) {
             Vec a(array, i);
-            VERIFY(FullMask == (a == ii));
+            COMPARE(a, ii);
             Vec b(Zero);
             b.gather(array, i);
-            VERIFY(FullMask == (b == ii));
+            COMPARE(b, ii);
+            COMPARE(a, b);
         }
         Vec b(Zero);
-        b.gather(array, i, mask);
-        if (sizeof(typename Vec::Type) == 8) {
-            // mask is for a 32bit entries vector whereas with double_v (b == ii)
-            // returns a mask for a 64bit entries vector => half the mask size.
-            // Therefore we need to use cmpeq32_64
-            VERIFY(cmpeq32_64(mask, b == ii));
-        } else {
-            VERIFY(mask == (b == ii));
-        }
+        b.gather(array, i, mask.cast<Vec::Size>());
+        COMPARE(mask, b == ii);
     }
 }
 
@@ -68,26 +62,19 @@ template<typename Vec> void gatherArray16()
     for (int i = 0; i < count; ++i) {
         array[i] = i;
     }
-    Mask mask;
-    for (It i = It::IndexesFromZero; (mask = (i < count)); i += Vec::Size) {
+    typename Vec::Mask mask;
+    for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         const Vec &ii = i.staticCast<T>();
-        if (FullMask == mask) {
+        if (mask.isFull()) {
             Vec a(array, i);
-            VERIFY(FullMask == (a == ii));
+            COMPARE(a, ii);
             Vec b(Zero);
             b.gather(array, i);
-            VERIFY(FullMask == (b == ii));
+            COMPARE(b, ii);
         }
         Vec b(Zero);
         b.gather(array, i, mask);
-        if (sizeof(typename Vec::Type) == 8) {
-            // mask is for a 32bit entries vector whereas with double_v (b == ii)
-            // returns a mask for a 64bit entries vector => half the mask size.
-            // Therefore we need to use cmpeq32_64
-            VERIFY(cmpeq32_64(mask, b == ii));
-        } else {
-            VERIFY(mask == (b == ii));
-        }
+        COMPARE(mask, b == ii);
     }
 }
 
@@ -113,44 +100,29 @@ template<typename Vec> void gatherStruct()
         array[i].b = i + 1;
         array[i].c = i + 2;
     }
-    Mask mask;
-    for (It i = It::IndexesFromZero; (mask = (i < count)); i += Vec::Size) {
+    typename It::Mask mask;
+    for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         // if Vec is double_v the staticCast keeps only the lower two values, which is why the ==
         // comparison works
         const Vec &i0 = i.staticCast<T>();
         const Vec &i1 = (i + 1).staticCast<T>();
         const Vec &i2 = (i + 2).staticCast<T>();
-        if (FullMask == mask) {
+        if (mask.isFull()) {
             Vec a(array, &S::a, i);
-            VERIFY(FullMask == (a == i0));
+            COMPARE(a, i0);
             a.gather(array, &S::b, i);
-            VERIFY(FullMask == (a == i1));
+            COMPARE(a, i1);
             a.gather(array, &S::c, i);
-            VERIFY(FullMask == (a == i2));
+            COMPARE(a, i2);
         }
 
-        // mask is for a 32bit entries vector whereas with double_v (b == ii)
-        // returns a mask for a 64bit entries vector => half the mask size.
-        // Therefore we need to use cmpeq32_64
         Vec b;
-        b.gather(array, &S::a, i, mask);
-        if (sizeof(typename Vec::Type) == 8) {
-            VERIFY(cmpeq32_64(mask, b == i0));
-        } else {
-            VERIFY(mask == (b == i0));
-        }
-        b.gather(array, &S::b, i, mask);
-        if (sizeof(typename Vec::Type) == 8) {
-            VERIFY(cmpeq32_64(mask, b == i1));
-        } else {
-            VERIFY(mask == (b == i1));
-        }
-        b.gather(array, &S::c, i, mask);
-        if (sizeof(typename Vec::Type) == 8) {
-            VERIFY(cmpeq32_64(mask, b == i2));
-        } else {
-            VERIFY(mask == (b == i2));
-        }
+        b.gather(array, &S::a, i, mask.cast<Vec::Size>());
+        COMPARE(mask, (b == i0));
+        b.gather(array, &S::b, i, mask.cast<Vec::Size>());
+        COMPARE(mask, (b == i1));
+        b.gather(array, &S::c, i, mask.cast<Vec::Size>());
+        COMPARE(mask, (b == i2));
     }
 }
 
@@ -166,29 +138,29 @@ template<typename Vec> void gatherStruct16()
         array[i].b = i + 1;
         array[i].c = i + 2;
     }
-    Mask mask;
-    for (It i = It::IndexesFromZero; (mask = (i < count)); i += Vec::Size) {
+    typename It::Mask mask;
+    for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         // if Vec is double_v the staticCast keeps only the lower two values, which is why the ==
         // comparison works
         const Vec &i0 = i.staticCast<T>();
         const Vec &i1 = (i + 1).staticCast<T>();
         const Vec &i2 = (i + 2).staticCast<T>();
-        if (FullMask == mask) {
+        if (mask.isFull()) {
             Vec a(array, &S::a, i);
-            VERIFY(FullMask == (a == i0));
+            COMPARE(a, i0);
             a.gather(array, &S::b, i);
-            VERIFY(FullMask == (a == i1));
+            COMPARE(a, i1);
             a.gather(array, &S::c, i);
-            VERIFY(FullMask == (a == i2));
+            COMPARE(a, i2);
         }
 
         Vec b;
         b.gather(array, &S::a, i, mask);
-        VERIFY(mask == (b == i0));
+        COMPARE(mask, (b == i0));
         b.gather(array, &S::b, i, mask);
-        VERIFY(mask == (b == i1));
+        COMPARE(mask, (b == i1));
         b.gather(array, &S::c, i, mask);
-        VERIFY(mask == (b == i2));
+        COMPARE(mask, (b == i2));
     }
 }
 

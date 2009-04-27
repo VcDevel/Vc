@@ -50,9 +50,8 @@ namespace SSE
 {
     enum { VectorAlignment = 16 };
     template<typename T> class Vector;
-    class Mask;
+    template<unsigned int VectorSize> class Mask;
 
-    ALIGN(16) static const int _OneMaskData[4]  = { 0x00000001, 0x00000001, 0x00000001, 0x00000001 };
     ALIGN(16) static const int _FullMaskData[4] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff };
 #define _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF _mm_load_si128(reinterpret_cast<const __m128i *const>(_FullMaskData))
 
@@ -102,7 +101,8 @@ namespace SSE
             OP_DECL(>>)
             OP_DECL(<<)
 #undef T
-            ALIGN(16) static const int IndexesFromZero[4];
+            protected:
+            ALIGN(16) static const int _IndexesFromZero[4];
         };
         template<typename Parent>
         struct VectorBase<unsigned int, Parent>
@@ -117,7 +117,8 @@ namespace SSE
             OP_DECL(>>)
             OP_DECL(<<)
 #undef T
-            ALIGN(16) static const unsigned int IndexesFromZero[4];
+            protected:
+            ALIGN(16) static const unsigned int _IndexesFromZero[4];
         };
         template<typename Parent>
         struct VectorBase<short, Parent>
@@ -132,7 +133,8 @@ namespace SSE
             OP_DECL(>>)
             OP_DECL(<<)
 #undef T
-            ALIGN(16) static const short IndexesFromZero[8];
+            protected:
+            ALIGN(16) static const short _IndexesFromZero[8];
         };
         template<typename Parent>
         struct VectorBase<unsigned short, Parent>
@@ -147,7 +149,8 @@ namespace SSE
             OP_DECL(>>)
             OP_DECL(<<)
 #undef T
-            ALIGN(16) static const unsigned short IndexesFromZero[8];
+            protected:
+            ALIGN(16) static const unsigned short _IndexesFromZero[8];
         };
 #undef OP_DECL
 #undef PARENT_DATA
@@ -913,6 +916,7 @@ namespace SSE
 #undef LOAD
 #undef OP1
 #undef OP
+#undef OP_
 #undef OPx
 #undef OPcmp
 #undef CAT
@@ -920,45 +924,96 @@ namespace SSE
 
 namespace VectorSpecialInitializerZero { enum Enum { Zero }; }
 namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
+namespace VectorSpecialInitializerIndexesFromZero { enum Enum { IndexesFromZero }; }
 
-bool cmpeq32_64(const Mask &, const Mask &);
-class Mask : public VectorBase<unsigned int, Mask>
-{
-    friend struct VectorBase<unsigned int, Mask>;
-    friend inline bool cmpeq32_64(const Mask &m1, const Mask &m2) {
-        // ps gives 4 bits (MSB from 4 32bit values)
-        // pd gives 2 bits (MSB from 2 64bit values)
-        return (_mm_movemask_ps(_mm_castsi128_ps(m1.data)) & 3) == _mm_movemask_pd(_mm_castsi128_pd(m2.data));
-    }
-    public:
-        _M128I data;
-
-        enum { Size = 16 / sizeof(unsigned int) };
-        inline Mask() : data(*reinterpret_cast<const _M128I *>(_FullMaskData)) {}
-        inline Mask(const __m128 &x) : data(_mm_castps_si128(x)) {}
-        inline Mask(const __m128d &x) : data(_mm_castpd_si128(x)) {}
-        inline Mask(const __m128i &x) : data(x) {}
-
-        inline operator const Vector<unsigned int> &() const { return *reinterpret_cast<const Vector<unsigned int> *>(this); }
-        inline operator bool() const {
-            // _mm_movemask_epi8 creates a 16 bit mask containing the most significant bit of every byte in data
-            return _mm_movemask_epi8(data);
-        }
-        inline bool operator==(const Mask &m) const {
-            return _mm_movemask_epi8(data) == _mm_movemask_epi8(m.data);
-        }
+template<unsigned int Size1, unsigned int Size2> struct MaskHelper;
+template<> struct MaskHelper<2, 2> {
+    static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) == _mm_movemask_pd(_mm_castps_pd(k2)); }
+    static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) != _mm_movemask_pd(_mm_castps_pd(k2)); }
 };
-static const Mask &OneMask = *reinterpret_cast<const Mask *const>(_OneMaskData);
-static const Mask &FullMask = *reinterpret_cast<const Mask *const>(_FullMaskData);
-static inline Mask maskNthElement( int n ) {
-    ALIGN(16) union
-    {
-        unsigned int i[4];
-        _M128I m;
-    } x = { { 0, 0, 0, 0 } };
-    x.i[n] = 0xffffffff;
-    return x.m;
-}
+template<> struct MaskHelper<2, 4> {
+    static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) == (_mm_movemask_ps(k2) & 3); }
+    static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) != (_mm_movemask_ps(k2) & 3); }
+};
+template<> struct MaskHelper<2, 8> {
+    static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) == (_mm_movemask_epi8(_mm_castps_si128(k2)) & 0xf); }
+    static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) != (_mm_movemask_epi8(_mm_castps_si128(k2)) & 0xf); }
+};
+template<> struct MaskHelper<4, 2> {
+    static inline bool cmpeq (_M128 k1, _M128 k2) { return MaskHelper<2, 4>::cmpeq (k2, k1); }
+    static inline bool cmpneq(_M128 k1, _M128 k2) { return MaskHelper<2, 4>::cmpneq(k2, k1); }
+};
+template<> struct MaskHelper<4, 4> {
+    static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_ps(k1) == _mm_movemask_ps(k2); }
+    static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_ps(k1) != _mm_movemask_ps(k2); }
+};
+template<> struct MaskHelper<4, 8> {
+    static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_ps(k1) == _mm_movemask_epi8(_mm_castps_si128(k2)); }
+    static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_ps(k1) != _mm_movemask_epi8(_mm_castps_si128(k2)); }
+};
+template<> struct MaskHelper<8, 2> {
+    static inline bool cmpeq (_M128 k1, _M128 k2) { return MaskHelper<2, 8>::cmpeq (k2, k1); }
+    static inline bool cmpneq(_M128 k1, _M128 k2) { return MaskHelper<2, 8>::cmpneq(k2, k1); }
+};
+template<> struct MaskHelper<8, 4> {
+    static inline bool cmpeq (_M128 k1, _M128 k2) { return MaskHelper<4, 8>::cmpeq (k2, k1); }
+    static inline bool cmpneq(_M128 k1, _M128 k2) { return MaskHelper<4, 8>::cmpneq(k2, k1); }
+};
+template<> struct MaskHelper<8, 8> {
+    static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_epi8(_mm_castps_si128(k1)) == _mm_movemask_epi8(_mm_castps_si128(k2)); }
+    static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_epi8(_mm_castps_si128(k1)) != _mm_movemask_epi8(_mm_castps_si128(k2)); }
+};
+
+template<unsigned int VectorSize> class Mask
+{
+    friend class Mask<2u>;
+    friend class Mask<4u>;
+    friend class Mask<8u>;
+    public:
+        inline Mask() {}
+        inline Mask(const __m128  &x) : k(x) {}
+        inline Mask(const __m128d &x) : k(_mm_castpd_ps(x)) {}
+        inline Mask(const __m128i &x) : k(_mm_castsi128_ps(x)) {}
+
+        // _mm_movemask_epi8 creates a 16 bit mask containing the most significant bit of every byte in k
+
+        template<unsigned int OtherSize>
+        inline bool operator==(const Mask<OtherSize> &rhs) const { return MaskHelper<VectorSize, OtherSize>::cmpeq (k, rhs.k); }
+        template<unsigned int OtherSize>
+        inline bool operator!=(const Mask<OtherSize> &rhs) const { return MaskHelper<VectorSize, OtherSize>::cmpneq(k, rhs.k); }
+
+        inline Mask operator&&(const Mask &rhs) const { return _mm_and_ps(k, rhs.k); }
+        inline Mask operator||(const Mask &rhs) const { return _mm_or_ps (k, rhs.k); }
+
+        inline bool isFull () const { return _mm_movemask_epi8(dataI()) == 0xffff; }
+        inline bool isEmpty() const { return _mm_movemask_epi8(dataI()) == 0x0000; }
+
+        inline _M128  data () const { return k; }
+        inline _M128I dataI() const { return _mm_castps_si128(k); }
+        inline _M128D dataD() const { return _mm_castps_pd(k); }
+
+        template<unsigned int OtherSize>
+        inline Mask<OtherSize> cast() const { return Mask<OtherSize>(k); }
+
+        inline bool operator[](int index) const {
+            if (VectorSize == 2) {
+                return _mm_movemask_pd(dataD()) & (1 << index);
+            } else if (VectorSize == 4) {
+                return _mm_movemask_ps(k) & (1 << index);
+            } else if (VectorSize == 8) {
+                return _mm_movemask_epi8(dataI()) & (1 << 2 * index);
+            }
+            return false;
+        }
+
+    private:
+        _M128 k;
+};
+
+template<unsigned int A, unsigned int B> struct MaskCastHelper
+{
+    static inline Mask<A> cast(const Mask<B> &m) { return Mask<A>(m.data()); }
+};
 
 template<typename T>
 class Vector : public VectorBase<T, Vector<T> >
@@ -970,23 +1025,29 @@ class Vector : public VectorBase<T, Vector<T> >
     public:
         typedef T Type;
         enum { Size = 16 / sizeof(T) };
+        typedef SSE::Mask<Size> Mask;
+
         /**
          * uninitialized
          */
         inline Vector() {}
         /**
-         * initialzed to 0 in all 512 bits
+         * initialized to 0 in all 128 bits
          */
-        inline Vector(VectorSpecialInitializerZero::Enum) { makeZero(); }
+        inline explicit Vector(VectorSpecialInitializerZero::Enum) { makeZero(); }
+        /**
+         * initialized to 0, 1 (, 2, 3 (, 4, 5, 6, 7))
+         */
+        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::Enum) : data(VectorHelper<T>::load(VectorBase<T, Vector<T> >::_IndexesFromZero)) {}
         /**
          * initialize with given _M128 vector
          */
         inline Vector(const IntrinType &x) : data(x) {}
-        inline Vector(const Mask &m) : data(m) {}
+        inline explicit Vector(const Mask &m) : data(m.dataI()) {}
         /**
          * initialize all 16 or 8 values with the given value
          */
-        inline Vector(T a)
+        inline explicit Vector(T a)
         {
             data = VectorHelper<T>::set(a);
         }
@@ -1002,13 +1063,13 @@ class Vector : public VectorBase<T, Vector<T> >
          * Initialize the vector with the given data. \param x must point to 64 byte aligned 512
          * byte data.
          */
-        template<typename Other> inline Vector(const Other *x) : data(VectorHelper<T>::load(x)) {}
+        template<typename Other> inline explicit Vector(const Other *x) : data(VectorHelper<T>::load(x)) {}
 
         template<typename Other> static inline Vector broadcast4(const Other *x) { return Vector<T>(x); }
 
-        inline void makeZero() { VectorHelper<T>::setZero(data); }
-
         template<typename Other> inline void load(const Other *mem) { data = VectorHelper<T>::load(mem); }
+
+        inline void makeZero() { VectorHelper<T>::setZero(data); }
 
         /**
          * Store the vector data to the given memory. The memory must be 64 byte aligned and of 512
@@ -1028,31 +1089,34 @@ class Vector : public VectorBase<T, Vector<T> >
         inline const Vector<T> bbbb() const { return reinterpret_cast<IntrinType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(1, 1, 1, 1))); }
         inline const Vector<T> cccc() const { return reinterpret_cast<IntrinType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(2, 2, 2, 2))); }
         inline const Vector<T> dddd() const { return reinterpret_cast<IntrinType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(3, 3, 3, 3))); }
-        inline const Vector<T> dbac() const { return reinterpret_cast<IntrinType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(3, 1, 0, 2))); }
+        inline const Vector<T> dacb() const { return reinterpret_cast<IntrinType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(3, 0, 2, 1))); }
 
         inline Vector(const T *array, const Vector<unsigned int> &indexes) { VectorHelper<T>::gather(data, indexes, array); }
-        inline Vector(const T *array, const Vector<unsigned int> &indexes, const Mask &m) {
-            VectorHelper<T>::gather(data, indexes & Vector<unsigned int>(m), array);
+        inline Vector(const T *array, const Vector<unsigned int> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask)), array);
         }
+
         inline void gather(const T *array, const Vector<unsigned int> &indexes) { VectorHelper<T>::gather(data, indexes, array); }
-        inline void gather(const T *array, const Vector<unsigned int> &indexes, const Mask &m) {
-            VectorHelper<T>::gather(data, indexes & Vector<unsigned int>(m), array);
+        inline void gather(const T *array, const Vector<unsigned int> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask)), array);
         }
+
         inline void scatter(T *array, const Vector<unsigned int> &indexes) const { VectorHelper<T>::scatter(data, indexes, array); }
-        inline void scatter(T *array, const Vector<unsigned int> &indexes, const Mask &m) const {
-            VectorHelper<T>::scatter(data, indexes & Vector<unsigned int>(m), array);
+        inline void scatter(T *array, const Vector<unsigned int> &indexes, const Mask &mask) const {
+            VectorHelper<T>::scatter(data, indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask)), array);
         }
+
         inline Vector(const T *array, const Vector<unsigned short> &indexes) { VectorHelper<T>::gather(data, indexes, array); }
-        inline Vector(const T *array, const Vector<unsigned short> &indexes, const Mask &m) {
-            VectorHelper<T>::gather(data, indexes & Vector<unsigned short>(m), array);
+        inline Vector(const T *array, const Vector<unsigned short> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask)), array);
         }
         inline void gather(const T *array, const Vector<unsigned short> &indexes) { VectorHelper<T>::gather(data, indexes, array); }
-        inline void gather(const T *array, const Vector<unsigned short> &indexes, const Mask &m) {
-            VectorHelper<T>::gather(data, indexes & Vector<unsigned short>(m), array);
+        inline void gather(const T *array, const Vector<unsigned short> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask)), array);
         }
         inline void scatter(T *array, const Vector<unsigned short> &indexes) const { VectorHelper<T>::scatter(data, indexes, array); }
-        inline void scatter(T *array, const Vector<unsigned short> &indexes, const Mask &m) const {
-            VectorHelper<T>::scatter(data, indexes & Vector<unsigned short>(m), array);
+        inline void scatter(T *array, const Vector<unsigned short> &indexes, const Mask &mask) const {
+            VectorHelper<T>::scatter(data, indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask)), array);
         }
 
         /**
@@ -1062,56 +1126,105 @@ class Vector : public VectorBase<T, Vector<T> >
          *                automatically.
          * \param mask Optional mask to select only parts of the vector that should be gathered
          */
-        template<typename S> inline Vector(const S *array, const T S::* member1,
-                const Vector<unsigned int> &indexes, const Mask &mask = Mask()) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(mask)), array, member1);
+        template<typename S1> inline Vector(const S1 *array, const T S1::* member1, const Vector<unsigned int> &indexes) {
+            VectorHelper<T>::gather(data, indexes, array, member1);
+        }
+        template<typename S1> inline Vector(const S1 *array, const T S1::* member1,
+                const Vector<unsigned int> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1);
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned int> &indexes, const Mask &mask = Mask()) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(mask)), array, member1, member2);
+                const T S2::* member2, const Vector<unsigned int> &indexes) {
+            VectorHelper<T>::gather(data, indexes, array, member1, member2);
         }
-        template<typename S> inline void gather(const S *array, const T S::* member1,
-                const Vector<unsigned int> &indexes, const Mask &mask = Mask()) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(mask)), array, member1);
+        template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, const Vector<unsigned int> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1, member2);
+        }
+
+        template<typename S1> inline void gather(const S1 *array, const T S1::* member1,
+                const Vector<unsigned int> &indexes) {
+            VectorHelper<T>::gather(data, indexes, array, member1);
+        }
+        template<typename S1> inline void gather(const S1 *array, const T S1::* member1,
+                const Vector<unsigned int> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1);
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned int> &indexes, const Mask &mask = Mask()) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(mask)), array, member1, member2);
+                const T S2::* member2, const Vector<unsigned int> &indexes) {
+            VectorHelper<T>::gather(data, indexes, array, member1, member2);
+        }
+        template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, const Vector<unsigned int> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1, member2);
         }
 
         template<typename S1> inline void scatter(S1 *array, T S1::* member1,
-                const Vector<unsigned int> &indexes, const Mask &mask = Mask()) const {
-            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned int>(mask)), array, member1);
+                const Vector<unsigned int> &indexes) const {
+            VectorHelper<T>::scatter(data, indexes, array, member1);
+        }
+        template<typename S1> inline void scatter(S1 *array, T S1::* member1,
+                const Vector<unsigned int> &indexes, const Mask &mask) const {
+            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1);
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
-                T S2::* member2, const Vector<unsigned int> &indexes, const Mask &mask = Mask()) const {
-            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned int>(mask)), array, member1, member2);
+                T S2::* member2, const Vector<unsigned int> &indexes) const {
+            VectorHelper<T>::scatter(data, indexes, array, member1, member2);
+        }
+        template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
+                T S2::* member2, const Vector<unsigned int> &indexes, const Mask &mask) const {
+            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1, member2);
         }
 
-        template<typename S> inline Vector(const S *array, const T S::* member1,
-                const Vector<unsigned short> &indexes, const Mask &mask = Mask()) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(mask)), array, member1);
+        template<typename S1> inline Vector(const S1 *array, const T S1::* member1,
+                const Vector<unsigned short> &indexes) {
+            VectorHelper<T>::gather(data, indexes, array, member1);
+        }
+        template<typename S1> inline Vector(const S1 *array, const T S1::* member1,
+                const Vector<unsigned short> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1);
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned short> &indexes, const Mask &mask = Mask()) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(mask)), array, member1, member2);
+                const T S2::* member2, const Vector<unsigned short> &indexes) {
+            VectorHelper<T>::gather(data, indexes, array, member1, member2);
         }
-        template<typename S> inline void gather(const S *array, const T S::* member1,
-                const Vector<unsigned short> &indexes, const Mask &mask = Mask()) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(mask)), array, member1);
+        template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, const Vector<unsigned short> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1, member2);
+        }
+
+        template<typename S1> inline void gather(const S1 *array, const T S1::* member1,
+                const Vector<unsigned short> &indexes) {
+            VectorHelper<T>::gather(data, indexes, array, member1);
+        }
+        template<typename S1> inline void gather(const S1 *array, const T S1::* member1,
+                const Vector<unsigned short> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1);
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned short> &indexes, const Mask &mask = Mask()) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(mask)), array, member1, member2);
+                const T S2::* member2, const Vector<unsigned short> &indexes) {
+            VectorHelper<T>::gather(data, indexes, array, member1, member2);
+        }
+        template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, const Vector<unsigned short> &indexes, const Mask &mask) {
+            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1, member2);
         }
 
         template<typename S1> inline void scatter(S1 *array, T S1::* member1,
-                const Vector<unsigned short> &indexes, const Mask &mask = Mask()) const {
-            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned short>(mask)), array, member1);
+                const Vector<unsigned short> &indexes) const {
+            VectorHelper<T>::scatter(data, indexes, array, member1);
+        }
+        template<typename S1> inline void scatter(S1 *array, T S1::* member1,
+                const Vector<unsigned short> &indexes, const Mask &mask) const {
+            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1);
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
-                T S2::* member2, const Vector<unsigned short> &indexes, const Mask &mask = Mask()) const {
-            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned short>(mask)), array, member1, member2);
+                T S2::* member2, const Vector<unsigned short> &indexes) const {
+            VectorHelper<T>::scatter(data, indexes, array, member1, member2);
+        }
+        template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
+                T S2::* member2, const Vector<unsigned short> &indexes, const Mask &mask) const {
+            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1, member2);
         }
 
         //prefix
@@ -1163,7 +1276,9 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         inline Vector &assign( const Vector<T> &v, const Mask &mask ) {
-          // TODO
+            const Vector<int> m(mask);
+            data = _mm_or_ps(_mm_and_ps(m, data), _mm_andnot_ps(m, v));
+            return *this;
         }
 
         template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data); }
@@ -1185,57 +1300,40 @@ template<typename T> inline Vector<T> operator+(const T &x, const Vector<T> &v) 
 template<typename T> inline Vector<T> operator*(const T &x, const Vector<T> &v) { return v.operator+(x); }
 template<typename T> inline Vector<T> operator-(const T &x, const Vector<T> &v) { return Vector<T>(x) - v; }
 template<typename T> inline Vector<T> operator/(const T &x, const Vector<T> &v) { return Vector<T>(x) / v; }
-template<typename T> inline Mask  operator< (const T &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
-template<typename T> inline Mask  operator<=(const T &x, const Vector<T> &v) { return Vector<T>(x) <= v; }
-template<typename T> inline Mask  operator> (const T &x, const Vector<T> &v) { return Vector<T>(x) >  v; }
-template<typename T> inline Mask  operator>=(const T &x, const Vector<T> &v) { return Vector<T>(x) >= v; }
-template<typename T> inline Mask  operator==(const T &x, const Vector<T> &v) { return Vector<T>(x) == v; }
-template<typename T> inline Mask  operator!=(const T &x, const Vector<T> &v) { return Vector<T>(x) != v; }
+template<typename T> inline typename Vector<T>::Mask  operator< (const T &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
+template<typename T> inline typename Vector<T>::Mask  operator<=(const T &x, const Vector<T> &v) { return Vector<T>(x) <= v; }
+template<typename T> inline typename Vector<T>::Mask  operator> (const T &x, const Vector<T> &v) { return Vector<T>(x) >  v; }
+template<typename T> inline typename Vector<T>::Mask  operator>=(const T &x, const Vector<T> &v) { return Vector<T>(x) >= v; }
+template<typename T> inline typename Vector<T>::Mask  operator==(const T &x, const Vector<T> &v) { return Vector<T>(x) == v; }
+template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, const Vector<T> &v) { return Vector<T>(x) != v; }
 
-#define PARENT_DATA (static_cast<Vector<T> *>(this)->data)
-#define PARENT_DATA_CONST (static_cast<const Vector<T> *>(this)->data)
-#define OP_IMPL(symbol, fun) \
-  template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const Vector<T> &x) { PARENT_DATA = VectorHelper<T>::fun(PARENT_DATA, x.data); return *static_cast<Vector<T> *>(this); } \
+#define OP_IMPL(T, symbol, fun) \
+  template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const Vector<T> &x) { (static_cast<Vector<T> *>(this)->data) = VectorHelper<T>::fun((static_cast<Vector<T> *>(this)->data), x.data); return *static_cast<Vector<T> *>(this); } \
   template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const T &x) { return operator symbol##=(Vector<T>(x)); } \
-  template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(PARENT_DATA_CONST, x.data)); } \
-  template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
-#define OP_IMPL2(symbol, fun) \
-  template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const Vector<T> &x) { PARENT_DATA = VectorHelper<T>::fun(PARENT_DATA, x.data); return *static_cast<Vector<T> *>(this); } \
-  template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const T &x) { PARENT_DATA = VectorHelper<T>::fun##i(PARENT_DATA, x); return *static_cast<Vector<T> *>(this); } \
-  template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(PARENT_DATA_CONST, x.data)); } \
-  template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const T &x) const { return Vector<T>(VectorHelper<T>::fun##i(PARENT_DATA_CONST, x)); }
-#define T int
-  OP_IMPL(&, and_)
-  OP_IMPL(|, or_)
-  OP_IMPL(^, xor_)
-  OP_IMPL2(<<, sll)
-  OP_IMPL2(>>, srl)
-#undef T
-#define T unsigned int
-  OP_IMPL(&, and_)
-  OP_IMPL(|, or_)
-  OP_IMPL(^, xor_)
-  OP_IMPL2(<<, sll)
-  OP_IMPL2(>>, srl)
-#undef T
-#define T short
-  OP_IMPL(&, and_)
-  OP_IMPL(|, or_)
-  OP_IMPL(^, xor_)
-  OP_IMPL2(<<, sll)
-  OP_IMPL2(>>, srl)
-#undef T
-#define T unsigned short
-  OP_IMPL(&, and_)
-  OP_IMPL(|, or_)
-  OP_IMPL(^, xor_)
-  OP_IMPL2(<<, sll)
-  OP_IMPL2(>>, srl)
-#undef T
+  template<> inline Vector<T>  VectorBase<T, Vector<T> >::operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun((static_cast<const Vector<T> *>(this)->data), x.data)); } \
+  template<> inline Vector<T>  VectorBase<T, Vector<T> >::operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
+  OP_IMPL(int, &, and_)
+  OP_IMPL(int, |, or_)
+  OP_IMPL(int, ^, xor_)
+  OP_IMPL(int, <<, sll)
+  OP_IMPL(int, >>, srl)
+  OP_IMPL(unsigned int, &, and_)
+  OP_IMPL(unsigned int, |, or_)
+  OP_IMPL(unsigned int, ^, xor_)
+  OP_IMPL(unsigned int, <<, sll)
+  OP_IMPL(unsigned int, >>, srl)
+  OP_IMPL(short, &, and_)
+  OP_IMPL(short, |, or_)
+  OP_IMPL(short, ^, xor_)
+  OP_IMPL(short, <<, sll)
+  OP_IMPL(short, >>, srl)
+  OP_IMPL(unsigned short, &, and_)
+  OP_IMPL(unsigned short, |, or_)
+  OP_IMPL(unsigned short, ^, xor_)
+  OP_IMPL(unsigned short, <<, sll)
+  OP_IMPL(unsigned short, >>, srl)
 #undef OP_IMPL
 #undef OP_IMPL2
-#undef PARENT_DATA_CONST
-#undef PARENT_DATA
 
   template<typename T> static inline Vector<T> min (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::min(x, y); }
   template<typename T> static inline Vector<T> max (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::max(x, y); }

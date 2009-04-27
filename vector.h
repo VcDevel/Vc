@@ -21,9 +21,9 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
-#ifdef __LRB__
+#ifdef ENABLE_LARRABEE
 #include "larrabee/vector.h"
-#elif USE_SSE
+#elif defined(USE_SSE)
 #include "sse/vector.h"
 #else
 #include "simple/vector.h"
@@ -32,58 +32,52 @@
 namespace Vc
 {
 
-#ifdef __LRB__
+#ifdef ENABLE_LARRABEE
   using ::Larrabee::Vector;
   using ::Larrabee::SwizzledVector;
   using ::Larrabee::Mask;
-  using ::Larrabee::FullMask;
   using ::Larrabee::VectorAlignment;
   using namespace ::Larrabee::VectorSpecialInitializerZero;
   using namespace ::Larrabee::VectorSpecialInitializerRandom;
+  using namespace ::Larrabee::VectorSpecialInitializerIndexesFromZero;
   using ::Larrabee::min;
   using ::Larrabee::max;
   using ::Larrabee::sqrt;
   using ::Larrabee::abs;
   using ::Larrabee::sin;
   using ::Larrabee::cos;
-  using ::Larrabee::maskNthElement;
-  using ::Larrabee::cmpeq32_64;
   typedef Vector<signed int> short_v;
   typedef Vector<unsigned int> ushort_v;
-#elif USE_SSE
+#elif defined(USE_SSE)
   using ::SSE::Vector;
   using ::SSE::SwizzledVector;
   using ::SSE::Mask;
-  using ::SSE::FullMask;
   using ::SSE::VectorAlignment;
   using namespace ::SSE::VectorSpecialInitializerZero;
   using namespace ::SSE::VectorSpecialInitializerRandom;
+  using namespace ::SSE::VectorSpecialInitializerIndexesFromZero;
   using ::SSE::min;
   using ::SSE::max;
   using ::SSE::sqrt;
   using ::SSE::abs;
   using ::SSE::sin;
   using ::SSE::cos;
-  using ::SSE::maskNthElement;
-  using ::SSE::cmpeq32_64;
   typedef Vector<signed short> short_v;
   typedef Vector<unsigned short> ushort_v;
 #else
   using ::Simple::Vector;
   using ::Simple::SwizzledVector;
   using ::Simple::Mask;
-  using ::Simple::FullMask;
   using ::Simple::VectorAlignment;
   using namespace ::Simple::VectorSpecialInitializerZero;
   using namespace ::Simple::VectorSpecialInitializerRandom;
+  using namespace ::Simple::VectorSpecialInitializerIndexesFromZero;
   using ::Simple::min;
   using ::Simple::max;
   using ::Simple::sqrt;
   using ::Simple::abs;
   using ::Simple::sin;
   using ::Simple::cos;
-  using ::Simple::maskNthElement;
-  using ::Simple::cmpeq32_64;
   typedef Vector<signed short> short_v;
   typedef Vector<unsigned short> ushort_v;
 #endif

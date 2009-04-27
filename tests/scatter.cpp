@@ -33,10 +33,10 @@ template<typename Vec> void scatterArray()
     for (int i = 0; i < count; ++i) {
         array[i] = i;
     }
-    Mask mask;
-    for (uint_v i = uint_v::IndexesFromZero; (mask = (i < count)); i += Vec::Size) {
-        Vec a(array, i, mask);
-        a.scatter(out, i, mask);
+    typename uint_v::Mask mask;
+    for (uint_v i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
+        Vec a(array, i, mask.cast<Vec::Size>());
+        a.scatter(out, i, mask.cast<Vec::Size>());
     }
     COMPARE(0, std::memcmp(array, out, count * sizeof(typename Vec::Type)));
 }
@@ -63,14 +63,14 @@ template<typename Vec> void scatterStruct()
         array[i].b = i + 1;
         array[i].c = i + 2;
     }
-    Mask mask;
-    for (uint_v i = uint_v::IndexesFromZero; (mask = (i < count)); i += Vec::Size) {
-        Vec a(array, &S::a, i, mask);
-        Vec b(array, &S::b, i, mask);
-        Vec c(array, &S::c, i, mask);
-        a.scatter(out, &S::a, i, mask);
-        b.scatter(out, &S::b, i, mask);
-        c.scatter(out, &S::c, i, mask);
+    typename uint_v::Mask mask;
+    for (uint_v i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
+        Vec a(array, &S::a, i, mask.cast<Vec::Size>());
+        Vec b(array, &S::b, i, mask.cast<Vec::Size>());
+        Vec c(array, &S::c, i, mask.cast<Vec::Size>());
+        a.scatter(out, &S::a, i, mask.cast<Vec::Size>());
+        b.scatter(out, &S::b, i, mask.cast<Vec::Size>());
+        c.scatter(out, &S::c, i, mask.cast<Vec::Size>());
     }
     VERIFY(0 == memcmp(array, out, count * sizeof(S)));
 }

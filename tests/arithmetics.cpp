@@ -28,67 +28,68 @@ using namespace Vc;
 template<typename Vec> void testZero()
 {
     Vec a(Zero), b(Zero);
-    VERIFY(a == b);
+    COMPARE(a, b);
     Vec c, d(1);
     c.makeZero();
-    VERIFY(a == c);
+    COMPARE(a, c);
     d.makeZero();
-    VERIFY(a == d);
-    VERIFY(a == 0);
-    VERIFY(b == 0);
-    VERIFY(c == 0);
-    VERIFY(d == 0);
+    COMPARE(a, d);
+    COMPARE(a, Vec(0));
+    COMPARE(b, Vec(0));
+    COMPARE(c, Vec(0));
+    COMPARE(d, Vec(0));
 }
 
 template<typename Vec> void testCmp()
 {
     Vec a(Zero), b(Zero);
-    VERIFY(a == b);
-    if (a != b) {
+    COMPARE(a, b);
+    if (!(a != b).isEmpty()) {
         std::cerr << a << " != " << b << ", (a != b) = " << (a != b) << ", (a == b) = " << (a == b) << std::endl;
     }
-    VERIFY(!(a != b));
+    VERIFY((a != b).isEmpty());
 
     Vec c(1);
-    VERIFY(a < c);
-    VERIFY(c > a);
-    VERIFY(a <= b);
-    VERIFY(a <= c);
-    VERIFY(b >= a);
-    VERIFY(c >= a);
+    VERIFY((a < c).isFull());
+    VERIFY((c > a).isFull());
+    VERIFY((a <= b).isFull());
+    VERIFY((a <= c).isFull());
+    VERIFY((b >= a).isFull());
+    VERIFY((c >= a).isFull());
 }
 
 template<typename Vec> void testAdd()
 {
     Vec a(Zero), b(Zero);
-    VERIFY(a == b);
+    COMPARE(a, b);
 
     a += 1;
+    std::cout << a << std::endl;
     Vec c(1);
-    VERIFY(a == c);
+    COMPARE(a, c);
 
-    VERIFY(a == b + 1);
-    VERIFY(a == b + c);
+    COMPARE(a, b + 1);
+    COMPARE(a, b + c);
     Vec x(Zero);
 }
 
 template<typename Vec> void testSub()
 {
     Vec a(2), b(2);
-    VERIFY(a == b);
+    COMPARE(a, b);
 
     a -= 1;
     Vec c(1);
-    VERIFY(a == c);
+    COMPARE(a, c);
 
-    VERIFY(a == b - 1);
-    VERIFY(a == b - c);
+    COMPARE(a, b - 1);
+    COMPARE(a, b - c);
 }
 
 template<typename Vec> void testMul()
 {
     for (unsigned int i = 0; i < 0xffff; ++i) {
-        const Vec i2 = i * i;
+        const Vec i2(i * i);
         Vec a(i);
 
         COMPARE(a * a, i2);
@@ -108,10 +109,10 @@ template<typename Vec> void testAnd()
 {
     Vec a(0x7fff);
     Vec b(0xf);
-    VERIFY(FullMask == ((a & 0xf) == b));
-    Vec c(Vec::IndexesFromZero);
-    VERIFY(FullMask == (c == (c & 0xf)));
-    VERIFY(FullMask == ((c & 0x7ff0) == 0));
+    COMPARE((a & 0xf), b);
+    Vec c(IndexesFromZero);
+    COMPARE(c, (c & 0xf));
+    COMPARE((c & 0x7ff0), Vec(0));
 }
 
 template<typename Vec> void testShift()
@@ -124,19 +125,19 @@ template<typename Vec> void testShift()
     COMPARE((a << 2), (a << 2));
     COMPARE((a << 2), (b << 1));
 
-    Vec shifts(Vec::IndexesFromZero);
+    Vec shifts(IndexesFromZero);
     a <<= shifts;
     for (typename Vec::Type i = 0, x = 1; i < Vec::Size; ++i, x <<= 1) {
         COMPARE(a[i], x);
     }
 
     // right shifts
-    a = 4;
+    a = Vec(4);
     COMPARE((a >> 1), b);
     COMPARE((a >> 2), (a >> 2));
     COMPARE((a >> 2), (b >> 1));
 
-    a = 16;
+    a = Vec(16);
     a >>= shifts;
     for (typename Vec::Type i = 0, x = 16; i < Vec::Size; ++i, x >>= 1) {
         COMPARE(a[i], x);
