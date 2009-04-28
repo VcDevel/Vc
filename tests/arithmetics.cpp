@@ -96,6 +96,26 @@ template<typename Vec> void testMul()
     }
 }
 
+template<typename Vec> void testMulAdd()
+{
+    for (unsigned int i = 0; i < 0xffff; ++i) {
+        const Vec i2(i * i + 1);
+        Vec a(i);
+
+        FUZZY_COMPARE(a * a + 1, i2);
+    }
+}
+
+template<typename Vec> void testMulSub()
+{
+    for (unsigned int i = 0; i < 0xffff; ++i) {
+        const Vec i2(i * i - i);
+        Vec a(i);
+
+        FUZZY_COMPARE(a * a - i, i2);
+    }
+}
+
 template<typename Vec> void testDiv()
 {
     for (unsigned int i = 0; i < 0x7fff / 3; ++i) {
@@ -152,44 +172,66 @@ int main()
     runTest(testZero<double_v>);
     runTest(testZero<short_v>);
     runTest(testZero<ushort_v>);
+
     runTest(testCmp<int_v>);
     runTest(testCmp<uint_v>);
     runTest(testCmp<float_v>);
     runTest(testCmp<double_v>);
     runTest(testCmp<short_v>);
     runTest(testCmp<ushort_v>);
+
     runTest(testAdd<int_v>);
     runTest(testAdd<uint_v>);
     runTest(testAdd<float_v>);
     runTest(testAdd<double_v>);
     runTest(testAdd<short_v>);
     runTest(testAdd<ushort_v>);
+
     runTest(testSub<int_v>);
     runTest(testSub<uint_v>);
     runTest(testSub<float_v>);
     runTest(testSub<double_v>);
     runTest(testSub<short_v>);
     runTest(testSub<ushort_v>);
+
     runTest(testMul<int_v>);
     runTest(testMul<uint_v>);
     runTest(testMul<float_v>);
     runTest(testMul<double_v>);
     runTest(testMul<short_v>);
     runTest(testMul<ushort_v>);
+
     runTest(testDiv<int_v>);
     runTest(testDiv<uint_v>);
     runTest(testDiv<float_v>);
     runTest(testDiv<double_v>);
     runTest(testDiv<short_v>);
     runTest(testDiv<ushort_v>);
+
     runTest(testAnd<int_v>);
     runTest(testAnd<uint_v>);
     runTest(testAnd<short_v>);
     runTest(testAnd<ushort_v>);
     // no operator& for float/double
+
     runTest(testShift<int_v>);
     runTest(testShift<uint_v>);
     runTest(testShift<short_v>);
     runTest(testShift<ushort_v>);
+
+    runTest(testMulAdd<int_v>);
+    runTest(testMulAdd<uint_v>);
+    runTest(testMulAdd<float_v>);
+    runTest(testMulAdd<double_v>);
+    runTest(testMulAdd<short_v>);
+    runTest(testMulAdd<ushort_v>);
+
+    runTest(testMulSub<int_v>);
+    runTest(testMulSub<uint_v>);
+    runTest(testMulSub<float_v>);
+    runTest(testMulSub<double_v>);
+    runTest(testMulSub<short_v>);
+    runTest(testMulSub<ushort_v>);
+
     return 0;
 }

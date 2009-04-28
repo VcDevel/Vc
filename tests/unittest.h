@@ -112,9 +112,13 @@ template<> inline bool unittest_fuzzyCompareHelper<Vc::double_v>( const Vc::doub
   return ( ( a * ( 1. + 1.e-20 ) >= b ) && ( a * ( 1. - 1.e-20 ) <= b ) ).isFull();
 }
 
+template<typename T1, typename T2> inline void unitttest_comparePrintHelper(const T1 &a, const T2 &b, const char *aa, const char *bb, const char *file, int line) {
+    std::cout << "       " << aa << " (" << a << ") == " << bb << " (" << b << ") at " << file << ":" << line << " failed.\n";
+}
+
 #define FUZZY_COMPARE( a, b ) if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { std::cout << "       " << #a << " (" << (a) << ") ~== " << #b << " (" << (b) << ") with fuzzyness " << 1.e-20 << " at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
 
-#define COMPARE( a, b ) if ( unittest_compareHelper( a, b ) ) {} else { std::cout << "       " << #a << " (" << (a) << ") == " << #b << " (" << (b) << ") at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
+#define COMPARE( a, b ) if ( unittest_compareHelper( a, b ) ) {} else { unitttest_comparePrintHelper(a, b, #a, #b, __FILE__, __LINE__); _unit_test_global.status = false; return; }
 
 static void unittest_assert(bool cond, const char *code, const char *file, int line)
 {

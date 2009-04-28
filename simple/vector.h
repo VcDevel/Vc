@@ -47,9 +47,7 @@ namespace Simple
 
 #define OP_DECL(symbol) \
         inline Vector<T> &operator symbol##=(const Vector<T> &x); \
-        inline Vector<T> &operator symbol##=(const T &x); \
-        inline Vector<T> operator symbol(const Vector<T> &x) const; \
-        inline Vector<T> operator symbol(const T &x) const;
+        inline Vector<T> operator symbol(const Vector<T> &x) const;
     template<typename Parent> struct VectorBase<int, Parent>
     {
 #define T int
@@ -249,9 +247,7 @@ class Vector : public VectorBase<T, Vector<T> >
 
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
-        inline Vector &operator symbol##=(const T &x) { return operator symbol##=(Vector<T>(x)); } \
-        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(m_data symbol x.m_data); } \
-        inline Vector operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
+        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(m_data symbol x.m_data); }
 
         OP(+, add)
         OP(-, sub)
@@ -263,8 +259,7 @@ class Vector : public VectorBase<T, Vector<T> >
         OP(^, xor_)
 #undef OP
 #define OPcmp(symbol, fun) \
-        inline Mask operator symbol(const Vector<T> &x) const { return m_data symbol x.m_data; } \
-        inline Mask operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
+        inline Mask operator symbol(const Vector<T> &x) const { return m_data symbol x.m_data; }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -330,9 +325,7 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
 #define PARENT_DATA_CONST (static_cast<const Vector<T> *>(this)->m_data)
 #define OP_IMPL(symbol) \
   template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const Vector<T> &x) { PARENT_DATA symbol##= x.m_data; return *static_cast<Vector<T> *>(this); } \
-  template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const T &x) { return operator symbol##=(Vector<T>(x)); } \
-  template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const Vector<T> &x) const { return Vector<T>(PARENT_DATA_CONST symbol x.m_data); } \
-  template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
+  template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const Vector<T> &x) const { return Vector<T>(PARENT_DATA_CONST symbol x.m_data); }
 
 #define T int
   OP_IMPL(&)

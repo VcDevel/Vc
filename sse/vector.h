@@ -48,6 +48,12 @@
 
 namespace SSE
 {
+    namespace Internal
+    {
+        ALIGN(16) extern const unsigned int   _IndexesFromZero4[4];
+        ALIGN(16) extern const unsigned short _IndexesFromZero8[8];
+    } // namespace Internal
+
     enum { VectorAlignment = 16 };
     template<typename T> class Vector;
     template<unsigned int VectorSize> class Mask;
@@ -85,9 +91,7 @@ namespace SSE
         };
 #define OP_DECL(symbol) \
             inline Vector<T> &operator symbol##=(const Vector<T> &x); \
-            inline Vector<T> &operator symbol##=(const T &x); \
-            inline Vector<T> operator symbol(const Vector<T> &x) const; \
-            inline Vector<T> operator symbol(const T &x) const;
+            inline Vector<T> operator symbol(const Vector<T> &x) const;
         template<typename Parent>
         struct VectorBase<int, Parent>
         {
@@ -102,7 +106,7 @@ namespace SSE
             OP_DECL(<<)
 #undef T
             protected:
-            ALIGN(16) static const int _IndexesFromZero[4];
+                const int *_IndexesFromZero() { return reinterpret_cast<const int *>(Internal::_IndexesFromZero4); }
         };
         template<typename Parent>
         struct VectorBase<unsigned int, Parent>
@@ -118,7 +122,7 @@ namespace SSE
             OP_DECL(<<)
 #undef T
             protected:
-            ALIGN(16) static const unsigned int _IndexesFromZero[4];
+                const unsigned int *_IndexesFromZero() { return reinterpret_cast<const unsigned int *>(Internal::_IndexesFromZero4); }
         };
         template<typename Parent>
         struct VectorBase<short, Parent>
@@ -134,7 +138,7 @@ namespace SSE
             OP_DECL(<<)
 #undef T
             protected:
-            ALIGN(16) static const short _IndexesFromZero[8];
+                const short *_IndexesFromZero() { return reinterpret_cast<const short *>(Internal::_IndexesFromZero8); }
         };
         template<typename Parent>
         struct VectorBase<unsigned short, Parent>
@@ -150,7 +154,7 @@ namespace SSE
             OP_DECL(<<)
 #undef T
             protected:
-            ALIGN(16) static const unsigned short _IndexesFromZero[8];
+                const unsigned short *_IndexesFromZero() { return reinterpret_cast<const unsigned short *>(Internal::_IndexesFromZero8); }
         };
 #undef OP_DECL
 #undef PARENT_DATA
@@ -1040,7 +1044,7 @@ class Vector : public VectorBase<T, Vector<T> >
         /**
          * initialized to 0, 1 (, 2, 3 (, 4, 5, 6, 7))
          */
-        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::Enum) : data(VectorHelper<T>::load(VectorBase<T, Vector<T> >::_IndexesFromZero)) {}
+        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::Enum) : data(VectorHelper<T>::load(VectorBase<T, Vector<T> >::_IndexesFromZero())) {}
         /**
          * initialize with given _M128 vector
          */
@@ -1049,7 +1053,7 @@ class Vector : public VectorBase<T, Vector<T> >
         /**
          * initialize all 16 or 8 values with the given value
          */
-        inline explicit Vector(T a)
+        inline Vector(T a)
         {
             data = VectorHelper<T>::set(a);
         }
@@ -1249,9 +1253,7 @@ class Vector : public VectorBase<T, Vector<T> >
 
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) { data = VectorHelper<T>::fun(data, x.data); return *this; } \
-        inline Vector &operator symbol##=(const T &x) { return operator symbol##=(Vector<T>(x)); } \
-        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data, x.data)); } \
-        inline Vector operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
+        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data, x.data)); }
 
         OP(+, add)
         OP(-, sub)
@@ -1262,8 +1264,7 @@ class Vector : public VectorBase<T, Vector<T> >
         OP(^, xor_)
 #undef OP
 #define OPcmp(symbol, fun) \
-        inline Mask operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data, x.data); } \
-        inline Mask operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
+        inline Mask operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data, x.data); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -1311,9 +1312,7 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, con
 
 #define OP_IMPL(T, symbol, fun) \
   template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const Vector<T> &x) { (static_cast<Vector<T> *>(this)->data) = VectorHelper<T>::fun((static_cast<Vector<T> *>(this)->data), x.data); return *static_cast<Vector<T> *>(this); } \
-  template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const T &x) { return operator symbol##=(Vector<T>(x)); } \
-  template<> inline Vector<T>  VectorBase<T, Vector<T> >::operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun((static_cast<const Vector<T> *>(this)->data), x.data)); } \
-  template<> inline Vector<T>  VectorBase<T, Vector<T> >::operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
+  template<> inline Vector<T>  VectorBase<T, Vector<T> >::operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun((static_cast<const Vector<T> *>(this)->data), x.data)); }
   OP_IMPL(int, &, and_)
   OP_IMPL(int, |, or_)
   OP_IMPL(int, ^, xor_)

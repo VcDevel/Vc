@@ -95,7 +95,7 @@ namespace Larrabee
             template<unsigned int OtherSize>
             inline Mask<OtherSize> cast() const { return Mask<OtherSize>(k); }
 
-            inline bool operator[](int index) const { return k & (1 << index); }
+            inline bool operator[](int index) const { return static_cast<bool>(k & (1 << index)); }
 
         private:
             __mmask k;
@@ -386,8 +386,9 @@ namespace Larrabee
                 _mm512_mask_scatterd(baseAddr, scaleMask(k), indexes, mm512_reinterpret_cast<_M512>(data), _MM_DOWNC_NONE, _MM_SCALE_4, _MM_HINT_NT);
             }
 
-            static inline void multiplyAndAdd(VectorType &v1, const VectorType &v2, const VectorType &v3) { v1 = _mm512_madd132_pd(v1, v3, v2); }
-            static inline void multiplyAndAdd(VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask &k) { v1 = _mm512_mask_madd132_pd(v1, k, v3, v2); }
+            static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_madd132_pd(v1, v3, v2); }
+            static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask &k) { return _mm512_mask_madd132_pd(v1, k, v3, v2); }
+            static inline VectorType multiplyAndSub(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_msub132_pd(v1, v3, v2); }
 
             static inline EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_pd(a); }
             static inline EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_pd(a); }
@@ -498,8 +499,9 @@ namespace Larrabee
             GATHERSCATTER(unsigned short, _MM_FULLUPC_UINT16,  _MM_DOWNC_UINT16 )
             GATHERSCATTER(signed short,   _MM_FULLUPC_SINT16,  _MM_DOWNC_SINT16 )
 
-            static inline void multiplyAndAdd(VectorType &v1, const VectorType &v2, const VectorType &v3) { v1 = _mm512_madd132_ps(v1, v3, v2); }
-            static inline void multiplyAndAdd(VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask &k) { v1 = _mm512_mask_madd132_ps(v1, k, v3, v2); }
+            static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_madd132_ps(v1, v3, v2); }
+            static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask &k) { return _mm512_mask_madd132_ps(v1, k, v3, v2); }
+            static inline VectorType multiplyAndSub(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_msub132_ps(v1, v3, v2); }
 
             static inline EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_ps(a); }
             static inline EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_ps(a); }
@@ -538,8 +540,9 @@ namespace Larrabee
             GATHERSCATTER(signed char,  _MM_FULLUPC_SINT8I,  _MM_DOWNC_SINT8I)
             GATHERSCATTER(signed short, _MM_FULLUPC_SINT16I, _MM_DOWNC_SINT16I)
 
-            static inline void multiplyAndAdd(VectorType &v1, const VectorType &v2, const VectorType &v3) { v1 = _mm512_madd231_pi(v3, v1, v2); }
-            static inline void multiplyAndAdd(VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask &k) { v1 = _mm512_mask_madd231_pi(v1, k, v3, v2); }
+            static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_madd231_pi(v3, v1, v2); }
+            static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask &k) { return _mm512_mask_madd231_pi(v1, k, v3, v2); }
+            static inline VectorType multiplyAndSub(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_sub_pi(_mm512_mull_pi(v1, v2), v3); }
 
             static inline EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_pi(a); }
             static inline EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_pi(a); }
@@ -572,6 +575,10 @@ namespace Larrabee
             GATHERSCATTER(unsigned char,  _MM_FULLUPC_UINT8I,  _MM_DOWNC_UINT8I)
             GATHERSCATTER(unsigned short, _MM_FULLUPC_UINT16I, _MM_DOWNC_UINT16I)
 
+            static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_madd231_pi(v3, v1, v2); }
+            static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask &k) { return _mm512_mask_madd231_pi(v1, k, v3, v2); }
+            static inline VectorType multiplyAndSub(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_sub_pi(_mm512_mull_pi(v1, v2), v3); }
+
             static inline EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_pi(a); }
             static inline EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_pi(a); }
             static inline EntryType reduce_mul(const VectorType &a) { return _mm512_reduce_mul_pi(a); }
@@ -603,9 +610,52 @@ namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum Enum { IndexesFromZero }; }
 
 template<typename T>
+class VectorMultiplication
+{
+    friend class Vector<T>;
+    public:
+        inline T operator[](int index) const { return Vector<T>(product())[index]; }
+
+        inline VectorMultiplication<T> operator*(const Vector<T> &x) const { return VectorMultiplication<T>(product(), x.data); }
+        inline Vector<T> operator+(const Vector<T> &x) const { return VectorHelper<T>::multiplyAndAdd(left, right, x.data); }
+        inline Vector<T> operator-(const Vector<T> &x) const { return VectorHelper<T>::multiplyAndSub(left, right, x.data); }
+        inline Vector<T> operator/(const Vector<T> &x) const { return Vector<T>(product()) / x; }
+        inline Vector<T> operator%(const Vector<T> &x) const { return Vector<T>(product()) % x; }
+        inline Vector<T> operator|(const Vector<T> &x) const { return Vector<T>(product()) | x; }
+        inline Vector<T> operator&(const Vector<T> &x) const { return Vector<T>(product()) & x; }
+        inline Vector<T> operator^(const Vector<T> &x) const { return Vector<T>(product()) ^ x; }
+        inline typename Vector<T>::Mask operator==(const Vector<T> &x) const { return Vector<T>(product()) == x; }
+        inline typename Vector<T>::Mask operator!=(const Vector<T> &x) const { return Vector<T>(product()) != x; }
+        inline typename Vector<T>::Mask operator>=(const Vector<T> &x) const { return Vector<T>(product()) >= x; }
+        inline typename Vector<T>::Mask operator<=(const Vector<T> &x) const { return Vector<T>(product()) <= x; }
+        inline typename Vector<T>::Mask operator> (const Vector<T> &x) const { return Vector<T>(product()) >  x; }
+        inline typename Vector<T>::Mask operator< (const Vector<T> &x) const { return Vector<T>(product()) <  x; }
+
+        inline operator Vector<T>() const { return product(); }
+
+    private:
+        typedef typename VectorHelper<T>::VectorType VectorType;
+
+        VectorMultiplication(VectorType a, VectorType b) : left(a), right(b) {}
+
+        VectorType left;
+        VectorType right;
+
+        VectorType product() const { return VectorHelper<T>::mul(left, right); }
+};
+
+template<typename T> inline Vector<T> operator+(const Vector<T> &x, const VectorMultiplication<T> &y) {
+    return VectorHelper<T>::multiplyAndAdd(y.left, y.right, x.data);
+}
+template<typename T> inline Vector<T> operator-(const Vector<T> &x, const VectorMultiplication<T> &y) {
+    return VectorHelper<T>::multiplyAndSub(y.left, y.right, x.data);
+}
+
+template<typename T>
 class Vector : public VectorBase<T, Vector<T> >
 {
     friend struct VectorBase<T, Vector<T> >;
+    friend class VectorMultiplication<T>;
     protected:
         typedef typename VectorHelper<T>::VectorType VectorType;
         VectorType data;
@@ -648,7 +698,7 @@ class Vector : public VectorBase<T, Vector<T> >
         /**
          * initialize all 16 or 8 values with the given value
          */
-        inline explicit Vector(T a)
+        inline Vector(T a)
         {
             data = VectorHelper<T>::load1(a);
         }
@@ -804,24 +854,26 @@ class Vector : public VectorBase<T, Vector<T> >
             return u.d[index];
         }
 
+        inline VectorMultiplication<T> operator*(const Vector<T> &x) const { return VectorMultiplication<T>(data, x.data); }
+
+        inline Vector &mul_eq(const SwizzledVector<T> &x, const Mask m) { data = VectorHelper<T>::mul_s(x.s, data, x.v.data, m); return *this; }
+        inline Vector &mul_eq(const Vector<T> &x, const Mask m) { data = VectorHelper<T>::mul(data, x.data, m); return *this; }
+        inline Vector &mul_eq(const Vector<T> &x, const Mask m, const Vector<T> &old) { data = VectorHelper<T>::mul(data, x.data, m, old.data); return *this; }
+        inline Vector mul(const Vector<T> &x, const Mask m) const { return VectorHelper<T>::mul(data, x.data, m); }
+        inline Vector mul(const Vector<T> &x, const Mask m, const Vector<T> &old) const { return VectorHelper<T>::mul(data, x.data, m, old.data); }
+        inline Vector &operator*=(const Vector<T> &x) { data = VectorHelper<T>::mul(data, x.data); return *this; }
+
 #define OP(symbol, fun) \
         inline Vector &fun##_eq(const SwizzledVector<T> &x, const Mask m) { data = VectorHelper<T>::fun##_s(x.s, data, x.v.data, m); return *this; } \
         inline Vector &fun##_eq(const Vector<T> &x, const Mask m) { data = VectorHelper<T>::fun(data, x.data, m); return *this; } \
         inline Vector &fun##_eq(const Vector<T> &x, const Mask m, const Vector<T> &old) { data = VectorHelper<T>::fun(data, x.data, m, old.data); return *this; } \
-        inline Vector &fun##_eq(const T &x, const Mask m) { return fun##_eq(Vector<T>(x), m); } \
-        inline Vector &fun##_eq(const T &x, const Mask m, const Vector<T> &old) { return fun##_eq(Vector<T>(x), m, old); } \
         inline Vector fun(const Vector<T> &x, const Mask m) const { return VectorHelper<T>::fun(data, x.data, m); } \
         inline Vector fun(const Vector<T> &x, const Mask m, const Vector<T> &old) const { return VectorHelper<T>::fun(data, x.data, m, old.data); } \
-        inline Vector fun(const T &x, const Mask m) const { return fun(Vector<T>(x), m); } \
-        inline Vector fun(const T &x, const Mask m, const Vector<T> &old) const { return fun(Vector<T>(x), m, old); } \
         inline Vector &operator symbol##=(const Vector<T> &x) { data = VectorHelper<T>::fun(data, x.data); return *this; } \
-        inline Vector &operator symbol##=(const T &x) { return operator symbol##=(Vector<T>(x)); } \
-        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data, x.data)); } \
-        inline Vector operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
+        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data, x.data)); }
 
         OP(+, add)
         OP(-, sub)
-        OP(*, mul)
         OP(/, div)
         OP(%, rem)
         OP(|, or_)
@@ -830,9 +882,7 @@ class Vector : public VectorBase<T, Vector<T> >
 #undef OP
 #define OPcmp(symbol, fun) \
         inline Mask fun(const Vector<T> &x, const Mask mask) const { return VectorHelper<T>::fun(data, x.data, mask.data()); } \
-        inline Mask fun(const T &x, const Mask mask) const { return fun(Vector<T>(x), mask); } \
         inline Mask operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data, x.data); } \
-        inline Mask operator symbol(const T &x) const { return operator symbol(Vector<T>(x)); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)

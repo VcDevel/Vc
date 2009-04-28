@@ -15,6 +15,14 @@ std::ostream &operator<<(std::ostream &out, const Vc::Vector<T> &v)
     return out;
 }
 
+#ifdef ENABLE_LARRABEE
+template<typename T>
+std::ostream &operator<<(std::ostream &out, const Larrabee::VectorMultiplication<T> &v)
+{
+    return out << Larrabee::Vector<T>(v);
+}
+#endif
+
 template<unsigned int VectorSize>
 std::ostream &operator<<(std::ostream &out, const Vc::Mask<VectorSize> &m)
 {
