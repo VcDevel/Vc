@@ -21,16 +21,10 @@
 /* The log implementations are based on code from Julien Pommier which carries the following
    copyright information:
  */
-/* SIMD (SSE1+MMX or SSE2) implementation of sin, cos, exp and log
-
+/*
    Inspired by Intel Approximate Math library, and based on the
    corresponding algorithms of the cephes math library
-
-   The default is to use the SSE1 version. If you define USE_SSE2 the
-   the SSE2 intrinsics will be used in place of the MMX intrinsics. Do
-   not expect any significant performance improvement with SSE2.
 */
-
 /* Copyright (C) 2007  Julien Pommier
 
   This software is provided 'as-is', without any express or implied
@@ -519,7 +513,7 @@ namespace SSE
             OPcmp(le) OPcmp(nle)
 
             OP1(sqrt)
-            static inline TYPE log(TYPE x) {
+            static TYPE log(TYPE x) {
                 const _M128D one = set(1.);
                 const _M128D invalid_mask = cmplt(x, zero());
                 const _M128D infinity_mask = cmpeq(x, zero());
@@ -810,7 +804,7 @@ namespace SSE
             OPcmp(le) OPcmp(nle)
 
             OP1(sqrt)
-            static inline TYPE log(TYPE x) {
+            static TYPE log(TYPE x) {
                 const _M128 one = set(1.);
                 const _M128 invalid_mask = cmplt(x, zero());
                 const _M128 infinity_mask = cmpeq(x, zero());
