@@ -64,7 +64,6 @@ template<typename Vec> void testAdd()
     COMPARE(a, b);
 
     a += 1;
-    std::cout << a << std::endl;
     Vec c(1);
     COMPARE(a, c);
 

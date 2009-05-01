@@ -18,10 +18,50 @@
 
 */
 
+/* The log implementations are based on code from Julien Pommier which carries the following
+   copyright information:
+ */
+/* SIMD (SSE1+MMX or SSE2) implementation of sin, cos, exp and log
+
+   Inspired by Intel Approximate Math library, and based on the
+   corresponding algorithms of the cephes math library
+
+   The default is to use the SSE1 version. If you define USE_SSE2 the
+   the SSE2 intrinsics will be used in place of the MMX intrinsics. Do
+   not expect any significant performance improvement with SSE2.
+*/
+
+/* Copyright (C) 2007  Julien Pommier
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+  (this is the zlib license)
+*/
+
 #ifndef SSE_VECTOR_H
 #define SSE_VECTOR_H
 
 #include "intrinsics.h"
+#include <algorithm>
+#include <limits>
+namespace SSEMath
+{
+#include "sse_math.h"
+} // namespace SSEMath
 
 #ifndef _M128
 # define _M128 __m128
@@ -206,6 +246,14 @@ namespace SSE
         template<> struct ReinterpretCastHelper<short         , unsigned short> { static _M128I cast(const _M128I &v) { return v; } };
         template<> struct ReinterpretCastHelper<short         , short         > { static _M128I cast(const _M128I &v) { return v; } };
 
+        template<typename To, typename From> To mm128_reinterpret_cast(From v) { return v; }
+        template<> _M128I mm128_reinterpret_cast<_M128I, _M128 >(_M128  v) { return _mm_castps_si128(v); }
+        template<> _M128I mm128_reinterpret_cast<_M128I, _M128D>(_M128D v) { return _mm_castpd_si128(v); }
+        template<> _M128  mm128_reinterpret_cast<_M128 , _M128D>(_M128D v) { return _mm_castpd_ps(v);    }
+        template<> _M128  mm128_reinterpret_cast<_M128 , _M128I>(_M128I v) { return _mm_castsi128_ps(v); }
+        template<> _M128D mm128_reinterpret_cast<_M128D, _M128I>(_M128I v) { return _mm_castsi128_pd(v); }
+        template<> _M128D mm128_reinterpret_cast<_M128D, _M128 >(_M128  v) { return _mm_castps_pd(v);    }
+
         template<typename T> struct VectorHelper {};
 
 #define OP1(op) \
@@ -224,8 +272,8 @@ namespace SSE
               CAT(CAT(_mm_cast, SUFFIX), _ps)(b))); \
         }
 #define MINMAX \
-        static inline TYPE min(TYPE &a, TYPE &b) { return CAT(_mm_min_, SUFFIX)(a, b); } \
-        static inline TYPE max(TYPE &a, TYPE &b) { return CAT(_mm_max_, SUFFIX)(a, b); }
+        static inline TYPE min(TYPE a, TYPE b) { return CAT(_mm_min_, SUFFIX)(a, b); } \
+        static inline TYPE max(TYPE a, TYPE b) { return CAT(_mm_max_, SUFFIX)(a, b); }
 #define LOAD(T) \
         static inline TYPE load (const T *x) { return CAT(_mm_load_, SUFFIX)(x); }
 #define LOAD_CAST(T) \
@@ -443,11 +491,27 @@ namespace SSE
             }
 
 
+            static inline TYPE notMaskedToZero(TYPE a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_pd(mask), a); }
             static inline TYPE set(const double a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline TYPE set(const double a, const double b) { return CAT(_mm_set_, SUFFIX)(a, b); }
             static inline void setZero(TYPE &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
+            static inline TYPE zero() { return CAT(_mm_setzero_, SUFFIX)(); }
 
             static inline void multiplyAndAdd(TYPE &v1, TYPE v2, TYPE v3) { v1 = add(mul(v1, v2), v3); }
+            static inline TYPE mul(TYPE a, TYPE b, _M128 _mask) {
+                _M128D mask = _mm_castps_pd(_mask);
+                return _mm_or_pd(
+                    _mm_and_pd(mask, _mm_mul_pd(a, b)),
+                    _mm_andnot_pd(mask, a)
+                    );
+            }
+            static inline TYPE div(TYPE a, TYPE b, _M128 _mask) {
+                _M128D mask = _mm_castps_pd(_mask);
+                return _mm_or_pd(
+                    _mm_and_pd(mask, _mm_div_pd(a, b)),
+                    _mm_andnot_pd(mask, a)
+                    );
+            }
 
             OP(add) OP(sub) OP(mul) OP(div)
             OPcmp(eq) OPcmp(neq)
@@ -455,9 +519,82 @@ namespace SSE
             OPcmp(le) OPcmp(nle)
 
             OP1(sqrt)
+            static inline TYPE log(TYPE x) {
+                const _M128D one = set(1.);
+                const _M128D invalid_mask = cmplt(x, zero());
+                const _M128D infinity_mask = cmpeq(x, zero());
+
+                x = max(x, set(std::numeric_limits<double>::min()));  // lazy: cut off denormalized numbers
+
+                _M128I emm0 = _mm_srli_epi64(_mm_castpd_si128(x), 52);
+                emm0 = _mm_sub_epi32(emm0, _mm_set1_epi32(1023));
+                _M128D e = _mm_cvtepi32_pd(_mm_shuffle_epi32(emm0, _MM_SHUFFLE(2, 0, 2, 0)));
+                e = add(e, one);
+
+                // keep only the fractional part
+                const union {
+                    unsigned long long int i;
+                    double d;
+                } mantissa_mask = { 0x800fffffffffffffull };
+                x = _mm_and_pd(x, set(mantissa_mask.d));
+                x = _mm_or_pd(x, set(0.5));
+
+                const _M128D mask = cmplt(x, set(0.70710678118654757273731092936941422522068023681640625));
+
+                const _M128D tmp = _mm_and_pd(x, mask);
+                x = sub(x, one);
+                x = add(x, tmp);
+
+                e = sub(e, _mm_and_pd(one, mask));
+
+                const _M128D z = mul(x, x);
+
+                static const union {
+                    unsigned short s[6 * 4];
+                    double d[6];
+                } P = { {
+                    0x1bb0,0x93c3,0xb4c2,0x3f1a,
+                    0x52f2,0x3f56,0xd6f5,0x3fdf,
+                    0x6911,0xed92,0xd2ba,0x4012,
+                    0xeb2e,0xc63e,0xff72,0x402c,
+                    0xc84d,0x924b,0xefd6,0x4031,
+                    0xdcf8,0x7d7e,0xd563,0x401e
+                } };
+                static const union {
+                    unsigned short s[5 * 4];
+                    double d[5];
+                } Q = { {
+                    0xef8e,0xae97,0x9320,0x4026,
+                    0xc033,0x4e19,0x9d2c,0x4046,
+                    0xbdbd,0xa326,0xbf33,0x4054,
+                    0xae21,0xeb5e,0xc9e2,0x4051,
+                    0x25b2,0x9e1f,0x200a,0x4037
+                } };
+
+                _M128D y = set(P.d[0]);
+                for (int i = 1; i < 6; ++i) {
+                    y = add(mul(y, x), set(P.d[i]));
+                }
+                _M128D y2 = add(set(Q.d[0]), x);
+                for (int i = 1; i < 5; ++i) {
+                    y2 = add(mul(y2, x), set(Q.d[i]));
+                }
+                y = mul(y, x);
+                y = div(y, y2);
+
+                y = mul(y, z);
+                y = sub(y, mul(e, set(2.121944400546905827679e-4)));
+                y = sub(y, mul(z, set(0.5)));
+
+                x = add(x, y);
+                x = add(x, mul(e, set(0.693359375)));
+                x = _mm_or_pd(x, invalid_mask); // negative arg will be NAN
+                x = _mm_or_pd(_mm_andnot_pd(infinity_mask, x), _mm_and_pd(infinity_mask, set(-std::numeric_limits<double>::infinity())));
+                return x;
+            }
             static inline TYPE abs(const TYPE a) {
-              static const TYPE mask = { 0x7fffffffffffffff, 0x7fffffffffffffff };
-              return CAT(_mm_and_, SUFFIX)(a, mask);
+                static const TYPE mask = _mm_castsi128_pd(_mm_set_epi32(0x7fffffff, 0xffffffff, 0x7fffffff, 0xffffffff));
+                return CAT(_mm_and_, SUFFIX)(a, mask);
             }
 
             MINMAX
@@ -472,9 +609,11 @@ namespace SSE
             STORE(float)
             GATHER_SCATTER(float)
 
+            static inline TYPE notMaskedToZero(TYPE a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(mask, a); }
             static inline TYPE set(const float a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline TYPE set(const float a, const float b, const float c, const float d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
             static inline void setZero(TYPE &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
+            static inline TYPE zero() { return CAT(_mm_setzero_, SUFFIX)(); }
 
             static bool pack(TYPE &v1, _M128I &_m1, TYPE &v2, _M128I &_m2) {
                 {
@@ -652,6 +791,18 @@ namespace SSE
             }
 
             static inline void multiplyAndAdd(TYPE &v1, TYPE v2, TYPE v3) { v1 = add(mul(v1, v2), v3); }
+            static inline TYPE mul(TYPE a, TYPE b, _M128 mask) {
+                return _mm_or_ps(
+                    _mm_and_ps(mask, _mm_mul_ps(a, b)),
+                    _mm_andnot_ps(mask, a)
+                    );
+            }
+            static inline TYPE div(TYPE a, TYPE b, _M128 mask) {
+                return _mm_or_ps(
+                    _mm_and_ps(mask, _mm_div_ps(a, b)),
+                    _mm_andnot_ps(mask, a)
+                    );
+            }
 
             OP(add) OP(sub) OP(mul) OP(div)
             OPcmp(eq) OPcmp(neq)
@@ -659,9 +810,67 @@ namespace SSE
             OPcmp(le) OPcmp(nle)
 
             OP1(sqrt)
+            static inline TYPE log(TYPE x) {
+                const _M128 one = set(1.);
+                const _M128 invalid_mask = cmplt(x, zero());
+                const _M128 infinity_mask = cmpeq(x, zero());
+
+                x = max(x, set(std::numeric_limits<float>::min()));  // cut off denormalized stuff
+
+                const _M128I emm0 = _mm_srli_epi32(_mm_castps_si128(x), 23);
+                _M128 e = _mm_cvtepi32_ps(_mm_sub_epi32(emm0, _mm_set1_epi32(127)));
+                e = add(e, one);
+
+                // keep only the fractional part
+                const union {
+                    unsigned int i;
+                    float f;
+                } mantissa_mask = { 0x807fffff };
+                x = _mm_and_ps(x, set(mantissa_mask.f));
+                x = _mm_or_ps(x, set(0.5));
+
+                const _M128 mask = cmplt(x, set(0.707106781186547524f));
+
+                const _M128 tmp = _mm_and_ps(x, mask);
+                x = sub(x, one);
+                x = add(x, tmp);
+
+                e = sub(e, _mm_and_ps(one, mask));
+
+                const _M128 z = mul(x, x);
+
+                _M128 y = set( 7.0376836292e-2f);
+                y = mul(y, x);
+                y = add(y, set(-1.1514610310e-1f));
+                y = mul(y, x);
+                y = add(y, set( 1.1676998740e-1f));
+                y = mul(y, x);
+                y = add(y, set(-1.2420140846e-1f));
+                y = mul(y, x);
+                y = add(y, set( 1.4249322787e-1f));
+                y = mul(y, x);
+                y = add(y, set(-1.6668057665e-1f));
+                y = mul(y, x);
+                y = add(y, set( 2.0000714765e-1f));
+                y = mul(y, x);
+                y = add(y, set(-2.4999993993e-1f));
+                y = mul(y, x);
+                y = add(y, set( 3.3333331174e-1f));
+                y = mul(y, x);
+
+                y = mul(y, z);
+                y = add(y, mul(e, set(-2.12194440e-4f)));
+                y = sub(y, mul(z, set(0.5)));
+
+                x = add(x, y);
+                x = add(x, mul(e, set(0.693359375f)));
+                x = _mm_or_ps(x, invalid_mask); // negative arg will be NAN
+                x = _mm_or_ps(_mm_andnot_ps(infinity_mask, x), _mm_and_ps(infinity_mask, set(-std::numeric_limits<float>::infinity())));
+                return x;
+            }
             static inline TYPE abs(const TYPE a) {
-              static const TYPE mask = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
-              return CAT(_mm_and_, SUFFIX)(a, mask);
+                static const TYPE mask = _mm_castsi128_ps(_mm_set1_epi32(0x7fffffff));
+                return CAT(_mm_and_, SUFFIX)(a, mask);
             }
 
             MINMAX
@@ -677,6 +886,7 @@ namespace SSE
 
             OP_(or_) OP_(and_) OP_(xor_)
             static inline void setZero(TYPE &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
+            static inline TYPE notMaskedToZero(TYPE a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 #undef SUFFIX
 #define SUFFIX epi32
             GATHER_SCATTER(int)
@@ -691,12 +901,70 @@ namespace SSE
 
 #ifdef __SSSE3__
             OP1(abs)
+#else
+            static inline TYPE abs(TYPE a) {
+              TYPE zero; setZero( zero );
+              const TYPE one = set( 1 );
+              TYPE negative = cmplt(a, zero);
+              a = xor_( a, negative );
+              return add( a, and_( one, negative ) );
+            }
 #endif
 
 #ifdef __SSE4_1__
-            static inline TYPE mul(const TYPE a, const TYPE b) { return _mm_mullo_epi32(a, b); }
+            static inline TYPE mul(TYPE a, TYPE b) { return _mm_mullo_epi32(a, b); }
+            static inline TYPE mul(TYPE a, TYPE b, _M128 _mask) {
+                _M128I mask = _mm_castps_si128(_mask);
+                return _mm_or_si128(
+                    _mm_and_si128(mask, _mm_mullo_epi32(a, b)),
+                    _mm_andnot_si128(mask, a)
+                    );
+            }
             MINMAX
 #else
+            static inline TYPE min(TYPE a, TYPE b) {
+                STORE_VECTOR(int, _a, a);
+                STORE_VECTOR(int, _b, b);
+                union {
+                    int i[4];
+                    TYPE v;
+                } x = { {
+                    std::min(_a[0], _b[0]),
+                    std::min(_a[1], _b[1]),
+                    std::min(_a[2], _b[2]),
+                    std::min(_a[3], _b[3])
+                } };
+                return x.v;
+            }
+            static inline TYPE max(TYPE a, TYPE b) {
+                STORE_VECTOR(int, _a, a);
+                STORE_VECTOR(int, _b, b);
+                union {
+                    int i[4];
+                    TYPE v;
+                } x = { {
+                    std::max(_a[0], _b[0]),
+                    std::max(_a[1], _b[1]),
+                    std::max(_a[2], _b[2]),
+                    std::max(_a[3], _b[3])
+                } };
+                return x.v;
+            }
+            static inline TYPE mul(const TYPE a, const TYPE b, _M128 _mask) {
+                const int mask = _mm_movemask_ps(_mask);
+                STORE_VECTOR(int, _a, a);
+                STORE_VECTOR(int, _b, b);
+                union {
+                    int i[4];
+                    TYPE v;
+                } x = { {
+                    (mask & 1 ? _a[0] * _b[0] : _a[0]),
+                    (mask & 2 ? _a[1] * _b[1] : _a[1]),
+                    (mask & 4 ? _a[2] * _b[2] : _a[2]),
+                    (mask & 8 ? _a[3] * _b[3] : _a[3])
+                } };
+                return x.v;
+            }
             static inline TYPE mul(const TYPE a, const TYPE b) {
                 STORE_VECTOR(int, _a, a);
                 STORE_VECTOR(int, _b, b);
@@ -717,6 +985,21 @@ namespace SSE
             }
 #endif
 
+            static inline TYPE div(const TYPE a, const TYPE b, _M128 _mask) {
+                const int mask = _mm_movemask_ps(_mask);
+                STORE_VECTOR(int, _a, a);
+                STORE_VECTOR(int, _b, b);
+                union {
+                    int i[4];
+                    TYPE v;
+                } x = { {
+                    (mask & 1 ? _a[0] / _b[0] : _a[0]),
+                    (mask & 2 ? _a[1] / _b[1] : _a[1]),
+                    (mask & 4 ? _a[2] / _b[2] : _a[2]),
+                    (mask & 8 ? _a[3] / _b[3] : _a[3])
+                } };
+                return x.v;
+            }
             static inline TYPE div(const TYPE a, const TYPE b) {
                 STORE_VECTOR(int, _a, a);
                 STORE_VECTOR(int, _b, b);
@@ -751,19 +1034,71 @@ namespace SSE
             STORE_CAST(unsigned int)
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
             static inline void setZero(TYPE &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
+            static inline TYPE notMaskedToZero(TYPE a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 
 #undef SUFFIX
 #define SUFFIX epu32
 
 #ifdef __SSE4_1__
             MINMAX
+#else
+            static inline TYPE min(TYPE a, TYPE b) {
+                STORE_VECTOR(unsigned int, _a, a);
+                STORE_VECTOR(unsigned int, _b, b);
+                union {
+                    unsigned int i[4];
+                    TYPE v;
+                } x = { {
+                    std::min(_a[0], _b[0]),
+                    std::min(_a[1], _b[1]),
+                    std::min(_a[2], _b[2]),
+                    std::min(_a[3], _b[3])
+                } };
+                return x.v;
+            }
+            static inline TYPE max(TYPE a, TYPE b) {
+                STORE_VECTOR(unsigned int, _a, a);
+                STORE_VECTOR(unsigned int, _b, b);
+                union {
+                    unsigned int i[4];
+                    TYPE v;
+                } x = { {
+                    std::max(_a[0], _b[0]),
+                    std::max(_a[1], _b[1]),
+                    std::max(_a[2], _b[2]),
+                    std::max(_a[3], _b[3])
+                } };
+                return x.v;
+            }
 #endif
 
+            static inline TYPE mul(TYPE a, TYPE b, _M128 _mask) {
+                _M128I mask = _mm_castps_si128(_mask);
+                return _mm_or_si128(
+                    _mm_and_si128(mask, mul(a, b)),
+                    _mm_andnot_si128(mask, a)
+                    );
+            }
             static inline TYPE mul(const TYPE a, const TYPE b) {
                 TYPE hi = _mm_mulhi_epu16(a, b);
                 hi = _mm_slli_epi32(hi, 16);
                 TYPE lo = _mm_mullo_epi16(a, b);
                 return or_(hi, lo);
+            }
+            static inline TYPE div(const TYPE a, const TYPE b, _M128 _mask) {
+                const int mask = _mm_movemask_ps(_mask);
+                STORE_VECTOR(unsigned int, _a, a);
+                STORE_VECTOR(unsigned int, _b, b);
+                union {
+                    unsigned int i[4];
+                    TYPE v;
+                } x = { {
+                    (mask & 1 ? _a[0] / _b[0] : _a[0]),
+                    (mask & 2 ? _a[1] / _b[1] : _a[1]),
+                    (mask & 4 ? _a[2] / _b[2] : _a[2]),
+                    (mask & 8 ? _a[3] / _b[3] : _a[3])
+                } };
+                return x.v;
             }
             static inline TYPE div(const TYPE a, const TYPE b) {
                 STORE_VECTOR(unsigned int, _a, a);
@@ -807,6 +1142,7 @@ namespace SSE
 
             OP_(or_) OP_(and_) OP_(xor_)
             static inline void setZero(TYPE &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
+            static inline TYPE notMaskedToZero(TYPE a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 #undef SUFFIX
 #define SUFFIX epi16
             GATHER_SCATTER_16(signed short)
@@ -823,11 +1159,45 @@ namespace SSE
 
 #ifdef __SSSE3__
             OP1(abs)
+#else
+            static inline TYPE abs(TYPE a) {
+              TYPE zero; setZero( zero );
+              const TYPE one = set( 1 );
+              TYPE negative = cmplt(a, zero);
+              a = xor_( a, negative );
+              return add( a, and_( one, negative ) );
+            }
 #endif
 
+            static inline TYPE mul(TYPE a, TYPE b, _M128 _mask) {
+                _M128I mask = _mm_castps_si128(_mask);
+                return _mm_or_si128(
+                    _mm_and_si128(mask, mul(a, b)),
+                    _mm_andnot_si128(mask, a)
+                    );
+            }
             OPx(mul, mullo)
             OP(min) OP(max)
 
+            static inline TYPE div(const TYPE a, const TYPE b, _M128 _mask) {
+                const int mask = _mm_movemask_epi8(_mm_castps_si128(_mask));
+                STORE_VECTOR(short, _a, a);
+                STORE_VECTOR(short, _b, b);
+                union {
+                    short i[8];
+                    TYPE v;
+                } x = { {
+                    (mask & 0x0001 ? _a[0] / _b[0] : _a[0]),
+                    (mask & 0x0004 ? _a[1] / _b[1] : _a[1]),
+                    (mask & 0x0010 ? _a[2] / _b[2] : _a[2]),
+                    (mask & 0x0040 ? _a[3] / _b[3] : _a[3]),
+                    (mask & 0x0100 ? _a[4] / _b[4] : _a[4]),
+                    (mask & 0x0400 ? _a[5] / _b[5] : _a[5]),
+                    (mask & 0x1000 ? _a[6] / _b[6] : _a[6]),
+                    (mask & 0x4000 ? _a[7] / _b[7] : _a[7])
+                } };
+                return x.v;
+            }
             static inline TYPE div(const TYPE a, const TYPE b) {
                 STORE_VECTOR(short, _a, a);
                 STORE_VECTOR(short, _b, b);
@@ -866,9 +1236,29 @@ namespace SSE
             STORE_CAST(unsigned short)
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
             static inline void setZero(TYPE &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
+            static inline TYPE notMaskedToZero(TYPE a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 
 #undef SUFFIX
 #define SUFFIX epu16
+            static inline TYPE div(const TYPE a, const TYPE b, _M128 _mask) {
+                const int mask = _mm_movemask_epi8(_mm_castps_si128(_mask));
+                STORE_VECTOR(unsigned short, _a, a);
+                STORE_VECTOR(unsigned short, _b, b);
+                union {
+                    unsigned short i[8];
+                    TYPE v;
+                } x = { {
+                    (mask & 0x0001 ? _a[0] / _b[0] : _a[0]),
+                    (mask & 0x0004 ? _a[1] / _b[1] : _a[1]),
+                    (mask & 0x0010 ? _a[2] / _b[2] : _a[2]),
+                    (mask & 0x0040 ? _a[3] / _b[3] : _a[3]),
+                    (mask & 0x0100 ? _a[4] / _b[4] : _a[4]),
+                    (mask & 0x0400 ? _a[5] / _b[5] : _a[5]),
+                    (mask & 0x1000 ? _a[6] / _b[6] : _a[6]),
+                    (mask & 0x4000 ? _a[7] / _b[7] : _a[7])
+                } };
+                return x.v;
+            }
             static inline TYPE div(const TYPE a, const TYPE b) {
                 STORE_VECTOR(unsigned short, _a, a);
                 STORE_VECTOR(unsigned short, _b, b);
@@ -888,6 +1278,13 @@ namespace SSE
                 return x.v;
             }
 
+            static inline TYPE mul(TYPE a, TYPE b, _M128 _mask) {
+                _M128I mask = _mm_castps_si128(_mask);
+                return _mm_or_si128(
+                    _mm_and_si128(mask, mul(a, b)),
+                    _mm_andnot_si128(mask, a)
+                    );
+            }
 #undef SUFFIX
 #define SUFFIX epi16
             SHIFT8
@@ -988,6 +1385,7 @@ template<unsigned int VectorSize> class Mask
 
         inline Mask operator&&(const Mask &rhs) const { return _mm_and_ps(k, rhs.k); }
         inline Mask operator||(const Mask &rhs) const { return _mm_or_ps (k, rhs.k); }
+        inline Mask operator!() const { return _mm_andnot_ps(k, _mm_castsi128_ps(_mm_set1_epi32(-1))); }
 
         inline bool isFull () const { return _mm_movemask_epi8(dataI()) == 0xffff; }
         inline bool isEmpty() const { return _mm_movemask_epi8(dataI()) == 0x0000; }
@@ -1022,9 +1420,72 @@ template<unsigned int A, unsigned int B> struct MaskCastHelper
 };
 
 template<typename T>
+class WriteMaskedVector
+{
+    friend class Vector<T>;
+    typedef SSE::Mask<16 / sizeof(T)> Mask;
+    public:
+        //prefix
+        inline Vector<T> &operator++() {
+            vec->data = VectorHelper<T>::add(vec->data,
+                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::set(1), mask.data())
+                    );
+            return *vec;
+        }
+        inline Vector<T> &operator--() {
+            vec->data = VectorHelper<T>::sub(vec->data,
+                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::set(1), mask.data())
+                    );
+            return *vec;
+        }
+        //postfix
+        inline Vector<T> operator++(int) {
+            Vector<T> ret(*vec);
+            vec->data = VectorHelper<T>::add(vec->data,
+                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::set(1), mask.data())
+                    );
+            return ret;
+        }
+        inline Vector<T> operator--(int) {
+            Vector<T> ret(*vec);
+            vec->data = VectorHelper<T>::sub(vec->data,
+                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::set(1), mask.data())
+                    );
+            return ret;
+        }
+
+        inline Vector<T> &operator+=(Vector<T> x) {
+            vec->data = VectorHelper<T>::add(vec->data, VectorHelper<T>::notMaskedToZero(x, mask.data()));
+            return *vec;
+        }
+        inline Vector<T> &operator-=(Vector<T> x) {
+            vec->data = VectorHelper<T>::sub(vec->data, VectorHelper<T>::notMaskedToZero(x, mask.data()));
+            return *vec;
+        }
+        inline Vector<T> &operator*=(Vector<T> x) {
+            vec->data = VectorHelper<T>::mul(vec->data, x.data, mask.data());
+            return *vec;
+        }
+        inline Vector<T> &operator/=(Vector<T> x) {
+            vec->data = VectorHelper<T>::div(vec->data, x.data, mask.data());
+            return *vec;
+        }
+
+        inline Vector<T> &operator=(Vector<T> x) {
+            vec->assign(x, mask);
+            return *vec;
+        }
+    private:
+        WriteMaskedVector(Vector<T> *v, Mask k) : vec(v), mask(k) {}
+        Vector<T> *vec;
+        Mask mask;
+};
+
+template<typename T>
 class Vector : public VectorBase<T, Vector<T> >
 {
     friend struct VectorBase<T, Vector<T> >;
+    friend class WriteMaskedVector<T>;
     protected:
         typedef typename VectorBase<T, Vector<T> >::IntrinType IntrinType;
         IntrinType data;
@@ -1278,14 +1739,19 @@ class Vector : public VectorBase<T, Vector<T> >
             VectorHelper<T>::multiplyAndAdd(data, factor, summand);
         }
 
-        inline Vector &assign( const Vector<T> &v, const Mask &mask ) {
-            const Vector<int> m(mask);
-            data = _mm_or_ps(_mm_and_ps(m, data), _mm_andnot_ps(m, v));
-            return *this;
+        inline void assign( const Vector<T> &v, const Mask &mask ) {
+            data = mm128_reinterpret_cast<IntrinType>(
+                    _mm_or_ps(
+                        _mm_andnot_ps(mask.data(), mm128_reinterpret_cast<_M128>(data)),
+                        _mm_and_ps(mask.data(), mm128_reinterpret_cast<_M128>(v.data))
+                        )
+                    );
         }
 
         template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data); }
         template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data); }
+
+        inline WriteMaskedVector<T> operator()(Mask k) { return WriteMaskedVector<T>(this, k); }
 
         /**
          * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have
@@ -1300,7 +1766,7 @@ class Vector : public VectorBase<T, Vector<T> >
 template<typename T> class SwizzledVector : public Vector<T> {};
 
 template<typename T> inline Vector<T> operator+(const T &x, const Vector<T> &v) { return v.operator+(x); }
-template<typename T> inline Vector<T> operator*(const T &x, const Vector<T> &v) { return v.operator+(x); }
+template<typename T> inline Vector<T> operator*(const T &x, const Vector<T> &v) { return v.operator*(x); }
 template<typename T> inline Vector<T> operator-(const T &x, const Vector<T> &v) { return Vector<T>(x) - v; }
 template<typename T> inline Vector<T> operator/(const T &x, const Vector<T> &v) { return Vector<T>(x) / v; }
 template<typename T> inline typename Vector<T>::Mask  operator< (const T &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
@@ -1346,6 +1812,8 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, con
   template<typename T> static inline Vector<T> abs (const Vector<T> &x) { return VectorHelper<T>::abs(x); }
   template<typename T> static inline Vector<T> sin (const Vector<T> &x) { return VectorHelper<T>::sin(x); }
   template<typename T> static inline Vector<T> cos (const Vector<T> &x) { return VectorHelper<T>::cos(x); }
+  template<typename T> static inline Vector<T> log (const Vector<T> &x) { return VectorHelper<T>::log(x); }
+  template<typename T> static inline Vector<T> log10(const Vector<T> &x) { return VectorHelper<T>::log10(x); }
 #undef ALIGN
 #undef STORE_VECTOR
 } // namespace SSE

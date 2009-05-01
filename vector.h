@@ -46,6 +46,8 @@ namespace Vc
   using ::Larrabee::abs;
   using ::Larrabee::sin;
   using ::Larrabee::cos;
+  using ::Larrabee::log;
+  using ::Larrabee::log10;
   typedef Vector<signed int> short_v;
   typedef Vector<unsigned int> ushort_v;
 #elif defined(USE_SSE)
@@ -62,6 +64,8 @@ namespace Vc
   using ::SSE::abs;
   using ::SSE::sin;
   using ::SSE::cos;
+  using ::SSE::log;
+  using ::SSE::log10;
   typedef Vector<signed short> short_v;
   typedef Vector<unsigned short> ushort_v;
 #else
@@ -78,6 +82,8 @@ namespace Vc
   using ::Simple::abs;
   using ::Simple::sin;
   using ::Simple::cos;
+  using ::Simple::log;
+  using ::Simple::log10;
   typedef Vector<signed short> short_v;
   typedef Vector<unsigned short> ushort_v;
 #endif

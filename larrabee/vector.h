@@ -26,6 +26,18 @@
 #define CAT_HELPER(a, b) a##b
 #define CAT(a, b) CAT_HELPER(a, b)
 
+#ifndef HAVE_FLOAT16
+#define HAVE_FLOAT16
+#ifdef HALF_MAX
+    typedef half float16;
+#else
+    class float16 {
+        public:
+            unsigned short data;
+    };
+#endif
+#endif
+
 namespace Larrabee
 {
     namespace Internal
@@ -82,6 +94,7 @@ namespace Larrabee
 
             inline Mask operator&&(const Mask &rhs) const { return _mm512_vkand(k, rhs.k); }
             inline Mask operator||(const Mask &rhs) const { return _mm512_vkor (k, rhs.k); }
+            inline Mask operator!() const { return ~k; }
 
             inline bool isFull () const { return MaskHelper<VectorSize>::isFull (k); }
             inline bool isEmpty() const { return MaskHelper<VectorSize>::isEmpty(k); }
@@ -101,14 +114,6 @@ namespace Larrabee
             __mmask k;
     };
 
-#ifdef HALF_MAX
-    typedef half float16;
-#else
-    class float16 {
-        public:
-            unsigned short data;
-    };
-#endif
     class float11_11_10 { public:
         enum Component {
             X = _MM_FULLUPC_FLOAT11A,
@@ -327,13 +332,14 @@ namespace Larrabee
             static inline void store         (void *mem, VectorType x) { _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE); }
             static inline void storeStreaming(void *mem, VectorType x) { _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NT); }
 
+            static inline VectorType set(EntryType x) { return CAT(_mm512_set_1to8_, SUFFIX)(x); }
+
             static inline void prepareGatherIndexes(_M512I &indexes) {
                 indexes = mm512_reinterpret_cast<_M512I>(_mm512_mask_movq(
                             _mm512_shuf128x32(mm512_reinterpret_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_DDCC),
                             0x33,
                             _mm512_shuf128x32(mm512_reinterpret_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_BBAA)
                             ));
-                indexes = _mm512_mull_pi(indexes, _mm512_set_1to16_pi(2));
                 indexes = _mm512_add_pi(indexes, _mm512_set_4to16_pi(0, 1, 0, 1));
             }
             static inline __mmask scaleMask(__mmask k) {
@@ -394,6 +400,11 @@ namespace Larrabee
             static inline EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_pd(a); }
             static inline EntryType reduce_mul(const VectorType &a) { return _mm512_reduce_mul_pd(a); }
             static inline EntryType reduce_add(const VectorType &a) { return _mm512_reduce_add_pd(a); }
+
+            static inline VectorType abs(VectorType a) {
+                const _M512I absMask = _mm512_set_4to16_pi(0xffffffff, 0x7fffffff, 0xffffffff, 0x7fffffff);
+                return mm512_reinterpret_cast<VectorType>(_mm512_and_pq(mm512_reinterpret_cast<_M512I>(a), absMask));
+            }
 
             OP(max) OP(min)
             OP1(sqrt) OP1(rsqrt)
@@ -492,6 +503,8 @@ namespace Larrabee
             STORE(unsigned short, _MM_DOWNC_UINT16)
             STORE(signed short, _MM_DOWNC_SINT16)
 
+            static inline VectorType set(EntryType x) { return CAT(_mm512_set_1to16_, SUFFIX)(x); }
+
             GATHERSCATTER(EntryType,      _MM_FULLUPC_NONE,    _MM_DOWNC_NONE   )
             GATHERSCATTER(float16,        _MM_FULLUPC_FLOAT16, _MM_DOWNC_FLOAT16)
             GATHERSCATTER(unsigned char,  _MM_FULLUPC_UINT8,   _MM_DOWNC_UINT8  )
@@ -507,6 +520,11 @@ namespace Larrabee
             static inline EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_ps(a); }
             static inline EntryType reduce_mul(const VectorType &a) { return _mm512_reduce_mul_ps(a); }
             static inline EntryType reduce_add(const VectorType &a) { return _mm512_reduce_add_ps(a); }
+
+            static inline VectorType abs(VectorType a) {
+                const _M512I absMask = _mm512_set_1to16_pi(0x7fffffff);
+                return mm512_reinterpret_cast<VectorType>(_mm512_and_pi(mm512_reinterpret_cast<_M512I>(a), absMask));
+            }
 
             OP(max) OP(min)
             OP1(sqrt) OP1(rsqrt)
@@ -536,6 +554,8 @@ namespace Larrabee
             STORE(signed char, _MM_DOWNC_SINT8I)
             STORE(signed short, _MM_DOWNC_SINT16I)
 
+            static inline VectorType set(EntryType x) { return CAT(_mm512_set_1to16_, SUFFIX)(x); }
+
             GATHERSCATTER(EntryType,    _MM_FULLUPC_NONE,    _MM_DOWNC_NONE)
             GATHERSCATTER(signed char,  _MM_FULLUPC_SINT8I,  _MM_DOWNC_SINT8I)
             GATHERSCATTER(signed short, _MM_FULLUPC_SINT16I, _MM_DOWNC_SINT16I)
@@ -548,6 +568,12 @@ namespace Larrabee
             static inline EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_pi(a); }
             static inline EntryType reduce_mul(const VectorType &a) { return _mm512_reduce_mul_pi(a); }
             static inline EntryType reduce_add(const VectorType &a) { return _mm512_reduce_add_pi(a); }
+
+            static inline VectorType abs(VectorType a) {
+                VectorType zero = mm512_reinterpret_cast<VectorType>(_mm512_setzero());
+                const VectorType minusOne = _mm512_set_1to16_pi( -1 );
+                return mul(a, minusOne, cmplt(a, zero), a);
+            }
 
             OP(max) OP(min)
             OP(add) OP(sub) OPx(mul, mull) OP(div) OP(rem)
@@ -591,6 +617,8 @@ namespace Larrabee
             OPcmp(le) OPcmp(nle)
 #undef SUFFIX
 #define SUFFIX pi
+            static inline VectorType set(EntryType x) { return CAT(_mm512_set_1to16_, SUFFIX)(static_cast<int>(x)); }
+
             OP(sll) OP(srl)
             OP(add) OP(sub) OPx(mul, mull)
             OP_(or_) OP_(and_) OP_(xor_)
@@ -652,10 +680,65 @@ template<typename T> inline Vector<T> operator-(const Vector<T> &x, const Vector
 }
 
 template<typename T>
+class WriteMaskedVector
+{
+    friend class Vector<T>;
+    typedef Larrabee::Mask<64 / sizeof(T)> Mask;
+    public:
+        //prefix
+        inline Vector<T> &operator++() {
+            vec->data = VectorHelper<T>::add(vec->data, VectorHelper<T>::set(static_cast<T>(1)), mask, vec->data);
+            return *vec;
+        }
+        inline Vector<T> &operator--() {
+            vec->data = VectorHelper<T>::sub(vec->data, VectorHelper<T>::set(static_cast<T>(1)), mask, vec->data);
+            return *vec;
+        }
+        //postfix
+        inline Vector<T> operator++(int) {
+            Vector<T> ret(*vec);
+            vec->data = VectorHelper<T>::add(vec->data, VectorHelper<T>::set(static_cast<T>(1)), mask, vec->data);
+            return ret;
+        }
+        inline Vector<T> operator--(int) {
+            Vector<T> ret(*vec);
+            vec->data = VectorHelper<T>::sub(vec->data, VectorHelper<T>::set(static_cast<T>(1)), mask, vec->data);
+            return ret;
+        }
+
+        inline Vector<T> &operator+=(Vector<T> x) {
+            vec->data = VectorHelper<T>::add(vec->data, x.data, mask, vec->data);
+            return *vec;
+        }
+        inline Vector<T> &operator-=(Vector<T> x) {
+            vec->data = VectorHelper<T>::sub(vec->data, x.data, mask, vec->data);
+            return *vec;
+        }
+        inline Vector<T> &operator*=(Vector<T> x) {
+            vec->data = VectorHelper<T>::mul(vec->data, x.data, mask, vec->data);
+            return *vec;
+        }
+        inline Vector<T> &operator/=(Vector<T> x) {
+            vec->data = VectorHelper<T>::div(vec->data, x.data, mask, vec->data);
+            return *vec;
+        }
+
+        inline Vector<T> &operator=(Vector<T> x) {
+            vec->assign(x, mask);
+            return *vec;
+        }
+    private:
+        WriteMaskedVector(Vector<T> *v, Mask k) : vec(v), mask(k.data()) {}
+        Vector<T> *vec;
+        __mmask mask;
+};
+
+template<typename T>
 class Vector : public VectorBase<T, Vector<T> >
 {
     friend struct VectorBase<T, Vector<T> >;
     friend class VectorMultiplication<T>;
+    friend class WriteMaskedVector<T>;
     protected:
         typedef typename VectorHelper<T>::VectorType VectorType;
         VectorType data;
@@ -769,21 +852,21 @@ class Vector : public VectorBase<T, Vector<T> >
         inline const SwizzledVector<T> dddd() const { const SwizzledVector<T> sv = { *this, _MM_SWIZ_REG_DDDD }; return sv; }
         inline const SwizzledVector<T> dacb() const { const SwizzledVector<T> sv = { *this, _MM_SWIZ_REG_DACB }; return sv; }
 
-        inline Vector(const T *array, const Vector<unsigned int> &indexes) : data(VectorHelper<T>::gather(indexes, array)) {}
+        inline Vector(const T *array, const Vector<unsigned int> &indexes) : data(VectorHelper<T>::gather(sizeof(T) == 8 ? indexes * 2 : indexes, array)) {}
         inline Vector(const T *array, const Vector<unsigned int> &indexes, Mask mask)
         {
-            VectorHelper<T>::gather(data, indexes, array, mask.data());
+            VectorHelper<T>::gather(data, sizeof(T) == 8 ? indexes * 2 : indexes, array, mask.data());
         }
 
-        inline void gather(const T *array, const Vector<unsigned int> &indexes) { data = VectorHelper<T>::gather(indexes, array); }
+        inline void gather(const T *array, const Vector<unsigned int> &indexes) { data = VectorHelper<T>::gather(sizeof(T) == 8 ? indexes * 2 : indexes, array); }
         inline void gather(const T *array, const Vector<unsigned int> &indexes, Mask mask)
         {
-            VectorHelper<T>::gather(data, indexes, array, mask.data());
+            VectorHelper<T>::gather(data, sizeof(T) == 8 ? indexes * 2 : indexes, array, mask.data());
         }
 
-        inline void scatter(T *array, const Vector<unsigned int> &indexes) const { VectorHelper<T>::scatter(data, indexes, array); }
+        inline void scatter(T *array, const Vector<unsigned int> &indexes) const { VectorHelper<T>::scatter(data, sizeof(T) == 8 ? indexes * 2 : indexes, array); }
         inline void scatter(T *array, const Vector<unsigned int> &indexes, Mask mask) const {
-            VectorHelper<T>::scatter(data, indexes, array, mask.data());
+            VectorHelper<T>::scatter(data, sizeof(T) == 8 ? indexes * 2 : indexes, array, mask.data());
         }
 
         /**
@@ -796,48 +879,54 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename S, typename OtherT>
         inline Vector(const S *array, const OtherT S::* member1, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
         {
-            LRB_STATIC_ASSERT((sizeof(S) % sizeof(OtherT)) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S) / sizeof(OtherT));
+            enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
+            LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            const Vector<unsigned int> &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::gather(data, offsets, &(array->*(member1)), mask.data());
         }
 
         template<typename S1, typename S2, typename OtherT>
         inline Vector(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
         {
-            LRB_STATIC_ASSERT((sizeof(S1) % sizeof(OtherT)) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S1) / sizeof(OtherT));
+            enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
+            LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            const Vector<unsigned int> &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::gather(data, offsets, &(array->*(member1).*(member2)), mask.data());
         }
 
         template<typename S, typename OtherT>
         inline void gather(const S *array, const OtherT S::* member1, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
         {
-            LRB_STATIC_ASSERT((sizeof(S) % sizeof(OtherT)) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S) / sizeof(OtherT));
+            enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
+            LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            const Vector<unsigned int> &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::gather(data, offsets, &(array->*(member1)), mask.data());
         }
 
         template<typename S1, typename S2, typename OtherT>
         inline void gather(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
         {
-            LRB_STATIC_ASSERT((sizeof(S1) % sizeof(OtherT)) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S1) / sizeof(OtherT));
+            enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
+            LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            const Vector<unsigned int> &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::gather(data, offsets, &(array->*(member1).*(member2)), mask.data());
         }
 
         template<typename S, typename OtherT>
         inline void scatter(S *array, OtherT S::* member1, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
         {
-            LRB_STATIC_ASSERT((sizeof(S) % sizeof(OtherT)) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S) / sizeof(OtherT));
+            enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
+            LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
+            const Vector<unsigned int> &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::scatter(data, offsets, &(array->*(member1)), mask.data());
         }
 
         template<typename S1, typename S2, typename OtherT>
         inline void scatter(S1 *array, S2 S1::* member1, OtherT S2::* member2, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
         {
-            LRB_STATIC_ASSERT((sizeof(S1) % sizeof(OtherT)) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S1) / sizeof(OtherT));
+            enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
+            LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
+            const Vector<unsigned int> &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::scatter(data, offsets, &(array->*(member1).*(member2)), mask.data());
         }
 
@@ -920,6 +1009,8 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data); }
         template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data); }
 
+        inline WriteMaskedVector<T> operator()(Mask k) { return WriteMaskedVector<T>(this, k); }
+
         inline T max() const { return VectorHelper<T>::reduce_max(data); }
         inline T min() const { return VectorHelper<T>::reduce_min(data); }
         inline T mul() const { return VectorHelper<T>::reduce_mul(data); }
@@ -927,7 +1018,7 @@ class Vector : public VectorBase<T, Vector<T> >
 };
 
 template<typename T> inline Vector<T> operator+(const T &x, const Vector<T> &v) { return v.operator+(x); }
-template<typename T> inline Vector<T> operator*(const T &x, const Vector<T> &v) { return v.operator+(x); }
+template<typename T> inline Vector<T> operator*(const T &x, const Vector<T> &v) { return v.operator*(x); }
 template<typename T> inline Vector<T> operator-(const T &x, const Vector<T> &v) { return Vector<T>(x) - v; }
 template<typename T> inline Vector<T> operator/(const T &x, const Vector<T> &v) { return Vector<T>(x) / v; }
 template<typename T> inline Vector<T> operator%(const T &x, const Vector<T> &v) { return Vector<T>(x) % v; }
@@ -977,16 +1068,18 @@ namespace Larrabee
 #undef PARENT_DATA
 #undef OP_IMPL
 
-    template<typename T> static inline Larrabee::Vector<T> min (const Larrabee::Vector<T> &x, const Larrabee::Vector<T> &y) { return VectorHelper<T>::min(x, y); }
-    template<typename T> static inline Larrabee::Vector<T> max (const Larrabee::Vector<T> &x, const Larrabee::Vector<T> &y) { return VectorHelper<T>::max(x, y); }
-    template<typename T> static inline Larrabee::Vector<T> min (const Larrabee::Vector<T> &x, const T &y) { return min(x, Vector<T>(y)); }
-    template<typename T> static inline Larrabee::Vector<T> max (const Larrabee::Vector<T> &x, const T &y) { return max(x, Vector<T>(y)); }
-    template<typename T> static inline Larrabee::Vector<T> min (const T &x, const Larrabee::Vector<T> &y) { return min(Vector<T>(x), y); }
-    template<typename T> static inline Larrabee::Vector<T> max (const T &x, const Larrabee::Vector<T> &y) { return max(Vector<T>(x), y); }
-    template<typename T> static inline Larrabee::Vector<T> sqrt(const Larrabee::Vector<T> &x) { return VectorHelper<T>::sqrt(x); }
-    template<typename T> static inline Larrabee::Vector<T> abs (const Larrabee::Vector<T> &x) { return VectorHelper<T>::abs(x); }
-    template<typename T> static inline Larrabee::Vector<T> sin (const Larrabee::Vector<T> &x) { return VectorHelper<T>::sin(x); }
-    template<typename T> static inline Larrabee::Vector<T> cos (const Larrabee::Vector<T> &x) { return VectorHelper<T>::cos(x); }
+    template<typename T> static inline Larrabee::Vector<T> min (Larrabee::Vector<T> x, Larrabee::Vector<T> y) { return VectorHelper<T>::min(x, y); }
+    template<typename T> static inline Larrabee::Vector<T> max (Larrabee::Vector<T> x, Larrabee::Vector<T> y) { return VectorHelper<T>::max(x, y); }
+    template<typename T> static inline Larrabee::Vector<T> min (Larrabee::Vector<T> x, T y) { return min(x, Vector<T>(y)); }
+    template<typename T> static inline Larrabee::Vector<T> max (Larrabee::Vector<T> x, T y) { return max(x, Vector<T>(y)); }
+    template<typename T> static inline Larrabee::Vector<T> min (T x, Larrabee::Vector<T> y) { return min(Vector<T>(x), y); }
+    template<typename T> static inline Larrabee::Vector<T> max (T x, Larrabee::Vector<T> y) { return max(Vector<T>(x), y); }
+    template<typename T> static inline Larrabee::Vector<T> sqrt(Larrabee::Vector<T> x) { return VectorHelper<T>::sqrt(x); }
+    template<typename T> static inline Larrabee::Vector<T> abs (Larrabee::Vector<T> x) { return VectorHelper<T>::abs(x); }
+    template<typename T> static inline Larrabee::Vector<T> sin (Larrabee::Vector<T> x) { return VectorHelper<T>::sin(x); }
+    template<typename T> static inline Larrabee::Vector<T> cos (Larrabee::Vector<T> x) { return VectorHelper<T>::cos(x); }
+    template<typename T> static inline Larrabee::Vector<T> log (Larrabee::Vector<T> x) { return VectorHelper<T>::log(x); }
+    template<typename T> static inline Larrabee::Vector<T> log10(Larrabee::Vector<T> x) { return VectorHelper<T>::log10(x); }
 } // namespace Larrabee
 
 #undef LRB_STATIC_ASSERT_NC

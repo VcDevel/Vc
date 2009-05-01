@@ -37,6 +37,7 @@ class _UnitTest_Global_Object
             assert_failure(0),
             expect_assert_failure(false),
             float_fuzzyness( 1e-6f ),
+            double_fuzzyness( 1e-20f ),
             failedTests(0), passedTests(0)
         {
         }
@@ -53,6 +54,7 @@ class _UnitTest_Global_Object
         int assert_failure;
         bool expect_assert_failure;
         float float_fuzzyness;
+        double double_fuzzyness;
     private:
         int failedTests;
         int passedTests;
@@ -77,6 +79,7 @@ void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
 template<typename T> static inline void setFuzzyness( T );
 
 template<> inline void setFuzzyness<float>( float fuzz ) { _unit_test_global.float_fuzzyness = fuzz; }
+template<> inline void setFuzzyness<double>( double fuzz ) { _unit_test_global.double_fuzzyness = fuzz; }
 
 #define VERIFY(cond) if (cond) {} else { std::cout << "       " << #cond << " at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
 
@@ -94,29 +97,49 @@ template<typename T> static inline bool unittest_fuzzyCompareHelper( const T &a,
 
 template<> inline bool unittest_fuzzyCompareHelper<float>( const float &a, const float &b )
 {
-  return ( a * ( 1.f + _unit_test_global.float_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) <= b );
+    if (a < 0.f) {
+        return ( a * ( 1.f + _unit_test_global.float_fuzzyness ) <= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) >= b );
+    }
+    return ( a * ( 1.f + _unit_test_global.float_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) <= b );
 }
 
 template<> inline bool unittest_fuzzyCompareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b )
 {
-  return ( ( a * ( 1.f + _unit_test_global.float_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) <= b ) ).isFull();
+    typedef Vc::float_v::Mask Mask;
+    Mask m1 = a < 0.f;
+    Mask neg = ( ( a * ( 1.f + _unit_test_global.float_fuzzyness ) <= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) >= b ) );
+    Mask pos = ( ( a * ( 1.f + _unit_test_global.float_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) <= b ) );
+    return (m1 && neg) || (!m1 && pos);
 }
 
 template<> inline bool unittest_fuzzyCompareHelper<double>( const double &a, const double &b )
 {
-  return ( a * ( 1. + 1.e-20 ) >= b ) && ( a * ( 1. - 1.e-20 ) <= b );
+    if (a < 0.) {
+        return ( a * ( 1. + _unit_test_global.double_fuzzyness ) <= b ) && ( a * ( 1. - _unit_test_global.double_fuzzyness ) >= b );
+    }
+    return ( a * ( 1. + _unit_test_global.double_fuzzyness ) >= b ) && ( a * ( 1. - _unit_test_global.double_fuzzyness ) <= b );
 }
 
 template<> inline bool unittest_fuzzyCompareHelper<Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b )
 {
-  return ( ( a * ( 1. + 1.e-20 ) >= b ) && ( a * ( 1. - 1.e-20 ) <= b ) ).isFull();
+    typedef Vc::double_v::Mask Mask;
+    Mask m1 = a < 0.f;
+    Mask neg = ( ( a * ( 1.f + _unit_test_global.double_fuzzyness ) <= b ) && ( a * ( 1.f - _unit_test_global.double_fuzzyness ) >= b ) );
+    Mask pos = ( ( a * ( 1.f + _unit_test_global.double_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.double_fuzzyness ) <= b ) );
+    return (m1 && neg) || (!m1 && pos);
 }
 
 template<typename T1, typename T2> inline void unitttest_comparePrintHelper(const T1 &a, const T2 &b, const char *aa, const char *bb, const char *file, int line) {
     std::cout << "       " << aa << " (" << a << ") == " << bb << " (" << b << ") at " << file << ":" << line << " failed.\n";
 }
 
-#define FUZZY_COMPARE( a, b ) if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { std::cout << "       " << #a << " (" << (a) << ") ~== " << #b << " (" << (b) << ") with fuzzyness " << 1.e-20 << " at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
+template<typename T> inline double unittest_fuzzynessHelper(T) { return 0.; }
+template<> inline double unittest_fuzzynessHelper<float>(float) { return _unit_test_global.float_fuzzyness; }
+template<> inline double unittest_fuzzynessHelper<Vc::float_v>(Vc::float_v) { return _unit_test_global.float_fuzzyness; }
+template<> inline double unittest_fuzzynessHelper<double>(double) { return _unit_test_global.double_fuzzyness; }
+template<> inline double unittest_fuzzynessHelper<Vc::double_v>(Vc::double_v) { return _unit_test_global.double_fuzzyness; }
+
+#define FUZZY_COMPARE( a, b ) if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { std::cout << "       " << #a << " (" << (a) << ") ~== " << #b << " (" << (b) << ") with fuzzyness " << unittest_fuzzynessHelper(a) << " at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
 
 #define COMPARE( a, b ) if ( unittest_compareHelper( a, b ) ) {} else { unitttest_comparePrintHelper(a, b, #a, #b, __FILE__, __LINE__); _unit_test_global.status = false; return; }
 

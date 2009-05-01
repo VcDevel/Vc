@@ -105,6 +105,7 @@ class Mask
         inline bool operator!=(const Mask &rhs) const { return m != rhs.m; }
         inline Mask operator&&(const Mask &rhs) const { return m && rhs.m; }
         inline Mask operator||(const Mask &rhs) const { return m || rhs.m; }
+        inline Mask operator!() const { return !m; }
         inline bool isFull () const { return  m; }
         inline bool isEmpty() const { return !m; }
 
@@ -124,9 +125,38 @@ class Mask
 };
 
 template<typename T>
+class WriteMaskedVector
+{
+    friend class Vector<T>;
+    typedef bool Mask;
+    public:
+        //prefix
+        inline Vector<T> &operator++() { if (mask) ++vec->m_data; return *vec; }
+        inline Vector<T> &operator--() { if (mask) --vec->m_data; return *vec; }
+        //postfix
+        inline Vector<T> operator++(int) { if (mask) return vec->m_data++; return *vec; }
+        inline Vector<T> operator--(int) { if (mask) return vec->m_data--; return *vec; }
+
+        inline Vector<T> &operator+=(Vector<T> x) { if (mask) vec->m_data += x.m_data; return *vec; }
+        inline Vector<T> &operator-=(Vector<T> x) { if (mask) vec->m_data -= x.m_data; return *vec; }
+        inline Vector<T> &operator*=(Vector<T> x) { if (mask) vec->m_data *= x.m_data; return *vec; }
+        inline Vector<T> &operator/=(Vector<T> x) { if (mask) vec->m_data /= x.m_data; return *vec; }
+
+        inline Vector<T> &operator=(Vector<T> x) {
+            vec->assign(x, mask);
+            return *vec;
+        }
+    private:
+        WriteMaskedVector(Vector<T> *v, Mask k) : vec(v), mask(k) {}
+        Vector<T> *vec;
+        Mask mask;
+};
+
+template<typename T>
 class Vector : public VectorBase<T, Vector<T> >
 {
     friend struct VectorBase<T, Vector<T> >;
+    friend class WriteMaskedVector<T>;
     protected:
         T m_data;
     public:
@@ -287,15 +317,16 @@ class Vector : public VectorBase<T, Vector<T> >
             return Vector<T>( m_data * factor.m_data + summand.m_data );
         }
 
-        inline Vector &assign(const Vector<T> &v, const Mask &m) {
+        inline void assign(const Vector<T> &v, const Mask &m) {
           if (m.data()) m_data = v.m_data;
-          return *this;
         }
 
         inline T max() const { return m_data; }
 
         template<typename T2> inline Vector<T2> staticCast() const { return static_cast<T2>(m_data); }
         template<typename T2> inline Vector<T2> reinterpretCast() const { return reinterpret_cast<T2>(m_data); }
+
+        inline WriteMaskedVector<T> operator()(Mask m) { return WriteMaskedVector<T>(this, m); }
 
         inline bool pack(Mask &m1, Vector<T> &v2, Mask &m2) {
             if (!m1.data() && m2.data()) {
@@ -311,7 +342,7 @@ class Vector : public VectorBase<T, Vector<T> >
 template<typename T> class SwizzledVector : public Vector<T> {};
 
 template<typename T> inline Vector<T> operator+(const T &x, const Vector<T> &v) { return v.operator+(x); }
-template<typename T> inline Vector<T> operator*(const T &x, const Vector<T> &v) { return v.operator+(x); }
+template<typename T> inline Vector<T> operator*(const T &x, const Vector<T> &v) { return v.operator*(x); }
 template<typename T> inline Vector<T> operator-(const T &x, const Vector<T> &v) { return Vector<T>(x) - v; }
 template<typename T> inline Vector<T> operator/(const T &x, const Vector<T> &v) { return Vector<T>(x) / v; }
 template<typename T> inline Mask<1u>  operator< (const T &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
@@ -370,6 +401,8 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
   template<typename T> static inline Simple::Vector<T> abs (const Simple::Vector<T> &x) { return std::abs( x.data() ); }
   template<typename T> static inline Simple::Vector<T> sin (const Simple::Vector<T> &x) { return std::sin( x.data() ); }
   template<typename T> static inline Simple::Vector<T> cos (const Simple::Vector<T> &x) { return std::cos( x.data() ); }
+  template<typename T> static inline Simple::Vector<T> log (const Simple::Vector<T> &x) { return std::log( x.data() ); }
+  template<typename T> static inline Simple::Vector<T> log10(const Simple::Vector<T> &x) { return std::log10( x.data() ); }
 } // namespace Simple
 
 #endif // SIMPLE_VECTOR_H
