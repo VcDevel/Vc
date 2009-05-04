@@ -52,10 +52,6 @@
 #include "intrinsics.h"
 #include <algorithm>
 #include <limits>
-namespace SSEMath
-{
-#include "sse_math.h"
-} // namespace SSEMath
 
 #ifndef _M128
 # define _M128 __m128
@@ -139,6 +135,9 @@ namespace SSE
             OP_DECL(>>)
             OP_DECL(<<)
 #undef T
+
+            Vector<short> operator,(Vector<int>) const;
+
             protected:
                 const int *_IndexesFromZero() { return reinterpret_cast<const int *>(Internal::_IndexesFromZero4); }
         };
@@ -155,6 +154,9 @@ namespace SSE
             OP_DECL(>>)
             OP_DECL(<<)
 #undef T
+
+            Vector<unsigned short> operator,(Vector<unsigned int>) const;
+
             protected:
                 const unsigned int *_IndexesFromZero() { return reinterpret_cast<const unsigned int *>(Internal::_IndexesFromZero4); }
         };
@@ -240,13 +242,13 @@ namespace SSE
         template<> struct ReinterpretCastHelper<short         , unsigned short> { static _M128I cast(const _M128I &v) { return v; } };
         template<> struct ReinterpretCastHelper<short         , short         > { static _M128I cast(const _M128I &v) { return v; } };
 
-        template<typename To, typename From> To mm128_reinterpret_cast(From v) { return v; }
-        template<> _M128I mm128_reinterpret_cast<_M128I, _M128 >(_M128  v) { return _mm_castps_si128(v); }
-        template<> _M128I mm128_reinterpret_cast<_M128I, _M128D>(_M128D v) { return _mm_castpd_si128(v); }
-        template<> _M128  mm128_reinterpret_cast<_M128 , _M128D>(_M128D v) { return _mm_castpd_ps(v);    }
-        template<> _M128  mm128_reinterpret_cast<_M128 , _M128I>(_M128I v) { return _mm_castsi128_ps(v); }
-        template<> _M128D mm128_reinterpret_cast<_M128D, _M128I>(_M128I v) { return _mm_castsi128_pd(v); }
-        template<> _M128D mm128_reinterpret_cast<_M128D, _M128 >(_M128  v) { return _mm_castps_pd(v);    }
+        template<typename To, typename From> static inline To mm128_reinterpret_cast(From v) { return v; }
+        template<> inline _M128I mm128_reinterpret_cast<_M128I, _M128 >(_M128  v) { return _mm_castps_si128(v); }
+        template<> inline _M128I mm128_reinterpret_cast<_M128I, _M128D>(_M128D v) { return _mm_castpd_si128(v); }
+        template<> inline _M128  mm128_reinterpret_cast<_M128 , _M128D>(_M128D v) { return _mm_castpd_ps(v);    }
+        template<> inline _M128  mm128_reinterpret_cast<_M128 , _M128I>(_M128I v) { return _mm_castsi128_ps(v); }
+        template<> inline _M128D mm128_reinterpret_cast<_M128D, _M128I>(_M128I v) { return _mm_castsi128_pd(v); }
+        template<> inline _M128D mm128_reinterpret_cast<_M128D, _M128 >(_M128  v) { return _mm_castps_pd(v);    }
 
         template<typename T> struct VectorHelper {};
 
@@ -1404,6 +1406,8 @@ template<unsigned int VectorSize> class Mask
             return false;
         }
 
+        inline Mask<VectorSize * 2> combine(Mask other) const { return _mm_packs_epi16(dataI(), other.dataI()); }
+
     private:
         _M128 k;
 };
@@ -1795,6 +1799,13 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, con
   OP_IMPL(unsigned short, >>, srl)
 #undef OP_IMPL
 #undef OP_IMPL2
+
+  template<> inline Vector<unsigned short> VectorBase<unsigned int, Vector<unsigned int> >::operator,(Vector<unsigned int> x) const {
+    return _mm_packs_epi32(static_cast<const Vector<unsigned int> *>(this)->data, x.data);
+  }
+  template<> inline Vector<short> VectorBase<int, Vector<int> >::operator,(Vector<int> x) const {
+    return _mm_packs_epi32(static_cast<const Vector<int> *>(this)->data, x.data);
+  }
 
   template<typename T> static inline Vector<T> min (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::min(x, y); }
   template<typename T> static inline Vector<T> max (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::max(x, y); }

@@ -120,6 +120,8 @@ class Mask
 
         inline bool operator[](int) const { return m; }
 
+        Mask<VectorSize * 2> combine(Mask other) const;
+
     private:
         bool m;
 };

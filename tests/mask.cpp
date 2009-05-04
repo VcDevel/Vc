@@ -22,25 +22,10 @@
 #include "unittest.h"
 #include <iostream>
 #include "vecio.h"
+#include "vectormemoryhelper.h"
 #include <cmath>
 
 using namespace Vc;
-
-template<typename Vec>
-class VectorMemoryHelper
-{
-    char *const mem;
-    char *const aligned;
-    public:
-        VectorMemoryHelper(int count)
-            : mem(new char[count * sizeof(Vec) + VectorAlignment]),
-            aligned(mem + (VectorAlignment - (reinterpret_cast<unsigned long>( mem ) & ( VectorAlignment - 1 ))))
-        {
-        }
-        ~VectorMemoryHelper() { delete[] mem; }
-
-        operator typename Vec::Type *() { return reinterpret_cast<typename Vec::Type *>(aligned); }
-};
 
 template<typename Vec> void testInc()
 {

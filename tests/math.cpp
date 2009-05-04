@@ -22,7 +22,9 @@
 #include "unittest.h"
 #include <iostream>
 #include "vecio.h"
+#include "vectormemoryhelper.h"
 #include <cmath>
+#include <algorithm>
 
 using namespace Vc;
 
@@ -55,18 +57,42 @@ template<typename Vec> void testLog()
     }
 }
 
+template<typename Vec>
+void testMax()
+{
+    typedef typename Vec::Type T;
+    VectorMemoryHelper<Vec> mem(3);
+    T *data = mem;
+    for (int i = 0; i < Vec::Size; ++i) {
+        data[i] = i;
+        data[i + Vec::Size] = Vec::Size + 1 - i;
+        data[i + 2 * Vec::Size] = std::max(data[i], data[i + Vec::Size]);
+    }
+    Vec a(&data[0]);
+    Vec b(&data[Vec::Size]);
+    Vec c(&data[2 * Vec::Size]);
+
+    COMPARE(Vc::max(a, b), c);
+}
+
 int main()
 {
-    setFuzzyness<float>(1e-7);
-    setFuzzyness<double>(1e-15);
-
     runTest(testAbs<int_v>);
     runTest(testAbs<float_v>);
     runTest(testAbs<double_v>);
     runTest(testAbs<short_v>);
 
+    setFuzzyness<float>(1e-7);
+    setFuzzyness<double>(1e-15);
     runTest(testLog<float_v>);
     runTest(testLog<double_v>);
+
+    runTest(testMax<int_v>);
+    runTest(testMax<uint_v>);
+    runTest(testMax<float_v>);
+    runTest(testMax<double_v>);
+    runTest(testMax<short_v>);
+    runTest(testMax<ushort_v>);
 
     return 0;
 }

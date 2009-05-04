@@ -110,6 +110,8 @@ namespace Larrabee
 
             inline bool operator[](int index) const { return static_cast<bool>(k & (1 << index)); }
 
+            Mask<VectorSize * 2> combine(Mask other) const;
+
         private:
             __mmask k;
     };
