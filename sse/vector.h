@@ -1734,12 +1734,8 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         inline void assign( const Vector<T> &v, const Mask &mask ) {
-            data = mm128_reinterpret_cast<VectorType>(
-                    _mm_or_ps(
-                        _mm_andnot_ps(mask.data(), mm128_reinterpret_cast<_M128>(data)),
-                        _mm_and_ps(mask.data(), mm128_reinterpret_cast<_M128>(v.data))
-                        )
-                    );
+            const VectorType k = mm128_reinterpret_cast<VectorType>(mask.data());
+            data() = VectorHelper<VectorType>::blend(data(), v.data(), k);
         }
 
         template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data); }
