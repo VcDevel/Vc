@@ -816,6 +816,10 @@ class Vector : public VectorBase<T, Vector<T> >
          */
         template<typename Other> inline explicit Vector(const Other *x) : data(VectorHelper<T>::load(x)) {}
 
+        // TODO: handle 8 <-> 16 conversions
+        inline explicit Vector(const Vector *x) : data(x->data) {}
+        inline void expand(Vector *x) const { x->data = data; }
+
         template<typename Other> static inline Vector broadcast4(const Other *x) { return Vector<T>(VectorHelper<T>::load4(x)); }
 
         template<typename Other> inline void load(const Other *x) { data = VectorHelper<T>::load(x); }
