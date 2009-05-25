@@ -40,6 +40,10 @@
 
 namespace Larrabee
 {
+    namespace VectorSpecialInitializerZero { enum Enum { Zero }; }
+    namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
+    namespace VectorSpecialInitializerIndexesFromZero { enum Enum { IndexesFromZero }; }
+
     namespace Internal
     {
         LRB_ALIGN(16) extern const char _IndexesFromZero[16];
@@ -86,6 +90,7 @@ namespace Larrabee
         public:
             inline Mask() {}
             inline Mask(__mmask _k) : k(_k) {}
+            inline explicit Mask(VectorSpecialInitializerZero::Enum) : k(0) {}
             inline Mask(const Mask<VectorSize / 2> &a, const Mask<VectorSize / 2> &b) : k(a.k | (b.k << 8)) {}
             template<unsigned int OtherSize> explicit inline Mask(const Mask<OtherSize> &x) : k(x.k) {
                 if (OtherSize != VectorSize) {
@@ -639,10 +644,6 @@ namespace Larrabee
 #undef OPx
 #undef OPcmp
     } // anonymous namespace
-
-namespace VectorSpecialInitializerZero { enum Enum { Zero }; }
-namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
-namespace VectorSpecialInitializerIndexesFromZero { enum Enum { IndexesFromZero }; }
 
 template<typename T>
 class VectorMultiplication
