@@ -29,7 +29,7 @@ using namespace Vc;
 template<typename Vec> void scatterArray()
 {
     const int count = 39999;
-    typename Vec::Type array[count], out[count];
+    typename Vec::EntryType array[count], out[count];
     for (int i = 0; i < count; ++i) {
         array[i] = i;
     }
@@ -38,7 +38,7 @@ template<typename Vec> void scatterArray()
         Vec a(array, i, mask.cast<Vec::Size>());
         a.scatter(out, i, mask.cast<Vec::Size>());
     }
-    COMPARE(0, std::memcmp(array, out, count * sizeof(typename Vec::Type)));
+    COMPARE(0, std::memcmp(array, out, count * sizeof(typename Vec::EntryType)));
 }
 
 template<typename T> struct Struct
@@ -53,7 +53,7 @@ template<typename T> struct Struct
 
 template<typename Vec> void scatterStruct()
 {
-    typedef Struct<typename Vec::Type> S;
+    typedef Struct<typename Vec::EntryType> S;
     const int count = 3999;
     S array[count], out[count];
     memset(array, 0, count * sizeof(S));

@@ -28,7 +28,7 @@ using namespace Vc;
 
 template<typename Vec> void storeArray()
 {
-    typedef typename Vec::Type T;
+    typedef typename Vec::EntryType T;
 
     const int count = 256 * 1024 / sizeof(T);
     T array[count];

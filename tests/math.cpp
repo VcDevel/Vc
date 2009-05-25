@@ -40,13 +40,13 @@ template<typename Vec> void testAbs()
 
 template<typename Vec> void testLog()
 {
-    Vec a(int_v(IndexesFromZero).staticCast<typename Vec::Type>());
+    Vec a(int_v(IndexesFromZero).staticCast<typename Vec::EntryType>());
     a *= 0.1;
     const Vec end(1000);
     for (; a < end; a += Vec::Size) {
         Vec b = Vc::log(a);
 
-        const typename Vec::Type two = 2.;
+        const typename Vec::EntryType two = 2.;
 
         for (int i = 0; i < Vec::Size; ++i) {
             FUZZY_COMPARE(b[i], std::log(a[i]));
@@ -60,7 +60,7 @@ template<typename Vec> void testLog()
 template<typename Vec>
 void testMax()
 {
-    typedef typename Vec::Type T;
+    typedef typename Vec::EntryType T;
     VectorMemoryHelper<Vec> mem(3);
     T *data = mem;
     for (int i = 0; i < Vec::Size; ++i) {
