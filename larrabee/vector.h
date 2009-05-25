@@ -818,8 +818,12 @@ class Vector : public VectorBase<T, Vector<T> >
 
         inline void makeZero(Mask k)
         {
-            _M512I tmp = mm512_reinterpret_cast<_M512I>(data);
-            data = mm512_reinterpret_cast<VectorType>(VectorHelper<int>::xor_(tmp, tmp, k.data()));
+            if (Size == 16) {
+                _M512I tmp = mm512_reinterpret_cast<_M512I>(data);
+                data = mm512_reinterpret_cast<VectorType>(VectorHelper<int>::xor_(tmp, tmp, k.data()));
+            } else if (Size == 8) {
+                VectorDQHelper<T>::mov(data, k.data(), mm512_reinterpret_cast<VectorType>(_mm512_setzero()));
+            }
         }
 
 //X         inline void makeRandom()
