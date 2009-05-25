@@ -183,6 +183,8 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector(VectorSpecialInitializerZero::Enum) : m_data(0) {}
         inline Vector(VectorSpecialInitializerRandom::Enum) { makeRandom(); }
         inline Vector(VectorSpecialInitializerIndexesFromZero::Enum) : m_data(0) {}
+
+        template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}
         inline Vector(const T &x) : m_data(x) {}
         template<typename Other> inline Vector(const Other *x) : m_data(x[0]) {}
         inline void makeZero() { m_data = 0; }
