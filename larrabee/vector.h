@@ -746,6 +746,10 @@ class Vector : public VectorBase<T, Vector<T> >
     friend struct VectorBase<T, Vector<T> >;
     friend class VectorMultiplication<T>;
     friend class WriteMaskedVector<T>;
+    friend class Vector<float>;
+    friend class Vector<double>;
+    friend class Vector<int>;
+    friend class Vector<unsigned int>;
     protected:
         typedef typename VectorHelper<T>::VectorType VectorType;
         VectorType data;
@@ -786,6 +790,8 @@ class Vector : public VectorBase<T, Vector<T> >
          * initialize with given __m512 vector
          */
         inline Vector(VectorType x) : data(x) {}
+        template<typename OtherT>
+        explicit inline Vector(const Vector<OtherT> &x) : data(StaticCastHelper<OtherT, T>::cast(x.data)) {}
         /**
          * initialize all 16 or 8 values with the given value
          */
