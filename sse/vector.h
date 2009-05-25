@@ -1325,40 +1325,16 @@ namespace VectorSpecialInitializerZero { enum Enum { Zero }; }
 namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum Enum { IndexesFromZero }; }
 
-template<unsigned int Size1, unsigned int Size2> struct MaskHelper;
-template<> struct MaskHelper<2, 2> {
+template<unsigned int Size1> struct MaskHelper;
+template<> struct MaskHelper<2> {
     static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) == _mm_movemask_pd(_mm_castps_pd(k2)); }
     static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) != _mm_movemask_pd(_mm_castps_pd(k2)); }
 };
-template<> struct MaskHelper<2, 4> {
-    static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) == (_mm_movemask_ps(k2) & 3); }
-    static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) != (_mm_movemask_ps(k2) & 3); }
-};
-template<> struct MaskHelper<2, 8> {
-    static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) == (_mm_movemask_epi8(_mm_castps_si128(k2)) & 0xf); }
-    static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) != (_mm_movemask_epi8(_mm_castps_si128(k2)) & 0xf); }
-};
-template<> struct MaskHelper<4, 2> {
-    static inline bool cmpeq (_M128 k1, _M128 k2) { return MaskHelper<2, 4>::cmpeq (k2, k1); }
-    static inline bool cmpneq(_M128 k1, _M128 k2) { return MaskHelper<2, 4>::cmpneq(k2, k1); }
-};
-template<> struct MaskHelper<4, 4> {
+template<> struct MaskHelper<4> {
     static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_ps(k1) == _mm_movemask_ps(k2); }
     static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_ps(k1) != _mm_movemask_ps(k2); }
 };
-template<> struct MaskHelper<4, 8> {
-    static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_ps(k1) == _mm_movemask_epi8(_mm_castps_si128(k2)); }
-    static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_ps(k1) != _mm_movemask_epi8(_mm_castps_si128(k2)); }
-};
-template<> struct MaskHelper<8, 2> {
-    static inline bool cmpeq (_M128 k1, _M128 k2) { return MaskHelper<2, 8>::cmpeq (k2, k1); }
-    static inline bool cmpneq(_M128 k1, _M128 k2) { return MaskHelper<2, 8>::cmpneq(k2, k1); }
-};
-template<> struct MaskHelper<8, 4> {
-    static inline bool cmpeq (_M128 k1, _M128 k2) { return MaskHelper<4, 8>::cmpeq (k2, k1); }
-    static inline bool cmpneq(_M128 k1, _M128 k2) { return MaskHelper<4, 8>::cmpneq(k2, k1); }
-};
-template<> struct MaskHelper<8, 8> {
+template<> struct MaskHelper<8> {
     static inline bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_epi8(_mm_castps_si128(k1)) == _mm_movemask_epi8(_mm_castps_si128(k2)); }
     static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_epi8(_mm_castps_si128(k1)) != _mm_movemask_epi8(_mm_castps_si128(k2)); }
 };
@@ -1373,20 +1349,69 @@ template<unsigned int VectorSize> class Mask
         inline Mask(const __m128  &x) : k(x) {}
         inline Mask(const __m128d &x) : k(_mm_castpd_ps(x)) {}
         inline Mask(const __m128i &x) : k(_mm_castsi128_ps(x)) {}
+        inline explicit Mask(VectorSpecialInitializerZero::Enum) : k(_mm_setzero_ps()) {}
+        inline Mask(const Mask<VectorSize / 2> *a)
+          : k(_mm_castsi128_ps(_mm_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
 
-        // _mm_movemask_epi8 creates a 16 bit mask containing the most significant bit of every byte in k
+        template<unsigned int OtherSize> explicit inline Mask(const Mask<OtherSize> &x)
+        {
+            _M128I tmp = x.dataI();
+            if (OtherSize < VectorSize) {
+                tmp = _mm_packs_epi16(tmp, _mm_setzero_si128());
+                if (VectorSize / OtherSize >= 4u) { tmp = _mm_packs_epi16(tmp, _mm_setzero_si128()); }
+                if (VectorSize / OtherSize >= 8u) { tmp = _mm_packs_epi16(tmp, _mm_setzero_si128()); }
+            } else if (OtherSize > VectorSize) {
+                tmp = _mm_unpacklo_epi8(tmp, tmp);
+                if (OtherSize / VectorSize >= 4u) { tmp = _mm_unpacklo_epi8(tmp, tmp); }
+                if (OtherSize / VectorSize >= 8u) { tmp = _mm_unpacklo_epi8(tmp, tmp); }
+            }
+            k = _mm_castsi128_ps(tmp);
+        }
 
-        template<unsigned int OtherSize>
-        inline bool operator==(const Mask<OtherSize> &rhs) const { return MaskHelper<VectorSize, OtherSize>::cmpeq (k, rhs.k); }
-        template<unsigned int OtherSize>
-        inline bool operator!=(const Mask<OtherSize> &rhs) const { return MaskHelper<VectorSize, OtherSize>::cmpneq(k, rhs.k); }
+        inline void expand(Mask<VectorSize / 2> *x) const
+        {
+            enum { Shuf = _MM_SHUFFLE(1, 1, 0, 0) };
+            if (VectorSize == 16u) {
+                x[0].k = _mm_castsi128_ps(_mm_unpacklo_epi8 (dataI(), dataI()));
+                x[1].k = _mm_castsi128_ps(_mm_unpackhi_epi8 (dataI(), dataI()));
+            } else if (VectorSize == 8u) {
+                x[0].k = _mm_castsi128_ps(_mm_unpacklo_epi16(dataI(), dataI()));
+                x[1].k = _mm_castsi128_ps(_mm_unpackhi_epi16(dataI(), dataI()));
+            } else if (VectorSize == 4u) {
+                x[0].k = _mm_castsi128_ps(_mm_unpacklo_epi32(dataI(), dataI()));
+                x[1].k = _mm_castsi128_ps(_mm_unpackhi_epi32(dataI(), dataI()));
+            } else if (VectorSize == 2u) {
+                x[0].k = _mm_castsi128_ps(_mm_unpacklo_epi64(dataI(), dataI()));
+                x[1].k = _mm_castsi128_ps(_mm_unpackhi_epi64(dataI(), dataI()));
+            }
+        }
+
+        inline bool operator==(const Mask &rhs) const { return MaskHelper<VectorSize>::cmpeq (k, rhs.k); }
+        inline bool operator!=(const Mask &rhs) const { return MaskHelper<VectorSize>::cmpneq(k, rhs.k); }
 
         inline Mask operator&&(const Mask &rhs) const { return _mm_and_ps(k, rhs.k); }
+        inline Mask operator& (const Mask &rhs) const { return _mm_and_ps(k, rhs.k); }
         inline Mask operator||(const Mask &rhs) const { return _mm_or_ps (k, rhs.k); }
-        inline Mask operator!() const { return _mm_andnot_ps(k, _mm_castsi128_ps(_mm_set1_epi32(-1))); }
+        inline Mask operator| (const Mask &rhs) const { return _mm_or_ps (k, rhs.k); }
+        inline Mask operator!() const { return _mm_andnot_si128(dataI(), _mm_setallone_si128()); }
 
-        inline bool isFull () const { return _mm_movemask_epi8(dataI()) == 0xffff; }
-        inline bool isEmpty() const { return _mm_movemask_epi8(dataI()) == 0x0000; }
+        inline Mask &operator&=(const Mask &rhs) { k = _mm_and_ps(k, rhs.k); return *this; }
+        inline Mask &operator|=(const Mask &rhs) { k = _mm_or_ps (k, rhs.k); return *this; }
+
+        inline bool isFull () const { return
+#ifdef __SSE4_1__
+            _mm_testc_si128(_mm_setzero_si128(), dataI()); // return 1 if (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) == (~0 & k)
+#else
+            _mm_movemask_epi8(dataI()) == 0xffff;
+#endif
+        }
+        inline bool isEmpty() const { return
+#ifdef __SSE4_1__
+            _mm_testz_si128(dataI(), dataI()); // return 1 if (0, 0, 0, 0) == (k & k)
+#else
+            _mm_movemask_epi8(dataI()) == 0x0000;
+#endif
+        }
 
         inline operator bool() const { return isFull(); }
 
@@ -1394,8 +1419,7 @@ template<unsigned int VectorSize> class Mask
         inline _M128I dataI() const { return _mm_castps_si128(k); }
         inline _M128D dataD() const { return _mm_castps_pd(k); }
 
-        template<unsigned int OtherSize>
-        inline Mask<OtherSize> cast() const { return Mask<OtherSize>(k); }
+        template<unsigned int OtherSize> inline Mask<OtherSize> cast() const { return Mask<OtherSize>(k); }
 
         inline bool operator[](int index) const {
             if (VectorSize == 2) {
@@ -1404,11 +1428,11 @@ template<unsigned int VectorSize> class Mask
                 return _mm_movemask_ps(k) & (1 << index);
             } else if (VectorSize == 8) {
                 return _mm_movemask_epi8(dataI()) & (1 << 2 * index);
+            } else if (VectorSize == 16) {
+                return _mm_movemask_epi8(dataI()) & (1 << index);
             }
             return false;
         }
-
-        inline Mask<VectorSize * 2> combine(Mask other) const { return _mm_packs_epi16(dataI(), other.dataI()); }
 
     private:
         _M128 k;
