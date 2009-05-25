@@ -500,6 +500,7 @@ namespace SSE
             static inline VectorType set(const double a, const double b) { return CAT(_mm_set_, SUFFIX)(a, b); }
             static inline void setZero(VectorType &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
+            static inline VectorType one()  { return set(1.); }
 
             static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
@@ -617,6 +618,7 @@ namespace SSE
             static inline VectorType set(const float a, const float b, const float c, const float d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
             static inline void setZero(VectorType &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
+            static inline VectorType one()  { return set(1.f); }
 
             static bool pack(VectorType &v1, _M128I &_m1, VectorType &v2, _M128I &_m2) {
                 {
@@ -891,6 +893,7 @@ namespace SSE
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 #undef SUFFIX
 #define SUFFIX epi32
+            static inline VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
             GATHER_SCATTER(int)
 
             static inline VectorType set(const int a) { return CAT(_mm_set1_, SUFFIX)(a); }
@@ -1039,6 +1042,7 @@ namespace SSE
 
 #undef SUFFIX
 #define SUFFIX epu32
+            static inline VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
 
 #ifdef __SSE4_1__
             MINMAX
@@ -1145,6 +1149,7 @@ namespace SSE
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 #undef SUFFIX
 #define SUFFIX epi16
+            static inline VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
             GATHER_SCATTER_16(signed short)
             SHIFT8
 
@@ -1239,6 +1244,7 @@ namespace SSE
 
 #undef SUFFIX
 #define SUFFIX epu16
+            static inline VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
             static inline VectorType div(const VectorType a, const VectorType b, _M128 _mask) {
                 const int mask = _mm_movemask_epi8(_mm_castps_si128(_mask));
                 STORE_VECTOR(unsigned short, _a, a);
@@ -1452,13 +1458,13 @@ class WriteMaskedVector
         //prefix
         inline Vector<T> &operator++() {
             vec->data = VectorHelper<T>::add(vec->data,
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::set(1), mask.data())
+                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return *vec;
         }
         inline Vector<T> &operator--() {
             vec->data = VectorHelper<T>::sub(vec->data,
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::set(1), mask.data())
+                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return *vec;
         }
@@ -1466,14 +1472,14 @@ class WriteMaskedVector
         inline Vector<T> operator++(int) {
             Vector<T> ret(*vec);
             vec->data = VectorHelper<T>::add(vec->data,
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::set(1), mask.data())
+                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return ret;
         }
         inline Vector<T> operator--(int) {
             Vector<T> ret(*vec);
             vec->data = VectorHelper<T>::sub(vec->data,
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::set(1), mask.data())
+                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return ret;
         }
@@ -1722,26 +1728,27 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         //prefix
-        inline Vector &operator++() { data = VectorHelper<T>::add(data, Vector<T>(1)); return *this; }
+        inline Vector &operator++() { data = VectorHelper<T>::add(data, VectorHelper<T>::one()); return *this; }
         //postfix
-        inline Vector operator++(int) { const Vector<T> r = *this; data = VectorHelper<T>::add(data, Vector<T>(1)); return r; }
+        inline Vector operator++(int) { const Vector<T> r = *this; data = VectorHelper<T>::add(data, VectorHelper<T>::one()); return r; }
 
         inline T operator[](int index) const {
-            union { VectorType p; T v[16 / sizeof(T)]; } u;
-            VectorHelper<T>::store(u.v, data);
-            return u.v[index];
+            //return Base::d.m(index);
+            ALIGN(16) T mem[Size];
+            VectorHelper<VectorType>::store(mem, Base::d.v());
+            return mem[index];
         }
 
 #define OP1(fun) \
-        inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data)); } \
-        inline Vector &fun##_eq() { data = VectorHelper<T>::fun(data); return *this; }
+        inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
+        inline Vector &fun##_eq() { data() = VectorHelper<T>::fun(data()); return *this; }
         OP1(sqrt)
         OP1(abs)
 #undef OP1
 
 #define OP(symbol, fun) \
-        inline Vector &operator symbol##=(const Vector<T> &x) { data = VectorHelper<T>::fun(data, x.data); return *this; } \
-        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data, x.data)); }
+        inline Vector &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
+        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); }
 
         OP(+, add)
         OP(-, sub)
@@ -1752,7 +1759,7 @@ class Vector : public VectorBase<T, Vector<T> >
         OP(^, xor_)
 #undef OP
 #define OPcmp(symbol, fun) \
-        inline Mask operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data, x.data); }
+        inline Mask operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data(), x.data()); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -1763,7 +1770,7 @@ class Vector : public VectorBase<T, Vector<T> >
 #undef OPcmp
 
         inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
-            VectorHelper<T>::multiplyAndAdd(data, factor, summand);
+            VectorHelper<T>::multiplyAndAdd(data(), factor, summand);
         }
 
         inline void assign( const Vector<T> &v, const Mask &mask ) {
@@ -1771,8 +1778,8 @@ class Vector : public VectorBase<T, Vector<T> >
             data() = VectorHelper<VectorType>::blend(data(), v.data(), k);
         }
 
-        template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data); }
-        template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data); }
+        template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data()); }
+        template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data()); }
 
         inline WriteMaskedVector<T> operator()(Mask k) { return WriteMaskedVector<T>(this, k); }
 
@@ -1782,8 +1789,11 @@ class Vector : public VectorBase<T, Vector<T> >
          *         \p false This vector was not completely filled. m2 is all 0.
          */
         //inline bool pack(Mask &m1, Vector<T> &v2, Mask &m2) {
-            //return VectorHelper<T>::pack(data, m1.data, v2.data, m2.data);
+            //return VectorHelper<T>::pack(data(), m1.data, v2.data(), m2.data);
         //}
+
+        VectorType &data() { return Base::d.v(); }
+        const VectorType &data() const { return Base::d.v(); }
 };
 
 template<typename T> class SwizzledVector : public Vector<T> {};
@@ -1800,8 +1810,8 @@ template<typename T> inline typename Vector<T>::Mask  operator==(const T &x, con
 template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, const Vector<T> &v) { return Vector<T>(x) != v; }
 
 #define OP_IMPL(T, symbol, fun) \
-  template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const Vector<T> &x) { (static_cast<Vector<T> *>(this)->data) = VectorHelper<T>::fun((static_cast<Vector<T> *>(this)->data), x.data); return *static_cast<Vector<T> *>(this); } \
-  template<> inline Vector<T>  VectorBase<T, Vector<T> >::operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun((static_cast<const Vector<T> *>(this)->data), x.data)); }
+  template<> inline Vector<T> &VectorBase<T>::operator symbol##=(const Vector<T> &x) { d.v() = VectorHelper<T>::fun(d.v(), x.d.v()); return *static_cast<Vector<T> *>(this); } \
+  template<> inline Vector<T>  VectorBase<T>::operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(d.v(), x.d.v())); }
   OP_IMPL(int, &, and_)
   OP_IMPL(int, |, or_)
   OP_IMPL(int, ^, xor_)
@@ -1825,26 +1835,22 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, con
 #undef OP_IMPL
 #undef OP_IMPL2
 
-
-
-
-
-
-
-  template<typename T> static inline Vector<T> min (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::min(x, y); }
-  template<typename T> static inline Vector<T> max (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::max(x, y); }
-  template<typename T> static inline Vector<T> min (const Vector<T> &x, const T &y) { return min(x, Vector<T>(y)); }
-  template<typename T> static inline Vector<T> max (const Vector<T> &x, const T &y) { return max(x, Vector<T>(y)); }
-  template<typename T> static inline Vector<T> min (const T &x, const Vector<T> &y) { return min(Vector<T>(x), y); }
-  template<typename T> static inline Vector<T> max (const T &x, const Vector<T> &y) { return max(Vector<T>(x), y); }
-  template<typename T> static inline Vector<T> sqrt(const Vector<T> &x) { return VectorHelper<T>::sqrt(x); }
-  template<typename T> static inline Vector<T> abs (const Vector<T> &x) { return VectorHelper<T>::abs(x); }
-  template<typename T> static inline Vector<T> sin (const Vector<T> &x) { return VectorHelper<T>::sin(x); }
-  template<typename T> static inline Vector<T> cos (const Vector<T> &x) { return VectorHelper<T>::cos(x); }
-  template<typename T> static inline Vector<T> log (const Vector<T> &x) { return VectorHelper<T>::log(x); }
-  template<typename T> static inline Vector<T> log10(const Vector<T> &x) { return VectorHelper<T>::log10(x); }
+  template<typename T> static inline Vector<T> min (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::min(x.data(), y.data()); }
+  template<typename T> static inline Vector<T> max (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::max(x.data(), y.data()); }
+  template<typename T> static inline Vector<T> min (const Vector<T> &x, const T &y) { return min(x.data(), Vector<T>(y).data()); }
+  template<typename T> static inline Vector<T> max (const Vector<T> &x, const T &y) { return max(x.data(), Vector<T>(y).data()); }
+  template<typename T> static inline Vector<T> min (const T &x, const Vector<T> &y) { return min(Vector<T>(x).data(), y.data()); }
+  template<typename T> static inline Vector<T> max (const T &x, const Vector<T> &y) { return max(Vector<T>(x).data(), y.data()); }
+  template<typename T> static inline Vector<T> sqrt(const Vector<T> &x) { return VectorHelper<T>::sqrt(x.data()); }
+  template<typename T> static inline Vector<T> abs (const Vector<T> &x) { return VectorHelper<T>::abs(x.data()); }
+  template<typename T> static inline Vector<T> sin (const Vector<T> &x) { return VectorHelper<T>::sin(x.data()); }
+  template<typename T> static inline Vector<T> cos (const Vector<T> &x) { return VectorHelper<T>::cos(x.data()); }
+  template<typename T> static inline Vector<T> log (const Vector<T> &x) { return VectorHelper<T>::log(x.data()); }
+  template<typename T> static inline Vector<T> log10(const Vector<T> &x) { return VectorHelper<T>::log10(x.data()); }
 #undef ALIGN
 #undef STORE_VECTOR
 } // namespace SSE
+
+#undef CONST
 
 #endif // SSE_VECTOR_H
