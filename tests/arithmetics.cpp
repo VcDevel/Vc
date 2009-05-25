@@ -22,6 +22,7 @@
 #include "unittest.h"
 #include <iostream>
 #include "vecio.h"
+#include <limits>
 
 using namespace Vc;
 
@@ -34,14 +35,16 @@ template<typename Vec> void testZero()
     COMPARE(a, c);
     d.makeZero();
     COMPARE(a, d);
-    COMPARE(a, Vec(0));
-    COMPARE(b, Vec(0));
-    COMPARE(c, Vec(0));
-    COMPARE(d, Vec(0));
+    const typename Vec::EntryType zero = 0;
+    COMPARE(a, Vec(zero));
+    COMPARE(b, Vec(zero));
+    COMPARE(c, Vec(zero));
+    COMPARE(d, Vec(zero));
 }
 
 template<typename Vec> void testCmp()
 {
+    typedef typename Vec::EntryType T;
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
     if (!(a != b).isEmpty()) {
@@ -56,6 +59,43 @@ template<typename Vec> void testCmp()
     VERIFY((a <= c).isFull());
     VERIFY((b >= a).isFull());
     VERIFY((c >= a).isFull());
+
+    {
+        const T max = static_cast<T>(std::numeric_limits<T>::max() * 0.95);
+        const T min = 0;
+        const T step = max / 200;
+        T j = min;
+        VERIFY(Vec(Zero) == Vec(j));
+        VERIFY(!(Vec(Zero) < Vec(j)));
+        VERIFY(!(Vec(Zero) > Vec(j)));
+        VERIFY(!(Vec(Zero) != Vec(j)));
+        j += step;
+        for (int i = 0; i < 200; ++i, j += step) {
+            if(Vec(Zero) >= Vec(j)) {
+                std::cout << j << " " << Vec(j) << " " << (Vec(Zero) >= Vec(j)) << std::endl;
+            }
+            VERIFY(Vec(Zero) < Vec(j));
+            VERIFY(Vec(j) > Vec(Zero));
+            VERIFY(!(Vec(Zero) >= Vec(j)));
+            VERIFY(!(Vec(j) <= Vec(Zero)));
+            VERIFY(!static_cast<bool>(Vec(Zero) >= Vec(j)));
+            VERIFY(!static_cast<bool>(Vec(j) <= Vec(Zero)));
+        }
+    }
+    if (std::numeric_limits<T>::min() <= 0) {
+        const T min = static_cast<T>(std::numeric_limits<T>::min() * 0.95);
+        if (min == 0) {
+            return;
+        }
+        const T step = min / -201;
+        T j = min;
+        for (int i = 0; i < 200; ++i, j += step) {
+            VERIFY(Vec(j) < Vec(Zero));
+            VERIFY(Vec(Zero) > Vec(j));
+            VERIFY(!(Vec(Zero) <= Vec(j)));
+            VERIFY(!(Vec(j) >= Vec(Zero)));
+        }
+    }
 }
 
 template<typename Vec> void testAdd()
@@ -131,7 +171,8 @@ template<typename Vec> void testAnd()
     COMPARE((a & 0xf), b);
     Vec c(IndexesFromZero);
     COMPARE(c, (c & 0xf));
-    COMPARE((c & 0x7ff0), Vec(0));
+    const typename Vec::EntryType zero = 0;
+    COMPARE((c & 0x7ff0), Vec(zero));
 }
 
 template<typename Vec> void testShift()
@@ -146,7 +187,7 @@ template<typename Vec> void testShift()
 
     Vec shifts(IndexesFromZero);
     a <<= shifts;
-    for (typename Vec::Type i = 0, x = 1; i < Vec::Size; ++i, x <<= 1) {
+    for (typename Vec::EntryType i = 0, x = 1; i < Vec::Size; ++i, x <<= 1) {
         COMPARE(a[i], x);
     }
 
@@ -158,7 +199,7 @@ template<typename Vec> void testShift()
 
     a = Vec(16);
     a >>= shifts;
-    for (typename Vec::Type i = 0, x = 16; i < Vec::Size; ++i, x >>= 1) {
+    for (typename Vec::EntryType i = 0, x = 16; i < Vec::Size; ++i, x >>= 1) {
         COMPARE(a[i], x);
     }
 }
