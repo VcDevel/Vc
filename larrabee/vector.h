@@ -495,6 +495,7 @@ namespace Larrabee
             LOAD(float16, _MM_FULLUPC_FLOAT16)
             LOAD(unsigned char, _MM_FULLUPC_UINT8)
             LOAD(signed char, _MM_FULLUPC_SINT8)
+            LOAD(char, _MM_FULLUPC_SINT8)
             LOAD(unsigned short, _MM_FULLUPC_UINT16)
             LOAD(signed short, _MM_FULLUPC_SINT16)
 
