@@ -36,6 +36,6 @@ class VectorMemoryHelper
         }
         ~VectorMemoryHelper() { delete[] mem; }
 
-        operator typename Vec::Type *() { return reinterpret_cast<typename Vec::Type *>(aligned); }
+        operator typename Vec::EntryType *() { return reinterpret_cast<typename Vec::EntryType *>(aligned); }
 };
 #endif // VECTORMEMORYHELPER_H
