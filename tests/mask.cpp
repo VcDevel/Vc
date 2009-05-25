@@ -30,7 +30,7 @@ using namespace Vc;
 template<typename Vec> void testInc()
 {
     VectorMemoryHelper<Vec> mem(2);
-    typedef typename Vec::Type T;
+    typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
     for (int borderI = 0; borderI < Vec::Size; ++borderI) {
@@ -53,7 +53,7 @@ template<typename Vec> void testInc()
 template<typename Vec> void testDec()
 {
     VectorMemoryHelper<Vec> mem(2);
-    typedef typename Vec::Type T;
+    typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
     for (int borderI = 0; borderI < Vec::Size; ++borderI) {
@@ -76,7 +76,7 @@ template<typename Vec> void testDec()
 template<typename Vec> void testPlusEq()
 {
     VectorMemoryHelper<Vec> mem(2);
-    typedef typename Vec::Type T;
+    typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
     for (int borderI = 0; borderI < Vec::Size; ++borderI) {
@@ -96,7 +96,7 @@ template<typename Vec> void testPlusEq()
 template<typename Vec> void testMinusEq()
 {
     VectorMemoryHelper<Vec> mem(2);
-    typedef typename Vec::Type T;
+    typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
     for (int borderI = 0; borderI < Vec::Size; ++borderI) {
@@ -116,7 +116,7 @@ template<typename Vec> void testMinusEq()
 template<typename Vec> void testTimesEq()
 {
     VectorMemoryHelper<Vec> mem(2);
-    typedef typename Vec::Type T;
+    typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
     for (int borderI = 0; borderI < Vec::Size; ++borderI) {
@@ -136,7 +136,7 @@ template<typename Vec> void testTimesEq()
 template<typename Vec> void testDivEq()
 {
     VectorMemoryHelper<Vec> mem(2);
-    typedef typename Vec::Type T;
+    typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
     for (int borderI = 0; borderI < Vec::Size; ++borderI) {
@@ -156,7 +156,7 @@ template<typename Vec> void testDivEq()
 template<typename Vec> void testAssign()
 {
     VectorMemoryHelper<Vec> mem(2);
-    typedef typename Vec::Type T;
+    typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
     for (int borderI = 0; borderI < Vec::Size; ++borderI) {
@@ -169,6 +169,27 @@ template<typename Vec> void testAssign()
         Vec b(&data[Vec::Size]);
         Mask m = a < border;
         COMPARE(a(m) = b, b);
+        COMPARE(a, b);
+    }
+}
+
+template<typename Vec> void testZero()
+{
+    typedef typename Vec::EntryType T;
+    typedef typename Vec::Mask Mask;
+    typedef typename Vec::IndexType I;
+
+    for (int cut = 0; cut < Vec::Size; ++cut) {
+        const Mask mask(I(Vc::IndexesFromZero) < cut);
+        std::cout << mask << std::endl;
+
+        const T aa = 4;
+        Vec a(aa);
+        Vec b(Vc::Zero);
+
+        b(!mask) = a;
+        a.makeZero(mask);
+
         COMPARE(a, b);
     }
 }
@@ -223,6 +244,13 @@ int main()
     runTest(testAssign<double_v>);
     runTest(testAssign<short_v>);
     runTest(testAssign<ushort_v>);
+
+    runTest(testZero<int_v>);
+    runTest(testZero<uint_v>);
+    runTest(testZero<float_v>);
+    runTest(testZero<double_v>);
+    runTest(testZero<short_v>);
+    runTest(testZero<ushort_v>);
 
     return 0;
 }
