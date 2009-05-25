@@ -136,8 +136,6 @@ namespace SSE
             OP_DECL(<<)
 #undef T
 
-            Vector<short> operator,(Vector<int>) const;
-
             protected:
                 const int *_IndexesFromZero() { return reinterpret_cast<const int *>(Internal::_IndexesFromZero4); }
         };
@@ -154,8 +152,6 @@ namespace SSE
             OP_DECL(>>)
             OP_DECL(<<)
 #undef T
-
-            Vector<unsigned short> operator,(Vector<unsigned int>) const;
 
             protected:
                 const unsigned int *_IndexesFromZero() { return reinterpret_cast<const unsigned int *>(Internal::_IndexesFromZero4); }
@@ -251,6 +247,16 @@ namespace SSE
         template<> inline _M128  mm128_reinterpret_cast<_M128 , _M128I>(_M128I v) { return _mm_castsi128_ps(v); }
         template<> inline _M128D mm128_reinterpret_cast<_M128D, _M128I>(_M128I v) { return _mm_castsi128_pd(v); }
         template<> inline _M128D mm128_reinterpret_cast<_M128D, _M128 >(_M128  v) { return _mm_castps_pd(v);    }
+
+        template<typename T> struct CtorTypeHelper { typedef T Type; };
+        template<> struct CtorTypeHelper<short> { typedef int Type; };
+        template<> struct CtorTypeHelper<unsigned short> { typedef unsigned int Type; };
+        template<> struct CtorTypeHelper<float> { typedef double Type; };
+
+        template<typename T> struct ExpandTypeHelper { typedef T Type; };
+        template<> struct ExpandTypeHelper<short> { typedef int Type; };
+        template<> struct ExpandTypeHelper<unsigned short> { typedef unsigned int Type; };
+        template<> struct ExpandTypeHelper<float> { typedef double Type; };
 
         template<typename T> struct VectorHelper {};
 
@@ -1516,15 +1522,18 @@ class Vector : public VectorBase<T, Vector<T> >
          * initialize consecutive four vector entries with the given values
          */
         template<typename Other>
-        inline Vector(Other a, Other b, Other c, Other d)
+
+        inline Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
+            : Base(VectorHelper<T>::concat(a[0].data(), a[1].data()))
+        {}
+
+        inline void expand(Vector<typename ExpandTypeHelper<T>::Type> *x) const
         {
-            data = VectorHelper<T>::set(a, b, c, d);
+            if (Size == 8u) {
+                x[0].data() = VectorHelper<T>::expand0(data());
+                x[1].data() = VectorHelper<T>::expand1(data());
+            }
         }
-        /**
-         * Initialize the vector with the given data. \param x must point to 64 byte aligned 512
-         * byte data.
-         */
-        template<typename Other> inline explicit Vector(const Other *x) : data(VectorHelper<T>::load(x)) {}
 
         template<typename Other> static inline Vector broadcast4(const Other *x) { return Vector<T>(x); }
 
@@ -1792,12 +1801,11 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, con
 #undef OP_IMPL
 #undef OP_IMPL2
 
-  template<> inline Vector<unsigned short> VectorBase<unsigned int, Vector<unsigned int> >::operator,(Vector<unsigned int> x) const {
-    return _mm_packs_epi32(static_cast<const Vector<unsigned int> *>(this)->data, x.data);
-  }
-  template<> inline Vector<short> VectorBase<int, Vector<int> >::operator,(Vector<int> x) const {
-    return _mm_packs_epi32(static_cast<const Vector<int> *>(this)->data, x.data);
-  }
+
+
+
+
+
 
   template<typename T> static inline Vector<T> min (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::min(x, y); }
   template<typename T> static inline Vector<T> max (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::max(x, y); }
