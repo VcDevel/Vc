@@ -2,19 +2,19 @@
     Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
 
     This program is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Library General Public
-    License as published by the Free Software Foundation; either
-    version 2 of the License, or (at your option) version 3.
+    modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation; either version 2 of
+    the License, or (at your option) version 3.
 
-    This library is distributed in the hope that it will be useful,
+    This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Library General Public License for more details.
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-    You should have received a copy of the GNU Library General Public License
-    along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-    Boston, MA 02110-1301, USA.
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+    02110-1301, USA.
 
 */
 
@@ -73,8 +73,36 @@
 # endif
 #endif
 
+#ifdef __GNUC__
+#define CONST __attribute__((const))
+#else
+#define CONST
+#endif
+
 #define CAT_HELPER(a, b) a##b
 #define CAT(a, b) CAT_HELPER(a, b)
+
+#define unrolled_loop16(_it_, _start_, _end_, _code_) \
+if (_start_ +  0 < _end_) { enum { _it_ = (_start_ +  0) < _end_ ? (_start_ +  0) : _start_ }; _code_ } \
+if (_start_ +  1 < _end_) { enum { _it_ = (_start_ +  1) < _end_ ? (_start_ +  1) : _start_ }; _code_ } \
+if (_start_ +  2 < _end_) { enum { _it_ = (_start_ +  2) < _end_ ? (_start_ +  2) : _start_ }; _code_ } \
+if (_start_ +  3 < _end_) { enum { _it_ = (_start_ +  3) < _end_ ? (_start_ +  3) : _start_ }; _code_ } \
+if (_start_ +  4 < _end_) { enum { _it_ = (_start_ +  4) < _end_ ? (_start_ +  4) : _start_ }; _code_ } \
+if (_start_ +  5 < _end_) { enum { _it_ = (_start_ +  5) < _end_ ? (_start_ +  5) : _start_ }; _code_ } \
+if (_start_ +  6 < _end_) { enum { _it_ = (_start_ +  6) < _end_ ? (_start_ +  6) : _start_ }; _code_ } \
+if (_start_ +  7 < _end_) { enum { _it_ = (_start_ +  7) < _end_ ? (_start_ +  7) : _start_ }; _code_ } \
+if (_start_ +  8 < _end_) { enum { _it_ = (_start_ +  8) < _end_ ? (_start_ +  8) : _start_ }; _code_ } \
+if (_start_ +  9 < _end_) { enum { _it_ = (_start_ +  9) < _end_ ? (_start_ +  9) : _start_ }; _code_ } \
+if (_start_ + 10 < _end_) { enum { _it_ = (_start_ + 10) < _end_ ? (_start_ + 10) : _start_ }; _code_ } \
+if (_start_ + 11 < _end_) { enum { _it_ = (_start_ + 11) < _end_ ? (_start_ + 11) : _start_ }; _code_ } \
+if (_start_ + 12 < _end_) { enum { _it_ = (_start_ + 12) < _end_ ? (_start_ + 12) : _start_ }; _code_ } \
+if (_start_ + 13 < _end_) { enum { _it_ = (_start_ + 13) < _end_ ? (_start_ + 13) : _start_ }; _code_ } \
+if (_start_ + 14 < _end_) { enum { _it_ = (_start_ + 14) < _end_ ? (_start_ + 14) : _start_ }; _code_ } \
+if (_start_ + 15 < _end_) { enum { _it_ = (_start_ + 15) < _end_ ? (_start_ + 15) : _start_ }; _code_ } \
+do {} while ( false )
+
+#define for_all_vector_entries(_it_, _code_) \
+  unrolled_loop16(_it_, 0, Size, _code_)
 
 namespace SSE
 {
@@ -88,106 +116,285 @@ namespace SSE
     template<typename T> class Vector;
     template<unsigned int VectorSize> class Mask;
 
-    ALIGN(16) static const int _FullMaskData[4] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff };
-#define _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF _mm_load_si128(reinterpret_cast<const __m128i *const>(_FullMaskData))
-
 #define STORE_VECTOR(type, name, vec) \
     union { __m128i p; type v[16 / sizeof(type)]; } CAT(u, __LINE__); \
     _mm_store_si128(&CAT(u, __LINE__).p, vec); \
     const type *const name = &CAT(u, __LINE__).v[0]
 
-#define PARENT_DATA (static_cast<Parent *>(this)->data)
-#define PARENT_DATA_CONST (static_cast<const Parent *>(this)->data)
-        template<typename T, typename Parent>
-        struct VectorBase
-        {
+    template<typename To, typename From> static inline To mm128_reinterpret_cast(From v) CONST;
+    template<typename To, typename From> static inline To mm128_reinterpret_cast(From v) { return v; }
+    template<> inline _M128I mm128_reinterpret_cast<_M128I, _M128 >(_M128  v) CONST;
+    template<> inline _M128I mm128_reinterpret_cast<_M128I, _M128D>(_M128D v) CONST;
+    template<> inline _M128  mm128_reinterpret_cast<_M128 , _M128D>(_M128D v) CONST;
+    template<> inline _M128  mm128_reinterpret_cast<_M128 , _M128I>(_M128I v) CONST;
+    template<> inline _M128D mm128_reinterpret_cast<_M128D, _M128I>(_M128I v) CONST;
+    template<> inline _M128D mm128_reinterpret_cast<_M128D, _M128 >(_M128  v) CONST;
+    template<> inline _M128I mm128_reinterpret_cast<_M128I, _M128 >(_M128  v) { return _mm_castps_si128(v); }
+    template<> inline _M128I mm128_reinterpret_cast<_M128I, _M128D>(_M128D v) { return _mm_castpd_si128(v); }
+    template<> inline _M128  mm128_reinterpret_cast<_M128 , _M128D>(_M128D v) { return _mm_castpd_ps(v);    }
+    template<> inline _M128  mm128_reinterpret_cast<_M128 , _M128I>(_M128I v) { return _mm_castsi128_ps(v); }
+    template<> inline _M128D mm128_reinterpret_cast<_M128D, _M128I>(_M128I v) { return _mm_castsi128_pd(v); }
+    template<> inline _M128D mm128_reinterpret_cast<_M128D, _M128 >(_M128  v) { return _mm_castps_pd(v);    }
+
+
+    template<unsigned int Size> struct IndexTypeHelper;
+    template<> struct IndexTypeHelper<2u> { typedef unsigned int   Type; };
+    template<> struct IndexTypeHelper<4u> { typedef unsigned int   Type; };
+    template<> struct IndexTypeHelper<8u> { typedef unsigned short Type; };
+    template<> struct IndexTypeHelper<16u>{ typedef unsigned char  Type; };
+
+    template<typename T> struct VectorHelper {};
+
+    template<typename VectorType, typename EntryType> class VectorMemoryUnion
+    {
+        public:
+            typedef EntryType AliasingEntryType __attribute__((__may_alias__));
+            inline VectorMemoryUnion() {}
+            inline VectorMemoryUnion(VectorType x) : data(x) {}
+
+            VectorType &v() { return data; }
+            const VectorType &v() const { return data; }
+
+            AliasingEntryType &m(int index) {
+                return reinterpret_cast<AliasingEntryType *>(&data)[index];
+            }
+
+            EntryType m(int index) const {
+                return reinterpret_cast<const AliasingEntryType *>(&data)[index];
+            }
+
+        private:
+            VectorType data;
+    };
+
+    template<typename T> struct VectorHelperSize;
+
+    template<typename T> class VectorBase {
+        friend struct VectorHelperSize<float>;
+        friend struct VectorHelperSize<double>;
+        friend struct VectorHelperSize<int>;
+        friend struct VectorHelperSize<unsigned int>;
+        friend struct VectorHelperSize<short>;
+        friend struct VectorHelperSize<unsigned short>;
+        public:
+            enum { Size = 16 / sizeof(T) };
+            typedef _M128I VectorType;
+            typedef T EntryType;
+            typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
+
+            inline Vector<EntryType> &operator|= (const Vector<EntryType> &x);
+            inline Vector<EntryType> &operator&= (const Vector<EntryType> &x);
+            inline Vector<EntryType> &operator^= (const Vector<EntryType> &x);
+            inline Vector<EntryType> &operator>>=(const Vector<EntryType> &x);
+            inline Vector<EntryType> &operator<<=(const Vector<EntryType> &x);
+
+            inline Vector<EntryType> operator| (const Vector<EntryType> &x) const;
+            inline Vector<EntryType> operator& (const Vector<EntryType> &x) const;
+            inline Vector<EntryType> operator^ (const Vector<EntryType> &x) const;
+            inline Vector<EntryType> operator>>(const Vector<EntryType> &x) const;
+            inline Vector<EntryType> operator<<(const Vector<EntryType> &x) const;
+
+        protected:
+            inline VectorBase() {}
+            inline VectorBase(VectorType x) : d(x) {}
+
+            VectorMemoryUnion<VectorType, EntryType> d;
+
+            static const T *_IndexesFromZero() {
+                if (Size == 4) {
+                    return reinterpret_cast<const T *>(Internal::_IndexesFromZero4);
+                } else if (Size == 8) {
+                    return reinterpret_cast<const T *>(Internal::_IndexesFromZero8);
+                }
+                return 0;
+            }
+    };
+
+    template<> class VectorBase<float> {
+        friend struct VectorHelperSize<float>;
+        public:
+            enum { Size = 16 / sizeof(float) };
             typedef _M128 VectorType;
-            operator _M128() { return PARENT_DATA; }
-            operator const _M128() const { return PARENT_DATA_CONST; }
-        };
-        template<typename Parent>
-        struct VectorBase<float, Parent>
-        {
-            typedef _M128 VectorType;
-            operator _M128() { return PARENT_DATA; }
-            operator const _M128() const { return PARENT_DATA_CONST; }
-        };
-        template<typename Parent>
-        struct VectorBase<double, Parent>
-        {
+            typedef float EntryType;
+            typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
+
+        protected:
+            inline VectorBase() {}
+            inline VectorBase(VectorType x) : d(x) {}
+
+            VectorMemoryUnion<VectorType, EntryType> d;
+    };
+
+    template<> class VectorBase<double> {
+        friend struct VectorHelperSize<double>;
+        public:
+            enum { Size = 16 / sizeof(double) };
             typedef _M128D VectorType;
-            operator _M128D() { return PARENT_DATA; }
-            operator const _M128D() const { return PARENT_DATA_CONST; }
-        };
-#define OP_DECL(symbol) \
-            inline Vector<T> &operator symbol##=(const Vector<T> &x); \
-            inline Vector<T> operator symbol(const Vector<T> &x) const;
-        template<typename Parent>
-        struct VectorBase<int, Parent>
-        {
-            typedef _M128I VectorType;
-            operator _M128I() { return PARENT_DATA; }
-            operator const _M128I() const { return PARENT_DATA_CONST; }
-#define T int
-            OP_DECL(|)
-            OP_DECL(&)
-            OP_DECL(^)
-            OP_DECL(>>)
-            OP_DECL(<<)
-#undef T
+            typedef double EntryType;
+            typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
 
-            protected:
-                const int *_IndexesFromZero() { return reinterpret_cast<const int *>(Internal::_IndexesFromZero4); }
-        };
-        template<typename Parent>
-        struct VectorBase<unsigned int, Parent>
-        {
-            typedef _M128I VectorType;
-            operator _M128I() { return PARENT_DATA; }
-            operator const _M128I() const { return PARENT_DATA_CONST; }
-#define T unsigned int
-            OP_DECL(|)
-            OP_DECL(&)
-            OP_DECL(^)
-            OP_DECL(>>)
-            OP_DECL(<<)
-#undef T
+        protected:
+            inline VectorBase() {}
+            inline VectorBase(VectorType x) : d(x) {}
 
-            protected:
-                const unsigned int *_IndexesFromZero() { return reinterpret_cast<const unsigned int *>(Internal::_IndexesFromZero4); }
-        };
-        template<typename Parent>
-        struct VectorBase<short, Parent>
-        {
-            typedef _M128I VectorType;
-            operator _M128I() { return PARENT_DATA; }
-            operator const _M128I() const { return PARENT_DATA_CONST; }
-#define T short
-            OP_DECL(|)
-            OP_DECL(&)
-            OP_DECL(^)
-            OP_DECL(>>)
-            OP_DECL(<<)
-#undef T
-            protected:
-                const short *_IndexesFromZero() { return reinterpret_cast<const short *>(Internal::_IndexesFromZero8); }
-        };
-        template<typename Parent>
-        struct VectorBase<unsigned short, Parent>
-        {
-            typedef _M128I VectorType;
-            operator _M128I() { return PARENT_DATA; }
-            operator const _M128I() const { return PARENT_DATA_CONST; }
-#define T unsigned short
-            OP_DECL(|)
-            OP_DECL(&)
-            OP_DECL(^)
-            OP_DECL(>>)
-            OP_DECL(<<)
-#undef T
-            protected:
-                const unsigned short *_IndexesFromZero() { return reinterpret_cast<const unsigned short *>(Internal::_IndexesFromZero8); }
-        };
+            VectorMemoryUnion<VectorType, EntryType> d;
+    };
+
+    template<typename T> struct VectorHelperSize
+    {
+        typedef VectorBase<T> Base;
+        typedef typename Base::VectorType VectorType;
+        typedef typename Base::EntryType  EntryType;
+        typedef typename Base::IndexType  IndexType;
+        typedef VectorMemoryUnion<VectorType, EntryType> UnionType;
+
+        enum { Size = Base::Size, Shift = sizeof(EntryType) };
+
+        static inline VectorType my_set4(const EntryType *m, const unsigned long long int a,
+                const unsigned long long int b, const unsigned long long int c,
+                const unsigned long long int d) CONST {
+            VectorType v;
+            __m128 t1, t2, t3;
+            __asm__("movd 0(%4,%5,4), %3\n\t"
+                    "movd 0(%4,%6,4), %2\n\t"
+                    "movd 0(%4,%7,4), %1\n\t"
+                    "movd 0(%4,%8,4), %0\n\t"
+                    "unpcklps %3, %2\n\t"
+                    "unpcklps %1, %0\n\t"
+                    "movlhps %2, %0\n\t"
+                    : "=x"(v), "=x"(t1), "=x"(t2), "=x"(t3)
+                    : "r"(m), "r"(a), "r"(b), "r"(c), "r"(d)
+                    :
+                   );
+            return v;
+        }
+        static inline void gather(Base &v, const IndexType &indexes, const EntryType *baseAddr) {
+            if (Size == 2) {
+                v.d.v() = mm128_reinterpret_cast<VectorType>(_mm_set_pd(
+                            baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]));
+            } else if (Size == 4) {
+                v.d.v() = my_set4(baseAddr, indexes.d.m(3), indexes.d.m(2), indexes.d.m(1), indexes.d.m(0));
+            } else if (Size == 8) {
+                v.d.v() = mm128_reinterpret_cast<VectorType>(_mm_set_epi16(
+                            baseAddr[indexes.d.m(7)], baseAddr[indexes.d.m(6)],
+                            baseAddr[indexes.d.m(5)], baseAddr[indexes.d.m(4)],
+                            baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
+                            baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]));
+            } else {
+                for_all_vector_entries(i,
+                        v.d.m(i) = baseAddr[indexes.d.m(i)];
+                        );
+            }
+        }
+        template<typename AT>
+        static inline void maskedGatherHelper(AT &vEntry, const int mask, const EntryType &value, const int bitMask) {
+#ifdef __GNUC__
+            register EntryType t;
+            asm(
+                    "test %4,%2\n\t"
+                    "mov %5,%1\n\t"
+                    "cmovne %3,%1\n\t"
+                    "mov %1,%0"
+                    : "=m"(vEntry), "=&r"(t)
+                    : "r"(mask), "m"(value), "n"(bitMask), "m"(vEntry)
+                    :
+               );
+#else
+            if (mask & bitMask) {
+                vEntry = value;
+            }
+#endif
+        }
+        template<typename AT>
+        static inline void maskedScatterHelper(const AT &vEntry, const int mask, EntryType &value, const int bitMask) {
+#ifdef __GNUC__
+            register EntryType t;
+            asm(
+                    "test %4,%2\n\t"
+                    "mov %3,%1\n\t"
+                    "cmovne %5,%1\n\t"
+                    "mov %1,%0"
+                    : "=m"(value), "=&r"(t)
+                    : "r"(mask), "m"(value), "n"(bitMask), "m"(vEntry)
+                    :
+               );
+#else
+            if (mask & bitMask) {
+                value = vEntry;
+            }
+#endif
+        }
+        static inline void gather(Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr) {
+            for_all_vector_entries(i,
+                    maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)], 1 << i * Shift);
+                );
+        }
+        template<typename S1> static inline void gather(Base &v, const IndexType &indexes,
+                const S1 *baseAddr, const EntryType S1::* member1) {
+//X             if (Size == 8) {
+//X                 for_all_vector_entries(i,
+//X                         v.d.v() = _mm_insert_epi16(v.d.v(), baseAddr[indexes.d.m(i)].*(member1), i);
+//X                         );
+//X             } else {
+                for_all_vector_entries(i,
+                        v.d.m(i) = baseAddr[indexes.d.m(i)].*(member1);
+                        );
+//X             }
+        }
+        template<typename S1> static inline void gather(Base &v, const IndexType &indexes, int mask,
+                const S1 *baseAddr, const EntryType S1::* member1) {
+            for_all_vector_entries(i,
+                    maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1), 1 << i * Shift);
+                );
+        }
+        template<typename S1, typename S2> static inline void gather(Base &v, const IndexType &indexes,
+                const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2) {
+            for_all_vector_entries(i,
+                    v.d.m(i) = baseAddr[indexes.d.m(i)].*(member1).*(member2);
+                );
+        }
+        template<typename S1, typename S2> static inline void gather(Base &v, const IndexType &indexes, int mask,
+                const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2) {
+            for_all_vector_entries(i,
+                    maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2), 1 << i * Shift);
+                );
+        }
+        static inline void scatter(const Base &v, const IndexType &indexes, EntryType *baseAddr) {
+            for_all_vector_entries(i,
+                    baseAddr[indexes.d.m(i)] = v.d.m(i);
+                    );
+        }
+        static inline void scatter(const Base &v, const IndexType &indexes, int mask, EntryType *baseAddr) {
+            for_all_vector_entries(i,
+                    maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)], 1 << i * Shift);
+                    );
+        }
+        template<typename S1> static inline void scatter(const Base &v, const IndexType &indexes,
+                S1 *baseAddr, EntryType S1::* member1) {
+            for_all_vector_entries(i,
+                    baseAddr[indexes.d.m(i)].*(member1) = v.d.m(i);
+                    );
+        }
+        template<typename S1> static inline void scatter(const Base &v, const IndexType &indexes, int mask,
+                S1 *baseAddr, EntryType S1::* member1) {
+            for_all_vector_entries(i,
+                    maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1), 1 << i * Shift);
+                    );
+        }
+        template<typename S1, typename S2> static inline void scatter(const Base &v, const IndexType &indexes,
+                S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2) {
+            for_all_vector_entries(i,
+                    baseAddr[indexes.d.m(i)].*(member1).*(member2) = v.d.m(i);
+                    );
+        }
+        template<typename S1, typename S2> static inline void scatter(const Base &v, const IndexType &indexes, int mask,
+                S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2) {
+            for_all_vector_entries(i,
+                    maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2), 1 << i * Shift);
+                    );
+        }
+    };
+
 #undef OP_DECL
 #undef PARENT_DATA
 #undef PARENT_DATA_CONST
@@ -240,14 +447,6 @@ namespace SSE
         template<> struct ReinterpretCastHelper<short         , unsigned short> { static _M128I cast(const _M128I &v) { return v; } };
         template<> struct ReinterpretCastHelper<short         , short         > { static _M128I cast(const _M128I &v) { return v; } };
 
-        template<typename To, typename From> static inline To mm128_reinterpret_cast(From v) { return v; }
-        template<> inline _M128I mm128_reinterpret_cast<_M128I, _M128 >(_M128  v) { return _mm_castps_si128(v); }
-        template<> inline _M128I mm128_reinterpret_cast<_M128I, _M128D>(_M128D v) { return _mm_castpd_si128(v); }
-        template<> inline _M128  mm128_reinterpret_cast<_M128 , _M128D>(_M128D v) { return _mm_castpd_ps(v);    }
-        template<> inline _M128  mm128_reinterpret_cast<_M128 , _M128I>(_M128I v) { return _mm_castsi128_ps(v); }
-        template<> inline _M128D mm128_reinterpret_cast<_M128D, _M128I>(_M128I v) { return _mm_castsi128_pd(v); }
-        template<> inline _M128D mm128_reinterpret_cast<_M128D, _M128 >(_M128  v) { return _mm_castps_pd(v);    }
-
         template<typename T> struct CtorTypeHelper { typedef T Type; };
         template<> struct CtorTypeHelper<short> { typedef int Type; };
         template<> struct CtorTypeHelper<unsigned short> { typedef unsigned int Type; };
@@ -258,7 +457,58 @@ namespace SSE
         template<> struct ExpandTypeHelper<unsigned short> { typedef unsigned int Type; };
         template<> struct ExpandTypeHelper<float> { typedef double Type; };
 
-        template<typename T> struct VectorHelper {};
+#define OP0(name, code) static inline VectorType name() { return code; }
+#define OP1(name, code) static inline VectorType name(const VectorType &a) { return code; }
+#define OP2(name, code) static inline VectorType name(const VectorType &a, const VectorType &b) { return code; }
+#define OP3(name, code) static inline VectorType name(const VectorType &a, const VectorType &b, const VectorType &c) { return code; }
+
+        template<> struct VectorHelper<_M128>
+        {
+            typedef _M128 VectorType;
+            static inline VectorType load(const float *x) { return _mm_load_ps(x); }
+            static inline VectorType loadUnaligned(const float *x) { return _mm_loadu_ps(x); }
+            static inline void store(float *mem, const VectorType &x) { _mm_store_ps(mem, x); }
+            static inline void storeStreaming(float *mem, const VectorType &x) { _mm_stream_ps(mem, x); }
+            OP0(zero, _mm_setzero_ps())
+            OP2(or_, _mm_or_ps(a, b))
+            OP2(xor_, _mm_xor_ps(a, b))
+            OP2(and_, _mm_and_ps(a, b))
+            OP2(andnot_, _mm_andnot_ps(a, b))
+            OP3(blend, _mm_blendv_ps(a, b, c))
+        };
+
+        template<> struct VectorHelper<_M128D>
+        {
+            typedef _M128D VectorType;
+            static inline VectorType load(const double *x) { return _mm_load_pd(x); }
+            static inline VectorType loadUnaligned(const double *x) { return _mm_loadu_pd(x); }
+            static inline void store(double *mem, const VectorType &x) { _mm_store_pd(mem, x); }
+            static inline void storeStreaming(double *mem, const VectorType &x) { _mm_stream_pd(mem, x); }
+            OP0(zero, _mm_setzero_pd())
+            OP2(or_, _mm_or_pd(a, b))
+            OP2(xor_, _mm_xor_pd(a, b))
+            OP2(and_, _mm_and_pd(a, b))
+            OP2(andnot_, _mm_andnot_pd(a, b))
+            OP3(blend, _mm_blendv_pd(a, b, c))
+        };
+
+        template<> struct VectorHelper<_M128I>
+        {
+            typedef _M128I VectorType;
+            template<typename T> static inline VectorType load(const T *x) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
+            template<typename T> static inline VectorType loadUnaligned(const T *x) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
+            template<typename T> static inline void store(T *mem, const VectorType &x) { _mm_store_si128(reinterpret_cast<VectorType *>(mem), x); }
+            template<typename T> static inline void storeStreaming(T *mem, const VectorType &x) { _mm_stream_si128(reinterpret_cast<VectorType *>(mem), x); }
+            OP0(zero, _mm_setzero_si128())
+            OP2(or_, _mm_or_si128(a, b))
+            OP2(xor_, _mm_xor_si128(a, b))
+            OP2(and_, _mm_and_si128(a, b))
+            OP2(andnot_, _mm_andnot_si128(a, b))
+            OP3(blend, _mm_blendv_epi8(a, b, c))
+        };
+#undef OP1
+#undef OP2
+#undef OP3
 
 #define OP1(op) \
         static inline VectorType op(const VectorType &a) { return CAT(_mm_##op##_, SUFFIX)(a); }
@@ -278,16 +528,6 @@ namespace SSE
 #define MINMAX \
         static inline VectorType min(VectorType a, VectorType b) { return CAT(_mm_min_, SUFFIX)(a, b); } \
         static inline VectorType max(VectorType a, VectorType b) { return CAT(_mm_max_, SUFFIX)(a, b); }
-#define LOAD(T) \
-        static inline VectorType load (const T *x) { return CAT(_mm_load_, SUFFIX)(x); }
-#define LOAD_CAST(T) \
-        static inline VectorType load (const T *x) { return CAT(_mm_load_, SUFFIX)(reinterpret_cast<const VectorType *>(x)); }
-#define STORE(T) \
-            static inline void store (T *mem, VectorType x) { return CAT(_mm_store_ , SUFFIX)(mem, x); } \
-            static inline void storeStreaming(T *mem, VectorType x) { return CAT(_mm_stream_ , SUFFIX)(mem, x); }
-#define STORE_CAST(T) \
-            static inline void store (T *mem, VectorType x) { return CAT(_mm_store_, SUFFIX)(reinterpret_cast<VectorType *>(mem), x); } \
-            static inline void storeStreaming(T *mem, VectorType x) { return CAT(_mm_stream_, SUFFIX)(reinterpret_cast<VectorType *>(mem), x); }
 
         // _mm_sll_* does not take a count parameter with different counts per vector element. So we
         // have to do it manually
@@ -341,164 +581,14 @@ namespace SSE
                 data.i[7] >>= shifts[7]; \
                 return data.v; } \
             static inline VectorType srli(VectorType v, int count) { return CAT(_mm_srli_, SUFFIX)(v, count); }
-#define GATHER_SCATTER(T) \
-            static inline void gather(VectorType &v, const _M128I &indexes, const T *baseAddr) { \
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes); \
-                v = CAT(_mm_set_, SUFFIX)( \
-                        baseAddr[u.i[3]], \
-                        baseAddr[u.i[2]], \
-                        baseAddr[u.i[1]], \
-                        baseAddr[u.i[0]] \
-                        ); \
-            } \
-            template<typename S> \
-            static inline void gather(VectorType &v, const _M128I &indexes, const S *baseAddr, const T S::* member1) { \
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes); \
-                v = CAT(_mm_set_, SUFFIX)( \
-                        baseAddr[u.i[3]].*(member1), \
-                        baseAddr[u.i[2]].*(member1), \
-                        baseAddr[u.i[1]].*(member1), \
-                        baseAddr[u.i[0]].*(member1) \
-                        ); \
-            } \
-            template<typename S1, typename S2> \
-            static inline void gather(VectorType &v, const _M128I &indexes, const S1 *baseAddr, const S2 S1::* member1, const T S2::* member2) { \
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes); \
-                v = CAT(_mm_set_, SUFFIX)( \
-                        baseAddr[u.i[3]].*(member1).*(member2), \
-                        baseAddr[u.i[2]].*(member1).*(member2), \
-                        baseAddr[u.i[1]].*(member1).*(member2), \
-                        baseAddr[u.i[0]].*(member1).*(member2) \
-                        ); \
-            } \
-            static inline void scatter(const VectorType &v, const _M128I &indexes, T *baseAddr) { \
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes); \
-                union { VectorType p; T v[4]; } w; store(w.v, v); \
-                baseAddr[u.i[0]] = w.v[0]; \
-                baseAddr[u.i[1]] = w.v[1]; \
-                baseAddr[u.i[2]] = w.v[2]; \
-                baseAddr[u.i[3]] = w.v[3]; \
-            } \
-            template<typename S> \
-            static inline void scatter(const VectorType &v, const _M128I &indexes, S *baseAddr, T S::* member1) { \
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes); \
-                union { VectorType p; T v[4]; } w; store(w.v, v); \
-                baseAddr[u.i[0]].*(member1) = w.v[0]; \
-                baseAddr[u.i[1]].*(member1) = w.v[1]; \
-                baseAddr[u.i[2]].*(member1) = w.v[2]; \
-                baseAddr[u.i[3]].*(member1) = w.v[3]; \
-            } \
-            template<typename S1, typename S2> \
-            static inline void scatter(const VectorType &v, const _M128I &indexes, S1 *baseAddr, S2 S1::* member1, T S2::* member2) { \
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes); \
-                union { VectorType p; T v[4]; } w; store(w.v, v); \
-                baseAddr[u.i[0]].*(member1).*(member2) = w.v[0]; \
-                baseAddr[u.i[1]].*(member1).*(member2) = w.v[1]; \
-                baseAddr[u.i[2]].*(member1).*(member2) = w.v[2]; \
-                baseAddr[u.i[3]].*(member1).*(member2) = w.v[3]; \
-            }
-#define GATHER_SCATTER_16(T) \
-            static inline void gather(VectorType &v, const _M128I &indexes, const T *baseAddr) { \
-                union { __m128i p; unsigned short i[8]; } u; _mm_store_si128(&u.p, indexes); \
-                v = CAT(_mm_setr_, SUFFIX)(baseAddr[u.i[0]], baseAddr[u.i[1]], baseAddr[u.i[2]], baseAddr[u.i[3]], baseAddr[u.i[4]], baseAddr[u.i[5]], baseAddr[u.i[6]], baseAddr[u.i[7]]); \
-            } \
-            template<typename S> \
-            static inline void gather(VectorType &v, const _M128I &indexes, const S *baseAddr, const T S::* member1) { \
-                union { __m128i p; unsigned short i[8]; } u; _mm_store_si128(&u.p, indexes); \
-                v = CAT(_mm_setr_, SUFFIX)(baseAddr[u.i[0]].*(member1), baseAddr[u.i[1]].*(member1), \
-                        baseAddr[u.i[2]].*(member1), baseAddr[u.i[3]].*(member1), baseAddr[u.i[4]].*(member1), \
-                        baseAddr[u.i[5]].*(member1), baseAddr[u.i[6]].*(member1), baseAddr[u.i[7]].*(member1)); \
-            } \
-            template<typename S1, typename S2> \
-            static inline void gather(VectorType &v, const _M128I &indexes, const S1 *baseAddr, const S2 S1::* member1, const T S2::* member2) { \
-                union { __m128i p; unsigned short i[8]; } u; _mm_store_si128(&u.p, indexes); \
-                v = CAT(_mm_setr_, SUFFIX)(baseAddr[u.i[0]].*(member1).*(member2), \
-                        baseAddr[u.i[1]].*(member1).*(member2), baseAddr[u.i[2]].*(member1).*(member2), \
-                        baseAddr[u.i[3]].*(member1).*(member2), baseAddr[u.i[4]].*(member1).*(member2), \
-                        baseAddr[u.i[5]].*(member1).*(member2), baseAddr[u.i[6]].*(member1).*(member2), \
-                        baseAddr[u.i[7]].*(member1).*(member2)); \
-            } \
-            static inline void scatter(const VectorType &v, const _M128I &indexes, T *baseAddr) { \
-                union { __m128i p; unsigned short i[8]; } u; _mm_store_si128(&u.p, indexes); \
-                union { VectorType p; T v[8]; } w; store(w.v, v); \
-                baseAddr[u.i[0]] = w.v[0]; \
-                baseAddr[u.i[1]] = w.v[1]; \
-                baseAddr[u.i[2]] = w.v[2]; \
-                baseAddr[u.i[3]] = w.v[3]; \
-                baseAddr[u.i[4]] = w.v[4]; \
-                baseAddr[u.i[5]] = w.v[5]; \
-                baseAddr[u.i[6]] = w.v[6]; \
-                baseAddr[u.i[7]] = w.v[7]; \
-            } \
-            template<typename S> \
-            static inline void scatter(const VectorType &v, const _M128I &indexes, S *baseAddr, T S::* member1) { \
-                union { __m128i p; unsigned short i[8]; } u; _mm_store_si128(&u.p, indexes); \
-                union { VectorType p; T v[8]; } w; store(w.v, v); \
-                baseAddr[u.i[0]].*(member1) = w.v[0]; \
-                baseAddr[u.i[1]].*(member1) = w.v[1]; \
-                baseAddr[u.i[2]].*(member1) = w.v[2]; \
-                baseAddr[u.i[3]].*(member1) = w.v[3]; \
-                baseAddr[u.i[4]].*(member1) = w.v[4]; \
-                baseAddr[u.i[5]].*(member1) = w.v[5]; \
-                baseAddr[u.i[6]].*(member1) = w.v[6]; \
-                baseAddr[u.i[7]].*(member1) = w.v[7]; \
-            } \
-            template<typename S1, typename S2> \
-            static inline void scatter(const VectorType &v, const _M128I &indexes, S1 *baseAddr, S2 S1::* member1, T S2::* member2) { \
-                union { __m128i p; unsigned short i[8]; } u; _mm_store_si128(&u.p, indexes); \
-                union { VectorType p; T v[8]; } w; store(w.v, v); \
-                baseAddr[u.i[0]].*(member1).*(member2) = w.v[0]; \
-                baseAddr[u.i[1]].*(member1).*(member2) = w.v[1]; \
-                baseAddr[u.i[2]].*(member1).*(member2) = w.v[2]; \
-                baseAddr[u.i[3]].*(member1).*(member2) = w.v[3]; \
-                baseAddr[u.i[4]].*(member1).*(member2) = w.v[4]; \
-                baseAddr[u.i[5]].*(member1).*(member2) = w.v[5]; \
-                baseAddr[u.i[6]].*(member1).*(member2) = w.v[6]; \
-                baseAddr[u.i[7]].*(member1).*(member2) = w.v[7]; \
-            }
 
         template<> struct VectorHelper<double> {
             typedef _M128D VectorType;
 #define SUFFIX pd
-            LOAD(double)
-            STORE(double)
-            static inline void gather(VectorType &v, const _M128I &indexes, const double *baseAddr) {
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes);
-                v = _mm_setr_pd(baseAddr[u.i[0]], baseAddr[u.i[1]]);
-            }
-            template<typename S>
-            static inline void gather(VectorType &v, const _M128I &indexes, const S *baseAddr, const double S::* member1) {
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes);
-                v = CAT(_mm_setr_, SUFFIX)(baseAddr[u.i[0]].*(member1), baseAddr[u.i[1]].*(member1));
-            }
-            template<typename S1, typename S2>
-            static inline void gather(VectorType &v, const _M128I &indexes, const S1 *baseAddr, const S2 S1::* member1, const double S2::* member2) {
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes);
-                v = CAT(_mm_setr_, SUFFIX)(baseAddr[u.i[0]].*(member1).*(member2), baseAddr[u.i[1]].*(member1).*(member2));
-            }
-            static inline void scatter(const VectorType &v, const _M128I &indexes, double *baseAddr) {
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes);
-                _mm_storel_pd(&baseAddr[u.i[0]], v);
-                _mm_storeh_pd(&baseAddr[u.i[1]], v);
-            }
-            template<typename S>
-            static inline void scatter(const VectorType &v, const _M128I &indexes, S *baseAddr, double S::* member1) {
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes);
-                _mm_storel_pd(&(baseAddr[u.i[0]].*(member1)), v);
-                _mm_storeh_pd(&(baseAddr[u.i[1]].*(member1)), v);
-            }
-            template<typename S1, typename S2>
-            static inline void scatter(const VectorType &v, const _M128I &indexes, S1 *baseAddr, S2 S1::* member1, double S2::* member2) {
-                union { __m128i p; unsigned int i[4]; } u; _mm_store_si128(&u.p, indexes);
-                _mm_storel_pd(&(baseAddr[u.i[0]].*(member1).*(member2)), v);
-                _mm_storeh_pd(&(baseAddr[u.i[1]].*(member1).*(member2)), v);
-            }
-
 
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_pd(mask), a); }
             static inline VectorType set(const double a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const double a, const double b) { return CAT(_mm_set_, SUFFIX)(a, b); }
-            static inline void setZero(VectorType &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType one()  { return set(1.); }
 
@@ -598,8 +688,7 @@ namespace SSE
                 return x;
             }
             static inline VectorType abs(const VectorType a) {
-                static const VectorType mask = _mm_castsi128_pd(_mm_set_epi32(0x7fffffff, 0xffffffff, 0x7fffffff, 0xffffffff));
-                return CAT(_mm_and_, SUFFIX)(a, mask);
+                return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_pd());
             }
 
             MINMAX
@@ -607,18 +696,16 @@ namespace SSE
         };
 
         template<> struct VectorHelper<float> {
+            typedef float EntryType;
             typedef _M128 VectorType;
 #define SUFFIX ps
-            LOAD(float)
-            STORE(float)
-            GATHER_SCATTER(float)
 
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(mask, a); }
             static inline VectorType set(const float a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const float a, const float b, const float c, const float d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
-            static inline void setZero(VectorType &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType one()  { return set(1.f); }
+            static inline _M128 concat(_M128D a, _M128D b) { return _mm_movelh_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b)); }
 
             static bool pack(VectorType &v1, _M128I &_m1, VectorType &v2, _M128I &_m2) {
                 {
@@ -632,12 +719,12 @@ namespace SSE
                                 if (0 == m1Mask) {
                                     m1 = m2;
                                     v1 = v2;
-                                    setZero(m2);
+                                    m2 = zero();
                                     return _mm_movemask_ps(m1) == 15;
                                 }
                                 if (0 == (m2Mask & 8)) {
 #ifdef __SSSE3__
-                                    v1 = _mm_alignr_epi8(v1, v2, sizeof(float));
+                                    v1 = _mm_castsi128_ps(_mm_alignr_epi8(_mm_castps_si128(v1), _mm_castps_si128(v2), sizeof(float)));
 #else
                                     v1 = _mm_shuffle_ps(v1, v2, _MM_SHUFFLE(3, 3, 1, 2));
                                     v1 = _mm_shuffle_ps(v1, v2, _MM_SHUFFLE(0, 2, 2, 3));
@@ -661,7 +748,7 @@ namespace SSE
                 case 0:  // v1 is empty, take v2
                     m1 = m2;
                     v1 = v2;
-                    setZero(m2);
+                    m2 = zero();
                     return _mm_movemask_ps(m1) == 15;
                 // 224 left
                 default:
@@ -874,8 +961,7 @@ namespace SSE
                 return x;
             }
             static inline VectorType abs(const VectorType a) {
-                static const VectorType mask = _mm_castsi128_ps(_mm_set1_epi32(0x7fffffff));
-                return CAT(_mm_and_, SUFFIX)(a, mask);
+                return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_ps());
             }
 
             MINMAX
@@ -883,18 +969,16 @@ namespace SSE
         };
 
         template<> struct VectorHelper<int> {
+            typedef int EntryType;
             typedef _M128I VectorType;
 #define SUFFIX si128
-            LOAD_CAST(int)
-            STORE_CAST(int)
 
             OP_(or_) OP_(and_) OP_(xor_)
-            static inline void setZero(VectorType &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
+            static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 #undef SUFFIX
 #define SUFFIX epi32
             static inline VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
-            GATHER_SCATTER(int)
 
             static inline VectorType set(const int a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const int a, const int b, const int c, const int d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
@@ -904,18 +988,9 @@ namespace SSE
             SHIFT4
 
 
-#ifdef __SSSE3__
             OP1(abs)
-#else
-            static inline VectorType abs(VectorType a) {
-              VectorType zero; setZero( zero );
-              const VectorType one = set( 1 );
-              VectorType negative = cmplt(a, zero);
-              a = xor_( a, negative );
-              return add( a, and_( one, negative ) );
-            }
-#endif
 
+            MINMAX
 #ifdef __SSE4_1__
             static inline VectorType mul(VectorType a, VectorType b) { return _mm_mullo_epi32(a, b); }
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
@@ -925,36 +1000,7 @@ namespace SSE
                     _mm_andnot_si128(mask, a)
                     );
             }
-            MINMAX
 #else
-            static inline VectorType min(VectorType a, VectorType b) {
-                STORE_VECTOR(int, _a, a);
-                STORE_VECTOR(int, _b, b);
-                union {
-                    int i[4];
-                    VectorType v;
-                } x = { {
-                    std::min(_a[0], _b[0]),
-                    std::min(_a[1], _b[1]),
-                    std::min(_a[2], _b[2]),
-                    std::min(_a[3], _b[3])
-                } };
-                return x.v;
-            }
-            static inline VectorType max(VectorType a, VectorType b) {
-                STORE_VECTOR(int, _a, a);
-                STORE_VECTOR(int, _b, b);
-                union {
-                    int i[4];
-                    VectorType v;
-                } x = { {
-                    std::max(_a[0], _b[0]),
-                    std::max(_a[1], _b[1]),
-                    std::max(_a[2], _b[2]),
-                    std::max(_a[3], _b[3])
-                } };
-                return x.v;
-            }
             static inline VectorType mul(const VectorType a, const VectorType b, _M128 _mask) {
                 const int mask = _mm_movemask_ps(_mask);
                 STORE_VECTOR(int, _a, a);
@@ -1024,58 +1070,26 @@ namespace SSE
             OPcmp(eq)
             OPcmp(lt)
             OPcmp(gt)
-            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { _M128I x = cmpeq(a, b); return _mm_xor_si128(x, _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
-            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { _M128I x = cmplt(a, b); return _mm_xor_si128(x, _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
-            static inline VectorType cmple (const VectorType &a, const VectorType &b) { _M128I x = cmpgt(a, b); return _mm_xor_si128(x, _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
+            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { _M128I x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { _M128I x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static inline VectorType cmple (const VectorType &a, const VectorType &b) { _M128I x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
             static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
 #undef SUFFIX
         };
 
         template<> struct VectorHelper<unsigned int> {
+            typedef unsigned int EntryType;
             typedef _M128I VectorType;
 #define SUFFIX si128
-            LOAD_CAST(unsigned int)
-            STORE_CAST(unsigned int)
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
-            static inline void setZero(VectorType &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
+            static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 
 #undef SUFFIX
 #define SUFFIX epu32
             static inline VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
 
-#ifdef __SSE4_1__
             MINMAX
-#else
-            static inline VectorType min(VectorType a, VectorType b) {
-                STORE_VECTOR(unsigned int, _a, a);
-                STORE_VECTOR(unsigned int, _b, b);
-                union {
-                    unsigned int i[4];
-                    VectorType v;
-                } x = { {
-                    std::min(_a[0], _b[0]),
-                    std::min(_a[1], _b[1]),
-                    std::min(_a[2], _b[2]),
-                    std::min(_a[3], _b[3])
-                } };
-                return x.v;
-            }
-            static inline VectorType max(VectorType a, VectorType b) {
-                STORE_VECTOR(unsigned int, _a, a);
-                STORE_VECTOR(unsigned int, _b, b);
-                union {
-                    unsigned int i[4];
-                    VectorType v;
-                } x = { {
-                    std::max(_a[0], _b[0]),
-                    std::max(_a[1], _b[1]),
-                    std::max(_a[2], _b[2]),
-                    std::max(_a[3], _b[3])
-                } };
-                return x.v;
-            }
-#endif
 
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
                 _M128I mask = _mm_castps_si128(_mask);
@@ -1122,57 +1136,59 @@ namespace SSE
 
 #undef SUFFIX
 #define SUFFIX epi32
-            GATHER_SCATTER(unsigned int)
             static inline VectorType set(const unsigned int a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
 
             SHIFT4
             OP(add) OP(sub)
             OPcmp(eq)
+            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
+
+#ifdef USE_CORRECT_UNSIGNED_COMPARE
+            static inline VectorType cmplt(const VectorType &a, const VectorType &b) {
+                return _mm_cmplt_epi32(_mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32()));
+            }
+            static inline VectorType cmpgt(const VectorType &a, const VectorType &b) {
+                return _mm_cmpgt_epi32(_mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32()));
+            }
+#else
             OPcmp(lt)
             OPcmp(gt)
-            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { return _mm_xor_si128(cmpeq(a, b), _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
-            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { return _mm_xor_si128(cmplt(a, b), _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
-            static inline VectorType cmple (const VectorType &a, const VectorType &b) { return _mm_xor_si128(cmpgt(a, b), _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
+#endif
+            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmplt(a, b), _mm_setallone_si128()); }
+            static inline VectorType cmple (const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
             static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
+
 #undef SUFFIX
         };
 
         template<> struct VectorHelper<signed short> {
             typedef _M128I VectorType;
+            typedef signed short EntryType;
 #define SUFFIX si128
-            LOAD_CAST(short)
-            STORE_CAST(short)
 
             OP_(or_) OP_(and_) OP_(xor_)
-            static inline void setZero(VectorType &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
+            static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+            static inline _M128I concat(_M128I a, _M128I b) { return _mm_packs_epi32(a, b); }
+            static inline _M128I expand0(_M128I x) { return _mm_srai_epi32(_mm_unpacklo_epi16(x, x), 16); }
+            static inline _M128I expand1(_M128I x) { return _mm_srai_epi32(_mm_unpackhi_epi16(x, x), 16); }
+
 #undef SUFFIX
 #define SUFFIX epi16
             static inline VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
-            GATHER_SCATTER_16(signed short)
             SHIFT8
 
-            static inline VectorType set(const short a) { return CAT(_mm_set1_, SUFFIX)(a); }
-            static inline VectorType set(const short a, const short b, const short c, const short d,
-                    const short e, const short f, const short g, const short h) {
+            static inline VectorType set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static inline VectorType set(const EntryType a, const EntryType b, const EntryType c, const EntryType d,
+                    const EntryType e, const EntryType f, const EntryType g, const EntryType h) {
                 return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
 
             static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) {
                 v1 = add(mul(v1, v2), v3); }
 
-#ifdef __SSSE3__
             OP1(abs)
-#else
-            static inline VectorType abs(VectorType a) {
-              VectorType zero; setZero( zero );
-              const VectorType one = set( 1 );
-              VectorType negative = cmplt(a, zero);
-              a = xor_( a, negative );
-              return add( a, and_( one, negative ) );
-            }
-#endif
 
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
                 _M128I mask = _mm_castps_si128(_mask);
@@ -1186,10 +1202,10 @@ namespace SSE
 
             static inline VectorType div(const VectorType a, const VectorType b, _M128 _mask) {
                 const int mask = _mm_movemask_epi8(_mm_castps_si128(_mask));
-                STORE_VECTOR(short, _a, a);
-                STORE_VECTOR(short, _b, b);
+                STORE_VECTOR(EntryType, _a, a);
+                STORE_VECTOR(EntryType, _b, b);
                 union {
-                    short i[8];
+                    EntryType i[8];
                     VectorType v;
                 } x = { {
                     (mask & 0x0001 ? _a[0] / _b[0] : _a[0]),
@@ -1204,10 +1220,10 @@ namespace SSE
                 return x.v;
             }
             static inline VectorType div(const VectorType a, const VectorType b) {
-                STORE_VECTOR(short, _a, a);
-                STORE_VECTOR(short, _b, b);
+                STORE_VECTOR(EntryType, _a, a);
+                STORE_VECTOR(EntryType, _b, b);
                 union {
-                    short i[8];
+                    EntryType i[8];
                     VectorType v;
                 } x = { {
                     _a[0] / _b[0],
@@ -1226,31 +1242,38 @@ namespace SSE
             OPcmp(eq)
             OPcmp(lt)
             OPcmp(gt)
-            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { _M128I x = cmpeq(a, b); return _mm_xor_si128(x, _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
-            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { _M128I x = cmplt(a, b); return _mm_xor_si128(x, _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
-            static inline VectorType cmple (const VectorType &a, const VectorType &b) { _M128I x = cmpgt(a, b); return _mm_xor_si128(x, _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
+            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { _M128I x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { _M128I x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static inline VectorType cmple (const VectorType &a, const VectorType &b) { _M128I x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
             static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
 #undef SUFFIX
         };
 
         template<> struct VectorHelper<unsigned short> {
             typedef _M128I VectorType;
+            typedef unsigned short EntryType;
 #define SUFFIX si128
-            LOAD_CAST(unsigned short)
-            STORE_CAST(unsigned short)
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
-            static inline void setZero(VectorType &v) { v = CAT(_mm_setzero_, SUFFIX)(); }
+            static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+#ifdef __SSE4_1__
+            static inline _M128I concat(_M128I a, _M128I b) { return _mm_packus_epi32(a, b); }
+#else
+            // XXX too bad, but this is broken without SSE 4.1
+            static inline _M128I concat(_M128I a, _M128I b) { return _mm_packs_epi32(a, b); }
+#endif
+            static inline _M128I expand0(_M128I x) { return _mm_srli_epi32(_mm_unpacklo_epi16(x, x), 16); }
+            static inline _M128I expand1(_M128I x) { return _mm_srli_epi32(_mm_unpackhi_epi16(x, x), 16); }
 
 #undef SUFFIX
 #define SUFFIX epu16
             static inline VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
             static inline VectorType div(const VectorType a, const VectorType b, _M128 _mask) {
                 const int mask = _mm_movemask_epi8(_mm_castps_si128(_mask));
-                STORE_VECTOR(unsigned short, _a, a);
-                STORE_VECTOR(unsigned short, _b, b);
+                STORE_VECTOR(EntryType, _a, a);
+                STORE_VECTOR(EntryType, _b, b);
                 union {
-                    unsigned short i[8];
+                    EntryType i[8];
                     VectorType v;
                 } x = { {
                     (mask & 0x0001 ? _a[0] / _b[0] : _a[0]),
@@ -1265,10 +1288,10 @@ namespace SSE
                 return x.v;
             }
             static inline VectorType div(const VectorType a, const VectorType b) {
-                STORE_VECTOR(unsigned short, _a, a);
-                STORE_VECTOR(unsigned short, _b, b);
+                STORE_VECTOR(EntryType, _a, a);
+                STORE_VECTOR(EntryType, _b, b);
                 union {
-                    unsigned short i[8];
+                    EntryType i[8];
                     VectorType v;
                 } x = { {
                     _a[0] / _b[0],
@@ -1295,30 +1318,35 @@ namespace SSE
             SHIFT8
             OPx(mul, mullo) // should work correctly for all values
             OP(min) OP(max) // XXX breaks for values with MSB set
-            GATHER_SCATTER_16(unsigned short)
-            static inline VectorType set(const unsigned short a) { return CAT(_mm_set1_, SUFFIX)(a); }
-            static inline VectorType set(const unsigned short a, const unsigned short b, const unsigned short c,
-                    const unsigned short d, const unsigned short e, const unsigned short f,
-                    const unsigned short g, const unsigned short h) {
+            static inline VectorType set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static inline VectorType set(const EntryType a, const EntryType b, const EntryType c,
+                    const EntryType d, const EntryType e, const EntryType f,
+                    const EntryType g, const EntryType h) {
                 return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
 
             OP(add) OP(sub)
             OPcmp(eq)
+            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
+
+#ifdef USE_CORRECT_UNSIGNED_COMPARE
+            static inline VectorType cmplt(const VectorType &a, const VectorType &b) {
+                return _mm_cmplt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
+            }
+            static inline VectorType cmpgt(const VectorType &a, const VectorType &b) {
+                return _mm_cmpgt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
+            }
+#else
             OPcmp(lt)
             OPcmp(gt)
-            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { return _mm_xor_si128(cmpeq(a, b), _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
-            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { return _mm_xor_si128(cmplt(a, b), _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
-            static inline VectorType cmple (const VectorType &a, const VectorType &b) { return _mm_xor_si128(cmpgt(a, b), _0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF); }
+#endif
+            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmplt(a, b), _mm_setallone_si128()); }
+            static inline VectorType cmple (const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
             static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
 #undef SUFFIX
         };
-#undef GATHER_SCATTER_16
-#undef GATHER_SCATTER
 #undef SHIFT4
 #undef SHIFT8
-#undef STORE
-#undef LOAD
 #undef OP1
 #undef OP
 #undef OP_
@@ -1457,13 +1485,13 @@ class WriteMaskedVector
     public:
         //prefix
         inline Vector<T> &operator++() {
-            vec->data = VectorHelper<T>::add(vec->data,
+            vec->data() = VectorHelper<T>::add(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return *vec;
         }
         inline Vector<T> &operator--() {
-            vec->data = VectorHelper<T>::sub(vec->data,
+            vec->data() = VectorHelper<T>::sub(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return *vec;
@@ -1471,33 +1499,33 @@ class WriteMaskedVector
         //postfix
         inline Vector<T> operator++(int) {
             Vector<T> ret(*vec);
-            vec->data = VectorHelper<T>::add(vec->data,
+            vec->data() = VectorHelper<T>::add(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return ret;
         }
         inline Vector<T> operator--(int) {
             Vector<T> ret(*vec);
-            vec->data = VectorHelper<T>::sub(vec->data,
+            vec->data() = VectorHelper<T>::sub(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return ret;
         }
 
         inline Vector<T> &operator+=(Vector<T> x) {
-            vec->data = VectorHelper<T>::add(vec->data, VectorHelper<T>::notMaskedToZero(x, mask.data()));
+            vec->data() = VectorHelper<T>::add(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
             return *vec;
         }
         inline Vector<T> &operator-=(Vector<T> x) {
-            vec->data = VectorHelper<T>::sub(vec->data, VectorHelper<T>::notMaskedToZero(x, mask.data()));
+            vec->data() = VectorHelper<T>::sub(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
             return *vec;
         }
         inline Vector<T> &operator*=(Vector<T> x) {
-            vec->data = VectorHelper<T>::mul(vec->data, x.data, mask.data());
+            vec->data() = VectorHelper<T>::mul(vec->data(), x.data(), mask.data());
             return *vec;
         }
         inline Vector<T> &operator/=(Vector<T> x) {
-            vec->data = VectorHelper<T>::div(vec->data, x.data, mask.data());
+            vec->data() = VectorHelper<T>::div(vec->data(), x.data(), mask.data());
             return *vec;
         }
 
@@ -1512,46 +1540,52 @@ class WriteMaskedVector
 };
 
 template<typename T>
-class Vector : public VectorBase<T, Vector<T> >
+class Vector : public VectorBase<T>
 {
-    friend struct VectorBase<T, Vector<T> >;
-    friend class WriteMaskedVector<T>;
-    protected:
-        typedef typename VectorBase<T, Vector<T> >::VectorType VectorType;
-        VectorType data;
     public:
-        typedef T EntryType;
-        enum { Size = 16 / sizeof(T) };
+        typedef VectorBase<T> Base;
+        enum { Size = Base::Size };
+        typedef typename Base::VectorType VectorType;
+        typedef typename Base::EntryType  EntryType;
+        typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
         typedef SSE::Mask<Size> Mask;
 
         /**
          * uninitialized
          */
         inline Vector() {}
+
         /**
          * initialized to 0 in all 128 bits
          */
-        inline explicit Vector(VectorSpecialInitializerZero::Enum) { makeZero(); }
+        inline explicit Vector(VectorSpecialInitializerZero::Enum) : Base(VectorHelper<VectorType>::zero()) {}
+
         /**
          * initialized to 0, 1 (, 2, 3 (, 4, 5, 6, 7))
          */
-        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::Enum) : data(VectorHelper<T>::load(VectorBase<T, Vector<T> >::_IndexesFromZero())) {}
+        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::Enum) : Base(VectorHelper<VectorType>::load(Base::_IndexesFromZero())) {}
+
         /**
          * initialize with given _M128 vector
          */
-        inline Vector(const VectorType &x) : data(x) {}
-        inline explicit Vector(const Mask &m) : data(m.dataI()) {}
+        inline Vector(const VectorType &x) : Base(x) {}
+
+        template<typename OtherT>
+        explicit inline Vector(const Vector<OtherT> &x) : Base(StaticCastHelper<OtherT, T>::cast(x.data())) {}
+
         /**
-         * initialize all 16 or 8 values with the given value
+         * initialize all values with the given value
          */
         inline Vector(T a)
         {
-            data = VectorHelper<T>::set(a);
+            data() = VectorHelper<T>::set(a);
         }
+
         /**
-         * initialize consecutive four vector entries with the given values
+         * Initialize the vector with the given data. \param x must point to 64 byte aligned 512
+         * byte data.
          */
-        template<typename Other>
+        inline explicit Vector(const T *x) : Base(VectorHelper<VectorType>::load(x)) {}
 
         inline Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
             : Base(VectorHelper<T>::concat(a[0].data(), a[1].data()))
@@ -1565,58 +1599,53 @@ class Vector : public VectorBase<T, Vector<T> >
             }
         }
 
-        template<typename Other> static inline Vector broadcast4(const Other *x) { return Vector<T>(x); }
+        static inline Vector broadcast4(const T *x) { return Vector<T>(x); }
 
-        template<typename Other> inline void load(const Other *mem) { data = VectorHelper<T>::load(mem); }
+        inline void load(const T *mem) { data() = VectorHelper<VectorType>::load(mem); }
 
-        inline void makeZero() { VectorHelper<T>::setZero(data); }
+        static inline Vector loadUnaligned(const T *mem) { return VectorHelper<VectorType>::loadUnaligned(mem); }
+
+        inline void makeZero() { data() = VectorHelper<VectorType>::zero(); }
+
+        /**
+         * Set all entries to zero where the mask is set. I.e. a 4-vector with a mask of 0111 would
+         * set the last three entries to 0.
+         */
+        inline void makeZero(const Mask &k) { data() = VectorHelper<VectorType>::andnot_(mm128_reinterpret_cast<VectorType>(k.data()), data()); }
 
         /**
          * Store the vector data to the given memory. The memory must be 64 byte aligned and of 512
          * bytes size.
          */
-        template<typename Other> inline void store(Other *mem) const { VectorHelper<T>::store(mem, data); }
+        inline void store(T *mem) const { VectorHelper<VectorType>::store(mem, data()); }
 
         /**
          * Non-temporal store variant. Writes to the memory without polluting the cache.
          */
-        template<typename Other> inline void storeStreaming(Other *mem) const { VectorHelper<T>::storeStreaming(mem, data); }
+        inline void storeStreaming(T *mem) const { VectorHelper<VectorType>::storeStreaming(mem, data()); }
 
         inline const Vector<T> &dcba() const { return *this; }
-        inline const Vector<T> cdab() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(2, 3, 0, 1))); }
-        inline const Vector<T> badc() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(1, 0, 3, 2))); }
-        inline const Vector<T> aaaa() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(0, 0, 0, 0))); }
-        inline const Vector<T> bbbb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(1, 1, 1, 1))); }
-        inline const Vector<T> cccc() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(2, 2, 2, 2))); }
-        inline const Vector<T> dddd() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(3, 3, 3, 3))); }
-        inline const Vector<T> dacb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data, _MM_SHUFFLE(3, 0, 2, 1))); }
+        inline const Vector<T> cdab() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 3, 0, 1))); }
+        inline const Vector<T> badc() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 0, 3, 2))); }
+        inline const Vector<T> aaaa() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(0, 0, 0, 0))); }
+        inline const Vector<T> bbbb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 1, 1, 1))); }
+        inline const Vector<T> cccc() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 2, 2, 2))); }
+        inline const Vector<T> dddd() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 3, 3, 3))); }
+        inline const Vector<T> dacb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 0, 2, 1))); }
 
-        inline Vector(const T *array, const Vector<unsigned int> &indexes) { VectorHelper<T>::gather(data, indexes, array); }
-        inline Vector(const T *array, const Vector<unsigned int> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask)), array);
-        }
-
-        inline void gather(const T *array, const Vector<unsigned int> &indexes) { VectorHelper<T>::gather(data, indexes, array); }
-        inline void gather(const T *array, const Vector<unsigned int> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask)), array);
+        inline Vector(const T *array, const IndexType &indexes) { VectorHelperSize<T>::gather(*this, indexes, array); }
+        inline Vector(const T *array, const IndexType &indexes, const Mask &mask) {
+            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array);
         }
 
-        inline void scatter(T *array, const Vector<unsigned int> &indexes) const { VectorHelper<T>::scatter(data, indexes, array); }
-        inline void scatter(T *array, const Vector<unsigned int> &indexes, const Mask &mask) const {
-            VectorHelper<T>::scatter(data, indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask)), array);
+        inline void gather(const T *array, const IndexType &indexes) { VectorHelperSize<T>::gather(*this, indexes, array); }
+        inline void gather(const T *array, const IndexType &indexes, const Mask &mask) {
+            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array);
         }
 
-        inline Vector(const T *array, const Vector<unsigned short> &indexes) { VectorHelper<T>::gather(data, indexes, array); }
-        inline Vector(const T *array, const Vector<unsigned short> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask)), array);
-        }
-        inline void gather(const T *array, const Vector<unsigned short> &indexes) { VectorHelper<T>::gather(data, indexes, array); }
-        inline void gather(const T *array, const Vector<unsigned short> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask)), array);
-        }
-        inline void scatter(T *array, const Vector<unsigned short> &indexes) const { VectorHelper<T>::scatter(data, indexes, array); }
-        inline void scatter(T *array, const Vector<unsigned short> &indexes, const Mask &mask) const {
-            VectorHelper<T>::scatter(data, indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask)), array);
+        inline void scatter(T *array, const IndexType &indexes) const { VectorHelperSize<T>::scatter(*this, indexes, array); }
+        inline void scatter(T *array, const IndexType &indexes, const Mask &mask) const {
+            VectorHelperSize<T>::scatter(*this, indexes, _mm_movemask_epi8(mask.dataI()), array);
         }
 
         /**
@@ -1626,111 +1655,60 @@ class Vector : public VectorBase<T, Vector<T> >
          *                automatically.
          * \param mask Optional mask to select only parts of the vector that should be gathered
          */
-        template<typename S1> inline Vector(const S1 *array, const T S1::* member1, const Vector<unsigned int> &indexes) {
-            VectorHelper<T>::gather(data, indexes, array, member1);
+        template<typename S1> inline Vector(const S1 *array, const T S1::* member1, const IndexType &indexes) {
+            VectorHelperSize<T>::gather(*this, indexes, array, member1);
         }
         template<typename S1> inline Vector(const S1 *array, const T S1::* member1,
-                const Vector<unsigned int> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1);
+                const IndexType &indexes, const Mask &mask) {
+            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1);
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned int> &indexes) {
-            VectorHelper<T>::gather(data, indexes, array, member1, member2);
+                const T S2::* member2, const IndexType &indexes) {
+            VectorHelperSize<T>::gather(*this, indexes, array, member1, member2);
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned int> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1, member2);
+                const T S2::* member2, const IndexType &indexes, const Mask &mask) {
+            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1, member2);
         }
 
         template<typename S1> inline void gather(const S1 *array, const T S1::* member1,
-                const Vector<unsigned int> &indexes) {
-            VectorHelper<T>::gather(data, indexes, array, member1);
+                const IndexType &indexes) {
+            VectorHelperSize<T>::gather(*this, indexes, array, member1);
         }
         template<typename S1> inline void gather(const S1 *array, const T S1::* member1,
-                const Vector<unsigned int> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1);
+                const IndexType &indexes, const Mask &mask) {
+            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1);
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned int> &indexes) {
-            VectorHelper<T>::gather(data, indexes, array, member1, member2);
+                const T S2::* member2, const IndexType &indexes) {
+            VectorHelperSize<T>::gather(*this, indexes, array, member1, member2);
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned int> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1, member2);
+                const T S2::* member2, const IndexType &indexes, const Mask &mask) {
+            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1, member2);
         }
 
         template<typename S1> inline void scatter(S1 *array, T S1::* member1,
-                const Vector<unsigned int> &indexes) const {
-            VectorHelper<T>::scatter(data, indexes, array, member1);
+                const IndexType &indexes) const {
+            VectorHelperSize<T>::scatter(*this, indexes, array, member1);
         }
         template<typename S1> inline void scatter(S1 *array, T S1::* member1,
-                const Vector<unsigned int> &indexes, const Mask &mask) const {
-            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1);
+                const IndexType &indexes, const Mask &mask) const {
+            VectorHelperSize<T>::scatter(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1);
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
-                T S2::* member2, const Vector<unsigned int> &indexes) const {
-            VectorHelper<T>::scatter(data, indexes, array, member1, member2);
+                T S2::* member2, const IndexType &indexes) const {
+            VectorHelperSize<T>::scatter(*this, indexes, array, member1, member2);
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
-                T S2::* member2, const Vector<unsigned int> &indexes, const Mask &mask) const {
-            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned int>(MaskCastHelper<4, Size>::cast(mask))), array, member1, member2);
-        }
-
-        template<typename S1> inline Vector(const S1 *array, const T S1::* member1,
-                const Vector<unsigned short> &indexes) {
-            VectorHelper<T>::gather(data, indexes, array, member1);
-        }
-        template<typename S1> inline Vector(const S1 *array, const T S1::* member1,
-                const Vector<unsigned short> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1);
-        }
-        template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned short> &indexes) {
-            VectorHelper<T>::gather(data, indexes, array, member1, member2);
-        }
-        template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned short> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1, member2);
-        }
-
-        template<typename S1> inline void gather(const S1 *array, const T S1::* member1,
-                const Vector<unsigned short> &indexes) {
-            VectorHelper<T>::gather(data, indexes, array, member1);
-        }
-        template<typename S1> inline void gather(const S1 *array, const T S1::* member1,
-                const Vector<unsigned short> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1);
-        }
-        template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned short> &indexes) {
-            VectorHelper<T>::gather(data, indexes, array, member1, member2);
-        }
-        template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned short> &indexes, const Mask &mask) {
-            VectorHelper<T>::gather(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1, member2);
-        }
-
-        template<typename S1> inline void scatter(S1 *array, T S1::* member1,
-                const Vector<unsigned short> &indexes) const {
-            VectorHelper<T>::scatter(data, indexes, array, member1);
-        }
-        template<typename S1> inline void scatter(S1 *array, T S1::* member1,
-                const Vector<unsigned short> &indexes, const Mask &mask) const {
-            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1);
-        }
-        template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
-                T S2::* member2, const Vector<unsigned short> &indexes) const {
-            VectorHelper<T>::scatter(data, indexes, array, member1, member2);
-        }
-        template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
-                T S2::* member2, const Vector<unsigned short> &indexes, const Mask &mask) const {
-            VectorHelper<T>::scatter(data, (indexes & Vector<unsigned short>(MaskCastHelper<8, Size>::cast(mask))), array, member1, member2);
+                T S2::* member2, const IndexType &indexes, const Mask &mask) const {
+            VectorHelperSize<T>::scatter(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1, member2);
         }
 
         //prefix
-        inline Vector &operator++() { data = VectorHelper<T>::add(data, VectorHelper<T>::one()); return *this; }
+        inline Vector &operator++() { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
         //postfix
-        inline Vector operator++(int) { const Vector<T> r = *this; data = VectorHelper<T>::add(data, VectorHelper<T>::one()); return r; }
+        inline Vector operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
         inline T operator[](int index) const {
             //return Base::d.m(index);
