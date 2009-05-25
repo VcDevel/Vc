@@ -86,11 +86,17 @@ namespace Larrabee
         public:
             inline Mask() {}
             inline Mask(__mmask _k) : k(_k) {}
+            inline Mask(const Mask<VectorSize / 2> &a, const Mask<VectorSize / 2> &b) : k(a.k | (b.k << 8)) {}
+            template<unsigned int OtherSize> explicit inline Mask(const Mask<OtherSize> &x) : k(x.k) {
+                if (OtherSize != VectorSize) {
+                    enum { Shift = VectorSize < OtherSize ? VectorSize : OtherSize };
+                    const unsigned short mask = (0xffffu << Shift) & 0xffffu;
+                    k &= ~mask;
+                }
+            }
 
-            template<unsigned int OtherSize>
-            inline bool operator==(const Mask<OtherSize> &rhs) const { return MaskHelper<VectorSize < OtherSize ? VectorSize : OtherSize>::cmpeq (k, rhs.k); }
-            template<unsigned int OtherSize>
-            inline bool operator!=(const Mask<OtherSize> &rhs) const { return MaskHelper<VectorSize < OtherSize ? VectorSize : OtherSize>::cmpneq(k, rhs.k); }
+            inline bool operator==(const Mask &rhs) const { return MaskHelper<VectorSize>::cmpeq (k, rhs.k); }
+            inline bool operator!=(const Mask &rhs) const { return MaskHelper<VectorSize>::cmpneq(k, rhs.k); }
 
             inline Mask operator&&(const Mask &rhs) const { return _mm512_vkand(k, rhs.k); }
             inline Mask operator||(const Mask &rhs) const { return _mm512_vkor (k, rhs.k); }
@@ -109,8 +115,6 @@ namespace Larrabee
             inline Mask<OtherSize> cast() const { return Mask<OtherSize>(k); }
 
             inline bool operator[](int index) const { return static_cast<bool>(k & (1 << index)); }
-
-            Mask<VectorSize * 2> combine(Mask other) const;
 
         private:
             __mmask k;
