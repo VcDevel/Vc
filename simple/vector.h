@@ -162,7 +162,8 @@ class Vector : public VectorBase<T, Vector<T> >
     protected:
         T m_data;
     public:
-        typedef T Type;
+        typedef T EntryType;
+        typedef Vector<unsigned int> IndexType;
         typedef Simple::Mask<1u> Mask;
 
         T &data() { return m_data; }
