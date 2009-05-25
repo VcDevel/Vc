@@ -16,11 +16,14 @@ macro(vc_add_test name)
 
    add_executable(${lrbTarget} ${name}.cpp)
    target_link_libraries(${lrbTarget} vector)
-   add_target_property(${lrbTarget} COMPILE_FLAGS "-DENABLE_LARRABEE -fno-strict-aliasing")
+   add_target_property(${lrbTarget} COMPILE_FLAGS "-DENABLE_LARRABEE")# -fno-strict-aliasing")
    add_test(${lrbTarget} "${CMAKE_CURRENT_BINARY_DIR}/${lrbTarget}")
 endmacro(vc_add_test)
 
 vc_add_test(arithmetics)
+add_target_property(arithmetics_sse COMPILE_FLAGS "-DUSE_CORRECT_UNSIGNED_COMPARE")
+
+vc_add_test(expandandmerge)
 vc_add_test(load)
 vc_add_test(store)
 vc_add_test(gather)
