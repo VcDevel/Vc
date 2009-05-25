@@ -62,6 +62,7 @@ add_target_property(vector COMPILE_FLAGS "-DENABLE_LARRABEE")
 
 add_subdirectory(tests)
 enable_testing()
+add_subdirectory(benchmarks)
 
 # install dir is not interesting for now
 mark_as_advanced(CMAKE_INSTALL_PREFIX)
