@@ -27,18 +27,20 @@ using namespace Vc;
 
 template<typename Vec> void gatherArray()
 {
-    typedef uint_v It;
-    typedef typename Vec::Type T;
+    typedef typename Vec::IndexType It;
+    typedef typename Vec::EntryType T;
+    typedef typename It::Mask M;
 
     const int count = 39999;
     T array[count];
     for (int i = 0; i < count; ++i) {
         array[i] = i;
     }
-    typename It::Mask mask;
+    M mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        const Vec &ii = i.staticCast<T>();
-        if (mask.isFull()) {
+        const Vec ii(i);
+        Mask<Vec::Size> castedMask(mask);
+        if (castedMask.isFull()) {
             Vec a(array, i);
             COMPARE(a, ii);
             Vec b(Zero);
@@ -47,34 +49,11 @@ template<typename Vec> void gatherArray()
             COMPARE(a, b);
         }
         Vec b(Zero);
-        b.gather(array, i, mask.cast<Vec::Size>());
-        COMPARE(mask, b == ii);
-    }
-}
-
-template<typename Vec> void gatherArray16()
-{
-    typedef ushort_v It;
-    typedef typename Vec::Type T;
-
-    const int count = 39999;
-    T array[count];
-    for (int i = 0; i < count; ++i) {
-        array[i] = i;
-    }
-    typename Vec::Mask mask;
-    for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        const Vec &ii = i.staticCast<T>();
-        if (mask.isFull()) {
-            Vec a(array, i);
-            COMPARE(a, ii);
-            Vec b(Zero);
-            b.gather(array, i);
-            COMPARE(b, ii);
+        b.gather(array, i, castedMask);
+        COMPARE(castedMask, b == ii);
+        if (!castedMask.isFull()) {
+            COMPARE(!castedMask, b == Vec(Zero));
         }
-        Vec b(Zero);
-        b.gather(array, i, mask);
-        COMPARE(mask, b == ii);
     }
 }
 
@@ -90,8 +69,8 @@ template<typename T> struct Struct
 
 template<typename Vec> void gatherStruct()
 {
-    typedef uint_v It;
-    typedef typename Vec::Type T;
+    typedef typename Vec::IndexType It;
+    typedef typename Vec::EntryType T;
     typedef Struct<T> S;
     const int count = 3999;
     S array[count];
@@ -102,12 +81,14 @@ template<typename Vec> void gatherStruct()
     }
     typename It::Mask mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        // if Vec is double_v the staticCast keeps only the lower two values, which is why the ==
+        // if Vec is double_v the cast keeps only the lower two values, which is why the ==
         // comparison works
-        const Vec &i0 = i.staticCast<T>();
-        const Vec &i1 = (i + 1).staticCast<T>();
-        const Vec &i2 = (i + 2).staticCast<T>();
-        if (mask.isFull()) {
+        const Vec i0(i);
+        const Vec i1(i + 1);
+        const Vec i2(i + 2);
+        const Mask<Vec::Size> castedMask(mask);
+
+        if (castedMask.isFull()) {
             Vec a(array, &S::a, i);
             COMPARE(a, i0);
             a.gather(array, &S::b, i);
@@ -116,51 +97,22 @@ template<typename Vec> void gatherStruct()
             COMPARE(a, i2);
         }
 
-        Vec b;
-        b.gather(array, &S::a, i, mask.cast<Vec::Size>());
-        COMPARE(mask, (b == i0));
-        b.gather(array, &S::b, i, mask.cast<Vec::Size>());
-        COMPARE(mask, (b == i1));
-        b.gather(array, &S::c, i, mask.cast<Vec::Size>());
-        COMPARE(mask, (b == i2));
-    }
-}
-
-template<typename Vec> void gatherStruct16()
-{
-    typedef ushort_v It;
-    typedef typename Vec::Type T;
-    typedef Struct<T> S;
-    const int count = 3999;
-    S array[count];
-    for (int i = 0; i < count; ++i) {
-        array[i].a = i;
-        array[i].b = i + 1;
-        array[i].c = i + 2;
-    }
-    typename It::Mask mask;
-    for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        // if Vec is double_v the staticCast keeps only the lower two values, which is why the ==
-        // comparison works
-        const Vec &i0 = i.staticCast<T>();
-        const Vec &i1 = (i + 1).staticCast<T>();
-        const Vec &i2 = (i + 2).staticCast<T>();
-        if (mask.isFull()) {
-            Vec a(array, &S::a, i);
-            COMPARE(a, i0);
-            a.gather(array, &S::b, i);
-            COMPARE(a, i1);
-            a.gather(array, &S::c, i);
-            COMPARE(a, i2);
+        Vec b(Zero);
+        b.gather(array, &S::a, i, castedMask);
+        COMPARE(castedMask, (b == i0));
+        if (!castedMask.isFull()) {
+            COMPARE(!castedMask, b == Vec(Zero));
         }
-
-        Vec b;
-        b.gather(array, &S::a, i, mask);
-        COMPARE(mask, (b == i0));
-        b.gather(array, &S::b, i, mask);
-        COMPARE(mask, (b == i1));
-        b.gather(array, &S::c, i, mask);
-        COMPARE(mask, (b == i2));
+        b.gather(array, &S::b, i, castedMask);
+        COMPARE(castedMask, (b == i1));
+        if (!castedMask.isFull()) {
+            COMPARE(!castedMask, b == Vec(Zero));
+        }
+        b.gather(array, &S::c, i, castedMask);
+        COMPARE(castedMask, (b == i2));
+        if (!castedMask.isFull()) {
+            COMPARE(!castedMask, b == Vec(Zero));
+        }
     }
 }
 
@@ -170,13 +122,15 @@ int main()
     runTest(gatherArray<uint_v>);
     runTest(gatherArray<float_v>);
     runTest(gatherArray<double_v>);
-    runTest(gatherArray16<short_v>);
-    runTest(gatherArray16<ushort_v>);
+    runTest(gatherArray<short_v>);
+    runTest(gatherArray<ushort_v>);
+
     runTest(gatherStruct<int_v>);
     runTest(gatherStruct<uint_v>);
     runTest(gatherStruct<float_v>);
     runTest(gatherStruct<double_v>);
-    runTest(gatherStruct16<short_v>);
-    runTest(gatherStruct16<ushort_v>);
+    runTest(gatherStruct<short_v>);
+    runTest(gatherStruct<ushort_v>);
+
     return 0;
 }
