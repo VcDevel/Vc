@@ -750,7 +750,8 @@ class Vector : public VectorBase<T, Vector<T> >
         typedef typename VectorHelper<T>::VectorType VectorType;
         VectorType data;
     public:
-        typedef T Type;
+        typedef T EntryType;
+        typedef Vector<unsigned int> IndexType;
 
         enum { Size = 64 / sizeof(T) };
         typedef Larrabee::Mask<Size> Mask;
