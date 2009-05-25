@@ -30,21 +30,21 @@ template<typename Vec> void checkAlignment()
     unsigned char i = 1;
     Vec a[10];
     unsigned long mask = VectorAlignment - 1;
-    if (Vec::Size == 1 && sizeof(typename Vec::Type) != VectorAlignment) {
-        mask = sizeof(typename Vec::Type) - 1;
+    if (Vec::Size == 1 && sizeof(typename Vec::EntryType) != VectorAlignment) {
+        mask = sizeof(typename Vec::EntryType) - 1;
     }
     for (i = 0; i < 10; ++i) {
         VERIFY((reinterpret_cast<unsigned long>(&a[i]) & mask) == 0);
     }
     const char *data = reinterpret_cast<const char *>(&a[0]);
     for (i = 0; i < 10; ++i) {
-        VERIFY(&data[i * Vec::Size * sizeof(typename Vec::Type)] == reinterpret_cast<const char *>(&a[i]));
+        VERIFY(&data[i * Vec::Size * sizeof(typename Vec::EntryType)] == reinterpret_cast<const char *>(&a[i]));
     }
 }
 
 template<typename Vec> void loadArray()
 {
-    typedef typename Vec::Type T;
+    typedef typename Vec::EntryType T;
 
     const int count = 256 * 1024 / sizeof(T);
     T array[count];
@@ -69,7 +69,7 @@ template<typename Vec> void loadArray()
 
 template<typename Vec> void loadArrayShort()
 {
-    typedef typename Vec::Type T;
+    typedef typename Vec::EntryType T;
 
     const int count = 32 * 1024;
     T array[count];
