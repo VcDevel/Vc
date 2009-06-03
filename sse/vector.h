@@ -623,8 +623,11 @@ namespace SSE
             static inline VectorType rsqrt(VectorType x) {
                 return _mm_div_pd(one(), sqrt(x));
             }
-            static inline VectorType isfinite(VectorType x) {
-                return _mm_cmpord_pd(x, x);
+            static inline VectorType isNaN(VectorType x) {
+                return _mm_cmpunord_pd(x, x);
+            }
+            static inline VectorType isFinite(VectorType x) {
+                return _mm_cmpord_pd(x, _mm_mul_pd(zero(), x));
             }
             static VectorType log(VectorType x) {
                 const _M128D one = set(1.);
@@ -914,8 +917,11 @@ namespace SSE
             OPcmp(le) OPcmp(nle)
 
             OP1(sqrt) OP1(rsqrt)
-            static inline VectorType isfinite(VectorType x) {
-                return _mm_cmpord_ps(x, x);
+            static inline VectorType isNaN(VectorType x) {
+                return _mm_cmpunord_ps(x, x);
+            }
+            static inline VectorType isFinite(VectorType x) {
+                return _mm_cmpord_ps(x, _mm_mul_ps(zero(), x));
             }
             static VectorType log(VectorType x) {
                 const _M128 one = set(1.);
@@ -1842,7 +1848,7 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, con
   template<typename T> static inline Vector<T> log  (const Vector<T> &x) { return VectorHelper<T>::log(x.data()); }
   template<typename T> static inline Vector<T> log10(const Vector<T> &x) { return VectorHelper<T>::log10(x.data()); }
 
-  template<typename T> static inline Mask<Vector<T>::Size> isfinite(const Vector<T> &x) { return VectorHelper<T>::isfinite(x.data()); }
+  template<typename T> static inline Mask<Vector<T>::Size> isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
 #undef ALIGN
 #undef STORE_VECTOR
 } // namespace SSE

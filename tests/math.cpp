@@ -113,6 +113,16 @@ template<typename Vec> void testRSqrt()
     setFuzzyness<float>(0.f);
 }
 
+template<typename Vec> void testInf()
+{
+    typedef typename Vec::EntryType T;
+    const T one = 1;
+    const Vec zero(Zero);
+    VERIFY(Vc::isfinite(zero));
+    VERIFY(Vc::isfinite(Vec(one)));
+    VERIFY(!Vc::isfinite(one / zero));
+}
+
 int main()
 {
     runTest(testAbs<int_v>);
@@ -135,6 +145,9 @@ int main()
 
     runTest(testRSqrt<float_v>);
     runTest(testRSqrt<double_v>);
+
+    runTest(testInf<float_v>);
+    runTest(testInf<double_v>);
 
     return 0;
 }

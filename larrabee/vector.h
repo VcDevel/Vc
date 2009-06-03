@@ -347,6 +347,7 @@ namespace Larrabee
             static inline void store         (void *mem, VectorType x) { _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE); }
             static inline void storeStreaming(void *mem, VectorType x) { _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NT); }
 
+            static inline VectorType zero() { return CAT(_mm512_setzero_, SUFFIX)(); }
             static inline VectorType set(EntryType x) { return CAT(_mm512_set_1to8_, SUFFIX)(x); }
 
             static inline void prepareGatherIndexes(_M512I &indexes) {
@@ -434,8 +435,11 @@ namespace Larrabee
             OPcmpQ(eq) OPcmpQ(neq)
             OPcmpQ(lt) OPcmpQ(nlt)
             OPcmpQ(le) OPcmpQ(nle)
-            static inline __mmask isfinite(VectorType x) {
-                return CAT(_mm512_cmpord_, SUFFIX)(x, x);
+            static inline __mmask isNaN(VectorType x) {
+                return CAT(_mm512_cmpunord_, SUFFIX)(x, x);
+            }
+            static inline __mmask isFinite(VectorType x) {
+                return CAT(_mm512_cmpord_, SUFFIX)(x, mul(zero(), x));
             }
 #undef SUFFIX
         };
@@ -522,6 +526,7 @@ namespace Larrabee
             STORE(unsigned short, _MM_DOWNC_UINT16)
             STORE(signed short, _MM_DOWNC_SINT16)
 
+            static inline VectorType zero() { return CAT(_mm512_setzero_, SUFFIX)(); }
             static inline VectorType set(EntryType x) { return CAT(_mm512_set_1to16_, SUFFIX)(x); }
 
             GATHERSCATTER(EntryType,      _MM_FULLUPC_NONE,    _MM_DOWNC_NONE   )
@@ -558,8 +563,11 @@ namespace Larrabee
             OPcmp(eq) OPcmp(neq)
             OPcmp(lt) OPcmp(nlt)
             OPcmp(le) OPcmp(nle)
-            static inline __mmask isfinite(VectorType x) {
-                return CAT(_mm512_cmpord_, SUFFIX)(x, x);
+            static inline __mmask isNaN(VectorType x) {
+                return CAT(_mm512_cmpunord_, SUFFIX)(x, x);
+            }
+            static inline __mmask isFinite(VectorType x) {
+                return CAT(_mm512_cmpord_, SUFFIX)(x, mul(zero(), x));
             }
 #undef SUFFIX
         };
@@ -1115,7 +1123,7 @@ namespace Larrabee
     template<typename T> static inline Larrabee::Vector<T> log  (Larrabee::Vector<T> x) { return VectorHelper<T>::log(x); }
     template<typename T> static inline Larrabee::Vector<T> log10(Larrabee::Vector<T> x) { return VectorHelper<T>::log10(x); }
 
-    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(Larrabee::Vector<T> x) { return VectorHelper<T>::isfinite(x); }
+    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(Larrabee::Vector<T> x) { return VectorHelper<T>::isFinite(x); }
 } // namespace Larrabee
 
 #undef LRB_STATIC_ASSERT_NC
