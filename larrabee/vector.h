@@ -41,6 +41,9 @@
 #ifdef isfinite
 #undef isfinite
 #endif
+#ifdef isnan
+#undef isnan
+#endif
 
 namespace Larrabee
 {
@@ -793,6 +796,7 @@ class Vector : public VectorBase<T, Vector<T> >
          * uninitialized
          */
         inline Vector() {}
+
         /**
          * initialized to 0 in all 512 bits
          */
@@ -893,21 +897,26 @@ class Vector : public VectorBase<T, Vector<T> >
         inline const SwizzledVector<T> dddd() const { const SwizzledVector<T> sv = { *this, _MM_SWIZ_REG_DDDD }; return sv; }
         inline const SwizzledVector<T> dacb() const { const SwizzledVector<T> sv = { *this, _MM_SWIZ_REG_DACB }; return sv; }
 
-        inline Vector(const T *array, const Vector<unsigned int> &indexes) : data(VectorHelper<T>::gather(sizeof(T) == 8 ? indexes * 2 : indexes, array)) {}
-        inline Vector(const T *array, const Vector<unsigned int> &indexes, Mask mask)
-        {
-            VectorHelper<T>::gather(data, sizeof(T) == 8 ? indexes * 2 : indexes, array, mask.data());
+        inline Vector(const T *array, const IndexType &indexes)
+            : data(VectorHelper<T>::gather(sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array)) {}
+
+        inline Vector(const T *array, const IndexType &indexes, Mask mask) {
+            VectorHelper<T>::gather(data, sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
         }
 
-        inline void gather(const T *array, const Vector<unsigned int> &indexes) { data = VectorHelper<T>::gather(sizeof(T) == 8 ? indexes * 2 : indexes, array); }
-        inline void gather(const T *array, const Vector<unsigned int> &indexes, Mask mask)
-        {
-            VectorHelper<T>::gather(data, sizeof(T) == 8 ? indexes * 2 : indexes, array, mask.data());
+        inline void gather(const T *array, const IndexType &indexes) {
+            data = VectorHelper<T>::gather(sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array);
         }
 
-        inline void scatter(T *array, const Vector<unsigned int> &indexes) const { VectorHelper<T>::scatter(data, sizeof(T) == 8 ? indexes * 2 : indexes, array); }
-        inline void scatter(T *array, const Vector<unsigned int> &indexes, Mask mask) const {
-            VectorHelper<T>::scatter(data, sizeof(T) == 8 ? indexes * 2 : indexes, array, mask.data());
+        inline void gather(const T *array, const IndexType &indexes, Mask mask) {
+            VectorHelper<T>::gather(data, sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
+        }
+
+        inline void scatter(T *array, const IndexType &indexes) const {
+            VectorHelper<T>::scatter(data, sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array);
+        }
+        inline void scatter(T *array, const IndexType &indexes, Mask mask) const {
+            VectorHelper<T>::scatter(data, sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
         }
 
         /**
@@ -918,56 +927,56 @@ class Vector : public VectorBase<T, Vector<T> >
          * \param mask Optional mask to select only parts of the vector that should be gathered
          */
         template<typename S, typename OtherT>
-        inline Vector(const S *array, const OtherT S::* member1, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
+        inline Vector(const S *array, const OtherT S::* member1, const IndexType &indexes, Mask mask = 0xffff)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S) / Scale);
+            const IndexType &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::gather(data, offsets, &(array->*(member1)), mask.data());
         }
 
         template<typename S1, typename S2, typename OtherT>
-        inline Vector(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
+        inline Vector(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const IndexType &indexes, Mask mask = 0xffff)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S1) / Scale);
+            const IndexType &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::gather(data, offsets, &(array->*(member1).*(member2)), mask.data());
         }
 
         template<typename S, typename OtherT>
-        inline void gather(const S *array, const OtherT S::* member1, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
+        inline void gather(const S *array, const OtherT S::* member1, const IndexType &indexes, Mask mask = 0xffff)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S) / Scale);
+            const IndexType &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::gather(data, offsets, &(array->*(member1)), mask.data());
         }
 
         template<typename S1, typename S2, typename OtherT>
-        inline void gather(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
+        inline void gather(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const IndexType &indexes, Mask mask = 0xffff)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S1) / Scale);
+            const IndexType &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::gather(data, offsets, &(array->*(member1).*(member2)), mask.data());
         }
 
         template<typename S, typename OtherT>
-        inline void scatter(S *array, OtherT S::* member1, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
+        inline void scatter(S *array, OtherT S::* member1, const IndexType &indexes, Mask mask = 0xffff)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S) / Scale);
+            const IndexType &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::scatter(data, offsets, &(array->*(member1)), mask.data());
         }
 
         template<typename S1, typename S2, typename OtherT>
-        inline void scatter(S1 *array, S2 S1::* member1, OtherT S2::* member2, const Vector<unsigned int> &indexes, Mask mask = 0xffff)
+        inline void scatter(S1 *array, S2 S1::* member1, OtherT S2::* member2, const IndexType &indexes, Mask mask = 0xffff)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
-            const Vector<unsigned int> &offsets = indexes * (sizeof(S1) / Scale);
+            const IndexType &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::scatter(data, offsets, &(array->*(member1).*(member2)), mask.data());
         }
 
@@ -1124,6 +1133,7 @@ namespace Larrabee
     template<typename T> static inline Larrabee::Vector<T> log10(Larrabee::Vector<T> x) { return VectorHelper<T>::log10(x); }
 
     template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(Larrabee::Vector<T> x) { return VectorHelper<T>::isFinite(x); }
+    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isnan(Larrabee::Vector<T> x) { return VectorHelper<T>::isNaN(x); }
 } // namespace Larrabee
 
 #undef LRB_STATIC_ASSERT_NC

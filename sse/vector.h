@@ -1849,6 +1849,7 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, con
   template<typename T> static inline Vector<T> log10(const Vector<T> &x) { return VectorHelper<T>::log10(x.data()); }
 
   template<typename T> static inline Mask<Vector<T>::Size> isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
+  template<typename T> static inline Mask<Vector<T>::Size> isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 #undef ALIGN
 #undef STORE_VECTOR
 } // namespace SSE

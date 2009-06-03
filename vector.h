@@ -32,6 +32,9 @@
 #ifdef isfinite
 #undef isfinite
 #endif
+#ifdef isnan
+#undef isnan
+#endif
 
 namespace Vc
 {
@@ -54,6 +57,7 @@ namespace Vc
   using ::Larrabee::log;
   using ::Larrabee::log10;
   using ::Larrabee::isfinite;
+  using ::Larrabee::isnan;
   typedef Vector<signed int> short_v;
   typedef Vector<unsigned int> ushort_v;
 #elif defined(USE_SSE)
@@ -74,6 +78,7 @@ namespace Vc
   using ::SSE::log;
   using ::SSE::log10;
   using ::SSE::isfinite;
+  using ::SSE::isnan;
   typedef Vector<signed short> short_v;
   typedef Vector<unsigned short> ushort_v;
 #else
@@ -94,6 +99,7 @@ namespace Vc
   using ::Simple::log;
   using ::Simple::log10;
   using ::Simple::isfinite;
+  using ::Simple::isnan;
   typedef Vector<signed short> short_v;
   typedef Vector<unsigned short> ushort_v;
 #endif

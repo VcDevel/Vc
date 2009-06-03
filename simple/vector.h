@@ -425,6 +425,7 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
   template<typename T> static inline Simple::Vector<T> log10(const Simple::Vector<T> &x) { return std::log10( x.data() ); }
 
   template<typename T> static inline bool isfinite(const Simple::Vector<T> &x) { return std::isfinite( x.data() ); }
+  template<typename T> static inline bool isnan(const Simple::Vector<T> &x) { return std::isnan( x.data() ); }
 } // namespace Simple
 
 #endif // SIMPLE_VECTOR_H

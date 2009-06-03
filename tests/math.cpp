@@ -123,6 +123,17 @@ template<typename Vec> void testInf()
     VERIFY(!Vc::isfinite(one / zero));
 }
 
+template<typename Vec> void testNaN()
+{
+    typedef typename Vec::EntryType T;
+    const T one = 1;
+    const Vec zero(Zero);
+    VERIFY(!Vc::isnan(zero));
+    VERIFY(!Vc::isnan(Vec(one)));
+    const Vec inf = one / zero;
+    VERIFY(Vc::isnan(Vec(inf * zero)));
+}
+
 int main()
 {
     runTest(testAbs<int_v>);
@@ -148,6 +159,9 @@ int main()
 
     runTest(testInf<float_v>);
     runTest(testInf<double_v>);
+
+    runTest(testNaN<float_v>);
+    runTest(testNaN<double_v>);
 
     return 0;
 }
