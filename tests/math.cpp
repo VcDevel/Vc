@@ -40,6 +40,8 @@ template<typename Vec> void testAbs()
 
 template<typename Vec> void testLog()
 {
+    setFuzzyness<float>(1.2e-7f);
+    setFuzzyness<double>(3e-16);
     Vec a(int_v(IndexesFromZero).staticCast<typename Vec::EntryType>());
     a *= 0.1;
     const Vec end(1000);
@@ -55,6 +57,8 @@ template<typename Vec> void testLog()
         const Vec a2 = a * a;
         FUZZY_COMPARE(Vc::log(a2), two * Vc::log(a));
     }
+    setFuzzyness<float>(0.f);
+    setFuzzyness<double>(0.);
 }
 
 template<typename Vec>
@@ -75,6 +79,40 @@ void testMax()
     COMPARE(Vc::max(a, b), c);
 }
 
+#define FillHelperMemory(code) \
+    VectorMemoryHelper<Vec> mem(2); \
+    T *data = mem; \
+    T *reference = &data[Vec::Size]; \
+    for (int ii = 0; ii < Vec::Size; ++ii) { \
+        const T i = static_cast<T>(ii); \
+        data[ii] = i; \
+        reference[ii] = code; \
+    } do {} while (false)
+
+template<typename Vec> void testSqrt()
+{
+    typedef typename Vec::EntryType T;
+    FillHelperMemory(std::sqrt(i));
+    Vec a(data);
+    Vec b(reference);
+
+    FUZZY_COMPARE(Vc::sqrt(a), b);
+}
+
+template<typename Vec> void testRSqrt()
+{
+    typedef typename Vec::EntryType T;
+    const T one = 1;
+    FillHelperMemory(one / std::sqrt(i));
+    Vec a(data);
+    Vec b(reference);
+
+    // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
+    setFuzzyness<float>(0.0003662109375);
+    FUZZY_COMPARE(Vc::rsqrt(a), b);
+    setFuzzyness<float>(0.f);
+}
+
 int main()
 {
     runTest(testAbs<int_v>);
@@ -82,8 +120,6 @@ int main()
     runTest(testAbs<double_v>);
     runTest(testAbs<short_v>);
 
-    setFuzzyness<float>(1e-7);
-    setFuzzyness<double>(1e-15);
     runTest(testLog<float_v>);
     runTest(testLog<double_v>);
 
@@ -93,6 +129,12 @@ int main()
     runTest(testMax<double_v>);
     runTest(testMax<short_v>);
     runTest(testMax<ushort_v>);
+
+    runTest(testSqrt<float_v>);
+    runTest(testSqrt<double_v>);
+
+    runTest(testRSqrt<float_v>);
+    runTest(testRSqrt<double_v>);
 
     return 0;
 }

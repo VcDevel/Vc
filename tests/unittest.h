@@ -25,6 +25,8 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <cmath>
+#include "vecio.h"
 
 #define runTest(name) _unit_test_global.runTestInt(&name, #name)
 
@@ -97,36 +99,22 @@ template<typename T> static inline bool unittest_fuzzyCompareHelper( const T &a,
 
 template<> inline bool unittest_fuzzyCompareHelper<float>( const float &a, const float &b )
 {
-    if (a < 0.f) {
-        return ( a * ( 1.f + _unit_test_global.float_fuzzyness ) <= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) >= b );
-    }
-    return ( a * ( 1.f + _unit_test_global.float_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) <= b );
+    return a == b || std::abs(a - b) <= _unit_test_global.float_fuzzyness * std::abs(b);
 }
 
 template<> inline bool unittest_fuzzyCompareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b )
 {
-    typedef Vc::float_v::Mask Mask;
-    Mask m1 = a < 0.f;
-    Mask neg = ( ( a * ( 1.f + _unit_test_global.float_fuzzyness ) <= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) >= b ) );
-    Mask pos = ( ( a * ( 1.f + _unit_test_global.float_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.float_fuzzyness ) <= b ) );
-    return (m1 && neg) || (!m1 && pos);
+    return a == b || Vc::abs(a - b) <= _unit_test_global.float_fuzzyness * Vc::abs(b);
 }
 
 template<> inline bool unittest_fuzzyCompareHelper<double>( const double &a, const double &b )
 {
-    if (a < 0.) {
-        return ( a * ( 1. + _unit_test_global.double_fuzzyness ) <= b ) && ( a * ( 1. - _unit_test_global.double_fuzzyness ) >= b );
-    }
-    return ( a * ( 1. + _unit_test_global.double_fuzzyness ) >= b ) && ( a * ( 1. - _unit_test_global.double_fuzzyness ) <= b );
+    return a == b || std::abs(a - b) <= _unit_test_global.double_fuzzyness * std::abs(b);
 }
 
 template<> inline bool unittest_fuzzyCompareHelper<Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b )
 {
-    typedef Vc::double_v::Mask Mask;
-    Mask m1 = a < 0.f;
-    Mask neg = ( ( a * ( 1.f + _unit_test_global.double_fuzzyness ) <= b ) && ( a * ( 1.f - _unit_test_global.double_fuzzyness ) >= b ) );
-    Mask pos = ( ( a * ( 1.f + _unit_test_global.double_fuzzyness ) >= b ) && ( a * ( 1.f - _unit_test_global.double_fuzzyness ) <= b ) );
-    return (m1 && neg) || (!m1 && pos);
+    return a == b || Vc::abs(a - b) <= _unit_test_global.double_fuzzyness * Vc::abs(b);
 }
 
 template<typename T1, typename T2> inline void unitttest_comparePrintHelper(const T1 &a, const T2 &b, const char *aa, const char *bb, const char *file, int line) {
