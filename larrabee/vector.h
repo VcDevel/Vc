@@ -38,6 +38,10 @@
 #endif
 #endif
 
+#ifdef isfinite
+#undef isfinite
+#endif
+
 namespace Larrabee
 {
     namespace VectorSpecialInitializerZero { enum Enum { Zero }; }
@@ -430,6 +434,9 @@ namespace Larrabee
             OPcmpQ(eq) OPcmpQ(neq)
             OPcmpQ(lt) OPcmpQ(nlt)
             OPcmpQ(le) OPcmpQ(nle)
+            static inline __mmask isfinite(VectorType x) {
+                return CAT(_mm512_cmpord_, SUFFIX)(x, x);
+            }
 #undef SUFFIX
         };
 
@@ -551,6 +558,9 @@ namespace Larrabee
             OPcmp(eq) OPcmp(neq)
             OPcmp(lt) OPcmp(nlt)
             OPcmp(le) OPcmp(nle)
+            static inline __mmask isfinite(VectorType x) {
+                return CAT(_mm512_cmpord_, SUFFIX)(x, x);
+            }
 #undef SUFFIX
         };
 
@@ -1091,18 +1101,21 @@ namespace Larrabee
 #undef PARENT_DATA
 #undef OP_IMPL
 
-    template<typename T> static inline Larrabee::Vector<T> min (Larrabee::Vector<T> x, Larrabee::Vector<T> y) { return VectorHelper<T>::min(x, y); }
-    template<typename T> static inline Larrabee::Vector<T> max (Larrabee::Vector<T> x, Larrabee::Vector<T> y) { return VectorHelper<T>::max(x, y); }
-    template<typename T> static inline Larrabee::Vector<T> min (Larrabee::Vector<T> x, T y) { return min(x, Vector<T>(y)); }
-    template<typename T> static inline Larrabee::Vector<T> max (Larrabee::Vector<T> x, T y) { return max(x, Vector<T>(y)); }
-    template<typename T> static inline Larrabee::Vector<T> min (T x, Larrabee::Vector<T> y) { return min(Vector<T>(x), y); }
-    template<typename T> static inline Larrabee::Vector<T> max (T x, Larrabee::Vector<T> y) { return max(Vector<T>(x), y); }
-    template<typename T> static inline Larrabee::Vector<T> sqrt(Larrabee::Vector<T> x) { return VectorHelper<T>::sqrt(x); }
-    template<typename T> static inline Larrabee::Vector<T> abs (Larrabee::Vector<T> x) { return VectorHelper<T>::abs(x); }
-    template<typename T> static inline Larrabee::Vector<T> sin (Larrabee::Vector<T> x) { return VectorHelper<T>::sin(x); }
-    template<typename T> static inline Larrabee::Vector<T> cos (Larrabee::Vector<T> x) { return VectorHelper<T>::cos(x); }
-    template<typename T> static inline Larrabee::Vector<T> log (Larrabee::Vector<T> x) { return VectorHelper<T>::log(x); }
+    template<typename T> static inline Larrabee::Vector<T> min  (Larrabee::Vector<T> x, Larrabee::Vector<T> y) { return VectorHelper<T>::min(x, y); }
+    template<typename T> static inline Larrabee::Vector<T> max  (Larrabee::Vector<T> x, Larrabee::Vector<T> y) { return VectorHelper<T>::max(x, y); }
+    template<typename T> static inline Larrabee::Vector<T> min  (Larrabee::Vector<T> x, T y) { return min(x, Vector<T>(y)); }
+    template<typename T> static inline Larrabee::Vector<T> max  (Larrabee::Vector<T> x, T y) { return max(x, Vector<T>(y)); }
+    template<typename T> static inline Larrabee::Vector<T> min  (T x, Larrabee::Vector<T> y) { return min(Vector<T>(x), y); }
+    template<typename T> static inline Larrabee::Vector<T> max  (T x, Larrabee::Vector<T> y) { return max(Vector<T>(x), y); }
+    template<typename T> static inline Larrabee::Vector<T> sqrt (Larrabee::Vector<T> x) { return VectorHelper<T>::sqrt(x); }
+    template<typename T> static inline Larrabee::Vector<T> rsqrt(Larrabee::Vector<T> x) { return VectorHelper<T>::rsqrt(x); }
+    template<typename T> static inline Larrabee::Vector<T> abs  (Larrabee::Vector<T> x) { return VectorHelper<T>::abs(x); }
+    template<typename T> static inline Larrabee::Vector<T> sin  (Larrabee::Vector<T> x) { return VectorHelper<T>::sin(x); }
+    template<typename T> static inline Larrabee::Vector<T> cos  (Larrabee::Vector<T> x) { return VectorHelper<T>::cos(x); }
+    template<typename T> static inline Larrabee::Vector<T> log  (Larrabee::Vector<T> x) { return VectorHelper<T>::log(x); }
     template<typename T> static inline Larrabee::Vector<T> log10(Larrabee::Vector<T> x) { return VectorHelper<T>::log10(x); }
+
+    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(Larrabee::Vector<T> x) { return VectorHelper<T>::isfinite(x); }
 } // namespace Larrabee
 
 #undef LRB_STATIC_ASSERT_NC

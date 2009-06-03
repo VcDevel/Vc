@@ -410,18 +410,21 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
 #undef PARENT_DATA_CONST
 #undef PARENT_DATA
 
-  template<typename T> static inline Simple::Vector<T> min (const Simple::Vector<T> &x, const T &y) { return std::min( x.data(), y ); }
-  template<typename T> static inline Simple::Vector<T> max (const Simple::Vector<T> &x, const T &y) { return std::max( x.data(), y ); }
-  template<typename T> static inline Simple::Vector<T> min (const T &x, const Simple::Vector<T> &y) { return std::min( x, y.data() ); }
-  template<typename T> static inline Simple::Vector<T> max (const T &x, const Simple::Vector<T> &y) { return std::max( x, y.data() ); }
-  template<typename T> static inline Simple::Vector<T> min (const Simple::Vector<T> &x, const Simple::Vector<T> &y) { return std::min( x.data(), y.data() ); }
-  template<typename T> static inline Simple::Vector<T> max (const Simple::Vector<T> &x, const Simple::Vector<T> &y) { return std::max( x.data(), y.data() ); }
-  template<typename T> static inline Simple::Vector<T> sqrt(const Simple::Vector<T> &x) { return std::sqrt( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> abs (const Simple::Vector<T> &x) { return std::abs( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> sin (const Simple::Vector<T> &x) { return std::sin( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> cos (const Simple::Vector<T> &x) { return std::cos( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> log (const Simple::Vector<T> &x) { return std::log( x.data() ); }
+  template<typename T> static inline Simple::Vector<T> min  (const Simple::Vector<T> &x, const T &y) { return std::min( x.data(), y ); }
+  template<typename T> static inline Simple::Vector<T> max  (const Simple::Vector<T> &x, const T &y) { return std::max( x.data(), y ); }
+  template<typename T> static inline Simple::Vector<T> min  (const T &x, const Simple::Vector<T> &y) { return std::min( x, y.data() ); }
+  template<typename T> static inline Simple::Vector<T> max  (const T &x, const Simple::Vector<T> &y) { return std::max( x, y.data() ); }
+  template<typename T> static inline Simple::Vector<T> min  (const Simple::Vector<T> &x, const Simple::Vector<T> &y) { return std::min( x.data(), y.data() ); }
+  template<typename T> static inline Simple::Vector<T> max  (const Simple::Vector<T> &x, const Simple::Vector<T> &y) { return std::max( x.data(), y.data() ); }
+  template<typename T> static inline Simple::Vector<T> sqrt (const Simple::Vector<T> &x) { return std::sqrt( x.data() ); }
+  template<typename T> static inline Simple::Vector<T> rsqrt(const Simple::Vector<T> &x) { const T one = 1; return one / std::sqrt( x.data() ); }
+  template<typename T> static inline Simple::Vector<T> abs  (const Simple::Vector<T> &x) { return std::abs( x.data() ); }
+  template<typename T> static inline Simple::Vector<T> sin  (const Simple::Vector<T> &x) { return std::sin( x.data() ); }
+  template<typename T> static inline Simple::Vector<T> cos  (const Simple::Vector<T> &x) { return std::cos( x.data() ); }
+  template<typename T> static inline Simple::Vector<T> log  (const Simple::Vector<T> &x) { return std::log( x.data() ); }
   template<typename T> static inline Simple::Vector<T> log10(const Simple::Vector<T> &x) { return std::log10( x.data() ); }
+
+  template<typename T> static inline bool isfinite(const Simple::Vector<T> &x) { return std::isfinite( x.data() ); }
 } // namespace Simple
 
 #endif // SIMPLE_VECTOR_H

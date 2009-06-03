@@ -296,7 +296,13 @@ namespace SSE
                     "cmovne %3,%1\n\t"
                     "mov %1,%0"
                     : "=m"(vEntry), "=&r"(t)
-                    : "r"(mask), "m"(value), "n"(bitMask), "m"(vEntry)
+                    : "r"(mask), "m"(value),
+#ifdef NO_OPTIMIZATION
+                    "m"
+#else
+                    "n"
+#endif
+                    (bitMask), "m"(vEntry)
                     :
                );
 #else
@@ -614,6 +620,12 @@ namespace SSE
             OPcmp(le) OPcmp(nle)
 
             OP1(sqrt)
+            static inline VectorType rsqrt(VectorType x) {
+                return _mm_div_pd(one(), sqrt(x));
+            }
+            static inline VectorType isfinite(VectorType x) {
+                return _mm_cmpord_pd(x, x);
+            }
             static VectorType log(VectorType x) {
                 const _M128D one = set(1.);
                 const _M128D invalid_mask = cmplt(x, zero());
@@ -901,7 +913,10 @@ namespace SSE
             OPcmp(lt) OPcmp(nlt)
             OPcmp(le) OPcmp(nle)
 
-            OP1(sqrt)
+            OP1(sqrt) OP1(rsqrt)
+            static inline VectorType isfinite(VectorType x) {
+                return _mm_cmpord_ps(x, x);
+            }
             static VectorType log(VectorType x) {
                 const _M128 one = set(1.);
                 const _M128 invalid_mask = cmplt(x, zero());
@@ -1355,9 +1370,9 @@ namespace SSE
 #undef CAT
 #undef CAT_HELPER
 
-namespace VectorSpecialInitializerZero { enum Enum { Zero }; }
-namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
-namespace VectorSpecialInitializerIndexesFromZero { enum Enum { IndexesFromZero }; }
+namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
+namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
+namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
 template<unsigned int Size1> struct MaskHelper;
 template<> struct MaskHelper<2> {
@@ -1383,7 +1398,7 @@ template<unsigned int VectorSize> class Mask
         inline Mask(const __m128  &x) : k(x) {}
         inline Mask(const __m128d &x) : k(_mm_castpd_ps(x)) {}
         inline Mask(const __m128i &x) : k(_mm_castsi128_ps(x)) {}
-        inline explicit Mask(VectorSpecialInitializerZero::Enum) : k(_mm_setzero_ps()) {}
+        inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(_mm_setzero_ps()) {}
         inline Mask(const Mask<VectorSize / 2> *a)
           : k(_mm_castsi128_ps(_mm_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
 
@@ -1558,12 +1573,12 @@ class Vector : public VectorBase<T>
         /**
          * initialized to 0 in all 128 bits
          */
-        inline explicit Vector(VectorSpecialInitializerZero::Enum) : Base(VectorHelper<VectorType>::zero()) {}
+        inline explicit Vector(VectorSpecialInitializerZero::ZEnum) : Base(VectorHelper<VectorType>::zero()) {}
 
         /**
          * initialized to 0, 1 (, 2, 3 (, 4, 5, 6, 7))
          */
-        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::Enum) : Base(VectorHelper<VectorType>::load(Base::_IndexesFromZero())) {}
+        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : Base(VectorHelper<VectorType>::load(Base::_IndexesFromZero())) {}
 
         /**
          * initialize with given _M128 vector
@@ -1813,18 +1828,21 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, con
 #undef OP_IMPL
 #undef OP_IMPL2
 
-  template<typename T> static inline Vector<T> min (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::min(x.data(), y.data()); }
-  template<typename T> static inline Vector<T> max (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::max(x.data(), y.data()); }
-  template<typename T> static inline Vector<T> min (const Vector<T> &x, const T &y) { return min(x.data(), Vector<T>(y).data()); }
-  template<typename T> static inline Vector<T> max (const Vector<T> &x, const T &y) { return max(x.data(), Vector<T>(y).data()); }
-  template<typename T> static inline Vector<T> min (const T &x, const Vector<T> &y) { return min(Vector<T>(x).data(), y.data()); }
-  template<typename T> static inline Vector<T> max (const T &x, const Vector<T> &y) { return max(Vector<T>(x).data(), y.data()); }
-  template<typename T> static inline Vector<T> sqrt(const Vector<T> &x) { return VectorHelper<T>::sqrt(x.data()); }
-  template<typename T> static inline Vector<T> abs (const Vector<T> &x) { return VectorHelper<T>::abs(x.data()); }
-  template<typename T> static inline Vector<T> sin (const Vector<T> &x) { return VectorHelper<T>::sin(x.data()); }
-  template<typename T> static inline Vector<T> cos (const Vector<T> &x) { return VectorHelper<T>::cos(x.data()); }
-  template<typename T> static inline Vector<T> log (const Vector<T> &x) { return VectorHelper<T>::log(x.data()); }
+  template<typename T> static inline Vector<T> min  (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::min(x.data(), y.data()); }
+  template<typename T> static inline Vector<T> max  (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::max(x.data(), y.data()); }
+  template<typename T> static inline Vector<T> min  (const Vector<T> &x, const T &y) { return min(x.data(), Vector<T>(y).data()); }
+  template<typename T> static inline Vector<T> max  (const Vector<T> &x, const T &y) { return max(x.data(), Vector<T>(y).data()); }
+  template<typename T> static inline Vector<T> min  (const T &x, const Vector<T> &y) { return min(Vector<T>(x).data(), y.data()); }
+  template<typename T> static inline Vector<T> max  (const T &x, const Vector<T> &y) { return max(Vector<T>(x).data(), y.data()); }
+  template<typename T> static inline Vector<T> sqrt (const Vector<T> &x) { return VectorHelper<T>::sqrt(x.data()); }
+  template<typename T> static inline Vector<T> rsqrt(const Vector<T> &x) { return VectorHelper<T>::rsqrt(x.data()); }
+  template<typename T> static inline Vector<T> abs  (const Vector<T> &x) { return VectorHelper<T>::abs(x.data()); }
+  template<typename T> static inline Vector<T> sin  (const Vector<T> &x) { return VectorHelper<T>::sin(x.data()); }
+  template<typename T> static inline Vector<T> cos  (const Vector<T> &x) { return VectorHelper<T>::cos(x.data()); }
+  template<typename T> static inline Vector<T> log  (const Vector<T> &x) { return VectorHelper<T>::log(x.data()); }
   template<typename T> static inline Vector<T> log10(const Vector<T> &x) { return VectorHelper<T>::log10(x.data()); }
+
+  template<typename T> static inline Mask<Vector<T>::Size> isfinite(const Vector<T> &x) { return VectorHelper<T>::isfinite(x.data()); }
 #undef ALIGN
 #undef STORE_VECTOR
 } // namespace SSE

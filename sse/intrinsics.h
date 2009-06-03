@@ -28,6 +28,10 @@
 // SSE2
 #include <emmintrin.h>
 
+#ifndef __SSE2__
+#error "SSE Vector class needs at least SSE2"
+#endif
+
 #ifdef __GNUC__
 #define CONST __attribute__((const))
 #else

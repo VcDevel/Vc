@@ -29,6 +29,10 @@
 #include "simple/vector.h"
 #endif
 
+#ifdef isfinite
+#undef isfinite
+#endif
+
 namespace Vc
 {
 
@@ -43,11 +47,13 @@ namespace Vc
   using ::Larrabee::min;
   using ::Larrabee::max;
   using ::Larrabee::sqrt;
+  using ::Larrabee::rsqrt;
   using ::Larrabee::abs;
   using ::Larrabee::sin;
   using ::Larrabee::cos;
   using ::Larrabee::log;
   using ::Larrabee::log10;
+  using ::Larrabee::isfinite;
   typedef Vector<signed int> short_v;
   typedef Vector<unsigned int> ushort_v;
 #elif defined(USE_SSE)
@@ -61,11 +67,13 @@ namespace Vc
   using ::SSE::min;
   using ::SSE::max;
   using ::SSE::sqrt;
+  using ::SSE::rsqrt;
   using ::SSE::abs;
   using ::SSE::sin;
   using ::SSE::cos;
   using ::SSE::log;
   using ::SSE::log10;
+  using ::SSE::isfinite;
   typedef Vector<signed short> short_v;
   typedef Vector<unsigned short> ushort_v;
 #else
@@ -79,11 +87,13 @@ namespace Vc
   using ::Simple::min;
   using ::Simple::max;
   using ::Simple::sqrt;
+  using ::Simple::rsqrt;
   using ::Simple::abs;
   using ::Simple::sin;
   using ::Simple::cos;
   using ::Simple::log;
   using ::Simple::log10;
+  using ::Simple::isfinite;
   typedef Vector<signed short> short_v;
   typedef Vector<unsigned short> ushort_v;
 #endif
