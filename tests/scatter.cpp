@@ -28,15 +28,20 @@ using namespace Vc;
 
 template<typename Vec> void scatterArray()
 {
-    const int count = 39999;
+    typedef typename Vec::IndexType It;
+    const int count = 31999;
     typename Vec::EntryType array[count], out[count];
     for (int i = 0; i < count; ++i) {
-        array[i] = i;
+        array[i] = i - 100;
     }
-    typename uint_v::Mask mask;
-    for (uint_v i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        Vec a(array, i, mask.cast<Vec::Size>());
-        a.scatter(out, i, mask.cast<Vec::Size>());
+    typename It::Mask mask;
+    for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
+        typename Vec::Mask castedMask(mask);
+        Vec a(array, i, castedMask);
+        a.scatter(out, i, castedMask);
+    }
+    for (int i = 0; i < count; ++i) {
+        COMPARE(array[i], out[i]);
     }
     COMPARE(0, std::memcmp(array, out, count * sizeof(typename Vec::EntryType)));
 }
@@ -53,6 +58,7 @@ template<typename T> struct Struct
 
 template<typename Vec> void scatterStruct()
 {
+    typedef typename Vec::IndexType It;
     typedef Struct<typename Vec::EntryType> S;
     const int count = 3999;
     S array[count], out[count];
@@ -63,14 +69,15 @@ template<typename Vec> void scatterStruct()
         array[i].b = i + 1;
         array[i].c = i + 2;
     }
-    typename uint_v::Mask mask;
-    for (uint_v i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        Vec a(array, &S::a, i, mask.cast<Vec::Size>());
-        Vec b(array, &S::b, i, mask.cast<Vec::Size>());
-        Vec c(array, &S::c, i, mask.cast<Vec::Size>());
-        a.scatter(out, &S::a, i, mask.cast<Vec::Size>());
-        b.scatter(out, &S::b, i, mask.cast<Vec::Size>());
-        c.scatter(out, &S::c, i, mask.cast<Vec::Size>());
+    typename It::Mask mask;
+    for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
+        typename Vec::Mask castedMask(mask);
+        Vec a(array, &S::a, i, castedMask);
+        Vec b(array, &S::b, i, castedMask);
+        Vec c(array, &S::c, i, castedMask);
+        a.scatter(out, &S::a, i, castedMask);
+        b.scatter(out, &S::b, i, castedMask);
+        c.scatter(out, &S::c, i, castedMask);
     }
     VERIFY(0 == memcmp(array, out, count * sizeof(S)));
 }
@@ -81,9 +88,15 @@ int main()
     runTest(scatterArray<uint_v>);
     runTest(scatterArray<float_v>);
     runTest(scatterArray<double_v>);
+    runTest(scatterArray<sfloat_v>);
+    runTest(scatterArray<short_v>);
+    runTest(scatterArray<ushort_v>);
     runTest(scatterStruct<int_v>);
     runTest(scatterStruct<uint_v>);
     runTest(scatterStruct<float_v>);
     runTest(scatterStruct<double_v>);
+    runTest(scatterStruct<sfloat_v>);
+    runTest(scatterStruct<short_v>);
+    runTest(scatterStruct<ushort_v>);
     return 0;
 }

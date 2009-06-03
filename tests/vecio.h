@@ -55,6 +55,22 @@ std::ostream &operator<<(std::ostream &out, const Larrabee::VectorMultiplication
 }
 #endif
 
+#ifdef USE_SSE
+std::ostream &operator<<(std::ostream &out, const SSE::Float8Mask &m)
+{
+    using namespace AnsiColor;
+    out << yellow << "m[";
+    for (unsigned int i = 0; i < 8; ++i) {
+        if (i > 0 && (i % 4) == 0) {
+            out << " ";
+        }
+        out << m[i];
+    }
+    out << "]" << normal;
+    return out;
+}
+#endif
+
 template<unsigned int VectorSize>
 std::ostream &operator<<(std::ostream &out, const Vc::Mask<VectorSize> &m)
 {

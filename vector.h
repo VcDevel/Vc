@@ -60,6 +60,7 @@ namespace Vc
   using ::Larrabee::isnan;
   typedef Vector<signed int> short_v;
   typedef Vector<unsigned int> ushort_v;
+  typedef Vector<float> sfloat_v;
 #elif defined(USE_SSE)
   using ::SSE::Vector;
   using ::SSE::SwizzledVector;
@@ -81,6 +82,7 @@ namespace Vc
   using ::SSE::isnan;
   typedef Vector<signed short> short_v;
   typedef Vector<unsigned short> ushort_v;
+  typedef Vector<SSE::float8> sfloat_v;
 #else
   using ::Simple::Vector;
   using ::Simple::SwizzledVector;
@@ -102,6 +104,7 @@ namespace Vc
   using ::Simple::isnan;
   typedef Vector<signed short> short_v;
   typedef Vector<unsigned short> ushort_v;
+  typedef Vector<float> sfloat_v;
 #endif
 
   typedef Vector<double> double_v;

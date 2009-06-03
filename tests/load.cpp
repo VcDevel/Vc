@@ -45,6 +45,7 @@ template<typename Vec> void checkAlignment()
 template<typename Vec> void loadArray()
 {
     typedef typename Vec::EntryType T;
+    typedef typename Vec::IndexType I;
 
     const int count = 256 * 1024 / sizeof(T);
     T array[count];
@@ -52,7 +53,9 @@ template<typename Vec> void loadArray()
         array[i] = i;
     }
 
-    const Vec &offsets = int_v(IndexesFromZero).staticCast<T>();
+    const I indexesFromZero(IndexesFromZero);
+
+    const Vec offsets(indexesFromZero);
     for (int i = 0; i < count; i += Vec::Size) {
         const T *const addr = &array[i];
         Vec ii(i);
@@ -101,11 +104,13 @@ int main()
     runTest(checkAlignment<double_v>);
     runTest(checkAlignment<short_v>);
     runTest(checkAlignment<ushort_v>);
+    runTest(checkAlignment<sfloat_v>);
 #endif
     runTest(loadArray<int_v>);
     runTest(loadArray<uint_v>);
     runTest(loadArray<float_v>);
     runTest(loadArray<double_v>);
+    runTest(loadArray<sfloat_v>);
     runTest(loadArrayShort<short_v>);
     runTest(loadArrayShort<ushort_v>);
     return 0;

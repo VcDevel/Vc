@@ -39,6 +39,7 @@ void testSigned()
         short_v b(a);
         COMPARE(b, short_v(IndexesFromZero) + start);
 
+        // false positive: warning: ‘c’ is used uninitialized in this function
         int_v c[VectorSizeFactor];
         b.expand(c);
         for (int i = 0; i < VectorSizeFactor; ++i) {
@@ -61,6 +62,7 @@ void testUnsigned()
         ushort_v b(a);
         COMPARE(b, ushort_v(IndexesFromZero) + start);
 
+        // false positive: warning: ‘c’ is used uninitialized in this function
         uint_v c[VectorSizeFactor];
         b.expand(c);
         for (uint i = 0; i < VectorSizeFactor; ++i) {
@@ -72,6 +74,7 @@ void testUnsigned()
         b += start;
         COMPARE(b, ushort_v(IndexesFromZero) + start);
 
+        // false positive: warning: ‘c’ may be used uninitialized in this function
         uint_v c[VectorSizeFactor];
         b.expand(c);
         for (uint i = 0; i < VectorSizeFactor; ++i) {

@@ -54,5 +54,6 @@ int main()
     runTest(storeArray<double_v>);
     runTest(storeArray<short_v>);
     runTest(storeArray<ushort_v>);
+    runTest(storeArray<sfloat_v>);
     return 0;
 }

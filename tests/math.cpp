@@ -42,7 +42,9 @@ template<typename Vec> void testLog()
 {
     setFuzzyness<float>(1.2e-7f);
     setFuzzyness<double>(3e-16);
-    Vec a(int_v(IndexesFromZero).staticCast<typename Vec::EntryType>());
+    typedef typename Vec::IndexType I;
+    const I indexesFromZero(IndexesFromZero);
+    Vec a(indexesFromZero);
     a *= 0.1;
     const Vec end(1000);
     for (; a < end; a += Vec::Size) {
@@ -140,9 +142,11 @@ int main()
     runTest(testAbs<float_v>);
     runTest(testAbs<double_v>);
     runTest(testAbs<short_v>);
+    runTest(testAbs<sfloat_v>);
 
     runTest(testLog<float_v>);
     runTest(testLog<double_v>);
+    runTest(testLog<sfloat_v>);
 
     runTest(testMax<int_v>);
     runTest(testMax<uint_v>);
@@ -150,18 +154,23 @@ int main()
     runTest(testMax<double_v>);
     runTest(testMax<short_v>);
     runTest(testMax<ushort_v>);
+    runTest(testMax<sfloat_v>);
 
     runTest(testSqrt<float_v>);
     runTest(testSqrt<double_v>);
+    runTest(testSqrt<sfloat_v>);
 
     runTest(testRSqrt<float_v>);
     runTest(testRSqrt<double_v>);
+    runTest(testRSqrt<sfloat_v>);
 
     runTest(testInf<float_v>);
     runTest(testInf<double_v>);
+    runTest(testInf<sfloat_v>);
 
     runTest(testNaN<float_v>);
     runTest(testNaN<double_v>);
+    runTest(testNaN<sfloat_v>);
 
     return 0;
 }

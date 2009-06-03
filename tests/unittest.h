@@ -107,6 +107,13 @@ template<> inline bool unittest_fuzzyCompareHelper<Vc::float_v>( const Vc::float
     return a == b || Vc::abs(a - b) <= _unit_test_global.float_fuzzyness * Vc::abs(b);
 }
 
+#ifdef USE_SSE
+template<> inline bool unittest_fuzzyCompareHelper<Vc::sfloat_v>( const Vc::sfloat_v &a, const Vc::sfloat_v &b )
+{
+    return a == b || Vc::abs(a - b) <= _unit_test_global.float_fuzzyness * Vc::abs(b);
+}
+#endif
+
 template<> inline bool unittest_fuzzyCompareHelper<double>( const double &a, const double &b )
 {
     return a == b || std::abs(a - b) <= _unit_test_global.double_fuzzyness * std::abs(b);
@@ -117,8 +124,12 @@ template<> inline bool unittest_fuzzyCompareHelper<Vc::double_v>( const Vc::doub
     return a == b || Vc::abs(a - b) <= _unit_test_global.double_fuzzyness * Vc::abs(b);
 }
 
-template<typename T1, typename T2> inline void unitttest_comparePrintHelper(const T1 &a, const T2 &b, const char *aa, const char *bb, const char *file, int line) {
-    std::cout << "       " << aa << " (" << a << ") == " << bb << " (" << b << ") at " << file << ":" << line << " failed.\n";
+template<typename T1, typename T2, typename M> inline void unitttest_comparePrintHelper(const T1 &a, const T2 &b, const M &m, const char *aa, const char *bb, const char *file, int line, double fuzzyness = 0.) {
+    std::cout << "       " << aa << " (" << a << ") == " << bb << " (" << b << ") -> " << m;
+    if (fuzzyness > 0.) {
+        std::cout << " with fuzzyness " << fuzzyness;
+    }
+    std::cout << " at " << file << ":" << line << " failed.\n";
 }
 
 template<typename T> inline double unittest_fuzzynessHelper(T) { return 0.; }
@@ -127,9 +138,19 @@ template<> inline double unittest_fuzzynessHelper<Vc::float_v>(Vc::float_v) { re
 template<> inline double unittest_fuzzynessHelper<double>(double) { return _unit_test_global.double_fuzzyness; }
 template<> inline double unittest_fuzzynessHelper<Vc::double_v>(Vc::double_v) { return _unit_test_global.double_fuzzyness; }
 
-#define FUZZY_COMPARE( a, b ) if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { std::cout << "       " << #a << " (" << (a) << ") ~== " << #b << " (" << (b) << ") with fuzzyness " << unittest_fuzzynessHelper(a) << " at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
+#define FUZZY_COMPARE( a, b ) \
+if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { \
+    unitttest_comparePrintHelper(a, b, (a) == (b), #a, #b, __FILE__, __LINE__, unittest_fuzzynessHelper(a)); \
+    _unit_test_global.status = false; \
+    return; \
+}
 
-#define COMPARE( a, b ) if ( unittest_compareHelper( a, b ) ) {} else { unitttest_comparePrintHelper(a, b, #a, #b, __FILE__, __LINE__); _unit_test_global.status = false; return; }
+#define COMPARE( a, b ) \
+if ( unittest_compareHelper( a, b ) ) {} else { \
+    unitttest_comparePrintHelper(a, b, (a) == (b), #a, #b, __FILE__, __LINE__); \
+    _unit_test_global.status = false; \
+    return; \
+}
 
 static void unittest_assert(bool cond, const char *code, const char *file, int line)
 {

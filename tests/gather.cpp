@@ -124,6 +124,7 @@ int main()
     runTest(gatherArray<double_v>);
     runTest(gatherArray<short_v>);
     runTest(gatherArray<ushort_v>);
+    runTest(gatherArray<sfloat_v>);
 
     runTest(gatherStruct<int_v>);
     runTest(gatherStruct<uint_v>);
@@ -131,6 +132,7 @@ int main()
     runTest(gatherStruct<double_v>);
     runTest(gatherStruct<short_v>);
     runTest(gatherStruct<ushort_v>);
+    runTest(gatherStruct<sfloat_v>);
 
     return 0;
 }

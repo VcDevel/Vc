@@ -114,7 +114,23 @@ namespace SSE
 
     enum { VectorAlignment = 16 };
     template<typename T> class Vector;
+    class Float8Mask;
     template<unsigned int VectorSize> class Mask;
+
+    /*
+     * Hack to create a vector object with 8 floats
+     */
+    class float8 {};
+
+    class M256 {
+        public:
+            inline M256() {}
+            inline M256(_M128 a, _M128 b) { d[0] = a; d[1] = b; }
+            inline _M128 &operator[](int i) { return d[i]; }
+            inline const _M128 &operator[](int i) const { return d[i]; }
+        private:
+            _M128 d[2];
+    };
 
 #define STORE_VECTOR(type, name, vec) \
     union { __m128i p; type v[16 / sizeof(type)]; } CAT(u, __LINE__); \
@@ -150,7 +166,7 @@ namespace SSE
         public:
             typedef EntryType AliasingEntryType __attribute__((__may_alias__));
             inline VectorMemoryUnion() {}
-            inline VectorMemoryUnion(VectorType x) : data(x) {}
+            inline VectorMemoryUnion(const VectorType &x) : data(x) {}
 
             VectorType &v() { return data; }
             const VectorType &v() const { return data; }
@@ -176,11 +192,13 @@ namespace SSE
         friend struct VectorHelperSize<unsigned int>;
         friend struct VectorHelperSize<short>;
         friend struct VectorHelperSize<unsigned short>;
+        friend struct VectorHelperSize<float8>;
         public:
             enum { Size = 16 / sizeof(T) };
             typedef _M128I VectorType;
             typedef T EntryType;
             typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
+            typedef Mask<Size> MaskType;
 
             inline Vector<EntryType> &operator|= (const Vector<EntryType> &x);
             inline Vector<EntryType> &operator&= (const Vector<EntryType> &x);
@@ -210,6 +228,22 @@ namespace SSE
             }
     };
 
+    template<> class VectorBase<float8> {
+        friend struct VectorHelperSize<float8>;
+        public:
+            enum { Size = 8 };
+            typedef M256 VectorType;
+            typedef float EntryType;
+            typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
+            typedef Float8Mask MaskType;
+
+        protected:
+            inline VectorBase() {}
+            inline VectorBase(const VectorType &x) : d(x) {}
+
+            VectorMemoryUnion<VectorType, EntryType> d;
+    };
+
     template<> class VectorBase<float> {
         friend struct VectorHelperSize<float>;
         public:
@@ -217,6 +251,7 @@ namespace SSE
             typedef _M128 VectorType;
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
+            typedef Mask<Size> MaskType;
 
         protected:
             inline VectorBase() {}
@@ -232,6 +267,7 @@ namespace SSE
             typedef _M128D VectorType;
             typedef double EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
+            typedef Mask<Size> MaskType;
 
         protected:
             inline VectorBase() {}
@@ -286,8 +322,8 @@ namespace SSE
                         );
             }
         }
-        template<typename AT>
-        static inline void maskedGatherHelper(AT &vEntry, const int mask, const EntryType &value, const int bitMask) {
+        template<typename AliasingT>
+        static inline void maskedGatherHelper(AliasingT &vEntry, const int mask, const EntryType &value, const int bitMask) {
 #ifdef __GNUC__
             register EntryType t;
             asm(
@@ -311,8 +347,8 @@ namespace SSE
             }
 #endif
         }
-        template<typename AT>
-        static inline void maskedScatterHelper(const AT &vEntry, const int mask, EntryType &value, const int bitMask) {
+        template<typename AliasingT>
+        static inline void maskedScatterHelper(const AliasingT &vEntry, const int mask, EntryType &value, const int bitMask) {
 #ifdef __GNUC__
             register EntryType t;
             asm(
@@ -321,7 +357,13 @@ namespace SSE
                     "cmovne %5,%1\n\t"
                     "mov %1,%0"
                     : "=m"(value), "=&r"(t)
-                    : "r"(mask), "m"(value), "n"(bitMask), "m"(vEntry)
+                    : "r"(mask), "m"(value),
+#ifdef NO_OPTIMIZATION
+                    "m"
+#else
+                    "n"
+#endif
+                    (bitMask), "m"(vEntry)
                     :
                );
 #else
@@ -401,6 +443,88 @@ namespace SSE
         }
     };
 
+    template<> struct VectorHelperSize<float8>
+    {
+        typedef VectorBase<float8> Base;
+        typedef Base::VectorType VectorType;
+        typedef Base::EntryType  EntryType;
+        typedef Base::IndexType  IndexType;
+        typedef VectorMemoryUnion<VectorType, EntryType> UnionType;
+
+        enum { Size = Base::Size, Shift = 1 };
+
+        static inline void gather(Base &v, const IndexType &indexes, const EntryType *baseAddr) {
+            v.d.v()[0] = VectorHelperSize<float>::my_set4(baseAddr,
+                    indexes.d.m(3), indexes.d.m(2), indexes.d.m(1), indexes.d.m(0));
+            v.d.v()[1] = VectorHelperSize<float>::my_set4(baseAddr,
+                    indexes.d.m(7), indexes.d.m(6), indexes.d.m(5), indexes.d.m(4));
+        }
+
+        static inline void gather(Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr) {
+            for_all_vector_entries(i,
+                    VectorHelperSize<float>::maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)], 1 << i * Shift);
+                );
+        }
+        template<typename S1> static inline void gather(Base &v, const IndexType &indexes,
+                const S1 *baseAddr, const EntryType S1::* member1) {
+            for_all_vector_entries(i,
+                    v.d.m(i) = baseAddr[indexes.d.m(i)].*(member1);
+                    );
+        }
+        template<typename S1> static inline void gather(Base &v, const IndexType &indexes, int mask,
+                const S1 *baseAddr, const EntryType S1::* member1) {
+            for_all_vector_entries(i,
+                    VectorHelperSize<float>::maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1), 1 << i * Shift);
+                );
+        }
+        template<typename S1, typename S2> static inline void gather(Base &v, const IndexType &indexes,
+                const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2) {
+            for_all_vector_entries(i,
+                    v.d.m(i) = baseAddr[indexes.d.m(i)].*(member1).*(member2);
+                );
+        }
+        template<typename S1, typename S2> static inline void gather(Base &v, const IndexType &indexes, int mask,
+                const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2) {
+            for_all_vector_entries(i,
+                    VectorHelperSize<float>::maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2), 1 << i * Shift);
+                );
+        }
+        static inline void scatter(const Base &v, const IndexType &indexes, EntryType *baseAddr) {
+            for_all_vector_entries(i,
+                    baseAddr[indexes.d.m(i)] = v.d.m(i);
+                    );
+        }
+        static inline void scatter(const Base &v, const IndexType &indexes, int mask, EntryType *baseAddr) {
+            for_all_vector_entries(i,
+                    VectorHelperSize<float>::maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)], 1 << i * Shift);
+                    );
+        }
+        template<typename S1> static inline void scatter(const Base &v, const IndexType &indexes,
+                S1 *baseAddr, EntryType S1::* member1) {
+            for_all_vector_entries(i,
+                    baseAddr[indexes.d.m(i)].*(member1) = v.d.m(i);
+                    );
+        }
+        template<typename S1> static inline void scatter(const Base &v, const IndexType &indexes, int mask,
+                S1 *baseAddr, EntryType S1::* member1) {
+            for_all_vector_entries(i,
+                    VectorHelperSize<float>::maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1), 1 << i * Shift);
+                    );
+        }
+        template<typename S1, typename S2> static inline void scatter(const Base &v, const IndexType &indexes,
+                S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2) {
+            for_all_vector_entries(i,
+                    baseAddr[indexes.d.m(i)].*(member1).*(member2) = v.d.m(i);
+                    );
+        }
+        template<typename S1, typename S2> static inline void scatter(const Base &v, const IndexType &indexes, int mask,
+                S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2) {
+            for_all_vector_entries(i,
+                    VectorHelperSize<float>::maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2), 1 << i * Shift);
+                    );
+        }
+    };
+
 #undef OP_DECL
 #undef PARENT_DATA
 #undef PARENT_DATA_CONST
@@ -422,6 +546,18 @@ namespace SSE
         template<> struct StaticCastHelper<double      , double      > { static _M128D cast(const _M128D &v) { return v; } };
         template<> struct StaticCastHelper<int         , double      > { static _M128D cast(const _M128I &v) { return _mm_cvtepi32_pd(v); } };
         template<> struct StaticCastHelper<unsigned int, double      > { static _M128D cast(const _M128I &v) { return _mm_cvtepi32_pd(v); } };
+
+        template<> struct StaticCastHelper<unsigned short, float8        > { static  M256  cast(const _M128I &v) {
+            return M256(_mm_cvtepi32_ps(_mm_unpacklo_epi16(v, _mm_setzero_si128())),
+                        _mm_cvtepi32_ps(_mm_unpackhi_epi16(v, _mm_setzero_si128())));
+        } };
+//X         template<> struct StaticCastHelper<short         , float8        > { static  M256  cast(const _M128I &v) {
+//X             const _M128I neg = _mm_cmplt_epi16(v, _mm_setzero_si128());
+//X             return M256(_mm_cvtepi32_ps(_mm_unpacklo_epi16(v, neg)),
+//X                         _mm_cvtepi32_ps(_mm_unpackhi_epi16(v, neg)));
+//X         } };
+        template<> struct StaticCastHelper<float8        , short         > { static _M128I cast(const  M256  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v[0]), _mm_cvttps_epi32(v[1])); } };
+        template<> struct StaticCastHelper<float8        , unsigned short> { static _M128I cast(const  M256  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v[0]), _mm_cvttps_epi32(v[1])); } };
 
         template<> struct StaticCastHelper<float         , short         > { static _M128I cast(const _M128  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); } };
         template<> struct StaticCastHelper<short         , short         > { static _M128I cast(const _M128I &v) { return v; } };
@@ -481,6 +617,31 @@ namespace SSE
             OP2(and_, _mm_and_ps(a, b))
             OP2(andnot_, _mm_andnot_ps(a, b))
             OP3(blend, _mm_blendv_ps(a, b, c))
+        };
+
+        template<> struct VectorHelper<M256>
+        {
+            typedef M256 VectorType;
+            static inline VectorType load(const float *x) {
+                return VectorType(_mm_load_ps(x), _mm_load_ps(x + 4));
+            }
+            static inline VectorType loadUnaligned(const float *x) {
+                return VectorType(_mm_loadu_ps(x), _mm_loadu_ps(x + 4));
+            }
+            static inline void store(float *mem, const VectorType &x) {
+                _mm_store_ps(mem, x[0]);
+                _mm_store_ps(mem + 4, x[1]);
+            }
+            static inline void storeStreaming(float *mem, const VectorType &x) {
+                _mm_stream_ps(mem, x[0]);
+                _mm_stream_ps(mem + 4, x[1]);
+            }
+            OP0(zero, VectorType(_mm_setzero_ps(), _mm_setzero_ps()))
+            OP2(or_, VectorType(_mm_or_ps(a[0], b[0]), _mm_or_ps(a[1], b[1])))
+            OP2(xor_, VectorType(_mm_xor_ps(a[0], b[0]), _mm_xor_ps(a[1], b[1])))
+            OP2(and_, VectorType(_mm_and_ps(a[0], b[0]), _mm_and_ps(a[1], b[1])))
+            OP2(andnot_, VectorType(_mm_andnot_ps(a[0], b[0]), _mm_andnot_ps(a[1], b[1])))
+            OP3(blend, VectorType(_mm_blendv_ps(a[0], b[0], c[0]), _mm_blendv_ps(a[1], b[1], c[1])))
         };
 
         template<> struct VectorHelper<_M128D>
@@ -989,6 +1150,69 @@ namespace SSE
 #undef SUFFIX
         };
 
+        template<> struct VectorHelper<float8> {
+            typedef float EntryType;
+            typedef M256 VectorType;
+
+            static inline VectorType set(const float a) {
+                const _M128 x = _mm_set1_ps(a);
+                return VectorType(x, x);
+            }
+            static inline VectorType set(const float a, const float b, const float c, const float d) {
+                const _M128 x = _mm_set_ps(a, b, c, d);
+                return VectorType(x, x);
+            }
+            static inline VectorType set(const float a, const float b, const float c, const float d,
+                    const float e, const float f, const float g, const float h) {
+                return VectorType(_mm_set_ps(a, b, c, d), _mm_set_ps(e, f, g, h));
+            }
+            static inline VectorType zero() { return VectorType(_mm_setzero_ps(), _mm_setzero_ps()); }
+            static inline VectorType one()  { return set(1.f); }
+
+#define REUSE_FLOAT_IMPL1(fun) \
+            static inline VectorType fun(const VectorType &x) { \
+                return VectorType(VectorHelper<float>::fun(x[0]), VectorHelper<float>::fun(x[1])); \
+            }
+#define REUSE_FLOAT_IMPL2(fun) \
+            static inline VectorType fun(const VectorType &x, const VectorType &y) { \
+                return VectorType(VectorHelper<float>::fun(x[0], y[0]), VectorHelper<float>::fun(x[1], y[1])); \
+            }
+#define REUSE_FLOAT_IMPL3(fun) \
+            static inline VectorType fun(const VectorType &x, const VectorType &y, const VectorType &z) { \
+                return VectorType(VectorHelper<float>::fun(x[0], y[0], z[0]), VectorHelper<float>::fun(x[1], y[1], z[1])); \
+            }
+            REUSE_FLOAT_IMPL1(sqrt)
+            REUSE_FLOAT_IMPL1(rsqrt)
+            REUSE_FLOAT_IMPL1(isNaN)
+            REUSE_FLOAT_IMPL1(isFinite)
+            REUSE_FLOAT_IMPL1(log)
+            REUSE_FLOAT_IMPL1(abs)
+
+            REUSE_FLOAT_IMPL2(notMaskedToZero)
+            REUSE_FLOAT_IMPL2(add)
+            REUSE_FLOAT_IMPL2(sub)
+            REUSE_FLOAT_IMPL2(mul)
+            REUSE_FLOAT_IMPL2(div)
+            REUSE_FLOAT_IMPL2(cmple)
+            REUSE_FLOAT_IMPL2(cmpnle)
+            REUSE_FLOAT_IMPL2(cmplt)
+            REUSE_FLOAT_IMPL2(cmpnlt)
+            REUSE_FLOAT_IMPL2(cmpeq)
+            REUSE_FLOAT_IMPL2(cmpneq)
+            REUSE_FLOAT_IMPL2(min)
+            REUSE_FLOAT_IMPL2(max)
+
+            static inline void multiplyAndAdd(VectorType &a, const VectorType &b, const VectorType &c) {
+                VectorHelper<float>::multiplyAndAdd(a[0], b[0], c[0]);
+                VectorHelper<float>::multiplyAndAdd(a[1], b[1], c[1]);
+            }
+            REUSE_FLOAT_IMPL3(mul)
+            REUSE_FLOAT_IMPL3(div)
+#undef REUSE_FLOAT_IMPL3
+#undef REUSE_FLOAT_IMPL2
+#undef REUSE_FLOAT_IMPL1
+        };
+
         template<> struct VectorHelper<int> {
             typedef int EntryType;
             typedef _M128I VectorType;
@@ -1399,12 +1623,14 @@ template<unsigned int VectorSize> class Mask
     friend class Mask<2u>;
     friend class Mask<4u>;
     friend class Mask<8u>;
+    friend class Float8Mask;
     public:
         inline Mask() {}
         inline Mask(const __m128  &x) : k(x) {}
         inline Mask(const __m128d &x) : k(_mm_castpd_ps(x)) {}
         inline Mask(const __m128i &x) : k(_mm_castsi128_ps(x)) {}
         inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(_mm_setzero_ps()) {}
+        inline Mask(const Mask &rhs) : k(rhs.k) {}
         inline Mask(const Mask<VectorSize / 2> *a)
           : k(_mm_castsi128_ps(_mm_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
 
@@ -1470,6 +1696,8 @@ template<unsigned int VectorSize> class Mask
 
         inline operator bool() const { return isFull(); }
 
+        inline int toInt() const { return _mm_movemask_epi8(dataI()); }
+
         inline _M128  data () const { return k; }
         inline _M128I dataI() const { return _mm_castps_si128(k); }
         inline _M128D dataD() const { return _mm_castps_pd(k); }
@@ -1493,16 +1721,115 @@ template<unsigned int VectorSize> class Mask
         _M128 k;
 };
 
-template<unsigned int A, unsigned int B> struct MaskCastHelper
+class Float8Mask
 {
-    static inline Mask<A> cast(const Mask<B> &m) { return Mask<A>(m.data()); }
+    enum {
+        PartialSize = 4,
+        VectorSize = 8
+    };
+    public:
+        inline Float8Mask() {}
+        inline Float8Mask(const M256 &x) : k(x) {}
+        inline explicit Float8Mask(VectorSpecialInitializerZero::ZEnum) {
+            k[0] = _mm_setzero_ps();
+            k[1] = _mm_setzero_ps();
+        }
+        inline Float8Mask(const Mask<VectorSize> &a) {
+            k[0] = _mm_castsi128_ps(_mm_unpacklo_epi16(a.dataI(), a.dataI()));
+            k[1] = _mm_castsi128_ps(_mm_unpackhi_epi16(a.dataI(), a.dataI()));
+        }
+        inline operator Mask<VectorSize>() const {
+            return _mm_packs_epi32(_mm_castps_si128(k[0]), _mm_castps_si128(k[1]));
+        }
+
+        inline bool operator==(const Float8Mask &rhs) const {
+            return MaskHelper<PartialSize>::cmpeq (k[0], rhs.k[0])
+                && MaskHelper<PartialSize>::cmpeq (k[1], rhs.k[1]);
+        }
+        inline bool operator!=(const Float8Mask &rhs) const {
+            return MaskHelper<PartialSize>::cmpneq(k[0], rhs.k[0])
+                && MaskHelper<PartialSize>::cmpneq(k[1], rhs.k[1]);
+        }
+
+        inline Float8Mask operator&&(const Float8Mask &rhs) const {
+            Float8Mask r;
+            r.k[0] = _mm_and_ps(k[0], rhs.k[0]);
+            r.k[1] = _mm_and_ps(k[1], rhs.k[1]);
+            return r;
+        }
+        inline Float8Mask operator& (const Float8Mask &rhs) const {
+            Float8Mask r;
+            r.k[0] = _mm_and_ps(k[0], rhs.k[0]);
+            r.k[1] = _mm_and_ps(k[1], rhs.k[1]);
+            return r;
+        }
+        inline Float8Mask operator||(const Float8Mask &rhs) const {
+            Float8Mask r;
+            r.k[0] = _mm_or_ps(k[0], rhs.k[0]);
+            r.k[1] = _mm_or_ps(k[1], rhs.k[1]);
+            return r;
+        }
+        inline Float8Mask operator| (const Float8Mask &rhs) const {
+            Float8Mask r;
+            r.k[0] = _mm_or_ps(k[0], rhs.k[0]);
+            r.k[1] = _mm_or_ps(k[1], rhs.k[1]);
+            return r;
+        }
+        inline Float8Mask operator!() const {
+            Float8Mask r;
+            r.k[0] = _mm_andnot_ps(k[0], _mm_setallone_ps());
+            r.k[1] = _mm_andnot_ps(k[1], _mm_setallone_ps());
+            return r;
+        }
+        inline Float8Mask &operator&=(const Float8Mask &rhs) {
+            k[0] = _mm_and_ps(k[0], rhs.k[0]);
+            k[1] = _mm_and_ps(k[1], rhs.k[1]);
+            return *this;
+        }
+        inline Float8Mask &operator|=(const Float8Mask &rhs) {
+            k[0] = _mm_or_ps (k[0], rhs.k[0]);
+            k[1] = _mm_or_ps (k[1], rhs.k[1]);
+            return *this;
+        }
+
+        inline bool isFull () const { return
+#ifdef __SSE4_1__
+            _mm_testc_si128(_mm_setzero_si128(), _mm_castps_si128(k[0])) &&
+            _mm_testc_si128(_mm_setzero_si128(), _mm_castps_si128(k[1]));
+#else
+            _mm_movemask_ps(k[0]) == 0xf &&
+            _mm_movemask_ps(k[1]) == 0xf;
+#endif
+        }
+        inline bool isEmpty() const { return
+#ifdef __SSE4_1__
+            _mm_testz_si128(_mm_castps_si128(k[0]), _mm_castps_si128(k[0])) &&
+            _mm_testz_si128(_mm_castps_si128(k[1]), _mm_castps_si128(k[1]));
+#else
+            _mm_movemask_ps(k[0]) == 0x0 &&
+            _mm_movemask_ps(k[1]) == 0x0;
+#endif
+        }
+
+        inline operator bool() const { return isFull(); }
+
+        inline int toInt() const { return (_mm_movemask_ps(k[1]) << 4) + _mm_movemask_ps(k[0]); }
+
+        inline const M256 &data () const { return k; }
+
+        inline bool operator[](int index) const {
+            return toInt() & (1 << index);
+        }
+
+    private:
+        M256 k;
 };
 
 template<typename T>
 class WriteMaskedVector
 {
     friend class Vector<T>;
-    typedef SSE::Mask<16 / sizeof(T)> Mask;
+    typedef typename VectorBase<T>::MaskType Mask;
     public:
         //prefix
         inline Vector<T> &operator++() {
@@ -1569,7 +1896,7 @@ class Vector : public VectorBase<T>
         typedef typename Base::VectorType VectorType;
         typedef typename Base::EntryType  EntryType;
         typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
-        typedef SSE::Mask<Size> Mask;
+        typedef typename Base::MaskType Mask;
 
         /**
          * uninitialized
@@ -1597,7 +1924,7 @@ class Vector : public VectorBase<T>
         /**
          * initialize all values with the given value
          */
-        inline Vector(T a)
+        inline Vector(EntryType a)
         {
             data() = VectorHelper<T>::set(a);
         }
@@ -1606,7 +1933,7 @@ class Vector : public VectorBase<T>
          * Initialize the vector with the given data. \param x must point to 64 byte aligned 512
          * byte data.
          */
-        inline explicit Vector(const T *x) : Base(VectorHelper<VectorType>::load(x)) {}
+        inline explicit Vector(const EntryType *x) : Base(VectorHelper<VectorType>::load(x)) {}
 
         inline Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
             : Base(VectorHelper<T>::concat(a[0].data(), a[1].data()))
@@ -1620,11 +1947,11 @@ class Vector : public VectorBase<T>
             }
         }
 
-        static inline Vector broadcast4(const T *x) { return Vector<T>(x); }
+        static inline Vector broadcast4(const EntryType *x) { return Vector<T>(x); }
 
-        inline void load(const T *mem) { data() = VectorHelper<VectorType>::load(mem); }
+        inline void load(const EntryType *mem) { data() = VectorHelper<VectorType>::load(mem); }
 
-        static inline Vector loadUnaligned(const T *mem) { return VectorHelper<VectorType>::loadUnaligned(mem); }
+        static inline Vector loadUnaligned(const EntryType *mem) { return VectorHelper<VectorType>::loadUnaligned(mem); }
 
         inline void makeZero() { data() = VectorHelper<VectorType>::zero(); }
 
@@ -1638,12 +1965,12 @@ class Vector : public VectorBase<T>
          * Store the vector data to the given memory. The memory must be 64 byte aligned and of 512
          * bytes size.
          */
-        inline void store(T *mem) const { VectorHelper<VectorType>::store(mem, data()); }
+        inline void store(EntryType *mem) const { VectorHelper<VectorType>::store(mem, data()); }
 
         /**
          * Non-temporal store variant. Writes to the memory without polluting the cache.
          */
-        inline void storeStreaming(T *mem) const { VectorHelper<VectorType>::storeStreaming(mem, data()); }
+        inline void storeStreaming(EntryType *mem) const { VectorHelper<VectorType>::storeStreaming(mem, data()); }
 
         inline const Vector<T> &dcba() const { return *this; }
         inline const Vector<T> cdab() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 3, 0, 1))); }
@@ -1654,19 +1981,19 @@ class Vector : public VectorBase<T>
         inline const Vector<T> dddd() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 3, 3, 3))); }
         inline const Vector<T> dacb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 0, 2, 1))); }
 
-        inline Vector(const T *array, const IndexType &indexes) { VectorHelperSize<T>::gather(*this, indexes, array); }
-        inline Vector(const T *array, const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array);
+        inline Vector(const EntryType *array, const IndexType &indexes) { VectorHelperSize<T>::gather(*this, indexes, array); }
+        inline Vector(const EntryType *array, const IndexType &indexes, const Mask &mask) {
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array);
         }
 
-        inline void gather(const T *array, const IndexType &indexes) { VectorHelperSize<T>::gather(*this, indexes, array); }
-        inline void gather(const T *array, const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array);
+        inline void gather(const EntryType *array, const IndexType &indexes) { VectorHelperSize<T>::gather(*this, indexes, array); }
+        inline void gather(const EntryType *array, const IndexType &indexes, const Mask &mask) {
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array);
         }
 
-        inline void scatter(T *array, const IndexType &indexes) const { VectorHelperSize<T>::scatter(*this, indexes, array); }
-        inline void scatter(T *array, const IndexType &indexes, const Mask &mask) const {
-            VectorHelperSize<T>::scatter(*this, indexes, _mm_movemask_epi8(mask.dataI()), array);
+        inline void scatter(EntryType *array, const IndexType &indexes) const { VectorHelperSize<T>::scatter(*this, indexes, array); }
+        inline void scatter(EntryType *array, const IndexType &indexes, const Mask &mask) const {
+            VectorHelperSize<T>::scatter(*this, indexes, mask.toInt(), array);
         }
 
         /**
@@ -1676,54 +2003,54 @@ class Vector : public VectorBase<T>
          *                automatically.
          * \param mask Optional mask to select only parts of the vector that should be gathered
          */
-        template<typename S1> inline Vector(const S1 *array, const T S1::* member1, const IndexType &indexes) {
+        template<typename S1> inline Vector(const S1 *array, const EntryType S1::* member1, const IndexType &indexes) {
             VectorHelperSize<T>::gather(*this, indexes, array, member1);
         }
-        template<typename S1> inline Vector(const S1 *array, const T S1::* member1,
+        template<typename S1> inline Vector(const S1 *array, const EntryType S1::* member1,
                 const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1);
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array, member1);
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const IndexType &indexes) {
+                const EntryType S2::* member2, const IndexType &indexes) {
             VectorHelperSize<T>::gather(*this, indexes, array, member1, member2);
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1, member2);
+                const EntryType S2::* member2, const IndexType &indexes, const Mask &mask) {
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array, member1, member2);
         }
 
-        template<typename S1> inline void gather(const S1 *array, const T S1::* member1,
+        template<typename S1> inline void gather(const S1 *array, const EntryType S1::* member1,
                 const IndexType &indexes) {
             VectorHelperSize<T>::gather(*this, indexes, array, member1);
         }
-        template<typename S1> inline void gather(const S1 *array, const T S1::* member1,
+        template<typename S1> inline void gather(const S1 *array, const EntryType S1::* member1,
                 const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1);
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array, member1);
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const IndexType &indexes) {
+                const EntryType S2::* member2, const IndexType &indexes) {
             VectorHelperSize<T>::gather(*this, indexes, array, member1, member2);
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1, member2);
+                const EntryType S2::* member2, const IndexType &indexes, const Mask &mask) {
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array, member1, member2);
         }
 
-        template<typename S1> inline void scatter(S1 *array, T S1::* member1,
+        template<typename S1> inline void scatter(S1 *array, EntryType S1::* member1,
                 const IndexType &indexes) const {
             VectorHelperSize<T>::scatter(*this, indexes, array, member1);
         }
-        template<typename S1> inline void scatter(S1 *array, T S1::* member1,
+        template<typename S1> inline void scatter(S1 *array, EntryType S1::* member1,
                 const IndexType &indexes, const Mask &mask) const {
-            VectorHelperSize<T>::scatter(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1);
+            VectorHelperSize<T>::scatter(*this, indexes, mask.toInt(), array, member1);
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
-                T S2::* member2, const IndexType &indexes) const {
+                EntryType S2::* member2, const IndexType &indexes) const {
             VectorHelperSize<T>::scatter(*this, indexes, array, member1, member2);
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
-                T S2::* member2, const IndexType &indexes, const Mask &mask) const {
-            VectorHelperSize<T>::scatter(*this, indexes, _mm_movemask_epi8(mask.dataI()), array, member1, member2);
+                EntryType S2::* member2, const IndexType &indexes, const Mask &mask) const {
+            VectorHelperSize<T>::scatter(*this, indexes, mask.toInt(), array, member1, member2);
         }
 
         //prefix
@@ -1731,11 +2058,8 @@ class Vector : public VectorBase<T>
         //postfix
         inline Vector operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
-        inline T operator[](int index) const {
-            //return Base::d.m(index);
-            ALIGN(16) T mem[Size];
-            VectorHelper<VectorType>::store(mem, Base::d.v());
-            return mem[index];
+        inline EntryType operator[](int index) const {
+            return Base::d.m(index);
         }
 
 #define OP1(fun) \
@@ -1797,16 +2121,16 @@ class Vector : public VectorBase<T>
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 
-template<typename T> inline Vector<T> operator+(const T &x, const Vector<T> &v) { return v.operator+(x); }
-template<typename T> inline Vector<T> operator*(const T &x, const Vector<T> &v) { return v.operator*(x); }
-template<typename T> inline Vector<T> operator-(const T &x, const Vector<T> &v) { return Vector<T>(x) - v; }
-template<typename T> inline Vector<T> operator/(const T &x, const Vector<T> &v) { return Vector<T>(x) / v; }
-template<typename T> inline typename Vector<T>::Mask  operator< (const T &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
-template<typename T> inline typename Vector<T>::Mask  operator<=(const T &x, const Vector<T> &v) { return Vector<T>(x) <= v; }
-template<typename T> inline typename Vector<T>::Mask  operator> (const T &x, const Vector<T> &v) { return Vector<T>(x) >  v; }
-template<typename T> inline typename Vector<T>::Mask  operator>=(const T &x, const Vector<T> &v) { return Vector<T>(x) >= v; }
-template<typename T> inline typename Vector<T>::Mask  operator==(const T &x, const Vector<T> &v) { return Vector<T>(x) == v; }
-template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, const Vector<T> &v) { return Vector<T>(x) != v; }
+template<typename T> inline Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator+(x); }
+template<typename T> inline Vector<T> operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator*(x); }
+template<typename T> inline Vector<T> operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) - v; }
+template<typename T> inline Vector<T> operator/(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) / v; }
+template<typename T> inline typename Vector<T>::Mask  operator< (const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
+template<typename T> inline typename Vector<T>::Mask  operator<=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) <= v; }
+template<typename T> inline typename Vector<T>::Mask  operator> (const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) >  v; }
+template<typename T> inline typename Vector<T>::Mask  operator>=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) >= v; }
+template<typename T> inline typename Vector<T>::Mask  operator==(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) == v; }
+template<typename T> inline typename Vector<T>::Mask  operator!=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) != v; }
 
 #define OP_IMPL(T, symbol, fun) \
   template<> inline Vector<T> &VectorBase<T>::operator symbol##=(const Vector<T> &x) { d.v() = VectorHelper<T>::fun(d.v(), x.d.v()); return *static_cast<Vector<T> *>(this); } \
@@ -1836,10 +2160,10 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, con
 
   template<typename T> static inline Vector<T> min  (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::min(x.data(), y.data()); }
   template<typename T> static inline Vector<T> max  (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::max(x.data(), y.data()); }
-  template<typename T> static inline Vector<T> min  (const Vector<T> &x, const T &y) { return min(x.data(), Vector<T>(y).data()); }
-  template<typename T> static inline Vector<T> max  (const Vector<T> &x, const T &y) { return max(x.data(), Vector<T>(y).data()); }
-  template<typename T> static inline Vector<T> min  (const T &x, const Vector<T> &y) { return min(Vector<T>(x).data(), y.data()); }
-  template<typename T> static inline Vector<T> max  (const T &x, const Vector<T> &y) { return max(Vector<T>(x).data(), y.data()); }
+  template<typename T> static inline Vector<T> min  (const Vector<T> &x, const typename Vector<T>::EntryType &y) { return min(x.data(), Vector<T>(y).data()); }
+  template<typename T> static inline Vector<T> max  (const Vector<T> &x, const typename Vector<T>::EntryType &y) { return max(x.data(), Vector<T>(y).data()); }
+  template<typename T> static inline Vector<T> min  (const typename Vector<T>::EntryType &x, const Vector<T> &y) { return min(Vector<T>(x).data(), y.data()); }
+  template<typename T> static inline Vector<T> max  (const typename Vector<T>::EntryType &x, const Vector<T> &y) { return max(Vector<T>(x).data(), y.data()); }
   template<typename T> static inline Vector<T> sqrt (const Vector<T> &x) { return VectorHelper<T>::sqrt(x.data()); }
   template<typename T> static inline Vector<T> rsqrt(const Vector<T> &x) { return VectorHelper<T>::rsqrt(x.data()); }
   template<typename T> static inline Vector<T> abs  (const Vector<T> &x) { return VectorHelper<T>::abs(x.data()); }
@@ -1848,8 +2172,8 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const T &x, con
   template<typename T> static inline Vector<T> log  (const Vector<T> &x) { return VectorHelper<T>::log(x.data()); }
   template<typename T> static inline Vector<T> log10(const Vector<T> &x) { return VectorHelper<T>::log10(x.data()); }
 
-  template<typename T> static inline Mask<Vector<T>::Size> isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
-  template<typename T> static inline Mask<Vector<T>::Size> isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
+  template<typename T> static inline typename Vector<T>::Mask isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
+  template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 #undef ALIGN
 #undef STORE_VECTOR
 } // namespace SSE

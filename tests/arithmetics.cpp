@@ -212,6 +212,7 @@ int main()
     runTest(testZero<double_v>);
     runTest(testZero<short_v>);
     runTest(testZero<ushort_v>);
+    runTest(testZero<sfloat_v>);
 
     runTest(testCmp<int_v>);
     runTest(testCmp<uint_v>);
@@ -219,6 +220,7 @@ int main()
     runTest(testCmp<double_v>);
     runTest(testCmp<short_v>);
     runTest(testCmp<ushort_v>);
+    runTest(testCmp<sfloat_v>);
 
     runTest(testAdd<int_v>);
     runTest(testAdd<uint_v>);
@@ -226,6 +228,7 @@ int main()
     runTest(testAdd<double_v>);
     runTest(testAdd<short_v>);
     runTest(testAdd<ushort_v>);
+    runTest(testAdd<sfloat_v>);
 
     runTest(testSub<int_v>);
     runTest(testSub<uint_v>);
@@ -233,6 +236,7 @@ int main()
     runTest(testSub<double_v>);
     runTest(testSub<short_v>);
     runTest(testSub<ushort_v>);
+    runTest(testSub<sfloat_v>);
 
     runTest(testMul<int_v>);
     runTest(testMul<uint_v>);
@@ -240,6 +244,7 @@ int main()
     runTest(testMul<double_v>);
     runTest(testMul<short_v>);
     runTest(testMul<ushort_v>);
+    runTest(testMul<sfloat_v>);
 
     runTest(testDiv<int_v>);
     runTest(testDiv<uint_v>);
@@ -247,6 +252,7 @@ int main()
     runTest(testDiv<double_v>);
     runTest(testDiv<short_v>);
     runTest(testDiv<ushort_v>);
+    runTest(testDiv<sfloat_v>);
 
     runTest(testAnd<int_v>);
     runTest(testAnd<uint_v>);
@@ -265,6 +271,7 @@ int main()
     runTest(testMulAdd<double_v>);
     runTest(testMulAdd<short_v>);
     runTest(testMulAdd<ushort_v>);
+    runTest(testMulAdd<sfloat_v>);
 
     runTest(testMulSub<int_v>);
     runTest(testMulSub<uint_v>);
@@ -272,6 +279,7 @@ int main()
     runTest(testMulSub<double_v>);
     runTest(testMulSub<short_v>);
     runTest(testMulSub<ushort_v>);
+    runTest(testMulSub<sfloat_v>);
 
     return 0;
 }
