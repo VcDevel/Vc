@@ -91,9 +91,10 @@ namespace Simple
 #undef PARENT_DATA
 #undef PARENT_DATA_CONST
 
-namespace VectorSpecialInitializerZero { enum Enum { Zero }; }
-namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
-namespace VectorSpecialInitializerIndexesFromZero { enum Enum { IndexesFromZero }; }
+namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
+namespace VectorSpecialInitializerOne { enum OEnum { One }; }
+namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
+namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
 template<unsigned int VectorSize = 1>
 class Mask
@@ -101,7 +102,7 @@ class Mask
     public:
         inline Mask() {}
         inline Mask(bool b) : m(b) {}
-        inline explicit Mask(VectorSpecialInitializerZero::Enum) : m(false) {}
+        inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
         inline Mask(const Mask<VectorSize> *a) : m(a[0].m) {}
 
         inline void expand(Mask *x) { x[0].m = m; }
@@ -180,9 +181,10 @@ class Vector : public VectorBase<T, Vector<T> >
 
         enum { Size = 1 };
         inline Vector() {}
-        inline Vector(VectorSpecialInitializerZero::Enum) : m_data(0) {}
-        inline Vector(VectorSpecialInitializerRandom::Enum) { makeRandom(); }
-        inline Vector(VectorSpecialInitializerIndexesFromZero::Enum) : m_data(0) {}
+        inline Vector(VectorSpecialInitializerZero::ZEnum) : m_data(0) {}
+        inline Vector(VectorSpecialInitializerOne::OEnum) : m_data(1) {}
+        inline Vector(VectorSpecialInitializerRandom::REnum) { makeRandom(); }
+        inline Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : m_data(0) {}
 
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> *a) : m_data(static_cast<T>(a->data())) {}
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}

@@ -47,9 +47,10 @@
 
 namespace Larrabee
 {
-    namespace VectorSpecialInitializerZero { enum Enum { Zero }; }
-    namespace VectorSpecialInitializerRandom { enum Enum { Random }; }
-    namespace VectorSpecialInitializerIndexesFromZero { enum Enum { IndexesFromZero }; }
+    namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
+    namespace VectorSpecialInitializerOne { enum OEnum { One }; }
+    namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
+    namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
     namespace Internal
     {
@@ -97,7 +98,7 @@ namespace Larrabee
         public:
             inline Mask() {}
             inline Mask(__mmask _k) : k(_k) {}
-            inline explicit Mask(VectorSpecialInitializerZero::Enum) : k(0) {}
+            inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(0) {}
             inline Mask(const Mask<VectorSize / 2> &a, const Mask<VectorSize / 2> &b) : k(a.k | (b.k << 8)) {}
             template<unsigned int OtherSize> explicit inline Mask(const Mask<OtherSize> &x) : k(x.k) {
                 if (OtherSize != VectorSize) {
@@ -800,11 +801,15 @@ class Vector : public VectorBase<T, Vector<T> >
         /**
          * initialized to 0 in all 512 bits
          */
-        inline explicit Vector(VectorSpecialInitializerZero::Enum) : data(mm512_reinterpret_cast<VectorType>(_mm512_setzero())) {}
+        inline explicit Vector(VectorSpecialInitializerZero::ZEnum) : data(mm512_reinterpret_cast<VectorType>(_mm512_setzero())) {}
+        /**
+         * initialized to 1 in all vector entries
+         */
+        inline explicit Vector(VectorSpecialInitializerOne::OEnum) : data(VectorHelper<T>::set(EntryType(1))) {}
         /**
          * initialized to 0, 1, 2, 3 (, 4, 5, 6, 7 (, 8, 9, 10, 11, 12, 13, 14, 15))
          */
-        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::Enum) : data(VectorHelper<T>::load(Internal::IndexesFromZero<T>())) {}
+        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : data(VectorHelper<T>::load(Internal::IndexesFromZero<T>())) {}
 //X         /**
 //X          * initialzed to random numbers
 //X          */

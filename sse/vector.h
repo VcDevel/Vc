@@ -757,7 +757,7 @@ namespace SSE
             static inline VectorType set(const double a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const double a, const double b) { return CAT(_mm_set_, SUFFIX)(a, b); }
             static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static inline VectorType one()  { return set(1.); }
+            static inline VectorType one()  { return CAT(_mm_setone_, SUFFIX)(); }// set(1.); }
 
             static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
@@ -880,7 +880,7 @@ namespace SSE
             static inline VectorType set(const float a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const float a, const float b, const float c, const float d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
             static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static inline VectorType one()  { return set(1.f); }
+            static inline VectorType one()  { return CAT(_mm_setone_, SUFFIX)(); }// set(1.f); }
             static inline _M128 concat(_M128D a, _M128D b) { return _mm_movelh_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b)); }
 
             static bool pack(VectorType &v1, _M128I &_m1, VectorType &v2, _M128I &_m2) {
@@ -1601,6 +1601,7 @@ namespace SSE
 #undef CAT_HELPER
 
 namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
+namespace VectorSpecialInitializerOne { enum OEnum { One }; }
 namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
@@ -1907,6 +1908,11 @@ class Vector : public VectorBase<T>
          * initialized to 0 in all 128 bits
          */
         inline explicit Vector(VectorSpecialInitializerZero::ZEnum) : Base(VectorHelper<VectorType>::zero()) {}
+
+        /**
+         * initialized to 1 for all entries in the vector
+         */
+        inline explicit Vector(VectorSpecialInitializerOne::OEnum) : Base(VectorHelper<VectorType>::one()) {}
 
         /**
          * initialized to 0, 1 (, 2, 3 (, 4, 5, 6, 7))

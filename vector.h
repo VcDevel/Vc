@@ -45,6 +45,7 @@ namespace Vc
   using ::Larrabee::Mask;
   using ::Larrabee::VectorAlignment;
   using namespace ::Larrabee::VectorSpecialInitializerZero;
+  using namespace ::Larrabee::VectorSpecialInitializerOne;
   using namespace ::Larrabee::VectorSpecialInitializerRandom;
   using namespace ::Larrabee::VectorSpecialInitializerIndexesFromZero;
   using ::Larrabee::min;
@@ -67,6 +68,7 @@ namespace Vc
   using ::SSE::Mask;
   using ::SSE::VectorAlignment;
   using namespace ::SSE::VectorSpecialInitializerZero;
+  using namespace ::SSE::VectorSpecialInitializerOne;
   using namespace ::SSE::VectorSpecialInitializerRandom;
   using namespace ::SSE::VectorSpecialInitializerIndexesFromZero;
   using ::SSE::min;
@@ -89,6 +91,7 @@ namespace Vc
   using ::Simple::Mask;
   using ::Simple::VectorAlignment;
   using namespace ::Simple::VectorSpecialInitializerZero;
+  using namespace ::Simple::VectorSpecialInitializerOne;
   using namespace ::Simple::VectorSpecialInitializerRandom;
   using namespace ::Simple::VectorSpecialInitializerIndexesFromZero;
   using ::Simple::min;

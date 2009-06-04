@@ -51,6 +51,8 @@ namespace SSE
         static inline __m128i _mm_setone_epu16() CONST;
         static inline __m128i _mm_setone_epi32() CONST;
         static inline __m128i _mm_setone_epu32() CONST;
+        static inline __m128  _mm_setone_ps() CONST;
+        static inline __m128d _mm_setone_pd() CONST;
         static inline __m128d _mm_setabsmask_pd() CONST;
         static inline __m128  _mm_setabsmask_ps() CONST;
         static inline __m128i _mm_setmin_epi16() CONST;
@@ -71,6 +73,9 @@ namespace SSE
         static inline __m128i _mm_setone_epu16()  { return _mm_setone_epi16(); }
         static inline __m128i _mm_setone_epi32()  { return _mm_srli_epi32(_mm_setallone_si128(), 31); }
         static inline __m128i _mm_setone_epu32()  { return _mm_setone_epi32(); }
+
+        static inline __m128  _mm_setone_ps()     { return _mm_castsi128_ps(_mm_srli_epi32(_mm_slli_epi32(_mm_setallone_si128(), 32 - 7), 2)); }
+        static inline __m128d _mm_setone_pd()     { return _mm_castsi128_pd(_mm_srli_epi64(_mm_slli_epi64(_mm_setallone_si128(), 64 - 10), 2)); }
 
         static inline __m128d _mm_setabsmask_pd() { return _mm_castsi128_pd(_mm_srli_epi64(_mm_setallone_si128(), 1)); }
         static inline __m128  _mm_setabsmask_ps() { return _mm_castsi128_ps(_mm_srli_epi32(_mm_setallone_si128(), 1)); }
