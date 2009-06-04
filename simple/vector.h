@@ -358,6 +358,8 @@ class Vector : public VectorBase<T, Vector<T> >
             }
             return m1;
         }
+
+        inline EntryType min() const { return m_data; }
 };
 
 template<typename T> class SwizzledVector : public Vector<T> {};

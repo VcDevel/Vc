@@ -751,6 +751,7 @@ namespace SSE
 
         template<> struct VectorHelper<double> {
             typedef _M128D VectorType;
+            typedef double EntryType;
 #define SUFFIX pd
 
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_pd(mask), a); }
@@ -868,6 +869,12 @@ namespace SSE
             }
 
             MINMAX
+            static inline EntryType min(VectorType a) {
+                a = _mm_min_sd(a, _mm_unpackhi_pd(a, a));
+                EntryType r;
+                _mm_store_sd(&r, a);
+                return r;
+            }
 #undef SUFFIX
         };
 
@@ -1147,6 +1154,13 @@ namespace SSE
             }
 
             MINMAX
+            static inline EntryType min(VectorType a) {
+                a = _mm_min_ps(a, _mm_movehl_ps(a, a));   // a = min(a0, a2), min(a1, a3), min(a2, a2), min(a3, a3)
+                a = _mm_min_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1))); // a = min(a0, a1), a1, a2, a3
+                EntryType r;
+                _mm_store_ss(&r, a);
+                return r;
+            }
 #undef SUFFIX
         };
 
@@ -1201,6 +1215,10 @@ namespace SSE
             REUSE_FLOAT_IMPL2(cmpneq)
             REUSE_FLOAT_IMPL2(min)
             REUSE_FLOAT_IMPL2(max)
+
+            static inline EntryType min(const VectorType &a) {
+                return VectorHelper<float>::min(VectorHelper<float>::min(a[0], a[1]));
+            }
 
             static inline void multiplyAndAdd(VectorType &a, const VectorType &b, const VectorType &c) {
                 VectorHelper<float>::multiplyAndAdd(a[0], b[0], c[0]);
@@ -2123,6 +2141,8 @@ class Vector : public VectorBase<T>
 
         VectorType &data() { return Base::d.v(); }
         const VectorType &data() const { return Base::d.v(); }
+
+        inline EntryType min() const { return VectorHelper<T>::min(data()); }
 };
 
 template<typename T> class SwizzledVector : public Vector<T> {};

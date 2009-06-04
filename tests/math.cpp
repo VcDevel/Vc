@@ -136,6 +136,21 @@ template<typename Vec> void testNaN()
     VERIFY(Vc::isnan(Vec(inf * zero)));
 }
 
+template<typename Vec> void testReduceMin()
+{
+    typedef typename Vec::EntryType T;
+    VectorMemoryHelper<Vec> mem(Vec::Size);
+    T *data = mem;
+    for (int i = 0; i < Vec::Size * Vec::Size; ++i) {
+        data[i] = i % (Vec::Size + 1);
+    }
+    for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
+        const Vec a(&data[0]);
+        std::cout << a << std::endl;
+        COMPARE(a.min(), 0);
+    }
+}
+
 int main()
 {
     runTest(testAbs<int_v>);
@@ -171,6 +186,10 @@ int main()
     runTest(testNaN<float_v>);
     runTest(testNaN<double_v>);
     runTest(testNaN<sfloat_v>);
+
+    runTest(testReduceMin<float_v>);
+    runTest(testReduceMin<sfloat_v>);
+    runTest(testReduceMin<double_v>);
 
     return 0;
 }
