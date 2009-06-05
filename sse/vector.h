@@ -53,6 +53,13 @@
 #include <algorithm>
 #include <limits>
 
+#ifdef isfinite
+#undef isfinite
+#endif
+#ifdef isnan
+#undef isnan
+#endif
+
 #ifndef _M128
 # define _M128 __m128
 #endif
