@@ -1261,6 +1261,12 @@ namespace SSE
             OP1(abs)
 
             MINMAX
+            static inline EntryType min(VectorType a) {
+                a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                // using lo_epi16 for speed here
+                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                return _mm_cvtsi128_si32(a);
+            }
 #ifdef __SSE4_1__
             static inline VectorType mul(VectorType a, VectorType b) { return _mm_mullo_epi32(a, b); }
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
@@ -1360,6 +1366,12 @@ namespace SSE
             static inline VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
 
             MINMAX
+            static inline EntryType min(VectorType a) {
+                a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                // using lo_epi16 for speed here
+                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                return _mm_cvtsi128_si32(a);
+            }
 
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
                 _M128I mask = _mm_castps_si128(_mask);
@@ -1469,6 +1481,15 @@ namespace SSE
             }
             OPx(mul, mullo)
             OP(min) OP(max)
+            static inline EntryType min(VectorType a) {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                return _mm_cvtsi128_si32(a); // & 0xffff is implicit
+
+                // bad dependency chain. We have
+            }
 
             static inline VectorType div(const VectorType a, const VectorType b, _M128 _mask) {
                 const int mask = _mm_movemask_epi8(_mm_castps_si128(_mask));
@@ -1588,6 +1609,13 @@ namespace SSE
             SHIFT8
             OPx(mul, mullo) // should work correctly for all values
             OP(min) OP(max) // XXX breaks for values with MSB set
+            static inline EntryType min(VectorType a) {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                return _mm_cvtsi128_si32(a); // & 0xffff is implicit
+            }
             static inline VectorType set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const EntryType a, const EntryType b, const EntryType c,
                     const EntryType d, const EntryType e, const EntryType f,

@@ -139,15 +139,16 @@ template<typename Vec> void testNaN()
 template<typename Vec> void testReduceMin()
 {
     typedef typename Vec::EntryType T;
+    const T one = 1;
     VectorMemoryHelper<Vec> mem(Vec::Size);
     T *data = mem;
     for (int i = 0; i < Vec::Size * Vec::Size; ++i) {
-        data[i] = i % (Vec::Size + 1);
+        data[i] = i % (Vec::Size + 1) + one;
     }
     for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
         const Vec a(&data[0]);
         std::cout << a << std::endl;
-        COMPARE(a.min(), 0);
+        COMPARE(a.min(), one);
     }
 }
 
@@ -190,6 +191,10 @@ int main()
     runTest(testReduceMin<float_v>);
     runTest(testReduceMin<sfloat_v>);
     runTest(testReduceMin<double_v>);
+    runTest(testReduceMin<int_v>);
+    runTest(testReduceMin<uint_v>);
+    runTest(testReduceMin<short_v>);
+    runTest(testReduceMin<ushort_v>);
 
     return 0;
 }
