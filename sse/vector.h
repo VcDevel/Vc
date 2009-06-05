@@ -1937,7 +1937,7 @@ class Vector : public VectorBase<T>
         /**
          * initialized to 1 for all entries in the vector
          */
-        inline explicit Vector(VectorSpecialInitializerOne::OEnum) : Base(VectorHelper<VectorType>::one()) {}
+        inline explicit Vector(VectorSpecialInitializerOne::OEnum) : Base(VectorHelper<T>::one()) {}
 
         /**
          * initialized to 0, 1 (, 2, 3 (, 4, 5, 6, 7))
