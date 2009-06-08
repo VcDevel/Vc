@@ -99,6 +99,8 @@ namespace Larrabee
             inline Mask() {}
             inline Mask(__mmask _k) : k(_k) {}
             inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(0) {}
+            inline explicit Mask(VectorSpecialInitializerOne::OEnum) : k(0xffffu) {}
+            inline explicit Mask(bool b) : k(b ? 0xffffu : 0) {}
             inline Mask(const Mask<VectorSize / 2> &a, const Mask<VectorSize / 2> &b) : k(a.k | (b.k << 8)) {}
             template<unsigned int OtherSize> explicit inline Mask(const Mask<OtherSize> &x) : k(x.k) {
                 if (OtherSize != VectorSize) {

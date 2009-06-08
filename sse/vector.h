@@ -1684,6 +1684,8 @@ template<unsigned int VectorSize> class Mask
         inline Mask(const __m128d &x) : k(_mm_castpd_ps(x)) {}
         inline Mask(const __m128i &x) : k(_mm_castsi128_ps(x)) {}
         inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(_mm_setzero_ps()) {}
+        inline explicit Mask(VectorSpecialInitializerOne::OEnum) : k(_mm_setallone_ps()) {}
+        inline explicit Mask(bool b) : k(b ? _mm_setallone_ps() : _mm_setzero_ps()) {}
         inline Mask(const Mask &rhs) : k(rhs.k) {}
         inline Mask(const Mask<VectorSize / 2> *a)
           : k(_mm_castsi128_ps(_mm_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
@@ -1787,6 +1789,15 @@ class Float8Mask
         inline explicit Float8Mask(VectorSpecialInitializerZero::ZEnum) {
             k[0] = _mm_setzero_ps();
             k[1] = _mm_setzero_ps();
+        }
+        inline explicit Float8Mask(VectorSpecialInitializerOne::OEnum) {
+            k[0] = _mm_setallone_ps();
+            k[1] = _mm_setallone_ps();
+        }
+        inline explicit Float8Mask(bool b) {
+            const __m128 tmp = b ? _mm_setallone_ps() : _mm_setzero_ps();
+            k[0] = tmp;
+            k[1] = tmp;
         }
         inline Float8Mask(const Mask<VectorSize> &a) {
             k[0] = _mm_castsi128_ps(_mm_unpacklo_epi16(a.dataI(), a.dataI()));

@@ -101,8 +101,9 @@ class Mask
 {
     public:
         inline Mask() {}
-        inline Mask(bool b) : m(b) {}
+        inline explicit Mask(bool b) : m(b) {}
         inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
+        inline explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
         inline Mask(const Mask<VectorSize> *a) : m(a[0].m) {}
 
         inline void expand(Mask *x) { x[0].m = m; }
