@@ -1,1 +1,10 @@
 implement the masked SSE vector gathers/scatters using a bsf loop in inline asm
+
+add benchmarks for
+- gather
+- scatter
+- math functions
+- load
+- store
+- comparisons
+- masked assignment
