@@ -934,7 +934,7 @@ class Vector : public VectorBase<T, Vector<T> >
          * \param mask Optional mask to select only parts of the vector that should be gathered
          */
         template<typename S, typename OtherT>
-        inline Vector(const S *array, const OtherT S::* member1, const IndexType &indexes, Mask mask = 0xffff)
+        inline Vector(const S *array, const OtherT S::* member1, const IndexType &indexes, Mask mask = VectorSpecialInitializerOne::One)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
@@ -943,7 +943,7 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         template<typename S1, typename S2, typename OtherT>
-        inline Vector(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const IndexType &indexes, Mask mask = 0xffff)
+        inline Vector(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const IndexType &indexes, Mask mask = VectorSpecialInitializerOne::One)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
@@ -952,7 +952,7 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         template<typename S, typename OtherT>
-        inline void gather(const S *array, const OtherT S::* member1, const IndexType &indexes, Mask mask = 0xffff)
+        inline void gather(const S *array, const OtherT S::* member1, const IndexType &indexes, Mask mask = VectorSpecialInitializerOne::One)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
@@ -961,7 +961,7 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         template<typename S1, typename S2, typename OtherT>
-        inline void gather(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const IndexType &indexes, Mask mask = 0xffff)
+        inline void gather(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const IndexType &indexes, Mask mask = VectorSpecialInitializerOne::One)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
@@ -970,7 +970,7 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         template<typename S, typename OtherT>
-        inline void scatter(S *array, OtherT S::* member1, const IndexType &indexes, Mask mask = 0xffff)
+        inline void scatter(S *array, OtherT S::* member1, const IndexType &indexes, Mask mask = VectorSpecialInitializerOne::One)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
@@ -979,7 +979,7 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         template<typename S1, typename S2, typename OtherT>
-        inline void scatter(S1 *array, S2 S1::* member1, OtherT S2::* member2, const IndexType &indexes, Mask mask = 0xffff)
+        inline void scatter(S1 *array, S2 S1::* member1, OtherT S2::* member2, const IndexType &indexes, Mask mask = VectorSpecialInitializerOne::One)
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
             LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
