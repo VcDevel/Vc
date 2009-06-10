@@ -1,0 +1,1 @@
+implement the masked SSE vector gathers/scatters using a bsf loop in inline asm
