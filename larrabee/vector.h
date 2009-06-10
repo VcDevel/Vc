@@ -135,6 +135,31 @@ namespace Larrabee
             __mmask k;
     };
 
+/**
+ * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
+ * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
+ * 1, 3, and 4.
+ *
+ * This allows you to write:
+ * \code
+ * float_v a = ...;
+ * foreach_bit(int i, a < 0.f) {
+ *   std::cout << a[i] << "\n";
+ * }
+ * \endcode
+ * The example prints all the values in \p a that are negative, and only those.
+ *
+ * \param it   The iterator variable. For example "int i".
+ * \param mask The mask to iterate over. You can also just write a vector operation that returns a
+ *             mask.
+ */
+template<typename F, unsigned int VectorSize>
+inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
+    for (int i = _mm_bsff_32(mask.data()); i >= 0; i = _mm_bsfi_32(i, mask.data())) {
+        func(i);
+    }
+}
+
     class float11_11_10 { public:
         enum Component {
             X = _MM_FULLUPC_FLOAT11A,
