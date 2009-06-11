@@ -1672,6 +1672,7 @@ template<> struct MaskHelper<8> {
     static inline bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_epi8(_mm_castps_si128(k1)) != _mm_movemask_epi8(_mm_castps_si128(k2)); }
 };
 
+class Float8Mask;
 template<unsigned int VectorSize> class Mask
 {
     friend class Mask<2u>;
@@ -1689,6 +1690,7 @@ template<unsigned int VectorSize> class Mask
         inline Mask(const Mask &rhs) : k(rhs.k) {}
         inline Mask(const Mask<VectorSize / 2> *a)
           : k(_mm_castsi128_ps(_mm_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
+        inline explicit Mask(const Float8Mask &m);
 
         template<unsigned int OtherSize> explicit inline Mask(const Mask<OtherSize> &x)
         {
@@ -1817,9 +1819,6 @@ class Float8Mask
             k[0] = _mm_castsi128_ps(_mm_unpacklo_epi16(a.dataI(), a.dataI()));
             k[1] = _mm_castsi128_ps(_mm_unpackhi_epi16(a.dataI(), a.dataI()));
         }
-        inline operator Mask<VectorSize>() const {
-            return _mm_packs_epi32(_mm_castps_si128(k[0]), _mm_castps_si128(k[1]));
-        }
 
         inline bool operator==(const Float8Mask &rhs) const {
             return MaskHelper<PartialSize>::cmpeq (k[0], rhs.k[0])
@@ -1906,6 +1905,10 @@ class Float8Mask
     private:
         M256 k;
 };
+
+template<unsigned int VectorSize>
+inline Mask<VectorSize>::Mask(const Float8Mask &m)
+    : k(_mm_castsi128_ps(_mm_packs_epi32(_mm_castps_si128(m.data()[0]), _mm_castps_si128(m.data()[1])))) {}
 
 template<typename M, typename F>
 inline void foreach_bit(const M &mask, F func) {
