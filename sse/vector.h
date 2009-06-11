@@ -237,6 +237,7 @@ namespace SSE
 
     template<> class VectorBase<float8> {
         friend struct VectorHelperSize<float8>;
+        friend struct VectorHelperSize<float>;
         public:
             enum { Size = 8 };
             typedef M256 VectorType;
@@ -329,29 +330,70 @@ namespace SSE
                         );
             }
         }
-        template<typename AliasingT>
-        static inline void maskedGatherHelper(AliasingT &vEntry, const int mask, const EntryType &value, const int bitMask) {
+        template<typename Base2, typename IndexType>
+        static inline void maskedGatherHelper(Base2 &v, const IndexType &indexes, int mask, const EntryType *baseAddr) {
 #ifdef __GNUC__
-            register EntryType t;
-            asm(
-                    "test %4,%2\n\t"
-                    "mov %5,%1\n\t"
-                    "cmovne %3,%1\n\t"
-                    "mov %1,%0"
-                    : "=m"(vEntry), "=&r"(t)
-                    : "r"(mask), "m"(value),
-#ifdef NO_OPTIMIZATION
-                    "m"
-#else
-                    "n"
-#endif
-                    (bitMask), "m"(vEntry)
-                    :
-               );
-#else
-            if (mask & bitMask) {
-                vEntry = value;
+            if (sizeof(EntryType) == 2) {
+                register unsigned long int bit;
+                register unsigned long int index;
+                register EntryType value;
+                asm volatile(
+                        "bsf %1,%0"            "\n\t"
+                        "jz 1f"                "\n\t"
+                        "0:"                   "\n\t"
+                        "movw (%5,%0,2),%%cx"  "\n\t"
+                        "btr %0,%1"            "\n\t"
+                        "movw (%6,%%rcx,2),%3" "\n\t"
+                        "movw %3,(%7,%0,2)"    "\n\t"
+                        "bsf %1,%0"            "\n\t"
+                        "jnz 0b"               "\n\t"
+                        "1:"                   "\n\t"
+                        : "=r"(bit), "+r"(mask), "=r"(index), "=r"(value), "+m"(v.d)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                        : "rcx"   );
+            } else if (sizeof(EntryType) == 4) {
+                register unsigned long int bit;
+                register unsigned long int index;
+                register EntryType value;
+                asm volatile(
+                        "bsf %1,%0"            "\n\t"
+                        "jz 1f"                "\n\t"
+                        "0:"                   "\n\t"
+                        "mov (%5,%0,4),%%ecx"  "\n\t"
+                        "btr %0,%1"            "\n\t"
+                        "mov (%6,%%rcx,4),%3"  "\n\t"
+                        "mov %3,(%7,%0,4)"     "\n\t"
+                        "bsf %1,%0"            "\n\t"
+                        "jnz 0b"               "\n\t"
+                        "1:"                   "\n\t"
+                        : "=r"(bit), "+r"(mask), "=r"(index), "=r"(value), "+m"(v.d)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                        : "rcx"   );
+            } else if (sizeof(EntryType) == 8) {
+                register unsigned long int bit;
+                register unsigned long int index;
+                register EntryType value;
+                asm volatile(
+                        "bsf %1,%0"            "\n\t"
+                        "jz 1f"                "\n\t"
+                        "0:"                   "\n\t"
+                        "mov (%5,%0,4),%%ecx"  "\n\t"
+                        "btr %0,%1"            "\n\t"
+                        "mov (%6,%%rcx,8),%3"  "\n\t"
+                        "mov %3,(%7,%0,8)"     "\n\t"
+                        "bsf %1,%0"            "\n\t"
+                        "jnz 0b"               "\n\t"
+                        "1:"                   "\n\t"
+                        : "=r"(bit), "+r"(mask), "=r"(index), "=r"(value), "+m"(v.d)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                        : "rcx"   );
+            } else {
+                abort();
             }
+#else
+            for_all_vector_entries(i,
+                    if (mask & (1 << i * Shift)) v.d.m(i) = baseAddr[indexes.d.m(i)];
+                );
 #endif
         }
         template<typename AliasingT>
@@ -380,27 +422,17 @@ namespace SSE
 #endif
         }
         static inline void gather(Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr) {
-            for_all_vector_entries(i,
-                    maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)], 1 << i * Shift);
-                );
+            maskedGatherHelper(v, indexes, mask, baseAddr);
         }
         template<typename S1> static inline void gather(Base &v, const IndexType &indexes,
                 const S1 *baseAddr, const EntryType S1::* member1) {
-//X             if (Size == 8) {
-//X                 for_all_vector_entries(i,
-//X                         v.d.v() = _mm_insert_epi16(v.d.v(), baseAddr[indexes.d.m(i)].*(member1), i);
-//X                         );
-//X             } else {
                 for_all_vector_entries(i,
                         v.d.m(i) = baseAddr[indexes.d.m(i)].*(member1);
                         );
-//X             }
         }
         template<typename S1> static inline void gather(Base &v, const IndexType &indexes, int mask,
                 const S1 *baseAddr, const EntryType S1::* member1) {
-            for_all_vector_entries(i,
-                    maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1), 1 << i * Shift);
-                );
+            maskedGatherHelper(v, indexes, mask, &(baseAddr[0].*(member1)));
         }
         template<typename S1, typename S2> static inline void gather(Base &v, const IndexType &indexes,
                 const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2) {
@@ -410,9 +442,7 @@ namespace SSE
         }
         template<typename S1, typename S2> static inline void gather(Base &v, const IndexType &indexes, int mask,
                 const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2) {
-            for_all_vector_entries(i,
-                    maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2), 1 << i * Shift);
-                );
+            maskedGatherHelper(v, indexes, mask, &(baseAddr[0].*(member1).*(member2)));
         }
         static inline void scatter(const Base &v, const IndexType &indexes, EntryType *baseAddr) {
             for_all_vector_entries(i,
@@ -468,9 +498,7 @@ namespace SSE
         }
 
         static inline void gather(Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr) {
-            for_all_vector_entries(i,
-                    VectorHelperSize<float>::maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)], 1 << i * Shift);
-                );
+            VectorHelperSize<float>::maskedGatherHelper(v, indexes, mask, baseAddr);
         }
         template<typename S1> static inline void gather(Base &v, const IndexType &indexes,
                 const S1 *baseAddr, const EntryType S1::* member1) {
@@ -480,9 +508,7 @@ namespace SSE
         }
         template<typename S1> static inline void gather(Base &v, const IndexType &indexes, int mask,
                 const S1 *baseAddr, const EntryType S1::* member1) {
-            for_all_vector_entries(i,
-                    VectorHelperSize<float>::maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1), 1 << i * Shift);
-                );
+            VectorHelperSize<float>::maskedGatherHelper(v, indexes, mask, &(baseAddr[0].*(member1)));
         }
         template<typename S1, typename S2> static inline void gather(Base &v, const IndexType &indexes,
                 const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2) {
@@ -492,9 +518,7 @@ namespace SSE
         }
         template<typename S1, typename S2> static inline void gather(Base &v, const IndexType &indexes, int mask,
                 const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2) {
-            for_all_vector_entries(i,
-                    VectorHelperSize<float>::maskedGatherHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2), 1 << i * Shift);
-                );
+            VectorHelperSize<float>::maskedGatherHelper(v, indexes, mask, &(baseAddr[0].*(member1).*(member2)));
         }
         static inline void scatter(const Base &v, const IndexType &indexes, EntryType *baseAddr) {
             for_all_vector_entries(i,
@@ -2115,12 +2139,12 @@ class Vector : public VectorBase<T>
 
         inline Vector(const EntryType *array, const IndexType &indexes) { VectorHelperSize<T>::gather(*this, indexes, array); }
         inline Vector(const EntryType *array, const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, mask.shiftMask(), array);
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array);
         }
 
         inline void gather(const EntryType *array, const IndexType &indexes) { VectorHelperSize<T>::gather(*this, indexes, array); }
         inline void gather(const EntryType *array, const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, mask.shiftMask(), array);
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array);
         }
 
         inline void scatter(EntryType *array, const IndexType &indexes) const { VectorHelperSize<T>::scatter(*this, indexes, array); }
@@ -2140,7 +2164,7 @@ class Vector : public VectorBase<T>
         }
         template<typename S1> inline Vector(const S1 *array, const EntryType S1::* member1,
                 const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, mask.shiftMask(), array, member1);
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array, member1);
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes) {
@@ -2148,7 +2172,7 @@ class Vector : public VectorBase<T>
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, mask.shiftMask(), array, member1, member2);
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array, member1, member2);
         }
 
         template<typename S1> inline void gather(const S1 *array, const EntryType S1::* member1,
@@ -2157,7 +2181,7 @@ class Vector : public VectorBase<T>
         }
         template<typename S1> inline void gather(const S1 *array, const EntryType S1::* member1,
                 const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, mask.shiftMask(), array, member1);
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array, member1);
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes) {
@@ -2165,7 +2189,7 @@ class Vector : public VectorBase<T>
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes, const Mask &mask) {
-            VectorHelperSize<T>::gather(*this, indexes, mask.shiftMask(), array, member1, member2);
+            VectorHelperSize<T>::gather(*this, indexes, mask.toInt(), array, member1, member2);
         }
 
         template<typename S1> inline void scatter(S1 *array, EntryType S1::* member1,
