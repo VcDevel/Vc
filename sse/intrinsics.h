@@ -59,7 +59,7 @@ namespace SSE
         static inline __m128i _mm_setmin_epi32() CONST;
 
 #if defined(__GNUC__) && !defined(NVALGRIND)
-        static inline __m128i _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)::); return r; }
+        static inline __m128i _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
 #else
         static inline __m128i _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
 #endif
@@ -97,7 +97,10 @@ namespace SSE
 {
     namespace
     {
-        static inline __m128i _mm_abs_epi8 (__m128i a) CONST {
+        static inline __m128i _mm_abs_epi8 (__m128i a) CONST;
+        static inline __m128i _mm_abs_epi16(__m128i a) CONST;
+        static inline __m128i _mm_abs_epi32(__m128i a) CONST;
+        static inline __m128i _mm_abs_epi8 (__m128i a) {
             __m128i negative = _mm_cmplt_epi8 (a, _mm_setzero_si128());
             return _mm_add_epi8 (_mm_xor_si128(a, negative), _mm_and_si128(negative,  _mm_setone_epi8()));
         }
@@ -111,11 +114,11 @@ namespace SSE
         //   a xor -1 -> -a - 1
         //   -1 >> 31 -> 1
         //   -a - 1 + 1 -> -a
-        static inline __m128i _mm_abs_epi16(__m128i a) CONST {
+        static inline __m128i _mm_abs_epi16(__m128i a) {
             __m128i negative = _mm_cmplt_epi16(a, _mm_setzero_si128());
             return _mm_add_epi16(_mm_xor_si128(a, negative), _mm_srli_epi16(negative, 15));
         }
-        static inline __m128i _mm_abs_epi32(__m128i a) CONST {
+        static inline __m128i _mm_abs_epi32(__m128i a) {
             __m128i negative = _mm_cmplt_epi32(a, _mm_setzero_si128());
             return _mm_add_epi32(_mm_xor_si128(a, negative), _mm_srli_epi32(negative, 31));
         }
