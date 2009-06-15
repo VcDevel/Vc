@@ -294,9 +294,9 @@ namespace SSE
 
         enum { Size = Base::Size, Shift = sizeof(EntryType) };
 
-        static inline VectorType my_set4(const EntryType *m, const unsigned long long int a,
-                const unsigned long long int b, const unsigned long long int c,
-                const unsigned long long int d) CONST {
+        static inline VectorType my_set4(const EntryType *m, const unsigned long int a,
+                const unsigned long int b, const unsigned long int c,
+                const unsigned long int d) CONST {
             VectorType v;
             __m128 t1, t2, t3;
             __asm__("movd 0(%4,%5,4), %3\n\t"
@@ -308,7 +308,6 @@ namespace SSE
                     "movlhps %2, %0\n\t"
                     : "=x"(v), "=x"(t1), "=x"(t2), "=x"(t3)
                     : "r"(m), "r"(a), "r"(b), "r"(c), "r"(d)
-                    :
                    );
             return v;
         }
