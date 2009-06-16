@@ -1,0 +1,145 @@
+/*
+    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation; either version 2 of
+    the License, or (at your option) version 3.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+    02110-1301, USA.
+
+*/
+
+#ifndef SSE_VECTORBASE_H
+#define SSE_VECTORBASE_H
+
+#include "intrinsics.h"
+#include "types.h"
+#include "casts.h"
+
+namespace SSE
+{
+    namespace Internal
+    {
+        ALIGN(16) extern const unsigned int   _IndexesFromZero4[4];
+        ALIGN(16) extern const unsigned short _IndexesFromZero8[8];
+    } // namespace Internal
+
+    template<typename T> class VectorBase {
+        friend struct VectorHelperSize<float>;
+        friend struct VectorHelperSize<double>;
+        friend struct VectorHelperSize<int>;
+        friend struct VectorHelperSize<unsigned int>;
+        friend struct VectorHelperSize<short>;
+        friend struct VectorHelperSize<unsigned short>;
+        friend struct VectorHelperSize<float8>;
+        friend struct GeneralHelpers;
+        public:
+            enum { Size = 16 / sizeof(T) };
+            typedef _M128I VectorType;
+            typedef T EntryType;
+            typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
+            typedef Mask<Size> MaskType;
+
+            inline Vector<EntryType> &operator|= (const Vector<EntryType> &x);
+            inline Vector<EntryType> &operator&= (const Vector<EntryType> &x);
+            inline Vector<EntryType> &operator^= (const Vector<EntryType> &x);
+            inline Vector<EntryType> &operator>>=(const Vector<EntryType> &x);
+            inline Vector<EntryType> &operator<<=(const Vector<EntryType> &x);
+
+            inline Vector<EntryType> operator| (const Vector<EntryType> &x) const;
+            inline Vector<EntryType> operator& (const Vector<EntryType> &x) const;
+            inline Vector<EntryType> operator^ (const Vector<EntryType> &x) const;
+            inline Vector<EntryType> operator>>(const Vector<EntryType> &x) const;
+            inline Vector<EntryType> operator<<(const Vector<EntryType> &x) const;
+
+            VectorType &data() { return d.v(); }
+            const VectorType &data() const { return d.v(); }
+
+            inline VectorBase(VectorType x) : d(x) {}
+        protected:
+            inline VectorBase() {}
+
+            VectorMemoryUnion<VectorType, EntryType> d;
+
+            static const T *_IndexesFromZero() {
+                if (Size == 4) {
+                    return reinterpret_cast<const T *>(Internal::_IndexesFromZero4);
+                } else if (Size == 8) {
+                    return reinterpret_cast<const T *>(Internal::_IndexesFromZero8);
+                }
+                return 0;
+            }
+    };
+
+    template<> class VectorBase<float8> {
+        friend struct VectorHelperSize<float8>;
+        friend struct VectorHelperSize<float>;
+        friend struct GeneralHelpers;
+        public:
+            enum { Size = 8 };
+            typedef M256 VectorType;
+            typedef float EntryType;
+            typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
+            typedef Float8Mask MaskType;
+
+            VectorType &data() { return d.v(); }
+            const VectorType &data() const { return d.v(); }
+
+        protected:
+            inline VectorBase() {}
+            inline VectorBase(const VectorType &x) : d(x) {}
+
+            VectorMemoryUnion<VectorType, EntryType> d;
+    };
+
+    template<> class VectorBase<float> {
+        friend struct VectorHelperSize<float>;
+        friend struct GeneralHelpers;
+        public:
+            enum { Size = 16 / sizeof(float) };
+            typedef _M128 VectorType;
+            typedef float EntryType;
+            typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
+            typedef Mask<Size> MaskType;
+
+            VectorType &data() { return d.v(); }
+            const VectorType &data() const { return d.v(); }
+
+        protected:
+            inline VectorBase() {}
+            inline VectorBase(VectorType x) : d(x) {}
+
+            VectorMemoryUnion<VectorType, EntryType> d;
+    };
+
+    template<> class VectorBase<double> {
+        friend struct VectorHelperSize<double>;
+        friend struct GeneralHelpers;
+        public:
+            enum { Size = 16 / sizeof(double) };
+            typedef _M128D VectorType;
+            typedef double EntryType;
+            typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
+            typedef Mask<Size> MaskType;
+
+            VectorType &data() { return d.v(); }
+            const VectorType &data() const { return d.v(); }
+
+        protected:
+            inline VectorBase() {}
+            inline VectorBase(VectorType x) : d(x) {}
+
+            VectorMemoryUnion<VectorType, EntryType> d;
+    };
+
+} // namespace SSE
+#endif // SSE_VECTORBASE_H

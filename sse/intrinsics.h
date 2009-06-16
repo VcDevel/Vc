@@ -32,11 +32,8 @@
 #error "SSE Vector class needs at least SSE2"
 #endif
 
-#ifdef __GNUC__
-#define CONST __attribute__((const))
-#else
-#define CONST
-#endif
+#include "macros.h"
+
 namespace SSE
 {
     namespace
@@ -199,6 +196,5 @@ namespace SSE
     }
 }
 #endif
-#undef CONST
 
 #endif // SSE_INTRINSICS_H
