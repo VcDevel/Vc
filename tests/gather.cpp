@@ -39,7 +39,7 @@ template<typename Vec> void gatherArray()
     M mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         const Vec ii(i);
-        Mask<Vec::Size> castedMask(mask);
+        const typename Vec::Mask castedMask(mask);
         if (castedMask.isFull()) {
             Vec a(array, i);
             COMPARE(a, ii);
@@ -86,7 +86,7 @@ template<typename Vec> void gatherStruct()
         const Vec i0(i);
         const Vec i1(i + 1);
         const Vec i2(i + 2);
-        const Mask<Vec::Size> castedMask(mask);
+        const typename Vec::Mask castedMask(mask);
 
         if (castedMask.isFull()) {
             Vec a(array, &S::a, i);
