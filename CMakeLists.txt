@@ -9,6 +9,8 @@ else(LARRABEE_FOUND)
    find_file(prototypes_header lrbni_prototypes.h PATHS "${CMAKE_SOURCE_DIR}/larrabee/" NO_DEFAULT_PATH)
    if(prototypes_header)
       set(LARRABEE_FOUND true)
+   else(prototypes_header)
+      message(STATUS "Download the LRBni Prototype Header from http://software.intel.com/en-us/articles/prototype-primitives-guide/ and save it as ${CMAKE_SOURCE_DIR}/larrabee/lrbni_prototypes.h")
    endif(prototypes_header)
 endif(LARRABEE_FOUND)
 
