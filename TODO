@@ -1,7 +1,3 @@
-implement the masked SSE vector gathers/scatters using a bsf loop in inline asm
-- array gather is done
-- struct gather is broken because the offsets are different than for array gathers
-
 add benchmarks for
 - gather
 - scatter
