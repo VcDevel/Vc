@@ -248,7 +248,6 @@ namespace SSE
                     "n"
 #endif
                     (bitMask), "m"(vEntry)
-                    :
                );
 #else
             if (mask & bitMask) {
