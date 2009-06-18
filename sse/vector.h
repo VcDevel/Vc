@@ -153,7 +153,7 @@ class Vector : public VectorBase<T>
          */
         inline explicit Vector(const EntryType *x) : Base(VectorHelper<VectorType>::load(x)) {}
 
-        inline Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
+        inline explicit Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
             : Base(VectorHelper<T>::concat(a[0].data(), a[1].data()))
         {}
 
