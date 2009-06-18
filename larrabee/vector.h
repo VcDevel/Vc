@@ -22,6 +22,8 @@
 
 #include "intrinsics.h"
 
+#define VC_HAVE_FMA
+
 #define CAT_HELPER(a, b) a##b
 #define CAT(a, b) CAT_HELPER(a, b)
 
