@@ -17,6 +17,15 @@
 
 */
 
+// when compiling with optimizations the compiler can use an int parameter as an immediate. When
+// compiling without optimizations then the parameter has to be used either as register or memory
+// location.
+#ifdef NO_OPTIMIZATION
+#define IMM "r"
+#else
+#define IMM "n"
+#endif
+
 namespace SSE
 {
     struct GeneralHelpers
@@ -42,7 +51,7 @@ namespace SSE
 
         template<typename Base, typename IndexType, typename EntryType>
         static inline void maskedGatherStructHelper(
-                Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr, const int &scale
+                Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr, const int scale
                 ) {
 #ifdef __GNUC__
             if (sizeof(EntryType) == 2) {
@@ -62,7 +71,7 @@ namespace SSE
                         "jnz 0b"               "\n\t"
                         "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "i"(scale)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale)
                         : "rcx"   );
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
@@ -82,7 +91,7 @@ namespace SSE
                             "jnz 0b"               "\n\t"
                             "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "i"(scale)
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale)
                             : "rcx"   );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
                     register unsigned long int bit;
@@ -101,7 +110,7 @@ namespace SSE
                             "jnz 0b"               "\n\t"
                             "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "i"(scale)
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale)
                             : "rcx"   );
                 } else {
                     abort();
@@ -123,7 +132,7 @@ namespace SSE
                         "jnz 0b"               "\n\t"
                         "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "i"(scale)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale)
                         : "rcx"   );
             } else {
                 abort();
@@ -240,13 +249,7 @@ namespace SSE
                     "cmovne %5,%1\n\t"
                     "mov %1,%0"
                     : "=m"(value), "=&r"(t)
-                    : "r"(mask), "m"(value),
-#ifdef NO_OPTIMIZATION
-                    "m"
-#else
-                    "n"
-#endif
-                    (bitMask), "m"(vEntry)
+                    : "r"(mask), "m"(value), IMM(bitMask), "m"(vEntry)
                );
 #else
             if (mask & bitMask) {
@@ -493,3 +496,5 @@ namespace SSE
         return H::mul(x.data(), H::set(constant));
     }
 } // namespace SSE
+
+#undef IMM
