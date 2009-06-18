@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.6.2)
 project(vector)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+include (MacroEnsureVersion)
+
 find_package(SSE)
 find_package(Larrabee)
 if(LARRABEE_FOUND)
@@ -35,6 +37,20 @@ if(CMAKE_COMPILER_IS_GNUCXX)
    set(CMAKE_C_FLAGS_MINSIZEREL     "${CMAKE_C_FLAGS_MINSIZEREL} ")
    set(CMAKE_C_FLAGS_RELEASE        "${CMAKE_C_FLAGS_RELEASE} -O3 ")
    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DNDEBUG -O3")
+
+   # get the gcc version
+   exec_program(${CMAKE_C_COMPILER} ARGS --version OUTPUT_VARIABLE _gcc_version_info)
+
+   string (REGEX MATCH "[345]\\.[0-9]\\.[0-9]" _gcc_version "${_gcc_version_info}")
+   # gcc on mac just reports: "gcc (GCC) 3.3 20030304 ..." without the patch level, handle this here:
+   if (NOT _gcc_version)
+      string (REGEX REPLACE ".*\\(GCC\\).* ([34]\\.[0-9]) .*" "\\1.0" _gcc_version "${_gcc_version_info}")
+   endif (NOT _gcc_version)
+
+   macro_ensure_version("4.4.0" "${_gcc_version}" GCC_IS_NEWER_THAN_4_4)
+   if(NOT GCC_IS_NEWER_THAN_4_4)
+      message(STATUS "\n-- \n-- WARNING: Your gcc is older than 4.4.0. This is known to cause problems/bugs. Please update to the latest gcc.\n-- \n-- ")
+   endif(NOT GCC_IS_NEWER_THAN_4_4)
 
    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
       add_definitions(-DNO_OPTIMIZATION)
