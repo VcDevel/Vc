@@ -19,8 +19,8 @@
 
 /**
  * \mainpage
- * This is a collection of vector classes with existing implementations for SSE, LRBni or a scalar
- * fallback.
+ * The Vc library is a collection of vector classes with existing implementations for SSE, LRBni or
+ * a scalar fallback.
  *
  * \li Vc::float_v
  * \li Vc::sfloat_v
