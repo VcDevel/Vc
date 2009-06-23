@@ -82,9 +82,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_library(vector STATIC vector.cpp)
 add_target_property(vector COMPILE_FLAGS "-DENABLE_LARRABEE")
 
+install(TARGETS vector DESTINATION lib/)
+install(FILES vector.h vecio.h DESTINATION include/Vc/)
+install(DIRECTORY larrabee simple sse DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc)$")
+
 add_subdirectory(tests)
 enable_testing()
 add_subdirectory(benchmarks)
 
-# install dir is not interesting for now
-mark_as_advanced(CMAKE_INSTALL_PREFIX prototypes_header)
+mark_as_advanced(prototypes_header)
