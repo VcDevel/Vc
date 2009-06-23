@@ -106,7 +106,7 @@ template<unsigned int VectorSize> class Mask
 
         inline bool isFull () const { return
 #ifdef __SSE4_1__
-            _mm_testc_si128(_mm_setzero_si128(), dataI()); // return 1 if (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) == (~0 & k)
+            _mm_testc_si128(dataI(), _mm_setallone_si128()); // return 1 if (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) == (~0 & k)
 #else
             _mm_movemask_epi8(dataI()) == 0xffff;
 #endif
@@ -239,8 +239,8 @@ class Float8Mask
 
         inline bool isFull () const { return
 #ifdef __SSE4_1__
-            _mm_testc_si128(_mm_setzero_si128(), _mm_castps_si128(k[0])) &&
-            _mm_testc_si128(_mm_setzero_si128(), _mm_castps_si128(k[1]));
+            _mm_testc_si128(_mm_castps_si128(k[0]), _mm_setallone_si128()) &&
+            _mm_testc_si128(_mm_castps_si128(k[1]), _mm_setallone_si128());
 #else
             _mm_movemask_ps(k[0]) == 0xf &&
             _mm_movemask_ps(k[1]) == 0xf;
