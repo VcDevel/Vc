@@ -84,6 +84,8 @@ namespace Vc
 #define ENTRY_TYPE float
 #define MASK_TYPE float_m
     /**
+     * \class float_v dox.h <Vc/vector.h>
+     *
      * SIMD Vector of single precision floats.
      */
     class VECTOR_TYPE
@@ -99,6 +101,8 @@ namespace Vc
 #define ENTRY_TYPE double
 #define MASK_TYPE double_m
     /**
+     * \class double_v dox.h <Vc/vector.h>
+     *
      * SIMD Vector of double precision floats.
      */
     class VECTOR_TYPE
@@ -114,6 +118,8 @@ namespace Vc
 #define ENTRY_TYPE int
 #define MASK_TYPE int_m
     /**
+     * \class int_v dox.h <Vc/vector.h>
+     *
      * SIMD Vector of 32 bit signed integers.
      */
     class VECTOR_TYPE
@@ -129,6 +135,8 @@ namespace Vc
 #define ENTRY_TYPE unsigned int
 #define MASK_TYPE uint_m
     /**
+     * \class uint_v dox.h <Vc/vector.h>
+     *
      * SIMD Vector of 32 bit unsigned integers.
      */
     class VECTOR_TYPE
@@ -146,6 +154,8 @@ namespace Vc
 #define ENTRY_TYPE short
 #define MASK_TYPE short_m
     /**
+     * \class short_v dox.h <Vc/vector.h>
+     *
      * SIMD Vector of 16 bit signed integers.
      *
      * \warning Vectors of this type are not supported on all platforms. In that case the vector
@@ -164,6 +174,8 @@ namespace Vc
 #define ENTRY_TYPE unsigned short
 #define MASK_TYPE ushort_m
     /**
+     * \class ushort_v dox.h <Vc/vector.h>
+     *
      * SIMD Vector of 16 bit unsigned integers.
      *
      * \warning Vectors of this type are not supported on all platforms. In that case the vector
@@ -182,6 +194,8 @@ namespace Vc
 #define ENTRY_TYPE float
 #define MASK_TYPE sfloat_m
     /**
+     * \class sfloat_v dox.h <Vc/vector.h>
+     *
      * SIMD Vector of single precision floats that is guaranteed to have as many entries as a
      * Vc::short_v / Vc::ushort_v.
      */
