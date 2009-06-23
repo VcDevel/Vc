@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6.2)
-project(vector)
+project(Vc)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include (MacroEnsureVersion)
@@ -79,10 +79,10 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_library(vector STATIC vector.cpp)
-add_target_property(vector COMPILE_FLAGS "-DENABLE_LARRABEE")
+add_library(Vc STATIC vector.cpp)
+add_target_property(Vc COMPILE_FLAGS "-DENABLE_LARRABEE")
 
-install(TARGETS vector DESTINATION lib/)
+install(TARGETS Vc DESTINATION lib/)
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
 install(DIRECTORY larrabee simple sse DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc)$")
 
