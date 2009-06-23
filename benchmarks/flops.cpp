@@ -17,7 +17,7 @@
 
 */
 
-#include <vector.h>
+#include <Vc/float_v>
 #include "benchmark.h"
 #include <cstdio>
 

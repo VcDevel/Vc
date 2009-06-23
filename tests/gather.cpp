@@ -17,8 +17,7 @@
 
 */
 
-#include "../vector.h"
-#include "vecio.h"
+#include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
 

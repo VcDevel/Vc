@@ -17,11 +17,10 @@
 
 */
 
-#include "../vector.h"
+#include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
 #include <cstring>
-#include "vecio.h"
 
 using namespace Vc;
 

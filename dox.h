@@ -84,7 +84,7 @@ namespace Vc
 #define ENTRY_TYPE float
 #define MASK_TYPE float_m
     /**
-     * \class float_v dox.h <Vc/vector.h>
+     * \class float_v dox.h <Vc/float_v>
      *
      * SIMD Vector of single precision floats.
      */
@@ -101,7 +101,7 @@ namespace Vc
 #define ENTRY_TYPE double
 #define MASK_TYPE double_m
     /**
-     * \class double_v dox.h <Vc/vector.h>
+     * \class double_v dox.h <Vc/double_v>
      *
      * SIMD Vector of double precision floats.
      */
@@ -118,7 +118,7 @@ namespace Vc
 #define ENTRY_TYPE int
 #define MASK_TYPE int_m
     /**
-     * \class int_v dox.h <Vc/vector.h>
+     * \class int_v dox.h <Vc/int_v>
      *
      * SIMD Vector of 32 bit signed integers.
      */
@@ -135,7 +135,7 @@ namespace Vc
 #define ENTRY_TYPE unsigned int
 #define MASK_TYPE uint_m
     /**
-     * \class uint_v dox.h <Vc/vector.h>
+     * \class uint_v dox.h <Vc/uint_v>
      *
      * SIMD Vector of 32 bit unsigned integers.
      */
@@ -154,7 +154,7 @@ namespace Vc
 #define ENTRY_TYPE short
 #define MASK_TYPE short_m
     /**
-     * \class short_v dox.h <Vc/vector.h>
+     * \class short_v dox.h <Vc/short_v>
      *
      * SIMD Vector of 16 bit signed integers.
      *
@@ -174,7 +174,7 @@ namespace Vc
 #define ENTRY_TYPE unsigned short
 #define MASK_TYPE ushort_m
     /**
-     * \class ushort_v dox.h <Vc/vector.h>
+     * \class ushort_v dox.h <Vc/ushort_v>
      *
      * SIMD Vector of 16 bit unsigned integers.
      *
@@ -194,7 +194,7 @@ namespace Vc
 #define ENTRY_TYPE float
 #define MASK_TYPE sfloat_m
     /**
-     * \class sfloat_v dox.h <Vc/vector.h>
+     * \class sfloat_v dox.h <Vc/sfloat_v>
      *
      * SIMD Vector of single precision floats that is guaranteed to have as many entries as a
      * Vc::short_v / Vc::ushort_v.

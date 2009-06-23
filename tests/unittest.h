@@ -20,12 +20,10 @@
 #ifndef UNITTEST_H
 #define UNITTEST_H
 
-#include <vector.h>
-
+#include <Vc/Vc>
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
-#include "vecio.h"
 
 #define runTest(name) _unit_test_global.runTestInt(&name, #name)
 

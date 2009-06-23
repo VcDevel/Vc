@@ -17,10 +17,9 @@
 
 */
 
-#include "../vector.h"
+#include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
-#include "vecio.h"
 #include "vectormemoryhelper.h"
 #include <cmath>
 #include <algorithm>

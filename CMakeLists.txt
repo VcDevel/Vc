@@ -77,13 +77,13 @@ if(CMAKE_COMPILER_IS_GNUCXX)
    endif(USE_SSE4_1)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_library(vector STATIC vector.cpp)
 add_target_property(vector COMPILE_FLAGS "-DENABLE_LARRABEE")
 
 install(TARGETS vector DESTINATION lib/)
-install(FILES vector.h vecio.h DESTINATION include/Vc/)
+install(DIRECTORY include/Vc/ DESTINATION include/Vc)
 install(DIRECTORY larrabee simple sse DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc)$")
 
 add_subdirectory(tests)

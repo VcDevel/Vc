@@ -17,29 +17,24 @@
 
 */
 
-#ifndef V_ALIGN
-# ifdef __GNUC__
-#  define V_ALIGN(n) __attribute__((aligned(n)))
-# else
-#  define V_ALIGN(n) __declspec(align(n))
-# endif
+#ifndef VC_INT_V
+#define VC_INT_V
+
+#include "vector.h"
+
+#ifdef ENABLE_LARRABEE
+#define VECTOR_NAMESPACE Larrabee
+#elif defined(USE_SSE)
+#define VECTOR_NAMESPACE SSE
+#else
+#define VECTOR_NAMESPACE Simple
 #endif
 
-namespace SSE
+namespace Vc
 {
-    namespace Internal
-    {
-        V_ALIGN(16) extern const unsigned int   _IndexesFromZero4[4] = { 0, 1, 2, 3 };
-        V_ALIGN(16) extern const unsigned short _IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-    } // namespace Internal
-} // namespace SSE
+  typedef VECTOR_NAMESPACE::Vector<int> int_v;
+} // namespace Vc
 
-namespace Larrabee
-{
-    namespace Internal
-    {
-        V_ALIGN(16) extern const char _IndexesFromZero[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-    } // namespace Internal
-} // namespace Larrabee
+#undef VECTOR_NAMESPACE
 
-#undef V_ALIGN
+#endif // VC_INT_V

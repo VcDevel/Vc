@@ -20,7 +20,7 @@
 #ifndef VECTORMEMORYHELPER_H
 #define VECTORMEMORYHELPER_H
 
-#include "vector.h"
+#include <Vc/vector.h>
 
 template<typename Vec>
 class VectorMemoryHelper
@@ -37,4 +37,5 @@ class VectorMemoryHelper
 
         operator typename Vec::EntryType *() { return reinterpret_cast<typename Vec::EntryType *>(aligned); }
 };
+
 #endif // VECTORMEMORYHELPER_H

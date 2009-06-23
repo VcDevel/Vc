@@ -56,24 +56,6 @@ namespace Vc
   using VECTOR_NAMESPACE::log10;
   using VECTOR_NAMESPACE::isfinite;
   using VECTOR_NAMESPACE::isnan;
-
-  typedef VECTOR_NAMESPACE::Vector<double> double_v;
-  typedef VECTOR_NAMESPACE::Vector<float> float_v;
-  typedef VECTOR_NAMESPACE::Vector<int> int_v;
-  typedef VECTOR_NAMESPACE::Vector<unsigned int> uint_v;
-#ifdef ENABLE_LARRABEE
-  typedef VECTOR_NAMESPACE::Vector<signed int> short_v;
-  typedef VECTOR_NAMESPACE::Vector<unsigned int> ushort_v;
-  typedef VECTOR_NAMESPACE::Vector<float> sfloat_v;
-#elif defined(USE_SSE)
-  typedef VECTOR_NAMESPACE::Vector<signed short> short_v;
-  typedef VECTOR_NAMESPACE::Vector<unsigned short> ushort_v;
-  typedef VECTOR_NAMESPACE::Vector<VECTOR_NAMESPACE::float8> sfloat_v;
-#else
-  typedef VECTOR_NAMESPACE::Vector<signed short> short_v;
-  typedef VECTOR_NAMESPACE::Vector<unsigned short> ushort_v;
-  typedef VECTOR_NAMESPACE::Vector<float> sfloat_v;
-#endif
 } // namespace Vc
 
 #undef VECTOR_NAMESPACE
