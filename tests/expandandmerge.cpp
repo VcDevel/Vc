@@ -49,12 +49,12 @@ void testSigned()
 void testUnsigned()
 {
 #ifdef __SSE4_1__
-    for (uint start = 0; start < 64000; start += 5) {
+    for (unsigned int start = 0; start < 64000; start += 5) {
 #else
-    for (uint start = 0; start < 32000; start += 5) {
+    for (unsigned int start = 0; start < 32000; start += 5) {
 #endif
         uint_v a[VectorSizeFactor];
-        for (uint i = 0; i < VectorSizeFactor; ++i) {
+        for (unsigned int i = 0; i < VectorSizeFactor; ++i) {
             a[i] = uint_v(IndexesFromZero) + uint_v::Size * i + start;
         }
         ushort_v b(a);
@@ -63,11 +63,11 @@ void testUnsigned()
         // false positive: warning: ‘c’ is used uninitialized in this function
         uint_v c[VectorSizeFactor];
         b.expand(c);
-        for (uint i = 0; i < VectorSizeFactor; ++i) {
+        for (unsigned int i = 0; i < VectorSizeFactor; ++i) {
             COMPARE(c[i], uint_v(IndexesFromZero) + uint_v::Size * i + start);
         }
     }
-    for (uint start = 32000; start < 64000; start += 5) {
+    for (unsigned int start = 32000; start < 64000; start += 5) {
         ushort_v b(IndexesFromZero);
         b += start;
         COMPARE(b, ushort_v(IndexesFromZero) + start);
@@ -75,7 +75,7 @@ void testUnsigned()
         // false positive: warning: ‘c’ may be used uninitialized in this function
         uint_v c[VectorSizeFactor];
         b.expand(c);
-        for (uint i = 0; i < VectorSizeFactor; ++i) {
+        for (unsigned int i = 0; i < VectorSizeFactor; ++i) {
             COMPARE(c[i], uint_v(IndexesFromZero) + uint_v::Size * i + start);
         }
     }
