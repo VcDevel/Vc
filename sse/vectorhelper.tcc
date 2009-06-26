@@ -150,9 +150,9 @@ namespace SSE
                 abort();
             }
 #elif defined(_MSC_VER)
-            for_all_vector_entries(i,
+            unrolled_loop16(i, 0, Base::Size,
                     EntryType entry = baseAddr[scale * indexes.d.m(i)];
-                    register tmp = v.d.m(i);
+                    register EntryType tmp = v.d.m(i);
                     if (mask & (1 << i)) tmp = entry;
                     v.d.m(i) = tmp;
                     );
@@ -246,9 +246,9 @@ namespace SSE
                 abort();
             }
 #elif defined(_MSC_VER)
-            for_all_vector_entries(i,
+            unrolled_loop16(i, 0, Base::Size,
                     EntryType entry = baseAddr[indexes.d.m(i)];
-                    register tmp = v.d.m(i);
+                    register EntryType tmp = v.d.m(i);
                     if (mask & (1 << i)) tmp = entry;
                     v.d.m(i) = tmp;
                     );
@@ -296,7 +296,7 @@ namespace SSE
                         baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
                         baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]));
         } else {
-            for_all_vector_entries(i,
+            unrolled_loop16(i, 0, Base::Size,
                     v.d.m(i) = baseAddr[indexes.d.m(i)];
                     );
         }
