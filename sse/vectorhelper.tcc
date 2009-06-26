@@ -17,6 +17,8 @@
 
 */
 
+#include "casts.h"
+
 // when compiling with optimizations the compiler can use an int parameter as an immediate. When
 // compiling without optimizations then the parameter has to be used either as register or memory
 // location.
@@ -51,10 +53,10 @@ namespace SSE
             t3 = _mm_castsi128_ps(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[a])));
             t2 = _mm_castsi128_ps(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[b])));
             t1 = _mm_castsi128_ps(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[c])));
-            v  = _mm_castsi128_ps(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[d])));
+            v  = mm128_reinterpret_cast<VectorType>(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[d])));
             t2 = _mm_unpacklo_ps(t2, t3);
-            v  = _mm_unpacklo_ps(v , t1);
-            v  = _mm_movelh_ps(v, t2);
+            v  = mm128_reinterpret_cast<VectorType>(_mm_unpacklo_ps(mm128_reinterpret_cast<__m128>(v) , t1));
+            v  = mm128_reinterpret_cast<VectorType>(_mm_movelh_ps(mm128_reinterpret_cast<__m128>(v), t2));
 #else
 #error "Check whether inline asm works, or use else clause"
 #endif
