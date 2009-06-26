@@ -72,29 +72,29 @@ class WriteMaskedVector
             return ret;
         }
 
-        inline Vector<T> &operator+=(Vector<T> x) {
+        inline Vector<T> &operator+=(const Vector<T> &x) {
             vec->data() = VectorHelper<T>::add(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
             return *vec;
         }
-        inline Vector<T> &operator-=(Vector<T> x) {
+        inline Vector<T> &operator-=(const Vector<T> &x) {
             vec->data() = VectorHelper<T>::sub(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
             return *vec;
         }
-        inline Vector<T> &operator*=(Vector<T> x) {
+        inline Vector<T> &operator*=(const Vector<T> &x) {
             vec->data() = VectorHelper<T>::mul(vec->data(), x.data(), mask.data());
             return *vec;
         }
-        inline Vector<T> &operator/=(Vector<T> x) {
+        inline Vector<T> &operator/=(const Vector<T> &x) {
             vec->data() = VectorHelper<T>::div(vec->data(), x.data(), mask.data());
             return *vec;
         }
 
-        inline Vector<T> &operator=(Vector<T> x) {
+        inline Vector<T> &operator=(const Vector<T> &x) {
             vec->assign(x, mask);
             return *vec;
         }
     private:
-        WriteMaskedVector(Vector<T> *v, Mask k) : vec(v), mask(k) {}
+        WriteMaskedVector(Vector<T> *v, const Mask &k) : vec(v), mask(k) {}
         Vector<T> *vec;
         Mask mask;
 };
