@@ -327,7 +327,7 @@ class Vector : public VectorBase<T>
         template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data()); }
         template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data()); }
 
-        inline WriteMaskedVector<T> operator()(Mask k) { return WriteMaskedVector<T>(this, k); }
+        inline WriteMaskedVector<T> operator()(const Mask &k) { return WriteMaskedVector<T>(this, k); }
 
         /**
          * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have

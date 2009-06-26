@@ -129,11 +129,11 @@ template<typename T1, typename T2, typename M> inline void unitttest_comparePrin
     std::cout << " at " << file << ":" << line << " failed.\n";
 }
 
-template<typename T> inline double unittest_fuzzynessHelper(T) { return 0.; }
-template<> inline double unittest_fuzzynessHelper<float>(float) { return _unit_test_global.float_fuzzyness; }
-template<> inline double unittest_fuzzynessHelper<Vc::float_v>(Vc::float_v) { return _unit_test_global.float_fuzzyness; }
-template<> inline double unittest_fuzzynessHelper<double>(double) { return _unit_test_global.double_fuzzyness; }
-template<> inline double unittest_fuzzynessHelper<Vc::double_v>(Vc::double_v) { return _unit_test_global.double_fuzzyness; }
+template<typename T> inline double unittest_fuzzynessHelper(const T &) { return 0.; }
+template<> inline double unittest_fuzzynessHelper<float>(const float &) { return _unit_test_global.float_fuzzyness; }
+template<> inline double unittest_fuzzynessHelper<Vc::float_v>(const Vc::float_v &) { return _unit_test_global.float_fuzzyness; }
+template<> inline double unittest_fuzzynessHelper<double>(const double &) { return _unit_test_global.double_fuzzyness; }
+template<> inline double unittest_fuzzynessHelper<Vc::double_v>(const Vc::double_v &) { return _unit_test_global.double_fuzzyness; }
 
 #define FUZZY_COMPARE( a, b ) \
 if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { \
