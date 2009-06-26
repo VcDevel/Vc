@@ -21,6 +21,7 @@
 #define SSE_UNDOMACROS_H
 
 #undef CONST
+#undef MAY_ALIAS
 #undef ALIGN
 #undef CAT
 #undef CAT_HELPER

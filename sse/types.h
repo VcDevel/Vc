@@ -55,7 +55,7 @@ namespace SSE
     template<typename VectorType, typename EntryType> class VectorMemoryUnion
     {
         public:
-            typedef EntryType AliasingEntryType __attribute__((__may_alias__));
+            typedef EntryType AliasingEntryType MAY_ALIAS;
             inline VectorMemoryUnion() {}
             inline VectorMemoryUnion(const VectorType &x) : data(x) {}
 

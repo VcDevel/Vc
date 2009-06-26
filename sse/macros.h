@@ -30,8 +30,10 @@
 
 #ifdef __GNUC__
 #define CONST __attribute__((const))
+#define MAY_ALIAS __attribute__((__may_alias__))
 #else
 #define CONST
+#define MAY_ALIAS
 #endif
 
 #define CAT_HELPER(a, b) a##b
