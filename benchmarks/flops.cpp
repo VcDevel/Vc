@@ -27,7 +27,7 @@ static const int factor = 1000000;
 
 int main()
 {
-    FILE *blackHole = std::fopen("/dev/null", "w");
+    int blackHole = true;
     {
         Benchmark timer("SAXPY", 8. * float_v::Size * factor, "FLOP");
         for (int repetitions = 0; repetitions < 10; ++repetitions) {
@@ -53,8 +53,8 @@ int main()
             ///////////////////////////////////////
             timer.Stop();
 
-            const bool k = (x[0] < x[1]) && (x[2] < x[3]);
-            std::fwrite(&k, 1, 1, blackHole);
+            const int k = (x[0] < x[1]) && (x[2] < x[3]);
+            blackHole &= k;
         }
         timer.Print(Benchmark::PrintAverage);
     }
@@ -64,7 +64,7 @@ int main()
         Benchmark timer("SAXPY (reference)", 8. * float_v::Size * factor, "FLOP");
         for (int repetitions = 0; repetitions < 10; ++repetitions) {
 #ifdef USE_SSE
-            __m128 tmp = _mm_set1_ps(repetitions);
+            __m128 tmp = _mm_set1_ps(static_cast<float>(repetitions));
             const __m128 oPoint2 = _mm_set1_ps(0.2f);
             const __m128 oPoint1 = _mm_set1_ps(0.1f);
             __m128 alpha[4] = {
@@ -90,9 +90,9 @@ int main()
             timer.Stop();
 
             const int k = _mm_movemask_ps(_mm_add_ps(_mm_add_ps(x[0], x[1]), _mm_add_ps(x[2], x[3])));
-            std::fwrite(&k, 1, 1, blackHole);
+            blackHole &= k;
 #elif defined(ENABLE_LARRABEE)
-            __m512 tmp = _mm512_set_1to16_ps(repetitions);
+            __m512 tmp = _mm512_set_1to16_ps(static_cast<float>(repetitions));
             const __m512 oPoint2 = _mm512_set_1to16_ps(0.2f);
             const __m512 oPoint1 = _mm512_set_1to16_ps(0.1f);
             __m512 alpha[4] = {
@@ -118,7 +118,7 @@ int main()
             timer.Stop();
 
             const int k = _mm512_cmpeq_ps(_mm512_add_ps(x[0], x[1]), _mm512_add_ps(x[2], x[3]));
-            std::fwrite(&k, 1, 1, blackHole);
+            blackHole &= k;
 #else
             float alpha[4] = {
                 float(repetitions + 0.2f),
@@ -142,11 +142,14 @@ int main()
             ///////////////////////////////////////
             timer.Stop();
 
-            const bool k = (x[0] < x[1]) && (x[2] < x[3]);
-            std::fwrite(&k, 1, 1, blackHole);
+            const int k = (x[0] < x[1]) && (x[2] < x[3]);
+            blackHole &= k;
 #endif
         }
         timer.Print(Benchmark::PrintAverage);
+    }
+    if (blackHole == 82934) {
+        std::cout << std::endl;
     }
     return 0;
 }
