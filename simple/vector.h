@@ -24,6 +24,10 @@
 #include <algorithm>
 #include <cmath>
 
+#ifdef _MSC_VER
+#include <float.h>
+#endif
+
 #ifndef ALIGN
 # ifdef __GNUC__
 #  define ALIGN(n) __attribute__((aligned(n)))
@@ -453,8 +457,20 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
   template<typename T> static inline Simple::Vector<T> log  (const Simple::Vector<T> &x) { return std::log( x.data() ); }
   template<typename T> static inline Simple::Vector<T> log10(const Simple::Vector<T> &x) { return std::log10( x.data() ); }
 
-  template<typename T> static inline bool isfinite(const Simple::Vector<T> &x) { return std::isfinite( x.data() ); }
-  template<typename T> static inline bool isnan(const Simple::Vector<T> &x) { return std::isnan( x.data() ); }
+  template<typename T> static inline bool isfinite(const Simple::Vector<T> &x) { return
+#ifdef _MSC_VER
+      !!_finite(x.data());
+#else
+      std::isfinite(x.data());
+#endif
+  }
+  template<typename T> static inline bool isnan(const Simple::Vector<T> &x) { return
+#ifdef _MSC_VER
+      !!_isnan(x.data());
+#else
+      std::isnan(x.data());
+#endif
+  }
 } // namespace Simple
 
 #endif // SIMPLE_VECTOR_H
