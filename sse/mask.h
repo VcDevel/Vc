@@ -266,7 +266,7 @@ class Float8Mask
         inline const M256 &data () const { return k; }
 
         inline bool operator[](int index) const {
-            return toInt() & (1 << index);
+            return (toInt() & (1 << index)) != 0;
         }
 
     private:
