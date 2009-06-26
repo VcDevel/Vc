@@ -27,7 +27,7 @@
 // SSE2
 #include <emmintrin.h>
 
-#ifndef __SSE2__
+#if defined(__GNUC__) && !defined(__SSE2__)
 #error "SSE Vector class needs at least SSE2"
 #endif
 
@@ -135,7 +135,6 @@ namespace SSE
         static inline __m128  _mm_blendv_ps(__m128  a, __m128  b, __m128  c) CONST;
         static inline __m128i _mm_blendv_epi8(__m128i a, __m128i b, __m128i c) CONST;
         static inline __m128i _mm_max_epi8 (__m128i a, __m128i b) CONST;
-        static inline __m128i _mm_max_epi16(__m128i a, __m128i b) CONST;
         static inline __m128i _mm_max_epi32(__m128i a, __m128i b) CONST;
         static inline __m128i _mm_max_epu8 (__m128i a, __m128i b) CONST;
         static inline __m128i _mm_max_epu16(__m128i a, __m128i b) CONST;
@@ -144,7 +143,6 @@ namespace SSE
         static inline __m128i _mm_min_epu16(__m128i a, __m128i b) CONST;
         static inline __m128i _mm_min_epu32(__m128i a, __m128i b) CONST;
         static inline __m128i _mm_min_epi8 (__m128i a, __m128i b) CONST;
-        static inline __m128i _mm_min_epi16(__m128i a, __m128i b) CONST;
         static inline __m128i _mm_min_epi32(__m128i a, __m128i b) CONST;
 
         static inline __m128d _mm_blendv_pd(__m128d a, __m128d b, __m128d c) {
@@ -158,9 +156,6 @@ namespace SSE
         }
         static inline __m128i _mm_max_epi8 (__m128i a, __m128i b) {
             return _mm_blendv_epi8(b, a, _mm_cmpgt_epi8 (a, b));
-        }
-        static inline __m128i _mm_max_epi16(__m128i a, __m128i b) {
-            return _mm_blendv_epi8(b, a, _mm_cmpgt_epi16(a, b));
         }
         static inline __m128i _mm_max_epi32(__m128i a, __m128i b) {
             return _mm_blendv_epi8(b, a, _mm_cmpgt_epi32(a, b));
@@ -185,9 +180,6 @@ namespace SSE
         }
         static inline __m128i _mm_min_epi8 (__m128i a, __m128i b) {
             return _mm_blendv_epi8(a, b, _mm_cmpgt_epi8 (a, b));
-        }
-        static inline __m128i _mm_min_epi16(__m128i a, __m128i b) {
-            return _mm_blendv_epi8(a, b, _mm_cmpgt_epi16(a, b));
         }
         static inline __m128i _mm_min_epi32(__m128i a, __m128i b) {
             return _mm_blendv_epi8(a, b, _mm_cmpgt_epi32(a, b));
