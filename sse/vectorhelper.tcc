@@ -36,6 +36,7 @@ namespace SSE
                 ) {
             VectorType v;
             __m128 t1, t2, t3;
+#ifdef __GNUC__
             __asm__("movd 0(%4,%5,4), %3\n\t"
                     "movd 0(%4,%6,4), %2\n\t"
                     "movd 0(%4,%7,4), %1\n\t"
@@ -46,6 +47,17 @@ namespace SSE
                     : "=x"(v), "=x"(t1), "=x"(t2), "=x"(t3)
                     : "r"(m), "r"(a), "r"(b), "r"(c), "r"(d)
                    );
+#elif defined(_MSC_VER)
+            t3 = _mm_castsi128_ps(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[a])));
+            t2 = _mm_castsi128_ps(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[b])));
+            t1 = _mm_castsi128_ps(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[c])));
+            v  = _mm_castsi128_ps(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[d])));
+            t2 = _mm_unpacklo_ps(t2, t3);
+            v  = _mm_unpacklo_ps(v , t1);
+            v  = _mm_movelh_ps(v, t2);
+#else
+#error "Check whether inline asm works, or use else clause"
+#endif
             return v;
         }
 
@@ -137,11 +149,15 @@ namespace SSE
             } else {
                 abort();
             }
-#else
-#error "Check whether inline asm works, or fix else clause"
+#elif defined(_MSC_VER)
             for_all_vector_entries(i,
-                    if (mask & (1 << i * Shift)) v.d.m(i) = baseAddr[indexes.d.m(i)];
+                    EntryType entry = baseAddr[scale * indexes.d.m(i)];
+                    register tmp = v.d.m(i);
+                    if (mask & (1 << i)) tmp = entry;
+                    v.d.m(i) = tmp;
                     );
+#else
+#error "Check whether inline asm works, or use else clause"
 #endif
         }
 
@@ -229,11 +245,15 @@ namespace SSE
             } else {
                 abort();
             }
-#else
-#error "Check whether inline asm works, or fix else clause"
+#elif defined(_MSC_VER)
             for_all_vector_entries(i,
-                    if (mask & (1 << i * Shift)) v.d.m(i) = baseAddr[indexes.d.m(i)];
+                    EntryType entry = baseAddr[indexes.d.m(i)];
+                    register tmp = v.d.m(i);
+                    if (mask & (1 << i)) tmp = entry;
+                    v.d.m(i) = tmp;
                     );
+#else
+#error "Check whether inline asm works, or use else clause"
 #endif
         }
 
