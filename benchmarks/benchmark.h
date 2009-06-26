@@ -24,6 +24,10 @@
 #include <iomanip>
 #include <list>
 #include <time.h>
+#ifdef _MSC_VER
+#include <windows.h>
+#include <float.h>
+#endif
 
 class Benchmark
 {
@@ -53,24 +57,46 @@ private:
     const char *const fName;
     const double fFactor;
     const char *const fX;
+#ifdef _MSC_VER
+    DWORD fRealTime;
+    clock_t fCpuTime;
+#else
     struct timespec fRealTime;
     struct timespec fCpuTime;
+#endif
     std::list<DataPoint> fDataPoints;
 };
 
 inline void Benchmark::Start()
 {
+#ifdef _MSC_VER
+    fRealTime = GetTickCount();
+    fCpuTime = clock();
+#else
     clock_gettime( CLOCK_MONOTONIC, &fRealTime );
     clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &fCpuTime );
+#endif
 }
 
+#ifndef _MSC_VER
 static inline double convertTimeSpec(const struct timespec &ts)
 {
     return static_cast<double>(ts.tv_sec) + static_cast<double>(ts.tv_nsec) * 1e-9;
 }
+#endif
+
+static const double SECONDS_PER_CLOCK = 1. / CLOCKS_PER_SEC;
 
 inline void Benchmark::Stop()
 {
+#ifdef _MSC_VER
+    DWORD real = GetTickCount();
+    clock_t cpu = clock();
+    const DataPoint p = {
+        (real - fRealTime) * 1e-3,
+        (cpu - fCpuTime) * SECONDS_PER_CLOCK
+    };
+#else
     struct timespec real, cpu;
     clock_gettime( CLOCK_MONOTONIC, &real );
     clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &cpu );
@@ -79,6 +105,7 @@ inline void Benchmark::Stop()
         convertTimeSpec(real) - convertTimeSpec(fRealTime),
         convertTimeSpec(cpu ) - convertTimeSpec(fCpuTime )
     };
+#endif
     fDataPoints.push_back(p);
 }
 
@@ -91,7 +118,9 @@ inline void Benchmark::Mark()
 static inline void prettyPrintSeconds(double v)
 {
     static const char prefix[] = { ' ', 'm', 'u', 'n', 'p' };
-    if (v < 1.) {
+    if (v == 0.) {
+        std::cout << "      0       ";
+    } else if (v < 1.) {
         int i = 0;
         do {
             v *= 1000.;
@@ -107,9 +136,15 @@ static inline void prettyPrintCount(double v)
 {
     static const char prefix[] = { ' ', 'k', 'M', 'G', 'T', 'P', 'E' };
     int i = 0;
-    while (v > 1000.) {
-        v *= 0.001;
-        ++i;
+#ifdef _MSC_VER
+    if (_finite(v)) {
+#else
+    if (std::isfinite(v)) {
+#endif
+        while (v > 1000.) {
+            v *= 0.001;
+            ++i;
+        }
     }
     std::cout << std::setw(12) << v << ' ' << prefix[i];
 }
