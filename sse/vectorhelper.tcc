@@ -153,7 +153,7 @@ namespace SSE
             }
 #elif defined(_MSC_VER)
             unrolled_loop16(i, 0, Base::Size,
-                    EntryType entry = baseAddr[scale * indexes.d.m(i)];
+                    EntryType entry = baseAddr[scale / sizeof(EntryType) * indexes.d.m(i)];
                     register EntryType tmp = v.d.m(i);
                     if (mask & (1 << i)) tmp = entry;
                     v.d.m(i) = tmp;
