@@ -35,10 +35,17 @@ namespace
 {
     namespace AnsiColor
     {
+#ifdef _MSC_VER
+        static const char *const green  = "";
+        static const char *const yellow = "";
+        static const char *const blue   = "";
+        static const char *const normal = "";
+#else
         static const char *const green  = "\033[1;40;32m";
         static const char *const yellow = "\033[1;40;33m";
         static const char *const blue   = "\033[1;40;34m";
         static const char *const normal = "\033[0m";
+#endif
     } // namespace AnsiColor
 } // anonymous namespace
 
