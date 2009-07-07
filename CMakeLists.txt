@@ -27,6 +27,9 @@ macro(add_target_property _target _prop _value)
 endmacro(add_target_property)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
+   ##################################################################################################
+   #                                              GCC                                               #
+   ##################################################################################################
    set(CMAKE_C_FLAGS "-W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wno-variadic-macros -msse -msse2 -Wshadow")
    set(CMAKE_CXX_FLAGS "-W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wno-variadic-macros -msse -msse2 -Wshadow")
    set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
@@ -75,6 +78,32 @@ if(CMAKE_COMPILER_IS_GNUCXX)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.1")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
    endif(USE_SSE4_1)
+elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
+   ##################################################################################################
+   #                                          Intel Compiler                                        #
+   ##################################################################################################
+
+   # per default icc is not IEEE compliant, but we need that for verification
+   set(CMAKE_C_FLAGS   "-w1 -mieee-fp")
+   set(CMAKE_CXX_FLAGS "-w1 -mieee-fp")
+   if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+      set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
+      if(ENABLE_STRICT_ALIASING)
+         set(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -ansi-alias")
+         set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -ansi-alias")
+         set(CMAKE_C_FLAGS_RELEASE        "${CMAKE_C_FLAGS_RELEASE} -ansi-alias")
+         set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -ansi-alias")
+      else(ENABLE_STRICT_ALIASING)
+         set(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -no-ansi-alias")
+         set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -no-ansi-alias")
+         set(CMAKE_C_FLAGS_RELEASE        "${CMAKE_C_FLAGS_RELEASE} -no-ansi-alias")
+         set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -no-ansi-alias")
+      endif(ENABLE_STRICT_ALIASING)
+   endif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+
+   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+      add_definitions(-DNO_OPTIMIZATION)
+   endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
