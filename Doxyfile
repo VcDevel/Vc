@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "Vector Classes"
-PROJECT_NUMBER         = 0.2.2-dev
+PROJECT_NUMBER         = 0.2.3
 OUTPUT_DIRECTORY       = ./apidox
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
