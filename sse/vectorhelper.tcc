@@ -18,11 +18,12 @@
 */
 
 #include "casts.h"
+#include <cstdlib>
 
 // when compiling with optimizations the compiler can use an int parameter as an immediate. When
 // compiling without optimizations then the parameter has to be used either as register or memory
 // location.
-#ifdef NO_OPTIMIZATION
+#if defined(NO_OPTIMIZATION) || defined(__INTEL_COMPILER)
 #define IMM "r"
 #else
 #define IMM "n"

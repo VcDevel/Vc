@@ -140,6 +140,8 @@ static inline void prettyPrintCount(double v)
     int i = 0;
 #ifdef _MSC_VER
     if (_finite(v)) {
+#elif defined(__INTEL_COMPILER)
+    if (::isfinite(v)) {
 #else
     if (std::isfinite(v)) {
 #endif

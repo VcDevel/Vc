@@ -217,7 +217,7 @@ class Vector : public VectorBase<T, Vector<T> >
 
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> *a) : m_data(static_cast<T>(a->data())) {}
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}
-        inline Vector(const T &x) : m_data(x) {}
+        inline Vector(T x) : m_data(x) {}
         template<typename Other> inline Vector(const Other *x) : m_data(x[0]) {}
 
         template<typename OtherT> inline void expand(Vector<OtherT> *x) const { x->data() = static_cast<OtherT>(m_data); }
@@ -460,6 +460,8 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
   template<typename T> static inline bool isfinite(const Simple::Vector<T> &x) { return
 #ifdef _MSC_VER
       !!_finite(x.data());
+#elif defined(__INTEL_COMPILER)
+      ::isfinite(x.data());
 #else
       std::isfinite(x.data());
 #endif
@@ -467,6 +469,8 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
   template<typename T> static inline bool isnan(const Simple::Vector<T> &x) { return
 #ifdef _MSC_VER
       !!_isnan(x.data());
+#elif defined(__INTEL_COMPILER)
+      ::isnan(x.data());
 #else
       std::isnan(x.data());
 #endif
