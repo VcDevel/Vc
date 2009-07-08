@@ -36,7 +36,6 @@ endmacro(vc_add_benchmark)
 
 vc_add_benchmark(flops)
 
-message(STATUS "${ALL_BENCHMARK_TARGETS}")
 add_custom_target(benchmark
    COMMENT "Run all benchmarks"
    VERBATIM
