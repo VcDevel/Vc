@@ -1,8 +1,0 @@
-add benchmarks for
-- gather
-- scatter
-- math functions
-- load
-- store
-- comparisons
-- masked assignment
