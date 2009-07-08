@@ -56,6 +56,7 @@ namespace Vc
   using VECTOR_NAMESPACE::log10;
   using VECTOR_NAMESPACE::isfinite;
   using VECTOR_NAMESPACE::isnan;
+  using VECTOR_NAMESPACE::forceToRegisters;
 } // namespace Vc
 
 #undef VECTOR_NAMESPACE
