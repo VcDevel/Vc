@@ -20,10 +20,19 @@
 #include <Vc/float_v>
 #include "benchmark.h"
 #include <cstdio>
+#include <cstdlib>
 
 using namespace Vc;
 
 static const int factor = 1000000;
+
+static float randomF(float min, float max)
+{
+    const float delta = max - min;
+    return min + delta * rand() / RAND_MAX;
+}
+
+static float randomF12() { return randomF(1.f, 2.f); }
 
 int main()
 {
@@ -31,14 +40,14 @@ int main()
     {
         Benchmark timer("SAXPY", 8. * float_v::Size * factor, "FLOP");
         for (int repetitions = 0; repetitions < 10; ++repetitions) {
-            float_v alpha[4] = {
-                float_v(repetitions + 0.2f),
-                float_v(repetitions - 0.2f),
-                float_v(repetitions + 0.1f),
-                float_v(repetitions - 0.1f)
+            const float_v alpha[4] = {
+                float_v(repetitions + randomF(.1f, .2f)),
+                float_v(repetitions - randomF(.1f, .2f)),
+                float_v(repetitions + randomF(.1f, .2f)),
+                float_v(repetitions - randomF(.1f, .2f))
             };
-            float_v x[4] = { 2.9f, 3.2f, 1.4f, 2.1f };
-            float_v y[4] = { 1.2f, 0.2f, -1.4f, 4.3f };
+            float_v x[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
+            const float_v y[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
 
             timer.Start();
             ///////////////////////////////////////
@@ -65,16 +74,29 @@ int main()
         for (int repetitions = 0; repetitions < 10; ++repetitions) {
 #ifdef USE_SSE
             __m128 tmp = _mm_set1_ps(static_cast<float>(repetitions));
-            const __m128 oPoint2 = _mm_set1_ps(0.2f);
-            const __m128 oPoint1 = _mm_set1_ps(0.1f);
-            __m128 alpha[4] = {
+            const __m128 oPoint2 = _mm_set_ps(randomF(.1f, .2f), randomF(.1f, .2f), randomF(.1f, .2f), randomF(.1f, .2f));
+            const __m128 oPoint1 = _mm_set_ps(randomF(.1f, .2f), randomF(.1f, .2f), randomF(.1f, .2f), randomF(.1f, .2f));
+            const __m128 alpha[4] = {
                 _mm_add_ps(tmp, oPoint2),
                 _mm_sub_ps(tmp, oPoint2),
                 _mm_add_ps(tmp, oPoint1),
                 _mm_sub_ps(tmp, oPoint1)
             };
-            __m128 x[4] = { _mm_set1_ps(2.9f), _mm_set1_ps(3.2f), _mm_set1_ps(1.4f), _mm_set1_ps(2.1f) };
-            __m128 y[4] = { _mm_set1_ps(1.2f), _mm_set1_ps(0.2f), _mm_set1_ps(-1.4f), _mm_set1_ps(4.3f) };
+            __m128 x[4] = { _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
+                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
+                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
+                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()) };
+            const __m128 y[4] = { _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
+                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
+                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
+                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()) };
+
+            // force the vectors to xmm registers, otherwise GCC decides to work on the stack and
+            // lose half of the performance
+            asm volatile("" ::
+                    "x"(x[0]), "x"(x[1]), "x"(x[2]), "x"(x[3]),
+                    "x"(y[0]), "x"(y[1]), "x"(y[2]), "x"(y[3]),
+                    "x"(alpha[0]), "x"(alpha[1]), "x"(alpha[2]), "x"(alpha[3]));
 
             timer.Start();
             ///////////////////////////////////////
@@ -93,16 +115,16 @@ int main()
             blackHole &= k;
 #elif defined(ENABLE_LARRABEE)
             __m512 tmp = _mm512_set_1to16_ps(static_cast<float>(repetitions));
-            const __m512 oPoint2 = _mm512_set_1to16_ps(0.2f);
-            const __m512 oPoint1 = _mm512_set_1to16_ps(0.1f);
-            __m512 alpha[4] = {
+            const __m512 oPoint2 = _mm512_set_1to16_ps(randomF(.1f, .2f));
+            const __m512 oPoint1 = _mm512_set_1to16_ps(randomF(.1f, .2f));
+            const __m512 alpha[4] = {
                 _mm512_add_ps(tmp, oPoint2),
                 _mm512_sub_ps(tmp, oPoint2),
                 _mm512_add_ps(tmp, oPoint1),
                 _mm512_sub_ps(tmp, oPoint1)
             };
-            __m512 x[4] = { _mm512_set_1to16_ps(2.9f), _mm512_set_1to16_ps(3.2f), _mm512_set_1to16_ps(1.4f), _mm512_set_1to16_ps(2.1f) };
-            __m512 y[4] = { _mm512_set_1to16_ps(1.2f), _mm512_set_1to16_ps(0.2f), _mm512_set_1to16_ps(-1.4f), _mm512_set_1to16_ps(4.3f) };
+            __m512 x[4] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
+            const __m512 y[4] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
 
             timer.Start();
             ///////////////////////////////////////
@@ -120,14 +142,14 @@ int main()
             const int k = _mm512_cmpeq_ps(_mm512_add_ps(x[0], x[1]), _mm512_add_ps(x[2], x[3]));
             blackHole &= k;
 #else
-            float alpha[4] = {
-                float(repetitions + 0.2f),
-                float(repetitions - 0.2f),
-                float(repetitions + 0.1f),
-                float(repetitions - 0.1f)
+            const float alpha[4] = {
+                float(repetitions + randomF(.1f, .2f)),
+                float(repetitions - randomF(.1f, .2f)),
+                float(repetitions + randomF(.1f, .2f)),
+                float(repetitions - randomF(.1f, .2f))
             };
-            float x[4] = { 2.9f, 3.2f, 1.4f, 2.1f };
-            float y[4] = { 1.2f, 0.2f, -1.4f, 4.3f };
+            float x[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
+            const float y[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
 
             timer.Start();
             ///////////////////////////////////////
@@ -148,7 +170,7 @@ int main()
         }
         timer.Print(Benchmark::PrintAverage);
     }
-    if (blackHole == 82934) {
+    if (blackHole != 0) {
         std::cout << std::endl;
     }
     return 0;
