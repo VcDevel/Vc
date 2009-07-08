@@ -209,4 +209,14 @@ namespace Vc
 #undef MASK_TYPE
 #undef INDEX_TYPE
 
+    /**
+     * Force the vectors passed to the function into registers. This can be useful after looking at
+     * the emitted assembly to force the compiler to optimize properly.
+     *
+     * \note currently only has an effect for SSE vectors
+     *
+     * \warning Be careful with this function, especially since it can render the compiler unable to
+     * compile for 32 bit systems if it forces more than 8 vectors in registers.
+     */
+    void forceToRegisters(const vec &, ...);
 }
