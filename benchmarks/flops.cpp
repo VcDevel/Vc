@@ -49,6 +49,10 @@ int main()
             float_v x[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
             const float_v y[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
 
+            // force the vectors to registers, otherwise GCC decides to work on the stack and
+            // lose half of the performance
+            forceToRegisters(alpha[0], alpha[1], alpha[2], alpha[3], x[0], x[1], x[2], x[3], y[0], y[1], y[2], y[3]);
+
             timer.Start();
             ///////////////////////////////////////
 
@@ -74,29 +78,16 @@ int main()
         for (int repetitions = 0; repetitions < 10; ++repetitions) {
 #ifdef USE_SSE
             __m128 tmp = _mm_set1_ps(static_cast<float>(repetitions));
-            const __m128 oPoint2 = _mm_set_ps(randomF(.1f, .2f), randomF(.1f, .2f), randomF(.1f, .2f), randomF(.1f, .2f));
-            const __m128 oPoint1 = _mm_set_ps(randomF(.1f, .2f), randomF(.1f, .2f), randomF(.1f, .2f), randomF(.1f, .2f));
+            const __m128 oPoint2 = _mm_set1_ps(randomF(.1f, .2f));
+            const __m128 oPoint1 = _mm_set1_ps(randomF(.1f, .2f));
             const __m128 alpha[4] = {
                 _mm_add_ps(tmp, oPoint2),
                 _mm_sub_ps(tmp, oPoint2),
                 _mm_add_ps(tmp, oPoint1),
                 _mm_sub_ps(tmp, oPoint1)
             };
-            __m128 x[4] = { _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
-                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
-                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
-                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()) };
-            const __m128 y[4] = { _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
-                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
-                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()),
-                _mm_set_ps(randomF12(), randomF12(), randomF12(), randomF12()) };
-
-            // force the vectors to xmm registers, otherwise GCC decides to work on the stack and
-            // lose half of the performance
-            asm volatile("" ::
-                    "x"(x[0]), "x"(x[1]), "x"(x[2]), "x"(x[3]),
-                    "x"(y[0]), "x"(y[1]), "x"(y[2]), "x"(y[3]),
-                    "x"(alpha[0]), "x"(alpha[1]), "x"(alpha[2]), "x"(alpha[3]));
+            __m128 x[4] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
+            const __m128 y[4] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
 
             timer.Start();
             ///////////////////////////////////////
