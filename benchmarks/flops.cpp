@@ -49,9 +49,9 @@ int main()
             float_v x[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
             const float_v y[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
 
-            // force the vectors to registers, otherwise GCC decides to work on the stack and
+            // force the x vectors to registers, otherwise GCC decides to work on the stack and
             // lose half of the performance
-            forceToRegisters(alpha[0], alpha[1], alpha[2], alpha[3], x[0], x[1], x[2], x[3], y[0], y[1], y[2], y[3]);
+            forceToRegisters(x[0], x[1], x[2], x[3]);
 
             timer.Start();
             ///////////////////////////////////////
