@@ -399,6 +399,117 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const typename 
 
   template<typename T> static inline typename Vector<T>::Mask isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
   template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
+
+#ifdef _MSC_VER
+  template<typename T> static inline void forceToRegisters(const Vector<T> &) {}
+  template<typename T1, typename T2> static inline void forceToRegisters(
+      const Vector<T1> &, const Vector<T2> &) {}
+  template<typename T1, typename T2, typename T3> static inline void forceToRegisters(
+        const Vector<T1>  &,  const Vector<T2>  &, const Vector<T3>  &) {}
+  template<typename T1, typename T2, typename T3, typename T4> static inline void forceToRegisters(
+        const Vector<T1>  &,  const Vector<T2>  &,
+        const Vector<T3>  &,  const Vector<T4>  &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5>
+    static inline void forceToRegisters(
+        const Vector<T1>  &,  const Vector<T2>  &,
+        const Vector<T3>  &,  const Vector<T4>  &,
+        const Vector<T5>  &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+    static inline void forceToRegisters(
+        const Vector<T1>  &,  const Vector<T2>  &,
+        const Vector<T3>  &,  const Vector<T4>  &,
+        const Vector<T5>  &,  const Vector<T6>  &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6,
+    typename T7>
+    static inline void forceToRegisters(
+        const Vector<T1>  &,  const Vector<T2>  &,
+        const Vector<T3>  &,  const Vector<T4>  &,
+        const Vector<T5>  &,  const Vector<T6>  &,
+        const Vector<T7>  &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6,
+    typename T7, typename T8>
+    static inline void forceToRegisters(
+        const Vector<T1>  &,  const Vector<T2>  &,
+        const Vector<T3>  &,  const Vector<T4>  &,
+        const Vector<T5>  &,  const Vector<T6>  &,
+        const Vector<T7>  &,  const Vector<T8>  &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6,
+    typename T7, typename T8, typename T9>
+    static inline void forceToRegisters(
+        const Vector<T1>  &,  const Vector<T2>  &,
+        const Vector<T3>  &,  const Vector<T4>  &,
+        const Vector<T5>  &,  const Vector<T6>  &,
+        const Vector<T7>  &,  const Vector<T8>  &,
+        const Vector<T9>  &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6,
+    typename T7, typename T8, typename T9, typename T10>
+    static inline void forceToRegisters(
+        const Vector<T1>  &, const Vector<T2>  &,
+        const Vector<T3>  &, const Vector<T4>  &,
+        const Vector<T5>  &, const Vector<T6>  &,
+        const Vector<T7>  &, const Vector<T8>  &,
+        const Vector<T9>  &, const Vector<T10> &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6,
+    typename T7, typename T8, typename T9, typename T10, typename T11>
+    static inline void forceToRegisters(
+        const Vector<T1>  &, const Vector<T2>  &,
+        const Vector<T3>  &, const Vector<T4>  &,
+        const Vector<T5>  &, const Vector<T6>  &,
+        const Vector<T7>  &, const Vector<T8>  &,
+        const Vector<T9>  &, const Vector<T10> &,
+        const Vector<T11> &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6,
+    typename T7, typename T8, typename T9, typename T10, typename T11, typename T12>
+    static inline void forceToRegisters(
+        const Vector<T1>  &, const Vector<T2>  &,
+        const Vector<T3>  &, const Vector<T4>  &,
+        const Vector<T5>  &, const Vector<T6>  &,
+        const Vector<T7>  &, const Vector<T8>  &,
+        const Vector<T9>  &, const Vector<T10> &,
+        const Vector<T11> &, const Vector<T12> &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6,
+    typename T7, typename T8, typename T9, typename T10, typename T11, typename T12, typename T13>
+    static inline void forceToRegisters(
+        const Vector<T1>  &, const Vector<T2>  &,
+        const Vector<T3>  &, const Vector<T4>  &,
+        const Vector<T5>  &, const Vector<T6>  &,
+        const Vector<T7>  &, const Vector<T8>  &,
+        const Vector<T9>  &, const Vector<T10> &,
+        const Vector<T11> &, const Vector<T12> &,
+        const Vector<T13> &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6,
+    typename T7, typename T8, typename T9, typename T10, typename T11, typename T12, typename T13,
+    typename T14> static inline void forceToRegisters(
+        const Vector<T1>  &, const Vector<T2>  &,
+        const Vector<T3>  &, const Vector<T4>  &,
+        const Vector<T5>  &, const Vector<T6>  &,
+        const Vector<T7>  &, const Vector<T8>  &,
+        const Vector<T9>  &, const Vector<T10> &,
+        const Vector<T11> &, const Vector<T12> &,
+        const Vector<T13> &, const Vector<T14> &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6,
+    typename T7, typename T8, typename T9, typename T10, typename T11, typename T12, typename T13,
+    typename T14, typename T15> static inline void forceToRegisters(
+        const Vector<T1>  &, const Vector<T2>  &,
+        const Vector<T3>  &, const Vector<T4>  &,
+        const Vector<T5>  &, const Vector<T6>  &,
+        const Vector<T7>  &, const Vector<T8>  &,
+        const Vector<T9>  &, const Vector<T10> &,
+        const Vector<T11> &, const Vector<T12> &,
+        const Vector<T13> &, const Vector<T14> &,
+        const Vector<T15> &) {}
+  template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6,
+    typename T7, typename T8, typename T9, typename T10, typename T11, typename T12, typename T13,
+    typename T14, typename T15, typename T16> static inline void forceToRegisters(
+        const Vector<T1>  &, const Vector<T2>  &,
+        const Vector<T3>  &, const Vector<T4>  &,
+        const Vector<T5>  &, const Vector<T6>  &,
+        const Vector<T7>  &, const Vector<T8>  &,
+        const Vector<T9>  &, const Vector<T10> &,
+        const Vector<T11> &, const Vector<T12> &,
+        const Vector<T13> &, const Vector<T14> &,
+        const Vector<T15> &, const Vector<T16> &) {}
+#else
   template<typename T> static inline void forceToRegisters(const Vector<T> &x) { __asm__ __volatile__(""::"x"(x.data())); }
   template<typename T1, typename T2> static inline void forceToRegisters(
       const Vector<T1> &x1, const Vector<T2> &x2
@@ -609,6 +720,7 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const typename 
           "x"(x13.data()), "x"(x14.data()),
           "x"(x15.data()), "x"(x16.data())
           ); }
+#endif
 #undef STORE_VECTOR
 } // namespace SSE
 
