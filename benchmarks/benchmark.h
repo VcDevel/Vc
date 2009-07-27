@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <list>
 #include <time.h>
+#include <cstring>
 #ifdef _MSC_VER
 #include <windows.h>
 #include <float.h>
@@ -37,7 +38,24 @@ public:
     explicit Benchmark(const char *name, double factor = 0., const char *X = 0)
         : fName(name), fFactor(factor), fX(X)
     {
-        std::cout << "\nBenchmarking " << fName << std::endl;
+        const bool interpret = (fFactor != 0.);
+        char header[128];
+        std::memset(header, 0, 128);
+        std::strcpy(header, "+----------------+----------------+----------------+----------------+");
+        if (!interpret) {
+            header[35] = '\0';
+        }
+        const int titleLen = std::strlen(fName);
+        const int headerLen = std::strlen(header);
+        const int offset = (headerLen - titleLen) / 2;
+        if (offset > 0) {
+            std::memcpy(&header[offset], fName, titleLen);
+            header[offset - 1] = ' ';
+            header[offset + titleLen] = ' ';
+            std::cout << header << std::flush;
+        } else {
+            std::cout << fName << std::flush;
+        }
     }
 
     enum Flags {
@@ -60,7 +78,7 @@ private:
     const double fFactor;
     const char *const fX;
 #ifdef _MSC_VER
-    DWORD fRealTime;
+    QWORD fRealTime;
     clock_t fCpuTime;
 #else
     struct timespec fRealTime;
@@ -72,7 +90,7 @@ private:
 inline void Benchmark::Start()
 {
 #ifdef _MSC_VER
-    fRealTime = GetTickCount();
+    fRealTime = reinterpret_cast<QWORD &>(QueryPerfomanceCounter());
     fCpuTime = clock();
 #else
     clock_gettime( CLOCK_MONOTONIC, &fRealTime );
@@ -88,14 +106,17 @@ static inline double convertTimeSpec(const struct timespec &ts)
 #endif
 
 static const double SECONDS_PER_CLOCK = 1. / CLOCKS_PER_SEC;
+#ifdef _MSC_VER
+static const double SECONDS_PER_PERFCOUNT = 1. / QueryPerfomanceFrequency();
+#endif
 
 inline void Benchmark::Stop()
 {
 #ifdef _MSC_VER
-    DWORD real = GetTickCount();
+    QWORD real = reinterpret_cast<QWORD &>(QueryPerfomanceCounter());
     clock_t cpu = clock();
     const DataPoint p = {
-        (real - fRealTime) * 1e-3,
+        (real - fRealTime) * SECONDS_PER_PERFCOUNT,
         (cpu - fCpuTime) * SECONDS_PER_CLOCK
     };
 #else
@@ -160,7 +181,6 @@ inline void Benchmark::Print(int f) const
     double realAvg = 0.;
     const bool interpret = (fFactor != 0.);
 
-    std::cout <<   "+----------------+----------------+" << (interpret ? "----------------+----------------+" : "");
     std::cout << "\n|    CPU time    |   Real time    |";
     if (interpret) {
         std::cout << std::setw(5) << fX << "/s [CPU]   |";
