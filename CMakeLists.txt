@@ -84,8 +84,8 @@ elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
    ##################################################################################################
 
    # per default icc is not IEEE compliant, but we need that for verification
-   set(CMAKE_C_FLAGS   "-w1 -mieee-fp")
-   set(CMAKE_CXX_FLAGS "-w1 -mieee-fp")
+   set(CMAKE_C_FLAGS   "-w1 -fp-model precise")
+   set(CMAKE_CXX_FLAGS "-w1 -fp-model precise")
    if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
       set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
       if(ENABLE_STRICT_ALIASING)
