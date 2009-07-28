@@ -78,7 +78,7 @@ private:
     const double fFactor;
     const char *const fX;
 #ifdef _MSC_VER
-    QWORD fRealTime;
+    __int64 fRealTime;
     clock_t fCpuTime;
 #else
     struct timespec fRealTime;
@@ -90,7 +90,7 @@ private:
 inline void Benchmark::Start()
 {
 #ifdef _MSC_VER
-    fRealTime = reinterpret_cast<QWORD &>(QueryPerfomanceCounter());
+    QueryPerformanceCounter((LARGE_INTEGER *)&fRealTime);
     fCpuTime = clock();
 #else
     clock_gettime( CLOCK_MONOTONIC, &fRealTime );
@@ -113,10 +113,12 @@ static const double SECONDS_PER_PERFCOUNT = 1. / QueryPerfomanceFrequency();
 inline void Benchmark::Stop()
 {
 #ifdef _MSC_VER
-    QWORD real = reinterpret_cast<QWORD &>(QueryPerfomanceCounter());
+    __int64 real = 0, freq = 0;
+    QueryPerformanceCounter((LARGE_INTEGER *)&real);
     clock_t cpu = clock();
+    QueryPerformanceFrequency((LARGE_INTEGER *)&freq);
     const DataPoint p = {
-        (real - fRealTime) * SECONDS_PER_PERFCOUNT,
+        static_cast<double>(real - fRealTime) / freq,
         (cpu - fCpuTime) * SECONDS_PER_CLOCK
     };
 #else
