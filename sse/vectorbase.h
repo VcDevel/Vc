@@ -53,12 +53,16 @@ namespace SSE
             inline Vector<EntryType> &operator^= (const Vector<EntryType> &x);
             inline Vector<EntryType> &operator>>=(const Vector<EntryType> &x);
             inline Vector<EntryType> &operator<<=(const Vector<EntryType> &x);
+            inline Vector<EntryType> &operator>>=(int x);
+            inline Vector<EntryType> &operator<<=(int x);
 
             inline Vector<EntryType> operator| (const Vector<EntryType> &x) const;
             inline Vector<EntryType> operator& (const Vector<EntryType> &x) const;
             inline Vector<EntryType> operator^ (const Vector<EntryType> &x) const;
             inline Vector<EntryType> operator>>(const Vector<EntryType> &x) const;
             inline Vector<EntryType> operator<<(const Vector<EntryType> &x) const;
+            inline Vector<EntryType> operator>>(int x) const;
+            inline Vector<EntryType> operator<<(int x) const;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }

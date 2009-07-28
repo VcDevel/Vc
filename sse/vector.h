@@ -381,7 +381,18 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const typename 
   OP_IMPL(unsigned short, <<, sll)
   OP_IMPL(unsigned short, >>, srl)
 #undef OP_IMPL
-#undef OP_IMPL2
+#define OP_IMPL(T, symbol, fun) \
+  template<> inline Vector<T> &VectorBase<T>::operator symbol##=(int x) { d.v() = VectorHelper<T>::fun(d.v(), x); return *static_cast<Vector<T> *>(this); } \
+  template<> inline Vector<T>  VectorBase<T>::operator symbol(int x) const { return Vector<T>(VectorHelper<T>::fun(d.v(), x)); }
+  OP_IMPL(int, <<, slli)
+  OP_IMPL(int, >>, srli)
+  OP_IMPL(unsigned int, <<, slli)
+  OP_IMPL(unsigned int, >>, srli)
+  OP_IMPL(short, <<, slli)
+  OP_IMPL(short, >>, srli)
+  OP_IMPL(unsigned short, <<, slli)
+  OP_IMPL(unsigned short, >>, srli)
+#undef OP_IMPL
 
   template<typename T> static inline Vector<T> min  (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::min(x.data(), y.data()); }
   template<typename T> static inline Vector<T> max  (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::max(x.data(), y.data()); }
