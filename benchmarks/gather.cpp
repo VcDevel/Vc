@@ -22,6 +22,8 @@
 #include <Vc/IO>
 #include "benchmark.h"
 
+#include <cstdlib>
+
 using namespace Vc;
 
 // to benchmark the performance of gathers there are some different interesting cases:
@@ -107,7 +109,7 @@ int main()
 
     float *data = new float[MaxArraySize];
     for (int i = 0; i < MaxArraySize; ++i) {
-        data[i] = static_cast<float>(static_cast<double>(rand()) / static_cast<double>(RAND_MAX));
+        data[i] = static_cast<float>(static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX));
     }
 
     blackHole += doGather("Broadcast Gather", SingleArraySize, data);
