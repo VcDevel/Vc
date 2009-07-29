@@ -157,6 +157,10 @@ static inline void prettyPrintSeconds(double v)
     }
 }
 
+#ifdef isfinite
+#undef isfinite
+#endif
+
 static inline void prettyPrintCount(double v)
 {
     static const char prefix[] = { ' ', 'k', 'M', 'G', 'T', 'P', 'E' };
