@@ -35,10 +35,18 @@ template<typename Vec> void scatterArray()
     typename It::Mask mask;
     for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         typename Vec::Mask castedMask(mask);
-        Vec a(array, i, castedMask);
-        a.scatter(out, i, castedMask);
+        if (castedMask.isFull()) {
+            Vec a(array, i);
+            a += Vec(One);
+            a.scatter(out, i);
+        } else {
+            Vec a(array, i, castedMask);
+            a += Vec(One);
+            a.scatter(out, i, castedMask);
+        }
     }
     for (int i = 0; i < count; ++i) {
+        array[i] += 1;
         COMPARE(array[i], out[i]);
     }
     COMPARE(0, std::memcmp(array, out, count * sizeof(typename Vec::EntryType)));
