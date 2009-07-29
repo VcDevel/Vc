@@ -722,10 +722,10 @@ class VectorMultiplication
     private:
         typedef typename VectorHelper<T>::VectorType VectorType;
 
-        VectorMultiplication(VectorType a, VectorType b) : left(a), right(b) {}
+        VectorMultiplication(const VectorType &a, const VectorType &b) : left(a), right(b) {}
 
-        VectorType left;
-        VectorType right;
+        const VectorType &left;
+        const VectorType &right;
 
         VectorType product() const { return VectorHelper<T>::mul(left, right); }
 };
