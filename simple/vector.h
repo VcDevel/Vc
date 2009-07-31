@@ -271,12 +271,12 @@ class Vector : public VectorBase<T, Vector<T> >
             if (mask.data()) m_data = array[indexes[0]].*(member1).*(member2);
         }
 
-        inline void scatter(T *array, const Vector<unsigned int> &indexes, Mask m ) const { if (m.data()) array[indexes[0]] = m_data; }
-        template<typename S> inline void scatter(S *array, T S::* member, const Vector<unsigned int> &indexes, Mask m) const {
+        inline void scatter(T *array, const Vector<unsigned int> &indexes, Mask m = true) const { if (m.data()) array[indexes[0]] = m_data; }
+        template<typename S> inline void scatter(S *array, T S::* member, const Vector<unsigned int> &indexes, Mask m = true) const {
             if (m.data()) array[indexes[0]].*(member) = m_data;
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1, T S2::* member2,
-                const Vector<unsigned int> &indexes, Mask m) const {
+                const Vector<unsigned int> &indexes, Mask m = true) const {
             if (m.data()) array[indexes[0]].*(member1).*(member2) = m_data;
         }
 
@@ -297,12 +297,12 @@ class Vector : public VectorBase<T, Vector<T> >
             if (mask.data()) m_data = array[indexes[0]].*(member1).*(member2);
         }
 
-        inline void scatter(T *array, const Vector<unsigned short> &indexes, Mask m ) const { if (m.data()) array[indexes[0]] = m_data; }
-        template<typename S> inline void scatter(S *array, T S::* member, const Vector<unsigned short> &indexes, Mask m) const {
+        inline void scatter(T *array, const Vector<unsigned short> &indexes, Mask m = true) const { if (m.data()) array[indexes[0]] = m_data; }
+        template<typename S> inline void scatter(S *array, T S::* member, const Vector<unsigned short> &indexes, Mask m = true) const {
             if (m.data()) array[indexes[0]].*(member) = m_data;
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1, T S2::* member2,
-                const Vector<unsigned short> &indexes, Mask m) const {
+                const Vector<unsigned short> &indexes, Mask m = true) const {
             if (m.data()) array[indexes[0]].*(member1).*(member2) = m_data;
         }
 
