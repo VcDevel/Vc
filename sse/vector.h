@@ -199,14 +199,14 @@ class Vector : public VectorBase<T>
         inline const Vector<T> dacb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 0, 2, 1))); }
 
         inline Vector(const EntryType *array, const IndexType &indexes) {
-            VectorHelperSize<T>::gather(*this, indexes, array);
+            GatherHelper<T>::gather(*this, indexes, array);
         }
         inline Vector(const EntryType *array, const IndexType &indexes, const Mask &mask) {
             GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
         }
 
         inline void gather(const EntryType *array, const IndexType &indexes) {
-            VectorHelperSize<T>::gather(*this, indexes, array);
+            GatherHelper<T>::gather(*this, indexes, array);
         }
         inline void gather(const EntryType *array, const IndexType &indexes, const Mask &mask) {
             GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
@@ -227,7 +227,7 @@ class Vector : public VectorBase<T>
          * \param mask Optional mask to select only parts of the vector that should be gathered
          */
         template<typename S1> inline Vector(const S1 *array, const EntryType S1::* member1, const IndexType &indexes) {
-            VectorHelperSize<T>::gather(*this, indexes, array, member1);
+            GatherHelper<T>::gather(*this, indexes, array, member1);
         }
         template<typename S1> inline Vector(const S1 *array, const EntryType S1::* member1,
                 const IndexType &indexes, const Mask &mask) {
@@ -235,7 +235,7 @@ class Vector : public VectorBase<T>
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes) {
-            VectorHelperSize<T>::gather(*this, indexes, array, member1, member2);
+            GatherHelper<T>::gather(*this, indexes, array, member1, member2);
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes, const Mask &mask) {
@@ -244,7 +244,7 @@ class Vector : public VectorBase<T>
 
         template<typename S1> inline void gather(const S1 *array, const EntryType S1::* member1,
                 const IndexType &indexes) {
-            VectorHelperSize<T>::gather(*this, indexes, array, member1);
+            GatherHelper<T>::gather(*this, indexes, array, member1);
         }
         template<typename S1> inline void gather(const S1 *array, const EntryType S1::* member1,
                 const IndexType &indexes, const Mask &mask) {
@@ -252,7 +252,7 @@ class Vector : public VectorBase<T>
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes) {
-            VectorHelperSize<T>::gather(*this, indexes, array, member1, member2);
+            GatherHelper<T>::gather(*this, indexes, array, member1, member2);
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes, const Mask &mask) {

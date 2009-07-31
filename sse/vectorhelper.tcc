@@ -33,37 +33,6 @@ namespace SSE
 {
     struct GeneralHelpers
     {
-        template<typename VectorType, typename EntryType> static inline VectorType set4(
-                const EntryType *m, const unsigned long a, const unsigned long b,
-                const unsigned long c, const unsigned long d
-                ) {
-            VectorType v;
-            __m128 t1, t2, t3;
-#ifdef __GNUC__
-            __asm__("movd 0(%4,%5,4), %3\n\t"
-                    "movd 0(%4,%6,4), %2\n\t"
-                    "movd 0(%4,%7,4), %1\n\t"
-                    "movd 0(%4,%8,4), %0\n\t"
-                    "unpcklps %3, %2\n\t"
-                    "unpcklps %1, %0\n\t"
-                    "movlhps %2, %0\n\t"
-                    : "=x"(v), "=x"(t1), "=x"(t2), "=x"(t3)
-                    : "r"(m), "r"(a), "r"(b), "r"(c), "r"(d)
-                   );
-#elif defined(_MSC_VER)
-            t3 = _mm_castsi128_ps(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[a])));
-            t2 = _mm_castsi128_ps(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[b])));
-            t1 = _mm_castsi128_ps(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[c])));
-            v  = mm128_reinterpret_cast<VectorType>(_mm_cvtsi32_si128(reinterpret_cast<const int &>(m[d])));
-            t2 = _mm_unpacklo_ps(t2, t3);
-            v  = mm128_reinterpret_cast<VectorType>(_mm_unpacklo_ps(mm128_reinterpret_cast<__m128>(v) , t1));
-            v  = mm128_reinterpret_cast<VectorType>(_mm_movelh_ps(mm128_reinterpret_cast<__m128>(v), t2));
-#else
-#error "Check whether inline asm works, or use else clause"
-#endif
-            return v;
-        }
-
         template<typename Base, typename IndexType, typename EntryType>
         static inline void maskedGatherStructHelper(
                 Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr, const int scale
@@ -283,47 +252,217 @@ namespace SSE
 
     };
 
-    template<typename T> inline void VectorHelperSize<T>::gather(
-            Base &v, const IndexType &indexes, const EntryType *baseAddr
-            ) {
-        if (Size == 2) {
-            v.d.v() = mm128_reinterpret_cast<VectorType>(_mm_set_pd(
-                        baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]));
-        } else if (Size == 4) {
-            v.d.v() = GeneralHelpers::set4<VectorType, EntryType>(
-                    baseAddr, indexes.d.m(3), indexes.d.m(2), indexes.d.m(1), indexes.d.m(0));
-        } else if (Size == 8) {
-            v.d.v() = mm128_reinterpret_cast<VectorType>(_mm_set_epi16(
-                        baseAddr[indexes.d.m(7)], baseAddr[indexes.d.m(6)],
-                        baseAddr[indexes.d.m(5)], baseAddr[indexes.d.m(4)],
-                        baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
-                        baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]));
-        } else {
-            unrolled_loop16(i, 0, Base::Size,
-                    v.d.m(i) = baseAddr[indexes.d.m(i)];
-                    );
-        }
+    ////////////////////////////////////////////////////////
+    // Array gathers
+    template<typename T> inline void GatherHelper<T>::gather(
+            Base &v, const IndexType &indexes, const EntryType *baseAddr)
+    {
+        for_all_vector_entries(i,
+                v.d.m(i) = baseAddr[indexes.d.m(i)];
+                );
+    }
+    template<> inline void GatherHelper<double>::gather(
+            Base &v, const IndexType &indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_pd(baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
+    }
+    template<> inline void GatherHelper<float>::gather(
+            Base &v, const IndexType &indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_ps(
+                baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
+                baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
+    }
+    template<> inline void GatherHelper<float8>::gather(
+            Base &v, const IndexType &indexes, const EntryType *baseAddr)
+    {
+        v.d.v()[1] = _mm_set_ps(
+                baseAddr[indexes.d.m(7)], baseAddr[indexes.d.m(6)],
+                baseAddr[indexes.d.m(5)], baseAddr[indexes.d.m(4)]);
+        v.d.v()[0] = _mm_set_ps(
+                baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
+                baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
+    }
+    template<> inline void GatherHelper<int>::gather(
+            Base &v, const IndexType &indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_epi32(
+                baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
+                baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
+    }
+    template<> inline void GatherHelper<unsigned int>::gather(
+            Base &v, const IndexType &indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_epi32(
+                baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
+                baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
+    }
+    template<> inline void GatherHelper<short>::gather(
+            Base &v, const IndexType &indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_epi16(
+                baseAddr[indexes.d.m(7)], baseAddr[indexes.d.m(6)],
+                baseAddr[indexes.d.m(5)], baseAddr[indexes.d.m(4)],
+                baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
+                baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
+    }
+    template<> inline void GatherHelper<unsigned short>::gather(
+            Base &v, const IndexType &indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_epi16(
+                baseAddr[indexes.d.m(7)], baseAddr[indexes.d.m(6)],
+                baseAddr[indexes.d.m(5)], baseAddr[indexes.d.m(4)],
+                baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
+                baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
     }
 
-    template<typename T> template<typename S1> inline void VectorHelperSize<T>::gather(
-            Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1) {
+    ////////////////////////////////////////////////////////
+    // Struct gathers
+    template<typename T> template<typename S1> inline void GatherHelper<T>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
+    {
         for_all_vector_entries(i,
                 v.d.m(i) = baseAddr[indexes.d.m(i)].*(member1);
                 );
     }
+    template<> template<typename S1> inline void GatherHelper<double>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
+    {
+        v.d.v() = _mm_set_pd(baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
+    }
+    template<> template<typename S1> inline void GatherHelper<float>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
+    {
+        v.d.v() = _mm_set_ps(
+                baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
+                baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
+    }
+    template<> template<typename S1> inline void GatherHelper<float8>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
+    {
+        v.d.v()[1] = _mm_set_ps(
+                baseAddr[indexes.d.m(7)].*(member1), baseAddr[indexes.d.m(6)].*(member1),
+                baseAddr[indexes.d.m(5)].*(member1), baseAddr[indexes.d.m(4)].*(member1));
+        v.d.v()[0] = _mm_set_ps(
+                baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
+                baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
+    }
+    template<> template<typename S1> inline void GatherHelper<int>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
+    {
+        v.d.v() = _mm_set_epi32(
+                baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
+                baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
+    }
+    template<> template<typename S1> inline void GatherHelper<unsigned int>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
+    {
+        v.d.v() = _mm_set_epi32(
+                baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
+                baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
+    }
+    template<> template<typename S1> inline void GatherHelper<short>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
+    {
+        v.d.v() = _mm_set_epi16(
+                baseAddr[indexes.d.m(7)].*(member1), baseAddr[indexes.d.m(6)].*(member1),
+                baseAddr[indexes.d.m(5)].*(member1), baseAddr[indexes.d.m(4)].*(member1),
+                baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
+                baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
+    }
+    template<> template<typename S1> inline void GatherHelper<unsigned short>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
+    {
+        v.d.v() = _mm_set_epi16(
+                baseAddr[indexes.d.m(7)].*(member1), baseAddr[indexes.d.m(6)].*(member1),
+                baseAddr[indexes.d.m(5)].*(member1), baseAddr[indexes.d.m(4)].*(member1),
+                baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
+                baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
+    }
 
-    template<typename T> template<typename S1, typename S2> inline void VectorHelperSize<T>::gather(
-            Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1,
-            const EntryType S2::* member2) {
+    ////////////////////////////////////////////////////////
+    // Struct of Struct gathers
+    template<typename T> template<typename S1, typename S2> inline void GatherHelper<T>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
+    {
         for_all_vector_entries(i,
                 v.d.m(i) = baseAddr[indexes.d.m(i)].*(member1).*(member2);
                 );
     }
+    template<> template<typename S1, typename S2> inline void GatherHelper<double>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
+    {
+        v.d.v() = _mm_set_pd(baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
+    }
+    template<> template<typename S1, typename S2> inline void GatherHelper<float>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
+    {
+        v.d.v() = _mm_set_ps(
+                baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
+                baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
+    }
+    template<> template<typename S1, typename S2> inline void GatherHelper<float8>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
+    {
+        v.d.v()[1] = _mm_set_ps(
+                baseAddr[indexes.d.m(7)].*(member1).*(member2), baseAddr[indexes.d.m(6)].*(member1).*(member2),
+                baseAddr[indexes.d.m(5)].*(member1).*(member2), baseAddr[indexes.d.m(4)].*(member1).*(member2));
+        v.d.v()[0] = _mm_set_ps(
+                baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
+                baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
+    }
+    template<> template<typename S1, typename S2> inline void GatherHelper<int>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
+    {
+        v.d.v() = _mm_set_epi32(
+                baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
+                baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
+    }
+    template<> template<typename S1, typename S2> inline void GatherHelper<unsigned int>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
+    {
+        v.d.v() = _mm_set_epi32(
+                baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
+                baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
+    }
+    template<> template<typename S1, typename S2> inline void GatherHelper<short>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
+    {
+        v.d.v() = _mm_set_epi16(
+                baseAddr[indexes.d.m(7)].*(member1).*(member2), baseAddr[indexes.d.m(6)].*(member1).*(member2),
+                baseAddr[indexes.d.m(5)].*(member1).*(member2), baseAddr[indexes.d.m(4)].*(member1).*(member2),
+                baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
+                baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
+    }
+    template<> template<typename S1, typename S2> inline void GatherHelper<unsigned short>::gather(
+            Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
+    {
+        v.d.v() = _mm_set_epi16(
+                baseAddr[indexes.d.m(7)].*(member1).*(member2), baseAddr[indexes.d.m(6)].*(member1).*(member2),
+                baseAddr[indexes.d.m(5)].*(member1).*(member2), baseAddr[indexes.d.m(4)].*(member1).*(member2),
+                baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
+                baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
+    }
 
+    ////////////////////////////////////////////////////////
+    // Scatters
+    //
+    // There is no equivalent to the set intrinsics. Therefore the vector entries are copied in
+    // memory instead from the xmm register directly.
+    //
+    // TODO: With SSE 4.1 the extract intrinsics might be an interesting option, though.
+    //
     template<typename T> inline void VectorHelperSize<T>::scatter(
             const Base &v, const IndexType &indexes, EntryType *baseAddr) {
         for_all_vector_entries(i,
                 baseAddr[indexes.d.m(i)] = v.d.m(i);
+                );
+    }
+    template<> inline void VectorHelperSize<short>::scatter(
+            const Base &v, const IndexType &indexes, EntryType *baseAddr) {
+        // TODO: verify that using extract is really faster
+        for_all_vector_entries(i,
+                baseAddr[indexes.d.m(i)] = _mm_extract_epi16(v.d.v(), i);
                 );
     }
 
@@ -360,27 +499,6 @@ namespace SSE
             EntryType S2::* member2) {
         for_all_vector_entries(i,
                 GeneralHelpers::maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2), 1 << i * Shift);
-                );
-    }
-
-    inline void VectorHelperSize<float8>::gather(Base &v, const IndexType &indexes, const EntryType *baseAddr) {
-        v.d.v()[0] = GeneralHelpers::set4<_M128, EntryType>(baseAddr,
-                indexes.d.m(3), indexes.d.m(2), indexes.d.m(1), indexes.d.m(0));
-        v.d.v()[1] = GeneralHelpers::set4<_M128, EntryType>(baseAddr,
-                indexes.d.m(7), indexes.d.m(6), indexes.d.m(5), indexes.d.m(4));
-    }
-
-    template<typename S1> inline void VectorHelperSize<float8>::gather(Base &v, const IndexType &indexes,
-            const S1 *baseAddr, const EntryType S1::* member1) {
-        for_all_vector_entries(i,
-                v.d.m(i) = baseAddr[indexes.d.m(i)].*(member1);
-                );
-    }
-
-    template<typename S1, typename S2> inline void VectorHelperSize<float8>::gather(Base &v, const IndexType &indexes,
-            const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2) {
-        for_all_vector_entries(i,
-                v.d.m(i) = baseAddr[indexes.d.m(i)].*(member1).*(member2);
                 );
     }
 
