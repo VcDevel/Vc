@@ -325,6 +325,8 @@ class Vector : public VectorBase<T, Vector<T> >
         OP1(abs)
 #undef OP1
 
+        inline Vector operator~() const { return ~m_data; }
+
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
         inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(m_data symbol x.m_data); }

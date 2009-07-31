@@ -22,8 +22,27 @@
 
 #include "lrbni_prototypes.h"
 
+#ifdef __GNUC__
+#define CONST __attribute__((const))
+#else
+#define CONST
+#endif
+
 namespace Larrabee
 {
+    static inline __m512   _mm512_setallone_ps() CONST;
+    static inline __m512d  _mm512_setallone_pd() CONST;
+    static inline __m512i  _mm512_setallone_pi() CONST;
+    static inline __m512   _mm512_setallone_ps() {
+        return _mm512_castsi512_ps(_mm512_set_1to16_pi(~0));
+    }
+    static inline __m512d _mm512_setallone_pd() {
+        return _mm512_castsi512_pd(_mm512_set_1to16_pi(~0));
+    }
+    static inline __m512i _mm512_setallone_pi() {
+        return _mm512_set_1to16_pi(~0);
+    }
+
     namespace FixedIntrinsics
     {
         inline _M512 _mm512_loadd(const void *mt, _MM_FULLUP32_ENUM full_up = _MM_FULLUPC_NONE, _MM_BROADCAST32_ENUM broadcast = _MM_BROADCAST_16X16, _MM_MEM_HINT_ENUM non_temporal = _MM_HINT_NONE)
@@ -33,6 +52,8 @@ namespace Larrabee
             { return ::_mm512_loadq(const_cast<void *>(mt), full_up, broadcast, non_temporal); }
     } // namespace FixedIntrinsics
 } // namespace Larrabee
+
+#undef CONST
 
 #ifdef __GNUC__
 #define LRB_ALIGN(n) __attribute__((aligned(n)))

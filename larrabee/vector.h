@@ -1035,6 +1035,8 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector mul(const Vector<T> &x, const Mask m, const Vector<T> &old) const { return VectorHelper<T>::mul(data, x.data, m, old.data); }
         inline Vector &operator*=(const Vector<T> &x) { data = VectorHelper<T>::mul(data, x.data); return *this; }
 
+        inline Vector operator~() const { return mm512_reinterpret_cast<VectorType>(_mm512_andn_pi(mm512_reinterpret_cast<_M512I>(data), _mm512_setallone_pi())); }
+
 #define OP(symbol, fun) \
         inline Vector &fun##_eq(const SwizzledVector<T> &x, const Mask m) { data = VectorHelper<T>::fun##_s(x.s, data, x.v.data, m); return *this; } \
         inline Vector &fun##_eq(const Vector<T> &x, const Mask m) { data = VectorHelper<T>::fun(data, x.data, m); return *this; } \

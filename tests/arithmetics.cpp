@@ -202,6 +202,15 @@ template<typename Vec> void testShift()
     }
 }
 
+template<typename Vec> void testOnesComplement()
+{
+    Vec a(One);
+    Vec b = ~a;
+    COMPARE(~a, b);
+    COMPARE(~b, a);
+    COMPARE(~(a + b), Vec(Zero));
+}
+
 int main()
 {
     runTest(testZero<int_v>);
@@ -278,6 +287,11 @@ int main()
     runTest(testMulSub<short_v>);
     runTest(testMulSub<ushort_v>);
     runTest(testMulSub<sfloat_v>);
+
+    runTest(testOnesComplement<int_v>);
+    runTest(testOnesComplement<uint_v>);
+    runTest(testOnesComplement<short_v>);
+    runTest(testOnesComplement<ushort_v>);
 
     return 0;
 }

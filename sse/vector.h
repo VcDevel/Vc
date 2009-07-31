@@ -285,6 +285,8 @@ class Vector : public VectorBase<T>
             return Base::d.m(index);
         }
 
+        inline Vector operator~() const { return VectorHelper<VectorType>::andnot_(data(), mm128_reinterpret_cast<VectorType>(_mm_setallone())); }
+
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
         inline Vector &fun##_eq() { data() = VectorHelper<T>::fun(data()); return *this; }
