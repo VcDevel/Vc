@@ -106,9 +106,6 @@ static inline double convertTimeSpec(const struct timespec &ts)
 #endif
 
 static const double SECONDS_PER_CLOCK = 1. / CLOCKS_PER_SEC;
-#ifdef _MSC_VER
-static const double SECONDS_PER_PERFCOUNT = 1. / QueryPerfomanceFrequency();
-#endif
 
 inline void Benchmark::Stop()
 {
