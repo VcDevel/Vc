@@ -53,6 +53,11 @@ template<typename Vec> void gatherArray()
             COMPARE(!castedMask, b == Vec(Zero));
         }
     }
+
+    const typename Vec::Mask k(Zero);
+    Vec a(One);
+    a.gather(array, It(IndexesFromZero), k);
+    COMPARE(a, Vec(One));
 }
 
 template<typename T> struct Struct
