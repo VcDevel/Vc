@@ -26,6 +26,13 @@
 
 using namespace Vc;
 
+#ifdef isfinite
+#undef isfinite
+#endif
+#ifdef isnan
+#undef isnan
+#endif
+
 template<typename Vec> void testAbs()
 {
     for (int i = 0; i < 0x7fff; ++i) {
@@ -51,7 +58,7 @@ template<typename Vec> void testLog()
         const typename Vec::EntryType two = 2.;
 
         for (int i = 0; i < Vec::Size; ++i) {
-            FUZZY_COMPARE(b[i], std::log(a[i]));
+            FUZZY_COMPARE(b[i], static_cast<typename Vec::EntryType>(std::log(a[i])));
         }
 
         const Vec a2 = a * a;
