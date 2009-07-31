@@ -33,6 +33,7 @@
 namespace Vc
 {
   typedef VECTOR_NAMESPACE::Vector<float> float_v;
+  typedef float_v::Mask float_m;
 } // namespace Vc
 
 #undef VECTOR_NAMESPACE

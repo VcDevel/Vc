@@ -37,6 +37,7 @@ namespace Vc
 #else
   typedef VECTOR_NAMESPACE::Vector<float> sfloat_v;
 #endif
+  typedef sfloat_v::Mask sfloat_m;
 } // namespace Vc
 
 #undef VECTOR_NAMESPACE

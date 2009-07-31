@@ -37,6 +37,7 @@ namespace Vc
 #else
   typedef VECTOR_NAMESPACE::Vector<signed short> short_v;
 #endif
+  typedef short_v::Mask short_m;
 } // namespace Vc
 
 #undef VECTOR_NAMESPACE
