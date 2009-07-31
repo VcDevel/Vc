@@ -55,7 +55,7 @@ namespace SSE
                         "jnz 0b"               "\n\t"
                         "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale), "m"(indexes.d.v())
                         : "rcx"   );
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
@@ -75,7 +75,7 @@ namespace SSE
                             "jnz 0b"               "\n\t"
                             "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale)
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale), "m"(indexes.d.v())
                             : "rcx"   );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
                     register unsigned long int bit;
@@ -94,7 +94,7 @@ namespace SSE
                             "jnz 0b"               "\n\t"
                             "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale)
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale), "m"(indexes.d.v())
                             : "rcx"   );
                 } else {
                     abort();
@@ -116,7 +116,7 @@ namespace SSE
                         "jnz 0b"               "\n\t"
                         "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale), "m"(indexes.d.v())
                         : "rcx"   );
             } else {
                 abort();
@@ -154,7 +154,7 @@ namespace SSE
                         "jnz 0b"               "\n\t"
                         "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
                         : "rcx"   );
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
@@ -173,7 +173,7 @@ namespace SSE
                             "jnz 0b"               "\n\t"
                             "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
                             : "rcx"   );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
                     register unsigned long int bit;
@@ -191,7 +191,7 @@ namespace SSE
                             "jnz 0b"               "\n\t"
                             "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
                             : "rcx"   );
                 } else {
                     abort();
@@ -212,7 +212,7 @@ namespace SSE
                         "jnz 0b"               "\n\t"
                         "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
                         : "rcx"   );
             } else {
                 abort();
