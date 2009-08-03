@@ -43,6 +43,7 @@ endmacro(vc_add_benchmark)
 
 vc_add_benchmark(flops)
 vc_add_benchmark(gather)
+vc_add_benchmark(mask)
 
 add_custom_target(benchmark
    COMMENT "Run all benchmarks"
