@@ -19,6 +19,7 @@
 
 #include <Vc/Vc>
 #include "benchmark.h"
+#include "random.h"
 
 #include <cstdlib>
 
@@ -40,32 +41,6 @@ using namespace Vc;
 enum {
     Repetitions = 4
 };
-
-// this is not a random number generator
-template<typename IndexVector>
-class PseudoRandom
-{
-    public:
-        static IndexVector next();
-
-    private:
-        static IndexVector state;
-};
-
-template<> uint_v PseudoRandom<uint_v>::state(IndexesFromZero);
-template<> ushort_v PseudoRandom<ushort_v>::state(IndexesFromZero);
-
-template<> inline uint_v PseudoRandom<uint_v>::next()
-{
-    state = (state * 1103515245 + 12345);
-    return (state >> 16) | (state << 16); // rotate
-}
-
-template<> inline ushort_v PseudoRandom<ushort_v>::next()
-{
-    state = (state * 257 + 24151);
-    return (state >> 8) | (state << 8); // rotate
-}
 
 template<typename Vector, class GatherImpl> class GatherBase
 {
