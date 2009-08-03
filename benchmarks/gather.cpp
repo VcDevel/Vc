@@ -66,20 +66,24 @@ uint_v PseudoRandom::state(IndexesFromZero);
 inline uint_v PseudoRandom::next()
 {
     state = (state * 1103515245 + 12345);
-    return (state >> 16) | (state << (32 - 16)); // rotate
+    return (state >> 16) | (state << 16); // rotate
 }
 
 template<class GatherImpl> class GatherBase
 {
     public:
-        GatherBase(const char *name, const unsigned int _size, const float *_data)
+        GatherBase(const char *name, const unsigned int size, const float *_data)
             : timer(name, 4. * float_v::Size * Factor * sizeof(float), "B"),
-            indexes1(IndexesFromZero), indexes2(indexes1 + 1),
-            indexes3(indexes1 + 2), indexes4(indexes1 + 3),
             aa(Zero), bb(Zero), cc(Zero), dd(Zero),
-            size(_size), data(_data), blackHole(0)
+            data(_data), blackHole(0),
+            indexesCount(Factor * 4),
+            im(new IndexAndMask[indexesCount])
         {
-            nextIndexes();
+            const uint_v indexMask(size - 1);
+            for (int i = 0; i < indexesCount; ++i) {
+                im[i].index = PseudoRandom::next() & indexMask;
+                im[i].mask = (PseudoRandom::next() & uint_v(One)) > 0;
+            }
         }
 
         operator int() {
@@ -93,53 +97,43 @@ template<class GatherImpl> class GatherBase
         }
 
     protected:
-        inline void nextIndexes()
-        {
-            indexes1 = PseudoRandom::next() & (size - 1);
-            indexes2 = PseudoRandom::next() & (size - 1);
-            indexes3 = PseudoRandom::next() & (size - 1);
-            indexes4 = PseudoRandom::next() & (size - 1);
-        }
-
         Benchmark timer;
-        uint_v indexes1;
-        uint_v indexes2;
-        uint_v indexes3;
-        uint_v indexes4;
         float_v aa;
         float_v bb;
         float_v cc;
         float_v dd;
-        const unsigned int size;
         const float *const data;
         int blackHole;
+        const int indexesCount;
+        struct IndexAndMask {
+            uint_v index;
+            uint_m mask;
+        } *im;
 };
 
 class MaskedGather : public GatherBase<MaskedGather>
 {
     public:
         MaskedGather(const char *name, const unsigned int _size, const float *_data)
-            : GatherBase<MaskedGather>(name, _size * 2, _data)
+            : GatherBase<MaskedGather>(name, _size, _data)
         {}
 
+        // the gather function reads
+        // 4 * 4  bytes with scalars
+        // 4 * 16 bytes with SSE
+        // 4 * 64 bytes with LRB
+        // (divided by 2 actually for the masks are in average only half full)
+        //
+        // there should be no overhead other than the nicely prefetchable index/mask vector reading
         void run()
         {
             timer.Start();
             for (int i = 0; i < Factor; ++i) {
-                nextIndexes();
-                // the LSB determines the mask
-                const uint_m k1 = (indexes1 & uint_v(One)) > 0;
-                const uint_m k2 = (indexes2 & uint_v(One)) > 0;
-                const uint_m k3 = (indexes3 & uint_v(One)) > 0;
-                const uint_m k4 = (indexes4 & uint_v(One)) > 0;
-                indexes1 >>= 1;
-                indexes2 >>= 1;
-                indexes3 >>= 1;
-                indexes4 >>= 1;
-                float_v a(data, indexes1, k1);
-                float_v b(data, indexes2, k2);
-                float_v c(data, indexes3, k3);
-                float_v d(data, indexes4, k4);
+                const int ii = i * 4;
+                const float_v a(data, im[ii + 0].index, im[ii + 0].mask);
+                const float_v b(data, im[ii + 1].index, im[ii + 1].mask);
+                const float_v c(data, im[ii + 2].index, im[ii + 2].mask);
+                const float_v d(data, im[ii + 3].index, im[ii + 3].mask);
                 aa += a;
                 bb += b;
                 cc += c;
@@ -153,28 +147,18 @@ class Gather : public GatherBase<Gather>
 {
     public:
         Gather(const char *name, const unsigned int _size, const float *_data)
-            : GatherBase<Gather>(name, _size * 2, _data)
+            : GatherBase<Gather>(name, _size, _data)
         {}
 
         void run()
         {
             timer.Start();
             for (int i = 0; i < Factor; ++i) {
-                nextIndexes();
-                // the following four lines are only here to make the runtime comparable to the
-                // MaskedGather version
-                indexes1 &= ~uint_v(One);
-                indexes2 &= ~uint_v(One);
-                indexes3 &= ~uint_v(One);
-                indexes4 &= ~uint_v(One);
-                indexes1 >>= 1;
-                indexes2 >>= 1;
-                indexes3 >>= 1;
-                indexes4 >>= 1;
-                float_v a(data, indexes1);
-                float_v b(data, indexes2);
-                float_v c(data, indexes3);
-                float_v d(data, indexes4);
+                const int ii = i * 4;
+                const float_v a(data, im[ii + 0].index);
+                const float_v b(data, im[ii + 1].index);
+                const float_v c(data, im[ii + 2].index);
+                const float_v d(data, im[ii + 3].index);
                 aa += a;
                 bb += b;
                 cc += c;
