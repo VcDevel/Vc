@@ -32,6 +32,8 @@
 #include <cmath>
 #endif
 
+#include "tsc.h"
+
 class Benchmark
 {
 public:
@@ -41,9 +43,9 @@ public:
         const bool interpret = (fFactor != 0.);
         char header[128];
         std::memset(header, 0, 128);
-        std::strcpy(header, "+----------------+----------------+----------------+----------------+");
+        std::strcpy(header, "+----------------+----------------+----------------+----------------+----------------+----------------+");
         if (!interpret) {
-            header[35] = '\0';
+            header[52] = '\0';
         }
         const int titleLen = std::strlen(fName);
         const int headerLen = std::strlen(header);
@@ -73,6 +75,7 @@ private:
     {
         double fRealElapsed;
         double fCpuElapsed;
+        unsigned long long fCycles;
     };
     const char *const fName;
     const double fFactor;
@@ -84,6 +87,7 @@ private:
     struct timespec fRealTime;
     struct timespec fCpuTime;
 #endif
+    TimeStampCounter fTsc;
     std::list<DataPoint> fDataPoints;
 };
 
@@ -96,6 +100,7 @@ inline void Benchmark::Start()
     clock_gettime( CLOCK_MONOTONIC, &fRealTime );
     clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &fCpuTime );
 #endif
+    fTsc.Start();
 }
 
 #ifndef _MSC_VER
@@ -109,6 +114,7 @@ static const double SECONDS_PER_CLOCK = 1. / CLOCKS_PER_SEC;
 
 inline void Benchmark::Stop()
 {
+    fTsc.Stop();
 #ifdef _MSC_VER
     __int64 real = 0, freq = 0;
     QueryPerformanceCounter((LARGE_INTEGER *)&real);
@@ -116,8 +122,7 @@ inline void Benchmark::Stop()
     QueryPerformanceFrequency((LARGE_INTEGER *)&freq);
     const DataPoint p = {
         static_cast<double>(real - fRealTime) / freq,
-        (cpu - fCpuTime) * SECONDS_PER_CLOCK
-    };
+        (cpu - fCpuTime) * SECONDS_PER_CLOCK,
 #else
     struct timespec real, cpu;
     clock_gettime( CLOCK_MONOTONIC, &real );
@@ -125,9 +130,10 @@ inline void Benchmark::Stop()
 
     const DataPoint p = {
         convertTimeSpec(real) - convertTimeSpec(fRealTime),
-        convertTimeSpec(cpu ) - convertTimeSpec(fCpuTime )
-    };
+        convertTimeSpec(cpu ) - convertTimeSpec(fCpuTime ),
 #endif
+        fTsc.Cycles()
+    };
     fDataPoints.push_back(p);
 }
 
@@ -169,7 +175,11 @@ static inline void prettyPrintCount(double v)
 #else
     if (std::isfinite(v)) {
 #endif
-        while (v > 1000.) {
+        if (v < 1000.) {
+            std::cout << std::setw(15) << v;
+            return;
+        }
+        while (v >= 1000.) {
             v *= 0.001;
             ++i;
         }
@@ -180,14 +190,13 @@ static inline void prettyPrintCount(double v)
 inline void Benchmark::Print(int f) const
 {
     typedef std::list<DataPoint>::const_iterator It;
-    double cpuAvg = 0.;
-    double realAvg = 0.;
     const bool interpret = (fFactor != 0.);
 
-    std::cout << "\n|    CPU time    |   Real time    |";
+    std::cout << "\n|    CPU time    |   Real time    |     Cycles     |";
     if (interpret) {
         std::cout << std::setw(5) << fX << "/s [CPU]   |";
         std::cout << std::setw(5) << fX << "/s [Real]  |";
+        std::cout << std::setw(6) << fX <<  "/cycle    |";
     }
     for (It i = fDataPoints.begin(); i != fDataPoints.end(); ++i) {
         std::cout << "\n| ";
@@ -195,42 +204,56 @@ inline void Benchmark::Print(int f) const
         std::cout << " | ";
         prettyPrintSeconds(i->fRealElapsed);
         std::cout << " | ";
+        prettyPrintCount(i->fCycles);
+        std::cout << " | ";
         if (interpret) {
             prettyPrintCount(fFactor / i->fCpuElapsed);
             std::cout << " | ";
             prettyPrintCount(fFactor / i->fRealElapsed);
             std::cout << " |";
+            prettyPrintCount(fFactor / i->fCycles);
+            std::cout << " |";
         }
     }
     if (f & PrintAverage) {
         if (interpret) {
-            std::cout << "\n|----------------------------- Average -----------------------------|";
+            std::cout << "\n|---------------------------------------------- Average ----------------------------------------------|";
         } else {
-            std::cout << "\n|------------ Average ------------|";
+            std::cout << "\n|-------------------- Average ---------------------|";
         }
+
+        double cpuAvg = 0.;
+        double realAvg = 0.;
+        double cycleAvg = 0.;
 
         for (It i = fDataPoints.begin(); i != fDataPoints.end(); ++i) {
             cpuAvg += i->fCpuElapsed;
             realAvg += i->fRealElapsed;
+            cycleAvg += i->fCycles;
         }
         const double count = static_cast<double>(fDataPoints.size());
         cpuAvg /= count;
         realAvg /= count;
+        cycleAvg /= count;
 
         std::cout << "\n| ";
         prettyPrintSeconds(cpuAvg);
         std::cout << " | ";
         prettyPrintSeconds(realAvg);
         std::cout << " | ";
+        prettyPrintCount(cycleAvg);
+        std::cout << " | ";
         if (interpret) {
             prettyPrintCount(fFactor / cpuAvg);
             std::cout << " | ";
             prettyPrintCount(fFactor / realAvg);
             std::cout << " |";
+            prettyPrintCount(fFactor / cycleAvg);
+            std::cout << " |";
         }
     }
-    std::cout << "\n+----------------+----------------+"
-        << (interpret ? "----------------+----------------+" : "") << std::endl;
+    std::cout << "\n+----------------+----------------+----------------+"
+        << (interpret ? "----------------+----------------+----------------+" : "") << std::endl;
 }
 
 #endif // BENCHMARK_H
