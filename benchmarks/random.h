@@ -21,10 +21,10 @@
 #define RANDOM_H
 
 #include <Vc/Vc>
+#include <cstdlib>
 
 // this is not a random number generator
-template<typename Vector>
-class PseudoRandom
+template<typename Vector> class PseudoRandom
 {
     public:
         static Vector next();
@@ -33,8 +33,8 @@ class PseudoRandom
         static Vector state;
 };
 
-template<> Vc::uint_v PseudoRandom<Vc::uint_v>::state(Vc::IndexesFromZero);
-template<> Vc::int_v PseudoRandom<Vc::int_v>::state(Vc::IndexesFromZero);
+template<> Vc::uint_v PseudoRandom<Vc::uint_v>::state(Vc::uint_v(Vc::IndexesFromZero) + std::rand());
+template<> Vc::int_v PseudoRandom<Vc::int_v>::state(Vc::int_v(Vc::IndexesFromZero) + std::rand());
 
 template<> inline Vc::uint_v PseudoRandom<Vc::uint_v>::next()
 {
@@ -49,8 +49,8 @@ template<> inline Vc::int_v PseudoRandom<Vc::int_v>::next()
 }
 
 #ifndef ENABLE_LARRABEE
-template<> Vc::ushort_v PseudoRandom<Vc::ushort_v>::state(Vc::IndexesFromZero);
-template<> Vc::short_v PseudoRandom<Vc::short_v>::state(Vc::IndexesFromZero);
+template<> Vc::ushort_v PseudoRandom<Vc::ushort_v>::state(Vc::ushort_v(Vc::IndexesFromZero) + std::rand());
+template<> Vc::short_v PseudoRandom<Vc::short_v>::state(Vc::short_v(Vc::IndexesFromZero) + std::rand());
 
 template<> inline Vc::ushort_v PseudoRandom<Vc::ushort_v>::next()
 {
@@ -64,5 +64,24 @@ template<> inline Vc::short_v PseudoRandom<Vc::short_v>::next()
     return (state >> 8) | (state << 8); // rotate
 }
 #endif
+
+template<> class PseudoRandom<Vc::float_v>
+{
+    public:
+        static Vc::float_v next();
+
+    private:
+        static Vc::uint_v state;
+};
+
+Vc::uint_v PseudoRandom<Vc::float_v>::state(Vc::uint_v(Vc::IndexesFromZero) + std::rand());
+
+inline Vc::float_v PseudoRandom<Vc::float_v>::next()
+{
+    const Vc::float_v ConvertFactor = 1.f / (~0u);
+    state = (state * 1103515245 + 12345);
+    return Vc::float_v(state) * ConvertFactor;
+}
+
 
 #endif // RANDOM_H
