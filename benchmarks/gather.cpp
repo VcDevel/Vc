@@ -17,9 +17,7 @@
 
 */
 
-#include <Vc/float_v>
-#include <Vc/uint_v>
-#include <Vc/IO>
+#include <Vc/Vc>
 #include "benchmark.h"
 
 #include <cstdlib>
@@ -40,49 +38,59 @@ using namespace Vc;
 // Intel Core 2 Quad (Q6600) has 8MB L2
 
 enum {
-    Repetitions = 4,
-    Factor = 1600000 / float_v::Size,
-    MaxArraySize = 32 * 1024 * 1024 / sizeof(float), //  32 MB
-    L2ArraySize = 256 * 1024 / sizeof(float),        // 256 KB
-    L1ArraySize = 32 * 1024 / sizeof(float),         //  32 KB
-    CacheLineArraySize = 64 / sizeof(float),         //  64 B
-    SingleArraySize = 1,                             //   4 B
-    ArrayCount = 2 * MaxArraySize + 2 * L2ArraySize + 2 * L1ArraySize + 2 * CacheLineArraySize
+    Repetitions = 4
 };
 
 // this is not a random number generator
+template<typename IndexVector>
 class PseudoRandom
 {
     public:
-        PseudoRandom() { next(); next(); next(); next(); }
-        static uint_v next();
+        static IndexVector next();
 
     private:
-        static uint_v state;
+        static IndexVector state;
 };
 
-uint_v PseudoRandom::state(IndexesFromZero);
+template<> uint_v PseudoRandom<uint_v>::state(IndexesFromZero);
+template<> ushort_v PseudoRandom<ushort_v>::state(IndexesFromZero);
 
-inline uint_v PseudoRandom::next()
+template<> inline uint_v PseudoRandom<uint_v>::next()
 {
     state = (state * 1103515245 + 12345);
     return (state >> 16) | (state << 16); // rotate
 }
 
-template<class GatherImpl> class GatherBase
+template<> inline ushort_v PseudoRandom<ushort_v>::next()
 {
+    state = (state * 257 + 24151);
+    return (state >> 8) | (state << 8); // rotate
+}
+
+template<typename Vector, class GatherImpl> class GatherBase
+{
+    typedef typename Vector::IndexType IndexVector;
+    typedef typename Vector::IndexType::Mask IndexMask;
+    typedef typename Vector::EntryType Scalar;
+
+    enum {
+        Factor = 1600000 / Vector::Size
+    };
+
     public:
-        GatherBase(const char *name, const unsigned int size, const float *_data)
-            : timer(name, 4. * float_v::Size * Factor * sizeof(float), "B"),
+        GatherBase(const char *name, const unsigned int size, const Scalar *_data)
+            : timer(name, 4. * Vector::Size * Factor * sizeof(Scalar), "B"),
             aa(Zero), bb(Zero), cc(Zero), dd(Zero),
             data(_data), blackHole(0),
             indexesCount(Factor * 4),
             im(new IndexAndMask[indexesCount])
         {
-            const uint_v indexMask(size - 1);
+            PseudoRandom<IndexVector>::next();
+            PseudoRandom<IndexVector>::next();
+            const IndexVector indexMask(size - 1);
             for (int i = 0; i < indexesCount; ++i) {
-                im[i].index = PseudoRandom::next() & indexMask;
-                im[i].mask = (PseudoRandom::next() & uint_v(One)) > 0;
+                im[i].index = PseudoRandom<IndexVector>::next() & indexMask;
+                im[i].mask = (PseudoRandom<IndexVector>::next() & IndexVector(One)) > 0;
             }
         }
 
@@ -98,117 +106,167 @@ template<class GatherImpl> class GatherBase
 
     protected:
         Benchmark timer;
-        float_v aa;
-        float_v bb;
-        float_v cc;
-        float_v dd;
-        const float *const data;
+        Vector aa;
+        Vector bb;
+        Vector cc;
+        Vector dd;
+        const Scalar *const data;
         int blackHole;
         const int indexesCount;
         struct IndexAndMask {
-            uint_v index;
-            uint_m mask;
+            IndexVector index;
+            IndexMask mask;
         } *im;
 };
 
-class MaskedGather : public GatherBase<MaskedGather>
+template<typename Vector> struct GatherBenchmark
 {
-    public:
-        MaskedGather(const char *name, const unsigned int _size, const float *_data)
-            : GatherBase<MaskedGather>(name, _size, _data)
-        {}
+    typedef typename Vector::IndexType IndexVector;
+    typedef typename Vector::IndexType::Mask IndexMask;
+    typedef typename Vector::EntryType Scalar;
 
-        // the gather function reads
-        // 4 * 4  bytes with scalars
-        // 4 * 16 bytes with SSE
-        // 4 * 64 bytes with LRB
-        // (divided by 2 actually for the masks are in average only half full)
-        //
-        // there should be no overhead other than the nicely prefetchable index/mask vector reading
-        void run()
-        {
-            timer.Start();
-            for (int i = 0; i < Factor; ++i) {
-                const int ii = i * 4;
-                const float_v a(data, im[ii + 0].index, im[ii + 0].mask);
-                const float_v b(data, im[ii + 1].index, im[ii + 1].mask);
-                const float_v c(data, im[ii + 2].index, im[ii + 2].mask);
-                const float_v d(data, im[ii + 3].index, im[ii + 3].mask);
-                aa += a;
-                bb += b;
-                cc += c;
-                dd += d;
+    enum {
+        Factor = 1600000 / Vector::Size,
+        MaxArraySize = 32 * 1024 * 1024 / sizeof(Scalar), //  32 MB
+        L2ArraySize = 256 * 1024 / sizeof(Scalar),        // 256 KB
+        L1ArraySize = 32 * 1024 / sizeof(Scalar),         //  32 KB
+        CacheLineArraySize = 64 / sizeof(Scalar),         //  64 B
+        SingleArraySize = 1,                             //   4 B
+        ArrayCount = 2 * MaxArraySize + 2 * L2ArraySize + 2 * L1ArraySize + 2 * CacheLineArraySize
+    };
+
+    class MaskedGather : public GatherBase<Vector, MaskedGather>
+    {
+        typedef GatherBase<Vector, MaskedGather> Base;
+        using Base::timer;
+        using Base::data;
+        using Base::im;
+        using Base::aa;
+        using Base::bb;
+        using Base::cc;
+        using Base::dd;
+
+        public:
+            MaskedGather(const char *name, const unsigned int _size, const Scalar *_data)
+                : GatherBase<Vector, MaskedGather>(name, _size, _data)
+            {}
+
+            // the gather function reads
+            // 4 * 4  bytes with scalars
+            // 4 * 16 bytes with SSE
+            // 4 * 64 bytes with LRB
+            // (divided by 2 actually for the masks are in average only half full)
+            //
+            // there should be no overhead other than the nicely prefetchable index/mask vector reading
+            void run()
+            {
+                timer.Start();
+                for (int i = 0; i < Factor; ++i) {
+                    const int ii = i * 4;
+                    const Vector a(data, im[ii + 0].index, im[ii + 0].mask);
+                    const Vector b(data, im[ii + 1].index, im[ii + 1].mask);
+                    const Vector c(data, im[ii + 2].index, im[ii + 2].mask);
+                    const Vector d(data, im[ii + 3].index, im[ii + 3].mask);
+                    aa += a;
+                    bb += b;
+                    cc += c;
+                    dd += d;
+                }
+                timer.Stop();
             }
-            timer.Stop();
-        }
-};
+    };
 
-class Gather : public GatherBase<Gather>
-{
-    public:
-        Gather(const char *name, const unsigned int _size, const float *_data)
-            : GatherBase<Gather>(name, _size, _data)
-        {}
+    class Gather : public GatherBase<Vector, Gather>
+    {
+        typedef GatherBase<Vector, Gather> Base;
+        using Base::timer;
+        using Base::data;
+        using Base::im;
+        using Base::aa;
+        using Base::bb;
+        using Base::cc;
+        using Base::dd;
 
-        void run()
-        {
-            timer.Start();
-            for (int i = 0; i < Factor; ++i) {
-                const int ii = i * 4;
-                const float_v a(data, im[ii + 0].index);
-                const float_v b(data, im[ii + 1].index);
-                const float_v c(data, im[ii + 2].index);
-                const float_v d(data, im[ii + 3].index);
-                aa += a;
-                bb += b;
-                cc += c;
-                dd += d;
+        public:
+            Gather(const char *name, const unsigned int _size, const Scalar *_data)
+                : GatherBase<Vector, Gather>(name, _size, _data)
+            {}
+
+            void run()
+            {
+                timer.Start();
+                for (int i = 0; i < Factor; ++i) {
+                    const int ii = i * 4;
+                    const Vector a(data, im[ii + 0].index);
+                    const Vector b(data, im[ii + 1].index);
+                    const Vector c(data, im[ii + 2].index);
+                    const Vector d(data, im[ii + 3].index);
+                    aa += a;
+                    bb += b;
+                    cc += c;
+                    dd += d;
+                }
+                timer.Stop();
             }
-            timer.Stop();
-        }
-};
+    };
 
-static void randomize(float *const p, unsigned int size)
-{
-    static const double ONE_OVER_RAND_MAX = 1. / RAND_MAX;
-    for (unsigned int i = 0; i < size; ++i) {
-        p[i] = static_cast<float>(static_cast<double>(std::rand()) * ONE_OVER_RAND_MAX);
+    static void randomize(Scalar *const p, unsigned int size)
+    {
+        static const double ONE_OVER_RAND_MAX = 1. / RAND_MAX;
+        for (unsigned int i = 0; i < size; ++i) {
+            p[i] = static_cast<Scalar>(static_cast<double>(std::rand()) * ONE_OVER_RAND_MAX);
+        }
     }
-}
+
+    static int run()
+    {
+        int blackHole = 1;
+
+        Scalar *const _data = new Scalar[ArrayCount];
+        randomize(_data, ArrayCount);
+        // the last parts of _data are still hot, so we start at the beginning
+
+        Scalar *data = _data;
+        blackHole += MaskedGather("Masked Memory Gather", MaxArraySize, data);
+
+        // now the last parts of _data should be cold, let's go there
+        data += ArrayCount - L2ArraySize;
+        blackHole += MaskedGather("Masked L2 Gather", L2ArraySize, data);
+        data -= L1ArraySize;
+        blackHole += MaskedGather("Masked L1 Gather", L1ArraySize, data);
+        data -= CacheLineArraySize;
+        blackHole += MaskedGather("Masked Cacheline Gather", CacheLineArraySize, data);
+        blackHole += MaskedGather("Masked Broadcast Gather", SingleArraySize, data);
+
+        data -= MaxArraySize;
+        blackHole += Gather("Memory Gather", MaxArraySize, data);
+        data -= L2ArraySize;
+        blackHole += Gather("L2 Gather", L2ArraySize, data);
+        data -= L1ArraySize;
+        blackHole += Gather("L1 Gather", L1ArraySize, data);
+        data -= CacheLineArraySize;
+        blackHole += Gather("Cacheline Gather", CacheLineArraySize, data);
+        blackHole += Gather("Broadcast Gather", SingleArraySize, data);
+
+        delete[] _data;
+        return blackHole;
+    }
+};
 
 int main()
 {
     int blackHole = 1;
 
-    float *const _data = new float[ArrayCount];
-    randomize(_data, ArrayCount);
-
-    float *data = _data + ArrayCount;
-
-    data -= MaxArraySize;
-    blackHole += MaskedGather("Masked Memory Gather", MaxArraySize, data);
-    data -= L2ArraySize;
-    blackHole += MaskedGather("Masked L2 Gather", L2ArraySize, data);
-    data -= L1ArraySize;
-    blackHole += MaskedGather("Masked L1 Gather", L1ArraySize, data);
-    data -= CacheLineArraySize;
-    blackHole += MaskedGather("Masked Cacheline Gather", CacheLineArraySize, data);
-    blackHole += MaskedGather("Masked Broadcast Gather", SingleArraySize, data);
-
-    data -= MaxArraySize;
-    blackHole += Gather("Memory Gather", MaxArraySize, data);
-    data -= L2ArraySize;
-    blackHole += Gather("L2 Gather", L2ArraySize, data);
-    data -= L1ArraySize;
-    blackHole += Gather("L1 Gather", L1ArraySize, data);
-    data -= CacheLineArraySize;
-    blackHole += Gather("Cacheline Gather", CacheLineArraySize, data);
-    blackHole += Gather("Broadcast Gather", SingleArraySize, data);
+    std::cout << "Benchmarking float_v" << std::endl;
+    blackHole += GatherBenchmark<float_v>::run();
+    std::cout << "\nBenchmarking short_v" << std::endl;
+    blackHole += GatherBenchmark<short_v>::run();
+    std::cout << "\nBenchmarking sfloat_v" << std::endl;
+    blackHole += GatherBenchmark<sfloat_v>::run();
 
     if (blackHole < 10) {
         std::cout << ' ';
     }
 
-    delete[] _data;
     return 0;
 }
