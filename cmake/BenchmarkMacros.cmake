@@ -30,7 +30,11 @@ macro(vc_generate_plots name)
 
       vc_generate_datafile(${simpleTarget} simple_datafile)
       vc_generate_datafile(${sseTarget} sse_datafile)
-      vc_generate_datafile(${lrbTarget} lrb_datafile)
+      if(LARRABEE_FOUND)
+         vc_generate_datafile(${lrbTarget} lrb_datafile)
+      else(LARRABEE_FOUND)
+         set(lrb_datafile "")
+      endif(LARRABEE_FOUND)
 
       set(scriptfile "${CMAKE_CURRENT_BINARY_DIR}/plot_${name}.r")
       configure_file("${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${scriptfile}" @ONLY)
