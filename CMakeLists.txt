@@ -57,6 +57,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 
    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
       add_definitions(-DNO_OPTIMIZATION)
+   elseif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
+      add_definitions(-DNO_OPTIMIZATION)
    endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
    if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
       set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
