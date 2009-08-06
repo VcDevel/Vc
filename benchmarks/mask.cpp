@@ -29,10 +29,6 @@ using namespace Vc;
 // a) conditional (masked) assignment
 // b) masked ops (like flops.cpp but with masks)
 
-enum {
-    Repetitions = 4
-};
-
 // global (not file-static!) variable keeps the compiler from identifying the benchmark as dead code
 int blackHole = 1;
 
@@ -45,12 +41,11 @@ template<typename Vector> struct CondAssignment
         Factor = 10240000 / Vector::Size
     };
 
-    static void run()
+    static void run(const int Repetitions)
     {
-        std::cout << Factor << std::endl;
-        const double bytePerSecondFactor = Factor * Vector::Size * sizeof(Scalar) * 4.;
+        const double valuesPerSecondFactor = Factor * Vector::Size * 4.;
         {
-            Benchmark timer("Conditional Assignment (Const Mask)", bytePerSecondFactor, "B");
+            Benchmark timer("Conditional Assignment (Const Mask)", valuesPerSecondFactor, "Values");
 
             const Vector one(One);
 
@@ -80,7 +75,7 @@ template<typename Vector> struct CondAssignment
             }
         }
         {
-            Benchmark timer("Conditional Assignment (Random Mask)", bytePerSecondFactor, "B");
+            Benchmark timer("Conditional Assignment (Random Mask)", valuesPerSecondFactor, "Values");
 
             const Vector one(One);
 
@@ -113,8 +108,17 @@ template<typename Vector> struct CondAssignment
     }
 };
 
-int main()
+int bmain(Benchmark::OutputMode out)
 {
-    CondAssignment<float_v>::run();
+    const int Repetitions = out == Benchmark::Stdout ? 4 : 50;
+    Benchmark::addColumn("datatype");
+    Benchmark::setColumnData("datatype", "float_v");
+    CondAssignment<float_v>::run(Repetitions);
+    Benchmark::setColumnData("datatype", "short_v");
+    CondAssignment<short_v>::run(Repetitions);
+#ifdef USE_SSE
+    Benchmark::setColumnData("datatype", "sfloat_v");
+    CondAssignment<sfloat_v>::run(Repetitions);
+#endif
     return 0;
 }

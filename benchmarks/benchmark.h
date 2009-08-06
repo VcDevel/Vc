@@ -21,10 +21,14 @@
 #define BENCHMARK_H
 
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <list>
+#include <algorithm>
 #include <time.h>
 #include <cstring>
+#include <string>
+#include <fstream>
 #ifdef _MSC_VER
 #include <windows.h>
 #include <float.h>
@@ -36,29 +40,50 @@
 
 class Benchmark
 {
-public:
-    explicit Benchmark(const char *name, double factor = 0., const char *X = 0)
-        : fName(name), fFactor(factor), fX(X)
+    friend int main(int, char**);
+    class FileWriter
     {
-        const bool interpret = (fFactor != 0.);
-        char header[128];
-        std::memset(header, 0, 128);
-        std::strcpy(header, "+----------------+----------------+----------------+----------------+----------------+----------------+");
-        if (!interpret) {
-            header[52] = '\0';
-        }
-        const int titleLen = std::strlen(fName);
-        const int headerLen = std::strlen(header);
-        const int offset = (headerLen - titleLen) / 2;
-        if (offset > 0) {
-            std::memcpy(&header[offset], fName, titleLen);
-            header[offset - 1] = ' ';
-            header[offset + titleLen] = ' ';
-            std::cout << header << std::flush;
+        public:
+            FileWriter(const std::string &filename);
+            ~FileWriter();
+
+            void declareData(const std::string &name, const std::list<std::string> &header);
+            void addDataLine(const std::list<std::string> &data);
+
+            void addColumn(const std::string &name);
+            void setColumnData(const std::string &name, const std::string &data);
+
+        private:
+            std::ofstream m_file;
+            int m_line;
+            std::string m_currentName;
+            std::list<std::string> m_header;
+            struct ExtraColumn
+            {
+                ExtraColumn(const std::string &n) : name(n) {}
+                std::string name;
+                std::string data;
+                inline bool operator==(const ExtraColumn &rhs) const { return name == rhs.name; }
+                inline bool operator==(const std::string &rhs) const { return name == rhs; }
+            };
+            std::list<ExtraColumn> m_extraColumns;
+    };
+public:
+    enum OutputMode {
+        DataFile,
+        Stdout
+    };
+
+    static inline void addColumn(const std::string &name) { if (s_fileWriter) s_fileWriter->addColumn(name); }
+    static inline void setColumnData(const std::string &name, const std::string &data) {
+        if (s_fileWriter) {
+            s_fileWriter->setColumnData(name, data);
         } else {
-            std::cout << fName << std::flush;
+            std::cout << "Benchmarking " << name << " " << data << std::endl;
         }
     }
+
+    explicit Benchmark(const std::string &name, double factor = 0., const std::string &X = std::string());
 
     enum Flags {
         PrintValues = 0,
@@ -77,9 +102,9 @@ private:
         double fCpuElapsed;
         unsigned long long fCycles;
     };
-    const char *const fName;
+    const std::string fName;
     const double fFactor;
-    const char *const fX;
+    const std::string fX;
 #ifdef _MSC_VER
     __int64 fRealTime;
     clock_t fCpuTime;
@@ -89,7 +114,133 @@ private:
 #endif
     TimeStampCounter fTsc;
     std::list<DataPoint> fDataPoints;
+    static FileWriter *s_fileWriter;
 };
+
+Benchmark::FileWriter::FileWriter(const std::string &filename)
+    : m_line(0)
+{
+    std::string fn = filename;
+//X     int len = filename.length();
+//X     if (filename.substr(len - 4, 4) == ".dat") {
+//X         fn = filename;
+//X     } else if (filename.substr(len - 4, 4) == ".exe") {
+//X         fn.replace(len - 3, 3, "dat");
+//X     } else {
+//X         fn += ".dat";
+//X     }
+    m_file.open(fn.c_str());
+
+    if (Benchmark::s_fileWriter == 0) {
+        Benchmark::s_fileWriter = this;
+    }
+}
+
+Benchmark::FileWriter::~FileWriter()
+{
+    if (m_file.is_open()) {
+        m_file.flush();
+        m_file.close();
+    }
+    if (Benchmark::s_fileWriter == this) {
+        Benchmark::s_fileWriter = 0;
+    }
+}
+
+void Benchmark::FileWriter::declareData(const std::string &name, const std::list<std::string> &header)
+{
+    m_currentName = '"' + name + '"';
+    if (m_header.empty()) {
+        m_header = header;
+        m_file << "   \"benchmark.name\"\t\"benchmark.arch\"";
+        for (std::list<ExtraColumn>::const_iterator i = m_extraColumns.begin();
+                i != m_extraColumns.end(); ++i) {
+            m_file << "\t\"" << i->name << '"';
+        }
+        for (std::list<std::string>::const_iterator i = header.begin();
+                i != header.end(); ++i) {
+            m_file << '\t' << *i;
+        }
+        m_file << "\n";
+    } else if (m_header != header) {
+        std::cerr << "incompatible writes to FileWriter!\n"
+            << std::endl;
+    }
+}
+
+void Benchmark::FileWriter::addDataLine(const std::list<std::string> &data)
+{
+    m_file << ++m_line << '\t' << m_currentName << '\t' <<
+#ifdef ENABLE_LARRABEE
+#ifdef __LRB__
+            "\"LRB\"";
+#else
+            "\"LRB Prototype\"";
+#endif
+#elif defined(USE_SSE)
+            "\"SSE\"";
+#else
+            "\"Scalar\"";
+#endif
+    for (std::list<ExtraColumn>::const_iterator i = m_extraColumns.begin();
+            i != m_extraColumns.end(); ++i) {
+        m_file << '\t' << i->data;
+    }
+    for (std::list<std::string>::const_iterator i = data.begin();
+            i != data.end(); ++i) {
+        m_file << '\t' << *i;
+    }
+    m_file << "\n";
+}
+
+void Benchmark::FileWriter::addColumn(const std::string &name)
+{
+    if (m_header.empty()) {
+        if (m_extraColumns.end() == std::find(m_extraColumns.begin(), m_extraColumns.end(), name)) {
+            m_extraColumns.push_back(name);
+        }
+    } else {
+        std::cerr << "call addColumn before the first benchmark prints its data" << std::endl;
+    }
+}
+
+void Benchmark::FileWriter::setColumnData(const std::string &name, const std::string &data)
+{
+    for (std::list<ExtraColumn>::iterator i = m_extraColumns.begin();
+            i != m_extraColumns.end(); ++i) {
+        if (*i == name) {
+            i->data = '"' + data + '"';
+            break;
+        }
+    }
+}
+
+Benchmark::FileWriter *Benchmark::s_fileWriter = 0;
+
+Benchmark::Benchmark(const std::string &name, double factor, const std::string &X)
+    : fName(name), fFactor(factor), fX(X)
+{
+    if (!s_fileWriter) {
+        const bool interpret = (fFactor != 0.);
+        char header[128];
+        std::memset(header, 0, 128);
+        std::strcpy(header, "+----------------+----------------+----------------+----------------+----------------+----------------+");
+        if (!interpret) {
+            header[52] = '\0';
+        }
+        const int titleLen = fName.length();
+        const int headerLen = std::strlen(header);
+        const int offset = (headerLen - titleLen) / 2;
+        if (offset > 0) {
+            std::memcpy(&header[offset], fName.c_str(), titleLen);
+            header[offset - 1] = ' ';
+            header[offset + titleLen] = ' ';
+            std::cout << header << std::flush;
+        } else {
+            std::cout << fName << std::flush;
+        }
+    }
+}
 
 inline void Benchmark::Start()
 {
@@ -187,18 +338,84 @@ static inline void prettyPrintCount(double v)
     std::cout << std::setw(12) << v << ' ' << prefix[i];
 }
 
+static inline std::list<std::string> &operator<<(std::list<std::string> &list, const std::string &data)
+{
+    std::ostringstream str;
+    str << '"' << data << '"';
+    list.push_back(str.str());
+    return list;
+}
+
+static inline std::list<std::string> &operator<<(std::list<std::string> &list, const char *data)
+{
+    std::ostringstream str;
+    str << '"' << data << '"';
+    list.push_back(str.str());
+    return list;
+}
+
+static inline std::list<std::string> &operator<<(std::list<std::string> &list, double data)
+{
+    std::ostringstream str;
+    str << data;
+    list.push_back(str.str());
+    return list;
+}
+
+static inline std::list<std::string> &operator<<(std::list<std::string> &list, unsigned long long data)
+{
+    std::ostringstream str;
+    str << data;
+    list.push_back(str.str());
+    return list;
+}
+
+static std::string centered(const std::string &s, const int size = 16)
+{
+    const int missing = size - s.length();
+    if (missing < 0) {
+        return s.substr(0, size);
+    } else if (missing == 0) {
+        return s;
+    }
+    const int left = missing - missing / 2;
+    std::string r(size, ' ');
+    r.replace(left, s.length(), s);
+    return r;
+}
+
 inline void Benchmark::Print(int f) const
 {
+    std::streambuf *backup = std::cout.rdbuf();
+    if (s_fileWriter) {
+        std::cout.rdbuf(0);
+    }
     typedef std::list<DataPoint>::const_iterator It;
     const bool interpret = (fFactor != 0.);
 
+    std::list<std::string> header;
+    header << "CPU_time" << "Real_time" << "Cycles";
+
     std::cout << "\n|    CPU time    |   Real time    |     Cycles     |";
     if (interpret) {
-        std::cout << std::setw(5) << fX << "/s [CPU]   |";
-        std::cout << std::setw(5) << fX << "/s [Real]  |";
-        std::cout << std::setw(6) << fX <<  "/cycle    |";
+        std::cout << centered(fX + "/s [CPU]")  << "|";
+        std::cout << centered(fX + "/s [Real]") << "|";
+        std::cout << centered(fX + "/cycle")    << "|";
+        std::string X = fX;
+        for (unsigned int i = 0; i < X.length(); ++i) {
+            if (X[i] == ' ') {
+                X[i] = '_';
+            }
+        }
+        header << X + "_per_sec_CPU" << X + "_per_sec_Real" << X + "_per_cycle";
     }
+    if (s_fileWriter) {
+        s_fileWriter->declareData(fName, header);
+    }
+
+    std::list<std::string> dataLine;
     for (It i = fDataPoints.begin(); i != fDataPoints.end(); ++i) {
+        dataLine.clear();
         std::cout << "\n| ";
         prettyPrintSeconds(i->fCpuElapsed);
         std::cout << " | ";
@@ -206,6 +423,7 @@ inline void Benchmark::Print(int f) const
         std::cout << " | ";
         prettyPrintCount(i->fCycles);
         std::cout << " | ";
+        dataLine << i->fCpuElapsed << i->fRealElapsed << i->fCycles;
         if (interpret) {
             prettyPrintCount(fFactor / i->fCpuElapsed);
             std::cout << " | ";
@@ -213,6 +431,10 @@ inline void Benchmark::Print(int f) const
             std::cout << " |";
             prettyPrintCount(fFactor / i->fCycles);
             std::cout << " |";
+            dataLine << fFactor / i->fCpuElapsed << fFactor / i->fRealElapsed << fFactor / i->fCycles;
+        }
+        if (s_fileWriter) {
+            s_fileWriter->addDataLine(dataLine);
         }
     }
     if (f & PrintAverage) {
@@ -254,6 +476,20 @@ inline void Benchmark::Print(int f) const
     }
     std::cout << "\n+----------------+----------------+----------------+"
         << (interpret ? "----------------+----------------+----------------+" : "") << std::endl;
+    if (s_fileWriter) {
+        std::cout.rdbuf(backup);
+    }
+}
+
+int bmain(Benchmark::OutputMode);
+
+int main(int argc, char **argv)
+{
+    if (argc > 2 && std::strcmp(argv[1], "-o") == 0) {
+        Benchmark::FileWriter file(argv[2]);
+        return bmain(Benchmark::DataFile);
+    }
+    return bmain(Benchmark::Stdout);
 }
 
 #endif // BENCHMARK_H

@@ -83,5 +83,24 @@ inline Vc::float_v PseudoRandom<Vc::float_v>::next()
     return Vc::float_v(state) * ConvertFactor;
 }
 
+#ifdef USE_SSE
+template<> class PseudoRandom<Vc::sfloat_v>
+{
+    public:
+        static Vc::sfloat_v next();
+
+    private:
+        static Vc::ushort_v state;
+};
+
+Vc::ushort_v PseudoRandom<Vc::sfloat_v>::state(Vc::ushort_v(Vc::IndexesFromZero) + std::rand());
+
+inline Vc::sfloat_v PseudoRandom<Vc::sfloat_v>::next()
+{
+    const Vc::sfloat_v ConvertFactor = 1.f / (~0u);
+    state = (state * 257 + 24151);
+    return Vc::sfloat_v(state) * ConvertFactor;
+}
+#endif
 
 #endif // RANDOM_H

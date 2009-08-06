@@ -24,7 +24,9 @@
 
 using namespace Vc;
 
-static const int factor = 1000000;
+enum {
+    Factor = 2000000 / float_v::Size
+};
 
 static float randomF(float min, float max)
 {
@@ -34,12 +36,14 @@ static float randomF(float min, float max)
 
 static float randomF12() { return randomF(1.f, 2.f); }
 
-int main()
+int bmain(Benchmark::OutputMode out)
 {
+    const int Repetitions = out == Benchmark::Stdout ? 10 : 100;
+
     int blackHole = true;
     {
-        Benchmark timer("SAXPY", 8. * float_v::Size * factor, "FLOP");
-        for (int repetitions = 0; repetitions < 10; ++repetitions) {
+        Benchmark timer("class", 8. * float_v::Size * Factor, "FLOP");
+        for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
             const float_v alpha[4] = {
                 float_v(repetitions + randomF(.1f, .2f)),
                 float_v(repetitions - randomF(.1f, .2f)),
@@ -56,7 +60,7 @@ int main()
             timer.Start();
             ///////////////////////////////////////
 
-            for (int i = 0; i < factor; ++i) {
+            for (int i = 0; i < Factor; ++i) {
                     x[0] = alpha[0] * x[0] + y[0];
                     x[1] = alpha[1] * x[1] + y[1];
                     x[2] = alpha[2] * x[2] + y[2];
@@ -74,8 +78,8 @@ int main()
 
     // reference
     {
-        Benchmark timer("SAXPY (reference)", 8. * float_v::Size * factor, "FLOP");
-        for (int repetitions = 0; repetitions < 10; ++repetitions) {
+        Benchmark timer("reference", 8. * float_v::Size * Factor, "FLOP");
+        for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
 #ifdef USE_SSE
             __m128 tmp = _mm_set1_ps(static_cast<float>(repetitions));
             const __m128 oPoint2 = _mm_set1_ps(randomF(.1f, .2f));
@@ -92,7 +96,7 @@ int main()
             timer.Start();
             ///////////////////////////////////////
 
-            for (int i = 0; i < factor; ++i) {
+            for (int i = 0; i < Factor; ++i) {
                     x[0] = _mm_add_ps(_mm_mul_ps(alpha[0], x[0]), y[0]);
                     x[1] = _mm_add_ps(_mm_mul_ps(alpha[1], x[1]), y[1]);
                     x[2] = _mm_add_ps(_mm_mul_ps(alpha[2], x[2]), y[2]);
@@ -120,7 +124,7 @@ int main()
             timer.Start();
             ///////////////////////////////////////
 
-            for (int i = 0; i < factor; ++i) {
+            for (int i = 0; i < Factor; ++i) {
                     x[0] = _mm512_madd132_ps(x[0], y[0], alpha[0]);
                     x[1] = _mm512_madd132_ps(x[1], y[1], alpha[1]);
                     x[2] = _mm512_madd132_ps(x[2], y[2], alpha[2]);
@@ -145,7 +149,7 @@ int main()
             timer.Start();
             ///////////////////////////////////////
 
-            for (int i = 0; i < factor; ++i) {
+            for (int i = 0; i < Factor; ++i) {
                     x[0] = alpha[0] * x[0] + y[0];
                     x[1] = alpha[1] * x[1] + y[1];
                     x[2] = alpha[2] * x[2] + y[2];

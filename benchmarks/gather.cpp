@@ -38,9 +38,31 @@ using namespace Vc;
 
 // Intel Core 2 Quad (Q6600) has 8MB L2
 
-enum {
-    Repetitions = 4
+template<typename Vector> class NameHelper
+{
+    public:
+        static const char *prependTo(const char *t) {
+            const int sLen = std::strlen(s);
+            const int tLen = std::strlen(t);
+            char *r = new char[sLen + tLen + 2];
+            std::strcpy(r, s);
+            r[sLen] = ' ';
+            std::strcpy(r + sLen + 1, t);
+            r[sLen + tLen + 1] = '\0';
+            return r;
+        }
+        static const char *string() { return s; }
+    private:
+        static const char *s;
 };
+
+template<> const char *NameHelper<float_v>::s = "float_v";
+template<> const char *NameHelper<short_v>::s = "short_v";
+#ifdef USE_SSE
+template<> const char *NameHelper<sfloat_v>::s = "sfloat_v";
+#endif
+
+int blackHole = 1;
 
 template<typename Vector, class GatherImpl> class GatherBase
 {
@@ -53,11 +75,12 @@ template<typename Vector, class GatherImpl> class GatherBase
     };
 
     public:
-        GatherBase(const char *name, const unsigned int size, const Scalar *_data)
-            : timer(name, 4. * Vector::Size * Factor * sizeof(Scalar), "B"),
+        GatherBase(const char *name, const int _Rep, const unsigned int size, const Scalar *_data, double multiplier = 4.)
+            : timer(name, multiplier * Vector::Size * Factor, "Values"),
             aa(Zero), bb(Zero), cc(Zero), dd(Zero),
-            data(_data), blackHole(0),
+            data(_data),
             indexesCount(Factor * 4),
+            Repetitions(_Rep),
             im(new IndexAndMask[indexesCount])
         {
             PseudoRandom<IndexVector>::next();
@@ -67,16 +90,13 @@ template<typename Vector, class GatherImpl> class GatherBase
                 im[i].index = PseudoRandom<IndexVector>::next() & indexMask;
                 im[i].mask = (PseudoRandom<IndexVector>::next() & IndexVector(One)) > 0;
             }
-        }
 
-        operator int() {
             for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                 static_cast<GatherImpl *>(this)->run();
                 const int k = (aa < 20.f) && (bb < 20.f) && (cc < 20.f) && (dd < 20.f);
                 blackHole += k;
             }
             timer.Print();
-            return blackHole;
         }
 
     protected:
@@ -86,8 +106,8 @@ template<typename Vector, class GatherImpl> class GatherBase
         Vector cc;
         Vector dd;
         const Scalar *const data;
-        int blackHole;
         const int indexesCount;
+        const int Repetitions;
         struct IndexAndMask {
             IndexVector index;
             IndexMask mask;
@@ -122,8 +142,8 @@ template<typename Vector> struct GatherBenchmark
         using Base::dd;
 
         public:
-            MaskedGather(const char *name, const unsigned int _size, const Scalar *_data)
-                : GatherBase<Vector, MaskedGather>(name, _size, _data)
+            MaskedGather(const char *name, const int _Rep, const unsigned int _size, const Scalar *_data)
+                : GatherBase<Vector, MaskedGather>(name, _Rep, _size, _data, 2.)
             {}
 
             // the gather function reads
@@ -163,8 +183,8 @@ template<typename Vector> struct GatherBenchmark
         using Base::dd;
 
         public:
-            Gather(const char *name, const unsigned int _size, const Scalar *_data)
-                : GatherBase<Vector, Gather>(name, _size, _data)
+            Gather(const char *name, const int _Rep, const unsigned int _size, const Scalar *_data)
+                : GatherBase<Vector, Gather>(name, _Rep, _size, _data)
             {}
 
             void run()
@@ -193,55 +213,51 @@ template<typename Vector> struct GatherBenchmark
         }
     }
 
-    static int run()
+    static void run(const int Repetitions)
     {
-        int blackHole = 1;
-
         Scalar *const _data = new Scalar[ArrayCount];
         randomize(_data, ArrayCount);
         // the last parts of _data are still hot, so we start at the beginning
 
         Scalar *data = _data;
-        blackHole += MaskedGather("Masked Memory Gather", MaxArraySize, data);
+        MaskedGather("Memory Masked", Repetitions, MaxArraySize, data);
 
         // now the last parts of _data should be cold, let's go there
         data += ArrayCount - L2ArraySize;
-        blackHole += MaskedGather("Masked L2 Gather", L2ArraySize, data);
+        MaskedGather("L2 Masked", Repetitions, L2ArraySize, data);
         data -= L1ArraySize;
-        blackHole += MaskedGather("Masked L1 Gather", L1ArraySize, data);
+        MaskedGather("L1 Masked", Repetitions, L1ArraySize, data);
         data -= CacheLineArraySize;
-        blackHole += MaskedGather("Masked Cacheline Gather", CacheLineArraySize, data);
-        blackHole += MaskedGather("Masked Broadcast Gather", SingleArraySize, data);
+        MaskedGather("Cacheline Masked", Repetitions, CacheLineArraySize, data);
+        MaskedGather("Broadcast Masked", Repetitions, SingleArraySize, data);
 
         data -= MaxArraySize;
-        blackHole += Gather("Memory Gather", MaxArraySize, data);
+        Gather("Memory", Repetitions, MaxArraySize, data);
         data -= L2ArraySize;
-        blackHole += Gather("L2 Gather", L2ArraySize, data);
+        Gather("L2", Repetitions, L2ArraySize, data);
         data -= L1ArraySize;
-        blackHole += Gather("L1 Gather", L1ArraySize, data);
+        Gather("L1", Repetitions, L1ArraySize, data);
         data -= CacheLineArraySize;
-        blackHole += Gather("Cacheline Gather", CacheLineArraySize, data);
-        blackHole += Gather("Broadcast Gather", SingleArraySize, data);
+        Gather("Cacheline", Repetitions, CacheLineArraySize, data);
+        Gather("Broadcast", Repetitions, SingleArraySize, data);
 
         delete[] _data;
-        return blackHole;
     }
 };
 
-int main()
+int bmain(Benchmark::OutputMode out)
 {
-    int blackHole = 1;
+    Benchmark::addColumn("datatype");
+    const int Repetitions = out == Benchmark::Stdout ? 4 : 50;
 
-    std::cout << "Benchmarking float_v" << std::endl;
-    blackHole += GatherBenchmark<float_v>::run();
-    std::cout << "\nBenchmarking short_v" << std::endl;
-    blackHole += GatherBenchmark<short_v>::run();
-    std::cout << "\nBenchmarking sfloat_v" << std::endl;
-    blackHole += GatherBenchmark<sfloat_v>::run();
-
-    if (blackHole < 10) {
-        std::cout << ' ';
-    }
+    Benchmark::setColumnData("datatype", "float_v");
+    GatherBenchmark<float_v>::run(Repetitions);
+    Benchmark::setColumnData("datatype", "short_v");
+    GatherBenchmark<short_v>::run(Repetitions);
+#ifdef USE_SSE
+    Benchmark::setColumnData("datatype", "sfloat_v");
+    GatherBenchmark<sfloat_v>::run(Repetitions);
+#endif
 
     return 0;
 }
