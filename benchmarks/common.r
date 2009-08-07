@@ -125,6 +125,6 @@ par(family="serif")
 
 sse    <- read.table("@sse_datafile@")
 simple <- read.table("@simple_datafile@")
-lrb    <- if(length("@lrb_datafile@") > 1) read.table("@lrb_datafile@") else data.frame()
+lrb    <- if(nchar("@lrb_datafile@") > 0) read.table("@lrb_datafile@") else data.frame()
 
 # vim: sw=4 et filetype=r sts=4 ai
