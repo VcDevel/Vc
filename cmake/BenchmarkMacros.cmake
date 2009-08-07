@@ -37,9 +37,19 @@ macro(vc_generate_plots name)
       endif(LARRABEE_FOUND)
 
       set(scriptfile "${CMAKE_CURRENT_BINARY_DIR}/plot_${name}.r")
-      configure_file("${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${scriptfile}" @ONLY)
-      file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${name}.r" r_code)
-      file(APPEND "${scriptfile}" "${r_code}")
+      add_custom_command(OUTPUT "${scriptfile}"
+         COMMAND "${CMAKE_COMMAND}"
+         ARGS
+         "-Dscriptfile=${scriptfile}"
+         "-Dcommon=${CMAKE_CURRENT_SOURCE_DIR}/common.r"
+         "-Dappend=${CMAKE_CURRENT_SOURCE_DIR}/${name}.r"
+         "-Dsimple_datafile=${simple_datafile}"
+         "-Dsse_datafile=${sse_datafile}"
+         "-Dlrb_datafile=${lrb_datafile}"
+         -P "${CMAKE_SOURCE_DIR}/cmake/generate_plot_script.cmake"
+         DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${CMAKE_CURRENT_SOURCE_DIR}/${name}.r"
+         VERBATIM
+         )
 
       set(tmpfile "${CMAKE_CURRENT_BINARY_DIR}/${name}_tmp.pdf")
       set(pdffile "${CMAKE_CURRENT_BINARY_DIR}/${name}.pdf")
@@ -50,7 +60,7 @@ macro(vc_generate_plots name)
          COMMAND "${R_COMMAND}" ARGS --quiet --slave --vanilla -f "${scriptfile}"
          COMMAND "${CMAKE_COMMAND}" ARGS -E copy "Rplots.pdf" "${tmpfile}"
          COMMAND "${CMAKE_COMMAND}" ARGS -E remove "Rplots.pdf"
-         DEPENDS "${simple_datafile}" "${sse_datafile}" "${lrb_datafile}" "${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${CMAKE_CURRENT_SOURCE_DIR}/${name}.r"
+         DEPENDS "${simple_datafile}" "${sse_datafile}" "${lrb_datafile}" "${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${CMAKE_CURRENT_SOURCE_DIR}/${name}.r" "${scriptfile}"
          WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
          COMMENT "Generating PDF plots for the ${name} benchmark"
          VERBATIM
