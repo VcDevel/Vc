@@ -33,25 +33,8 @@ gatherChart <- function(data, orderfun, legendpos = "bottomright", column = "Val
         main <- paste(main, " (", cacheinfo, ")", sep="")
     }
 
-    medianCol <- paste(column, ".median", sep="")
-    meanCol   <- paste(column, ".mean"  , sep="")
-    stddevCol <- paste(column, ".stddev", sep="")
-    chart <- NULL
-    legendtext <- rep("not set", times=50)
-    xlim <- range(0, data[medianCol], data[meanCol] + data[stddevCol])
-    for(d in split(data, data$mask)) {
-        legendtext[d$pch[[1]]] <- as.character(d$mask[[1]])
-        if(is.null(chart)) {
-            permutation <- orderfun(d)
-            d <- permute(d, permutation)
-            chart <- mychart3(d, column, xlab = xlab, main = main, xlim = xlim)
-        } else {
-            d <- permute(d, permutation)
-            addPoints(chart, d[[medianCol]], d[[stddevCol]], d[[meanCol]], color = d$color, pch = d$pch)
-        }
-    }
-    legend(legendpos, legendtext[21:23], pch=21:23)
-    invisible(chart)
+    mychart4(data, data$mask, orderfun, legendpos = legendpos, legendcol = "mask", column = column,
+        xlab = xlab, main = main)
 }
 
 sse$Cacheline.size <- paste(as.character(sse$Cacheline.size), "B")

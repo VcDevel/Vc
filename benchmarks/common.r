@@ -131,6 +131,17 @@ addPoints <- function(chart, x, errors = NULL, mean = NULL,
     invisible()
 }
 
+addPoints2 <- function(chart, data, key, ...) {
+    median <- data[[paste(key, ".median", sep = "")]]
+    mean   <- data[[paste(key, ".mean",   sep = "")]]
+    stddev <- data[[paste(key, ".stddev", sep = "")]]
+
+    color <- if(is.null(data$color)) par("fg") else data$color
+    pch   <- if(is.null(data$pch  )) 21        else data$pch
+
+    addPoints(chart, median, stddev, mean, color, pch = pch, ...)
+}
+
 mychart2 <- function(data, keys, groups = NULL, ...) {
 keys <- factor(as.vector(keys), ordered=FALSE)
     median <- tapply(data, keys, median)
@@ -177,6 +188,32 @@ mychart3 <- function(data, key, ncolors = NULL, xlim = NULL, ...) {
         pch = data$pch,
         ...
         )
+    invisible(chart)
+}
+
+mychart4 <- function(data, splitfactor, orderfun = NULL, legendpos = "bottomright",
+    legendcol = "benchmark.name", column = "Values_per_cycle", xlab = "Values per Cycle", ...)
+{
+    medianCol <- paste(column, ".median", sep="")
+    meanCol   <- paste(column, ".mean"  , sep="")
+    stddevCol <- paste(column, ".stddev", sep="")
+    if(is.null(orderfun)) orderfun <- function(d) { order(d[[medianCol]]) }
+    chart <- NULL
+    legendtext <- rep("unknown", times=50)
+    xlim <- range(0, data[medianCol], data[meanCol] + data[stddevCol])
+    for(d in split(data, splitfactor)) {
+        legendtext[d$pch[[1]]] <- as.character(d[[legendcol]][[1]])
+        if(is.null(chart)) {
+            permutation <- orderfun(d)
+            d <- permute(d, permutation)
+            chart <- mychart3(d, column, xlab = xlab, xlim = xlim, ...)
+        } else {
+            d <- permute(d, permutation)
+            addPoints2(chart, d, column)
+        }
+    }
+    pchLevels <- as.numeric(levels(factor(data$pch)))
+    legend(legendpos, legendtext[pchLevels], pch=pchLevels)
     invisible(chart)
 }
 
