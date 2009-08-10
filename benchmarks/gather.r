@@ -58,9 +58,11 @@ for(data in list(rbind(sse, simple, lrb), rbind(sse, simple))) {
     gatherChart(data, function(d) { order(d$benchmark.name, d$datatype, d$benchmark.arch) }, legendpos="topright")
 }
 
+lrb    <- gatherProcessData(lrb)
 sse    <- gatherProcessData(sse)
 simple <- gatherProcessData(simple)
 
+lrb    <- split(lrb   , lrb$datatype)
 sse    <- split(sse   , sse$datatype)
 simple <- split(simple, simple$datatype)
 
@@ -90,9 +92,27 @@ speedup <- rbind(
     speedupOf(sse[["sfloat_v"]], simple[["float_v"]]),
     speedupOf(sse[["short_v"]], simple[["short_v"]])
     )
-print(speedup)
 
-gatherChart(speedup, function(d) { order(d$datatype, d$benchmark.name) }, column = "speedup", xlab = "Speedup")
+gatherChart(speedup, function(d) { order(d$datatype, d$benchmark.name) }, column = "speedup", xlab =
+"Speedup", main = "Vector Gather: SSE vs. Scalar")
+abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
+
+speedup <- rbind(
+    speedupOf(lrb[["float_v"]], simple[["float_v"]]),
+    speedupOf(lrb[["short_v"]], simple[["short_v"]])
+    )
+
+gatherChart(speedup, function(d) { order(d$datatype, d$benchmark.name) }, column = "speedup", xlab =
+"Speedup", main = "Vector Gather: LRB Prototype vs. Scalar")
+abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
+
+speedup <- rbind(
+    speedupOf(lrb[["float_v"]], sse[["sfloat_v"]]),
+    speedupOf(lrb[["short_v"]], sse[["short_v"]])
+    )
+
+gatherChart(speedup, function(d) { order(d$datatype, d$benchmark.name) }, column = "speedup", xlab =
+"Speedup", main = "Vector Gather: LRB Prototype vs. SSE")
 abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
 
