@@ -1,5 +1,9 @@
 include(BenchmarkMacros)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+   add_executable(benchmark benchmark.cpp)
+endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+
 vc_add_benchmark(flops)
 vc_add_benchmark(gather)
 vc_add_benchmark(mask)

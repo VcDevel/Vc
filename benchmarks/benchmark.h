@@ -485,6 +485,11 @@ int bmain(Benchmark::OutputMode);
 
 int main(int argc, char **argv)
 {
+    if (SCHED_FIFO != sched_getscheduler(0)) {
+        // not realtime priority, check whether the benchmark executable exists
+        execv("./benchmark", argv);
+        // if the execv call works, great. If it doesn't we just continue, but without realtime prio
+    }
     if (argc > 2 && std::strcmp(argv[1], "-o") == 0) {
         Benchmark::FileWriter file(argv[2]);
         return bmain(Benchmark::DataFile);
