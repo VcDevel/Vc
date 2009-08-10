@@ -45,8 +45,8 @@ mydotchart <- function(x, labels = NULL, groups = NULL, gdata = NULL, errors = N
         ginch <- max(strwidth(glabels, "inch"), na.rm = TRUE)
         goffset <- 0.4
     }
+    nmai <- par("mai")
     if (!(is.null(labels) && is.null(glabels))) {
-        nmai <- par("mai")
         nmai[2] <- nmai[4] + max(linch + goffset, ginch) + 0.1
         par(mai = nmai)
     }
@@ -98,6 +98,36 @@ mydotchart <- function(x, labels = NULL, groups = NULL, gdata = NULL, errors = N
     axis(1)
     box()
     title(main = main, xlab = xlab, ylab = ylab, ...)
+    invisible(list(y=y, o=o, cex=cex, nmai=nmai))
+}
+
+addPoints <- function(chart, x, errors = NULL, mean = NULL,
+    color = par("fg"), bg = NULL, pch = 21, ...)
+{
+    opar <- par("mai", "mar", "cex", "yaxs")
+    on.exit(par(opar))
+
+    attach(chart)
+    par(cex = cex, yaxs = "i", mai = nmai)
+
+    if(is.null(bg)) bg <- {
+            tmp <- rgb2hsv(col2rgb(color))
+            hsv(h=tmp[row(tmp) == 1], s=tmp[row(tmp) == 2], v=min(1, 1.6 * tmp[row(tmp) == 3]), alpha=0.5)
+        }
+
+    x <- x[o]
+    errors <- errors[o]
+    mean <- mean[o]
+    color <- color[o]
+    bg <- bg[o]
+
+    if (!is.null(errors)) {
+        if (is.null(mean)) mean <- x
+        errorbars(mean, y, xerr=errors, col = color)
+    }
+    points(x, y, pch = pch, col = color, bg = bg)
+
+    detach(chart)
     invisible()
 }
 
@@ -112,32 +142,42 @@ keys <- factor(as.vector(keys), ordered=FALSE)
     mydotchart(median, groups=groups, xlim=c(0, (max(mean + errors))), xaxs="i", sub="median", mean=mean, errors=errors, ...)
 }
 
-mychart3 <- function(data, key, ...) {
-    medianOf <- function(data, key) data[[paste(key, ".median", sep = "")]]
-    meanOf   <- function(data, key) data[[paste(key, ".mean",   sep = "")]]
-    stddevOf <- function(data, key) data[[paste(key, ".stddev", sep = "")]]
+mychart3 <- function(data, key, ncolors = NULL, xlim = NULL, ...) {
+    median <- data[[paste(key, ".median", sep = "")]]
+    mean   <- data[[paste(key, ".mean",   sep = "")]]
+    stddev <- data[[paste(key, ".stddev", sep = "")]]
 
-    arch <- factor(data$benchmark.arch)
-    narch <- nlevels(arch)
-    if(is.null(data$color  )) data$color   <- rainbow(narch, v = 0.5)[as.integer(arch)]
-    if(is.null(data$lcolor )) data$lcolor  <- rainbow(narch, v = 0.5, alpha = 0.5)[as.integer(arch)]
-    if(is.null(data$bgcolor)) data$bgcolor <- rainbow(narch, v = 0.8)[as.integer(arch)]
+    colorkey <- if(is.null(data$benchmark.arch)) data$benchmark.name else data$benchmark.arch
+    colorkey <- factor(colorkey)
+    if(is.null(ncolors)) ncolors <- nlevels(colorkey)
+    if(is.null(data$color  )) data$color   <- rainbow(ncolors, v = 0.5)[as.integer(colorkey)]
+    if(is.null(data$bgcolor)) data$bgcolor <- {
+            tmp <- rgb2hsv(col2rgb(data$color))
+            hsv(h=tmp[row(tmp) == 1], s=tmp[row(tmp) == 2], v=min(1, 1.6 * tmp[row(tmp) == 3]), alpha=0.5)
+        }
+    if(is.null(data$lcolor )) data$lcolor  <- {
+            tmp <- rgb2hsv(col2rgb(data$color))
+            hsv(h=tmp[row(tmp) == 1], s=tmp[row(tmp) == 2], v=0.8 * tmp[row(tmp) == 3], alpha=0.5)
+        }
     if(is.null(data$pch    )) data$pch     <- c(21:31, 1:20)[as.integer(factor(data$benchmark.name))]
 
-    mydotchart(
-        medianOf(data, key),
+    if(is.null(xlim)) xlim <- range(0, mean + stddev, median)
+
+    chart <- mydotchart(
+        median,
         labels = data$key,
-        xlim = range(0, meanOf(data, key) + stddevOf(data, key), medianOf(data, key)),
+        xlim = xlim,
         xaxs = "i",
         sub = "median",
-        mean = medianOf(data, key),
-        errors = stddevOf(data, key),
+        mean = median,
+        errors = stddev,
         color = data$color,
         lcolor = data$lcolor,
         bg = data$bgcolor,
         pch = data$pch,
         ...
         )
+    invisible(chart)
 }
 
 sortkey <- function(string, values, keys) {
@@ -149,7 +189,7 @@ sortkey <- function(string, values, keys) {
     string + values
 }
 
-processData <- function(data, keys) {
+processData <- function(data, keys, skip = c("")) {
     keys <- factor(keys) # no empty levels
     l <- levels(keys)
     n <- length(l)
@@ -157,7 +197,7 @@ processData <- function(data, keys) {
     for(col in colnames(data)) {
         v <- as.vector(data[[col]])
         v2 <- NULL
-        if(is.character(v)) {
+        if(is.character(v) || 1 == max(col == skip)) {
             j <- 1
             for(i in as.integer(keys)) {
                 v2[i] <- v[j]
@@ -173,8 +213,7 @@ processData <- function(data, keys) {
     result
 }
 
-sortBy <- function(data, key) {
-    o <- sort.list(key)
+permute <- function(data, o) {
     if(is.data.frame(data)) {
         for(col in colnames(data)) {
             data[col] <- data[[col]][o]
@@ -183,6 +222,11 @@ sortBy <- function(data, key) {
         data <- data[o]
     }
     data
+}
+
+sortBy <- function(data, key) {
+    o <- sort.list(key)
+    permute(data, o)
 }
 
 par(family="serif")
