@@ -76,6 +76,7 @@ macro(vc_generate_plots name)
             COMMAND "${PDFTK_COMMAND}" ARGS "${tmpfile}" dump_data output "${metafile}"
             COMMAND "${CMAKE_COMMAND}" ARGS -D metafile=${metafile} -D name=${name} -P "${CMAKE_CURRENT_SOURCE_DIR}/processPdfMetaData.cmake"
             COMMAND "${PDFTK_COMMAND}" ARGS "${tmpfile}" update_info "${metafile}" output "${pdffile}"
+            COMMAND "${CMAKE_COMMAND}" ARGS -E remove "${tmpfile}"
             DEPENDS "${tmpfile}"
             COMMENT "Adjusting PDF Title of ${pdffile}"
             VERBATIM
