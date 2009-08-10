@@ -99,6 +99,11 @@ template<typename Vector, class GatherImpl> class GatherBase
             timer.Print();
         }
 
+        ~GatherBase()
+        {
+            delete[] im;
+        }
+
     protected:
         Benchmark timer;
         Vector aa;
@@ -218,33 +223,34 @@ template<typename Vector> struct GatherBenchmark
         const int L2ArraySize = g_L2ArraySize / sizeof(Scalar);
         const int L1ArraySize = g_L1ArraySize / sizeof(Scalar);
         const int CacheLineArraySize = g_CacheLineArraySize / sizeof(Scalar);
-        const int ArrayCount = 2 * MaxArraySize + 2 * L2ArraySize + 2 * L1ArraySize + 2 * CacheLineArraySize;
+        const int ArrayCount = 2 * MaxArraySize;
 
         Scalar *const _data = new Scalar[ArrayCount];
         randomize(_data, ArrayCount);
-        // the last parts of _data are still hot, so we start at the beginning
 
+        // the last parts of _data are still hot, so we start at the beginning
         Scalar *data = _data;
         MaskedGather("Memory Masked", Repetitions, MaxArraySize, data);
 
         // now the last parts of _data should be cold, let's go there
-        data += ArrayCount - L2ArraySize;
+        data += ArrayCount - MaxArraySize;
+        Gather("Memory", Repetitions, MaxArraySize, data);
+
+        randomize(_data, L2ArraySize);
+        Gather("L2", Repetitions, L2ArraySize, data);
         MaskedGather("L2 Masked", Repetitions, L2ArraySize, data);
-        data -= L1ArraySize;
+
+        randomize(_data, L1ArraySize);
+        Gather("L1", Repetitions, L1ArraySize, data);
         MaskedGather("L1 Masked", Repetitions, L1ArraySize, data);
-        data -= CacheLineArraySize;
+
+        randomize(_data, CacheLineArraySize);
+        Gather("Cacheline", Repetitions, CacheLineArraySize, data);
         MaskedGather("Cacheline Masked", Repetitions, CacheLineArraySize, data);
+
+        Gather("Broadcast", Repetitions, 1, data);
         MaskedGather("Broadcast Masked", Repetitions, 1, data);
 
-        data -= MaxArraySize;
-        Gather("Memory", Repetitions, MaxArraySize, data);
-        data -= L2ArraySize;
-        Gather("L2", Repetitions, L2ArraySize, data);
-        data -= L1ArraySize;
-        Gather("L1", Repetitions, L1ArraySize, data);
-        data -= CacheLineArraySize;
-        Gather("Cacheline", Repetitions, CacheLineArraySize, data);
-        Gather("Broadcast", Repetitions, 1, data);
 
         delete[] _data;
     }
