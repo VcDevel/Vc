@@ -112,6 +112,34 @@ keys <- factor(as.vector(keys), ordered=FALSE)
     mydotchart(median, groups=groups, xlim=c(0, (max(mean + errors))), xaxs="i", sub="median", mean=mean, errors=errors, ...)
 }
 
+mychart3 <- function(data, key, ...) {
+    medianOf <- function(data, key) data[[paste(key, ".median", sep = "")]]
+    meanOf   <- function(data, key) data[[paste(key, ".mean",   sep = "")]]
+    stddevOf <- function(data, key) data[[paste(key, ".stddev", sep = "")]]
+
+    arch <- factor(data$benchmark.arch)
+    narch <- nlevels(arch)
+    if(is.null(data$color  )) data$color   <- rainbow(narch, v = 0.5)[as.integer(arch)]
+    if(is.null(data$lcolor )) data$lcolor  <- rainbow(narch, v = 0.5, alpha = 0.5)[as.integer(arch)]
+    if(is.null(data$bgcolor)) data$bgcolor <- rainbow(narch, v = 0.8)[as.integer(arch)]
+    if(is.null(data$pch    )) data$pch     <- c(21:31, 1:20)[as.integer(factor(data$benchmark.name))]
+
+    mydotchart(
+        medianOf(data, key),
+        labels = data$key,
+        xlim = range(0, meanOf(data, key) + stddevOf(data, key), medianOf(data, key)),
+        xaxs = "i",
+        sub = "median",
+        mean = medianOf(data, key),
+        errors = stddevOf(data, key),
+        color = data$color,
+        lcolor = data$lcolor,
+        bg = data$bgcolor,
+        pch = data$pch,
+        ...
+        )
+}
+
 sortkey <- function(string, values, keys) {
     foo <- function(x) x[[1]]
     values <- as.vector(tapply(values, keys, median))
@@ -119,6 +147,42 @@ sortkey <- function(string, values, keys) {
 
     string <- string * max(values) * 2
     string + values
+}
+
+processData <- function(data, keys) {
+    keys <- factor(keys) # no empty levels
+    l <- levels(keys)
+    n <- length(l)
+    result <- data.frame(key = l)
+    for(col in colnames(data)) {
+        v <- as.vector(data[[col]])
+        v2 <- NULL
+        if(is.character(v)) {
+            j <- 1
+            for(i in as.integer(keys)) {
+                v2[i] <- v[j]
+                j <- j + 1
+            }
+            result[col] <- as.vector(v2)
+        } else {
+            result[paste(col, sep=".", "median")] <- as.vector(tapply(v, keys, median))
+            result[paste(col, sep=".", "mean"  )] <- as.vector(tapply(v, keys, mean))
+            result[paste(col, sep=".", "stddev")] <- as.vector(tapply(v, keys, sd))
+        }
+    }
+    result
+}
+
+sortBy <- function(data, key) {
+    o <- sort.list(key)
+    if(is.data.frame(data)) {
+        for(col in colnames(data)) {
+            data[col] <- data[[col]][o]
+        }
+    } else {
+        data <- data[o]
+    }
+    data
 }
 
 par(family="serif")
