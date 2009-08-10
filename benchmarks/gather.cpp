@@ -114,6 +114,11 @@ template<typename Vector, class GatherImpl> class GatherBase
         } *im;
 };
 
+static int g_L1ArraySize = 0;
+static int g_L2ArraySize = 0;
+static int g_CacheLineArraySize = 0;
+static int g_MaxArraySize = 0;
+
 template<typename Vector> struct GatherBenchmark
 {
     typedef typename Vector::IndexType IndexVector;
@@ -121,13 +126,7 @@ template<typename Vector> struct GatherBenchmark
     typedef typename Vector::EntryType Scalar;
 
     enum {
-        Factor = 1600000 / Vector::Size,
-        MaxArraySize = 32 * 1024 * 1024 / sizeof(Scalar), //  32 MB
-        L2ArraySize = 256 * 1024 / sizeof(Scalar),        // 256 KB
-        L1ArraySize = 32 * 1024 / sizeof(Scalar),         //  32 KB
-        CacheLineArraySize = 64 / sizeof(Scalar),         //  64 B
-        SingleArraySize = 1,                             //   4 B
-        ArrayCount = 2 * MaxArraySize + 2 * L2ArraySize + 2 * L1ArraySize + 2 * CacheLineArraySize
+        Factor = 1600000 / Vector::Size
     };
 
     class MaskedGather : public GatherBase<Vector, MaskedGather>
@@ -215,6 +214,12 @@ template<typename Vector> struct GatherBenchmark
 
     static void run(const int Repetitions)
     {
+        const int MaxArraySize = g_MaxArraySize / sizeof(Scalar);
+        const int L2ArraySize = g_L2ArraySize / sizeof(Scalar);
+        const int L1ArraySize = g_L1ArraySize / sizeof(Scalar);
+        const int CacheLineArraySize = g_CacheLineArraySize / sizeof(Scalar);
+        const int ArrayCount = 2 * MaxArraySize + 2 * L2ArraySize + 2 * L1ArraySize + 2 * CacheLineArraySize;
+
         Scalar *const _data = new Scalar[ArrayCount];
         randomize(_data, ArrayCount);
         // the last parts of _data are still hot, so we start at the beginning
@@ -229,7 +234,7 @@ template<typename Vector> struct GatherBenchmark
         MaskedGather("L1 Masked", Repetitions, L1ArraySize, data);
         data -= CacheLineArraySize;
         MaskedGather("Cacheline Masked", Repetitions, CacheLineArraySize, data);
-        MaskedGather("Broadcast Masked", Repetitions, SingleArraySize, data);
+        MaskedGather("Broadcast Masked", Repetitions, 1, data);
 
         data -= MaxArraySize;
         Gather("Memory", Repetitions, MaxArraySize, data);
@@ -239,16 +244,47 @@ template<typename Vector> struct GatherBenchmark
         Gather("L1", Repetitions, L1ArraySize, data);
         data -= CacheLineArraySize;
         Gather("Cacheline", Repetitions, CacheLineArraySize, data);
-        Gather("Broadcast", Repetitions, SingleArraySize, data);
+        Gather("Broadcast", Repetitions, 1, data);
 
         delete[] _data;
     }
 };
 
+#include "cpuid.h"
+
 int bmain(Benchmark::OutputMode out)
 {
+    CpuId::init();
+
     Benchmark::addColumn("datatype");
+    Benchmark::addColumn("L1.size");
+    Benchmark::addColumn("L2.size");
+    Benchmark::addColumn("Cacheline.size");
     const int Repetitions = out == Benchmark::Stdout ? 4 : 50;
+
+    g_L1ArraySize = CpuId::L1Data();
+    g_L2ArraySize = CpuId::L2Data();
+    g_CacheLineArraySize = CpuId::L1DataLineSize();
+    g_MaxArraySize = g_L2ArraySize * 8;
+    {
+        std::ostringstream str;
+        str << g_L1ArraySize;
+        Benchmark::setColumnData("L1.size", str.str());
+    }
+    {
+        std::ostringstream str;
+        str << g_L2ArraySize;
+        Benchmark::setColumnData("L2.size", str.str());
+    }
+    {
+        std::ostringstream str;
+        str << g_CacheLineArraySize;
+        Benchmark::setColumnData("Cacheline.size", str.str());
+    }
+
+    // divide by 2 since other parts of the program also affect the caches
+    g_L1ArraySize /= 2;
+    g_L2ArraySize /= 2;
 
     Benchmark::setColumnData("datatype", "float_v");
     GatherBenchmark<float_v>::run(Repetitions);
