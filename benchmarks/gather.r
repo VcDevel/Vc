@@ -3,24 +3,23 @@ par(cex=0.75)
 
 gatherProcessData <- function(data) {
     data <- processData(data, paste(
-            data$benchmark.name,
-            data$datatype,
-            data$benchmark.arch,
-            data$L1.size,
-            data$L2.size,
-            data$Cacheline.size,
-            data$mask,
-            sep=", "),
-            skip = c("Cacheline.size", "L1.size", "L2.size")
+                data$benchmark.name,
+                data$datatype,
+                data$benchmark.arch,
+                data$L1.size,
+                data$L2.size,
+                data$Cacheline.size,
+                data$mask,
+                sep=", "),
+            skip = c("Cacheline.size", "L1.size", "L2.size"),
+            pchkey = "mask", colorkey = "benchmark.name"
         )
-    data$pch <- (21:31)[as.integer(factor(data$mask))]
     data$mask <- c("not masked", "masked with one", "random mask")[as.integer(factor(data$mask))]
-    data$color <- rainbow(5, v=0.5)[as.integer(factor(data$benchmark.name))]
     data
 }
 
 gatherChart <- function(data, orderfun, legendpos = "bottomright", column = "Values_per_cycle",
-    xlab = "Values per Cycle", main = "Vector Gather")
+    xlab = "Values per Cycle", main = "Vector Gather", splitfactor = NULL)
 {
     l2info <- NULL
     l1info <- NULL
@@ -34,7 +33,7 @@ gatherChart <- function(data, orderfun, legendpos = "bottomright", column = "Val
     }
 
     mychart4(data, data$mask, orderfun, legendpos = legendpos, legendcol = "mask", column = column,
-        xlab = xlab, main = main)
+        xlab = xlab, main = main, offsetInY = FALSE)
 }
 
 sse$Cacheline.size <- paste(as.character(sse$Cacheline.size), "B")
@@ -73,57 +72,15 @@ lrb    <- gatherProcessData(lrb)
 sse    <- gatherProcessData(sse)
 simple <- gatherProcessData(simple)
 
-lrb    <- split(lrb   , lrb$datatype)
-sse    <- split(sse   , sse$datatype)
-simple <- split(simple, simple$datatype)
-
-speedupOf <- function(data, reference) {
-    data.frame(
+plotSpeedup(sse, simple, lrb, plotfun = gatherChart, main = "Vector Gather",
+    speedupColumn = "Values_per_cycle",
+    datafun = function(data, reference) list(
         key = paste(data$datatype, data$benchmark.name),
-        benchmark.name = data$benchmark.name,
-        datatype = data$datatype,
         mask = data$mask,
         L1.size = data$L1.size,
         L2.size = data$L2.size,
-        pch = data$pch,
-        color = data$color,
-        Cacheline.size = data$Cacheline.size,
-        speedup.median = data$Values_per_cycle.median / reference$Values_per_cycle.median,
-        speedup.mean = data$Values_per_cycle.mean / reference$Values_per_cycle.mean,
-        speedup.stddev = sqrt(
-                (data$Values_per_cycle.stddev / data$Values_per_cycle.mean) ^ 2 +
-                (reference$Values_per_cycle.stddev / reference$Values_per_cycle.mean) ^ 2
-            ) * data$Values_per_cycle.mean / reference$Values_per_cycle.mean,
-        stringsAsFactors = FALSE
+        Cacheline.size = data$Cacheline.size
         )
-}
-
-speedup <- rbind(
-    speedupOf(sse[["float_v"]], simple[["float_v"]]),
-    speedupOf(sse[["sfloat_v"]], simple[["float_v"]]),
-    speedupOf(sse[["short_v"]], simple[["short_v"]])
     )
-
-gatherChart(speedup, function(d) { order(d$datatype, d$benchmark.name) }, column = "speedup", xlab =
-"Speedup", main = "Vector Gather: SSE vs. Scalar")
-abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
-
-speedup <- rbind(
-    speedupOf(lrb[["float_v"]], simple[["float_v"]]),
-    speedupOf(lrb[["short_v"]], simple[["short_v"]])
-    )
-
-gatherChart(speedup, function(d) { order(d$datatype, d$benchmark.name) }, column = "speedup", xlab =
-"Speedup", main = "Vector Gather: LRB Prototype vs. Scalar")
-abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
-
-speedup <- rbind(
-    speedupOf(lrb[["float_v"]], sse[["sfloat_v"]]),
-    speedupOf(lrb[["short_v"]], sse[["short_v"]])
-    )
-
-gatherChart(speedup, function(d) { order(d$datatype, d$benchmark.name) }, column = "speedup", xlab =
-"Speedup", main = "Vector Gather: LRB Prototype vs. SSE")
-abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
 # vim: sw=4 et filetype=r sts=4 ai
