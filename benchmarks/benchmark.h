@@ -178,7 +178,17 @@ void Benchmark::FileWriter::addDataLine(const std::list<std::string> &data)
             "\"LRB Prototype\"";
 #endif
 #elif defined(USE_SSE)
-            "\"SSE\"";
+# if defined(__SSE4_1__)
+            "\"SSE4.1\"";
+# elif defined(__SSSE3__)
+            "\"SSSE3\"";
+# elif defined(__SSE3__)
+            "\"SSE3\"";
+# elif defined(__SSE2__)
+            "\"SSE2\"";
+# else
+            "\"SSE?\"";
+# endif
 #else
             "\"Scalar\"";
 #endif
