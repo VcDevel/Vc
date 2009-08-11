@@ -493,6 +493,8 @@ inline void Benchmark::Print(int f) const
 
 int bmain(Benchmark::OutputMode);
 
+static int g_Repetitions = 0;
+
 int main(int argc, char **argv)
 {
     if (SCHED_FIFO != sched_getscheduler(0)) {
@@ -502,6 +504,9 @@ int main(int argc, char **argv)
     }
     if (argc > 2 && std::strcmp(argv[1], "-o") == 0) {
         Benchmark::FileWriter file(argv[2]);
+        if (argc > 4 && std::strcmp(argv[3], "-r") == 0) {
+            g_Repetitions = atoi(argv[4]);
+        }
         return bmain(Benchmark::DataFile);
     }
     return bmain(Benchmark::Stdout);

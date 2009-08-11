@@ -40,44 +40,38 @@ sfloat_m *sfloatResults = new sfloat_m[4];
 template<typename Vector> class DoCompares
 {
     enum {
-        Factor = 1280000 / Vector::Size
+        Factor = 5120000 / Vector::Size
     };
 
     public:
         DoCompares(const int Repetitions)
-            : a(new Vector[4 * Factor]),
-            b(new Vector[4 * Factor])
+            : a(new Vector[Factor]),
+            b(new Vector[Factor])
         {
             setResultPointer();
+            for (int i = 0; i < Factor; ++i) {
+                a[i] = PseudoRandom<Vector>::next();
+                b[i] = PseudoRandom<Vector>::next();
+            }
 
             {
-                Benchmark timer("operator<", 4. * Vector::Size * Factor, "Op");
+                Benchmark timer("operator<", Vector::Size * Factor, "Op");
+                doWork1();
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
-                    for (int i = 0; i < 4 * Factor; ++i) {
-                        a[i] = PseudoRandom<Vector>::next();
-                        b[i] = PseudoRandom<Vector>::next();
-                    }
-
                     timer.Start();
                     doWork1();
                     timer.Stop();
-
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
             {
-                Benchmark timer("masked assign with operator==", 4. * Vector::Size * Factor, "Op");
+                Benchmark timer("masked assign with operator==", Vector::Size * Factor, "Op");
+                doWork2();
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
-                    for (int i = 0; i < 4 * Factor; ++i) {
-                        a[i] = PseudoRandom<Vector>::next();
-                        b[i] = PseudoRandom<Vector>::next();
-                    }
-
                     timer.Start();
                     doWork2();
                     timer.Stop();
-
-                    for (int i = 0; i < 4 * Factor; ++i) {
+                    for (int i = 0; i < Factor; ++i) {
                         results[0] = a[i] > Vector(One);
                     }
                 }
@@ -110,26 +104,20 @@ template<> inline void DoCompares<sfloat_v>::setResultPointer() { results = sflo
 template<typename Vector> inline void DoCompares<Vector>::doWork1()
 {
     for (int i = 0; i < Factor; ++i) {
-        const int ii = 4 * i;
-        unrolled_loop4(j,
-                results[j] = a[ii + j] < b[ii + j];
-                )
+        results[0] = a[i] < b[i];
     }
 }
 template<typename Vector> inline void DoCompares<Vector>::doWork2()
 {
     const Vector one(One);
     for (int i = 0; i < Factor; ++i) {
-        const int ii = 4 * i;
-        unrolled_loop4(j,
-                a[ii + j](a[ii + j] == b[ii + j]) = one;
-                )
+        a[i](a[i] == b[i]) = one;
     }
 }
 
-int bmain(Benchmark::OutputMode /*out*/)
+int bmain(Benchmark::OutputMode out)
 {
-    const int Repetitions = 10;// out == Benchmark::Stdout ? 10 : 20;
+    const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 1000;
 
     Benchmark::addColumn("datatype");
 
