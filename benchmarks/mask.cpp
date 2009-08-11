@@ -43,17 +43,26 @@ template<typename Vector> struct CondAssignment
 
     static void run(const int Repetitions)
     {
-        const double valuesPerSecondFactor = Factor * Vector::Size * 4.;
+        const double valuesPerSecondFactor = Factor * Vector::Size * 0.5;
+
+        enum {
+            MaskCount = 256 / Vector::Size
+        };
+        Mask masks[MaskCount];
+        for (int i = 0; i < MaskCount; ++i) {
+            masks[i] = PseudoRandom<Vector>::next() < PseudoRandom<Vector>::next();
+        }
+
+        Vector *data = new Vector[Factor];
+        for (int i = 0; i < Factor; ++i) {
+            data[i].makeZero();
+        }
+        const Vector one(One);
+
         {
-            Benchmark timer("Conditional Assignment (Const Mask)", valuesPerSecondFactor, "Values");
-
-            const Vector one(One);
-
-            Vector *data = new Vector[Factor];
-            for (int i = 0; i < Factor; ++i) {
-                data[i].makeZero();
-            }
-
+            // gcc compiles the Simple::Vector version such that if all four masks are false it runs
+            // 20 times faster than otherwise
+            Benchmark timer("Conditional Assignment (Const Mask)", valuesPerSecondFactor, "Op");
             for (int rep = 0; rep < Repetitions; ++rep) {
                 const Mask mask0 = PseudoRandom<Vector>::next() < PseudoRandom<Vector>::next();
                 const Mask mask1 = PseudoRandom<Vector>::next() < PseudoRandom<Vector>::next();
@@ -68,30 +77,10 @@ template<typename Vector> struct CondAssignment
                 }
                 timer.Stop();
             }
-
             timer.Print();
-            for (int i = 0; i < Factor; ++i) {
-                blackHole &= (data[i] < 1);
-            }
         }
         {
-            Benchmark timer("Conditional Assignment (Random Mask)", valuesPerSecondFactor, "Values");
-
-            const Vector one(One);
-
-            enum {
-                MaskCount = 256 / Vector::Size
-            };
-            Mask masks[MaskCount];
-            for (int i = 0; i < MaskCount; ++i) {
-                masks[i] = PseudoRandom<Vector>::next() < PseudoRandom<Vector>::next();
-            }
-
-            Vector *data = new Vector[Factor];
-            for (int i = 0; i < Factor; ++i) {
-                data[i].makeZero();
-            }
-
+            Benchmark timer("Conditional Assignment (Random Mask)", valuesPerSecondFactor, "Op");
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
@@ -99,12 +88,75 @@ template<typename Vector> struct CondAssignment
                 }
                 timer.Stop();
             }
-
             timer.Print();
-            for (int i = 0; i < Factor; ++i) {
-                blackHole &= (data[i] < 1);
-            }
         }
+        {
+            Benchmark timer("Masked Pre-Increment", Factor * Vector::Size * 0.5, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                for (int i = 0; i < Factor; i += 4) {
+                    ++data[i + 0](masks[(i + 0) & (MaskCount - 1)]);
+                    ++data[i + 1](masks[(i + 1) & (MaskCount - 1)]);
+                    ++data[i + 2](masks[(i + 2) & (MaskCount - 1)]);
+                    ++data[i + 3](masks[(i + 3) & (MaskCount - 1)]);
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        {
+            Benchmark timer("Masked Post-Decrement", Factor * Vector::Size * 0.5, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                for (int i = 0; i < Factor; i += 4) {
+                    data[i + 0](masks[(i + 0) & (MaskCount - 1)])--;
+                    data[i + 1](masks[(i + 1) & (MaskCount - 1)])--;
+                    data[i + 2](masks[(i + 2) & (MaskCount - 1)])--;
+                    data[i + 3](masks[(i + 3) & (MaskCount - 1)])--;
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        {
+            const Vector x(3);
+            Benchmark timer("Masked Multiply-Add", Factor * Vector::Size, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                for (int i = 0; i < Factor; i += 4) {
+                    data[i + 0](masks[(i + 0) & (MaskCount - 1)]) *= x;
+                    data[i + 1](masks[(i + 1) & (MaskCount - 1)]) *= x;
+                    data[i + 2](masks[(i + 2) & (MaskCount - 1)]) *= x;
+                    data[i + 3](masks[(i + 3) & (MaskCount - 1)]) *= x;
+                    data[i + 0](masks[(i + 0) & (MaskCount - 1)]) += one;
+                    data[i + 1](masks[(i + 1) & (MaskCount - 1)]) += one;
+                    data[i + 2](masks[(i + 2) & (MaskCount - 1)]) += one;
+                    data[i + 3](masks[(i + 3) & (MaskCount - 1)]) += one;
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        {
+            const Vector x(3);
+            Benchmark timer("Masked Division", Factor * Vector::Size * 0.5, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                for (int i = 0; i < Factor; i += 4) {
+                    data[i + 0](masks[(i + 0) & (MaskCount - 1)]) /= x;
+                    data[i + 1](masks[(i + 1) & (MaskCount - 1)]) /= x;
+                    data[i + 2](masks[(i + 2) & (MaskCount - 1)]) /= x;
+                    data[i + 3](masks[(i + 3) & (MaskCount - 1)]) /= x;
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+
+        for (int i = 0; i < Factor; ++i) {
+            blackHole &= (data[i] < 1);
+        }
+        delete[] data;
     }
 };
 
