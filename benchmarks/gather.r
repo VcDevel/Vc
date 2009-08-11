@@ -14,7 +14,7 @@ gatherProcessData <- function(data) {
             skip = c("Cacheline.size", "L1.size", "L2.size"),
             pchkey = "mask", colorkey = "benchmark.name"
         )
-    data$mask <- c("not masked", "masked with one", "random mask")[as.integer(factor(data$mask))]
+    if(length(data) > 0) data$mask <- c("not masked", "masked with one", "random mask")[as.integer(factor(data$mask))]
     data
 }
 
@@ -37,23 +37,23 @@ gatherChart <- function(data, orderfun, legendpos = "bottomright", column = "Val
 }
 
 sse$Cacheline.size <- paste(as.character(sse$Cacheline.size), "B")
-lrb$Cacheline.size <- paste(as.character(lrb$Cacheline.size), "B")
+if(length(lrb) > 0) lrb$Cacheline.size <- paste(as.character(lrb$Cacheline.size), "B")
 simple$Cacheline.size <- paste(as.character(simple$Cacheline.size), "B")
 
 sse$L1.size <- paste(as.character(sse$L1.size / 1024), "KiB")
-lrb$L1.size <- paste(as.character(lrb$L1.size / 1024), "KiB")
+if(length(lrb) > 0) lrb$L1.size <- paste(as.character(lrb$L1.size / 1024), "KiB")
 simple$L1.size <- paste(as.character(simple$L1.size / 1024), "KiB")
 
 sse$L2.size <- sse$L2.size / 1024
-lrb$L2.size <- lrb$L2.size / 1024
+if(length(lrb) > 0) lrb$L2.size <- lrb$L2.size / 1024
 simple$L2.size <- simple$L2.size / 1024
 if(sse$L2.size[[1]] >= 1024) {
     sse$L2.size <- paste(as.character(sse$L2.size / 1024), "MiB")
-    lrb$L2.size <- paste(as.character(lrb$L2.size / 1024), "MiB")
+    if(length(lrb) > 0) lrb$L2.size <- paste(as.character(lrb$L2.size / 1024), "MiB")
     simple$L2.size <- paste(as.character(simple$L2.size / 1024), "MiB")
 } else {
     sse$L2.size <- paste(as.character(sse$L2.size), "KiB")
-    lrb$L2.size <- paste(as.character(lrb$L2.size), "KiB")
+    if(length(lrb) > 0) lrb$L2.size <- paste(as.character(lrb$L2.size), "KiB")
     simple$L2.size <- paste(as.character(simple$L2.size), "KiB")
 }
 

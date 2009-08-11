@@ -1,3 +1,13 @@
+pasteNN <- function(..., sep = " ") {
+    tmp <- NULL
+    for(i in list(...)) {
+        if(!is.null(i)) {
+            tmp <- if(is.null(tmp)) i else paste(tmp, i, sep = sep)
+        }
+    }
+    tmp
+}
+
 errorbars <- function(x, y, xerr = NULL, yerr = NULL, ...) {
     if(!is.null(xerr)) {
         arrows(x - xerr, y, x + xerr, y, angle=90, code=3, length=0.05, ...)
@@ -258,6 +268,7 @@ sortBy <- function(data, key) {
 }
 
 processData <- function(data, keys, skip = c(""), pchkey = NULL, sortkey = NULL, colorkey = NULL) {
+    if(length(data) == 0) return(NULL)
     keys <- factor(keys) # no empty levels
     l <- levels(keys)
     n <- length(l)
@@ -294,10 +305,6 @@ processData <- function(data, keys, skip = c(""), pchkey = NULL, sortkey = NULL,
 plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mychart4, main,
     orderfun = function(d) order(d$datatype, d$benchmark.name), speedupColumn = NULL)
 {
-    lrb    <- split(lrb   , lrb$datatype)
-    sse    <- split(sse   , sse$datatype)
-    simple <- split(simple, simple$datatype)
-
     speedupOf <- function(data, reference) {
         tmp <- datafun(data, reference)
         if(is.null(tmp$datatype) && !is.null(data$datatype)) tmp$datatype <- data$datatype
@@ -322,6 +329,9 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
             )
     }
 
+    sse    <- split(sse   , sse$datatype)
+    simple <- split(simple, simple$datatype)
+
     speedup <- rbind(
         speedupOf(sse[["float_v"]], simple[["float_v"]]),
         speedupOf(sse[["sfloat_v"]], simple[["float_v"]]),
@@ -333,25 +343,29 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
         main = paste(main, ": SSE vs. Scalar", sep=""))
     abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
-    speedup <- rbind(
-        speedupOf(lrb[["float_v"]], simple[["float_v"]]),
-        speedupOf(lrb[["short_v"]], simple[["short_v"]])
-        )
+    if(length(lrb) > 0) {
+    print(lrb)
+        lrb <- split(lrb, lrb$datatype)
+        speedup <- rbind(
+            speedupOf(lrb[["float_v"]], simple[["float_v"]]),
+            speedupOf(lrb[["short_v"]], simple[["short_v"]])
+            )
 
-    plotfun(speedup, splitfactor = speedup$split, orderfun = orderfun,
-        column = "speedup", xlab = "Speedup",
-        main = paste(main, ": LRB Prototype vs. Scalar", sep=""))
-    abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
+        plotfun(speedup, splitfactor = speedup$split, orderfun = orderfun,
+            column = "speedup", xlab = "Speedup",
+            main = paste(main, ": LRB Prototype vs. Scalar", sep=""))
+        abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
-    speedup <- rbind(
-        speedupOf(lrb[["float_v"]], sse[["sfloat_v"]]),
-        speedupOf(lrb[["short_v"]], sse[["short_v"]])
-        )
+        speedup <- rbind(
+            speedupOf(lrb[["float_v"]], sse[["sfloat_v"]]),
+            speedupOf(lrb[["short_v"]], sse[["short_v"]])
+            )
 
-    plotfun(speedup, splitfactor = speedup$split, orderfun = orderfun,
-        column = "speedup", xlab = "Speedup",
-        main = paste(main, ": LRB Prototype vs. SSE", sep=""))
-    abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
+        plotfun(speedup, splitfactor = speedup$split, orderfun = orderfun,
+            column = "speedup", xlab = "Speedup",
+            main = paste(main, ": LRB Prototype vs. SSE", sep=""))
+        abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
+    }
 }
 
 par(family="serif")

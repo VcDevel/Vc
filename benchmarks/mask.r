@@ -1,12 +1,12 @@
 colors  <- rainbow(3, v=0.5)
 sse$color <- colors[[3]]
 simple$color <- colors[[1]]
-lrb$color <- colors[[2]]
+if(length(lrb) > 0) lrb$color <- colors[[2]]
 
 maskProcessData <- function(d) {
     d <- processData(d, paste(d$datatype, d$benchmark.arch, d$benchmark.name),
         pchkey = "benchmark.name", sortkey = "key")
-    d$key <- paste(d$datatype, d$benchmark.arch)
+    if(length(d) > 0 ) d$key <- paste(d$datatype, d$benchmark.arch)
     d
 }
 
@@ -19,10 +19,10 @@ for(data in list(rbind(sse, simple, lrb))) {
 lrb    <- maskProcessData(lrb)
 sse    <- maskProcessData(sse)
 simple <- maskProcessData(simple)
-lrb$color <- colors[as.integer(factor(lrb$datatype))]
+if(length(lrb) > 0 ) lrb$color <- colors[as.integer(factor(lrb$datatype))]
 sse$color <- colors[as.integer(factor(sse$datatype))]
 
-lrb    <- split(lrb   , lrb$datatype)
+if(length(lrb) > 0 ) lrb    <- split(lrb   , lrb$datatype)
 sse    <- split(sse   , sse$datatype)
 simple <- split(simple, simple$datatype)
 

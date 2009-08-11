@@ -1,7 +1,7 @@
 compareProcessData <- function(d) {
     d <- processData(d, paste(d$benchmark.arch, d$datatype, d$benchmark.name),
         pchkey = "benchmark.name", colorkey = "datatype")
-    d$key <- paste(d$datatype, d$benchmark.arch)
+    d$key <- pasteNN(d$datatype, d$benchmark.arch)
     d
 }
 
