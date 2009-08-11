@@ -371,8 +371,8 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
 
 par(family="serif")
 
-sse    <- read.table("@sse_datafile@")
-simple <- read.table("@simple_datafile@")
-lrb    <- if(nchar("@lrb_datafile@") > 0) read.table("@lrb_datafile@") else data.frame()
+sse    <- read.table("@sse_datafile@", header = TRUE)
+simple <- read.table("@simple_datafile@", header = TRUE)
+lrb    <- if(nchar("@lrb_datafile@") > 0) read.table("@lrb_datafile@", header = TRUE) else data.frame()
 
 # vim: sw=4 et filetype=r sts=4 ai
