@@ -316,6 +316,7 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
                 ) * data[[meanCol]] / reference[[meanCol]]
         }
         if(is.null(tmp$split)) tmp$split <- tmp$benchmark.name
+        if(is.null(tmp$mainpostfix)) tmp$mainpostfix <- paste(data$benchmark.arch, reference$benchmark.arch, sep = " vs. ")
         data.frame(
             tmp,
             stringsAsFactors = FALSE
@@ -330,7 +331,7 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
 
     plotfun(speedup, splitfactor = speedup$split, orderfun = orderfun,
         column = "speedup", xlab = "Speedup",
-        main = paste(main, ": SSE vs. Scalar", sep=""))
+        main = paste(main, speedup$mainpostfix[[1]], sep=": "))
     abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
     speedup <- rbind(
@@ -340,7 +341,7 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
 
     plotfun(speedup, splitfactor = speedup$split, orderfun = orderfun,
         column = "speedup", xlab = "Speedup",
-        main = paste(main, ": LRB Prototype vs. Scalar", sep=""))
+        main = paste(main, speedup$mainpostfix[[1]], sep=": "))
     abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
     speedup <- rbind(
@@ -350,7 +351,7 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
 
     plotfun(speedup, splitfactor = speedup$split, orderfun = orderfun,
         column = "speedup", xlab = "Speedup",
-        main = paste(main, ": LRB Prototype vs. SSE", sep=""))
+        main = paste(main, speedup$mainpostfix[[1]], sep=": "))
     abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 }
 
