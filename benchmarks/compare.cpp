@@ -45,30 +45,57 @@ template<typename Vector> class DoCompares
 
     public:
         DoCompares(const int Repetitions)
-            : timer("class", 4. * Vector::Size * Factor, "cmp")
+            : a(new Vector[4 * Factor]),
+            b(new Vector[4 * Factor])
         {
             setResultPointer();
-            for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
-                a = new Vector[4 * Factor];
-                b = new Vector[4 * Factor];
-                for (int i = 0; i < 4 * Factor; ++i) {
-                    a[i] = PseudoRandom<Vector>::next();
-                    b[i] = PseudoRandom<Vector>::next();
+
+            {
+                Benchmark timer("operator<", 4. * Vector::Size * Factor, "Op");
+                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                    for (int i = 0; i < 4 * Factor; ++i) {
+                        a[i] = PseudoRandom<Vector>::next();
+                        b[i] = PseudoRandom<Vector>::next();
+                    }
+
+                    timer.Start();
+                    doWork1();
+                    timer.Stop();
+
                 }
-
-                doWork();
-
-                delete[] a;
-                delete[] b;
+                timer.Print(Benchmark::PrintAverage);
             }
-            timer.Print(Benchmark::PrintAverage);
+            {
+                Benchmark timer("masked assign with operator==", 4. * Vector::Size * Factor, "Op");
+                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                    for (int i = 0; i < 4 * Factor; ++i) {
+                        a[i] = PseudoRandom<Vector>::next();
+                        b[i] = PseudoRandom<Vector>::next();
+                    }
+
+                    timer.Start();
+                    doWork2();
+                    timer.Stop();
+
+                    for (int i = 0; i < 4 * Factor; ++i) {
+                        results[0] = a[i] > Vector(One);
+                    }
+                }
+                timer.Print(Benchmark::PrintAverage);
+            }
+        }
+
+        ~DoCompares()
+        {
+            delete[] a;
+            delete[] b;
         }
 
     private:
         void setResultPointer();
-        void doWork();
+        void doWork1();
+        void doWork2();
 
-        Benchmark timer;
         Vector *a;
         Vector *b;
         typename Vector::Mask *results;
@@ -80,21 +107,29 @@ template<> inline void DoCompares<short_v>::setResultPointer() { results = short
 template<> inline void DoCompares<sfloat_v>::setResultPointer() { results = sfloatResults; }
 #endif
 
-template<typename Vector> inline void DoCompares<Vector>::doWork()
+template<typename Vector> inline void DoCompares<Vector>::doWork1()
 {
-    timer.Start();
     for (int i = 0; i < Factor; ++i) {
         const int ii = 4 * i;
         unrolled_loop4(j,
                 results[j] = a[ii + j] < b[ii + j];
                 )
     }
-    timer.Stop();
+}
+template<typename Vector> inline void DoCompares<Vector>::doWork2()
+{
+    const Vector one(One);
+    for (int i = 0; i < Factor; ++i) {
+        const int ii = 4 * i;
+        unrolled_loop4(j,
+                a[ii + j](a[ii + j] == b[ii + j]) = one;
+                )
+    }
 }
 
-int bmain(Benchmark::OutputMode out)
+int bmain(Benchmark::OutputMode /*out*/)
 {
-    const int Repetitions = out == Benchmark::Stdout ? 10 : 20;
+    const int Repetitions = 10;// out == Benchmark::Stdout ? 10 : 20;
 
     Benchmark::addColumn("datatype");
 
