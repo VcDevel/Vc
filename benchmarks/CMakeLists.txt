@@ -2,6 +2,7 @@ include(BenchmarkMacros)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
    add_executable(benchmark benchmark.cpp)
+   add_definitions(-DSCHED_FIFO_BENCHMARKS)
 endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 vc_add_benchmark(flops)
