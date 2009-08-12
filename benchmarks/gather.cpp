@@ -80,15 +80,15 @@ template<typename Vector> class FullMaskHelper
 
 template<typename Vector, class GatherImpl> class GatherBase : public FullMaskHelper<Vector>
 {
-    typedef typename Vector::IndexType IndexVector;
-    typedef typename Vector::Mask IndexMask;
-    typedef typename Vector::EntryType Scalar;
+	public:
+		typedef typename Vector::IndexType IndexVector;
+		typedef typename Vector::Mask IndexMask;
+		typedef typename Vector::EntryType Scalar;
 
-    enum {
-        Factor = 1600000 / Vector::Size
-    };
+		enum {
+			Factor = 1600000 / Vector::Size
+		};
 
-    public:
         GatherBase(const char *name, const int _Rep, const unsigned int size, const Scalar *_data, double multiplier = 4.)
             : timer(name, multiplier * Vector::Size * Factor, "Values"),
             aa(Zero), bb(Zero), cc(Zero), dd(Zero),

@@ -38,6 +38,10 @@
 
 #include "tsc.h"
 
+#ifndef WIN32
+#define VC_USE_CPU_TIME
+#endif
+
 class Benchmark
 {
     friend int main(int, char**);
@@ -107,7 +111,6 @@ private:
     const std::string fX;
 #ifdef _MSC_VER
     __int64 fRealTime;
-    clock_t fCpuTime;
 #else
     struct timespec fRealTime;
     struct timespec fCpuTime;
@@ -121,14 +124,6 @@ Benchmark::FileWriter::FileWriter(const std::string &filename)
     : m_line(0)
 {
     std::string fn = filename;
-//X     int len = filename.length();
-//X     if (filename.substr(len - 4, 4) == ".dat") {
-//X         fn = filename;
-//X     } else if (filename.substr(len - 4, 4) == ".exe") {
-//X         fn.replace(len - 3, 3, "dat");
-//X     } else {
-//X         fn += ".dat";
-//X     }
     m_file.open(fn.c_str());
 
     if (Benchmark::s_fileWriter == 0) {
@@ -234,9 +229,17 @@ Benchmark::Benchmark(const std::string &name, double factor, const std::string &
         const bool interpret = (fFactor != 0.);
         char header[128];
         std::memset(header, 0, 128);
-        std::strcpy(header, "+----------------+----------------+----------------+----------------+----------------+----------------+");
+        std::strcpy(header,
+#ifdef VC_USE_CPU_TIME
+                "+----------------+----------------"
+#endif
+                "+----------------+----------------+----------------+----------------+");
         if (!interpret) {
+#ifdef VC_USE_CPU_TIME
             header[52] = '\0';
+#else
+            header[52 - 17] = '\0';
+#endif
         }
         const int titleLen = fName.length();
         const int headerLen = std::strlen(header);
@@ -256,7 +259,6 @@ inline void Benchmark::Start()
 {
 #ifdef _MSC_VER
     QueryPerformanceCounter((LARGE_INTEGER *)&fRealTime);
-    fCpuTime = clock();
 #else
     clock_gettime( CLOCK_MONOTONIC, &fRealTime );
     clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &fCpuTime );
@@ -279,11 +281,10 @@ inline void Benchmark::Stop()
 #ifdef _MSC_VER
     __int64 real = 0, freq = 0;
     QueryPerformanceCounter((LARGE_INTEGER *)&real);
-    clock_t cpu = clock();
     QueryPerformanceFrequency((LARGE_INTEGER *)&freq);
     const DataPoint p = {
         static_cast<double>(real - fRealTime) / freq,
-        (cpu - fCpuTime) * SECONDS_PER_CLOCK,
+        1.0,
 #else
     struct timespec real, cpu;
     clock_gettime( CLOCK_MONOTONIC, &real );
@@ -404,11 +405,20 @@ inline void Benchmark::Print(int f) const
     const bool interpret = (fFactor != 0.);
 
     std::list<std::string> header;
-    header << "CPU_time" << "Real_time" << "Cycles";
+#ifdef VC_USE_CPU_TIME
+    header << "CPU_time";
+#endif
+    header << "Real_time" << "Cycles";
 
-    std::cout << "\n|    CPU time    |   Real time    |     Cycles     |";
+    std::cout << "\n"
+#ifdef VC_USE_CPU_TIME
+        << "|    CPU time    "
+#endif
+        << "|   Real time    |     Cycles     |";
     if (interpret) {
+#ifdef VC_USE_CPU_TIME
         std::cout << centered(fX + "/s [CPU]")  << "|";
+#endif
         std::cout << centered(fX + "/s [Real]") << "|";
         std::cout << centered(fX + "/cycle")    << "|";
         std::string X = fX;
@@ -417,7 +427,11 @@ inline void Benchmark::Print(int f) const
                 X[i] = '_';
             }
         }
-        header << X + "_per_sec_CPU" << X + "_per_sec_Real" << X + "_per_cycle";
+        header
+#ifdef VC_USE_CPU_TIME
+            << X + "_per_sec_CPU"
+#endif
+            << X + "_per_sec_Real" << X + "_per_cycle";
     }
     if (s_fileWriter) {
         s_fileWriter->declareData(fName, header);
@@ -427,21 +441,33 @@ inline void Benchmark::Print(int f) const
     for (It i = fDataPoints.begin(); i != fDataPoints.end(); ++i) {
         dataLine.clear();
         std::cout << "\n| ";
+#ifdef VC_USE_CPU_TIME
         prettyPrintSeconds(i->fCpuElapsed);
         std::cout << " | ";
+#endif
         prettyPrintSeconds(i->fRealElapsed);
         std::cout << " | ";
-        prettyPrintCount(i->fCycles);
+        prettyPrintCount(static_cast<double>(i->fCycles));
         std::cout << " | ";
-        dataLine << i->fCpuElapsed << i->fRealElapsed << i->fCycles;
+        dataLine
+#ifdef VC_USE_CPU_TIME
+            << i->fCpuElapsed
+#endif
+            << i->fRealElapsed << i->fCycles;
         if (interpret) {
+#ifdef VC_USE_CPU_TIME
             prettyPrintCount(fFactor / i->fCpuElapsed);
             std::cout << " | ";
+#endif
             prettyPrintCount(fFactor / i->fRealElapsed);
             std::cout << " |";
             prettyPrintCount(fFactor / i->fCycles);
             std::cout << " |";
-            dataLine << fFactor / i->fCpuElapsed << fFactor / i->fRealElapsed << fFactor / i->fCycles;
+            dataLine
+#ifdef VC_USE_CPU_TIME
+                << fFactor / i->fCpuElapsed
+#endif
+                << fFactor / i->fRealElapsed << fFactor / i->fCycles;
         }
         if (s_fileWriter) {
             s_fileWriter->addDataLine(dataLine);
@@ -449,9 +475,17 @@ inline void Benchmark::Print(int f) const
     }
     if (f & PrintAverage) {
         if (interpret) {
+#ifdef VC_USE_CPU_TIME
             std::cout << "\n|---------------------------------------------- Average ----------------------------------------------|";
+#else
+            std::cout << "\n|----------------------------- Average -----------------------------|";
+#endif
         } else {
+#ifdef VC_USE_CPU_TIME
             std::cout << "\n|-------------------- Average ---------------------|";
+#else
+            std::cout << "\n|------------ Average ------------|";
+#endif
         }
 
         double cpuAvg = 0.;
@@ -469,23 +503,35 @@ inline void Benchmark::Print(int f) const
         cycleAvg /= count;
 
         std::cout << "\n| ";
+#ifdef VC_USE_CPU_TIME
         prettyPrintSeconds(cpuAvg);
         std::cout << " | ";
+#endif
         prettyPrintSeconds(realAvg);
         std::cout << " | ";
         prettyPrintCount(cycleAvg);
         std::cout << " | ";
         if (interpret) {
+#ifdef VC_USE_CPU_TIME
             prettyPrintCount(fFactor / cpuAvg);
             std::cout << " | ";
+#endif
             prettyPrintCount(fFactor / realAvg);
             std::cout << " |";
             prettyPrintCount(fFactor / cycleAvg);
             std::cout << " |";
         }
     }
-    std::cout << "\n+----------------+----------------+----------------+"
-        << (interpret ? "----------------+----------------+----------------+" : "") << std::endl;
+    std::cout << "\n"
+#ifdef VC_USE_CPU_TIME
+        "+----------------"
+#endif
+        "+----------------+----------------+"
+        << (interpret ?
+#ifdef VC_USE_CPU_TIME
+                "----------------+"
+#endif
+                "----------------+----------------+" : "") << std::endl;
     if (s_fileWriter) {
         std::cout.rdbuf(backup);
     }
@@ -497,11 +543,13 @@ static int g_Repetitions = 0;
 
 int main(int argc, char **argv)
 {
+#ifdef SCHED_FIFO_BENCHMARKS
     if (SCHED_FIFO != sched_getscheduler(0)) {
         // not realtime priority, check whether the benchmark executable exists
         execv("./benchmark", argv);
         // if the execv call works, great. If it doesn't we just continue, but without realtime prio
     }
+#endif
     if (argc > 2 && std::strcmp(argv[1], "-o") == 0) {
         Benchmark::FileWriter file(argv[2]);
         if (argc > 4 && std::strcmp(argv[3], "-r") == 0) {

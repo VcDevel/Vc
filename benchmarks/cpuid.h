@@ -122,7 +122,21 @@ void CpuId::init()
 {
     uint eax, ebx, ecx, edx;
 
+#ifdef _MSC_VER
+	{
+		uint &a = eax, &b = ebx, &c = ecx, &d = edx;
+		__asm {
+			mov eax, 1
+			cpuid
+			mov a, eax
+			mov b, ebx
+			mov c, ecx
+			mov d, edx
+		}
+	}
+#else
     __asm__("mov $1,%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx));
+#endif
     s_processorFeaturesC = ecx;
     s_processorFeaturesD = edx;
     s_processorModel  = (eax & 0x000000f0) >> 4;
@@ -146,7 +160,21 @@ void CpuId::init()
 
     int repeat = 0;
     do {
+#ifdef _MSC_VER
+		{
+			uint &a = eax, &b = ebx, &c = ecx, &d = edx;
+			__asm {
+				mov eax, 2
+				cpuid
+				mov a, eax
+				mov b, ebx
+				mov c, ecx
+				mov d, edx
+			}
+		}
+#else
         __asm__("mov $2,%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx));
+#endif
         if (repeat == 0) {
             repeat = eax & 0xff;
         }
