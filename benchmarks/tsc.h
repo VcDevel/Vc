@@ -21,10 +21,14 @@
 #ifndef TSC_H
 #define TSC_H
 
+#ifdef _MSC_VER
+#include <intrin.h>
+#pragma intrinsic(__rdtsc)
+#endif
+
 class TimeStampCounter
 {
     public:
-        TimeStampCounter();
         void Start();
         void Stop();
         unsigned long long Cycles() const;
@@ -36,19 +40,22 @@ class TimeStampCounter
         } start, end;
 };
 
-// the ctor puts tsc into the cache which should give a better first measurement
-inline TimeStampCounter::TimeStampCounter()
-{
-}
-
 inline void TimeStampCounter::Start()
 {
+#ifdef _MSC_VER
+    start.a = __rdtsc();
+#else
     asm volatile("rdtsc" : "=a"(start.b[0]), "=d"(start.b[1]) );
+#endif
 }
 
 inline void TimeStampCounter::Stop()
 {
+#ifdef _MSC_VER
+    end.a = __rdtsc();
+#else
     asm volatile("rdtsc" : "=a"(end.b[0]), "=d"(end.b[1]) );
+#endif
 }
 
 inline unsigned long long TimeStampCounter::Cycles() const
