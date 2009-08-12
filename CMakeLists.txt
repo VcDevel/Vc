@@ -106,6 +106,8 @@ elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
       add_definitions(-DNO_OPTIMIZATION)
    endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+elseif(MSVC)
+   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
