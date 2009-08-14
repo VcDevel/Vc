@@ -28,6 +28,12 @@
 # endif
 #endif
 
+#define FREE_STORE_OPERATORS_ALIGNED(alignment) \
+        void *operator new(size_t size) { return _mm_malloc(size, alignment); } \
+        void *operator new[](size_t size) { return _mm_malloc(size, alignment); } \
+        void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
+        void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
+
 #ifdef __GNUC__
 #define CONST __attribute__((const))
 #define MAY_ALIAS __attribute__((__may_alias__))

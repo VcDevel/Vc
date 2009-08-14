@@ -47,6 +47,7 @@ template<unsigned int VectorSize> class Mask
     friend class Mask<8u>;
     friend class Float8Mask;
     public:
+        FREE_STORE_OPERATORS_ALIGNED(16)
         inline Mask() {}
         inline Mask(const __m128  &x) : k(x) {}
         inline Mask(const __m128d &x) : k(_mm_castpd_ps(x)) {}
@@ -167,6 +168,7 @@ class Float8Mask
         VectorSize = 8
     };
     public:
+        FREE_STORE_OPERATORS_ALIGNED(16)
         inline Float8Mask() {}
         inline Float8Mask(const M256 &x) : k(x) {}
         inline explicit Float8Mask(VectorSpecialInitializerZero::ZEnum) {

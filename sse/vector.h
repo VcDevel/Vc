@@ -43,6 +43,7 @@ class WriteMaskedVector
     friend class Vector<T>;
     typedef typename VectorBase<T>::MaskType Mask;
     public:
+        FREE_STORE_OPERATORS_ALIGNED(16)
         //prefix
         inline Vector<T> &operator++() {
             vec->data() = VectorHelper<T>::add(vec->data(),
@@ -103,6 +104,8 @@ template<typename T>
 class Vector : public VectorBase<T>
 {
     public:
+        FREE_STORE_OPERATORS_ALIGNED(16)
+
         typedef VectorBase<T> Base;
         enum { Size = Base::Size };
         typedef typename Base::VectorType VectorType;

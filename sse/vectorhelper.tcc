@@ -37,7 +37,7 @@ namespace SSE
         static inline void maskedGatherStructHelper(
                 Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr, const int scale
                 ) {
-#ifdef __GNUC__
+#if defined(__GNUC__) && defined (__x86_64__)
             if (sizeof(EntryType) == 2) {
                 register unsigned long int bit;
                 register unsigned long int index;
@@ -121,9 +121,11 @@ namespace SSE
             } else {
                 abort();
             }
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) || !defined(__x86_64__)
+            typedef const char * Memory MAY_ALIAS;
+            Memory const baseAddr2 = reinterpret_cast<Memory>(baseAddr);
             unrolled_loop16(i, 0, Base::Size,
-                    EntryType entry = baseAddr[scale / sizeof(EntryType) * indexes.d.m(i)];
+                    EntryType entry = *reinterpret_cast<const EntryType *>(&baseAddr2[scale * indexes.d.m(i)]);
                     register EntryType tmp = v.d.m(i);
                     if (mask & (1 << i)) tmp = entry;
                     v.d.m(i) = tmp;
@@ -137,7 +139,7 @@ namespace SSE
         static inline void maskedGatherHelper(
                 Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr
                 ) {
-#ifdef __GNUC__
+#if defined(__GNUC__) && defined(__x86_64__)
             if (sizeof(EntryType) == 2) {
                 register unsigned long int bit;
                 register unsigned long int index;
@@ -217,7 +219,7 @@ namespace SSE
             } else {
                 abort();
             }
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) || !defined(__x86_64__)
             unrolled_loop16(i, 0, Base::Size,
                     EntryType entry = baseAddr[indexes.d.m(i)];
                     register EntryType tmp = v.d.m(i);

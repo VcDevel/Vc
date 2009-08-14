@@ -82,5 +82,11 @@ namespace SSE
     namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
+    class VectorAlignedBase
+    {
+        public:
+            FREE_STORE_OPERATORS_ALIGNED(16)
+    };
+
 } // namespace SSE
 #endif // SSE_TYPES_H

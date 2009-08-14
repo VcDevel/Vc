@@ -118,36 +118,49 @@ CpuId::uchar  CpuId::s_processorFamily = 0;
 CpuId::ProcessorType CpuId::s_processorType = CpuId::IntelReserved;
 bool   CpuId::s_noL2orL3 = false;
 
+#ifdef _MSC_VER
+#define CPUID(id) \
+	do { \
+		uint &a = eax, &b = ebx, &c = ecx, &d = edx; \
+		__asm { \
+			mov eax, id \
+			cpuid \
+			mov a, eax \
+			mov b, ebx \
+			mov c, ecx \
+			mov d, edx \
+		} \
+	} while (false)
+#else
+#define CPUID(id) \
+    __asm__("mov $" #id ",%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx))
+#endif
 void CpuId::init()
 {
     uint eax, ebx, ecx, edx;
 
-#ifdef _MSC_VER
-	{
-		uint &a = eax, &b = ebx, &c = ecx, &d = edx;
-		__asm {
-			mov eax, 1
-			cpuid
-			mov a, eax
-			mov b, ebx
-			mov c, ecx
-			mov d, edx
-		}
-	}
-#else
-    __asm__("mov $1,%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx));
-#endif
+    CPUID(0);
+    const bool isAmd = (ecx == 0x444D4163);
+
+    CPUID(1);
     s_processorFeaturesC = ecx;
     s_processorFeaturesD = edx;
     s_processorModel  = (eax & 0x000000f0) >> 4;
     s_processorFamily = (eax & 0x00000f00) >> 8;
-    if (s_processorFamily == 0xf) {
-        uchar processorFamilyExt = (eax & 0x0ff00000) >> 20;
+    if (isAmd) {
+        if (s_processorFamily >= 0xf) {
+            const uchar processorFamilyExt = (eax & 0x0ff00000) >> 20;
+            s_processorFamily += processorFamilyExt;
+            const uchar processorModelExt = (eax & 0x000f0000) >> 12;
+            s_processorModel += processorModelExt;
+        }
+    } else if (s_processorFamily == 0xf) {
+        const uchar processorFamilyExt = (eax & 0x0ff00000) >> 20;
         s_processorFamily += processorFamilyExt;
-        uchar processorModelExt = (eax & 0x000f0000) >> 12;
+        const uchar processorModelExt = (eax & 0x000f0000) >> 12;
         s_processorModel += processorModelExt;
     } else if (s_processorFamily == 0x6) {
-        uchar processorModelExt = (eax & 0x000f0000) >> 12;
+        const uchar processorModelExt = (eax & 0x000f0000) >> 12;
         s_processorModel += processorModelExt;
     }
     s_processorType = static_cast<ProcessorType>((eax & 0x00003000) >> 12);
@@ -158,23 +171,25 @@ void CpuId::init()
     ebx >>= 8;
     s_logicalProcessors = ebx & 0xff;
 
+    if (isAmd) {
+        CPUID(0x80000005);
+        s_L1DataLineSize = ecx & 0xff;
+        s_L1Data = (ecx >> 24) * 1024;
+        s_L1InstructionLineSize = edx & 0xff;
+        s_L1Instruction = (edx >> 24) * 1024;
+
+        CPUID(0x80000006);
+        s_L2DataLineSize = ecx & 0xff;
+        s_L2Data = (ecx >> 16) * 1024;
+        s_L3DataLineSize = edx & 0xff;
+        s_L3Data = (edx >> 18) * 512 * 1024;
+        return;
+    }
+
+    // Intel only
     int repeat = 0;
     do {
-#ifdef _MSC_VER
-		{
-			uint &a = eax, &b = ebx, &c = ecx, &d = edx;
-			__asm {
-				mov eax, 2
-				cpuid
-				mov a, eax
-				mov b, ebx
-				mov c, ecx
-				mov d, edx
-			}
-		}
-#else
-        __asm__("mov $2,%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx));
-#endif
+        CPUID(2);
         if (repeat == 0) {
             repeat = eax & 0xff;
         }
