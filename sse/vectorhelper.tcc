@@ -235,7 +235,10 @@ namespace SSE
         static inline void maskedScatterHelper(
                 const AliasingT &vEntry, const int mask, EntryType &value, const int bitMask
                 ) {
-#if defined(__GNUC__) && defined(__x86_64__)
+#ifdef __GNUC__
+#ifndef __x86_64__ // on 32 bit use the non-asm-code below for sizeof(EntryType) > 4
+            if (sizeof(EntryType) <= 4) {
+#endif
             register EntryType t;
             asm(
                     "test %4,%2\n\t"
@@ -245,13 +248,15 @@ namespace SSE
                     : "=m"(value), "=&r"(t)
                     : "r"(mask), "m"(value), IMM(bitMask), "m"(vEntry)
                );
-#else
+            return;
+#ifndef __x86_64__
+            }
+#endif
+#endif // __GNUC__
             if (mask & bitMask) {
                 value = vEntry;
             }
-#endif
         }
-
     };
 
     ////////////////////////////////////////////////////////
