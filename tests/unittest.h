@@ -33,6 +33,7 @@ class _UnitTest_Global_Object
     public:
         _UnitTest_Global_Object()
             : status(true),
+            expect_failure(false),
             assert_failure(0),
             expect_assert_failure(false),
             float_fuzzyness( 1e-6f ),
@@ -50,6 +51,7 @@ class _UnitTest_Global_Object
         void runTestInt(testFunction fun, const char *name);
 
         bool status;
+        bool expect_failure;
         int assert_failure;
         bool expect_assert_failure;
         float float_fuzzyness;
@@ -61,18 +63,33 @@ class _UnitTest_Global_Object
 
 static _UnitTest_Global_Object _unit_test_global;
 
+void EXPECT_FAILURE()
+{
+    _unit_test_global.expect_failure = true;
+}
+
 void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
 {
     _unit_test_global.status = true;
+    _unit_test_global.expect_failure = false;
     fun();
-    if (!_unit_test_global.status) {
-        std::cout << "FAIL:  " << name << std::endl;
-        ++failedTests;
-        return;
-        //std::exit(1);
+    if (_unit_test_global.expect_failure) {
+        if (!_unit_test_global.status) {
+            std::cout << "XFAIL: " << name << std::endl;
+        } else {
+            std::cout << "unexpected PASS: " << name <<
+                "\n    This test should have failed but didn't. Check the code!" << std::endl;
+            ++failedTests;
+        }
+    } else {
+        if (!_unit_test_global.status) {
+            std::cout << " FAIL: " << name << std::endl;
+            ++failedTests;
+        } else {
+            std::cout << " PASS: " << name << std::endl;
+            ++passedTests;
+        }
     }
-    std::cout << "PASS:  " << name << std::endl;
-    ++passedTests;
 }
 
 template<typename T> static inline void setFuzzyness( T );
