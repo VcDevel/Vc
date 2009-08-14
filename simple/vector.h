@@ -42,6 +42,8 @@ namespace Simple
 
     enum { VectorAlignment = 4 };
 
+    class VectorAlignedBase {};
+
     template<typename T> class Vector;
 
 #define PARENT_DATA (static_cast<Parent *>(this)->m_data)

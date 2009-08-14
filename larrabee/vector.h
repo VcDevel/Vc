@@ -46,8 +46,21 @@
 #undef isnan
 #endif
 
+#include <mm_malloc.h>
+
 namespace Larrabee
 {
+    enum { VectorAlignment = 64 };
+
+    class VectorAlignedBase
+    {
+        public:
+            void *operator new(size_t size) { return _mm_malloc(size, VectorAlignment); }
+            void *operator new[](size_t size) { return _mm_malloc(size, VectorAlignment); }
+            void operator delete(void *ptr, size_t) { _mm_free(ptr); }
+            void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
+    };
+
     namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
     namespace VectorSpecialInitializerOne { enum OEnum { One }; }
     namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
@@ -72,8 +85,6 @@ namespace Larrabee
     typedef Internal::STATIC_ASSERT_FAILURE<cond> CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__); \
     CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__) Error_##msg
 #define LRB_STATIC_ASSERT(cond, msg) LRB_STATIC_ASSERT_NC(cond, msg); (void) Error_##msg
-
-    enum { VectorAlignment = 64 };
 
     template<typename T> class Vector;
     template<typename T> struct SwizzledVector;

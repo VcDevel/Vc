@@ -141,7 +141,7 @@ template<typename Vector, class GatherImpl> class GatherBase : public FullMaskHe
         const int indexesCount;
         const Scalar **const m_data;
         const int Repetitions;
-        struct IndexAndMask {
+        struct IndexAndMask : public VectorAlignedBase {
             IndexVector index;
             IndexMask mask;
         } *im;

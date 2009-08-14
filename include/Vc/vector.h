@@ -41,6 +41,7 @@
 namespace Vc
 {
   using VECTOR_NAMESPACE::VectorAlignment;
+  using VECTOR_NAMESPACE::VectorAlignedBase;
   using namespace VECTOR_NAMESPACE::VectorSpecialInitializerZero;
   using namespace VECTOR_NAMESPACE::VectorSpecialInitializerOne;
   using namespace VECTOR_NAMESPACE::VectorSpecialInitializerRandom;
