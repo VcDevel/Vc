@@ -50,7 +50,7 @@ namespace SSE
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(T) };
-            typedef _M128I VectorType;
+            typedef _M128I VectorType ALIGN(16);
             typedef T EntryType;
             typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
@@ -97,7 +97,7 @@ namespace SSE
         friend struct GeneralHelpers;
         public:
             enum { Size = 8 };
-            typedef M256 VectorType;
+            typedef M256 VectorType ALIGN(16);
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Float8Mask MaskType;
@@ -118,7 +118,7 @@ namespace SSE
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(float) };
-            typedef _M128 VectorType;
+            typedef _M128 VectorType ALIGN(16);
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
@@ -139,7 +139,7 @@ namespace SSE
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(double) };
-            typedef _M128D VectorType;
+            typedef _M128D VectorType ALIGN(16);
             typedef double EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;

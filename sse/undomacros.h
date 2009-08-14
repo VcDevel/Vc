@@ -27,6 +27,7 @@
 #undef CAT_HELPER
 #undef unrolled_loop16
 #undef for_all_vector_entries
+#undef FREE_STORE_OPERATORS_ALIGNED
 #undef STORE_VECTOR
 
 #endif // SSE_UNDOMACROS_H
