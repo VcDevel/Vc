@@ -235,7 +235,7 @@ namespace SSE
         static inline void maskedScatterHelper(
                 const AliasingT &vEntry, const int mask, EntryType &value, const int bitMask
                 ) {
-#ifdef __GNUC__
+#if defined(__GNUC__) && defined(__x86_64__)
             register EntryType t;
             asm(
                     "test %4,%2\n\t"
