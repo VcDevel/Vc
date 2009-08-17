@@ -345,7 +345,6 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
     abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
     if(length(lrb) > 0) {
-    print(lrb)
         lrb <- split(lrb, lrb$datatype)
         speedup <- rbind(
             speedupOf(lrb[["float_v"]], simple[["float_v"]]),
