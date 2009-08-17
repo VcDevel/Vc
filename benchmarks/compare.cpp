@@ -25,6 +25,7 @@
 
 using namespace Vc;
 
+bool blackHole = false;
 float_m *floatResults = new float_m[4];
 short_m *shortResults = new short_m[4];
 #ifdef USE_SSE
@@ -77,6 +78,26 @@ template<typename Vector> class DoCompares
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
+            {
+                Benchmark timer("(operator==).isFull()", Vector::Size * Factor, "Op");
+                doWork3();
+                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                    timer.Start();
+                    doWork3();
+                    timer.Stop();
+                }
+                timer.Print(Benchmark::PrintAverage);
+            }
+                {
+                Benchmark timer("!(operator==).isEmpty()", Vector::Size * Factor, "Op");
+                doWork4();
+                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                    timer.Start();
+                    doWork4();
+                    timer.Stop();
+                }
+                timer.Print(Benchmark::PrintAverage);
+            }
         }
 
         ~DoCompares()
@@ -89,6 +110,8 @@ template<typename Vector> class DoCompares
         void setResultPointer();
         void doWork1();
         void doWork2();
+        void doWork3();
+        void doWork4();
 
         Vector *a;
         Vector *b;
@@ -114,10 +137,24 @@ template<typename Vector> inline void DoCompares<Vector>::doWork2()
         a[i](a[i] == b[i]) = one;
     }
 }
+template<typename Vector> inline void DoCompares<Vector>::doWork3()
+{
+    const Vector one(One);
+    for (int i = 0; i < Factor; ++i) {
+        blackHole &= (a[i] == b[i]).isFull();
+    }
+}
+template<typename Vector> inline void DoCompares<Vector>::doWork4()
+{
+    const Vector one(One);
+    for (int i = 0; i < Factor; ++i) {
+        blackHole &= !(a[i] == b[i]).isEmpty();
+    }
+}
 
 int bmain(Benchmark::OutputMode out)
 {
-    const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 1000;
+    const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 100;
 
     Benchmark::addColumn("datatype");
 
