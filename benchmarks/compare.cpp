@@ -26,10 +26,10 @@
 using namespace Vc;
 
 bool blackHole = false;
-float_m *floatResults = new float_m[4];
-short_m *shortResults = new short_m[4];
+float_m floatResult;
+short_m shortResult;
 #ifdef USE_SSE
-sfloat_m *sfloatResults = new sfloat_m[4];
+sfloat_m sfloatResult;
 #endif
 
 #define unrolled_loop4(_it_, _code_) \
@@ -73,7 +73,7 @@ template<typename Vector> class DoCompares
                     doWork2();
                     timer.Stop();
                     for (int i = 0; i < Factor; ++i) {
-                        results[0] = a[i] > Vector(One);
+                        *result = a[i] > Vector(One);
                     }
                 }
                 timer.Print(Benchmark::PrintAverage);
@@ -115,19 +115,19 @@ template<typename Vector> class DoCompares
 
         Vector *a;
         Vector *b;
-        typename Vector::Mask *results;
+        typename Vector::Mask *result;
 };
 
-template<> inline void DoCompares<float_v>::setResultPointer() { results = floatResults; }
-template<> inline void DoCompares<short_v>::setResultPointer() { results = shortResults; }
+template<> inline void DoCompares<float_v>::setResultPointer() { result = &floatResult; }
+template<> inline void DoCompares<short_v>::setResultPointer() { result = &shortResult; }
 #ifdef USE_SSE
-template<> inline void DoCompares<sfloat_v>::setResultPointer() { results = sfloatResults; }
+template<> inline void DoCompares<sfloat_v>::setResultPointer() { result = &sfloatResult; }
 #endif
 
 template<typename Vector> inline void DoCompares<Vector>::doWork1()
 {
     for (int i = 0; i < Factor; ++i) {
-        results[0] = a[i] < b[i];
+        *result = a[i] < b[i];
     }
 }
 template<typename Vector> inline void DoCompares<Vector>::doWork2()
@@ -141,14 +141,14 @@ template<typename Vector> inline void DoCompares<Vector>::doWork3()
 {
     const Vector one(One);
     for (int i = 0; i < Factor; ++i) {
-        blackHole &= (a[i] == b[i]).isFull();
+        blackHole = (a[i] == b[i]).isFull();
     }
 }
 template<typename Vector> inline void DoCompares<Vector>::doWork4()
 {
     const Vector one(One);
     for (int i = 0; i < Factor; ++i) {
-        blackHole &= !(a[i] == b[i]).isEmpty();
+        blackHole = !(a[i] == b[i]).isEmpty();
     }
 }
 
