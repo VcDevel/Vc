@@ -24,3 +24,11 @@ vc_generate_plots(flops)
 vc_generate_plots(gather)
 vc_generate_plots(mask)
 vc_generate_plots(compare)
+
+add_executable(gather_sse_nobsf gather.cpp)
+target_link_libraries(gather_sse_nobsf Vc ${LIBS})
+add_target_property(gather_sse_nobsf COMPILE_FLAGS "-DUSE_SSE -DVC_NO_BSF_LOOPS")
+
+add_executable(gather_sse_notricks gather.cpp)
+target_link_libraries(gather_sse_notricks Vc ${LIBS})
+add_target_property(gather_sse_notricks COMPILE_FLAGS "-DUSE_SSE -DVC_NO_GATHER_TRICKS")

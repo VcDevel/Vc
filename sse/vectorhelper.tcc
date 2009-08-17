@@ -29,6 +29,19 @@
 #define IMM "n"
 #endif
 
+#ifndef VC_NO_BSF_LOOPS
+# ifdef VC_NO_GATHER_TRICKS
+#  define VC_NO_BSF_LOOPS
+# elif !defined(__x86_64__) // 32 bit x86 does not have enough registers
+#  define VC_NO_BSF_LOOPS
+# elif defined(_MSC_VER) // TODO: write inline asm version for MSVC
+#  define VC_NO_BSF_LOOPS
+# elif defined(__GNUC__) // gcc and icc work fine with the inline asm
+# else
+#  error "Check whether inline asm works, or define VC_NO_BSF_LOOPS"
+# endif
+#endif
+
 namespace SSE
 {
     struct GeneralHelpers
@@ -37,7 +50,7 @@ namespace SSE
         static inline void maskedGatherStructHelper(
                 Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr, const int scale
                 ) {
-#if defined(__GNUC__) && defined (__x86_64__)
+#ifndef VC_NO_BSF_LOOPS
             if (sizeof(EntryType) == 2) {
                 register unsigned long int bit;
                 register unsigned long int index;
@@ -121,17 +134,23 @@ namespace SSE
             } else {
                 abort();
             }
-#elif defined(_MSC_VER) || !defined(__x86_64__)
+#else
             typedef const char * Memory MAY_ALIAS;
             Memory const baseAddr2 = reinterpret_cast<Memory>(baseAddr);
+# ifdef VC_NO_GATHER_TRICKS
+            for (int i = 0; i < Base::Size; ++i) {
+                if (mask & (1 << i)) {
+                    v.d.m(i) = baseAddr2[scale * indexes.d.m(i)];
+                }
+            }
+# else
             unrolled_loop16(i, 0, Base::Size,
                     EntryType entry = *reinterpret_cast<const EntryType *>(&baseAddr2[scale * indexes.d.m(i)]);
                     register EntryType tmp = v.d.m(i);
                     if (mask & (1 << i)) tmp = entry;
                     v.d.m(i) = tmp;
                     );
-#else
-#error "Check whether inline asm works, or use else clause"
+# endif
 #endif
         }
 
@@ -139,7 +158,7 @@ namespace SSE
         static inline void maskedGatherHelper(
                 Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr
                 ) {
-#if defined(__GNUC__) && defined(__x86_64__)
+#ifndef VC_NO_BSF_LOOPS
             if (sizeof(EntryType) == 2) {
                 register unsigned long int bit;
                 register unsigned long int index;
@@ -219,15 +238,19 @@ namespace SSE
             } else {
                 abort();
             }
-#elif defined(_MSC_VER) || !defined(__x86_64__)
+#elif defined(VC_NO_GATHER_TRICKS)
+            for (int i = 0; i < Base::Size; ++i) {
+                if (mask & (1 << i)) {
+                    v.d.m(i) = baseAddr[indexes.d.m(i)];
+                }
+            }
+#else
             unrolled_loop16(i, 0, Base::Size,
                     EntryType entry = baseAddr[indexes.d.m(i)];
                     register EntryType tmp = v.d.m(i);
                     if (mask & (1 << i)) tmp = entry;
                     v.d.m(i) = tmp;
                     );
-#else
-#error "Check whether inline asm works, or use else clause"
 #endif
         }
 
@@ -235,7 +258,16 @@ namespace SSE
         static inline void maskedScatterHelper(
                 const AliasingT &vEntry, const int mask, EntryType &value, const int bitMask
                 ) {
-#ifdef __GNUC__
+#ifdef _MSC_VER
+            register EntryType t;
+            __asm {
+                    test mask, bitMask
+                    mov t, value
+                    cmovne t, vEntry
+                    mov value, t
+            }
+            return;
+#elif defined(__GNUC__)
 #ifndef __x86_64__ // on 32 bit use the non-asm-code below for sizeof(EntryType) > 4
             if (sizeof(EntryType) <= 4) {
 #endif
