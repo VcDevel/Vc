@@ -25,6 +25,7 @@
 #include "vectorhelper.h"
 #include "mask.h"
 #include <algorithm>
+#include <cmath>
 
 #ifdef isfinite
 #undef isfinite
@@ -100,13 +101,18 @@ class WriteMaskedVector
         Mask mask;
 };
 
+template<typename T> Vector<T> atan (const Vector<T> &_x);
+
 template<typename T>
 class Vector : public VectorBase<T>
 {
+    template<typename TT> friend Vector<TT> atan(const Vector<TT> &);
+    protected:
+        typedef VectorBase<T> Base;
+        using Base::d;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
-        typedef VectorBase<T> Base;
         enum { Size = Base::Size };
         typedef typename Base::VectorType VectorType;
         typedef typename Base::EntryType  EntryType;
@@ -297,6 +303,8 @@ class Vector : public VectorBase<T>
         OP1(abs)
 #undef OP1
 
+        inline Vector operator-() const { return VectorHelper<T>::negate(data()); }
+
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
         inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); }
@@ -305,6 +313,11 @@ class Vector : public VectorBase<T>
         OP(-, sub)
         OP(*, mul)
         OP(/, div)
+#undef OP
+
+#define OP(symbol, fun) \
+        inline Vector &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<VectorType>::fun(data(), x.data()); return *this; } \
+        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<VectorType>::fun(data(), x.data())); }
         OP(|, or_)
         OP(&, and_)
         OP(^, xor_)
@@ -412,6 +425,71 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const typename 
   template<typename T> static inline Vector<T> cos  (const Vector<T> &x) { return VectorHelper<T>::cos(x.data()); }
   template<typename T> static inline Vector<T> log  (const Vector<T> &x) { return VectorHelper<T>::log(x.data()); }
   template<typename T> static inline Vector<T> log10(const Vector<T> &x) { return VectorHelper<T>::log10(x.data()); }
+  template<typename T> static inline Vector<T> reciprocal(const Vector<T> &x) { return VectorHelper<T>::reciprocal(x.data()); }
+  template<typename T> static inline Vector<T> atan (const Vector<T> &_x) {
+      typedef Vector<T> V;
+      typedef typename V::Mask M;
+      using namespace VectorSpecialInitializerZero;
+      using namespace VectorSpecialInitializerOne;
+      V x = abs(_x);
+      const V pi_2(M_PI / 2);
+      const V pi_4(M_PI / 4);
+      const M &gt_tan_3pi_8 = x > V(2.414213562373095);
+      const M &gt_tan_pi_8  = x > V(0.4142135623730950) && !gt_tan_3pi_8;
+      V y(Zero);
+      y(gt_tan_3pi_8) = pi_2;
+      y(gt_tan_pi_8)  = pi_4;
+      x(gt_tan_3pi_8) = -reciprocal(x);
+      x(gt_tan_pi_8)  = (x - V(One)) / (x + V(One));
+      const V &x2 = x * x;
+      y += (((8.05374449538e-2 * x2
+                      - 1.38776856032E-1) * x2
+                  + 1.99777106478E-1) * x2
+              - 3.33329491539E-1) * x2 * x
+          + x;
+      y(_x < V(Zero)) = -y;
+      return y;
+  }
+  template<typename T> static inline Vector<T> atan2(const Vector<T> &y, const Vector<T> &x) {
+      typedef Vector<T> V;
+      typedef typename V::Mask M;
+      using namespace VectorSpecialInitializerZero;
+      const V pi(M_PI);
+      const V pi_2(M_PI / 2);
+
+      const M &xZero = x == V(Zero);
+      const M &yZero = y == V(Zero);
+      const M &xNeg = x < V(Zero);
+      const M &yNeg = y < V(Zero);
+
+      const V &absX = abs(x);
+      const V &absY = abs(y);
+
+      const V pi_4(M_PI / 4);
+      const M &gt_tan_3pi_8 = absY > absX * 2.414213562373095;
+      const M &gt_tan_pi_8  = absY > absX * 0.4142135623730950 && !gt_tan_3pi_8;
+      V b(Zero);
+      b(gt_tan_3pi_8) = pi_2;
+      b(gt_tan_pi_8)  = pi_4;
+      V a = absY / absX;
+      a(gt_tan_3pi_8) = -reciprocal(a);
+      a(gt_tan_pi_8)  = (absY - absX) / (absY + absX);
+      const V &a2 = a * a;
+      b += (((8.05374449538e-2 * a2
+                      - 1.38776856032E-1) * a2
+                  + 1.99777106478E-1) * a2
+              - 3.33329491539E-1) * a2 * a
+          + a;
+      b(xNeg ^ yNeg) = -b;
+
+      b(xNeg && !yNeg) += pi;
+      b(xNeg &&  yNeg) -= pi;
+      //b(xZero) = pi_2;
+      b.makeZero(xZero && yZero);
+      b(xZero && yNeg) = -pi_2;
+      //b(yZero && xNeg) = pi;
+      return b;
+  }
 
   template<typename T> static inline typename Vector<T>::Mask isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
   template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }

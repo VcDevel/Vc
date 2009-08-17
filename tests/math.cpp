@@ -115,9 +115,40 @@ template<typename Vec> void testRSqrt()
     Vec b(reference);
 
     // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
-    setFuzzyness<float>(0.0003662109375);
+    setFuzzyness<float>(0.0003662109375f);
     FUZZY_COMPARE(Vc::rsqrt(a), b);
     setFuzzyness<float>(0.f);
+}
+
+template<typename Vec> void testAtan()
+{
+    typedef typename Vec::EntryType T;
+    setFuzzyness<float>(0.005f);
+    for (int offset = -1000; offset < 1000; offset += 10) {
+        FillHelperMemory(std::atan((i + offset) * 0.1));
+        Vec a(data);
+        Vec b(reference);
+
+        FUZZY_COMPARE(Vc::atan((a + offset) * 0.1), b);
+    }
+    setFuzzyness<float>(0.0f);
+}
+
+template<typename Vec> void testAtan2()
+{
+    typedef typename Vec::EntryType T;
+    setFuzzyness<float>(0.005f);
+    for (int xoffset = -100; xoffset < 100; xoffset += 10) {
+        for (int yoffset = -100; yoffset < 100; yoffset += 10) {
+            FillHelperMemory(std::atan2(i + xoffset, i + yoffset));
+            Vec a(data);
+            Vec b(reference);
+
+            //std::cout << a + xoffset << a + yoffset << std::endl;
+            FUZZY_COMPARE(Vc::atan2(a + xoffset, a + yoffset), b);
+        }
+    }
+    setFuzzyness<float>(0.0f);
 }
 
 template<typename Vec> void testInf()
@@ -152,7 +183,7 @@ template<typename Vec> void testReduceMin()
     }
     for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
         const Vec a(&data[0]);
-        std::cout << a << std::endl;
+        //std::cout << a << std::endl;
         COMPARE(a.min(), one);
     }
 }
@@ -184,6 +215,12 @@ int main()
     runTest(testRSqrt<float_v>);
     runTest(testRSqrt<double_v>);
     runTest(testRSqrt<sfloat_v>);
+
+    runTest(testAtan<float_v>);
+    runTest(testAtan<sfloat_v>);
+
+    runTest(testAtan2<float_v>);
+    runTest(testAtan2<sfloat_v>);
 
     runTest(testInf<float_v>);
     runTest(testInf<double_v>);

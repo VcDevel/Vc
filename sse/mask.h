@@ -100,6 +100,7 @@ template<unsigned int VectorSize> class Mask
         inline Mask operator& (const Mask &rhs) const { return _mm_and_ps(k, rhs.k); }
         inline Mask operator||(const Mask &rhs) const { return _mm_or_ps (k, rhs.k); }
         inline Mask operator| (const Mask &rhs) const { return _mm_or_ps (k, rhs.k); }
+        inline Mask operator^ (const Mask &rhs) const { return _mm_xor_ps(k, rhs.k); }
         inline Mask operator!() const { return _mm_andnot_si128(dataI(), _mm_setallone_si128()); }
 
         inline Mask &operator&=(const Mask &rhs) { k = _mm_and_ps(k, rhs.k); return *this; }
@@ -220,6 +221,12 @@ class Float8Mask
             Float8Mask r;
             r.k[0] = _mm_or_ps(k[0], rhs.k[0]);
             r.k[1] = _mm_or_ps(k[1], rhs.k[1]);
+            return r;
+        }
+        inline Float8Mask operator^ (const Float8Mask &rhs) const {
+            Float8Mask r;
+            r.k[0] = _mm_xor_ps(k[0], rhs.k[0]);
+            r.k[1] = _mm_xor_ps(k[1], rhs.k[1]);
             return r;
         }
         inline Float8Mask operator!() const {

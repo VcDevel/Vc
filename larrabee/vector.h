@@ -470,7 +470,7 @@ inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
             OP(pow)
             OP1(sin) OP1(sinh) OP1(asin)
             OP1(cos) OP1(cosh) OP1(acos)
-            OP1(tan) OP1(tanh) OP1(atan)
+            OP1(tan) OP1(tanh) OP1(atan) OP(atan2)
             OP1(log) OP1(log2) OP1(log10)
             OP1(exp) OP1(exp2)
             OP1(floor) OP1(ceil)
@@ -598,7 +598,7 @@ inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
             OP(pow)
             OP1(sin) OP1(sinh) OP1(asin)
             OP1(cos) OP1(cosh) OP1(acos)
-            OP1(tan) OP1(tanh) OP1(atan)
+            OP1(tan) OP1(tanh) OP1(atan) OP(atan2)
             OP1(log) OP1(log2) OP1(log10)
             OP1(exp) OP1(exp2)
             OP1(floor) OP1(ceil)
@@ -1164,22 +1164,35 @@ namespace Larrabee
 #undef PARENT_DATA
 #undef OP_IMPL
 
-    template<typename T> static inline Larrabee::Vector<T> min  (Larrabee::Vector<T> x, Larrabee::Vector<T> y) { return VectorHelper<T>::min(x, y); }
-    template<typename T> static inline Larrabee::Vector<T> max  (Larrabee::Vector<T> x, Larrabee::Vector<T> y) { return VectorHelper<T>::max(x, y); }
-    template<typename T> static inline Larrabee::Vector<T> min  (Larrabee::Vector<T> x, T y) { return min(x, Vector<T>(y)); }
-    template<typename T> static inline Larrabee::Vector<T> max  (Larrabee::Vector<T> x, T y) { return max(x, Vector<T>(y)); }
-    template<typename T> static inline Larrabee::Vector<T> min  (T x, Larrabee::Vector<T> y) { return min(Vector<T>(x), y); }
-    template<typename T> static inline Larrabee::Vector<T> max  (T x, Larrabee::Vector<T> y) { return max(Vector<T>(x), y); }
-    template<typename T> static inline Larrabee::Vector<T> sqrt (Larrabee::Vector<T> x) { return VectorHelper<T>::sqrt(x); }
-    template<typename T> static inline Larrabee::Vector<T> rsqrt(Larrabee::Vector<T> x) { return VectorHelper<T>::rsqrt(x); }
-    template<typename T> static inline Larrabee::Vector<T> abs  (Larrabee::Vector<T> x) { return VectorHelper<T>::abs(x); }
-    template<typename T> static inline Larrabee::Vector<T> sin  (Larrabee::Vector<T> x) { return VectorHelper<T>::sin(x); }
-    template<typename T> static inline Larrabee::Vector<T> cos  (Larrabee::Vector<T> x) { return VectorHelper<T>::cos(x); }
-    template<typename T> static inline Larrabee::Vector<T> log  (Larrabee::Vector<T> x) { return VectorHelper<T>::log(x); }
-    template<typename T> static inline Larrabee::Vector<T> log10(Larrabee::Vector<T> x) { return VectorHelper<T>::log10(x); }
+#define MATH_OP1(name, call) \
+    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::Vector<T> &x)               { return VectorHelper<T>::call(x); } \
+    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::VectorMultiplication<T> &x) { return VectorHelper<T>::call(static_cast<Vector<T> >(x)); }
+#define MATH_OP2(name, call) \
+    template<typename T> static inline Larrabee::Vector<T> name(const T &x, const Larrabee::Vector<T> &y)   { return VectorHelper<T>::call(Vector<T>(x), y); } \
+    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::Vector<T> &x, const T &y)   { return VectorHelper<T>::call(x, Vector<T>(y)); } \
+    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::Vector<T> &x, const Larrabee::Vector<T> &y)                             { return VectorHelper<T>::call(x, y); } \
+    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::Vector<T> &x, const Larrabee::VectorMultiplication<T> &y) { return VectorHelper<T>::call(x, static_cast<Vector<T> >(y)); } \
+    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::VectorMultiplication<T> &x, const Larrabee::Vector<T> &y) { return VectorHelper<T>::call(static_cast<Vector<T> >(x), y); } \
+    template<typename T> static inline Larrabee::Vector<T> name(const T &x, const Larrabee::VectorMultiplication<T> &y) { return VectorHelper<T>::call(Vector<T>(x), static_cast<Vector<T> >(y)); } \
+    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::VectorMultiplication<T> &x, const T &y) { return VectorHelper<T>::call(static_cast<Vector<T> >(x), Vector<T>(y)); } \
+    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::VectorMultiplication<T> &x, const Larrabee::VectorMultiplication<T> &y) { return VectorHelper<T>::call(static_cast<Vector<T> >(x), static_cast<Vector<T> >(y)); }
 
-    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(Larrabee::Vector<T> x) { return VectorHelper<T>::isFinite(x); }
-    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isnan(Larrabee::Vector<T> x) { return VectorHelper<T>::isNaN(x); }
+    MATH_OP2(min, min)
+    MATH_OP2(max, max)
+    MATH_OP1(sqrt, sqrt)
+    MATH_OP1(rsqrt, rsqrt)
+    MATH_OP1(abs, abs)
+    MATH_OP1(sin, sin)
+    MATH_OP1(cos, cos)
+    MATH_OP1(log, log)
+    MATH_OP1(log10, log10)
+    MATH_OP1(atan, atan)
+    MATH_OP2(atan2, atan2)
+
+    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(const Larrabee::Vector<T> &x) { return VectorHelper<T>::isFinite(x); }
+    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(const Larrabee::VectorMultiplication<T> &x) { return VectorHelper<T>::isFinite(x); }
+    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isnan(const Larrabee::Vector<T> &x) { return VectorHelper<T>::isNaN(x); }
+    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isnan(const Larrabee::VectorMultiplication<T> &x) { return VectorHelper<T>::isNaN(x); }
 
   template<typename T> static inline void forceToRegisters(const Vector<T> &) {}
   template<typename T1, typename T2> static inline void forceToRegisters(
