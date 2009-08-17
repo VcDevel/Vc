@@ -82,6 +82,20 @@ std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<VectorS
     out << "]" << AnsiColor::normal;
     return out;
 }
+#ifdef USE_SSE
+std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float8Mask &m)
+{
+    out << AnsiColor::yellow << "m[";
+    for (unsigned int i = 0; i < 8; ++i) {
+        if (i > 0 && (i % 4) == 0) {
+            out << " ";
+        }
+        out << m[i];
+    }
+    out << "]" << AnsiColor::normal;
+    return out;
+}
+#endif
 
 #undef VECTOR_NAMESPACE
 
