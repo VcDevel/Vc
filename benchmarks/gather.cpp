@@ -319,7 +319,7 @@ int bmain(Benchmark::OutputMode out)
     Benchmark::addColumn("L1.size");
     Benchmark::addColumn("L2.size");
     Benchmark::addColumn("Cacheline.size");
-    const int Repetitions = out == Benchmark::Stdout ? 4 : 10;
+    const int Repetitions = out == Benchmark::Stdout ? 4 : (g_Repetitions > 0 ? g_Repetitions : 20);
 
     g_L1ArraySize = CpuId::L1Data();
     g_L2ArraySize = CpuId::L2Data();
