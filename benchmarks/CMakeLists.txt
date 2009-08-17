@@ -1,5 +1,15 @@
 include(BenchmarkMacros)
 
+set(FAST_MATH_BENCHMARK FALSE CACHE BOOL "Use floating point math shortcuts. Might not be IEEE compliant!")
+if(FAST_MATH_BENCHMARK)
+   if(CMAKE_COMPILER_IS_GNUCXX)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
+   elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model fast=2")
+   elseif(MSVC)
+   endif(CMAKE_COMPILER_IS_GNUCXX)
+endif(FAST_MATH_BENCHMARK)
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
    add_executable(benchmark benchmark.cpp)
    add_definitions(-DSCHED_FIFO_BENCHMARKS)
