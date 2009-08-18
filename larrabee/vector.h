@@ -93,12 +93,14 @@ namespace Larrabee
     template<> struct MaskHelper<8> {
         static inline bool isFull (__mmask k) { return (k & 0xff) == 0xff; }
         static inline bool isEmpty(__mmask k) { return (k & 0xff) == 0x00; }
+        static inline bool isMix  (__mmask k) { const int tmp = k & 0xff; return tmp != 0 && (tmp ^ 0xff) != 0; }
         static inline bool cmpeq  (__mmask k1, __mmask k2) { return (k1 & 0xff) == (k2 & 0xff); }
         static inline bool cmpneq (__mmask k1, __mmask k2) { return (k1 & 0xff) != (k2 & 0xff); }
     };
     template<> struct MaskHelper<16> {
         static inline bool isFull (__mmask k) { return k == 0xffff; }
         static inline bool isEmpty(__mmask k) { return k == 0x0000; }
+        static inline bool isMix  (__mmask k) { return k != 0 && (k ^ 0xffff) != 0; }
         static inline bool cmpeq  (__mmask k1, __mmask k2) { return k1 == k2; }
         static inline bool cmpneq (__mmask k1, __mmask k2) { return k1 != k2; }
     };
@@ -131,6 +133,7 @@ namespace Larrabee
 
             inline bool isFull () const { return MaskHelper<VectorSize>::isFull (k); }
             inline bool isEmpty() const { return MaskHelper<VectorSize>::isEmpty(k); }
+            inline bool isMix  () const { return MaskHelper<VectorSize>::isMix  (k); }
 
             inline operator bool() const { return isFull(); }
 

@@ -96,6 +96,24 @@ template<typename Vec> void testCmp()
     }
 }
 
+template<typename Vec> void testIsMix()
+{
+    Vec a(IndexesFromZero);
+    Vec b(Zero);
+    Vec c(One);
+    if (Vec::Size > 1) {
+        VERIFY((a == b).isMix());
+        VERIFY((a != b).isMix());
+        VERIFY((a == c).isMix());
+        VERIFY((a != c).isMix());
+    } else { // masks of size 1 can never be a mix of 0 and 1
+        VERIFY(!(a == b).isMix());
+        VERIFY(!(a != b).isMix());
+        VERIFY(!(a == c).isMix());
+        VERIFY(!(a != c).isMix());
+    }
+}
+
 template<typename Vec> void testAdd()
 {
     Vec a(Zero), b(Zero);
@@ -244,6 +262,14 @@ int main()
     runTest(testCmp<short_v>);
     runTest(testCmp<ushort_v>);
     runTest(testCmp<sfloat_v>);
+
+    runTest(testIsMix<int_v>);
+    runTest(testIsMix<uint_v>);
+    //runTest(testIsMix<float_v>);
+    //runTest(testIsMix<double_v>);
+    runTest(testIsMix<short_v>);
+    runTest(testIsMix<ushort_v>);
+    //runTest(testIsMix<sfloat_v>);
 
     runTest(testAdd<int_v>);
     runTest(testAdd<uint_v>);

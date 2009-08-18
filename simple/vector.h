@@ -124,6 +124,7 @@ class Mask
         inline Mask &operator|=(const Mask &rhs) { m |= rhs.m; return *this; }
         inline bool isFull () const { return  m; }
         inline bool isEmpty() const { return !m; }
+        inline bool isMix  () const { return false; }
 
         inline bool data () const { return m; }
         inline bool dataI() const { return m; }

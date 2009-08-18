@@ -120,6 +120,14 @@ template<unsigned int VectorSize> class Mask
             _mm_movemask_epi8(dataI()) == 0x0000;
 #endif
         }
+        inline bool isMix() const {
+#ifdef __SSE4_1__
+            return _mm_test_mix_ones_zeros(dataI(), dataI());
+#else
+            const int tmp = _mm_movemask_epi8(dataI());
+            return tmp != 0 && (tmp ^ 0xffff) != 0;
+#endif
+        }
 
         inline operator bool() const { return isFull(); }
 
@@ -262,6 +270,15 @@ class Float8Mask
 #else
             _mm_movemask_ps(k[0]) == 0x0 &&
             _mm_movemask_ps(k[1]) == 0x0;
+#endif
+        }
+        inline bool isMix() const {
+#ifdef __SSE4_1__
+            return _mm_test_mix_ones_zeros(_mm_castps_si128(k[0]), _mm_castps_si128(k[0])) &&
+            _mm_test_mix_ones_zeros(_mm_castps_si128(k[1]), _mm_castps_si128(k[1]));
+#else
+            const int tmp = _mm_movemask_ps(k[0]) + _mm_movemask_ps(k[1]);
+            return tmp > 0x0 && tmp < (0xf + 0xf);
 #endif
         }
 
