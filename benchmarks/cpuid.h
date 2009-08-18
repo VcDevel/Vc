@@ -137,6 +137,11 @@ bool   CpuId::s_noL2orL3 = false;
 #endif
 void CpuId::init()
 {
+    {
+        static bool done = false;
+        if (done) return;
+        done = true;
+    }
     uint eax, ebx, ecx, edx;
 
     CPUID(0);
@@ -429,5 +434,8 @@ void CpuId::interpret(uchar byte)
         break;
     }
 }
+
+static int _Global_CpuId_Initializer() { CpuId::init(); return 0; }
+static int _Global_CpuId_Initializer_Data = _Global_CpuId_Initializer();
 
 #endif // CPUID_H

@@ -306,8 +306,6 @@ template<typename Vector> struct GatherBenchmark
 
 int bmain(Benchmark::OutputMode out)
 {
-    CpuId::init();
-
     float_fullMask = float_m(One);
     short_fullMask = short_m(One);
 #ifdef USE_SSE
