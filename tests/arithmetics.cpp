@@ -106,11 +106,15 @@ template<typename Vec> void testIsMix()
         VERIFY((a != b).isMix());
         VERIFY((a == c).isMix());
         VERIFY((a != c).isMix());
+        VERIFY(!(a == a).isMix());
+        VERIFY(!(a != a).isMix());
     } else { // masks of size 1 can never be a mix of 0 and 1
         VERIFY(!(a == b).isMix());
         VERIFY(!(a != b).isMix());
         VERIFY(!(a == c).isMix());
         VERIFY(!(a != c).isMix());
+        VERIFY(!(a == a).isMix());
+        VERIFY(!(a != a).isMix());
     }
 }
 

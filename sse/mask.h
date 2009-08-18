@@ -122,7 +122,7 @@ template<unsigned int VectorSize> class Mask
         }
         inline bool isMix() const {
 #ifdef __SSE4_1__
-            return _mm_test_mix_ones_zeros(dataI(), dataI());
+            return _mm_test_mix_ones_zeros(dataI(), _mm_setallone_si128());
 #else
             const int tmp = _mm_movemask_epi8(dataI());
             return tmp != 0 && (tmp ^ 0xffff) != 0;
