@@ -5,17 +5,27 @@ mathProcessData <- function(d) {
     d
 }
 
-for(data in list(rbind(sse, simple, lrb))) {
+set1 <- function(d) subset(d, !(d$benchmark.name == "rsqrt" | d$benchmark.name == "recip"))
+set2 <- function(d) subset(d,   d$benchmark.name == "rsqrt" | d$benchmark.name == "recip" )
+
+data <- rbind(sse, simple, lrb)
+for(data in list(set1(data), set2(data))) {
     data <- mathProcessData(data)
     mychart4(data, data$benchmark.name, column = "Op_per_cycle", xlab = "Operations per Cycle",
-        main = "Math Operations")
+        main = "Math Operations", orderfun = function(d) order(d$key))
 }
 
-lrb    <- mathProcessData(lrb)
-sse    <- mathProcessData(sse)
-simple <- mathProcessData(simple)
+lrb1    <- mathProcessData(set1(lrb))
+sse1    <- mathProcessData(set1(sse))
+simple1 <- mathProcessData(set1(simple))
+lrb2    <- mathProcessData(set2(lrb))
+sse2    <- mathProcessData(set2(sse))
+simple2 <- mathProcessData(set2(simple))
 
-plotSpeedup(sse, simple, lrb, main = "Math Operations", speedupColumn = "Op_per_cycle",
+plotSpeedup(sse1, simple1, lrb1, main = "Math Operations", speedupColumn = "Op_per_cycle",
+    datafun = function(d, ref) list(key = d$datatype)
+    )
+plotSpeedup(sse2, simple2, lrb2, main = "Math Operations", speedupColumn = "Op_per_cycle",
     datafun = function(d, ref) list(key = d$datatype)
     )
 

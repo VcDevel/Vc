@@ -58,17 +58,6 @@ template<typename Vector> struct Helper
             }
             timer.Print();
         }
-        /*{ the speedup of rsqrt is too big! :)
-            Benchmark timer("rsqrt", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
-                timer.Start();
-                for (int i = 0; i < Factor; ++i) {
-                    *blackHole = rsqrt(data[i]);
-                }
-                timer.Stop();
-            }
-            timer.Print();
-        }*/
         {
             Benchmark timer("log", opPerSecondFactor, "Op");
             for (int rep = 0; rep < Repetitions; ++rep) {
@@ -97,6 +86,28 @@ template<typename Vector> struct Helper
                 timer.Start();
                 for (int i = 0; i < Factor - 1; ++i) {
                     *blackHole = atan2(data[i], data[i + 1]);
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        {
+            Benchmark timer("rsqrt", opPerSecondFactor, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                for (int i = 0; i < Factor; ++i) {
+                    *blackHole = rsqrt(data[i]);
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        {
+            Benchmark timer("recip", opPerSecondFactor, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                for (int i = 0; i < Factor; ++i) {
+                    *blackHole = reciprocal(data[i]);
                 }
                 timer.Stop();
             }
