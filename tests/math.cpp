@@ -123,7 +123,8 @@ template<typename Vec> void testRSqrt()
 template<typename Vec> void testAtan()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(0.005f);
+    setFuzzyness<float>(8e-5f);
+    setFuzzyness<double>(2e-8);
     for (int offset = -1000; offset < 1000; offset += 10) {
         FillHelperMemory(std::atan((i + offset) * 0.1));
         Vec a(data);
@@ -131,24 +132,23 @@ template<typename Vec> void testAtan()
 
         FUZZY_COMPARE(Vc::atan((a + offset) * 0.1), b);
     }
-    setFuzzyness<float>(0.0f);
 }
 
 template<typename Vec> void testAtan2()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(0.005f);
-    for (int xoffset = -100; xoffset < 100; xoffset += 10) {
-        for (int yoffset = -100; yoffset < 100; yoffset += 10) {
-            FillHelperMemory(std::atan2(i + xoffset, i + yoffset));
+    setFuzzyness<float>(8e-5f);
+    setFuzzyness<double>(3e-8);
+    for (int xoffset = -100; xoffset < 1000; xoffset += 10) {
+        for (int yoffset = -100; yoffset < 1000; yoffset += 10) {
+            FillHelperMemory(std::atan2((i + xoffset) * 0.15, (i + yoffset) * 0.15));
             Vec a(data);
             Vec b(reference);
 
-            //std::cout << a + xoffset << a + yoffset << std::endl;
-            FUZZY_COMPARE(Vc::atan2(a + xoffset, a + yoffset), b);
+            //std::cout << (a + xoffset) * 0.15 << (a + yoffset) * 0.15 << std::endl;
+            FUZZY_COMPARE(Vc::atan2((a + xoffset) * 0.15, (a + yoffset) * 0.15), b);
         }
     }
-    setFuzzyness<float>(0.0f);
 }
 
 template<typename Vec> void testInf()
@@ -218,9 +218,11 @@ int main()
 
     runTest(testAtan<float_v>);
     runTest(testAtan<sfloat_v>);
+    runTest(testAtan<double_v>);
 
     runTest(testAtan2<float_v>);
     runTest(testAtan2<sfloat_v>);
+    runTest(testAtan2<double_v>);
 
     runTest(testInf<float_v>);
     runTest(testInf<double_v>);
