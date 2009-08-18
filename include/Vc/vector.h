@@ -55,6 +55,7 @@ namespace Vc
   using VECTOR_NAMESPACE::cos;
   using VECTOR_NAMESPACE::log;
   using VECTOR_NAMESPACE::log10;
+  using VECTOR_NAMESPACE::reciprocal;
   using VECTOR_NAMESPACE::atan;
   using VECTOR_NAMESPACE::atan2;
   using VECTOR_NAMESPACE::isfinite;

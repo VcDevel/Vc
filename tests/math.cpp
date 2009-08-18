@@ -151,6 +151,21 @@ template<typename Vec> void testAtan2()
     }
 }
 
+template<typename Vec> void testReciprocal()
+{
+    typedef typename Vec::EntryType T;
+    setFuzzyness<float>(3.e-4f);
+    setFuzzyness<double>(0);
+    const T one = 1;
+    for (int offset = -1000; offset < 1000; offset += 10) {
+        FillHelperMemory(one / ((i + offset) * 0.1));
+        Vec a(data);
+        Vec b(reference);
+
+        FUZZY_COMPARE(Vc::reciprocal((a + offset) * 0.1), b);
+    }
+}
+
 template<typename Vec> void testInf()
 {
     typedef typename Vec::EntryType T;
@@ -223,6 +238,10 @@ int main()
     runTest(testAtan2<float_v>);
     runTest(testAtan2<sfloat_v>);
     runTest(testAtan2<double_v>);
+
+    runTest(testReciprocal<float_v>);
+    runTest(testReciprocal<sfloat_v>);
+    runTest(testReciprocal<double_v>);
 
     runTest(testInf<float_v>);
     runTest(testInf<double_v>);

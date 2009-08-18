@@ -466,7 +466,7 @@ inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
             }
 
             OP(max) OP(min)
-            OP1(sqrt) OP1(rsqrt)
+            OP1(sqrt) OP1(rsqrt) OP1(recip)
             OP(pow)
             OP1(sin) OP1(sinh) OP1(asin)
             OP1(cos) OP1(cosh) OP1(acos)
@@ -594,7 +594,7 @@ inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
             }
 
             OP(max) OP(min)
-            OP1(sqrt) OP1(rsqrt)
+            OP1(sqrt) OP1(rsqrt) OP1(recip)
             OP(pow)
             OP1(sin) OP1(sinh) OP1(asin)
             OP1(cos) OP1(cosh) OP1(acos)
@@ -1188,6 +1188,7 @@ namespace Larrabee
     MATH_OP1(log10, log10)
     MATH_OP1(atan, atan)
     MATH_OP2(atan2, atan2)
+    MATH_OP1(reciprocal, recip)
 
     template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(const Larrabee::Vector<T> &x) { return VectorHelper<T>::isFinite(x); }
     template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(const Larrabee::VectorMultiplication<T> &x) { return VectorHelper<T>::isFinite(x); }
