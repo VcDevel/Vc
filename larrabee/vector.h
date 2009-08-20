@@ -1114,6 +1114,20 @@ class Vector : public VectorBase<T, Vector<T> >
         inline T min() const { return VectorHelper<T>::reduce_min(data); }
         inline T mul() const { return VectorHelper<T>::reduce_mul(data); }
         inline T add() const { return VectorHelper<T>::reduce_add(data); }
+
+        template<typename F> void callWithValuesSorted(F &f) {
+            union { VectorType v; EntryType d[Size]; } u;
+            u.v = data; //VectorHelper<T>::store(u.d, data);
+
+            EntryType value = u.d[0];
+            f(value);
+            for (int i = 0; i < Size; ++i) {
+                if (u.d[i] > value) {
+                    value = u.d[i];
+                    f(value);
+                }
+            }
+        }
 };
 
 template<typename T> inline Vector<T> operator+(const T &x, const Vector<T> &v) { return v.operator+(x); }

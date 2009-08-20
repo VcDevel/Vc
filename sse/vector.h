@@ -360,6 +360,17 @@ class Vector : public VectorBase<T>
         inline const VectorType &data() const { return Base::data(); }
 
         inline EntryType min() const { return VectorHelper<T>::min(data()); }
+
+        template<typename F> void callWithValuesSorted(F &f) {
+            EntryType value = Base::d.m(0);
+            f(value);
+            for (int i = 0; i < Size; ++i) {
+                if (Base::d.m(i) > value) {
+                    value = Base::d.m(i);
+                    f(value);
+                }
+            }
+        }
 };
 
 template<typename T> class SwizzledVector : public Vector<T> {};

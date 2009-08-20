@@ -394,6 +394,10 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         inline EntryType min() const { return m_data; }
+
+        template<typename F> void callWithValuesSorted(F &f) {
+            f(m_data);
+        }
 };
 
 template<typename T> class SwizzledVector : public Vector<T> {};
