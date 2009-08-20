@@ -240,7 +240,7 @@ class Vector : public VectorBase<T>
         }
         template<typename S1> inline Vector(const S1 *array, const EntryType S1::* member1,
                 const IndexType &indexes, const Mask &mask) {
-            GeneralHelpers::maskedGatherStructHelper(*this, indexes, mask.toInt(), &(array[0].*(member1)), sizeof(S1));
+            GeneralHelpers::maskedGatherStructHelper<sizeof(S1)>(*this, indexes, mask.toInt(), &(array[0].*(member1)));
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes) {
@@ -248,7 +248,7 @@ class Vector : public VectorBase<T>
         }
         template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes, const Mask &mask) {
-            GeneralHelpers::maskedGatherStructHelper(*this, indexes, mask.toInt(), &(array[0].*(member1).*(member2)), sizeof(S1));
+            GeneralHelpers::maskedGatherStructHelper<sizeof(S1)>(*this, indexes, mask.toInt(), &(array[0].*(member1).*(member2)));
         }
 
         template<typename S1> inline void gather(const S1 *array, const EntryType S1::* member1,
@@ -257,7 +257,7 @@ class Vector : public VectorBase<T>
         }
         template<typename S1> inline void gather(const S1 *array, const EntryType S1::* member1,
                 const IndexType &indexes, const Mask &mask) {
-            GeneralHelpers::maskedGatherStructHelper(*this, indexes, mask.toInt(), &(array[0].*(member1)), sizeof(S1));
+            GeneralHelpers::maskedGatherStructHelper<sizeof(S1)>(*this, indexes, mask.toInt(), &(array[0].*(member1)));
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes) {
@@ -265,7 +265,7 @@ class Vector : public VectorBase<T>
         }
         template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
                 const EntryType S2::* member2, const IndexType &indexes, const Mask &mask) {
-            GeneralHelpers::maskedGatherStructHelper(*this, indexes, mask.toInt(), &(array[0].*(member1).*(member2)), sizeof(S1));
+            GeneralHelpers::maskedGatherStructHelper<sizeof(S1)>(*this, indexes, mask.toInt(), &(array[0].*(member1).*(member2)));
         }
 
         template<typename S1> inline void scatter(S1 *array, EntryType S1::* member1,

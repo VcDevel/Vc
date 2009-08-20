@@ -20,15 +20,6 @@
 #include "casts.h"
 #include <cstdlib>
 
-// when compiling with optimizations the compiler can use an int parameter as an immediate. When
-// compiling without optimizations then the parameter has to be used either as register or memory
-// location.
-#if defined(NO_OPTIMIZATION) || defined(__INTEL_COMPILER)
-#define IMM "r"
-#else
-#define IMM "n"
-#endif
-
 #ifndef VC_NO_BSF_LOOPS
 # ifdef VC_NO_GATHER_TRICKS
 #  define VC_NO_BSF_LOOPS
@@ -163,9 +154,9 @@ namespace SSE
 
     struct GeneralHelpers
     {
-        template<typename Base, typename IndexType, typename EntryType>
+        template<unsigned int scale, typename Base, typename IndexType, typename EntryType>
         static inline void maskedGatherStructHelper(
-                Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr, const int scale
+                Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr
                 ) {
 #ifndef VC_NO_BSF_LOOPS
             if (sizeof(EntryType) == 2) {
@@ -185,7 +176,7 @@ namespace SSE
                         "jnz 0b"               "\n\t"
                         "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale), "m"(indexes.d.v())
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "m"(indexes.d.v())
                         : "rcx"   );
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
@@ -205,7 +196,7 @@ namespace SSE
                             "jnz 0b"               "\n\t"
                             "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale), "m"(indexes.d.v())
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "m"(indexes.d.v())
                             : "rcx"   );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
                     register unsigned long int bit;
@@ -224,7 +215,7 @@ namespace SSE
                             "jnz 0b"               "\n\t"
                             "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale), "m"(indexes.d.v())
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "m"(indexes.d.v())
                             : "rcx"   );
                 } else {
                     abort();
@@ -246,7 +237,7 @@ namespace SSE
                         "jnz 0b"               "\n\t"
                         "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), IMM(scale), "m"(indexes.d.v())
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "m"(indexes.d.v())
                         : "rcx"   );
             } else {
                 abort();
@@ -371,9 +362,9 @@ namespace SSE
 #endif
         }
 
-        template<typename AliasingT, typename EntryType>
+        template<unsigned int bitMask, typename AliasingT, typename EntryType>
         static inline void maskedScatterHelper(
-                const AliasingT &vEntry, const int mask, EntryType &value, const int bitMask
+                const AliasingT &vEntry, const int mask, EntryType &value
                 ) {
 #ifdef _MSC_VER
             register EntryType t;
@@ -395,7 +386,7 @@ namespace SSE
                     "cmovne %5,%1\n\t"
                     "mov %1,%0"
                     : "=m"(value), "=&r"(t)
-                    : "r"(mask), "m"(value), IMM(bitMask), "m"(vEntry)
+                    : "r"(mask), "m"(value), "n"(bitMask), "m"(vEntry)
                );
             return;
 #ifndef __x86_64__
@@ -625,7 +616,7 @@ namespace SSE
     template<typename T> inline void VectorHelperSize<T>::scatter(
             const Base &v, const IndexType &indexes, int mask, EntryType *baseAddr) {
         for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)], 1 << i * Shift);
+                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)]);
                 );
     }
 
@@ -639,7 +630,7 @@ namespace SSE
     template<typename T> template<typename S1> inline void VectorHelperSize<T>::scatter(
             const Base &v, const IndexType &indexes, int mask, S1 *baseAddr, EntryType S1::* member1) {
         for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1), 1 << i * Shift);
+                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1));
                 );
     }
 
@@ -654,7 +645,7 @@ namespace SSE
             const Base &v, const IndexType &indexes, int mask, S1 *baseAddr, S2 S1::* member1,
             EntryType S2::* member2) {
         for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2), 1 << i * Shift);
+                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2));
                 );
     }
 
@@ -666,7 +657,7 @@ namespace SSE
 
     inline void VectorHelperSize<float8>::scatter(const Base &v, const IndexType &indexes, int mask, EntryType *baseAddr) {
         for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)], 1 << i * Shift);
+                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)]);
                 );
     }
 
@@ -680,7 +671,7 @@ namespace SSE
     template<typename S1> inline void VectorHelperSize<float8>::scatter(const Base &v, const IndexType &indexes, int mask,
             S1 *baseAddr, EntryType S1::* member1) {
         for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1), 1 << i * Shift);
+                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1));
                 );
     }
 
@@ -694,7 +685,7 @@ namespace SSE
     template<typename S1, typename S2> inline void VectorHelperSize<float8>::scatter(const Base &v, const IndexType &indexes, int mask,
             S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2) {
         for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2), 1 << i * Shift);
+                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2));
                 );
     }
 
@@ -793,5 +784,3 @@ namespace SSE
         return H::mul(x.data(), H::set(constant));
     }
 } // namespace SSE
-
-#undef IMM
