@@ -394,6 +394,8 @@ class Vector : public VectorBase<T, Vector<T> >
         inline EntryType min() const { return m_data; }
         inline EntryType max() const { return m_data; }
 
+        Vector sorted() const { return *this; }
+
         template<typename F> void callWithValuesSorted(F &f) {
             f(m_data);
         }

@@ -68,6 +68,11 @@ namespace SSE
                 const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2);
     };
 
+    template<typename VectorType, unsigned int Size> struct SortHelper
+    {
+        static VectorType sort(VectorType);
+    };
+
     template<typename T> struct VectorHelperSize
     {
         typedef VectorBase<T> Base;

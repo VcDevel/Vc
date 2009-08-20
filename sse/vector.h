@@ -362,6 +362,8 @@ class Vector : public VectorBase<T>
         inline EntryType min() const { return VectorHelper<T>::min(data()); }
         inline EntryType max() const { return VectorHelper<T>::max(data()); }
 
+        inline Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }
+
         template<typename F> void callWithValuesSorted(F &f) {
             EntryType value = Base::d.m(0);
             f(value);
