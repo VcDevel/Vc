@@ -360,6 +360,7 @@ class Vector : public VectorBase<T>
         inline const VectorType &data() const { return Base::data(); }
 
         inline EntryType min() const { return VectorHelper<T>::min(data()); }
+        inline EntryType max() const { return VectorHelper<T>::max(data()); }
 
         template<typename F> void callWithValuesSorted(F &f) {
             EntryType value = Base::d.m(0);

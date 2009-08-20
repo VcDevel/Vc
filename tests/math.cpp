@@ -203,6 +203,22 @@ template<typename Vec> void testReduceMin()
     }
 }
 
+template<typename Vec> void testReduceMax()
+{
+    typedef typename Vec::EntryType T;
+    const T max = Vec::Size;
+    VectorMemoryHelper<Vec> mem(Vec::Size);
+    T *data = mem;
+    for (int i = 0; i < Vec::Size * Vec::Size; ++i) {
+        data[i] = i % (Vec::Size) + 1;
+    }
+    for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
+        const Vec a(&data[0]);
+        std::cout << a << std::endl;
+        COMPARE(a.max(), max);
+    }
+}
+
 int main()
 {
     runTest(testAbs<int_v>);
@@ -258,6 +274,14 @@ int main()
     runTest(testReduceMin<uint_v>);
     runTest(testReduceMin<short_v>);
     runTest(testReduceMin<ushort_v>);
+
+    runTest(testReduceMax<float_v>);
+    runTest(testReduceMax<sfloat_v>);
+    runTest(testReduceMax<double_v>);
+    runTest(testReduceMax<int_v>);
+    runTest(testReduceMax<uint_v>);
+    runTest(testReduceMax<short_v>);
+    runTest(testReduceMax<ushort_v>);
 
     return 0;
 }

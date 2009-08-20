@@ -434,6 +434,12 @@ namespace SSE
                 _mm_store_sd(&r, a);
                 return r;
             }
+            static inline EntryType max(VectorType a) {
+                a = _mm_max_sd(a, _mm_unpackhi_pd(a, a));
+                EntryType r;
+                _mm_store_sd(&r, a);
+                return r;
+            }
 #undef SUFFIX
         };
 
@@ -726,6 +732,13 @@ namespace SSE
                 _mm_store_ss(&r, a);
                 return r;
             }
+            static inline EntryType max(VectorType a) {
+                a = _mm_max_ps(a, _mm_movehl_ps(a, a));   // a = max(a0, a2), max(a1, a3), max(a2, a2), max(a3, a3)
+                a = _mm_max_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1))); // a = max(a0, a1), a1, a2, a3
+                EntryType r;
+                _mm_store_ss(&r, a);
+                return r;
+            }
 #undef SUFFIX
         };
 
@@ -786,6 +799,9 @@ namespace SSE
             static inline EntryType min(const VectorType &a) {
                 return VectorHelper<float>::min(VectorHelper<float>::min(a[0], a[1]));
             }
+            static inline EntryType max(const VectorType &a) {
+                return VectorHelper<float>::max(VectorHelper<float>::max(a[0], a[1]));
+            }
 
             static inline void multiplyAndAdd(VectorType &a, const VectorType &b, const VectorType &c) {
                 VectorHelper<float>::multiplyAndAdd(a[0], b[0], c[0]);
@@ -825,6 +841,12 @@ namespace SSE
                 a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                return _mm_cvtsi128_si32(a);
+            }
+            static inline EntryType max(VectorType a) {
+                a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                // using lo_epi16 for speed here
+                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
 #ifdef __SSE4_1__
@@ -930,6 +952,12 @@ namespace SSE
                 a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                return _mm_cvtsi128_si32(a);
+            }
+            static inline EntryType max(VectorType a) {
+                a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                // using lo_epi16 for speed here
+                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
 
@@ -1065,8 +1093,13 @@ namespace SSE
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
-
-                // bad dependency chain. We have
+            }
+            static inline EntryType max(VectorType a) {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
 
             static inline VectorType div(const VectorType a, const VectorType b, _M128 _mask) {
@@ -1210,6 +1243,13 @@ namespace SSE
                 a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                return _mm_cvtsi128_si32(a); // & 0xffff is implicit
+            }
+            static inline EntryType max(VectorType a) {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
             static inline VectorType set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }

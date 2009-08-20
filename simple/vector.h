@@ -376,8 +376,6 @@ class Vector : public VectorBase<T, Vector<T> >
           if (m.data()) m_data = v.m_data;
         }
 
-        inline T max() const { return m_data; }
-
         template<typename T2> inline Vector<T2> staticCast() const { return static_cast<T2>(m_data); }
         template<typename T2> inline Vector<T2> reinterpretCast() const { return reinterpret_cast<T2>(m_data); }
 
@@ -394,6 +392,7 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         inline EntryType min() const { return m_data; }
+        inline EntryType max() const { return m_data; }
 
         template<typename F> void callWithValuesSorted(F &f) {
             f(m_data);
