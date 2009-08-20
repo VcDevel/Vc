@@ -166,6 +166,13 @@ if ( unittest_compareHelper( a, b ) ) {} else { \
     return; \
 }
 
+#define COMPARE_NOEQ( a, b ) \
+if ( unittest_compareHelper( a, b ) ) {} else { \
+    unitttest_comparePrintHelper(a, b, "", #a, #b, __FILE__, __LINE__); \
+    _unit_test_global.status = false; \
+    return; \
+}
+
 static void unittest_assert(bool cond, const char *code, const char *file, int line)
 {
     if (!cond) {
