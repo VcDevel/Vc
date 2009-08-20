@@ -53,34 +53,33 @@ namespace SSE
         hi = _mm_max_epi16(x, y);
         x = _mm_blend_epi16(lo, hi, 0xaa);
 
-#define SORT_QUADS \
-        y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)), _MM_SHUFFLE(0, 1, 2, 3)); \
-        lo = _mm_min_epi16(x, y); \
-        hi = _mm_max_epi16(x, y); \
-        x = _mm_blend_epi16(lo, hi, 0xcc); \
-        y = _mm_srli_si128(x, 2); \
-        lo = _mm_min_epi16(x, y); \
-        hi = _mm_max_epi16(x, y); \
-        x = _mm_blend_epi16(lo, _mm_slli_si128(hi, 2), 0xaa)
-#define SORT_HI_QUAD \
-        y = _mm_shufflehi_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)); \
-        lo = _mm_min_epi16(x, y); \
-        hi = _mm_max_epi16(x, y); \
-        x = _mm_blend_epi16(lo, hi, 0xc0); \
-        y = _mm_srli_si128(x, 2); \
-        lo = _mm_min_epi16(x, y); \
-        hi = _mm_max_epi16(x, y); \
-        x = _mm_blend_epi16(lo, _mm_slli_si128(hi, 2), 0xaf)
+        // merge left and right quads
+        y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)), _MM_SHUFFLE(0, 1, 2, 3));
+        lo = _mm_min_epi16(x, y);
+        hi = _mm_max_epi16(x, y);
+        x = _mm_blend_epi16(lo, hi, 0xcc);
+        y = _mm_srli_si128(x, 2);
+        lo = _mm_min_epi16(x, y);
+        hi = _mm_max_epi16(x, y);
+        x = _mm_blend_epi16(lo, _mm_slli_si128(hi, 2), 0xaa);
 
-        SORT_QUADS;
-        x = _mm_shuffle_epi32(x, _MM_SHUFFLE(3, 1, 2, 0)); // abef cdgh
-        SORT_QUADS;
-        x = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 1, 3, 0)); // abgh cdef
-        SORT_HI_QUAD;
-        x = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 3, 2, 0)); // abef ghcd
-        return x;
-#undef SORT_QUADS
-#undef SORT_HI_QUAD
+        // merge quads into octs
+        y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
+        y = _mm_shufflelo_epi16(y, _MM_SHUFFLE(0, 1, 2, 3));
+        lo = _mm_min_epi16(x, y);
+        hi = _mm_max_epi16(x, y);
+
+        x = _mm_unpacklo_epi16(lo, hi);
+        y = _mm_srli_si128(x, 8);
+        lo = _mm_min_epi16(x, y);
+        hi = _mm_max_epi16(x, y);
+
+        x = _mm_unpacklo_epi16(lo, hi);
+        y = _mm_srli_si128(x, 8);
+        lo = _mm_min_epi16(x, y);
+        hi = _mm_max_epi16(x, y);
+
+        return _mm_unpacklo_epi16(lo, hi);
     }
     template<> _M128I SortHelper<_M128I, 4>::sort(_M128I x)
     {
@@ -129,49 +128,37 @@ namespace SSE
 //X         k = _mm_shuffle_ps(k, k, _MM_SHUFFLE(0, 1, 1, 0));
 //X         return _mm_blendv_ps(x, y, k);
     }
-    static inline _M128 sortQuad(_M128 x)
-    {
-        _M128 l, h, y;
-        y = _mm_shuffle_ps(x, x, _MM_SHUFFLE(0, 1, 2, 3));
-        l = _mm_min_ps(x, y);
-        h = _mm_max_ps(x, y);
-        x = _mm_unpacklo_ps(l, h);
-        y = _mm_movehl_ps(x, x);
-
-        l = _mm_min_ps(x, y);
-        h = _mm_max_ps(x, y);
-        return _mm_unpacklo_ps(l, h);
-    }
     template<> M256 SortHelper<M256, 8>::sort(M256 x)
     {
         typedef SortHelper<_M128, 4> H;
-        x[0] = H::sort(x[0]);
-        x[1] = H::sort(x[1]);
-        _M128 lo = sortQuad(_mm_movelh_ps(x[0], x[1]));
-        _M128 hi = sortQuad(_mm_movehl_ps(x[0], x[1]));
-        _M128 mi = _mm_shuffle_ps(lo, hi, _MM_SHUFFLE(1, 0, 3, 2));
-        mi = sortQuad(mi);
-        x[0] = _mm_movelh_ps(lo, mi);
-        x[1] = _mm_movehl_ps(hi, mi);
-//X         x[0] = H::sort(x[0]);
-//X         x[1] = H::sort(x[1]);
-//X         _M128 lo = _mm_min_ps(x[0], x[1]);
-//X         _M128 hi = _mm_max_ps(x[0], x[1]);
-//X         _M128 mi = _mm_shuffle_ps(lo, hi, _MM_SHUFFLE(1, 0, 3, 2));
-//X         mi = H::sort(mi);
-//X         x[0] = _mm_movelh_ps(lo, mi);
-//X         x[1] = _mm_movehl_ps(hi, mi);
-//X         x[0] = H::sort(x[0]);
-//X         x[1] = H::sort(x[1]);
+
+        _M128 a, b, l, h;
+        a = H::sort(x[0]);
+        b = H::sort(x[1]);
+
+        // merge
+        b = _mm_shuffle_ps(b, b, _MM_SHUFFLE(0, 1, 2, 3));
+        l = _mm_min_ps(a, b);
+        h = _mm_max_ps(a, b);
+
+        a = _mm_unpacklo_ps(l, h);
+        b = _mm_unpackhi_ps(l, h);
+        l = _mm_min_ps(a, b);
+        h = _mm_max_ps(a, b);
+
+        a = _mm_unpacklo_ps(l, h);
+        b = _mm_unpackhi_ps(l, h);
+        l = _mm_min_ps(a, b);
+        h = _mm_max_ps(a, b);
+
+        x[0] = _mm_unpacklo_ps(l, h);
+        x[1] = _mm_unpackhi_ps(l, h);
         return x;
     }
     template<> _M128D SortHelper<_M128D, 2>::sort(_M128D x)
     {
-        _M128D y = _mm_shuffle_pd(x, x, _MM_SHUFFLE2(0, 1));
-        if (_mm_movemask_pd(_mm_cmpgt_pd(x, y)) == 0x1) {
-            return y;
-        }
-        return x;
+        const _M128D y = _mm_shuffle_pd(x, x, _MM_SHUFFLE2(0, 1));
+        return _mm_unpacklo_pd(_mm_min_sd(x, y), _mm_max_sd(x, y));
     }
 
     struct GeneralHelpers
