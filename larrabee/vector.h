@@ -391,7 +391,9 @@ inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
             static inline VectorType load (const EntryType *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadq( x, _MM_FULLUPC64_NONE, _MM_BROADCAST_8X8)); }
 
             static inline void store         (void *mem, VectorType x) { _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE); }
+            static inline void store         (void *mem, VectorType x, __mmask k) { _mm512_mask_storeq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE); }
             static inline void storeStreaming(void *mem, VectorType x) { _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NT); }
+            static inline void storeStreaming(void *mem, VectorType x, __mmask k) { _mm512_mask_storeq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NT); }
 
             static inline VectorType zero() { return CAT(_mm512_setzero_, SUFFIX)(); }
             static inline VectorType set(EntryType x) { return CAT(_mm512_set_1to8_, SUFFIX)(x); }
@@ -546,7 +548,13 @@ inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
             static inline void store          (T *mem, VectorType x) { _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NONE); } \
             static inline void store1Streaming(T *mem, VectorType x) { _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NT  ); } \
             static inline void store4Streaming(T *mem, VectorType x) { _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NT  ); } \
-            static inline void storeStreaming (T *mem, VectorType x) { _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NT  ); }
+            static inline void storeStreaming (T *mem, VectorType x) { _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NT  ); } \
+            static inline void store1         (T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NONE); } \
+            static inline void store4         (T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NONE); } \
+            static inline void store          (T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NONE); } \
+            static inline void store1Streaming(T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NT  ); } \
+            static inline void store4Streaming(T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NT  ); } \
+            static inline void storeStreaming (T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NT  ); }
 
         template<> struct VectorHelper<float> {
             typedef float EntryType;
@@ -924,6 +932,12 @@ class Vector : public VectorBase<T, Vector<T> >
         inline void store(OtherT *mem) const
         {
             VectorHelper<T>::store(mem, data);
+        }
+
+        template<typename OtherT>
+        inline void store(OtherT *mem, Mask mask) const
+        {
+            VectorHelper<T>::store(mem, data, mask.data());
         }
 
         /**

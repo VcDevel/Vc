@@ -192,6 +192,10 @@ class Vector : public VectorBase<T>
          * bytes size.
          */
         inline void store(EntryType *mem) const { VectorHelper<VectorType>::store(mem, data()); }
+        inline void store(EntryType *mem, const Mask &mask) const {
+            const VectorType &old = VectorHelper<VectorType>::load(mem);
+            VectorHelper<VectorType>::store(mem, VectorHelper<VectorType>::blend(old, data(), mm128_reinterpret_cast<VectorType>(mask.data())));
+        }
 
         /**
          * Non-temporal store variant. Writes to the memory without polluting the cache.

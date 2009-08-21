@@ -44,6 +44,36 @@ template<typename Vec> void storeArray()
     }
 }
 
+template<typename Vec> void maskedStore()
+{
+    typedef typename Vec::EntryType T;
+    typedef typename Vec::Mask M;
+    M mask;
+    {
+        typedef typename Vec::IndexType I;
+        const I tmp(IndexesFromZero);
+        const typename I::Mask k = (tmp & I(One)) > 0;
+        mask = M(k);
+    }
+
+    const int count = 256 * 1024 / sizeof(T);
+    T array[count];
+    T nullValue = 0;
+    std::memset(array, 0, count * sizeof(T));
+    T setValue = 170;
+    const Vec x(setValue);
+    for (int i = 0; i < count; i += Vec::Size) {
+        x.store(&array[i], mask);
+    }
+
+    for (int i = 1; i < count; i += 2) {
+        COMPARE(array[i], setValue);
+    }
+    for (int i = 0; i < count; i += 2) {
+        COMPARE(array[i], nullValue);
+    }
+}
+
 int main()
 {
     runTest(storeArray<int_v>);
@@ -53,5 +83,15 @@ int main()
     runTest(storeArray<short_v>);
     runTest(storeArray<ushort_v>);
     runTest(storeArray<sfloat_v>);
+
+    if (float_v::Size > 1) {
+        runTest(maskedStore<int_v>);
+        runTest(maskedStore<uint_v>);
+        runTest(maskedStore<float_v>);
+        runTest(maskedStore<double_v>);
+        runTest(maskedStore<short_v>);
+        runTest(maskedStore<ushort_v>);
+        runTest(maskedStore<sfloat_v>);
+    }
     return 0;
 }
