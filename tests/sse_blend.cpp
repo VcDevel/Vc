@@ -78,14 +78,22 @@ void blendepi16()
     __m128i a = _mm_set_epi16(17, 16, 15, 14, 13, 12, 11, 10);
     __m128i b = _mm_set_epi16(27, 26, 25, 24, 23, 22, 21, 20);
 
-    for (int i = 0; i < 0x100; ++i) {
+#define CALL_2(_i, code) { enum { i = _i }; code } { enum { i = _i + 1 }; code }
+#define CALL_4(_i, code) CALL_2(_i, code) CALL_2(_i + 2, code)
+#define CALL_8(_i, code) CALL_4(_i, code) CALL_4(_i + 4, code)
+#define CALL_16(_i, code) CALL_8(_i, code) CALL_8(_i + 8, code)
+#define CALL_32(_i, code) CALL_16(_i, code) CALL_16(_i + 16, code)
+#define CALL_64(_i, code) CALL_32(_i, code) CALL_32(_i + 32, code)
+#define CALL_100(code) CALL_64(0, code) CALL_32(64, code) CALL_4(96, code)
+
+    CALL_100(
         short r[8];
         for (int j = 0; j < 8; ++j) {
             r[j] = j + ((((i >> j) & 1) == 0) ? 10 : 20);
         }
         __m128i reference = _mm_set_epi16(r[7], r[6], r[5], r[4], r[3], r[2], r[1], r[0]);
         COMPARE_NOEQ(_mm_blend_epi16(a, b, i), reference);
-    }
+    )
 }
 } // namespace SSE
 
