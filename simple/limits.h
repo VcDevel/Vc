@@ -23,8 +23,8 @@
 namespace std
 {
 
-    template<typename T> Simple::Vector<T> numeric_limits<Simple::Vector<T> >::max() { return std::numeric_limits<T>::max(); }
-    template<typename T> Simple::Vector<T> numeric_limits<Simple::Vector<T> >::min() { return std::numeric_limits<T>::min(); }
+    template<typename T> Simple::Vector<T> numeric_limits<Simple::Vector<T> >::max() throw() { return std::numeric_limits<T>::max(); }
+    template<typename T> Simple::Vector<T> numeric_limits<Simple::Vector<T> >::min() throw() { return std::numeric_limits<T>::min(); }
 
 } // namespace std
 #endif // VC_SIMPLE_LIMITS_H

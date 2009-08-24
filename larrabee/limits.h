@@ -23,15 +23,15 @@
 namespace std
 {
 #define SPECIALIZATION(T) template<> Larrabee::Vector<T> numeric_limits<Larrabee::Vector<T> >
-    SPECIALIZATION(unsigned int)::max() { return _mm512_setallone_pi(); }
-    SPECIALIZATION(unsigned int)::min() { return _mm512_setzero_pi(); }
-    SPECIALIZATION(int)::max() { return _mm512_set_1to16_pi(std::numeric_limits<int>::max()); }
-    SPECIALIZATION(int)::min() { return _mm512_set_1to16_pi(std::numeric_limits<int>::min()); }
+    SPECIALIZATION(unsigned int)::max() throw() { return _mm512_setallone_pi(); }
+    SPECIALIZATION(unsigned int)::min() throw() { return _mm512_setzero_pi(); }
+    SPECIALIZATION(int)::max() throw() { return _mm512_set_1to16_pi(std::numeric_limits<int>::max()); }
+    SPECIALIZATION(int)::min() throw() { return _mm512_set_1to16_pi(std::numeric_limits<int>::min()); }
 
-    SPECIALIZATION(float)::max() { return _mm512_set_1to16_ps(std::numeric_limits<float>::max()); }
-    SPECIALIZATION(float)::min() { return _mm512_set_1to16_ps(std::numeric_limits<float>::min()); }
+    SPECIALIZATION(float)::max() throw() { return _mm512_set_1to16_ps(std::numeric_limits<float>::max()); }
+    SPECIALIZATION(float)::min() throw() { return _mm512_set_1to16_ps(std::numeric_limits<float>::min()); }
 
-    SPECIALIZATION(double)::max() { return _mm512_set_1to8_pd(std::numeric_limits<double>::max()); }
-    SPECIALIZATION(double)::min() { return _mm512_set_1to8_pd(std::numeric_limits<double>::min()); }
+    SPECIALIZATION(double)::max() throw() { return _mm512_set_1to8_pd(std::numeric_limits<double>::max()); }
+    SPECIALIZATION(double)::min() throw() { return _mm512_set_1to8_pd(std::numeric_limits<double>::min()); }
 } // namespace std
 #endif // VC_LARRABEE_LIMITS_H
