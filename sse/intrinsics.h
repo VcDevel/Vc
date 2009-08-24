@@ -135,12 +135,12 @@ namespace SSE
 {
     namespace
     {
-        static inline __m128d _mm_blendv_pd(__m128d a, __m128d b, __m128d c) CONST;
-        static inline __m128  _mm_blendv_ps(__m128  a, __m128  b, __m128  c) CONST;
-        static inline __m128i _mm_blendv_epi8(__m128i a, __m128i b, __m128i c) CONST;
-        static inline __m128d _mm_blend_pd(__m128d a, __m128d b, const int mask) CONST;
-        static inline __m128  _mm_blend_ps(__m128  a, __m128  b, const int mask) CONST;
-        static inline __m128i _mm_blend_epi16(__m128i a, __m128i b, const int mask) CONST;
+        static inline __m128d _mm_blendv_pd(__m128d a, __m128d b, __m128d c) CONST ALWAYS_INLINE;
+        static inline __m128  _mm_blendv_ps(__m128  a, __m128  b, __m128  c) CONST ALWAYS_INLINE;
+        static inline __m128i _mm_blendv_epi8(__m128i a, __m128i b, __m128i c) CONST ALWAYS_INLINE;
+        static inline __m128d _mm_blend_pd(__m128d a, __m128d b, const int mask) CONST ALWAYS_INLINE;
+        static inline __m128  _mm_blend_ps(__m128  a, __m128  b, const int mask) CONST ALWAYS_INLINE;
+        static inline __m128i _mm_blend_epi16(__m128i a, __m128i b, const int mask) CONST ALWAYS_INLINE;
         static inline __m128i _mm_max_epi8 (__m128i a, __m128i b) CONST;
         static inline __m128i _mm_max_epi32(__m128i a, __m128i b) CONST;
         static inline __m128i _mm_max_epu8 (__m128i a, __m128i b) CONST;

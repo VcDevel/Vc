@@ -37,9 +37,11 @@
 #ifdef __GNUC__
 #define CONST __attribute__((const))
 #define MAY_ALIAS __attribute__((__may_alias__))
+#define ALWAYS_INLINE __attribute__((always_inline))
 #else
 #define CONST
 #define MAY_ALIAS
+#define ALWAYS_INLINE
 #endif
 
 #define CAT_HELPER(a, b) a##b
