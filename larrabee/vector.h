@@ -1229,6 +1229,7 @@ namespace Larrabee
     MATH_OP2(atan2, atan2)
     MATH_OP1(reciprocal, recip)
     MATH_OP1(round, round)
+    MATH_OP1(asin, asin)
 
     template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(const Larrabee::Vector<T> &x) { return VectorHelper<T>::isFinite(x); }
     template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(const Larrabee::VectorMultiplication<T> &x) { return VectorHelper<T>::isFinite(x); }

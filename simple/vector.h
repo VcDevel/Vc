@@ -463,6 +463,7 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
   template<typename T> static inline Simple::Vector<T> rsqrt(const Simple::Vector<T> &x) { const T one = 1; return one / std::sqrt( x.data() ); }
   template<typename T> static inline Simple::Vector<T> abs  (const Simple::Vector<T> &x) { return std::abs( x.data() ); }
   template<typename T> static inline Simple::Vector<T> sin  (const Simple::Vector<T> &x) { return std::sin( x.data() ); }
+  template<typename T> static inline Simple::Vector<T> asin (const Simple::Vector<T> &x) { return std::asin( x.data() ); }
   template<typename T> static inline Simple::Vector<T> cos  (const Simple::Vector<T> &x) { return std::cos( x.data() ); }
   template<typename T> static inline Simple::Vector<T> log  (const Simple::Vector<T> &x) { return std::log( x.data() ); }
   template<typename T> static inline Simple::Vector<T> log10(const Simple::Vector<T> &x) { return std::log10( x.data() ); }

@@ -52,6 +52,7 @@ namespace Vc
   using VECTOR_NAMESPACE::rsqrt;
   using VECTOR_NAMESPACE::abs;
   using VECTOR_NAMESPACE::sin;
+  using VECTOR_NAMESPACE::asin;
   using VECTOR_NAMESPACE::cos;
   using VECTOR_NAMESPACE::log;
   using VECTOR_NAMESPACE::log10;

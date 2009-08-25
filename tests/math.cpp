@@ -120,6 +120,20 @@ template<typename Vec> void testRSqrt()
     setFuzzyness<float>(0.f);
 }
 
+template<typename Vec> void testAsin()
+{
+    typedef typename Vec::EntryType T;
+    setFuzzyness<float>(1.1e-6f);
+    setFuzzyness<double>(8.8e-9);
+    for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
+        FillHelperMemory(std::asin((i + offset) * 0.001));
+        Vec a(data);
+        Vec b(reference);
+
+        FUZZY_COMPARE(Vc::asin((a + offset) * 0.001), b);
+    }
+}
+
 template<typename Vec> void testAtan()
 {
     typedef typename Vec::EntryType T;
@@ -273,6 +287,10 @@ int main()
     runTest(testRSqrt<float_v>);
     runTest(testRSqrt<double_v>);
     runTest(testRSqrt<sfloat_v>);
+
+    runTest(testAsin<float_v>);
+    runTest(testAsin<sfloat_v>);
+    runTest(testAsin<double_v>);
 
     runTest(testAtan<float_v>);
     runTest(testAtan<sfloat_v>);

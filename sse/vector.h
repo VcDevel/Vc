@@ -445,6 +445,36 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const typename 
   template<typename T> static inline Vector<T> log10(const Vector<T> &x) { return VectorHelper<T>::log10(x.data()); }
   template<typename T> static inline Vector<T> reciprocal(const Vector<T> &x) { return VectorHelper<T>::reciprocal(x.data()); }
   template<typename T> static inline Vector<T> round(const Vector<T> &x) { return VectorHelper<T>::round(x.data()); }
+  template<typename T> static inline Vector<T> asin (const Vector<T> &_x) {
+      typedef Vector<T> V;
+      typedef typename V::Mask M;
+      using namespace VectorSpecialInitializerZero;
+      using namespace VectorSpecialInitializerOne;
+
+      const V pi_2(M_PI / 2);
+      const M &negative = _x < V(Zero);
+
+      const V &a = abs(_x);
+      const M &outOfRange = a > V(One);
+      const M &small = a < V(1.e-4);
+      const M &gt_0_5 = a > V(0.5);
+      V x = a;
+      V z = a * a;
+      z(gt_0_5) = (V(One) - a) * V(0.5);
+      x(gt_0_5) = sqrt(z);
+      z = ((((4.2163199048e-2  * z
+            + 2.4181311049e-2) * z
+            + 4.5470025998e-2) * z
+            + 7.4953002686e-2) * z
+            + 1.6666752422e-1) * z * x
+            + x;
+      z(gt_0_5) = pi_2 - (z + z);
+      z(small) = a;
+      z(negative) = -z;
+      //z(outOfRange) = nan;
+
+      return z;
+  }
   template<typename T> static inline Vector<T> atan (const Vector<T> &_x) {
       typedef Vector<T> V;
       typedef typename V::Mask M;
