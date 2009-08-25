@@ -444,6 +444,7 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const typename 
   template<typename T> static inline Vector<T> log  (const Vector<T> &x) { return VectorHelper<T>::log(x.data()); }
   template<typename T> static inline Vector<T> log10(const Vector<T> &x) { return VectorHelper<T>::log10(x.data()); }
   template<typename T> static inline Vector<T> reciprocal(const Vector<T> &x) { return VectorHelper<T>::reciprocal(x.data()); }
+  template<typename T> static inline Vector<T> round(const Vector<T> &x) { return VectorHelper<T>::round(x.data()); }
   template<typename T> static inline Vector<T> atan (const Vector<T> &_x) {
       typedef Vector<T> V;
       typedef typename V::Mask M;

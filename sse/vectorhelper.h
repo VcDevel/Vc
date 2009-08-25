@@ -446,6 +446,10 @@ namespace SSE
                 return r;
             }
 #undef SUFFIX
+            static inline VectorType round(VectorType a) {
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+                return _mm_cvtepi32_pd(_mm_cvtpd_epi32(a));
+            }
         };
 
         template<> struct VectorHelper<float> {
@@ -745,6 +749,10 @@ namespace SSE
                 return r;
             }
 #undef SUFFIX
+            static inline VectorType round(VectorType a) {
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+                return _mm_cvtepi32_ps(_mm_cvtps_epi32(a));
+            }
         };
 
         template<> struct VectorHelper<float8> {
@@ -786,6 +794,7 @@ namespace SSE
             REUSE_FLOAT_IMPL1(isFinite)
             REUSE_FLOAT_IMPL1(log)
             REUSE_FLOAT_IMPL1(abs)
+            REUSE_FLOAT_IMPL1(round)
 
             REUSE_FLOAT_IMPL2(notMaskedToZero)
             REUSE_FLOAT_IMPL2(add)
@@ -938,6 +947,7 @@ namespace SSE
             static inline VectorType cmple (const VectorType &a, const VectorType &b) { _M128I x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
             static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
 #undef SUFFIX
+            static inline VectorType round(VectorType a) { return a; }
         };
 
         template<> struct VectorHelper<unsigned int> {
@@ -1053,6 +1063,7 @@ namespace SSE
             static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
 
 #undef SUFFIX
+            static inline VectorType round(VectorType a) { return a; }
         };
 
         template<> struct VectorHelper<signed short> {
@@ -1154,6 +1165,7 @@ namespace SSE
             static inline VectorType cmple (const VectorType &a, const VectorType &b) { _M128I x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
             static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
 #undef SUFFIX
+            static inline VectorType round(VectorType a) { return a; }
         };
 
         template<> struct VectorHelper<unsigned short> {
@@ -1283,6 +1295,7 @@ namespace SSE
             static inline VectorType cmple (const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
             static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
 #undef SUFFIX
+            static inline VectorType round(VectorType a) { return a; }
         };
 #undef SHIFT4
 #undef SHIFT8

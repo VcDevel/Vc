@@ -468,6 +468,9 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
   template<typename T> static inline Simple::Vector<T> log10(const Simple::Vector<T> &x) { return std::log10( x.data() ); }
   template<typename T> static inline Simple::Vector<T> atan (const Simple::Vector<T> &x) { return std::atan( x.data() ); }
   template<typename T> static inline Simple::Vector<T> atan2(const Simple::Vector<T> &x, const Simple::Vector<T> &y) { return std::atan2( x.data(), y.data() ); }
+  template<typename T> static inline Simple::Vector<T> round(const Simple::Vector<T> &x) { return x; }
+  template<> inline Simple::Vector<float> round(const Simple::Vector<float> &x) { return std::floor(x.data() + 0.5f); }
+  template<> inline Simple::Vector<double> round(const Simple::Vector<double> &x) { return std::floor(x.data() + 0.5); }
   template<typename T> static inline Simple::Vector<T> reciprocal(const Simple::Vector<T> &x) { const T one = 1; return one / x.data(); }
 
 #ifdef isfinite

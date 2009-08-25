@@ -490,6 +490,9 @@ inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
                 return CAT(_mm512_cmpord_, SUFFIX)(x, mul(zero(), x));
             }
 #undef SUFFIX
+            static inline VectorType round(VectorType x) {
+                return _mm512_cvtl_pi2pd(_mm512_cvtl_pd2pi(_mm512_setzero_pi(), x, _MM_ROUND_MODE_NEAREST));
+            }
         };
 
 #define LOAD(T, conv) \
@@ -624,6 +627,9 @@ inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
                 return CAT(_mm512_cmpord_, SUFFIX)(x, mul(zero(), x));
             }
 #undef SUFFIX
+            static inline VectorType round(VectorType x) {
+                return _mm512_round_ps(x, _MM_ROUND_MODE_NEAREST, _MM_EXPADJ_NONE);
+            }
         };
 
         template<> struct VectorHelper<int> {
@@ -667,6 +673,7 @@ inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
             OPcmp(le) OPcmp(nle)
             OP(sll) OP(srl)
 #undef SUFFIX
+            static inline VectorType round(VectorType x) { return x; }
         };
 
         template<> struct VectorHelper<unsigned int> {
@@ -710,6 +717,7 @@ inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
 #undef STORE
 #undef LOAD
 #undef SUFFIX
+            static inline VectorType round(VectorType x) { return x; }
         };
 #undef OP
 #undef OP_
@@ -1220,6 +1228,7 @@ namespace Larrabee
     MATH_OP1(atan, atan)
     MATH_OP2(atan2, atan2)
     MATH_OP1(reciprocal, recip)
+    MATH_OP1(round, round)
 
     template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(const Larrabee::Vector<T> &x) { return VectorHelper<T>::isFinite(x); }
     template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(const Larrabee::VectorMultiplication<T> &x) { return VectorHelper<T>::isFinite(x); }
