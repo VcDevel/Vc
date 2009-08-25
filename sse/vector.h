@@ -455,7 +455,7 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const typename 
       const M &negative = _x < V(Zero);
 
       const V &a = abs(_x);
-      const M &outOfRange = a > V(One);
+      //const M &outOfRange = a > V(One);
       const M &small = a < V(1.e-4);
       const M &gt_0_5 = a > V(0.5);
       V x = a;

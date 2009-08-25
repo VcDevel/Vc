@@ -5,8 +5,8 @@ mathProcessData <- function(d) {
     d
 }
 
-set1 <- function(d) subset(d, !(d$benchmark.name == "rsqrt" | d$benchmark.name == "recip"))
-set2 <- function(d) subset(d,   d$benchmark.name == "rsqrt" | d$benchmark.name == "recip" )
+set1 <- function(d) subset(d, !(d$benchmark.name == "rsqrt" | d$benchmark.name == "recip" | d$benchmark.name == "round"))
+set2 <- function(d) subset(d,   d$benchmark.name == "rsqrt" | d$benchmark.name == "recip" | d$benchmark.name == "round" )
 
 data <- rbind(sse, simple, lrb)
 for(data in list(set1(data), set2(data))) {

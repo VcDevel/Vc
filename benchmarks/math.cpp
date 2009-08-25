@@ -48,6 +48,17 @@ template<typename Vector> struct Helper
         }
 
         {
+            Benchmark timer("round", opPerSecondFactor, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                for (int i = 0; i < Factor; ++i) {
+                    *blackHole = round(data[i]);
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        {
             Benchmark timer("sqrt", opPerSecondFactor, "Op");
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();

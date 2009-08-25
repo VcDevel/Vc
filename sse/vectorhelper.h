@@ -447,7 +447,7 @@ namespace SSE
             }
 #undef SUFFIX
             static inline VectorType round(VectorType a) {
-                _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+                //XXX: slow: _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
                 return _mm_cvtepi32_pd(_mm_cvtpd_epi32(a));
             }
         };
@@ -750,7 +750,7 @@ namespace SSE
             }
 #undef SUFFIX
             static inline VectorType round(VectorType a) {
-                _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+                //XXX slow: _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
                 return _mm_cvtepi32_ps(_mm_cvtps_epi32(a));
             }
         };
