@@ -86,7 +86,7 @@ namespace SSE
     {
         public:
             FREE_STORE_OPERATORS_ALIGNED(16)
-    };
+    } ALIGN(16);
 
 } // namespace SSE
 #endif // SSE_TYPES_H

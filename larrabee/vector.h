@@ -59,7 +59,7 @@ namespace Larrabee
             void *operator new[](size_t size) { return _mm_malloc(size, VectorAlignment); }
             void operator delete(void *ptr, size_t) { _mm_free(ptr); }
             void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
-    };
+    } LRB_ALIGN(64);
 
     namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
     namespace VectorSpecialInitializerOne { enum OEnum { One }; }
