@@ -70,6 +70,17 @@ template<typename Vector> struct Helper
             timer.Print();
         }
         {
+            Benchmark timer("asin", opPerSecondFactor, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                for (int i = 0; i < Factor; ++i) {
+                    *blackHole = asin(data[i]);
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        {
             Benchmark timer("atan", opPerSecondFactor, "Op");
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
