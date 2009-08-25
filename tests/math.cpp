@@ -187,6 +187,33 @@ template<typename Vec> void testNaN()
     VERIFY(Vc::isnan(Vec(inf * zero)));
 }
 
+template<typename Vec> void testRound()
+{
+    typedef typename Vec::EntryType T;
+    enum {
+        Count = (16 + Vec::Size) / Vec::Size
+    };
+    VectorMemoryHelper<Vec> mem1(Count);
+    VectorMemoryHelper<Vec> mem2(Count);
+    T *data = mem1;
+    T *reference = mem2;
+    for (int i = 0; i < Count * Vec::Size; ++i) {
+        data[i] = i * 0.25 - 2.0;
+        reference[i] = std::floor(i * 0.25 - 2.0 + 0.5);
+        if (i % 8 == 2) {
+            reference[i] -= 1.;
+        }
+        //std::cout << reference[i] << " ";
+    }
+    //std::cout << std::endl;
+    for (int i = 0; i < Count; ++i) {
+        const Vec a(&data[i * Vec::Size]);
+        const Vec ref(&reference[i * Vec::Size]);
+        //std::cout << a << ref << std::endl;
+        COMPARE(Vc::round(a), ref);
+    }
+}
+
 template<typename Vec> void testReduceMin()
 {
     typedef typename Vec::EntryType T;
@@ -214,7 +241,7 @@ template<typename Vec> void testReduceMax()
     }
     for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
         const Vec a(&data[0]);
-        std::cout << a << std::endl;
+        //std::cout << a << std::endl;
         COMPARE(a.max(), max);
     }
 }
@@ -266,6 +293,10 @@ int main()
     runTest(testNaN<float_v>);
     runTest(testNaN<double_v>);
     runTest(testNaN<sfloat_v>);
+
+    runTest(testRound<float_v>);
+    runTest(testRound<double_v>);
+    runTest(testRound<sfloat_v>);
 
     runTest(testReduceMin<float_v>);
     runTest(testReduceMin<sfloat_v>);

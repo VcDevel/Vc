@@ -469,8 +469,17 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
   template<typename T> static inline Simple::Vector<T> atan (const Simple::Vector<T> &x) { return std::atan( x.data() ); }
   template<typename T> static inline Simple::Vector<T> atan2(const Simple::Vector<T> &x, const Simple::Vector<T> &y) { return std::atan2( x.data(), y.data() ); }
   template<typename T> static inline Simple::Vector<T> round(const Simple::Vector<T> &x) { return x; }
-  template<> inline Simple::Vector<float> round(const Simple::Vector<float> &x) { return std::floor(x.data() + 0.5f); }
-  template<> inline Simple::Vector<double> round(const Simple::Vector<double> &x) { return std::floor(x.data() + 0.5); }
+  namespace
+  {
+      template<typename T> bool _realIsEvenHalf(T x) {
+          const T two = 2;
+          const T half = 0.5;
+          const T f = std::floor(x * half) * two;
+          return (x - f) == half;
+      }
+  } // namespace
+  template<> inline Simple::Vector<float>  round(const Simple::Vector<float>  &x) { return std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f); }
+  template<> inline Simple::Vector<double> round(const Simple::Vector<double> &x) { return std::floor(x.data() + 0.5 ) - (_realIsEvenHalf(x.data()) ? 1.  : 0. ); }
   template<typename T> static inline Simple::Vector<T> reciprocal(const Simple::Vector<T> &x) { const T one = 1; return one / x.data(); }
 
 #ifdef isfinite
