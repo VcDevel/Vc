@@ -206,6 +206,7 @@ class Vector : public VectorBase<T, Vector<T> >
     protected:
         T m_data;
     public:
+        class Memory;
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
         typedef Simple::Mask<1u> Mask;
@@ -620,6 +621,27 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
         const Vector<T11> &, const Vector<T12> &,
         const Vector<T13> &, const Vector<T14> &,
         const Vector<T15> &, const Vector<T16> &) {}
+
+    template<typename T> class Vector<T>::Memory
+    {
+        private:
+            T d;
+        public:
+            inline int size() const { return 1; }
+            inline T &operator[](int) { return d; }
+            inline T operator[](int) const { return d; }
+            inline operator T*() { return &d; }
+            inline operator const T*() const { return &d; }
+
+            inline Memory &operator=(const Memory &rhs) {
+                d = rhs.d;
+                return *this;
+            }
+            inline Memory &operator=(const Vector<T> &rhs) {
+                d = rhs[0];
+                return *this;
+            }
+    };
 } // namespace Simple
 
 #endif // SIMPLE_VECTOR_H

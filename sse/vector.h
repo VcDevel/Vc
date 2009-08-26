@@ -24,6 +24,7 @@
 #include "vectorbase.h"
 #include "vectorhelper.h"
 #include "mask.h"
+#include "memory.h"
 #include <algorithm>
 #include <cmath>
 
@@ -118,6 +119,7 @@ class Vector : public VectorBase<T>
         typedef typename Base::EntryType  EntryType;
         typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
         typedef typename Base::MaskType Mask;
+        typedef _Memory<T> Memory;
 
         /**
          * uninitialized
