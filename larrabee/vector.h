@@ -1136,8 +1136,8 @@ class Vector : public VectorBase<T, Vector<T> >
 
         inline T max() const { return VectorHelper<T>::reduce_max(data); }
         inline T min() const { return VectorHelper<T>::reduce_min(data); }
-        inline T mul() const { return VectorHelper<T>::reduce_mul(data); }
-        inline T add() const { return VectorHelper<T>::reduce_add(data); }
+        inline T product() const { return VectorHelper<T>::reduce_mul(data); }
+        inline T sum() const { return VectorHelper<T>::reduce_add(data); }
 
         template<typename F> void callWithValuesSorted(F &f) {
             union { VectorType v; EntryType d[Size]; } u;

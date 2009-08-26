@@ -247,16 +247,59 @@ template<typename Vec> void testReduceMin()
 template<typename Vec> void testReduceMax()
 {
     typedef typename Vec::EntryType T;
-    const T max = Vec::Size;
+    const T max = Vec::Size + 1;
     VectorMemoryHelper<Vec> mem(Vec::Size);
     T *data = mem;
     for (int i = 0; i < Vec::Size * Vec::Size; ++i) {
-        data[i] = i % (Vec::Size) + 1;
+        data[i] = (i + Vec::Size) % (Vec::Size + 1) + 1;
     }
     for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
         const Vec a(&data[0]);
         //std::cout << a << std::endl;
         COMPARE(a.max(), max);
+    }
+}
+
+template<typename Vec> void testReduceProduct()
+{
+    enum {
+        Max = Vec::Size > 8 ? Vec::Size / 2 : Vec::Size
+    };
+    typedef typename Vec::EntryType T;
+    int _product = 1;
+    for (int i = 1; i < Vec::Size; ++i) {
+        _product *= (i % Max) + 1;
+    }
+    const T product = _product;
+    VectorMemoryHelper<Vec> mem(Vec::Size);
+    T *data = mem;
+    for (int i = 0; i < Vec::Size * Vec::Size; ++i) {
+        data[i] = ((i + (i / Vec::Size)) % Max) + 1;
+    }
+    for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
+        const Vec a(&data[0]);
+        //std::cout << a << std::endl;
+        COMPARE(a.product(), product);
+    }
+}
+
+template<typename Vec> void testReduceSum()
+{
+    typedef typename Vec::EntryType T;
+    int _sum = 1;
+    for (int i = 2; i <= Vec::Size; ++i) {
+        _sum += i;
+    }
+    const T sum = _sum;
+    VectorMemoryHelper<Vec> mem(Vec::Size);
+    T *data = mem;
+    for (int i = 0; i < Vec::Size * Vec::Size; ++i) {
+        data[i] = (i + i / Vec::Size) % Vec::Size + 1;
+    }
+    for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
+        const Vec a(&data[0]);
+        //std::cout << a << std::endl;
+        COMPARE(a.sum(), sum);
     }
 }
 
@@ -331,6 +374,22 @@ int main()
     runTest(testReduceMax<uint_v>);
     runTest(testReduceMax<short_v>);
     runTest(testReduceMax<ushort_v>);
+
+    runTest(testReduceProduct<float_v>);
+    runTest(testReduceProduct<sfloat_v>);
+    runTest(testReduceProduct<double_v>);
+    runTest(testReduceProduct<int_v>);
+    runTest(testReduceProduct<uint_v>);
+    runTest(testReduceProduct<short_v>);
+    runTest(testReduceProduct<ushort_v>);
+
+    runTest(testReduceSum<float_v>);
+    runTest(testReduceSum<sfloat_v>);
+    runTest(testReduceSum<double_v>);
+    runTest(testReduceSum<int_v>);
+    runTest(testReduceSum<uint_v>);
+    runTest(testReduceSum<short_v>);
+    runTest(testReduceSum<ushort_v>);
 
     return 0;
 }

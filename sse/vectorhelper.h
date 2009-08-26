@@ -435,15 +435,19 @@ namespace SSE
             MINMAX
             static inline EntryType min(VectorType a) {
                 a = _mm_min_sd(a, _mm_unpackhi_pd(a, a));
-                EntryType r;
-                _mm_store_sd(&r, a);
-                return r;
+                return _mm_cvtsd_f64(a);
             }
             static inline EntryType max(VectorType a) {
                 a = _mm_max_sd(a, _mm_unpackhi_pd(a, a));
-                EntryType r;
-                _mm_store_sd(&r, a);
-                return r;
+                return _mm_cvtsd_f64(a);
+            }
+            static inline EntryType mul(VectorType a) {
+                a = _mm_mul_sd(a, _mm_shuffle_pd(a, a, _MM_SHUFFLE2(0, 1)));
+                return _mm_cvtsd_f64(a);
+            }
+            static inline EntryType add(VectorType a) {
+                a = _mm_add_sd(a, _mm_shuffle_pd(a, a, _MM_SHUFFLE2(0, 1)));
+                return _mm_cvtsd_f64(a);
             }
 #undef SUFFIX
             static inline VectorType round(VectorType a) {
@@ -737,16 +741,22 @@ namespace SSE
             static inline EntryType min(VectorType a) {
                 a = _mm_min_ps(a, _mm_movehl_ps(a, a));   // a = min(a0, a2), min(a1, a3), min(a2, a2), min(a3, a3)
                 a = _mm_min_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1))); // a = min(a0, a1), a1, a2, a3
-                EntryType r;
-                _mm_store_ss(&r, a);
-                return r;
+                return _mm_cvtss_f32(a);
             }
             static inline EntryType max(VectorType a) {
                 a = _mm_max_ps(a, _mm_movehl_ps(a, a));   // a = max(a0, a2), max(a1, a3), max(a2, a2), max(a3, a3)
                 a = _mm_max_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1))); // a = max(a0, a1), a1, a2, a3
-                EntryType r;
-                _mm_store_ss(&r, a);
-                return r;
+                return _mm_cvtss_f32(a);
+            }
+            static inline EntryType mul(VectorType a) {
+                a = _mm_mul_ps(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(0, 1, 2, 3)));
+                a = _mm_mul_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 2, 0, 1)));
+                return _mm_cvtss_f32(a);
+            }
+            static inline EntryType add(VectorType a) {
+                a = _mm_add_ps(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(0, 1, 2, 3)));
+                a = _mm_add_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 2, 0, 1)));
+                return _mm_cvtss_f32(a);
             }
 #undef SUFFIX
             static inline VectorType round(VectorType a) {
@@ -816,6 +826,12 @@ namespace SSE
             static inline EntryType max(const VectorType &a) {
                 return VectorHelper<float>::max(VectorHelper<float>::max(a[0], a[1]));
             }
+            static inline EntryType mul(const VectorType &a) {
+                return VectorHelper<float>::mul(VectorHelper<float>::mul(a[0], a[1]));
+            }
+            static inline EntryType add(const VectorType &a) {
+                return VectorHelper<float>::add(VectorHelper<float>::add(a[0], a[1]));
+            }
 
             static inline void multiplyAndAdd(VectorType &a, const VectorType &b, const VectorType &c) {
                 VectorHelper<float>::multiplyAndAdd(a[0], b[0], c[0]);
@@ -863,6 +879,11 @@ namespace SSE
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
+            static inline EntryType add(VectorType a) {
+                a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                return _mm_cvtsi128_si32(a);
+            }
 #ifdef __SSE4_1__
             static inline VectorType mul(VectorType a, VectorType b) { return _mm_mullo_epi32(a, b); }
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
@@ -871,6 +892,11 @@ namespace SSE
                     _mm_and_si128(mask, _mm_mullo_epi32(a, b)),
                     _mm_andnot_si128(mask, a)
                     );
+            }
+            static inline EntryType mul(VectorType a) {
+                a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                return _mm_cvtsi128_si32(a);
             }
 #else
             static inline VectorType mul(const VectorType a, const VectorType b, _M128 _mask) {
@@ -905,6 +931,10 @@ namespace SSE
 //X                 hi = _mm_slli_epi32(hi, 16);
 //X                 VectorType lo = _mm_mullo_epi16(a, b);
 //X                 return or_(hi, lo);
+            }
+            static inline EntryType mul(VectorType a) {
+                STORE_VECTOR(int, _a, a);
+                return _a[0] * _a[1] * _a[2] * _a[3];
             }
 #endif
 
@@ -975,6 +1005,18 @@ namespace SSE
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
+            static inline EntryType mul(VectorType a) {
+                a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                // using lo_epi16 for speed here
+                a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                return _mm_cvtsi128_si32(a);
+            }
+            static inline EntryType add(VectorType a) {
+                a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                // using lo_epi16 for speed here
+                a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                return _mm_cvtsi128_si32(a);
+            }
 
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
                 _M128I mask = _mm_castps_si128(_mask);
@@ -989,24 +1031,24 @@ namespace SSE
                 VectorType lo = _mm_mullo_epi16(a, b);
                 return or_(hi, lo);
             }
-            template<unsigned int b> static inline VectorType mul(const VectorType a) {
-                switch (b) {
-                    case    0: return zero();
-                    case    1: return a;
-                    case    2: return _mm_slli_epi32(a,  1);
-                    case    4: return _mm_slli_epi32(a,  2);
-                    case    8: return _mm_slli_epi32(a,  3);
-                    case   16: return _mm_slli_epi32(a,  4);
-                    case   32: return _mm_slli_epi32(a,  5);
-                    case   64: return _mm_slli_epi32(a,  6);
-                    case  128: return _mm_slli_epi32(a,  7);
-                    case  256: return _mm_slli_epi32(a,  8);
-                    case  512: return _mm_slli_epi32(a,  9);
-                    case 1024: return _mm_slli_epi32(a, 10);
-                    case 2048: return _mm_slli_epi32(a, 11);
-                }
-                return mul(a, set(b));
-            }
+//X             template<unsigned int b> static inline VectorType mul(const VectorType a) {
+//X                 switch (b) {
+//X                     case    0: return zero();
+//X                     case    1: return a;
+//X                     case    2: return _mm_slli_epi32(a,  1);
+//X                     case    4: return _mm_slli_epi32(a,  2);
+//X                     case    8: return _mm_slli_epi32(a,  3);
+//X                     case   16: return _mm_slli_epi32(a,  4);
+//X                     case   32: return _mm_slli_epi32(a,  5);
+//X                     case   64: return _mm_slli_epi32(a,  6);
+//X                     case  128: return _mm_slli_epi32(a,  7);
+//X                     case  256: return _mm_slli_epi32(a,  8);
+//X                     case  512: return _mm_slli_epi32(a,  9);
+//X                     case 1024: return _mm_slli_epi32(a, 10);
+//X                     case 2048: return _mm_slli_epi32(a, 11);
+//X                 }
+//X                 return mul(a, set(b));
+//X             }
             static inline VectorType div(const VectorType a, const VectorType b, _M128 _mask) {
                 const int mask = _mm_movemask_ps(_mask);
                 STORE_VECTOR(unsigned int, _a, a);
@@ -1115,6 +1157,18 @@ namespace SSE
                 a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                return _mm_cvtsi128_si32(a); // & 0xffff is implicit
+            }
+            static inline EntryType mul(VectorType a) {
+                a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                return _mm_cvtsi128_si32(a); // & 0xffff is implicit
+            }
+            static inline EntryType add(VectorType a) {
+                a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
 
@@ -1232,24 +1286,24 @@ namespace SSE
                     _mm_andnot_si128(mask, a)
                     );
             }
-            template<unsigned int b> static inline VectorType mul(const VectorType a) {
-                switch (b) {
-                    case    0: return zero();
-                    case    1: return a;
-                    case    2: return _mm_slli_epi16(a,  1);
-                    case    4: return _mm_slli_epi16(a,  2);
-                    case    8: return _mm_slli_epi16(a,  3);
-                    case   16: return _mm_slli_epi16(a,  4);
-                    case   32: return _mm_slli_epi16(a,  5);
-                    case   64: return _mm_slli_epi16(a,  6);
-                    case  128: return _mm_slli_epi16(a,  7);
-                    case  256: return _mm_slli_epi16(a,  8);
-                    case  512: return _mm_slli_epi16(a,  9);
-                    case 1024: return _mm_slli_epi16(a, 10);
-                    case 2048: return _mm_slli_epi16(a, 11);
-                }
-                return mul(a, set(b));
-            }
+//X             template<unsigned int b> static inline VectorType mul(const VectorType a) {
+//X                 switch (b) {
+//X                     case    0: return zero();
+//X                     case    1: return a;
+//X                     case    2: return _mm_slli_epi16(a,  1);
+//X                     case    4: return _mm_slli_epi16(a,  2);
+//X                     case    8: return _mm_slli_epi16(a,  3);
+//X                     case   16: return _mm_slli_epi16(a,  4);
+//X                     case   32: return _mm_slli_epi16(a,  5);
+//X                     case   64: return _mm_slli_epi16(a,  6);
+//X                     case  128: return _mm_slli_epi16(a,  7);
+//X                     case  256: return _mm_slli_epi16(a,  8);
+//X                     case  512: return _mm_slli_epi16(a,  9);
+//X                     case 1024: return _mm_slli_epi16(a, 10);
+//X                     case 2048: return _mm_slli_epi16(a, 11);
+//X                 }
+//X                 return mul(a, set(b));
+//X             }
 #undef SUFFIX
 #define SUFFIX epi16
             SHIFT8
@@ -1267,6 +1321,20 @@ namespace SSE
                 a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                return _mm_cvtsi128_si32(a); // & 0xffff is implicit
+            }
+            static inline EntryType mul(VectorType a) {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                return _mm_cvtsi128_si32(a); // & 0xffff is implicit
+            }
+            static inline EntryType add(VectorType a) {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
             static inline VectorType set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }

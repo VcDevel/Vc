@@ -365,6 +365,8 @@ class Vector : public VectorBase<T>
 
         inline EntryType min() const { return VectorHelper<T>::min(data()); }
         inline EntryType max() const { return VectorHelper<T>::max(data()); }
+        inline EntryType product() const { return VectorHelper<T>::mul(data()); }
+        inline EntryType sum() const { return VectorHelper<T>::add(data()); }
 
         inline Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }
 
