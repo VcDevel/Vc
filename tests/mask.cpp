@@ -179,7 +179,7 @@ template<typename Vec> void testZero()
 
     for (int cut = 0; cut < Vec::Size; ++cut) {
         const Mask mask(I(Vc::IndexesFromZero) < cut);
-        std::cout << mask << std::endl;
+        //std::cout << mask << std::endl;
 
         const T aa = 4;
         Vec a(aa);
@@ -189,6 +189,20 @@ template<typename Vec> void testZero()
         a.makeZero(mask);
 
         COMPARE(a, b);
+    }
+}
+
+template<typename Vec> void testCount()
+{
+    typedef typename Vec::EntryType T;
+    typedef typename Vec::IndexType I;
+    typedef typename Vec::Mask M;
+
+    for (int cut = 0; cut <= Vec::Size; ++cut) {
+        const M mask(I(Vc::IndexesFromZero) < cut);
+        //std::cout << mask << std::endl;
+
+        COMPARE(mask.count(), cut);
     }
 }
 
@@ -257,6 +271,14 @@ int main()
     runTest(testZero<short_v>);
     runTest(testZero<ushort_v>);
     runTest(testZero<sfloat_v>);
+
+    runTest(testCount<int_v>);
+    runTest(testCount<uint_v>);
+    runTest(testCount<float_v>);
+    runTest(testCount<double_v>);
+    runTest(testCount<short_v>);
+    runTest(testCount<ushort_v>);
+    runTest(testCount<sfloat_v>);
 
     return 0;
 }

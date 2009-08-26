@@ -166,9 +166,51 @@ template<unsigned int VectorSize> class Mask
             return false;
         }
 
+        int count() const;
+
     private:
         _M128 k;
 };
+
+template<> inline int Mask<2>::count() const
+{
+    int mask = _mm_movemask_pd(dataD());
+    return (mask & 1) + (mask >> 1);
+}
+
+template<> inline int Mask<4>::count() const
+{
+//X     int tmp = _mm_movemask_ps(data());
+//X     tmp = (tmp & 5) + ((tmp >> 1) & 5);
+//X     return (tmp & 3) + ((tmp >> 2) & 3);
+    _M128I x = _mm_srli_epi32(dataI(), 31);
+    x = _mm_add_epi32(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
+    x = _mm_add_epi32(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)));
+    return _mm_cvtsi128_si32(x);
+}
+
+template<> inline int Mask<8>::count() const
+{
+//X     int tmp = _mm_movemask_epi8(dataI());
+//X     tmp = (tmp & 0x1111) + ((tmp >> 2) & 0x1111);
+//X     tmp = (tmp & 0x0303) + ((tmp >> 4) & 0x0303);
+//X     return (tmp & 0x000f) + ((tmp >> 8) & 0x000f);
+    _M128I x = _mm_srli_epi16(dataI(), 15);
+    x = _mm_add_epi16(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
+    x = _mm_add_epi16(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)));
+    x = _mm_add_epi16(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)));
+    return _mm_extract_epi16(x, 0);
+}
+
+template<> inline int Mask<16>::count() const
+{
+    int tmp = _mm_movemask_epi8(dataI());
+    tmp = (tmp & 0x5555) + ((tmp >> 1) & 0x5555);
+    tmp = (tmp & 0x3333) + ((tmp >> 2) & 0x3333);
+    tmp = (tmp & 0x0f0f) + ((tmp >> 4) & 0x0f0f);
+    return (tmp & 0x00ff) + ((tmp >> 8) & 0x00ff);
+}
+
 
 class Float8Mask
 {
@@ -293,6 +335,19 @@ class Float8Mask
 
         inline bool operator[](int index) const {
             return (toInt() & (1 << index)) != 0;
+        }
+
+        inline int count() const {
+//X             int tmp1 = _mm_movemask_ps(k[0]);
+//X             int tmp2 = _mm_movemask_ps(k[1]);
+//X             tmp1 = (tmp1 & 5) + ((tmp1 >> 1) & 5);
+//X             tmp2 = (tmp2 & 5) + ((tmp2 >> 1) & 5);
+//X             return (tmp1 & 3) + (tmp2 & 3) + ((tmp1 >> 2) & 3) + ((tmp2 >> 2) & 3);
+            _M128I x = _mm_add_epi32(_mm_srli_epi32(_mm_castps_si128(k[0]), 31),
+                                     _mm_srli_epi32(_mm_castps_si128(k[1]), 31));
+            x = _mm_add_epi32(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
+            x = _mm_add_epi32(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)));
+            return _mm_cvtsi128_si32(x);
         }
 
     private:

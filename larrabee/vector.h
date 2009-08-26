@@ -146,6 +146,8 @@ namespace Larrabee
 
             inline bool operator[](int index) const { return static_cast<bool>(k & (1 << index)); }
 
+            inline int count() const { return _mm_countbits_16(k); }
+
         private:
             __mmask k;
     };

@@ -139,6 +139,8 @@ class Mask
 
         Mask<VectorSize * 2> combine(Mask other) const;
 
+        inline int count() const { return m ? 1 : 0; }
+
     private:
         bool m;
 };
