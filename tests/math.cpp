@@ -87,9 +87,8 @@ void testMax()
 }
 
 #define FillHelperMemory(code) \
-    VectorMemoryHelper<Vec> mem(2); \
-    T *data = mem; \
-    T *reference = &data[Vec::Size]; \
+    typename Vec::Memory data; \
+    typename Vec::Memory reference; \
     for (int ii = 0; ii < Vec::Size; ++ii) { \
         const T i = static_cast<T>(ii); \
         data[ii] = i; \
@@ -120,17 +119,48 @@ template<typename Vec> void testRSqrt()
     setFuzzyness<float>(0.f);
 }
 
+template<typename Vec> void testSin()
+{
+    typedef typename Vec::EntryType T;
+    setFuzzyness<float>(6e-5f);
+    setFuzzyness<double>(4e-6);
+    for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
+        const T scale = 0.01;
+        FillHelperMemory(std::sin((i + offset) * scale));
+        Vec a(data);
+        Vec b(reference);
+
+        FUZZY_COMPARE(Vc::sin((a + offset) * scale), b);
+    }
+}
+
+template<typename Vec> void testCos()
+{
+    typedef typename Vec::EntryType T;
+    setFuzzyness<float>(2.1e-4f);
+    setFuzzyness<double>(4e-6);
+    for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
+        const T scale = 0.01;
+        FillHelperMemory(std::cos((i + offset) * scale));
+        Vec a(data);
+        Vec b(reference);
+
+        FUZZY_COMPARE(Vc::cos((a + offset) * scale), b);
+    }
+}
+
 template<typename Vec> void testAsin()
 {
     typedef typename Vec::EntryType T;
     setFuzzyness<float>(1.1e-6f);
     setFuzzyness<double>(8.8e-9);
     for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
-        FillHelperMemory(std::asin((i + offset) * 0.001));
+        const T scale = 0.001;
+        FillHelperMemory(std::asin((i + offset) * scale));
         Vec a(data);
         Vec b(reference);
 
-        FUZZY_COMPARE(Vc::asin((a + offset) * 0.001), b);
+        FUZZY_COMPARE(Vc::asin((a + offset) * scale), b);
     }
 }
 
@@ -140,11 +170,12 @@ template<typename Vec> void testAtan()
     setFuzzyness<float>(8e-5f);
     setFuzzyness<double>(2e-8);
     for (int offset = -1000; offset < 1000; offset += 10) {
-        FillHelperMemory(std::atan((i + offset) * 0.1));
+        const T scale = 0.1;
+        FillHelperMemory(std::atan((i + offset) * scale));
         Vec a(data);
         Vec b(reference);
 
-        FUZZY_COMPARE(Vc::atan((a + offset) * 0.1), b);
+        FUZZY_COMPARE(Vc::atan((a + offset) * scale), b);
     }
 }
 
@@ -172,11 +203,12 @@ template<typename Vec> void testReciprocal()
     setFuzzyness<double>(0);
     const T one = 1;
     for (int offset = -1000; offset < 1000; offset += 10) {
-        FillHelperMemory(one / ((i + offset) * 0.1));
+        const T scale = 0.1;
+        FillHelperMemory(one / ((i + offset) * scale));
         Vec a(data);
         Vec b(reference);
 
-        FUZZY_COMPARE(Vc::reciprocal((a + offset) * 0.1), b);
+        FUZZY_COMPARE(Vc::reciprocal((a + offset) * scale), b);
     }
 }
 
@@ -330,6 +362,14 @@ int main()
     runTest(testRSqrt<float_v>);
     runTest(testRSqrt<double_v>);
     runTest(testRSqrt<sfloat_v>);
+
+    runTest(testSin<float_v>);
+    runTest(testSin<sfloat_v>);
+    runTest(testSin<double_v>);
+
+    runTest(testCos<float_v>);
+    runTest(testCos<sfloat_v>);
+    runTest(testCos<double_v>);
 
     runTest(testAsin<float_v>);
     runTest(testAsin<sfloat_v>);
