@@ -923,6 +923,7 @@ class Vector : public VectorBase<T, Vector<T> >
             };
             data = VectorHelper<T>::load4(x);
         }
+        inline explicit Vector(const T *x) : data(VectorHelper<T>::load(x)) {}
         /**
          * Initialize the vector with the given data. \param x must point to 64 byte aligned 512
          * byte data.

@@ -224,6 +224,7 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> *a) : m_data(static_cast<T>(a->data())) {}
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}
         inline Vector(T x) : m_data(x) {}
+        inline Vector(const T *x) : m_data(x[0]) {}
         template<typename Other> inline Vector(const Other *x) : m_data(x[0]) {}
 
         template<typename OtherT> inline void expand(Vector<OtherT> *x) const { x->data() = static_cast<OtherT>(m_data); }
@@ -347,7 +348,8 @@ class Vector : public VectorBase<T, Vector<T> >
         OP(^, xor_)
 #undef OP
 #define OPcmp(symbol, fun) \
-        inline Mask operator symbol(const Vector<T> &x) const { return m_data symbol x.m_data; }
+        inline Mask operator symbol(const Vector<T> &x) const { return m_data symbol x.m_data; } \
+        inline Mask operator symbol(const T &x) const { return m_data symbol x; }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
