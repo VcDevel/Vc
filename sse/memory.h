@@ -40,11 +40,11 @@ namespace SSE
 
             inline _Memory<T> &operator=(const _Memory<T> &rhs) {
                 const VectorType tmp = VectorHelper<T>::load(&rhs.d[0]);
-                VectorHelper<T>::store(&d[0], tmp);
+                VectorHelper<VectorType>::store(&d[0], tmp);
                 return *this;
             }
             inline _Memory<T> &operator=(const VectorBase<T> &rhs) {
-                VectorHelper<T>::store(&d[0], rhs.data());
+                VectorHelper<VectorType>::store(&d[0], rhs.data());
                 return *this;
             }
 
