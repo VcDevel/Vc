@@ -50,7 +50,7 @@ namespace
 } // anonymous namespace
 
 template<typename T>
-std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<T> &v)
+inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<T> &v)
 {
     out << AnsiColor::green << "[";
     out << v[0];
@@ -63,14 +63,14 @@ std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<T> &v
 
 #ifdef VC_HAVE_FMA
 template<typename T>
-std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::VectorMultiplication<T> &v)
+inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::VectorMultiplication<T> &v)
 {
     return out << VECTOR_NAMESPACE::Vector<T>(v);
 }
 #endif
 
 template<unsigned int VectorSize>
-std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<VectorSize> &m)
+inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<VectorSize> &m)
 {
     out << AnsiColor::yellow << "m[";
     for (unsigned int i = 0; i < VectorSize; ++i) {
@@ -83,7 +83,7 @@ std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<VectorS
     return out;
 }
 #ifdef USE_SSE
-std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float8Mask &m)
+inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float8Mask &m)
 {
     out << AnsiColor::yellow << "m[";
     for (unsigned int i = 0; i < 8; ++i) {

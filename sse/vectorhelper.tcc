@@ -35,7 +35,7 @@
 
 namespace SSE
 {
-    template<> _M128I SortHelper<_M128I, 8>::sort(_M128I x)
+    template<> inline _M128I SortHelper<_M128I, 8>::sort(_M128I x)
     {
         _M128I lo, hi, y;
         // sort pairs
@@ -72,7 +72,7 @@ namespace SSE
 
         return _mm_unpacklo_epi16(lo, hi);
     }
-    template<> _M128I SortHelper<_M128I, 4>::sort(_M128I x)
+    template<> inline _M128I SortHelper<_M128I, 4>::sort(_M128I x)
     {
         // sort pairs
         _M128I y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
@@ -91,7 +91,7 @@ namespace SSE
         h = _mm_max_epi32(x, y);
         return _mm_unpacklo_epi32(l, h);
     }
-    template<> _M128 SortHelper<_M128, 4>::sort(_M128 x)
+    template<> inline _M128 SortHelper<_M128, 4>::sort(_M128 x)
     {
         _M128 y = _mm_shuffle_ps(x, x, _MM_SHUFFLE(2, 3, 0, 1));
         _M128 l = _mm_min_ps(x, y);
@@ -119,7 +119,7 @@ namespace SSE
 //X         k = _mm_shuffle_ps(k, k, _MM_SHUFFLE(0, 1, 1, 0));
 //X         return _mm_blendv_ps(x, y, k);
     }
-    template<> M256 SortHelper<M256, 8>::sort(M256 x)
+    template<> inline M256 SortHelper<M256, 8>::sort(M256 x)
     {
         typedef SortHelper<_M128, 4> H;
 
@@ -146,7 +146,7 @@ namespace SSE
         x[1] = _mm_unpackhi_ps(l, h);
         return x;
     }
-    template<> _M128D SortHelper<_M128D, 2>::sort(_M128D x)
+    template<> inline _M128D SortHelper<_M128D, 2>::sort(_M128D x)
     {
         const _M128D y = _mm_shuffle_pd(x, x, _MM_SHUFFLE2(0, 1));
         return _mm_unpacklo_pd(_mm_min_sd(x, y), _mm_max_sd(x, y));

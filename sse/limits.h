@@ -26,24 +26,24 @@
 namespace std
 {
 
-    template<> SSE::Vector<unsigned short> numeric_limits<SSE::Vector<unsigned short> >::max() throw() { return SSE::_mm_setallone_si128(); }
-    template<> SSE::Vector<unsigned short> numeric_limits<SSE::Vector<unsigned short> >::min() throw() { return _mm_setzero_si128(); }
-    template<> SSE::Vector<short> numeric_limits<SSE::Vector<short> >::max() throw() { return _mm_srli_epi16(SSE::_mm_setallone_si128(), 1); }
-    template<> SSE::Vector<short> numeric_limits<SSE::Vector<short> >::min() throw() { return SSE::_mm_setmin_epi16(); }
+    template<> inline SSE::Vector<unsigned short> numeric_limits<SSE::Vector<unsigned short> >::max() throw() { return SSE::_mm_setallone_si128(); }
+    template<> inline SSE::Vector<unsigned short> numeric_limits<SSE::Vector<unsigned short> >::min() throw() { return _mm_setzero_si128(); }
+    template<> inline SSE::Vector<short> numeric_limits<SSE::Vector<short> >::max() throw() { return _mm_srli_epi16(SSE::_mm_setallone_si128(), 1); }
+    template<> inline SSE::Vector<short> numeric_limits<SSE::Vector<short> >::min() throw() { return SSE::_mm_setmin_epi16(); }
 
-    template<> SSE::Vector<unsigned int> numeric_limits<SSE::Vector<unsigned int> >::max() throw() { return SSE::_mm_setallone_si128(); }
-    template<> SSE::Vector<unsigned int> numeric_limits<SSE::Vector<unsigned int> >::min() throw() { return _mm_setzero_si128(); }
-    template<> SSE::Vector<int> numeric_limits<SSE::Vector<int> >::max() throw() { return _mm_srli_epi32(SSE::_mm_setallone_si128(), 1); }
-    template<> SSE::Vector<int> numeric_limits<SSE::Vector<int> >::min() throw() { return SSE::_mm_setmin_epi32(); }
+    template<> inline SSE::Vector<unsigned int> numeric_limits<SSE::Vector<unsigned int> >::max() throw() { return SSE::_mm_setallone_si128(); }
+    template<> inline SSE::Vector<unsigned int> numeric_limits<SSE::Vector<unsigned int> >::min() throw() { return _mm_setzero_si128(); }
+    template<> inline SSE::Vector<int> numeric_limits<SSE::Vector<int> >::max() throw() { return _mm_srli_epi32(SSE::_mm_setallone_si128(), 1); }
+    template<> inline SSE::Vector<int> numeric_limits<SSE::Vector<int> >::min() throw() { return SSE::_mm_setmin_epi32(); }
 
-    template<> SSE::Vector<float> numeric_limits<SSE::Vector<float> >::max() throw() { return _mm_set1_ps(numeric_limits<float>::max()); }
-    template<> SSE::Vector<float> numeric_limits<SSE::Vector<float> >::min() throw() { return _mm_set1_ps(numeric_limits<float>::min()); }
+    template<> inline SSE::Vector<float> numeric_limits<SSE::Vector<float> >::max() throw() { return _mm_set1_ps(numeric_limits<float>::max()); }
+    template<> inline SSE::Vector<float> numeric_limits<SSE::Vector<float> >::min() throw() { return _mm_set1_ps(numeric_limits<float>::min()); }
 
-    template<> SSE::Vector<SSE::float8> numeric_limits<SSE::Vector<SSE::float8> >::max() throw() { return numeric_limits<float>::max(); }
-    template<> SSE::Vector<SSE::float8> numeric_limits<SSE::Vector<SSE::float8> >::min() throw() { return numeric_limits<float>::min(); }
+    template<> inline SSE::Vector<SSE::float8> numeric_limits<SSE::Vector<SSE::float8> >::max() throw() { return numeric_limits<float>::max(); }
+    template<> inline SSE::Vector<SSE::float8> numeric_limits<SSE::Vector<SSE::float8> >::min() throw() { return numeric_limits<float>::min(); }
 
-    template<> SSE::Vector<double> numeric_limits<SSE::Vector<double> >::max() throw() { return _mm_set1_pd(numeric_limits<double>::max()); }
-    template<> SSE::Vector<double> numeric_limits<SSE::Vector<double> >::min() throw() { return _mm_set1_pd(numeric_limits<double>::min()); }
+    template<> inline SSE::Vector<double> numeric_limits<SSE::Vector<double> >::max() throw() { return _mm_set1_pd(numeric_limits<double>::max()); }
+    template<> inline SSE::Vector<double> numeric_limits<SSE::Vector<double> >::min() throw() { return _mm_set1_pd(numeric_limits<double>::min()); }
 
 } // namespace std
 
