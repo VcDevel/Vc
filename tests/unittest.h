@@ -22,6 +22,7 @@
 
 #include <Vc/Vc>
 #include <iostream>
+#include <iomanip>
 #include <cstdlib>
 #include <cmath>
 
@@ -139,7 +140,7 @@ template<> inline bool unittest_fuzzyCompareHelper<Vc::double_v>( const Vc::doub
 }
 
 template<typename T1, typename T2, typename M> inline void unitttest_comparePrintHelper(const T1 &a, const T2 &b, const M &m, const char *aa, const char *bb, const char *file, int line, double fuzzyness = 0.) {
-    std::cout << "       " << aa << " (" << a << ") == " << bb << " (" << b << ") -> " << m;
+    std::cout << "       " << aa << " (" << std::setprecision(10) << a << std::setprecision(6) << ") == " << bb << " (" << std::setprecision(10) << b << std::setprecision(6) << ") -> " << m;
     if (fuzzyness > 0.) {
         std::cout << " with fuzzyness " << fuzzyness;
     }
