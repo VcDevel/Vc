@@ -1179,7 +1179,7 @@ class Vector : public VectorBase<T, Vector<T> >
             EntryType value = u.d[0];
             f(value);
             for (int i = 0; i < Size; ++i) {
-                if (u.d[i] > value) {
+                if (u.d[i] != value) {
                     value = u.d[i];
                     f(value);
                 }

@@ -383,7 +383,7 @@ class Vector : public VectorBase<T>
             EntryType value = Base::d.m(0);
             f(value);
             for (int i = 0; i < Size; ++i) {
-                if (Base::d.m(i) > value) {
+                if (Base::d.m(i) != value) {
                     value = Base::d.m(i);
                     f(value);
                 }
