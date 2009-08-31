@@ -61,8 +61,8 @@ namespace Larrabee
             void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
     } LRB_ALIGN(64);
 
-    namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
-    namespace VectorSpecialInitializerOne { enum OEnum { One }; }
+    namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
+    namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
     namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
@@ -908,10 +908,7 @@ class Vector : public VectorBase<T, Vector<T> >
         /**
          * initialize all 16 or 8 values with the given value
          */
-        inline Vector(T a)
-        {
-            data = VectorHelper<T>::load1(a);
-        }
+        inline Vector(T a) : data(VectorHelper<T>::load1(a)) {}
         /**
          * initialize consecutive four vector entries with the given values
          */
@@ -998,6 +995,16 @@ class Vector : public VectorBase<T, Vector<T> >
             : data(VectorHelper<T>::gather(sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array)) {}
 
         inline Vector(const T *array, const IndexType &indexes, Mask mask) {
+            VectorHelper<T>::gather(data, sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
+        }
+        inline Vector(const T *array, const IndexType &indexes, Mask mask, VectorSpecialInitializerZero::ZEnum)
+            : data(mm512_reinterpret_cast<VectorType>(_mm512_setzero()))
+        {
+            VectorHelper<T>::gather(data, sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
+        }
+        inline Vector(const T *array, const IndexType &indexes, Mask mask, EntryType def)
+            : data(VectorHelper<T>::load1(def))
+        {
             VectorHelper<T>::gather(data, sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
         }
 

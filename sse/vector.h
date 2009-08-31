@@ -152,10 +152,7 @@ class Vector : public VectorBase<T>
         /**
          * initialize all values with the given value
          */
-        inline Vector(EntryType a)
-        {
-            data() = VectorHelper<T>::set(a);
-        }
+        inline Vector(EntryType a) : Base(VectorHelper<T>::set(a)) {}
 
         /**
          * Initialize the vector with the given data. \param x must point to 64 byte aligned 512
@@ -217,6 +214,16 @@ class Vector : public VectorBase<T>
             GatherHelper<T>::gather(*this, indexes, array);
         }
         inline Vector(const EntryType *array, const IndexType &indexes, const Mask &mask) {
+            GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
+        }
+        inline Vector(const EntryType *array, const IndexType &indexes, const Mask &mask, VectorSpecialInitializerZero::ZEnum)
+            : Base(VectorHelper<VectorType>::zero())
+        {
+            GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
+        }
+        inline Vector(const EntryType *array, const IndexType &indexes, const Mask &mask, EntryType def)
+            : Base(VectorHelper<T>::set(def))
+        {
             GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
         }
 
