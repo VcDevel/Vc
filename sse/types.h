@@ -77,8 +77,8 @@ namespace SSE
 
     template<typename T> struct VectorHelperSize;
 
-    namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
-    namespace VectorSpecialInitializerOne { enum OEnum { One }; }
+    namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
+    namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
     namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
