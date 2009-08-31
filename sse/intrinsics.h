@@ -53,8 +53,17 @@ namespace SSE
         static inline __m128  _mm_setabsmask_ps() CONST;
         static inline __m128d _mm_setsignmask_pd() CONST;
         static inline __m128  _mm_setsignmask_ps() CONST;
+
+//X         static inline __m128i _mm_setmin_epi8 () CONST;
         static inline __m128i _mm_setmin_epi16() CONST;
         static inline __m128i _mm_setmin_epi32() CONST;
+
+//X         static inline __m128i _mm_cmplt_epu8 (__m128i a, __m128i b) CONST;
+//X         static inline __m128i _mm_cmpgt_epu8 (__m128i a, __m128i b) CONST;
+        static inline __m128i _mm_cmplt_epu16(__m128i a, __m128i b) CONST;
+        static inline __m128i _mm_cmpgt_epu16(__m128i a, __m128i b) CONST;
+        static inline __m128i _mm_cmplt_epu32(__m128i a, __m128i b) CONST;
+        static inline __m128i _mm_cmpgt_epu32(__m128i a, __m128i b) CONST;
 
 #if defined(__GNUC__) && !defined(NVALGRIND)
         static inline __m128i _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
@@ -80,8 +89,22 @@ namespace SSE
         static inline __m128d _mm_setsignmask_pd(){ return _mm_castsi128_pd(_mm_slli_epi64(_mm_setallone_si128(), 63)); }
         static inline __m128  _mm_setsignmask_ps(){ return _mm_castsi128_ps(_mm_slli_epi32(_mm_setallone_si128(), 31)); }
 
+//X         static inline __m128i _mm_setmin_epi8 () { return _mm_slli_epi8 (_mm_setallone_si128(),  7); }
         static inline __m128i _mm_setmin_epi16() { return _mm_slli_epi16(_mm_setallone_si128(), 15); }
         static inline __m128i _mm_setmin_epi32() { return _mm_slli_epi32(_mm_setallone_si128(), 31); }
+
+//X         static inline __m128i _mm_cmplt_epu8 (__m128i a, __m128i b) { return _mm_cmplt_epi8 (
+//X                 _mm_xor_si128(a, _mm_setmin_epi8 ()), _mm_xor_si128(b, _mm_setmin_epi8 ())); }
+//X         static inline __m128i _mm_cmpgt_epu8 (__m128i a, __m128i b) { return _mm_cmpgt_epi8 (
+//X                 _mm_xor_si128(a, _mm_setmin_epi8 ()), _mm_xor_si128(b, _mm_setmin_epi8 ())); }
+        static inline __m128i _mm_cmplt_epu16(__m128i a, __m128i b) { return _mm_cmplt_epi16(
+                _mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16())); }
+        static inline __m128i _mm_cmpgt_epu16(__m128i a, __m128i b) { return _mm_cmpgt_epi16(
+                _mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16())); }
+        static inline __m128i _mm_cmplt_epu32(__m128i a, __m128i b) { return _mm_cmplt_epi32(
+                _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
+        static inline __m128i _mm_cmpgt_epu32(__m128i a, __m128i b) { return _mm_cmpgt_epi32(
+                _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
     } // anonymous namespace
 } // namespace SSE
 
@@ -304,20 +327,20 @@ namespace SSE
         static inline __m128i _mm_max_epi32(__m128i a, __m128i b) {
             return _mm_blendv_epi8(b, a, _mm_cmpgt_epi32(a, b));
         }
-        static inline __m128i _mm_max_epu8 (__m128i a, __m128i b) {
-            return _mm_blendv_epi8(b, a, _mm_cmpgt_epi8 (a, b));
-        }
+//X         static inline __m128i _mm_max_epu8 (__m128i a, __m128i b) {
+//X             return _mm_blendv_epi8(b, a, _mm_cmpgt_epu8 (a, b));
+//X         }
         static inline __m128i _mm_max_epu16(__m128i a, __m128i b) {
-            return _mm_blendv_epi8(b, a, _mm_cmpgt_epi16(a, b));
+            return _mm_blendv_epi8(b, a, _mm_cmpgt_epu16(a, b));
         }
         static inline __m128i _mm_max_epu32(__m128i a, __m128i b) {
-            return _mm_blendv_epi8(b, a, _mm_cmpgt_epi32(a, b));
+            return _mm_blendv_epi8(b, a, _mm_cmpgt_epu32(a, b));
         }
-        static inline __m128i _mm_min_epu8 (__m128i a, __m128i b) {
-            return _mm_blendv_epi8(a, b, _mm_cmpgt_epi8 (a, b));
-        }
+//X         static inline __m128i _mm_min_epu8 (__m128i a, __m128i b) {
+//X             return _mm_blendv_epi8(a, b, _mm_cmpgt_epu8 (a, b));
+//X         }
         static inline __m128i _mm_min_epu16(__m128i a, __m128i b) {
-            return _mm_blendv_epi8(a, b, _mm_cmpgt_epi16(a, b));
+            return _mm_blendv_epi8(a, b, _mm_cmpgt_epu16(a, b));
         }
         static inline __m128i _mm_min_epu32(__m128i a, __m128i b) {
             return _mm_blendv_epi8(a, b, _mm_cmpgt_epi32(a, b));
