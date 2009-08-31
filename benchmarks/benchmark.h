@@ -233,12 +233,12 @@ Benchmark::Benchmark(const std::string &name, double factor, const std::string &
 #ifdef VC_USE_CPU_TIME
                 "+----------------+----------------"
 #endif
-                "+----------------+----------------+----------------+----------------+");
+                "+----------------+----------------+----------------+----------------+----------------+");
         if (!interpret) {
 #ifdef VC_USE_CPU_TIME
-            header[52] = '\0';
+            header[69] = '\0';
 #else
-            header[52 - 17] = '\0';
+            header[69 - 17] = '\0';
 #endif
         }
         const int titleLen = fName.length();
@@ -421,6 +421,7 @@ inline void Benchmark::Print(int f) const
 #endif
         std::cout << centered(fX + "/s [Real]") << "|";
         std::cout << centered(fX + "/cycle")    << "|";
+        std::cout << centered("cycles/" + fX)   << "|";
         std::string X = fX;
         for (unsigned int i = 0; i < X.length(); ++i) {
             if (X[i] == ' ') {
@@ -431,7 +432,7 @@ inline void Benchmark::Print(int f) const
 #ifdef VC_USE_CPU_TIME
             << X + "_per_sec_CPU"
 #endif
-            << X + "_per_sec_Real" << X + "_per_cycle";
+            << X + "_per_sec_Real" << X + "_per_cycle" << "cycles_per_" + X;
     }
     if (s_fileWriter) {
         s_fileWriter->declareData(fName, header);
@@ -463,11 +464,13 @@ inline void Benchmark::Print(int f) const
             std::cout << " |";
             prettyPrintCount(fFactor / i->fCycles);
             std::cout << " |";
+            prettyPrintCount(i->fCycles / fFactor);
+            std::cout << " |";
             dataLine
 #ifdef VC_USE_CPU_TIME
                 << fFactor / i->fCpuElapsed
 #endif
-                << fFactor / i->fRealElapsed << fFactor / i->fCycles;
+                << fFactor / i->fRealElapsed << fFactor / i->fCycles << i->fCycles / fFactor;
         }
         if (s_fileWriter) {
             s_fileWriter->addDataLine(dataLine);
@@ -476,9 +479,9 @@ inline void Benchmark::Print(int f) const
     if (f & PrintAverage) {
         if (interpret) {
 #ifdef VC_USE_CPU_TIME
-            std::cout << "\n|---------------------------------------------- Average ----------------------------------------------|";
+            std::cout << "\n|---------------------------------------------- Average ---------------------------------------------------------------|";
 #else
-            std::cout << "\n|----------------------------- Average -----------------------------|";
+            std::cout << "\n|----------------------------- Average ----------------------------------------------|";
 #endif
         } else {
 #ifdef VC_USE_CPU_TIME
@@ -531,7 +534,7 @@ inline void Benchmark::Print(int f) const
 #ifdef VC_USE_CPU_TIME
                 "----------------+"
 #endif
-                "----------------+----------------+" : "") << std::endl;
+                "----------------+----------------+----------------+" : "") << std::endl;
     if (s_fileWriter) {
         std::cout.rdbuf(backup);
     }
