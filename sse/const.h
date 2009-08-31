@@ -25,13 +25,11 @@
 namespace SSE
 {
     template<typename T> class Vector;
-    template<typename T> struct ConstantsTypeHelper { typedef T EntryType; };
-    template<> struct ConstantsTypeHelper<float8> { typedef float EntryType; };
     template<typename T> struct c_sin
     {
         typedef Vector<T> V;
-        typedef typename ConstantsTypeHelper<T>::EntryType EntryType;
-        static const EntryType _data[16 / sizeof(EntryType) * 8];
+        enum { Size = 16 / sizeof(T) };
+        static const T _data[Size * 8];
 
         static V _1_2pi()  CONST;
         static V _2pi()    CONST;

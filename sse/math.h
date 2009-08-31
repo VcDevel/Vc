@@ -24,15 +24,15 @@
 
 namespace SSE
 {
-    template<typename T> inline Vector<T> c_sin<T>::_1_2pi()  { return Vector<T>(&_data[ 0]); }
-    template<typename T> inline Vector<T> c_sin<T>::_2pi()    { return Vector<T>(&_data[ 4]); }
-    template<typename T> inline Vector<T> c_sin<T>::_pi_2()   { return Vector<T>(&_data[ 8]); }
-    template<typename T> inline Vector<T> c_sin<T>::_pi()     { return Vector<T>(&_data[12]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_2pi()  { return Vector<T>(&_data[0 * Size]); }
+    template<typename T> inline Vector<T> c_sin<T>::_2pi()    { return Vector<T>(&_data[1 * Size]); }
+    template<typename T> inline Vector<T> c_sin<T>::_pi_2()   { return Vector<T>(&_data[2 * Size]); }
+    template<typename T> inline Vector<T> c_sin<T>::_pi()     { return Vector<T>(&_data[3 * Size]); }
 
-    template<typename T> inline Vector<T> c_sin<T>::_1_3fac() { return Vector<T>(&_data[16]); }
-    template<typename T> inline Vector<T> c_sin<T>::_1_5fac() { return Vector<T>(&_data[20]); }
-    template<typename T> inline Vector<T> c_sin<T>::_1_7fac() { return Vector<T>(&_data[24]); }
-    template<typename T> inline Vector<T> c_sin<T>::_1_9fac() { return Vector<T>(&_data[28]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_3fac() { return Vector<T>(&_data[4 * Size]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_5fac() { return Vector<T>(&_data[5 * Size]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_7fac() { return Vector<T>(&_data[6 * Size]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_9fac() { return Vector<T>(&_data[7 * Size]); }
 
     template<> inline Vector<float8> c_sin<float8>::_1_2pi()  { return Vector<float8>::broadcast4(&c_sin<float>::_data[ 0]); }
     template<> inline Vector<float8> c_sin<float8>::_2pi()    { return Vector<float8>::broadcast4(&c_sin<float>::_data[ 4]); }
