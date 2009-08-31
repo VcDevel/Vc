@@ -391,6 +391,11 @@ class Vector : public VectorBase<T>
         }
 };
 
+template<> inline Vector<float8> Vector<float8>::broadcast4(const float *x) {
+    const _M128 &v = VectorHelper<_M128>::load(x);
+    return Vector<float8>(M256(v, v));
+}
+
 template<typename T> class SwizzledVector : public Vector<T> {};
 
 template<typename T> inline Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator+(x); }

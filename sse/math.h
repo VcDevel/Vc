@@ -20,36 +20,59 @@
 #ifndef VC_SSE_MATH_H
 #define VC_SSE_MATH_H
 
+#include "const.h"
+
 namespace SSE
 {
+    template<typename T> inline Vector<T> c_sin<T>::_1_2pi()  { return Vector<T>(&_data[ 0]); }
+    template<typename T> inline Vector<T> c_sin<T>::_2pi()    { return Vector<T>(&_data[ 4]); }
+    template<typename T> inline Vector<T> c_sin<T>::_pi_2()   { return Vector<T>(&_data[ 8]); }
+    template<typename T> inline Vector<T> c_sin<T>::_pi()     { return Vector<T>(&_data[12]); }
+
+    template<typename T> inline Vector<T> c_sin<T>::_1_3fac() { return Vector<T>(&_data[16]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_5fac() { return Vector<T>(&_data[20]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_7fac() { return Vector<T>(&_data[24]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_9fac() { return Vector<T>(&_data[28]); }
+
+    template<> inline Vector<float8> c_sin<float8>::_1_2pi()  { return Vector<float8>::broadcast4(&c_sin<float>::_data[ 0]); }
+    template<> inline Vector<float8> c_sin<float8>::_2pi()    { return Vector<float8>::broadcast4(&c_sin<float>::_data[ 4]); }
+    template<> inline Vector<float8> c_sin<float8>::_pi_2()   { return Vector<float8>::broadcast4(&c_sin<float>::_data[ 8]); }
+    template<> inline Vector<float8> c_sin<float8>::_pi()     { return Vector<float8>::broadcast4(&c_sin<float>::_data[12]); }
+
+    template<> inline Vector<float8> c_sin<float8>::_1_3fac() { return Vector<float8>::broadcast4(&c_sin<float>::_data[16]); }
+    template<> inline Vector<float8> c_sin<float8>::_1_5fac() { return Vector<float8>::broadcast4(&c_sin<float>::_data[20]); }
+    template<> inline Vector<float8> c_sin<float8>::_1_7fac() { return Vector<float8>::broadcast4(&c_sin<float>::_data[24]); }
+    template<> inline Vector<float8> c_sin<float8>::_1_9fac() { return Vector<float8>::broadcast4(&c_sin<float>::_data[28]); }
+
     template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
-        using namespace VectorSpecialInitializerZero;
+        typedef c_sin<T> C;
         using namespace VectorSpecialInitializerOne;
 
-        // x - x**3/6 + x**5/5! - x**7/7! + x**9/9! - x**11/11!
-        // = x(1 - x2/6(1 + x2/20(1 - x2/42(1 + x2/72(1 - x2/110)))))
+        // x - x**3/3! + x**5/5! - x**7/7! + x**9/9! - x**11/11! for [-pi/2:pi/2]
 
-        const V oneOverTwoPi(0.5 / M_PI);
-        const V TwoPi(2. * M_PI);
-        const V pi_2(M_PI / 2);
-
-        V x = _x - round(_x * oneOverTwoPi) * TwoPi;
-        x(x >  pi_2) =  M_PI - x;
-        x(x < -pi_2) = -M_PI - x;
+        V x = _x - round(_x * C::_1_2pi()) * C::_2pi();
+        const M &gt_pi_2 = x >  C::_pi_2();
+        const M &lt_pi_2 = x < -C::_pi_2();
+        const V &foldRight =  C::_pi() - x;
+        const V &foldLeft  = -C::_pi() - x;
+        x(gt_pi_2) = foldRight;
+        x(lt_pi_2) = foldLeft;
 
         const V &x2 = x * x;
-        return x * (V(One)
-                - x2 * (V(0.1666666666666666574148081281236954964697360992431640625)
-                    - x2 * (V(0.00833333333333333321768510160154619370587170124053955078125)
-                        - x2 * (V(0.0001984126984126984125263171154784913596813566982746124267578125)
-                            - x2 * V(0.000002755731922398589251095059327045788677423843182623386383056640625)
-                            ))));
+        return x * (V(One) - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
     }
     template<typename T> static inline Vector<T> cos(const Vector<T> &_x) {
-        const Vector<T> pi_2(M_PI / 2);
-        return sin(_x + pi_2);
+        typedef Vector<T> V;
+        typedef c_sin<T> C;
+        using namespace VectorSpecialInitializerOne;
+
+        V x = _x - round(_x * C::_1_2pi()) * C::_2pi() + C::_pi_2();
+        x(x > C::_pi_2()) = C::_pi() - x;
+
+        const V &x2 = x * x;
+        return x * (V(One) - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
     }
     template<typename T> static inline Vector<T> asin (const Vector<T> &_x) {
         typedef Vector<T> V;
