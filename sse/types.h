@@ -46,6 +46,7 @@ namespace SSE
 
     template<typename T> struct VectorHelper {};
     template<typename T> struct GatherHelper;
+    template<typename T> struct ScatterHelper;
 
     template<unsigned int Size> struct IndexTypeHelper;
     template<> struct IndexTypeHelper<2u> { typedef unsigned int   Type; };

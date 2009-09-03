@@ -235,10 +235,10 @@ class Vector : public VectorBase<T>
         }
 
         inline void scatter(EntryType *array, const IndexType &indexes) const {
-            VectorHelperSize<T>::scatter(*this, indexes, array);
+            ScatterHelper<T>::scatter(*this, indexes, array);
         }
         inline void scatter(EntryType *array, const IndexType &indexes, const Mask &mask) const {
-            VectorHelperSize<T>::scatter(*this, indexes, mask.shiftMask(), array);
+            ScatterHelper<T>::scatter(*this, indexes, mask.toInt(), array);
         }
 
         /**
@@ -283,19 +283,19 @@ class Vector : public VectorBase<T>
 
         template<typename S1> inline void scatter(S1 *array, EntryType S1::* member1,
                 const IndexType &indexes) const {
-            VectorHelperSize<T>::scatter(*this, indexes, array, member1);
+            ScatterHelper<T>::scatter(*this, indexes, array, member1);
         }
         template<typename S1> inline void scatter(S1 *array, EntryType S1::* member1,
                 const IndexType &indexes, const Mask &mask) const {
-            VectorHelperSize<T>::scatter(*this, indexes, mask.shiftMask(), array, member1);
+            ScatterHelper<T>::scatter(*this, indexes, mask.toInt(), array, member1);
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
                 EntryType S2::* member2, const IndexType &indexes) const {
-            VectorHelperSize<T>::scatter(*this, indexes, array, member1, member2);
+            ScatterHelper<T>::scatter(*this, indexes, array, member1, member2);
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
                 EntryType S2::* member2, const IndexType &indexes, const Mask &mask) const {
-            VectorHelperSize<T>::scatter(*this, indexes, mask.shiftMask(), array, member1, member2);
+            ScatterHelper<T>::scatter(*this, indexes, mask.toInt(), array, member1, member2);
         }
 
         //prefix

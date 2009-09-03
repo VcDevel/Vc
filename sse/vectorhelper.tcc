@@ -346,56 +346,110 @@ namespace SSE
             } else {
                 abort();
             }
-#elif defined(VC_NO_GATHER_TRICKS)
-            for (int i = 0; i < Base::Size; ++i) {
-                if (mask & (1 << i)) {
-                    v.d.m(i) = baseAddr[indexes.d.m(i)];
-                }
-            }
 #else
+            unrolled_loop16(i, 0, Base::Size,
+                    if (mask & (1 << i)) v.d.m(i) = baseAddr[indexes.d.m(i)];
+                    );
+            /* The following code can make invalid reads!
             unrolled_loop16(i, 0, Base::Size,
                     EntryType entry = baseAddr[indexes.d.m(i)];
                     register EntryType tmp = v.d.m(i);
                     if (mask & (1 << i)) tmp = entry;
                     v.d.m(i) = tmp;
                     );
+                    */
 #endif
         }
 
-        template<unsigned int bitMask, typename AliasingT, typename EntryType>
+        template<typename Base, typename IndexType, typename EntryType>
         static inline void maskedScatterHelper(
-                const AliasingT &vEntry, const int mask, EntryType &value
+                const Base &v, const IndexType &indexes, int mask, EntryType *baseAddr
                 ) {
-#ifdef _MSC_VER
-            register EntryType t;
-            __asm {
-                    test mask, bitMask
-                    mov t, value
-                    cmovne t, vEntry
-                    mov value, t
+#ifndef VC_NO_BSF_LOOPS
+            if (sizeof(EntryType) == 2) {
+                register unsigned long int bit;
+                register unsigned long int index;
+                register EntryType value;
+                asm volatile(
+                        "bsf %1,%0"            "\n\t"
+                        "jz 1f"                "\n\t"
+                        "0:"                   "\n\t"
+                        "movzwl (%5,%0,2),%%ecx""\n\t" // ecx contains the index
+                        "btr %0,%1"            "\n\t"
+                        "movw (%7,%0,2),%3"    "\n\t"  // %3 contains the value to copy
+                        "movw %3,(%6,%%rcx,2)" "\n\t"  // store the value into baseAddr[ecx]
+                        "bsf %1,%0"            "\n\t"
+                        "jnz 0b"               "\n\t"
+                        "1:"                   "\n\t"
+                        : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(*baseAddr)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
+                        : "rcx"   );
+            } else if (sizeof(EntryType) == 4) {
+                if (sizeof(typename IndexType::EntryType) == 4) {
+                    register unsigned long int bit;
+                    register unsigned long int index;
+                    register EntryType value;
+                    asm volatile(
+                            "bsf %1,%0"            "\n\t"
+                            "jz 1f"                "\n\t"
+                            "0:"                   "\n\t"
+                            "mov (%5,%0,4),%%ecx"  "\n\t" // ecx contains the index
+                            "btr %0,%1"            "\n\t"
+                            "mov (%7,%0,4),%3"    "\n\t"  // %3 contains the value to copy
+                            "mov %3,(%6,%%rcx,4)" "\n\t"  // store the value into baseAddr[ecx]
+                            "bsf %1,%0"            "\n\t"
+                            "jnz 0b"               "\n\t"
+                            "1:"                   "\n\t"
+                            : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(*baseAddr)
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
+                            : "rcx"   );
+                } else if (sizeof(typename IndexType::EntryType) == 2) { // sfloat_v[ushort_v]
+                    register unsigned long int bit;
+                    register unsigned long int index;
+                    register EntryType value;
+                    asm volatile(
+                            "bsf %1,%0"            "\n\t"
+                            "jz 1f"                "\n\t"
+                            "0:"                   "\n\t"
+                            "movzwl (%5,%0,2),%%ecx""\n\t" // ecx contains the index
+                            "btr %0,%1"            "\n\t"
+                            "mov (%7,%0,4),%3"    "\n\t"  // %3 contains the value to copy
+                            "mov %3,(%6,%%rcx,4)" "\n\t"  // store the value into baseAddr[ecx]
+                            "bsf %1,%0"            "\n\t"
+                            "jnz 0b"               "\n\t"
+                            "1:"                   "\n\t"
+                            : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(*baseAddr)
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
+                            : "rcx"   );
+                } else {
+                    abort();
+                }
+            } else if (sizeof(EntryType) == 8) {
+                register unsigned long int bit;
+                register unsigned long int index;
+                register EntryType value;
+                asm volatile(
+                        "bsf %1,%0"            "\n\t"
+                        "jz 1f"                "\n\t"
+                        "0:"                   "\n\t"
+                        "mov (%5,%0,4),%%ecx"  "\n\t" // ecx contains the index
+                        "btr %0,%1"            "\n\t"
+                        "mov (%7,%0,8),%3"    "\n\t"  // %3 contains the value to copy
+                        "mov %3,(%6,%%rcx,8)" "\n\t"  // store the value into baseAddr[ecx]
+                        "bsf %1,%0"            "\n\t"
+                        "jnz 0b"               "\n\t"
+                        "1:"                   "\n\t"
+                        : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(*baseAddr)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
+                        : "rcx"   );
+            } else {
+                abort();
             }
-            return;
-#elif defined(__GNUC__)
-#ifndef __x86_64__ // on 32 bit use the non-asm-code below for sizeof(EntryType) > 4
-            if (sizeof(EntryType) <= 4) {
+#else
+            unrolled_loop16(i, 0, Base::Size,
+                    if (mask & (1 << i)) baseAddr[indexes.d.m(i)] = v.d.m(i);
+                    );
 #endif
-            register EntryType t;
-            asm(
-                    "test %4,%2\n\t"
-                    "mov %3,%1\n\t"
-                    "cmovne %5,%1\n\t"
-                    "mov %1,%0"
-                    : "=m"(value), "=&r"(t)
-                    : "r"(mask), "m"(value), "n"(bitMask), "m"(vEntry)
-               );
-            return;
-#ifndef __x86_64__
-            }
-#endif
-#endif // __GNUC__
-            if (mask & bitMask) {
-                value = vEntry;
-            }
         }
     };
 
@@ -599,13 +653,13 @@ namespace SSE
     //
     // TODO: With SSE 4.1 the extract intrinsics might be an interesting option, though.
     //
-    template<typename T> inline void VectorHelperSize<T>::scatter(
+    template<typename T> inline void ScatterHelper<T>::scatter(
             const Base &v, const IndexType &indexes, EntryType *baseAddr) {
         for_all_vector_entries(i,
                 baseAddr[indexes.d.m(i)] = v.d.m(i);
                 );
     }
-    template<> inline void VectorHelperSize<short>::scatter(
+    template<> inline void ScatterHelper<short>::scatter(
             const Base &v, const IndexType &indexes, EntryType *baseAddr) {
         // TODO: verify that using extract is really faster
         for_all_vector_entries(i,
@@ -613,79 +667,37 @@ namespace SSE
                 );
     }
 
-    template<typename T> inline void VectorHelperSize<T>::scatter(
+    template<typename T> inline void ScatterHelper<T>::scatter(
             const Base &v, const IndexType &indexes, int mask, EntryType *baseAddr) {
-        for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)]);
-                );
+        GeneralHelpers::maskedScatterHelper(v, indexes, mask, baseAddr);
     }
 
-    template<typename T> template<typename S1> inline void VectorHelperSize<T>::scatter(
+    template<typename T> template<typename S1> inline void ScatterHelper<T>::scatter(
             const Base &v, const IndexType &indexes, S1 *baseAddr, EntryType S1::* member1) {
         for_all_vector_entries(i,
                 baseAddr[indexes.d.m(i)].*(member1) = v.d.m(i);
                 );
     }
 
-    template<typename T> template<typename S1> inline void VectorHelperSize<T>::scatter(
+    template<typename T> template<typename S1> inline void ScatterHelper<T>::scatter(
             const Base &v, const IndexType &indexes, int mask, S1 *baseAddr, EntryType S1::* member1) {
         for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1));
+                if (mask & (1 << i)) baseAddr[indexes.d.m(i)].*(member1) = v.d.m(i);
                 );
     }
 
-    template<typename T> template<typename S1, typename S2> inline void VectorHelperSize<T>::scatter(
+    template<typename T> template<typename S1, typename S2> inline void ScatterHelper<T>::scatter(
             const Base &v, const IndexType &indexes, S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2) {
         for_all_vector_entries(i,
                 baseAddr[indexes.d.m(i)].*(member1).*(member2) = v.d.m(i);
                 );
     }
 
-    template<typename T> template<typename S1, typename S2> inline void VectorHelperSize<T>::scatter(
+    template<typename T> template<typename S1, typename S2> inline void ScatterHelper<T>::scatter(
             const Base &v, const IndexType &indexes, int mask, S1 *baseAddr, S2 S1::* member1,
             EntryType S2::* member2) {
         for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2));
-                );
-    }
-
-    inline void VectorHelperSize<float8>::scatter(const Base &v, const IndexType &indexes, EntryType *baseAddr) {
-        for_all_vector_entries(i,
-                baseAddr[indexes.d.m(i)] = v.d.m(i);
-                );
-    }
-
-    inline void VectorHelperSize<float8>::scatter(const Base &v, const IndexType &indexes, int mask, EntryType *baseAddr) {
-        for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)]);
-                );
-    }
-
-    template<typename S1> inline void VectorHelperSize<float8>::scatter(const Base &v, const IndexType &indexes,
-            S1 *baseAddr, EntryType S1::* member1) {
-        for_all_vector_entries(i,
-                baseAddr[indexes.d.m(i)].*(member1) = v.d.m(i);
-                );
-    }
-
-    template<typename S1> inline void VectorHelperSize<float8>::scatter(const Base &v, const IndexType &indexes, int mask,
-            S1 *baseAddr, EntryType S1::* member1) {
-        for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1));
-                );
-    }
-
-    template<typename S1, typename S2> inline void VectorHelperSize<float8>::scatter(const Base &v, const IndexType &indexes,
-            S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2) {
-        for_all_vector_entries(i,
-                baseAddr[indexes.d.m(i)].*(member1).*(member2) = v.d.m(i);
-                );
-    }
-
-    template<typename S1, typename S2> inline void VectorHelperSize<float8>::scatter(const Base &v, const IndexType &indexes, int mask,
-            S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2) {
-        for_all_vector_entries(i,
-                GeneralHelpers::maskedScatterHelper<1 << i * Shift>(v.d.m(i), mask, baseAddr[indexes.d.m(i)].*(member1).*(member2));
+                if (mask & (1 << i)) baseAddr[indexes.d.m(i)].*(member1).*(member2) = v.d.m(i);
                 );
     }
 

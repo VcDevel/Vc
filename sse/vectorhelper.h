@@ -73,58 +73,14 @@ namespace SSE
         static VectorType sort(VectorType);
     };
 
-    template<typename T> struct VectorHelperSize
+    template<typename T> struct ScatterHelper
     {
         typedef VectorBase<T> Base;
         typedef typename Base::VectorType VectorType;
         typedef typename Base::EntryType  EntryType;
         typedef typename Base::IndexType  IndexType;
         typedef VectorMemoryUnion<VectorType, EntryType> UnionType;
-
         enum { Size = Base::Size, Shift = sizeof(EntryType) };
-
-        static void scatter(const Base &v, const IndexType &indexes, EntryType *baseAddr);
-
-        static void scatter(const Base &v, const IndexType &indexes, int mask, EntryType *baseAddr);
-
-        template<typename S1>
-        static void scatter(const Base &v, const IndexType &indexes, S1 *baseAddr, EntryType S1::* member1);
-
-        template<typename S1>
-        static void scatter(const Base &v, const IndexType &indexes, int mask, S1 *baseAddr, EntryType S1::* member1);
-
-        template<typename S1, typename S2>
-        static void scatter(const Base &v, const IndexType &indexes, S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2);
-
-        template<typename S1, typename S2>
-        static void scatter(const Base &v, const IndexType &indexes, int mask, S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2);
-    };
-
-    template<> struct VectorHelperSize<float8>
-    {
-        typedef VectorBase<float8> Base;
-        typedef Base::VectorType VectorType;
-        typedef Base::EntryType  EntryType;
-        typedef Base::IndexType  IndexType;
-        typedef VectorMemoryUnion<VectorType, EntryType> UnionType;
-
-        enum { Size = Base::Size, Shift = 1 };
-
-        static void gather(Base &v, const IndexType &indexes, const EntryType *baseAddr);
-
-        static void gather(Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr);
-
-        template<typename S1>
-        static void gather(Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1);
-
-        template<typename S1>
-        static void gather(Base &v, const IndexType &indexes, int mask, const S1 *baseAddr, const EntryType S1::* member1);
-
-        template<typename S1, typename S2>
-        static void gather(Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2);
-
-        template<typename S1, typename S2>
-        static void gather(Base &v, const IndexType &indexes, int mask, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2);
 
         static void scatter(const Base &v, const IndexType &indexes, EntryType *baseAddr);
 
