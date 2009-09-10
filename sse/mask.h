@@ -116,11 +116,9 @@ template<unsigned int VectorSize> class Mask
 
         inline operator bool() const { return isFull(); }
 
-        inline int shiftMask() const {
-            return _mm_movemask_epi8(dataI());
-        }
+        inline int shiftMask() const CONST;
 
-        int toInt() const;
+        int toInt() const CONST;
 
         inline _M128  data () const { return k; }
         inline _M128I dataI() const { return _mm_castps_si128(k); }
@@ -135,6 +133,11 @@ template<unsigned int VectorSize> class Mask
     private:
         _M128 k;
 };
+
+template<unsigned int Size> inline int Mask<Size>::shiftMask() const
+{
+    return _mm_movemask_epi8(dataI());
+}
 
 template<> template<> inline Mask<2>::Mask(const Mask<4> &x) {
     k = _mm_unpacklo_ps(x.data(), x.data());
@@ -187,10 +190,10 @@ template<> inline int Mask< 4>::toInt() const { return _mm_movemask_ps(data ());
 template<> inline int Mask< 8>::toInt() const { return _mm_movemask_epi8(_mm_packs_epi16(dataI(), _mm_setzero_si128())); }
 template<> inline int Mask<16>::toInt() const { return _mm_movemask_epi8(dataI()); }
 
-template<> inline bool Mask< 2>::operator[](int index) const { return _mm_movemask_pd(dataD()) & (1 << index); }
-template<> inline bool Mask< 4>::operator[](int index) const { return _mm_movemask_ps(data ()) & (1 << index); }
-template<> inline bool Mask< 8>::operator[](int index) const { return _mm_movemask_epi8(dataI()) & (1 << 2 * index); }
-template<> inline bool Mask<16>::operator[](int index) const { return _mm_movemask_epi8(dataI()) & (1 << index); }
+template<> inline bool Mask< 2>::operator[](int index) const { return toInt() & (1 << index); }
+template<> inline bool Mask< 4>::operator[](int index) const { return toInt() & (1 << index); }
+template<> inline bool Mask< 8>::operator[](int index) const { return shiftMask() & (1 << 2 * index); }
+template<> inline bool Mask<16>::operator[](int index) const { return toInt() & (1 << index); }
 
 template<> inline int Mask<2>::count() const
 {
