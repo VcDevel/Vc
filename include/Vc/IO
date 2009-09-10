@@ -72,7 +72,7 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vecto
 template<unsigned int VectorSize>
 inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<VectorSize> &m)
 {
-    out << AnsiColor::yellow << "m[";
+    out << AnsiColor::blue << "m[";
     for (unsigned int i = 0; i < VectorSize; ++i) {
         if (i > 0 && (i % 4) == 0) {
             out << " ";
@@ -83,13 +83,13 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<
           out << AnsiColor::blue << '0';
         }
     }
-    out << AnsiColor::yellow << "]" << AnsiColor::normal;
+    out << AnsiColor::blue << "]" << AnsiColor::normal;
     return out;
 }
 #ifdef USE_SSE
 inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float8Mask &m)
 {
-    out << AnsiColor::yellow << "m[";
+    out << AnsiColor::blue << "m[";
     for (unsigned int i = 0; i < 8; ++i) {
         if (i > 0 && (i % 4) == 0) {
             out << " ";
@@ -100,7 +100,7 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float
           out << AnsiColor::blue << '0';
         }
     }
-    out << AnsiColor::yellow << "]" << AnsiColor::normal;
+    out << AnsiColor::blue << "]" << AnsiColor::normal;
     return out;
 }
 #endif
