@@ -77,9 +77,13 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<
         if (i > 0 && (i % 4) == 0) {
             out << " ";
         }
-        out << m[i];
+        if ( m[i] ) {
+          out << AnsiColor::yellow << '1';
+        } else {
+          out << AnsiColor::blue << '0';
+        }
     }
-    out << "]" << AnsiColor::normal;
+    out << AnsiColor::yellow << "]" << AnsiColor::normal;
     return out;
 }
 #ifdef USE_SSE
@@ -90,9 +94,13 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float
         if (i > 0 && (i % 4) == 0) {
             out << " ";
         }
-        out << m[i];
+        if ( m[i] ) {
+          out << AnsiColor::yellow << '1';
+        } else {
+          out << AnsiColor::blue << '0';
+        }
     }
-    out << "]" << AnsiColor::normal;
+    out << AnsiColor::yellow << "]" << AnsiColor::normal;
     return out;
 }
 #endif
