@@ -380,6 +380,16 @@ template<unsigned int VectorSize>
 inline Mask<VectorSize>::Mask(const Float8Mask &m)
     : k(_mm_castsi128_ps(_mm_packs_epi32(_mm_castps_si128(m.data()[0]), _mm_castps_si128(m.data()[1])))) {}
 
+class Float8GatherMask
+{
+    public:
+        Float8GatherMask(const Mask<8u> &k)   : mask(k.toInt()) {}
+        Float8GatherMask(const Float8Mask &k) : mask(k.toInt()) {}
+        int toInt() const { return mask; }
+    private:
+        const int mask;
+};
+
 template<typename M, typename F>
 inline void foreach_bit(const M &mask, F func) {
     unsigned short m = mask.toInt();

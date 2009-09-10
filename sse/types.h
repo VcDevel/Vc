@@ -27,6 +27,7 @@ namespace SSE
     template<typename T> class Vector;
 
     class Float8Mask;
+    class Float8GatherMask;
     template<unsigned int VectorSize> class Mask;
 
     /*

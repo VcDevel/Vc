@@ -61,6 +61,7 @@ namespace SSE
             typedef T EntryType;
             typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
+            typedef MaskType GatherMaskType;
 
             inline Vector<EntryType> &operator|= (const Vector<EntryType> &x);
             inline Vector<EntryType> &operator&= (const Vector<EntryType> &x);
@@ -109,6 +110,7 @@ namespace SSE
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Float8Mask MaskType;
+            typedef Float8GatherMask GatherMaskType;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }
@@ -131,6 +133,7 @@ namespace SSE
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
+            typedef MaskType GatherMaskType;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }
@@ -153,6 +156,7 @@ namespace SSE
             typedef double EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
+            typedef MaskType GatherMaskType;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }
