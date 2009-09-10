@@ -316,22 +316,24 @@ class Float8Mask
             return *this;
         }
 
-        inline bool isFull () const { return
+        inline bool isFull () const {
+            const _M128 tmp = _mm_and_ps(k[0], k[1]);
 #ifdef __SSE4_1__
-            _mm_testc_si128(_mm_castps_si128(k[0]), _mm_setallone_si128()) &&
-            _mm_testc_si128(_mm_castps_si128(k[1]), _mm_setallone_si128());
+            return _mm_testc_si128(_mm_castps_si128(tmp), _mm_setallone_si128());
 #else
-            _mm_movemask_ps(k[0]) == 0xf &&
-            _mm_movemask_ps(k[1]) == 0xf;
+            return _mm_movemask_ps(tmp) == 0xf;
+            //_mm_movemask_ps(k[0]) == 0xf &&
+            //_mm_movemask_ps(k[1]) == 0xf;
 #endif
         }
-        inline bool isEmpty() const { return
+        inline bool isEmpty() const {
+            const _M128 tmp = _mm_or_ps(k[0], k[1]);
 #ifdef __SSE4_1__
-            _mm_testz_si128(_mm_castps_si128(k[0]), _mm_castps_si128(k[0])) &&
-            _mm_testz_si128(_mm_castps_si128(k[1]), _mm_castps_si128(k[1]));
+            return _mm_testz_si128(_mm_castps_si128(tmp), _mm_castps_si128(tmp));
 #else
-            _mm_movemask_ps(k[0]) == 0x0 &&
-            _mm_movemask_ps(k[1]) == 0x0;
+            return _mm_movemask_ps(tmp) == 0x0;
+            //_mm_movemask_ps(k[0]) == 0x0 &&
+            //_mm_movemask_ps(k[1]) == 0x0;
 #endif
         }
         inline bool isMix() const {
