@@ -206,6 +206,18 @@ template<typename Vec> void testCount()
     }
 }
 
+template<typename Vec> void testFirstOne()
+{
+    typedef typename Vec::EntryType T;
+    typedef typename Vec::IndexType I;
+    typedef typename Vec::Mask M;
+
+    for (int i = 0; i < Vec::Size; ++i) {
+        const M mask(I(Vc::IndexesFromZero) == i);
+        COMPARE(mask.firstOne(), i);
+    }
+}
+
 int main()
 {
     runTest(testInc<int_v>);
@@ -279,6 +291,14 @@ int main()
     runTest(testCount<short_v>);
     runTest(testCount<ushort_v>);
     runTest(testCount<sfloat_v>);
+
+    runTest(testFirstOne<int_v>);
+    runTest(testFirstOne<uint_v>);
+    runTest(testFirstOne<float_v>);
+    runTest(testFirstOne<double_v>);
+    runTest(testFirstOne<short_v>);
+    runTest(testFirstOne<ushort_v>);
+    runTest(testFirstOne<sfloat_v>);
 
     return 0;
 }

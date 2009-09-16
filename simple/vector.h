@@ -142,6 +142,13 @@ class Mask
         inline int count() const { return m ? 1 : 0; }
 
         /**
+         * Returns the index of the first one in the mask.
+         *
+         * The return value is undefined if the mask is empty.
+         */
+        int firstOne() const { return 0; }
+
+        /**
          * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
          * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
          * 1, 3, and 4.

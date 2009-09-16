@@ -148,6 +148,13 @@ namespace Larrabee
 
             inline int count() const { return _mm_countbits_16(k); }
 
+            /**
+             * Returns the index of the first one in the mask.
+             *
+             * The return value is undefined if the mask is empty.
+             */
+            int firstOne() const { return _mm_bsff_16(k); }
+
             template<typename F> void foreachBit(F func) const;
             template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const;
 

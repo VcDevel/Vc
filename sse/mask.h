@@ -130,6 +130,13 @@ template<unsigned int VectorSize> class Mask
 
         int count() const;
 
+        /**
+         * Returns the index of the first one in the mask.
+         *
+         * The return value is undefined if the mask is empty.
+         */
+        int firstOne() const;
+
         template<typename F> void foreachBit(F func) const;
         template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const;
 
@@ -378,12 +385,29 @@ class Float8Mask
             return _mm_cvtsi128_si32(x);
         }
 
+        int firstOne() const;
+
         template<typename F> void foreachBit(F func) const;
         template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const;
 
     private:
         M256 k;
 };
+
+template<unsigned int Size> inline int Mask<Size>::firstOne() const
+{
+    const int mask = toInt();
+    int bit;
+    __asm__("bsf %1,%0" : "=&r"(bit) : "r"(mask));
+    return bit;
+}
+inline int Float8Mask::firstOne() const
+{
+    const int mask = toInt();
+    int bit;
+    __asm__("bsf %1,%0" : "=&r"(bit) : "r"(mask));
+    return bit;
+}
 
 template<unsigned int VectorSize>
 inline Mask<VectorSize>::Mask(const Float8Mask &m)
