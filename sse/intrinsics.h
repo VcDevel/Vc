@@ -32,6 +32,7 @@
 #endif
 
 #include "macros.h"
+#include <cstdlib>
 
 namespace SSE
 {
