@@ -20,11 +20,28 @@
 #ifndef VC_SIMPLE_LIMITS_H
 #define VC_SIMPLE_LIMITS_H
 
+#include <limits>
+
+namespace Simple
+{
+    template<typename T> class Vector;
+} // namespace Simple
+
 namespace std
 {
 
-    template<typename T> Simple::Vector<T> numeric_limits<Simple::Vector<T> >::max() throw() { return std::numeric_limits<T>::max(); }
-    template<typename T> Simple::Vector<T> numeric_limits<Simple::Vector<T> >::min() throw() { return std::numeric_limits<T>::min(); }
+    template<> inline Simple::Vector<int> numeric_limits<Simple::Vector<int> >::max() throw() { return std::numeric_limits<int>::max(); }
+    template<> inline Simple::Vector<int> numeric_limits<Simple::Vector<int> >::min() throw() { return std::numeric_limits<int>::min(); }
+    template<> inline Simple::Vector<unsigned int> numeric_limits<Simple::Vector<unsigned int> >::max() throw() { return std::numeric_limits<unsigned int>::max(); }
+    template<> inline Simple::Vector<unsigned int> numeric_limits<Simple::Vector<unsigned int> >::min() throw() { return std::numeric_limits<unsigned int>::min(); }
+    template<> inline Simple::Vector<short> numeric_limits<Simple::Vector<short> >::max() throw() { return std::numeric_limits<short>::max(); }
+    template<> inline Simple::Vector<short> numeric_limits<Simple::Vector<short> >::min() throw() { return std::numeric_limits<short>::min(); }
+    template<> inline Simple::Vector<unsigned short> numeric_limits<Simple::Vector<unsigned short> >::max() throw() { return std::numeric_limits<unsigned short>::max(); }
+    template<> inline Simple::Vector<unsigned short> numeric_limits<Simple::Vector<unsigned short> >::min() throw() { return std::numeric_limits<unsigned short>::min(); }
+    template<> inline Simple::Vector<float> numeric_limits<Simple::Vector<float> >::max() throw() { return std::numeric_limits<float>::max(); }
+    template<> inline Simple::Vector<float> numeric_limits<Simple::Vector<float> >::min() throw() { return std::numeric_limits<float>::min(); }
+    template<> inline Simple::Vector<double> numeric_limits<Simple::Vector<double> >::max() throw() { return std::numeric_limits<double>::max(); }
+    template<> inline Simple::Vector<double> numeric_limits<Simple::Vector<double> >::min() throw() { return std::numeric_limits<double>::min(); }
 
 } // namespace std
 #endif // VC_SIMPLE_LIMITS_H
