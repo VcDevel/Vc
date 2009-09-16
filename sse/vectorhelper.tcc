@@ -164,80 +164,72 @@ namespace SSE
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
-                        "bsf %1,%0"            "\n\t"
-                        "jz 1f"                "\n\t"
+                        "jmp 1f"               "\n\t"
                         "0:"                   "\n\t"
-                        "movzwl (%5,%0,2),%%ecx""\n\t"
+                        "movzwq (%5,%0,2),%2"  "\n\t"
+                        "imul %8,%2"           "\n\t"
                         "btr %0,%1"            "\n\t"
-                        "imul %8,%%ecx"        "\n\t"
-                        "movw (%6,%%rcx,1),%3" "\n\t"
+                        "movw (%6,%2,1),%3"    "\n\t"
                         "movw %3,(%7,%0,2)"    "\n\t"
+                        "1:"                   "\n\t"
                         "bsf %1,%0"            "\n\t"
                         "jnz 0b"               "\n\t"
-                        "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "m"(indexes.d.v())
-                        : "rcx"   );
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
+                        );
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
                     register unsigned long int bit;
-                    register unsigned long int index;
                     register EntryType value;
                     asm volatile(
-                            "bsf %1,%0"            "\n\t"
-                            "jz 1f"                "\n\t"
+                            "jmp 1f"               "\n\t"
                             "0:"                   "\n\t"
-                            "mov (%5,%0,4),%%ecx"  "\n\t"
+                            "imul %7,(%4,%0,4),%%ecx""\n\t"
                             "btr %0,%1"            "\n\t"
-                            "imul %8,%%ecx"        "\n\t"
-                            "mov (%6,%%rcx,1),%3"  "\n\t"
-                            "mov %3,(%7,%0,4)"     "\n\t"
+                            "mov (%5,%%rcx,1),%2"  "\n\t"
+                            "mov %2,(%6,%0,4)"     "\n\t"
+                            "1:"                   "\n\t"
                             "bsf %1,%0"            "\n\t"
                             "jnz 0b"               "\n\t"
-                            "1:"                   "\n\t"
-                            : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "m"(indexes.d.v())
+                            : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d)
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
                             : "rcx"   );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
                     register unsigned long int bit;
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
-                            "bsf %1,%0"            "\n\t"
-                            "jz 1f"                "\n\t"
+                            "jmp 1f"               "\n\t"
                             "0:"                   "\n\t"
-                            "movzwl (%5,%0,2),%%ecx""\n\t"
+                            "movzwq (%5,%0,2),%2"  "\n\t"
+                            "imul %8,%2"           "\n\t"
                             "btr %0,%1"            "\n\t"
-                            "imul %8,%%ecx"        "\n\t"
-                            "mov (%6,%%rcx,1),%3"  "\n\t"
+                            "mov (%6,%2,1),%3"     "\n\t"
                             "mov %3,(%7,%0,4)"     "\n\t"
+                            "1:"                   "\n\t"
                             "bsf %1,%0"            "\n\t"
                             "jnz 0b"               "\n\t"
-                            "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "m"(indexes.d.v())
-                            : "rcx"   );
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
+                            );
                 } else {
                     abort();
                 }
             } else if (sizeof(EntryType) == 8) {
                 register unsigned long int bit;
-                register unsigned long int index;
                 register EntryType value;
                 asm volatile(
-                        "bsf %1,%0"            "\n\t"
-                        "jz 1f"                "\n\t"
+                        "jmp 1f"               "\n\t"
                         "0:"                   "\n\t"
-                        "mov (%5,%0,4),%%ecx"  "\n\t"
+                        "imul %7,(%4,%0,4),%%ecx""\n\t"
                         "btr %0,%1"            "\n\t"
-                        "imul %8,%%ecx"        "\n\t"
-                        "mov (%6,%%rcx,1),%3"  "\n\t"
-                        "mov %3,(%7,%0,8)"     "\n\t"
+                        "mov (%5,%%rcx,1),%2"  "\n\t"
+                        "mov %2,(%6,%0,8)"     "\n\t"
+                        "1:"                   "\n\t"
                         "bsf %1,%0"            "\n\t"
                         "jnz 0b"               "\n\t"
-                        "1:"                   "\n\t"
-                        : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "m"(indexes.d.v())
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d)
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
                         : "rcx"   );
             } else {
                 abort();
@@ -272,56 +264,53 @@ namespace SSE
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
-                        "bsf %1,%0"            "\n\t"
-                        "jz 1f"                "\n\t"
+                        "jmp 1f"               "\n\t"
                         "0:"                   "\n\t"
-                        "movzwl (%5,%0,2),%%ecx""\n\t"
+                        "movzwq (%5,%0,2),%2"  "\n\t"
                         "btr %0,%1"            "\n\t"
-                        "movw (%6,%%rcx,2),%3" "\n\t"
+                        "movw (%6,%2,2),%3"    "\n\t"
                         "movw %3,(%7,%0,2)"    "\n\t"
+                        "1:"                   "\n\t"
                         "bsf %1,%0"            "\n\t"
                         "jnz 0b"               "\n\t"
-                        "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
-                        : "rcx"   );
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                        );
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
                     register unsigned long int bit;
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
-                            "bsf %1,%0"            "\n\t"
-                            "jz 1f"                "\n\t"
+                            "jmp 1f"               "\n\t"
                             "0:"                   "\n\t"
-                            "mov (%5,%0,4),%%ecx"  "\n\t"
+                            "movslq (%5,%0,4),%2"  "\n\t"
                             "btr %0,%1"            "\n\t"
-                            "mov (%6,%%rcx,4),%3"  "\n\t"
+                            "mov (%6,%2,4),%3"     "\n\t"
                             "mov %3,(%7,%0,4)"     "\n\t"
+                            "1:"                   "\n\t"
                             "bsf %1,%0"            "\n\t"
                             "jnz 0b"               "\n\t"
-                            "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
-                            : "rcx"   );
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                            );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
                     register unsigned long int bit;
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
-                            "bsf %1,%0"            "\n\t"
-                            "jz 1f"                "\n\t"
+                            "jmp 1f"               "\n\t"
                             "0:"                   "\n\t"
-                            "movzwl (%5,%0,2),%%ecx""\n\t"
+                            "movzwq (%5,%0,2),%2"  "\n\t"
                             "btr %0,%1"            "\n\t"
-                            "mov (%6,%%rcx,4),%3"  "\n\t"
+                            "mov (%6,%2,4),%3"     "\n\t"
                             "mov %3,(%7,%0,4)"     "\n\t"
+                            "1:"                   "\n\t"
                             "bsf %1,%0"            "\n\t"
                             "jnz 0b"               "\n\t"
-                            "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
-                            : "rcx"   );
+                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                            );
                 } else {
                     abort();
                 }
@@ -330,19 +319,18 @@ namespace SSE
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
-                        "bsf %1,%0"            "\n\t"
-                        "jz 1f"                "\n\t"
+                        "jmp 1f"               "\n\t"
                         "0:"                   "\n\t"
-                        "mov (%5,%0,4),%%ecx"  "\n\t"
+                        "movslq (%5,%0,4),%2"  "\n\t"
                         "btr %0,%1"            "\n\t"
-                        "mov (%6,%%rcx,8),%3"  "\n\t"
+                        "mov (%6,%2,8),%3"     "\n\t"
                         "mov %3,(%7,%0,8)"     "\n\t"
+                        "1:"                   "\n\t"
                         "bsf %1,%0"            "\n\t"
                         "jnz 0b"               "\n\t"
-                        "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
-                        : "rcx"   );
+                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                        );
             } else {
                 abort();
             }
@@ -371,16 +359,15 @@ namespace SSE
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
-                        "bsf %1,%0"            "\n\t"
-                        "jz 1f"                "\n\t"
+                        "jmp 1f"                "\n\t"
                         "0:"                   "\n\t"
                         "movzwl (%5,%0,2),%%ecx""\n\t" // ecx contains the index
                         "btr %0,%1"            "\n\t"
                         "movw (%7,%0,2),%3"    "\n\t"  // %3 contains the value to copy
                         "movw %3,(%6,%%rcx,2)" "\n\t"  // store the value into baseAddr[ecx]
+                        "1:"                   "\n\t"
                         "bsf %1,%0"            "\n\t"
                         "jnz 0b"               "\n\t"
-                        "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(*baseAddr)
                         : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
                         : "rcx"   );
@@ -390,16 +377,15 @@ namespace SSE
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
-                            "bsf %1,%0"            "\n\t"
-                            "jz 1f"                "\n\t"
+                            "jmp 1f"                "\n\t"
                             "0:"                   "\n\t"
                             "mov (%5,%0,4),%%ecx"  "\n\t" // ecx contains the index
                             "btr %0,%1"            "\n\t"
                             "mov (%7,%0,4),%3"    "\n\t"  // %3 contains the value to copy
                             "mov %3,(%6,%%rcx,4)" "\n\t"  // store the value into baseAddr[ecx]
+                            "1:"                   "\n\t"
                             "bsf %1,%0"            "\n\t"
                             "jnz 0b"               "\n\t"
-                            "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(*baseAddr)
                             : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
                             : "rcx"   );
@@ -408,16 +394,15 @@ namespace SSE
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
-                            "bsf %1,%0"            "\n\t"
-                            "jz 1f"                "\n\t"
+                            "jmp 1f"                "\n\t"
                             "0:"                   "\n\t"
                             "movzwl (%5,%0,2),%%ecx""\n\t" // ecx contains the index
                             "btr %0,%1"            "\n\t"
                             "mov (%7,%0,4),%3"    "\n\t"  // %3 contains the value to copy
                             "mov %3,(%6,%%rcx,4)" "\n\t"  // store the value into baseAddr[ecx]
+                            "1:"                   "\n\t"
                             "bsf %1,%0"            "\n\t"
                             "jnz 0b"               "\n\t"
-                            "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(*baseAddr)
                             : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
                             : "rcx"   );
@@ -429,16 +414,15 @@ namespace SSE
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
-                        "bsf %1,%0"            "\n\t"
-                        "jz 1f"                "\n\t"
+                        "jmp 1f"                "\n\t"
                         "0:"                   "\n\t"
                         "mov (%5,%0,4),%%ecx"  "\n\t" // ecx contains the index
                         "btr %0,%1"            "\n\t"
                         "mov (%7,%0,8),%3"    "\n\t"  // %3 contains the value to copy
                         "mov %3,(%6,%%rcx,8)" "\n\t"  // store the value into baseAddr[ecx]
+                        "1:"                   "\n\t"
                         "bsf %1,%0"            "\n\t"
                         "jnz 0b"               "\n\t"
-                        "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(*baseAddr)
                         : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
                         : "rcx"   );
