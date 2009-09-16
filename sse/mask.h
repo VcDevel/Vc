@@ -130,6 +130,9 @@ template<unsigned int VectorSize> class Mask
 
         int count() const;
 
+        template<typename F> void foreachBit(F func) const;
+        template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const;
+
     private:
         _M128 k;
 };
@@ -375,6 +378,9 @@ class Float8Mask
             return _mm_cvtsi128_si32(x);
         }
 
+        template<typename F> void foreachBit(F func) const;
+        template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const;
+
     private:
         M256 k;
 };
@@ -393,21 +399,44 @@ class Float8GatherMask
         const int mask;
 };
 
-template<typename M, typename F>
-inline void foreach_bit(const M &mask, F func) {
-    unsigned short m = mask.toInt();
-    short i;
-    asm("bsf %1,%0"                "\n\t"
-        "jz _sse_bitscan_end"      "\n\t"
-        "_sse_bitscan_loop:"       "\n\t"
-        "btr %0,%1"                "\n\t"
-        "bsf %1,%0"                "\n\t"
-        "jnz _sse_bitscan_loop"    "\n\t"
-        "_sse_bitscan_end:"        "\n\t"
-        : "=a"(i)
-        : "m"(m)
-       );
-    func(i);
+template<unsigned int VectorSize> template<typename F>
+inline void Mask<VectorSize>::foreachBit(F func) const {
+    unsigned long mask = toInt();
+    while (mask) {
+        const unsigned long bit = __builtin_ctzl(mask);
+        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
+        func(bit);
+    }
+}
+
+template<unsigned int VectorSize> template<typename T>
+inline void Mask<VectorSize>::foreachBit(T *obj, void (T::*func)(int)) const {
+    unsigned long mask = toInt();
+    while (mask) {
+        const unsigned long bit = __builtin_ctzl(mask);
+        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
+        (obj->*func)(bit);
+    }
+}
+
+template<typename F>
+inline void Float8Mask::foreachBit(F func) const {
+    unsigned long mask = toInt();
+    while (mask) {
+        const unsigned long bit = __builtin_ctzl(mask);
+        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
+        func(bit);
+    }
+}
+
+template<typename T>
+inline void Float8Mask::foreachBit(T *obj, void (T::*func)(int)) const {
+    unsigned long mask = toInt();
+    while (mask) {
+        const unsigned long bit = __builtin_ctzl(mask);
+        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
+        (obj->*func)(bit);
+    }
 }
 
 /**

@@ -148,6 +148,9 @@ namespace Larrabee
 
             inline int count() const { return _mm_countbits_16(k); }
 
+            template<typename F> void foreachBit(F func) const;
+            template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const;
+
         private:
             __mmask k;
     };
@@ -170,10 +173,19 @@ namespace Larrabee
  * \param mask The mask to iterate over. You can also just write a vector operation that returns a
  *             mask.
  */
-template<typename F, unsigned int VectorSize>
-inline void foreach_bit(const Mask<VectorSize> &mask, F func) {
-    for (int i = _mm_bsff_32(mask.data()); i >= 0; i = _mm_bsfi_32(i, mask.data())) {
+template<unsigned int Size> template<typename F>
+inline void Mask<Size>::foreachBit(F func) const {
+    unsigned int mask = k;
+    for (int i = _mm_bsff_32(mask); i >= 0; i = _mm_bsfi_32(i, mask)) {
         func(i);
+    }
+}
+
+template<unsigned int Size> template<typename T>
+inline void Mask<Size>::foreachBit(T *obj, void (T::*func)(int)) const {
+    unsigned int mask = k;
+    for (int i = _mm_bsff_32(mask); i >= 0; i = _mm_bsfi_32(i, mask)) {
+        (obj->*func)(i);
     }
 }
 

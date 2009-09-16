@@ -141,34 +141,32 @@ class Mask
 
         inline int count() const { return m ? 1 : 0; }
 
+        /**
+         * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
+         * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
+         * 1, 3, and 4.
+         *
+         * This allows you to write:
+         * \code
+         * float_v a = ...;
+         * foreach_bit(int i, a < 0.f) {
+         *   std::cout << a[i] << "\n";
+         * }
+         * \endcode
+         * The example prints all the values in \p a that are negative, and only those.
+         *
+         * \param it   The iterator variable. For example "int i".
+         * \param mask The mask to iterate over. You can also just write a vector operation that returns a
+         *             mask.
+         */
+        template<typename F> void foreachBit(F func) const { if (m) func(0); }
+
+        template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const { if (m) (obj->*func)(0); }
+
     private:
         bool m;
 };
 
-/**
- * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
- * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
- * 1, 3, and 4.
- *
- * This allows you to write:
- * \code
- * float_v a = ...;
- * foreach_bit(int i, a < 0.f) {
- *   std::cout << a[i] << "\n";
- * }
- * \endcode
- * The example prints all the values in \p a that are negative, and only those.
- *
- * \param it   The iterator variable. For example "int i".
- * \param mask The mask to iterate over. You can also just write a vector operation that returns a
- *             mask.
- */
-template<typename F>
-inline void foreach_bit(const Mask<1u> &mask, F func) {
-    if (mask) {
-        func(0);
-    }
-}
 
 template<typename T>
 class WriteMaskedVector

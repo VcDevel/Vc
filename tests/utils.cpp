@@ -99,6 +99,33 @@ template<typename V> void testCall()
     }
 }
 
+struct TestForeachBitHelper
+{
+    TestForeachBitHelper(int &r) : ref(r) {}
+    int &ref;
+    void operator()(int i) { ref += (1 << i); }
+    void foo(int i) { ref += (1 << i); }
+};
+
+template<typename V> void testForeachBit()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+    typedef typename V::Mask M;
+    typedef typename I::Mask MI;
+    const I indexes(IndexesFromZero);
+    for (int i = 0; i <= V::Size; ++i) {
+        const M mask(indexes < i);
+        int ref = 0;
+        mask.foreachBit(TestForeachBitHelper(ref));
+        COMPARE(ref, (1 << i) - 1);
+        ref = 0;
+        TestForeachBitHelper foo(ref);
+        mask.foreachBit(&foo, &TestForeachBitHelper::foo);
+        COMPARE(ref, (1 << i) - 1);
+    }
+}
+
 int main()
 {
     runTest(testCall<int_v>);
@@ -108,6 +135,14 @@ int main()
     runTest(testCall<float_v>);
     runTest(testCall<sfloat_v>);
     runTest(testCall<double_v>);
+
+    runTest(testForeachBit<int_v>);
+    runTest(testForeachBit<uint_v>);
+    runTest(testForeachBit<short_v>);
+    runTest(testForeachBit<ushort_v>);
+    runTest(testForeachBit<float_v>);
+    runTest(testForeachBit<sfloat_v>);
+    runTest(testForeachBit<double_v>);
 
 //X     runTest(testSort<int_v>);
 //X     runTest(testSort<uint_v>);
