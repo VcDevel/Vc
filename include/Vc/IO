@@ -28,7 +28,7 @@
 #elif defined(USE_SSE)
 #define VECTOR_NAMESPACE SSE
 #else
-#define VECTOR_NAMESPACE Simple
+#define VECTOR_NAMESPACE Vc::Simple
 #endif
 
 namespace

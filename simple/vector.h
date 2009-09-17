@@ -28,180 +28,17 @@
 #include <float.h>
 #endif
 
-#ifndef ALIGN
-# ifdef __GNUC__
-#  define ALIGN(n) __attribute__((aligned(n)))
-# else
-#  define ALIGN(n) __declspec(align(n))
-# endif
-#endif
+#include "macros.h"
+#include "types.h"
+#include "vectorbase.h"
+#include "mask.h"
+#include "writemaskedvector.h"
 
+namespace Vc
+{
 namespace Simple
 {
-    namespace { template<typename T1> void UNUSED_PARAM1( const T1 & ) {} }
-
     enum { VectorAlignment = 4 };
-
-    class VectorAlignedBase {};
-
-    template<typename T> class Vector;
-
-#define PARENT_DATA (static_cast<Parent *>(this)->m_data)
-#define PARENT_DATA_CONST (static_cast<const Parent *>(this)->m_data)
-    template<typename T, typename Parent> struct VectorBase {};
-
-#define OP_DECL(symbol) \
-        inline Vector<T> &operator symbol##=(const Vector<T> &x); \
-        inline Vector<T> operator symbol(const Vector<T> &x) const;
-    template<typename Parent> struct VectorBase<int, Parent>
-    {
-#define T int
-        OP_DECL(|)
-        OP_DECL(&)
-        OP_DECL(^)
-        OP_DECL(<<)
-        OP_DECL(>>)
-#undef T
-    };
-    template<typename Parent> struct VectorBase<unsigned int, Parent>
-    {
-#define T unsigned int
-        OP_DECL(|)
-        OP_DECL(&)
-        OP_DECL(^)
-        OP_DECL(<<)
-        OP_DECL(>>)
-#undef T
-    };
-    template<typename Parent> struct VectorBase<short, Parent>
-    {
-#define T short
-        OP_DECL(|)
-        OP_DECL(&)
-        OP_DECL(^)
-        OP_DECL(<<)
-        OP_DECL(>>)
-#undef T
-    };
-    template<typename Parent> struct VectorBase<unsigned short, Parent>
-    {
-#define T unsigned short
-        OP_DECL(|)
-        OP_DECL(&)
-        OP_DECL(^)
-        OP_DECL(<<)
-        OP_DECL(>>)
-#undef T
-    };
-#undef PARENT_DATA
-#undef PARENT_DATA_CONST
-
-namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
-namespace VectorSpecialInitializerOne { enum OEnum { One }; }
-namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
-namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
-
-template<unsigned int VectorSize = 1>
-class Mask
-{
-    public:
-        inline Mask() {}
-        inline Mask(bool b) : m(b) {}
-        inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
-        inline explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
-        inline Mask(const Mask<VectorSize> *a) : m(a[0].m) {}
-
-        inline void expand(Mask *x) { x[0].m = m; }
-
-        inline bool operator==(const Mask &rhs) const { return m == rhs.m; }
-        inline bool operator!=(const Mask &rhs) const { return m != rhs.m; }
-        inline Mask operator&&(const Mask &rhs) const { return m && rhs.m; }
-        inline Mask operator||(const Mask &rhs) const { return m || rhs.m; }
-        inline Mask operator!() const { return !m; }
-        inline Mask operator&(const Mask &rhs) const { return m && rhs.m; }
-        inline Mask operator|(const Mask &rhs) const { return m || rhs.m; }
-        inline Mask &operator&=(const Mask &rhs) { m &= rhs.m; return *this; }
-        inline Mask &operator|=(const Mask &rhs) { m |= rhs.m; return *this; }
-        inline bool isFull () const { return  m; }
-        inline bool isEmpty() const { return !m; }
-        inline bool isMix  () const { return false; }
-
-        inline bool data () const { return m; }
-        inline bool dataI() const { return m; }
-        inline bool dataD() const { return m; }
-
-        inline operator bool() const { return isFull(); }
-
-        template<unsigned int OtherSize>
-        inline Mask cast() const { return *this; }
-
-        inline bool operator[](int) const { return m; }
-
-        Mask<VectorSize * 2> combine(Mask other) const;
-
-        inline int count() const { return m ? 1 : 0; }
-
-        /**
-         * Returns the index of the first one in the mask.
-         *
-         * The return value is undefined if the mask is empty.
-         */
-        int firstOne() const { return 0; }
-
-        /**
-         * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
-         * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
-         * 1, 3, and 4.
-         *
-         * This allows you to write:
-         * \code
-         * float_v a = ...;
-         * foreach_bit(int i, a < 0.f) {
-         *   std::cout << a[i] << "\n";
-         * }
-         * \endcode
-         * The example prints all the values in \p a that are negative, and only those.
-         *
-         * \param it   The iterator variable. For example "int i".
-         * \param mask The mask to iterate over. You can also just write a vector operation that returns a
-         *             mask.
-         */
-        template<typename F> void foreachBit(F func) const { if (m) func(0); }
-
-        template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const { if (m) (obj->*func)(0); }
-
-    private:
-        bool m;
-};
-
-
-template<typename T>
-class WriteMaskedVector
-{
-    friend class Vector<T>;
-    typedef bool Mask;
-    public:
-        //prefix
-        inline Vector<T> &operator++() { if (mask) ++vec->m_data; return *vec; }
-        inline Vector<T> &operator--() { if (mask) --vec->m_data; return *vec; }
-        //postfix
-        inline Vector<T> operator++(int) { if (mask) return vec->m_data++; return *vec; }
-        inline Vector<T> operator--(int) { if (mask) return vec->m_data--; return *vec; }
-
-        inline Vector<T> &operator+=(Vector<T> x) { if (mask) vec->m_data += x.m_data; return *vec; }
-        inline Vector<T> &operator-=(Vector<T> x) { if (mask) vec->m_data -= x.m_data; return *vec; }
-        inline Vector<T> &operator*=(Vector<T> x) { if (mask) vec->m_data *= x.m_data; return *vec; }
-        inline Vector<T> &operator/=(Vector<T> x) { if (mask) vec->m_data /= x.m_data; return *vec; }
-
-        inline Vector<T> &operator=(Vector<T> x) {
-            vec->assign(x, mask);
-            return *vec;
-        }
-    private:
-        WriteMaskedVector(Vector<T> *v, Mask k) : vec(v), mask(k) {}
-        Vector<T> *vec;
-        Mask mask;
-};
 
 template<typename T>
 class Vector : public VectorBase<T, Vector<T> >
@@ -211,7 +48,7 @@ class Vector : public VectorBase<T, Vector<T> >
     protected:
         T m_data;
     public:
-        class Memory;
+        typedef _Memory<T> Memory;
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
         typedef Simple::Mask<1u> Mask;
@@ -225,6 +62,7 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector(VectorSpecialInitializerOne::OEnum) : m_data(1) {}
         inline Vector(VectorSpecialInitializerRandom::REnum) { makeRandom(); }
         inline Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : m_data(0) {}
+        //explicit inline Vector(const Memory &mem) : m_data(mem[0]) {}
 
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> *a) : m_data(static_cast<T>(a->data())) {}
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}
@@ -339,7 +177,7 @@ class Vector : public VectorBase<T, Vector<T> >
         inline void decrement(Mask mask) { if (mask.data()) --m_data; }
 
         inline T operator[](int index) const {
-            assert(index == 0); UNUSED_PARAM1(index);
+            assert(index == 0); if(index) {}
             return m_data;
         }
 
@@ -474,64 +312,8 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
   OP_IMPL(>>)
 #undef T
 #undef OP_IMPL
-#undef ALIGN
 #undef PARENT_DATA_CONST
 #undef PARENT_DATA
-
-  template<typename T> static inline Simple::Vector<T> min  (const Simple::Vector<T> &x, const T &y) { return std::min( x.data(), y ); }
-  template<typename T> static inline Simple::Vector<T> max  (const Simple::Vector<T> &x, const T &y) { return std::max( x.data(), y ); }
-  template<typename T> static inline Simple::Vector<T> min  (const T &x, const Simple::Vector<T> &y) { return std::min( x, y.data() ); }
-  template<typename T> static inline Simple::Vector<T> max  (const T &x, const Simple::Vector<T> &y) { return std::max( x, y.data() ); }
-  template<typename T> static inline Simple::Vector<T> min  (const Simple::Vector<T> &x, const Simple::Vector<T> &y) { return std::min( x.data(), y.data() ); }
-  template<typename T> static inline Simple::Vector<T> max  (const Simple::Vector<T> &x, const Simple::Vector<T> &y) { return std::max( x.data(), y.data() ); }
-  template<typename T> static inline Simple::Vector<T> sqrt (const Simple::Vector<T> &x) { return std::sqrt( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> rsqrt(const Simple::Vector<T> &x) { const T one = 1; return one / std::sqrt( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> abs  (const Simple::Vector<T> &x) { return std::abs( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> sin  (const Simple::Vector<T> &x) { return std::sin( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> asin (const Simple::Vector<T> &x) { return std::asin( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> cos  (const Simple::Vector<T> &x) { return std::cos( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> log  (const Simple::Vector<T> &x) { return std::log( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> log10(const Simple::Vector<T> &x) { return std::log10( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> atan (const Simple::Vector<T> &x) { return std::atan( x.data() ); }
-  template<typename T> static inline Simple::Vector<T> atan2(const Simple::Vector<T> &x, const Simple::Vector<T> &y) { return std::atan2( x.data(), y.data() ); }
-  template<typename T> static inline Simple::Vector<T> round(const Simple::Vector<T> &x) { return x; }
-  namespace
-  {
-      template<typename T> bool _realIsEvenHalf(T x) {
-          const T two = 2;
-          const T half = 0.5;
-          const T f = std::floor(x * half) * two;
-          return (x - f) == half;
-      }
-  } // namespace
-  template<> inline Simple::Vector<float>  round(const Simple::Vector<float>  &x) { return std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f); }
-  template<> inline Simple::Vector<double> round(const Simple::Vector<double> &x) { return std::floor(x.data() + 0.5 ) - (_realIsEvenHalf(x.data()) ? 1.  : 0. ); }
-  template<typename T> static inline Simple::Vector<T> reciprocal(const Simple::Vector<T> &x) { const T one = 1; return one / x.data(); }
-
-#ifdef isfinite
-#undef isfinite
-#endif
-#ifdef isnan
-#undef isnan
-#endif
-  template<typename T> static inline bool isfinite(const Simple::Vector<T> &x) { return
-#ifdef _MSC_VER
-      !!_finite(x.data());
-#elif defined(__INTEL_COMPILER)
-      ::isfinite(x.data());
-#else
-      std::isfinite(x.data());
-#endif
-  }
-  template<typename T> static inline bool isnan(const Simple::Vector<T> &x) { return
-#ifdef _MSC_VER
-      !!_isnan(x.data());
-#elif defined(__INTEL_COMPILER)
-      ::isnan(x.data());
-#else
-      std::isnan(x.data());
-#endif
-  }
 
   template<typename T> static inline void forceToRegisters(const Vector<T> &) {}
   template<typename T1, typename T2> static inline void forceToRegisters(
@@ -642,26 +424,11 @@ template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v)
         const Vector<T13> &, const Vector<T14> &,
         const Vector<T15> &, const Vector<T16> &) {}
 
-    template<typename T> class Vector<T>::Memory
-    {
-        private:
-            T d;
-        public:
-            inline int size() const { return 1; }
-            inline T &operator[](int) { return d; }
-            inline T operator[](int) const { return d; }
-            inline operator T*() { return &d; }
-            inline operator const T*() const { return &d; }
-
-            inline Memory &operator=(const Memory &rhs) {
-                d = rhs.d;
-                return *this;
-            }
-            inline Memory &operator=(const Vector<T> &rhs) {
-                d = rhs[0];
-                return *this;
-            }
-    };
 } // namespace Simple
+} // namespace Vc
+
+#include "memory.h"
+#include "math.h"
+#include "undomacros.h"
 
 #endif // SIMPLE_VECTOR_H
