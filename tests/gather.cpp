@@ -128,7 +128,7 @@ template<typename Vec> void gather2dim()
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
-    const int count = 3999;
+    const int count = 399;
     typedef Row<T> S;
     S array[count];
     for (int i = 0; i < count; ++i) {
