@@ -193,6 +193,7 @@ class Vector : public VectorBase<T, Vector<T> >
 #undef OP1
 
         inline Vector operator~() const { return ~m_data; }
+        inline Vector operator-() const { return -m_data; }
 
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
@@ -270,16 +271,16 @@ class Vector : public VectorBase<T, Vector<T> >
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 
-template<typename T> inline Vector<T> operator+(const T &x, const Vector<T> &v) { return v.operator+(x); }
-template<typename T> inline Vector<T> operator*(const T &x, const Vector<T> &v) { return v.operator*(x); }
-template<typename T> inline Vector<T> operator-(const T &x, const Vector<T> &v) { return Vector<T>(x) - v; }
-template<typename T> inline Vector<T> operator/(const T &x, const Vector<T> &v) { return Vector<T>(x) / v; }
-template<typename T> inline Mask<1u>  operator< (const T &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
-template<typename T> inline Mask<1u>  operator<=(const T &x, const Vector<T> &v) { return Vector<T>(x) <= v; }
-template<typename T> inline Mask<1u>  operator> (const T &x, const Vector<T> &v) { return Vector<T>(x) >  v; }
-template<typename T> inline Mask<1u>  operator>=(const T &x, const Vector<T> &v) { return Vector<T>(x) >= v; }
-template<typename T> inline Mask<1u>  operator==(const T &x, const Vector<T> &v) { return Vector<T>(x) == v; }
-template<typename T> inline Mask<1u>  operator!=(const T &x, const Vector<T> &v) { return Vector<T>(x) != v; }
+template<typename T1, typename T2> inline Vector<T2> operator+ (T1 x, const Vector<T2> &v) { return v.operator+(x); }
+template<typename T1, typename T2> inline Vector<T2> operator* (T1 x, const Vector<T2> &v) { return v.operator*(x); }
+template<typename T1, typename T2> inline Vector<T2> operator- (T1 x, const Vector<T2> &v) { return Vector<T2>(x) - v; }
+template<typename T1, typename T2> inline Vector<T2> operator/ (T1 x, const Vector<T2> &v) { return Vector<T2>(x) / v; }
+template<typename T1, typename T2> inline Mask<1u>   operator< (T1 x, const Vector<T2> &v) { return Vector<T2>(x) <  v; }
+template<typename T1, typename T2> inline Mask<1u>   operator<=(T1 x, const Vector<T2> &v) { return Vector<T2>(x) <= v; }
+template<typename T1, typename T2> inline Mask<1u>   operator> (T1 x, const Vector<T2> &v) { return Vector<T2>(x) >  v; }
+template<typename T1, typename T2> inline Mask<1u>   operator>=(T1 x, const Vector<T2> &v) { return Vector<T2>(x) >= v; }
+template<typename T1, typename T2> inline Mask<1u>   operator==(T1 x, const Vector<T2> &v) { return Vector<T2>(x) == v; }
+template<typename T1, typename T2> inline Mask<1u>   operator!=(T1 x, const Vector<T2> &v) { return Vector<T2>(x) != v; }
 
 #define PARENT_DATA (static_cast<Vector<T> *>(this)->m_data)
 #define PARENT_DATA_CONST (static_cast<const Vector<T> *>(this)->m_data)
