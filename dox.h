@@ -38,6 +38,23 @@
  * \li Vc::short_m
  * \li Vc::ushort_m
  *
+ * Per default, code compiled against the Vc headers will use the instruction set that the compiler
+ * says is available. For example compiling with "g++ -mssse3" will enable compilation against the
+ * SSE implementation using SSE the instruction sets SSE, SSE2, SSE3 and SSSE3. If you want to force
+ * compilation against a specific implementation of the vector classes you can set the macro
+ * VC_IMPL to either "Scalar", "SSE2", "SSE3", "SSSE3", "SSE4_1" or "LRBni". Setting VC_IMPL to
+ * "SSE" will force the SSE instruction set but letting the headers figure out the version to use or
+ * if that fails use SSE4.1.
+ * After you include a Vc header you will have the following macros available that you can (but
+ * normally should not) use to determine the implementation Vc uses:
+ * \li VC_IMPL_Scalar
+ * \li VC_IMPL_LRBni
+ * \li VC_IMPL_SSE (shorthand for SSE2 || SSE3 || SSSE3 || SSE4_1. SSE1 alone is not supported.)
+ * \li VC_IMPL_SSE2
+ * \li VC_IMPL_SSE3
+ * \li VC_IMPL_SSSE3
+ * \li VC_IMPL_SSE4_1
+ *
  * \todo
  *  write/link example code, document mask classes, document remaining vector functions
  */

@@ -108,7 +108,7 @@ int bmain(Benchmark::OutputMode out)
 
             const int k = _mm_movemask_ps(_mm_add_ps(_mm_add_ps(x[0], x[1]), _mm_add_ps(x[2], x[3])));
             blackHole &= k;
-#elif defined(ENABLE_LARRABEE)
+#elif VC_IMPL_LRBni
             __m512 tmp = _mm512_set_1to16_ps(static_cast<float>(repetitions));
             const __m512 oPoint2 = _mm512_set_1to16_ps(randomF(.1f, .2f));
             const __m512 oPoint1 = _mm512_set_1to16_ps(randomF(.1f, .2f));

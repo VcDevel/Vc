@@ -22,17 +22,17 @@
 
 #include "vector.h"
 
-#ifdef ENABLE_LARRABEE
-#define VECTOR_NAMESPACE Larrabee
-#elif defined(USE_SSE)
-#define VECTOR_NAMESPACE SSE
+#if VC_IMPL_LRBni
+# define VECTOR_NAMESPACE Larrabee
+#elif VC_IMPL_Scalar
+# define VECTOR_NAMESPACE Simple
 #else
-#define VECTOR_NAMESPACE Simple
+# define VECTOR_NAMESPACE SSE
 #endif
 
 namespace Vc
 {
-#ifdef USE_SSE
+#if VC_IMPL_SSE
   typedef VECTOR_NAMESPACE::Vector<VECTOR_NAMESPACE::float8> sfloat_v;
 #else
   typedef VECTOR_NAMESPACE::Vector<float> sfloat_v;

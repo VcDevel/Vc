@@ -95,7 +95,7 @@ template<typename Vec> void loadArrayShort()
 
 int main()
 {
-#if !defined(ENABLE_LARRABEE) && !defined(__LRB__)
+#if !VC_IMPL_LRBni && !defined(__LRB__)
     runTest(checkAlignment<int_v>);
     runTest(checkAlignment<uint_v>);
     runTest(checkAlignment<float_v>);

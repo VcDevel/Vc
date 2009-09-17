@@ -166,26 +166,24 @@ void Benchmark::FileWriter::declareData(const std::string &name, const std::list
 void Benchmark::FileWriter::addDataLine(const std::list<std::string> &data)
 {
     m_file << ++m_line << '\t' << m_currentName << '\t' <<
-#ifdef ENABLE_LARRABEE
+#if VC_IMPL_LRBni
 #ifdef __LRB__
             "\"LRB\"";
 #else
             "\"LRB Prototype\"";
 #endif
-#elif defined(USE_SSE)
-# if defined(__SSE4_1__)
+#elif VC_IMPL_SSE4_1
             "\"SSE4.1\"";
-# elif defined(__SSSE3__)
+#elif VC_IMPL_SSSE3
             "\"SSSE3\"";
-# elif defined(__SSE3__)
+#elif VC_IMPL_SSE3
             "\"SSE3\"";
-# elif defined(__SSE2__)
+#elif VC_IMPL_SSE2
             "\"SSE2\"";
-# else
-            "\"SSE?\"";
-# endif
-#else
+#elif VC_IMPL_Scalar
             "\"Scalar\"";
+#else
+#error "Unknown Vc implementation"
 #endif
     for (std::list<ExtraColumn>::const_iterator i = m_extraColumns.begin();
             i != m_extraColumns.end(); ++i) {

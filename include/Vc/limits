@@ -22,12 +22,12 @@
 
 #include "vector.h"
 
-#ifdef ENABLE_LARRABEE
-#include "larrabee/limits.h"
-#elif defined(USE_SSE)
-#include "sse/limits.h"
+#if VC_IMPL_LRBni
+# include "larrabee/limits.h"
+#elif VC_IMPL_Scalar
+# include "simple/limits.h"
 #else
-#include "simple/limits.h"
+# include "sse/limits.h"
 #endif
 
 #endif // INCLUDE_VC_LIMITS

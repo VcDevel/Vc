@@ -20,15 +20,17 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
-#ifdef ENABLE_LARRABEE
-#include "larrabee/vector.h"
-#define VECTOR_NAMESPACE Larrabee
-#elif defined(USE_SSE)
-#include "sse/vector.h"
-#define VECTOR_NAMESPACE SSE
+#include "global.h"
+
+#if VC_IMPL_LRBni
+# include "larrabee/vector.h"
+# define VECTOR_NAMESPACE Larrabee
+#elif VC_IMPL_Scalar
+# include "simple/vector.h"
+# define VECTOR_NAMESPACE Simple
 #else
-#include "simple/vector.h"
-#define VECTOR_NAMESPACE Simple
+# include "sse/vector.h"
+# define VECTOR_NAMESPACE SSE
 #endif
 
 #ifdef isfinite
