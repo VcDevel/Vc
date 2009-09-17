@@ -62,7 +62,6 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector(VectorSpecialInitializerOne::OEnum) : m_data(1) {}
         inline Vector(VectorSpecialInitializerRandom::REnum) { makeRandom(); }
         inline Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : m_data(0) {}
-        //explicit inline Vector(const Memory &mem) : m_data(mem[0]) {}
 
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> *a) : m_data(static_cast<T>(a->data())) {}
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}
@@ -84,6 +83,11 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename Other> inline void store(Other *mem, Mask m) const { if (m.data()) mem[0] = m_data; }
         template<typename Other> inline void storeStreaming(Other *mem) const { mem[0] = m_data; }
         template<typename Other> inline void storeStreaming(Other *mem, Mask m) const { if (m.data()) mem[0] = m_data; }
+
+        inline void store(T *mem) const { mem[0] = m_data; }
+        inline void store(T *mem, Mask m) const { if (m.data()) mem[0] = m_data; }
+        inline void storeStreaming(T *mem) const { mem[0] = m_data; }
+        inline void storeStreaming(T *mem, Mask m) const { if (m.data()) mem[0] = m_data; }
 
         inline const Vector<T> &dcba() const { return *this; }
         inline const Vector<T> cdab() const { return *this; }
