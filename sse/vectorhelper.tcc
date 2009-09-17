@@ -155,6 +155,100 @@ namespace SSE
     struct GeneralHelpers
     {
         template<unsigned int scale, typename Base, typename IndexType, typename EntryType>
+        static inline void maskedDoubleGatherHelper(
+                Base &v, const IndexType &outer, const IndexType &inner, unsigned long mask, const EntryType *const *const baseAddr
+                ) {
+            if (sizeof(EntryType) == 2) {
+                register unsigned long int bit;
+                register unsigned long int outerIndex;
+                register unsigned long int innerIndex;
+                register const EntryType *array;
+                register EntryType value;
+                asm volatile(
+                          "\t"  "jmp 1f"
+                        "\n\t"  "0:"
+                        "\n\t"  "movzwq (%7,%0,2),%4" // outer index in ecx
+                        "\n\t"  "movzwq (%11,%0,2),%5"// inner index in ecx
+                        "\n\t"  "imul %10,%4"         // scale to become byte-offset
+                        "\n\t"  "btr %0,%1"
+                        "\n\t"  "mov (%8,%4,1),%6"    // rdx = baseAddr[outer[%0] * scale / sizeof(void*)]
+                        "\n\t"  "movw (%6,%5,2),%2"   // value = rdx[inner[%0]]
+                        "\n\t"  "movw %2,(%9,%0,2)"   // v[%0] = value
+                        "\n\t"  "1:"
+                        "\n\t"  "bsf %1,%0"           // %0 contains the index to use for outer and inner
+                        "\n\t"  "jnz 0b"
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                          "=&r"(outerIndex), "=&r"(innerIndex), "=&r"(array)
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
+            } else if (sizeof(EntryType) == 4 && sizeof(typename IndexType::EntryType) == 4) {
+                register unsigned long int bit;
+                register unsigned long int innerIndex;
+                register const EntryType *array;
+                register EntryType value;
+                asm volatile(
+                          "\t"  "jmp 1f"
+                        "\n\t"  "0:"
+                        "\n\t"  "imul %9,(%6,%0,4),%%ecx" // outer index * scale => byte offset
+                        "\n\t"  "movslq (%10,%0,4),%4"     // inner index in ecx
+                        "\n\t"  "btr %0,%1"
+                        "\n\t"  "mov (%7,%%rcx,1),%5"  // rdx = baseAddr[outer[%0] * scale / sizeof(void*)]
+                        "\n\t"  "mov (%5,%4,4),%2"  // value = rdx[inner[%0]]
+                        "\n\t"  "mov %2,(%8,%0,4)"        // v[%0] = value
+                        "\n\t"  "1:"
+                        "\n\t"  "bsf %1,%0"           // %0 contains the index to use for outer and inner
+                        "\n\t"  "jnz 0b"
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                          "=&r"(innerIndex), "=&r"(array)
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
+                        : "rcx" );
+            } else if (sizeof(EntryType) == 4 && sizeof(typename IndexType::EntryType) == 2) {
+                register unsigned long int bit;
+                register unsigned long int outerIndex;
+                register unsigned long int innerIndex;
+                register const EntryType *array;
+                register EntryType value;
+                asm volatile(
+                          "\t"  "jmp 1f"
+                        "\n\t"  "0:"
+                        "\n\t"  "movzwq (%7,%0,2),%4"  // outer index in ecx
+                        "\n\t"  "movzwq (%11,%0,2),%5"  // inner index in ecx
+                        "\n\t"  "imul %10,%4"           // scale to become byte-offset
+                        "\n\t"  "btr %0,%1"
+                        "\n\t"  "mov (%8,%4,1),%6"  // rdx = baseAddr[outer[%0] * scale / sizeof(void*)]
+                        "\n\t"  "mov (%6,%5,4),%2"  // value = rdx[inner[%0]]
+                        "\n\t"  "mov %2,(%9,%0,4)"        // v[%0] = value
+                        "\n\t"  "1:"
+                        "\n\t"  "bsf %1,%0"// %0 contains the index to use for outer and inner
+                        "\n\t"  "jnz 0b"
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                          "=&r"(outerIndex), "=&r"(innerIndex), "=&r"(array)
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
+            } else if (sizeof(EntryType) == 8 && sizeof(typename IndexType::EntryType) == 4) {
+                register unsigned long int bit;
+                register unsigned long int innerIndex;
+                register const EntryType *array;
+                register EntryType value;
+                asm volatile(
+                          "\t"  "jmp 1f"
+                        "\n\t"  "0:"
+                        "\n\t"  "imul %9,(%6,%0,4),%%ecx" // outer index * scale => byte offset
+                        "\n\t"  "movslq (%10,%0,4),%4"     // inner index in ecx
+                        "\n\t"  "btr %0,%1"
+                        "\n\t"  "mov (%7,%%rcx,1),%5"  // rdx = baseAddr[outer[%0] * scale / sizeof(void*)]
+                        "\n\t"  "mov (%5,%4,8),%2"  // value = rdx[inner[%0]]
+                        "\n\t"  "mov %2,(%8,%0,8)"        // v[%0] = value
+                        "\n\t"  "1:"
+                        "\n\t"  "bsf %1,%0"               // %0 contains the index to use for outer and inner
+                        "\n\t"  "jnz 0b"
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                          "=&r"(innerIndex), "=&r"(array)
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
+                        : "rcx"   );
+            } else {
+                abort();
+            }
+        }
+        template<unsigned int scale, typename Base, typename IndexType, typename EntryType>
         static inline void maskedGatherStructHelper(
                 Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr
                 ) {

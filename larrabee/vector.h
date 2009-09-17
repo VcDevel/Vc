@@ -454,6 +454,17 @@ inline void Mask<Size>::foreachBit(T *obj, void (T::*func)(int)) const {
                         _mm512_mask_gatherd(mm512_reinterpret_cast<_M512>(data), scaleMask(k), indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE)
                         );
             }
+            static inline void gatherScale1(VectorType &data, _M512I indexes, const EntryType *baseAddr, __mmask k) {
+                indexes = mm512_reinterpret_cast<_M512I>(_mm512_mask_movq(
+                            _mm512_shuf128x32(mm512_reinterpret_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_DDCC),
+                            0x33,
+                            _mm512_shuf128x32(mm512_reinterpret_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_BBAA)
+                            ));
+                indexes = _mm512_add_pi(indexes, _mm512_set_4to16_pi(0, 4, 0, 4));
+                data = mm512_reinterpret_cast<VectorType>(
+                        _mm512_mask_gatherd(mm512_reinterpret_cast<_M512>(data), scaleMask(k), indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_1, _MM_HINT_NONE)
+                        );
+            }
             static inline VectorType gatherStreaming(_M512I indexes, const EntryType *baseAddr) {
                 prepareGatherIndexes(indexes);
                 return mm512_reinterpret_cast<VectorType>(
@@ -539,6 +550,11 @@ inline void Mask<Size>::foreachBit(T *obj, void (T::*func)(int)) const {
             static inline void gather(VectorType &data, _M512I indexes, const T *baseAddr, __mmask k) { \
                 data = mm512_reinterpret_cast<VectorType>(_mm512_mask_gatherd(mm512_reinterpret_cast<_M512>(data), k, indexes, const_cast<T *>(baseAddr), upconv, \
                         sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NONE \
+                        )); \
+            } \
+            static inline void gatherScale1(VectorType &data, _M512I indexes, const T *baseAddr, __mmask k) { \
+                data = mm512_reinterpret_cast<VectorType>(_mm512_mask_gatherd(mm512_reinterpret_cast<_M512>(data), k, indexes, const_cast<T *>(baseAddr), upconv, \
+                            _MM_SCALE_1, _MM_HINT_NONE \
                         )); \
             } \
             static inline VectorType gatherStreaming(_M512I indexes, const T *baseAddr) { \
@@ -1089,6 +1105,29 @@ class Vector : public VectorBase<T, Vector<T> >
             LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
             const IndexType &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::gather(data, offsets, &(array->*(member1).*(member2)), mask.data());
+        }
+
+        template<typename S1, typename OtherT>
+        inline Vector(const S1 *array, const OtherT *const S1::* ptrMember1, const IndexType &outerIndex, const IndexType &innerIndex, Mask mask) {
+            gather(array, ptrMember1, outerIndex, innerIndex, mask);
+        }
+        template<typename S1, typename OtherT>
+        inline void gather(const S1 *array, const OtherT *const S1::* ptrMember1, const IndexType &outerIndex, const IndexType &innerIndex, Mask mask) {
+            // FIXME there must be a nicer way to implement this
+            enum {
+                OuterStride = sizeof(S1) / 4
+            };
+            const int *const outerArray = reinterpret_cast<const int *>(&(array->*ptrMember1));// + (sizeof(void *) / sizeof(int) - 1);
+            _M512I offsets = _mm512_setzero_pi();
+            // bah, ugly hack:
+            // gather the LSB of the pointers (this breaks if some point to the heap and others to
+            // the stack, in that case the MSB differs (at least on Linux, dunno on FreeBSD))
+            const _M512I index = _mm512_mull_pi(outerIndex, _mm512_set_1to16_pi(OuterStride));
+            VectorHelper<int>::gather(offsets, index, outerArray, mask.data());
+            // and calculate the offsets to (array[0].*ptrMember1)
+            offsets = _mm512_sub_pi(offsets, _mm512_set_1to16_pi(outerArray[0]));
+            offsets = _mm512_madd231_pi(offsets, innerIndex, _mm512_set_1to16_pi(sizeof(OtherT)));
+            VectorHelper<T>::gatherScale1(data, offsets, array->*ptrMember1, mask.data());
         }
 
         template<typename S, typename OtherT>

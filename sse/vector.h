@@ -265,6 +265,15 @@ class Vector : public VectorBase<T>
             GeneralHelpers::maskedGatherStructHelper<sizeof(S1)>(*this, indexes, mask.toInt(), &(array[0].*(member1).*(member2)));
         }
 
+        template<typename S1> inline Vector(const S1 *array, const EntryType *const S1::* ptrMember1,
+                const IndexType &outerIndex, const IndexType &innerIndex, const GatherMask &mask) {
+            GeneralHelpers::maskedDoubleGatherHelper<sizeof(S1)>(*this, outerIndex, innerIndex, mask.toInt(), &(array[0].*(ptrMember1)));
+        }
+        template<typename S1> inline void gather(const S1 *array, const EntryType *const S1::* ptrMember1,
+                const IndexType &outerIndex, const IndexType &innerIndex, const GatherMask &mask) {
+            GeneralHelpers::maskedDoubleGatherHelper<sizeof(S1)>(*this, outerIndex, innerIndex, mask.toInt(), &(array[0].*(ptrMember1)));
+        }
+
         template<typename S1> inline void gather(const S1 *array, const EntryType S1::* member1,
                 const IndexType &indexes) {
             GatherHelper<T>::gather(*this, indexes, array, member1);

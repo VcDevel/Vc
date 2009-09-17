@@ -287,6 +287,15 @@ class Vector : public VectorBase<T, Vector<T> >
             if (mask.data()) m_data = array[indexes[0]].*(member1).*(member2);
         }
 
+        template<typename S1> inline Vector(const S1 *array, const EntryType *const S1::* ptrMember1,
+                const Vector<unsigned int> &outerIndex, const Vector<unsigned int> &innerIndex, Mask mask) {
+            if (mask.data()) m_data = (array[outerIndex[0]].*(ptrMember1))[innerIndex[0]];
+        }
+        template<typename S1> inline void gather(const S1 *array, const EntryType *const S1::* ptrMember1,
+                const Vector<unsigned int> &outerIndex, const Vector<unsigned int> &innerIndex, Mask mask) {
+            if (mask.data()) m_data = (array[outerIndex[0]].*(ptrMember1))[innerIndex[0]];
+        }
+
         inline void scatter(T *array, const Vector<unsigned int> &indexes, Mask m = true) const { if (m.data()) array[indexes[0]] = m_data; }
         template<typename S> inline void scatter(S *array, T S::* member, const Vector<unsigned int> &indexes, Mask m = true) const {
             if (m.data()) array[indexes[0]].*(member) = m_data;

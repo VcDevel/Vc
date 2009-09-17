@@ -119,6 +119,47 @@ template<typename Vec> void gatherStruct()
     }
 }
 
+template<typename T> struct Row
+{
+    T *data;
+};
+
+template<typename Vec> void gather2dim()
+{
+    typedef typename Vec::IndexType It;
+    typedef typename Vec::EntryType T;
+    const int count = 3999;
+    typedef Row<T> S;
+    S array[count];
+    for (int i = 0; i < count; ++i) {
+        array[i].data = new T[count];
+        for (int j = 0; j < count; ++j) {
+            array[i].data[j] = 2 * i + j;
+        }
+    }
+
+    typename It::Mask mask;
+    for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
+        for (It j = It(IndexesFromZero); !(mask &= (j < count)).isEmpty(); j += Vec::Size) {
+            const Vec i0(i * 2 + j);
+            const typename Vec::Mask castedMask(mask);
+
+            Vec a(array, &S::data, i, j, castedMask);
+            COMPARE(castedMask, castedMask && (a == i0));
+
+            Vec b(Zero);
+            b.gather(array, &S::data, i, j, castedMask);
+            COMPARE(castedMask, (b == i0));
+            if (!castedMask.isFull()) {
+                COMPARE(!castedMask, b == Vec(Zero));
+            }
+        }
+    }
+    for (int i = 0; i < count; ++i) {
+        delete[] array[i].data;
+    }
+}
+
 int main()
 {
     runTest(gatherArray<int_v>);
@@ -136,6 +177,14 @@ int main()
     runTest(gatherStruct<short_v>);
     runTest(gatherStruct<ushort_v>);
     runTest(gatherStruct<sfloat_v>);
+
+    runTest(gather2dim<int_v>);
+    runTest(gather2dim<uint_v>);
+    runTest(gather2dim<short_v>);
+    runTest(gather2dim<ushort_v>);
+    runTest(gather2dim<float_v>);
+    runTest(gather2dim<sfloat_v>);
+    runTest(gather2dim<double_v>);
 
     return 0;
 }
