@@ -128,8 +128,14 @@ namespace Larrabee
             inline bool operator!=(const Mask &rhs) const { return MaskHelper<VectorSize>::cmpneq(k, rhs.k); }
 
             inline Mask operator&&(const Mask &rhs) const { return _mm512_vkand(k, rhs.k); }
+            inline Mask operator& (const Mask &rhs) const { return _mm512_vkand(k, rhs.k); }
             inline Mask operator||(const Mask &rhs) const { return _mm512_vkor (k, rhs.k); }
+            inline Mask operator| (const Mask &rhs) const { return _mm512_vkor (k, rhs.k); }
+            inline Mask operator^ (const Mask &rhs) const { return _mm512_vkxor(k, rhs.k); }
             inline Mask operator!() const { return ~k; }
+
+            inline Mask &operator&=(const Mask &rhs) { k = _mm512_vkand(k, rhs.k); return *this; }
+            inline Mask &operator|=(const Mask &rhs) { k = _mm512_vkor (k, rhs.k); return *this; }
 
             inline bool isFull () const { return MaskHelper<VectorSize>::isFull (k); }
             inline bool isEmpty() const { return MaskHelper<VectorSize>::isEmpty(k); }
