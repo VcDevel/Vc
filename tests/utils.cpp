@@ -123,6 +123,12 @@ template<typename V> void testForeachBit()
         TestForeachBitHelper foo(ref);
         mask.foreachBit(&foo, &TestForeachBitHelper::foo);
         COMPARE(ref, (1 << i) - 1);
+
+        ref = 0;
+        foreach_bit(int j, mask) {
+            ref += (1 << j);
+        }
+        COMPARE(ref, (1 << i) - 1);
     }
 }
 
