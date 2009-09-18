@@ -167,6 +167,30 @@ namespace LRBni
             __mmask k;
     };
 
+struct ForeachHelper
+{
+    unsigned short mask;
+    short bit;
+    bool brk;
+    inline ForeachHelper(unsigned short _mask) :
+        mask(_mask),
+        bit(_mm_bsff_16(mask)),
+        brk(false)
+    {}
+    inline bool outer() const { return bit != -1; }
+    inline bool inner() { return (brk = !brk); }
+    inline short next() const { return bit; }
+    inline void step() { bit = _mm_bsfi_16(bit, mask); }
+};
+
+#define Vc_foreach_bit(_it_, _mask_) \
+    for (Vc::LRBni::ForeachHelper _Vc_foreach_bit_helper(_mask_.data()); \
+            _Vc_foreach_bit_helper.outer(); \
+            _Vc_foreach_bit_helper.step()) \
+        for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
+
+#define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
+
 /**
  * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
  * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
