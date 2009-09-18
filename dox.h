@@ -60,10 +60,25 @@
  */
 
 /**
+ * \defgroup Vectors
+ *
+ * Vector classes are abstractions for SIMD instructions.
+ *
+ * \defgroup Masks
+ *
+ * Mask classes are abstractions for the results of vector comparisons. The actual implementation
+ * differs depending on the SIMD instruction set. On SSE they contain a full 128bit datatype while
+ * on LRBni they are stored as 16bit unsigned integers.
+ *
  * \defgroup Utilities
  *
  * Utilities that either extend the language or provide other useful functionality outside of the
  * classes.
+ *
+ * \defgroup Math
+ *
+ * Functions that implement math functions. Take care that some of the implementations will return
+ * results with less precision than what the FPU calculates.
  */
 
 /**
@@ -109,6 +124,7 @@ namespace Vc
 #define MASK_TYPE float_m
     /**
      * \class float_v dox.h <Vc/float_v>
+     * \ingroup Vectors
      *
      * SIMD Vector of single precision floats.
      */
@@ -119,6 +135,7 @@ namespace Vc
     };
     /**
      * \class float_m dox.h <Vc/float_v>
+     * \ingroup Masks
      *
      * Mask object to use with float_v objects.
      *
@@ -138,6 +155,7 @@ namespace Vc
 #define MASK_TYPE double_m
     /**
      * \class double_v dox.h <Vc/double_v>
+     * \ingroup Vectors
      *
      * SIMD Vector of double precision floats.
      */
@@ -148,6 +166,7 @@ namespace Vc
     };
     /**
      * \class double_m dox.h <Vc/double_v>
+     * \ingroup Masks
      *
      * Mask object to use with double_v objects.
      */
@@ -165,6 +184,7 @@ namespace Vc
 #define MASK_TYPE int_m
     /**
      * \class int_v dox.h <Vc/int_v>
+     * \ingroup Vectors
      *
      * SIMD Vector of 32 bit signed integers.
      */
@@ -175,6 +195,7 @@ namespace Vc
     };
     /**
      * \class int_m dox.h <Vc/int_v>
+     * \ingroup Masks
      *
      * Mask object to use with int_v objects.
      *
@@ -194,6 +215,7 @@ namespace Vc
 #define MASK_TYPE uint_m
     /**
      * \class uint_v dox.h <Vc/uint_v>
+     * \ingroup Vectors
      *
      * SIMD Vector of 32 bit unsigned integers.
      */
@@ -204,6 +226,7 @@ namespace Vc
     };
     /**
      * \class uint_m dox.h <Vc/uint_v>
+     * \ingroup Masks
      *
      * Mask object to use with uint_v objects.
      *
@@ -225,6 +248,7 @@ namespace Vc
 #define MASK_TYPE short_m
     /**
      * \class short_v dox.h <Vc/short_v>
+     * \ingroup Vectors
      *
      * SIMD Vector of 16 bit signed integers.
      *
@@ -238,6 +262,7 @@ namespace Vc
     };
     /**
      * \class short_m dox.h <Vc/short_v>
+     * \ingroup Masks
      *
      * Mask object to use with short_v objects.
      *
@@ -257,6 +282,7 @@ namespace Vc
 #define MASK_TYPE ushort_m
     /**
      * \class ushort_v dox.h <Vc/ushort_v>
+     * \ingroup Vectors
      *
      * SIMD Vector of 16 bit unsigned integers.
      *
@@ -270,6 +296,7 @@ namespace Vc
     };
     /**
      * \class ushort_m dox.h <Vc/ushort_v>
+     * \ingroup Masks
      *
      * Mask object to use with ushort_v objects.
      *
@@ -289,6 +316,7 @@ namespace Vc
 #define MASK_TYPE sfloat_m
     /**
      * \class sfloat_v dox.h <Vc/sfloat_v>
+     * \ingroup Vectors
      *
      * SIMD Vector of single precision floats that is guaranteed to have as many entries as a
      * Vc::short_v / Vc::ushort_v.
@@ -300,6 +328,8 @@ namespace Vc
     };
     /**
      * \class sfloat_m dox.h <Vc/sfloat_v>
+     * \ingroup Masks
+     * \ingroup Masks
      *
      * Mask object to use with sfloat_v objects.
      */
@@ -314,6 +344,8 @@ namespace Vc
 #undef INDEX_TYPE
 
     /**
+     * \ingroup Utilities
+     *
      * Force the vectors passed to the function into registers. This can be useful after looking at
      * the emitted assembly to force the compiler to optimize properly.
      *
@@ -323,6 +355,16 @@ namespace Vc
      * compile for 32 bit systems if it forces more than 8 vectors in registers.
      */
     void forceToRegisters(const vec &, ...);
+
+#define VECTOR_TYPE float_v
+#include "dox-math.h"
+#undef  VECTOR_TYPE
+#define VECTOR_TYPE sfloat_v
+#include "dox-math.h"
+#undef  VECTOR_TYPE
+#define VECTOR_TYPE double_v
+#include "dox-math.h"
+#undef  VECTOR_TYPE
 }
 
 /**
