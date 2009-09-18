@@ -60,6 +60,13 @@
  */
 
 /**
+ * \defgroup Utilities
+ *
+ * Utilities that either extend the language or provide other useful functionality outside of the
+ * classes.
+ */
+
+/**
  * \brief Vector Classes
  *
  * Depending on preprocessing macros, the vector classes inside the Vc namespace will be implemented
@@ -317,3 +324,25 @@ namespace Vc
      */
     void forceToRegisters(const vec &, ...);
 }
+
+/**
+ * \ingroup Utilities
+ *
+ * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
+ * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
+ * 1, 3, and 4.
+ *
+ * This allows you to write:
+ * \code
+ * float_v a = ...;
+ * foreach_bit(int i, a < 0.f) {
+ *   std::cout << a[i] << "\n";
+ * }
+ * \endcode
+ * The example prints all the values in \p a that are negative, and only those.
+ *
+ * \param iterator  The iterator variable. For example "int i".
+ * \param mask      The mask to iterate over. You can also just write a vector operation that returns a
+ *                  mask.
+ */
+#define foreach_bit(iterator, mask)
