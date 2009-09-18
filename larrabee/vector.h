@@ -1018,11 +1018,26 @@ class Vector : public VectorBase<T, Vector<T> >
             VectorHelper<T>::store(mem, data, mask.data());
         }
 
+        inline void store(T *mem) const
+        {
+            VectorHelper<T>::store(mem, data);
+        }
+
+        inline void store(T *mem, Mask mask) const
+        {
+            VectorHelper<T>::store(mem, data, mask.data());
+        }
+
         /**
          * Non-temporal store variant. Writes to the memory without polluting the cache.
          */
         template<typename OtherT>
         inline void storeStreaming(OtherT *mem) const
+        {
+            VectorHelper<T>::storeStreaming(mem, data);
+        }
+
+        inline void storeStreaming(T *mem) const
         {
             VectorHelper<T>::storeStreaming(mem, data);
         }
