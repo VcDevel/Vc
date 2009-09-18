@@ -99,14 +99,6 @@ template<typename V> void testCall()
     }
 }
 
-struct TestForeachBitHelper
-{
-    TestForeachBitHelper(int &r) : ref(r) {}
-    int &ref;
-    void operator()(int i) { ref += (1 << i); }
-    void foo(int i) { ref += (1 << i); }
-};
-
 template<typename V> void testForeachBit()
 {
     typedef typename V::EntryType T;
@@ -117,14 +109,6 @@ template<typename V> void testForeachBit()
     for (int i = 0; i <= V::Size; ++i) {
         const M mask(indexes < i);
         int ref = 0;
-        mask.foreachBit(TestForeachBitHelper(ref));
-        COMPARE(ref, (1 << i) - 1);
-        ref = 0;
-        TestForeachBitHelper foo(ref);
-        mask.foreachBit(&foo, &TestForeachBitHelper::foo);
-        COMPARE(ref, (1 << i) - 1);
-
-        ref = 0;
         foreach_bit(int j, mask) {
             ref += (1 << j);
         }

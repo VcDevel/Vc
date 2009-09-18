@@ -160,9 +160,6 @@ namespace LRBni
              */
             int firstOne() const { return _mm_bsff_16(k); }
 
-            template<typename F> void foreachBit(F func) const;
-            template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const;
-
         private:
             __mmask k;
     };
@@ -183,14 +180,6 @@ struct ForeachHelper
     inline void step() { bit = _mm_bsfi_16(bit, mask); }
 };
 
-#define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::LRBni::ForeachHelper _Vc_foreach_bit_helper(_mask_.data()); \
-            _Vc_foreach_bit_helper.outer(); \
-            _Vc_foreach_bit_helper.step()) \
-        for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
-
-#define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
-
 /**
  * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
  * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
@@ -209,21 +198,13 @@ struct ForeachHelper
  * \param mask The mask to iterate over. You can also just write a vector operation that returns a
  *             mask.
  */
-template<unsigned int Size> template<typename F>
-inline void Mask<Size>::foreachBit(F func) const {
-    unsigned int mask = k;
-    for (int i = _mm_bsff_32(mask); i >= 0; i = _mm_bsfi_32(i, mask)) {
-        func(i);
-    }
-}
+#define Vc_foreach_bit(_it_, _mask_) \
+    for (Vc::LRBni::ForeachHelper _Vc_foreach_bit_helper(_mask_.data()); \
+            _Vc_foreach_bit_helper.outer(); \
+            _Vc_foreach_bit_helper.step()) \
+        for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
 
-template<unsigned int Size> template<typename T>
-inline void Mask<Size>::foreachBit(T *obj, void (T::*func)(int)) const {
-    unsigned int mask = k;
-    for (int i = _mm_bsff_32(mask); i >= 0; i = _mm_bsfi_32(i, mask)) {
-        (obj->*func)(i);
-    }
-}
+#define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
 
     class float11_11_10 { public:
         enum Component {

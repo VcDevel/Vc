@@ -139,9 +139,6 @@ template<unsigned int VectorSize> class Mask
          */
         int firstOne() const;
 
-        template<typename F> void foreachBit(F func) const;
-        template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const;
-
     private:
         _M128 k;
 };
@@ -409,9 +406,6 @@ class Float8Mask
 
         int firstOne() const;
 
-        template<typename F> void foreachBit(F func) const;
-        template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const;
-
     private:
         M256 k;
 };
@@ -444,46 +438,6 @@ class Float8GatherMask
     private:
         const int mask;
 };
-
-template<unsigned int VectorSize> template<typename F>
-inline void Mask<VectorSize>::foreachBit(F func) const {
-    unsigned long mask = toInt();
-    while (mask) {
-        const unsigned long bit = __builtin_ctzl(mask);
-        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
-        func(bit);
-    }
-}
-
-template<unsigned int VectorSize> template<typename T>
-inline void Mask<VectorSize>::foreachBit(T *obj, void (T::*func)(int)) const {
-    unsigned long mask = toInt();
-    while (mask) {
-        const unsigned long bit = __builtin_ctzl(mask);
-        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
-        (obj->*func)(bit);
-    }
-}
-
-template<typename F>
-inline void Float8Mask::foreachBit(F func) const {
-    unsigned long mask = toInt();
-    while (mask) {
-        const unsigned long bit = __builtin_ctzl(mask);
-        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
-        func(bit);
-    }
-}
-
-template<typename T>
-inline void Float8Mask::foreachBit(T *obj, void (T::*func)(int)) const {
-    unsigned long mask = toInt();
-    while (mask) {
-        const unsigned long bit = __builtin_ctzl(mask);
-        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
-        (obj->*func)(bit);
-    }
-}
 
 /**
  * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
