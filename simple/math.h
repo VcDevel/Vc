@@ -140,7 +140,7 @@ template<typename T> static inline Vector<T> reciprocal(const Vector<T> &x)
 #ifdef isnan
 #undef isnan
 #endif
-template<typename T> static inline bool isfinite(const Vector<T> &x)
+template<typename T> static inline typename Vector<T>::Mask isfinite(const Vector<T> &x)
 {
 #ifdef _MSC_VER
     return !!_finite(x.data());
@@ -151,7 +151,7 @@ template<typename T> static inline bool isfinite(const Vector<T> &x)
 #endif
 }
 
-template<typename T> static inline bool isnan(const Vector<T> &x)
+template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T> &x)
 {
 #ifdef _MSC_VER
     return !!_isnan(x.data());
