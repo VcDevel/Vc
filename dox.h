@@ -146,6 +146,7 @@ namespace Vc
         public:
 #include "dox-common-mask-ops.h"
     };
+#include "dox-math.h"
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
 #undef MASK_TYPE
@@ -175,6 +176,7 @@ namespace Vc
         public:
 #include "dox-common-mask-ops.h"
     };
+#include "dox-math.h"
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
 #undef MASK_TYPE
@@ -338,6 +340,7 @@ namespace Vc
         public:
 #include "dox-common-mask-ops.h"
     };
+#include "dox-math.h"
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
 #undef MASK_TYPE
@@ -355,16 +358,6 @@ namespace Vc
      * compile for 32 bit systems if it forces more than 8 vectors in registers.
      */
     void forceToRegisters(const vec &, ...);
-
-#define VECTOR_TYPE float_v
-#include "dox-math.h"
-#undef  VECTOR_TYPE
-#define VECTOR_TYPE sfloat_v
-#include "dox-math.h"
-#undef  VECTOR_TYPE
-#define VECTOR_TYPE double_v
-#include "dox-math.h"
-#undef  VECTOR_TYPE
 }
 
 /**

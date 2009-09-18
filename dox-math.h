@@ -21,6 +21,48 @@
 /**
  * \ingroup Math
  *
+ * Returns the square root of \p v.
+ */
+VECTOR_TYPE sqrt(const VECTOR_TYPE &v);
+
+/**
+ * \ingroup Math
+ *
+ * Returns the reciprocal square root of \p v.
+ */
+VECTOR_TYPE rsqrt(const VECTOR_TYPE &v);
+
+/**
+ * \ingroup Math
+ *
+ * Returns the reciprocal of \p v.
+ */
+VECTOR_TYPE reciprocal(const VECTOR_TYPE &v);
+
+/**
+ * \ingroup Math
+ *
+ * Returns the absolute value of \p v.
+ */
+VECTOR_TYPE abs(const VECTOR_TYPE &v);
+
+/**
+ * \ingroup Math
+ *
+ * Returns the closest integer to \p v. 0.5 is rounded to even.
+ */
+VECTOR_TYPE round(const VECTOR_TYPE &v);
+
+/**
+ * \ingroup Math
+ *
+ * Returns the natural logarithm of \p v.
+ */
+VECTOR_TYPE log(const VECTOR_TYPE &v);
+
+/**
+ * \ingroup Math
+ *
  * Returns the sine of \p v.
  */
 VECTOR_TYPE sin(const VECTOR_TYPE &v);
@@ -52,3 +94,31 @@ VECTOR_TYPE atan(const VECTOR_TYPE &v);
  * Returns the arctangent of \p x / \p y.
  */
 VECTOR_TYPE atan2(const VECTOR_TYPE &x, const VECTOR_TYPE &y);
+
+/**
+ * \ingroup Math
+ *
+ * Returns the minimum of \p x and \p y.
+ */
+VECTOR_TYPE min(const VECTOR_TYPE &x, const VECTOR_TYPE &y);
+
+/**
+ * \ingroup Math
+ *
+ * Returns the maximum of \p x and \p y.
+ */
+VECTOR_TYPE max(const VECTOR_TYPE &x, const VECTOR_TYPE &y);
+
+/**
+ * \ingroup Math
+ *
+ * Returns whether the values in the vector are finite (i.e. not NaN or +/-inf).
+ */
+MASK_TYPE isfinite(const VECTOR_TYPE &x);
+
+/**
+ * \ingroup Math
+ *
+ * Returns whether the values in the vector are NaN.
+ */
+MASK_TYPE isnan(const VECTOR_TYPE &x);
