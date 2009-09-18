@@ -18,6 +18,7 @@
 */
 
 /**
+ * \headerfile vector.h <Vc/Vc>
  * A helper class to easily get aligned memory for aligned loads and stores.
  *
  * Note that the class does not have a constructor or destructor and therefore can be used even in
