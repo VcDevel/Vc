@@ -57,20 +57,21 @@ template<typename Vec> void maskedStore()
     }
 
     const int count = 256 * 1024 / sizeof(T);
-    T array[count];
+    const int outerCount = count / Vec::Size;
+    typename Vec::Memory array[outerCount];
     T nullValue = 0;
     std::memset(array, 0, count * sizeof(T));
     T setValue = 170;
     const Vec x(setValue);
-    for (int i = 0; i < count; i += Vec::Size) {
-        x.store(&array[i], mask);
+    for (int i = 0; i < outerCount; ++i) {
+        x.store(array[i], mask);
     }
 
     for (int i = 1; i < count; i += 2) {
-        COMPARE(array[i], setValue);
+        COMPARE(array[i / Vec::Size][i % Vec::Size], setValue);
     }
     for (int i = 0; i < count; i += 2) {
-        COMPARE(array[i], nullValue);
+        COMPARE(array[i / Vec::Size][i % Vec::Size], nullValue);
     }
 }
 
