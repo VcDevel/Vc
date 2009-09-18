@@ -115,5 +115,6 @@ install(DIRECTORY larrabee simple sse DESTINATION include/Vc FILES_MATCHING REGE
 add_subdirectory(tests)
 enable_testing()
 add_subdirectory(benchmarks)
+add_subdirectory(examples)
 
 mark_as_advanced(prototypes_header)
