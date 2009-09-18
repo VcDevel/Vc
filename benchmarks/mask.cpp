@@ -168,7 +168,7 @@ int bmain(Benchmark::OutputMode out)
     CondAssignment<float_v>::run(Repetitions);
     Benchmark::setColumnData("datatype", "short_v");
     CondAssignment<short_v>::run(Repetitions);
-#ifdef USE_SSE
+#if VC_IMPL_SSE
     Benchmark::setColumnData("datatype", "sfloat_v");
     CondAssignment<sfloat_v>::run(Repetitions);
 #endif

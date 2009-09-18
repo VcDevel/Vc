@@ -28,7 +28,7 @@ using namespace Vc;
 bool blackHole = false;
 float_m floatResult;
 short_m shortResult;
-#ifdef USE_SSE
+#if VC_IMPL_SSE
 sfloat_m sfloatResult;
 #endif
 
@@ -120,7 +120,7 @@ template<typename Vector> class DoCompares
 
 template<> inline void DoCompares<float_v>::setResultPointer() { result = &floatResult; }
 template<> inline void DoCompares<short_v>::setResultPointer() { result = &shortResult; }
-#ifdef USE_SSE
+#if VC_IMPL_SSE
 template<> inline void DoCompares<sfloat_v>::setResultPointer() { result = &sfloatResult; }
 #endif
 
@@ -162,7 +162,7 @@ int bmain(Benchmark::OutputMode out)
     DoCompares<float_v> a(Repetitions);
     Benchmark::setColumnData("datatype", "short_v");
     DoCompares<short_v> b(Repetitions);
-#ifdef USE_SSE
+#if VC_IMPL_SSE
     Benchmark::setColumnData("datatype", "sfloat_v");
     DoCompares<sfloat_v> c(Repetitions);
 #endif

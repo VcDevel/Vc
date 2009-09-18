@@ -122,7 +122,7 @@ template<> inline bool unittest_fuzzyCompareHelper<Vc::float_v>( const Vc::float
     return a == b || Vc::abs(a - b) <= _unit_test_global.float_fuzzyness * Vc::abs(b);
 }
 
-#ifdef USE_SSE
+#if VC_IMPL_SSE
 template<> inline bool unittest_fuzzyCompareHelper<Vc::sfloat_v>( const Vc::sfloat_v &a, const Vc::sfloat_v &b )
 {
     return a == b || Vc::abs(a - b) <= _unit_test_global.float_fuzzyness * Vc::abs(b);

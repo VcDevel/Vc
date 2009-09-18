@@ -58,7 +58,7 @@ template<typename Vector> class NameHelper
 
 template<> const char *NameHelper<float_v>::s = "float_v";
 template<> const char *NameHelper<short_v>::s = "short_v";
-#ifdef USE_SSE
+#if VC_IMPL_SSE
 template<> const char *NameHelper<sfloat_v>::s = "sfloat_v";
 #endif
 
@@ -66,7 +66,7 @@ int blackHole = 1;
 
 float_m float_fullMask;
 short_m short_fullMask;
-#ifdef USE_SSE
+#if VC_IMPL_SSE
 sfloat_m sfloat_fullMask;
 #endif
 
@@ -149,7 +149,7 @@ template<typename Vector, class GatherImpl> class GatherBase : public FullMaskHe
 
 template<> FullMaskHelper<float_v>::FullMaskHelper() : fullMask(&float_fullMask) {}
 template<> FullMaskHelper<short_v>::FullMaskHelper() : fullMask(&short_fullMask) {}
-#ifdef USE_SSE
+#if VC_IMPL_SSE
 template<> FullMaskHelper<sfloat_v>::FullMaskHelper() : fullMask(&sfloat_fullMask) {}
 #endif
 
@@ -308,7 +308,7 @@ int bmain(Benchmark::OutputMode out)
 {
     float_fullMask = float_m(One);
     short_fullMask = short_m(One);
-#ifdef USE_SSE
+#if VC_IMPL_SSE
     sfloat_fullMask = sfloat_m(One);
 #endif
 
@@ -347,7 +347,7 @@ int bmain(Benchmark::OutputMode out)
     GatherBenchmark<float_v>::run(Repetitions);
     Benchmark::setColumnData("datatype", "short_v");
     GatherBenchmark<short_v>::run(Repetitions);
-#ifdef USE_SSE
+#if VC_IMPL_SSE
     Benchmark::setColumnData("datatype", "sfloat_v");
     GatherBenchmark<sfloat_v>::run(Repetitions);
 #endif

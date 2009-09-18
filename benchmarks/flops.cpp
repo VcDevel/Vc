@@ -80,7 +80,7 @@ int bmain(Benchmark::OutputMode out)
     {
         Benchmark timer("reference", 8. * float_v::Size * Factor, "FLOP");
         for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
-#ifdef USE_SSE
+#if VC_IMPL_SSE
             __m128 tmp = _mm_set1_ps(static_cast<float>(repetitions));
             const __m128 oPoint2 = _mm_set1_ps(randomF(.1f, .2f));
             const __m128 oPoint1 = _mm_set1_ps(randomF(.1f, .2f));

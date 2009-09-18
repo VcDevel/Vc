@@ -167,7 +167,7 @@ template<typename Vec> Vec *Helper<Vec>::blackHole = 0;
 // global (not file-static!) variable keeps the compiler from identifying the benchmark as dead code
 float_v blackHoleFloat;
 template<> inline void Helper<float_v>::setBlackHole() { blackHole = &blackHoleFloat; }
-#ifdef USE_SSE
+#if VC_IMPL_SSE
 sfloat_v blackHoleSFloat;
 template<> inline void Helper<sfloat_v>::setBlackHole() { blackHole = &blackHoleSFloat; }
 #endif
@@ -178,7 +178,7 @@ int bmain(Benchmark::OutputMode out)
     Benchmark::addColumn("datatype");
     Benchmark::setColumnData("datatype", "float_v");
     Helper<float_v>::run(Repetitions);
-#ifdef USE_SSE
+#if VC_IMPL_SSE
     Benchmark::setColumnData("datatype", "sfloat_v");
     Helper<sfloat_v>::run(Repetitions);
 #endif
