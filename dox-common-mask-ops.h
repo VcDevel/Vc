@@ -129,26 +129,3 @@ int count() const;
  * Returns the index of the first one in the mask.
  */
 int firstOne() const;
-
-/**
- * Loop over all set bits in the mask. The iterator variable passed to \p F will be set to the
- * position of the set bits. A mask of e.g. 00011010 would result in \p F being called with the
- * argument set to 1, 3, and 4.
- *
- * This allows you to write:
- * \code
- * void doSomething(int i) {
- *   std::cout << i << "\n";
- * }
- * ...
- * float_v a = ...;
- * (a < 0.f).foreachBit(doSomething);
- * \endcode
- * The example prints all the indexes where \p a is negative (and only those).
- *
- * \param func A functor that implements operator()(int) or a function that takes one int argument.
- */
-template<typename F> void foreachBit(F func) const;
-/**
- */
-template<typename T> void foreachBit(T *obj, void (T::*func)(int)) const;
