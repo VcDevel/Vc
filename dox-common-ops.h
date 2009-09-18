@@ -18,6 +18,67 @@
 */
 
 /**
+ * A helper class to easily get aligned memory for aligned loads and stores.
+ *
+ * Note that the class does not have a constructor or destructor and therefore can be used even in
+ * places where only POD types are allowed.
+ *
+ * To initialize the memory do either:
+ * \code
+ * float_v::Memory mem;
+ * mem = float_v(Vc::Zero);
+ * \endcode
+ * or
+ * \code
+ * float_v::Memory mem;
+ * for (int i = 0; i < mem.size(); ++i) {
+ *   mem[i] = static_cast<float>(i);
+ * }
+ * \endcode
+ */
+class Memory
+{
+    public:
+        /**
+         * Returns the size of the memory. This equals the value of the Size enum of the vector
+         * class.
+         */
+        int size() const;
+
+        /**
+         * Returns a reference to the \p i th value in the memory. Use this function to write to the
+         * memory.
+         */
+        ENTRY_TYPE &operator[](int i);
+
+        /**
+         * Returns the value at the \p i th position in the memory.
+         */
+        ENTRY_TYPE operator[](int i) const;
+
+        /**
+         * Cast operator to a standard C-array type.
+         */
+        operator ENTRY_TYPE*();
+
+        /**
+         * Cast operator to a standard C-array type (const overload).
+         */
+        operator const ENTRY_TYPE*() const;
+
+        /**
+         * Standard copy constructor, but using the most efficient vector instructions to implement
+         * the copy.
+         */
+        Memory &operator=(const Memory &rhs);
+
+        /**
+         * Initialize the whole objects memory from the given vector object.
+         */
+        Memory &operator=(const VECTOR_TYPE &rhs);
+};
+
+/**
  * The type of the vector used for indexes in gather and scatter operations.
  */
 typedef INDEX_TYPE IndexType;

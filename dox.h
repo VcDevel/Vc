@@ -110,6 +110,18 @@ namespace Vc
         public:
 #include "dox-common-ops.h"
     };
+    /**
+     * \class float_m dox.h <Vc/float_v>
+     *
+     * Mask object to use with float_v objects.
+     *
+     * Of the same type as int_m and uint_m.
+     */
+    class MASK_TYPE
+    {
+        public:
+#include "dox-common-mask-ops.h"
+    };
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
 #undef MASK_TYPE
@@ -126,6 +138,16 @@ namespace Vc
     {
         public:
 #include "dox-common-ops.h"
+    };
+    /**
+     * \class double_m dox.h <Vc/double_v>
+     *
+     * Mask object to use with double_v objects.
+     */
+    class MASK_TYPE
+    {
+        public:
+#include "dox-common-mask-ops.h"
     };
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
@@ -144,6 +166,18 @@ namespace Vc
         public:
 #include "dox-common-ops.h"
     };
+    /**
+     * \class int_m dox.h <Vc/int_v>
+     *
+     * Mask object to use with int_v objects.
+     *
+     * Of the same type as float_m and uint_m.
+     */
+    class MASK_TYPE
+    {
+        public:
+#include "dox-common-mask-ops.h"
+    };
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
 #undef MASK_TYPE
@@ -160,6 +194,18 @@ namespace Vc
     {
         public:
 #include "dox-common-ops.h"
+    };
+    /**
+     * \class uint_m dox.h <Vc/uint_v>
+     *
+     * Mask object to use with uint_v objects.
+     *
+     * Of the same type as int_m and float_m.
+     */
+    class MASK_TYPE
+    {
+        public:
+#include "dox-common-mask-ops.h"
     };
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
@@ -183,6 +229,18 @@ namespace Vc
         public:
 #include "dox-common-ops.h"
     };
+    /**
+     * \class short_m dox.h <Vc/short_v>
+     *
+     * Mask object to use with short_v objects.
+     *
+     * Of the same type as ushort_m.
+     */
+    class MASK_TYPE
+    {
+        public:
+#include "dox-common-mask-ops.h"
+    };
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
 #undef MASK_TYPE
@@ -203,6 +261,18 @@ namespace Vc
         public:
 #include "dox-common-ops.h"
     };
+    /**
+     * \class ushort_m dox.h <Vc/ushort_v>
+     *
+     * Mask object to use with ushort_v objects.
+     *
+     * Of the same type as short_m.
+     */
+    class MASK_TYPE
+    {
+        public:
+#include "dox-common-mask-ops.h"
+    };
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
 #undef MASK_TYPE
@@ -220,6 +290,16 @@ namespace Vc
     {
         public:
 #include "dox-common-ops.h"
+    };
+    /**
+     * \class sfloat_m dox.h <Vc/sfloat_v>
+     *
+     * Mask object to use with sfloat_v objects.
+     */
+    class MASK_TYPE
+    {
+        public:
+#include "dox-common-mask-ops.h"
     };
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
