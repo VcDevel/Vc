@@ -33,6 +33,8 @@
 # endif
 #endif
 
+namespace Vc
+{
 namespace SSE
 {
     template<> inline _M128I SortHelper<_M128I, 8>::sort(_M128I x)
@@ -874,3 +876,4 @@ namespace SSE
         return H::mul(x.data(), H::set(constant));
     }
 } // namespace SSE
+} // namespace Vc

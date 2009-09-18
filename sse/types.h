@@ -22,6 +22,8 @@
 
 #include "intrinsics.h"
 
+namespace Vc
+{
 namespace SSE
 {
     template<typename T> class Vector;
@@ -91,4 +93,6 @@ namespace SSE
     } ALIGN(16);
 
 } // namespace SSE
+} // namespace Vc
+
 #endif // SSE_TYPES_H

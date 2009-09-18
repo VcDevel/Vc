@@ -35,6 +35,8 @@
 #undef isnan
 #endif
 
+namespace Vc
+{
 namespace SSE
 {
     enum { VectorAlignment = 16 };
@@ -796,6 +798,7 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const typename 
 #endif
 #undef STORE_VECTOR
 } // namespace SSE
+} // namespace Vc
 
 #include "math.h"
 #include "undomacros.h"

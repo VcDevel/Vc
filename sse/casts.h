@@ -23,6 +23,8 @@
 #include "intrinsics.h"
 #include "types.h"
 
+namespace Vc
+{
 namespace SSE
 {
     template<typename To, typename From> static inline To mm128_reinterpret_cast(From v) CONST;
@@ -100,4 +102,6 @@ namespace SSE
     template<> struct ReinterpretCastHelper<short         , unsigned short> { static _M128I cast(const _M128I &v) { return v; } };
     template<> struct ReinterpretCastHelper<short         , short         > { static _M128I cast(const _M128I &v) { return v; } };
 } // namespace SSE
+} // namespace Vc
+
 #endif // SSE_CASTS_H

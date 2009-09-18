@@ -28,13 +28,12 @@
 #include <cmath>
 #include "sse/const.h"
 
+namespace Vc
+{
 namespace SSE
 {
-    namespace Internal
-    {
-        V_ALIGN(16) extern const unsigned int   _IndexesFromZero4[4] = { 0, 1, 2, 3 };
-        V_ALIGN(16) extern const unsigned short _IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-    } // namespace Internal
+    V_ALIGN(16) extern const unsigned int   _IndexesFromZero4[4] = { 0, 1, 2, 3 };
+    V_ALIGN(16) extern const unsigned short _IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
     template<> const float c_sin<float>::_data[4 * 8] = {
         // 1 over 2pi
@@ -77,8 +76,6 @@ namespace SSE
     };
 } // namespace SSE
 
-namespace Vc
-{
 namespace LRBni
 {
     V_ALIGN(16) extern const char _IndexesFromZero[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };

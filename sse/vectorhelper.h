@@ -51,6 +51,8 @@
 #include "vectorbase.h"
 #include <limits>
 
+namespace Vc
+{
 namespace SSE
 {
     template<typename T> struct GatherHelper
@@ -1335,6 +1337,7 @@ namespace SSE
 #undef OPcmp
 
 } // namespace SSE
+} // namespace Vc
 
 #include "vectorhelper.tcc"
 

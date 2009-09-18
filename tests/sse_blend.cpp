@@ -39,10 +39,9 @@ template<> inline bool unittest_compareHelper<__m128i, __m128i>(const __m128i &a
     return _mm_movemask_epi8(_mm_cmpeq_epi16(a, b)) == 0xffff;
 }
 
-namespace SSE
-{
 void blendpd()
 {
+    using Vc::SSE::_mm_blend_pd;
     __m128d a = _mm_set_pd(11, 10);
     __m128d b = _mm_set_pd(21, 20);
 
@@ -53,6 +52,7 @@ void blendpd()
 }
 void blendps()
 {
+    using Vc::SSE::_mm_blend_ps;
     __m128 a = _mm_set_ps(13, 12, 11, 10);
     __m128 b = _mm_set_ps(23, 22, 21, 20);
 
@@ -75,6 +75,7 @@ void blendps()
 }
 void blendepi16()
 {
+    using Vc::SSE::_mm_blend_epi16;
     __m128i a = _mm_set_epi16(17, 16, 15, 14, 13, 12, 11, 10);
     __m128i b = _mm_set_epi16(27, 26, 25, 24, 23, 22, 21, 20);
 
@@ -95,11 +96,10 @@ void blendepi16()
         COMPARE_NOEQ(_mm_blend_epi16(a, b, i), reference);
     )
 }
-} // namespace SSE
 
 int main()
 {
-    runTest(SSE::blendpd);
-    runTest(SSE::blendps);
-    runTest(SSE::blendepi16);
+    runTest(blendpd);
+    runTest(blendps);
+    runTest(blendepi16);
 }

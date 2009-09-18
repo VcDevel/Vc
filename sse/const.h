@@ -22,6 +22,8 @@
 
 #include "macros.h"
 
+namespace Vc
+{
 namespace SSE
 {
     template<typename T> class Vector;
@@ -42,6 +44,7 @@ namespace SSE
         static V _1_9fac() CONST;
     } ALIGN(64);
 } // namespace SSE
+} // namespace Vc
 
 #include "undomacros.h"
 

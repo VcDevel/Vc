@@ -20,6 +20,8 @@
 #ifndef VC_SSE_MEMORY_H
 #define VC_SSE_MEMORY_H
 
+namespace Vc
+{
 namespace SSE
 {
     template<typename T> class _Memory : public VectorAlignedBase
@@ -51,5 +53,6 @@ namespace SSE
     };
 
 } // namespace SSE
+} // namespace Vc
 
 #endif // VC_SSE_MEMORY_H

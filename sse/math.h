@@ -22,6 +22,8 @@
 
 #include "const.h"
 
+namespace Vc
+{
 namespace SSE
 {
     template<typename T> inline Vector<T> c_sin<T>::_1_2pi()  { return Vector<T>(&_data[0 * Size]); }
@@ -169,5 +171,6 @@ namespace SSE
         return b;
     }
 } // namespace SSE
+} // namespace Vc
 
 #endif // VC_SSE_MATH_H

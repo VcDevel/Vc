@@ -22,6 +22,8 @@
 
 #include "intrinsics.h"
 
+namespace Vc
+{
 namespace SSE
 {
 
@@ -489,4 +491,6 @@ inline void Float8Mask::foreachBit(T *obj, void (T::*func)(int)) const {
 //X         for (int _sse_vector_foreach_inner = 1, it = _sse_vector_foreach_it; _sse_vector_foreach_inner; --_sse_vector_foreach_inner)
 
 } // namespace SSE
+} // namespace Vc
+
 #endif // SSE_MASK_H

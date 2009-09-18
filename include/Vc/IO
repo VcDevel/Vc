@@ -28,7 +28,7 @@
 #elif VC_IMPL_Scalar
 # define VECTOR_NAMESPACE Vc::Simple
 #else
-# define VECTOR_NAMESPACE SSE
+# define VECTOR_NAMESPACE Vc::SSE
 #endif
 
 namespace

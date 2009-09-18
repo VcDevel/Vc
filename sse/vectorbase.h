@@ -24,13 +24,12 @@
 #include "types.h"
 #include "casts.h"
 
+namespace Vc
+{
 namespace SSE
 {
-    namespace Internal
-    {
-        ALIGN(16) extern const unsigned int   _IndexesFromZero4[4];
-        ALIGN(16) extern const unsigned short _IndexesFromZero8[8];
-    } // namespace Internal
+    ALIGN(16) extern const unsigned int   _IndexesFromZero4[4];
+    ALIGN(16) extern const unsigned short _IndexesFromZero8[8];
 
     template<typename T> class VectorBase {
         friend struct VectorHelperSize<float>;
@@ -90,9 +89,9 @@ namespace SSE
 
             static const T *_IndexesFromZero() {
                 if (Size == 4) {
-                    return reinterpret_cast<const T *>(Internal::_IndexesFromZero4);
+                    return reinterpret_cast<const T *>(_IndexesFromZero4);
                 } else if (Size == 8) {
-                    return reinterpret_cast<const T *>(Internal::_IndexesFromZero8);
+                    return reinterpret_cast<const T *>(_IndexesFromZero8);
                 }
                 return 0;
             }
@@ -169,4 +168,5 @@ namespace SSE
     };
 
 } // namespace SSE
+} // namespace Vc
 #endif // SSE_VECTORBASE_H
