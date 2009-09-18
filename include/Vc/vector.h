@@ -24,7 +24,7 @@
 
 #if VC_IMPL_LRBni
 # include "larrabee/vector.h"
-# define VECTOR_NAMESPACE Larrabee
+# define VECTOR_NAMESPACE LRBni
 #elif VC_IMPL_Scalar
 # include "simple/vector.h"
 # define VECTOR_NAMESPACE Simple

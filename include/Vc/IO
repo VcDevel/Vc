@@ -24,7 +24,7 @@
 #include <iostream>
 
 #if VC_IMPL_LRBni
-# define VECTOR_NAMESPACE Larrabee
+# define VECTOR_NAMESPACE Vc::LRBni
 #elif VC_IMPL_Scalar
 # define VECTOR_NAMESPACE Vc::Simple
 #else

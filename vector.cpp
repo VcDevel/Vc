@@ -77,12 +77,12 @@ namespace SSE
     };
 } // namespace SSE
 
-namespace Larrabee
+namespace Vc
 {
-    namespace Internal
-    {
-        V_ALIGN(16) extern const char _IndexesFromZero[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-    } // namespace Internal
+namespace LRBni
+{
+    V_ALIGN(16) extern const char _IndexesFromZero[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 } // namespace Larrabee
+} // namespace Vc
 
 #undef V_ALIGN

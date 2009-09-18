@@ -22,7 +22,7 @@
 
 namespace std
 {
-#define SPECIALIZATION(T) template<> Larrabee::Vector<T> numeric_limits<Larrabee::Vector<T> >
+#define SPECIALIZATION(T) template<> Vc::LRBni::Vector<T> numeric_limits<Vc::LRBni::Vector<T> >
     SPECIALIZATION(unsigned int)::max() throw() { return _mm512_setallone_pi(); }
     SPECIALIZATION(unsigned int)::min() throw() { return _mm512_setzero_pi(); }
     SPECIALIZATION(int)::max() throw() { return _mm512_set_1to16_pi(std::numeric_limits<int>::max()); }

@@ -27,6 +27,8 @@
 #define CAT_HELPER(a, b) a##b
 #define CAT(a, b) CAT_HELPER(a, b)
 
+namespace Vc
+{
 #ifndef HAVE_FLOAT16
 #define HAVE_FLOAT16
 #ifdef HALF_MAX
@@ -48,7 +50,7 @@
 
 #include <mm_malloc.h>
 
-namespace Larrabee
+namespace LRBni
 {
     enum { VectorAlignment = 64 };
 
@@ -66,23 +68,20 @@ namespace Larrabee
     namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
-    namespace Internal
-    {
-        LRB_ALIGN(16) extern const char _IndexesFromZero[16];
+    LRB_ALIGN(16) extern const char _IndexesFromZero[16];
 
-        template<typename T> struct ReturnTypeHelper { typedef char Type; };
-        template<> struct ReturnTypeHelper<unsigned int> { typedef unsigned char Type; };
-        template<> struct ReturnTypeHelper<int> { typedef signed char Type; };
-        template<typename T> const typename ReturnTypeHelper<T>::Type *IndexesFromZero() {
-            return reinterpret_cast<const typename ReturnTypeHelper<T>::Type *>(&_IndexesFromZero[0]);
-        }
-
-        template<bool> class STATIC_ASSERT_FAILURE;
-        template<> class STATIC_ASSERT_FAILURE<true> {};
+    template<typename T> struct ReturnTypeHelper { typedef char Type; };
+    template<> struct ReturnTypeHelper<unsigned int> { typedef unsigned char Type; };
+    template<> struct ReturnTypeHelper<int> { typedef signed char Type; };
+    template<typename T> const typename ReturnTypeHelper<T>::Type *IndexesFromZero() {
+        return reinterpret_cast<const typename ReturnTypeHelper<T>::Type *>(&_IndexesFromZero[0]);
     }
 
+    template<bool> class STATIC_ASSERT_FAILURE;
+    template<> class STATIC_ASSERT_FAILURE<true> {};
+
 #define LRB_STATIC_ASSERT_NC(cond, msg) \
-    typedef Internal::STATIC_ASSERT_FAILURE<cond> CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__); \
+    typedef STATIC_ASSERT_FAILURE<cond> CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__); \
     CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__) Error_##msg
 #define LRB_STATIC_ASSERT(cond, msg) LRB_STATIC_ASSERT_NC(cond, msg); (void) Error_##msg
 
@@ -838,7 +837,7 @@ template<typename T>
 class WriteMaskedVector
 {
     friend class Vector<T>;
-    typedef Larrabee::Mask<64 / sizeof(T)> Mask;
+    typedef LRBni::Mask<64 / sizeof(T)> Mask;
     public:
         //prefix
         inline Vector<T> &operator++() {
@@ -907,7 +906,7 @@ class Vector : public VectorBase<T, Vector<T> >
         typedef _Memory<T> Memory;
 
         enum { Size = 64 / sizeof(T) };
-        typedef Larrabee::Mask<Size> Mask;
+        typedef LRBni::Mask<Size> Mask;
 
         /**
          * Reinterpret some array of T as a vector of T. You may only do this if the pointer is
@@ -935,7 +934,7 @@ class Vector : public VectorBase<T, Vector<T> >
         /**
          * initialized to 0, 1, 2, 3 (, 4, 5, 6, 7 (, 8, 9, 10, 11, 12, 13, 14, 15))
          */
-        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : data(VectorHelper<T>::load(Internal::IndexesFromZero<T>())) {}
+        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : data(VectorHelper<T>::load(IndexesFromZero<T>())) {}
 //X         /**
 //X          * initialzed to random numbers
 //X          */
@@ -1269,9 +1268,9 @@ template<typename T> struct SwizzledVector
     unsigned int s;
 };
 
-} // namespace Larrabee
+} // namespace LRBni
 
-namespace Larrabee
+namespace LRBni
 {
 #define PARENT_DATA(T) (static_cast<Vector<T> *>(this)->data)
 #define PARENT_DATA_CONST(T) (static_cast<const Vector<T> *>(this)->data)
@@ -1303,17 +1302,17 @@ namespace Larrabee
 #undef OP_IMPL
 
 #define MATH_OP1(name, call) \
-    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::Vector<T> &x)               { return VectorHelper<T>::call(x); } \
-    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::VectorMultiplication<T> &x) { return VectorHelper<T>::call(static_cast<Vector<T> >(x)); }
+    template<typename T> static inline LRBni::Vector<T> name(const LRBni::Vector<T> &x)               { return VectorHelper<T>::call(x); } \
+    template<typename T> static inline LRBni::Vector<T> name(const LRBni::VectorMultiplication<T> &x) { return VectorHelper<T>::call(static_cast<Vector<T> >(x)); }
 #define MATH_OP2(name, call) \
-    template<typename T> static inline Larrabee::Vector<T> name(const T &x, const Larrabee::Vector<T> &y)   { return VectorHelper<T>::call(Vector<T>(x), y); } \
-    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::Vector<T> &x, const T &y)   { return VectorHelper<T>::call(x, Vector<T>(y)); } \
-    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::Vector<T> &x, const Larrabee::Vector<T> &y)                             { return VectorHelper<T>::call(x, y); } \
-    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::Vector<T> &x, const Larrabee::VectorMultiplication<T> &y) { return VectorHelper<T>::call(x, static_cast<Vector<T> >(y)); } \
-    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::VectorMultiplication<T> &x, const Larrabee::Vector<T> &y) { return VectorHelper<T>::call(static_cast<Vector<T> >(x), y); } \
-    template<typename T> static inline Larrabee::Vector<T> name(const T &x, const Larrabee::VectorMultiplication<T> &y) { return VectorHelper<T>::call(Vector<T>(x), static_cast<Vector<T> >(y)); } \
-    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::VectorMultiplication<T> &x, const T &y) { return VectorHelper<T>::call(static_cast<Vector<T> >(x), Vector<T>(y)); } \
-    template<typename T> static inline Larrabee::Vector<T> name(const Larrabee::VectorMultiplication<T> &x, const Larrabee::VectorMultiplication<T> &y) { return VectorHelper<T>::call(static_cast<Vector<T> >(x), static_cast<Vector<T> >(y)); }
+    template<typename T> static inline LRBni::Vector<T> name(const T &x, const LRBni::Vector<T> &y)   { return VectorHelper<T>::call(Vector<T>(x), y); } \
+    template<typename T> static inline LRBni::Vector<T> name(const LRBni::Vector<T> &x, const T &y)   { return VectorHelper<T>::call(x, Vector<T>(y)); } \
+    template<typename T> static inline LRBni::Vector<T> name(const LRBni::Vector<T> &x, const LRBni::Vector<T> &y)                             { return VectorHelper<T>::call(x, y); } \
+    template<typename T> static inline LRBni::Vector<T> name(const LRBni::Vector<T> &x, const LRBni::VectorMultiplication<T> &y) { return VectorHelper<T>::call(x, static_cast<Vector<T> >(y)); } \
+    template<typename T> static inline LRBni::Vector<T> name(const LRBni::VectorMultiplication<T> &x, const LRBni::Vector<T> &y) { return VectorHelper<T>::call(static_cast<Vector<T> >(x), y); } \
+    template<typename T> static inline LRBni::Vector<T> name(const T &x, const LRBni::VectorMultiplication<T> &y) { return VectorHelper<T>::call(Vector<T>(x), static_cast<Vector<T> >(y)); } \
+    template<typename T> static inline LRBni::Vector<T> name(const LRBni::VectorMultiplication<T> &x, const T &y) { return VectorHelper<T>::call(static_cast<Vector<T> >(x), Vector<T>(y)); } \
+    template<typename T> static inline LRBni::Vector<T> name(const LRBni::VectorMultiplication<T> &x, const LRBni::VectorMultiplication<T> &y) { return VectorHelper<T>::call(static_cast<Vector<T> >(x), static_cast<Vector<T> >(y)); }
 
     MATH_OP2(min, min)
     MATH_OP2(max, max)
@@ -1330,10 +1329,10 @@ namespace Larrabee
     MATH_OP1(round, round)
     MATH_OP1(asin, asin)
 
-    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(const Larrabee::Vector<T> &x) { return VectorHelper<T>::isFinite(x); }
-    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isfinite(const Larrabee::VectorMultiplication<T> &x) { return VectorHelper<T>::isFinite(x); }
-    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isnan(const Larrabee::Vector<T> &x) { return VectorHelper<T>::isNaN(x); }
-    template<typename T> static inline Larrabee::Mask<Vector<T>::Size> isnan(const Larrabee::VectorMultiplication<T> &x) { return VectorHelper<T>::isNaN(x); }
+    template<typename T> static inline LRBni::Mask<Vector<T>::Size> isfinite(const LRBni::Vector<T> &x) { return VectorHelper<T>::isFinite(x); }
+    template<typename T> static inline LRBni::Mask<Vector<T>::Size> isfinite(const LRBni::VectorMultiplication<T> &x) { return VectorHelper<T>::isFinite(x); }
+    template<typename T> static inline LRBni::Mask<Vector<T>::Size> isnan(const LRBni::Vector<T> &x) { return VectorHelper<T>::isNaN(x); }
+    template<typename T> static inline LRBni::Mask<Vector<T>::Size> isnan(const LRBni::VectorMultiplication<T> &x) { return VectorHelper<T>::isNaN(x); }
 
   template<typename T> static inline void forceToRegisters(const Vector<T> &) {}
   template<typename T1, typename T2> static inline void forceToRegisters(
@@ -1443,7 +1442,8 @@ namespace Larrabee
         const Vector<T11> &, const Vector<T12> &,
         const Vector<T13> &, const Vector<T14> &,
         const Vector<T15> &, const Vector<T16> &) {}
-} // namespace Larrabee
+} // namespace LRBni
+} // namespace Vc
 
 #undef LRB_STATIC_ASSERT_NC
 #undef LRB_STATIC_ASSERT
