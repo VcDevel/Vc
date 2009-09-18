@@ -204,7 +204,14 @@ template<typename Vec> void testReciprocal()
     const T one = 1;
     for (int offset = -1000; offset < 1000; offset += 10) {
         const T scale = 0.1;
-        FillHelperMemory(one / ((i + offset) * scale));
+        typename Vec::Memory data;
+        typename Vec::Memory reference;
+        for (int ii = 0; ii < Vec::Size; ++ii) {
+            const T i = static_cast<T>(ii);
+            data[ii] = i;
+            T tmp = (i + offset) * scale;
+            reference[ii] = one / tmp;
+        }
         Vec a(data);
         Vec b(reference);
 

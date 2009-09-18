@@ -63,12 +63,12 @@ template<typename Vec> void testSort()
     }
 }
 
-template<typename T, unsigned int Size> struct Foo
+template<typename T, typename Mem> struct Foo
 {
     Foo() : i(0) {}
     void reset() { i = 0; }
     void operator()(T v) { d[i++] = v; }
-    T d[Size];
+    Mem d;
     int i;
 };
 
@@ -82,7 +82,7 @@ template<typename V> void testCall()
     const MI _odd = (_indexes & I(One)) > 0;
     const M odd(_odd);
     V a(_indexes);
-    Foo<T, V::Size> f;
+    Foo<T, typename V::Memory> f;
     a.callWithValuesSorted(f);
     V b(f.d);
     COMPARE(b, a);

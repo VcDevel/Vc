@@ -160,6 +160,19 @@ namespace SSE
         static inline void maskedDoubleGatherHelper(
                 Base &v, const IndexType &outer, const IndexType &inner, unsigned long mask, const EntryType *const *const baseAddr
                 ) {
+#ifdef VC_NO_BSF_LOOPS
+# ifdef VC_NO_GATHER_TRICKS
+            for (int i = 0; i < Base::Size; ++i) {
+                if (mask & (1 << i)) {
+                    v.d.m(i) = baseAddr[outer.d.m(i) * (scale / sizeof(void *))][inner.d.m(i)];
+                }
+            }
+# else // VC_NO_GATHER_TRICKS
+            unrolled_loop16(i, 0, Base::Size,
+                    if (mask & (1 << i)) v.d.m(i) = baseAddr[outer.d.m(i) * (scale / sizeof(void *))][inner.d.m(i)];
+                    );
+# endif // VC_NO_GATHER_TRICKS
+#else // VC_NO_BSF_LOOPS
             if (sizeof(EntryType) == 2) {
                 register unsigned long int bit;
                 register unsigned long int outerIndex;
@@ -249,6 +262,7 @@ namespace SSE
             } else {
                 abort();
             }
+#endif // VC_NO_BSF_LOOPS
         }
         template<unsigned int scale, typename Base, typename IndexType, typename EntryType>
         static inline void maskedGatherStructHelper(
