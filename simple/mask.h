@@ -100,6 +100,19 @@ template<unsigned int VectorSize = 1> class Mask
         bool m;
 };
 
+struct ForeachHelper
+{
+    bool first;
+    inline ForeachHelper(bool mask) : first(mask) {}
+    inline void next() { first = false; }
+};
+
+#define Vc_foreach_bit(_it_, _mask_) \
+    for (Vc::Simple::ForeachHelper _Vc_foreach_bit_helper(_mask_); _Vc_foreach_bit_helper.first; ) \
+        for (_it_ = 0; _Vc_foreach_bit_helper.first; _Vc_foreach_bit_helper.next())
+
+#define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
+
 } // namespace Simple
 } // namespace Vc
 
