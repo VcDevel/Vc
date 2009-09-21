@@ -160,7 +160,15 @@ keys <- factor(as.vector(keys), ordered=FALSE)
 
     if(is.null(groups)) groups <- median * -1
 
-    mydotchart(median, groups=groups, xlim=c(0, (max(mean + errors))), xaxs="i", sub="median", mean=mean, errors=errors, ...)
+    maxx <- max(mean + errors)
+    mydotchart(median, groups=groups, xlim=c(0, maxx), xaxs="i", sub="median", mean=mean, errors=errors, ...)
+
+    y <- 1.2
+    for(x in median) {
+        pos <- if(x > maxx * 0.5) 2 else 4
+        text(x = x, y = y, pos = pos, labels = x)
+        y <- y + 3
+    }
 }
 
 mychart3 <- function(data, key, ncolors = NULL, xlim = NULL, ...) {
@@ -302,6 +310,34 @@ processData <- function(data, keys, skip = c(""), pchkey = NULL, sortkey = NULL,
     result
 }
 
+speedupBarPlot <- function(speedup, ylab = "Speedup", main = NULL) {
+    speedup <- sortBy(speedup, speedup$benchmark.name)
+    datatypes <- levels(as.factor(speedup$datatype))
+    n <- length(datatypes)
+    barplot(
+        height = matrix(data = speedup$speedup.median, nrow = n),
+        beside = TRUE,
+        main = main,
+        col = speedup$color,
+        legend = datatypes,
+        ylab = ylab
+    )
+    x <- (n + 2) * 0.5
+    offset <- 0.5
+    for(name in levels(as.factor(speedup$benchmark.name))) {
+        text(x = x, y = 0,
+            labels = name,
+            pos = 1,
+            offset = offset,
+            xpd = TRUE
+            )
+        x <- x + n + 1
+        offset <- offset + 1
+        if (offset >= nlevels(as.factor(speedup$benchmark.name)) / 2 ) offset <- 0.5
+    }
+    abline(h = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.8))
+}
+
 plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mychart4, main,
     orderfun = function(d) order(d$datatype, d$benchmark.name), speedupColumn = NULL)
 {
@@ -344,6 +380,10 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
         main = paste(main, speedup$mainpostfix[[1]], sep=": "))
     abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
+    speedupBarPlot(speedup,
+            main = paste(main, speedup$mainpostfix[[1]], sep=": ")
+            )
+
     if(length(lrb) > 0) {
         lrb <- split(lrb, lrb$datatype)
         speedup <- rbind(
@@ -356,6 +396,10 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
             main = paste(main, speedup$mainpostfix[[1]], sep=": "))
         abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
+        speedupBarPlot(speedup,
+            main = paste(main, speedup$mainpostfix[[1]], sep=": ")
+                )
+
         speedup <- rbind(
             speedupOf(lrb[["float_v"]], sse[["sfloat_v"]]),
             speedupOf(lrb[["short_v"]], sse[["short_v"]])
@@ -365,7 +409,28 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
             column = "speedup", xlab = "Speedup",
             main = paste(main, speedup$mainpostfix[[1]], sep=": "))
         abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
+
+    speedupBarPlot(speedup,
+            main = paste(main, speedup$mainpostfix[[1]], sep=": ")
+            )
     }
+}
+
+barPlotCyclesPerOp <- function(data) {
+    data <- sortBy(sortBy(data, data$datatype), data$benchmark.name)
+
+    narch <- length(levels(as.factor(data$benchmark.arch)))
+
+    key <- levels(as.factor(data$key))
+    nrow <- length(key)
+
+    barplot(
+        height = matrix(data = 1 / data$Op_per_cycle.median, nrow = nrow),
+        beside = TRUE,
+        col = rainbow(narch, v = 0.8)[as.integer(as.factor(data$benchmark.arch))],
+        legend = data$key[1:nrow],
+        ylab = "Cycles per Operation"
+        )
 }
 
 par(family="serif")

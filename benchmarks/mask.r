@@ -48,8 +48,15 @@ speedup <- rbind(
     speedupOf(sse[["sfloat_v"]], simple[["float_v"]]),
     speedupOf(sse[["short_v"]], simple[["short_v"]])
     )
+main <- paste(sse[["float_v"]]$benchmark.arch[1], simple[["float_v"]]$benchmark.arch[1], sep = " vs. ")
+main <- paste("Masked Operations:", main)
+
 mychart4(speedup, data$benchmark.name, column = "speedup", xlab = "Speedup",
-    main = "Masked Operations: SSE vs. Scalar")
+    main = main)
 abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
+
+speedupBarPlot(speedup,
+        main = main
+        )
 
 # vim: sw=4 et filetype=r sts=4 ai

@@ -10,6 +10,14 @@ for(data in list(rbind(sse, simple, lrb))) {
 
     mychart4(data, data$benchmark.name, orderfun = function(d) order(d$Op_per_cycle.median),
         column = "Op_per_cycle", xlab = "Compares per Cycle", main = "operator<")
+
+    barPlotCyclesPerOp(data)
+}
+
+if(length(lrb) > 0) {
+    data <- rbind(sse, simple)
+    data <- compareProcessData(data)
+    barPlotCyclesPerOp(data)
 }
 
 sse    <- compareProcessData(sse)
