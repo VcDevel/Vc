@@ -872,23 +872,12 @@ namespace SSE
                 } };
                 return x.v;
             }
-            static inline VectorType mul(const VectorType a, const VectorType b) {
-                STORE_VECTOR(int, _a, a);
-                STORE_VECTOR(int, _b, b);
-                union {
-                    int i[4];
-                    VectorType v;
-                } x = { {
-                    _a[0] * _b[0],
-                    _a[1] * _b[1],
-                    _a[2] * _b[2],
-                    _a[3] * _b[3]
-                } };
-                return x.v;
-//X                 VectorType hi = _mm_mulhi_epi16(a, b);
-//X                 hi = _mm_slli_epi32(hi, 16);
-//X                 VectorType lo = _mm_mullo_epi16(a, b);
-//X                 return or_(hi, lo);
+            static inline VectorType mul(const VectorType &a, const VectorType &b) {
+                const VectorType &aShift = _mm_srli_si128(a, 4);
+                const VectorType &ab02 = _mm_mul_epu32(a, b); // [a0 * b0, a2 * b2]
+                const VectorType &bShift = _mm_srli_si128(b, 4);
+                const VectorType &ab13 = _mm_mul_epu32(aShift, bShift); // [a1 * b1, a3 * b3]
+                return _mm_unpacklo_epi32(_mm_shuffle_epi32(ab02, 8), _mm_shuffle_epi32(ab13, 8));
             }
             static inline EntryType mul(VectorType a) {
                 STORE_VECTOR(int, _a, a);
@@ -1007,34 +996,27 @@ namespace SSE
 //X                 }
 //X                 return mul(a, set(b));
 //X             }
-            static inline VectorType div(const VectorType a, const VectorType b, _M128 _mask) {
+            static inline VectorType div(const VectorType &_a, const VectorType &_b, const _M128 _mask) {
                 const int mask = _mm_movemask_ps(_mask);
-                STORE_VECTOR(unsigned int, _a, a);
-                STORE_VECTOR(unsigned int, _b, b);
-                union {
-                    unsigned int i[4];
-                    VectorType v;
-                } x = { {
-                    (mask & 1 ? _a[0] / _b[0] : _a[0]),
-                    (mask & 2 ? _a[1] / _b[1] : _a[1]),
-                    (mask & 4 ? _a[2] / _b[2] : _a[2]),
-                    (mask & 8 ? _a[3] / _b[3] : _a[3])
-                } };
-                return x.v;
+                VectorType _r = _a;
+                typedef unsigned int uintA MAY_ALIAS;
+                const uintA *b = reinterpret_cast<const uintA *>(&_b);
+                uintA *r = reinterpret_cast<uintA *>(&_r);
+                unrolled_loop16(i, 0, 4,
+                    if (mask & (1 << i)) r[i] /= b[i];
+                    );
+                return _r;
             }
-            static inline VectorType div(const VectorType a, const VectorType b) {
-                STORE_VECTOR(unsigned int, _a, a);
-                STORE_VECTOR(unsigned int, _b, b);
-                union {
-                    unsigned int i[4];
-                    VectorType v;
-                } x = { {
-                    _a[0] / _b[0],
-                    _a[1] / _b[1],
-                    _a[2] / _b[2],
-                    _a[3] / _b[3]
-                } };
-                return x.v;
+            static inline VectorType div(const VectorType &_a, const VectorType &_b) {
+                VectorType _r;
+                typedef unsigned int uintA MAY_ALIAS;
+                const uintA *a = reinterpret_cast<const uintA *>(&_a);
+                const uintA *b = reinterpret_cast<const uintA *>(&_b);
+                uintA *r = reinterpret_cast<uintA *>(&_r);
+                unrolled_loop16(i, 0, 4,
+                    r[i] = a[i] / b[i];
+                    );
+                return _r;
             }
 
 #undef SUFFIX
@@ -1130,42 +1112,27 @@ namespace SSE
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
 
-            static inline VectorType div(const VectorType a, const VectorType b, _M128 _mask) {
+            static inline VectorType div(const VectorType &a, const VectorType &b, const _M128 _mask) {
                 const int mask = _mm_movemask_epi8(_mm_castps_si128(_mask));
-                STORE_VECTOR(EntryType, _a, a);
-                STORE_VECTOR(EntryType, _b, b);
-                union {
-                    EntryType i[8];
-                    VectorType v;
-                } x = { {
-                    (mask & 0x0001 ? _a[0] / _b[0] : _a[0]),
-                    (mask & 0x0004 ? _a[1] / _b[1] : _a[1]),
-                    (mask & 0x0010 ? _a[2] / _b[2] : _a[2]),
-                    (mask & 0x0040 ? _a[3] / _b[3] : _a[3]),
-                    (mask & 0x0100 ? _a[4] / _b[4] : _a[4]),
-                    (mask & 0x0400 ? _a[5] / _b[5] : _a[5]),
-                    (mask & 0x1000 ? _a[6] / _b[6] : _a[6]),
-                    (mask & 0x4000 ? _a[7] / _b[7] : _a[7])
-                } };
-                return x.v;
+                VectorType r = a;
+                typedef EntryType Alias MAY_ALIAS;
+                const Alias *bb = reinterpret_cast<const Alias *>(&b);
+                Alias *rr = reinterpret_cast<Alias *>(&r);
+                unrolled_loop16(i, 0, 8,
+                    if (mask & (1 << i * 2)) rr[i] /= bb[i];
+                    );
+                return r;
             }
-            static inline VectorType div(const VectorType a, const VectorType b) {
-                STORE_VECTOR(EntryType, _a, a);
-                STORE_VECTOR(EntryType, _b, b);
-                union {
-                    EntryType i[8];
-                    VectorType v;
-                } x = { {
-                    _a[0] / _b[0],
-                    _a[1] / _b[1],
-                    _a[2] / _b[2],
-                    _a[3] / _b[3],
-                    _a[4] / _b[4],
-                    _a[5] / _b[5],
-                    _a[6] / _b[6],
-                    _a[7] / _b[7]
-                } };
-                return x.v;
+            static inline VectorType div(const VectorType &a, const VectorType &b) {
+                VectorType r;
+                typedef EntryType Alias MAY_ALIAS;
+                const Alias *aa = reinterpret_cast<const Alias *>(&a);
+                const Alias *bb = reinterpret_cast<const Alias *>(&b);
+                Alias *rr = reinterpret_cast<Alias *>(&r);
+                unrolled_loop16(i, 0, 8,
+                    rr[i] = aa[i] / bb[i];
+                    );
+                return r;
             }
 
             OP(add) OP(sub)
@@ -1199,42 +1166,27 @@ namespace SSE
 #undef SUFFIX
 #define SUFFIX epu16
             static inline VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
-            static inline VectorType div(const VectorType a, const VectorType b, _M128 _mask) {
+            static inline VectorType div(const VectorType &a, const VectorType &b, const _M128 _mask) {
                 const int mask = _mm_movemask_epi8(_mm_castps_si128(_mask));
-                STORE_VECTOR(EntryType, _a, a);
-                STORE_VECTOR(EntryType, _b, b);
-                union {
-                    EntryType i[8];
-                    VectorType v;
-                } x = { {
-                    (mask & 0x0001 ? _a[0] / _b[0] : _a[0]),
-                    (mask & 0x0004 ? _a[1] / _b[1] : _a[1]),
-                    (mask & 0x0010 ? _a[2] / _b[2] : _a[2]),
-                    (mask & 0x0040 ? _a[3] / _b[3] : _a[3]),
-                    (mask & 0x0100 ? _a[4] / _b[4] : _a[4]),
-                    (mask & 0x0400 ? _a[5] / _b[5] : _a[5]),
-                    (mask & 0x1000 ? _a[6] / _b[6] : _a[6]),
-                    (mask & 0x4000 ? _a[7] / _b[7] : _a[7])
-                } };
-                return x.v;
+                VectorType r = a;
+                typedef EntryType Alias MAY_ALIAS;
+                const Alias *bb = reinterpret_cast<const Alias *>(&b);
+                Alias *rr = reinterpret_cast<Alias *>(&r);
+                unrolled_loop16(i, 0, 8,
+                    if (mask & (1 << i * 2)) rr[i] /= bb[i];
+                    );
+                return r;
             }
-            static inline VectorType div(const VectorType a, const VectorType b) {
-                STORE_VECTOR(EntryType, _a, a);
-                STORE_VECTOR(EntryType, _b, b);
-                union {
-                    EntryType i[8];
-                    VectorType v;
-                } x = { {
-                    _a[0] / _b[0],
-                    _a[1] / _b[1],
-                    _a[2] / _b[2],
-                    _a[3] / _b[3],
-                    _a[4] / _b[4],
-                    _a[5] / _b[5],
-                    _a[6] / _b[6],
-                    _a[7] / _b[7]
-                } };
-                return x.v;
+            static inline VectorType div(const VectorType &a, const VectorType &b) {
+                VectorType r;
+                typedef EntryType Alias MAY_ALIAS;
+                const Alias *aa = reinterpret_cast<const Alias *>(&a);
+                const Alias *bb = reinterpret_cast<const Alias *>(&b);
+                Alias *rr = reinterpret_cast<Alias *>(&r);
+                unrolled_loop16(i, 0, 8,
+                    rr[i] = aa[i] / bb[i];
+                    );
+                return r;
             }
 
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
