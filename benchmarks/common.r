@@ -310,9 +310,21 @@ processData <- function(data, keys, skip = c(""), pchkey = NULL, sortkey = NULL,
     result
 }
 
+logicalSortkeyForDatatype <- function(type) {
+    type[type == "double_v"] <- 0
+    type[type == "float_v" ] <- 1
+    type[type == "sfloat_v"] <- 2
+    type[type == "int_v"   ] <- 3
+    type[type == "uint_v"  ] <- 4
+    type[type == "short_v" ] <- 5
+    type[type == "ushort_v"] <- 6
+    type
+}
+
 speedupBarPlot <- function(speedup, ylab = "Speedup", main = NULL) {
+    speedup <- permute(speedup, sort.list(logicalSortkeyForDatatype(speedup$datatype)))
     speedup <- sortBy(speedup, speedup$benchmark.name)
-    datatypes <- levels(as.factor(speedup$datatype))
+    datatypes <- unique.default(speedup$datatype)
     n <- length(datatypes)
     barplot(
         height = matrix(data = speedup$speedup.median, nrow = n),
@@ -339,7 +351,7 @@ speedupBarPlot <- function(speedup, ylab = "Speedup", main = NULL) {
 }
 
 plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mychart4, main,
-    orderfun = function(d) order(d$datatype, d$benchmark.name), speedupColumn = NULL)
+    orderfun = function(d) order(logicalSortkeyForDatatype(d$datatype), d$benchmark.name), speedupColumn = NULL)
 {
     speedupOf <- function(data, reference) {
         tmp <- datafun(data, reference)
@@ -366,14 +378,22 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
             )
     }
 
+    simpledatatypes <- levels(as.factor(simple$datatype))
     sse    <- split(sse   , sse$datatype)
     simple <- split(simple, simple$datatype)
 
-    speedup <- rbind(
-        speedupOf(sse[["float_v"]], simple[["float_v"]]),
-        speedupOf(sse[["sfloat_v"]], simple[["float_v"]]),
-        speedupOf(sse[["short_v"]], simple[["short_v"]])
-        )
+    speedup <- NULL
+    for(datatype in simpledatatypes) {
+        tmp <- speedupOf(sse[[datatype]], simple[[datatype]])
+        if(is.null(speedup)) {
+            speedup <- tmp
+        } else {
+            speedup <- rbind(speedup, tmp)
+        }
+    }
+    if(min(simpledatatypes != "sfloat_v")) {
+        speedup <- rbind(speedup, speedupOf(sse[["sfloat_v"]], simple[["float_v"]]))
+    }
 
     plotfun(speedup, splitfactor = speedup$split, orderfun = orderfun,
         column = "speedup", xlab = "Speedup",
