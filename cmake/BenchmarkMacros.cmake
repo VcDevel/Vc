@@ -20,12 +20,13 @@ if(ENABLE_BENCHMARKS)
    endif(R_COMMAND)
 endif(ENABLE_BENCHMARKS)
 
-macro(vc_generate_datafile target outfile)
+macro(vc_generate_datafile target outfilepath outfile)
    get_target_property(exec ${target} OUTPUT_NAME)
-   set(${outfile} "${CMAKE_CURRENT_BINARY_DIR}/${exec}.dat")
-   add_custom_command(OUTPUT "${${outfile}}"
+   set(${outfile} "${exec}.dat")
+   set(${outfilepath} "${CMAKE_CURRENT_BINARY_DIR}/${exec}.dat")
+   add_custom_command(OUTPUT "${${outfilepath}}"
       COMMAND ${target}
-      ARGS -o "${${outfile}}"
+      ARGS -o "${${outfilepath}}"
       DEPENDS ${target}
       COMMENT "Running Benchmark ${exec} to generate ${${outfile}}"
       VERBATIM
@@ -38,30 +39,31 @@ macro(vc_generate_plots name)
       set(sseTarget "${name}_sse_benchmark")
       set(lrbTarget "${name}_lrb_benchmark")
 
-      vc_generate_datafile(${simpleTarget} simple_datafile)
-      vc_generate_datafile(${sseTarget} sse_datafile)
+      vc_generate_datafile(${simpleTarget} simple_datafilepath simple_datafile)
+      vc_generate_datafile(${sseTarget} sse_datafilepath sse_datafile)
       if(LARRABEE_FOUND)
-         vc_generate_datafile(${lrbTarget} lrb_datafile)
+         vc_generate_datafile(${lrbTarget} lrb_datafilepath lrb_datafile)
       else(LARRABEE_FOUND)
          set(lrb_datafile "")
+         set(lrb_datafilepath "")
       endif(LARRABEE_FOUND)
 
-      if(R_COMMAND)
-         set(scriptfile "${CMAKE_CURRENT_BINARY_DIR}/plot_${name}.r")
-         add_custom_command(OUTPUT "${scriptfile}"
-            COMMAND "${CMAKE_COMMAND}"
-            ARGS
-            "-Dscriptfile=${scriptfile}"
-            "-Dcommon=${CMAKE_CURRENT_SOURCE_DIR}/common.r"
-            "-Dappend=${CMAKE_CURRENT_SOURCE_DIR}/${name}.r"
-            "-Dsimple_datafile=${simple_datafile}"
-            "-Dsse_datafile=${sse_datafile}"
-            "-Dlrb_datafile=${lrb_datafile}"
-            -P "${CMAKE_SOURCE_DIR}/cmake/generate_plot_script.cmake"
-            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${CMAKE_CURRENT_SOURCE_DIR}/${name}.r"
-            VERBATIM
-            )
+      set(scriptfile "${CMAKE_CURRENT_BINARY_DIR}/plot_${name}.r")
+      add_custom_command(OUTPUT "${scriptfile}"
+         COMMAND "${CMAKE_COMMAND}"
+         ARGS
+         "-Dscriptfile=${scriptfile}"
+         "-Dcommon=${CMAKE_CURRENT_SOURCE_DIR}/common.r"
+         "-Dappend=${CMAKE_CURRENT_SOURCE_DIR}/${name}.r"
+         "-Dsimple_datafile=${simple_datafile}"
+         "-Dsse_datafile=${sse_datafile}"
+         "-Dlrb_datafile=${lrb_datafile}"
+         -P "${CMAKE_SOURCE_DIR}/cmake/generate_plot_script.cmake"
+         DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${CMAKE_CURRENT_SOURCE_DIR}/${name}.r"
+         VERBATIM
+         )
 
+      if(R_COMMAND)
          set(tmpfile "${CMAKE_CURRENT_BINARY_DIR}/${name}_tmp.pdf")
          set(pdffile "${CMAKE_CURRENT_BINARY_DIR}/${name}.pdf")
          if(NOT PDFTK_COMMAND)
@@ -71,7 +73,7 @@ macro(vc_generate_plots name)
             COMMAND "${R_COMMAND}" ARGS --quiet --slave --vanilla -f "${scriptfile}"
             COMMAND "${CMAKE_COMMAND}" ARGS -E copy "Rplots.pdf" "${tmpfile}"
             COMMAND "${CMAKE_COMMAND}" ARGS -E remove "Rplots.pdf"
-            DEPENDS "${simple_datafile}" "${sse_datafile}" "${lrb_datafile}" "${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${CMAKE_CURRENT_SOURCE_DIR}/${name}.r" "${scriptfile}"
+            DEPENDS "${simple_datafilepath}" "${sse_datafilepath}" "${lrb_datafilepath}" "${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${CMAKE_CURRENT_SOURCE_DIR}/${name}.r" "${scriptfile}"
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
             COMMENT "Generating PDF plots for the ${name} benchmark"
             VERBATIM
@@ -94,7 +96,7 @@ macro(vc_generate_plots name)
          add_dependencies(benchmark_plots "${generate_target}")
       else(R_COMMAND)
          set(generate_target "generate_${name}_data")
-         add_custom_target(${generate_target} DEPENDS "${simple_datafile}" "${sse_datafile}" "${lrb_datafile}")
+         add_custom_target(${generate_target} DEPENDS "${simple_datafilepath}" "${sse_datafilepath}" "${lrb_datafilepath}" "${scriptfile}")
          add_dependencies(benchmark_data "${generate_target}")
       endif(R_COMMAND)
    endif(ENABLE_BENCHMARKS)
