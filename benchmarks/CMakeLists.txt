@@ -15,6 +15,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
    add_definitions(-DSCHED_FIFO_BENCHMARKS)
 endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
+vc_add_benchmark(arithmetics)
 vc_add_benchmark(flops)
 vc_add_benchmark(gather)
 vc_add_benchmark(mask)
@@ -28,6 +29,7 @@ add_custom_target("run_sort_benchmark" sort_benchmark DEPENDS sort_benchmark COM
 add_target_property("run_sort_benchmark" EXCLUDE_FROM_DEFAULT_BUILD 1)
 add_dependencies(benchmarks "run_sort_benchmark")
 
+vc_generate_plots(arithmetics)
 vc_generate_plots(flops)
 vc_generate_plots(gather)
 vc_generate_plots(mask)
