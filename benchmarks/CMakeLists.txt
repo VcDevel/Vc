@@ -16,6 +16,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 vc_add_benchmark(arithmetics)
+add_target_property(arithmetics_sse_benchmark COMPILE_FLAGS "-DUSE_CORRECT_UNSIGNED_COMPARE")
 vc_add_benchmark(flops)
 vc_add_benchmark(gather)
 vc_add_benchmark(mask)

@@ -20,137 +20,98 @@
 #include <Vc/Vc>
 #include "benchmark.h"
 #include "random.h"
+#include "cpuid.h"
 #include <cstdio>
 #include <cstdlib>
 
 using namespace Vc;
 
-bool blackHole = false;
-float_m floatResult;
-short_m shortResult;
-#if VC_IMPL_SSE
-sfloat_m sfloatResult;
-#endif
-
-#define unrolled_loop4(_it_, _code_) \
-{ enum { _it_ = 0 }; _code_ } \
-{ enum { _it_ = 1 }; _code_ } \
-{ enum { _it_ = 2 }; _code_ } \
-{ enum { _it_ = 3 }; _code_ }
+bool blackHoleBool = false;
 
 template<typename Vector> class DoCompares
 {
-    enum {
-        Factor = 5120000 / Vector::Size
-    };
-
     public:
-        DoCompares(const int Repetitions)
-            : a(new Vector[Factor]),
-            b(new Vector[Factor])
+        static void run(const int Repetitions)
         {
-            setResultPointer();
-            for (int i = 0; i < Factor; ++i) {
+            const int Factor = CpuId::L1Data() / sizeof(Vector);
+            Vector *a = new Vector[Factor + 1];
+            for (int i = 0; i < Factor + 1; ++i) {
                 a[i] = PseudoRandom<Vector>::next();
-                b[i] = PseudoRandom<Vector>::next();
             }
 
             {
                 Benchmark timer("operator<", Vector::Size * Factor, "Op");
-                doWork1();
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    doWork1();
+                    for (int i = 0; i < Factor; ++i) {
+                        blackHoleMask = a[i] < a[i + 1];
+                    }
                     timer.Stop();
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
-            {
+            if (false) {
                 Benchmark timer("masked assign with operator==", Vector::Size * Factor, "Op");
-                doWork2();
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                    for (int i = 0; i < Factor + 1; ++i) {
+                        a[i] = PseudoRandom<Vector>::next();
+                    }
                     timer.Start();
-                    doWork2();
+                    const Vector one(One);
+                    for (int i = 0; i < Factor; ++i) {
+                        a[i](a[i] == a[i + 1]) = one;
+                    }
                     timer.Stop();
                     for (int i = 0; i < Factor; ++i) {
-                        *result = a[i] > Vector(One);
+                        blackHoleVector = a[i];
                     }
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
             {
                 Benchmark timer("(operator==).isFull()", Vector::Size * Factor, "Op");
-                doWork3();
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    doWork3();
+                    const Vector one(One);
+                    for (int i = 0; i < Factor; ++i) {
+                        blackHoleBool = (a[i] == a[i + 1]).isFull();
+                    }
                     timer.Stop();
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
-                {
+            {
                 Benchmark timer("!(operator==).isEmpty()", Vector::Size * Factor, "Op");
-                doWork4();
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    doWork4();
+                    const Vector one(One);
+                    for (int i = 0; i < Factor; ++i) {
+                        blackHoleBool = !(a[i] == a[i + 1]).isEmpty();
+                    }
                     timer.Stop();
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
-        }
-
-        ~DoCompares()
-        {
             delete[] a;
-            delete[] b;
         }
 
     private:
-        void setResultPointer();
-        void doWork1();
-        void doWork2();
-        void doWork3();
-        void doWork4();
-
-        Vector *a;
-        Vector *b;
-        typename Vector::Mask *result;
+        static typename Vector::Mask blackHoleMask;
+        static Vector blackHoleVector;
 };
 
-template<> inline void DoCompares<float_v>::setResultPointer() { result = &floatResult; }
-template<> inline void DoCompares<short_v>::setResultPointer() { result = &shortResult; }
+template<> double_m DoCompares<double_v>::blackHoleMask = double_m();
+template<> double_v DoCompares<double_v>::blackHoleVector = double_v();
+template<> float_m DoCompares<float_v>::blackHoleMask = float_m();
+template<> float_v DoCompares<float_v>::blackHoleVector = float_v();
+template<> short_m DoCompares<short_v>::blackHoleMask = short_m();
+template<> short_v DoCompares<short_v>::blackHoleVector = short_v();
+template<> ushort_m DoCompares<ushort_v>::blackHoleMask = ushort_m();
+template<> ushort_v DoCompares<ushort_v>::blackHoleVector = ushort_v();
 #if VC_IMPL_SSE
-template<> inline void DoCompares<sfloat_v>::setResultPointer() { result = &sfloatResult; }
+template<> sfloat_m DoCompares<sfloat_v>::blackHoleMask = sfloat_m();
+template<> sfloat_v DoCompares<sfloat_v>::blackHoleVector = sfloat_v();
 #endif
-
-template<typename Vector> inline void DoCompares<Vector>::doWork1()
-{
-    for (int i = 0; i < Factor; ++i) {
-        *result = a[i] < b[i];
-    }
-}
-template<typename Vector> inline void DoCompares<Vector>::doWork2()
-{
-    const Vector one(One);
-    for (int i = 0; i < Factor; ++i) {
-        a[i](a[i] == b[i]) = one;
-    }
-}
-template<typename Vector> inline void DoCompares<Vector>::doWork3()
-{
-    const Vector one(One);
-    for (int i = 0; i < Factor; ++i) {
-        blackHole = (a[i] == b[i]).isFull();
-    }
-}
-template<typename Vector> inline void DoCompares<Vector>::doWork4()
-{
-    const Vector one(One);
-    for (int i = 0; i < Factor; ++i) {
-        blackHole = !(a[i] == b[i]).isEmpty();
-    }
-}
 
 int bmain(Benchmark::OutputMode out)
 {
@@ -158,14 +119,16 @@ int bmain(Benchmark::OutputMode out)
 
     Benchmark::addColumn("datatype");
 
+    Benchmark::setColumnData("datatype", "double_v");
+    DoCompares<double_v>::run(Repetitions);
     Benchmark::setColumnData("datatype", "float_v");
-    DoCompares<float_v> a(Repetitions);
+    DoCompares<float_v>::run(Repetitions);
     Benchmark::setColumnData("datatype", "short_v");
-    DoCompares<short_v> b(Repetitions);
-#if VC_IMPL_SSE
+    DoCompares<short_v>::run(Repetitions);
+    Benchmark::setColumnData("datatype", "ushort_v");
+    DoCompares<ushort_v>::run(Repetitions);
     Benchmark::setColumnData("datatype", "sfloat_v");
-    DoCompares<sfloat_v> c(Repetitions);
-#endif
+    DoCompares<sfloat_v>::run(Repetitions);
 
     return 0;
 }
