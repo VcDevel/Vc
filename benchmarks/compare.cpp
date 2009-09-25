@@ -50,6 +50,17 @@ template<typename Vector> class DoCompares
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
+            {
+                Benchmark timer("operator==", Vector::Size * Factor, "Op");
+                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                    timer.Start();
+                    for (int i = 0; i < Factor; ++i) {
+                        blackHoleMask = a[i] == a[i + 1];
+                    }
+                    timer.Stop();
+                }
+                timer.Print(Benchmark::PrintAverage);
+            }
             if (false) {
                 Benchmark timer("masked assign with operator==", Vector::Size * Factor, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
