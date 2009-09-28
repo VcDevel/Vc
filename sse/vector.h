@@ -104,12 +104,9 @@ class WriteMaskedVector
         Mask mask;
 };
 
-template<typename T> Vector<T> atan (const Vector<T> &_x);
-
 template<typename T>
 class Vector : public VectorBase<T>
 {
-    template<typename TT> friend Vector<TT> atan(const Vector<TT> &);
     protected:
         typedef VectorBase<T> Base;
         using Base::d;
