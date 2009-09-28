@@ -167,7 +167,7 @@ template<typename Vec> void testAsin()
 template<typename Vec> void testAtan()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(8e-5f);
+    setFuzzyness<float>(1e-7f);
     setFuzzyness<double>(2e-8);
     for (int offset = -1000; offset < 1000; offset += 10) {
         const T scale = 0.1;
@@ -182,7 +182,7 @@ template<typename Vec> void testAtan()
 template<typename Vec> void testAtan2()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(8e-5f);
+    setFuzzyness<float>(3e-7f);
     setFuzzyness<double>(3e-8);
     for (int xoffset = -100; xoffset < 1000; xoffset += 10) {
         for (int yoffset = -100; yoffset < 1000; yoffset += 10) {

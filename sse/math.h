@@ -116,10 +116,11 @@ namespace SSE
         const V pi_4(M_PI / 4);
         const M &gt_tan_3pi_8 = x > V(2.414213562373095);
         const M &gt_tan_pi_8  = x > V(0.4142135623730950) && !gt_tan_3pi_8;
+        const V minusOne(-1);
         V y(Zero);
         y(gt_tan_3pi_8) = pi_2;
         y(gt_tan_pi_8)  = pi_4;
-        x(gt_tan_3pi_8) = -reciprocal(x);
+        x(gt_tan_3pi_8) = minusOne / x;
         x(gt_tan_pi_8)  = (x - V(One)) / (x + V(One));
         const V &x2 = x * x;
         y += (((8.05374449538e-2 * x2
@@ -145,14 +146,15 @@ namespace SSE
         const V &absX = abs(x);
         const V &absY = abs(y);
 
+        V a = absY / absX;
         const V pi_4(M_PI / 4);
-        const M &gt_tan_3pi_8 = absY > absX * 2.414213562373095;
-        const M &gt_tan_pi_8  = absY > absX * 0.4142135623730950 && !gt_tan_3pi_8;
+        const M &gt_tan_3pi_8 = a > V(2.414213562373095);
+        const M &gt_tan_pi_8  = a > V(0.4142135623730950) && !gt_tan_3pi_8;
+        const V minusOne(-1);
         V b(Zero);
         b(gt_tan_3pi_8) = pi_2;
         b(gt_tan_pi_8)  = pi_4;
-        V a = absY / absX;
-        a(gt_tan_3pi_8) = -reciprocal(a);
+        a(gt_tan_3pi_8) = minusOne / a;
         a(gt_tan_pi_8)  = (absY - absX) / (absY + absX);
         const V &a2 = a * a;
         b += (((8.05374449538e-2 * a2
