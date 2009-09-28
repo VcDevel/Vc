@@ -158,7 +158,7 @@ struct ForeachHelper
 };
 
 #define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::SSE::ForeachHelper _Vc_foreach_bit_helper(_mask_.toInt()); _Vc_foreach_bit_helper.outer(); ) \
+    for (Vc::SSE::ForeachHelper _Vc_foreach_bit_helper((_mask_).toInt()); _Vc_foreach_bit_helper.outer(); ) \
         for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
 
 #define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
