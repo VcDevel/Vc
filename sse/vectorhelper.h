@@ -1029,7 +1029,7 @@ namespace SSE
             OPcmp(eq)
             static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
 
-#ifdef USE_CORRECT_UNSIGNED_COMPARE
+#ifndef USE_INCORRECT_UNSIGNED_COMPARE
             static inline VectorType cmplt(const VectorType &a, const VectorType &b) {
                 return _mm_cmplt_epu32(a, b);
             }
@@ -1214,14 +1214,14 @@ namespace SSE
 //X                 }
 //X                 return mul(a, set(b));
 //X             }
-#if defined(USE_CORRECT_UNSIGNED_COMPARE) || defined(__SSE4_1__)
+#if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || defined(__SSE4_1__)
             OP(min) OP(max)
 #endif
 #undef SUFFIX
 #define SUFFIX epi16
             SHIFT8
             OPx(mul, mullo) // should work correctly for all values
-#if !defined(USE_CORRECT_UNSIGNED_COMPARE) && !defined(__SSE4_1__)
+#if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(__SSE4_1__)
             OP(min) OP(max) // XXX breaks for values with MSB set
 #endif
             static inline EntryType min(VectorType a) {
@@ -1263,7 +1263,7 @@ namespace SSE
             OPcmp(eq)
             static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
 
-#ifdef USE_CORRECT_UNSIGNED_COMPARE
+#ifndef USE_INCORRECT_UNSIGNED_COMPARE
             static inline VectorType cmplt(const VectorType &a, const VectorType &b) {
                 return _mm_cmplt_epu16(a, b);
             }

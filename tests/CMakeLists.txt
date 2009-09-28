@@ -23,8 +23,6 @@ macro(vc_add_test name)
 endmacro(vc_add_test)
 
 vc_add_test(arithmetics)
-add_target_property(arithmetics_sse COMPILE_FLAGS "-DUSE_CORRECT_UNSIGNED_COMPARE")
-
 vc_add_test(expandandmerge)
 vc_add_test(load)
 vc_add_test(store)
