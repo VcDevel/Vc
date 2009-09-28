@@ -119,6 +119,12 @@ template<> short_m DoCompares<short_v>::blackHoleMask = short_m();
 template<> short_v DoCompares<short_v>::blackHoleVector = short_v();
 template<> ushort_m DoCompares<ushort_v>::blackHoleMask = ushort_m();
 template<> ushort_v DoCompares<ushort_v>::blackHoleVector = ushort_v();
+#if !VC_IMPL_LRBni
+template<> int_m DoCompares<int_v>::blackHoleMask = int_m();
+template<> int_v DoCompares<int_v>::blackHoleVector = int_v();
+template<> uint_m DoCompares<uint_v>::blackHoleMask = uint_m();
+template<> uint_v DoCompares<uint_v>::blackHoleVector = uint_v();
+#endif
 #if VC_IMPL_SSE
 template<> sfloat_m DoCompares<sfloat_v>::blackHoleMask = sfloat_m();
 template<> sfloat_v DoCompares<sfloat_v>::blackHoleVector = sfloat_v();
@@ -134,6 +140,10 @@ int bmain(Benchmark::OutputMode out)
     DoCompares<double_v>::run(Repetitions);
     Benchmark::setColumnData("datatype", "float_v");
     DoCompares<float_v>::run(Repetitions);
+    Benchmark::setColumnData("datatype", "int_v");
+    DoCompares<int_v>::run(Repetitions);
+    Benchmark::setColumnData("datatype", "uint_v");
+    DoCompares<uint_v>::run(Repetitions);
     Benchmark::setColumnData("datatype", "short_v");
     DoCompares<short_v>::run(Repetitions);
     Benchmark::setColumnData("datatype", "ushort_v");
