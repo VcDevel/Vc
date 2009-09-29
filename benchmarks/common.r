@@ -338,12 +338,14 @@ speedupBarPlot <- function(speedup, ylab = "Speedup", main = NULL) {
     speedup <- sortBy(speedup, speedup$benchmark.name)
     datatypes <- unique.default(speedup$datatype)
     n <- length(datatypes)
+    m <- matrix(data = speedup$speedup.median, nrow = n)
     barplot(
-        height = matrix(data = speedup$speedup.median, nrow = n),
+        height = m,
         beside = TRUE,
         main = main,
         col = speedup$color,
         legend = datatypes,
+        ylim = c(0,ceiling(max(m))),
         ylab = ylab
     )
     x <- (n + 2) * 0.5
@@ -463,6 +465,59 @@ barPlotCyclesPerOp <- function(data) {
         legend = data$key[1:nrow],
         ylab = "Cycles per Operation"
         )
+}
+
+mybarplot <- function(data, column, splitfactor = NULL, ...) {
+    if(is.null(data$color)) {
+        colorkey <- if(is.null(data$benchmark.arch)) data$benchmark.name else data$benchmark.arch
+        colorkey <- factor(colorkey)
+        ncolors <- nlevels(colorkey)
+        data$color <- rainbow(ncolors, v = 0.5)[as.integer(colorkey)]
+    }
+
+    medianCol <- paste(column, ".median", sep="")
+    meanCol   <- paste(column, ".mean"  , sep="")
+    stddevCol <- paste(column, ".stddev", sep="")
+    colors <- NULL
+    xlab <- NULL
+    n <- 0
+    if(!is.null(splitfactor)) {
+        m <- NULL
+        legend <- levels(as.factor(splitfactor))
+        for(s in split(data, splitfactor)) {
+            m <- rbind(m, s[[medianCol]])
+            colors <- c(colors, s$color)
+            xlab <- s$key
+            n <- n + 1
+        }
+    } else {
+        m <- data[[medianCol]]
+        colors <- data$colors
+        legend <- data$key
+    }
+    barplot(
+        height = m,
+        beside = TRUE,
+        col = colors,
+        legend = legend,
+        ylim = c(0,ceiling(max(m))),
+        ...
+        )
+    if(!is.null(xlab)) {
+        x <- (n + 2) * 0.5
+        offset <- 0.5
+        for(name in xlab) {
+            text(x = x, y = 0,
+                labels = name,
+                pos = 1,
+                offset = offset,
+                xpd = TRUE
+                )
+            x <- x + n + 1
+            offset <- offset + 1
+            if (offset >= length(xlab) / 2 ) offset <- 0.5
+        }
+    }
 }
 
 par(family="serif")

@@ -16,6 +16,9 @@ for(data in list(rbind(sse, simple, lrb))) {
     chart <- mychart4(data, data$benchmark.name,
         column = "GFLOP_per_sec_Real", xlab = "GFLOP per Second", main = "Multiply - Add (Peak FLOP)")
     printValuesInChart(chart)
+
+    chart <- mybarplot(data, data$benchmark.name,
+        column = "FLOP_per_cycle", ylab = "FLOP per Cycle", main = "Multiply - Add (Peak FLOP)")
 }
 
 # vim: sw=4 et filetype=r sts=4 ai
