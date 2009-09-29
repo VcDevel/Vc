@@ -42,124 +42,193 @@ int bmain(Benchmark::OutputMode out)
 
     int blackHole = true;
     {
-        Benchmark timer("class", 8. * float_v::Size * Factor, "FLOP");
+        Benchmark timer("class", 2 * 7 * float_v::Size * Factor, "FLOP");
         for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
-            const float_v alpha[4] = {
-                float_v(repetitions + randomF(.1f, .2f)),
-                float_v(repetitions - randomF(.1f, .2f)),
-                float_v(repetitions + randomF(.1f, .2f)),
-                float_v(repetitions - randomF(.1f, .2f))
-            };
-            float_v x[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
-            const float_v y[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
+            const float_v alpha(repetitions - randomF(.1f, .2f));
+            const float_v y = randomF12();
+            float_v x[7] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
 
             // force the x vectors to registers, otherwise GCC decides to work on the stack and
             // lose half of the performance
-            forceToRegisters(x[0], x[1], x[2], x[3]);
+            forceToRegisters(x[0], x[1], x[2], x[3], x[4], x[5], x[6]);
 
             timer.Start();
             ///////////////////////////////////////
 
             for (int i = 0; i < Factor; ++i) {
-                    x[0] = alpha[0] * x[0] + y[0];
-                    x[1] = alpha[1] * x[1] + y[1];
-                    x[2] = alpha[2] * x[2] + y[2];
-                    x[3] = alpha[3] * x[3] + y[3];
+                    x[0] = y * x[0] + y;
+                    x[1] = y * x[1] + y;
+                    x[2] = y * x[2] + y;
+                    x[3] = y * x[3] + y;
+                    x[4] = y * x[4] + y;
+                    x[5] = y * x[5] + y;
+                    x[6] = y * x[6] + y;
             }
 
             ///////////////////////////////////////
             timer.Stop();
 
-            const int k = (x[0] < x[1]) && (x[2] < x[3]);
+            const int k = (x[0] < x[1]) && (x[2] < x[3]) && (x[4] < x[5]) && (x[0] < x[6]);
             blackHole &= k;
         }
         timer.Print(Benchmark::PrintAverage);
     }
 
-    // reference
+    // asm reference
+#ifdef __GNUC__
     {
-        Benchmark timer("reference", 8. * float_v::Size * Factor, "FLOP");
+        Benchmark timer("asm reference", 2 * 7 * float_v::Size * Factor, "FLOP");
         for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
 #if VC_IMPL_SSE
-            __m128 tmp = _mm_set1_ps(static_cast<float>(repetitions));
-            const __m128 oPoint2 = _mm_set1_ps(randomF(.1f, .2f));
-            const __m128 oPoint1 = _mm_set1_ps(randomF(.1f, .2f));
-            const __m128 alpha[4] = {
-                _mm_add_ps(tmp, oPoint2),
-                _mm_sub_ps(tmp, oPoint2),
-                _mm_add_ps(tmp, oPoint1),
-                _mm_sub_ps(tmp, oPoint1)
-            };
-            __m128 x[4] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
-            const __m128 y[4] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
+            __m128 x[7] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
+            const __m128 y = _mm_set1_ps(randomF12());
 
             timer.Start();
             ///////////////////////////////////////
-
-            for (int i = 0; i < Factor; ++i) {
-                    x[0] = _mm_add_ps(_mm_mul_ps(alpha[0], x[0]), y[0]);
-                    x[1] = _mm_add_ps(_mm_mul_ps(alpha[1], x[1]), y[1]);
-                    x[2] = _mm_add_ps(_mm_mul_ps(alpha[2], x[2]), y[2]);
-                    x[3] = _mm_add_ps(_mm_mul_ps(alpha[3], x[3]), y[3]);
-            }
-
+            int i = Factor;
+            __asm__(
+                    ".align 16\n\t0: "
+                    "mulps  %8,%0"   "\n\t"
+                    "sub    $1,%7"   "\n\t"
+                    "mulps  %8,%1"   "\n\t"
+                    "mulps  %8,%2"   "\n\t"
+                    "addps  %8,%0"   "\n\t"
+                    "mulps  %8,%3"   "\n\t"
+                    "addps  %8,%1"   "\n\t"
+                    "mulps  %8,%4"   "\n\t"
+                    "addps  %8,%2"   "\n\t"
+                    "mulps  %8,%5"   "\n\t"
+                    "addps  %8,%3"   "\n\t"
+                    "addps  %8,%4"   "\n\t"
+                    "mulps  %8,%6"   "\n\t"
+                    "addps  %8,%5"   "\n\t"
+                    "addps  %8,%6"   "\n\t"
+                    "jne 0b"         "\n\t"
+                    : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+x"(x[6]), "+r"(i)
+                    : "x"(y));
             ///////////////////////////////////////
             timer.Stop();
 
-            const int k = _mm_movemask_ps(_mm_add_ps(_mm_add_ps(x[0], x[1]), _mm_add_ps(x[2], x[3])));
+            const int k = _mm_movemask_ps(_mm_add_ps(_mm_add_ps(_mm_add_ps(x[0], x[1]), _mm_add_ps(x[2], x[3])), _mm_add_ps(_mm_add_ps(x[4], x[5]), x[6])));
             blackHole &= k;
 #elif VC_IMPL_LRBni
-            __m512 tmp = _mm512_set_1to16_ps(static_cast<float>(repetitions));
-            const __m512 oPoint2 = _mm512_set_1to16_ps(randomF(.1f, .2f));
-            const __m512 oPoint1 = _mm512_set_1to16_ps(randomF(.1f, .2f));
-            const __m512 alpha[4] = {
-                _mm512_add_ps(tmp, oPoint2),
-                _mm512_sub_ps(tmp, oPoint2),
-                _mm512_add_ps(tmp, oPoint1),
-                _mm512_sub_ps(tmp, oPoint1)
-            };
-            __m512 x[4] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
-            const __m512 y[4] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
+//X             __m512 x[7] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
+//X             const __m512 y = _mm512_set_1to16_ps(randomF12());
+//X 
+//X             timer.Start();
+//X             ///////////////////////////////////////
+//X             ///////////////////////////////////////
+//X             timer.Stop();
+//X 
+//X             const int k = _mm512_cmpeq_ps(_mm512_add_ps(_mm512_add_ps(x[4], x[5]), _mm512_add_ps(x[0], x[1])), _mm512_add_ps(x[6], _mm512_add_ps(x[2], x[3])));
+//X             blackHole &= k;
+#else
+            float x[7] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
+            const float y = randomF12();
+
+            timer.Start();
+            ///////////////////////////////////////
+            int i = Factor;
+            __asm__(
+                    ".align 16\n\t0: "
+                    "mulss  %8,%0"   "\n\t"
+                    "sub    $1,%7"   "\n\t"
+                    "mulss  %8,%1"   "\n\t"
+                    "mulss  %8,%2"   "\n\t"
+                    "addss  %8,%0"   "\n\t"
+                    "mulss  %8,%3"   "\n\t"
+                    "addss  %8,%1"   "\n\t"
+                    "mulss  %8,%4"   "\n\t"
+                    "addss  %8,%2"   "\n\t"
+                    "mulss  %8,%5"   "\n\t"
+                    "addss  %8,%3"   "\n\t"
+                    "addss  %8,%4"   "\n\t"
+                    "mulss  %8,%6"   "\n\t"
+                    "addss  %8,%5"   "\n\t"
+                    "addss  %8,%6"   "\n\t"
+                    "jne 0b"         "\n\t"
+                    : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+x"(x[6]), "+r"(i)
+                    : "x"(y));
+            ///////////////////////////////////////
+            timer.Stop();
+
+            const int k = (x[0] < x[1]) && (x[2] < x[3]) && (x[4] < x[5]) && (x[2] < x[6]);
+            blackHole &= k;
+#endif
+        }
+        timer.Print(Benchmark::PrintAverage);
+    }
+#endif
+
+    // intrinsics reference
+    {
+        Benchmark timer("intrinsics reference", 2 * 7 * float_v::Size * Factor, "FLOP");
+        for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+#if VC_IMPL_SSE
+            __m128 x[7] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
+            const __m128 y = _mm_set1_ps(randomF12());
 
             timer.Start();
             ///////////////////////////////////////
 
             for (int i = 0; i < Factor; ++i) {
-                    x[0] = _mm512_madd132_ps(x[0], y[0], alpha[0]);
-                    x[1] = _mm512_madd132_ps(x[1], y[1], alpha[1]);
-                    x[2] = _mm512_madd132_ps(x[2], y[2], alpha[2]);
-                    x[3] = _mm512_madd132_ps(x[3], y[3], alpha[3]);
+                    x[0] = _mm_add_ps(_mm_mul_ps(y, x[0]), y);
+                    x[1] = _mm_add_ps(_mm_mul_ps(y, x[1]), y);
+                    x[2] = _mm_add_ps(_mm_mul_ps(y, x[2]), y);
+                    x[3] = _mm_add_ps(_mm_mul_ps(y, x[3]), y);
+                    x[4] = _mm_add_ps(_mm_mul_ps(y, x[4]), y);
+                    x[5] = _mm_add_ps(_mm_mul_ps(y, x[5]), y);
+                    x[6] = _mm_add_ps(_mm_mul_ps(y, x[6]), y);
             }
 
             ///////////////////////////////////////
             timer.Stop();
 
-            const int k = _mm512_cmpeq_ps(_mm512_add_ps(x[0], x[1]), _mm512_add_ps(x[2], x[3]));
+            const int k = _mm_movemask_ps(_mm_add_ps(_mm_add_ps(_mm_add_ps(x[0], x[1]), _mm_add_ps(x[2], x[3])), _mm_add_ps(_mm_add_ps(x[4], x[5]), x[6])));
+            blackHole &= k;
+#elif VC_IMPL_LRBni
+            __m512 x[7] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
+            const __m512 y = _mm512_set_1to16_ps(randomF12());
+
+            timer.Start();
+            ///////////////////////////////////////
+
+            for (int i = 0; i < Factor; ++i) {
+                    x[0] = _mm512_madd132_ps(x[0], y, y);
+                    x[1] = _mm512_madd132_ps(x[1], y, y);
+                    x[2] = _mm512_madd132_ps(x[2], y, y);
+                    x[3] = _mm512_madd132_ps(x[3], y, y);
+                    x[4] = _mm512_madd132_ps(x[4], y, y);
+                    x[5] = _mm512_madd132_ps(x[5], y, y);
+                    x[6] = _mm512_madd132_ps(x[6], y, y);
+            }
+
+            ///////////////////////////////////////
+            timer.Stop();
+
+            const int k = _mm512_cmpeq_ps(_mm512_add_ps(_mm512_add_ps(x[4], x[5]), _mm512_add_ps(x[0], x[1])), _mm512_add_ps(x[6], _mm512_add_ps(x[2], x[3])));
             blackHole &= k;
 #else
-            const float alpha[4] = {
-                float(repetitions + randomF(.1f, .2f)),
-                float(repetitions - randomF(.1f, .2f)),
-                float(repetitions + randomF(.1f, .2f)),
-                float(repetitions - randomF(.1f, .2f))
-            };
-            float x[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
-            const float y[4] = { randomF12(), randomF12(), randomF12(), randomF12() };
+            float x[7] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
+            const float y = randomF12();
 
             timer.Start();
             ///////////////////////////////////////
 
             for (int i = 0; i < Factor; ++i) {
-                    x[0] = alpha[0] * x[0] + y[0];
-                    x[1] = alpha[1] * x[1] + y[1];
-                    x[2] = alpha[2] * x[2] + y[2];
-                    x[3] = alpha[3] * x[3] + y[3];
+                    x[0] = y * x[0] + y;
+                    x[1] = y * x[1] + y;
+                    x[2] = y * x[2] + y;
+                    x[3] = y * x[3] + y;
+                    x[4] = y * x[4] + y;
+                    x[5] = y * x[5] + y;
+                    x[6] = y * x[6] + y;
             }
 
             ///////////////////////////////////////
             timer.Stop();
 
-            const int k = (x[0] < x[1]) && (x[2] < x[3]);
+            const int k = (x[0] < x[1]) && (x[2] < x[3]) && (x[4] < x[5]) && (x[2] < x[6]);
             blackHole &= k;
 #endif
         }
