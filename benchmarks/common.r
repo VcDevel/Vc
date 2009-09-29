@@ -108,10 +108,10 @@ mydotchart <- function(x, labels = NULL, groups = NULL, gdata = NULL, errors = N
     axis(1)
     box()
     title(main = main, xlab = xlab, ylab = ylab, ...)
-    invisible(list(y=y + yoffset, o=o, cex=cex, nmai=nmai))
+    invisible(list(y=y + yoffset, o=o, cex=cex, nmai=nmai, points=data.frame(x=x, y=y + yoffset)))
 }
 
-addPoints <- function(chart, x, errors = NULL, mean = NULL,
+addPoints <- function(chart, addx, errors = NULL, mean = NULL,
     color = par("fg"), bg = NULL, pch = 21, ...)
 {
     opar <- par("mai", "mar", "cex", "yaxs")
@@ -125,20 +125,21 @@ addPoints <- function(chart, x, errors = NULL, mean = NULL,
             hsv(h=tmp[row(tmp) == 1], s=tmp[row(tmp) == 2], v=min(1, 1.6 * tmp[row(tmp) == 3]), alpha=0.5)
         }
 
-    x <- x[o]
+    addx <- addx[o]
     errors <- errors[o]
     mean <- mean[o]
     color <- color[o]
     bg <- bg[o]
 
     if (!is.null(errors)) {
-        if (is.null(mean)) mean <- x
+        if (is.null(mean)) mean <- addx
         errorbars(mean, y, xerr=errors, col = color)
     }
-    points(x, y, pch = pch, col = color, bg = bg)
+    points(addx, y, pch = pch, col = color, bg = bg)
 
     detach(chart)
-    invisible()
+    chart$points = rbind(chart$points, data.frame(x=addx, y=chart$y))
+    invisible(chart)
 }
 
 addPoints2 <- function(chart, data, key, ...) {
@@ -149,7 +150,8 @@ addPoints2 <- function(chart, data, key, ...) {
     color <- if(is.null(data$color)) par("fg") else data$color
     pch   <- if(is.null(data$pch  )) 21        else data$pch
 
-    addPoints(chart, median, stddev, mean, color, pch = pch, ...)
+    chart <- addPoints(chart, median, stddev, mean, color, pch = pch, ...)
+    invisible(chart)
 }
 
 mychart2 <- function(data, keys, groups = NULL, ...) {
@@ -238,7 +240,7 @@ mychart4 <- function(data, splitfactor, orderfun = function(d) { order(d[[median
         } else {
             d <- permute(d, permutation)
             chart$y <- chart$y - steps
-            addPoints2(chart, d, column)
+            chart <- addPoints2(chart, d, column)
             if(offsetInY) abline(h = chart$y, lty = "dotted", col = d$lcolor)
         }
     }
@@ -248,6 +250,16 @@ mychart4 <- function(data, splitfactor, orderfun = function(d) { order(d[[median
     if(cex >= 0.8) cex <- max(0.75, cex * 0.8)
     legend(legendpos, legendtext[pchLevels], pch=pchLevels, cex = cex)
     invisible(chart)
+}
+
+printValuesInChart <- function(chart) {
+    x <- chart$points$x
+    y <- chart$points$y
+    maxx <- max(x)
+    pos <- 4
+    pos[x <= maxx * 0.5] <- 4
+    pos[x > maxx * 0.5] <- 2
+    text(x = x, y = y, pos = pos, labels = x)
 }
 
 sortkey <- function(string, values, keys) {
