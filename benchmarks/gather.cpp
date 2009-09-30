@@ -155,6 +155,7 @@ template<> FullMaskHelper<sfloat_v>::FullMaskHelper() : fullMask(&sfloat_fullMas
 
 static int g_L1ArraySize = 0;
 static int g_L2ArraySize = 0;
+static int g_L3ArraySize = 0;
 static int g_CacheLineArraySize = 0;
 static int g_MaxArraySize = 0;
 
@@ -259,6 +260,7 @@ template<typename Vector> struct GatherBenchmark
     static void run(const int Repetitions)
     {
         const int MaxArraySize = g_MaxArraySize / sizeof(Scalar);
+        const int L3ArraySize = g_L3ArraySize / sizeof(Scalar);
         const int L2ArraySize = g_L2ArraySize / sizeof(Scalar);
         const int L1ArraySize = g_L1ArraySize / sizeof(Scalar);
         const int CacheLineArraySize = g_CacheLineArraySize / sizeof(Scalar);
@@ -269,29 +271,32 @@ template<typename Vector> struct GatherBenchmark
 
         // the last parts of _data are still hot, so we start at the beginning
         Scalar *data = _data;
-        Benchmark::setColumnData("mask", "random");
+        Benchmark::setColumnData("mask", "random mask");
         MaskedGather("Memory", Repetitions, MaxArraySize, data);
 
         // now the last parts of _data should be cold, let's go there
         data += ArrayCount - MaxArraySize;
-        Benchmark::setColumnData("mask", "no");
+        Benchmark::setColumnData("mask", "not masked");
         Gather("Memory", Repetitions, MaxArraySize, data);
 
         data = _data;
-        Benchmark::setColumnData("mask", "one");
+        Benchmark::setColumnData("mask", "masked with one");
         FullMaskedGather("Memory", Repetitions, MaxArraySize, data);
 
-        Benchmark::setColumnData("mask", "no");
+        Benchmark::setColumnData("mask", "not masked");
+        if (L3ArraySize > 0) Gather("L3", Repetitions, L3ArraySize, data);
         Gather("L2", Repetitions, L2ArraySize, data);
         Gather("L1", Repetitions, L1ArraySize, data);
         Gather("Cacheline", Repetitions, CacheLineArraySize, data);
         Gather("Broadcast", Repetitions, 1, data);
-        Benchmark::setColumnData("mask", "random");
+        Benchmark::setColumnData("mask", "random mask");
+        if (L3ArraySize > 0) MaskedGather("L3", Repetitions, L3ArraySize, data);
         MaskedGather("L2", Repetitions, L2ArraySize, data);
         MaskedGather("L1", Repetitions, L1ArraySize, data);
         MaskedGather("Cacheline", Repetitions, CacheLineArraySize, data);
         MaskedGather("Broadcast", Repetitions, 1, data);
-        Benchmark::setColumnData("mask", "one");
+        Benchmark::setColumnData("mask", "masked with one");
+        if (L3ArraySize > 0) FullMaskedGather("L3", Repetitions, L3ArraySize, data);
         FullMaskedGather("L2", Repetitions, L2ArraySize, data);
         FullMaskedGather("L1", Repetitions, L1ArraySize, data);
         FullMaskedGather("Cacheline", Repetitions, CacheLineArraySize, data);
@@ -316,13 +321,15 @@ int bmain(Benchmark::OutputMode out)
     Benchmark::addColumn("mask");
     Benchmark::addColumn("L1.size");
     Benchmark::addColumn("L2.size");
+    Benchmark::addColumn("L3.size");
     Benchmark::addColumn("Cacheline.size");
     const int Repetitions = out == Benchmark::Stdout ? 4 : (g_Repetitions > 0 ? g_Repetitions : 20);
 
     g_L1ArraySize = CpuId::L1Data();
     g_L2ArraySize = CpuId::L2Data();
+    g_L3ArraySize = CpuId::L3Data();
     g_CacheLineArraySize = CpuId::L1DataLineSize();
-    g_MaxArraySize = g_L2ArraySize * 8;
+    g_MaxArraySize = std::max(g_L2ArraySize, g_L3ArraySize) * 8;
     {
         std::ostringstream str;
         str << g_L1ArraySize;
@@ -335,6 +342,11 @@ int bmain(Benchmark::OutputMode out)
     }
     {
         std::ostringstream str;
+        str << g_L3ArraySize;
+        Benchmark::setColumnData("L3.size", str.str());
+    }
+    {
+        std::ostringstream str;
         str << g_CacheLineArraySize;
         Benchmark::setColumnData("Cacheline.size", str.str());
     }
@@ -342,6 +354,7 @@ int bmain(Benchmark::OutputMode out)
     // divide by 2 since other parts of the program also affect the caches
     g_L1ArraySize /= 2;
     g_L2ArraySize /= 2;
+    g_L3ArraySize /= 2;
 
     Benchmark::setColumnData("datatype", "float_v");
     GatherBenchmark<float_v>::run(Repetitions);
