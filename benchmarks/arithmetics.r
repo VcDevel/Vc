@@ -5,11 +5,19 @@ arithmeticsProcessData <- function(d) {
     d
 }
 
-for(data in list(rbind(sse, simple, lrb))) {
+for(data in list(rbind(sse, simple, lrb), rbind(sse, simple))) {
     data <- arithmeticsProcessData(data)
 
     mychart4(data, data$benchmark.name, orderfun = function(d) order(d$Op_per_cycle.median),
-        column = "Op_per_cycle", xlab = "Compares per Cycle", main = "Arithmetics")
+        column = "Op_per_cycle", xlab = "Operations per Cycle", main = "Arithmetics")
+
+    data$key <- paste(data$datatype)
+    for(part in split(data, data$benchmark.name)) {
+        mybarplot(part, "benchmark.arch", column = "Op_per_cycle", ylab = "Operations per Cycle",
+            main = paste("Arithmetics (", part$benchmark.name[[1]], ")", sep=""),
+            orderfun = function(d) sort.list(logicalSortkeyForDatatype(d$datatype)),
+            maxlaboffset = 1)
+    }
 }
 
 sse    <- arithmeticsProcessData(sse)
@@ -18,7 +26,8 @@ simple <- arithmeticsProcessData(simple)
 
 plotSpeedup(sse, simple, lrb, main = "Arithmetics",
     speedupColumn = "Op_per_cycle",
-    datafun = function(d, ref) list(key = d$datatype)
+    datafun = function(d, ref) list(key = d$datatype),
+    maxlaboffset = 1
     )
 
 # vim: sw=4 et filetype=r sts=4 ai
