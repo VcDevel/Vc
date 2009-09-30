@@ -333,7 +333,7 @@ logicalSortkeyForDatatype <- function(type) {
     type
 }
 
-speedupBarPlot <- function(speedup, ylab = "Speedup", main = NULL) {
+speedupBarPlot <- function(speedup, ylab = "Speedup", maxlaboffset = 4, ...) {
     speedup <- permute(speedup, sort.list(logicalSortkeyForDatatype(speedup$datatype)))
     speedup <- sortBy(speedup, speedup$benchmark.name)
     datatypes <- unique.default(speedup$datatype)
@@ -342,11 +342,11 @@ speedupBarPlot <- function(speedup, ylab = "Speedup", main = NULL) {
     barplot(
         height = m,
         beside = TRUE,
-        main = main,
         col = speedup$color,
         legend = datatypes,
         ylim = c(0,ceiling(max(m))),
-        ylab = ylab
+        ylab = ylab,
+        ...
     )
     x <- (n + 2) * 0.5
     offset <- 0.5
@@ -359,13 +359,13 @@ speedupBarPlot <- function(speedup, ylab = "Speedup", main = NULL) {
             )
         x <- x + n + 1
         offset <- offset + 1
-        if (offset >= nlevels(as.factor(speedup$benchmark.name)) / 2 ) offset <- 0.5
+        if (offset >= min(maxlaboffset, nlevels(as.factor(speedup$benchmark.name)) / 2)) offset <- 0.5
     }
     abline(h = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.8))
 }
 
 plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mychart4, main,
-    orderfun = function(d) order(logicalSortkeyForDatatype(d$datatype), d$benchmark.name), speedupColumn = NULL)
+    orderfun = function(d) order(logicalSortkeyForDatatype(d$datatype), d$benchmark.name), speedupColumn = NULL, ...)
 {
     speedupOf <- function(data, reference) {
         tmp <- datafun(data, reference)
@@ -415,7 +415,7 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
     abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
     speedupBarPlot(speedup,
-            main = paste(main, speedup$mainpostfix[[1]], sep=": ")
+            main = paste(main, speedup$mainpostfix[[1]], sep=": "), ...
             )
 
     if(length(lrb) > 0) {
@@ -431,7 +431,7 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
         abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
         speedupBarPlot(speedup,
-            main = paste(main, speedup$mainpostfix[[1]], sep=": ")
+            main = paste(main, speedup$mainpostfix[[1]], sep=": "), ...
                 )
 
         speedup <- rbind(
@@ -445,7 +445,7 @@ plotSpeedup <- function(sse, simple, lrb = data.frame(), datafun, plotfun = mych
         abline(v = 1, lty = "dashed", col = hsv(s = 1, v = 0, alpha = 0.4))
 
     speedupBarPlot(speedup,
-            main = paste(main, speedup$mainpostfix[[1]], sep=": ")
+            main = paste(main, speedup$mainpostfix[[1]], sep=": "), ...
             )
     }
 }
@@ -467,29 +467,56 @@ barPlotCyclesPerOp <- function(data) {
         )
 }
 
-mybarplot <- function(data, column, splitfactor = NULL, ...) {
-    if(is.null(data$color)) {
-        colorkey <- if(is.null(data$benchmark.arch)) data$benchmark.name else data$benchmark.arch
-        colorkey <- factor(colorkey)
-        ncolors <- nlevels(colorkey)
-        data$color <- rainbow(ncolors, v = 0.5)[as.integer(colorkey)]
-    }
+orderAs <- function(data, colName, reference) {
+    tmp <- data[[colName]]
+    n <- length(tmp)
+    tmp <- matrix(tmp, nrow=n+1, ncol=n)
+    tmp <- matrix(tmp[row(tmp) <= n], nrow=n)
+    reference <- matrix(reference, byrow=TRUE, nrow=n, ncol=n)
+    h <- matrix(1:n, byrow=TRUE, nrow=n, ncol=n+1)
+    h <- matrix(h[col(h) <= n], nrow=n)
+    data[colName] <- data[[colName]][h[tmp == reference]]
+    data
+}
 
+nicerLimit <- function(max) {
+    factor <- 1.0
+    while(max < 1.0) {
+        factor <- factor * 0.1
+        max <- max * 10
+    }
+    c(0, ceiling(max) * factor)
+}
+
+mybarplot <- function(data, column, splitcolumn = NULL, orderfun = function(d) order(-d[[medianCol]]),
+        maxlaboffset = 4, ...) {
     medianCol <- paste(column, ".median", sep="")
     meanCol   <- paste(column, ".mean"  , sep="")
     stddevCol <- paste(column, ".stddev", sep="")
+
+    if(!is.null(orderfun)) data <- permute(data, orderfun(data))
+
     colors <- NULL
     xlab <- NULL
+    m <- NULL
     n <- 0
-    if(!is.null(splitfactor)) {
-        m <- NULL
-        legend <- levels(as.factor(splitfactor))
-        for(s in split(data, splitfactor)) {
+    if(!is.null(splitcolumn)) {
+        ncolors <- nlevels(as.factor(data[[splitcolumn]]))
+        data$color <- rainbow(ncolors, v = 0.5)[as.integer(as.factor(data[[splitcolumn]]))]
+        splitted <- split(data, as.factor(data[[splitcolumn]]))
+        legend <- NULL
+        for(s in splitted) {
+            legend <- c(legend, s[[splitcolumn]][[1]])
+            if(!is.null(xlab)) {
+                s <- orderAs(s, "key", xlab)
+            } else {
+                xlab <- s$key
+            }
             m <- rbind(m, s[[medianCol]])
-            colors <- c(colors, s$color)
-            xlab <- s$key
+            colors <- rbind(colors, s$color)
             n <- n + 1
         }
+        colors <- as.vector(colors)
     } else {
         m <- data[[medianCol]]
         colors <- data$colors
@@ -500,7 +527,7 @@ mybarplot <- function(data, column, splitfactor = NULL, ...) {
         beside = TRUE,
         col = colors,
         legend = legend,
-        ylim = c(0,ceiling(max(m))),
+        ylim = nicerLimit(max(m)),
         ...
         )
     if(!is.null(xlab)) {
@@ -515,7 +542,7 @@ mybarplot <- function(data, column, splitfactor = NULL, ...) {
                 )
             x <- x + n + 1
             offset <- offset + 1
-            if (offset >= length(xlab) / 2 ) offset <- 0.5
+            if (offset >= min(maxlaboffset, length(xlab) / 2)) offset <- 0.5
         }
     }
 }
