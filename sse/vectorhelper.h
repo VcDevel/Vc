@@ -946,12 +946,8 @@ namespace SSE
                 return _mm_cvtsi128_si32(a);
             }
 
-            static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
-                _M128I mask = _mm_castps_si128(_mask);
-                return _mm_or_si128(
-                    _mm_and_si128(mask, mul(a, b)),
-                    _mm_andnot_si128(mask, a)
-                    );
+            static inline VectorType mul(const VectorType a, const VectorType b, _M128 _mask) {
+                return _mm_blendv_epi8(a, mul(a, b), _mm_castps_si128(_mask));
             }
             static inline VectorType mul(const VectorType a, const VectorType b) {
                 VectorType hi = _mm_mulhi_epu16(a, b);
