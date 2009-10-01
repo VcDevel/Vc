@@ -949,11 +949,8 @@ namespace SSE
             static inline VectorType mul(const VectorType a, const VectorType b, _M128 _mask) {
                 return _mm_blendv_epi8(a, mul(a, b), _mm_castps_si128(_mask));
             }
-            static inline VectorType mul(const VectorType a, const VectorType b) {
-                VectorType hi = _mm_mulhi_epu16(a, b);
-                hi = _mm_slli_epi32(hi, 16);
-                VectorType lo = _mm_mullo_epi16(a, b);
-                return or_(hi, lo);
+            static inline VectorType mul(const VectorType &a, const VectorType &b) {
+                return VectorHelper<int>::mul(a, b);
             }
 //X             template<unsigned int b> static inline VectorType mul(const VectorType a) {
 //X                 switch (b) {

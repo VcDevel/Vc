@@ -145,13 +145,40 @@ template<typename Vec> void testSub()
     COMPARE(a, b - c);
 }
 
+template<typename T> struct MulRangeHelper
+{
+    typedef int Iterator;
+    static const Iterator Start;
+    static const Iterator End;
+};
+template<> struct MulRangeHelper<unsigned int> {
+    typedef unsigned int Iterator;
+    static const Iterator Start;
+    static const Iterator End;
+};
+template<> const int MulRangeHelper<float>::Start = -0xffffff;
+template<> const int MulRangeHelper<float>::End   =  0xffffff - 133;
+template<> const int MulRangeHelper<double>::Start = -0xffffff;
+template<> const int MulRangeHelper<double>::End   =  0xffffff - 133;
+template<> const int MulRangeHelper<int>::Start = -0x80000000;
+template<> const int MulRangeHelper<int>::End   = 0x7fffffff - 110;
+const unsigned int MulRangeHelper<unsigned int>::Start = 0;
+const unsigned int MulRangeHelper<unsigned int>::End = 0xffffffff - 110;
+template<> const int MulRangeHelper<short>::Start = -0x8000;
+template<> const int MulRangeHelper<short>::End = 0x7fff - 50;
+template<> const int MulRangeHelper<unsigned short>::Start = 0;
+template<> const int MulRangeHelper<unsigned short>::End = 0xffff - 50;
+
 template<typename Vec> void testMul()
 {
-    for (unsigned int i = 0; i < 0xffff; ++i) {
-        const Vec i2(i * i);
-        Vec a(i);
+    typedef typename Vec::EntryType T;
+    typedef MulRangeHelper<T> Range;
+    for (typename Range::Iterator i = Range::Start; i < Range::End; i += 0xef) {
+        T i2 = static_cast<T>(i);
+        Vec a(i2);
+        i2 *= i2 - 9;
 
-        COMPARE(a * a, i2);
+        COMPARE(a * (a - 9), Vec(i2));
     }
 }
 
