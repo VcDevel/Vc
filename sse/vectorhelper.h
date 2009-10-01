@@ -844,34 +844,12 @@ namespace SSE
             }
 #ifdef __SSE4_1__
             static inline VectorType mul(VectorType a, VectorType b) { return _mm_mullo_epi32(a, b); }
-            static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) {
-                _M128I mask = _mm_castps_si128(_mask);
-                return _mm_or_si128(
-                    _mm_and_si128(mask, _mm_mullo_epi32(a, b)),
-                    _mm_andnot_si128(mask, a)
-                    );
-            }
             static inline EntryType mul(VectorType a) {
                 a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
 #else
-            static inline VectorType mul(const VectorType a, const VectorType b, _M128 _mask) {
-                const int mask = _mm_movemask_ps(_mask);
-                STORE_VECTOR(int, _a, a);
-                STORE_VECTOR(int, _b, b);
-                union {
-                    int i[4];
-                    VectorType v;
-                } x = { {
-                    (mask & 1 ? _a[0] * _b[0] : _a[0]),
-                    (mask & 2 ? _a[1] * _b[1] : _a[1]),
-                    (mask & 4 ? _a[2] * _b[2] : _a[2]),
-                    (mask & 8 ? _a[3] * _b[3] : _a[3])
-                } };
-                return x.v;
-            }
             static inline VectorType mul(const VectorType &a, const VectorType &b) {
                 const VectorType &aShift = _mm_srli_si128(a, 4);
                 const VectorType &ab02 = _mm_mul_epu32(a, b); // [a0 * b0, a2 * b2]
@@ -884,6 +862,9 @@ namespace SSE
                 return _a[0] * _a[1] * _a[2] * _a[3];
             }
 #endif
+            static inline VectorType mul(const VectorType a, const VectorType b, _M128 _mask) {
+                return _mm_blendv_epi8(a, mul(a, b), _mm_castps_si128(_mask));
+            }
 
             static inline VectorType div(const VectorType a, const VectorType b, _M128 _mask) {
                 const int mask = _mm_movemask_ps(_mask);
