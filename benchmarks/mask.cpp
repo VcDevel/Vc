@@ -139,7 +139,7 @@ template<typename Vector> struct CondAssignment
         }
         {
             const Vector x(3);
-            Benchmark timer("Masked Multiply-Add", Factor * Vector::Size, "Op");
+            Benchmark timer("Masked Multiply-Masked Add", Factor * Vector::Size, "Op");
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int j = 0; j < OuterFactor; ++j) {
@@ -152,6 +152,23 @@ template<typename Vector> struct CondAssignment
                         data[i + 1](masks[i + 1]) += one;
                         data[i + 2](masks[i + 2]) += one;
                         data[i + 3](masks[i + 3]) += one;
+                    }
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        {
+            const Vector x(3);
+            Benchmark timer("Masked Multiply-Add", Factor * Vector::Size, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                for (int j = 0; j < OuterFactor; ++j) {
+                    for (int i = 0; i < Factor; i += 4) {
+                        data[i + 0](masks[i + 0]) = data[i + 0] * x + one;
+                        data[i + 1](masks[i + 1]) = data[i + 1] * x + one;
+                        data[i + 2](masks[i + 2]) = data[i + 2] * x + one;
+                        data[i + 3](masks[i + 3]) = data[i + 3] * x + one;
                     }
                 }
                 timer.Stop();
