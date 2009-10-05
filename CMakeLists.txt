@@ -110,7 +110,7 @@ add_library(Vc STATIC vector.cpp)
 
 install(TARGETS Vc DESTINATION lib/)
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
-install(DIRECTORY larrabee simple sse DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc)$")
+install(DIRECTORY larrabee simple sse DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 include (CTest)
 if(BUILD_TESTING)
