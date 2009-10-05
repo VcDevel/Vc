@@ -34,3 +34,4 @@ vc_add_test(utils)
 
 add_executable(sse_blend sse_blend.cpp)
 add_test(sse_blend "${CMAKE_CURRENT_BINARY_DIR}/sse_blend")
+target_link_libraries(sse_blend Vc)

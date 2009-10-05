@@ -316,7 +316,7 @@ class Vector : public VectorBase<T>
             return Base::d.m(index);
         }
 
-        inline Vector operator~() const { return VectorHelper<VectorType>::andnot_(data(), mm128_reinterpret_cast<VectorType>(_mm_setallone())); }
+        inline Vector operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
 
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \

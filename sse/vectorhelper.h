@@ -127,6 +127,7 @@ namespace SSE
             static inline VectorType loadUnaligned(const float *x) { return _mm_loadu_ps(x); }
             static inline void store(float *mem, const VectorType &x) { _mm_store_ps(mem, x); }
             static inline void storeStreaming(float *mem, const VectorType &x) { _mm_stream_ps(mem, x); }
+            OP0(allone, _mm_setallone_ps())
             OP0(zero, _mm_setzero_ps())
             OP2(or_, _mm_or_ps(a, b))
             OP2(xor_, _mm_xor_ps(a, b))
@@ -152,6 +153,7 @@ namespace SSE
                 _mm_stream_ps(mem, x[0]);
                 _mm_stream_ps(mem + 4, x[1]);
             }
+            OP0(allone, VectorType(_mm_setallone_ps(), _mm_setallone_ps()))
             OP0(zero, VectorType(_mm_setzero_ps(), _mm_setzero_ps()))
             OP2(or_, VectorType(_mm_or_ps(a[0], b[0]), _mm_or_ps(a[1], b[1])))
             OP2(xor_, VectorType(_mm_xor_ps(a[0], b[0]), _mm_xor_ps(a[1], b[1])))
@@ -167,6 +169,7 @@ namespace SSE
             static inline VectorType loadUnaligned(const double *x) { return _mm_loadu_pd(x); }
             static inline void store(double *mem, const VectorType &x) { _mm_store_pd(mem, x); }
             static inline void storeStreaming(double *mem, const VectorType &x) { _mm_stream_pd(mem, x); }
+            OP0(allone, _mm_setallone_pd())
             OP0(zero, _mm_setzero_pd())
             OP2(or_, _mm_or_pd(a, b))
             OP2(xor_, _mm_xor_pd(a, b))
@@ -182,6 +185,7 @@ namespace SSE
             template<typename T> static inline VectorType loadUnaligned(const T *x) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
             template<typename T> static inline void store(T *mem, const VectorType &x) { _mm_store_si128(reinterpret_cast<VectorType *>(mem), x); }
             template<typename T> static inline void storeStreaming(T *mem, const VectorType &x) { _mm_stream_si128(reinterpret_cast<VectorType *>(mem), x); }
+            OP0(allone, _mm_setallone_si128())
             OP0(zero, _mm_setzero_si128())
             OP2(or_, _mm_or_si128(a, b))
             OP2(xor_, _mm_xor_si128(a, b))

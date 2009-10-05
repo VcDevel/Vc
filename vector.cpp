@@ -35,6 +35,17 @@ namespace SSE
     V_ALIGN(16) extern const unsigned int   _IndexesFromZero4[4] = { 0, 1, 2, 3 };
     V_ALIGN(16) extern const unsigned short _IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
+    const unsigned int c_general::allone[4] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff };
+    const unsigned short c_general::one16[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+    const unsigned int c_general::one32[4] = { 1, 1, 1, 1 };
+    const float c_general::oneFloat[4] = { 1.f, 1.f, 1.f, 1.f };
+    const double c_general::oneDouble[2] = { 1., 1. };
+    const int c_general::absMaskFloat[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
+    const long long c_general::absMaskDouble[2] = { 0x7fffffffffffffff, 0x7fffffffffffffff };
+    const unsigned int c_general::signMaskFloat[4] = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
+    const unsigned long long c_general::signMaskDouble[2] = { 0x8000000000000000, 0x8000000000000000 };
+    const short c_general::minShort[8] = { -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000 };
+
     template<> const float c_sin<float>::_data[4 * 8] = {
         // 1 over 2pi
         1.59154936671257019e-01f, 1.59154936671257019e-01f, 1.59154936671257019e-01f, 1.59154936671257019e-01f,

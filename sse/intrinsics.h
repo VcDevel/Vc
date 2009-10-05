@@ -31,6 +31,7 @@
 #error "SSE Vector class needs at least SSE2"
 #endif
 
+#include "const.h"
 #include "macros.h"
 #include <cstdlib>
 
@@ -38,7 +39,6 @@ namespace Vc
 {
 namespace SSE
 {
-    static inline __m128i _mm_setallone() CONST;
     static inline __m128i _mm_setallone_si128() CONST;
     static inline __m128d _mm_setallone_pd() CONST;
     static inline __m128  _mm_setallone_ps() CONST;
@@ -66,33 +66,28 @@ namespace SSE
     static inline __m128i _mm_cmplt_epu32(__m128i a, __m128i b) CONST;
     static inline __m128i _mm_cmpgt_epu32(__m128i a, __m128i b) CONST;
 
-#if defined(__GNUC__) && !defined(NVALGRIND)
-    static inline __m128i _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
-#else
-    static inline __m128i _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
-#endif
-    static inline __m128i _mm_setallone_si128() { return _mm_setallone(); }
-    static inline __m128d _mm_setallone_pd() { return _mm_castsi128_pd(_mm_setallone()); }
-    static inline __m128  _mm_setallone_ps() { return _mm_castsi128_ps(_mm_setallone()); }
+    static inline __m128i _mm_setallone_si128() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::allone)); }
+    static inline __m128d _mm_setallone_pd()    { return _mm_load_pd(reinterpret_cast<const double *>(c_general::allone)); }
+    static inline __m128  _mm_setallone_ps()    { return _mm_load_ps(reinterpret_cast<const float *>(c_general::allone)); }
 
     static inline __m128i _mm_setone_epi8 ()  { return _mm_set1_epi8(1); }
     static inline __m128i _mm_setone_epu8 ()  { return _mm_setone_epi8(); }
-    static inline __m128i _mm_setone_epi16()  { return _mm_srli_epi16(_mm_setallone_si128(), 15); }
+    static inline __m128i _mm_setone_epi16()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one16)); }
     static inline __m128i _mm_setone_epu16()  { return _mm_setone_epi16(); }
-    static inline __m128i _mm_setone_epi32()  { return _mm_srli_epi32(_mm_setallone_si128(), 31); }
+    static inline __m128i _mm_setone_epi32()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one32)); }
     static inline __m128i _mm_setone_epu32()  { return _mm_setone_epi32(); }
 
-    static inline __m128  _mm_setone_ps()     { return _mm_castsi128_ps(_mm_srli_epi32(_mm_slli_epi32(_mm_setallone_si128(), 32 - 7), 2)); }
-    static inline __m128d _mm_setone_pd()     { return _mm_castsi128_pd(_mm_srli_epi64(_mm_slli_epi64(_mm_setallone_si128(), 64 - 10), 2)); }
+    static inline __m128  _mm_setone_ps()     { return _mm_load_ps(c_general::oneFloat); }
+    static inline __m128d _mm_setone_pd()     { return _mm_load_pd(c_general::oneDouble); }
 
-    static inline __m128d _mm_setabsmask_pd() { return _mm_castsi128_pd(_mm_srli_epi64(_mm_setallone_si128(), 1)); }
-    static inline __m128  _mm_setabsmask_ps() { return _mm_castsi128_ps(_mm_srli_epi32(_mm_setallone_si128(), 1)); }
-    static inline __m128d _mm_setsignmask_pd(){ return _mm_castsi128_pd(_mm_slli_epi64(_mm_setallone_si128(), 63)); }
-    static inline __m128  _mm_setsignmask_ps(){ return _mm_castsi128_ps(_mm_slli_epi32(_mm_setallone_si128(), 31)); }
+    static inline __m128d _mm_setabsmask_pd() { return _mm_load_pd(reinterpret_cast<const double *>(c_general::absMaskDouble)); }
+    static inline __m128  _mm_setabsmask_ps() { return _mm_load_ps(reinterpret_cast<const float *>(c_general::absMaskFloat)); }
+    static inline __m128d _mm_setsignmask_pd(){ return _mm_load_pd(reinterpret_cast<const double *>(c_general::signMaskFloat)); }
+    static inline __m128  _mm_setsignmask_ps(){ return _mm_load_ps(reinterpret_cast<const float *>(c_general::signMaskFloat)); }
 
     //X         static inline __m128i _mm_setmin_epi8 () { return _mm_slli_epi8 (_mm_setallone_si128(),  7); }
-    static inline __m128i _mm_setmin_epi16() { return _mm_slli_epi16(_mm_setallone_si128(), 15); }
-    static inline __m128i _mm_setmin_epi32() { return _mm_slli_epi32(_mm_setallone_si128(), 31); }
+    static inline __m128i _mm_setmin_epi16() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::minShort)); }
+    static inline __m128i _mm_setmin_epi32() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::signMaskFloat)); }
 
     //X         static inline __m128i _mm_cmplt_epu8 (__m128i a, __m128i b) { return _mm_cmplt_epi8 (
     //X                 _mm_xor_si128(a, _mm_setmin_epi8 ()), _mm_xor_si128(b, _mm_setmin_epi8 ())); }
