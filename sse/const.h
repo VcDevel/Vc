@@ -29,16 +29,16 @@ namespace SSE
     template<typename T> class Vector;
     struct c_general
     {
-        static const unsigned int allone[4];
-        static const unsigned short one16[8];
-        static const unsigned int one32[4];
-        static const float oneFloat[4];
-        static const double oneDouble[2];
-        static const int absMaskFloat[4];
-        static const long long absMaskDouble[2];
-        static const unsigned int signMaskFloat[4];
-        static const unsigned long long signMaskDouble[2];
-        static const short minShort[8];
+        ALIGN(16) static const unsigned int allone[4];
+        ALIGN(16) static const unsigned short one16[8];
+        ALIGN(16) static const unsigned int one32[4];
+        ALIGN(16) static const float oneFloat[4];
+        ALIGN(16) static const double oneDouble[2];
+        ALIGN(16) static const int absMaskFloat[4];
+        ALIGN(16) static const long long absMaskDouble[2];
+        ALIGN(16) static const unsigned int signMaskFloat[4];
+        ALIGN(16) static const unsigned long long signMaskDouble[2];
+        ALIGN(16) static const short minShort[8];
     } ALIGN(64);
     template<typename T> struct c_sin
     {
