@@ -17,8 +17,9 @@
 
 */
 
-#ifndef SSE_MACROS_H
-#define SSE_MACROS_H
+#ifndef VC_SSE_MACROS_H
+#define VC_SSE_MACROS_H
+#undef VC_SSE_UNDOMACROS_H
 
 #ifndef ALIGN
 # ifdef __GNUC__
@@ -86,4 +87,4 @@ do {} while ( false )
     _mm_store_si128(&CAT(u, __LINE__).p, vec); \
     const type *const name = &CAT(u, __LINE__).v[0]
 
-#endif // SSE_MACROS_H
+#endif // VC_SSE_MACROS_H

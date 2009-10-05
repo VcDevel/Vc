@@ -17,8 +17,9 @@
 
 */
 
-#ifndef SSE_UNDOMACROS_H
-#define SSE_UNDOMACROS_H
+#ifndef VC_SSE_UNDOMACROS_H
+#define VC_SSE_UNDOMACROS_H
+#undef VC_SSE_MACROS_H
 
 #undef CONST
 #undef MAY_ALIAS
@@ -30,4 +31,4 @@
 #undef FREE_STORE_OPERATORS_ALIGNED
 #undef STORE_VECTOR
 
-#endif // SSE_UNDOMACROS_H
+#endif // VC_SSE_UNDOMACROS_H
