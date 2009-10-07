@@ -336,7 +336,7 @@ static inline void prettyPrintCount(double v)
     if (std::isfinite(v)) {
 #endif
         if (v < 1000.) {
-            std::cout << std::setw(15) << v;
+            std::cout << std::setw(14) << v;
             return;
         }
         while (v >= 1000.) {
@@ -459,11 +459,11 @@ inline void Benchmark::Print(int f) const
             std::cout << " | ";
 #endif
             prettyPrintCount(fFactor / i->fRealElapsed);
-            std::cout << " |";
+            std::cout << " | ";
             prettyPrintCount(fFactor / i->fCycles);
-            std::cout << " |";
+            std::cout << " | ";
             prettyPrintCount(i->fCycles / fFactor);
-            std::cout << " |";
+            std::cout << " | ";
             dataLine
 #ifdef VC_USE_CPU_TIME
                 << fFactor / i->fCpuElapsed
