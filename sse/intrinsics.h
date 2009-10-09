@@ -39,6 +39,7 @@ namespace Vc
 {
 namespace SSE
 {
+    static inline __m128i _mm_setallone() CONST;
     static inline __m128i _mm_setallone_si128() CONST;
     static inline __m128d _mm_setallone_pd() CONST;
     static inline __m128  _mm_setallone_ps() CONST;
@@ -66,9 +67,14 @@ namespace SSE
     static inline __m128i _mm_cmplt_epu32(__m128i a, __m128i b) CONST;
     static inline __m128i _mm_cmpgt_epu32(__m128i a, __m128i b) CONST;
 
-    static inline __m128i _mm_setallone_si128() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::allone)); }
-    static inline __m128d _mm_setallone_pd()    { return _mm_load_pd(reinterpret_cast<const double *>(c_general::allone)); }
-    static inline __m128  _mm_setallone_ps()    { return _mm_load_ps(reinterpret_cast<const float *>(c_general::allone)); }
+#if defined(__GNUC__) && !defined(NVALGRIND)
+    static inline __m128i _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
+#else
+    static inline __m128i _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
+#endif
+    static inline __m128i _mm_setallone_si128() { return _mm_setallone(); }
+    static inline __m128d _mm_setallone_pd() { return _mm_castsi128_pd(_mm_setallone()); }
+    static inline __m128  _mm_setallone_ps() { return _mm_castsi128_ps(_mm_setallone()); }
 
     static inline __m128i _mm_setone_epi8 ()  { return _mm_set1_epi8(1); }
     static inline __m128i _mm_setone_epu8 ()  { return _mm_setone_epi8(); }

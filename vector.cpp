@@ -33,22 +33,22 @@ namespace Vc
 namespace SSE
 {
     // cacheline 1
-    V_ALIGN(16) const unsigned int c_general::allone[4] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff };
     V_ALIGN(16) const int c_general::absMaskFloat[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
     V_ALIGN(16) const unsigned int c_general::signMaskFloat[4] = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
     V_ALIGN(16) const short c_general::minShort[8] = { -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000 };
+    V_ALIGN(16) extern const unsigned short _IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
     // cacheline 2
     V_ALIGN(16) extern const unsigned int   _IndexesFromZero4[4] = { 0, 1, 2, 3 };
-    V_ALIGN(16) extern const unsigned short _IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     V_ALIGN(16) const unsigned short c_general::one16[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
     V_ALIGN(16) const unsigned int c_general::one32[4] = { 1, 1, 1, 1 };
+    V_ALIGN(16) const float c_general::oneFloat[4] = { 1.f, 1.f, 1.f, 1.f };
 
     // cacheline 3
-    V_ALIGN(16) const float c_general::oneFloat[4] = { 1.f, 1.f, 1.f, 1.f };
     V_ALIGN(16) const double c_general::oneDouble[2] = { 1., 1. };
     V_ALIGN(16) const long long c_general::absMaskDouble[2] = { 0x7fffffffffffffff, 0x7fffffffffffffff };
     V_ALIGN(16) const unsigned long long c_general::signMaskDouble[2] = { 0x8000000000000000, 0x8000000000000000 };
+    V_ALIGN(16) const int _padding00[4] = { 0, 0, 0, 0 };
 
     template<> const float c_sin<float>::_data[4 * 8] = {
     // cacheline 4
