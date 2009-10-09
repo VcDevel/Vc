@@ -13,11 +13,24 @@ for(data in list(rbind(sse, simple, lrb), rbind(sse, simple))) {
 
     data$key <- paste(data$datatype)
     for(part in split(data, data$benchmark.name)) {
-        mybarplot(part, "benchmark.arch", column = "Op_per_cycle", ylab = "Operations per Cycle",
+        mybarplot(part,
+            splitcolumn = "benchmark.arch",
+            column = "cycles_per_Op",
+            ylab = "Cycles per Operation",
             main = paste("Arithmetics (", part$benchmark.name[[1]], ")", sep=""),
             orderfun = function(d) sort.list(logicalSortkeyForDatatype(d$datatype)),
             maxlaboffset = 1)
     }
+
+    data$key <- paste(data$benchmark.name, data$benchmark.arch)
+    data <- sortBy(data, logicalSortkeyForDatatype(data$datatype))
+    mybarplot(data,
+            splitcolumn = "datatype",
+            column = "cycles_per_Op",
+            ylab = "Cycles per Operation",
+            main = "Arithmetics",
+            orderfun = function(d) sort.list(logicalSortkeyForDatatype(d$datatype)),
+            maxlaboffset = 4)
 }
 
 sse    <- arithmeticsProcessData(sse)
