@@ -518,9 +518,11 @@ inline void Benchmark::Print(int f) const
             std::cout << " | ";
 #endif
             prettyPrintCount(fFactor / realAvg);
-            std::cout << " |";
+            std::cout << " | ";
             prettyPrintCount(fFactor / cycleAvg);
-            std::cout << " |";
+            std::cout << " | ";
+            prettyPrintCount(cycleAvg / fFactor);
+            std::cout << " | ";
         }
     }
     std::cout << "\n"
@@ -551,14 +553,21 @@ int main(int argc, char **argv)
         // if the execv call works, great. If it doesn't we just continue, but without realtime prio
     }
 #endif
-    if (argc > 2 && std::strcmp(argv[1], "-o") == 0) {
-        Benchmark::FileWriter file(argv[2]);
-        if (argc > 4 && std::strcmp(argv[3], "-r") == 0) {
-            g_Repetitions = atoi(argv[4]);
+    int i = 2;
+    Benchmark::OutputMode outputMode = Benchmark::Stdout;
+    Benchmark::FileWriter *file = 0;
+    while (argc > i) {
+        if (std::strcmp(argv[i - 1], "-o") == 0) {
+            file = new Benchmark::FileWriter(argv[i]);
+            outputMode = Benchmark::DataFile;
+        } else if (std::strcmp(argv[i - 1], "-r") == 0) {
+            g_Repetitions = atoi(argv[i]);
         }
-        return bmain(Benchmark::DataFile);
+        i += 2;
     }
-    return bmain(Benchmark::Stdout);
+    int r = bmain(outputMode);
+    delete file;
+    return r;
 }
 
 #endif // BENCHMARK_H
