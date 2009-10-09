@@ -88,7 +88,7 @@ namespace SSE
 
     static inline __m128d _mm_setabsmask_pd() { return _mm_load_pd(reinterpret_cast<const double *>(c_general::absMaskDouble)); }
     static inline __m128  _mm_setabsmask_ps() { return _mm_load_ps(reinterpret_cast<const float *>(c_general::absMaskFloat)); }
-    static inline __m128d _mm_setsignmask_pd(){ return _mm_load_pd(reinterpret_cast<const double *>(c_general::signMaskFloat)); }
+    static inline __m128d _mm_setsignmask_pd(){ return _mm_load_pd(reinterpret_cast<const double *>(c_general::signMaskDouble)); }
     static inline __m128  _mm_setsignmask_ps(){ return _mm_load_ps(reinterpret_cast<const float *>(c_general::signMaskFloat)); }
 
     //X         static inline __m128i _mm_setmin_epi8 () { return _mm_slli_epi8 (_mm_setallone_si128(),  7); }
