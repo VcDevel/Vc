@@ -20,10 +20,13 @@
 #ifndef VC_LARRABEE_LIMITS_H
 #define VC_LARRABEE_LIMITS_H
 
+#include <limits>
+#include "intrinsics.h"
+
 namespace std
 {
 #define SPECIALIZATION(T) template<> Vc::LRBni::Vector<T> numeric_limits<Vc::LRBni::Vector<T> >
-    SPECIALIZATION(unsigned int)::max() throw() { return _mm512_setallone_pi(); }
+    SPECIALIZATION(unsigned int)::max() throw() { return Vc::LRBni::_mm512_setallone_pi(); }
     SPECIALIZATION(unsigned int)::min() throw() { return _mm512_setzero_pi(); }
     SPECIALIZATION(int)::max() throw() { return _mm512_set_1to16_pi(std::numeric_limits<int>::max()); }
     SPECIALIZATION(int)::min() throw() { return _mm512_set_1to16_pi(std::numeric_limits<int>::min()); }
