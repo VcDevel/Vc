@@ -18,6 +18,7 @@
 */
 
 #include <Vc/Vc>
+#include <Vc/limits>
 #include "benchmark.h"
 #include "random.h"
 #include "cpuid.h"
@@ -48,8 +49,10 @@ template<typename Vector> struct Arithmetics
             Benchmark timer("add", valuesPerSecondFactor, "Op");
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
-                for (int i = 0; i < Factor; ++i) {
-                    blackHole = data[i + 0] + data[i + 1];
+                const Vector *const end = &data[Factor];
+                for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
+                    Vector tmp = ptr[0] + ptr[1];
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -59,8 +62,10 @@ template<typename Vector> struct Arithmetics
             Benchmark timer("sub", valuesPerSecondFactor, "Op");
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
-                for (int i = 0; i < Factor; ++i) {
-                    blackHole = data[i + 0] - data[i + 1];
+                const Vector *const end = &data[Factor];
+                for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
+                    Vector tmp = ptr[0] - ptr[1];
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -70,8 +75,10 @@ template<typename Vector> struct Arithmetics
             Benchmark timer("mul", valuesPerSecondFactor, "Op");
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
-                for (int i = 0; i < Factor; ++i) {
-                    blackHole = data[i + 0] * data[i + 1];
+                const Vector *const end = &data[Factor];
+                for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
+                    Vector tmp = ptr[0] * ptr[1];
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -81,13 +88,86 @@ template<typename Vector> struct Arithmetics
             Benchmark timer("div", valuesPerSecondFactor, "Op");
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
-                for (int i = 0; i < Factor; ++i) {
-                    blackHole = data[i + 0] / data[i + 1];
+                const Vector *const end = &data[Factor];
+                for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
+                    Vector tmp = ptr[0] / ptr[1];
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
             timer.Print();
         }
+
+        /*
+        {
+            Benchmark timer("add latency", Factor, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                {
+                    Vector tmp = data[0];
+                    for (const Vector *ptr = &data[1]; ptr < &data[Factor + 1]; ptr += 4) {
+                        tmp += ptr[0];
+                        tmp += ptr[1];
+                        tmp += ptr[2];
+                        tmp += ptr[3];
+                    }
+                    blackHole = tmp;
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        {
+            Benchmark timer("sub latency", Factor, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                {
+                    Vector tmp = data[0];
+                    for (int i = 1; i < Factor + 1; ++i) {
+                        tmp -= data[i];
+                    }
+                    blackHole = tmp;
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        {
+            Benchmark timer("mul latency", Factor, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                {
+                    Vector tmp = data[0];
+                    for (int i = 1; i < Factor + 1; ++i) {
+                        tmp *= data[i];
+                    }
+                    blackHole = tmp;
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        data[0] = std::numeric_limits<Vector>::max();
+        for (int i = 1; i < Factor + 1; ++i) {
+            data[i] = PseudoRandom<Vector>::next() + Vector(One);
+            data[i](data[i] == Vector(Zero)) += 2;
+        }
+        {
+            Benchmark timer("div latency", Factor, "Op");
+            for (int rep = 0; rep < Repetitions; ++rep) {
+                timer.Start();
+                {
+                    Vector tmp = data[0];
+                    for (int i = 1; i < Factor + 1; ++i) {
+                        tmp /= data[i];
+                    }
+                    blackHole = tmp;
+                }
+                timer.Stop();
+            }
+            timer.Print();
+        }
+        */
 
         delete[] data;
     }
