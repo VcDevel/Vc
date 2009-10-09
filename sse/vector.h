@@ -478,6 +478,7 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const typename 
 #undef VC_FTR_EMPTY
 #else
 #include "forceToRegisters.def"
+template<> inline void forceToRegisters(const Vector<float8> &x) { __asm__ __volatile__(""::"x"(x.data()[0]), "x"(x.data()[1])); }
 #endif
 
 #undef STORE_VECTOR
