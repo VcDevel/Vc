@@ -31,16 +31,10 @@ template<typename Vector> struct Helper
     typedef typename Vector::Mask Mask;
     typedef typename Vector::EntryType Scalar;
 
-    static Vector *blackHole;
-
-    static void setBlackHole();
-
     static void run(const int Repetitions)
     {
         const int Factor = CpuId::L1Data() / sizeof(Vector);
         const int opPerSecondFactor = Factor * Vector::Size;
-
-        setBlackHole();
 
         Vector *data = new Vector[Factor];
         for (int i = 0; i < Factor; ++i) {
@@ -52,7 +46,8 @@ template<typename Vector> struct Helper
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
-                    *blackHole = round(data[i]);
+                    Vector tmp = round(data[i]);
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -63,7 +58,8 @@ template<typename Vector> struct Helper
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
-                    *blackHole = sqrt(data[i]);
+                    Vector tmp = sqrt(data[i]);
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -74,7 +70,8 @@ template<typename Vector> struct Helper
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
-                    *blackHole = log(data[i]);
+                    Vector tmp = log(data[i]);
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -85,7 +82,8 @@ template<typename Vector> struct Helper
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
-                    *blackHole = sin(data[i]);
+                    Vector tmp = sin(data[i]);
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -96,7 +94,8 @@ template<typename Vector> struct Helper
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
-                    *blackHole = cos(data[i]);
+                    Vector tmp = cos(data[i]);
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -107,7 +106,8 @@ template<typename Vector> struct Helper
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
-                    *blackHole = asin(data[i]);
+                    Vector tmp = asin(data[i]);
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -118,7 +118,8 @@ template<typename Vector> struct Helper
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
-                    *blackHole = atan(data[i]);
+                    Vector tmp = atan(data[i]);
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -129,7 +130,8 @@ template<typename Vector> struct Helper
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor - 1; ++i) {
-                    *blackHole = atan2(data[i], data[i + 1]);
+                    Vector tmp = atan2(data[i], data[i + 1]);
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -140,7 +142,8 @@ template<typename Vector> struct Helper
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
-                    *blackHole = rsqrt(data[i]);
+                    Vector tmp = rsqrt(data[i]);
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -151,7 +154,8 @@ template<typename Vector> struct Helper
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
-                    *blackHole = reciprocal(data[i]);
+                    Vector tmp = reciprocal(data[i]);
+                    Vc::forceToRegisters(tmp);
                 }
                 timer.Stop();
             }
@@ -162,25 +166,15 @@ template<typename Vector> struct Helper
     }
 };
 
-template<typename Vec> Vec *Helper<Vec>::blackHole = 0;
-
-// global (not file-static!) variable keeps the compiler from identifying the benchmark as dead code
-float_v blackHoleFloat;
-template<> inline void Helper<float_v>::setBlackHole() { blackHole = &blackHoleFloat; }
-#if VC_IMPL_SSE
-sfloat_v blackHoleSFloat;
-template<> inline void Helper<sfloat_v>::setBlackHole() { blackHole = &blackHoleSFloat; }
-#endif
-
 int bmain(Benchmark::OutputMode out)
 {
     const int Repetitions = out == Benchmark::Stdout ? 4 : (g_Repetitions > 0 ? g_Repetitions : 100);
     Benchmark::addColumn("datatype");
     Benchmark::setColumnData("datatype", "float_v");
     Helper<float_v>::run(Repetitions);
-#if VC_IMPL_SSE
     Benchmark::setColumnData("datatype", "sfloat_v");
     Helper<sfloat_v>::run(Repetitions);
-#endif
+    Benchmark::setColumnData("datatype", "double_v");
+    Helper<double_v>::run(Repetitions);
     return 0;
 }
