@@ -94,21 +94,21 @@ template<unsigned int VectorSize> class Mask
         inline Mask &operator|=(const Mask &rhs) { k = _mm_or_ps (k, rhs.k); return *this; }
 
         inline bool isFull () const { return
-#ifdef __SSE4_1__
+#ifdef VC_IMPL_SSE4_1
             _mm_testc_si128(dataI(), _mm_setallone_si128()); // return 1 if (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) == (~0 & k)
 #else
             _mm_movemask_epi8(dataI()) == 0xffff;
 #endif
         }
         inline bool isEmpty() const { return
-#ifdef __SSE4_1__
+#ifdef VC_IMPL_SSE4_1
             _mm_testz_si128(dataI(), dataI()); // return 1 if (0, 0, 0, 0) == (k & k)
 #else
             _mm_movemask_epi8(dataI()) == 0x0000;
 #endif
         }
         inline bool isMix() const {
-#ifdef __SSE4_1__
+#ifdef VC_IMPL_SSE4_1
             return _mm_test_mix_ones_zeros(dataI(), _mm_setallone_si128());
 #else
             const int tmp = _mm_movemask_epi8(dataI());
@@ -350,7 +350,7 @@ class Float8Mask
 
         inline bool isFull () const {
             const _M128 tmp = _mm_and_ps(k[0], k[1]);
-#ifdef __SSE4_1__
+#ifdef VC_IMPL_SSE4_1
             return _mm_testc_si128(_mm_castps_si128(tmp), _mm_setallone_si128());
 #else
             return _mm_movemask_ps(tmp) == 0xf;
@@ -360,7 +360,7 @@ class Float8Mask
         }
         inline bool isEmpty() const {
             const _M128 tmp = _mm_or_ps(k[0], k[1]);
-#ifdef __SSE4_1__
+#ifdef VC_IMPL_SSE4_1
             return _mm_testz_si128(_mm_castps_si128(tmp), _mm_castps_si128(tmp));
 #else
             return _mm_movemask_ps(tmp) == 0x0;
@@ -369,7 +369,7 @@ class Float8Mask
 #endif
         }
         inline bool isMix() const {
-#ifdef __SSE4_1__
+#ifdef VC_IMPL_SSE4_1
             return _mm_test_mix_ones_zeros(_mm_castps_si128(k[0]), _mm_castps_si128(k[0])) &&
             _mm_test_mix_ones_zeros(_mm_castps_si128(k[1]), _mm_castps_si128(k[1]));
 #else

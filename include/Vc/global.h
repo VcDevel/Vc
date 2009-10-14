@@ -18,29 +18,31 @@
 */
 
 #ifndef VC_IMPL
+# define VC_IMPL
 
 # if defined(__SSE4_1__)
 #  define VC_IMPL_SSE 1
 #  define VC_IMPL_SSE4_1 1
-#  define VC_IMPL SSE4_1
-# elif defined(__SSSE3__)
-#  define VC_IMPL_SSE 1
-#  define VC_IMPL_SSSE3 1
-#  define VC_IMPL SSSE3
-# elif defined(__SSE3__)
+# endif
+# if defined(__SSE3__)
 #  define VC_IMPL_SSE 1
 #  define VC_IMPL_SSE3 1
-#  define VC_IMPL SSE3
-# elif defined(__SSE2__)
+# endif
+# if defined(__SSSE3__)
+#  define VC_IMPL_SSE 1
+#  define VC_IMPL_SSSE3 1
+# endif
+# if defined(__SSE2__)
 #  define VC_IMPL_SSE 1
 #  define VC_IMPL_SSE2 1
-#  define VC_IMPL SSE2
+# endif
+
+# if defined(VC_IMPL_SSE)
+// nothing
 # elif defined(__LRB__)
 #  define VC_IMPL_LRBni 1
-#  define VC_IMPL LRBni
 # else
 #  define VC_IMPL_Scalar 1
-#  define VC_IMPL Scalar
 # endif
 
 #else // VC_IMPL

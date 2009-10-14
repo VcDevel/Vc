@@ -854,7 +854,7 @@ namespace SSE
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-#ifdef __SSE4_1__
+#if VC_IMPL_SSE4_1
             static inline VectorType mul(VectorType a, VectorType b) { return _mm_mullo_epi32(a, b); }
             static inline EntryType mul(VectorType a) {
                 a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
@@ -1140,7 +1140,7 @@ namespace SSE
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
             static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
-#ifdef __SSE4_1__
+#if VC_IMPL_SSE4_1
             static inline _M128I concat(_M128I a, _M128I b) { return _mm_packus_epi32(a, b); }
 #else
             // XXX too bad, but this is broken without SSE 4.1
@@ -1200,14 +1200,14 @@ namespace SSE
 //X                 }
 //X                 return mul(a, set(b));
 //X             }
-#if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || defined(__SSE4_1__)
+#if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || VC_IMPL_SSE4_1
             OP(min) OP(max)
 #endif
 #undef SUFFIX
 #define SUFFIX epi16
             SHIFT8
             OPx(mul, mullo) // should work correctly for all values
-#if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(__SSE4_1__)
+#if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(VC_IMPL_SSE4_1)
             OP(min) OP(max) // XXX breaks for values with MSB set
 #endif
             static inline EntryType min(VectorType a) {

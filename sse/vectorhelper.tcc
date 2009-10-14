@@ -814,7 +814,7 @@ namespace SSE
             case 1024: return H::slli(x.data(), 10);
             case 2048: return H::slli(x.data(), 11);
         }
-#ifndef __SSE4_1__
+#ifndef VC_IMPL_SSE4_1
         // without SSE 4.1 int multiplication is not so nice
         if (sizeof(typename IndexType::EntryType) == 4) {
             switch (constant) {

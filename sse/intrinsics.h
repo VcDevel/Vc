@@ -27,7 +27,7 @@
 // SSE2
 #include <emmintrin.h>
 
-#if defined(__GNUC__) && !defined(__SSE2__)
+#if defined(__GNUC__) && !defined(VC_IMPL_SSE2)
 #error "SSE Vector class needs at least SSE2"
 #endif
 
@@ -111,11 +111,11 @@ namespace SSE
 } // namespace Vc
 
 // SSE3
-#ifdef __SSE3__
+#ifdef VC_IMPL_SSE3
 #include <pmmintrin.h>
 #endif
 // SSSE3
-#ifdef __SSSE3__
+#ifdef VC_IMPL_SSSE3
 #include <tmmintrin.h>
 #else
 namespace Vc
@@ -152,8 +152,8 @@ namespace SSE
 
 #endif
 
-// SSE4.1 (and 4.2)
-#ifdef __SSE4_1__
+// SSE4.1
+#ifdef VC_IMPL_SSE4_1
 #include <smmintrin.h>
 #else
 namespace Vc
