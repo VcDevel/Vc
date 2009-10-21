@@ -62,21 +62,21 @@ namespace SSE
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
 
-            inline Vector<EntryType> &operator|= (const Vector<EntryType> &x);
-            inline Vector<EntryType> &operator&= (const Vector<EntryType> &x);
-            inline Vector<EntryType> &operator^= (const Vector<EntryType> &x);
-            inline Vector<EntryType> &operator>>=(const Vector<EntryType> &x);
-            inline Vector<EntryType> &operator<<=(const Vector<EntryType> &x);
-            inline Vector<EntryType> &operator>>=(int x);
-            inline Vector<EntryType> &operator<<=(int x);
+            inline Vector<EntryType> &operator|= (const Vector<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator&= (const Vector<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator^= (const Vector<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator>>=(const Vector<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator<<=(const Vector<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator>>=(int x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator<<=(int x) ALWAYS_INLINE;
 
-            inline Vector<EntryType> operator| (const Vector<EntryType> &x) const;
-            inline Vector<EntryType> operator& (const Vector<EntryType> &x) const;
-            inline Vector<EntryType> operator^ (const Vector<EntryType> &x) const;
-            inline Vector<EntryType> operator>>(const Vector<EntryType> &x) const;
-            inline Vector<EntryType> operator<<(const Vector<EntryType> &x) const;
-            inline Vector<EntryType> operator>>(int x) const;
-            inline Vector<EntryType> operator<<(int x) const;
+            inline Vector<EntryType> operator| (const Vector<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator& (const Vector<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator^ (const Vector<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator>>(const Vector<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator<<(const Vector<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator>>(int x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator<<(int x) const ALWAYS_INLINE;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }

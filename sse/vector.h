@@ -49,27 +49,27 @@ class WriteMaskedVector
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
         //prefix
-        inline Vector<T> &operator++() {
+        inline Vector<T> &operator++() ALWAYS_INLINE {
             vec->data() = VectorHelper<T>::add(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return *vec;
         }
-        inline Vector<T> &operator--() {
+        inline Vector<T> &operator--() ALWAYS_INLINE {
             vec->data() = VectorHelper<T>::sub(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return *vec;
         }
         //postfix
-        inline Vector<T> operator++(int) {
+        inline Vector<T> operator++(int) ALWAYS_INLINE {
             Vector<T> ret(*vec);
             vec->data() = VectorHelper<T>::add(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return ret;
         }
-        inline Vector<T> operator--(int) {
+        inline Vector<T> operator--(int) ALWAYS_INLINE {
             Vector<T> ret(*vec);
             vec->data() = VectorHelper<T>::sub(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
@@ -77,24 +77,24 @@ class WriteMaskedVector
             return ret;
         }
 
-        inline Vector<T> &operator+=(const Vector<T> &x) {
+        inline Vector<T> &operator+=(const Vector<T> &x) ALWAYS_INLINE {
             vec->data() = VectorHelper<T>::add(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
             return *vec;
         }
-        inline Vector<T> &operator-=(const Vector<T> &x) {
+        inline Vector<T> &operator-=(const Vector<T> &x) ALWAYS_INLINE {
             vec->data() = VectorHelper<T>::sub(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
             return *vec;
         }
-        inline Vector<T> &operator*=(const Vector<T> &x) {
+        inline Vector<T> &operator*=(const Vector<T> &x) ALWAYS_INLINE {
             vec->data() = VectorHelper<T>::mul(vec->data(), x.data(), mask.data());
             return *vec;
         }
-        inline Vector<T> &operator/=(const Vector<T> &x) {
+        inline Vector<T> &operator/=(const Vector<T> &x) ALWAYS_INLINE {
             vec->data() = VectorHelper<T>::div(vec->data(), x.data(), mask.data());
             return *vec;
         }
 
-        inline Vector<T> &operator=(const Vector<T> &x) {
+        inline Vector<T> &operator=(const Vector<T> &x) ALWAYS_INLINE {
             vec->assign(x, mask);
             return *vec;
         }
@@ -308,15 +308,15 @@ class Vector : public VectorBase<T>
         }
 
         //prefix
-        inline Vector &operator++() { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
+        inline Vector &operator++() ALWAYS_INLINE { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
         //postfix
-        inline Vector operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
+        inline Vector operator++(int) ALWAYS_INLINE { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
-        inline EntryType operator[](int index) const {
+        inline EntryType operator[](int index) const ALWAYS_INLINE {
             return Base::d.m(index);
         }
 
-        inline Vector operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
+        inline Vector operator~() const ALWAYS_INLINE { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
 
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
@@ -325,11 +325,11 @@ class Vector : public VectorBase<T>
         OP1(abs)
 #undef OP1
 
-        inline Vector operator-() const { return VectorHelper<T>::negate(data()); }
+        inline Vector operator-() const ALWAYS_INLINE { return VectorHelper<T>::negate(data()); }
 
 #define OP(symbol, fun) \
-        inline Vector &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
-        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); }
+        inline Vector &operator symbol##=(const Vector<T> &x) ALWAYS_INLINE { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
+        inline Vector operator symbol(const Vector<T> &x) const ALWAYS_INLINE { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); }
 
         OP(+, add)
         OP(-, sub)
@@ -338,14 +338,14 @@ class Vector : public VectorBase<T>
 #undef OP
 
 #define OP(symbol, fun) \
-        inline Vector &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<VectorType>::fun(data(), x.data()); return *this; } \
-        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<VectorType>::fun(data(), x.data())); }
+        inline Vector &operator symbol##=(const Vector<T> &x) ALWAYS_INLINE { data() = VectorHelper<VectorType>::fun(data(), x.data()); return *this; } \
+        inline Vector operator symbol(const Vector<T> &x) const ALWAYS_INLINE { return Vector<T>(VectorHelper<VectorType>::fun(data(), x.data())); }
         OP(|, or_)
         OP(&, and_)
         OP(^, xor_)
 #undef OP
 #define OPcmp(symbol, fun) \
-        inline Mask operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data(), x.data()); }
+        inline Mask operator symbol(const Vector<T> &x) const ALWAYS_INLINE { return VectorHelper<T>::fun(data(), x.data()); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -367,7 +367,7 @@ class Vector : public VectorBase<T>
         template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data()); }
         template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data()); }
 
-        inline WriteMaskedVector<T> operator()(const Mask &k) { return WriteMaskedVector<T>(this, k); }
+        inline WriteMaskedVector<T> operator()(const Mask &k) ALWAYS_INLINE { return WriteMaskedVector<T>(this, k); }
 
         /**
          * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have
@@ -407,6 +407,16 @@ template<> inline Vector<float8> Vector<float8>::broadcast4(const float *x) {
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 
+template<typename T> inline Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
+template<typename T> inline Vector<T> operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
+template<typename T> inline Vector<T> operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
+template<typename T> inline Vector<T> operator/(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
+template<typename T> inline typename Vector<T>::Mask  operator< (const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
+template<typename T> inline typename Vector<T>::Mask  operator<=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
+template<typename T> inline typename Vector<T>::Mask  operator> (const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
+template<typename T> inline typename Vector<T>::Mask  operator>=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
+template<typename T> inline typename Vector<T>::Mask  operator==(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
+template<typename T> inline typename Vector<T>::Mask  operator!=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
 template<typename T> inline Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator+(x); }
 template<typename T> inline Vector<T> operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator*(x); }
 template<typename T> inline Vector<T> operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) - v; }
