@@ -269,6 +269,7 @@ namespace SSE
                 Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr
                 ) {
 #ifndef VC_NO_BSF_LOOPS
+            asm volatile(""::"m"(indexes.d.v()));
             if (sizeof(EntryType) == 2) {
                 register unsigned long int bit;
                 register unsigned long int index;
@@ -369,6 +370,7 @@ namespace SSE
                 Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr
                 ) {
 #ifndef VC_NO_BSF_LOOPS
+            asm volatile(""::"m"(indexes.d.v()));
             if (sizeof(EntryType) == 2) {
                 register unsigned long int bit;
                 register unsigned long int index;
