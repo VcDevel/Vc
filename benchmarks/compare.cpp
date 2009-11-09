@@ -40,6 +40,17 @@ template<typename Vector> class DoCompares
             }
 
             {
+                Benchmark timer("operator==", Vector::Size * Factor, "Op");
+                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                    timer.Start();
+                    for (int i = 0; i < Factor; ++i) {
+                        blackHoleMask = a[i] == a[i + 1];
+                    }
+                    timer.Stop();
+                }
+                timer.Print(Benchmark::PrintAverage);
+            }
+            {
                 Benchmark timer("operator<", Vector::Size * Factor, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
@@ -51,53 +62,24 @@ template<typename Vector> class DoCompares
                 timer.Print(Benchmark::PrintAverage);
             }
             {
-                Benchmark timer("operator==", Vector::Size * Factor, "Op");
-                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
-                    timer.Start();
-                    for (int i = 0; i < Factor; ++i) {
-                        blackHoleMask = a[i] == a[i + 1];
-                    }
-                    timer.Stop();
-                }
-                timer.Print(Benchmark::PrintAverage);
-            }
-            if (false) {
-                Benchmark timer("masked assign with operator==", Vector::Size * Factor, "Op");
-                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
-                    for (int i = 0; i < Factor + 1; ++i) {
-                        a[i] = PseudoRandom<Vector>::next();
-                    }
-                    timer.Start();
-                    const Vector one(One);
-                    for (int i = 0; i < Factor; ++i) {
-                        a[i](a[i] == a[i + 1]) = one;
-                    }
-                    timer.Stop();
-                    for (int i = 0; i < Factor; ++i) {
-                        blackHoleVector = a[i];
-                    }
-                }
-                timer.Print(Benchmark::PrintAverage);
-            }
-            {
-                Benchmark timer("(operator==).isFull()", Vector::Size * Factor, "Op");
+                Benchmark timer("(operator<).isFull()", Vector::Size * Factor, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     const Vector one(One);
                     for (int i = 0; i < Factor; ++i) {
-                        blackHoleBool = (a[i] == a[i + 1]).isFull();
+                        blackHoleBool = (a[i] < a[i + 1]).isFull();
                     }
                     timer.Stop();
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
             {
-                Benchmark timer("!(operator==).isEmpty()", Vector::Size * Factor, "Op");
+                Benchmark timer("!(operator<).isEmpty()", Vector::Size * Factor, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     const Vector one(One);
                     for (int i = 0; i < Factor; ++i) {
-                        blackHoleBool = !(a[i] == a[i + 1]).isEmpty();
+                        blackHoleBool = !(a[i] < a[i + 1]).isEmpty();
                     }
                     timer.Stop();
                 }
