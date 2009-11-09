@@ -44,7 +44,12 @@ template<typename Vector> class DoCompares
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     for (int i = 0; i < Factor; ++i) {
-                        blackHoleMask = a[i] == a[i + 1];
+                        typename Vector::Mask tmp = a[i] == a[i + 1];
+#if VC_IMPL_SSE
+                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
+#else
+                        asm(""::"r"(tmp));
+#endif
                     }
                     timer.Stop();
                 }
@@ -55,7 +60,12 @@ template<typename Vector> class DoCompares
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     for (int i = 0; i < Factor; ++i) {
-                        blackHoleMask = a[i] < a[i + 1];
+                        typename Vector::Mask tmp = a[i] < a[i + 1];
+#if VC_IMPL_SSE
+                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
+#else
+                        asm(""::"r"(tmp));
+#endif
                     }
                     timer.Stop();
                 }
@@ -67,7 +77,8 @@ template<typename Vector> class DoCompares
                     timer.Start();
                     const Vector one(One);
                     for (int i = 0; i < Factor; ++i) {
-                        blackHoleBool = (a[i] < a[i + 1]).isFull();
+                        bool tmp = (a[i] < a[i + 1]).isFull();
+                        asm(""::"r"(tmp));
                     }
                     timer.Stop();
                 }
@@ -79,7 +90,8 @@ template<typename Vector> class DoCompares
                     timer.Start();
                     const Vector one(One);
                     for (int i = 0; i < Factor; ++i) {
-                        blackHoleBool = !(a[i] < a[i + 1]).isEmpty();
+                        bool tmp = !(a[i] < a[i + 1]).isEmpty();
+                        asm(""::"r"(tmp));
                     }
                     timer.Stop();
                 }
