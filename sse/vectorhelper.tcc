@@ -266,7 +266,7 @@ namespace SSE
         }
         template<unsigned int scale, typename Base, typename IndexType, typename EntryType>
         static inline void maskedGatherStructHelper(
-                Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr
+                Base &v, const IndexType &indexes, long mask, const EntryType *baseAddr
                 ) {
 #ifndef VC_NO_BSF_LOOPS
             asm volatile(""::"m"(indexes.d.v()));
@@ -367,7 +367,7 @@ namespace SSE
 
         template<typename Base, typename IndexType, typename EntryType>
         static inline void maskedGatherHelper(
-                Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr
+                Base &v, const IndexType &indexes, long mask, const EntryType *baseAddr
                 ) {
 #ifndef VC_NO_BSF_LOOPS
             asm volatile(""::"m"(indexes.d.v()));
@@ -463,7 +463,7 @@ namespace SSE
 
         template<typename Base, typename IndexType, typename EntryType>
         static inline void maskedScatterHelper(
-                const Base &v, const IndexType &indexes, int mask, EntryType *baseAddr
+                const Base &v, const IndexType &indexes, long mask, EntryType *baseAddr
                 ) {
 #ifndef VC_NO_BSF_LOOPS
             if (sizeof(EntryType) == 2) {
