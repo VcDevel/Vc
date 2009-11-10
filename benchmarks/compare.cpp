@@ -138,7 +138,7 @@ template<> sfloat_v DoCompares<sfloat_v>::blackHoleVector = sfloat_v();
 
 int bmain(Benchmark::OutputMode out)
 {
-    const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 100;
+    const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 2000;
 
     Benchmark::addColumn("datatype");
 
