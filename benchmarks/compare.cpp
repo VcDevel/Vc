@@ -38,6 +38,7 @@ template<typename Vector> class DoCompares
             for (int i = 0; i < Factor + 1; ++i) {
                 a[i] = PseudoRandom<Vector>::next();
             }
+            const Vector *const end = &a[Factor + 1];
 
 #ifdef VC_IMPL_Scalar
             typedef bool M;
@@ -49,8 +50,10 @@ template<typename Vector> class DoCompares
                 Benchmark timer("operator==", Vector::Size * Factor, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    for (int i = 0; i < Factor; ++i) {
-                        const M tmp = a[i] == a[i + 1];
+                    const Vector *i = a;
+                    while (i < end) {
+                        const Vector &a0 = *i;
+                        const M tmp = a0 == *++i;
 #if VC_IMPL_SSE
                         asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
                         if (sizeof(tmp) == 32) {
@@ -68,8 +71,10 @@ template<typename Vector> class DoCompares
                 Benchmark timer("operator<", Vector::Size * Factor, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    for (int i = 0; i < Factor; ++i) {
-                        const M tmp = a[i] < a[i + 1];
+                    const Vector *i = a;
+                    while (i < end) {
+                        const Vector &a0 = *i;
+                        const M tmp = a0 < *++i;
 #if VC_IMPL_SSE
                         asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
                         if (sizeof(tmp) == 32) {
@@ -88,8 +93,10 @@ template<typename Vector> class DoCompares
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     const Vector one(One);
-                    for (int i = 0; i < Factor; ++i) {
-                        const bool tmp = (a[i] < a[i + 1]).isFull();
+                    const Vector *i = a;
+                    while (i < end) {
+                        const Vector &a0 = *i;
+                        const bool tmp = (a0 < *++i).isFull();
                         asm(""::"r"(tmp));
                     }
                     timer.Stop();
@@ -101,8 +108,10 @@ template<typename Vector> class DoCompares
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     const Vector one(One);
-                    for (int i = 0; i < Factor; ++i) {
-                        const bool tmp = !(a[i] < a[i + 1]).isEmpty();
+                    const Vector *i = a;
+                    while (i < end) {
+                        const Vector &a0 = *i;
+                        const bool tmp = !(a0 < *++i).isEmpty();
                         asm(""::"r"(tmp));
                     }
                     timer.Stop();
