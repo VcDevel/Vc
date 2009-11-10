@@ -52,8 +52,38 @@ template<typename Vector> class DoCompares
                     timer.Start();
                     const Vector *i = a;
                     while (i < end) {
-                        const Vector &a0 = *i;
-                        const M tmp = a0 == *++i;
+                        const Vector &a0 = i[0];
+                        const Vector &a1 = i[1];
+                        const Vector &a2 = i[2];
+                        const Vector &a3 = i[3];
+                        M tmp = a0 == a1;
+#if VC_IMPL_SSE
+                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
+                        if (sizeof(tmp) == 32) {
+                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
+                        }
+#else
+                        asm(""::"r"(tmp));
+#endif
+                        tmp = a1 == a2;
+#if VC_IMPL_SSE
+                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
+                        if (sizeof(tmp) == 32) {
+                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
+                        }
+#else
+                        asm(""::"r"(tmp));
+#endif
+                        tmp = a2 == a3;
+#if VC_IMPL_SSE
+                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
+                        if (sizeof(tmp) == 32) {
+                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
+                        }
+#else
+                        asm(""::"r"(tmp));
+#endif
+                        tmp = a3 == *(i += 4);
 #if VC_IMPL_SSE
                         asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
                         if (sizeof(tmp) == 32) {
@@ -73,8 +103,38 @@ template<typename Vector> class DoCompares
                     timer.Start();
                     const Vector *i = a;
                     while (i < end) {
-                        const Vector &a0 = *i;
-                        const M tmp = a0 < *++i;
+                        const Vector &a0 = i[0];
+                        const Vector &a1 = i[1];
+                        const Vector &a2 = i[2];
+                        const Vector &a3 = i[3];
+                        M tmp = a0 < a1;
+#if VC_IMPL_SSE
+                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
+                        if (sizeof(tmp) == 32) {
+                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
+                        }
+#else
+                        asm(""::"r"(tmp));
+#endif
+                        tmp = a1 < a2;
+#if VC_IMPL_SSE
+                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
+                        if (sizeof(tmp) == 32) {
+                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
+                        }
+#else
+                        asm(""::"r"(tmp));
+#endif
+                        tmp = a2 < a3;
+#if VC_IMPL_SSE
+                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
+                        if (sizeof(tmp) == 32) {
+                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
+                        }
+#else
+                        asm(""::"r"(tmp));
+#endif
+                        tmp = a3 < *(i += 4);
 #if VC_IMPL_SSE
                         asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
                         if (sizeof(tmp) == 32) {
@@ -95,8 +155,17 @@ template<typename Vector> class DoCompares
                     const Vector one(One);
                     const Vector *i = a;
                     while (i < end) {
-                        const Vector &a0 = *i;
-                        const bool tmp = (a0 < *++i).isFull();
+                        const Vector &a0 = i[0];
+                        const Vector &a1 = i[1];
+                        const Vector &a2 = i[2];
+                        const Vector &a3 = i[3];
+                        bool tmp = (a0 < a1).isFull();
+                        asm(""::"r"(tmp));
+                        tmp = (a1 < a2).isFull();
+                        asm(""::"r"(tmp));
+                        tmp = (a2 < a3).isFull();
+                        asm(""::"r"(tmp));
+                        tmp = (a3 < *(i += 4)).isFull();
                         asm(""::"r"(tmp));
                     }
                     timer.Stop();
@@ -110,8 +179,17 @@ template<typename Vector> class DoCompares
                     const Vector one(One);
                     const Vector *i = a;
                     while (i < end) {
-                        const Vector &a0 = *i;
-                        const bool tmp = !(a0 < *++i).isEmpty();
+                        const Vector &a0 = i[0];
+                        const Vector &a1 = i[1];
+                        const Vector &a2 = i[2];
+                        const Vector &a3 = i[3];
+                        bool tmp = !(a0 < a1).isEmpty();
+                        asm(""::"r"(tmp));
+                        tmp = !(a1 < a2).isEmpty();
+                        asm(""::"r"(tmp));
+                        tmp = !(a2 < a3).isEmpty();
+                        asm(""::"r"(tmp));
+                        tmp = !(a3 < *(i += 4)).isEmpty();
                         asm(""::"r"(tmp));
                     }
                     timer.Stop();
