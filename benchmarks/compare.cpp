@@ -53,6 +53,9 @@ template<typename Vector> class DoCompares
                         const M tmp = a[i] == a[i + 1];
 #if VC_IMPL_SSE
                         asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
+                        if (sizeof(tmp) == 32) {
+                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
+                        }
 #else
                         asm(""::"r"(tmp));
 #endif
@@ -69,6 +72,9 @@ template<typename Vector> class DoCompares
                         const M tmp = a[i] < a[i + 1];
 #if VC_IMPL_SSE
                         asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
+                        if (sizeof(tmp) == 32) {
+                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
+                        }
 #else
                         asm(""::"r"(tmp));
 #endif
