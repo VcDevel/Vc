@@ -39,12 +39,18 @@ template<typename Vector> class DoCompares
                 a[i] = PseudoRandom<Vector>::next();
             }
 
+#ifdef VC_IMPL_Scalar
+            typedef bool M;
+#else
+            typedef typename Vector::Mask M;
+#endif
+
             {
                 Benchmark timer("operator==", Vector::Size * Factor, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     for (int i = 0; i < Factor; ++i) {
-                        typename Vector::Mask tmp = a[i] == a[i + 1];
+                        const M tmp = a[i] == a[i + 1];
 #if VC_IMPL_SSE
                         asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
 #else
@@ -60,7 +66,7 @@ template<typename Vector> class DoCompares
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     for (int i = 0; i < Factor; ++i) {
-                        typename Vector::Mask tmp = a[i] < a[i + 1];
+                        const M tmp = a[i] < a[i + 1];
 #if VC_IMPL_SSE
                         asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
 #else
@@ -77,7 +83,7 @@ template<typename Vector> class DoCompares
                     timer.Start();
                     const Vector one(One);
                     for (int i = 0; i < Factor; ++i) {
-                        bool tmp = (a[i] < a[i + 1]).isFull();
+                        const bool tmp = (a[i] < a[i + 1]).isFull();
                         asm(""::"r"(tmp));
                     }
                     timer.Stop();
@@ -90,7 +96,7 @@ template<typename Vector> class DoCompares
                     timer.Start();
                     const Vector one(One);
                     for (int i = 0; i < Factor; ++i) {
-                        bool tmp = !(a[i] < a[i + 1]).isEmpty();
+                        const bool tmp = !(a[i] < a[i + 1]).isEmpty();
                         asm(""::"r"(tmp));
                     }
                     timer.Stop();
