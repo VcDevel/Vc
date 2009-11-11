@@ -26,19 +26,27 @@
 
 using namespace Vc;
 
-bool blackHoleBool = false;
-
+template<typename T> static inline void keepResults(const T &tmp0)
+{
+#if VC_IMPL_SSE
+    asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)));
+    if (sizeof(T) == 32) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 *>(&tmp0)[1]));
+    }
+#else
+    asm volatile(""::"r"(tmp0));
+#endif
+}
 template<typename Vector> class DoCompares
 {
     public:
         static void run(const int Repetitions)
         {
-            const int Factor = CpuId::L1Data() / sizeof(Vector);
-            Vector *a = new Vector[Factor + 1];
-            for (int i = 0; i < Factor + 1; ++i) {
+            const int Factor = CpuId::L1Data() / (sizeof(Vector) * 4); // quarter L1
+            Vector *a = new Vector[Factor + 3];
+            for (int i = 0; i < Factor + 3; ++i) {
                 a[i] = PseudoRandom<Vector>::next();
             }
-            const Vector *const end = &a[Factor + 1];
 
 #ifdef VC_IMPL_Scalar
             typedef bool M;
@@ -47,150 +55,88 @@ template<typename Vector> class DoCompares
 #endif
 
             {
-                Benchmark timer("operator==", Vector::Size * Factor, "Op");
+                Benchmark timer("operator==", Vector::Size * Factor * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    const Vector *i = a;
-                    while (i < end) {
-                        const Vector &a0 = i[0];
-                        const Vector &a1 = i[1];
-                        const Vector &a2 = i[2];
-                        const Vector &a3 = i[3];
-                        M tmp = a0 == a1;
-#if VC_IMPL_SSE
-                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
-                        if (sizeof(tmp) == 32) {
-                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
-                        }
-#else
-                        asm(""::"r"(tmp));
-#endif
-                        tmp = a1 == a2;
-#if VC_IMPL_SSE
-                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
-                        if (sizeof(tmp) == 32) {
-                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
-                        }
-#else
-                        asm(""::"r"(tmp));
-#endif
-                        tmp = a2 == a3;
-#if VC_IMPL_SSE
-                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
-                        if (sizeof(tmp) == 32) {
-                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
-                        }
-#else
-                        asm(""::"r"(tmp));
-#endif
-                        tmp = a3 == *(i += 4);
-#if VC_IMPL_SSE
-                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
-                        if (sizeof(tmp) == 32) {
-                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
-                        }
-#else
-                        asm(""::"r"(tmp));
-#endif
+                    M tmp;
+                    Vector a0 = a[0];
+                    Vector a1 = a[1];
+                    Vector a2 = a[2];
+                    Vector a3 = a[3];
+                    for (int i = 0; i < Factor; ++i) {
+                        tmp = a0 == a1; keepResults(tmp);
+                        tmp = a0 == a2; keepResults(tmp);
+                        tmp = a0 == a3; keepResults(tmp);
+                        tmp = a1 == a2; keepResults(tmp);
+                        tmp = a1 == a3; keepResults(tmp);
+                        tmp = a2 == a3; keepResults(tmp);
+                        a1 = a2; a2 = a3; a3 = a[i + 3];
                     }
                     timer.Stop();
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
             {
-                Benchmark timer("operator<", Vector::Size * Factor, "Op");
+                Benchmark timer("operator<", Vector::Size * Factor * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    const Vector *i = a;
-                    while (i < end) {
-                        const Vector &a0 = i[0];
-                        const Vector &a1 = i[1];
-                        const Vector &a2 = i[2];
-                        const Vector &a3 = i[3];
-                        M tmp = a0 < a1;
-#if VC_IMPL_SSE
-                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
-                        if (sizeof(tmp) == 32) {
-                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
-                        }
-#else
-                        asm(""::"r"(tmp));
-#endif
-                        tmp = a1 < a2;
-#if VC_IMPL_SSE
-                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
-                        if (sizeof(tmp) == 32) {
-                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
-                        }
-#else
-                        asm(""::"r"(tmp));
-#endif
-                        tmp = a2 < a3;
-#if VC_IMPL_SSE
-                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
-                        if (sizeof(tmp) == 32) {
-                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
-                        }
-#else
-                        asm(""::"r"(tmp));
-#endif
-                        tmp = a3 < *(i += 4);
-#if VC_IMPL_SSE
-                        asm(""::"x"(reinterpret_cast<const __m128 &>(tmp)));
-                        if (sizeof(tmp) == 32) {
-                            asm(""::"x"(reinterpret_cast<const __m128 *>(&tmp)[1]));
-                        }
-#else
-                        asm(""::"r"(tmp));
-#endif
+                    M tmp;
+                    Vector a0 = a[0];
+                    Vector a1 = a[1];
+                    Vector a2 = a[2];
+                    Vector a3 = a[3];
+                    for (int i = 0; i < Factor; ++i) {
+                        tmp = a0 < a1; keepResults(tmp);
+                        tmp = a0 < a2; keepResults(tmp);
+                        tmp = a0 < a3; keepResults(tmp);
+                        tmp = a1 < a2; keepResults(tmp);
+                        tmp = a1 < a3; keepResults(tmp);
+                        tmp = a2 < a3; keepResults(tmp);
+                        a1 = a2; a2 = a3; a3 = a[i + 3];
                     }
                     timer.Stop();
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
             {
-                Benchmark timer("(operator<).isFull()", Vector::Size * Factor, "Op");
+                Benchmark timer("(operator<).isFull()", Vector::Size * Factor * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    const Vector one(One);
-                    const Vector *i = a;
-                    while (i < end) {
-                        const Vector &a0 = i[0];
-                        const Vector &a1 = i[1];
-                        const Vector &a2 = i[2];
-                        const Vector &a3 = i[3];
-                        bool tmp = (a0 < a1).isFull();
-                        asm(""::"r"(tmp));
-                        tmp = (a1 < a2).isFull();
-                        asm(""::"r"(tmp));
-                        tmp = (a2 < a3).isFull();
-                        asm(""::"r"(tmp));
-                        tmp = (a3 < *(i += 4)).isFull();
-                        asm(""::"r"(tmp));
+                    bool tmp;
+                    Vector a0 = a[0];
+                    Vector a1 = a[1];
+                    Vector a2 = a[2];
+                    Vector a3 = a[3];
+                    for (int i = 0; i < Factor; ++i) {
+                        tmp = (a0 < a1).isFull(); asm(""::"r"(tmp));
+                        tmp = (a0 < a2).isFull(); asm(""::"r"(tmp));
+                        tmp = (a0 < a3).isFull(); asm(""::"r"(tmp));
+                        tmp = (a1 < a2).isFull(); asm(""::"r"(tmp));
+                        tmp = (a1 < a3).isFull(); asm(""::"r"(tmp));
+                        tmp = (a2 < a3).isFull(); asm(""::"r"(tmp));
+                        a1 = a2; a2 = a3; a3 = a[i + 3];
                     }
                     timer.Stop();
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
             {
-                Benchmark timer("!(operator<).isEmpty()", Vector::Size * Factor, "Op");
+                Benchmark timer("!(operator<).isEmpty()", Vector::Size * Factor * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    const Vector one(One);
-                    const Vector *i = a;
-                    while (i < end) {
-                        const Vector &a0 = i[0];
-                        const Vector &a1 = i[1];
-                        const Vector &a2 = i[2];
-                        const Vector &a3 = i[3];
-                        bool tmp = !(a0 < a1).isEmpty();
-                        asm(""::"r"(tmp));
-                        tmp = !(a1 < a2).isEmpty();
-                        asm(""::"r"(tmp));
-                        tmp = !(a2 < a3).isEmpty();
-                        asm(""::"r"(tmp));
-                        tmp = !(a3 < *(i += 4)).isEmpty();
-                        asm(""::"r"(tmp));
+                    bool tmp;
+                    Vector a0 = a[0];
+                    Vector a1 = a[1];
+                    Vector a2 = a[2];
+                    Vector a3 = a[3];
+                    for (int i = 0; i < Factor; ++i) {
+                        tmp = !(a0 < a1).isEmpty(); asm(""::"r"(tmp));
+                        tmp = !(a0 < a2).isEmpty(); asm(""::"r"(tmp));
+                        tmp = !(a0 < a3).isEmpty(); asm(""::"r"(tmp));
+                        tmp = !(a1 < a2).isEmpty(); asm(""::"r"(tmp));
+                        tmp = !(a1 < a3).isEmpty(); asm(""::"r"(tmp));
+                        tmp = !(a2 < a3).isEmpty(); asm(""::"r"(tmp));
+                        a1 = a2; a2 = a3; a3 = a[i + 3];
                     }
                     timer.Stop();
                 }
@@ -198,30 +144,7 @@ template<typename Vector> class DoCompares
             }
             delete[] a;
         }
-
-    private:
-        static typename Vector::Mask blackHoleMask;
-        static Vector blackHoleVector;
 };
-
-template<> double_m DoCompares<double_v>::blackHoleMask = double_m();
-template<> double_v DoCompares<double_v>::blackHoleVector = double_v();
-template<> float_m DoCompares<float_v>::blackHoleMask = float_m();
-template<> float_v DoCompares<float_v>::blackHoleVector = float_v();
-template<> short_m DoCompares<short_v>::blackHoleMask = short_m();
-template<> short_v DoCompares<short_v>::blackHoleVector = short_v();
-template<> ushort_m DoCompares<ushort_v>::blackHoleMask = ushort_m();
-template<> ushort_v DoCompares<ushort_v>::blackHoleVector = ushort_v();
-#if !VC_IMPL_LRBni
-template<> int_m DoCompares<int_v>::blackHoleMask = int_m();
-template<> int_v DoCompares<int_v>::blackHoleVector = int_v();
-template<> uint_m DoCompares<uint_v>::blackHoleMask = uint_m();
-template<> uint_v DoCompares<uint_v>::blackHoleVector = uint_v();
-#endif
-#if VC_IMPL_SSE
-template<> sfloat_m DoCompares<sfloat_v>::blackHoleMask = sfloat_m();
-template<> sfloat_v DoCompares<sfloat_v>::blackHoleVector = sfloat_v();
-#endif
 
 int bmain(Benchmark::OutputMode out)
 {
