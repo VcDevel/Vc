@@ -39,6 +39,9 @@ template<typename T> static inline void keepResults(const T &tmp0)
 }
 template<typename Vector> class DoCompares
 {
+    enum {
+        Factor2 = 128
+    };
     public:
         static void run(const int Repetitions)
         {
@@ -55,7 +58,7 @@ template<typename Vector> class DoCompares
 #endif
 
             {
-                Benchmark timer("operator==", Vector::Size * Factor * 6.0, "Op");
+                Benchmark timer("operator==", Vector::Size * Factor * Factor2 * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     M tmp;
@@ -63,21 +66,23 @@ template<typename Vector> class DoCompares
                     Vector a1 = a[1];
                     Vector a2 = a[2];
                     Vector a3 = a[3];
-                    for (int i = 0; i < Factor; ++i) {
-                        tmp = a0 == a1; keepResults(tmp);
-                        tmp = a0 == a2; keepResults(tmp);
-                        tmp = a0 == a3; keepResults(tmp);
-                        tmp = a1 == a2; keepResults(tmp);
-                        tmp = a1 == a3; keepResults(tmp);
-                        tmp = a2 == a3; keepResults(tmp);
-                        a1 = a2; a2 = a3; a3 = a[i + 3];
+                    for (int j = 0; j < Factor2; ++j) {
+                        for (int i = 0; i < Factor; ++i) {
+                            tmp = a0 == a1; keepResults(tmp);
+                            tmp = a0 == a2; keepResults(tmp);
+                            tmp = a0 == a3; keepResults(tmp);
+                            tmp = a1 == a2; keepResults(tmp);
+                            tmp = a1 == a3; keepResults(tmp);
+                            tmp = a2 == a3; keepResults(tmp);
+                            a1 = a2; a2 = a3; a3 = a[i + 3];
+                        }
                     }
                     timer.Stop();
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
             {
-                Benchmark timer("operator<", Vector::Size * Factor * 6.0, "Op");
+                Benchmark timer("operator<", Vector::Size * Factor * Factor2 * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     M tmp;
@@ -85,21 +90,23 @@ template<typename Vector> class DoCompares
                     Vector a1 = a[1];
                     Vector a2 = a[2];
                     Vector a3 = a[3];
-                    for (int i = 0; i < Factor; ++i) {
-                        tmp = a0 < a1; keepResults(tmp);
-                        tmp = a0 < a2; keepResults(tmp);
-                        tmp = a0 < a3; keepResults(tmp);
-                        tmp = a1 < a2; keepResults(tmp);
-                        tmp = a1 < a3; keepResults(tmp);
-                        tmp = a2 < a3; keepResults(tmp);
-                        a1 = a2; a2 = a3; a3 = a[i + 3];
+                    for (int j = 0; j < Factor2; ++j) {
+                        for (int i = 0; i < Factor; ++i) {
+                            tmp = a0 < a1; keepResults(tmp);
+                            tmp = a0 < a2; keepResults(tmp);
+                            tmp = a0 < a3; keepResults(tmp);
+                            tmp = a1 < a2; keepResults(tmp);
+                            tmp = a1 < a3; keepResults(tmp);
+                            tmp = a2 < a3; keepResults(tmp);
+                            a1 = a2; a2 = a3; a3 = a[i + 3];
+                        }
                     }
                     timer.Stop();
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
             {
-                Benchmark timer("(operator<).isFull()", Vector::Size * Factor * 6.0, "Op");
+                Benchmark timer("(operator<).isFull()", Vector::Size * Factor * Factor2 * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     bool tmp;
@@ -107,21 +114,23 @@ template<typename Vector> class DoCompares
                     Vector a1 = a[1];
                     Vector a2 = a[2];
                     Vector a3 = a[3];
-                    for (int i = 0; i < Factor; ++i) {
-                        tmp = (a0 < a1).isFull(); asm(""::"r"(tmp));
-                        tmp = (a0 < a2).isFull(); asm(""::"r"(tmp));
-                        tmp = (a0 < a3).isFull(); asm(""::"r"(tmp));
-                        tmp = (a1 < a2).isFull(); asm(""::"r"(tmp));
-                        tmp = (a1 < a3).isFull(); asm(""::"r"(tmp));
-                        tmp = (a2 < a3).isFull(); asm(""::"r"(tmp));
-                        a1 = a2; a2 = a3; a3 = a[i + 3];
+                    for (int j = 0; j < Factor2; ++j) {
+                        for (int i = 0; i < Factor; ++i) {
+                            tmp = (a0 < a1).isFull(); asm(""::"r"(tmp));
+                            tmp = (a0 < a2).isFull(); asm(""::"r"(tmp));
+                            tmp = (a0 < a3).isFull(); asm(""::"r"(tmp));
+                            tmp = (a1 < a2).isFull(); asm(""::"r"(tmp));
+                            tmp = (a1 < a3).isFull(); asm(""::"r"(tmp));
+                            tmp = (a2 < a3).isFull(); asm(""::"r"(tmp));
+                            a1 = a2; a2 = a3; a3 = a[i + 3];
+                        }
                     }
                     timer.Stop();
                 }
                 timer.Print(Benchmark::PrintAverage);
             }
             {
-                Benchmark timer("!(operator<).isEmpty()", Vector::Size * Factor * 6.0, "Op");
+                Benchmark timer("!(operator<).isEmpty()", Vector::Size * Factor * Factor2 * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     bool tmp;
@@ -129,14 +138,16 @@ template<typename Vector> class DoCompares
                     Vector a1 = a[1];
                     Vector a2 = a[2];
                     Vector a3 = a[3];
-                    for (int i = 0; i < Factor; ++i) {
-                        tmp = !(a0 < a1).isEmpty(); asm(""::"r"(tmp));
-                        tmp = !(a0 < a2).isEmpty(); asm(""::"r"(tmp));
-                        tmp = !(a0 < a3).isEmpty(); asm(""::"r"(tmp));
-                        tmp = !(a1 < a2).isEmpty(); asm(""::"r"(tmp));
-                        tmp = !(a1 < a3).isEmpty(); asm(""::"r"(tmp));
-                        tmp = !(a2 < a3).isEmpty(); asm(""::"r"(tmp));
-                        a1 = a2; a2 = a3; a3 = a[i + 3];
+                    for (int j = 0; j < Factor2; ++j) {
+                        for (int i = 0; i < Factor; ++i) {
+                            tmp = !(a0 < a1).isEmpty(); asm(""::"r"(tmp));
+                            tmp = !(a0 < a2).isEmpty(); asm(""::"r"(tmp));
+                            tmp = !(a0 < a3).isEmpty(); asm(""::"r"(tmp));
+                            tmp = !(a1 < a2).isEmpty(); asm(""::"r"(tmp));
+                            tmp = !(a1 < a3).isEmpty(); asm(""::"r"(tmp));
+                            tmp = !(a2 < a3).isEmpty(); asm(""::"r"(tmp));
+                            a1 = a2; a2 = a3; a3 = a[i + 3];
+                        }
                     }
                     timer.Stop();
                 }
@@ -148,7 +159,7 @@ template<typename Vector> class DoCompares
 
 int bmain(Benchmark::OutputMode out)
 {
-    const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 2000;
+    const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 200;
 
     Benchmark::addColumn("datatype");
 
