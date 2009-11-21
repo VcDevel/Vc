@@ -109,19 +109,18 @@ template<typename Vector> class DoCompares
                 Benchmark timer("(operator<).isFull()", Vector::Size * Factor * Factor2 * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    bool tmp;
                     Vector a0 = a[0];
                     Vector a1 = a[1];
                     Vector a2 = a[2];
                     Vector a3 = a[3];
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
-                            tmp = (a0 < a1).isFull(); asm(""::"r"(tmp));
-                            tmp = (a0 < a2).isFull(); asm(""::"r"(tmp));
-                            tmp = (a0 < a3).isFull(); asm(""::"r"(tmp));
-                            tmp = (a1 < a2).isFull(); asm(""::"r"(tmp));
-                            tmp = (a1 < a3).isFull(); asm(""::"r"(tmp));
-                            tmp = (a2 < a3).isFull(); asm(""::"r"(tmp));
+                            if ((a0 < a1).isFull()) asm volatile("");
+                            if ((a0 < a2).isFull()) asm volatile("");
+                            if ((a0 < a3).isFull()) asm volatile("");
+                            if ((a1 < a2).isFull()) asm volatile("");
+                            if ((a1 < a3).isFull()) asm volatile("");
+                            if ((a2 < a3).isFull()) asm volatile("");
                             a1 = a2; a2 = a3; a3 = a[i + 3];
                         }
                     }
@@ -133,19 +132,18 @@ template<typename Vector> class DoCompares
                 Benchmark timer("!(operator<).isEmpty()", Vector::Size * Factor * Factor2 * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    bool tmp;
                     Vector a0 = a[0];
                     Vector a1 = a[1];
                     Vector a2 = a[2];
                     Vector a3 = a[3];
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
-                            tmp = !(a0 < a1).isEmpty(); asm(""::"r"(tmp));
-                            tmp = !(a0 < a2).isEmpty(); asm(""::"r"(tmp));
-                            tmp = !(a0 < a3).isEmpty(); asm(""::"r"(tmp));
-                            tmp = !(a1 < a2).isEmpty(); asm(""::"r"(tmp));
-                            tmp = !(a1 < a3).isEmpty(); asm(""::"r"(tmp));
-                            tmp = !(a2 < a3).isEmpty(); asm(""::"r"(tmp));
+                            if (!(a0 < a1).isEmpty()) asm volatile("");
+                            if (!(a0 < a2).isEmpty()) asm volatile("");
+                            if (!(a0 < a3).isEmpty()) asm volatile("");
+                            if (!(a1 < a2).isEmpty()) asm volatile("");
+                            if (!(a1 < a3).isEmpty()) asm volatile("");
+                            if (!(a2 < a3).isEmpty()) asm volatile("");
                             a1 = a2; a2 = a3; a3 = a[i + 3];
                         }
                     }
