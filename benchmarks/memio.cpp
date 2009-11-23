@@ -46,18 +46,44 @@ template<typename T> static inline void keepResults(const T &tmp0)
 
 template<typename Vector> class DoMemIos
 {
-    enum {
-        Factor2 = 128
-    };
     public:
         static void run(const int Repetitions)
         {
-            const int Factor = CpuId::L1Data() / (sizeof(Vector) * 4); // quarter L1
+            Benchmark::setColumnData("MemorySize", "0.5 L1");
+            run(Repetitions, CpuId::L1Data() / (sizeof(Vector) * 2), 128);
+            Benchmark::setColumnData("MemorySize", "1.0 L1");
+            run(Repetitions, CpuId::L1Data() / (sizeof(Vector) * 1), 128);
+            Benchmark::setColumnData("MemorySize", "0.5 L2");
+            run(Repetitions, CpuId::L2Data() / (sizeof(Vector) * 2), 32);
+            Benchmark::setColumnData("MemorySize", "1.0 L2");
+            run(Repetitions, CpuId::L2Data() / (sizeof(Vector) * 1), 16);
+            if (CpuId::L3Data() > 0) {
+                Benchmark::setColumnData("MemorySize", "0.5 L3");
+                run(Repetitions, CpuId::L3Data() / (sizeof(Vector) * 2), 2);
+                Benchmark::setColumnData("MemorySize", "1.0 L3");
+                run(Repetitions, CpuId::L3Data() / (sizeof(Vector) * 1), 2);
+                Benchmark::setColumnData("MemorySize", "4.0 L3");
+                run(Repetitions, CpuId::L3Data() / sizeof(Vector) * 4, 1);
+            } else {
+                Benchmark::setColumnData("MemorySize", "4.0 L2");
+                run(Repetitions, CpuId::L2Data() / sizeof(Vector) * 4, 1);
+            }
+        }
+    private:
+        static void run(const int Repetitions, const int Factor, const int Factor2)
+        {
             Vector *a = new Vector[Factor];
 
             {
                 Benchmark timer("write", sizeof(Vector) * Factor * Factor2, "Byte");
                 const Vector foo = PseudoRandom<Vector>::next();
+                keepResults(foo);
+                for (int i = 0; i < Factor; i += 4) {
+                    a[i + 0] = foo;
+                    a[i + 1] = foo;
+                    a[i + 2] = foo;
+                    a[i + 3] = foo;
+                }
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
                     for (int j = 0; j < Factor2; ++j) {
@@ -98,6 +124,7 @@ int bmain(Benchmark::OutputMode out)
     const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 200;
 
     Benchmark::addColumn("datatype");
+    Benchmark::addColumn("MemorySize");
 
     Benchmark::setColumnData("datatype", "double_v");
     DoMemIos<double_v>::run(Repetitions);
