@@ -21,6 +21,7 @@ for(data in list(rbind(sse, simple), rbind(sse, simple, lrb))) {
           s[s == "4x L3"]   <- 14
           n[n == "read"]  <- 0
           n[n == "write"] <- 1
+          n[n == "r/w"] <- 1.5
           20 - (as.numeric(s) + as.numeric(n))
         }
         mychart4(data, data$benchmark.arch,
