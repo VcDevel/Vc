@@ -49,23 +49,23 @@ template<typename Vector> class DoMemIos
     public:
         static void run(const int Repetitions)
         {
-            Benchmark::setColumnData("MemorySize", "0.5 L1");
+            Benchmark::setColumnData("MemorySize", "half L1");
             run(Repetitions, CpuId::L1Data() / (sizeof(Vector) * 2), 128);
-            Benchmark::setColumnData("MemorySize", "1.0 L1");
+            Benchmark::setColumnData("MemorySize", "L1");
             run(Repetitions, CpuId::L1Data() / (sizeof(Vector) * 1), 128);
-            Benchmark::setColumnData("MemorySize", "0.5 L2");
+            Benchmark::setColumnData("MemorySize", "half L2");
             run(Repetitions, CpuId::L2Data() / (sizeof(Vector) * 2), 32);
-            Benchmark::setColumnData("MemorySize", "1.0 L2");
+            Benchmark::setColumnData("MemorySize", "L2");
             run(Repetitions, CpuId::L2Data() / (sizeof(Vector) * 1), 16);
             if (CpuId::L3Data() > 0) {
-                Benchmark::setColumnData("MemorySize", "0.5 L3");
+                Benchmark::setColumnData("MemorySize", "half L3");
                 run(Repetitions, CpuId::L3Data() / (sizeof(Vector) * 2), 2);
-                Benchmark::setColumnData("MemorySize", "1.0 L3");
+                Benchmark::setColumnData("MemorySize", "L3");
                 run(Repetitions, CpuId::L3Data() / (sizeof(Vector) * 1), 2);
-                Benchmark::setColumnData("MemorySize", "4.0 L3");
+                Benchmark::setColumnData("MemorySize", "4x L3");
                 run(Repetitions, CpuId::L3Data() / sizeof(Vector) * 4, 1);
             } else {
-                Benchmark::setColumnData("MemorySize", "4.0 L2");
+                Benchmark::setColumnData("MemorySize", "4x L2");
                 run(Repetitions, CpuId::L2Data() / sizeof(Vector) * 4, 1);
             }
         }
@@ -123,23 +123,9 @@ int bmain(Benchmark::OutputMode out)
 {
     const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 200;
 
-    Benchmark::addColumn("datatype");
     Benchmark::addColumn("MemorySize");
 
-    Benchmark::setColumnData("datatype", "double_v");
-    DoMemIos<double_v>::run(Repetitions);
-    Benchmark::setColumnData("datatype", "float_v");
     DoMemIos<float_v>::run(Repetitions);
-    Benchmark::setColumnData("datatype", "int_v");
-    DoMemIos<int_v>::run(Repetitions);
-    Benchmark::setColumnData("datatype", "uint_v");
-    DoMemIos<uint_v>::run(Repetitions);
-    Benchmark::setColumnData("datatype", "short_v");
-    DoMemIos<short_v>::run(Repetitions);
-    Benchmark::setColumnData("datatype", "ushort_v");
-    DoMemIos<ushort_v>::run(Repetitions);
-    Benchmark::setColumnData("datatype", "sfloat_v");
-    DoMemIos<sfloat_v>::run(Repetitions);
 
     return 0;
 }
