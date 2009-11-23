@@ -45,7 +45,7 @@ inline void TimeStampCounter::Start()
 #ifdef _MSC_VER
     start.a = __rdtsc();
 #else
-    asm volatile("rdtsc" : "=a"(start.b[0]), "=d"(start.b[1]) );
+    asm volatile("xor %%eax,%%eax\n\tcpuid\n\trdtsc" : "=a"(start.b[0]), "=d"(start.b[1]) :: "ebx", "ecx" );
 #endif
 }
 
@@ -54,7 +54,7 @@ inline void TimeStampCounter::Stop()
 #ifdef _MSC_VER
     end.a = __rdtsc();
 #else
-    asm volatile("rdtsc" : "=a"(end.b[0]), "=d"(end.b[1]) );
+    asm volatile("xor %%eax,%%eax\n\tcpuid\n\trdtsc" : "=a"(end.b[0]), "=d"(end.b[1]) :: "ebx", "ecx" );
 #endif
 }
 
