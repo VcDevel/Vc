@@ -45,7 +45,7 @@ template<typename Vector> class DoCompares
     public:
         static void run(const int Repetitions)
         {
-            const int Factor = CpuId::L1Data() / (sizeof(Vector) * 4); // quarter L1
+            const int Factor = CpuId::L1Data() / (sizeof(Vector) * 2); // half L1
             Vector *a = new Vector[Factor + 3];
             for (int i = 0; i < Factor + 3; ++i) {
                 a[i] = PseudoRandom<Vector>::next();
@@ -61,20 +61,14 @@ template<typename Vector> class DoCompares
                 Benchmark timer("operator==", Vector::Size * Factor * Factor2 * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    M tmp;
-                    Vector a0 = a[0];
-                    Vector a1 = a[1];
-                    Vector a2 = a[2];
-                    Vector a3 = a[3];
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
-                            tmp = a0 == a1; keepResults(tmp);
-                            tmp = a0 == a2; keepResults(tmp);
-                            tmp = a0 == a3; keepResults(tmp);
-                            tmp = a1 == a2; keepResults(tmp);
-                            tmp = a1 == a3; keepResults(tmp);
-                            tmp = a2 == a3; keepResults(tmp);
-                            a1 = a2; a2 = a3; a3 = a[i + 3];
+                            const M &tmp0 = a[i + 0] == a[i + 1]; keepResults(tmp0);
+                            const M &tmp1 = a[i + 0] == a[i + 2]; keepResults(tmp1);
+                            const M &tmp2 = a[i + 0] == a[i + 3]; keepResults(tmp2);
+                            const M &tmp3 = a[i + 1] == a[i + 2]; keepResults(tmp3);
+                            const M &tmp4 = a[i + 1] == a[i + 3]; keepResults(tmp4);
+                            const M &tmp5 = a[i + 2] == a[i + 3]; keepResults(tmp5);
                         }
                     }
                     timer.Stop();
@@ -85,20 +79,14 @@ template<typename Vector> class DoCompares
                 Benchmark timer("operator<", Vector::Size * Factor * Factor2 * 6.0, "Op");
                 for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                     timer.Start();
-                    M tmp;
-                    Vector a0 = a[0];
-                    Vector a1 = a[1];
-                    Vector a2 = a[2];
-                    Vector a3 = a[3];
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
-                            tmp = a0 < a1; keepResults(tmp);
-                            tmp = a0 < a2; keepResults(tmp);
-                            tmp = a0 < a3; keepResults(tmp);
-                            tmp = a1 < a2; keepResults(tmp);
-                            tmp = a1 < a3; keepResults(tmp);
-                            tmp = a2 < a3; keepResults(tmp);
-                            a1 = a2; a2 = a3; a3 = a[i + 3];
+                            const M &tmp0 = a[i + 0] < a[i + 1]; keepResults(tmp0);
+                            const M &tmp1 = a[i + 0] < a[i + 2]; keepResults(tmp1);
+                            const M &tmp2 = a[i + 0] < a[i + 3]; keepResults(tmp2);
+                            const M &tmp3 = a[i + 1] < a[i + 2]; keepResults(tmp3);
+                            const M &tmp4 = a[i + 1] < a[i + 3]; keepResults(tmp4);
+                            const M &tmp5 = a[i + 2] < a[i + 3]; keepResults(tmp5);
                         }
                     }
                     timer.Stop();
@@ -115,12 +103,12 @@ template<typename Vector> class DoCompares
                     Vector a3 = a[3];
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
-                            if ((a0 < a1).isFull()) asm volatile("");
-                            if ((a0 < a2).isFull()) asm volatile("");
-                            if ((a0 < a3).isFull()) asm volatile("");
-                            if ((a1 < a2).isFull()) asm volatile("");
-                            if ((a1 < a3).isFull()) asm volatile("");
-                            if ((a2 < a3).isFull()) asm volatile("");
+                            if ((a[i + 0] < a[i + 1]).isFull()) asm volatile("");
+                            if ((a[i + 0] < a[i + 2]).isFull()) asm volatile("");
+                            if ((a[i + 0] < a[i + 3]).isFull()) asm volatile("");
+                            if ((a[i + 1] < a[i + 2]).isFull()) asm volatile("");
+                            if ((a[i + 1] < a[i + 3]).isFull()) asm volatile("");
+                            if ((a[i + 2] < a[i + 3]).isFull()) asm volatile("");
                             a1 = a2; a2 = a3; a3 = a[i + 3];
                         }
                     }
@@ -138,12 +126,12 @@ template<typename Vector> class DoCompares
                     Vector a3 = a[3];
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
-                            if (!(a0 < a1).isEmpty()) asm volatile("");
-                            if (!(a0 < a2).isEmpty()) asm volatile("");
-                            if (!(a0 < a3).isEmpty()) asm volatile("");
-                            if (!(a1 < a2).isEmpty()) asm volatile("");
-                            if (!(a1 < a3).isEmpty()) asm volatile("");
-                            if (!(a2 < a3).isEmpty()) asm volatile("");
+                            if (!(a[i + 0] < a[i + 1]).isEmpty()) asm volatile("");
+                            if (!(a[i + 0] < a[i + 2]).isEmpty()) asm volatile("");
+                            if (!(a[i + 0] < a[i + 3]).isEmpty()) asm volatile("");
+                            if (!(a[i + 1] < a[i + 2]).isEmpty()) asm volatile("");
+                            if (!(a[i + 1] < a[i + 3]).isEmpty()) asm volatile("");
+                            if (!(a[i + 2] < a[i + 3]).isEmpty()) asm volatile("");
                             a1 = a2; a2 = a3; a3 = a[i + 3];
                         }
                     }
