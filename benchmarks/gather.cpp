@@ -38,6 +38,46 @@ using namespace Vc;
 
 // Intel Core 2 Quad (Q6600) has 8MB L2
 
+template<typename T, int S> struct KeepResultsHelper {
+    static inline void keep(T &tmp0) { asm volatile("":"+r"(tmp0)); }
+    static inline void keep(const T &tmp0) { asm volatile(""::"r"(tmp0)); }
+};
+#ifdef VC_IMPL_SSE
+template<typename T> struct KeepResultsHelper<T, 16> {
+    static inline void keep(T &tmp0) { asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0))); }
+    static inline void keep(const T &tmp0) { asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0))); }
+};
+template<typename T> struct KeepResultsHelper<T, 32> {
+    static inline void keep(T &tmp0) {
+        asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0)), "+x"(reinterpret_cast<__m128 *>(&tmp0)[1]));
+    }
+    static inline void keep(const T &tmp0) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]));
+    }
+};
+#endif
+#ifdef VC_IMPL_LRBni
+template<typename T> struct KeepResultsHelper<T, 64> {
+    static inline void keep(T &tmp0) {
+        asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0)), "+x"(reinterpret_cast<__m128 *>(&tmp0)[1]),
+                "+x"(reinterpret_cast<__m128 *>(&tmp0)[2]), "+x"(reinterpret_cast<__m128 *>(&tmp0)[3]));
+    }
+    static inline void keep(const T &tmp0) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]),
+                "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]));
+    }
+};
+#endif
+
+template<typename T> static inline void keepResults(T &tmp0)
+{
+    KeepResultsHelper<T, sizeof(T)>::keep(tmp0);
+}
+template<typename T> static inline void keepResults(const T &tmp0)
+{
+    KeepResultsHelper<T, sizeof(T)>::keep(tmp0);
+}
+
 template<typename Vector> class NameHelper
 {
     public:
@@ -62,20 +102,15 @@ template<> const char *NameHelper<short_v>::s = "short_v";
 template<> const char *NameHelper<sfloat_v>::s = "sfloat_v";
 #endif
 
-int blackHole = 1;
-
-float_m float_fullMask;
-short_m short_fullMask;
-#if VC_IMPL_SSE
-sfloat_m sfloat_fullMask;
-#endif
-
 template<typename Vector> class FullMaskHelper
 {
     protected:
-        FullMaskHelper();
         typedef typename Vector::Mask IndexMask;
-        IndexMask *fullMask;
+        static const IndexMask fullMask;
+};
+
+enum {
+    BaseFactor = 1600000
 };
 
 template<typename Vector, class GatherImpl> class GatherBase : public FullMaskHelper<Vector>
@@ -86,17 +121,16 @@ template<typename Vector, class GatherImpl> class GatherBase : public FullMaskHe
 		typedef typename Vector::EntryType Scalar;
 
 		enum {
-			Factor = 1600000 / Vector::Size
+			Factor = BaseFactor / Vector::Size
 		};
 
         GatherBase(const char *name, const int _Rep, const unsigned int size, const Scalar *_data, double multiplier = 4.)
             : timer(name, multiplier * Vector::Size * Factor, "Values"),
-            aa(Zero), bb(Zero), cc(Zero), dd(Zero),
             indexesCount(Factor * 4),
             m_data(new const Scalar *[indexesCount]),
-            Repetitions(_Rep),
-            im(new IndexAndMask[indexesCount])
+            Repetitions(_Rep)
         {
+            IndexAndMask *const tmp = new IndexAndMask[indexesCount];
             PseudoRandom<IndexVector>::next();
             PseudoRandom<IndexVector>::next();
             const IndexVector indexMask(size - 1);
@@ -104,18 +138,17 @@ template<typename Vector, class GatherImpl> class GatherBase : public FullMaskHe
             const unsigned int maxDataOffset = maxIndex > size ? 1 : size - maxIndex;
             for (int i = 0; i < indexesCount; ++i) {
                 m_data[i] = _data + (rand() % maxDataOffset);
-                im[i].index = PseudoRandom<IndexVector>::next() & indexMask;
-                im[i].mask = (PseudoRandom<IndexVector>::next() & IndexVector(One)) > 0;
+                tmp[i].index = PseudoRandom<IndexVector>::next() & indexMask;
+                tmp[i].mask = (PseudoRandom<IndexVector>::next() & IndexVector(One)) > 0;
             }
             m_data[0] = _data;
+            im = tmp;
 
-            static_cast<GatherImpl *>(this)->run();
+            //static_cast<GatherImpl *>(this)->run();
             for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
                 timer.Start();
-                static_cast<GatherImpl *>(this)->run();
+                static_cast<const GatherImpl *>(this)->run();
                 timer.Stop();
-                const int k = (aa < 20.f) && (bb < 20.f) && (cc < 20.f) && (dd < 20.f);
-                blackHole += k;
             }
             timer.Print();
         }
@@ -127,30 +160,26 @@ template<typename Vector, class GatherImpl> class GatherBase : public FullMaskHe
         }
 
     protected:
-        inline const Scalar *data(int i) {
+        inline const Scalar *data(int i) const {
             if (sizeof(typename IndexVector::EntryType) == 2) {
                 return m_data[i];
             }
             return m_data[0];
         }
         Benchmark timer;
-        Vector aa;
-        Vector bb;
-        Vector cc;
-        Vector dd;
         const int indexesCount;
         const Scalar **const m_data;
         const int Repetitions;
-        struct IndexAndMask : public VectorAlignedBase {
+        const struct IndexAndMask : public VectorAlignedBase {
             IndexVector index;
             IndexMask mask;
         } *im;
 };
 
-template<> FullMaskHelper<float_v>::FullMaskHelper() : fullMask(&float_fullMask) {}
-template<> FullMaskHelper<short_v>::FullMaskHelper() : fullMask(&short_fullMask) {}
+template<> const float_m FullMaskHelper<float_v>::fullMask = float_m(One);
+template<> const short_m FullMaskHelper<short_v>::fullMask = short_m(One);
 #if VC_IMPL_SSE
-template<> FullMaskHelper<sfloat_v>::FullMaskHelper() : fullMask(&sfloat_fullMask) {}
+template<> const sfloat_m FullMaskHelper<sfloat_v>::fullMask = sfloat_m(One);
 #endif
 
 static int g_L1ArraySize = 0;
@@ -164,7 +193,7 @@ template<typename Vector> struct GatherBenchmark
     typedef typename Vector::EntryType Scalar;
 
     enum {
-        Factor = 1600000 / Vector::Size
+        Factor = BaseFactor / Vector::Size
     };
 
     class FullMaskedGather : public GatherBase<Vector, FullMaskedGather>
@@ -173,24 +202,20 @@ template<typename Vector> struct GatherBenchmark
         using Base::data;
         using Base::fullMask;
         using Base::im;
-        using Base::aa;
-        using Base::bb;
-        using Base::cc;
-        using Base::dd;
 
         public:
             FullMaskedGather(const char *name, const int _Rep, const unsigned int _size, const Scalar *_data)
                 : Base(name, _Rep, _size, _data, 4.)
             {}
 
-            inline void run()
+            inline void run() const
             {
                 for (int i = 0; i < Factor; ++i) {
                     const int ii = i * 4;
-                    aa += Vector(data(ii + 0), im[ii + 0].index, *fullMask);
-                    bb += Vector(data(ii + 1), im[ii + 1].index, *fullMask);
-                    cc += Vector(data(ii + 2), im[ii + 2].index, *fullMask);
-                    dd += Vector(data(ii + 3), im[ii + 3].index, *fullMask);
+                    keepResults(im[ii + 0].mask); Vector tmp0(data(ii + 0), im[ii + 0].index, fullMask); keepResults(tmp0);
+                    keepResults(im[ii + 1].mask); Vector tmp1(data(ii + 1), im[ii + 1].index, fullMask); keepResults(tmp1);
+                    keepResults(im[ii + 2].mask); Vector tmp2(data(ii + 2), im[ii + 2].index, fullMask); keepResults(tmp2);
+                    keepResults(im[ii + 3].mask); Vector tmp3(data(ii + 3), im[ii + 3].index, fullMask); keepResults(tmp3);
                 }
             }
     };
@@ -199,25 +224,22 @@ template<typename Vector> struct GatherBenchmark
     {
         typedef GatherBase<Vector, MaskedGather> Base;
         using Base::data;
+        using Base::fullMask;
         using Base::im;
-        using Base::aa;
-        using Base::bb;
-        using Base::cc;
-        using Base::dd;
 
         public:
             MaskedGather(const char *name, const int _Rep, const unsigned int _size, const Scalar *_data)
                 : GatherBase<Vector, MaskedGather>(name, _Rep, _size, _data, 2.)
             {}
 
-            inline void run()
+            inline void run() const
             {
                 for (int i = 0; i < Factor; ++i) {
                     const int ii = i * 4;
-                    aa += Vector(data(ii + 0), im[ii + 0].index, im[ii + 0].mask);
-                    bb += Vector(data(ii + 1), im[ii + 1].index, im[ii + 1].mask);
-                    cc += Vector(data(ii + 2), im[ii + 2].index, im[ii + 2].mask);
-                    dd += Vector(data(ii + 3), im[ii + 3].index, im[ii + 3].mask);
+                    keepResults(fullMask); Vector tmp0(data(ii + 0), im[ii + 0].index, im[ii + 0].mask); keepResults(tmp0);
+                    keepResults(fullMask); Vector tmp1(data(ii + 1), im[ii + 1].index, im[ii + 1].mask); keepResults(tmp1);
+                    keepResults(fullMask); Vector tmp2(data(ii + 2), im[ii + 2].index, im[ii + 2].mask); keepResults(tmp2);
+                    keepResults(fullMask); Vector tmp3(data(ii + 3), im[ii + 3].index, im[ii + 3].mask); keepResults(tmp3);
                 }
             }
     };
@@ -226,25 +248,22 @@ template<typename Vector> struct GatherBenchmark
     {
         typedef GatherBase<Vector, Gather> Base;
         using Base::data;
+        using Base::fullMask;
         using Base::im;
-        using Base::aa;
-        using Base::bb;
-        using Base::cc;
-        using Base::dd;
 
         public:
             Gather(const char *name, const int _Rep, const unsigned int _size, const Scalar *_data)
                 : GatherBase<Vector, Gather>(name, _Rep, _size, _data)
             {}
 
-            inline void run()
+            inline void run() const
             {
                 for (int i = 0; i < Factor; ++i) {
                     const int ii = i * 4;
-                    aa += Vector(data(ii + 0), im[ii + 0].index);
-                    bb += Vector(data(ii + 1), im[ii + 1].index);
-                    cc += Vector(data(ii + 2), im[ii + 2].index);
-                    dd += Vector(data(ii + 3), im[ii + 3].index);
+                    keepResults(fullMask); keepResults(im[ii + 0].mask); Vector tmp0(data(ii + 0), im[ii + 0].index); keepResults(tmp0);
+                    keepResults(fullMask); keepResults(im[ii + 1].mask); Vector tmp1(data(ii + 1), im[ii + 1].index); keepResults(tmp1);
+                    keepResults(fullMask); keepResults(im[ii + 2].mask); Vector tmp2(data(ii + 2), im[ii + 2].index); keepResults(tmp2);
+                    keepResults(fullMask); keepResults(im[ii + 3].mask); Vector tmp3(data(ii + 3), im[ii + 3].index); keepResults(tmp3);
                 }
             }
     };
@@ -311,12 +330,6 @@ template<typename Vector> struct GatherBenchmark
 
 int bmain(Benchmark::OutputMode out)
 {
-    float_fullMask = float_m(One);
-    short_fullMask = short_m(One);
-#if VC_IMPL_SSE
-    sfloat_fullMask = sfloat_m(One);
-#endif
-
     Benchmark::addColumn("datatype");
     Benchmark::addColumn("mask");
     Benchmark::addColumn("L1.size");
@@ -360,10 +373,8 @@ int bmain(Benchmark::OutputMode out)
     GatherBenchmark<float_v>::run(Repetitions);
     Benchmark::setColumnData("datatype", "short_v");
     GatherBenchmark<short_v>::run(Repetitions);
-#if VC_IMPL_SSE
     Benchmark::setColumnData("datatype", "sfloat_v");
     GatherBenchmark<sfloat_v>::run(Repetitions);
-#endif
 
     return 0;
 }
