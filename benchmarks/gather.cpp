@@ -133,8 +133,9 @@ template<typename Vector, class GatherImpl> class GatherBase : public FullMaskHe
             IndexAndMask *const tmp = new IndexAndMask[indexesCount];
             PseudoRandom<IndexVector>::next();
             PseudoRandom<IndexVector>::next();
-            const IndexVector indexMask(size - 1);
-            const unsigned int maxIndex = ~0u >> ((4 - sizeof(typename IndexVector::EntryType)) * 8);
+            const IndexVector indexMask((size - 1) & 0xffff);
+            const unsigned int maxIndex = 0xffff;
+            //const unsigned int maxIndex = ~0u >> ((4 - sizeof(typename IndexVector::EntryType)) * 8);
             const unsigned int maxDataOffset = maxIndex > size ? 1 : size - maxIndex;
             for (int i = 0; i < indexesCount; ++i) {
                 m_data[i] = _data + (rand() % maxDataOffset);
@@ -161,10 +162,10 @@ template<typename Vector, class GatherImpl> class GatherBase : public FullMaskHe
 
     protected:
         inline const Scalar *data(int i) const {
-            if (sizeof(typename IndexVector::EntryType) == 2) {
+            //if (sizeof(typename IndexVector::EntryType) == 2) {
                 return m_data[i];
-            }
-            return m_data[0];
+            //}
+            //return m_data[0];
         }
         Benchmark timer;
         const int indexesCount;
@@ -196,6 +197,29 @@ template<typename Vector> struct GatherBenchmark
         Factor = BaseFactor / Vector::Size
     };
 
+    class GatherOverhead : public GatherBase<Vector, GatherOverhead>
+    {
+        typedef GatherBase<Vector, GatherOverhead> Base;
+        using Base::data;
+        using Base::fullMask;
+        using Base::im;
+
+        public:
+            GatherOverhead(const char *name, const int _Rep, const unsigned int _size, const Scalar *_data)
+                : Base(name, _Rep, _size, _data, 4.)
+            {}
+
+            inline void run() const
+            {
+                for (int i = 0; i < Factor; ++i) {
+                    const int ii = i * 4;
+                    keepResults(im[ii + 0].mask); keepResults(data(ii + 0)); keepResults(im[ii + 0].index); keepResults(fullMask);
+                    keepResults(im[ii + 1].mask); keepResults(data(ii + 1)); keepResults(im[ii + 1].index); keepResults(fullMask);
+                    keepResults(im[ii + 2].mask); keepResults(data(ii + 2)); keepResults(im[ii + 2].index); keepResults(fullMask);
+                    keepResults(im[ii + 3].mask); keepResults(data(ii + 3)); keepResults(im[ii + 3].index); keepResults(fullMask);
+                }
+            }
+    };
     class FullMaskedGather : public GatherBase<Vector, FullMaskedGather>
     {
         typedef GatherBase<Vector, FullMaskedGather> Base;
@@ -302,24 +326,37 @@ template<typename Vector> struct GatherBenchmark
         Benchmark::setColumnData("mask", "masked with one");
         FullMaskedGather("Memory", Repetitions, MaxArraySize, data);
 
+        data += ArrayCount - MaxArraySize;
+        Benchmark::setColumnData("mask", "Overhead");
+        GatherOverhead("Memory", Repetitions, MaxArraySize, data);
+
         Benchmark::setColumnData("mask", "not masked");
         if (L3ArraySize > 0) Gather("L3", Repetitions, L3ArraySize, data);
         Gather("L2", Repetitions, L2ArraySize, data);
         Gather("L1", Repetitions, L1ArraySize, data);
         Gather("Cacheline", Repetitions, CacheLineArraySize, data);
         Gather("Broadcast", Repetitions, 1, data);
+
         Benchmark::setColumnData("mask", "random mask");
         if (L3ArraySize > 0) MaskedGather("L3", Repetitions, L3ArraySize, data);
         MaskedGather("L2", Repetitions, L2ArraySize, data);
         MaskedGather("L1", Repetitions, L1ArraySize, data);
         MaskedGather("Cacheline", Repetitions, CacheLineArraySize, data);
         MaskedGather("Broadcast", Repetitions, 1, data);
+
         Benchmark::setColumnData("mask", "masked with one");
         if (L3ArraySize > 0) FullMaskedGather("L3", Repetitions, L3ArraySize, data);
         FullMaskedGather("L2", Repetitions, L2ArraySize, data);
         FullMaskedGather("L1", Repetitions, L1ArraySize, data);
         FullMaskedGather("Cacheline", Repetitions, CacheLineArraySize, data);
         FullMaskedGather("Broadcast", Repetitions, 1, data);
+
+        Benchmark::setColumnData("mask", "Overhead");
+        if (L3ArraySize > 0) GatherOverhead("L3", Repetitions, L3ArraySize, data);
+        GatherOverhead("L2", Repetitions, L2ArraySize, data);
+        GatherOverhead("L1", Repetitions, L1ArraySize, data);
+        GatherOverhead("Cacheline", Repetitions, CacheLineArraySize, data);
+        GatherOverhead("Broadcast", Repetitions, 1, data);
 
 
         delete[] _data;
