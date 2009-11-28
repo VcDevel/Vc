@@ -346,9 +346,9 @@ namespace SSE
                 abort();
             }
 #else
+# ifdef VC_NO_GATHER_TRICKS
             typedef const char * Memory MAY_ALIAS;
             Memory const baseAddr2 = reinterpret_cast<Memory>(baseAddr);
-# ifdef VC_NO_GATHER_TRICKS
             for (int i = 0; i < Base::Size; ++i) {
                 if (mask & (1 << i)) {
                     v.d.m(i) = baseAddr2[scale * indexes.d.m(i)];
@@ -356,9 +356,19 @@ namespace SSE
             }
 # else
             unrolled_loop16(i, 0, Base::Size,
-                    EntryType entry = *reinterpret_cast<const EntryType *>(&baseAddr2[scale * indexes.d.m(i)]);
                     register EntryType tmp = v.d.m(i);
-                    if (mask & (1 << i)) tmp = entry;
+                    register long j = scale * indexes.d.m(i);
+                    asm volatile("test %[i],%[mask]\n\t"
+                        "cmove %[zero],%[j]\n\t"
+                        "cmovne (%[mem],%[j],1),%[tmp]"
+                        : [tmp]"+r"(tmp),
+                          [j]"+r"(j)
+                        : [i]"i"(1 << i),
+                          [mask]"r"(mask),
+                          [mem]"r"(baseAddr),
+                          [zero]"r"(0)
+                          );
+                    //if (mask & (1 << i)) tmp = *reinterpret_cast<const EntryType *>(&baseAddr2[j]);
                     v.d.m(i) = tmp;
                     );
 # endif
@@ -447,17 +457,51 @@ namespace SSE
                 abort();
             }
 #else
+# ifdef VC_NO_GATHER_TRICKS
             unrolled_loop16(i, 0, Base::Size,
                     if (mask & (1 << i)) v.d.m(i) = baseAddr[indexes.d.m(i)];
                     );
-            /* The following code can make invalid reads!
+# else
             unrolled_loop16(i, 0, Base::Size,
-                    EntryType entry = baseAddr[indexes.d.m(i)];
+                    register long j = indexes.d.m(i);
                     register EntryType tmp = v.d.m(i);
-                    if (mask & (1 << i)) tmp = entry;
+                    if (sizeof(EntryType) == 2) asm volatile(
+                        "test %[i],%[mask]\n\t"
+                        "cmove %[zero],%[j]\n\t"
+                        "cmovne (%[mem],%[j],2),%[tmp]"
+                        : [tmp]"+r"(tmp),
+                          [j]"+r"(j)
+                        : [i]"i"(1 << i),
+                          [mask]"r"(mask),
+                          [mem]"r"(baseAddr),
+                          [zero]"r"(0)
+                        );
+                    else if (sizeof(EntryType) == 4) asm volatile(
+                        "test %[i],%[mask]\n\t"
+                        "cmove %[zero],%[j]\n\t"
+                        "cmovne (%[mem],%[j],2),%[tmp]"
+                        : [tmp]"+r"(tmp),
+                          [j]"+r"(j)
+                        : [i]"i"(1 << i),
+                          [mask]"r"(mask),
+                          [mem]"r"(baseAddr),
+                          [zero]"r"(0)
+                        );
+                    else if (sizeof(EntryType) == 8) asm volatile(
+                        "test %[i],%[mask]\n\t"
+                        "cmove %[zero],%[j]\n\t"
+                        "cmovne (%[mem],%[j],2),%[tmp]"
+                        : [tmp]"+r"(tmp),
+                          [j]"+r"(j)
+                        : [i]"i"(1 << i),
+                          [mask]"r"(mask),
+                          [mem]"r"(baseAddr),
+                          [zero]"r"(0)
+                        );
+                    //if (mask & (1 << i)) tmp = baseAddr[j];
                     v.d.m(i) = tmp;
                     );
-                    */
+# endif
 #endif
         }
 
