@@ -26,6 +26,13 @@ macro(add_target_property _target _prop _value)
    endif(NOT _oldprop)
 endmacro(add_target_property)
 
+if(NO_BSF_LOOPS)
+   add_definitions(-DVC_NO_BSF_LOOPS)
+endif(NO_BSF_LOOPS)
+if(NO_GATHER_TRICKS)
+   add_definitions(-DVC_NO_GATHER_TRICKS)
+endif(NO_GATHER_TRICKS)
+
 if(CMAKE_COMPILER_IS_GNUCXX)
    ##################################################################################################
    #                                              GCC                                               #
