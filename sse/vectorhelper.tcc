@@ -351,7 +351,7 @@ namespace SSE
             Memory const baseAddr2 = reinterpret_cast<Memory>(baseAddr);
             for (int i = 0; i < Base::Size; ++i) {
                 if (mask & (1 << i)) {
-                    v.d.m(i) = baseAddr2[scale * indexes.d.m(i)];
+                    v.d.m(i) = *reinterpret_cast<const EntryType *>(&baseAddr2[scale * indexes.d.m(i)]);
                 }
             }
 # else
@@ -458,12 +458,18 @@ namespace SSE
             }
 #else
 # ifdef VC_NO_GATHER_TRICKS
-            unrolled_loop16(i, 0, Base::Size,
-                    if (mask & (1 << i)) v.d.m(i) = baseAddr[indexes.d.m(i)];
-                    );
+            for (int i = 0; i < Base::Size; ++i) {
+                if (mask & (1 << i)) {
+                    v.d.m(i) = baseAddr[indexes.d.m(i)];
+                }
+            }
+//            unrolled_loop16(i, 0, Base::Size,
+//                   if (mask & (1 << i)) v.d.m(i) = baseAddr[indexes.d.m(i)];
+//                  );
 # else
             unrolled_loop16(i, 0, Base::Size,
                     register long j = indexes.d.m(i);
+                    register long zero = 0;
                     register EntryType tmp = v.d.m(i);
                     if (sizeof(EntryType) == 2) asm volatile(
                         "test %[i],%[mask]\n\t"
@@ -474,7 +480,7 @@ namespace SSE
                         : [i]"i"(1 << i),
                           [mask]"r"(mask),
                           [mem]"r"(baseAddr),
-                          [zero]"r"(0)
+                          [zero]"r"(zero)
                         );
                     else if (sizeof(EntryType) == 4) asm volatile(
                         "test %[i],%[mask]\n\t"
@@ -485,7 +491,7 @@ namespace SSE
                         : [i]"i"(1 << i),
                           [mask]"r"(mask),
                           [mem]"r"(baseAddr),
-                          [zero]"r"(0)
+                          [zero]"r"(zero)
                         );
                     else if (sizeof(EntryType) == 8) asm volatile(
                         "test %[i],%[mask]\n\t"
@@ -496,7 +502,7 @@ namespace SSE
                         : [i]"i"(1 << i),
                           [mask]"r"(mask),
                           [mem]"r"(baseAddr),
-                          [zero]"r"(0)
+                          [zero]"r"(zero)
                         );
                     //if (mask & (1 << i)) tmp = baseAddr[j];
                     v.d.m(i) = tmp;
