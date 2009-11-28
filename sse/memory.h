@@ -32,7 +32,10 @@ namespace SSE
             };
             typedef typename VectorBase<T>::EntryType EntryType;
             typedef typename VectorBase<T>::VectorType VectorType;
-            EntryType d[Size];
+            union {
+                EntryType d[Size];
+                VectorType v;
+            };
         public:
             inline int size() const { return Size; }
             inline EntryType &operator[](int i) { return d[i]; }
@@ -41,12 +44,11 @@ namespace SSE
             inline operator const EntryType*() const { return &d[0]; }
 
             inline _Memory<T> &operator=(const _Memory<T> &rhs) {
-                const VectorType tmp = VectorHelper<T>::load(&rhs.d[0]);
-                VectorHelper<VectorType>::store(&d[0], tmp);
+                v = rhs.v;
                 return *this;
             }
             inline _Memory<T> &operator=(const VectorBase<T> &rhs) {
-                VectorHelper<VectorType>::store(&d[0], rhs.data());
+                v = rhs.data();
                 return *this;
             }
 
