@@ -61,7 +61,7 @@ namespace SSE
     template<> struct StaticCastHelper<unsigned int, double      > { static _M128D cast(const _M128I &v) { return _mm_cvtepi32_pd(v); } };
 
     template<> struct StaticCastHelper<unsigned short, float8        > { static  M256  cast(const _M128I &v) {
-        return M256(_mm_cvtepi32_ps(_mm_unpacklo_epi16(v, _mm_setzero_si128())),
+        return M256::create(_mm_cvtepi32_ps(_mm_unpacklo_epi16(v, _mm_setzero_si128())),
                     _mm_cvtepi32_ps(_mm_unpackhi_epi16(v, _mm_setzero_si128())));
     } };
 //X         template<> struct StaticCastHelper<short         , float8        > { static  M256  cast(const _M128I &v) {

@@ -140,10 +140,10 @@ namespace SSE
         {
             typedef M256 VectorType;
             static inline VectorType load(const float *x) {
-                return VectorType(_mm_load_ps(x), _mm_load_ps(x + 4));
+                return VectorType::create(_mm_load_ps(x), _mm_load_ps(x + 4));
             }
             static inline VectorType loadUnaligned(const float *x) {
-                return VectorType(_mm_loadu_ps(x), _mm_loadu_ps(x + 4));
+                return VectorType::create(_mm_loadu_ps(x), _mm_loadu_ps(x + 4));
             }
             static inline void store(float *mem, const VectorType &x) {
                 _mm_store_ps(mem, x[0]);
@@ -153,13 +153,13 @@ namespace SSE
                 _mm_stream_ps(mem, x[0]);
                 _mm_stream_ps(mem + 4, x[1]);
             }
-            OP0(allone, VectorType(_mm_setallone_ps(), _mm_setallone_ps()))
-            OP0(zero, VectorType(_mm_setzero_ps(), _mm_setzero_ps()))
-            OP2(or_, VectorType(_mm_or_ps(a[0], b[0]), _mm_or_ps(a[1], b[1])))
-            OP2(xor_, VectorType(_mm_xor_ps(a[0], b[0]), _mm_xor_ps(a[1], b[1])))
-            OP2(and_, VectorType(_mm_and_ps(a[0], b[0]), _mm_and_ps(a[1], b[1])))
-            OP2(andnot_, VectorType(_mm_andnot_ps(a[0], b[0]), _mm_andnot_ps(a[1], b[1])))
-            OP3(blend, VectorType(_mm_blendv_ps(a[0], b[0], c[0]), _mm_blendv_ps(a[1], b[1], c[1])))
+            OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
+            OP0(zero, VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()))
+            OP2(or_, VectorType::create(_mm_or_ps(a[0], b[0]), _mm_or_ps(a[1], b[1])))
+            OP2(xor_, VectorType::create(_mm_xor_ps(a[0], b[0]), _mm_xor_ps(a[1], b[1])))
+            OP2(and_, VectorType::create(_mm_and_ps(a[0], b[0]), _mm_and_ps(a[1], b[1])))
+            OP2(andnot_, VectorType::create(_mm_andnot_ps(a[0], b[0]), _mm_andnot_ps(a[1], b[1])))
+            OP3(blend, VectorType::create(_mm_blendv_ps(a[0], b[0], c[0]), _mm_blendv_ps(a[1], b[1], c[1])))
         };
 
         template<> struct VectorHelper<_M128D>
@@ -741,30 +741,30 @@ namespace SSE
 
             static inline VectorType set(const float a) {
                 const _M128 x = _mm_set1_ps(a);
-                return VectorType(x, x);
+                return VectorType::create(x, x);
             }
             static inline VectorType set(const float a, const float b, const float c, const float d) {
                 const _M128 x = _mm_set_ps(a, b, c, d);
-                return VectorType(x, x);
+                return VectorType::create(x, x);
             }
             static inline VectorType set(const float a, const float b, const float c, const float d,
                     const float e, const float f, const float g, const float h) {
-                return VectorType(_mm_set_ps(a, b, c, d), _mm_set_ps(e, f, g, h));
+                return VectorType::create(_mm_set_ps(a, b, c, d), _mm_set_ps(e, f, g, h));
             }
-            static inline VectorType zero() { return VectorType(_mm_setzero_ps(), _mm_setzero_ps()); }
+            static inline VectorType zero() { return VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()); }
             static inline VectorType one()  { return set(1.f); }
 
 #define REUSE_FLOAT_IMPL1(fun) \
             static inline VectorType fun(const VectorType &x) { \
-                return VectorType(VectorHelper<float>::fun(x[0]), VectorHelper<float>::fun(x[1])); \
+                return VectorType::create(VectorHelper<float>::fun(x[0]), VectorHelper<float>::fun(x[1])); \
             }
 #define REUSE_FLOAT_IMPL2(fun) \
             static inline VectorType fun(const VectorType &x, const VectorType &y) { \
-                return VectorType(VectorHelper<float>::fun(x[0], y[0]), VectorHelper<float>::fun(x[1], y[1])); \
+                return VectorType::create(VectorHelper<float>::fun(x[0], y[0]), VectorHelper<float>::fun(x[1], y[1])); \
             }
 #define REUSE_FLOAT_IMPL3(fun) \
             static inline VectorType fun(const VectorType &x, const VectorType &y, const VectorType &z) { \
-                return VectorType(VectorHelper<float>::fun(x[0], y[0], z[0]), VectorHelper<float>::fun(x[1], y[1], z[1])); \
+                return VectorType::create(VectorHelper<float>::fun(x[0], y[0], z[0]), VectorHelper<float>::fun(x[1], y[1], z[1])); \
             }
             REUSE_FLOAT_IMPL1(negate)
             REUSE_FLOAT_IMPL1(reciprocal)
