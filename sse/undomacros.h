@@ -31,4 +31,8 @@
 #undef FREE_STORE_OPERATORS_ALIGNED
 #undef STORE_VECTOR
 
+#ifdef VC_USE_PTEST
+#undef VC_USE_PTEST
+#endif
+
 #endif // VC_SSE_UNDOMACROS_H

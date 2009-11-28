@@ -87,4 +87,8 @@ do {} while ( false )
     _mm_store_si128(&CAT(u, __LINE__).p, vec); \
     const type *const name = &CAT(u, __LINE__).v[0]
 
+#if defined(VC_IMPL_SSE4_1) && !defined(VC_DISABLE_PTEST)
+#define VC_USE_PTEST
+#endif
+
 #endif // VC_SSE_MACROS_H
