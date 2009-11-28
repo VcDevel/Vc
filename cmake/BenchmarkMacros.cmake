@@ -35,18 +35,26 @@ endmacro(vc_generate_datafile)
 
 macro(vc_generate_plots name)
    if(ENABLE_BENCHMARKS)
-      set(simpleTarget "${name}_simple_benchmark")
-      set(sseTarget "${name}_sse_benchmark")
-      set(lrbTarget "${name}_lrb_benchmark")
+      set(targets)
+      set(dataFilePaths)
+      set(dataFiles)
 
-      vc_generate_datafile(${simpleTarget} simple_datafilepath simple_datafile)
-      vc_generate_datafile(${sseTarget} sse_datafilepath sse_datafile)
+      set(lrb)
       if(LARRABEE_FOUND)
-         vc_generate_datafile(${lrbTarget} lrb_datafilepath lrb_datafile)
-      else(LARRABEE_FOUND)
-         set(lrb_datafile "")
-         set(lrb_datafilepath "")
+         set(lrb "lrb")
       endif(LARRABEE_FOUND)
+
+      set(scriptArgs)
+
+      foreach(def "scalar" "sse" ${lrb} ${ARGN})
+         set(_t "${name}_${def}_benchmark")
+         vc_generate_datafile(${_t} dfp df)
+
+         set(targets ${targets} ${_t})
+         set(dataFilePaths ${dataFilePaths} ${dfp})
+         set(dataFiles ${dataFiles} ${df})
+         set(scriptArgs ${scriptArgs} "-D${def}_datafile=${df}")
+      endforeach(def)
 
       set(scriptfile "${CMAKE_CURRENT_BINARY_DIR}/plot_${name}.r")
       add_custom_command(OUTPUT "${scriptfile}"
@@ -55,9 +63,7 @@ macro(vc_generate_plots name)
          "-Dscriptfile=${scriptfile}"
          "-Dcommon=${CMAKE_CURRENT_SOURCE_DIR}/common.r"
          "-Dappend=${CMAKE_CURRENT_SOURCE_DIR}/${name}.r"
-         "-Dsimple_datafile=${simple_datafile}"
-         "-Dsse_datafile=${sse_datafile}"
-         "-Dlrb_datafile=${lrb_datafile}"
+         ${scriptArgs}
          -P "${CMAKE_SOURCE_DIR}/cmake/generate_plot_script.cmake"
          DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${CMAKE_CURRENT_SOURCE_DIR}/${name}.r"
          VERBATIM
@@ -73,7 +79,7 @@ macro(vc_generate_plots name)
             COMMAND "${R_COMMAND}" ARGS --quiet --slave --vanilla -f "${scriptfile}"
             COMMAND "${CMAKE_COMMAND}" ARGS -E copy "Rplots.pdf" "${tmpfile}"
             COMMAND "${CMAKE_COMMAND}" ARGS -E remove "Rplots.pdf"
-            DEPENDS "${simple_datafilepath}" "${sse_datafilepath}" "${lrb_datafilepath}" "${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${CMAKE_CURRENT_SOURCE_DIR}/${name}.r" "${scriptfile}"
+            DEPENDS "${scalar_datafilepath}" "${sse_datafilepath}" "${lrb_datafilepath}" "${CMAKE_CURRENT_SOURCE_DIR}/common.r" "${CMAKE_CURRENT_SOURCE_DIR}/${name}.r" "${scriptfile}"
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
             COMMENT "Generating PDF plots for the ${name} benchmark"
             VERBATIM
@@ -96,7 +102,7 @@ macro(vc_generate_plots name)
          add_dependencies(benchmark_plots "${generate_target}")
       else(R_COMMAND)
          set(generate_target "generate_${name}_data")
-         add_custom_target(${generate_target} DEPENDS "${simple_datafilepath}" "${sse_datafilepath}" "${lrb_datafilepath}" "${scriptfile}")
+         add_custom_target(${generate_target} DEPENDS ${dataFilePaths} "${scriptfile}")
          add_dependencies(benchmark_data "${generate_target}")
       endif(R_COMMAND)
    endif(ENABLE_BENCHMARKS)
@@ -107,36 +113,32 @@ macro(vc_add_benchmark name)
       set(LIBS rt)
    endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
-   set(simpleExec "${name}_simple")
-   set(sseExec "${name}_sse")
-   set(lrbExec "${name}_lrb")
+   set(execs)
+   set(targets)
 
-   set(simpleTarget "${name}_simple_benchmark")
-   set(sseTarget "${name}_sse_benchmark")
-   set(lrbTarget "${name}_lrb_benchmark")
-
-   add_executable(${simpleTarget} ${name}.cpp)
-   target_link_libraries(${simpleTarget} Vc ${LIBS})
-   add_target_property(${simpleTarget} OUTPUT_NAME ${simpleExec})
-   add_target_property(${simpleTarget} COMPILE_FLAGS "-DVC_IMPL=Scalar")
-   add_custom_target("run_${simpleTarget}" ${simpleTarget} DEPENDS ${simpleTarget} COMMENT "Running ${simpleExec}")
-   add_target_property("run_${simpleTarget}" EXCLUDE_FROM_DEFAULT_BUILD 1)
-   add_dependencies(benchmarks "run_${simpleTarget}")
-
-   add_executable(${sseTarget} ${name}.cpp)
-   target_link_libraries(${sseTarget} Vc ${LIBS})
-   add_target_property(${sseTarget} OUTPUT_NAME ${sseExec})
-   add_custom_target("run_${sseTarget}" ${sseTarget} DEPENDS ${sseTarget} COMMENT "Running ${sseExec}")
-   add_target_property("run_${sseTarget}" EXCLUDE_FROM_DEFAULT_BUILD 1)
-   add_dependencies(benchmarks "run_${sseTarget}")
-
+   set(lrb)
    if(LARRABEE_FOUND)
-      add_executable(${lrbTarget} ${name}.cpp)
-      target_link_libraries(${lrbTarget} Vc ${LIBS} ${LRB_LIBS})
-      add_target_property(${lrbTarget} OUTPUT_NAME ${lrbExec})
-      add_target_property(${lrbTarget} COMPILE_FLAGS "-DVC_IMPL=LRBni")
-      add_custom_target("run_${lrbTarget}" ${lrbTarget} DEPENDS ${lrbTarget} COMMENT "Running ${lrbExec}")
-      add_target_property("run_${lrbTarget}" EXCLUDE_FROM_DEFAULT_BUILD 1)
-      add_dependencies(benchmarks "run_${lrbTarget}")
+      set(lrb "lrb")
    endif(LARRABEE_FOUND)
+
+   foreach(def "scalar" "sse" ${lrb} ${ARGN})
+      set(exec "${name}_${def}")
+      set(target "${name}_${def}_benchmark")
+
+      add_executable(${target} ${name}.cpp)
+      target_link_libraries(${target} Vc ${LIBS})
+      add_target_property(${target} OUTPUT_NAME ${exec})
+      if(def STREQUAL "scalar")
+         add_target_property(${target} COMPILE_FLAGS "-DVC_IMPL=Scalar")
+      elseif(def STREQUAL "sse")
+         add_target_property(${target} COMPILE_FLAGS "-DVC_IMPL=SSE")
+      elseif(def STREQUAL "lrb")
+         add_target_property(${target} COMPILE_FLAGS "-DVC_IMPL=LRBni")
+      else(def STREQUAL "scalar")
+         add_target_property(${target} COMPILE_FLAGS "-D${def}")
+      endif(def STREQUAL "scalar")
+      add_custom_target("run_${target}" ${target} DEPENDS ${target} COMMENT "Running ${exec}")
+      add_target_property("run_${target}" EXCLUDE_FROM_DEFAULT_BUILD 1)
+      add_dependencies(benchmarks "run_${target}")
+   endforeach(def)
 endmacro(vc_add_benchmark)

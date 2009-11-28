@@ -17,9 +17,9 @@ endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 vc_add_benchmark(arithmetics)
 vc_add_benchmark(flops)
-vc_add_benchmark(gather)
+vc_add_benchmark(gather VC_NO_BSF_LOOPS VC_NO_GATHER_TRICKS)
 vc_add_benchmark(mask)
-vc_add_benchmark(compare)
+vc_add_benchmark(compare VC_DISABLE_PTEST)
 vc_add_benchmark(math)
 vc_add_benchmark(memio)
 
@@ -32,9 +32,9 @@ add_dependencies(benchmarks "run_sort_benchmark")
 
 vc_generate_plots(arithmetics)
 vc_generate_plots(flops)
-vc_generate_plots(gather)
+vc_generate_plots(gather VC_NO_BSF_LOOPS VC_NO_GATHER_TRICKS)
 vc_generate_plots(mask)
-vc_generate_plots(compare)
+vc_generate_plots(compare VC_DISABLE_PTEST)
 vc_generate_plots(math)
 vc_generate_plots(memio)
 
