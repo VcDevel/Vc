@@ -33,6 +33,18 @@
 # endif
 #endif
 
+#ifdef VC_SLOWDOWN_GATHER
+#define SLOWDOWN_ASM "ror $9,%1\n\trol $1,%1\n\t" \
+                     "rol $1,%1\n\trol $1,%1\n\t" \
+                     "rol $1,%1\n\trol $1,%1\n\t" \
+                     "rol $1,%1\n\trol $1,%1\n\t" \
+                     "rol $1,%1\n\trol $1,%1\n\t"
+#else //VC_SLOWDOWN_GATHER
+#define SLOWDOWN_ASM
+#endif //VC_SLOWDOWN_GATHER
+
+#define ALIGN_16 "\n.align 16\n\t"
+
 namespace Vc
 {
 namespace SSE
@@ -180,7 +192,9 @@ namespace SSE
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
-                          "\t"  "jmp 1f"
+                          "\t"  "bsf %1,%0"// %0 contains the index to use for outer and inner
+                        "\n\t"  "jz 1f"
+                        ALIGN_16
                         "\n\t"  "0:"
                         "\n\t"  "movzwq (%7,%0,2),%4" // outer index in ecx
                         "\n\t"  "movzwq (%11,%0,2),%5"// inner index in ecx
@@ -189,9 +203,10 @@ namespace SSE
                         "\n\t"  "mov (%8,%4,1),%6"    // rdx = baseAddr[outer[%0] * scale / sizeof(void*)]
                         "\n\t"  "movw (%6,%5,2),%2"   // value = rdx[inner[%0]]
                         "\n\t"  "movw %2,(%9,%0,2)"   // v[%0] = value
-                        "\n\t"  "1:"
                         "\n\t"  "bsf %1,%0"           // %0 contains the index to use for outer and inner
                         "\n\t"  "jnz 0b"
+                        ALIGN_16
+                        "\n\t"  "1:"
                         : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
                           "=&r"(outerIndex), "=&r"(innerIndex), "=&r"(array)
                         : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
@@ -201,7 +216,9 @@ namespace SSE
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
-                          "\t"  "jmp 1f"
+                          "\t"  "bsf %1,%0"// %0 contains the index to use for outer and inner
+                        "\n\t"  "jz 1f"
+                        ALIGN_16
                         "\n\t"  "0:"
                         "\n\t"  "imul %9,(%6,%0,4),%%ecx" // outer index * scale => byte offset
                         "\n\t"  "movslq (%10,%0,4),%4"     // inner index in ecx
@@ -209,9 +226,10 @@ namespace SSE
                         "\n\t"  "mov (%7,%%rcx,1),%5"  // rdx = baseAddr[outer[%0] * scale / sizeof(void*)]
                         "\n\t"  "mov (%5,%4,4),%2"  // value = rdx[inner[%0]]
                         "\n\t"  "mov %2,(%8,%0,4)"        // v[%0] = value
-                        "\n\t"  "1:"
                         "\n\t"  "bsf %1,%0"           // %0 contains the index to use for outer and inner
                         "\n\t"  "jnz 0b"
+                        ALIGN_16
+                        "\n\t"  "1:"
                         : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
                           "=&r"(innerIndex), "=&r"(array)
                         : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
@@ -223,7 +241,9 @@ namespace SSE
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
-                          "\t"  "jmp 1f"
+                          "\t"  "bsf %1,%0"// %0 contains the index to use for outer and inner
+                        "\n\t"  "jz 1f"
+                        ALIGN_16
                         "\n\t"  "0:"
                         "\n\t"  "movzwq (%7,%0,2),%4"  // outer index in ecx
                         "\n\t"  "movzwq (%11,%0,2),%5"  // inner index in ecx
@@ -232,9 +252,10 @@ namespace SSE
                         "\n\t"  "mov (%8,%4,1),%6"  // rdx = baseAddr[outer[%0] * scale / sizeof(void*)]
                         "\n\t"  "mov (%6,%5,4),%2"  // value = rdx[inner[%0]]
                         "\n\t"  "mov %2,(%9,%0,4)"        // v[%0] = value
-                        "\n\t"  "1:"
                         "\n\t"  "bsf %1,%0"// %0 contains the index to use for outer and inner
                         "\n\t"  "jnz 0b"
+                        ALIGN_16
+                        "\n\t"  "1:"
                         : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
                           "=&r"(outerIndex), "=&r"(innerIndex), "=&r"(array)
                         : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
@@ -244,7 +265,9 @@ namespace SSE
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
-                          "\t"  "jmp 1f"
+                          "\t"  "bsf %1,%0"               // %0 contains the index to use for outer and inner
+                        "\n\t"  "jz 1f"
+                        ALIGN_16
                         "\n\t"  "0:"
                         "\n\t"  "imul %9,(%6,%0,4),%%ecx" // outer index * scale => byte offset
                         "\n\t"  "movslq (%10,%0,4),%4"     // inner index in ecx
@@ -252,9 +275,10 @@ namespace SSE
                         "\n\t"  "mov (%7,%%rcx,1),%5"  // rdx = baseAddr[outer[%0] * scale / sizeof(void*)]
                         "\n\t"  "mov (%5,%4,8),%2"  // value = rdx[inner[%0]]
                         "\n\t"  "mov %2,(%8,%0,8)"        // v[%0] = value
-                        "\n\t"  "1:"
                         "\n\t"  "bsf %1,%0"               // %0 contains the index to use for outer and inner
                         "\n\t"  "jnz 0b"
+                        ALIGN_16
+                        "\n\t"  "1:"
                         : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
                           "=&r"(innerIndex), "=&r"(array)
                         : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
@@ -268,6 +292,7 @@ namespace SSE
         static inline void maskedGatherStructHelper(
                 Base &v, const IndexType &indexes, long mask, const EntryType *baseAddr
                 ) {
+
 #ifndef VC_NO_BSF_LOOPS
             asm volatile(""::"m"(indexes.d.v()));
             if (sizeof(EntryType) == 2) {
@@ -275,16 +300,20 @@ namespace SSE
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
-                        "jmp 1f"               "\n\t"
+                        SLOWDOWN_ASM
+                        "bsf %1,%0"            "\n\t"
+                        "jz 1f"                "\n\t"
+                        ALIGN_16
                         "0:"                   "\n\t"
                         "movzwq (%5,%0,2),%2"  "\n\t"
                         "imul %8,%2"           "\n\t"
                         "btr %0,%1"            "\n\t"
                         "movw (%6,%2,1),%3"    "\n\t"
                         "movw %3,(%7,%0,2)"    "\n\t"
-                        "1:"                   "\n\t"
                         "bsf %1,%0"            "\n\t"
                         "jnz 0b"               "\n\t"
+                        ALIGN_16
+                        "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
                         : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
                         );
@@ -293,15 +322,19 @@ namespace SSE
                     register unsigned long int bit;
                     register EntryType value;
                     asm volatile(
-                            "jmp 1f"               "\n\t"
+                            SLOWDOWN_ASM
+                            "bsf %1,%0"            "\n\t"
+                            "jz 1f"                "\n\t"
+                        ALIGN_16
                             "0:"                   "\n\t"
                             "imul %7,(%4,%0,4),%%ecx""\n\t"
                             "btr %0,%1"            "\n\t"
                             "mov (%5,%%rcx,1),%2"  "\n\t"
                             "mov %2,(%6,%0,4)"     "\n\t"
-                            "1:"                   "\n\t"
                             "bsf %1,%0"            "\n\t"
                             "jnz 0b"               "\n\t"
+                        ALIGN_16
+                            "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d)
                             : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
                             : "rcx"   );
@@ -310,16 +343,20 @@ namespace SSE
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
-                            "jmp 1f"               "\n\t"
+                            SLOWDOWN_ASM
+                            "bsf %1,%0"            "\n\t"
+                            "jz 1f"                "\n\t"
+                        ALIGN_16
                             "0:"                   "\n\t"
                             "movzwq (%5,%0,2),%2"  "\n\t"
                             "imul %8,%2"           "\n\t"
                             "btr %0,%1"            "\n\t"
                             "mov (%6,%2,1),%3"     "\n\t"
                             "mov %3,(%7,%0,4)"     "\n\t"
-                            "1:"                   "\n\t"
                             "bsf %1,%0"            "\n\t"
                             "jnz 0b"               "\n\t"
+                        ALIGN_16
+                            "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
                             : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
                             );
@@ -330,15 +367,19 @@ namespace SSE
                 register unsigned long int bit;
                 register EntryType value;
                 asm volatile(
-                        "jmp 1f"               "\n\t"
+                        SLOWDOWN_ASM
+                        "bsf %1,%0"            "\n\t"
+                        "jz 1f"                "\n\t"
+                        ALIGN_16
                         "0:"                   "\n\t"
                         "imul %7,(%4,%0,4),%%ecx""\n\t"
                         "btr %0,%1"            "\n\t"
                         "mov (%5,%%rcx,1),%2"  "\n\t"
                         "mov %2,(%6,%0,8)"     "\n\t"
-                        "1:"                   "\n\t"
                         "bsf %1,%0"            "\n\t"
                         "jnz 0b"               "\n\t"
+                        ALIGN_16
+                        "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d)
                         : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
                         : "rcx"   );
@@ -386,15 +427,19 @@ namespace SSE
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
-                        "jmp 1f"               "\n\t"
+                        SLOWDOWN_ASM
+                        "bsf %1,%0"            "\n\t"
+                        "jz 1f"                "\n\t"
+                        ALIGN_16
                         "0:"                   "\n\t"
                         "movzwq (%5,%0,2),%2"  "\n\t"
                         "btr %0,%1"            "\n\t"
                         "movw (%6,%2,2),%3"    "\n\t"
                         "movw %3,(%7,%0,2)"    "\n\t"
-                        "1:"                   "\n\t"
                         "bsf %1,%0"            "\n\t"
                         "jnz 0b"               "\n\t"
+                        ALIGN_16
+                        "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
                         : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
                         );
@@ -404,15 +449,19 @@ namespace SSE
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
-                            "jmp 1f"               "\n\t"
+                            SLOWDOWN_ASM
+                            "bsf %1,%0"            "\n\t"
+                            "jz 1f"                "\n\t"
+                            ALIGN_16
                             "0:"                   "\n\t"
                             "movslq (%5,%0,4),%2"  "\n\t"
                             "btr %0,%1"            "\n\t"
                             "mov (%6,%2,4),%3"     "\n\t"
                             "mov %3,(%7,%0,4)"     "\n\t"
-                            "1:"                   "\n\t"
                             "bsf %1,%0"            "\n\t"
                             "jnz 0b"               "\n\t"
+                            ALIGN_16
+                            "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
                             : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
                             );
@@ -421,15 +470,19 @@ namespace SSE
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
-                            "jmp 1f"               "\n\t"
+                            SLOWDOWN_ASM
+                            "bsf %1,%0"            "\n\t"
+                            "jz 1f"                "\n\t"
+                            ALIGN_16
                             "0:"                   "\n\t"
                             "movzwq (%5,%0,2),%2"  "\n\t"
                             "btr %0,%1"            "\n\t"
                             "mov (%6,%2,4),%3"     "\n\t"
                             "mov %3,(%7,%0,4)"     "\n\t"
-                            "1:"                   "\n\t"
                             "bsf %1,%0"            "\n\t"
                             "jnz 0b"               "\n\t"
+                            ALIGN_16
+                            "1:"                   "\n\t"
                             : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
                             : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
                             );
@@ -441,15 +494,19 @@ namespace SSE
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
-                        "jmp 1f"               "\n\t"
+                        SLOWDOWN_ASM
+                        "bsf %1,%0"            "\n\t"
+                        "jz 1f"                "\n\t"
+                        ALIGN_16
                         "0:"                   "\n\t"
                         "movslq (%5,%0,4),%2"  "\n\t"
                         "btr %0,%1"            "\n\t"
                         "mov (%6,%2,8),%3"     "\n\t"
                         "mov %3,(%7,%0,8)"     "\n\t"
-                        "1:"                   "\n\t"
                         "bsf %1,%0"            "\n\t"
                         "jnz 0b"               "\n\t"
+                        ALIGN_16
+                        "1:"                   "\n\t"
                         : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
                         : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
                         );
@@ -521,7 +578,9 @@ namespace SSE
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
+                        SLOWDOWN_ASM
                         "jmp 1f"                "\n\t"
+                        ALIGN_16
                         "0:"                   "\n\t"
                         "movzwl (%5,%0,2),%%ecx""\n\t" // ecx contains the index
                         "btr %0,%1"            "\n\t"
@@ -539,7 +598,9 @@ namespace SSE
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
+                            SLOWDOWN_ASM
                             "jmp 1f"                "\n\t"
+                            ALIGN_16
                             "0:"                   "\n\t"
                             "mov (%5,%0,4),%%ecx"  "\n\t" // ecx contains the index
                             "btr %0,%1"            "\n\t"
@@ -556,7 +617,9 @@ namespace SSE
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
+                            SLOWDOWN_ASM
                             "jmp 1f"                "\n\t"
+                            ALIGN_16
                             "0:"                   "\n\t"
                             "movzwl (%5,%0,2),%%ecx""\n\t" // ecx contains the index
                             "btr %0,%1"            "\n\t"
@@ -576,7 +639,9 @@ namespace SSE
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
+                        SLOWDOWN_ASM
                         "jmp 1f"                "\n\t"
+                        ALIGN_16
                         "0:"                   "\n\t"
                         "mov (%5,%0,4),%%ecx"  "\n\t" // ecx contains the index
                         "btr %0,%1"            "\n\t"
@@ -943,3 +1008,6 @@ namespace SSE
     }
 } // namespace SSE
 } // namespace Vc
+
+#undef SLOWDOWN_ASM
+#undef ALIGN_16
