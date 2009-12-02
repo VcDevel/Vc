@@ -32,6 +32,9 @@ endif(NO_BSF_LOOPS)
 if(NO_GATHER_TRICKS)
    add_definitions(-DVC_NO_GATHER_TRICKS)
 endif(NO_GATHER_TRICKS)
+if(GATHER_SET)
+   add_definitions(-DVC_GATHER_SET)
+endif(GATHER_SET)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
    ##################################################################################################

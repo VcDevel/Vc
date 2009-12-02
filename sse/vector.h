@@ -214,24 +214,55 @@ class Vector : public VectorBase<T>
             GatherHelper<T>::gather(*this, indexes, array);
         }
         inline Vector(const EntryType *array, const IndexType &indexes, const GatherMask &mask) {
+#ifdef VC_GATHER_SET
+            typedef typename IndexType::VectorType IType;
+            const IType k = mm128_reinterpret_cast<IType>(mask.dataIndex());
+            GatherHelper<T>::gather(*this, VectorHelper<IType>::and_(k, indexes.data()), array);
+#else
             GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
+#endif
         }
         inline Vector(const EntryType *array, const IndexType &indexes, const GatherMask &mask, VectorSpecialInitializerZero::ZEnum)
+#ifndef VC_GATHER_SET
             : Base(VectorHelper<VectorType>::zero())
+#endif
         {
+#ifdef VC_GATHER_SET
+            typedef typename IndexType::VectorType IType;
+            const IType k = mm128_reinterpret_cast<IType>(mask.dataIndex());
+            GatherHelper<T>::gather(*this, VectorHelper<IType>::and_(k, indexes.data()), array);
+            data() = VectorHelper<VectorType>::and_(mm128_reinterpret_cast<VectorType>(mask.data()), data());
+#else
             GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
+#endif
         }
         inline Vector(const EntryType *array, const IndexType &indexes, const GatherMask &mask, EntryType def)
             : Base(VectorHelper<T>::set(def))
         {
+#ifdef VC_GATHER_SET
+            typedef typename IndexType::VectorType IType;
+            const IType k = mm128_reinterpret_cast<IType>(mask.dataIndex());
+            Vector<T> tmp;
+            GatherHelper<T>::gather(tmp, VectorHelper<IType>::and_(indexes.data(), k), array);
+            assign(tmp, mask.data());
+#else
             GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
+#endif
         }
 
         inline void gather(const EntryType *array, const IndexType &indexes) {
             GatherHelper<T>::gather(*this, indexes, array);
         }
         inline void gather(const EntryType *array, const IndexType &indexes, const GatherMask &mask) {
+#ifdef VC_GATHER_SET
+            typedef typename IndexType::VectorType IType;
+            const IType k = mm128_reinterpret_cast<IType>(mask.dataIndex());
+            Vector<T> tmp;
+            GatherHelper<T>::gather(tmp, VectorHelper<IType>::and_(k, indexes.data()), array);
+            assign(tmp, mask.data());
+#else
             GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
+#endif
         }
 
         inline void scatter(EntryType *array, const IndexType &indexes) const {
