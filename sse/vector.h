@@ -119,7 +119,7 @@ class Vector : public VectorBase<T>
         typedef typename Base::EntryType  EntryType;
         typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
         typedef typename Base::MaskType Mask;
-        typedef _Memory<T> Memory;
+        typedef FixedSizeMemory<Vector<T>, Size> Memory;
 
         /**
          * uninitialized
