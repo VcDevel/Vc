@@ -27,6 +27,18 @@
 #include <cmath>
 
 #define runTest(name) _unit_test_global.runTestInt(&name, #name)
+#define testAllTypes(name) \
+    _unit_test_global.runTestInt(&name<float_v>, #name "<float_v>"); \
+    _unit_test_global.runTestInt(&name<sfloat_v>, #name "<sfloat_v>"); \
+    _unit_test_global.runTestInt(&name<int_v>, #name "<int_v>"); \
+    _unit_test_global.runTestInt(&name<uint_v>, #name "<uint_v>"); \
+    _unit_test_global.runTestInt(&name<short_v>, #name "<short_v>"); \
+    _unit_test_global.runTestInt(&name<ushort_v>, #name "<ushort_v>"); \
+    _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>")
+
+class _UnitTest_Failure
+{
+};
 
 typedef void (*testFunction)();
 class _UnitTest_Global_Object
@@ -73,7 +85,10 @@ void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
 {
     _unit_test_global.status = true;
     _unit_test_global.expect_failure = false;
-    fun();
+    try {
+        fun();
+    } catch(_UnitTest_Failure) {
+    }
     if (_unit_test_global.expect_failure) {
         if (!_unit_test_global.status) {
             std::cout << "XFAIL: " << name << std::endl;
@@ -157,6 +172,7 @@ template<> inline double unittest_fuzzynessHelper<Vc::double_v>(const Vc::double
 if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { \
     unitttest_comparePrintHelper(a, b, (a) == (b), #a, #b, __FILE__, __LINE__, unittest_fuzzynessHelper(a)); \
     _unit_test_global.status = false; \
+    throw _UnitTest_Failure(); \
     return; \
 }
 
@@ -164,6 +180,7 @@ if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { \
 if ( unittest_compareHelper( a, b ) ) {} else { \
     unitttest_comparePrintHelper(a, b, (a) == (b), #a, #b, __FILE__, __LINE__); \
     _unit_test_global.status = false; \
+    throw _UnitTest_Failure(); \
     return; \
 }
 
@@ -171,6 +188,7 @@ if ( unittest_compareHelper( a, b ) ) {} else { \
 if ( unittest_compareHelper( a, b ) ) {} else { \
     unitttest_comparePrintHelper(a, b, "", #a, #b, __FILE__, __LINE__); \
     _unit_test_global.status = false; \
+    throw _UnitTest_Failure(); \
     return; \
 }
 
@@ -199,6 +217,7 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
         std::cout << "       " << #code << " at " << __FILE__ << ":" << __LINE__ << \
             " did not fail as was expected.\n"; \
         _unit_test_global.status = false; \
+        throw _UnitTest_Failure(); \
         return; \
     } \
     _unit_test_global.expect_assert_failure = false
