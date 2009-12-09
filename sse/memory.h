@@ -20,38 +20,164 @@
 #ifndef VC_SSE_MEMORY_H
 #define VC_SSE_MEMORY_H
 
+#include <assert.h>
+
 namespace Vc
 {
 namespace SSE
 {
-    template<typename T> class _Memory : public VectorAlignedBase
+    template<typename V, typename Parent> class MemoryBase
     {
         private:
-            enum {
-                Size = VectorBase<T>::Size
-            };
-            typedef typename VectorBase<T>::EntryType EntryType;
-            typedef typename VectorBase<T>::VectorType VectorType;
-            union {
-                EntryType d[Size];
-                VectorType v;
-            };
+            Parent *p() { return static_cast<Parent *>(this); }
+            const Parent *p() const { return static_cast<const Parent *>(this); }
         public:
-            inline int size() const { return Size; }
-            inline EntryType &operator[](int i) { return d[i]; }
-            inline EntryType operator[](int i) const { return d[i]; }
-            inline operator EntryType*() { return &d[0]; }
-            inline operator const EntryType*() const { return &d[0]; }
+            typedef typename V::EntryType EntryType;
+            typedef typename V::VectorType VectorType;
 
-            inline _Memory<T> &operator=(const _Memory<T> &rhs) {
-                v = rhs.v;
+            inline unsigned int entriesCount() const { return p()->entriesCount; }
+            inline unsigned int vectorsCount() const { return p()->vectorsCount; }
+
+            inline EntryType *entries() { return p()->entries(); }
+            inline const EntryType *entries() const { return p()->entries(); }
+
+            inline EntryType &operator[](int i) { return entries()[i]; }
+            inline EntryType  operator[](int i) const { return entries()[i]; }
+
+            inline operator EntryType*() { return entries(); }
+            inline operator const EntryType*() const { return entries(); }
+
+            inline V *vectors() { return p()->vectors(); }
+            inline const V *vectors() const { return p()->vectors(); }
+
+            inline V &vector(int i)       { return vectors()[i]; }
+            inline V  vector(int i) const { return vectors()[i]; }
+    };
+
+    template<typename V, unsigned int Size> class FixedSizeMemory : public VectorAlignedBase, public MemoryBase<V, FixedSizeMemory<V, Size> >
+    {
+        public:
+            typedef typename V::EntryType EntryType;
+            typedef typename V::VectorType VectorType;
+        private:
+            enum {
+                Alignment = 16 / sizeof(EntryType),
+                AlignmentMask = Alignment - 1,
+                MaskedSize = Size & AlignmentMask,
+                Padding = Alignment - MaskedSize,
+                PaddedSize = MaskedSize == 0 ? Size : Size + Padding,
+                PaddedSizeInBytes = PaddedSize * sizeof(EntryType)
+            };
+            union {
+                char c[PaddedSizeInBytes];
+                EntryType e[Size];
+            } m_mem;
+        public:
+            enum {
+                EntriesCount = Size,
+                VectorsCount = PaddedSize / V::Size
+            };
+            inline unsigned int entriesCount() const { return EntriesCount; }
+            inline unsigned int vectorsCount() const { return VectorsCount; }
+
+            inline EntryType *entries() { return &m_mem.e[0]; }
+            inline const EntryType *entries() const { return &m_mem.e[0]; }
+
+            inline V *vectors() { return reinterpret_cast<V *>(&m_mem[0]); }
+            inline const V *vectors() const { return reinterpret_cast<const V *>(&m_mem[0]); }
+
+            inline FixedSizeMemory<V, Size> &operator=(const FixedSizeMemory<V, Size> &rhs) {
+                for (int i = 0; i < VectorsCount; ++i) {
+                    vectors()[i] = rhs.vector(i);
+                }
                 return *this;
             }
-            inline _Memory<T> &operator=(const VectorBase<T> &rhs) {
-                v = rhs.data();
+            template<typename Parent>
+            inline FixedSizeMemory<V, Size> &operator=(const MemoryBase<V, Parent> &rhs) {
+                assert(VectorsCount == rhs.vectorsCount());
+                for (int i = 0; i < VectorsCount; ++i) {
+                    vectors()[i] = rhs.vector(i);
+                }
                 return *this;
             }
+            inline FixedSizeMemory<V, Size> &operator=(const V *rhs) {
+                for (int i = 0; i < VectorsCount; ++i) {
+                    vectors()[i] = rhs[i];
+                }
+                return *this;
+            }
+    };
+    template<typename V> class VarSizeMemory
+    {
+        public:
+            typedef typename V::EntryType EntryType;
+            typedef typename V::VectorType VectorType;
+        private:
+            enum {
+                Alignment = 16 / sizeof(EntryType),
+                AlignmentMask = Alignment - 1
+            };
+            union {
+                char *c;
+                EntryType *e;
+            } m_mem;
+            unsigned int m_entriesCount;
+            unsigned int m_vectorsCount;
+            unsigned int calcVectorsCount(int x)
+            {
+                unsigned int masked = x & AlignmentMask;
+                return (masked == 0 ? x : x + (Alignment - masked)) / V::Size;
+            }
+        public:
+            inline VarSizeMemory(unsigned int size)
+                : m_entriesCount(size),
+                m_vectorsCount(calcVectorsCount(m_entriesCount)),
+                m_mem(_mm_malloc(m_vectorsCount * sizeof(V), 16))
+            {}
+            inline ~VarSizeMemory()
+            {
+                _mm_free(m_mem);
+            }
+            inline unsigned int entriesCount() const { return m_entriesCount; }
+            inline unsigned int vectorsCount() const { return m_vectorsCount; }
 
+            inline EntryType *entries() { return &m_mem.e[0]; }
+            inline const EntryType *entries() const { return &m_mem.e[0]; }
+
+            inline EntryType &operator[](int i) { return entries()[i]; }
+            inline EntryType  operator[](int i) const { return entries()[i]; }
+
+            inline operator EntryType*() { return entries(); }
+            inline operator const EntryType*() const { return entries(); }
+
+            inline V *vectors() { return reinterpret_cast<V *>(&m_mem[0]); }
+            inline const V *vectors() const { return reinterpret_cast<const V *>(&m_mem[0]); }
+
+            inline V &vector(int i)       { return vectors()[i]; }
+            inline V  vector(int i) const { return vectors()[i]; }
+
+            template<unsigned int RhsSize>
+            inline VarSizeMemory<V> &operator=(const FixedSizeMemory<V, RhsSize> &rhs) {
+                assert(rhs::VectorsCount == vectorsCount());
+                for (int i = 0; i < FixedSizeMemory<V, RhsSize>::VectorsCount; ++i) {
+                    vector(i) = rhs.vector(i);
+                }
+                return *this;
+            }
+            template<typename Parent>
+            inline VarSizeMemory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
+                assert(vectorsCount() == rhs.vectorsCount());
+                for (int i = 0; i < vectorsCount(); ++i) {
+                    vector(i) = rhs.vector(i);
+                }
+                return *this;
+            }
+            inline VarSizeMemory<V> &operator=(const V *rhs) {
+                for (int i = 0; i < vectorsCount(); ++i) {
+                    vector(i) = rhs[i];
+                }
+                return *this;
+            }
     };
 
 } // namespace SSE
