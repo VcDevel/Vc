@@ -550,6 +550,8 @@ int bmain(Benchmark::OutputMode);
 
 static int g_Repetitions = 0;
 
+#include <sched.h>
+
 int main(int argc, char **argv)
 {
 #ifdef SCHED_FIFO_BENCHMARKS
@@ -559,6 +561,7 @@ int main(int argc, char **argv)
         // if the execv call works, great. If it doesn't we just continue, but without realtime prio
     }
 #endif
+
     int i = 2;
     Benchmark::OutputMode outputMode = Benchmark::Stdout;
     Benchmark::FileWriter *file = 0;
@@ -571,7 +574,23 @@ int main(int argc, char **argv)
         }
         i += 2;
     }
-    int r = bmain(outputMode);
+
+    cpu_set_t cpumask;
+    sched_getaffinity(0, sizeof(cpu_set_t), &cpumask);
+    const int cpucount = CPU_COUNT(&cpumask);
+    int r = 0;
+    for (int cpuid = 0; cpuid < cpucount; ++cpuid) {
+        if (cpucount > 1) {
+            Benchmark::addColumn("CPU_ID");
+            std::ostringstream str;
+            str << cpuid;
+            Benchmark::setColumnData("CPU_ID", str.str());
+        }
+        CPU_ZERO(&cpumask);
+        CPU_SET(cpuid, &cpumask);
+        sched_setaffinity(0, sizeof(cpu_set_t), &cpumask);
+        r += bmain(outputMode);
+    }
     delete file;
     return r;
 }
