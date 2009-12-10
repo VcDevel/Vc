@@ -82,7 +82,7 @@ static double opsFactor()
 
 int bmain(Benchmark::OutputMode out)
 {
-    const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 200;
+    const int Repetitions = out == Benchmark::Stdout ? 3 : g_Repetitions > 0 ? g_Repetitions : 10;
     Benchmark timer("DhryRock", opsFactor<int_v>() + opsFactor<uint_v>() + opsFactor<short_v>() + opsFactor<ushort_v>(), "Op");
     for (int r = 0; r < Repetitions; ++r) {
         timer.Start();
