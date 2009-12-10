@@ -17,7 +17,7 @@ endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 vc_add_benchmark(arithmetics)
 vc_add_benchmark(flops)
-vc_add_benchmark(gather VC_NO_BSF_LOOPS VC_NO_GATHER_TRICKS)
+vc_add_benchmark(gather VC_NO_BSF_LOOPS VC_NO_GATHER_TRICKS VC_SLOWDOWN_GATHER)
 vc_add_benchmark(mask)
 vc_add_benchmark(compare VC_DISABLE_PTEST)
 vc_add_benchmark(math)
