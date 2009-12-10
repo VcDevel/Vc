@@ -577,7 +577,10 @@ int main(int argc, char **argv)
 
     cpu_set_t cpumask;
     sched_getaffinity(0, sizeof(cpu_set_t), &cpumask);
-    const int cpucount = CPU_COUNT(&cpumask);
+    int cpucount = 1;
+    while (CPU_ISSET(cpucount, &cpumask)) {
+        ++cpucount;
+    }
     int r = 0;
     for (int cpuid = 0; cpuid < cpucount; ++cpuid) {
         if (cpucount > 1) {
