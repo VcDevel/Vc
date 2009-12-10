@@ -317,6 +317,8 @@ static inline void prettyPrintSeconds(double v)
         std::cout << std::setw(11) << v << ' ' << prefix[i] << 's';
     } else if (v > 60.) {
         std::cout << std::setw(10) << v / 60. << " min";
+    } else {
+        std::cout << std::setw(12) << v << " s";
     }
 }
 
