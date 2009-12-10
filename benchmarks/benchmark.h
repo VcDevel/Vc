@@ -173,7 +173,11 @@ void Benchmark::FileWriter::addDataLine(const std::list<std::string> &data)
             "\"LRB Prototype\"";
 #endif
 #elif VC_IMPL_SSE4_1
+#ifdef VC_DISABLE_PTEST
+            "\"SSE4.1 w/o PTEST\"";
+#else
             "\"SSE4.1\"";
+#endif
 #elif VC_IMPL_SSSE3
             "\"SSSE3\"";
 #elif VC_IMPL_SSE3
