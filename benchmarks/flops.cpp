@@ -42,15 +42,15 @@ int bmain(Benchmark::OutputMode out)
 
     int blackHole = true;
     {
-        Benchmark timer("class", 2 * 7 * float_v::Size * Factor, "FLOP");
+        Benchmark timer("class", 2 * 8 * float_v::Size * Factor, "FLOP");
         for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
             const float_v alpha(repetitions - randomF(.1f, .2f));
             const float_v y = randomF12();
-            float_v x[7] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
+            float_v x[8] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
 
             // force the x vectors to registers, otherwise GCC decides to work on the stack and
             // lose half of the performance
-            forceToRegisters(x[0], x[1], x[2], x[3], x[4], x[5], x[6]);
+            //forceToRegisters(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7]);
 
             timer.Start();
             ///////////////////////////////////////
@@ -63,12 +63,13 @@ int bmain(Benchmark::OutputMode out)
                     x[4] = y * x[4] + y;
                     x[5] = y * x[5] + y;
                     x[6] = y * x[6] + y;
+                    x[7] = y * x[7] + y;
             }
 
             ///////////////////////////////////////
             timer.Stop();
 
-            const int k = (x[0] < x[1]) && (x[2] < x[3]) && (x[4] < x[5]) && (x[0] < x[6]);
+            const int k = (x[0] < x[1]) && (x[2] < x[3]) && (x[4] < x[5]) && (x[7] < x[6]);
             blackHole &= k;
         }
         timer.Print(Benchmark::PrintAverage);
@@ -77,10 +78,10 @@ int bmain(Benchmark::OutputMode out)
     // asm reference
 #ifdef __GNUC__
     {
-        Benchmark timer("asm reference", 2 * 7 * float_v::Size * Factor, "FLOP");
+        Benchmark timer("asm reference", 2 * 8 * float_v::Size * Factor, "FLOP");
         for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
 #if VC_IMPL_SSE
-            __m128 x[7] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
+            __m128 x[8] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
             const __m128 y = _mm_set1_ps(randomF12());
 
             timer.Start();
@@ -88,31 +89,33 @@ int bmain(Benchmark::OutputMode out)
             int i = Factor;
             __asm__(
                     ".align 16\n\t0: "
-                    "mulps  %8,%0"   "\n\t"
-                    "sub    $1,%7"   "\n\t"
-                    "mulps  %8,%1"   "\n\t"
-                    "mulps  %8,%2"   "\n\t"
-                    "addps  %8,%0"   "\n\t"
-                    "mulps  %8,%3"   "\n\t"
-                    "addps  %8,%1"   "\n\t"
-                    "mulps  %8,%4"   "\n\t"
-                    "addps  %8,%2"   "\n\t"
-                    "mulps  %8,%5"   "\n\t"
-                    "addps  %8,%3"   "\n\t"
-                    "addps  %8,%4"   "\n\t"
-                    "mulps  %8,%6"   "\n\t"
-                    "addps  %8,%5"   "\n\t"
-                    "addps  %8,%6"   "\n\t"
+                    "mulps  %9,%0"   "\n\t"
+                    "sub    $1,%8"   "\n\t"
+                    "mulps  %9,%1"   "\n\t"
+                    "mulps  %9,%2"   "\n\t"
+                    "mulps  %9,%7"   "\n\t"
+                    "addps  %9,%0"   "\n\t"
+                    "mulps  %9,%3"   "\n\t"
+                    "addps  %9,%1"   "\n\t"
+                    "mulps  %9,%4"   "\n\t"
+                    "addps  %9,%2"   "\n\t"
+                    "addps  %9,%7"   "\n\t"
+                    "mulps  %9,%5"   "\n\t"
+                    "addps  %9,%3"   "\n\t"
+                    "addps  %9,%4"   "\n\t"
+                    "mulps  %9,%6"   "\n\t"
+                    "addps  %9,%5"   "\n\t"
+                    "addps  %9,%6"   "\n\t"
                     "jne 0b"         "\n\t"
-                    : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+x"(x[6]), "+r"(i)
+                    : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+x"(x[6]), "+x"(x[7]), "+r"(i)
                     : "x"(y));
             ///////////////////////////////////////
             timer.Stop();
 
-            const int k = _mm_movemask_ps(_mm_add_ps(_mm_add_ps(_mm_add_ps(x[0], x[1]), _mm_add_ps(x[2], x[3])), _mm_add_ps(_mm_add_ps(x[4], x[5]), x[6])));
+            const int k = _mm_movemask_ps(_mm_add_ps(_mm_add_ps(_mm_add_ps(x[0], x[1]), _mm_add_ps(x[2], x[3])), _mm_add_ps(_mm_add_ps(x[4], x[5]), _mm_add_ps(x[7], x[6]))));
             blackHole &= k;
 #elif VC_IMPL_LRBni
-            __m512 x[7] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
+            __m512 x[8] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
             const __m512 y = _mm512_set_1to16_ps(randomF12());
 
             timer.Start();
@@ -127,15 +130,16 @@ int bmain(Benchmark::OutputMode out)
                     x[4] = _mm512_madd132_ps(x[4], y, y);
                     x[5] = _mm512_madd132_ps(x[5], y, y);
                     x[6] = _mm512_madd132_ps(x[6], y, y);
+                    x[7] = _mm512_madd132_ps(x[7], y, y);
             }
 
             ///////////////////////////////////////
             timer.Stop();
 
-            const int k = _mm512_cmpeq_ps(_mm512_add_ps(_mm512_add_ps(x[4], x[5]), _mm512_add_ps(x[0], x[1])), _mm512_add_ps(x[6], _mm512_add_ps(x[2], x[3])));
+            const int k = _mm512_cmpeq_ps(_mm512_add_ps(_mm512_add_ps(x[4], x[5]), _mm512_add_ps(x[0], x[1])), _mm512_add_ps(_mm512_add_ps(x[7], x[6]), _mm512_add_ps(x[2], x[3])));
             blackHole &= k;
 #else
-            float x[7] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
+            float x[8] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
             const float y = randomF12();
 
             timer.Start();
@@ -143,28 +147,30 @@ int bmain(Benchmark::OutputMode out)
             int i = Factor;
             __asm__(
                     ".align 16\n\t0: "
-                    "mulss  %8,%0"   "\n\t"
-                    "sub    $1,%7"   "\n\t"
-                    "mulss  %8,%1"   "\n\t"
-                    "mulss  %8,%2"   "\n\t"
-                    "addss  %8,%0"   "\n\t"
-                    "mulss  %8,%3"   "\n\t"
-                    "addss  %8,%1"   "\n\t"
-                    "mulss  %8,%4"   "\n\t"
-                    "addss  %8,%2"   "\n\t"
-                    "mulss  %8,%5"   "\n\t"
-                    "addss  %8,%3"   "\n\t"
-                    "addss  %8,%4"   "\n\t"
-                    "mulss  %8,%6"   "\n\t"
-                    "addss  %8,%5"   "\n\t"
-                    "addss  %8,%6"   "\n\t"
+                    "mulss  %9,%0"   "\n\t"
+                    "sub    $1,%8"   "\n\t"
+                    "mulss  %9,%1"   "\n\t"
+                    "mulss  %9,%2"   "\n\t"
+                    "mulss  %9,%7"   "\n\t"
+                    "addss  %9,%0"   "\n\t"
+                    "mulss  %9,%3"   "\n\t"
+                    "addss  %9,%1"   "\n\t"
+                    "mulss  %9,%4"   "\n\t"
+                    "addss  %9,%2"   "\n\t"
+                    "addss  %9,%7"   "\n\t"
+                    "mulss  %9,%5"   "\n\t"
+                    "addss  %9,%3"   "\n\t"
+                    "addss  %9,%4"   "\n\t"
+                    "mulss  %9,%6"   "\n\t"
+                    "addss  %9,%5"   "\n\t"
+                    "addss  %9,%6"   "\n\t"
                     "jne 0b"         "\n\t"
-                    : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+x"(x[6]), "+r"(i)
+                    : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+x"(x[6]), "+x"(x[7]), "+r"(i)
                     : "x"(y));
             ///////////////////////////////////////
             timer.Stop();
 
-            const int k = (x[0] < x[1]) && (x[2] < x[3]) && (x[4] < x[5]) && (x[2] < x[6]);
+            const int k = (x[0] < x[1]) && (x[2] < x[3]) && (x[4] < x[5]) && (x[7] < x[6]);
             blackHole &= k;
 #endif
         }
@@ -174,10 +180,10 @@ int bmain(Benchmark::OutputMode out)
 
     // intrinsics reference
     {
-        Benchmark timer("intrinsics reference", 2 * 7 * float_v::Size * Factor, "FLOP");
+        Benchmark timer("intrinsics reference", 2 * 8 * float_v::Size * Factor, "FLOP");
         for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
 #if VC_IMPL_SSE
-            __m128 x[7] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
+            __m128 x[8] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
             const __m128 y = _mm_set1_ps(randomF12());
 
             timer.Start();
@@ -191,15 +197,16 @@ int bmain(Benchmark::OutputMode out)
                     x[4] = _mm_add_ps(_mm_mul_ps(y, x[4]), y);
                     x[5] = _mm_add_ps(_mm_mul_ps(y, x[5]), y);
                     x[6] = _mm_add_ps(_mm_mul_ps(y, x[6]), y);
+                    x[7] = _mm_add_ps(_mm_mul_ps(y, x[7]), y);
             }
 
             ///////////////////////////////////////
             timer.Stop();
 
-            const int k = _mm_movemask_ps(_mm_add_ps(_mm_add_ps(_mm_add_ps(x[0], x[1]), _mm_add_ps(x[2], x[3])), _mm_add_ps(_mm_add_ps(x[4], x[5]), x[6])));
+            const int k = _mm_movemask_ps(_mm_add_ps(_mm_add_ps(_mm_add_ps(x[0], x[1]), _mm_add_ps(x[2], x[3])), _mm_add_ps(_mm_add_ps(x[4], x[5]), _mm_add_ps(x[7], x[6]))));
             blackHole &= k;
 #elif VC_IMPL_LRBni
-            __m512 x[7] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
+            __m512 x[8] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
             const __m512 y = _mm512_set_1to16_ps(randomF12());
 
             timer.Start();
@@ -213,15 +220,16 @@ int bmain(Benchmark::OutputMode out)
                     x[4] = _mm512_madd132_ps(x[4], y, y);
                     x[5] = _mm512_madd132_ps(x[5], y, y);
                     x[6] = _mm512_madd132_ps(x[6], y, y);
+                    x[7] = _mm512_madd132_ps(x[7], y, y);
             }
 
             ///////////////////////////////////////
             timer.Stop();
 
-            const int k = _mm512_cmpeq_ps(_mm512_add_ps(_mm512_add_ps(x[4], x[5]), _mm512_add_ps(x[0], x[1])), _mm512_add_ps(x[6], _mm512_add_ps(x[2], x[3])));
+            const int k = _mm512_cmpeq_ps(_mm512_add_ps(_mm512_add_ps(x[4], x[5]), _mm512_add_ps(x[0], x[1])), _mm512_add_ps(_mm512_add_ps(x[7], x[6]), _mm512_add_ps(x[2], x[3])));
             blackHole &= k;
 #else
-            float x[7] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
+            float x[8] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
             const float y = randomF12();
 
             timer.Start();
@@ -235,12 +243,13 @@ int bmain(Benchmark::OutputMode out)
                     x[4] = y * x[4] + y;
                     x[5] = y * x[5] + y;
                     x[6] = y * x[6] + y;
+                    x[7] = y * x[7] + y;
             }
 
             ///////////////////////////////////////
             timer.Stop();
 
-            const int k = (x[0] < x[1]) && (x[2] < x[3]) && (x[4] < x[5]) && (x[2] < x[6]);
+            const int k = (x[0] < x[1]) && (x[2] < x[3]) && (x[4] < x[5]) && (x[7] < x[6]);
             blackHole &= k;
 #endif
         }
