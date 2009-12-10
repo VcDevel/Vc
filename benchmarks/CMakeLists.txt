@@ -22,6 +22,7 @@ vc_add_benchmark(mask)
 vc_add_benchmark(compare VC_DISABLE_PTEST)
 vc_add_benchmark(math)
 vc_add_benchmark(memio)
+vc_add_benchmark(dhryrock)
 
 add_executable(sort_benchmark sort.cpp)
 target_link_libraries(sort_benchmark Vc ${LIBS})
