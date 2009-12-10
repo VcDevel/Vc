@@ -290,99 +290,91 @@ namespace SSE
         }
         template<unsigned int scale, typename Base, typename IndexType, typename EntryType>
         static inline void maskedGatherStructHelper(
-                Base &v, const IndexType &indexes, long mask, const EntryType *baseAddr
+                Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr
                 ) {
 
 #ifndef VC_NO_BSF_LOOPS
             asm volatile(""::"m"(indexes.d.v()));
             if (sizeof(EntryType) == 2) {
-                register unsigned long int bit;
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
-                        "bsf %1,%0"            "\n\t"
-                        "jz 1f"                "\n\t"
+                        "jmp 1f"                "\n\t"
                         ALIGN_16
                         "0:"                   "\n\t"
-                        "movzwq (%5,%0,2),%2"  "\n\t"
-                        "imul %8,%2"           "\n\t"
-                        "btr %0,%1"            "\n\t"
-                        "movw (%6,%2,1),%3"    "\n\t"
-                        "movw %3,(%7,%0,2)"    "\n\t"
-                        "bsf %1,%0"            "\n\t"
-                        "jnz 0b"               "\n\t"
+                        "movzwq (%[indexes],%%rdi,2),%[index]"  "\n\t"
+                        "imul %[scale],%[index]"           "\n\t"
+                        "btr %%edi,%[mask]"            "\n\t"
+                        "movw (%[base],%[index],1),%[value]"     "\n\t"
+                        "movw %[value],(%[vec],%%rdi,2)"     "\n\t"
                         ALIGN_16
                         "1:"                   "\n\t"
-                        : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
-                        );
+                        "bsf %[mask],%%edi"            "\n\t"
+                        "jnz 0b"               "\n\t"
+                        : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d), [index]"=&r"(index)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                        : "rdi");
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
-                    register unsigned long int bit;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
-                            "bsf %1,%0"            "\n\t"
-                            "jz 1f"                "\n\t"
-                        ALIGN_16
+                            "jmp 1f"                "\n\t"
+                            ALIGN_16
                             "0:"                   "\n\t"
-                            "imul %7,(%4,%0,4),%%ecx""\n\t"
-                            "btr %0,%1"            "\n\t"
-                            "mov (%5,%%rcx,1),%2"  "\n\t"
-                            "mov %2,(%6,%0,4)"     "\n\t"
-                            "bsf %1,%0"            "\n\t"
-                            "jnz 0b"               "\n\t"
-                        ALIGN_16
+                            "imul %[scale],(%[indexes],%%rdi,4),%%ecx""\n\t"
+                            "btr %%edi,%[mask]"            "\n\t"
+                            "mov (%[base],%%rcx,1),%[value]"  "\n\t"
+                            "mov %[value],(%[vec],%%rdi,4)"     "\n\t"
+                            ALIGN_16
                             "1:"                   "\n\t"
-                            : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
-                            : "rcx"   );
+                            "bsf %[mask],%%edi"            "\n\t"
+                            "jnz 0b"               "\n\t"
+                            : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                            : "rcx", "rdi"   );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
-                    register unsigned long int bit;
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
-                            "bsf %1,%0"            "\n\t"
-                            "jz 1f"                "\n\t"
-                        ALIGN_16
+                            "jmp 1f"                "\n\t"
+                            ALIGN_16
                             "0:"                   "\n\t"
-                            "movzwq (%5,%0,2),%2"  "\n\t"
-                            "imul %8,%2"           "\n\t"
-                            "btr %0,%1"            "\n\t"
-                            "mov (%6,%2,1),%3"     "\n\t"
-                            "mov %3,(%7,%0,4)"     "\n\t"
-                            "bsf %1,%0"            "\n\t"
-                            "jnz 0b"               "\n\t"
-                        ALIGN_16
+                            "movzwq (%[indexes],%%rdi,2),%[index]"  "\n\t"
+                            "imul %[scale],%[index]"           "\n\t"
+                            "btr %%edi,%[mask]"            "\n\t"
+                            "mov (%[base],%[index],1),%[value]"     "\n\t"
+                            "mov %[value],(%[vec],%%rdi,4)"     "\n\t"
+                            ALIGN_16
                             "1:"                   "\n\t"
-                            : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
-                            );
+                            "bsf %[mask],%%edi"            "\n\t"
+                            "jnz 0b"               "\n\t"
+                            : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d), [index]"=&r"(index)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                            : "rdi");
                 } else {
                     abort();
                 }
             } else if (sizeof(EntryType) == 8) {
-                register unsigned long int bit;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
-                        "bsf %1,%0"            "\n\t"
-                        "jz 1f"                "\n\t"
+                        "jmp 1f"                "\n\t"
                         ALIGN_16
                         "0:"                   "\n\t"
-                        "imul %7,(%4,%0,4),%%ecx""\n\t"
-                        "btr %0,%1"            "\n\t"
-                        "mov (%5,%%rcx,1),%2"  "\n\t"
-                        "mov %2,(%6,%0,8)"     "\n\t"
-                        "bsf %1,%0"            "\n\t"
-                        "jnz 0b"               "\n\t"
+                        "imul %[scale],(%[indexes],%%rdi,4),%%ecx""\n\t"
+                        "btr %%edi,%[mask]"            "\n\t"
+                        "mov (%[base],%%rcx,1),%[value]"  "\n\t"
+                        "mov %[value],(%[vec],%%rdi,8)"     "\n\t"
                         ALIGN_16
                         "1:"                   "\n\t"
-                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale)
-                        : "rcx"   );
+                        "bsf %[mask],%%edi"            "\n\t"
+                        "jnz 0b"               "\n\t"
+                        : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                        : "rcx", "rdi"   );
             } else {
                 abort();
             }
@@ -418,97 +410,93 @@ namespace SSE
 
         template<typename Base, typename IndexType, typename EntryType>
         static inline void maskedGatherHelper(
-                Base &v, const IndexType &indexes, long mask, const EntryType *baseAddr
+                Base &v, const IndexType &indexes, int mask, const EntryType *baseAddr
                 ) {
 #ifndef VC_NO_BSF_LOOPS
             asm volatile(""::"m"(indexes.d.v()));
             if (sizeof(EntryType) == 2) {
-                register unsigned long int bit;
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
-                        "bsf %1,%0"            "\n\t"
-                        "jz 1f"                "\n\t"
+                        "jmp 1f"                                 "\n\t"
                         ALIGN_16
-                        "0:"                   "\n\t"
-                        "movzwq (%5,%0,2),%2"  "\n\t"
-                        "btr %0,%1"            "\n\t"
-                        "movw (%6,%2,2),%3"    "\n\t"
-                        "movw %3,(%7,%0,2)"    "\n\t"
-                        "bsf %1,%0"            "\n\t"
-                        "jnz 0b"               "\n\t"
+                        "0:"                                    "\n\t"
+                        "movzwq (%[indexes],%%rdi,2),%[index]"  "\n\t"
+                        "movw (%[base],%[index],2),%[value]"     "\n\t"
+                        "btr %%edi,%[mask]"                     "\n\t"
+                        "movw %[value],(%[vec],%%rdi,2)"         "\n\t"
                         ALIGN_16
-                        "1:"                   "\n\t"
-                        : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                        "1:"                                    "\n\t"
+                        "bsf %[mask],%%edi"                     "\n\t"
+                        "jnz 0b"                                "\n\t"
+                        : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                        : "rdi"
                         );
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
-                    register unsigned long int bit;
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
-                            "bsf %1,%0"            "\n\t"
-                            "jz 1f"                "\n\t"
+                            "jmp 1f"                                 "\n\t"
                             ALIGN_16
-                            "0:"                   "\n\t"
-                            "movslq (%5,%0,4),%2"  "\n\t"
-                            "btr %0,%1"            "\n\t"
-                            "mov (%6,%2,4),%3"     "\n\t"
-                            "mov %3,(%7,%0,4)"     "\n\t"
-                            "bsf %1,%0"            "\n\t"
-                            "jnz 0b"               "\n\t"
+                            "0:"                                    "\n\t"
+                            "movslq (%[indexes],%%rdi,4),%[index]"  "\n\t"
+                            "mov (%[base],%[index],4),%[value]"     "\n\t"
+                            "btr %%edi,%[mask]"                     "\n\t"
+                            "mov %[value],(%[vec],%%rdi,4)"         "\n\t"
                             ALIGN_16
-                            "1:"                   "\n\t"
-                            : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                            "1:"                                    "\n\t"
+                            "bsf %[mask],%%edi"                     "\n\t"
+                            "jnz 0b"                                "\n\t"
+                            : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                            : "rdi"
                             );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
-                    register unsigned long int bit;
                     register unsigned long int index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
-                            "bsf %1,%0"            "\n\t"
-                            "jz 1f"                "\n\t"
+                            "jmp 1f"                                 "\n\t"
                             ALIGN_16
-                            "0:"                   "\n\t"
-                            "movzwq (%5,%0,2),%2"  "\n\t"
-                            "btr %0,%1"            "\n\t"
-                            "mov (%6,%2,4),%3"     "\n\t"
-                            "mov %3,(%7,%0,4)"     "\n\t"
-                            "bsf %1,%0"            "\n\t"
-                            "jnz 0b"               "\n\t"
+                            "0:"                                    "\n\t"
+                            "movzwq (%[indexes],%%rdi,2),%[index]"  "\n\t"
+                            "mov (%[base],%[index],4),%[value]"     "\n\t"
+                            "btr %%edi,%[mask]"                     "\n\t"
+                            "mov %[value],(%[vec],%%rdi,4)"         "\n\t"
                             ALIGN_16
-                            "1:"                   "\n\t"
-                            : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                            : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                            "1:"                                    "\n\t"
+                            "bsf %[mask],%%edi"                     "\n\t"
+                            "jnz 0b"                                "\n\t"
+                            : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                            : "rdi"
                             );
                 } else {
                     abort();
                 }
             } else if (sizeof(EntryType) == 8) {
-                register unsigned long int bit;
                 register unsigned long int index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
-                        "bsf %1,%0"            "\n\t"
-                        "jz 1f"                "\n\t"
+                        "jmp 1f"                                 "\n\t"
                         ALIGN_16
-                        "0:"                   "\n\t"
-                        "movslq (%5,%0,4),%2"  "\n\t"
-                        "btr %0,%1"            "\n\t"
-                        "mov (%6,%2,8),%3"     "\n\t"
-                        "mov %3,(%7,%0,8)"     "\n\t"
-                        "bsf %1,%0"            "\n\t"
-                        "jnz 0b"               "\n\t"
+                        "0:"                                    "\n\t"
+                        "movslq (%[indexes],%%rdi,4),%[index]"  "\n\t"
+                        "mov (%[base],%[index],8),%[value]"     "\n\t"
+                        "btr %%edi,%[mask]"                     "\n\t"
+                        "mov %[value],(%[vec],%%rdi,8)"         "\n\t"
                         ALIGN_16
-                        "1:"                   "\n\t"
-                        : "=&r"(bit), "+r"(mask), "=&r"(index), "=&r"(value), "+m"(v.d)
-                        : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d)
+                        "1:"                                    "\n\t"
+                        "bsf %[mask],%%edi"                     "\n\t"
+                        "jnz 0b"                                "\n\t"
+                        : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                        : "rdi"
                         );
             } else {
                 abort();
