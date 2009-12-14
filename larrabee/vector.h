@@ -772,30 +772,6 @@ struct ForeachHelper
 #undef OPcmp
     } // anonymous namespace
 
-    template<typename T> class _Memory : public VectorAlignedBase
-    {
-        private:
-            enum { Size = 64 / sizeof(T) };
-            T d[Size];
-        public:
-            inline int size() const { return Size; }
-            inline T &operator[](int i) { return d[i]; }
-            inline T operator[](int i) const { return d[i]; }
-            inline operator T*() { return &d[0]; }
-            inline operator const T*() const { return &d[0]; }
-
-            inline _Memory<T> &operator=(const _Memory<T> &rhs) {
-                typedef typename VectorHelper<T>::VectorType VectorType;
-                const VectorType tmp = VectorHelper<T>::load(&rhs.d[0]);
-                VectorHelper<T>::store(&d[0], tmp);
-                return *this;
-            }
-            inline _Memory<T> &operator=(const Vector<T> &rhs) {
-                VectorHelper<T>::store(&d[0], rhs);
-                return *this;
-            }
-    };
-
 template<typename T>
 class VectorMultiplication
 {
@@ -891,7 +867,12 @@ class WriteMaskedVector
         Vector<T> *vec;
         __mmask mask;
 };
-
+}} // Vc::LRBni
+#include "memory.h"
+namespace LRBni
+{
+namespace Vc
+{
 template<typename T>
 class Vector : public VectorBase<T, Vector<T> >
 {
@@ -908,9 +889,8 @@ class Vector : public VectorBase<T, Vector<T> >
     public:
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
-        typedef _Memory<T> Memory;
-
         enum { Size = 64 / sizeof(T) };
+        typedef FixedSizeMemory<Vector<T>, Size> Memory;
         typedef LRBni::Mask<Size> Mask;
 
         /**
