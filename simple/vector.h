@@ -48,7 +48,7 @@ class Vector : public VectorBase<T, Vector<T> >
     protected:
         T m_data;
     public:
-        typedef _Memory<T> Memory;
+        typedef FixedSizeMemory<Vector<T>, 1> Memory;
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
         typedef Simple::Mask<1u> Mask;

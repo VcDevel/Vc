@@ -23,31 +23,49 @@
 using namespace Vc;
 
 template<typename V, unsigned int Size> struct TestEntries { static void run(); };
-template<typename V> struct TestEntries<V, 0> { static void run(); };
+template<typename V> struct TestEntries<V, 0> { static void run() {} };
+
+template<typename V, unsigned int Size> struct TestVectors { static void run(); };
+template<typename V> struct TestVectors<V, 0> { static void run() {} };
 
 template<typename V, unsigned int Size> void TestEntries<V, Size>::run()
 {
     TestEntries<V, Size - 1>::run();
     typedef typename V::EntryType T;
-    T x = Size;
-    SSE::FixedSizeMemory<V, Size> m;
+    const T x = Size;
+    FixedSizeMemory<V, Size> m;
+    const FixedSizeMemory<V, Size> &m2 = m;
     for (unsigned int i = 0; i < Size; ++i) {
         m[i] = x;
     }
     for (unsigned int i = 0; i < Size; ++i) {
         COMPARE(m[i], x);
+        COMPARE(m2[i], x);
     }
     for (unsigned int i = 0; i < Size; ++i) {
         COMPARE(m.entries()[i], x);
+        COMPARE(m2.entries()[i], x);
     }
-    T *ptr = m;
+    const T *ptr = m2;
     for (unsigned int i = 0; i < Size; ++i) {
         COMPARE(ptr[i], x);
     }
 }
 
-template<typename V> void TestEntries<V, 0>::run()
+template<typename V, unsigned int Size> void TestVectors<V, Size>::run()
 {
+    TestVectors<V, Size - 1>::run();
+    typedef typename V::EntryType T;
+    const V x = Size;
+    FixedSizeMemory<V, Size> m;
+    const FixedSizeMemory<V, Size> &m2 = m;
+    for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
+        x.store(m.vector(i));
+    }
+    for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
+        COMPARE(V(m.vector(i)), x);
+        COMPARE(V(m2.vector(i)), x);
+    }
 }
 
 template<typename V> void testEntries()
@@ -55,9 +73,15 @@ template<typename V> void testEntries()
     TestEntries<V, 128>::run();
 }
 
+template<typename V> void testVectors()
+{
+    TestVectors<V, 128>::run();
+}
+
 int main()
 {
     testAllTypes(testEntries);
+    testAllTypes(testVectors);
 
     return 0;
 }
