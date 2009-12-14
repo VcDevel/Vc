@@ -33,6 +33,7 @@
 #include "vectorbase.h"
 #include "mask.h"
 #include "writemaskedvector.h"
+#include "memory.h"
 
 namespace Vc
 {
