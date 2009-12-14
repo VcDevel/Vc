@@ -135,7 +135,7 @@ namespace SSE
 
             template<unsigned int RhsSize>
             inline VarSizeMemory<V> &operator=(const FixedSizeMemory<V, RhsSize> &rhs) {
-                assert(rhs::VectorsCount == vectorsCount());
+                assert(vectorsCount() == rhs.vectorsCount());
                 for (int i = 0; i < FixedSizeMemory<V, RhsSize>::VectorsCount; ++i) {
                     vector(i) = rhs.vector(i);
                 }
