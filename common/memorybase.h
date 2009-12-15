@@ -44,6 +44,9 @@ template<typename V, typename Parent> class MemoryBase
 
         inline       EntryType *vector(int i)       { return &entries()[i * V::Size]; }
         inline const EntryType *vector(int i) const { return &entries()[i * V::Size]; }
+
+        inline       EntryType *operator()(int i)       { return vector(i); }
+        inline const EntryType *operator()(int i) const { return vector(i); }
 };
 } // namespace Vc
 
