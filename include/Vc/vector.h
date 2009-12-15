@@ -65,6 +65,7 @@ namespace Vc
   using VECTOR_NAMESPACE::isfinite;
   using VECTOR_NAMESPACE::isnan;
   using VECTOR_NAMESPACE::forceToRegisters;
+  using VECTOR_NAMESPACE::Vector;
 } // namespace Vc
 
 #undef VECTOR_NAMESPACE
