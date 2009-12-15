@@ -869,9 +869,9 @@ class WriteMaskedVector
 };
 }} // Vc::LRBni
 #include "memory.h"
-namespace LRBni
-{
 namespace Vc
+{
+namespace LRBni
 {
 template<typename T>
 class Vector : public VectorBase<T, Vector<T> >
