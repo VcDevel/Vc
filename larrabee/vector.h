@@ -29,6 +29,7 @@
 
 namespace Vc
 {
+    template<typename V, unsigned int Size> class Memory;
 #ifndef HAVE_FLOAT16
 #define HAVE_FLOAT16
 #ifdef HALF_MAX
@@ -867,12 +868,7 @@ class WriteMaskedVector
         Vector<T> *vec;
         __mmask mask;
 };
-}} // Vc::LRBni
-#include "memory.h"
-namespace Vc
-{
-namespace LRBni
-{
+
 template<typename T>
 class Vector : public VectorBase<T, Vector<T> >
 {
@@ -890,7 +886,7 @@ class Vector : public VectorBase<T, Vector<T> >
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
         enum { Size = 64 / sizeof(T) };
-        typedef FixedSizeMemory<Vector<T>, Size> Memory;
+        typedef Vc::Memory<Vector<T>, Size> Memory;
         typedef LRBni::Mask<Size> Mask;
 
         /**

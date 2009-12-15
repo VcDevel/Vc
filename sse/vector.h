@@ -24,7 +24,6 @@
 #include "vectorbase.h"
 #include "vectorhelper.h"
 #include "mask.h"
-#include "memory.h"
 #include <algorithm>
 #include <cmath>
 
@@ -37,6 +36,8 @@
 
 namespace Vc
 {
+    template<typename V, unsigned int Size> class Memory;
+
 namespace SSE
 {
     enum { VectorAlignment = 16 };
@@ -119,7 +120,7 @@ class Vector : public VectorBase<T>
         typedef typename Base::EntryType  EntryType;
         typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
         typedef typename Base::MaskType Mask;
-        typedef FixedSizeMemory<Vector<T>, Size> Memory;
+        typedef Vc::Memory<Vector<T>, Size> Memory;
 
         /**
          * uninitialized

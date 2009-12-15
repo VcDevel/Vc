@@ -33,20 +33,28 @@ template<typename V, unsigned int Size> void TestEntries<V, Size>::run()
     TestEntries<V, Size - 1>::run();
     typedef typename V::EntryType T;
     const T x = Size;
-    FixedSizeMemory<V, Size> m;
-    const FixedSizeMemory<V, Size> &m2 = m;
+    Memory<V, Size> m;
+    const Memory<V, Size> &m2 = m;
+    Memory<V> m3(Size);
     for (unsigned int i = 0; i < Size; ++i) {
         m[i] = x;
+        m3[i] = x;
     }
     for (unsigned int i = 0; i < Size; ++i) {
         COMPARE(m[i], x);
         COMPARE(m2[i], x);
+        COMPARE(m3[i], x);
     }
     for (unsigned int i = 0; i < Size; ++i) {
         COMPARE(m.entries()[i], x);
         COMPARE(m2.entries()[i], x);
+        COMPARE(m3.entries()[i], x);
     }
     const T *ptr = m2;
+    for (unsigned int i = 0; i < Size; ++i) {
+        COMPARE(ptr[i], x);
+    }
+    ptr = m3;
     for (unsigned int i = 0; i < Size; ++i) {
         COMPARE(ptr[i], x);
     }
@@ -57,14 +65,17 @@ template<typename V, unsigned int Size> void TestVectors<V, Size>::run()
     TestVectors<V, Size - 1>::run();
     typedef typename V::EntryType T;
     const V x = Size;
-    FixedSizeMemory<V, Size> m;
-    const FixedSizeMemory<V, Size> &m2 = m;
+    Memory<V, Size> m;
+    const Memory<V, Size> &m2 = m;
+    Memory<V> m3(Size);
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
         x.store(m.vector(i));
+        x.store(m3.vector(i));
     }
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
         COMPARE(V(m.vector(i)), x);
         COMPARE(V(m2.vector(i)), x);
+        COMPARE(V(m3.vector(i)), x);
     }
 }
 

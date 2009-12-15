@@ -1,3 +1,4 @@
+
 /*  This file is part of the Vc library.
 
     Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
@@ -17,15 +18,10 @@
 
 */
 
-#ifndef VC_VC
-#define VC_VC
-#include "double_v"
-#include "float_v"
-#include "int_v"
-#include "sfloat_v"
-#include "short_v"
-#include "uint_v"
-#include "ushort_v"
-#include "IO"
-#include "Memory"
-#endif // VC_VC
+#ifndef INCLUDE_VC_MEMORY
+#define INCLUDE_VC_MEMORY
+
+#include "vector.h"
+#include "common/memory.h"
+
+#endif // INCLUDE_VC_MEMORY

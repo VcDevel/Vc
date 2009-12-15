@@ -33,10 +33,10 @@
 #include "vectorbase.h"
 #include "mask.h"
 #include "writemaskedvector.h"
-#include "memory.h"
 
 namespace Vc
 {
+    template<typename V, unsigned int Size> class Memory;
 namespace Simple
 {
     enum { VectorAlignment = 4 };
@@ -49,7 +49,7 @@ class Vector : public VectorBase<T, Vector<T> >
     protected:
         T m_data;
     public:
-        typedef FixedSizeMemory<Vector<T>, 1> Memory;
+        typedef Vc::Memory<Vector<T>, 1> Memory;
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
         typedef Simple::Mask<1u> Mask;
