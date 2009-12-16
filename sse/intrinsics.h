@@ -168,10 +168,10 @@ namespace SSE
     static inline __m128i _mm_blend_epi16(__m128i a, __m128i b, const int mask) CONST ALWAYS_INLINE;
     static inline __m128i _mm_max_epi8 (__m128i a, __m128i b) CONST;
     static inline __m128i _mm_max_epi32(__m128i a, __m128i b) CONST;
-    static inline __m128i _mm_max_epu8 (__m128i a, __m128i b) CONST;
+    //static inline __m128i _mm_max_epu8 (__m128i a, __m128i b) CONST;
     static inline __m128i _mm_max_epu16(__m128i a, __m128i b) CONST;
     static inline __m128i _mm_max_epu32(__m128i a, __m128i b) CONST;
-    static inline __m128i _mm_min_epu8 (__m128i a, __m128i b) CONST;
+    //static inline __m128i _mm_min_epu8 (__m128i a, __m128i b) CONST;
     static inline __m128i _mm_min_epu16(__m128i a, __m128i b) CONST;
     static inline __m128i _mm_min_epu32(__m128i a, __m128i b) CONST;
     static inline __m128i _mm_min_epi8 (__m128i a, __m128i b) CONST;
