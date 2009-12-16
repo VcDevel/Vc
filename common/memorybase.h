@@ -30,8 +30,8 @@ template<typename V, typename Parent> class MemoryBase
     public:
         typedef typename V::EntryType EntryType;
 
-        inline unsigned int entriesCount() const { return p()->entriesCount; }
-        inline unsigned int vectorsCount() const { return p()->vectorsCount; }
+        inline unsigned int entriesCount() const { return p()->entriesCount(); }
+        inline unsigned int vectorsCount() const { return p()->vectorsCount(); }
 
         inline       EntryType *entries()       { return p()->entries(); }
         inline const EntryType *entries() const { return p()->entries(); }
