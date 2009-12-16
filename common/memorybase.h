@@ -52,6 +52,127 @@ template<typename V, typename Parent> class MemoryBase
         inline V gather(const unsigned short *indexes) const { return V(entries(), indexes); }
         inline V gather(const unsigned int   *indexes) const { return V(entries(), indexes); }
         inline V gather(const unsigned long  *indexes) const { return V(entries(), indexes); }
+
+        template<typename P2>
+        inline Parent &operator+=(const MemoryBase<V, P2> &rhs) {
+            assert(vectorsCount() == rhs.vectorsCount());
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                (V(vector(i)) + V(rhs.vector(i))).store(vector(i));
+            }
+            return static_cast<Parent &>(*this);
+        }
+        template<typename P2>
+        inline Parent &operator-=(const MemoryBase<V, P2> &rhs) {
+            assert(vectorsCount() == rhs.vectorsCount());
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                (V(vector(i)) - V(rhs.vector(i))).store(vector(i));
+            }
+            return static_cast<Parent &>(*this);
+        }
+        template<typename P2>
+        inline Parent &operator*=(const MemoryBase<V, P2> &rhs) {
+            assert(vectorsCount() == rhs.vectorsCount());
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                (V(vector(i)) * V(rhs.vector(i))).store(vector(i));
+            }
+            return static_cast<Parent &>(*this);
+        }
+        template<typename P2>
+        inline Parent &operator/=(const MemoryBase<V, P2> &rhs) {
+            assert(vectorsCount() == rhs.vectorsCount());
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                (V(vector(i)) / V(rhs.vector(i))).store(vector(i));
+            }
+            return static_cast<Parent &>(*this);
+        }
+        inline Parent &operator+=(EntryType rhs) {
+            V v(rhs);
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                (V(vector(i)) + v).store(vector(i));
+            }
+            return static_cast<Parent &>(*this);
+        }
+        inline Parent &operator-=(EntryType rhs) {
+            V v(rhs);
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                (V(vector(i)) - v).store(vector(i));
+            }
+            return static_cast<Parent &>(*this);
+        }
+        inline Parent &operator*=(EntryType rhs) {
+            V v(rhs);
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                (V(vector(i)) * v).store(vector(i));
+            }
+            return static_cast<Parent &>(*this);
+        }
+        inline Parent &operator/=(EntryType rhs) {
+            V v(rhs);
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                (V(vector(i)) / v).store(vector(i));
+            }
+            return static_cast<Parent &>(*this);
+        }
+        template<typename P2>
+        inline bool operator==(const MemoryBase<V, P2> &rhs) {
+            assert(vectorsCount() == rhs.vectorsCount());
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                if (!(V(vector(i)) == V(rhs.vector(i))).isFull()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        template<typename P2>
+        inline bool operator!=(const MemoryBase<V, P2> &rhs) {
+            assert(vectorsCount() == rhs.vectorsCount());
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                if (!(V(vector(i)) == V(rhs.vector(i))).isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        template<typename P2>
+        inline bool operator<(const MemoryBase<V, P2> &rhs) {
+            assert(vectorsCount() == rhs.vectorsCount());
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                if (!(V(vector(i)) < V(rhs.vector(i))).isFull()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        template<typename P2>
+        inline bool operator<=(const MemoryBase<V, P2> &rhs) {
+            assert(vectorsCount() == rhs.vectorsCount());
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                if (!(V(vector(i)) < V(rhs.vector(i))).isFull()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        template<typename P2>
+        inline bool operator>(const MemoryBase<V, P2> &rhs) {
+            assert(vectorsCount() == rhs.vectorsCount());
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                if (!(V(vector(i)) > V(rhs.vector(i))).isFull()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        template<typename P2>
+        inline bool operator>=(const MemoryBase<V, P2> &rhs) {
+            assert(vectorsCount() == rhs.vectorsCount());
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                if (!(V(vector(i)) > V(rhs.vector(i))).isFull()) {
+                    return false;
+                }
+            }
+            return true;
+        }
 };
 
 } // namespace Vc
