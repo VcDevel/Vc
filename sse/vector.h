@@ -211,6 +211,9 @@ class Vector : public VectorBase<T>
         inline const Vector<T> dddd() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 3, 3, 3))); }
         inline const Vector<T> dacb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 0, 2, 1))); }
 
+        inline Vector(const EntryType *array, const unsigned int *indexes) {
+            GatherHelper<T>::gather(*this, indexes, array);
+        }
         inline Vector(const EntryType *array, const IndexType &indexes) {
             GatherHelper<T>::gather(*this, indexes, array);
         }

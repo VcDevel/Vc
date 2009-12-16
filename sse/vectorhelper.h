@@ -63,6 +63,7 @@ namespace SSE
         typedef typename Base::IndexType  IndexType;
         typedef VectorMemoryUnion<VectorType, EntryType> UnionType;
         enum { Size = Base::Size, Shift = sizeof(EntryType) };
+        static void gather(Base &v, const unsigned int *indexes, const EntryType *baseAddr);
         static void gather(Base &v, const IndexType &indexes, const EntryType *baseAddr);
         template<typename S1> static void gather(Base &v, const IndexType &indexes, const S1 *baseAddr,
                 const EntryType S1::* member1);

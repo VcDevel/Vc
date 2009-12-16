@@ -36,18 +36,24 @@ template<typename V, typename Parent> class MemoryBase
         inline       EntryType *entries()       { return p()->entries(); }
         inline const EntryType *entries() const { return p()->entries(); }
 
-        inline EntryType &operator[](int i)       { return entries()[i]; }
-        inline EntryType  operator[](int i) const { return entries()[i]; }
+        inline EntryType &operator[](unsigned int i)       { return entries()[i]; }
+        inline EntryType  operator[](unsigned int i) const { return entries()[i]; }
 
         inline operator       EntryType*()       { return entries(); }
         inline operator const EntryType*() const { return entries(); }
 
-        inline       EntryType *vector(int i)       { return &entries()[i * V::Size]; }
-        inline const EntryType *vector(int i) const { return &entries()[i * V::Size]; }
+        inline       EntryType *vector(unsigned int i)       { return &entries()[i * V::Size]; }
+        inline const EntryType *vector(unsigned int i) const { return &entries()[i * V::Size]; }
 
-        inline       EntryType *operator()(int i)       { return vector(i); }
-        inline const EntryType *operator()(int i) const { return vector(i); }
+        inline       EntryType *operator()(unsigned int i)       { return vector(i); }
+        inline const EntryType *operator()(unsigned int i) const { return vector(i); }
+
+        inline V gather(const unsigned char  *indexes) const { return V(entries(), indexes); }
+        inline V gather(const unsigned short *indexes) const { return V(entries(), indexes); }
+        inline V gather(const unsigned int   *indexes) const { return V(entries(), indexes); }
+        inline V gather(const unsigned long  *indexes) const { return V(entries(), indexes); }
 };
+
 } // namespace Vc
 
 #endif // VC_COMMON_MEMORYBASE_H

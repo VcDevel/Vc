@@ -28,6 +28,9 @@ template<typename V> struct TestEntries<V, 0> { static void run() {} };
 template<typename V, unsigned int Size> struct TestVectors { static void run(); };
 template<typename V> struct TestVectors<V, 0> { static void run() {} };
 
+template<typename V, unsigned int Size> struct TestVectorReorganization { static void run(); };
+template<typename V> struct TestVectorReorganization<V, 0> { static void run() {} };
+
 template<typename V, unsigned int Size> void TestEntries<V, Size>::run()
 {
     TestEntries<V, Size - 1>::run();
@@ -79,6 +82,56 @@ template<typename V, unsigned int Size> void TestVectors<V, Size>::run()
     }
 }
 
+template<typename V, unsigned int Size> void TestVectorReorganization<V, Size>::run()
+{
+    TestVectors<V, Size - 1>::run();
+    typedef typename V::EntryType T;
+    typename V::Memory init;
+    for (unsigned int i = 0; i < V::Size; ++i) {
+        init[i] = i;
+    }
+    V x(init);
+    Memory<V, Size> m;
+    Memory<V> m3(Size);
+    for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
+        x.store(m.vector(i));
+        x.store(m3.vector(i));
+        x += V::Size;
+    }
+    ///////////////////////////////////////////////////////////////////////////
+    x = V(init);
+    for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
+        COMPARE(V(m.vector(i)), x);
+        COMPARE(V(m3.vector(i)), x);
+        x += V::Size;
+    }
+    ///////////////////////////////////////////////////////////////////////////
+    x = V(init);
+    unsigned int indexes[Size];
+    for (unsigned int i = 0; i < Size; ++i) {
+        indexes[i] = i;
+    }
+    for (unsigned int i = 0; i < Size - V::Size; ++i) {
+        COMPARE(m.gather(&indexes[i]), x);
+        COMPARE(m3.gather(&indexes[i]), x);
+        x += 1;
+    }
+    ///////////////////////////////////////////////////////////////////////////
+    for (unsigned int i = 0; i < V::Size; ++i) {
+        init[i] = i * 2;
+    }
+    x = V(init);
+    for (unsigned int i = 0; i < Size; ++i) {
+        indexes[i] = (i * 2) % Size;
+    }
+    for (unsigned int i = 0; i < Size - V::Size; ++i) {
+        COMPARE(m.gather(&indexes[i]), x);
+        COMPARE(m3.gather(&indexes[i]), x);
+        x += 2;
+        x(x >= Size) -= Size;
+    }
+}
+
 template<typename V> void testEntries()
 {
     TestEntries<V, 128>::run();
@@ -89,10 +142,16 @@ template<typename V> void testVectors()
     TestVectors<V, 128>::run();
 }
 
+template<typename V> void testVectorReorganization()
+{
+    TestVectorReorganization<V, 128>::run();
+}
+
 int main()
 {
     testAllTypes(testEntries);
     testAllTypes(testVectors);
+    testAllTypes(testVectorReorganization);
 
     return 0;
 }

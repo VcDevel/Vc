@@ -103,6 +103,10 @@ class Vector : public VectorBase<T, Vector<T> >
         inline const Vector<T> dddd() const { return *this; }
         inline const Vector<T> dbac() const { return *this; }
 
+        inline Vector(const T *array, const unsigned char  *indexes) : m_data(array[indexes[0]]) {}
+        inline Vector(const T *array, const unsigned short *indexes) : m_data(array[indexes[0]]) {}
+        inline Vector(const T *array, const unsigned int   *indexes) : m_data(array[indexes[0]]) {}
+        inline Vector(const T *array, const unsigned long  *indexes) : m_data(array[indexes[0]]) {}
         inline Vector(const T *array, const Vector<unsigned int> &indexes) : m_data(array[indexes[0]]) {}
         inline Vector(const T *array, const Vector<unsigned int> &indexes, Mask m) : m_data(m.data() ? array[indexes[0]] : 0) {}
         inline Vector(const T *array, const Vector<unsigned int> &indexes, Mask m, VectorSpecialInitializerZero::ZEnum) : m_data(m.data() ? array[indexes[0]] : 0) {}

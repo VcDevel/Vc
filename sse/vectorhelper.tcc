@@ -655,6 +655,67 @@ namespace SSE
     ////////////////////////////////////////////////////////
     // Array gathers
     template<typename T> inline void GatherHelper<T>::gather(
+            Base &v, const unsigned int *indexes, const EntryType *baseAddr)
+    {
+        for_all_vector_entries(i,
+                v.d.m(i) = baseAddr[indexes[i]];
+                );
+    }
+    template<> inline void GatherHelper<double>::gather(
+            Base &v, const unsigned int *indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_pd(baseAddr[indexes[1]], baseAddr[indexes[0]]);
+    }
+    template<> inline void GatherHelper<float>::gather(
+            Base &v, const unsigned int *indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_ps(
+                baseAddr[indexes[3]], baseAddr[indexes[2]],
+                baseAddr[indexes[1]], baseAddr[indexes[0]]);
+    }
+    template<> inline void GatherHelper<float8>::gather(
+            Base &v, const unsigned int *indexes, const EntryType *baseAddr)
+    {
+        v.d.v()[1] = _mm_set_ps(
+                baseAddr[indexes[7]], baseAddr[indexes[6]],
+                baseAddr[indexes[5]], baseAddr[indexes[4]]);
+        v.d.v()[0] = _mm_set_ps(
+                baseAddr[indexes[3]], baseAddr[indexes[2]],
+                baseAddr[indexes[1]], baseAddr[indexes[0]]);
+    }
+    template<> inline void GatherHelper<int>::gather(
+            Base &v, const unsigned int *indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_epi32(
+                baseAddr[indexes[3]], baseAddr[indexes[2]],
+                baseAddr[indexes[1]], baseAddr[indexes[0]]);
+    }
+    template<> inline void GatherHelper<unsigned int>::gather(
+            Base &v, const unsigned int *indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_epi32(
+                baseAddr[indexes[3]], baseAddr[indexes[2]],
+                baseAddr[indexes[1]], baseAddr[indexes[0]]);
+    }
+    template<> inline void GatherHelper<short>::gather(
+            Base &v, const unsigned int *indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_epi16(
+                baseAddr[indexes[7]], baseAddr[indexes[6]],
+                baseAddr[indexes[5]], baseAddr[indexes[4]],
+                baseAddr[indexes[3]], baseAddr[indexes[2]],
+                baseAddr[indexes[1]], baseAddr[indexes[0]]);
+    }
+    template<> inline void GatherHelper<unsigned short>::gather(
+            Base &v, const unsigned int *indexes, const EntryType *baseAddr)
+    {
+        v.d.v() = _mm_set_epi16(
+                baseAddr[indexes[7]], baseAddr[indexes[6]],
+                baseAddr[indexes[5]], baseAddr[indexes[4]],
+                baseAddr[indexes[3]], baseAddr[indexes[2]],
+                baseAddr[indexes[1]], baseAddr[indexes[0]]);
+    }
+    template<typename T> inline void GatherHelper<T>::gather(
             Base &v, const IndexType &indexes, const EntryType *baseAddr)
     {
         for_all_vector_entries(i,
