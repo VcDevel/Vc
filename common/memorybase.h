@@ -20,6 +20,8 @@
 #ifndef VC_COMMON_MEMORYBASE_H
 #define VC_COMMON_MEMORYBASE_H
 
+#include <assert.h>
+
 namespace Vc
 {
 template<typename V, typename Parent> class MemoryBase
@@ -52,6 +54,13 @@ template<typename V, typename Parent> class MemoryBase
         inline V gather(const unsigned short *indexes) const { return V(entries(), indexes); }
         inline V gather(const unsigned int   *indexes) const { return V(entries(), indexes); }
         inline V gather(const unsigned long  *indexes) const { return V(entries(), indexes); }
+
+        inline void setZero() {
+            V zero(Vc::Zero);
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+                zero.store(vector(i));
+            }
+        }
 
         template<typename P2>
         inline Parent &operator+=(const MemoryBase<V, P2> &rhs) {
@@ -147,7 +156,7 @@ template<typename V, typename Parent> class MemoryBase
         inline bool operator<=(const MemoryBase<V, P2> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
             for (unsigned int i = 0; i < vectorsCount(); ++i) {
-                if (!(V(vector(i)) < V(rhs.vector(i))).isFull()) {
+                if (!(V(vector(i)) <= V(rhs.vector(i))).isFull()) {
                     return false;
                 }
             }
@@ -167,7 +176,7 @@ template<typename V, typename Parent> class MemoryBase
         inline bool operator>=(const MemoryBase<V, P2> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
             for (unsigned int i = 0; i < vectorsCount(); ++i) {
-                if (!(V(vector(i)) > V(rhs.vector(i))).isFull()) {
+                if (!(V(vector(i)) >= V(rhs.vector(i))).isFull()) {
                     return false;
                 }
             }
