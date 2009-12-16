@@ -147,11 +147,51 @@ template<typename V> void testVectorReorganization()
     TestVectorReorganization<V, 128>::run();
 }
 
+template<typename V> void memoryOperators()
+{
+    Memory<V, 129> m1, m2;
+    m1.setZero();
+    m2.setZero();
+    VERIFY(m1 == m2);
+    VERIFY(!(m1 != m2));
+    VERIFY(!(m1 < m2));
+    VERIFY(!(m1 > m2));
+    m1 += m2;
+    VERIFY(m1 == m2);
+    VERIFY(m1 <= m2);
+    VERIFY(m1 >= m2);
+    m1 += 1;
+    VERIFY(m1 != m2);
+    VERIFY(m1 > m2);
+    VERIFY(m1 >= m2);
+    VERIFY(m2 < m1);
+    VERIFY(m2 <= m1);
+    VERIFY(!(m1 == m2));
+    VERIFY(!(m1 <= m2));
+    VERIFY(!(m2 >= m1));
+    m2 += m1;
+    VERIFY(m1 == m2);
+    m2 *= 2;
+    m1 += 1;
+    VERIFY(m1 == m2);
+    m2 /= 2;
+    m1 -= 1;
+    VERIFY(m1 == m2);
+    m1 *= m2;
+    VERIFY(m1 == m2);
+    m1 /= m2;
+    VERIFY(m1 == m2);
+    m1 -= m2;
+    m2 -= m2;
+    VERIFY(m1 == m2);
+}
+
 int main()
 {
     testAllTypes(testEntries);
     testAllTypes(testVectors);
     testAllTypes(testVectorReorganization);
+    testAllTypes(memoryOperators);
 
     return 0;
 }
