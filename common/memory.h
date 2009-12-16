@@ -55,13 +55,13 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
         template<typename Parent>
         inline Memory<V, Size> &operator=(const MemoryBase<V, Parent> &rhs) {
             assert(VectorsCount == rhs.vectorsCount());
-            for (int i = 0; i < VectorsCount; ++i) {
+            for (unsigned int i = 0; i < VectorsCount; ++i) {
                 vector(i) = rhs.vector(i);
             }
             return *this;
         }
         inline Memory<V, Size> &operator=(const V *rhs) {
-            for (int i = 0; i < VectorsCount; ++i) {
+            for (unsigned int i = 0; i < VectorsCount; ++i) {
                 vector(i) = rhs[i];
             }
             return *this;
@@ -106,13 +106,13 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         template<typename Parent>
         inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
-            for (int i = 0; i < vectorsCount(); ++i) {
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
                 vector(i) = rhs.vector(i);
             }
             return *this;
         }
         inline Memory<V> &operator=(const V *rhs) {
-            for (int i = 0; i < vectorsCount(); ++i) {
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
                 vector(i) = rhs[i];
             }
             return *this;
