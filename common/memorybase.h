@@ -123,7 +123,7 @@ template<typename V, typename Parent> class MemoryBase
             return static_cast<Parent &>(*this);
         }
         template<typename P2>
-        inline bool operator==(const MemoryBase<V, P2> &rhs) {
+        inline bool operator==(const MemoryBase<V, P2> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
             for (unsigned int i = 0; i < vectorsCount(); ++i) {
                 if (!(V(vector(i)) == V(rhs.vector(i))).isFull()) {
@@ -133,7 +133,7 @@ template<typename V, typename Parent> class MemoryBase
             return true;
         }
         template<typename P2>
-        inline bool operator!=(const MemoryBase<V, P2> &rhs) {
+        inline bool operator!=(const MemoryBase<V, P2> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
             for (unsigned int i = 0; i < vectorsCount(); ++i) {
                 if (!(V(vector(i)) == V(rhs.vector(i))).isEmpty()) {
@@ -143,7 +143,7 @@ template<typename V, typename Parent> class MemoryBase
             return true;
         }
         template<typename P2>
-        inline bool operator<(const MemoryBase<V, P2> &rhs) {
+        inline bool operator<(const MemoryBase<V, P2> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
             for (unsigned int i = 0; i < vectorsCount(); ++i) {
                 if (!(V(vector(i)) < V(rhs.vector(i))).isFull()) {
@@ -153,7 +153,7 @@ template<typename V, typename Parent> class MemoryBase
             return true;
         }
         template<typename P2>
-        inline bool operator<=(const MemoryBase<V, P2> &rhs) {
+        inline bool operator<=(const MemoryBase<V, P2> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
             for (unsigned int i = 0; i < vectorsCount(); ++i) {
                 if (!(V(vector(i)) <= V(rhs.vector(i))).isFull()) {
@@ -163,7 +163,7 @@ template<typename V, typename Parent> class MemoryBase
             return true;
         }
         template<typename P2>
-        inline bool operator>(const MemoryBase<V, P2> &rhs) {
+        inline bool operator>(const MemoryBase<V, P2> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
             for (unsigned int i = 0; i < vectorsCount(); ++i) {
                 if (!(V(vector(i)) > V(rhs.vector(i))).isFull()) {
@@ -173,7 +173,7 @@ template<typename V, typename Parent> class MemoryBase
             return true;
         }
         template<typename P2>
-        inline bool operator>=(const MemoryBase<V, P2> &rhs) {
+        inline bool operator>=(const MemoryBase<V, P2> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
             for (unsigned int i = 0; i < vectorsCount(); ++i) {
                 if (!(V(vector(i)) >= V(rhs.vector(i))).isFull()) {
