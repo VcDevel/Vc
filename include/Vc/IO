@@ -105,6 +105,18 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float
 }
 #endif
 
+template<typename V, typename Parent>
+inline std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Parent> &m )
+{
+    out << AnsiColor::blue << "{" << AnsiColor::normal;
+    for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
+        out << V(m(i));
+    }
+    out << AnsiColor::blue << "}" << AnsiColor::normal;
+    return out;
+}
+
+
 #undef VECTOR_NAMESPACE
 
 #endif // VECIO_H
