@@ -421,6 +421,7 @@ struct ForeachHelper
             static inline VectorType load1(const EntryType  x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadq(&x, _MM_FULLUPC64_NONE, _MM_BROADCAST_1X8)); }
             static inline VectorType load4(const EntryType *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadq( x, _MM_FULLUPC64_NONE, _MM_BROADCAST_4X8)); }
             static inline VectorType load (const EntryType *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadq( x, _MM_FULLUPC64_NONE, _MM_BROADCAST_8X8)); }
+            static inline VectorType loadUnaligned(const EntryType *x) { return mm512_reinterpret_cast<VectorType>(_mm512_expandq( const_cast<EntryType *>(x), _MM_FULLUPC64_NONE, _MM_HINT_NONE)); }
 
             static inline void store         (void *mem, VectorType x) { _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE); }
             static inline void store         (void *mem, VectorType x, __mmask k) { _mm512_mask_storeq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE); }
@@ -544,7 +545,8 @@ struct ForeachHelper
             static inline VectorType load          (const T *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_16X16, _MM_HINT_NONE)); } \
             static inline VectorType load1Streaming(const T  x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd(&x, conv, _MM_BROADCAST_1X16 , _MM_HINT_NT  )); } \
             static inline VectorType load4Streaming(const T *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_4X16 , _MM_HINT_NT  )); } \
-            static inline VectorType loadStreaming (const T *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_16X16, _MM_HINT_NT  )); }
+            static inline VectorType loadStreaming (const T *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_16X16, _MM_HINT_NT  )); } \
+            static inline VectorType loadUnaligned (const T *x) { return mm512_reinterpret_cast<VectorType>(_mm512_expandd(const_cast<T *>(x), conv, _MM_HINT_NONE)); }
 
 #define GATHERSCATTER(T, upconv, downconv) \
             static inline VectorType gather(_M512I indexes, const T *baseAddr) { \
@@ -777,6 +779,7 @@ template<typename T>
 class VectorMultiplication
 {
     friend class Vector<T>;
+    typedef typename Vector<T>::Mask Mask;
     public:
         inline T operator[](int index) const { return Vector<T>(product())[index]; }
 
@@ -796,6 +799,32 @@ class VectorMultiplication
         inline typename Vector<T>::Mask operator< (const Vector<T> &x) const { return Vector<T>(product()) <  x; }
 
         inline operator Vector<T>() const { return product(); }
+
+        template<typename OtherT> inline void store(OtherT *mem) const
+        {
+            VectorHelper<T>::store(mem, product());
+        }
+        template<typename OtherT> inline void store(OtherT *mem, Mask mask) const
+        {
+            VectorHelper<T>::store(mem, product(), mask.data());
+        }
+        inline void store(T *mem) const
+        {
+            VectorHelper<T>::store(mem, product());
+        }
+        inline void store(T *mem, Mask mask) const
+        {
+            VectorHelper<T>::store(mem, product(), mask.data());
+        }
+
+        template<typename OtherT> inline void storeStreaming(OtherT *mem) const
+        {
+            VectorHelper<T>::storeStreaming(mem, product());
+        }
+        inline void storeStreaming(T *mem) const
+        {
+            VectorHelper<T>::storeStreaming(mem, product());
+        }
 
     private:
         typedef typename VectorHelper<T>::VectorType VectorType;
@@ -954,8 +983,6 @@ class Vector : public VectorBase<T, Vector<T> >
 
         template<typename Other> static inline Vector broadcast4(const Other *x) { return Vector<T>(VectorHelper<T>::load4(x)); }
 
-        template<typename Other> inline void load(const Other *x) { data = VectorHelper<T>::load(x); }
-
         inline void makeZero() { data = mm512_reinterpret_cast<VectorType>(_mm512_setzero()); }
 
         inline void makeZero(Mask k)
@@ -966,6 +993,15 @@ class Vector : public VectorBase<T, Vector<T> >
             } else if (Size == 8) {
                 VectorDQHelper<T>::mov(data, k.data(), mm512_reinterpret_cast<VectorType>(_mm512_setzero()));
             }
+        }
+
+        template<typename OtherT> static inline Vector load(const OtherT *mem)
+        {
+            return VectorHelper<T>::load(mem);
+        }
+        template<typename OtherT> static inline Vector loadUnaligned(const OtherT *mem)
+        {
+            return VectorHelper<T>::loadUnaligned(mem);
         }
 
 //X         inline void makeRandom()
@@ -1029,6 +1065,9 @@ class Vector : public VectorBase<T, Vector<T> >
 
         inline Vector(const T *array, const IndexType &indexes)
             : data(VectorHelper<T>::gather(sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array)) {}
+
+        inline Vector(const T *array, const unsigned int *indexes)
+            : data(VectorHelper<T>::gather(sizeof(T) == 8 ? IndexType(IndexType::loadUnaligned(indexes) * 2) : IndexType::loadUnaligned(indexes), array)) {}
 
         inline Vector(const T *array, const IndexType &indexes, Mask mask) {
             VectorHelper<T>::gather(data, sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
