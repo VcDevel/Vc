@@ -23,6 +23,7 @@
 #include "memorybase.h"
 #include <assert.h>
 #include <mm_malloc.h>
+#include <algorithm>
 
 namespace Vc
 {
@@ -53,16 +54,18 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
         inline const EntryType *entries() const { return &m_mem[0]; }
 
         template<typename Parent>
-        inline Memory<V, Size> &operator=(const MemoryBase<V, Parent> &rhs) {
-            assert(VectorsCount == rhs.vectorsCount());
-            for (unsigned int i = 0; i < VectorsCount; ++i) {
-                vector(i) = rhs.vector(i);
-            }
+        inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
+            assert(vectorsCount() == rhs.vectorsCount());
+            std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
             return *this;
         }
-        inline Memory<V, Size> &operator=(const V *rhs) {
-            for (unsigned int i = 0; i < VectorsCount; ++i) {
-                vector(i) = rhs[i];
+        inline Memory<V> &operator=(const EntryType *rhs) {
+            std::copy(rhs, rhs + entriesCount(), m_mem);
+            return *this;
+        }
+        inline Memory &operator=(const V &v) {
+            for (unsigned int i = 0; i < vectorsCount(); ++i) {
+               v.store(vector(i));
             }
             return *this;
         }
@@ -106,15 +109,11 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         template<typename Parent>
         inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
-            for (unsigned int i = 0; i < vectorsCount(); ++i) {
-                vector(i) = rhs.vector(i);
-            }
+            std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
             return *this;
         }
-        inline Memory<V> &operator=(const V *rhs) {
-            for (unsigned int i = 0; i < vectorsCount(); ++i) {
-                vector(i) = rhs[i];
-            }
+        inline Memory<V> &operator=(const EntryType *rhs) {
+            std::copy(rhs, rhs + entriesCount(), m_mem);
             return *this;
         }
 };
