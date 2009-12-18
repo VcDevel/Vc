@@ -21,6 +21,7 @@
 #define VECIO_H
 
 #include "vector.h"
+#include "Memory"
 #include <iostream>
 
 #if VC_IMPL_LRBni
