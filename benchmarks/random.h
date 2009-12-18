@@ -78,7 +78,7 @@ Vc::uint_v PseudoRandom<Vc::float_v>::state(Vc::uint_v(Vc::IndexesFromZero) + st
 
 inline Vc::float_v PseudoRandom<Vc::float_v>::next()
 {
-    const Vc::float_v ConvertFactor = 1.f / (~0u);
+    const Vc::float_v ConvertFactor = 1.f / 0xffffffffu;
     state = (state * 1103515245 + 12345);
     return Vc::float_v(state) * ConvertFactor;
 }
@@ -96,7 +96,7 @@ Vc::uint_v PseudoRandom<Vc::double_v>::state(Vc::uint_v(Vc::IndexesFromZero) + s
 
 inline Vc::double_v PseudoRandom<Vc::double_v>::next()
 {
-    const Vc::double_v ConvertFactor = 1. / (~0u);
+    const Vc::double_v ConvertFactor = 1. / 0xffffffffu;
     state = (state * 1103515245 + 12345);
     return Vc::double_v(state) * ConvertFactor;
 }
@@ -115,7 +115,7 @@ Vc::ushort_v PseudoRandom<Vc::sfloat_v>::state(Vc::ushort_v(Vc::IndexesFromZero)
 
 inline Vc::sfloat_v PseudoRandom<Vc::sfloat_v>::next()
 {
-    const Vc::sfloat_v ConvertFactor = 1.f / (~0u);
+    const Vc::sfloat_v ConvertFactor = 1.f / 0xffffu;
     state = (state * 257 + 24151);
     return Vc::sfloat_v(state) * ConvertFactor;
 }
