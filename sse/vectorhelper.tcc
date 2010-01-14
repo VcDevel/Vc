@@ -168,6 +168,29 @@ namespace SSE
 
     struct GeneralHelpers
     {
+        /**
+         * There are several possible aproaches to masked gather implementations. Which one is the
+         * fastest depends on many factors and is hard to benchmark. Still, finding a perfect gather
+         * is an important speed issue.
+         *
+         * in principle there are two ways to move the data into a 128 bit register
+         *
+         * 1. move each value to a GPR, then to a memory location; if all values are done, move
+         *    128 bit from the memory location to the XMM register
+         * 2. move each value directly to an XMM register, shift and or to get result
+         *
+         * then there are different ways to gather the source values
+         *
+         * 1. iteration from 0 to Size using branching to conditionally execute one value move
+         * 2. iteration from 0 to Size using conditional moves with some trickery (the cmov always
+         *    accesses the source memory, thus possibly leading to invalid memory accesses if the
+         *    condition is false; this can be solved by another cmov that sets the index to 0 on the
+         *    inverted condition)
+         * 3. extract the bit positions from the mask using bsf and btr and loop while bsf does not
+         *    set the zero flag, moving one value in the loop body
+         * 4. calculate the population count of the mask to use it (Size - popcnt) as a jump offset
+         *    into an unrolled bsf loop
+         */
         template<unsigned int scale, typename Base, typename IndexType, typename EntryType>
         static inline void maskedDoubleGatherHelper(
                 Base &v, const IndexType &outer, const IndexType &inner, unsigned long mask, const EntryType *const *const baseAddr
