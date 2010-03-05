@@ -63,6 +63,7 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector(VectorSpecialInitializerOne::OEnum) : m_data(1) {}
         inline Vector(VectorSpecialInitializerRandom::REnum) { makeRandom(); }
         inline Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : m_data(0) {}
+        static inline Vector IndexesFromZero() { return 0; }
 
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> *a) : m_data(static_cast<T>(a->data())) {}
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}

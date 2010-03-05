@@ -142,6 +142,8 @@ class Vector : public VectorBase<T>
          */
         inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : Base(VectorHelper<VectorType>::load(Base::_IndexesFromZero())) {}
 
+        static inline Vector IndexesFromZero() { return VectorHelper<VectorType>::load(Base::_IndexesFromZero()); }
+
         /**
          * initialize with given _M128 vector
          */
