@@ -945,6 +945,8 @@ class Vector : public VectorBase<T, Vector<T> >
          * initialized to 0, 1, 2, 3 (, 4, 5, 6, 7 (, 8, 9, 10, 11, 12, 13, 14, 15))
          */
         inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : data(VectorHelper<T>::load(IndexesFromZero<T>())) {}
+
+        static inline Vector IndexesFromZero() { return VectorHelper<T>::load(IndexesFromZero<T>()); }
 //X         /**
 //X          * initialzed to random numbers
 //X          */
