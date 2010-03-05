@@ -17,3 +17,5 @@ endmacro(build_example)
 
 add_subdirectory(polarcoord)
 add_subdirectory(matrix)
+add_subdirectory(mandelbrot)
+add_subdirectory(buddhabrot)
