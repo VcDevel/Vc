@@ -22,18 +22,41 @@
 
 using namespace Vc;
 
-template<typename V, unsigned int Size> struct TestEntries { static void run(); };
-template<typename V> struct TestEntries<V, 0> { static void run() {} };
+template<typename V, unsigned int Size> struct TestEntries {
+    static inline void run()
+    {
+        TestEntries<V, Size/2>::run();
+        TestEntries<V, Size>::test();
+        TestEntries<V, Size - 1>::test();
+    }
+    static void test();
+};
+template<typename V> struct TestEntries<V, 0> { static void run() {} static void test() {} };
 
-template<typename V, unsigned int Size> struct TestVectors { static void run(); };
-template<typename V> struct TestVectors<V, 0> { static void run() {} };
+template<typename V, unsigned int Size> struct TestVectors {
+    static inline void run()
+    {
+        TestVectors<V, Size/2>::run();
+        TestVectors<V, Size>::test();
+        TestVectors<V, Size - 1>::test();
+    }
+    static void test();
+};
+template<typename V> struct TestVectors<V, 0> { static void run() {} static void test() {} };
 
-template<typename V, unsigned int Size> struct TestVectorReorganization { static void run(); };
-template<typename V> struct TestVectorReorganization<V, 0> { static void run() {} };
+template<typename V, unsigned int Size> struct TestVectorReorganization {
+    static inline void run()
+    {
+        TestVectorReorganization<V, Size/2>::run();
+        TestVectorReorganization<V, Size>::test();
+        TestVectorReorganization<V, Size - 1>::test();
+    }
+    static void test();
+};
+template<typename V> struct TestVectorReorganization<V, 0> { static void run() {} static void test() {} };
 
-template<typename V, unsigned int Size> void TestEntries<V, Size>::run()
+template<typename V, unsigned int Size> void TestEntries<V, Size>::test()
 {
-    TestEntries<V, Size - 1>::run();
     typedef typename V::EntryType T;
     const T x = Size;
     Memory<V, Size> m;
@@ -63,7 +86,7 @@ template<typename V, unsigned int Size> void TestEntries<V, Size>::run()
     }
 }
 
-template<typename V, unsigned int Size> void TestVectors<V, Size>::run()
+template<typename V, unsigned int Size> void TestVectors<V, Size>::test()
 {
     TestVectors<V, Size - 1>::run();
     typedef typename V::EntryType T;
@@ -82,7 +105,7 @@ template<typename V, unsigned int Size> void TestVectors<V, Size>::run()
     }
 }
 
-template<typename V, unsigned int Size> void TestVectorReorganization<V, Size>::run()
+template<typename V, unsigned int Size> void TestVectorReorganization<V, Size>::test()
 {
     TestVectors<V, Size - 1>::run();
     typedef typename V::EntryType T;
@@ -111,7 +134,7 @@ template<typename V, unsigned int Size> void TestVectorReorganization<V, Size>::
     for (unsigned int i = 0; i < Size; ++i) {
         indexes[i] = i;
     }
-    for (unsigned int i = 0; i < Size - V::Size; ++i) {
+    for (unsigned int i = 0; i + V::Size < Size; ++i) {
         COMPARE(m.gather(&indexes[i]), x);
         COMPARE(m3.gather(&indexes[i]), x);
         x += 1;
@@ -124,7 +147,7 @@ template<typename V, unsigned int Size> void TestVectorReorganization<V, Size>::
     for (unsigned int i = 0; i < Size; ++i) {
         indexes[i] = (i * 2) % Size;
     }
-    for (unsigned int i = 0; i < Size - V::Size; ++i) {
+    for (unsigned int i = 0; i + V::Size < Size; ++i) {
         COMPARE(m.gather(&indexes[i]), x);
         COMPARE(m3.gather(&indexes[i]), x);
         x += 2;
