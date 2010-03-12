@@ -277,13 +277,11 @@ void MainWindow::recreateImage()
             Z z = c;
             int_v n(Vc::Zero);
             int_m inside = std::norm(z) < S;
-            while (!inside.isEmpty()) {
+            while (!(inside && n < maxIterations).isEmpty()) {
                 z = P(z, c);
                 inside &= std::norm(z) < S;
                 ++n(inside);
-                inside &= n < maxIterations;
             }
-            //inside &= n > 400;
             if (inside.isFull()) {
                 continue;
             }
