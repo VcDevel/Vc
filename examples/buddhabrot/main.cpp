@@ -204,8 +204,8 @@ void MainWindow::recreateImage()
     // Parameters Begin
     const float S = 4.f;
     const int maxIterations = 500;
-    const int upperBound[3] = { maxIterations, 0, 0 };
-    const int lowerBound[3] = { 400, 10000, 10000 };
+    const int upperBound[3] = { maxIterations, 100, 20 };
+    const int lowerBound[3] = { 0, 0, 0 };
     const float realMin = -2.102613f;
     const float realMax =  1.200613f;
     const float imagMin = -1.23771f;
