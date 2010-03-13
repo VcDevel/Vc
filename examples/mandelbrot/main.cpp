@@ -184,7 +184,7 @@ void MainWindow::recreateImage()
         for (xx = 0; xx < m_image.width(); ++xx) {
             Z c(m_x + xx * m_width * oneOverWidth, c_imag);
             Z c2 = Z(1.08f * std::real(c) + 0.15f, std::imag(c));
-            if (std::norm(c - Z(-1.f, 0.f)) < 0.06f || std::real(c2) < 0.42f && std::norm(c2) < 0.417f) {
+            if (std::norm(c - Z(-1.f, 0.f)) < 0.06f || (std::real(c2) < 0.42f && std::norm(c2) < 0.417f)) {
                 offset += 4;
                 continue;
             }
