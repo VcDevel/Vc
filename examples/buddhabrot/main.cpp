@@ -203,9 +203,9 @@ void MainWindow::recreateImage()
 
     // Parameters Begin
     const float S = 4.f;
-    const int maxIterations = 500;
-    const int upperBound[3] = { maxIterations, 100, 20 };
-    const int lowerBound[3] = { 0, 0, 0 };
+    const int upperBound[3] = { 500, 500, 500 };
+    const int lowerBound[3] = { 100, 100, 100 };
+    const int maxIterations = maxOf(upperBound[0], maxOf(upperBound[1], upperBound[2]));
     const float realMin = -2.102613f;
     const float realMax =  1.200613f;
     const float imagMin = -1.23771f;
@@ -239,20 +239,21 @@ void MainWindow::recreateImage()
                 z = P(z, c);
             }
             if (n < maxIterations) {
+                // point is outside of the Mandelbrot set
                 z = c;
-                for (int i = 0; i < n && std::norm(z) < S; ++i) {
+                for (int i = 0; i < maxIterations; ++i) {
                     const int y2 = (std::imag(z) - m_y) * yFact;
                     if (y2 >= 0 && y2 < iHeight) {
                         const int x2 = (std::real(z) - m_x) * xFact;
                         if (x2 >= 0 && x2 < iWidth) {
                             Pixel &p = pixels[x2 + y2 * iWidth];
-                            if (n >= lowerBound[2] && n <= upperBound[2]) {
+                            if (i >= lowerBound[2] && i <= upperBound[2]) {
                                 p.blue += 1;
                             }
-                            if (n >= lowerBound[1] && n <= upperBound[1]) {
+                            if (i >= lowerBound[1] && i <= upperBound[1]) {
                                 p.green += 1;
                             }
-                            if (n >= lowerBound[0] && n <= upperBound[0]) {
+                            if (i >= lowerBound[0] && i <= upperBound[0]) {
                                 p.red += 1;
                             }
                         }
@@ -286,22 +287,21 @@ void MainWindow::recreateImage()
                 continue;
             }
             z = c;
-            const int maxN = n.max();
-            for (int i = 0; i < maxN && std::norm(z) < S; ++i) {
+            for (int i = 0; i < maxIterations; ++i) {
                 const int_v y2 = static_cast<int_v>((std::imag(z) - m_y) * yFact);
                 const int_v x2 = static_cast<int_v>((std::real(z) - m_x) * xFact);
                 z = P(z, c);
                 const int_m drawMask = !inside && y2 >= 0 && x2 >= 0 && y2 < iHeight && x2 < iWidth;
+
                 foreach_bit(int j, drawMask) {
                     Pixel &p = pixels[x2[j] + y2[j] * iWidth];
-                    const int nj = n[j];
-                    if (nj >= lowerBound[2] && nj <= upperBound[2]) {
+                    if (i >= lowerBound[2] && i <= upperBound[2]) {
                         p.blue += 1;
                     }
-                    if (nj >= lowerBound[1] && nj <= upperBound[1]) {
+                    if (i >= lowerBound[1] && i <= upperBound[1]) {
                         p.green += 1;
                     }
-                    if (nj >= lowerBound[0] && nj <= upperBound[0]) {
+                    if (i >= lowerBound[0] && i <= upperBound[0]) {
                         p.red += 1;
                     }
                 }
