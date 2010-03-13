@@ -74,7 +74,7 @@ namespace LRBni
     template<typename T> struct ReturnTypeHelper { typedef char Type; };
     template<> struct ReturnTypeHelper<unsigned int> { typedef unsigned char Type; };
     template<> struct ReturnTypeHelper<int> { typedef signed char Type; };
-    template<typename T> const typename ReturnTypeHelper<T>::Type *IndexesFromZero() {
+    template<typename T> const typename ReturnTypeHelper<T>::Type *IndexesFromZeroHelper() {
         return reinterpret_cast<const typename ReturnTypeHelper<T>::Type *>(&_IndexesFromZero[0]);
     }
 
@@ -944,9 +944,9 @@ class Vector : public VectorBase<T, Vector<T> >
         /**
          * initialized to 0, 1, 2, 3 (, 4, 5, 6, 7 (, 8, 9, 10, 11, 12, 13, 14, 15))
          */
-        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : data(VectorHelper<T>::load(IndexesFromZero<T>())) {}
+        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : data(VectorHelper<T>::load(IndexesFromZeroHelper<T>())) {}
 
-        static inline Vector IndexesFromZero() { return VectorHelper<T>::load(IndexesFromZero<T>()); }
+        static inline Vector IndexesFromZero() { return VectorHelper<T>::load(IndexesFromZeroHelper<T>()); }
 //X         /**
 //X          * initialzed to random numbers
 //X          */
