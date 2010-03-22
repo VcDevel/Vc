@@ -62,6 +62,32 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vecto
     return out;
 }
 
+#ifndef VC_IMPL_LRBni
+// LRBni only supports 32bit ints
+template<>
+inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<char> &v)
+{
+    out << AnsiColor::green << "[";
+    out << int(v[0]);
+    for (int i = 1; i < v.Size; ++i) {
+        out << ", " << int(v[i]);
+    }
+    out << "]" << AnsiColor::normal;
+    return out;
+}
+template<>
+inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<unsigned char> &v)
+{
+    out << AnsiColor::green << "[";
+    out << int(v[0]);
+    for (int i = 1; i < v.Size; ++i) {
+        out << ", " << int(v[i]);
+    }
+    out << "]" << AnsiColor::normal;
+    return out;
+}
+#endif
+
 #ifdef VC_HAVE_FMA
 template<typename T>
 inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::VectorMultiplication<T> &v)
