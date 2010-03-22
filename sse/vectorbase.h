@@ -23,14 +23,12 @@
 #include "intrinsics.h"
 #include "types.h"
 #include "casts.h"
+#include "const.h"
 
 namespace Vc
 {
 namespace SSE
 {
-    ALIGN(16) extern const unsigned int   _IndexesFromZero4[4];
-    ALIGN(16) extern const unsigned short _IndexesFromZero8[8];
-
     template<typename T> class VectorBase {
         friend struct VectorHelperSize<float>;
         friend struct VectorHelperSize<double>;
@@ -92,6 +90,8 @@ namespace SSE
                     return reinterpret_cast<const T *>(_IndexesFromZero4);
                 } else if (Size == 8) {
                     return reinterpret_cast<const T *>(_IndexesFromZero8);
+                } else if (Size == 16) {
+                    return reinterpret_cast<const T *>(_IndexesFromZero16);
                 }
                 return 0;
             }

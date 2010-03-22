@@ -27,6 +27,11 @@ namespace Vc
 namespace SSE
 {
     template<typename T> class Vector;
+
+    ALIGN(16) extern const unsigned int   _IndexesFromZero4[4];
+    ALIGN(16) extern const unsigned short _IndexesFromZero8[8];
+    ALIGN(16) extern const unsigned char  _IndexesFromZero16[16];
+
     struct c_general
     {
         ALIGN(16) static const unsigned int allone[4];
