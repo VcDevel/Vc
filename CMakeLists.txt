@@ -85,6 +85,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.1")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
    endif(USE_SSE4_1)
+
+   # TODO: check for Core2/Nehalem/AMD Family 10
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=core2")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=core2")
 elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
    ##################################################################################################
    #                                          Intel Compiler                                        #
