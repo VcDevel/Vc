@@ -56,10 +56,12 @@ class Benchmark
 
             void addColumn(const std::string &name);
             void setColumnData(const std::string &name, const std::string &data);
+            void finalize() { m_finalized = true; }
 
         private:
             std::ofstream m_file;
             int m_line;
+            bool m_finalized;
             std::string m_currentName;
             std::list<std::string> m_header;
             struct ExtraColumn
@@ -86,6 +88,7 @@ public:
             std::cout << "Benchmarking " << name << " " << data << std::endl;
         }
     }
+    static inline void finalize() { if (s_fileWriter) s_fileWriter->finalize(); }
 
     explicit Benchmark(const std::string &name, double factor = 0., const std::string &X = std::string());
 
@@ -121,7 +124,7 @@ private:
 };
 
 Benchmark::FileWriter::FileWriter(const std::string &filename)
-    : m_line(0)
+    : m_line(0), m_finalized(false)
 {
     std::string fn = filename;
     m_file.open(fn.c_str());
@@ -202,12 +205,14 @@ void Benchmark::FileWriter::addDataLine(const std::list<std::string> &data)
 
 void Benchmark::FileWriter::addColumn(const std::string &name)
 {
-    if (m_header.empty()) {
-        if (m_extraColumns.end() == std::find(m_extraColumns.begin(), m_extraColumns.end(), name)) {
-            m_extraColumns.push_back(name);
+    if (!m_finalized) {
+        if (m_header.empty()) {
+            if (m_extraColumns.end() == std::find(m_extraColumns.begin(), m_extraColumns.end(), name)) {
+                m_extraColumns.push_back(name);
+            }
+        } else {
+            std::cerr << "call addColumn before the first benchmark prints its data" << std::endl;
         }
-    } else {
-        std::cerr << "call addColumn before the first benchmark prints its data" << std::endl;
     }
 }
 
@@ -593,6 +598,7 @@ int main(int argc, char **argv)
         CPU_SET(cpuid, &cpumask);
         sched_setaffinity(0, sizeof(cpu_set_t), &cpumask);
         r += bmain(outputMode);
+        Benchmark::finalize();
     }
     delete file;
     return r;
