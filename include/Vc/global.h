@@ -17,39 +17,8 @@
 
 */
 
-#ifndef VC_IMPL
-# define VC_IMPL
-
-# if defined(__SSE4_2__)
-#  define VC_IMPL_SSE 1
-#  define VC_IMPL_SSE4_2 1
-# endif
-# if defined(__SSE4_1__)
-#  define VC_IMPL_SSE 1
-#  define VC_IMPL_SSE4_1 1
-# endif
-# if defined(__SSE3__)
-#  define VC_IMPL_SSE 1
-#  define VC_IMPL_SSE3 1
-# endif
-# if defined(__SSSE3__)
-#  define VC_IMPL_SSE 1
-#  define VC_IMPL_SSSE3 1
-# endif
-# if defined(__SSE2__)
-#  define VC_IMPL_SSE 1
-#  define VC_IMPL_SSE2 1
-# endif
-
-# if defined(VC_IMPL_SSE)
-// nothing
-# elif defined(__LRB__)
-#  define VC_IMPL_LRBni 1
-# else
-#  define VC_IMPL_Scalar 1
-# endif
-
-#else // VC_IMPL
+#ifndef VC_GLOBAL_H
+#define VC_GLOBAL_H
 
 #define SSE    9875294
 #define SSE2   9875295
@@ -59,6 +28,45 @@
 #define Scalar 9875299
 #define LRBni  9875300
 #define SSE4_2 9875301
+
+#ifndef VC_IMPL
+
+#  if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 3))
+#    ifndef VC_DONT_WARN_OLD_GCC
+#      warning "GCC < 4.3 does not have full support for SSE2 intrinsics. Using scalar types/operations only. Define VC_DONT_WARN_OLD_GCC to silence this warning."
+#    endif
+#  else
+#    if defined(__SSE4_2__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE4_2 1
+#    endif
+#    if defined(__SSE4_1__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE4_1 1
+#    endif
+#    if defined(__SSE3__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE3 1
+#    endif
+#    if defined(__SSSE3__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSSE3 1
+#    endif
+#    if defined(__SSE2__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE2 1
+#    endif
+#  endif
+
+#  if defined(VC_IMPL_SSE)
+     // nothing
+#  elif defined(__LRB__)
+#    define VC_IMPL_LRBni 1
+#  else
+#    define VC_IMPL_Scalar 1
+#  endif
+
+#else // VC_IMPL
 
 # if VC_IMPL == SSE4_2
 #  define VC_IMPL_SSE4_2 1
@@ -124,6 +132,8 @@
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
 # endif
 
+#endif // VC_IMPL
+
 #undef SSE
 #undef SSE2
 #undef SSE3
@@ -133,4 +143,4 @@
 #undef Scalar
 #undef LRBni
 
-#endif // VC_IMPL
+#endif // VC_GLOBAL_H

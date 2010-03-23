@@ -22,6 +22,13 @@
 #include <cstdio>
 #include <cstdlib>
 
+// FIXME: is this standard?
+#ifdef __x86_64__
+#define VC_64BIT
+#else
+#define VC_32BIT
+#endif
+
 using namespace Vc;
 
 enum {
@@ -108,7 +115,12 @@ int bmain(Benchmark::OutputMode out)
                     "addps  %9,%6"   "\n\t"
                     "jne 0b"         "\n\t"
                     : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+x"(x[6]), "+x"(x[7]), "+r"(i)
-                    : "x"(y));
+#ifdef VC_64BIT
+                    : "x"(y)
+#else
+                    : "m"(y)
+#endif
+                    );
             ///////////////////////////////////////
             timer.Stop();
 
@@ -166,7 +178,12 @@ int bmain(Benchmark::OutputMode out)
                     "addss  %9,%6"   "\n\t"
                     "jne 0b"         "\n\t"
                     : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+x"(x[6]), "+x"(x[7]), "+r"(i)
-                    : "x"(y));
+#ifdef VC_64BIT
+                    : "x"(y)
+#else
+                    : "m"(y)
+#endif
+                    );
             ///////////////////////////////////////
             timer.Stop();
 

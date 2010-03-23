@@ -38,8 +38,7 @@ template<typename V, typename Parent> class MemoryBase
         inline       EntryType *entries()       { return p()->entries(); }
         inline const EntryType *entries() const { return p()->entries(); }
 
-        inline EntryType &operator[](unsigned int i)       { return entries()[i]; }
-        inline EntryType  operator[](unsigned int i) const { return entries()[i]; }
+        // omit operator[] because the EntryType* cast operator suffices
 
         inline operator       EntryType*()       { return entries(); }
         inline operator const EntryType*() const { return entries(); }

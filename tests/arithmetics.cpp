@@ -244,10 +244,9 @@ template<typename Vec> void testShift()
     COMPARE((a << 2), (a << 2));
     COMPARE((a << 2), (b << 1));
 
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 3
-    // gcc 4.3.x miscompiles when optimizing, since I can't check for optimization level here we
-    // assume it'll fail since that is the test that matters
-    if (((Vec::Size == 4 && isEqualType<Vec, uint_v>()) || (Vec::Size == 8 && isEqualType<Vec, ushort_v>()))) {
+#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 3 && __OPTIMIZE__ && VC_IMPL_SSE
+    // gcc 4.3.x miscompiles when optimizing
+    if (isEqualType<Vec, uint_v>() || isEqualType<Vec, ushort_v>()) {
         EXPECT_FAILURE();
     }
 #endif
