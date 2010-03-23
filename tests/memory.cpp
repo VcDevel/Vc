@@ -88,7 +88,6 @@ template<typename V, unsigned int Size> void TestEntries<V, Size>::test()
 
 template<typename V, unsigned int Size> void TestVectors<V, Size>::test()
 {
-    TestVectors<V, Size - 1>::run();
     typedef typename V::EntryType T;
     const V x = Size;
     Memory<V, Size> m;
@@ -107,7 +106,6 @@ template<typename V, unsigned int Size> void TestVectors<V, Size>::test()
 
 template<typename V, unsigned int Size> void TestVectorReorganization<V, Size>::test()
 {
-    TestVectors<V, Size - 1>::run();
     typedef typename V::EntryType T;
     typename V::Memory init;
     for (unsigned int i = 0; i < V::Size; ++i) {
