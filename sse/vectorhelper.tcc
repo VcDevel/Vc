@@ -88,6 +88,20 @@ namespace SSE
     }
     template<> inline _M128I SortHelper<_M128I, 4>::sort(_M128I x)
     {
+        /*
+        // in 16,67% of the cases the merge can be replaced by an append
+
+        // x = [a b c d]
+        // y = [c d a b]
+        _M128I y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
+        _M128I l = _mm_min_epi32(x, y); // min[ac bd ac bd]
+        _M128I h = _mm_max_epi32(x, y); // max[ac bd ac bd]
+        if (IS_UNLIKELY(_mm_cvtsi128_si32(h) <= l[1])) { // l[0] < h[0] < l[1] < h[1]
+            return _mm_unpacklo_epi32(l, h);
+        }
+        // h[0] > l[1]
+        */
+
         // sort pairs
         _M128I y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
         _M128I l = _mm_min_epi32(x, y);
