@@ -127,6 +127,10 @@ namespace SSE
             static inline VectorType load(const float *x) { return _mm_load_ps(x); }
             static inline VectorType loadUnaligned(const float *x) { return _mm_loadu_ps(x); }
             static inline void store(float *mem, const VectorType &x) { _mm_store_ps(mem, x); }
+            static inline void storeUnaligned(float *mem, const VectorType &x) { _mm_storeu_ps(mem, x); }
+            static inline void storeUnaligned(float *mem, const VectorType &x, const VectorType &m) {
+                _mm_maskmoveu_si128(_mm_castps_si128(x), _mm_castps_si128(m), reinterpret_cast<char *>(mem));
+            }
             static inline void storeStreaming(float *mem, const VectorType &x) { _mm_stream_ps(mem, x); }
             OP0(allone, _mm_setallone_ps())
             OP0(zero, _mm_setzero_ps())
@@ -150,6 +154,14 @@ namespace SSE
                 _mm_store_ps(mem, x[0]);
                 _mm_store_ps(mem + 4, x[1]);
             }
+            static inline void storeUnaligned(float *mem, const VectorType &x) {
+                _mm_storeu_ps(mem, x[0]);
+                _mm_storeu_ps(mem + 4, x[1]);
+            }
+            static inline void storeUnaligned(float *mem, const VectorType &x, const VectorType &m) {
+                _mm_maskmoveu_si128(_mm_castps_si128(x[0]), _mm_castps_si128(m[0]), reinterpret_cast<char *>(mem));
+                _mm_maskmoveu_si128(_mm_castps_si128(x[1]), _mm_castps_si128(m[1]), reinterpret_cast<char *>(mem + 4));
+            }
             static inline void storeStreaming(float *mem, const VectorType &x) {
                 _mm_stream_ps(mem, x[0]);
                 _mm_stream_ps(mem + 4, x[1]);
@@ -169,6 +181,10 @@ namespace SSE
             static inline VectorType load(const double *x) { return _mm_load_pd(x); }
             static inline VectorType loadUnaligned(const double *x) { return _mm_loadu_pd(x); }
             static inline void store(double *mem, const VectorType &x) { _mm_store_pd(mem, x); }
+            static inline void storeUnaligned(double *mem, const VectorType &x) { _mm_storeu_pd(mem, x); }
+            static inline void storeUnaligned(double *mem, const VectorType &x, const VectorType &m) {
+                _mm_maskmoveu_si128(_mm_castpd_si128(x), _mm_castpd_si128(m), reinterpret_cast<char *>(mem));
+            }
             static inline void storeStreaming(double *mem, const VectorType &x) { _mm_stream_pd(mem, x); }
             OP0(allone, _mm_setallone_pd())
             OP0(zero, _mm_setzero_pd())
@@ -185,6 +201,10 @@ namespace SSE
             template<typename T> static inline VectorType load(const T *x) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
             template<typename T> static inline VectorType loadUnaligned(const T *x) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
             template<typename T> static inline void store(T *mem, const VectorType &x) { _mm_store_si128(reinterpret_cast<VectorType *>(mem), x); }
+            template<typename T> static inline void storeUnaligned(T *mem, const VectorType &x) { _mm_storeu_si128(reinterpret_cast<VectorType *>(mem), x); }
+            template<typename T> static inline void storeUnaligned(T *mem, const VectorType &x, const VectorType &m) {
+                _mm_maskmoveu_si128(x, m, reinterpret_cast<char *>(mem));
+            }
             template<typename T> static inline void storeStreaming(T *mem, const VectorType &x) { _mm_stream_si128(reinterpret_cast<VectorType *>(mem), x); }
             OP0(allone, _mm_setallone_si128())
             OP0(zero, _mm_setzero_si128())

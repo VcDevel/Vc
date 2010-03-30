@@ -199,6 +199,9 @@ class Vector : public VectorBase<T>
             VectorHelper<VectorType>::store(mem, VectorHelper<VectorType>::blend(old, data(), mm128_reinterpret_cast<VectorType>(mask.data())));
         }
 
+        inline void storeUnaligned(EntryType *mem) const { VectorHelper<VectorType>::storeUnaligned(mem, data()); }
+        inline void storeUnaligned(EntryType *mem, const Mask &mask) const { VectorHelper<VectorType>::storeUnaligned(mem, data(), mm128_reinterpret_cast<VectorType>(mask.data())); }
+
         /**
          * Non-temporal store variant. Writes to the memory without polluting the cache.
          */
