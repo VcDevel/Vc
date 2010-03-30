@@ -60,12 +60,30 @@ namespace SSE
     static inline __m128i _mm_setmin_epi16() CONST;
     static inline __m128i _mm_setmin_epi32() CONST;
 
+    // not overriding _mm_set1_epi8 because this one should only be used for non-constants
+    static inline __m128i set1_epi8(int a) CONST;
+
     //X         static inline __m128i _mm_cmplt_epu8 (__m128i a, __m128i b) CONST;
     //X         static inline __m128i _mm_cmpgt_epu8 (__m128i a, __m128i b) CONST;
     static inline __m128i _mm_cmplt_epu16(__m128i a, __m128i b) CONST;
     static inline __m128i _mm_cmpgt_epu16(__m128i a, __m128i b) CONST;
     static inline __m128i _mm_cmplt_epu32(__m128i a, __m128i b) CONST;
     static inline __m128i _mm_cmpgt_epu32(__m128i a, __m128i b) CONST;
+
+#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ < 6 && !defined(VC_DONT_FIX_SSE_SHIFT)
+    static inline __m128i _mm_sll_epi16(__m128i a, __m128i count) CONST;
+    static inline __m128i _mm_sll_epi16(__m128i a, __m128i count) { __asm__("psllw %1,%0" : "+x"(a) : "x"(count)); return a; }
+    static inline __m128i _mm_sll_epi32(__m128i a, __m128i count) CONST;
+    static inline __m128i _mm_sll_epi32(__m128i a, __m128i count) { __asm__("pslld %1,%0" : "+x"(a) : "x"(count)); return a; }
+    static inline __m128i _mm_sll_epi64(__m128i a, __m128i count) CONST;
+    static inline __m128i _mm_sll_epi64(__m128i a, __m128i count) { __asm__("psllq %1,%0" : "+x"(a) : "x"(count)); return a; }
+    static inline __m128i _mm_srl_epi16(__m128i a, __m128i count) CONST;
+    static inline __m128i _mm_srl_epi16(__m128i a, __m128i count) { __asm__("psrlw %1,%0" : "+x"(a) : "x"(count)); return a; }
+    static inline __m128i _mm_srl_epi32(__m128i a, __m128i count) CONST;
+    static inline __m128i _mm_srl_epi32(__m128i a, __m128i count) { __asm__("psrld %1,%0" : "+x"(a) : "x"(count)); return a; }
+    static inline __m128i _mm_srl_epi64(__m128i a, __m128i count) CONST;
+    static inline __m128i _mm_srl_epi64(__m128i a, __m128i count) { __asm__("psrlq %1,%0" : "+x"(a) : "x"(count)); return a; }
+#endif
 
 #if defined(__GNUC__) && !defined(NVALGRIND)
     static inline __m128i _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
@@ -117,6 +135,22 @@ namespace SSE
 // SSSE3
 #ifdef VC_IMPL_SSSE3
 #include <tmmintrin.h>
+namespace Vc
+{
+namespace SSE
+{
+
+    static inline __m128i set1_epi8(int a) {
+#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ < 5
+        return _mm_shuffle_epi8(_mm_cvtsi32_si128(a), _mm_setzero_si128());
+#else
+        // GCC 4.5 nows about the pshufb improvement
+        return _mm_set1_epi8(a);
+#endif
+    }
+
+} // namespace SSE
+} // namespace Vc
 #else
 namespace Vc
 {
@@ -147,6 +181,11 @@ namespace SSE
         __m128i negative = _mm_cmplt_epi32(a, _mm_setzero_si128());
         return _mm_add_epi32(_mm_xor_si128(a, negative), _mm_srli_epi32(negative, 31));
     }
+    static inline __m128i set1_epi8(int a) {
+        return _mm_set1_epi8(a);
+    }
+
+
 } // namespace SSE
 } // namespace Vc
 
