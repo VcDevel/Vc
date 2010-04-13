@@ -567,7 +567,7 @@ namespace SSE
                     else if (sizeof(EntryType) == 4) asm volatile(
                         "test %[i],%[mask]\n\t"
                         "cmove %[zero],%[j]\n\t"
-                        "cmovne (%[mem],%[j],2),%[tmp]"
+                        "cmovne (%[mem],%[j],4),%[tmp]"
                         : [tmp]"+r"(tmp),
                           [j]"+r"(j)
                         : [i]"i"(1 << i),
@@ -578,7 +578,7 @@ namespace SSE
                     else if (sizeof(EntryType) == 8) asm volatile(
                         "test %[i],%[mask]\n\t"
                         "cmove %[zero],%[j]\n\t"
-                        "cmovne (%[mem],%[j],2),%[tmp]"
+                        "cmovne (%[mem],%[j],8),%[tmp]"
                         : [tmp]"+r"(tmp),
                           [j]"+r"(j)
                         : [i]"i"(1 << i),
