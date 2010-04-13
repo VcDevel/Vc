@@ -549,6 +549,48 @@ namespace SSE
 //                   if (mask & (1 << i)) v.d.m(i) = baseAddr[indexes.d.m(i)];
 //                  );
 # else
+            if (sizeof(EntryType) == 8) {
+#ifdef __x86_64__
+                unrolled_loop16(i, 0, Base::Size,
+                    register long j = indexes.d.m(i);
+                    register long zero = 0;
+                    register EntryType tmp = v.d.m(i);
+                    asm volatile(
+                        "test %[i],%[mask]\n\t"
+                        "cmove %[zero],%[j]\n\t"
+                        "cmovne (%[mem],%[j],8),%[tmp]"
+                        : [tmp]"+r"(tmp),
+                          [j]"+r"(j)
+                        : [i]"i"(1 << i),
+                          [mask]"r"(mask),
+                          [mem]"r"(baseAddr),
+                          [zero]"r"(zero)
+                        );
+                    v.d.m(i) = tmp;
+                    );
+#else
+                unrolled_loop16(i, 0, Base::Size,
+                    register long j = indexes.d.m(i);
+                    register long zero = 0;
+                    register EntryType tmp = v.d.m(i);
+                    asm volatile(
+                        "test %[i],%[mask]\n\t"
+                        "cmove %[zero],%[j]\n\t"
+                        "cmovne (%[mem],%[j],8),%%eax\n\t"
+                        "cmovne 4(%[mem],%[j],8),%%edx"
+                        : "+A"(tmp),
+                          [j]"+r"(j)
+                        : [i]"i"(1 << i),
+                          [mask]"r"(mask),
+                          [mem]"r"(baseAddr),
+                          [zero]"r"(zero)
+                        );
+                    v.d.m(i) = tmp;
+                    );
+#endif
+                    return;
+            }
+
             unrolled_loop16(i, 0, Base::Size,
                     register long j = indexes.d.m(i);
                     register long zero = 0;
@@ -575,18 +617,6 @@ namespace SSE
                           [mem]"r"(baseAddr),
                           [zero]"r"(zero)
                         );
-                    else if (sizeof(EntryType) == 8) asm volatile(
-                        "test %[i],%[mask]\n\t"
-                        "cmove %[zero],%[j]\n\t"
-                        "cmovne (%[mem],%[j],8),%[tmp]"
-                        : [tmp]"+r"(tmp),
-                          [j]"+r"(j)
-                        : [i]"i"(1 << i),
-                          [mask]"r"(mask),
-                          [mem]"r"(baseAddr),
-                          [zero]"r"(zero)
-                        );
-                    //if (mask & (1 << i)) tmp = baseAddr[j];
                     v.d.m(i) = tmp;
                     );
 # endif
