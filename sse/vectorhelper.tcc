@@ -425,6 +425,25 @@ namespace SSE
                 }
             }
 # else
+            if (sizeof(EntryType) <= 4) {
+                unrolled_loop16(i, 0, Base::Size,
+                        register EntryType tmp = v.d.m(i);
+                        register long j = scale * indexes.d.m(i);
+                        asm volatile("test %[i],%[mask]\n\t"
+                            "cmove %[zero],%[j]\n\t"
+                            "cmovne (%[mem],%[j],1),%[tmp]"
+                            : [tmp]"+r"(tmp),
+                            [j]"+r"(j)
+                            : [i]"i"(1 << i),
+                            [mask]"r"(mask),
+                            [mem]"r"(baseAddr),
+                            [zero]"r"(0)
+                            );
+                        v.d.m(i) = tmp;
+                        );
+                return;
+            }
+#  ifdef __x86_64__
             unrolled_loop16(i, 0, Base::Size,
                     register EntryType tmp = v.d.m(i);
                     register long j = scale * indexes.d.m(i);
@@ -432,15 +451,33 @@ namespace SSE
                         "cmove %[zero],%[j]\n\t"
                         "cmovne (%[mem],%[j],1),%[tmp]"
                         : [tmp]"+r"(tmp),
+                        [j]"+r"(j)
+                        : [i]"i"(1 << i),
+                        [mask]"r"(mask),
+                        [mem]"r"(baseAddr),
+                        [zero]"r"(0)
+                        );
+                    v.d.m(i) = tmp;
+                    );
+#  else
+            // on 32 bit archs, 64 bit copies require two 32 bit registers
+            unrolled_loop16(i, 0, Base::Size,
+                    register EntryType tmp = v.d.m(i);
+                    register long j = scale * indexes.d.m(i);
+                    asm volatile("test %[i],%[mask]\n\t"
+                        "cmove %[zero],%[j]\n\t"
+                        "cmovne (%[mem],%[j],1),%%eax\n\t"
+                        "cmovne 4(%[mem],%[j],1),%%edx"
+                        : "+A"(tmp),
                           [j]"+r"(j)
                         : [i]"i"(1 << i),
                           [mask]"r"(mask),
                           [mem]"r"(baseAddr),
                           [zero]"r"(0)
                           );
-                    //if (mask & (1 << i)) tmp = *reinterpret_cast<const EntryType *>(&baseAddr2[j]);
                     v.d.m(i) = tmp;
                     );
+#  endif
 # endif
 #endif
         }
