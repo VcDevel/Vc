@@ -75,20 +75,31 @@ if(CMAKE_COMPILER_IS_GNUCXX)
       endif(NOT ENABLE_STRICT_ALIASING)
    endif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 
-   set(USE_SSSE3 ${SSSE3_FOUND} CACHE BOOL "Use SSE3 and SSSE3. If (S)SSE3 instructions are not enabled they will be emulated.")
+   set(USE_SSE3   ${SSE3_FOUND}   CACHE BOOL "Use SSE3. If SSE3 instructions are not enabled they will be emulated.")
+   set(USE_SSSE3  ${SSSE3_FOUND}  CACHE BOOL "Use SSSE3. If SSSE3 instructions are not enabled they will be emulated.")
    set(USE_SSE4_1 ${SSE4_1_FOUND} CACHE BOOL "Use SSE4.1. If SSE4.1 instructions are not enabled they will be emulated.")
-   if(USE_SSSE3)
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse3 -mssse3")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3 -mssse3")
-   endif(USE_SSSE3)
+
+   # TODO: check for Core2/Nehalem/AMD Family 10
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=core2")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=core2")
+
+   #core2 implies SSSE3
+
+   if(NOT USE_SSSE3)
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mno-ssse3")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mno-ssse3")
+   endif(NOT USE_SSSE3)
+
+   if(NOT USE_SSE3)
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mno-sse3")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mno-sse3")
+   endif(NOT USE_SSE3)
+
    if(USE_SSE4_1)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.1")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
    endif(USE_SSE4_1)
 
-   # TODO: check for Core2/Nehalem/AMD Family 10
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=core2")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=core2")
 elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
    ##################################################################################################
    #                                          Intel Compiler                                        #
