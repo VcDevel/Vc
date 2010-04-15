@@ -1,2 +1,4 @@
 larrabee/lrbni_prototypes.h
-apidox
+doc/html
+doc/latex
+doc/man
