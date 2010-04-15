@@ -30,23 +30,59 @@ template<typename V, typename Parent> class MemoryBase
         Parent *p() { return static_cast<Parent *>(this); }
         const Parent *p() const { return static_cast<const Parent *>(this); }
     public:
+        /**
+         * The type of the scalar entries in the array.
+         */
         typedef typename V::EntryType EntryType;
 
+        /**
+         * Returns the number of scalar entries in the array. This function is optimized away
+         * if a constant size array is used.
+         */
         inline unsigned int entriesCount() const { return p()->entriesCount(); }
+        /**
+         * Returns the number of vector entries that span the array. This function is optimized away
+         * if a constant size array is used.
+         */
         inline unsigned int vectorsCount() const { return p()->vectorsCount(); }
 
-        inline       EntryType *entries()       { return p()->entries(); }
-        inline const EntryType *entries() const { return p()->entries(); }
+        /**
+         * Returns a pointer to the start of the allocated memory.
+         */
+        inline       EntryType *entries()       { return &p()->m_mem[0]; }
+        /// This is an overloaded function.
+        inline const EntryType *entries() const { return &p()->m_mem[0]; }
 
         // omit operator[] because the EntryType* cast operator suffices
 
+        /**
+         * Cast operator to the scalar type. This allows to use the object very much like a standard
+         * C array.
+         */
         inline operator       EntryType*()       { return entries(); }
+        /// This is an overloaded function.
         inline operator const EntryType*() const { return entries(); }
 
+        /**
+         * Returns a pointer to memory for the i-th vector.
+         *
+         * vector(i + 1) - vector(i) is always equal to V::Size.
+         *
+         * The pointer is guaranteed to be aligned correctly.
+         *
+         * \see operator()(unsigned int)
+         */
         inline       EntryType *vector(unsigned int i)       { return &entries()[i * V::Size]; }
+        /// This is an overloaded function.
         inline const EntryType *vector(unsigned int i) const { return &entries()[i * V::Size]; }
 
+        /**
+         * Returns a pointer to memory for the i-th vector.
+         *
+         * \see vector(unsigned int)
+         */
         inline       EntryType *operator()(unsigned int i)       { return vector(i); }
+        /// This is an overloaded function.
         inline const EntryType *operator()(unsigned int i) const { return vector(i); }
 
         inline V gather(const unsigned char  *indexes) const { return V(entries(), indexes); }

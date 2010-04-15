@@ -27,12 +27,47 @@
 
 namespace Vc
 {
+
+/**
+ * A helper class to simplify usage of correctly aligned and padded memory, allowing both vector and
+ * scalar access.
+ *
+ * Example:
+ * \code
+    Vc::Memory<int_v, 11> array;
+
+    // scalar access:
+    for (int i = 0; i < array.entriesCount(); ++i) {
+        array[i] = i;
+    }
+
+    // vector access:
+    for (int i = 0; i < array.vectorsCount(); ++i) {
+        (int_v::IndexesFromZero() + i * int_v::Size).store(array.vector(i));
+    }
+ * \endcode
+ * This code allocates a small array and implements two equivalent loops that initialize the memory.
+ * The scalar loop writes each individual int. The vectorized loop writes int_v::Size values to
+ * memory per iteration. Since the size of 11 is not a multiple of int_v::Size (unless you use the
+ * scalar Vc implementation) the last write access of the vector loop would normally be out of
+ * bounds. But the Memory class automatically pads the memory such that the whole array can be
+ * accessed with correctly aligned memory addresses.
+ * (Note: the scalar loop can be auto-vectorized, except for the last three assignments.)
+ *
+ * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
+ * \param Size The number of entries of the scalar base type the memory should hold. This
+ * is thus the same number as you would use for a normal C array (e.g. float mem[11] becomes
+ * Memory<float_v, 11> mem).
+ *
+ * \see Memory<V, 0u>
+ */
 template<typename V, unsigned int Size = 0u> class Memory : public VectorAlignedBase, public MemoryBase<V, Memory<V, Size> >
 {
     public:
         typedef typename V::EntryType EntryType;
     private:
         typedef MemoryBase<V, Memory<V, Size> > Base;
+        friend class MemoryBase<V, Memory<V, Size> >;
         enum {
             Alignment = V::Size,
             AlignmentMask = Alignment - 1,
@@ -49,9 +84,6 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
         };
         inline unsigned int entriesCount() const { return EntriesCount; }
         inline unsigned int vectorsCount() const { return VectorsCount; }
-
-        inline       EntryType *entries()       { return &m_mem[0]; }
-        inline const EntryType *entries() const { return &m_mem[0]; }
 
         template<typename Parent>
         inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
@@ -71,12 +103,19 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
         }
 };
 
+/**
+ * A helper class that is very similar to Memory<V, Size> but with dynamically allocated memory and
+ * thus dynamic size.
+ *
+ * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
+ */
 template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
 {
     public:
         typedef typename V::EntryType EntryType;
     private:
         typedef MemoryBase<V, Memory<V> > Base;
+        friend class MemoryBase<V, Memory<V> >;
         enum {
             Alignment = V::Size,
             AlignmentMask = Alignment - 1
@@ -102,9 +141,6 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         }
         inline unsigned int entriesCount() const { return m_entriesCount; }
         inline unsigned int vectorsCount() const { return m_vectorsCount; }
-
-        inline       EntryType *entries()       { return &m_mem[0]; }
-        inline const EntryType *entries() const { return &m_mem[0]; }
 
         template<typename Parent>
         inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {

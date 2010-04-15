@@ -19,6 +19,8 @@
 
 /**
  * \mainpage
+ * \image html logo.png
+ *
  * The Vc library is a collection of vector classes with existing implementations for SSE, LRBni or
  * a scalar fallback.
  *
@@ -184,6 +186,7 @@ namespace Vc
 #define VECTOR_TYPE int_v
 #define ENTRY_TYPE int
 #define MASK_TYPE int_m
+#define INTEGER
     /**
      * \class int_v dox.h <Vc/int_v>
      * \ingroup Vectors

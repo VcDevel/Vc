@@ -109,9 +109,14 @@ VECTOR_TYPE();
 /**
  * Construct a vector with the entries initialized to zero.
  *
- * \see Vc::Zero
+ * \see Vc::Zero, Zero()
  */
 VECTOR_TYPE(Vc::Zero);
+
+/**
+ * Returns a vector with the entries initialized to zero.
+ */
+static VECTOR_TYPE Zero();
 
 /**
  * Construct a vector with the entries initialized to one.
@@ -120,12 +125,19 @@ VECTOR_TYPE(Vc::Zero);
  */
 VECTOR_TYPE(Vc::One);
 
+#ifdef INTEGER
 /**
  * Construct a vector with the entries initialized to 0, 1, 2, 3, 4, 5, ...
  *
- * \see Vc::IndexesFromZero
+ * \see Vc::IndexesFromZero, IndexesFromZero()
  */
 VECTOR_TYPE(Vc::IndexesFromZero);
+
+/**
+ * Returns a vector with the entries initialized to 0, 1, 2, 3, 4, 5, ...
+ */
+static VECTOR_TYPE IndexesFromZero();
+#endif
 
 /**
  * Construct a vector loading its entries from \p alignedMemory.

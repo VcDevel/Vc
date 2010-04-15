@@ -12,11 +12,7 @@ git commit Doxyfile -m"change version to $version"
 git tag "$version"
 
 # Create API dox
-rm -rf apidox
-doxygen
-cd apidox/latex
-make
-cd ../..
+./makeApidox.sh
 cp apidox/latex/refman.pdf ../"Vc-$version.pdf"
 cp -a apidox/html ../"Vc-$version.html"
 
