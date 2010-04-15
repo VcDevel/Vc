@@ -27,19 +27,21 @@ using namespace Vc;
 template<typename Vec> void storeArray()
 {
     typedef typename Vec::EntryType T;
+    enum {
+        Count = 256 * 1024 / sizeof(T)
+    };
 
-    const int count = 256 * 1024 / sizeof(T);
-    T array[count];
+    Memory<Vec, Count> array;
     // do the memset to make sure the array doesn't have the old data from a previous call which
     // would mask a real problem
-    std::memset(array, 0xff, count * sizeof(T));
+    std::memset(array, 0xff, Count * sizeof(T));
     T xValue = 1;
     const Vec x(xValue);
-    for (int i = 0; i < count; i += Vec::Size) {
+    for (int i = 0; i < Count; i += Vec::Size) {
         x.store(&array[i]);
     }
 
-    for (int i = 0; i < count; ++i) {
+    for (int i = 0; i < Count; ++i) {
         COMPARE(array[i], xValue);
     }
 }
