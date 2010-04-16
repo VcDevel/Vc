@@ -60,6 +60,8 @@ namespace Vc
  * Memory<float_v, 11> mem).
  *
  * \see Memory<V, 0u>
+ *
+ * \ingroup Utilities
  */
 template<typename V, unsigned int Size = 0u> class Memory : public VectorAlignedBase, public MemoryBase<V, Memory<V, Size> >
 {
@@ -107,7 +109,35 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
  * A helper class that is very similar to Memory<V, Size> but with dynamically allocated memory and
  * thus dynamic size.
  *
+ * Example:
+ * \code
+    unsigned int size = 11;
+    Vc::Memory<int_v> array(size);
+
+    // scalar access:
+    for (int i = 0; i < array.entriesCount(); ++i) {
+        array[i] = i;
+    }
+
+    // vector access:
+    for (int i = 0; i < array.vectorsCount(); ++i) {
+        (int_v::IndexesFromZero() + i * int_v::Size).store(array.vector(i));
+    }
+ * \endcode
+ * This code allocates a small array with 11 scalar entries
+ * and implements two equivalent loops that initialize the memory.
+ * The scalar loop writes each individual int. The vectorized loop writes int_v::Size values to
+ * memory per iteration. Since the size of 11 is not a multiple of int_v::Size (unless you use the
+ * scalar Vc implementation) the last write access of the vector loop would normally be out of
+ * bounds. But the Memory class automatically pads the memory such that the whole array can be
+ * accessed with correctly aligned memory addresses.
+ * (Note: the scalar loop can be auto-vectorized, except for the last three assignments.)
+ *
  * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
+ *
+ * \see Memory<V, Size>
+ *
+ * \ingroup Utilities
  */
 template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
 {
@@ -130,11 +160,21 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         }
     public:
         using Base::vector;
+
+        /**
+         * Allocate enough memory to access \p size values of type \p V::EntryType.
+         *
+         * The allocated memory is aligned and padded correctly for fully vectorized access.
+         */
         inline Memory(unsigned int size)
             : m_entriesCount(size),
             m_vectorsCount(calcVectorsCount(m_entriesCount)),
             m_mem(reinterpret_cast<EntryType *>(_mm_malloc(m_vectorsCount * sizeof(V), VectorAlignment)))
         {}
+
+        /**
+         * Frees the memory which was allocated in the constructor.
+         */
         inline ~Memory()
         {
             _mm_free(m_mem);
@@ -142,12 +182,21 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         inline unsigned int entriesCount() const { return m_entriesCount; }
         inline unsigned int vectorsCount() const { return m_vectorsCount; }
 
+        /**
+         * Overwrite all entries with the values stored in rhs. This function requires the
+         * vectorsCount() of the left and right object to be equal.
+         */
         template<typename Parent>
         inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
             std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
             return *this;
         }
+
+        /**
+         * Overwrite all entries with the values stored in the memory at \p rhs. Note that this
+         * function assumes that there are entriesCount() many values accessible from \p rhs on.
+         */
         inline Memory<V> &operator=(const EntryType *rhs) {
             std::copy(rhs, rhs + entriesCount(), m_mem);
             return *this;
