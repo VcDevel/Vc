@@ -56,9 +56,6 @@
  * \li VC_IMPL_SSE3
  * \li VC_IMPL_SSSE3
  * \li VC_IMPL_SSE4_1
- *
- * \todo
- *  write/link example code, document mask classes, document remaining vector functions
  */
 
 /**
@@ -315,6 +312,7 @@ namespace Vc
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
 #undef MASK_TYPE
+#undef INTEGER
 
 #define VECTOR_TYPE sfloat_v
 #define ENTRY_TYPE float
