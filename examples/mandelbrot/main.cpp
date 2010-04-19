@@ -51,16 +51,20 @@ void MainWindow::vcImage(const QImage &img, quint64 cycles)
 {
     m_img1 = img;
     update(m_rect1);
-    m_cycles1 = cycles;
-    updateTitle();
+    if (cycles > 1) {
+        m_cycles1 = cycles;
+        updateTitle();
+    }
 }
 
 void MainWindow::scalarImage(const QImage &img, quint64 cycles)
 {
     m_img2 = img;
     update(m_rect2);
-    m_cycles2 = cycles;
-    updateTitle();
+    if (cycles > 1) {
+        m_cycles2 = cycles;
+        updateTitle();
+    }
 }
 
 void MainWindow::updateTitle()

@@ -87,11 +87,12 @@ void MandelBase::run()
         timer.Start();
 
         // calculate the mandelbrot set/image
-        mandelMe(image, x, y, scale);
+        mandelMe(image, x, y, scale, 255);
+
+        timer.Stop();
 
         // if no new set was requested in the meantime - return the finished image
         if (!m_restart) {
-            timer.Stop();
             emit ready(image, timer.Cycles());
         }
 
@@ -106,12 +107,22 @@ void MandelBase::run()
 }
 
 static const float S = 4.f;
-static const int maxIterations = 255;
 
 static int min(int a, int b) { return a < b ? a : b; }
 
+/**
+ * std::norm is defined as std::abs(z) * std::abs(z) (for good reasons, which we don't need here)
+ *
+ * we better define our own fast norm implementation ignoring the corner cases
+ */
+template<typename T>
+static inline T fastNorm(const std::complex<T> &z)
+{
+    return z.real() * z.real() + z.imag() * z.imag();
+}
+
 template<>
-void Mandel<VcImpl>::mandelMe(QImage &image, float x, float y, float scale)
+void Mandel<VcImpl>::mandelMe(QImage &image, float x, float y, float scale, int maxIterations)
 {
     for (int yy = 0; yy < image.height(); ++yy) {
         uchar *line = image.scanLine(yy);
@@ -120,13 +131,13 @@ void Mandel<VcImpl>::mandelMe(QImage &image, float x, float y, float scale)
             Z c(x + static_cast<float_v>(xx) * scale, c_imag);
             Z z = c;
             int_v n(Vc::Zero);
-            int_m inside = std::norm(z) < S;
+            int_m inside = fastNorm(z) < S;
             while (!(inside && n < maxIterations).isEmpty()) {
                 z = P(z, c);
-                inside = std::norm(z) < S;
+                inside = fastNorm(z) < S;
                 ++n(inside);
             }
-            int_v colorValue = 255 - n;
+            int_v colorValue = (maxIterations - n) * 255 / maxIterations;
             const int maxJ = min(int_v::Size, image.width() - xx[0]);
             for (int j = 0; j < maxJ; ++j) {
                 const uchar value = colorValue[j];
@@ -143,9 +154,8 @@ void Mandel<VcImpl>::mandelMe(QImage &image, float x, float y, float scale)
 }
 
 template<>
-void Mandel<ScalarImpl>::mandelMe(QImage &image, float x, float y, float scale)
+void Mandel<ScalarImpl>::mandelMe(QImage &image, float x, float y, float scale, int maxIterations)
 {
-    //image.fill(0);
     for (int yy = 0; yy < image.height(); ++yy) {
         uchar *line = image.scanLine(yy);
         const float c_imag = y + yy * scale;
@@ -153,10 +163,10 @@ void Mandel<ScalarImpl>::mandelMe(QImage &image, float x, float y, float scale)
             Z c(x + xx * scale, c_imag);
             Z z = c;
             int n = 0;
-            for (n = 0; n < maxIterations && std::norm(z) < S; ++n) {
+            for (n = 0; n < maxIterations && fastNorm(z) < S; ++n) {
                 z = P(z, c);
             }
-            const uchar colorValue = 255 - n;
+            const uchar colorValue = (maxIterations - n) * 255 / maxIterations;
             line[0] = colorValue;
             line[1] = colorValue;
             line[2] = colorValue;

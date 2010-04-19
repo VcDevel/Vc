@@ -51,7 +51,7 @@ class MandelBase : public QThread
         void emitImage(const QImage &image, quint64 cycles) { emit ready(image, cycles); }
 
         void run();
-        virtual void mandelMe(QImage &image, float x, float y, float scale) = 0;
+        virtual void mandelMe(QImage &image, float x, float y, float scale, int maxIterations) = 0;
         inline bool restart() const { return m_restart; }
 
     signals:
@@ -73,7 +73,7 @@ class Mandel : public MandelBase
         Mandel(QObject *_parent = 0);
 
     protected:
-        void mandelMe(QImage &image, float x, float y, float scale);
+        void mandelMe(QImage &image, float x, float y, float scale, int maxIterations);
 
     private:
         typedef typename ZHelper<Impl>::Z Z;
