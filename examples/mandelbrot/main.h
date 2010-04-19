@@ -31,11 +31,14 @@
 #include <QWheelEvent>
 #include <QWidget>
 
+#include "mandel.h"
+
 class MainWindow : public QWidget
 {
     Q_OBJECT
     public:
         MainWindow(QWidget *parent = 0);
+
     protected:
         void paintEvent(QPaintEvent *);
         void resizeEvent(QResizeEvent *);
@@ -45,16 +48,26 @@ class MainWindow : public QWidget
         void wheelEvent(QWheelEvent *);
 
     private slots:
-        void recreateImage();
+        void vcImage(const QImage &, quint64);
+        void scalarImage(const QImage &, quint64);
 
     private:
+        void recreateImage();
+        void updateTitle();
+
         float m_x; // left
         float m_y; // top
-        float m_width;
-        float m_height;
-        QImage m_image;
-        bool m_dirty;
+        float m_scale;
+        QImage m_img1;
+        QImage m_img2;
+        QRect m_rect1;
+        QRect m_rect2;
         QPoint m_dragStart;
         QPoint m_dragDelta;
+
+        float m_cycles1, m_cycles2;
+
+        Mandel<VcImpl> m_mandelVc;
+        Mandel<ScalarImpl> m_mandelScalar;
 };
 #endif // MAIN_H
