@@ -150,7 +150,8 @@ void Benchmark::FileWriter::declareData(const std::string &name, const std::list
     m_currentName = '"' + name + '"';
     if (m_header.empty()) {
         m_header = header;
-        m_file << "   \"benchmark.name\"\t\"benchmark.arch\"";
+        m_file << "Version 2\n"
+            << "\"benchmark.name\"\t\"benchmark.arch\"";
         for (std::list<ExtraColumn>::const_iterator i = m_extraColumns.begin();
                 i != m_extraColumns.end(); ++i) {
             m_file << "\t\"" << i->name << '"';
@@ -437,11 +438,7 @@ inline void Benchmark::Print(int f) const
                 X[i] = '_';
             }
         }
-        header
-#ifdef VC_USE_CPU_TIME
-            << X + "_per_sec_CPU"
-#endif
-            << X + "_per_sec_Real" << X + "_per_cycle" << "cycles_per_" + X;
+        header << "number_of_" + X;
     }
     if (s_fileWriter) {
         s_fileWriter->declareData(fName, header);
@@ -475,11 +472,7 @@ inline void Benchmark::Print(int f) const
             std::cout << " | ";
             prettyPrintCount(i->fCycles / fFactor);
             std::cout << " | ";
-            dataLine
-#ifdef VC_USE_CPU_TIME
-                << fFactor / i->fCpuElapsed
-#endif
-                << fFactor / i->fRealElapsed << fFactor / i->fCycles << i->fCycles / fFactor;
+            dataLine << fFactor;
         }
         if (s_fileWriter) {
             s_fileWriter->addDataLine(dataLine);
