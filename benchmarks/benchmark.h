@@ -383,6 +383,22 @@ static inline std::list<std::string> &operator<<(std::list<std::string> &list, d
     return list;
 }
 
+static inline std::list<std::string> &operator<<(std::list<std::string> &list, int data)
+{
+    std::ostringstream str;
+    str << data;
+    list.push_back(str.str());
+    return list;
+}
+
+static inline std::list<std::string> &operator<<(std::list<std::string> &list, unsigned int data)
+{
+    std::ostringstream str;
+    str << data;
+    list.push_back(str.str());
+    return list;
+}
+
 static inline std::list<std::string> &operator<<(std::list<std::string> &list, unsigned long long data)
 {
     std::ostringstream str;
