@@ -38,21 +38,28 @@ namespace Vc
 
     // scalar access:
     for (int i = 0; i < array.entriesCount(); ++i) {
-        array[i] = i;
+        int x = array[i]; // read
+        array[i] = x;     // write
+    }
+    // more explicit alternative:
+    for (int i = 0; i < array.entriesCount(); ++i) {
+        int x = array.scalar(i); // read
+        array.scalar(i) = x;     // write
     }
 
     // vector access:
     for (int i = 0; i < array.vectorsCount(); ++i) {
-        (int_v::IndexesFromZero() + i * int_v::Size).store(array.vector(i));
+        int_v x = array.vector(i); // read
+        array.vector(i) = x;       // write
     }
  * \endcode
- * This code allocates a small array and implements two equivalent loops that initialize the memory.
- * The scalar loop writes each individual int. The vectorized loop writes int_v::Size values to
- * memory per iteration. Since the size of 11 is not a multiple of int_v::Size (unless you use the
+ * This code allocates a small array and implements three equivalent loops (that do nothing useful).
+ * The loops show how scalar and vector read/write access is best implemented.
+ *
+ * Since the size of 11 is not a multiple of int_v::Size (unless you use the
  * scalar Vc implementation) the last write access of the vector loop would normally be out of
  * bounds. But the Memory class automatically pads the memory such that the whole array can be
  * accessed with correctly aligned memory addresses.
- * (Note: the scalar loop can be auto-vectorized, except for the last three assignments.)
  *
  * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
  * \param Size The number of entries of the scalar base type the memory should hold. This

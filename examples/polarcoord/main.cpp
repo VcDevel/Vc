@@ -29,57 +29,50 @@
 
 using Vc::float_v;
 
-enum {
-    Count = 64,
-    OuterCount = Count / float_v::Size
-};
+typedef Vc::Memory<float_v, 1000> Mem10;
 
-static const float TwoOverRandMax = 2.f / RAND_MAX;
+static const float_v TwoOverRandMax(2.f / RAND_MAX);
 
 int main()
 {
     // allocate memory for our initial x and y coordinates. Note that you can also put it into a
     // normal float C-array but that you then must ensure alignment to Vc::VectorAlignment!
-    float_v::Memory x_mem[OuterCount];
-    float_v::Memory y_mem[OuterCount];
+    Mem10 x_mem;
+    Mem10 y_mem;
+    Mem10 r_mem;
+    Mem10 phi_mem;
 
     // fill the memory with values from -1.f to 1.f (a proper implementation would use a vectorized
     // RNG).
-    for (int i = 0; i < OuterCount; ++i) {
-        for (int j = 0; j < float_v::Size; ++j) {
-            x_mem[i][j] = std::rand() * TwoOverRandMax - 1.f;
-            y_mem[i][j] = std::rand() * TwoOverRandMax - 1.f;
-
-            std::cout << std::setw(3) << i * float_v::Size + j << ": ";
-            std::cout << std::setw(10) << x_mem[i][j] << ", " << std::setw(10) << y_mem[i][j] << '\n';
+    for (unsigned int i = 0; i < x_mem.vectorsCount(); ++i) {
+        Vc::Memory<float_v, 2 * float_v::Size> m;
+        // the following makes sure we get the same random number sequences regardless of float_v::Size
+        for (unsigned int j = 0; j < float_v::Size; ++j) {
+            m[j] = std::rand();
+            m[j + float_v::Size] = std::rand();
         }
+        x_mem.vector(i) = m.vector(0) * TwoOverRandMax - 1.f;
+        y_mem.vector(i) = m.vector(1) * TwoOverRandMax - 1.f;
     }
-    std::cout << "---------------------------\n";
 
     // calculate the polar coordinates for all coordinates and overwrite the euclidian coordinates
     // with the result
-    for (int i = 0; i < OuterCount; ++i) {
-        float_v x(x_mem[i]);
-        float_v y(y_mem[i]);
+    for (unsigned int i = 0; i < x_mem.vectorsCount(); ++i) {
+        const float_v x = x_mem.vector(i);
+        const float_v y = y_mem.vector(i);
 
-        float_v r = Vc::sqrt(x * x + y * y);
+        r_mem.vector(i) = Vc::sqrt(x * x + y * y);
         float_v phi = Vc::atan2(y, x) * (180. / M_PI);
         phi(phi < 0.f) += 360.f;
-
-        r.store(x_mem[i]);
-        phi.store(y_mem[i]);
+        phi_mem.vector(i) = phi;
     }
-
 
     // print the results
-    for (int i = 0; i < OuterCount; ++i) {
-        for (int j = 0; j < float_v::Size; ++j) {
-            std::cout << std::setw(3) << i * float_v::Size + j << ": ";
-            std::cout << std::setw(10) << x_mem[i][j] << ", " << std::setw(10) << y_mem[i][j] << '\n';
-        }
+    for (unsigned int i = 0; i < x_mem.entriesCount(); ++i) {
+        std::cout << std::setw(3) << i << ": ";
+        std::cout << std::setw(10) << x_mem[i] << ", " << std::setw(10) << y_mem[i] << " -> ";
+        std::cout << std::setw(10) << r_mem[i] << ", " << std::setw(10) << phi_mem[i] << '\n';
     }
-
-    std::cout << std::flush;
 
     return 0;
 }

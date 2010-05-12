@@ -40,7 +40,7 @@ class Matrix
         Matrix &operator=(const T &val) {
             V vec(val);
             for (unsigned int i = 0; i < m_mem.vectorsCount(); ++i) {
-                vec.store(m_mem.vector(i));
+                m_mem.vector(i) = vec;
             }
             return *this;
         }
@@ -49,7 +49,7 @@ class Matrix
             for (unsigned int i = 0; i < m_mem.vectorsCount(); ++i) {
                 V v1(m_mem.vector(i));
                 v1 += V(rhs.m_mem.vector(i));
-                v1.store(m_mem.vector(i));
+                m_mem.vector(i) = v1;
             }
             return *this;
         }

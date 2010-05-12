@@ -94,8 +94,8 @@ template<typename V, unsigned int Size> void TestVectors<V, Size>::test()
     const Memory<V, Size> &m2 = m;
     Memory<V> m3(Size);
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
-        x.store(m.vector(i));
-        x.store(m3.vector(i));
+        m.vector(i) = x;
+        m3.vector(i) = x;
     }
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
         COMPARE(V(m.vector(i)), x);
@@ -115,8 +115,8 @@ template<typename V, unsigned int Size> void TestVectorReorganization<V, Size>::
     Memory<V, Size> m;
     Memory<V> m3(Size);
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
-        x.store(m.vector(i));
-        x.store(m3.vector(i));
+        m.vector(i) = x;
+        m3.vector(i) = x;
         x += V::Size;
     }
     ///////////////////////////////////////////////////////////////////////////
