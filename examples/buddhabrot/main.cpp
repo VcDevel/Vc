@@ -159,6 +159,11 @@ static inline Z P(Z z, Z c)
     return z * z + c;
 }
 
+static inline Z::value_type fastNorm(const Z &z)
+{
+    return z.real() * z.real() + z.imag() * z.imag();
+}
+
 static const float reduceOffset = std::sqrt(0.2f);
 static const float reduceFactor = 1.f / (std::sqrt(1.2f) - reduceOffset);
 
@@ -230,12 +235,12 @@ void MainWindow::recreateImage()
         for (float imag = imagMin; imag <= imagMax; imag += imagStep) {
             Z c(real, imag);
             Z c2 = Z(1.08f * real + 0.15f, imag);
-            if (std::norm(Z(real + 1.f, imag)) < 0.06f || (std::real(c2) < 0.42f && std::norm(c2) < 0.417f)) {
+            if (fastNorm(Z(real + 1.f, imag)) < 0.06f || (std::real(c2) < 0.42f && fastNorm(c2) < 0.417f)) {
                 continue;
             }
             Z z = c;
             int n;
-            for (n = 0; n < maxIterations && std::norm(z) < S; ++n) {
+            for (n = 0; n < maxIterations && fastNorm(z) < S; ++n) {
                 z = P(z, c);
             }
             if (n < maxIterations) {
@@ -272,15 +277,15 @@ void MainWindow::recreateImage()
         for (float_v imag = imagMin2; imag <= imagMax; imag += imagStep2) {
             Z c(real, imag);
             Z c2 = Z(1.08f * real + 0.15f, imag);
-            if (std::norm(Z(real + 1.f, imag)) < 0.06f || (std::real(c2) < 0.42f && std::norm(c2) < 0.417f)) {
+            if (fastNorm(Z(real + 1.f, imag)) < 0.06f || (std::real(c2) < 0.42f && fastNorm(c2) < 0.417f)) {
                 continue;
             }
             Z z = c;
             int_v n(Vc::Zero);
-            int_m inside = std::norm(z) < S;
+            int_m inside = fastNorm(z) < S;
             while (!(inside && n < maxIterations).isEmpty()) {
                 z = P(z, c);
-                inside &= std::norm(z) < S;
+                inside &= fastNorm(z) < S;
                 ++n(inside);
             }
             if (inside.isFull()) {
