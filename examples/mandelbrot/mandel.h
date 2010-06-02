@@ -35,10 +35,6 @@ enum MandelImpl {
     VcImpl, ScalarImpl
 };
 
-template<MandelImpl Impl> struct ZHelper;
-template<> struct ZHelper<VcImpl>     { typedef std::complex<Vc::float_v> Z; };
-template<> struct ZHelper<ScalarImpl> { typedef std::complex<float>       Z; };
-
 class MandelBase : public QThread
 {
     Q_OBJECT
@@ -74,13 +70,5 @@ class Mandel : public MandelBase
 
     protected:
         void mandelMe(QImage &image, float x, float y, float scale, int maxIterations);
-
-    private:
-        typedef typename ZHelper<Impl>::Z Z;
-
-        inline Z P(Z z, Z c)
-        {
-            return z * z + c;
-        }
 };
 
