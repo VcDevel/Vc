@@ -159,6 +159,8 @@ namespace SSE
     static inline __m128i _mm_abs_epi8 (__m128i a) CONST;
     static inline __m128i _mm_abs_epi16(__m128i a) CONST;
     static inline __m128i _mm_abs_epi32(__m128i a) CONST;
+    static inline __m128i _mm_alignr_epi8(__m128i a, __m128i b, const int s) CONST;
+
     static inline __m128i _mm_abs_epi8 (__m128i a) {
         __m128i negative = _mm_cmplt_epi8 (a, _mm_setzero_si128());
         return _mm_add_epi8 (_mm_xor_si128(a, negative), _mm_and_si128(negative,  _mm_setone_epi8()));
@@ -184,7 +186,43 @@ namespace SSE
     static inline __m128i set1_epi8(int a) {
         return _mm_set1_epi8(a);
     }
-
+    static inline __m128i _mm_alignr_epi8(__m128i a, __m128i b, const int s) {
+        switch (s) {
+            case  0: return b;
+            case  1: return _mm_or_si128(_mm_slli_si128(a, 15), _mm_srli_si128(b,  1));
+            case  2: return _mm_or_si128(_mm_slli_si128(a, 14), _mm_srli_si128(b,  2));
+            case  3: return _mm_or_si128(_mm_slli_si128(a, 13), _mm_srli_si128(b,  3));
+            case  4: return _mm_or_si128(_mm_slli_si128(a, 12), _mm_srli_si128(b,  4));
+            case  5: return _mm_or_si128(_mm_slli_si128(a, 11), _mm_srli_si128(b,  5));
+            case  6: return _mm_or_si128(_mm_slli_si128(a, 10), _mm_srli_si128(b,  6));
+            case  7: return _mm_or_si128(_mm_slli_si128(a,  9), _mm_srli_si128(b,  7));
+            case  8: return _mm_or_si128(_mm_slli_si128(a,  8), _mm_srli_si128(b,  8));
+            case  9: return _mm_or_si128(_mm_slli_si128(a,  7), _mm_srli_si128(b,  9));
+            case 10: return _mm_or_si128(_mm_slli_si128(a,  6), _mm_srli_si128(b, 10));
+            case 11: return _mm_or_si128(_mm_slli_si128(a,  5), _mm_srli_si128(b, 11));
+            case 12: return _mm_or_si128(_mm_slli_si128(a,  4), _mm_srli_si128(b, 12));
+            case 13: return _mm_or_si128(_mm_slli_si128(a,  3), _mm_srli_si128(b, 13));
+            case 14: return _mm_or_si128(_mm_slli_si128(a,  2), _mm_srli_si128(b, 14));
+            case 15: return _mm_or_si128(_mm_slli_si128(a,  1), _mm_srli_si128(b, 15));
+            case 16: return a;
+            case 17: return _mm_srli_si128(a,  1);
+            case 18: return _mm_srli_si128(a,  2);
+            case 19: return _mm_srli_si128(a,  3);
+            case 20: return _mm_srli_si128(a,  4);
+            case 21: return _mm_srli_si128(a,  5);
+            case 22: return _mm_srli_si128(a,  6);
+            case 23: return _mm_srli_si128(a,  7);
+            case 24: return _mm_srli_si128(a,  8);
+            case 25: return _mm_srli_si128(a,  9);
+            case 26: return _mm_srli_si128(a, 10);
+            case 27: return _mm_srli_si128(a, 11);
+            case 28: return _mm_srli_si128(a, 12);
+            case 29: return _mm_srli_si128(a, 13);
+            case 30: return _mm_srli_si128(a, 14);
+            case 31: return _mm_srli_si128(a, 15);
+        }
+        return _mm_setzero_si128();
+    }
 
 } // namespace SSE
 } // namespace Vc
