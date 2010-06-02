@@ -18,66 +18,25 @@
 */
 
 /**
- * \headerfile vector.h <Vc/Vc>
- * A helper class to easily get aligned memory for aligned loads and stores.
+ * Type that simplifies scalar write access for a single vector object.
  *
- * Note that the class does not have a constructor or destructor and therefore can be used even in
- * places where only POD types are allowed.
- *
- * To initialize the memory do either:
+ * The following ways of initializing a vector are not allowed:
  * \code
- * float_v::Memory mem;
- * mem = float_v(Vc::Zero);
+ * int_v v(3, 2, 8, 0); // constructor does not exist because it is not portable
+ * int_v v;
+ * v[0] = 3; v[1] = 2; v[2] = 8; v[3] = 0; // scalar assignments are not implemented because they would harm performance
  * \endcode
- * or
+ *
+ * Instead, if really necessary you can do:
  * \code
- * float_v::Memory mem;
- * for (int i = 0; i < mem.size(); ++i) {
- *   mem[i] = static_cast<float>(i);
+ * int_v::Memory m;
+ * for (int i = 0; i < int_v::Size; ++i) {
+ *   m[i] = f(i);
  * }
+ * int_v v(m);
  * \endcode
  */
-class Memory
-{
-    public:
-        /**
-         * Returns the size of the memory. This equals the value of the Size enum of the vector
-         * class.
-         */
-        int size() const;
-
-        /**
-         * Returns a reference to the \p i th value in the memory. Use this function to write to the
-         * memory.
-         */
-        ENTRY_TYPE &operator[](int i);
-
-        /**
-         * Returns the value at the \p i th position in the memory.
-         */
-        ENTRY_TYPE operator[](int i) const;
-
-        /**
-         * Cast operator to a standard C-array type.
-         */
-        operator ENTRY_TYPE*();
-
-        /**
-         * Cast operator to a standard C-array type (const overload).
-         */
-        operator const ENTRY_TYPE*() const;
-
-        /**
-         * Standard copy constructor, but using the most efficient vector instructions to implement
-         * the copy.
-         */
-        Memory &operator=(const Memory &rhs);
-
-        /**
-         * Initialize the whole objects memory from the given vector object.
-         */
-        Memory &operator=(const VECTOR_TYPE &rhs);
-};
+typedef Memory<VECTOR_TYPE, VECTOR_TYPE::Size> Memory;
 
 /**
  * The type of the vector used for indexes in gather and scatter operations.
@@ -228,6 +187,22 @@ void storeStreaming(EntryType *alignedMemory) const;
  *              sure it is in range.
  */
 ENTRY_TYPE operator[](int index) const;
+
+/**
+ * Returns an object that can be used for any kind of masked assignment.
+ *
+ * The returned object is only to be used for assignments and should not be assigned to a variable.
+ *
+ * Examples:
+ * \code
+ * float_v v = float_v::Zero();         // v  = [0, 0, 0, 0]
+ * int_v v2 = int_v::IndexesFromZero(); // v2 = [0, 1, 2, 3]
+ * v(v2 < 2) = 1.f;                     // v  = [1, 1, 0, 0]
+ * v(v2 < 3) += 1.f;                    // v  = [2, 2, 1, 0]
+ * ++v2(v < 1.f);                       // v2 = [0, 1, 2, 4]
+ * \endcode
+ */
+MaskedVector operator()(const MASK_TYPE &mask);
 
 /**
  * \name Gather and Scatter Functions

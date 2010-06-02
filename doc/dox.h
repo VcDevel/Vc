@@ -40,6 +40,9 @@
  * \li Vc::short_m
  * \li Vc::ushort_m
  *
+ * \li Vc::Memory
+ * \li Vc::Memory< V, 0u >
+ *
  * Per default, code compiled against the Vc headers will use the instruction set that the compiler
  * says is available. For example compiling with "g++ -mssse3" will enable compilation against the
  * SSE implementation using SSE the instruction sets SSE, SSE2, SSE3 and SSSE3. If you want to force
