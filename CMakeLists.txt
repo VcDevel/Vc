@@ -3,8 +3,9 @@ project(Vc)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include (MacroEnsureVersion)
+include (OptimizeForArchitecture)
+include (AddCompilerFlag)
 
-find_package(SSE)
 find_package(Larrabee)
 if(LARRABEE_FOUND)
    include_directories(${LRB_HOST_INCLUDE_DIR})
@@ -40,8 +41,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
    ##################################################################################################
    #                                              GCC                                               #
    ##################################################################################################
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wno-variadic-macros -msse -msse2 -Wshadow -fno-threadsafe-statics")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wno-variadic-macros -msse -msse2 -Wshadow -fno-threadsafe-statics")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wno-variadic-macros -Wshadow")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wno-variadic-macros -Wshadow")
+   AddCompilerFlag("-fno-threadsafe-statics")
    set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
    set(CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL} ")
    set(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -O3")
@@ -51,18 +53,11 @@ if(CMAKE_COMPILER_IS_GNUCXX)
    set(CMAKE_C_FLAGS_RELEASE        "${CMAKE_C_FLAGS_RELEASE} -O3")
    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DNDEBUG -O3")
 
-   # get the gcc version
-   exec_program(${CMAKE_C_COMPILER} ARGS --version OUTPUT_VARIABLE _gcc_version_info)
-
-   string (REGEX MATCH "[345]\\.[0-9]\\.[0-9]" _gcc_version "${_gcc_version_info}")
-   # gcc on mac just reports: "gcc (GCC) 3.3 20030304 ..." without the patch level, handle this here:
-   if (NOT _gcc_version)
-      string (REGEX REPLACE ".*\\(GCC\\).* ([34]\\.[0-9]) .*" "\\1.0" _gcc_version "${_gcc_version_info}")
-   endif (NOT _gcc_version)
-
+   # check the gcc version
+   exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE _gcc_version)
    macro_ensure_version("4.4.1" "${_gcc_version}" GCC_4_4_1)
    if(NOT GCC_4_4_1)
-      message(STATUS "\n-- \n-- WARNING: Your gcc is older than 4.4.1. This is known to cause problems/bugs. Please update to the latest gcc.\n-- \n-- ")
+      message(STATUS "\n-- \n-- NOTE: Your gcc is older than 4.4.1. This is known to cause problems/bugs. Please update to the latest gcc if you can.\n-- \n-- ")
    endif(NOT GCC_4_4_1)
 
    if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
@@ -74,32 +69,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
          set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fno-strict-aliasing ")
       endif(NOT ENABLE_STRICT_ALIASING)
    endif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-
-   set(USE_SSE3   ${SSE3_FOUND}   CACHE BOOL "Use SSE3. If SSE3 instructions are not enabled they will be emulated.")
-   set(USE_SSSE3  ${SSSE3_FOUND}  CACHE BOOL "Use SSSE3. If SSSE3 instructions are not enabled they will be emulated.")
-   set(USE_SSE4_1 ${SSE4_1_FOUND} CACHE BOOL "Use SSE4.1. If SSE4.1 instructions are not enabled they will be emulated.")
-
-   # TODO: check for Core2/Nehalem/AMD Family 10
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=core2")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=core2")
-
-   #core2 implies SSSE3
-
-   if(NOT USE_SSSE3)
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mno-ssse3")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mno-ssse3")
-   endif(NOT USE_SSSE3)
-
-   if(NOT USE_SSE3)
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mno-sse3")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mno-sse3")
-   endif(NOT USE_SSE3)
-
-   if(USE_SSE4_1)
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.1")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
-   endif(USE_SSE4_1)
-
 elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
    ##################################################################################################
    #                                          Intel Compiler                                        #
@@ -124,6 +93,8 @@ elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
 elseif(MSVC)
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif(CMAKE_COMPILER_IS_GNUCXX)
+
+OptimizeForArchitecture()
 
 if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
    message(STATUS "WARNING! It seems you are compiling without optimization. Please set CMAKE_BUILD_TYPE.")
