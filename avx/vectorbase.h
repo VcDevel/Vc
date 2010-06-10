@@ -3,22 +3,22 @@
     Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
+    it under the terms of the GNU Leavxr General Public License as
     published by the Free Software Foundation, either version 3 of
     the License, or (at your option) any later version.
 
     Vc is distributed in the hope that it will be useful, but
     WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    GNU Leavxr General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU Leavxr General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-#ifndef SSE_VECTORBASE_H
-#define SSE_VECTORBASE_H
+#ifndef AVX_VECTORBASE_H
+#define AVX_VECTORBASE_H
 
 #include "intrinsics.h"
 #include "types.h"
@@ -27,7 +27,7 @@
 
 namespace Vc
 {
-namespace SSE
+namespace AVX
 {
     template<typename T> class VectorBase {
         friend struct VectorHelperSize<float>;
@@ -167,6 +167,6 @@ namespace SSE
             VectorMemoryUnion<VectorType, EntryType> d;
     };
 
-} // namespace SSE
+} // namespace AVX
 } // namespace Vc
-#endif // SSE_VECTORBASE_H
+#endif // AVX_VECTORBASE_H

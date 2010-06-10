@@ -3,29 +3,29 @@
     Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
+    it under the terms of the GNU Leavxr General Public License as
     published by the Free Software Foundation, either version 3 of
     the License, or (at your option) any later version.
 
     Vc is distributed in the hope that it will be useful, but
     WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    GNU Leavxr General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU Leavxr General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-#ifndef SSE_CASTS_H
-#define SSE_CASTS_H
+#ifndef AVX_CASTS_H
+#define AVX_CASTS_H
 
 #include "intrinsics.h"
 #include "types.h"
 
 namespace Vc
 {
-namespace SSE
+namespace AVX
 {
     template<typename To, typename From> static inline To mm128_reinterpret_cast(From v) CONST;
     template<typename To, typename From> static inline To mm128_reinterpret_cast(From v) { return v; }
@@ -101,7 +101,7 @@ namespace SSE
     template<> struct ReinterpretCastHelper<unsigned short, unsigned short> { static _M128I cast(const _M128I &v) { return v; } };
     template<> struct ReinterpretCastHelper<short         , unsigned short> { static _M128I cast(const _M128I &v) { return v; } };
     template<> struct ReinterpretCastHelper<short         , short         > { static _M128I cast(const _M128I &v) { return v; } };
-} // namespace SSE
+} // namespace AVX
 } // namespace Vc
 
-#endif // SSE_CASTS_H
+#endif // AVX_CASTS_H

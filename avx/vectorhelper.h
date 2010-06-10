@@ -3,16 +3,16 @@
     Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
+    it under the terms of the GNU Leavxr General Public License as
     published by the Free Software Foundation, either version 3 of
     the License, or (at your option) any later version.
 
     Vc is distributed in the hope that it will be useful, but
     WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    GNU Leavxr General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU Leavxr General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
 */
@@ -45,15 +45,15 @@
   (this is the zlib license)
 */
 
-#ifndef SSE_VECTORHELPER_H
-#define SSE_VECTORHELPER_H
+#ifndef AVX_VECTORHELPER_H
+#define AVX_VECTORHELPER_H
 
 #include "vectorbase.h"
 #include <limits>
 
 namespace Vc
 {
-namespace SSE
+namespace AVX
 {
     template<typename T> struct GatherHelper
     {
@@ -434,7 +434,7 @@ namespace SSE
             }
 #undef SUFFIX
             static inline VectorType round(VectorType a) {
-#if VC_IMPL_SSE4_1
+#if VC_IMPL_AVX4_1
                 return _mm_round_pd(a, _MM_FROUND_NINT);
 #else
                 //XXX: slow: _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
@@ -572,7 +572,7 @@ namespace SSE
             }
 #undef SUFFIX
             static inline VectorType round(VectorType a) {
-#if VC_IMPL_SSE4_1
+#if VC_IMPL_AVX4_1
                 return _mm_round_ps(a, _MM_FROUND_NINT);
 #else
                 //XXX slow: _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
@@ -700,7 +700,7 @@ namespace SSE
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-#if VC_IMPL_SSE4_1
+#if VC_IMPL_AVX4_1
             static inline VectorType mul(VectorType a, VectorType b) { return _mm_mullo_epi32(a, b); }
             static inline EntryType mul(VectorType a) {
                 a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
@@ -986,10 +986,10 @@ namespace SSE
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
             static inline VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
-#if VC_IMPL_SSE4_1
+#if VC_IMPL_AVX4_1
             static inline _M128I concat(_M128I a, _M128I b) { return _mm_packus_epi32(a, b); }
 #else
-            // XXX too bad, but this is broken without SSE 4.1
+            // XXX too bad, but this is broken without AVX 4.1
             static inline _M128I concat(_M128I a, _M128I b) { return _mm_packs_epi32(a, b); }
 #endif
             static inline _M128I expand0(_M128I x) { return _mm_srli_epi32(_mm_unpacklo_epi16(x, x), 16); }
@@ -1046,14 +1046,14 @@ namespace SSE
 //X                 }
 //X                 return mul(a, set(b));
 //X             }
-#if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || VC_IMPL_SSE4_1
+#if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || VC_IMPL_AVX4_1
             OP(min) OP(max)
 #endif
 #undef SUFFIX
 #define SUFFIX epi16
             SHIFT8
             OPx(mul, mullo) // should work correctly for all values
-#if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(VC_IMPL_SSE4_1)
+#if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(VC_IMPL_AVX4_1)
             OP(min) OP(max) // XXX breaks for values with MSB set
 #endif
             static inline EntryType min(VectorType a) {
@@ -1120,9 +1120,9 @@ namespace SSE
 #undef OPx
 #undef OPcmp
 
-} // namespace SSE
+} // namespace AVX
 } // namespace Vc
 
 #include "vectorhelper.tcc"
 
-#endif // SSE_VECTORHELPER_H
+#endif // AVX_VECTORHELPER_H

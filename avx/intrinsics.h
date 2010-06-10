@@ -3,32 +3,32 @@
     Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
+    it under the terms of the GNU Leavxr General Public License as
     published by the Free Software Foundation, either version 3 of
     the License, or (at your option) any later version.
 
     Vc is distributed in the hope that it will be useful, but
     WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    GNU Leavxr General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU Leavxr General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-#ifndef SSE_INTRINSICS_H
-#define SSE_INTRINSICS_H
+#ifndef AVX_INTRINSICS_H
+#define AVX_INTRINSICS_H
 
 // MMX
 #include <mmintrin.h>
-// SSE
+// AVX
 #include <xmmintrin.h>
-// SSE2
+// AVX2
 #include <emmintrin.h>
 
-#if defined(__GNUC__) && !defined(VC_IMPL_SSE2)
-#error "SSE Vector class needs at least SSE2"
+#if defined(__GNUC__) && !defined(VC_IMPL_AVX2)
+#error "AVX Vector class needs at least AVX2"
 #endif
 
 #include "const.h"
@@ -37,7 +37,7 @@
 
 namespace Vc
 {
-namespace SSE
+namespace AVX
 {
     static inline __m128i _mm_setallone() CONST;
     static inline __m128i _mm_setallone_si128() CONST;
@@ -70,7 +70,7 @@ namespace SSE
     static inline __m128i _mm_cmplt_epu32(__m128i a, __m128i b) CONST;
     static inline __m128i _mm_cmpgt_epu32(__m128i a, __m128i b) CONST;
 
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ < 6 && !defined(VC_DONT_FIX_SSE_SHIFT)
+#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ < 6 && !defined(VC_DONT_FIX_AVX_SHIFT)
     static inline __m128i _mm_sll_epi16(__m128i a, __m128i count) CONST;
     static inline __m128i _mm_sll_epi16(__m128i a, __m128i count) { __asm__("psllw %1,%0" : "+x"(a) : "x"(count)); return a; }
     static inline __m128i _mm_sll_epi32(__m128i a, __m128i count) CONST;
@@ -125,19 +125,19 @@ namespace SSE
             _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
     static inline __m128i _mm_cmpgt_epu32(__m128i a, __m128i b) { return _mm_cmpgt_epi32(
             _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
-} // namespace SSE
+} // namespace AVX
 } // namespace Vc
 
-// SSE3
-#ifdef VC_IMPL_SSE3
+// AVX3
+#ifdef VC_IMPL_AVX3
 #include <pmmintrin.h>
 #endif
-// SSSE3
-#ifdef VC_IMPL_SSSE3
+// SAVX3
+#ifdef VC_IMPL_SAVX3
 #include <tmmintrin.h>
 namespace Vc
 {
-namespace SSE
+namespace AVX
 {
 
     static inline __m128i set1_epi8(int a) {
@@ -149,12 +149,12 @@ namespace SSE
 #endif
     }
 
-} // namespace SSE
+} // namespace AVX
 } // namespace Vc
 #else
 namespace Vc
 {
-namespace SSE
+namespace AVX
 {
     static inline __m128i _mm_abs_epi8 (__m128i a) CONST;
     static inline __m128i _mm_abs_epi16(__m128i a) CONST;
@@ -224,18 +224,18 @@ namespace SSE
         return _mm_setzero_si128();
     }
 
-} // namespace SSE
+} // namespace AVX
 } // namespace Vc
 
 #endif
 
-// SSE4.1
-#ifdef VC_IMPL_SSE4_1
+// AVX4.1
+#ifdef VC_IMPL_AVX4_1
 #include <smmintrin.h>
 #else
 namespace Vc
 {
-namespace SSE
+namespace AVX
 {
     static inline __m128d _mm_blendv_pd(__m128d a, __m128d b, __m128d c) CONST ALWAYS_INLINE;
     static inline __m128  _mm_blendv_ps(__m128  a, __m128  b, __m128  c) CONST ALWAYS_INLINE;
@@ -430,8 +430,8 @@ namespace SSE
     static inline __m128i _mm_min_epi32(__m128i a, __m128i b) {
         return _mm_blendv_epi8(a, b, _mm_cmpgt_epi32(a, b));
     }
-} // namespace SSE
+} // namespace AVX
 } // namespace Vc
 #endif
 
-#endif // SSE_INTRINSICS_H
+#endif // AVX_INTRINSICS_H

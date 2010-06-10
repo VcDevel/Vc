@@ -3,28 +3,28 @@
     Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
+    it under the terms of the GNU Leavxr General Public License as
     published by the Free Software Foundation, either version 3 of
     the License, or (at your option) any later version.
 
     Vc is distributed in the hope that it will be useful, but
     WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    GNU Leavxr General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU Leavxr General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-#ifndef SSE_MASK_H
-#define SSE_MASK_H
+#ifndef AVX_MASK_H
+#define AVX_MASK_H
 
 #include "intrinsics.h"
 
 namespace Vc
 {
-namespace SSE
+namespace AVX
 {
 
 template<unsigned int Size1> struct MaskHelper;
@@ -161,7 +161,7 @@ struct ForeachHelper
 };
 
 #define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::SSE::ForeachHelper _Vc_foreach_bit_helper((_mask_).toInt()); _Vc_foreach_bit_helper.outer(); ) \
+    for (Vc::AVX::ForeachHelper _Vc_foreach_bit_helper((_mask_).toInt()); _Vc_foreach_bit_helper.outer(); ) \
         for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
 
 #define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
@@ -472,13 +472,13 @@ class Float8GatherMask
  *             mask.
  */
 //X #define foreach_bit(it, mask)
-//X     for (int _sse_vector_foreach_inner = 1, ForeachScope _sse_vector_foreach_scope(mask.toInt()), int it = _sse_vector_foreach_scope.bit(); _sse_vector_foreach_inner; --_sse_vector_foreach_inner)
-//X     for (int _sse_vector_foreach_mask = (mask).toInt(), int _sse_vector_foreach_it = _sse_bitscan(mask.toInt());
-//X             _sse_vector_foreach_it > 0;
-//X             _sse_vector_foreach_it = _sse_bitscan_initialized(_sse_vector_foreach_it, mask.data()))
-//X         for (int _sse_vector_foreach_inner = 1, it = _sse_vector_foreach_it; _sse_vector_foreach_inner; --_sse_vector_foreach_inner)
+//X     for (int _avx_vector_foreach_inner = 1, ForeachScope _avx_vector_foreach_scope(mask.toInt()), int it = _avx_vector_foreach_scope.bit(); _avx_vector_foreach_inner; --_avx_vector_foreach_inner)
+//X     for (int _avx_vector_foreach_mask = (mask).toInt(), int _avx_vector_foreach_it = _avx_bitscan(mask.toInt());
+//X             _avx_vector_foreach_it > 0;
+//X             _avx_vector_foreach_it = _avx_bitscan_initialized(_avx_vector_foreach_it, mask.data()))
+//X         for (int _avx_vector_foreach_inner = 1, it = _avx_vector_foreach_it; _avx_vector_foreach_inner; --_avx_vector_foreach_inner)
 
-} // namespace SSE
+} // namespace AVX
 } // namespace Vc
 
-#endif // SSE_MASK_H
+#endif // AVX_MASK_H

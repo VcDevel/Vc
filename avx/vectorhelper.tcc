@@ -3,16 +3,16 @@
     Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
+    it under the terms of the GNU Leavxr General Public License as
     published by the Free Software Foundation, either version 3 of
     the License, or (at your option) any later version.
 
     Vc is distributed in the hope that it will be useful, but
     WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    GNU Leavxr General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU Leavxr General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
 */
@@ -47,7 +47,7 @@
 
 namespace Vc
 {
-namespace SSE
+namespace AVX
 {
     template<> inline _M128I SortHelper<_M128I, 8>::sort(_M128I x)
     {
@@ -197,7 +197,7 @@ namespace SSE
          *
          * 1. iteration from 0 to Size using branching to conditionally execute one value move
          * 2. iteration from 0 to Size using conditional moves with some trickery (the cmov always
-         *    accesses the source memory, thus possibly leading to invalid memory accesses if the
+         *    acceavxs the source memory, thus possibly leading to invalid memory acceavxs if the
          *    condition is false; this can be solved by another cmov that sets the index to 0 on the
          *    inverted condition)
          * 3. extract the bit positions from the mask using bsf and btr and loop while bsf does not
@@ -1015,7 +1015,7 @@ namespace SSE
     // There is no equivalent to the set intrinsics. Therefore the vector entries are copied in
     // memory instead from the xmm register directly.
     //
-    // TODO: With SSE 4.1 the extract intrinsics might be an interesting option, though.
+    // TODO: With AVX 4.1 the extract intrinsics might be an interesting option, though.
     //
     template<typename T> inline void ScatterHelper<T>::scatter(
             const Base &v, const IndexType &indexes, EntryType *baseAddr) {
@@ -1084,8 +1084,8 @@ namespace SSE
             case 1024: return H::slli(x.data(), 10);
             case 2048: return H::slli(x.data(), 11);
         }
-#ifndef VC_IMPL_SSE4_1
-        // without SSE 4.1 int multiplication is not so nice
+#ifndef VC_IMPL_AVX4_1
+        // without AVX 4.1 int multiplication is not so nice
         if (sizeof(typename IndexType::EntryType) == 4) {
             switch (constant) {
                 case    3: return H::add(        x.data()    , H::slli(x.data(),  1));
@@ -1159,7 +1159,7 @@ namespace SSE
 #endif
         return H::mul(x.data(), H::set(constant));
     }
-} // namespace SSE
+} // namespace AVX
 } // namespace Vc
 
 #undef SLOWDOWN_ASM
