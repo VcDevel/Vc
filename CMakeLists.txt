@@ -107,7 +107,7 @@ add_target_property(Vc COMPILE_FLAGS "-DVC_COMPILE_LIB")
 
 install(TARGETS Vc DESTINATION lib/)
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
-install(DIRECTORY larrabee simple sse common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+install(DIRECTORY larrabee simple sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 include (CTest)
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)

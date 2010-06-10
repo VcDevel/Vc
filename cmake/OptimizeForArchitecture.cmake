@@ -155,6 +155,18 @@ macro(OptimizeForArchitecture)
    else(USE_SSE2)
       list(APPEND _disable_vector_unit_list "sse2" "sse3" "ssse3" "sse4.1" "sse4.2" "sse4a")
    endif(USE_SSE2)
+   _my_find(_available_vector_units_list "avx" AVX_FOUND)
+   set(USE_AVX ${AVX_FOUND} CACHE BOOL "Use AVX. If AVX instructions are not enabled the AVX implementation will be disabled.")
+   if(USE_AVX)
+      list(APPEND _enable_vector_unit_list "avx")
+      # we want to see what a real SSE binary would perform like on an "AVX chip".
+      # This is true for the Vc benchmarking. For production code purposes the
+      # requirement might be different.
+      list(APPEND _disable_vector_unit_list "sse2avx")
+   else(USE_AVX)
+      list(APPEND _disable_vector_unit_list "avx")
+   endif(USE_AVX)
+
    foreach(_flag ${_march_flag_list})
       AddCompilerFlag("-march=${_flag}" _good)
       if(_good)
