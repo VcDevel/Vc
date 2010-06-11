@@ -54,7 +54,7 @@ namespace AVX
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(T) };
-            typedef _M128I VectorType ALIGN(16);
+            typedef _M256I VectorType ALIGN(16);
             typedef T EntryType;
             typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
@@ -128,7 +128,7 @@ namespace AVX
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(float) };
-            typedef _M128 VectorType ALIGN(16);
+            typedef _M256 VectorType ALIGN(16);
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
@@ -151,7 +151,7 @@ namespace AVX
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(double) };
-            typedef _M128D VectorType ALIGN(16);
+            typedef _M256D VectorType ALIGN(16);
             typedef double EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;

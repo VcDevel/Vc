@@ -30,10 +30,10 @@
 #endif
 
 #define FREE_STORE_OPERATORS_ALIGNED(alignment) \
-        void *operator new(size_t size) { return _mm_malloc(size, alignment); } \
-        void *operator new[](size_t size) { return _mm_malloc(size, alignment); } \
-        void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
-        void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
+        void *operator new(size_t size) { return _mm256_malloc(size, alignment); } \
+        void *operator new[](size_t size) { return _mm256_malloc(size, alignment); } \
+        void operator delete(void *ptr, size_t) { _mm256_free(ptr); } \
+        void operator delete[](void *ptr, size_t) { _mm256_free(ptr); }
 
 #ifdef __GNUC__
 #define CONST __attribute__((const))
@@ -70,21 +70,21 @@ do {} while ( false )
 #define for_all_vector_entries(_it_, _code_) \
   unrolled_loop16(_it_, 0, Size, _code_)
 
-#ifndef _M128
-# define _M128 __m128
+#ifndef _M256
+# define _M256 __m256
 #endif
 
-#ifndef _M128I
-# define _M128I __m128i
+#ifndef _M256I
+# define _M256I __m256i
 #endif
 
-#ifndef _M128D
-# define _M128D __m128d
+#ifndef _M256D
+# define _M256D __m256d
 #endif
 
 #define STORE_VECTOR(type, name, vec) \
-    union { __m128i p; type v[16 / sizeof(type)]; } CAT(u, __LINE__); \
-    _mm_store_si128(&CAT(u, __LINE__).p, vec); \
+    union { __m256i p; type v[16 / sizeof(type)]; } CAT(u, __LINE__); \
+    _mm256_store_si128(&CAT(u, __LINE__).p, vec); \
     const type *const name = &CAT(u, __LINE__).v[0]
 
 #if defined(VC_IMPL_AVX4_1) && !defined(VC_DISABLE_PTEST)

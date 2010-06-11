@@ -40,12 +40,12 @@ namespace AVX
     class M256 {
         public:
             //inline M256() {}
-            //inline M256(_M128 a, _M128 b) { d[0] = a; d[1] = b; }
-            static inline M256 create(_M128 a, _M128 b) { M256 r; r.d[0] = a; r.d[1] = b; return r; }
-            inline _M128 &operator[](int i) { return d[i]; }
-            inline const _M128 &operator[](int i) const { return d[i]; }
+            //inline M256(_M256 a, _M256 b) { d[0] = a; d[1] = b; }
+            static inline M256 create(_M256 a, _M256 b) { M256 r; r.d[0] = a; r.d[1] = b; return r; }
+            inline _M256 &operator[](int i) { return d[i]; }
+            inline const _M256 &operator[](int i) const { return d[i]; }
         private:
-            _M128 d[2];
+            _M256 d[2];
     };
 
     template<typename T> struct VectorHelper {};

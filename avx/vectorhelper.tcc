@@ -49,135 +49,135 @@ namespace Vc
 {
 namespace AVX
 {
-    template<> inline _M128I SortHelper<_M128I, 8>::sort(_M128I x)
+    template<> inline _M256I SortHelper<_M256I, 8>::sort(_M256I x)
     {
-        _M128I lo, hi, y;
+        _M256I lo, hi, y;
         // sort pairs
-        y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1));
-        lo = _mm_min_epi16(x, y);
-        hi = _mm_max_epi16(x, y);
-        x = _mm_blend_epi16(lo, hi, 0xaa);
+        y = _mm256_shufflelo_epi16(_mm256_shufflehi_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1));
+        lo = _mm256_min_epi16(x, y);
+        hi = _mm256_max_epi16(x, y);
+        x = _mm256_blend_epi16(lo, hi, 0xaa);
 
         // merge left and right quads
-        y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)), _MM_SHUFFLE(0, 1, 2, 3));
-        lo = _mm_min_epi16(x, y);
-        hi = _mm_max_epi16(x, y);
-        x = _mm_blend_epi16(lo, hi, 0xcc);
-        y = _mm_srli_si128(x, 2);
-        lo = _mm_min_epi16(x, y);
-        hi = _mm_max_epi16(x, y);
-        x = _mm_blend_epi16(lo, _mm_slli_si128(hi, 2), 0xaa);
+        y = _mm256_shufflelo_epi16(_mm256_shufflehi_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)), _MM_SHUFFLE(0, 1, 2, 3));
+        lo = _mm256_min_epi16(x, y);
+        hi = _mm256_max_epi16(x, y);
+        x = _mm256_blend_epi16(lo, hi, 0xcc);
+        y = _mm256_srli_si128(x, 2);
+        lo = _mm256_min_epi16(x, y);
+        hi = _mm256_max_epi16(x, y);
+        x = _mm256_blend_epi16(lo, _mm256_slli_si128(hi, 2), 0xaa);
 
         // merge quads into octs
-        y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
-        y = _mm_shufflelo_epi16(y, _MM_SHUFFLE(0, 1, 2, 3));
-        lo = _mm_min_epi16(x, y);
-        hi = _mm_max_epi16(x, y);
+        y = _mm256_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
+        y = _mm256_shufflelo_epi16(y, _MM_SHUFFLE(0, 1, 2, 3));
+        lo = _mm256_min_epi16(x, y);
+        hi = _mm256_max_epi16(x, y);
 
-        x = _mm_unpacklo_epi16(lo, hi);
-        y = _mm_srli_si128(x, 8);
-        lo = _mm_min_epi16(x, y);
-        hi = _mm_max_epi16(x, y);
+        x = _mm256_unpacklo_epi16(lo, hi);
+        y = _mm256_srli_si128(x, 8);
+        lo = _mm256_min_epi16(x, y);
+        hi = _mm256_max_epi16(x, y);
 
-        x = _mm_unpacklo_epi16(lo, hi);
-        y = _mm_srli_si128(x, 8);
-        lo = _mm_min_epi16(x, y);
-        hi = _mm_max_epi16(x, y);
+        x = _mm256_unpacklo_epi16(lo, hi);
+        y = _mm256_srli_si128(x, 8);
+        lo = _mm256_min_epi16(x, y);
+        hi = _mm256_max_epi16(x, y);
 
-        return _mm_unpacklo_epi16(lo, hi);
+        return _mm256_unpacklo_epi16(lo, hi);
     }
-    template<> inline _M128I SortHelper<_M128I, 4>::sort(_M128I x)
+    template<> inline _M256I SortHelper<_M256I, 4>::sort(_M256I x)
     {
         /*
         // in 16,67% of the cases the merge can be replaced by an append
 
         // x = [a b c d]
         // y = [c d a b]
-        _M128I y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
-        _M128I l = _mm_min_epi32(x, y); // min[ac bd ac bd]
-        _M128I h = _mm_max_epi32(x, y); // max[ac bd ac bd]
-        if (IS_UNLIKELY(_mm_cvtsi128_si32(h) <= l[1])) { // l[0] < h[0] < l[1] < h[1]
-            return _mm_unpacklo_epi32(l, h);
+        _M256I y = _mm256_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
+        _M256I l = _mm256_min_epi32(x, y); // min[ac bd ac bd]
+        _M256I h = _mm256_max_epi32(x, y); // max[ac bd ac bd]
+        if (IS_UNLIKELY(_mm256_cvtsi128_si32(h) <= l[1])) { // l[0] < h[0] < l[1] < h[1]
+            return _mm256_unpacklo_epi32(l, h);
         }
         // h[0] > l[1]
         */
 
         // sort pairs
-        _M128I y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
-        _M128I l = _mm_min_epi32(x, y);
-        _M128I h = _mm_max_epi32(x, y);
-        x = _mm_unpacklo_epi32(l, h);
-        y = _mm_unpackhi_epi32(h, l);
+        _M256I y = _mm256_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
+        _M256I l = _mm256_min_epi32(x, y);
+        _M256I h = _mm256_max_epi32(x, y);
+        x = _mm256_unpacklo_epi32(l, h);
+        y = _mm256_unpackhi_epi32(h, l);
 
         // sort quads
-        l = _mm_min_epi32(x, y);
-        h = _mm_max_epi32(x, y);
-        x = _mm_unpacklo_epi32(l, h);
-        y = _mm_unpackhi_epi64(x, x);
+        l = _mm256_min_epi32(x, y);
+        h = _mm256_max_epi32(x, y);
+        x = _mm256_unpacklo_epi32(l, h);
+        y = _mm256_unpackhi_epi64(x, x);
 
-        l = _mm_min_epi32(x, y);
-        h = _mm_max_epi32(x, y);
-        return _mm_unpacklo_epi32(l, h);
+        l = _mm256_min_epi32(x, y);
+        h = _mm256_max_epi32(x, y);
+        return _mm256_unpacklo_epi32(l, h);
     }
-    template<> inline _M128 SortHelper<_M128, 4>::sort(_M128 x)
+    template<> inline _M256 SortHelper<_M256, 4>::sort(_M256 x)
     {
-        _M128 y = _mm_shuffle_ps(x, x, _MM_SHUFFLE(2, 3, 0, 1));
-        _M128 l = _mm_min_ps(x, y);
-        _M128 h = _mm_max_ps(x, y);
-        x = _mm_unpacklo_ps(l, h);
-        y = _mm_unpackhi_ps(h, l);
+        _M256 y = _mm256_shuffle_ps(x, x, _MM_SHUFFLE(2, 3, 0, 1));
+        _M256 l = _mm256_min_ps(x, y);
+        _M256 h = _mm256_max_ps(x, y);
+        x = _mm256_unpacklo_ps(l, h);
+        y = _mm256_unpackhi_ps(h, l);
 
-        l = _mm_min_ps(x, y);
-        h = _mm_max_ps(x, y);
-        x = _mm_unpacklo_ps(l, h);
-        y = _mm_movehl_ps(x, x);
+        l = _mm256_min_ps(x, y);
+        h = _mm256_max_ps(x, y);
+        x = _mm256_unpacklo_ps(l, h);
+        y = _mm256_movehl_ps(x, x);
 
-        l = _mm_min_ps(x, y);
-        h = _mm_max_ps(x, y);
-        return _mm_unpacklo_ps(l, h);
-//X         _M128 k = _mm_cmpgt_ps(x, y);
-//X         k = _mm_shuffle_ps(k, k, _MM_SHUFFLE(2, 2, 0, 0));
-//X         x = _mm_blendv_ps(x, y, k);
-//X         y = _mm_shuffle_ps(x, x, _MM_SHUFFLE(1, 0, 3, 2));
-//X         k = _mm_cmpgt_ps(x, y);
-//X         k = _mm_shuffle_ps(k, k, _MM_SHUFFLE(1, 0, 1, 0));
-//X         x = _mm_blendv_ps(x, y, k);
-//X         y = _mm_shuffle_ps(x, x, _MM_SHUFFLE(3, 1, 2, 0));
-//X         k = _mm_cmpgt_ps(x, y);
-//X         k = _mm_shuffle_ps(k, k, _MM_SHUFFLE(0, 1, 1, 0));
-//X         return _mm_blendv_ps(x, y, k);
+        l = _mm256_min_ps(x, y);
+        h = _mm256_max_ps(x, y);
+        return _mm256_unpacklo_ps(l, h);
+//X         _M256 k = _mm256_cmpgt_ps(x, y);
+//X         k = _mm256_shuffle_ps(k, k, _MM_SHUFFLE(2, 2, 0, 0));
+//X         x = _mm256_blendv_ps(x, y, k);
+//X         y = _mm256_shuffle_ps(x, x, _MM_SHUFFLE(1, 0, 3, 2));
+//X         k = _mm256_cmpgt_ps(x, y);
+//X         k = _mm256_shuffle_ps(k, k, _MM_SHUFFLE(1, 0, 1, 0));
+//X         x = _mm256_blendv_ps(x, y, k);
+//X         y = _mm256_shuffle_ps(x, x, _MM_SHUFFLE(3, 1, 2, 0));
+//X         k = _mm256_cmpgt_ps(x, y);
+//X         k = _mm256_shuffle_ps(k, k, _MM_SHUFFLE(0, 1, 1, 0));
+//X         return _mm256_blendv_ps(x, y, k);
     }
     template<> inline M256 SortHelper<M256, 8>::sort(M256 x)
     {
-        typedef SortHelper<_M128, 4> H;
+        typedef SortHelper<_M256, 4> H;
 
-        _M128 a, b, l, h;
+        _M256 a, b, l, h;
         a = H::sort(x[0]);
         b = H::sort(x[1]);
 
         // merge
-        b = _mm_shuffle_ps(b, b, _MM_SHUFFLE(0, 1, 2, 3));
-        l = _mm_min_ps(a, b);
-        h = _mm_max_ps(a, b);
+        b = _mm256_shuffle_ps(b, b, _MM_SHUFFLE(0, 1, 2, 3));
+        l = _mm256_min_ps(a, b);
+        h = _mm256_max_ps(a, b);
 
-        a = _mm_unpacklo_ps(l, h);
-        b = _mm_unpackhi_ps(l, h);
-        l = _mm_min_ps(a, b);
-        h = _mm_max_ps(a, b);
+        a = _mm256_unpacklo_ps(l, h);
+        b = _mm256_unpackhi_ps(l, h);
+        l = _mm256_min_ps(a, b);
+        h = _mm256_max_ps(a, b);
 
-        a = _mm_unpacklo_ps(l, h);
-        b = _mm_unpackhi_ps(l, h);
-        l = _mm_min_ps(a, b);
-        h = _mm_max_ps(a, b);
+        a = _mm256_unpacklo_ps(l, h);
+        b = _mm256_unpackhi_ps(l, h);
+        l = _mm256_min_ps(a, b);
+        h = _mm256_max_ps(a, b);
 
-        x[0] = _mm_unpacklo_ps(l, h);
-        x[1] = _mm_unpackhi_ps(l, h);
+        x[0] = _mm256_unpacklo_ps(l, h);
+        x[1] = _mm256_unpackhi_ps(l, h);
         return x;
     }
-    template<> inline _M128D SortHelper<_M128D, 2>::sort(_M128D x)
+    template<> inline _M256D SortHelper<_M256D, 2>::sort(_M256D x)
     {
-        const _M128D y = _mm_shuffle_pd(x, x, _MM_SHUFFLE2(0, 1));
-        return _mm_unpacklo_pd(_mm_min_sd(x, y), _mm_max_sd(x, y));
+        const _M256D y = _mm256_shuffle_pd(x, x, _MM_SHUFFLE2(0, 1));
+        return _mm256_unpacklo_pd(_mm256_min_sd(x, y), _mm256_max_sd(x, y));
     }
 
     struct GeneralHelpers
@@ -768,43 +768,43 @@ namespace AVX
     template<> inline void GatherHelper<double>::gather(
             Base &v, const unsigned int *indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_pd(baseAddr[indexes[1]], baseAddr[indexes[0]]);
+        v.d.v() = _mm256_set_pd(baseAddr[indexes[1]], baseAddr[indexes[0]]);
     }
     template<> inline void GatherHelper<float>::gather(
             Base &v, const unsigned int *indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_ps(
+        v.d.v() = _mm256_set_ps(
                 baseAddr[indexes[3]], baseAddr[indexes[2]],
                 baseAddr[indexes[1]], baseAddr[indexes[0]]);
     }
     template<> inline void GatherHelper<float8>::gather(
             Base &v, const unsigned int *indexes, const EntryType *baseAddr)
     {
-        v.d.v()[1] = _mm_set_ps(
+        v.d.v()[1] = _mm256_set_ps(
                 baseAddr[indexes[7]], baseAddr[indexes[6]],
                 baseAddr[indexes[5]], baseAddr[indexes[4]]);
-        v.d.v()[0] = _mm_set_ps(
+        v.d.v()[0] = _mm256_set_ps(
                 baseAddr[indexes[3]], baseAddr[indexes[2]],
                 baseAddr[indexes[1]], baseAddr[indexes[0]]);
     }
     template<> inline void GatherHelper<int>::gather(
             Base &v, const unsigned int *indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_epi32(
+        v.d.v() = _mm256_set_epi32(
                 baseAddr[indexes[3]], baseAddr[indexes[2]],
                 baseAddr[indexes[1]], baseAddr[indexes[0]]);
     }
     template<> inline void GatherHelper<unsigned int>::gather(
             Base &v, const unsigned int *indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_epi32(
+        v.d.v() = _mm256_set_epi32(
                 baseAddr[indexes[3]], baseAddr[indexes[2]],
                 baseAddr[indexes[1]], baseAddr[indexes[0]]);
     }
     template<> inline void GatherHelper<short>::gather(
             Base &v, const unsigned int *indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_epi16(
+        v.d.v() = _mm256_set_epi16(
                 baseAddr[indexes[7]], baseAddr[indexes[6]],
                 baseAddr[indexes[5]], baseAddr[indexes[4]],
                 baseAddr[indexes[3]], baseAddr[indexes[2]],
@@ -813,7 +813,7 @@ namespace AVX
     template<> inline void GatherHelper<unsigned short>::gather(
             Base &v, const unsigned int *indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_epi16(
+        v.d.v() = _mm256_set_epi16(
                 baseAddr[indexes[7]], baseAddr[indexes[6]],
                 baseAddr[indexes[5]], baseAddr[indexes[4]],
                 baseAddr[indexes[3]], baseAddr[indexes[2]],
@@ -829,43 +829,43 @@ namespace AVX
     template<> inline void GatherHelper<double>::gather(
             Base &v, const IndexType &indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_pd(baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
+        v.d.v() = _mm256_set_pd(baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
     }
     template<> inline void GatherHelper<float>::gather(
             Base &v, const IndexType &indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_ps(
+        v.d.v() = _mm256_set_ps(
                 baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
                 baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
     }
     template<> inline void GatherHelper<float8>::gather(
             Base &v, const IndexType &indexes, const EntryType *baseAddr)
     {
-        v.d.v()[1] = _mm_set_ps(
+        v.d.v()[1] = _mm256_set_ps(
                 baseAddr[indexes.d.m(7)], baseAddr[indexes.d.m(6)],
                 baseAddr[indexes.d.m(5)], baseAddr[indexes.d.m(4)]);
-        v.d.v()[0] = _mm_set_ps(
+        v.d.v()[0] = _mm256_set_ps(
                 baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
                 baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
     }
     template<> inline void GatherHelper<int>::gather(
             Base &v, const IndexType &indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_epi32(
+        v.d.v() = _mm256_set_epi32(
                 baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
                 baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
     }
     template<> inline void GatherHelper<unsigned int>::gather(
             Base &v, const IndexType &indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_epi32(
+        v.d.v() = _mm256_set_epi32(
                 baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
                 baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
     }
     template<> inline void GatherHelper<short>::gather(
             Base &v, const IndexType &indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_epi16(
+        v.d.v() = _mm256_set_epi16(
                 baseAddr[indexes.d.m(7)], baseAddr[indexes.d.m(6)],
                 baseAddr[indexes.d.m(5)], baseAddr[indexes.d.m(4)],
                 baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
@@ -874,7 +874,7 @@ namespace AVX
     template<> inline void GatherHelper<unsigned short>::gather(
             Base &v, const IndexType &indexes, const EntryType *baseAddr)
     {
-        v.d.v() = _mm_set_epi16(
+        v.d.v() = _mm256_set_epi16(
                 baseAddr[indexes.d.m(7)], baseAddr[indexes.d.m(6)],
                 baseAddr[indexes.d.m(5)], baseAddr[indexes.d.m(4)],
                 baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
@@ -893,43 +893,43 @@ namespace AVX
     template<> template<typename S1> inline void GatherHelper<double>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
     {
-        v.d.v() = _mm_set_pd(baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
+        v.d.v() = _mm256_set_pd(baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
     }
     template<> template<typename S1> inline void GatherHelper<float>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
     {
-        v.d.v() = _mm_set_ps(
+        v.d.v() = _mm256_set_ps(
                 baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
                 baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
     }
     template<> template<typename S1> inline void GatherHelper<float8>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
     {
-        v.d.v()[1] = _mm_set_ps(
+        v.d.v()[1] = _mm256_set_ps(
                 baseAddr[indexes.d.m(7)].*(member1), baseAddr[indexes.d.m(6)].*(member1),
                 baseAddr[indexes.d.m(5)].*(member1), baseAddr[indexes.d.m(4)].*(member1));
-        v.d.v()[0] = _mm_set_ps(
+        v.d.v()[0] = _mm256_set_ps(
                 baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
                 baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
     }
     template<> template<typename S1> inline void GatherHelper<int>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
     {
-        v.d.v() = _mm_set_epi32(
+        v.d.v() = _mm256_set_epi32(
                 baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
                 baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
     }
     template<> template<typename S1> inline void GatherHelper<unsigned int>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
     {
-        v.d.v() = _mm_set_epi32(
+        v.d.v() = _mm256_set_epi32(
                 baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
                 baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
     }
     template<> template<typename S1> inline void GatherHelper<short>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
     {
-        v.d.v() = _mm_set_epi16(
+        v.d.v() = _mm256_set_epi16(
                 baseAddr[indexes.d.m(7)].*(member1), baseAddr[indexes.d.m(6)].*(member1),
                 baseAddr[indexes.d.m(5)].*(member1), baseAddr[indexes.d.m(4)].*(member1),
                 baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
@@ -938,7 +938,7 @@ namespace AVX
     template<> template<typename S1> inline void GatherHelper<unsigned short>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
     {
-        v.d.v() = _mm_set_epi16(
+        v.d.v() = _mm256_set_epi16(
                 baseAddr[indexes.d.m(7)].*(member1), baseAddr[indexes.d.m(6)].*(member1),
                 baseAddr[indexes.d.m(5)].*(member1), baseAddr[indexes.d.m(4)].*(member1),
                 baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
@@ -957,43 +957,43 @@ namespace AVX
     template<> template<typename S1, typename S2> inline void GatherHelper<double>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
     {
-        v.d.v() = _mm_set_pd(baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
+        v.d.v() = _mm256_set_pd(baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
     }
     template<> template<typename S1, typename S2> inline void GatherHelper<float>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
     {
-        v.d.v() = _mm_set_ps(
+        v.d.v() = _mm256_set_ps(
                 baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
                 baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
     }
     template<> template<typename S1, typename S2> inline void GatherHelper<float8>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
     {
-        v.d.v()[1] = _mm_set_ps(
+        v.d.v()[1] = _mm256_set_ps(
                 baseAddr[indexes.d.m(7)].*(member1).*(member2), baseAddr[indexes.d.m(6)].*(member1).*(member2),
                 baseAddr[indexes.d.m(5)].*(member1).*(member2), baseAddr[indexes.d.m(4)].*(member1).*(member2));
-        v.d.v()[0] = _mm_set_ps(
+        v.d.v()[0] = _mm256_set_ps(
                 baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
                 baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
     }
     template<> template<typename S1, typename S2> inline void GatherHelper<int>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
     {
-        v.d.v() = _mm_set_epi32(
+        v.d.v() = _mm256_set_epi32(
                 baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
                 baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
     }
     template<> template<typename S1, typename S2> inline void GatherHelper<unsigned int>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
     {
-        v.d.v() = _mm_set_epi32(
+        v.d.v() = _mm256_set_epi32(
                 baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
                 baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
     }
     template<> template<typename S1, typename S2> inline void GatherHelper<short>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
     {
-        v.d.v() = _mm_set_epi16(
+        v.d.v() = _mm256_set_epi16(
                 baseAddr[indexes.d.m(7)].*(member1).*(member2), baseAddr[indexes.d.m(6)].*(member1).*(member2),
                 baseAddr[indexes.d.m(5)].*(member1).*(member2), baseAddr[indexes.d.m(4)].*(member1).*(member2),
                 baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
@@ -1002,7 +1002,7 @@ namespace AVX
     template<> template<typename S1, typename S2> inline void GatherHelper<unsigned short>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
     {
-        v.d.v() = _mm_set_epi16(
+        v.d.v() = _mm256_set_epi16(
                 baseAddr[indexes.d.m(7)].*(member1).*(member2), baseAddr[indexes.d.m(6)].*(member1).*(member2),
                 baseAddr[indexes.d.m(5)].*(member1).*(member2), baseAddr[indexes.d.m(4)].*(member1).*(member2),
                 baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
@@ -1027,7 +1027,7 @@ namespace AVX
             const Base &v, const IndexType &indexes, EntryType *baseAddr) {
         // TODO: verify that using extract is really faster
         for_all_vector_entries(i,
-                baseAddr[indexes.d.m(i)] = _mm_extract_epi16(v.d.v(), i);
+                baseAddr[indexes.d.m(i)] = _mm256_extract_epi16(v.d.v(), i);
                 );
     }
 

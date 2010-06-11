@@ -146,7 +146,7 @@ class Vector : public VectorBase<T>
         static inline Vector IndexesFromZero() { return VectorHelper<VectorType>::load(Base::_IndexesFromZero()); }
 
         /**
-         * initialize with given _M128 vector
+         * initialize with given _M256 vector
          */
         inline Vector(const VectorType &x) : Base(x) {}
 
@@ -188,7 +188,7 @@ class Vector : public VectorBase<T>
          * Set all entries to zero where the mask is set. I.e. a 4-vector with a mask of 0111 would
          * set the last three entries to 0.
          */
-        inline void makeZero(const Mask &k) { data() = VectorHelper<VectorType>::andnot_(mm128_reinterpret_cast<VectorType>(k.data()), data()); }
+        inline void makeZero(const Mask &k) { data() = VectorHelper<VectorType>::andnot_(mm256_reinterpret_cast<VectorType>(k.data()), data()); }
 
         /**
          * Store the vector data to the given memory. The memory must be 64 byte aligned and of 512
@@ -197,11 +197,11 @@ class Vector : public VectorBase<T>
         inline void store(EntryType *mem) const { VectorHelper<VectorType>::store(mem, data()); }
         inline void store(EntryType *mem, const Mask &mask) const {
             const VectorType &old = VectorHelper<VectorType>::load(mem);
-            VectorHelper<VectorType>::store(mem, VectorHelper<VectorType>::blend(old, data(), mm128_reinterpret_cast<VectorType>(mask.data())));
+            VectorHelper<VectorType>::store(mem, VectorHelper<VectorType>::blend(old, data(), mm256_reinterpret_cast<VectorType>(mask.data())));
         }
 
         inline void storeUnaligned(EntryType *mem) const { VectorHelper<VectorType>::storeUnaligned(mem, data()); }
-        inline void storeUnaligned(EntryType *mem, const Mask &mask) const { VectorHelper<VectorType>::storeUnaligned(mem, data(), mm128_reinterpret_cast<VectorType>(mask.data())); }
+        inline void storeUnaligned(EntryType *mem, const Mask &mask) const { VectorHelper<VectorType>::storeUnaligned(mem, data(), mm256_reinterpret_cast<VectorType>(mask.data())); }
 
         /**
          * Non-temporal store variant. Writes to the memory without polluting the cache.
@@ -209,13 +209,13 @@ class Vector : public VectorBase<T>
         inline void storeStreaming(EntryType *mem) const { VectorHelper<VectorType>::storeStreaming(mem, data()); }
 
         inline const Vector<T> &dcba() const { return *this; }
-        inline const Vector<T> cdab() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 3, 0, 1))); }
-        inline const Vector<T> badc() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 0, 3, 2))); }
-        inline const Vector<T> aaaa() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(0, 0, 0, 0))); }
-        inline const Vector<T> bbbb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 1, 1, 1))); }
-        inline const Vector<T> cccc() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 2, 2, 2))); }
-        inline const Vector<T> dddd() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 3, 3, 3))); }
-        inline const Vector<T> dacb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 0, 2, 1))); }
+        inline const Vector<T> cdab() const { return reinterpret_cast<VectorType>(_mm256_shuffle_epi32(data(), _MM_SHUFFLE(2, 3, 0, 1))); }
+        inline const Vector<T> badc() const { return reinterpret_cast<VectorType>(_mm256_shuffle_epi32(data(), _MM_SHUFFLE(1, 0, 3, 2))); }
+        inline const Vector<T> aaaa() const { return reinterpret_cast<VectorType>(_mm256_shuffle_epi32(data(), _MM_SHUFFLE(0, 0, 0, 0))); }
+        inline const Vector<T> bbbb() const { return reinterpret_cast<VectorType>(_mm256_shuffle_epi32(data(), _MM_SHUFFLE(1, 1, 1, 1))); }
+        inline const Vector<T> cccc() const { return reinterpret_cast<VectorType>(_mm256_shuffle_epi32(data(), _MM_SHUFFLE(2, 2, 2, 2))); }
+        inline const Vector<T> dddd() const { return reinterpret_cast<VectorType>(_mm256_shuffle_epi32(data(), _MM_SHUFFLE(3, 3, 3, 3))); }
+        inline const Vector<T> dacb() const { return reinterpret_cast<VectorType>(_mm256_shuffle_epi32(data(), _MM_SHUFFLE(3, 0, 2, 1))); }
 
         inline Vector(const EntryType *array, const unsigned int *indexes) {
             GatherHelper<T>::gather(*this, indexes, array);
@@ -226,7 +226,7 @@ class Vector : public VectorBase<T>
         inline Vector(const EntryType *array, const IndexType &indexes, const GatherMask &mask) {
 #ifdef VC_GATHER_SET
             typedef typename IndexType::VectorType IType;
-            const IType k = mm128_reinterpret_cast<IType>(mask.dataIndex());
+            const IType k = mm256_reinterpret_cast<IType>(mask.dataIndex());
             GatherHelper<T>::gather(*this, VectorHelper<IType>::and_(k, indexes.data()), array);
 #else
             GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
@@ -239,9 +239,9 @@ class Vector : public VectorBase<T>
         {
 #ifdef VC_GATHER_SET
             typedef typename IndexType::VectorType IType;
-            const IType k = mm128_reinterpret_cast<IType>(mask.dataIndex());
+            const IType k = mm256_reinterpret_cast<IType>(mask.dataIndex());
             GatherHelper<T>::gather(*this, VectorHelper<IType>::and_(k, indexes.data()), array);
-            data() = VectorHelper<VectorType>::and_(mm128_reinterpret_cast<VectorType>(mask.data()), data());
+            data() = VectorHelper<VectorType>::and_(mm256_reinterpret_cast<VectorType>(mask.data()), data());
 #else
             GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
 #endif
@@ -251,7 +251,7 @@ class Vector : public VectorBase<T>
         {
 #ifdef VC_GATHER_SET
             typedef typename IndexType::VectorType IType;
-            const IType k = mm128_reinterpret_cast<IType>(mask.dataIndex());
+            const IType k = mm256_reinterpret_cast<IType>(mask.dataIndex());
             Vector<T> tmp;
             GatherHelper<T>::gather(tmp, VectorHelper<IType>::and_(indexes.data(), k), array);
             assign(tmp, mask.data());
@@ -266,7 +266,7 @@ class Vector : public VectorBase<T>
         inline void gather(const EntryType *array, const IndexType &indexes, const GatherMask &mask) {
 #ifdef VC_GATHER_SET
             typedef typename IndexType::VectorType IType;
-            const IType k = mm128_reinterpret_cast<IType>(mask.dataIndex());
+            const IType k = mm256_reinterpret_cast<IType>(mask.dataIndex());
             Vector<T> tmp;
             GatherHelper<T>::gather(tmp, VectorHelper<IType>::and_(k, indexes.data()), array);
             assign(tmp, mask.data());
@@ -401,7 +401,7 @@ class Vector : public VectorBase<T>
         }
 
         inline void assign( const Vector<T> &v, const Mask &mask ) {
-            const VectorType k = mm128_reinterpret_cast<VectorType>(mask.data());
+            const VectorType k = mm256_reinterpret_cast<VectorType>(mask.data());
             data() = VectorHelper<VectorType>::blend(data(), v.data(), k);
         }
 
@@ -442,7 +442,7 @@ class Vector : public VectorBase<T>
 };
 
 template<> inline Vector<float8> Vector<float8>::broadcast4(const float *x) {
-    const _M128 &v = VectorHelper<_M128>::load(x);
+    const _M256 &v = VectorHelper<_M256>::load(x);
     return Vector<float8>(M256::create(v, v));
 }
 
