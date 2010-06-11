@@ -44,7 +44,9 @@
 #include "tsc.h"
 
 #ifndef WIN32
+#ifndef __APPLE__
 #define VC_USE_CPU_TIME
+#endif
 #endif
 
 class Benchmark
