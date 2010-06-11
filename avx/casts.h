@@ -35,11 +35,11 @@ namespace AVX
     template<> inline _M256  mm256_reinterpret_cast<_M256 , _M256I>(_M256I v) CONST;
     template<> inline _M256D mm256_reinterpret_cast<_M256D, _M256I>(_M256I v) CONST;
     template<> inline _M256D mm256_reinterpret_cast<_M256D, _M256 >(_M256  v) CONST;
-    template<> inline _M256I mm256_reinterpret_cast<_M256I, _M256 >(_M256  v) { return _mm256_castps_si128(v); }
-    template<> inline _M256I mm256_reinterpret_cast<_M256I, _M256D>(_M256D v) { return _mm256_castpd_si128(v); }
+    template<> inline _M256I mm256_reinterpret_cast<_M256I, _M256 >(_M256  v) { return _mm256_castps_si256(v); }
+    template<> inline _M256I mm256_reinterpret_cast<_M256I, _M256D>(_M256D v) { return _mm256_castpd_si256(v); }
     template<> inline _M256  mm256_reinterpret_cast<_M256 , _M256D>(_M256D v) { return _mm256_castpd_ps(v);    }
-    template<> inline _M256  mm256_reinterpret_cast<_M256 , _M256I>(_M256I v) { return _mm256_castsi128_ps(v); }
-    template<> inline _M256D mm256_reinterpret_cast<_M256D, _M256I>(_M256I v) { return _mm256_castsi128_pd(v); }
+    template<> inline _M256  mm256_reinterpret_cast<_M256 , _M256I>(_M256I v) { return _mm256_castsi256_ps(v); }
+    template<> inline _M256D mm256_reinterpret_cast<_M256D, _M256I>(_M256I v) { return _mm256_castsi256_pd(v); }
     template<> inline _M256D mm256_reinterpret_cast<_M256D, _M256 >(_M256  v) { return _mm256_castps_pd(v);    }
 
     template<typename From, typename To> struct StaticCastHelper {};
@@ -60,42 +60,42 @@ namespace AVX
     template<> struct StaticCastHelper<int         , double      > { static _M256D cast(const _M256I &v) { return _mm256_cvtepi32_pd(v); } };
     template<> struct StaticCastHelper<unsigned int, double      > { static _M256D cast(const _M256I &v) { return _mm256_cvtepi32_pd(v); } };
 
-    template<> struct StaticCastHelper<unsigned short, float8        > { static  M256  cast(const _M256I &v) {
-        return M256::create(_mm256_cvtepi32_ps(_mm256_unpacklo_epi16(v, _mm256_setzero_si128())),
-                    _mm256_cvtepi32_ps(_mm256_unpackhi_epi16(v, _mm256_setzero_si128())));
+    template<> struct StaticCastHelper<unsigned short, float16        > { static  M512  cast(const _M256I &v) {
+        return M512::create(_mm256_cvtepi32_ps(_mm256_unpacklo_epi16(v, _mm256_setzero_si256())),
+                    _mm256_cvtepi32_ps(_mm256_unpackhi_epi16(v, _mm256_setzero_si256())));
     } };
-//X         template<> struct StaticCastHelper<short         , float8        > { static  M256  cast(const _M256I &v) {
-//X             const _M256I neg = _mm256_cmplt_epi16(v, _mm256_setzero_si128());
-//X             return M256(_mm256_cvtepi32_ps(_mm256_unpacklo_epi16(v, neg)),
+//X         template<> struct StaticCastHelper<short         , float16        > { static  M512  cast(const _M256I &v) {
+//X             const _M256I neg = _mm256_cmplt_epi16(v, _mm256_setzero_si256());
+//X             return M512(_mm256_cvtepi32_ps(_mm256_unpacklo_epi16(v, neg)),
 //X                         _mm256_cvtepi32_ps(_mm256_unpackhi_epi16(v, neg)));
 //X         } };
-    template<> struct StaticCastHelper<float8        , short         > { static _M256I cast(const  M256  &v) { return _mm256_packs_epi32(_mm256_cvttps_epi32(v[0]), _mm256_cvttps_epi32(v[1])); } };
-    template<> struct StaticCastHelper<float8        , unsigned short> { static _M256I cast(const  M256  &v) { return _mm256_packs_epi32(_mm256_cvttps_epi32(v[0]), _mm256_cvttps_epi32(v[1])); } };
+    template<> struct StaticCastHelper<float16        , short         > { static _M256I cast(const  M512  &v) { return _mm256_packs_epi32(_mm256_cvttps_epi32(v[0]), _mm256_cvttps_epi32(v[1])); } };
+    template<> struct StaticCastHelper<float16        , unsigned short> { static _M256I cast(const  M512  &v) { return _mm256_packs_epi32(_mm256_cvttps_epi32(v[0]), _mm256_cvttps_epi32(v[1])); } };
 
-    template<> struct StaticCastHelper<float         , short         > { static _M256I cast(const _M256  &v) { return _mm256_packs_epi32(_mm256_cvttps_epi32(v), _mm256_setzero_si128()); } };
+    template<> struct StaticCastHelper<float         , short         > { static _M256I cast(const _M256  &v) { return _mm256_packs_epi32(_mm256_cvttps_epi32(v), _mm256_setzero_si256()); } };
     template<> struct StaticCastHelper<short         , short         > { static _M256I cast(const _M256I &v) { return v; } };
     template<> struct StaticCastHelper<unsigned short, short         > { static _M256I cast(const _M256I &v) { return v; } };
-    template<> struct StaticCastHelper<float         , unsigned short> { static _M256I cast(const _M256  &v) { return _mm256_packs_epi32(_mm256_cvttps_epi32(v), _mm256_setzero_si128()); } };
+    template<> struct StaticCastHelper<float         , unsigned short> { static _M256I cast(const _M256  &v) { return _mm256_packs_epi32(_mm256_cvttps_epi32(v), _mm256_setzero_si256()); } };
     template<> struct StaticCastHelper<short         , unsigned short> { static _M256I cast(const _M256I &v) { return v; } };
     template<> struct StaticCastHelper<unsigned short, unsigned short> { static _M256I cast(const _M256I &v) { return v; } };
 
     template<typename From, typename To> struct ReinterpretCastHelper {};
-    template<> struct ReinterpretCastHelper<float       , int         > { static _M256I cast(const _M256  &v) { return _mm256_castps_si128(v); } };
-    template<> struct ReinterpretCastHelper<double      , int         > { static _M256I cast(const _M256D &v) { return _mm256_castpd_si128(v); } };
+    template<> struct ReinterpretCastHelper<float       , int         > { static _M256I cast(const _M256  &v) { return _mm256_castps_si256(v); } };
+    template<> struct ReinterpretCastHelper<double      , int         > { static _M256I cast(const _M256D &v) { return _mm256_castpd_si256(v); } };
     template<> struct ReinterpretCastHelper<int         , int         > { static _M256I cast(const _M256I &v) { return v; } };
     template<> struct ReinterpretCastHelper<unsigned int, int         > { static _M256I cast(const _M256I &v) { return v; } };
-    template<> struct ReinterpretCastHelper<float       , unsigned int> { static _M256I cast(const _M256  &v) { return _mm256_castps_si128(v); } };
-    template<> struct ReinterpretCastHelper<double      , unsigned int> { static _M256I cast(const _M256D &v) { return _mm256_castpd_si128(v); } };
+    template<> struct ReinterpretCastHelper<float       , unsigned int> { static _M256I cast(const _M256  &v) { return _mm256_castps_si256(v); } };
+    template<> struct ReinterpretCastHelper<double      , unsigned int> { static _M256I cast(const _M256D &v) { return _mm256_castpd_si256(v); } };
     template<> struct ReinterpretCastHelper<int         , unsigned int> { static _M256I cast(const _M256I &v) { return v; } };
     template<> struct ReinterpretCastHelper<unsigned int, unsigned int> { static _M256I cast(const _M256I &v) { return v; } };
     template<> struct ReinterpretCastHelper<float       , float       > { static _M256  cast(const _M256  &v) { return v; } };
     template<> struct ReinterpretCastHelper<double      , float       > { static _M256  cast(const _M256D &v) { return _mm256_castpd_ps(v); } };
-    template<> struct ReinterpretCastHelper<int         , float       > { static _M256  cast(const _M256I &v) { return _mm256_castsi128_ps(v); } };
-    template<> struct ReinterpretCastHelper<unsigned int, float       > { static _M256  cast(const _M256I &v) { return _mm256_castsi128_ps(v); } };
+    template<> struct ReinterpretCastHelper<int         , float       > { static _M256  cast(const _M256I &v) { return _mm256_castsi256_ps(v); } };
+    template<> struct ReinterpretCastHelper<unsigned int, float       > { static _M256  cast(const _M256I &v) { return _mm256_castsi256_ps(v); } };
     template<> struct ReinterpretCastHelper<float       , double      > { static _M256D cast(const _M256  &v) { return _mm256_castps_pd(v); } };
     template<> struct ReinterpretCastHelper<double      , double      > { static _M256D cast(const _M256D &v) { return v; } };
-    template<> struct ReinterpretCastHelper<int         , double      > { static _M256D cast(const _M256I &v) { return _mm256_castsi128_pd(v); } };
-    template<> struct ReinterpretCastHelper<unsigned int, double      > { static _M256D cast(const _M256I &v) { return _mm256_castsi128_pd(v); } };
+    template<> struct ReinterpretCastHelper<int         , double      > { static _M256D cast(const _M256I &v) { return _mm256_castsi256_pd(v); } };
+    template<> struct ReinterpretCastHelper<unsigned int, double      > { static _M256D cast(const _M256I &v) { return _mm256_castsi256_pd(v); } };
 
     template<> struct ReinterpretCastHelper<unsigned short, short         > { static _M256I cast(const _M256I &v) { return v; } };
     template<> struct ReinterpretCastHelper<unsigned short, unsigned short> { static _M256I cast(const _M256I &v) { return v; } };

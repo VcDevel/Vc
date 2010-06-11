@@ -30,10 +30,10 @@
 #endif
 
 #define FREE_STORE_OPERATORS_ALIGNED(alignment) \
-        void *operator new(size_t size) { return _mm256_malloc(size, alignment); } \
-        void *operator new[](size_t size) { return _mm256_malloc(size, alignment); } \
-        void operator delete(void *ptr, size_t) { _mm256_free(ptr); } \
-        void operator delete[](void *ptr, size_t) { _mm256_free(ptr); }
+        void *operator new(size_t size) { return _mm_malloc(size, alignment); } \
+        void *operator new[](size_t size) { return _mm_malloc(size, alignment); } \
+        void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
+        void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
 
 #ifdef __GNUC__
 #define CONST __attribute__((const))
@@ -83,11 +83,11 @@ do {} while ( false )
 #endif
 
 #define STORE_VECTOR(type, name, vec) \
-    union { __m256i p; type v[16 / sizeof(type)]; } CAT(u, __LINE__); \
-    _mm256_store_si128(&CAT(u, __LINE__).p, vec); \
+    union { __m256i p; type v[sizeof(__m256i) / sizeof(type)]; } CAT(u, __LINE__); \
+    _mm256_store_si256(&CAT(u, __LINE__).p, vec); \
     const type *const name = &CAT(u, __LINE__).v[0]
 
-#if defined(VC_IMPL_AVX4_1) && !defined(VC_DISABLE_PTEST)
+#if defined(VC_IMPL_AVX) && !defined(VC_DISABLE_PTEST)
 #define VC_USE_PTEST
 #endif
 

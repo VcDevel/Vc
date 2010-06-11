@@ -36,16 +36,16 @@ namespace AVX
         friend struct VectorHelperSize<unsigned int>;
         friend struct VectorHelperSize<short>;
         friend struct VectorHelperSize<unsigned short>;
-        friend struct VectorHelperSize<float8>;
+        friend struct VectorHelperSize<float16>;
         friend struct GatherHelper<float>;
-        friend struct GatherHelper<float8>;
+        friend struct GatherHelper<float16>;
         friend struct GatherHelper<double>;
         friend struct GatherHelper<int>;
         friend struct GatherHelper<unsigned int>;
         friend struct GatherHelper<short>;
         friend struct GatherHelper<unsigned short>;
         friend struct ScatterHelper<float>;
-        friend struct ScatterHelper<float8>;
+        friend struct ScatterHelper<float16>;
         friend struct ScatterHelper<double>;
         friend struct ScatterHelper<int>;
         friend struct ScatterHelper<unsigned int>;
@@ -97,19 +97,19 @@ namespace AVX
             }
     };
 
-    template<> class VectorBase<float8> {
-        friend struct VectorHelperSize<float8>;
+    template<> class VectorBase<float16> {
+        friend struct VectorHelperSize<float16>;
         friend struct VectorHelperSize<float>;
-        friend struct GatherHelper<float8>;
-        friend struct ScatterHelper<float8>;
+        friend struct GatherHelper<float16>;
+        friend struct ScatterHelper<float16>;
         friend struct GeneralHelpers;
         public:
             enum { Size = 8 };
-            typedef M256 VectorType ALIGN(16);
+            typedef M512 VectorType ALIGN(16);
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
-            typedef Float8Mask MaskType;
-            typedef Float8GatherMask GatherMaskType;
+            typedef Float16Mask MaskType;
+            typedef Float16GatherMask GatherMaskType;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }

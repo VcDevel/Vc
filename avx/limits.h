@@ -26,21 +26,21 @@
 namespace std
 {
 
-    template<> inline Vc::AVX::Vector<unsigned short> numeric_limits<Vc::AVX::Vector<unsigned short> >::max() throw() { return Vc::AVX::_mm256_setallone_si128(); }
-    template<> inline Vc::AVX::Vector<unsigned short> numeric_limits<Vc::AVX::Vector<unsigned short> >::min() throw() { return _mm256_setzero_si128(); }
-    template<> inline Vc::AVX::Vector<short> numeric_limits<Vc::AVX::Vector<short> >::max() throw() { return _mm256_srli_epi16(Vc::AVX::_mm256_setallone_si128(), 1); }
+    template<> inline Vc::AVX::Vector<unsigned short> numeric_limits<Vc::AVX::Vector<unsigned short> >::max() throw() { return Vc::AVX::_mm256_setallone_si256(); }
+    template<> inline Vc::AVX::Vector<unsigned short> numeric_limits<Vc::AVX::Vector<unsigned short> >::min() throw() { return _mm256_setzero_si256(); }
+    template<> inline Vc::AVX::Vector<short> numeric_limits<Vc::AVX::Vector<short> >::max() throw() { return _mm256_srli_epi16(Vc::AVX::_mm256_setallone_si256(), 1); }
     template<> inline Vc::AVX::Vector<short> numeric_limits<Vc::AVX::Vector<short> >::min() throw() { return Vc::AVX::_mm256_setmin_epi16(); }
 
-    template<> inline Vc::AVX::Vector<unsigned int> numeric_limits<Vc::AVX::Vector<unsigned int> >::max() throw() { return Vc::AVX::_mm256_setallone_si128(); }
-    template<> inline Vc::AVX::Vector<unsigned int> numeric_limits<Vc::AVX::Vector<unsigned int> >::min() throw() { return _mm256_setzero_si128(); }
-    template<> inline Vc::AVX::Vector<int> numeric_limits<Vc::AVX::Vector<int> >::max() throw() { return _mm256_srli_epi32(Vc::AVX::_mm256_setallone_si128(), 1); }
+    template<> inline Vc::AVX::Vector<unsigned int> numeric_limits<Vc::AVX::Vector<unsigned int> >::max() throw() { return Vc::AVX::_mm256_setallone_si256(); }
+    template<> inline Vc::AVX::Vector<unsigned int> numeric_limits<Vc::AVX::Vector<unsigned int> >::min() throw() { return _mm256_setzero_si256(); }
+    template<> inline Vc::AVX::Vector<int> numeric_limits<Vc::AVX::Vector<int> >::max() throw() { return _mm256_srli_epi32(Vc::AVX::_mm256_setallone_si256(), 1); }
     template<> inline Vc::AVX::Vector<int> numeric_limits<Vc::AVX::Vector<int> >::min() throw() { return Vc::AVX::_mm256_setmin_epi32(); }
 
     template<> inline Vc::AVX::Vector<float> numeric_limits<Vc::AVX::Vector<float> >::max() throw() { return _mm256_set1_ps(numeric_limits<float>::max()); }
     template<> inline Vc::AVX::Vector<float> numeric_limits<Vc::AVX::Vector<float> >::min() throw() { return _mm256_set1_ps(numeric_limits<float>::min()); }
 
-    template<> inline Vc::AVX::Vector<Vc::AVX::float8> numeric_limits<Vc::AVX::Vector<Vc::AVX::float8> >::max() throw() { return numeric_limits<float>::max(); }
-    template<> inline Vc::AVX::Vector<Vc::AVX::float8> numeric_limits<Vc::AVX::Vector<Vc::AVX::float8> >::min() throw() { return numeric_limits<float>::min(); }
+    template<> inline Vc::AVX::Vector<Vc::AVX::float16> numeric_limits<Vc::AVX::Vector<Vc::AVX::float16> >::max() throw() { return numeric_limits<float>::max(); }
+    template<> inline Vc::AVX::Vector<Vc::AVX::float16> numeric_limits<Vc::AVX::Vector<Vc::AVX::float16> >::min() throw() { return numeric_limits<float>::min(); }
 
     template<> inline Vc::AVX::Vector<double> numeric_limits<Vc::AVX::Vector<double> >::max() throw() { return _mm256_set1_pd(numeric_limits<double>::max()); }
     template<> inline Vc::AVX::Vector<double> numeric_limits<Vc::AVX::Vector<double> >::min() throw() { return _mm256_set1_pd(numeric_limits<double>::min()); }

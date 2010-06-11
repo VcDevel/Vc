@@ -36,15 +36,15 @@ namespace AVX
     template<typename T> inline Vector<T> c_sin<T>::_1_7fac() { return Vector<T>(&_data[6 * Size]); }
     template<typename T> inline Vector<T> c_sin<T>::_1_9fac() { return Vector<T>(&_data[7 * Size]); }
 
-    template<> inline Vector<float8> c_sin<float8>::_1_2pi()  { return Vector<float8>::broadcast4(&c_sin<float>::_data[ 0]); }
-    template<> inline Vector<float8> c_sin<float8>::_2pi()    { return Vector<float8>::broadcast4(&c_sin<float>::_data[ 4]); }
-    template<> inline Vector<float8> c_sin<float8>::_pi_2()   { return Vector<float8>::broadcast4(&c_sin<float>::_data[ 8]); }
-    template<> inline Vector<float8> c_sin<float8>::_pi()     { return Vector<float8>::broadcast4(&c_sin<float>::_data[12]); }
+    template<> inline Vector<float16> c_sin<float16>::_1_2pi()  { return Vector<float16>::broadcast4(&c_sin<float>::_data[ 0]); }
+    template<> inline Vector<float16> c_sin<float16>::_2pi()    { return Vector<float16>::broadcast4(&c_sin<float>::_data[ 4]); }
+    template<> inline Vector<float16> c_sin<float16>::_pi_2()   { return Vector<float16>::broadcast4(&c_sin<float>::_data[ 8]); }
+    template<> inline Vector<float16> c_sin<float16>::_pi()     { return Vector<float16>::broadcast4(&c_sin<float>::_data[12]); }
 
-    template<> inline Vector<float8> c_sin<float8>::_1_3fac() { return Vector<float8>::broadcast4(&c_sin<float>::_data[16]); }
-    template<> inline Vector<float8> c_sin<float8>::_1_5fac() { return Vector<float8>::broadcast4(&c_sin<float>::_data[20]); }
-    template<> inline Vector<float8> c_sin<float8>::_1_7fac() { return Vector<float8>::broadcast4(&c_sin<float>::_data[24]); }
-    template<> inline Vector<float8> c_sin<float8>::_1_9fac() { return Vector<float8>::broadcast4(&c_sin<float>::_data[28]); }
+    template<> inline Vector<float16> c_sin<float16>::_1_3fac() { return Vector<float16>::broadcast4(&c_sin<float>::_data[16]); }
+    template<> inline Vector<float16> c_sin<float16>::_1_5fac() { return Vector<float16>::broadcast4(&c_sin<float>::_data[20]); }
+    template<> inline Vector<float16> c_sin<float16>::_1_7fac() { return Vector<float16>::broadcast4(&c_sin<float>::_data[24]); }
+    template<> inline Vector<float16> c_sin<float16>::_1_9fac() { return Vector<float16>::broadcast4(&c_sin<float>::_data[28]); }
 
     template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
         typedef Vector<T> V;

@@ -28,20 +28,20 @@ namespace AVX
 {
     template<typename T> class Vector;
 
-    class Float8Mask;
-    class Float8GatherMask;
+    class Float16Mask;
+    class Float16GatherMask;
     template<unsigned int VectorSize> class Mask;
 
     /*
      * Hack to create a vector object with 8 floats
      */
-    class float8 {};
+    class float16 {};
 
-    class M256 {
+    class M512 {
         public:
-            //inline M256() {}
-            //inline M256(_M256 a, _M256 b) { d[0] = a; d[1] = b; }
-            static inline M256 create(_M256 a, _M256 b) { M256 r; r.d[0] = a; r.d[1] = b; return r; }
+            //inline M512() {}
+            //inline M512(_M256 a, _M256 b) { d[0] = a; d[1] = b; }
+            static inline M512 create(_M256 a, _M256 b) { M512 r; r.d[0] = a; r.d[1] = b; return r; }
             inline _M256 &operator[](int i) { return d[i]; }
             inline const _M256 &operator[](int i) const { return d[i]; }
         private:

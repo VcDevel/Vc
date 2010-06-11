@@ -37,45 +37,46 @@ template<> struct MaskHelper<4> {
     static inline bool cmpneq(_M256 k1, _M256 k2) { return _mm256_movemask_ps(k1) != _mm256_movemask_ps(k2); }
 };
 template<> struct MaskHelper<8> {
-    static inline bool cmpeq (_M256 k1, _M256 k2) { return _mm256_movemask_epi8(_mm256_castps_si128(k1)) == _mm256_movemask_epi8(_mm256_castps_si128(k2)); }
-    static inline bool cmpneq(_M256 k1, _M256 k2) { return _mm256_movemask_epi8(_mm256_castps_si128(k1)) != _mm256_movemask_epi8(_mm256_castps_si128(k2)); }
+    static inline bool cmpeq (_M256 k1, _M256 k2) { return _mm256_movemask_epi8(_mm256_castps_si256(k1)) == _mm256_movemask_epi8(_mm256_castps_si256(k2)); }
+    static inline bool cmpneq(_M256 k1, _M256 k2) { return _mm256_movemask_epi8(_mm256_castps_si256(k1)) != _mm256_movemask_epi8(_mm256_castps_si256(k2)); }
 };
 
-class Float8Mask;
+class Float16Mask;
 template<unsigned int VectorSize> class Mask
 {
     friend class Mask<2u>;
     friend class Mask<4u>;
     friend class Mask<8u>;
     friend class Mask<16u>;
-    friend class Float8Mask;
+    friend class Mask<32u>;
+    friend class Float16Mask;
     public:
-        FREE_STORE_OPERATORS_ALIGNED(16)
+        FREE_STORE_OPERATORS_ALIGNED(32)
         inline Mask() {}
         inline Mask(const __m256  &x) : k(x) {}
         inline Mask(const __m256d &x) : k(_mm256_castpd_ps(x)) {}
-        inline Mask(const __m256i &x) : k(_mm256_castsi128_ps(x)) {}
+        inline Mask(const __m256i &x) : k(_mm256_castsi256_ps(x)) {}
         inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(_mm256_setzero_ps()) {}
         inline explicit Mask(VectorSpecialInitializerOne::OEnum) : k(_mm256_setallone_ps()) {}
         inline explicit Mask(bool b) : k(b ? _mm256_setallone_ps() : _mm256_setzero_ps()) {}
         inline Mask(const Mask &rhs) : k(rhs.k) {}
         inline Mask(const Mask<VectorSize / 2> *a)
-          : k(_mm256_castsi128_ps(_mm256_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
-        inline explicit Mask(const Float8Mask &m);
+          : k(_mm256_castsi256_ps(_mm256_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
+        inline explicit Mask(const Float16Mask &m);
 
         template<unsigned int OtherSize> explicit Mask(const Mask<OtherSize> &x);
 //X         {
 //X             _M256I tmp = x.dataI();
 //X             if (OtherSize < VectorSize) {
-//X                 tmp = _mm256_packs_epi16(tmp, _mm256_setzero_si128());
-//X                 if (VectorSize / OtherSize >= 4u) { tmp = _mm256_packs_epi16(tmp, _mm256_setzero_si128()); }
-//X                 if (VectorSize / OtherSize >= 8u) { tmp = _mm256_packs_epi16(tmp, _mm256_setzero_si128()); }
+//X                 tmp = _mm256_packs_epi16(tmp, _mm256_setzero_si256());
+//X                 if (VectorSize / OtherSize >= 4u) { tmp = _mm256_packs_epi16(tmp, _mm256_setzero_si256()); }
+//X                 if (VectorSize / OtherSize >= 8u) { tmp = _mm256_packs_epi16(tmp, _mm256_setzero_si256()); }
 //X             } else if (OtherSize > VectorSize) {
 //X                 tmp = _mm256_unpacklo_epi8(tmp, tmp);
 //X                 if (OtherSize / VectorSize >= 4u) { tmp = _mm256_unpacklo_epi8(tmp, tmp); }
 //X                 if (OtherSize / VectorSize >= 8u) { tmp = _mm256_unpacklo_epi8(tmp, tmp); }
 //X             }
-//X             k = _mm256_castsi128_ps(tmp);
+//X             k = _mm256_castsi256_ps(tmp);
 //X         }
 
         void expand(Mask<VectorSize / 2> *x) const;
@@ -88,28 +89,28 @@ template<unsigned int VectorSize> class Mask
         inline Mask operator||(const Mask &rhs) const { return _mm256_or_ps (k, rhs.k); }
         inline Mask operator| (const Mask &rhs) const { return _mm256_or_ps (k, rhs.k); }
         inline Mask operator^ (const Mask &rhs) const { return _mm256_xor_ps(k, rhs.k); }
-        inline Mask operator!() const { return _mm256_andnot_si128(dataI(), _mm256_setallone_si128()); }
+        inline Mask operator!() const { return _mm256_andnot_si256(dataI(), _mm256_setallone_si256()); }
 
         inline Mask &operator&=(const Mask &rhs) { k = _mm256_and_ps(k, rhs.k); return *this; }
         inline Mask &operator|=(const Mask &rhs) { k = _mm256_or_ps (k, rhs.k); return *this; }
 
         inline bool isFull () const { return
 #ifdef VC_USE_PTEST
-            _mm256_testc_si128(dataI(), _mm256_setallone_si128()); // return 1 if (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) == (~0 & k)
+            _mm256_testc_si256(dataI(), _mm256_setallone_si256()); // return 1 if (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) == (~0 & k)
 #else
             _mm256_movemask_epi8(dataI()) == 0xffff;
 #endif
         }
         inline bool isEmpty() const { return
 #ifdef VC_USE_PTEST
-            _mm256_testz_si128(dataI(), dataI()); // return 1 if (0, 0, 0, 0) == (k & k)
+            _mm256_testz_si256(dataI(), dataI()); // return 1 if (0, 0, 0, 0) == (k & k)
 #else
             _mm256_movemask_epi8(dataI()) == 0x0000;
 #endif
         }
         inline bool isMix() const {
 #ifdef VC_USE_PTEST
-            return _mm256_test_mix_ones_zeros(dataI(), _mm256_setallone_si128());
+            return _mm256_test_mix_ones_zeros(dataI(), _mm256_setallone_si256());
 #else
             const int tmp = _mm256_movemask_epi8(dataI());
             return tmp != 0 && (tmp ^ 0xffff) != 0;
@@ -126,7 +127,7 @@ template<unsigned int VectorSize> class Mask
 #ifdef VC_GATHER_SET
         inline _M256  dataIndex() const { return k; }
 #endif
-        inline _M256I dataI() const { return _mm256_castps_si128(k); }
+        inline _M256I dataI() const { return _mm256_castps_si256(k); }
         inline _M256D dataD() const { return _mm256_castps_pd(k); }
 
         template<unsigned int OtherSize> inline Mask<OtherSize> cast() const { return Mask<OtherSize>(k); }
@@ -176,32 +177,32 @@ template<> template<> inline Mask<2>::Mask(const Mask<4> &x) {
 }
 template<> template<> inline Mask<2>::Mask(const Mask<8> &x) {
     _M256I tmp = _mm256_unpacklo_epi16(x.dataI(), x.dataI());
-    k = _mm256_castsi128_ps(_mm256_unpacklo_epi32(tmp, tmp));
+    k = _mm256_castsi256_ps(_mm256_unpacklo_epi32(tmp, tmp));
 }
 template<> template<> inline Mask<2>::Mask(const Mask<16> &x) {
     _M256I tmp = _mm256_unpacklo_epi8(x.dataI(), x.dataI());
     tmp = _mm256_unpacklo_epi16(tmp, tmp);
-    k = _mm256_castsi128_ps(_mm256_unpacklo_epi32(tmp, tmp));
+    k = _mm256_castsi256_ps(_mm256_unpacklo_epi32(tmp, tmp));
 }
 template<> template<> inline Mask<4>::Mask(const Mask<2> &x) {
-    k = _mm256_castsi128_ps(_mm256_packs_epi16(x.dataI(), _mm256_setzero_si128()));
+    k = _mm256_castsi256_ps(_mm256_packs_epi16(x.dataI(), _mm256_setzero_si256()));
 }
 template<> template<> inline Mask<4>::Mask(const Mask<8> &x) {
-    k = _mm256_castsi128_ps(_mm256_unpacklo_epi16(x.dataI(), x.dataI()));
+    k = _mm256_castsi256_ps(_mm256_unpacklo_epi16(x.dataI(), x.dataI()));
 }
 template<> template<> inline Mask<4>::Mask(const Mask<16> &x) {
     _M256I tmp = _mm256_unpacklo_epi8(x.dataI(), x.dataI());
-    k = _mm256_castsi128_ps(_mm256_unpacklo_epi16(tmp, tmp));
+    k = _mm256_castsi256_ps(_mm256_unpacklo_epi16(tmp, tmp));
 }
 template<> template<> inline Mask<8>::Mask(const Mask<2> &x) {
     _M256I tmp = _mm256_packs_epi16(x.dataI(), x.dataI());
-    k = _mm256_castsi128_ps(_mm256_packs_epi16(tmp, tmp));
+    k = _mm256_castsi256_ps(_mm256_packs_epi16(tmp, tmp));
 }
 template<> template<> inline Mask<8>::Mask(const Mask<4> &x) {
-    k = _mm256_castsi128_ps(_mm256_packs_epi16(x.dataI(), x.dataI()));
+    k = _mm256_castsi256_ps(_mm256_packs_epi16(x.dataI(), x.dataI()));
 }
 template<> template<> inline Mask<8>::Mask(const Mask<16> &x) {
-    k = _mm256_castsi128_ps(_mm256_unpacklo_epi8(x.dataI(), x.dataI()));
+    k = _mm256_castsi256_ps(_mm256_unpacklo_epi8(x.dataI(), x.dataI()));
 }
 
 template<> inline void Mask< 4>::expand(Mask<2> *x) const {
@@ -209,17 +210,17 @@ template<> inline void Mask< 4>::expand(Mask<2> *x) const {
     x[1].k = _mm256_unpackhi_ps(data(), data());
 }
 template<> inline void Mask< 8>::expand(Mask<4> *x) const {
-    x[0].k = _mm256_castsi128_ps(_mm256_unpacklo_epi16(dataI(), dataI()));
-    x[1].k = _mm256_castsi128_ps(_mm256_unpackhi_epi16(dataI(), dataI()));
+    x[0].k = _mm256_castsi256_ps(_mm256_unpacklo_epi16(dataI(), dataI()));
+    x[1].k = _mm256_castsi256_ps(_mm256_unpackhi_epi16(dataI(), dataI()));
 }
 template<> inline void Mask<16>::expand(Mask<8> *x) const {
-    x[0].k = _mm256_castsi128_ps(_mm256_unpacklo_epi8 (dataI(), dataI()));
-    x[1].k = _mm256_castsi128_ps(_mm256_unpackhi_epi8 (dataI(), dataI()));
+    x[0].k = _mm256_castsi256_ps(_mm256_unpacklo_epi8 (dataI(), dataI()));
+    x[1].k = _mm256_castsi256_ps(_mm256_unpackhi_epi8 (dataI(), dataI()));
 }
 
 template<> inline int Mask< 2>::toInt() const { return _mm256_movemask_pd(dataD()); }
 template<> inline int Mask< 4>::toInt() const { return _mm256_movemask_ps(data ()); }
-template<> inline int Mask< 8>::toInt() const { return _mm256_movemask_epi8(_mm256_packs_epi16(dataI(), _mm256_setzero_si128())); }
+template<> inline int Mask< 8>::toInt() const { return _mm256_movemask_epi8(_mm256_packs_epi16(dataI(), _mm256_setzero_si256())); }
 template<> inline int Mask<16>::toInt() const { return _mm256_movemask_epi8(dataI()); }
 
 template<> inline bool Mask< 2>::operator[](int index) const { return toInt() & (1 << index); }
@@ -241,7 +242,7 @@ template<> inline int Mask<4>::count() const
     _M256I x = _mm256_srli_epi32(dataI(), 31);
     x = _mm256_add_epi32(x, _mm256_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
     x = _mm256_add_epi32(x, _mm256_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)));
-    return _mm256_cvtsi128_si32(x);
+    return _mm256_cvtsi256_si32(x);
 }
 
 template<> inline int Mask<8>::count() const
@@ -267,7 +268,7 @@ template<> inline int Mask<16>::count() const
 }
 
 
-class Float8Mask
+class Float16Mask
 {
     enum {
         PartialSize = 4,
@@ -275,77 +276,77 @@ class Float8Mask
     };
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
-        inline Float8Mask() {}
-        inline Float8Mask(const M256 &x) : k(x) {}
-        inline explicit Float8Mask(VectorSpecialInitializerZero::ZEnum) {
+        inline Float16Mask() {}
+        inline Float16Mask(const M512 &x) : k(x) {}
+        inline explicit Float16Mask(VectorSpecialInitializerZero::ZEnum) {
             k[0] = _mm256_setzero_ps();
             k[1] = _mm256_setzero_ps();
         }
-        inline explicit Float8Mask(VectorSpecialInitializerOne::OEnum) {
+        inline explicit Float16Mask(VectorSpecialInitializerOne::OEnum) {
             k[0] = _mm256_setallone_ps();
             k[1] = _mm256_setallone_ps();
         }
-        inline explicit Float8Mask(bool b) {
+        inline explicit Float16Mask(bool b) {
             const __m256 tmp = b ? _mm256_setallone_ps() : _mm256_setzero_ps();
             k[0] = tmp;
             k[1] = tmp;
         }
-        inline Float8Mask(const Mask<VectorSize> &a) {
-            k[0] = _mm256_castsi128_ps(_mm256_unpacklo_epi16(a.dataI(), a.dataI()));
-            k[1] = _mm256_castsi128_ps(_mm256_unpackhi_epi16(a.dataI(), a.dataI()));
+        inline Float16Mask(const Mask<VectorSize> &a) {
+            k[0] = _mm256_castsi256_ps(_mm256_unpacklo_epi16(a.dataI(), a.dataI()));
+            k[1] = _mm256_castsi256_ps(_mm256_unpackhi_epi16(a.dataI(), a.dataI()));
         }
 
-        inline bool operator==(const Float8Mask &rhs) const {
+        inline bool operator==(const Float16Mask &rhs) const {
             return MaskHelper<PartialSize>::cmpeq (k[0], rhs.k[0])
                 && MaskHelper<PartialSize>::cmpeq (k[1], rhs.k[1]);
         }
-        inline bool operator!=(const Float8Mask &rhs) const {
+        inline bool operator!=(const Float16Mask &rhs) const {
             return MaskHelper<PartialSize>::cmpneq(k[0], rhs.k[0])
                 && MaskHelper<PartialSize>::cmpneq(k[1], rhs.k[1]);
         }
 
-        inline Float8Mask operator&&(const Float8Mask &rhs) const {
-            Float8Mask r;
+        inline Float16Mask operator&&(const Float16Mask &rhs) const {
+            Float16Mask r;
             r.k[0] = _mm256_and_ps(k[0], rhs.k[0]);
             r.k[1] = _mm256_and_ps(k[1], rhs.k[1]);
             return r;
         }
-        inline Float8Mask operator& (const Float8Mask &rhs) const {
-            Float8Mask r;
+        inline Float16Mask operator& (const Float16Mask &rhs) const {
+            Float16Mask r;
             r.k[0] = _mm256_and_ps(k[0], rhs.k[0]);
             r.k[1] = _mm256_and_ps(k[1], rhs.k[1]);
             return r;
         }
-        inline Float8Mask operator||(const Float8Mask &rhs) const {
-            Float8Mask r;
+        inline Float16Mask operator||(const Float16Mask &rhs) const {
+            Float16Mask r;
             r.k[0] = _mm256_or_ps(k[0], rhs.k[0]);
             r.k[1] = _mm256_or_ps(k[1], rhs.k[1]);
             return r;
         }
-        inline Float8Mask operator| (const Float8Mask &rhs) const {
-            Float8Mask r;
+        inline Float16Mask operator| (const Float16Mask &rhs) const {
+            Float16Mask r;
             r.k[0] = _mm256_or_ps(k[0], rhs.k[0]);
             r.k[1] = _mm256_or_ps(k[1], rhs.k[1]);
             return r;
         }
-        inline Float8Mask operator^ (const Float8Mask &rhs) const {
-            Float8Mask r;
+        inline Float16Mask operator^ (const Float16Mask &rhs) const {
+            Float16Mask r;
             r.k[0] = _mm256_xor_ps(k[0], rhs.k[0]);
             r.k[1] = _mm256_xor_ps(k[1], rhs.k[1]);
             return r;
         }
-        inline Float8Mask operator!() const {
-            Float8Mask r;
+        inline Float16Mask operator!() const {
+            Float16Mask r;
             r.k[0] = _mm256_andnot_ps(k[0], _mm256_setallone_ps());
             r.k[1] = _mm256_andnot_ps(k[1], _mm256_setallone_ps());
             return r;
         }
-        inline Float8Mask &operator&=(const Float8Mask &rhs) {
+        inline Float16Mask &operator&=(const Float16Mask &rhs) {
             k[0] = _mm256_and_ps(k[0], rhs.k[0]);
             k[1] = _mm256_and_ps(k[1], rhs.k[1]);
             return *this;
         }
-        inline Float8Mask &operator|=(const Float8Mask &rhs) {
+        inline Float16Mask &operator|=(const Float16Mask &rhs) {
             k[0] = _mm256_or_ps (k[0], rhs.k[0]);
             k[1] = _mm256_or_ps (k[1], rhs.k[1]);
             return *this;
@@ -354,7 +355,7 @@ class Float8Mask
         inline bool isFull () const {
             const _M256 tmp = _mm256_and_ps(k[0], k[1]);
 #ifdef VC_USE_PTEST
-            return _mm256_testc_si128(_mm256_castps_si128(tmp), _mm256_setallone_si128());
+            return _mm256_testc_si256(_mm256_castps_si256(tmp), _mm256_setallone_si256());
 #else
             return _mm256_movemask_ps(tmp) == 0xf;
             //_mm256_movemask_ps(k[0]) == 0xf &&
@@ -364,7 +365,7 @@ class Float8Mask
         inline bool isEmpty() const {
             const _M256 tmp = _mm256_or_ps(k[0], k[1]);
 #ifdef VC_USE_PTEST
-            return _mm256_testz_si128(_mm256_castps_si128(tmp), _mm256_castps_si128(tmp));
+            return _mm256_testz_si256(_mm256_castps_si256(tmp), _mm256_castps_si256(tmp));
 #else
             return _mm256_movemask_ps(tmp) == 0x0;
             //_mm256_movemask_ps(k[0]) == 0x0 &&
@@ -373,8 +374,8 @@ class Float8Mask
         }
         inline bool isMix() const {
 #ifdef VC_USE_PTEST
-            return _mm256_test_mix_ones_zeros(_mm256_castps_si128(k[0]), _mm256_castps_si128(k[0])) &&
-            _mm256_test_mix_ones_zeros(_mm256_castps_si128(k[1]), _mm256_castps_si128(k[1]));
+            return _mm256_test_mix_ones_zeros(_mm256_castps_si256(k[0]), _mm256_castps_si256(k[0])) &&
+            _mm256_test_mix_ones_zeros(_mm256_castps_si256(k[1]), _mm256_castps_si256(k[1]));
 #else
             const int tmp = _mm256_movemask_ps(k[0]) + _mm256_movemask_ps(k[1]);
             return tmp > 0x0 && tmp < (0xf + 0xf);
@@ -388,7 +389,7 @@ class Float8Mask
         }
         inline int toInt() const { return (_mm256_movemask_ps(k[1]) << 4) + _mm256_movemask_ps(k[0]); }
 
-        inline const M256 &data () const { return k; }
+        inline const M512 &data () const { return k; }
 
         inline bool operator[](int index) const {
             return (toInt() & (1 << index)) != 0;
@@ -400,17 +401,17 @@ class Float8Mask
 //X             tmp1 = (tmp1 & 5) + ((tmp1 >> 1) & 5);
 //X             tmp2 = (tmp2 & 5) + ((tmp2 >> 1) & 5);
 //X             return (tmp1 & 3) + (tmp2 & 3) + ((tmp1 >> 2) & 3) + ((tmp2 >> 2) & 3);
-            _M256I x = _mm256_add_epi32(_mm256_srli_epi32(_mm256_castps_si128(k[0]), 31),
-                                     _mm256_srli_epi32(_mm256_castps_si128(k[1]), 31));
+            _M256I x = _mm256_add_epi32(_mm256_srli_epi32(_mm256_castps_si256(k[0]), 31),
+                                     _mm256_srli_epi32(_mm256_castps_si256(k[1]), 31));
             x = _mm256_add_epi32(x, _mm256_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
             x = _mm256_add_epi32(x, _mm256_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)));
-            return _mm256_cvtsi128_si32(x);
+            return _mm256_cvtsi256_si32(x);
         }
 
         int firstOne() const;
 
     private:
-        M256 k;
+        M512 k;
 };
 
 template<unsigned int Size> inline int Mask<Size>::firstOne() const
@@ -420,7 +421,7 @@ template<unsigned int Size> inline int Mask<Size>::firstOne() const
     __asm__("bsf %1,%0" : "=&r"(bit) : "r"(mask));
     return bit;
 }
-inline int Float8Mask::firstOne() const
+inline int Float16Mask::firstOne() const
 {
     const int mask = toInt();
     int bit;
@@ -429,26 +430,26 @@ inline int Float8Mask::firstOne() const
 }
 
 template<unsigned int VectorSize>
-inline Mask<VectorSize>::Mask(const Float8Mask &m)
-    : k(_mm256_castsi128_ps(_mm256_packs_epi32(_mm256_castps_si128(m.data()[0]), _mm256_castps_si128(m.data()[1])))) {}
+inline Mask<VectorSize>::Mask(const Float16Mask &m)
+    : k(_mm256_castsi256_ps(_mm256_packs_epi32(_mm256_castps_si256(m.data()[0]), _mm256_castps_si256(m.data()[1])))) {}
 
-class Float8GatherMask
+class Float16GatherMask
 {
     public:
 #ifdef VC_GATHER_SET
-        Float8GatherMask(const Mask<8u> &k)   : smallMask(k), bigMask(k), mask(k.toInt()) {}
-        Float8GatherMask(const Float8Mask &k) : smallMask(k), bigMask(k), mask(k.toInt()) {}
+        Float16GatherMask(const Mask<8u> &k)   : smallMask(k), bigMask(k), mask(k.toInt()) {}
+        Float16GatherMask(const Float16Mask &k) : smallMask(k), bigMask(k), mask(k.toInt()) {}
         const __m256 dataIndex() const { return smallMask.data(); }
-        const M256 data() const { return bigMask.data(); }
+        const M512 data() const { return bigMask.data(); }
 #else
-        Float8GatherMask(const Mask<8u> &k)   : mask(k.toInt()) {}
-        Float8GatherMask(const Float8Mask &k) : mask(k.toInt()) {}
+        Float16GatherMask(const Mask<8u> &k)   : mask(k.toInt()) {}
+        Float16GatherMask(const Float16Mask &k) : mask(k.toInt()) {}
 #endif
         int toInt() const { return mask; }
     private:
 #ifdef VC_GATHER_SET
         const Mask<8u> smallMask;
-        const Float8Mask bigMask;
+        const Float16Mask bigMask;
 #endif
         const int mask;
 };
