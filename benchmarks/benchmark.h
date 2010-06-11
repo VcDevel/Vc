@@ -35,6 +35,11 @@
 #else
 #include <cmath>
 #endif
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+// method to get monotonic mac time, inspired by 
+// http://www.wand.net.nz/~smr26/wordpress/2009/01/19/monotonic-time-in-mac-os-x/
+#endif
 
 #include "tsc.h"
 
@@ -115,8 +120,12 @@ private:
 #ifdef _MSC_VER
     __int64 fRealTime;
 #else
+#ifdef __APPLE__
+    uint64_t fRealTime;
+#else
     struct timespec fRealTime;
     struct timespec fCpuTime;
+#endif
 #endif
     TimeStampCounter fTsc;
     std::list<DataPoint> fDataPoints;
@@ -268,8 +277,12 @@ inline void Benchmark::Start()
 #ifdef _MSC_VER
     QueryPerformanceCounter((LARGE_INTEGER *)&fRealTime);
 #else
+#ifdef __APPLE__
+    fRealTime = mach_absolute_time();
+#else
     clock_gettime( CLOCK_MONOTONIC, &fRealTime );
     clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &fCpuTime );
+#endif
 #endif
     fTsc.Start();
 }
@@ -294,6 +307,18 @@ inline void Benchmark::Stop()
         static_cast<double>(real - fRealTime) / freq,
         1.0,
 #else
+#ifdef __APPLE__
+    uint64_t real = mach_absolute_time();
+    static mach_timebase_info_data_t info = {0,0};  
+    
+    if (info.denom == 0)  
+    	mach_timebase_info(&info);  
+    
+    uint64_t nanos = (real - fRealTime ) * (info.numer / info.denom);
+    const DataPoint p = {
+        nanos * 1e-9,
+        1.0,
+#else
     struct timespec real, cpu;
     clock_gettime( CLOCK_MONOTONIC, &real );
     clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &cpu );
@@ -301,6 +326,7 @@ inline void Benchmark::Stop()
     const DataPoint p = {
         convertTimeSpec(real) - convertTimeSpec(fRealTime),
         convertTimeSpec(cpu ) - convertTimeSpec(fCpuTime ),
+#endif
 #endif
         fTsc.Cycles()
     };
@@ -318,7 +344,7 @@ static inline void prettyPrintSeconds(double v)
     static const char prefix[] = { ' ', 'm', 'u', 'n', 'p' };
     if (v == 0.) {
         std::cout << "      0       ";
-    } else if (v < 1.) {
+    } else if (v < 2.) {
         int i = 0;
         do {
             v *= 1000.;
@@ -589,13 +615,19 @@ int main(int argc, char **argv)
         i += 2;
     }
 
+    int r = 0;
+#ifdef __APPLE__
+    // On OS X there is no way to set CPU affinity
+    // TODO there is a way to ask the system to not move the process around
+    r += bmain(outputMode);
+    Benchmark::finalize();
+#else
     cpu_set_t cpumask;
     sched_getaffinity(0, sizeof(cpu_set_t), &cpumask);
     int cpucount = 1;
     while (CPU_ISSET(cpucount, &cpumask)) {
         ++cpucount;
     }
-    int r = 0;
     for (int cpuid = 0; cpuid < cpucount; ++cpuid) {
         if (cpucount > 1) {
             Benchmark::addColumn("CPU_ID");
@@ -609,6 +641,7 @@ int main(int argc, char **argv)
         r += bmain(outputMode);
         Benchmark::finalize();
     }
+#endif
     delete file;
     return r;
 }
