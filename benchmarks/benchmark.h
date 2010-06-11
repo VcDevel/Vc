@@ -43,10 +43,8 @@
 
 #include "tsc.h"
 
-#ifndef WIN32
-#ifndef __APPLE__
+#if !defined(WIN32) && !defined(__APPLE__)
 #define VC_USE_CPU_TIME
-#endif
 #endif
 
 class Benchmark
@@ -121,13 +119,11 @@ private:
     const std::string fX;
 #ifdef _MSC_VER
     __int64 fRealTime;
-#else
-#ifdef __APPLE__
+#elif defined(__APPLE__)
     uint64_t fRealTime;
 #else
     struct timespec fRealTime;
     struct timespec fCpuTime;
-#endif
 #endif
     TimeStampCounter fTsc;
     std::list<DataPoint> fDataPoints;
@@ -278,13 +274,11 @@ inline void Benchmark::Start()
 {
 #ifdef _MSC_VER
     QueryPerformanceCounter((LARGE_INTEGER *)&fRealTime);
-#else
-#ifdef __APPLE__
+#elif defined(__APPLE__)
     fRealTime = mach_absolute_time();
 #else
     clock_gettime( CLOCK_MONOTONIC, &fRealTime );
     clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &fCpuTime );
-#endif
 #endif
     fTsc.Start();
 }
@@ -308,8 +302,7 @@ inline void Benchmark::Stop()
     const DataPoint p = {
         static_cast<double>(real - fRealTime) / freq,
         1.0,
-#else
-#ifdef __APPLE__
+#elif defined(__APPLE__)
     uint64_t real = mach_absolute_time();
     static mach_timebase_info_data_t info = {0,0};  
     
@@ -328,7 +321,6 @@ inline void Benchmark::Stop()
     const DataPoint p = {
         convertTimeSpec(real) - convertTimeSpec(fRealTime),
         convertTimeSpec(cpu ) - convertTimeSpec(fCpuTime ),
-#endif
 #endif
         fTsc.Cycles()
     };
