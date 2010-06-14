@@ -50,3 +50,9 @@ Register pressure is increased.
 2.2.3. Downsides:
 - Use of int_v for float_v operations involving __m256i arguments require an extra type. This will
   be hard to generalize
+
+
+2.3. Mixed approach
+===========================================
+int_v/uint_v are implemented as 256bit while short_v/ushort_v are implemented as 128bit. Thus
+int_v::Size == short_v::Size (which is the case on LRBni, too).
