@@ -21,16 +21,16 @@
 #define VECTOR_H
 
 #include "global.h"
+#include "internal/namespace.h"
 
 #if VC_IMPL_LRBni
 # include "larrabee/vector.h"
-# define VECTOR_NAMESPACE LRBni
 #elif VC_IMPL_Scalar
 # include "simple/vector.h"
-# define VECTOR_NAMESPACE Simple
-#else
+#elif VC_IMPL_AVX
+# include "avx/vector.h"
+#elif VC_IMPL_SSE
 # include "sse/vector.h"
-# define VECTOR_NAMESPACE SSE
 #endif
 
 #ifdef isfinite

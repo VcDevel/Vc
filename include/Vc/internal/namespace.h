@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -17,19 +17,12 @@
 
 */
 
-#ifndef INCLUDE_VC_LIMITS
-#define INCLUDE_VC_LIMITS
-
-#include "vector.h"
-
 #if VC_IMPL_LRBni
-# include "larrabee/limits.h"
+# define VECTOR_NAMESPACE Vc::LRBni
 #elif VC_IMPL_Scalar
-# include "simple/limits.h"
+# define VECTOR_NAMESPACE Vc::Simple
 #elif VC_IMPL_AVX
-# include "avx/limits.h"
+# define VECTOR_NAMESPACE Vc::AVX
 #elif VC_IMPL_SSE
-# include "sse/limits.h"
+# define VECTOR_NAMESPACE Vc::SSE
 #endif
-
-#endif // INCLUDE_VC_LIMITS

@@ -21,14 +21,7 @@
 #define VC_UINT_V
 
 #include "vector.h"
-
-#if VC_IMPL_LRBni
-# define VECTOR_NAMESPACE LRBni
-#elif VC_IMPL_Scalar
-# define VECTOR_NAMESPACE Simple
-#else
-# define VECTOR_NAMESPACE SSE
-#endif
+#include "internal/namespace.h"
 
 namespace Vc
 {
