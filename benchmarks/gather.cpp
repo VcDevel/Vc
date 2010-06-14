@@ -363,7 +363,7 @@ template<typename Vector> struct GatherBenchmark
     }
 };
 
-#include "cpuid.h"
+#include "../cpuid.h"
 
 int bmain(Benchmark::OutputMode out)
 {

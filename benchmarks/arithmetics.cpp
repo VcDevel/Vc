@@ -21,7 +21,7 @@
 #include <Vc/limits>
 #include "benchmark.h"
 #include "random.h"
-#include "cpuid.h"
+#include "../cpuid.h"
 
 #include <cstdlib>
 

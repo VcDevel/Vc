@@ -20,7 +20,7 @@
 #include <Vc/Vc>
 #include "benchmark.h"
 #include "random.h"
-#include "cpuid.h"
+#include "../cpuid.h"
 
 #include <cstdlib>
 

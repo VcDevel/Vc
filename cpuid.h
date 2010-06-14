@@ -51,6 +51,8 @@ class CpuId
         static bool hasSse41() { return s_processorFeaturesC & (1 << 19); }
         static bool hasSse42() { return s_processorFeaturesC & (1 << 20); }
         static bool hasAes  () { return s_processorFeaturesC & (1 << 25); }
+        static bool hasOsxsave() { return s_processorFeaturesC & (1 << 27); }
+        static bool hasAvx  () { return s_processorFeaturesC & (1 << 28); }
         static bool hasFpu  () { return s_processorFeaturesD & (1 << 0); }
         static bool hasVme  () { return s_processorFeaturesD & (1 << 1); }
         static bool hasDe   () { return s_processorFeaturesD & (1 << 2); }
