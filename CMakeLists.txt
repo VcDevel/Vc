@@ -109,6 +109,7 @@ install(DIRECTORY include/Vc/ DESTINATION include/Vc)
 install(DIRECTORY larrabee simple sse common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 include (CTest)
+configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
 if(BUILD_TESTING)
    add_subdirectory(tests)
 endif(BUILD_TESTING)
