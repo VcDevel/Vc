@@ -55,7 +55,15 @@ typedef MASK_TYPE Mask;
 
 enum {
     /**
-     * The size of the vector. I.e. the number of scalar entries in the vector.
+     * The size of the vector. I.e. the number of scalar entries in the vector. Do not make any
+     * assumptions about the size of vectors. If you need a vector of float vs. integer of the same
+     * size make use of IndexType instead. Note that this still does not guarantee the same size
+     * (e.g. double_v on SSE has two entries but there exists no 64 bit integer vector type in Vc -
+     * which would have two entries; thus double_v::IndexType is uint_v).
+     *
+     * Also you can easily use if clauses that compare sizes. The
+     * compiler can statically evaluate and fully optimize dead code away (very much like #ifdef,
+     * but with syntax checking).
      */
     Size
 };
