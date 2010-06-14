@@ -159,10 +159,10 @@ macro(OptimizeForArchitecture)
    set(USE_AVX ${AVX_FOUND} CACHE BOOL "Use AVX. If AVX instructions are not enabled the AVX implementation will be disabled.")
    if(USE_AVX)
       list(APPEND _enable_vector_unit_list "avx")
-      # we want to see what a real SSE binary would perform like on an "AVX chip".
-      # This is true for the Vc benchmarking. For production code purposes the
-      # requirement might be different.
-      list(APPEND _disable_vector_unit_list "sse2avx")
+      # we want SSE intrinsics to result in instructions using the VEX prefix.
+      # Otherwise integer ops (which require the older SSE intrinsics) would
+      # always have a large penalty.
+      list(APPEND _enable_vector_unit_list "sse2avx")
    else(USE_AVX)
       list(APPEND _disable_vector_unit_list "avx")
    endif(USE_AVX)

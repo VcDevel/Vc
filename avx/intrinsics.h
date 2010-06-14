@@ -20,16 +20,8 @@
 #ifndef AVX_INTRINSICS_H
 #define AVX_INTRINSICS_H
 
-// MMX
-#include <mmintrin.h>
 // AVX
-#include <xmmintrin.h>
-// AVX2
-#include <emmintrin.h>
-
-#if defined(__GNUC__) && !defined(VC_IMPL_AVX2)
-#error "AVX Vector class needs at least AVX2"
-#endif
+#include <immintrin.h>
 
 #include "const.h"
 #include "macros.h"
@@ -60,30 +52,12 @@ namespace AVX
     static inline __m256i _mm256_setmin_epi16() CONST;
     static inline __m256i _mm256_setmin_epi32() CONST;
 
-    // not overriding _mm256_set1_epi8 because this one should only be used for non-constants
-    static inline __m256i set1_epi8(int a) CONST;
-
     //X         static inline __m256i _mm256_cmplt_epu8 (__m256i a, __m256i b) CONST;
     //X         static inline __m256i _mm256_cmpgt_epu8 (__m256i a, __m256i b) CONST;
     static inline __m256i _mm256_cmplt_epu16(__m256i a, __m256i b) CONST;
     static inline __m256i _mm256_cmpgt_epu16(__m256i a, __m256i b) CONST;
     static inline __m256i _mm256_cmplt_epu32(__m256i a, __m256i b) CONST;
     static inline __m256i _mm256_cmpgt_epu32(__m256i a, __m256i b) CONST;
-
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ < 6 && !defined(VC_DONT_FIX_AVX_SHIFT)
-    static inline __m256i _mm256_sll_epi16(__m256i a, __m256i count) CONST;
-    static inline __m256i _mm256_sll_epi16(__m256i a, __m256i count) { __asm__("psllw %1,%0" : "+x"(a) : "x"(count)); return a; }
-    static inline __m256i _mm256_sll_epi32(__m256i a, __m256i count) CONST;
-    static inline __m256i _mm256_sll_epi32(__m256i a, __m256i count) { __asm__("pslld %1,%0" : "+x"(a) : "x"(count)); return a; }
-    static inline __m256i _mm256_sll_epi64(__m256i a, __m256i count) CONST;
-    static inline __m256i _mm256_sll_epi64(__m256i a, __m256i count) { __asm__("psllq %1,%0" : "+x"(a) : "x"(count)); return a; }
-    static inline __m256i _mm256_srl_epi16(__m256i a, __m256i count) CONST;
-    static inline __m256i _mm256_srl_epi16(__m256i a, __m256i count) { __asm__("psrlw %1,%0" : "+x"(a) : "x"(count)); return a; }
-    static inline __m256i _mm256_srl_epi32(__m256i a, __m256i count) CONST;
-    static inline __m256i _mm256_srl_epi32(__m256i a, __m256i count) { __asm__("psrld %1,%0" : "+x"(a) : "x"(count)); return a; }
-    static inline __m256i _mm256_srl_epi64(__m256i a, __m256i count) CONST;
-    static inline __m256i _mm256_srl_epi64(__m256i a, __m256i count) { __asm__("psrlq %1,%0" : "+x"(a) : "x"(count)); return a; }
-#endif
 
 #if defined(__GNUC__) && !defined(NVALGRIND)
     static inline __m256i _mm256_setallone() { __m256i r; __asm__("vcmpeqb %0,%0":"=x"(r)); return r; }
@@ -125,313 +99,181 @@ namespace AVX
             _mm256_xor_si256(a, _mm256_setmin_epi32()), _mm256_xor_si256(b, _mm256_setmin_epi32())); }
     static inline __m256i _mm256_cmpgt_epu32(__m256i a, __m256i b) { return _mm256_cmpgt_epi32(
             _mm256_xor_si256(a, _mm256_setmin_epi32()), _mm256_xor_si256(b, _mm256_setmin_epi32())); }
+
+    /////////////////////// INTEGER OPS ///////////////////////
+#define AVX_TO_SSE_2(name) \
+    static inline __m256i _mm256_##name(__m256i a0, __m256i b0) CONST; \
+    static inline __m256i _mm256_##name(__m256i a0, __m256i b0) { \
+        __m128i a1 = _mm256_extractf128_si256(a0, 1); \
+        __m128i b1 = _mm256_extractf128_si256(b0, 1); \
+        __m128i r0 = _mm_##name(_mm256_castsi256_si128(a0), _mm256_castsi256_si128(b0)); \
+        __m128i r1 = _mm_##name(a1, b1); \
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
+    }
+#define AVX_TO_SSE_1(name) \
+    static inline __m256i _mm256_##name(__m256i a0) CONST; \
+    static inline __m256i _mm256_##name(__m256i a0) { \
+        __m128i a1 = _mm256_extractf128_si256(a0, 1); \
+        __m128i r0 = _mm_##name(_mm256_castsi256_si128(a0)); \
+        __m128i r1 = _mm_##name(a1); \
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
+    }
+#define AVX_TO_SSE_1i(name) \
+    static inline __m256i _mm256_##name(__m256i a0, const int i) CONST; \
+    static inline __m256i _mm256_##name(__m256i a0, const int i) { \
+        __m128i a1 = _mm256_extractf128_si256(a0, 1); \
+        __m128i r0 = _mm_##name(_mm256_castsi256_si128(a0), i); \
+        __m128i r1 = _mm_##name(a1, i); \
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
+    }
+
+    AVX_TO_SSE_2(packs_epi16)
+    AVX_TO_SSE_2(packs_epi32)
+    AVX_TO_SSE_2(packus_epi16)
+    AVX_TO_SSE_2(unpackhi_epi8)
+    AVX_TO_SSE_2(unpackhi_epi16)
+    AVX_TO_SSE_2(unpackhi_epi32)
+    AVX_TO_SSE_2(unpackhi_epi64)
+    AVX_TO_SSE_2(unpacklo_epi8)
+    AVX_TO_SSE_2(unpacklo_epi16)
+    AVX_TO_SSE_2(unpacklo_epi32)
+    AVX_TO_SSE_2(unpacklo_epi64)
+    AVX_TO_SSE_2(add_epi8)
+    AVX_TO_SSE_2(add_epi16)
+    AVX_TO_SSE_2(add_epi32)
+    AVX_TO_SSE_2(add_epi64)
+    AVX_TO_SSE_2(adds_epi8)
+    AVX_TO_SSE_2(adds_epi16)
+    AVX_TO_SSE_2(adds_epu8)
+    AVX_TO_SSE_2(adds_epu16)
+    AVX_TO_SSE_2(sub_epi8)
+    AVX_TO_SSE_2(sub_epi16)
+    AVX_TO_SSE_2(sub_epi32)
+    AVX_TO_SSE_2(sub_epi64)
+    AVX_TO_SSE_2(subs_epi8)
+    AVX_TO_SSE_2(subs_epi16)
+    AVX_TO_SSE_2(subs_epu8)
+    AVX_TO_SSE_2(subs_epu16)
+    AVX_TO_SSE_2(madd_epi16)
+    AVX_TO_SSE_2(mulhi_epi16)
+    AVX_TO_SSE_2(mullo_epi16)
+    AVX_TO_SSE_2(mul_epu32)
+    AVX_TO_SSE_1i(slli_epi16)
+    AVX_TO_SSE_1i(slli_epi32)
+    AVX_TO_SSE_1i(slli_epi64)
+    AVX_TO_SSE_1i(srai_epi16)
+    AVX_TO_SSE_1i(srai_epi32)
+    AVX_TO_SSE_1i(srli_epi16)
+    AVX_TO_SSE_1i(srli_epi32)
+    AVX_TO_SSE_1i(srli_epi64)
+    AVX_TO_SSE_1i(srli_si128)
+    AVX_TO_SSE_1i(slli_si128)
+    AVX_TO_SSE_2(sll_epi16)
+    AVX_TO_SSE_2(sll_epi32)
+    AVX_TO_SSE_2(sll_epi64)
+    AVX_TO_SSE_2(sra_epi16)
+    AVX_TO_SSE_2(sra_epi32)
+    AVX_TO_SSE_2(srl_epi16)
+    AVX_TO_SSE_2(srl_epi32)
+    AVX_TO_SSE_2(srl_epi64)
+    AVX_TO_SSE_2(and_si128)
+    AVX_TO_SSE_2(andnot_si128)
+    AVX_TO_SSE_2(or_si128)
+    AVX_TO_SSE_2(xor_si128)
+    AVX_TO_SSE_2(cmpeq_epi8)
+    AVX_TO_SSE_2(cmpeq_epi16)
+    AVX_TO_SSE_2(cmpeq_epi32)
+    AVX_TO_SSE_2(cmplt_epi8)
+    AVX_TO_SSE_2(cmplt_epi16)
+    AVX_TO_SSE_2(cmplt_epi32)
+    AVX_TO_SSE_2(cmpgt_epi8)
+    AVX_TO_SSE_2(cmpgt_epi16)
+    AVX_TO_SSE_2(cmpgt_epi32)
+    AVX_TO_SSE_2(max_epi16)
+    AVX_TO_SSE_2(max_epu8)
+    AVX_TO_SSE_2(min_epi16)
+    AVX_TO_SSE_2(min_epu8)
+    int _mm256_movemask_epi8(__m256i a0) CONST;
+    int _mm256_movemask_epi8(__m256i a0)
+    {
+        __m128i a1 = _mm256_extractf128_si256(a0, 1);
+        return (_mm_movemask_epi8(a1) << 16) | _mm_movemask_epi8(a0)
+    }
+    AVX_TO_SSE_2(mulhi_epu16)
+    // shufflehi_epi16
+    // shufflelo_epi16 (__m128i __A, const int __mask)
+    // shuffle_epi32 (__m128i __A, const int __mask)
+    // maskmoveu_si128 (__m128i __A, __m128i __B, char *__C)
+    AVX_TO_SSE_2(avg_epu8)
+    AVX_TO_SSE_2(avg_epu16)
+    AVX_TO_SSE_2(sad_epu8)
+    // stream_si32 (int *__A, int __B)
+    // stream_si128 (__m128i *__A, __m128i __B)
+    // cvtsi32_si128 (int __A)
+    // cvtsi64_si128 (long long __A)
+    // cvtsi64x_si128 (long long __A)
+    AVX_TO_SSE_2(hadd_epi16)
+    AVX_TO_SSE_2(hadd_epi32)
+    AVX_TO_SSE_2(hadds_epi16)
+    AVX_TO_SSE_2(hsub_epi16)
+    AVX_TO_SSE_2(hsub_epi32)
+    AVX_TO_SSE_2(hsubs_epi16)
+    AVX_TO_SSE_2(maddubs_epi16)
+    AVX_TO_SSE_2(mulhrs_epi16)
+    AVX_TO_SSE_2(shuffle_epi8)
+    AVX_TO_SSE_2(sign_epi8)
+    AVX_TO_SSE_2(sign_epi16)
+    AVX_TO_SSE_2(sign_epi32)
+    // alignr_epi8(__m128i __X, __m128i __Y, const int __N)
+    AVX_TO_SSE_1(abs_epi8)
+    AVX_TO_SSE_1(abs_epi16)
+    AVX_TO_SSE_1(abs_epi32)
+    __m256i _mm256_blend_epi16(__m256i a0, __m256i b0, const int m) CONST;
+    __m256i _mm256_blend_epi16(__m256i a0, __m256i b0, const int m) {
+        __m128i a1 = _mm256_extractf128_si256(a0, 1);
+        __m128i b1 = _mm256_extractf128_si256(b0, 1);
+        __m128i r0 = _mm_blend_epi16(_mm256_castsi256_si128(a0), _mm256_castsi256_si128(b0), m & 0xff);
+        __m128i r1 = _mm_blend_epi16(a1, b1, m >> 8);
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1);
+    }
+    __m256i _mm256_blendv_epi8(__m256i a0, __m256i b0, __m256i m0) CONST;
+    __m256i _mm256_blendv_epi8(__m256i a0, __m256i b0, __m256i m0) {
+        __m128i a1 = _mm256_extractf128_si256(a0, 1);
+        __m128i b1 = _mm256_extractf128_si256(b0, 1);
+        __m128i m1 = _mm256_extractf128_si256(m0, 1);
+        __m128i r0 = _mm_blendv_epi8(_mm256_castsi256_si128(a0), _mm256_castsi256_si128(b0), m0);
+        __m128i r1 = _mm_blendv_epi8(a1, b1, m1);
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1);
+    }
+    AVX_TO_SSE_2(cmpeq_epi64)
+    AVX_TO_SSE_2(min_epi8)
+    AVX_TO_SSE_2(max_epi8)
+    AVX_TO_SSE_2(min_epu16)
+    AVX_TO_SSE_2(max_epu16)
+    AVX_TO_SSE_2(min_epi32)
+    AVX_TO_SSE_2(max_epi32)
+    AVX_TO_SSE_2(min_epu32)
+    AVX_TO_SSE_2(max_epu32)
+    AVX_TO_SSE_2(mullo_epi32)
+    AVX_TO_SSE_2(mul_epi32)
+    AVX_TO_SSE_1(minpos_epu16)
+    AVX_TO_SSE_1(cvtepi8_epi32)
+    AVX_TO_SSE_1(cvtepi16_epi32)
+    AVX_TO_SSE_1(cvtepi8_epi64)
+    AVX_TO_SSE_1(cvtepi32_epi64)
+    AVX_TO_SSE_1(cvtepi16_epi64)
+    AVX_TO_SSE_1(cvtepi8_epi16)
+    AVX_TO_SSE_1(cvtepu8_epi32)
+    AVX_TO_SSE_1(cvtepu16_epi32)
+    AVX_TO_SSE_1(cvtepu8_epi64)
+    AVX_TO_SSE_1(cvtepu32_epi64)
+    AVX_TO_SSE_1(cvtepu16_epi64)
+    AVX_TO_SSE_1(cvtepu8_epi16)
+    AVX_TO_SSE_2(packus_epi32)
+    // mpsadbw_epu8 (__m128i __X, __m128i __Y, const int __M)
+    // stream_load_si128 (__m128i *__X)
+    AVX_TO_SSE_2(cmpgt_epi64)
 } // namespace AVX
 } // namespace Vc
-
-// AVX3
-#ifdef VC_IMPL_AVX3
-#include <pmmintrin.h>
-#endif
-// SAVX3
-#ifdef VC_IMPL_SAVX3
-#include <tmmintrin.h>
-namespace Vc
-{
-namespace AVX
-{
-
-    static inline __m256i set1_epi8(int a) {
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ < 5
-        return _mm256_shuffle_epi8(_mm256_cvtsi32_si256(a), _mm256_setzero_si256());
-#else
-        // GCC 4.5 nows about the pshufb improvement
-        return _mm256_set1_epi8(a);
-#endif
-    }
-
-} // namespace AVX
-} // namespace Vc
-#else
-namespace Vc
-{
-namespace AVX
-{
-    static inline __m256i _mm256_abs_epi8 (__m256i a) CONST;
-    static inline __m256i _mm256_abs_epi16(__m256i a) CONST;
-    static inline __m256i _mm256_abs_epi32(__m256i a) CONST;
-    static inline __m256i _mm256_alignr_epi8(__m256i a, __m256i b, const int s) CONST;
-
-    static inline __m256i _mm256_abs_epi8 (__m256i a) {
-        __m256i negative = _mm256_cmplt_epi8 (a, _mm256_setzero_si256());
-        return _mm256_add_epi8 (_mm256_xor_si256(a, negative), _mm256_and_si256(negative,  _mm256_setone_epi8()));
-    }
-    // positive value:
-    //   negative == 0
-    //   a unchanged after xor
-    //   0 >> 31 -> 0
-    //   a + 0 -> a
-    // negative value:
-    //   negative == -1
-    //   a xor -1 -> -a - 1
-    //   -1 >> 31 -> 1
-    //   -a - 1 + 1 -> -a
-    static inline __m256i _mm256_abs_epi16(__m256i a) {
-        __m256i negative = _mm256_cmplt_epi16(a, _mm256_setzero_si256());
-        return _mm256_add_epi16(_mm256_xor_si256(a, negative), _mm256_srli_epi16(negative, 15));
-    }
-    static inline __m256i _mm256_abs_epi32(__m256i a) {
-        __m256i negative = _mm256_cmplt_epi32(a, _mm256_setzero_si256());
-        return _mm256_add_epi32(_mm256_xor_si256(a, negative), _mm256_srli_epi32(negative, 31));
-    }
-    static inline __m256i set1_epi8(int a) {
-        return _mm256_set1_epi8(a);
-    }
-    static inline __m256i _mm256_alignr_epi8(__m256i a, __m256i b, const int s) {
-        switch (s) {
-            case  0: return b;
-            case  1: return _mm256_or_si256(_mm256_slli_si256(a, 15), _mm256_srli_si256(b,  1));
-            case  2: return _mm256_or_si256(_mm256_slli_si256(a, 14), _mm256_srli_si256(b,  2));
-            case  3: return _mm256_or_si256(_mm256_slli_si256(a, 13), _mm256_srli_si256(b,  3));
-            case  4: return _mm256_or_si256(_mm256_slli_si256(a, 12), _mm256_srli_si256(b,  4));
-            case  5: return _mm256_or_si256(_mm256_slli_si256(a, 11), _mm256_srli_si256(b,  5));
-            case  6: return _mm256_or_si256(_mm256_slli_si256(a, 10), _mm256_srli_si256(b,  6));
-            case  7: return _mm256_or_si256(_mm256_slli_si256(a,  9), _mm256_srli_si256(b,  7));
-            case  8: return _mm256_or_si256(_mm256_slli_si256(a,  8), _mm256_srli_si256(b,  8));
-            case  9: return _mm256_or_si256(_mm256_slli_si256(a,  7), _mm256_srli_si256(b,  9));
-            case 10: return _mm256_or_si256(_mm256_slli_si256(a,  6), _mm256_srli_si256(b, 10));
-            case 11: return _mm256_or_si256(_mm256_slli_si256(a,  5), _mm256_srli_si256(b, 11));
-            case 12: return _mm256_or_si256(_mm256_slli_si256(a,  4), _mm256_srli_si256(b, 12));
-            case 13: return _mm256_or_si256(_mm256_slli_si256(a,  3), _mm256_srli_si256(b, 13));
-            case 14: return _mm256_or_si256(_mm256_slli_si256(a,  2), _mm256_srli_si256(b, 14));
-            case 15: return _mm256_or_si256(_mm256_slli_si256(a,  1), _mm256_srli_si256(b, 15));
-            case 16: return a;
-            case 17: return _mm256_srli_si256(a,  1);
-            case 18: return _mm256_srli_si256(a,  2);
-            case 19: return _mm256_srli_si256(a,  3);
-            case 20: return _mm256_srli_si256(a,  4);
-            case 21: return _mm256_srli_si256(a,  5);
-            case 22: return _mm256_srli_si256(a,  6);
-            case 23: return _mm256_srli_si256(a,  7);
-            case 24: return _mm256_srli_si256(a,  8);
-            case 25: return _mm256_srli_si256(a,  9);
-            case 26: return _mm256_srli_si256(a, 10);
-            case 27: return _mm256_srli_si256(a, 11);
-            case 28: return _mm256_srli_si256(a, 12);
-            case 29: return _mm256_srli_si256(a, 13);
-            case 30: return _mm256_srli_si256(a, 14);
-            case 31: return _mm256_srli_si256(a, 15);
-        }
-        return _mm256_setzero_si256();
-    }
-
-} // namespace AVX
-} // namespace Vc
-
-#endif
-
-// AVX4.1
-#ifdef VC_IMPL_AVX4_1
-#include <smmintrin.h>
-#else
-namespace Vc
-{
-namespace AVX
-{
-    static inline __m256d _mm256_blendv_pd(__m256d a, __m256d b, __m256d c) CONST ALWAYS_INLINE;
-    static inline __m256  _mm256_blendv_ps(__m256  a, __m256  b, __m256  c) CONST ALWAYS_INLINE;
-    static inline __m256i _mm256_blendv_epi8(__m256i a, __m256i b, __m256i c) CONST ALWAYS_INLINE;
-    static inline __m256d _mm256_blend_pd(__m256d a, __m256d b, const int mask) CONST ALWAYS_INLINE;
-    static inline __m256  _mm256_blend_ps(__m256  a, __m256  b, const int mask) CONST ALWAYS_INLINE;
-    static inline __m256i _mm256_blend_epi16(__m256i a, __m256i b, const int mask) CONST ALWAYS_INLINE;
-    static inline __m256i _mm256_max_epi8 (__m256i a, __m256i b) CONST;
-    static inline __m256i _mm256_max_epi32(__m256i a, __m256i b) CONST;
-    //static inline __m256i _mm256_max_epu8 (__m256i a, __m256i b) CONST;
-    static inline __m256i _mm256_max_epu16(__m256i a, __m256i b) CONST;
-    static inline __m256i _mm256_max_epu32(__m256i a, __m256i b) CONST;
-    //static inline __m256i _mm256_min_epu8 (__m256i a, __m256i b) CONST;
-    static inline __m256i _mm256_min_epu16(__m256i a, __m256i b) CONST;
-    static inline __m256i _mm256_min_epu32(__m256i a, __m256i b) CONST;
-    static inline __m256i _mm256_min_epi8 (__m256i a, __m256i b) CONST;
-    static inline __m256i _mm256_min_epi32(__m256i a, __m256i b) CONST;
-
-    static inline __m256d _mm256_blendv_pd(__m256d a, __m256d b, __m256d c) {
-        return _mm256_or_pd(_mm256_andnot_pd(c, a), _mm256_and_pd(c, b));
-    }
-    static inline __m256  _mm256_blendv_ps(__m256  a, __m256  b, __m256  c) {
-        return _mm256_or_ps(_mm256_andnot_ps(c, a), _mm256_and_ps(c, b));
-    }
-    static inline __m256i _mm256_blendv_epi8(__m256i a, __m256i b, __m256i c) {
-        return _mm256_or_si256(_mm256_andnot_si256(c, a), _mm256_and_si256(c, b));
-    }
-
-    // only use the following blend functions with immediates as mask and, of course, compiling
-    // with optimization
-    static inline __m256d _mm256_blend_pd(__m256d a, __m256d b, const int mask) {
-        __m256i c;
-        switch (mask) {
-        case 0x0:
-            return a;
-        case 0x1:
-            c = _mm256_srli_si256(_mm256_setallone_si256(), 8);
-            break;
-        case 0x2:
-            c = _mm256_slli_si256(_mm256_setallone_si256(), 8);
-            break;
-        case 0x3:
-            return b;
-        }
-        __m256d _c = _mm256_castsi256_pd(c);
-        return _mm256_or_pd(_mm256_andnot_pd(_c, a), _mm256_and_pd(_c, b));
-    }
-    static inline __m256  _mm256_blend_ps(__m256  a, __m256  b, const int mask) {
-        __m256i c;
-        switch (mask) {
-        case 0x0:
-            return a;
-        case 0x1:
-            c = _mm256_srli_si256(_mm256_setallone_si256(), 12);
-            break;
-        case 0x2:
-            c = _mm256_slli_si256(_mm256_srli_si256(_mm256_setallone_si256(), 12), 4);
-            break;
-        case 0x3:
-            c = _mm256_srli_si256(_mm256_setallone_si256(), 8);
-            break;
-        case 0x4:
-            c = _mm256_slli_si256(_mm256_srli_si256(_mm256_setallone_si256(), 12), 8);
-            break;
-        case 0x5:
-            c = _mm256_set_epi32(0, -1, 0, -1);
-            break;
-        case 0x6:
-            c = _mm256_slli_si256(_mm256_srli_si256(_mm256_setallone_si256(), 8), 4);
-            break;
-        case 0x7:
-            c = _mm256_srli_si256(_mm256_setallone_si256(), 4);
-            break;
-        case 0x8:
-            c = _mm256_slli_si256(_mm256_setallone_si256(), 12);
-            break;
-        case 0x9:
-            c = _mm256_set_epi32(-1, 0, 0, -1);
-            break;
-        case 0xa:
-            c = _mm256_set_epi32(-1, 0, -1, 0);
-            break;
-        case 0xb:
-            c = _mm256_set_epi32(-1, 0, -1, -1);
-            break;
-        case 0xc:
-            c = _mm256_slli_si256(_mm256_setallone_si256(), 8);
-            break;
-        case 0xd:
-            c = _mm256_set_epi32(-1, -1, 0, -1);
-            break;
-        case 0xe:
-            c = _mm256_slli_si256(_mm256_setallone_si256(), 4);
-            break;
-        case 0xf:
-            return b;
-        default: // may not happen
-            abort();
-            c = _mm256_setzero_si256();
-            break;
-        }
-        __m256 _c = _mm256_castsi256_ps(c);
-        return _mm256_or_ps(_mm256_andnot_ps(_c, a), _mm256_and_ps(_c, b));
-    }
-    static inline __m256i _mm256_blend_epi16(__m256i a, __m256i b, const int mask) {
-        __m256i c;
-        switch (mask) {
-        case 0x00:
-            return a;
-        case 0x01:
-            c = _mm256_srli_si256(_mm256_setallone_si256(), 14);
-            break;
-        case 0x03:
-            c = _mm256_srli_si256(_mm256_setallone_si256(), 12);
-            break;
-        case 0x07:
-            c = _mm256_srli_si256(_mm256_setallone_si256(), 10);
-            break;
-        case 0x0f:
-            return _mm256_unpackhi_epi64(_mm256_slli_si256(b, 8), a);
-        case 0x1f:
-            c = _mm256_srli_si256(_mm256_setallone_si256(), 6);
-            break;
-        case 0x3f:
-            c = _mm256_srli_si256(_mm256_setallone_si256(), 4);
-            break;
-        case 0x7f:
-            c = _mm256_srli_si256(_mm256_setallone_si256(), 2);
-            break;
-        case 0x80:
-            c = _mm256_slli_si256(_mm256_setallone_si256(), 14);
-            break;
-        case 0xc0:
-            c = _mm256_slli_si256(_mm256_setallone_si256(), 12);
-            break;
-        case 0xe0:
-            c = _mm256_slli_si256(_mm256_setallone_si256(), 10);
-            break;
-        case 0xf0:
-            c = _mm256_slli_si256(_mm256_setallone_si256(), 8);
-            break;
-        case 0xf8:
-            c = _mm256_slli_si256(_mm256_setallone_si256(), 6);
-            break;
-        case 0xfc:
-            c = _mm256_slli_si256(_mm256_setallone_si256(), 4);
-            break;
-        case 0xfe:
-            c = _mm256_slli_si256(_mm256_setallone_si256(), 2);
-            break;
-        case 0xff:
-            return b;
-        case 0xcc:
-            return _mm256_unpacklo_epi32(_mm256_shuffle_epi32(a, _MM_SHUFFLE(2, 0, 2, 0)), _mm256_shuffle_epi32(b, _MM_SHUFFLE(3, 1, 3, 1)));
-        case 0x33:
-            return _mm256_unpacklo_epi32(_mm256_shuffle_epi32(b, _MM_SHUFFLE(2, 0, 2, 0)), _mm256_shuffle_epi32(a, _MM_SHUFFLE(3, 1, 3, 1)));
-        default:
-            const __m256i shift = _mm256_set_epi16(0x0100, 0x0200, 0x0400, 0x0800, 0x1000, 0x2000, 0x4000, -0x7fff);
-            c = _mm256_srai_epi16(_mm256_mullo_epi16(_mm256_set1_epi16(mask), shift), 15);
-            break;
-        }
-        return _mm256_or_si256(_mm256_andnot_si256(c, a), _mm256_and_si256(c, b));
-    }
-
-    static inline __m256i _mm256_max_epi8 (__m256i a, __m256i b) {
-        return _mm256_blendv_epi8(b, a, _mm256_cmpgt_epi8 (a, b));
-    }
-    static inline __m256i _mm256_max_epi32(__m256i a, __m256i b) {
-        return _mm256_blendv_epi8(b, a, _mm256_cmpgt_epi32(a, b));
-    }
-//X         static inline __m256i _mm256_max_epu8 (__m256i a, __m256i b) {
-//X             return _mm256_blendv_epi8(b, a, _mm256_cmpgt_epu8 (a, b));
-//X         }
-    static inline __m256i _mm256_max_epu16(__m256i a, __m256i b) {
-        return _mm256_blendv_epi8(b, a, _mm256_cmpgt_epu16(a, b));
-    }
-    static inline __m256i _mm256_max_epu32(__m256i a, __m256i b) {
-        return _mm256_blendv_epi8(b, a, _mm256_cmpgt_epu32(a, b));
-    }
-//X         static inline __m256i _mm256_min_epu8 (__m256i a, __m256i b) {
-//X             return _mm256_blendv_epi8(a, b, _mm256_cmpgt_epu8 (a, b));
-//X         }
-    static inline __m256i _mm256_min_epu16(__m256i a, __m256i b) {
-        return _mm256_blendv_epi8(a, b, _mm256_cmpgt_epu16(a, b));
-    }
-    static inline __m256i _mm256_min_epu32(__m256i a, __m256i b) {
-        return _mm256_blendv_epi8(a, b, _mm256_cmpgt_epi32(a, b));
-    }
-    static inline __m256i _mm256_min_epi8 (__m256i a, __m256i b) {
-        return _mm256_blendv_epi8(a, b, _mm256_cmpgt_epi8 (a, b));
-    }
-    static inline __m256i _mm256_min_epi32(__m256i a, __m256i b) {
-        return _mm256_blendv_epi8(a, b, _mm256_cmpgt_epi32(a, b));
-    }
-} // namespace AVX
-} // namespace Vc
-#endif
 
 #endif // AVX_INTRINSICS_H
