@@ -25,6 +25,7 @@
 #include <iomanip>
 #include <cstdlib>
 #include <cmath>
+#include "../common/support.h"
 
 #define runTest(name) _unit_test_global.runTestInt(&name, #name)
 #define testAllTypes(name) \
@@ -35,6 +36,18 @@
     _unit_test_global.runTestInt(&name<short_v>, #name "<short_v>"); \
     _unit_test_global.runTestInt(&name<ushort_v>, #name "<ushort_v>"); \
     _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>")
+
+bool _UnitTest_verify_vector_unit_supported()
+{
+    bool s = Vc::currentImplementationSupported();
+    if (!s) {
+        std::cerr << "CPU or OS requirements not met for the compiled in vector unit!\n";
+        exit(-1);
+    }
+    return s;
+}
+
+static bool _UnitTest_verify_vector_unit_supported_result = _UnitTest_verify_vector_unit_supported();
 
 class _UnitTest_Failure
 {

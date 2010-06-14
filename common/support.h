@@ -26,7 +26,9 @@ namespace Vc
 enum Implementation {
     Scalar, SSE2, SSE3, SSSE3, SSE41, SSE42, SSE4a, AVX, LRBni
 };
+bool isImplementationSupported(Implementation);
 
+#ifndef VC_COMPILE_LIB
 /**
  * Tests that the CPU and Operating System support the vector unit which was compiled for. This
  * function should be called before any other Vc functionality is used to check whether the program
@@ -40,7 +42,7 @@ enum Implementation {
  * {
  *   if (!Vc::currentImplementationSupported()) {
  *     std::cerr << "CPU or OS requirements not met for the compiled in vector unit!\n";
- *     exit 
+ *     exit -1;
  *   }
  * }
  */
@@ -70,9 +72,7 @@ bool currentImplementationSupported()
 #endif
             );
 }
-
-
-bool isImplementationSupported(Implementation);
+#endif // VC_COMPILE_LIB
 
 } // namespace Vc
 

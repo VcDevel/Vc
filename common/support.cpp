@@ -32,35 +32,35 @@ bool isImplementationSupported(Implementation impl)
         return true;
     case SSE2:
         if (CpuId::hasOsxsave() && CpuId::hasSse2()) {
-            uint eax;
+            unsigned int eax;
             asm("xgetbv" : "=a"(eax) :: "edx");
             return (eax & 0x06) == 0x06;
         }
         return false;
     case SSE3:
         if (CpuId::hasOsxsave() && CpuId::hasSse3()) {
-            uint eax;
+            unsigned int eax;
             asm("xgetbv" : "=a"(eax) :: "edx");
             return (eax & 0x06) == 0x06;
         }
         return false;
     case SSSE3:
         if (CpuId::hasOsxsave() && CpuId::hasSsse3()) {
-            uint eax;
+            unsigned int eax;
             asm("xgetbv" : "=a"(eax) :: "edx");
             return (eax & 0x06) == 0x06;
         }
         return false;
     case SSE41:
         if (CpuId::hasOsxsave() && CpuId::hasSse41()) {
-            uint eax;
+            unsigned int eax;
             asm("xgetbv" : "=a"(eax) :: "edx");
             return (eax & 0x06) == 0x06;
         }
         return false;
     case SSE42:
         if (CpuId::hasOsxsave() && CpuId::hasSse42()) {
-            uint eax;
+            unsigned int eax;
             asm("xgetbv" : "=a"(eax) :: "edx");
             return (eax & 0x06) == 0x06;
         }
@@ -69,7 +69,7 @@ bool isImplementationSupported(Implementation impl)
         // TODO
     case AVX:
         if (CpuId::hasOsxsave() && CpuId::hasAvx()) {
-            uint eax;
+            unsigned int eax;
             asm("xgetbv" : "=a"(eax) :: "edx");
             return (eax & 0x06) == 0x06;
         }
