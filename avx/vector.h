@@ -50,13 +50,13 @@ class Vector : public VectorBase<T>
         typedef VectorBase<T> Base;
         using Base::d;
     public:
-        FREE_STORE_OPERATORS_ALIGNED(16)
+        FREE_STORE_OPERATORS_ALIGNED(32)
 
         enum { Size = Base::Size };
         typedef typename Base::VectorType VectorType;
         typedef typename Base::EntryType  EntryType;
-        typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
-        typedef typename Base::MaskType Mask;
+        typedef typename Base::IndexType  IndexType;
+        typedef typename Base::MaskType   Mask;
         typedef Vc::Memory<Vector<T>, Size> Memory;
 
         /**
@@ -65,7 +65,7 @@ class Vector : public VectorBase<T>
         inline Vector() {}
 
         /**
-         * initialized to 0 in all 128 bits
+         * initialized to 0 in all 128/256 bits
          */
         inline explicit Vector(VectorSpecialInitializerZero::ZEnum) : Base(VectorHelper<VectorType>::zero()) {}
 

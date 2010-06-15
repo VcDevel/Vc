@@ -17,8 +17,8 @@
 
 */
 
-#ifndef AVX_WRITEMASKEDVECTOR_H
-#define AVX_WRITEMASKEDVECTOR_H
+#ifndef VC_AVX_WRITEMASKEDVECTOR_H
+#define VC_AVX_WRITEMASKEDVECTOR_H
 
 namespace Vc
 {
@@ -31,63 +31,28 @@ class WriteMaskedVector
     friend class Vector<T>;
     typedef typename VectorBase<T>::MaskType Mask;
     public:
-        FREE_STORE_OPERATORS_ALIGNED(16)
+        FREE_STORE_OPERATORS_ALIGNED(32)
         //prefix
-        inline Vector<T> &operator++() ALWAYS_INLINE {
-            vec->data() = VectorHelper<T>::add(vec->data(),
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
-                    );
-            return *vec;
-        }
-        inline Vector<T> &operator--() ALWAYS_INLINE {
-            vec->data() = VectorHelper<T>::sub(vec->data(),
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
-                    );
-            return *vec;
-        }
+        Vector<T> &operator++() ALWAYS_INLINE;
+        Vector<T> &operator--() ALWAYS_INLINE;
         //postfix
-        inline Vector<T> operator++(int) ALWAYS_INLINE {
-            Vector<T> ret(*vec);
-            vec->data() = VectorHelper<T>::add(vec->data(),
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
-                    );
-            return ret;
-        }
-        inline Vector<T> operator--(int) ALWAYS_INLINE {
-            Vector<T> ret(*vec);
-            vec->data() = VectorHelper<T>::sub(vec->data(),
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
-                    );
-            return ret;
-        }
+        Vector<T> operator++(int) ALWAYS_INLINE;
+        Vector<T> operator--(int) ALWAYS_INLINE;
 
-        inline Vector<T> &operator+=(const Vector<T> &x) ALWAYS_INLINE {
-            vec->data() = VectorHelper<T>::add(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
-            return *vec;
-        }
-        inline Vector<T> &operator-=(const Vector<T> &x) ALWAYS_INLINE {
-            vec->data() = VectorHelper<T>::sub(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
-            return *vec;
-        }
-        inline Vector<T> &operator*=(const Vector<T> &x) ALWAYS_INLINE {
-            vec->data() = VectorHelper<T>::mul(vec->data(), x.data(), mask.data());
-            return *vec;
-        }
-        inline Vector<T> &operator/=(const Vector<T> &x) ALWAYS_INLINE {
-            vec->data() = VectorHelper<T>::div(vec->data(), x.data(), mask.data());
-            return *vec;
-        }
+        Vector<T> &operator+=(const Vector<T> &x) ALWAYS_INLINE;
+        Vector<T> &operator-=(const Vector<T> &x) ALWAYS_INLINE;
+        Vector<T> &operator*=(const Vector<T> &x) ALWAYS_INLINE;
+        Vector<T> &operator/=(const Vector<T> &x) ALWAYS_INLINE;
 
-        inline Vector<T> &operator=(const Vector<T> &x) ALWAYS_INLINE {
-            vec->assign(x, mask);
-            return *vec;
-        }
+        Vector<T> &operator=(const Vector<T> &x) ALWAYS_INLINE;
+
     private:
-        WriteMaskedVector(Vector<T> *v, const Mask &k) : vec(v), mask(k) {}
+        inline WriteMaskedVector(Vector<T> *v, const Mask &k) : vec(v), mask(k) {}
         Vector<T> *vec;
         Mask mask;
 };
 
 } // namespace AVX
 } // namespace Vc
-#endif // AVX_WRITEMASKEDVECTOR_H
+#include "writemaskedvector.tcc"
+#endif // VC_AVX_WRITEMASKEDVECTOR_H
