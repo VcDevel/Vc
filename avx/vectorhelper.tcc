@@ -3,16 +3,16 @@
     Copyright (C) 2009-2010 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Leavxr General Public License as
+    it under the terms of the GNU Lesser General Public License as
     published by the Free Software Foundation, either version 3 of
     the License, or (at your option) any later version.
 
     Vc is distributed in the hope that it will be useful, but
     WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Leavxr General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Leavxr General Public
+    You should have received a copy of the GNU Lesser General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
 */
@@ -197,7 +197,7 @@ namespace AVX
          *
          * 1. iteration from 0 to Size using branching to conditionally execute one value move
          * 2. iteration from 0 to Size using conditional moves with some trickery (the cmov always
-         *    acceavxs the source memory, thus possibly leading to invalid memory acceavxs if the
+         *    accesses the source memory, thus possibly leading to invalid memory accesses if the
          *    condition is false; this can be solved by another cmov that sets the index to 0 on the
          *    inverted condition)
          * 3. extract the bit positions from the mask using bsf and btr and loop while bsf does not
