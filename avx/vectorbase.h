@@ -50,12 +50,11 @@ namespace AVX
         friend struct ScatterHelper<unsigned short>;
         friend struct GeneralHelpers;
         public:
-            typedef typename VectorTypeHelper<T>::Type VectorType ALIGN(16);
+            typedef typename VectorTypeHelper<T>::Type VectorType;
             enum { Size = sizeof(VectorType) / sizeof(EntryType) };
             typedef T EntryType;
-            typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
-            typedef Mask<Size> MaskType;
-            typedef MaskType GatherMaskType;
+            typedef VectorBase<typename IndexTypeHelper<T>::Type> IndexType;
+            typedef Mask<Size, sizeof(VectorType)> MaskType;
 
             inline Vector<EntryType> &operator|= (const Vector<EntryType> &x) ALWAYS_INLINE;
             inline Vector<EntryType> &operator&= (const Vector<EntryType> &x) ALWAYS_INLINE;
@@ -76,19 +75,20 @@ namespace AVX
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }
 
-            inline VectorBase(VectorType x) : d(x) {}
         protected:
             inline VectorBase() {}
+            inline VectorBase(VectorType x) : d(x) {}
 
             VectorMemoryUnion<VectorType, EntryType> d;
 
             static const T *_IndexesFromZero() {
-                if (Size == 4) {
-                    return reinterpret_cast<const T *>(_IndexesFromZero4);
-                } else if (Size == 8) {
+                switch (sizeof(EntryType)) {
+                case 1: // char
                     return reinterpret_cast<const T *>(_IndexesFromZero8);
-                } else if (Size == 16) {
+                case 2: // short
                     return reinterpret_cast<const T *>(_IndexesFromZero16);
+                case 4: // int
+                    return reinterpret_cast<const T *>(_IndexesFromZero32);
                 }
                 return 0;
             }
@@ -100,12 +100,11 @@ namespace AVX
         friend struct ScatterHelper<float>;
         friend struct GeneralHelpers;
         public:
-            enum { Size = 16 / sizeof(float) };
-            typedef _M256 VectorType ALIGN(16);
+            typedef typename VectorTypeHelper<T>::Type VectorType;
+            enum { Size = sizeof(VectorType) / sizeof(EntryType) };
             typedef float EntryType;
-            typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
-            typedef Mask<Size> MaskType;
-            typedef MaskType GatherMaskType;
+            typedef VectorBase<IndexTypeHelper<float>::Type> IndexType;
+            typedef Mask<Size, sizeof(VectorType)> MaskType;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }
@@ -123,12 +122,11 @@ namespace AVX
         friend struct ScatterHelper<double>;
         friend struct GeneralHelpers;
         public:
-            enum { Size = 16 / sizeof(double) };
-            typedef _M256D VectorType ALIGN(16);
+            typedef typename VectorTypeHelper<T>::Type VectorType;
+            enum { Size = sizeof(VectorType) / sizeof(EntryType) };
             typedef double EntryType;
-            typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
-            typedef Mask<Size> MaskType;
-            typedef MaskType GatherMaskType;
+            typedef VectorBase<IndexTypeHelper<double>::Type> IndexType;
+            typedef Mask<Size, sizeof(VectorType)> MaskType;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }

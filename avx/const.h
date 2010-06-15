@@ -29,8 +29,8 @@ namespace AVX
     template<typename T> class Vector;
 
     ALIGN(32) extern const unsigned int   _IndexesFromZero32[8];
-    ALIGN(32) extern const unsigned short _IndexesFromZero16[16];
-    ALIGN(32) extern const unsigned char  _IndexesFromZero8[32];
+    ALIGN(32) extern const unsigned short _IndexesFromZero16[8];
+    ALIGN(32) extern const unsigned char  _IndexesFromZero8[16];
 
     struct c_general
     {
