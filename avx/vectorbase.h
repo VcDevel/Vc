@@ -36,16 +36,13 @@ namespace AVX
         friend struct VectorHelperSize<unsigned int>;
         friend struct VectorHelperSize<short>;
         friend struct VectorHelperSize<unsigned short>;
-        friend struct VectorHelperSize<float16>;
         friend struct GatherHelper<float>;
-        friend struct GatherHelper<float16>;
         friend struct GatherHelper<double>;
         friend struct GatherHelper<int>;
         friend struct GatherHelper<unsigned int>;
         friend struct GatherHelper<short>;
         friend struct GatherHelper<unsigned short>;
         friend struct ScatterHelper<float>;
-        friend struct ScatterHelper<float16>;
         friend struct ScatterHelper<double>;
         friend struct ScatterHelper<int>;
         friend struct ScatterHelper<unsigned int>;
@@ -53,6 +50,7 @@ namespace AVX
         friend struct ScatterHelper<unsigned short>;
         friend struct GeneralHelpers;
         public:
+        // TODO
             enum { Size = 16 / sizeof(T) };
             typedef _M256I VectorType ALIGN(16);
             typedef T EntryType;
@@ -95,30 +93,6 @@ namespace AVX
                 }
                 return 0;
             }
-    };
-
-    template<> class VectorBase<float16> {
-        friend struct VectorHelperSize<float16>;
-        friend struct VectorHelperSize<float>;
-        friend struct GatherHelper<float16>;
-        friend struct ScatterHelper<float16>;
-        friend struct GeneralHelpers;
-        public:
-            enum { Size = 8 };
-            typedef M512 VectorType ALIGN(16);
-            typedef float EntryType;
-            typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
-            typedef Float16Mask MaskType;
-            typedef Float16GatherMask GatherMaskType;
-
-            VectorType &data() { return d.v(); }
-            const VectorType &data() const { return d.v(); }
-
-        protected:
-            inline VectorBase() {}
-            inline VectorBase(const VectorType &x) : d(x) {}
-
-            VectorMemoryUnion<VectorType, EntryType> d;
     };
 
     template<> class VectorBase<float> {

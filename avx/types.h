@@ -28,34 +28,15 @@ namespace AVX
 {
     template<typename T> class Vector;
 
-    class Float16Mask;
-    class Float16GatherMask;
     template<unsigned int VectorSize> class Mask;
-
-    /*
-     * Hack to create a vector object with 8 floats
-     */
-    class float16 {};
-
-    class M512 {
-        public:
-            //inline M512() {}
-            //inline M512(_M256 a, _M256 b) { d[0] = a; d[1] = b; }
-            static inline M512 create(_M256 a, _M256 b) { M512 r; r.d[0] = a; r.d[1] = b; return r; }
-            inline _M256 &operator[](int i) { return d[i]; }
-            inline const _M256 &operator[](int i) const { return d[i]; }
-        private:
-            _M256 d[2];
-    };
 
     template<typename T> struct VectorHelper {};
     template<typename T> struct GatherHelper;
     template<typename T> struct ScatterHelper;
 
     template<unsigned int Size> struct IndexTypeHelper;
-    template<> struct IndexTypeHelper<2u> { typedef unsigned int   Type; };
     template<> struct IndexTypeHelper<4u> { typedef unsigned int   Type; };
-    template<> struct IndexTypeHelper<8u> { typedef unsigned short Type; };
+    template<> struct IndexTypeHelper<8u> { typedef unsigned int Type; };
     template<> struct IndexTypeHelper<16u>{ typedef unsigned char  Type; };
 
     template<typename VectorType, typename EntryType> class VectorMemoryUnion
@@ -90,8 +71,8 @@ namespace AVX
     class VectorAlignedBase
     {
         public:
-            FREE_STORE_OPERATORS_ALIGNED(16)
-    } ALIGN(16);
+            FREE_STORE_OPERATORS_ALIGNED(32)
+    } ALIGN(32);
 
 } // namespace AVX
 } // namespace Vc

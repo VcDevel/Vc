@@ -41,7 +41,6 @@ template<> struct MaskHelper<8> {
     static inline bool cmpneq(_M256 k1, _M256 k2) { return _mm256_movemask_epi8(_mm256_castps_si256(k1)) != _mm256_movemask_epi8(_mm256_castps_si256(k2)); }
 };
 
-class Float16Mask;
 template<unsigned int VectorSize> class Mask
 {
     friend class Mask<2u>;
@@ -49,7 +48,6 @@ template<unsigned int VectorSize> class Mask
     friend class Mask<8u>;
     friend class Mask<16u>;
     friend class Mask<32u>;
-    friend class Float16Mask;
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)
         inline Mask() {}
@@ -62,7 +60,6 @@ template<unsigned int VectorSize> class Mask
         inline Mask(const Mask &rhs) : k(rhs.k) {}
         inline Mask(const Mask<VectorSize / 2> *a)
           : k(_mm256_castsi256_ps(_mm256_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
-        inline explicit Mask(const Float16Mask &m);
 
         template<unsigned int OtherSize> explicit Mask(const Mask<OtherSize> &x);
 //X         {
@@ -267,153 +264,6 @@ template<> inline int Mask<16>::count() const
     return (tmp & 0x00ff) + ((tmp >> 8) & 0x00ff);
 }
 
-
-class Float16Mask
-{
-    enum {
-        PartialSize = 4,
-        VectorSize = 8
-    };
-    public:
-        FREE_STORE_OPERATORS_ALIGNED(16)
-        inline Float16Mask() {}
-        inline Float16Mask(const M512 &x) : k(x) {}
-        inline explicit Float16Mask(VectorSpecialInitializerZero::ZEnum) {
-            k[0] = _mm256_setzero_ps();
-            k[1] = _mm256_setzero_ps();
-        }
-        inline explicit Float16Mask(VectorSpecialInitializerOne::OEnum) {
-            k[0] = _mm256_setallone_ps();
-            k[1] = _mm256_setallone_ps();
-        }
-        inline explicit Float16Mask(bool b) {
-            const __m256 tmp = b ? _mm256_setallone_ps() : _mm256_setzero_ps();
-            k[0] = tmp;
-            k[1] = tmp;
-        }
-        inline Float16Mask(const Mask<VectorSize> &a) {
-            k[0] = _mm256_castsi256_ps(_mm256_unpacklo_epi16(a.dataI(), a.dataI()));
-            k[1] = _mm256_castsi256_ps(_mm256_unpackhi_epi16(a.dataI(), a.dataI()));
-        }
-
-        inline bool operator==(const Float16Mask &rhs) const {
-            return MaskHelper<PartialSize>::cmpeq (k[0], rhs.k[0])
-                && MaskHelper<PartialSize>::cmpeq (k[1], rhs.k[1]);
-        }
-        inline bool operator!=(const Float16Mask &rhs) const {
-            return MaskHelper<PartialSize>::cmpneq(k[0], rhs.k[0])
-                && MaskHelper<PartialSize>::cmpneq(k[1], rhs.k[1]);
-        }
-
-        inline Float16Mask operator&&(const Float16Mask &rhs) const {
-            Float16Mask r;
-            r.k[0] = _mm256_and_ps(k[0], rhs.k[0]);
-            r.k[1] = _mm256_and_ps(k[1], rhs.k[1]);
-            return r;
-        }
-        inline Float16Mask operator& (const Float16Mask &rhs) const {
-            Float16Mask r;
-            r.k[0] = _mm256_and_ps(k[0], rhs.k[0]);
-            r.k[1] = _mm256_and_ps(k[1], rhs.k[1]);
-            return r;
-        }
-        inline Float16Mask operator||(const Float16Mask &rhs) const {
-            Float16Mask r;
-            r.k[0] = _mm256_or_ps(k[0], rhs.k[0]);
-            r.k[1] = _mm256_or_ps(k[1], rhs.k[1]);
-            return r;
-        }
-        inline Float16Mask operator| (const Float16Mask &rhs) const {
-            Float16Mask r;
-            r.k[0] = _mm256_or_ps(k[0], rhs.k[0]);
-            r.k[1] = _mm256_or_ps(k[1], rhs.k[1]);
-            return r;
-        }
-        inline Float16Mask operator^ (const Float16Mask &rhs) const {
-            Float16Mask r;
-            r.k[0] = _mm256_xor_ps(k[0], rhs.k[0]);
-            r.k[1] = _mm256_xor_ps(k[1], rhs.k[1]);
-            return r;
-        }
-        inline Float16Mask operator!() const {
-            Float16Mask r;
-            r.k[0] = _mm256_andnot_ps(k[0], _mm256_setallone_ps());
-            r.k[1] = _mm256_andnot_ps(k[1], _mm256_setallone_ps());
-            return r;
-        }
-        inline Float16Mask &operator&=(const Float16Mask &rhs) {
-            k[0] = _mm256_and_ps(k[0], rhs.k[0]);
-            k[1] = _mm256_and_ps(k[1], rhs.k[1]);
-            return *this;
-        }
-        inline Float16Mask &operator|=(const Float16Mask &rhs) {
-            k[0] = _mm256_or_ps (k[0], rhs.k[0]);
-            k[1] = _mm256_or_ps (k[1], rhs.k[1]);
-            return *this;
-        }
-
-        inline bool isFull () const {
-            const _M256 tmp = _mm256_and_ps(k[0], k[1]);
-#ifdef VC_USE_PTEST
-            return _mm256_testc_si256(_mm256_castps_si256(tmp), _mm256_setallone_si256());
-#else
-            return _mm256_movemask_ps(tmp) == 0xf;
-            //_mm256_movemask_ps(k[0]) == 0xf &&
-            //_mm256_movemask_ps(k[1]) == 0xf;
-#endif
-        }
-        inline bool isEmpty() const {
-            const _M256 tmp = _mm256_or_ps(k[0], k[1]);
-#ifdef VC_USE_PTEST
-            return _mm256_testz_si256(_mm256_castps_si256(tmp), _mm256_castps_si256(tmp));
-#else
-            return _mm256_movemask_ps(tmp) == 0x0;
-            //_mm256_movemask_ps(k[0]) == 0x0 &&
-            //_mm256_movemask_ps(k[1]) == 0x0;
-#endif
-        }
-        inline bool isMix() const {
-#ifdef VC_USE_PTEST
-            return _mm256_test_mix_ones_zeros(_mm256_castps_si256(k[0]), _mm256_castps_si256(k[0])) &&
-            _mm256_test_mix_ones_zeros(_mm256_castps_si256(k[1]), _mm256_castps_si256(k[1]));
-#else
-            const int tmp = _mm256_movemask_ps(k[0]) + _mm256_movemask_ps(k[1]);
-            return tmp > 0x0 && tmp < (0xf + 0xf);
-#endif
-        }
-
-        inline operator bool() const { return isFull(); }
-
-        inline int shiftMask() const {
-            return (_mm256_movemask_ps(k[1]) << 4) + _mm256_movemask_ps(k[0]);
-        }
-        inline int toInt() const { return (_mm256_movemask_ps(k[1]) << 4) + _mm256_movemask_ps(k[0]); }
-
-        inline const M512 &data () const { return k; }
-
-        inline bool operator[](int index) const {
-            return (toInt() & (1 << index)) != 0;
-        }
-
-        inline int count() const {
-//X             int tmp1 = _mm256_movemask_ps(k[0]);
-//X             int tmp2 = _mm256_movemask_ps(k[1]);
-//X             tmp1 = (tmp1 & 5) + ((tmp1 >> 1) & 5);
-//X             tmp2 = (tmp2 & 5) + ((tmp2 >> 1) & 5);
-//X             return (tmp1 & 3) + (tmp2 & 3) + ((tmp1 >> 2) & 3) + ((tmp2 >> 2) & 3);
-            _M256I x = _mm256_add_epi32(_mm256_srli_epi32(_mm256_castps_si256(k[0]), 31),
-                                     _mm256_srli_epi32(_mm256_castps_si256(k[1]), 31));
-            x = _mm256_add_epi32(x, _mm256_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
-            x = _mm256_add_epi32(x, _mm256_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)));
-            return _mm256_cvtsi256_si32(x);
-        }
-
-        int firstOne() const;
-
-    private:
-        M512 k;
-};
-
 template<unsigned int Size> inline int Mask<Size>::firstOne() const
 {
     const int mask = toInt();
@@ -421,38 +271,6 @@ template<unsigned int Size> inline int Mask<Size>::firstOne() const
     __asm__("bsf %1,%0" : "=&r"(bit) : "r"(mask));
     return bit;
 }
-inline int Float16Mask::firstOne() const
-{
-    const int mask = toInt();
-    int bit;
-    __asm__("bsf %1,%0" : "=&r"(bit) : "r"(mask));
-    return bit;
-}
-
-template<unsigned int VectorSize>
-inline Mask<VectorSize>::Mask(const Float16Mask &m)
-    : k(_mm256_castsi256_ps(_mm256_packs_epi32(_mm256_castps_si256(m.data()[0]), _mm256_castps_si256(m.data()[1])))) {}
-
-class Float16GatherMask
-{
-    public:
-#ifdef VC_GATHER_SET
-        Float16GatherMask(const Mask<8u> &k)   : smallMask(k), bigMask(k), mask(k.toInt()) {}
-        Float16GatherMask(const Float16Mask &k) : smallMask(k), bigMask(k), mask(k.toInt()) {}
-        const __m256 dataIndex() const { return smallMask.data(); }
-        const M512 data() const { return bigMask.data(); }
-#else
-        Float16GatherMask(const Mask<8u> &k)   : mask(k.toInt()) {}
-        Float16GatherMask(const Float16Mask &k) : mask(k.toInt()) {}
-#endif
-        int toInt() const { return mask; }
-    private:
-#ifdef VC_GATHER_SET
-        const Mask<8u> smallMask;
-        const Float16Mask bigMask;
-#endif
-        const int mask;
-};
 
 /**
  * Loop over all set bits in the mask. The iterator variable will be set to the position of the set

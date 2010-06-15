@@ -777,16 +777,6 @@ namespace AVX
                 baseAddr[indexes[3]], baseAddr[indexes[2]],
                 baseAddr[indexes[1]], baseAddr[indexes[0]]);
     }
-    template<> inline void GatherHelper<float16>::gather(
-            Base &v, const unsigned int *indexes, const EntryType *baseAddr)
-    {
-        v.d.v()[1] = _mm256_set_ps(
-                baseAddr[indexes[7]], baseAddr[indexes[6]],
-                baseAddr[indexes[5]], baseAddr[indexes[4]]);
-        v.d.v()[0] = _mm256_set_ps(
-                baseAddr[indexes[3]], baseAddr[indexes[2]],
-                baseAddr[indexes[1]], baseAddr[indexes[0]]);
-    }
     template<> inline void GatherHelper<int>::gather(
             Base &v, const unsigned int *indexes, const EntryType *baseAddr)
     {
@@ -835,16 +825,6 @@ namespace AVX
             Base &v, const IndexType &indexes, const EntryType *baseAddr)
     {
         v.d.v() = _mm256_set_ps(
-                baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
-                baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
-    }
-    template<> inline void GatherHelper<float16>::gather(
-            Base &v, const IndexType &indexes, const EntryType *baseAddr)
-    {
-        v.d.v()[1] = _mm256_set_ps(
-                baseAddr[indexes.d.m(7)], baseAddr[indexes.d.m(6)],
-                baseAddr[indexes.d.m(5)], baseAddr[indexes.d.m(4)]);
-        v.d.v()[0] = _mm256_set_ps(
                 baseAddr[indexes.d.m(3)], baseAddr[indexes.d.m(2)],
                 baseAddr[indexes.d.m(1)], baseAddr[indexes.d.m(0)]);
     }
@@ -902,16 +882,6 @@ namespace AVX
                 baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
                 baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
     }
-    template<> template<typename S1> inline void GatherHelper<float16>::gather(
-            Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
-    {
-        v.d.v()[1] = _mm256_set_ps(
-                baseAddr[indexes.d.m(7)].*(member1), baseAddr[indexes.d.m(6)].*(member1),
-                baseAddr[indexes.d.m(5)].*(member1), baseAddr[indexes.d.m(4)].*(member1));
-        v.d.v()[0] = _mm256_set_ps(
-                baseAddr[indexes.d.m(3)].*(member1), baseAddr[indexes.d.m(2)].*(member1),
-                baseAddr[indexes.d.m(1)].*(member1), baseAddr[indexes.d.m(0)].*(member1));
-    }
     template<> template<typename S1> inline void GatherHelper<int>::gather(
             Base &v, const IndexType &indexes, const S1 *baseAddr, const EntryType S1::* member1)
     {
@@ -963,16 +933,6 @@ namespace AVX
             Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
     {
         v.d.v() = _mm256_set_ps(
-                baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
-                baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
-    }
-    template<> template<typename S1, typename S2> inline void GatherHelper<float16>::gather(
-            Base &v, const IndexType &indexes, const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2)
-    {
-        v.d.v()[1] = _mm256_set_ps(
-                baseAddr[indexes.d.m(7)].*(member1).*(member2), baseAddr[indexes.d.m(6)].*(member1).*(member2),
-                baseAddr[indexes.d.m(5)].*(member1).*(member2), baseAddr[indexes.d.m(4)].*(member1).*(member2));
-        v.d.v()[0] = _mm256_set_ps(
                 baseAddr[indexes.d.m(3)].*(member1).*(member2), baseAddr[indexes.d.m(2)].*(member1).*(member2),
                 baseAddr[indexes.d.m(1)].*(member1).*(member2), baseAddr[indexes.d.m(0)].*(member1).*(member2));
     }
