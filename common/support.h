@@ -24,7 +24,7 @@ namespace Vc
 {
 
 enum Implementation {
-    Scalar, SSE2, SSE3, SSSE3, SSE41, SSE42, SSE4a, AVX, LRBni
+    ScalarImpl, SSE2Impl, SSE3Impl, SSSE3Impl, SSE41Impl, SSE42Impl, SSE4aImpl, AVXImpl, LRBniImpl, LRBniPrototypeImpl
 };
 bool isImplementationSupported(Implementation);
 
@@ -50,23 +50,27 @@ bool currentImplementationSupported()
 {
     return isImplementationSupported(
 #if VC_IMPL_Scalar
-            Scalar
+            ScalarImpl
 #elif VC_IMPL_LRBni
-            LRBni
+#ifdef VC_LRBni_PROTOTYPE_H
+            LRBniPrototypeImpl
+#else
+            LRBniImpl
+#endif
 #elif VC_IMPL_AVX
-            AVX
+            AVXImpl
 #elif VC_IMPL_SSE4a
-            SSE4a
+            SSE4aImpl
 #elif VC_IMPL_SSE4_2
-            SSE42
+            SSE42Impl
 #elif VC_IMPL_SSE4_1
-            SSE41
+            SSE41Impl
 #elif VC_IMPL_SSSE3
-            SSSE3
+            SSSE3Impl
 #elif VC_IMPL_SSE3
-            SSE3
+            SSE3Impl
 #elif VC_IMPL_SSE2
-            SSE2
+            SSE2Impl
 #else
             ERROR_unknown_vector_unit
 #endif

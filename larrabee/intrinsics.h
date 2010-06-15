@@ -20,7 +20,11 @@
 #ifndef LARRABEE_INTRINSICS_H
 #define LARRABEE_INTRINSICS_H
 
+#ifdef VC_LRBni_PROTOTYPE_H
 #include "lrbni_prototypes.h"
+#else
+#error "No LRBni compiler/intrinsics header is available."
+#endif
 
 #ifdef __GNUC__
 #define CONST __attribute__((const))

@@ -178,10 +178,10 @@ void Benchmark::FileWriter::addDataLine(const std::list<std::string> &data)
 {
     m_file << ++m_line << '\t' << m_currentName << '\t' <<
 #if VC_IMPL_LRBni
-#ifdef __LRB__
-            "\"LRB\"";
-#else
+#ifdef VC_LRBni_PROTOTYPE_H
             "\"LRB Prototype\"";
+#else
+            "\"LRB\"";
 #endif
 #elif VC_IMPL_SSE4_1
 #ifdef VC_DISABLE_PTEST

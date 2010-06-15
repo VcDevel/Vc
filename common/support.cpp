@@ -28,30 +28,32 @@ bool isImplementationSupported(Implementation impl)
     // for AVX we need to check for OSXSAVE and AVX
 
     switch (impl) {
-    case Scalar:
+    case ScalarImpl:
         return true;
-    case SSE2:
+    case SSE2Impl:
         return CpuId::hasSse2();
-    case SSE3:
+    case SSE3Impl:
         return CpuId::hasSse3();
-    case SSSE3:
+    case SSSE3Impl:
         return CpuId::hasSsse3();
-    case SSE41:
+    case SSE41Impl:
         return CpuId::hasSse41();
-    case SSE42:
+    case SSE42Impl:
         return CpuId::hasSse42();
-    case SSE4a:
+    case SSE4aImpl:
         return CpuId::hasSse4a();
-    case AVX:
+    case AVXImpl:
         if (CpuId::hasOsxsave() && CpuId::hasAvx()) {
             unsigned int eax;
             asm("xgetbv" : "=a"(eax) :: "edx");
             return (eax & 0x06) == 0x06;
         }
         return false;
-    case LRBni:
+    case LRBniImpl:
         // TODO
         return false;
+    case LRBniPrototypeImpl:
+        return true;
     }
     return false;
 }
