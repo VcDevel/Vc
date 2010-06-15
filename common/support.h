@@ -51,22 +51,22 @@ bool currentImplementationSupported()
     return isImplementationSupported(
 #if VC_IMPL_Scalar
             Scalar
-#elif VC_IMPL_SSE2
-            SSE2
-#elif VC_IMPL_SSE3
-            SSE3
-#elif VC_IMPL_SSSE3
-            SSSE3
-#elif VC_IMPL_SSE4_1
-            SSE41
-#elif VC_IMPL_SSE4_2
-            SSE4_2
-#elif VC_IMPL_SSE4a
-            SSE4a
-#elif VC_IMPL_AVX
-            AVX
 #elif VC_IMPL_LRBni
             LRBni
+#elif VC_IMPL_AVX
+            AVX
+#elif VC_IMPL_SSE4a
+            SSE4a
+#elif VC_IMPL_SSE4_2
+            SSE42
+#elif VC_IMPL_SSE4_1
+            SSE41
+#elif VC_IMPL_SSSE3
+            SSSE3
+#elif VC_IMPL_SSE3
+            SSE3
+#elif VC_IMPL_SSE2
+            SSE2
 #else
             ERROR_unknown_vector_unit
 #endif

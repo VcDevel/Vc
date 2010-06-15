@@ -31,42 +31,17 @@ bool isImplementationSupported(Implementation impl)
     case Scalar:
         return true;
     case SSE2:
-        if (CpuId::hasOsxsave() && CpuId::hasSse2()) {
-            unsigned int eax;
-            asm("xgetbv" : "=a"(eax) :: "edx");
-            return (eax & 0x06) == 0x06;
-        }
-        return false;
+        return CpuId::hasSse2();
     case SSE3:
-        if (CpuId::hasOsxsave() && CpuId::hasSse3()) {
-            unsigned int eax;
-            asm("xgetbv" : "=a"(eax) :: "edx");
-            return (eax & 0x06) == 0x06;
-        }
-        return false;
+        return CpuId::hasSse3();
     case SSSE3:
-        if (CpuId::hasOsxsave() && CpuId::hasSsse3()) {
-            unsigned int eax;
-            asm("xgetbv" : "=a"(eax) :: "edx");
-            return (eax & 0x06) == 0x06;
-        }
-        return false;
+        return CpuId::hasSsse3();
     case SSE41:
-        if (CpuId::hasOsxsave() && CpuId::hasSse41()) {
-            unsigned int eax;
-            asm("xgetbv" : "=a"(eax) :: "edx");
-            return (eax & 0x06) == 0x06;
-        }
-        return false;
+        return CpuId::hasSse41();
     case SSE42:
-        if (CpuId::hasOsxsave() && CpuId::hasSse42()) {
-            unsigned int eax;
-            asm("xgetbv" : "=a"(eax) :: "edx");
-            return (eax & 0x06) == 0x06;
-        }
-        return false;
+        return CpuId::hasSse42();
     case SSE4a:
-        // TODO
+        return CpuId::hasSse4a();
     case AVX:
         if (CpuId::hasOsxsave() && CpuId::hasAvx()) {
             unsigned int eax;
