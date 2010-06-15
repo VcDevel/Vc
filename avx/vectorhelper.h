@@ -141,40 +141,6 @@ namespace AVX
             OP3(blend, _mm256_blendv_ps(a, b, c))
         };
 
-        template<> struct VectorHelper<M512>
-        {
-            typedef M512 VectorType;
-            static inline VectorType load(const float *x) {
-                return VectorType::create(_mm256_load_ps(x), _mm256_load_ps(x + 4));
-            }
-            static inline VectorType loadUnaligned(const float *x) {
-                return VectorType::create(_mm256_loadu_ps(x), _mm256_loadu_ps(x + 4));
-            }
-            static inline void store(float *mem, const VectorType &x) {
-                _mm256_store_ps(mem, x[0]);
-                _mm256_store_ps(mem + 4, x[1]);
-            }
-            static inline void storeUnaligned(float *mem, const VectorType &x) {
-                _mm256_storeu_ps(mem, x[0]);
-                _mm256_storeu_ps(mem + 4, x[1]);
-            }
-            static inline void storeUnaligned(float *mem, const VectorType &x, const VectorType &m) {
-                _mm256_maskmoveu_si256(_mm256_castps_si256(x[0]), _mm256_castps_si256(m[0]), reinterpret_cast<char *>(mem));
-                _mm256_maskmoveu_si256(_mm256_castps_si256(x[1]), _mm256_castps_si256(m[1]), reinterpret_cast<char *>(mem + 4));
-            }
-            static inline void storeStreaming(float *mem, const VectorType &x) {
-                _mm256_stream_ps(mem, x[0]);
-                _mm256_stream_ps(mem + 4, x[1]);
-            }
-            OP0(allone, VectorType::create(_mm256_setallone_ps(), _mm256_setallone_ps()))
-            OP0(zero, VectorType::create(_mm256_setzero_ps(), _mm256_setzero_ps()))
-            OP2(or_, VectorType::create(_mm256_or_ps(a[0], b[0]), _mm256_or_ps(a[1], b[1])))
-            OP2(xor_, VectorType::create(_mm256_xor_ps(a[0], b[0]), _mm256_xor_ps(a[1], b[1])))
-            OP2(and_, VectorType::create(_mm256_and_ps(a[0], b[0]), _mm256_and_ps(a[1], b[1])))
-            OP2(andnot_, VectorType::create(_mm256_andnot_ps(a[0], b[0]), _mm256_andnot_ps(a[1], b[1])))
-            OP3(blend, VectorType::create(_mm256_blendv_ps(a[0], b[0], c[0]), _mm256_blendv_ps(a[1], b[1], c[1])))
-        };
-
         template<> struct VectorHelper<_M256D>
         {
             typedef _M256D VectorType;
