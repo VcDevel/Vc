@@ -34,10 +34,25 @@ namespace AVX
     template<typename T> struct GatherHelper;
     template<typename T> struct ScatterHelper;
 
-    template<unsigned int Size> struct IndexTypeHelper;
-    template<> struct IndexTypeHelper<4u> { typedef unsigned int   Type; };
-    template<> struct IndexTypeHelper<8u> { typedef unsigned int Type; };
-    template<> struct IndexTypeHelper<16u>{ typedef unsigned char  Type; };
+    template<typename T> struct IndexTypeHelper;
+    template<> struct IndexTypeHelper<         char > { typedef unsigned char  Type; };
+    template<> struct IndexTypeHelper<unsigned char > { typedef unsigned char  Type; };
+    template<> struct IndexTypeHelper<         short> { typedef unsigned short Type; };
+    template<> struct IndexTypeHelper<unsigned short> { typedef unsigned short Type; };
+    template<> struct IndexTypeHelper<         int  > { typedef unsigned int   Type; };
+    template<> struct IndexTypeHelper<unsigned int  > { typedef unsigned int   Type; };
+    template<> struct IndexTypeHelper<         float> { typedef unsigned int   Type; };
+    template<> struct IndexTypeHelper<        double> { typedef unsigned int   Type; }; // _M128I based int32 would be nice
+
+    template<typename T> struct VectorTypeHelper;
+    template<> struct VectorTypeHelper<         char > { typedef _M128I Type; };
+    template<> struct VectorTypeHelper<unsigned char > { typedef _M128I Type; };
+    template<> struct VectorTypeHelper<         short> { typedef _M128I Type; };
+    template<> struct VectorTypeHelper<unsigned short> { typedef _M128I Type; };
+    template<> struct VectorTypeHelper<         int  > { typedef _M256I Type; };
+    template<> struct VectorTypeHelper<unsigned int  > { typedef _M256I Type; };
+    template<> struct VectorTypeHelper<         float> { typedef _M256  Type; };
+    template<> struct VectorTypeHelper<        double> { typedef _M256D Type; };
 
     template<typename VectorType, typename EntryType> class VectorMemoryUnion
     {

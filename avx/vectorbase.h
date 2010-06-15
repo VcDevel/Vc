@@ -50,9 +50,8 @@ namespace AVX
         friend struct ScatterHelper<unsigned short>;
         friend struct GeneralHelpers;
         public:
-        // TODO
-            enum { Size = 16 / sizeof(T) };
-            typedef _M256I VectorType ALIGN(16);
+            typedef typename VectorTypeHelper<T>::Type VectorType ALIGN(16);
+            enum { Size = sizeof(VectorType) / sizeof(EntryType) };
             typedef T EntryType;
             typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
