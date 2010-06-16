@@ -43,13 +43,5 @@ vc_generate_plots(compare VC_DISABLE_PTEST)
 vc_generate_plots(math)
 vc_generate_plots(memio)
 
-add_executable(gather_sse_nobsf gather.cpp)
-target_link_libraries(gather_sse_nobsf Vc ${LIBS})
-add_target_property(gather_sse_nobsf COMPILE_FLAGS "-DVC_NO_BSF_LOOPS")
-
-add_executable(gather_sse_notricks gather.cpp)
-target_link_libraries(gather_sse_notricks Vc ${LIBS})
-add_target_property(gather_sse_notricks COMPILE_FLAGS "-DVC_NO_GATHER_TRICKS")
-
 add_executable(constants constants.cpp)
 target_link_libraries(constants Vc ${LIBS})
