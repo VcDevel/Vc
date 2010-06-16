@@ -1,12 +1,10 @@
 SET(CTEST_DROP_METHOD "http")
 SET(CTEST_DROP_SITE "fairroot.gsi.de")
 SET(CTEST_DROP_LOCATION "/CDash/submit.php?project=VC")
-
-SET(CTEST_UPDATE_TYPE git)
 SET(CTEST_TRIGGER_SITE "fairroot.gsi.de")
+SET(CTEST_NIGHTLY_START_TIME "23:00:00 UTC")
 
 find_program(GITCOMMAND git)
-mark_as_advanced(GITCOMMAND)
-
 SET(CTEST_UPDATE_COMMAND "${GITCOMMAND}")
-SET(CTEST_UPDATE_OPTIONS pull)
+
+mark_as_advanced(GITCOMMAND)

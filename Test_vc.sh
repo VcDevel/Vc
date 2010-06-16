@@ -21,10 +21,10 @@ echo "##################################################################"
 }
 
 if [ "$#" -lt "1" ]; then
-  echo "Usage: $0 <Experimental|Nightly> [config]"
+  echo "Usage: $0 <Experimental|Nightly|Continuous> [config]"
   echo ""
   echo "The first parameter is the ctest model:"
-  echo "Possible arguments are Nightly and Experimental."
+  echo "Possible arguments are Nightly, Continuous, or Experimental."
   echo ""
   echo "The second parameter is optional. You may specify a file"
   echo "containg the information about the setup at the client"
@@ -35,11 +35,11 @@ if [ "$#" -lt "1" ]; then
 fi
 
 # test if a ctest model is either Experimantal or Nightly
-if [ "$1" == "Experimental" -o "$1" == "Nightly" ]; then
+if [ "$1" == "Experimental" -o "$1" == "Nightly" -o "$1" == "Continuous" ]; then
   echo ""
 else
   echo "-- Error -- The CTest model \"$1\" is not supported."
-  echo "-- Error -- Possible arguments are Nightly or Experimental."
+  echo "-- Error -- Possible arguments are Nightly, Continuous, or Experimental."
   exit 1
 fi  
 
