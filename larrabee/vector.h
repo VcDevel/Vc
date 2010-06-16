@@ -997,9 +997,9 @@ class Vector : public VectorBase<T, Vector<T> >
             }
         }
 
-        template<typename OtherT> static inline Vector load(const OtherT *mem)
+        template<typename OtherT> inline void load(const OtherT *mem)
         {
-            return VectorHelper<T>::load(mem);
+            data = VectorHelper<T>::load(mem);
         }
         template<typename OtherT> static inline Vector loadUnaligned(const OtherT *mem)
         {
