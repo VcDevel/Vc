@@ -56,19 +56,17 @@ chip=$(uname -m | tr '[A-Z]' '[a-z]')
 # extract information about the system and the machine and set
 # environment variables used by ctest
 SYSTEM=$arch-$chip
-if test -z $CXX ; then
-  COMPILER=gcc;
-  GCC_VERSION=$(gcc -dumpversion)
+if test -z "$CXX" ; then
+  COMPILER="`g++ --version|head -n1`"
 else
-  COMPILER=$CXX;
-  GCC_VERSION=$($CXX -dumpversion)
+  COMPILER="`"$CXX" --version|head -n1`"
 fi
 
-LABEL1="$arch $chip $COMPILER $GCC_VERSION"
+LABEL1="$arch $chip $COMPILER"
 if test "$arch" = "linux"; then
   test -z "$LINUX_FLAVOUR" && LINUX_FLAVOUR=`lsb_release -d`
   if test -n "$LINUX_FLAVOUR"; then
-    LABEL1="$LINUX_FLAVOUR $chip $COMPILER $GCC_VERSION"
+    LABEL1="$LINUX_FLAVOUR $chip $COMPILER"
   fi
 fi
 export LABEL=$(echo $LABEL1 | sed -e 's#/#_#g')
