@@ -22,7 +22,6 @@
 
 #include "memorybase.h"
 #include <assert.h>
-#include <mm_malloc.h>
 #include <algorithm>
 
 namespace Vc
@@ -176,7 +175,7 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         inline Memory(unsigned int size)
             : m_entriesCount(size),
             m_vectorsCount(calcVectorsCount(m_entriesCount)),
-            m_mem(reinterpret_cast<EntryType *>(_mm_malloc(m_vectorsCount * sizeof(V), VectorAlignment)))
+            m_mem(reinterpret_cast<EntryType *>(new V[m_vectorsCount]))
         {}
 
         /**
@@ -184,7 +183,7 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
          */
         inline ~Memory()
         {
-            _mm_free(m_mem);
+            delete[] reinterpret_cast<V *>(m_mem);
         }
         inline unsigned int entriesCount() const { return m_entriesCount; }
         inline unsigned int vectorsCount() const { return m_vectorsCount; }

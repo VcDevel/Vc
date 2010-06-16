@@ -21,6 +21,7 @@
 #define LARRABEE_VECTOR_H
 
 #include "intrinsics.h"
+#include <cstdlib>
 
 #define VC_HAVE_FMA
 
@@ -49,8 +50,6 @@ namespace Vc
 #undef isnan
 #endif
 
-#include <mm_malloc.h>
-
 namespace LRBni
 {
     enum { VectorAlignment = 64 };
@@ -58,10 +57,10 @@ namespace LRBni
     class VectorAlignedBase
     {
         public:
-            void *operator new(size_t size) { return _mm_malloc(size, VectorAlignment); }
-            void *operator new[](size_t size) { return _mm_malloc(size, VectorAlignment); }
-            void operator delete(void *ptr, size_t) { _mm_free(ptr); }
-            void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
+            void *operator new(size_t size) { void *r; posix_memalign(&r, VectorAlignment, size); }
+            void *operator new[](size_t size) { void *r; posix_memalign(&r, VectorAlignment, size); }
+            void operator delete(void *ptr, size_t) { free(ptr); }
+            void operator delete[](void *ptr, size_t) { free(ptr); }
     } LRB_ALIGN(64);
 
     namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
