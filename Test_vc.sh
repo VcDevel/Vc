@@ -20,14 +20,15 @@ echo "#export VC_SOURCEDIR=<path_to_source_directory_of_vc>            #"
 echo "##################################################################"
 }
 
-if [ "$#" -lt "2" ]; then
+if [ "$#" -lt "1" ]; then
+  echo "Usage: $0 <Experimental|Nightly> [config]"
   echo ""
-  echo "-- Error -- Please start script with two parameters"
-  echo "-- Error -- The first parameter is the ctest model."
-  echo "-- Error -- Possible arguments are Nightly and Experimental."
-  echo "-- Error -- The second parameter is the file containg the"
-  echo "-- Error -- information about the setup at the client"
-  echo "-- Error -- installation (see example below)."
+  echo "The first parameter is the ctest model:"
+  echo "Possible arguments are Nightly and Experimental."
+  echo ""
+  echo "The second parameter is optional. You may specify a file"
+  echo "containg the information about the setup at the client"
+  echo "installation (see example below)."
   echo ""
   print_example
   exit 1
@@ -37,19 +38,13 @@ fi
 if [ "$1" == "Experimental" -o "$1" == "Nightly" ]; then
   echo ""
 else
-  echo "-- Error -- This ctest model is not supported."
+  echo "-- Error -- The CTest model \"$1\" is not supported."
   echo "-- Error -- Possible arguments are Nightly or Experimental."
   exit 1
 fi  
 
 # test if the input file exists and execute it
-if [ -e $2 ];then
-  source $2
-else
-  echo "-- Error -- Input file does not exist."
-  echo "-- Error -- Please choose existing input file."
-  exit 1
-fi
+test -f "$2" && source "$2"
 
 # set the ctest model to command line parameter
 export ctest_model=$1
@@ -69,7 +64,13 @@ else
   GCC_VERSION=$($CXX -dumpversion)
 fi
 
-export LABEL1=${LINUX_FLAVOUR}-$SYSTEM-$COMPILER$GCC_VERSION
+LABEL1="$arch $chip $COMPILER $GCC_VERSION"
+if test "$arch" = "linux"; then
+  test -z "$LINUX_FLAVOUR" && LINUX_FLAVOUR=`lsb_release -d`
+  if test -n "$LINUX_FLAVOUR"; then
+    LABEL1="$LINUX_FLAVOUR $chip $COMPILER $GCC_VERSION"
+  fi
+fi
 export LABEL=$(echo $LABEL1 | sed -e 's#/#_#g')
 
 # get the number of processors
@@ -77,7 +78,7 @@ export LABEL=$(echo $LABEL1 | sed -e 's#/#_#g')
 if [ "$arch" = "linux" ];
 then
   export number_of_processors=$(cat /proc/cpuinfo | grep processor | wc -l)
-  export SITE=$(hostname -f)
+  export SITE=$(hostname -f 2>/dev/null || hostname)
 elif [ "$arch" = "darwin" ];
 then
   export number_of_processors=$(sysctl -n hw.ncpu)
@@ -86,12 +87,17 @@ fi
 
 echo "************************"
 date
-echo "LABEL: " $LABEL
-echo "SITE: " $SITE
-echo "Model: " ${ctest_model}
+echo "LABEL: $LABEL"
+echo "SITE:  $SITE"
+echo "Model: ${ctest_model}"
 echo "Nr. of processes: " $number_of_processors
 echo "************************"
 
-cd $VC_SOURCEDIR
+test -z "$VC_SOURCEDIR" && VC_SOURCEDIR="`dirname $0`"
+cd "$VC_SOURCEDIR"
+export VC_SOURCEDIR="$PWD" # making sure VC_SOURCEDIR is an absolute path
 
-ctest -S $VC_SOURCEDIR/VCTest.cmake -V --VV
+test -z "$VC_BUILDDIR" && export VC_BUILDDIR="$VC_SOURCEDIR/build-${ctest_model}"
+test -d "$VC_BUILDDIR" || mkdir -p "$VC_BUILDDIR"
+
+ctest -S VCTest.cmake -V --VV
