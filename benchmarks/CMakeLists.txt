@@ -11,8 +11,11 @@ if(FAST_MATH_BENCHMARK)
 endif(FAST_MATH_BENCHMARK)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-   add_executable(benchmark benchmark.cpp)
-   add_definitions(-DSCHED_FIFO_BENCHMARKS)
+   set(REALTIME_BENCHMARKS FALSE CACHE BOOL "Use SCHED_FIFO priority to give benchmarks highest priority, achieving less jitter in the results.")
+   if(REALTIME_BENCHMARKS)
+      add_executable(benchmark benchmark.cpp)
+      add_definitions(-DSCHED_FIFO_BENCHMARKS)
+   endif(REALTIME_BENCHMARKS)
 endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 vc_add_benchmark(arithmetics)
