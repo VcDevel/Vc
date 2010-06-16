@@ -68,6 +68,8 @@ class CpuId
         static bool hasSse  () { return s_processorFeaturesD & (1 << 25); }
         static bool hasSse2 () { return s_processorFeaturesD & (1 << 26); }
         static bool hasHtt  () { return s_processorFeaturesD & (1 << 28); }
+        static bool hasSse4a() { return s_processorFeatures8C & (1 << 6); }
+        static bool hasSse5 () { return s_processorFeatures8C & (1 << 11); }
         static uint   L1Instruction() { return s_L1Instruction; }
         static uint   L1Data() { return s_L1Data; }
         static uint   L2Data() { return s_L2Data; }
@@ -84,6 +86,7 @@ class CpuId
         static uint   s_logicalProcessors;
         static uint   s_processorFeaturesC;
         static uint   s_processorFeaturesD;
+        static uint   s_processorFeatures8C;
         static uint   s_L1Instruction;
         static uint   s_L1Data;
         static uint   s_L2Data;
@@ -104,6 +107,7 @@ class CpuId
 CpuId::uint   CpuId::s_logicalProcessors = 0;
 CpuId::uint   CpuId::s_processorFeaturesC = 0;
 CpuId::uint   CpuId::s_processorFeaturesD = 0;
+CpuId::uint   CpuId::s_processorFeatures8C = 0;
 CpuId::uint   CpuId::s_L1Instruction = 0;
 CpuId::uint   CpuId::s_L1Data = 0;
 CpuId::uint   CpuId::s_L2Data = 0;
@@ -179,6 +183,9 @@ void CpuId::init()
     s_logicalProcessors = ebx & 0xff;
 
     if (isAmd) {
+        CPUID(0x80000001);
+        s_processorFeatures8C = ecx;
+
         CPUID(0x80000005);
         s_L1DataLineSize = ecx & 0xff;
         s_L1Data = (ecx >> 24) * 1024;

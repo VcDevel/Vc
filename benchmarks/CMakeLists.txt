@@ -11,8 +11,11 @@ if(FAST_MATH_BENCHMARK)
 endif(FAST_MATH_BENCHMARK)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-   add_executable(benchmark benchmark.cpp)
-   add_definitions(-DSCHED_FIFO_BENCHMARKS)
+   set(REALTIME_BENCHMARKS FALSE CACHE BOOL "Use SCHED_FIFO priority to give benchmarks highest priority, achieving less jitter in the results.")
+   if(REALTIME_BENCHMARKS)
+      add_executable(benchmark benchmark.cpp)
+      add_definitions(-DSCHED_FIFO_BENCHMARKS)
+   endif(REALTIME_BENCHMARKS)
 endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 vc_add_benchmark(arithmetics)
@@ -39,14 +42,6 @@ vc_generate_plots(mask)
 vc_generate_plots(compare VC_DISABLE_PTEST)
 vc_generate_plots(math)
 vc_generate_plots(memio)
-
-add_executable(gather_sse_nobsf gather.cpp)
-target_link_libraries(gather_sse_nobsf Vc ${LIBS})
-add_target_property(gather_sse_nobsf COMPILE_FLAGS "-DVC_NO_BSF_LOOPS")
-
-add_executable(gather_sse_notricks gather.cpp)
-target_link_libraries(gather_sse_notricks Vc ${LIBS})
-add_target_property(gather_sse_notricks COMPILE_FLAGS "-DVC_NO_GATHER_TRICKS")
 
 add_executable(constants constants.cpp)
 target_link_libraries(constants Vc ${LIBS})

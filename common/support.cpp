@@ -28,55 +28,32 @@ bool isImplementationSupported(Implementation impl)
     // for AVX we need to check for OSXSAVE and AVX
 
     switch (impl) {
-    case Scalar:
+    case ScalarImpl:
         return true;
-    case SSE2:
-        if (CpuId::hasOsxsave() && CpuId::hasSse2()) {
-            unsigned int eax;
-            asm("xgetbv" : "=a"(eax) :: "edx");
-            return (eax & 0x06) == 0x06;
-        }
-        return false;
-    case SSE3:
-        if (CpuId::hasOsxsave() && CpuId::hasSse3()) {
-            unsigned int eax;
-            asm("xgetbv" : "=a"(eax) :: "edx");
-            return (eax & 0x06) == 0x06;
-        }
-        return false;
-    case SSSE3:
-        if (CpuId::hasOsxsave() && CpuId::hasSsse3()) {
-            unsigned int eax;
-            asm("xgetbv" : "=a"(eax) :: "edx");
-            return (eax & 0x06) == 0x06;
-        }
-        return false;
-    case SSE41:
-        if (CpuId::hasOsxsave() && CpuId::hasSse41()) {
-            unsigned int eax;
-            asm("xgetbv" : "=a"(eax) :: "edx");
-            return (eax & 0x06) == 0x06;
-        }
-        return false;
-    case SSE42:
-        if (CpuId::hasOsxsave() && CpuId::hasSse42()) {
-            unsigned int eax;
-            asm("xgetbv" : "=a"(eax) :: "edx");
-            return (eax & 0x06) == 0x06;
-        }
-        return false;
-    case SSE4a:
-        // TODO
-    case AVX:
+    case SSE2Impl:
+        return CpuId::hasSse2();
+    case SSE3Impl:
+        return CpuId::hasSse3();
+    case SSSE3Impl:
+        return CpuId::hasSsse3();
+    case SSE41Impl:
+        return CpuId::hasSse41();
+    case SSE42Impl:
+        return CpuId::hasSse42();
+    case SSE4aImpl:
+        return CpuId::hasSse4a();
+    case AVXImpl:
         if (CpuId::hasOsxsave() && CpuId::hasAvx()) {
             unsigned int eax;
             asm("xgetbv" : "=a"(eax) :: "edx");
             return (eax & 0x06) == 0x06;
         }
         return false;
-    case LRBni:
+    case LRBniImpl:
         // TODO
         return false;
+    case LRBniPrototypeImpl:
+        return true;
     }
     return false;
 }

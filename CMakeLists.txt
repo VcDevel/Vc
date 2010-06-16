@@ -12,9 +12,10 @@ if(LARRABEE_FOUND)
 else(LARRABEE_FOUND)
    find_file(prototypes_header lrbni_prototypes.h PATHS "${CMAKE_SOURCE_DIR}/larrabee/" NO_DEFAULT_PATH)
    if(prototypes_header)
-      set(LARRABEE_FOUND true)
+      set(LARRABEE_FOUND "prototype")
+      add_definitions(-DVC_LRBni_PROTOTYPE_H)
    else(prototypes_header)
-      message(STATUS "Download the LRBni Prototype Header from http://software.intel.com/en-us/articles/prototype-primitives-guide/ and save it as ${CMAKE_SOURCE_DIR}/larrabee/lrbni_prototypes.h")
+      message(STATUS "Download the LRBni Prototype Header from http://software.intel.com/en-us/articles/prototype-primitives-guide/ and save it as ${CMAKE_SOURCE_DIR}/larrabee/lrbni_prototypes.h\nYou will also need to apply the patch from http://software.intel.com/en-us/forums/showthread.php?t=66359")
    endif(prototypes_header)
 endif(LARRABEE_FOUND)
 
@@ -37,12 +38,15 @@ if(GATHER_SET)
    add_definitions(-DVC_GATHER_SET)
 endif(GATHER_SET)
 
+set(SSE_INTRINSICS_BROKEN false)
+
 if(CMAKE_COMPILER_IS_GNUCXX)
    ##################################################################################################
    #                                              GCC                                               #
    ##################################################################################################
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wno-variadic-macros -Wshadow")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wno-variadic-macros -Wshadow")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wshadow")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wshadow")
+   AddCompilerFlag("-Wno-variadic-macros")
    AddCompilerFlag("-fno-threadsafe-statics")
    set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
    set(CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL} ")
@@ -53,11 +57,16 @@ if(CMAKE_COMPILER_IS_GNUCXX)
    set(CMAKE_C_FLAGS_RELEASE        "${CMAKE_C_FLAGS_RELEASE} -O3")
    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DNDEBUG -O3")
 
-   # check the gcc version
+   # check the GCC version
    exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE _gcc_version)
    macro_ensure_version("4.4.1" "${_gcc_version}" GCC_4_4_1)
+   macro_ensure_version("4.3.0" "${_gcc_version}" GCC_4_3_0)
    if(NOT GCC_4_4_1)
-      message(STATUS "\n-- \n-- NOTE: Your gcc is older than 4.4.1. This is known to cause problems/bugs. Please update to the latest gcc if you can.\n-- \n-- ")
+      message(STATUS "\n-- \n-- NOTE: Your GCC is older than 4.4.1. This is known to cause problems/bugs. Please update to the latest GCC if you can.\n-- \n-- ")
+      if(NOT GCC_4_3_0)
+         message(STATUS "WARNING: Your GCC is older than 4.3.0. It is unable to handle all SSE2 intrinsics. All SSE code will be disabled. Please update to the latest GCC if you can.\n-- \n-- ")
+         set(SSE_INTRINSICS_BROKEN true)
+      endif(NOT GCC_4_3_0)
    endif(NOT GCC_4_4_1)
 
    if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
