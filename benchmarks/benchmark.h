@@ -599,43 +599,74 @@ int main(int argc, char **argv)
     int i = 2;
     Benchmark::OutputMode outputMode = Benchmark::Stdout;
     Benchmark::FileWriter *file = 0;
+    enum {
+        UseAllCpus = -2,
+        UseAnyOneCpu = -1
+    };
+    int useCpus = UseAnyOneCpu;
     while (argc > i) {
         if (std::strcmp(argv[i - 1], "-o") == 0) {
             file = new Benchmark::FileWriter(argv[i]);
             outputMode = Benchmark::DataFile;
         } else if (std::strcmp(argv[i - 1], "-r") == 0) {
             g_Repetitions = atoi(argv[i]);
+        } else if (std::strcmp(argv[i - 1], "-cpu") == 0) {
+// On OS X there is no way to set CPU affinity
+// TODO there is a way to ask the system to not move the process around
+#ifndef __APPLE__
+            if (std::strcmp(argv[i], "all") == 0) {
+                useCpus = UseAllCpus;
+            } else if (std::strcmp(argv[i], "any") == 0) {
+                useCpus = UseAnyOneCpu;
+            } else {
+                useCpus = atoi(argv[i]);
+            }
+#endif
         }
         i += 2;
     }
 
     int r = 0;
-#ifdef __APPLE__
-    // On OS X there is no way to set CPU affinity
-    // TODO there is a way to ask the system to not move the process around
-    r += bmain(outputMode);
-    Benchmark::finalize();
-#else
-    cpu_set_t cpumask;
-    sched_getaffinity(0, sizeof(cpu_set_t), &cpumask);
-    int cpucount = 1;
-    while (CPU_ISSET(cpucount, &cpumask)) {
-        ++cpucount;
-    }
-    for (int cpuid = 0; cpuid < cpucount; ++cpuid) {
-        if (cpucount > 1) {
-            Benchmark::addColumn("CPU_ID");
-            std::ostringstream str;
-            str << cpuid;
-            Benchmark::setColumnData("CPU_ID", str.str());
-        }
-        CPU_ZERO(&cpumask);
-        CPU_SET(cpuid, &cpumask);
-        sched_setaffinity(0, sizeof(cpu_set_t), &cpumask);
+    if (useCpus == UseAnyOneCpu) {
         r += bmain(outputMode);
         Benchmark::finalize();
+    } else {
+        cpu_set_t cpumask;
+        sched_getaffinity(0, sizeof(cpu_set_t), &cpumask);
+        int cpucount = 1;
+        while (CPU_ISSET(cpucount, &cpumask)) {
+            ++cpucount;
+        }
+        if (cpucount > 1) {
+            Benchmark::addColumn("CPU_ID");
+        }
+        if (useCpus == UseAllCpus) {
+            for (int cpuid = 0; cpuid < cpucount; ++cpuid) {
+                if (cpucount > 1) {
+                    std::ostringstream str;
+                    str << cpuid;
+                    Benchmark::setColumnData("CPU_ID", str.str());
+                }
+                CPU_ZERO(&cpumask);
+                CPU_SET(cpuid, &cpumask);
+                sched_setaffinity(0, sizeof(cpu_set_t), &cpumask);
+                r += bmain(outputMode);
+                Benchmark::finalize();
+            }
+        } else {
+            int cpuid = std::min(cpucount - 1, std::max(0, useCpus));
+            if (cpucount > 1) {
+                std::ostringstream str;
+                str << cpuid;
+                Benchmark::setColumnData("CPU_ID", str.str());
+            }
+            CPU_ZERO(&cpumask);
+            CPU_SET(cpuid, &cpumask);
+            sched_setaffinity(0, sizeof(cpu_set_t), &cpumask);
+            r += bmain(outputMode);
+            Benchmark::finalize();
+        }
     }
-#endif
     delete file;
     return r;
 }
