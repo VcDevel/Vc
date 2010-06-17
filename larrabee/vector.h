@@ -57,8 +57,8 @@ namespace LRBni
     class VectorAlignedBase
     {
         public:
-            void *operator new(size_t size) { void *r; posix_memalign(&r, VectorAlignment, size); }
-            void *operator new[](size_t size) { void *r; posix_memalign(&r, VectorAlignment, size); }
+            void *operator new(size_t size) { void *r; posix_memalign(&r, VectorAlignment, size); return r; }
+            void *operator new[](size_t size) { void *r; posix_memalign(&r, VectorAlignment, size); return r; }
             void operator delete(void *ptr, size_t) { free(ptr); }
             void operator delete[](void *ptr, size_t) { free(ptr); }
     } LRB_ALIGN(64);
