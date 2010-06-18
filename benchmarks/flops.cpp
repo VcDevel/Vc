@@ -94,6 +94,7 @@ int bmain(Benchmark::OutputMode out)
             timer.Start();
             ///////////////////////////////////////
             int i = Factor;
+#ifdef VC_64BIT
             __asm__(
                     ".align 16\n\t0: "
                     "mulps  %9,%0"   "\n\t"
@@ -115,12 +116,38 @@ int bmain(Benchmark::OutputMode out)
                     "addps  %9,%6"   "\n\t"
                     "jne 0b"         "\n\t"
                     : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+x"(x[6]), "+x"(x[7]), "+r"(i)
-#ifdef VC_64BIT
                     : "x"(y)
+                       );
 #else
-                    : "m"(y)
+            __m128 tmp;
+            __asm__(
+                    ".align 16\n\t0: "
+                    "mulps  %10,%0"   "\n\t"
+                    "sub    $1,%9"   "\n\t"
+                    "mulps  %10,%1"   "\n\t"
+                    "mulps  %10,%2"   "\n\t"
+                    "movaps  %7,%8"   "\n\t"
+                    "mulps  %10,%8"   "\n\t"
+                    "addps  %10,%0"   "\n\t"
+                    "mulps  %10,%3"   "\n\t"
+                    "addps  %10,%1"   "\n\t"
+                    "mulps  %10,%4"   "\n\t"
+                    "addps  %10,%2"   "\n\t"
+                    "addps  %10,%8"   "\n\t"
+                    "movaps  %8,%7"   "\n\t"
+                    "mulps  %10,%5"   "\n\t"
+                    "addps  %10,%3"   "\n\t"
+                    "addps  %10,%4"   "\n\t"
+                    "movaps  %6,%8"   "\n\t"
+                    "mulps  %10,%8"   "\n\t"
+                    "addps  %10,%5"   "\n\t"
+                    "addps  %10,%8"   "\n\t"
+                    "movaps  %8,%6"   "\n\t"
+                    "jne 0b"         "\n\t"
+                    : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+m"(x[6]), "+m"(x[7]), "+x"(tmp), "+r"(i)
+                    : "x"(y)
+                       );
 #endif
-                    );
             ///////////////////////////////////////
             timer.Stop();
 
@@ -157,6 +184,7 @@ int bmain(Benchmark::OutputMode out)
             timer.Start();
             ///////////////////////////////////////
             int i = Factor;
+#ifdef VC_64BIT
             __asm__(
                     ".align 16\n\t0: "
                     "mulss  %9,%0"   "\n\t"
@@ -178,12 +206,38 @@ int bmain(Benchmark::OutputMode out)
                     "addss  %9,%6"   "\n\t"
                     "jne 0b"         "\n\t"
                     : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+x"(x[6]), "+x"(x[7]), "+r"(i)
-#ifdef VC_64BIT
                     : "x"(y)
-#else
-                    : "m"(y)
-#endif
                     );
+#else
+            float tmp;
+            __asm__(
+                    ".align 16\n\t0: "
+                    "mulss  %10,%0"   "\n\t"
+                    "sub    $1,%9"   "\n\t"
+                    "mulss  %10,%1"   "\n\t"
+                    "mulss  %10,%2"   "\n\t"
+                    "movss  %7,%8"    "\n\t"
+                    "mulss  %10,%8"   "\n\t"
+                    "addss  %10,%0"   "\n\t"
+                    "mulss  %10,%3"   "\n\t"
+                    "addss  %10,%1"   "\n\t"
+                    "mulss  %10,%4"   "\n\t"
+                    "addss  %10,%2"   "\n\t"
+                    "addss  %10,%8"   "\n\t"
+                    "movss  %7,%8"    "\n\t"
+                    "mulss  %10,%5"   "\n\t"
+                    "addss  %10,%3"   "\n\t"
+                    "addss  %10,%4"   "\n\t"
+                    "movss  %6,%8"    "\n\t"
+                    "mulss  %10,%8"   "\n\t"
+                    "addss  %10,%5"   "\n\t"
+                    "addss  %10,%8"   "\n\t"
+                    "movss  %8,%6"    "\n\t"
+                    "jne 0b"         "\n\t"
+                    : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+m"(x[6]), "+m"(x[7]), "+x"(tmp), "+r"(i)
+                    : "x"(y)
+                    );
+#endif
             ///////////////////////////////////////
             timer.Stop();
 
