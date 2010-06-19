@@ -26,21 +26,27 @@
 
 using namespace Vc;
 
+template<typename T> static inline void keepResults(const T &tmp0)
+{
+#if VC_IMPL_SSE
+    asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)));
+    if (sizeof(T) == 32) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 *>(&tmp0)[1]));
+    }
+#else
+    asm volatile(""::"r"(tmp0));
+#endif
+}
+
 template<typename Vector> struct Helper
 {
     typedef typename Vector::Mask Mask;
     typedef typename Vector::EntryType Scalar;
 
-    static Vector *blackHole;
-
-    static void setBlackHole();
-
     static void run(const int Repetitions)
     {
         const int Factor = CpuId::L1Data() / sizeof(Vector);
         const int opPerSecondFactor = Factor * Vector::Size;
-
-        setBlackHole();
 
         union {
             Vector *v;
@@ -50,12 +56,15 @@ template<typename Vector> struct Helper
             data.v[i] = PseudoRandom<Vector>::next();
         }
 
+        Vector tmp;
+
         {
             Benchmark timer("SSE sort", opPerSecondFactor, "Op");
             for (int rep = 0; rep < Repetitions; ++rep) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
-                    *blackHole = data.v[i].sorted();
+                    tmp = data.v[i].sorted();
+                    keepResults(tmp);
                 }
                 timer.Stop();
             }
@@ -67,7 +76,8 @@ template<typename Vector> struct Helper
                 timer.Start();
                 for (int i = 0; i < Factor * Vector::Size; i += Vector::Size) {
                     std::sort(&data.m[i], &data.m[i + Vector::Size]);
-                    *blackHole = data.m[i];
+                    tmp = data.m[i];
+                    keepResults(tmp);
                 }
                 timer.Stop();
                 for (int i = 0; i < Factor; ++i) {
@@ -79,16 +89,6 @@ template<typename Vector> struct Helper
         delete[] data.v;
     }
 };
-
-template<typename Vec> Vec *Helper<Vec>::blackHole = 0;
-
-float_v   blackHoleFloat;  template<> inline void Helper<float_v >::setBlackHole() { blackHole = &blackHoleFloat; }
-double_v  blackHoleDouble; template<> inline void Helper<double_v>::setBlackHole() { blackHole = &blackHoleDouble; }
-ushort_v  blackHoleUShort; template<> inline void Helper<ushort_v>::setBlackHole() { blackHole = &blackHoleUShort; }
-short_v   blackHoleShort;  template<> inline void Helper<short_v >::setBlackHole() { blackHole = &blackHoleShort; }
-uint_v    blackHoleUInt;   template<> inline void Helper<uint_v  >::setBlackHole() { blackHole = &blackHoleUInt; }
-int_v     blackHoleInt;    template<> inline void Helper<int_v   >::setBlackHole() { blackHole = &blackHoleInt; }
-sfloat_v  blackHoleSFloat; template<> inline void Helper<sfloat_v>::setBlackHole() { blackHole = &blackHoleSFloat; }
 
 int bmain(Benchmark::OutputMode out)
 {
