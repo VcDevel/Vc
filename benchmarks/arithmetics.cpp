@@ -31,8 +31,6 @@ template<typename Vector> struct Arithmetics
 {
     typedef typename Vector::EntryType Scalar;
 
-    static Vector &_blackHole();
-
     static void run(const int Repetitions)
     {
         const int Factor = CpuId::L1Data() / sizeof(Vector);
@@ -171,21 +169,7 @@ template<typename Vector> struct Arithmetics
 
         delete[] data;
     }
-
-    static Vector blackHole;
 };
-
-template<> float_v Arithmetics<float_v>::blackHole = float_v(Zero);
-template<> double_v Arithmetics<double_v>::blackHole = double_v(Zero);
-template<> int_v Arithmetics<int_v>::blackHole = int_v(Zero);
-template<> uint_v Arithmetics<uint_v>::blackHole = uint_v(Zero);
-#ifndef VC_IMPL_LRBni
-template<> short_v Arithmetics<short_v>::blackHole = short_v(Zero);
-template<> ushort_v Arithmetics<ushort_v>::blackHole = ushort_v(Zero);
-#endif
-#ifdef VC_IMPL_SSE
-template<> sfloat_v Arithmetics<sfloat_v>::blackHole = sfloat_v(Zero);
-#endif
 
 int bmain(Benchmark::OutputMode out)
 {
