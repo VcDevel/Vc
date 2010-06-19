@@ -62,11 +62,11 @@ else
   COMPILER="`"$CXX" --version|head -n1`"
 fi
 
-LABEL1="$arch $chip $COMPILER"
+LABEL1="$arch $chip $COMPILER $CXXFLAGS"
 if test "$arch" = "linux"; then
   test -z "$LINUX_FLAVOUR" && LINUX_FLAVOUR=`lsb_release -d`
   if test -n "$LINUX_FLAVOUR"; then
-    LABEL1="$LINUX_FLAVOUR $chip $COMPILER"
+    LABEL1="$LINUX_FLAVOUR $chip $COMPILER $CXXFLAGS"
   fi
 fi
 export LABEL=$(echo $LABEL1 | sed -e 's#/#_#g')

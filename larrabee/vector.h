@@ -21,6 +21,7 @@
 #define LARRABEE_VECTOR_H
 
 #include "intrinsics.h"
+#include <cstdlib>
 
 #define VC_HAVE_FMA
 
@@ -49,8 +50,6 @@ namespace Vc
 #undef isnan
 #endif
 
-#include <mm_malloc.h>
-
 namespace LRBni
 {
     enum { VectorAlignment = 64 };
@@ -58,10 +57,10 @@ namespace LRBni
     class VectorAlignedBase
     {
         public:
-            void *operator new(size_t size) { return _mm_malloc(size, VectorAlignment); }
-            void *operator new[](size_t size) { return _mm_malloc(size, VectorAlignment); }
-            void operator delete(void *ptr, size_t) { _mm_free(ptr); }
-            void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
+            void *operator new(size_t size) { void *r; if (posix_memalign(&r, VectorAlignment, size)) {}; return r; }
+            void *operator new[](size_t size) { void *r; if (posix_memalign(&r, VectorAlignment, size)) {}; return r; }
+            void operator delete(void *ptr, size_t) { free(ptr); }
+            void operator delete[](void *ptr, size_t) { free(ptr); }
     } LRB_ALIGN(64);
 
     namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
@@ -997,9 +996,9 @@ class Vector : public VectorBase<T, Vector<T> >
             }
         }
 
-        template<typename OtherT> static inline Vector load(const OtherT *mem)
+        template<typename OtherT> inline void load(const OtherT *mem)
         {
-            return VectorHelper<T>::load(mem);
+            data = VectorHelper<T>::load(mem);
         }
         template<typename OtherT> static inline Vector loadUnaligned(const OtherT *mem)
         {

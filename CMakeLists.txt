@@ -5,6 +5,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include (MacroEnsureVersion)
 include (OptimizeForArchitecture)
 include (AddCompilerFlag)
+include (CheckCXXSourceRuns)
 
 find_package(Larrabee)
 if(LARRABEE_FOUND)
@@ -78,6 +79,15 @@ if(CMAKE_COMPILER_IS_GNUCXX)
          set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fno-strict-aliasing ")
       endif(NOT ENABLE_STRICT_ALIASING)
    endif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+
+   # if compiling for 32 bit x86 we need to use the -mfpmath=sse since the x87 is broken by design
+   CHECK_CXX_SOURCE_RUNS("int main() { return sizeof(void*) != 8; }" VOID_PTR_IS_64BIT)
+   if(NOT VOID_PTR_IS_64BIT)
+      exec_program(${CMAKE_C_COMPILER} ARGS -dumpmachine OUTPUT_VARIABLE _gcc_machine)
+      if(_gcc_machine MATCHES "[x34567]86")
+         AddCompilerFlag("-mfpmath=sse")
+      endif(_gcc_machine MATCHES "[x34567]86")
+   endif(NOT VOID_PTR_IS_64BIT)
 elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
    ##################################################################################################
    #                                          Intel Compiler                                        #
