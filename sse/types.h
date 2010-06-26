@@ -28,6 +28,20 @@ namespace SSE
 {
     template<typename T> class Vector;
 
+    // define our own long because on Windows long == int while on Linux long == max. register width
+    // since we want to have a type that depends on 32 vs. 64 bit we need to do some special casing on Windows
+#ifdef _WIN64
+    typedef __int64 _long;
+    typedef unsigned __int64 _ulong;
+#elif defined(_WIN32)
+    typedef int _long;
+    typedef unsigned int _ulong;
+#else
+    typedef long _long;
+    typedef unsigned long _ulong;
+#endif
+
+
     class Float8Mask;
     class Float8GatherMask;
     template<unsigned int VectorSize> class Mask;
