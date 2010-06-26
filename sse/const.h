@@ -34,7 +34,7 @@ namespace SSE
 
     struct c_general
     {
-        ALIGN(16) static const unsigned int allone[4];
+        ALIGN(64) static const unsigned int allone[4];
         ALIGN(16) static const unsigned short one16[8];
         ALIGN(16) static const unsigned int one32[4];
         ALIGN(16) static const float oneFloat[4];
@@ -44,12 +44,12 @@ namespace SSE
         ALIGN(16) static const unsigned int signMaskFloat[4];
         ALIGN(16) static const unsigned long long signMaskDouble[2];
         ALIGN(16) static const short minShort[8];
-    } ALIGN(64);
+    };
     template<typename T> struct c_sin
     {
         typedef Vector<T> V;
         enum { Size = 16 / sizeof(T) };
-        static const T _data[Size * 8];
+        ALIGN(64) static const T _data[Size * 8];
 
         static V _1_2pi()  CONST;
         static V _2pi()    CONST;
@@ -60,7 +60,7 @@ namespace SSE
         static V _1_5fac() CONST;
         static V _1_7fac() CONST;
         static V _1_9fac() CONST;
-    } ALIGN(64);
+    };
 } // namespace SSE
 } // namespace Vc
 
