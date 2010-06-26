@@ -54,25 +54,25 @@ namespace SSE
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(T) };
-            typedef _M128I VectorType ALIGN(16);
+            typedef _M128I VectorType;
             typedef T EntryType;
             typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
 
-            inline Vector<EntryType> &operator|= (const Vector<EntryType> &x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator&= (const Vector<EntryType> &x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator^= (const Vector<EntryType> &x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator>>=(const Vector<EntryType> &x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator<<=(const Vector<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator|= (const VectorBase<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator&= (const VectorBase<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator^= (const VectorBase<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator>>=(const VectorBase<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator<<=(const VectorBase<EntryType> &x) ALWAYS_INLINE;
             inline Vector<EntryType> &operator>>=(int x) ALWAYS_INLINE;
             inline Vector<EntryType> &operator<<=(int x) ALWAYS_INLINE;
 
-            inline Vector<EntryType> operator| (const Vector<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator& (const Vector<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator^ (const Vector<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator>>(const Vector<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator<<(const Vector<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator| (const VectorBase<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator& (const VectorBase<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator^ (const VectorBase<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator>>(const VectorBase<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator<<(const VectorBase<EntryType> &x) const ALWAYS_INLINE;
             inline Vector<EntryType> operator>>(int x) const ALWAYS_INLINE;
             inline Vector<EntryType> operator<<(int x) const ALWAYS_INLINE;
 
@@ -105,7 +105,7 @@ namespace SSE
         friend struct GeneralHelpers;
         public:
             enum { Size = 8 };
-            typedef M256 VectorType ALIGN(16);
+            typedef M256 VectorType;
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Float8Mask MaskType;
@@ -128,7 +128,7 @@ namespace SSE
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(float) };
-            typedef _M128 VectorType ALIGN(16);
+            typedef _M128 VectorType;
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
@@ -151,7 +151,7 @@ namespace SSE
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(double) };
-            typedef _M128D VectorType ALIGN(16);
+            typedef _M128D VectorType;
             typedef double EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;

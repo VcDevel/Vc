@@ -470,8 +470,8 @@ template<typename T> inline typename Vector<T>::Mask  operator==(const typename 
 template<typename T> inline typename Vector<T>::Mask  operator!=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) != v; }
 
 #define OP_IMPL(T, symbol, fun) \
-  template<> inline Vector<T> &VectorBase<T>::operator symbol##=(const Vector<T> &x) { d.v() = VectorHelper<T>::fun(d.v(), x.d.v()); return *static_cast<Vector<T> *>(this); } \
-  template<> inline Vector<T>  VectorBase<T>::operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(d.v(), x.d.v())); }
+  template<> inline Vector<T> &VectorBase<T>::operator symbol##=(const VectorBase<T> &x) { d.v() = VectorHelper<T>::fun(d.v(), x.d.v()); return *static_cast<Vector<T> *>(this); } \
+  template<> inline Vector<T>  VectorBase<T>::operator symbol(const VectorBase<T> &x) const { return Vector<T>(VectorHelper<T>::fun(d.v(), x.d.v())); }
   OP_IMPL(int, &, and_)
   OP_IMPL(int, |, or_)
   OP_IMPL(int, ^, xor_)
