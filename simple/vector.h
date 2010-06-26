@@ -336,6 +336,10 @@ template<typename T1, typename T2> inline Mask<1u>   operator!=(T1 x, const Vect
 #undef PARENT_DATA_CONST
 #undef PARENT_DATA
 
+#ifdef _MSC_VER
+  template<typename T> static inline void forceToRegisters(const Vector<T> &) {
+  }
+#else
   template<typename T> static inline void forceToRegisters(const Vector<T> &x01) {
       __asm__ __volatile__(""::"r"(x01.data()));
   }
@@ -345,9 +349,11 @@ template<typename T1, typename T2> inline Mask<1u>   operator!=(T1 x, const Vect
   template<> inline void forceToRegisters(const Vector<double> &x01) {
       __asm__ __volatile__(""::"x"(x01.data()));
   }
+#endif
   template<typename T1, typename T2> static inline void forceToRegisters(
       const Vector<T1> &x01, const Vector<T2> &x02) {
-      __asm__ __volatile__(""::"r"(x01.data()), "r"(x02.data()));
+      forceToRegisters(x01);
+      forceToRegisters(x02);
   }
   template<typename T1, typename T2, typename T3> static inline void forceToRegisters(
         const Vector<T1>  &,  const Vector<T2>  &, const Vector<T3>  &) {}
