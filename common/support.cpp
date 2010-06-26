@@ -45,8 +45,13 @@ bool isImplementationSupported(Implementation impl)
     case AVXImpl:
         if (CpuId::hasOsxsave() && CpuId::hasAvx()) {
             unsigned int eax;
+#ifdef _MSC_VER
+			// MSVC does not support inline assembly on 64 bit! :( And searching the help for xgetbv doesn't turn up anything. So just fall back to not supporting AVX on Windows :(
+			return false;
+#else
             asm("xgetbv" : "=a"(eax) :: "edx");
             return (eax & 0x06) == 0x06;
+#endif
         }
         return false;
     case LRBniImpl:
