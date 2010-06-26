@@ -125,7 +125,7 @@ CpuId::ProcessorType CpuId::s_processorType = CpuId::IntelReserved;
 bool   CpuId::s_noL2orL3 = false;
 
 #ifdef _MSC_VER
-#include <intrin.h>
+void __cpuid(int a[4], int b);
 #define CPUID(id) \
 	do { \
 	    int out[4]; \
