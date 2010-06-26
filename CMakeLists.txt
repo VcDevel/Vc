@@ -110,6 +110,7 @@ elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${ALIAS_FLAGS} -w1 -fp-model precise")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS} -w1 -fp-model precise")
 elseif(MSVC)
+   AddCompilerFlag("/wd4800") # Disable warning "forcing value to bool"
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
