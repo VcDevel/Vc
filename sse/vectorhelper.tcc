@@ -223,9 +223,9 @@ namespace SSE
 # endif // VC_NO_GATHER_TRICKS
 #else // VC_NO_BSF_LOOPS
             if (sizeof(EntryType) == 2) {
-                register _ulong int bit;
-                register _ulong int outerIndex;
-                register _ulong int innerIndex;
+                register _ulong bit;
+                register _ulong outerIndex;
+                register _ulong innerIndex;
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
@@ -248,8 +248,8 @@ namespace SSE
                           "=&r"(outerIndex), "=&r"(innerIndex), "=&r"(array)
                         : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
             } else if (sizeof(EntryType) == 4 && sizeof(typename IndexType::EntryType) == 4) {
-                register _ulong int bit;
-                register _ulong int innerIndex;
+                register _ulong bit;
+                register _ulong innerIndex;
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
@@ -272,9 +272,9 @@ namespace SSE
                         : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
                         : "rcx" );
             } else if (sizeof(EntryType) == 4 && sizeof(typename IndexType::EntryType) == 2) {
-                register _ulong int bit;
-                register _ulong int outerIndex;
-                register _ulong int innerIndex;
+                register _ulong bit;
+                register _ulong outerIndex;
+                register _ulong innerIndex;
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
@@ -297,8 +297,8 @@ namespace SSE
                           "=&r"(outerIndex), "=&r"(innerIndex), "=&r"(array)
                         : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
             } else if (sizeof(EntryType) == 8 && sizeof(typename IndexType::EntryType) == 4) {
-                register _ulong int bit;
-                register _ulong int innerIndex;
+                register _ulong bit;
+                register _ulong innerIndex;
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
@@ -333,7 +333,7 @@ namespace SSE
 #ifndef VC_NO_BSF_LOOPS
             asm volatile(""::"m"(indexes.d.v()));
             if (sizeof(EntryType) == 2) {
-                register _ulong int index;
+                register _ulong index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
@@ -372,7 +372,7 @@ namespace SSE
                             : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
                             : "rcx", "rdi"   );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
-                    register _ulong int index;
+                    register _ulong index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
@@ -489,7 +489,7 @@ namespace SSE
 #ifndef VC_NO_BSF_LOOPS
             asm volatile(""::"m"(indexes.d.v()));
             if (sizeof(EntryType) == 2) {
-                register _ulong int index;
+                register _ulong index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
@@ -510,7 +510,7 @@ namespace SSE
                         );
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
-                    register _ulong int index;
+                    register _ulong index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
@@ -530,7 +530,7 @@ namespace SSE
                             : "rdi"
                             );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
-                    register _ulong int index;
+                    register _ulong index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
@@ -553,7 +553,7 @@ namespace SSE
                     abort();
                 }
             } else if (sizeof(EntryType) == 8) {
-                register _ulong int index;
+                register _ulong index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
@@ -666,8 +666,8 @@ namespace SSE
                 ) {
 #ifndef VC_NO_BSF_LOOPS
             if (sizeof(EntryType) == 2) {
-                register _ulong int bit;
-                register _ulong int index;
+                register _ulong bit;
+                register _ulong index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
@@ -686,8 +686,8 @@ namespace SSE
                         : "rcx"   );
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
-                    register _ulong int bit;
-                    register _ulong int index;
+                    register _ulong bit;
+                    register _ulong index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
@@ -705,8 +705,8 @@ namespace SSE
                             : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
                             : "rcx"   );
                 } else if (sizeof(typename IndexType::EntryType) == 2) { // sfloat_v[ushort_v]
-                    register _ulong int bit;
-                    register _ulong int index;
+                    register _ulong bit;
+                    register _ulong index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
@@ -727,8 +727,8 @@ namespace SSE
                     abort();
                 }
             } else if (sizeof(EntryType) == 8) {
-                register _ulong int bit;
-                register _ulong int index;
+                register _ulong bit;
+                register _ulong index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
