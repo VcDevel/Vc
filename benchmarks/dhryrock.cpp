@@ -80,11 +80,10 @@ static double opsFactor()
     return V::Size * (ArraySize * (5 + 10) + (1000 + V::Size - 1) / V::Size * 5);
 }
 
-int bmain(Benchmark::OutputMode out)
+int bmain()
 {
-    const int Repetitions = out == Benchmark::Stdout ? 3 : g_Repetitions > 0 ? g_Repetitions : 10;
     Benchmark timer("DhryRock", opsFactor<int_v>() + opsFactor<uint_v>() + opsFactor<short_v>() + opsFactor<ushort_v>(), "Op");
-    for (int r = 0; r < Repetitions; ++r) {
+    while (timer.wantsMoreDataPoints()) {
         timer.Start();
         doBlah<int_v>();
         delete[] (int_v *)blackHolePtr;
@@ -96,6 +95,6 @@ int bmain(Benchmark::OutputMode out)
         delete[] (ushort_v *)blackHolePtr;
         timer.Stop();
     }
-    timer.Print(Benchmark::PrintAverage);
+    timer.Print();
     return 0;
 }

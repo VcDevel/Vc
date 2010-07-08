@@ -34,13 +34,11 @@ enum {
     Factor = 512000
 };
 
-int bmain(Benchmark::OutputMode out)
+int bmain()
 {
-    const int Repetitions = out == Benchmark::Stdout ? 3 : g_Repetitions > 0 ? g_Repetitions : 10;
-
     {
         Benchmark timer("constant, shuffled one", Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             for (int i = 0; i < Factor; ++i) {
                 asm volatile("mov $0xffffffff,%%eax" :::"eax");
@@ -49,11 +47,11 @@ int bmain(Benchmark::OutputMode out)
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
     {
         Benchmark timer("load 4 bytes, shuffled one", Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             for (int i = 0; i < Factor; ++i) {
                 asm volatile("movss %0,%%xmm0" ::"m"(allone[0]):"xmm0");
@@ -61,22 +59,22 @@ int bmain(Benchmark::OutputMode out)
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
     {
         Benchmark timer("generated one", Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             for (int i = 0; i < Factor; ++i) {
                 asm volatile("pcmpeqw %%xmm0,%%xmm0" :::"xmm0");
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
     {
         Benchmark timer("loaded one", Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             for (int i = 0; i < Factor; ++i) {
                 register __m128 tmp;
@@ -84,12 +82,12 @@ int bmain(Benchmark::OutputMode out)
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
 
     {
         Benchmark timer("constant, shuffled abs", 4 * Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             asm volatile("xorps %%xmm1,%%xmm1" :::"xmm1");
             asm volatile("xorps %%xmm3,%%xmm3" :::"xmm3");
@@ -118,11 +116,11 @@ int bmain(Benchmark::OutputMode out)
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
     {
         Benchmark timer("load 4 bytes, shuffled abs", 4 * Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             asm volatile("xorps %%xmm1,%%xmm1" :::"xmm1");
             asm volatile("xorps %%xmm3,%%xmm3" :::"xmm3");
@@ -147,11 +145,11 @@ int bmain(Benchmark::OutputMode out)
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
     {
         Benchmark timer("generated abs", 4 * Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             asm volatile("xorps %%xmm1,%%xmm1" :::"xmm1");
             asm volatile("xorps %%xmm3,%%xmm3" :::"xmm3");
@@ -176,11 +174,11 @@ int bmain(Benchmark::OutputMode out)
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
     {
         Benchmark timer("loaded abs", 4 * Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             asm volatile("xorps %%xmm1,%%xmm1" :::"xmm1");
             asm volatile("xorps %%xmm2,%%xmm2" :::"xmm2");
@@ -194,12 +192,12 @@ int bmain(Benchmark::OutputMode out)
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
 
     {
         Benchmark timer("constant, shuffled inversion", 4 * Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             asm volatile("pxor %%xmm1,%%xmm1" :::"xmm1");
             asm volatile("pxor %%xmm3,%%xmm3" :::"xmm3");
@@ -228,11 +226,11 @@ int bmain(Benchmark::OutputMode out)
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
     {
         Benchmark timer("load 4 bytes, shuffled inversion", 4 * Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             asm volatile("xorps %%xmm1,%%xmm1" :::"xmm1");
             asm volatile("xorps %%xmm3,%%xmm3" :::"xmm3");
@@ -257,11 +255,11 @@ int bmain(Benchmark::OutputMode out)
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
     {
         Benchmark timer("generated inversion", 4 * Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             asm volatile("pxor %%xmm1,%%xmm1" :::"xmm1");
             asm volatile("pxor %%xmm3,%%xmm3" :::"xmm3");
@@ -282,11 +280,11 @@ int bmain(Benchmark::OutputMode out)
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
     {
         Benchmark timer("loaded inversion", 4 * Factor, "Op");
-        for (int rep = 0; rep < Repetitions; ++rep) {
+        while (timer.wantsMoreDataPoints()) {
             timer.Start();
             asm volatile("xorps %%xmm1,%%xmm1" :::"xmm1");
             asm volatile("xorps %%xmm2,%%xmm2" :::"xmm2");
@@ -300,7 +298,7 @@ int bmain(Benchmark::OutputMode out)
             }
             timer.Stop();
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
 
     return 0;

@@ -31,7 +31,7 @@ template<typename Vector> struct Helper
     typedef typename Vector::Mask Mask;
     typedef typename Vector::EntryType Scalar;
 
-    static void run(const int Repetitions)
+    static void run()
     {
         const int Factor = CpuId::L1Data() / sizeof(Vector);
         const int opPerSecondFactor = Factor * Vector::Size;
@@ -43,7 +43,7 @@ template<typename Vector> struct Helper
 
         {
             Benchmark timer("round", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
                     Vector tmp = round(data[i]);
@@ -55,7 +55,7 @@ template<typename Vector> struct Helper
         }
         {
             Benchmark timer("sqrt", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
                     Vector tmp = sqrt(data[i]);
@@ -67,7 +67,7 @@ template<typename Vector> struct Helper
         }
         {
             Benchmark timer("log", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
                     Vector tmp = log(data[i]);
@@ -79,7 +79,7 @@ template<typename Vector> struct Helper
         }
         {
             Benchmark timer("sin", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
                     Vector tmp = sin(data[i]);
@@ -91,7 +91,7 @@ template<typename Vector> struct Helper
         }
         {
             Benchmark timer("cos", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
                     Vector tmp = cos(data[i]);
@@ -103,7 +103,7 @@ template<typename Vector> struct Helper
         }
         {
             Benchmark timer("asin", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
                     Vector tmp = asin(data[i]);
@@ -115,7 +115,7 @@ template<typename Vector> struct Helper
         }
         {
             Benchmark timer("atan", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
                     Vector tmp = atan(data[i]);
@@ -127,7 +127,7 @@ template<typename Vector> struct Helper
         }
         {
             Benchmark timer("atan2", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor - 1; ++i) {
                     Vector tmp = atan2(data[i], data[i + 1]);
@@ -139,7 +139,7 @@ template<typename Vector> struct Helper
         }
         {
             Benchmark timer("rsqrt", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
                     Vector tmp = rsqrt(data[i]);
@@ -151,7 +151,7 @@ template<typename Vector> struct Helper
         }
         {
             Benchmark timer("recip", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
                     Vector tmp = reciprocal(data[i]);
@@ -166,15 +166,14 @@ template<typename Vector> struct Helper
     }
 };
 
-int bmain(Benchmark::OutputMode out)
+int bmain()
 {
-    const int Repetitions = out == Benchmark::Stdout ? 4 : (g_Repetitions > 0 ? g_Repetitions : 100);
     Benchmark::addColumn("datatype");
     Benchmark::setColumnData("datatype", "float_v");
-    Helper<float_v>::run(Repetitions);
+    Helper<float_v>::run();
     Benchmark::setColumnData("datatype", "sfloat_v");
-    Helper<sfloat_v>::run(Repetitions);
+    Helper<sfloat_v>::run();
     Benchmark::setColumnData("datatype", "double_v");
-    Helper<double_v>::run(Repetitions);
+    Helper<double_v>::run();
     return 0;
 }

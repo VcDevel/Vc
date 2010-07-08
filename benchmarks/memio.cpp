@@ -47,35 +47,35 @@ template<typename T> static inline void keepResults(const T &tmp0)
 template<typename Vector> class DoMemIos
 {
     public:
-        static void run(const int Repetitions)
+        static void run()
         {
             Benchmark::setColumnData("MemorySize", "half L1");
-            run(Repetitions, CpuId::L1Data() / (sizeof(Vector) * 2), 128);
+            run(CpuId::L1Data() / (sizeof(Vector) * 2), 128);
             Benchmark::setColumnData("MemorySize", "L1");
-            run(Repetitions, CpuId::L1Data() / (sizeof(Vector) * 1), 128);
+            run(CpuId::L1Data() / (sizeof(Vector) * 1), 128);
             Benchmark::setColumnData("MemorySize", "half L2");
-            run(Repetitions, CpuId::L2Data() / (sizeof(Vector) * 2), 32);
+            run(CpuId::L2Data() / (sizeof(Vector) * 2), 32);
             Benchmark::setColumnData("MemorySize", "L2");
-            run(Repetitions, CpuId::L2Data() / (sizeof(Vector) * 1), 16);
+            run(CpuId::L2Data() / (sizeof(Vector) * 1), 16);
             if (CpuId::L3Data() > 0) {
                 Benchmark::setColumnData("MemorySize", "half L3");
-                run(Repetitions, CpuId::L3Data() / (sizeof(Vector) * 2), 2);
+                run(CpuId::L3Data() / (sizeof(Vector) * 2), 2);
                 Benchmark::setColumnData("MemorySize", "L3");
-                run(Repetitions, CpuId::L3Data() / (sizeof(Vector) * 1), 2);
+                run(CpuId::L3Data() / (sizeof(Vector) * 1), 2);
                 Benchmark::setColumnData("MemorySize", "4x L3");
-                run(Repetitions, CpuId::L3Data() / sizeof(Vector) * 4, 1);
+                run(CpuId::L3Data() / sizeof(Vector) * 4, 1);
             } else {
                 Benchmark::setColumnData("MemorySize", "4x L2");
-                run(Repetitions, CpuId::L2Data() / sizeof(Vector) * 4, 1);
+                run(CpuId::L2Data() / sizeof(Vector) * 4, 1);
             }
         }
     private:
-        static void run(const int Repetitions, const int Factor, const int Factor2)
+        static void run(const int Factor, const int Factor2)
         {
             Vector *a = new Vector[Factor];
 
             {
-                Benchmark timer("write", sizeof(Vector) * Factor * Factor2, "Byte");
+                Benchmark bm("write", sizeof(Vector) * Factor * Factor2, "Byte");
                 const Vector foo = PseudoRandom<Vector>::next();
                 keepResults(foo);
                 for (int i = 0; i < Factor; i += 4) {
@@ -84,8 +84,8 @@ template<typename Vector> class DoMemIos
                     a[i + 2] = foo;
                     a[i + 3] = foo;
                 }
-                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
-                    timer.Start();
+                while (bm.wantsMoreDataPoints()) {
+                    bm.Start();
                     for (int j = 0; j < Factor2; ++j) {
                         keepResults(foo);
                         for (int i = 0; i < Factor; i += 4) {
@@ -95,14 +95,14 @@ template<typename Vector> class DoMemIos
                             a[i + 3] = foo;
                         }
                     }
-                    timer.Stop();
+                    bm.Stop();
                 }
-                timer.Print(Benchmark::PrintAverage);
+                bm.Print();
             }
             {
                 Benchmark timer("r/w", sizeof(Vector) * Factor * Factor2, "Byte");
                 const Vector foo = PseudoRandom<Vector>::next();
-                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                while (timer.wantsMoreDataPoints()) {
                     timer.Start();
                     for (int j = 0; j < Factor2; ++j) {
                         keepResults(foo);
@@ -119,11 +119,11 @@ template<typename Vector> class DoMemIos
                     }
                     timer.Stop();
                 }
-                timer.Print(Benchmark::PrintAverage);
+                timer.Print();
             }
             {
                 Benchmark timer("read", sizeof(Vector) * Factor * Factor2, "Byte");
-                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                while (timer.wantsMoreDataPoints()) {
                     timer.Start();
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; i += 4) {
@@ -135,19 +135,17 @@ template<typename Vector> class DoMemIos
                     }
                     timer.Stop();
                 }
-                timer.Print(Benchmark::PrintAverage);
+                timer.Print();
             }
             delete[] a;
         }
 };
 
-int bmain(Benchmark::OutputMode out)
+int bmain()
 {
-    const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 200;
-
     Benchmark::addColumn("MemorySize");
 
-    DoMemIos<float_v>::run(Repetitions);
+    DoMemIos<float_v>::run();
 
     return 0;
 }

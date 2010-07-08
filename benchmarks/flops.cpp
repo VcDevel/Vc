@@ -43,50 +43,14 @@ static float randomF(float min, float max)
 
 static float randomF12() { return randomF(1.f, 2.f); }
 
-int bmain(Benchmark::OutputMode out)
+int bmain()
 {
-    const int Repetitions = out == Benchmark::Stdout ? 10 : 100;
-
     int blackHole = true;
-    {
-        Benchmark timer("class", 2 * 8 * float_v::Size * Factor, "FLOP");
-        for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
-            const float_v alpha(repetitions - randomF(.1f, .2f));
-            const float_v y = randomF12();
-            float_v x[8] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
-
-            // force the x vectors to registers, otherwise GCC decides to work on the stack and
-            // lose half of the performance
-            //forceToRegisters(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7]);
-
-            timer.Start();
-            ///////////////////////////////////////
-
-            for (int i = 0; i < Factor; ++i) {
-                    x[0] = y * x[0] + y;
-                    x[1] = y * x[1] + y;
-                    x[2] = y * x[2] + y;
-                    x[3] = y * x[3] + y;
-                    x[4] = y * x[4] + y;
-                    x[5] = y * x[5] + y;
-                    x[6] = y * x[6] + y;
-                    x[7] = y * x[7] + y;
-            }
-
-            ///////////////////////////////////////
-            timer.Stop();
-
-            const int k = (x[0] < x[1]) && (x[2] < x[3]) && (x[4] < x[5]) && (x[7] < x[6]);
-            blackHole &= k;
-        }
-        timer.Print(Benchmark::PrintAverage);
-    }
-
     // asm reference
 #ifdef __GNUC__
     {
         Benchmark timer("asm reference", 2 * 8 * float_v::Size * Factor, "FLOP");
-        for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+        while (timer.wantsMoreDataPoints()) {
 #if VC_IMPL_SSE
             __m128 x[8] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
             const __m128 y = _mm_set1_ps(randomF12());
@@ -245,14 +209,49 @@ int bmain(Benchmark::OutputMode out)
             blackHole &= k;
 #endif
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
 #endif
+
+    {
+        Benchmark timer("class", 2 * 8 * float_v::Size * Factor, "FLOP");
+        while (timer.wantsMoreDataPoints()) {
+            const float_v alpha(-randomF(.1f, .2f));
+            const float_v y = randomF12();
+            float_v x[8] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
+
+            // force the x vectors to registers, otherwise GCC decides to work on the stack and
+            // lose half of the performance
+            //forceToRegisters(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7]);
+
+            timer.Start();
+            ///////////////////////////////////////
+
+            for (int i = 0; i < Factor; ++i) {
+                    x[0] = y * x[0] + y;
+                    x[1] = y * x[1] + y;
+                    x[2] = y * x[2] + y;
+                    x[3] = y * x[3] + y;
+                    x[4] = y * x[4] + y;
+                    x[5] = y * x[5] + y;
+                    x[6] = y * x[6] + y;
+                    x[7] = y * x[7] + y;
+            }
+
+            ///////////////////////////////////////
+            timer.Stop();
+
+            const int k = (x[0] < x[1]) && (x[2] < x[3]) && (x[4] < x[5]) && (x[7] < x[6]);
+            blackHole &= k;
+        }
+        timer.Print();
+    }
+
 
     // intrinsics reference
     {
         Benchmark timer("intrinsics reference", 2 * 8 * float_v::Size * Factor, "FLOP");
-        for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+        while (timer.wantsMoreDataPoints()) {
 #if VC_IMPL_SSE
             __m128 x[8] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
             const __m128 y = _mm_set1_ps(randomF12());
@@ -324,7 +323,7 @@ int bmain(Benchmark::OutputMode out)
             blackHole &= k;
 #endif
         }
-        timer.Print(Benchmark::PrintAverage);
+        timer.Print();
     }
     if (blackHole != 0) {
         std::cout << std::endl;

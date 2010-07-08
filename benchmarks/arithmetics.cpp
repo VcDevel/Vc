@@ -31,7 +31,7 @@ template<typename Vector> struct Arithmetics
 {
     typedef typename Vector::EntryType Scalar;
 
-    static void run(const int Repetitions)
+    static void run()
     {
         const int Factor = CpuId::L1Data() / sizeof(Vector);
 
@@ -45,7 +45,7 @@ template<typename Vector> struct Arithmetics
 
         {
             Benchmark timer("add", valuesPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 const Vector *const end = &data[Factor];
                 for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
@@ -58,7 +58,7 @@ template<typename Vector> struct Arithmetics
         }
         {
             Benchmark timer("sub", valuesPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 const Vector *const end = &data[Factor];
                 for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
@@ -71,7 +71,7 @@ template<typename Vector> struct Arithmetics
         }
         {
             Benchmark timer("mul", valuesPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 const Vector *const end = &data[Factor];
                 for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
@@ -84,7 +84,7 @@ template<typename Vector> struct Arithmetics
         }
         {
             Benchmark timer("div", valuesPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 const Vector *const end = &data[Factor];
                 for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
@@ -99,7 +99,7 @@ template<typename Vector> struct Arithmetics
         /*
         {
             Benchmark timer("add latency", Factor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 {
                     Vector tmp = data[0];
@@ -117,7 +117,7 @@ template<typename Vector> struct Arithmetics
         }
         {
             Benchmark timer("sub latency", Factor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 {
                     Vector tmp = data[0];
@@ -132,7 +132,7 @@ template<typename Vector> struct Arithmetics
         }
         {
             Benchmark timer("mul latency", Factor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 {
                     Vector tmp = data[0];
@@ -152,7 +152,7 @@ template<typename Vector> struct Arithmetics
         }
         {
             Benchmark timer("div latency", Factor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 {
                     Vector tmp = data[0];
@@ -171,31 +171,30 @@ template<typename Vector> struct Arithmetics
     }
 };
 
-int bmain(Benchmark::OutputMode out)
+int bmain()
 {
-    const int Repetitions = out == Benchmark::Stdout ? 3 : g_Repetitions > 0 ? g_Repetitions : 10;
     Benchmark::addColumn("datatype");
 
     Benchmark::setColumnData("datatype", "float_v");
-    Arithmetics<float_v>::run(Repetitions);
+    Arithmetics<float_v>::run();
 
     Benchmark::setColumnData("datatype", "double_v");
-    Arithmetics<double_v>::run(Repetitions);
+    Arithmetics<double_v>::run();
 
     Benchmark::setColumnData("datatype", "int_v");
-    Arithmetics<int_v>::run(Repetitions);
+    Arithmetics<int_v>::run();
 
     Benchmark::setColumnData("datatype", "uint_v");
-    Arithmetics<uint_v>::run(Repetitions);
+    Arithmetics<uint_v>::run();
 
     Benchmark::setColumnData("datatype", "short_v");
-    Arithmetics<short_v>::run(Repetitions);
+    Arithmetics<short_v>::run();
 
     Benchmark::setColumnData("datatype", "ushort_v");
-    Arithmetics<ushort_v>::run(Repetitions);
+    Arithmetics<ushort_v>::run();
 
     Benchmark::setColumnData("datatype", "sfloat_v");
-    Arithmetics<sfloat_v>::run(Repetitions);
+    Arithmetics<sfloat_v>::run();
 
     return 0;
 }

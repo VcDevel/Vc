@@ -53,7 +53,7 @@ template<typename Vector> struct CondAssignment
     enum {
         OuterFactor = 100
     };
-    static void run(const int Repetitions)
+    static void run()
     {
         const int Factor = nextPowerOf2(CpuId::L1Data() / (2 * sizeof(Vector)));
         const double valuesPerSecondFactor = OuterFactor * Factor * Vector::Size * 0.5; // 0.5 because mean mask population is 50%
@@ -74,7 +74,7 @@ template<typename Vector> struct CondAssignment
             // gcc compiles the Simple::Vector version such that if all four masks are false it runs
             // 20 times faster than otherwise
             Benchmark timer("Conditional Assignment (Const Mask)", valuesPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 const Mask mask0 = PseudoRandom<Vector>::next() < PseudoRandom<Vector>::next();
                 const Mask mask1 = PseudoRandom<Vector>::next() < PseudoRandom<Vector>::next();
                 const Mask mask2 = PseudoRandom<Vector>::next() < PseudoRandom<Vector>::next();
@@ -94,7 +94,7 @@ template<typename Vector> struct CondAssignment
         }
         {
             Benchmark timer("Conditional Assignment (Random Mask)", valuesPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int j = 0; j < OuterFactor; ++j) {
                     for (int i = 0; i < Factor; ++i) {
@@ -107,7 +107,7 @@ template<typename Vector> struct CondAssignment
         }
         {
             Benchmark timer("Masked Pre-Increment", Factor * Vector::Size * 0.5, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int j = 0; j < OuterFactor; ++j) {
                     for (int i = 0; i < Factor; i += 4) {
@@ -123,7 +123,7 @@ template<typename Vector> struct CondAssignment
         }
         {
             Benchmark timer("Masked Post-Decrement", Factor * Vector::Size * 0.5, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int j = 0; j < OuterFactor; ++j) {
                     for (int i = 0; i < Factor; i += 4) {
@@ -140,7 +140,7 @@ template<typename Vector> struct CondAssignment
         {
             const Vector x(3);
             Benchmark timer("Masked Multiply-Masked Add", Factor * Vector::Size, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int j = 0; j < OuterFactor; ++j) {
                     for (int i = 0; i < Factor; i += 4) {
@@ -161,7 +161,7 @@ template<typename Vector> struct CondAssignment
         {
             const Vector x(3);
             Benchmark timer("Masked Multiply-Add", Factor * Vector::Size, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int j = 0; j < OuterFactor; ++j) {
                     for (int i = 0; i < Factor; i += 4) {
@@ -178,7 +178,7 @@ template<typename Vector> struct CondAssignment
         {
             const Vector x(3);
             Benchmark timer("Masked Division", Factor * Vector::Size * 0.5, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int j = 0; j < OuterFactor; ++j) {
                     for (int i = 0; i < Factor; i += 4) {
@@ -200,25 +200,24 @@ template<typename Vector> struct CondAssignment
     }
 };
 
-int bmain(Benchmark::OutputMode out)
+int bmain()
 {
-    const int Repetitions = out == Benchmark::Stdout ? 4 : 50;
     Benchmark::addColumn("datatype");
     Benchmark::setColumnData("datatype", "double_v");
-    CondAssignment<double_v>::run(Repetitions);
+    CondAssignment<double_v>::run();
     Benchmark::setColumnData("datatype", "float_v");
-    CondAssignment<float_v>::run(Repetitions);
+    CondAssignment<float_v>::run();
     Benchmark::setColumnData("datatype", "short_v");
-    CondAssignment<short_v>::run(Repetitions);
+    CondAssignment<short_v>::run();
     Benchmark::setColumnData("datatype", "ushort_v");
-    CondAssignment<ushort_v>::run(Repetitions);
+    CondAssignment<ushort_v>::run();
     Benchmark::setColumnData("datatype", "int_v");
-    CondAssignment<int_v>::run(Repetitions);
+    CondAssignment<int_v>::run();
     Benchmark::setColumnData("datatype", "uint_v");
-    CondAssignment<uint_v>::run(Repetitions);
+    CondAssignment<uint_v>::run();
 #if VC_IMPL_SSE
     Benchmark::setColumnData("datatype", "sfloat_v");
-    CondAssignment<sfloat_v>::run(Repetitions);
+    CondAssignment<sfloat_v>::run();
 #endif
     return 0;
 }

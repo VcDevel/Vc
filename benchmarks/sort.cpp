@@ -43,7 +43,7 @@ template<typename Vector> struct Helper
     typedef typename Vector::Mask Mask;
     typedef typename Vector::EntryType Scalar;
 
-    static void run(const int Repetitions)
+    static void run()
     {
         const int Factor = CpuId::L1Data() / sizeof(Vector);
         const int opPerSecondFactor = Factor * Vector::Size;
@@ -60,7 +60,7 @@ template<typename Vector> struct Helper
 
         {
             Benchmark timer("SSE sort", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor; ++i) {
                     tmp = data.v[i].sorted();
@@ -72,7 +72,7 @@ template<typename Vector> struct Helper
         }
         {
             Benchmark timer("std::sort", opPerSecondFactor, "Op");
-            for (int rep = 0; rep < Repetitions; ++rep) {
+            while (timer.wantsMoreDataPoints()) {
                 timer.Start();
                 for (int i = 0; i < Factor * Vector::Size; i += Vector::Size) {
                     std::sort(&data.m[i], &data.m[i + Vector::Size]);
@@ -90,16 +90,15 @@ template<typename Vector> struct Helper
     }
 };
 
-int bmain(Benchmark::OutputMode out)
+int bmain()
 {
-    const int Repetitions = out == Benchmark::Stdout ? 4 : (g_Repetitions > 0 ? g_Repetitions : 100);
     Benchmark::addColumn("datatype");
-    Benchmark::setColumnData("datatype", "float_v" ); Helper<float_v >::run(Repetitions);
-    Benchmark::setColumnData("datatype", "sfloat_v"); Helper<sfloat_v>::run(Repetitions);
-    //Benchmark::setColumnData("datatype", "double_v"); Helper<double_v>::run(Repetitions);
-    Benchmark::setColumnData("datatype", "int_v"   ); Helper<int_v   >::run(Repetitions);
-    Benchmark::setColumnData("datatype", "uint_v"  ); Helper<uint_v  >::run(Repetitions);
-    Benchmark::setColumnData("datatype", "short_v" ); Helper<short_v >::run(Repetitions);
-    Benchmark::setColumnData("datatype", "ushort_v"); Helper<ushort_v>::run(Repetitions);
+    Benchmark::setColumnData("datatype", "float_v" ); Helper<float_v >::run();
+    Benchmark::setColumnData("datatype", "sfloat_v"); Helper<sfloat_v>::run();
+    //Benchmark::setColumnData("datatype", "double_v"); Helper<double_v>::run();
+    Benchmark::setColumnData("datatype", "int_v"   ); Helper<int_v   >::run();
+    Benchmark::setColumnData("datatype", "uint_v"  ); Helper<uint_v  >::run();
+    Benchmark::setColumnData("datatype", "short_v" ); Helper<short_v >::run();
+    Benchmark::setColumnData("datatype", "ushort_v"); Helper<ushort_v>::run();
     return 0;
 }

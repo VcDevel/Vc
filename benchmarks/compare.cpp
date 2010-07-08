@@ -43,7 +43,7 @@ template<typename Vector> class DoCompares
         Factor2 = 128
     };
     public:
-        static void run(const int Repetitions)
+        static void run()
         {
             const int Factor = CpuId::L1Data() / (sizeof(Vector) * 2); // half L1
             Vector *a = new Vector[Factor + 3];
@@ -59,7 +59,7 @@ template<typename Vector> class DoCompares
 
             {
                 Benchmark timer("operator==", Vector::Size * Factor * Factor2 * 6.0, "Op");
-                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                while (timer.wantsMoreDataPoints()) {
                     timer.Start();
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
@@ -73,11 +73,11 @@ template<typename Vector> class DoCompares
                     }
                     timer.Stop();
                 }
-                timer.Print(Benchmark::PrintAverage);
+                timer.Print();
             }
             {
                 Benchmark timer("operator<", Vector::Size * Factor * Factor2 * 6.0, "Op");
-                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                while (timer.wantsMoreDataPoints()) {
                     timer.Start();
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
@@ -91,11 +91,11 @@ template<typename Vector> class DoCompares
                     }
                     timer.Stop();
                 }
-                timer.Print(Benchmark::PrintAverage);
+                timer.Print();
             }
             {
                 Benchmark timer("(operator<).isFull()", Vector::Size * Factor * Factor2 * 6.0, "Op");
-                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                while (timer.wantsMoreDataPoints()) {
                     timer.Start();
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
@@ -109,11 +109,11 @@ template<typename Vector> class DoCompares
                     }
                     timer.Stop();
                 }
-                timer.Print(Benchmark::PrintAverage);
+                timer.Print();
             }
             {
                 Benchmark timer("!(operator<).isEmpty()", Vector::Size * Factor * Factor2 * 6.0, "Op");
-                for (int repetitions = 0; repetitions < Repetitions; ++repetitions) {
+                while (timer.wantsMoreDataPoints()) {
                     timer.Start();
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
@@ -127,32 +127,30 @@ template<typename Vector> class DoCompares
                     }
                     timer.Stop();
                 }
-                timer.Print(Benchmark::PrintAverage);
+                timer.Print();
             }
             delete[] a;
         }
 };
 
-int bmain(Benchmark::OutputMode out)
+int bmain()
 {
-    const int Repetitions = out == Benchmark::Stdout ? 10 : g_Repetitions > 0 ? g_Repetitions : 200;
-
     Benchmark::addColumn("datatype");
 
     Benchmark::setColumnData("datatype", "double_v");
-    DoCompares<double_v>::run(Repetitions);
+    DoCompares<double_v>::run();
     Benchmark::setColumnData("datatype", "float_v");
-    DoCompares<float_v>::run(Repetitions);
+    DoCompares<float_v>::run();
     Benchmark::setColumnData("datatype", "int_v");
-    DoCompares<int_v>::run(Repetitions);
+    DoCompares<int_v>::run();
     Benchmark::setColumnData("datatype", "uint_v");
-    DoCompares<uint_v>::run(Repetitions);
+    DoCompares<uint_v>::run();
     Benchmark::setColumnData("datatype", "short_v");
-    DoCompares<short_v>::run(Repetitions);
+    DoCompares<short_v>::run();
     Benchmark::setColumnData("datatype", "ushort_v");
-    DoCompares<ushort_v>::run(Repetitions);
+    DoCompares<ushort_v>::run();
     Benchmark::setColumnData("datatype", "sfloat_v");
-    DoCompares<sfloat_v>::run(Repetitions);
+    DoCompares<sfloat_v>::run();
 
     return 0;
 }
