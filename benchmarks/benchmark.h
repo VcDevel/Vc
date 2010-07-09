@@ -529,7 +529,9 @@ inline void Benchmark::Print()
         header
             << X + "/Real_time" << X + "/Real_time_stddev"
             << X + "/Cycles" << X + "/Cycles_stddev"
+#ifdef VC_USE_CPU_TIME
             << X + "/CPU_time" << X + "/CPU_time_stddev"
+#endif
             << "number_of_" + X;
     }
     printMiddleLine();
