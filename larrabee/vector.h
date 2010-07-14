@@ -409,6 +409,7 @@ struct ForeachHelper
 
         template<typename T> struct VectorDQHelper : public VectorDHelper {};
         template<> struct VectorDQHelper<double> : public VectorQHelper {};
+    } // anonymous namespace
 
         template<typename T> struct VectorHelper;
 
@@ -419,8 +420,7 @@ struct ForeachHelper
             // double doesn't support any upconversion
             static inline VectorType load1(const EntryType  x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadq(&x, _MM_FULLUPC64_NONE, _MM_BROADCAST_1X8)); }
             static inline VectorType load4(const EntryType *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadq( x, _MM_FULLUPC64_NONE, _MM_BROADCAST_4X8)); }
-            static inline VectorType load (const EntryType *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadq( x, _MM_FULLUPC64_NONE, _MM_BROADCAST_8X8)); }
-            static inline VectorType loadUnaligned(const EntryType *x) { return mm512_reinterpret_cast<VectorType>(_mm512_expandq( const_cast<EntryType *>(x), _MM_FULLUPC64_NONE, _MM_HINT_NONE)); }
+            template<typename A> static VectorType load(const EntryType *x, A);
 
             static inline void store         (void *mem, VectorType x) { _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE); }
             static inline void store         (void *mem, VectorType x, __mmask k) { _mm512_mask_storeq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE); }
@@ -541,11 +541,10 @@ struct ForeachHelper
 #define LOAD(T, conv) \
             static inline VectorType load1         (const T  x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd(&x, conv, _MM_BROADCAST_1X16 , _MM_HINT_NONE)); } \
             static inline VectorType load4         (const T *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_4X16 , _MM_HINT_NONE)); } \
-            static inline VectorType load          (const T *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_16X16, _MM_HINT_NONE)); } \
             static inline VectorType load1Streaming(const T  x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd(&x, conv, _MM_BROADCAST_1X16 , _MM_HINT_NT  )); } \
             static inline VectorType load4Streaming(const T *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_4X16 , _MM_HINT_NT  )); } \
             static inline VectorType loadStreaming (const T *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_16X16, _MM_HINT_NT  )); } \
-            static inline VectorType loadUnaligned (const T *x) { return mm512_reinterpret_cast<VectorType>(_mm512_expandd(const_cast<T *>(x), conv, _MM_HINT_NONE)); }
+            template<typename A> static VectorType load(const T *x, A);
 
 #define GATHERSCATTER(T, upconv, downconv) \
             static inline VectorType gather(_M512I indexes, const T *baseAddr) { \
@@ -772,7 +771,14 @@ struct ForeachHelper
 #undef OP_
 #undef OPx
 #undef OPcmp
-    } // anonymous namespace
+
+} // namespace LRBni
+} // namespace Vc
+#include "vectorhelper.tcc"
+namespace Vc
+{
+namespace LRBni
+{
 
 template<typename T>
 class VectorMultiplication
@@ -943,10 +949,10 @@ class Vector : public VectorBase<T, Vector<T> >
         /**
          * initialized to 0, 1, 2, 3 (, 4, 5, 6, 7 (, 8, 9, 10, 11, 12, 13, 14, 15))
          */
-        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : data(VectorHelper<T>::load(IndexesFromZeroHelper<T>())) {}
+        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : data(VectorHelper<T>::load(IndexesFromZeroHelper<T>(), Aligned)) {}
 
         static inline Vector Zero() { return mm512_reinterpret_cast<VectorType>(_mm512_setzero()); }
-        static inline Vector IndexesFromZero() { return VectorHelper<T>::load(IndexesFromZeroHelper<T>()); }
+        static inline Vector IndexesFromZero() { return VectorHelper<T>::load(IndexesFromZeroHelper<T>(), Aligned); }
 //X         /**
 //X          * initialzed to random numbers
 //X          */
@@ -972,12 +978,16 @@ class Vector : public VectorBase<T, Vector<T> >
             };
             data = VectorHelper<T>::load4(x);
         }
-        inline explicit Vector(const T *x) : data(VectorHelper<T>::load(x)) {}
+
+        inline explicit Vector(const T *x) : data(VectorHelper<T>::load(x, Aligned)) {}
+        template<typename A> inline Vector(const T *x, A align) : data(VectorHelper<T>::load(x, align)) {}
+
         /**
          * Initialize the vector with the given data. \param x must point to 64 byte aligned 512
          * byte data.
          */
-        template<typename Other> inline explicit Vector(const Other *x) : data(VectorHelper<T>::load(x)) {}
+        template<typename Other> inline explicit Vector(const Other *x) : data(VectorHelper<T>::load(x, Aligned)) {}
+        template<typename Other, typename A> inline Vector(const Other *x, A align) : data(VectorHelper<T>::load(x, align)) {}
 
         // TODO: handle 8 <-> 16 conversions
         inline explicit Vector(const Vector *x) : data(x->data) {}
@@ -997,13 +1007,9 @@ class Vector : public VectorBase<T, Vector<T> >
             }
         }
 
-        template<typename OtherT> inline void load(const OtherT *mem)
-        {
-            data = VectorHelper<T>::load(mem);
-        }
-        template<typename OtherT> static inline Vector loadUnaligned(const OtherT *mem)
-        {
-            return VectorHelper<T>::loadUnaligned(mem);
+        template<typename OtherT> inline void load(const OtherT *mem) { data = VectorHelper<T>::load(mem, Aligned); }
+        template<typename OtherT, typename A> inline void load(const OtherT *mem, A align) {
+            data = VectorHelper<T>::load(mem, align);
         }
 
 //X         inline void makeRandom()
@@ -1069,7 +1075,7 @@ class Vector : public VectorBase<T, Vector<T> >
             : data(VectorHelper<T>::gather(sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array)) {}
 
         inline Vector(const T *array, const unsigned int *indexes)
-            : data(VectorHelper<T>::gather(sizeof(T) == 8 ? IndexType(IndexType::loadUnaligned(indexes) * 2) : IndexType::loadUnaligned(indexes), array)) {}
+            : data(VectorHelper<T>::gather(sizeof(T) == 8 ? IndexType(IndexType(indexes, Unaligned) * 2) : IndexType(indexes, Unaligned), array)) {}
 
         inline Vector(const T *array, const IndexType &indexes, Mask mask) {
             VectorHelper<T>::gather(data, sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());

@@ -158,4 +158,40 @@
 #undef Scalar
 #undef LRBni
 
+#if VC_IMPL_Scalar
+#define VC_IMPL ::Vc::ScalarImpl
+#elif VC_IMPL_AVX
+#define VC_IMPL ::Vc::AVXImpl
+#elif VC_IMPL_SSE4a
+#define VC_IMPL ::Vc::SSE4aImpl
+#elif VC_IMPL_SSE42
+#define VC_IMPL ::Vc::SSE42Impl
+#elif VC_IMPL_SSE41
+#define VC_IMPL ::Vc::SSE41Impl
+#elif VC_IMPL_SSSE3
+#define VC_IMPL ::Vc::SSSE3Impl
+#elif VC_IMPL_SSE3
+#define VC_IMPL ::Vc::SSE3Impl
+#elif VC_IMPL_SSE2
+#define VC_IMPL ::Vc::SSE2Impl
+#elif VC_IMPL_LRBni
+#define VC_IMPL ::Vc::LRBniImpl
+#endif
+
+namespace Vc {
+enum AlignedFlag {
+    Aligned = 0
+};
+enum UnalignedFlag {
+    Unaligned = 1
+};
+enum Implementation {
+    ScalarImpl, SSE2Impl, SSE3Impl, SSSE3Impl, SSE41Impl, SSE42Impl, SSE4aImpl, AVXImpl, LRBniImpl, LRBniPrototypeImpl
+};
+namespace Internal {
+    template<Implementation Impl> struct HelperImpl;
+    typedef HelperImpl<VC_IMPL> Helper;
+} // namespace Internal
+} // namespace Vc
+
 #endif // VC_GLOBAL_H

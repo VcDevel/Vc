@@ -20,12 +20,13 @@
 #ifndef VC_COMMON_SUPPORT_H
 #define VC_COMMON_SUPPORT_H
 
+#ifndef VC_GLOBAL_H
+#error "Vc/global.h must be included first!"
+#endif
+
 namespace Vc
 {
 
-enum Implementation {
-    ScalarImpl, SSE2Impl, SSE3Impl, SSSE3Impl, SSE41Impl, SSE42Impl, SSE4aImpl, AVXImpl, LRBniImpl, LRBniPrototypeImpl
-};
 bool isImplementationSupported(Implementation);
 
 #ifndef VC_COMPILE_LIB

@@ -124,8 +124,7 @@ namespace SSE
         template<> struct VectorHelper<_M128>
         {
             typedef _M128 VectorType;
-            static inline VectorType load(const float *x) { return _mm_load_ps(x); }
-            static inline VectorType loadUnaligned(const float *x) { return _mm_loadu_ps(x); }
+            template<typename A> static VectorType load(const float *x, A);
             static inline void store(float *mem, const VectorType &x) { _mm_store_ps(mem, x); }
             static inline void storeUnaligned(float *mem, const VectorType &x) { _mm_storeu_ps(mem, x); }
             static inline void storeUnaligned(float *mem, const VectorType &x, const VectorType &m) {
@@ -141,15 +140,13 @@ namespace SSE
             OP3(blend, _mm_blendv_ps(a, b, c))
         };
 
+        template<> inline _M128 VectorHelper<_M128>::load(const float *x, AlignedFlag) { return _mm_load_ps(x); }
+        template<> inline _M128 VectorHelper<_M128>::load(const float *x, UnalignedFlag) { return _mm_loadu_ps(x); }
+
         template<> struct VectorHelper<M256>
         {
             typedef M256 VectorType;
-            static inline VectorType load(const float *x) {
-                return VectorType::create(_mm_load_ps(x), _mm_load_ps(x + 4));
-            }
-            static inline VectorType loadUnaligned(const float *x) {
-                return VectorType::create(_mm_loadu_ps(x), _mm_loadu_ps(x + 4));
-            }
+            template<typename A> static VectorType load(const float *x, A);
             static inline void store(float *mem, const VectorType &x) {
                 _mm_store_ps(mem, x[0]);
                 _mm_store_ps(mem + 4, x[1]);
@@ -175,11 +172,17 @@ namespace SSE
             OP3(blend, VectorType::create(_mm_blendv_ps(a[0], b[0], c[0]), _mm_blendv_ps(a[1], b[1], c[1])))
         };
 
+        template<> inline M256 VectorHelper<M256>::load(const float *x, AlignedFlag) {
+            return VectorType::create(_mm_load_ps(x), _mm_load_ps(x + 4));
+        }
+        template<> inline M256 VectorHelper<M256>::load(const float *x, UnalignedFlag) {
+            return VectorType::create(_mm_loadu_ps(x), _mm_loadu_ps(x + 4));
+        }
+
         template<> struct VectorHelper<_M128D>
         {
             typedef _M128D VectorType;
-            static inline VectorType load(const double *x) { return _mm_load_pd(x); }
-            static inline VectorType loadUnaligned(const double *x) { return _mm_loadu_pd(x); }
+            template<typename A> static VectorType load(const double *x, A);
             static inline void store(double *mem, const VectorType &x) { _mm_store_pd(mem, x); }
             static inline void storeUnaligned(double *mem, const VectorType &x) { _mm_storeu_pd(mem, x); }
             static inline void storeUnaligned(double *mem, const VectorType &x, const VectorType &m) {
@@ -195,11 +198,13 @@ namespace SSE
             OP3(blend, _mm_blendv_pd(a, b, c))
         };
 
+        template<> inline _M128D VectorHelper<_M128D>::load(const double *x, AlignedFlag) { return _mm_load_pd(x); }
+        template<> inline _M128D VectorHelper<_M128D>::load(const double *x, UnalignedFlag) { return _mm_loadu_pd(x); }
+
         template<> struct VectorHelper<_M128I>
         {
             typedef _M128I VectorType;
-            template<typename T> static inline VectorType load(const T *x) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
-            template<typename T> static inline VectorType loadUnaligned(const T *x) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
+            template<typename T, typename A> static VectorType load(const T *x, A);
             template<typename T> static inline void store(T *mem, const VectorType &x) { _mm_store_si128(reinterpret_cast<VectorType *>(mem), x); }
             template<typename T> static inline void storeUnaligned(T *mem, const VectorType &x) { _mm_storeu_si128(reinterpret_cast<VectorType *>(mem), x); }
             template<typename T> static inline void storeUnaligned(T *mem, const VectorType &x, const VectorType &m) {
@@ -214,6 +219,15 @@ namespace SSE
             OP2(andnot_, _mm_andnot_si128(a, b))
             OP3(blend, _mm_blendv_epi8(a, b, c))
         };
+
+        template<> inline _M128I VectorHelper<_M128I>::load(const unsigned int *x, AlignedFlag) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
+        template<> inline _M128I VectorHelper<_M128I>::load(const unsigned short *x, AlignedFlag) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
+        template<> inline _M128I VectorHelper<_M128I>::load(const int *x, AlignedFlag) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
+        template<> inline _M128I VectorHelper<_M128I>::load(const short *x, AlignedFlag) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
+        template<> inline _M128I VectorHelper<_M128I>::load(const unsigned int *x, UnalignedFlag) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
+        template<> inline _M128I VectorHelper<_M128I>::load(const unsigned short *x, UnalignedFlag) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
+        template<> inline _M128I VectorHelper<_M128I>::load(const int *x, UnalignedFlag) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
+        template<> inline _M128I VectorHelper<_M128I>::load(const short *x, UnalignedFlag) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
 #undef OP1
 #undef OP2
 #undef OP3

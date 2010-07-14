@@ -17,6 +17,7 @@
 
 */
 
+#include "../include/Vc/global.h"
 #include "support.h"
 #include "../cpuid.h"
 

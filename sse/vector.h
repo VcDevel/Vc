@@ -142,10 +142,10 @@ class Vector : public VectorBase<T>
         /**
          * initialized to 0, 1 (, 2, 3 (, 4, 5, 6, 7))
          */
-        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : Base(VectorHelper<VectorType>::load(Base::_IndexesFromZero())) {}
+        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : Base(VectorHelper<VectorType>::load(Base::_IndexesFromZero(), Aligned)) {}
 
         static inline Vector Zero() { return VectorHelper<VectorType>::zero(); }
-        static inline Vector IndexesFromZero() { return VectorHelper<VectorType>::load(Base::_IndexesFromZero()); }
+        static inline Vector IndexesFromZero() { return VectorHelper<VectorType>::load(Base::_IndexesFromZero(), Aligned); }
 
         /**
          * initialize with given _M128 vector
@@ -164,7 +164,9 @@ class Vector : public VectorBase<T>
          * Initialize the vector with the given data. \param x must point to 64 byte aligned 512
          * byte data.
          */
-        inline explicit Vector(const EntryType *x) : Base(VectorHelper<VectorType>::load(x)) {}
+        inline explicit Vector(const EntryType *x) : Base(VectorHelper<VectorType>::load(x, Aligned)) {}
+
+        template<typename Alignment> Vector(const EntryType *x, Alignment align);
 
         inline explicit Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
             : Base(VectorHelper<T>::concat(a[0].data(), a[1].data()))
@@ -180,9 +182,11 @@ class Vector : public VectorBase<T>
 
         static inline Vector broadcast4(const EntryType *x) { return Vector<T>(x); }
 
-        inline void load(const EntryType *mem) { data() = VectorHelper<VectorType>::load(mem); }
+        inline void load(const EntryType *mem) {
+            data() = VectorHelper<VectorType>::load(mem, Aligned);
+        }
 
-        static inline Vector loadUnaligned(const EntryType *mem) { return VectorHelper<VectorType>::loadUnaligned(mem); }
+        template<typename Alignment> void load(const EntryType *mem, Alignment align);
 
         inline void makeZero() { data() = VectorHelper<VectorType>::zero(); }
 
@@ -198,7 +202,7 @@ class Vector : public VectorBase<T>
          */
         inline void store(EntryType *mem) const { VectorHelper<VectorType>::store(mem, data()); }
         inline void store(EntryType *mem, const Mask &mask) const {
-            const VectorType &old = VectorHelper<VectorType>::load(mem);
+            const VectorType &old = VectorHelper<VectorType>::load(mem, Aligned);
             VectorHelper<VectorType>::store(mem, VectorHelper<VectorType>::blend(old, data(), mm128_reinterpret_cast<VectorType>(mask.data())));
         }
 
@@ -444,7 +448,7 @@ class Vector : public VectorBase<T>
 };
 
 template<> inline Vector<float8> Vector<float8>::broadcast4(const float *x) {
-    const _M128 &v = VectorHelper<_M128>::load(x);
+    const _M128 &v = VectorHelper<_M128>::load(x, Aligned);
     return Vector<float8>(M256::create(v, v));
 }
 
@@ -540,5 +544,5 @@ template<> inline void forceToRegisters(const Vector<float8> &x) { __asm__ __vol
 
 #include "math.h"
 #include "undomacros.h"
-
+#include "vector.tcc"
 #endif // SSE_VECTOR_H

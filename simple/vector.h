@@ -71,7 +71,9 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}
         inline Vector(T x) : m_data(x) {}
         inline Vector(const T *x) : m_data(x[0]) {}
+        template<typename A> inline Vector(const T *x, A) : m_data(x[0]) {}
         template<typename Other> inline Vector(const Other *x) : m_data(x[0]) {}
+        template<typename Other, typename A> inline Vector(const Other *x, A) : m_data(x[0]) {}
 
         template<typename OtherT> inline void expand(Vector<OtherT> *x) const { x->data() = static_cast<OtherT>(m_data); }
 
@@ -81,10 +83,11 @@ class Vector : public VectorBase<T, Vector<T> >
         inline void makeRandom(Mask k) { if (k) m_data = std::rand(); }
 
         template<typename Other> inline void load(const Other *mem) { m_data = mem[0]; }
+        template<typename Other, typename A> inline void load(const Other *mem, A) { m_data = mem[0]; }
         template<typename Other> inline void load(const Other *mem, Mask m) { if (m.data()) m_data = mem[0]; }
-        static inline Vector loadUnaligned(const T *mem) { return Vector(mem[0]); }
 
         inline void load(const T *mem) { m_data = mem[0]; }
+        template<typename A> inline void load(const T *mem, A) { m_data = mem[0]; }
         inline void load(const T *mem, Mask m) { if (m.data()) m_data = mem[0]; }
 
         template<typename Other> inline void store(Other *mem) const { mem[0] = m_data; }
