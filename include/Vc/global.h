@@ -185,6 +185,18 @@ enum AlignedFlag {
 enum UnalignedFlag {
     Unaligned = 1
 };
+enum StreamingAndAlignedFlag { // implies Aligned
+    Streaming = 2
+};
+enum StreamingAndUnalignedFlag {
+    StreamingAndUnaligned = 3
+};
+
+static inline StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+static inline StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+static inline StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+static inline StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+
 enum Implementation {
     ScalarImpl, SSE2Impl, SSE3Impl, SSSE3Impl, SSE41Impl, SSE42Impl, SSE4aImpl, AVXImpl, LRBniImpl, LRBniPrototypeImpl
 };
