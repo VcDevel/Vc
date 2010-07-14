@@ -408,7 +408,7 @@ class Vector : public VectorBase<T>
         }
 
         template<typename V2> inline V2 staticCast() const { return StaticCastHelper<T, typename V2::_T>::cast(data()); }
-        template<typename V2> inline V2 reinterpretCast() const { return ReinterpretCastHelper<T, typename V2::_T>::cast(data()); }
+        template<typename V2> inline V2 reinterpretCast() const { return mm128_reinterpret_cast<typename V2::VectorType>(data()); }
 
         inline WriteMaskedVector<T> operator()(const Mask &k) ALWAYS_INLINE { return WriteMaskedVector<T>(this, k); }
 
