@@ -64,8 +64,8 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector(VectorSpecialInitializerRandom::REnum) { makeRandom(); }
         inline Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : m_data(0) {}
 
-        static inline Vector Zero() { return 0; }
-        static inline Vector IndexesFromZero() { return 0; }
+        static inline Vector Zero() { Vector r; r.m_data = 0; return r; }
+        static inline Vector IndexesFromZero() { return Zero(); }
 
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> *a) : m_data(static_cast<T>(a->data())) {}
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}
@@ -258,8 +258,8 @@ class Vector : public VectorBase<T, Vector<T> >
           if (m.data()) m_data = v.m_data;
         }
 
-        template<typename T2> inline Vector<T2> staticCast() const { return static_cast<T2>(m_data); }
-        template<typename T2> inline Vector<T2> reinterpretCast() const { return reinterpret_cast<T2>(m_data); }
+        template<typename V2> inline V2 staticCast() const { return static_cast<typename V2::EntryType>(m_data); }
+        template<typename V2> inline V2 reinterpretCast() const { return reinterpret_cast<typename V2::EntryType>(m_data); }
 
         inline WriteMaskedVector<T> operator()(Mask m) { return WriteMaskedVector<T>(this, m); }
 

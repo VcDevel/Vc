@@ -122,6 +122,8 @@ class Vector : public VectorBase<T>
         typedef typename Base::MaskType Mask;
         typedef Vc::Memory<Vector<T>, Size> Memory;
 
+        typedef T _T;
+
         /**
          * uninitialized
          */
@@ -405,8 +407,8 @@ class Vector : public VectorBase<T>
             data() = VectorHelper<VectorType>::blend(data(), v.data(), k);
         }
 
-        template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data()); }
-        template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data()); }
+        template<typename V2> inline V2 staticCast() const { return StaticCastHelper<T, typename V2::_T>::cast(data()); }
+        template<typename V2> inline V2 reinterpretCast() const { return ReinterpretCastHelper<T, typename V2::_T>::cast(data()); }
 
         inline WriteMaskedVector<T> operator()(const Mask &k) ALWAYS_INLINE { return WriteMaskedVector<T>(this, k); }
 

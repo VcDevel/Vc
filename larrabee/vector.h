@@ -945,6 +945,7 @@ class Vector : public VectorBase<T, Vector<T> >
          */
         inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : data(VectorHelper<T>::load(IndexesFromZeroHelper<T>())) {}
 
+        static inline Vector Zero() { return mm512_reinterpret_cast<VectorType>(_mm512_setzero()); }
         static inline Vector IndexesFromZero() { return VectorHelper<T>::load(IndexesFromZeroHelper<T>()); }
 //X         /**
 //X          * initialzed to random numbers
@@ -1261,8 +1262,8 @@ class Vector : public VectorBase<T, Vector<T> >
             VectorDQHelper<T>::mov(data, mask.data(), v.data);
         }
 
-        template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data); }
-        template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data); }
+        template<typename V2> inline V2 staticCast() const { return StaticCastHelper<T, typename V2::EntryType>::cast(data); }
+        template<typename V2> inline V2 reinterpretCast() const { return ReinterpretCastHelper<T, typename V2::EntryType>::cast(data); }
 
         inline WriteMaskedVector<T> operator()(Mask k) { return WriteMaskedVector<T>(this, k); }
 
