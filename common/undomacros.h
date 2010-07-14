@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -17,31 +17,17 @@
 
 */
 
-#include "../common/macros.h"
+#ifndef VC_COMMON_UNDOMACROS_H
+#define VC_COMMON_UNDOMACROS_H
+#undef VC_COMMON_MACROS_H
 
-#ifndef VC_SSE_MACROS_H
-#define VC_SSE_MACROS_H
-#undef VC_SSE_UNDOMACROS_H
+#undef CONST
+#undef MAY_ALIAS
+#undef ALIGN
+#undef CAT
+#undef CAT_HELPER
+#undef unrolled_loop16
+#undef for_all_vector_entries
+#undef FREE_STORE_OPERATORS_ALIGNED
 
-#ifndef _M128
-# define _M128 __m128
-#endif
-
-#ifndef _M128I
-# define _M128I __m128i
-#endif
-
-#ifndef _M128D
-# define _M128D __m128d
-#endif
-
-#define STORE_VECTOR(type, name, vec) \
-    union { __m128i p; type v[16 / sizeof(type)]; } CAT(u, __LINE__); \
-    _mm_store_si128(&CAT(u, __LINE__).p, vec); \
-    const type *const name = &CAT(u, __LINE__).v[0]
-
-#if defined(VC_IMPL_SSE4_1) && !defined(VC_DISABLE_PTEST)
-#define VC_USE_PTEST
-#endif
-
-#endif // VC_SSE_MACROS_H
+#endif // VC_COMMON_UNDOMACROS_H

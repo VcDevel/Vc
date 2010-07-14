@@ -21,6 +21,8 @@
 #define SSE_TYPES_H
 
 #include "intrinsics.h"
+#include "../common/storage.h"
+#include "macros.h"
 
 namespace Vc
 {
@@ -71,28 +73,6 @@ namespace SSE
     template<> struct IndexTypeHelper<4u> { typedef unsigned int   Type; };
     template<> struct IndexTypeHelper<8u> { typedef unsigned short Type; };
     template<> struct IndexTypeHelper<16u>{ typedef unsigned char  Type; };
-
-    template<typename VectorType, typename EntryType> class VectorMemoryUnion
-    {
-        public:
-            typedef EntryType AliasingEntryType MAY_ALIAS;
-            inline VectorMemoryUnion() {}
-            inline VectorMemoryUnion(const VectorType &x) : data(x) {}
-
-            VectorType &v() { return data; }
-            const VectorType &v() const { return data; }
-
-            AliasingEntryType &m(int index) {
-                return reinterpret_cast<AliasingEntryType *>(&data)[index];
-            }
-
-            EntryType m(int index) const {
-                return reinterpret_cast<const AliasingEntryType *>(&data)[index];
-            }
-
-        private:
-            VectorType data;
-    };
 
     template<typename T> struct VectorHelperSize;
 
