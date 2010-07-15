@@ -1,14 +1,14 @@
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS)
 
 macro(vc_add_test name)
-   set(simpleTarget "${name}_simple")
+   set(scalarTarget "${name}_scalar")
    set(sseTarget "${name}_sse")
    set(lrbTarget "${name}_lrb")
 
-   add_executable(${simpleTarget} ${name}.cpp)
-   target_link_libraries(${simpleTarget} Vc)
-   add_target_property(${simpleTarget} COMPILE_FLAGS "-DVC_IMPL=Scalar")
-   add_test(${simpleTarget} "${CMAKE_CURRENT_BINARY_DIR}/${simpleTarget}")
+   add_executable(${scalarTarget} ${name}.cpp)
+   target_link_libraries(${scalarTarget} Vc)
+   add_target_property(${scalarTarget} COMPILE_FLAGS "-DVC_IMPL=Scalar")
+   add_test(${scalarTarget} "${CMAKE_CURRENT_BINARY_DIR}/${scalarTarget}")
 
    if(USE_SSE2 AND NOT SSE_INTRINSICS_BROKEN)
       add_executable(${sseTarget} ${name}.cpp)
