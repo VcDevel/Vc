@@ -49,6 +49,168 @@ namespace Vc
 {
 namespace SSE
 {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// float_v
+template<> inline _M128 VectorHelper<_M128>::load(const float *x, AlignedFlag)
+{
+    return _mm_load_ps(x);
+}
+
+template<> inline _M128 VectorHelper<_M128>::load(const float *x, UnalignedFlag)
+{
+    return _mm_loadu_ps(x);
+}
+
+template<> inline void VectorHelper<_M128>::store(float *mem, const VectorType &x, AlignedFlag)
+{
+    _mm_store_ps(mem, x);
+}
+
+template<> inline void VectorHelper<_M128>::store(float *mem, const VectorType &x, UnalignedFlag)
+{
+    _mm_storeu_ps(mem, x);
+}
+
+template<> inline void VectorHelper<_M128>::store(float *mem, const VectorType &x, StreamingAndAlignedFlag)
+{
+    _mm_stream_ps(mem, x);
+}
+
+template<> inline void VectorHelper<_M128>::store(float *mem, const VectorType &x, StreamingAndUnalignedFlag)
+{
+    // SSE does not support unaligned streaming stores. Since unaligned memory access is more
+    // important we ignore the streaming part
+    _mm_storeu_ps(mem, x);
+}
+
+template<> inline void VectorHelper<_M128>::store(float *mem, const VectorType &x, const VectorType m)
+{
+    _mm_maskmoveu_si128(_mm_castps_si128(x), _mm_castps_si128(m), reinterpret_cast<char *>(mem));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// sfloat_v
+template<> inline M256 VectorHelper<M256>::load(const float *x, AlignedFlag)
+{
+    return VectorType::create(_mm_load_ps(x), _mm_load_ps(x + 4));
+}
+
+template<> inline M256 VectorHelper<M256>::load(const float *x, UnalignedFlag)
+{
+    return VectorType::create(_mm_loadu_ps(x), _mm_loadu_ps(x + 4));
+}
+
+template<> inline void VectorHelper<M256>::store(float *mem, const VectorType &x, AlignedFlag)
+{
+    _mm_store_ps(mem, x[0]);
+    _mm_store_ps(mem + 4, x[1]);
+}
+
+template<> inline void VectorHelper<M256>::store(float *mem, const VectorType &x, UnalignedFlag)
+{
+    _mm_storeu_ps(mem, x[0]);
+    _mm_storeu_ps(mem + 4, x[1]);
+}
+
+template<> inline void VectorHelper<M256>::store(float *mem, const VectorType &x, StreamingAndAlignedFlag)
+{
+    _mm_stream_ps(mem, x[0]);
+    _mm_stream_ps(mem + 4, x[1]);
+}
+
+template<> inline void VectorHelper<M256>::store(float *mem, const VectorType &x, StreamingAndUnalignedFlag)
+{
+    // SSE does not support unaligned streaming stores. Since unaligned memory access is more
+    // important we ignore the streaming part
+    _mm_storeu_ps(mem, x[0]);
+    _mm_storeu_ps(mem + 4, x[1]);
+}
+
+template<> inline void VectorHelper<M256>::store(float *mem, const VectorType &x, const VectorType m)
+{
+    _mm_maskmoveu_si128(_mm_castps_si128(x[0]), _mm_castps_si128(m[0]), reinterpret_cast<char *>(mem));
+    _mm_maskmoveu_si128(_mm_castps_si128(x[1]), _mm_castps_si128(m[1]), reinterpret_cast<char *>(mem + 4));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// double_v
+template<> inline _M128D VectorHelper<_M128D>::load(const double *x, AlignedFlag)
+{
+    return _mm_load_pd(x);
+}
+
+template<> inline _M128D VectorHelper<_M128D>::load(const double *x, UnalignedFlag)
+{
+    return _mm_loadu_pd(x);
+}
+
+template<> inline void VectorHelper<_M128D>::store(double *mem, const VectorType &x, AlignedFlag)
+{
+    _mm_store_pd(mem, x);
+}
+
+template<> inline void VectorHelper<_M128D>::store(double *mem, const VectorType &x, UnalignedFlag)
+{
+    _mm_storeu_pd(mem, x);
+}
+
+template<> inline void VectorHelper<_M128D>::store(double *mem, const VectorType &x, StreamingAndAlignedFlag)
+{
+    _mm_stream_pd(mem, x);
+}
+
+template<> inline void VectorHelper<_M128D>::store(double *mem, const VectorType &x, StreamingAndUnalignedFlag)
+{
+    // SSE does not support unaligned streaming stores. Since unaligned memory access is more
+    // important we ignore the streaming part
+    _mm_storeu_pd(mem, x);
+}
+
+template<> inline void VectorHelper<_M128D>::store(double *mem, const VectorType &x, const VectorType m)
+{
+    _mm_maskmoveu_si128(_mm_castpd_si128(x), _mm_castpd_si128(m), reinterpret_cast<char *>(mem));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// int_v, uint_v, short_v, ushort_v
+template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, AlignedFlag)
+{
+    return _mm_load_si128(reinterpret_cast<const VectorType *>(x));
+}
+
+template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, UnalignedFlag)
+{
+    return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x));
+}
+
+template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const VectorType &x, AlignedFlag)
+{
+    _mm_store_si128(reinterpret_cast<VectorType *>(mem), x);
+}
+
+template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const VectorType &x, UnalignedFlag)
+{
+    _mm_storeu_si128(reinterpret_cast<VectorType *>(mem), x);
+}
+
+template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const VectorType &x, StreamingAndAlignedFlag)
+{
+    _mm_stream_si128(reinterpret_cast<VectorType *>(mem), x);
+}
+
+template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const VectorType &x, StreamingAndUnalignedFlag)
+{
+    // SSE does not support unaligned streaming stores. Since unaligned memory access is more
+    // important we ignore the streaming part
+    _mm_storeu_si128(reinterpret_cast<VectorType *>(mem), x);
+}
+
+template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const VectorType &x, const VectorType &m)
+{
+    _mm_maskmoveu_si128(x, m, reinterpret_cast<char *>(mem));
+}
+
     template<> inline _M128I SortHelper<_M128I, 8>::sort(_M128I x)
     {
         _M128I lo, hi, y;

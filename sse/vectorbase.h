@@ -83,7 +83,7 @@ namespace SSE
         protected:
             inline VectorBase() {}
 
-            VectorMemoryUnion<VectorType, EntryType> d;
+            Common::VectorMemoryUnion<VectorType, EntryType> d;
 
             static const T *_IndexesFromZero() {
                 if (Size == 4) {
@@ -118,7 +118,7 @@ namespace SSE
             inline VectorBase() {}
             inline VectorBase(const VectorType &x) : d(x) {}
 
-            VectorMemoryUnion<VectorType, EntryType> d;
+            Common::VectorMemoryUnion<VectorType, EntryType> d;
     };
 
     template<> class VectorBase<float> {
@@ -141,7 +141,7 @@ namespace SSE
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
-            VectorMemoryUnion<VectorType, EntryType> d;
+            Common::VectorMemoryUnion<VectorType, EntryType> d;
     };
 
     template<> class VectorBase<double> {
@@ -164,7 +164,7 @@ namespace SSE
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
-            VectorMemoryUnion<VectorType, EntryType> d;
+            Common::VectorMemoryUnion<VectorType, EntryType> d;
     };
 
 } // namespace SSE

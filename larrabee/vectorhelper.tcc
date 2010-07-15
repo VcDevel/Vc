@@ -22,18 +22,100 @@ namespace Vc
 namespace LRBni
 {
 
-template<> inline _M512D VectorHelper<double>::load(const double *x, AlignedFlag) {
+template<> inline _M512D VectorHelper<double>::load(const double *x, AlignedFlag)
+{
     return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadq(x, _MM_FULLUPC64_NONE, _MM_BROADCAST_8X8));
 }
-template<> inline _M512D VectorHelper<double>::load(const double *x, UnalignedFlag) {
+
+template<> inline _M512D VectorHelper<double>::load(const double *x, UnalignedFlag)
+{
     return mm512_reinterpret_cast<VectorType>(_mm512_expandq( const_cast<double *>(x), _MM_FULLUPC64_NONE, _MM_HINT_NONE));
 }
 
+template<> inline void VectorHelper<double>::store(void *mem, VectorType x, AlignedFlag)
+{
+    _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE);
+}
+
+template<> inline void VectorHelper<double>::store(void *mem, VectorType x, UnalignedFlag)
+{
+    _mm512_compressq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NONE);
+}
+
+template<> inline void VectorHelper<double>::store(void *mem, VectorType x, StreamingAndAlignedFlag)
+{
+    _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NT);
+}
+
+template<> inline void VectorHelper<double>::store(void *mem, VectorType x, StreamingAndUnalignedFlag)
+{
+    _mm512_compressq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NT);
+}
+
+template<> inline void VectorHelper<double>::store(void *mem, VectorType x, __mmask k, AlignedFlag)
+{
+    _mm512_mask_storeq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE);
+}
+
+template<> inline void VectorHelper<double>::store(void *mem, VectorType x, __mmask k, UnalignedFlag)
+{
+    _mm512_mask_compressq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NONE);
+}
+
+template<> inline void VectorHelper<double>::store(void *mem, VectorType x, __mmask k, StreamingAndAlignedFlag)
+{
+    _mm512_mask_storeq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NT);
+}
+
+template<> inline void VectorHelper<double>::store(void *mem, VectorType x, __mmask k, StreamingAndUnalignedFlag)
+{
+    _mm512_mask_compressq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NT);
+}
+
+
 #define LOAD(T1, T2, conv) \
-template<> inline VectorHelper<T1>::VectorType VectorHelper<T1>::load(const T2 *x, AlignedFlag) { \
-    return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd(x, conv, _MM_BROADCAST_16X16, _MM_HINT_NONE)); } \
-template<> inline VectorHelper<T1>::VectorType VectorHelper<T1>::load(const T2 *x, UnalignedFlag) { \
-    return mm512_reinterpret_cast<VectorType>(_mm512_expandd(const_cast<T2 *>(x), conv, _MM_HINT_NONE)); }
+template<> inline VectorHelper<T1>::VectorType VectorHelper<T1>::load(const T2 *x, AlignedFlag) \
+{ \
+    return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd(x, conv, _MM_BROADCAST_16X16, _MM_HINT_NONE)); \
+} \
+template<> inline VectorHelper<T1>::VectorType VectorHelper<T1>::load(const T2 *x, UnalignedFlag) \
+{ \
+    return mm512_reinterpret_cast<VectorType>(_mm512_expandd(const_cast<T2 *>(x), conv, _MM_HINT_NONE)); \
+}
+
+#define STORE(T1, T2, conv) \
+template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, AlignedFlag) \
+{ \
+    _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NONE); \
+} \
+template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, UnalignedFlag) \
+{ \
+    _mm512_compressd(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_HINT_NONE); \
+} \
+template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, StreamingAndAlignedFlag) \
+{ \
+    _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NT); \
+} \
+template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, StreamingAndUnalignedFlag) \
+{ \
+    _mm512_compressd(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_HINT_NT); \
+} \
+template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, __mmask k, AlignedFlag) \
+{ \
+    _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NONE); \
+} \
+template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, __mmask k, UnalignedFlag) \
+{ \
+    _mm512_mask_compressd(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_HINT_NONE); \
+} \
+template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, __mmask k, StreamingAndAlignedFlag) \
+{ \
+    _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NT); \
+} \
+template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, __mmask k, StreamingAndUnalignedFlag) \
+{ \
+    _mm512_mask_compressd(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_HINT_NT); \
+}
 
 LOAD(float, float, _MM_FULLUPC_NONE)
 LOAD(float, float16, _MM_FULLUPC_FLOAT16)
@@ -42,16 +124,29 @@ LOAD(float, signed char, _MM_FULLUPC_SINT8)
 LOAD(float, char, _MM_FULLUPC_SINT8)
 LOAD(float, unsigned short, _MM_FULLUPC_UINT16)
 LOAD(float, signed short, _MM_FULLUPC_SINT16)
+STORE(float, float, _MM_DOWNC_NONE)
+STORE(float, float16, _MM_DOWNC_FLOAT16)
+STORE(float, unsigned char, _MM_DOWNC_UINT8)
+STORE(float, signed char, _MM_DOWNC_SINT8)
+STORE(float, unsigned short, _MM_DOWNC_UINT16)
+STORE(float, signed short, _MM_DOWNC_SINT16)
 
 LOAD(int, int, _MM_FULLUPC_NONE)
 LOAD(int, signed char, _MM_FULLUPC_SINT8I)
 LOAD(int, signed short, _MM_FULLUPC_SINT16I)
+STORE(int, int, _MM_DOWNC_NONE)
+STORE(int, signed char, _MM_DOWNC_SINT8I)
+STORE(int, signed short, _MM_DOWNC_SINT16I)
 
 LOAD(unsigned int, unsigned int, _MM_FULLUPC_NONE)
 LOAD(unsigned int, unsigned char, _MM_FULLUPC_UINT8I)
 LOAD(unsigned int, unsigned short, _MM_FULLUPC_UINT16I)
+STORE(unsigned int, unsigned int, _MM_DOWNC_NONE)
+STORE(unsigned int, unsigned char, _MM_DOWNC_UINT8I)
+STORE(unsigned int, unsigned short, _MM_DOWNC_UINT16I)
 
 #undef LOAD
+#undef STORE
 
 } // namespace LRBni
 } // namespace Vc

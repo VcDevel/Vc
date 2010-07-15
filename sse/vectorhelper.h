@@ -61,7 +61,7 @@ namespace SSE
         typedef typename Base::VectorType VectorType;
         typedef typename Base::EntryType  EntryType;
         typedef typename Base::IndexType  IndexType;
-        typedef VectorMemoryUnion<VectorType, EntryType> UnionType;
+        typedef Common::VectorMemoryUnion<VectorType, EntryType> UnionType;
         enum { Size = Base::Size, Shift = sizeof(EntryType) };
         static void gather(Base &v, const unsigned int *indexes, const EntryType *baseAddr);
         static void gather(Base &v, const IndexType &indexes, const EntryType *baseAddr);
@@ -82,7 +82,7 @@ namespace SSE
         typedef typename Base::VectorType VectorType;
         typedef typename Base::EntryType  EntryType;
         typedef typename Base::IndexType  IndexType;
-        typedef VectorMemoryUnion<VectorType, EntryType> UnionType;
+        typedef Common::VectorMemoryUnion<VectorType, EntryType> UnionType;
         enum { Size = Base::Size, Shift = sizeof(EntryType) };
 
         static void scatter(const Base &v, const IndexType &indexes, EntryType *baseAddr);
@@ -125,12 +125,8 @@ namespace SSE
         {
             typedef _M128 VectorType;
             template<typename A> static VectorType load(const float *x, A);
-            static inline void store(float *mem, const VectorType &x) { _mm_store_ps(mem, x); }
-            static inline void storeUnaligned(float *mem, const VectorType &x) { _mm_storeu_ps(mem, x); }
-            static inline void storeUnaligned(float *mem, const VectorType &x, const VectorType &m) {
-                _mm_maskmoveu_si128(_mm_castps_si128(x), _mm_castps_si128(m), reinterpret_cast<char *>(mem));
-            }
-            static inline void storeStreaming(float *mem, const VectorType &x) { _mm_stream_ps(mem, x); }
+            template<typename A> static void store(float *mem, const VectorType &x, A);
+
             OP0(allone, _mm_setallone_ps())
             OP0(zero, _mm_setzero_ps())
             OP2(or_, _mm_or_ps(a, b))
@@ -140,29 +136,13 @@ namespace SSE
             OP3(blend, _mm_blendv_ps(a, b, c))
         };
 
-        template<> inline _M128 VectorHelper<_M128>::load(const float *x, AlignedFlag) { return _mm_load_ps(x); }
-        template<> inline _M128 VectorHelper<_M128>::load(const float *x, UnalignedFlag) { return _mm_loadu_ps(x); }
 
         template<> struct VectorHelper<M256>
         {
             typedef M256 VectorType;
             template<typename A> static VectorType load(const float *x, A);
-            static inline void store(float *mem, const VectorType &x) {
-                _mm_store_ps(mem, x[0]);
-                _mm_store_ps(mem + 4, x[1]);
-            }
-            static inline void storeUnaligned(float *mem, const VectorType &x) {
-                _mm_storeu_ps(mem, x[0]);
-                _mm_storeu_ps(mem + 4, x[1]);
-            }
-            static inline void storeUnaligned(float *mem, const VectorType &x, const VectorType &m) {
-                _mm_maskmoveu_si128(_mm_castps_si128(x[0]), _mm_castps_si128(m[0]), reinterpret_cast<char *>(mem));
-                _mm_maskmoveu_si128(_mm_castps_si128(x[1]), _mm_castps_si128(m[1]), reinterpret_cast<char *>(mem + 4));
-            }
-            static inline void storeStreaming(float *mem, const VectorType &x) {
-                _mm_stream_ps(mem, x[0]);
-                _mm_stream_ps(mem + 4, x[1]);
-            }
+            template<typename A> static void store(float *mem, const VectorType &x, A);
+
             OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
             OP0(zero, VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()))
             OP2(or_, VectorType::create(_mm_or_ps(a[0], b[0]), _mm_or_ps(a[1], b[1])))
@@ -172,23 +152,12 @@ namespace SSE
             OP3(blend, VectorType::create(_mm_blendv_ps(a[0], b[0], c[0]), _mm_blendv_ps(a[1], b[1], c[1])))
         };
 
-        template<> inline M256 VectorHelper<M256>::load(const float *x, AlignedFlag) {
-            return VectorType::create(_mm_load_ps(x), _mm_load_ps(x + 4));
-        }
-        template<> inline M256 VectorHelper<M256>::load(const float *x, UnalignedFlag) {
-            return VectorType::create(_mm_loadu_ps(x), _mm_loadu_ps(x + 4));
-        }
-
         template<> struct VectorHelper<_M128D>
         {
             typedef _M128D VectorType;
             template<typename A> static VectorType load(const double *x, A);
-            static inline void store(double *mem, const VectorType &x) { _mm_store_pd(mem, x); }
-            static inline void storeUnaligned(double *mem, const VectorType &x) { _mm_storeu_pd(mem, x); }
-            static inline void storeUnaligned(double *mem, const VectorType &x, const VectorType &m) {
-                _mm_maskmoveu_si128(_mm_castpd_si128(x), _mm_castpd_si128(m), reinterpret_cast<char *>(mem));
-            }
-            static inline void storeStreaming(double *mem, const VectorType &x) { _mm_stream_pd(mem, x); }
+            template<typename A> static void store(double *mem, const VectorType &x, A);
+
             OP0(allone, _mm_setallone_pd())
             OP0(zero, _mm_setzero_pd())
             OP2(or_, _mm_or_pd(a, b))
@@ -198,19 +167,17 @@ namespace SSE
             OP3(blend, _mm_blendv_pd(a, b, c))
         };
 
-        template<> inline _M128D VectorHelper<_M128D>::load(const double *x, AlignedFlag) { return _mm_load_pd(x); }
-        template<> inline _M128D VectorHelper<_M128D>::load(const double *x, UnalignedFlag) { return _mm_loadu_pd(x); }
-
         template<> struct VectorHelper<_M128I>
         {
             typedef _M128I VectorType;
-            template<typename T, typename A> static VectorType load(const T *x, A);
-            template<typename T> static inline void store(T *mem, const VectorType &x) { _mm_store_si128(reinterpret_cast<VectorType *>(mem), x); }
-            template<typename T> static inline void storeUnaligned(T *mem, const VectorType &x) { _mm_storeu_si128(reinterpret_cast<VectorType *>(mem), x); }
-            template<typename T> static inline void storeUnaligned(T *mem, const VectorType &x, const VectorType &m) {
-                _mm_maskmoveu_si128(x, m, reinterpret_cast<char *>(mem));
-            }
-            template<typename T> static inline void storeStreaming(T *mem, const VectorType &x) { _mm_stream_si128(reinterpret_cast<VectorType *>(mem), x); }
+            template<typename T> static VectorType load(const T *x, AlignedFlag);
+            template<typename T> static VectorType load(const T *x, UnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType &x, AlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType &x, UnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType &x, StreamingAndAlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType &x, StreamingAndUnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType &x, const VectorType &m);
+
             OP0(allone, _mm_setallone_si128())
             OP0(zero, _mm_setzero_si128())
             OP2(or_, _mm_or_si128(a, b))
@@ -220,14 +187,6 @@ namespace SSE
             OP3(blend, _mm_blendv_epi8(a, b, c))
         };
 
-        template<> inline _M128I VectorHelper<_M128I>::load(const unsigned int *x, AlignedFlag) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
-        template<> inline _M128I VectorHelper<_M128I>::load(const unsigned short *x, AlignedFlag) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
-        template<> inline _M128I VectorHelper<_M128I>::load(const int *x, AlignedFlag) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
-        template<> inline _M128I VectorHelper<_M128I>::load(const short *x, AlignedFlag) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
-        template<> inline _M128I VectorHelper<_M128I>::load(const unsigned int *x, UnalignedFlag) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
-        template<> inline _M128I VectorHelper<_M128I>::load(const unsigned short *x, UnalignedFlag) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
-        template<> inline _M128I VectorHelper<_M128I>::load(const int *x, UnalignedFlag) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
-        template<> inline _M128I VectorHelper<_M128I>::load(const short *x, UnalignedFlag) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
 #undef OP1
 #undef OP2
 #undef OP3

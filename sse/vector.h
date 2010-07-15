@@ -124,96 +124,60 @@ class Vector : public VectorBase<T>
 
         typedef T _T;
 
-        /**
-         * uninitialized
-         */
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // uninitialized
         inline Vector() {}
 
-        /**
-         * initialized to 0 in all 128 bits
-         */
-        inline explicit Vector(VectorSpecialInitializerZero::ZEnum) : Base(VectorHelper<VectorType>::zero()) {}
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // constants
+        explicit Vector(VectorSpecialInitializerZero::ZEnum);
+        explicit Vector(VectorSpecialInitializerOne::OEnum);
+        explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum);
+        static Vector Zero();
+        static Vector IndexesFromZero();
 
-        /**
-         * initialized to 1 for all entries in the vector
-         */
-        inline explicit Vector(VectorSpecialInitializerOne::OEnum) : Base(VectorHelper<T>::one()) {}
-
-        /**
-         * initialized to 0, 1 (, 2, 3 (, 4, 5, 6, 7))
-         */
-        inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : Base(VectorHelper<VectorType>::load(Base::_IndexesFromZero(), Aligned)) {}
-
-        static inline Vector Zero() { return VectorHelper<VectorType>::zero(); }
-        static inline Vector IndexesFromZero() { return VectorHelper<VectorType>::load(Base::_IndexesFromZero(), Aligned); }
-
-        /**
-         * initialize with given _M128 vector
-         */
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // internal: required to enable returning objects of VectorType
         inline Vector(const VectorType &x) : Base(x) {}
 
-        template<typename OtherT>
-        explicit inline Vector(const Vector<OtherT> &x) : Base(StaticCastHelper<OtherT, T>::cast(x.data())) {}
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // static_cast / copy ctor
+        template<typename OtherT> explicit Vector(const Vector<OtherT> &x);
 
-        /**
-         * initialize all values with the given value
-         */
-        inline Vector(EntryType a) : Base(VectorHelper<T>::set(a)) {}
-
-        /**
-         * Initialize the vector with the given data. \param x must point to 64 byte aligned 512
-         * byte data.
-         */
-        inline explicit Vector(const EntryType *x) : Base(VectorHelper<VectorType>::load(x, Aligned)) {}
-
-        template<typename Alignment> Vector(const EntryType *x, Alignment align);
-
-        inline explicit Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
-            : Base(VectorHelper<T>::concat(a[0].data(), a[1].data()))
-        {}
-
-        inline void expand(Vector<typename ExpandTypeHelper<T>::Type> *x) const
-        {
-            if (Size == 8u) {
-                x[0].data() = VectorHelper<T>::expand0(data());
-                x[1].data() = VectorHelper<T>::expand1(data());
-            }
-        }
-
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // broadcast
+        Vector(EntryType a);
         static inline Vector broadcast4(const EntryType *x) { return Vector<T>(x); }
 
-        inline void load(const EntryType *mem) {
-            data() = VectorHelper<VectorType>::load(mem, Aligned);
-        }
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // load ctors
+        explicit Vector(const EntryType *x);
+        template<typename Alignment> Vector(const EntryType *x, Alignment align);
+        explicit Vector(const Vector<typename CtorTypeHelper<T>::Type> *a);
 
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // expand 1 short_v to 2 int_v                    XXX rationale? remove it for release? XXX
+        void expand(Vector<typename ExpandTypeHelper<T>::Type> *x) const;
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // load member functions
+        void load(const EntryType *mem);
         template<typename Alignment> void load(const EntryType *mem, Alignment align);
 
-        inline void makeZero() { data() = VectorHelper<VectorType>::zero(); }
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // zeroing
+        void makeZero();
+        void makeZero(const Mask &k);
 
-        /**
-         * Set all entries to zero where the mask is set. I.e. a 4-vector with a mask of 0111 would
-         * set the last three entries to 0.
-         */
-        inline void makeZero(const Mask &k) { data() = VectorHelper<VectorType>::andnot_(mm128_reinterpret_cast<VectorType>(k.data()), data()); }
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // stores
+        void store(EntryType *mem) const;
+        void store(EntryType *mem, const Mask &mask) const;
+        template<typename A> void store(EntryType *mem, A align) const;
+        template<typename A> void store(EntryType *mem, const Mask &mask, A align) const;
 
-        /**
-         * Store the vector data to the given memory. The memory must be 64 byte aligned and of 512
-         * bytes size.
-         */
-        inline void store(EntryType *mem) const { VectorHelper<VectorType>::store(mem, data()); }
-        inline void store(EntryType *mem, const Mask &mask) const {
-            const VectorType &old = VectorHelper<VectorType>::load(mem, Aligned);
-            VectorHelper<VectorType>::store(mem, VectorHelper<VectorType>::blend(old, data(), mm128_reinterpret_cast<VectorType>(mask.data())));
-        }
-
-        inline void storeUnaligned(EntryType *mem) const { VectorHelper<VectorType>::storeUnaligned(mem, data()); }
-        inline void storeUnaligned(EntryType *mem, const Mask &mask) const { VectorHelper<VectorType>::storeUnaligned(mem, data(), mm128_reinterpret_cast<VectorType>(mask.data())); }
-
-        /**
-         * Non-temporal store variant. Writes to the memory without polluting the cache.
-         */
-        inline void storeStreaming(EntryType *mem) const { VectorHelper<VectorType>::storeStreaming(mem, data()); }
-
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // swizzles
         inline const Vector<T> &dcba() const { return *this; }
         inline const Vector<T> cdab() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 3, 0, 1))); }
         inline const Vector<T> badc() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 0, 3, 2))); }
