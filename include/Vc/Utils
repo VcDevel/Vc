@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -17,16 +17,22 @@
 
 */
 
-#ifndef VC_VC
-#define VC_VC
-#include "double_v"
-#include "float_v"
-#include "int_v"
-#include "sfloat_v"
-#include "short_v"
-#include "uint_v"
-#include "ushort_v"
-#include "IO"
-#include "Memory"
-#include "Utils"
-#endif // VC_VC
+#ifndef VC_UTILS
+#define VC_UTILS
+
+#include "global.h"
+
+#if VC_IMPL_LRBni
+# include "larrabee/deinterleave.h"
+# define VECTOR_NAMESPACE LRBni
+#elif VC_IMPL_Scalar
+# include "simple/deinterleave.h"
+# define VECTOR_NAMESPACE Simple
+#else
+# include "sse/deinterleave.h"
+# define VECTOR_NAMESPACE SSE
+#endif
+
+#include "common/deinterleave.h"
+
+#endif // VC_UTILS

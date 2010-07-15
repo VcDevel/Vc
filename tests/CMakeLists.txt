@@ -35,6 +35,7 @@ vc_add_test(scatter)
 vc_add_test(math)
 vc_add_test(mask)
 vc_add_test(utils)
+vc_add_test(deinterleave)
 
 if(USE_SSE2 AND NOT SSE_INTRINSICS_BROKEN)
    add_executable(sse_blend sse_blend.cpp)

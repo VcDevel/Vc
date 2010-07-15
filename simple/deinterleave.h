@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -17,16 +17,25 @@
 
 */
 
-#ifndef VC_VC
-#define VC_VC
-#include "double_v"
-#include "float_v"
-#include "int_v"
-#include "sfloat_v"
-#include "short_v"
-#include "uint_v"
-#include "ushort_v"
-#include "IO"
-#include "Memory"
-#include "Utils"
-#endif // VC_VC
+#ifndef VC_SCALAR_DEINTERLEAVE_H
+#define VC_SCALAR_DEINTERLEAVE_H
+
+namespace Vc
+{
+namespace Internal
+{
+
+template<> struct HelperImpl<Vc::ScalarImpl>
+{
+    template<typename V, typename M, typename A>
+    static inline void deinterleave(V &a, V &b, const M *mem, A)
+    {
+        a = mem[0];
+        b = mem[1];
+    }
+};
+
+} // namespace Scalar
+} // namespace Vc
+
+#endif // VC_SCALAR_DEINTERLEAVE_H
