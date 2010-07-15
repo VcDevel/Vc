@@ -772,6 +772,7 @@ struct ForeachHelper
 } // namespace LRBni
 } // namespace Vc
 #include "vectorhelper.tcc"
+#include "gshelper.h"
 namespace Vc
 {
 namespace LRBni
@@ -1053,8 +1054,9 @@ class Vector : public VectorBase<T, Vector<T> >
             VectorHelper<T>::gather(data.v(), sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
         }
 
-        inline void gather(const T *array, const IndexType &indexes) {
-            data = VectorHelper<T>::gather(sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array);
+        template<typename T2>
+        inline void gather(const T2 *array, const IndexType &indexes) {
+            GSHelper<Size>::gather(data.v(), array, indexes);
         }
 
         inline void gather(const T *array, const IndexType &indexes, Mask mask) {
