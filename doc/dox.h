@@ -62,22 +62,22 @@
  */
 
 /**
- * \defgroup Vectors
+ * \defgroup Vectors Vectors
  *
  * Vector classes are abstractions for SIMD instructions.
  *
- * \defgroup Masks
+ * \defgroup Masks Masks
  *
  * Mask classes are abstractions for the results of vector comparisons. The actual implementation
  * differs depending on the SIMD instruction set. On SSE they contain a full 128bit datatype while
  * on LRBni they are stored as 16bit unsigned integers.
  *
- * \defgroup Utilities
+ * \defgroup Utilities Utilities
  *
  * Utilities that either extend the language or provide other useful functionality outside of the
  * classes.
  *
- * \defgroup Math
+ * \defgroup Math Math
  *
  * Functions that implement math functions. Take care that some of the implementations will return
  * results with less precision than what the FPU calculates.
@@ -95,29 +95,78 @@
 namespace Vc
 {
     /**
+     * \ingroup Vectors
+     *
      * Enum to declare platform specific constants
      */
-    enum {
+    enum PlatformConstants {
         /**
          * Specifies the byte boundary for memory alignments necessary for aligned loads and stores.
          */
-        VectorAlignment,
+        VectorAlignment
+    };
 
+    /**
+     * \ingroup Vectors
+     *
+     * Enum to declare special initializers for vector constructors.
+     */
+    enum SpecialInitializer {
         /**
-         * Special initializer for vector constructors to create a fast initialization to zero.
+         * Used for optimized construction of vectors initialized to zero.
          */
         Zero,
 
         /**
-         * Special initializer for vector constructors to create a fast initialization to 1.
+         * Used for optimized construction of vectors initialized to one.
          */
         One,
 
         /**
-         * Special initializer for vector constructors to create a vector with the entries 0, 1, 2,
-         * 3, 4, 5, ... (depending on the vectors size, of course).
+         * Parameter to create a vector with the entries 0, 1, 2,
+         * 3, 4, 5, ... (depending on the vector's size, of course).
          */
         IndexesFromZero
+    };
+
+    /**
+     * \ingroup Vectors
+     *
+     * Enum for load and store functions to select the optimizations that are safe to use.
+     */
+    enum AlignmentFlags {
+        /**
+         * Tells Vc that the load/store can expect a memory address that is aligned on the correct
+         * boundary.
+         *
+         * If you specify Aligned, but the memory address is not aligned the program will most
+         * likely crash.
+         */
+        Aligned,
+
+        /**
+         * Tells Vc that the load/store can \em not expect a memory address that is aligned on the correct
+         * boundary.
+         *
+         * If you specify Unaligned, but the memory address is aligned the load/store will execute
+         * slightly slower than necessary.
+         */
+        Unaligned,
+
+        /**
+         * Tells Vc to bypass the cache for the load/store. Whether this will actually be done
+         * depends on the instruction set in use.
+         *
+         * Streaming stores can be interesting when the code calculates values that, after being
+         * written to memory, will not be used for a long time or used by a different thread.
+         *
+         * \note Passing Streaming as only alignment flag implies Aligned! If you need unaligned
+         * memory access you can use
+         * \code
+         * v.store(mem, Vc::Unaligned | Vc::Streaming);
+         * \endcode
+         */
+        Streaming
     };
 
 #define INDEX_TYPE uint_v
@@ -356,7 +405,8 @@ namespace Vc
      * Force the vectors passed to the function into registers. This can be useful after looking at
      * the emitted assembly to force the compiler to optimize properly.
      *
-     * \note currently only has an effect for SSE vectors
+     * \note Currently only has an effect for SSE vectors.
+     * \note MSVC does not support this function at all.
      *
      * \warning Be careful with this function, especially since it can render the compiler unable to
      * compile for 32 bit systems if it forces more than 8 vectors in registers.
