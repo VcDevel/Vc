@@ -913,7 +913,9 @@ class Vector : public VectorBase<T, Vector<T> >
     friend class Vector<unsigned int>;
     protected:
         typedef typename VectorHelper<T>::VectorType VectorType;
-        Common::VectorMemoryUnion<VectorType, T> data;
+        typedef Common::VectorMemoryUnion<VectorType, T> StorageType;
+        typedef typename StorageType::AliasingEntryType AliasingEntryType;
+        StorageType data;
     public:
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
@@ -1161,6 +1163,9 @@ class Vector : public VectorBase<T, Vector<T> >
         inline void increment(Mask k) { data = VectorHelper<T>::add(data.v(), Vector<T>(1), k.data()); }
         inline void decrement(Mask k) { data = VectorHelper<T>::sub(data.v(), Vector<T>(1), k.data()); }
 
+        inline AliasingEntryType &operator[](int index) {
+            return data.m(index);
+        }
         inline T operator[](int index) const {
             return data.m(index);
         }
