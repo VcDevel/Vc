@@ -29,6 +29,14 @@
  *
  * Instead, if really necessary you can do:
  * \code
+ * int_v v;
+ * for (int i = 0; i < int_v::Size; ++i) {
+ *   v[i] = f(i);
+ * }
+ * \endcode
+ *
+ * This is equivalent to:
+ * \code
  * int_v::Memory m;
  * for (int i = 0; i < int_v::Size; ++i) {
  *   m[i] = f(i);
@@ -178,6 +186,16 @@ void makeZero(const MASK_TYPE &mask);
  * \see Memory
  */
 void store(EntryType *memory, AlignmentFlags align = Aligned) const;
+
+/**
+ * Return a reference to the vector entry at the given \p index.
+ *
+ * This operator can be used to modify scalar entries of the vector.
+ *
+ * \param index A value between 0 and Size. This value is not checked internally so you must make/be
+ *              sure it is in range.
+ */
+ENTRY_TYPE &operator[](int index);
 
 /**
  * Return the vector entry at the given \p index.

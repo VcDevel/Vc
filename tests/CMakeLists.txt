@@ -25,6 +25,7 @@ macro(vc_add_test name)
    endif(LARRABEE_FOUND)
 endmacro(vc_add_test)
 
+vc_add_test(scalaraccess)
 vc_add_test(memory)
 vc_add_test(arithmetics)
 vc_add_test(expandandmerge)
