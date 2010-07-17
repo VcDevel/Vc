@@ -78,7 +78,7 @@ template<typename Pair> void testDeinterlace()
     V a, b;
 
     for (int i = 0; i < 1024 - 2 * V::Size; ++i) {
-        if (reinterpret_cast<ptrdiff_t>(&memory[i]) & (VectorAlignment - 1)) {
+        if (reinterpret_cast<uintptr_t>(&memory[i]) & (VectorAlignment - 1)) {
             Vc::deinterleave(&a, &b, &memory[i], Unaligned);
         } else {
             Vc::deinterleave(&a, &b, &memory[i]);
