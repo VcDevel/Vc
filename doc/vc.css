@@ -374,7 +374,9 @@ proper pixel height of your image.
 */
 
 .directory h3.swap {
-	height: 64px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	height: 100px;
 	background-repeat: no-repeat;
 	background-image: url("logo.png");
 }

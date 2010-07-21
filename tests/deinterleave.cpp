@@ -78,7 +78,10 @@ template<typename Pair> void testDeinterlace()
     V a, b;
 
     for (int i = 0; i < 1024 - 2 * V::Size; ++i) {
-        if (reinterpret_cast<ptrdiff_t>(&memory[i]) & (VectorAlignment - 1)) {
+        // note that a 32 bit integer is certainly enough to decide on alignment...
+        // ... but uintptr_t is C99 but not C++ yet
+        // ... and GCC refuses to do the cast, even if I know what I'm doing
+        if (reinterpret_cast<unsigned long>(&memory[i]) & (VectorAlignment - 1)) {
             Vc::deinterleave(&a, &b, &memory[i], Unaligned);
         } else {
             Vc::deinterleave(&a, &b, &memory[i]);

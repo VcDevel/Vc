@@ -29,6 +29,14 @@
  *
  * Instead, if really necessary you can do:
  * \code
+ * int_v v;
+ * for (int i = 0; i < int_v::Size; ++i) {
+ *   v[i] = f(i);
+ * }
+ * \endcode
+ *
+ * This is equivalent to:
+ * \code
  * int_v::Memory m;
  * for (int i = 0; i < int_v::Size; ++i) {
  *   m[i] = f(i);
@@ -120,7 +128,9 @@ VECTOR_TYPE(ENTRY_TYPE *alignedMemory);
 template<typename OtherVector> explicit VECTOR_TYPE(const OtherVector &);
 
 /**
- * Construct a vector with all entries of the vector filled with the given value.
+ * Broadcast Constructor.
+ *
+ * Constructs a vector with all entries of the vector filled with the given value.
  *
  * \note If you want to set it to 0 or 1 use the special initializer constructors above. Calling
  * this constructor with 0 will cause a compilation error because the compiler cannot know which
@@ -135,7 +145,7 @@ VECTOR_TYPE(ENTRY_TYPE x);
  *
  * \see expand
  */
-VECTOR_TYPE(const OtherVector *array);
+//VECTOR_TYPE(const OtherVector *array);
 
 /**
  * Expand the values into an array of vectors that have a different Size.
@@ -144,22 +154,17 @@ VECTOR_TYPE(const OtherVector *array);
  *
  * This is the reverse of the above constructor.
  */
-void expand(OtherVector *array) const;
+//void expand(OtherVector *array) const;
 
 /**
- * Load the vector entries from \p alignedMemory, overwriting the previous values.
+ * Load the vector entries from \p memory, overwriting the previous values.
  *
- * \param alignedMemory A pointer to data. The pointer must be aligned on a
- *                      Vc::VectorAlignment boundary.
- */
-void load(const ENTRY_TYPE *alignedMemory);
-
-/**
- * Load the vector entries from \p unalignedMemory, overwriting the previous values.
+ * \param memory A pointer to data.
+ * \param align  Determines whether \p memory is an aligned pointer or not.
  *
- * \param unalignedMemory A pointer to data. The pointer must not be aligned.
+ * \see Memory
  */
-void loadUnaligned(const ENTRY_TYPE *unalignedMemory);
+void load(const ENTRY_TYPE *memory, AlignmentFlags align = Aligned);
 
 /**
  * Set all entries to zero.
@@ -173,20 +178,24 @@ void makeZero();
 void makeZero(const MASK_TYPE &mask);
 
 /**
- * Store the vector data to \p alignedMemory.
+ * Store the vector data to \p memory.
  *
- * \param alignedMemory A pointer to memory, where to store. The pointer must be aligned on a
- *                      Vc::VectorAlignment boundary.
+ * \param memory A pointer to memory, where to store.
+ * \param align  Determines whether \p memory is an aligned pointer or not.
+ *
+ * \see Memory
  */
-void store(EntryType *alignedMemory) const;
+void store(EntryType *memory, AlignmentFlags align = Aligned) const;
 
 /**
- * Non-temporal store variant. Writes to the memory without polluting the cache.
+ * Return a reference to the vector entry at the given \p index.
  *
- * \param alignedMemory A pointer to memory, where to store. The pointer must be aligned on a
- *                      Vc::VectorAlignment boundary.
+ * This operator can be used to modify scalar entries of the vector.
+ *
+ * \param index A value between 0 and Size. This value is not checked internally so you must make/be
+ *              sure it is in range.
  */
-void storeStreaming(EntryType *alignedMemory) const;
+ENTRY_TYPE &operator[](int index);
 
 /**
  * Return the vector entry at the given \p index.
