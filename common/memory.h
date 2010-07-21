@@ -105,7 +105,7 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
         }
         inline Memory &operator=(const V &v) {
             for (unsigned int i = 0; i < vectorsCount(); ++i) {
-               v.store(vector(i));
+                vector(i) = v;
             }
             return *this;
         }
@@ -127,7 +127,7 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
 
     // vector access:
     for (int i = 0; i < array.vectorsCount(); ++i) {
-        (int_v::IndexesFromZero() + i * int_v::Size).store(array.vector(i));
+        array.vector(i) = int_v::IndexesFromZero() + i * int_v::Size;
     }
  * \endcode
  * This code allocates a small array with 11 scalar entries
