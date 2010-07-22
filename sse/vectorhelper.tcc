@@ -62,6 +62,20 @@ template<> inline _M128 VectorHelper<_M128>::load(const float *x, UnalignedFlag)
     return _mm_loadu_ps(x);
 }
 
+template<> inline _M128 VectorHelper<_M128>::load(const float *x, StreamingAndAlignedFlag)
+{
+#ifdef VC_IMPL_SSE41
+    return _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<float *>(x))));
+#else
+    return load(x, Aligned);
+#endif
+}
+
+template<> inline _M128 VectorHelper<_M128>::load(const float *x, StreamingAndUnalignedFlag)
+{
+    return load(x, Unaligned);
+}
+
 template<> inline void VectorHelper<_M128>::store(float *mem, const VectorType &x, AlignedFlag)
 {
     _mm_store_ps(mem, x);
@@ -99,6 +113,22 @@ template<> inline M256 VectorHelper<M256>::load(const float *x, AlignedFlag)
 template<> inline M256 VectorHelper<M256>::load(const float *x, UnalignedFlag)
 {
     return VectorType::create(_mm_loadu_ps(x), _mm_loadu_ps(x + 4));
+}
+
+template<> inline M256 VectorHelper<M256>::load(const float *x, StreamingAndAlignedFlag)
+{
+#ifdef VC_IMPL_SSE41
+    return VectorType::create(
+            _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<float *>(x)))),
+            _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<float *>(x + 4)))));
+#else
+    return load(x, Aligned);
+#endif
+}
+
+template<> inline M256 VectorHelper<M256>::load(const float *x, StreamingAndUnalignedFlag)
+{
+    return load(x, Unaligned);
 }
 
 template<> inline void VectorHelper<M256>::store(float *mem, const VectorType &x, AlignedFlag)
@@ -145,6 +175,20 @@ template<> inline _M128D VectorHelper<_M128D>::load(const double *x, UnalignedFl
     return _mm_loadu_pd(x);
 }
 
+template<> inline _M128D VectorHelper<_M128D>::load(const double *x, StreamingAndAlignedFlag)
+{
+#ifdef VC_IMPL_SSE41
+    return _mm_castsi128_pd(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<double *>(x))));
+#else
+    return load(x, Aligned);
+#endif
+}
+
+template<> inline _M128D VectorHelper<_M128D>::load(const double *x, StreamingAndUnalignedFlag)
+{
+    return load(x, Unaligned);
+}
+
 template<> inline void VectorHelper<_M128D>::store(double *mem, const VectorType &x, AlignedFlag)
 {
     _mm_store_pd(mem, x);
@@ -182,6 +226,20 @@ template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, Aligne
 template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, UnalignedFlag)
 {
     return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x));
+}
+
+template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, StreamingAndAlignedFlag)
+{
+#ifdef VC_IMPL_SSE41
+    return _mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<T *>(x)));
+#else
+    return load(x, Aligned);
+#endif
+}
+
+template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, StreamingAndUnalignedFlag)
+{
+    return load(x, Unaligned);
 }
 
 template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const VectorType &x, AlignedFlag)
