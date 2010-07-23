@@ -778,12 +778,31 @@ namespace Vc
 namespace LRBni
 {
 
-template<typename T>
-class VectorMultiplication
+template<typename Parent, typename T> class StoreMixin
+{
+    private:
+        typedef LRBni::Mask<64 / sizeof(T)> Mask;
+
+    public:
+        template<typename T2> void store(T2 *mem) const;
+        template<typename T2> void store(T2 *mem, Mask mask) const;
+        template<typename T2, typename A> void store(T2 *mem, A) const;
+        template<typename T2, typename A> void store(T2 *mem, Mask mask, A) const;
+        // the following store overloads are here to support classes that have a cast operator to T.
+        // Without this overload GCC complains about not finding a matching store function.
+        inline void store(T *mem) const { store<T>(mem); }
+        inline void store(T *mem, Mask mask) const { store<T>(mem, mask); }
+        template<typename A> inline void store(T *mem, A align) const { store<T, A>(mem, align); }
+        template<typename A> inline void store(T *mem, Mask mask, A align) const { store<T, A>(mem, mask, align); }
+};
+
+template<typename T> class VectorMultiplication : public StoreMixin<VectorMultiplication<T>, T>
 {
     friend class Vector<T>;
-    typedef typename Vector<T>::Mask Mask;
+    friend class StoreMixin<VectorMultiplication<T>, T>;
     public:
+        typedef T EntryType;
+        typedef typename Vector<T>::Mask Mask;
         inline T operator[](int index) const { return Vector<T>(product())[index]; }
 
         inline VectorMultiplication<T> operator*(const Vector<T> &x) const { return VectorMultiplication<T>(product(), x.data.v()); }
@@ -803,35 +822,11 @@ class VectorMultiplication
 
         inline operator Vector<T>() const { return product(); }
 
-        template<typename OtherT> inline void store(OtherT *mem) const
-        {
-            VectorHelper<T>::store(mem, product());
-        }
-        template<typename OtherT> inline void store(OtherT *mem, Mask mask) const
-        {
-            VectorHelper<T>::store(mem, product(), mask.data());
-        }
-        inline void store(T *mem) const
-        {
-            VectorHelper<T>::store(mem, product());
-        }
-        inline void store(T *mem, Mask mask) const
-        {
-            VectorHelper<T>::store(mem, product(), mask.data());
-        }
-
-        template<typename OtherT> inline void storeStreaming(OtherT *mem) const
-        {
-            VectorHelper<T>::storeStreaming(mem, product());
-        }
-        inline void storeStreaming(T *mem) const
-        {
-            VectorHelper<T>::storeStreaming(mem, product());
-        }
+    protected:
+        typedef typename VectorHelper<T>::VectorType VectorType;
+        const VectorType vdata() const { return product(); }
 
     private:
-        typedef typename VectorHelper<T>::VectorType VectorType;
-
         VectorMultiplication(const VectorType &a, const VectorType &b) : left(a), right(b) {}
 
         const VectorType &left;
@@ -901,8 +896,7 @@ class WriteMaskedVector
         __mmask mask;
 };
 
-template<typename T>
-class Vector : public VectorBase<T, Vector<T> >
+template<typename T> class Vector : public VectorBase<T, Vector<T> >, public StoreMixin<Vector<T>, T>
 {
     friend struct VectorBase<T, Vector<T> >;
     friend class VectorMultiplication<T>;
@@ -911,11 +905,13 @@ class Vector : public VectorBase<T, Vector<T> >
     friend class Vector<double>;
     friend class Vector<int>;
     friend class Vector<unsigned int>;
+    friend class StoreMixin<Vector<T>, T>;
     protected:
         typedef typename VectorHelper<T>::VectorType VectorType;
         typedef Common::VectorMemoryUnion<VectorType, T> StorageType;
         typedef typename StorageType::AliasingEntryType AliasingEntryType;
         StorageType data;
+        const VectorType vdata() const { return data.v(); }
     public:
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
@@ -1011,19 +1007,6 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename OtherT, typename A> inline void load(const OtherT *mem, A align) {
             data = VectorHelper<T>::load(mem, align);
         }
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // stores
-        template<typename T2> void store(T2 *mem) const;
-        template<typename T2> void store(T2 *mem, Mask mask) const;
-        template<typename T2, typename A> void store(T2 *mem, A) const;
-        template<typename T2, typename A> void store(T2 *mem, Mask mask, A) const;
-        // the following store overloads are here to support classes that have a cast operator to T.
-        // Without this overload GCC complains about not finding a matching store function.
-        inline void store(T *mem) const { store<T>(mem); }
-        inline void store(T *mem, Mask mask) const { store<T>(mem, mask); }
-        template<typename A> inline void store(T *mem, A align) const { store<T, A>(mem, align); }
-        template<typename A> inline void store(T *mem, Mask mask, A align) const { store<T, A>(mem, mask, align); }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles

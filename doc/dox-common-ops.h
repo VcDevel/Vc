@@ -24,7 +24,8 @@
  * \code
  * int_v v(3, 2, 8, 0); // constructor does not exist because it is not portable
  * int_v v;
- * v[0] = 3; v[1] = 2; v[2] = 8; v[3] = 0; // scalar assignments are not implemented because they would harm performance
+ * v[0] = 3; v[1] = 2; v[2] = 8; v[3] = 0; // do not hardcode the number of entries!
+ * // You can not know whether somebody will compile with Vc Scalar where int_v::Size == 1
  * \endcode
  *
  * Instead, if really necessary you can do:

@@ -172,6 +172,8 @@ namespace SSE
             typedef _M128I VectorType;
             template<typename T> static VectorType load(const T *x, AlignedFlag);
             template<typename T> static VectorType load(const T *x, UnalignedFlag);
+            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag);
+            template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag);
             template<typename T> static void store(T *mem, const VectorType &x, AlignedFlag);
             template<typename T> static void store(T *mem, const VectorType &x, UnalignedFlag);
             template<typename T> static void store(T *mem, const VectorType &x, StreamingAndAlignedFlag);

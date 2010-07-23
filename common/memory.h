@@ -68,6 +68,7 @@ namespace Vc
  * \see Memory<V, 0u>
  *
  * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
  */
 template<typename V, unsigned int Size = 0u> class Memory : public VectorAlignedBase, public MemoryBase<V, Memory<V, Size> >
 {
@@ -144,6 +145,7 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
  * \see Memory<V, Size>
  *
  * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
  */
 template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
 {
