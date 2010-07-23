@@ -208,6 +208,12 @@ enum Implementation {
 namespace Internal {
     template<Implementation Impl> struct HelperImpl;
     typedef HelperImpl<VC_IMPL> Helper;
+
+    template<typename A> struct FlagObject;
+    template<> struct FlagObject<AlignedFlag> { static inline AlignedFlag the() { return Aligned; } };
+    template<> struct FlagObject<UnalignedFlag> { static inline UnalignedFlag the() { return Unaligned; } };
+    template<> struct FlagObject<StreamingAndAlignedFlag> { static inline StreamingAndAlignedFlag the() { return Streaming; } };
+    template<> struct FlagObject<StreamingAndUnalignedFlag> { static inline StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
 } // namespace Internal
 } // namespace Vc
 
