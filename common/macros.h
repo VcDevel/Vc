@@ -41,6 +41,7 @@
 #  define ALWAYS_INLINE __attribute__((always_inline))
 #  if __GNUC__ == 4 && __GNUC_MINOR__ == 5 && __GNUC_PATCHLEVEL__ == 0 && !defined(__x86_64__)
      // GCC 4.5.0 seems to have some problem with inlining operator<< and operator>>
+#    warning "GCC 4.5.0 bug? __attribute__((always_inline)) shows that inlining of operator<< and operator>> fails. The disassembly shows it really should be inlined."
 #    define ALWAYS_INLINE_X
 #  else
 #    define ALWAYS_INLINE_X __attribute__((always_inline))
