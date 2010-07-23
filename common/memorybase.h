@@ -25,7 +25,15 @@
 namespace Vc
 {
 
-template<typename V> class VectorPointerHelperConst
+/**
+ * Helper class for the Memory::vector(unsigned int) class of functions.
+ *
+ * You will never need to directly make use of this class. It is an implementation detail of the
+ * Memory API.
+ *
+ * \headerfile memorybase.h <Vc/Memory>
+ */
+template<typename V, typename A> class VectorPointerHelperConst
 {
     typedef typename V::EntryType EntryType;
     typedef typename V::Mask Mask;
@@ -33,19 +41,33 @@ template<typename V> class VectorPointerHelperConst
     public:
         VectorPointerHelperConst(const EntryType *ptr) : m_ptr(ptr) {}
 
-        inline operator const V() const { return V(m_ptr); }
-        inline V operator+(const V &v) const { return V(m_ptr) + v; }
-        inline V operator-(const V &v) const { return V(m_ptr) - v; }
-        inline V operator/(const V &v) const { return V(m_ptr) / v; }
-        inline V operator*(const V &v) const { return V(m_ptr) * v; }
-        inline Mask operator==(const V &v) const { return V(m_ptr) == v; }
-        inline Mask operator!=(const V &v) const { return V(m_ptr) != v; }
-        inline Mask operator<=(const V &v) const { return V(m_ptr) <= v; }
-        inline Mask operator>=(const V &v) const { return V(m_ptr) >= v; }
-        inline Mask operator< (const V &v) const { return V(m_ptr) <  v; }
-        inline Mask operator> (const V &v) const { return V(m_ptr) >  v; }
+        /**
+         * Cast to \p V operator.
+         *
+         * This function allows to assign this object to any object of type \p V.
+         */
+        inline operator const V() const { return V(m_ptr, Internal::FlagObject<A>::the()); }
+        inline V operator+(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) + v; }
+        inline V operator-(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) - v; }
+        inline V operator/(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) / v; }
+        inline V operator*(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) * v; }
+        inline Mask operator==(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) == v; }
+        inline Mask operator!=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) != v; }
+        inline Mask operator<=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <= v; }
+        inline Mask operator>=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >= v; }
+        inline Mask operator< (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <  v; }
+        inline Mask operator> (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >  v; }
 };
-template<typename V> class VectorPointerHelper
+
+/**
+ * Helper class for the Memory::vector(unsigned int) class of functions.
+ *
+ * You will never need to directly make use of this class. It is an implementation detail of the
+ * Memory API.
+ *
+ * \headerfile memorybase.h <Vc/Memory>
+ */
+template<typename V, typename A> class VectorPointerHelper
 {
     typedef typename V::EntryType EntryType;
     typedef typename V::Mask Mask;
@@ -53,33 +75,52 @@ template<typename V> class VectorPointerHelper
     public:
         VectorPointerHelper(EntryType *ptr) : m_ptr(ptr) {}
 
-        inline operator const V() const { return V(m_ptr); }
+        /**
+         * Cast to \p V operator.
+         *
+         * This function allows to assign this object to any object of type \p V.
+         */
+        inline operator const V() const { return V(m_ptr, Internal::FlagObject<A>::the()); }
 
-        inline const V &operator=(const V &v) {
-            v.store(m_ptr);
-            return v;
+        inline VectorPointerHelper &operator=(const V &v) {
+            v.store(m_ptr, Internal::FlagObject<A>::the());
+            return *this;
         }
-#define OP(op) \
-        inline V operator op(const V &v) const { \
-            return V(m_ptr) op v; \
-        } \
-        inline const VectorPointerHelper<V> &operator op##=(const V &v) { \
-            V result = V(m_ptr) op v; \
-            result.store(m_ptr); \
-            return *this; \
+        inline VectorPointerHelper &operator+=(const V &v) {
+            V result = V(m_ptr, Internal::FlagObject<A>::the()) + v;
+            result.store(m_ptr, Internal::FlagObject<A>::the());
+            return *this;
         }
-        OP(+)
-        OP(-)
-        OP(/)
-        OP(*)
-#undef OP
-        inline Mask operator==(const V &v) const { return V(m_ptr) == v; }
-        inline Mask operator!=(const V &v) const { return V(m_ptr) != v; }
-        inline Mask operator<=(const V &v) const { return V(m_ptr) <= v; }
-        inline Mask operator>=(const V &v) const { return V(m_ptr) >= v; }
-        inline Mask operator< (const V &v) const { return V(m_ptr) <  v; }
-        inline Mask operator> (const V &v) const { return V(m_ptr) >  v; }
+        inline VectorPointerHelper &operator-=(const V &v) {
+            V result = V(m_ptr, Internal::FlagObject<A>::the()) - v;
+            result.store(m_ptr, Internal::FlagObject<A>::the());
+            return *this;
+        }
+        inline VectorPointerHelper &operator*=(const V &v) {
+            V result = V(m_ptr, Internal::FlagObject<A>::the()) * v;
+            result.store(m_ptr, Internal::FlagObject<A>::the());
+            return *this;
+        }
+        inline VectorPointerHelper &operator/=(const V &v) {
+            V result = V(m_ptr, Internal::FlagObject<A>::the()) / v;
+            result.store(m_ptr, Internal::FlagObject<A>::the());
+            return *this;
+        }
+        inline V operator+(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) + v; }
+        inline V operator-(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) - v; }
+        inline V operator*(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) * v; }
+        inline V operator/(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) / v; }
+        inline Mask operator==(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) == v; }
+        inline Mask operator!=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) != v; }
+        inline Mask operator<=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <= v; }
+        inline Mask operator>=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >= v; }
+        inline Mask operator< (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <  v; }
+        inline Mask operator> (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >  v; }
 };
+
+/**
+ * \headerfile memorybase.h <Vc/Memory>
+ */
 template<typename V, typename Parent> class MemoryBase
 {
     private:
@@ -106,14 +147,14 @@ template<typename V, typename Parent> class MemoryBase
          * Returns the \p i-th scalar value in the memory.
          */
         inline EntryType &scalar(unsigned int i) { return entries()[i]; }
-        /// This is an overloaded function.
+        /// Const overload of the above function.
         inline const EntryType scalar(unsigned int i) const { return entries()[i]; }
 
         /**
          * Returns a pointer to the start of the allocated memory.
          */
         inline       EntryType *entries()       { return &p()->m_mem[0]; }
-        /// This is an overloaded function.
+        /// Const overload of the above function.
         inline const EntryType *entries() const { return &p()->m_mem[0]; }
 
         // omit operator[] because the EntryType* cast operator suffices
@@ -123,19 +164,79 @@ template<typename V, typename Parent> class MemoryBase
          * C array.
          */
         inline operator       EntryType*()       { return entries(); }
-        /// This is an overloaded function.
+        /// Const overload of the above function.
         inline operator const EntryType*() const { return entries(); }
 
         /**
-         * Returns a pointer to memory for the i-th vector.
+         * Returns a smart object to wrap the \p i-th vector in the memory.
          *
-         * vector(i + 1) - vector(i) is always equal to V::Size.
+         * The return value can be used as any other vector object. I.e. you can substitute
+         * something like
+         * \code
+         * float_v a = ..., b = ...;
+         * a += b;
+         * \endcode
+         * with
+         * \code
+         * mem.vector(i) += b;
+         * \endcode
          *
-         * The pointer is guaranteed to be aligned correctly.
+         * This function ensures that only \em aligned loads and stores are used. Thus it only allows to
+         * access memory at fixed strides. If access to known offsets from the aligned vectors is
+         * needed the vector(unsigned int, int) function can be used.
          */
-        inline VectorPointerHelper<V> vector(unsigned int i) { return &entries()[i * V::Size]; }
-        /// This is an overloaded function.
-        inline const VectorPointerHelperConst<V> vector(unsigned int i) const { return &entries()[i * V::Size]; }
+        inline VectorPointerHelper<V, AlignedFlag> vector(unsigned int i) { return &entries()[i * V::Size]; }
+        /// Const overload of the above function.
+        inline const VectorPointerHelperConst<V, AlignedFlag> vector(unsigned int i) const { return &entries()[i * V::Size]; }
+
+        /**
+         * Returns a smart object to wrap the \p i-th vector + \p shift in the memory.
+         *
+         * This function ensures that only \em unaligned loads and stores are used.
+         * It allows to access memory at any location aligned to the entry type.
+         *
+         * \param i Selects the memory location of the i-th vector. Thus if \p V::Size == 4 and
+         *          \p i is set to 3 the base address for the load/store will be the 12th entry
+         *          (same as \p &operator[](12)).
+         * \param shift Shifts the base address determined by parameter \p i by \p shift many
+         *              entries. Thus \p vector(3, 1) for \p V::Size == 4 will load/store the
+         *              13th - 16th entries (same as \p &operator[](13)).
+         *
+         * \note Any shift value is allowed as long as you make sure it stays within bounds of the
+         * allocated memory. Shift values that are a multiple of \p V::Size will \em not result in
+         * aligned loads. You have to use the above vector(unsigned int) function for aligned loads
+         * instead.
+         *
+         * \note Thus a simple way to access vectors randomly is to set \p i to 0 and use \p shift as the
+         * parameter to select the memory address:
+         * \code
+         * // don't use:
+         * mem.vector(i / V::Size, i % V::Size) += 1;
+         * // instead use:
+         * mem.vector(0, i) += 1;
+         * \endcode
+         */
+        inline VectorPointerHelper<V, UnalignedFlag> vector(unsigned int i, int shift) { return &entries()[i * V::Size + shift]; }
+        /// Const overload of the above function.
+        inline const VectorPointerHelperConst<V, UnalignedFlag> vector(unsigned int i, int shift) const { return &entries()[i * V::Size + shift]; }
+
+        /**
+         * Returns the first vector in the allocated memory.
+         *
+         * This function is simply a shorthand for vector(0).
+         */
+        inline VectorPointerHelper<V, AlignedFlag> firstVector() { return entries(); }
+        /// Const overload of the above function.
+        inline const VectorPointerHelperConst<V, AlignedFlag> firstVector() const { return entries(); }
+
+        /**
+         * Returns the last vector in the allocated memory.
+         *
+         * This function is simply a shorthand for vector(vectorsCount() - 1).
+         */
+        inline VectorPointerHelper<V, AlignedFlag> lastVector() { return &entries()[vectorsCount() * V::Size - V::Size]; }
+        /// Const overload of the above function.
+        inline const VectorPointerHelperConst<V, AlignedFlag> lastVector() const { return &entries()[vectorsCount() * V::Size - V::Size]; }
 
         inline V gather(const unsigned char  *indexes) const { return V(entries(), indexes); }
         inline V gather(const unsigned short *indexes) const { return V(entries(), indexes); }
