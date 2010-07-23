@@ -22,24 +22,24 @@ namespace Vc
 namespace LRBni
 {
 
-template<typename T> template<typename T2> inline void Vector<T>::store(T2 *mem) const
+template<typename Parent, typename T> template<typename T2> inline void StoreMixin<Parent, T>::store(T2 *mem) const
 {
-    VectorHelper<T>::store(mem, data.v(), Aligned);
+    VectorHelper<T>::store(mem, static_cast<const Parent *>(this)->vdata(), Aligned);
 }
 
-template<typename T> template<typename T2> inline void Vector<T>::store(T2 *mem, Mask mask) const
+template<typename Parent, typename T> template<typename T2> inline void StoreMixin<Parent, T>::store(T2 *mem, Mask mask) const
 {
-    VectorHelper<T>::store(mem, data.v(), mask.data(), Aligned);
+    VectorHelper<T>::store(mem, static_cast<const Parent *>(this)->vdata(), mask.data(), Aligned);
 }
 
-template<typename T> template<typename T2, typename A> inline void Vector<T>::store(T2 *mem, A align) const
+template<typename Parent, typename T> template<typename T2, typename A> inline void StoreMixin<Parent, T>::store(T2 *mem, A align) const
 {
-    VectorHelper<T>::store(mem, data.v(), align);
+    VectorHelper<T>::store(mem, static_cast<const Parent *>(this)->vdata(), align);
 }
 
-template<typename T> template<typename T2, typename A> inline void Vector<T>::store(T2 *mem, Mask mask, A align) const
+template<typename Parent, typename T> template<typename T2, typename A> inline void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, A align) const
 {
-    VectorHelper<T>::store(mem, data.v(), mask.data(), align);
+    VectorHelper<T>::store(mem, static_cast<const Parent *>(this)->vdata(), mask.data(), align);
 }
 
 } // namespace LRBni
