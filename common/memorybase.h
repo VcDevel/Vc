@@ -197,10 +197,10 @@ template<typename V, typename Parent> class MemoryBase
          *
          * \param i Selects the memory location of the i-th vector. Thus if \p V::Size == 4 and
          *          \p i is set to 3 the base address for the load/store will be the 12th entry
-         *          (same as \p &operator[](12)).
+         *          (same as \p &mem[12]).
          * \param shift Shifts the base address determined by parameter \p i by \p shift many
          *              entries. Thus \p vector(3, 1) for \p V::Size == 4 will load/store the
-         *              13th - 16th entries (same as \p &operator[](13)).
+         *              13th - 16th entries (same as \p &mem[13]).
          *
          * \note Any shift value is allowed as long as you make sure it stays within bounds of the
          * allocated memory. Shift values that are a multiple of \p V::Size will \em not result in
