@@ -11,11 +11,6 @@ sed -i "s/^PROJECT_NUMBER         = .*\$/PROJECT_NUMBER         = $version/" Dox
 git commit Doxyfile -m"change version to $version"
 git tag "$version"
 
-# Create API dox
-./makeApidox.sh
-cp apidox/latex/refman.pdf ../"Vc-$version.pdf"
-cp -a apidox/html ../"Vc-$version.html"
-
 # Create tarball
 git archive --format=tar --prefix="Vc-$version/" "$version" | gzip > ../"Vc-$version.tar.gz"
 
