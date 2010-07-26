@@ -73,8 +73,8 @@ namespace SSE
             inline Vector<EntryType> operator^ (const VectorBase<EntryType> &x) const ALWAYS_INLINE;
             inline Vector<EntryType> operator>>(const VectorBase<EntryType> &x) const ALWAYS_INLINE;
             inline Vector<EntryType> operator<<(const VectorBase<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator>>(int x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator<<(int x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator>>(int x) const ALWAYS_INLINE_X;
+            inline Vector<EntryType> operator<<(int x) const ALWAYS_INLINE_X;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }
