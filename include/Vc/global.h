@@ -217,4 +217,6 @@ namespace Internal {
 } // namespace Internal
 } // namespace Vc
 
+#include "version.h"
+
 #endif // VC_GLOBAL_H
