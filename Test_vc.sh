@@ -95,7 +95,7 @@ test -z "$VC_SOURCEDIR" && VC_SOURCEDIR="`dirname $0`"
 cd "$VC_SOURCEDIR"
 export VC_SOURCEDIR="$PWD" # making sure VC_SOURCEDIR is an absolute path
 
-test -z "$VC_BUILDDIR" && export VC_BUILDDIR="$VC_SOURCEDIR/build-${ctest_model}-${LABEL//[ ()]/_}"
+test -z "$VC_BUILDDIR" && export VC_BUILDDIR="$VC_SOURCEDIR/build-${ctest_model}-${LABEL//[\[\] ()]/_}"
 test -d "$VC_BUILDDIR" || mkdir -p "$VC_BUILDDIR"
 
 ctest -S VCTest.cmake -V --VV
