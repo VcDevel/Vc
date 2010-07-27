@@ -61,12 +61,13 @@ if test -z "$CXX" ; then
 else
   COMPILER="`"$CXX" --version|head -n1`"
 fi
+branch=`cat .git/HEAD|cut -d/ -f3`
 
-LABEL1="$arch $chip $COMPILER $CXXFLAGS"
+LABEL1="$branch $arch $chip $COMPILER $CXXFLAGS"
 if test "$arch" = "linux"; then
   test -z "$LINUX_FLAVOUR" && LINUX_FLAVOUR=`lsb_release -d`
   if test -n "$LINUX_FLAVOUR"; then
-    LABEL1="$LINUX_FLAVOUR $chip $COMPILER $CXXFLAGS"
+    LABEL1="$branch $LINUX_FLAVOUR $chip $COMPILER $CXXFLAGS"
   fi
 fi
 export LABEL=$(echo $LABEL1 | sed -e 's#/#_#g')
