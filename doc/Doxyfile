@@ -985,6 +985,7 @@ FORMULA_FONTSIZE       = 10
 # be disabled.
 
 SEARCHENGINE           = YES
+SERVER_BASED_SEARCH    = YES
 
 #---------------------------------------------------------------------------
 # configuration options related to the LaTeX output
@@ -1274,7 +1275,7 @@ PREDEFINED             = DOXYGEN
 # The macro definition that is found in the sources will be used.
 # Use the PREDEFINED tag if you want to use a different macro definition.
 
-EXPAND_AS_DEFINED      =
+EXPAND_AS_DEFINED      = VECTOR_TYPE INDEX_TYPE ENTRY_TYPE MASK_TYPE
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then
 # doxygen's preprocessor will remove all function-like macros that are alone
