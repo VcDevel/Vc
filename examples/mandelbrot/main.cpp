@@ -69,7 +69,7 @@ void MainWindow::scalarImage(const QImage &img, quint64 cycles)
 
 void MainWindow::updateTitle()
 {
-    setWindowTitle(tr("Mandelbrot [Speedup: %1]").arg(m_cycles2 / m_cycles1));
+    setWindowTitle(tr("Mandelbrot [Speedup: %1] [%2]").arg(m_cycles2 / m_cycles1).arg(m_img1 == m_img2 ? "Equal" : "Not Equal"));
 }
 
 void MainWindow::paintEvent(QPaintEvent *e)

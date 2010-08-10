@@ -130,10 +130,12 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
         float y0, float scale, int maxIt)
 {
     typedef std::complex<float_v> Z;
-    for (int y = 0; y < image.height(); ++y) {
+    const int height = image.height();
+    const int width = image.width();
+    for (int y = 0; y < height; ++y) {
         uchar *__restrict__ line = image.scanLine(y);
         const float_v c_imag = y0 + y * scale;
-        for (int_v x = int_v::IndexesFromZero(); x[0] < image.width();
+        for (int_v x = int_v::IndexesFromZero(); x[0] < width;
                 x += float_v::Size) {
             Z c(x0 + static_cast<float_v>(x) * scale, c_imag);
             Z z = c;
@@ -141,11 +143,11 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
             int_m inside = fastNorm(z) < S;
             while (!(inside && n < maxIt).isEmpty()) {
                 z = P(z, c);
-                inside = fastNorm(z) < S;
                 ++n(inside);
+                inside = fastNorm(z) < S;
             }
             int_v colorValue = (maxIt - n) * 255 / maxIt;
-            const int bound = min(int_v::Size, image.width() - x[0]);
+            const int bound = min(int_v::Size, width - x[0]);
             for (int i = 0; i < bound; ++i) {
                 line[0] = colorValue[i];
                 line[1] = colorValue[i];
@@ -163,14 +165,16 @@ template<> void Mandel<ScalarImpl>::mandelMe(QImage &image, float x0,
         float y0, float scale, int maxIt)
 {
     typedef std::complex<float> Z;
-    for (int y = 0; y < image.height(); ++y) {
+    const int height = image.height();
+    const int width = image.width();
+    for (int y = 0; y < height; ++y) {
         uchar *__restrict__ line = image.scanLine(y);
         const float c_imag = y0 + y * scale;
-        for (int x = 0; x < image.width(); ++x) {
+        for (int x = 0; x < width; ++x) {
             Z c(x0 + x * scale, c_imag);
             Z z = c;
             int n = 0;
-            for (n = 0; n < maxIt && fastNorm(z) < S; ++n) {
+            for (; fastNorm(z) < S && n < maxIt; ++n) {
                 z = P(z, c);
             }
             const uchar colorValue = (maxIt - n) * 255 / maxIt;
