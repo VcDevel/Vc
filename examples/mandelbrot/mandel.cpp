@@ -131,7 +131,7 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
 {
     typedef std::complex<float_v> Z;
     for (int y = 0; y < image.height(); ++y) {
-        uchar *line = image.scanLine(y);
+        uchar *__restrict__ line = image.scanLine(y);
         const float_v c_imag = y0 + y * scale;
         for (int_v x = int_v::IndexesFromZero(); x[0] < image.width();
                 x += float_v::Size) {
@@ -164,7 +164,7 @@ template<> void Mandel<ScalarImpl>::mandelMe(QImage &image, float x0,
 {
     typedef std::complex<float> Z;
     for (int y = 0; y < image.height(); ++y) {
-        uchar *line = image.scanLine(y);
+        uchar *__restrict__ line = image.scanLine(y);
         const float c_imag = y0 + y * scale;
         for (int x = 0; x < image.width(); ++x) {
             Z c(x0 + x * scale, c_imag);
