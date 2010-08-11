@@ -327,11 +327,11 @@ class Vector : public VectorBase<T>
         inline AliasingEntryType &operator[](int index) ALWAYS_INLINE {
             return Base::d.m(index);
         }
-        inline EntryType operator[](int index) const ALWAYS_INLINE {
+        inline EntryType operator[](int index) const PURE ALWAYS_INLINE {
             return Base::d.m(index);
         }
 
-        inline Vector operator~() const ALWAYS_INLINE { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
+        inline Vector operator~() const PURE ALWAYS_INLINE { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
 
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
@@ -340,11 +340,11 @@ class Vector : public VectorBase<T>
         OP1(abs)
 #undef OP1
 
-        inline Vector operator-() const ALWAYS_INLINE { return VectorHelper<T>::negate(data()); }
+        inline Vector operator-() const PURE ALWAYS_INLINE { return VectorHelper<T>::negate(data()); }
 
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) ALWAYS_INLINE { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
-        inline Vector operator symbol(const Vector<T> &x) const ALWAYS_INLINE { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); }
+        inline Vector operator symbol(const Vector<T> &x) const PURE ALWAYS_INLINE { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); }
 
         OP(+, add)
         OP(-, sub)
@@ -354,13 +354,13 @@ class Vector : public VectorBase<T>
 
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) ALWAYS_INLINE { data() = VectorHelper<VectorType>::fun(data(), x.data()); return *this; } \
-        inline Vector operator symbol(const Vector<T> &x) const ALWAYS_INLINE { return Vector<T>(VectorHelper<VectorType>::fun(data(), x.data())); }
+        inline Vector operator symbol(const Vector<T> &x) const PURE ALWAYS_INLINE { return Vector<T>(VectorHelper<VectorType>::fun(data(), x.data())); }
         OP(|, or_)
         OP(&, and_)
         OP(^, xor_)
 #undef OP
 #define OPcmp(symbol, fun) \
-        inline Mask operator symbol(const Vector<T> &x) const ALWAYS_INLINE { return VectorHelper<T>::fun(data(), x.data()); }
+        inline Mask operator symbol(const Vector<T> &x) const PURE ALWAYS_INLINE { return VectorHelper<T>::fun(data(), x.data()); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
