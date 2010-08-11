@@ -24,6 +24,11 @@
 #include "Memory"
 #include <iostream>
 
+#ifdef __GNUC__
+#include <unistd.h>
+#include <ext/stdio_sync_filebuf.h>
+#endif
+
 #if VC_IMPL_LRBni
 # define VECTOR_NAMESPACE Vc::LRBni
 #elif VC_IMPL_Scalar
@@ -36,19 +41,43 @@ namespace
 {
     namespace AnsiColor
     {
-#ifdef _MSC_VER
-        static const char *const green  = "";
-        static const char *const yellow = "";
-        static const char *const blue   = "";
-        static const char *const normal = "";
-#else
-        static const char *const green  = "\033[1;40;32m";
-        static const char *const yellow = "\033[1;40;33m";
-        static const char *const blue   = "\033[1;40;34m";
-        static const char *const normal = "\033[0m";
-#endif
+        struct Type { const char *const data; };
+        static const Type green  = { "\033[1;40;32m" };
+        static const Type yellow = { "\033[1;40;33m" };
+        static const Type blue   = { "\033[1;40;34m" };
+        static const Type normal = { "\033[0m" };
     } // namespace AnsiColor
+
+#ifdef __GNUC__
+    class hacked_ostream : public std::ostream
+    {
+        public:
+            using std::ostream::_M_streambuf;
+    };
+    static bool mayUseColor(const std::ostream &os)
+        __attribute__((__const__));
+    static bool mayUseColor(const std::ostream &os)
+    {
+        std::basic_streambuf<char> *hack1 = const_cast<std::basic_streambuf<char> *>(os.*(&hacked_ostream::_M_streambuf));
+        __gnu_cxx::stdio_sync_filebuf<char> *hack = dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char> *>(hack1);
+        if (!hack) {
+            return false;
+        }
+        FILE *file = hack->file();
+        return 1 == isatty(fileno(file));
+    }
+#else
+    static bool mayUseColor(const std::ostream &) { return false; }
+#endif
 } // anonymous namespace
+
+inline std::ostream &operator<<(std::ostream &out, const AnsiColor::Type &c)
+{
+    if (mayUseColor(out)) {
+        out << c.data;
+    }
+    return out;
+}
 
 template<typename T>
 inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<T> &v)
@@ -147,3 +176,5 @@ inline std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Paren
 #undef VECTOR_NAMESPACE
 
 #endif // VECIO_H
+
+// vim: ft=cpp
