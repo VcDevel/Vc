@@ -17,6 +17,8 @@
 
 */
 
+#include "macros.h"
+
 namespace Vc
 {
 namespace SSE
@@ -120,5 +122,58 @@ template<typename T> template<typename A> inline void Vector<T>::store(EntryType
     store(mem, mask);
 }
 
+template<typename T> inline Vector<T> &Vector<T>::operator/=(const Vector<T> &x)
+{
+    for_all_vector_entries(i,
+            d.m(i) /= x.d.m(i);
+            );
+    return *this;
+}
+
+template<typename T> inline Vector<T> Vector<T>::operator/(const Vector<T> &x) const
+{
+    Vector<T> r;
+    for_all_vector_entries(i,
+            r.d.m(i) = d.m(i) / x.d.m(i);
+            );
+    return r;
+}
+
+template<> inline Vector<float> &Vector<float>::operator/=(const Vector<float> &x)
+{
+    d.v() = _mm_div_ps(d.v(), x.d.v());
+    return *this;
+}
+
+template<> inline Vector<float> Vector<float>::operator/(const Vector<float> &x) const
+{
+    return _mm_div_ps(d.v(), x.d.v());
+}
+
+template<> inline Vector<float8> &Vector<float8>::operator/=(const Vector<float8> &x)
+{
+    d.v()[0] = _mm_div_ps(d.v()[0], x.d.v()[0]);
+    d.v()[1] = _mm_div_ps(d.v()[1], x.d.v()[1]);
+    return *this;
+}
+
+template<> inline Vector<float8> Vector<float8>::operator/(const Vector<float8> &x) const
+{
+    return M256::create(_mm_div_ps(d.v()[0], x.d.v()[0]), _mm_div_ps(d.v()[1], x.d.v()[1]));
+}
+
+template<> inline Vector<double> &Vector<double>::operator/=(const Vector<double> &x)
+{
+    d.v() = _mm_div_pd(d.v(), x.d.v());
+    return *this;
+}
+
+template<> inline Vector<double> Vector<double>::operator/(const Vector<double> &x) const
+{
+    return _mm_div_pd(d.v(), x.d.v());
+}
+
 } // namespace SSE
 } // namespace Vc
+
+#include "undomacros.h"

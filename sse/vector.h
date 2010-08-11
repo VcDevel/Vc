@@ -349,8 +349,10 @@ class Vector : public VectorBase<T>
         OP(+, add)
         OP(-, sub)
         OP(*, mul)
-        OP(/, div)
 #undef OP
+
+        inline Vector &operator/=(const Vector<T> &x) ALWAYS_INLINE;
+        inline Vector  operator/ (const Vector<T> &x) const PURE ALWAYS_INLINE;
 
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) ALWAYS_INLINE { data() = VectorHelper<VectorType>::fun(data(), x.data()); return *this; } \

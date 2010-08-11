@@ -292,7 +292,7 @@ namespace SSE
                     );
             }
 
-            OP(add) OP(sub) OP(mul) OP(div)
+            OP(add) OP(sub) OP(mul)
             OPcmp(eq) OPcmp(neq)
             OPcmp(lt) OPcmp(nlt)
             OPcmp(le) OPcmp(nle)
@@ -374,7 +374,7 @@ namespace SSE
                     y2 = add(mul(y2, x), set(Q.d[i]));
                 }
                 y = mul(y, x);
-                y = div(y, y2);
+                y = CAT(_mm_div_, SUFFIX)(y, y2);
 
                 y = mul(y, z);
                 y = sub(y, mul(e, set(2.121944400546905827679e-4)));
@@ -444,7 +444,7 @@ namespace SSE
                     );
             }
 
-            OP(add) OP(sub) OP(mul) OP(div)
+            OP(add) OP(sub) OP(mul)
             OPcmp(eq) OPcmp(neq)
             OPcmp(lt) OPcmp(nlt)
             OPcmp(le) OPcmp(nle)
@@ -601,7 +601,6 @@ namespace SSE
             REUSE_FLOAT_IMPL2(add)
             REUSE_FLOAT_IMPL2(sub)
             REUSE_FLOAT_IMPL2(mul)
-            REUSE_FLOAT_IMPL2(div)
             REUSE_FLOAT_IMPL2(cmple)
             REUSE_FLOAT_IMPL2(cmpnle)
             REUSE_FLOAT_IMPL2(cmplt)
@@ -714,20 +713,6 @@ namespace SSE
                 } };
                 return x.v;
             }
-            static inline VectorType div(const VectorType a, const VectorType b) {
-                STORE_VECTOR(int, _a, a);
-                STORE_VECTOR(int, _b, b);
-                union {
-                    int i[4];
-                    VectorType v;
-                } x = { {
-                    _a[0] / _b[0],
-                    _a[1] / _b[1],
-                    _a[2] / _b[2],
-                    _a[3] / _b[3]
-                } };
-                return x.v;
-            }
 
             OP(add) OP(sub)
             OPcmp(eq)
@@ -811,17 +796,6 @@ namespace SSE
                 uintA *r = reinterpret_cast<uintA *>(&_r);
                 unrolled_loop16(i, 0, 4,
                     if (mask & (1 << i)) r[i] /= b[i];
-                    );
-                return _r;
-            }
-            static inline VectorType div(const VectorType &_a, const VectorType &_b) {
-                VectorType _r;
-                typedef unsigned int uintA MAY_ALIAS;
-                const uintA *a = reinterpret_cast<const uintA *>(&_a);
-                const uintA *b = reinterpret_cast<const uintA *>(&_b);
-                uintA *r = reinterpret_cast<uintA *>(&_r);
-                unrolled_loop16(i, 0, 4,
-                    r[i] = a[i] / b[i];
                     );
                 return _r;
             }
@@ -930,17 +904,6 @@ namespace SSE
                     );
                 return r;
             }
-            static inline VectorType div(const VectorType &a, const VectorType &b) {
-                VectorType r;
-                typedef EntryType Alias MAY_ALIAS;
-                const Alias *aa = reinterpret_cast<const Alias *>(&a);
-                const Alias *bb = reinterpret_cast<const Alias *>(&b);
-                Alias *rr = reinterpret_cast<Alias *>(&r);
-                unrolled_loop16(i, 0, 8,
-                    rr[i] = aa[i] / bb[i];
-                    );
-                return r;
-            }
 
             OP(add) OP(sub)
             OPcmp(eq)
@@ -981,17 +944,6 @@ namespace SSE
                 Alias *rr = reinterpret_cast<Alias *>(&r);
                 unrolled_loop16(i, 0, 8,
                     if (mask & (1 << i * 2)) rr[i] /= bb[i];
-                    );
-                return r;
-            }
-            static inline VectorType div(const VectorType &a, const VectorType &b) {
-                VectorType r;
-                typedef EntryType Alias MAY_ALIAS;
-                const Alias *aa = reinterpret_cast<const Alias *>(&a);
-                const Alias *bb = reinterpret_cast<const Alias *>(&b);
-                Alias *rr = reinterpret_cast<Alias *>(&r);
-                unrolled_loop16(i, 0, 8,
-                    rr[i] = aa[i] / bb[i];
                     );
                 return r;
             }
