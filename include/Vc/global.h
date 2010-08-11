@@ -126,20 +126,24 @@
 
 #endif // VC_IMPL
 
-#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 3)) && !defined(VC_IMPL_Scalar)
-#  ifndef VC_DONT_WARN_OLD_GCC
-#    warning "GCC < 4.3 does not have full support for SSE2 intrinsics. Using scalar types/operations only. Define VC_DONT_WARN_OLD_GCC to silence this warning."
+#if defined(__GNUC__)
+#  if (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 3)) && !defined(VC_IMPL_Scalar)
+#    ifndef VC_DONT_WARN_OLD_GCC
+#      warning "GCC < 4.3 does not have full support for SSE2 intrinsics. Using scalar types/operations only. Define VC_DONT_WARN_OLD_GCC to silence this warning."
+#    endif
+#    undef VC_IMPL_SSE
+#    undef VC_IMPL_SSE2
+#    undef VC_IMPL_SSE3
+#    undef VC_IMPL_SSE4a
+#    undef VC_IMPL_SSE4_1
+#    undef VC_IMPL_SSE4_2
+#    undef VC_IMPL_SSSE3
+#    undef VC_IMPL_AVX
+#    undef VC_IMPL_LRBni
+#    define VC_IMPL_Scalar 1
+#  elif (__GNUC__ == 4 && __GNUC_MINOR__ == 5)
+#    warning "GCC 4.5.[01] are known to fail at inlining some basic functions, resulting in severe performance penalties."
 #  endif
-#  undef VC_IMPL_SSE
-#  undef VC_IMPL_SSE2
-#  undef VC_IMPL_SSE3
-#  undef VC_IMPL_SSE4a
-#  undef VC_IMPL_SSE4_1
-#  undef VC_IMPL_SSE4_2
-#  undef VC_IMPL_SSSE3
-#  undef VC_IMPL_AVX
-#  undef VC_IMPL_LRBni
-#  define VC_IMPL_Scalar 1
 #endif
 
 # if !defined(VC_IMPL_LRBni) && !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE)
