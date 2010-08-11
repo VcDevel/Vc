@@ -123,7 +123,10 @@ static inline T fastNorm(const std::complex<T> &z)
 
 template<typename T> inline T P(T z, T c)
 {
-    return z * z + c;
+    return T(
+            z.real() * z.real() + c.real() - z.imag() * z.imag(),
+            (z.real() + z.real()) * z.imag() + c.imag()
+            );
 }
 
 template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
