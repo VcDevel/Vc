@@ -36,18 +36,20 @@
         void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
 
 #ifdef __GNUC__
-#  define CONST __attribute__((const))
+#  define CONST __attribute__((__const__))
+#  define PURE __attribute__((__pure__))
 #  define MAY_ALIAS __attribute__((__may_alias__))
-#  define ALWAYS_INLINE __attribute__((always_inline))
+#  define ALWAYS_INLINE __attribute__((__always_inline__))
 #  if __GNUC__ == 4 && __GNUC_MINOR__ == 5 && __GNUC_PATCHLEVEL__ == 0 && !defined(__x86_64__)
      // GCC 4.5.0 seems to have some problem with inlining operator<< and operator>>
 #    warning "GCC 4.5.0 bug? __attribute__((always_inline)) shows that inlining of operator<< and operator>> fails. The disassembly shows it really should be inlined."
 #    define ALWAYS_INLINE_X
 #  else
-#    define ALWAYS_INLINE_X __attribute__((always_inline))
+#    define ALWAYS_INLINE_X __attribute__((__always_inline__))
 #  endif
 #else
 #  define CONST
+#  define PURE
 #  define MAY_ALIAS
 #  define ALWAYS_INLINE
 #endif
