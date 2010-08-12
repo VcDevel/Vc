@@ -1,4 +1,5 @@
 include (AddCompilerFlag)
+include (MacroEnsureVersion)
 
 macro(_my_find _list _value _ret)
    list(FIND ${_list} "${_value}" _found)
@@ -198,5 +199,18 @@ macro(OptimizeForArchitecture)
       foreach(_flag ${_disable_vector_unit_list})
          AddCompilerFlag("-mno-${_flag}")
       endforeach(_flag)
+      # Not really target architecture specific, but GCC 4.5.[01] fail at inlining some functions,
+      # creating functions with a single instructions, thus a large overhead. This is a good
+      # (because central) place to fix the problem
+      if(CMAKE_COMPILER_IS_GNUCXX)
+         exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE _gcc_version)
+         macro_ensure_version("4.5.0" "${_gcc_version}" GCC_4_5_0)
+         if(GCC_4_5_0)
+            macro_ensure_version("4.5.2" "${_gcc_version}" GCC_4_5_2)
+            if(NOT GCC_4_5_2)
+               AddCompilerFlag("--param early-inlining-insns=12")
+            endif(NOT GCC_4_5_2)
+         endif(GCC_4_5_0)
+      endif(CMAKE_COMPILER_IS_GNUCXX)
    endif(CMAKE_C_COMPILER MATCHES "cl(.exe)?$")
 endmacro(OptimizeForArchitecture)
