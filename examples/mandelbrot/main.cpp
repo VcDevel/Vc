@@ -55,6 +55,9 @@ void MainWindow::vcImage(const QImage &img, quint64 cycles)
         m_cycles1 = cycles;
         updateTitle();
     }
+    if (QCoreApplication::arguments().contains("--benchmark")) {
+        m_mandelScalar.brot(m_rect2.size(), m_x, m_y, m_scale);
+    }
 }
 
 void MainWindow::scalarImage(const QImage &img, quint64 cycles)
@@ -141,7 +144,9 @@ void MainWindow::resizeEvent(QResizeEvent *e)
 
 void MainWindow::recreateImage()
 {
-    m_mandelScalar.brot(m_rect2.size(), m_x, m_y, m_scale);
+    if (!QCoreApplication::arguments().contains("--benchmark")) {
+        m_mandelScalar.brot(m_rect2.size(), m_x, m_y, m_scale);
+    }
     m_mandelVc.brot(m_rect1.size(), m_x, m_y, m_scale);
 }
 
