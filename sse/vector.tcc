@@ -122,6 +122,29 @@ template<typename T> template<typename A> inline void Vector<T>::store(EntryType
     store(mem, mask);
 }
 
+template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
+{
+    if (Base::HasVectorDivision) {
+        return operator/=(Vector<T>(x));
+    }
+    for_all_vector_entries(i,
+            d.m(i) /= x;
+            );
+    return *this;
+}
+
+template<typename T> inline Vector<T> Vector<T>::operator/(EntryType x) const
+{
+    if (Base::HasVectorDivision) {
+        return operator/(Vector<T>(x));
+    }
+    Vector<T> r;
+    for_all_vector_entries(i,
+            r.d.m(i) = d.m(i) / x;
+            );
+    return r;
+}
+
 template<typename T> inline Vector<T> &Vector<T>::operator/=(const Vector<T> &x)
 {
     for_all_vector_entries(i,
@@ -159,7 +182,10 @@ template<> inline Vector<float8> &Vector<float8>::operator/=(const Vector<float8
 
 template<> inline Vector<float8> Vector<float8>::operator/(const Vector<float8> &x) const
 {
-    return M256::create(_mm_div_ps(d.v()[0], x.d.v()[0]), _mm_div_ps(d.v()[1], x.d.v()[1]));
+    Vector<float8> r;
+    r.d.v()[0] = _mm_div_ps(d.v()[0], x.d.v()[0]);
+    r.d.v()[1] = _mm_div_ps(d.v()[1], x.d.v()[1]);
+    return r;
 }
 
 template<> inline Vector<double> &Vector<double>::operator/=(const Vector<double> &x)
@@ -172,6 +198,63 @@ template<> inline Vector<double> Vector<double>::operator/(const Vector<double> 
 {
     return _mm_div_pd(d.v(), x.d.v());
 }
+
+#define OP_IMPL(T, symbol, fun) \
+template<> inline Vector<T> &VectorBase<T>::operator symbol##=(const VectorBase<T> &x) \
+{ \
+    d.v() = VectorHelper<T>::fun(d.v(), x.d.v()); \
+    return *static_cast<Vector<T> *>(this); \
+} \
+template<> inline Vector<T>  VectorBase<T>::operator symbol(const VectorBase<T> &x) const \
+{ \
+    return Vector<T>(VectorHelper<T>::fun(d.v(), x.d.v())); \
+}
+OP_IMPL(int, &, and_)
+OP_IMPL(int, |, or_)
+OP_IMPL(int, ^, xor_)
+OP_IMPL(int, <<, sll)
+OP_IMPL(int, >>, srl)
+OP_IMPL(unsigned int, &, and_)
+OP_IMPL(unsigned int, |, or_)
+OP_IMPL(unsigned int, ^, xor_)
+OP_IMPL(unsigned int, <<, sll)
+OP_IMPL(unsigned int, >>, srl)
+OP_IMPL(short, &, and_)
+OP_IMPL(short, |, or_)
+OP_IMPL(short, ^, xor_)
+OP_IMPL(short, <<, sll)
+OP_IMPL(short, >>, srl)
+OP_IMPL(unsigned short, &, and_)
+OP_IMPL(unsigned short, |, or_)
+OP_IMPL(unsigned short, ^, xor_)
+OP_IMPL(unsigned short, <<, sll)
+OP_IMPL(unsigned short, >>, srl)
+#undef OP_IMPL
+
+#define OP_IMPL(T, SUFFIX) \
+template<> inline Vector<T> &VectorBase<T>::operator<<=(int x) \
+{ \
+    d.v() = CAT(_mm_slli_epi, SUFFIX)(d.v(), x); \
+    return *static_cast<Vector<T> *>(this); \
+} \
+template<> inline Vector<T> &VectorBase<T>::operator>>=(int x) \
+{ \
+    d.v() = CAT(_mm_srli_epi, SUFFIX)(d.v(), x); \
+    return *static_cast<Vector<T> *>(this); \
+} \
+template<> inline Vector<T> VectorBase<T>::operator<<(int x) const \
+{ \
+    return CAT(_mm_slli_epi, SUFFIX)(d.v(), x); \
+} \
+template<> inline Vector<T> VectorBase<T>::operator>>(int x) const \
+{ \
+    return CAT(_mm_srli_epi, SUFFIX)(d.v(), x); \
+}
+OP_IMPL(int, 32)
+OP_IMPL(unsigned int, 32)
+OP_IMPL(short, 16)
+OP_IMPL(unsigned short, 16)
+#undef OP_IMPL
 
 } // namespace SSE
 } // namespace Vc

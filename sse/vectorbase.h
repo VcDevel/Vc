@@ -60,27 +60,28 @@ namespace SSE
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
 
-            inline Vector<EntryType> &operator|= (const VectorBase<EntryType> &x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator&= (const VectorBase<EntryType> &x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator^= (const VectorBase<EntryType> &x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator>>=(const VectorBase<EntryType> &x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator<<=(const VectorBase<EntryType> &x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator>>=(int x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator<<=(int x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator|= (const VectorBase<EntryType> &x) INTRINSIC;
+            inline Vector<EntryType> &operator&= (const VectorBase<EntryType> &x) INTRINSIC;
+            inline Vector<EntryType> &operator^= (const VectorBase<EntryType> &x) INTRINSIC;
+            inline Vector<EntryType> &operator>>=(const VectorBase<EntryType> &x) INTRINSIC;
+            inline Vector<EntryType> &operator<<=(const VectorBase<EntryType> &x) INTRINSIC;
+            inline Vector<EntryType> &operator>>=(int x) INTRINSIC;
+            inline Vector<EntryType> &operator<<=(int x) INTRINSIC;
 
-            inline Vector<EntryType> operator| (const VectorBase<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator& (const VectorBase<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator^ (const VectorBase<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator>>(const VectorBase<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator<<(const VectorBase<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator>>(int x) const ALWAYS_INLINE_X;
-            inline Vector<EntryType> operator<<(int x) const ALWAYS_INLINE_X;
+            inline Vector<EntryType> operator| (const VectorBase<EntryType> &x) const INTRINSIC PURE;
+            inline Vector<EntryType> operator& (const VectorBase<EntryType> &x) const INTRINSIC PURE;
+            inline Vector<EntryType> operator^ (const VectorBase<EntryType> &x) const INTRINSIC PURE;
+            inline Vector<EntryType> operator>>(const VectorBase<EntryType> &x) const INTRINSIC PURE;
+            inline Vector<EntryType> operator<<(const VectorBase<EntryType> &x) const INTRINSIC PURE;
+            inline Vector<EntryType> operator>>(int x) const INTRINSIC PURE;
+            inline Vector<EntryType> operator<<(int x) const INTRINSIC PURE;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }
 
             inline VectorBase(VectorType x) : d(x) {}
         protected:
+            enum { HasVectorDivision = 0 };
             inline VectorBase() {}
 
             typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
@@ -116,6 +117,7 @@ namespace SSE
             const VectorType &data() const { return d.v(); }
 
         protected:
+            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(const VectorType &x) : d(x) {}
 
@@ -140,6 +142,7 @@ namespace SSE
             const VectorType &data() const { return d.v(); }
 
         protected:
+            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
@@ -164,6 +167,7 @@ namespace SSE
             const VectorType &data() const { return d.v(); }
 
         protected:
+            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
