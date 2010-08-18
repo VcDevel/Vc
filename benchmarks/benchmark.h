@@ -24,6 +24,7 @@
 #include <sstream>
 #include <iomanip>
 #include <list>
+#include <vector>
 #include <algorithm>
 #include <time.h>
 #include <cstring>
@@ -616,6 +617,9 @@ inline void Benchmark::Print()
     }
 }
 
+typedef std::vector<std::string> ArgumentVector;
+ArgumentVector g_arguments;
+
 int bmain();
 
 #include "cpuset.h"
@@ -640,8 +644,10 @@ int main(int argc, char **argv)
     while (argc > i) {
         if (std::strcmp(argv[i - 1], "-o") == 0) {
             file = new Benchmark::FileWriter(argv[i]);
+            i += 2;
         } else if (std::strcmp(argv[i - 1], "-t") == 0) {
             g_Time = atof(argv[i]);
+            i += 2;
         } else if (std::strcmp(argv[i - 1], "-cpu") == 0) {
 // On OS X there is no way to set CPU affinity
 // TODO there is a way to ask the system to not move the process around
@@ -654,8 +660,14 @@ int main(int argc, char **argv)
                 useCpus = atoi(argv[i]);
             }
 #endif
+            i += 2;
+        } else {
+            g_arguments.push_back(argv[i - 1]);
+            ++i;
         }
-        i += 2;
+    }
+    if (argc == i) {
+        g_arguments.push_back(argv[i - 1]);
     }
 
     int r = 0;
