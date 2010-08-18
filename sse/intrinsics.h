@@ -60,6 +60,10 @@ unsigned char _bittestandreset(long *a, long b);
 #include "macros.h"
 #include <cstdlib>
 
+#ifdef __3dNOW__
+#include <mm3dnow.h>
+#endif
+
 namespace Vc
 {
 namespace SSE

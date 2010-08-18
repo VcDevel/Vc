@@ -210,6 +210,74 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
             return *this;
         }
 };
+
+/**
+ * Prefetch the cacheline containing \p addr for a single read access.
+ *
+ * This prefetch completely bypasses the cache, not evicting any other data.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+void ALWAYS_INLINE prefetchForOneRead(void *addr)
+{
+    Internal::Helper::prefetchForOneRead(addr);
+}
+
+/**
+ * Prefetch the cacheline containing \p addr for modification.
+ *
+ * This prefetch evicts data from the cache. So use it only for data you really will use. When the
+ * target system supports it the cacheline will be marked as modified while prefetching, saving work
+ * later on.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+void ALWAYS_INLINE prefetchForModify(void *addr)
+{
+    Internal::Helper::prefetchForModify(addr);
+}
+
+/**
+ * Prefetch the cacheline containing \p addr to L1 cache.
+ *
+ * This prefetch evicts data from the cache. So use it only for data you really will use.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+void ALWAYS_INLINE prefetchClose(void *addr)
+{
+    Internal::Helper::prefetchClose(addr);
+}
+
+/**
+ * Prefetch the cacheline containing \p addr to L2 cache.
+ *
+ * This prefetch evicts data from the cache. So use it only for data you really will use.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+void ALWAYS_INLINE prefetchMid(void *addr)
+{
+    Internal::Helper::prefetchMid(addr);
+}
+
+/**
+ * Prefetch the cacheline containing \p addr to L3 cache.
+ *
+ * This prefetch evicts data from the cache. So use it only for data you really will use.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+void ALWAYS_INLINE prefetchFar(void *addr)
+{
+    Internal::Helper::prefetchFar(addr);
+}
+
 } // namespace Vc
 
 #endif // VC_COMMON_MEMORY_H
