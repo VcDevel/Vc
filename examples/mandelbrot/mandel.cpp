@@ -140,14 +140,16 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
         const float_v c_imag = y0 + y * scale;
         for (int_v x = int_v::IndexesFromZero(); x[0] < width;
                 x += float_v::Size) {
-            Z c(x0 + static_cast<float_v>(x) * scale, c_imag);
+            const Z c(x0 + static_cast<float_v>(x) * scale, c_imag);
             Z z = c;
+            Z z2(z.real() * z.real(), z.imag() * z.imag());
             int_v n = int_v::Zero();
-            int_m inside = fastNorm(z) < S;
+            int_m inside = z2.real() + z2.imag() < S;
             while (!(inside && n < maxIt).isEmpty()) {
-                z = P(z, c);
+                z = Z(z2.real() + c.real() - z2.imag(), (z.real() + z.real()) * z.imag() + c.imag());
+                z2 = Z(z.real() * z.real(), z.imag() * z.imag());
                 ++n(inside);
-                inside = fastNorm(z) < S;
+                inside = z2.real() + z2.imag() < S;
             }
             int_v colorValue = (maxIt - n) * 255 / maxIt;
             const int bound = min(int_v::Size, width - x[0]);
@@ -174,7 +176,7 @@ template<> void Mandel<ScalarImpl>::mandelMe(QImage &image, float x0,
         uchar *__restrict__ line = image.scanLine(y);
         const float c_imag = y0 + y * scale;
         for (int x = 0; x < width; ++x) {
-            Z c(x0 + x * scale, c_imag);
+            const Z c(x0 + x * scale, c_imag);
             Z z = c;
             int n = 0;
             for (; fastNorm(z) < S && n < maxIt; ++n) {
