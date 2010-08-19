@@ -38,6 +38,9 @@ template<typename Vector> struct Arithmetics
         const double valuesPerSecondFactor = Factor * Vector::Size;
 
         Vector *data = new Vector[Factor + 1];
+#ifndef VC_BENCHMARK_NO_MLOCK
+        mlock(data, (Factor + 1) * sizeof(Vector));
+#endif
         for (int i = 0; i < Factor + 1; ++i) {
             data[i] = PseudoRandom<Vector>::next();
             data[i](data[i] == Vector(Zero)) += Vector(One);

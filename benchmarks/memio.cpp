@@ -73,6 +73,9 @@ template<typename Vector> class DoMemIos
         static void run(const int Factor, const int Factor2)
         {
             Vector *a = new Vector[Factor];
+#ifndef VC_BENCHMARK_NO_MLOCK
+            mlock(a, Factor * sizeof(Vector));
+#endif
 
             {
                 Benchmark bm("write", sizeof(Vector) * Factor * Factor2, "Byte");

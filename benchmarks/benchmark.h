@@ -29,6 +29,7 @@
 #include <cstring>
 #include <string>
 #include <fstream>
+#include <sys/mman.h>
 #ifdef _MSC_VER
 #include <windows.h>
 #include <float.h>
