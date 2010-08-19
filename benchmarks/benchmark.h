@@ -29,7 +29,7 @@
 #include <cstring>
 #include <string>
 #include <fstream>
-#ifdef HAVE_SYS_MMAN
+#ifndef VC_BENCHMARK_NO_MLOCK
 #include <sys/mman.h>
 #endif
 #ifdef _MSC_VER
