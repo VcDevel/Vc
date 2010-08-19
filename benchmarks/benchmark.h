@@ -29,7 +29,9 @@
 #include <cstring>
 #include <string>
 #include <fstream>
+#ifdef HAVE_SYS_MMAN
 #include <sys/mman.h>
+#endif
 #ifdef _MSC_VER
 #include <windows.h>
 #include <float.h>

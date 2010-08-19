@@ -1,4 +1,13 @@
 include(BenchmarkMacros)
+find_file(HAVE_SYS_MMAN sys/mman.h)
+if(HAVE_SYS_MMAN)
+   set(USE_MLOCK_IN_BENCHMARKS TRUE CACHE BOOL "Use memlock to get more reliable results in the benchmarks.")
+   if(NOT USE_MLOCK_IN_BENCHMARKS)
+      add_definitions(-DVC_BENCHMARK_NO_MLOCK)
+   endif(NOT USE_MLOCK_IN_BENCHMARKS)
+else(HAVE_SYS_MMAN)
+   add_definitions(-DVC_BENCHMARK_NO_MLOCK)
+endif(HAVE_SYS_MMAN)
 
 set(FAST_MATH_BENCHMARK FALSE CACHE BOOL "Use floating point math shortcuts. Might not be IEEE compliant!")
 if(FAST_MATH_BENCHMARK)
