@@ -17,25 +17,37 @@
 
 */
 
-#ifndef VC_SCALAR_DEINTERLEAVE_H
-#define VC_SCALAR_DEINTERLEAVE_H
+#ifndef VC_LRBni_PREFETCH_TCC
+#define VC_LRBni_PREFETCH_TCC
 
 namespace Vc
 {
 namespace Internal
 {
 
-template<> struct HelperImpl<Vc::ScalarImpl>
+// TODO: I don't know what the hints really mean
+inline void HelperImpl<Vc::LRBniImpl>::prefetchForOneRead(void *addr)
 {
-    template<typename V, typename M, typename A>
-    static inline void deinterleave(V &a, V &b, const M *mem, A)
-    {
-        a = mem[0];
-        b = mem[1];
-    }
-};
+    _mm_vprefetch1(addr, _MM_PFHINT_NT);
+}
+inline void HelperImpl<Vc::LRBniImpl>::prefetchForModify(void *addr)
+{
+    _mm_vprefetch1(addr, _MM_PFHINT_EX);
+}
+inline void HelperImpl<Vc::LRBniImpl>::prefetchClose(void *addr)
+{
+    _mm_vprefetch1(addr, _MM_PFHINT_NONE);
+}
+inline void HelperImpl<Vc::LRBniImpl>::prefetchMid(void *addr)
+{
+    _mm_vprefetch2(addr, _MM_PFHINT_NONE);
+}
+inline void HelperImpl<Vc::LRBniImpl>::prefetchFar(void *addr)
+{
+    _mm_vprefetch2(addr, _MM_PFHINT_NONE);
+}
 
-} // namespace Scalar
+} // namespace Internal
 } // namespace Vc
 
-#endif // VC_SCALAR_DEINTERLEAVE_H
+#endif // VC_LRBni_PREFETCH_TCC

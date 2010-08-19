@@ -20,6 +20,6 @@
 #ifndef VC_SIMPLE_UNDOMACROS_H
 #define VC_SIMPLE_UNDOMACROS_H
 
-#undef ALIGN
-
 #endif // VC_SIMPLE_UNDOMACROS_H
+
+#include "../common/undomacros.h"
