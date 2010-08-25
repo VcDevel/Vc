@@ -8,6 +8,7 @@ if(HAVE_SYS_MMAN)
 else(HAVE_SYS_MMAN)
    add_definitions(-DVC_BENCHMARK_NO_MLOCK)
 endif(HAVE_SYS_MMAN)
+mark_as_advanced(HAVE_SYS_MMAN)
 
 set(FAST_MATH_BENCHMARK FALSE CACHE BOOL "Use floating point math shortcuts. Might not be IEEE compliant!")
 if(FAST_MATH_BENCHMARK)
