@@ -110,7 +110,11 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
             }
             return *this;
         }
-};
+}
+#ifdef __INTEL_COMPILER
+__attribute__((__aligned__(__alignof(VectorAlignedBase))))
+#endif
+;
 
 /**
  * A helper class that is very similar to Memory<V, Size> but with dynamically allocated memory and
