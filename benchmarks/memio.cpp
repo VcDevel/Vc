@@ -147,8 +147,14 @@ template<typename Vector> class DoMemIos
 int bmain()
 {
     Benchmark::addColumn("MemorySize");
+    Benchmark::addColumn("datatype");
 
+    Benchmark::setColumnData("datatype", "double_v");
+    DoMemIos<double_v>::run();
+    Benchmark::setColumnData("datatype", "float_v");
     DoMemIos<float_v>::run();
+    Benchmark::setColumnData("datatype", "short_v");
+    DoMemIos<short_v>::run();
 
     return 0;
 }
