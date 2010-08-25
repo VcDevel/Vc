@@ -17,19 +17,35 @@
 
 */
 
-#ifndef VC_UTILS
-#define VC_UTILS
+#ifndef VC_SCALAR_DEINTERLEAVE_H
+#define VC_SCALAR_DEINTERLEAVE_H
 
-#include "global.h"
+#include "macros.h"
 
-#if VC_IMPL_LRBni
-# define VECTOR_NAMESPACE LRBni
-#elif VC_IMPL_Scalar
-# define VECTOR_NAMESPACE Simple
-#else
-# define VECTOR_NAMESPACE SSE
-#endif
+namespace Vc
+{
+namespace Internal
+{
 
-#include "common/deinterleave.h"
+template<> struct HelperImpl<Vc::ScalarImpl>
+{
+    template<typename V, typename M, typename A>
+    static inline void ALWAYS_INLINE deinterleave(V &a, V &b, const M *mem, A)
+    {
+        a = mem[0];
+        b = mem[1];
+    }
 
-#endif // VC_UTILS
+    static inline void prefetchForOneRead(void *) {}
+    static inline void prefetchForModify(void *) {}
+    static inline void prefetchClose(void *) {}
+    static inline void prefetchMid(void *) {}
+    static inline void prefetchFar(void *) {}
+};
+
+} // namespace Scalar
+} // namespace Vc
+
+#include "undomacros.h"
+
+#endif // VC_SCALAR_DEINTERLEAVE_H

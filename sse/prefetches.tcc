@@ -17,19 +17,40 @@
 
 */
 
-#ifndef VC_UTILS
-#define VC_UTILS
+#ifndef VC_SSE_PREFETCHES_TCC
+#define VC_SSE_PREFETCHES_TCC
 
-#include "global.h"
+namespace Vc
+{
+namespace Internal
+{
 
-#if VC_IMPL_LRBni
-# define VECTOR_NAMESPACE LRBni
-#elif VC_IMPL_Scalar
-# define VECTOR_NAMESPACE Simple
+inline void HelperImpl<Vc::SSE2Impl>::prefetchForOneRead(void *addr)
+{
+    _mm_prefetch(addr, _MM_HINT_NTA);
+}
+inline void HelperImpl<Vc::SSE2Impl>::prefetchClose(void *addr)
+{
+    _mm_prefetch(addr, _MM_HINT_T0);
+}
+inline void HelperImpl<Vc::SSE2Impl>::prefetchMid(void *addr)
+{
+    _mm_prefetch(addr, _MM_HINT_T1);
+}
+inline void HelperImpl<Vc::SSE2Impl>::prefetchFar(void *addr)
+{
+    _mm_prefetch(addr, _MM_HINT_T2);
+}
+inline void HelperImpl<Vc::SSE2Impl>::prefetchForModify(void *addr)
+{
+#ifdef __3dNOW__
+    _m_prefetchw(addr);
 #else
-# define VECTOR_NAMESPACE SSE
+    _mm_prefetch(addr, _MM_HINT_T0);
 #endif
+}
 
-#include "common/deinterleave.h"
+} // namespace Internal
+} // namespace Vc
 
-#endif // VC_UTILS
+#endif // VC_SSE_PREFETCHES_TCC

@@ -17,15 +17,9 @@
 
 */
 
+#include "../common/macros.h"
+
 #ifndef VC_SIMPLE_MACROS_H
 #define VC_SIMPLE_MACROS_H
-
-#ifndef ALIGN
-# ifdef __GNUC__
-#  define ALIGN(n) __attribute__((aligned(n)))
-# else
-#  define ALIGN(n) __declspec(align(n))
-# endif
-#endif
 
 #endif // VC_SIMPLE_MACROS_H
