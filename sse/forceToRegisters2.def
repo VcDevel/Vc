@@ -23,37 +23,37 @@
 #define CAT(a, b) CAT_HELPER(a, b)
 
 # define VC_FTR_RECURS 15
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 14
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 13
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 12
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 11
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 10
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 9
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 8
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 7
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 6
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 5
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 4
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 3
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 2
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 1
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 # define VC_FTR_RECURS 0
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 
 #undef CAT_HELPER
 #undef CAT
@@ -64,21 +64,21 @@
 #ifndef VC_FTR_PART
 template<typename T16
 # define VC_FTR_PART 2
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 > static inline void forceToRegisters(const Vector<T16> &
 #ifndef VC_FTR_EMPTY
         x16
 #endif
 # undef VC_FTR_PART
 # define VC_FTR_PART 3
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
         ) {
 #ifndef VC_FTR_EMPTY
     __asm__ __volatile__(""::"x"(x16.data())
 #endif
 # undef VC_FTR_PART
 # define VC_FTR_PART 4
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 #ifndef VC_FTR_EMPTY
             );
 #endif
@@ -86,21 +86,21 @@ template<typename T16
 template<typename T16
 # undef VC_FTR_PART
 # define VC_FTR_PART 2
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 > static inline void forceToRegistersDirty(Vector<T16> &
 #ifndef VC_FTR_EMPTY
         x16
 #endif
 # undef VC_FTR_PART
 # define VC_FTR_PART 5
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
         ) {
 #ifndef VC_FTR_EMPTY
     __asm__ __volatile__("":"+x"(x16.data())
 #endif
 # undef VC_FTR_PART
 # define VC_FTR_PART 6
-# include "forceToRegisters2.def"
+# include "forceToRegisters.def"
 #ifndef VC_FTR_EMPTY
             );
 #endif
@@ -134,85 +134,85 @@ CAT(x, VC_FTR_RECURS)
 # if VC_FTR_RECURS == 15
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 14
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 15
 # elif VC_FTR_RECURS == 14
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 13
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 14
 # elif VC_FTR_RECURS == 13
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 12
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 13
 # elif VC_FTR_RECURS == 12
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 11
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 12
 # elif VC_FTR_RECURS == 11
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 10
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 11
 # elif VC_FTR_RECURS == 10
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 9
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 10
 # elif VC_FTR_RECURS == 9
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 8
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 9
 # elif VC_FTR_RECURS == 8
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 7
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 8
 # elif VC_FTR_RECURS == 7
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 6
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 7
 # elif VC_FTR_RECURS == 6
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 5
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 6
 # elif VC_FTR_RECURS == 5
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 4
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 5
 # elif VC_FTR_RECURS == 4
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 3
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 4
 # elif VC_FTR_RECURS == 3
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 2
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 3
 # elif VC_FTR_RECURS == 2
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 1
-#  include "forceToRegisters2.def"
+#  include "forceToRegisters.def"
 #  undef VC_FTR_RECURS
 #  define VC_FTR_RECURS 2
 # endif
