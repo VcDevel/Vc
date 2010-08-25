@@ -32,6 +32,29 @@ template<typename VectorType, typename EntryType> class VectorMemoryUnion
     public:
         typedef EntryType AliasingEntryType MAY_ALIAS;
         inline VectorMemoryUnion() {}
+#ifdef __INTEL_COMPILER
+        inline VectorMemoryUnion(VectorType x) { data.v = x; }
+        inline VectorMemoryUnion &operator=(VectorType x) {
+            data.v = x; return *this;
+        }
+
+        VectorType &v() { return data.v; }
+        const VectorType &v() const { return data.v; }
+
+        EntryType &m(int index) {
+            return data.m[index];
+        }
+
+        EntryType m(int index) const {
+            return data.m[index];
+        }
+
+    private:
+        union {
+            VectorType v;
+            EntryType m[sizeof(VectorType)/sizeof(EntryType)];
+        } data;
+#else
         inline VectorMemoryUnion(VectorType x) : data(x) {}
         inline VectorMemoryUnion &operator=(VectorType x) {
             data = x; return *this;
@@ -50,6 +73,7 @@ template<typename VectorType, typename EntryType> class VectorMemoryUnion
 
     private:
         VectorType data;
+#endif
 };
 
 } // namespace Common
