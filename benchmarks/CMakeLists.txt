@@ -25,6 +25,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
    if(REALTIME_BENCHMARKS)
       add_executable(benchmark benchmark.cpp)
       add_definitions(-DSCHED_FIFO_BENCHMARKS)
+      add_custom_command(TARGET benchmark POST_BUILD
+         COMMAND sudo chown root benchmark
+         COMMAND sudo chmod +s benchmark
+         WORKING_DIRECTORY "${CMAKE_CURRENT_BUILD_DIR}"
+         COMMENT "Making the benchmark helper suid root"
+         )
    endif(REALTIME_BENCHMARKS)
 endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
