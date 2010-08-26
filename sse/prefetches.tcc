@@ -25,28 +25,28 @@ namespace Vc
 namespace Internal
 {
 
-inline void HelperImpl<Vc::SSE2Impl>::prefetchForOneRead(void *addr)
+inline void HelperImpl<Vc::SSE2Impl>::prefetchForOneRead(const void *addr)
 {
-    _mm_prefetch(addr, _MM_HINT_NTA);
+    _mm_prefetch(static_cast<const char *>(addr), _MM_HINT_NTA);
 }
-inline void HelperImpl<Vc::SSE2Impl>::prefetchClose(void *addr)
+inline void HelperImpl<Vc::SSE2Impl>::prefetchClose(const void *addr)
 {
-    _mm_prefetch(addr, _MM_HINT_T0);
+    _mm_prefetch(static_cast<const char *>(addr), _MM_HINT_T0);
 }
-inline void HelperImpl<Vc::SSE2Impl>::prefetchMid(void *addr)
+inline void HelperImpl<Vc::SSE2Impl>::prefetchMid(const void *addr)
 {
-    _mm_prefetch(addr, _MM_HINT_T1);
+    _mm_prefetch(static_cast<const char *>(addr), _MM_HINT_T1);
 }
-inline void HelperImpl<Vc::SSE2Impl>::prefetchFar(void *addr)
+inline void HelperImpl<Vc::SSE2Impl>::prefetchFar(const void *addr)
 {
-    _mm_prefetch(addr, _MM_HINT_T2);
+    _mm_prefetch(static_cast<const char *>(addr), _MM_HINT_T2);
 }
-inline void HelperImpl<Vc::SSE2Impl>::prefetchForModify(void *addr)
+inline void HelperImpl<Vc::SSE2Impl>::prefetchForModify(const void *addr)
 {
 #ifdef __3dNOW__
     _m_prefetchw(addr);
 #else
-    _mm_prefetch(addr, _MM_HINT_T0);
+    _mm_prefetch(static_cast<const char *>(addr), _MM_HINT_T0);
 #endif
 }
 

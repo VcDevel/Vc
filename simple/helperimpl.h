@@ -36,11 +36,11 @@ template<> struct HelperImpl<Vc::ScalarImpl>
         b = mem[1];
     }
 
-    static inline void prefetchForOneRead(void *) {}
-    static inline void prefetchForModify(void *) {}
-    static inline void prefetchClose(void *) {}
-    static inline void prefetchMid(void *) {}
-    static inline void prefetchFar(void *) {}
+    static inline void prefetchForOneRead(const void *) {}
+    static inline void prefetchForModify(const void *) {}
+    static inline void prefetchClose(const void *) {}
+    static inline void prefetchMid(const void *) {}
+    static inline void prefetchFar(const void *) {}
 };
 
 } // namespace Scalar
