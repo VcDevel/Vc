@@ -27,26 +27,26 @@ namespace Internal
 
 inline void HelperImpl<Vc::SSE2Impl>::prefetchForOneRead(const void *addr)
 {
-    _mm_prefetch(static_cast<const char *>(addr), _MM_HINT_NTA);
+    _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_NTA);
 }
 inline void HelperImpl<Vc::SSE2Impl>::prefetchClose(const void *addr)
 {
-    _mm_prefetch(static_cast<const char *>(addr), _MM_HINT_T0);
+    _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T0);
 }
 inline void HelperImpl<Vc::SSE2Impl>::prefetchMid(const void *addr)
 {
-    _mm_prefetch(static_cast<const char *>(addr), _MM_HINT_T1);
+    _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T1);
 }
 inline void HelperImpl<Vc::SSE2Impl>::prefetchFar(const void *addr)
 {
-    _mm_prefetch(static_cast<const char *>(addr), _MM_HINT_T2);
+    _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T2);
 }
 inline void HelperImpl<Vc::SSE2Impl>::prefetchForModify(const void *addr)
 {
 #ifdef __3dNOW__
-    _m_prefetchw(addr);
+    _m_prefetchw(const_cast<void *>(addr));
 #else
-    _mm_prefetch(static_cast<const char *>(addr), _MM_HINT_T0);
+    _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T0);
 #endif
 }
 
