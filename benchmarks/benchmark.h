@@ -193,7 +193,7 @@ void Benchmark::FileWriter::addDataLine(const std::list<std::string> &data)
 #elif VC_IMPL_Scalar
             "\"Scalar\"";
 #else
-#error "Unknown Vc implementation"
+            "\"non-Vc\"";
 #endif
     for (std::list<ExtraColumn>::const_iterator i = m_extraColumns.begin();
             i != m_extraColumns.end(); ++i) {

@@ -44,6 +44,10 @@ vc_add_benchmark(memio)
 vc_add_benchmark(dhryrock)
 vc_add_benchmark(whetrock)
 
+add_executable(autoflops autoflops.cpp)
+#add_target_property(autoflops COMPILE_FLAGS "-ftree-vectorizer-verbose=7")
+target_link_libraries(autoflops Vc ${LIBS})
+
 add_executable(sort_benchmark sort.cpp)
 target_link_libraries(sort_benchmark Vc ${LIBS})
 add_target_property(sort_benchmark OUTPUT_NAME sort)
