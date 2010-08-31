@@ -66,8 +66,8 @@ int main(int, char **argv)
   }
 
   timeval timeout;
-  for ( int i = 0; i < 10; ++i ) {
-    timeout.tv_sec =  60;
+  for ( int i = 0; i < 600; ++i ) {
+    timeout.tv_sec =  1;
     timeout.tv_usec = 0;
     select( 0, 0, 0, 0, &timeout );
     if ( pid == waitpid( pid, 0, WNOHANG ) ) {

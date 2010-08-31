@@ -28,23 +28,23 @@ namespace Internal
 // TODO: I don't know what the hints really mean
 inline void HelperImpl<Vc::LRBniImpl>::prefetchForOneRead(const void *addr)
 {
-    _mm_vprefetch1(addr, _MM_PFHINT_NT);
+    _mm_vprefetch1(const_cast<void *>(addr), _MM_PFHINT_NT);
 }
 inline void HelperImpl<Vc::LRBniImpl>::prefetchForModify(const void *addr)
 {
-    _mm_vprefetch1(addr, _MM_PFHINT_EX);
+    _mm_vprefetch1(const_cast<void *>(addr), _MM_PFHINT_EX);
 }
 inline void HelperImpl<Vc::LRBniImpl>::prefetchClose(const void *addr)
 {
-    _mm_vprefetch1(addr, _MM_PFHINT_NONE);
+    _mm_vprefetch1(const_cast<void *>(addr), _MM_PFHINT_NONE);
 }
 inline void HelperImpl<Vc::LRBniImpl>::prefetchMid(const void *addr)
 {
-    _mm_vprefetch2(addr, _MM_PFHINT_NONE);
+    _mm_vprefetch2(const_cast<void *>(addr), _MM_PFHINT_NONE);
 }
 inline void HelperImpl<Vc::LRBniImpl>::prefetchFar(const void *addr)
 {
-    _mm_vprefetch2(addr, _MM_PFHINT_NONE);
+    _mm_vprefetch2(const_cast<void *>(addr), _MM_PFHINT_NONE);
 }
 
 } // namespace Internal
