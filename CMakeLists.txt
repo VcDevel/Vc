@@ -39,6 +39,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
    ##################################################################################################
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wshadow")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wshadow")
+   AddCompilerFlag("-Wold-style-cast")
    AddCompilerFlag("-Wno-variadic-macros")
    AddCompilerFlag("-fno-threadsafe-statics")
    set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
