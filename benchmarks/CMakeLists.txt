@@ -20,6 +20,8 @@ if(FAST_MATH_BENCHMARK)
    endif(CMAKE_COMPILER_IS_GNUCXX)
 endif(FAST_MATH_BENCHMARK)
 
+add_library(cpuset STATIC cpuset.c)
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
    set(REALTIME_BENCHMARKS FALSE CACHE BOOL "Use SCHED_FIFO priority to give benchmarks highest priority, achieving less jitter in the results.")
    if(REALTIME_BENCHMARKS)

@@ -618,7 +618,7 @@ inline void Benchmark::Print()
 
 int bmain();
 
-#include <sched.h>
+#include "cpuset.h"
 
 int main(int argc, char **argv)
 {
@@ -665,10 +665,7 @@ int main(int argc, char **argv)
     } else {
         cpu_set_t cpumask;
         sched_getaffinity(0, sizeof(cpu_set_t), &cpumask);
-        int cpucount = 1;
-        while (CPU_ISSET(cpucount, &cpumask)) {
-            ++cpucount;
-        }
+        int cpucount = cpuCount(&cpumask);
         if (cpucount > 1) {
             Benchmark::addColumn("CPU_ID");
         }
@@ -679,8 +676,8 @@ int main(int argc, char **argv)
                     str << cpuid;
                     Benchmark::setColumnData("CPU_ID", str.str());
                 }
-                CPU_ZERO(&cpumask);
-                CPU_SET(cpuid, &cpumask);
+                cpuZero(&cpumask);
+                cpuSet(cpuid, &cpumask);
                 sched_setaffinity(0, sizeof(cpu_set_t), &cpumask);
                 r += bmain();
                 Benchmark::finalize();
@@ -692,8 +689,8 @@ int main(int argc, char **argv)
                 str << cpuid;
                 Benchmark::setColumnData("CPU_ID", str.str());
             }
-            CPU_ZERO(&cpumask);
-            CPU_SET(cpuid, &cpumask);
+            cpuZero(&cpumask);
+            cpuSet(cpuid, &cpumask);
             sched_setaffinity(0, sizeof(cpu_set_t), &cpumask);
             r += bmain();
             Benchmark::finalize();
