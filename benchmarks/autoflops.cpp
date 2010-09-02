@@ -30,7 +30,7 @@
 
 enum {
     VectorSize = 4,
-#define VectorAlignment 16
+#define VectorAlignment 32
     Factor = 2000000 / VectorSize,
     Size = 8 * VectorSize
 };
