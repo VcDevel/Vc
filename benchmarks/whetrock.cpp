@@ -88,9 +88,9 @@ int bmain()
     while (timer.wantsMoreDataPoints()) {
         timer.Start();
         doBlah<float_v>();
-        delete[] (float_v *)blackHolePtr;
+        delete[] static_cast<float_v *>(blackHolePtr);
         doBlah<double_v>();
-        delete[] (double_v *)blackHolePtr;
+        delete[] static_cast<double_v *>(blackHolePtr);
         timer.Stop();
     }
     timer.Print();
