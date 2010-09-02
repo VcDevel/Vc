@@ -86,13 +86,13 @@ int bmain()
     while (timer.wantsMoreDataPoints()) {
         timer.Start();
         doBlah<int_v>();
-        delete[] (int_v *)blackHolePtr;
+        delete[] static_cast<int_v *>(blackHolePtr);
         doBlah<uint_v>();
-        delete[] (uint_v *)blackHolePtr;
+        delete[] static_cast<uint_v *>(blackHolePtr);
         doBlah<short_v>();
-        delete[] (short_v *)blackHolePtr;
+        delete[] static_cast<short_v *>(blackHolePtr);
         doBlah<ushort_v>();
-        delete[] (ushort_v *)blackHolePtr;
+        delete[] static_cast<ushort_v *>(blackHolePtr);
         timer.Stop();
     }
     timer.Print();
