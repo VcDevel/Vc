@@ -95,6 +95,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
          message(SEND_ERROR "Your binutils is too old (${_as_version}). The assembler will not be able to compile Vc.")
       endif(NOT _as_good)
    endif(NOT _binutils_as)
+   mark_as_advanced(_binutils_as)
 elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
    ##################################################################################################
    #                                          Intel Compiler                                        #
