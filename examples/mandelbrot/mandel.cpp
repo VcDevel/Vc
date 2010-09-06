@@ -26,9 +26,13 @@
 #include <QtCore/QtDebug>
 #include "tsc.h"
 
+#include <Vc/float_v>
+#include <Vc/uint_v>
+
 using Vc::float_v;
-using Vc::int_v;
-using Vc::int_m;
+using Vc::float_m;
+using Vc::uint_v;
+using Vc::uint_m;
 
 template<MandelImpl Impl>
 Mandel<Impl>::Mandel(QObject *_parent)
@@ -111,53 +115,76 @@ static const float S = 4.f;
 static int min(int a, int b) { return a < b ? a : b; }
 
 /**
- * std::norm is implemented as std::abs(z) * std::abs(z) for float
+ * std::complex is way too slow for our limited purposes:
  *
- * define our own fast norm implementation ignoring the corner cases
+ * norm is implemented as std::abs(z) * std::abs(z) for float
+ * z * z is implemented as multiplication & lots of branches looking for NaN and inf
+ *
+ * since we know that we require the square of r and i for norm and multiplication we can
+ * explicitely cache it in the object
  */
 template<typename T>
-static inline T fastNorm(const std::complex<T> &z)
+class MyComplex
 {
-    return z.real() * z.real() + z.imag() * z.imag();
-}
+    public:
+        MyComplex(T r, T i)
+            : m_real(r), m_imag(i),
+            m_real2(r * r), m_imag2(i * i)
+        {
+        }
 
-template<typename T> inline T P(T z, T c)
+        MyComplex squaredPlus(T r, T i) const
+        {
+            return MyComplex(
+                    m_real2 + r - m_imag2,
+                    (m_real + m_real) * m_imag + i
+                    );
+        }
+
+        T norm() const
+        {
+            return m_real2 + m_imag2;
+        }
+
+    private:
+        T m_real, m_imag;
+        T m_real2, m_imag2;
+};
+
+template<typename T> inline MyComplex<T> P(MyComplex<T> z, T c_real, T c_imag)
 {
-    return T(
-            z.real() * z.real() + c.real() - z.imag() * z.imag(),
-            (z.real() + z.real()) * z.imag() + c.imag()
-            );
+    return z.squaredPlus(c_real, c_imag);
 }
 
 template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
         float y0, float scale, int maxIt)
 {
-    typedef std::complex<float_v> Z;
-    const int height = image.height();
-    const int width = image.width();
-    for (int y = 0; y < height; ++y) {
-        uchar *__restrict__ line = image.scanLine(y);
+    typedef MyComplex<float_v> Z;
+    const unsigned int height = image.height();
+    const unsigned int width = image.width();
+    const float colorScale = 0xffffff / maxIt;
+    for (unsigned int y = 0; y < height; ++y) {
+        unsigned int *__restrict__ line = reinterpret_cast<unsigned int *>(image.scanLine(y));
         const float_v c_imag = y0 + y * scale;
-        for (int_v x = int_v::IndexesFromZero(); x[0] < width;
+        uint_m toStore;
+        for (uint_v x = uint_v::IndexesFromZero(); !(toStore = x < width).isEmpty();
                 x += float_v::Size) {
-            const Z c(x0 + static_cast<float_v>(x) * scale, c_imag);
-            Z z = c;
-            Z z2(z.real() * z.real(), z.imag() * z.imag());
-            int_v n = int_v::Zero();
-            int_m inside = z2.real() + z2.imag() < S;
+            const float_v c_real = x0 + static_cast<float_v>(x) * scale;
+            Z z(c_real, c_imag);
+            float_v n = float_v::Zero();
+            float_m inside = z.norm() < S;
             while (!(inside && n < maxIt).isEmpty()) {
-                z = Z(z2.real() + c.real() - z2.imag(), (z.real() + z.real()) * z.imag() + c.imag());
-                z2 = Z(z.real() * z.real(), z.imag() * z.imag());
+                z = P(z, c_real, c_imag);
                 ++n(inside);
-                inside = z2.real() + z2.imag() < S;
+                inside = z.norm() < S;
             }
-            int_v colorValue = (maxIt - n) * 255 / maxIt;
-            const int bound = min(int_v::Size, width - x[0]);
-            for (int i = 0; i < bound; ++i) {
-                line[0] = colorValue[i];
-                line[1] = colorValue[i];
-                line[2] = colorValue[i];
+            uint_v colorValue = static_cast<uint_v>((maxIt - n) * colorScale);
+            if (toStore.isFull()) {
+                colorValue.store(line, Vc::Unaligned);
                 line += 4;
+            } else {
+                colorValue.store(line, toStore, Vc::Unaligned);
+                break; // we don't need to check again wether x[0] + float_v::Size < width to break out of the loop
             }
         }
         if (restart()) {
@@ -169,24 +196,20 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
 template<> void Mandel<ScalarImpl>::mandelMe(QImage &image, float x0,
         float y0, float scale, int maxIt)
 {
-    typedef std::complex<float> Z;
+    typedef MyComplex<float> Z;
     const int height = image.height();
     const int width = image.width();
     for (int y = 0; y < height; ++y) {
-        uchar *__restrict__ line = image.scanLine(y);
+        unsigned int *__restrict__ line = reinterpret_cast<unsigned int *>(image.scanLine(y));
         const float c_imag = y0 + y * scale;
         for (int x = 0; x < width; ++x) {
-            const Z c(x0 + x * scale, c_imag);
-            Z z = c;
+            const float c_real = x0 + x * scale;
+            Z z(c_real, c_imag);
             int n = 0;
-            for (; fastNorm(z) < S && n < maxIt; ++n) {
-                z = P(z, c);
+            for (; z.norm() < S && n < maxIt; ++n) {
+                z = P(z, c_real, c_imag);
             }
-            const uchar colorValue = (maxIt - n) * 255 / maxIt;
-            line[0] = colorValue;
-            line[1] = colorValue;
-            line[2] = colorValue;
-            line += 4;
+            *line++ = (maxIt - n) * 0xffffffu / maxIt;
         }
         if (restart()) {
             break;
