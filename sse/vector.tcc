@@ -163,6 +163,44 @@ template<typename T> inline Vector<T> Vector<T>::operator/(const Vector<T> &x) c
     return r;
 }
 
+template<> inline Vector<short> &Vector<short>::operator/=(const Vector<short> &x)
+{
+    __m128 lo = _mm_cvtepi32_ps(_mm_unpacklo_epi16(d.v(), _mm_setzero_si128()));
+    __m128 hi = _mm_cvtepi32_ps(_mm_unpackhi_epi16(d.v(), _mm_setzero_si128()));
+    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(_mm_unpacklo_epi16(x.d.v(), _mm_setzero_si128())));
+    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(_mm_unpackhi_epi16(x.d.v(), _mm_setzero_si128())));
+    d.v() = _mm_packs_epi32(_mm_cvtps_epi32(lo), _mm_cvtps_epi32(hi));
+    return *this;
+}
+
+template<> inline Vector<short> Vector<short>::operator/(const Vector<short> &x) const
+{
+    __m128 lo = _mm_cvtepi32_ps(_mm_unpacklo_epi16(d.v(), _mm_setzero_si128()));
+    __m128 hi = _mm_cvtepi32_ps(_mm_unpackhi_epi16(d.v(), _mm_setzero_si128()));
+    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(_mm_unpacklo_epi16(x.d.v(), _mm_setzero_si128())));
+    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(_mm_unpackhi_epi16(x.d.v(), _mm_setzero_si128())));
+    return _mm_packs_epi32(_mm_cvtps_epi32(lo), _mm_cvtps_epi32(hi));
+}
+
+template<> inline Vector<unsigned short> &Vector<unsigned short>::operator/=(const Vector<unsigned short> &x)
+{
+    __m128 lo = _mm_cvtepi32_ps(_mm_unpacklo_epi16(d.v(), _mm_setzero_si128()));
+    __m128 hi = _mm_cvtepi32_ps(_mm_unpackhi_epi16(d.v(), _mm_setzero_si128()));
+    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(_mm_unpacklo_epi16(x.d.v(), _mm_setzero_si128())));
+    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(_mm_unpackhi_epi16(x.d.v(), _mm_setzero_si128())));
+    d.v() = _mm_packs_epi32(_mm_cvtps_epi32(lo), _mm_cvtps_epi32(hi));
+    return *this;
+}
+
+template<> inline Vector<unsigned short> Vector<unsigned short>::operator/(const Vector<unsigned short> &x) const
+{
+    __m128 lo = _mm_cvtepi32_ps(_mm_unpacklo_epi16(d.v(), _mm_setzero_si128()));
+    __m128 hi = _mm_cvtepi32_ps(_mm_unpackhi_epi16(d.v(), _mm_setzero_si128()));
+    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(_mm_unpacklo_epi16(x.d.v(), _mm_setzero_si128())));
+    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(_mm_unpackhi_epi16(x.d.v(), _mm_setzero_si128())));
+    return _mm_packs_epi32(_mm_cvtps_epi32(lo), _mm_cvtps_epi32(hi));
+}
+
 template<> inline Vector<float> &Vector<float>::operator/=(const Vector<float> &x)
 {
     d.v() = _mm_div_ps(d.v(), x.d.v());
