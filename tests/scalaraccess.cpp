@@ -51,6 +51,12 @@ template<typename V> void writes()
         a[i] = static_cast<T>(i);
     }
     V b = static_cast<V>(I::IndexesFromZero());
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ == 4 && __GNUC_MINOR__ == 3 && __OPTIMIZE__ && VC_IMPL_SSE
+    // GCC 4.3.x miscompiles. Somehow it fails to get the may_alias type right here
+    if (isEqualType<V, int_v>() || isEqualType<V, short_v>() || isEqualType<V, ushort_v>()) {
+        EXPECT_FAILURE();
+    }
+#endif
     COMPARE(a, b);
 
     const T one = 1;
