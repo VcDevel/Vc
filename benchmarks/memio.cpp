@@ -29,7 +29,12 @@ using namespace Vc;
 template<typename T, int S> struct KeepResultsHelper {
     static inline void keep(const T &tmp0) { asm volatile(""::"r"(tmp0)); }
     static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+#ifdef __x86_64__
         asm volatile(""::"r"(tmp0), "r"(tmp1), "r"(tmp2), "r"(tmp3));
+#else
+        asm volatile(""::"r"(tmp0), "r"(tmp1));
+        asm volatile(""::"r"(tmp2), "r"(tmp3));
+#endif
     }
 };
 #ifdef VC_IMPL_SSE
