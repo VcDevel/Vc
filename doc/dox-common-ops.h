@@ -195,6 +195,10 @@ void store(EntryType *memory, AlignmentFlags align = Aligned) const;
  *
  * \param index A value between 0 and Size. This value is not checked internally so you must make/be
  *              sure it is in range.
+ *
+ * \warning This operator is known to miscompile with GCC 4.3.x.
+ * \warning The use of this function may result in suboptimal performance. Please check whether you
+ * can find a more vector-friendly way to do what you need.
  */
 ENTRY_TYPE &operator[](int index);
 
