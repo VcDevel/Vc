@@ -30,12 +30,22 @@
 #define runTest(name) _unit_test_global.runTestInt(&name, #name)
 #define testAllTypes(name) \
     _unit_test_global.runTestInt(&name<float_v>, #name "<float_v>"); \
-    _unit_test_global.runTestInt(&name<sfloat_v>, #name "<sfloat_v>"); \
-    _unit_test_global.runTestInt(&name<int_v>, #name "<int_v>"); \
-    _unit_test_global.runTestInt(&name<uint_v>, #name "<uint_v>"); \
     _unit_test_global.runTestInt(&name<short_v>, #name "<short_v>"); \
+    _unit_test_global.runTestInt(&name<sfloat_v>, #name "<sfloat_v>"); \
     _unit_test_global.runTestInt(&name<ushort_v>, #name "<ushort_v>"); \
-    _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>")
+    _unit_test_global.runTestInt(&name<int_v>, #name "<int_v>"); \
+    _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>"); \
+    _unit_test_global.runTestInt(&name<uint_v>, #name "<uint_v>")
+
+template<typename A, typename B> struct isEqualType
+{
+    operator bool() const { return false; }
+};
+
+template<typename T> struct isEqualType<T, T>
+{
+    operator bool() const { return true; }
+};
 
 bool _UnitTest_verify_vector_unit_supported()
 {

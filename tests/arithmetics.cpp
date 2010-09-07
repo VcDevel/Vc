@@ -224,16 +224,6 @@ template<typename Vec> void testAnd()
     COMPARE((c & 0x7ff0), Vec(zero));
 }
 
-template<typename A, typename B> struct isEqualType
-{
-    operator bool() const { return false; }
-};
-
-template<typename T> struct isEqualType<T, T>
-{
-    operator bool() const { return true; }
-};
-
 template<typename Vec> void testShift()
 {
     Vec a(1);
