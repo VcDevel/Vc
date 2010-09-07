@@ -212,59 +212,6 @@ namespace SSE
         static inline VectorType min(VectorType a, VectorType b) PURE { return CAT(_mm_min_, SUFFIX)(a, b); } \
         static inline VectorType max(VectorType a, VectorType b) PURE { return CAT(_mm_max_, SUFFIX)(a, b); }
 
-        // _mm_sll_* does not take a count parameter with different counts per vector element. So we
-        // have to do it manually
-#define SHIFT4 \
-            static inline VectorType sll(VectorType v, __m128i count) PURE { \
-                STORE_VECTOR(unsigned int, shifts, count); \
-                union { __m128i v; unsigned int i[4]; } data; \
-                _mm_store_si128(&data.v, v); \
-                data.i[0] <<= shifts[0]; \
-                data.i[1] <<= shifts[1]; \
-                data.i[2] <<= shifts[2]; \
-                data.i[3] <<= shifts[3]; \
-                return data.v; } \
-            static inline VectorType slli(VectorType v, int count) PURE { return CAT(_mm_slli_, SUFFIX)(v, count); } \
-            static inline VectorType srl(VectorType v, __m128i count) PURE { \
-                STORE_VECTOR(unsigned int, shifts, count); \
-                union { __m128i v; unsigned int i[4]; } data; \
-                _mm_store_si128(&data.v, v); \
-                data.i[0] >>= shifts[0]; \
-                data.i[1] >>= shifts[1]; \
-                data.i[2] >>= shifts[2]; \
-                data.i[3] >>= shifts[3]; \
-                return data.v; } \
-            static inline VectorType srli(VectorType v, int count) PURE { return CAT(_mm_srli_, SUFFIX)(v, count); }
-#define SHIFT8 \
-            static inline VectorType sll(VectorType v, __m128i count) PURE { \
-                STORE_VECTOR(unsigned short, shifts, count); \
-                union { __m128i v; unsigned short i[8]; } data; \
-                _mm_store_si128(&data.v, v); \
-                data.i[0] <<= shifts[0]; \
-                data.i[1] <<= shifts[1]; \
-                data.i[2] <<= shifts[2]; \
-                data.i[3] <<= shifts[3]; \
-                data.i[4] <<= shifts[4]; \
-                data.i[5] <<= shifts[5]; \
-                data.i[6] <<= shifts[6]; \
-                data.i[7] <<= shifts[7]; \
-                return data.v; } \
-            static inline VectorType slli(VectorType v, int count) PURE { return CAT(_mm_slli_, SUFFIX)(v, count); } \
-            static inline VectorType srl(VectorType v, __m128i count) PURE { \
-                STORE_VECTOR(unsigned short, shifts, count); \
-                union { __m128i v; unsigned short i[8]; } data; \
-                _mm_store_si128(&data.v, v); \
-                data.i[0] >>= shifts[0]; \
-                data.i[1] >>= shifts[1]; \
-                data.i[2] >>= shifts[2]; \
-                data.i[3] >>= shifts[3]; \
-                data.i[4] >>= shifts[4]; \
-                data.i[5] >>= shifts[5]; \
-                data.i[6] >>= shifts[6]; \
-                data.i[7] >>= shifts[7]; \
-                return data.v; } \
-            static inline VectorType srli(VectorType v, int count) PURE { return CAT(_mm_srli_, SUFFIX)(v, count); }
-
         template<> struct VectorHelper<double> {
             typedef _M128D VectorType;
             typedef double EntryType;
@@ -651,9 +598,6 @@ namespace SSE
 
             static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
-            SHIFT4
-
-
             OP1(abs)
 
             MINMAX
@@ -805,7 +749,6 @@ namespace SSE
             static inline VectorType set(const unsigned int a) PURE { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) PURE { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
 
-            SHIFT4
             OP(add) OP(sub)
             OPcmp(eq)
             static inline VectorType cmpneq(const VectorType &a, const VectorType &b) PURE { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
@@ -844,7 +787,6 @@ namespace SSE
 #undef SUFFIX
 #define SUFFIX epi16
             static inline VectorType one() PURE { return CAT(_mm_setone_, SUFFIX)(); }
-            SHIFT8
 
             static inline VectorType set(const EntryType a) PURE { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const EntryType a, const EntryType b, const EntryType c, const EntryType d,
@@ -978,7 +920,6 @@ namespace SSE
 #endif
 #undef SUFFIX
 #define SUFFIX epi16
-            SHIFT8
             OPx(mul, mullo) // should work correctly for all values
 #if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(VC_IMPL_SSE4_1)
             OP(min) OP(max) // XXX breaks for values with MSB set
@@ -1039,8 +980,6 @@ namespace SSE
 #undef SUFFIX
             static inline VectorType round(VectorType a) PURE { return a; }
         };
-#undef SHIFT4
-#undef SHIFT8
 #undef OP1
 #undef OP
 #undef OP_

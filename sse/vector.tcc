@@ -251,23 +251,41 @@ template<> inline Vector<T>  VectorBase<T>::operator symbol(const VectorBase<T> 
 OP_IMPL(int, &, and_)
 OP_IMPL(int, |, or_)
 OP_IMPL(int, ^, xor_)
-OP_IMPL(int, <<, sll)
-OP_IMPL(int, >>, srl)
 OP_IMPL(unsigned int, &, and_)
 OP_IMPL(unsigned int, |, or_)
 OP_IMPL(unsigned int, ^, xor_)
-OP_IMPL(unsigned int, <<, sll)
-OP_IMPL(unsigned int, >>, srl)
 OP_IMPL(short, &, and_)
 OP_IMPL(short, |, or_)
 OP_IMPL(short, ^, xor_)
-OP_IMPL(short, <<, sll)
-OP_IMPL(short, >>, srl)
 OP_IMPL(unsigned short, &, and_)
 OP_IMPL(unsigned short, |, or_)
 OP_IMPL(unsigned short, ^, xor_)
-OP_IMPL(unsigned short, <<, sll)
-OP_IMPL(unsigned short, >>, srl)
+#undef OP_IMPL
+
+#define OP_IMPL(T, symbol) \
+template<> inline Vector<T> &VectorBase<T>::operator symbol##=(const VectorBase<T> &x) \
+{ \
+    for_all_vector_entries(i, \
+            d.m(i) symbol##= x.d.m(i); \
+            ); \
+    return *static_cast<Vector<T> *>(this); \
+} \
+template<> inline Vector<T>  VectorBase<T>::operator symbol(const VectorBase<T> &x) const \
+{ \
+    Vector<T> r; \
+    for_all_vector_entries(i, \
+            r.d.m(i) = d.m(i) symbol x.d.m(i); \
+            ); \
+    return r; \
+}
+OP_IMPL(int, <<)
+OP_IMPL(int, >>)
+OP_IMPL(unsigned int, <<)
+OP_IMPL(unsigned int, >>)
+OP_IMPL(short, <<)
+OP_IMPL(short, >>)
+OP_IMPL(unsigned short, <<)
+OP_IMPL(unsigned short, >>)
 #undef OP_IMPL
 
 #define OP_IMPL(T, SUFFIX) \

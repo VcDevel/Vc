@@ -244,13 +244,6 @@ template<typename Vec> void testShift()
     COMPARE((a << 2), (a << 2));
     COMPARE((a << 2), (b << 1));
 
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ == 4 && __GNUC_MINOR__ == 3 && __OPTIMIZE__ && VC_IMPL_SSE
-    // gcc 4.3.x miscompiles when optimizing
-    if (isEqualType<Vec, uint_v>() || isEqualType<Vec, ushort_v>()) {
-        EXPECT_FAILURE();
-    }
-#endif
-
     Vec shifts(IndexesFromZero);
     a <<= shifts;
     for (typename Vec::EntryType i = 0, x = 1; i < Vec::Size; ++i, x <<= 1) {
