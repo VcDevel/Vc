@@ -218,6 +218,31 @@ template<typename Vec> void testFirstOne()
     }
 }
 
+#ifdef VC_IMPL_SSE
+void testFloat8GatherMask()
+{
+    Memory<short_v, short_v::Size * 256> data;
+    short_v::Memory andMemory;
+    for (int i = 0; i < short_v::Size; ++i) {
+        andMemory[i] = 1 << i;
+    }
+    const short_v andMask(andMemory);
+
+    for (unsigned int i = 0; i < data.vectorsCount(); ++i) {
+        data.vector(i) = andMask & i;
+    }
+
+    for (unsigned int i = 0; i < data.vectorsCount(); ++i) {
+        const short_m mask = data.vector(i) == short_v::Zero();
+
+        SSE::Float8GatherMask
+            gatherMaskA(mask),
+            gatherMaskB(static_cast<sfloat_m>(mask));
+        COMPARE(gatherMaskA.toInt(), gatherMaskB.toInt());
+    }
+}
+#endif
+
 int main()
 {
     runTest(testInc<int_v>);
@@ -299,6 +324,10 @@ int main()
     runTest(testFirstOne<short_v>);
     runTest(testFirstOne<ushort_v>);
     runTest(testFirstOne<sfloat_v>);
+
+#ifdef VC_IMPL_SSE
+    runTest(testFloat8GatherMask);
+#endif
 
     return 0;
 }
