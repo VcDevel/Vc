@@ -97,6 +97,11 @@ public:
     static inline void finalize() { if (s_fileWriter) s_fileWriter->finalize(); }
 
     explicit Benchmark(const std::string &name, double factor = 0., const std::string &X = std::string());
+    void changeInterpretation(double factor, const char *X)
+    {
+        fFactor = factor;
+        fX = X;
+    }
 
     bool wantsMoreDataPoints() const;
     void Start();
@@ -109,8 +114,8 @@ private:
     void printBottomLine() const;
 
     const std::string fName;
-    const double fFactor;
-    const std::string fX;
+    double fFactor;
+    std::string fX;
 #ifdef _MSC_VER
     __int64 fRealTime;
 #elif defined(__APPLE__)
@@ -151,10 +156,12 @@ Benchmark::FileWriter::~FileWriter()
 void Benchmark::FileWriter::declareData(const std::string &name, const std::list<std::string> &header)
 {
     m_currentName = '"' + name + '"';
-    if (m_header.empty()) {
+    if (m_header != header) {
+        if (m_header.empty()) {
+            m_file << "Version 3\n";
+        }
         m_header = header;
-        m_file << "Version 3\n"
-            << "\"benchmark.name\"\t\"benchmark.arch\"";
+        m_file << "\"benchmark.name\"\t\"benchmark.arch\"";
         for (std::list<ExtraColumn>::const_iterator i = m_extraColumns.begin();
                 i != m_extraColumns.end(); ++i) {
             m_file << "\t\"" << i->name << '"';
@@ -164,9 +171,6 @@ void Benchmark::FileWriter::declareData(const std::string &name, const std::list
             m_file << '\t' << *i;
         }
         m_file << "\n";
-    } else if (m_header != header) {
-        std::cerr << "incompatible writes to FileWriter!\n"
-            << std::endl;
     }
 }
 
