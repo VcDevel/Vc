@@ -621,8 +621,33 @@ typedef std::vector<std::string> ArgumentVector;
 ArgumentVector g_arguments;
 
 int bmain();
+const char *printHelp2 =
+"  -t <seconds>        maximum time to run a single benchmark (10s)\n"
+"  -cpu (all|any|<id>) CPU to pin the benchmark to\n"
+"                      all: test every CPU id in sequence\n"
+"                      any: don't pin and let the OS schedule\n"
+"                      <id>: pin to the specific CPU\n";
+#define SET_HELP_TEXT(str) \
+    int _set_help_text_init() { \
+        printHelp2 = str; \
+        return 0; \
+    } \
+    int _set_help_text_init_ = _set_help_text_init()
 
 #include "cpuset.h"
+
+void printHelp(const char *name) {
+    std::cout << "Usage " << name << " [OPTION]...\n"
+        << "Measure throughput and latency of memory in steps of 1GB\n\n"
+        << "  -h, --help          print this message\n"
+        << "  -o <filename>       output measurements to a file instead of stdout\n";
+    if (printHelp2) {
+        std::cout << printHelp2;
+    }
+    std::cout << "\nReport bugs to vc-devel@compeng.uni-frankfurt.de\n"
+        << "Vc Homepage: http://compeng.uni-frankfurt.de/index.php?id=Vc\n"
+        << std::flush;
+}
 
 int main(int argc, char **argv)
 {
@@ -661,12 +686,23 @@ int main(int argc, char **argv)
             }
 #endif
             i += 2;
+        } else if (std::strcmp(argv[i - 1], "--help") == 0 ||
+                    std::strcmp(argv[i - 1], "-help") == 0 ||
+                    std::strcmp(argv[i - 1], "-h") == 0) {
+            printHelp(argv[0]);
+            return 0;
         } else {
             g_arguments.push_back(argv[i - 1]);
             ++i;
         }
     }
     if (argc == i) {
+        if (std::strcmp(argv[i - 1], "--help") == 0 ||
+                std::strcmp(argv[i - 1], "-help") == 0 ||
+                std::strcmp(argv[i - 1], "-h") == 0) {
+            printHelp(argv[0]);
+            return 0;
+        }
         g_arguments.push_back(argv[i - 1]);
     }
 
