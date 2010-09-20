@@ -206,10 +206,17 @@ template<typename Vec> void testMulSub()
 
 template<typename Vec> void testDiv()
 {
-    for (unsigned int i = 0; i < 0x7fff / 3; ++i) {
-        Vec a(i * 3);
+    typedef typename Vec::EntryType T;
+    const T stepsize = std::max(T(1), T(std::numeric_limits<T>::max() / 1024));
+    for (T divisor = 1; divisor < 5; ++divisor) {
+        for (T scalar = std::numeric_limits<T>::min(); scalar < std::numeric_limits<T>::max(); scalar += stepsize) {
+            Vec vector(scalar);
+            Vec reference(scalar / divisor);
 
-        COMPARE(a / 3, Vec(i));
+            COMPARE(vector / divisor, reference);
+            vector /= divisor;
+            COMPARE(vector, reference);
+        }
     }
 }
 
