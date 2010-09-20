@@ -24,6 +24,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
+#include <cstring>
 #include <cmath>
 #include "../common/support.h"
 
@@ -92,6 +93,7 @@ class _UnitTest_Global_Object
         bool expect_assert_failure;
         float float_fuzzyness;
         double double_fuzzyness;
+        const char *only_name;
     private:
         int failedTests;
         int passedTests;
@@ -104,8 +106,20 @@ void EXPECT_FAILURE()
     _unit_test_global.expect_failure = true;
 }
 
+void initTest(int argc, char **argv)
+{
+    for (int i = 1; i < argc; ++i) {
+        if (0 == std::strcmp(argv[i], "--only") && i + 1 < argc) {
+            _unit_test_global.only_name = argv[i + 1];
+        }
+    }
+}
+
 void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
 {
+    if (_unit_test_global.only_name && 0 != std::strcmp(name, _unit_test_global.only_name)) {
+        return;
+    }
     _unit_test_global.status = true;
     _unit_test_global.expect_failure = false;
     try {
