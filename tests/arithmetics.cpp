@@ -262,8 +262,10 @@ template<typename Vec> void testOnesComplement()
     COMPARE(~(a + b), Vec(Zero));
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    initTest(argc, argv);
+
     runTest(testZero<int_v>);
     runTest(testZero<uint_v>);
     runTest(testZero<float_v>);
