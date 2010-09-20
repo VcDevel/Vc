@@ -24,6 +24,7 @@
 #include <sstream>
 #include <iomanip>
 #include <list>
+#include <vector>
 #include <algorithm>
 #include <time.h>
 #include <cstring>
@@ -96,6 +97,11 @@ public:
     static inline void finalize() { if (s_fileWriter) s_fileWriter->finalize(); }
 
     explicit Benchmark(const std::string &name, double factor = 0., const std::string &X = std::string());
+    void changeInterpretation(double factor, const char *X)
+    {
+        fFactor = factor;
+        fX = X;
+    }
 
     bool wantsMoreDataPoints() const;
     void Start();
@@ -108,8 +114,8 @@ private:
     void printBottomLine() const;
 
     const std::string fName;
-    const double fFactor;
-    const std::string fX;
+    double fFactor;
+    std::string fX;
 #ifdef _MSC_VER
     __int64 fRealTime;
 #elif defined(__APPLE__)
@@ -150,10 +156,12 @@ Benchmark::FileWriter::~FileWriter()
 void Benchmark::FileWriter::declareData(const std::string &name, const std::list<std::string> &header)
 {
     m_currentName = '"' + name + '"';
-    if (m_header.empty()) {
+    if (m_header != header) {
+        if (m_header.empty()) {
+            m_file << "Version 3\n";
+        }
         m_header = header;
-        m_file << "Version 3\n"
-            << "\"benchmark.name\"\t\"benchmark.arch\"";
+        m_file << "\"benchmark.name\"\t\"benchmark.arch\"";
         for (std::list<ExtraColumn>::const_iterator i = m_extraColumns.begin();
                 i != m_extraColumns.end(); ++i) {
             m_file << "\t\"" << i->name << '"';
@@ -163,9 +171,6 @@ void Benchmark::FileWriter::declareData(const std::string &name, const std::list
             m_file << '\t' << *i;
         }
         m_file << "\n";
-    } else if (m_header != header) {
-        std::cerr << "incompatible writes to FileWriter!\n"
-            << std::endl;
     }
 }
 
@@ -616,9 +621,37 @@ inline void Benchmark::Print()
     }
 }
 
+typedef std::vector<std::string> ArgumentVector;
+ArgumentVector g_arguments;
+
 int bmain();
+const char *printHelp2 =
+"  -t <seconds>        maximum time to run a single benchmark (10s)\n"
+"  -cpu (all|any|<id>) CPU to pin the benchmark to\n"
+"                      all: test every CPU id in sequence\n"
+"                      any: don't pin and let the OS schedule\n"
+"                      <id>: pin to the specific CPU\n";
+#define SET_HELP_TEXT(str) \
+    int _set_help_text_init() { \
+        printHelp2 = str; \
+        return 0; \
+    } \
+    int _set_help_text_init_ = _set_help_text_init()
 
 #include "cpuset.h"
+
+void printHelp(const char *name) {
+    std::cout << "Usage " << name << " [OPTION]...\n"
+        << "Measure throughput and latency of memory in steps of 1GB\n\n"
+        << "  -h, --help          print this message\n"
+        << "  -o <filename>       output measurements to a file instead of stdout\n";
+    if (printHelp2) {
+        std::cout << printHelp2;
+    }
+    std::cout << "\nReport bugs to vc-devel@compeng.uni-frankfurt.de\n"
+        << "Vc Homepage: http://compeng.uni-frankfurt.de/index.php?id=Vc\n"
+        << std::flush;
+}
 
 int main(int argc, char **argv)
 {
@@ -640,8 +673,10 @@ int main(int argc, char **argv)
     while (argc > i) {
         if (std::strcmp(argv[i - 1], "-o") == 0) {
             file = new Benchmark::FileWriter(argv[i]);
+            i += 2;
         } else if (std::strcmp(argv[i - 1], "-t") == 0) {
             g_Time = atof(argv[i]);
+            i += 2;
         } else if (std::strcmp(argv[i - 1], "-cpu") == 0) {
 // On OS X there is no way to set CPU affinity
 // TODO there is a way to ask the system to not move the process around
@@ -654,8 +689,25 @@ int main(int argc, char **argv)
                 useCpus = atoi(argv[i]);
             }
 #endif
+            i += 2;
+        } else if (std::strcmp(argv[i - 1], "--help") == 0 ||
+                    std::strcmp(argv[i - 1], "-help") == 0 ||
+                    std::strcmp(argv[i - 1], "-h") == 0) {
+            printHelp(argv[0]);
+            return 0;
+        } else {
+            g_arguments.push_back(argv[i - 1]);
+            ++i;
         }
-        i += 2;
+    }
+    if (argc == i) {
+        if (std::strcmp(argv[i - 1], "--help") == 0 ||
+                std::strcmp(argv[i - 1], "-help") == 0 ||
+                std::strcmp(argv[i - 1], "-h") == 0) {
+            printHelp(argv[0]);
+            return 0;
+        }
+        g_arguments.push_back(argv[i - 1]);
     }
 
     int r = 0;
