@@ -24,8 +24,11 @@
 #include "vectorbase.h"
 #include "vectorhelper.h"
 #include "mask.h"
+#include "../common/aliasingentryhelper.h"
 #include <algorithm>
 #include <cmath>
+
+#include "macros.h"
 
 #ifdef isfinite
 #undef isfinite
@@ -112,7 +115,6 @@ class Vector : public VectorBase<T>
         typedef VectorBase<T> Base;
         using Base::d;
         typedef typename Base::GatherMaskType GatherMask;
-        typedef typename Base::StorageType::AliasingEntryType AliasingEntryType;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
@@ -324,7 +326,7 @@ class Vector : public VectorBase<T>
         //postfix
         inline Vector operator++(int) INTRINSIC { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
-        inline AliasingEntryType &operator[](int index) INTRINSIC {
+        inline Common::AliasingEntryHelper<EntryType> operator[](int index) INTRINSIC {
             return Base::d.m(index);
         }
         inline EntryType operator[](int index) const PURE INTRINSIC {
