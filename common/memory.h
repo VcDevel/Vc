@@ -84,6 +84,9 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
             Padding = Alignment - MaskedSize,
             PaddedSize = MaskedSize == 0 ? Size : Size + Padding
         };
+#if defined(__INTEL_COMPILER) && defined(_WIN32)
+		__declspec(align(__alignof(VectorAlignedBase)))
+#endif
         EntryType m_mem[PaddedSize];
     public:
         using Base::vector;
@@ -111,7 +114,7 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
             return *this;
         }
 }
-#ifdef __INTEL_COMPILER
+#if defined(__INTEL_COMPILER) && !defined(_WIN32)
 __attribute__((__aligned__(__alignof(VectorAlignedBase))))
 #endif
 ;
