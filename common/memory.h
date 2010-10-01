@@ -223,7 +223,7 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
-void ALWAYS_INLINE prefetchForOneRead(const void *addr)
+inline void ALWAYS_INLINE prefetchForOneRead(const void *addr)
 {
     Internal::Helper::prefetchForOneRead(addr);
 }
@@ -238,7 +238,7 @@ void ALWAYS_INLINE prefetchForOneRead(const void *addr)
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
-void ALWAYS_INLINE prefetchForModify(const void *addr)
+inline void ALWAYS_INLINE prefetchForModify(const void *addr)
 {
     Internal::Helper::prefetchForModify(addr);
 }
@@ -251,7 +251,7 @@ void ALWAYS_INLINE prefetchForModify(const void *addr)
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
-void ALWAYS_INLINE prefetchClose(const void *addr)
+inline void ALWAYS_INLINE prefetchClose(const void *addr)
 {
     Internal::Helper::prefetchClose(addr);
 }
@@ -264,7 +264,7 @@ void ALWAYS_INLINE prefetchClose(const void *addr)
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
-void ALWAYS_INLINE prefetchMid(const void *addr)
+inline void ALWAYS_INLINE prefetchMid(const void *addr)
 {
     Internal::Helper::prefetchMid(addr);
 }
@@ -277,7 +277,7 @@ void ALWAYS_INLINE prefetchMid(const void *addr)
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
-void ALWAYS_INLINE prefetchFar(const void *addr)
+inline void ALWAYS_INLINE prefetchFar(const void *addr)
 {
     Internal::Helper::prefetchFar(addr);
 }
