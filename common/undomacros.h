@@ -22,6 +22,7 @@
 #undef VC_COMMON_MACROS_H
 
 #undef CONST
+#undef PURE
 #undef MAY_ALIAS
 #undef ALIGN
 #undef CAT
