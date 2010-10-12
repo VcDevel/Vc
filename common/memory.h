@@ -188,6 +188,20 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         {}
 
         /**
+         * Copy the memory into a new memory area.
+         *
+         * The allocated memory is aligned and padded correctly for fully vectorized access.
+         */
+        template<typename Parent>
+        inline Memory(const MemoryBase<V, Parent> &rhs)
+            : m_entriesCount(rhs.entriesCount()),
+            m_vectorsCount(rhs.vectorsCount()),
+            m_mem(reinterpret_cast<EntryType *>(new V[m_vectorsCount]))
+        {
+            std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
+        }
+
+        /**
          * Frees the memory which was allocated in the constructor.
          */
         inline ~Memory()
