@@ -194,6 +194,13 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         {
             delete[] reinterpret_cast<V *>(m_mem);
         }
+
+        inline void swap(Memory &rhs) {
+            std::swap(m_mem, rhs.m_mem);
+            std::swap(m_entriesCount, rhs.m_entriesCount);
+            std::swap(m_vectorsCount, rhs.m_vectorsCount);
+        }
+
         inline unsigned int entriesCount() const { return m_entriesCount; }
         inline unsigned int vectorsCount() const { return m_vectorsCount; }
 
@@ -286,5 +293,10 @@ inline void ALWAYS_INLINE prefetchFar(const void *addr)
 }
 
 } // namespace Vc
+
+namespace std
+{
+    template<typename V> inline void swap(Vc::Memory<V> &a, Vc::Memory<V> &b) { a.swap(b); }
+} // namespace std
 
 #endif // VC_COMMON_MEMORY_H
