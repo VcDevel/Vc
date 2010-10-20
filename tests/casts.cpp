@@ -46,14 +46,24 @@ template<typename V1, typename V2> void testNumber(double n)
     COMPARE(static_cast<V2>(v1), v2);
 }
 
+template<typename T> double maxHelper()
+{
+    return static_cast<double>(std::numeric_limits<T>::max());
+}
+
+template<> double maxHelper<int>()
+{
+    const int intDigits = std::numeric_limits<int>::digits;
+    const int floatDigits = std::numeric_limits<float>::digits;
+    return static_cast<double>(((int(1) << floatDigits) - 1) << (intDigits - floatDigits));
+}
+
 template<typename V1, typename V2> void testCast2()
 {
     typedef typename V1::EntryType T1;
     typedef typename V2::EntryType T2;
 
-    const double max = std::min(
-            static_cast<double>(std::numeric_limits<T1>::max()),
-            static_cast<double>(std::numeric_limits<T2>::max()));
+    const double max = std::min(maxHelper<T1>(), maxHelper<T2>());
     const double min = std::max(
             std::numeric_limits<T1>::is_integer ?
                 static_cast<double>(std::numeric_limits<T1>::min()) :
