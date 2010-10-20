@@ -29,21 +29,11 @@ template<typename V1, typename V2> void testNumber(double n)
     typedef typename V1::EntryType T1;
     typedef typename V2::EntryType T2;
 
+    // compare casts from T1 -> T2 with casts from V1 -> V2
+
     const T1 n1 = static_cast<T1>(n);
-    const T2 n2 = static_cast<T2>(n);
-
-    V1 v1;
-    V2 v2;
-
-    v1 = n1;
-    v2 = static_cast<V2>(v1);
-    //std::cerr << v1 << v2 << std::endl;
-    COMPARE(static_cast<V1>(v2), v1);
-
-    v2 = n2;
-    v1 = static_cast<V1>(v2);
-    //std::cerr << v1 << v2 << std::endl;
-    COMPARE(static_cast<V2>(v1), v2);
+    //std::cerr << "n1 = " << n1 << ", static_cast<T2>(n1) = " << static_cast<T2>(n1) << std::endl;
+    COMPARE(static_cast<V2>(V1(n1)), V2(static_cast<T2>(n1)));
 }
 
 template<typename T> double maxHelper()
@@ -56,6 +46,13 @@ template<> double maxHelper<int>()
     const int intDigits = std::numeric_limits<int>::digits;
     const int floatDigits = std::numeric_limits<float>::digits;
     return static_cast<double>(((int(1) << floatDigits) - 1) << (intDigits - floatDigits));
+}
+
+template<> double maxHelper<unsigned int>()
+{
+    const int intDigits = std::numeric_limits<unsigned int>::digits;
+    const int floatDigits = std::numeric_limits<float>::digits;
+    return static_cast<double>(((unsigned(1) << floatDigits) - 1) << (intDigits - floatDigits));
 }
 
 template<typename V1, typename V2> void testCast2()
@@ -77,6 +74,9 @@ template<typename V1, typename V2> void testCast2()
     testNumber<V1, V2>(1.);
     testNumber<V1, V2>(2.);
     testNumber<V1, V2>(max);
+    testNumber<V1, V2>(max / 4 + max / 2);
+    testNumber<V1, V2>(max / 2);
+    testNumber<V1, V2>(max / 4);
     testNumber<V1, V2>(min);
 }
 
