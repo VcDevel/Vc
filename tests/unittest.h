@@ -28,7 +28,8 @@
 #include <cmath>
 #include "../common/support.h"
 
-#define runTest(name) _unit_test_global.runTestInt(&name, #name)
+#define _expand(name) #name
+#define runTest(name) _unit_test_global.runTestInt(&name, _expand(name))
 #define testAllTypes(name) \
     _unit_test_global.runTestInt(&name<float_v>, #name "<float_v>"); \
     _unit_test_global.runTestInt(&name<short_v>, #name "<short_v>"); \

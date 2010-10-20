@@ -64,11 +64,11 @@ namespace SSE
         return M256::create(_mm_cvtepi32_ps(_mm_unpacklo_epi16(v, _mm_setzero_si128())),
                     _mm_cvtepi32_ps(_mm_unpackhi_epi16(v, _mm_setzero_si128())));
     } };
-//X         template<> struct StaticCastHelper<short         , float8        > { static  M256  cast(const _M128I &v) {
-//X             const _M128I neg = _mm_cmplt_epi16(v, _mm_setzero_si128());
-//X             return M256(_mm_cvtepi32_ps(_mm_unpacklo_epi16(v, neg)),
-//X                         _mm_cvtepi32_ps(_mm_unpackhi_epi16(v, neg)));
-//X         } };
+    template<> struct StaticCastHelper<short         , float8        > { static  M256  cast(const _M128I &v) {
+        const _M128I neg = _mm_cmplt_epi16(v, _mm_setzero_si128());
+        return M256::create(_mm_cvtepi32_ps(_mm_unpacklo_epi16(v, neg)),
+                    _mm_cvtepi32_ps(_mm_unpackhi_epi16(v, neg)));
+    } };
     template<> struct StaticCastHelper<float8        , short         > { static _M128I cast(const  M256  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v[0]), _mm_cvttps_epi32(v[1])); } };
     template<> struct StaticCastHelper<float8        , unsigned short> { static _M128I cast(const  M256  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v[0]), _mm_cvttps_epi32(v[1])); } };
 
