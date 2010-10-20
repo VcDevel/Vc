@@ -70,7 +70,18 @@ namespace SSE
                     _mm_cvtepi32_ps(_mm_unpackhi_epi16(v, neg)));
     } };
     template<> struct StaticCastHelper<float8        , short         > { static _M128I cast(const  M256  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v[0]), _mm_cvttps_epi32(v[1])); } };
-    template<> struct StaticCastHelper<float8        , unsigned short> { static _M128I cast(const  M256  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v[0]), _mm_cvttps_epi32(v[1])); } };
+#ifdef VC_IMPL_SSE4_1
+    template<> struct StaticCastHelper<float8        , unsigned short> { static _M128I cast(const  M256  &v) { return _mm_packus_epi32(_mm_cvttps_epi32(v[0]), _mm_cvttps_epi32(v[1])); } };
+#else
+    template<> struct StaticCastHelper<float8        , unsigned short> { static _M128I cast(const  M256  &v) {
+        return _mm_add_epi16(_mm_set1_epi16(-32768),
+                _mm_packs_epi32(
+                    _mm_add_epi32(_mm_set1_epi32(-32768), _mm_cvttps_epi32(v[0])),
+                    _mm_add_epi32(_mm_set1_epi32(-32768), _mm_cvttps_epi32(v[1]))
+                    )
+                );
+    } };
+#endif
 
     template<> struct StaticCastHelper<float         , short         > { static _M128I cast(const _M128  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); } };
     template<> struct StaticCastHelper<short         , short         > { static _M128I cast(const _M128I &v) { return v; } };
