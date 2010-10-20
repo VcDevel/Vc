@@ -24,6 +24,28 @@
 
 using namespace Vc;
 
+template<typename V1, typename V2> void testNumber(double n)
+{
+    typedef typename V1::EntryType T1;
+    typedef typename V2::EntryType T2;
+
+    const T1 n1 = static_cast<T1>(n);
+    const T2 n2 = static_cast<T2>(n);
+
+    V1 v1;
+    V2 v2;
+
+    v1 = n1;
+    v2 = static_cast<V2>(v1);
+    //std::cerr << v1 << v2 << std::endl;
+    COMPARE(static_cast<V1>(v2), v1);
+
+    v2 = n2;
+    v1 = static_cast<V1>(v2);
+    //std::cerr << v1 << v2 << std::endl;
+    COMPARE(static_cast<V2>(v1), v2);
+}
+
 template<typename V1, typename V2> void testCast2()
 {
     typedef typename V1::EntryType T1;
@@ -41,29 +63,11 @@ template<typename V1, typename V2> void testCast2()
                 static_cast<double>(-std::numeric_limits<T2>::max())
                 );
 
-    const T1 max1 = static_cast<T1>(max);
-    const T2 max2 = static_cast<T2>(max);
-    const T1 min1 = static_cast<T1>(min);
-    const T2 min2 = static_cast<T2>(min);
-
-    V1 v1;
-    V2 v2;
-
-    v1 = max1;
-    v2 = static_cast<V2>(v1);
-    COMPARE(static_cast<V1>(v2), v1);
-
-    v2 = max2;
-    v1 = static_cast<V1>(v2);
-    COMPARE(static_cast<V2>(v1), v2);
-
-    v1 = min1;
-    v2 = static_cast<V2>(v1);
-    COMPARE(static_cast<V1>(v2), v1);
-
-    v2 = min2;
-    v1 = static_cast<V1>(v2);
-    COMPARE(static_cast<V2>(v1), v2);
+    testNumber<V1, V2>(0.);
+    testNumber<V1, V2>(1.);
+    testNumber<V1, V2>(2.);
+    testNumber<V1, V2>(max);
+    testNumber<V1, V2>(min);
 }
 
 template<typename T> void testCast()
