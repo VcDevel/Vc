@@ -141,6 +141,15 @@ install(TARGETS Vc DESTINATION lib/)
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
 install(DIRECTORY larrabee simple sse common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
+install(FILES
+   cmake/FindVc.cmake
+   cmake/OptimizeForArchitecture.cmake
+   cmake/AddCompilerFlag.cmake
+   cmake/MacroEnsureVersion.cmake
+   cmake/CheckCCompilerFlag.cmake
+   DESTINATION share/Vc/cmake/
+   )
+
 include (CTest)
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
 if(BUILD_TESTING)
