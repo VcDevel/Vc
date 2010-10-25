@@ -41,6 +41,15 @@ namespace Vc
 {
     template<typename V, unsigned int Size> class Memory;
 
+namespace Warnings
+{
+    void _operator_bracket_warning()
+#if defined(__GNUC__)
+        __attribute__((warning("\n\tUse of Vc::SSE::Vector::operator[] to modify scalar entries is known to miscompile with GCC 4.3.x.\n\tPlease upgrade to a more recent GCC or avoid operator[] altogether.\n\t(This warning adds an unnecessary function call to operator[] which should work around the problem at a little extra the cost.)")))
+#endif
+        ;
+} // namespace Warnings
+
 namespace SSE
 {
     enum { VectorAlignment = 16 };
@@ -327,6 +336,9 @@ class Vector : public VectorBase<T>
         inline Vector operator++(int) INTRINSIC { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
         inline Common::AliasingEntryHelper<EntryType> operator[](int index) INTRINSIC {
+#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 3
+            ::Vc::Warnings::_operator_bracket_warning();
+#endif
             return Base::d.m(index);
         }
         inline EntryType operator[](int index) const PURE INTRINSIC {
