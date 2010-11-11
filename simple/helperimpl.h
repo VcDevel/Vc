@@ -41,11 +41,16 @@ template<> struct HelperImpl<Vc::ScalarImpl>
     static inline void prefetchClose(const void *) {}
     static inline void prefetchMid(const void *) {}
     static inline void prefetchFar(const void *) {}
+
+    template<Vc::MallocAlignment A>
+    static inline void *malloc(size_t n) ALWAYS_INLINE;
+    static inline void free(void *p) ALWAYS_INLINE;
 };
 
 } // namespace Scalar
 } // namespace Vc
 
+#include "helperimpl.tcc"
 #include "undomacros.h"
 
 #endif // VC_SCALAR_DEINTERLEAVE_H

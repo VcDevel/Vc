@@ -28,6 +28,40 @@ namespace Vc
 {
 
 /**
+ * Allocates memory on the Heap with alignment and padding.
+ *
+ * Memory that was allocated with this function must be released with Vc::free! Other methods might
+ * work but are not portable.
+ *
+ * \param n Specifies the number of scalar values the allocated memory must be able to store.
+ *
+ * \warning The standard malloc function specifies the number of Bytes to allocate whereas this
+ *          function specifies the number of values, thus differing in a factor of sizeof(T)
+ *
+ * \see Vc::free
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+template<typename T, Vc::MallocAlignment A>
+inline T *ALWAYS_INLINE malloc(size_t n)
+{
+    return static_cast<T *>(Internal::Helper::malloc<A>(n * sizeof(T)));
+}
+
+/**
+ * Frees memory that was allocated with Vc::malloc.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+template<typename T>
+inline void ALWAYS_INLINE free(T *p)
+{
+    Internal::Helper::free(p);
+}
+
+/**
  * A helper class to simplify usage of correctly aligned and padded memory, allowing both vector and
  * scalar access.
  *
@@ -168,10 +202,10 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         unsigned int m_entriesCount;
         unsigned int m_vectorsCount;
         EntryType *m_mem;
-        unsigned int calcVectorsCount(unsigned int x)
+        unsigned int calcPaddedEntriesCount(unsigned int x)
         {
             unsigned int masked = x & AlignmentMask;
-            return (masked == 0 ? x : x + (Alignment - masked)) / V::Size;
+            return (masked == 0 ? x : x + (Alignment - masked));
         }
     public:
         using Base::vector;
@@ -183,9 +217,11 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
          */
         inline Memory(unsigned int size)
             : m_entriesCount(size),
-            m_vectorsCount(calcVectorsCount(m_entriesCount)),
-            m_mem(reinterpret_cast<EntryType *>(new V[m_vectorsCount]))
-        {}
+            m_vectorsCount(calcPaddedEntriesCount(m_entriesCount)),
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
+        {
+            m_vectorsCount /= V::Size;
+        }
 
         /**
          * Copy the memory into a new memory area.
@@ -196,7 +232,7 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         inline Memory(const MemoryBase<V, Parent> &rhs)
             : m_entriesCount(rhs.entriesCount()),
             m_vectorsCount(rhs.vectorsCount()),
-            m_mem(reinterpret_cast<EntryType *>(new V[m_vectorsCount]))
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
             std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
         }
@@ -206,7 +242,7 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
          */
         inline ~Memory()
         {
-            delete[] reinterpret_cast<V *>(m_mem);
+            Vc::free(m_mem);
         }
 
         inline void swap(Memory &rhs) {

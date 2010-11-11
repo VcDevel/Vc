@@ -52,8 +52,6 @@ namespace Warnings
 
 namespace SSE
 {
-    enum { VectorAlignment = 16 };
-
 template<typename T>
 class WriteMaskedVector
 {

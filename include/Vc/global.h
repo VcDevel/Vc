@@ -194,6 +194,12 @@ enum StreamingAndUnalignedFlag {
     StreamingAndUnaligned = 3
 };
 
+enum MallocAlignment {
+    AlignOnVector,
+    AlignOnCacheline,
+    AlignOnPage
+};
+
 static inline StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
 static inline StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
 static inline StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }

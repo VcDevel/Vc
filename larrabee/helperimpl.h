@@ -50,6 +50,10 @@ template<> struct HelperImpl<Vc::LRBniImpl>
     static inline void prefetchClose(const void *addr) ALWAYS_INLINE;
     static inline void prefetchMid(const void *addr) ALWAYS_INLINE;
     static inline void prefetchFar(const void *addr) ALWAYS_INLINE;
+
+    template<Vc::MallocAlignment A>
+    static inline void *malloc(size_t n) ALWAYS_INLINE;
+    static inline void free(void *p) ALWAYS_INLINE;
 };
 
 } // namespace Internal
@@ -57,5 +61,6 @@ template<> struct HelperImpl<Vc::LRBniImpl>
 
 #include "deinterleave.tcc"
 #include "prefetches.tcc"
+#include "helperimpl.tcc"
 
 #endif // VC_LARRABEE_DEINTERLEAVE_H
