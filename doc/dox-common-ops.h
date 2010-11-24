@@ -330,3 +330,23 @@ VECTOR_TYPE operator|(VECTOR_TYPE x) const;
 VECTOR_TYPE operator&(VECTOR_TYPE x) const;
 VECTOR_TYPE operator^(VECTOR_TYPE x) const;
 //@}
+
+/**
+ * \name Horizontal Operations
+ *
+ * There are four horizontal operations available to reduce the values of a vector to a scalar
+ * value.
+ *
+ * \code
+ * void foo(const float_v &v) {
+ *   float min = v.min(); // smallest value in v
+ *   float sum = v.sum(); // sum of all values in v
+ * }
+ * \endcode
+ */
+//@{
+ENTRY_TYPE min() const;
+ENTRY_TYPE max() const;
+ENTRY_TYPE product() const;
+ENTRY_TYPE sum() const;
+//@}
