@@ -1,7 +1,7 @@
 include (CheckCCompilerFlag)
 include (CheckCXXCompilerFlag)
 macro(AddCompilerFlag _flag)
-   string(REGEX REPLACE "[/:= ]" "_" _flag_esc "${_flag}")
+   string(REGEX REPLACE "[+/:= ]" "_" _flag_esc "${_flag}")
    check_c_compiler_flag("${_flag}" check_c_compiler_flag_${_flag_esc})
    check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag_esc})
    if(check_c_compiler_flag_${_flag_esc})

@@ -187,6 +187,9 @@ elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
       endif(ENABLE_STRICT_ALIASING)
    endif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 
+   # iomanip from latest libstdc++ makes ICC fail unless C++0x is selected
+   AddCompilerFlag("-std=c++0x")
+
    # per default icc is not IEEE compliant, but we need that for verification
    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${ALIAS_FLAGS} -w1 -fp-model precise")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS} -w1 -fp-model precise")
