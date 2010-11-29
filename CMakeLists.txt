@@ -157,14 +157,15 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
    # GCC uses binutils' assembler. And it has to be recent enough otherwise it'll bail out at some of the instructions Vc uses
    find_program(_binutils_as as)
    if(NOT _binutils_as)
-      message(WARNING "Could not find 'as', the assembly normally used by GCC. Hoping everything will work out...")
+      message(WARNING "Could not find 'as', the assembler normally used by GCC. Hoping everything will work out...")
    else(NOT _binutils_as)
       exec_program(${_binutils_as} ARGS --version OUTPUT_VARIABLE _as_version)
       string(REGEX REPLACE "\\([^\\)]*\\)" "" _as_version "${_as_version}")
       string(REGEX MATCH "[1-9]\\.[0-9]+(\\.[0-9]+)?" _as_version "${_as_version}")
       macro_ensure_version("2.18.93" "${_as_version}" _as_good)
       if(NOT _as_good)
-         message(SEND_ERROR "Your binutils is too old (${_as_version}). The assembler will not be able to compile Vc.")
+         message(WARNING "Your binutils is too old (${_as_version}). Some optimizations of Vc will be disabled.")
+         add_definitions(-DVC_NO_XGETBV) # old assembler doesn't know the xgetbv instruction
       endif(NOT _as_good)
    endif(NOT _binutils_as)
    mark_as_advanced(_binutils_as)
@@ -196,6 +197,9 @@ elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
 elseif(MSVC)
    AddCompilerFlag("/wd4800") # Disable warning "forcing value to bool"
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+   # MSVC does not support inline assembly on 64 bit! :(
+   # searching the help for xgetbv doesn't turn up anything. So just fall back to not supporting AVX on Windows :(
+   add_definitions(-DVC_NO_XGETBV)
 endif(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
 
 OptimizeForArchitecture()
