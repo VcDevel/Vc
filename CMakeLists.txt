@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 2.6.2)
 project(Vc)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+if(NOT CMAKE_BUILD_TYPE)
+   set(CMAKE_BUILD_TYPE Release CACHE STRING
+      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
 include (MacroEnsureVersion)
 include (OptimizeForArchitecture)
 include (AddCompilerFlag)
