@@ -442,6 +442,7 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                     );
 # endif // VC_NO_GATHER_TRICKS
 #else // VC_NO_BSF_LOOPS
+            typename Base::VectorType &vd = v.d.v();
             if (sizeof(EntryType) == 2) {
                 register _ulong bit;
                 register _ulong outerIndex;
@@ -464,9 +465,9 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                         "\n\t"  "jnz 0b"
                         ALIGN_16
                         "\n\t"  "1:"
-                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(vd),
                           "=&r"(outerIndex), "=&r"(innerIndex), "=&r"(array)
-                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&vd), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
             } else if (sizeof(EntryType) == 4 && sizeof(typename IndexType::EntryType) == 4) {
                 register _ulong bit;
                 register _ulong innerIndex;
@@ -487,9 +488,9 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                         "\n\t"  "jnz 0b"
                         ALIGN_16
                         "\n\t"  "1:"
-                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(vd),
                           "=&r"(innerIndex), "=&r"(array)
-                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&vd), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
                         : "rcx" );
             } else if (sizeof(EntryType) == 4 && sizeof(typename IndexType::EntryType) == 2) {
                 register _ulong bit;
@@ -513,9 +514,9 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                         "\n\t"  "jnz 0b"
                         ALIGN_16
                         "\n\t"  "1:"
-                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(vd),
                           "=&r"(outerIndex), "=&r"(innerIndex), "=&r"(array)
-                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&vd), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
             } else if (sizeof(EntryType) == 8 && sizeof(typename IndexType::EntryType) == 4) {
                 register _ulong bit;
                 register _ulong innerIndex;
@@ -536,9 +537,9 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                         "\n\t"  "jnz 0b"
                         ALIGN_16
                         "\n\t"  "1:"
-                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(vd),
                           "=&r"(innerIndex), "=&r"(array)
-                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&vd), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
                         : "rcx"   );
             } else {
                 abort();
@@ -552,6 +553,7 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
 
 #ifndef VC_NO_BSF_LOOPS
             asm volatile(""::"m"(indexes.d.v()));
+            typename Base::VectorType &vd = v.d.v();
             if (sizeof(EntryType) == 2) {
                 register _ulong index;
                 register EntryType value;
@@ -569,8 +571,8 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                         "1:"                   "\n\t"
                         "bsf %[mask],%%edi"            "\n\t"
                         "jnz 0b"               "\n\t"
-                        : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d), [index]"=&r"(index)
-                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                        : [mask]"+r"(mask), [value]"=&r"(value), "+m"(vd), [index]"=&r"(index)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd), [scale]"n"(scale)
                         : "rdi");
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
@@ -588,8 +590,8 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                             "1:"                   "\n\t"
                             "bsf %[mask],%%edi"            "\n\t"
                             "jnz 0b"               "\n\t"
-                            : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d)
-                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                            : [mask]"+r"(mask), [value]"=&r"(value), "+m"(vd)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd), [scale]"n"(scale)
                             : "rcx", "rdi"   );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
                     register _ulong index;
@@ -608,8 +610,8 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                             "1:"                   "\n\t"
                             "bsf %[mask],%%edi"            "\n\t"
                             "jnz 0b"               "\n\t"
-                            : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d), [index]"=&r"(index)
-                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                            : [mask]"+r"(mask), [value]"=&r"(value), "+m"(vd), [index]"=&r"(index)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd), [scale]"n"(scale)
                             : "rdi");
                 } else {
                     abort();
@@ -629,8 +631,8 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                         "1:"                   "\n\t"
                         "bsf %[mask],%%edi"            "\n\t"
                         "jnz 0b"               "\n\t"
-                        : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d)
-                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                        : [mask]"+r"(mask), [value]"=&r"(value), "+m"(vd)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd), [scale]"n"(scale)
                         : "rcx", "rdi"   );
             } else {
                 abort();
@@ -708,6 +710,8 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                 ) {
 #ifndef VC_NO_BSF_LOOPS
             asm volatile(""::"m"(indexes.d.v()));
+            typedef typename Base::VectorType VectorType;
+            VectorType &vd = v.d.v();
             if (sizeof(EntryType) == 2) {
                 register _ulong index;
                 register EntryType value;
@@ -724,8 +728,8 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                         "1:"                                    "\n\t"
                         "bsf %[mask],%%edi"                     "\n\t"
                         "jnz 0b"                                "\n\t"
-                        : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
-                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                        : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(vd)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd)
                         : "rdi"
                         );
             } else if (sizeof(EntryType) == 4) {
@@ -745,8 +749,8 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                             "1:"                                    "\n\t"
                             "bsf %[mask],%%edi"                     "\n\t"
                             "jnz 0b"                                "\n\t"
-                            : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
-                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                            : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(vd)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd)
                             : "rdi"
                             );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
@@ -765,8 +769,8 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                             "1:"                                    "\n\t"
                             "bsf %[mask],%%edi"                     "\n\t"
                             "jnz 0b"                                "\n\t"
-                            : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
-                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                            : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(vd)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd)
                             : "rdi"
                             );
                 } else {
@@ -788,8 +792,8 @@ template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const Vecto
                         "1:"                                    "\n\t"
                         "bsf %[mask],%%edi"                     "\n\t"
                         "jnz 0b"                                "\n\t"
-                        : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
-                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                        : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(vd)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd)
                         : "rdi"
                         );
             } else {
