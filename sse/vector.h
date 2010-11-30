@@ -386,10 +386,6 @@ class Vector : public VectorBase<T>
         OPcmp(<=, cmple)
 #undef OPcmp
 
-        inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
-            VectorHelper<T>::multiplyAndAdd(data(), factor, summand);
-        }
-
         inline void assign( const Vector<T> &v, const Mask &mask ) {
             const VectorType k = mm128_reinterpret_cast<VectorType>(mask.data());
             data() = VectorHelper<VectorType>::blend(data(), v.data(), k);

@@ -223,7 +223,6 @@ namespace SSE
             static inline VectorType zero() PURE { return CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType one()  PURE { return CAT(_mm_setone_, SUFFIX)(); }// set(1.); }
 
-            static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) PURE {
                 _M128D mask = _mm_castps_pd(_mask);
                 return _mm_or_pd(
@@ -377,7 +376,6 @@ namespace SSE
             static inline VectorType one()  PURE { return CAT(_mm_setone_, SUFFIX)(); }// set(1.f); }
             static inline _M128 concat(_M128D a, _M128D b) PURE { return _mm_movelh_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b)); }
 
-            static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
             static inline VectorType mul(VectorType a, VectorType b, _M128 mask) PURE {
                 return _mm_or_ps(
                     _mm_and_ps(mask, _mm_mul_ps(a, b)),
@@ -570,10 +568,6 @@ namespace SSE
                 return VectorHelper<float>::add(VectorHelper<float>::add(a[0], a[1]));
             }
 
-            static inline void multiplyAndAdd(VectorType &a, const VectorType &b, const VectorType &c) {
-                VectorHelper<float>::multiplyAndAdd(a[0], b[0], c[0]);
-                VectorHelper<float>::multiplyAndAdd(a[1], b[1], c[1]);
-            }
             REUSE_FLOAT_IMPL3(mul)
             REUSE_FLOAT_IMPL3(div)
 #undef REUSE_FLOAT_IMPL3
@@ -595,8 +589,6 @@ namespace SSE
 
             static inline VectorType set(const int a) PURE { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const int a, const int b, const int c, const int d) PURE { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
-
-            static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
             OP1(abs)
 
@@ -793,9 +785,6 @@ namespace SSE
                     const EntryType e, const EntryType f, const EntryType g, const EntryType h) PURE {
                 return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
-
-            static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) {
-                v1 = add(mul(v1, v2), v3); }
 
             OP1(abs)
 

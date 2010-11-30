@@ -253,15 +253,6 @@ class Vector : public VectorBase<T, Vector<T> >
             return Vector<T>(x >> 32);
         }
 
-        inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
-            m_data *= factor;
-            m_data += summand;
-        }
-
-        inline Vector<T> multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) const {
-            return Vector<T>( m_data * factor.m_data + summand.m_data );
-        }
-
         inline void assign(const Vector<T> &v, const Mask &m) {
           if (m.data()) m_data = v.m_data;
         }

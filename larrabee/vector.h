@@ -1194,26 +1194,6 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
 #undef OPcmp
 #undef OPcmpQ
 
-        inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
-            VectorHelper<T>::multiplyAndAdd(data.v(), factor, summand);
-        }
-
-        inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand, Mask k) {
-            VectorHelper<T>::multiplyAndAdd(data.v(), factor, summand, k.data());
-        }
-
-        inline Vector multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) const {
-            Vector<T> r(*this);
-            VectorHelper<T>::multiplyAndAdd(r.data.v(), factor, summand);
-            return r;
-        }
-
-        inline Vector multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand, Mask k) const {
-            Vector<T> r(*this);
-            VectorHelper<T>::multiplyAndAdd(r.data.v(), factor, summand, k.data());
-            return r;
-        }
-
         inline void assign(const Vector<T> &v, const Mask &mask) {
             VectorDQHelper<T>::mov(data.v(), mask.data(), v.data.v());
         }
