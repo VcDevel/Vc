@@ -217,15 +217,6 @@ class Vector : public VectorBase<T, Vector<T> >
         OPcmp(<=, cmple)
 #undef OPcmp
 
-        inline Vector mulHigh(const Vector<T> &factor) const {
-            //STATIC_ASSERT(typeid(T) == typeid(int) || typeid(T) == typeid(unsigned int), mulHigh_only_supported_for_32bit_integers);
-            //STATIC_ASSERT(typeid(T) == typeid(unsigned int), mulHigh_only_supported_for_32bit_integers);
-            unsigned long long int x = m_data;
-            //int64_t x = m_data;
-            x *= factor;
-            return Vector<T>(x >> 32);
-        }
-
         inline void assign(const Vector<T> &v, const Mask &m) {
           if (m.data()) m_data = v.m_data;
         }
