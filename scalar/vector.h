@@ -226,16 +226,6 @@ class Vector : public VectorBase<T, Vector<T> >
 
         inline WriteMaskedVector<T> operator()(Mask m) { return WriteMaskedVector<T>(this, m); }
 
-        inline bool pack(Mask &m1, Vector<T> &v2, Mask &m2) {
-            if (!m1.data() && m2.data()) {
-                m_data = v2.m_data;
-                m1 = true;
-                m2 = false;
-                return true;
-            }
-            return m1;
-        }
-
         inline EntryType min() const { return m_data; }
         inline EntryType max() const { return m_data; }
         inline EntryType product() const { return m_data; }

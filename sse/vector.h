@@ -377,15 +377,6 @@ class Vector : public VectorBase<T>
 
         inline WriteMaskedVector<T> operator()(const Mask &k) INTRINSIC { return WriteMaskedVector<T>(this, k); }
 
-        /**
-         * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have
-         *                  to test this.
-         *         \p false This vector was not completely filled. m2 is all 0.
-         */
-        //inline bool pack(Mask &m1, Vector<T> &v2, Mask &m2) {
-            //return VectorHelper<T>::pack(data(), m1.data, v2.data(), m2.data);
-        //}
-
         inline VectorType &data() { return Base::data(); }
         inline const VectorType &data() const { return Base::data(); }
 
