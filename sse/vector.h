@@ -186,17 +186,6 @@ class Vector : public VectorBase<T>
         template<typename A> inline void store(EntryType *mem, A align) const INTRINSIC;
         template<typename A> inline void store(EntryType *mem, const Mask &mask, A align) const INTRINSIC;
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // swizzles
-        inline const Vector<T> &dcba() const INTRINSIC { return *this; }
-        inline const Vector<T> cdab() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 3, 0, 1))); }
-        inline const Vector<T> badc() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 0, 3, 2))); }
-        inline const Vector<T> aaaa() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(0, 0, 0, 0))); }
-        inline const Vector<T> bbbb() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 1, 1, 1))); }
-        inline const Vector<T> cccc() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 2, 2, 2))); }
-        inline const Vector<T> dddd() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 3, 3, 3))); }
-        inline const Vector<T> dacb() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 0, 2, 1))); }
-
         inline Vector(const EntryType *array, const unsigned int *indexes) {
             GatherHelper<T>::gather(*this, indexes, array);
         }

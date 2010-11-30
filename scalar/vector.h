@@ -95,15 +95,6 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename A> inline void store(T *mem, A) const { store(mem); }
         template<typename A> inline void store(T *mem, Mask m, A) const { store(mem, m); }
 
-        inline const Vector<T> &dcba() const { return *this; }
-        inline const Vector<T> cdab() const { return *this; }
-        inline const Vector<T> badc() const { return *this; }
-        inline const Vector<T> aaaa() const { return *this; }
-        inline const Vector<T> bbbb() const { return *this; }
-        inline const Vector<T> cccc() const { return *this; }
-        inline const Vector<T> dddd() const { return *this; }
-        inline const Vector<T> dbac() const { return *this; }
-
         inline Vector(const T *array, const unsigned char  *indexes) : m_data(array[indexes[0]]) {}
         inline Vector(const T *array, const unsigned short *indexes) : m_data(array[indexes[0]]) {}
         inline Vector(const T *array, const unsigned int   *indexes) : m_data(array[indexes[0]]) {}
