@@ -78,7 +78,6 @@ namespace SSE
 
     namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
     namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
-    namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
     class VectorAlignedBase

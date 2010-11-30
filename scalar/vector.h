@@ -61,7 +61,6 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector() {}
         inline Vector(VectorSpecialInitializerZero::ZEnum) : m_data(0) {}
         inline Vector(VectorSpecialInitializerOne::OEnum) : m_data(1) {}
-        inline Vector(VectorSpecialInitializerRandom::REnum) { makeRandom(); }
         inline Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : m_data(0) {}
 
         static inline Vector Zero() { Vector r; r.m_data = 0; return r; }

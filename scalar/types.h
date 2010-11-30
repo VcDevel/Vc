@@ -31,7 +31,6 @@ namespace Vc
 
         namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
         namespace VectorSpecialInitializerOne { enum OEnum { One }; }
-        namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
         namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
     } // namespace Simple
 } // namespace Vc
