@@ -189,13 +189,6 @@ class Vector : public VectorBase<T, Vector<T> >
             return m_data;
         }
 
-#define OP1(fun) \
-        inline Vector fun() const { return Vector<T>(std::fun(m_data)); } \
-        inline Vector &fun##_eq() { m_data = std::fun(m_data); return *this; }
-        OP1(sqrt)
-        OP1(abs)
-#undef OP1
-
         inline Vector operator~() const { return ~m_data; }
         inline Vector operator-() const { return -m_data; }
 
