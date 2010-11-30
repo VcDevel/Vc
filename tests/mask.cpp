@@ -186,7 +186,7 @@ template<typename Vec> void testZero()
         Vec b(Vc::Zero);
 
         b(!mask) = a;
-        a.makeZero(mask);
+        a.setZero(mask);
 
         COMPARE(a, b);
     }

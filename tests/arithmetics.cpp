@@ -29,9 +29,9 @@ template<typename Vec> void testZero()
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
     Vec c, d(1);
-    c.makeZero();
+    c.setZero();
     COMPARE(a, c);
-    d.makeZero();
+    d.setZero();
     COMPARE(a, d);
     d = 0.;
     COMPARE(a, d);

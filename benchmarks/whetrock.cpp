@@ -53,7 +53,7 @@ static void doBlah()
         mem.v[i] = PseudoRandom<V>::next();
     }
     V t = mem.v[0];
-    mem.v[0].makeZero();
+    mem.v[0].setZero();
     for (int i = 1; i < ArraySize; ++i) {
         t = Vc::abs(t * mem.v[i] + t) / divider;
         t(t >= bound) = two;

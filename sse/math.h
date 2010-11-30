@@ -167,7 +167,7 @@ namespace SSE
         b(xNeg && !yNeg) += pi;
         b(xNeg &&  yNeg) -= pi;
         //b(xZero) = pi_2;
-        b.makeZero(xZero && yZero);
+        b.setZero(xZero && yZero);
         b(xZero && yNeg) = -pi_2;
         //b(yZero && xNeg) = pi;
         return b;
