@@ -24,10 +24,10 @@
  * The Vc library is a collection of vector classes with existing implementations for SSE, LRBni or
  * a scalar fallback.
  *
- * \li \link Vectors
- * \li \link Masks
- * \li \link Utilities
- * \li \link Math
+ * \li \ref Vectors
+ * \li \ref Masks
+ * \li \ref Utilities
+ * \li \ref Math
  *
  * Per default, code compiled against the Vc headers will use the instruction set that the compiler
  * says is available. For example compiling with "g++ -mssse3" will enable compilation against the
