@@ -404,8 +404,6 @@ template<> inline Vector<float8> Vector<float8>::broadcast4(const float *x) {
     return Vector<float8>(M256::create(v, v));
 }
 
-template<typename T> class SwizzledVector : public Vector<T> {};
-
 template<typename T> inline Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) INTRINSIC;
 template<typename T> inline Vector<T> operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) INTRINSIC;
 template<typename T> inline Vector<T> operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) INTRINSIC;
