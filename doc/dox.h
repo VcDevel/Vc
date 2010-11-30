@@ -173,7 +173,7 @@ namespace Vc
      *
      * Enum for load and store functions to select the optimizations that are safe to use.
      */
-    enum AlignmentFlags {
+    enum LoadStoreFlags {
         /**
          * Tells Vc that the load/store can expect a memory address that is aligned on the correct
          * boundary.

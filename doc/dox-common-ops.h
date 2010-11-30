@@ -165,7 +165,7 @@ VECTOR_TYPE(ENTRY_TYPE x);
  *
  * \see Memory
  */
-void load(const ENTRY_TYPE *memory, AlignmentFlags align = Aligned);
+void load(const ENTRY_TYPE *memory, LoadStoreFlags align = Aligned);
 
 /**
  * Set all entries to zero.
@@ -186,7 +186,7 @@ void makeZero(const MASK_TYPE &mask);
  *
  * \see Memory
  */
-void store(EntryType *memory, AlignmentFlags align = Aligned) const;
+void store(EntryType *memory, LoadStoreFlags align = Aligned) const;
 
 /**
  * Return a reference to the vector entry at the given \p index.
