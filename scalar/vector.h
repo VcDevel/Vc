@@ -88,13 +88,6 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename A> inline void load(const T *mem, A) { m_data = mem[0]; }
         inline void load(const T *mem, Mask m) { if (m.data()) m_data = mem[0]; }
 
-        template<typename Other> inline void store(Other *mem) const { mem[0] = m_data; }
-        template<typename Other> inline void store(Other *mem, Mask m) const { if (m.data()) mem[0] = m_data; }
-        template<typename Other> inline void storeUnaligned(Other *mem) const { store(mem); }
-        template<typename Other> inline void storeUnaligned(Other *mem, Mask m) const { store(mem, m); }
-        template<typename Other> inline void storeStreaming(Other *mem) const { mem[0] = m_data; }
-        template<typename Other> inline void storeStreaming(Other *mem, Mask m) const { if (m.data()) mem[0] = m_data; }
-
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
         inline void store(T *mem) const { mem[0] = m_data; }
