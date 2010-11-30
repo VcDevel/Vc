@@ -58,12 +58,6 @@ bool currentImplementationSupported()
     return isImplementationSupported(
 #if VC_IMPL_Scalar
             ScalarImpl
-#elif VC_IMPL_LRBni
-#ifdef VC_LRBni_PROTOTYPE_H
-            LRBniPrototypeImpl
-#else
-            LRBniImpl
-#endif
 #elif VC_IMPL_AVX
             AVXImpl
 #elif VC_IMPL_SSE4a

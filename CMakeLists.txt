@@ -16,21 +16,6 @@ include (AddTargetProperty)
 
 check_cxx_source_runs("int main() { return sizeof(void*) != 8; }" VOID_PTR_IS_64BIT)
 
-find_package(Larrabee)
-if(LARRABEE_FOUND)
-   include_directories(${LRB_HOST_INCLUDE_DIR})
-else(LARRABEE_FOUND)
-   if(VOID_PTR_IS_64BIT) # LRBni will be x86_64, so we don't really care for 32-bit archs
-      find_file(prototypes_header lrbni_prototypes.h PATHS "${CMAKE_SOURCE_DIR}/larrabee/" NO_DEFAULT_PATH)
-      if(prototypes_header)
-         set(LARRABEE_FOUND "prototype")
-         add_definitions(-DVC_LRBni_PROTOTYPE_H)
-      else(prototypes_header)
-         message(STATUS "Download the LRBni Prototype Header from http://software.intel.com/en-us/articles/prototype-primitives-guide/ and save it as ${CMAKE_SOURCE_DIR}/larrabee/lrbni_prototypes.h\nYou will also need to apply the patch from http://software.intel.com/en-us/forums/showthread.php?t=66359")
-      endif(prototypes_header)
-   endif(VOID_PTR_IS_64BIT)
-endif(LARRABEE_FOUND)
-
 if(NO_BSF_LOOPS)
    add_definitions(-DVC_NO_BSF_LOOPS)
 endif(NO_BSF_LOOPS)
@@ -215,7 +200,7 @@ add_target_property(Vc COMPILE_FLAGS "-DVC_COMPILE_LIB")
 
 install(TARGETS Vc DESTINATION lib/)
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
-install(DIRECTORY larrabee scalar sse common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+install(DIRECTORY scalar sse common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 install(FILES
    cmake/FindVc.cmake

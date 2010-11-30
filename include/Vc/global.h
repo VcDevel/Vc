@@ -26,7 +26,6 @@
 #define SSSE3  9875297
 #define SSE4_1 9875298
 #define Scalar 9875299
-#define LRBni  9875300
 #define SSE4_2 9875301
 #define SSE4a  9875302
 
@@ -59,8 +58,6 @@
 
 #  if defined(VC_IMPL_SSE)
      // nothing
-#  elif defined(__LRB__)
-#    define VC_IMPL_LRBni 1
 #  else
 #    define VC_IMPL_Scalar 1
 #  endif
@@ -69,8 +66,6 @@
 
 #  if VC_IMPL == Scalar
 #    define VC_IMPL_Scalar 1
-#  elif VC_IMPL == LRBni
-#    define VC_IMPL_LRBni 1
 #  elif VC_IMPL == SSE4a
 #    define VC_IMPL_SSE4a 1
 #    define VC_IMPL_SSE3 1
@@ -139,12 +134,11 @@
 #    undef VC_IMPL_SSE4_2
 #    undef VC_IMPL_SSSE3
 #    undef VC_IMPL_AVX
-#    undef VC_IMPL_LRBni
 #    define VC_IMPL_Scalar 1
 #  endif
 #endif
 
-# if !defined(VC_IMPL_LRBni) && !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE)
+# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE)
 #  error "No suitable Vc implementation was selected! Probably VC_IMPL was set to an invalid value."
 # elif defined(VC_IMPL_SSE) && !defined(VC_IMPL_SSE2)
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
@@ -158,7 +152,6 @@
 #undef SSE4_2
 #undef SSE4a
 #undef Scalar
-#undef LRBni
 
 #if VC_IMPL_Scalar
 #define VC_IMPL ::Vc::ScalarImpl
@@ -176,8 +169,6 @@
 #define VC_IMPL ::Vc::SSE3Impl
 #elif VC_IMPL_SSE2
 #define VC_IMPL ::Vc::SSE2Impl
-#elif VC_IMPL_LRBni
-#define VC_IMPL ::Vc::LRBniImpl
 #endif
 
 namespace Vc {
@@ -211,7 +202,7 @@ static inline StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAligned
 static inline StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
 
 enum Implementation {
-    ScalarImpl, SSE2Impl, SSE3Impl, SSSE3Impl, SSE41Impl, SSE42Impl, SSE4aImpl, AVXImpl, LRBniImpl, LRBniPrototypeImpl
+    ScalarImpl, SSE2Impl, SSE3Impl, SSSE3Impl, SSE41Impl, SSE42Impl, SSE4aImpl, AVXImpl
 };
 namespace Internal {
     template<Implementation Impl> struct HelperImpl;

@@ -56,18 +56,6 @@ template<typename T> struct KeepResultsHelper<T, 32> {
     }
 };
 #endif
-#ifdef VC_IMPL_LRBni
-template<typename T> struct KeepResultsHelper<T, 64> {
-    static inline void keep(T &tmp0) {
-        asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0)), "+x"(reinterpret_cast<__m128 *>(&tmp0)[1]),
-                "+x"(reinterpret_cast<__m128 *>(&tmp0)[2]), "+x"(reinterpret_cast<__m128 *>(&tmp0)[3]));
-    }
-    static inline void keep(const T &tmp0) {
-        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]),
-                "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]));
-    }
-};
-#endif
 
 template<typename T> static inline void keepResults(T &tmp0)
 {

@@ -177,13 +177,7 @@ void Benchmark::FileWriter::declareData(const std::string &name, const std::list
 void Benchmark::FileWriter::addDataLine(const std::list<std::string> &data)
 {
     m_file << m_currentName << '\t' <<
-#if VC_IMPL_LRBni
-#ifdef VC_LRBni_PROTOTYPE_H
-            "\"LRB Prototype\"";
-#else
-            "\"LRB\"";
-#endif
-#elif VC_IMPL_SSE4_1
+#if VC_IMPL_SSE4_1
 #ifdef VC_DISABLE_PTEST
             "\"SSE4.1 w/o PTEST\"";
 #else

@@ -22,11 +22,7 @@
 
 #include "global.h"
 
-#if VC_IMPL_LRBni
-# include "larrabee/vector.h"
-# include "larrabee/helperimpl.h"
-# define VECTOR_NAMESPACE LRBni
-#elif VC_IMPL_Scalar
+#if VC_IMPL_Scalar
 # include "scalar/vector.h"
 # include "scalar/helperimpl.h"
 # define VECTOR_NAMESPACE Simple

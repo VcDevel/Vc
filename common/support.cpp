@@ -54,11 +54,6 @@ bool isImplementationSupported(Implementation impl)
 #endif
         }
         return false;
-    case LRBniImpl:
-        // TODO
-        return false;
-    case LRBniPrototypeImpl:
-        return true;
     }
     return false;
 }

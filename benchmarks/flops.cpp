@@ -117,30 +117,6 @@ int bmain()
 
             const int k = _mm_movemask_ps(_mm_add_ps(_mm_add_ps(_mm_add_ps(x[0], x[1]), _mm_add_ps(x[2], x[3])), _mm_add_ps(_mm_add_ps(x[4], x[5]), _mm_add_ps(x[7], x[6]))));
             blackHole &= k;
-#elif VC_IMPL_LRBni
-            __m512 x[8] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
-            const __m512 y = _mm512_set_1to16_ps(randomF12());
-
-            timer.Start();
-            ///////////////////////////////////////
-
-            // TODO
-            for (int i = 0; i < Factor; ++i) {
-                    x[0] = _mm512_madd132_ps(x[0], y, y);
-                    x[1] = _mm512_madd132_ps(x[1], y, y);
-                    x[2] = _mm512_madd132_ps(x[2], y, y);
-                    x[3] = _mm512_madd132_ps(x[3], y, y);
-                    x[4] = _mm512_madd132_ps(x[4], y, y);
-                    x[5] = _mm512_madd132_ps(x[5], y, y);
-                    x[6] = _mm512_madd132_ps(x[6], y, y);
-                    x[7] = _mm512_madd132_ps(x[7], y, y);
-            }
-
-            ///////////////////////////////////////
-            timer.Stop();
-
-            const int k = _mm512_cmpeq_ps(_mm512_add_ps(_mm512_add_ps(x[4], x[5]), _mm512_add_ps(x[0], x[1])), _mm512_add_ps(_mm512_add_ps(x[7], x[6]), _mm512_add_ps(x[2], x[3])));
-            blackHole &= k;
 #else
             float x[8] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };
             const float y = randomF12();
@@ -274,29 +250,6 @@ int bmain()
             timer.Stop();
 
             const int k = _mm_movemask_ps(_mm_add_ps(_mm_add_ps(_mm_add_ps(x[0], x[1]), _mm_add_ps(x[2], x[3])), _mm_add_ps(_mm_add_ps(x[4], x[5]), _mm_add_ps(x[7], x[6]))));
-            blackHole &= k;
-#elif VC_IMPL_LRBni
-            __m512 x[8] = { _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()), _mm512_set_1to16_ps(randomF12()) };
-            const __m512 y = _mm512_set_1to16_ps(randomF12());
-
-            timer.Start();
-            ///////////////////////////////////////
-
-            for (int i = 0; i < Factor; ++i) {
-                    x[0] = _mm512_madd132_ps(x[0], y, y);
-                    x[1] = _mm512_madd132_ps(x[1], y, y);
-                    x[2] = _mm512_madd132_ps(x[2], y, y);
-                    x[3] = _mm512_madd132_ps(x[3], y, y);
-                    x[4] = _mm512_madd132_ps(x[4], y, y);
-                    x[5] = _mm512_madd132_ps(x[5], y, y);
-                    x[6] = _mm512_madd132_ps(x[6], y, y);
-                    x[7] = _mm512_madd132_ps(x[7], y, y);
-            }
-
-            ///////////////////////////////////////
-            timer.Stop();
-
-            const int k = _mm512_cmpeq_ps(_mm512_add_ps(_mm512_add_ps(x[4], x[5]), _mm512_add_ps(x[0], x[1])), _mm512_add_ps(_mm512_add_ps(x[7], x[6]), _mm512_add_ps(x[2], x[3])));
             blackHole &= k;
 #else
             float x[8] = { randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12(), randomF12() };

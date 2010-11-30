@@ -95,7 +95,6 @@ template<typename Vec> void loadArrayShort()
 
 int main()
 {
-#if !VC_IMPL_LRBni && !defined(__LRB__)
     runTest(checkAlignment<int_v>);
     runTest(checkAlignment<uint_v>);
     runTest(checkAlignment<float_v>);
@@ -103,7 +102,6 @@ int main()
     runTest(checkAlignment<short_v>);
     runTest(checkAlignment<ushort_v>);
     runTest(checkAlignment<sfloat_v>);
-#endif
     runTest(loadArray<int_v>);
     runTest(loadArray<uint_v>);
     runTest(loadArray<float_v>);

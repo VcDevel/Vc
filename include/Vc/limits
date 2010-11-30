@@ -22,9 +22,7 @@
 
 #include "vector.h"
 
-#if VC_IMPL_LRBni
-# include "larrabee/limits.h"
-#elif VC_IMPL_Scalar
+#if VC_IMPL_Scalar
 # include "scalar/limits.h"
 #else
 # include "sse/limits.h"
