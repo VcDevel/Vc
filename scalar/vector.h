@@ -77,10 +77,8 @@ class Vector : public VectorBase<T, Vector<T> >
 
         template<typename OtherT> inline void expand(Vector<OtherT> *x) const { x->data() = static_cast<OtherT>(m_data); }
 
-        inline void makeZero() { m_data = 0; }
-        inline void makeZero(Mask k) { if (k) m_data = 0; }
-        inline void makeRandom() { m_data = std::rand(); }
-        inline void makeRandom(Mask k) { if (k) m_data = std::rand(); }
+        inline void setZero() { m_data = 0; }
+        inline void setZero(Mask k) { if (k) m_data = 0; }
 
         template<typename Other> inline void load(const Other *mem) { m_data = mem[0]; }
         template<typename Other, typename A> inline void load(const Other *mem, A) { m_data = mem[0]; }

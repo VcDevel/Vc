@@ -176,8 +176,8 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // zeroing
-        inline void makeZero() INTRINSIC;
-        inline void makeZero(const Mask &k) INTRINSIC;
+        inline void setZero() INTRINSIC;
+        inline void setZero(const Mask &k) INTRINSIC;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
