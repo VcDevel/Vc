@@ -65,7 +65,7 @@ template<typename Vector> struct CondAssignment
 
         Vector *data = new Vector[Factor];
         for (int i = 0; i < Factor; ++i) {
-            data[i].makeZero();
+            data[i].setZero();
         }
 #ifndef VC_BENCHMARK_NO_MLOCK
         mlock(masks, Factor * sizeof(Mask));

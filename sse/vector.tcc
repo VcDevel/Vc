@@ -92,12 +92,12 @@ template<typename T> template<typename A> inline void Vector<T>::load(const Entr
     data() = VectorHelper<VectorType>::load(mem, align);
 }
 
-template<typename T> inline void Vector<T>::makeZero()
+template<typename T> inline void Vector<T>::setZero()
 {
     data() = VectorHelper<VectorType>::zero();
 }
 
-template<typename T> inline void Vector<T>::makeZero(const Mask &k)
+template<typename T> inline void Vector<T>::setZero(const Mask &k)
 {
     data() = VectorHelper<VectorType>::andnot_(mm128_reinterpret_cast<VectorType>(k.data()), data());
 }
