@@ -21,8 +21,10 @@
  * \mainpage
  * \image html logo.png
  *
- * The Vc library is a collection of vector classes with existing implementations for SSE, LRBni or
- * a scalar fallback.
+ * The Vc library is a collection of vector classes with existing implementations for SSE, LRBni,
+ * and a scalar fallback.
+ *
+ * \subpage intro
  *
  * \li \ref Vectors
  * \li \ref Masks
@@ -48,9 +50,7 @@
  */
 
 /**
- * \defgroup Vectors Vectors
- *
- * Vector classes are abstractions for SIMD instructions.
+ * \page intro Introduction
  *
  * If you are new to vectorization please read this following part and make sure you understand it:
  * \li Forget what you learned about vectors in math classes. SIMD vectors are a different concept!
@@ -64,17 +64,62 @@
  * For example AVX has instructions for 256-bit floating point registers, but only 128-bit integer
  * instructions.
  *
+ * \par Example 1:
+ * You can modify a function to use vector types and thus implement a horizontal vectorization. The
+ * original scalar function could look like this:
+ * \code
+ * void normalize(float &x, float &y, float &z)
+ * {
+ *   const float d = std::sqrt(x * x + y * y + z * z);
+ *   x /= d;
+ *   y /= d;
+ *   z /= d;
+ * }
+ * \endcode
+ * To vectorize it with Vc the types must be substituted by their Vc counterparts and math functions
+ * must simply use the Vc implementation which is not part of the \c std namespace:
+ * \code
+ * using Vc::float_v;
+ *
+ * void normalize(float_v &x, float_v &y, float_v &z)
+ * {
+ *   const float_v d = Vc::sqrt(x * x + y * y + z * z);
+ *   x /= d;
+ *   y /= d;
+ *   z /= d;
+ * }
+ * \endcode
+ * The latter function is able to normalize four 3D vectors when compiled for SSE in the same
+ * time the former function normalizes one 3D vector.
+ *
+ * \par
+ * As you can probably see, the new challenge with Vc is the use of good data-structures which
+ * support horizontal vectorization. Depending on your problem at hand this may become the main
+ * focus of design (it does not have to be, though).
+ */
+
+/**
+ * \defgroup Vectors Vectors
+ *
+ * Vector classes are abstractions for SIMD instructions.
+ */
+
+/**
  * \defgroup Masks Masks
  *
  * Mask classes are abstractions for the results of vector comparisons. The actual implementation
  * differs depending on the SIMD instruction set. On SSE they contain a full 128-bit datatype while
  * on LRBni they are stored as 16-bit unsigned integers.
- *
+ */
+
+/**
  * \defgroup Utilities Utilities
  *
  * Utilities that either extend the language or provide other useful functionality outside of the
  * classes.
- *
+ */
+
+/**
  * \defgroup Math Math
  *
  * Functions that implement math functions. Take care that some of the implementations will return
@@ -82,13 +127,9 @@
  */
 
 /**
- * \brief Vector Classes
+ * \brief Vector Classes Namespace
  *
- * Depending on preprocessing macros, the vector classes inside the Vc namespace will be implemented
- * with either
- * \li SSE vectors
- * \li LRBni vectors
- * \li scalar fallback vectors (i.e. scalars, but with the same API)
+ * All functions and types of Vc are defined inside the Vc namespace.
  */
 namespace Vc
 {
