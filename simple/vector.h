@@ -189,8 +189,6 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector &operator++() { ++m_data; return *this; }
         //postfix
         inline Vector operator++(int) { return m_data++; }
-        inline void increment(Mask mask) { if (mask.data()) ++m_data; }
-        inline void decrement(Mask mask) { if (mask.data()) --m_data; }
 
         inline T &operator[](int index) {
             assert(index == 0); if(index) {}
