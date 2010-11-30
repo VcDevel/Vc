@@ -344,14 +344,6 @@ class Vector : public VectorBase<T>
         }
 
         inline Vector operator~() const PURE INTRINSIC { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
-
-#define OP1(fun) \
-        inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
-        inline Vector &fun##_eq() { data() = VectorHelper<T>::fun(data()); return *this; }
-        OP1(sqrt)
-        OP1(abs)
-#undef OP1
-
         inline Vector operator-() const PURE INTRINSIC { return VectorHelper<T>::negate(data()); }
 
 #define OP(symbol, fun) \
