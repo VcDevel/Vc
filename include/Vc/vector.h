@@ -27,8 +27,8 @@
 # include "larrabee/helperimpl.h"
 # define VECTOR_NAMESPACE LRBni
 #elif VC_IMPL_Scalar
-# include "simple/vector.h"
-# include "simple/helperimpl.h"
+# include "scalar/vector.h"
+# include "scalar/helperimpl.h"
 # define VECTOR_NAMESPACE Simple
 #else
 # include "sse/vector.h"
