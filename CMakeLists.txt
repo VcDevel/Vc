@@ -215,7 +215,7 @@ add_target_property(Vc COMPILE_FLAGS "-DVC_COMPILE_LIB")
 
 install(TARGETS Vc DESTINATION lib/)
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
-install(DIRECTORY larrabee simple sse common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+install(DIRECTORY larrabee scalar sse common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 install(FILES
    cmake/FindVc.cmake
