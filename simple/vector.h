@@ -228,15 +228,6 @@ class Vector : public VectorBase<T, Vector<T> >
         OPcmp(<=, cmple)
 #undef OPcmp
 
-        inline Vector mulHigh(const Vector<T> &factor) const {
-            //STATIC_ASSERT(typeid(T) == typeid(int) || typeid(T) == typeid(unsigned int), mulHigh_only_supported_for_32bit_integers);
-            //STATIC_ASSERT(typeid(T) == typeid(unsigned int), mulHigh_only_supported_for_32bit_integers);
-            unsigned long long int x = m_data;
-            //int64_t x = m_data;
-            x *= factor;
-            return Vector<T>(x >> 32);
-        }
-
         inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
             m_data *= factor;
             m_data += summand;
