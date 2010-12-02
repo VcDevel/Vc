@@ -20,7 +20,7 @@
 #if VC_IMPL_LRBni
 # define VECTOR_NAMESPACE Vc::LRBni
 #elif VC_IMPL_Scalar
-# define VECTOR_NAMESPACE Vc::Simple
+# define VECTOR_NAMESPACE Vc::Scalar
 #elif VC_IMPL_AVX
 # define VECTOR_NAMESPACE Vc::AVX
 #elif VC_IMPL_SSE

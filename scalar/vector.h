@@ -17,8 +17,8 @@
 
 */
 
-#ifndef SIMPLE_VECTOR_H
-#define SIMPLE_VECTOR_H
+#ifndef SCALAR_VECTOR_H
+#define SCALAR_VECTOR_H
 
 #include <assert.h>
 #include <algorithm>
@@ -37,7 +37,7 @@
 namespace Vc
 {
     template<typename V, unsigned int Size> class Memory;
-namespace Simple
+namespace Scalar
 {
     enum { VectorAlignment = 4 };
 
@@ -52,7 +52,7 @@ class Vector : public VectorBase<T, Vector<T> >
         typedef Vc::Memory<Vector<T>, 1> Memory;
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
-        typedef Simple::Mask<1u> Mask;
+        typedef Scalar::Mask<1u> Mask;
 
         T &data() { return m_data; }
         T data() const { return m_data; }
@@ -441,11 +441,11 @@ template<typename T1, typename T2> inline Mask<1u>   operator!=(T1 x, const Vect
         const Vector<T13> &, const Vector<T14> &,
         const Vector<T15> &, const Vector<T16> &) {}
 
-} // namespace Simple
+} // namespace Scalar
 } // namespace Vc
 
 #include "memory.h"
 #include "math.h"
 #include "undomacros.h"
 
-#endif // SIMPLE_VECTOR_H
+#endif // SCALAR_VECTOR_H

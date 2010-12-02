@@ -75,7 +75,7 @@ template<typename Vector> struct CondAssignment
         const Vector one(One);
 
         {
-            // gcc compiles the Simple::Vector version such that if all four masks are false it runs
+            // gcc compiles the Scalar::Vector version such that if all four masks are false it runs
             // 20 times faster than otherwise
             Benchmark timer("Conditional Assignment (Const Mask)", valuesPerSecondFactor, "Op");
             while (timer.wantsMoreDataPoints()) {

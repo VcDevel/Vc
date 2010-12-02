@@ -19,7 +19,7 @@
 
 #include "../common/macros.h"
 
-#ifndef VC_SIMPLE_MACROS_H
-#define VC_SIMPLE_MACROS_H
+#ifndef VC_SCALAR_MACROS_H
+#define VC_SCALAR_MACROS_H
 
-#endif // VC_SIMPLE_MACROS_H
+#endif // VC_SCALAR_MACROS_H
