@@ -17,12 +17,12 @@
 
 */
 
-#ifndef VC_SIMPLE_MATH_H
-#define VC_SIMPLE_MATH_H
+#ifndef VC_SCALAR_MATH_H
+#define VC_SCALAR_MATH_H
 
 namespace Vc
 {
-namespace Simple
+namespace Scalar
 {
 
 template<typename T> static inline Vector<T> min  (const Vector<T> &x, const T &y)
@@ -162,7 +162,7 @@ template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T
 #endif
 }
 
-} // namespace Simple
+} // namespace Scalar
 } // namespace Vc
 
-#endif // VC_SIMPLE_MATH_H
+#endif // VC_SCALAR_MATH_H

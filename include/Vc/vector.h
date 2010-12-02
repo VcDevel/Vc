@@ -29,7 +29,7 @@
 #elif VC_IMPL_Scalar
 # include "scalar/vector.h"
 # include "scalar/helperimpl.h"
-# define VECTOR_NAMESPACE Simple
+# define VECTOR_NAMESPACE Scalar
 #else
 # include "sse/vector.h"
 # include "sse/helperimpl.h"

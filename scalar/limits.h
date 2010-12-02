@@ -17,25 +17,25 @@
 
 */
 
-#ifndef VC_SIMPLE_LIMITS_H
-#define VC_SIMPLE_LIMITS_H
+#ifndef VC_SCALAR_LIMITS_H
+#define VC_SCALAR_LIMITS_H
 
 #include <limits>
 #include "types.h"
 
 namespace std
 {
-    template<> inline Vc::Simple::Vector<int> numeric_limits<Vc::Simple::Vector<int> >::max() throw() { return std::numeric_limits<int>::max(); }
-    template<> inline Vc::Simple::Vector<int> numeric_limits<Vc::Simple::Vector<int> >::min() throw() { return std::numeric_limits<int>::min(); }
-    template<> inline Vc::Simple::Vector<unsigned int> numeric_limits<Vc::Simple::Vector<unsigned int> >::max() throw() { return std::numeric_limits<unsigned int>::max(); }
-    template<> inline Vc::Simple::Vector<unsigned int> numeric_limits<Vc::Simple::Vector<unsigned int> >::min() throw() { return std::numeric_limits<unsigned int>::min(); }
-    template<> inline Vc::Simple::Vector<short> numeric_limits<Vc::Simple::Vector<short> >::max() throw() { return std::numeric_limits<short>::max(); }
-    template<> inline Vc::Simple::Vector<short> numeric_limits<Vc::Simple::Vector<short> >::min() throw() { return std::numeric_limits<short>::min(); }
-    template<> inline Vc::Simple::Vector<unsigned short> numeric_limits<Vc::Simple::Vector<unsigned short> >::max() throw() { return std::numeric_limits<unsigned short>::max(); }
-    template<> inline Vc::Simple::Vector<unsigned short> numeric_limits<Vc::Simple::Vector<unsigned short> >::min() throw() { return std::numeric_limits<unsigned short>::min(); }
-    template<> inline Vc::Simple::Vector<float> numeric_limits<Vc::Simple::Vector<float> >::max() throw() { return std::numeric_limits<float>::max(); }
-    template<> inline Vc::Simple::Vector<float> numeric_limits<Vc::Simple::Vector<float> >::min() throw() { return std::numeric_limits<float>::min(); }
-    template<> inline Vc::Simple::Vector<double> numeric_limits<Vc::Simple::Vector<double> >::max() throw() { return std::numeric_limits<double>::max(); }
-    template<> inline Vc::Simple::Vector<double> numeric_limits<Vc::Simple::Vector<double> >::min() throw() { return std::numeric_limits<double>::min(); }
+    template<> inline Vc::Scalar::Vector<int> numeric_limits<Vc::Scalar::Vector<int> >::max() throw() { return std::numeric_limits<int>::max(); }
+    template<> inline Vc::Scalar::Vector<int> numeric_limits<Vc::Scalar::Vector<int> >::min() throw() { return std::numeric_limits<int>::min(); }
+    template<> inline Vc::Scalar::Vector<unsigned int> numeric_limits<Vc::Scalar::Vector<unsigned int> >::max() throw() { return std::numeric_limits<unsigned int>::max(); }
+    template<> inline Vc::Scalar::Vector<unsigned int> numeric_limits<Vc::Scalar::Vector<unsigned int> >::min() throw() { return std::numeric_limits<unsigned int>::min(); }
+    template<> inline Vc::Scalar::Vector<short> numeric_limits<Vc::Scalar::Vector<short> >::max() throw() { return std::numeric_limits<short>::max(); }
+    template<> inline Vc::Scalar::Vector<short> numeric_limits<Vc::Scalar::Vector<short> >::min() throw() { return std::numeric_limits<short>::min(); }
+    template<> inline Vc::Scalar::Vector<unsigned short> numeric_limits<Vc::Scalar::Vector<unsigned short> >::max() throw() { return std::numeric_limits<unsigned short>::max(); }
+    template<> inline Vc::Scalar::Vector<unsigned short> numeric_limits<Vc::Scalar::Vector<unsigned short> >::min() throw() { return std::numeric_limits<unsigned short>::min(); }
+    template<> inline Vc::Scalar::Vector<float> numeric_limits<Vc::Scalar::Vector<float> >::max() throw() { return std::numeric_limits<float>::max(); }
+    template<> inline Vc::Scalar::Vector<float> numeric_limits<Vc::Scalar::Vector<float> >::min() throw() { return std::numeric_limits<float>::min(); }
+    template<> inline Vc::Scalar::Vector<double> numeric_limits<Vc::Scalar::Vector<double> >::max() throw() { return std::numeric_limits<double>::max(); }
+    template<> inline Vc::Scalar::Vector<double> numeric_limits<Vc::Scalar::Vector<double> >::min() throw() { return std::numeric_limits<double>::min(); }
 } // namespace std
-#endif // VC_SIMPLE_LIMITS_H
+#endif // VC_SCALAR_LIMITS_H

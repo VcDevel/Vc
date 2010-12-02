@@ -17,12 +17,12 @@
 
 */
 
-#ifndef VC_SIMPLE_VECTORBASE_H
-#define VC_SIMPLE_VECTORBASE_H
+#ifndef VC_SCALAR_VECTORBASE_H
+#define VC_SCALAR_VECTORBASE_H
 
 namespace Vc
 {
-    namespace Simple
+    namespace Scalar
     {
         template<typename T, typename Parent> struct VectorBase
         {
@@ -37,6 +37,6 @@ namespace Vc
             inline Vector<T> &operator >>=(const Vector<T> &x);
             inline Vector<T> operator >>(const Vector<T> &x) const;
         };
-    } // namespace Simple
+    } // namespace Scalar
 } // namespace Vc
-#endif // VC_SIMPLE_VECTORBASE_H
+#endif // VC_SCALAR_VECTORBASE_H
