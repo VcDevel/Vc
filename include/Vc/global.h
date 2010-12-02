@@ -132,20 +132,22 @@
 
 #endif // VC_IMPL
 
-#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 3)) && !defined(VC_IMPL_Scalar)
-#  ifndef VC_DONT_WARN_OLD_GCC
-#    warning "GCC < 4.3 does not have full support for SSE2 intrinsics. Using scalar types/operations only. Define VC_DONT_WARN_OLD_GCC to silence this warning."
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && !defined(__OPENCC__)
+#  if (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 3)) && !defined(VC_IMPL_Scalar)
+#    ifndef VC_DONT_WARN_OLD_GCC
+#      warning "GCC < 4.3 does not have full support for SSE2 intrinsics. Using scalar types/operations only. Define VC_DONT_WARN_OLD_GCC to silence this warning."
+#    endif
+#    undef VC_IMPL_SSE
+#    undef VC_IMPL_SSE2
+#    undef VC_IMPL_SSE3
+#    undef VC_IMPL_SSE4a
+#    undef VC_IMPL_SSE4_1
+#    undef VC_IMPL_SSE4_2
+#    undef VC_IMPL_SSSE3
+#    undef VC_IMPL_AVX
+#    undef VC_IMPL_LRBni
+#    define VC_IMPL_Scalar 1
 #  endif
-#  undef VC_IMPL_SSE
-#  undef VC_IMPL_SSE2
-#  undef VC_IMPL_SSE3
-#  undef VC_IMPL_SSE4a
-#  undef VC_IMPL_SSE4_1
-#  undef VC_IMPL_SSE4_2
-#  undef VC_IMPL_SSSE3
-#  undef VC_IMPL_AVX
-#  undef VC_IMPL_LRBni
-#  define VC_IMPL_Scalar 1
 #endif
 
 # if !defined(VC_IMPL_LRBni) && !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX)
@@ -164,5 +166,72 @@
 #undef AVX
 #undef Scalar
 #undef LRBni
+
+#if VC_IMPL_Scalar
+#define VC_IMPL ::Vc::ScalarImpl
+#elif VC_IMPL_AVX
+#define VC_IMPL ::Vc::AVXImpl
+#elif VC_IMPL_SSE4a
+#define VC_IMPL ::Vc::SSE4aImpl
+#elif VC_IMPL_SSE42
+#define VC_IMPL ::Vc::SSE42Impl
+#elif VC_IMPL_SSE41
+#define VC_IMPL ::Vc::SSE41Impl
+#elif VC_IMPL_SSSE3
+#define VC_IMPL ::Vc::SSSE3Impl
+#elif VC_IMPL_SSE3
+#define VC_IMPL ::Vc::SSE3Impl
+#elif VC_IMPL_SSE2
+#define VC_IMPL ::Vc::SSE2Impl
+#elif VC_IMPL_LRBni
+#define VC_IMPL ::Vc::LRBniImpl
+#endif
+
+namespace Vc {
+enum AlignedFlag {
+    Aligned = 0
+};
+enum UnalignedFlag {
+    Unaligned = 1
+};
+enum StreamingAndAlignedFlag { // implies Aligned
+    Streaming = 2
+};
+enum StreamingAndUnalignedFlag {
+    StreamingAndUnaligned = 3
+};
+
+enum MallocAlignment {
+    AlignOnVector,
+    AlignOnCacheline,
+    AlignOnPage
+};
+
+static inline StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+static inline StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+static inline StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+static inline StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+
+static inline StreamingAndAlignedFlag operator|(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
+static inline StreamingAndAlignedFlag operator|(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
+static inline StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
+static inline StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
+
+enum Implementation {
+    ScalarImpl, SSE2Impl, SSE3Impl, SSSE3Impl, SSE41Impl, SSE42Impl, SSE4aImpl, AVXImpl, LRBniImpl, LRBniPrototypeImpl
+};
+namespace Internal {
+    template<Implementation Impl> struct HelperImpl;
+    typedef HelperImpl<VC_IMPL> Helper;
+
+    template<typename A> struct FlagObject;
+    template<> struct FlagObject<AlignedFlag> { static inline AlignedFlag the() { return Aligned; } };
+    template<> struct FlagObject<UnalignedFlag> { static inline UnalignedFlag the() { return Unaligned; } };
+    template<> struct FlagObject<StreamingAndAlignedFlag> { static inline StreamingAndAlignedFlag the() { return Streaming; } };
+    template<> struct FlagObject<StreamingAndUnalignedFlag> { static inline StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
+} // namespace Internal
+} // namespace Vc
+
+#include "version.h"
 
 #endif // VC_GLOBAL_H

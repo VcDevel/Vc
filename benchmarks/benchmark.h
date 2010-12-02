@@ -24,11 +24,15 @@
 #include <sstream>
 #include <iomanip>
 #include <list>
+#include <vector>
 #include <algorithm>
 #include <time.h>
 #include <cstring>
 #include <string>
 #include <fstream>
+#ifndef VC_BENCHMARK_NO_MLOCK
+#include <sys/mman.h>
+#endif
 #ifdef _MSC_VER
 #include <windows.h>
 #include <float.h>
@@ -44,8 +48,11 @@
 #include "tsc.h"
 
 #if !defined(WIN32) && !defined(__APPLE__)
-#define VC_USE_CPU_TIME
+//#define VC_USE_CPU_TIME
 #endif
+
+// limit to max. 10s per single benchmark
+static double g_Time = 10.;
 
 class Benchmark
 {
@@ -65,7 +72,6 @@ class Benchmark
 
         private:
             std::ofstream m_file;
-            int m_line;
             bool m_finalized;
             std::string m_currentName;
             std::list<std::string> m_header;
@@ -80,11 +86,6 @@ class Benchmark
             std::list<ExtraColumn> m_extraColumns;
     };
 public:
-    enum OutputMode {
-        DataFile,
-        Stdout
-    };
-
     static inline void addColumn(const std::string &name) { if (s_fileWriter) s_fileWriter->addColumn(name); }
     static inline void setColumnData(const std::string &name, const std::string &data) {
         if (s_fileWriter) {
@@ -96,27 +97,25 @@ public:
     static inline void finalize() { if (s_fileWriter) s_fileWriter->finalize(); }
 
     explicit Benchmark(const std::string &name, double factor = 0., const std::string &X = std::string());
+    void changeInterpretation(double factor, const char *X)
+    {
+        fFactor = factor;
+        fX = X;
+    }
 
-    enum Flags {
-        PrintValues = 0,
-        PrintAverage = 1
-    };
-
+    bool wantsMoreDataPoints() const;
     void Start();
     void Mark();
     void Stop();
-    void Print(int = PrintValues) const;
+    void Print();
 
 private:
-    struct DataPoint
-    {
-        double fRealElapsed;
-        double fCpuElapsed;
-        unsigned long long fCycles;
-    };
+    void printMiddleLine() const;
+    void printBottomLine() const;
+
     const std::string fName;
-    const double fFactor;
-    const std::string fX;
+    double fFactor;
+    std::string fX;
 #ifdef _MSC_VER
     __int64 fRealTime;
 #elif defined(__APPLE__)
@@ -125,13 +124,15 @@ private:
     struct timespec fRealTime;
     struct timespec fCpuTime;
 #endif
+    double m_mean[3];
+    double m_stddev[3];
     TimeStampCounter fTsc;
-    std::list<DataPoint> fDataPoints;
+    int m_dataPointsCount;
     static FileWriter *s_fileWriter;
 };
 
 Benchmark::FileWriter::FileWriter(const std::string &filename)
-    : m_line(0), m_finalized(false)
+    : m_finalized(false)
 {
     std::string fn = filename;
     m_file.open(fn.c_str());
@@ -155,10 +156,12 @@ Benchmark::FileWriter::~FileWriter()
 void Benchmark::FileWriter::declareData(const std::string &name, const std::list<std::string> &header)
 {
     m_currentName = '"' + name + '"';
-    if (m_header.empty()) {
+    if (m_header != header) {
+        if (m_header.empty()) {
+            m_file << "Version 3\n";
+        }
         m_header = header;
-        m_file << "Version 2\n"
-            << "\"benchmark.name\"\t\"benchmark.arch\"";
+        m_file << "\"benchmark.name\"\t\"benchmark.arch\"";
         for (std::list<ExtraColumn>::const_iterator i = m_extraColumns.begin();
                 i != m_extraColumns.end(); ++i) {
             m_file << "\t\"" << i->name << '"';
@@ -168,15 +171,12 @@ void Benchmark::FileWriter::declareData(const std::string &name, const std::list
             m_file << '\t' << *i;
         }
         m_file << "\n";
-    } else if (m_header != header) {
-        std::cerr << "incompatible writes to FileWriter!\n"
-            << std::endl;
     }
 }
 
 void Benchmark::FileWriter::addDataLine(const std::list<std::string> &data)
 {
-    m_file << ++m_line << '\t' << m_currentName << '\t' <<
+    m_file << m_currentName << '\t' <<
 #if VC_IMPL_LRBni
 #ifdef VC_LRBni_PROTOTYPE_H
             "\"LRB Prototype\"";
@@ -198,7 +198,7 @@ void Benchmark::FileWriter::addDataLine(const std::list<std::string> &data)
 #elif VC_IMPL_Scalar
             "\"Scalar\"";
 #else
-#error "Unknown Vc implementation"
+            "\"non-Vc\"";
 #endif
     for (std::list<ExtraColumn>::const_iterator i = m_extraColumns.begin();
             i != m_extraColumns.end(); ++i) {
@@ -237,32 +237,40 @@ void Benchmark::FileWriter::setColumnData(const std::string &name, const std::st
 
 Benchmark::FileWriter *Benchmark::s_fileWriter = 0;
 
-Benchmark::Benchmark(const std::string &name, double factor, const std::string &X)
-    : fName(name), fFactor(factor), fX(X)
+Benchmark::Benchmark(const std::string &_name, double factor, const std::string &X)
+    : fName(_name), fFactor(factor), fX(X), m_dataPointsCount(0)
 {
+    for (int i = 0; i < 3; ++i) {
+        m_mean[i] = m_stddev[i] = 0.;
+    }
+    enum {
+        WCHARSIZE = sizeof("━") - 1
+    };
     if (!s_fileWriter) {
         const bool interpret = (fFactor != 0.);
-        char header[128];
-        std::memset(header, 0, 128);
+        char header[128 * WCHARSIZE];
+        std::memset(header, 0, 128 * WCHARSIZE);
         std::strcpy(header,
 #ifdef VC_USE_CPU_TIME
-                "+----------------+----------------"
+                "┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━"
 #endif
-                "+----------------+----------------+----------------+----------------+----------------+");
+                "┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓");
         if (!interpret) {
 #ifdef VC_USE_CPU_TIME
-            header[69] = '\0';
+            header[69 * WCHARSIZE] = '\0';
 #else
-            header[69 - 17] = '\0';
+            header[(69 - 17) * WCHARSIZE] = '\0';
 #endif
         }
         const int titleLen = fName.length();
-        const int headerLen = std::strlen(header);
-        const int offset = (headerLen - titleLen) / 2;
+        const int headerLen = std::strlen(header) / WCHARSIZE;
+        int offset = (headerLen - titleLen) / 2;
         if (offset > 0) {
-            std::memcpy(&header[offset], fName.c_str(), titleLen);
-            header[offset - 1] = ' ';
-            header[offset + titleLen] = ' ';
+            --offset;
+            std::string name = ' ' + fName + ' ';
+            char *ptr = &header[offset * WCHARSIZE];
+            std::memcpy(ptr, name.c_str(), name.length());
+            std::memmove(ptr + name.length(), ptr + name.length() * WCHARSIZE, (headerLen - offset - name.length()) * WCHARSIZE + 1);
             std::cout << header << std::flush;
         } else {
             std::cout << fName << std::flush;
@@ -292,6 +300,18 @@ static inline double convertTimeSpec(const struct timespec &ts)
 
 static const double SECONDS_PER_CLOCK = 1. / CLOCKS_PER_SEC;
 
+bool Benchmark::wantsMoreDataPoints() const
+{
+    if (m_dataPointsCount < 3) { // hard limit on the number of data points; otherwise talking about stddev is bogus
+        return true;
+    } else if (m_mean[0] > g_Time) { // limit on the time
+        return false;
+    } else if (m_dataPointsCount < 30) { // we want initial statistics
+        return true;
+    }
+    return m_stddev[0] * m_dataPointsCount > 1.0004 * m_mean[0] * m_mean[0]; // stop if the relative error is below 2% already
+}
+
 inline void Benchmark::Stop()
 {
     fTsc.Stop();
@@ -299,9 +319,7 @@ inline void Benchmark::Stop()
     __int64 real = 0, freq = 0;
     QueryPerformanceCounter((LARGE_INTEGER *)&real);
     QueryPerformanceFrequency((LARGE_INTEGER *)&freq);
-    const DataPoint p = {
-        static_cast<double>(real - fRealTime) / freq,
-        1.0,
+    const double elapsedRealTime = static_cast<double>(real - fRealTime) / freq;
 #elif defined(__APPLE__)
     uint64_t real = mach_absolute_time();
     static mach_timebase_info_data_t info = {0,0};  
@@ -310,21 +328,24 @@ inline void Benchmark::Stop()
     	mach_timebase_info(&info);  
     
     uint64_t nanos = (real - fRealTime ) * (info.numer / info.denom);
-    const DataPoint p = {
-        nanos * 1e-9,
-        1.0,
+    const double elapsedRealTime = nanos * 1e-9;
 #else
-    struct timespec real, cpu;
+    struct timespec real;
     clock_gettime( CLOCK_MONOTONIC, &real );
+#ifdef VC_USE_CPU_TIME
+    struct timespec cpu;
     clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &cpu );
-
-    const DataPoint p = {
-        convertTimeSpec(real) - convertTimeSpec(fRealTime),
-        convertTimeSpec(cpu ) - convertTimeSpec(fCpuTime ),
+    const double elapsedCpuTime = convertTimeSpec(cpu ) - convertTimeSpec(fCpuTime );
+    m_mean[2] += elapsedCpuTime;
+    m_stddev[2] += elapsedCpuTime * elapsedCpuTime;
 #endif
-        fTsc.Cycles()
-    };
-    fDataPoints.push_back(p);
+    const double elapsedRealTime = convertTimeSpec(real) - convertTimeSpec(fRealTime);
+#endif
+    m_mean[0] += elapsedRealTime;
+    m_mean[1] += fTsc.Cycles();
+    m_stddev[0] += elapsedRealTime * elapsedRealTime;
+    m_stddev[1] += fTsc.Cycles() * fTsc.Cycles();
+    ++m_dataPointsCount;
 }
 
 inline void Benchmark::Mark()
@@ -377,6 +398,13 @@ static inline void prettyPrintCount(double v)
         }
     }
     std::cout << std::setw(12) << v << ' ' << prefix[i];
+}
+
+static inline void prettyPrintError(double v)
+{
+    std::stringstream ss;
+    ss << "± " << v << " %";
+    std::cout << std::setw(15) << ss.str();
 }
 
 static inline std::list<std::string> &operator<<(std::list<std::string> &list, const std::string &data)
@@ -441,150 +469,189 @@ static std::string centered(const std::string &s, const int size = 16)
     return r;
 }
 
-inline void Benchmark::Print(int f) const
+inline void Benchmark::printMiddleLine() const
+{
+    const bool interpret = (fFactor != 0.);
+    std::cout << "\n"
+#ifdef VC_USE_CPU_TIME
+        "┠────────────────"
+#endif
+        "┠────────────────╂────────────────"
+        << (interpret ?
+#ifdef VC_USE_CPU_TIME
+                "╂────────────────"
+#endif
+                "╂────────────────╂────────────────╂────────────────┨" : "┨");
+}
+inline void Benchmark::printBottomLine() const
+{
+    const bool interpret = (fFactor != 0.);
+    std::cout << "\n"
+#ifdef VC_USE_CPU_TIME
+        "┗━━━━━━━━━━━━━━━━"
+#endif
+        "┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━"
+        << (interpret ?
+#ifdef VC_USE_CPU_TIME
+                "┻━━━━━━━━━━━━━━━━"
+#endif
+                "┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛" : "┛") << std::endl;
+}
+
+inline void Benchmark::Print()
 {
     std::streambuf *backup = std::cout.rdbuf();
     if (s_fileWriter) {
         std::cout.rdbuf(0);
     }
-    typedef std::list<DataPoint>::const_iterator It;
     const bool interpret = (fFactor != 0.);
 
     std::list<std::string> header;
+    header
+        << "Real_time" << "Real_time_stddev"
+        << "Cycles" << "Cycles_stddev"
 #ifdef VC_USE_CPU_TIME
-    header << "CPU_time";
+        << "CPU_time" << "CPU_time_stddev"
 #endif
-    header << "Real_time" << "Cycles";
+    ;
 
+    // ┃ ━ ┏ ┓ ┗ ┛ ┣ ┫ ┳ ┻ ╋ ┠ ─ ╂ ┨
     std::cout << "\n"
 #ifdef VC_USE_CPU_TIME
-        << "|    CPU time    "
+        << "┃    CPU time    "
 #endif
-        << "|   Real time    |     Cycles     |";
+        << "┃   Real time    ┃     Cycles     ┃";
     if (interpret) {
 #ifdef VC_USE_CPU_TIME
-        std::cout << centered(fX + "/s [CPU]")  << "|";
+        std::cout << centered(fX + "/s [CPU]")  << "┃";
 #endif
-        std::cout << centered(fX + "/s [Real]") << "|";
-        std::cout << centered(fX + "/cycle")    << "|";
-        std::cout << centered("cycles/" + fX)   << "|";
+        std::cout << centered(fX + "/s [Real]") << "┃";
+        std::cout << centered(fX + "/cycle")    << "┃";
+        std::cout << centered("cycles/" + fX)   << "┃";
         std::string X = fX;
         for (unsigned int i = 0; i < X.length(); ++i) {
             if (X[i] == ' ') {
                 X[i] = '_';
             }
         }
-        header << "number_of_" + X;
+        header
+            << X + "/Real_time" << X + "/Real_time_stddev"
+            << X + "/Cycles" << X + "/Cycles_stddev"
+#ifdef VC_USE_CPU_TIME
+            << X + "/CPU_time" << X + "/CPU_time_stddev"
+#endif
+            << "number_of_" + X;
     }
+    printMiddleLine();
     if (s_fileWriter) {
         s_fileWriter->declareData(fName, header);
     }
 
+    const double normalization = 1. / m_dataPointsCount;
+
     std::list<std::string> dataLine;
-    for (It i = fDataPoints.begin(); i != fDataPoints.end(); ++i) {
-        dataLine.clear();
-        std::cout << "\n| ";
+    m_mean[0] *= normalization;
+    m_stddev[0] = std::sqrt(m_stddev[0] * normalization - m_mean[0] * m_mean[0]);
+    dataLine << m_mean[0] << m_stddev[0];
+    m_mean[1] *= normalization;
+    m_stddev[1] = std::sqrt(m_stddev[1] * normalization - m_mean[1] * m_mean[1]);
+    dataLine << m_mean[1] << m_stddev[1];
 #ifdef VC_USE_CPU_TIME
-        prettyPrintSeconds(i->fCpuElapsed);
-        std::cout << " | ";
+    m_mean[2] *= normalization;
+    m_stddev[2] = std::sqrt(m_stddev[2] * normalization - m_mean[2] * m_mean[2]);
+    dataLine << m_mean[2] << m_stddev[2];
 #endif
-        prettyPrintSeconds(i->fRealElapsed);
-        std::cout << " | ";
-        prettyPrintCount(static_cast<double>(i->fCycles));
-        std::cout << " | ";
-        dataLine
+    double stddevint[3];
+    stddevint[0] = fFactor * m_stddev[0] / (m_mean[0] * m_mean[0]);
+    stddevint[1] = fFactor * m_stddev[1] / (m_mean[1] * m_mean[1]);
+    dataLine << fFactor / m_mean[0] << stddevint[0];
+    dataLine << fFactor / m_mean[1] << stddevint[1];
 #ifdef VC_USE_CPU_TIME
-            << i->fCpuElapsed
+    stddevint[2] = fFactor * m_stddev[2] / (m_mean[2] * m_mean[2]);
+    dataLine << fFactor / m_mean[2] << stddevint[2];
 #endif
-            << i->fRealElapsed << i->fCycles;
-        if (interpret) {
+    dataLine << fFactor;
+
+    std::cout << "\n┃ ";
 #ifdef VC_USE_CPU_TIME
-            prettyPrintCount(fFactor / i->fCpuElapsed);
-            std::cout << " | ";
+    prettyPrintSeconds(m_mean[2]);
+    std::cout << " ┃ ";
 #endif
-            prettyPrintCount(fFactor / i->fRealElapsed);
-            std::cout << " | ";
-            prettyPrintCount(fFactor / i->fCycles);
-            std::cout << " | ";
-            prettyPrintCount(i->fCycles / fFactor);
-            std::cout << " | ";
-            dataLine << fFactor;
-        }
-        if (s_fileWriter) {
-            s_fileWriter->addDataLine(dataLine);
-        }
+    prettyPrintSeconds(m_mean[0]);
+    std::cout << " ┃ ";
+    prettyPrintCount(m_mean[1]);
+    std::cout << " ┃ ";
+    if (interpret) {
+#ifdef VC_USE_CPU_TIME
+        prettyPrintCount(fFactor / m_mean[2]);
+        std::cout << " ┃ ";
+#endif
+        prettyPrintCount(fFactor / m_mean[0]);
+        std::cout << " ┃ ";
+        prettyPrintCount(fFactor / m_mean[1]);
+        std::cout << " ┃ ";
+        prettyPrintCount(m_mean[1] / fFactor);
+        std::cout << " ┃ ";
     }
-    if (f & PrintAverage) {
-        if (interpret) {
+    std::cout << "\n┃ ";
 #ifdef VC_USE_CPU_TIME
-            std::cout << "\n|---------------------------------------------- Average ---------------------------------------------------------------|";
-#else
-            std::cout << "\n|----------------------------- Average ----------------------------------------------|";
+    prettyPrintError(m_stddev[2] * 100. / m_mean[2]);
+    std::cout << " ┃ ";
 #endif
-        } else {
+    prettyPrintError(m_stddev[0] * 100. / m_mean[0]);
+    std::cout << " ┃ ";
+    prettyPrintError(m_stddev[1] * 100. / m_mean[1]);
+    std::cout << " ┃ ";
+    if (interpret) {
 #ifdef VC_USE_CPU_TIME
-            std::cout << "\n|-------------------- Average ---------------------|";
-#else
-            std::cout << "\n|------------ Average ------------|";
+        prettyPrintError(m_stddev[2] * 100. / m_mean[2]);
+        std::cout << " ┃ ";
 #endif
-        }
-
-        double cpuAvg = 0.;
-        double realAvg = 0.;
-        double cycleAvg = 0.;
-
-        for (It i = fDataPoints.begin(); i != fDataPoints.end(); ++i) {
-            cpuAvg += i->fCpuElapsed;
-            realAvg += i->fRealElapsed;
-            cycleAvg += i->fCycles;
-        }
-        const double count = static_cast<double>(fDataPoints.size());
-        cpuAvg /= count;
-        realAvg /= count;
-        cycleAvg /= count;
-
-        std::cout << "\n| ";
-#ifdef VC_USE_CPU_TIME
-        prettyPrintSeconds(cpuAvg);
-        std::cout << " | ";
-#endif
-        prettyPrintSeconds(realAvg);
-        std::cout << " | ";
-        prettyPrintCount(cycleAvg);
-        std::cout << " | ";
-        if (interpret) {
-#ifdef VC_USE_CPU_TIME
-            prettyPrintCount(fFactor / cpuAvg);
-            std::cout << " | ";
-#endif
-            prettyPrintCount(fFactor / realAvg);
-            std::cout << " | ";
-            prettyPrintCount(fFactor / cycleAvg);
-            std::cout << " | ";
-            prettyPrintCount(cycleAvg / fFactor);
-            std::cout << " | ";
-        }
+        prettyPrintError(m_stddev[0] * 100. / m_mean[0]);
+        std::cout << " ┃ ";
+        prettyPrintError(m_stddev[1] * 100. / m_mean[1]);
+        std::cout << " ┃ ";
+        prettyPrintError(m_stddev[1] * 100. / m_mean[1]);
+        std::cout << " ┃ ";
     }
-    std::cout << "\n"
-#ifdef VC_USE_CPU_TIME
-        "+----------------"
-#endif
-        "+----------------+----------------+"
-        << (interpret ?
-#ifdef VC_USE_CPU_TIME
-                "----------------+"
-#endif
-                "----------------+----------------+----------------+" : "") << std::endl;
+    printBottomLine();
     if (s_fileWriter) {
+        s_fileWriter->addDataLine(dataLine);
         std::cout.rdbuf(backup);
     }
 }
 
-int bmain(Benchmark::OutputMode);
+typedef std::vector<std::string> ArgumentVector;
+ArgumentVector g_arguments;
 
-static int g_Repetitions = 0;
+int bmain();
+const char *printHelp2 =
+"  -t <seconds>        maximum time to run a single benchmark (10s)\n"
+"  -cpu (all|any|<id>) CPU to pin the benchmark to\n"
+"                      all: test every CPU id in sequence\n"
+"                      any: don't pin and let the OS schedule\n"
+"                      <id>: pin to the specific CPU\n";
+#define SET_HELP_TEXT(str) \
+    int _set_help_text_init() { \
+        printHelp2 = str; \
+        return 0; \
+    } \
+    int _set_help_text_init_ = _set_help_text_init()
 
-#include <sched.h>
+#include "cpuset.h"
+
+void printHelp(const char *name) {
+    std::cout << "Usage " << name << " [OPTION]...\n"
+        << "Measure throughput and latency of memory in steps of 1GB\n\n"
+        << "  -h, --help          print this message\n"
+        << "  -o <filename>       output measurements to a file instead of stdout\n";
+    if (printHelp2) {
+        std::cout << printHelp2;
+    }
+    std::cout << "\nReport bugs to vc-devel@compeng.uni-frankfurt.de\n"
+        << "Vc Homepage: http://compeng.uni-frankfurt.de/index.php?id=Vc\n"
+        << std::flush;
+}
 
 int main(int argc, char **argv)
 {
@@ -597,7 +664,6 @@ int main(int argc, char **argv)
 #endif
 
     int i = 2;
-    Benchmark::OutputMode outputMode = Benchmark::Stdout;
     Benchmark::FileWriter *file = 0;
     enum {
         UseAllCpus = -2,
@@ -607,9 +673,10 @@ int main(int argc, char **argv)
     while (argc > i) {
         if (std::strcmp(argv[i - 1], "-o") == 0) {
             file = new Benchmark::FileWriter(argv[i]);
-            outputMode = Benchmark::DataFile;
-        } else if (std::strcmp(argv[i - 1], "-r") == 0) {
-            g_Repetitions = atoi(argv[i]);
+            i += 2;
+        } else if (std::strcmp(argv[i - 1], "-t") == 0) {
+            g_Time = atof(argv[i]);
+            i += 2;
         } else if (std::strcmp(argv[i - 1], "-cpu") == 0) {
 // On OS X there is no way to set CPU affinity
 // TODO there is a way to ask the system to not move the process around
@@ -622,21 +689,35 @@ int main(int argc, char **argv)
                 useCpus = atoi(argv[i]);
             }
 #endif
+            i += 2;
+        } else if (std::strcmp(argv[i - 1], "--help") == 0 ||
+                    std::strcmp(argv[i - 1], "-help") == 0 ||
+                    std::strcmp(argv[i - 1], "-h") == 0) {
+            printHelp(argv[0]);
+            return 0;
+        } else {
+            g_arguments.push_back(argv[i - 1]);
+            ++i;
         }
-        i += 2;
+    }
+    if (argc == i) {
+        if (std::strcmp(argv[i - 1], "--help") == 0 ||
+                std::strcmp(argv[i - 1], "-help") == 0 ||
+                std::strcmp(argv[i - 1], "-h") == 0) {
+            printHelp(argv[0]);
+            return 0;
+        }
+        g_arguments.push_back(argv[i - 1]);
     }
 
     int r = 0;
     if (useCpus == UseAnyOneCpu) {
-        r += bmain(outputMode);
+        r += bmain();
         Benchmark::finalize();
     } else {
         cpu_set_t cpumask;
         sched_getaffinity(0, sizeof(cpu_set_t), &cpumask);
-        int cpucount = 1;
-        while (CPU_ISSET(cpucount, &cpumask)) {
-            ++cpucount;
-        }
+        int cpucount = cpuCount(&cpumask);
         if (cpucount > 1) {
             Benchmark::addColumn("CPU_ID");
         }
@@ -647,10 +728,10 @@ int main(int argc, char **argv)
                     str << cpuid;
                     Benchmark::setColumnData("CPU_ID", str.str());
                 }
-                CPU_ZERO(&cpumask);
-                CPU_SET(cpuid, &cpumask);
+                cpuZero(&cpumask);
+                cpuSet(cpuid, &cpumask);
                 sched_setaffinity(0, sizeof(cpu_set_t), &cpumask);
-                r += bmain(outputMode);
+                r += bmain();
                 Benchmark::finalize();
             }
         } else {
@@ -660,10 +741,10 @@ int main(int argc, char **argv)
                 str << cpuid;
                 Benchmark::setColumnData("CPU_ID", str.str());
             }
-            CPU_ZERO(&cpumask);
-            CPU_SET(cpuid, &cpumask);
+            cpuZero(&cpumask);
+            cpuSet(cpuid, &cpumask);
             sched_setaffinity(0, sizeof(cpu_set_t), &cpumask);
-            r += bmain(outputMode);
+            r += bmain();
             Benchmark::finalize();
         }
     }

@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -17,23 +17,30 @@
 
 */
 
-#ifndef VC_SIMPLE_TYPES_H
-#define VC_SIMPLE_TYPES_H
+#ifndef VC_LARRABEE_GATHERHELPER_H
+#define VC_LARRABEE_GATHERHELPER_H
 
 namespace Vc
 {
-    namespace Simple
-    {
-        class VectorAlignedBase {};
-        template<typename T> class Vector;
-        template<typename T, typename Parent> struct VectorBase;
-        template<typename T> class _Memory;
+namespace LRBni
+{
 
-        namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
-        namespace VectorSpecialInitializerOne { enum OEnum { One }; }
-        namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
-        namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
-    } // namespace Simple
+/*
+ * Gather-Scatter Helper
+ */
+template<unsigned int Size> struct GSHelper
+{
+    public:
+        template<typename VectorType, typename MemoryType>
+        static void gather(VectorType &v, const MemoryType *m, _M512I i);
+
+        template<typename VectorType, typename MemoryType>
+        static void scatter(const VectorType &v, MemoryType *m, _M512I i);
+};
+
+} // namespace LRBni
 } // namespace Vc
 
-#endif // VC_SIMPLE_TYPES_H
+#include "gshelper.tcc"
+
+#endif // VC_LARRABEE_GATHERHELPER_H

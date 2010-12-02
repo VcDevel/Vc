@@ -25,12 +25,16 @@
 
 #if VC_IMPL_LRBni
 # include "larrabee/vector.h"
+# include "larrabee/helperimpl.h"
 #elif VC_IMPL_Scalar
-# include "simple/vector.h"
+# include "scalar/vector.h"
+# include "scalar/helperimpl.h"
 #elif VC_IMPL_AVX
 # include "avx/vector.h"
+# include "avx/helperimpl.h"
 #elif VC_IMPL_SSE
 # include "sse/vector.h"
+# include "sse/helperimpl.h"
 #endif
 
 #ifdef isfinite
@@ -46,7 +50,6 @@ namespace Vc
   using VECTOR_NAMESPACE::VectorAlignedBase;
   using namespace VECTOR_NAMESPACE::VectorSpecialInitializerZero;
   using namespace VECTOR_NAMESPACE::VectorSpecialInitializerOne;
-  using namespace VECTOR_NAMESPACE::VectorSpecialInitializerRandom;
   using namespace VECTOR_NAMESPACE::VectorSpecialInitializerIndexesFromZero;
   using VECTOR_NAMESPACE::min;
   using VECTOR_NAMESPACE::max;

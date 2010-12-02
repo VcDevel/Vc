@@ -125,17 +125,15 @@ CpuId::ProcessorType CpuId::s_processorType = CpuId::IntelReserved;
 bool   CpuId::s_noL2orL3 = false;
 
 #ifdef _MSC_VER
+void __cpuid(int a[4], int b);
 #define CPUID(id) \
 	do { \
-		uint &a = eax, &b = ebx, &c = ecx, &d = edx; \
-		__asm { \
-			mov eax, id \
-			cpuid \
-			mov a, eax \
-			mov b, ebx \
-			mov c, ecx \
-			mov d, edx \
-		} \
+	    int out[4]; \
+        __cpuid(out, id); \
+		eax = out[0]; \
+		ebx = out[1]; \
+		ecx = out[2]; \
+		edx = out[3]; \
 	} while (false)
 #else
 #define CPUID(id) \

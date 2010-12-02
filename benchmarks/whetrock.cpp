@@ -53,7 +53,7 @@ static void doBlah()
         mem.v[i] = PseudoRandom<V>::next();
     }
     V t = mem.v[0];
-    mem.v[0].makeZero();
+    mem.v[0].setZero();
     for (int i = 1; i < ArraySize; ++i) {
         t = Vc::abs(t * mem.v[i] + t) / divider;
         t(t >= bound) = two;
@@ -82,18 +82,17 @@ static double opsFactor()
     return V::Size * (ArraySize * (5 + 9) + (1000 + V::Size - 1) / V::Size * 5);
 }
 
-int bmain(Benchmark::OutputMode out)
+int bmain()
 {
-    const int Repetitions = out == Benchmark::Stdout ? 3 : g_Repetitions > 0 ? g_Repetitions : 20;
     Benchmark timer("WhetRock", opsFactor<float_v>() + opsFactor<double_v>(), "Op");
-    for (int r = 0; r < Repetitions; ++r) {
+    while (timer.wantsMoreDataPoints()) {
         timer.Start();
         doBlah<float_v>();
-        delete[] (float_v *)blackHolePtr;
+        delete[] static_cast<float_v *>(blackHolePtr);
         doBlah<double_v>();
-        delete[] (double_v *)blackHolePtr;
+        delete[] static_cast<double_v *>(blackHolePtr);
         timer.Stop();
     }
-    timer.Print(Benchmark::PrintAverage);
+    timer.Print();
     return 0;
 }

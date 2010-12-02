@@ -20,6 +20,31 @@
 #ifndef SSE_INTRINSICS_H
 #define SSE_INTRINSICS_H
 
+#if defined(_MSC_VER) && !defined(__midl)
+// MSVC sucks. If you include intrin.h you get all SSE intrinsics
+// declared. Something always includes intrin.h even if you don't
+// do it explicitly. Therefore we try to be the first to include it
+// but with __midl defined -- therefore not actually doing anything
+#ifdef __INTRIN_H_
+#error "intrin.h was already included, polluting the namespace. Please fix your code to include the Vc headers before anything that includes intrin.h. If you need any of the intrinsics from intrin.h declare the functions manually instead (you can copy them out of the intrin.h header."
+#endif
+#define __midl
+#include <intrin.h>
+#undef __midl
+extern "C" {
+#ifdef _WIN64
+unsigned char _BitScanForward64(unsigned long* Index, unsigned __int64 Mask);
+unsigned char _bittestandreset64(__int64 *a, __int64 b);
+#pragma intrinsic(_BitScanForward64)
+#pragma intrinsic(_bittestandreset64)
+#endif
+unsigned char _BitScanForward(unsigned long* Index, unsigned long Mask);
+unsigned char _bittestandreset(long *a, long b);
+#pragma intrinsic(_BitScanForward)
+#pragma intrinsic(_bittestandreset)
+}
+#endif
+
 // MMX
 #include <mmintrin.h>
 // SSE
@@ -35,10 +60,16 @@
 #include "macros.h"
 #include <cstdlib>
 
+#ifdef __3dNOW__
+#include <mm3dnow.h>
+#endif
+
 namespace Vc
 {
 namespace SSE
 {
+    enum { VectorAlignment = 16 };
+
     static inline __m128i _mm_setallone() CONST;
     static inline __m128i _mm_setallone_si128() CONST;
     static inline __m128d _mm_setallone_pd() CONST;

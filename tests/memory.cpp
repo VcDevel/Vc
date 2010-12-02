@@ -89,19 +89,30 @@ template<typename V, unsigned int Size> void TestEntries<V, Size>::test()
 template<typename V, unsigned int Size> void TestVectors<V, Size>::test()
 {
     typedef typename V::EntryType T;
-    const V x = Size;
+    const V startX(V::IndexType::IndexesFromZero() + Size);
     Memory<V, Size> m;
     const Memory<V, Size> &m2 = m;
     Memory<V> m3(Size);
-    for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
+    V x = startX;
+    for (unsigned int i = 0; i < m.vectorsCount(); ++i, x += V::Size) {
         m.vector(i) = x;
         m3.vector(i) = x;
     }
-    for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
+    x = startX;
+    unsigned int i;
+    for (i = 0; i < m.vectorsCount() - 1; ++i) {
         COMPARE(V(m.vector(i)), x);
         COMPARE(V(m2.vector(i)), x);
         COMPARE(V(m3.vector(i)), x);
+        for (int shift = 0; shift < V::Size; ++shift, ++x) {
+            COMPARE(V(m.vector(i, shift)), x);
+            COMPARE(V(m2.vector(i, shift)), x);
+            COMPARE(V(m3.vector(i, shift)), x);
+        }
     }
+    COMPARE(V(m.vector(i)), x);
+    COMPARE(V(m2.vector(i)), x);
+    COMPARE(V(m3.vector(i)), x);
 }
 
 template<typename V, unsigned int Size> void TestVectorReorganization<V, Size>::test()

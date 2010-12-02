@@ -62,7 +62,7 @@ template<typename Vec> void loadArray()
         Vec a(addr);
         COMPARE(a, ii);
 
-        Vec b(Zero);
+        Vec b = Vec::Zero();
         b.load(addr);
         COMPARE(b, ii);
     }
@@ -78,7 +78,7 @@ template<typename Vec> void loadArrayShort()
         array[i] = i;
     }
 
-    const Vec &offsets = ushort_v(IndexesFromZero).staticCast<T>();
+    const Vec &offsets = static_cast<Vec>(ushort_v::IndexesFromZero());
     for (int i = 0; i < count; i += Vec::Size) {
         const T *const addr = &array[i];
         Vec ii(i);
@@ -87,7 +87,7 @@ template<typename Vec> void loadArrayShort()
         Vec a(addr);
         COMPARE(a, ii);
 
-        Vec b(Zero);
+        Vec b = Vec::Zero();
         b.load(addr);
         COMPARE(b, ii);
     }

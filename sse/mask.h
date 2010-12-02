@@ -148,14 +148,26 @@ template<unsigned int VectorSize> class Mask
 
 struct ForeachHelper
 {
-    unsigned long mask;
+    _long mask;
     bool brk;
-    inline ForeachHelper(unsigned long _mask) : mask(_mask), brk(false) {}
+    inline ForeachHelper(_long _mask) : mask(_mask), brk(false) {}
     inline bool outer() const { return mask != 0; }
     inline bool inner() { return (brk = !brk); }
-    inline unsigned long next() {
-        const unsigned long bit = __builtin_ctzl(mask);
+    inline _long next() {
+#ifdef __GNUC__ // the compiler understands inline asm
+        const _long bit = __builtin_ctzl(mask);
         __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
+#elif defined(_WIN64)
+       unsigned long bit;
+       _BitScanForward64(&bit, mask);
+       _bittestandreset64(&mask, bit);
+#elif defined(_WIN32)
+       unsigned long bit;
+       _BitScanForward(&bit, mask);
+       _bittestandreset(&mask, bit);
+#else
+#error "Not implemented yet. Please contact vc-devel@compeng.uni-frankfurt.de"
+#endif
         return bit;
     }
 };
@@ -416,15 +428,25 @@ class Float8Mask
 template<unsigned int Size> inline int Mask<Size>::firstOne() const
 {
     const int mask = toInt();
+#ifdef _MSC_VER
+    unsigned long bit;
+    _BitScanForward(&bit, mask);
+#else
     int bit;
     __asm__("bsf %1,%0" : "=&r"(bit) : "r"(mask));
+#endif
     return bit;
 }
 inline int Float8Mask::firstOne() const
 {
     const int mask = toInt();
+#ifdef _MSC_VER
+    unsigned long bit;
+    _BitScanForward(&bit, mask);
+#else
     int bit;
     __asm__("bsf %1,%0" : "=&r"(bit) : "r"(mask));
+#endif
     return bit;
 }
 

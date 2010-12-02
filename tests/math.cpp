@@ -47,6 +47,7 @@ template<typename Vec> void testLog()
 {
     setFuzzyness<float>(1.2e-7f);
     setFuzzyness<double>(3e-16);
+    typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
     const I indexesFromZero(IndexesFromZero);
     Vec a(indexesFromZero);
@@ -58,7 +59,7 @@ template<typename Vec> void testLog()
         const typename Vec::EntryType two = 2.;
 
         for (int i = 0; i < Vec::Size; ++i) {
-            FUZZY_COMPARE(b[i], static_cast<typename Vec::EntryType>(std::log(a[i])));
+            FUZZY_COMPARE(static_cast<T>(b[i]), static_cast<T>(std::log(a[i])));
         }
 
         const Vec a2 = a * a;

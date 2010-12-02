@@ -2,3 +2,5 @@ larrabee/lrbni_prototypes.h
 doc/html
 doc/latex
 doc/man
+*.swp
+*~

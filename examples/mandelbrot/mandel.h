@@ -28,9 +28,6 @@
 #include <QWaitCondition>
 #include <complex>
 
-#include <Vc/float_v>
-#include <Vc/int_v>
-
 enum MandelImpl {
     VcImpl, ScalarImpl
 };

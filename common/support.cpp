@@ -17,6 +17,7 @@
 
 */
 
+#include "../include/Vc/global.h"
 #include "support.h"
 #include "../cpuid.h"
 
@@ -44,9 +45,13 @@ bool isImplementationSupported(Implementation impl)
         return CpuId::hasSse4a();
     case AVXImpl:
         if (CpuId::hasOsxsave() && CpuId::hasAvx()) {
+#ifdef VC_NO_XGETBV
+            return false;
+#else
             unsigned int eax;
             asm("xgetbv" : "=a"(eax) :: "edx");
             return (eax & 0x06) == 0x06;
+#endif
         }
         return false;
     case LRBniImpl:

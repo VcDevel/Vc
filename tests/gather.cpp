@@ -37,7 +37,7 @@ template<typename Vec> void gatherArray()
     M mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         const Vec ii(i);
-        const typename Vec::Mask castedMask(mask);
+        const typename Vec::Mask castedMask = static_cast<typename Vec::Mask>(mask);
         if (castedMask.isFull()) {
             Vec a(array, i);
             COMPARE(a, ii);

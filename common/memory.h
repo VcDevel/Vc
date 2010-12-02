@@ -28,6 +28,40 @@ namespace Vc
 {
 
 /**
+ * Allocates memory on the Heap with alignment and padding.
+ *
+ * Memory that was allocated with this function must be released with Vc::free! Other methods might
+ * work but are not portable.
+ *
+ * \param n Specifies the number of scalar values the allocated memory must be able to store.
+ *
+ * \warning The standard malloc function specifies the number of Bytes to allocate whereas this
+ *          function specifies the number of values, thus differing in a factor of sizeof(T)
+ *
+ * \see Vc::free
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+template<typename T, Vc::MallocAlignment A>
+inline T *ALWAYS_INLINE malloc(size_t n)
+{
+    return static_cast<T *>(Internal::Helper::malloc<A>(n * sizeof(T)));
+}
+
+/**
+ * Frees memory that was allocated with Vc::malloc.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+template<typename T>
+inline void ALWAYS_INLINE free(T *p)
+{
+    Internal::Helper::free(p);
+}
+
+/**
  * A helper class to simplify usage of correctly aligned and padded memory, allowing both vector and
  * scalar access.
  *
@@ -68,6 +102,7 @@ namespace Vc
  * \see Memory<V, 0u>
  *
  * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
  */
 template<typename V, unsigned int Size = 0u> class Memory : public VectorAlignedBase, public MemoryBase<V, Memory<V, Size> >
 {
@@ -83,6 +118,9 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
             Padding = Alignment - MaskedSize,
             PaddedSize = MaskedSize == 0 ? Size : Size + Padding
         };
+#if defined(__INTEL_COMPILER) && defined(_WIN32)
+		__declspec(align(__alignof(VectorAlignedBase)))
+#endif
         EntryType m_mem[PaddedSize];
     public:
         using Base::vector;
@@ -105,11 +143,15 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
         }
         inline Memory &operator=(const V &v) {
             for (unsigned int i = 0; i < vectorsCount(); ++i) {
-               v.store(vector(i));
+                vector(i) = v;
             }
             return *this;
         }
-};
+}
+#if defined(__INTEL_COMPILER) && !defined(_WIN32)
+__attribute__((__aligned__(__alignof(VectorAlignedBase))))
+#endif
+;
 
 /**
  * A helper class that is very similar to Memory<V, Size> but with dynamically allocated memory and
@@ -127,7 +169,7 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
 
     // vector access:
     for (int i = 0; i < array.vectorsCount(); ++i) {
-        (int_v::IndexesFromZero() + i * int_v::Size).store(array.vector(i));
+        array.vector(i) = int_v::IndexesFromZero() + i * int_v::Size;
     }
  * \endcode
  * This code allocates a small array with 11 scalar entries
@@ -144,6 +186,7 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
  * \see Memory<V, Size>
  *
  * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
  */
 template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
 {
@@ -159,10 +202,10 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         unsigned int m_entriesCount;
         unsigned int m_vectorsCount;
         EntryType *m_mem;
-        unsigned int calcVectorsCount(unsigned int x)
+        unsigned int calcPaddedEntriesCount(unsigned int x)
         {
             unsigned int masked = x & AlignmentMask;
-            return (masked == 0 ? x : x + (Alignment - masked)) / V::Size;
+            return (masked == 0 ? x : x + (Alignment - masked));
         }
     public:
         using Base::vector;
@@ -174,17 +217,40 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
          */
         inline Memory(unsigned int size)
             : m_entriesCount(size),
-            m_vectorsCount(calcVectorsCount(m_entriesCount)),
-            m_mem(reinterpret_cast<EntryType *>(new V[m_vectorsCount]))
-        {}
+            m_vectorsCount(calcPaddedEntriesCount(m_entriesCount)),
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
+        {
+            m_vectorsCount /= V::Size;
+        }
+
+        /**
+         * Copy the memory into a new memory area.
+         *
+         * The allocated memory is aligned and padded correctly for fully vectorized access.
+         */
+        template<typename Parent>
+        inline Memory(const MemoryBase<V, Parent> &rhs)
+            : m_entriesCount(rhs.entriesCount()),
+            m_vectorsCount(rhs.vectorsCount()),
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
+        {
+            std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
+        }
 
         /**
          * Frees the memory which was allocated in the constructor.
          */
         inline ~Memory()
         {
-            delete[] reinterpret_cast<V *>(m_mem);
+            Vc::free(m_mem);
         }
+
+        inline void swap(Memory &rhs) {
+            std::swap(m_mem, rhs.m_mem);
+            std::swap(m_entriesCount, rhs.m_entriesCount);
+            std::swap(m_vectorsCount, rhs.m_vectorsCount);
+        }
+
         inline unsigned int entriesCount() const { return m_entriesCount; }
         inline unsigned int vectorsCount() const { return m_vectorsCount; }
 
@@ -208,6 +274,79 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
             return *this;
         }
 };
+
+/**
+ * Prefetch the cacheline containing \p addr for a single read access.
+ *
+ * This prefetch completely bypasses the cache, not evicting any other data.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+inline void ALWAYS_INLINE prefetchForOneRead(const void *addr)
+{
+    Internal::Helper::prefetchForOneRead(addr);
+}
+
+/**
+ * Prefetch the cacheline containing \p addr for modification.
+ *
+ * This prefetch evicts data from the cache. So use it only for data you really will use. When the
+ * target system supports it the cacheline will be marked as modified while prefetching, saving work
+ * later on.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+inline void ALWAYS_INLINE prefetchForModify(const void *addr)
+{
+    Internal::Helper::prefetchForModify(addr);
+}
+
+/**
+ * Prefetch the cacheline containing \p addr to L1 cache.
+ *
+ * This prefetch evicts data from the cache. So use it only for data you really will use.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+inline void ALWAYS_INLINE prefetchClose(const void *addr)
+{
+    Internal::Helper::prefetchClose(addr);
+}
+
+/**
+ * Prefetch the cacheline containing \p addr to L2 cache.
+ *
+ * This prefetch evicts data from the cache. So use it only for data you really will use.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+inline void ALWAYS_INLINE prefetchMid(const void *addr)
+{
+    Internal::Helper::prefetchMid(addr);
+}
+
+/**
+ * Prefetch the cacheline containing \p addr to L3 cache.
+ *
+ * This prefetch evicts data from the cache. So use it only for data you really will use.
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+inline void ALWAYS_INLINE prefetchFar(const void *addr)
+{
+    Internal::Helper::prefetchFar(addr);
+}
+
 } // namespace Vc
+
+namespace std
+{
+    template<typename V> inline void swap(Vc::Memory<V> &a, Vc::Memory<V> &b) { a.swap(b); }
+} // namespace std
 
 #endif // VC_COMMON_MEMORY_H

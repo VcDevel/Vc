@@ -1,0 +1,8 @@
+macro(add_target_property _target _prop _value)
+   get_target_property(_oldprop "${_target}" ${_prop})
+   if(NOT _oldprop)
+      set_target_properties("${_target}" PROPERTIES ${_prop} "${_value}")
+   else(NOT _oldprop)
+      set_target_properties("${_target}" PROPERTIES ${_prop} "${_oldprop} ${_value}")
+   endif(NOT _oldprop)
+endmacro(add_target_property)

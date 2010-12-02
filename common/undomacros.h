@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -17,9 +17,18 @@
 
 */
 
-#ifndef VC_SIMPLE_UNDOMACROS_H
-#define VC_SIMPLE_UNDOMACROS_H
+#ifndef VC_COMMON_UNDOMACROS_H
+#define VC_COMMON_UNDOMACROS_H
+#undef VC_COMMON_MACROS_H
 
+#undef CONST
+#undef PURE
+#undef MAY_ALIAS
 #undef ALIGN
+#undef CAT
+#undef CAT_HELPER
+#undef unrolled_loop16
+#undef for_all_vector_entries
+#undef FREE_STORE_OPERATORS_ALIGNED
 
-#endif // VC_SIMPLE_UNDOMACROS_H
+#endif // VC_COMMON_UNDOMACROS_H

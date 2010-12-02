@@ -24,10 +24,19 @@
  * \code
  * int_v v(3, 2, 8, 0); // constructor does not exist because it is not portable
  * int_v v;
- * v[0] = 3; v[1] = 2; v[2] = 8; v[3] = 0; // scalar assignments are not implemented because they would harm performance
+ * v[0] = 3; v[1] = 2; v[2] = 8; v[3] = 0; // do not hardcode the number of entries!
+ * // You can not know whether somebody will compile with Vc Scalar where int_v::Size == 1
  * \endcode
  *
  * Instead, if really necessary you can do:
+ * \code
+ * int_v v;
+ * for (int i = 0; i < int_v::Size; ++i) {
+ *   v[i] = f(i);
+ * }
+ * \endcode
+ *
+ * This is equivalent to:
  * \code
  * int_v::Memory m;
  * for (int i = 0; i < int_v::Size; ++i) {
@@ -120,7 +129,9 @@ VECTOR_TYPE(ENTRY_TYPE *alignedMemory);
 template<typename OtherVector> explicit VECTOR_TYPE(const OtherVector &);
 
 /**
- * Construct a vector with all entries of the vector filled with the given value.
+ * Broadcast Constructor.
+ *
+ * Constructs a vector with all entries of the vector filled with the given value.
  *
  * \note If you want to set it to 0 or 1 use the special initializer constructors above. Calling
  * this constructor with 0 will cause a compilation error because the compiler cannot know which
@@ -135,7 +146,7 @@ VECTOR_TYPE(ENTRY_TYPE x);
  *
  * \see expand
  */
-VECTOR_TYPE(const OtherVector *array);
+//VECTOR_TYPE(const OtherVector *array);
 
 /**
  * Expand the values into an array of vectors that have a different Size.
@@ -144,22 +155,17 @@ VECTOR_TYPE(const OtherVector *array);
  *
  * This is the reverse of the above constructor.
  */
-void expand(OtherVector *array) const;
+//void expand(OtherVector *array) const;
 
 /**
- * Load the vector entries from \p alignedMemory, overwriting the previous values.
+ * Load the vector entries from \p memory, overwriting the previous values.
  *
- * \param alignedMemory A pointer to data. The pointer must be aligned on a
- *                      Vc::VectorAlignment boundary.
- */
-void load(const ENTRY_TYPE *alignedMemory);
-
-/**
- * Load the vector entries from \p unalignedMemory, overwriting the previous values.
+ * \param memory A pointer to data.
+ * \param align  Determines whether \p memory is an aligned pointer or not.
  *
- * \param unalignedMemory A pointer to data. The pointer must not be aligned.
+ * \see Memory
  */
-void loadUnaligned(const ENTRY_TYPE *unalignedMemory);
+void load(const ENTRY_TYPE *memory, LoadStoreFlags align = Aligned);
 
 /**
  * Set all entries to zero.
@@ -173,20 +179,28 @@ void makeZero();
 void makeZero(const MASK_TYPE &mask);
 
 /**
- * Store the vector data to \p alignedMemory.
+ * Store the vector data to \p memory.
  *
- * \param alignedMemory A pointer to memory, where to store. The pointer must be aligned on a
- *                      Vc::VectorAlignment boundary.
+ * \param memory A pointer to memory, where to store.
+ * \param align  Determines whether \p memory is an aligned pointer or not.
+ *
+ * \see Memory
  */
-void store(EntryType *alignedMemory) const;
+void store(EntryType *memory, LoadStoreFlags align = Aligned) const;
 
 /**
- * Non-temporal store variant. Writes to the memory without polluting the cache.
+ * Return a reference to the vector entry at the given \p index.
  *
- * \param alignedMemory A pointer to memory, where to store. The pointer must be aligned on a
- *                      Vc::VectorAlignment boundary.
+ * This operator can be used to modify scalar entries of the vector.
+ *
+ * \param index A value between 0 and Size. This value is not checked internally so you must make/be
+ *              sure it is in range.
+ *
+ * \warning This operator is known to miscompile with GCC 4.3.x.
+ * \warning The use of this function may result in suboptimal performance. Please check whether you
+ * can find a more vector-friendly way to do what you need.
  */
-void storeStreaming(EntryType *alignedMemory) const;
+ENTRY_TYPE &operator[](int index);
 
 /**
  * Return the vector entry at the given \p index.
@@ -315,4 +329,24 @@ VECTOR_TYPE operator/(VECTOR_TYPE x) const;
 VECTOR_TYPE operator|(VECTOR_TYPE x) const;
 VECTOR_TYPE operator&(VECTOR_TYPE x) const;
 VECTOR_TYPE operator^(VECTOR_TYPE x) const;
+//@}
+
+/**
+ * \name Horizontal Operations
+ *
+ * There are four horizontal operations available to reduce the values of a vector to a scalar
+ * value.
+ *
+ * \code
+ * void foo(const float_v &v) {
+ *   float min = v.min(); // smallest value in v
+ *   float sum = v.sum(); // sum of all values in v
+ * }
+ * \endcode
+ */
+//@{
+ENTRY_TYPE min() const;
+ENTRY_TYPE max() const;
+ENTRY_TYPE product() const;
+ENTRY_TYPE sum() const;
 //@}

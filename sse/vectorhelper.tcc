@@ -49,6 +49,226 @@ namespace Vc
 {
 namespace SSE
 {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// float_v
+template<> inline _M128 VectorHelper<_M128>::load(const float *x, AlignedFlag)
+{
+    return _mm_load_ps(x);
+}
+
+template<> inline _M128 VectorHelper<_M128>::load(const float *x, UnalignedFlag)
+{
+    return _mm_loadu_ps(x);
+}
+
+template<> inline _M128 VectorHelper<_M128>::load(const float *x, StreamingAndAlignedFlag)
+{
+#ifdef VC_IMPL_SSE41
+    return _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<float *>(x))));
+#else
+    return load(x, Aligned);
+#endif
+}
+
+template<> inline _M128 VectorHelper<_M128>::load(const float *x, StreamingAndUnalignedFlag)
+{
+    return load(x, Unaligned);
+}
+
+template<> inline void VectorHelper<_M128>::store(float *mem, const VectorType &x, AlignedFlag)
+{
+    _mm_store_ps(mem, x);
+}
+
+template<> inline void VectorHelper<_M128>::store(float *mem, const VectorType &x, UnalignedFlag)
+{
+    _mm_storeu_ps(mem, x);
+}
+
+template<> inline void VectorHelper<_M128>::store(float *mem, const VectorType &x, StreamingAndAlignedFlag)
+{
+    _mm_stream_ps(mem, x);
+}
+
+template<> inline void VectorHelper<_M128>::store(float *mem, const VectorType &x, StreamingAndUnalignedFlag)
+{
+    // SSE does not support unaligned streaming stores. Since unaligned memory access is more
+    // important we ignore the streaming part
+    _mm_storeu_ps(mem, x);
+}
+
+template<> inline void VectorHelper<_M128>::store(float *mem, const VectorType &x, const VectorType m)
+{
+    _mm_maskmoveu_si128(_mm_castps_si128(x), _mm_castps_si128(m), reinterpret_cast<char *>(mem));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// sfloat_v
+template<> inline M256 VectorHelper<M256>::load(const float *x, AlignedFlag)
+{
+    return VectorType::create(_mm_load_ps(x), _mm_load_ps(x + 4));
+}
+
+template<> inline M256 VectorHelper<M256>::load(const float *x, UnalignedFlag)
+{
+    return VectorType::create(_mm_loadu_ps(x), _mm_loadu_ps(x + 4));
+}
+
+template<> inline M256 VectorHelper<M256>::load(const float *x, StreamingAndAlignedFlag)
+{
+#ifdef VC_IMPL_SSE41
+    return VectorType::create(
+            _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<float *>(x)))),
+            _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<float *>(x + 4)))));
+#else
+    return load(x, Aligned);
+#endif
+}
+
+template<> inline M256 VectorHelper<M256>::load(const float *x, StreamingAndUnalignedFlag)
+{
+    return load(x, Unaligned);
+}
+
+template<> inline void VectorHelper<M256>::store(float *mem, const VectorType &x, AlignedFlag)
+{
+    _mm_store_ps(mem, x[0]);
+    _mm_store_ps(mem + 4, x[1]);
+}
+
+template<> inline void VectorHelper<M256>::store(float *mem, const VectorType &x, UnalignedFlag)
+{
+    _mm_storeu_ps(mem, x[0]);
+    _mm_storeu_ps(mem + 4, x[1]);
+}
+
+template<> inline void VectorHelper<M256>::store(float *mem, const VectorType &x, StreamingAndAlignedFlag)
+{
+    _mm_stream_ps(mem, x[0]);
+    _mm_stream_ps(mem + 4, x[1]);
+}
+
+template<> inline void VectorHelper<M256>::store(float *mem, const VectorType &x, StreamingAndUnalignedFlag)
+{
+    // SSE does not support unaligned streaming stores. Since unaligned memory access is more
+    // important we ignore the streaming part
+    _mm_storeu_ps(mem, x[0]);
+    _mm_storeu_ps(mem + 4, x[1]);
+}
+
+template<> inline void VectorHelper<M256>::store(float *mem, const VectorType &x, const VectorType m)
+{
+    _mm_maskmoveu_si128(_mm_castps_si128(x[0]), _mm_castps_si128(m[0]), reinterpret_cast<char *>(mem));
+    _mm_maskmoveu_si128(_mm_castps_si128(x[1]), _mm_castps_si128(m[1]), reinterpret_cast<char *>(mem + 4));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// double_v
+template<> inline _M128D VectorHelper<_M128D>::load(const double *x, AlignedFlag)
+{
+    return _mm_load_pd(x);
+}
+
+template<> inline _M128D VectorHelper<_M128D>::load(const double *x, UnalignedFlag)
+{
+    return _mm_loadu_pd(x);
+}
+
+template<> inline _M128D VectorHelper<_M128D>::load(const double *x, StreamingAndAlignedFlag)
+{
+#ifdef VC_IMPL_SSE41
+    return _mm_castsi128_pd(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<double *>(x))));
+#else
+    return load(x, Aligned);
+#endif
+}
+
+template<> inline _M128D VectorHelper<_M128D>::load(const double *x, StreamingAndUnalignedFlag)
+{
+    return load(x, Unaligned);
+}
+
+template<> inline void VectorHelper<_M128D>::store(double *mem, const VectorType &x, AlignedFlag)
+{
+    _mm_store_pd(mem, x);
+}
+
+template<> inline void VectorHelper<_M128D>::store(double *mem, const VectorType &x, UnalignedFlag)
+{
+    _mm_storeu_pd(mem, x);
+}
+
+template<> inline void VectorHelper<_M128D>::store(double *mem, const VectorType &x, StreamingAndAlignedFlag)
+{
+    _mm_stream_pd(mem, x);
+}
+
+template<> inline void VectorHelper<_M128D>::store(double *mem, const VectorType &x, StreamingAndUnalignedFlag)
+{
+    // SSE does not support unaligned streaming stores. Since unaligned memory access is more
+    // important we ignore the streaming part
+    _mm_storeu_pd(mem, x);
+}
+
+template<> inline void VectorHelper<_M128D>::store(double *mem, const VectorType &x, const VectorType m)
+{
+    _mm_maskmoveu_si128(_mm_castpd_si128(x), _mm_castpd_si128(m), reinterpret_cast<char *>(mem));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// int_v, uint_v, short_v, ushort_v
+template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, AlignedFlag)
+{
+    return _mm_load_si128(reinterpret_cast<const VectorType *>(x));
+}
+
+template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, UnalignedFlag)
+{
+    return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x));
+}
+
+template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, StreamingAndAlignedFlag)
+{
+#ifdef VC_IMPL_SSE41
+    return _mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<T *>(x)));
+#else
+    return load(x, Aligned);
+#endif
+}
+
+template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, StreamingAndUnalignedFlag)
+{
+    return load(x, Unaligned);
+}
+
+template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const VectorType &x, AlignedFlag)
+{
+    _mm_store_si128(reinterpret_cast<VectorType *>(mem), x);
+}
+
+template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const VectorType &x, UnalignedFlag)
+{
+    _mm_storeu_si128(reinterpret_cast<VectorType *>(mem), x);
+}
+
+template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const VectorType &x, StreamingAndAlignedFlag)
+{
+    _mm_stream_si128(reinterpret_cast<VectorType *>(mem), x);
+}
+
+template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const VectorType &x, StreamingAndUnalignedFlag)
+{
+    // SSE does not support unaligned streaming stores. Since unaligned memory access is more
+    // important we ignore the streaming part
+    _mm_storeu_si128(reinterpret_cast<VectorType *>(mem), x);
+}
+
+template<typename T> inline void VectorHelper<_M128I>::store(T *mem, const VectorType &x, const VectorType &m)
+{
+    _mm_maskmoveu_si128(x, m, reinterpret_cast<char *>(mem));
+}
+
     template<> inline _M128I SortHelper<_M128I, 8>::sort(_M128I x)
     {
         _M128I lo, hi, y;
@@ -207,7 +427,7 @@ namespace SSE
          */
         template<unsigned int scale, typename Base, typename IndexType, typename EntryType>
         static inline void maskedDoubleGatherHelper(
-                Base &v, const IndexType &outer, const IndexType &inner, unsigned long mask, const EntryType *const *const baseAddr
+                Base &v, const IndexType &outer, const IndexType &inner, _ulong mask, const EntryType *const *const baseAddr
                 ) {
 #ifdef VC_NO_BSF_LOOPS
 # ifdef VC_NO_GATHER_TRICKS
@@ -222,10 +442,11 @@ namespace SSE
                     );
 # endif // VC_NO_GATHER_TRICKS
 #else // VC_NO_BSF_LOOPS
+            typename Base::VectorType &vd = v.d.v();
             if (sizeof(EntryType) == 2) {
-                register unsigned long int bit;
-                register unsigned long int outerIndex;
-                register unsigned long int innerIndex;
+                register _ulong bit;
+                register _ulong outerIndex;
+                register _ulong innerIndex;
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
@@ -244,12 +465,12 @@ namespace SSE
                         "\n\t"  "jnz 0b"
                         ALIGN_16
                         "\n\t"  "1:"
-                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(vd),
                           "=&r"(outerIndex), "=&r"(innerIndex), "=&r"(array)
-                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&vd), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
             } else if (sizeof(EntryType) == 4 && sizeof(typename IndexType::EntryType) == 4) {
-                register unsigned long int bit;
-                register unsigned long int innerIndex;
+                register _ulong bit;
+                register _ulong innerIndex;
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
@@ -267,14 +488,14 @@ namespace SSE
                         "\n\t"  "jnz 0b"
                         ALIGN_16
                         "\n\t"  "1:"
-                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(vd),
                           "=&r"(innerIndex), "=&r"(array)
-                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&vd), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
                         : "rcx" );
             } else if (sizeof(EntryType) == 4 && sizeof(typename IndexType::EntryType) == 2) {
-                register unsigned long int bit;
-                register unsigned long int outerIndex;
-                register unsigned long int innerIndex;
+                register _ulong bit;
+                register _ulong outerIndex;
+                register _ulong innerIndex;
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
@@ -293,12 +514,12 @@ namespace SSE
                         "\n\t"  "jnz 0b"
                         ALIGN_16
                         "\n\t"  "1:"
-                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(vd),
                           "=&r"(outerIndex), "=&r"(innerIndex), "=&r"(array)
-                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&vd), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v()));
             } else if (sizeof(EntryType) == 8 && sizeof(typename IndexType::EntryType) == 4) {
-                register unsigned long int bit;
-                register unsigned long int innerIndex;
+                register _ulong bit;
+                register _ulong innerIndex;
                 register const EntryType *array;
                 register EntryType value;
                 asm volatile(
@@ -316,9 +537,9 @@ namespace SSE
                         "\n\t"  "jnz 0b"
                         ALIGN_16
                         "\n\t"  "1:"
-                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(v.d),
+                        : "=&r"(bit), "+r"(mask), "=&r"(value), "+m"(vd),
                           "=&r"(innerIndex), "=&r"(array)
-                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&v.d), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
+                        : "r"(&outer.d.v()), "r"(baseAddr), "r"(&vd), "n"(scale), "r"(&inner.d.v()), "m"(outer.d.v()), "m"(inner.d.v())
                         : "rcx"   );
             } else {
                 abort();
@@ -332,8 +553,9 @@ namespace SSE
 
 #ifndef VC_NO_BSF_LOOPS
             asm volatile(""::"m"(indexes.d.v()));
+            typename Base::VectorType &vd = v.d.v();
             if (sizeof(EntryType) == 2) {
-                register unsigned long int index;
+                register _ulong index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
@@ -349,8 +571,8 @@ namespace SSE
                         "1:"                   "\n\t"
                         "bsf %[mask],%%edi"            "\n\t"
                         "jnz 0b"               "\n\t"
-                        : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d), [index]"=&r"(index)
-                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                        : [mask]"+r"(mask), [value]"=&r"(value), "+m"(vd), [index]"=&r"(index)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd), [scale]"n"(scale)
                         : "rdi");
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
@@ -368,11 +590,11 @@ namespace SSE
                             "1:"                   "\n\t"
                             "bsf %[mask],%%edi"            "\n\t"
                             "jnz 0b"               "\n\t"
-                            : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d)
-                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                            : [mask]"+r"(mask), [value]"=&r"(value), "+m"(vd)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd), [scale]"n"(scale)
                             : "rcx", "rdi"   );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
-                    register unsigned long int index;
+                    register _ulong index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
@@ -388,8 +610,8 @@ namespace SSE
                             "1:"                   "\n\t"
                             "bsf %[mask],%%edi"            "\n\t"
                             "jnz 0b"               "\n\t"
-                            : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d), [index]"=&r"(index)
-                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                            : [mask]"+r"(mask), [value]"=&r"(value), "+m"(vd), [index]"=&r"(index)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd), [scale]"n"(scale)
                             : "rdi");
                 } else {
                     abort();
@@ -409,8 +631,8 @@ namespace SSE
                         "1:"                   "\n\t"
                         "bsf %[mask],%%edi"            "\n\t"
                         "jnz 0b"               "\n\t"
-                        : [mask]"+r"(mask), [value]"=&r"(value), "+m"(v.d)
-                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d), [scale]"n"(scale)
+                        : [mask]"+r"(mask), [value]"=&r"(value), "+m"(vd)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd), [scale]"n"(scale)
                         : "rcx", "rdi"   );
             } else {
                 abort();
@@ -428,7 +650,7 @@ namespace SSE
             if (sizeof(EntryType) <= 4) {
                 unrolled_loop16(i, 0, Base::Size,
                         register EntryType tmp = v.d.m(i);
-                        register long j = scale * indexes.d.m(i);
+                        register _long j = scale * indexes.d.m(i);
                         asm volatile("test %[i],%[mask]\n\t"
                             "cmove %[zero],%[j]\n\t"
                             "cmovne (%[mem],%[j],1),%[tmp]"
@@ -446,7 +668,7 @@ namespace SSE
 #  ifdef __x86_64__
             unrolled_loop16(i, 0, Base::Size,
                     register EntryType tmp = v.d.m(i);
-                    register long j = scale * indexes.d.m(i);
+                    register _long j = scale * indexes.d.m(i);
                     asm volatile("test %[i],%[mask]\n\t"
                         "cmove %[zero],%[j]\n\t"
                         "cmovne (%[mem],%[j],1),%[tmp]"
@@ -463,7 +685,7 @@ namespace SSE
             // on 32 bit archs, 64 bit copies require two 32 bit registers
             unrolled_loop16(i, 0, Base::Size,
                     register EntryType tmp = v.d.m(i);
-                    register long j = scale * indexes.d.m(i);
+                    register _long j = scale * indexes.d.m(i);
                     asm volatile("test %[i],%[mask]\n\t"
                         "cmove %[zero],%[j]\n\t"
                         "cmovne (%[mem],%[j],1),%%eax\n\t"
@@ -488,8 +710,10 @@ namespace SSE
                 ) {
 #ifndef VC_NO_BSF_LOOPS
             asm volatile(""::"m"(indexes.d.v()));
+            typedef typename Base::VectorType VectorType;
+            VectorType &vd = v.d.v();
             if (sizeof(EntryType) == 2) {
-                register unsigned long int index;
+                register _ulong index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
@@ -504,13 +728,13 @@ namespace SSE
                         "1:"                                    "\n\t"
                         "bsf %[mask],%%edi"                     "\n\t"
                         "jnz 0b"                                "\n\t"
-                        : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
-                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                        : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(vd)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd)
                         : "rdi"
                         );
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
-                    register unsigned long int index;
+                    register _ulong index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
@@ -525,12 +749,12 @@ namespace SSE
                             "1:"                                    "\n\t"
                             "bsf %[mask],%%edi"                     "\n\t"
                             "jnz 0b"                                "\n\t"
-                            : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
-                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                            : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(vd)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd)
                             : "rdi"
                             );
                 } else if (sizeof(typename IndexType::EntryType) == 2) {
-                    register unsigned long int index;
+                    register _ulong index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
@@ -545,15 +769,15 @@ namespace SSE
                             "1:"                                    "\n\t"
                             "bsf %[mask],%%edi"                     "\n\t"
                             "jnz 0b"                                "\n\t"
-                            : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
-                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                            : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(vd)
+                            : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd)
                             : "rdi"
                             );
                 } else {
                     abort();
                 }
             } else if (sizeof(EntryType) == 8) {
-                register unsigned long int index;
+                register _ulong index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
@@ -568,8 +792,8 @@ namespace SSE
                         "1:"                                    "\n\t"
                         "bsf %[mask],%%edi"                     "\n\t"
                         "jnz 0b"                                "\n\t"
-                        : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(v.d)
-                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&v.d)
+                        : [mask]"+r"(mask), [index]"=&r"(index), [value]"=&r"(value), "+m"(vd)
+                        : [indexes]"r"(&indexes.d.v()), [base]"r"(baseAddr), [vec]"r"(&vd)
                         : "rdi"
                         );
             } else {
@@ -589,8 +813,8 @@ namespace SSE
             if (sizeof(EntryType) == 8) {
 #ifdef __x86_64__
                 unrolled_loop16(i, 0, Base::Size,
-                    register long j = indexes.d.m(i);
-                    register long zero = 0;
+                    register _long j = indexes.d.m(i);
+                    register _long zero = 0;
                     register EntryType tmp = v.d.m(i);
                     asm volatile(
                         "test %[i],%[mask]\n\t"
@@ -607,8 +831,8 @@ namespace SSE
                     );
 #else
                 unrolled_loop16(i, 0, Base::Size,
-                    register long j = indexes.d.m(i);
-                    register long zero = 0;
+                    register _long j = indexes.d.m(i);
+                    register _long zero = 0;
                     register EntryType tmp = v.d.m(i);
                     asm volatile(
                         "test %[i],%[mask]\n\t"
@@ -629,8 +853,8 @@ namespace SSE
             }
 
             unrolled_loop16(i, 0, Base::Size,
-                    register long j = indexes.d.m(i);
-                    register long zero = 0;
+                    register _long j = indexes.d.m(i);
+                    register _long zero = 0;
                     register EntryType tmp = v.d.m(i);
                     if (sizeof(EntryType) == 2) asm volatile(
                         "test %[i],%[mask]\n\t"
@@ -662,12 +886,12 @@ namespace SSE
 
         template<typename Base, typename IndexType, typename EntryType>
         static inline void maskedScatterHelper(
-                const Base &v, const IndexType &indexes, long mask, EntryType *baseAddr
+                const Base &v, const IndexType &indexes, _long mask, EntryType *baseAddr
                 ) {
 #ifndef VC_NO_BSF_LOOPS
             if (sizeof(EntryType) == 2) {
-                register unsigned long int bit;
-                register unsigned long int index;
+                register _ulong bit;
+                register _ulong index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
@@ -686,8 +910,8 @@ namespace SSE
                         : "rcx"   );
             } else if (sizeof(EntryType) == 4) {
                 if (sizeof(typename IndexType::EntryType) == 4) {
-                    register unsigned long int bit;
-                    register unsigned long int index;
+                    register _ulong bit;
+                    register _ulong index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
@@ -705,8 +929,8 @@ namespace SSE
                             : "r"(&indexes.d.v()), "r"(baseAddr), "r"(&v.d), "m"(indexes.d.v())
                             : "rcx"   );
                 } else if (sizeof(typename IndexType::EntryType) == 2) { // sfloat_v[ushort_v]
-                    register unsigned long int bit;
-                    register unsigned long int index;
+                    register _ulong bit;
+                    register _ulong index;
                     register EntryType value;
                     asm volatile(
                             SLOWDOWN_ASM
@@ -727,8 +951,8 @@ namespace SSE
                     abort();
                 }
             } else if (sizeof(EntryType) == 8) {
-                register unsigned long int bit;
-                register unsigned long int index;
+                register _ulong bit;
+                register _ulong index;
                 register EntryType value;
                 asm volatile(
                         SLOWDOWN_ASM
