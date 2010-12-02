@@ -1,8 +1,8 @@
 SET(CTEST_DROP_METHOD "http")
-SET(CTEST_DROP_SITE "fairroot.gsi.de")
-SET(CTEST_DROP_LOCATION "/CDash/submit.php?project=VC")
-SET(CTEST_TRIGGER_SITE "fairroot.gsi.de")
-SET(CTEST_NIGHTLY_START_TIME "23:00:00 UTC")
+SET(CTEST_DROP_SITE "code.compeng.uni-frankfurt.de")
+SET(CTEST_DROP_LOCATION "/dashboard/submit.php?project=Vc")
+SET(CTEST_TRIGGER_SITE "${CTEST_DROP_SITE}")
+SET(CTEST_NIGHTLY_START_TIME "00:00:00 CET")
 SET(CTEST_UPDATE_TYPE "git")
 
 find_program(GITCOMMAND git)
