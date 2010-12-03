@@ -212,6 +212,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/incl
 
 add_library(Vc STATIC vector.cpp common/support.cpp)
 add_target_property(Vc COMPILE_FLAGS "-DVC_COMPILE_LIB")
+add_target_property(Vc LABELS "other")
+
+add_custom_target(other VERBATIM)
+add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
+add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
+add_custom_target(LRBni COMMENT "build LRBni code" VERBATIM)
+add_dependencies(other Vc)
 
 install(TARGETS Vc DESTINATION lib/)
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
