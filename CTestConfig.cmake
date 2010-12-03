@@ -1,11 +1,22 @@
-SET(CTEST_DROP_METHOD "http")
-SET(CTEST_DROP_SITE "code.compeng.uni-frankfurt.de")
-SET(CTEST_DROP_LOCATION "/dashboard/submit.php?project=Vc")
-SET(CTEST_TRIGGER_SITE "${CTEST_DROP_SITE}")
-SET(CTEST_NIGHTLY_START_TIME "00:00:00 CET")
-SET(CTEST_UPDATE_TYPE "git")
+set(CTEST_PROJECT_NAME "Vc")
+set(CTEST_NIGHTLY_START_TIME "00:00:00 CET")
+
+set(CTEST_DROP_METHOD "http")
+set(CTEST_DROP_SITE "code.compeng.uni-frankfurt.de")
+set(CTEST_DROP_LOCATION "/dashboard/submit.php?project=Vc")
+
+set(CTEST_DROP_SITE_CDASH TRUE)
+
+set(CTEST_PROJECT_SUBPROJECTS
+   other
+   Scalar
+   SSE
+   LRBni
+   )
+
+set(CTEST_UPDATE_TYPE "git")
 
 find_program(GITCOMMAND git)
-SET(CTEST_UPDATE_COMMAND "${GITCOMMAND}")
+set(CTEST_UPDATE_COMMAND "${GITCOMMAND}")
 
 mark_as_advanced(GITCOMMAND)
