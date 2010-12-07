@@ -48,7 +48,19 @@ macro(OptimizeForArchitecture)
       if(_vendor_id STREQUAL "GenuineIntel")
          if(_cpu_family EQUAL 6)
             # Any recent Intel CPU except NetBurst
-            if(_cpu_model EQUAL 37)
+            if(_cpu_model EQUAL 46)     # Xeon 7500 series
+               set(TARGET_ARCHITECTURE "westmere")
+            elseif(_cpu_model EQUAL 45) # Xeon TNG
+               set(TARGET_ARCHITECTURE "sandybridge")
+            elseif(_cpu_model EQUAL 44) # Xeon 5600 series
+               set(TARGET_ARCHITECTURE "westmere")
+            elseif(_cpu_model EQUAL 42) # Core TNG
+               set(TARGET_ARCHITECTURE "sandybridge")
+            elseif(_cpu_model EQUAL 37) # Core i7/i5/i3
+               set(TARGET_ARCHITECTURE "westmere")
+            elseif(_cpu_model EQUAL 31) # Core i7/i5
+               set(TARGET_ARCHITECTURE "westmere")
+            elseif(_cpu_model EQUAL 30) # Core i7/i5
                set(TARGET_ARCHITECTURE "westmere")
             elseif(_cpu_model EQUAL 29)
                set(TARGET_ARCHITECTURE "penryn")
@@ -62,7 +74,10 @@ macro(OptimizeForArchitecture)
                set(TARGET_ARCHITECTURE "merom")
             elseif(_cpu_model EQUAL 14)
                set(TARGET_ARCHITECTURE "core")
-            endif(_cpu_model EQUAL 37)
+            else()
+               message(WARNING "Your CPU (family ${_cpu_family}, model ${_cpu_model}) is not known. Auto-detection of optimization flags failed and will use the 65nm Core 2 CPU settings.")
+               set(TARGET_ARCHITECTURE "merom")
+            endif()
          elseif(_cpu_family EQUAL 7) # Itanium (not supported)
          elseif(_cpu_family EQUAL 15) # NetBurst
             list(APPEND _available_vector_units_list "sse" "sse2")
