@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 2.6.2)
+
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BUILD_DIR)
+   message(ERROR "You don't want to configure in the source directory!")
+endif()
+
 project(Vc)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
