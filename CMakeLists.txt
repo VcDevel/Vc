@@ -2,6 +2,30 @@ cmake_minimum_required(VERSION 2.6.2)
 project(Vc)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+if(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
+   set(COMPILER_IS_INTEL true)
+   set(COMPILER_IS_OPEN64 false)
+   set(COMPILER_IS_MSVC false)
+   set(COMPILER_IS_GCC false)
+elseif(CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
+   set(COMPILER_IS_INTEL false)
+   set(COMPILER_IS_OPEN64 true)
+   set(COMPILER_IS_MSVC false)
+   set(COMPILER_IS_GCC false)
+elseif(MSVC)
+   set(COMPILER_IS_INTEL false)
+   set(COMPILER_IS_OPEN64 false)
+   set(COMPILER_IS_MSVC true)
+   set(COMPILER_IS_GCC false)
+elseif(CMAKE_COMPILER_IS_GNUCXX)
+   set(COMPILER_IS_INTEL false)
+   set(COMPILER_IS_OPEN64 false)
+   set(COMPILER_IS_MSVC false)
+   set(COMPILER_IS_GCC true)
+else()
+   message(ERROR "Unsupported Compiler. Please fill out the missing parts in the CMake scripts and submit a patch to http://code.compeng.uni-frankfurt.de/projects/vc")
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release CACHE STRING
       "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
@@ -43,7 +67,7 @@ endif(GATHER_SET)
 
 set(SSE_INTRINSICS_BROKEN false)
 
-if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
+if(COMPILER_IS_OPEN64)
    # Open64 is detected as GNUCXX :(
    AddCompilerFlag("-W")
    AddCompilerFlag("-Wall")
@@ -111,7 +135,7 @@ if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
       endif(NOT _as_good)
    endif(NOT _binutils_as)
    mark_as_advanced(_binutils_as)
-elseif(CMAKE_COMPILER_IS_GNUCXX)
+elseif(COMPILER_IS_GCC)
    ##################################################################################################
    #                                              GCC                                               #
    ##################################################################################################
@@ -179,7 +203,7 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
       endif(NOT _as_good)
    endif(NOT _binutils_as)
    mark_as_advanced(_binutils_as)
-elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
+elseif(COMPILER_IS_INTEL)
    ##################################################################################################
    #                                          Intel Compiler                                        #
    ##################################################################################################
@@ -204,13 +228,13 @@ elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
    # per default icc is not IEEE compliant, but we need that for verification
    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${ALIAS_FLAGS} -w1 -fp-model precise")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS} -w1 -fp-model precise")
-elseif(MSVC)
+elseif(COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4800") # Disable warning "forcing value to bool"
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
    # MSVC does not support inline assembly on 64 bit! :(
    # searching the help for xgetbv doesn't turn up anything. So just fall back to not supporting AVX on Windows :(
    add_definitions(-DVC_NO_XGETBV)
-endif(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
+endif()
 
 OptimizeForArchitecture()
 
