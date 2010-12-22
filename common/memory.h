@@ -23,6 +23,7 @@
 #include "memorybase.h"
 #include <assert.h>
 #include <algorithm>
+#include <cstring>
 
 namespace Vc
 {
@@ -134,11 +135,11 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
         template<typename Parent>
         inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
-            std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
+            std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
             return *this;
         }
         inline Memory<V> &operator=(const EntryType *rhs) {
-            std::copy(rhs, rhs + entriesCount(), m_mem);
+            std::memcpy(m_mem, rhs, entriesCount() * sizeof(EntryType));
             return *this;
         }
         inline Memory &operator=(const V &v) {
@@ -234,7 +235,20 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
             m_vectorsCount(rhs.vectorsCount()),
             m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
-            std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
+            std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
+        }
+
+        /**
+         * Overload of the above function.
+         *
+         * (Because C++ would otherwise not use the templated cctor and use a default-constructed cctor instead.)
+         */
+        inline Memory(const Memory<V, 0u> &rhs)
+            : m_entriesCount(rhs.entriesCount()),
+            m_vectorsCount(rhs.vectorsCount()),
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
+        {
+            std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
         }
 
         /**
@@ -261,7 +275,7 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         template<typename Parent>
         inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
-            std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
+            std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
             return *this;
         }
 
@@ -270,7 +284,7 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
          * function assumes that there are entriesCount() many values accessible from \p rhs on.
          */
         inline Memory<V> &operator=(const EntryType *rhs) {
-            std::copy(rhs, rhs + entriesCount(), m_mem);
+            std::memcpy(m_mem, rhs, entriesCount() * sizeof(EntryType));
             return *this;
         }
 };
