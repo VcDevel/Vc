@@ -65,13 +65,17 @@ template<typename Vector> struct CondAssignment
 
         Vector *data = new Vector[Factor];
         for (int i = 0; i < Factor; ++i) {
-            data[i].makeZero();
+            data[i].setZero();
         }
+#ifndef VC_BENCHMARK_NO_MLOCK
+        mlock(masks, Factor * sizeof(Mask));
+        mlock(data, Factor * sizeof(Vector));
+#endif
 
         const Vector one(One);
 
         {
-            // gcc compiles the Simple::Vector version such that if all four masks are false it runs
+            // gcc compiles the Scalar::Vector version such that if all four masks are false it runs
             // 20 times faster than otherwise
             Benchmark timer("Conditional Assignment (Const Mask)", valuesPerSecondFactor, "Op");
             while (timer.wantsMoreDataPoints()) {

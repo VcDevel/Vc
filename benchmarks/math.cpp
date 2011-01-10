@@ -37,6 +37,9 @@ template<typename Vector> struct Helper
         const int opPerSecondFactor = Factor * Vector::Size;
 
         Vector *data = new Vector[Factor];
+#ifndef VC_BENCHMARK_NO_MLOCK
+        mlock(data, Factor * sizeof(Vector));
+#endif
         for (int i = 0; i < Factor; ++i) {
             data[i] = PseudoRandom<Vector>::next();
         }

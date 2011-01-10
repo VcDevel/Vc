@@ -17,12 +17,12 @@
 
 */
 
-#ifndef VC_SIMPLE_WRITEMASKEDVECTOR_H
-#define VC_SIMPLE_WRITEMASKEDVECTOR_H
+#ifndef VC_SCALAR_WRITEMASKEDVECTOR_H
+#define VC_SCALAR_WRITEMASKEDVECTOR_H
 
 namespace Vc
 {
-namespace Simple
+namespace Scalar
 {
 
 template<typename T> class WriteMaskedVector
@@ -52,6 +52,6 @@ template<typename T> class WriteMaskedVector
         Mask mask;
 };
 
-} // namespace Simple
+} // namespace Scalar
 } // namespace Vc
-#endif // VC_SIMPLE_WRITEMASKEDVECTOR_H
+#endif // VC_SCALAR_WRITEMASKEDVECTOR_H

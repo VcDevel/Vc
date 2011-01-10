@@ -17,9 +17,9 @@
 
 */
 
-#ifndef VC_SIMPLE_UNDOMACROS_H
-#define VC_SIMPLE_UNDOMACROS_H
+#include "../common/macros.h"
 
-#undef ALIGN
+#ifndef VC_SCALAR_MACROS_H
+#define VC_SCALAR_MACROS_H
 
-#endif // VC_SIMPLE_UNDOMACROS_H
+#endif // VC_SCALAR_MACROS_H

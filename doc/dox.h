@@ -21,34 +21,22 @@
  * \mainpage
  * \image html logo.png
  *
- * The Vc library is a collection of vector classes with existing implementations for SSE, LRBni or
- * a scalar fallback.
+ * The Vc library is a collection of vector classes with existing implementations for SSE, LRBni,
+ * and a scalar fallback.
  *
- * \li Vc::float_v
- * \li Vc::sfloat_v
- * \li Vc::double_v
- * \li Vc::int_v
- * \li Vc::uint_v
- * \li Vc::short_v
- * \li Vc::ushort_v
+ * \subpage intro
  *
- * \li Vc::float_m
- * \li Vc::sfloat_m
- * \li Vc::double_m
- * \li Vc::int_m
- * \li Vc::uint_m
- * \li Vc::short_m
- * \li Vc::ushort_m
- *
- * \li Vc::Memory
- * \li Vc::Memory< V, 0u >
+ * \li \ref Vectors
+ * \li \ref Masks
+ * \li \ref Utilities
+ * \li \ref Math
  *
  * Per default, code compiled against the Vc headers will use the instruction set that the compiler
  * says is available. For example compiling with "g++ -mssse3" will enable compilation against the
  * SSE implementation using SSE the instruction sets SSE, SSE2, SSE3 and SSSE3. If you want to force
  * compilation against a specific implementation of the vector classes you can set the macro
  * VC_IMPL to either "Scalar", "SSE2", "SSE3", "SSSE3", "SSE4_1" or "LRBni". Setting VC_IMPL to
- * "SSE" will force the SSE instruction set but letting the headers figure out the version to use or
+ * "SSE" will force the SSE instruction set, but lets the headers figure out the version to use or
  * if that fails use SSE4.1.
  * After you include a Vc header you will have the following macros available that you can (but
  * normally should not) use to determine the implementation Vc uses:
@@ -62,21 +50,76 @@
  */
 
 /**
+ * \page intro Introduction
+ *
+ * If you are new to vectorization please read this following part and make sure you understand it:
+ * \li Forget what you learned about vectors in math classes. SIMD vectors are a different concept!
+ * \li Forget about containers that also go by the name of a vector. SIMD vectors are a different concept!
+ * \li A vector is defined by the hardware as a special register which is wider than required for a
+ * single value. Thus multiple values fit into one register. The width of this register and the
+ * size of the scalar data type used normally determine the number of entries in the vector, and
+ * thus this number is an unchangeable property of the hardware and therefore not a variable in the
+ * Vc API.
+ * \li Note that hardware is free to use different vector register widths for different data types.
+ * For example AVX has instructions for 256-bit floating point registers, but only 128-bit integer
+ * instructions.
+ *
+ * \par Example 1:
+ * You can modify a function to use vector types and thus implement a horizontal vectorization. The
+ * original scalar function could look like this:
+ * \code
+ * void normalize(float &x, float &y, float &z)
+ * {
+ *   const float d = std::sqrt(x * x + y * y + z * z);
+ *   x /= d;
+ *   y /= d;
+ *   z /= d;
+ * }
+ * \endcode
+ * To vectorize it with Vc the types must be substituted by their Vc counterparts and math functions
+ * must simply use the Vc implementation which is not part of the \c std namespace:
+ * \code
+ * using Vc::float_v;
+ *
+ * void normalize(float_v &x, float_v &y, float_v &z)
+ * {
+ *   const float_v d = Vc::sqrt(x * x + y * y + z * z);
+ *   x /= d;
+ *   y /= d;
+ *   z /= d;
+ * }
+ * \endcode
+ * The latter function is able to normalize four 3D vectors when compiled for SSE in the same
+ * time the former function normalizes one 3D vector.
+ *
+ * \par
+ * As you can probably see, the new challenge with Vc is the use of good data-structures which
+ * support horizontal vectorization. Depending on your problem at hand this may become the main
+ * focus of design (it does not have to be, though).
+ */
+
+/**
  * \defgroup Vectors Vectors
  *
  * Vector classes are abstractions for SIMD instructions.
- *
+ */
+
+/**
  * \defgroup Masks Masks
  *
  * Mask classes are abstractions for the results of vector comparisons. The actual implementation
- * differs depending on the SIMD instruction set. On SSE they contain a full 128bit datatype while
- * on LRBni they are stored as 16bit unsigned integers.
- *
+ * differs depending on the SIMD instruction set. On SSE they contain a full 128-bit datatype while
+ * on LRBni they are stored as 16-bit unsigned integers.
+ */
+
+/**
  * \defgroup Utilities Utilities
  *
  * Utilities that either extend the language or provide other useful functionality outside of the
  * classes.
- *
+ */
+
+/**
  * \defgroup Math Math
  *
  * Functions that implement math functions. Take care that some of the implementations will return
@@ -84,13 +127,9 @@
  */
 
 /**
- * \brief Vector Classes
+ * \brief Vector Classes Namespace
  *
- * Depending on preprocessing macros, the vector classes inside the Vc namespace will be implemented
- * with either
- * \li SSE vectors
- * \li LRBni vectors
- * \li scalar fallback vectors (i.e. scalars, but with the same API)
+ * All functions and types of Vc are defined inside the Vc namespace.
  */
 namespace Vc
 {
@@ -134,7 +173,7 @@ namespace Vc
      *
      * Enum for load and store functions to select the optimizations that are safe to use.
      */
-    enum AlignmentFlags {
+    enum LoadStoreFlags {
         /**
          * Tells Vc that the load/store can expect a memory address that is aligned on the correct
          * boundary.
@@ -167,6 +206,33 @@ namespace Vc
          * \endcode
          */
         Streaming
+    };
+
+    /**
+     * \ingroup Utilities
+     *
+     * Enum that specifies the alignment and padding restrictions to use for memory allocation with
+     * Vc::malloc.
+     */
+    enum MallocAlignment {
+        /**
+         * Align on boundary of vector sizes (e.g. 16 Bytes on SSE platforms) and pad to allow
+         * vector access to the end. Thus the allocated memory contains a multiple of
+         * VectorAlignment bytes.
+         */
+        AlignOnVector,
+        /**
+         * Align on boundary of cache line sizes (e.g. 64 Bytes on x86) and pad to allow
+         * full cache line access to the end. Thus the allocated memory contains a multiple of
+         * 64 bytes.
+         */
+        AlignOnCacheline,
+        /**
+         * Align on boundary of page sizes (e.g. 4096 Bytes on x86) and pad to allow
+         * full page access to the end. Thus the allocated memory contains a multiple of
+         * 4096 bytes.
+         */
+        AlignOnPage
     };
 
 #define INDEX_TYPE uint_v

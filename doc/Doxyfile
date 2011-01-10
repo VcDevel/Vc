@@ -31,7 +31,7 @@ PROJECT_NAME           = "Vector Classes"
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = 0.4.70-dev
+PROJECT_NUMBER         = 0.5.70-dev
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
@@ -1268,14 +1268,14 @@ INCLUDE_FILE_PATTERNS  =
 # undefined via #undef or recursively expanded use the := operator
 # instead of the = operator.
 
-PREDEFINED             = DOXYGEN
+PREDEFINED             = DOXYGEN ALWAYS_INLINE INTRINSIC
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.
 # The macro definition that is found in the sources will be used.
 # Use the PREDEFINED tag if you want to use a different macro definition.
 
-EXPAND_AS_DEFINED      = VECTOR_TYPE INDEX_TYPE ENTRY_TYPE MASK_TYPE
+EXPAND_AS_DEFINED      = VECTOR_TYPE INDEX_TYPE ENTRY_TYPE MASK_TYPE INTEGER
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then
 # doxygen's preprocessor will remove all function-like macros that are alone

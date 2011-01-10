@@ -53,7 +53,7 @@ static void doBlah()
         mem.v[i] = PseudoRandom<V>::next();
     }
     V t = mem.v[0];
-    mem.v[0].makeZero();
+    mem.v[0].setZero();
     for (int i = 1; i < ArraySize; ++i) {
         t = Vc::abs(t * mem.v[i] + t) / divider;
         t(t >= bound) = two;
@@ -88,9 +88,9 @@ int bmain()
     while (timer.wantsMoreDataPoints()) {
         timer.Start();
         doBlah<float_v>();
-        delete[] (float_v *)blackHolePtr;
+        delete[] static_cast<float_v *>(blackHolePtr);
         doBlah<double_v>();
-        delete[] (double_v *)blackHolePtr;
+        delete[] static_cast<double_v *>(blackHolePtr);
         timer.Stop();
     }
     timer.Print();

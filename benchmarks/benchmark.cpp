@@ -66,7 +66,7 @@ int main(int, char **argv)
   }
 
   timeval timeout;
-  for ( int i = 0; i < 120; ++i ) {
+  for ( int i = 0; i < 600; ++i ) {
     timeout.tv_sec =  1;
     timeout.tv_usec = 0;
     select( 0, 0, 0, 0, &timeout );
@@ -75,7 +75,7 @@ int main(int, char **argv)
     }
   }
 
-  printf("%s took too long (> 120s) and was killed\n", argv[0]);
+  printf("%s took too long (> 10 min) and was killed\n", argv[0]);
   kill( pid, SIGKILL );
 
   return 0;

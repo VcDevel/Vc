@@ -54,6 +54,16 @@ template<> struct HelperImpl<Vc::SSE2Impl>
     template<typename A> static void deinterleave(short_v &, short_v &, const short *, A);
 
     template<typename A> static void deinterleave(ushort_v &, ushort_v &, const unsigned short *, A);
+
+    static inline void prefetchForOneRead(const void *addr) ALWAYS_INLINE;
+    static inline void prefetchForModify(const void *addr) ALWAYS_INLINE;
+    static inline void prefetchClose(const void *addr) ALWAYS_INLINE;
+    static inline void prefetchMid(const void *addr) ALWAYS_INLINE;
+    static inline void prefetchFar(const void *addr) ALWAYS_INLINE;
+
+    template<Vc::MallocAlignment A>
+    static inline void *malloc(size_t n) ALWAYS_INLINE;
+    static inline void free(void *p) ALWAYS_INLINE;
 };
 
 template<> struct HelperImpl<SSE3Impl> : public HelperImpl<SSE2Impl> {};
@@ -62,8 +72,12 @@ template<> struct HelperImpl<SSE41Impl> : public HelperImpl<SSSE3Impl> {};
 template<> struct HelperImpl<SSE42Impl> : public HelperImpl<SSE41Impl> {};
 template<> struct HelperImpl<SSE4aImpl> : public HelperImpl<SSE3Impl> {};
 
+
 } // namespace Internal
 } // namespace Vc
 
 #include "deinterleave.tcc"
+#include "prefetches.tcc"
+#include "helperimpl.tcc"
+
 #endif // VC_SSE_DEINTERLEAVE_H

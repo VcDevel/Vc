@@ -106,6 +106,11 @@ namespace LRBni
     // cacheline 8
     V_ALIGN(16) extern const char _IndexesFromZero[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 } // namespace Larrabee
+
+// dummy symbol to emit warnings with GCC 4.3
+namespace Warnings {
+    void _operator_bracket_warning() {}
+} // namespace Warnings
 } // namespace Vc
 
 #undef V_ALIGN

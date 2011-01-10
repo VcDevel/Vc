@@ -17,12 +17,12 @@
 
 */
 
-#ifndef VC_SIMPLE_TYPES_H
-#define VC_SIMPLE_TYPES_H
+#ifndef VC_SCALAR_TYPES_H
+#define VC_SCALAR_TYPES_H
 
 namespace Vc
 {
-    namespace Simple
+    namespace Scalar
     {
         class VectorAlignedBase {};
         template<typename T> class Vector;
@@ -31,9 +31,8 @@ namespace Vc
 
         namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
         namespace VectorSpecialInitializerOne { enum OEnum { One }; }
-        namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
         namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
-    } // namespace Simple
+    } // namespace Scalar
 } // namespace Vc
 
-#endif // VC_SIMPLE_TYPES_H
+#endif // VC_SCALAR_TYPES_H

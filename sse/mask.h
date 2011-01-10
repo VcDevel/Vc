@@ -154,7 +154,10 @@ struct ForeachHelper
     inline bool outer() const { return mask != 0; }
     inline bool inner() { return (brk = !brk); }
     inline _long next() {
-#ifdef _WIN64
+#ifdef __GNUC__ // the compiler understands inline asm
+        const _long bit = __builtin_ctzl(mask);
+        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
+#elif defined(_WIN64)
        unsigned long bit;
        _BitScanForward64(&bit, mask);
        _bittestandreset64(&mask, bit);
@@ -163,8 +166,7 @@ struct ForeachHelper
        _BitScanForward(&bit, mask);
        _bittestandreset(&mask, bit);
 #else
-        const _long bit = __builtin_ctzl(mask);
-        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
+#error "Not implemented yet. Please contact vc-devel@compeng.uni-frankfurt.de"
 #endif
         return bit;
     }

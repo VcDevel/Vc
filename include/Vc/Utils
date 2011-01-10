@@ -23,13 +23,10 @@
 #include "global.h"
 
 #if VC_IMPL_LRBni
-# include "larrabee/deinterleave.h"
 # define VECTOR_NAMESPACE LRBni
 #elif VC_IMPL_Scalar
-# include "simple/deinterleave.h"
-# define VECTOR_NAMESPACE Simple
+# define VECTOR_NAMESPACE Scalar
 #else
-# include "sse/deinterleave.h"
 # define VECTOR_NAMESPACE SSE
 #endif
 

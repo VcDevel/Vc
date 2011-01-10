@@ -26,22 +26,58 @@
 
 using namespace Vc;
 
-template<typename T, int S> struct KeepResultsHelper { static inline void keep(const T &tmp0) { asm volatile(""::"r"(tmp0)); } };
+template<typename T, int S> struct KeepResultsHelper {
+    static inline void keep(const T &tmp0) { asm volatile(""::"r"(tmp0)); }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+#ifdef __x86_64__
+        asm volatile(""::"r"(tmp0), "r"(tmp1), "r"(tmp2), "r"(tmp3));
+#else
+        asm volatile(""::"r"(tmp0), "r"(tmp1));
+        asm volatile(""::"r"(tmp2), "r"(tmp3));
+#endif
+    }
+};
 #ifdef VC_IMPL_SSE
-template<typename T> struct KeepResultsHelper<T, 16> { static inline void keep(const T &tmp0) { asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0))); } };
-template<typename T> struct KeepResultsHelper<T, 32> { static inline void keep(const T &tmp0) {
-    asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]));
-} };
+template<typename T> struct KeepResultsHelper<T, 16> {
+    static inline void keep(const T &tmp0) { asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0))); }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 &>(tmp3)));
+    }
+};
+template<typename T> struct KeepResultsHelper<T, 32> {
+    static inline void keep(const T &tmp0) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]));
+    }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]),
+                "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 *>(&tmp1)[1]),
+                "x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 *>(&tmp2)[1]),
+                "x"(reinterpret_cast<const __m128 &>(tmp3)), "x"(reinterpret_cast<const __m128 *>(&tmp3)[1]));
+    }
+};
 #endif
 #ifdef VC_IMPL_LRBni
-template<typename T> struct KeepResultsHelper<T, 64> { static inline void keep(const T &tmp0) {
-    asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]));
-} };
+template<typename T> struct KeepResultsHelper<T, 64> {
+    static inline void keep(const T &tmp0) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]));
+    }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]),
+                "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 *>(&tmp1)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp1)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp1)[3]));
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 *>(&tmp2)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp2)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp2)[3]),
+                "x"(reinterpret_cast<const __m128 &>(tmp3)), "x"(reinterpret_cast<const __m128 *>(&tmp3)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp3)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp3)[3]));
+    }
+};
 #endif
 
 template<typename T> static inline void keepResults(const T &tmp0)
 {
     KeepResultsHelper<T, sizeof(T)>::keep(tmp0);
+}
+
+template<typename T> static inline void keepResults(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3)
+{
+    KeepResultsHelper<T, sizeof(T)>::keep(tmp0, tmp1, tmp2, tmp3);
 }
 
 template<typename Vector> class DoMemIos
@@ -73,6 +109,9 @@ template<typename Vector> class DoMemIos
         static void run(const int Factor, const int Factor2)
         {
             Vector *a = new Vector[Factor];
+#ifndef VC_BENCHMARK_NO_MLOCK
+            mlock(a, Factor * sizeof(Vector));
+#endif
 
             {
                 Benchmark bm("write", sizeof(Vector) * Factor * Factor2, "Byte");
@@ -107,13 +146,14 @@ template<typename Vector> class DoMemIos
                     for (int j = 0; j < Factor2; ++j) {
                         keepResults(foo);
                         for (int i = 0; i < Factor; i += 4) {
-                            const Vector &tmp0 = a[i + 0]; keepResults(tmp0);
+                            const Vector &tmp0 = a[i + 0];
+                            const Vector &tmp1 = a[i + 1];
+                            const Vector &tmp2 = a[i + 2];
+                            const Vector &tmp3 = a[i + 3];
+                            keepResults(tmp0, tmp1, tmp2, tmp3);
                             a[i + 0] = foo;
-                            const Vector &tmp1 = a[i + 1]; keepResults(tmp1);
                             a[i + 1] = foo;
-                            const Vector &tmp2 = a[i + 2]; keepResults(tmp2);
                             a[i + 2] = foo;
-                            const Vector &tmp3 = a[i + 3]; keepResults(tmp3);
                             a[i + 3] = foo;
                         }
                     }
@@ -127,10 +167,11 @@ template<typename Vector> class DoMemIos
                     timer.Start();
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; i += 4) {
-                            const Vector &tmp0 = a[i + 0]; keepResults(tmp0);
-                            const Vector &tmp1 = a[i + 1]; keepResults(tmp1);
-                            const Vector &tmp2 = a[i + 2]; keepResults(tmp2);
-                            const Vector &tmp3 = a[i + 3]; keepResults(tmp3);
+                            const Vector &tmp0 = a[i + 0];
+                            const Vector &tmp1 = a[i + 1];
+                            const Vector &tmp2 = a[i + 2];
+                            const Vector &tmp3 = a[i + 3];
+                            keepResults(tmp0, tmp1, tmp2, tmp3);
                         }
                     }
                     timer.Stop();
@@ -144,8 +185,14 @@ template<typename Vector> class DoMemIos
 int bmain()
 {
     Benchmark::addColumn("MemorySize");
+    Benchmark::addColumn("datatype");
 
+    Benchmark::setColumnData("datatype", "double_v");
+    DoMemIos<double_v>::run();
+    Benchmark::setColumnData("datatype", "float_v");
     DoMemIos<float_v>::run();
+    Benchmark::setColumnData("datatype", "short_v");
+    DoMemIos<short_v>::run();
 
     return 0;
 }

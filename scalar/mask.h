@@ -17,14 +17,14 @@
 
 */
 
-#ifndef VC_SIMPLE_MASK_H
-#define VC_SIMPLE_MASK_H
+#ifndef VC_SCALAR_MASK_H
+#define VC_SCALAR_MASK_H
 
 #include "types.h"
 
 namespace Vc
 {
-namespace Simple
+namespace Scalar
 {
 template<unsigned int VectorSize = 1> class Mask
 {
@@ -104,12 +104,12 @@ struct ForeachHelper
  *             mask.
  */
 #define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::Simple::ForeachHelper _Vc_foreach_bit_helper(_mask_); _Vc_foreach_bit_helper.first; ) \
+    for (Vc::Scalar::ForeachHelper _Vc_foreach_bit_helper(_mask_); _Vc_foreach_bit_helper.first; ) \
         for (_it_ = 0; _Vc_foreach_bit_helper.first; _Vc_foreach_bit_helper.next())
 
 #define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
 
-} // namespace Simple
+} // namespace Scalar
 } // namespace Vc
 
-#endif // VC_SIMPLE_MASK_H
+#endif // VC_SCALAR_MASK_H

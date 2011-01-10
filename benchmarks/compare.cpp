@@ -47,6 +47,9 @@ template<typename Vector> class DoCompares
         {
             const int Factor = CpuId::L1Data() / (sizeof(Vector) * 2); // half L1
             Vector *a = new Vector[Factor + 3];
+#ifndef VC_BENCHMARK_NO_MLOCK
+            mlock(a, (Factor + 3) * sizeof(Vector));
+#endif
             for (int i = 0; i < Factor + 3; ++i) {
                 a[i] = PseudoRandom<Vector>::next();
             }

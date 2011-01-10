@@ -17,8 +17,8 @@
 
 */
 
-#ifndef SIMPLE_VECTOR_H
-#define SIMPLE_VECTOR_H
+#ifndef SCALAR_VECTOR_H
+#define SCALAR_VECTOR_H
 
 #include <assert.h>
 #include <algorithm>
@@ -37,7 +37,7 @@
 namespace Vc
 {
     template<typename V, unsigned int Size> class Memory;
-namespace Simple
+namespace Scalar
 {
     enum { VectorAlignment = 4 };
 
@@ -52,7 +52,7 @@ class Vector : public VectorBase<T, Vector<T> >
         typedef Vc::Memory<Vector<T>, 1> Memory;
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
-        typedef Simple::Mask<1u> Mask;
+        typedef Scalar::Mask<1u> Mask;
 
         T &data() { return m_data; }
         T data() const { return m_data; }
@@ -61,7 +61,6 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector() {}
         inline Vector(VectorSpecialInitializerZero::ZEnum) : m_data(0) {}
         inline Vector(VectorSpecialInitializerOne::OEnum) : m_data(1) {}
-        inline Vector(VectorSpecialInitializerRandom::REnum) { makeRandom(); }
         inline Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : m_data(0) {}
 
         static inline Vector Zero() { Vector r; r.m_data = 0; return r; }
@@ -77,10 +76,8 @@ class Vector : public VectorBase<T, Vector<T> >
 
         template<typename OtherT> inline void expand(Vector<OtherT> *x) const { x->data() = static_cast<OtherT>(m_data); }
 
-        inline void makeZero() { m_data = 0; }
-        inline void makeZero(Mask k) { if (k) m_data = 0; }
-        inline void makeRandom() { m_data = std::rand(); }
-        inline void makeRandom(Mask k) { if (k) m_data = std::rand(); }
+        inline void setZero() { m_data = 0; }
+        inline void setZero(Mask k) { if (k) m_data = 0; }
 
         template<typename Other> inline void load(const Other *mem) { m_data = mem[0]; }
         template<typename Other, typename A> inline void load(const Other *mem, A) { m_data = mem[0]; }
@@ -89,13 +86,6 @@ class Vector : public VectorBase<T, Vector<T> >
         inline void load(const T *mem) { m_data = mem[0]; }
         template<typename A> inline void load(const T *mem, A) { m_data = mem[0]; }
         inline void load(const T *mem, Mask m) { if (m.data()) m_data = mem[0]; }
-
-        template<typename Other> inline void store(Other *mem) const { mem[0] = m_data; }
-        template<typename Other> inline void store(Other *mem, Mask m) const { if (m.data()) mem[0] = m_data; }
-        template<typename Other> inline void storeUnaligned(Other *mem) const { store(mem); }
-        template<typename Other> inline void storeUnaligned(Other *mem, Mask m) const { store(mem, m); }
-        template<typename Other> inline void storeStreaming(Other *mem) const { mem[0] = m_data; }
-        template<typename Other> inline void storeStreaming(Other *mem, Mask m) const { if (m.data()) mem[0] = m_data; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
@@ -196,8 +186,6 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector &operator++() { ++m_data; return *this; }
         //postfix
         inline Vector operator++(int) { return m_data++; }
-        inline void increment(Mask mask) { if (mask.data()) ++m_data; }
-        inline void decrement(Mask mask) { if (mask.data()) --m_data; }
 
         inline T &operator[](int index) {
             assert(index == 0); if(index) {}
@@ -208,13 +196,6 @@ class Vector : public VectorBase<T, Vector<T> >
             assert(index == 0); if(index) {}
             return m_data;
         }
-
-#define OP1(fun) \
-        inline Vector fun() const { return Vector<T>(std::fun(m_data)); } \
-        inline Vector &fun##_eq() { m_data = std::fun(m_data); return *this; }
-        OP1(sqrt)
-        OP1(abs)
-#undef OP1
 
         inline Vector operator~() const { return ~m_data; }
         inline Vector operator-() const { return -m_data; }
@@ -243,15 +224,6 @@ class Vector : public VectorBase<T, Vector<T> >
         OPcmp(<, cmplt)
         OPcmp(<=, cmple)
 #undef OPcmp
-
-        inline Vector mulHigh(const Vector<T> &factor) const {
-            //STATIC_ASSERT(typeid(T) == typeid(int) || typeid(T) == typeid(unsigned int), mulHigh_only_supported_for_32bit_integers);
-            //STATIC_ASSERT(typeid(T) == typeid(unsigned int), mulHigh_only_supported_for_32bit_integers);
-            unsigned long long int x = m_data;
-            //int64_t x = m_data;
-            x *= factor;
-            return Vector<T>(x >> 32);
-        }
 
         inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
             m_data *= factor;
@@ -469,11 +441,11 @@ template<typename T1, typename T2> inline Mask<1u>   operator!=(T1 x, const Vect
         const Vector<T13> &, const Vector<T14> &,
         const Vector<T15> &, const Vector<T16> &) {}
 
-} // namespace Simple
+} // namespace Scalar
 } // namespace Vc
 
 #include "memory.h"
 #include "math.h"
 #include "undomacros.h"
 
-#endif // SIMPLE_VECTOR_H
+#endif // SCALAR_VECTOR_H

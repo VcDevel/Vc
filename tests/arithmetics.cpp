@@ -29,9 +29,9 @@ template<typename Vec> void testZero()
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
     Vec c, d(1);
-    c.makeZero();
+    c.setZero();
     COMPARE(a, c);
-    d.makeZero();
+    d.setZero();
     COMPARE(a, d);
     d = 0.;
     COMPARE(a, d);
@@ -206,10 +206,17 @@ template<typename Vec> void testMulSub()
 
 template<typename Vec> void testDiv()
 {
-    for (unsigned int i = 0; i < 0x7fff / 3; ++i) {
-        Vec a(i * 3);
+    typedef typename Vec::EntryType T;
+    const T stepsize = std::max(T(1), T(std::numeric_limits<T>::max() / 1024));
+    for (T divisor = 1; divisor < 5; ++divisor) {
+        for (T scalar = std::numeric_limits<T>::min(); scalar < std::numeric_limits<T>::max(); scalar += stepsize) {
+            Vec vector(scalar);
+            Vec reference(scalar / divisor);
 
-        COMPARE(a / 3, Vec(i));
+            COMPARE(vector / divisor, reference);
+            vector /= divisor;
+            COMPARE(vector, reference);
+        }
     }
 }
 
@@ -224,16 +231,6 @@ template<typename Vec> void testAnd()
     COMPARE((c & 0x7ff0), Vec(zero));
 }
 
-template<typename A, typename B> struct isEqualType
-{
-    operator bool() const { return false; }
-};
-
-template<typename T> struct isEqualType<T, T>
-{
-    operator bool() const { return true; }
-};
-
 template<typename Vec> void testShift()
 {
     Vec a(1);
@@ -243,13 +240,6 @@ template<typename Vec> void testShift()
     COMPARE((a << 1), b);
     COMPARE((a << 2), (a << 2));
     COMPARE((a << 2), (b << 1));
-
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 3 && __OPTIMIZE__ && VC_IMPL_SSE
-    // gcc 4.3.x miscompiles when optimizing
-    if (isEqualType<Vec, uint_v>() || isEqualType<Vec, ushort_v>()) {
-        EXPECT_FAILURE();
-    }
-#endif
 
     Vec shifts(IndexesFromZero);
     a <<= shifts;
@@ -279,8 +269,10 @@ template<typename Vec> void testOnesComplement()
     COMPARE(~(a + b), Vec(Zero));
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    initTest(argc, argv);
+
     runTest(testZero<int_v>);
     runTest(testZero<uint_v>);
     runTest(testZero<float_v>);

@@ -60,10 +60,16 @@ unsigned char _bittestandreset(long *a, long b);
 #include "macros.h"
 #include <cstdlib>
 
+#ifdef __3dNOW__
+#include <mm3dnow.h>
+#endif
+
 namespace Vc
 {
 namespace SSE
 {
+    enum { VectorAlignment = 16 };
+
     static inline __m128i _mm_setallone() CONST;
     static inline __m128i _mm_setallone_si128() CONST;
     static inline __m128d _mm_setallone_pd() CONST;

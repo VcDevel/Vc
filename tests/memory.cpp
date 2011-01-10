@@ -218,12 +218,28 @@ template<typename V> void memoryOperators()
     VERIFY(m1 == m2);
 }
 
+template<typename V> void testCCtor()
+{
+    Memory<V> m1(5);
+    for (size_t i = 0; i < m1.entriesCount(); ++i) {
+        m1[i] = i;
+    }
+    Memory<V> m2(m1);
+    for (size_t i = 0; i < m1.entriesCount(); ++i) {
+        m1[i] += 1;
+    }
+    for (size_t i = 0; i < m1.entriesCount(); ++i) {
+        COMPARE(m1[i], m2[i] + 1);
+    }
+}
+
 int main()
 {
     testAllTypes(testEntries);
     testAllTypes(testVectors);
     testAllTypes(testVectorReorganization);
     testAllTypes(memoryOperators);
+    testAllTypes(testCCtor);
 
     return 0;
 }

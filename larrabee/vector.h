@@ -991,9 +991,9 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
 
         template<typename Other> static inline Vector broadcast4(const Other *x) { return Vector<T>(VectorHelper<T>::load4(x)); }
 
-        inline void makeZero() { data = mm512_reinterpret_cast<VectorType>(_mm512_setzero()); }
+        inline void setZero() { data = mm512_reinterpret_cast<VectorType>(_mm512_setzero()); }
 
-        inline void makeZero(Mask k)
+        inline void setZero(Mask k)
         {
             if (Size == 16) {
                 _M512I tmp = mm512_reinterpret_cast<_M512I>(data.v());

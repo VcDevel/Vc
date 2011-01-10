@@ -52,6 +52,9 @@ template<typename Vector> struct Helper
             Vector *v;
             typename Vector::EntryType *m;
         } data = { new Vector[Factor] };
+#ifndef VC_BENCHMARK_NO_MLOCK
+        mlock(&data, Factor * sizeof(Vector));
+#endif
         for (int i = 0; i < Factor; ++i) {
             data.v[i] = PseudoRandom<Vector>::next();
         }

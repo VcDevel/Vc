@@ -44,11 +44,23 @@ template<> struct HelperImpl<Vc::LRBniImpl>
 //
 //  template<typename A> static void deinterleave(uint_v &, uint_v &, const unsigned int *, A);
 //  template<typename A> static void deinterleave(uint_v &, uint_v &, const unsigned short *, A);
+
+    static inline void prefetchForOneRead(const void *addr) ALWAYS_INLINE;
+    static inline void prefetchForModify(const void *addr) ALWAYS_INLINE;
+    static inline void prefetchClose(const void *addr) ALWAYS_INLINE;
+    static inline void prefetchMid(const void *addr) ALWAYS_INLINE;
+    static inline void prefetchFar(const void *addr) ALWAYS_INLINE;
+
+    template<Vc::MallocAlignment A>
+    static inline void *malloc(size_t n) ALWAYS_INLINE;
+    static inline void free(void *p) ALWAYS_INLINE;
 };
 
 } // namespace Internal
 } // namespace Vc
 
 #include "deinterleave.tcc"
+#include "prefetches.tcc"
+#include "helperimpl.tcc"
 
 #endif // VC_LARRABEE_DEINTERLEAVE_H

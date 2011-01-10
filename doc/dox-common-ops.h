@@ -165,7 +165,7 @@ VECTOR_TYPE(ENTRY_TYPE x);
  *
  * \see Memory
  */
-void load(const ENTRY_TYPE *memory, AlignmentFlags align = Aligned);
+void load(const ENTRY_TYPE *memory, LoadStoreFlags align = Aligned);
 
 /**
  * Set all entries to zero.
@@ -186,7 +186,7 @@ void makeZero(const MASK_TYPE &mask);
  *
  * \see Memory
  */
-void store(EntryType *memory, AlignmentFlags align = Aligned) const;
+void store(EntryType *memory, LoadStoreFlags align = Aligned) const;
 
 /**
  * Return a reference to the vector entry at the given \p index.
@@ -195,6 +195,10 @@ void store(EntryType *memory, AlignmentFlags align = Aligned) const;
  *
  * \param index A value between 0 and Size. This value is not checked internally so you must make/be
  *              sure it is in range.
+ *
+ * \warning This operator is known to miscompile with GCC 4.3.x.
+ * \warning The use of this function may result in suboptimal performance. Please check whether you
+ * can find a more vector-friendly way to do what you need.
  */
 ENTRY_TYPE &operator[](int index);
 
@@ -325,4 +329,24 @@ VECTOR_TYPE operator/(VECTOR_TYPE x) const;
 VECTOR_TYPE operator|(VECTOR_TYPE x) const;
 VECTOR_TYPE operator&(VECTOR_TYPE x) const;
 VECTOR_TYPE operator^(VECTOR_TYPE x) const;
+//@}
+
+/**
+ * \name Horizontal Operations
+ *
+ * There are four horizontal operations available to reduce the values of a vector to a scalar
+ * value.
+ *
+ * \code
+ * void foo(const float_v &v) {
+ *   float min = v.min(); // smallest value in v
+ *   float sum = v.sum(); // sum of all values in v
+ * }
+ * \endcode
+ */
+//@{
+ENTRY_TYPE min() const;
+ENTRY_TYPE max() const;
+ENTRY_TYPE product() const;
+ENTRY_TYPE sum() const;
 //@}

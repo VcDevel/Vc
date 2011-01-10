@@ -130,6 +130,10 @@ template<typename Vector, class GatherImpl> class GatherBase : public FullMaskHe
             m_data(new const Scalar *[indexesCount])
         {
             IndexAndMask *const tmp = new IndexAndMask[indexesCount];
+#ifndef VC_BENCHMARK_NO_MLOCK
+            mlock(m_data, indexesCount * sizeof(Scalar *));
+            mlock(tmp, indexesCount * sizeof(IndexAndMask));
+#endif
             PseudoRandom<IndexVector>::next();
             PseudoRandom<IndexVector>::next();
             const IndexVector indexMask((size - 1) & 0xffff);
@@ -308,6 +312,9 @@ template<typename Vector> struct GatherBenchmark
         const int ArrayCount = 2 * MaxArraySize;
 
         Scalar *const _data = new Scalar[ArrayCount];
+#ifndef VC_BENCHMARK_NO_MLOCK
+        mlock(_data, ArrayCount * sizeof(Scalar));
+#endif
         randomize(_data, ArrayCount);
 
         // the last parts of _data are still hot, so we start at the beginning

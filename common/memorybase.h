@@ -157,7 +157,16 @@ template<typename V, typename Parent> class MemoryBase
         /// Const overload of the above function.
         inline const EntryType *entries() const { return &p()->m_mem[0]; }
 
-        // omit operator[] because the EntryType* cast operator suffices
+        // omit operator[] because the EntryType* cast operator suffices, for dox it makes sense to
+        // show it, though because it helps API discoverability.
+#ifdef DOXYGEN
+        /**
+         * Returns the \p i-th scalar value in the memory.
+         */
+        inline EntryType &operator[](size_t i);
+        /// Const overload of the above function.
+        inline const EntryType &operator[](size_t i) const;
+#endif
 
         /**
          * Cast operator to the scalar type. This allows to use the object very much like a standard
