@@ -182,6 +182,11 @@ __attribute__((__aligned__(__alignof(VectorAlignedBase))))
  * accessed with correctly aligned memory addresses.
  * (Note: the scalar loop can be auto-vectorized, except for the last three assignments.)
  *
+ * \note The internal data pointer is not declared with the \c __restrict__ keyword. Therefore
+ * modifying memory of V::EntryType will require the compiler to assume aliasing. If you want to use
+ * the \c __restrict__ keyword you need to use a standard pointer to memory and do the vector
+ * address calculation and loads and stores manually.
+ *
  * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
  *
  * \see Memory<V, Size>
