@@ -122,6 +122,20 @@ int main()
 
     double speedup;
     TimeStampCounter timer;
+
+    { ///////// ignore this part - it only wakes up the CPU ////////////////////////////
+        const float oneOver2h = 0.5f / h;
+
+        // set borders explicit as up- or downdifferential
+        dy_points[0] = (y_points[1] - y_points[0]) / h;
+        // GCC auto-vectorizes the following loop. It is interesting to see that both Vc::Scalar and
+        // Vc::SSE are faster, though.
+        for ( int i = 1; i < N - 1; ++i) {
+            dy_points[i] = (y_points[i + 1] - y_points[i - 1]) * oneOver2h;
+        }
+        dy_points[N - 1] = (y_points[N - 1] - y_points[N - 2]) / h;
+    } //////////////////////////////////////////////////////////////////////////////////
+
     {
         std::cout << "\n" << std::setw(60) << "Classical finite difference method" << std::endl;
         timer.Start();
