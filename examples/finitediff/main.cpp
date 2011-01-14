@@ -153,7 +153,10 @@ int main()
 
         timer.Stop();
         printResults();
-        std::cout << "cycle count: " << timer.Cycles() << "\n";
+        std::cout << "cycle count: " << timer.Cycles()
+            << " | " << static_cast<double>(N * 2) / timer.Cycles() << " FLOP/cycle"
+            << " | " << static_cast<double>(N * 2 * sizeof(float)) / timer.Cycles() << " Byte/cycle"
+            << "\n";
     }
 
     speedup = timer.Cycles();
@@ -223,7 +226,10 @@ int main()
 
         timer.Stop();
         printResults();
-        std::cout << "cycle count: " << timer.Cycles() << "\n";
+        std::cout << "cycle count: " << timer.Cycles()
+            << " | " << static_cast<double>(N * 2) / timer.Cycles() << " FLOP/cycle"
+            << " | " << static_cast<double>(N * 2 * sizeof(float)) / timer.Cycles() << " Byte/cycle"
+            << "\n";
     }
     speedup /= timer.Cycles();
     std::cout << "Speedup: " << speedup << "\n";
