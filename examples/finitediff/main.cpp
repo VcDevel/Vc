@@ -83,7 +83,7 @@ using Vc::float_v;
 // where the value is used in printResults.
 Vc::Memory<float_v, N> x_points;
 Vc::Memory<float_v, N> y_points;
-Vc::Memory<float_v, N> dy_points;
+float *__restrict__ dy_points;
 
 void printResults()
 {
@@ -119,6 +119,8 @@ int main()
         y_points.vector(i) = fu(x);
       }
     }
+
+    dy_points = Vc::malloc<float, Vc::AlignOnVector>(N + float_v::Size - 1) + (float_v::Size - 1);
 
     double speedup;
     TimeStampCounter timer;
@@ -189,20 +191,27 @@ int main()
         for (unsigned int i = 0; i < (y_points.entriesCount() - 2) / float_v::Size; i += 4) {
             // Prefetches make sure the data which is going to be used in 24/4 iterations is already
             // in the L1 cache. The prefetchForOneRead additionally instructs the CPU to not evict
-            // these cache lines to L2/L3. The prefetchForModify is used as a small optimization on
-            // AMD CPUs to mark cache lines as modified already before the store is executed.
+            // these cache lines to L2/L3.
             Vc::prefetchForOneRead(&y_points[(i + 24) * float_v::Size]);
-            Vc::prefetchForModify(&dy_points[(i + 24) * float_v::Size]);
 
-            const float_v diff0 = y_points.vector(i + 0, 2) - y_points.vector(i + 0);
-            const float_v diff1 = y_points.vector(i + 1, 2) - y_points.vector(i + 1);
-            const float_v diff2 = y_points.vector(i + 2, 2) - y_points.vector(i + 2);
-            const float_v diff3 = y_points.vector(i + 3, 2) - y_points.vector(i + 3);
+            // calculate float_v::Size differentials per (left - right) / 2h
+            const float_v dy0 = (y_points.vector(i + 0, 2) - y_points.vector(i + 0)) * oneOver2h;
+            const float_v dy1 = (y_points.vector(i + 1, 2) - y_points.vector(i + 1)) * oneOver2h;
+            const float_v dy2 = (y_points.vector(i + 2, 2) - y_points.vector(i + 2)) * oneOver2h;
+            const float_v dy3 = (y_points.vector(i + 3, 2) - y_points.vector(i + 3)) * oneOver2h;
 
-            dy_points.vector(i    , 1) = diff0 * oneOver2h;
-            dy_points.vector(i + 1, 1) = diff1 * oneOver2h;
-            dy_points.vector(i + 2, 1) = diff2 * oneOver2h;
-            dy_points.vector(i + 3, 1) = diff3 * oneOver2h;
+            // Use streaming stores to reduce the required memory bandwidth. Without streaming
+            // stores the CPU would first have to load the cache line, where the store occurs, from
+            // memory into L1, then overwrite the data, and finally write it back to memory. But
+            // since we never actually need the data that the CPU fetched from memory we'd like to
+            // keep that bandwidth free for real work. Streaming stores allow us to issue stores
+            // which the CPU gathers in store buffers to form full cache lines, which then get
+            // written back to memory directly without the costly read. Thus we make better use of
+            // the available memory bandwidth.
+            dy0.store(&dy_points[(i + 0) * float_v::Size + 1], Vc::Streaming);
+            dy1.store(&dy_points[(i + 1) * float_v::Size + 1], Vc::Streaming);
+            dy2.store(&dy_points[(i + 2) * float_v::Size + 1], Vc::Streaming);
+            dy3.store(&dy_points[(i + 3) * float_v::Size + 1], Vc::Streaming);
         }
 
         // Process the last vector. Note that this works for any N because Vc::Memory adds padding
@@ -218,7 +227,7 @@ int main()
             const unsigned int i = y_points.vectorsCount() - 1;
             const float_v left = y_points.vector(i, -2);
             const float_v right = y_points.lastVector();
-            dy_points.vector(i, -1) = (right - left) * oneOver2h;
+            ((right - left) * oneOver2h).store(&dy_points[i * float_v::Size - 1], Vc::Unaligned);
         }
 
         // ... and finally the right border
@@ -233,5 +242,7 @@ int main()
     }
     speedup /= timer.Cycles();
     std::cout << "Speedup: " << speedup << "\n";
+
+    Vc::free(dy_points - float_v::Size + 1);
     return 0;
 }
