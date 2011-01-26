@@ -39,8 +39,10 @@ class CpuId
         static void init();
         static ushort cacheLineSize() { return static_cast<ushort>(s_cacheLineSize) * 8u; }
         static ProcessorType processorType() { return s_processorType; }
-        static uchar processorFamily() { return s_processorFamily; }
-        static uchar processorModel() { return s_processorModel; }
+        static uint processorFamily() { return s_processorFamily; }
+        static uint processorModel() { return s_processorModel; }
+        static bool isAmd   () { return s_ecx0 == 0x444D4163; }
+        static bool isIntel () { return s_ecx0 == 0x6C65746E; }
         static bool hasSse3 () { return s_processorFeaturesC & (1 << 0); }
         static bool hasVmx  () { return s_processorFeaturesC & (1 << 5); }
         static bool hasSmx  () { return s_processorFeaturesC & (1 << 6); }
@@ -69,7 +71,13 @@ class CpuId
         static bool hasSse2 () { return s_processorFeaturesD & (1 << 26); }
         static bool hasHtt  () { return s_processorFeaturesD & (1 << 28); }
         static bool hasSse4a() { return s_processorFeatures8C & (1 << 6); }
-        static bool hasSse5 () { return s_processorFeatures8C & (1 << 11); }
+        static bool hasMisAlignSse() { return s_processorFeatures8C & (1 << 7); }
+        static bool hasAmdPrefetch() { return s_processorFeatures8C & (1 << 8); }
+        static bool hasXop ()        { return s_processorFeatures8C & (1 << 11); }
+        static bool hasFma4 ()       { return s_processorFeatures8C & (1 << 16); }
+        static bool hasRdtscp()      { return s_processorFeatures8D & (1 << 27); }
+        static bool has3DNow()       { return s_processorFeatures8D & (1 << 31); }
+        static bool has3DNowExt()    { return s_processorFeatures8D & (1 << 30); }
         static uint   L1Instruction() { return s_L1Instruction; }
         static uint   L1Data() { return s_L1Data; }
         static uint   L2Data() { return s_L2Data; }
@@ -81,12 +89,14 @@ class CpuId
         static ushort prefetch() { return s_prefetch; }
 
     private:
-        static void interpret(uchar byte);
+        static void interpret(uchar byte, bool *checkLeaf4);
 
+        static uint   s_ecx0;
         static uint   s_logicalProcessors;
         static uint   s_processorFeaturesC;
         static uint   s_processorFeaturesD;
         static uint   s_processorFeatures8C;
+        static uint   s_processorFeatures8D;
         static uint   s_L1Instruction;
         static uint   s_L1Data;
         static uint   s_L2Data;
@@ -104,10 +114,12 @@ class CpuId
         static bool   s_noL2orL3;
 };
 
+CpuId::uint   CpuId::s_ecx0 = 0;
 CpuId::uint   CpuId::s_logicalProcessors = 0;
 CpuId::uint   CpuId::s_processorFeaturesC = 0;
 CpuId::uint   CpuId::s_processorFeaturesD = 0;
 CpuId::uint   CpuId::s_processorFeatures8C = 0;
+CpuId::uint   CpuId::s_processorFeatures8D = 0;
 CpuId::uint   CpuId::s_L1Instruction = 0;
 CpuId::uint   CpuId::s_L1Data = 0;
 CpuId::uint   CpuId::s_L2Data = 0;
@@ -116,7 +128,7 @@ CpuId::ushort CpuId::s_L1InstructionLineSize = 0;
 CpuId::ushort CpuId::s_L1DataLineSize = 0;
 CpuId::ushort CpuId::s_L2DataLineSize = 0;
 CpuId::ushort CpuId::s_L3DataLineSize = 0;
-CpuId::ushort CpuId::s_prefetch = 0;
+CpuId::ushort CpuId::s_prefetch = 32; // The Intel ORM says that if CPUID(2) doesn't set the prefetch size it is 32
 CpuId::uchar  CpuId::s_brandIndex = 0;
 CpuId::uchar  CpuId::s_cacheLineSize = 0;
 CpuId::uchar  CpuId::s_processorModel = 0;
@@ -125,19 +137,31 @@ CpuId::ProcessorType CpuId::s_processorType = CpuId::IntelReserved;
 bool   CpuId::s_noL2orL3 = false;
 
 #ifdef _MSC_VER
-void __cpuid(int a[4], int b);
-#define CPUID(id) \
-	do { \
-	    int out[4]; \
-        __cpuid(out, id); \
-		eax = out[0]; \
-		ebx = out[1]; \
-		ecx = out[2]; \
-		edx = out[3]; \
-	} while (false)
+void __cpuid(int a[4], int leaf);
+void __cpuidex(int a[4], int leaf, int ecx);
+#define CPUID(leaf) \
+    do { \
+        int out[4]; \
+        __cpuid(out, leaf); \
+        eax = out[0]; \
+        ebx = out[1]; \
+        ecx = out[2]; \
+        edx = out[3]; \
+    } while (false)
+#define CPUID_C(leaf, _ecx_) \
+    do { \
+        int out[4]; \
+        __cpuidex(out, leaf, _ecx_); \
+        eax = out[0]; \
+        ebx = out[1]; \
+        ecx = out[2]; \
+        edx = out[3]; \
+    } while (false)
 #else
-#define CPUID(id) \
-    __asm__("mov $" #id ",%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx))
+#define CPUID(leaf) \
+    __asm__("mov $" #leaf ",%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx))
+#define CPUID_C(leaf, _ecx_) \
+    __asm__("mov $" #leaf ",%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "c"(_ecx_))
 #endif
 void CpuId::init()
 {
@@ -149,14 +173,14 @@ void CpuId::init()
     uint eax, ebx, ecx, edx;
 
     CPUID(0);
-    const bool isAmd = (ecx == 0x444D4163);
+    s_ecx0 = ecx;
 
     CPUID(1);
     s_processorFeaturesC = ecx;
     s_processorFeaturesD = edx;
     s_processorModel  = (eax & 0x000000f0) >> 4;
     s_processorFamily = (eax & 0x00000f00) >> 8;
-    if (isAmd) {
+    if (isAmd()) {
         if (s_processorFamily >= 0xf) {
             const uchar processorFamilyExt = (eax & 0x0ff00000) >> 20;
             s_processorFamily += processorFamilyExt;
@@ -180,9 +204,12 @@ void CpuId::init()
     ebx >>= 8;
     s_logicalProcessors = ebx & 0xff;
 
-    if (isAmd) {
-        CPUID(0x80000001);
-        s_processorFeatures8C = ecx;
+    CPUID(0x80000001);
+    s_processorFeatures8C = ecx;
+    s_processorFeatures8D = edx;
+
+    if (isAmd()) {
+        s_prefetch = cacheLineSize();
 
         CPUID(0x80000005);
         s_L1DataLineSize = ecx & 0xff;
@@ -200,6 +227,7 @@ void CpuId::init()
 
     // Intel only
     int repeat = 0;
+    bool checkLeaf4 = false;
     do {
         CPUID(2);
         if (repeat == 0) {
@@ -208,31 +236,94 @@ void CpuId::init()
         if (0 == (0x80000000u & eax)) {
             for (int i = 0; i < 3; ++i) {
                 eax >>= 8;
-                interpret(eax & 0xff);
+                interpret(eax & 0xff, &checkLeaf4);
             }
         }
         if (0 == (0x80000000u & ebx)) {
             for (int i = 0; i < 4; ++i) {
-                interpret(ebx & 0xff);
+                interpret(ebx & 0xff, &checkLeaf4);
                 ebx >>= 8;
             }
         }
         if (0 == (0x80000000u & ecx)) {
             for (int i = 0; i < 4; ++i) {
-                interpret(ecx & 0xff);
+                interpret(ecx & 0xff, &checkLeaf4);
                 ecx >>= 8;
             }
         }
         if (0 == (0x80000000u & edx)) {
             for (int i = 0; i < 4; ++i) {
-                interpret(edx & 0xff);
+                interpret(edx & 0xff, &checkLeaf4);
                 edx >>= 8;
             }
         }
     } while (--repeat > 0);
+    if (checkLeaf4) {
+        s_prefetch = cacheLineSize();
+        if (s_prefetch == 0) {
+            s_prefetch = 64;
+        }
+        eax = 1;
+        for (int i = 0; eax & 0x1f; ++i) {
+            CPUID_C(4, i);
+            const int cacheLevel = (eax >> 5) & 7;
+            //const int sharedBy = 1 + ((eax >> 14) & 0xfff);
+            const int linesize = 1 + (ebx & 0xfff);   ebx >>= 12;
+            const int partitions = 1 + (ebx & 0x3ff); ebx >>= 10;
+            const int ways = 1 + (ebx & 0x3ff);
+            const int sets = 1 + ecx;
+            const int size = ways * partitions * linesize * sets;
+            switch (eax & 0x1f) {
+                case 1: // data cache
+                    switch (cacheLevel) {
+                        case 1:
+                            s_L1Data = size;
+                            s_L1DataLineSize = linesize;
+                            break;
+                        case 2:
+                            s_L2Data = size;
+                            s_L2DataLineSize = linesize;
+                            break;
+                        case 3:
+                            s_L3Data = size;
+                            s_L3DataLineSize = linesize;
+                            break;
+                    }
+                    break;
+                case 2: // instruction cache
+                    switch (cacheLevel) {
+                        case 1:
+                            s_L1Instruction = size;
+                            s_L1InstructionLineSize = linesize;
+                            break;
+                    }
+                    break;
+                case 3: // unified cache
+                    switch (cacheLevel) {
+                        case 1:
+                            s_L1Data = size;// / sharedBy;
+                            s_L1DataLineSize = linesize;
+                            break;
+                        case 2:
+                            s_L2Data = size;// / sharedBy;
+                            s_L2DataLineSize = linesize;
+                            break;
+                        case 3:
+                            s_L3Data = size;// / sharedBy;
+                            s_L3DataLineSize = linesize;
+                            break;
+                    }
+                    break;
+                case 0: // no more caches
+                    break;
+                default: // reserved
+                    break;
+            }
+        }
+    }
 }
 
-void CpuId::interpret(uchar byte)
+void CpuId::interpret(uchar byte, bool *checkLeaf4)
 {
     switch (byte) {
     case 0x06:
@@ -427,8 +518,64 @@ void CpuId::interpret(uchar byte)
         s_L2Data = 1024 * 1024;
         s_L2DataLineSize = 64;
         break;
+    case 0xD0:
+        s_L3Data = 512 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xD1:
+        s_L3Data = 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xD2:
+        s_L3Data = 2 * 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xD6:
+        s_L3Data = 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xD7:
+        s_L3Data = 2 * 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xD8:
+        s_L3Data = 4 * 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xDC:
+        s_L3Data = 3 * 512 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xDD:
+        s_L3Data = 3 * 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xDE:
+        s_L3Data = 6 * 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xE2:
+        s_L3Data = 2 * 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xE3:
+        s_L3Data = 4 * 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
     case 0xE4:
         s_L3Data = 8 * 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xEA:
+        s_L3Data = 12 * 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xEB:
+        s_L3Data = 18 * 1024 * 1024;
+        s_L3DataLineSize = 64;
+        break;
+    case 0xEC:
+        s_L3Data = 24 * 1024 * 1024;
         s_L3DataLineSize = 64;
         break;
     case 0xF0:
@@ -436,6 +583,10 @@ void CpuId::interpret(uchar byte)
         break;
     case 0xF1:
         s_prefetch = 128;
+        break;
+    case 0xFF:
+        // we have to use CPUID(4) to find out
+        *checkLeaf4 = true;
         break;
     default:
         break;
