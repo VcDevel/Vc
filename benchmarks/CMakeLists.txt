@@ -84,3 +84,20 @@ vc_generate_plots(memio)
 
 add_executable(constants constants.cpp)
 target_link_libraries(constants Vc ${LIBS})
+
+if(QT4_FOUND)
+   include(${QT_USE_FILE})
+   include_directories(${CMAKE_CURRENT_BINARY_DIR})
+   qt4_generate_moc(../examples/mandelbrot/mandel.h moc_mandel.cpp)
+
+   set(SOURCES mandelbrot.cpp ../examples/mandelbrot/mandel.cpp
+      ${CMAKE_CURRENT_BINARY_DIR}/moc_mandel.cpp)
+
+   add_executable(mandelbrot_sse ${SOURCES})
+   add_target_property(mandelbrot_sse COMPILE_FLAGS "-DVC_IMPL=SSE")
+   target_link_libraries(mandelbrot_sse ${QT_LIBRARIES} Vc)
+
+   add_executable(mandelbrot_scalar ${SOURCES})
+   add_target_property(mandelbrot_scalar COMPILE_FLAGS "-DVC_IMPL=Scalar")
+   target_link_libraries(mandelbrot_scalar ${QT_LIBRARIES} Vc)
+endif()

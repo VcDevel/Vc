@@ -236,6 +236,8 @@ elseif(COMPILER_IS_MSVC)
    add_definitions(-DVC_NO_XGETBV)
 endif()
 
+find_package(Qt4)
+
 OptimizeForArchitecture()
 
 if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")

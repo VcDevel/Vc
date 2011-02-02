@@ -1,4 +1,3 @@
-find_package(Qt4)
 if(QT4_FOUND)
    include(${QT_USE_FILE})
    include_directories(${CMAKE_CURRENT_BINARY_DIR})
