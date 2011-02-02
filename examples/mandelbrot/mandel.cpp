@@ -199,6 +199,7 @@ template<> void Mandel<ScalarImpl>::mandelMe(QImage &image, float x0,
     typedef MyComplex<float> Z;
     const int height = image.height();
     const int width = image.width();
+    const float colorScale = 0xffffff / maxIt;
     for (int y = 0; y < height; ++y) {
         unsigned int *__restrict__ line = reinterpret_cast<unsigned int *>(image.scanLine(y));
         const float c_imag = y0 + y * scale;
@@ -209,7 +210,7 @@ template<> void Mandel<ScalarImpl>::mandelMe(QImage &image, float x0,
             for (; z.norm() < S && n < maxIt; ++n) {
                 z = P(z, c_real, c_imag);
             }
-            *line++ = (maxIt - n) * 0xffffffu / maxIt;
+            *line++ = static_cast<unsigned int>((maxIt - n) * colorScale);
         }
         if (restart()) {
             break;
