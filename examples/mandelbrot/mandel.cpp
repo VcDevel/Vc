@@ -181,7 +181,7 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
             uint_v colorValue = static_cast<uint_v>((maxIt - n) * colorScale);
             if (toStore.isFull()) {
                 colorValue.store(line, Vc::Unaligned);
-                line += 4;
+                line += uint_v::Size;
             } else {
                 colorValue.store(line, toStore, Vc::Unaligned);
                 break; // we don't need to check again wether x[0] + float_v::Size < width to break out of the loop
