@@ -196,7 +196,7 @@ int main(int argc, char **argv)
 
     out << "size" << "Vc [cycles]" << "Scalar [cycles]" << "equal";
 
-    for (int size = 25; size <= 1000; size += 25) {
+    for (int size = 25; size <= 1100; size += 25) {
         out << size;
         const float scale = 0.01f;
         const float x = 4 * size * scale * -0.333f;
