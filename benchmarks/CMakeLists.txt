@@ -93,11 +93,11 @@ if(QT4_FOUND)
    set(SOURCES mandelbrot.cpp ../examples/mandelbrot/mandel.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/moc_mandel.cpp)
 
-   add_executable(mandelbrot_sse ${SOURCES})
-   add_target_property(mandelbrot_sse COMPILE_FLAGS "-DVC_IMPL=SSE")
-   target_link_libraries(mandelbrot_sse ${QT_LIBRARIES} Vc)
+   add_executable(mandelbrotbench_sse ${SOURCES})
+   add_target_property(mandelbrotbench_sse COMPILE_FLAGS "-DVC_IMPL=SSE")
+   target_link_libraries(mandelbrotbench_sse ${QT_LIBRARIES} Vc)
 
-   add_executable(mandelbrot_scalar ${SOURCES})
-   add_target_property(mandelbrot_scalar COMPILE_FLAGS "-DVC_IMPL=Scalar")
-   target_link_libraries(mandelbrot_scalar ${QT_LIBRARIES} Vc)
+   add_executable(mandelbrotbench_scalar ${SOURCES})
+   add_target_property(mandelbrotbench_scalar COMPILE_FLAGS "-DVC_IMPL=Scalar")
+   target_link_libraries(mandelbrotbench_scalar ${QT_LIBRARIES} Vc)
 endif()
