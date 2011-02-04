@@ -196,20 +196,20 @@ int main(int argc, char **argv)
 
     out << "size" << "Vc [cycles]" << "Scalar [cycles]" << "equal";
 
-    for (int size = 25; size <= 1100; size += 25) {
+    for (int size = 25; size <= 700; size += 25) {
         out << size;
-        const float scale = 0.01f;
-        const float x = 4 * size * scale * -0.333f;
-        const float y = 3 * size * scale * -0.5f;
+        const float x = -2.f;
+        const float y = -1.f;
+        const float scale = 1.f / size;
         const int maxIterations = 255;
 
-        QImage imageVc(4 * size, 3 * size, QImage::Format_RGB32);
+        QImage imageVc(3 * size, 2 * size, QImage::Format_RGB32);
         tsc.Start();
         mandelVc.mandelMe(imageVc, x, y, scale, maxIterations);
         tsc.Stop();
         out << tsc.Cycles();
 
-        QImage imageScalar(4 * size, 3 * size, QImage::Format_RGB32);
+        QImage imageScalar(3 * size, 2 * size, QImage::Format_RGB32);
         tsc.Start();
         mandelScalar.mandelMe(imageScalar, x, y, scale, maxIterations);
         tsc.Stop();
