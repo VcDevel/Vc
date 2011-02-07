@@ -460,7 +460,7 @@ void MainWindow::recreateImage()
 
     // Parameters Begin
     const float S = 4.f;
-    float nSteps[2]   = { 10 * iWidth, 10 * iHeight };
+    float nSteps[2]   = { std::sqrt(iWidth) * iWidth, std::sqrt(iHeight) * iHeight };
     int upperBound[3] = {    10,     1,    20 };
     int lowerBound[3] = {     2,     0,    11 };
     int overallLowerBound = 10000;
