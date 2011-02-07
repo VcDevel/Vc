@@ -42,6 +42,7 @@ typedef bool int_m;
 #include <Vc/IO>
 
 using Vc::float_v;
+using Vc::float_m;
 using Vc::int_v;
 using Vc::int_m;
 #endif
@@ -164,14 +165,6 @@ static inline Z::value_type fastNorm(const Z &z)
     return z.real() * z.real() + z.imag() * z.imag();
 }
 
-static const float reduceOffset = std::sqrt(0.2f);
-static const float reduceFactor = 1.f / (std::sqrt(1.2f) - reduceOffset);
-
-static inline float reduce(float x)
-{
-    return (std::sqrt(x + 0.2f) - reduceOffset) * reduceFactor;
-}
-
 template<typename T> static inline T square(T a) { return a * a; }
 template<typename T> static inline T minOf(T a, T b) { return a < b ? a : b; }
 template<typename T> static inline T maxOf(T a, T b) { return a < b ? b : a; }
@@ -185,10 +178,262 @@ template<typename T> static inline T clamp(T min, T value, T max)
 
 struct Pixel
 {
-    int blue;
-    int green;
-    int red;
+    float blue;
+    float green;
+    float red;
 };
+
+static const Pixel NULL_PIXEL = { 0, 0, 0 };
+
+class Canvas
+{
+    public:
+        Canvas(int h, int w);
+        void addDot(float x, float y, int red, int green, int blue);
+        void toQImage(QImage *);
+
+    private:
+        void addDot(int x, int y, float red, float green, float blue) {
+            Pixel &p = m_pixels[x + y * m_width];
+            p.blue  += blue;
+            p.green += green;
+            p.red   += red;
+        }
+        const int m_width;
+        std::vector<Pixel> m_pixels;
+};
+
+Canvas::Canvas(int h, int w)
+    : m_width(w), m_pixels(h * w, NULL_PIXEL)
+{
+}
+
+void Canvas::addDot(float x, float y, int red, int green, int blue)
+{
+    const int x1 = static_cast<int>(std::floor(x));
+    const int x2 = static_cast<int>(std::ceil (x));
+    const int y1 = static_cast<int>(std::floor(y));
+    const int y2 = static_cast<int>(std::ceil (y));
+    const float xfrac = x - std::floor(x);
+    const float yfrac = y - std::floor(y);
+    const float r = red;
+    const float g = green;
+    const float b = blue;
+    const float frac11 = (1.f - xfrac) * (1.f - yfrac);
+    const float frac12 = (1.f - xfrac) * yfrac;
+    const float frac21 = xfrac * (1.f - yfrac);
+    const float frac22 = xfrac * yfrac;
+    addDot(x1, y1, r * frac11, g * frac11, b * frac11);
+    addDot(x2, y1, r * frac21, g * frac21, b * frac21);
+    addDot(x1, y2, r * frac12, g * frac12, b * frac12);
+    addDot(x2, y2, r * frac22, g * frac22, b * frac22);
+}
+
+#define BUDDHABROT_USE_FUNCTION1
+
+#ifdef BUDDHABROT_USE_FUNCTION2
+static inline uchar reduceRange(float x, float m, float h)
+{
+    /* m: max, h: median
+     * +-                              -+
+     * |        3        3        2     |
+     * |   510 h  + 127 m  - 765 h  m   |
+     * |   --------------------------   |
+     * |         3    3        2  2     |
+     * |      h m  + h  m - 2 h  m      |
+     * |                                |
+     * |         3        3          2  |
+     * |  - 255 h  - 254 m  + 765 h m   |
+     * |  ----------------------------  |
+     * |        4      2  3    3  2     |
+     * |     h m  - 2 h  m  + h  m      |
+     * |                                |
+     * |                    2        2  |
+     * |   - 510 h m + 255 h  + 127 m   |
+     * |   ---------------------------  |
+     * |         4      2  3    3  2    |
+     * |      h m  - 2 h  m  + h  m     |
+     * +-                              -+
+     */
+    const float h2 = h * h;
+    const float h3 = h2 * h;
+    const float m2 = m * m;
+    const float m3 = m2 * m;
+    const float denom = h * m * square(m - h);
+    return minOf(255.f, 0.5f //rounding
+            + x / denom * (
+                510.f * h3 + 127.f * m3 - 765.f * h2 * m
+                + x / m * (
+                    765.f * h * m2 - 255.f * h3 - 254.f * m3
+                    + x * (
+                        255.f * h2 + 127.f * m2 - 510.f * h * m)
+                    )));
+}
+#elif defined(BUDDHABROT_USE_FUNCTION1)
+static inline unsigned int reduceRange(float x, float m, float h)
+{
+    if (x <= m) {
+        return 0.5f // rounding
+            + 4.f / 255.f * h * h / m * x
+            + square(x) * (h / square(m)) * (4.f - 8.f / 255.f * h);
+    } else {
+        return 0.5f // rounding
+            + 255.f - 4.f * h + 4.f / 255.f * square(h)
+            + x / m * (16.f * h - 1020.f - 12.f / 255.f * square(h))
+            + square(x / m) * (1020.f - 12.f * h + 8.f / 255.f * square(h));
+    }
+}
+#endif
+
+void Canvas::toQImage(QImage *img)
+{
+    uchar *line = img->scanLine(0);
+    const Pixel *p = &m_pixels[0];
+#ifdef BUDDHABROT_USE_FUNCTION2
+    float max   [3] = { 0.f, 0.f, 0.f };
+    std::vector<float> sorted[3];
+    for (int i = 0; i < 3; ++i) {
+        sorted[i].reserve(m_pixels.size());
+    }
+    for (unsigned int i = 0; i < m_pixels.size(); ++i) {
+        max[0] = maxOf(max[0], m_pixels[i].red);
+        max[1] = maxOf(max[1], m_pixels[i].green);
+        max[2] = maxOf(max[2], m_pixels[i].blue);
+        if (m_pixels[i].red > 1.f) {
+            sorted[0].push_back(m_pixels[i].red);
+        }
+        if (m_pixels[i].green > 1.f) {
+            sorted[1].push_back(m_pixels[i].green);
+        }
+        if (m_pixels[i].blue > 1.f) {
+            sorted[2].push_back(m_pixels[i].blue);
+        }
+    }
+    for (int i = 0; i < 3; ++i) {
+        std::sort(sorted[i].begin(), sorted[i].end());
+    }
+    const float median[3] = {
+        sorted[0][sorted[0].size() / 2],
+        sorted[1][sorted[1].size() / 2],
+        sorted[2][sorted[2].size() / 2]
+    };
+
+    /*
+    int hist[3][2];
+    for (int i = 0; i < 3; ++i) {
+        hist[i][0] = hist[i][1] = 0;
+    }
+    for (unsigned int i = 0; i < m_pixels.size(); ++i) {
+        ++hist[0][reduceRange(m_pixels[i].red  , max[0], median[0]) / 128];
+        ++hist[1][reduceRange(m_pixels[i].green, max[1], median[1]) / 128];
+        ++hist[2][reduceRange(m_pixels[i].blue , max[2], median[2]) / 128];
+    }
+    qDebug() << "Histogram:\n  red:"
+        << median[0] << hist[0][0] << hist[0][1] << "\ngreen:"
+        << median[1] << hist[1][0] << hist[1][1] << "\n blue:"
+        << median[2] << hist[2][0] << hist[2][1];
+    */
+
+    for (int yy = 0; yy < img->height(); ++yy) {
+        for (int xx = 0; xx < img->width(); ++xx) {
+            line[0] = reduceRange(p->blue , max[2], median[2]);
+            line[1] = reduceRange(p->green, max[1], median[1]);
+            line[2] = reduceRange(p->red  , max[0], median[0]);
+            line += 4;
+            ++p;
+        }
+    }
+#elif defined(BUDDHABROT_USE_FUNCTION1)
+    float max[3] = { 0.f, 0.f, 0.f };
+    for (unsigned int i = 0; i < m_pixels.size(); ++i) {
+        max[0] = maxOf(max[0], m_pixels[i].red);
+        max[1] = maxOf(max[1], m_pixels[i].green);
+        max[2] = maxOf(max[2], m_pixels[i].blue);
+    }
+    float h[3] = { 220.f, 220.f, 220.f };
+
+    /*
+    int hist[3][2];
+    for (int i = 0; i < 3; ++i) {
+        hist[i][0] = hist[i][1] = 0;
+    }
+    for (unsigned int i = 0; i < m_pixels.size(); ++i) {
+        ++hist[0][reduceRange(m_pixels[i].red  , max[0], h[0]) / 128];
+        ++hist[1][reduceRange(m_pixels[i].green, max[1], h[1]) / 128];
+        ++hist[2][reduceRange(m_pixels[i].blue , max[2], h[2]) / 128];
+    }
+    qDebug() << "Histogram:\n  red:"
+        << hist[0][0] << hist[0][1] << "\ngreen:"
+        << hist[1][0] << hist[1][1] << "\n blue:"
+        << hist[2][0] << hist[2][1];
+    */
+
+    for (int yy = 0; yy < img->height(); ++yy) {
+        for (int xx = 0; xx < img->width(); ++xx) {
+            line[0] = reduceRange(p->blue , max[2], h[2]);
+            line[1] = reduceRange(p->green, max[1], h[1]);
+            line[2] = reduceRange(p->red  , max[0], h[0]);
+            line += 4;
+            ++p;
+        }
+    }
+#else
+    float max   [3] = { 0.f, 0.f, 0.f };
+    float mean  [3] = { 0.f, 0.f, 0.f };
+    float stddev[3] = { 0.f, 0.f, 0.f };
+    for (unsigned int i = 0; i < m_pixels.size(); ++i) {
+        max[0] = maxOf(max[0], m_pixels[i].red);
+        max[1] = maxOf(max[1], m_pixels[i].green);
+        max[2] = maxOf(max[2], m_pixels[i].blue);
+        mean[0] += m_pixels[i].red;
+        mean[1] += m_pixels[i].green;
+        mean[2] += m_pixels[i].blue;
+        stddev[0] += square(m_pixels[i].red);
+        stddev[1] += square(m_pixels[i].green);
+        stddev[2] += square(m_pixels[i].blue);
+    }
+    const float normalization = 1.f / m_pixels.size();
+    mean[0] *= normalization;
+    mean[1] *= normalization;
+    mean[2] *= normalization;
+    stddev[0] = std::sqrt(stddev[0] * normalization - square(mean[0]));
+    stddev[1] = std::sqrt(stddev[1] * normalization - square(mean[1]));
+    stddev[2] = std::sqrt(stddev[2] * normalization - square(mean[2]));
+    qDebug() << "   max:" << max[0] << max[1] << max[2];
+    qDebug() << "  mean:" << mean[0] << mean[1] << mean[2];
+    qDebug() << "stddev:" << stddev[0] << stddev[1] << stddev[2];
+
+    // colors have the range 0..max at this point
+    // they should be transformed such that for the resulting mean and stddev:
+    //    mean - stddev = 0
+    //    mean + stddev = min(min(2 * mean, max), 255)
+    //
+    // newColor = (c - mean) * min(min(2 * mean, max), 255) * 0.5 / stddev + 127.5
+
+    const float center[3] = {
+        minOf(minOf(2.f * mean[0], max[0]), 255.f) * 0.5f,
+        minOf(minOf(2.f * mean[1], max[1]), 255.f) * 0.5f,
+        minOf(minOf(2.f * mean[2], max[2]), 255.f) * 0.5f
+    };
+
+    const float sdFactor[3] = { 2.f, 2.f, 2.f };
+    const float redFactor   = center[0] / (sdFactor[0] * stddev[0]);
+    const float greenFactor = center[1] / (sdFactor[1] * stddev[1]);
+    const float blueFactor  = center[2] / (sdFactor[2] * stddev[2]);
+
+    for (int yy = 0; yy < img->height(); ++yy) {
+        //progressBar.setValue(990.f + 10.f * yy / img->height());
+        //QCoreApplication::processEvents();
+        for (int xx = 0; xx < img->width(); ++xx) {
+            line[0] = clamp(0, static_cast<int>(center[2] + (p->blue  - mean[2]) * blueFactor ), 255);
+            line[1] = clamp(0, static_cast<int>(center[1] + (p->green - mean[1]) * greenFactor), 255);
+            line[2] = clamp(0, static_cast<int>(center[0] + (p->red   - mean[0]) * redFactor  ), 255);
+            line += 4;
+            ++p;
+        }
+    }
+#endif
+}
 
 void MainWindow::recreateImage()
 {
@@ -203,31 +448,73 @@ void MainWindow::recreateImage()
     progressBar.setValue(0);
     progressBar.show();
     QCoreApplication::processEvents();
-    TimeStampCounter timer;
-    timer.Start();
+
+    const int iHeight = m_image.height();
+    const int iWidth  = m_image.width();
 
     // Parameters Begin
     const float S = 4.f;
-    const int upperBound[3] = { 500, 500, 500 };
-    const int lowerBound[3] = { 100, 100, 100 };
-    const int maxIterations = maxOf(upperBound[0], maxOf(upperBound[1], upperBound[2]));
-    const float realMin = -2.102613f;
-    const float realMax =  1.200613f;
-    const float imagMin = -1.23771f;
-    const float imagMax = 1.23971f;
-    const float sdFactor[3] = { 4.f, 2.f, 2.f };
+    float nSteps[2]   = { 10 * iWidth, 10 * iHeight };
+    int upperBound[3] = {    10,     1,    20 };
+    int lowerBound[3] = {     2,     0,    11 };
+    int overallLowerBound = 10000;
+    int maxIterations = 50000;// maxOf(maxOf(overallLowerBound, upperBound[0]), maxOf(upperBound[1], upperBound[2]));
+    float realMin = -2.102613f;
+    float realMax =  1.200613f;
+    float imagMin = 0.f;
+    float imagMax = 1.23971f;
     // Parameters End
 
+    const QStringList &args = QCoreApplication::arguments();
+    for (int i = 0; i < args.size(); ++i) {
+        const QString &arg = args[i];
+        bool ok = true;
+        if (arg == QLatin1String("--red")) {
+            lowerBound[0] = args[++i].toInt(&ok);
+            if (ok) {
+                upperBound[0] = args[++i].toInt(&ok);
+            }
+        } else if (arg == QLatin1String("--green")) {
+            lowerBound[1] = args[++i].toInt(&ok);
+            if (ok) {
+                upperBound[1] = args[++i].toInt(&ok);
+            }
+        } else if (arg == QLatin1String("--blue")) {
+            lowerBound[2] = args[++i].toInt(&ok);
+            if (ok) {
+                upperBound[2] = args[++i].toInt(&ok);
+            }
+        } else if (arg == QLatin1String("--steps")) {
+            nSteps[0] = args[++i].toFloat(&ok);
+            if (ok) {
+                nSteps[1] = args[++i].toFloat(&ok);
+            }
+        } else if (arg == QLatin1String("--minIt")) {
+            overallLowerBound = args[++i].toInt(&ok);
+        } else if (arg == QLatin1String("--maxIt")) {
+            maxIterations = args[++i].toInt(&ok);
+        }
+        if (!ok) {
+            QTextStream cout(stdout);
+            cout << "incorrect commandline parameters\n";
+            cout.flush();
+            exit(1);
+        }
+    }
+
+    TimeStampCounter timer;
+    timer.Start();
+
     // helper constants
-    const int iHeight = m_image.height();
-    const int iWidth  = m_image.width();
+    const int overallUpperBound = maxOf(upperBound[0], maxOf(upperBound[1], upperBound[2]));
+    const float maxX = static_cast<float>(iWidth ) - 1.f;
+    const float maxY = static_cast<float>(iHeight) - 1.f;
     const float xFact = iWidth / m_width;
     const float yFact = iHeight / m_height;
-    const float realStep = (realMax - realMin) / (10 * iWidth);
-    const float imagStep = (imagMax - imagMin) / (10 * iHeight);
-    const Pixel pixelInit = { 0, 0, 0 };
+    const float realStep = (realMax - realMin) / nSteps[0];
+    const float imagStep = (imagMax - imagMin) / nSteps[1];
 
-    std::vector<Pixel> pixels(iHeight * iWidth, pixelInit);
+    Canvas canvas(iHeight, iWidth);
 #ifdef Scalar
     for (float real = realMin; real <= realMax; real += realStep) {
         progressBar.setValue(990.f * (real - realMin) / (realMax - realMin));
@@ -240,30 +527,33 @@ void MainWindow::recreateImage()
             }
             Z z = c;
             int n;
-            for (n = 0; n < maxIterations && fastNorm(z) < S; ++n) {
+            for (n = 0; n <= maxIterations && fastNorm(z) < S; ++n) {
                 z = P(z, c);
             }
-            if (n < maxIterations) {
-                // point is outside of the Mandelbrot set
+            if (n <= maxIterations && n >= overallLowerBound) {
+                // point is outside of the Mandelbrot set and required enough (overallLowerBound)
+                // iterations to reach the cut-off value S
+                Z cn(real, -imag);
+                Z zn = cn;
                 z = c;
-                for (int i = 0; i < maxIterations; ++i) {
-                    const int y2 = (std::imag(z) - m_y) * yFact;
-                    if (y2 >= 0 && y2 < iHeight) {
-                        const int x2 = (std::real(z) - m_x) * xFact;
-                        if (x2 >= 0 && x2 < iWidth) {
-                            Pixel &p = pixels[x2 + y2 * iWidth];
-                            if (i >= lowerBound[2] && i <= upperBound[2]) {
-                                p.blue += 1;
-                            }
-                            if (i >= lowerBound[1] && i <= upperBound[1]) {
-                                p.green += 1;
-                            }
-                            if (i >= lowerBound[0] && i <= upperBound[0]) {
-                                p.red += 1;
-                            }
+                for (int i = 0; i <= overallUpperBound; ++i) {
+                    const float y2 = (std::imag(z) - m_y) * yFact;
+                    const float yn2 = (std::imag(zn) - m_y) * yFact;
+                    if (y2 >= 0.f && y2 < maxY && yn2 >= 0.f && yn2 < maxY) {
+                        const float x2 = (std::real(z) - m_x) * xFact;
+                        if (x2 >= 0.f && x2 < maxX) {
+                            const int red   = (i >= lowerBound[0] && i <= upperBound[0]) ? 1 : 0;
+                            const int green = (i >= lowerBound[1] && i <= upperBound[1]) ? 1 : 0;
+                            const int blue  = (i >= lowerBound[2] && i <= upperBound[2]) ? 1 : 0;
+                            canvas.addDot(x2, y2 , red, green, blue);
+                            canvas.addDot(x2, yn2, red, green, blue);
                         }
                     }
                     z = P(z, c);
+                    zn = P(zn, cn);
+                    if (fastNorm(z) >= S) { // optimization: skip some useless looping
+                        break;
+                    }
                 }
             }
         }
@@ -275,6 +565,7 @@ void MainWindow::recreateImage()
         progressBar.setValue(990.f * (real - realMin) / (realMax - realMin));
         QCoreApplication::processEvents();
         for (float_v imag = imagMin2; imag <= imagMax; imag += imagStep2) {
+            // FIXME: extra "tracks" if nSteps[1] is not a multiple of float_v::Size
             Z c(real, imag);
             Z c2 = Z(1.08f * real + 0.15f, imag);
             if (fastNorm(Z(real + 1.f, imag)) < 0.06f || (std::real(c2) < 0.42f && fastNorm(c2) < 0.417f)) {
@@ -283,90 +574,43 @@ void MainWindow::recreateImage()
             Z z = c;
             int_v n(Vc::Zero);
             int_m inside = fastNorm(z) < S;
-            while (!(inside && n < maxIterations).isEmpty()) {
+            while (!(inside && n <= maxIterations).isEmpty()) {
                 z = P(z, c);
-                inside &= fastNorm(z) < S;
                 ++n(inside);
+                inside &= fastNorm(z) < S;
             }
+            inside |= n < overallLowerBound;
             if (inside.isFull()) {
                 continue;
             }
+            Z cn(real, -imag);
+            Z zn = cn;
             z = c;
-            for (int i = 0; i < maxIterations; ++i) {
-                const int_v y2 = static_cast<int_v>((std::imag(z) - m_y) * yFact);
-                const int_v x2 = static_cast<int_v>((std::real(z) - m_x) * xFact);
+            for (int i = 0; i <= overallUpperBound; ++i) {
+                const float_v y2 = (std::imag(z) - m_y) * yFact;
+                const float_v yn2 = (std::imag(zn) - m_y) * yFact;
+                const float_v x2 = (std::real(z) - m_x) * xFact;
                 z = P(z, c);
-                const int_m drawMask = !inside && y2 >= 0 && x2 >= 0 && y2 < iHeight && x2 < iWidth;
+                zn = P(zn, cn);
+                const float_m drawMask = !inside && y2 >= 0.f && x2 >= 0.f && y2 < maxY && x2 < maxX && yn2 >= 0.f && yn2 < maxY;
+
+                const int red   = (i >= lowerBound[0] && i <= upperBound[0]) ? 1 : 0;
+                const int green = (i >= lowerBound[1] && i <= upperBound[1]) ? 1 : 0;
+                const int blue  = (i >= lowerBound[2] && i <= upperBound[2]) ? 1 : 0;
 
                 foreach_bit(int j, drawMask) {
-                    Pixel &p = pixels[x2[j] + y2[j] * iWidth];
-                    if (i >= lowerBound[2] && i <= upperBound[2]) {
-                        p.blue += 1;
-                    }
-                    if (i >= lowerBound[1] && i <= upperBound[1]) {
-                        p.green += 1;
-                    }
-                    if (i >= lowerBound[0] && i <= upperBound[0]) {
-                        p.red += 1;
-                    }
+                    canvas.addDot(x2[j], y2 [j], red, green, blue);
+                    canvas.addDot(x2[j], yn2[j], red, green, blue);
+                }
+                if (fastNorm(z) >= S) { // optimization: skip some useless looping
+                    break;
                 }
             }
         }
     }
 #endif
-    uchar *line = m_image.scanLine(0);
-    int max[3] = { 0, 0, 0 };
-    float mean[3] = { 0, 0, 0 };
-    for (unsigned int i = 0; i < pixels.size(); ++i) {
-        max[0] = maxOf(max[0], pixels[i].red);
-        max[1] = maxOf(max[0], pixels[i].green);
-        max[2] = maxOf(max[0], pixels[i].blue);
-        mean[0] += pixels[i].red;
-        mean[1] += pixels[i].green;
-        mean[2] += pixels[i].blue;
-    }
-    mean[0] /= pixels.size();
-    mean[1] /= pixels.size();
-    mean[2] /= pixels.size();
-    float sd[3] = { 0.f, 0.f, 0.f };
-    for (unsigned int i = 0; i < pixels.size(); ++i) {
-        sd[0] += square(pixels[i].red   - mean[0]);
-        sd[1] += square(pixels[i].green - mean[1]);
-        sd[2] += square(pixels[i].blue  - mean[2]);
-    }
-    sd[0] = sqrt(sd[0] / pixels.size());
-    sd[1] = sqrt(sd[1] / pixels.size());
-    sd[2] = sqrt(sd[2] / pixels.size());
-    qDebug() << " max:" << max[0] << max[1] << max[2];
-    qDebug() << "mean:" << mean[0] << mean[1] << mean[2];
-    qDebug() << "  sd:" << sd[0] << sd[1] << sd[2];
+    canvas.toQImage(&m_image);
 
-    // colors have the range 0..max at this point
-    // they should be transformed such that for the resulting mean and sd:
-    //    mean - sd = 0
-    //    mean + sd = min(min(2 * mean, max), 255)
-    //
-    // newColor = (c - mean) * min(min(2 * mean, max), 255) * 0.5 / sd + 127.5
-
-    const float center[3] = { minOf(minOf(2.f * mean[0], static_cast<float>(max[0])), 255.f) * 0.5f,
-        minOf(minOf(2.f * mean[1], static_cast<float>(max[1])), 255.f) * 0.5f,
-        minOf(minOf(2.f * mean[2], static_cast<float>(max[2])), 255.f) * 0.5f };
-
-    const float redFactor   = center[0] / (sdFactor[0] * sd[0]);
-    const float greenFactor = center[1] / (sdFactor[1] * sd[1]);
-    const float blueFactor  = center[2] / (sdFactor[2] * sd[2]);
-    const Pixel *p = &pixels[0];
-    for (int yy = 0; yy < iHeight; ++yy) {
-        progressBar.setValue(990.f + 10.f * yy / iHeight);
-        QCoreApplication::processEvents();
-        for (int xx = 0; xx < iWidth; ++xx) {
-            line[0] = clamp(0, static_cast<int>(center[2] + (p->blue  - mean[2]) * blueFactor ), 255);
-            line[1] = clamp(0, static_cast<int>(center[1] + (p->green - mean[1]) * greenFactor), 255);
-            line[2] = clamp(0, static_cast<int>(center[0] + (p->red   - mean[0]) * redFactor  ), 255);
-            line += 4;
-            ++p;
-        }
-    }
     timer.Stop();
     qDebug() << timer.Cycles() << "cycles";
     update();
