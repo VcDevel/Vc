@@ -27,6 +27,7 @@
 #include <cmath>
 
 #include <QApplication>
+#include <QTextStream>
 #include <QTimer>
 #include <QtCore/QtDebug>
 #include <QPainter>
@@ -620,6 +621,21 @@ void MainWindow::recreateImage()
 int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
+    const QStringList &args = QCoreApplication::arguments();
+    if (args.contains("--help") || args.contains("-h")) {
+        QTextStream out(stdout);
+        out << "Usage: " << argv[0] << " [options]\n\n"
+            << "Options:\n"
+            << "  -h|--help               This message.\n"
+            << "  --red   <int> <int>     Specify lower and upper iteration bounds for a red trace.\n"
+            << "  --green <int> <int>     Specify lower and upper iteration bounds for a green trace.\n"
+            << "  --blue  <int> <int>     Specify lower and upper iteration bounds for a blue trace.\n"
+            << "  --steps <float> <float> Specify the steps in real and imaginary direction.\n"
+            << "  --minIt <int>           Overall lower iteration bound.\n"
+            << "  --maxIt <int>           Overall upper iteration bound.\n"
+            ;
+        return 0;
+    }
     MainWindow w;
     w.resize(300, 200);
     w.show();
