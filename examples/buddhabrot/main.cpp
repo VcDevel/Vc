@@ -57,6 +57,11 @@ MainWindow::MainWindow(QWidget *_parent)
     m_y = m_height * -0.5f;
 }
 
+void MainWindow::setFilename(const QString &filename)
+{
+    m_filename = filename;
+}
+
 void MainWindow::paintEvent(QPaintEvent *e)
 {
     if (m_dirty) {
@@ -614,7 +619,12 @@ void MainWindow::recreateImage()
 
     timer.Stop();
     qDebug() << timer.Cycles() << "cycles";
-    update();
+
+    if (!m_filename.isEmpty()) {
+        m_image.save(m_filename);
+    } else {
+        update();
+    }
     recursionBarrier = false;
 }
 
@@ -633,11 +643,31 @@ int main(int argc, char **argv)
             << "  --steps <float> <float> Specify the steps in real and imaginary direction.\n"
             << "  --minIt <int>           Overall lower iteration bound.\n"
             << "  --maxIt <int>           Overall upper iteration bound.\n"
+            << "  -o <filename> <width> <height>  Output image to file.\n"
             ;
         return 0;
     }
     MainWindow w;
-    w.resize(300, 200);
-    w.show();
+    if (args.contains("-o")) {
+        int i = args.indexOf("-o");
+        if (args.count() > i + 3) {
+            bool ok = true;
+            int width = args[i + 2].toInt(&ok);
+            if (!ok) {
+                width = 1024;
+            }
+            int height = args[i + 3].toInt(&ok);
+            if (!ok) {
+                height = 768;
+            }
+            w.resize(width, height);
+            w.setFilename(args[i + 1]);
+        } else {
+            QTextStream(stderr) << "incorrect options\n";
+            return -1;
+        }
+    } else {
+        w.show();
+    }
     return app.exec();
 }

@@ -25,6 +25,7 @@
 #define MAIN_H
 
 #include <QImage>
+#include <QString>
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QResizeEvent>
@@ -36,6 +37,8 @@ class MainWindow : public QWidget
     Q_OBJECT
     public:
         MainWindow(QWidget *parent = 0);
+        void setFilename(const QString &);
+
     protected:
         void paintEvent(QPaintEvent *);
         void resizeEvent(QResizeEvent *);
@@ -56,5 +59,6 @@ class MainWindow : public QWidget
         bool m_dirty;
         QPoint m_dragStart;
         QPoint m_dragDelta;
+        QString m_filename;
 };
 #endif // MAIN_H
