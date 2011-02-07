@@ -294,6 +294,8 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
  *
  * This prefetch completely bypasses the cache, not evicting any other data.
  *
+ * \warning The prefetch API is not finalized and likely to change in following versions.
+ *
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
@@ -309,6 +311,8 @@ inline void ALWAYS_INLINE prefetchForOneRead(const void *addr)
  * target system supports it the cacheline will be marked as modified while prefetching, saving work
  * later on.
  *
+ * \warning The prefetch API is not finalized and likely to change in following versions.
+ *
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
@@ -321,6 +325,8 @@ inline void ALWAYS_INLINE prefetchForModify(const void *addr)
  * Prefetch the cacheline containing \p addr to L1 cache.
  *
  * This prefetch evicts data from the cache. So use it only for data you really will use.
+ *
+ * \warning The prefetch API is not finalized and likely to change in following versions.
  *
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
@@ -335,6 +341,8 @@ inline void ALWAYS_INLINE prefetchClose(const void *addr)
  *
  * This prefetch evicts data from the cache. So use it only for data you really will use.
  *
+ * \warning The prefetch API is not finalized and likely to change in following versions.
+ *
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
@@ -347,6 +355,8 @@ inline void ALWAYS_INLINE prefetchMid(const void *addr)
  * Prefetch the cacheline containing \p addr to L3 cache.
  *
  * This prefetch evicts data from the cache. So use it only for data you really will use.
+ *
+ * \warning The prefetch API is not finalized and likely to change in following versions.
  *
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
