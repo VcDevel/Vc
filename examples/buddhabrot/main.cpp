@@ -99,11 +99,11 @@ void ProgressWriter::done()
     m_out.flush();
 }
 
-MainWindow::MainWindow()
+Baker::Baker()
 {
 }
 
-void MainWindow::setSize(int w, int h)
+void Baker::setSize(int w, int h)
 {
     m_y = -1.f;
     m_height = 2.f;
@@ -114,7 +114,7 @@ void MainWindow::setSize(int w, int h)
     m_image = QImage(w, h, QImage::Format_RGB32);
 }
 
-void MainWindow::setFilename(const QString &filename)
+void Baker::setFilename(const QString &filename)
 {
     m_filename = filename;
 }
@@ -399,7 +399,7 @@ void Canvas::toQImage(QImage *img)
 #endif
 }
 
-void MainWindow::recreateImage()
+void Baker::recreateImage()
 {
     const int iHeight = m_image.height();
     const int iWidth  = m_image.width();
@@ -586,22 +586,22 @@ int main(int argc, char **argv)
             ;
         return 0;
     }
-    MainWindow w;
+    Baker b;
     bool ok = true;
     int width;
     int height = args.last().toInt(&ok);
     if (!ok) {
         height = 768;
         width = 1024;
-        w.setFilename(args.last());
+        b.setFilename(args.last());
     } else {
         width = args[args.count() - 2].toInt(&ok);
         if (!ok) {
             width = 1024;
         }
-        w.setFilename(args[args.count() - 3]);
+        b.setFilename(args[args.count() - 3]);
     }
-    w.setSize(width, height);
-    w.recreateImage();
+    b.setSize(width, height);
+    b.recreateImage();
     return 0;
 }

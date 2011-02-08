@@ -40,10 +40,10 @@ class ProgressWriter
         QTextStream m_out;
 };
 
-class MainWindow
+class Baker
 {
     public:
-        MainWindow();
+        Baker();
         void setSize(int w, int h);
         void setFilename(const QString &);
         void recreateImage();
