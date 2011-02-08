@@ -99,8 +99,7 @@ void ProgressWriter::done()
     m_out.flush();
 }
 
-MainWindow::MainWindow(QObject *_parent)
-    : QObject(_parent)
+MainWindow::MainWindow()
 {
 }
 

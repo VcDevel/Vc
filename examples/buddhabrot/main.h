@@ -27,10 +27,6 @@
 #include <QImage>
 #include <QTextStream>
 #include <QString>
-#include <QMouseEvent>
-#include <QPaintEvent>
-#include <QResizeEvent>
-#include <QWheelEvent>
 #include <QObject>
 
 class ProgressWriter
@@ -44,10 +40,10 @@ class ProgressWriter
         QTextStream m_out;
 };
 
-class MainWindow : public QObject
+class MainWindow
 {
     public:
-        MainWindow(QObject *parent = 0);
+        MainWindow();
         void setSize(int w, int h);
         void setFilename(const QString &);
         void recreateImage();
