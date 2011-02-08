@@ -46,7 +46,7 @@ class Baker
         Baker();
         void setSize(int w, int h);
         void setFilename(const QString &);
-        void recreateImage();
+        void createImage();
 
     private:
         float m_x; // left

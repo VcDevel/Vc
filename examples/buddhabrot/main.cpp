@@ -399,7 +399,7 @@ void Canvas::toQImage(QImage *img)
 #endif
 }
 
-void Baker::recreateImage()
+void Baker::createImage()
 {
     const int iHeight = m_image.height();
     const int iWidth  = m_image.width();
@@ -602,6 +602,6 @@ int main(int argc, char **argv)
         b.setFilename(args[args.count() - 3]);
     }
     b.setSize(width, height);
-    b.recreateImage();
+    b.createImage();
     return 0;
 }
