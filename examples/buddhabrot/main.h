@@ -25,29 +25,31 @@
 #define MAIN_H
 
 #include <QImage>
+#include <QTextStream>
 #include <QString>
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QResizeEvent>
 #include <QWheelEvent>
-#include <QWidget>
+#include <QObject>
 
-class MainWindow : public QWidget
+class ProgressWriter
 {
-    Q_OBJECT
     public:
-        MainWindow(QWidget *parent = 0);
+        ProgressWriter();
+        void setValue(float v);
+        void done();
+
+    private:
+        QTextStream m_out;
+};
+
+class MainWindow : public QObject
+{
+    public:
+        MainWindow(QObject *parent = 0);
+        void setSize(int w, int h);
         void setFilename(const QString &);
-
-    protected:
-        void paintEvent(QPaintEvent *);
-        void resizeEvent(QResizeEvent *);
-        void mousePressEvent(QMouseEvent *);
-        void mouseMoveEvent(QMouseEvent *);
-        void mouseReleaseEvent(QMouseEvent *);
-        void wheelEvent(QWheelEvent *);
-
-    private slots:
         void recreateImage();
 
     private:
@@ -56,9 +58,7 @@ class MainWindow : public QWidget
         float m_width;
         float m_height;
         QImage m_image;
-        bool m_dirty;
-        QPoint m_dragStart;
-        QPoint m_dragDelta;
         QString m_filename;
+        ProgressWriter m_progress;
 };
 #endif // MAIN_H

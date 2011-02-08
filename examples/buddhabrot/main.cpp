@@ -48,115 +48,76 @@ using Vc::int_v;
 using Vc::int_m;
 #endif
 
-MainWindow::MainWindow(QWidget *_parent)
-    : QWidget(_parent),
-    m_width(width()*0.005f), m_height(height()*0.005f),
-    m_dirty(true)
+ProgressWriter::ProgressWriter()
+    : m_out(stdout)
 {
+}
+
+void ProgressWriter::setValue(float vf)
+{
+    static int lastPercent = -1;
+    static int lastHash = 0;
+    int p = static_cast<int>(vf + 0.5f);
+    int h = static_cast<int>(vf * 0.78f + 0.5f);
+    bool flush = false;
+    if (p != lastPercent) {
+        flush = true;
+        if (lastPercent == -1) {
+            m_out << "\033[80D\033[K"
+                  << "[                                    ";
+            m_out.setFieldWidth(3);
+            m_out << p;
+            m_out.setFieldWidth(0);
+            m_out << "%                                      ]"
+                  << "\033[79D";
+        } else {
+            m_out << "\033[s\033[80D\033[37C";
+            m_out.setFieldWidth(3);
+            m_out << p;
+            m_out.setFieldWidth(0);
+            m_out << "\033[u";
+        }
+        lastPercent = p;
+    }
+    for (; lastHash < h; ++lastHash) {
+        flush = true;
+        if (lastHash < 36 || lastHash > 39) {
+            m_out << '#';
+        } else {
+            m_out << "\033[1C";
+        }
+    }
+    if (flush) {
+        m_out.flush();
+    }
+}
+
+void ProgressWriter::done()
+{
+    setValue(100.f);
+    m_out << "\033[2C";
+    m_out.flush();
+}
+
+MainWindow::MainWindow(QObject *_parent)
+    : QObject(_parent)
+{
+}
+
+void MainWindow::setSize(int w, int h)
+{
+    m_y = -1.f;
+    m_height = 2.f;
+
+    m_width = w * m_height / h;
     m_x = m_width * -0.667f;
-    m_y = m_height * -0.5f;
+
+    m_image = QImage(w, h, QImage::Format_RGB32);
 }
 
 void MainWindow::setFilename(const QString &filename)
 {
     m_filename = filename;
-}
-
-void MainWindow::paintEvent(QPaintEvent *e)
-{
-    if (m_dirty) {
-        QTimer::singleShot(0, this, SLOT(recreateImage()));
-    }
-    QPainter p(this);
-    p.translate(-m_dragDelta);
-    p.drawImage(e->rect(), m_image, e->rect());
-}
-
-void MainWindow::mousePressEvent(QMouseEvent *e)
-{
-    m_dragStart = e->pos();
-}
-
-void MainWindow::mouseMoveEvent(QMouseEvent *e)
-{
-    m_dragDelta = m_dragStart - e->pos();
-    update();
-}
-
-void MainWindow::mouseReleaseEvent(QMouseEvent *e)
-{
-    m_dragDelta = m_dragStart - e->pos();
-    // translate m_x, m_y accordingly and recreate the image
-    m_x += m_width * m_dragDelta.x() / m_image.width();
-    m_y += m_height * m_dragDelta.y() / m_image.height();
-    m_dirty = true;
-    m_dragDelta = QPoint();
-    update();
-}
-
-void MainWindow::wheelEvent(QWheelEvent *e)
-{
-    if (e->delta() < 0 && m_width > 3.f && m_height > 2.f) {
-        return;
-    }
-    const float constX = m_x + m_width * e->x() / width();
-    const float constY = m_y + m_height * e->y() / height();
-    if (e->delta() > 0) {
-        const float zoom = 1.f / (1.f + e->delta() * 0.001f);
-        m_width *= zoom;
-        m_height *= zoom;
-    } else {
-        const float zoom = 1.f - e->delta() * 0.001f;
-        m_width *= zoom;
-        m_height *= zoom;
-    }
-    m_x = constX - m_width * e->x() / width();
-    m_y = constY - m_height * e->y() / height();
-    m_dirty = true;
-    update();
-}
-
-/*   0                       x
- * 0 +----------------------->
- *   |
- *   |
- *   |
- *   |
- *   |
- *   |
- *   |
- * y V
- */
-void MainWindow::resizeEvent(QResizeEvent *e)
-{
-    m_image = QImage(e->size(), QImage::Format_RGB32);
-    const float centerX = m_x + 0.5f * m_width;
-    const float centerY = m_y + 0.5f * m_height;
-    if (e->oldSize().isValid()) {
-        // need to adjust for aspect ratio change
-        // width or height may only become smaller
-        //
-        // m_width/m_height == oldWidth/oldHeight
-        // m_width/m_height != newWidth/newHeight
-
-        const float tmp = m_height * e->size().width() / e->size().height();
-        if (tmp < m_width) {
-            m_width = tmp;
-        } else {
-            m_height = m_width * e->size().height() / e->size().width();
-        }
-    } else {
-        // initialize to full view
-        m_width  = 0.005f * e->size().width();
-        m_height = 0.005f * e->size().height();
-        const float f = 0.5f * (3.f / m_width + 2.f / m_height);
-        m_width *= f;
-        m_height *= f;
-    }
-    m_x = centerX - 0.5f * m_width;
-    m_y = centerY - 0.5f * m_height;
-    m_dirty = true;
-    update();
 }
 
 typedef std::complex<float_v> Z;
@@ -428,8 +389,6 @@ void Canvas::toQImage(QImage *img)
     const float blueFactor  = center[2] / (sdFactor[2] * stddev[2]);
 
     for (int yy = 0; yy < img->height(); ++yy) {
-        //progressBar.setValue(990.f + 10.f * yy / img->height());
-        //QCoreApplication::processEvents();
         for (int xx = 0; xx < img->width(); ++xx) {
             line[0] = clamp(0, static_cast<int>(center[2] + (p->blue  - mean[2]) * blueFactor ), 255);
             line[1] = clamp(0, static_cast<int>(center[1] + (p->green - mean[1]) * greenFactor), 255);
@@ -443,18 +402,6 @@ void Canvas::toQImage(QImage *img)
 
 void MainWindow::recreateImage()
 {
-    static bool recursionBarrier = false;
-    if (recursionBarrier || !m_dirty) {
-        return;
-    }
-    recursionBarrier = true;
-    m_dirty = false;
-    QProgressBar progressBar;
-    progressBar.setRange(0, 1000);
-    progressBar.setValue(0);
-    progressBar.show();
-    QCoreApplication::processEvents();
-
     const int iHeight = m_image.height();
     const int iWidth  = m_image.width();
 
@@ -523,8 +470,7 @@ void MainWindow::recreateImage()
     Canvas canvas(iHeight, iWidth);
 #ifdef Scalar
     for (float real = realMin; real <= realMax; real += realStep) {
-        progressBar.setValue(990.f * (real - realMin) / (realMax - realMin));
-        QCoreApplication::processEvents();
+        m_progress.setValue(99.f * (real - realMin) / (realMax - realMin));
         for (float imag = imagMin; imag <= imagMax; imag += imagStep) {
             Z c(real, imag);
             Z c2 = Z(1.08f * real + 0.15f, imag);
@@ -568,8 +514,7 @@ void MainWindow::recreateImage()
     const float imagStep2 = imagStep * float_v::Size;
     const float_v imagMin2 = imagMin + imagStep * static_cast<float_v>(int_v::IndexesFromZero());
     for (float real = realMin; real <= realMax; real += realStep) {
-        progressBar.setValue(990.f * (real - realMin) / (realMax - realMin));
-        QCoreApplication::processEvents();
+        m_progress.setValue(99.f * (real - realMin) / (realMax - realMin));
         for (float_v imag = imagMin2; imag <= imagMax; imag += imagStep2) {
             // FIXME: extra "tracks" if nSteps[1] is not a multiple of float_v::Size
             Z c(real, imag);
@@ -618,23 +563,19 @@ void MainWindow::recreateImage()
     canvas.toQImage(&m_image);
 
     timer.Stop();
+    m_progress.done();
     qDebug() << timer.Cycles() << "cycles";
 
-    if (!m_filename.isEmpty()) {
-        m_image.save(m_filename);
-    } else {
-        update();
-    }
-    recursionBarrier = false;
+    m_image.save(m_filename);
 }
 
 int main(int argc, char **argv)
 {
-    QApplication app(argc, argv);
+    QCoreApplication app(argc, argv);
     const QStringList &args = QCoreApplication::arguments();
     if (args.contains("--help") || args.contains("-h")) {
         QTextStream out(stdout);
-        out << "Usage: " << argv[0] << " [options]\n\n"
+        out << "Usage: " << argv[0] << " [options] <filename> [<width> <height>]\n\n"
             << "Options:\n"
             << "  -h|--help               This message.\n"
             << "  --red   <int> <int>     Specify lower and upper iteration bounds for a red trace.\n"
@@ -643,31 +584,25 @@ int main(int argc, char **argv)
             << "  --steps <float> <float> Specify the steps in real and imaginary direction.\n"
             << "  --minIt <int>           Overall lower iteration bound.\n"
             << "  --maxIt <int>           Overall upper iteration bound.\n"
-            << "  -o <filename> <width> <height>  Output image to file.\n"
             ;
         return 0;
     }
     MainWindow w;
-    if (args.contains("-o")) {
-        int i = args.indexOf("-o");
-        if (args.count() > i + 3) {
-            bool ok = true;
-            int width = args[i + 2].toInt(&ok);
-            if (!ok) {
-                width = 1024;
-            }
-            int height = args[i + 3].toInt(&ok);
-            if (!ok) {
-                height = 768;
-            }
-            w.resize(width, height);
-            w.setFilename(args[i + 1]);
-        } else {
-            QTextStream(stderr) << "incorrect options\n";
-            return -1;
-        }
+    bool ok = true;
+    int width;
+    int height = args.last().toInt(&ok);
+    if (!ok) {
+        height = 768;
+        width = 1024;
+        w.setFilename(args.last());
     } else {
-        w.show();
+        width = args[args.count() - 2].toInt(&ok);
+        if (!ok) {
+            width = 1024;
+        }
+        w.setFilename(args[args.count() - 3]);
     }
-    return app.exec();
+    w.setSize(width, height);
+    w.recreateImage();
+    return 0;
 }
