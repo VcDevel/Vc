@@ -43,12 +43,24 @@ class ProgressWriter
 class Baker
 {
     public:
+        struct Options
+        {
+            int   red[2];
+            int green[2];
+            int  blue[2];
+            int steps[2];
+            int    it[2];
+            Options();
+        };
+
         Baker();
+        void setOptions(Options o) { m_opt = o; }
         void setSize(int w, int h);
         void setFilename(const QString &);
         void createImage();
 
     private:
+        Options m_opt;
         float m_x; // left
         float m_y; // top
         float m_width;

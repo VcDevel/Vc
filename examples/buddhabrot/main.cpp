@@ -399,6 +399,19 @@ void Canvas::toQImage(QImage *img)
 #endif
 }
 
+Baker::Options::Options()
+{
+    red[0] = 2;
+    red[1] = 10;
+    green[0] = 0;
+    green[1] = 1;
+    blue[0] = 11;
+    blue[1] = 20;
+    it[0] = 10000;
+    it[1] = 50000;
+    steps[0] = steps[1] = -1;
+}
+
 void Baker::createImage()
 {
     const int iHeight = m_image.height();
@@ -406,53 +419,19 @@ void Baker::createImage()
 
     // Parameters Begin
     const float S = 4.f;
-    float nSteps[2]   = { std::sqrt(iWidth) * iWidth, std::sqrt(iHeight) * iHeight };
-    int upperBound[3] = {    10,     1,    20 };
-    int lowerBound[3] = {     2,     0,    11 };
-    int overallLowerBound = 10000;
-    int maxIterations = 50000;// maxOf(maxOf(overallLowerBound, upperBound[0]), maxOf(upperBound[1], upperBound[2]));
+    const float nSteps[2]   = {
+        m_opt.steps[0] == -1 ? std::sqrt(iWidth) * iWidth : m_opt.steps[0],
+        m_opt.steps[1] == -1 ? std::sqrt(iHeight) * iHeight : m_opt.steps[1]
+    };
+    const int upperBound[3] = { m_opt.red[1], m_opt.green[1], m_opt.blue[1] };
+    const int lowerBound[3] = { m_opt.red[0], m_opt.green[0], m_opt.blue[0] };
+    int overallLowerBound = m_opt.it[0];
+    int maxIterations = m_opt.it[1];// maxOf(maxOf(overallLowerBound, upperBound[0]), maxOf(upperBound[1], upperBound[2]));
     float realMin = -2.102613f;
     float realMax =  1.200613f;
     float imagMin = 0.f;
     float imagMax = 1.23971f;
     // Parameters End
-
-    const QStringList &args = QCoreApplication::arguments();
-    for (int i = 0; i < args.size(); ++i) {
-        const QString &arg = args[i];
-        bool ok = true;
-        if (arg == QLatin1String("--red")) {
-            lowerBound[0] = args[++i].toInt(&ok);
-            if (ok) {
-                upperBound[0] = args[++i].toInt(&ok);
-            }
-        } else if (arg == QLatin1String("--green")) {
-            lowerBound[1] = args[++i].toInt(&ok);
-            if (ok) {
-                upperBound[1] = args[++i].toInt(&ok);
-            }
-        } else if (arg == QLatin1String("--blue")) {
-            lowerBound[2] = args[++i].toInt(&ok);
-            if (ok) {
-                upperBound[2] = args[++i].toInt(&ok);
-            }
-        } else if (arg == QLatin1String("--steps")) {
-            nSteps[0] = args[++i].toFloat(&ok);
-            if (ok) {
-                nSteps[1] = args[++i].toFloat(&ok);
-            }
-        } else if (arg == QLatin1String("--minIt")) {
-            overallLowerBound = args[++i].toInt(&ok);
-        } else if (arg == QLatin1String("--maxIt")) {
-            maxIterations = args[++i].toInt(&ok);
-        }
-        if (!ok) {
-            QTextStream cout(stdout);
-            cout << "incorrect commandline parameters\n";
-            cout.flush();
-            exit(1);
-        }
-    }
 
     TimeStampCounter timer;
     timer.Start();
@@ -565,7 +544,38 @@ void Baker::createImage()
     m_progress.done();
     qDebug() << timer.Cycles() << "cycles";
 
+    if (m_filename.isEmpty()) {
+        m_filename = QString("r%1-%2_g%3-%4_b%5-%6_s%7-%8_i%9-%10_%11x%12.png")
+            .arg(lowerBound[0]).arg(upperBound[0])
+            .arg(lowerBound[1]).arg(upperBound[1])
+            .arg(lowerBound[2]).arg(upperBound[2])
+            .arg(nSteps[0]).arg(nSteps[1])
+            .arg(overallLowerBound).arg(maxIterations)
+            .arg(m_image.width()).arg(m_image.height());
+    }
+
     m_image.save(m_filename);
+}
+
+static void usage(const char *argv0)
+{
+    Baker::Options o;
+
+    QTextStream out(stdout);
+    out << "Usage: " << argv0 << " [options] [<filename>]\n\n"
+        << "Options:\n"
+        << "  -h|--help               This message.\n"
+        << "  -s|--size <w> <h>       Specify the width and height of the resulting image file. [1024 768]\n"
+        << "  -r|--red   <int> <int>  Specify lower and upper iteration bounds for a red trace. ["
+        << o.red[0] << ' ' << o.red[1] << "]\n"
+        << "  -g|--green <int> <int>  Specify lower and upper iteration bounds for a green trace. ["
+        << o.green[0] << ' ' << o.green[1] << "]\n"
+        << "  -b|--blue  <int> <int>  Specify lower and upper iteration bounds for a blue trace. ["
+        << o.blue[0] << ' ' << o.blue[1] << "]\n"
+        << "  --steps <int> <int>     Specify the steps in real and imaginary direction. [width^1.5 height^1.5]\n"
+        << "  --minIt <int>           Overall lower iteration bound. [" << o.it[0] << "]\n"
+        << "  --maxIt <int>           Overall upper iteration bound. [" << o.it[1] << "]\n"
+        ;
 }
 
 int main(int argc, char **argv)
@@ -573,34 +583,62 @@ int main(int argc, char **argv)
     QCoreApplication app(argc, argv);
     const QStringList &args = QCoreApplication::arguments();
     if (args.contains("--help") || args.contains("-h")) {
-        QTextStream out(stdout);
-        out << "Usage: " << argv[0] << " [options] <filename> [<width> <height>]\n\n"
-            << "Options:\n"
-            << "  -h|--help               This message.\n"
-            << "  --red   <int> <int>     Specify lower and upper iteration bounds for a red trace.\n"
-            << "  --green <int> <int>     Specify lower and upper iteration bounds for a green trace.\n"
-            << "  --blue  <int> <int>     Specify lower and upper iteration bounds for a blue trace.\n"
-            << "  --steps <float> <float> Specify the steps in real and imaginary direction.\n"
-            << "  --minIt <int>           Overall lower iteration bound.\n"
-            << "  --maxIt <int>           Overall upper iteration bound.\n"
-            ;
+        usage(argv[0]);
         return 0;
     }
+
     Baker b;
-    bool ok = true;
-    int width;
-    int height = args.last().toInt(&ok);
-    if (!ok) {
-        height = 768;
-        width = 1024;
-        b.setFilename(args.last());
-    } else {
-        width = args[args.count() - 2].toInt(&ok);
-        if (!ok) {
-            width = 1024;
+
+    Baker::Options opt;
+    int width = 1024;
+    int height = 768;
+
+    // parse args
+    for (int i = 1; i < args.size(); ++i) {
+        const QString &arg = args[i];
+        bool ok = true;
+        if (arg == QLatin1String("--red") || arg == QLatin1String("-r")) {
+            opt.red[0] = args[++i].toInt(&ok);
+            if (ok) {
+                opt.red[1] = args[++i].toInt(&ok);
+            }
+        } else if (arg == QLatin1String("--green") || arg == QLatin1String("-g")) {
+            opt.green[0] = args[++i].toInt(&ok);
+            if (ok) {
+                opt.green[1] = args[++i].toInt(&ok);
+            }
+        } else if (arg == QLatin1String("--blue") || arg == QLatin1String("-b")) {
+            opt.blue[0] = args[++i].toInt(&ok);
+            if (ok) {
+                opt.blue[1] = args[++i].toInt(&ok);
+            }
+        } else if (arg == QLatin1String("--steps")) {
+            opt.steps[0] = args[++i].toInt(&ok);
+            if (ok) {
+                opt.steps[1] = args[++i].toInt(&ok);
+            }
+        } else if (arg == QLatin1String("--minIt")) {
+            opt.it[0] = args[++i].toInt(&ok);
+        } else if (arg == QLatin1String("--maxIt")) {
+            opt.it[1] = args[++i].toInt(&ok);
+        } else if (arg == QLatin1String("--size") || arg == QLatin1String("-s")) {
+            width = args[++i].toInt(&ok);
+            if (ok) {
+                height = args[++i].toInt(&ok);
+            }
+        } else {
+            static bool filenameSet = false;
+            ok = !filenameSet;
+            filenameSet = true;
+            b.setFilename(arg);
         }
-        b.setFilename(args[args.count() - 3]);
+        if (!ok) {
+            usage(argv[0]);
+            return 1;
+        }
     }
+
+    b.setOptions(opt);
     b.setSize(width, height);
     b.createImage();
     return 0;
