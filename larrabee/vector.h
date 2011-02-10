@@ -170,8 +170,13 @@ struct ForeachHelper
     unsigned short mask;
     short bit;
     bool brk;
-    inline ForeachHelper(unsigned short _mask) :
-        mask(_mask),
+    inline ForeachHelper(Mask<16u> _mask) :
+        mask(_mask.data()),
+        bit(_mm_bsff_16(mask)),
+        brk(false)
+    {}
+    inline ForeachHelper(Mask<8u> _mask) :
+        mask(_mask.data() & 0xff),
         bit(_mm_bsff_16(mask)),
         brk(false)
     {}
@@ -200,7 +205,7 @@ struct ForeachHelper
  *             mask.
  */
 #define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::LRBni::ForeachHelper _Vc_foreach_bit_helper((_mask_).data()); \
+    for (Vc::LRBni::ForeachHelper _Vc_foreach_bit_helper(_mask_); \
             _Vc_foreach_bit_helper.outer(); \
             _Vc_foreach_bit_helper.step()) \
         for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )

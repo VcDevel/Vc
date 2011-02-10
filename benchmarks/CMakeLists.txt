@@ -24,12 +24,13 @@ mark_as_advanced(HAVE_SYS_MMAN)
 
 set(FAST_MATH_BENCHMARK FALSE CACHE BOOL "Use floating point math shortcuts. Might not be IEEE compliant!")
 if(FAST_MATH_BENCHMARK)
-   if(CMAKE_COMPILER_IS_GNUCXX)
+   if(COMPILER_IS_GCC OR COMPILER_IS_OPEN64)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
-   elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
+   elseif(COMPILER_IS_INTEL)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model fast=2")
-   elseif(MSVC)
-   endif(CMAKE_COMPILER_IS_GNUCXX)
+   elseif(COMPILER_IS_MSVC)
+      message(WARNING "Missing flag for MSVC to implement fast-math")
+   endif()
 endif(FAST_MATH_BENCHMARK)
 
 add_library(cpuset STATIC cpuset.c)
@@ -83,3 +84,20 @@ vc_generate_plots(memio)
 
 add_executable(constants constants.cpp)
 target_link_libraries(constants Vc ${LIBS})
+
+if(QT4_FOUND)
+   include(${QT_USE_FILE})
+   include_directories(${CMAKE_CURRENT_BINARY_DIR})
+   qt4_generate_moc(../examples/mandelbrot/mandel.h moc_mandel.cpp)
+
+   set(SOURCES mandelbrot.cpp ../examples/mandelbrot/mandel.cpp
+      ${CMAKE_CURRENT_BINARY_DIR}/moc_mandel.cpp)
+
+   add_executable(mandelbrotbench_sse ${SOURCES})
+   add_target_property(mandelbrotbench_sse COMPILE_FLAGS "-DVC_IMPL=SSE")
+   target_link_libraries(mandelbrotbench_sse ${QT_LIBRARIES} Vc)
+
+   add_executable(mandelbrotbench_scalar ${SOURCES})
+   add_target_property(mandelbrotbench_scalar COMPILE_FLAGS "-DVC_IMPL=Scalar")
+   target_link_libraries(mandelbrotbench_scalar ${QT_LIBRARIES} Vc)
+endif()

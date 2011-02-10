@@ -2,6 +2,30 @@ cmake_minimum_required(VERSION 2.6.2)
 project(Vc)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+if(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
+   set(COMPILER_IS_INTEL true)
+   set(COMPILER_IS_OPEN64 false)
+   set(COMPILER_IS_MSVC false)
+   set(COMPILER_IS_GCC false)
+elseif(CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
+   set(COMPILER_IS_INTEL false)
+   set(COMPILER_IS_OPEN64 true)
+   set(COMPILER_IS_MSVC false)
+   set(COMPILER_IS_GCC false)
+elseif(MSVC)
+   set(COMPILER_IS_INTEL false)
+   set(COMPILER_IS_OPEN64 false)
+   set(COMPILER_IS_MSVC true)
+   set(COMPILER_IS_GCC false)
+elseif(CMAKE_COMPILER_IS_GNUCXX)
+   set(COMPILER_IS_INTEL false)
+   set(COMPILER_IS_OPEN64 false)
+   set(COMPILER_IS_MSVC false)
+   set(COMPILER_IS_GCC true)
+else()
+   message(ERROR "Unsupported Compiler. Please fill out the missing parts in the CMake scripts and submit a patch to http://code.compeng.uni-frankfurt.de/projects/vc")
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release CACHE STRING
       "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
@@ -43,7 +67,7 @@ endif(GATHER_SET)
 
 set(SSE_INTRINSICS_BROKEN false)
 
-if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
+if(COMPILER_IS_OPEN64)
    # Open64 is detected as GNUCXX :(
    AddCompilerFlag("-W")
    AddCompilerFlag("-Wall")
@@ -97,7 +121,12 @@ if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
    if(NOT _binutils_as)
       message(WARNING "Could not find 'as', the assembly normally used by GCC. Hoping everything will work out...")
    else(NOT _binutils_as)
-      exec_program(${_binutils_as} ARGS --version OUTPUT_VARIABLE _as_version)
+      if(APPLE)
+         # it's not really binutils, but it'll give us the assembler version which is what we want
+         exec_program(${_binutils_as} ARGS -v /dev/null OUTPUT_VARIABLE _as_version)
+      else(APPLE)
+         exec_program(${_binutils_as} ARGS --version OUTPUT_VARIABLE _as_version)
+      endif(APPLE)
       string(REGEX REPLACE "\\([^\\)]*\\)" "" _as_version "${_as_version}")
       string(REGEX MATCH "[1-9]\\.[0-9]+(\\.[0-9]+)?" _as_version "${_as_version}")
       macro_ensure_version("2.18.93" "${_as_version}" _as_good)
@@ -106,7 +135,7 @@ if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
       endif(NOT _as_good)
    endif(NOT _binutils_as)
    mark_as_advanced(_binutils_as)
-elseif(CMAKE_COMPILER_IS_GNUCXX)
+elseif(COMPILER_IS_GCC)
    ##################################################################################################
    #                                              GCC                                               #
    ##################################################################################################
@@ -159,7 +188,12 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
    if(NOT _binutils_as)
       message(WARNING "Could not find 'as', the assembler normally used by GCC. Hoping everything will work out...")
    else(NOT _binutils_as)
-      exec_program(${_binutils_as} ARGS --version OUTPUT_VARIABLE _as_version)
+      if(APPLE)
+         # it's not really binutils, but it'll give us the assembler version which is what we want
+         exec_program(${_binutils_as} ARGS -v /dev/null OUTPUT_VARIABLE _as_version)
+      else(APPLE)
+         exec_program(${_binutils_as} ARGS --version OUTPUT_VARIABLE _as_version)
+      endif(APPLE)
       string(REGEX REPLACE "\\([^\\)]*\\)" "" _as_version "${_as_version}")
       string(REGEX MATCH "[1-9]\\.[0-9]+(\\.[0-9]+)?" _as_version "${_as_version}")
       macro_ensure_version("2.18.93" "${_as_version}" _as_good)
@@ -169,7 +203,7 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
       endif(NOT _as_good)
    endif(NOT _binutils_as)
    mark_as_advanced(_binutils_as)
-elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
+elseif(COMPILER_IS_INTEL)
    ##################################################################################################
    #                                          Intel Compiler                                        #
    ##################################################################################################
@@ -188,19 +222,25 @@ elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
       endif(ENABLE_STRICT_ALIASING)
    endif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 
-   # iomanip from latest libstdc++ makes ICC fail unless C++0x is selected
-   AddCompilerFlag("-std=c++0x")
+   exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE _icc_version)
+   macro_ensure_version("12.0.0" "${_icc_version}" ICC_12_0_0)
+   if(ICC_12_0_0)
+      # iomanip from latest libstdc++ makes ICC fail unless C++0x is selected
+      AddCompilerFlag("-std=c++0x")
+   endif()
 
    # per default icc is not IEEE compliant, but we need that for verification
    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${ALIAS_FLAGS} -w1 -fp-model precise")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS} -w1 -fp-model precise")
-elseif(MSVC)
+elseif(COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4800") # Disable warning "forcing value to bool"
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
    # MSVC does not support inline assembly on 64 bit! :(
    # searching the help for xgetbv doesn't turn up anything. So just fall back to not supporting AVX on Windows :(
    add_definitions(-DVC_NO_XGETBV)
-endif(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
+endif()
+
+find_package(Qt4)
 
 OptimizeForArchitecture()
 
@@ -212,6 +252,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/incl
 
 add_library(Vc STATIC vector.cpp common/support.cpp)
 add_target_property(Vc COMPILE_FLAGS "-DVC_COMPILE_LIB")
+add_target_property(Vc LABELS "other")
+
+add_custom_target(other VERBATIM)
+add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
+add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
+add_custom_target(LRBni COMMENT "build LRBni code" VERBATIM)
+add_dependencies(other Vc)
 
 install(TARGETS Vc DESTINATION lib/)
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)

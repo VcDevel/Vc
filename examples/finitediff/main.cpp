@@ -83,7 +83,7 @@ using Vc::float_v;
 // where the value is used in printResults.
 Vc::Memory<float_v, N> x_points;
 Vc::Memory<float_v, N> y_points;
-Vc::Memory<float_v, N> dy_points;
+float *__restrict__ dy_points;
 
 void printResults()
 {
@@ -120,8 +120,24 @@ int main()
       }
     }
 
+    dy_points = Vc::malloc<float, Vc::AlignOnVector>(N + float_v::Size - 1) + (float_v::Size - 1);
+
     double speedup;
     TimeStampCounter timer;
+
+    { ///////// ignore this part - it only wakes up the CPU ////////////////////////////
+        const float oneOver2h = 0.5f / h;
+
+        // set borders explicit as up- or downdifferential
+        dy_points[0] = (y_points[1] - y_points[0]) / h;
+        // GCC auto-vectorizes the following loop. It is interesting to see that both Vc::Scalar and
+        // Vc::SSE are faster, though.
+        for ( int i = 1; i < N - 1; ++i) {
+            dy_points[i] = (y_points[i + 1] - y_points[i - 1]) * oneOver2h;
+        }
+        dy_points[N - 1] = (y_points[N - 1] - y_points[N - 2]) / h;
+    } //////////////////////////////////////////////////////////////////////////////////
+
     {
         std::cout << "\n" << std::setw(60) << "Classical finite difference method" << std::endl;
         timer.Start();
@@ -130,6 +146,8 @@ int main()
 
         // set borders explicit as up- or downdifferential
         dy_points[0] = (y_points[1] - y_points[0]) / h;
+        // GCC auto-vectorizes the following loop. It is interesting to see that both Vc::Scalar and
+        // Vc::SSE are faster, though.
         for ( int i = 1; i < N - 1; ++i) {
             dy_points[i] = (y_points[i + 1] - y_points[i - 1]) * oneOver2h;
         }
@@ -137,27 +155,69 @@ int main()
 
         timer.Stop();
         printResults();
-        std::cout << "cycle count: " << timer.Cycles() << "\n";
+        std::cout << "cycle count: " << timer.Cycles()
+            << " | " << static_cast<double>(N * 2) / timer.Cycles() << " FLOP/cycle"
+            << " | " << static_cast<double>(N * 2 * sizeof(float)) / timer.Cycles() << " Byte/cycle"
+            << "\n";
     }
+
     speedup = timer.Cycles();
     {
         std::cout << std::setw(60) << "Vectorized finite difference method" << std::endl;
         timer.Start();
 
+        // All the differentials require to calculate (r - l) / 2h, where we calculate 1/2h as a
+        // constant before the loop to avoid unnecessary calculations. Note that a good compiler can
+        // already do this for you.
         const float_v oneOver2h = 0.5f / h;
 
-        // set borders explicit as up- or downdifferential
+        // Calculate the left border
         dy_points[0] = (y_points[1] - y_points[0]) / h;
+
+        // Calculate the differentials streaming through the y and dy memory. The picture below
+        // should give an idea of what values in y get read and what values are written to dy in
+        // each iteration:
+        //
         // y  [...................................]
         //     00001111222233334444555566667777
         //       00001111222233334444555566667777
         // dy [...................................]
         //      00001111222233334444555566667777
-        for (unsigned int i = 0; i < (y_points.entriesCount() - 2) / float_v::Size; ++i) {
-            const float_v left = y_points.vector(i);
-            const float_v right = y_points.vector(i, 2);
-            dy_points.vector(i, 1) = (right - left) * oneOver2h;
+        //
+        // The loop is manually unrolled four times to improve instruction level parallelism and
+        // prefetching on architectures where four vectors fill one cache line. (Note that this
+        // unrolling breaks auto-vectorization of the Vc::Scalar implementation when compiling with
+        // GCC.)
+        for (unsigned int i = 0; i < (y_points.entriesCount() - 2) / float_v::Size; i += 4) {
+            // Prefetches make sure the data which is going to be used in 24/4 iterations is already
+            // in the L1 cache. The prefetchForOneRead additionally instructs the CPU to not evict
+            // these cache lines to L2/L3.
+            Vc::prefetchForOneRead(&y_points[(i + 24) * float_v::Size]);
+
+            // calculate float_v::Size differentials per (left - right) / 2h
+            const float_v dy0 = (y_points.vector(i + 0, 2) - y_points.vector(i + 0)) * oneOver2h;
+            const float_v dy1 = (y_points.vector(i + 1, 2) - y_points.vector(i + 1)) * oneOver2h;
+            const float_v dy2 = (y_points.vector(i + 2, 2) - y_points.vector(i + 2)) * oneOver2h;
+            const float_v dy3 = (y_points.vector(i + 3, 2) - y_points.vector(i + 3)) * oneOver2h;
+
+            // Use streaming stores to reduce the required memory bandwidth. Without streaming
+            // stores the CPU would first have to load the cache line, where the store occurs, from
+            // memory into L1, then overwrite the data, and finally write it back to memory. But
+            // since we never actually need the data that the CPU fetched from memory we'd like to
+            // keep that bandwidth free for real work. Streaming stores allow us to issue stores
+            // which the CPU gathers in store buffers to form full cache lines, which then get
+            // written back to memory directly without the costly read. Thus we make better use of
+            // the available memory bandwidth.
+            dy0.store(&dy_points[(i + 0) * float_v::Size + 1], Vc::Streaming);
+            dy1.store(&dy_points[(i + 1) * float_v::Size + 1], Vc::Streaming);
+            dy2.store(&dy_points[(i + 2) * float_v::Size + 1], Vc::Streaming);
+            dy3.store(&dy_points[(i + 3) * float_v::Size + 1], Vc::Streaming);
         }
+
+        // Process the last vector. Note that this works for any N because Vc::Memory adds padding
+        // to y_points and dy_points such that the last scalar value is somewhere inside lastVector.
+        // The correct right border value for dy_points is overwritten in the last step unless N is
+        // a multiple of float_v::Size + 2.
         // y  [...................................]
         //                                  8888
         //                                    8888
@@ -167,15 +227,22 @@ int main()
             const unsigned int i = y_points.vectorsCount() - 1;
             const float_v left = y_points.vector(i, -2);
             const float_v right = y_points.lastVector();
-            dy_points.vector(i, -1) = (right - left) * oneOver2h;
+            ((right - left) * oneOver2h).store(&dy_points[i * float_v::Size - 1], Vc::Unaligned);
         }
+
+        // ... and finally the right border
         dy_points[N - 1] = (y_points[N - 1] - y_points[N - 2]) / h;
 
         timer.Stop();
         printResults();
-        std::cout << "cycle count: " << timer.Cycles() << "\n";
+        std::cout << "cycle count: " << timer.Cycles()
+            << " | " << static_cast<double>(N * 2) / timer.Cycles() << " FLOP/cycle"
+            << " | " << static_cast<double>(N * 2 * sizeof(float)) / timer.Cycles() << " Byte/cycle"
+            << "\n";
     }
     speedup /= timer.Cycles();
     std::cout << "Speedup: " << speedup << "\n";
+
+    Vc::free(dy_points - float_v::Size + 1);
     return 0;
 }

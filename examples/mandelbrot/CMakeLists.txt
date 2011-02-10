@@ -1,4 +1,3 @@
-find_package(Qt4)
 if(QT4_FOUND)
    include(${QT_USE_FILE})
    include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -24,8 +23,8 @@ if(QT4_FOUND)
       $ENV{HOME}/intel/Compiler/11.1/072/bin/intel64)
 
    if(O64_CXX)
-      add_custom_target(mandelbrot_open64 ALL
-         ${O64_CXX} -O3 -Wall -msse3
+      add_custom_command(OUTPUT mandelbrot_open64
+         COMMAND ${O64_CXX} -O3 -Wall -msse3
          -o ${CMAKE_CURRENT_BINARY_DIR}/mandelbrot_open64
          -I ${CMAKE_CURRENT_BINARY_DIR} -I ${QT_INCLUDE_DIR}
          -I ${QT_QTCORE_INCLUDE_DIR} -I ${QT_QTGUI_INCLUDE_DIR}
@@ -34,12 +33,16 @@ if(QT4_FOUND)
          -DVC_IMPL=Scalar
          DEPENDS ${SOURCES}
          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+         COMMENT "Bulding mandelbrot_open64"
          VERBATIM)
+      add_custom_target(build_mandelbrot_open64 ALL DEPENDS mandelbrot_open64)
+      add_target_property(build_mandelbrot_open64 LABELS "other")
+      add_dependencies(other build_mandelbrot_open64)
    endif(O64_CXX)
 
    if(ICC_CXX)
-      add_custom_target(mandelbrot_icc ALL
-         ${ICC_CXX} -O3 -xSSE3
+      add_custom_command(OUTPUT mandelbrot_icc
+         COMMAND ${ICC_CXX} -O3 -xSSE3
          -o ${CMAKE_CURRENT_BINARY_DIR}/mandelbrot_icc
          -I ${CMAKE_CURRENT_BINARY_DIR} -I ${QT_INCLUDE_DIR}
          -I ${QT_QTCORE_INCLUDE_DIR} -I ${QT_QTGUI_INCLUDE_DIR}
@@ -48,6 +51,10 @@ if(QT4_FOUND)
          -DVC_IMPL=Scalar
          DEPENDS ${SOURCES}
          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+         COMMENT "Bulding mandelbrot_icc"
          VERBATIM)
+      add_custom_target(build_mandelbrot_icc ALL DEPENDS mandelbrot_icc)
+      add_target_property(build_mandelbrot_icc LABELS "other")
+      add_dependencies(other build_mandelbrot_icc)
    endif(ICC_CXX)
 endif(QT4_FOUND)

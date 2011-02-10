@@ -77,7 +77,7 @@ export LABEL=$(echo $LABEL1 | sed -e 's#/#_#g')
 if [ "$arch" = "linux" ];
 then
   export number_of_processors=$(cat /proc/cpuinfo | grep processor | wc -l)
-  export SITE=$(hostname -f 2>/dev/null || hostname)
+  export SITE=$(hostname -s 2>/dev/null || hostname)
 elif [ "$arch" = "darwin" ];
 then
   export number_of_processors=$(sysctl -n hw.ncpu)
@@ -99,4 +99,4 @@ export VC_SOURCEDIR="$PWD" # making sure VC_SOURCEDIR is an absolute path
 test -z "$VC_BUILDDIR" && export VC_BUILDDIR="$VC_SOURCEDIR/build-${ctest_model}-${LABEL//[\[\] ()]/_}"
 test -d "$VC_BUILDDIR" || mkdir -p "$VC_BUILDDIR"
 
-ctest -S VCTest.cmake -V --VV
+ctest -S test.cmake -V

@@ -23,6 +23,7 @@
 #include "memorybase.h"
 #include <assert.h>
 #include <algorithm>
+#include <cstring>
 
 namespace Vc
 {
@@ -134,11 +135,11 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
         template<typename Parent>
         inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
-            std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
+            std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
             return *this;
         }
         inline Memory<V> &operator=(const EntryType *rhs) {
-            std::copy(rhs, rhs + entriesCount(), m_mem);
+            std::memcpy(m_mem, rhs, entriesCount() * sizeof(EntryType));
             return *this;
         }
         inline Memory &operator=(const V &v) {
@@ -180,6 +181,11 @@ __attribute__((__aligned__(__alignof(VectorAlignedBase))))
  * bounds. But the Memory class automatically pads the memory such that the whole array can be
  * accessed with correctly aligned memory addresses.
  * (Note: the scalar loop can be auto-vectorized, except for the last three assignments.)
+ *
+ * \note The internal data pointer is not declared with the \c __restrict__ keyword. Therefore
+ * modifying memory of V::EntryType will require the compiler to assume aliasing. If you want to use
+ * the \c __restrict__ keyword you need to use a standard pointer to memory and do the vector
+ * address calculation and loads and stores manually.
  *
  * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
  *
@@ -234,7 +240,20 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
             m_vectorsCount(rhs.vectorsCount()),
             m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
-            std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
+            std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
+        }
+
+        /**
+         * Overload of the above function.
+         *
+         * (Because C++ would otherwise not use the templated cctor and use a default-constructed cctor instead.)
+         */
+        inline Memory(const Memory<V, 0u> &rhs)
+            : m_entriesCount(rhs.entriesCount()),
+            m_vectorsCount(rhs.vectorsCount()),
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
+        {
+            std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
         }
 
         /**
@@ -261,7 +280,7 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
         template<typename Parent>
         inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
-            std::copy(rhs.m_mem, rhs.m_mem + entriesCount(), m_mem);
+            std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
             return *this;
         }
 
@@ -270,7 +289,7 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
          * function assumes that there are entriesCount() many values accessible from \p rhs on.
          */
         inline Memory<V> &operator=(const EntryType *rhs) {
-            std::copy(rhs, rhs + entriesCount(), m_mem);
+            std::memcpy(m_mem, rhs, entriesCount() * sizeof(EntryType));
             return *this;
         }
 };

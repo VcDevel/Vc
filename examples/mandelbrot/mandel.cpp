@@ -162,7 +162,7 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
     typedef MyComplex<float_v> Z;
     const unsigned int height = image.height();
     const unsigned int width = image.width();
-    const float colorScale = 0xffffff / maxIt;
+    const float_v colorScale = 0xff / static_cast<float>(maxIt);
     for (unsigned int y = 0; y < height; ++y) {
         unsigned int *__restrict__ line = reinterpret_cast<unsigned int *>(image.scanLine(y));
         const float_v c_imag = y0 + y * scale;
@@ -178,10 +178,10 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
                 ++n(inside);
                 inside = z.norm() < S;
             }
-            uint_v colorValue = static_cast<uint_v>((maxIt - n) * colorScale);
+            uint_v colorValue = static_cast<uint_v>((maxIt - n) * colorScale) * 0x10101;
             if (toStore.isFull()) {
                 colorValue.store(line, Vc::Unaligned);
-                line += 4;
+                line += uint_v::Size;
             } else {
                 colorValue.store(line, toStore, Vc::Unaligned);
                 break; // we don't need to check again wether x[0] + float_v::Size < width to break out of the loop
@@ -199,6 +199,7 @@ template<> void Mandel<ScalarImpl>::mandelMe(QImage &image, float x0,
     typedef MyComplex<float> Z;
     const int height = image.height();
     const int width = image.width();
+    const float colorScale = 0xff / static_cast<float>(maxIt);
     for (int y = 0; y < height; ++y) {
         unsigned int *__restrict__ line = reinterpret_cast<unsigned int *>(image.scanLine(y));
         const float c_imag = y0 + y * scale;
@@ -209,7 +210,7 @@ template<> void Mandel<ScalarImpl>::mandelMe(QImage &image, float x0,
             for (; z.norm() < S && n < maxIt; ++n) {
                 z = P(z, c_real, c_imag);
             }
-            *line++ = (maxIt - n) * 0xffffffu / maxIt;
+            *line++ = static_cast<unsigned int>((maxIt - n) * colorScale) * 0x10101;
         }
         if (restart()) {
             break;

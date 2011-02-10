@@ -25,36 +25,48 @@
 #define MAIN_H
 
 #include <QImage>
-#include <QMouseEvent>
-#include <QPaintEvent>
-#include <QResizeEvent>
-#include <QWheelEvent>
-#include <QWidget>
+#include <QTextStream>
+#include <QString>
+#include <QObject>
 
-class MainWindow : public QWidget
+class ProgressWriter
 {
-    Q_OBJECT
     public:
-        MainWindow(QWidget *parent = 0);
-    protected:
-        void paintEvent(QPaintEvent *);
-        void resizeEvent(QResizeEvent *);
-        void mousePressEvent(QMouseEvent *);
-        void mouseMoveEvent(QMouseEvent *);
-        void mouseReleaseEvent(QMouseEvent *);
-        void wheelEvent(QWheelEvent *);
-
-    private slots:
-        void recreateImage();
+        ProgressWriter();
+        void setValue(float v);
+        void done();
 
     private:
+        QTextStream m_out;
+};
+
+class Baker
+{
+    public:
+        struct Options
+        {
+            int   red[2];
+            int green[2];
+            int  blue[2];
+            int steps[2];
+            int    it[2];
+            Options();
+        };
+
+        Baker();
+        void setOptions(Options o) { m_opt = o; }
+        void setSize(int w, int h);
+        void setFilename(const QString &);
+        void createImage();
+
+    private:
+        Options m_opt;
         float m_x; // left
         float m_y; // top
         float m_width;
         float m_height;
         QImage m_image;
-        bool m_dirty;
-        QPoint m_dragStart;
-        QPoint m_dragDelta;
+        QString m_filename;
+        ProgressWriter m_progress;
 };
 #endif // MAIN_H
