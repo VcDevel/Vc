@@ -30,7 +30,7 @@ union M256I {
   __m256i ymm;
   __m128i xmm[2];
 };
-But as far as I know GCC this will result in lots of unnecessary loads and stores. (It seems this is
+But as far as I know GCC, this will result in lots of unnecessary loads and stores. (It seems this is
 due to GCC expecting aliasing, thus making sure the modified values are always up-to-date in memory
 - like if it were declared volatile.)
 
