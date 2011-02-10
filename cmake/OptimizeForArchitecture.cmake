@@ -51,11 +51,11 @@ macro(OptimizeForArchitecture)
             if(_cpu_model EQUAL 46)     # Xeon 7500 series
                set(TARGET_ARCHITECTURE "westmere")
             elseif(_cpu_model EQUAL 45) # Xeon TNG
-               set(TARGET_ARCHITECTURE "sandybridge")
+               set(TARGET_ARCHITECTURE "sandy-bridge")
             elseif(_cpu_model EQUAL 44) # Xeon 5600 series
                set(TARGET_ARCHITECTURE "westmere")
             elseif(_cpu_model EQUAL 42) # Core TNG
-               set(TARGET_ARCHITECTURE "sandybridge")
+               set(TARGET_ARCHITECTURE "sandy-bridge")
             elseif(_cpu_model EQUAL 37) # Core i7/i5/i3
                set(TARGET_ARCHITECTURE "westmere")
             elseif(_cpu_model EQUAL 31) # Core i7/i5
