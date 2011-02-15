@@ -24,7 +24,7 @@
 
 using namespace Vc;
 
-template<typename Vec> void storeArray()
+template<typename Vec> void alignedStore()
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -42,6 +42,72 @@ template<typename Vec> void storeArray()
     }
 
     for (int i = 0; i < Count; ++i) {
+        COMPARE(array[i], xValue);
+    }
+}
+
+template<typename Vec> void unalignedStore()
+{
+    typedef typename Vec::EntryType T;
+    enum {
+        Count = 256 * 1024 / sizeof(T)
+    };
+
+    Memory<Vec, Count> array;
+    // do the memset to make sure the array doesn't have the old data from a previous call which
+    // would mask a real problem
+    std::memset(array, 0xff, Count * sizeof(T));
+    T xValue = 1;
+    const Vec x(xValue);
+    for (int i = 1; i < Count - Vec::Size + 1; i += Vec::Size) {
+        x.store(&array[i], Unaligned);
+    }
+
+    for (int i = 1; i < Count - Vec::Size + 1; ++i) {
+        COMPARE(array[i], xValue);
+    }
+}
+
+template<typename Vec> void streamingAndAlignedStore()
+{
+    typedef typename Vec::EntryType T;
+    enum {
+        Count = 256 * 1024 / sizeof(T)
+    };
+
+    Memory<Vec, Count> array;
+    // do the memset to make sure the array doesn't have the old data from a previous call which
+    // would mask a real problem
+    std::memset(array, 0xff, Count * sizeof(T));
+    T xValue = 1;
+    const Vec x(xValue);
+    for (int i = 0; i < Count; i += Vec::Size) {
+        x.store(&array[i], Streaming | Aligned);
+    }
+
+    for (int i = 0; i < Count; ++i) {
+        COMPARE(array[i], xValue);
+    }
+}
+
+template<typename Vec> void streamingAndUnalignedStore()
+{
+    typedef typename Vec::EntryType T;
+    enum {
+        Count = 256 * 1024 / sizeof(T)
+    };
+
+    Memory<Vec, Count> array;
+    // do the memset to make sure the array doesn't have the old data from a previous call which
+    // would mask a real problem
+    std::memset(array, 0xff, Count * sizeof(T));
+    T xValue = 1;
+    const Vec x(xValue);
+    for (int i = 1; i < Count - Vec::Size + 1; i += Vec::Size) {
+        x.store(&array[i], Streaming | Unaligned);
+    }
+
+    for (int i = 1; i < Count - Vec::Size + 1; ++i) {
         COMPARE(array[i], xValue);
     }
 }
@@ -79,13 +145,10 @@ template<typename Vec> void maskedStore()
 
 int main()
 {
-    runTest(storeArray<int_v>);
-    runTest(storeArray<uint_v>);
-    runTest(storeArray<float_v>);
-    runTest(storeArray<double_v>);
-    runTest(storeArray<short_v>);
-    runTest(storeArray<ushort_v>);
-    runTest(storeArray<sfloat_v>);
+    testAllTypes(alignedStore);
+    testAllTypes(unalignedStore);
+    testAllTypes(streamingAndAlignedStore);
+    testAllTypes(streamingAndUnalignedStore);
 
     if (float_v::Size > 1) {
         runTest(maskedStore<int_v>);
