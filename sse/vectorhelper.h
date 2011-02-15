@@ -125,7 +125,14 @@ namespace SSE
         {
             typedef _M128 VectorType;
             template<typename A> static VectorType load(const float *x, A) PURE;
-            template<typename A> static void store(float *mem, const VectorType &x, A);
+            static void store(float *mem, const VectorType x, AlignedFlag);
+            static void store(float *mem, const VectorType x, UnalignedFlag);
+            static void store(float *mem, const VectorType x, StreamingAndAlignedFlag);
+            static void store(float *mem, const VectorType x, StreamingAndUnalignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, AlignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, UnalignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
 
             OP0(allone, _mm_setallone_ps())
             OP0(zero, _mm_setzero_ps())
@@ -141,7 +148,14 @@ namespace SSE
         {
             typedef M256 VectorType;
             template<typename A> static VectorType load(const float *x, A) PURE;
-            template<typename A> static void store(float *mem, const VectorType &x, A);
+            static void store(float *mem, const VectorType x, AlignedFlag);
+            static void store(float *mem, const VectorType x, UnalignedFlag);
+            static void store(float *mem, const VectorType x, StreamingAndAlignedFlag);
+            static void store(float *mem, const VectorType x, StreamingAndUnalignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, AlignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, UnalignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
 
             OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
             OP0(zero, VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()))
@@ -156,7 +170,14 @@ namespace SSE
         {
             typedef _M128D VectorType;
             template<typename A> static VectorType load(const double *x, A) PURE;
-            template<typename A> static void store(double *mem, const VectorType &x, A);
+            static void store(double *mem, const VectorType x, AlignedFlag);
+            static void store(double *mem, const VectorType x, UnalignedFlag);
+            static void store(double *mem, const VectorType x, StreamingAndAlignedFlag);
+            static void store(double *mem, const VectorType x, StreamingAndUnalignedFlag);
+            static void store(double *mem, const VectorType x, const VectorType m, AlignedFlag);
+            static void store(double *mem, const VectorType x, const VectorType m, UnalignedFlag);
+            static void store(double *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
+            static void store(double *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
 
             OP0(allone, _mm_setallone_pd())
             OP0(zero, _mm_setzero_pd())
@@ -174,11 +195,14 @@ namespace SSE
             template<typename T> static VectorType load(const T *x, UnalignedFlag) PURE;
             template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) PURE;
             template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) PURE;
-            template<typename T> static void store(T *mem, const VectorType &x, AlignedFlag);
-            template<typename T> static void store(T *mem, const VectorType &x, UnalignedFlag);
-            template<typename T> static void store(T *mem, const VectorType &x, StreamingAndAlignedFlag);
-            template<typename T> static void store(T *mem, const VectorType &x, StreamingAndUnalignedFlag);
-            template<typename T> static void store(T *mem, const VectorType &x, const VectorType &m);
+            template<typename T> static void store(T *mem, const VectorType x, AlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, UnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, StreamingAndAlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, StreamingAndUnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, AlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, UnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
 
             OP0(allone, _mm_setallone_si128())
             OP0(zero, _mm_setzero_si128())

@@ -109,8 +109,7 @@ template<typename T> inline void Vector<T>::store(EntryType *mem) const
 
 template<typename T> inline void Vector<T>::store(EntryType *mem, const Mask &mask) const
 {
-    // this executes an unaligned store because SSE does not implement aligned masked stores
-    VectorHelper<VectorType>::store(mem, data(), mm128_reinterpret_cast<VectorType>(mask.data()));
+    VectorHelper<VectorType>::store(mem, data(), mm128_reinterpret_cast<VectorType>(mask.data()), Aligned);
 }
 
 template<typename T> template<typename A> inline void Vector<T>::store(EntryType *mem, A align) const
@@ -118,9 +117,9 @@ template<typename T> template<typename A> inline void Vector<T>::store(EntryType
     VectorHelper<VectorType>::store(mem, data(), align);
 }
 
-template<typename T> template<typename A> inline void Vector<T>::store(EntryType *mem, const Mask &mask, A) const
+template<typename T> template<typename A> inline void Vector<T>::store(EntryType *mem, const Mask &mask, A align) const
 {
-    store(mem, mask);
+    store(mem, data(), mask.data(), align);
 }
 
 template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
