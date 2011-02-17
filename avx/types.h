@@ -21,6 +21,8 @@
 #define AVX_TYPES_H
 
 #include "intrinsics.h"
+#include "../common/storage.h"
+#include "macros.h"
 
 namespace Vc
 {
@@ -28,7 +30,7 @@ namespace AVX
 {
     template<typename T> class Vector;
 
-    template<unsigned int VectorSize> class Mask;
+    template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
 
     template<typename T> struct VectorHelper {};
     template<typename T> struct GatherHelper;
@@ -45,42 +47,19 @@ namespace AVX
     template<> struct IndexTypeHelper<        double> { typedef unsigned int   Type; }; // _M128I based int32 would be nice
 
     template<typename T> struct VectorTypeHelper;
-    template<> struct VectorTypeHelper<         char > { typedef _M128I Type; };
-    template<> struct VectorTypeHelper<unsigned char > { typedef _M128I Type; };
-    template<> struct VectorTypeHelper<         short> { typedef _M128I Type; };
-    template<> struct VectorTypeHelper<unsigned short> { typedef _M128I Type; };
+    template<> struct VectorTypeHelper<         char > { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<unsigned char > { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<         short> { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<unsigned short> { typedef __m128i Type; };
     template<> struct VectorTypeHelper<         int  > { typedef _M256I Type; };
     template<> struct VectorTypeHelper<unsigned int  > { typedef _M256I Type; };
     template<> struct VectorTypeHelper<         float> { typedef _M256  Type; };
     template<> struct VectorTypeHelper<        double> { typedef _M256D Type; };
 
-    template<typename VectorType, typename EntryType> class VectorMemoryUnion
-    {
-        public:
-            typedef EntryType AliasingEntryType MAY_ALIAS;
-            inline VectorMemoryUnion() {}
-            inline VectorMemoryUnion(const VectorType &x) : data(x) {}
-
-            VectorType &v() { return data; }
-            const VectorType &v() const { return data; }
-
-            AliasingEntryType &m(int index) {
-                return reinterpret_cast<AliasingEntryType *>(&data)[index];
-            }
-
-            EntryType m(int index) const {
-                return reinterpret_cast<const AliasingEntryType *>(&data)[index];
-            }
-
-        private:
-            VectorType data;
-    };
-
     template<typename T> struct VectorHelperSize;
 
     namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
     namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
-    namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
     class VectorAlignedBase
