@@ -49,6 +49,14 @@
 #  define ALWAYS_INLINE
 #endif
 
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+# define VC_WARN_INLINE
+# define VC_WARN(msg) __attribute__((warning("\n\t" msg)))
+#else
+# define VC_WARN_INLINE inline
+# define VC_WARN(msg)
+#endif
+
 #define CAT_HELPER(a, b) a##b
 #define CAT(a, b) CAT_HELPER(a, b)
 
