@@ -20,6 +20,8 @@
 #ifndef VC_SSE_DEINTERLEAVE_H
 #define VC_SSE_DEINTERLEAVE_H
 
+#include "macros.h"
+
 namespace Vc
 {
 namespace Internal
@@ -76,6 +78,7 @@ template<> struct HelperImpl<SSE4aImpl> : public HelperImpl<SSE3Impl> {};
 } // namespace Internal
 } // namespace Vc
 
+#include "undomacros.h"
 #include "deinterleave.tcc"
 #include "prefetches.tcc"
 #include "helperimpl.tcc"
