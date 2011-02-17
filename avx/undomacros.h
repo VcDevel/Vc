@@ -21,18 +21,8 @@
 #define VC_AVX_UNDOMACROS_H
 #undef VC_AVX_MACROS_H
 
-#undef CONST
-#undef MAY_ALIAS
-#undef ALIGN
-#undef CAT
-#undef CAT_HELPER
-#undef unrolled_loop16
-#undef for_all_vector_entries
-#undef FREE_STORE_OPERATORS_ALIGNED
 #undef STORE_VECTOR
 
-#ifdef VC_USE_PTEST
-#undef VC_USE_PTEST
-#endif
-
 #endif // VC_AVX_UNDOMACROS_H
+
+#include "../common/undomacros.h"
