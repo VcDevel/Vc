@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <cstring>
+#include "macros.h"
 
 namespace Vc
 {
@@ -367,5 +368,7 @@ namespace std
 {
     template<typename V> inline void swap(Vc::Memory<V> &a, Vc::Memory<V> &b) { a.swap(b); }
 } // namespace std
+
+#include "undomacros.h"
 
 #endif // VC_COMMON_MEMORY_H
