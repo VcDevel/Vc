@@ -51,8 +51,8 @@ namespace AVX
         friend struct GeneralHelpers;
         public:
             typedef typename VectorTypeHelper<T>::Type VectorType;
-            enum { Size = sizeof(VectorType) / sizeof(EntryType) };
             typedef T EntryType;
+            enum { Size = sizeof(VectorType) / sizeof(EntryType) };
             typedef VectorBase<typename IndexTypeHelper<T>::Type> IndexType;
             typedef Mask<Size, sizeof(VectorType)> MaskType;
 
@@ -79,7 +79,8 @@ namespace AVX
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
-            VectorMemoryUnion<VectorType, EntryType> d;
+            typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
+            StorageType d;
 
             static const T *_IndexesFromZero() {
                 switch (sizeof(EntryType)) {
@@ -113,7 +114,8 @@ namespace AVX
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
-            VectorMemoryUnion<VectorType, EntryType> d;
+            typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
+            StorageType d;
     };
 
     template<> class VectorBase<double> {
@@ -135,7 +137,8 @@ namespace AVX
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
-            VectorMemoryUnion<VectorType, EntryType> d;
+            typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
+            StorageType d;
     };
 
 } // namespace AVX
