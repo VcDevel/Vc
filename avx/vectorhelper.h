@@ -61,7 +61,7 @@ namespace AVX
         typedef typename Base::VectorType VectorType;
         typedef typename Base::EntryType  EntryType;
         typedef typename Base::IndexType  IndexType;
-        typedef VectorMemoryUnion<VectorType, EntryType> UnionType;
+        typedef typename Base::StorageType UnionType;
         enum { Size = Base::Size, Shift = sizeof(EntryType) };
         static void gather(Base &v, const unsigned int *indexes, const EntryType *baseAddr);
         static void gather(Base &v, const IndexType &indexes, const EntryType *baseAddr);
@@ -82,7 +82,7 @@ namespace AVX
         typedef typename Base::VectorType VectorType;
         typedef typename Base::EntryType  EntryType;
         typedef typename Base::IndexType  IndexType;
-        typedef VectorMemoryUnion<VectorType, EntryType> UnionType;
+        typedef typename Base::StorageType UnionType;
         enum { Size = Base::Size, Shift = sizeof(EntryType) };
 
         static void scatter(const Base &v, const IndexType &indexes, EntryType *baseAddr);
@@ -105,11 +105,6 @@ namespace AVX
 #undef OP_DECL
 #undef PARENT_DATA
 #undef PARENT_DATA_CONST
-
-        template<typename T> struct CtorTypeHelper { typedef T Type; };
-        template<> struct CtorTypeHelper<short> { typedef int Type; };
-        template<> struct CtorTypeHelper<unsigned short> { typedef unsigned int Type; };
-        template<> struct CtorTypeHelper<float> { typedef double Type; };
 
         template<typename T> struct ExpandTypeHelper { typedef T Type; };
         template<> struct ExpandTypeHelper<short> { typedef int Type; };
