@@ -69,10 +69,7 @@ template<typename Pair> void testDeinterlace()
 
     M memory[1024];
     for (int i = 0; i < 1024; ++i) {
-        memory[i] = i;
-        if (isSigned) {
-            memory[i] -= 512;
-        }
+        memory[i] = i + offset;
     }
 
     V a, b;
