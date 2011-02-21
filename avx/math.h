@@ -26,15 +26,15 @@ namespace Vc
 {
 namespace AVX
 {
-    template<typename T> inline Vector<T> c_sin<T>::_1_2pi()  { return Vector<T>(&_data[0 * Size]); }
-    template<typename T> inline Vector<T> c_sin<T>::_2pi()    { return Vector<T>(&_data[1 * Size]); }
-    template<typename T> inline Vector<T> c_sin<T>::_pi_2()   { return Vector<T>(&_data[2 * Size]); }
-    template<typename T> inline Vector<T> c_sin<T>::_pi()     { return Vector<T>(&_data[3 * Size]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_2pi()  { return Vector<T>(_data[0]); }
+    template<typename T> inline Vector<T> c_sin<T>::_2pi()    { return Vector<T>(_data[1]); }
+    template<typename T> inline Vector<T> c_sin<T>::_pi_2()   { return Vector<T>(_data[2]); }
+    template<typename T> inline Vector<T> c_sin<T>::_pi()     { return Vector<T>(_data[3]); }
 
-    template<typename T> inline Vector<T> c_sin<T>::_1_3fac() { return Vector<T>(&_data[4 * Size]); }
-    template<typename T> inline Vector<T> c_sin<T>::_1_5fac() { return Vector<T>(&_data[5 * Size]); }
-    template<typename T> inline Vector<T> c_sin<T>::_1_7fac() { return Vector<T>(&_data[6 * Size]); }
-    template<typename T> inline Vector<T> c_sin<T>::_1_9fac() { return Vector<T>(&_data[7 * Size]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_3fac() { return Vector<T>(_data[4]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_5fac() { return Vector<T>(_data[5]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_7fac() { return Vector<T>(_data[6]); }
+    template<typename T> inline Vector<T> c_sin<T>::_1_9fac() { return Vector<T>(_data[7]); }
 
     template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
         typedef Vector<T> V;
