@@ -78,21 +78,18 @@ namespace AVX
     template<> inline __m256d INTRINSIC avx_cast(__m256i v) { return _mm256_castsi256_pd(v); }
     template<> inline __m256d INTRINSIC avx_cast(__m256d v) { return v; }
 
+    // simplify splitting 256-bit registers in 128-bit registers
+    inline __m128  INTRINSIC lo128(__m256  v) { return avx_cast<__m128>(v); }
+    inline __m128d INTRINSIC lo128(__m256d v) { return avx_cast<__m128d>(v); }
+    inline __m128i INTRINSIC lo128(__m256i v) { return avx_cast<__m128i>(v); }
+    inline __m128  INTRINSIC hi128(__m256  v) { return _mm256_extractf128_ps(v, 1); }
+    inline __m128d INTRINSIC hi128(__m256d v) { return _mm256_extractf128_pd(v, 1); }
+    inline __m128i INTRINSIC hi128(__m256i v) { return _mm256_extractf128_si256(v, 1); }
 
-    template<typename To, typename From> static inline To mm256_reinterpret_cast(From v) CONST;
-    template<typename To, typename From> static inline To mm256_reinterpret_cast(From v) { return v; }
-    template<> inline _M256I mm256_reinterpret_cast<_M256I, _M256 >(_M256  v) CONST;
-    template<> inline _M256I mm256_reinterpret_cast<_M256I, _M256D>(_M256D v) CONST;
-    template<> inline _M256  mm256_reinterpret_cast<_M256 , _M256D>(_M256D v) CONST;
-    template<> inline _M256  mm256_reinterpret_cast<_M256 , _M256I>(_M256I v) CONST;
-    template<> inline _M256D mm256_reinterpret_cast<_M256D, _M256I>(_M256I v) CONST;
-    template<> inline _M256D mm256_reinterpret_cast<_M256D, _M256 >(_M256  v) CONST;
-    template<> inline _M256I mm256_reinterpret_cast<_M256I, _M256 >(_M256  v) { return _mm256_castps_si256(v); }
-    template<> inline _M256I mm256_reinterpret_cast<_M256I, _M256D>(_M256D v) { return _mm256_castpd_si256(v); }
-    template<> inline _M256  mm256_reinterpret_cast<_M256 , _M256D>(_M256D v) { return _mm256_castpd_ps(v);    }
-    template<> inline _M256  mm256_reinterpret_cast<_M256 , _M256I>(_M256I v) { return _mm256_castsi256_ps(v); }
-    template<> inline _M256D mm256_reinterpret_cast<_M256D, _M256I>(_M256I v) { return _mm256_castsi256_pd(v); }
-    template<> inline _M256D mm256_reinterpret_cast<_M256D, _M256 >(_M256  v) { return _mm256_castps_pd(v);    }
+    // simplify combining 128-bit registers in 256-bit registers
+    inline __m256  INTRINSIC concat(__m128  a, __m128  b) { return _mm256_insertf128_ps   (avx_cast<__m256 >(a), b, 1); }
+    inline __m256d INTRINSIC concat(__m128d a, __m128d b) { return _mm256_insertf128_pd   (avx_cast<__m256d>(a), b, 1); }
+    inline __m256i INTRINSIC concat(__m128i a, __m128i b) { return _mm256_insertf128_si256(avx_cast<__m256i>(a), b, 1); }
 
     template<typename From, typename To> struct StaticCastHelper {};
     template<> struct StaticCastHelper<float       , int         > { static _M256I cast(const _M256  &v) { return _mm256_cvttps_epi32(v); } };
