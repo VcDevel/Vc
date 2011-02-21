@@ -39,4 +39,7 @@
 #undef VC_WARN_INLINE
 #undef VC_WARN
 
+#undef VC_STATIC_ASSERT_NC
+#undef VC_STATIC_ASSERT
+
 #endif // VC_COMMON_UNDOMACROS_H

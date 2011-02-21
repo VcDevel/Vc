@@ -85,4 +85,19 @@ do {} while ( false )
 #define for_all_vector_entries(_it_, _code_) \
   unrolled_loop16(_it_, 0, Size, _code_)
 
+#ifndef _VC_STATIC_ASSERT_TYPES_H
+#define _VC_STATIC_ASSERT_TYPES_H
+namespace Vc {
+    namespace {
+        template<bool> class STATIC_ASSERT_FAILURE;
+        template<> class STATIC_ASSERT_FAILURE<true> {};
+}}
+#endif // _VC_STATIC_ASSERT_TYPES_H
+
+#define VC_STATIC_ASSERT_NC(cond, msg) \
+    typedef STATIC_ASSERT_FAILURE<cond> CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__); \
+    CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__) CAT3(Error_,__LINE__,msg)
+#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg); (void) CAT3(Error_,__LINE__,msg)
+
+
 #endif // VC_COMMON_MACROS_H
