@@ -36,7 +36,21 @@ template<> struct HelperImpl<Vc::AVXImpl>
     typedef AVX::Vector<short> short_v;
     typedef AVX::Vector<unsigned short> ushort_v;
 
-    // TODO: deinterleave
+    template<typename A> static void deinterleave(float_v &, float_v &, const float *, A);
+    template<typename A> static void deinterleave(float_v &, float_v &, const short *, A);
+    template<typename A> static void deinterleave(float_v &, float_v &, const unsigned short *, A);
+
+    template<typename A> static void deinterleave(double_v &, double_v &, const double *, A);
+
+    template<typename A> static void deinterleave(int_v &, int_v &, const int *, A);
+    template<typename A> static void deinterleave(int_v &, int_v &, const short *, A);
+
+    template<typename A> static void deinterleave(uint_v &, uint_v &, const unsigned int *, A);
+    template<typename A> static void deinterleave(uint_v &, uint_v &, const unsigned short *, A);
+
+    template<typename A> static void deinterleave(short_v &, short_v &, const short *, A);
+
+    template<typename A> static void deinterleave(ushort_v &, ushort_v &, const unsigned short *, A);
 
     static inline void prefetchForOneRead(const void *addr) ALWAYS_INLINE;
     static inline void prefetchForModify(const void *addr) ALWAYS_INLINE;
@@ -48,8 +62,13 @@ template<> struct HelperImpl<Vc::AVXImpl>
     static inline void *malloc(size_t n) ALWAYS_INLINE;
     static inline void free(void *p) ALWAYS_INLINE;
 };
+
 } // namespace Internal
 } // namespace Vc
+
 #include "undomacros.h"
+#include "deinterleave.tcc"
+#include "prefetches.tcc"
+#include "helperimpl.tcc"
 
 #endif // VC_AVX_HELPERIMPL_H
