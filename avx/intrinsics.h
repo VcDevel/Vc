@@ -293,14 +293,68 @@ namespace AVX
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
 //X     static inline __m256i _mm256_cmpgt_epu8 (__m256i a, __m256i b) { return _mm256_cmpgt_epi8 (
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
-    static inline __m256i _mm256_cmplt_epu16(__m256i a, __m256i b) { return _mm256_cmplt_epi16(
-            _mm256_xor_si256(a, _mm256_setmin_epi16()), _mm256_xor_si256(b, _mm256_setmin_epi16())); }
-    static inline __m256i _mm256_cmpgt_epu16(__m256i a, __m256i b) { return _mm256_cmpgt_epi16(
-            _mm256_xor_si256(a, _mm256_setmin_epi16()), _mm256_xor_si256(b, _mm256_setmin_epi16())); }
-    static inline __m256i _mm256_cmplt_epu32(__m256i a, __m256i b) { return _mm256_cmplt_epi32(
-            _mm256_xor_si256(a, _mm256_setmin_epi32()), _mm256_xor_si256(b, _mm256_setmin_epi32())); }
-    static inline __m256i _mm256_cmpgt_epu32(__m256i a, __m256i b) { return _mm256_cmpgt_epi32(
-            _mm256_xor_si256(a, _mm256_setmin_epi32()), _mm256_xor_si256(b, _mm256_setmin_epi32())); }
+    static inline __m128i _mm_cmplt_epu16(__m128i a, __m128i b) {
+        return _mm_cmplt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
+    }
+    static inline __m128i _mm_cmpgt_epu16(__m128i a, __m128i b) {
+        return _mm_cmpgt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
+    }
+    static inline __m256i CONST _mm256_cmplt_epu32(__m256i a, __m256i b) {
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(
+                    _mm_cmplt_epi32(
+                        _mm_xor_si128(_mm256_castsi256_si128(a), _mm_setmin_epi32()),
+                        _mm_xor_si128(_mm256_castsi256_si128(b), _mm_setmin_epi32())
+                        )),
+                _mm_cmplt_epi32(
+                    _mm_xor_si128(_mm256_extractf128_si256(a, 1), _mm_setmin_epi32()),
+                    _mm_xor_si128(_mm256_extractf128_si256(b, 1), _mm_setmin_epi32())
+                    ), 1);
+    }
+    static inline __m256i CONST _mm256_cmpgt_epu32(__m256i a, __m256i b) {
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(
+                    _mm_cmpgt_epi32(
+                        _mm_xor_si128(_mm256_castsi256_si128(a), _mm_setmin_epi32()),
+                        _mm_xor_si128(_mm256_castsi256_si128(b), _mm_setmin_epi32())
+                        )),
+                _mm_cmpgt_epi32(
+                    _mm_xor_si128(_mm256_extractf128_si256(a, 1), _mm_setmin_epi32()),
+                    _mm_xor_si128(_mm256_extractf128_si256(b, 1), _mm_setmin_epi32())
+                    ), 1);
+    }
+
+    enum VecPos {
+        X0, X1, X2, X3, X4, X5, X6, X7,
+        Y0, Y1, Y2, Y3, Y4, Y5, Y6, Y7
+    };
+    template<VecPos L, VecPos H> __m256 ALWAYS_INLINE CONST permute128(__m256 x, __m256 y) {
+        return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+    }
+    template<VecPos L, VecPos H> __m256i ALWAYS_INLINE CONST permute128(__m256i x, __m256i y) {
+        return _mm256_permute2f128_si256(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+    }
+    template<VecPos L, VecPos H> __m256d ALWAYS_INLINE CONST permute128(__m256d x, __m256d y) {
+        return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+    }
+    template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m256d ALWAYS_INLINE CONST permute(__m256d x) {
+        VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X2 && Dst3 >= X2, Incorrect_Range);
+        VC_STATIC_ASSERT(Dst0 <= X1 && Dst1 <= X1 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
+        return _mm256_permute_pd(x, Dst0 + Dst1 * 2 + (Dst2 - X2) * 4 + (Dst3 - X2) * 8);
+    }
+    template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m256 ALWAYS_INLINE CONST permute(__m256 x) {
+        VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, Incorrect_Range);
+        VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
+        return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+    }
+    template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m256d ALWAYS_INLINE CONST shuffle(__m256d x, __m256d y) {
+        VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, Incorrect_Range);
+        VC_STATIC_ASSERT(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, Incorrect_Range);
+        return _mm256_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2 + (Dst2 - X2) * 4 + (Dst3 - Y2) * 8);
+    }
+    template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m256 ALWAYS_INLINE CONST shuffle(__m256 x, __m256 y) {
+        VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, Incorrect_Range);
+        VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, Incorrect_Range);
+        return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
+    }
 
 } // namespace AVX
 } // namespace Vc
