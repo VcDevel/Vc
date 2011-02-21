@@ -119,14 +119,16 @@ namespace AVX
         template<> struct VectorHelper<_M256>
         {
             typedef _M256 VectorType;
-            static inline VectorType load(const float *x) { return _mm256_load_ps(x); }
-            static inline VectorType loadUnaligned(const float *x) { return _mm256_loadu_ps(x); }
-            static inline void store(float *mem, const VectorType &x) { _mm256_store_ps(mem, x); }
-            static inline void storeUnaligned(float *mem, const VectorType &x) { _mm256_storeu_ps(mem, x); }
-            static inline void storeUnaligned(float *mem, const VectorType &x, const VectorType &m) {
-                _mm256_maskmoveu_si256(_mm256_castps_si256(x), _mm256_castps_si256(m), reinterpret_cast<char *>(mem));
-            }
-            static inline void storeStreaming(float *mem, const VectorType &x) { _mm256_stream_ps(mem, x); }
+            template<typename A> static VectorType load(const float *x, A) PURE;
+            static void store(float *mem, const VectorType x, AlignedFlag);
+            static void store(float *mem, const VectorType x, UnalignedFlag);
+            static void store(float *mem, const VectorType x, StreamingAndAlignedFlag);
+            static void store(float *mem, const VectorType x, StreamingAndUnalignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, AlignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, UnalignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
+            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
+
             OP0(allone, _mm256_setallone_ps())
             OP0(zero, _mm256_setzero_ps())
             OP2(or_, _mm256_or_ps(a, b))
@@ -139,14 +141,16 @@ namespace AVX
         template<> struct VectorHelper<_M256D>
         {
             typedef _M256D VectorType;
-            static inline VectorType load(const double *x) { return _mm256_load_pd(x); }
-            static inline VectorType loadUnaligned(const double *x) { return _mm256_loadu_pd(x); }
-            static inline void store(double *mem, const VectorType &x) { _mm256_store_pd(mem, x); }
-            static inline void storeUnaligned(double *mem, const VectorType &x) { _mm256_storeu_pd(mem, x); }
-            static inline void storeUnaligned(double *mem, const VectorType &x, const VectorType &m) {
-                _mm256_maskmoveu_si256(_mm256_castpd_si256(x), _mm256_castpd_si256(m), reinterpret_cast<char *>(mem));
-            }
-            static inline void storeStreaming(double *mem, const VectorType &x) { _mm256_stream_pd(mem, x); }
+            template<typename A> static VectorType load(const double *x, A) PURE;
+            static void store(double *mem, const VectorType x, AlignedFlag);
+            static void store(double *mem, const VectorType x, UnalignedFlag);
+            static void store(double *mem, const VectorType x, StreamingAndAlignedFlag);
+            static void store(double *mem, const VectorType x, StreamingAndUnalignedFlag);
+            static void store(double *mem, const VectorType x, const VectorType m, AlignedFlag);
+            static void store(double *mem, const VectorType x, const VectorType m, UnalignedFlag);
+            static void store(double *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
+            static void store(double *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
+
             OP0(allone, _mm256_setallone_pd())
             OP0(zero, _mm256_setzero_pd())
             OP2(or_, _mm256_or_pd(a, b))
@@ -159,14 +163,19 @@ namespace AVX
         template<> struct VectorHelper<_M256I>
         {
             typedef _M256I VectorType;
-            template<typename T> static inline VectorType load(const T *x) { return _mm256_load_si256(reinterpret_cast<const VectorType *>(x)); }
-            template<typename T> static inline VectorType loadUnaligned(const T *x) { return _mm256_loadu_si256(reinterpret_cast<const VectorType *>(x)); }
-            template<typename T> static inline void store(T *mem, const VectorType &x) { _mm256_store_si256(reinterpret_cast<VectorType *>(mem), x); }
-            template<typename T> static inline void storeUnaligned(T *mem, const VectorType &x) { _mm256_storeu_si256(reinterpret_cast<VectorType *>(mem), x); }
-            template<typename T> static inline void storeUnaligned(T *mem, const VectorType &x, const VectorType &m) {
-                _mm256_maskmoveu_si256(x, m, reinterpret_cast<char *>(mem));
-            }
-            template<typename T> static inline void storeStreaming(T *mem, const VectorType &x) { _mm256_stream_si256(reinterpret_cast<VectorType *>(mem), x); }
+            template<typename T> static VectorType load(const T *x, AlignedFlag) PURE;
+            template<typename T> static VectorType load(const T *x, UnalignedFlag) PURE;
+            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) PURE;
+            template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) PURE;
+            template<typename T> static void store(T *mem, const VectorType x, AlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, UnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, StreamingAndAlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, StreamingAndUnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, AlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, UnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
+
             OP0(allone, _mm256_setallone_si256())
             OP0(zero, _mm256_setzero_si256())
             OP2(or_, _mm256_or_si256(a, b))
@@ -174,6 +183,31 @@ namespace AVX
             OP2(and_, _mm256_and_si256(a, b))
             OP2(andnot_, _mm256_andnot_si256(a, b))
             OP3(blend, _mm256_blendv_epi8(a, b, c))
+        };
+
+        template<> struct VectorHelper<__m128i>
+        {
+            typedef __m128i VectorType;
+            template<typename T> static VectorType load(const T *x, AlignedFlag) PURE;
+            template<typename T> static VectorType load(const T *x, UnalignedFlag) PURE;
+            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) PURE;
+            template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) PURE;
+            template<typename T> static void store(T *mem, const VectorType x, AlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, UnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, StreamingAndAlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, StreamingAndUnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, AlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, UnalignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
+            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
+
+            OP0(allone, _mm_setallone_si128())
+            OP0(zero, _mm_setzero_si128())
+            OP2(or_, _mm_or_si128(a, b))
+            OP2(xor_, _mm_xor_si128(a, b))
+            OP2(and_, _mm_and_si128(a, b))
+            OP2(andnot_, _mm_andnot_si128(a, b))
+            OP3(blend, _mm_blendv_epi8(a, b, c))
         };
 #undef OP1
 #undef OP2
