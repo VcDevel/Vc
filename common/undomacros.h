@@ -30,6 +30,8 @@
 #undef ALIGN
 #undef CAT
 #undef CAT_HELPER
+#undef CAT3
+#undef CAT3_HELPER
 #undef unrolled_loop16
 #undef for_all_vector_entries
 #undef FREE_STORE_OPERATORS_ALIGNED

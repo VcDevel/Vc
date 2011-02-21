@@ -60,6 +60,9 @@
 #define CAT_HELPER(a, b) a##b
 #define CAT(a, b) CAT_HELPER(a, b)
 
+#define CAT3_HELPER(a, b, c) a##b##c
+#define CAT3(a, b, c) CAT3_HELPER(a, b, c)
+
 #define unrolled_loop16(_it_, _start_, _end_, _code_) \
 if (_start_ +  0 < _end_) { enum { _it_ = (_start_ +  0) < _end_ ? (_start_ +  0) : _start_ }; _code_ } \
 if (_start_ +  1 < _end_) { enum { _it_ = (_start_ +  1) < _end_ ? (_start_ +  1) : _start_ }; _code_ } \
