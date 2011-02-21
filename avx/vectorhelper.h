@@ -129,6 +129,14 @@ namespace AVX
             static void store(float *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
             static void store(float *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
 
+            static VectorType cdab(VectorType x) { return _mm256_permute_ps(x, _MM_SHUFFLE(2, 3, 0, 1)); }
+            static VectorType badc(VectorType x) { return _mm256_permute_ps(x, _MM_SHUFFLE(1, 0, 3, 2)); }
+            static VectorType aaaa(VectorType x) { return _mm256_permute_ps(x, _MM_SHUFFLE(0, 0, 0, 0)); }
+            static VectorType bbbb(VectorType x) { return _mm256_permute_ps(x, _MM_SHUFFLE(1, 1, 1, 1)); }
+            static VectorType cccc(VectorType x) { return _mm256_permute_ps(x, _MM_SHUFFLE(2, 2, 2, 2)); }
+            static VectorType dddd(VectorType x) { return _mm256_permute_ps(x, _MM_SHUFFLE(3, 3, 3, 3)); }
+            static VectorType dacb(VectorType x) { return _mm256_permute_ps(x, _MM_SHUFFLE(3, 0, 2, 1)); }
+
             OP0(allone, _mm256_setallone_ps())
             OP0(zero, _mm256_setzero_ps())
             OP2(or_, _mm256_or_ps(a, b))
@@ -150,6 +158,16 @@ namespace AVX
             static void store(double *mem, const VectorType x, const VectorType m, UnalignedFlag);
             static void store(double *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
             static void store(double *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
+
+            static VectorType cdab(VectorType x) { return _mm256_permute_pd(x, 5); }
+            static VectorType badc(VectorType x) { return _mm256_permute2f128_pd(x, x, 1); }
+            // aaaa bbbb cccc dddd specialized in vector.tcc
+            static VectorType dacb(VectorType x) {
+                const __m128d cb = avx_cast<__m128d>(_mm_alignr_epi8(avx_cast<__m128i>(lo128(x)),
+                            avx_cast<__m128i>(hi128(x)), sizeof(double))); // XXX: lo and hi swapped?
+                const __m128d da = _mm_blend_pd(lo128(x), hi128(x), 0 + 2); // XXX: lo and hi swapped?
+                return concat(cb, da);
+            }
 
             OP0(allone, _mm256_setallone_pd())
             OP0(zero, _mm256_setzero_pd())
@@ -176,6 +194,14 @@ namespace AVX
             template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
             template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
 
+            static VectorType cdab(VectorType x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(2, 3, 0, 1))); }
+            static VectorType badc(VectorType x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(1, 0, 3, 2))); }
+            static VectorType aaaa(VectorType x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(0, 0, 0, 0))); }
+            static VectorType bbbb(VectorType x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(1, 1, 1, 1))); }
+            static VectorType cccc(VectorType x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(2, 2, 2, 2))); }
+            static VectorType dddd(VectorType x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(3, 3, 3, 3))); }
+            static VectorType dacb(VectorType x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(3, 0, 2, 1))); }
+
             OP0(allone, _mm256_setallone_si256())
             OP0(zero, _mm256_setzero_si256())
             OP2(or_, _mm256_or_si256(a, b))
@@ -200,6 +226,14 @@ namespace AVX
             template<typename T> static void store(T *mem, const VectorType x, const VectorType m, UnalignedFlag);
             template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
             template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
+
+            static VectorType cdab(VectorType x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1)); }
+            static VectorType badc(VectorType x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)), _MM_SHUFFLE(1, 0, 3, 2)); }
+            static VectorType aaaa(VectorType x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(0, 0, 0, 0)), _MM_SHUFFLE(0, 0, 0, 0)); }
+            static VectorType bbbb(VectorType x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 1, 1, 1)), _MM_SHUFFLE(1, 1, 1, 1)); }
+            static VectorType cccc(VectorType x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 2, 2, 2)), _MM_SHUFFLE(2, 2, 2, 2)); }
+            static VectorType dddd(VectorType x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(3, 3, 3, 3)), _MM_SHUFFLE(3, 3, 3, 3)); }
+            static VectorType dacb(VectorType x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(3, 0, 2, 1)), _MM_SHUFFLE(3, 0, 2, 1)); }
 
             OP0(allone, _mm_setallone_si128())
             OP0(zero, _mm_setzero_si128())
