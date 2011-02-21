@@ -28,27 +28,23 @@ namespace AVX
 {
     template<typename T> class Vector;
 
-    ALIGN(32) extern const unsigned int   _IndexesFromZero32[8];
-    ALIGN(32) extern const unsigned short _IndexesFromZero16[8];
-    ALIGN(32) extern const unsigned char  _IndexesFromZero8[16];
+    ALIGN(64) extern const unsigned int   _IndexesFromZero32[8];
+    ALIGN(16) extern const unsigned short _IndexesFromZero16[8];
+    ALIGN(16) extern const unsigned char  _IndexesFromZero8[16];
 
     struct c_general
     {
-        ALIGN(32) static const unsigned short one16[16];
-        ALIGN(32) static const unsigned int one32[4];
-        ALIGN(32) static const float oneFloat[4];
-        ALIGN(32) static const double oneDouble[2];
-        ALIGN(32) static const int absMaskFloat[4];
-        ALIGN(32) static const long long absMaskDouble[2];
-        ALIGN(32) static const unsigned int signMaskFloat[4];
-        ALIGN(32) static const unsigned long long signMaskDouble[2];
-        ALIGN(32) static const short minShort[16];
+        static const float oneFloat;
+        static const unsigned int absMaskFloat[2];
+        static const unsigned int signMaskFloat[2];
+        static const unsigned short minShort[2];
+        static const unsigned short one16[2];
+        static const double oneDouble;
     } ALIGN(64);
     template<typename T> struct c_sin
     {
         typedef Vector<T> V;
-        enum { Size = sizeof(__m256) / sizeof(T) };
-        static const T _data[Size * 8];
+        static const T _data[8];
 
         static V _1_2pi()  CONST;
         static V _2pi()    CONST;

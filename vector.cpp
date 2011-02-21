@@ -25,6 +25,7 @@
 # endif
 #endif
 
+#include "avx/const.h"
 #include "sse/const.h"
 
 #ifndef M_PI
@@ -33,6 +34,48 @@
 
 namespace Vc
 {
+namespace AVX
+{
+    // cacheline 1
+    V_ALIGN(64) extern const unsigned int   _IndexesFromZero32[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    V_ALIGN(16) extern const unsigned short _IndexesFromZero16[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    V_ALIGN(16) extern const unsigned char  _IndexesFromZero8 [16]= { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+
+    // cacheline 2
+    template<> const double c_sin<double>::_data[8] = {
+        0.5 / M_PI, // 1 over 2pi
+        M_PI * 2.,  // 2pi
+        M_PI * 0.5, // pi over 2
+        M_PI,       // pi
+        1.666666666666666574148081281236954964697360992431640625e-01, // 1 over 3!
+        8.33333333333333321768510160154619370587170124053955078125e-03, // 1 over 5!
+        1.984126984126984125263171154784913596813566982746124267578125e-04, // 1 over 7!
+        2.755731922398589251095059327045788677423843182623386383056640625e-06 // 1 over 9!
+    };
+
+    // cacheline 3
+    template<> const float c_sin<float>::_data[8] = {
+        1.59154936671257019e-01f, // 1 over 2pi
+        6.28318548202514648f,     // 2pi
+        1.57079637050628662f,     // pi over 2
+        3.14159274101257324f,     // pi
+        1.66666671633720398e-01f, // 1 over 3!
+        8.33333376795053482e-03f, // 1 over 5!
+        1.98412701138295233e-04f, // 1 over 7!
+        2.75573188446287531e-06f  // 1 over 9!
+    };
+
+    const              float c_general::oneFloat = 1.f;
+    const unsigned       int c_general::absMaskFloat[2] = { 0xffffffffu, 0x7fffffffu };
+    const unsigned       int c_general::signMaskFloat[2] = { 0x0u, 0x80000000u };
+    const unsigned     short c_general::minShort[2] = { 0x8000u, 0x8000u };
+    const unsigned     short c_general::one16[2] = { 1, 1 };
+
+    // cacheline 4
+    const             double c_general::oneDouble = 1.;
+
+} // namespace AVX
+
 namespace SSE
 {
     // cacheline 1

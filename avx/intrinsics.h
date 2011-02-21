@@ -31,61 +31,50 @@ namespace Vc
 {
 namespace AVX
 {
-    static inline __m256i _mm256_setallone() CONST;
-    static inline __m256i _mm256_setallone_si256() CONST;
-    static inline __m256d _mm256_setallone_pd() CONST;
-    static inline __m256  _mm256_setallone_ps() CONST;
-    static inline __m256i _mm256_setone_epi8 () CONST;
-    static inline __m256i _mm256_setone_epu8 () CONST;
-    static inline __m256i _mm256_setone_epi16() CONST;
-    static inline __m256i _mm256_setone_epu16() CONST;
-    static inline __m256i _mm256_setone_epi32() CONST;
-    static inline __m256i _mm256_setone_epu32() CONST;
-    static inline __m256  _mm256_setone_ps() CONST;
-    static inline __m256d _mm256_setone_pd() CONST;
-    static inline __m256d _mm256_setabsmask_pd() CONST;
-    static inline __m256  _mm256_setabsmask_ps() CONST;
-    static inline __m256d _mm256_setsignmask_pd() CONST;
-    static inline __m256  _mm256_setsignmask_ps() CONST;
+#if defined(__GNUC__) && !defined(NVALGRIND)
+    static inline __m128i CONST _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
+#else
+    static inline __m128i CONST _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
+#endif
+    static inline __m128i CONST _mm_setallone_si128() { return _mm_setallone(); }
+    static inline __m128d CONST _mm_setallone_pd() { return _mm_castsi128_pd(_mm_setallone()); }
+    static inline __m128  CONST _mm_setallone_ps() { return _mm_castsi128_ps(_mm_setallone()); }
 
-    //X         static inline __m256i _mm256_setmin_epi8 () CONST;
-    static inline __m256i _mm256_setmin_epi16() CONST;
-    static inline __m256i _mm256_setmin_epi32() CONST;
-
-    //X         static inline __m256i _mm256_cmplt_epu8 (__m256i a, __m256i b) CONST;
-    //X         static inline __m256i _mm256_cmpgt_epu8 (__m256i a, __m256i b) CONST;
-    static inline __m256i _mm256_cmplt_epu16(__m256i a, __m256i b) CONST;
-    static inline __m256i _mm256_cmpgt_epu16(__m256i a, __m256i b) CONST;
-    static inline __m256i _mm256_cmplt_epu32(__m256i a, __m256i b) CONST;
-    static inline __m256i _mm256_cmpgt_epu32(__m256i a, __m256i b) CONST;
+    static inline __m128i CONST _mm_setone_epi8 ()  { return _mm_set1_epi8(1); }
+    static inline __m128i CONST _mm_setone_epu8 ()  { return _mm_setone_epi8(); }
+    static inline __m128i CONST _mm_setone_epi16()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one16)); }
+    static inline __m128i CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
 
 #if defined(__GNUC__) && !defined(NVALGRIND)
-    static inline __m256i _mm256_setallone() { __m256i r; __asm__("vcmpeqb %0,%0":"=x"(r)); return r; }
+    static inline __m256i CONST _mm256_setallone() { __m256i r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
 #else
-    static inline __m256i _mm256_setallone() { __m256i r = _mm256_setzero_si256(); return _mm256_cmpeq_epi8(r, r); }
+    static inline __m256i CONST _mm256_setallone() { __m256i r = _mm256_setzero_si256(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
 #endif
-    static inline __m256i _mm256_setallone_si256() { return _mm256_setallone(); }
-    static inline __m256d _mm256_setallone_pd() { return _mm256_castsi256_pd(_mm256_setallone()); }
-    static inline __m256  _mm256_setallone_ps() { return _mm256_castsi256_ps(_mm256_setallone()); }
+    static inline __m256i CONST _mm256_setallone_si256() { return _mm256_setallone(); }
+    static inline __m256d CONST _mm256_setallone_pd() { return _mm256_castsi256_pd(_mm256_setallone()); }
+    static inline __m256  CONST _mm256_setallone_ps() { return _mm256_castsi256_ps(_mm256_setallone()); }
 
-    static inline __m256i _mm256_setone_epi8 ()  { return _mm256_set1_epi8(1); }
-    static inline __m256i _mm256_setone_epu8 ()  { return _mm256_setone_epi8(); }
-    static inline __m256i _mm256_setone_epi16()  { return _mm256_load_si256(reinterpret_cast<const __m256i *>(c_general::one16)); }
-    static inline __m256i _mm256_setone_epu16()  { return _mm256_setone_epi16(); }
-    static inline __m256i _mm256_setone_epi32()  { return _mm256_load_si256(reinterpret_cast<const __m256i *>(c_general::one32)); }
-    static inline __m256i _mm256_setone_epu32()  { return _mm256_setone_epi32(); }
+    static inline __m256i CONST _mm256_setone_epi8 ()  { return _mm256_set1_epi8(1); }
+    static inline __m256i CONST _mm256_setone_epu8 ()  { return _mm256_setone_epi8(); }
+    static inline __m256i CONST _mm256_setone_epi16()  { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::one16))); }
+    static inline __m256i CONST _mm256_setone_epu16()  { return _mm256_setone_epi16(); }
+    static inline __m256i CONST _mm256_setone_epi32()  { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
+    static inline __m256i CONST _mm256_setone_epu32()  { return _mm256_setone_epi32(); }
 
-    static inline __m256  _mm256_setone_ps()     { return _mm256_load_ps(c_general::oneFloat); }
-    static inline __m256d _mm256_setone_pd()     { return _mm256_load_pd(c_general::oneDouble); }
+    static inline __m256  CONST _mm256_setone_ps()     { return _mm256_broadcast_ss(&c_general::oneFloat); }
+    static inline __m256d CONST _mm256_setone_pd()     { return _mm256_broadcast_sd(&c_general::oneDouble); }
 
-    static inline __m256d _mm256_setabsmask_pd() { return _mm256_load_pd(reinterpret_cast<const double *>(c_general::absMaskDouble)); }
-    static inline __m256  _mm256_setabsmask_ps() { return _mm256_load_ps(reinterpret_cast<const float *>(c_general::absMaskFloat)); }
-    static inline __m256d _mm256_setsignmask_pd(){ return _mm256_load_pd(reinterpret_cast<const double *>(c_general::signMaskDouble)); }
-    static inline __m256  _mm256_setsignmask_ps(){ return _mm256_load_ps(reinterpret_cast<const float *>(c_general::signMaskFloat)); }
+    static inline __m256d CONST _mm256_setabsmask_pd() { return _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::absMaskFloat[0])); }
+    static inline __m256  CONST _mm256_setabsmask_ps() { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::absMaskFloat[1])); }
+    static inline __m256d CONST _mm256_setsignmask_pd(){ return _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::signMaskFloat[0])); }
+    static inline __m256  CONST _mm256_setsignmask_ps(){ return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1])); }
 
-    //X         static inline __m256i _mm256_setmin_epi8 () { return _mm256_slli_epi8 (_mm256_setallone_si256(),  7); }
-    static inline __m256i _mm256_setmin_epi16() { return _mm256_load_si256(reinterpret_cast<const __m256i *>(c_general::minShort)); }
-    static inline __m256i _mm256_setmin_epi32() { return _mm256_load_si256(reinterpret_cast<const __m256i *>(c_general::signMaskFloat)); }
+    //X         static inline __m256i CONST _mm256_setmin_epi8 () { return _mm256_slli_epi8 (_mm256_setallone_si256(),  7); }
+    static inline __m128i CONST _mm_setmin_epi16() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
+    static inline __m128i CONST _mm_setmin_epi32() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::signMaskFloat))); }
+    static inline __m256i CONST _mm256_setmin_epi16() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
+    static inline __m256i CONST _mm256_setmin_epi32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::signMaskFloat))); }
+
 
     /////////////////////// INTEGER OPS ///////////////////////
 #define AVX_TO_SSE_2(name) \
