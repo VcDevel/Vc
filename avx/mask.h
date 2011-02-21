@@ -17,17 +17,16 @@
 
 */
 
-#ifndef AVX_MASK_H
-#define AVX_MASK_H
+#ifndef VC_AVX_MASK_H
+#define VC_AVX_MASK_H
 
 #include "intrinsics.h"
+#include "x86intrin.h"
 
 namespace Vc
 {
 namespace AVX
 {
-
-template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
 
 template<unsigned int VectorSize> class Mask<VectorSize, 32u>
 {
@@ -50,25 +49,6 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
                     avx_cast<__m256>(_mm_unpacklo_epi16(rhs.data(), rhs.data())),
                     avx_cast<__m128>(_mm_unpackhi_epi16(rhs.data(), rhs.data())),
                     1)) {}
-        inline Mask(const Mask<VectorSize / 2> *a)
-          : k(_mm256_castsi256_ps(_mm256_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
-
-        template<unsigned int OtherSize> explicit Mask(const Mask<OtherSize> &x);
-//X         {
-//X             _M256I tmp = x.dataI();
-//X             if (OtherSize < VectorSize) {
-//X                 tmp = _mm256_packs_epi16(tmp, _mm256_setzero_si256());
-//X                 if (VectorSize / OtherSize >= 4u) { tmp = _mm256_packs_epi16(tmp, _mm256_setzero_si256()); }
-//X                 if (VectorSize / OtherSize >= 8u) { tmp = _mm256_packs_epi16(tmp, _mm256_setzero_si256()); }
-//X             } else if (OtherSize > VectorSize) {
-//X                 tmp = _mm256_unpacklo_epi8(tmp, tmp);
-//X                 if (OtherSize / VectorSize >= 4u) { tmp = _mm256_unpacklo_epi8(tmp, tmp); }
-//X                 if (OtherSize / VectorSize >= 8u) { tmp = _mm256_unpacklo_epi8(tmp, tmp); }
-//X             }
-//X             k = _mm256_castsi256_ps(tmp);
-//X         }
-
-        void expand(Mask<VectorSize / 2> *x) const;
 
         inline bool operator==(const Mask &rhs) const { return 0 != _mm256_testc_ps(k, rhs.k); }
         inline bool operator!=(const Mask &rhs) const { return 0 == _mm256_testc_ps(k, rhs.k); }
@@ -101,12 +81,6 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         bool operator[](int index) const;
 
         int count() const;
-
-        /**
-         * Returns the index of the first one in the mask.
-         *
-         * The return value is undefined if the mask is empty.
-         */
         int firstOne() const;
 
     private:
@@ -195,36 +169,9 @@ struct ForeachHelper
 
 #define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
 
-template<unsigned int Size> inline int Mask<Size, 32u>::shiftMask() const
-{
-    return _mm256_movemask_epi8(dataI());
-}
-template<unsigned int Size> inline int Mask<Size, 16u>::shiftMask() const
-{
-    return _mm_movemask_epi8(dataI());
-}
-
-template<> inline int Mask< 4, 32>::toInt() const { return _mm256_movemask_pd(dataD()); }
-template<> inline int Mask< 8, 32>::toInt() const { return _mm256_movemask_ps(data ()); }
-template<> inline int Mask< 8, 16>::toInt() const { return _mm_movemask_epi8(_mm_packs_epi16(dataI(), _mm_setzero_si256())); }
-template<> inline int Mask<16, 16>::toInt() const { return _mm_movemask_epi8(dataI()); }
-
-template<> inline bool Mask< 2>::operator[](int index) const { return toInt() & (1 << index); }
-template<> inline bool Mask< 4>::operator[](int index) const { return toInt() & (1 << index); }
-template<> inline bool Mask< 8>::operator[](int index) const { return shiftMask() & (1 << 2 * index); }
-template<> inline bool Mask<16>::operator[](int index) const { return toInt() & (1 << index); }
-
-template<unsigned int Size, size_t Width> inline int Mask<Size, Width>::count() const
-{
-    return _mm_popcnt_u32(toInt());
-}
-
-template<unsigned int Size, size_t Width> inline int Mask<Size, Width>::firstOne() const
-{
-    return _bit_scan_forward(toInt());
-}
-
 } // namespace AVX
 } // namespace Vc
 
-#endif // AVX_MASK_H
+#include "mask.tcc"
+
+#endif // VC_AVX_MASK_H
