@@ -289,6 +289,8 @@ template<typename T> inline void VectorHelper<__m128i>::store(T *mem, const Vect
     _mm_maskmoveu_si128(x, m, reinterpret_cast<char *>(mem));
 }
 
+// TODO
+#if 0
     template<> inline _M256I SortHelper<_M256I, 8>::sort(_M256I x)
     {
         _M256I lo, hi, y;
@@ -1359,6 +1361,8 @@ template<typename T> inline void VectorHelper<__m128i>::store(T *mem, const Vect
 #endif
         return H::mul(x.data(), H::set(constant));
     }
+#endif
+
 } // namespace AVX
 } // namespace Vc
 
