@@ -59,16 +59,16 @@ namespace AVX
             inline Vector<EntryType> &operator|= (const Vector<EntryType> &x) ALWAYS_INLINE;
             inline Vector<EntryType> &operator&= (const Vector<EntryType> &x) ALWAYS_INLINE;
             inline Vector<EntryType> &operator^= (const Vector<EntryType> &x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator>>=(const Vector<EntryType> &x) ALWAYS_INLINE;
-            inline Vector<EntryType> &operator<<=(const Vector<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator>>=(const VectorBase<EntryType> &x) ALWAYS_INLINE;
+            inline Vector<EntryType> &operator<<=(const VectorBase<EntryType> &x) ALWAYS_INLINE;
             inline Vector<EntryType> &operator>>=(int x) ALWAYS_INLINE;
             inline Vector<EntryType> &operator<<=(int x) ALWAYS_INLINE;
 
             inline Vector<EntryType> operator| (const Vector<EntryType> &x) const ALWAYS_INLINE;
             inline Vector<EntryType> operator& (const Vector<EntryType> &x) const ALWAYS_INLINE;
             inline Vector<EntryType> operator^ (const Vector<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator>>(const Vector<EntryType> &x) const ALWAYS_INLINE;
-            inline Vector<EntryType> operator<<(const Vector<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator>>(const VectorBase<EntryType> &x) const ALWAYS_INLINE;
+            inline Vector<EntryType> operator<<(const VectorBase<EntryType> &x) const ALWAYS_INLINE;
             inline Vector<EntryType> operator>>(int x) const ALWAYS_INLINE;
             inline Vector<EntryType> operator<<(int x) const ALWAYS_INLINE;
 
@@ -76,6 +76,7 @@ namespace AVX
             const VectorType &data() const { return d.v(); }
 
         protected:
+            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
@@ -101,9 +102,9 @@ namespace AVX
         friend struct ScatterHelper<float>;
         friend struct GeneralHelpers;
         public:
-            typedef typename VectorTypeHelper<T>::Type VectorType;
-            enum { Size = sizeof(VectorType) / sizeof(EntryType) };
+            typedef typename VectorTypeHelper<float>::Type VectorType;
             typedef float EntryType;
+            enum { Size = sizeof(VectorType) / sizeof(EntryType) };
             typedef VectorBase<IndexTypeHelper<float>::Type> IndexType;
             typedef Mask<Size, sizeof(VectorType)> MaskType;
 
@@ -111,6 +112,7 @@ namespace AVX
             const VectorType &data() const { return d.v(); }
 
         protected:
+            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
@@ -124,9 +126,9 @@ namespace AVX
         friend struct ScatterHelper<double>;
         friend struct GeneralHelpers;
         public:
-            typedef typename VectorTypeHelper<T>::Type VectorType;
-            enum { Size = sizeof(VectorType) / sizeof(EntryType) };
+            typedef typename VectorTypeHelper<double>::Type VectorType;
             typedef double EntryType;
+            enum { Size = sizeof(VectorType) / sizeof(EntryType) };
             typedef VectorBase<IndexTypeHelper<double>::Type> IndexType;
             typedef Mask<Size, sizeof(VectorType)> MaskType;
 
@@ -134,6 +136,7 @@ namespace AVX
             const VectorType &data() const { return d.v(); }
 
         protected:
+            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
@@ -143,4 +146,5 @@ namespace AVX
 
 } // namespace AVX
 } // namespace Vc
+
 #endif // AVX_VECTORBASE_H
