@@ -27,6 +27,7 @@
 
 #include "avx/const.h"
 #include "sse/const.h"
+#include "include/Vc/version.h"
 
 #ifndef M_PI
 # define M_PI 3.14159265358979323846
@@ -154,6 +155,9 @@ namespace LRBni
 namespace Warnings {
     void _operator_bracket_warning() {}
 } // namespace Warnings
+
+extern const char LIBRARY_VERSION[] = VC_VERSION_STRING;
+
 } // namespace Vc
 
 #undef V_ALIGN
