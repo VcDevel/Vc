@@ -66,11 +66,12 @@ namespace AVX
         2.75573188446287531e-06f  // 1 over 9!
     };
 
-    const              float c_general::oneFloat = 1.f;
     const unsigned       int c_general::absMaskFloat[2] = { 0xffffffffu, 0x7fffffffu };
     const unsigned       int c_general::signMaskFloat[2] = { 0x0u, 0x80000000u };
+    const              float c_general::oneFloat = 1.f;
     const unsigned     short c_general::minShort[2] = { 0x8000u, 0x8000u };
     const unsigned     short c_general::one16[2] = { 1, 1 };
+    // 4 bytes padding
 
     // cacheline 4
     const             double c_general::oneDouble = 1.;
@@ -80,7 +81,7 @@ namespace AVX
 namespace SSE
 {
     // cacheline 1
-    V_ALIGN(16) const int c_general::absMaskFloat[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
+    V_ALIGN(64) const int c_general::absMaskFloat[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
     V_ALIGN(16) const unsigned int c_general::signMaskFloat[4] = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
     V_ALIGN(16) const short c_general::minShort[8] = { -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000 };
     V_ALIGN(16) extern const unsigned short _IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
