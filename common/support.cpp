@@ -49,7 +49,7 @@ bool isImplementationSupported(Implementation impl)
             return false;
 #else
             unsigned int eax;
-            asm("xgetbv" : "=a"(eax) :: "edx");
+            asm("xgetbv" : "=a"(eax) : "c"(0) : "edx");
             return (eax & 0x06) == 0x06;
 #endif
         }
