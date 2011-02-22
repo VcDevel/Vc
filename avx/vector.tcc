@@ -172,10 +172,15 @@ static inline __m256i INTRINSIC divUInt(__m256i a, __m256i b) {
     hia = _mm256_add_pd(hia, _mm256_and_pd(_mm256_cmp_pd(hia, _mm256_setzero_pd(), _CMP_LT_OS), _mm256_set1_pd(4294967296.)));
     // we don't do the same for b because division by b >= 2^31 should be a seldom corner case and
     // we rather want the standard stuff fast
-    return concat(
-            _mm256_cvttpd_epi32(_mm256_div_pd(loa, lob)),
-            _mm256_cvttpd_epi32(_mm256_div_pd(hia, hib))
-            );
+    //
+    // there is one remaining problem: a >= 2^31 and b == 1
+    // in that case the return value would be 2^31
+    return avx_cast<__m256i>(_mm256_blendv_ps(avx_cast<__m256>(concat(
+                        _mm256_cvttpd_epi32(_mm256_div_pd(loa, lob)),
+                        _mm256_cvttpd_epi32(_mm256_div_pd(hia, hib))
+                        )), avx_cast<__m256>(a), avx_cast<__m256>(concat(
+                            _mm_cmpeq_epi32(lo128(b), _mm_setone_epi32()),
+                            _mm_cmpeq_epi32(hi128(b), _mm_setone_epi32())))));
 }
 template<> inline Vector<unsigned int> &Vector<unsigned int>::operator/=(const Vector<unsigned int> &x)
 {
