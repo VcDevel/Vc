@@ -42,7 +42,7 @@ namespace AVX
 
     static inline __m128i CONST _mm_setone_epi8 ()  { return _mm_set1_epi8(1); }
     static inline __m128i CONST _mm_setone_epu8 ()  { return _mm_setone_epi8(); }
-    static inline __m128i CONST _mm_setone_epi16()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one16)); }
+    static inline __m128i CONST _mm_setone_epi16()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::one16))); }
     static inline __m128i CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
 
 #if defined(__GNUC__) && !defined(NVALGRIND)
