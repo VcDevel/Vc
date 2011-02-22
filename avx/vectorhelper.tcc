@@ -152,7 +152,7 @@ inline void VectorHelper<__m256d>::store(double *mem, const VectorType x, Stream
 inline void VectorHelper<__m256d>::store(double *mem, const VectorType x, StreamingAndUnalignedFlag)
 {
     _mm_maskmoveu_si128(avx_cast<__m128i>(x), _mm_setallone_si128(), reinterpret_cast<char *>(mem));
-    _mm_maskmoveu_si128(avx_cast<__m128i>(_mm256_extractf128_pd(x, 1)), _mm_setallone_si128(), reinterpret_cast<char *>(mem + 4));
+    _mm_maskmoveu_si128(avx_cast<__m128i>(_mm256_extractf128_pd(x, 1)), _mm_setallone_si128(), reinterpret_cast<char *>(mem + 2));
 }
 inline void VectorHelper<__m256d>::store(double *mem, const VectorType x, const VectorType m, AlignedFlag)
 {
@@ -165,12 +165,12 @@ inline void VectorHelper<__m256d>::store(double *mem, const VectorType x, const 
 inline void VectorHelper<__m256d>::store(double *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag)
 {
     _mm_maskmoveu_si128(avx_cast<__m128i>(x), avx_cast<__m128i>(m), reinterpret_cast<char *>(mem));
-    _mm_maskmoveu_si128(avx_cast<__m128i>(_mm256_extractf128_pd(x, 1)), avx_cast<__m128i>(_mm256_extractf128_pd(m, 1)), reinterpret_cast<char *>(mem + 4));
+    _mm_maskmoveu_si128(avx_cast<__m128i>(_mm256_extractf128_pd(x, 1)), avx_cast<__m128i>(_mm256_extractf128_pd(m, 1)), reinterpret_cast<char *>(mem + 2));
 }
 inline void VectorHelper<__m256d>::store(double *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag)
 {
     _mm_maskmoveu_si128(avx_cast<__m128i>(x), avx_cast<__m128i>(m), reinterpret_cast<char *>(mem));
-    _mm_maskmoveu_si128(avx_cast<__m128i>(_mm256_extractf128_pd(x, 1)), avx_cast<__m128i>(_mm256_extractf128_pd(m, 1)), reinterpret_cast<char *>(mem + 4));
+    _mm_maskmoveu_si128(avx_cast<__m128i>(_mm256_extractf128_pd(x, 1)), avx_cast<__m128i>(_mm256_extractf128_pd(m, 1)), reinterpret_cast<char *>(mem + 2));
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // (u)int_v
