@@ -36,14 +36,14 @@ namespace std
 
     NUM_LIM(unsigned int  )::max() throw() { return Vc::AVX::_mm256_setallone_si256(); }
     NUM_LIM(unsigned int  )::min() throw() { return _mm256_setzero_si256(); }
-    NUM_LIM(int           )::max() throw() { return _mm256_srli_epi32(Vc::AVX::_mm256_setallone_si256(), 1); }
+    NUM_LIM(int           )::max() throw() { const __m128i tmp =  _mm_srli_epi32(Vc::AVX::_mm_setallone_si128(), 1); return Vc::AVX::concat(tmp, tmp); }
     NUM_LIM(int           )::min() throw() { return Vc::AVX::_mm256_setmin_epi32(); }
 
-    NUM_LIM(float         )::max() throw() { return _mm256_broadcast_ps(numeric_limits<float>::max()); }
-    NUM_LIM(float         )::min() throw() { return _mm256_broadcast_ps(numeric_limits<float>::min()); }
+    NUM_LIM(float         )::max() throw() { return _mm256_set1_ps(numeric_limits<float>::max()); }
+    NUM_LIM(float         )::min() throw() { return _mm256_set1_ps(numeric_limits<float>::min()); }
 
-    NUM_LIM(double        )::max() throw() { return _mm256_broadcast_pd(numeric_limits<double>::max()); }
-    NUM_LIM(double        )::min() throw() { return _mm256_broadcast_pd(numeric_limits<double>::min()); }
+    NUM_LIM(double        )::max() throw() { return _mm256_set1_pd(numeric_limits<double>::max()); }
+    NUM_LIM(double        )::min() throw() { return _mm256_set1_pd(numeric_limits<double>::min()); }
 #undef NUM_LIM
 
 } // namespace std
