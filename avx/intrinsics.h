@@ -44,6 +44,7 @@ namespace AVX
     static inline __m128i CONST _mm_setone_epu8 ()  { return _mm_setone_epi8(); }
     static inline __m128i CONST _mm_setone_epi16()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::one16))); }
     static inline __m128i CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
+    static inline __m128i CONST _mm_setone_epi32()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
 
 #if defined(__GNUC__) && !defined(NVALGRIND)
     static inline __m256i CONST _mm256_setallone() { __m256i r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
