@@ -110,6 +110,11 @@ void EXPECT_FAILURE()
 void initTest(int argc, char **argv)
 {
     for (int i = 1; i < argc; ++i) {
+        if (0 == std::strcmp(argv[i], "--help") || 0 == std::strcmp(argv[i], "-h")) {
+            std::cout <<
+                "Usage: " << argv[0] << " [-h|--help] [--only <testname>]\n";
+            exit(0);
+        }
         if (0 == std::strcmp(argv[i], "--only") && i + 1 < argc) {
             _unit_test_global.only_name = argv[i + 1];
         }
