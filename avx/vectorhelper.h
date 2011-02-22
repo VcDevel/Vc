@@ -248,23 +248,23 @@ namespace AVX
 #undef OP3
 
 #define OP1(op) \
-        static inline VectorType op(const VectorType &a) { return CAT(_mm256_##op##_, SUFFIX)(a); }
+        static inline VectorType INTRINSIC CONST op(const VectorType &a) { return CAT(_mm256_##op##_, SUFFIX)(a); }
 #define OP(op) \
-        static inline VectorType op(const VectorType &a, const VectorType &b) { return CAT(_mm256_##op##_ , SUFFIX)(a, b); }
+        static inline VectorType INTRINSIC CONST op(const VectorType &a, const VectorType &b) { return CAT(_mm256_##op##_ , SUFFIX)(a, b); }
 #define OP_(op) \
-        static inline VectorType op(const VectorType &a, const VectorType &b) { return CAT(_mm256_##op    , SUFFIX)(a, b); }
+        static inline VectorType INTRINSIC CONST op(const VectorType &a, const VectorType &b) { return CAT(_mm256_##op    , SUFFIX)(a, b); }
 #define OPx(op, op2) \
-        static inline VectorType op(const VectorType &a, const VectorType &b) { return CAT(_mm256_##op2##_, SUFFIX)(a, b); }
+        static inline VectorType INTRINSIC CONST op(const VectorType &a, const VectorType &b) { return CAT(_mm256_##op2##_, SUFFIX)(a, b); }
 #define OPcmp(op) \
-        static inline VectorType cmp##op(const VectorType &a, const VectorType &b) { return CAT(_mm256_cmp##op##_, SUFFIX)(a, b); }
+        static inline VectorType INTRINSIC CONST cmp##op(const VectorType &a, const VectorType &b) { return CAT(_mm256_cmp##op##_, SUFFIX)(a, b); }
 #define OP_CAST_(op) \
-        static inline VectorType op(const VectorType &a, const VectorType &b) { return CAT(_mm256_castps_, SUFFIX)( \
+        static inline VectorType INTRINSIC CONST op(const VectorType &a, const VectorType &b) { return CAT(_mm256_castps_, SUFFIX)( \
             _mm256_##op##ps(CAT(CAT(_mm256_cast, SUFFIX), _ps)(a), \
               CAT(CAT(_mm256_cast, SUFFIX), _ps)(b))); \
         }
 #define MINMAX \
-        static inline VectorType min(VectorType a, VectorType b) { return CAT(_mm256_min_, SUFFIX)(a, b); } \
-        static inline VectorType max(VectorType a, VectorType b) { return CAT(_mm256_max_, SUFFIX)(a, b); }
+        static inline VectorType INTRINSIC CONST min(VectorType a, VectorType b) { return CAT(_mm256_min_, SUFFIX)(a, b); } \
+        static inline VectorType INTRINSIC CONST max(VectorType a, VectorType b) { return CAT(_mm256_max_, SUFFIX)(a, b); }
 
         template<> struct VectorHelper<double> {
             typedef _M256D VectorType;
@@ -495,59 +495,59 @@ namespace AVX
 #define SUFFIX si256
 
             OP_(or_) OP_(and_) OP_(xor_)
-            static inline VectorType zero() { return CAT(_mm256_setzero_, SUFFIX)(); }
-            static inline VectorType notMaskedToZero(VectorType a, _M256 mask) { return CAT(_mm256_and_, SUFFIX)(_mm256_castps_si256(mask), a); }
+            static inline VectorType INTRINSIC CONST zero() { return CAT(_mm256_setzero_, SUFFIX)(); }
+            static inline VectorType INTRINSIC CONST notMaskedToZero(VectorType a, _M256 mask) { return CAT(_mm256_and_, SUFFIX)(_mm256_castps_si256(mask), a); }
 #undef SUFFIX
 #define SUFFIX epi32
-            static inline VectorType one() { return CAT(_mm256_setone_, SUFFIX)(); }
+            static inline VectorType INTRINSIC CONST one() { return CAT(_mm256_setone_, SUFFIX)(); }
 
-            static inline VectorType set(const int a) { return CAT(_mm256_set1_, SUFFIX)(a); }
-            static inline VectorType set(const int a, const int b, const int c, const int d,
+            static inline VectorType INTRINSIC CONST set(const int a) { return CAT(_mm256_set1_, SUFFIX)(a); }
+            static inline VectorType INTRINSIC CONST set(const int a, const int b, const int c, const int d,
                     const int e, const int f, const int g, const int h) {
                 return CAT(_mm256_set_, SUFFIX)(a, b, c, d, e, f, g, h); }
 
-            static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+            static inline void INTRINSIC CONST multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
             OP1(abs)
 
             MINMAX
-            static inline EntryType min(VectorType a) {
+            static inline EntryType INTRINSIC CONST min(VectorType a) {
                 __m128i b = _mm_min_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_min_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_min_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2))); // using lo_epi16 for speed here
                 return _mm_cvtsi128_si32(b);
             }
-            static inline EntryType max(VectorType a) {
+            static inline EntryType INTRINSIC CONST max(VectorType a) {
                 __m128i b = _mm_max_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_max_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_max_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2))); // using lo_epi16 for speed here
                 return _mm_cvtsi128_si32(b);
             }
-            static inline EntryType add(VectorType a) {
+            static inline EntryType INTRINSIC CONST add(VectorType a) {
                 __m128i b = _mm_add_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_add_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_add_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(b);
             }
-            static inline EntryType mul(VectorType a) {
+            static inline EntryType INTRINSIC CONST mul(VectorType a) {
                 __m128i b = _mm_mullo_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_mullo_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_mullo_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(b);
             }
 
-            static inline VectorType mul(VectorType a, VectorType b) { return _mm256_mullo_epi32(a, b); }
+            static inline VectorType INTRINSIC CONST mul(VectorType a, VectorType b) { return _mm256_mullo_epi32(a, b); }
 
             OP(add) OP(sub)
             OPcmp(eq)
             OPcmp(lt)
             OPcmp(gt)
-            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { _M256I x = cmpeq(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
-            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { _M256I x = cmplt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
-            static inline VectorType cmple (const VectorType &a, const VectorType &b) { _M256I x = cmpgt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
-            static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
+            static inline VectorType INTRINSIC CONST cmpneq(const VectorType &a, const VectorType &b) { _M256I x = cmpeq(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmpnlt(const VectorType &a, const VectorType &b) { _M256I x = cmplt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmple (const VectorType &a, const VectorType &b) { _M256I x = cmpgt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
 #undef SUFFIX
-            static inline VectorType round(VectorType a) { return a; }
+            static inline VectorType INTRINSIC CONST round(VectorType a) { return a; }
         };
 
         template<> struct VectorHelper<unsigned int> {
@@ -556,69 +556,69 @@ namespace AVX
             typedef unsigned long long ConcatType;
 #define SUFFIX si256
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
-            static inline VectorType zero() { return CAT(_mm256_setzero_, SUFFIX)(); }
-            static inline VectorType notMaskedToZero(VectorType a, _M256 mask) { return CAT(_mm256_and_, SUFFIX)(_mm256_castps_si256(mask), a); }
+            static inline VectorType INTRINSIC CONST zero() { return CAT(_mm256_setzero_, SUFFIX)(); }
+            static inline VectorType INTRINSIC CONST notMaskedToZero(VectorType a, _M256 mask) { return CAT(_mm256_and_, SUFFIX)(_mm256_castps_si256(mask), a); }
 
 #undef SUFFIX
 #define SUFFIX epu32
-            static inline VectorType one() { return CAT(_mm256_setone_, SUFFIX)(); }
+            static inline VectorType INTRINSIC CONST one() { return CAT(_mm256_setone_, SUFFIX)(); }
 
             MINMAX
-            static inline EntryType min(VectorType a) {
+            static inline EntryType INTRINSIC CONST min(VectorType a) {
                 __m128i b = _mm_min_epu32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_min_epu32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_min_epu32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2))); // using lo_epi16 for speed here
                 return _mm_cvtsi128_si32(b);
             }
-            static inline EntryType max(VectorType a) {
+            static inline EntryType INTRINSIC CONST max(VectorType a) {
                 __m128i b = _mm_max_epu32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_max_epu32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_max_epu32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2))); // using lo_epi16 for speed here
                 return _mm_cvtsi128_si32(b);
             }
-            static inline EntryType add(VectorType a) {
+            static inline EntryType INTRINSIC CONST add(VectorType a) {
                 __m128i b = _mm_add_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_add_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_add_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(b);
             }
-            static inline EntryType mul(VectorType a) {
+            static inline EntryType INTRINSIC CONST mul(VectorType a) {
                 __m128i b = _mm_mullo_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_mullo_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_mullo_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(b);
             }
 
-            static inline VectorType mul(VectorType a, VectorType b) { return _mm256_mullo_epi32(a, b); }
+            static inline VectorType INTRINSIC CONST mul(VectorType a, VectorType b) { return _mm256_mullo_epi32(a, b); }
 
 #undef SUFFIX
 #define SUFFIX epi32
-            static inline VectorType set(const unsigned int a) { return CAT(_mm256_set1_, SUFFIX)(a); }
-            static inline VectorType set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d,
+            static inline VectorType INTRINSIC CONST set(const unsigned int a) { return CAT(_mm256_set1_, SUFFIX)(a); }
+            static inline VectorType INTRINSIC CONST set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d,
                     const unsigned int e, const unsigned int f, const unsigned int g, const unsigned int h) {
                 return CAT(_mm256_set_, SUFFIX)(a, b, c, d, e, f, g, h); }
 
             OP(add) OP(sub)
             OPcmp(eq)
-            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { return _mm256_andnot_si256(cmpeq(a, b), _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmpneq(const VectorType &a, const VectorType &b) { return _mm256_andnot_si256(cmpeq(a, b), _mm256_setallone_si256()); }
 
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
-            static inline VectorType cmplt(const VectorType &a, const VectorType &b) {
+            static inline VectorType INTRINSIC CONST cmplt(const VectorType &a, const VectorType &b) {
                 return _mm256_cmplt_epu32(a, b);
             }
-            static inline VectorType cmpgt(const VectorType &a, const VectorType &b) {
+            static inline VectorType INTRINSIC CONST cmpgt(const VectorType &a, const VectorType &b) {
                 return _mm256_cmpgt_epu32(a, b);
             }
 #else
             OPcmp(lt)
             OPcmp(gt)
 #endif
-            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { return _mm256_andnot_si256(cmplt(a, b), _mm256_setallone_si256()); }
-            static inline VectorType cmple (const VectorType &a, const VectorType &b) { return _mm256_andnot_si256(cmpgt(a, b), _mm256_setallone_si256()); }
-            static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
+            static inline VectorType INTRINSIC CONST cmpnlt(const VectorType &a, const VectorType &b) { return _mm256_andnot_si256(cmplt(a, b), _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmple (const VectorType &a, const VectorType &b) { return _mm256_andnot_si256(cmpgt(a, b), _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
 
 #undef SUFFIX
-            static inline VectorType round(VectorType a) { return a; }
+            static inline VectorType INTRINSIC CONST round(VectorType a) { return a; }
         };
 
         template<> struct VectorHelper<signed short> {
