@@ -116,7 +116,7 @@ namespace AVX
     template<> struct StaticCastHelper<float         , short         > { static __m128i cast(const _M256   &v) { return StaticCastHelper<int, short>::cast(StaticCastHelper<float, int>::cast(v)); } };
     template<> struct StaticCastHelper<short         , short         > { static __m128i cast(const __m128i &v) { return v; } };
     template<> struct StaticCastHelper<unsigned short, short         > { static __m128i cast(const __m128i &v) { return v; } };
-    template<> struct StaticCastHelper<unsigned int  , unsigned short> { static __m128i cast(const _M256I  &v) { return _mm_packs_epi32(lo128(v), hi128(v)); } };
+    template<> struct StaticCastHelper<unsigned int  , unsigned short> { static __m128i cast(const _M256I  &v) { return _mm_packus_epi32(lo128(v), hi128(v)); } };
     template<> struct StaticCastHelper<float         , unsigned short> { static __m128i cast(const _M256   &v) { return StaticCastHelper<unsigned int, unsigned short>::cast(StaticCastHelper<float, unsigned int>::cast(v)); } };
     template<> struct StaticCastHelper<short         , unsigned short> { static __m128i cast(const __m128i &v) { return v; } };
     template<> struct StaticCastHelper<unsigned short, unsigned short> { static __m128i cast(const __m128i &v) { return v; } };
