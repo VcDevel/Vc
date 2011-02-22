@@ -213,7 +213,7 @@ template<typename Vec> void testDiv()
             Vec vector(scalar);
             Vec reference(scalar / divisor);
 
-            COMPARE(vector / divisor, reference);
+            COMPARE(vector / divisor, reference) << '\n' << vector << " / " << divisor;
             vector /= divisor;
             COMPARE(vector, reference);
         }
