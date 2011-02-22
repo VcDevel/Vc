@@ -300,26 +300,18 @@ namespace AVX
         return _mm_cmpgt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
     }
     static inline __m256i CONST _mm256_cmplt_epu32(__m256i a, __m256i b) {
+        a = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(a), _mm256_castsi256_ps(_mm256_setmin_epi32())));
+        b = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(b), _mm256_castsi256_ps(_mm256_setmin_epi32())));
         return _mm256_insertf128_si256(_mm256_castsi128_si256(
-                    _mm_cmplt_epi32(
-                        _mm_xor_si128(_mm256_castsi256_si128(a), _mm_setmin_epi32()),
-                        _mm_xor_si128(_mm256_castsi256_si128(b), _mm_setmin_epi32())
-                        )),
-                _mm_cmplt_epi32(
-                    _mm_xor_si128(_mm256_extractf128_si256(a, 1), _mm_setmin_epi32()),
-                    _mm_xor_si128(_mm256_extractf128_si256(b, 1), _mm_setmin_epi32())
-                    ), 1);
+                    _mm_cmplt_epi32(_mm256_castsi256_si128(a), _mm256_castsi256_si128(b))),
+                _mm_cmplt_epi32(_mm256_extractf128_si256(a, 1), _mm256_extractf128_si256(b, 1)), 1);
     }
     static inline __m256i CONST _mm256_cmpgt_epu32(__m256i a, __m256i b) {
+        a = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(a), _mm256_castsi256_ps(_mm256_setmin_epi32())));
+        b = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(b), _mm256_castsi256_ps(_mm256_setmin_epi32())));
         return _mm256_insertf128_si256(_mm256_castsi128_si256(
-                    _mm_cmpgt_epi32(
-                        _mm_xor_si128(_mm256_castsi256_si128(a), _mm_setmin_epi32()),
-                        _mm_xor_si128(_mm256_castsi256_si128(b), _mm_setmin_epi32())
-                        )),
-                _mm_cmpgt_epi32(
-                    _mm_xor_si128(_mm256_extractf128_si256(a, 1), _mm_setmin_epi32()),
-                    _mm_xor_si128(_mm256_extractf128_si256(b, 1), _mm_setmin_epi32())
-                    ), 1);
+                    _mm_cmpgt_epi32(_mm256_castsi256_si128(a), _mm256_castsi256_si128(b))),
+                _mm_cmpgt_epi32(_mm256_extractf128_si256(a, 1), _mm256_extractf128_si256(b, 1)), 1);
     }
 
     enum VecPos {
