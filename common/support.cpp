@@ -44,15 +44,13 @@ bool isImplementationSupported(Implementation impl)
     case SSE4aImpl:
         return CpuId::hasSse4a();
     case AVXImpl:
+#ifndef VC_NO_XGETBV
         if (CpuId::hasOsxsave() && CpuId::hasAvx()) {
-#ifdef VC_NO_XGETBV
-            return false;
-#else
             unsigned int eax;
             asm("xgetbv" : "=a"(eax) : "c"(0) : "edx");
             return (eax & 0x06) == 0x06;
-#endif
         }
+#endif
         return false;
     case LRBniImpl:
         // TODO
