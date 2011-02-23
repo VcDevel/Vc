@@ -250,7 +250,7 @@ if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { \
 #define COMPARE( a, b ) \
     _UnitTest_Compare(unittest_compareHelper(a, b)) \
         << "       at " << __FILE__ << ':' << __LINE__ << ":\n" \
-        << "       " << #a << " (" << std::setprecision(10) << a << std::setprecision(6) << ") == " << #b << " (" << std::setprecision(10) << b << std::setprecision(6) << ") -> " << (a == b)
+        << "       " << #a << " (" << std::setprecision(10) << (a) << std::setprecision(6) << ") == " << #b << " (" << std::setprecision(10) << (b) << std::setprecision(6) << ") -> " << ((a) == (b))
 
 #define COMPARE_NOEQ( a, b ) \
 if ( unittest_compareHelper( a, b ) ) {} else { \
