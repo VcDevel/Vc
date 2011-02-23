@@ -109,14 +109,12 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector(const T *array, const unsigned long  *indexes) : m_data(array[indexes[0]]) {}
         inline Vector(const T *array, const Vector<unsigned int> &indexes) : m_data(array[indexes[0]]) {}
         inline Vector(const T *array, const Vector<unsigned int> &indexes, Mask m) : m_data(m.data() ? array[indexes[0]] : 0) {}
-        inline Vector(const T *array, const Vector<unsigned int> &indexes, Mask m, VectorSpecialInitializerZero::ZEnum) : m_data(m.data() ? array[indexes[0]] : 0) {}
         inline Vector(const T *array, const Vector<unsigned int> &indexes, Mask m, EntryType def) : m_data(m.data() ? array[indexes[0]] : def) {}
         inline void gather(const T *array, const Vector<unsigned int> &indexes) { m_data = array[indexes[0]]; }
         inline void gather(const T *array, const Vector<unsigned int> &indexes, Mask m) { if (m.data()) m_data = array[indexes[0]]; }
 
         inline Vector(const T *array, const Vector<unsigned short> &indexes) : m_data(array[indexes[0]]) {}
         inline Vector(const T *array, const Vector<unsigned short> &indexes, Mask m) : m_data(m.data() ? array[indexes[0]] : 0) {}
-        inline Vector(const T *array, const Vector<unsigned short> &indexes, Mask m, VectorSpecialInitializerZero::ZEnum) : m_data(m.data() ? array[indexes[0]] : 0) {}
         inline Vector(const T *array, const Vector<unsigned short> &indexes, Mask m, EntryType def) : m_data(m.data() ? array[indexes[0]] : def) {}
         inline void gather(const T *array, const Vector<unsigned short> &indexes) { m_data = array[indexes[0]]; }
         inline void gather(const T *array, const Vector<unsigned short> &indexes, Mask m) { if (m.data()) m_data = array[indexes[0]]; }

@@ -203,16 +203,7 @@ class Vector : public VectorBase<T>
         inline Vector(const EntryType *array, const IndexType &indexes) {
             GatherHelper<T>::gather(*this, indexes, array);
         }
-        inline Vector(const EntryType *array, const IndexType &indexes, const GatherMask &mask) {
-#ifdef VC_GATHER_SET
-            typedef typename IndexType::VectorType IType;
-            const IType k = mm128_reinterpret_cast<IType>(mask.dataIndex());
-            GatherHelper<T>::gather(*this, VectorHelper<IType>::and_(k, indexes.data()), array);
-#else
-            GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
-#endif
-        }
-        inline Vector(const EntryType *array, const IndexType &indexes, const GatherMask &mask, VectorSpecialInitializerZero::ZEnum)
+        inline Vector(const EntryType *array, const IndexType &indexes, const GatherMask &mask)
 #ifndef VC_GATHER_SET
             : Base(VectorHelper<VectorType>::zero())
 #endif

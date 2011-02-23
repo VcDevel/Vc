@@ -1030,10 +1030,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline Vector(const T *array, const unsigned int *indexes)
             : data(VectorHelper<T>::gather(sizeof(T) == 8 ? IndexType(IndexType(indexes, Unaligned) * 2) : IndexType(indexes, Unaligned), array)) {}
 
-        inline Vector(const T *array, const IndexType &indexes, Mask mask) {
-            VectorHelper<T>::gather(data.v(), sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
-        }
-        inline Vector(const T *array, const IndexType &indexes, Mask mask, VectorSpecialInitializerZero::ZEnum)
+        inline Vector(const T *array, const IndexType &indexes, Mask mask)
             : data(mm512_reinterpret_cast<VectorType>(_mm512_setzero()))
         {
             VectorHelper<T>::gather(data.v(), sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
