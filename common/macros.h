@@ -37,12 +37,14 @@
 
 #ifdef __GNUC__
 #  define INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
+#  define FLATTEN __attribute__((__flatten__))
 #  define CONST __attribute__((__const__))
 #  define PURE __attribute__((__pure__))
 #  define MAY_ALIAS __attribute__((__may_alias__))
 #  define ALWAYS_INLINE __attribute__((__always_inline__))
 #else
 #  define INTRINSIC
+#  define FLATTEN
 #  define CONST
 #  define PURE
 #  define MAY_ALIAS
