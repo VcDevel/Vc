@@ -243,35 +243,103 @@ template<> inline Vector<double> Vector<double>::operator/(const Vector<double> 
 //X             d.m(i) = mem[indexes[i]];
 //X             );
 //X }
-template<> template<typename Index> Vector<double>::Vector(const EntryType *mem, const Index *indexes)
-    : Base(_mm256_set_pd(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]])) {}
-
-template<> template<typename Index> Vector<float>::Vector(const EntryType *mem, const Index *indexes)
-    : Base(_mm256_set_ps(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-                mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]])) {}
-
-template<> template<typename Index> Vector<int>::Vector(const EntryType *mem, const Index *indexes)
-    : Base(_mm256_set_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-                mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]])) {}
-
-template<> template<typename Index> Vector<unsigned int>::Vector(const EntryType *mem, const Index *indexes)
-    : Base(_mm256_set_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-                mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]])) {}
-
-template<> template<typename Index> Vector<short>::Vector(const EntryType *mem, const Index *indexes)
-    : Base(_mm_set_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-                mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]])) {}
-
-template<> template<typename Index> Vector<unsigned short>::Vector(const EntryType *mem, const Index *indexes)
-    : Base(_mm_set_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-                mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]])) {}
-
-template<typename T> template<typename Index> Vector<T>::Vector(const EntryType *mem, const Index *indexes, Mask mask)
+template<typename T> template<typename IndexT> inline ALWAYS_INLINE CONST Vector<T>::Vector(const EntryType *mem, const IndexT *indexes)
 {
-    d.v() = HT::zero();
+    gather(mem, indexes);
+}
+template<typename T> template<typename IndexT> inline ALWAYS_INLINE CONST Vector<T>::Vector(const EntryType *mem, Vector<IndexT> indexes)
+{
+    VC_STATIC_ASSERT(Vector<IndexT>::Size >= Size, IndexVector_must_have_greater_or_equal_number_of_entries);
+    gather(mem, indexes);
+}
+
+template<typename T> template<typename IndexT> inline ALWAYS_INLINE CONST Vector<T>::Vector(const EntryType *mem, const IndexT *indexes, Mask mask)
+    : Base(HT::zero())
+{
+    gather(mem, indexes, mask);
+}
+
+template<typename T> template<typename IndexT> inline ALWAYS_INLINE CONST Vector<T>::Vector(const EntryType *mem, Vector<IndexT> indexes, Mask mask)
+    : Base(HT::zero())
+{
+    VC_STATIC_ASSERT(Vector<IndexT>::Size >= Size, IndexVector_must_have_greater_or_equal_number_of_entries);
+    gather(mem, indexes, mask);
+}
+
+template<typename T, size_t Size> struct IndexSizeChecker { static void check() {} };
+template<typename T, size_t Size> struct IndexSizeChecker<Vector<T>, Size>
+{
+    static void check() {
+        VC_STATIC_ASSERT(Vector<T>::Size >= Size, IndexVector_must_have_greater_or_equal_number_of_entries);
+    }
+};
+template<> template<typename Index> inline void ALWAYS_INLINE CONST Vector<double>::gather(const EntryType *mem, Index indexes)
+{
+    IndexSizeChecker<Index, Size>::check();
+    d.v() = _mm256_set_pd(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
+}
+template<> template<typename Index> inline void ALWAYS_INLINE CONST Vector<float>::gather(const EntryType *mem, Index indexes)
+{
+    IndexSizeChecker<Index, Size>::check();
+    d.v() = _mm256_set_ps(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
+            mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
+}
+template<> template<typename Index> inline void Vector<int>::gather(const EntryType *mem, Index indexes)
+{
+    IndexSizeChecker<Index, Size>::check();
+    d.v() = _mm256_set_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
+            mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
+}
+template<> template<typename Index> inline void Vector<unsigned int>::gather(const EntryType *mem, Index indexes)
+{
+    IndexSizeChecker<Index, Size>::check();
+    d.v() = _mm256_set_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
+            mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
+}
+template<> template<typename Index> inline void Vector<short>::gather(const EntryType *mem, Index indexes)
+{
+    IndexSizeChecker<Index, Size>::check();
+    d.v() = _mm_set_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
+            mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
+}
+template<> template<typename Index> inline void Vector<unsigned short>::gather(const EntryType *mem, Index indexes)
+{
+    IndexSizeChecker<Index, Size>::check();
+    d.v() = _mm_set_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
+                mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
+}
+
+#ifdef VC_GATHER_SET
+template<typename T> template<typename IT> inline void ALWAYS_INLINE CONST Vector<T>::gather(const EntryType *mem, Vector<IT> indexes, Mask mask)
+{
+    IndexSizeChecker<Vector<IT>, Size>::check();
+    indexes.setZero(!mask);
+    gather(mem, indexes);
+}
+#endif
+
+template<typename T> template<typename Index> inline void ALWAYS_INLINE CONST Vector<T>::gather(const EntryType *mem, Index indexes, Mask mask)
+{
+    IndexSizeChecker<Index, Size>::check();
+    if (mask.isEmpty()) {
+        return;
+    }
+#ifdef VC_USE_BSF_GATHERS
+    int bits = mask.toInt();
+    int i = _bit_scan_forward(bits);
+    bits >>= (i + 1);
+    d.m(i) = mem[indexes[i]];
+    while (bits) {
+        int offset = _bit_scan_forward(bits);
+        bits >>= (offset + 1);
+        i += offset;
+        d.m(i) = mem[indexes[i]];
+    }
+#else
     for_all_vector_entries(i,
             if (mask[i]) d.m(i) = mem[indexes[i]];
             );
+#endif
 }
 
 } // namespace AVX

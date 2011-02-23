@@ -138,8 +138,12 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // gathers
-        template<typename Index> Vector(const EntryType *mem, const Index *indexes);
-        template<typename Index> Vector(const EntryType *mem, const Index *indexes, Mask mask);
+        template<typename IndexT> Vector(const EntryType *mem, const IndexT *indexes);
+        template<typename IndexT> Vector(const EntryType *mem, Vector<IndexT> indexes);
+        template<typename IndexT> Vector(const EntryType *mem, const IndexT *indexes, Mask mask);
+        template<typename IndexT> Vector(const EntryType *mem, Vector<IndexT> indexes, Mask mask);
+        template<typename Index> void gather(const EntryType *mem, Index indexes);
+        template<typename Index> void gather(const EntryType *mem, Index indexes, Mask mask);
 
         // TODO
 #if 0
