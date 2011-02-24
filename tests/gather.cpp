@@ -152,6 +152,13 @@ template<typename Vec> void gather2dim()
             COMPARE(castedMask, (b == i0));
             if (!castedMask.isFull()) {
                 COMPARE(!castedMask, b == Vec(Zero));
+            } else {
+                Vec c(array, &S::data, i, j);
+                VERIFY((c == i0).isFull());
+
+                Vec d(Zero);
+                d.gather(array, &S::data, i, j);
+                VERIFY((d == i0).isFull());
             }
         }
     }
