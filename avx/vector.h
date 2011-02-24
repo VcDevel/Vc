@@ -174,6 +174,12 @@ class Vector : public VectorBase<T>
         //postfix
         inline Vector operator++(int) ALWAYS_INLINE { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
+        inline Common::AliasingEntryHelper<EntryType> INTRINSIC operator[](int index) {
+#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 3
+            ::Vc::Warnings::_operator_bracket_warning();
+#endif
+            return Base::d.m(index);
+        }
         inline EntryType operator[](int index) const ALWAYS_INLINE {
             return Base::d.m(index);
         }
