@@ -167,31 +167,13 @@ template<typename Vec> void gather2dim()
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    runTest(gatherArray<int_v>);
-    runTest(gatherArray<uint_v>);
-    runTest(gatherArray<float_v>);
-    runTest(gatherArray<double_v>);
-    runTest(gatherArray<short_v>);
-    runTest(gatherArray<ushort_v>);
-    runTest(gatherArray<sfloat_v>);
+    initTest(argc, argv);
 
-    runTest(gatherStruct<int_v>);
-    runTest(gatherStruct<uint_v>);
-    runTest(gatherStruct<float_v>);
-    runTest(gatherStruct<double_v>);
-    runTest(gatherStruct<short_v>);
-    runTest(gatherStruct<ushort_v>);
-    runTest(gatherStruct<sfloat_v>);
-
-    runTest(gather2dim<int_v>);
-    runTest(gather2dim<uint_v>);
-    runTest(gather2dim<short_v>);
-    runTest(gather2dim<ushort_v>);
-    runTest(gather2dim<float_v>);
-    runTest(gather2dim<sfloat_v>);
-    runTest(gather2dim<double_v>);
+    testAllTypes(gatherArray);
+    testAllTypes(gatherStruct);
+    testAllTypes(gather2dim);
 
     return 0;
 }
