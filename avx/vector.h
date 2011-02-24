@@ -142,66 +142,25 @@ class Vector : public VectorBase<T>
         template<typename IndexT> Vector(const EntryType *mem, Vector<IndexT> indexes);
         template<typename IndexT> Vector(const EntryType *mem, const IndexT *indexes, Mask mask);
         template<typename IndexT> Vector(const EntryType *mem, Vector<IndexT> indexes, Mask mask);
+        template<typename S1, typename IT> Vector(const S1 *array, const EntryType S1::* member1, IT indexes);
+        template<typename S1, typename IT> Vector(const S1 *array, const EntryType S1::* member1, IT indexes, Mask mask);
+        template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes);
+        template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, Mask mask);
+        template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes);
+        template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask);
         template<typename Index> void gather(const EntryType *mem, Index indexes);
         template<typename Index> void gather(const EntryType *mem, Index indexes, Mask mask);
+        template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, IT indexes);
+        template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, IT indexes, Mask mask);
+        template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes);
+        template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, Mask mask);
+        template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes);
+        template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask);
 
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // scatters
         // TODO
 #if 0
-        inline Vector(const EntryType *array, const IndexType &indexes) {
-            GatherHelper<T>::gather(*this, indexes, array);
-        }
-        inline Vector(const EntryType *array, const IndexType &indexes, const Mask &mask) {
-#ifdef VC_GATHER_SET
-            typedef typename IndexType::VectorType IType;
-            const IType k = mm256_reinterpret_cast<IType>(mask.dataIndex());
-            GatherHelper<T>::gather(*this, VectorHelper<IType>::and_(k, indexes.data()), array);
-#else
-            GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
-#endif
-        }
-        inline Vector(const EntryType *array, const IndexType &indexes, const Mask &mask, VectorSpecialInitializerZero::ZEnum)
-#ifndef VC_GATHER_SET
-            : Base(VectorHelper<VectorType>::zero())
-#endif
-        {
-#ifdef VC_GATHER_SET
-            typedef typename IndexType::VectorType IType;
-            const IType k = mm256_reinterpret_cast<IType>(mask.dataIndex());
-            GatherHelper<T>::gather(*this, VectorHelper<IType>::and_(k, indexes.data()), array);
-            data() = VectorHelper<VectorType>::and_(mm256_reinterpret_cast<VectorType>(mask.data()), data());
-#else
-            GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
-#endif
-        }
-        inline Vector(const EntryType *array, const IndexType &indexes, const Mask &mask, EntryType def)
-            : Base(VectorHelper<T>::set(def))
-        {
-#ifdef VC_GATHER_SET
-            typedef typename IndexType::VectorType IType;
-            const IType k = mm256_reinterpret_cast<IType>(mask.dataIndex());
-            Vector<T> tmp;
-            GatherHelper<T>::gather(tmp, VectorHelper<IType>::and_(indexes.data(), k), array);
-            assign(tmp, mask.data());
-#else
-            GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
-#endif
-        }
-
-        inline void gather(const EntryType *array, const IndexType &indexes) {
-            GatherHelper<T>::gather(*this, indexes, array);
-        }
-        inline void gather(const EntryType *array, const IndexType &indexes, const Mask &mask) {
-#ifdef VC_GATHER_SET
-            typedef typename IndexType::VectorType IType;
-            const IType k = mm256_reinterpret_cast<IType>(mask.dataIndex());
-            Vector<T> tmp;
-            GatherHelper<T>::gather(tmp, VectorHelper<IType>::and_(k, indexes.data()), array);
-            assign(tmp, mask.data());
-#else
-            GeneralHelpers::maskedGatherHelper(*this, indexes, mask.toInt(), array);
-#endif
-        }
-
         inline void scatter(EntryType *array, const IndexType &indexes) const {
             ScatterHelper<T>::scatter(*this, indexes, array);
         }
@@ -216,48 +175,6 @@ class Vector : public VectorBase<T>
          *                automatically.
          * \param mask Optional mask to select only parts of the vector that should be gathered
          */
-        template<typename S1> inline Vector(const S1 *array, const EntryType S1::* member1, const IndexType &indexes) {
-            GatherHelper<T>::gather(*this, indexes, array, member1);
-        }
-        template<typename S1> inline Vector(const S1 *array, const EntryType S1::* member1,
-                const IndexType &indexes, const Mask &mask) {
-            GeneralHelpers::maskedGatherStructHelper<sizeof(S1)>(*this, indexes, mask.toInt(), &(array[0].*(member1)));
-        }
-        template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const EntryType S2::* member2, const IndexType &indexes) {
-            GatherHelper<T>::gather(*this, indexes, array, member1, member2);
-        }
-        template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const EntryType S2::* member2, const IndexType &indexes, const Mask &mask) {
-            GeneralHelpers::maskedGatherStructHelper<sizeof(S1)>(*this, indexes, mask.toInt(), &(array[0].*(member1).*(member2)));
-        }
-
-        template<typename S1> inline Vector(const S1 *array, const EntryType *const S1::* ptrMember1,
-                const IndexType &outerIndex, const IndexType &innerIndex, const Mask &mask) {
-            GeneralHelpers::maskedDoubleGatherHelper<sizeof(S1)>(*this, outerIndex, innerIndex, mask.toInt(), &(array[0].*(ptrMember1)));
-        }
-        template<typename S1> inline void gather(const S1 *array, const EntryType *const S1::* ptrMember1,
-                const IndexType &outerIndex, const IndexType &innerIndex, const Mask &mask) {
-            GeneralHelpers::maskedDoubleGatherHelper<sizeof(S1)>(*this, outerIndex, innerIndex, mask.toInt(), &(array[0].*(ptrMember1)));
-        }
-
-        template<typename S1> inline void gather(const S1 *array, const EntryType S1::* member1,
-                const IndexType &indexes) {
-            GatherHelper<T>::gather(*this, indexes, array, member1);
-        }
-        template<typename S1> inline void gather(const S1 *array, const EntryType S1::* member1,
-                const IndexType &indexes, const Mask &mask) {
-            GeneralHelpers::maskedGatherStructHelper<sizeof(S1)>(*this, indexes, mask.toInt(), &(array[0].*(member1)));
-        }
-        template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const EntryType S2::* member2, const IndexType &indexes) {
-            GatherHelper<T>::gather(*this, indexes, array, member1, member2);
-        }
-        template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const EntryType S2::* member2, const IndexType &indexes, const Mask &mask) {
-            GeneralHelpers::maskedGatherStructHelper<sizeof(S1)>(*this, indexes, mask.toInt(), &(array[0].*(member1).*(member2)));
-        }
-
         template<typename S1> inline void scatter(S1 *array, EntryType S1::* member1,
                 const IndexType &indexes) const {
             ScatterHelper<T>::scatter(*this, indexes, array, member1);
