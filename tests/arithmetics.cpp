@@ -277,7 +277,7 @@ template<typename Vec> void testNegate()
         T i2 = static_cast<T>(i);
         Vec a(i2);
 
-        COMPARE(-a, Vec(-i2));
+        COMPARE(static_cast<Vec>(-a), Vec(-i2)) << " i2: " << i2;
     }
 }
 
