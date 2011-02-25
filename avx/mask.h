@@ -44,11 +44,12 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         inline explicit Mask(VectorSpecialInitializerOne::OEnum) : k(_mm256_setallone_ps()) {}
         inline explicit Mask(bool b) : k(b ? _mm256_setallone_ps() : _mm256_setzero_ps()) {}
         inline Mask(const Mask &rhs) : k(rhs.k) {}
-        inline Mask(const Mask<VectorSize, 16u> &rhs) : k(
-                _mm256_insertf128_ps(
-                    avx_cast<__m256>(_mm_unpacklo_epi16(rhs.data(), rhs.data())),
-                    avx_cast<__m128>(_mm_unpackhi_epi16(rhs.data(), rhs.data())),
-                    1)) {}
+        inline Mask(const Mask<VectorSize, 16u> &rhs) : k(avx_cast<__m256>(concat(
+                        _mm_unpacklo_epi16(rhs.data(), rhs.data()),
+                        _mm_unpackhi_epi16(rhs.data(), rhs.data())))) {}
+        inline Mask(Mask<VectorSize / 2, 32u> m) : k(concat(
+                    _mm_unpacklo_ps(lo128(m.data()), lo128(m.data())),
+                    _mm_unpackhi_ps(lo128(m.data()), lo128(m.data())))) {}
 
         inline bool operator==(const Mask &rhs) const { return 0 != _mm256_testc_ps(k, rhs.k); }
         inline bool operator!=(const Mask &rhs) const { return 0 == _mm256_testc_ps(k, rhs.k); }
