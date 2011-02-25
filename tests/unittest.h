@@ -226,65 +226,83 @@ template<> inline double unittest_fuzzynessHelper<Vc::float_v>(const Vc::float_v
 template<> inline double unittest_fuzzynessHelper<double>(const double &) { return _unit_test_global.double_fuzzyness; }
 template<> inline double unittest_fuzzynessHelper<Vc::double_v>(const Vc::double_v &) { return _unit_test_global.double_fuzzyness; }
 
+#ifdef __GNUC__
+#define ALWAYS_INLINE __attribute__((__always_inline__))
+#else
+#define ALWAYS_INLINE
+#endif
+
 class _UnitTest_Compare
 {
     public:
-        _UnitTest_Compare(bool good)
+        inline ALWAYS_INLINE _UnitTest_Compare(bool good)
             : m_failed(!good)
         {
             if (m_failed) {
-                std::cout << _unittest_fail() << "┍ ";
+                printFirst();
             }
         }
 
-        template<typename T> const _UnitTest_Compare &operator<<(const T &x) const {
+        template<typename T> inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(const T &x) const {
             if (m_failed) {
-                std::cout << x;
+                printx(x);
             }
             return *this;
         }
 
-        const _UnitTest_Compare &operator<<(const char *str) const {
+        inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(const char *str) const {
             if (m_failed) {
-                const char *pos = 0;
-                if (0 != (pos = std::strchr(str, '\n'))) {
-                    if (pos == str) {
-                        std::cout << '\n' << _unittest_fail() << "│ " << &str[1];
-                    } else {
-                        char *left = strndup(str, pos - str);
-                        std::cout << left << '\n' << _unittest_fail() << "│ " << &pos[1];
-                        free(left);
-                    }
-                } else {
-                    std::cout << str;
-                }
+                printStr(str);
             }
             return *this;
         }
 
-        const _UnitTest_Compare &operator<<(const char ch) const {
+        inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(const char ch) const {
             if (m_failed) {
-                if (ch == '\n') {
-                    std::cout << '\n' << _unittest_fail() << "│ ";
-                } else {
-                    std::cout << ch;
-                }
+                printChar(ch);
             }
             return *this;
         }
 
-        ~_UnitTest_Compare()
+        inline ALWAYS_INLINE ~_UnitTest_Compare()
         {
             if (m_failed) {
-                std::cout << std::endl;
-                _unit_test_global.status = false;
-                throw _UnitTest_Failure();
+                printLast();
             }
         }
 
     private:
+        void printFirst() const { std::cout << _unittest_fail() << "┍ "; }
+        template<typename T> void printx(const T &x) const { std::cout << x; }
+        void printStr(const char *str) const {
+            const char *pos = 0;
+            if (0 != (pos = std::strchr(str, '\n'))) {
+                if (pos == str) {
+                    std::cout << '\n' << _unittest_fail() << "│ " << &str[1];
+                } else {
+                    char *left = strndup(str, pos - str);
+                    std::cout << left << '\n' << _unittest_fail() << "│ " << &pos[1];
+                    free(left);
+                }
+            } else {
+                std::cout << str;
+            }
+        }
+        void printChar(const char ch) const {
+            if (ch == '\n') {
+                std::cout << '\n' << _unittest_fail() << "│ ";
+            } else {
+                std::cout << ch;
+            }
+        }
+        void printLast() const {
+            std::cout << std::endl;
+            _unit_test_global.status = false;
+            throw _UnitTest_Failure();
+        }
         const bool m_failed;
 };
+#undef ALWAYS_INLINE
 
 #define FUZZY_COMPARE( a, b ) \
     _UnitTest_Compare(unittest_fuzzyCompareHelper(a, b)) \
