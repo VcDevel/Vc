@@ -171,8 +171,6 @@ template<typename T> static inline void setFuzzyness( T );
 template<> inline void setFuzzyness<float>( float fuzz ) { _unit_test_global.float_fuzzyness = fuzz; }
 template<> inline void setFuzzyness<double>( double fuzz ) { _unit_test_global.double_fuzzyness = fuzz; }
 
-#define VERIFY(cond) if (cond) {} else { std::cout << "       " << #cond << " at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
-
 template<typename T1, typename T2> static inline bool unittest_compareHelper( const T1 &a, const T2 &b ) { return a == b; }
 template<> inline bool unittest_compareHelper<Vc::int_v, Vc::int_v>( const Vc::int_v &a, const Vc::int_v &b ) { return (a == b).isFull(); }
 template<> inline bool unittest_compareHelper<Vc::uint_v, Vc::uint_v>( const Vc::uint_v &a, const Vc::uint_v &b ) { return (a == b).isFull(); }
@@ -316,12 +314,13 @@ class _UnitTest_Compare
         << #a << " (" << std::setprecision(10) << (a) << std::setprecision(6) << ") == " << #b << " (" << std::setprecision(10) << (b) << std::setprecision(6) << ") -> " << ((a) == (b))
 
 #define COMPARE_NOEQ( a, b ) \
-if ( unittest_compareHelper( a, b ) ) {} else { \
-    unitttest_comparePrintHelper(a, b, "", #a, #b, __FILE__, __LINE__); \
-    _unit_test_global.status = false; \
-    throw _UnitTest_Failure(); \
-    return; \
-}
+    _UnitTest_Compare(unittest_compareHelper(a, b)) \
+        << "at " << __FILE__ << ':' << __LINE__ << ":\n" \
+        << #a << " (" << std::setprecision(10) << (a) << std::setprecision(6) << ") == " << #b << " (" << std::setprecision(10) << (b) << std::setprecision(6) << ")"
+
+#define VERIFY(cond) \
+    _UnitTest_Compare(cond) \
+        << "at " << __FILE__ << ':' << __LINE__ << ": " << #cond
 
 static void unittest_assert(bool cond, const char *code, const char *file, int line)
 {
