@@ -27,6 +27,8 @@
 #include "writemaskedvector.h"
 #include <algorithm>
 #include <cmath>
+#include "../common/aliasingentryhelper.h"
+#include "macros.h"
 
 #ifdef isfinite
 #undef isfinite
@@ -159,50 +161,33 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // scatters
-        // TODO
-#if 0
-        inline void scatter(EntryType *array, const IndexType &indexes) const {
-            ScatterHelper<T>::scatter(*this, indexes, array);
-        }
-        inline void scatter(EntryType *array, const IndexType &indexes, const Mask &mask) const {
-            ScatterHelper<T>::scatter(*this, indexes, mask.toInt(), array);
-        }
+        template<typename Index> void scatter(EntryType *mem, Index indexes);
+        template<typename Index> void scatter(EntryType *mem, Index indexes, Mask mask);
+        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes);
+        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes, Mask mask);
+        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes);
+        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, Mask mask);
+        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes);
+        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask);
 
-        /**
-         * \param array An array of objects where one member should be gathered
-         * \param member1 A member pointer to the member of the class/struct that should be gathered
-         * \param indexes The indexes in the array. The correct offsets are calculated
-         *                automatically.
-         * \param mask Optional mask to select only parts of the vector that should be gathered
-         */
-        template<typename S1> inline void scatter(S1 *array, EntryType S1::* member1,
-                const IndexType &indexes) const {
-            ScatterHelper<T>::scatter(*this, indexes, array, member1);
-        }
-        template<typename S1> inline void scatter(S1 *array, EntryType S1::* member1,
-                const IndexType &indexes, const Mask &mask) const {
-            ScatterHelper<T>::scatter(*this, indexes, mask.toInt(), array, member1);
-        }
-        template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
-                EntryType S2::* member2, const IndexType &indexes) const {
-            ScatterHelper<T>::scatter(*this, indexes, array, member1, member2);
-        }
-        template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1,
-                EntryType S2::* member2, const IndexType &indexes, const Mask &mask) const {
-            ScatterHelper<T>::scatter(*this, indexes, mask.toInt(), array, member1, member2);
-        }
-#endif
-
+        ///////////////////////////////////////////////////////////////////////////////////////////
         //prefix
         inline Vector &operator++() ALWAYS_INLINE { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
         //postfix
         inline Vector operator++(int) ALWAYS_INLINE { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
+        inline Common::AliasingEntryHelper<EntryType> INTRINSIC operator[](int index) {
+#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 3
+            ::Vc::Warnings::_operator_bracket_warning();
+#endif
+            return Base::d.m(index);
+        }
         inline EntryType operator[](int index) const ALWAYS_INLINE {
             return Base::d.m(index);
         }
 
         inline Vector operator~() const ALWAYS_INLINE { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
+        inline Vector operator-() const;
 
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
@@ -210,8 +195,6 @@ class Vector : public VectorBase<T>
         OP1(sqrt)
         OP1(abs)
 #undef OP1
-
-        inline Vector operator-() const ALWAYS_INLINE { return VectorHelper<T>::negate(data()); }
 
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) ALWAYS_INLINE { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \

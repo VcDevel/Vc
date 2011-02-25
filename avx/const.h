@@ -39,6 +39,7 @@ namespace AVX
         static const unsigned int signMaskFloat[2];
         static const unsigned short minShort[2];
         static const unsigned short one16[2];
+        static const float _2power31;
         static const double oneDouble;
     } ALIGN(64);
     template<typename T> struct c_sin

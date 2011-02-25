@@ -63,7 +63,7 @@ static void doBlah()
     T data[1000];
     for (I i(Vc::Zero); !(mask = i < 1000).isEmpty(); i += I::Size) {
         I i2 = static_cast<I>(V(mem.t, i, mask));
-        V v(data, i2, mask, Vc::Zero);
+        V v(data, i2, mask);
         v = v * two + t;
         v.scatter(data, i2, mask);
     }

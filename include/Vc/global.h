@@ -230,6 +230,16 @@ namespace Internal {
     template<> struct FlagObject<StreamingAndAlignedFlag> { static inline StreamingAndAlignedFlag the() { return Streaming; } };
     template<> struct FlagObject<StreamingAndUnalignedFlag> { static inline StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
 } // namespace Internal
+
+namespace Warnings
+{
+    void _operator_bracket_warning()
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+        __attribute__((warning("\n\tUse of Vc::Vector::operator[] to modify scalar entries is known to miscompile with GCC 4.3.x.\n\tPlease upgrade to a more recent GCC or avoid operator[] altogether.\n\t(This warning adds an unnecessary function call to operator[] which should work around the problem at a little extra cost.)")))
+#endif
+        ;
+} // namespace Warnings
+
 } // namespace Vc
 
 #include "version.h"

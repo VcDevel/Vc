@@ -71,7 +71,7 @@ namespace AVX
     const              float c_general::oneFloat = 1.f;
     const unsigned     short c_general::minShort[2] = { 0x8000u, 0x8000u };
     const unsigned     short c_general::one16[2] = { 1, 1 };
-    // 4 bytes padding
+    const              float c_general::_2power31 = 1u << 31;
 
     // cacheline 4
     const             double c_general::oneDouble = 1.;

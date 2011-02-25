@@ -581,6 +581,127 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const Entry
 #undef ith_value
 }
 
+#undef VC_MASKED_GATHER
+#ifdef VC_USE_BSF_SCATTERS
+#define VC_MASKED_SCATTER                       \
+    int bits = mask.toInt();                    \
+    while (bits) {                              \
+        const int i = _bit_scan_forward(bits);  \
+        bits ^= (1 << i); /* btr? */            \
+        ith_value(i) = d.m(i);                  \
+    }
+#elif defined(VC_USE_POPCNT_BSF_SCATTERS)
+#define VC_MASKED_SCATTER                       \
+    unsigned int bits = mask.toInt();           \
+    unsigned int low, high = 0;                 \
+    switch (_mm_popcnt_u32(bits)) {             \
+    case 8:                                     \
+        high = _bit_scan_reverse(bits);         \
+        ith_value(high) = d.m(high);            \
+    case 7:                                     \
+        low = _bit_scan_forward(bits);          \
+        bits ^= (1 << high) | (1 << low);       \
+        ith_value(low) = d.m(low);              \
+    case 6:                                     \
+        high = _bit_scan_reverse(bits);         \
+        ith_value(high) = d.m(high);            \
+    case 5:                                     \
+        low = _bit_scan_forward(bits);          \
+        bits ^= (1 << high) | (1 << low);       \
+        ith_value(low) = d.m(low);              \
+    case 4:                                     \
+        high = _bit_scan_reverse(bits);         \
+        ith_value(high) = d.m(high);            \
+    case 3:                                     \
+        low = _bit_scan_forward(bits);          \
+        bits ^= (1 << high) | (1 << low);       \
+        ith_value(low) = d.m(low);              \
+    case 2:                                     \
+        high = _bit_scan_reverse(bits);         \
+        ith_value(high) = d.m(high);            \
+    case 1:                                     \
+        low = _bit_scan_forward(bits);          \
+        ith_value(low) = d.m(low);              \
+    case 0:                                     \
+        break;                                  \
+    }
+#else
+#define VC_MASKED_SCATTER                       \
+    if (mask.isEmpty()) {                       \
+        return;                                 \
+    }                                           \
+    for_all_vector_entries(i,                   \
+            if (mask[i]) ith_value(i) = d.m(i); \
+            );
+#endif
+
+template<typename T> template<typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(EntryType *mem, Index indexes)
+{
+    for_all_vector_entries(i,
+            mem[indexes[i]] = d.m(i);
+            );
+}
+template<typename T> template<typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(EntryType *mem, Index indexes, Mask mask)
+{
+#define ith_value(_i_) mem[indexes[_i_]]
+    VC_MASKED_SCATTER
+#undef ith_value
+}
+template<typename T> template<typename S1, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, IT indexes)
+{
+    for_all_vector_entries(i,
+            array[indexes[i]].*(member1) = d.m(i);
+            );
+}
+template<typename T> template<typename S1, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, IT indexes, Mask mask)
+{
+#define ith_value(_i_) array[indexes[_i_]].*(member1)
+    VC_MASKED_SCATTER
+#undef ith_value
+}
+template<typename T> template<typename S1, typename S2, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes)
+{
+    for_all_vector_entries(i,
+            array[indexes[i]].*(member1).*(member2) = d.m(i);
+            );
+}
+template<typename T> template<typename S1, typename S2, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, Mask mask)
+{
+#define ith_value(_i_) array[indexes[_i_]].*(member1).*(member2)
+    VC_MASKED_SCATTER
+#undef ith_value
+}
+template<typename T> template<typename S1, typename IT1, typename IT2> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
+{
+    for_all_vector_entries(i,
+            (array[innerIndexes[i]].*(ptrMember1))[outerIndexes[i]] = d.m(i);
+            );
+}
+template<typename T> template<typename S1, typename IT1, typename IT2> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask)
+{
+#define ith_value(_i_) (array[outerIndexes[_i_]].*(ptrMember1))[innerIndexes[_i_]]
+    VC_MASKED_SCATTER
+#undef ith_value
+}
+
+template<typename T> inline Vector<T> PURE ALWAYS_INLINE FLATTEN Vector<T>::operator-() const { return *this; }
+template<> inline Vector<double> PURE ALWAYS_INLINE FLATTEN Vector<double>::operator-() const
+{
+    return _mm256_xor_pd(d.v(), _mm256_setsignmask_pd());
+}
+template<> inline Vector<float> PURE ALWAYS_INLINE FLATTEN Vector<float>::operator-() const
+{
+    return _mm256_xor_ps(d.v(), _mm256_setsignmask_ps());
+}
+template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<int>::operator-() const
+{
+    // faster? return _mm256_add_epi32(avx_cast<__m256i>(_mm256_xor_ps(avx_cast<__m256>(d.v()), _mm256_setallone_ps())), _mm256_setone_epi32());
+    return _mm256_mullo_epi32(d.v(), _mm256_setallone_si256());
+}
+template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<short>::operator-() const
+{
+    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+}
 } // namespace AVX
 } // namespace Vc
 
