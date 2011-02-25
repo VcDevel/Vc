@@ -27,6 +27,8 @@
 #include "writemaskedvector.h"
 #include <algorithm>
 #include <cmath>
+#include "../common/aliasingentryhelper.h"
+#include "macros.h"
 
 #ifdef isfinite
 #undef isfinite
