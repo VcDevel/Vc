@@ -287,12 +287,10 @@ class _UnitTest_Compare
 };
 
 #define FUZZY_COMPARE( a, b ) \
-if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { \
-    unitttest_comparePrintHelper(a, b, (a) == (b), #a, #b, __FILE__, __LINE__, unittest_fuzzynessHelper(a)); \
-    _unit_test_global.status = false; \
-    throw _UnitTest_Failure(); \
-    return; \
-}
+    _UnitTest_Compare(unittest_fuzzyCompareHelper(a, b)) \
+        << "at " << __FILE__ << ':' << __LINE__ << ":\n" \
+        << #a << " (" << std::setprecision(10) << (a) << std::setprecision(6) << ") == " << #b << " (" << std::setprecision(10) << (b) << std::setprecision(6) << ") -> " << ((a) == (b)) \
+        << "\nwith fuzzyness " << unittest_fuzzynessHelper(a)
 
 #define COMPARE( a, b ) \
     _UnitTest_Compare(unittest_compareHelper(a, b)) \
