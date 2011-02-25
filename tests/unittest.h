@@ -157,7 +157,7 @@ void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
         }
     } else {
         if (!_unit_test_global.status) {
-            std::cout << _unittest_fail() << name << std::endl;
+            std::cout << _unittest_fail() << "┕ " << name << std::endl;
             ++failedTests;
         } else {
             std::cout << " PASS: " << name << std::endl;
@@ -233,7 +233,7 @@ class _UnitTest_Compare
             : m_failed(!good)
         {
             if (m_failed) {
-                std::cout << _unittest_fail();
+                std::cout << _unittest_fail() << "┍ ";
             }
         }
 
@@ -249,10 +249,10 @@ class _UnitTest_Compare
                 const char *pos = 0;
                 if (0 != (pos = std::strchr(str, '\n'))) {
                     if (pos == str) {
-                        std::cout << '\n' << _unittest_fail() << &str[1];
+                        std::cout << '\n' << _unittest_fail() << "│ " << &str[1];
                     } else {
                         char *left = strndup(str, pos - str);
-                        std::cout << left << '\n' << _unittest_fail() << &pos[1];
+                        std::cout << left << '\n' << _unittest_fail() << "│ " << &pos[1];
                         free(left);
                     }
                 } else {
@@ -265,7 +265,7 @@ class _UnitTest_Compare
         const _UnitTest_Compare &operator<<(const char ch) const {
             if (m_failed) {
                 if (ch == '\n') {
-                    std::cout << '\n' << _unittest_fail();
+                    std::cout << '\n' << _unittest_fail() << "│ ";
                 } else {
                     std::cout << ch;
                 }
