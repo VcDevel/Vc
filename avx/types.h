@@ -46,6 +46,11 @@ namespace AVX
     template<> struct IndexTypeHelper<         float> { typedef unsigned int   Type; };
     template<> struct IndexTypeHelper<        double> { typedef unsigned int   Type; }; // _M128I based int32 would be nice
 
+    template<typename T> struct NegateTypeHelper { typedef T Type; };
+    template<> struct NegateTypeHelper<unsigned char > { typedef char  Type; };
+    template<> struct NegateTypeHelper<unsigned short> { typedef short Type; };
+    template<> struct NegateTypeHelper<unsigned int  > { typedef int   Type; };
+
     template<typename T> struct VectorTypeHelper;
     template<> struct VectorTypeHelper<         char > { typedef __m128i Type; };
     template<> struct VectorTypeHelper<unsigned char > { typedef __m128i Type; };

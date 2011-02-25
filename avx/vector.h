@@ -187,7 +187,7 @@ class Vector : public VectorBase<T>
         }
 
         inline Vector operator~() const ALWAYS_INLINE { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
-        inline Vector operator-() const;
+        inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
 
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \

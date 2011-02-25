@@ -684,7 +684,6 @@ template<typename T> template<typename S1, typename IT1, typename IT2> inline vo
 #undef ith_value
 }
 
-template<typename T> inline Vector<T> PURE ALWAYS_INLINE FLATTEN Vector<T>::operator-() const { return *this; }
 template<> inline Vector<double> PURE ALWAYS_INLINE FLATTEN Vector<double>::operator-() const
 {
     return _mm256_xor_pd(d.v(), _mm256_setsignmask_pd());
@@ -698,7 +697,16 @@ template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<int>::operator-(
     // faster? return _mm256_add_epi32(avx_cast<__m256i>(_mm256_xor_ps(avx_cast<__m256>(d.v()), _mm256_setallone_ps())), _mm256_setone_epi32());
     return _mm256_mullo_epi32(d.v(), _mm256_setallone_si256());
 }
+template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<unsigned int>::operator-() const
+{
+    // faster? return _mm256_add_epi32(avx_cast<__m256i>(_mm256_xor_ps(avx_cast<__m256>(d.v()), _mm256_setallone_ps())), _mm256_setone_epi32());
+    return _mm256_mullo_epi32(d.v(), _mm256_setallone_si256());
+}
 template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<short>::operator-() const
+{
+    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+}
+template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<unsigned short>::operator-() const
 {
     return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
 }
