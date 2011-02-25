@@ -187,6 +187,7 @@ class Vector : public VectorBase<T>
         }
 
         inline Vector operator~() const ALWAYS_INLINE { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
+        inline Vector operator-() const;
 
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
@@ -194,8 +195,6 @@ class Vector : public VectorBase<T>
         OP1(sqrt)
         OP1(abs)
 #undef OP1
-
-        inline Vector operator-() const ALWAYS_INLINE { return VectorHelper<T>::negate(data()); }
 
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) ALWAYS_INLINE { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
