@@ -243,21 +243,28 @@ class _UnitTest_Compare
 
         template<typename T> inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(const T &x) const {
             if (m_failed) {
-                printx(x);
+                print(x);
             }
             return *this;
         }
 
         inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(const char *str) const {
             if (m_failed) {
-                printStr(str);
+                print(str);
             }
             return *this;
         }
 
         inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(const char ch) const {
             if (m_failed) {
-                printChar(ch);
+                print(ch);
+            }
+            return *this;
+        }
+
+        inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(bool b) const {
+            if (m_failed) {
+                print(b);
             }
             return *this;
         }
@@ -270,9 +277,9 @@ class _UnitTest_Compare
         }
 
     private:
-        void printFirst() const { std::cout << _unittest_fail() << "┍ "; }
-        template<typename T> void printx(const T &x) const { std::cout << x; }
-        void printStr(const char *str) const {
+        static void printFirst() { std::cout << _unittest_fail() << "┍ "; }
+        template<typename T> static void print(const T &x) { std::cout << x; }
+        static void print(const char *str) {
             const char *pos = 0;
             if (0 != (pos = std::strchr(str, '\n'))) {
                 if (pos == str) {
@@ -286,14 +293,17 @@ class _UnitTest_Compare
                 std::cout << str;
             }
         }
-        void printChar(const char ch) const {
+        static void print(const char ch) {
             if (ch == '\n') {
                 std::cout << '\n' << _unittest_fail() << "│ ";
             } else {
                 std::cout << ch;
             }
         }
-        void printLast() const {
+        static void print(bool b) {
+            std::cout << (b ? "true" : "false");
+        }
+        static void printLast() {
             std::cout << std::endl;
             _unit_test_global.status = false;
             throw _UnitTest_Failure();
