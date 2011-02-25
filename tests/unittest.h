@@ -39,6 +39,21 @@
     _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>"); \
     _unit_test_global.runTestInt(&name<uint_v>, #name "<uint_v>")
 
+static const char *_unittest_fail()
+{
+    static const char *str = 0;
+    if (str == 0) {
+        if (mayUseColor(std::cout)) {
+            static const char *fail = " \033[1;40;31mFAIL:\033[0m ";
+            str = fail;
+        } else {
+            static const char *fail = " FAIL: ";
+            str = fail;
+        }
+    }
+    return str;
+}
+
 template<typename A, typename B> struct isEqualType
 {
     operator bool() const { return false; }
@@ -142,7 +157,7 @@ void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
         }
     } else {
         if (!_unit_test_global.status) {
-            std::cout << " FAIL: " << name << std::endl;
+            std::cout << _unittest_fail() << name << std::endl;
             ++failedTests;
         } else {
             std::cout << " PASS: " << name << std::endl;
@@ -217,11 +232,43 @@ class _UnitTest_Compare
         _UnitTest_Compare(bool good)
             : m_failed(!good)
         {
+            if (m_failed) {
+                std::cout << _unittest_fail();
+            }
         }
 
         template<typename T> const _UnitTest_Compare &operator<<(const T &x) const {
             if (m_failed) {
                 std::cout << x;
+            }
+            return *this;
+        }
+
+        const _UnitTest_Compare &operator<<(const char *str) const {
+            if (m_failed) {
+                const char *pos = 0;
+                if (0 != (pos = std::strchr(str, '\n'))) {
+                    if (pos == str) {
+                        std::cout << '\n' << _unittest_fail() << &str[1];
+                    } else {
+                        char *left = strndup(str, pos - str);
+                        std::cout << left << '\n' << _unittest_fail() << &pos[1];
+                        free(left);
+                    }
+                } else {
+                    std::cout << str;
+                }
+            }
+            return *this;
+        }
+
+        const _UnitTest_Compare &operator<<(const char ch) const {
+            if (m_failed) {
+                if (ch == '\n') {
+                    std::cout << '\n' << _unittest_fail();
+                } else {
+                    std::cout << ch;
+                }
             }
             return *this;
         }
@@ -249,8 +296,8 @@ if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { \
 
 #define COMPARE( a, b ) \
     _UnitTest_Compare(unittest_compareHelper(a, b)) \
-        << "       at " << __FILE__ << ':' << __LINE__ << ":\n" \
-        << "       " << #a << " (" << std::setprecision(10) << (a) << std::setprecision(6) << ") == " << #b << " (" << std::setprecision(10) << (b) << std::setprecision(6) << ") -> " << ((a) == (b))
+        << "at " << __FILE__ << ':' << __LINE__ << ":\n" \
+        << #a << " (" << std::setprecision(10) << (a) << std::setprecision(6) << ") == " << #b << " (" << std::setprecision(10) << (b) << std::setprecision(6) << ") -> " << ((a) == (b))
 
 #define COMPARE_NOEQ( a, b ) \
 if ( unittest_compareHelper( a, b ) ) {} else { \
