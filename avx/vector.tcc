@@ -25,19 +25,20 @@ namespace AVX
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template<typename T> inline ALWAYS_INLINE CONST Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum) : Base(HT::zero()) {}
-template<typename T> inline ALWAYS_INLINE CONST Vector<T>::Vector(VectorSpecialInitializerOne::OEnum) : Base(HT::one()) {}
-template<typename T> inline ALWAYS_INLINE CONST Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum) : Base(HT::zero()) {}
+template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerOne::OEnum) : Base(HT::one()) {}
+template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
     : Base(HV::load(Base::_IndexesFromZero(), Aligned)) {}
 
 template<typename T> inline Vector<T> INTRINSIC CONST Vector<T>::Zero() { return HT::zero(); }
 template<typename T> inline Vector<T> INTRINSIC CONST Vector<T>::One() { return HT::one(); }
 template<typename T> inline Vector<T> INTRINSIC CONST Vector<T>::IndexesFromZero() { return HV::load(Base::_IndexesFromZero(), Aligned); }
 
-template<typename T> template<typename T2> inline ALWAYS_INLINE CONST Vector<T>::Vector(Vector<T2> x)
+template<typename T> template<typename T2> inline ALWAYS_INLINE Vector<T>::Vector(Vector<T2> x)
     : Base(StaticCastHelper<T2, T>::cast(x.data())) {}
 
-template<typename T> inline ALWAYS_INLINE CONST Vector<T>::Vector(EntryType x) : Base(HT::set(x)) {}
+template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(EntryType x) : Base(HT::set(x)) {}
+template<> inline ALWAYS_INLINE Vector<double>::Vector(EntryType x) : Base(_mm256_set1_pd(x)) {}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -64,11 +65,11 @@ template<typename T> template<typename A> inline void INTRINSIC Vector<T>::load(
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // zeroing
-template<typename T> inline void INTRINSIC CONST Vector<T>::setZero()
+template<typename T> inline void INTRINSIC Vector<T>::setZero()
 {
     data() = HV::zero();
 }
-template<typename T> inline void INTRINSIC CONST Vector<T>::setZero(const Mask &k)
+template<typename T> inline void INTRINSIC Vector<T>::setZero(const Mask &k)
 {
     data() = HV::andnot_(avx_cast<VectorType>(k.data()), data());
 }
@@ -94,16 +95,16 @@ template<typename T> template<typename A> inline void INTRINSIC Vector<T>::store
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // swizzles
-template<> inline const Vector<double> INTRINSIC CONST Vector<double>::aaaa() const { const double &tmp = d.m(0); return _mm256_broadcast_sd(&tmp); }
-template<> inline const Vector<double> INTRINSIC CONST Vector<double>::bbbb() const { const double &tmp = d.m(1); return _mm256_broadcast_sd(&tmp); }
-template<> inline const Vector<double> INTRINSIC CONST Vector<double>::cccc() const { const double &tmp = d.m(2); return _mm256_broadcast_sd(&tmp); }
-template<> inline const Vector<double> INTRINSIC CONST Vector<double>::dddd() const { const double &tmp = d.m(3); return _mm256_broadcast_sd(&tmp); }
+template<> inline const Vector<double> INTRINSIC Vector<double>::aaaa() const { const double &tmp = d.m(0); return _mm256_broadcast_sd(&tmp); }
+template<> inline const Vector<double> INTRINSIC Vector<double>::bbbb() const { const double &tmp = d.m(1); return _mm256_broadcast_sd(&tmp); }
+template<> inline const Vector<double> INTRINSIC Vector<double>::cccc() const { const double &tmp = d.m(2); return _mm256_broadcast_sd(&tmp); }
+template<> inline const Vector<double> INTRINSIC Vector<double>::dddd() const { const double &tmp = d.m(3); return _mm256_broadcast_sd(&tmp); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operators
 ///////////////////////////////////////////////////////////////////////////////////////////
 //// division
-template<typename T> inline CONST Vector<T> &Vector<T>::operator/=(EntryType x)
+template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
 {
     if (Base::HasVectorDivision) {
         return operator/=(Vector<T>(x));
@@ -113,7 +114,7 @@ template<typename T> inline CONST Vector<T> &Vector<T>::operator/=(EntryType x)
             );
     return *this;
 }
-template<typename T> inline CONST Vector<T> Vector<T>::operator/(EntryType x) const
+template<typename T> inline PURE Vector<T> Vector<T>::operator/(EntryType x) const
 {
     if (Base::HasVectorDivision) {
         return operator/(Vector<T>(x));
@@ -125,7 +126,7 @@ template<typename T> inline CONST Vector<T> Vector<T>::operator/(EntryType x) co
     return r;
 }
 // per default fall back to scalar division
-template<typename T> inline Vector<T> &CONST Vector<T>::operator/=(const Vector<T> &x)
+template<typename T> inline Vector<T> &Vector<T>::operator/=(const Vector<T> &x)
 {
     for_all_vector_entries(i,
             d.m(i) /= x.d.m(i);
@@ -133,7 +134,7 @@ template<typename T> inline Vector<T> &CONST Vector<T>::operator/=(const Vector<
     return *this;
 }
 
-template<typename T> inline Vector<T> CONST Vector<T>::operator/(const Vector<T> &x) const
+template<typename T> inline Vector<T> PURE Vector<T>::operator/(const Vector<T> &x) const
 {
     Vector<T> r;
     for_all_vector_entries(i,
@@ -152,12 +153,12 @@ static inline __m256i INTRINSIC CONST divInt(__m256i a, __m256i b) {
             _mm256_cvttpd_epi32(_mm256_div_pd(hi1, hi2))
             );
 }
-template<> inline Vector<int> &CONST Vector<int>::operator/=(const Vector<int> &x)
+template<> inline Vector<int> &Vector<int>::operator/=(const Vector<int> &x)
 {
     d.v() = divInt(d.v(), x.d.v());
     return *this;
 }
-template<> inline Vector<int> CONST Vector<int>::operator/(const Vector<int> &x) const
+template<> inline Vector<int> PURE Vector<int>::operator/(const Vector<int> &x) const
 {
     return divInt(d.v(), x.d.v());
 }
@@ -182,12 +183,12 @@ static inline __m256i CONST divUInt(__m256i a, __m256i b) {
                             _mm_cmpeq_epi32(lo128(b), _mm_setone_epi32()),
                             _mm_cmpeq_epi32(hi128(b), _mm_setone_epi32())))));
 }
-template<> inline Vector<unsigned int> &ALWAYS_INLINE CONST Vector<unsigned int>::operator/=(const Vector<unsigned int> &x)
+template<> inline Vector<unsigned int> &ALWAYS_INLINE Vector<unsigned int>::operator/=(const Vector<unsigned int> &x)
 {
     d.v() = divUInt(d.v(), x.d.v());
     return *this;
 }
-template<> inline Vector<unsigned int> ALWAYS_INLINE CONST Vector<unsigned int>::operator/(const Vector<unsigned int> &x) const
+template<> inline Vector<unsigned int> ALWAYS_INLINE PURE Vector<unsigned int>::operator/(const Vector<unsigned int> &x) const
 {
     return divUInt(d.v(), x.d.v());
 }
@@ -197,39 +198,39 @@ template<typename T> static inline __m128i CONST divShort(__m128i a, __m128i b)
             StaticCastHelper<T, float>::cast(b));
     return StaticCastHelper<float, T>::cast(r);
 }
-template<> inline Vector<short> &ALWAYS_INLINE CONST Vector<short>::operator/=(const Vector<short> &x)
+template<> inline Vector<short> &ALWAYS_INLINE Vector<short>::operator/=(const Vector<short> &x)
 {
     d.v() = divShort<short>(d.v(), x.d.v());
     return *this;
 }
-template<> inline Vector<short> ALWAYS_INLINE CONST Vector<short>::operator/(const Vector<short> &x) const
+template<> inline Vector<short> ALWAYS_INLINE PURE Vector<short>::operator/(const Vector<short> &x) const
 {
     return divShort<short>(d.v(), x.d.v());
 }
-template<> inline Vector<unsigned short> &ALWAYS_INLINE CONST Vector<unsigned short>::operator/=(const Vector<unsigned short> &x)
+template<> inline Vector<unsigned short> &ALWAYS_INLINE Vector<unsigned short>::operator/=(const Vector<unsigned short> &x)
 {
     d.v() = divShort<unsigned short>(d.v(), x.d.v());
     return *this;
 }
-template<> inline Vector<unsigned short> ALWAYS_INLINE CONST Vector<unsigned short>::operator/(const Vector<unsigned short> &x) const
+template<> inline Vector<unsigned short> ALWAYS_INLINE PURE Vector<unsigned short>::operator/(const Vector<unsigned short> &x) const
 {
     return divShort<unsigned short>(d.v(), x.d.v());
 }
-template<> inline Vector<float> &INTRINSIC CONST Vector<float>::operator/=(const Vector<float> &x)
+template<> inline Vector<float> &INTRINSIC Vector<float>::operator/=(const Vector<float> &x)
 {
     d.v() = _mm256_div_ps(d.v(), x.d.v());
     return *this;
 }
-template<> inline Vector<float> INTRINSIC CONST Vector<float>::operator/(const Vector<float> &x) const
+template<> inline Vector<float> INTRINSIC PURE Vector<float>::operator/(const Vector<float> &x) const
 {
     return _mm256_div_ps(d.v(), x.d.v());
 }
-template<> inline Vector<double> &INTRINSIC CONST Vector<double>::operator/=(const Vector<double> &x)
+template<> inline Vector<double> &INTRINSIC Vector<double>::operator/=(const Vector<double> &x)
 {
     d.v() = _mm256_div_pd(d.v(), x.d.v());
     return *this;
 }
-template<> inline Vector<double> INTRINSIC CONST Vector<double>::operator/(const Vector<double> &x) const
+template<> inline Vector<double> INTRINSIC PURE Vector<double>::operator/(const Vector<double> &x) const
 {
     return _mm256_div_pd(d.v(), x.d.v());
 }
