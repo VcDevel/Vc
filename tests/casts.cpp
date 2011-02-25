@@ -33,7 +33,7 @@ template<typename V1, typename V2> void testNumber(double n)
 
     const T1 n1 = static_cast<T1>(n);
     //std::cerr << "n1 = " << n1 << ", static_cast<T2>(n1) = " << static_cast<T2>(n1) << std::endl;
-    COMPARE(static_cast<V2>(V1(n1)), V2(static_cast<T2>(n1)));
+    COMPARE(static_cast<V2>(V1(n1)), V2(static_cast<T2>(n1))) << "\n       n1: " << n1;
 }
 
 template<typename T> double maxHelper()

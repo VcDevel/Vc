@@ -40,7 +40,7 @@ template<typename Vec> void gatherArray()
         const typename Vec::Mask castedMask = static_cast<typename Vec::Mask>(mask);
         if (castedMask.isFull()) {
             Vec a(array, i);
-            COMPARE(a, ii);
+            COMPARE(a, ii) << "\n       i: " << i;
             Vec b(Zero);
             b.gather(array, i);
             COMPARE(b, ii);
