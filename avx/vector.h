@@ -152,6 +152,9 @@ class Vector : public VectorBase<T>
         template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask);
         template<typename Index> void gather(const EntryType *mem, Index indexes);
         template<typename Index> void gather(const EntryType *mem, Index indexes, Mask mask);
+#ifdef VC_GATHER_SET
+        template<typename IT> void gather(const EntryType *mem, Vector<IT> indexes, Mask mask);
+#endif
         template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, IT indexes);
         template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, IT indexes, Mask mask);
         template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes);
