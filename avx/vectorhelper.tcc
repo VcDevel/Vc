@@ -272,13 +272,13 @@ template<typename T> inline void VectorHelper<__m128i>::store(T *mem, const Vect
 {
     _mm_maskmoveu_si128(x, _mm_setallone_si128(), reinterpret_cast<char *>(mem));
 }
-template<typename T> inline void VectorHelper<__m128i>::store(T *mem, const VectorType x, const VectorType m, AlignedFlag)
+template<typename T> inline void VectorHelper<__m128i>::store(T *mem, const VectorType x, const VectorType m, AlignedFlag align)
 {
-    _mm_maskstore_ps(reinterpret_cast<float *>(mem), avx_cast<__m128>(m), avx_cast<__m128>(x));
+    store(mem, _mm_blendv_epi8(load(mem, align), x, m), align);
 }
-template<typename T> inline void VectorHelper<__m128i>::store(T *mem, const VectorType x, const VectorType m, UnalignedFlag)
+template<typename T> inline void VectorHelper<__m128i>::store(T *mem, const VectorType x, const VectorType m, UnalignedFlag align)
 {
-    _mm_maskstore_ps(reinterpret_cast<float *>(mem), avx_cast<__m128>(m), avx_cast<__m128>(x));
+    store(mem, _mm_blendv_epi8(load(mem, align), x, m), align);
 }
 template<typename T> inline void VectorHelper<__m128i>::store(T *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag)
 {
