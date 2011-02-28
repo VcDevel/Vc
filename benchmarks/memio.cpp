@@ -37,7 +37,23 @@ template<typename T, int S> struct KeepResultsHelper {
 #endif
     }
 };
-#ifdef VC_IMPL_SSE
+#if defined(VC_IMPL_AVX)
+template<typename T> struct KeepResultsHelper<T, 16> {
+    static inline void keep(const T &tmp0) { asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0))); }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 &>(tmp3)));
+    }
+};
+template<typename T> struct KeepResultsHelper<T, 32> {
+    static inline void keep(const T &tmp0) {
+        asm volatile(""::"x"(reinterpret_cast<const __m256 &>(tmp0)));
+    }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m256 &>(tmp0)), "x"(reinterpret_cast<const __m256 &>(tmp1)),
+                "x"(reinterpret_cast<const __m256 &>(tmp2)), "x"(reinterpret_cast<const __m256 &>(tmp3)));
+    }
+};
+#elif defined(VC_IMPL_SSE)
 template<typename T> struct KeepResultsHelper<T, 16> {
     static inline void keep(const T &tmp0) { asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0))); }
     static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
@@ -55,8 +71,7 @@ template<typename T> struct KeepResultsHelper<T, 32> {
                 "x"(reinterpret_cast<const __m128 &>(tmp3)), "x"(reinterpret_cast<const __m128 *>(&tmp3)[1]));
     }
 };
-#endif
-#ifdef VC_IMPL_LRBni
+#elif defined(VC_IMPL_LRBni)
 template<typename T> struct KeepResultsHelper<T, 64> {
     static inline void keep(const T &tmp0) {
         asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]));
