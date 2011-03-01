@@ -66,33 +66,26 @@ namespace AVX
 
     template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
         typedef Vector<T> V;
-        typedef typename V::Mask M;
         typedef c_sin<T> C;
-        using namespace VectorSpecialInitializerOne;
 
         // x - x**3/3! + x**5/5! - x**7/7! + x**9/9! - x**11/11! for [-pi/2:pi/2]
 
         V x = _x - round(_x * C::_1_2pi()) * C::_2pi();
-        const M &gt_pi_2 = x >  C::_pi_2();
-        const M &lt_pi_2 = x < -C::_pi_2();
-        const V &foldRight =  C::_pi() - x;
-        const V &foldLeft  = -C::_pi() - x;
-        x(gt_pi_2) = foldRight;
-        x(lt_pi_2) = foldLeft;
+        x(x >  C::_pi_2()) =  C::_pi() - x;
+        x(x < -C::_pi_2()) = -C::_pi() - x;
 
         const V &x2 = x * x;
-        return x * (V(One) - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
+        return x * (V::One() - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
     }
     template<typename T> static inline Vector<T> cos(const Vector<T> &_x) {
         typedef Vector<T> V;
         typedef c_sin<T> C;
-        using namespace VectorSpecialInitializerOne;
 
         V x = _x - round(_x * C::_1_2pi()) * C::_2pi() + C::_pi_2();
         x(x > C::_pi_2()) = C::_pi() - x;
 
         const V &x2 = x * x;
-        return x * (V(One) - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
+        return x * (V::One() - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
     }
     template<typename T> static inline Vector<T> asin (const Vector<T> &_x) {
         typedef Vector<T> V;
