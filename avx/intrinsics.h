@@ -353,6 +353,11 @@ namespace AVX
         VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, Incorrect_Range);
         return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
     }
+    template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m128 ALWAYS_INLINE CONST shuffle(__m128 x, __m128 y) {
+        VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, Incorrect_Range);
+        VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, Incorrect_Range);
+        return _mm_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
+    }
 
 } // namespace AVX
 } // namespace Vc
