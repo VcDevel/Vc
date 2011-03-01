@@ -20,6 +20,7 @@
 #ifndef VC_AVX_CONST_H
 #define VC_AVX_CONST_H
 
+#include "immintrin.h"
 #include "macros.h"
 
 namespace Vc
@@ -27,6 +28,7 @@ namespace Vc
 namespace AVX
 {
     template<typename T> class Vector;
+    template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
 
     ALIGN(64) extern const unsigned int   _IndexesFromZero32[8];
     ALIGN(16) extern const unsigned short _IndexesFromZero16[8];
@@ -56,6 +58,29 @@ namespace AVX
         static V _1_5fac() CONST;
         static V _1_7fac() CONST;
         static V _1_9fac() CONST;
+    } ALIGN(64);
+
+    template<typename T> struct IntForFloat { typedef unsigned int Type; };
+    template<> struct IntForFloat<double> { typedef unsigned long long Type; };
+
+    template<typename T, typename Mask> struct c_log
+    {
+        typedef Vector<T> Vec;
+        typedef typename IntForFloat<T>::Type Int;
+
+        static inline const double *d(int i) { return reinterpret_cast<const double *>(&_dataI[i]); }
+        static inline const float *f(int i) { return reinterpret_cast<const float *>(&_dataI[i]); }
+        static const Int _dataI[14];
+        static const T   _dataT[3];
+
+        static __m128i bias()  CONST;
+        static Mask exponentMask() CONST;
+        static Vec _1_2() CONST;
+        static Vec _1_sqrt2() CONST;
+        static Vec P(int i) CONST;
+        static Vec Q(int i) CONST;
+        static Vec _foo() CONST;
+        static Vec neginf() CONST;
     } ALIGN(64);
 } // namespace AVX
 } // namespace Vc

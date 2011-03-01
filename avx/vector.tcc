@@ -74,6 +74,23 @@ template<typename T> inline void INTRINSIC Vector<T>::setZero(const Mask &k)
     data() = HV::andnot_(avx_cast<VectorType>(k.data()), data());
 }
 
+template<> inline void INTRINSIC Vector<double>::setQnan()
+{
+    data() = _mm256_setallone_pd();
+}
+template<> inline void INTRINSIC Vector<double>::setQnan(Mask k)
+{
+    data() = _mm256_or_pd(data(), k.dataD());
+}
+template<> inline void INTRINSIC Vector<float>::setQnan()
+{
+    data() = _mm256_setallone_ps();
+}
+template<> inline void INTRINSIC Vector<float>::setQnan(Mask k)
+{
+    data() = _mm256_or_ps(data(), k.data());
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 // stores
 template<typename T> inline void INTRINSIC Vector<T>::store(EntryType *mem) const

@@ -76,6 +76,55 @@ namespace AVX
     // cacheline 4
     const             double c_general::oneDouble = 1.;
 
+    template<> const unsigned long long c_log<double, Vc::AVX::Mask<4, 32> >::_dataI[14] = {
+        0x000003ff000003ffull, // bias
+        0x7ff0000000000000ull, // exponentMask (+inf)
+
+        0x3f1ab4c293c31bb0ull, // P[0]
+        0x3fdfd6f53f5652f2ull, // P[1]
+        0x4012d2baed926911ull, // P[2]
+        0x402cff72c63eeb2eull, // P[3]
+        0x4031efd6924bc84dull, // P[4]
+        0x401ed5637d7edcf8ull, // P[5]
+
+        0x40269320ae97ef8eull, // Q[0]
+        0x40469d2c4e19c033ull, // Q[1]
+        0x4054bf33a326bdbdull, // Q[2]
+        0x4051c9e2eb5eae21ull, // Q[3]
+        0x4037200a9e1f25b2ull, // Q[4]
+
+        0xfff0000000000000ull  // -inf
+    };
+    template<> const double c_log<double, Vc::AVX::Mask<4, 32> >::_dataT[3] = {
+        0.70710678118654757273731092936941422522068023681640625,
+        0.693359375 - 2.121944400546905827679e-4,
+        0.5
+    };
+
+    template<> const unsigned int c_log<float, Vc::AVX::Mask<8, 32> >::_dataI[14] = {
+        0x0000007fu, // bias
+        0x7f800000u, // exponentMask (+inf)
+
+        0x38d5a615, // P[0]
+        0x3efeb7aa, // P[1]
+        0x409695d7, // P[2]
+        0x4167fb96, // P[3]
+        0x418f7eb5, // P[4]
+        0x40f6ab1c, // P[5]
+
+        0x41349905, // Q[0]
+        0x4234e962, // Q[1]
+        0x42a5f99d, // Q[2]
+        0x428e4f17, // Q[3]
+        0x41b90055, // Q[4]
+
+        0xff800000u  // -inf
+    };
+    template<> const float c_log<float, Vc::AVX::Mask<8, 32> >::_dataT[3] = {
+        0.70710678118654757273731092936941422522068023681640625,
+        0.693359375 - 2.121944400546905827679e-4,
+        0.5
+    };
 } // namespace AVX
 
 namespace SSE

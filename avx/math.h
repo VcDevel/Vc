@@ -21,6 +21,8 @@
 #define VC_AVX_MATH_H
 
 #include "const.h"
+#include "limits.h"
+#include "macros.h"
 
 namespace Vc
 {
@@ -35,6 +37,28 @@ namespace AVX
     template<typename T> inline Vector<T> c_sin<T>::_1_5fac() { return Vector<T>(_data[5]); }
     template<typename T> inline Vector<T> c_sin<T>::_1_7fac() { return Vector<T>(_data[6]); }
     template<typename T> inline Vector<T> c_sin<T>::_1_9fac() { return Vector<T>(_data[7]); }
+
+    template<typename T, typename M> inline __m128i c_log<T, M>::bias()      { return avx_cast<__m128i>(_mm_broadcast_ss(f(0))); }
+
+    typedef Vector<double> double_v;
+    typedef Vector<float> float_v;
+    typedef typename Vector<double>::Mask double_m;
+    typedef typename Vector<float >::Mask float_m;
+
+    template<> inline double_m c_log<double, double_m>::exponentMask() { return _mm256_broadcast_sd(d(1)); }
+    template<> inline double_v c_log<double, double_m>::_1_2()         { return _mm256_broadcast_sd(&_dataT[2]); }
+    template<> inline double_v c_log<double, double_m>::_1_sqrt2()     { return _mm256_broadcast_sd(&_dataT[0]); }
+    template<> inline double_v c_log<double, double_m>::P(int i)       { return _mm256_broadcast_sd(d(2 + i)); }
+    template<> inline double_v c_log<double, double_m>::Q(int i)       { return _mm256_broadcast_sd(d(8 + i)); }
+    template<> inline double_v c_log<double, double_m>::_foo()         { return _mm256_broadcast_sd(&_dataT[1]); }
+    template<> inline double_v c_log<double, double_m>::neginf()       { return _mm256_broadcast_sd(d(13)); }
+    template<> inline float_m c_log<float, float_m>::exponentMask() { return _mm256_broadcast_ss(f(1)); }
+    template<> inline float_v c_log<float, float_m>::_1_2()         { return _mm256_broadcast_ss(&_dataT[2]); }
+    template<> inline float_v c_log<float, float_m>::_1_sqrt2()     { return _mm256_broadcast_ss(&_dataT[0]); }
+    template<> inline float_v c_log<float, float_m>::P(int i)       { return _mm256_broadcast_ss(f(2 + i)); }
+    template<> inline float_v c_log<float, float_m>::Q(int i)       { return _mm256_broadcast_ss(f(8 + i)); }
+    template<> inline float_v c_log<float, float_m>::_foo()         { return _mm256_broadcast_ss(&_dataT[1]); }
+    template<> inline float_v c_log<float, float_m>::neginf()       { return _mm256_broadcast_ss(f(13)); }
 
     template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
         typedef Vector<T> V;
@@ -157,12 +181,79 @@ namespace AVX
         b(xNeg && !yNeg) += pi;
         b(xNeg &&  yNeg) -= pi;
         //b(xZero) = pi_2;
-        b.makeZero(xZero && yZero);
+        b.setZero(xZero && yZero);
         b(xZero && yNeg) = -pi_2;
         //b(yZero && xNeg) = pi;
         return b;
     }
+    inline __m256d INTRINSIC CONST extractExponent(__m256d x) {
+        typedef c_log<double, double_m> C;
+        __m128i emm0lo = _mm_srli_epi64(avx_cast<__m128i>(x), 52);
+        __m128i emm0hi = _mm_srli_epi64(avx_cast<__m128i>(hi128(x)), 52);
+
+        emm0lo = _mm_sub_epi32(emm0lo, C::bias());
+        emm0hi = _mm_sub_epi32(emm0hi, C::bias());
+
+        return _mm256_cvtepi32_pd(avx_cast<__m128i>(shuffle<X0, X2, Y0, Y2>(avx_cast<__m128>(emm0lo), avx_cast<__m128>(emm0hi))));
+    }
+    inline __m256 INTRINSIC CONST extractExponent(__m256 x) {
+        typedef c_log<float, float_m> C;
+        __m128i emm0lo = _mm_srli_epi32(avx_cast<__m128i>(x), 23);
+        __m128i emm0hi = _mm_srli_epi32(avx_cast<__m128i>(hi128(x)), 23);
+
+        emm0lo = _mm_sub_epi32(emm0lo, C::bias());
+        emm0hi = _mm_sub_epi32(emm0hi, C::bias());
+
+        return _mm256_cvtepi32_ps(concat(emm0lo, emm0hi));
+    }
+    inline double_v INTRINSIC CONST _or(double_v a, double_v b) {
+        return _mm256_or_pd(a.data(), b.data());
+    }
+    inline float_v INTRINSIC CONST _or(float_v a, float_v b) {
+        return _mm256_or_ps(a.data(), b.data());
+    }
+    template<typename T> static inline Vector<T> log(Vector<T> x) {
+        typedef Vector<T> V;
+        typedef typename V::Mask M;
+        typedef c_log<T, M> C;
+
+        const M invalidMask = x < V::Zero();
+        const M infinityMask = x == V::Zero();
+
+        x = max(x, std::numeric_limits<V>::min()); // lazy: cut off denormalized numbers
+
+        V exponent = extractExponent(x.data());
+
+        // keep only the fractional part
+        x.setZero(C::exponentMask());
+        x = _or(x, C::_1_2());
+
+        const M smallX = x < C::_1_sqrt2();
+        x -= V::One();
+        x(smallX) += x;
+        exponent(!smallX) += V::One();
+
+        V y = C::P(0);
+        V y2 = C::Q(0) + x;
+        unrolled_loop16(i, 1, 5,
+                y = y * x + C::P(i);
+                y2 = y2 * x + C::Q(i);
+                );
+        x += (y * x + C::P(5)) * (x / y2 - C::_1_2()) * (x * x) + exponent * C::_foo();
+
+        x.setQnan(invalidMask);
+        x(infinityMask) = C::neginf();
+
+        return x;
+    }
+    template<typename T> static inline Vector<T> log10(Vector<T> x) {
+        typedef Vector<T> V;
+        typedef typename V::Mask M;
+        return x;
+    }
 } // namespace AVX
 } // namespace Vc
+
+#include "undomacros.h"
 
 #endif // VC_AVX_MATH_H
