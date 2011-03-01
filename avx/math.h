@@ -52,6 +52,8 @@ namespace AVX
     template<> inline double_v c_log<double, double_m>::Q(int i)       { return _mm256_broadcast_sd(d(8 + i)); }
     template<> inline double_v c_log<double, double_m>::_foo()         { return _mm256_broadcast_sd(&_dataT[1]); }
     template<> inline double_v c_log<double, double_m>::neginf()       { return _mm256_broadcast_sd(d(13)); }
+    template<> inline double_v c_log<double, double_m>::log10_e()      { return _mm256_broadcast_sd(&_dataT[3]); }
+    template<> inline double_v c_log<double, double_m>::log2_e()       { return _mm256_broadcast_sd(&_dataT[4]); }
     template<> inline float_m c_log<float, float_m>::exponentMask() { return _mm256_broadcast_ss(f(1)); }
     template<> inline float_v c_log<float, float_m>::_1_2()         { return _mm256_broadcast_ss(&_dataT[2]); }
     template<> inline float_v c_log<float, float_m>::_1_sqrt2()     { return _mm256_broadcast_ss(&_dataT[0]); }
@@ -59,6 +61,8 @@ namespace AVX
     template<> inline float_v c_log<float, float_m>::Q(int i)       { return _mm256_broadcast_ss(f(8 + i)); }
     template<> inline float_v c_log<float, float_m>::_foo()         { return _mm256_broadcast_ss(&_dataT[1]); }
     template<> inline float_v c_log<float, float_m>::neginf()       { return _mm256_broadcast_ss(f(13)); }
+    template<> inline float_v c_log<float, float_m>::log10_e()      { return _mm256_broadcast_ss(&_dataT[3]); }
+    template<> inline float_v c_log<float, float_m>::log2_e()       { return _mm256_broadcast_ss(&_dataT[4]); }
 
     template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
         typedef Vector<T> V;
@@ -249,7 +253,16 @@ namespace AVX
     template<typename T> static inline Vector<T> log10(Vector<T> x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
-        return x;
+        typedef c_log<T, M> C;
+
+        return log(x) * C::log10_e();
+    }
+    template<typename T> static inline Vector<T> log2(Vector<T> x) {
+        typedef Vector<T> V;
+        typedef typename V::Mask M;
+        typedef c_log<T, M> C;
+
+        return log(x) * C::log2_e();
     }
 } // namespace AVX
 } // namespace Vc
