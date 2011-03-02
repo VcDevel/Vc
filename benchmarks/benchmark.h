@@ -771,4 +771,92 @@ int main(int argc, char **argv)
 #define benchmark_loop(_bm_obj) \
     for (;(_bm_obj.wantsMoreDataPoints() && timer.Start()) || timer.Print(); timer.Stop())
 
+template<typename T, int S> struct KeepResultsHelper {
+    static inline void keepDirty(T &tmp0) { asm volatile("":"+r"(tmp0)); }
+    static inline void keep(const T &tmp0) { asm volatile(""::"r"(tmp0)); }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+#ifdef __x86_64__
+        asm volatile(""::"r"(tmp0), "r"(tmp1), "r"(tmp2), "r"(tmp3));
+#else
+        asm volatile(""::"r"(tmp0), "r"(tmp1));
+        asm volatile(""::"r"(tmp2), "r"(tmp3));
+#endif
+    }
+};
+
+#if defined(VC_IMPL_AVX)
+template<typename T> struct KeepResultsHelper<T, 16> {
+    static inline void keepDirty(T &tmp0) { asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0))); }
+    static inline void keep(const T &tmp0) { asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0))); }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 &>(tmp3)));
+    }
+};
+template<typename T> struct KeepResultsHelper<T, 32> {
+    static inline void keepDirty(T &tmp0) {
+        asm volatile("":"+x"(reinterpret_cast<__m256 &>(tmp0)));
+    }
+    static inline void keep(const T &tmp0) {
+        asm volatile(""::"x"(reinterpret_cast<const __m256 &>(tmp0)));
+    }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m256 &>(tmp0)), "x"(reinterpret_cast<const __m256 &>(tmp1)),
+                "x"(reinterpret_cast<const __m256 &>(tmp2)), "x"(reinterpret_cast<const __m256 &>(tmp3)));
+    }
+};
+#elif defined(VC_IMPL_SSE)
+template<typename T> struct KeepResultsHelper<T, 16> {
+    static inline void keepDirty(T &tmp0) { asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0))); }
+    static inline void keep(const T &tmp0) { asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0))); }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 &>(tmp3)));
+    }
+};
+template<typename T> struct KeepResultsHelper<T, 32> {
+    static inline void keepDirty(T &tmp0) {
+        asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0)), "+x"(reinterpret_cast<__m128 *>(&tmp0)[1]));
+    }
+    static inline void keep(const T &tmp0) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]));
+    }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]),
+                "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 *>(&tmp1)[1]),
+                "x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 *>(&tmp2)[1]),
+                "x"(reinterpret_cast<const __m128 &>(tmp3)), "x"(reinterpret_cast<const __m128 *>(&tmp3)[1]));
+    }
+};
+#elif defined(VC_IMPL_LRBni)
+template<typename T> struct KeepResultsHelper<T, 64> {
+    static inline void keepDirty(T &tmp0) {
+        asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0)), "+x"(reinterpret_cast<__m128 *>(&tmp0)[1]),
+                "+x"(reinterpret_cast<__m128 *>(&tmp0)[2]), "+x"(reinterpret_cast<__m128 *>(&tmp0)[3]));
+    }
+    static inline void keep(const T &tmp0) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]));
+    }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]),
+                "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 *>(&tmp1)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp1)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp1)[3]));
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 *>(&tmp2)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp2)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp2)[3]),
+                "x"(reinterpret_cast<const __m128 &>(tmp3)), "x"(reinterpret_cast<const __m128 *>(&tmp3)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp3)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp3)[3]));
+    }
+};
+#endif
+
+template<typename T> static inline void keepResultsDirty(T &tmp0)
+{
+    KeepResultsHelper<T, sizeof(T)>::keepDirty(tmp0);
+}
+
+template<typename T> static inline void keepResults(const T &tmp0)
+{
+    KeepResultsHelper<T, sizeof(T)>::keep(tmp0);
+}
+
+template<typename T> static inline void keepResults(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3)
+{
+    KeepResultsHelper<T, sizeof(T)>::keep(tmp0, tmp1, tmp2, tmp3);
+}
+
 #endif // BENCHMARK_H
