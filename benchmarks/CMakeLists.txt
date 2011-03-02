@@ -100,6 +100,18 @@ if(QT4_FOUND)
    add_executable(mandelbrotbench_scalar ${SOURCES})
    add_target_property(mandelbrotbench_scalar COMPILE_FLAGS "-DVC_IMPL=Scalar")
    target_link_libraries(mandelbrotbench_scalar ${QT_LIBRARIES} Vc)
+
+   if(LARRABEE_FOUND)
+      add_executable(mandelbrotbench_lrb ${SOURCES})
+      add_target_property(mandelbrotbench_lrb COMPILE_FLAGS "-DVC_IMPL=LRBni")
+      target_link_libraries(mandelbrotbench_lrb ${QT_LIBRARIES} Vc)
+   endif()
+
+   if(USE_AVX)
+      add_executable(mandelbrotbench_avx ${SOURCES})
+      add_target_property(mandelbrotbench_avx COMPILE_FLAGS "-DVC_IMPL=AVX")
+      target_link_libraries(mandelbrotbench_avx ${QT_LIBRARIES} Vc)
+   endif()
 endif()
 
 configure_file(benchmark-all.sh benchmark-all.sh @ONLY)
