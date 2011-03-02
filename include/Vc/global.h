@@ -35,38 +35,39 @@
 
 #  if defined(__AVX__)
 #    define VC_IMPL_AVX 1
-#  endif
-#  if defined(__SSE4a__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSE4a 1
-#  endif
-#  if defined(__SSE4_2__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSE4_2 1
-#  endif
-#  if defined(__SSE4_1__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSE4_1 1
-#  endif
-#  if defined(__SSE3__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSE3 1
-#  endif
-#  if defined(__SSSE3__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSSE3 1
-#  endif
-#  if defined(__SSE2__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSE2 1
-#  endif
-
-#  if defined(VC_IMPL_SSE)
-     // nothing
-#  elif defined(__LRB__)
-#    define VC_IMPL_LRBni 1
 #  else
-#    define VC_IMPL_Scalar 1
+#    if defined(__SSE4a__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE4a 1
+#    endif
+#    if defined(__SSE4_2__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE4_2 1
+#    endif
+#    if defined(__SSE4_1__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE4_1 1
+#    endif
+#    if defined(__SSE3__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE3 1
+#    endif
+#    if defined(__SSSE3__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSSE3 1
+#    endif
+#    if defined(__SSE2__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE2 1
+#    endif
+
+#    if defined(VC_IMPL_SSE)
+       // nothing
+#    elif defined(__LRB__)
+#      define VC_IMPL_LRBni 1
+#    else
+#      define VC_IMPL_Scalar 1
+#    endif
 #  endif
 
 #else // VC_IMPL
