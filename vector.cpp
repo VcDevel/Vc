@@ -95,7 +95,7 @@ namespace AVX
 
         0xfff0000000000000ull  // -inf
     };
-    template<> const double c_log<double, Vc::AVX::Mask<4, 32> >::_dataT[3] = {
+    template<> const double c_log<double, Vc::AVX::Mask<4, 32> >::_dataT[5] = {
         0.70710678118654757273731092936941422522068023681640625f,
         0.693359375f - 2.121944400546905827679e-4f,
         0.5f,
@@ -122,7 +122,7 @@ namespace AVX
 
         0xff800000u  // -inf
     };
-    template<> const float c_log<float, Vc::AVX::Mask<8, 32> >::_dataT[3] = {
+    template<> const float c_log<float, Vc::AVX::Mask<8, 32> >::_dataT[5] = {
         0.70710678118654757273731092936941422522068023681640625,
         0.693359375 - 2.121944400546905827679e-4,
         0.5,
