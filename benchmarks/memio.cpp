@@ -127,7 +127,27 @@ template<typename Vector> class DoMemIos
 #ifndef VC_BENCHMARK_NO_MLOCK
             mlock(a, Factor * sizeof(Vector));
 #endif
+            // initial loop so that the first iteration in the benchmark loop
+            // has the same cache history as subsequent runs
+            for (int i = 0; i < Factor; ++i) {
+                Vector tmp = a[i];
+                keepResults(tmp);
+            }
 
+            { // start with reads so that the cache lines are not marked as dirty yet
+                Benchmark timer("read", sizeof(Vector) * Factor * Factor2, "Byte");
+                benchmark_loop(timer) {
+                    for (int j = 0; j < Factor2; ++j) {
+                        for (int i = 0; i < Factor; i += 4) {
+                            const Vector &tmp0 = a[i + 0];
+                            const Vector &tmp1 = a[i + 1];
+                            const Vector &tmp2 = a[i + 2];
+                            const Vector &tmp3 = a[i + 3];
+                            keepResults(tmp0, tmp1, tmp2, tmp3);
+                        }
+                    }
+                }
+            }
             {
                 Benchmark bm("write", sizeof(Vector) * Factor * Factor2, "Byte");
                 const Vector foo = PseudoRandom<Vector>::next();
@@ -170,23 +190,6 @@ template<typename Vector> class DoMemIos
                             a[i + 1] = foo;
                             a[i + 2] = foo;
                             a[i + 3] = foo;
-                        }
-                    }
-                    timer.Stop();
-                }
-                timer.Print();
-            }
-            {
-                Benchmark timer("read", sizeof(Vector) * Factor * Factor2, "Byte");
-                while (timer.wantsMoreDataPoints()) {
-                    timer.Start();
-                    for (int j = 0; j < Factor2; ++j) {
-                        for (int i = 0; i < Factor; i += 4) {
-                            const Vector &tmp0 = a[i + 0];
-                            const Vector &tmp1 = a[i + 1];
-                            const Vector &tmp2 = a[i + 2];
-                            const Vector &tmp3 = a[i + 3];
-                            keepResults(tmp0, tmp1, tmp2, tmp3);
                         }
                     }
                     timer.Stop();
