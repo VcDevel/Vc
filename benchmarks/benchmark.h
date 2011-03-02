@@ -104,10 +104,10 @@ public:
     }
 
     bool wantsMoreDataPoints() const;
-    void Start();
+    bool Start();
     void Mark();
     void Stop();
-    void Print();
+    bool Print();
 
 private:
     void printMiddleLine() const;
@@ -278,7 +278,7 @@ Benchmark::Benchmark(const std::string &_name, double factor, const std::string 
     }
 }
 
-inline void Benchmark::Start()
+inline bool Benchmark::Start()
 {
 #ifdef _MSC_VER
     QueryPerformanceCounter((LARGE_INTEGER *)&fRealTime);
@@ -289,6 +289,7 @@ inline void Benchmark::Start()
     clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &fCpuTime );
 #endif
     fTsc.Start();
+    return true;
 }
 
 #ifndef _MSC_VER
@@ -498,7 +499,7 @@ inline void Benchmark::printBottomLine() const
                 "┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛" : "┛") << std::endl;
 }
 
-inline void Benchmark::Print()
+bool Benchmark::Print()
 {
     std::streambuf *backup = std::cout.rdbuf();
     if (s_fileWriter) {
@@ -619,6 +620,7 @@ inline void Benchmark::Print()
         s_fileWriter->addDataLine(dataLine);
         std::cout.rdbuf(backup);
     }
+    return false;
 }
 
 typedef std::vector<std::string> ArgumentVector;
@@ -751,5 +753,8 @@ int main(int argc, char **argv)
     delete file;
     return r;
 }
+
+#define benchmark_loop(_bm_obj) \
+    for (;(_bm_obj.wantsMoreDataPoints() && timer.Start()) || timer.Print(); timer.Stop())
 
 #endif // BENCHMARK_H
