@@ -129,7 +129,17 @@ private:
     TimeStampCounter fTsc;
     int m_dataPointsCount;
     static FileWriter *s_fileWriter;
+
+    static const char greenEsc  [8];
+    static const char cyanEsc   [8];
+    static const char reverseEsc[5];
+    static const char normalEsc [5];
 };
+
+const char Benchmark::greenEsc  [8] = "\033[1;32m";
+const char Benchmark::cyanEsc   [8] = "\033[1;36m";
+const char Benchmark::reverseEsc[5] = "\033[7m";
+const char Benchmark::normalEsc [5] = "\033[0m";
 
 Benchmark::FileWriter::FileWriter(const std::string &filename)
     : m_finalized(false)
@@ -248,8 +258,8 @@ Benchmark::Benchmark(const std::string &_name, double factor, const std::string 
     };
     if (!s_fileWriter) {
         const bool interpret = (fFactor != 0.);
-        char header[128 * WCHARSIZE];
-        std::memset(header, 0, 128 * WCHARSIZE);
+        char header[128 * WCHARSIZE + sizeof(reverseEsc) * 2];
+        std::memset(header, 0, 128 * WCHARSIZE + sizeof(reverseEsc) * 2);
         std::strcpy(header,
 #ifdef VC_USE_CPU_TIME
                 "┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━"
@@ -264,14 +274,14 @@ Benchmark::Benchmark(const std::string &_name, double factor, const std::string 
         }
         const int titleLen = fName.length();
         const int headerLen = std::strlen(header) / WCHARSIZE;
-        int offset = (headerLen - titleLen) / 2;
-        if (offset > 0) {
-            --offset;
+        int offset = (headerLen - titleLen - 1) / 2;
+        if (offset >= 0) {
             std::string name = ' ' + fName + ' ';
-            char *ptr = &header[offset * WCHARSIZE];
-            std::memcpy(ptr, name.c_str(), name.length());
-            std::memmove(ptr + name.length(), ptr + name.length() * WCHARSIZE, (headerLen - offset - name.length()) * WCHARSIZE + 1);
-            std::cout << header << std::flush;
+            header[offset * WCHARSIZE] = '\0';
+            std::cout << header << reverseEsc << name << normalEsc << &header[(offset + name.length()) * WCHARSIZE] << std::flush;
+//X             std::memcpy(ptr, name.c_str(), name.length());
+//X             std::memmove(ptr + name.length(), ptr + name.length() * WCHARSIZE, (headerLen - offset - name.length()) * WCHARSIZE + 1);
+//X             std::cout << header << std::flush;
         } else {
             std::cout << fName << std::flush;
         }
@@ -524,11 +534,11 @@ bool Benchmark::Print()
         << "┃   Real time    ┃     Cycles     ┃";
     if (interpret) {
 #ifdef VC_USE_CPU_TIME
-        std::cout << centered(fX + "/s [CPU]")  << "┃";
+        std::cout << centered(fX + "s/s [CPU]")  << "┃";
 #endif
-        std::cout << centered(fX + "/s [Real]") << "┃";
-        std::cout << centered(fX + "/cycle")    << "┃";
-        std::cout << centered("cycles/" + fX)   << "┃";
+        std::cout << centered(fX + "s/s [Real]") << "┃";
+        std::cout << centered(fX + "s/Cycle")    << "┃";
+        std::cout << centered("Cycles/" + fX)   << "┃";
         std::string X = fX;
         for (unsigned int i = 0; i < X.length(); ++i) {
             if (X[i] == ' ') {
@@ -589,9 +599,13 @@ bool Benchmark::Print()
 #endif
         prettyPrintCount(fFactor / m_mean[0]);
         std::cout << " ┃ ";
+        std::cout << greenEsc;
         prettyPrintCount(fFactor / m_mean[1]);
+        std::cout << normalEsc;
         std::cout << " ┃ ";
+        std::cout << cyanEsc;
         prettyPrintCount(m_mean[1] / fFactor);
+        std::cout << normalEsc;
         std::cout << " ┃ ";
     }
     std::cout << "\n┃ ";
