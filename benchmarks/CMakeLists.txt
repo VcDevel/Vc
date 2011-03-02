@@ -101,3 +101,5 @@ if(QT4_FOUND)
    add_target_property(mandelbrotbench_scalar COMPILE_FLAGS "-DVC_IMPL=Scalar")
    target_link_libraries(mandelbrotbench_scalar ${QT_LIBRARIES} Vc)
 endif()
+
+configure_file(benchmark-all.sh benchmark-all.sh @ONLY)
