@@ -52,6 +52,8 @@ namespace AVX
     template<> inline double_v c_log<double, double_m>::Q(int i)       { return _mm256_broadcast_sd(d(8 + i)); }
     template<> inline double_v c_log<double, double_m>::_foo()         { return _mm256_broadcast_sd(&_dataT[1]); }
     template<> inline double_v c_log<double, double_m>::neginf()       { return _mm256_broadcast_sd(d(13)); }
+    template<> inline double_v c_log<double, double_m>::log10_e()      { return _mm256_broadcast_sd(&_dataT[3]); }
+    template<> inline double_v c_log<double, double_m>::log2_e()       { return _mm256_broadcast_sd(&_dataT[4]); }
     template<> inline float_m c_log<float, float_m>::exponentMask() { return _mm256_broadcast_ss(f(1)); }
     template<> inline float_v c_log<float, float_m>::_1_2()         { return _mm256_broadcast_ss(&_dataT[2]); }
     template<> inline float_v c_log<float, float_m>::_1_sqrt2()     { return _mm256_broadcast_ss(&_dataT[0]); }
@@ -59,36 +61,31 @@ namespace AVX
     template<> inline float_v c_log<float, float_m>::Q(int i)       { return _mm256_broadcast_ss(f(8 + i)); }
     template<> inline float_v c_log<float, float_m>::_foo()         { return _mm256_broadcast_ss(&_dataT[1]); }
     template<> inline float_v c_log<float, float_m>::neginf()       { return _mm256_broadcast_ss(f(13)); }
+    template<> inline float_v c_log<float, float_m>::log10_e()      { return _mm256_broadcast_ss(&_dataT[3]); }
+    template<> inline float_v c_log<float, float_m>::log2_e()       { return _mm256_broadcast_ss(&_dataT[4]); }
 
     template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
         typedef Vector<T> V;
-        typedef typename V::Mask M;
         typedef c_sin<T> C;
-        using namespace VectorSpecialInitializerOne;
 
         // x - x**3/3! + x**5/5! - x**7/7! + x**9/9! - x**11/11! for [-pi/2:pi/2]
 
         V x = _x - round(_x * C::_1_2pi()) * C::_2pi();
-        const M &gt_pi_2 = x >  C::_pi_2();
-        const M &lt_pi_2 = x < -C::_pi_2();
-        const V &foldRight =  C::_pi() - x;
-        const V &foldLeft  = -C::_pi() - x;
-        x(gt_pi_2) = foldRight;
-        x(lt_pi_2) = foldLeft;
+        x(x >  C::_pi_2()) =  C::_pi() - x;
+        x(x < -C::_pi_2()) = -C::_pi() - x;
 
         const V &x2 = x * x;
-        return x * (V(One) - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
+        return x * (V::One() - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
     }
     template<typename T> static inline Vector<T> cos(const Vector<T> &_x) {
         typedef Vector<T> V;
         typedef c_sin<T> C;
-        using namespace VectorSpecialInitializerOne;
 
         V x = _x - round(_x * C::_1_2pi()) * C::_2pi() + C::_pi_2();
         x(x > C::_pi_2()) = C::_pi() - x;
 
         const V &x2 = x * x;
-        return x * (V(One) - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
+        return x * (V::One() - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
     }
     template<typename T> static inline Vector<T> asin (const Vector<T> &_x) {
         typedef Vector<T> V;
@@ -249,7 +246,16 @@ namespace AVX
     template<typename T> static inline Vector<T> log10(Vector<T> x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
-        return x;
+        typedef c_log<T, M> C;
+
+        return log(x) * C::log10_e();
+    }
+    template<typename T> static inline Vector<T> log2(Vector<T> x) {
+        typedef Vector<T> V;
+        typedef typename V::Mask M;
+        typedef c_log<T, M> C;
+
+        return log(x) * C::log2_e();
     }
 } // namespace AVX
 } // namespace Vc
