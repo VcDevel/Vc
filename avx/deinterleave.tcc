@@ -87,11 +87,11 @@ template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
 {
     const __m256i tmp = Vc::AVX::VectorHelper<__m256i>::load(m, align);
     a.data() = _mm256_cvtepi32_ps(Vc::AVX::concat(
-                _mm_blend_epi16(AVX::lo128(tmp), _mm_setzero_si128(), 0x55),
-                _mm_blend_epi16(AVX::hi128(tmp), _mm_setzero_si128(), 0x55)));
-    b.data() = _mm256_cvtepi32_ps(Vc::AVX::concat(
                 _mm_blend_epi16(AVX::lo128(tmp), _mm_setzero_si128(), 0xaa),
                 _mm_blend_epi16(AVX::hi128(tmp), _mm_setzero_si128(), 0xaa)));
+    b.data() = _mm256_cvtepi32_ps(Vc::AVX::concat(
+                _mm_srli_epi32(AVX::lo128(tmp), 16),
+                _mm_srli_epi32(AVX::hi128(tmp), 16)));
 }
 
 template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
