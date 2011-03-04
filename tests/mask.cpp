@@ -243,87 +243,20 @@ void testFloat8GatherMask()
 }
 #endif
 
-int main()
+int main(int argc, char **argv)
 {
-    runTest(testInc<int_v>);
-    runTest(testInc<uint_v>);
-    runTest(testInc<float_v>);
-    runTest(testInc<double_v>);
-    runTest(testInc<short_v>);
-    runTest(testInc<ushort_v>);
-    runTest(testInc<sfloat_v>);
+    initTest(argc, argv);
 
-    runTest(testDec<int_v>);
-    runTest(testDec<uint_v>);
-    runTest(testDec<float_v>);
-    runTest(testDec<double_v>);
-    runTest(testDec<short_v>);
-    runTest(testDec<ushort_v>);
-    runTest(testDec<sfloat_v>);
-
-    runTest(testPlusEq<int_v>);
-    runTest(testPlusEq<uint_v>);
-    runTest(testPlusEq<float_v>);
-    runTest(testPlusEq<double_v>);
-    runTest(testPlusEq<short_v>);
-    runTest(testPlusEq<ushort_v>);
-    runTest(testPlusEq<sfloat_v>);
-
-    runTest(testMinusEq<int_v>);
-    runTest(testMinusEq<uint_v>);
-    runTest(testMinusEq<float_v>);
-    runTest(testMinusEq<double_v>);
-    runTest(testMinusEq<short_v>);
-    runTest(testMinusEq<ushort_v>);
-    runTest(testMinusEq<sfloat_v>);
-
-    runTest(testTimesEq<int_v>);
-    runTest(testTimesEq<uint_v>);
-    runTest(testTimesEq<float_v>);
-    runTest(testTimesEq<double_v>);
-    runTest(testTimesEq<short_v>);
-    runTest(testTimesEq<ushort_v>);
-    runTest(testTimesEq<sfloat_v>);
-
-    runTest(testDivEq<int_v>);
-    runTest(testDivEq<uint_v>);
-    runTest(testDivEq<float_v>);
-    runTest(testDivEq<double_v>);
-    runTest(testDivEq<short_v>);
-    runTest(testDivEq<ushort_v>);
-    runTest(testDivEq<sfloat_v>);
-
-    runTest(testAssign<int_v>);
-    runTest(testAssign<uint_v>);
-    runTest(testAssign<float_v>);
-    runTest(testAssign<double_v>);
-    runTest(testAssign<short_v>);
-    runTest(testAssign<ushort_v>);
-    runTest(testAssign<sfloat_v>);
-
-    runTest(testZero<int_v>);
-    runTest(testZero<uint_v>);
-    runTest(testZero<float_v>);
-    runTest(testZero<double_v>);
-    runTest(testZero<short_v>);
-    runTest(testZero<ushort_v>);
-    runTest(testZero<sfloat_v>);
-
-    runTest(testCount<int_v>);
-    runTest(testCount<uint_v>);
-    runTest(testCount<float_v>);
-    runTest(testCount<double_v>);
-    runTest(testCount<short_v>);
-    runTest(testCount<ushort_v>);
-    runTest(testCount<sfloat_v>);
-
-    runTest(testFirstOne<int_v>);
-    runTest(testFirstOne<uint_v>);
-    runTest(testFirstOne<float_v>);
-    runTest(testFirstOne<double_v>);
-    runTest(testFirstOne<short_v>);
-    runTest(testFirstOne<ushort_v>);
-    runTest(testFirstOne<sfloat_v>);
+    testAllTypes(testInc);
+    testAllTypes(testDec);
+    testAllTypes(testPlusEq);
+    testAllTypes(testMinusEq);
+    testAllTypes(testTimesEq);
+    testAllTypes(testDivEq);
+    testAllTypes(testAssign);
+    testAllTypes(testZero);
+    testAllTypes(testCount);
+    testAllTypes(testFirstOne);
 
 #ifdef VC_IMPL_SSE
     runTest(testFloat8GatherMask);
