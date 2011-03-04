@@ -22,6 +22,12 @@ namespace Vc
 namespace AVX
 {
 
+template<> inline Mask<4, 32>::Mask(Mask<8, 32> m)
+    : k(concat(_mm_unpacklo_ps(lo128(m.data()), lo128(m.data())),
+                _mm_unpackhi_ps(lo128(m.data()), lo128(m.data()))))
+{
+}
+
 template<unsigned int Size> inline int Mask<Size, 32u>::shiftMask() const
 {
     return _mm256_movemask_epi8(dataI());
