@@ -233,11 +233,56 @@ template<> inline double unittest_fuzzynessHelper<Vc::double_v>(const Vc::double
 class _UnitTest_Compare
 {
     public:
-        inline ALWAYS_INLINE _UnitTest_Compare(bool good)
+        enum OptionFuzzy { Fuzzy };
+        enum OptionNoEq { NoEq };
+
+        template<typename T1, typename T2>
+        inline _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line)
+            : m_failed(!unittest_compareHelper(a, b))
+        {
+            if (m_failed) {
+                printFirst();
+                print("at "); print(_file); print(':'); print(_line); print(":\n");
+                print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
+                print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
+                print(") -> "); print(a == b);
+            }
+        }
+
+        template<typename T1, typename T2>
+        inline _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
+            : m_failed(!unittest_compareHelper(a, b))
+        {
+            if (m_failed) {
+                printFirst();
+                print("at "); print(_file); print(':'); print(_line); print(":\n");
+                print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
+                print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
+                print(')');
+            }
+        }
+
+        template<typename T>
+        inline _UnitTest_Compare(T a, T b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
+            : m_failed(!unittest_fuzzyCompareHelper(a, b))
+        {
+            if (m_failed) {
+                printFirst();
+                print("at "); print(_file); print(':'); print(_line); print(":\n");
+                print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
+                print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
+                print(") -> "); print(a == b);
+                print("\nwith fuzzyness ");
+                print(unittest_fuzzynessHelper(a));
+            }
+        }
+
+        inline _UnitTest_Compare(bool good, const char *cond, const char *_file, int _line)
             : m_failed(!good)
         {
             if (m_failed) {
                 printFirst();
+                print("at "); print(_file); print(':'); print(_line); print(":"); print(cond);
             }
         }
 
@@ -313,24 +358,16 @@ class _UnitTest_Compare
 #undef ALWAYS_INLINE
 
 #define FUZZY_COMPARE( a, b ) \
-    _UnitTest_Compare(unittest_fuzzyCompareHelper(a, b)) \
-        << "at " << __FILE__ << ':' << __LINE__ << ":\n" \
-        << #a << " (" << std::setprecision(10) << (a) << std::setprecision(6) << ") == " << #b << " (" << std::setprecision(10) << (b) << std::setprecision(6) << ") -> " << ((a) == (b)) \
-        << "\nwith fuzzyness " << unittest_fuzzynessHelper(a)
+    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__, _UnitTest_Compare::Fuzzy)
 
 #define COMPARE( a, b ) \
-    _UnitTest_Compare(unittest_compareHelper(a, b)) \
-        << "at " << __FILE__ << ':' << __LINE__ << ":\n" \
-        << #a << " (" << std::setprecision(10) << (a) << std::setprecision(6) << ") == " << #b << " (" << std::setprecision(10) << (b) << std::setprecision(6) << ") -> " << ((a) == (b))
+    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__)
 
 #define COMPARE_NOEQ( a, b ) \
-    _UnitTest_Compare(unittest_compareHelper(a, b)) \
-        << "at " << __FILE__ << ':' << __LINE__ << ":\n" \
-        << #a << " (" << std::setprecision(10) << (a) << std::setprecision(6) << ") == " << #b << " (" << std::setprecision(10) << (b) << std::setprecision(6) << ")"
+    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__, _UnitTest_Compare::NoEq)
 
 #define VERIFY(cond) \
-    _UnitTest_Compare(cond) \
-        << "at " << __FILE__ << ':' << __LINE__ << ": " << #cond
+    _UnitTest_Compare(cond, #cond, __FILE__, __LINE__)
 
 static void unittest_assert(bool cond, const char *code, const char *file, int line)
 {
