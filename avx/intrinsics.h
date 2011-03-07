@@ -325,12 +325,18 @@ namespace AVX
         Y0, Y1, Y2, Y3, Y4, Y5, Y6, Y7
     };
     template<VecPos L, VecPos H> __m256 ALWAYS_INLINE CONST permute128(__m256 x, __m256 y) {
+        VC_STATIC_ASSERT(L >= X0 && H >= X0, Incorrect_Range);
+        VC_STATIC_ASSERT(L <= Y1 && H <= Y1, Incorrect_Range);
         return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
     }
     template<VecPos L, VecPos H> __m256i ALWAYS_INLINE CONST permute128(__m256i x, __m256i y) {
+        VC_STATIC_ASSERT(L >= X0 && H >= X0, Incorrect_Range);
+        VC_STATIC_ASSERT(L <= Y1 && H <= Y1, Incorrect_Range);
         return _mm256_permute2f128_si256(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
     }
     template<VecPos L, VecPos H> __m256d ALWAYS_INLINE CONST permute128(__m256d x, __m256d y) {
+        VC_STATIC_ASSERT(L >= X0 && H >= X0, Incorrect_Range);
+        VC_STATIC_ASSERT(L <= Y1 && H <= Y1, Incorrect_Range);
         return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
     }
     template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m256d ALWAYS_INLINE CONST permute(__m256d x) {
