@@ -343,8 +343,10 @@ template<typename Vec> void testReduceSum()
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    initTest(argc, argv);
+
     runTest(testAbs<int_v>);
     runTest(testAbs<float_v>);
     runTest(testAbs<double_v>);
