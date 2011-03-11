@@ -287,6 +287,7 @@ template<typename T> template<typename S1, typename IT> inline ALWAYS_INLINE Vec
     gather(array, member1, indexes);
 }
 template<typename T> template<typename S1, typename IT> inline ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType S1::* member1, IT indexes, Mask mask)
+    : Base(HT::zero())
 {
     gather(array, member1, indexes, mask);
 }
@@ -295,6 +296,7 @@ template<typename T> template<typename S1, typename S2, typename IT> inline ALWA
     gather(array, member1, member2, indexes);
 }
 template<typename T> template<typename S1, typename S2, typename IT> inline ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, Mask mask)
+    : Base(HT::zero())
 {
     gather(array, member1, member2, indexes, mask);
 }
@@ -303,6 +305,7 @@ template<typename T> template<typename S1, typename IT1, typename IT2> inline AL
     gather(array, ptrMember1, outerIndexes, innerIndexes);
 }
 template<typename T> template<typename S1, typename IT1, typename IT2> inline ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask)
+    : Base(HT::zero())
 {
     gather(array, ptrMember1, outerIndexes, innerIndexes, mask);
 }
