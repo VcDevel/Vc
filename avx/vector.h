@@ -25,6 +25,7 @@
 #include "vectorhelper.h"
 #include "mask.h"
 #include "writemaskedvector.h"
+#include "sorthelper.h"
 #include <algorithm>
 #include <cmath>
 #include "../common/aliasingentryhelper.h"
@@ -264,7 +265,7 @@ class Vector : public VectorBase<T>
         inline EntryType product() const { return VectorHelper<T>::mul(data()); }
         inline EntryType sum() const { return VectorHelper<T>::add(data()); }
 
-        inline Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }
+        inline Vector sorted() const { return SortHelper<T>::sort(data()); }
 
         template<typename F> void callWithValuesSorted(F &f) {
             EntryType value = Base::d.m(0);

@@ -254,7 +254,11 @@ endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_library(Vc STATIC vector.cpp common/support.cpp)
+if(USE_AVX)
+   add_library(Vc STATIC vector.cpp common/support.cpp avx/sorthelper.cpp)
+else()
+   add_library(Vc STATIC vector.cpp common/support.cpp)
+endif()
 add_target_property(Vc COMPILE_FLAGS "-DVC_COMPILE_LIB")
 add_target_property(Vc LABELS "other")
 

@@ -42,6 +42,8 @@
 #  define PURE __attribute__((__pure__))
 #  define MAY_ALIAS __attribute__((__may_alias__))
 #  define ALWAYS_INLINE __attribute__((__always_inline__))
+#  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
+#  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #else
 #  define INTRINSIC
 #  define FLATTEN
@@ -49,6 +51,8 @@
 #  define PURE
 #  define MAY_ALIAS
 #  define ALWAYS_INLINE
+#  define VC_IS_UNLIKELY(x) x
+#  define VC_IS_LIKELY(x) x
 #endif
 
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
