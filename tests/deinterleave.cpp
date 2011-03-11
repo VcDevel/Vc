@@ -56,7 +56,7 @@ typedef TPair<int_v, short> int_short;
 typedef TPair<uint_v, unsigned int> uint_uint;
 typedef TPair<uint_v, unsigned short> uint_ushort;
 
-template<typename Pair> void testDeinterlace()
+template<typename Pair> void testDeinterleave()
 {
     typedef typename Pair::V V;
     typedef typename Pair::M M;
@@ -90,17 +90,17 @@ template<typename Pair> void testDeinterlace()
 
 int main()
 {
-    runTest(testDeinterlace<float_float>);
-    runTest(testDeinterlace<float_ushort>);
-    runTest(testDeinterlace<float_short>);
-    runTest(testDeinterlace<sfloat_float>);
-    runTest(testDeinterlace<sfloat_ushort>);
-    runTest(testDeinterlace<sfloat_short>);
-    runTest(testDeinterlace<double_double>);
-    runTest(testDeinterlace<int_int>);
-    runTest(testDeinterlace<int_short>);
-    runTest(testDeinterlace<uint_uint>);
-    runTest(testDeinterlace<uint_ushort>);
-    runTest(testDeinterlace<short_short>);
-    runTest(testDeinterlace<ushort_ushort>);
+    runTest(testDeinterleave<float_float>);
+    runTest(testDeinterleave<float_ushort>);
+    runTest(testDeinterleave<float_short>);
+    runTest(testDeinterleave<sfloat_float>);
+    runTest(testDeinterleave<sfloat_ushort>);
+    runTest(testDeinterleave<sfloat_short>);
+    runTest(testDeinterleave<double_double>);
+    runTest(testDeinterleave<int_int>);
+    runTest(testDeinterleave<int_short>);
+    runTest(testDeinterleave<uint_uint>);
+    runTest(testDeinterleave<uint_ushort>);
+    runTest(testDeinterleave<short_short>);
+    runTest(testDeinterleave<ushort_ushort>);
 }
