@@ -269,7 +269,7 @@ class _UnitTest_Compare
             if (m_failed) {
                 printFirst();
                 print("at "); print(_file); print(':'); print(_line); print(":\n");
-                print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
+                print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") ≈ ");
                 print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
                 print(") -> "); print(a == b);
                 print("\nwith fuzzyness ");
