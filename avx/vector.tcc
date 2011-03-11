@@ -428,14 +428,14 @@ template<> template<typename S1, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<double>::gather(const S1 *array, const EntryType S1::* member1, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm256_setr_pd(array[indexes[0]].*(member1), array[indexes[1]].*(member1),
+    d.v() = _mm256_setr_pd(array[indexes[0]].*(member1), array[indexes[1]].*(member1),
             array[indexes[2]].*(member1), array[indexes[3]].*(member1));
 }
 template<> template<typename S1, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<float>::gather(const S1 *array, const EntryType S1::* member1, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm256_setr_ps(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
+    d.v() = _mm256_setr_ps(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
@@ -443,7 +443,7 @@ template<> template<typename S1, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<int>::gather(const S1 *array, const EntryType S1::* member1, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm256_setr_epi32(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
+    d.v() = _mm256_setr_epi32(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
@@ -451,7 +451,7 @@ template<> template<typename S1, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<unsigned int>::gather(const S1 *array, const EntryType S1::* member1, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm256_setr_epi32(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
+    d.v() = _mm256_setr_epi32(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
@@ -459,7 +459,7 @@ template<> template<typename S1, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<short>::gather(const S1 *array, const EntryType S1::* member1, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm_setr_epi16(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
+    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
@@ -467,7 +467,7 @@ template<> template<typename S1, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<unsigned short>::gather(const S1 *array, const EntryType S1::* member1, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm_setr_epi16(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
+    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
@@ -483,14 +483,14 @@ template<> template<typename S1, typename S2, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<double>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm256_setr_pd(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2),
+    d.v() = _mm256_setr_pd(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2),
             array[indexes[2]].*(member1).*(member2), array[indexes[3]].*(member1).*(member2));
 }
 template<> template<typename S1, typename S2, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<float>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm256_setr_ps(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
+    d.v() = _mm256_setr_ps(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
             array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
@@ -498,7 +498,7 @@ template<> template<typename S1, typename S2, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm256_setr_epi32(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
+    d.v() = _mm256_setr_epi32(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
             array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
@@ -506,7 +506,7 @@ template<> template<typename S1, typename S2, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<unsigned int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm256_setr_epi32(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
+    d.v() = _mm256_setr_epi32(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
             array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
@@ -514,7 +514,7 @@ template<> template<typename S1, typename S2, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm_setr_epi16(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
+    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
             array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
@@ -522,7 +522,7 @@ template<> template<typename S1, typename S2, typename IT>
 inline void ALWAYS_INLINE FLATTEN Vector<unsigned short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    _mm_setr_epi16(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
+    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
             array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
