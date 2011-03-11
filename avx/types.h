@@ -67,11 +67,12 @@ namespace AVX
     namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
+    template<typename V = Vector<float> >
     class VectorAlignedBase
     {
         public:
-            FREE_STORE_OPERATORS_ALIGNED(32)
-    } ALIGN(32);
+            FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
+    } ALIGN(sizeof(V));
 
 } // namespace AVX
 } // namespace Vc

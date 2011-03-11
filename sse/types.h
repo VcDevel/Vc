@@ -80,6 +80,7 @@ namespace SSE
     namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
+    template<typename V = Vector<float> >
     class VectorAlignedBase
     {
         public:
