@@ -210,8 +210,7 @@ namespace AVX
     AVX_TO_SSE_2(max_epu8)
     AVX_TO_SSE_2(min_epi16)
     AVX_TO_SSE_2(min_epu8)
-    int _mm256_movemask_epi8(__m256i a0) CONST;
-    int _mm256_movemask_epi8(__m256i a0)
+    inline int INTRINSIC CONST _mm256_movemask_epi8(__m256i a0)
     {
         __m128i a1 = _mm256_extractf128_si256(a0, 1);
         return (_mm_movemask_epi8(a1) << 16) | _mm_movemask_epi8(_mm256_castsi256_si128(a0));
@@ -261,8 +260,7 @@ namespace AVX
                     _mm256_castsi256_si128(a0), _mm256_castsi256_si128(b0), m & 0xff)), \
             _mm_blend_epi16(_mm256_extractf128_si256(a0, 1), _mm256_extractf128_si256(b0, 1), m >> 8);, 1)
 #endif
-    __m256i _mm256_blendv_epi8(__m256i a0, __m256i b0, __m256i m0) CONST;
-    __m256i _mm256_blendv_epi8(__m256i a0, __m256i b0, __m256i m0) {
+    inline __m256i INTRINSIC CONST _mm256_blendv_epi8(__m256i a0, __m256i b0, __m256i m0) {
         __m128i a1 = _mm256_extractf128_si256(a0, 1);
         __m128i b1 = _mm256_extractf128_si256(b0, 1);
         __m128i m1 = _mm256_extractf128_si256(m0, 1);
