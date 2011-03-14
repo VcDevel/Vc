@@ -119,7 +119,7 @@ template<typename T> template<typename A> inline void Vector<T>::store(EntryType
 
 template<typename T> template<typename A> inline void Vector<T>::store(EntryType *mem, const Mask &mask, A align) const
 {
-    store(mem, data(), mask.data(), align);
+    HV::store(mem, data(), mm128_reinterpret_cast<VectorType>(mask.data()), align);
 }
 
 template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
