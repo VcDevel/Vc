@@ -189,7 +189,7 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         inline Vector operator~() const { return ~m_data; }
-        inline Vector operator-() const { return -m_data; }
+        inline Vector<typename NegateTypeHelper<T>::Type> operator-() const { return -m_data; }
 
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
