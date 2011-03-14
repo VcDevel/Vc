@@ -333,7 +333,7 @@ class Vector : public VectorBase<T>
         }
 
         inline Vector operator~() const PURE INTRINSIC { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
-        inline Vector operator-() const PURE INTRINSIC { return VectorHelper<T>::negate(data()); }
+        inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
 
 #define OP(symbol, fun) \
         inline Vector &operator symbol##=(const Vector<T> &x) INTRINSIC { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \

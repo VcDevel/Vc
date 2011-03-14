@@ -247,9 +247,6 @@ namespace SSE
             static inline VectorType rsqrt(VectorType x) PURE {
                 return _mm_div_pd(one(), sqrt(x));
             }
-            static inline VectorType negate(VectorType x) PURE {
-                return _mm_xor_pd(x, _mm_setsignmask_pd());
-            }
             static inline VectorType reciprocal(VectorType x) PURE {
                 return _mm_div_pd(one(), x);
             }
@@ -404,9 +401,6 @@ namespace SSE
             static inline VectorType reciprocal(VectorType x) PURE {
                 return _mm_rcp_ps(x);
             }
-            static inline VectorType negate(VectorType x) PURE {
-                return _mm_xor_ps(x, _mm_setsignmask_ps());
-            }
             static VectorType log(VectorType x) PURE {
                 const _M128 one = set(1.);
                 const _M128 invalid_mask = cmplt(x, zero());
@@ -532,7 +526,6 @@ namespace SSE
             static inline VectorType fun(const VectorType &x, const VectorType &y, const VectorType &z) PURE { \
                 return VectorType::create(VectorHelper<float>::fun(x[0], y[0], z[0]), VectorHelper<float>::fun(x[1], y[1], z[1])); \
             }
-            REUSE_FLOAT_IMPL1(negate)
             REUSE_FLOAT_IMPL1(reciprocal)
             REUSE_FLOAT_IMPL1(sqrt)
             REUSE_FLOAT_IMPL1(rsqrt)
