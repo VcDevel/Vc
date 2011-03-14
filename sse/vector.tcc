@@ -312,6 +312,37 @@ OP_IMPL(short, 16)
 OP_IMPL(unsigned short, 16)
 #undef OP_IMPL
 
+template<> inline Vector<double> PURE ALWAYS_INLINE FLATTEN Vector<double>::operator-() const
+{
+    return _mm_xor_pd(d.v(), _mm_setsignmask_pd());
+}
+template<> inline Vector<float> PURE ALWAYS_INLINE FLATTEN Vector<float>::operator-() const
+{
+    return _mm_xor_ps(d.v(), _mm_setsignmask_ps());
+}
+template<> inline Vector<float8> PURE ALWAYS_INLINE FLATTEN Vector<float8>::operator-() const
+{
+    return M256::create(
+            _mm_xor_ps(d.v()[0], _mm_setsignmask_ps()),
+            _mm_xor_ps(d.v()[1], _mm_setsignmask_ps()));
+}
+template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<int>::operator-() const
+{
+    return _mm_mullo_epi32(d.v(), _mm_setallone_si128());
+}
+template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<unsigned int>::operator-() const
+{
+    return _mm_mullo_epi32(d.v(), _mm_setallone_si128());
+}
+template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<short>::operator-() const
+{
+    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+}
+template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<unsigned short>::operator-() const
+{
+    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+}
+
 } // namespace SSE
 } // namespace Vc
 
