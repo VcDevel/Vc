@@ -29,6 +29,11 @@ namespace Vc
         template<typename T, typename Parent> struct VectorBase;
         template<typename T> class _Memory;
 
+        template<typename T> struct NegateTypeHelper { typedef T Type; };
+        template<> struct NegateTypeHelper<unsigned char > { typedef char  Type; };
+        template<> struct NegateTypeHelper<unsigned short> { typedef short Type; };
+        template<> struct NegateTypeHelper<unsigned int  > { typedef int   Type; };
+
         namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
         namespace VectorSpecialInitializerOne { enum OEnum { One }; }
         namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
