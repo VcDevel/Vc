@@ -103,50 +103,35 @@ class Vector : public VectorBase<T, Vector<T> >
         inline const Vector<T> dddd() const { return *this; }
         inline const Vector<T> dbac() const { return *this; }
 
-        inline Vector(const T *array, const unsigned char  *indexes) : m_data(array[indexes[0]]) {}
-        inline Vector(const T *array, const unsigned short *indexes) : m_data(array[indexes[0]]) {}
-        inline Vector(const T *array, const unsigned int   *indexes) : m_data(array[indexes[0]]) {}
-        inline Vector(const T *array, const unsigned long  *indexes) : m_data(array[indexes[0]]) {}
-        inline Vector(const T *array, const Vector<unsigned int> &indexes) : m_data(array[indexes[0]]) {}
-        inline Vector(const T *array, const Vector<unsigned int> &indexes, Mask m) : m_data(m.data() ? array[indexes[0]] : 0) {}
-        inline Vector(const T *array, const Vector<unsigned int> &indexes, Mask m, EntryType def) : m_data(m.data() ? array[indexes[0]] : def) {}
-        inline void gather(const T *array, const Vector<unsigned int> &indexes) { m_data = array[indexes[0]]; }
-        inline void gather(const T *array, const Vector<unsigned int> &indexes, Mask m) { if (m.data()) m_data = array[indexes[0]]; }
-
-        inline Vector(const T *array, const Vector<unsigned short> &indexes) : m_data(array[indexes[0]]) {}
-        inline Vector(const T *array, const Vector<unsigned short> &indexes, Mask m) : m_data(m.data() ? array[indexes[0]] : 0) {}
-        inline Vector(const T *array, const Vector<unsigned short> &indexes, Mask m, EntryType def) : m_data(m.data() ? array[indexes[0]] : def) {}
-        inline void gather(const T *array, const Vector<unsigned short> &indexes) { m_data = array[indexes[0]]; }
-        inline void gather(const T *array, const Vector<unsigned short> &indexes, Mask m) { if (m.data()) m_data = array[indexes[0]]; }
-
-        template<typename S> inline Vector(const S *array, const T S::* member1,
-                const Vector<unsigned int> &indexes, Mask mask = true)
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // gathers
+        template<typename IndexT> inline Vector(const T *array, const IndexT *indexes) : m_data(array[indexes[0]]) {}
+        template<typename IndexT> inline Vector(const T *array, Vector<IndexT> indexes) : m_data(array[indexes[0]]) {}
+        template<typename IndexT> inline Vector(const T *array, IndexT indexes, Mask m) : m_data(m.data() ? array[indexes[0]] : 0) {}
+        template<typename S1, typename IT> inline Vector(const S1 *array, const T S1::* member1, IT indexes, Mask mask = true)
             : m_data(mask.data() ? (&array[indexes[0]])->*(member1) : 0) {}
-
-        template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned int> &indexes, Mask mask = true)
+        template<typename S1, typename S2, typename IT> inline Vector(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, IT indexes, Mask mask = true)
             : m_data(mask.data() ? array[indexes[0]].*(member1).*(member2) : 0) {}
+        template<typename S1, typename IT1, typename IT2> inline Vector(const S1 *array, const EntryType *const S1::* ptrMember1,
+                IT1 outerIndex, IT2 innerIndex, Mask mask = true)
+            : m_data(mask.data() ? (array[outerIndex[0]].*(ptrMember1))[innerIndex[0]] : 0) {}
 
-        template<typename S> inline void gather(const S *array, const T S::* member1,
-                const Vector<unsigned int> &indexes, Mask mask = true) {
-            if (mask.data()) m_data = (&array[indexes[0]])->*(member1);
-        }
-        template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned int> &indexes, Mask mask = true) {
-            if (mask.data()) m_data = array[indexes[0]].*(member1).*(member2);
-        }
+        template<typename IT> inline void gather(const T *array, IT indexes, Mask mask = true)
+            { if (mask.data()) m_data = array[indexes[0]]; }
+        template<typename S1, typename IT> inline void gather(const S1 *array, const T S1::* member1, IT indexes, Mask mask = true)
+            { if (mask.data()) m_data = (&array[indexes[0]])->*(member1); }
+        template<typename S1, typename S2, typename IT> inline void gather(const S1 *array, const S2 S1::* member1,
+                const T S2::* member2, IT indexes, Mask mask = true)
+            { if (mask.data()) m_data = array[indexes[0]].*(member1).*(member2); }
+        template<typename S1, typename IT1, typename IT2> inline void gather(const S1 *array, const EntryType *const S1::* ptrMember1,
+                IT1 outerIndex, IT2 innerIndex, Mask mask = true)
+            { if (mask.data()) m_data = (array[outerIndex[0]].*(ptrMember1))[innerIndex[0]]; }
 
-        template<typename S1> inline Vector(const S1 *array, const EntryType *const S1::* ptrMember1,
-                const Vector<unsigned int> &outerIndex, const Vector<unsigned int> &innerIndex, Mask mask) {
-            if (mask.data()) m_data = (array[outerIndex[0]].*(ptrMember1))[innerIndex[0]];
-        }
-        template<typename S1> inline void gather(const S1 *array, const EntryType *const S1::* ptrMember1,
-                const Vector<unsigned int> &outerIndex, const Vector<unsigned int> &innerIndex, Mask mask) {
-            if (mask.data()) m_data = (array[outerIndex[0]].*(ptrMember1))[innerIndex[0]];
-        }
-
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // scatters
         inline void scatter(T *array, const Vector<unsigned int> &indexes, Mask m = true) const { if (m.data()) array[indexes[0]] = m_data; }
-        template<typename S> inline void scatter(S *array, T S::* member, const Vector<unsigned int> &indexes, Mask m = true) const {
+        template<typename S1> inline void scatter(S1 *array, T S1::* member, const Vector<unsigned int> &indexes, Mask m = true) const {
             if (m.data()) array[indexes[0]].*(member) = m_data;
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1, T S2::* member2,
@@ -154,25 +139,8 @@ class Vector : public VectorBase<T, Vector<T> >
             if (m.data()) array[indexes[0]].*(member1).*(member2) = m_data;
         }
 
-        template<typename S> inline Vector(const S *array, const T S::* member1,
-                const Vector<unsigned short> &indexes, Mask mask = true)
-            : m_data(mask.data() ? (&array[indexes[0]])->*(member1) : 0) {}
-
-        template<typename S1, typename S2> inline Vector(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned short> &indexes, Mask mask = true)
-            : m_data(mask.data() ? array[indexes[0]].*(member1).*(member2) : 0) {}
-
-        template<typename S> inline void gather(const S *array, const T S::* member1,
-                const Vector<unsigned short> &indexes, Mask mask = true) {
-            if (mask.data()) m_data = (&array[indexes[0]])->*(member1);
-        }
-        template<typename S1, typename S2> inline void gather(const S1 *array, const S2 S1::* member1,
-                const T S2::* member2, const Vector<unsigned short> &indexes, Mask mask = true) {
-            if (mask.data()) m_data = array[indexes[0]].*(member1).*(member2);
-        }
-
         inline void scatter(T *array, const Vector<unsigned short> &indexes, Mask m = true) const { if (m.data()) array[indexes[0]] = m_data; }
-        template<typename S> inline void scatter(S *array, T S::* member, const Vector<unsigned short> &indexes, Mask m = true) const {
+        template<typename S1> inline void scatter(S1 *array, T S1::* member, const Vector<unsigned short> &indexes, Mask m = true) const {
             if (m.data()) array[indexes[0]].*(member) = m_data;
         }
         template<typename S1, typename S2> inline void scatter(S1 *array, S2 S1::* member1, T S2::* member2,
