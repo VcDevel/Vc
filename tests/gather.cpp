@@ -32,11 +32,11 @@ template<typename Vec> void gatherArray()
     const int count = 39999;
     T array[count];
     for (int i = 0; i < count; ++i) {
-        array[i] = i;
+        array[i] = i + 1;
     }
     M mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        const Vec ii(i);
+        const Vec ii(i + 1);
         const typename Vec::Mask castedMask = static_cast<typename Vec::Mask>(mask);
         if (castedMask.isFull()) {
             Vec a(array, i);
@@ -93,7 +93,7 @@ template<typename Vec> void gatherStruct()
 
         if (castedMask.isFull()) {
             Vec a(array, &S::a, i);
-            COMPARE(a, i0);
+            COMPARE(a, i0) << "\ni: " << i;
             a.gather(array, &S::b, i);
             COMPARE(a, i1);
             a.gather(array, &S::c, i);
@@ -134,14 +134,14 @@ template<typename Vec> void gather2dim()
     for (int i = 0; i < count; ++i) {
         array[i].data = new T[count];
         for (int j = 0; j < count; ++j) {
-            array[i].data[j] = 2 * i + j;
+            array[i].data[j] = 2 * i + j + 1;
         }
     }
 
     typename It::Mask mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         for (It j = It(IndexesFromZero); !(mask &= (j < count)).isEmpty(); j += Vec::Size) {
-            const Vec i0(i * 2 + j);
+            const Vec i0(i * 2 + j + 1);
             const typename Vec::Mask castedMask(mask);
 
             Vec a(array, &S::data, i, j, castedMask);
