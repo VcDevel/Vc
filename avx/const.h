@@ -70,8 +70,8 @@ namespace AVX
 
         static inline const double *d(int i) { return reinterpret_cast<const double *>(&_dataI[i]); }
         static inline const float *f(int i) { return reinterpret_cast<const float *>(&_dataI[i]); }
-        static const Int _dataI[14];
-        static const T   _dataT[5];
+        static const Int _dataI[15];
+        static const T   _dataT[6];
 
         static __m128i bias()  CONST;
         static Mask exponentMask() CONST;
@@ -79,11 +79,13 @@ namespace AVX
         static Vec _1_sqrt2() CONST;
         static Vec P(int i) CONST;
         static Vec Q(int i) CONST;
-        static Vec _foo() CONST;
+        static Vec min() CONST;
+        static Vec ln2_small() CONST;
+        static Vec ln2_large() CONST;
         static Vec neginf() CONST;
         static Vec log10_e() CONST;
         static Vec log2_e() CONST;
-    } ALIGN(64);
+    };// ALIGN(64);
 } // namespace AVX
 } // namespace Vc
 

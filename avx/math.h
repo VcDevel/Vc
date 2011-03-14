@@ -46,23 +46,27 @@ namespace AVX
     typedef typename Vector<float >::Mask float_m;
 
     template<> inline double_m c_log<double, double_m>::exponentMask() { return _mm256_broadcast_sd(d(1)); }
-    template<> inline double_v c_log<double, double_m>::_1_2()         { return _mm256_broadcast_sd(&_dataT[2]); }
+    template<> inline double_v c_log<double, double_m>::_1_2()         { return _mm256_broadcast_sd(&_dataT[3]); }
     template<> inline double_v c_log<double, double_m>::_1_sqrt2()     { return _mm256_broadcast_sd(&_dataT[0]); }
     template<> inline double_v c_log<double, double_m>::P(int i)       { return _mm256_broadcast_sd(d(2 + i)); }
     template<> inline double_v c_log<double, double_m>::Q(int i)       { return _mm256_broadcast_sd(d(8 + i)); }
-    template<> inline double_v c_log<double, double_m>::_foo()         { return _mm256_broadcast_sd(&_dataT[1]); }
+    template<> inline double_v c_log<double, double_m>::min()          { return _mm256_broadcast_sd(d(14)); }
+    template<> inline double_v c_log<double, double_m>::ln2_small()    { return _mm256_broadcast_sd(&_dataT[1]); }
+    template<> inline double_v c_log<double, double_m>::ln2_large()    { return _mm256_broadcast_sd(&_dataT[2]); }
     template<> inline double_v c_log<double, double_m>::neginf()       { return _mm256_broadcast_sd(d(13)); }
-    template<> inline double_v c_log<double, double_m>::log10_e()      { return _mm256_broadcast_sd(&_dataT[3]); }
-    template<> inline double_v c_log<double, double_m>::log2_e()       { return _mm256_broadcast_sd(&_dataT[4]); }
+    template<> inline double_v c_log<double, double_m>::log10_e()      { return _mm256_broadcast_sd(&_dataT[4]); }
+    template<> inline double_v c_log<double, double_m>::log2_e()       { return _mm256_broadcast_sd(&_dataT[5]); }
     template<> inline float_m c_log<float, float_m>::exponentMask() { return _mm256_broadcast_ss(f(1)); }
-    template<> inline float_v c_log<float, float_m>::_1_2()         { return _mm256_broadcast_ss(&_dataT[2]); }
+    template<> inline float_v c_log<float, float_m>::_1_2()         { return _mm256_broadcast_ss(&_dataT[3]); }
     template<> inline float_v c_log<float, float_m>::_1_sqrt2()     { return _mm256_broadcast_ss(&_dataT[0]); }
     template<> inline float_v c_log<float, float_m>::P(int i)       { return _mm256_broadcast_ss(f(2 + i)); }
     template<> inline float_v c_log<float, float_m>::Q(int i)       { return _mm256_broadcast_ss(f(8 + i)); }
-    template<> inline float_v c_log<float, float_m>::_foo()         { return _mm256_broadcast_ss(&_dataT[1]); }
+    template<> inline float_v c_log<float, float_m>::min()          { return _mm256_broadcast_ss(f(14)); }
+    template<> inline float_v c_log<float, float_m>::ln2_small()    { return _mm256_broadcast_ss(&_dataT[1]); }
+    template<> inline float_v c_log<float, float_m>::ln2_large()    { return _mm256_broadcast_ss(&_dataT[2]); }
     template<> inline float_v c_log<float, float_m>::neginf()       { return _mm256_broadcast_ss(f(13)); }
-    template<> inline float_v c_log<float, float_m>::log10_e()      { return _mm256_broadcast_ss(&_dataT[3]); }
-    template<> inline float_v c_log<float, float_m>::log2_e()       { return _mm256_broadcast_ss(&_dataT[4]); }
+    template<> inline float_v c_log<float, float_m>::log10_e()      { return _mm256_broadcast_ss(&_dataT[4]); }
+    template<> inline float_v c_log<float, float_m>::log2_e()       { return _mm256_broadcast_ss(&_dataT[5]); }
 
     template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
         typedef Vector<T> V;
@@ -217,26 +221,68 @@ namespace AVX
         const M invalidMask = x < V::Zero();
         const M infinityMask = x == V::Zero();
 
-        x = max(x, std::numeric_limits<V>::min()); // lazy: cut off denormalized numbers
+        x = max(x, C::min()); // lazy: cut off denormalized numbers
 
         V exponent = extractExponent(x.data());
 
-        // keep only the fractional part
-        x.setZero(C::exponentMask());
-        x = _or(x, C::_1_2());
+        x.setZero(C::exponentMask()); // keep only the fractional part
+        x = _or(x, C::_1_2());        // and set the exponent to 2⁻¹
+        // => x ∈ [0.5, 1[
 
         const M smallX = x < C::_1_sqrt2();
-        x -= V::One();
-        x(smallX) += x;
+        x(smallX) += x; // => x ∈ [1/√2,     1[ ∪ [1.5, 1 + 1/√2[
+        x -= V::One();  // => x ∈ [1/√2 - 1, 0[ ∪ [0.5, 1/√2[
         exponent(!smallX) += V::One();
 
+        const V x2 = x * x;
         V y = C::P(0);
         V y2 = C::Q(0) + x;
         unrolled_loop16(i, 1, 5,
                 y = y * x + C::P(i);
                 y2 = y2 * x + C::Q(i);
                 );
-        x += (y * x + C::P(5)) * (x / y2 - C::_1_2()) * (x * x) + exponent * C::_foo();
+        y2 = x / y2;
+        y = y * x + C::P(5);
+        y = x2 * y * y2 + exponent * C::ln2_small() - x2 * C::_1_2();
+        x += y;
+        x += exponent * C::ln2_large();
+
+        x.setQnan(invalidMask);
+        x(infinityMask) = C::neginf();
+
+        return x;
+    }
+    template<> inline Vector<float> log(Vector<float> x) {
+        typedef Vector<float> V;
+        typedef V::Mask M;
+        typedef c_log<float, M> C;
+
+        const M invalidMask = x < V::Zero();
+        const M infinityMask = x == V::Zero();
+
+        x = max(x, C::min()); // lazy: cut off denormalized numbers
+
+        V exponent = extractExponent(x.data());
+
+        x.setZero(C::exponentMask()); // keep only the fractional part
+        x = _or(x, C::_1_2());        // and set the exponent to 2⁻¹
+        // => x ∈ [0.5, 1[
+
+        const M smallX = x < C::_1_sqrt2();
+        x(smallX) += x; // => x ∈ [1/√2,     1[ ∪ [1.5, 1 + 1/√2[
+        x -= V::One();  // => x ∈ [1/√2 - 1, 0[ ∪ [0.5, 1/√2[
+        exponent(!smallX) += V::One();
+
+        const V x2 = x * x;
+        V y = C::P(0);
+        unrolled_loop16(i, 1, 9,
+                y = y * x + C::P(i);
+                );
+        y *= x * x2;
+        y += exponent * C::ln2_small();
+        y -= x2 * C::_1_2();
+        x += y;
+        x += exponent * C::ln2_large();
 
         x.setQnan(invalidMask);
         x(infinityMask) = C::neginf();
