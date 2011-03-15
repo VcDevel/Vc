@@ -75,6 +75,7 @@ vc_add_test(casts)
 
 if(USE_SSE2 AND NOT SSE_INTRINSICS_BROKEN)
    add_executable(sse_blend sse_blend.cpp)
+   add_target_property(sse_blend COMPILE_FLAGS "-DVC_IMPL=SSE")
    add_target_property(sse_blend LABELS "SSE")
    add_dependencies(SSE sse_blend)
    add_test(sse_blend "${CMAKE_CURRENT_BINARY_DIR}/sse_blend")
