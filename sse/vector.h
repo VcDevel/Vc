@@ -122,6 +122,7 @@ class Vector : public VectorBase<T>
         typedef VectorBase<T> Base;
         using Base::d;
         typedef typename Base::GatherMaskType GatherMask;
+        typedef VectorHelper<typename Base::VectorType> HV;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
