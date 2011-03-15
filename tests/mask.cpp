@@ -41,10 +41,10 @@ template<typename Vec> void testInc()
         Vec b(&data[Vec::Size]);
         Mask m = a < border;
         Vec aa(a);
-        COMPARE(aa(m)++, a);
-        COMPARE(aa, b);
-        COMPARE(++a(m), b);
-        COMPARE(a, b);
+        COMPARE(aa(m)++, a) << ", border: " << border << ", m: " << m;
+        COMPARE(aa, b) << ", border: " << border << ", m: " << m;
+        COMPARE(++a(m), b) << ", border: " << border << ", m: " << m;
+        COMPARE(a, b) << ", border: " << border << ", m: " << m;
     }
 }
 
