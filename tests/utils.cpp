@@ -133,13 +133,13 @@ int main()
     runTest(testForeachBit<sfloat_v>);
     runTest(testForeachBit<double_v>);
 
-//X     runTest(testSort<int_v>);
-//X     runTest(testSort<uint_v>);
-//X     runTest(testSort<float_v>);
-//X     runTest(testSort<double_v>);
-//X     runTest(testSort<sfloat_v>);
-//X     runTest(testSort<short_v>);
-//X     runTest(testSort<ushort_v>);
+    runTest(testSort<int_v>);
+    runTest(testSort<uint_v>);
+    runTest(testSort<float_v>);
+    runTest(testSort<double_v>);
+    runTest(testSort<sfloat_v>);
+    runTest(testSort<short_v>);
+    runTest(testSort<ushort_v>);
 
     return 0;
 }
