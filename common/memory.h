@@ -106,7 +106,7 @@ inline void ALWAYS_INLINE free(T *p)
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
-template<typename V, unsigned int Size = 0u> class Memory : public VectorAlignedBase<V>, public MemoryBase<V, Memory<V, Size> >
+template<typename V, unsigned int Size = 0u> class Memory : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size> >
 {
     public:
         typedef typename V::EntryType EntryType;
@@ -121,7 +121,7 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
             PaddedSize = MaskedSize == 0 ? Size : Size + Padding
         };
 #if defined(__INTEL_COMPILER) && defined(_WIN32)
-		__declspec(align(__alignof(VectorAlignedBase)))
+        __declspec(align(__alignof(VectorAlignedBaseT)))
 #endif
         EntryType m_mem[PaddedSize];
     public:
@@ -151,7 +151,7 @@ template<typename V, unsigned int Size = 0u> class Memory : public VectorAligned
         }
 }
 #if defined(__INTEL_COMPILER) && !defined(_WIN32)
-__attribute__((__aligned__(__alignof(VectorAlignedBase<V>))))
+__attribute__((__aligned__(__alignof(VectorAlignedBaseT<V>))))
 #endif
 ;
 

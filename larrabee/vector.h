@@ -56,7 +56,7 @@ namespace LRBni
     enum { VectorAlignment = 64 };
 
     template<typename V = Vector<float> >
-    class VectorAlignedBase
+    class VectorAlignedBaseT
     {
         public:
             void *operator new(size_t size) { void *r; if (posix_memalign(&r, VectorAlignment, size)) {}; return r; }

@@ -68,7 +68,7 @@ namespace AVX
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
     template<typename V = Vector<float> >
-    class VectorAlignedBase
+    class VectorAlignedBaseT
     {
         public:
             FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
