@@ -55,6 +55,8 @@ namespace LRBni
 {
     enum { VectorAlignment = 64 };
 
+    template<typename T> class Vector;
+
     template<typename V = Vector<float> >
     class VectorAlignedBaseT
     {
