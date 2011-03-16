@@ -328,19 +328,35 @@ template<> inline Vector<float8> PURE ALWAYS_INLINE FLATTEN Vector<float8>::oper
 }
 template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<int>::operator-() const
 {
-    return _mm_mullo_epi32(d.v(), _mm_setallone_si128());
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi32(d.v(), _mm_setallone_si128());
+#else
+    return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
+#endif
 }
 template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<unsigned int>::operator-() const
 {
-    return _mm_mullo_epi32(d.v(), _mm_setallone_si128());
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi32(d.v(), _mm_setallone_si128());
+#else
+    return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
+#endif
 }
 template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<short>::operator-() const
 {
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
+#else
     return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+#endif
 }
 template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<unsigned short>::operator-() const
 {
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
+#else
     return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+#endif
 }
 
 template<typename T> template<typename S1, typename IT1, typename IT2> inline ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
