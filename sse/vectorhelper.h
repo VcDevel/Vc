@@ -106,16 +106,6 @@ namespace SSE
 #undef PARENT_DATA
 #undef PARENT_DATA_CONST
 
-        template<typename T> struct CtorTypeHelper { typedef T Type; };
-        template<> struct CtorTypeHelper<short> { typedef int Type; };
-        template<> struct CtorTypeHelper<unsigned short> { typedef unsigned int Type; };
-        template<> struct CtorTypeHelper<float> { typedef double Type; };
-
-        template<typename T> struct ExpandTypeHelper { typedef T Type; };
-        template<> struct ExpandTypeHelper<short> { typedef int Type; };
-        template<> struct ExpandTypeHelper<unsigned short> { typedef unsigned int Type; };
-        template<> struct ExpandTypeHelper<float> { typedef double Type; };
-
 #define OP0(name, code) static inline VectorType name() PURE { return code; }
 #define OP1(name, code) static inline VectorType name(const VectorType &a) PURE { return code; }
 #define OP2(name, code) static inline VectorType name(const VectorType &a, const VectorType &b) PURE { return code; }

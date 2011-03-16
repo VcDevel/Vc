@@ -156,10 +156,10 @@ class Vector : public VectorBase<T>
         // load ctors
         explicit inline Vector(const EntryType *x) INTRINSIC;
         template<typename Alignment> inline Vector(const EntryType *x, Alignment align) INTRINSIC;
-        explicit inline Vector(const Vector<typename CtorTypeHelper<T>::Type> *a) INTRINSIC;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
-        // expand 1 short_v to 2 int_v                    XXX rationale? remove it for release? XXX
+        // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
+        explicit inline Vector(const Vector<typename CtorTypeHelper<T>::Type> *a) INTRINSIC;
         void expand(Vector<typename ExpandTypeHelper<T>::Type> *x) const;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
