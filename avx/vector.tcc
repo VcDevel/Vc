@@ -49,9 +49,6 @@ template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *x)
 template<typename T> template<typename A> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *x, A align)
     : Base(HV::load(x, align)) {}
 
-template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(const Vector<typename HT::ConcatType> *x)
-    : Base(HT::concat(x[0].data(), x[1].data())) {}
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions
 template<typename T> inline void INTRINSIC Vector<T>::load(const EntryType *mem)
@@ -108,6 +105,44 @@ template<typename T> template<typename A> inline void INTRINSIC Vector<T>::store
 template<typename T> template<typename A> inline void INTRINSIC Vector<T>::store(EntryType *mem, const Mask &mask, A align) const
 {
     HV::store(mem, data(), avx_cast<VectorType>(mask.data()), align);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
+template<typename T> ALWAYS_INLINE FLATTEN Vector<T>::Vector(const Vector<typename HT::ConcatType> *a)
+    : Base(a[0])
+{
+}
+template<> ALWAYS_INLINE FLATTEN Vector<float>::Vector(const Vector<HT::ConcatType> *a)
+    : Base(concat(_mm256_cvtpd_ps(a[0].data()), _mm256_cvtpd_ps(a[1].data())))
+{
+}
+template<> ALWAYS_INLINE FLATTEN Vector<short>::Vector(const Vector<HT::ConcatType> *a)
+    : Base(_mm_packs_epi32(lo128(a->data()), hi128(a->data())))
+{
+}
+template<> ALWAYS_INLINE FLATTEN Vector<unsigned short>::Vector(const Vector<HT::ConcatType> *a)
+    : Base(_mm_packus_epi32(lo128(a->data()), hi128(a->data())))
+{
+}
+template<typename T> inline void ALWAYS_INLINE FLATTEN Vector<T>::expand(Vector<typename HT::ConcatType> *x) const
+{
+    x[0] = *this;
+}
+template<> inline void ALWAYS_INLINE FLATTEN Vector<float>::expand(Vector<HT::ConcatType> *x) const
+{
+    x[0].data() = _mm256_cvtps_pd(lo128(d.v()));
+    x[1].data() = _mm256_cvtps_pd(hi128(d.v()));
+}
+template<> inline void ALWAYS_INLINE FLATTEN Vector<short>::expand(Vector<HT::ConcatType> *x) const
+{
+    x[0].data() = concat(_mm_cvtepi16_epi32(d.v()),
+            _mm_cvtepi16_epi32(_mm_unpackhi_epi64(d.v(), d.v())));
+}
+template<> inline void ALWAYS_INLINE FLATTEN Vector<unsigned short>::expand(Vector<HT::ConcatType> *x) const
+{
+    x[0].data() = concat(_mm_cvtepu16_epi32(d.v()),
+            _mm_cvtepu16_epi32(_mm_unpackhi_epi64(d.v(), d.v())));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

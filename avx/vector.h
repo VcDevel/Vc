@@ -109,12 +109,16 @@ class Vector : public VectorBase<T>
         // load ctors
         explicit Vector(const EntryType *x);
         template<typename Alignment> Vector(const EntryType *x, Alignment align);
-        explicit Vector(const Vector<typename HT::ConcatType> *a);
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
         inline void load(const EntryType *mem);
         template<typename Alignment> inline void load(const EntryType *mem, Alignment align);
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
+        explicit Vector(const Vector<typename HT::ConcatType> *a);
+        void expand(Vector<typename HT::ConcatType> *x) const;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // zeroing
