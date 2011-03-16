@@ -77,14 +77,6 @@ namespace LRBni
     template<> struct ReinterpretCastHelper<double      , double      > { static _M512D cast(const _M512D &v) { return v; } };
     template<> struct ReinterpretCastHelper<int         , double      > { static _M512D cast(const _M512I &v) { return _mm512_castsi512_pd(v); } };
     template<> struct ReinterpretCastHelper<unsigned int, double      > { static _M512D cast(const _M512I &v) { return _mm512_castsi512_pd(v); } };
-
-    template<typename To, typename From> To mm512_reinterpret_cast(From v) { return v; }
-    template<> _M512I mm512_reinterpret_cast<_M512I, _M512 >(_M512  v) { return _mm512_castps_si512(v); }
-    template<> _M512I mm512_reinterpret_cast<_M512I, _M512D>(_M512D v) { return _mm512_castpd_si512(v); }
-    template<> _M512  mm512_reinterpret_cast<_M512 , _M512D>(_M512D v) { return _mm512_castpd_ps(v);    }
-    template<> _M512  mm512_reinterpret_cast<_M512 , _M512I>(_M512I v) { return _mm512_castsi512_ps(v); }
-    template<> _M512D mm512_reinterpret_cast<_M512D, _M512I>(_M512I v) { return _mm512_castsi512_pd(v); }
-    template<> _M512D mm512_reinterpret_cast<_M512D, _M512 >(_M512  v) { return _mm512_castps_pd(v);    }
 } // namespace LRBni
 } // namespace Vc
 
