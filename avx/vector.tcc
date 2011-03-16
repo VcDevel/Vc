@@ -750,21 +750,19 @@ template<> inline Vector<float> PURE ALWAYS_INLINE FLATTEN Vector<float>::operat
 }
 template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<int>::operator-() const
 {
-    // faster? return _mm256_add_epi32(avx_cast<__m256i>(_mm256_xor_ps(avx_cast<__m256>(d.v()), _mm256_setallone_ps())), _mm256_setone_epi32());
-    return _mm256_mullo_epi32(d.v(), _mm256_setallone_si256());
+    return _mm256_sign_epi32(d.v(), _mm256_setallone_si256());
 }
 template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<unsigned int>::operator-() const
 {
-    // faster? return _mm256_add_epi32(avx_cast<__m256i>(_mm256_xor_ps(avx_cast<__m256>(d.v()), _mm256_setallone_ps())), _mm256_setone_epi32());
-    return _mm256_mullo_epi32(d.v(), _mm256_setallone_si256());
+    return _mm256_sign_epi32(d.v(), _mm256_setallone_si256());
 }
 template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<short>::operator-() const
 {
-    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
 }
 template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<unsigned short>::operator-() const
 {
-    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
 }
 } // namespace AVX
 } // namespace Vc
