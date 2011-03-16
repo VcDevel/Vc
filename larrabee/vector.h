@@ -1104,11 +1104,12 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         }
 
         template<typename S1, typename OtherT>
-        inline Vector(const S1 *array, const OtherT *const S1::* ptrMember1, const IndexType &outerIndex, const IndexType &innerIndex, Mask mask) {
+        inline Vector(const S1 *array, const OtherT *const S1::* ptrMember1, const IndexType &outerIndex, const IndexType &innerIndex, Mask mask = true) {
             gather(array, ptrMember1, outerIndex, innerIndex, mask);
         }
+
         template<typename S1, typename OtherT>
-        inline void gather(const S1 *array, const OtherT *const S1::* ptrMember1, const IndexType &outerIndex, const IndexType &innerIndex, Mask mask) {
+        inline void gather(const S1 *array, const OtherT *const S1::* ptrMember1, const IndexType &outerIndex, const IndexType &innerIndex, Mask mask = true) {
             // FIXME there must be a nicer way to implement this
             enum {
                 OuterStride = sizeof(S1) / 4
