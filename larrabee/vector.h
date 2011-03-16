@@ -1198,6 +1198,8 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline T product() const { return VectorHelper<T>::reduce_mul(data.v()); }
         inline T sum() const { return VectorHelper<T>::reduce_add(data.v()); }
 
+        Vector sorted() const;
+
         template<typename F> void callWithValuesSorted(F &f) {
             EntryType value = data.m(0);
             f(value);
@@ -1406,6 +1408,7 @@ namespace LRBni
 } // namespace Vc
 
 #include "vector.tcc"
+#include "sort.tcc"
 #include "undomacros.h"
 
 #endif // LARRABEE_VECTOR_H
