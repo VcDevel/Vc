@@ -970,6 +970,10 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
             }
         }
 
+        inline void load(const T *mem) { data = VectorHelper<T>::load(mem, Aligned); }
+        template<typename A> inline void load(const T *mem, A align) {
+            data = VectorHelper<T>::load(mem, align);
+        }
         template<typename OtherT> inline void load(const OtherT *mem) { data = VectorHelper<T>::load(mem, Aligned); }
         template<typename OtherT, typename A> inline void load(const OtherT *mem, A align) {
             data = VectorHelper<T>::load(mem, align);
