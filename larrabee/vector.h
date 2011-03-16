@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,18 +20,15 @@
 #ifndef LARRABEE_VECTOR_H
 #define LARRABEE_VECTOR_H
 
+#include "types.h"
 #include "intrinsics.h"
 #include "../common/storage.h"
-#include <cstdlib>
+#include "macros.h"
 
 #define VC_HAVE_FMA
 
-#define CAT_HELPER(a, b) a##b
-#define CAT(a, b) CAT_HELPER(a, b)
-
 namespace Vc
 {
-    template<typename V, unsigned int Size> class Memory;
 #ifndef HAVE_FLOAT16
 #define HAVE_FLOAT16
 #ifdef HALF_MAX
@@ -53,44 +50,6 @@ namespace Vc
 
 namespace LRBni
 {
-    enum { VectorAlignment = 64 };
-
-    template<typename T> class Vector;
-
-    template<typename V = Vector<float> >
-    class VectorAlignedBaseT
-    {
-        public:
-            void *operator new(size_t size) { void *r; if (posix_memalign(&r, VectorAlignment, size)) {}; return r; }
-            void *operator new[](size_t size) { void *r; if (posix_memalign(&r, VectorAlignment, size)) {}; return r; }
-            void operator delete(void *ptr, size_t) { free(ptr); }
-            void operator delete[](void *ptr, size_t) { free(ptr); }
-    } LRB_ALIGN(64);
-
-    namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
-    namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
-    namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
-    namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
-
-    LRB_ALIGN(16) extern const char _IndexesFromZero[16];
-
-    template<typename T> struct ReturnTypeHelper { typedef char Type; };
-    template<> struct ReturnTypeHelper<unsigned int> { typedef unsigned char Type; };
-    template<> struct ReturnTypeHelper<int> { typedef signed char Type; };
-    template<typename T> const typename ReturnTypeHelper<T>::Type *IndexesFromZeroHelper() {
-        return reinterpret_cast<const typename ReturnTypeHelper<T>::Type *>(&_IndexesFromZero[0]);
-    }
-
-    template<bool> class STATIC_ASSERT_FAILURE;
-    template<> class STATIC_ASSERT_FAILURE<true> {};
-
-#define LRB_STATIC_ASSERT_NC(cond, msg) \
-    typedef STATIC_ASSERT_FAILURE<cond> CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__); \
-    CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__) Error_##msg
-#define LRB_STATIC_ASSERT(cond, msg) LRB_STATIC_ASSERT_NC(cond, msg); (void) Error_##msg
-
-    template<typename T> class Vector;
-    template<typename T> struct SwizzledVector;
 
     template<unsigned int VectorSize> struct MaskHelper;
     template<> struct MaskHelper<8> {
@@ -1071,7 +1030,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline Vector(const S *array, const OtherT S::* member1, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            VC_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
             const IndexType &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::gather(data.v(), offsets, &(array->*(member1)), mask.data());
         }
@@ -1080,7 +1039,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline Vector(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
             const IndexType &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::gather(data.v(), offsets, &(array->*(member1).*(member2)), mask.data());
         }
@@ -1089,7 +1048,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline void gather(const S *array, const OtherT S::* member1, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            VC_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
             const IndexType &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::gather(data.v(), offsets, &(array->*(member1)), mask.data());
         }
@@ -1098,7 +1057,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline void gather(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
             const IndexType &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::gather(data.v(), offsets, &(array->*(member1).*(member2)), mask.data());
         }
@@ -1131,7 +1090,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline void scatter(S *array, OtherT S::* member1, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
+            VC_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
             const IndexType &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::scatter(data.v(), offsets, &(array->*(member1)), mask.data());
         }
@@ -1140,7 +1099,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline void scatter(S1 *array, S2 S1::* member1, OtherT S2::* member2, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
+            VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
             const IndexType &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::scatter(data.v(), offsets, &(array->*(member1).*(member2)), mask.data());
         }
@@ -1169,6 +1128,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline Vector &operator*=(const Vector<T> &x) { data = VectorHelper<T>::mul(data.v(), x.data.v()); return *this; }
 
         inline Vector operator~() const { return mm512_reinterpret_cast<VectorType>(_mm512_andn_pi(mm512_reinterpret_cast<_M512I>(data.v()), _mm512_setallone_pi())); }
+        inline Vector<typename NegateTypeHelper<T>::Type> operator-() const { return mm512_reinterpret_cast<VectorType>(_mm512_andn_pi(mm512_reinterpret_cast<_M512I>(data.v()), _mm512_setallone_pi())); }
 
 #define OP(symbol, fun) \
         inline Vector &fun##_eq(const SwizzledVector<T> &x, const Mask m) { data = VectorHelper<T>::fun##_s(x.s, data.v(), x.v.data.v(), m); return *this; } \
@@ -1441,10 +1401,7 @@ namespace LRBni
 } // namespace LRBni
 } // namespace Vc
 
-#undef LRB_STATIC_ASSERT_NC
-#undef LRB_STATIC_ASSERT
-#undef CAT
-#undef CAT_HELPER
-
 #include "vector.tcc"
+#include "undomacros.h"
+
 #endif // LARRABEE_VECTOR_H
