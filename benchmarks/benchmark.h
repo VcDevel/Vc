@@ -768,8 +768,18 @@ int main(int argc, char **argv)
     return r;
 }
 
+#ifdef __GNUC__
+#  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
+#  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
+#else
+#  define VC_IS_UNLIKELY(x) x
+#  define VC_IS_LIKELY(x) x
+#endif
+
 #define benchmark_loop(_bm_obj) \
-    for (;(_bm_obj.wantsMoreDataPoints() && timer.Start()) || timer.Print(); timer.Stop())
+    for (Benchmark _bm_obj_local = _bm_obj; \
+            VC_IS_LIKELY(_bm_obj_local.wantsMoreDataPoints() && _bm_obj_local.Start()) || VC_IS_UNLIKELY(_bm_obj_local.Print()); \
+            _bm_obj_local.Stop())
 
 template<typename T, int S> struct KeepResultsHelper {
     static inline void keepDirty(T &tmp0) { asm volatile("":"+r"(tmp0)); }
