@@ -25,19 +25,19 @@ namespace Vc
 namespace LRBni
 {
 
-template<> Vector<double> Vector<double>::sorted() const
+template<> inline Vector<double> Vector<double>::sorted() const
 {
     return *this;
 }
-template<> Vector<float> Vector<float>::sorted() const
+template<> inline Vector<float> Vector<float>::sorted() const
 {
     return *this;
 }
-template<> Vector<int> Vector<int>::sorted() const
+template<> inline Vector<int> Vector<int>::sorted() const
 {
     return *this;
 }
-template<> Vector<unsigned int> Vector<unsigned int>::sorted() const
+template<> inline Vector<unsigned int> Vector<unsigned int>::sorted() const
 {
     return *this;
 }
