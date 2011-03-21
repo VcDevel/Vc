@@ -117,8 +117,8 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
-        explicit Vector(const Vector<typename HT::ConcatType> *a);
-        void expand(Vector<typename HT::ConcatType> *x) const;
+        explicit inline Vector(const Vector<typename HT::ConcatType> *a);
+        inline void expand(Vector<typename HT::ConcatType> *x) const;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // zeroing
