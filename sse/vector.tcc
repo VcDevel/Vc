@@ -191,7 +191,7 @@ template<> inline Vector<unsigned short> &Vector<unsigned short>::operator/=(con
     return *this;
 }
 
-template<> inline Vector<unsigned short> Vector<unsigned short>::operator/(const Vector<unsigned short> &x) const
+template<> inline Vector<unsigned short> ALWAYS_INLINE Vector<unsigned short>::operator/(const Vector<unsigned short> &x) const
 {
     __m128 lo = _mm_cvtepi32_ps(VectorHelper<short>::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
