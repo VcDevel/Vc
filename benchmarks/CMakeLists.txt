@@ -38,13 +38,13 @@ add_library(cpuset STATIC cpuset.c)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
    set(REALTIME_BENCHMARKS FALSE CACHE BOOL "Use SCHED_FIFO priority to give benchmarks highest priority, achieving less jitter in the results.")
    if(REALTIME_BENCHMARKS)
-      add_executable(benchmark benchmark.cpp)
+      add_executable(rtwrapper rtwrapper.cpp)
       add_definitions(-DSCHED_FIFO_BENCHMARKS)
-      add_custom_command(TARGET benchmark POST_BUILD
-         COMMAND sudo chown root benchmark
-         COMMAND sudo chmod +s benchmark
+      add_custom_command(TARGET rtwrapper POST_BUILD
+         COMMAND sudo chown root rtwrapper
+         COMMAND sudo chmod +s rtwrapper
          WORKING_DIRECTORY "${CMAKE_CURRENT_BUILD_DIR}"
-         COMMENT "Making the benchmark helper suid root"
+         COMMENT "Making the rtwrapper suid root"
          )
    endif(REALTIME_BENCHMARKS)
 endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -60,15 +60,15 @@ add_target_property(memio_scalar_benchmark COMPILE_FLAGS ${NO_AUTOVEC})
 vc_add_benchmark(dhryrock)
 vc_add_benchmark(whetrock)
 
-add_executable(flops_autovect autoflops.cpp)
-target_link_libraries(flops_autovect Vc ${LIBS})
-add_executable(flops_noautovect autoflops.cpp)
+add_executable(flops_autovect autoflops.cpp benchmark.cpp)
+target_link_libraries(flops_autovect Vc ${LIBS} CpuId)
+add_executable(flops_noautovect autoflops.cpp benchmark.cpp)
 check_cxx_compiler_flag("-fno-tree-vectorize" check_compiler_flag_no_autovect_gcc)
 add_target_property(flops_noautovect COMPILE_FLAGS ${NO_AUTOVEC})
-target_link_libraries(flops_noautovect Vc ${LIBS})
+target_link_libraries(flops_noautovect Vc ${LIBS} CpuId)
 
-add_executable(sort_benchmark sort.cpp)
-target_link_libraries(sort_benchmark Vc ${LIBS})
+add_executable(sort_benchmark sort.cpp benchmark.cpp)
+target_link_libraries(sort_benchmark Vc ${LIBS} CpuId)
 add_target_property(sort_benchmark OUTPUT_NAME sort)
 add_custom_target("run_sort_benchmark" sort_benchmark DEPENDS sort_benchmark COMMENT "Running sort")
 add_target_property("run_sort_benchmark" EXCLUDE_FROM_DEFAULT_BUILD 1)
@@ -82,8 +82,8 @@ vc_generate_plots(compare VC_DISABLE_PTEST)
 vc_generate_plots(math)
 vc_generate_plots(memio)
 
-add_executable(constants constants.cpp)
-target_link_libraries(constants Vc ${LIBS})
+add_executable(constants constants.cpp benchmark.cpp)
+target_link_libraries(constants Vc ${LIBS} CpuId)
 
 if(QT4_FOUND)
    include(${QT_USE_FILE})

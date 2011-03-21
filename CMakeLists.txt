@@ -254,6 +254,9 @@ endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+add_library(CpuId STATIC cpuid.cpp)
+add_target_property(CpuId LABELS "other")
+
 if(USE_AVX)
    add_library(Vc STATIC vector.cpp common/support.cpp avx/sorthelper.cpp)
 else()
