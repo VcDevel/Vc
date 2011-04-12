@@ -92,7 +92,7 @@ void Benchmark::FileWriter::declareData(const std::string &name, const std::list
     m_currentName = '"' + name + '"';
     if (m_header != header) {
         if (m_header.empty()) {
-            m_file << "Version 3\n";
+            m_file << "Version 4\n";
         }
         m_header = header;
         m_file << "\"benchmark.name\"\t\"benchmark.arch\"";
