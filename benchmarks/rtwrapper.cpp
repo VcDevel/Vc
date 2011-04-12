@@ -78,5 +78,5 @@ int main(int, char **argv)
   printf("%s took too long (> 10 min) and was killed\n", argv[0]);
   kill( pid, SIGKILL );
 
-  return 0;
+  return -1;
 }

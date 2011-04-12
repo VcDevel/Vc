@@ -51,8 +51,13 @@ executeBench()
     outfile=$resultsDir/$name
     $haveAvx && test "$2" != "lrb" && outfile=${outfile}-mavx
     outfile=${outfile}.dat
-    printf "%22s -o %s\n" "$name" "$outfile"
-    ./$name -o $outfile >/dev/null 2>&1
+    printf "%22s -o %s" "$name" "$outfile"
+    if ./$name -o $outfile >/dev/null 2>&1; then
+      printf " Done.\n"
+    else
+      printf " FAILED.\n"
+      rm -f $outfile
+    fi
   else
     printf "%22s SKIPPED\n" "$name"
   fi
