@@ -413,10 +413,10 @@ bool Benchmark::Print()
             }
         }
         header
-            << X + "/Real_time" << X + "/Real_time_stddev"
-            << X + "/Cycles" << X + "/Cycles_stddev"
+            << X + "s/Real_time" << X + "s/Real_time_stddev"
+            << X + "s/Cycle" << X + "s/Cycle_stddev"
 #ifdef VC_USE_CPU_TIME
-            << X + "/CPU_time" << X + "/CPU_time_stddev"
+            << X + "s/CPU_time" << X + "s/CPU_time_stddev"
 #endif
             << "number_of_" + X;
     }
