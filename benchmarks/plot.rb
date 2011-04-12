@@ -8,6 +8,7 @@ benchmarks = {
         :groupColumn => 'benchmark.name',
         :titleColumn => 'Implementation',
         :clusterColumn => 'datatype',
+        :dataColumn => 'Bytes/Cycle',
         :groupTranslation => {
             'read' => 'load',
             'write' => 'store',
@@ -17,24 +18,48 @@ benchmarks = {
     'arithmetics' => {
         :groupColumn => 'benchmark.name',
         :titleColumn => 'Implementation',
-        :clusterColumn => 'datatype'
+        :clusterColumn => 'datatype',
+        :dataColumn => 'Ops/Cycle'
     },
     'flops' => {
-        :titleColumn => 'Implementation'
+        :titleColumn => 'Implementation',
+        :clusterColumn => 'benchmark.name',
+        :dataColumn => 'FLOPs/Cycle'
     },
     'gather' => {
+        :pageColumn => 'benchmark.name',
+        :groupColumn => 'mask',
+        :titleColumn => 'Implementation',
+        :clusterColumn => 'datatype',
+        :dataColumn => 'Valuess/Cycle'
     },
     'mask' => {
+        :groupColumn => 'benchmark.name',
+        :titleColumn => 'datatype',
+        :clusterColumn => 'Implementation',
+        :dataColumn => 'Ops/Cycle'
     },
     'compare' => {
+        :groupColumn => 'benchmark.name',
+        :titleColumn => 'datatype',
+        :clusterColumn => 'Implementation',
+        :dataColumn => 'Ops/Cycle'
     },
     'math' => {
+        :titleColumn => 'Implementation',
+        :clusterColumn => 'benchmark.name',
+        :groupColumn => 'datatype',
+        :dataColumn => 'Ops/Cycle'
     },
     'dhryrock' => {
+        :clusterColumn => 'benchmark.name',
+        :groupColumn => 'Implementation',
+        :dataColumn => 'Ops/Cycle'
     },
     'whetrock' => {
-    },
-    'mandelbrotbench' => {
+        :clusterColumn => 'benchmark.name',
+        :groupColumn => 'Implementation',
+        :dataColumn => 'Ops/Cycle'
     }
 }
 
@@ -232,14 +257,17 @@ benchmarks.each do |bench, opt|
     next if dp.empty?
 
     opt[:outname] = bench if opt[:outname] === nil
+    col = opt[:dataColumn]
     gnuplot.print <<EOF
 set output "#{opt[:outname]}.pdf"
-set ylabel "Bytes / Cycle"
+set ylabel "#{col.sub /\//, ' / '}"
 EOF
-    col = if dp.version == 3 then 'Byte/Cycles' else 'Bytes/Cycle' end
+    if dp.version == 3 and col.match /^([^\/]+)s\/([^\/]+)$/ then
+        col = $~[1] + '/' + $~[2] + 's'
+    end
 
     pageNames = dp.list(opt[:pageColumn])
-    pageNames = [bench] if pageNames === nil
+    pageNames = [nil] if pageNames === nil
     groupNames = dp.list(opt[:groupColumn])
     groupNames = [''] if groupNames === nil
     titleNames = dp.list(opt[:titleColumn])
@@ -280,7 +308,7 @@ EOF
             at += clusterNames.size + 2.0 / (titleNames.size + 1)
         end
         gnuplot.print <<EOF
-set title "#{page}"
+set title "#{page ? page : bench}"
 plot \
 #{gnuplot_print.join(", \\\n")}
 #{data}
