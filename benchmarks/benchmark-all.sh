@@ -16,6 +16,14 @@ case "@USE_AVX@" in
   YES|TRUE|true|yes|on|ON) haveAvx=true ;;
   *) haveAvx=false ;;
 esac
+case "@USE_XOP@" in
+  YES|TRUE|true|yes|on|ON) haveXop=true ;;
+  *) haveXop=false ;;
+esac
+case "@USE_FMA4@" in
+  YES|TRUE|true|yes|on|ON) haveFma4=true ;;
+  *) haveFma4=false ;;
+esac
 
 cd `dirname $0`
 resultsDir="benchmark-all-`hostname`-`date '+%Y-%m-%d-%H-%M-%S'`"
@@ -49,13 +57,18 @@ executeBench()
   name=${1}_${2}
   if test -x ./$name; then
     outfile=$resultsDir/$name
-    $haveAvx && test "$2" != "lrb" && outfile=${outfile}-mavx
+    if test "$2" = "avx"; then
+      $haveXop && outfile=${outfile}-mxop
+      $haveFma4 && outfile=${outfile}-mfma4
+    else
+      $haveAvx && test "$2" != "lrb" && outfile=${outfile}-mavx
+    fi
     outfile=${outfile}.dat
     printf "%22s -o %s" "$name" "$outfile"
     if ./$name -o $outfile >/dev/null 2>&1; then
-      printf " Done.\n"
+      printf "\tDone.\n"
     else
-      printf " FAILED.\n"
+      printf "\tFAILED.\n"
       rm -f $outfile
     fi
   else
