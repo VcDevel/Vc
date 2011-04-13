@@ -47,7 +47,8 @@ benchmarks = {
         )
     },
     'arithmetics' => { #{{{1
-        :groupColumn => 'datatype',
+        :pageColumn => 'datatype',
+        :groupColumn => 'unrolling',
         :titleColumns => 'Implementation',
         :clusterColumns => 'benchmark.name',
         :dataColumn => 'Ops/Cycle',
