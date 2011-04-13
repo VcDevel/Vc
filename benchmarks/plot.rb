@@ -9,14 +9,18 @@ class LabelTranslation #{{{
             'scalar' => 'Scalar',
             'scalar-mnoavx' => 'Scalar (binary ops)',
             'scalar-mavx' => 'Scalar (ternary ops)',
-            'avx' => 'AVX'
+            'avx' => 'AVX',
+            'avx-mavx' => 'AVX',
+            'avx-mxop' => 'AVX, XOP',
+            'avx-mfma4' => 'AVX, FMA4',
+            'avx-mxop-mfma4' => 'AVX, XOP, FMA4'
         }.merge(trans)
     end
 
     def translate(str)
         if str =~ /^".*"$/
             tmp = @trans[str[1..-2]]
-            return tmp if tmp
+            return "\"#{tmp}\"" if tmp
         end
         @trans[str] or str
     end
@@ -26,19 +30,16 @@ benchmarks = {
     'memio' => { #{{{1
         :pageColumn => 'MemorySize',
         :groupColumn => 'benchmark.name',
-        :titleColumns => ['Implementation', 'Alignment'],
+        :titleColumns => ['Alignment', 'Implementation'],
         :clusterColumns => 'datatype',
         :dataColumn => 'Bytes/Cycle',
         :labelTranslation => LabelTranslation.new(
             'read' => 'load',
             'write' => 'store',
             'r/w' => 'load \\& store',
-            'sse, aligned' => 'Aligned, SSE',
-            'sse, aligned mem/unaligned instr' => 'Aligned Memory, Unaligned Instruction, SSE',
-            'sse, unaligned' => 'Unaligned, SSE',
-            'scalar, aligned' => 'Aligned, Scalar',
-            'scalar, aligned mem/unaligned instr' => 'Aligned Memory, Unaligned Instruction, Scalar',
-            'scalar, unaligned' => 'Unaligned, Scalar',
+            'aligned' => 'Aligned',
+            'aligned mem/unaligned instr' => 'Aligned Memory, Unaligned Instruction',
+            'unaligned' => 'Unaligned',
             'half L1' => '⅟₂ L1',
             'half L2' => '⅟₂ L2',
             'half L3' => '⅟₂ L3',
@@ -304,7 +305,7 @@ set style line 24 lc rgbcolor "#737373"
 
 set style increment user
 
-set terminal pdf color noenhanced font "CM Sans,5" size 18cm,7cm
+set terminal pdf color noenhanced font "CM Sans,5" size 19.55cm,11cm
 set pointsize 0.6
 set style histogram errorbars gap 1
 set style data histogram
@@ -351,7 +352,7 @@ EOF
         groupNames.each do |group|
             filters = Array.new
             titleNames.each do |title|
-                titleLabel = title.is_a?(Array) ? title.join(', ') : title
+                titleLabel = title.is_a?(Array) ? (title.map{|x| labelTranslation.translate x}).join(', ') : title
                 titleLabel = labelTranslation.translate(titleLabel)
                 filters \
                     << ColumnFilter.new([page, group, title].flatten,
@@ -396,7 +397,7 @@ gnuplot.print <<EOF
 set ytics auto
 set xtics 100
 
-set terminal pdf color enhanced font "CM Sans,5" size 10cm,7cm
+set terminal pdf color enhanced font "CM Sans,5" size 16cm,9cm
 set pointsize 0.6
 set output "mandelbrot.pdf"
 set style data linespoints
@@ -414,7 +415,7 @@ set xlabel "width/3 = height/2 [pixels]"
 set title "Mandelbrot Benchmark"
 set ylabel "runtime [10^9 cycles]"
 plot \\
-'mandelbrotbench_scalar.dat' using 1:($3/10**9) title "builtin", \\
+'#{extra[0][0]}' using 1:($3/10**9) title "builtin", \\
 #{(extra.map {|x| "'#{x[0]}' using 1:($2/10**9) title \"#{x[1]}\""}).join(", \\\n")}
 
 set key at -20,2.4
