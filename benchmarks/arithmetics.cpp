@@ -46,6 +46,7 @@ template<typename Vector> struct Arithmetics
             data[i](data[i] == Vector(Zero)) += Vector(One);
         }
 
+        Benchmark::setColumnData("unrolling", "not unrolled");
         const Vector *__restrict__ const end = &data[Factor];
         benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ++ptr) {
@@ -72,28 +73,29 @@ template<typename Vector> struct Arithmetics
             }
         }
 
-        benchmark_loop(Benchmark("add 2x unrolled", valuesPerSecondFactor, "Op")) {
+        Benchmark::setColumnData("unrolling", "2x unrolled");
+        benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
                 Vector tmp0 = ptr[0] + ptr[1];
                 Vector tmp1 = ptr[1] + ptr[2];
                 keepResults(tmp0, tmp1);
             }
         }
-        benchmark_loop(Benchmark("sub 2x unrolled", valuesPerSecondFactor, "Op")) {
+        benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
                 Vector tmp0 = ptr[0] - ptr[1];
                 Vector tmp1 = ptr[1] - ptr[2];
                 keepResults(tmp0, tmp1);
             }
         }
-        benchmark_loop(Benchmark("mul 2x unrolled", valuesPerSecondFactor, "Op")) {
+        benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
                 Vector tmp0 = ptr[0] * ptr[1];
                 Vector tmp1 = ptr[1] * ptr[2];
                 keepResults(tmp0, tmp1);
             }
         }
-        benchmark_loop(Benchmark("div 2x unrolled", valuesPerSecondFactor, "Op")) {
+        benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
                 Vector tmp0 = ptr[0] / ptr[1];
                 Vector tmp1 = ptr[1] / ptr[2];
@@ -101,7 +103,8 @@ template<typename Vector> struct Arithmetics
             }
         }
 
-        benchmark_loop(Benchmark("add 4x unrolled", valuesPerSecondFactor, "Op")) {
+        Benchmark::setColumnData("unrolling", "4x unrolled");
+        benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
                 Vector tmp0 = ptr[0] + ptr[1];
                 Vector tmp1 = ptr[1] + ptr[2];
@@ -110,7 +113,7 @@ template<typename Vector> struct Arithmetics
                 keepResults(tmp0, tmp1, tmp2, tmp3);
             }
         }
-        benchmark_loop(Benchmark("sub 4x unrolled", valuesPerSecondFactor, "Op")) {
+        benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
                 Vector tmp0 = ptr[0] - ptr[1];
                 Vector tmp1 = ptr[1] - ptr[2];
@@ -119,7 +122,7 @@ template<typename Vector> struct Arithmetics
                 keepResults(tmp0, tmp1, tmp2, tmp3);
             }
         }
-        benchmark_loop(Benchmark("mul 4x unrolled", valuesPerSecondFactor, "Op")) {
+        benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
                 Vector tmp0 = ptr[0] * ptr[1];
                 Vector tmp1 = ptr[1] * ptr[2];
@@ -128,7 +131,7 @@ template<typename Vector> struct Arithmetics
                 keepResults(tmp0, tmp1, tmp2, tmp3);
             }
         }
-        benchmark_loop(Benchmark("div 4x unrolled", valuesPerSecondFactor, "Op")) {
+        benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
                 Vector tmp0 = ptr[0] / ptr[1];
                 Vector tmp1 = ptr[1] / ptr[2];
@@ -138,7 +141,8 @@ template<typename Vector> struct Arithmetics
             }
         }
 
-        benchmark_loop(Benchmark("add 8x unrolled", valuesPerSecondFactor, "Op")) {
+        Benchmark::setColumnData("unrolling", "8x unrolled");
+        benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
                 Vector tmp0 = ptr[0] + ptr[1];
                 Vector tmp1 = ptr[1] + ptr[2];
@@ -152,7 +156,7 @@ template<typename Vector> struct Arithmetics
                 keepResults(tmp4, tmp5, tmp6, tmp7);
             }
         }
-        benchmark_loop(Benchmark("sub 8x unrolled", valuesPerSecondFactor, "Op")) {
+        benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
                 Vector tmp0 = ptr[0] - ptr[1];
                 Vector tmp1 = ptr[1] - ptr[2];
@@ -166,7 +170,7 @@ template<typename Vector> struct Arithmetics
                 keepResults(tmp4, tmp5, tmp6, tmp7);
             }
         }
-        benchmark_loop(Benchmark("mul 8x unrolled", valuesPerSecondFactor, "Op")) {
+        benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
                 Vector tmp0 = ptr[0] * ptr[1];
                 Vector tmp1 = ptr[1] * ptr[2];
@@ -180,7 +184,7 @@ template<typename Vector> struct Arithmetics
                 keepResults(tmp4, tmp5, tmp6, tmp7);
             }
         }
-        benchmark_loop(Benchmark("div 8x unrolled", valuesPerSecondFactor, "Op")) {
+        benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
                 Vector tmp0 = ptr[0] / ptr[1];
                 Vector tmp1 = ptr[1] / ptr[2];
@@ -202,6 +206,7 @@ template<typename Vector> struct Arithmetics
 int bmain()
 {
     Benchmark::addColumn("datatype");
+    Benchmark::addColumn("unrolling");
 
     Benchmark::setColumnData("datatype", "float_v");
     Arithmetics<float_v>::run();
