@@ -20,8 +20,8 @@
 #ifndef VC_AVX_CONST_H
 #define VC_AVX_CONST_H
 
-#include "immintrin.h"
 #include "macros.h"
+#include <cstddef>
 
 namespace Vc
 {
@@ -29,6 +29,7 @@ namespace AVX
 {
     template<typename T> class Vector;
     template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
+    class M128iDummy;
 
     ALIGN(64) extern const unsigned int   _IndexesFromZero32[8];
     ALIGN(16) extern const unsigned short _IndexesFromZero16[8];
@@ -73,7 +74,7 @@ namespace AVX
         static const Int _dataI[15];
         static const T   _dataT[6];
 
-        static __m128i bias()  CONST;
+        static M128iDummy bias()  CONST;
         static Mask exponentMask() CONST;
         static Vec _1_2() CONST;
         static Vec _1_sqrt2() CONST;

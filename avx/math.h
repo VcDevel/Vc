@@ -38,7 +38,17 @@ namespace AVX
     template<typename T> inline Vector<T> c_sin<T>::_1_7fac() { return Vector<T>(_data[6]); }
     template<typename T> inline Vector<T> c_sin<T>::_1_9fac() { return Vector<T>(_data[7]); }
 
-    template<typename T, typename M> inline __m128i c_log<T, M>::bias()      { return avx_cast<__m128i>(_mm_broadcast_ss(f(0))); }
+    class M128iDummy
+    {
+        __m128i d;
+        public:
+            M128iDummy(__m128i dd) : d(dd) {}
+            __m128i &operator=(__m128i dd) { d = dd; return d; }
+            operator __m128i &() { return d; }
+            operator __m128i () const { return d; }
+    };
+
+    template<typename T, typename M> inline M128iDummy c_log<T, M>::bias() { return avx_cast<__m128i>(_mm_broadcast_ss(f(0))); }
 
     typedef Vector<double> double_v;
     typedef Vector<float> float_v;

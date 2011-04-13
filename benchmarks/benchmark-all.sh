@@ -22,19 +22,22 @@ resultsDir="benchmark-all-`hostname`-`date '+%Y-%m-%d-%H-%M-%S'`"
 mkdir $resultsDir || exit
 echo "Storing benchmark results to $PWD/$resultsDir"
 
-srcdir=`grep Vc_SOURCE_DIR ../CMakeCache.txt|cut -d= -f2`
+srcdir='@Vc_SOURCE_DIR@'
 rev=`cut -d' ' -f2 "$srcdir/.git/HEAD"`
+branch=${rev##*/}
 rev=`cat "$srcdir/.git/$rev"`
 
-CXX=`grep 'CMAKE_CXX_COMPILER:FILEPATH=' ../CMakeCache.txt|cut -d= -f2`
+CXX='@CMAKE_CXX_COMPILER@'
 
 cat > $resultsDir/metadata <<EOF
-build type	: `grep 'CMAKE_BUILD_TYPE:STRING=' ../CMakeCache.txt|cut -d= -f2`
+build type	: @CMAKE_BUILD_TYPE@
 compiler	: `$CXX --version|head -n1`
-strict aliasing	: `grep 'ENABLE_STRICT_ALIASING:BOOL=' ../CMakeCache.txt|cut -d= -f2`
-fast math	: `grep 'FAST_MATH_BENCHMARK:BOOL=' ../CMakeCache.txt|cut -d= -f2`
-realtime	: `grep 'REALTIME_BENCHMARKS:BOOL=' ../CMakeCache.txt|cut -d= -f2`
-target arch	: `grep 'TARGET_ARCHITECTURE:STRING=' ../CMakeCache.txt|cut -d= -f2`
+strict aliasing	: @ENABLE_STRICT_ALIASING@
+fast math	: @FAST_MATH_BENCHMARK@
+realtime	: @REALTIME_BENCHMARKS@
+target arch	: @TARGET_ARCHITECTURE@
+flags		: `echo '@CMAKE_CXX_FLAGS@'|sed 's/-W[^ ]*//g'|tr -s '[:space:]'`
+Vc branch	: $branch
 Vc revision	: $rev
 hostname	: `hostname`
 machine		: `uname -m`
@@ -48,8 +51,13 @@ executeBench()
     outfile=$resultsDir/$name
     $haveAvx && test "$2" != "lrb" && outfile=${outfile}-mavx
     outfile=${outfile}.dat
-    printf "%22s -o %s\n" "$name" "$outfile"
-    ./$name -o $outfile >/dev/null 2>&1
+    printf "%22s -o %s" "$name" "$outfile"
+    if ./$name -o $outfile >/dev/null 2>&1; then
+      printf " Done.\n"
+    else
+      printf " FAILED.\n"
+      rm -f $outfile
+    fi
   else
     printf "%22s SKIPPED\n" "$name"
   fi
@@ -73,5 +81,8 @@ if which benchmarking.sh >/dev/null; then
   echo "Calling 'benchmarking.sh stop' to re-enable powermanagement and Turbo-Mode"
   benchmarking.sh stop
 fi
+
+echo "Packing results into ${resultsDir}.tar.gz"
+tar -czf ${resultsDir}.tar.gz ${resultsDir}/
 
 # vim: sw=2 et

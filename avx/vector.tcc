@@ -109,19 +109,19 @@ template<typename T> template<typename A> inline void INTRINSIC Vector<T>::store
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
-template<typename T> ALWAYS_INLINE FLATTEN Vector<T>::Vector(const Vector<typename HT::ConcatType> *a)
+template<typename T> inline ALWAYS_INLINE FLATTEN Vector<T>::Vector(const Vector<typename HT::ConcatType> *a)
     : Base(a[0])
 {
 }
-template<> ALWAYS_INLINE FLATTEN Vector<float>::Vector(const Vector<HT::ConcatType> *a)
+template<> inline ALWAYS_INLINE FLATTEN Vector<float>::Vector(const Vector<HT::ConcatType> *a)
     : Base(concat(_mm256_cvtpd_ps(a[0].data()), _mm256_cvtpd_ps(a[1].data())))
 {
 }
-template<> ALWAYS_INLINE FLATTEN Vector<short>::Vector(const Vector<HT::ConcatType> *a)
+template<> inline ALWAYS_INLINE FLATTEN Vector<short>::Vector(const Vector<HT::ConcatType> *a)
     : Base(_mm_packs_epi32(lo128(a->data()), hi128(a->data())))
 {
 }
-template<> ALWAYS_INLINE FLATTEN Vector<unsigned short>::Vector(const Vector<HT::ConcatType> *a)
+template<> inline ALWAYS_INLINE FLATTEN Vector<unsigned short>::Vector(const Vector<HT::ConcatType> *a)
     : Base(_mm_packus_epi32(lo128(a->data()), hi128(a->data())))
 {
 }
