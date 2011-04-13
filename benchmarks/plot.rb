@@ -148,7 +148,7 @@ end
 class TableRow #{{{1
     def initialize(keys)
         @keys = keys
-        @data = Hash.new
+        @data = Hash.new(0)
     end
 
     def []=(key, value)
