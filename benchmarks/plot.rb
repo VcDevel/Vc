@@ -389,4 +389,43 @@ EOF
     end
 end
 
+tr = LabelTranslation.new
+extra = Dir.glob("mandelbrotbench_*.dat").map { |filename| [filename, "Vc::" + tr.translate(filename["mandelbrotbench_".length..-5])] }
+
+gnuplot.print <<EOF
+set ytics auto
+set xtics 100
+
+set terminal pdf color enhanced font "CM Sans,5" size 10cm,7cm
+set pointsize 0.6
+set output "mandelbrot.pdf"
+set style data linespoints
+set key left top
+
+set xlabel "width/3 = height/2 [pixels]"
+
+#set tmargin 0.3
+#set lmargin 8
+#set rmargin 2.5
+#set bmargin 3.06
+#
+#set xrange [0:700]
+
+set title "Mandelbrot Benchmark"
+set ylabel "runtime [10^9 cycles]"
+plot \\
+'mandelbrotbench_scalar.dat' using 1:($3/10**9) title "builtin", \\
+#{(extra.map {|x| "'#{x[0]}' using 1:($2/10**9) title \"#{x[1]}\""}).join(", \\\n")}
+
+set key at -20,2.4
+set ylabel "speedup"
+plot \\
+#{(extra.map {|x| "'#{x[0]}' using 1:($3/$2) title \"#{x[1]} vs. builtin\""}).join(", \\\n")}
+EOF
+
+gnuplot.close
+
+File.exist?('all.pdf') and File.delete('all.pdf')
+`pdftk *.pdf cat output all.pdf`
+
 # vim: sw=4 et foldmethod=marker
