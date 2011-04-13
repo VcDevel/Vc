@@ -1,69 +1,116 @@
 #!/usr/bin/env ruby
 
-require 'pp'
+class LabelTranslation #{{{
+    def initialize(trans = Hash.new)
+        @trans = {
+            'sse' => 'SSE',
+            'sse-mnoavx' => 'SSE (binary ops)',
+            'sse-mavx' => 'SSE (ternary ops)',
+            'scalar' => 'Scalar',
+            'scalar-mnoavx' => 'Scalar (binary ops)',
+            'scalar-mavx' => 'Scalar (ternary ops)',
+            'avx' => 'AVX'
+        }.merge(trans)
+    end
+
+    def translate(str)
+        if str =~ /^".*"$/
+            tmp = @trans[str[1..-2]]
+            return tmp if tmp
+        end
+        @trans[str] or str
+    end
+end #}}}
 
 benchmarks = {
-    'memio' => {
+    'memio' => { #{{{1
         :pageColumn => 'MemorySize',
         :groupColumn => 'benchmark.name',
-        :titleColumn => 'Implementation',
-        :clusterColumn => 'datatype',
+        :titleColumns => ['Implementation', 'Alignment'],
+        :clusterColumns => 'datatype',
         :dataColumn => 'Bytes/Cycle',
-        :groupTranslation => {
+        :labelTranslation => LabelTranslation.new(
             'read' => 'load',
             'write' => 'store',
-            'r/w' => 'load \\& store'
-        }
+            'r/w' => 'load \\& store',
+            'sse, aligned' => 'Aligned, SSE',
+            'sse, aligned mem/unaligned instr' => 'Aligned Memory, Unaligned Instruction, SSE',
+            'sse, unaligned' => 'Unaligned, SSE',
+            'scalar, aligned' => 'Aligned, Scalar',
+            'scalar, aligned mem/unaligned instr' => 'Aligned Memory, Unaligned Instruction, Scalar',
+            'scalar, unaligned' => 'Unaligned, Scalar',
+            'half L1' => '⅟₂ L1',
+            'half L2' => '⅟₂ L2',
+            'half L3' => '⅟₂ L3',
+            '4x L3' => '4×L3'
+        )
     },
-    'arithmetics' => {
-        :groupColumn => 'benchmark.name',
-        :titleColumn => 'Implementation',
-        :clusterColumn => 'datatype',
-        :dataColumn => 'Ops/Cycle'
+    'arithmetics' => { #{{{1
+        :groupColumn => 'datatype',
+        :titleColumns => 'Implementation',
+        :clusterColumns => 'benchmark.name',
+        :dataColumn => 'Ops/Cycle',
+        :labelTranslation => LabelTranslation.new(
+            'arithmetics' => 'Arithmetic Operations'
+        ),
+        :ylabel => 'Operations / Cycle'
     },
-    'flops' => {
-        :titleColumn => 'Implementation',
-        :clusterColumn => 'benchmark.name',
-        :dataColumn => 'FLOPs/Cycle'
+    'flops' => { #{{{1
+        :titleColumns => 'benchmark.name',
+        :clusterColumns => 'Implementation',
+        :dataColumn => 'FLOPs/Cycle',
+        :labelTranslation => LabelTranslation.new(
+            'flops' => 'Peak-Flop Benchmark'
+        ),
+        :ylabel => 'Floating-Point Operations / Cycle'
     },
-    'gather' => {
+    'gather' => { #{{{1
         :pageColumn => 'benchmark.name',
         :groupColumn => 'mask',
-        :titleColumn => 'Implementation',
-        :clusterColumn => 'datatype',
-        :dataColumn => 'Valuess/Cycle'
+        :titleColumns => 'Implementation',
+        :clusterColumns => 'datatype',
+        :dataColumn => 'Valuess/Cycle',
+        :ylabel => 'Values / Cycle'
     },
-    'mask' => {
+    'mask' => { #{{{1
+        :pageColumn => 'benchmark.name',
+        :titleColumns => 'datatype',
+        :clusterColumns => 'Implementation',
+        :dataColumn => 'Ops/Cycle',
+        :ylabel => 'Operations / Cycle'
+    },
+    'compare' => { #{{{1
         :groupColumn => 'benchmark.name',
-        :titleColumn => 'datatype',
-        :clusterColumn => 'Implementation',
-        :dataColumn => 'Ops/Cycle'
+        :titleColumns => 'datatype',
+        :clusterColumns => 'Implementation',
+        :dataColumn => 'Ops/Cycle',
+        :labelTranslation => LabelTranslation.new(
+            'compare' => 'Compare Operations'
+        ),
+        :ylabel => 'Operations / Cycle'
     },
-    'compare' => {
-        :groupColumn => 'benchmark.name',
-        :titleColumn => 'datatype',
-        :clusterColumn => 'Implementation',
-        :dataColumn => 'Ops/Cycle'
-    },
-    'math' => {
-        :titleColumn => 'Implementation',
-        :clusterColumn => 'benchmark.name',
+    'math' => { #{{{1
+        :titleColumns => 'Implementation',
+        :clusterColumns => 'benchmark.name',
         :groupColumn => 'datatype',
-        :dataColumn => 'Ops/Cycle'
+        :dataColumn => 'Ops/Cycle',
+        :ylabel => 'Operations / Cycle'
     },
-    'dhryrock' => {
-        :clusterColumn => 'benchmark.name',
-        :groupColumn => 'Implementation',
-        :dataColumn => 'Ops/Cycle'
+    'dhryrock' => { #{{{1
+        :clusterColumns => 'benchmark.name',
+        :titleColumns => 'Implementation',
+        :dataColumn => 'Ops/Cycle',
+        :ylabel => 'Operations / Cycle'
     },
-    'whetrock' => {
-        :clusterColumn => 'benchmark.name',
-        :groupColumn => 'Implementation',
-        :dataColumn => 'Ops/Cycle'
-    }
+    'whetrock' => { #{{{1
+        :clusterColumns => 'benchmark.name',
+        :titleColumns => 'Implementation',
+        :dataColumn => 'Ops/Cycle',
+        :ylabel => 'Operations / Cycle'
+    } #}}}1
 }
 
-class ColumnFilter
+class ColumnFilter #{{{1
     def initialize(grep, name_column)
         @name_column = name_column.map {|i| [i[0], i[1], -1]}
         @grep = grep.map do |v|
@@ -84,7 +131,7 @@ class ColumnFilter
     end
 
     def process(row)
-        if (@grep.map{|i| row.include? i}).reduce(:&)
+        if (@grep.map{|i| i === nil or row.include? i}).reduce(:&)
             @name_column.each do |col|
                 yield(col[0], row[col[2]])
             end
@@ -96,7 +143,7 @@ class ColumnFilter
     end
 end
 
-class TableRow
+class TableRow #{{{1
     def initialize(keys)
         @keys = keys
         @data = Hash.new
@@ -111,19 +158,19 @@ class TableRow
     end
 
     def ==(rhs)
-        fail unless rhs.is_a? Array
+        fail unless rhs.is_a? String
         @keys == rhs
     end
 
     def fields(headers)
-        @keys + headers[@keys.size..-1].map do |h|
+        [@keys] + headers[1..-1].map do |h|
             self[h]
         end
     end
 end
 
-class DataParser
-    def parseFields(fields)
+class DataParser #{{{1
+    def parseFields(fields) #{{{2
         r = Array.new
         fields.each do |f|
             if f =~ /^"(.*)"$/
@@ -137,7 +184,7 @@ class DataParser
         return r;
     end
 
-    def initialize(bench)
+    def initialize(bench) #{{{2
         @bench = bench
         @impl = Array.new
         @data = Array.new
@@ -163,11 +210,12 @@ class DataParser
         @colnames << "Implementation"
     end
 
-    def empty?
+    def empty? #{{{2
         return @data.empty?
     end
 
-    def write(keys, columnFilters)
+    def write(keys, columnFilters, tr) #{{{2
+        keys = [keys] unless keys.is_a? Array
         s = ''
         columnFilters.each {|cf| cf.prepare(@colnames)}
         # { ['half L1'] => { 'read' => 1.2, 'write' => 2.3 }, ... }
@@ -178,7 +226,7 @@ class DataParser
         table = Array.new
 
         @data.each do |row|
-            keyValues = keyIndexes.map {|i| row[i]}
+            keyValues = tr.translate((keyIndexes.map {|i| row[i]}).join(', ').gsub(/", "/, ', '))
             index = table.index keyValues
             if index === nil
                 index = table.size
@@ -189,7 +237,7 @@ class DataParser
             end
         end
 
-        headers = keys + (columnFilters.map {|cf| cf.headers}).flatten
+        headers = [keys.join(', ')] + (columnFilters.map {|cf| cf.headers}).flatten
         s << '"' << headers.join("\"\t\"") << "\"\n"
         table.each do |row|
             fields = row.fields headers
@@ -198,46 +246,67 @@ class DataParser
         return s
     end
 
-    def list(columnname)
-        i = @colnames.index(columnname)
-        if i
-            contents = @data.map { |x| x[i] }
-            contents.uniq.map { |x| x[1..-2] }
+    def list(columnname) #{{{2
+        if columnname.is_a? Array
+            i = columnname.map { |x| @colnames.index x }
+            contents = @data.map { |x| i.map { |j| x[j][1..-2] } }
+            contents.uniq
         else
-            nil
+            i = @colnames.index(columnname)
+            if i and not @data.empty?
+                contents = @data.map { |x| x[i] }
+                contents.uniq.map { |x| x[1..-2] }
+            else
+                nil
+            end
         end
     end
-
+    #}}}2
     attr_reader :version, :colnames
-end
+end #}}}1
 
 gnuplot = IO.popen("gnuplot", 'w')
 #gnuplot = STDOUT
+#gnuplot header{{{1
 gnuplot.print <<EOF
 set style line  1 lc rgbcolor "#CCCCCC"
 set grid y ls 1
 set autoscale y
 
-set style line  1 lc rgbcolor "#9F2020"
-set style line  2 lc rgbcolor "#409494"
-set style line  3 lc rgbcolor "#949440"
-set style line  4 lc rgbcolor "#20209F"
-set style line  5 lc rgbcolor "#209F20"
-set style line  6 lc rgbcolor "#9F2020"
-set style line  7 lc rgbcolor "#409494"
-set style line  8 lc rgbcolor "#949440"
-set style line  9 lc rgbcolor "#20209F"
-set style line 10 lc rgbcolor "#209F20"
-set style line 11 lc rgbcolor "#9F2020"
-set style line 12 lc rgbcolor "#409494"
-set style line 13 lc rgbcolor "#949440"
-set style line 14 lc rgbcolor "#20209F"
-set style line 15 lc rgbcolor "#209F20"
+set style line  1 lc rgbcolor "#AF3737"
+set style line 15 lc rgbcolor "#AF5537"
+set style line  6 lc rgbcolor "#AF7337"
+set style line 20 lc rgbcolor "#AF9137"
+set style line 11 lc rgbcolor "#AFAF37"
+
+set style line  2 lc rgbcolor "#91AF37"
+set style line 16 lc rgbcolor "#73AF37"
+set style line  7 lc rgbcolor "#54963E"
+set style line 21 lc rgbcolor "#37AF37"
+set style line 12 lc rgbcolor "#37AF55"
+
+set style line  3 lc rgbcolor "#37AF73"
+set style line 17 lc rgbcolor "#37AF91"
+set style line  8 lc rgbcolor "#37AFAF"
+set style line 22 lc rgbcolor "#3791AF"
+set style line 13 lc rgbcolor "#3773AF"
+
+set style line  4 lc rgbcolor "#3755AF"
+set style line 18 lc rgbcolor "#3737AF"
+set style line  9 lc rgbcolor "#5537AF"
+set style line 23 lc rgbcolor "#7337AF"
+set style line 14 lc rgbcolor "#AF37AF"
+
+set style line  5 lc rgbcolor "#AF3791"
+set style line 19 lc rgbcolor "#AF3773"
+set style line 10 lc rgbcolor "#AF3755"
+set style line 24 lc rgbcolor "#737373"
+
 set style increment user
 
 set terminal pdf color noenhanced font "CM Sans,5" size 18cm,7cm
 set pointsize 0.6
-set style histogram clustered gap 1
+set style histogram errorbars gap 1
 set style data histogram
 set style fill transparent solid 0.85 noborder
 set key right top
@@ -251,16 +320,18 @@ set bmargin 3.5
 #set yrange [0:36]
 #set xtics nomirror rotate by -40 scale 0
 EOF
+#}}}1
 
 benchmarks.each do |bench, opt|
     dp = DataParser.new(bench)
     next if dp.empty?
 
-    opt[:outname] = bench if opt[:outname] === nil
+    labelTranslation = opt[:labelTranslation] ? opt[:labelTranslation] : LabelTranslation.new
+
     col = opt[:dataColumn]
     gnuplot.print <<EOF
-set output "#{opt[:outname]}.pdf"
-set ylabel "#{col.sub /\//, ' / '}"
+set output "#{opt[:outname] or bench}.pdf"
+set ylabel "#{opt[:ylabel] or col.sub /\//, ' / '}"
 EOF
     if dp.version == 3 and col.match /^([^\/]+)s\/([^\/]+)$/ then
         col = $~[1] + '/' + $~[2] + 's'
@@ -269,9 +340,9 @@ EOF
     pageNames = dp.list(opt[:pageColumn])
     pageNames = [nil] if pageNames === nil
     groupNames = dp.list(opt[:groupColumn])
-    groupNames = [''] if groupNames === nil
-    titleNames = dp.list(opt[:titleColumn])
-    clusterNames = dp.list(opt[:clusterColumn])
+    groupNames = [nil] if groupNames === nil
+    titleNames = dp.list(opt[:titleColumns])
+    clusterNames = dp.list(opt[:clusterColumns])
 
     pageNames.each do |page|
         data = ''
@@ -280,24 +351,24 @@ EOF
         groupNames.each do |group|
             filters = Array.new
             titleNames.each do |title|
+                titleLabel = title.is_a?(Array) ? title.join(', ') : title
+                titleLabel = labelTranslation.translate(titleLabel)
                 filters \
-                    << ColumnFilter.new([page, group, title],
-                                        [[title, col]]) \
-                    << ColumnFilter.new([page, group, title],
-                                        [[title + ' stddev', col + '_stddev']])
+                    << ColumnFilter.new([page, group, title].flatten,
+                                        [[titleLabel, col]]) \
+                    << ColumnFilter.new([page, group, title].flatten,
+                                        [[titleLabel + ' stddev', col + '_stddev']])
             end
-            tmp = dp.write([opt[:clusterColumn]], filters)
+            tmp = dp.write(opt[:clusterColumns], filters, labelTranslation)
             titleNames.size.times { data << tmp << "e\n" }
 
-            groupName = if opt[:groupTranslation]
-                opt[:groupTranslation][group]
-            else
-                group
+            groupName = labelTranslation.translate(group)
+            if group != nil
+                gnuplot_print << "  newhistogram \" \\r#{groupName}\" lt 1 at #{at}"
             end
-            gnuplot_print << "  newhistogram \" \\r#{groupName}\" lt 1 at #{at}"
             1.upto(titleNames.size) do |i|
                 i2 = i * 2
-                gnuplot_print << "  '-' using #{i2}:xtic(1) " +
+                gnuplot_print << "  '-' using #{i2}:#{i2+1}:xtic(1) " +
                 if at == 0
                     "title columnheader(#{i2})"
                 else
@@ -307,8 +378,10 @@ EOF
             end
             at += clusterNames.size + 2.0 / (titleNames.size + 1)
         end
+        page = bench unless page
+        page = labelTranslation.translate(page)
         gnuplot.print <<EOF
-set title "#{page ? page : bench}"
+set title "#{page}"
 plot \
 #{gnuplot_print.join(", \\\n")}
 #{data}
@@ -316,4 +389,4 @@ EOF
     end
 end
 
-# vim: sw=4 et
+# vim: sw=4 et foldmethod=marker
