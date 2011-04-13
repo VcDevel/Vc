@@ -264,7 +264,11 @@ class DataParser #{{{1
         end
     end
     #}}}2
-    attr_reader :version, :colnames
+    def maximumY(col) #{{{2
+        i = @colnames.index col
+        (@data.map { |row| row[i] }).max
+    end #}}}2
+    attr_reader :version
 end #}}}1
 
 gnuplot = if ARGV.include? '--debug'
@@ -335,13 +339,16 @@ benchmarks.each do |bench, opt|
     labelTranslation = opt[:labelTranslation] ? opt[:labelTranslation] : LabelTranslation.new
 
     col = opt[:dataColumn]
-    gnuplot.print <<EOF
-set output "#{opt[:outname] or bench}.pdf"
-set ylabel "#{opt[:ylabel] or col.sub /\//, ' / '}"
-EOF
     if dp.version == 3 and col.match /^([^\/]+)s\/([^\/]+)$/ then
         col = $~[1] + '/' + $~[2] + 's'
     end
+    maxy = dp.maximumY col
+
+    gnuplot.print <<EOF
+#set yrange [0:#{maxy}]
+set output "#{opt[:outname] or bench}.pdf"
+set ylabel "#{opt[:ylabel] or opt[:dataColumn].sub /\//, ' / '}"
+EOF
 
     pageNames = dp.list(opt[:pageColumn])
     pageNames = [nil] if pageNames === nil
