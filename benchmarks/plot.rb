@@ -267,8 +267,12 @@ class DataParser #{{{1
     attr_reader :version, :colnames
 end #}}}1
 
-gnuplot = IO.popen("gnuplot", 'w')
-#gnuplot = STDOUT
+gnuplot = if ARGV.include? '--debug'
+    ARGV = ARGV - ['--debug']
+    STDOUT
+else
+    IO.popen("gnuplot", 'w')
+end
 #gnuplot header{{{1
 gnuplot.print <<EOF
 set style line  1 lc rgbcolor "#CCCCCC"
