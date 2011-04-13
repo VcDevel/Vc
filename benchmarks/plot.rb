@@ -372,21 +372,21 @@ EOF
                     << ColumnFilter.new([page, group, title].flatten,
                                         [[titleLabel + ' stddev', col + '_stddev']])
             end
-            tmp = dp.write(opt[:clusterColumns], filters, labelTranslation)
-            titleNames.size.times { data << tmp << "e\n" }
+            tmp = dp.write(opt[:clusterColumns], filters, labelTranslation) + "e\n"
+            tmp = tmp[tmp.index("\n")+1..-1] if at > 0
+            titleNames.size.times { data << tmp }
 
             groupName = labelTranslation.translate(group)
             if group != nil
-                gnuplot_print << "  newhistogram \" \\r#{groupName}\" lt 1 at #{at}"
+                gnuplot_print << "  newhistogram \" \\r#{groupName}\" at #{at}"
             end
             1.upto(titleNames.size) do |i|
                 i2 = i * 2
-                gnuplot_print << "  '-' using #{i2}:#{i2+1}:xtic(1) " +
+                gnuplot_print << "  '-' using #{i2}:#{i2+1}:xtic(1) lt #{i} " +
                 if at == 0
                     "title columnheader(#{i2})"
                 else
                     "notitle"
-                    "title columnheader(#{i2})" # required because of a gnuplot bug
                 end
             end
             at += clusterNames.size + 2.0 / (titleNames.size + 1)
