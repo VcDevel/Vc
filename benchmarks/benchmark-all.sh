@@ -82,4 +82,7 @@ if which benchmarking.sh >/dev/null; then
   benchmarking.sh stop
 fi
 
+echo "Packing results into ${resultsDir}.tar.gz"
+tar -czf ${resultsDir}.tar.gz ${resultsDir}/
+
 # vim: sw=2 et
