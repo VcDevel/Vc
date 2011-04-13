@@ -332,10 +332,11 @@ set bmargin 3.5
 EOF
 #}}}1
 
-benchmarks.each do |bench, opt|
+(ARGV.empty? ? benchmarks : (ARGV - ['mandelbrot'])).each do |bench|
     dp = DataParser.new(bench)
     next if dp.empty?
 
+    opt = benchmarks[bench]
     labelTranslation = opt[:labelTranslation] ? opt[:labelTranslation] : LabelTranslation.new
 
     col = opt[:dataColumn]
@@ -402,10 +403,11 @@ EOF
     end
 end
 
-tr = LabelTranslation.new
-extra = Dir.glob("mandelbrotbench_*.dat").map { |filename| [filename, "Vc::" + tr.translate(filename["mandelbrotbench_".length..-5])] }
+if ARGV.empty? or ARGV.include? "mandelbrot"
+    tr = LabelTranslation.new
+    extra = Dir.glob("mandelbrotbench_*.dat").map { |filename| [filename, "Vc::" + tr.translate(filename["mandelbrotbench_".length..-5])] }
 
-gnuplot.print <<EOF
+    gnuplot.print <<EOF
 set ytics auto
 set xtics 100
 
@@ -435,10 +437,13 @@ set ylabel "speedup"
 plot \\
 #{(extra.map {|x| "'#{x[0]}' using 1:($3/$2) title \"#{x[1]} vs. builtin\""}).join(", \\\n")}
 EOF
+end
 
 gnuplot.close
 
-File.exist?('all.pdf') and File.delete('all.pdf')
-`pdftk *.pdf cat output all.pdf`
+unless ARGV.empty?
+    File.exist?('all.pdf') and File.delete('all.pdf')
+    `pdftk *.pdf cat output all.pdf`
+end
 
 # vim: sw=4 et foldmethod=marker
