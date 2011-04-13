@@ -864,6 +864,11 @@ template<typename T> static inline void keepResults(const T &tmp0)
     KeepResultsHelper<T, sizeof(T)>::keep(tmp0);
 }
 
+template<typename T> static inline void keepResults(const T &tmp0, const T &tmp1)
+{
+    KeepResultsHelper<T, sizeof(T)>::keep(tmp0, tmp1, tmp0, tmp1);
+}
+
 template<typename T> static inline void keepResults(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3)
 {
     KeepResultsHelper<T, sizeof(T)>::keep(tmp0, tmp1, tmp2, tmp3);
