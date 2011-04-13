@@ -46,6 +46,7 @@ template<typename Vector> struct Arithmetics
             data[i](data[i] == Vector(Zero)) += Vector(One);
         }
 
+        Benchmark::setColumnData("unrolling", "not unrolled");
         const Vector *__restrict__ const end = &data[Factor];
         benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
             for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ++ptr) {
@@ -72,6 +73,131 @@ template<typename Vector> struct Arithmetics
             }
         }
 
+        Benchmark::setColumnData("unrolling", "2x unrolled");
+        benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+                Vector tmp0 = ptr[0] + ptr[1];
+                Vector tmp1 = ptr[1] + ptr[2];
+                keepResults(tmp0, tmp1);
+            }
+        }
+        benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+                Vector tmp0 = ptr[0] - ptr[1];
+                Vector tmp1 = ptr[1] - ptr[2];
+                keepResults(tmp0, tmp1);
+            }
+        }
+        benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+                Vector tmp0 = ptr[0] * ptr[1];
+                Vector tmp1 = ptr[1] * ptr[2];
+                keepResults(tmp0, tmp1);
+            }
+        }
+        benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+                Vector tmp0 = ptr[0] / ptr[1];
+                Vector tmp1 = ptr[1] / ptr[2];
+                keepResults(tmp0, tmp1);
+            }
+        }
+
+        Benchmark::setColumnData("unrolling", "4x unrolled");
+        benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+                Vector tmp0 = ptr[0] + ptr[1];
+                Vector tmp1 = ptr[1] + ptr[2];
+                Vector tmp2 = ptr[2] + ptr[3];
+                Vector tmp3 = ptr[3] + ptr[4];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+            }
+        }
+        benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+                Vector tmp0 = ptr[0] - ptr[1];
+                Vector tmp1 = ptr[1] - ptr[2];
+                Vector tmp2 = ptr[2] - ptr[3];
+                Vector tmp3 = ptr[3] - ptr[4];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+            }
+        }
+        benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+                Vector tmp0 = ptr[0] * ptr[1];
+                Vector tmp1 = ptr[1] * ptr[2];
+                Vector tmp2 = ptr[2] * ptr[3];
+                Vector tmp3 = ptr[3] * ptr[4];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+            }
+        }
+        benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+                Vector tmp0 = ptr[0] / ptr[1];
+                Vector tmp1 = ptr[1] / ptr[2];
+                Vector tmp2 = ptr[2] / ptr[3];
+                Vector tmp3 = ptr[3] / ptr[4];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+            }
+        }
+
+        Benchmark::setColumnData("unrolling", "8x unrolled");
+        benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+                Vector tmp0 = ptr[0] + ptr[1];
+                Vector tmp1 = ptr[1] + ptr[2];
+                Vector tmp2 = ptr[2] + ptr[3];
+                Vector tmp3 = ptr[3] + ptr[4];
+                Vector tmp4 = ptr[4] + ptr[5];
+                Vector tmp5 = ptr[5] + ptr[6];
+                Vector tmp6 = ptr[6] + ptr[7];
+                Vector tmp7 = ptr[7] + ptr[8];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+                keepResults(tmp4, tmp5, tmp6, tmp7);
+            }
+        }
+        benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+                Vector tmp0 = ptr[0] - ptr[1];
+                Vector tmp1 = ptr[1] - ptr[2];
+                Vector tmp2 = ptr[2] - ptr[3];
+                Vector tmp3 = ptr[3] - ptr[4];
+                Vector tmp4 = ptr[4] - ptr[5];
+                Vector tmp5 = ptr[5] - ptr[6];
+                Vector tmp6 = ptr[6] - ptr[7];
+                Vector tmp7 = ptr[7] - ptr[8];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+                keepResults(tmp4, tmp5, tmp6, tmp7);
+            }
+        }
+        benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+                Vector tmp0 = ptr[0] * ptr[1];
+                Vector tmp1 = ptr[1] * ptr[2];
+                Vector tmp2 = ptr[2] * ptr[3];
+                Vector tmp3 = ptr[3] * ptr[4];
+                Vector tmp4 = ptr[4] * ptr[5];
+                Vector tmp5 = ptr[5] * ptr[6];
+                Vector tmp6 = ptr[6] * ptr[7];
+                Vector tmp7 = ptr[7] * ptr[8];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+                keepResults(tmp4, tmp5, tmp6, tmp7);
+            }
+        }
+        benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+                Vector tmp0 = ptr[0] / ptr[1];
+                Vector tmp1 = ptr[1] / ptr[2];
+                Vector tmp2 = ptr[2] / ptr[3];
+                Vector tmp3 = ptr[3] / ptr[4];
+                Vector tmp4 = ptr[4] / ptr[5];
+                Vector tmp5 = ptr[5] / ptr[6];
+                Vector tmp6 = ptr[6] / ptr[7];
+                Vector tmp7 = ptr[7] / ptr[8];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+                keepResults(tmp4, tmp5, tmp6, tmp7);
+            }
+        }
 
         delete[] data;
     }
@@ -80,6 +206,7 @@ template<typename Vector> struct Arithmetics
 int bmain()
 {
     Benchmark::addColumn("datatype");
+    Benchmark::addColumn("unrolling");
 
     Benchmark::setColumnData("datatype", "float_v");
     Arithmetics<float_v>::run();
