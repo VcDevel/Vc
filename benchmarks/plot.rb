@@ -92,9 +92,9 @@ benchmarks = {
         :ylabel => 'Operations / Cycle'
     },
     'math' => { #{{{1
+        :pageColumn => 'benchmark.name',
         :titleColumns => 'Implementation',
-        :clusterColumns => 'benchmark.name',
-        :groupColumn => 'datatype',
+        :clusterColumns => 'datatype',
         :dataColumn => 'Ops/Cycle',
         :ylabel => 'Operations / Cycle'
     },
