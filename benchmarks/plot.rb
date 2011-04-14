@@ -25,12 +25,43 @@ class LabelTranslation #{{{
         @trans[str] or str
     end
 end #}}}
-
+class SortOrder #{{{1
+    def initialize(hash = Hash.new)
+        @order = hash
+        #@order.default = 0
+    end
+    def [](v)
+        v =~ /^"(.*)"$/ and v = $~[1]
+        @order.index(v) or v
+    end
+    def sort(obj)
+        begin
+            obj.sort_by do |v|
+                if v.is_a? Array
+                    v.map{|vv| @order.index(vv) or vv}
+                else
+                    @order.index(v) or v
+                end
+            end
+        rescue ArgumentError
+            puts "WARNING: sortOrder outdated"
+            obj.sort_by do |v|
+                if v.is_a? Array
+                    p(v => (v.map{|vv| @order.index(vv)}))
+                else
+                    p(v => @order.index(v))
+                end
+                v
+            end
+        end
+    end
+end #}}}1
 benchmarks = {
     'memio' => { #{{{1
+        :sort => [:groups, :bars, :clusters],
         :pageColumn => 'MemorySize',
         :groupColumn => 'benchmark.name',
-        :titleColumns => ['Alignment', 'Implementation'],
+        :barColumns => ['Alignment', 'Implementation'],
         :clusterColumns => 'datatype',
         :dataColumn => 'Bytes/Cycle',
         :labelTranslation => LabelTranslation.new(
@@ -47,9 +78,10 @@ benchmarks = {
         )
     },
     'arithmetics' => { #{{{1
+        :sort => [:pages, :bars],
         :pageColumn => 'datatype',
         :groupColumn => 'unrolling',
-        :titleColumns => 'Implementation',
+        :barColumns => 'Implementation',
         :clusterColumns => 'benchmark.name',
         :dataColumn => 'Ops/Cycle',
         :labelTranslation => LabelTranslation.new(
@@ -58,32 +90,39 @@ benchmarks = {
         :ylabel => 'Operations / Cycle'
     },
     'flops' => { #{{{1
-        :titleColumns => 'benchmark.name',
+        :sort => [:clusters, :bars],
+        :barColumns => 'benchmark.name',
         :clusterColumns => 'Implementation',
         :dataColumn => 'FLOPs/Cycle',
         :labelTranslation => LabelTranslation.new(
-            'flops' => 'Peak-Flop Benchmark'
+            'flops' => 'Peak-Flop Benchmark',
+            'asm reference' => 'Assembler',
+            'intrinsics reference' => 'Intrinsics',
+            'class' => 'Vc'
         ),
         :ylabel => 'Floating-Point Operations / Cycle'
     },
     'gather' => { #{{{1
+        :sort => [:bars, :clusters],
         :pageColumn => 'benchmark.name',
         :groupColumn => 'mask',
-        :titleColumns => 'Implementation',
+        :barColumns => 'Implementation',
         :clusterColumns => 'datatype',
         :dataColumn => 'Valuess/Cycle',
         :ylabel => 'Values / Cycle'
     },
     'mask' => { #{{{1
+        :sort => [:bars, :clusters],
         :pageColumn => 'benchmark.name',
-        :titleColumns => 'datatype',
+        :barColumns => 'datatype',
         :clusterColumns => 'Implementation',
         :dataColumn => 'Ops/Cycle',
         :ylabel => 'Operations / Cycle'
     },
     'compare' => { #{{{1
-        :groupColumn => 'benchmark.name',
-        :titleColumns => 'datatype',
+        :sort => [:bars, :clusters],
+        :pageColumn => 'benchmark.name',
+        :barColumns => 'datatype',
         :clusterColumns => 'Implementation',
         :dataColumn => 'Ops/Cycle',
         :labelTranslation => LabelTranslation.new(
@@ -92,26 +131,87 @@ benchmarks = {
         :ylabel => 'Operations / Cycle'
     },
     'math' => { #{{{1
+        :sort => [:pages, :bars, :clusters],
         :pageColumn => 'benchmark.name',
-        :titleColumns => 'Implementation',
+        :barColumns => 'Implementation',
         :clusterColumns => 'datatype',
         :dataColumn => 'Ops/Cycle',
         :ylabel => 'Operations / Cycle'
     },
     'dhryrock' => { #{{{1
+        :sort => [:bars],
         :clusterColumns => 'benchmark.name',
-        :titleColumns => 'Implementation',
+        :barColumns => 'Implementation',
         :dataColumn => 'Ops/Cycle',
         :ylabel => 'Operations / Cycle'
     },
     'whetrock' => { #{{{1
+        :sort => [:bars],
         :clusterColumns => 'benchmark.name',
-        :titleColumns => 'Implementation',
+        :barColumns => 'Implementation',
         :dataColumn => 'Ops/Cycle',
         :ylabel => 'Operations / Cycle'
     } #}}}1
 }
+sortOrder = SortOrder.new([ #{{{1
+    'sfloat_v',
+    'float_v',
+    'double_v',
+    'int_v',
+    'uint_v',
+    'short_v',
+    'ushort_v',
 
+    'Scalar',
+    'Scalar (binary ops)',
+    'Scalar (ternary ops)',
+    'SSE',
+    'SSE (binary ops)',
+    'SSE (ternary ops)',
+    'AVX',
+    'AVX, XOP',
+    'AVX, FMA4',
+    'AVX, XOP, FMA4',
+
+    'load',
+    'store',
+    'load \\& store',
+
+    'Aligned, Scalar',
+    'Aligned Memory, Unaligned Instruction, Scalar',
+    'Unaligned, Scalar',
+    'Aligned, Scalar (binary ops)',
+    'Aligned Memory, Unaligned Instruction, Scalar (binary ops)',
+    'Unaligned, Scalar (binary ops)',
+    'Aligned, Scalar (ternary ops)',
+    'Aligned Memory, Unaligned Instruction, Scalar (ternary ops)',
+    'Unaligned, Scalar (ternary ops)',
+    'Aligned, SSE',
+    'Aligned Memory, Unaligned Instruction, SSE',
+    'Unaligned, SSE',
+    'Aligned, SSE (binary ops)',
+    'Aligned Memory, Unaligned Instruction, SSE (binary ops)',
+    'Unaligned, SSE (binary ops)',
+    'Aligned, SSE (ternary ops)',
+    'Aligned Memory, Unaligned Instruction, SSE (ternary ops)',
+    'Unaligned, SSE (ternary ops)',
+    'Aligned, AVX',
+    'Aligned Memory, Unaligned Instruction, AVX',
+    'Unaligned, AVX',
+    'Aligned, AVX, XOP',
+    'Aligned Memory, Unaligned Instruction, AVX, XOP',
+    'Unaligned, AVX, XOP',
+    'Aligned, AVX, FMA4',
+    'Aligned Memory, Unaligned Instruction, AVX, FMA4',
+    'Unaligned, AVX, FMA4',
+    'Aligned, AVX, XOP, FMA4',
+    'Aligned Memory, Unaligned Instruction, AVX, XOP, FMA4',
+    'Unaligned, AVX, XOP, FMA4',
+
+    'Vc',
+    'Intrinsics',
+    'Assembler'
+]) #}}}1
 class ColumnFilter #{{{1
     def initialize(grep, name_column)
         @name_column = name_column.map {|i| [i[0], i[1], -1]}
@@ -186,7 +286,7 @@ class DataParser #{{{1
         return r;
     end
 
-    def initialize(bench) #{{{2
+    def initialize(bench, tr) #{{{2
         @bench = bench
         @impl = Array.new
         @data = Array.new
@@ -205,8 +305,9 @@ class DataParser #{{{1
             end
             impl = '"' + filename[bench.length + 1..-5] + '"'
             @impl << impl
+            impl = tr.translate impl
             dat.readlines.each do |line|
-                @data.push(line.strip.split("\t") + [impl])
+                @data.push(line.strip.split("\t").map{|x| tr.translate x} + [impl])
             end
         end
         @colnames << "Implementation"
@@ -268,15 +369,23 @@ class DataParser #{{{1
         i = @colnames.index col
         (@data.map { |row| row[i] }).max
     end #}}}2
+    def sort(columns, sortOrder) #{{{2
+        columns = [columns] unless columns.is_a? Array
+        columns.map! { |i| @colnames.index i }
+        #p @data.map{|row| row[columns[0]]}
+        @data = @data.sort_by do |v|
+            columns.map { |i| sortOrder[v[i]] }
+        end
+        #p @data.map{|row| row[columns[0]]}
+    end #}}}2
     attr_reader :version
 end #}}}1
-
-gnuplot = if ARGV.include? '--debug'
+gnuplot = if ARGV.include? '--debug' #{{{1
     ARGV = ARGV - ['--debug']
     STDOUT
 else
     IO.popen("gnuplot", 'w')
-end
+end #}}}1
 #gnuplot header{{{1
 gnuplot.print <<EOF
 set style line  1 lc rgbcolor "#CCCCCC"
@@ -328,16 +437,24 @@ set y2tics scale 0
 set bmargin 3.5
 
 #set yrange [0:36]
-#set xtics nomirror rotate by -40 scale 0
+#set xtics nomirror rotate by -45 scale 0
 EOF
 #}}}1
-
+# ##### MAIN: process benchmarks {{{1
+pdfs = Array.new
 (ARGV.empty? ? benchmarks : (ARGV - ['mandelbrot'])).each do |bench|
-    dp = DataParser.new(bench)
+    if bench.is_a? Array
+        opt = bench[1]
+        bench = bench[0]
+    else
+        opt = benchmarks[bench]
+    end
+    labelTranslation = opt[:labelTranslation] ? opt[:labelTranslation] : LabelTranslation.new
+
+    dp = DataParser.new(bench, labelTranslation)
     next if dp.empty?
 
-    opt = benchmarks[bench]
-    labelTranslation = opt[:labelTranslation] ? opt[:labelTranslation] : LabelTranslation.new
+    sort = opt[:sort] ? opt[:sort] : Array.new
 
     col = opt[:dataColumn]
     if dp.version == 3 and col.match /^([^\/]+)s\/([^\/]+)$/ then
@@ -345,18 +462,30 @@ EOF
     end
     maxy = dp.maximumY col
 
+    pdffile = (opt[:outname] or bench) + '.pdf'
+    pdfs << pdffile
     gnuplot.print <<EOF
 #set yrange [0:#{maxy}]
-set output "#{opt[:outname] or bench}.pdf"
+set output "#{pdffile}"
 set ylabel "#{opt[:ylabel] or opt[:dataColumn].sub /\//, ' / '}"
 EOF
 
     pageNames = dp.list(opt[:pageColumn])
     pageNames = [nil] if pageNames === nil
+    pageNames = sortOrder.sort pageNames if sort.include? :pages
+
     groupNames = dp.list(opt[:groupColumn])
     groupNames = [nil] if groupNames === nil
-    titleNames = dp.list(opt[:titleColumns])
+    groupNames.map! { |x| [labelTranslation.translate(
+        x.is_a?(Array) ? x.map{ |y| labelTranslation.translate y}.join(', ') : x), x]}
+    groupNames = sortOrder.sort groupNames if sort.include? :groups
+
+    titleNames = dp.list(opt[:barColumns])
+    titleNames.map! { |x| [labelTranslation.translate(x.is_a?(Array) ? x.join(', ') : x), x]}
+    titleNames = sortOrder.sort titleNames if sort.include? :bars
+
     clusterNames = dp.list(opt[:clusterColumns])
+    dp.sort opt[:clusterColumns], sortOrder if sort.include? :clusters
 
     pageNames.each do |page|
         data = ''
@@ -365,21 +494,18 @@ EOF
         groupNames.each do |group|
             filters = Array.new
             titleNames.each do |title|
-                titleLabel = title.is_a?(Array) ? (title.map{|x| labelTranslation.translate x}).join(', ') : title
-                titleLabel = labelTranslation.translate(titleLabel)
                 filters \
-                    << ColumnFilter.new([page, group, title].flatten,
-                                        [[titleLabel, col]]) \
-                    << ColumnFilter.new([page, group, title].flatten,
-                                        [[titleLabel + ' stddev', col + '_stddev']])
+                    << ColumnFilter.new([page, group[1], title[1]].flatten,
+                                        [[title[0], col]]) \
+                    << ColumnFilter.new([page, group[1], title[1]].flatten,
+                                        [[title[0] + ' stddev', col + '_stddev']])
             end
             tmp = dp.write(opt[:clusterColumns], filters, labelTranslation) + "e\n"
             tmp = tmp[tmp.index("\n")+1..-1] if at > 0
             titleNames.size.times { data << tmp }
 
-            groupName = labelTranslation.translate(group)
-            if group != nil
-                gnuplot_print << "  newhistogram \" \\r#{groupName}\" at #{at}"
+            if group[1] != nil
+                gnuplot_print << "  newhistogram \" \\r#{group[0]}\" at #{at}"
             end
             1.upto(titleNames.size) do |i|
                 i2 = i * 2
@@ -401,9 +527,10 @@ plot \
 #{data}
 EOF
     end
-end
-
-if ARGV.empty? or ARGV.include? "mandelbrot"
+end #}}}1
+if ARGV.empty? or ARGV.include? "mandelbrot" #{{{1
+    pdffile = 'mandelbrot.pdf'
+    pdfs << pdffile
     tr = LabelTranslation.new
     extra = Dir.glob("mandelbrotbench_*.dat").map { |filename| [filename, "Vc::" + tr.translate(filename["mandelbrotbench_".length..-5])] }
 
@@ -413,7 +540,7 @@ set xtics 100
 
 set terminal pdf color enhanced font "CM Sans,5" size 16cm,9cm
 set pointsize 0.6
-set output "mandelbrot.pdf"
+set output "#{pdffile}"
 set style data linespoints
 set key left top
 
@@ -437,13 +564,33 @@ set ylabel "speedup"
 plot \\
 #{(extra.map {|x| "'#{x[0]}' using 1:($3/$2) title \"#{x[1]} vs. builtin\""}).join(", \\\n")}
 EOF
-end
-
+end #}}}1
+# all.pdf {{{1
 gnuplot.close
 
-unless ARGV.empty?
-    File.exist?('all.pdf') and File.delete('all.pdf')
-    `pdftk *.pdf cat output all.pdf`
-end
+if ARGV.empty?
+    `a2ps -q -M a4 -l 120 --columns=1 --rows=1 metadata -o -|ps2pdf - metadata.pdf`
+    `pdftk metadata.pdf #{pdfs.join ' '} cat output tmp.pdf` or fail
+    metain = File.new 'metadata', 'r'
+    metaout = File.new 'tmp.txt', 'w'
+    title = Array.new
+    metain.readlines.each do |line|
+        key, value = line.chomp.split(/\t+: +/, 2)
+        title << value if ['compiler', 'target arch', 'hostname', 'model name'].include? key
+    end
+    metaout.puts "InfoKey: Title"
+    metaout.puts "InfoValue: #{title.join ' '}"
+    metaout.puts "InfoKey: Creator"
+    metaout.puts "InfoValue: Vc http://compeng.uni-frankfurt.de/?vc"
+    metaout.puts "InfoKey: Producer"
+    metaout.puts "InfoValue: Vc's plot.rb and #{`gnuplot --version`}"
+    metaout.puts "InfoKey: Author"
+    metaout.puts "InfoValue: #{ENV['USER']}"
+    metain.close
+    metaout.close
+    `pdftk tmp.pdf update_info tmp.txt output all.pdf`
+    File.delete('tmp.txt')
+    File.delete('tmp.pdf')
+end #}}}1
 
 # vim: sw=4 et foldmethod=marker
