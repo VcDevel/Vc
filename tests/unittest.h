@@ -39,21 +39,6 @@
     _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>"); \
     _unit_test_global.runTestInt(&name<uint_v>, #name "<uint_v>")
 
-static const char *_unittest_fail()
-{
-    static const char *str = 0;
-    if (str == 0) {
-        if (mayUseColor(std::cout)) {
-            static const char *fail = " \033[1;40;31mFAIL:\033[0m ";
-            str = fail;
-        } else {
-            static const char *fail = " FAIL: ";
-            str = fail;
-        }
-    }
-    return str;
-}
-
 template<typename A, typename B> struct isEqualType
 {
     operator bool() const { return false; }
@@ -120,6 +105,24 @@ static _UnitTest_Global_Object _unit_test_global;
 void EXPECT_FAILURE()
 {
     _unit_test_global.expect_failure = true;
+}
+
+static const char *_unittest_fail()
+{
+    if (_unit_test_global.expect_failure) {
+        return "XFAIL: ";
+    }
+    static const char *str = 0;
+    if (str == 0) {
+        if (mayUseColor(std::cout)) {
+            static const char *fail = " \033[1;40;31mFAIL:\033[0m ";
+            str = fail;
+        } else {
+            static const char *fail = " FAIL: ";
+            str = fail;
+        }
+    }
+    return str;
 }
 
 void initTest(int argc, char **argv)
