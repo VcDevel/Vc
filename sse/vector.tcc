@@ -261,8 +261,16 @@ OP_IMPL(unsigned short, |, or_)
 OP_IMPL(unsigned short, ^, xor_)
 #undef OP_IMPL
 
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ == 4 && __GNUC_MINOR__ == 6 && __GNUC_PATCHLEVEL__ == 0 && __XOP__
+#define VC_WORKAROUND_IN
+#define VC_WORKAROUND __attribute__((optimize("no-tree-vectorize"),weak))
+#else
+#define VC_WORKAROUND_IN inline
+#define VC_WORKAROUND INTRINSIC
+#endif
+
 #define OP_IMPL(T, symbol) \
-template<> inline Vector<T> &VectorBase<T>::operator symbol##=(const VectorBase<T> &x) \
+template<> VC_WORKAROUND_IN Vector<T> &VC_WORKAROUND VectorBase<T>::operator symbol##=(const VectorBase<T> &x) \
 { \
     for_all_vector_entries(i, \
             d.m(i) symbol##= x.d.m(i); \
@@ -286,6 +294,8 @@ OP_IMPL(short, >>)
 OP_IMPL(unsigned short, <<)
 OP_IMPL(unsigned short, >>)
 #undef OP_IMPL
+#undef VC_WORKAROUND
+#undef VC_WORKAROUND_IN
 
 #define OP_IMPL(T, SUFFIX) \
 template<> inline Vector<T> &VectorBase<T>::operator<<=(int x) \
