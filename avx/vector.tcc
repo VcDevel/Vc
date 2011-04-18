@@ -25,29 +25,29 @@ namespace AVX
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum) : Base(HT::zero()) {}
-template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerOne::OEnum) : Base(HT::one()) {}
+template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum) : d(HT::zero()) {}
+template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerOne::OEnum) : d(HT::one()) {}
 template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : Base(HV::load(Base::_IndexesFromZero(), Aligned)) {}
+    : d(HV::load(IndexesFromZeroData<T>::address(), Aligned)) {}
 
 template<typename T> inline Vector<T> INTRINSIC CONST Vector<T>::Zero() { return HT::zero(); }
 template<typename T> inline Vector<T> INTRINSIC CONST Vector<T>::One() { return HT::one(); }
-template<typename T> inline Vector<T> INTRINSIC CONST Vector<T>::IndexesFromZero() { return HV::load(Base::_IndexesFromZero(), Aligned); }
+template<typename T> inline Vector<T> INTRINSIC CONST Vector<T>::IndexesFromZero() { return HV::load(IndexesFromZeroData<T>::address(), Aligned); }
 
 template<typename T> template<typename T2> inline ALWAYS_INLINE Vector<T>::Vector(Vector<T2> x)
-    : Base(StaticCastHelper<T2, T>::cast(x.data())) {}
+    : d(StaticCastHelper<T2, T>::cast(x.data())) {}
 
-template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(EntryType x) : Base(HT::set(x)) {}
-template<> inline ALWAYS_INLINE Vector<double>::Vector(EntryType x) : Base(_mm256_set1_pd(x)) {}
+template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(EntryType x) : d(HT::set(x)) {}
+template<> inline ALWAYS_INLINE Vector<double>::Vector(EntryType x) : d(_mm256_set1_pd(x)) {}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load ctors
 template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *x)
-    : Base(HV::load(x, Aligned)) {}
+    : d(HV::load(x, Aligned)) {}
 
 template<typename T> template<typename A> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *x, A align)
-    : Base(HV::load(x, align)) {}
+    : d(HV::load(x, align)) {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions
@@ -110,19 +110,19 @@ template<typename T> template<typename A> inline void INTRINSIC Vector<T>::store
 ///////////////////////////////////////////////////////////////////////////////////////////
 // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
 template<typename T> inline ALWAYS_INLINE FLATTEN Vector<T>::Vector(const Vector<typename HT::ConcatType> *a)
-    : Base(a[0])
+    : d(a[0])
 {
 }
 template<> inline ALWAYS_INLINE FLATTEN Vector<float>::Vector(const Vector<HT::ConcatType> *a)
-    : Base(concat(_mm256_cvtpd_ps(a[0].data()), _mm256_cvtpd_ps(a[1].data())))
+    : d(concat(_mm256_cvtpd_ps(a[0].data()), _mm256_cvtpd_ps(a[1].data())))
 {
 }
 template<> inline ALWAYS_INLINE FLATTEN Vector<short>::Vector(const Vector<HT::ConcatType> *a)
-    : Base(_mm_packs_epi32(lo128(a->data()), hi128(a->data())))
+    : d(_mm_packs_epi32(lo128(a->data()), hi128(a->data())))
 {
 }
 template<> inline ALWAYS_INLINE FLATTEN Vector<unsigned short>::Vector(const Vector<HT::ConcatType> *a)
-    : Base(_mm_packus_epi32(lo128(a->data()), hi128(a->data())))
+    : d(_mm_packus_epi32(lo128(a->data()), hi128(a->data())))
 {
 }
 template<typename T> inline void ALWAYS_INLINE FLATTEN Vector<T>::expand(Vector<typename HT::ConcatType> *x) const
@@ -158,7 +158,7 @@ template<> inline const Vector<double> INTRINSIC Vector<double>::dddd() const { 
 //// division
 template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
 {
-    if (Base::HasVectorDivision) {
+    if (HasVectorDivision) {
         return operator/=(Vector<T>(x));
     }
     for_all_vector_entries(i,
@@ -168,7 +168,7 @@ template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
 }
 template<typename T> inline PURE Vector<T> Vector<T>::operator/(EntryType x) const
 {
-    if (Base::HasVectorDivision) {
+    if (HasVectorDivision) {
         return operator/(Vector<T>(x));
     }
     Vector<T> r;
@@ -288,6 +288,72 @@ template<> inline Vector<double> INTRINSIC PURE Vector<double>::operator/(const 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+//// integer ops
+#define OP_IMPL(T, symbol) \
+template<> inline Vector<T> &Vector<T>::operator symbol##=(Vector<T> x) \
+{ \
+    for_all_vector_entries(i, d.m(i) symbol##= x.d.m(i); ); \
+    return *this; \
+} \
+template<> inline Vector<T>  Vector<T>::operator symbol(Vector<T> x) const \
+{ \
+    Vector<T> r; \
+    for_all_vector_entries(i, r.d.m(i) = d.m(i) symbol x.d.m(i); ); \
+    return r; \
+}
+OP_IMPL(int, <<)
+OP_IMPL(int, >>)
+OP_IMPL(unsigned int, <<)
+OP_IMPL(unsigned int, >>)
+OP_IMPL(short, <<)
+OP_IMPL(short, >>)
+OP_IMPL(unsigned short, <<)
+OP_IMPL(unsigned short, >>)
+#undef OP_IMPL
+
+#define OP_IMPL(T, PREFIX, SUFFIX) \
+template<> inline Vector<T> & INTRINSIC CONST Vector<T>::operator<<=(int x) \
+{ \
+    d.v() = CAT3(PREFIX, _slli_epi, SUFFIX)(d.v(), x); \
+    return *this; \
+} \
+template<> inline Vector<T> & INTRINSIC CONST Vector<T>::operator>>=(int x) \
+{ \
+    d.v() = CAT3(PREFIX, _srli_epi, SUFFIX)(d.v(), x); \
+    return *this; \
+} \
+template<> inline Vector<T> INTRINSIC CONST Vector<T>::operator<<(int x) const \
+{ \
+    return CAT3(PREFIX, _slli_epi, SUFFIX)(d.v(), x); \
+} \
+template<> inline Vector<T> INTRINSIC CONST Vector<T>::operator>>(int x) const \
+{ \
+    return CAT3(PREFIX, _srli_epi, SUFFIX)(d.v(), x); \
+}
+OP_IMPL(int, _mm256, 32)
+OP_IMPL(unsigned int, _mm256, 32)
+OP_IMPL(short, _mm, 16)
+OP_IMPL(unsigned short, _mm, 16)
+#undef OP_IMPL
+
+#define OP_IMPL(T, symbol, fun) \
+  template<> inline Vector<T> &Vector<T>::operator symbol##=(Vector<T> x) { d.v() = VectorHelper<T>::fun(d.v(), x.d.v()); return *this; } \
+  template<> inline Vector<T>  Vector<T>::operator symbol(Vector<T> x) const { return Vector<T>(VectorHelper<T>::fun(d.v(), x.d.v())); }
+  OP_IMPL(int, &, and_)
+  OP_IMPL(int, |, or_)
+  OP_IMPL(int, ^, xor_)
+  OP_IMPL(unsigned int, &, and_)
+  OP_IMPL(unsigned int, |, or_)
+  OP_IMPL(unsigned int, ^, xor_)
+  OP_IMPL(short, &, and_)
+  OP_IMPL(short, |, or_)
+  OP_IMPL(short, ^, xor_)
+  OP_IMPL(unsigned short, &, and_)
+  OP_IMPL(unsigned short, |, or_)
+  OP_IMPL(unsigned short, ^, xor_)
+#undef OP_IMPL
+
+///////////////////////////////////////////////////////////////////////////////////////////
 //// gathers
 // Better implementation (hopefully) with _mm256_set_
 //X template<typename T> template<typename Index> Vector<T>::Vector(const EntryType *mem, const Index *indexes)
@@ -306,13 +372,13 @@ template<typename T> template<typename IndexT> inline ALWAYS_INLINE Vector<T>::V
 }
 
 template<typename T> template<typename IndexT> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, const IndexT *indexes, Mask mask)
-    : Base(HT::zero())
+    : d(HT::zero())
 {
     gather(mem, indexes, mask);
 }
 
 template<typename T> template<typename IndexT> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, Vector<IndexT> indexes, Mask mask)
-    : Base(HT::zero())
+    : d(HT::zero())
 {
     gather(mem, indexes, mask);
 }
@@ -322,7 +388,7 @@ template<typename T> template<typename S1, typename IT> inline ALWAYS_INLINE Vec
     gather(array, member1, indexes);
 }
 template<typename T> template<typename S1, typename IT> inline ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType S1::* member1, IT indexes, Mask mask)
-    : Base(HT::zero())
+    : d(HT::zero())
 {
     gather(array, member1, indexes, mask);
 }
@@ -331,7 +397,7 @@ template<typename T> template<typename S1, typename S2, typename IT> inline ALWA
     gather(array, member1, member2, indexes);
 }
 template<typename T> template<typename S1, typename S2, typename IT> inline ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, Mask mask)
-    : Base(HT::zero())
+    : d(HT::zero())
 {
     gather(array, member1, member2, indexes, mask);
 }
@@ -340,7 +406,7 @@ template<typename T> template<typename S1, typename IT1, typename IT2> inline AL
     gather(array, ptrMember1, outerIndexes, innerIndexes);
 }
 template<typename T> template<typename S1, typename IT1, typename IT2> inline ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask)
-    : Base(HT::zero())
+    : d(HT::zero())
 {
     gather(array, ptrMember1, outerIndexes, innerIndexes, mask);
 }

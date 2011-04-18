@@ -19,8 +19,6 @@
 
 #ifndef VC_FTR_RECURS
 // main include
-#define CAT_HELPER(a, b) a##b
-#define CAT(a, b) CAT_HELPER(a, b)
 
 # define VC_FTR_RECURS 15
 # include "forceToRegisters.def"
@@ -54,9 +52,6 @@
 # include "forceToRegisters.def"
 # define VC_FTR_RECURS 0
 # include "forceToRegisters.def"
-
-#undef CAT_HELPER
-#undef CAT
 
 #else
 // sub-includes
