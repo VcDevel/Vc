@@ -29,7 +29,10 @@ template<typename T>
 class WriteMaskedVector
 {
     friend class Vector<T>;
-    typedef typename VectorBase<T>::MaskType Mask;
+    typedef typename VectorTypeHelper<T>::Type VectorType;
+    typedef T EntryType;
+    enum { Size = sizeof(VectorType) / sizeof(EntryType) };
+    typedef typename Vc::AVX::Mask<Size, sizeof(VectorType)> Mask;
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)
         //prefix

@@ -20,64 +20,15 @@
 #ifndef AVX_VECTORHELPER_H
 #define AVX_VECTORHELPER_H
 
-#include "vectorbase.h"
 #include <limits>
+#include "types.h"
+#include "intrinsics.h"
+#include "casts.h"
 
 namespace Vc
 {
 namespace AVX
 {
-    template<typename T> struct GatherHelper
-    {
-        typedef VectorBase<T> Base;
-        typedef typename Base::VectorType VectorType;
-        typedef typename Base::EntryType  EntryType;
-        typedef typename Base::IndexType  IndexType;
-        typedef typename Base::StorageType UnionType;
-        enum { Size = Base::Size, Shift = sizeof(EntryType) };
-        static void gather(Base &v, const unsigned int *indexes, const EntryType *baseAddr);
-        static void gather(Base &v, const IndexType &indexes, const EntryType *baseAddr);
-        template<typename S1> static void gather(Base &v, const IndexType &indexes, const S1 *baseAddr,
-                const EntryType S1::* member1);
-        template<typename S1, typename S2> static void gather(Base &v, const IndexType &indexes,
-                const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2);
-    };
-
-    template<typename T> struct ScatterHelper
-    {
-        typedef VectorBase<T> Base;
-        typedef typename Base::VectorType VectorType;
-        typedef typename Base::EntryType  EntryType;
-        typedef typename Base::IndexType  IndexType;
-        typedef typename Base::StorageType UnionType;
-        enum { Size = Base::Size, Shift = sizeof(EntryType) };
-
-        static void scatter(const Base &v, const IndexType &indexes, EntryType *baseAddr);
-
-        static void scatter(const Base &v, const IndexType &indexes, int mask, EntryType *baseAddr);
-
-        template<typename S1>
-        static void scatter(const Base &v, const IndexType &indexes, S1 *baseAddr, EntryType S1::* member1);
-
-        template<typename S1>
-        static void scatter(const Base &v, const IndexType &indexes, int mask, S1 *baseAddr, EntryType S1::* member1);
-
-        template<typename S1, typename S2>
-        static void scatter(const Base &v, const IndexType &indexes, S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2);
-
-        template<typename S1, typename S2>
-        static void scatter(const Base &v, const IndexType &indexes, int mask, S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2);
-    };
-
-#undef OP_DECL
-#undef PARENT_DATA
-#undef PARENT_DATA_CONST
-
-        template<typename T> struct ExpandTypeHelper { typedef T Type; };
-        template<> struct ExpandTypeHelper<short> { typedef int Type; };
-        template<> struct ExpandTypeHelper<unsigned short> { typedef unsigned int Type; };
-        template<> struct ExpandTypeHelper<float> { typedef double Type; };
-
 #define OP0(name, code) static inline VectorType name() { return code; }
 #define OP1(name, code) static inline VectorType name(const VectorType &a) { return code; }
 #define OP2(name, code) static inline VectorType name(const VectorType &a, const VectorType &b) { return code; }
@@ -583,7 +534,7 @@ namespace AVX
         };
 
         template<> struct VectorHelper<signed short> {
-            typedef typename VectorBase<signed short>::VectorType VectorType;
+            typedef typename VectorTypeHelper<signed short>::Type VectorType;
             typedef signed short EntryType;
             typedef int ConcatType;
 
@@ -651,7 +602,7 @@ namespace AVX
         };
 
         template<> struct VectorHelper<unsigned short> {
-            typedef typename VectorBase<signed short>::VectorType VectorType;
+            typedef typename VectorTypeHelper<unsigned short>::Type VectorType;
             typedef unsigned short EntryType;
             typedef unsigned int ConcatType;
 
@@ -728,14 +679,14 @@ namespace AVX
 
 template<> struct VectorHelper<char>
 {
-    typedef typename VectorBase<char>::VectorType VectorType;
+    typedef typename VectorTypeHelper<char>::Type VectorType;
     typedef char EntryType;
     typedef short ConcatType;
 };
 
 template<> struct VectorHelper<unsigned char>
 {
-    typedef typename VectorBase<unsigned char>::VectorType VectorType;
+    typedef typename VectorTypeHelper<unsigned char>::Type VectorType;
     typedef unsigned char EntryType;
     typedef unsigned short ConcatType;
 };
