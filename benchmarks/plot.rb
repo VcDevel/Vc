@@ -3,6 +3,8 @@
 class LabelTranslation #{{{
     def initialize(trans = Hash.new)
         @trans = {
+            '-nan' => '0',
+            'nan' => '0',
             'sse' => 'SSE',
             'sse-mnoavx' => 'SSE (binary ops)',
             'sse-mavx' => 'SSE (ternary ops)',
@@ -529,12 +531,14 @@ EOF
     end
 end #}}}1
 if ARGV.empty? or ARGV.include? "mandelbrot" #{{{1
-    pdffile = 'mandelbrot.pdf'
-    pdfs << pdffile
     tr = LabelTranslation.new
-    extra = Dir.glob("mandelbrotbench_*.dat").map { |filename| [filename, "Vc::" + tr.translate(filename["mandelbrotbench_".length..-5])] }
+    mandeldat = Dir.glob("mandelbrotbench_*.dat").map { |filename| [filename, "Vc::" + tr.translate(filename["mandelbrotbench_".length..-5])] }
 
-    gnuplot.print <<EOF
+    if not mandeldat.empty?
+        pdffile = 'mandelbrot.pdf'
+        pdfs << pdffile
+
+        gnuplot.print <<EOF
 set ytics auto
 set xtics 100
 
@@ -556,14 +560,15 @@ set xlabel "width/3 = height/2 [pixels]"
 set title "Mandelbrot Benchmark"
 set ylabel "runtime [10^9 cycles]"
 plot \\
-'#{extra[0][0]}' using 1:($3/10**9) title "builtin", \\
-#{(extra.map {|x| "'#{x[0]}' using 1:($2/10**9) title \"#{x[1]}\""}).join(", \\\n")}
+'#{mandeldat[0][0]}' using 1:($3/10**9) title "builtin", \\
+#{(mandeldat.map {|x| "'#{x[0]}' using 1:($2/10**9) title \"#{x[1]}\""}).join(", \\\n")}
 
 set key at -20,2.4
 set ylabel "speedup"
 plot \\
-#{(extra.map {|x| "'#{x[0]}' using 1:($3/$2) title \"#{x[1]} vs. builtin\""}).join(", \\\n")}
+#{(mandeldat.map {|x| "'#{x[0]}' using 1:($3/$2) title \"#{x[1]} vs. builtin\""}).join(", \\\n")}
 EOF
+    end
 end #}}}1
 # all.pdf {{{1
 gnuplot.close
