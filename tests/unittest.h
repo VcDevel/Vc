@@ -107,9 +107,32 @@ void EXPECT_FAILURE()
     _unit_test_global.expect_failure = true;
 }
 
+static const char *_unittest_fail()
+{
+    if (_unit_test_global.expect_failure) {
+        return "XFAIL: ";
+    }
+    static const char *str = 0;
+    if (str == 0) {
+        if (mayUseColor(std::cout)) {
+            static const char *fail = " \033[1;40;31mFAIL:\033[0m ";
+            str = fail;
+        } else {
+            static const char *fail = " FAIL: ";
+            str = fail;
+        }
+    }
+    return str;
+}
+
 void initTest(int argc, char **argv)
 {
     for (int i = 1; i < argc; ++i) {
+        if (0 == std::strcmp(argv[i], "--help") || 0 == std::strcmp(argv[i], "-h")) {
+            std::cout <<
+                "Usage: " << argv[0] << " [-h|--help] [--only <testname>]\n";
+            exit(0);
+        }
         if (0 == std::strcmp(argv[i], "--only") && i + 1 < argc) {
             _unit_test_global.only_name = argv[i + 1];
         }
@@ -137,7 +160,7 @@ void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
         }
     } else {
         if (!_unit_test_global.status) {
-            std::cout << " FAIL: " << name << std::endl;
+            std::cout << _unittest_fail() << "┕ " << name << std::endl;
             ++failedTests;
         } else {
             std::cout << " PASS: " << name << std::endl;
@@ -150,8 +173,6 @@ template<typename T> static inline void setFuzzyness( T );
 
 template<> inline void setFuzzyness<float>( float fuzz ) { _unit_test_global.float_fuzzyness = fuzz; }
 template<> inline void setFuzzyness<double>( double fuzz ) { _unit_test_global.double_fuzzyness = fuzz; }
-
-#define VERIFY(cond) if (cond) {} else { std::cout << "       " << #cond << " at " << __FILE__ << ":" << __LINE__ << " failed.\n"; _unit_test_global.status = false; return; }
 
 template<typename T1, typename T2> static inline bool unittest_compareHelper( const T1 &a, const T2 &b ) { return a == b; }
 template<> inline bool unittest_compareHelper<Vc::int_v, Vc::int_v>( const Vc::int_v &a, const Vc::int_v &b ) { return (a == b).isFull(); }
@@ -206,29 +227,150 @@ template<> inline double unittest_fuzzynessHelper<Vc::float_v>(const Vc::float_v
 template<> inline double unittest_fuzzynessHelper<double>(const double &) { return _unit_test_global.double_fuzzyness; }
 template<> inline double unittest_fuzzynessHelper<Vc::double_v>(const Vc::double_v &) { return _unit_test_global.double_fuzzyness; }
 
+#ifdef __GNUC__
+#define ALWAYS_INLINE __attribute__((__always_inline__))
+#else
+#define ALWAYS_INLINE
+#endif
+
+class _UnitTest_Compare
+{
+    public:
+        enum OptionFuzzy { Fuzzy };
+        enum OptionNoEq { NoEq };
+
+        template<typename T1, typename T2>
+        inline _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line)
+            : m_failed(!unittest_compareHelper(a, b))
+        {
+            if (m_failed) {
+                printFirst();
+                print("at "); print(_file); print(':'); print(_line); print(":\n");
+                print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
+                print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
+                print(") -> "); print(a == b);
+            }
+        }
+
+        template<typename T1, typename T2>
+        inline _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
+            : m_failed(!unittest_compareHelper(a, b))
+        {
+            if (m_failed) {
+                printFirst();
+                print("at "); print(_file); print(':'); print(_line); print(":\n");
+                print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
+                print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
+                print(')');
+            }
+        }
+
+        template<typename T>
+        inline _UnitTest_Compare(T a, T b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
+            : m_failed(!unittest_fuzzyCompareHelper(a, b))
+        {
+            if (m_failed) {
+                printFirst();
+                print("at "); print(_file); print(':'); print(_line); print(":\n");
+                print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") ≈ ");
+                print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
+                print(") -> "); print(a == b);
+                print("\nwith fuzzyness ");
+                print(unittest_fuzzynessHelper(a));
+            }
+        }
+
+        inline _UnitTest_Compare(bool good, const char *cond, const char *_file, int _line)
+            : m_failed(!good)
+        {
+            if (m_failed) {
+                printFirst();
+                print("at "); print(_file); print(':'); print(_line); print(":"); print(cond);
+            }
+        }
+
+        template<typename T> inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(const T &x) const {
+            if (m_failed) {
+                print(x);
+            }
+            return *this;
+        }
+
+        inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(const char *str) const {
+            if (m_failed) {
+                print(str);
+            }
+            return *this;
+        }
+
+        inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(const char ch) const {
+            if (m_failed) {
+                print(ch);
+            }
+            return *this;
+        }
+
+        inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(bool b) const {
+            if (m_failed) {
+                print(b);
+            }
+            return *this;
+        }
+
+        inline ALWAYS_INLINE ~_UnitTest_Compare()
+        {
+            if (m_failed) {
+                printLast();
+            }
+        }
+
+    private:
+        static void printFirst() { std::cout << _unittest_fail() << "┍ "; }
+        template<typename T> static void print(const T &x) { std::cout << x; }
+        static void print(const char *str) {
+            const char *pos = 0;
+            if (0 != (pos = std::strchr(str, '\n'))) {
+                if (pos == str) {
+                    std::cout << '\n' << _unittest_fail() << "│ " << &str[1];
+                } else {
+                    char *left = strndup(str, pos - str);
+                    std::cout << left << '\n' << _unittest_fail() << "│ " << &pos[1];
+                    free(left);
+                }
+            } else {
+                std::cout << str;
+            }
+        }
+        static void print(const char ch) {
+            if (ch == '\n') {
+                std::cout << '\n' << _unittest_fail() << "│ ";
+            } else {
+                std::cout << ch;
+            }
+        }
+        static void print(bool b) {
+            std::cout << (b ? "true" : "false");
+        }
+        static void printLast() {
+            std::cout << std::endl;
+            _unit_test_global.status = false;
+            throw _UnitTest_Failure();
+        }
+        const bool m_failed;
+};
+#undef ALWAYS_INLINE
+
 #define FUZZY_COMPARE( a, b ) \
-if ( unittest_fuzzyCompareHelper( a, b ) ) {} else { \
-    unitttest_comparePrintHelper(a, b, (a) == (b), #a, #b, __FILE__, __LINE__, unittest_fuzzynessHelper(a)); \
-    _unit_test_global.status = false; \
-    throw _UnitTest_Failure(); \
-    return; \
-}
+    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__, _UnitTest_Compare::Fuzzy)
 
 #define COMPARE( a, b ) \
-if ( unittest_compareHelper( a, b ) ) {} else { \
-    unitttest_comparePrintHelper(a, b, (a) == (b), #a, #b, __FILE__, __LINE__); \
-    _unit_test_global.status = false; \
-    throw _UnitTest_Failure(); \
-    return; \
-}
+    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__)
 
 #define COMPARE_NOEQ( a, b ) \
-if ( unittest_compareHelper( a, b ) ) {} else { \
-    unitttest_comparePrintHelper(a, b, "", #a, #b, __FILE__, __LINE__); \
-    _unit_test_global.status = false; \
-    throw _UnitTest_Failure(); \
-    return; \
-}
+    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__, _UnitTest_Compare::NoEq)
+
+#define VERIFY(cond) \
+    _UnitTest_Compare(cond, #cond, __FILE__, __LINE__)
 
 static void unittest_assert(bool cond, const char *code, const char *file, int line)
 {

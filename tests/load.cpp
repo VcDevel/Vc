@@ -31,6 +31,11 @@ template<typename Vec> void checkAlignment()
     if (Vec::Size == 1 && sizeof(typename Vec::EntryType) != VectorAlignment) {
         mask = sizeof(typename Vec::EntryType) - 1;
     }
+#ifdef VC_IMPL_AVX
+    if (sizeof(typename Vec::EntryType) == 2) {
+        mask = sizeof(Vec) - 1;
+    }
+#endif
     for (i = 0; i < 10; ++i) {
         VERIFY((reinterpret_cast<unsigned long>(&a[i]) & mask) == 0);
     }

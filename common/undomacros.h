@@ -21,14 +21,25 @@
 #define VC_COMMON_UNDOMACROS_H
 #undef VC_COMMON_MACROS_H
 
+#undef INTRINSIC
 #undef CONST
 #undef PURE
 #undef MAY_ALIAS
+#undef ALWAYS_INLINE
+
 #undef ALIGN
 #undef CAT
 #undef CAT_HELPER
+#undef CAT3
+#undef CAT3_HELPER
 #undef unrolled_loop16
 #undef for_all_vector_entries
 #undef FREE_STORE_OPERATORS_ALIGNED
+
+#undef VC_WARN_INLINE
+#undef VC_WARN
+
+#undef VC_STATIC_ASSERT_NC
+#undef VC_STATIC_ASSERT
 
 #endif // VC_COMMON_UNDOMACROS_H

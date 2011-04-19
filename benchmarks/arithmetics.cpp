@@ -46,129 +46,158 @@ template<typename Vector> struct Arithmetics
             data[i](data[i] == Vector(Zero)) += Vector(One);
         }
 
-        {
-            Benchmark timer("add", valuesPerSecondFactor, "Op");
-            while (timer.wantsMoreDataPoints()) {
-                timer.Start();
-                const Vector *const end = &data[Factor];
-                for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
-                    Vector tmp = ptr[0] + ptr[1];
-                    Vc::forceToRegisters(tmp);
-                }
-                timer.Stop();
+        Benchmark::setColumnData("unrolling", "not unrolled");
+        const Vector *__restrict__ const end = &data[Factor];
+        benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ++ptr) {
+                Vector tmp = ptr[0] + ptr[1];
+                Vc::forceToRegisters(tmp);
             }
-            timer.Print();
         }
-        {
-            Benchmark timer("sub", valuesPerSecondFactor, "Op");
-            while (timer.wantsMoreDataPoints()) {
-                timer.Start();
-                const Vector *const end = &data[Factor];
-                for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
-                    Vector tmp = ptr[0] - ptr[1];
-                    Vc::forceToRegisters(tmp);
-                }
-                timer.Stop();
+        benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ++ptr) {
+                Vector tmp = ptr[0] - ptr[1];
+                Vc::forceToRegisters(tmp);
             }
-            timer.Print();
         }
-        {
-            Benchmark timer("mul", valuesPerSecondFactor, "Op");
-            while (timer.wantsMoreDataPoints()) {
-                timer.Start();
-                const Vector *const end = &data[Factor];
-                for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
-                    Vector tmp = ptr[0] * ptr[1];
-                    Vc::forceToRegisters(tmp);
-                }
-                timer.Stop();
+        benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ++ptr) {
+                Vector tmp = ptr[0] * ptr[1];
+                Vc::forceToRegisters(tmp);
             }
-            timer.Print();
         }
-        {
-            Benchmark timer("div", valuesPerSecondFactor, "Op");
-            while (timer.wantsMoreDataPoints()) {
-                timer.Start();
-                const Vector *const end = &data[Factor];
-                for (const Vector *ptr = &data[0]; ptr < end; ++ptr) {
-                    Vector tmp = ptr[0] / ptr[1];
-                    Vc::forceToRegisters(tmp);
-                }
-                timer.Stop();
+        benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ++ptr) {
+                Vector tmp = ptr[0] / ptr[1];
+                Vc::forceToRegisters(tmp);
             }
-            timer.Print();
         }
 
-        /*
-        {
-            Benchmark timer("add latency", Factor, "Op");
-            while (timer.wantsMoreDataPoints()) {
-                timer.Start();
-                {
-                    Vector tmp = data[0];
-                    for (const Vector *ptr = &data[1]; ptr < &data[Factor + 1]; ptr += 4) {
-                        tmp += ptr[0];
-                        tmp += ptr[1];
-                        tmp += ptr[2];
-                        tmp += ptr[3];
-                    }
-                    blackHole = tmp;
-                }
-                timer.Stop();
+        Benchmark::setColumnData("unrolling", "2x unrolled");
+        benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+                Vector tmp0 = ptr[0] + ptr[1];
+                Vector tmp1 = ptr[1] + ptr[2];
+                keepResults(tmp0, tmp1);
             }
-            timer.Print();
         }
-        {
-            Benchmark timer("sub latency", Factor, "Op");
-            while (timer.wantsMoreDataPoints()) {
-                timer.Start();
-                {
-                    Vector tmp = data[0];
-                    for (int i = 1; i < Factor + 1; ++i) {
-                        tmp -= data[i];
-                    }
-                    blackHole = tmp;
-                }
-                timer.Stop();
+        benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+                Vector tmp0 = ptr[0] - ptr[1];
+                Vector tmp1 = ptr[1] - ptr[2];
+                keepResults(tmp0, tmp1);
             }
-            timer.Print();
         }
-        {
-            Benchmark timer("mul latency", Factor, "Op");
-            while (timer.wantsMoreDataPoints()) {
-                timer.Start();
-                {
-                    Vector tmp = data[0];
-                    for (int i = 1; i < Factor + 1; ++i) {
-                        tmp *= data[i];
-                    }
-                    blackHole = tmp;
-                }
-                timer.Stop();
+        benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+                Vector tmp0 = ptr[0] * ptr[1];
+                Vector tmp1 = ptr[1] * ptr[2];
+                keepResults(tmp0, tmp1);
             }
-            timer.Print();
         }
-        data[0] = std::numeric_limits<Vector>::max();
-        for (int i = 1; i < Factor + 1; ++i) {
-            data[i] = PseudoRandom<Vector>::next() + Vector(One);
-            data[i](data[i] == Vector(Zero)) += 2;
-        }
-        {
-            Benchmark timer("div latency", Factor, "Op");
-            while (timer.wantsMoreDataPoints()) {
-                timer.Start();
-                {
-                    Vector tmp = data[0];
-                    for (int i = 1; i < Factor + 1; ++i) {
-                        tmp /= data[i];
-                    }
-                    blackHole = tmp;
-                }
-                timer.Stop();
+        benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+                Vector tmp0 = ptr[0] / ptr[1];
+                Vector tmp1 = ptr[1] / ptr[2];
+                keepResults(tmp0, tmp1);
             }
-            timer.Print();
         }
-        */
+
+        Benchmark::setColumnData("unrolling", "4x unrolled");
+        benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+                Vector tmp0 = ptr[0] + ptr[1];
+                Vector tmp1 = ptr[1] + ptr[2];
+                Vector tmp2 = ptr[2] + ptr[3];
+                Vector tmp3 = ptr[3] + ptr[4];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+            }
+        }
+        benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+                Vector tmp0 = ptr[0] - ptr[1];
+                Vector tmp1 = ptr[1] - ptr[2];
+                Vector tmp2 = ptr[2] - ptr[3];
+                Vector tmp3 = ptr[3] - ptr[4];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+            }
+        }
+        benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+                Vector tmp0 = ptr[0] * ptr[1];
+                Vector tmp1 = ptr[1] * ptr[2];
+                Vector tmp2 = ptr[2] * ptr[3];
+                Vector tmp3 = ptr[3] * ptr[4];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+            }
+        }
+        benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+                Vector tmp0 = ptr[0] / ptr[1];
+                Vector tmp1 = ptr[1] / ptr[2];
+                Vector tmp2 = ptr[2] / ptr[3];
+                Vector tmp3 = ptr[3] / ptr[4];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+            }
+        }
+
+        Benchmark::setColumnData("unrolling", "8x unrolled");
+        benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+                Vector tmp0 = ptr[0] + ptr[1];
+                Vector tmp1 = ptr[1] + ptr[2];
+                Vector tmp2 = ptr[2] + ptr[3];
+                Vector tmp3 = ptr[3] + ptr[4];
+                Vector tmp4 = ptr[4] + ptr[5];
+                Vector tmp5 = ptr[5] + ptr[6];
+                Vector tmp6 = ptr[6] + ptr[7];
+                Vector tmp7 = ptr[7] + ptr[8];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+                keepResults(tmp4, tmp5, tmp6, tmp7);
+            }
+        }
+        benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+                Vector tmp0 = ptr[0] - ptr[1];
+                Vector tmp1 = ptr[1] - ptr[2];
+                Vector tmp2 = ptr[2] - ptr[3];
+                Vector tmp3 = ptr[3] - ptr[4];
+                Vector tmp4 = ptr[4] - ptr[5];
+                Vector tmp5 = ptr[5] - ptr[6];
+                Vector tmp6 = ptr[6] - ptr[7];
+                Vector tmp7 = ptr[7] - ptr[8];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+                keepResults(tmp4, tmp5, tmp6, tmp7);
+            }
+        }
+        benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+                Vector tmp0 = ptr[0] * ptr[1];
+                Vector tmp1 = ptr[1] * ptr[2];
+                Vector tmp2 = ptr[2] * ptr[3];
+                Vector tmp3 = ptr[3] * ptr[4];
+                Vector tmp4 = ptr[4] * ptr[5];
+                Vector tmp5 = ptr[5] * ptr[6];
+                Vector tmp6 = ptr[6] * ptr[7];
+                Vector tmp7 = ptr[7] * ptr[8];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+                keepResults(tmp4, tmp5, tmp6, tmp7);
+            }
+        }
+        benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
+            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+                Vector tmp0 = ptr[0] / ptr[1];
+                Vector tmp1 = ptr[1] / ptr[2];
+                Vector tmp2 = ptr[2] / ptr[3];
+                Vector tmp3 = ptr[3] / ptr[4];
+                Vector tmp4 = ptr[4] / ptr[5];
+                Vector tmp5 = ptr[5] / ptr[6];
+                Vector tmp6 = ptr[6] / ptr[7];
+                Vector tmp7 = ptr[7] / ptr[8];
+                keepResults(tmp0, tmp1, tmp2, tmp3);
+                keepResults(tmp4, tmp5, tmp6, tmp7);
+            }
+        }
 
         delete[] data;
     }
@@ -177,6 +206,7 @@ template<typename Vector> struct Arithmetics
 int bmain()
 {
     Benchmark::addColumn("datatype");
+    Benchmark::addColumn("unrolling");
 
     Benchmark::setColumnData("datatype", "float_v");
     Arithmetics<float_v>::run();

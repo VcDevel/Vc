@@ -24,97 +24,97 @@ namespace LRBni
 
 template<> inline _M512D VectorHelper<double>::load(const double *x, AlignedFlag)
 {
-    return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadq(x, _MM_FULLUPC64_NONE, _MM_BROADCAST_8X8));
+    return lrb_cast<VectorType>(FixedIntrinsics::_mm512_loadq(x, _MM_FULLUPC64_NONE, _MM_BROADCAST_8X8));
 }
 
 template<> inline _M512D VectorHelper<double>::load(const double *x, UnalignedFlag)
 {
-    return mm512_reinterpret_cast<VectorType>(_mm512_expandq( const_cast<double *>(x), _MM_FULLUPC64_NONE, _MM_HINT_NONE));
+    return lrb_cast<VectorType>(_mm512_expandq( const_cast<double *>(x), _MM_FULLUPC64_NONE, _MM_HINT_NONE));
 }
 
 template<> inline void VectorHelper<double>::store(void *mem, VectorType x, AlignedFlag)
 {
-    _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE);
+    _mm512_storeq(mem, lrb_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE);
 }
 
 template<> inline void VectorHelper<double>::store(void *mem, VectorType x, UnalignedFlag)
 {
-    _mm512_compressq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NONE);
+    _mm512_compressq(mem, lrb_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NONE);
 }
 
 template<> inline void VectorHelper<double>::store(void *mem, VectorType x, StreamingAndAlignedFlag)
 {
-    _mm512_storeq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NT);
+    _mm512_storeq(mem, lrb_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NT);
 }
 
 template<> inline void VectorHelper<double>::store(void *mem, VectorType x, StreamingAndUnalignedFlag)
 {
-    _mm512_compressq(mem, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NT);
+    _mm512_compressq(mem, lrb_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NT);
 }
 
 template<> inline void VectorHelper<double>::store(void *mem, VectorType x, __mmask k, AlignedFlag)
 {
-    _mm512_mask_storeq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE);
+    _mm512_mask_storeq(mem, k, lrb_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NONE);
 }
 
 template<> inline void VectorHelper<double>::store(void *mem, VectorType x, __mmask k, UnalignedFlag)
 {
-    _mm512_mask_compressq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NONE);
+    _mm512_mask_compressq(mem, k, lrb_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NONE);
 }
 
 template<> inline void VectorHelper<double>::store(void *mem, VectorType x, __mmask k, StreamingAndAlignedFlag)
 {
-    _mm512_mask_storeq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NT);
+    _mm512_mask_storeq(mem, k, lrb_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_SUBSET64_8, _MM_HINT_NT);
 }
 
 template<> inline void VectorHelper<double>::store(void *mem, VectorType x, __mmask k, StreamingAndUnalignedFlag)
 {
-    _mm512_mask_compressq(mem, k, mm512_reinterpret_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NT);
+    _mm512_mask_compressq(mem, k, lrb_cast<_M512>(x), _MM_DOWNC64_NONE, _MM_HINT_NT);
 }
 
 
 #define LOAD(T1, T2, conv) \
 template<> inline VectorHelper<T1>::VectorType VectorHelper<T1>::load(const T2 *x, AlignedFlag) \
 { \
-    return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd(x, conv, _MM_BROADCAST_16X16, _MM_HINT_NONE)); \
+    return lrb_cast<VectorType>(FixedIntrinsics::_mm512_loadd(x, conv, _MM_BROADCAST_16X16, _MM_HINT_NONE)); \
 } \
 template<> inline VectorHelper<T1>::VectorType VectorHelper<T1>::load(const T2 *x, UnalignedFlag) \
 { \
-    return mm512_reinterpret_cast<VectorType>(_mm512_expandd(const_cast<T2 *>(x), conv, _MM_HINT_NONE)); \
+    return lrb_cast<VectorType>(_mm512_expandd(const_cast<T2 *>(x), conv, _MM_HINT_NONE)); \
 }
 
 #define STORE(T1, T2, conv) \
 template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, AlignedFlag) \
 { \
-    _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NONE); \
+    _mm512_stored(mem, lrb_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NONE); \
 } \
 template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, UnalignedFlag) \
 { \
-    _mm512_compressd(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_HINT_NONE); \
+    _mm512_compressd(mem, lrb_cast<_M512>(x), conv, _MM_HINT_NONE); \
 } \
 template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, StreamingAndAlignedFlag) \
 { \
-    _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NT); \
+    _mm512_stored(mem, lrb_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NT); \
 } \
 template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, StreamingAndUnalignedFlag) \
 { \
-    _mm512_compressd(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_HINT_NT); \
+    _mm512_compressd(mem, lrb_cast<_M512>(x), conv, _MM_HINT_NT); \
 } \
 template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, __mmask k, AlignedFlag) \
 { \
-    _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NONE); \
+    _mm512_mask_stored(mem, k, lrb_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NONE); \
 } \
 template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, __mmask k, UnalignedFlag) \
 { \
-    _mm512_mask_compressd(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_HINT_NONE); \
+    _mm512_mask_compressd(mem, k, lrb_cast<_M512>(x), conv, _MM_HINT_NONE); \
 } \
 template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, __mmask k, StreamingAndAlignedFlag) \
 { \
-    _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NT); \
+    _mm512_mask_stored(mem, k, lrb_cast<_M512>(x), conv, _MM_SUBSET32_16, _MM_HINT_NT); \
 } \
 template<> inline void VectorHelper<T1>::store(T2 *mem, VectorType x, __mmask k, StreamingAndUnalignedFlag) \
 { \
-    _mm512_mask_compressd(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_HINT_NT); \
+    _mm512_mask_compressd(mem, k, lrb_cast<_M512>(x), conv, _MM_HINT_NT); \
 }
 
 LOAD(float, float, _MM_FULLUPC_NONE)

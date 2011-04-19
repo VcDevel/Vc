@@ -28,15 +28,14 @@ template<typename Vec> void testSort()
 {
     typedef typename Vec::EntryType EntryType;
     typedef typename Vec::IndexType IndexType;
-    EntryType _a[Vec::Size];
+
+    typename Vec::Memory _a;
     const IndexType _ref(IndexesFromZero);
     Vec ref(_ref);
     Vec a;
-    int x = Vec::Size;
     int maxPerm = 1;
-    while (x > 0) {
+    for (int x = Vec::Size; x > 0; --x) {
         maxPerm *= x;
-        --x;
     }
     for (int perm = 0; perm < maxPerm; ++perm) {
         int rest = perm;
@@ -59,7 +58,7 @@ template<typename Vec> void testSort()
         }
         a.load(_a);
         //std::cout << a << a.sorted() << std::endl;
-        COMPARE(ref, a.sorted());
+        COMPARE(ref, a.sorted()) << ", a: " << a;
     }
 }
 
@@ -134,13 +133,13 @@ int main()
     runTest(testForeachBit<sfloat_v>);
     runTest(testForeachBit<double_v>);
 
-//X     runTest(testSort<int_v>);
-//X     runTest(testSort<uint_v>);
-//X     runTest(testSort<float_v>);
-//X     runTest(testSort<double_v>);
-//X     runTest(testSort<sfloat_v>);
-//X     runTest(testSort<short_v>);
-//X     runTest(testSort<ushort_v>);
+    runTest(testSort<int_v>);
+    runTest(testSort<uint_v>);
+    runTest(testSort<float_v>);
+    runTest(testSort<double_v>);
+    runTest(testSort<sfloat_v>);
+    runTest(testSort<short_v>);
+    runTest(testSort<ushort_v>);
 
     return 0;
 }

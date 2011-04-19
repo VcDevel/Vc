@@ -20,6 +20,8 @@
 #ifndef VC_LARRABEE_DEINTERLEAVE_H
 #define VC_LARRABEE_DEINTERLEAVE_H
 
+#include "macros.h"
+
 namespace Vc
 {
 namespace Internal
@@ -62,5 +64,6 @@ template<> struct HelperImpl<Vc::LRBniImpl>
 #include "deinterleave.tcc"
 #include "prefetches.tcc"
 #include "helperimpl.tcc"
+#include "undomacros.h"
 
 #endif // VC_LARRABEE_DEINTERLEAVE_H

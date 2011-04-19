@@ -142,6 +142,8 @@ elseif(COMPILER_IS_GCC)
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wshadow")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wshadow")
    AddCompilerFlag("-Wimplicit")
+   AddCompilerFlag("-Wabi")
+   AddCompilerFlag("-fabi-version=4") # this is required to make __m128 and __m256 appear as different types.
    AddCompilerFlag("-Wold-style-cast")
    AddCompilerFlag("-Wno-variadic-macros")
    AddCompilerFlag("-fno-threadsafe-statics")
@@ -252,19 +254,27 @@ endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_library(Vc STATIC vector.cpp common/support.cpp)
+add_library(CpuId STATIC cpuid.cpp)
+add_target_property(CpuId LABELS "other")
+
+if(USE_AVX)
+   add_library(Vc STATIC vector.cpp common/support.cpp avx/sorthelper.cpp)
+else()
+   add_library(Vc STATIC vector.cpp common/support.cpp)
+endif()
 add_target_property(Vc COMPILE_FLAGS "-DVC_COMPILE_LIB")
 add_target_property(Vc LABELS "other")
 
 add_custom_target(other VERBATIM)
 add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
 add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
+add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
 add_custom_target(LRBni COMMENT "build LRBni code" VERBATIM)
 add_dependencies(other Vc)
 
 install(TARGETS Vc DESTINATION lib/)
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
-install(DIRECTORY larrabee scalar sse common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+install(DIRECTORY larrabee scalar sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 install(FILES
    cmake/FindVc.cmake

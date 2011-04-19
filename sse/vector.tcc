@@ -172,7 +172,7 @@ template<> inline Vector<short> &Vector<short>::operator/=(const Vector<short> &
     return *this;
 }
 
-template<> inline Vector<short> Vector<short>::operator/(const Vector<short> &x) const
+template<> inline Vector<short> ALWAYS_INLINE Vector<short>::operator/(const Vector<short> &x) const
 {
     __m128 lo = _mm_cvtepi32_ps(VectorHelper<short>::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
@@ -191,7 +191,7 @@ template<> inline Vector<unsigned short> &Vector<unsigned short>::operator/=(con
     return *this;
 }
 
-template<> inline Vector<unsigned short> Vector<unsigned short>::operator/(const Vector<unsigned short> &x) const
+template<> inline Vector<unsigned short> ALWAYS_INLINE Vector<unsigned short>::operator/(const Vector<unsigned short> &x) const
 {
     __m128 lo = _mm_cvtepi32_ps(VectorHelper<short>::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
@@ -261,8 +261,16 @@ OP_IMPL(unsigned short, |, or_)
 OP_IMPL(unsigned short, ^, xor_)
 #undef OP_IMPL
 
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ == 4 && __GNUC_MINOR__ == 6 && __GNUC_PATCHLEVEL__ == 0 && __XOP__
+#define VC_WORKAROUND_IN
+#define VC_WORKAROUND __attribute__((optimize("no-tree-vectorize"),weak))
+#else
+#define VC_WORKAROUND_IN inline
+#define VC_WORKAROUND INTRINSIC
+#endif
+
 #define OP_IMPL(T, symbol) \
-template<> inline Vector<T> &VectorBase<T>::operator symbol##=(const VectorBase<T> &x) \
+template<> VC_WORKAROUND_IN Vector<T> &VC_WORKAROUND VectorBase<T>::operator symbol##=(const VectorBase<T> &x) \
 { \
     for_all_vector_entries(i, \
             d.m(i) symbol##= x.d.m(i); \
@@ -286,6 +294,8 @@ OP_IMPL(short, >>)
 OP_IMPL(unsigned short, <<)
 OP_IMPL(unsigned short, >>)
 #undef OP_IMPL
+#undef VC_WORKAROUND
+#undef VC_WORKAROUND_IN
 
 #define OP_IMPL(T, SUFFIX) \
 template<> inline Vector<T> &VectorBase<T>::operator<<=(int x) \
@@ -328,19 +338,109 @@ template<> inline Vector<float8> PURE ALWAYS_INLINE FLATTEN Vector<float8>::oper
 }
 template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<int>::operator-() const
 {
-    return _mm_mullo_epi32(d.v(), _mm_setallone_si128());
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi32(d.v(), _mm_setallone_si128());
+#else
+    return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
+#endif
 }
 template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<unsigned int>::operator-() const
 {
-    return _mm_mullo_epi32(d.v(), _mm_setallone_si128());
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi32(d.v(), _mm_setallone_si128());
+#else
+    return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
+#endif
 }
 template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<short>::operator-() const
 {
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
+#else
     return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+#endif
 }
 template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<unsigned short>::operator-() const
 {
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
+#else
     return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+#endif
+}
+
+template<typename T> template<typename S1, typename IT1, typename IT2> inline ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
+{
+    gather(array, ptrMember1, outerIndexes, innerIndexes);
+}
+
+template<typename T, size_t Size> struct IndexSizeChecker { static void check() {} };
+template<typename T, size_t Size> struct IndexSizeChecker<Vector<T>, Size>
+{
+    static void check() {
+        VC_STATIC_ASSERT(Vector<T>::Size >= Size, IndexVector_must_have_greater_or_equal_number_of_entries);
+    }
+};
+template<> template<typename S1, typename IT1, typename IT2>
+inline void ALWAYS_INLINE FLATTEN Vector<double>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
+{
+    IndexSizeChecker<IT1, Size>::check();
+    IndexSizeChecker<IT2, Size>::check();
+    d.v() = _mm_setr_pd((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]]);
+}
+template<> template<typename S1, typename IT1, typename IT2>
+inline void ALWAYS_INLINE FLATTEN Vector<float>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
+{
+    IndexSizeChecker<IT1, Size>::check();
+    IndexSizeChecker<IT2, Size>::check();
+    d.v() = _mm_setr_ps((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
+            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]]);
+}
+template<> template<typename S1, typename IT1, typename IT2>
+inline void ALWAYS_INLINE FLATTEN Vector<float8>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
+{
+    IndexSizeChecker<IT1, Size>::check();
+    IndexSizeChecker<IT2, Size>::check();
+    d.v()[0] = _mm_setr_ps((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
+            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]]);
+    d.v()[1] = _mm_setr_ps((array[outerIndexes[4]].*(ptrMember1))[innerIndexes[4]], (array[outerIndexes[5]].*(ptrMember1))[innerIndexes[5]],
+            (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
+}
+template<> template<typename S1, typename IT1, typename IT2>
+inline void ALWAYS_INLINE FLATTEN Vector<int>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
+{
+    IndexSizeChecker<IT1, Size>::check();
+    IndexSizeChecker<IT2, Size>::check();
+    d.v() = _mm_setr_epi32((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
+            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]]);
+}
+template<> template<typename S1, typename IT1, typename IT2>
+inline void ALWAYS_INLINE FLATTEN Vector<unsigned int>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
+{
+    IndexSizeChecker<IT1, Size>::check();
+    IndexSizeChecker<IT2, Size>::check();
+    d.v() = _mm_setr_epi32((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
+            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]]);
+}
+template<> template<typename S1, typename IT1, typename IT2>
+inline void ALWAYS_INLINE FLATTEN Vector<short>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
+{
+    IndexSizeChecker<IT1, Size>::check();
+    IndexSizeChecker<IT2, Size>::check();
+    d.v() = _mm_setr_epi16((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
+            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]],
+            (array[outerIndexes[4]].*(ptrMember1))[innerIndexes[4]], (array[outerIndexes[5]].*(ptrMember1))[innerIndexes[5]],
+            (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
+}
+template<> template<typename S1, typename IT1, typename IT2>
+inline void ALWAYS_INLINE FLATTEN Vector<unsigned short>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
+{
+    IndexSizeChecker<IT1, Size>::check();
+    IndexSizeChecker<IT2, Size>::check();
+    d.v() = _mm_setr_epi16((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
+            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]],
+            (array[outerIndexes[4]].*(ptrMember1))[innerIndexes[4]], (array[outerIndexes[5]].*(ptrMember1))[innerIndexes[5]],
+            (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
 }
 
 } // namespace SSE

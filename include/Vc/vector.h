@@ -21,19 +21,20 @@
 #define VECTOR_H
 
 #include "global.h"
+#include "internal/namespace.h"
 
 #if VC_IMPL_LRBni
 # include "larrabee/vector.h"
 # include "larrabee/helperimpl.h"
-# define VECTOR_NAMESPACE LRBni
 #elif VC_IMPL_Scalar
 # include "scalar/vector.h"
 # include "scalar/helperimpl.h"
-# define VECTOR_NAMESPACE Scalar
-#else
+#elif VC_IMPL_AVX
+# include "avx/vector.h"
+# include "avx/helperimpl.h"
+#elif VC_IMPL_SSE
 # include "sse/vector.h"
 # include "sse/helperimpl.h"
-# define VECTOR_NAMESPACE SSE
 #endif
 
 #ifdef isfinite
@@ -46,7 +47,8 @@
 namespace Vc
 {
   using VECTOR_NAMESPACE::VectorAlignment;
-  using VECTOR_NAMESPACE::VectorAlignedBase;
+  using VECTOR_NAMESPACE::VectorAlignedBaseT;
+  typedef VectorAlignedBaseT<> VectorAlignedBase;
   using namespace VECTOR_NAMESPACE::VectorSpecialInitializerZero;
   using namespace VECTOR_NAMESPACE::VectorSpecialInitializerOne;
   using namespace VECTOR_NAMESPACE::VectorSpecialInitializerIndexesFromZero;

@@ -1,0 +1,58 @@
+###########################################
+#################   AVX   #################
+###########################################
+
+
+1. Floating Point
+===========================================
+Uses full 256bit vectors for all operations. 128bit vectors are never used.
+
+
+2. Integer
+===========================================
+Integer support in AVX is minimal.
+The 256bit integer vectors are just intended as a supporting type of float operations.
+
+Any arithmetic, logical, or comparison operations must be implemented using 128bit operations.
+
+int_v/uint_v could be implemented either as 128 or 256 types. I.e. either int_v::Size == 4 or 8.
+
+
+2.1. 256bit int vectors
+===========================================
+
+2.1.1. Implementation Details:
+This requires the SSE operations to not zero the high bits of the registers. Since the YMM registers
+are aliased on the XMM registers you need to use SSE ops that are not using the VEX prefix (IIUC).
+Or you have to use two XMM registers most of the time.
+Perfect would be the use of
+union M256I {
+  __m256i ymm;
+  __m128i xmm[2];
+};
+But as far as I know GCC, this will result in lots of unnecessary loads and stores. (It seems this is
+due to GCC expecting aliasing, thus making sure the modified values are always up-to-date in memory
+- like if it were declared volatile.)
+
+2.1.2. Upsides:
+int_v::Size == float_v::Size
+
+2.1.3. Downsides:
+Register pressure is increased.
+
+2.2. 128bit int vectors
+===========================================
+
+2.2.1. Implementation Details:
+
+2.2.2. Upsides:
+
+2.2.3. Downsides:
+- Use of int_v for float_v operations involving __m256i arguments require an extra type. This will
+  be hard to generalize
+
+
+2.3. Mixed approach
+===========================================
+int_v/uint_v are implemented as 256bit while short_v/ushort_v are implemented as 128bit. Thus
+int_v::Size == short_v::Size (which is the case on LRBni, too).

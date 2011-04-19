@@ -26,7 +26,9 @@
 # include "larrabee/limits.h"
 #elif VC_IMPL_Scalar
 # include "scalar/limits.h"
-#else
+#elif VC_IMPL_AVX
+# include "avx/limits.h"
+#elif VC_IMPL_SSE
 # include "sse/limits.h"
 #endif
 

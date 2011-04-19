@@ -26,17 +26,6 @@
 
 using namespace Vc;
 
-template<typename T> static inline void keepResults(const T &tmp0)
-{
-#if VC_IMPL_SSE
-    asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)));
-    if (sizeof(T) == 32) {
-        asm volatile(""::"x"(reinterpret_cast<const __m128 *>(&tmp0)[1]));
-    }
-#else
-    asm volatile(""::"r"(tmp0));
-#endif
-}
 template<typename Vector> class DoCompares
 {
     enum {
@@ -54,11 +43,7 @@ template<typename Vector> class DoCompares
                 a[i] = PseudoRandom<Vector>::next();
             }
 
-#ifdef VC_IMPL_Scalar
-            typedef bool M;
-#else
             typedef typename Vector::Mask M;
-#endif
 
             {
                 Benchmark timer("operator==", Vector::Size * Factor * Factor2 * 6.0, "Op");

@@ -32,15 +32,15 @@ template<typename Vec> void gatherArray()
     const int count = 39999;
     T array[count];
     for (int i = 0; i < count; ++i) {
-        array[i] = i;
+        array[i] = i + 1;
     }
     M mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        const Vec ii(i);
+        const Vec ii(i + 1);
         const typename Vec::Mask castedMask = static_cast<typename Vec::Mask>(mask);
         if (castedMask.isFull()) {
             Vec a(array, i);
-            COMPARE(a, ii);
+            COMPARE(a, ii) << "\n       i: " << i;
             Vec b(Zero);
             b.gather(array, i);
             COMPARE(b, ii);
@@ -93,7 +93,7 @@ template<typename Vec> void gatherStruct()
 
         if (castedMask.isFull()) {
             Vec a(array, &S::a, i);
-            COMPARE(a, i0);
+            COMPARE(a, i0) << "\ni: " << i;
             a.gather(array, &S::b, i);
             COMPARE(a, i1);
             a.gather(array, &S::c, i);
@@ -134,14 +134,14 @@ template<typename Vec> void gather2dim()
     for (int i = 0; i < count; ++i) {
         array[i].data = new T[count];
         for (int j = 0; j < count; ++j) {
-            array[i].data[j] = 2 * i + j;
+            array[i].data[j] = 2 * i + j + 1;
         }
     }
 
     typename It::Mask mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         for (It j = It(IndexesFromZero); !(mask &= (j < count)).isEmpty(); j += Vec::Size) {
-            const Vec i0(i * 2 + j);
+            const Vec i0(i * 2 + j + 1);
             const typename Vec::Mask castedMask(mask);
 
             Vec a(array, &S::data, i, j, castedMask);
@@ -152,6 +152,13 @@ template<typename Vec> void gather2dim()
             COMPARE(castedMask, (b == i0));
             if (!castedMask.isFull()) {
                 COMPARE(!castedMask, b == Vec(Zero));
+            } else {
+                Vec c(array, &S::data, i, j);
+                VERIFY((c == i0).isFull());
+
+                Vec d(Zero);
+                d.gather(array, &S::data, i, j);
+                VERIFY((d == i0).isFull());
             }
         }
     }
@@ -160,31 +167,13 @@ template<typename Vec> void gather2dim()
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    runTest(gatherArray<int_v>);
-    runTest(gatherArray<uint_v>);
-    runTest(gatherArray<float_v>);
-    runTest(gatherArray<double_v>);
-    runTest(gatherArray<short_v>);
-    runTest(gatherArray<ushort_v>);
-    runTest(gatherArray<sfloat_v>);
+    initTest(argc, argv);
 
-    runTest(gatherStruct<int_v>);
-    runTest(gatherStruct<uint_v>);
-    runTest(gatherStruct<float_v>);
-    runTest(gatherStruct<double_v>);
-    runTest(gatherStruct<short_v>);
-    runTest(gatherStruct<ushort_v>);
-    runTest(gatherStruct<sfloat_v>);
-
-    runTest(gather2dim<int_v>);
-    runTest(gather2dim<uint_v>);
-    runTest(gather2dim<short_v>);
-    runTest(gather2dim<ushort_v>);
-    runTest(gather2dim<float_v>);
-    runTest(gather2dim<sfloat_v>);
-    runTest(gather2dim<double_v>);
+    testAllTypes(gatherArray);
+    testAllTypes(gatherStruct);
+    testAllTypes(gather2dim);
 
     return 0;
 }

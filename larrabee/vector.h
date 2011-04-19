@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,18 +20,16 @@
 #ifndef LARRABEE_VECTOR_H
 #define LARRABEE_VECTOR_H
 
+#include "types.h"
 #include "intrinsics.h"
+#include "casts.h"
 #include "../common/storage.h"
-#include <cstdlib>
+#include "macros.h"
 
 #define VC_HAVE_FMA
 
-#define CAT_HELPER(a, b) a##b
-#define CAT(a, b) CAT_HELPER(a, b)
-
 namespace Vc
 {
-    template<typename V, unsigned int Size> class Memory;
 #ifndef HAVE_FLOAT16
 #define HAVE_FLOAT16
 #ifdef HALF_MAX
@@ -53,41 +51,6 @@ namespace Vc
 
 namespace LRBni
 {
-    enum { VectorAlignment = 64 };
-
-    class VectorAlignedBase
-    {
-        public:
-            void *operator new(size_t size) { void *r; if (posix_memalign(&r, VectorAlignment, size)) {}; return r; }
-            void *operator new[](size_t size) { void *r; if (posix_memalign(&r, VectorAlignment, size)) {}; return r; }
-            void operator delete(void *ptr, size_t) { free(ptr); }
-            void operator delete[](void *ptr, size_t) { free(ptr); }
-    } LRB_ALIGN(64);
-
-    namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
-    namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
-    namespace VectorSpecialInitializerRandom { enum REnum { Random }; }
-    namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
-
-    LRB_ALIGN(16) extern const char _IndexesFromZero[16];
-
-    template<typename T> struct ReturnTypeHelper { typedef char Type; };
-    template<> struct ReturnTypeHelper<unsigned int> { typedef unsigned char Type; };
-    template<> struct ReturnTypeHelper<int> { typedef signed char Type; };
-    template<typename T> const typename ReturnTypeHelper<T>::Type *IndexesFromZeroHelper() {
-        return reinterpret_cast<const typename ReturnTypeHelper<T>::Type *>(&_IndexesFromZero[0]);
-    }
-
-    template<bool> class STATIC_ASSERT_FAILURE;
-    template<> class STATIC_ASSERT_FAILURE<true> {};
-
-#define LRB_STATIC_ASSERT_NC(cond, msg) \
-    typedef STATIC_ASSERT_FAILURE<cond> CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__); \
-    CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__) Error_##msg
-#define LRB_STATIC_ASSERT(cond, msg) LRB_STATIC_ASSERT_NC(cond, msg); (void) Error_##msg
-
-    template<typename T> class Vector;
-    template<typename T> struct SwizzledVector;
 
     template<unsigned int VectorSize> struct MaskHelper;
     template<> struct MaskHelper<8> {
@@ -220,53 +183,6 @@ struct ForeachHelper
         };
         unsigned int data;
     };
-
-    namespace
-    {
-        template<typename From, typename To> struct StaticCastHelper {};
-        template<> struct StaticCastHelper<float       , int         > { static _M512I cast(const _M512  &v) { return _mm512_cvt_ps2pi(v, _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); } };
-        template<> struct StaticCastHelper<float       , unsigned int> { static _M512I cast(const _M512  &v) { return _mm512_cvt_ps2pu(v, _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); } };
-        template<> struct StaticCastHelper<float       , float       > { static _M512  cast(const _M512  &v) { return v; } };
-        template<> struct StaticCastHelper<float       , double      > { static _M512D cast(const _M512  &v) { return _mm512_cvtl_ps2pd(v); } };
-        template<> struct StaticCastHelper<double      , int         > { static _M512I cast(const _M512D &v) { return _mm512_cvtl_pd2pi(_M512I(), v, _MM_ROUND_MODE_TOWARD_ZERO); } };
-        template<> struct StaticCastHelper<double      , unsigned int> { static _M512I cast(const _M512D &v) { return _mm512_cvtl_pd2pu(_M512I(), v, _MM_ROUND_MODE_TOWARD_ZERO); } };
-        template<> struct StaticCastHelper<double      , float       > { static _M512  cast(const _M512D &v) { return _mm512_cvtl_pd2ps(_M512(), v, _MM_ROUND_MODE_NEAREST); } };
-        template<> struct StaticCastHelper<double      , double      > { static _M512D cast(const _M512D &v) { return v; } };
-        template<> struct StaticCastHelper<int         , int         > { static _M512I cast(const _M512I &v) { return v; } };
-        template<> struct StaticCastHelper<int         , unsigned int> { static _M512I cast(const _M512I &v) { return v; } };
-        template<> struct StaticCastHelper<int         , float       > { static _M512  cast(const _M512I &v) { return _mm512_cvt_pi2ps(v, _MM_EXPADJ_NONE); } };
-        template<> struct StaticCastHelper<int         , double      > { static _M512D cast(const _M512I &v) { return _mm512_cvtl_pi2pd(v); } };
-        template<> struct StaticCastHelper<unsigned int, int         > { static _M512I cast(const _M512I &v) { return v; } };
-        template<> struct StaticCastHelper<unsigned int, unsigned int> { static _M512I cast(const _M512I &v) { return v; } };
-        template<> struct StaticCastHelper<unsigned int, float       > { static _M512  cast(const _M512I &v) { return _mm512_cvt_pu2ps(v, _MM_EXPADJ_NONE); } };
-        template<> struct StaticCastHelper<unsigned int, double      > { static _M512D cast(const _M512I &v) { return _mm512_cvtl_pu2pd(v); } };
-
-        template<typename From, typename To> struct ReinterpretCastHelper {};
-        template<> struct ReinterpretCastHelper<float       , int         > { static _M512I cast(const _M512  &v) { return _mm512_castps_si512(v); } };
-        template<> struct ReinterpretCastHelper<double      , int         > { static _M512I cast(const _M512D &v) { return _mm512_castpd_si512(v); } };
-        template<> struct ReinterpretCastHelper<int         , int         > { static _M512I cast(const _M512I &v) { return v; } };
-        template<> struct ReinterpretCastHelper<unsigned int, int         > { static _M512I cast(const _M512I &v) { return v; } };
-        template<> struct ReinterpretCastHelper<float       , unsigned int> { static _M512I cast(const _M512  &v) { return _mm512_castps_si512(v); } };
-        template<> struct ReinterpretCastHelper<double      , unsigned int> { static _M512I cast(const _M512D &v) { return _mm512_castpd_si512(v); } };
-        template<> struct ReinterpretCastHelper<int         , unsigned int> { static _M512I cast(const _M512I &v) { return v; } };
-        template<> struct ReinterpretCastHelper<unsigned int, unsigned int> { static _M512I cast(const _M512I &v) { return v; } };
-        template<> struct ReinterpretCastHelper<float       , float       > { static _M512  cast(const _M512  &v) { return v; } };
-        template<> struct ReinterpretCastHelper<double      , float       > { static _M512  cast(const _M512D &v) { return _mm512_castpd_ps(v);    } };
-        template<> struct ReinterpretCastHelper<int         , float       > { static _M512  cast(const _M512I &v) { return _mm512_castsi512_ps(v); } };
-        template<> struct ReinterpretCastHelper<unsigned int, float       > { static _M512  cast(const _M512I &v) { return _mm512_castsi512_ps(v); } };
-        template<> struct ReinterpretCastHelper<float       , double      > { static _M512D cast(const _M512  &v) { return _mm512_castps_pd(v);    } };
-        template<> struct ReinterpretCastHelper<double      , double      > { static _M512D cast(const _M512D &v) { return v; } };
-        template<> struct ReinterpretCastHelper<int         , double      > { static _M512D cast(const _M512I &v) { return _mm512_castsi512_pd(v); } };
-        template<> struct ReinterpretCastHelper<unsigned int, double      > { static _M512D cast(const _M512I &v) { return _mm512_castsi512_pd(v); } };
-
-        template<typename To, typename From> To mm512_reinterpret_cast(From v) { return v; }
-        template<> _M512I mm512_reinterpret_cast<_M512I, _M512 >(_M512  v) { return _mm512_castps_si512(v); }
-        template<> _M512I mm512_reinterpret_cast<_M512I, _M512D>(_M512D v) { return _mm512_castpd_si512(v); }
-        template<> _M512  mm512_reinterpret_cast<_M512 , _M512D>(_M512D v) { return _mm512_castpd_ps(v);    }
-        template<> _M512  mm512_reinterpret_cast<_M512 , _M512I>(_M512I v) { return _mm512_castsi512_ps(v); }
-        template<> _M512D mm512_reinterpret_cast<_M512D, _M512I>(_M512I v) { return _mm512_castsi512_pd(v); }
-        template<> _M512D mm512_reinterpret_cast<_M512D, _M512 >(_M512  v) { return _mm512_castps_pd(v);    }
-    } // anonymous namespace
 
 #define PARENT_DATA (static_cast<Parent *>(this)->data.v())
 #define PARENT_DATA_CONST (static_cast<const Parent *>(this)->data.v())
@@ -403,13 +319,13 @@ struct ForeachHelper
         struct VectorDHelper
         {
             template<typename T> static inline void mov(T &v1, __mmask k, T v2 ) {
-                v1 = mm512_reinterpret_cast<T>(_mm512_mask_movd(mm512_reinterpret_cast<_M512>(v1), k, mm512_reinterpret_cast<_M512>(v2)));
+                v1 = lrb_cast<T>(_mm512_mask_movd(lrb_cast<_M512>(v1), k, lrb_cast<_M512>(v2)));
             }
         };
         struct VectorQHelper
         {
             static inline void mov(_M512D &v1, __mmask k, _M512D v2 ) {
-                v1 = mm512_reinterpret_cast<_M512D>(_mm512_mask_movq(mm512_reinterpret_cast<_M512>(v1), k, mm512_reinterpret_cast<_M512>(v2)));
+                v1 = lrb_cast<_M512D>(_mm512_mask_movq(lrb_cast<_M512>(v1), k, lrb_cast<_M512>(v2)));
             }
         };
 
@@ -424,8 +340,8 @@ struct ForeachHelper
             typedef _M512D VectorType;
 #define SUFFIX pd
             // double doesn't support any upconversion
-            static inline VectorType load1(const EntryType  x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadq(&x, _MM_FULLUPC64_NONE, _MM_BROADCAST_1X8)); }
-            static inline VectorType load4(const EntryType *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadq( x, _MM_FULLUPC64_NONE, _MM_BROADCAST_4X8)); }
+            static inline VectorType load1(const EntryType  x) { return lrb_cast<VectorType>(FixedIntrinsics::_mm512_loadq(&x, _MM_FULLUPC64_NONE, _MM_BROADCAST_1X8)); }
+            static inline VectorType load4(const EntryType *x) { return lrb_cast<VectorType>(FixedIntrinsics::_mm512_loadq( x, _MM_FULLUPC64_NONE, _MM_BROADCAST_4X8)); }
 
             template<typename A> static VectorType load(const EntryType *x, A);
             template<typename A> static void store(void *mem, VectorType x, A);
@@ -435,10 +351,10 @@ struct ForeachHelper
             static inline VectorType set(EntryType x) { return CAT(_mm512_set_1to8_, SUFFIX)(x); }
 
             static inline void prepareGatherIndexes(_M512I &indexes) {
-                indexes = mm512_reinterpret_cast<_M512I>(_mm512_mask_movq(
-                            _mm512_shuf128x32(mm512_reinterpret_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_DDCC),
+                indexes = lrb_cast<_M512I>(_mm512_mask_movq(
+                            _mm512_shuf128x32(lrb_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_DDCC),
                             0x33,
-                            _mm512_shuf128x32(mm512_reinterpret_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_BBAA)
+                            _mm512_shuf128x32(lrb_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_BBAA)
                             ));
                 indexes = _mm512_add_pi(indexes, _mm512_set_4to16_pi(0, 1, 0, 1));
             }
@@ -453,54 +369,54 @@ struct ForeachHelper
             }
             static inline VectorType gather(_M512I indexes, const EntryType *baseAddr) {
                 prepareGatherIndexes(indexes);
-                return mm512_reinterpret_cast<VectorType>(
+                return lrb_cast<VectorType>(
                         _mm512_gatherd(indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE)
                         );
             }
             static inline void gather(VectorType &data, _M512I indexes, const EntryType *baseAddr, __mmask k) {
                 prepareGatherIndexes(indexes);
-                data = mm512_reinterpret_cast<VectorType>(
-                        _mm512_mask_gatherd(mm512_reinterpret_cast<_M512>(data), scaleMask(k), indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE)
+                data = lrb_cast<VectorType>(
+                        _mm512_mask_gatherd(lrb_cast<_M512>(data), scaleMask(k), indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE)
                         );
             }
             static inline void gatherScale1(VectorType &data, _M512I indexes, const EntryType *baseAddr, __mmask k) {
-                indexes = mm512_reinterpret_cast<_M512I>(_mm512_mask_movq(
-                            _mm512_shuf128x32(mm512_reinterpret_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_DDCC),
+                indexes = lrb_cast<_M512I>(_mm512_mask_movq(
+                            _mm512_shuf128x32(lrb_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_DDCC),
                             0x33,
-                            _mm512_shuf128x32(mm512_reinterpret_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_BBAA)
+                            _mm512_shuf128x32(lrb_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_BBAA)
                             ));
                 indexes = _mm512_add_pi(indexes, _mm512_set_4to16_pi(0, 4, 0, 4));
-                data = mm512_reinterpret_cast<VectorType>(
-                        _mm512_mask_gatherd(mm512_reinterpret_cast<_M512>(data), scaleMask(k), indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_1, _MM_HINT_NONE)
+                data = lrb_cast<VectorType>(
+                        _mm512_mask_gatherd(lrb_cast<_M512>(data), scaleMask(k), indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_1, _MM_HINT_NONE)
                         );
             }
             static inline VectorType gatherStreaming(_M512I indexes, const EntryType *baseAddr) {
                 prepareGatherIndexes(indexes);
-                return mm512_reinterpret_cast<VectorType>(
+                return lrb_cast<VectorType>(
                         _mm512_gatherd(indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NT)
                         );
             }
             static inline void gatherStreaming(VectorType &data, _M512I indexes, const EntryType *baseAddr, __mmask k) {
                 prepareGatherIndexes(indexes);
-                data = mm512_reinterpret_cast<VectorType>(
-                        _mm512_mask_gatherd(mm512_reinterpret_cast<_M512>(data), scaleMask(k), indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NT)
+                data = lrb_cast<VectorType>(
+                        _mm512_mask_gatherd(lrb_cast<_M512>(data), scaleMask(k), indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NT)
                         );
             }
             static inline void scatter(const VectorType data, _M512I indexes, EntryType *baseAddr) {
                 prepareGatherIndexes(indexes);
-                _mm512_scatterd(baseAddr, indexes, mm512_reinterpret_cast<_M512>(data), _MM_DOWNC_NONE,  _MM_SCALE_4, _MM_HINT_NONE);
+                _mm512_scatterd(baseAddr, indexes, lrb_cast<_M512>(data), _MM_DOWNC_NONE,  _MM_SCALE_4, _MM_HINT_NONE);
             }
             static inline void scatter(const VectorType data, _M512I indexes, EntryType *baseAddr, __mmask k) {
                 prepareGatherIndexes(indexes);
-                _mm512_mask_scatterd(baseAddr, scaleMask(k), indexes, mm512_reinterpret_cast<_M512>(data), _MM_DOWNC_NONE, _MM_SCALE_4, _MM_HINT_NONE);
+                _mm512_mask_scatterd(baseAddr, scaleMask(k), indexes, lrb_cast<_M512>(data), _MM_DOWNC_NONE, _MM_SCALE_4, _MM_HINT_NONE);
             }
             static inline void scatterStreaming(const VectorType data, _M512I indexes, EntryType *baseAddr) {
                 prepareGatherIndexes(indexes);
-                _mm512_scatterd(baseAddr, indexes, mm512_reinterpret_cast<_M512>(data), _MM_DOWNC_NONE,  _MM_SCALE_4, _MM_HINT_NT);
+                _mm512_scatterd(baseAddr, indexes, lrb_cast<_M512>(data), _MM_DOWNC_NONE,  _MM_SCALE_4, _MM_HINT_NT);
             }
             static inline void scatterStreaming(const VectorType data, _M512I indexes, EntryType *baseAddr, __mmask k) {
                 prepareGatherIndexes(indexes);
-                _mm512_mask_scatterd(baseAddr, scaleMask(k), indexes, mm512_reinterpret_cast<_M512>(data), _MM_DOWNC_NONE, _MM_SCALE_4, _MM_HINT_NT);
+                _mm512_mask_scatterd(baseAddr, scaleMask(k), indexes, lrb_cast<_M512>(data), _MM_DOWNC_NONE, _MM_SCALE_4, _MM_HINT_NT);
             }
 
             static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_madd132_pd(v1, v3, v2); }
@@ -514,7 +430,7 @@ struct ForeachHelper
 
             static inline VectorType abs(VectorType a) {
                 const _M512I absMask = _mm512_set_4to16_pi(0xffffffff, 0x7fffffff, 0xffffffff, 0x7fffffff);
-                return mm512_reinterpret_cast<VectorType>(_mm512_and_pq(mm512_reinterpret_cast<_M512I>(a), absMask));
+                return lrb_cast<VectorType>(_mm512_and_pq(lrb_cast<_M512I>(a), absMask));
             }
 
             OP(max) OP(min)
@@ -543,69 +459,69 @@ struct ForeachHelper
         };
 
 #define LOAD(T, conv) \
-            static inline VectorType load1         (const T  x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd(&x, conv, _MM_BROADCAST_1X16 , _MM_HINT_NONE)); } \
-            static inline VectorType load4         (const T *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_4X16 , _MM_HINT_NONE)); } \
-            static inline VectorType load1Streaming(const T  x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd(&x, conv, _MM_BROADCAST_1X16 , _MM_HINT_NT  )); } \
-            static inline VectorType load4Streaming(const T *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_4X16 , _MM_HINT_NT  )); } \
-            static inline VectorType loadStreaming (const T *x) { return mm512_reinterpret_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_16X16, _MM_HINT_NT  )); } \
+            static inline VectorType load1         (const T  x) { return lrb_cast<VectorType>(FixedIntrinsics::_mm512_loadd(&x, conv, _MM_BROADCAST_1X16 , _MM_HINT_NONE)); } \
+            static inline VectorType load4         (const T *x) { return lrb_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_4X16 , _MM_HINT_NONE)); } \
+            static inline VectorType load1Streaming(const T  x) { return lrb_cast<VectorType>(FixedIntrinsics::_mm512_loadd(&x, conv, _MM_BROADCAST_1X16 , _MM_HINT_NT  )); } \
+            static inline VectorType load4Streaming(const T *x) { return lrb_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_4X16 , _MM_HINT_NT  )); } \
+            static inline VectorType loadStreaming (const T *x) { return lrb_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_16X16, _MM_HINT_NT  )); } \
             template<typename A> static VectorType load(const T *x, A);
 
 #define GATHERSCATTER(T, upconv, downconv) \
             static inline VectorType gather(_M512I indexes, const T *baseAddr) { \
-                return mm512_reinterpret_cast<VectorType>(_mm512_gatherd(indexes, const_cast<T *>(baseAddr), upconv, \
+                return lrb_cast<VectorType>(_mm512_gatherd(indexes, const_cast<T *>(baseAddr), upconv, \
                             sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NONE \
                             )); \
             } \
             static inline void gather(VectorType &data, _M512I indexes, const T *baseAddr, __mmask k) { \
-                data = mm512_reinterpret_cast<VectorType>(_mm512_mask_gatherd(mm512_reinterpret_cast<_M512>(data), k, indexes, const_cast<T *>(baseAddr), upconv, \
+                data = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<_M512>(data), k, indexes, const_cast<T *>(baseAddr), upconv, \
                         sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NONE \
                         )); \
             } \
             static inline void gatherScale1(VectorType &data, _M512I indexes, const T *baseAddr, __mmask k) { \
-                data = mm512_reinterpret_cast<VectorType>(_mm512_mask_gatherd(mm512_reinterpret_cast<_M512>(data), k, indexes, const_cast<T *>(baseAddr), upconv, \
+                data = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<_M512>(data), k, indexes, const_cast<T *>(baseAddr), upconv, \
                             _MM_SCALE_1, _MM_HINT_NONE \
                         )); \
             } \
             static inline VectorType gatherStreaming(_M512I indexes, const T *baseAddr) { \
-                return mm512_reinterpret_cast<VectorType>(_mm512_gatherd(indexes, const_cast<T *>(baseAddr), upconv, \
+                return lrb_cast<VectorType>(_mm512_gatherd(indexes, const_cast<T *>(baseAddr), upconv, \
                             sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NT \
                             )); \
             } \
             static inline void gatherStreaming(VectorType &data, _M512I indexes, const T *baseAddr, __mmask k) { \
-                data = mm512_reinterpret_cast<VectorType>(_mm512_mask_gatherd(mm512_reinterpret_cast<_M512>(data), k, indexes, const_cast<T *>(baseAddr), upconv, \
+                data = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<_M512>(data), k, indexes, const_cast<T *>(baseAddr), upconv, \
                         sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NT \
                         )); \
             } \
             static inline void scatter(const VectorType data, _M512I indexes, T *baseAddr) { \
-                _mm512_scatterd(baseAddr, indexes, mm512_reinterpret_cast<_M512>(data), downconv, \
+                _mm512_scatterd(baseAddr, indexes, lrb_cast<_M512>(data), downconv, \
                         sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NONE \
                         ); \
             } \
             static inline void scatter(const VectorType data, _M512I indexes, T *baseAddr, __mmask k) { \
-                _mm512_mask_scatterd(baseAddr, k, indexes, mm512_reinterpret_cast<_M512>(data), downconv, \
+                _mm512_mask_scatterd(baseAddr, k, indexes, lrb_cast<_M512>(data), downconv, \
                         sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NONE \
                         ); \
             } \
             static inline void scatterStreaming(const VectorType data, _M512I indexes, T *baseAddr) { \
-                _mm512_scatterd(baseAddr, indexes, mm512_reinterpret_cast<_M512>(data), downconv, \
+                _mm512_scatterd(baseAddr, indexes, lrb_cast<_M512>(data), downconv, \
                         sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NT \
                         ); \
             } \
             static inline void scatterStreaming(const VectorType data, _M512I indexes, T *baseAddr, __mmask k) { \
-                _mm512_mask_scatterd(baseAddr, k, indexes, mm512_reinterpret_cast<_M512>(data), downconv, \
+                _mm512_mask_scatterd(baseAddr, k, indexes, lrb_cast<_M512>(data), downconv, \
                         sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NT \
                         ); \
             }
 
 #define STORE(T, conv) \
-            static inline void store1         (T *mem, VectorType x) { _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NONE); } \
-            static inline void store4         (T *mem, VectorType x) { _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NONE); } \
-            static inline void store1Streaming(T *mem, VectorType x) { _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NT  ); } \
-            static inline void store4Streaming(T *mem, VectorType x) { _mm512_stored(mem, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NT  ); } \
-            static inline void store1         (T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NONE); } \
-            static inline void store4         (T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NONE); } \
-            static inline void store1Streaming(T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NT  ); } \
-            static inline void store4Streaming(T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, mm512_reinterpret_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NT  ); } \
+            static inline void store1         (T *mem, VectorType x) { _mm512_stored(mem, lrb_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NONE); } \
+            static inline void store4         (T *mem, VectorType x) { _mm512_stored(mem, lrb_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NONE); } \
+            static inline void store1Streaming(T *mem, VectorType x) { _mm512_stored(mem, lrb_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NT  ); } \
+            static inline void store4Streaming(T *mem, VectorType x) { _mm512_stored(mem, lrb_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NT  ); } \
+            static inline void store1         (T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, lrb_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NONE); } \
+            static inline void store4         (T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, lrb_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NONE); } \
+            static inline void store1Streaming(T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, lrb_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NT  ); } \
+            static inline void store4Streaming(T *mem, VectorType x, __mmask k) { _mm512_mask_stored(mem, k, lrb_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NT  ); } \
             template<typename A> static void store(T *mem, VectorType x, A); \
             template<typename A> static void store(T *mem, VectorType x, __mmask k, A);
 
@@ -654,7 +570,7 @@ struct ForeachHelper
 
             static inline VectorType abs(VectorType a) {
                 const _M512I absMask = _mm512_set_1to16_pi(0x7fffffff);
-                return mm512_reinterpret_cast<VectorType>(_mm512_and_pi(mm512_reinterpret_cast<_M512I>(a), absMask));
+                return lrb_cast<VectorType>(_mm512_and_pi(lrb_cast<_M512I>(a), absMask));
             }
 
             OP(max) OP(min)
@@ -710,7 +626,7 @@ struct ForeachHelper
             static inline EntryType reduce_add(const VectorType &a) { return _mm512_reduce_add_pi(a); }
 
             static inline VectorType abs(VectorType a) {
-                VectorType zero = mm512_reinterpret_cast<VectorType>(_mm512_setzero());
+                VectorType zero = lrb_cast<VectorType>(_mm512_setzero());
                 const VectorType minusOne = _mm512_set_1to16_pi( -1 );
                 return mul(a, minusOne, cmplt(a, zero), a);
             }
@@ -942,7 +858,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         /**
          * initialized to 0 in all 512 bits
          */
-        inline explicit Vector(VectorSpecialInitializerZero::ZEnum) : data(mm512_reinterpret_cast<VectorType>(_mm512_setzero())) {}
+        inline explicit Vector(VectorSpecialInitializerZero::ZEnum) : data(lrb_cast<VectorType>(_mm512_setzero())) {}
         /**
          * initialized to 1 in all vector entries
          */
@@ -952,7 +868,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
          */
         inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : data(VectorHelper<T>::load(IndexesFromZeroHelper<T>(), Aligned)) {}
 
-        static inline Vector Zero() { return mm512_reinterpret_cast<VectorType>(_mm512_setzero()); }
+        static inline Vector Zero() { return lrb_cast<VectorType>(_mm512_setzero()); }
         static inline Vector IndexesFromZero() { return VectorHelper<T>::load(IndexesFromZeroHelper<T>(), Aligned); }
 //X         /**
 //X          * initialzed to random numbers
@@ -996,18 +912,22 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
 
         template<typename Other> static inline Vector broadcast4(const Other *x) { return Vector<T>(VectorHelper<T>::load4(x)); }
 
-        inline void setZero() { data = mm512_reinterpret_cast<VectorType>(_mm512_setzero()); }
+        inline void setZero() { data = lrb_cast<VectorType>(_mm512_setzero()); }
 
         inline void setZero(Mask k)
         {
             if (Size == 16) {
-                _M512I tmp = mm512_reinterpret_cast<_M512I>(data.v());
-                data = mm512_reinterpret_cast<VectorType>(VectorHelper<int>::xor_(tmp, tmp, k.data()));
+                _M512I tmp = lrb_cast<_M512I>(data.v());
+                data = lrb_cast<VectorType>(VectorHelper<int>::xor_(tmp, tmp, k.data()));
             } else if (Size == 8) {
-                VectorDQHelper<T>::mov(data.v(), k.data(), mm512_reinterpret_cast<VectorType>(_mm512_setzero()));
+                VectorDQHelper<T>::mov(data.v(), k.data(), lrb_cast<VectorType>(_mm512_setzero()));
             }
         }
 
+        inline void load(const T *mem) { data = VectorHelper<T>::load(mem, Aligned); }
+        template<typename A> inline void load(const T *mem, A align) {
+            data = VectorHelper<T>::load(mem, align);
+        }
         template<typename OtherT> inline void load(const OtherT *mem) { data = VectorHelper<T>::load(mem, Aligned); }
         template<typename OtherT, typename A> inline void load(const OtherT *mem, A align) {
             data = VectorHelper<T>::load(mem, align);
@@ -1030,11 +950,8 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline Vector(const T *array, const unsigned int *indexes)
             : data(VectorHelper<T>::gather(sizeof(T) == 8 ? IndexType(IndexType(indexes, Unaligned) * 2) : IndexType(indexes, Unaligned), array)) {}
 
-        inline Vector(const T *array, const IndexType &indexes, Mask mask) {
-            VectorHelper<T>::gather(data.v(), sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
-        }
-        inline Vector(const T *array, const IndexType &indexes, Mask mask, VectorSpecialInitializerZero::ZEnum)
-            : data(mm512_reinterpret_cast<VectorType>(_mm512_setzero()))
+        inline Vector(const T *array, const IndexType &indexes, Mask mask)
+            : data(lrb_cast<VectorType>(_mm512_setzero()))
         {
             VectorHelper<T>::gather(data.v(), sizeof(T) == 8 ? IndexType(indexes * 2) : indexes, array, mask.data());
         }
@@ -1071,7 +988,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline Vector(const S *array, const OtherT S::* member1, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            VC_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
             const IndexType &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::gather(data.v(), offsets, &(array->*(member1)), mask.data());
         }
@@ -1080,7 +997,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline Vector(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
             const IndexType &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::gather(data.v(), offsets, &(array->*(member1).*(member2)), mask.data());
         }
@@ -1089,7 +1006,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline void gather(const S *array, const OtherT S::* member1, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            VC_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
             const IndexType &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::gather(data.v(), offsets, &(array->*(member1)), mask.data());
         }
@@ -1098,17 +1015,18 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline void gather(const S1 *array, const S2 S1::* member1, const OtherT S2::* member2, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
+            VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
             const IndexType &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::gather(data.v(), offsets, &(array->*(member1).*(member2)), mask.data());
         }
 
         template<typename S1, typename OtherT>
-        inline Vector(const S1 *array, const OtherT *const S1::* ptrMember1, const IndexType &outerIndex, const IndexType &innerIndex, Mask mask) {
+        inline Vector(const S1 *array, const OtherT *const S1::* ptrMember1, const IndexType &outerIndex, const IndexType &innerIndex, Mask mask = true) {
             gather(array, ptrMember1, outerIndex, innerIndex, mask);
         }
+
         template<typename S1, typename OtherT>
-        inline void gather(const S1 *array, const OtherT *const S1::* ptrMember1, const IndexType &outerIndex, const IndexType &innerIndex, Mask mask) {
+        inline void gather(const S1 *array, const OtherT *const S1::* ptrMember1, const IndexType &outerIndex, const IndexType &innerIndex, Mask mask = true) {
             // FIXME there must be a nicer way to implement this
             enum {
                 OuterStride = sizeof(S1) / 4
@@ -1130,7 +1048,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline void scatter(S *array, OtherT S::* member1, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
+            VC_STATIC_ASSERT((sizeof(S) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
             const IndexType &offsets = indexes * (sizeof(S) / Scale);
             VectorHelper<OtherT>::scatter(data.v(), offsets, &(array->*(member1)), mask.data());
         }
@@ -1139,7 +1057,7 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline void scatter(S1 *array, S2 S1::* member1, OtherT S2::* member2, const IndexType &indexes, Mask mask = Mask(VectorSpecialInitializerOne::One))
         {
             enum { Scale = sizeof(OtherT) == 8 ? 4 : sizeof(OtherT) };
-            LRB_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
+            VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_scattered_member_size);
             const IndexType &offsets = indexes * (sizeof(S1) / Scale);
             VectorHelper<OtherT>::scatter(data.v(), offsets, &(array->*(member1).*(member2)), mask.data());
         }
@@ -1167,7 +1085,8 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline Vector mul(const Vector<T> &x, const Mask m, const Vector<T> &old) const { return VectorHelper<T>::mul(data.v(), x.data.v(), m, old.data.v()); }
         inline Vector &operator*=(const Vector<T> &x) { data = VectorHelper<T>::mul(data.v(), x.data.v()); return *this; }
 
-        inline Vector operator~() const { return mm512_reinterpret_cast<VectorType>(_mm512_andn_pi(mm512_reinterpret_cast<_M512I>(data.v()), _mm512_setallone_pi())); }
+        inline Vector operator~() const { return lrb_cast<VectorType>(_mm512_andn_pi(lrb_cast<_M512I>(data.v()), _mm512_setallone_pi())); }
+        inline Vector<typename NegateTypeHelper<T>::Type> operator-() const { return lrb_cast<VectorType>(_mm512_andn_pi(lrb_cast<_M512I>(data.v()), _mm512_setallone_pi())); }
 
 #define OP(symbol, fun) \
         inline Vector &fun##_eq(const SwizzledVector<T> &x, const Mask m) { data = VectorHelper<T>::fun##_s(x.s, data.v(), x.v.data.v(), m); return *this; } \
@@ -1232,6 +1151,8 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline T min() const { return VectorHelper<T>::reduce_min(data.v()); }
         inline T product() const { return VectorHelper<T>::reduce_mul(data.v()); }
         inline T sum() const { return VectorHelper<T>::reduce_add(data.v()); }
+
+        Vector sorted() const;
 
         template<typename F> void callWithValuesSorted(F &f) {
             EntryType value = data.m(0);
@@ -1440,10 +1361,8 @@ namespace LRBni
 } // namespace LRBni
 } // namespace Vc
 
-#undef LRB_STATIC_ASSERT_NC
-#undef LRB_STATIC_ASSERT
-#undef CAT
-#undef CAT_HELPER
-
 #include "vector.tcc"
+#include "sort.tcc"
+#include "undomacros.h"
+
 #endif // LARRABEE_VECTOR_H

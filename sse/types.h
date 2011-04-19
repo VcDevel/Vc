@@ -79,13 +79,24 @@ namespace SSE
     template<> struct IndexTypeHelper<8u> { typedef unsigned short Type; };
     template<> struct IndexTypeHelper<16u>{ typedef unsigned char  Type; };
 
+    template<typename T> struct CtorTypeHelper { typedef T Type; };
+    template<> struct CtorTypeHelper<short> { typedef int Type; };
+    template<> struct CtorTypeHelper<unsigned short> { typedef unsigned int Type; };
+    template<> struct CtorTypeHelper<float> { typedef double Type; };
+
+    template<typename T> struct ExpandTypeHelper { typedef T Type; };
+    template<> struct ExpandTypeHelper<short> { typedef int Type; };
+    template<> struct ExpandTypeHelper<unsigned short> { typedef unsigned int Type; };
+    template<> struct ExpandTypeHelper<float> { typedef double Type; };
+
     template<typename T> struct VectorHelperSize;
 
     namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
     namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
-    class VectorAlignedBase
+    template<typename V = Vector<float> >
+    class VectorAlignedBaseT
     {
         public:
             FREE_STORE_OPERATORS_ALIGNED(16)

@@ -26,159 +26,104 @@
 
 using namespace Vc;
 
-template<typename T, int S> struct KeepResultsHelper {
-    static inline void keep(const T &tmp0) { asm volatile(""::"r"(tmp0)); }
-    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
-#ifdef __x86_64__
-        asm volatile(""::"r"(tmp0), "r"(tmp1), "r"(tmp2), "r"(tmp3));
-#else
-        asm volatile(""::"r"(tmp0), "r"(tmp1));
-        asm volatile(""::"r"(tmp2), "r"(tmp3));
-#endif
-    }
-};
-#ifdef VC_IMPL_SSE
-template<typename T> struct KeepResultsHelper<T, 16> {
-    static inline void keep(const T &tmp0) { asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0))); }
-    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
-        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 &>(tmp3)));
-    }
-};
-template<typename T> struct KeepResultsHelper<T, 32> {
-    static inline void keep(const T &tmp0) {
-        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]));
-    }
-    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
-        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]),
-                "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 *>(&tmp1)[1]),
-                "x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 *>(&tmp2)[1]),
-                "x"(reinterpret_cast<const __m128 &>(tmp3)), "x"(reinterpret_cast<const __m128 *>(&tmp3)[1]));
-    }
-};
-#endif
-#ifdef VC_IMPL_LRBni
-template<typename T> struct KeepResultsHelper<T, 64> {
-    static inline void keep(const T &tmp0) {
-        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]));
-    }
-    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
-        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]),
-                "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 *>(&tmp1)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp1)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp1)[3]));
-        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 *>(&tmp2)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp2)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp2)[3]),
-                "x"(reinterpret_cast<const __m128 &>(tmp3)), "x"(reinterpret_cast<const __m128 *>(&tmp3)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp3)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp3)[3]));
-    }
-};
-#endif
-
-template<typename T> static inline void keepResults(const T &tmp0)
-{
-    KeepResultsHelper<T, sizeof(T)>::keep(tmp0);
-}
-
-template<typename T> static inline void keepResults(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3)
-{
-    KeepResultsHelper<T, sizeof(T)>::keep(tmp0, tmp1, tmp2, tmp3);
-}
-
 template<typename Vector> class DoMemIos
 {
+    typedef typename Vector::EntryType T;
     public:
         static void run()
         {
             Benchmark::setColumnData("MemorySize", "half L1");
-            run(CpuId::L1Data() / (sizeof(Vector) * 2), 128);
+            run(CpuId::L1Data() / (sizeof(T) * 2), 128);
             Benchmark::setColumnData("MemorySize", "L1");
-            run(CpuId::L1Data() / (sizeof(Vector) * 1), 128);
+            run(CpuId::L1Data() / (sizeof(T) * 1), 128);
             Benchmark::setColumnData("MemorySize", "half L2");
-            run(CpuId::L2Data() / (sizeof(Vector) * 2), 32);
+            run(CpuId::L2Data() / (sizeof(T) * 2), 32);
             Benchmark::setColumnData("MemorySize", "L2");
-            run(CpuId::L2Data() / (sizeof(Vector) * 1), 16);
+            run(CpuId::L2Data() / (sizeof(T) * 1), 16);
             if (CpuId::L3Data() > 0) {
                 Benchmark::setColumnData("MemorySize", "half L3");
-                run(CpuId::L3Data() / (sizeof(Vector) * 2), 2);
+                run(CpuId::L3Data() / (sizeof(T) * 2), 2);
                 Benchmark::setColumnData("MemorySize", "L3");
-                run(CpuId::L3Data() / (sizeof(Vector) * 1), 2);
+                run(CpuId::L3Data() / (sizeof(T) * 1), 2);
                 Benchmark::setColumnData("MemorySize", "4x L3");
-                run(CpuId::L3Data() / sizeof(Vector) * 4, 1);
+                run(CpuId::L3Data() / sizeof(T) * 4, 1);
             } else {
                 Benchmark::setColumnData("MemorySize", "4x L2");
-                run(CpuId::L2Data() / sizeof(Vector) * 4, 1);
+                run(CpuId::L2Data() / sizeof(T) * 4, 1);
             }
         }
     private:
+        /**
+         * \param Factor The number of scalar elements in the memory to read/write
+         * \param Factor2 How often the memory region should be read/written
+         */
         static void run(const int Factor, const int Factor2)
         {
-            Vector *a = new Vector[Factor];
+            T *data = Vc::malloc<T, Vc::AlignOnPage>(Factor + 1);
 #ifndef VC_BENCHMARK_NO_MLOCK
-            mlock(a, Factor * sizeof(Vector));
+            mlock(data, Factor * sizeof(T));
 #endif
+            Benchmark::setColumnData("Alignment", "aligned");
+            run(data, Vc::Aligned, Factor, Factor2);
+            Benchmark::setColumnData("Alignment", "aligned mem/unaligned instr");
+            run(data, Vc::Unaligned, Factor, Factor2);
+            Benchmark::setColumnData("Alignment", "unaligned");
+            run(data + 1, Vc::Unaligned, Factor, Factor2);
 
-            {
-                Benchmark bm("write", sizeof(Vector) * Factor * Factor2, "Byte");
-                const Vector foo = PseudoRandom<Vector>::next();
-                keepResults(foo);
-                for (int i = 0; i < Factor; i += 4) {
-                    a[i + 0] = foo;
-                    a[i + 1] = foo;
-                    a[i + 2] = foo;
-                    a[i + 3] = foo;
-                }
-                while (bm.wantsMoreDataPoints()) {
-                    bm.Start();
-                    for (int j = 0; j < Factor2; ++j) {
-                        keepResults(foo);
-                        for (int i = 0; i < Factor; i += 4) {
-                            a[i + 0] = foo;
-                            a[i + 1] = foo;
-                            a[i + 2] = foo;
-                            a[i + 3] = foo;
-                        }
-                    }
-                    bm.Stop();
-                }
-                bm.Print();
+            Vc::free(data);
+        }
+
+        template<typename Align>
+        static void run(T *__restrict__ a, Align alignment, const int Factor, const int Factor2)
+        {
+            // initial loop so that the first iteration in the benchmark loop
+            // has the same cache history as subsequent runs
+            for (int i = 0; i < Factor; i += Vector::Size) {
+                const Vector tmp(&a[i], alignment);
+                //asm volatile(""::"x"(tmp));
+                keepResults(tmp);
             }
-            {
-                Benchmark timer("r/w", sizeof(Vector) * Factor * Factor2, "Byte");
-                const Vector foo = PseudoRandom<Vector>::next();
-                while (timer.wantsMoreDataPoints()) {
-                    timer.Start();
-                    for (int j = 0; j < Factor2; ++j) {
-                        keepResults(foo);
-                        for (int i = 0; i < Factor; i += 4) {
-                            const Vector &tmp0 = a[i + 0];
-                            const Vector &tmp1 = a[i + 1];
-                            const Vector &tmp2 = a[i + 2];
-                            const Vector &tmp3 = a[i + 3];
-                            keepResults(tmp0, tmp1, tmp2, tmp3);
-                            a[i + 0] = foo;
-                            a[i + 1] = foo;
-                            a[i + 2] = foo;
-                            a[i + 3] = foo;
-                        }
+
+            const int numberOfBytes = sizeof(T) * Factor * Factor2;
+            const Vector foo = PseudoRandom<Vector>::next();
+
+            // start with reads so that the cache lines are not marked as dirty yet
+            benchmark_loop(Benchmark("read", numberOfBytes, "Byte")) {
+                for (int j = 0; j < Factor2; ++j) {
+                    for (int i = 0; i < Factor; i += 4 * Vector::Size) {
+                        const Vector tmp0(&a[i + 0 * Vector::Size], alignment);
+                        const Vector tmp1(&a[i + 1 * Vector::Size], alignment);
+                        const Vector tmp2(&a[i + 2 * Vector::Size], alignment);
+                        const Vector tmp3(&a[i + 3 * Vector::Size], alignment);
+                        keepResults(tmp0, tmp1, tmp2, tmp3);
                     }
-                    timer.Stop();
                 }
-                timer.Print();
             }
-            {
-                Benchmark timer("read", sizeof(Vector) * Factor * Factor2, "Byte");
-                while (timer.wantsMoreDataPoints()) {
-                    timer.Start();
-                    for (int j = 0; j < Factor2; ++j) {
-                        for (int i = 0; i < Factor; i += 4) {
-                            const Vector &tmp0 = a[i + 0];
-                            const Vector &tmp1 = a[i + 1];
-                            const Vector &tmp2 = a[i + 2];
-                            const Vector &tmp3 = a[i + 3];
-                            keepResults(tmp0, tmp1, tmp2, tmp3);
-                        }
+            benchmark_loop(Benchmark("write", numberOfBytes, "Byte")) {
+                for (int j = 0; j < Factor2; ++j) {
+                    for (int i = 0; i < Factor; i += 4 * Vector::Size) {
+                        foo.store(&a[i + 0 * Vector::Size], alignment);
+                        foo.store(&a[i + 1 * Vector::Size], alignment);
+                        foo.store(&a[i + 2 * Vector::Size], alignment);
+                        foo.store(&a[i + 3 * Vector::Size], alignment);
                     }
-                    timer.Stop();
                 }
-                timer.Print();
             }
-            delete[] a;
+            benchmark_loop(Benchmark("r/w", numberOfBytes, "Byte")) {
+                for (int j = 0; j < Factor2; ++j) {
+                    for (int i = 0; i < Factor; i += 4 * Vector::Size) {
+                        const Vector tmp0(&a[i + 0 * Vector::Size], alignment);
+                        const Vector tmp1(&a[i + 1 * Vector::Size], alignment);
+                        const Vector tmp2(&a[i + 2 * Vector::Size], alignment);
+                        const Vector tmp3(&a[i + 3 * Vector::Size], alignment);
+                        foo.store(&a[i + 0 * Vector::Size], alignment);
+                        foo.store(&a[i + 1 * Vector::Size], alignment);
+                        foo.store(&a[i + 2 * Vector::Size], alignment);
+                        foo.store(&a[i + 3 * Vector::Size], alignment);
+                        keepResults(tmp0, tmp1, tmp2, tmp3);
+                    }
+                }
+            }
         }
 };
 
@@ -186,6 +131,7 @@ int bmain()
 {
     Benchmark::addColumn("MemorySize");
     Benchmark::addColumn("datatype");
+    Benchmark::addColumn("Alignment");
 
     Benchmark::setColumnData("datatype", "double_v");
     DoMemIos<double_v>::run();

@@ -37,22 +37,37 @@
 
 #ifdef __GNUC__
 #  define INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
+#  define FLATTEN __attribute__((__flatten__))
 #  define CONST __attribute__((__const__))
 #  define PURE __attribute__((__pure__))
 #  define MAY_ALIAS __attribute__((__may_alias__))
 #  define ALWAYS_INLINE __attribute__((__always_inline__))
-#  define FLATTEN __attribute__((__flatten__))
+#  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
+#  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #else
 #  define INTRINSIC
+#  define FLATTEN
 #  define CONST
 #  define PURE
 #  define MAY_ALIAS
 #  define ALWAYS_INLINE
-#  define FLATTEN
+#  define VC_IS_UNLIKELY(x) x
+#  define VC_IS_LIKELY(x) x
+#endif
+
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+# define VC_WARN_INLINE
+# define VC_WARN(msg) __attribute__((warning("\n\t" msg)))
+#else
+# define VC_WARN_INLINE inline
+# define VC_WARN(msg)
 #endif
 
 #define CAT_HELPER(a, b) a##b
 #define CAT(a, b) CAT_HELPER(a, b)
+
+#define CAT3_HELPER(a, b, c) a##b##c
+#define CAT3(a, b, c) CAT3_HELPER(a, b, c)
 
 #define unrolled_loop16(_it_, _start_, _end_, _code_) \
 if (_start_ +  0 < _end_) { enum { _it_ = (_start_ +  0) < _end_ ? (_start_ +  0) : _start_ }; _code_ } \
@@ -75,5 +90,20 @@ do {} while ( false )
 
 #define for_all_vector_entries(_it_, _code_) \
   unrolled_loop16(_it_, 0, Size, _code_)
+
+#ifndef _VC_STATIC_ASSERT_TYPES_H
+#define _VC_STATIC_ASSERT_TYPES_H
+namespace Vc {
+    namespace {
+        template<bool> class STATIC_ASSERT_FAILURE;
+        template<> class STATIC_ASSERT_FAILURE<true> {};
+}}
+#endif // _VC_STATIC_ASSERT_TYPES_H
+
+#define VC_STATIC_ASSERT_NC(cond, msg) \
+    typedef STATIC_ASSERT_FAILURE<cond> CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__); \
+    CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__) CAT3(Error_,__LINE__,msg)
+#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg); (void) CAT3(Error_,__LINE__,msg)
+
 
 #endif // VC_COMMON_MACROS_H

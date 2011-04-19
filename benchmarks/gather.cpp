@@ -38,46 +38,6 @@ using namespace Vc;
 
 // Intel Core 2 Quad (Q6600) has 8MB L2
 
-template<typename T, int S> struct KeepResultsHelper {
-    static inline void keep(T &tmp0) { asm volatile("":"+r"(tmp0)); }
-    static inline void keep(const T &tmp0) { asm volatile(""::"r"(tmp0)); }
-};
-#ifdef VC_IMPL_SSE
-template<typename T> struct KeepResultsHelper<T, 16> {
-    static inline void keep(T &tmp0) { asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0))); }
-    static inline void keep(const T &tmp0) { asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0))); }
-};
-template<typename T> struct KeepResultsHelper<T, 32> {
-    static inline void keep(T &tmp0) {
-        asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0)), "+x"(reinterpret_cast<__m128 *>(&tmp0)[1]));
-    }
-    static inline void keep(const T &tmp0) {
-        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]));
-    }
-};
-#endif
-#ifdef VC_IMPL_LRBni
-template<typename T> struct KeepResultsHelper<T, 64> {
-    static inline void keep(T &tmp0) {
-        asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0)), "+x"(reinterpret_cast<__m128 *>(&tmp0)[1]),
-                "+x"(reinterpret_cast<__m128 *>(&tmp0)[2]), "+x"(reinterpret_cast<__m128 *>(&tmp0)[3]));
-    }
-    static inline void keep(const T &tmp0) {
-        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]),
-                "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]));
-    }
-};
-#endif
-
-template<typename T> static inline void keepResults(T &tmp0)
-{
-    KeepResultsHelper<T, sizeof(T)>::keep(tmp0);
-}
-template<typename T> static inline void keepResults(const T &tmp0)
-{
-    KeepResultsHelper<T, sizeof(T)>::keep(tmp0);
-}
-
 template<typename Vector> class NameHelper
 {
     public:
@@ -238,10 +198,10 @@ template<typename Vector> struct GatherBenchmark
             {
                 for (int i = 0; i < Factor; ++i) {
                     const int ii = i * 4;
-                    keepResults(im[ii + 0].mask); Vector tmp0(data(ii + 0), im[ii + 0].index, fullMask); keepResults(tmp0);
-                    keepResults(im[ii + 1].mask); Vector tmp1(data(ii + 1), im[ii + 1].index, fullMask); keepResults(tmp1);
-                    keepResults(im[ii + 2].mask); Vector tmp2(data(ii + 2), im[ii + 2].index, fullMask); keepResults(tmp2);
-                    keepResults(im[ii + 3].mask); Vector tmp3(data(ii + 3), im[ii + 3].index, fullMask); keepResults(tmp3);
+                    keepResults(im[ii + 0].mask); Vector tmp0(data(ii + 0), im[ii + 0].index, fullMask); keepResultsDirty(tmp0);
+                    keepResults(im[ii + 1].mask); Vector tmp1(data(ii + 1), im[ii + 1].index, fullMask); keepResultsDirty(tmp1);
+                    keepResults(im[ii + 2].mask); Vector tmp2(data(ii + 2), im[ii + 2].index, fullMask); keepResultsDirty(tmp2);
+                    keepResults(im[ii + 3].mask); Vector tmp3(data(ii + 3), im[ii + 3].index, fullMask); keepResultsDirty(tmp3);
                 }
             }
     };
@@ -262,10 +222,10 @@ template<typename Vector> struct GatherBenchmark
             {
                 for (int i = 0; i < Factor; ++i) {
                     const int ii = i * 4;
-                    keepResults(fullMask); Vector tmp0(data(ii + 0), im[ii + 0].index, im[ii + 0].mask); keepResults(tmp0);
-                    keepResults(fullMask); Vector tmp1(data(ii + 1), im[ii + 1].index, im[ii + 1].mask); keepResults(tmp1);
-                    keepResults(fullMask); Vector tmp2(data(ii + 2), im[ii + 2].index, im[ii + 2].mask); keepResults(tmp2);
-                    keepResults(fullMask); Vector tmp3(data(ii + 3), im[ii + 3].index, im[ii + 3].mask); keepResults(tmp3);
+                    keepResults(fullMask); Vector tmp0(data(ii + 0), im[ii + 0].index, im[ii + 0].mask); keepResultsDirty(tmp0);
+                    keepResults(fullMask); Vector tmp1(data(ii + 1), im[ii + 1].index, im[ii + 1].mask); keepResultsDirty(tmp1);
+                    keepResults(fullMask); Vector tmp2(data(ii + 2), im[ii + 2].index, im[ii + 2].mask); keepResultsDirty(tmp2);
+                    keepResults(fullMask); Vector tmp3(data(ii + 3), im[ii + 3].index, im[ii + 3].mask); keepResultsDirty(tmp3);
                 }
             }
     };
@@ -286,10 +246,10 @@ template<typename Vector> struct GatherBenchmark
             {
                 for (int i = 0; i < Factor; ++i) {
                     const int ii = i * 4;
-                    keepResults(fullMask); keepResults(im[ii + 0].mask); Vector tmp0(data(ii + 0), im[ii + 0].index); keepResults(tmp0);
-                    keepResults(fullMask); keepResults(im[ii + 1].mask); Vector tmp1(data(ii + 1), im[ii + 1].index); keepResults(tmp1);
-                    keepResults(fullMask); keepResults(im[ii + 2].mask); Vector tmp2(data(ii + 2), im[ii + 2].index); keepResults(tmp2);
-                    keepResults(fullMask); keepResults(im[ii + 3].mask); Vector tmp3(data(ii + 3), im[ii + 3].index); keepResults(tmp3);
+                    keepResults(fullMask); keepResults(im[ii + 0].mask); Vector tmp0(data(ii + 0), im[ii + 0].index); keepResultsDirty(tmp0);
+                    keepResults(fullMask); keepResults(im[ii + 1].mask); Vector tmp1(data(ii + 1), im[ii + 1].index); keepResultsDirty(tmp1);
+                    keepResults(fullMask); keepResults(im[ii + 2].mask); Vector tmp2(data(ii + 2), im[ii + 2].index); keepResultsDirty(tmp2);
+                    keepResults(fullMask); keepResults(im[ii + 3].mask); Vector tmp3(data(ii + 3), im[ii + 3].index); keepResultsDirty(tmp3);
                 }
             }
     };

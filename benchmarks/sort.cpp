@@ -26,18 +26,6 @@
 
 using namespace Vc;
 
-template<typename T> static inline void keepResults(const T &tmp0)
-{
-#if VC_IMPL_SSE
-    asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)));
-    if (sizeof(T) == 32) {
-        asm volatile(""::"x"(reinterpret_cast<const __m128 *>(&tmp0)[1]));
-    }
-#else
-    asm volatile(""::"r"(tmp0));
-#endif
-}
-
 template<typename Vector> struct Helper
 {
     typedef typename Vector::Mask Mask;

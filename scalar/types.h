@@ -24,7 +24,7 @@ namespace Vc
 {
     namespace Scalar
     {
-        class VectorAlignedBase {};
+        template<typename V = float> class VectorAlignedBaseT {};
         template<typename T> class Vector;
         template<typename T, typename Parent> struct VectorBase;
         template<typename T> class _Memory;

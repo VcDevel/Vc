@@ -25,7 +25,7 @@ namespace LRBni
 template<unsigned int Size> template<typename VectorType, typename MemoryType>
 inline void GSHelper<Size>::gather(VectorType &v, const MemoryType *m, _M512I i)
 {
-    v = mm512_reinterpret_cast<VectorType>(_mm512_gatherd(i, const_cast<MemoryType *>(m), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE));
+    v = lrb_cast<VectorType>(_mm512_gatherd(i, const_cast<MemoryType *>(m), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE));
 }
 
 template<> template<> inline void GSHelper<16>::gather(_M512 &v, const short *m, _M512I i)

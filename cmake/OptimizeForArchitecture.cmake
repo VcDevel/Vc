@@ -220,6 +220,10 @@ macro(OptimizeForArchitecture)
    endif(USE_SSE4a)
    if(USE_AVX)
       list(APPEND _enable_vector_unit_list "avx")
+      # we want SSE intrinsics to result in instructions using the VEX prefix.
+      # Otherwise integer ops (which require the older SSE intrinsics) would
+      # always have a large penalty.
+      list(APPEND _enable_vector_unit_list "sse2avx")
    else(USE_AVX)
       list(APPEND _disable_vector_unit_list "avx")
    endif(USE_AVX)

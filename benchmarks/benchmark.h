@@ -51,9 +51,6 @@
 //#define VC_USE_CPU_TIME
 #endif
 
-// limit to max. 10s per single benchmark
-static double g_Time = 10.;
-
 class Benchmark
 {
     friend int main(int, char**);
@@ -86,28 +83,18 @@ class Benchmark
             std::list<ExtraColumn> m_extraColumns;
     };
 public:
-    static inline void addColumn(const std::string &name) { if (s_fileWriter) s_fileWriter->addColumn(name); }
-    static inline void setColumnData(const std::string &name, const std::string &data) {
-        if (s_fileWriter) {
-            s_fileWriter->setColumnData(name, data);
-        } else {
-            std::cout << "Benchmarking " << name << " " << data << std::endl;
-        }
-    }
-    static inline void finalize() { if (s_fileWriter) s_fileWriter->finalize(); }
+    static void addColumn(const std::string &name);
+    static void setColumnData(const std::string &name, const std::string &data);
+    static void finalize();
 
     explicit Benchmark(const std::string &name, double factor = 0., const std::string &X = std::string());
-    void changeInterpretation(double factor, const char *X)
-    {
-        fFactor = factor;
-        fX = X;
-    }
+    void changeInterpretation(double factor, const char *X);
 
     bool wantsMoreDataPoints() const;
-    void Start();
+    bool Start();
     void Mark();
     void Stop();
-    void Print();
+    bool Print();
 
 private:
     void printMiddleLine() const;
@@ -129,156 +116,14 @@ private:
     TimeStampCounter fTsc;
     int m_dataPointsCount;
     static FileWriter *s_fileWriter;
+
+    static const char greenEsc  [8];
+    static const char cyanEsc   [8];
+    static const char reverseEsc[5];
+    static const char normalEsc [5];
 };
 
-Benchmark::FileWriter::FileWriter(const std::string &filename)
-    : m_finalized(false)
-{
-    std::string fn = filename;
-    m_file.open(fn.c_str());
-
-    if (Benchmark::s_fileWriter == 0) {
-        Benchmark::s_fileWriter = this;
-    }
-}
-
-Benchmark::FileWriter::~FileWriter()
-{
-    if (m_file.is_open()) {
-        m_file.flush();
-        m_file.close();
-    }
-    if (Benchmark::s_fileWriter == this) {
-        Benchmark::s_fileWriter = 0;
-    }
-}
-
-void Benchmark::FileWriter::declareData(const std::string &name, const std::list<std::string> &header)
-{
-    m_currentName = '"' + name + '"';
-    if (m_header != header) {
-        if (m_header.empty()) {
-            m_file << "Version 3\n";
-        }
-        m_header = header;
-        m_file << "\"benchmark.name\"\t\"benchmark.arch\"";
-        for (std::list<ExtraColumn>::const_iterator i = m_extraColumns.begin();
-                i != m_extraColumns.end(); ++i) {
-            m_file << "\t\"" << i->name << '"';
-        }
-        for (std::list<std::string>::const_iterator i = header.begin();
-                i != header.end(); ++i) {
-            m_file << '\t' << *i;
-        }
-        m_file << "\n";
-    }
-}
-
-void Benchmark::FileWriter::addDataLine(const std::list<std::string> &data)
-{
-    m_file << m_currentName << '\t' <<
-#if VC_IMPL_LRBni
-#ifdef VC_LRBni_PROTOTYPE_H
-            "\"LRB Prototype\"";
-#else
-            "\"LRB\"";
-#endif
-#elif VC_IMPL_SSE4_1
-#ifdef VC_DISABLE_PTEST
-            "\"SSE4.1 w/o PTEST\"";
-#else
-            "\"SSE4.1\"";
-#endif
-#elif VC_IMPL_SSSE3
-            "\"SSSE3\"";
-#elif VC_IMPL_SSE3
-            "\"SSE3\"";
-#elif VC_IMPL_SSE2
-            "\"SSE2\"";
-#elif VC_IMPL_Scalar
-            "\"Scalar\"";
-#else
-            "\"non-Vc\"";
-#endif
-    for (std::list<ExtraColumn>::const_iterator i = m_extraColumns.begin();
-            i != m_extraColumns.end(); ++i) {
-        m_file << '\t' << i->data;
-    }
-    for (std::list<std::string>::const_iterator i = data.begin();
-            i != data.end(); ++i) {
-        m_file << '\t' << *i;
-    }
-    m_file << "\n";
-}
-
-void Benchmark::FileWriter::addColumn(const std::string &name)
-{
-    if (!m_finalized) {
-        if (m_header.empty()) {
-            if (m_extraColumns.end() == std::find(m_extraColumns.begin(), m_extraColumns.end(), name)) {
-                m_extraColumns.push_back(name);
-            }
-        } else {
-            std::cerr << "call addColumn before the first benchmark prints its data" << std::endl;
-        }
-    }
-}
-
-void Benchmark::FileWriter::setColumnData(const std::string &name, const std::string &data)
-{
-    for (std::list<ExtraColumn>::iterator i = m_extraColumns.begin();
-            i != m_extraColumns.end(); ++i) {
-        if (*i == name) {
-            i->data = '"' + data + '"';
-            break;
-        }
-    }
-}
-
-Benchmark::FileWriter *Benchmark::s_fileWriter = 0;
-
-Benchmark::Benchmark(const std::string &_name, double factor, const std::string &X)
-    : fName(_name), fFactor(factor), fX(X), m_dataPointsCount(0)
-{
-    for (int i = 0; i < 3; ++i) {
-        m_mean[i] = m_stddev[i] = 0.;
-    }
-    enum {
-        WCHARSIZE = sizeof("━") - 1
-    };
-    if (!s_fileWriter) {
-        const bool interpret = (fFactor != 0.);
-        char header[128 * WCHARSIZE];
-        std::memset(header, 0, 128 * WCHARSIZE);
-        std::strcpy(header,
-#ifdef VC_USE_CPU_TIME
-                "┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━"
-#endif
-                "┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓");
-        if (!interpret) {
-#ifdef VC_USE_CPU_TIME
-            header[69 * WCHARSIZE] = '\0';
-#else
-            header[(69 - 17) * WCHARSIZE] = '\0';
-#endif
-        }
-        const int titleLen = fName.length();
-        const int headerLen = std::strlen(header) / WCHARSIZE;
-        int offset = (headerLen - titleLen) / 2;
-        if (offset > 0) {
-            --offset;
-            std::string name = ' ' + fName + ' ';
-            char *ptr = &header[offset * WCHARSIZE];
-            std::memcpy(ptr, name.c_str(), name.length());
-            std::memmove(ptr + name.length(), ptr + name.length() * WCHARSIZE, (headerLen - offset - name.length()) * WCHARSIZE + 1);
-            std::cout << header << std::flush;
-        } else {
-            std::cout << fName << std::flush;
-        }
-    }
-}
-
-inline void Benchmark::Start()
+inline bool Benchmark::Start()
 {
 #ifdef _MSC_VER
     QueryPerformanceCounter((LARGE_INTEGER *)&fRealTime);
@@ -289,6 +134,7 @@ inline void Benchmark::Start()
     clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &fCpuTime );
 #endif
     fTsc.Start();
+    return true;
 }
 
 #ifndef _MSC_VER
@@ -297,20 +143,6 @@ static inline double convertTimeSpec(const struct timespec &ts)
     return static_cast<double>(ts.tv_sec) + static_cast<double>(ts.tv_nsec) * 1e-9;
 }
 #endif
-
-static const double SECONDS_PER_CLOCK = 1. / CLOCKS_PER_SEC;
-
-bool Benchmark::wantsMoreDataPoints() const
-{
-    if (m_dataPointsCount < 3) { // hard limit on the number of data points; otherwise talking about stddev is bogus
-        return true;
-    } else if (m_mean[0] > g_Time) { // limit on the time
-        return false;
-    } else if (m_dataPointsCount < 30) { // we want initial statistics
-        return true;
-    }
-    return m_stddev[0] * m_dataPointsCount > 1.0004 * m_mean[0] * m_mean[0]; // stop if the relative error is below 2% already
-}
 
 inline void Benchmark::Stop()
 {
@@ -348,289 +180,9 @@ inline void Benchmark::Stop()
     ++m_dataPointsCount;
 }
 
-inline void Benchmark::Mark()
-{
-    Stop();
-    Start();
-}
-
-static inline void prettyPrintSeconds(double v)
-{
-    static const char prefix[] = { ' ', 'm', 'u', 'n', 'p' };
-    if (v == 0.) {
-        std::cout << "      0       ";
-    } else if (v < 2.) {
-        int i = 0;
-        do {
-            v *= 1000.;
-            ++i;
-        } while (v < 1.);
-        std::cout << std::setw(11) << v << ' ' << prefix[i] << 's';
-    } else if (v > 60.) {
-        std::cout << std::setw(10) << v / 60. << " min";
-    } else {
-        std::cout << std::setw(12) << v << " s";
-    }
-}
-
-#ifdef isfinite
-#undef isfinite
-#endif
-
-static inline void prettyPrintCount(double v)
-{
-    static const char prefix[] = { ' ', 'k', 'M', 'G', 'T', 'P', 'E' };
-    int i = 0;
-#ifdef _MSC_VER
-    if (_finite(v)) {
-#elif defined(__INTEL_COMPILER)
-    if (::isfinite(v)) {
-#else
-    if (std::isfinite(v)) {
-#endif
-        if (v < 1000.) {
-            std::cout << std::setw(14) << v;
-            return;
-        }
-        while (v >= 1000.) {
-            v *= 0.001;
-            ++i;
-        }
-    }
-    std::cout << std::setw(12) << v << ' ' << prefix[i];
-}
-
-static inline void prettyPrintError(double v)
-{
-    std::stringstream ss;
-    ss << "± " << v << " %";
-    std::cout << std::setw(15) << ss.str();
-}
-
-static inline std::list<std::string> &operator<<(std::list<std::string> &list, const std::string &data)
-{
-    std::ostringstream str;
-    str << '"' << data << '"';
-    list.push_back(str.str());
-    return list;
-}
-
-static inline std::list<std::string> &operator<<(std::list<std::string> &list, const char *data)
-{
-    std::ostringstream str;
-    str << '"' << data << '"';
-    list.push_back(str.str());
-    return list;
-}
-
-static inline std::list<std::string> &operator<<(std::list<std::string> &list, double data)
-{
-    std::ostringstream str;
-    str << data;
-    list.push_back(str.str());
-    return list;
-}
-
-static inline std::list<std::string> &operator<<(std::list<std::string> &list, int data)
-{
-    std::ostringstream str;
-    str << data;
-    list.push_back(str.str());
-    return list;
-}
-
-static inline std::list<std::string> &operator<<(std::list<std::string> &list, unsigned int data)
-{
-    std::ostringstream str;
-    str << data;
-    list.push_back(str.str());
-    return list;
-}
-
-static inline std::list<std::string> &operator<<(std::list<std::string> &list, unsigned long long data)
-{
-    std::ostringstream str;
-    str << data;
-    list.push_back(str.str());
-    return list;
-}
-
-static std::string centered(const std::string &s, const int size = 16)
-{
-    const int missing = size - s.length();
-    if (missing < 0) {
-        return s.substr(0, size);
-    } else if (missing == 0) {
-        return s;
-    }
-    const int left = missing - missing / 2;
-    std::string r(size, ' ');
-    r.replace(left, s.length(), s);
-    return r;
-}
-
-inline void Benchmark::printMiddleLine() const
-{
-    const bool interpret = (fFactor != 0.);
-    std::cout << "\n"
-#ifdef VC_USE_CPU_TIME
-        "┠────────────────"
-#endif
-        "┠────────────────╂────────────────"
-        << (interpret ?
-#ifdef VC_USE_CPU_TIME
-                "╂────────────────"
-#endif
-                "╂────────────────╂────────────────╂────────────────┨" : "┨");
-}
-inline void Benchmark::printBottomLine() const
-{
-    const bool interpret = (fFactor != 0.);
-    std::cout << "\n"
-#ifdef VC_USE_CPU_TIME
-        "┗━━━━━━━━━━━━━━━━"
-#endif
-        "┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━"
-        << (interpret ?
-#ifdef VC_USE_CPU_TIME
-                "┻━━━━━━━━━━━━━━━━"
-#endif
-                "┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛" : "┛") << std::endl;
-}
-
-inline void Benchmark::Print()
-{
-    std::streambuf *backup = std::cout.rdbuf();
-    if (s_fileWriter) {
-        std::cout.rdbuf(0);
-    }
-    const bool interpret = (fFactor != 0.);
-
-    std::list<std::string> header;
-    header
-        << "Real_time" << "Real_time_stddev"
-        << "Cycles" << "Cycles_stddev"
-#ifdef VC_USE_CPU_TIME
-        << "CPU_time" << "CPU_time_stddev"
-#endif
-    ;
-
-    // ┃ ━ ┏ ┓ ┗ ┛ ┣ ┫ ┳ ┻ ╋ ┠ ─ ╂ ┨
-    std::cout << "\n"
-#ifdef VC_USE_CPU_TIME
-        << "┃    CPU time    "
-#endif
-        << "┃   Real time    ┃     Cycles     ┃";
-    if (interpret) {
-#ifdef VC_USE_CPU_TIME
-        std::cout << centered(fX + "/s [CPU]")  << "┃";
-#endif
-        std::cout << centered(fX + "/s [Real]") << "┃";
-        std::cout << centered(fX + "/cycle")    << "┃";
-        std::cout << centered("cycles/" + fX)   << "┃";
-        std::string X = fX;
-        for (unsigned int i = 0; i < X.length(); ++i) {
-            if (X[i] == ' ') {
-                X[i] = '_';
-            }
-        }
-        header
-            << X + "/Real_time" << X + "/Real_time_stddev"
-            << X + "/Cycles" << X + "/Cycles_stddev"
-#ifdef VC_USE_CPU_TIME
-            << X + "/CPU_time" << X + "/CPU_time_stddev"
-#endif
-            << "number_of_" + X;
-    }
-    printMiddleLine();
-    if (s_fileWriter) {
-        s_fileWriter->declareData(fName, header);
-    }
-
-    const double normalization = 1. / m_dataPointsCount;
-
-    std::list<std::string> dataLine;
-    m_mean[0] *= normalization;
-    m_stddev[0] = std::sqrt(m_stddev[0] * normalization - m_mean[0] * m_mean[0]);
-    dataLine << m_mean[0] << m_stddev[0];
-    m_mean[1] *= normalization;
-    m_stddev[1] = std::sqrt(m_stddev[1] * normalization - m_mean[1] * m_mean[1]);
-    dataLine << m_mean[1] << m_stddev[1];
-#ifdef VC_USE_CPU_TIME
-    m_mean[2] *= normalization;
-    m_stddev[2] = std::sqrt(m_stddev[2] * normalization - m_mean[2] * m_mean[2]);
-    dataLine << m_mean[2] << m_stddev[2];
-#endif
-    double stddevint[3];
-    stddevint[0] = fFactor * m_stddev[0] / (m_mean[0] * m_mean[0]);
-    stddevint[1] = fFactor * m_stddev[1] / (m_mean[1] * m_mean[1]);
-    dataLine << fFactor / m_mean[0] << stddevint[0];
-    dataLine << fFactor / m_mean[1] << stddevint[1];
-#ifdef VC_USE_CPU_TIME
-    stddevint[2] = fFactor * m_stddev[2] / (m_mean[2] * m_mean[2]);
-    dataLine << fFactor / m_mean[2] << stddevint[2];
-#endif
-    dataLine << fFactor;
-
-    std::cout << "\n┃ ";
-#ifdef VC_USE_CPU_TIME
-    prettyPrintSeconds(m_mean[2]);
-    std::cout << " ┃ ";
-#endif
-    prettyPrintSeconds(m_mean[0]);
-    std::cout << " ┃ ";
-    prettyPrintCount(m_mean[1]);
-    std::cout << " ┃ ";
-    if (interpret) {
-#ifdef VC_USE_CPU_TIME
-        prettyPrintCount(fFactor / m_mean[2]);
-        std::cout << " ┃ ";
-#endif
-        prettyPrintCount(fFactor / m_mean[0]);
-        std::cout << " ┃ ";
-        prettyPrintCount(fFactor / m_mean[1]);
-        std::cout << " ┃ ";
-        prettyPrintCount(m_mean[1] / fFactor);
-        std::cout << " ┃ ";
-    }
-    std::cout << "\n┃ ";
-#ifdef VC_USE_CPU_TIME
-    prettyPrintError(m_stddev[2] * 100. / m_mean[2]);
-    std::cout << " ┃ ";
-#endif
-    prettyPrintError(m_stddev[0] * 100. / m_mean[0]);
-    std::cout << " ┃ ";
-    prettyPrintError(m_stddev[1] * 100. / m_mean[1]);
-    std::cout << " ┃ ";
-    if (interpret) {
-#ifdef VC_USE_CPU_TIME
-        prettyPrintError(m_stddev[2] * 100. / m_mean[2]);
-        std::cout << " ┃ ";
-#endif
-        prettyPrintError(m_stddev[0] * 100. / m_mean[0]);
-        std::cout << " ┃ ";
-        prettyPrintError(m_stddev[1] * 100. / m_mean[1]);
-        std::cout << " ┃ ";
-        prettyPrintError(m_stddev[1] * 100. / m_mean[1]);
-        std::cout << " ┃ ";
-    }
-    printBottomLine();
-    if (s_fileWriter) {
-        s_fileWriter->addDataLine(dataLine);
-        std::cout.rdbuf(backup);
-    }
-}
-
-typedef std::vector<std::string> ArgumentVector;
-ArgumentVector g_arguments;
-
 int bmain();
-const char *printHelp2 =
-"  -t <seconds>        maximum time to run a single benchmark (10s)\n"
-"  -cpu (all|any|<id>) CPU to pin the benchmark to\n"
-"                      all: test every CPU id in sequence\n"
-"                      any: don't pin and let the OS schedule\n"
-"                      <id>: pin to the specific CPU\n";
+extern const char *printHelp2;
+
 #define SET_HELP_TEXT(str) \
     int _set_help_text_init() { \
         printHelp2 = str; \
@@ -638,118 +190,110 @@ const char *printHelp2 =
     } \
     int _set_help_text_init_ = _set_help_text_init()
 
-#include "cpuset.h"
+#ifdef __GNUC__
+#  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
+#  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
+#else
+#  define VC_IS_UNLIKELY(x) x
+#  define VC_IS_LIKELY(x) x
+#endif
 
-void printHelp(const char *name) {
-    std::cout << "Usage " << name << " [OPTION]...\n"
-        << "Measure throughput and latency of memory in steps of 1GB\n\n"
-        << "  -h, --help          print this message\n"
-        << "  -o <filename>       output measurements to a file instead of stdout\n";
-    if (printHelp2) {
-        std::cout << printHelp2;
+#define benchmark_loop(_bm_obj) \
+    for (Benchmark _bm_obj_local = _bm_obj; \
+            VC_IS_LIKELY(_bm_obj_local.wantsMoreDataPoints() && _bm_obj_local.Start()) || VC_IS_UNLIKELY(_bm_obj_local.Print()); \
+            _bm_obj_local.Stop())
+
+template<typename T, int S> struct KeepResultsHelper {
+    static inline void keepDirty(T &tmp0) { asm volatile("":"+r"(tmp0)); }
+    static inline void keep(const T &tmp0) { asm volatile(""::"r"(tmp0)); }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+#ifdef __x86_64__
+        asm volatile(""::"r"(tmp0), "r"(tmp1), "r"(tmp2), "r"(tmp3));
+#else
+        asm volatile(""::"r"(tmp0), "r"(tmp1));
+        asm volatile(""::"r"(tmp2), "r"(tmp3));
+#endif
     }
-    std::cout << "\nReport bugs to vc-devel@compeng.uni-frankfurt.de\n"
-        << "Vc Homepage: http://compeng.uni-frankfurt.de/index.php?id=Vc\n"
-        << std::flush;
+};
+
+#if defined(VC_IMPL_AVX)
+template<typename T> struct KeepResultsHelper<T, 16> {
+    static inline void keepDirty(T &tmp0) { asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0))); }
+    static inline void keep(const T &tmp0) { asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0))); }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 &>(tmp3)));
+    }
+};
+template<typename T> struct KeepResultsHelper<T, 32> {
+    static inline void keepDirty(T &tmp0) {
+        asm volatile("":"+x"(reinterpret_cast<__m256 &>(tmp0)));
+    }
+    static inline void keep(const T &tmp0) {
+        asm volatile(""::"x"(reinterpret_cast<const __m256 &>(tmp0)));
+    }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m256 &>(tmp0)), "x"(reinterpret_cast<const __m256 &>(tmp1)),
+                "x"(reinterpret_cast<const __m256 &>(tmp2)), "x"(reinterpret_cast<const __m256 &>(tmp3)));
+    }
+};
+#elif defined(VC_IMPL_SSE)
+template<typename T> struct KeepResultsHelper<T, 16> {
+    static inline void keepDirty(T &tmp0) { asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0))); }
+    static inline void keep(const T &tmp0) { asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0))); }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 &>(tmp3)));
+    }
+};
+template<typename T> struct KeepResultsHelper<T, 32> {
+    static inline void keepDirty(T &tmp0) {
+        asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0)), "+x"(reinterpret_cast<__m128 *>(&tmp0)[1]));
+    }
+    static inline void keep(const T &tmp0) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]));
+    }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]),
+                "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 *>(&tmp1)[1]),
+                "x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 *>(&tmp2)[1]),
+                "x"(reinterpret_cast<const __m128 &>(tmp3)), "x"(reinterpret_cast<const __m128 *>(&tmp3)[1]));
+    }
+};
+#elif defined(VC_IMPL_LRBni)
+template<typename T> struct KeepResultsHelper<T, 64> {
+    static inline void keepDirty(T &tmp0) {
+        asm volatile("":"+x"(reinterpret_cast<__m128 &>(tmp0)), "+x"(reinterpret_cast<__m128 *>(&tmp0)[1]),
+                "+x"(reinterpret_cast<__m128 *>(&tmp0)[2]), "+x"(reinterpret_cast<__m128 *>(&tmp0)[3]));
+    }
+    static inline void keep(const T &tmp0) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]));
+    }
+    static inline void keep(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3) {
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp0)), "x"(reinterpret_cast<const __m128 *>(&tmp0)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp0)[3]),
+                "x"(reinterpret_cast<const __m128 &>(tmp1)), "x"(reinterpret_cast<const __m128 *>(&tmp1)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp1)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp1)[3]));
+        asm volatile(""::"x"(reinterpret_cast<const __m128 &>(tmp2)), "x"(reinterpret_cast<const __m128 *>(&tmp2)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp2)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp2)[3]),
+                "x"(reinterpret_cast<const __m128 &>(tmp3)), "x"(reinterpret_cast<const __m128 *>(&tmp3)[1]), "x"(reinterpret_cast<const __m128 *>(&tmp3)[2]), "x"(reinterpret_cast<const __m128 *>(&tmp3)[3]));
+    }
+};
+#endif
+
+template<typename T> static inline void keepResultsDirty(T &tmp0)
+{
+    KeepResultsHelper<T, sizeof(T)>::keepDirty(tmp0);
 }
 
-int main(int argc, char **argv)
+template<typename T> static inline void keepResults(const T &tmp0)
 {
-#ifdef SCHED_FIFO_BENCHMARKS
-    if (SCHED_FIFO != sched_getscheduler(0)) {
-        // not realtime priority, check whether the benchmark executable exists
-        execv("./benchmark", argv);
-        // if the execv call works, great. If it doesn't we just continue, but without realtime prio
-    }
-#endif
+    KeepResultsHelper<T, sizeof(T)>::keep(tmp0);
+}
 
-    int i = 2;
-    Benchmark::FileWriter *file = 0;
-    enum {
-        UseAllCpus = -2,
-        UseAnyOneCpu = -1
-    };
-    int useCpus = UseAnyOneCpu;
-    while (argc > i) {
-        if (std::strcmp(argv[i - 1], "-o") == 0) {
-            file = new Benchmark::FileWriter(argv[i]);
-            i += 2;
-        } else if (std::strcmp(argv[i - 1], "-t") == 0) {
-            g_Time = atof(argv[i]);
-            i += 2;
-        } else if (std::strcmp(argv[i - 1], "-cpu") == 0) {
-// On OS X there is no way to set CPU affinity
-// TODO there is a way to ask the system to not move the process around
-#ifndef __APPLE__
-            if (std::strcmp(argv[i], "all") == 0) {
-                useCpus = UseAllCpus;
-            } else if (std::strcmp(argv[i], "any") == 0) {
-                useCpus = UseAnyOneCpu;
-            } else {
-                useCpus = atoi(argv[i]);
-            }
-#endif
-            i += 2;
-        } else if (std::strcmp(argv[i - 1], "--help") == 0 ||
-                    std::strcmp(argv[i - 1], "-help") == 0 ||
-                    std::strcmp(argv[i - 1], "-h") == 0) {
-            printHelp(argv[0]);
-            return 0;
-        } else {
-            g_arguments.push_back(argv[i - 1]);
-            ++i;
-        }
-    }
-    if (argc == i) {
-        if (std::strcmp(argv[i - 1], "--help") == 0 ||
-                std::strcmp(argv[i - 1], "-help") == 0 ||
-                std::strcmp(argv[i - 1], "-h") == 0) {
-            printHelp(argv[0]);
-            return 0;
-        }
-        g_arguments.push_back(argv[i - 1]);
-    }
+template<typename T> static inline void keepResults(const T &tmp0, const T &tmp1)
+{
+    KeepResultsHelper<T, sizeof(T)>::keep(tmp0, tmp1, tmp0, tmp1);
+}
 
-    int r = 0;
-    if (useCpus == UseAnyOneCpu) {
-        r += bmain();
-        Benchmark::finalize();
-    } else {
-        cpu_set_t cpumask;
-        sched_getaffinity(0, sizeof(cpu_set_t), &cpumask);
-        int cpucount = cpuCount(&cpumask);
-        if (cpucount > 1) {
-            Benchmark::addColumn("CPU_ID");
-        }
-        if (useCpus == UseAllCpus) {
-            for (int cpuid = 0; cpuid < cpucount; ++cpuid) {
-                if (cpucount > 1) {
-                    std::ostringstream str;
-                    str << cpuid;
-                    Benchmark::setColumnData("CPU_ID", str.str());
-                }
-                cpuZero(&cpumask);
-                cpuSet(cpuid, &cpumask);
-                sched_setaffinity(0, sizeof(cpu_set_t), &cpumask);
-                r += bmain();
-                Benchmark::finalize();
-            }
-        } else {
-            int cpuid = std::min(cpucount - 1, std::max(0, useCpus));
-            if (cpucount > 1) {
-                std::ostringstream str;
-                str << cpuid;
-                Benchmark::setColumnData("CPU_ID", str.str());
-            }
-            cpuZero(&cpumask);
-            cpuSet(cpuid, &cpumask);
-            sched_setaffinity(0, sizeof(cpu_set_t), &cpumask);
-            r += bmain();
-            Benchmark::finalize();
-        }
-    }
-    delete file;
-    return r;
+template<typename T> static inline void keepResults(const T &tmp0, const T &tmp1, const T &tmp2, const T &tmp3)
+{
+    KeepResultsHelper<T, sizeof(T)>::keep(tmp0, tmp1, tmp2, tmp3);
 }
 
 #endif // BENCHMARK_H

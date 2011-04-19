@@ -29,13 +29,7 @@
 #include <ext/stdio_sync_filebuf.h>
 #endif
 
-#if VC_IMPL_LRBni
-# define VECTOR_NAMESPACE Vc::LRBni
-#elif VC_IMPL_Scalar
-# define VECTOR_NAMESPACE Vc::Scalar
-#else
-# define VECTOR_NAMESPACE Vc::SSE
-#endif
+#include "internal/namespace.h"
 
 namespace
 {
@@ -125,8 +119,13 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vecto
 }
 #endif
 
+#ifdef VC_IMPL_AVX
+template<unsigned int VectorSize, size_t RegisterWidth>
+inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<VectorSize, RegisterWidth> &m)
+#else
 template<unsigned int VectorSize>
 inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<VectorSize> &m)
+#endif
 {
     out << AnsiColor::blue << "m[";
     for (unsigned int i = 0; i < VectorSize; ++i) {

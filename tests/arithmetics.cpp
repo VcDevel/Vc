@@ -213,7 +213,7 @@ template<typename Vec> void testDiv()
             Vec vector(scalar);
             Vec reference(scalar / divisor);
 
-            COMPARE(vector / divisor, reference);
+            COMPARE(vector / divisor, reference) << '\n' << vector << " / " << divisor;
             vector /= divisor;
             COMPARE(vector, reference);
         }
@@ -267,6 +267,18 @@ template<typename Vec> void testOnesComplement()
     COMPARE(~a, b);
     COMPARE(~b, a);
     COMPARE(~(a + b), Vec(Zero));
+}
+
+template<typename Vec> void testNegate()
+{
+    typedef typename Vec::EntryType T;
+    typedef MulRangeHelper<T> Range;
+    for (typename Range::Iterator i = Range::Start; i < Range::End; i += 0xef) {
+        T i2 = static_cast<T>(i);
+        Vec a(i2);
+
+        COMPARE(static_cast<Vec>(-a), Vec(-i2)) << " i2: " << i2;
+    }
 }
 
 int main(int argc, char **argv)
@@ -360,6 +372,8 @@ int main(int argc, char **argv)
     runTest(testOnesComplement<uint_v>);
     runTest(testOnesComplement<short_v>);
     runTest(testOnesComplement<ushort_v>);
+
+    testAllTypes(testNegate);
 
     return 0;
 }

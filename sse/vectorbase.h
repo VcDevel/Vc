@@ -63,8 +63,8 @@ namespace SSE
             inline Vector<EntryType> &operator|= (const VectorBase<EntryType> &x) INTRINSIC;
             inline Vector<EntryType> &operator&= (const VectorBase<EntryType> &x) INTRINSIC;
             inline Vector<EntryType> &operator^= (const VectorBase<EntryType> &x) INTRINSIC;
-            inline Vector<EntryType> &operator>>=(const VectorBase<EntryType> &x) INTRINSIC;
-            inline Vector<EntryType> &operator<<=(const VectorBase<EntryType> &x) INTRINSIC;
+            inline Vector<EntryType> &operator>>=(const VectorBase<EntryType> &x);
+            inline Vector<EntryType> &operator<<=(const VectorBase<EntryType> &x);
             inline Vector<EntryType> &operator>>=(int x) INTRINSIC;
             inline Vector<EntryType> &operator<<=(int x) INTRINSIC;
 

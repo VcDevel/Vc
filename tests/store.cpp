@@ -136,15 +136,17 @@ template<typename Vec> void maskedStore()
     }
 
     for (int i = 1; i < count; i += 2) {
-        COMPARE(array[i / Vec::Size][i % Vec::Size], setValue);
+        COMPARE(array[i / Vec::Size][i % Vec::Size], setValue) << ", i: " << i << ", count: " << count << ", outer: " << outerCount;
     }
     for (int i = 0; i < count; i += 2) {
-        COMPARE(array[i / Vec::Size][i % Vec::Size], nullValue);
+        COMPARE(array[i / Vec::Size][i % Vec::Size], nullValue) << ", i: " << i << ", count: " << count << ", outer: " << outerCount;
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    initTest(argc, argv);
+
     testAllTypes(alignedStore);
     testAllTypes(unalignedStore);
     testAllTypes(streamingAndAlignedStore);

@@ -29,45 +29,52 @@
 #define LRBni  9875300
 #define SSE4_2 9875301
 #define SSE4a  9875302
+#define AVX    9875303
 
 #ifndef VC_IMPL
 
-#  if defined(__SSE4a__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSE4a 1
-#  endif
-#  if defined(__SSE4_2__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSE4_2 1
-#  endif
-#  if defined(__SSE4_1__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSE4_1 1
-#  endif
-#  if defined(__SSE3__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSE3 1
-#  endif
-#  if defined(__SSSE3__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSSE3 1
-#  endif
-#  if defined(__SSE2__)
-#    define VC_IMPL_SSE 1
-#    define VC_IMPL_SSE2 1
-#  endif
-
-#  if defined(VC_IMPL_SSE)
-     // nothing
-#  elif defined(__LRB__)
-#    define VC_IMPL_LRBni 1
+#  if defined(__AVX__)
+#    define VC_IMPL_AVX 1
 #  else
-#    define VC_IMPL_Scalar 1
+#    if defined(__SSE4a__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE4a 1
+#    endif
+#    if defined(__SSE4_2__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE4_2 1
+#    endif
+#    if defined(__SSE4_1__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE4_1 1
+#    endif
+#    if defined(__SSE3__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE3 1
+#    endif
+#    if defined(__SSSE3__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSSE3 1
+#    endif
+#    if defined(__SSE2__)
+#      define VC_IMPL_SSE 1
+#      define VC_IMPL_SSE2 1
+#    endif
+
+#    if defined(VC_IMPL_SSE)
+       // nothing
+#    elif defined(__LRB__)
+#      define VC_IMPL_LRBni 1
+#    else
+#      define VC_IMPL_Scalar 1
+#    endif
 #  endif
 
 #else // VC_IMPL
 
-#  if VC_IMPL == Scalar
+#  if VC_IMPL == AVX // AVX supersedes SSE
+#    define VC_IMPL_AVX 1
+#  elif VC_IMPL == Scalar
 #    define VC_IMPL_Scalar 1
 #  elif VC_IMPL == LRBni
 #    define VC_IMPL_LRBni 1
@@ -144,7 +151,7 @@
 #  endif
 #endif
 
-# if !defined(VC_IMPL_LRBni) && !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE)
+# if !defined(VC_IMPL_LRBni) && !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX)
 #  error "No suitable Vc implementation was selected! Probably VC_IMPL was set to an invalid value."
 # elif defined(VC_IMPL_SSE) && !defined(VC_IMPL_SSE2)
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
@@ -157,6 +164,7 @@
 #undef SSE4_1
 #undef SSE4_2
 #undef SSE4a
+#undef AVX
 #undef Scalar
 #undef LRBni
 
@@ -223,6 +231,16 @@ namespace Internal {
     template<> struct FlagObject<StreamingAndAlignedFlag> { static inline StreamingAndAlignedFlag the() { return Streaming; } };
     template<> struct FlagObject<StreamingAndUnalignedFlag> { static inline StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
 } // namespace Internal
+
+namespace Warnings
+{
+    void _operator_bracket_warning()
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+        __attribute__((warning("\n\tUse of Vc::Vector::operator[] to modify scalar entries is known to miscompile with GCC 4.3.x.\n\tPlease upgrade to a more recent GCC or avoid operator[] altogether.\n\t(This warning adds an unnecessary function call to operator[] which should work around the problem at a little extra cost.)")))
+#endif
+        ;
+} // namespace Warnings
+
 } // namespace Vc
 
 #include "version.h"
