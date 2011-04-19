@@ -256,6 +256,11 @@ template<typename Vec> void testShift()
     a = Vec(16);
     a >>= shifts;
     for (typename Vec::EntryType i = 0, x = 16; i < Vec::Size; ++i, x >>= 1) {
+#if defined(VC_IMPL_SSE) && defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ == 4 && __GNUC_MINOR__ == 6 && __GNUC_PATCHLEVEL__ == 0 && __XOP__
+        if (Vec::Size == 4) {
+            EXPECT_FAILURE();
+        }
+#endif
         COMPARE(a[i], x);
     }
 }
