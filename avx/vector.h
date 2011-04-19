@@ -21,7 +21,6 @@
 #define AVX_VECTOR_H
 
 #include "intrinsics.h"
-#include "vectorbase.h"
 #include "vectorhelper.h"
 #include "mask.h"
 #include "writemaskedvector.h"
@@ -46,20 +45,18 @@ namespace AVX
 {
 enum { VectorAlignment = 32 };
 
-template<typename T>
-class Vector : public VectorBase<T>
+template<typename T> class Vector
 {
-    protected:
-        typedef VectorBase<T> Base;
-
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)
 
-        enum { Size = Base::Size };
-        typedef typename Base::VectorType VectorType;
-        typedef typename Base::EntryType  EntryType;
-        typedef Vector<typename IndexTypeHelper<EntryType>::Type> IndexType;
-        typedef typename Base::MaskType   Mask;
+        typedef typename VectorTypeHelper<T>::Type VectorType;
+        typedef T EntryType;
+        enum { Size = sizeof(VectorType) / sizeof(EntryType),
+            HasVectorDivision = HasVectorDivisionHelper<T>::Value
+        };
+        typedef Vector<typename IndexTypeHelper<T>::Type> IndexType;
+        typedef typename Vc::AVX::Mask<Size, sizeof(VectorType)> Mask;
         typedef Vc::Memory<Vector<T>, Size> Memory;
 
     protected:
@@ -77,7 +74,8 @@ class Vector : public VectorBase<T>
         static inline VectorType _cast(__m256i v) INTRINSIC { avx_cast<VectorType>(v); }
         static inline VectorType _cast(__m256d v) INTRINSIC { avx_cast<VectorType>(v); }
 
-        using Base::d;
+        typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
+        StorageType d;
 
     public:
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +93,7 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType
-        inline Vector(const VectorType &x) : Base(x) {}
+        inline Vector(const VectorType &x) : d(x) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // static_cast / copy ctor
@@ -191,10 +189,10 @@ class Vector : public VectorBase<T>
 #if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 3
             ::Vc::Warnings::_operator_bracket_warning();
 #endif
-            return Base::d.m(index);
+            return d.m(index);
         }
         inline EntryType operator[](int index) const ALWAYS_INLINE {
-            return Base::d.m(index);
+            return d.m(index);
         }
 
         inline Vector operator~() const ALWAYS_INLINE { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
@@ -220,15 +218,25 @@ class Vector : public VectorBase<T>
         inline Vector &operator/=(const Vector<T> &x);
         inline Vector  operator/ (const Vector<T> &x) const;
 
-#define OP(symbol, fun) \
-        inline Vector &operator symbol##=(const Vector<T> &x) ALWAYS_INLINE { data() = VectorHelper<VectorType>::fun(data(), x.data()); return *this; } \
-        inline Vector operator symbol(const Vector<T> &x) const ALWAYS_INLINE { return Vector<T>(VectorHelper<VectorType>::fun(data(), x.data())); }
-        OP(|, or_)
-        OP(&, and_)
-        OP(^, xor_)
-#undef OP
+        // integer ops
+        inline Vector<T> &operator|= (Vector<T> x) ALWAYS_INLINE;
+        inline Vector<T> &operator&= (Vector<T> x) ALWAYS_INLINE;
+        inline Vector<T> &operator^= (Vector<T> x) ALWAYS_INLINE;
+        inline Vector<T> &operator>>=(Vector<T> x) ALWAYS_INLINE;
+        inline Vector<T> &operator<<=(Vector<T> x) ALWAYS_INLINE;
+        inline Vector<T> &operator>>=(int x) ALWAYS_INLINE;
+        inline Vector<T> &operator<<=(int x) ALWAYS_INLINE;
+
+        inline Vector<T> operator| (Vector<T> x) const ALWAYS_INLINE;
+        inline Vector<T> operator& (Vector<T> x) const ALWAYS_INLINE;
+        inline Vector<T> operator^ (Vector<T> x) const ALWAYS_INLINE;
+        inline Vector<T> operator>>(Vector<T> x) const ALWAYS_INLINE;
+        inline Vector<T> operator<<(Vector<T> x) const ALWAYS_INLINE;
+        inline Vector<T> operator>>(int x) const ALWAYS_INLINE;
+        inline Vector<T> operator<<(int x) const ALWAYS_INLINE;
+
 #define OPcmp(symbol, fun) \
-        inline Mask operator symbol(const Vector<T> &x) const ALWAYS_INLINE { return VectorHelper<T>::fun(data(), x.data()); }
+        inline Mask operator symbol(Vector<T> x) const ALWAYS_INLINE { return VectorHelper<T>::fun(data(), x.data()); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -261,8 +269,8 @@ class Vector : public VectorBase<T>
             //return VectorHelper<T>::pack(data(), m1.data, v2.data(), m2.data);
         //}
 
-        inline VectorType &data() { return Base::data(); }
-        inline const VectorType &data() const { return Base::data(); }
+        inline VectorType &data() { return d.v(); }
+        inline const VectorType &data() const { return d.v(); }
 
         inline EntryType min() const { return VectorHelper<T>::min(data()); }
         inline EntryType max() const { return VectorHelper<T>::max(data()); }
@@ -272,11 +280,11 @@ class Vector : public VectorBase<T>
         inline Vector sorted() const { return SortHelper<T>::sort(data()); }
 
         template<typename F> void callWithValuesSorted(F &f) {
-            EntryType value = Base::d.m(0);
+            EntryType value = d.m(0);
             f(value);
             for (int i = 1; i < Size; ++i) {
-                if (Base::d.m(i) != value) {
-                    value = Base::d.m(i);
+                if (d.m(i) != value) {
+                    value = d.m(i);
                     f(value);
                 }
             }
@@ -306,23 +314,6 @@ template<typename T> inline typename Vector<T>::Mask  operator>=(const typename 
 template<typename T> inline typename Vector<T>::Mask  operator==(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) == v; }
 template<typename T> inline typename Vector<T>::Mask  operator!=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) != v; }
 
-#define OP_IMPL(T, symbol, fun) \
-  template<> inline Vector<T> &VectorBase<T>::operator symbol##=(const Vector<T> &x) { d.v() = VectorHelper<T>::fun(d.v(), x.d.v()); return *static_cast<Vector<T> *>(this); } \
-  template<> inline Vector<T>  VectorBase<T>::operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(d.v(), x.d.v())); }
-  OP_IMPL(int, &, and_)
-  OP_IMPL(int, |, or_)
-  OP_IMPL(int, ^, xor_)
-  OP_IMPL(unsigned int, &, and_)
-  OP_IMPL(unsigned int, |, or_)
-  OP_IMPL(unsigned int, ^, xor_)
-  OP_IMPL(short, &, and_)
-  OP_IMPL(short, |, or_)
-  OP_IMPL(short, ^, xor_)
-  OP_IMPL(unsigned short, &, and_)
-  OP_IMPL(unsigned short, |, or_)
-  OP_IMPL(unsigned short, ^, xor_)
-#undef OP_IMPL
-
   template<typename T> static inline Vector<T> min  (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::min(x.data(), y.data()); }
   template<typename T> static inline Vector<T> max  (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::max(x.data(), y.data()); }
   template<typename T> static inline Vector<T> min  (const Vector<T> &x, const typename Vector<T>::EntryType &y) { return min(x.data(), Vector<T>(y).data()); }
@@ -350,7 +341,6 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const typename 
 } // namespace AVX
 } // namespace Vc
 
-#include "vectorbase.tcc"
 #include "vector.tcc"
 #include "math.h"
 #include "undomacros.h"

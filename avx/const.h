@@ -35,6 +35,29 @@ namespace AVX
     ALIGN(16) extern const unsigned short _IndexesFromZero16[8];
     ALIGN(16) extern const unsigned char  _IndexesFromZero8[16];
 
+    template<typename T> struct IndexesFromZeroData;
+    template<> struct IndexesFromZeroData<int> {
+        static const int *address() { return reinterpret_cast<const int *>(&_IndexesFromZero32[0]); }
+    };
+    template<> struct IndexesFromZeroData<unsigned int> {
+        static const unsigned int *address() { return &_IndexesFromZero32[0]; }
+    };
+    template<> struct IndexesFromZeroData<short> {
+        static const short *address() { return reinterpret_cast<const short *>(&_IndexesFromZero16[0]); }
+    };
+    template<> struct IndexesFromZeroData<unsigned short> {
+        static const unsigned short *address() { return &_IndexesFromZero16[0]; }
+    };
+    template<> struct IndexesFromZeroData<signed char> {
+        static const signed char *address() { return reinterpret_cast<const signed char *>(&_IndexesFromZero8[0]); }
+    };
+    template<> struct IndexesFromZeroData<char> {
+        static const char *address() { return reinterpret_cast<const char *>(&_IndexesFromZero8[0]); }
+    };
+    template<> struct IndexesFromZeroData<unsigned char> {
+        static const unsigned char *address() { return &_IndexesFromZero8[0]; }
+    };
+
     struct c_general
     {
         static const float oneFloat;

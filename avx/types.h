@@ -61,6 +61,9 @@ namespace AVX
     template<> struct VectorTypeHelper<         float> { typedef _M256  Type; };
     template<> struct VectorTypeHelper<        double> { typedef _M256D Type; };
 
+    template<typename T> struct HasVectorDivisionHelper { enum { Value = 1 }; };
+    //template<> struct HasVectorDivisionHelper<unsigned int> { enum { Value = 0 }; };
+
     template<typename T> struct VectorHelperSize;
 
     namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
