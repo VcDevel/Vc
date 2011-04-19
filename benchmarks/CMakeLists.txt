@@ -128,3 +128,7 @@ if(QT4_FOUND)
 endif()
 
 configure_file(benchmark-all.sh benchmark-all.sh @ONLY)
+
+if(CMAKE_COMPILER_IS_GNUCXX AND _gcc_version STREQUAL "4.6.0")
+   add_target_property(dhryrock_avx_benchmark EXCLUDE_FROM_ALL TRUE)
+endif()
