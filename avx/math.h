@@ -52,8 +52,8 @@ namespace AVX
 
     typedef Vector<double> double_v;
     typedef Vector<float> float_v;
-    typedef typename Vector<double>::Mask double_m;
-    typedef typename Vector<float >::Mask float_m;
+    typedef Vector<double>::Mask double_m;
+    typedef Vector<float >::Mask float_m;
 
     template<> inline double_m c_log<double, double_m>::exponentMask() { return _mm256_broadcast_sd(d(1)); }
     template<> inline double_v c_log<double, double_m>::_1_2()         { return _mm256_broadcast_sd(&_dataT[3]); }

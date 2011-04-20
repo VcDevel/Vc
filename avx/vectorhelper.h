@@ -534,7 +534,7 @@ namespace AVX
         };
 
         template<> struct VectorHelper<signed short> {
-            typedef typename VectorTypeHelper<signed short>::Type VectorType;
+            typedef VectorTypeHelper<signed short>::Type VectorType;
             typedef signed short EntryType;
             typedef int ConcatType;
 
@@ -602,7 +602,7 @@ namespace AVX
         };
 
         template<> struct VectorHelper<unsigned short> {
-            typedef typename VectorTypeHelper<unsigned short>::Type VectorType;
+            typedef VectorTypeHelper<unsigned short>::Type VectorType;
             typedef unsigned short EntryType;
             typedef unsigned int ConcatType;
 
@@ -679,14 +679,14 @@ namespace AVX
 
 template<> struct VectorHelper<char>
 {
-    typedef typename VectorTypeHelper<char>::Type VectorType;
+    typedef VectorTypeHelper<char>::Type VectorType;
     typedef char EntryType;
     typedef short ConcatType;
 };
 
 template<> struct VectorHelper<unsigned char>
 {
-    typedef typename VectorTypeHelper<unsigned char>::Type VectorType;
+    typedef VectorTypeHelper<unsigned char>::Type VectorType;
     typedef unsigned char EntryType;
     typedef unsigned short ConcatType;
 };
