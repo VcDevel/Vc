@@ -1,7 +1,7 @@
 set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
    "used uninitialized in this function"
    "GCC < 4.3 does not have full support for SSE2 intrinsics." # Ignore self-made warning, though what I really want is a message when the warning is absent
-   "call to 'Vc::Warnings::_operator_bracket_warning' declared with attribute warning"
+   "call to .*Vc::Warnings::_operator_bracket_warning.* declared with attribute warning"
    "warning is a GCC extension"
    "^-- "  # Ignore output from cmake
    "^\\*\\*\\* WARNING non-zero return value in ctest from: make") # Ignore output from ctest
