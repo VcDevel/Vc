@@ -12,6 +12,7 @@ set(CTEST_PROJECT_SUBPROJECTS
    Scalar
    SSE
    LRBni
+   AVX
    )
 
 set(CTEST_UPDATE_TYPE "git")
