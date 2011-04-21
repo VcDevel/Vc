@@ -69,7 +69,7 @@ template<typename Pair> void testDeinterleave()
 
     M memory[1024];
     for (int i = 0; i < 1024; ++i) {
-        memory[i] = i + offset;
+        memory[i] = static_cast<M>(i + offset);
     }
 
     V a, b;
