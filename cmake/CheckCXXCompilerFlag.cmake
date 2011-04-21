@@ -1,10 +1,10 @@
-# - Check whether the C compiler supports a given flag.
-# CHECK_C_COMPILER_FLAG(<flag> <var>)
+# - Check whether the CXX compiler supports a given flag.
+# CHECK_CXX_COMPILER_FLAG(<flag> <var>)
 #  <flag> - the compiler flag
 #  <var>  - variable to store the result
-# This internally calls the check_c_source_compiles macro.
-# See help for CheckCSourceCompiles for a listing of variables
-# that can modify the build.
+# This internally calls the check_cxx_source_compiles macro.  See help
+# for CheckCXXSourceCompiles for a listing of variables that can
+# modify the build.
 
 #=============================================================================
 # Copyright 2006-2009 Kitware, Inc.
@@ -21,14 +21,14 @@
 # (To distributed this file outside of CMake, substitute the full
 #  License text for the above reference.)
 
-INCLUDE(CheckCSourceCompiles)
+INCLUDE(CheckCXXSourceCompiles)
 
-MACRO (CHECK_C_COMPILER_FLAG _FLAG _RESULT)
+MACRO (CHECK_CXX_COMPILER_FLAG _FLAG _RESULT)
    SET(SAFE_CMAKE_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS}")
    SET(CMAKE_REQUIRED_DEFINITIONS "${_FLAG}")
-   CHECK_C_SOURCE_COMPILES("int main() { return 0;}" ${_RESULT}
+   CHECK_CXX_SOURCE_COMPILES("int main() { return 0;}" ${_RESULT}
      # Some compilers do not fail with a bad flag
-     FAIL_REGEX "is valid for .* but not for C"             # GNU
+     FAIL_REGEX "is valid for .* but not for C\+\+"         # GNU
      FAIL_REGEX "unrecognized .*option"                     # GNU
      FAIL_REGEX "ignoring unknown option"                   # MSVC
      FAIL_REGEX "[Uu]nknown option"                         # HP
@@ -37,5 +37,5 @@ MACRO (CHECK_C_COMPILER_FLAG _FLAG _RESULT)
      FAIL_REGEX "WARNING: unknown flag:"                    # Open64
      )
    SET (CMAKE_REQUIRED_DEFINITIONS "${SAFE_CMAKE_REQUIRED_DEFINITIONS}")
-ENDMACRO (CHECK_C_COMPILER_FLAG)
+ENDMACRO (CHECK_CXX_COMPILER_FLAG)
 
