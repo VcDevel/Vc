@@ -61,9 +61,9 @@ chip=$(uname -m | tr '[A-Z]' '[a-z]')
 # environment variables used by ctest
 SYSTEM=$arch-$chip
 if test -z "$CXX" ; then
-  COMPILER="`g++ --version|head -n1`"
+  COMPILER="`g++ --version 2>&1|head -n1`"
 else
-  COMPILER="`"$CXX" --version|head -n1`"
+  COMPILER="`"$CXX" --version 2>&1|head -n1`"
 fi
 branch=`cat .git/HEAD|cut -d/ -f3`
 
