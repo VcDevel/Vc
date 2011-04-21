@@ -1,10 +1,5 @@
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS)
 
-set(disabled_targets)
-if(CMAKE_COMPILER_IS_GNUCXX AND _gcc_version STREQUAL "4.6.0")
-   list(APPEND disabled_targets gather_avx gather_VC_GATHER_SET_avx gather_sse_LOOP scatter_avx)
-endif()
-
 macro(vc_add_test _name)
    set(_extra_flags)
    set(name ${_name})

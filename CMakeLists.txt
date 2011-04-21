@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.6.2)
 project(Vc)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+set(disabled_targets)
+
 if(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
    set(COMPILER_IS_INTEL true)
    set(COMPILER_IS_OPEN64 false)
@@ -167,6 +169,16 @@ elseif(COMPILER_IS_GCC)
          set(SSE_INTRINSICS_BROKEN true)
       endif(NOT GCC_4_3_0)
    endif(NOT GCC_4_4_1)
+
+   if(_gcc_version STREQUAL "4.6.0")
+      list(APPEND disabled_targets
+         gather_avx
+         gather_VC_GATHER_SET_avx
+         gather_sse_LOOP
+         scatter_avx
+         dhryrock_avx_benchmark
+         )
+   endif()
 
    if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
       set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
