@@ -33,7 +33,7 @@ template<typename Vec> void testZero()
     COMPARE(a, c);
     d.setZero();
     COMPARE(a, d);
-    d = 0.;
+    d = static_cast<typename Vec::EntryType>(0);
     COMPARE(a, d);
     const typename Vec::EntryType zero = 0;
     COMPARE(a, Vec(zero));
