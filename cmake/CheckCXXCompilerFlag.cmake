@@ -28,7 +28,7 @@ MACRO (CHECK_CXX_COMPILER_FLAG _FLAG _RESULT)
    SET(CMAKE_REQUIRED_DEFINITIONS "${_FLAG}")
    CHECK_CXX_SOURCE_COMPILES("int main() { return 0;}" ${_RESULT}
      # Some compilers do not fail with a bad flag
-     FAIL_REGEX "is valid for .* but not for C\+\+"         # GNU
+     FAIL_REGEX "is valid for .* but not for C\\+\\+"       # GNU
      FAIL_REGEX "unrecognized .*option"                     # GNU
      FAIL_REGEX "ignoring unknown option"                   # MSVC
      FAIL_REGEX "[Uu]nknown option"                         # HP
