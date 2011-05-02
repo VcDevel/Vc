@@ -200,9 +200,9 @@ elseif(COMPILER_IS_GCC)
    endif(NOT VOID_PTR_IS_64BIT)
 
    # GCC uses binutils' assembler. And it has to be recent enough otherwise it'll bail out at some of the instructions Vc uses
-   find_program(_binutils_as as)
+   exec_program(${CMAKE_C_COMPILER} ARGS -print-prog-name=as OUTPUT_VARIABLE _binutils_as)
    if(NOT _binutils_as)
-      message(WARNING "Could not find 'as', the assembler normally used by GCC. Hoping everything will work out...")
+      message(WARNING "Could not find 'as', the assembler used by GCC. Hoping everything will work out...")
    else(NOT _binutils_as)
       if(APPLE)
          # it's not really binutils, but it'll give us the assembler version which is what we want
