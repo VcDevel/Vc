@@ -50,8 +50,8 @@ template<typename Vec> void loadArray()
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
 
-    const int count = 256 * 1024 / sizeof(T);
-    T array[count];
+    enum { count = 256 * 1024 / sizeof(T) };
+    Vc::Memory<Vec, count> array;
     for (int i = 0; i < count; ++i) {
         array[i] = i;
     }
@@ -77,8 +77,8 @@ template<typename Vec> void loadArrayShort()
 {
     typedef typename Vec::EntryType T;
 
-    const int count = 32 * 1024;
-    T array[count];
+    enum { count = 32 * 1024 };
+    Vc::Memory<Vec, count> array;
     for (int i = 0; i < count; ++i) {
         array[i] = i;
     }
