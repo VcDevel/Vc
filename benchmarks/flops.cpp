@@ -252,7 +252,30 @@ int bmain()
     {
         Benchmark timer("intrinsics reference", 2 * 8 * float_v::Size * Factor, "FLOP");
         while (timer.wantsMoreDataPoints()) {
-#if VC_IMPL_SSE
+#if VC_IMPL_AVX
+            __m256 x[8] = { _mm256_set1_ps(randomF12()), _mm256_set1_ps(randomF12()), _mm256_set1_ps(randomF12()), _mm256_set1_ps(randomF12()), _mm256_set1_ps(randomF12()), _mm256_set1_ps(randomF12()), _mm256_set1_ps(randomF12()), _mm256_set1_ps(randomF12()) };
+            const __m256 y = _mm256_set1_ps(randomF12());
+
+            timer.Start();
+            ///////////////////////////////////////
+
+            for (int i = 0; i < Factor; ++i) {
+                    x[0] = _mm256_add_ps(_mm256_mul_ps(y, x[0]), y);
+                    x[1] = _mm256_add_ps(_mm256_mul_ps(y, x[1]), y);
+                    x[2] = _mm256_add_ps(_mm256_mul_ps(y, x[2]), y);
+                    x[3] = _mm256_add_ps(_mm256_mul_ps(y, x[3]), y);
+                    x[4] = _mm256_add_ps(_mm256_mul_ps(y, x[4]), y);
+                    x[5] = _mm256_add_ps(_mm256_mul_ps(y, x[5]), y);
+                    x[6] = _mm256_add_ps(_mm256_mul_ps(y, x[6]), y);
+                    x[7] = _mm256_add_ps(_mm256_mul_ps(y, x[7]), y);
+            }
+
+            ///////////////////////////////////////
+            timer.Stop();
+
+            const int k = _mm256_movemask_ps(_mm256_add_ps(_mm256_add_ps(_mm256_add_ps(x[0], x[1]), _mm256_add_ps(x[2], x[3])), _mm256_add_ps(_mm256_add_ps(x[4], x[5]), _mm256_add_ps(x[7], x[6]))));
+            blackHole &= k;
+#elif VC_IMPL_SSE
             __m128 x[8] = { _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()), _mm_set1_ps(randomF12()) };
             const __m128 y = _mm_set1_ps(randomF12());
 
