@@ -99,4 +99,4 @@ echo "************************"
 test -z "$VC_BUILDDIR" && export VC_BUILDDIR="$VC_SOURCEDIR/build-${ctest_model}-${LABEL//[\[\] ()]/_}"
 test -d "$VC_BUILDDIR" || mkdir -p "$VC_BUILDDIR"
 
-ctest --debug -S test.cmake -V 2>&1 | tee $VC_BUILDDIR/ctest-debug.log
+ctest --debug -S test.cmake -V 2>&1 | tee "$VC_BUILDDIR/ctest-debug.log"
