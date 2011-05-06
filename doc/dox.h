@@ -21,7 +21,7 @@
  * \mainpage
  * \image html logo.png
  *
- * The Vc library is a collection of vector classes with existing implementations for SSE, LRBni,
+ * The Vc library is a collection of vector classes with existing implementations for SSE, AVX, LRBni,
  * and a scalar fallback.
  *
  * \subpage intro
@@ -35,10 +35,11 @@
  * says is available. For example compiling with "g++ -mssse3" will enable compilation against the
  * SSE implementation using SSE the instruction sets SSE, SSE2, SSE3 and SSSE3. If you want to force
  * compilation against a specific implementation of the vector classes you can set the macro
- * VC_IMPL to either "Scalar", "SSE2", "SSE3", "SSSE3", "SSE4_1" or "LRBni". Setting VC_IMPL to
- * "SSE" will force the SSE instruction set, but lets the headers figure out the version to use or
- * if that fails use SSE4.1.
- * After you include a Vc header you will have the following macros available that you can (but
+ * VC_IMPL to either "Scalar", "SSE2", "SSE3", "SSSE3", "SSE4_1", "SSE4_2", "SSE4a", "AVX" or "LRBni".
+ * Setting VC_IMPL to
+ * "SSE" will force the SSE instruction set, but lets the headers figure out the version to use or,
+ * if that fails, uses SSE4.1.
+ * After you include a Vc header, you will have the following macros available, which you can (but
  * normally should not) use to determine the implementation Vc uses:
  * \li VC_IMPL_Scalar
  * \li VC_IMPL_LRBni
@@ -47,6 +48,9 @@
  * \li VC_IMPL_SSE3
  * \li VC_IMPL_SSSE3
  * \li VC_IMPL_SSE4_1
+ * \li VC_IMPL_SSE4_2
+ * \li VC_IMPL_SSE4a
+ * \li VC_IMPL_AVX
  */
 
 /**
