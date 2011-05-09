@@ -80,7 +80,6 @@ template<typename Vector> class DoMemIos
             // has the same cache history as subsequent runs
             for (int i = 0; i < Factor; i += Vector::Size) {
                 const Vector tmp(&a[i], alignment);
-                //asm volatile(""::"x"(tmp));
                 keepResults(tmp);
             }
 
