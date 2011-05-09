@@ -717,10 +717,22 @@ template<typename Parent, typename T> class StoreMixin
         template<typename A> inline void store(T *mem, Mask mask, A align) const { store<T, A>(mem, mask, align); }
 };
 
+template<typename T> class VectorMultiplication;
+template<typename T> inline Vector<T> operator+(const Vector<T> &x, const VectorMultiplication<T> &y);
+template<typename T> inline Vector<T> operator-(const Vector<T> &x, const VectorMultiplication<T> &y);
+template<typename T> inline Vector<T> operator+(T x, const VectorMultiplication<T> &y);
+template<typename T> inline Vector<T> operator-(T x, const VectorMultiplication<T> &y);
 template<typename T> class VectorMultiplication : public StoreMixin<VectorMultiplication<T>, T>
 {
     friend class Vector<T>;
     friend class StoreMixin<VectorMultiplication<T>, T>;
+    friend Vector<T> operator+<>(const Vector<T> &, const VectorMultiplication<T> &);
+    friend Vector<T> operator-<>(const Vector<T> &, const VectorMultiplication<T> &);
+    friend Vector<T> operator+<>(T, const VectorMultiplication<T> &);
+    friend Vector<T> operator-<>(T, const VectorMultiplication<T> &);
+
+    typedef typename VectorHelper<T>::VectorType VectorType;
+
     public:
         typedef T EntryType;
         typedef typename Vector<T>::Mask Mask;
@@ -743,8 +755,6 @@ template<typename T> class VectorMultiplication : public StoreMixin<VectorMultip
 
         inline operator Vector<T>() const { return product(); }
 
-    protected:
-        typedef typename VectorHelper<T>::VectorType VectorType;
         const VectorType vdata() const { return product(); }
 
     private:
@@ -761,6 +771,12 @@ template<typename T> inline Vector<T> operator+(const Vector<T> &x, const Vector
 }
 template<typename T> inline Vector<T> operator-(const Vector<T> &x, const VectorMultiplication<T> &y) {
     return VectorHelper<T>::multiplyAndSub(y.left, y.right, x.data.v());
+}
+template<typename T> inline Vector<T> operator+(T x, const VectorMultiplication<T> &y) {
+    return VectorHelper<T>::multiplyAndAdd(y.left, y.right, Vector<T>(x));
+}
+template<typename T> inline Vector<T> operator-(T x, const VectorMultiplication<T> &y) {
+    return VectorHelper<T>::multiplyAndSub(y.left, y.right, Vector<T>(x));
 }
 
 template<typename T>
@@ -880,6 +896,8 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline Vector(VectorType x) : data(x) {}
         template<typename OtherT>
         explicit inline Vector(const Vector<OtherT> &x) : data(StaticCastHelper<OtherT, T>::cast(x.data.v())) {}
+        template<typename OtherT>
+        explicit inline Vector(const VectorMultiplication<OtherT> &x) : data(StaticCastHelper<OtherT, T>::cast(x.vdata())) {}
         /**
          * initialize all 16 or 8 values with the given value
          */
@@ -1166,28 +1184,24 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         }
 };
 
-template<typename T> inline Vector<T> operator+(const T &x, const Vector<T> &v) { return v.operator+(x); }
-template<typename T> inline Vector<T> operator*(const T &x, const Vector<T> &v) { return v.operator*(x); }
-template<typename T> inline Vector<T> operator-(const T &x, const Vector<T> &v) { return Vector<T>(x) - v; }
-template<typename T> inline Vector<T> operator/(const T &x, const Vector<T> &v) { return Vector<T>(x) / v; }
-template<typename T> inline Vector<T> operator%(const T &x, const Vector<T> &v) { return Vector<T>(x) % v; }
-template<typename T> inline __mmask  operator< (const T &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
-template<typename T> inline __mmask  operator<=(const T &x, const Vector<T> &v) { return Vector<T>(x) <= v; }
-template<typename T> inline __mmask  operator> (const T &x, const Vector<T> &v) { return Vector<T>(x) >  v; }
-template<typename T> inline __mmask  operator>=(const T &x, const Vector<T> &v) { return Vector<T>(x) >= v; }
-template<typename T> inline __mmask  operator==(const T &x, const Vector<T> &v) { return Vector<T>(x) == v; }
-template<typename T> inline __mmask  operator!=(const T &x, const Vector<T> &v) { return Vector<T>(x) != v; }
-
 template<typename T> struct SwizzledVector
 {
     Vector<T> v;
     unsigned int s;
 };
 
-} // namespace LRBni
+template<typename T> inline Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) + v; }
+template<typename T> inline Vector<T> operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) * v; }
+template<typename T> inline Vector<T> operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) - v; }
+template<typename T> inline Vector<T> operator/(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) / v; }
+template<typename T> inline Vector<T> operator%(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) % v; }
+template<typename T> inline __mmask  operator< (const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
+template<typename T> inline __mmask  operator<=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) <= v; }
+template<typename T> inline __mmask  operator> (const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) >  v; }
+template<typename T> inline __mmask  operator>=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) >= v; }
+template<typename T> inline __mmask  operator==(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) == v; }
+template<typename T> inline __mmask  operator!=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) != v; }
 
-namespace LRBni
-{
 #define PARENT_DATA(T) (static_cast<Vector<T> *>(this)->data.v())
 #define PARENT_DATA_CONST(T) (static_cast<const Vector<T> *>(this)->data.v())
 #define OP_IMPL(EntryType, symbol, fun) \
