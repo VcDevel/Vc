@@ -219,13 +219,18 @@ template<typename T, int S> struct KeepResultsHelper {
     }
 };
 
+template<typename T>
+static inline void _keepXRegister(T x0, T x1, T x2, T x3, T x4, T x5, T x6, T x7)
+{
+    asm volatile(""::"x"(x0), "x"(x1), "x"(x2), "x"(x3), "x"(x4), "x"(x5), "x"(x6), "x"(x7));
+}
+
 #if defined(VC_IMPL_AVX)
 template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 16> {
     static inline void keepDirty(Vc::Vector<T> &tmp0) { asm volatile("":"+x"(tmp0.data())); }
     static inline void keep(Vc::Vector<T> tmp0, Vc::Vector<T> tmp1, Vc::Vector<T> tmp2, Vc::Vector<T> tmp3,
             Vc::Vector<T> tmp4, Vc::Vector<T> tmp5, Vc::Vector<T> tmp6, Vc::Vector<T> tmp7) {
-        asm volatile(""::"x"(tmp0.data()), "x"(tmp1.data()), "x"(tmp2.data()), "x"(tmp3.data()),
-                "x"(tmp4.data()), "x"(tmp5.data()), "x"(tmp6.data()), "x"(tmp7.data()));
+        _keepXRegister(tmp0.data(), tmp1.data(), tmp2.data(), tmp3.data(), tmp4.data(), tmp5.data(), tmp6.data(), tmp7.data());
     }
 };
 template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 32> {
@@ -234,8 +239,13 @@ template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 32> {
     }
     static inline void keep(Vc::Vector<T> tmp0, Vc::Vector<T> tmp1, Vc::Vector<T> tmp2, Vc::Vector<T> tmp3,
             Vc::Vector<T> tmp4, Vc::Vector<T> tmp5, Vc::Vector<T> tmp6, Vc::Vector<T> tmp7) {
-        asm volatile(""::"x"(tmp0.data()), "x"(tmp1.data()), "x"(tmp2.data()), "x"(tmp3.data()),
-                "x"(tmp4.data()), "x"(tmp5.data()), "x"(tmp6.data()), "x"(tmp7.data()));
+        _keepXRegister(tmp0.data(), tmp1.data(), tmp2.data(), tmp3.data(), tmp4.data(), tmp5.data(), tmp6.data(), tmp7.data());
+    }
+};
+template<unsigned int S1, size_t S2, int S3> struct KeepResultsHelper<Vc::AVX::Mask<S1, S2>, S3> {
+    static inline void keep(Vc::AVX::Mask<S1, S2> tmp0, Vc::AVX::Mask<S1, S2> tmp1, Vc::AVX::Mask<S1, S2> tmp2, Vc::AVX::Mask<S1, S2> tmp3,
+            Vc::AVX::Mask<S1, S2> tmp4, Vc::AVX::Mask<S1, S2> tmp5, Vc::AVX::Mask<S1, S2> tmp6, Vc::AVX::Mask<S1, S2> tmp7) {
+        _keepXRegister(tmp0.data(), tmp1.data(), tmp2.data(), tmp3.data(), tmp4.data(), tmp5.data(), tmp6.data(), tmp7.data());
     }
 };
 #elif defined(VC_IMPL_SSE)
@@ -243,39 +253,57 @@ template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 16> {
     static inline void keepDirty(Vc::Vector<T> &tmp0) { asm volatile("":"+x"(tmp0.data())); }
     static inline void keep(Vc::Vector<T> tmp0, Vc::Vector<T> tmp1, Vc::Vector<T> tmp2, Vc::Vector<T> tmp3,
             Vc::Vector<T> tmp4, Vc::Vector<T> tmp5, Vc::Vector<T> tmp6, Vc::Vector<T> tmp7) {
-        asm volatile(""::"x"(tmp0.data()), "x"(tmp1.data()), "x"(tmp2.data()), "x"(tmp3.data()),
-                "x"(tmp4.data()), "x"(tmp5.data()), "x"(tmp6.data()), "x"(tmp7.data()));
+        _keepXRegister(tmp0.data(), tmp1.data(), tmp2.data(), tmp3.data(), tmp4.data(), tmp5.data(), tmp6.data(), tmp7.data());
     }
 };
 template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 32> {
     static inline void keepDirty(Vc::Vector<T> &tmp0) {
-        asm volatile("":"+x"(tmp0.data()[0]), "+x"(&tmp0.data()[1]));
+        asm volatile("":"+x"(tmp0.data()[0]), "+x"(tmp0.data()[1]));
     }
     static inline void keep(Vc::Vector<T> tmp0, Vc::Vector<T> tmp1, Vc::Vector<T> tmp2, Vc::Vector<T> tmp3,
             Vc::Vector<T> tmp4, Vc::Vector<T> tmp5, Vc::Vector<T> tmp6, Vc::Vector<T> tmp7) {
-        asm volatile(""::"x"(tmp0.data()[0]), "x"(&tmp0.data()[1]),
-                "x"(tmp1.data()[0]), "x"(&tmp1.data()[1]),
-                "x"(tmp2.data()[0]), "x"(&tmp2.data()[1]),
-                "x"(tmp3.data()[0]), "x"(&tmp3.data()[1]));
-        asm volatile(""::"x"(tmp4.data()[0]), "x"(&tmp4.data()[1]),
-                "x"(tmp5.data()[0]), "x"(&tmp5.data()[1]),
-                "x"(tmp6.data()[0]), "x"(&tmp6.data()[1]),
-                "x"(tmp7.data()[0]), "x"(&tmp7.data()[1]));
+        _keepXRegister(tmp0.data()[0], tmp0.data()[1], tmp1.data()[0], tmp1.data()[1], tmp2.data()[0], tmp2.data()[1], tmp3.data()[0], tmp3.data()[1]);
+        _keepXRegister(tmp4.data()[0], tmp4.data()[1], tmp5.data()[0], tmp5.data()[1], tmp6.data()[0], tmp6.data()[1], tmp7.data()[0], tmp7.data()[1]);
     }
 };
-#elif defined(VC_IMPL_LRBni)
-//X template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 64> {
-//X     static inline void keepDirty(Vc::Vector<T> &tmp0) {
-//X         asm volatile("":"+x"(tmp0.data()), "+x"(&tmp0)[1]),
-//X                 "+x"(&tmp0)[2]), "+x"(&tmp0)[3]));
-//X     }
-//X     static inline void keep(Vc::Vector<T> tmp0, Vc::Vector<T> tmp1, Vc::Vector<T> tmp2, Vc::Vector<T> tmp3) {
-//X         asm volatile(""::"x"(tmp0.data()), "x"(&tmp0)[1]), "x"(&tmp0)[2]), "x"(&tmp0)[3]),
-//X                 "x"(tmp1.data()), "x"(&tmp1)[1]), "x"(&tmp1)[2]), "x"(&tmp1)[3]));
-//X         asm volatile(""::"x"(tmp2.data()), "x"(&tmp2)[1]), "x"(&tmp2)[2]), "x"(&tmp2)[3]),
-//X                 "x"(tmp3.data()), "x"(&tmp3)[1]), "x"(&tmp3)[2]), "x"(&tmp3)[3]));
-//X     }
-//X };
+template<unsigned int S> struct KeepResultsHelper<Vc::SSE::Mask<S>, 16> {
+    static inline void keepDirty(Vc::SSE::Mask<S> &tmp0) { asm volatile("":"+x"(tmp0.data())); }
+    static inline void keep(Vc::SSE::Mask<S> tmp0, Vc::SSE::Mask<S> tmp1, Vc::SSE::Mask<S> tmp2, Vc::SSE::Mask<S> tmp3,
+            Vc::SSE::Mask<S> tmp4, Vc::SSE::Mask<S> tmp5, Vc::SSE::Mask<S> tmp6, Vc::SSE::Mask<S> tmp7) {
+        _keepXRegister(tmp0.data(), tmp1.data(), tmp2.data(), tmp3.data(), tmp4.data(), tmp5.data(), tmp6.data(), tmp7.data());
+    }
+};
+template<> struct KeepResultsHelper<Vc::SSE::Float8Mask, 32> {
+    static inline void keep(Vc::SSE::Float8Mask tmp0, Vc::SSE::Float8Mask tmp1, Vc::SSE::Float8Mask tmp2, Vc::SSE::Float8Mask tmp3,
+            Vc::SSE::Float8Mask tmp4, Vc::SSE::Float8Mask tmp5, Vc::SSE::Float8Mask tmp6, Vc::SSE::Float8Mask tmp7) {
+        _keepXRegister(tmp0.data()[0], tmp0.data()[1], tmp1.data()[0], tmp1.data()[1], tmp2.data()[0], tmp2.data()[1], tmp3.data()[0], tmp3.data()[1]);
+        _keepXRegister(tmp4.data()[0], tmp4.data()[1], tmp5.data()[0], tmp5.data()[1], tmp6.data()[0], tmp6.data()[1], tmp7.data()[0], tmp7.data()[1]);
+    }
+};
+#elif defined(VC_IMPL_LRBni) && defined(VC_LRBni_PROTOTYPE_H)
+#include <xmmintrin.h>
+template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 64> {
+    static inline void keepDirty(Vc::Vector<T> &tmp0) {
+        __m128 *x = reinterpret_cast<__m128 *>(&tmp0);
+        asm volatile("":"+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]));
+    }
+    static inline void keep(Vc::Vector<T> tmp0, Vc::Vector<T> tmp1, Vc::Vector<T> tmp2, Vc::Vector<T> tmp3,
+            Vc::Vector<T> tmp4, Vc::Vector<T> tmp5, Vc::Vector<T> tmp6, Vc::Vector<T> tmp7) {
+        // doesn't make so much sense with so many required registers
+        __m128 *x0 = reinterpret_cast<__m128 *>(&tmp0);
+        __m128 *x1 = reinterpret_cast<__m128 *>(&tmp1);
+        __m128 *x2 = reinterpret_cast<__m128 *>(&tmp2);
+        __m128 *x3 = reinterpret_cast<__m128 *>(&tmp3);
+        _keepXRegister(x0[0], x0[1], x0[2], x0[3], x1[0], x1[1], x1[2], x1[3]);
+        _keepXRegister(x2[0], x2[1], x2[2], x2[3], x3[0], x3[1], x3[2], x3[3]);
+        __m128 *x4 = reinterpret_cast<__m128 *>(&tmp4);
+        __m128 *x5 = reinterpret_cast<__m128 *>(&tmp5);
+        __m128 *x6 = reinterpret_cast<__m128 *>(&tmp6);
+        __m128 *x7 = reinterpret_cast<__m128 *>(&tmp7);
+        _keepXRegister(x4[0], x4[1], x4[2], x4[3], x5[0], x5[1], x5[2], x5[3]);
+        _keepXRegister(x6[0], x6[1], x6[2], x6[3], x7[0], x7[1], x7[2], x7[3]);
+    }
+};
 #endif
 
 template<typename T> static inline void keepResultsDirty(T &tmp0)
@@ -296,6 +324,11 @@ template<typename T> static inline void keepResults(T tmp0, T tmp1)
 template<typename T> static inline void keepResults(T tmp0, T tmp1, T tmp2, T tmp3)
 {
     KeepResultsHelper<T, sizeof(T)>::keep(tmp0, tmp1, tmp2, tmp3, tmp0, tmp1, tmp2, tmp3);
+}
+
+template<typename T> static inline void keepResults(T tmp0, T tmp1, T tmp2, T tmp3, T tmp4, T tmp5)
+{
+    KeepResultsHelper<T, sizeof(T)>::keep(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp0, tmp1);
 }
 
 template<typename T> static inline void keepResults(T tmp0, T tmp1, T tmp2, T tmp3, T tmp4, T tmp5, T tmp6, T tmp7)
