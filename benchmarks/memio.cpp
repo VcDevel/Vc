@@ -89,37 +89,53 @@ template<typename Vector> class DoMemIos
             // start with reads so that the cache lines are not marked as dirty yet
             benchmark_loop(Benchmark("read", numberOfBytes, "Byte")) {
                 for (int j = 0; j < Factor2; ++j) {
-                    for (int i = 0; i < Factor; i += 4 * Vector::Size) {
+                    for (int i = 0; i < Factor; i += 8 * Vector::Size) {
                         const Vector tmp0(&a[i + 0 * Vector::Size], alignment);
                         const Vector tmp1(&a[i + 1 * Vector::Size], alignment);
                         const Vector tmp2(&a[i + 2 * Vector::Size], alignment);
                         const Vector tmp3(&a[i + 3 * Vector::Size], alignment);
-                        keepResults(tmp0, tmp1, tmp2, tmp3);
+                        const Vector tmp4(&a[i + 4 * Vector::Size], alignment);
+                        const Vector tmp5(&a[i + 5 * Vector::Size], alignment);
+                        const Vector tmp6(&a[i + 6 * Vector::Size], alignment);
+                        const Vector tmp7(&a[i + 7 * Vector::Size], alignment);
+                        keepResults(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7);
                     }
                 }
             }
             benchmark_loop(Benchmark("write", numberOfBytes, "Byte")) {
                 for (int j = 0; j < Factor2; ++j) {
-                    for (int i = 0; i < Factor; i += 4 * Vector::Size) {
+                    for (int i = 0; i < Factor; i += 8 * Vector::Size) {
                         foo.store(&a[i + 0 * Vector::Size], alignment);
                         foo.store(&a[i + 1 * Vector::Size], alignment);
                         foo.store(&a[i + 2 * Vector::Size], alignment);
                         foo.store(&a[i + 3 * Vector::Size], alignment);
+                        foo.store(&a[i + 4 * Vector::Size], alignment);
+                        foo.store(&a[i + 5 * Vector::Size], alignment);
+                        foo.store(&a[i + 6 * Vector::Size], alignment);
+                        foo.store(&a[i + 7 * Vector::Size], alignment);
                     }
                 }
             }
             benchmark_loop(Benchmark("r/w", numberOfBytes, "Byte")) {
                 for (int j = 0; j < Factor2; ++j) {
-                    for (int i = 0; i < Factor; i += 4 * Vector::Size) {
+                    for (int i = 0; i < Factor; i += 8 * Vector::Size) {
                         const Vector tmp0(&a[i + 0 * Vector::Size], alignment);
                         const Vector tmp1(&a[i + 1 * Vector::Size], alignment);
                         const Vector tmp2(&a[i + 2 * Vector::Size], alignment);
                         const Vector tmp3(&a[i + 3 * Vector::Size], alignment);
-                        foo.store(&a[i + 0 * Vector::Size], alignment);
-                        foo.store(&a[i + 1 * Vector::Size], alignment);
-                        foo.store(&a[i + 2 * Vector::Size], alignment);
-                        foo.store(&a[i + 3 * Vector::Size], alignment);
-                        keepResults(tmp0, tmp1, tmp2, tmp3);
+                        const Vector tmp4(&a[i + 4 * Vector::Size], alignment);
+                        const Vector tmp5(&a[i + 5 * Vector::Size], alignment);
+                        const Vector tmp6(&a[i + 6 * Vector::Size], alignment);
+                        const Vector tmp7(&a[i + 7 * Vector::Size], alignment);
+                        tmp1.store(&a[i + 0 * Vector::Size], alignment);
+                        tmp0.store(&a[i + 1 * Vector::Size], alignment);
+                        tmp0.store(&a[i + 2 * Vector::Size], alignment);
+                        tmp0.store(&a[i + 3 * Vector::Size], alignment);
+                        tmp0.store(&a[i + 4 * Vector::Size], alignment);
+                        tmp0.store(&a[i + 5 * Vector::Size], alignment);
+                        tmp0.store(&a[i + 6 * Vector::Size], alignment);
+                        tmp0.store(&a[i + 7 * Vector::Size], alignment);
+                        keepResults(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7);
                     }
                 }
             }
