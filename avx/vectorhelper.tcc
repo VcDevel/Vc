@@ -92,10 +92,13 @@ inline void VectorHelper<__m256>::store(float *mem, const VectorType x, Streamin
     _mm_maskmoveu_si128(avx_cast<__m128i>(x), _mm_setallone_si128(), reinterpret_cast<char *>(mem));
     _mm_maskmoveu_si128(_mm256_extractf128_si256(avx_cast<__m256i>(x), 1), _mm_setallone_si128(), reinterpret_cast<char *>(mem + 4));
 }
+#if defined(__GNUC__) && __GNUC__ == 4 && (__GNUC_MINOR__ < 5 || (__GNUC_MINOR__ == 5 && __GNUC_PATCHLEVEL__ < 2))
+// GCC 4.6.0 / 4.5.2 switched to the broken interface as defined by ICC
+#define VC_MASKSTORE_MASK_TYPE_IS_M256I 1
+#endif
 inline void VectorHelper<__m256>::store(float *mem, const VectorType x, const VectorType m, AlignedFlag)
 {
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ <= 5 && !defined(__INTEL_COMPILER)
-    // GCC 4.6.0 switched to the broken interface as defined by ICC
+#ifdef VC_MASKSTORE_MASK_TYPE_IS_M256I
     _mm256_maskstore_ps(mem, m, x);
 #else
     _mm256_maskstore_ps(mem, avx_cast<__m256i>(m), x);
@@ -103,8 +106,7 @@ inline void VectorHelper<__m256>::store(float *mem, const VectorType x, const Ve
 }
 inline void VectorHelper<__m256>::store(float *mem, const VectorType x, const VectorType m, UnalignedFlag)
 {
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ <= 5 && !defined(__INTEL_COMPILER)
-    // GCC 4.6.0 switched to the broken interface as defined by ICC
+#ifdef VC_MASKSTORE_MASK_TYPE_IS_M256I
     _mm256_maskstore_ps(mem, m, x);
 #else
     _mm256_maskstore_ps(mem, avx_cast<__m256i>(m), x);
@@ -166,8 +168,7 @@ inline void VectorHelper<__m256d>::store(double *mem, const VectorType x, Stream
 }
 inline void VectorHelper<__m256d>::store(double *mem, const VectorType x, const VectorType m, AlignedFlag)
 {
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ <= 5 && !defined(__INTEL_COMPILER)
-    // GCC 4.6.0 switched to the broken interface as defined by ICC
+#ifdef VC_MASKSTORE_MASK_TYPE_IS_M256I
     _mm256_maskstore_pd(mem, m, x);
 #else
     _mm256_maskstore_pd(mem, avx_cast<__m256i>(m), x);
@@ -175,8 +176,7 @@ inline void VectorHelper<__m256d>::store(double *mem, const VectorType x, const 
 }
 inline void VectorHelper<__m256d>::store(double *mem, const VectorType x, const VectorType m, UnalignedFlag)
 {
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ <= 5 && !defined(__INTEL_COMPILER)
-    // GCC 4.6.0 switched to the broken interface as defined by ICC
+#ifdef VC_MASKSTORE_MASK_TYPE_IS_M256I
     _mm256_maskstore_pd(mem, m, x);
 #else
     _mm256_maskstore_pd(mem, avx_cast<__m256i>(m), x);
@@ -236,8 +236,7 @@ template<typename T> inline void VectorHelper<__m256i>::store(T *mem, const Vect
 }
 template<typename T> inline void VectorHelper<__m256i>::store(T *mem, const VectorType x, const VectorType m, AlignedFlag)
 {
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ <= 5 && !defined(__INTEL_COMPILER)
-    // GCC 4.6.0 switched to the broken interface as defined by ICC
+#ifdef VC_MASKSTORE_MASK_TYPE_IS_M256I
     _mm256_maskstore_ps(reinterpret_cast<float *>(mem), avx_cast<__m256>(m), avx_cast<__m256>(x));
 #else
     _mm256_maskstore_ps(reinterpret_cast<float *>(mem), m, avx_cast<__m256>(x));
@@ -245,8 +244,7 @@ template<typename T> inline void VectorHelper<__m256i>::store(T *mem, const Vect
 }
 template<typename T> inline void VectorHelper<__m256i>::store(T *mem, const VectorType x, const VectorType m, UnalignedFlag)
 {
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ <= 5 && !defined(__INTEL_COMPILER)
-    // GCC 4.6.0 switched to the broken interface as defined by ICC
+#ifdef VC_MASKSTORE_MASK_TYPE_IS_M256I
     _mm256_maskstore_ps(reinterpret_cast<float *>(mem), avx_cast<__m256>(m), avx_cast<__m256>(x));
 #else
     _mm256_maskstore_ps(reinterpret_cast<float *>(mem), m, avx_cast<__m256>(x));
