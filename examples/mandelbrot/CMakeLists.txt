@@ -18,7 +18,7 @@ if(QT4_FOUND)
    # It is an interesting test if we can compare against the autovect
    # capabilities of Open64 and ICC, so we try to find those and compile extra
    # binaries with them
-   find_program(O64_CXX openCC HINTS /opt/x86_open64-4.2.4/bin)
+   find_program(O64_CXX openCC HINTS /opt/x86_open64-4.2.4/bin /opt/open64/bin)
    find_program(ICC_CXX icpc HINTS
       $ENV{HOME}/intel/Compiler/11.1/072/bin/intel64)
 
