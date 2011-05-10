@@ -127,4 +127,5 @@ if(QT4_FOUND)
    endif()
 endif()
 
+exec_program(${CMAKE_CXX_COMPILER} ARGS --version OUTPUT_VARIABLE CXX_VERSION)
 configure_file(benchmark-all.sh benchmark-all.sh @ONLY)

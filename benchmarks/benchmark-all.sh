@@ -35,11 +35,9 @@ rev=`cut -d' ' -f2 "$srcdir/.git/HEAD"`
 branch=${rev##*/}
 rev=`cat "$srcdir/.git/$rev"`
 
-CXX='@CMAKE_CXX_COMPILER@'
-
 cat > $resultsDir/metadata <<EOF
 build type	: @CMAKE_BUILD_TYPE@
-compiler	: `$CXX --version|head -n1`
+compiler	: `echo "@CXX_VERSION@"|head -n1`
 strict aliasing	: @ENABLE_STRICT_ALIASING@
 fast math	: @FAST_MATH_BENCHMARK@
 realtime	: @REALTIME_BENCHMARKS@
