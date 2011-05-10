@@ -112,8 +112,6 @@ void MandelBase::run()
 
 static const float S = 4.f;
 
-static int min(int a, int b) { return a < b ? a : b; }
-
 /**
  * std::complex is way too slow for our limited purposes:
  *
