@@ -574,7 +574,7 @@ end #}}}1
 gnuplot.close
 
 if ARGV.empty?
-    `a2ps -q -M a4 -l 120 --columns=1 --rows=1 metadata -o -|ps2pdf - metadata.pdf`
+    `a2ps -q -M a4 -l 120 --columns=1 --rows=1 metadata -o -|ps2pdf -sPAPERSIZE=a4 - metadata.pdf`
     `pdftk metadata.pdf #{pdfs.join ' '} cat output tmp.pdf` or fail
     metain = File.new 'metadata', 'r'
     metaout = File.new 'tmp.txt', 'w'
