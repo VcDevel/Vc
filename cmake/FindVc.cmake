@@ -10,6 +10,8 @@
 # Additionally it will set some defines to match the capabilities of your
 # compiler/assembler
 
+include (MacroEnsureVersion)
+
 if(NOT DEFINED VC_INSTALL_PREFIX OR NOT VC_INSTALL_PREFIX)
    # we have to search for Vc ourself
    find_path(VC_INSTALL_PREFIX include/Vc/Vc HINTS $ENV{HOME} $ENV{HOME}/local)
@@ -24,11 +26,16 @@ if(VC_INSTALL_PREFIX AND VC_INCLUDE_DIR AND VC_LIBRARIES)
    set(VC_FOUND true)
 
    if(CMAKE_COMPILER_IS_GNUCXX)
-      find_program(_binutils_as as)
+      exec_program(${CMAKE_C_COMPILER} ARGS -print-prog-name=as OUTPUT_VARIABLE _binutils_as)
       if(NOT _binutils_as)
-         message(WARNING "Could not find 'as', the assembler normally used by GCC. Hoping everything will work out...")
+         message(WARNING "Could not find 'as', the assembler used by GCC. Hoping everything will work out...")
       else(NOT _binutils_as)
-         exec_program(${_binutils_as} ARGS --version OUTPUT_VARIABLE _as_version)
+         if(APPLE)
+            # it's not really binutils, but it'll give us the assembler version which is what we want
+            exec_program(${_binutils_as} ARGS -v /dev/null OUTPUT_VARIABLE _as_version)
+         else(APPLE)
+            exec_program(${_binutils_as} ARGS --version OUTPUT_VARIABLE _as_version)
+         endif(APPLE)
          string(REGEX REPLACE "\\([^\\)]*\\)" "" _as_version "${_as_version}")
          string(REGEX MATCH "[1-9]\\.[0-9]+(\\.[0-9]+)?" _as_version "${_as_version}")
          macro_ensure_version("2.18.93" "${_as_version}" _as_good)
@@ -37,6 +44,7 @@ if(VC_INSTALL_PREFIX AND VC_INCLUDE_DIR AND VC_LIBRARIES)
             add_definitions(-DVC_NO_XGETBV) # old assembler doesn't know the xgetbv instruction
          endif(NOT _as_good)
       endif(NOT _binutils_as)
+      mark_as_advanced(_binutils_as)
    elseif(MSVC)
       # MSVC does not support inline assembly on 64 bit! :(
       # searching the help for xgetbv doesn't turn up anything. So just fall back to not supporting AVX on Windows :(
