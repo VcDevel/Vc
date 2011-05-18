@@ -37,20 +37,6 @@ namespace SSE
         friend struct VectorHelperSize<short>;
         friend struct VectorHelperSize<unsigned short>;
         friend struct VectorHelperSize<float8>;
-        friend struct GatherHelper<float>;
-        friend struct GatherHelper<float8>;
-        friend struct GatherHelper<double>;
-        friend struct GatherHelper<int>;
-        friend struct GatherHelper<unsigned int>;
-        friend struct GatherHelper<short>;
-        friend struct GatherHelper<unsigned short>;
-        friend struct ScatterHelper<float>;
-        friend struct ScatterHelper<float8>;
-        friend struct ScatterHelper<double>;
-        friend struct ScatterHelper<int>;
-        friend struct ScatterHelper<unsigned int>;
-        friend struct ScatterHelper<short>;
-        friend struct ScatterHelper<unsigned short>;
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(T) };
@@ -102,8 +88,6 @@ namespace SSE
     template<> class VectorBase<float8> {
         friend struct VectorHelperSize<float8>;
         friend struct VectorHelperSize<float>;
-        friend struct GatherHelper<float8>;
-        friend struct ScatterHelper<float8>;
         friend struct GeneralHelpers;
         public:
             enum { Size = 8 };
@@ -127,8 +111,6 @@ namespace SSE
 
     template<> class VectorBase<float> {
         friend struct VectorHelperSize<float>;
-        friend struct GatherHelper<float>;
-        friend struct ScatterHelper<float>;
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(float) };
@@ -152,8 +134,6 @@ namespace SSE
 
     template<> class VectorBase<double> {
         friend struct VectorHelperSize<double>;
-        friend struct GatherHelper<double>;
-        friend struct ScatterHelper<double>;
         friend struct GeneralHelpers;
         public:
             enum { Size = 16 / sizeof(double) };

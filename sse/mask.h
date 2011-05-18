@@ -123,9 +123,6 @@ template<unsigned int VectorSize> class Mask
         int toInt() const CONST;
 
         inline _M128  data () const { return k; }
-#ifdef VC_GATHER_SET
-        inline _M128  dataIndex() const { return k; }
-#endif
         inline _M128I dataI() const { return _mm_castps_si128(k); }
         inline _M128D dataD() const { return _mm_castps_pd(k); }
 
@@ -457,21 +454,10 @@ inline Mask<VectorSize>::Mask(const Float8Mask &m)
 class Float8GatherMask
 {
     public:
-#ifdef VC_GATHER_SET
-        Float8GatherMask(const Mask<8u> &k)   : smallMask(k), bigMask(k), mask(k.toInt()) {}
-        Float8GatherMask(const Float8Mask &k) : smallMask(k), bigMask(k), mask(k.toInt()) {}
-        const __m128 dataIndex() const { return smallMask.data(); }
-        const M256 data() const { return bigMask.data(); }
-#else
         Float8GatherMask(const Mask<8u> &k)   : mask(k.toInt()) {}
         Float8GatherMask(const Float8Mask &k) : mask(k.toInt()) {}
-#endif
         int toInt() const { return mask; }
     private:
-#ifdef VC_GATHER_SET
-        const Mask<8u> smallMask;
-        const Float8Mask bigMask;
-#endif
         const int mask;
 };
 

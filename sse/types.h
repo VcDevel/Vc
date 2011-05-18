@@ -65,8 +65,6 @@ namespace SSE
     };
 
     template<typename T> struct VectorHelper {};
-    template<typename T> struct GatherHelper;
-    template<typename T> struct ScatterHelper;
 
     template<typename T> struct NegateTypeHelper { typedef T Type; };
     template<> struct NegateTypeHelper<unsigned char > { typedef char  Type; };

@@ -158,7 +158,7 @@ template<typename T> class Vector
         template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask);
         template<typename Index> void gather(const EntryType *mem, Index indexes);
         template<typename Index> void gather(const EntryType *mem, Index indexes, Mask mask);
-#ifdef VC_GATHER_SET
+#ifdef VC_USE_SET_GATHERS
         template<typename IT> void gather(const EntryType *mem, Vector<IT> indexes, Mask mask);
 #endif
         template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, IT indexes);

@@ -435,7 +435,7 @@ template<> template<typename Index> inline void ALWAYS_INLINE FLATTEN Vector<uns
                 mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
 
-#ifdef VC_GATHER_SET
+#ifdef VC_USE_SET_GATHERS
 template<typename T> template<typename IT> inline void ALWAYS_INLINE Vector<T>::gather(const EntryType *mem, Vector<IT> indexes, Mask mask)
 {
     IndexSizeChecker<Vector<IT>, Size>::check();

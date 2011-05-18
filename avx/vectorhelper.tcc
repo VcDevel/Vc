@@ -20,31 +20,6 @@
 #include "casts.h"
 #include <cstdlib>
 
-#ifndef VC_NO_BSF_LOOPS
-# ifdef VC_NO_GATHER_TRICKS
-#  define VC_NO_BSF_LOOPS
-# elif !defined(__x86_64__) // 32 bit x86 does not have enough registers
-#  define VC_NO_BSF_LOOPS
-# elif defined(_MSC_VER) // TODO: write inline asm version for MSVC
-#  define VC_NO_BSF_LOOPS
-# elif defined(__GNUC__) // gcc and icc work fine with the inline asm
-# else
-#  error "Check whether inline asm works, or define VC_NO_BSF_LOOPS"
-# endif
-#endif
-
-#ifdef VC_SLOWDOWN_GATHER
-#define SLOWDOWN_ASM "ror $9,%1\n\trol $1,%1\n\t" \
-                     "rol $1,%1\n\trol $1,%1\n\t" \
-                     "rol $1,%1\n\trol $1,%1\n\t" \
-                     "rol $1,%1\n\trol $1,%1\n\t" \
-                     "rol $1,%1\n\trol $1,%1\n\t"
-#else //VC_SLOWDOWN_GATHER
-#define SLOWDOWN_ASM
-#endif //VC_SLOWDOWN_GATHER
-
-#define ALIGN_16 "\n.align 16\n\t"
-
 namespace Vc
 {
 namespace AVX
@@ -319,6 +294,3 @@ template<typename T> inline void VectorHelper<__m128i>::store(T *mem, const Vect
 
 } // namespace AVX
 } // namespace Vc
-
-#undef SLOWDOWN_ASM
-#undef ALIGN_16
