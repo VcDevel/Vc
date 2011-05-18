@@ -20,6 +20,19 @@
 #ifndef VC_GLOBAL_H
 #define VC_GLOBAL_H
 
+// Compiler defines
+#ifdef __INTEL_COMPILER
+#define VC_ICC
+#elif defined(__OPENCC__)
+#define VC_OPEN64
+#elif defined(__GNUC__)
+#define VC_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
+#elif defined(_MSC_VER)
+#define VC_MSVC
+#else
+#define VC_UNSUPPORTED_COMPILER
+#endif
+
 #define SSE    9875294
 #define SSE2   9875295
 #define SSE3   9875296
@@ -133,7 +146,7 @@
 
 #endif // VC_IMPL
 
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && !defined(__OPENCC__)
+#ifdef VC_GCC
 #  if (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 3)) && !defined(VC_IMPL_Scalar)
 #    ifndef VC_DONT_WARN_OLD_GCC
 #      warning "GCC < 4.3 does not have full support for SSE2 intrinsics. Using scalar types/operations only. Define VC_DONT_WARN_OLD_GCC to silence this warning."
@@ -235,7 +248,7 @@ namespace Internal {
 namespace Warnings
 {
     void _operator_bracket_warning()
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ >= 4 && __GNUC_MINOR__ >= 3
+#if defined(VC_GCC) && __GNUC__ >= 4 && __GNUC_MINOR__ >= 3
         __attribute__((warning("\n\tUse of Vc::Vector::operator[] to modify scalar entries is known to miscompile with GCC 4.3.x.\n\tPlease upgrade to a more recent GCC or avoid operator[] altogether.\n\t(This warning adds an unnecessary function call to operator[] which should work around the problem at a little extra cost.)")))
 #endif
         ;
