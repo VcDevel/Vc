@@ -56,7 +56,13 @@ bool isImplementationSupported(Implementation);
 bool currentImplementationSupported()
 {
     return isImplementationSupported(
-#if VC_IMPL_Scalar
+#if VC_IMPL_AVX
+            AVXImpl
+#elif defined(__AVX__)
+            // everything will use VEX coding, so the system has to support AVX even if VC_IMPL_AVX
+            // is not set
+            AVXImpl
+#elif VC_IMPL_Scalar
             ScalarImpl
 #elif VC_IMPL_LRBni
 #ifdef VC_LRBni_PROTOTYPE_H
@@ -64,8 +70,6 @@ bool currentImplementationSupported()
 #else
             LRBniImpl
 #endif
-#elif VC_IMPL_AVX
-            AVXImpl
 #elif VC_IMPL_SSE4a
             SSE4aImpl
 #elif VC_IMPL_SSE4_2
