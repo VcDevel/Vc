@@ -128,6 +128,8 @@ namespace LRBni
             __mmask k;
     };
 
+    template<> inline int Mask<8u>::count() const { return _mm_countbits_16(k & 0xffu); }
+
 struct ForeachHelper
 {
     unsigned short mask;
