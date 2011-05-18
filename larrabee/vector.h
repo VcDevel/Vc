@@ -1171,6 +1171,10 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline T min() const { return VectorHelper<T>::reduce_min(data.v()); }
         inline T product() const { return VectorHelper<T>::reduce_mul(data.v()); }
         inline T sum() const { return VectorHelper<T>::reduce_add(data.v()); }
+        inline T max(Mask m) const;
+        inline T min(Mask m) const;
+        inline T product(Mask m) const;
+        inline T sum(Mask m) const;
 
         Vector sorted() const;
 

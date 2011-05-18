@@ -373,6 +373,10 @@ class Vector : public VectorBase<T>
         inline EntryType max() const INTRINSIC { return VectorHelper<T>::max(data()); }
         inline EntryType product() const INTRINSIC { return VectorHelper<T>::mul(data()); }
         inline EntryType sum() const INTRINSIC { return VectorHelper<T>::add(data()); }
+        inline EntryType min(Mask m) const INTRINSIC;
+        inline EntryType max(Mask m) const INTRINSIC;
+        inline EntryType product(Mask m) const INTRINSIC;
+        inline EntryType sum(Mask m) const INTRINSIC;
 
         inline Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }
 

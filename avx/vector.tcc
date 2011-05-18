@@ -18,6 +18,7 @@
 */
 
 #include "macros.h"
+#include "limits.h"
 
 namespace Vc
 {
@@ -829,6 +830,31 @@ template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<short>::operat
 template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<unsigned short>::operator-() const
 {
     return _mm_sign_epi16(d.v(), _mm_setallone_si128());
+}
+
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::min(Mask m) const
+{
+    Vector<T> tmp = std::numeric_limits<Vector<T> >::max();
+    tmp(m) = *this;
+    return tmp.min();
+}
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::max(Mask m) const
+{
+    Vector<T> tmp = std::numeric_limits<Vector<T> >::min();
+    tmp(m) = *this;
+    return tmp.max();
+}
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::product(Mask m) const
+{
+    Vector<T> tmp(VectorSpecialInitializerOne::One);
+    tmp(m) = *this;
+    return tmp.product();
+}
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(Mask m) const
+{
+    Vector<T> tmp(VectorSpecialInitializerZero::Zero);
+    tmp(m) = *this;
+    return tmp.sum();
 }
 } // namespace AVX
 } // namespace Vc

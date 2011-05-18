@@ -17,6 +17,7 @@
 
 */
 
+#include "limits.h"
 #include "macros.h"
 
 namespace Vc
@@ -441,6 +442,31 @@ inline void ALWAYS_INLINE FLATTEN Vector<unsigned short>::gather(const S1 *array
             (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]],
             (array[outerIndexes[4]].*(ptrMember1))[innerIndexes[4]], (array[outerIndexes[5]].*(ptrMember1))[innerIndexes[5]],
             (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
+}
+
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::min(Mask m) const
+{
+    Vector<T> tmp = std::numeric_limits<Vector<T> >::max();
+    tmp(m) = *this;
+    return tmp.min();
+}
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::max(Mask m) const
+{
+    Vector<T> tmp = std::numeric_limits<Vector<T> >::min();
+    tmp(m) = *this;
+    return tmp.max();
+}
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::product(Mask m) const
+{
+    Vector<T> tmp(VectorSpecialInitializerOne::One);
+    tmp(m) = *this;
+    return tmp.product();
+}
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(Mask m) const
+{
+    Vector<T> tmp(VectorSpecialInitializerZero::Zero);
+    tmp(m) = *this;
+    return tmp.sum();
 }
 
 } // namespace SSE

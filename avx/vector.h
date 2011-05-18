@@ -276,6 +276,10 @@ template<typename T> class Vector
         inline EntryType max() const { return VectorHelper<T>::max(data()); }
         inline EntryType product() const { return VectorHelper<T>::mul(data()); }
         inline EntryType sum() const { return VectorHelper<T>::add(data()); }
+        inline EntryType min(Mask m) const;
+        inline EntryType max(Mask m) const;
+        inline EntryType product(Mask m) const;
+        inline EntryType sum(Mask m) const;
 
         inline Vector sorted() const { return SortHelper<T>::sort(data()); }
 

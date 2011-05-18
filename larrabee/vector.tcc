@@ -59,5 +59,54 @@ template<> inline Vector<int> INTRINSIC Vector<unsigned int>::operator-() const
     return Vector<int>(~(*this)) + 1;
 }
 
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::min(Mask m) const
+{
+    return _mm512_mask_reduce_min_pi(m.data(), vdata());
+}
+template<> inline float Vector<float>::min(Mask m) const
+{
+    return _mm512_mask_reduce_min_ps(m.data(), vdata());
+}
+template<> inline double Vector<double>::min(Mask m) const
+{
+    return _mm512_mask_reduce_min_pd(m.data(), vdata());
+}
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::max(Mask m) const
+{
+    return _mm512_mask_reduce_max_pi(m.data(), vdata());
+}
+template<> inline float Vector<float>::max(Mask m) const
+{
+    return _mm512_mask_reduce_max_ps(m.data(), vdata());
+}
+template<> inline double Vector<double>::max(Mask m) const
+{
+    return _mm512_mask_reduce_max_pd(m.data(), vdata());
+}
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::product(Mask m) const
+{
+    return _mm512_mask_reduce_mul_pi(m.data(), vdata());
+}
+template<> inline float Vector<float>::product(Mask m) const
+{
+    return _mm512_mask_reduce_mul_ps(m.data(), vdata());
+}
+template<> inline double Vector<double>::product(Mask m) const
+{
+    return _mm512_mask_reduce_mul_pd(m.data(), vdata());
+}
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(Mask m) const
+{
+    return _mm512_mask_reduce_add_pi(m.data(), vdata());
+}
+template<> inline float Vector<float>::sum(Mask m) const
+{
+    return _mm512_mask_reduce_add_ps(m.data(), vdata());
+}
+template<> inline double Vector<double>::sum(Mask m) const
+{
+    return _mm512_mask_reduce_add_pd(m.data(), vdata());
+}
+
 } // namespace LRBni
 } // namespace Vc
