@@ -21,7 +21,7 @@
 #define VC_AVX_MASK_H
 
 #include "intrinsics.h"
-#include "x86intrin.h"
+#include "../common/bitscanintrinsics.h"
 
 namespace Vc
 {
