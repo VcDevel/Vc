@@ -69,7 +69,7 @@ branch=`cat .git/HEAD|cut -d/ -f3`
 
 LABEL1="$branch $arch $chip $COMPILER $CXXFLAGS"
 if test "$arch" = "linux"; then
-  test -z "$LINUX_FLAVOUR" && LINUX_FLAVOUR=`lsb_release -d`
+  test -z "$LINUX_FLAVOUR" && LINUX_FLAVOUR=`lsb_release -d|cut -f2`
   if test -n "$LINUX_FLAVOUR"; then
     LABEL1="$branch $LINUX_FLAVOUR $chip $COMPILER $CXXFLAGS"
   fi
