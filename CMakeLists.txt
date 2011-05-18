@@ -174,9 +174,12 @@ elseif(COMPILER_IS_GCC)
    if(_gcc_version STREQUAL "4.6.0")
       list(APPEND disabled_targets
          gather_avx
+         gather_sse
          gather_VC_GATHER_SET_avx
+         gather_VC_GATHER_SET_sse
          gather_sse_LOOP
          scatter_avx
+         scatter_sse
          dhryrock_avx_benchmark
          )
    endif()
