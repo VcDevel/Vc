@@ -30,7 +30,7 @@ template<typename Vec> void maskedScatterArray()
     typedef typename Vec::EntryType T;
 
     T mem[Vec::Size];
-    Vec v(It::IndexesFromZero() + 1);
+    const Vec v(It::IndexesFromZero() + 1);
 
     for_all_masks(Vec, m) {
         Vec::Zero().store(mem, Vc::Unaligned);
