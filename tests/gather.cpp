@@ -35,23 +35,19 @@ template<typename Vec> void maskedGatherArray()
     }
 
     It indexes = It::IndexesFromZero();
-    int i = 0;
-    M m;
-    do {
-        m = allMasks<Vec>(i++);
-
+    for_all_masks(Vec, m) {
         const Vec a(mem, indexes, m);
         for (int j = 0; j < Vec::Size; ++j) {
-            COMPARE(a[j], m[j] ? mem[j] : 0);
+            COMPARE(a[j], m[j] ? mem[j] : 0) << " j = " << j << ", m = " << m;
         }
 
         T x = Vec::Size + 1;
         Vec b = x;
         b.gather(mem, indexes, m);
         for (int j = 0; j < Vec::Size; ++j) {
-            COMPARE(b[j], m[j] ? mem[j] : x);
+            COMPARE(b[j], m[j] ? mem[j] : x) << " j = " << j << ", m = " << m;
         }
-    } while (!m.isEmpty());
+    }
 }
 
 template<typename Vec> void gatherArray()

@@ -521,4 +521,8 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     return M(false);
 }
 
+#define for_all_masks(VecType, _mask_) \
+    for (int i = 0; i == 0; ++i) \
+        for (typename VecType::Mask _mask_ = allMasks<VecType>(i++); !_mask_.isEmpty(); _mask_ = allMasks<VecType>(i++))
+
 #endif // UNITTEST_H
