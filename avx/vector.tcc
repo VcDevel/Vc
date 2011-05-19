@@ -724,23 +724,26 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const Entry
     case 8:                                     \
         high = _bit_scan_reverse(bits);         \
         ith_value(high) = d.m(high);            \
+        high = (1 << high);                     \
     case 7:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         ith_value(low) = d.m(low);              \
     case 6:                                     \
         high = _bit_scan_reverse(bits);         \
         ith_value(high) = d.m(high);            \
+        high = (1 << high);                     \
     case 5:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         ith_value(low) = d.m(low);              \
     case 4:                                     \
         high = _bit_scan_reverse(bits);         \
         ith_value(high) = d.m(high);            \
+        high = (1 << high);                     \
     case 3:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         ith_value(low) = d.m(low);              \
     case 2:                                     \
         high = _bit_scan_reverse(bits);         \
