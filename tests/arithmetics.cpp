@@ -290,7 +290,7 @@ template<typename Vec> void testMin()
     Vec v(I::IndexesFromZero());
 
     COMPARE(v.min(), static_cast<T>(0));
-    COMPARE((Vec::Size - v).min(), static_cast<T>(1));
+    COMPARE((T(Vec::Size) - v).min(), static_cast<T>(1));
 
     int j = 0;
     Mask m;
@@ -312,7 +312,7 @@ template<typename Vec> void testMax()
     Vec v(I::IndexesFromZero());
 
     COMPARE(v.max(), static_cast<T>(Vec::Size - 1));
-    v = Vec::Size - v;
+    v = T(Vec::Size) - v;
     COMPARE(v.max(), static_cast<T>(Vec::Size));
 
     int j = 0;
