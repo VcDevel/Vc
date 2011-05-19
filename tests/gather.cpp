@@ -23,6 +23,37 @@
 
 using namespace Vc;
 
+template<typename Vec> void maskedGatherArray()
+{
+    typedef typename Vec::IndexType It;
+    typedef typename Vec::EntryType T;
+    typedef typename Vec::Mask M;
+
+    T mem[Vec::Size];
+    for (int i = 0; i < Vec::Size; ++i) {
+        mem[i] = i + 1;
+    }
+
+    It indexes = It::IndexesFromZero();
+    int i = 0;
+    M m;
+    do {
+        m = allMasks<Vec>(i++);
+
+        const Vec a(mem, indexes, m);
+        for (int j = 0; j < Vec::Size; ++j) {
+            COMPARE(a[j], m[j] ? mem[j] : 0);
+        }
+
+        T x = Vec::Size + 1;
+        Vec b = x;
+        b.gather(mem, indexes, m);
+        for (int j = 0; j < Vec::Size; ++j) {
+            COMPARE(b[j], m[j] ? mem[j] : x);
+        }
+    } while (!m.isEmpty());
+}
+
 template<typename Vec> void gatherArray()
 {
     typedef typename Vec::IndexType It;
@@ -172,6 +203,7 @@ int main(int argc, char **argv)
     initTest(argc, argv);
 
     testAllTypes(gatherArray);
+    testAllTypes(maskedGatherArray);
     testAllTypes(gatherStruct);
     testAllTypes(gather2dim);
 
