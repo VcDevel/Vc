@@ -480,23 +480,26 @@ template<typename T> template<typename IT> inline void ALWAYS_INLINE Vector<T>::
     case 8:                                     \
         high = _bit_scan_reverse(bits);         \
         d.m(high) = ith_value(high);            \
+        high = (1 << high);                     \
     case 7:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         d.m(low) = ith_value(low);              \
     case 6:                                     \
         high = _bit_scan_reverse(bits);         \
         d.m(high) = ith_value(high);            \
+        high = (1 << high);                     \
     case 5:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         d.m(low) = ith_value(low);              \
     case 4:                                     \
         high = _bit_scan_reverse(bits);         \
         d.m(high) = ith_value(high);            \
+        high = (1 << high);                     \
     case 3:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         d.m(low) = ith_value(low);              \
     case 2:                                     \
         high = _bit_scan_reverse(bits);         \
