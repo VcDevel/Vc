@@ -440,8 +440,7 @@ template<typename T> template<typename IT> inline void ALWAYS_INLINE Vector<T>::
 {
     IndexSizeChecker<Vector<IT>, Size>::check();
     indexes.setZero(!static_cast<typename Vector<IT>::Mask>(mask));
-    gather(mem, indexes);
-    // FIXME is this correct? now it'll overwrite more in this than it should, no?
+    (*this)(mask) = Vector<T>(mem, indexes);
 }
 #endif
 
