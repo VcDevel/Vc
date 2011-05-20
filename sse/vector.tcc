@@ -456,7 +456,7 @@ template<typename T> template<typename IT> inline void ALWAYS_INLINE Vector<T>::
 #define VC_MASKED_GATHER                        \
     unsigned int bits = mask.toInt();           \
     unsigned int low, high = 0;                 \
-    switch (_mm_popcnt_u32(bits)) {             \
+    switch (mask.count()) {             \
     case 8:                                     \
         high = _bit_scan_reverse(bits);         \
         d.m(high) = ith_value(high);            \
@@ -714,7 +714,7 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const Entry
 #define VC_MASKED_SCATTER                       \
     unsigned int bits = mask.toInt();           \
     unsigned int low, high = 0;                 \
-    switch (_mm_popcnt_u32(bits)) {             \
+    switch (mask.count()) {             \
     case 8:                                     \
         high = _bit_scan_reverse(bits);         \
         ith_value(high) = d.m(high);            \
