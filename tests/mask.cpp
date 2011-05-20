@@ -198,11 +198,14 @@ template<typename Vec> void testCount()
     typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
-    for (int cut = 0; cut <= Vec::Size; ++cut) {
-        const M mask(I(Vc::IndexesFromZero) < cut);
-        //std::cout << mask << std::endl;
-
-        COMPARE(mask.count(), cut);
+    for_all_masks(Vec, m) {
+        int count = 0;
+        for (int i = 0; i < Vec::Size; ++i) {
+            if (m[i]) {
+                ++count;
+            }
+        }
+        COMPARE(m.count(), count) << ", m = " << m;
     }
 }
 
