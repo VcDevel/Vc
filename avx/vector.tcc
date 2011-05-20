@@ -17,8 +17,8 @@
 
 */
 
-#include "macros.h"
 #include "limits.h"
+#include "macros.h"
 
 namespace Vc
 {
