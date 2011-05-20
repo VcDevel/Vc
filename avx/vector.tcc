@@ -459,7 +459,7 @@ template<typename T> template<typename IT> inline void ALWAYS_INLINE Vector<T>::
 {
     IndexSizeChecker<Vector<IT>, Size>::check();
     indexes.setZero(!mask);
-    gather(mem, indexes);
+    (*this)(mask) = Vector<T>(mem, indexes);
 }
 #endif
 
