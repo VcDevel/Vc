@@ -170,14 +170,14 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // scatters
-        template<typename Index> void scatter(EntryType *mem, Index indexes);
-        template<typename Index> void scatter(EntryType *mem, Index indexes, Mask mask);
-        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes);
-        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes, Mask mask);
-        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes);
-        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, Mask mask);
-        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes);
-        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask);
+        template<typename Index> void scatter(EntryType *mem, Index indexes) const;
+        template<typename Index> void scatter(EntryType *mem, Index indexes, Mask mask) const;
+        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes) const;
+        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes, Mask mask) const;
+        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes) const;
+        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, Mask mask) const;
+        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes) const;
+        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask) const;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //prefix

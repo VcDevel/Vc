@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -23,6 +23,24 @@
 #include <cstring>
 
 using namespace Vc;
+
+template<typename Vec> void maskedScatterArray()
+{
+    typedef typename Vec::IndexType It;
+    typedef typename Vec::EntryType T;
+
+    T mem[Vec::Size];
+    const Vec v(It::IndexesFromZero() + 1);
+
+    for_all_masks(Vec, m) {
+        Vec::Zero().store(mem, Vc::Unaligned);
+        v.scatter(&mem[0], It::IndexesFromZero(), m);
+
+        for (int i = 0; i < Vec::Size; ++i) {
+            COMPARE(mem[i], m[i] ? v[i] : T(0)) << " i = " << i << ", m = " << m;
+        }
+    }
+}
 
 template<typename Vec> void scatterArray()
 {
@@ -97,6 +115,7 @@ int main()
     runTest(scatterArray<sfloat_v>);
     runTest(scatterArray<short_v>);
     runTest(scatterArray<ushort_v>);
+    testAllTypes(maskedScatterArray);
     runTest(scatterStruct<int_v>);
     runTest(scatterStruct<uint_v>);
     runTest(scatterStruct<float_v>);

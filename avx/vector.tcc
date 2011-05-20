@@ -479,23 +479,26 @@ template<typename T> template<typename IT> inline void ALWAYS_INLINE Vector<T>::
     case 8:                                     \
         high = _bit_scan_reverse(bits);         \
         d.m(high) = ith_value(high);            \
+        high = (1 << high);                     \
     case 7:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         d.m(low) = ith_value(low);              \
     case 6:                                     \
         high = _bit_scan_reverse(bits);         \
         d.m(high) = ith_value(high);            \
+        high = (1 << high);                     \
     case 5:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         d.m(low) = ith_value(low);              \
     case 4:                                     \
         high = _bit_scan_reverse(bits);         \
         d.m(high) = ith_value(high);            \
+        high = (1 << high);                     \
     case 3:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         d.m(low) = ith_value(low);              \
     case 2:                                     \
         high = _bit_scan_reverse(bits);         \
@@ -720,23 +723,26 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const Entry
     case 8:                                     \
         high = _bit_scan_reverse(bits);         \
         ith_value(high) = d.m(high);            \
+        high = (1 << high);                     \
     case 7:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         ith_value(low) = d.m(low);              \
     case 6:                                     \
         high = _bit_scan_reverse(bits);         \
         ith_value(high) = d.m(high);            \
+        high = (1 << high);                     \
     case 5:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         ith_value(low) = d.m(low);              \
     case 4:                                     \
         high = _bit_scan_reverse(bits);         \
         ith_value(high) = d.m(high);            \
+        high = (1 << high);                     \
     case 3:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= (1 << high) | (1 << low);       \
+        bits ^= high | (1 << low);              \
         ith_value(low) = d.m(low);              \
     case 2:                                     \
         high = _bit_scan_reverse(bits);         \
@@ -757,49 +763,49 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const Entry
             );
 #endif
 
-template<typename T> template<typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(EntryType *mem, Index indexes)
+template<typename T> template<typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(EntryType *mem, Index indexes) const
 {
     for_all_vector_entries(i,
             mem[indexes[i]] = d.m(i);
             );
 }
-template<typename T> template<typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(EntryType *mem, Index indexes, Mask mask)
+template<typename T> template<typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(EntryType *mem, Index indexes, Mask mask) const
 {
 #define ith_value(_i_) mem[indexes[_i_]]
     VC_MASKED_SCATTER
 #undef ith_value
 }
-template<typename T> template<typename S1, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, IT indexes)
+template<typename T> template<typename S1, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, IT indexes) const
 {
     for_all_vector_entries(i,
             array[indexes[i]].*(member1) = d.m(i);
             );
 }
-template<typename T> template<typename S1, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, IT indexes, Mask mask)
+template<typename T> template<typename S1, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, IT indexes, Mask mask) const
 {
 #define ith_value(_i_) array[indexes[_i_]].*(member1)
     VC_MASKED_SCATTER
 #undef ith_value
 }
-template<typename T> template<typename S1, typename S2, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes)
+template<typename T> template<typename S1, typename S2, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes) const
 {
     for_all_vector_entries(i,
             array[indexes[i]].*(member1).*(member2) = d.m(i);
             );
 }
-template<typename T> template<typename S1, typename S2, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, Mask mask)
+template<typename T> template<typename S1, typename S2, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, Mask mask) const
 {
 #define ith_value(_i_) array[indexes[_i_]].*(member1).*(member2)
     VC_MASKED_SCATTER
 #undef ith_value
 }
-template<typename T> template<typename S1, typename IT1, typename IT2> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
+template<typename T> template<typename S1, typename IT1, typename IT2> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes) const
 {
     for_all_vector_entries(i,
             (array[innerIndexes[i]].*(ptrMember1))[outerIndexes[i]] = d.m(i);
             );
 }
-template<typename T> template<typename S1, typename IT1, typename IT2> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask)
+template<typename T> template<typename S1, typename IT1, typename IT2> inline void ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask) const
 {
 #define ith_value(_i_) (array[outerIndexes[_i_]].*(ptrMember1))[innerIndexes[_i_]]
     VC_MASKED_SCATTER
