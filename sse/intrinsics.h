@@ -447,7 +447,7 @@ namespace SSE
         return _mm_blendv_epi8(a, b, _mm_cmpgt_epu16(a, b));
     }
     static inline __m128i _mm_min_epu32(__m128i a, __m128i b) {
-        return _mm_blendv_epi8(a, b, _mm_cmpgt_epi32(a, b));
+        return _mm_blendv_epi8(a, b, _mm_cmpgt_epu32(a, b));
     }
     static inline __m128i _mm_min_epi8 (__m128i a, __m128i b) {
         return _mm_blendv_epi8(a, b, _mm_cmpgt_epi8 (a, b));
