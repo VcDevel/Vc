@@ -26,6 +26,7 @@ namespace AVX
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+// constants {{{1
 template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum) : d(HT::zero()) {}
 template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerOne::OEnum) : d(HT::one()) {}
 template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
@@ -43,7 +44,7 @@ template<> inline ALWAYS_INLINE Vector<double>::Vector(EntryType x) : d(_mm256_s
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// load ctors
+// load ctors {{{1
 template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *x)
     : d(HV::load(x, Aligned)) {}
 
@@ -51,7 +52,7 @@ template<typename T> template<typename A> inline ALWAYS_INLINE Vector<T>::Vector
     : d(HV::load(x, align)) {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// load member functions
+// load member functions {{{1
 template<typename T> inline void INTRINSIC Vector<T>::load(const EntryType *mem)
 {
     data() = HV::load(mem, Aligned);
@@ -62,7 +63,7 @@ template<typename T> template<typename A> inline void INTRINSIC Vector<T>::load(
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// zeroing
+// zeroing {{{1
 template<typename T> inline void INTRINSIC Vector<T>::setZero()
 {
     data() = HV::zero();
@@ -90,7 +91,7 @@ template<> inline void INTRINSIC Vector<float>::setQnan(Mask k)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// stores
+// stores {{{1
 template<typename T> inline void INTRINSIC Vector<T>::store(EntryType *mem) const
 {
     HV::store(mem, data(), Aligned);
@@ -109,7 +110,7 @@ template<typename T> template<typename A> inline void INTRINSIC Vector<T>::store
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
+// expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX {{{1
 template<typename T> inline ALWAYS_INLINE FLATTEN Vector<T>::Vector(const Vector<typename HT::ConcatType> *a)
     : d(a[0])
 {
@@ -147,16 +148,14 @@ template<> inline void ALWAYS_INLINE FLATTEN Vector<unsigned short>::expand(Vect
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// swizzles
+// swizzles {{{1
 template<> inline const Vector<double> INTRINSIC Vector<double>::aaaa() const { const double &tmp = d.m(0); return _mm256_broadcast_sd(&tmp); }
 template<> inline const Vector<double> INTRINSIC Vector<double>::bbbb() const { const double &tmp = d.m(1); return _mm256_broadcast_sd(&tmp); }
 template<> inline const Vector<double> INTRINSIC Vector<double>::cccc() const { const double &tmp = d.m(2); return _mm256_broadcast_sd(&tmp); }
 template<> inline const Vector<double> INTRINSIC Vector<double>::dddd() const { const double &tmp = d.m(3); return _mm256_broadcast_sd(&tmp); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// operators
-///////////////////////////////////////////////////////////////////////////////////////////
-//// division
+// division {{{1
 template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
 {
     if (HasVectorDivision) {
@@ -289,7 +288,7 @@ template<> inline Vector<double> INTRINSIC PURE Vector<double>::operator/(const 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//// integer ops
+// integer ops {{{1
 #define OP_IMPL(T, symbol) \
 template<> inline Vector<T> &Vector<T>::operator symbol##=(Vector<T> x) \
 { \
@@ -355,7 +354,7 @@ OP_IMPL(unsigned short, _mm, 16)
 #undef OP_IMPL
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//// gathers
+// gathers {{{1
 // Better implementation (hopefully) with _mm256_set_
 //X template<typename T> template<typename Index> Vector<T>::Vector(const EntryType *mem, const Index *indexes)
 //X {
@@ -807,6 +806,8 @@ template<typename T> template<typename S1, typename IT1, typename IT2> inline vo
 #undef ith_value
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// operator- {{{1
 template<> inline Vector<double> PURE ALWAYS_INLINE FLATTEN Vector<double>::operator-() const
 {
     return _mm256_xor_pd(d.v(), _mm256_setsignmask_pd());
@@ -832,6 +833,8 @@ template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<unsigned short
     return _mm_sign_epi16(d.v(), _mm_setallone_si128());
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// horizontal ops {{{1
 template<typename T> inline typename Vector<T>::EntryType Vector<T>::min(Mask m) const
 {
     Vector<T> tmp = std::numeric_limits<Vector<T> >::max();
@@ -860,3 +863,5 @@ template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(Mask m)
 } // namespace Vc
 
 #include "undomacros.h"
+
+// vim: foldmethod=marker
