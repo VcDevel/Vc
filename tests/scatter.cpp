@@ -106,6 +106,40 @@ template<typename Vec> void scatterStruct()
     VERIFY(0 == memcmp(array, out, count * sizeof(S)));
 }
 
+template<typename T> struct Struct2
+{
+    char x;
+    Struct<T> b;
+    short y;
+};
+
+template<typename Vec> void scatterStruct2()
+{
+    typedef typename Vec::IndexType It;
+    typedef Struct2<typename Vec::EntryType> S1;
+    typedef Struct<typename Vec::EntryType> S2;
+    const int count = 97;
+    S1 array[count], out[count];
+    memset(array, 0, count * sizeof(S1));
+    memset(out, 0, count * sizeof(S1));
+    for (int i = 0; i < count; ++i) {
+        array[i].b.a = i + 0;
+        array[i].b.b = i + 1;
+        array[i].b.c = i + 2;
+    }
+    typename It::Mask mask;
+    for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
+        typename Vec::Mask castedMask(mask);
+        Vec a(array, &S1::b, &S2::a, i, castedMask);
+        Vec b(array, &S1::b, &S2::b, i, castedMask);
+        Vec c(array, &S1::b, &S2::c, i, castedMask);
+        a.scatter(out, &S1::b, &S2::a, i, castedMask);
+        b.scatter(out, &S1::b, &S2::b, i, castedMask);
+        c.scatter(out, &S1::b, &S2::c, i, castedMask);
+    }
+    VERIFY(0 == memcmp(array, out, count * sizeof(S1)));
+}
+
 int main()
 {
     runTest(scatterArray<int_v>);
@@ -123,5 +157,6 @@ int main()
     runTest(scatterStruct<sfloat_v>);
     runTest(scatterStruct<short_v>);
     runTest(scatterStruct<ushort_v>);
+    testAllTypes(scatterStruct2);
     return 0;
 }
