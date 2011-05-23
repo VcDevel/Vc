@@ -259,7 +259,7 @@ template<> inline int Mask<4>::count() const
 template<> inline int Mask<8>::count() const
 {
 #ifdef VC_IMPL_SSE4_2
-    return _mm_popcnt_u32(_mm_movemask_epi8(data())) / 2;
+    return _mm_popcnt_u32(_mm_movemask_epi8(dataI())) / 2;
 #else
 //X     int tmp = _mm_movemask_epi8(dataI());
 //X     tmp = (tmp & 0x1111) + ((tmp >> 2) & 0x1111);
