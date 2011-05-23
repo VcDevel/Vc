@@ -74,7 +74,7 @@ template<typename Vec> void gatherArray()
         }
         Vec b(Zero);
         b.gather(array, i, castedMask);
-        COMPARE(castedMask, b == ii);
+        COMPARE(castedMask, (b == ii)) << ", b = " << b << ", ii = " << ii << ", i = " << i;
         if (!castedMask.isFull()) {
             COMPARE(!castedMask, b == Vec(Zero));
         }
@@ -171,7 +171,7 @@ template<typename Vec> void gather2dim()
             const typename Vec::Mask castedMask(mask);
 
             Vec a(array, &S::data, i, j, castedMask);
-            COMPARE(castedMask, castedMask && (a == i0));
+            COMPARE(castedMask, castedMask && (a == i0)) << ", a = " << a << ", i0 = " << i0 << ", i = " << i << ", j = " << j;
 
             Vec b(Zero);
             b.gather(array, &S::data, i, j, castedMask);
