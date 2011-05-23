@@ -289,6 +289,15 @@ class _UnitTest_Compare
             }
         }
 
+        inline _UnitTest_Compare(const char *_file, int _line)
+            : m_failed(true)
+        {
+            if (m_failed) {
+                printFirst();
+                print("at "); print(_file); print(':'); print(_line); print(' ');
+            }
+        }
+
         template<typename T> inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(const T &x) const {
             if (m_failed) {
                 print(x);
@@ -371,6 +380,9 @@ class _UnitTest_Compare
 
 #define VERIFY(cond) \
     _UnitTest_Compare(cond, #cond, __FILE__, __LINE__)
+
+#define FAIL() \
+    _UnitTest_Compare(__FILE__, __LINE__)
 
 static void unittest_assert(bool cond, const char *code, const char *file, int line)
 {

@@ -77,7 +77,7 @@ template<typename V> void writes()
         b(b == 3) += one;
         b(b == 4) += one;
         COMPARE(a, b);
-    } else {
+    } else if (V::Size == 2) {
         a(a == 0) += two;
         a[1] += one;
         a(a == 2) += one;
@@ -85,6 +85,8 @@ template<typename V> void writes()
         b(b == 1) += one;
         b(b == 2) += one;
         COMPARE(a, b);
+    } else {
+        FAIL() << "unsupported Vector::Size";
     }
 }
 
