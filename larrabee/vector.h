@@ -369,57 +369,6 @@ struct ForeachHelper
                 }
                 return r;
             }
-            static inline VectorType gather(_M512I indexes, const EntryType *baseAddr) {
-                prepareGatherIndexes(indexes);
-                return lrb_cast<VectorType>(
-                        _mm512_gatherd(indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE)
-                        );
-            }
-            static inline void gather(VectorType &data, _M512I indexes, const EntryType *baseAddr, __mmask k) {
-                prepareGatherIndexes(indexes);
-                data = lrb_cast<VectorType>(
-                        _mm512_mask_gatherd(lrb_cast<_M512>(data), scaleMask(k), indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE)
-                        );
-            }
-            static inline void gatherScale1(VectorType &data, _M512I indexes, const EntryType *baseAddr, __mmask k) {
-                indexes = lrb_cast<_M512I>(_mm512_mask_movq(
-                            _mm512_shuf128x32(lrb_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_DDCC),
-                            0x33,
-                            _mm512_shuf128x32(lrb_cast<_M512>(indexes), _MM_PERM_BBAA, _MM_PERM_BBAA)
-                            ));
-                indexes = _mm512_add_pi(indexes, _mm512_set_4to16_pi(0, 4, 0, 4));
-                data = lrb_cast<VectorType>(
-                        _mm512_mask_gatherd(lrb_cast<_M512>(data), scaleMask(k), indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_1, _MM_HINT_NONE)
-                        );
-            }
-            static inline VectorType gatherStreaming(_M512I indexes, const EntryType *baseAddr) {
-                prepareGatherIndexes(indexes);
-                return lrb_cast<VectorType>(
-                        _mm512_gatherd(indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NT)
-                        );
-            }
-            static inline void gatherStreaming(VectorType &data, _M512I indexes, const EntryType *baseAddr, __mmask k) {
-                prepareGatherIndexes(indexes);
-                data = lrb_cast<VectorType>(
-                        _mm512_mask_gatherd(lrb_cast<_M512>(data), scaleMask(k), indexes, const_cast<EntryType *>(baseAddr), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NT)
-                        );
-            }
-            static inline void scatter(const VectorType data, _M512I indexes, EntryType *baseAddr) {
-                prepareGatherIndexes(indexes);
-                _mm512_scatterd(baseAddr, indexes, lrb_cast<_M512>(data), _MM_DOWNC_NONE,  _MM_SCALE_4, _MM_HINT_NONE);
-            }
-            static inline void scatter(const VectorType data, _M512I indexes, EntryType *baseAddr, __mmask k) {
-                prepareGatherIndexes(indexes);
-                _mm512_mask_scatterd(baseAddr, scaleMask(k), indexes, lrb_cast<_M512>(data), _MM_DOWNC_NONE, _MM_SCALE_4, _MM_HINT_NONE);
-            }
-            static inline void scatterStreaming(const VectorType data, _M512I indexes, EntryType *baseAddr) {
-                prepareGatherIndexes(indexes);
-                _mm512_scatterd(baseAddr, indexes, lrb_cast<_M512>(data), _MM_DOWNC_NONE,  _MM_SCALE_4, _MM_HINT_NT);
-            }
-            static inline void scatterStreaming(const VectorType data, _M512I indexes, EntryType *baseAddr, __mmask k) {
-                prepareGatherIndexes(indexes);
-                _mm512_mask_scatterd(baseAddr, scaleMask(k), indexes, lrb_cast<_M512>(data), _MM_DOWNC_NONE, _MM_SCALE_4, _MM_HINT_NT);
-            }
 
             static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_madd132_pd(v1, v3, v2); }
             static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask &k) { return _mm512_mask_madd132_pd(v1, k, v3, v2); }
@@ -468,53 +417,6 @@ struct ForeachHelper
             static inline VectorType loadStreaming (const T *x) { return lrb_cast<VectorType>(FixedIntrinsics::_mm512_loadd( x, conv, _MM_BROADCAST_16X16, _MM_HINT_NT  )); } \
             template<typename A> static VectorType load(const T *x, A);
 
-#define GATHERSCATTER(T, upconv, downconv) \
-            static inline VectorType gather(_M512I indexes, const T *baseAddr) { \
-                return lrb_cast<VectorType>(_mm512_gatherd(indexes, const_cast<T *>(baseAddr), upconv, \
-                            sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NONE \
-                            )); \
-            } \
-            static inline void gather(VectorType &data, _M512I indexes, const T *baseAddr, __mmask k) { \
-                data = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<_M512>(data), k, indexes, const_cast<T *>(baseAddr), upconv, \
-                        sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NONE \
-                        )); \
-            } \
-            static inline void gatherScale1(VectorType &data, _M512I indexes, const T *baseAddr, __mmask k) { \
-                data = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<_M512>(data), k, indexes, const_cast<T *>(baseAddr), upconv, \
-                            _MM_SCALE_1, _MM_HINT_NONE \
-                        )); \
-            } \
-            static inline VectorType gatherStreaming(_M512I indexes, const T *baseAddr) { \
-                return lrb_cast<VectorType>(_mm512_gatherd(indexes, const_cast<T *>(baseAddr), upconv, \
-                            sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NT \
-                            )); \
-            } \
-            static inline void gatherStreaming(VectorType &data, _M512I indexes, const T *baseAddr, __mmask k) { \
-                data = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<_M512>(data), k, indexes, const_cast<T *>(baseAddr), upconv, \
-                        sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NT \
-                        )); \
-            } \
-            static inline void scatter(const VectorType data, _M512I indexes, T *baseAddr) { \
-                _mm512_scatterd(baseAddr, indexes, lrb_cast<_M512>(data), downconv, \
-                        sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NONE \
-                        ); \
-            } \
-            static inline void scatter(const VectorType data, _M512I indexes, T *baseAddr, __mmask k) { \
-                _mm512_mask_scatterd(baseAddr, k, indexes, lrb_cast<_M512>(data), downconv, \
-                        sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NONE \
-                        ); \
-            } \
-            static inline void scatterStreaming(const VectorType data, _M512I indexes, T *baseAddr) { \
-                _mm512_scatterd(baseAddr, indexes, lrb_cast<_M512>(data), downconv, \
-                        sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NT \
-                        ); \
-            } \
-            static inline void scatterStreaming(const VectorType data, _M512I indexes, T *baseAddr, __mmask k) { \
-                _mm512_mask_scatterd(baseAddr, k, indexes, lrb_cast<_M512>(data), downconv, \
-                        sizeof(T) == 4 ? _MM_SCALE_4 : (sizeof(T) == 2 ? _MM_SCALE_2 : _MM_SCALE_1), _MM_HINT_NT \
-                        ); \
-            }
-
 #define STORE(T, conv) \
             static inline void store1         (T *mem, VectorType x) { _mm512_stored(mem, lrb_cast<_M512>(x), conv, _MM_SUBSET32_1 , _MM_HINT_NONE); } \
             static inline void store4         (T *mem, VectorType x) { _mm512_stored(mem, lrb_cast<_M512>(x), conv, _MM_SUBSET32_4 , _MM_HINT_NONE); } \
@@ -553,13 +455,6 @@ struct ForeachHelper
 
             static inline VectorType zero() { return CAT(_mm512_setzero_, SUFFIX)(); }
             static inline VectorType set(EntryType x) { return CAT(_mm512_set_1to16_, SUFFIX)(x); }
-
-            GATHERSCATTER(EntryType,      _MM_FULLUPC_NONE,    _MM_DOWNC_NONE   )
-            GATHERSCATTER(float16,        _MM_FULLUPC_FLOAT16, _MM_DOWNC_FLOAT16)
-            GATHERSCATTER(unsigned char,  _MM_FULLUPC_UINT8,   _MM_DOWNC_UINT8  )
-            GATHERSCATTER(signed char,    _MM_FULLUPC_SINT8,   _MM_DOWNC_SINT8  )
-            GATHERSCATTER(unsigned short, _MM_FULLUPC_UINT16,  _MM_DOWNC_UINT16 )
-            GATHERSCATTER(signed short,   _MM_FULLUPC_SINT16,  _MM_DOWNC_SINT16 )
 
             static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_madd132_ps(v1, v3, v2); }
             static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask &k) { return _mm512_mask_madd132_ps(v1, k, v3, v2); }
@@ -614,10 +509,6 @@ struct ForeachHelper
 
             static inline VectorType set(EntryType x) { return CAT(_mm512_set_1to16_, SUFFIX)(x); }
 
-            GATHERSCATTER(EntryType,    _MM_FULLUPC_NONE,    _MM_DOWNC_NONE)
-            GATHERSCATTER(signed char,  _MM_FULLUPC_SINT8I,  _MM_DOWNC_SINT8I)
-            GATHERSCATTER(signed short, _MM_FULLUPC_SINT16I, _MM_DOWNC_SINT16I)
-
             static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_madd231_pi(v3, v1, v2); }
             static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask &k) { return _mm512_mask_madd231_pi(v1, k, v3, v2); }
             static inline VectorType multiplyAndSub(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_sub_pi(_mm512_mull_pi(v1, v2), v3); }
@@ -656,10 +547,6 @@ struct ForeachHelper
             STORE(unsigned char, _MM_DOWNC_UINT8I)
             STORE(unsigned short, _MM_DOWNC_UINT16I)
 
-            GATHERSCATTER(EntryType,      _MM_FULLUPC_NONE,    _MM_DOWNC_NONE)
-            GATHERSCATTER(unsigned char,  _MM_FULLUPC_UINT8I,  _MM_DOWNC_UINT8I)
-            GATHERSCATTER(unsigned short, _MM_FULLUPC_UINT16I, _MM_DOWNC_UINT16I)
-
             static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_madd231_pi(v3, v1, v2); }
             static inline VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask &k) { return _mm512_mask_madd231_pi(v1, k, v3, v2); }
             static inline VectorType multiplyAndSub(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_sub_pi(_mm512_mull_pi(v1, v2), v3); }
@@ -681,7 +568,6 @@ struct ForeachHelper
             OP(sll) OP(srl)
             OP(add) OP(sub) OPx(mul, mull)
             OP_(or_) OP_(and_) OP_(xor_)
-#undef GATHERSCATTER
 #undef STORE
 #undef LOAD
 #undef SUFFIX
