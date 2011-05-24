@@ -69,6 +69,56 @@ namespace LRBni
         static inline _MM_INDEX_SCALE_ENUM value() { return IndexScaleHelper<sizeof(T)>::value(); }
     };
 
+    template<typename EntryType, typename MemType> struct UpDownConversion;
+    template<> struct UpDownConversion<float, float> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_NONE; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_NONE; }
+    };
+    template<> struct UpDownConversion<float, float16> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_FLOAT16; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_FLOAT16; }
+    };
+    template<> struct UpDownConversion<float, unsigned char> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_UINT8; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_UINT8; }
+    };
+    template<> struct UpDownConversion<float, signed char> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_SINT8; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_SINT8; }
+    };
+    template<> struct UpDownConversion<float, unsigned short> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_UINT16; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_UINT16; }
+    };
+    template<> struct UpDownConversion<float, signed short> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_SINT16; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_SINT16; }
+    };
+    template<> struct UpDownConversion<unsigned int, unsigned char> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_UINT8I; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_UINT8I; }
+    };
+    template<> struct UpDownConversion<unsigned int, unsigned short> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_UINT16I; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_UINT16I; }
+    };
+    template<> struct UpDownConversion<unsigned int, unsigned int> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_NONE; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_NONE; }
+    };
+    template<> struct UpDownConversion<int, char> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_SINT8I; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_SINT8I; }
+    };
+    template<> struct UpDownConversion<int, short> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_SINT16I; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_SINT16I; }
+    };
+    template<> struct UpDownConversion<int, int> {
+        operator _MM_DOWNCONV32_ENUM() const { return _MM_DOWNC_NONE; }
+        operator _MM_FULLUP32_ENUM() const { return _MM_FULLUPC_NONE; }
+    };
+
     namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
     namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }

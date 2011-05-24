@@ -195,7 +195,7 @@ template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE F
 template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<float>::gather(const OtherT *mem, Vector<Index> indexes)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = lrb_cast<VectorType>(_mm512_gatherd(indexes.data(), const_cast<OtherT *>(mem), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE));
+    d.v() = lrb_cast<VectorType>(_mm512_gatherd(indexes.data(), const_cast<OtherT *>(mem), UpDownC<OtherT>(), _MM_SCALE_4, _MM_HINT_NONE));
 }
 template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<int>::gather(const OtherT *mem, const Index *indexes)
 {
@@ -204,7 +204,7 @@ template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE F
 template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<int>::gather(const OtherT *mem, Vector<Index> indexes)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = lrb_cast<VectorType>(_mm512_gatherd(indexes.data(), const_cast<OtherT *>(mem), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE));
+    d.v() = lrb_cast<VectorType>(_mm512_gatherd(indexes.data(), const_cast<OtherT *>(mem), UpDownC<OtherT>(), _MM_SCALE_4, _MM_HINT_NONE));
 }
 template<typename T> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const OtherT *mem, const Index *indexes)
 {
@@ -213,7 +213,7 @@ template<typename T> template<typename OtherT, typename Index> inline void ALWAY
 template<typename T> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const OtherT *mem, Vector<Index> indexes)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = lrb_cast<VectorType>(_mm512_gatherd(indexes.data(), const_cast<OtherT *>(mem), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE));
+    d.v() = lrb_cast<VectorType>(_mm512_gatherd(indexes.data(), const_cast<OtherT *>(mem), UpDownC<OtherT>(), _MM_SCALE_4, _MM_HINT_NONE));
 }
 
 template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<double>::gather(const OtherT *mem, const Index *indexes, Mask mask)
@@ -236,7 +236,7 @@ template<typename T> template<typename OtherT, typename Index> inline void ALWAY
 template<typename T> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const OtherT *mem, Vector<Index> indexes, Mask mask)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<__m512>(data()), mask.data(), indexes.data(), const_cast<OtherT *>(mem), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE));
+    d.v() = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<__m512>(data()), mask.data(), indexes.data(), const_cast<OtherT *>(mem), UpDownC<OtherT>(), _MM_SCALE_4, _MM_HINT_NONE));
 }
 
 template<> template<typename OtherT, typename S1, typename IT>
@@ -267,7 +267,7 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const Other
     enum { Scale = sizeof(S1) / sizeof(OtherT) };
     VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
     d.v() = lrb_cast<VectorType>(_mm512_gatherd((indexes * Scale).vdata(), const_cast<OtherT *>(&(array->*member1)),
-                _MM_FULLUPC_NONE, IndexScale<OtherT>::value(), _MM_HINT_NONE));
+                UpDownC<OtherT>(), IndexScale<OtherT>::value(), _MM_HINT_NONE));
 }
 
 template<> template<typename OtherT, typename S1, typename IT>
@@ -298,7 +298,7 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const Other
     IndexSizeChecker<IT, Size>::check();
     enum { Scale = sizeof(S1) / sizeof(OtherT) };
     VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-    d.v() = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<__m512>(d.v()), mask.data(), (indexes * Scale).vdata(), const_cast<OtherT *>(&(array->*member1)), _MM_FULLUPC_NONE,
+    d.v() = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<__m512>(d.v()), mask.data(), (indexes * Scale).vdata(), const_cast<OtherT *>(&(array->*member1)), UpDownC<OtherT>(),
                 IndexScale<OtherT>::value(), _MM_HINT_NONE));
 }
 
@@ -334,7 +334,7 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const S2 S1
     IndexSizeChecker<IT, Size>::check();
     enum { Scale = sizeof(S1) / sizeof(OtherT) };
     VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-    d.v() = lrb_cast<VectorType>(_mm512_gatherd((indexes * Scale).data(), const_cast<OtherT *>(&(array->*member1.*member2)), _MM_FULLUPC_NONE,
+    d.v() = lrb_cast<VectorType>(_mm512_gatherd((indexes * Scale).data(), const_cast<OtherT *>(&(array->*member1.*member2)), UpDownC<OtherT>(),
                 IndexScale<OtherT>::value(), _MM_HINT_NONE));
 }
 
@@ -371,7 +371,7 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const S2 S1
     enum { Scale = sizeof(S1) / sizeof(OtherT) };
     VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
     d.v() = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<__m512>(d.v()), mask.data(), (indexes * Scale).vdata(), const_cast<OtherT *>(&(array->*member1.*member2)),
-                _MM_FULLUPC_NONE, IndexScale<OtherT>::value(), _MM_HINT_NONE));
+                UpDownC<OtherT>(), IndexScale<OtherT>::value(), _MM_HINT_NONE));
 }
 
 template<> template<typename OtherT, typename S1, typename IT1, typename IT2>
@@ -422,7 +422,7 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const Other
     offsets = _mm512_srl_pi(offsets, _mm512_set_1to16_pi(sizeof(OtherT) == 4 ? 2 : (sizeof(OtherT) == 2) ? 1 : 0)); // divide by sizeof(OtherT)
     offsets = _mm512_add_pi(offsets, innerIndexes.data());
 
-    d.v() = lrb_cast<VectorType>(_mm512_gatherd(offsets, const_cast<OtherT *>(array->*ptrMember1), _MM_FULLUPC_NONE,
+    d.v() = lrb_cast<VectorType>(_mm512_gatherd(offsets, const_cast<OtherT *>(array->*ptrMember1), UpDownC<OtherT>(),
                 IndexScale<OtherT>::value(), _MM_HINT_NONE));
 }
 
@@ -485,7 +485,7 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const Other
     offsets = _mm512_mask_add_pi(_mm512_setzero_pi(), mask.data(), offsets, innerIndexes.data());
     VC_DEBUG << offsets;
 
-    d.v() = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<__m512>(d.v()), mask.data(), offsets, const_cast<OtherT *>(array->*ptrMember1), _MM_FULLUPC_NONE,
+    d.v() = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<__m512>(d.v()), mask.data(), offsets, const_cast<OtherT *>(array->*ptrMember1), UpDownC<OtherT>(),
                 IndexScale<OtherT>::value(), _MM_HINT_NONE));
 }
 
@@ -499,7 +499,7 @@ template<typename T> template<typename OtherT, typename Index> inline void ALWAY
         OtherT *mem, Vector<Index> indexes) const
 {
     IndexSizeChecker<Index, Size>::check();
-    _mm512_scatterd(mem, indexes.data(), lrb_cast<__m512>(d.v()), _MM_DOWNC_NONE, IndexScale<OtherT>::value(), _MM_HINT_NONE);
+    _mm512_scatterd(mem, indexes.data(), lrb_cast<__m512>(d.v()), UpDownC<OtherT>(), IndexScale<OtherT>::value(), _MM_HINT_NONE);
 }
 template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<double>::scatter(
         OtherT *mem, Vector<Index> indexes) const
@@ -519,7 +519,7 @@ template<typename T> template<typename OtherT, typename Index> inline void ALWAY
         OtherT *mem, Vector<Index> indexes, Mask mask) const
 {
     IndexSizeChecker<Index, Size>::check();
-    _mm512_mask_scatterd(mem, mask.data(), indexes.data(), lrb_cast<__m512>(d.v()), _MM_DOWNC_NONE, IndexScale<OtherT>::value(), _MM_HINT_NONE);
+    _mm512_mask_scatterd(mem, mask.data(), indexes.data(), lrb_cast<__m512>(d.v()), UpDownC<OtherT>(), IndexScale<OtherT>::value(), _MM_HINT_NONE);
 }
 template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<double>::scatter(
         OtherT *mem, Vector<Index> indexes, Mask mask) const
@@ -541,7 +541,7 @@ template<typename T> template<typename OtherT, typename S1, typename IT> inline 
     IndexSizeChecker<IT, Size>::check();
     enum { Scale = sizeof(S1) / sizeof(OtherT) };
     VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-    _mm512_scatterd(&(array->*member1), (indexes * Scale).vdata(), lrb_cast<__m512>(d.v()), _MM_DOWNC_NONE,
+    _mm512_scatterd(&(array->*member1), (indexes * Scale).vdata(), lrb_cast<__m512>(d.v()), UpDownC<OtherT>(),
             IndexScale<OtherT>::value(), _MM_HINT_NONE);
 }
 template<> template<typename OtherT, typename S1, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<double>::scatter(
@@ -566,7 +566,7 @@ template<typename T> template<typename OtherT, typename S1, typename IT> inline 
     IndexSizeChecker<IT, Size>::check();
     enum { Scale = sizeof(S1) / sizeof(OtherT) };
     VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-    _mm512_mask_scatterd(&(array->*member1), mask.data(), (indexes * Scale).vdata(), lrb_cast<__m512>(d.v()), _MM_DOWNC_NONE,
+    _mm512_mask_scatterd(&(array->*member1), mask.data(), (indexes * Scale).vdata(), lrb_cast<__m512>(d.v()), UpDownC<OtherT>(),
             IndexScale<OtherT>::value(), _MM_HINT_NONE);
 }
 template<> template<typename OtherT, typename S1, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<double>::scatter(
@@ -592,7 +592,7 @@ template<typename T> template<typename OtherT, typename S1, typename S2, typenam
     IndexSizeChecker<IT, Size>::check();
     enum { Scale = sizeof(S1) / sizeof(OtherT) };
     VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-    _mm512_scatterd(&(array->*member1.*member2), (indexes * Scale).vdata(), lrb_cast<__m512>(d.v()), _MM_DOWNC_NONE,
+    _mm512_scatterd(&(array->*member1.*member2), (indexes * Scale).vdata(), lrb_cast<__m512>(d.v()), UpDownC<OtherT>(),
             IndexScale<OtherT>::value(), _MM_HINT_NONE);
 }
 template<> template<typename OtherT, typename S1, typename S2, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<double>::scatter(
@@ -617,7 +617,7 @@ template<typename T> template<typename OtherT, typename S1, typename S2, typenam
     IndexSizeChecker<IT, Size>::check();
     enum { Scale = sizeof(S1) / sizeof(OtherT) };
     VC_STATIC_ASSERT((sizeof(S1) % Scale) == 0, Struct_size_needs_to_be_a_multiple_of_the_gathered_member_size);
-    _mm512_mask_scatterd(&(array->*member1.*member2), mask.data(), (indexes * Scale).vdata(), lrb_cast<__m512>(d.v()), _MM_DOWNC_NONE,
+    _mm512_mask_scatterd(&(array->*member1.*member2), mask.data(), (indexes * Scale).vdata(), lrb_cast<__m512>(d.v()), UpDownC<OtherT>(),
             IndexScale<OtherT>::value(), _MM_HINT_NONE);
 }
 template<> template<typename OtherT, typename S1, typename S2, typename IT> inline void ALWAYS_INLINE FLATTEN Vector<double>::scatter(

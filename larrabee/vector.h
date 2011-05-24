@@ -728,6 +728,8 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
         inline const VectorType vdata() const { return d.v(); }
         inline const VectorType data() const { return d.v(); }
         inline VectorType &data() { return d.v(); }
+
+        template<typename MemType> struct UpDownC : public UpDownConversion<T, MemType> {};
     public:
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
