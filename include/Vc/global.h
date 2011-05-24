@@ -185,9 +185,9 @@
 #define VC_IMPL ::Vc::AVXImpl
 #elif VC_IMPL_SSE4a
 #define VC_IMPL ::Vc::SSE4aImpl
-#elif VC_IMPL_SSE42
+#elif VC_IMPL_SSE4_2
 #define VC_IMPL ::Vc::SSE42Impl
-#elif VC_IMPL_SSE41
+#elif VC_IMPL_SSE4_1
 #define VC_IMPL ::Vc::SSE41Impl
 #elif VC_IMPL_SSSE3
 #define VC_IMPL ::Vc::SSSE3Impl

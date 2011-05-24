@@ -28,6 +28,13 @@ template<> inline Mask<4, 32>::Mask(Mask<8, 32> m)
 {
 }
 
+template<> inline Mask<8, 32>::Mask(Mask<4, 32> m)
+    // aabb ccdd -> abcd 0000
+    : k(concat(shuffle<X0, X2, Y0, Y2>(lo128(m.data()), hi128(m.data())),
+                _mm_setzero_ps()))
+{
+}
+
 template<unsigned int Size> inline int Mask<Size, 32u>::shiftMask() const
 {
     return _mm256_movemask_epi8(dataI());

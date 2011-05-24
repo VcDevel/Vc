@@ -27,7 +27,12 @@
 #  else
      // GCC 4.4 has x86intrin.h, but not the required functions
 #    define _bit_scan_forward(x) __builtin_ctz(x)
-#    define _bit_scan_reverse(x) __builtin_clz(x)
+static inline int _Vc_bit_scan_reverse_asm(unsigned int x) {
+    int r;
+    __asm__("bsr %1,%0" : "=r"(r) : "X"(x));
+    return r;
+}
+#    define _bit_scan_reverse(x) _Vc_bit_scan_reverse_asm(x)
 #  endif
 #elif defined(VC_ICC)
 // for all I know ICC supports the _bit_scan_* intrinsics
