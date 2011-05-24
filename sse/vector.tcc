@@ -700,7 +700,7 @@ inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const Entry
     VC_MASKED_GATHER
 #undef ith_value
 }
-
+// scatters {{{1
 #undef VC_MASKED_GATHER
 #ifdef VC_USE_BSF_SCATTERS
 #define VC_MASKED_SCATTER                       \
