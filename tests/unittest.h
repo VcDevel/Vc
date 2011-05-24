@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -289,6 +289,15 @@ class _UnitTest_Compare
             }
         }
 
+        inline _UnitTest_Compare(const char *_file, int _line)
+            : m_failed(true)
+        {
+            if (m_failed) {
+                printFirst();
+                print("at "); print(_file); print(':'); print(_line); print(' ');
+            }
+        }
+
         template<typename T> inline const _UnitTest_Compare &ALWAYS_INLINE operator<<(const T &x) const {
             if (m_failed) {
                 print(x);
@@ -372,6 +381,9 @@ class _UnitTest_Compare
 #define VERIFY(cond) \
     _UnitTest_Compare(cond, #cond, __FILE__, __LINE__)
 
+#define FAIL() \
+    _UnitTest_Compare(__FILE__, __LINE__)
+
 static void unittest_assert(bool cond, const char *code, const char *file, int line)
 {
     if (!cond) {
@@ -401,5 +413,128 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
         return; \
     } \
     _unit_test_global.expect_assert_failure = false
+
+template<typename Vec> static typename Vec::Mask allMasks(int i)
+{
+    typedef typename Vec::IndexType I;
+    typedef typename Vec::Mask M;
+
+    if (i == 0) {
+        return M(true);
+    }
+    --i;
+    if (i < Vec::Size) {
+        return M (I(Vc::IndexesFromZero) == i);
+    }
+    i -= Vec::Size;
+    if (Vec::Size < 3) {
+        return M(false);
+    }
+    for (int a = 0; a < Vec::Size - 1; ++a) {
+        for (int b = a + 1; b < Vec::Size; ++b) {
+            if (i == 0) {
+                I indexes(Vc::IndexesFromZero);
+                return M(indexes == a || indexes == b);
+            }
+            --i;
+        }
+    }
+    if (Vec::Size < 4) {
+        return M(false);
+    }
+    for (int a = 0; a < Vec::Size - 1; ++a) {
+        for (int b = a + 1; b < Vec::Size; ++b) {
+            for (int c = b + 1; c < Vec::Size; ++c) {
+                if (i == 0) {
+                    I indexes(Vc::IndexesFromZero);
+                    return M(indexes == a || indexes == b || indexes == c);
+                }
+                --i;
+            }
+        }
+    }
+    if (Vec::Size < 5) {
+        return M(false);
+    }
+    for (int a = 0; a < Vec::Size - 1; ++a) {
+        for (int b = a + 1; b < Vec::Size; ++b) {
+            for (int c = b + 1; c < Vec::Size; ++c) {
+                for (int d = c + 1; d < Vec::Size; ++d) {
+                    if (i == 0) {
+                        I indexes(Vc::IndexesFromZero);
+                        return M(indexes == a || indexes == b || indexes == c || indexes == d);
+                    }
+                    --i;
+                }
+            }
+        }
+    }
+    if (Vec::Size < 6) {
+        return M(false);
+    }
+    for (int a = 0; a < Vec::Size - 1; ++a) {
+        for (int b = a + 1; b < Vec::Size; ++b) {
+            for (int c = b + 1; c < Vec::Size; ++c) {
+                for (int d = c + 1; d < Vec::Size; ++d) {
+                    for (int e = d + 1; e < Vec::Size; ++e) {
+                        if (i == 0) {
+                            I indexes(Vc::IndexesFromZero);
+                            return M(indexes == a || indexes == b || indexes == c || indexes == d || indexes == e);
+                        }
+                        --i;
+                    }
+                }
+            }
+        }
+    }
+    if (Vec::Size < 7) {
+        return M(false);
+    }
+    for (int a = 0; a < Vec::Size - 1; ++a) {
+        for (int b = a + 1; b < Vec::Size; ++b) {
+            for (int c = b + 1; c < Vec::Size; ++c) {
+                for (int d = c + 1; d < Vec::Size; ++d) {
+                    for (int e = d + 1; e < Vec::Size; ++e) {
+                        for (int f = e + 1; f < Vec::Size; ++f) {
+                            if (i == 0) {
+                                I indexes(Vc::IndexesFromZero);
+                                return M(indexes == a || indexes == b || indexes == c || indexes == d || indexes == e || indexes == f);
+                            }
+                            --i;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (Vec::Size < 8) {
+        return M(false);
+    }
+    for (int a = 0; a < Vec::Size - 1; ++a) {
+        for (int b = a + 1; b < Vec::Size; ++b) {
+            for (int c = b + 1; c < Vec::Size; ++c) {
+                for (int d = c + 1; d < Vec::Size; ++d) {
+                    for (int e = d + 1; e < Vec::Size; ++e) {
+                        for (int f = e + 1; f < Vec::Size; ++f) {
+                            for (int g = f + 1; g < Vec::Size; ++g) {
+                                if (i == 0) {
+                                    I indexes(Vc::IndexesFromZero);
+                                    return M(indexes == a || indexes == b || indexes == c || indexes == d
+                                            || indexes == e || indexes == f || indexes == g);
+                                }
+                                --i;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return M(false);
+}
+
+#define for_all_masks(VecType, _mask_) \
+    for (int _Vc_for_all_masks_i = 0; _Vc_for_all_masks_i == 0; ++_Vc_for_all_masks_i) \
+        for (typename VecType::Mask _mask_ = allMasks<VecType>(_Vc_for_all_masks_i++); !_mask_.isEmpty(); _mask_ = allMasks<VecType>(_Vc_for_all_masks_i++))
 
 #endif // UNITTEST_H

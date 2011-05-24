@@ -69,7 +69,7 @@ branch=`cat .git/HEAD|cut -d/ -f3`
 
 LABEL1="$branch $arch $chip $COMPILER $CXXFLAGS"
 if test "$arch" = "linux"; then
-  test -z "$LINUX_FLAVOUR" && LINUX_FLAVOUR=`lsb_release -d`
+  test -z "$LINUX_FLAVOUR" && LINUX_FLAVOUR=`lsb_release -d|cut -f2`
   if test -n "$LINUX_FLAVOUR"; then
     LABEL1="$branch $LINUX_FLAVOUR $chip $COMPILER $CXXFLAGS"
   fi
@@ -99,4 +99,4 @@ echo "************************"
 test -z "$VC_BUILDDIR" && export VC_BUILDDIR="$VC_SOURCEDIR/build-${ctest_model}-${LABEL//[\[\] ()]/_}"
 test -d "$VC_BUILDDIR" || mkdir -p "$VC_BUILDDIR"
 
-ctest --debug -S test.cmake -V 2>&1 | tee "$VC_BUILDDIR/ctest-debug.log"
+ctest --debug -S test.cmake -V 2>&1 | tee "${VC_BUILDDIR}_ctest-debug.log"

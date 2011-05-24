@@ -57,16 +57,6 @@ else(LARRABEE_FOUND)
    endif(VOID_PTR_IS_64BIT)
 endif(LARRABEE_FOUND)
 
-if(NO_BSF_LOOPS)
-   add_definitions(-DVC_NO_BSF_LOOPS)
-endif(NO_BSF_LOOPS)
-if(NO_GATHER_TRICKS)
-   add_definitions(-DVC_NO_GATHER_TRICKS)
-endif(NO_GATHER_TRICKS)
-if(GATHER_SET)
-   add_definitions(-DVC_GATHER_SET)
-endif(GATHER_SET)
-
 set(SSE_INTRINSICS_BROKEN false)
 
 if(COMPILER_IS_OPEN64)
@@ -174,9 +164,12 @@ elseif(COMPILER_IS_GCC)
    if(_gcc_version STREQUAL "4.6.0")
       list(APPEND disabled_targets
          gather_avx
-         gather_VC_GATHER_SET_avx
+         gather_sse
+         gather_VC_USE_SET_GATHERS_avx
+         gather_VC_USE_SET_GATHERS_sse
          gather_sse_LOOP
          scatter_avx
+         scatter_sse
          dhryrock_avx_benchmark
          )
    endif()

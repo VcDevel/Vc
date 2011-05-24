@@ -158,7 +158,7 @@ template<typename T> class Vector
         template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask);
         template<typename Index> void gather(const EntryType *mem, Index indexes);
         template<typename Index> void gather(const EntryType *mem, Index indexes, Mask mask);
-#ifdef VC_GATHER_SET
+#ifdef VC_USE_SET_GATHERS
         template<typename IT> void gather(const EntryType *mem, Vector<IT> indexes, Mask mask);
 #endif
         template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, IT indexes);
@@ -170,14 +170,14 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // scatters
-        template<typename Index> void scatter(EntryType *mem, Index indexes);
-        template<typename Index> void scatter(EntryType *mem, Index indexes, Mask mask);
-        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes);
-        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes, Mask mask);
-        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes);
-        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, Mask mask);
-        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes);
-        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask);
+        template<typename Index> void scatter(EntryType *mem, Index indexes) const;
+        template<typename Index> void scatter(EntryType *mem, Index indexes, Mask mask) const;
+        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes) const;
+        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes, Mask mask) const;
+        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes) const;
+        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, Mask mask) const;
+        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes) const;
+        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask) const;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //prefix
@@ -186,7 +186,7 @@ template<typename T> class Vector
         inline Vector operator++(int) ALWAYS_INLINE { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
         inline Common::AliasingEntryHelper<EntryType> INTRINSIC operator[](int index) {
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 3
+#if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
             ::Vc::Warnings::_operator_bracket_warning();
 #endif
             return d.m(index);
@@ -276,6 +276,10 @@ template<typename T> class Vector
         inline EntryType max() const { return VectorHelper<T>::max(data()); }
         inline EntryType product() const { return VectorHelper<T>::mul(data()); }
         inline EntryType sum() const { return VectorHelper<T>::add(data()); }
+        inline EntryType min(Mask m) const;
+        inline EntryType max(Mask m) const;
+        inline EntryType product(Mask m) const;
+        inline EntryType sum(Mask m) const;
 
         inline Vector sorted() const { return SortHelper<T>::sort(data()); }
 

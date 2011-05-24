@@ -223,6 +223,10 @@ class Vector : public VectorBase<T, Vector<T> >
         inline EntryType max() const { return m_data; }
         inline EntryType product() const { return m_data; }
         inline EntryType sum() const { return m_data; }
+        inline EntryType min(Mask) const { return m_data; }
+        inline EntryType max(Mask) const { return m_data; }
+        inline EntryType product(Mask) const { return m_data; }
+        inline EntryType sum(Mask m) const { if (m) return m_data; return static_cast<EntryType>(0); }
 
         Vector sorted() const { return *this; }
 

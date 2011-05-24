@@ -77,19 +77,23 @@ template<typename V> void writes()
         b(b == 3) += one;
         b(b == 4) += one;
         COMPARE(a, b);
-    } else {
-        a(a == 0) += two;
-        a[1] += one;
-        a(a == 2) += one;
-        b(b == 0) += one;
-        b(b == 1) += one;
-        b(b == 2) += one;
+    } else if (V::Size == 2) { // a = [0, 1]; b = [0, 1]
+        a(a == 0) += two;      // a = [2, 1]
+        a[1] += one;           // a = [2, 2]
+        a(a == 2) += one;      // a = [3, 3]
+        b(b == 0) += one;      // b = [1, 1]
+        b(b == 1) += one;      // b = [2, 2]
+        b(b == 2) += one;      // b = [3, 3]
         COMPARE(a, b);
+    } else {
+        FAIL() << "unsupported Vector::Size";
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    initTest(argc, argv);
+
     testAllTypes(reads);
     testAllTypes(writes);
 

@@ -281,6 +281,100 @@ template<typename Vec> void testNegate()
     }
 }
 
+template<typename Vec> void testMin()
+{
+    typedef typename Vec::EntryType T;
+    typedef typename Vec::Mask Mask;
+    typedef typename Vec::IndexType I;
+
+    Vec v(I::IndexesFromZero());
+
+    COMPARE(v.min(), static_cast<T>(0));
+    COMPARE((T(Vec::Size) - v).min(), static_cast<T>(1));
+
+    int j = 0;
+    Mask m;
+    do {
+        m = allMasks<Vec>(j++);
+        if (m.isEmpty()) {
+            break;
+        }
+        COMPARE(v.min(m), static_cast<T>(m.firstOne())) << m << v;
+    } while (true);
+}
+
+template<typename Vec> void testMax()
+{
+    typedef typename Vec::EntryType T;
+    typedef typename Vec::Mask Mask;
+    typedef typename Vec::IndexType I;
+
+    Vec v(I::IndexesFromZero());
+
+    COMPARE(v.max(), static_cast<T>(Vec::Size - 1));
+    v = T(Vec::Size) - v;
+    COMPARE(v.max(), static_cast<T>(Vec::Size));
+
+    int j = 0;
+    Mask m;
+    do {
+        m = allMasks<Vec>(j++);
+        if (m.isEmpty()) {
+            break;
+        }
+        COMPARE(v.max(m), static_cast<T>(Vec::Size - m.firstOne())) << m << v;
+    } while (true);
+}
+
+template<typename Vec> void testProduct()
+{
+    typedef typename Vec::EntryType T;
+    typedef typename Vec::Mask Mask;
+
+    for (int i = 0; i < 10; ++i) {
+        T x = static_cast<T>(i);
+        Vec v(x);
+        T x2 = x;
+        for (int k = 1; k < Vec::Size; ++k) {
+            x2 *= x;
+        }
+        COMPARE(v.product(), x2);
+
+        int j = 0;
+        Mask m;
+        do {
+            m = allMasks<Vec>(j++);
+            if (m.isEmpty()) {
+                break;
+            }
+            x2 = x;
+            for (int k = 1; k < m.count(); ++k) {
+                x2 *= x;
+            }
+            COMPARE(v.product(m), x2) << m << v;
+        } while (true);
+    }
+}
+
+template<typename Vec> void testSum()
+{
+    typedef typename Vec::EntryType T;
+    typedef typename Vec::Mask Mask;
+
+    for (int i = 0; i < 10; ++i) {
+        T x = static_cast<T>(i);
+        Vec v(x);
+        COMPARE(v.sum(), x * Vec::Size);
+
+        int j = 0;
+        Mask m;
+        do {
+            m = allMasks<Vec>(j++);
+            COMPARE(v.sum(m), x * m.count()) << m << v;
+        } while (!m.isEmpty());
+    }
+}
+
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
@@ -374,6 +468,10 @@ int main(int argc, char **argv)
     runTest(testOnesComplement<ushort_v>);
 
     testAllTypes(testNegate);
+    testAllTypes(testMin);
+    testAllTypes(testMax);
+    testAllTypes(testProduct);
+    testAllTypes(testSum);
 
     return 0;
 }

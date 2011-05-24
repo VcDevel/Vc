@@ -55,51 +55,9 @@ namespace Vc
 {
 namespace SSE
 {
-    template<typename T> struct GatherHelper
-    {
-        typedef VectorBase<T> Base;
-        typedef typename Base::VectorType VectorType;
-        typedef typename Base::EntryType  EntryType;
-        typedef typename Base::IndexType  IndexType;
-        typedef Common::VectorMemoryUnion<VectorType, EntryType> UnionType;
-        enum { Size = Base::Size, Shift = sizeof(EntryType) };
-        static void gather(Base &v, const unsigned int *indexes, const EntryType *baseAddr);
-        static void gather(Base &v, const IndexType &indexes, const EntryType *baseAddr);
-        template<typename S1> static void gather(Base &v, const IndexType &indexes, const S1 *baseAddr,
-                const EntryType S1::* member1);
-        template<typename S1, typename S2> static void gather(Base &v, const IndexType &indexes,
-                const S1 *baseAddr, const S2 S1::* member1, const EntryType S2::* member2);
-    };
-
     template<typename VectorType, unsigned int Size> struct SortHelper
     {
         static VectorType sort(VectorType) PURE;
-    };
-
-    template<typename T> struct ScatterHelper
-    {
-        typedef VectorBase<T> Base;
-        typedef typename Base::VectorType VectorType;
-        typedef typename Base::EntryType  EntryType;
-        typedef typename Base::IndexType  IndexType;
-        typedef Common::VectorMemoryUnion<VectorType, EntryType> UnionType;
-        enum { Size = Base::Size, Shift = sizeof(EntryType) };
-
-        static void scatter(const Base &v, const IndexType &indexes, EntryType *baseAddr);
-
-        static void scatter(const Base &v, const IndexType &indexes, int mask, EntryType *baseAddr);
-
-        template<typename S1>
-        static void scatter(const Base &v, const IndexType &indexes, S1 *baseAddr, EntryType S1::* member1);
-
-        template<typename S1>
-        static void scatter(const Base &v, const IndexType &indexes, int mask, S1 *baseAddr, EntryType S1::* member1);
-
-        template<typename S1, typename S2>
-        static void scatter(const Base &v, const IndexType &indexes, S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2);
-
-        template<typename S1, typename S2>
-        static void scatter(const Base &v, const IndexType &indexes, int mask, S1 *baseAddr, S2 S1::* member1, EntryType S2::* member2);
     };
 
 #undef OP_DECL

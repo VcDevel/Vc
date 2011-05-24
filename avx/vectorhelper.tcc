@@ -20,31 +20,6 @@
 #include "casts.h"
 #include <cstdlib>
 
-#ifndef VC_NO_BSF_LOOPS
-# ifdef VC_NO_GATHER_TRICKS
-#  define VC_NO_BSF_LOOPS
-# elif !defined(__x86_64__) // 32 bit x86 does not have enough registers
-#  define VC_NO_BSF_LOOPS
-# elif defined(_MSC_VER) // TODO: write inline asm version for MSVC
-#  define VC_NO_BSF_LOOPS
-# elif defined(__GNUC__) // gcc and icc work fine with the inline asm
-# else
-#  error "Check whether inline asm works, or define VC_NO_BSF_LOOPS"
-# endif
-#endif
-
-#ifdef VC_SLOWDOWN_GATHER
-#define SLOWDOWN_ASM "ror $9,%1\n\trol $1,%1\n\t" \
-                     "rol $1,%1\n\trol $1,%1\n\t" \
-                     "rol $1,%1\n\trol $1,%1\n\t" \
-                     "rol $1,%1\n\trol $1,%1\n\t" \
-                     "rol $1,%1\n\trol $1,%1\n\t"
-#else //VC_SLOWDOWN_GATHER
-#define SLOWDOWN_ASM
-#endif //VC_SLOWDOWN_GATHER
-
-#define ALIGN_16 "\n.align 16\n\t"
-
 namespace Vc
 {
 namespace AVX
@@ -92,8 +67,8 @@ inline void VectorHelper<__m256>::store(float *mem, const VectorType x, Streamin
     _mm_maskmoveu_si128(avx_cast<__m128i>(x), _mm_setallone_si128(), reinterpret_cast<char *>(mem));
     _mm_maskmoveu_si128(_mm256_extractf128_si256(avx_cast<__m256i>(x), 1), _mm_setallone_si128(), reinterpret_cast<char *>(mem + 4));
 }
-#if defined(__GNUC__) && __GNUC__ == 4 && (__GNUC_MINOR__ < 5 || (__GNUC_MINOR__ == 5 && __GNUC_PATCHLEVEL__ < 2))
-// GCC 4.6.0 / 4.5.2 switched to the broken interface as defined by ICC
+#if defined(VC_GCC) && VC_GCC <= 0x40502
+// GCC 4.6.0 / 4.5.3 switched to the broken interface as defined by ICC
 #define VC_MASKSTORE_MASK_TYPE_IS_M256I 1
 #endif
 inline void VectorHelper<__m256>::store(float *mem, const VectorType x, const VectorType m, AlignedFlag)
@@ -319,6 +294,3 @@ template<typename T> inline void VectorHelper<__m128i>::store(T *mem, const Vect
 
 } // namespace AVX
 } // namespace Vc
-
-#undef SLOWDOWN_ASM
-#undef ALIGN_16

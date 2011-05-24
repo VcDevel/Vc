@@ -168,6 +168,11 @@ template<typename V, typename Parent> class MemoryBase
         inline const EntryType &operator[](size_t i) const;
 #endif
 
+        template<typename IndexT> inline V operator[](Vector<IndexT> i) const
+        {
+            return V(entries(), i);
+        }
+
         /**
          * Cast operator to the scalar type. This allows to use the object very much like a standard
          * C array.

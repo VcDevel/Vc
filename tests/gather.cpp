@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -22,6 +22,32 @@
 #include <iostream>
 
 using namespace Vc;
+
+template<typename Vec> void maskedGatherArray()
+{
+    typedef typename Vec::IndexType It;
+    typedef typename Vec::EntryType T;
+
+    T mem[Vec::Size];
+    for (int i = 0; i < Vec::Size; ++i) {
+        mem[i] = i + 1;
+    }
+
+    It indexes = It::IndexesFromZero();
+    for_all_masks(Vec, m) {
+        const Vec a(mem, indexes, m);
+        for (int i = 0; i < Vec::Size; ++i) {
+            COMPARE(a[i], m[i] ? mem[i] : 0) << " i = " << i << ", m = " << m;
+        }
+
+        T x = Vec::Size + 1;
+        Vec b = x;
+        b.gather(mem, indexes, m);
+        for (int i = 0; i < Vec::Size; ++i) {
+            COMPARE(b[i], m[i] ? mem[i] : x) << " i = " << i << ", m = " << m;
+        }
+    }
+}
 
 template<typename Vec> void gatherArray()
 {
@@ -48,7 +74,7 @@ template<typename Vec> void gatherArray()
         }
         Vec b(Zero);
         b.gather(array, i, castedMask);
-        COMPARE(castedMask, b == ii);
+        COMPARE(castedMask, (b == ii)) << ", b = " << b << ", ii = " << ii << ", i = " << i;
         if (!castedMask.isFull()) {
             COMPARE(!castedMask, b == Vec(Zero));
         }
@@ -145,7 +171,7 @@ template<typename Vec> void gather2dim()
             const typename Vec::Mask castedMask(mask);
 
             Vec a(array, &S::data, i, j, castedMask);
-            COMPARE(castedMask, castedMask && (a == i0));
+            COMPARE(castedMask, castedMask && (a == i0)) << ", a = " << a << ", i0 = " << i0 << ", i = " << i << ", j = " << j;
 
             Vec b(Zero);
             b.gather(array, &S::data, i, j, castedMask);
@@ -172,6 +198,7 @@ int main(int argc, char **argv)
     initTest(argc, argv);
 
     testAllTypes(gatherArray);
+    testAllTypes(maskedGatherArray);
     testAllTypes(gatherStruct);
     testAllTypes(gather2dim);
 

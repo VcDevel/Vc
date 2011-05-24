@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,7 @@
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-
+// includes {{{1
 #include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
@@ -24,7 +24,25 @@
 
 using namespace Vc;
 
-template<typename Vec> void scatterArray()
+template<typename Vec> void maskedScatterArray() //{{{1
+{
+    typedef typename Vec::IndexType It;
+    typedef typename Vec::EntryType T;
+
+    T mem[Vec::Size];
+    const Vec v(It::IndexesFromZero() + 1);
+
+    for_all_masks(Vec, m) {
+        Vec::Zero().store(mem, Vc::Unaligned);
+        v.scatter(&mem[0], It::IndexesFromZero(), m);
+
+        for (int i = 0; i < Vec::Size; ++i) {
+            COMPARE(mem[i], m[i] ? v[i] : T(0)) << " i = " << i << ", m = " << m;
+        }
+    }
+}
+
+template<typename Vec> void scatterArray() //{{{1
 {
     typedef typename Vec::IndexType It;
     const int count = 31999;
@@ -52,7 +70,7 @@ template<typename Vec> void scatterArray()
     COMPARE(0, std::memcmp(array, out, count * sizeof(typename Vec::EntryType)));
 }
 
-template<typename T> struct Struct
+template<typename T> struct Struct //{{{1
 {
     T a;
     char x;
@@ -62,7 +80,7 @@ template<typename T> struct Struct
     char z;
 };
 
-template<typename Vec> void scatterStruct()
+template<typename Vec> void scatterStruct() //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef Struct<typename Vec::EntryType> S;
@@ -88,8 +106,44 @@ template<typename Vec> void scatterStruct()
     VERIFY(0 == memcmp(array, out, count * sizeof(S)));
 }
 
-int main()
+template<typename T> struct Struct2 //{{{1
 {
+    char x;
+    Struct<T> b;
+    short y;
+};
+
+template<typename Vec> void scatterStruct2() //{{{1
+{
+    typedef typename Vec::IndexType It;
+    typedef Struct2<typename Vec::EntryType> S1;
+    typedef Struct<typename Vec::EntryType> S2;
+    const int count = 97;
+    S1 array[count], out[count];
+    memset(array, 0, count * sizeof(S1));
+    memset(out, 0, count * sizeof(S1));
+    for (int i = 0; i < count; ++i) {
+        array[i].b.a = i + 0;
+        array[i].b.b = i + 1;
+        array[i].b.c = i + 2;
+    }
+    typename It::Mask mask;
+    for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
+        typename Vec::Mask castedMask(mask);
+        Vec a(array, &S1::b, &S2::a, i, castedMask);
+        Vec b(array, &S1::b, &S2::b, i, castedMask);
+        Vec c(array, &S1::b, &S2::c, i, castedMask);
+        a.scatter(out, &S1::b, &S2::a, i, castedMask);
+        b.scatter(out, &S1::b, &S2::b, i, castedMask);
+        c.scatter(out, &S1::b, &S2::c, i, castedMask);
+    }
+    VERIFY(0 == memcmp(array, out, count * sizeof(S1)));
+}
+
+int main(int argc, char **argv) //{{{1
+{
+    initTest(argc, argv);
+
     runTest(scatterArray<int_v>);
     runTest(scatterArray<uint_v>);
     runTest(scatterArray<float_v>);
@@ -97,6 +151,7 @@ int main()
     runTest(scatterArray<sfloat_v>);
     runTest(scatterArray<short_v>);
     runTest(scatterArray<ushort_v>);
+    testAllTypes(maskedScatterArray);
     runTest(scatterStruct<int_v>);
     runTest(scatterStruct<uint_v>);
     runTest(scatterStruct<float_v>);
@@ -104,5 +159,8 @@ int main()
     runTest(scatterStruct<sfloat_v>);
     runTest(scatterStruct<short_v>);
     runTest(scatterStruct<ushort_v>);
+    testAllTypes(scatterStruct2);
     return 0;
 }
+
+// vim: foldmethod=marker

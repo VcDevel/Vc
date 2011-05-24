@@ -31,11 +31,6 @@ namespace Vc
 {
 namespace AVX
 {
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ == 4 && __GNUC_MINOR__ <= 4
-#define _bit_scan_forward(x) __builtin_ctz(x)
-#define _bit_scan_reverse(x) __builtin_clz(x)
-#endif
-
 #if defined(__GNUC__) && !defined(NVALGRIND)
     static inline __m128i CONST _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
 #else
