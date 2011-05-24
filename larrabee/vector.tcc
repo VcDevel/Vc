@@ -23,7 +23,7 @@ namespace Vc
 {
 namespace LRBni
 {
-
+// stores {{{1
 template<typename Parent, typename T> template<typename T2> inline void StoreMixin<Parent, T>::store(T2 *mem) const
 {
     VectorHelper<T>::store(mem, static_cast<const Parent *>(this)->vdata(), Aligned);
@@ -43,7 +43,7 @@ template<typename Parent, typename T> template<typename T2, typename A> inline v
 {
     VectorHelper<T>::store(mem, static_cast<const Parent *>(this)->vdata(), mask.data(), align);
 }
-
+// negation {{{1
 template<> inline Vector<double> INTRINSIC Vector<double>::operator-() const
 {
     return lrb_cast<__m512d>(_mm512_xor_pi(lrb_cast<__m512i>(d.v()), _mm512_set_1to8_pq(0x8000000000000000ull)));
@@ -60,7 +60,7 @@ template<> inline Vector<int> INTRINSIC Vector<unsigned int>::operator-() const
 {
     return Vector<int>(~(*this)) + 1;
 }
-
+// horizontal ops {{{1
 template<typename T> inline typename Vector<T>::EntryType Vector<T>::min(Mask m) const
 {
     return _mm512_mask_reduce_min_pi(m.data(), vdata());
