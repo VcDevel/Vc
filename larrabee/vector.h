@@ -30,18 +30,6 @@
 
 namespace Vc
 {
-#ifndef HAVE_FLOAT16
-#define HAVE_FLOAT16
-#ifdef HALF_MAX
-    typedef half float16;
-#else
-    class float16 {
-        public:
-            unsigned short data;
-    };
-#endif
-#endif
-
 #ifdef isfinite
 #undef isfinite
 #endif

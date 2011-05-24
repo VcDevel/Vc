@@ -28,6 +28,19 @@ namespace Vc
 {
     template<typename V, unsigned int Size> class Memory;
 
+#ifndef HAVE_FLOAT16
+#define HAVE_FLOAT16
+#ifdef HALF_MAX
+    typedef half float16;
+#else
+    class float16 {
+        public:
+            unsigned short data;
+    };
+#endif
+#endif
+
+
 namespace LRBni
 {
     template<typename T> class Vector;
