@@ -16,7 +16,7 @@
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-
+// includes {{{1
 #include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
@@ -24,7 +24,7 @@
 
 using namespace Vc;
 
-template<typename Vec> void maskedScatterArray()
+template<typename Vec> void maskedScatterArray() //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
@@ -42,7 +42,7 @@ template<typename Vec> void maskedScatterArray()
     }
 }
 
-template<typename Vec> void scatterArray()
+template<typename Vec> void scatterArray() //{{{1
 {
     typedef typename Vec::IndexType It;
     const int count = 31999;
@@ -70,7 +70,7 @@ template<typename Vec> void scatterArray()
     COMPARE(0, std::memcmp(array, out, count * sizeof(typename Vec::EntryType)));
 }
 
-template<typename T> struct Struct
+template<typename T> struct Struct //{{{1
 {
     T a;
     char x;
@@ -80,7 +80,7 @@ template<typename T> struct Struct
     char z;
 };
 
-template<typename Vec> void scatterStruct()
+template<typename Vec> void scatterStruct() //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef Struct<typename Vec::EntryType> S;
@@ -106,14 +106,14 @@ template<typename Vec> void scatterStruct()
     VERIFY(0 == memcmp(array, out, count * sizeof(S)));
 }
 
-template<typename T> struct Struct2
+template<typename T> struct Struct2 //{{{1
 {
     char x;
     Struct<T> b;
     short y;
 };
 
-template<typename Vec> void scatterStruct2()
+template<typename Vec> void scatterStruct2() //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef Struct2<typename Vec::EntryType> S1;
@@ -140,8 +140,10 @@ template<typename Vec> void scatterStruct2()
     VERIFY(0 == memcmp(array, out, count * sizeof(S1)));
 }
 
-int main()
+int main(int argc, char **argv) //{{{1
 {
+    initTest(argc, argv);
+
     runTest(scatterArray<int_v>);
     runTest(scatterArray<uint_v>);
     runTest(scatterArray<float_v>);
@@ -160,3 +162,5 @@ int main()
     testAllTypes(scatterStruct2);
     return 0;
 }
+
+// vim: foldmethod=marker
