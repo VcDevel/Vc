@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -160,12 +160,29 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float
 }
 #endif
 
-template<typename V, typename Parent>
-inline std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Parent> &m )
+template<typename V, typename Parent, typename RM>
+inline std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Parent, 1, RM> &m )
 {
     out << AnsiColor::blue << "{" << AnsiColor::normal;
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
-        out << V(m(i));
+        out << V(m.vector(i));
+    }
+    out << AnsiColor::blue << "}" << AnsiColor::normal;
+    return out;
+}
+
+template<typename V, typename Parent, typename RM>
+inline std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Parent, 2, RM> &m )
+{
+    out << AnsiColor::blue << "{" << AnsiColor::normal;
+    for (size_t i = 0; i < m.rowsCount(); ++i) {
+        if (i > 0) {
+            out << "\n ";
+        }
+        const size_t vcount = m[i].vectorsCount();
+        for (size_t j = 0; j < vcount; ++j) {
+            out << V(m[i].vector(j));
+        }
     }
     out << AnsiColor::blue << "}" << AnsiColor::normal;
     return out;

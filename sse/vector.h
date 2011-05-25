@@ -25,6 +25,7 @@
 #include "vectorhelper.h"
 #include "mask.h"
 #include "../common/aliasingentryhelper.h"
+#include "../common/memoryfwd.h"
 #include <algorithm>
 #include <cmath>
 
@@ -39,8 +40,6 @@
 
 namespace Vc
 {
-    template<typename V, unsigned int Size> class Memory;
-
 namespace SSE
 {
 template<typename T>

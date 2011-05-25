@@ -22,12 +22,11 @@
 
 #include <cstdlib>
 #include "intrinsics.h"
+#include "../common/memoryfwd.h"
 #include "macros.h"
 
 namespace Vc
 {
-    template<typename V, unsigned int Size> class Memory;
-
 #ifndef HAVE_FLOAT16
 #define HAVE_FLOAT16
 #ifdef HALF_MAX
