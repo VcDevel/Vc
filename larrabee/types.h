@@ -129,6 +129,7 @@ namespace LRBni
     {
         public:
             void *operator new(size_t size) { void *r; if (posix_memalign(&r, VectorAlignment, size)) {}; return r; }
+            void *operator new(size_t, void *p) { return p; }
             void *operator new[](size_t size) { void *r; if (posix_memalign(&r, VectorAlignment, size)) {}; return r; }
             void operator delete(void *ptr, size_t) { free(ptr); }
             void operator delete[](void *ptr, size_t) { free(ptr); }
