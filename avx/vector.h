@@ -104,13 +104,25 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
-        explicit Vector(const EntryType *x);
-        template<typename Alignment> Vector(const EntryType *x, Alignment align);
+        explicit inline
+            Vector(const EntryType *x) INTRINSIC;
+        template<typename Alignment> inline
+            Vector(const EntryType *x, Alignment align) INTRINSIC;
+        template<typename OtherT> explicit inline
+            Vector(const OtherT    *x) INTRINSIC;
+        template<typename OtherT, typename Alignment> inline
+            Vector(const OtherT    *x, Alignment align) INTRINSIC;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
-        inline void load(const EntryType *mem);
-        template<typename Alignment> inline void load(const EntryType *mem, Alignment align);
+        inline
+            void load(const EntryType *mem) INTRINSIC;
+        template<typename Alignment> inline
+            void load(const EntryType *mem, Alignment align) INTRINSIC;
+        template<typename OtherT> inline
+            void load(const OtherT    *mem) INTRINSIC;
+        template<typename OtherT, typename Alignment> inline
+            void load(const OtherT    *mem, Alignment align) INTRINSIC;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
