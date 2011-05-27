@@ -429,6 +429,10 @@ struct ForeachHelper
             LOAD(char, _MM_FULLUPC_SINT8)
             LOAD(unsigned short, _MM_FULLUPC_UINT16)
             LOAD(signed short, _MM_FULLUPC_SINT16)
+            // no upconv from double, int, uint
+            template<typename A> static VectorType load(const double *x, A);
+            template<typename A> static VectorType load(const int *x, A);
+            template<typename A> static VectorType load(const unsigned int *x, A);
 
             static inline VectorType load1(const float11_11_10  x, float11_11_10::Component c) { return FixedIntrinsics::_mm512_loadd(&x, static_cast<_MM_FULLUP32_ENUM>(c), _MM_BROADCAST_1X16);  }
             static inline VectorType load4(const float11_11_10 *x, float11_11_10::Component c) { return FixedIntrinsics::_mm512_loadd( x, static_cast<_MM_FULLUP32_ENUM>(c), _MM_BROADCAST_4X16);  }
@@ -488,8 +492,11 @@ struct ForeachHelper
             typedef _M512I VectorType;
 #define SUFFIX pi
             LOAD(EntryType, _MM_FULLUPC_NONE)
+            LOAD(unsigned int, _MM_FULLUPC_NONE)
             LOAD(signed char, _MM_FULLUPC_SINT8I)
             LOAD(signed short, _MM_FULLUPC_SINT16I)
+            LOAD(unsigned short, _MM_FULLUPC_UINT16I)
+            LOAD(unsigned char, _MM_FULLUPC_UINT8I)
 
             STORE(EntryType, _MM_DOWNC_NONE)
             STORE(signed char, _MM_DOWNC_SINT8I)
