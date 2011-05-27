@@ -747,78 +747,68 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
             return reinterpret_cast<Vector<T> >(mem);
         }
 
-        /**
-         * uninitialized
-         */
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // uninitialized
         inline Vector() {}
 
-        /**
-         * initialized to 0 in all 512 bits
-         */
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // constants
         inline explicit Vector(VectorSpecialInitializerZero::ZEnum) : d(lrb_cast<VectorType>(_mm512_setzero())) {}
-        /**
-         * initialized to 1 in all vector entries
-         */
         inline explicit Vector(VectorSpecialInitializerOne::OEnum) : d(VectorHelper<T>::set(EntryType(1))) {}
-        /**
-         * initialized to 0, 1, 2, 3 (, 4, 5, 6, 7 (, 8, 9, 10, 11, 12, 13, 14, 15))
-         */
         inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : d(VectorHelper<T>::load(IndexesFromZeroHelper<T>(), Aligned)) {}
-
         static inline Vector Zero() { return lrb_cast<VectorType>(_mm512_setzero()); }
         static inline Vector IndexesFromZero() { return VectorHelper<T>::load(IndexesFromZeroHelper<T>(), Aligned); }
-//X         /**
-//X          * initialzed to random numbers
-//X          */
-//X         inline explicit Vector(VectorSpecialInitializerRandom::Enum) { makeRandom(); }
-        /**
-         * initialize with given __m512 vector
-         */
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // internal: required to enable returning objects of VectorType
         inline Vector(VectorType x) : d(x) {}
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // static_cast / copy ctor
         template<typename OtherT>
         explicit inline Vector(const Vector<OtherT> &x) : d(StaticCastHelper<OtherT, T>::cast(x.d.v())) {}
         template<typename OtherT>
         explicit inline Vector(const VectorMultiplication<OtherT> &x) : d(StaticCastHelper<OtherT, T>::cast(x.vdata())) {}
-        /**
-         * initialize all 16 or 8 values with the given value
-         */
-        inline Vector(T a) : d(VectorHelper<T>::load1(a)) {}
-        /**
-         * initialize consecutive four vector entries with the given values
-         */
-        template<typename Other>
-        inline Vector(Other _a, Other _b, Other _c, Other _d)
-        {
-            LRB_ALIGN(64) const Other x[4] = {
-                _a, _b, _c, _d
-            };
-            d = VectorHelper<T>::load4(x);
-        }
 
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // broadcast
+        inline Vector(T a) : d(VectorHelper<T>::load1(a)) {}
+        template<typename Other> static inline Vector broadcast4(const Other *x) { return Vector<T>(VectorHelper<T>::load4(x)); }
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // load ctors
         inline explicit Vector(const T *x) : d(VectorHelper<T>::load(x, Aligned)) {}
         inline Vector(const T *x, AlignedFlag align) : d(VectorHelper<T>::load(x, align)) {}
         inline Vector(const T *x, UnalignedFlag align) : d(VectorHelper<T>::load(x, align)) {}
         inline Vector(const T *x, StreamingAndAlignedFlag align) : d(VectorHelper<T>::load(x, align)) {}
         inline Vector(const T *x, StreamingAndUnalignedFlag align) : d(VectorHelper<T>::load(x, align)) {}
 
-        /**
-         * Initialize the vector with the given data. \param x must point to 64 byte aligned 512
-         * byte data.
-         */
         template<typename Other> inline explicit Vector(const Other *x) : d(VectorHelper<T>::load(x, Aligned)) {}
         template<typename Other> inline Vector(const Other *x, AlignedFlag align) : d(VectorHelper<T>::load(x, align)) {}
         template<typename Other> inline Vector(const Other *x, UnalignedFlag align) : d(VectorHelper<T>::load(x, align)) {}
         template<typename Other> inline Vector(const Other *x, StreamingAndAlignedFlag align) : d(VectorHelper<T>::load(x, align)) {}
         template<typename Other> inline Vector(const Other *x, StreamingAndUnalignedFlag align) : d(VectorHelper<T>::load(x, align)) {}
 
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // load member functions
+        inline void load(const T *mem) { d = VectorHelper<T>::load(mem, Aligned); }
+        template<typename A> inline void load(const T *mem, A align) {
+            d = VectorHelper<T>::load(mem, align);
+        }
+        template<typename OtherT> inline void load(const OtherT *mem) { d = VectorHelper<T>::load(mem, Aligned); }
+        template<typename OtherT, typename A> inline void load(const OtherT *mem, A align) {
+            d = VectorHelper<T>::load(mem, align);
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
         // TODO: handle 8 <-> 16 conversions
         inline explicit Vector(const Vector *x) : d(x->d) {}
         inline void expand(Vector *x) const { x->d = d; }
 
-        template<typename Other> static inline Vector broadcast4(const Other *x) { return Vector<T>(VectorHelper<T>::load4(x)); }
-
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // zeroing
         inline void setZero() { d = lrb_cast<VectorType>(_mm512_setzero()); }
-
         inline void setZero(Mask k)
         {
             if (Size == 16) {
@@ -827,15 +817,6 @@ template<typename T> class Vector : public VectorBase<T, Vector<T> >, public Sto
             } else if (Size == 8) {
                 VectorDQHelper<T>::mov(d.v(), k.data(), lrb_cast<VectorType>(_mm512_setzero()));
             }
-        }
-
-        inline void load(const T *mem) { d = VectorHelper<T>::load(mem, Aligned); }
-        template<typename A> inline void load(const T *mem, A align) {
-            d = VectorHelper<T>::load(mem, align);
-        }
-        template<typename OtherT> inline void load(const OtherT *mem) { d = VectorHelper<T>::load(mem, Aligned); }
-        template<typename OtherT, typename A> inline void load(const OtherT *mem, A align) {
-            d = VectorHelper<T>::load(mem, align);
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
