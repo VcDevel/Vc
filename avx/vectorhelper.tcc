@@ -114,7 +114,7 @@ template<> inline __m256d VectorHelper<__m256d>::load(const double *m, Streaming
 {
     return avx_cast<__m256d>(concat(
                 _mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<double *>(m))),
-                _mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<double *>(&m[4])))));
+                _mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<double *>(&m[2])))));
 }
 template<> inline __m256d
     VC_WARN("AVX does not support streaming unaligned loads. Will use non-streaming unaligned load instead.")
@@ -181,14 +181,14 @@ template<typename T> inline __m256i VectorHelper<__m256i>::load(const T *m, Unal
 }
 template<typename T> inline __m256i VectorHelper<__m256i>::load(const T *m, StreamingAndAlignedFlag)
 {
-    return _mm256_insertf128_si256(avx_cast<VectorType>(_mm_stream_load_si128(m)),
-            _mm_stream_load_si128(&m[4]));
+    return concat(_mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<T *>(m))),
+            _mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<T *>(&m[4]))));
 }
 template<typename T> inline __m256i
     VC_WARN("AVX does not support streaming unaligned loads. Will use non-streaming unaligned load instead.")
 VectorHelper<__m256i>::load(const T *m, StreamingAndUnalignedFlag)
 {
-    return _mm256_loadu_si256(m);
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(m));
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// stores
@@ -249,13 +249,13 @@ template<typename T> inline __m128i VectorHelper<__m128i>::load(const T *m, Unal
 }
 template<typename T> inline __m128i VectorHelper<__m128i>::load(const T *m, StreamingAndAlignedFlag)
 {
-    return _mm_stream_load_si128(m);
+    return _mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<T *>(m)));
 }
 template<typename T> inline __m128i
     VC_WARN("AVX does not support streaming unaligned loads. Will use non-streaming unaligned load instead.")
 VectorHelper<__m128i>::load(const T *m, StreamingAndUnalignedFlag)
 {
-    return _mm_loadu_si128(m);
+    return _mm_loadu_si128(reinterpret_cast<const __m128i *>(m));
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// stores
