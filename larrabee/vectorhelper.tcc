@@ -132,8 +132,11 @@ STORE(float, unsigned short, _MM_DOWNC_UINT16)
 STORE(float, signed short, _MM_DOWNC_SINT16)
 
 LOAD(int, int, _MM_FULLUPC_NONE)
+LOAD(int, unsigned int, _MM_FULLUPC_NONE)
 LOAD(int, signed char, _MM_FULLUPC_SINT8I)
 LOAD(int, signed short, _MM_FULLUPC_SINT16I)
+LOAD(int, unsigned short, _MM_FULLUPC_UINT16I)
+LOAD(int, unsigned char, _MM_FULLUPC_UINT8I)
 STORE(int, int, _MM_DOWNC_NONE)
 STORE(int, signed char, _MM_DOWNC_SINT8I)
 STORE(int, signed short, _MM_DOWNC_SINT16I)
@@ -147,6 +150,22 @@ STORE(unsigned int, unsigned short, _MM_DOWNC_UINT16I)
 
 #undef LOAD
 #undef STORE
+
+template<typename A> inline _M512 VectorHelper<float>::load(const double *x, A flag)
+{
+    _M512 r = _mm512_setzero_ps();
+    r = _mm512_cvtl_pd2ps(r, VectorHelper<double>::load(&x[0], flag), _MM_ROUND_MODE_NEAREST);
+    r = _mm512_cvth_pd2ps(r, VectorHelper<double>::load(&x[8], flag), _MM_ROUND_MODE_NEAREST);
+    return r;
+}
+template<typename A> inline _M512 VectorHelper<float>::load(const int *x, A flag)
+{
+    return StaticCastHelper<int, float>::cast(VectorHelper<int>::load(x, flag));
+}
+template<typename A> inline _M512 VectorHelper<float>::load(const unsigned int *x, A flag)
+{
+    return StaticCastHelper<unsigned int, float>::cast(VectorHelper<unsigned int>::load(x, flag));
+}
 
 } // namespace LRBni
 } // namespace Vc

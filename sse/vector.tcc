@@ -65,16 +65,192 @@ template<typename T> inline Vector<T>::Vector(EntryType a)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load ctors {{{1
-template<typename T> inline Vector<T>::Vector(const EntryType *x)
-    : Base(VectorHelper<VectorType>::load(x, Aligned))
+template<typename T> inline Vector<T>::Vector(const EntryType *x) { load(x); }
+template<typename T> template<typename A> inline Vector<T>::Vector(const EntryType *x, A a) { load(x, a); }
+template<typename T> template<typename OtherT> inline Vector<T>::Vector(const OtherT *x) { load(x); }
+template<typename T> template<typename OtherT, typename A> inline Vector<T>::Vector(const OtherT *x, A a) { load(x, a); }
+
+// load member functions {{{1
+template<typename T> inline void Vector<T>::load(const EntryType *mem)
 {
+    load(mem, Aligned);
 }
 
-template<typename T> template<typename A> inline Vector<T>::Vector(const EntryType *x, A align)
-    : Base(VectorHelper<VectorType>::load(x, align))
+template<typename T> template<typename A> inline void Vector<T>::load(const EntryType *mem, A align)
 {
+    d.v() = VectorHelper<VectorType>::load(mem, align);
 }
 
+template<typename T> template<typename OtherT> inline void Vector<T>::load(const OtherT *mem)
+{
+    load(mem, Aligned);
+}
+
+// float8: simply use the float implementation twice {{{2
+template<> template<typename OtherT, typename A> inline void Vector<float8>::load(const OtherT *x, A a)
+{
+    d.v() = M256::create(
+            Vector<float>(&x[0], a).data(),
+            Vector<float>(&x[4], a).data()
+            );
+}
+
+// float {{{2
+template<> template<> inline void Vector<float>::load(const double *x, AlignedFlag)
+{
+    d.v() = _mm_movelh_ps(
+            _mm_cvtpd_ps(_mm_load_pd(&x[0])),
+            _mm_cvtpd_ps(_mm_load_pd(&x[2]))
+            );
+}
+template<> template<> inline void Vector<float>::load(const double *x, UnalignedFlag)
+{
+    d.v() = _mm_movelh_ps(
+            _mm_cvtpd_ps(_mm_loadu_pd(&x[0])),
+            _mm_cvtpd_ps(_mm_loadu_pd(&x[2]))
+            );
+}
+
+template<> template<> inline void Vector<float>::load(const unsigned int *x, AlignedFlag)
+{
+    d.v() = Vector<unsigned int>(x).staticCast<Vector<float> >().data();
+}
+template<> template<> inline void Vector<float>::load(const unsigned int *x, UnalignedFlag)
+{
+    d.v() = Vector<unsigned int>(x, Unaligned).staticCast<Vector<float> >().data();
+}
+
+template<> template<> inline void Vector<float>::load(const int *x, AlignedFlag)
+{
+    d.v() = Vector<int>(x).staticCast<Vector<float> >().data();
+}
+template<> template<> inline void Vector<float>::load(const int *x, UnalignedFlag)
+{
+    d.v() = Vector<int>(x, Unaligned).staticCast<Vector<float> >().data();
+}
+
+template<> template<> inline void Vector<float>::load(const short *x, AlignedFlag)
+{
+    d.v() = Vector<int>(x).staticCast<Vector<float> >().data();
+}
+template<> template<> inline void Vector<float>::load(const unsigned short *x, AlignedFlag)
+{
+    d.v() = Vector<int>(x).staticCast<Vector<float> >().data();
+}
+template<> template<> inline void Vector<float>::load(const signed char *x, AlignedFlag)
+{
+    d.v() = Vector<int>(x).staticCast<Vector<float> >().data();
+}
+template<> template<> inline void Vector<float>::load(const unsigned char *x, AlignedFlag)
+{
+    d.v() = Vector<int>(x).staticCast<Vector<float> >().data();
+}
+
+template<> template<typename OtherT, typename A> inline void Vector<float>::load(const OtherT *x, A)
+{
+    load(x, Aligned); // the ones where an unaligned load is really required are specialized
+}
+
+// int {{{2
+template<> template<> inline void Vector<int>::load(const unsigned int *x, AlignedFlag)
+{
+    d.v() = _mm_load_si128(reinterpret_cast<const __m128i *>(x));
+}
+
+template<> template<> inline void Vector<int>::load(const unsigned int *x, UnalignedFlag)
+{
+    d.v() = _mm_loadu_si128(reinterpret_cast<const __m128i *>(x));
+}
+
+template<> template<> inline void Vector<int>::load(const short *x, AlignedFlag)
+{
+    const __m128i epi16 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(x));
+    d.v() = _mm_cvtepi16_epi32(epi16);
+}
+template<> template<> inline void Vector<int>::load(const short *x, UnalignedFlag)
+{
+    load(x, Aligned);
+}
+
+template<> template<> inline void Vector<int>::load(const unsigned short *x, AlignedFlag)
+{
+    const __m128i epu16 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(x));
+    d.v() = _mm_cvtepu16_epi32(epu16);
+}
+template<> template<> inline void Vector<int>::load(const unsigned short *x, UnalignedFlag)
+{
+    load(x, Aligned);
+}
+
+template<> template<> inline void Vector<int>::load(const signed char *x, AlignedFlag)
+{
+    const __m128i epi8 = _mm_cvtsi32_si128(*reinterpret_cast<const int *>(x));
+    d.v() = _mm_cvtepi8_epi32(epi8);
+}
+template<> template<> inline void Vector<int>::load(const signed char *x, UnalignedFlag)
+{
+    load(x, Aligned);
+}
+
+template<> template<> inline void Vector<int>::load(const unsigned char *x, AlignedFlag)
+{
+    d.v() = _mm_cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(x)));
+}
+template<> template<> inline void Vector<int>::load(const unsigned char *x, UnalignedFlag)
+{
+    load(x, Aligned);
+}
+
+// unsigned int {{{2
+template<> template<> inline void Vector<unsigned int>::load(const unsigned short *x, AlignedFlag)
+{
+    d.v() = _mm_cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(x)));
+}
+template<> template<> inline void Vector<unsigned int>::load(const unsigned short *x, UnalignedFlag)
+{
+    load(x, Aligned);
+}
+
+template<> template<> inline void Vector<unsigned int>::load(const unsigned char *x, AlignedFlag)
+{
+    d.v() = _mm_cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(x)));
+}
+template<> template<> inline void Vector<unsigned int>::load(const unsigned char *x, UnalignedFlag)
+{
+    load(x, Aligned);
+}
+
+// short {{{2
+template<> template<> inline void Vector<short>::load(const signed char *x, AlignedFlag)
+{
+    d.v() = _mm_cvtepi8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(x)));
+}
+template<> template<> inline void Vector<short>::load(const signed char *x, UnalignedFlag)
+{
+    load(x, Aligned);
+}
+
+template<> template<> inline void Vector<short>::load(const unsigned char *x, AlignedFlag)
+{
+    d.v() = _mm_cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(x)));
+}
+template<> template<> inline void Vector<short>::load(const unsigned char *x, UnalignedFlag)
+{
+    load(x, Aligned);
+}
+
+// unsigned short {{{2
+template<> template<> inline void Vector<unsigned short>::load(const unsigned char *x, AlignedFlag)
+{
+    d.v() = _mm_cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(x)));
+}
+template<> template<> inline void Vector<unsigned short>::load(const unsigned char *x, UnalignedFlag)
+{
+    load(x, Aligned);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// expand/combine {{{1
 template<typename T> inline Vector<T>::Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
     : Base(VectorHelper<T>::concat(a[0].data(), a[1].data()))
 {
@@ -86,18 +262,6 @@ template<typename T> inline void Vector<T>::expand(Vector<typename ExpandTypeHel
         x[0].data() = VectorHelper<T>::expand0(data());
         x[1].data() = VectorHelper<T>::expand1(data());
     }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// load member functions {{{1
-template<typename T> inline void Vector<T>::load(const EntryType *mem)
-{
-    data() = VectorHelper<VectorType>::load(mem, Aligned);
-}
-
-template<typename T> template<typename A> inline void Vector<T>::load(const EntryType *mem, A align)
-{
-    data() = VectorHelper<VectorType>::load(mem, align);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

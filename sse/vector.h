@@ -153,18 +153,30 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
-        explicit inline Vector(const EntryType *x) INTRINSIC;
-        template<typename Alignment> inline Vector(const EntryType *x, Alignment align) INTRINSIC;
+        explicit inline
+            Vector(const EntryType *x) INTRINSIC;
+        template<typename Alignment> inline
+            Vector(const EntryType *x, Alignment align) INTRINSIC;
+        template<typename OtherT> explicit inline
+            Vector(const OtherT    *x) INTRINSIC;
+        template<typename OtherT, typename Alignment> inline
+            Vector(const OtherT    *x, Alignment align) INTRINSIC;
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // load member functions
+        inline
+            void load(const EntryType *mem) INTRINSIC;
+        template<typename Alignment> inline
+            void load(const EntryType *mem, Alignment align) INTRINSIC;
+        template<typename OtherT> inline
+            void load(const OtherT    *mem) INTRINSIC;
+        template<typename OtherT, typename Alignment> inline
+            void load(const OtherT    *mem, Alignment align) INTRINSIC;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
         explicit inline Vector(const Vector<typename CtorTypeHelper<T>::Type> *a) INTRINSIC;
         void expand(Vector<typename ExpandTypeHelper<T>::Type> *x) const;
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // load member functions
-        inline void load(const EntryType *mem) INTRINSIC;
-        template<typename Alignment> inline void load(const EntryType *mem, Alignment align) INTRINSIC;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // zeroing
