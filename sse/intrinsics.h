@@ -461,6 +461,27 @@ namespace SSE
     static inline __m128i _mm_min_epi32(__m128i a, __m128i b) {
         return _mm_blendv_epi8(a, b, _mm_cmpgt_epi32(a, b));
     }
+    static inline __m128i INTRINSIC _mm_cvtepu8_epi16(__m128i epu8) {
+        return _mm_unpacklo_epi8(epu8, _mm_setzero_si128());
+    }
+    static inline __m128i INTRINSIC _mm_cvtepi8_epi16(__m128i epi8) {
+        return _mm_unpacklo_epi8(epi8, _mm_cmplt_epi8(epi8, _mm_setzero_si128()));
+    }
+    static inline __m128i INTRINSIC _mm_cvtepu16_epi32(__m128i epu16) {
+        return _mm_unpacklo_epi16(epu16, _mm_setzero_si128());
+    }
+    static inline __m128i INTRINSIC _mm_cvtepi16_epi32(__m128i epu16) {
+        return _mm_unpacklo_epi16(epu16, _mm_cmplt_epi16(epu16, _mm_setzero_si128()));
+    }
+    static inline __m128i INTRINSIC _mm_cvtepu8_epi32(__m128i epu8) {
+        return _mm_cvtepu16_epi32(_mm_cvtepu8_epi16(epu8));
+    }
+    static inline __m128i INTRINSIC _mm_cvtepi8_epi32(__m128i epi8) {
+        const __m128i neg = _mm_cmplt_epi8(epi8, _mm_setzero_si128());
+        const __m128i epi16 = _mm_unpacklo_epi8(epi8, neg);
+        return _mm_unpacklo_epi16(epi16, _mm_unpacklo_epi8(neg, neg));
+    }
+
 } // namespace SSE
 } // namespace Vc
 #endif
