@@ -97,6 +97,7 @@ class _UnitTest_Global_Object
         const char *only_name;
     private:
         int failedTests;
+    public:
         int passedTests;
 };
 
@@ -383,6 +384,14 @@ class _UnitTest_Compare
 
 #define FAIL() \
     _UnitTest_Compare(__FILE__, __LINE__)
+
+class ADD_PASS
+{
+    public:
+        ADD_PASS() { ++_unit_test_global.passedTests; std::cout << " PASS: "; }
+        ~ADD_PASS() { std::cout << std::endl; }
+        template<typename T> ADD_PASS &operator<<(const T &x) { std::cout << x; return *this; }
+};
 
 static void unittest_assert(bool cond, const char *code, const char *file, int line)
 {
