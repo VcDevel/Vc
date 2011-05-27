@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <cmath>
 #include "../common/aliasingentryhelper.h"
+#include "../common/memoryfwd.h"
 #include "macros.h"
 
 #ifdef isfinite
@@ -39,8 +40,6 @@
 
 namespace Vc
 {
-template<typename V, unsigned int Size> class Memory;
-
 namespace AVX
 {
 enum { VectorAlignment = 32 };

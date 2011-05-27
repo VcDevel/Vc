@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <cstring>
+#include "memoryfwd.h"
 #include "macros.h"
 
 namespace Vc
@@ -63,155 +64,236 @@ inline void ALWAYS_INLINE free(T *p)
     Internal::Helper::free(p);
 }
 
+template<typename V, size_t Size> struct _MemorySizeCalculation
+{
+    enum {
+        Alignment = V::Size,
+        AlignmentMask = Alignment - 1,
+        MaskedSize = Size & AlignmentMask,
+        Padding = Alignment - MaskedSize,
+        PaddedSize = MaskedSize == 0 ? Size : Size + Padding
+    };
+};
+
 /**
- * A helper class to simplify usage of correctly aligned and padded memory, allowing both vector and
- * scalar access.
- *
- * Example:
- * \code
-    Vc::Memory<int_v, 11> array;
-
-    // scalar access:
-    for (int i = 0; i < array.entriesCount(); ++i) {
-        int x = array[i]; // read
-        array[i] = x;     // write
-    }
-    // more explicit alternative:
-    for (int i = 0; i < array.entriesCount(); ++i) {
-        int x = array.scalar(i); // read
-        array.scalar(i) = x;     // write
-    }
-
-    // vector access:
-    for (int i = 0; i < array.vectorsCount(); ++i) {
-        int_v x = array.vector(i); // read
-        array.vector(i) = x;       // write
-    }
- * \endcode
- * This code allocates a small array and implements three equivalent loops (that do nothing useful).
- * The loops show how scalar and vector read/write access is best implemented.
- *
- * Since the size of 11 is not a multiple of int_v::Size (unless you use the
- * scalar Vc implementation) the last write access of the vector loop would normally be out of
- * bounds. But the Memory class automatically pads the memory such that the whole array can be
- * accessed with correctly aligned memory addresses.
- *
- * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
- * \param Size The number of entries of the scalar base type the memory should hold. This
- * is thus the same number as you would use for a normal C array (e.g. float mem[11] becomes
- * Memory<float_v, 11> mem).
- *
- * \see Memory<V, 0u>
- *
- * \ingroup Utilities
- * \headerfile memory.h <Vc/Memory>
+ * Two-Dimensional Array.
+ * \param V
+ * \param Size1 Number of rows
+ * \param Size2 Number of columns
  */
-template<typename V, unsigned int Size = 0u> class Memory : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size> >
+template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size1, Size2>, 2, Memory<V, Size2> >
 {
     public:
         typedef typename V::EntryType EntryType;
     private:
-        typedef MemoryBase<V, Memory<V, Size> > Base;
-        friend class MemoryBase<V, Memory<V, Size> >;
-        enum {
-            Alignment = V::Size,
-            AlignmentMask = Alignment - 1,
-            MaskedSize = Size & AlignmentMask,
-            Padding = Alignment - MaskedSize,
-            PaddedSize = MaskedSize == 0 ? Size : Size + Padding
-        };
-#if defined(__INTEL_COMPILER) && defined(_WIN32)
-        __declspec(align(__alignof(VectorAlignedBaseT)))
+        typedef MemoryBase<V, Memory<V, Size1, Size2>, 2, Memory<V, Size2> > Base;
+            friend class MemoryBase<V, Memory<V, Size1, Size2>, 2, Memory<V, Size2> >;
+            friend class MemoryDimensionBase<V, Memory<V, Size1, Size2>, 2, Memory<V, Size2> >;
+            enum {
+                PaddedSize2 = _MemorySizeCalculation<V, Size2>::PaddedSize
+            };
+#if defined(VC_ICC) && defined(_WIN32)
+            __declspec(align(__alignof(VectorAlignedBaseT)))
 #endif
-        EntryType m_mem[PaddedSize];
-    public:
-        using Base::vector;
-        enum {
-            EntriesCount = Size,
-            VectorsCount = PaddedSize / V::Size
-        };
-        inline unsigned int entriesCount() const { return EntriesCount; }
-        inline unsigned int vectorsCount() const { return VectorsCount; }
+            EntryType m_mem[Size1][PaddedSize2];
+        public:
+            using Base::vector;
+            enum {
+                RowCount = Size1,
+                VectorsCount = PaddedSize2 / V::Size
+            };
 
-        template<typename Parent>
-        inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
-            assert(vectorsCount() == rhs.vectorsCount());
-            std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
-            return *this;
-        }
-        inline Memory<V> &operator=(const EntryType *rhs) {
-            std::memcpy(m_mem, rhs, entriesCount() * sizeof(EntryType));
-            return *this;
-        }
-        inline Memory &operator=(const V &v) {
-            for (unsigned int i = 0; i < vectorsCount(); ++i) {
-                vector(i) = v;
+            /**
+             * Returns the number of rows in the array.
+             *
+             * \note This function can be eliminated by an optimizing compiler.
+             */
+            inline size_t rowsCount() const { return RowCount; }
+            /**
+             * Returns the number of scalar entries in the whole array.
+             *
+             * \warning Do not use this function for scalar iteration over the array since there will be
+             * padding between rows if \c Size2 is not divisible by \c V::Size.
+             *
+             * \note This function can be eliminated by an optimizing compiler.
+             */
+            inline size_t entriesCount() const { return Size1 * Size2; }
+            /**
+             * Returns the number of vectors in the whole array.
+             *
+             * \note This function can be eliminated by an optimizing compiler.
+             */
+            inline size_t vectorsCount() const { return VectorsCount * Size1; }
+
+            template<typename Parent, typename RM>
+            inline Memory &operator=(const MemoryBase<V, Parent, 2, RM> &rhs) {
+                assert(vectorsCount() == rhs.vectorsCount());
+                std::memcpy(m_mem, rhs.m_mem, vectorsCount() * sizeof(V));
+                return *this;
             }
-            return *this;
-        }
-}
+            inline Memory &operator=(const V &v) {
+                for (size_t i = 0; i < vectorsCount(); ++i) {
+                    vector(i) = v;
+                }
+                return *this;
+            }
+    }
 #if defined(__INTEL_COMPILER) && !defined(_WIN32)
-__attribute__((__aligned__(__alignof(VectorAlignedBaseT<V>))))
+    __attribute__((__aligned__(__alignof(VectorAlignedBaseT<V>))))
 #endif
-;
+    ;
 
-/**
- * A helper class that is very similar to Memory<V, Size> but with dynamically allocated memory and
- * thus dynamic size.
- *
- * Example:
- * \code
-    unsigned int size = 11;
-    Vc::Memory<int_v> array(size);
+    /**
+     * A helper class to simplify usage of correctly aligned and padded memory, allowing both vector and
+     * scalar access.
+     *
+     * Example:
+     * \code
+        Vc::Memory<int_v, 11> array;
 
-    // scalar access:
-    for (int i = 0; i < array.entriesCount(); ++i) {
-        array[i] = i;
+        // scalar access:
+        for (size_t i = 0; i < array.entriesCount(); ++i) {
+            int x = array[i]; // read
+            array[i] = x;     // write
+        }
+        // more explicit alternative:
+        for (size_t i = 0; i < array.entriesCount(); ++i) {
+            int x = array.scalar(i); // read
+            array.scalar(i) = x;     // write
+        }
+
+        // vector access:
+        for (size_t i = 0; i < array.vectorsCount(); ++i) {
+            int_v x = array.vector(i); // read
+            array.vector(i) = x;       // write
+        }
+     * \endcode
+     * This code allocates a small array and implements three equivalent loops (that do nothing useful).
+     * The loops show how scalar and vector read/write access is best implemented.
+     *
+     * Since the size of 11 is not a multiple of int_v::Size (unless you use the
+     * scalar Vc implementation) the last write access of the vector loop would normally be out of
+     * bounds. But the Memory class automatically pads the memory such that the whole array can be
+     * accessed with correctly aligned memory addresses.
+     *
+     * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
+     * \param Size The number of entries of the scalar base type the memory should hold. This
+     * is thus the same number as you would use for a normal C array (e.g. float mem[11] becomes
+     * Memory<float_v, 11> mem).
+     *
+     * \see Memory<V, 0u>
+     *
+     * \ingroup Utilities
+     * \headerfile memory.h <Vc/Memory>
+     */
+    template<typename V, size_t Size> class Memory<V, Size, 0u> : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size, 0u>, 1, void>
+    {
+        public:
+            typedef typename V::EntryType EntryType;
+        private:
+            typedef MemoryBase<V, Memory<V, Size, 0u>, 1, void> Base;
+            friend class MemoryBase<V, Memory<V, Size, 0u>, 1, void>;
+            friend class MemoryDimensionBase<V, Memory<V, Size, 0u>, 1, void>;
+            enum {
+                Alignment = V::Size,
+                AlignmentMask = Alignment - 1,
+                MaskedSize = Size & AlignmentMask,
+                Padding = Alignment - MaskedSize,
+                PaddedSize = MaskedSize == 0 ? Size : Size + Padding
+            };
+#if defined(__INTEL_COMPILER) && defined(_WIN32)
+            __declspec(align(__alignof(VectorAlignedBaseT)))
+#endif
+            EntryType m_mem[PaddedSize];
+        public:
+            using Base::vector;
+            enum {
+                EntriesCount = Size,
+                VectorsCount = PaddedSize / V::Size
+            };
+            inline size_t entriesCount() const { return EntriesCount; }
+            inline size_t vectorsCount() const { return VectorsCount; }
+
+            template<typename Parent, typename RM>
+            inline Memory<V> &operator=(const MemoryBase<V, Parent, 1, RM> &rhs) {
+                assert(vectorsCount() == rhs.vectorsCount());
+                std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
+                return *this;
+            }
+            inline Memory<V> &operator=(const EntryType *rhs) {
+                std::memcpy(m_mem, rhs, entriesCount() * sizeof(EntryType));
+                return *this;
+            }
+            inline Memory &operator=(const V &v) {
+                for (size_t i = 0; i < vectorsCount(); ++i) {
+                    vector(i) = v;
+                }
+                return *this;
+            }
     }
+#if defined(__INTEL_COMPILER) && !defined(_WIN32)
+    __attribute__((__aligned__(__alignof(VectorAlignedBaseT<V>))))
+#endif
+    ;
 
-    // vector access:
-    for (int i = 0; i < array.vectorsCount(); ++i) {
-        array.vector(i) = int_v::IndexesFromZero() + i * int_v::Size;
-    }
- * \endcode
- * This code allocates a small array with 11 scalar entries
- * and implements two equivalent loops that initialize the memory.
- * The scalar loop writes each individual int. The vectorized loop writes int_v::Size values to
- * memory per iteration. Since the size of 11 is not a multiple of int_v::Size (unless you use the
- * scalar Vc implementation) the last write access of the vector loop would normally be out of
- * bounds. But the Memory class automatically pads the memory such that the whole array can be
- * accessed with correctly aligned memory addresses.
- * (Note: the scalar loop can be auto-vectorized, except for the last three assignments.)
- *
- * \note The internal data pointer is not declared with the \c __restrict__ keyword. Therefore
- * modifying memory of V::EntryType will require the compiler to assume aliasing. If you want to use
- * the \c __restrict__ keyword you need to use a standard pointer to memory and do the vector
- * address calculation and loads and stores manually.
- *
- * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
- *
- * \see Memory<V, Size>
- *
- * \ingroup Utilities
- * \headerfile memory.h <Vc/Memory>
- */
-template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
-{
-    public:
-        typedef typename V::EntryType EntryType;
-    private:
-        typedef MemoryBase<V, Memory<V> > Base;
-        friend class MemoryBase<V, Memory<V> >;
+    /**
+     * A helper class that is very similar to Memory<V, Size> but with dynamically allocated memory and
+     * thus dynamic size.
+     *
+     * Example:
+     * \code
+        size_t size = 11;
+        Vc::Memory<int_v> array(size);
+
+        // scalar access:
+        for (size_t i = 0; i < array.entriesCount(); ++i) {
+            array[i] = i;
+        }
+
+        // vector access:
+        for (size_t i = 0; i < array.vectorsCount(); ++i) {
+            array.vector(i) = int_v::IndexesFromZero() + i * int_v::Size;
+        }
+     * \endcode
+     * This code allocates a small array with 11 scalar entries
+     * and implements two equivalent loops that initialize the memory.
+     * The scalar loop writes each individual int. The vectorized loop writes int_v::Size values to
+     * memory per iteration. Since the size of 11 is not a multiple of int_v::Size (unless you use the
+     * scalar Vc implementation) the last write access of the vector loop would normally be out of
+     * bounds. But the Memory class automatically pads the memory such that the whole array can be
+     * accessed with correctly aligned memory addresses.
+     * (Note: the scalar loop can be auto-vectorized, except for the last three assignments.)
+     *
+     * \note The internal data pointer is not declared with the \c __restrict__ keyword. Therefore
+     * modifying memory of V::EntryType will require the compiler to assume aliasing. If you want to use
+     * the \c __restrict__ keyword you need to use a standard pointer to memory and do the vector
+     * address calculation and loads and stores manually.
+     *
+     * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
+     *
+     * \see Memory<V, Size>
+     *
+     * \ingroup Utilities
+     * \headerfile memory.h <Vc/Memory>
+     */
+    template<typename V> class Memory<V, 0u, 0u> : public MemoryBase<V, Memory<V, 0u, 0u>, 1, void>
+    {
+        public:
+            typedef typename V::EntryType EntryType;
+        private:
+            typedef MemoryBase<V, Memory<V>, 1, void> Base;
+            friend class MemoryBase<V, Memory<V>, 1, void>;
+            friend class MemoryDimensionBase<V, Memory<V>, 1, void>;
         enum {
             Alignment = V::Size,
             AlignmentMask = Alignment - 1
         };
-        unsigned int m_entriesCount;
-        unsigned int m_vectorsCount;
+        size_t m_entriesCount;
+        size_t m_vectorsCount;
         EntryType *m_mem;
-        unsigned int calcPaddedEntriesCount(unsigned int x)
+        size_t calcPaddedEntriesCount(size_t x)
         {
-            unsigned int masked = x & AlignmentMask;
+            size_t masked = x & AlignmentMask;
             return (masked == 0 ? x : x + (Alignment - masked));
         }
     public:
@@ -222,7 +304,7 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
          *
          * The allocated memory is aligned and padded correctly for fully vectorized access.
          */
-        inline Memory(unsigned int size)
+        inline Memory(size_t size)
             : m_entriesCount(size),
             m_vectorsCount(calcPaddedEntriesCount(m_entriesCount)),
             m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
@@ -235,8 +317,8 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
          *
          * The allocated memory is aligned and padded correctly for fully vectorized access.
          */
-        template<typename Parent>
-        inline Memory(const MemoryBase<V, Parent> &rhs)
+        template<typename Parent, typename RM>
+        inline Memory(const MemoryBase<V, Parent, 1, RM> &rhs)
             : m_entriesCount(rhs.entriesCount()),
             m_vectorsCount(rhs.vectorsCount()),
             m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
@@ -271,15 +353,15 @@ template<typename V> class Memory<V, 0u> : public MemoryBase<V, Memory<V, 0u> >
             std::swap(m_vectorsCount, rhs.m_vectorsCount);
         }
 
-        inline unsigned int entriesCount() const { return m_entriesCount; }
-        inline unsigned int vectorsCount() const { return m_vectorsCount; }
+        inline size_t entriesCount() const { return m_entriesCount; }
+        inline size_t vectorsCount() const { return m_vectorsCount; }
 
         /**
          * Overwrite all entries with the values stored in rhs. This function requires the
          * vectorsCount() of the left and right object to be equal.
          */
-        template<typename Parent>
-        inline Memory<V> &operator=(const MemoryBase<V, Parent> &rhs) {
+        template<typename Parent, typename RM>
+        inline Memory<V> &operator=(const MemoryBase<V, Parent, 1, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
             std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
             return *this;

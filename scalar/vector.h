@@ -28,6 +28,7 @@
 #include <float.h>
 #endif
 
+#include "../common/memoryfwd.h"
 #include "macros.h"
 #include "types.h"
 #include "vectorbase.h"
@@ -36,7 +37,6 @@
 
 namespace Vc
 {
-    template<typename V, unsigned int Size> class Memory;
 namespace Scalar
 {
     enum { VectorAlignment = 4 };

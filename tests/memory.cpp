@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -22,41 +22,20 @@
 
 using namespace Vc;
 
-template<typename V, unsigned int Size> struct TestEntries {
-    static inline void run()
-    {
-        TestEntries<V, Size/2>::run();
-        TestEntries<V, Size>::test();
-        TestEntries<V, Size - 1>::test();
-    }
-    static void test();
-};
-template<typename V> struct TestEntries<V, 0> { static void run() {} static void test() {} };
-
-template<typename V, unsigned int Size> struct TestVectors {
-    static inline void run()
-    {
-        TestVectors<V, Size/2>::run();
-        TestVectors<V, Size>::test();
-        TestVectors<V, Size - 1>::test();
-    }
-    static void test();
-};
-template<typename V> struct TestVectors<V, 0> { static void run() {} static void test() {} };
-
-template<typename V, unsigned int Size> struct TestVectorReorganization {
-    static inline void run()
-    {
-        TestVectorReorganization<V, Size/2>::run();
-        TestVectorReorganization<V, Size>::test();
-        TestVectorReorganization<V, Size - 1>::test();
-    }
-    static void test();
-};
-template<typename V> struct TestVectorReorganization<V, 0> { static void run() {} static void test() {} };
-
-template<typename V, unsigned int Size> void TestEntries<V, Size>::test()
+template<typename V, unsigned int Size, template<typename V, unsigned int Size> class TestClass> struct TestWrapper
 {
+    static inline void run()
+    {
+        TestWrapper<V, Size/2, TestClass>::run();
+        TestClass<V, Size>::test();
+        TestClass<V, Size - 1>::test();
+    }
+};
+template<typename V, template<typename V, unsigned int Size> class TestClass> struct TestWrapper<V, 1, TestClass> {
+    static inline void run() {}
+};
+
+template<typename V, unsigned int Size> struct TestEntries { static void test() {
     typedef typename V::EntryType T;
     const T x = Size;
     Memory<V, Size> m;
@@ -84,9 +63,40 @@ template<typename V, unsigned int Size> void TestEntries<V, Size>::test()
     for (unsigned int i = 0; i < Size; ++i) {
         COMPARE(ptr[i], x);
     }
-}
+}};
 
-template<typename V, unsigned int Size> void TestVectors<V, Size>::test()
+template<typename V, unsigned int Size> struct TestEntries2D { static void test() {
+    typedef typename V::EntryType T;
+    const T x = Size;
+    Memory<V, Size, Size> m;
+    const Memory<V, Size, Size> &m2 = m;
+
+    for (size_t i = 0; i < Size; ++i) {
+        for (size_t j = 0; j < Size; ++j) {
+            m[i][j] = x + i + j;
+        }
+    }
+    for (size_t i = 0; i < Size; ++i) {
+        for (size_t j = 0; j < Size; ++j) {
+            COMPARE(m[i][j], T(x + i + j));
+            COMPARE(m2[i][j], T(x + i + j));
+        }
+    }
+    for (size_t i = 0; i < Size; ++i) {
+        for (size_t j = 0; j < Size; ++j) {
+            COMPARE(m[i].entries()[j], T(x + i + j));
+            COMPARE(m2[i].entries()[j], T(x + i + j));
+        }
+    }
+    for (size_t i = 0; i < Size; ++i) {
+        const T *ptr = m2[i];
+        for (size_t j = 0; j < Size; ++j) {
+            COMPARE(ptr[j], T(x + i + j));
+        }
+    }
+}};
+
+template<typename V, unsigned int Size> struct TestVectors { static void test()
 {
     typedef typename V::EntryType T;
     const V startX(V::IndexType::IndexesFromZero() + Size);
@@ -113,9 +123,41 @@ template<typename V, unsigned int Size> void TestVectors<V, Size>::test()
     COMPARE(V(m.vector(i)), x);
     COMPARE(V(m2.vector(i)), x);
     COMPARE(V(m3.vector(i)), x);
-}
+}};
 
-template<typename V, unsigned int Size> void TestVectorReorganization<V, Size>::test()
+template<typename V, unsigned int Size> struct TestVectors2D { static void test()
+{
+    typedef typename V::EntryType T;
+    const V startX(V::IndexType::IndexesFromZero() + Size);
+    Memory<V, Size, Size> m;
+    const Memory<V, Size, Size> &m2 = m;
+    V x = startX;
+    for (size_t i = 0; i < m.rowsCount(); ++i, x += V::Size) {
+        Memory<V, Size> &mrow = m[i];
+        for (size_t j = 0; j < mrow.vectorsCount(); ++j, x += V::Size) {
+            mrow.vector(j) = x;
+        }
+    }
+    x = startX;
+    for (size_t i = 0; i < m.rowsCount(); ++i, x += V::Size) {
+        Memory<V, Size> &mrow = m[i];
+        const Memory<V, Size> &m2row = m2[i];
+        size_t j;
+        for (j = 0; j < mrow.vectorsCount() - 1; ++j) {
+            COMPARE(V(mrow.vector(j)), x);
+            COMPARE(V(m2row.vector(j)), x);
+            for (int shift = 0; shift < V::Size; ++shift, ++x) {
+                COMPARE(V(mrow.vector(j, shift)), x);
+                COMPARE(V(m2row.vector(j, shift)), x);
+            }
+        }
+        COMPARE(V(mrow.vector(j)), x) << i << " " << j;
+        COMPARE(V(m2row.vector(j)), x);
+        x += V::Size;
+    }
+}};
+
+template<typename V, unsigned int Size> struct TestVectorReorganization { static void test()
 {
     typedef typename V::EntryType T;
     typename V::Memory init;
@@ -162,21 +204,31 @@ template<typename V, unsigned int Size> void TestVectorReorganization<V, Size>::
         x += 2;
         x(x >= Size) -= Size;
     }
-}
+}};
 
 template<typename V> void testEntries()
 {
-    TestEntries<V, 128>::run();
+    TestWrapper<V, 128, TestEntries>::run();
+}
+
+template<typename V> void testEntries2D()
+{
+    TestWrapper<V, 32, TestEntries2D>::run();
 }
 
 template<typename V> void testVectors()
 {
-    TestVectors<V, 128>::run();
+    TestWrapper<V, 128, TestVectors>::run();
+}
+
+template<typename V> void testVectors2D()
+{
+    TestWrapper<V, 32, TestVectors2D>::run();
 }
 
 template<typename V> void testVectorReorganization()
 {
-    TestVectorReorganization<V, 128>::run();
+    TestWrapper<V, 128, TestVectorReorganization>::run();
 }
 
 template<typename V> void memoryOperators()
@@ -236,7 +288,9 @@ template<typename V> void testCCtor()
 int main()
 {
     testAllTypes(testEntries);
+    testAllTypes(testEntries2D);
     testAllTypes(testVectors);
+    testAllTypes(testVectors2D);
     testAllTypes(testVectorReorganization);
     testAllTypes(memoryOperators);
     testAllTypes(testCCtor);
