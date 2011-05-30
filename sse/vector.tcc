@@ -72,23 +72,23 @@ template<typename T> template<typename OtherT, typename A> inline ALWAYS_INLINE 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions {{{1
-template<typename T> inline void Vector<T>::load(const EntryType *mem)
+template<typename T> inline void INTRINSIC Vector<T>::load(const EntryType *mem)
 {
     load(mem, Aligned);
 }
 
-template<typename T> template<typename A> inline void Vector<T>::load(const EntryType *mem, A align)
+template<typename T> template<typename A> inline void INTRINSIC Vector<T>::load(const EntryType *mem, A align)
 {
     d.v() = VectorHelper<VectorType>::load(mem, align);
 }
 
-template<typename T> template<typename OtherT> inline void Vector<T>::load(const OtherT *mem)
+template<typename T> template<typename OtherT> inline void INTRINSIC Vector<T>::load(const OtherT *mem)
 {
     load(mem, Aligned);
 }
 
 // float8: simply use the float implementation twice {{{2
-template<> template<typename OtherT, typename A> inline void Vector<float8>::load(const OtherT *x, A a)
+template<> template<typename OtherT, typename A> inline void INTRINSIC Vector<float8>::load(const OtherT *x, A a)
 {
     d.v() = M256::create(
             Vector<float>(&x[0], a).data(),
