@@ -177,6 +177,19 @@ template<typename Vec, typename MemT> struct LoadCvt {
                 COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << TypeInfo<MemT>::string();
             }
         }
+        for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
+            Vec v;
+            if (i % (2 * Vec::Size) == 0) {
+                v = Vec(&data[i], Vc::Streaming);
+            } else if (i % Vec::Size == 0) {
+                v = Vec(&data[i], Vc::Streaming | Vc::Aligned);
+            } else {
+                v = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
+            }
+            for (size_t j = 0; j < Vec::Size; ++j) {
+                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << TypeInfo<MemT>::string();
+            }
+        }
 
         ADD_PASS() << "loadCvt: load " << TypeInfo<MemT>::string() << "* as " << TypeInfo<Vec>::string();
         LoadCvt<Vec, typename SupportedConversions<VecT, MemT>::Next>::test();
