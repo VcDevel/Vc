@@ -65,10 +65,10 @@ template<typename T> inline Vector<T>::Vector(EntryType a)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load ctors {{{1
-template<typename T> inline Vector<T>::Vector(const EntryType *x) { load(x); }
-template<typename T> template<typename A> inline Vector<T>::Vector(const EntryType *x, A a) { load(x, a); }
-template<typename T> template<typename OtherT> inline Vector<T>::Vector(const OtherT *x) { load(x); }
-template<typename T> template<typename OtherT, typename A> inline Vector<T>::Vector(const OtherT *x, A a) { load(x, a); }
+template<typename T> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *x) { load(x); }
+template<typename T> template<typename A> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *x, A a) { load(x, a); }
+template<typename T> template<typename OtherT> inline ALWAYS_INLINE Vector<T>::Vector(const OtherT *x) { load(x); }
+template<typename T> template<typename OtherT, typename A> inline ALWAYS_INLINE Vector<T>::Vector(const OtherT *x, A a) { load(x, a); }
 
 // load member functions {{{1
 template<typename T> inline void Vector<T>::load(const EntryType *mem)
