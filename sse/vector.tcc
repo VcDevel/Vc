@@ -70,24 +70,25 @@ template<typename T> template<typename A> inline ALWAYS_INLINE Vector<T>::Vector
 template<typename T> template<typename OtherT> inline ALWAYS_INLINE Vector<T>::Vector(const OtherT *x) { load(x); }
 template<typename T> template<typename OtherT, typename A> inline ALWAYS_INLINE Vector<T>::Vector(const OtherT *x, A a) { load(x, a); }
 
+///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions {{{1
-template<typename T> inline void Vector<T>::load(const EntryType *mem)
+template<typename T> inline void INTRINSIC Vector<T>::load(const EntryType *mem)
 {
     load(mem, Aligned);
 }
 
-template<typename T> template<typename A> inline void Vector<T>::load(const EntryType *mem, A align)
+template<typename T> template<typename A> inline void INTRINSIC Vector<T>::load(const EntryType *mem, A align)
 {
     d.v() = VectorHelper<VectorType>::load(mem, align);
 }
 
-template<typename T> template<typename OtherT> inline void Vector<T>::load(const OtherT *mem)
+template<typename T> template<typename OtherT> inline void INTRINSIC Vector<T>::load(const OtherT *mem)
 {
     load(mem, Aligned);
 }
 
 // float8: simply use the float implementation twice {{{2
-template<> template<typename OtherT, typename A> inline void Vector<float8>::load(const OtherT *x, A a)
+template<> template<typename OtherT, typename A> inline void INTRINSIC Vector<float8>::load(const OtherT *x, A a)
 {
     d.v() = M256::create(
             Vector<float>(&x[0], a).data(),
@@ -95,158 +96,134 @@ template<> template<typename OtherT, typename A> inline void Vector<float8>::loa
             );
 }
 
+// LoadHelper {{{2
+template<typename DstT, typename SrcT, typename Flags> struct LoadHelper;
+
 // float {{{2
-template<> template<> inline void Vector<float>::load(const double *x, AlignedFlag)
-{
-    d.v() = _mm_movelh_ps(
-            _mm_cvtpd_ps(_mm_load_pd(&x[0])),
-            _mm_cvtpd_ps(_mm_load_pd(&x[2]))
-            );
-}
-template<> template<> inline void Vector<float>::load(const double *x, UnalignedFlag)
-{
-    d.v() = _mm_movelh_ps(
-            _mm_cvtpd_ps(_mm_loadu_pd(&x[0])),
-            _mm_cvtpd_ps(_mm_loadu_pd(&x[2]))
-            );
-}
-
-template<> template<> inline void Vector<float>::load(const unsigned int *x, AlignedFlag)
-{
-    d.v() = Vector<unsigned int>(x).staticCast<Vector<float> >().data();
-}
-template<> template<> inline void Vector<float>::load(const unsigned int *x, UnalignedFlag)
-{
-    d.v() = Vector<unsigned int>(x, Unaligned).staticCast<Vector<float> >().data();
-}
-
-template<> template<> inline void Vector<float>::load(const int *x, AlignedFlag)
-{
-    d.v() = Vector<int>(x).staticCast<Vector<float> >().data();
-}
-template<> template<> inline void Vector<float>::load(const int *x, UnalignedFlag)
-{
-    d.v() = Vector<int>(x, Unaligned).staticCast<Vector<float> >().data();
-}
-
-template<> template<> inline void Vector<float>::load(const short *x, AlignedFlag)
-{
-    d.v() = Vector<int>(x).staticCast<Vector<float> >().data();
-}
-template<> template<> inline void Vector<float>::load(const unsigned short *x, AlignedFlag)
-{
-    d.v() = Vector<int>(x).staticCast<Vector<float> >().data();
-}
-template<> template<> inline void Vector<float>::load(const signed char *x, AlignedFlag)
-{
-    d.v() = Vector<int>(x).staticCast<Vector<float> >().data();
-}
-template<> template<> inline void Vector<float>::load(const unsigned char *x, AlignedFlag)
-{
-    d.v() = Vector<int>(x).staticCast<Vector<float> >().data();
-}
-
-template<> template<typename OtherT, typename A> inline void Vector<float>::load(const OtherT *x, A)
-{
-    load(x, Aligned); // the ones where an unaligned load is really required are specialized
-}
+template<typename Flags> struct LoadHelper<float, double, Flags> {
+    static inline __m128 load(const double *mem, Flags f)
+    {
+        return _mm_movelh_ps(_mm_cvtpd_ps(VectorHelper<__m128d>::load(&mem[0], f)),
+                             _mm_cvtpd_ps(VectorHelper<__m128d>::load(&mem[2], f)));
+    }
+};
+template<typename Flags> struct LoadHelper<float, unsigned int, Flags> {
+    static inline __m128 load(const unsigned int *mem, Flags f)
+    {
+        return StaticCastHelper<unsigned int, float>::cast(VectorHelper<__m128i>::load(mem, f));
+    }
+};
+template<typename Flags> struct LoadHelper<float, int, Flags> {
+    static inline __m128 load(const int *mem, Flags f)
+    {
+        return StaticCastHelper<int, float>::cast(VectorHelper<__m128i>::load(mem, f));
+    }
+};
+template<typename Flags> struct LoadHelper<float, unsigned short, Flags> {
+    static inline __m128 load(const unsigned short *mem, Flags f)
+    {
+        return _mm_cvtepi32_ps(LoadHelper<int, unsigned short, Flags>::load(mem, f));
+    }
+};
+template<typename Flags> struct LoadHelper<float, short, Flags> {
+    static inline __m128 load(const short *mem, Flags f)
+    {
+        return _mm_cvtepi32_ps(LoadHelper<int, short, Flags>::load(mem, f));
+    }
+};
+template<typename Flags> struct LoadHelper<float, unsigned char, Flags> {
+    static inline __m128 load(const unsigned char *mem, Flags f)
+    {
+        return _mm_cvtepi32_ps(LoadHelper<int, unsigned char, Flags>::load(mem, f));
+    }
+};
+template<typename Flags> struct LoadHelper<float, signed char, Flags> {
+    static inline __m128 load(const signed char *mem, Flags f)
+    {
+        return _mm_cvtepi32_ps(LoadHelper<int, signed char, Flags>::load(mem, f));
+    }
+};
 
 // int {{{2
-template<> template<> inline void Vector<int>::load(const unsigned int *x, AlignedFlag)
-{
-    d.v() = _mm_load_si128(reinterpret_cast<const __m128i *>(x));
-}
-
-template<> template<> inline void Vector<int>::load(const unsigned int *x, UnalignedFlag)
-{
-    d.v() = _mm_loadu_si128(reinterpret_cast<const __m128i *>(x));
-}
-
-template<> template<> inline void Vector<int>::load(const short *x, AlignedFlag)
-{
-    const __m128i epi16 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(x));
-    d.v() = _mm_cvtepi16_epi32(epi16);
-}
-template<> template<> inline void Vector<int>::load(const short *x, UnalignedFlag)
-{
-    load(x, Aligned);
-}
-
-template<> template<> inline void Vector<int>::load(const unsigned short *x, AlignedFlag)
-{
-    const __m128i epu16 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(x));
-    d.v() = _mm_cvtepu16_epi32(epu16);
-}
-template<> template<> inline void Vector<int>::load(const unsigned short *x, UnalignedFlag)
-{
-    load(x, Aligned);
-}
-
-template<> template<> inline void Vector<int>::load(const signed char *x, AlignedFlag)
-{
-    const __m128i epi8 = _mm_cvtsi32_si128(*reinterpret_cast<const int *>(x));
-    d.v() = _mm_cvtepi8_epi32(epi8);
-}
-template<> template<> inline void Vector<int>::load(const signed char *x, UnalignedFlag)
-{
-    load(x, Aligned);
-}
-
-template<> template<> inline void Vector<int>::load(const unsigned char *x, AlignedFlag)
-{
-    d.v() = _mm_cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(x)));
-}
-template<> template<> inline void Vector<int>::load(const unsigned char *x, UnalignedFlag)
-{
-    load(x, Aligned);
-}
+template<typename Flags> struct LoadHelper<int, unsigned int, Flags> {
+    static inline __m128i load(const unsigned int *mem, Flags f)
+    {
+        return VectorHelper<__m128i>::load(mem, f);
+    }
+};
+// no difference between streaming and alignment, because the
+// 32/64 bit loads are not available as streaming loads, and can always be unaligned
+template<typename Flags> struct LoadHelper<int, unsigned short, Flags> {
+    static inline __m128i load(const unsigned short *mem, Flags)
+    {
+        return _mm_cvtepu16_epi32( _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+    }
+};
+template<typename Flags> struct LoadHelper<int, short, Flags> {
+    static inline __m128i load(const short *mem, Flags)
+    {
+        return _mm_cvtepi16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+    }
+};
+template<typename Flags> struct LoadHelper<int, unsigned char, Flags> {
+    static inline __m128i load(const unsigned char *mem, Flags)
+    {
+        return _mm_cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
+    }
+};
+template<typename Flags> struct LoadHelper<int, signed char, Flags> {
+    static inline __m128i load(const signed char *mem, Flags)
+    {
+        return _mm_cvtepi8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
+    }
+};
 
 // unsigned int {{{2
-template<> template<> inline void Vector<unsigned int>::load(const unsigned short *x, AlignedFlag)
-{
-    d.v() = _mm_cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(x)));
-}
-template<> template<> inline void Vector<unsigned int>::load(const unsigned short *x, UnalignedFlag)
-{
-    load(x, Aligned);
-}
-
-template<> template<> inline void Vector<unsigned int>::load(const unsigned char *x, AlignedFlag)
-{
-    d.v() = _mm_cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(x)));
-}
-template<> template<> inline void Vector<unsigned int>::load(const unsigned char *x, UnalignedFlag)
-{
-    load(x, Aligned);
-}
+template<typename Flags> struct LoadHelper<unsigned int, unsigned short, Flags> {
+    static inline __m128i load(const unsigned short *mem, Flags)
+    {
+        return _mm_cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+    }
+};
+template<typename Flags> struct LoadHelper<unsigned int, unsigned char, Flags> {
+    static inline __m128i load(const unsigned char *mem, Flags)
+    {
+        return _mm_cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
+    }
+};
 
 // short {{{2
-template<> template<> inline void Vector<short>::load(const signed char *x, AlignedFlag)
-{
-    d.v() = _mm_cvtepi8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(x)));
-}
-template<> template<> inline void Vector<short>::load(const signed char *x, UnalignedFlag)
-{
-    load(x, Aligned);
-}
-
-template<> template<> inline void Vector<short>::load(const unsigned char *x, AlignedFlag)
-{
-    d.v() = _mm_cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(x)));
-}
-template<> template<> inline void Vector<short>::load(const unsigned char *x, UnalignedFlag)
-{
-    load(x, Aligned);
-}
+template<typename Flags> struct LoadHelper<short, unsigned short, Flags> {
+    static inline __m128i load(const unsigned short *mem, Flags f)
+    {
+        return VectorHelper<__m128i>::load(mem, f);
+    }
+};
+template<typename Flags> struct LoadHelper<short, unsigned char, Flags> {
+    static inline __m128i load(const unsigned char *mem, Flags)
+    {
+        return _mm_cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+    }
+};
+template<typename Flags> struct LoadHelper<short, signed char, Flags> {
+    static inline __m128i load(const signed char *mem, Flags)
+    {
+        return _mm_cvtepi8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+    }
+};
 
 // unsigned short {{{2
-template<> template<> inline void Vector<unsigned short>::load(const unsigned char *x, AlignedFlag)
+template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags> {
+    static inline __m128i load(const unsigned char *mem, Flags)
+    {
+        return _mm_cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+    }
+};
+
+// general load, implemented via LoadHelper {{{2
+template<typename DstT> template<typename SrcT, typename Flags> inline void INTRINSIC Vector<DstT>::load(const SrcT *x, Flags f)
 {
-    d.v() = _mm_cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(x)));
-}
-template<> template<> inline void Vector<unsigned short>::load(const unsigned char *x, UnalignedFlag)
-{
-    load(x, Aligned);
+    d.v() = LoadHelper<DstT, SrcT, Flags>::load(x, f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

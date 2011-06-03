@@ -39,11 +39,7 @@ template<> inline _M128 VectorHelper<_M128>::load(const float *x, UnalignedFlag)
 
 template<> inline _M128 VectorHelper<_M128>::load(const float *x, StreamingAndAlignedFlag)
 {
-#ifdef VC_IMPL_SSE41
-    return _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<float *>(x))));
-#else
-    return load(x, Aligned);
-#endif
+    return _mm_stream_load(x);
 }
 
 template<> inline _M128 VectorHelper<_M128>::load(const float *x, StreamingAndUnalignedFlag)
@@ -100,13 +96,7 @@ template<> inline M256 VectorHelper<M256>::load(const float *x, UnalignedFlag)
 
 template<> inline M256 VectorHelper<M256>::load(const float *x, StreamingAndAlignedFlag)
 {
-#ifdef VC_IMPL_SSE41
-    return VectorType::create(
-            _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<float *>(x)))),
-            _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<float *>(x + 4)))));
-#else
-    return load(x, Aligned);
-#endif
+    return VectorType::create(_mm_stream_load(&x[0]), _mm_stream_load(&x[4]));
 }
 
 template<> inline M256 VectorHelper<M256>::load(const float *x, StreamingAndUnalignedFlag)
@@ -171,11 +161,7 @@ template<> inline _M128D VectorHelper<_M128D>::load(const double *x, UnalignedFl
 
 template<> inline _M128D VectorHelper<_M128D>::load(const double *x, StreamingAndAlignedFlag)
 {
-#ifdef VC_IMPL_SSE41
-    return _mm_castsi128_pd(_mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<double *>(x))));
-#else
-    return load(x, Aligned);
-#endif
+    return _mm_stream_load(x);
 }
 
 template<> inline _M128D VectorHelper<_M128D>::load(const double *x, StreamingAndUnalignedFlag)
@@ -232,11 +218,7 @@ template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, Unalig
 
 template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, StreamingAndAlignedFlag)
 {
-#ifdef VC_IMPL_SSE41
-    return _mm_stream_load_si128(reinterpret_cast<_M128I *>(const_cast<T *>(x)));
-#else
-    return load(x, Aligned);
-#endif
+    return _mm_stream_load(x);
 }
 
 template<typename T> inline _M128I VectorHelper<_M128I>::load(const T *x, StreamingAndUnalignedFlag)

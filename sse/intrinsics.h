@@ -481,9 +481,55 @@ namespace SSE
         const __m128i epi16 = _mm_unpacklo_epi8(epi8, neg);
         return _mm_unpacklo_epi16(epi16, _mm_unpacklo_epi8(neg, neg));
     }
+    static inline __m128i INTRINSIC _mm_stream_load_si128(__m128i *mem) {
+        return _mm_load_si128(mem);
+    }
 
 } // namespace SSE
 } // namespace Vc
 #endif
+
+namespace Vc
+{
+namespace SSE
+{
+    static inline __m128  INTRINSIC _mm_stream_load(const float *mem) {
+#ifdef VC_IMPL_SSE4_1
+        return _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<float *>(mem))));
+#else
+        return _mm_load_ps(mem);
+#endif
+    }
+    static inline __m128d INTRINSIC _mm_stream_load(const double *mem) {
+#ifdef VC_IMPL_SSE4_1
+        return _mm_castsi128_pd(_mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<double *>(mem))));
+#else
+        return _mm_load_pd(mem);
+#endif
+    }
+    static inline __m128i INTRINSIC _mm_stream_load(const int *mem) {
+#ifdef VC_IMPL_SSE4_1
+        return _mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<int *>(mem)));
+#else
+        return _mm_load_si128(reinterpret_cast<const __m128i *>(mem));
+#endif
+    }
+    static inline __m128i INTRINSIC _mm_stream_load(const unsigned int *mem) {
+        return _mm_stream_load(reinterpret_cast<const int *>(mem));
+    }
+    static inline __m128i INTRINSIC _mm_stream_load(const short *mem) {
+        return _mm_stream_load(reinterpret_cast<const int *>(mem));
+    }
+    static inline __m128i INTRINSIC _mm_stream_load(const unsigned short *mem) {
+        return _mm_stream_load(reinterpret_cast<const int *>(mem));
+    }
+    static inline __m128i INTRINSIC _mm_stream_load(const signed char *mem) {
+        return _mm_stream_load(reinterpret_cast<const int *>(mem));
+    }
+    static inline __m128i INTRINSIC _mm_stream_load(const unsigned char *mem) {
+        return _mm_stream_load(reinterpret_cast<const int *>(mem));
+    }
+} // namespace SSE
+} // namespace Vc
 
 #endif // SSE_INTRINSICS_H

@@ -98,6 +98,35 @@ template<typename Vec> void loadArrayShort()
     }
 }
 
+template<typename Vec> void streamingLoad()
+{
+    typedef typename Vec::EntryType T;
+
+    enum {
+        count = 1024
+    };
+    Vc::Memory<Vec, count> data;
+    data[0] = static_cast<T>(-count/2);
+    for (int i = 1; i < count; ++i) {
+        data[i] = data[i - 1];
+        ++data[i];
+    }
+
+    Vec ref = data.firstVector();
+    for (int i = 0; i < count - Vec::Size; ++i, ++ref) {
+        Vec v1, v2;
+        if (0 == i % Vec::Size) {
+            v1 = Vec(&data[i], Vc::Streaming | Vc::Aligned);
+            v2.load (&data[i], Vc::Streaming | Vc::Aligned);
+        } else {
+            v1 = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
+            v2.load (&data[i], Vc::Streaming | Vc::Unaligned);
+        }
+        COMPARE(v1, ref);
+        COMPARE(v2, ref);
+    }
+}
+
 template<typename T> struct TypeInfo;
 template<> struct TypeInfo<double        > { static const char *string() { return "double"; } };
 template<> struct TypeInfo<float         > { static const char *string() { return "float"; } };
@@ -221,6 +250,8 @@ int main()
     runTest(loadArray<sfloat_v>);
     runTest(loadArrayShort<short_v>);
     runTest(loadArrayShort<ushort_v>);
+
+    testAllTypes(streamingLoad);
 
     testAllTypes(loadCvt);
     return 0;
