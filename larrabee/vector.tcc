@@ -188,24 +188,6 @@ template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE F
     prepareDoubleGatherIndexes<2>(i);
     d.v() = lrb_cast<VectorType>(_mm512_gatherd(i, const_cast<OtherT *>(mem), _MM_FULLUPC_NONE, _MM_SCALE_4, _MM_HINT_NONE));
 }
-template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<float>::gather(const OtherT *mem, const Index *indexes)
-{
-    gather(mem, Vector<Index>(indexes, Vc::Unaligned));
-}
-template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<float>::gather(const OtherT *mem, Vector<Index> indexes)
-{
-    IndexSizeChecker<Index, Size>::check();
-    d.v() = lrb_cast<VectorType>(_mm512_gatherd(indexes.data(), const_cast<OtherT *>(mem), UpDownC<OtherT>(), _MM_SCALE_4, _MM_HINT_NONE));
-}
-template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<int>::gather(const OtherT *mem, const Index *indexes)
-{
-    gather(mem, Vector<Index>(indexes, Vc::Unaligned));
-}
-template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<int>::gather(const OtherT *mem, Vector<Index> indexes)
-{
-    IndexSizeChecker<Index, Size>::check();
-    d.v() = lrb_cast<VectorType>(_mm512_gatherd(indexes.data(), const_cast<OtherT *>(mem), UpDownC<OtherT>(), _MM_SCALE_4, _MM_HINT_NONE));
-}
 template<typename T> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const OtherT *mem, const Index *indexes)
 {
     gather(mem, Vector<Index>(indexes, Vc::Unaligned));
@@ -213,7 +195,7 @@ template<typename T> template<typename OtherT, typename Index> inline void ALWAY
 template<typename T> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const OtherT *mem, Vector<Index> indexes)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = lrb_cast<VectorType>(_mm512_gatherd(indexes.data(), const_cast<OtherT *>(mem), UpDownC<OtherT>(), _MM_SCALE_4, _MM_HINT_NONE));
+    d.v() = lrb_cast<VectorType>(_mm512_gatherd(indexes.data(), const_cast<OtherT *>(mem), UpDownC<OtherT>(), IndexScale<OtherT>::value(), _MM_HINT_NONE));
 }
 
 template<> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<double>::gather(const OtherT *mem, const Index *indexes, Mask mask)
@@ -236,7 +218,7 @@ template<typename T> template<typename OtherT, typename Index> inline void ALWAY
 template<typename T> template<typename OtherT, typename Index> inline void ALWAYS_INLINE FLATTEN Vector<T>::gather(const OtherT *mem, Vector<Index> indexes, Mask mask)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<__m512>(data()), mask.data(), indexes.data(), const_cast<OtherT *>(mem), UpDownC<OtherT>(), _MM_SCALE_4, _MM_HINT_NONE));
+    d.v() = lrb_cast<VectorType>(_mm512_mask_gatherd(lrb_cast<__m512>(data()), mask.data(), indexes.data(), const_cast<OtherT *>(mem), UpDownC<OtherT>(), IndexScale<OtherT>::value(), _MM_HINT_NONE));
 }
 
 template<> template<typename OtherT, typename S1, typename IT>
