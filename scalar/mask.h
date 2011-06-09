@@ -85,29 +85,9 @@ struct ForeachHelper
     inline void next() { first = false; }
 };
 
-/**
- * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
- * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
- * 1, 3, and 4.
- *
- * This allows you to write:
- * \code
- * float_v a = ...;
- * foreach_bit(int i, a < 0.f) {
- *   std::cout << a[i] << "\n";
- * }
- * \endcode
- * The example prints all the values in \p a that are negative, and only those.
- *
- * \param it   The iterator variable. For example "int i".
- * \param mask The mask to iterate over. You can also just write a vector operation that returns a
- *             mask.
- */
 #define Vc_foreach_bit(_it_, _mask_) \
     for (Vc::Scalar::ForeachHelper _Vc_foreach_bit_helper(_mask_); _Vc_foreach_bit_helper.first; ) \
         for (_it_ = 0; _Vc_foreach_bit_helper.first; _Vc_foreach_bit_helper.next())
-
-#define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
 
 } // namespace Scalar
 } // namespace Vc
