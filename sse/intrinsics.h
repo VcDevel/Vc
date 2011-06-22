@@ -588,4 +588,6 @@ namespace SSE
 } // namespace SSE
 } // namespace Vc
 
+#include "shuffle.h"
+
 #endif // SSE_INTRINSICS_H
