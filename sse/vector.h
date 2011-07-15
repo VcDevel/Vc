@@ -247,9 +247,7 @@ class Vector : public VectorBase<T>
 #endif
             return Base::d.m(index);
         }
-        inline EntryType operator[](int index) const PURE INTRINSIC {
-            return Base::d.m(index);
-        }
+        inline EntryType operator[](size_t index) const PURE INTRINSIC;
 
         inline Vector operator~() const PURE INTRINSIC { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
