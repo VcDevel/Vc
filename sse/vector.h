@@ -204,37 +204,37 @@ class Vector : public VectorBase<T>
         ///////////////////////////////////////////////////////////////////////////////////////////
         // gathers
         template<typename IndexT> Vector(const EntryType *mem, const IndexT *indexes);
-        template<typename IndexT> Vector(const EntryType *mem, Vector<IndexT> indexes);
+        template<typename IndexT> Vector(const EntryType *mem, const Vector<IndexT> indexes);
         template<typename IndexT> Vector(const EntryType *mem, const IndexT *indexes, Mask mask);
-        template<typename IndexT> Vector(const EntryType *mem, Vector<IndexT> indexes, Mask mask);
-        template<typename S1, typename IT> Vector(const S1 *array, const EntryType S1::* member1, IT indexes);
-        template<typename S1, typename IT> Vector(const S1 *array, const EntryType S1::* member1, IT indexes, Mask mask);
-        template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes);
-        template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, Mask mask);
-        template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes);
-        template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask);
+        template<typename IndexT> Vector(const EntryType *mem, const Vector<IndexT> indexes, Mask mask);
+        template<typename S1, typename IT> Vector(const S1 *array, const EntryType S1::* member1, const IT indexes);
+        template<typename S1, typename IT> Vector(const S1 *array, const EntryType S1::* member1, const IT indexes, Mask mask);
+        template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes);
+        template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes, Mask mask);
+        template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes);
+        template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, Mask mask);
         template<typename Index> void gather(const EntryType *mem, Index indexes);
         template<typename Index> void gather(const EntryType *mem, Index indexes, Mask mask);
 #ifdef VC_USE_SET_GATHERS
         template<typename IT> void gather(const EntryType *mem, Vector<IT> indexes, Mask mask);
 #endif
-        template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, IT indexes);
-        template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, IT indexes, Mask mask);
-        template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes);
-        template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, Mask mask);
-        template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes);
-        template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask);
+        template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, const IT indexes);
+        template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, const IT indexes, Mask mask);
+        template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes);
+        template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes, Mask mask);
+        template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes);
+        template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, Mask mask);
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // scatters
-        template<typename Index> void scatter(EntryType *mem, Index indexes) const;
-        template<typename Index> void scatter(EntryType *mem, Index indexes, Mask mask) const;
-        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes) const;
-        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes, Mask mask) const;
-        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes) const;
-        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, Mask mask) const;
-        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes) const;
-        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, Mask mask) const;
+        template<typename Index> void scatter(EntryType *mem, const Index indexes) const;
+        template<typename Index> void scatter(EntryType *mem, const Index indexes, Mask mask) const;
+        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, const IT indexes) const;
+        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, const IT indexes, Mask mask) const;
+        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, const IT indexes) const;
+        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, const IT indexes, Mask mask) const;
+        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes) const;
+        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, Mask mask) const;
 
         //prefix
         inline Vector &operator++() INTRINSIC { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
