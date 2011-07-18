@@ -53,6 +53,20 @@ namespace Vc
             return _mm_blend_pd(x, y, (Dst0 / Y0) + (Dst1 / Y0) * 2);
         }
 
+        // blend<X0, Y1>([x0 x1], [y0, y1]) = [x0 y1]
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m128 ALWAYS_INLINE CONST blend(__m128 x, __m128 y) {
+            VC_STATIC_ASSERT(Dst0 == X0 || Dst0 == Y0, Incorrect_Range);
+            VC_STATIC_ASSERT(Dst1 == X1 || Dst1 == Y1, Incorrect_Range);
+            VC_STATIC_ASSERT(Dst2 == X2 || Dst2 == Y2, Incorrect_Range);
+            VC_STATIC_ASSERT(Dst3 == X3 || Dst3 == Y3, Incorrect_Range);
+#if !defined(VC_IMPL_SSE4_1) && !defined(VC_IMPL_AVX)
+            using Vc::SSE::_mm_blend_ps;
+#endif
+            return _mm_blend_ps(x, y,
+                    (Dst0 / Y0) *  1 + (Dst1 / Y1) *  2 +
+                    (Dst2 / Y2) *  4 + (Dst3 / Y3) *  8);
+        }
+
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
         __m128i ALWAYS_INLINE CONST blend(__m128i x, __m128i y) {
             VC_STATIC_ASSERT(Dst0 == X0 || Dst0 == Y0, Incorrect_Range);
@@ -75,10 +89,10 @@ namespace Vc
         }
 
         // permute<X1, X2, Y0, Y2>([x0 x1 x2 x3], [y0 y1 y2 y3]) = [x1 x2 y0 y2]
-        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m128 ALWAYS_INLINE CONST permute(__m128 x, __m128 y) {
-            VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, Incorrect_Range);
-            VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, Incorrect_Range);
-            return _mm_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m128 ALWAYS_INLINE CONST permute(__m128 x) {
+            VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, Incorrect_Range);
+            VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
+            return _mm_shuffle_ps(x, x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
 
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m128i ALWAYS_INLINE CONST permuteLo(__m128i x) {
@@ -123,6 +137,10 @@ namespace Vc
         // blend<Y1, X0>([x1 x0], [y1, y0]) = [x1 y0]
         template<VecPos Dst1, VecPos Dst0> __m128d ALWAYS_INLINE CONST blend(__m128d x, __m128d y) {
             return Mem::blend<Dst0, Dst1>(x, y);
+        }
+
+        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> __m128 ALWAYS_INLINE CONST blend(__m128 x, __m128 y) {
+            return Mem::blend<Dst0, Dst1, Dst2, Dst3>(x, y);
         }
     } // namespace Reg
 } // namespace Vc
