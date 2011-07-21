@@ -95,6 +95,12 @@ namespace Vc
             return _mm_shuffle_ps(x, x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
 
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m128i ALWAYS_INLINE CONST permute(__m128i x) {
+            VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, Incorrect_Range);
+            VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
+            return _mm_shuffle_epi32(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+        }
+
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> __m128i ALWAYS_INLINE CONST permuteLo(__m128i x) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
@@ -105,6 +111,21 @@ namespace Vc
             VC_STATIC_ASSERT(Dst0 >= X4 && Dst1 >= X4 && Dst2 >= X4 && Dst3 >= X4, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X7 && Dst1 <= X7 && Dst2 <= X7 && Dst3 <= X7, Incorrect_Range);
             return _mm_shufflehi_epi16(x, (Dst0 - X4) + (Dst1 - X4) * 4 + (Dst2 - X4) * 16 + (Dst3 - X4) * 64);
+        }
+
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
+            __m128i ALWAYS_INLINE CONST permute(__m128i x) {
+            VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, Incorrect_Range);
+            VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
+            VC_STATIC_ASSERT(Dst4 >= X4 && Dst5 >= X4 && Dst6 >= X4 && Dst7 >= X4, Incorrect_Range);
+            VC_STATIC_ASSERT(Dst4 <= X7 && Dst5 <= X7 && Dst6 <= X7 && Dst7 <= X7, Incorrect_Range);
+            if (Dst0 != X0 || Dst1 != X1 || Dst2 != X2 || Dst3 != X3) {
+                x = _mm_shufflelo_epi16(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+            }
+            if (Dst4 != X4 || Dst5 != X5 || Dst6 != X6 || Dst7 != X7) {
+                x = _mm_shufflehi_epi16(x, (Dst4 - X4) + (Dst5 - X4) * 4 + (Dst6 - X4) * 16 + (Dst7 - X4) * 64);
+            }
+            return x;
         }
     } // namespace Mem
     // The shuffles and permutes above use memory ordering. The ones below use register ordering:
