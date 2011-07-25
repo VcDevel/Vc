@@ -120,7 +120,7 @@ namespace Common
         const V x7 = x4 * x3; // 
         const V x8 = x4 * x4;
         const V x9 = x5 * x4;
-        const V x10 = x5 * x4;
+        const V x10 = x5 * x5;
         const V x11 = x5 * x6; // 13 → 17
         V y = C::P(0) * x11 + C::P(1) * x10 + C::P(2) * x9 + C::P(3) * x8 + C::P(4) * x7
             + C::P(5) * x6  + C::P(6) * x5  + C::P(7) * x4 + C::P(8) * x3;
