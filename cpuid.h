@@ -76,7 +76,7 @@ class CpuId
         static inline bool hasXop ()        { return s_processorFeatures8C & (1 << 11); }
         static inline bool hasFma4 ()       { return s_processorFeatures8C & (1 << 16); }
         static inline bool hasRdtscp()      { return s_processorFeatures8D & (1 << 27); }
-        static inline bool has3DNow()       { return s_processorFeatures8D & (1 << 31); }
+        static inline bool has3DNow()       { return s_processorFeatures8D & (1u << 31); }
         static inline bool has3DNowExt()    { return s_processorFeatures8D & (1 << 30); }
         static inline uint   L1Instruction() { return s_L1Instruction; }
         static inline uint   L1Data() { return s_L1Data; }
