@@ -352,7 +352,8 @@ class _UnitTest_Compare
                 if (pos == str) {
                     std::cout << '\n' << _unittest_fail() << "│ " << &str[1];
                 } else {
-                    char *left = strndup(str, pos - str);
+                    char *left = strdup(str);
+                    left[pos - str] = '\0';
                     std::cout << left << '\n' << _unittest_fail() << "│ " << &pos[1];
                     free(left);
                 }
