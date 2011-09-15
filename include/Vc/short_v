@@ -25,11 +25,7 @@
 
 namespace Vc
 {
-#if VC_IMPL_LRBni
-  typedef VECTOR_NAMESPACE::Vector<signed int> short_v;
-#else
   typedef VECTOR_NAMESPACE::Vector<signed short> short_v;
-#endif
   typedef short_v::Mask short_m;
 } // namespace Vc
 

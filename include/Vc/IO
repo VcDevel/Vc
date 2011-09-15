@@ -85,8 +85,6 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vecto
     return out;
 }
 
-#ifndef VC_IMPL_LRBni
-// LRBni only supports 32bit ints
 template<>
 inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<char> &v)
 {
@@ -109,7 +107,6 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vecto
     out << "]" << AnsiColor::normal;
     return out;
 }
-#endif
 
 #ifdef VC_HAVE_FMA
 template<typename T>

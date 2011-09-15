@@ -4,10 +4,6 @@ case "@QT4_FOUND@" in
   YES|TRUE|true|yes|on|ON) haveQt4=true ;;
   *) haveQt4=false ;;
 esac
-case "@LARRABEE_FOUND@" in
-  YES|TRUE|true|yes|on|ON) haveLrbni=true ;;
-  *) haveLrbni=false ;;
-esac
 case "@USE_SSE2@" in
   YES|TRUE|true|yes|on|ON) haveSse=true ;;
   *) haveSse=false ;;
@@ -59,7 +55,7 @@ executeBench()
       $haveXop && outfile=${outfile}-mxop
       $haveFma4 && outfile=${outfile}-mfma4
     else
-      $haveAvx && test "$2" != "lrb" && outfile=${outfile}-mavx
+      $haveAvx && outfile=${outfile}-mavx
     fi
     outfile=${outfile}.dat
     printf "%22s -o %s" "$name" "$outfile"
@@ -85,7 +81,6 @@ do
   executeBench $bench scalar
   $haveSse && executeBench $bench sse
   $haveAvx && executeBench $bench avx
-  $haveLrbni && executeBench $bench lrb
 done
 
 if which benchmarking.sh >/dev/null; then

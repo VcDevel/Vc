@@ -11,7 +11,6 @@ set(CTEST_PROJECT_SUBPROJECTS
    other
    Scalar
    SSE
-   LRBni
    AVX
    )
 

@@ -64,12 +64,6 @@ bool currentImplementationSupported()
             AVXImpl
 #elif VC_IMPL_Scalar
             ScalarImpl
-#elif VC_IMPL_LRBni
-#ifdef VC_LRBni_PROTOTYPE_H
-            LRBniPrototypeImpl
-#else
-            LRBniImpl
-#endif
 #elif VC_IMPL_SSE4a
             SSE4aImpl
 #elif VC_IMPL_SSE4_2
