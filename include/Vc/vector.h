@@ -23,10 +23,7 @@
 #include "global.h"
 #include "internal/namespace.h"
 
-#if VC_IMPL_LRBni
-# include "larrabee/vector.h"
-# include "larrabee/helperimpl.h"
-#elif VC_IMPL_Scalar
+#if VC_IMPL_Scalar
 # include "scalar/vector.h"
 # include "scalar/helperimpl.h"
 #elif VC_IMPL_AVX

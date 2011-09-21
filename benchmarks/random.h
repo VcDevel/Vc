@@ -48,7 +48,6 @@ template<> inline Vc::int_v PseudoRandom<Vc::int_v>::next()
     return (state >> 16) | (state << 16); // rotate
 }
 
-#if !VC_IMPL_LRBni
 template<> Vc::ushort_v PseudoRandom<Vc::ushort_v>::state(Vc::ushort_v(Vc::IndexesFromZero) + std::rand());
 template<> Vc::short_v PseudoRandom<Vc::short_v>::state(Vc::short_v(Vc::IndexesFromZero) + std::rand());
 
@@ -63,7 +62,6 @@ template<> inline Vc::short_v PseudoRandom<Vc::short_v>::next()
     state = (state * 257 + 24151);
     return (state >> 8) | (state << 8); // rotate
 }
-#endif
 
 template<> class PseudoRandom<Vc::float_v>
 {

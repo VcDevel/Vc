@@ -280,30 +280,6 @@ template<> struct KeepResultsHelper<Vc::SSE::Float8Mask, 32> {
         _keepXRegister(tmp4.data()[0], tmp4.data()[1], tmp5.data()[0], tmp5.data()[1], tmp6.data()[0], tmp6.data()[1], tmp7.data()[0], tmp7.data()[1]);
     }
 };
-#elif defined(VC_IMPL_LRBni) && defined(VC_LRBni_PROTOTYPE_H)
-#include <xmmintrin.h>
-template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 64> {
-    static inline void keepDirty(Vc::Vector<T> &tmp0) {
-        __m128 *x = reinterpret_cast<__m128 *>(&tmp0);
-        asm volatile("":"+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]));
-    }
-    static inline void keep(Vc::Vector<T> tmp0, Vc::Vector<T> tmp1, Vc::Vector<T> tmp2, Vc::Vector<T> tmp3,
-            Vc::Vector<T> tmp4, Vc::Vector<T> tmp5, Vc::Vector<T> tmp6, Vc::Vector<T> tmp7) {
-        // doesn't make so much sense with so many required registers
-        __m128 *x0 = reinterpret_cast<__m128 *>(&tmp0);
-        __m128 *x1 = reinterpret_cast<__m128 *>(&tmp1);
-        __m128 *x2 = reinterpret_cast<__m128 *>(&tmp2);
-        __m128 *x3 = reinterpret_cast<__m128 *>(&tmp3);
-        _keepXRegister(x0[0], x0[1], x0[2], x0[3], x1[0], x1[1], x1[2], x1[3]);
-        _keepXRegister(x2[0], x2[1], x2[2], x2[3], x3[0], x3[1], x3[2], x3[3]);
-        __m128 *x4 = reinterpret_cast<__m128 *>(&tmp4);
-        __m128 *x5 = reinterpret_cast<__m128 *>(&tmp5);
-        __m128 *x6 = reinterpret_cast<__m128 *>(&tmp6);
-        __m128 *x7 = reinterpret_cast<__m128 *>(&tmp7);
-        _keepXRegister(x4[0], x4[1], x4[2], x4[3], x5[0], x5[1], x5[2], x5[3]);
-        _keepXRegister(x6[0], x6[1], x6[2], x6[3], x7[0], x7[1], x7[2], x7[3]);
-    }
-};
 #endif
 
 template<typename T> static inline void keepResultsDirty(T &tmp0)

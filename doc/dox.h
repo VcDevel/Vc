@@ -21,7 +21,7 @@
  * \mainpage
  * \image html logo.png
  *
- * The Vc library is a collection of vector classes with existing implementations for SSE, AVX, LRBni,
+ * The Vc library is a collection of vector classes with existing implementations for SSE, AVX,
  * and a scalar fallback.
  *
  * \subpage intro
@@ -35,14 +35,13 @@
  * says is available. For example compiling with "g++ -mssse3" will enable compilation against the
  * SSE implementation using SSE the instruction sets SSE, SSE2, SSE3 and SSSE3. If you want to force
  * compilation against a specific implementation of the vector classes you can set the macro
- * VC_IMPL to either "Scalar", "SSE2", "SSE3", "SSSE3", "SSE4_1", "SSE4_2", "SSE4a", "AVX" or "LRBni".
+ * VC_IMPL to either "Scalar", "SSE2", "SSE3", "SSSE3", "SSE4_1", "SSE4_2", "SSE4a", or "AVX".
  * Setting VC_IMPL to
  * "SSE" will force the SSE instruction set, but lets the headers figure out the version to use or,
  * if that fails, uses SSE4.1.
  * After you include a Vc header, you will have the following macros available, which you can (but
  * normally should not) use to determine the implementation Vc uses:
  * \li VC_IMPL_Scalar
- * \li VC_IMPL_LRBni
  * \li VC_IMPL_SSE (shorthand for SSE2 || SSE3 || SSSE3 || SSE4_1. SSE1 alone is not supported.)
  * \li VC_IMPL_SSE2
  * \li VC_IMPL_SSE3
@@ -113,7 +112,7 @@
  *
  * Mask classes are abstractions for the results of vector comparisons. The actual implementation
  * differs depending on the SIMD instruction set. On SSE they contain a full 128-bit datatype while
- * on LRBni they are stored as 16-bit unsigned integers.
+ * on a different architecture they might be bitfields.
  */
 
 /**

@@ -143,10 +143,8 @@ template<> struct TypeInfo<sfloat_v      > { static const char *string() { retur
 #endif
 template<> struct TypeInfo<int_v         > { static const char *string() { return "int_v"; } };
 template<> struct TypeInfo<uint_v        > { static const char *string() { return "uint_v"; } };
-#ifndef VC_IMPL_LRBni
 template<> struct TypeInfo<short_v       > { static const char *string() { return "short_v"; } };
 template<> struct TypeInfo<ushort_v      > { static const char *string() { return "ushort_v"; } };
-#endif
 
 template<typename T, typename Current = void> struct SupportedConversions { typedef void Next; };
 template<> struct SupportedConversions<float, void>           { typedef double         Next; };
@@ -234,7 +232,6 @@ template<typename Vec> void loadCvt()
 
 int main()
 {
-#if !VC_IMPL_LRBni && !defined(__LRB__)
     runTest(checkAlignment<int_v>);
     runTest(checkAlignment<uint_v>);
     runTest(checkAlignment<float_v>);
@@ -242,7 +239,6 @@ int main()
     runTest(checkAlignment<short_v>);
     runTest(checkAlignment<ushort_v>);
     runTest(checkAlignment<sfloat_v>);
-#endif
     runTest(loadArray<int_v>);
     runTest(loadArray<uint_v>);
     runTest(loadArray<float_v>);
