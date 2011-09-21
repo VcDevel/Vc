@@ -335,8 +335,8 @@ template<typename Vec> void testProduct()
         T x = static_cast<T>(i);
         Vec v(x);
         T x2 = x;
-        for (int k = 1; k < Vec::Size; ++k) {
-            x2 *= x;
+        for (int k = Vec::Size; k > 1; k /= 2) {
+            x2 *= x2;
         }
         COMPARE(v.product(), x2);
 
@@ -347,9 +347,13 @@ template<typename Vec> void testProduct()
             if (m.isEmpty()) {
                 break;
             }
-            x2 = x;
-            for (int k = 1; k < m.count(); ++k) {
-                x2 *= x;
+            if (std::numeric_limits<T>::is_exact) {
+                x2 = x;
+                for (int i = m.count(); i > 1; --i) {
+                    x2 *= x;
+                }
+            } else {
+                x2 = pow(x, m.count());
             }
             COMPARE(v.product(m), x2) << m << v;
         } while (true);
