@@ -961,7 +961,7 @@ template<> inline double PURE INTRINSIC Vector<double>::operator[](size_t index)
         unsigned long long tmp;
         if (index == 0) tmp = _mm_cvtsi128_si64(_mm_castpd_si128(d.v()));
         if (index == 1) tmp = _mm_extract_epi64(_mm_castpd_si128(d.v()), 1);
-        return reinterpret_cast<Common::AliasingEntryHelper<EntryType> &>(tmp);
+        return Common::AliasingEntryHelper<EntryType>(tmp);
     }
     return Base::d.m(index);
 }
@@ -972,7 +972,7 @@ template<> inline float PURE INTRINSIC Vector<float>::operator[](size_t index) c
             unsigned long long tmp = _mm_cvtsi128_si64(_mm_castps_si128(d.v()));
             if (index == 0) tmp &= 0xFFFFFFFFull;
             if (index == 1) tmp >>= 32;
-            return reinterpret_cast<Common::AliasingEntryHelper<EntryType> &>(tmp);
+            return Common::AliasingEntryHelper<EntryType>(tmp);
         }
         return _mm_extract_ps(d.v(), index);
     }
@@ -985,14 +985,14 @@ template<> inline float PURE INTRINSIC Vector<float8>::operator[](size_t index) 
             unsigned long long tmp = _mm_cvtsi128_si64(_mm_castps_si128(d.v()[0]));
             if (index == 0) tmp &= 0xFFFFFFFFull;
             if (index == 1) tmp >>= 32;
-            return reinterpret_cast<Common::AliasingEntryHelper<EntryType> &>(tmp);
+            return Common::AliasingEntryHelper<EntryType>(tmp);
         }
         if (index < 4) return _mm_extract_ps(d.v()[0], index);
         if (index <= 5) {
             unsigned long long tmp = _mm_cvtsi128_si64(_mm_castps_si128(d.v()[1]));
             if (index == 0) tmp &= 0xFFFFFFFFull;
             if (index == 1) tmp >>= 32;
-            return reinterpret_cast<Common::AliasingEntryHelper<EntryType> &>(tmp);
+            return Common::AliasingEntryHelper<EntryType>(tmp);
         }
         return _mm_extract_ps(d.v()[1], index - 4);
     }

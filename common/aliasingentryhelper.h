@@ -34,6 +34,9 @@ template<typename T> class AliasingEntryHelper
         A &m_data;
 
     public:
+        template<typename T2>
+        AliasingEntryHelper(T2 &d) : m_data(reinterpret_cast<A &>(d)) {}
+
         AliasingEntryHelper(A &d) : m_data(d) {}
 
         operator const T() const { return m_data; }
