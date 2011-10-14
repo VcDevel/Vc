@@ -957,16 +957,19 @@ template<typename T> inline typename Vector<T>::EntryType PURE INTRINSIC Vector<
 #if defined(VC_IMPL_SSE4_1) && __x86_64__
 template<> inline double PURE INTRINSIC Vector<double>::operator[](size_t index) const
 {
+#ifdef VC_GCC
     if (__builtin_constant_p(index)) {
         unsigned long long tmp;
         if (index == 0) tmp = _mm_cvtsi128_si64(_mm_castpd_si128(d.v()));
         if (index == 1) tmp = _mm_extract_epi64(_mm_castpd_si128(d.v()), 1);
         return Common::AliasingEntryHelper<EntryType>(tmp);
     }
+#endif
     return Base::d.m(index);
 }
 template<> inline float PURE INTRINSIC Vector<float>::operator[](size_t index) const
 {
+#ifdef VC_GCC
     if (__builtin_constant_p(index)) {
         if (index <= 1) {
             unsigned long long tmp = _mm_cvtsi128_si64(_mm_castps_si128(d.v()));
@@ -976,10 +979,12 @@ template<> inline float PURE INTRINSIC Vector<float>::operator[](size_t index) c
         }
         return _mm_extract_ps(d.v(), index);
     }
+#endif
     return Base::d.m(index);
 }
 template<> inline float PURE INTRINSIC Vector<float8>::operator[](size_t index) const
 {
+#ifdef VC_GCC
     if (__builtin_constant_p(index)) {
         if (index <= 1) {
             unsigned long long tmp = _mm_cvtsi128_si64(_mm_castps_si128(d.v()[0]));
@@ -996,27 +1001,32 @@ template<> inline float PURE INTRINSIC Vector<float8>::operator[](size_t index) 
         }
         return _mm_extract_ps(d.v()[1], index - 4);
     }
+#endif
     return Base::d.m(index);
 }
 template<> inline int PURE INTRINSIC Vector<int>::operator[](size_t index) const
 {
+#ifdef VC_GCC
     if (__builtin_constant_p(index)) {
         if (index == 0) return _mm_cvtsi128_si64(d.v()) & 0xFFFFFFFFull;
         if (index == 1) return _mm_cvtsi128_si64(d.v()) >> 32;
         return _mm_extract_epi32(d.v(), index);
     }
+#endif
     return Base::d.m(index);
 }
 template<> inline unsigned int PURE INTRINSIC Vector<unsigned int>::operator[](size_t index) const
 {
+#ifdef VC_GCC
     if (__builtin_constant_p(index)) {
         if (index == 0) return _mm_cvtsi128_si64(d.v()) & 0xFFFFFFFFull;
         if (index == 1) return _mm_cvtsi128_si64(d.v()) >> 32;
         return _mm_extract_epi32(d.v(), index);
     }
+#endif
     return Base::d.m(index);
 }
-#endif
+#endif // SSE4.1 and 64bit
 template<> inline short PURE INTRINSIC Vector<short>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
