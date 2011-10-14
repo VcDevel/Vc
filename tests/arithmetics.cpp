@@ -349,7 +349,7 @@ template<typename Vec> void testProduct()
             }
             if (std::numeric_limits<T>::is_exact) {
                 x2 = x;
-                for (int i = m.count(); i > 1; --i) {
+                for (int k = m.count(); k > 1; --k) {
                     x2 *= x;
                 }
             } else {
