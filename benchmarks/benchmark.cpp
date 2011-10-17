@@ -20,9 +20,15 @@
 #include "benchmark.h"
 #include <Vc/Vc>
 #include "../common/support.h"
+#include <map>
+#include <set>
 
 // limit to max. 10s per single benchmark
 static double g_Time = 10.;
+static int g_skip = 0;
+
+static std::set<std::string> g_skipReasons;
+static std::map<std::string, std::set<std::string> > g_skipLists;
 
 const char *printHelp2 =
 "  -t <seconds>        maximum time to run a single benchmark (10s)\n"
@@ -40,6 +46,17 @@ void Benchmark::addColumn(const std::string &name)
 
 void Benchmark::setColumnData(const std::string &name, const std::string &data)
 {
+    if (g_skip && g_skipReasons.find(name) != g_skipReasons.end()) {
+        //std::cerr << "skip reason was: " << name << std::endl;
+        g_skipReasons.erase(name);
+        --g_skip;
+    }
+    std::set<std::string> set = g_skipLists[name];
+    if (set.find(data) != set.end()) {
+        g_skipReasons.insert(name);
+        //std::cerr << "skip reason now is: " << name << std::endl;
+        ++g_skip;
+    }
     if (s_fileWriter) {
         s_fileWriter->setColumnData(name, data);
     } else {
@@ -168,8 +185,16 @@ void Benchmark::FileWriter::setColumnData(const std::string &name, const std::st
 Benchmark::FileWriter *Benchmark::s_fileWriter = 0;
 
 Benchmark::Benchmark(const std::string &_name, double factor, const std::string &X)
-    : fName(_name), fFactor(factor), fX(X), m_dataPointsCount(0)
+    : fName(_name), fFactor(factor), fX(X), m_dataPointsCount(0), m_skip(g_skip)
 {
+    if (m_skip) {
+        return;
+    }
+    std::set<std::string> set = g_skipLists["benchmark.name"];
+    if (set.find(_name) != set.end()) {
+        m_skip = true;
+        return;
+    }
     for (int i = 0; i < 3; ++i) {
         m_mean[i] = m_stddev[i] = 0.;
     }
@@ -210,7 +235,9 @@ Benchmark::Benchmark(const std::string &_name, double factor, const std::string 
 
 bool Benchmark::wantsMoreDataPoints() const
 {
-    if (m_dataPointsCount < 3) { // hard limit on the number of data points; otherwise talking about stddev is bogus
+    if (m_skip) {
+        return false;
+    } else if (m_dataPointsCount < 3) { // hard limit on the number of data points; otherwise talking about stddev is bogus
         return true;
     } else if (m_mean[0] > g_Time) { // limit on the time
         return false;
@@ -372,6 +399,9 @@ inline void Benchmark::printBottomLine() const
 
 bool Benchmark::Print()
 {
+    if (m_skip) {
+        return false;
+    }
     std::streambuf *backup = std::cout.rdbuf();
     if (s_fileWriter) {
         std::cout.rdbuf(0);
@@ -502,7 +532,9 @@ void printHelp(const char *name) {
     std::cout << "Usage " << name << " [OPTION]...\n"
         << "Measure throughput and latency of memory in steps of 1GB\n\n"
         << "  -h, --help          print this message\n"
-        << "  -o <filename>       output measurements to a file instead of stdout\n";
+        << "  -o <filename>       output measurements to a file instead of stdout\n"
+        << "  --skip <name> <value>  skip tests with the name/column set to the given value\n"
+        ;
     if (printHelp2) {
         std::cout << printHelp2;
     }
@@ -571,6 +603,11 @@ int main(int argc, char **argv)
                     std::strcmp(argv[i - 1], "-h") == 0) {
             printHelp(argv[0]);
             return 0;
+        } else if (std::strcmp(argv[i - 1], "--skip") == 0) {
+            const std::string name(argv[i]);
+            const std::string value(argv[i + 1]);
+            g_skipLists[name].insert(value);
+            i += 3;
         } else {
             g_arguments.push_back(argv[i - 1]);
             ++i;

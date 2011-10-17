@@ -116,6 +116,7 @@ private:
     TimeStampCounter fTsc;
     int m_dataPointsCount;
     static FileWriter *s_fileWriter;
+    bool m_skip;
 
     static const char greenEsc  [8];
     static const char cyanEsc   [8];
