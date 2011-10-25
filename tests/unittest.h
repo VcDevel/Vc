@@ -244,7 +244,7 @@ class _UnitTest_Compare
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
-                print("at "); print(_file); print(':'); print(_line); print(":\n");
+                printPosition(_file, _line, getIp()); print(":\n");
                 print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
                 print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
                 print(") -> "); print(a == b);
@@ -257,7 +257,7 @@ class _UnitTest_Compare
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
-                print("at "); print(_file); print(':'); print(_line); print(":\n");
+                printPosition(_file, _line, getIp()); print(":\n");
                 print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
                 print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
                 print(')');
@@ -270,7 +270,7 @@ class _UnitTest_Compare
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
-                print("at "); print(_file); print(':'); print(_line); print(":\n");
+                printPosition(_file, _line, getIp()); print(":\n");
                 print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") ≈ ");
                 print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
                 print(") -> "); print(a == b);
@@ -284,7 +284,8 @@ class _UnitTest_Compare
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
-                print("at "); print(_file); print(':'); print(_line); print(":"); print(cond);
+                printPosition(_file, _line, getIp());
+                print(": "); print(cond);
             }
         }
 
@@ -293,7 +294,8 @@ class _UnitTest_Compare
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
-                print("at "); print(_file); print(':'); print(_line); print(' ');
+                printPosition(_file, _line, getIp());
+                print(' ');
             }
         }
 
@@ -333,6 +335,15 @@ class _UnitTest_Compare
         }
 
     private:
+        static inline size_t ALWAYS_INLINE getIp() {
+            size_t _ip;
+#if defined(__x86_64__) && defined(VC_GCC)
+            asm("lea 0(%%rip),%0" : "=r"(_ip));
+#else
+            _ip = 0;
+#endif
+            return _ip;
+        }
         static void printFirst() { std::cout << _unittest_fail() << "┍ "; }
         template<typename T> static void print(const T &x) { std::cout << x; }
         static void print(const char *str) {
@@ -363,6 +374,9 @@ class _UnitTest_Compare
             std::cout << std::endl;
             _unit_test_global.status = false;
             throw _UnitTest_Failure();
+        }
+        static void printPosition(const char *_file, int _line, size_t _ip) {
+            std::cout << "at " << _file << ':' << _line << " (0x" << std::hex << _ip << std::dec << ')';
         }
         const bool m_failed;
 };
