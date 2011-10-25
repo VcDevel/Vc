@@ -1029,16 +1029,20 @@ template<> inline unsigned int PURE INTRINSIC Vector<unsigned int>::operator[](s
 #endif // SSE4.1 and 64bit
 template<> inline short PURE INTRINSIC Vector<short>::operator[](size_t index) const
 {
+#ifdef VC_GCC
     if (__builtin_constant_p(index)) {
         return _mm_extract_epi16(d.v(), index);
     }
+#endif
     return Base::d.m(index);
 }
 template<> inline unsigned short PURE INTRINSIC Vector<unsigned short>::operator[](size_t index) const
 {
+#ifdef VC_GCC
     if (__builtin_constant_p(index)) {
         return _mm_extract_epi16(d.v(), index);
     }
+#endif
     return Base::d.m(index);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
