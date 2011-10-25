@@ -493,6 +493,62 @@ namespace Vc
 {
 namespace SSE
 {
+    static inline float INTRINSIC extract_float_imm(const __m128 v, const size_t i) {
+        float f;
+        switch (i) {
+        case 0:
+            f = _mm_cvtss_f32(v);
+            break;
+#ifdef VC_IMPL_SSE4_1
+        default:
+#ifdef VC_GCC
+            f = __builtin_ia32_vec_ext_v4sf(static_cast<__v4sf>(v), (i));
+#else
+            _MM_EXTRACT_FLOAT(f, v, i);
+#endif
+            break;
+#else
+        case 1:
+            f = _mm_cvtss_f32(_mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(v), 4)));
+            break;
+        case 2:
+            f = _mm_cvtss_f32(_mm_movehl_ps(v, v));
+            break;
+        case 3:
+            f = _mm_cvtss_f32(_mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(v), 12)));
+            break;
+#endif
+        }
+        return f;
+    }
+    static inline double INTRINSIC extract_double_imm(const __m128d v, const size_t i) {
+        if (i == 0) {
+            return _mm_cvtsd_f64(v);
+        }
+        return _mm_cvtsd_f64(_mm_castps_pd(_mm_movehl_ps(_mm_castpd_ps(v), _mm_castpd_ps(v))));
+    }
+    static inline float INTRINSIC extract_float(const __m128 v, const size_t i) {
+#ifdef VC_GCC
+        if (__builtin_constant_p(i)) {
+            return extract_float_imm(v, i);
+//X         if (index <= 1) {
+//X             unsigned long long tmp = _mm_cvtsi128_si64(_mm_castps_si128(v));
+//X             if (index == 0) tmp &= 0xFFFFFFFFull;
+//X             if (index == 1) tmp >>= 32;
+//X             return Common::AliasingEntryHelper<EntryType>(tmp);
+//X         }
+        } else {
+            typedef float float4[4] MAY_ALIAS;
+            const float4 &data = reinterpret_cast<const float4 &>(v);
+            return data[i];
+        }
+#else
+        union { __m128 v; float m[4]; } u;
+        u.v = v;
+        return u.m[i];
+#endif
+    }
+
     static inline __m128  INTRINSIC _mm_stream_load(const float *mem) {
 #ifdef VC_IMPL_SSE4_1
         return _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<float *>(mem))));
