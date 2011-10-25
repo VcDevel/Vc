@@ -242,7 +242,7 @@ class _UnitTest_Compare
         inline _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line)
             : m_failed(!unittest_compareHelper(a, b))
         {
-            if (m_failed) {
+            if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
                 print("at "); print(_file); print(':'); print(_line); print(":\n");
                 print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
@@ -255,7 +255,7 @@ class _UnitTest_Compare
         inline _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
             : m_failed(!unittest_compareHelper(a, b))
         {
-            if (m_failed) {
+            if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
                 print("at "); print(_file); print(':'); print(_line); print(":\n");
                 print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
@@ -268,7 +268,7 @@ class _UnitTest_Compare
         inline _UnitTest_Compare(T a, T b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
             : m_failed(!unittest_fuzzyCompareHelper(a, b))
         {
-            if (m_failed) {
+            if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
                 print("at "); print(_file); print(':'); print(_line); print(":\n");
                 print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") ≈ ");
@@ -282,7 +282,7 @@ class _UnitTest_Compare
         inline _UnitTest_Compare(bool good, const char *cond, const char *_file, int _line)
             : m_failed(!good)
         {
-            if (m_failed) {
+            if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
                 print("at "); print(_file); print(':'); print(_line); print(":"); print(cond);
             }
@@ -291,7 +291,7 @@ class _UnitTest_Compare
         inline _UnitTest_Compare(const char *_file, int _line)
             : m_failed(true)
         {
-            if (m_failed) {
+            if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
                 print("at "); print(_file); print(':'); print(_line); print(' ');
             }
