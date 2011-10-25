@@ -71,11 +71,11 @@ namespace AVX
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
     template<typename V = Vector<float> >
-    class VectorAlignedBaseT
+    class STRUCT_ALIGN1(sizeof(V)) VectorAlignedBaseT
     {
         public:
             FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
-    } ALIGN(sizeof(V));
+    } STRUCT_ALIGN2(sizeof(V));
 
 } // namespace AVX
 } // namespace Vc

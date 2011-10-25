@@ -21,12 +21,16 @@
 #define VC_COMMON_MACROS_H
 #undef VC_COMMON_UNDOMACROS_H
 
-#ifndef ALIGN
-# ifdef __GNUC__
-#  define ALIGN(n) __attribute__((aligned(n)))
-# else
-#  define ALIGN(n) __declspec(align(n))
-# endif
+#ifdef VC_MSVC
+# define ALIGN(n) __declspec(align(n))
+# define STRUCT_ALIGN1(n) ALIGN(n)
+# define STRUCT_ALIGN2(n)
+# define ALIGNED_TYPEDEF(n, _type_, _newType_) typedef ALIGN(n) _type_ _newType_
+#else
+# define ALIGN(n) __attribute__((aligned(n)))
+# define STRUCT_ALIGN1(n)
+# define STRUCT_ALIGN2(n) ALIGN(n)
+# define ALIGNED_TYPEDEF(n, _type_, _newType_) typedef _type_ _newType_ ALIGN(n)
 #endif
 
 #define FREE_STORE_OPERATORS_ALIGNED(alignment) \

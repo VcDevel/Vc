@@ -30,14 +30,11 @@ namespace SSE
 {
     template<typename T> class Vector;
 
-    // define our own long because on Windows long == int while on Linux long == max. register width
+    // define our own long because on Windows64 long == int while on Linux long == max. register width
     // since we want to have a type that depends on 32 vs. 64 bit we need to do some special casing on Windows
 #ifdef _WIN64
     typedef __int64 _long;
     typedef unsigned __int64 _ulong;
-#elif defined(_WIN32)
-    typedef int _long;
-    typedef unsigned int _ulong;
 #else
     typedef long _long;
     typedef unsigned long _ulong;
@@ -94,11 +91,11 @@ namespace SSE
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
     template<typename V = Vector<float> >
-    class VectorAlignedBaseT
+    class STRUCT_ALIGN1(16) VectorAlignedBaseT
     {
         public:
             FREE_STORE_OPERATORS_ALIGNED(16)
-    } ALIGN(16);
+    } STRUCT_ALIGN2(16);
 
 } // namespace SSE
 } // namespace Vc

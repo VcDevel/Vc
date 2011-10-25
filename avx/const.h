@@ -58,7 +58,7 @@ namespace AVX
         static const unsigned char *address() { return &_IndexesFromZero8[0]; }
     };
 
-    struct c_general
+    struct STRUCT_ALIGN1(64) c_general
     {
         static const float oneFloat;
         static const unsigned int absMaskFloat[2];
@@ -67,8 +67,8 @@ namespace AVX
         static const unsigned short one16[2];
         static const float _2power31;
         static const double oneDouble;
-    } ALIGN(64);
-    template<typename T> struct c_sin
+    } STRUCT_ALIGN2(64);
+    template<typename T> struct STRUCT_ALIGN1(64) c_sin
     {
         typedef Vector<T> V;
         static const T _data[8];
@@ -82,7 +82,7 @@ namespace AVX
         static V _1_5fac() CONST;
         static V _1_7fac() CONST;
         static V _1_9fac() CONST;
-    } ALIGN(64);
+    } STRUCT_ALIGN2(64);
 
     template<typename T> struct IntForFloat { typedef unsigned int Type; };
     template<> struct IntForFloat<double> { typedef unsigned long long Type; };
@@ -109,7 +109,7 @@ namespace AVX
         static Vec neginf() CONST;
         static Vec log10_e() CONST;
         static Vec log2_e() CONST;
-    };// ALIGN(64);
+    };
 } // namespace AVX
 } // namespace Vc
 

@@ -28,6 +28,9 @@
 #undef ALWAYS_INLINE
 
 #undef ALIGN
+#undef STRUCT_ALIGN1
+#undef STRUCT_ALIGN2
+#undef ALIGNED_TYPEDEF
 #undef CAT
 #undef CAT_HELPER
 #undef CAT3
