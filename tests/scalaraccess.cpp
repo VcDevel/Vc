@@ -41,6 +41,50 @@ template<typename V> void reads()
     }
 }
 
+template<typename V, size_t Index>
+inline void readsConstantIndexTest(const V a, const V b)
+{
+    typedef typename V::EntryType T;
+    {
+        const T x = a[Index];
+        const T zero = 0;
+        COMPARE(x, zero);
+    }{
+        const T x = b[Index];
+        const T y = Index;
+        COMPARE(x, y);
+    }
+}
+
+template<typename V, size_t Index>
+struct ReadsConstantIndex
+{
+    ReadsConstantIndex(const V a, const V b)
+    {
+        readsConstantIndexTest<V, Index>(a, b);
+        ReadsConstantIndex<V, Index - 1>(a, b);
+    }
+};
+
+
+template<typename V>
+struct ReadsConstantIndex<V, 0>
+{
+    ReadsConstantIndex(const V a, const V b)
+    {
+        readsConstantIndexTest<V, 0>(a, b);
+    }
+};
+
+template<typename V> void readsConstantIndex()
+{
+    typedef typename V::IndexType I;
+
+    V a = V::Zero();
+    V b = static_cast<V>(I::IndexesFromZero());
+    ReadsConstantIndex<V, V::Size - 1>(a, b);
+}
+
 template<typename V> void writes()
 {
     typedef typename V::EntryType T;
@@ -96,6 +140,8 @@ int main(int argc, char **argv)
 
     testAllTypes(reads);
     testAllTypes(writes);
+    testAllTypes(readsConstantIndex);
+    //testAllTypes(writesConstantIndex);
 
     return 0;
 }
