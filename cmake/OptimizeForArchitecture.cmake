@@ -257,8 +257,10 @@ macro(OptimizeForArchitecture)
       # MSVC on 32 bit can select only /arch:SSE2
       # MSVC on 64 bit cannot select anything
       if(NOT CMAKE_CL_64)
-         _my_find(_enable_vector_unit_list "sse2")
-         AddCompilerFlag("/arch:SSE2")
+         _my_find(_enable_vector_unit_list "sse2" _found)
+	 if(_found)
+            AddCompilerFlag("/arch:SSE2")
+	 endif()
       endif(NOT CMAKE_CL_64)
       foreach(_flag ${_enable_vector_unit_list})
          string(TOUPPER "${_flag}" _flag)

@@ -77,7 +77,7 @@ add_executable(flops_autovect autoflops.cpp benchmark.cpp)
 target_link_libraries(flops_autovect Vc ${LIBS} CpuId)
 add_executable(flops_noautovect autoflops.cpp benchmark.cpp)
 check_cxx_compiler_flag("-fno-tree-vectorize" check_compiler_flag_no_autovect_gcc)
-add_target_property(flops_noautovect COMPILE_FLAGS ${NO_AUTOVEC})
+add_target_property(flops_noautovect COMPILE_FLAGS "${NO_AUTOVEC}")
 target_link_libraries(flops_noautovect Vc ${LIBS} CpuId)
 
 add_executable(sort_benchmark sort.cpp benchmark.cpp)
