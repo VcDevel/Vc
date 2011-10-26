@@ -47,27 +47,27 @@ template<typename Vector> struct Arithmetics
         }
 
         Benchmark::setColumnData("unrolling", "not unrolled");
-        const Vector *__restrict__ const end = &data[Factor];
+        const Vector *VC_RESTRICT const end = &data[Factor];
         benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ++ptr) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ++ptr) {
                 Vector tmp = ptr[0] + ptr[1];
                 Vc::forceToRegisters(tmp);
             }
         }
         benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ++ptr) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ++ptr) {
                 Vector tmp = ptr[0] - ptr[1];
                 Vc::forceToRegisters(tmp);
             }
         }
         benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ++ptr) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ++ptr) {
                 Vector tmp = ptr[0] * ptr[1];
                 Vc::forceToRegisters(tmp);
             }
         }
         benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ++ptr) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ++ptr) {
                 Vector tmp = ptr[0] / ptr[1];
                 Vc::forceToRegisters(tmp);
             }
@@ -75,28 +75,28 @@ template<typename Vector> struct Arithmetics
 
         Benchmark::setColumnData("unrolling", "2x unrolled");
         benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 2) {
                 Vector tmp0 = ptr[0] + ptr[1];
                 Vector tmp1 = ptr[1] + ptr[2];
                 keepResults(tmp0, tmp1);
             }
         }
         benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 2) {
                 Vector tmp0 = ptr[0] - ptr[1];
                 Vector tmp1 = ptr[1] - ptr[2];
                 keepResults(tmp0, tmp1);
             }
         }
         benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 2) {
                 Vector tmp0 = ptr[0] * ptr[1];
                 Vector tmp1 = ptr[1] * ptr[2];
                 keepResults(tmp0, tmp1);
             }
         }
         benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 2) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 2) {
                 Vector tmp0 = ptr[0] / ptr[1];
                 Vector tmp1 = ptr[1] / ptr[2];
                 keepResults(tmp0, tmp1);
@@ -105,7 +105,7 @@ template<typename Vector> struct Arithmetics
 
         Benchmark::setColumnData("unrolling", "4x unrolled");
         benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 4) {
                 Vector tmp0 = ptr[0] + ptr[1];
                 Vector tmp1 = ptr[1] + ptr[2];
                 Vector tmp2 = ptr[2] + ptr[3];
@@ -114,7 +114,7 @@ template<typename Vector> struct Arithmetics
             }
         }
         benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 4) {
                 Vector tmp0 = ptr[0] - ptr[1];
                 Vector tmp1 = ptr[1] - ptr[2];
                 Vector tmp2 = ptr[2] - ptr[3];
@@ -123,7 +123,7 @@ template<typename Vector> struct Arithmetics
             }
         }
         benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 4) {
                 Vector tmp0 = ptr[0] * ptr[1];
                 Vector tmp1 = ptr[1] * ptr[2];
                 Vector tmp2 = ptr[2] * ptr[3];
@@ -132,7 +132,7 @@ template<typename Vector> struct Arithmetics
             }
         }
         benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 4) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 4) {
                 Vector tmp0 = ptr[0] / ptr[1];
                 Vector tmp1 = ptr[1] / ptr[2];
                 Vector tmp2 = ptr[2] / ptr[3];
@@ -143,7 +143,7 @@ template<typename Vector> struct Arithmetics
 
         Benchmark::setColumnData("unrolling", "8x unrolled");
         benchmark_loop(Benchmark("add", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 8) {
                 Vector tmp0 = ptr[0] + ptr[1];
                 Vector tmp1 = ptr[1] + ptr[2];
                 Vector tmp2 = ptr[2] + ptr[3];
@@ -157,7 +157,7 @@ template<typename Vector> struct Arithmetics
             }
         }
         benchmark_loop(Benchmark("sub", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 8) {
                 Vector tmp0 = ptr[0] - ptr[1];
                 Vector tmp1 = ptr[1] - ptr[2];
                 Vector tmp2 = ptr[2] - ptr[3];
@@ -171,7 +171,7 @@ template<typename Vector> struct Arithmetics
             }
         }
         benchmark_loop(Benchmark("mul", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 8) {
                 Vector tmp0 = ptr[0] * ptr[1];
                 Vector tmp1 = ptr[1] * ptr[2];
                 Vector tmp2 = ptr[2] * ptr[3];
@@ -185,7 +185,7 @@ template<typename Vector> struct Arithmetics
             }
         }
         benchmark_loop(Benchmark("div", valuesPerSecondFactor, "Op")) {
-            for (const Vector *__restrict__ ptr = &data[0]; ptr < end; ptr += 8) {
+            for (const Vector *VC_RESTRICT ptr = &data[0]; ptr < end; ptr += 8) {
                 Vector tmp0 = ptr[0] / ptr[1];
                 Vector tmp1 = ptr[1] / ptr[2];
                 Vector tmp2 = ptr[2] / ptr[3];

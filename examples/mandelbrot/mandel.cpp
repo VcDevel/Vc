@@ -162,7 +162,7 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
     const unsigned int width = image.width();
     const float_v colorScale = 0xff / static_cast<float>(maxIt);
     for (unsigned int y = 0; y < height; ++y) {
-        unsigned int *__restrict__ line = reinterpret_cast<unsigned int *>(image.scanLine(y));
+        unsigned int *VC_RESTRICT line = reinterpret_cast<unsigned int *>(image.scanLine(y));
         const float_v c_imag = y0 + y * scale;
         uint_m toStore;
         for (uint_v x = uint_v::IndexesFromZero(); !(toStore = x < width).isEmpty();
@@ -199,7 +199,7 @@ template<> void Mandel<ScalarImpl>::mandelMe(QImage &image, float x0,
     const int width = image.width();
     const float colorScale = 0xff / static_cast<float>(maxIt);
     for (int y = 0; y < height; ++y) {
-        unsigned int *__restrict__ line = reinterpret_cast<unsigned int *>(image.scanLine(y));
+        unsigned int *VC_RESTRICT line = reinterpret_cast<unsigned int *>(image.scanLine(y));
         const float c_imag = y0 + y * scale;
         for (int x = 0; x < width; ++x) {
             const float c_real = x0 + x * scale;

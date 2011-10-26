@@ -74,7 +74,7 @@ template<typename Vector> class DoMemIos
         }
 
         template<typename Align>
-        static void run(T *__restrict__ a, Align alignment, const int Factor, const int Factor2)
+        static void run(T *VC_RESTRICT a, Align alignment, const int Factor, const int Factor2)
         {
             // initial loop so that the first iteration in the benchmark loop
             // has the same cache history as subsequent runs
