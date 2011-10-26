@@ -21,6 +21,8 @@
 #define VC_COMMON_MACROS_H
 #undef VC_COMMON_UNDOMACROS_H
 
+#include <Vc/global.h>
+
 #ifdef VC_MSVC
 # define ALIGN(n) __declspec(align(n))
 # define STRUCT_ALIGN1(n) ALIGN(n)
