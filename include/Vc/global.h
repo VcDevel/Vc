@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -42,6 +42,19 @@
 #define SSE4_2 9875301
 #define SSE4a  9875302
 #define AVX    9875303
+
+#ifdef _M_IX86_FP
+# if _M_IX86_FP >= 1
+#  ifndef __SSE__
+#   define __SSE__ 1
+#  endif
+# endif
+# if _M_IX86_FP >= 2
+#  ifndef __SSE2__
+#   define __SSE2__ 1
+#  endif
+# endif
+#endif
 
 #ifndef VC_IMPL
 
