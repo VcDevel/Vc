@@ -32,9 +32,9 @@ template<typename VectorType, typename EntryType> class VectorMemoryUnion
     public:
         typedef EntryType AliasingEntryType MAY_ALIAS;
         inline VectorMemoryUnion() {}
-#ifdef __INTEL_COMPILER
-        inline VectorMemoryUnion(VectorType x) { data.v = x; }
-        inline VectorMemoryUnion &operator=(VectorType x) {
+#if defined VC_ICC || defined VC_MSVC
+        inline VectorMemoryUnion(const VectorType &x) { data.v = x; }
+        inline VectorMemoryUnion &operator=(const VectorType &x) {
             data.v = x; return *this;
         }
 
