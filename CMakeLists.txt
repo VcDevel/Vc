@@ -232,6 +232,8 @@ elseif(COMPILER_IS_MSVC)
    # MSVC does not support inline assembly on 64 bit! :(
    # searching the help for xgetbv doesn't turn up anything. So just fall back to not supporting AVX on Windows :(
    add_definitions(-DVC_NO_XGETBV)
+   # get rid of the min/max macros
+   add_definitions(-DNOMINMAX)
 endif()
 
 find_package(Qt4)
