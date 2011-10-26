@@ -64,7 +64,11 @@
 #  endif
 #  define PURE
 #  define MAY_ALIAS
-#  define ALWAYS_INLINE
+#  ifdef VC_MSVC
+#    define ALWAYS_INLINE __forceinline
+#  else
+#    define ALWAYS_INLINE
+#  endif
 #  define VC_IS_UNLIKELY(x) x
 #  define VC_IS_LIKELY(x) x
 #  define VC_RESTRICT __restrict
