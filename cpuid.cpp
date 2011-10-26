@@ -42,8 +42,7 @@ CpuId::ProcessorType CpuId::s_processorType = CpuId::IntelReserved;
 bool   CpuId::s_noL2orL3 = false;
 
 #ifdef _MSC_VER
-void __cpuid(int a[4], int leaf);
-void __cpuidex(int a[4], int leaf, int ecx);
+#include <intrin.h>
 #define CPUID(leaf) \
     do { \
         int out[4]; \
