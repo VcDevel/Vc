@@ -20,6 +20,22 @@
 #ifndef VC_CPUSET_H
 #define VC_CPUSET_H
 
+#if defined _WIN32 || defined _WIN64
+#include <stdint.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef int cpu_set_t;
+int cpuIsSet(size_t cpucount, const cpu_set_t *cpumask);
+int cpuCount(const cpu_set_t *cpumask);
+void cpuZero(cpu_set_t *mask);
+void cpuSet(size_t id, cpu_set_t *mask);
+
+#ifdef __cplusplus
+}
+#endif
+#else // WIN32/64
 #include <sched.h>
 
 #ifdef __cplusplus
@@ -36,3 +52,4 @@ void cpuSet(size_t id, cpu_set_t *mask);
 #endif
 
 #endif
+#endif // WIN32/64

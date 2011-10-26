@@ -17,6 +17,27 @@
 
 */
 
+#if defined _WIN32 || defined _WIN64
+#include "cpuset.h"
+int cpuIsSet(size_t cpucount, const cpu_set_t *cpumask)
+{
+    return 0;
+}
+
+int cpuCount(const cpu_set_t *cpumask)
+{
+    return 1;
+}
+
+void cpuZero(cpu_set_t *mask)
+{
+}
+
+void cpuSet(size_t id, cpu_set_t *mask)
+{
+}
+
+#else
 #define _GNU_SOURCE
 #include <sched.h>
 
@@ -46,3 +67,4 @@ void cpuSet(size_t id, cpu_set_t *mask)
     CPU_SET(id, mask);
 }
 
+#endif // WIN32|WIN64
