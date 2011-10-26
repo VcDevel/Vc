@@ -433,6 +433,11 @@ namespace SSE
 } // namespace Vc
 #endif
 
+// SSE4.2
+#ifdef VC_IMPL_SSE4_2
+#include <nmmintrin.h>
+#endif
+
 namespace Vc
 {
 namespace SSE
