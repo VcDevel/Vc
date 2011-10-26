@@ -51,6 +51,16 @@ template<unsigned int VectorSize> class Mask
     friend class Float8Mask;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
+        
+        // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
+        // Also Float8Mask requires const ref on MSVC 32bit.
+#if defined VC_MSVC && defined _WIN32
+        typedef const Mask<VectorSize> &Argument;
+#else
+        typedef Mask<VectorSize> Argument;
+#endif
+
+
         inline Mask() {}
         inline Mask(const __m128  &x) : k(x) {}
         inline Mask(const __m128d &x) : k(_mm_castpd_ps(x)) {}
@@ -295,6 +305,15 @@ class Float8Mask
     };
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
+
+        // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
+        // Also Float8Mask requires const ref on MSVC 32bit.
+#if defined VC_MSVC && defined _WIN32
+        typedef const Float8Mask & Argument;
+#else
+        typedef Float8Mask Argument;
+#endif
+
         inline Float8Mask() {}
         inline Float8Mask(const M256 &x) : k(x) {}
         inline explicit Float8Mask(VectorSpecialInitializerZero::ZEnum) {

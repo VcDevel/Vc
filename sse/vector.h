@@ -122,7 +122,10 @@ class Vector : public VectorBase<T>
         typedef typename Base::EntryType  EntryType;
         typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
         typedef typename Base::MaskType Mask;
+	typedef typename Mask::Argument MaskArg;
         typedef Vc::Memory<Vector<T>, Size> Memory;
+
+	typedef typename Base::AsArg AsArg;
 
         typedef T _T;
 
@@ -192,56 +195,56 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
-        inline const Vector<T> &dcba() const INTRINSIC { return *this; }
-        inline const Vector<T> cdab() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 3, 0, 1))); }
-        inline const Vector<T> badc() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 0, 3, 2))); }
-        inline const Vector<T> aaaa() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(0, 0, 0, 0))); }
-        inline const Vector<T> bbbb() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 1, 1, 1))); }
-        inline const Vector<T> cccc() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 2, 2, 2))); }
-        inline const Vector<T> dddd() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 3, 3, 3))); }
-        inline const Vector<T> dacb() const INTRINSIC { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 0, 2, 1))); }
+        inline const Vector<T> INTRINSIC &dcba() const { return *this; }
+        inline const Vector<T> INTRINSIC cdab() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 3, 0, 1))); }
+        inline const Vector<T> INTRINSIC badc() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 0, 3, 2))); }
+        inline const Vector<T> INTRINSIC aaaa() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(0, 0, 0, 0))); }
+        inline const Vector<T> INTRINSIC bbbb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 1, 1, 1))); }
+        inline const Vector<T> INTRINSIC cccc() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 2, 2, 2))); }
+        inline const Vector<T> INTRINSIC dddd() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 3, 3, 3))); }
+        inline const Vector<T> INTRINSIC dacb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 0, 2, 1))); }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // gathers
         template<typename IndexT> Vector(const EntryType *mem, const IndexT *indexes);
         template<typename IndexT> Vector(const EntryType *mem, const Vector<IndexT> indexes);
-        template<typename IndexT> Vector(const EntryType *mem, const IndexT *indexes, Mask mask);
-        template<typename IndexT> Vector(const EntryType *mem, const Vector<IndexT> indexes, Mask mask);
+        template<typename IndexT> Vector(const EntryType *mem, const IndexT *indexes, MaskArg mask);
+        template<typename IndexT> Vector(const EntryType *mem, const Vector<IndexT> indexes, MaskArg mask);
         template<typename S1, typename IT> Vector(const S1 *array, const EntryType S1::* member1, const IT indexes);
-        template<typename S1, typename IT> Vector(const S1 *array, const EntryType S1::* member1, const IT indexes, Mask mask);
+        template<typename S1, typename IT> Vector(const S1 *array, const EntryType S1::* member1, const IT indexes, MaskArg mask);
         template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes);
-        template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes, Mask mask);
+        template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes, MaskArg mask);
         template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes);
-        template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, Mask mask);
+        template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, MaskArg mask);
         template<typename Index> void gather(const EntryType *mem, const Index indexes);
-        template<typename Index> void gather(const EntryType *mem, const Index indexes, Mask mask);
+        template<typename Index> void gather(const EntryType *mem, const Index indexes, MaskArg mask);
 #ifdef VC_USE_SET_GATHERS
-        template<typename IT> void gather(const EntryType *mem, Vector<IT> indexes, Mask mask);
+        template<typename IT> void gather(const EntryType *mem, Vector<IT> indexes, MaskArg mask);
 #endif
         template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, const IT indexes);
-        template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, const IT indexes, Mask mask);
+        template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, const IT indexes, MaskArg mask);
         template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes);
-        template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes, Mask mask);
+        template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes, MaskArg mask);
         template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes);
-        template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, Mask mask);
+        template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, MaskArg mask);
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // scatters
         template<typename Index> void scatter(EntryType *mem, const Index indexes) const;
-        template<typename Index> void scatter(EntryType *mem, const Index indexes, Mask mask) const;
+        template<typename Index> void scatter(EntryType *mem, const Index indexes, MaskArg mask) const;
         template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, const IT indexes) const;
-        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, const IT indexes, Mask mask) const;
+        template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, const IT indexes, MaskArg mask) const;
         template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, const IT indexes) const;
-        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, const IT indexes, Mask mask) const;
+        template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, const IT indexes, MaskArg mask) const;
         template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes) const;
-        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, Mask mask) const;
+        template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, MaskArg mask) const;
 
         //prefix
-        inline Vector &operator++() INTRINSIC { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
+        inline Vector INTRINSIC &operator++() { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
         //postfix
-        inline Vector operator++(int) INTRINSIC { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
+        inline Vector INTRINSIC operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
-        inline Common::AliasingEntryHelper<EntryType> operator[](size_t index) INTRINSIC {
+        inline Common::AliasingEntryHelper<EntryType> INTRINSIC operator[](size_t index) {
 #if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 3
             ::Vc::Warnings::_operator_bracket_warning();
 #endif
@@ -314,10 +317,10 @@ class Vector : public VectorBase<T>
         inline EntryType max() const INTRINSIC { return VectorHelper<T>::max(data()); }
         inline EntryType product() const INTRINSIC { return VectorHelper<T>::mul(data()); }
         inline EntryType sum() const INTRINSIC { return VectorHelper<T>::add(data()); }
-        inline INTRINSIC_L EntryType min(Mask m) const INTRINSIC_R;
-        inline INTRINSIC_L EntryType max(Mask m) const INTRINSIC_R;
-        inline INTRINSIC_L EntryType product(Mask m) const INTRINSIC_R;
-        inline INTRINSIC_L EntryType sum(Mask m) const INTRINSIC_R;
+        inline INTRINSIC_L EntryType min(MaskArg m) const INTRINSIC_R;
+        inline INTRINSIC_L EntryType max(MaskArg m) const INTRINSIC_R;
+        inline INTRINSIC_L EntryType product(MaskArg m) const INTRINSIC_R;
+        inline INTRINSIC_L EntryType sum(MaskArg m) const INTRINSIC_R;
 
         inline Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }
 

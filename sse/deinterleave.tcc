@@ -30,13 +30,13 @@ inline void deinterleave(Vector<float> &a, Vector<float> &b)
     b.data() = _mm_unpackhi_ps(tmp0, tmp1);
 }
 
-inline void deinterleave(Vector<float> &a, Vector<float> &b, Vector<short> tmp)
+inline void deinterleave(Vector<float> &a, Vector<float> &b, Vector<short>::AsArg tmp)
 {
     a.data() = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_slli_epi32(tmp.data(), 16), 16));
     b.data() = _mm_cvtepi32_ps(_mm_srai_epi32(tmp.data(), 16));
 }
 
-inline void deinterleave(Vector<float> &a, Vector<float> &b, Vector<unsigned short> tmp)
+inline void deinterleave(Vector<float> &a, Vector<float> &b, Vector<unsigned short>::AsArg tmp)
 {
     a.data() = _mm_cvtepi32_ps(_mm_srli_epi32(_mm_slli_epi32(tmp.data(), 16), 16));
     b.data() = _mm_cvtepi32_ps(_mm_srli_epi32(tmp.data(), 16));
@@ -54,7 +54,7 @@ inline void deinterleave(Vector<float8> &a, Vector<float8> &b)
     b.data()[1] = _mm_unpackhi_ps(tmp2, tmp3);
 }
 
-inline void deinterleave(Vector<float8> &a, Vector<float8> &b, Vector<short> tmp0, Vector<short> tmp1)
+inline void deinterleave(Vector<float8> &a, Vector<float8> &b, Vector<short>::AsArg tmp0, Vector<short>::AsArg tmp1)
 {
     a.data()[0] = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_slli_epi32(tmp0.data(), 16), 16));
     b.data()[0] = _mm_cvtepi32_ps(_mm_srai_epi32(tmp0.data(), 16));
@@ -62,7 +62,7 @@ inline void deinterleave(Vector<float8> &a, Vector<float8> &b, Vector<short> tmp
     b.data()[1] = _mm_cvtepi32_ps(_mm_srai_epi32(tmp1.data(), 16));
 }
 
-inline void deinterleave(Vector<float8> &a, Vector<float8> &b, Vector<unsigned short> tmp0, Vector<unsigned short> tmp1)
+inline void deinterleave(Vector<float8> &a, Vector<float8> &b, Vector<unsigned short>::AsArg tmp0, Vector<unsigned short>::AsArg tmp1)
 {
     a.data()[0] = _mm_cvtepi32_ps(_mm_srli_epi32(_mm_slli_epi32(tmp0.data(), 16), 16));
     b.data()[0] = _mm_cvtepi32_ps(_mm_srli_epi32(tmp0.data(), 16));
@@ -113,13 +113,13 @@ inline void deinterleave(Vector<unsigned short> &a, Vector<unsigned short> &b)
     b.data() = _mm_unpackhi_epi16(tmp2, tmp3);
 }
 
-inline void deinterleave(Vector<int> &a, Vector<int> &b, Vector<short> tmp)
+inline void deinterleave(Vector<int> &a, Vector<int> &b, Vector<short>::AsArg tmp)
 {
     a.data() = _mm_srai_epi32(_mm_slli_epi32(tmp.data(), 16), 16);
     b.data() = _mm_srai_epi32(tmp.data(), 16);
 }
 
-inline void deinterleave(Vector<unsigned int> &a, Vector<unsigned int> &b, Vector<unsigned short> tmp)
+inline void deinterleave(Vector<unsigned int> &a, Vector<unsigned int> &b, Vector<unsigned short>::AsArg tmp)
 {
     a.data() = _mm_srli_epi32(_mm_slli_epi32(tmp.data(), 16), 16);
     b.data() = _mm_srli_epi32(tmp.data(), 16);
