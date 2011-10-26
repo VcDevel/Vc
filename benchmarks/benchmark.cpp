@@ -667,4 +667,35 @@ int main(int argc, char **argv)
     return r;
 }
 
+#ifndef __GNUC__
+template<> int KeepResultsHelper<int, sizeof(int)>::blackHole[8];
+template<> unsigned int KeepResultsHelper<unsigned int, sizeof(unsigned int)>::blackHole[8];
+template<> short KeepResultsHelper<short, sizeof(short)>::blackHole[8];
+template<> unsigned short KeepResultsHelper<unsigned short, sizeof(unsigned short)>::blackHole[8];
+template<> float KeepResultsHelper<float, sizeof(float)>::blackHole[8];
+template<> double KeepResultsHelper<double, sizeof(double)>::blackHole[8];
+
+template<> Vc::Vector<int> KeepResultsHelper<Vc::Vector<int>, sizeof(Vc::Vector<int>)>::blackHole[8];
+template<> Vc::Vector<unsigned int> KeepResultsHelper<Vc::Vector<unsigned int>,
+    sizeof(Vc::Vector<unsigned int>)>::blackHole[8];
+template<> Vc::Vector<short> KeepResultsHelper<Vc::Vector<short>, sizeof(Vc::Vector<short>)>::blackHole[8];
+template<> Vc::Vector<unsigned short> KeepResultsHelper<Vc::Vector<unsigned short>,
+    sizeof(Vc::Vector<unsigned short>)>::blackHole[8];
+template<> Vc::Vector<float> KeepResultsHelper<Vc::Vector<float>, sizeof(Vc::Vector<float>)>::blackHole[8];
+template<> Vc::Vector<double> KeepResultsHelper<Vc::Vector<double>, sizeof(Vc::Vector<double>)>::blackHole[8];
+
+#ifdef VC_IMPL_Scalar
+template<> Vc::Scalar::Mask<1> KeepResultsHelper<Vc::Scalar::Mask<1>, sizeof(Vc::Scalar::Mask<1>)>::blackHole[8];
+#elif defined VC_IMPL_SSE
+template<> Vc::SSE::Mask<2>  KeepResultsHelper<Vc::SSE::Mask<2>,  sizeof(Vc::SSE::Mask<2>)>::blackHole[8];
+template<> Vc::SSE::Mask<4>  KeepResultsHelper<Vc::SSE::Mask<4>,  sizeof(Vc::SSE::Mask<4>)>::blackHole[8];
+template<> Vc::SSE::Mask<8>  KeepResultsHelper<Vc::SSE::Mask<8>,  sizeof(Vc::SSE::Mask<8>)>::blackHole[8];
+template<> Vc::SSE::Mask<16> KeepResultsHelper<Vc::SSE::Mask<16>, sizeof(Vc::SSE::Mask<16>)>::blackHole[8];
+#endif
+
+template<> float const * KeepResultsHelper<float const *, sizeof(float *)>::blackHole[8];
+template<> short const * KeepResultsHelper<short const *, sizeof(short *)>::blackHole[8];
+
+#endif
+
 // vim: sw=4 sts=4 et tw=100
