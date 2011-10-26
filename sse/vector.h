@@ -50,27 +50,27 @@ class WriteMaskedVector
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
         //prefix
-        inline Vector<T> &operator++() INTRINSIC {
+        inline INTRINSIC Vector<T> &operator++() {
             vec->data() = VectorHelper<T>::add(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return *vec;
         }
-        inline Vector<T> &operator--() INTRINSIC {
+        inline INTRINSIC Vector<T> &operator--() {
             vec->data() = VectorHelper<T>::sub(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return *vec;
         }
         //postfix
-        inline Vector<T> operator++(int) INTRINSIC {
+        inline INTRINSIC Vector<T> operator++(int) {
             Vector<T> ret(*vec);
             vec->data() = VectorHelper<T>::add(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
                     );
             return ret;
         }
-        inline Vector<T> operator--(int) INTRINSIC {
+        inline INTRINSIC Vector<T> operator--(int) {
             Vector<T> ret(*vec);
             vec->data() = VectorHelper<T>::sub(vec->data(),
                     VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
@@ -78,24 +78,24 @@ class WriteMaskedVector
             return ret;
         }
 
-        inline Vector<T> &operator+=(const Vector<T> &x) INTRINSIC {
+        inline INTRINSIC Vector<T> &operator+=(const Vector<T> &x) {
             vec->data() = VectorHelper<T>::add(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
             return *vec;
         }
-        inline Vector<T> &operator-=(const Vector<T> &x) INTRINSIC {
+        inline INTRINSIC Vector<T> &operator-=(const Vector<T> &x) {
             vec->data() = VectorHelper<T>::sub(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
             return *vec;
         }
-        inline Vector<T> &operator*=(const Vector<T> &x) INTRINSIC {
+        inline INTRINSIC Vector<T> &operator*=(const Vector<T> &x) {
             vec->data() = VectorHelper<T>::mul(vec->data(), x.data(), mask.data());
             return *vec;
         }
-        inline Vector<T> &operator/=(const Vector<T> &x) INTRINSIC {
+        inline INTRINSIC Vector<T> &operator/=(const Vector<T> &x) {
             vec->data() = VectorHelper<T>::div(vec->data(), x.data(), mask.data());
             return *vec;
         }
 
-        inline Vector<T> &operator=(const Vector<T> &x) INTRINSIC {
+        inline INTRINSIC Vector<T> &operator=(const Vector<T> &x) {
             vec->assign(x, mask);
             return *vec;
         }
@@ -152,7 +152,7 @@ class Vector : public VectorBase<T>
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         Vector(EntryType a);
-        static inline Vector broadcast4(const EntryType *x) INTRINSIC { return Vector<T>(x); }
+        static inline Vector INTRINSIC broadcast4(const EntryType *x) { return Vector<T>(x); }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
@@ -252,12 +252,12 @@ class Vector : public VectorBase<T>
         }
         inline EntryType INTRINSIC_L operator[](size_t index) const PURE INTRINSIC_R;
 
-        inline Vector operator~() const PURE INTRINSIC { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
+        inline Vector PURE INTRINSIC operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
 
 #define OP(symbol, fun) \
-        inline Vector &operator symbol##=(const Vector<T> &x) INTRINSIC { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
-        inline Vector operator symbol(const Vector<T> &x) const PURE INTRINSIC { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); }
+        inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
+        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); }
 
         OP(+, add)
         OP(-, sub)
@@ -270,14 +270,14 @@ class Vector : public VectorBase<T>
         inline INTRINSIC_L Vector  operator/ (EntryType x) const PURE INTRINSIC_R;
 
 #define OP(symbol, fun) \
-        inline Vector &operator symbol##=(const Vector<T> &x) INTRINSIC { data() = VectorHelper<VectorType>::fun(data(), x.data()); return *this; } \
-        inline Vector operator symbol(const Vector<T> &x) const PURE INTRINSIC { return Vector<T>(VectorHelper<VectorType>::fun(data(), x.data())); }
+        inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<VectorType>::fun(data(), x.data()); return *this; } \
+        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<VectorType>::fun(data(), x.data())); }
         OP(|, or_)
         OP(&, and_)
         OP(^, xor_)
 #undef OP
 #define OPcmp(symbol, fun) \
-        inline Mask operator symbol(const Vector<T> &x) const PURE INTRINSIC { return VectorHelper<T>::fun(data(), x.data()); }
+        inline Mask PURE INTRINSIC operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data(), x.data()); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -299,7 +299,7 @@ class Vector : public VectorBase<T>
         template<typename V2> inline V2 staticCast() const { return StaticCastHelper<T, typename V2::_T>::cast(data()); }
         template<typename V2> inline V2 reinterpretCast() const { return mm128_reinterpret_cast<typename V2::VectorType>(data()); }
 
-        inline WriteMaskedVector<T> operator()(const Mask &k) INTRINSIC { return WriteMaskedVector<T>(this, k); }
+        inline WriteMaskedVector<T> INTRINSIC operator()(const Mask &k) { return WriteMaskedVector<T>(this, k); }
 
         /**
          * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have
@@ -313,10 +313,10 @@ class Vector : public VectorBase<T>
         inline VectorType &data() { return Base::data(); }
         inline const VectorType &data() const { return Base::data(); }
 
-        inline EntryType min() const INTRINSIC { return VectorHelper<T>::min(data()); }
-        inline EntryType max() const INTRINSIC { return VectorHelper<T>::max(data()); }
-        inline EntryType product() const INTRINSIC { return VectorHelper<T>::mul(data()); }
-        inline EntryType sum() const INTRINSIC { return VectorHelper<T>::add(data()); }
+        inline EntryType INTRINSIC min() const { return VectorHelper<T>::min(data()); }
+        inline EntryType INTRINSIC max() const { return VectorHelper<T>::max(data()); }
+        inline EntryType INTRINSIC product() const { return VectorHelper<T>::mul(data()); }
+        inline EntryType INTRINSIC sum() const { return VectorHelper<T>::add(data()); }
         inline INTRINSIC_L EntryType min(MaskArg m) const INTRINSIC_R;
         inline INTRINSIC_L EntryType max(MaskArg m) const INTRINSIC_R;
         inline INTRINSIC_L EntryType product(MaskArg m) const INTRINSIC_R;

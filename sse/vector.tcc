@@ -427,7 +427,7 @@ OP_IMPL(unsigned short, ^, xor_)
 #endif
 
 #define OP_IMPL(T, symbol) \
-template<> VC_WORKAROUND_IN Vector<T> &VC_WORKAROUND VectorBase<T>::operator symbol##=(const VectorBase<T> &x) \
+template<> VC_WORKAROUND_IN Vector<T> VC_WORKAROUND &VectorBase<T>::operator symbol##=(const VectorBase<T> &x) \
 { \
     for_all_vector_entries(i, \
             d.m(i) symbol##= x.d.m(i); \
