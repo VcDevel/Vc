@@ -54,7 +54,13 @@
 #else
 #  define INTRINSIC
 #  define FLATTEN
+#  ifdef CONST
+#    undef CONST
+#  endif
 #  define CONST
+#  ifdef PURE
+#    undef PURE
+#  endif
 #  define PURE
 #  define MAY_ALIAS
 #  define ALWAYS_INLINE
