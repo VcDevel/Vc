@@ -21,6 +21,9 @@
 #define VC_SCALAR_HELPERIMPL_TCC
 
 #include <cstdlib>
+#if defined _WIN32 || defined _WIN64
+#include <malloc.h>
+#endif
 
 namespace Vc
 {
@@ -46,15 +49,26 @@ inline void *HelperImpl<ScalarImpl>::malloc(size_t n)
             return std::malloc(n);
         case Vc::AlignOnCacheline:
             // TODO: hardcoding 64 is not such a great idea
+#if defined _WIN32 || defined _WIN64
+            ptr = _aligned_malloc(nextMultipleOf<64>(n), 64);
+            return ptr;
+#else
             if (0 == posix_memalign(&ptr, 64, nextMultipleOf<64>(n))) {
                 return ptr;
             }
             break;
+#endif
         case Vc::AlignOnPage:
             // TODO: hardcoding 4096 is not such a great idea
+#if defined _WIN32 || defined _WIN64
+            ptr = _aligned_malloc(nextMultipleOf<4096>(n), 4096);
+            return ptr;
+#else
             if (0 == posix_memalign(&ptr, 4096, nextMultipleOf<4096>(n))) {
                 return ptr;
             }
+            break;
+#endif
     }
     return 0;
 }
