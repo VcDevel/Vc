@@ -448,11 +448,12 @@ namespace SSE
         case 0:
             f = _mm_cvtss_f32(v);
             break;
-#ifdef VC_IMPL_SSE4_1
+#if defined VC_IMPL_SSE4_1 && !defined VC_MSVC
         default:
 #ifdef VC_GCC
             f = __builtin_ia32_vec_ext_v4sf(static_cast<__v4sf>(v), (i));
 #else
+            // MSVC fails to compile this because it can't optimize i to an immediate
             _MM_EXTRACT_FLOAT(f, v, i);
 #endif
             break;
