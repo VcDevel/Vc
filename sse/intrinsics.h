@@ -21,10 +21,12 @@
 #define SSE_INTRINSICS_H
 
 #if defined(_MSC_VER) && !defined(__midl)
-// MSVC sucks. If you include intrin.h you get all SSE intrinsics
-// declared. Something always includes intrin.h even if you don't
+// MSVC sucks. If you include intrin.h you get all SSE and AVX intrinsics
+// declared. This is a problem because we need to implement the intrinsics
+// that are not supported in hardware ourselves.
+// Something always includes intrin.h even if you don't
 // do it explicitly. Therefore we try to be the first to include it
-// but with __midl defined -- therefore not actually doing anything
+// but with __midl defined, in which case it is basically empty.
 #ifdef __INTRIN_H_
 #error "intrin.h was already included, polluting the namespace. Please fix your code to include the Vc headers before anything that includes intrin.h. If you need any of the intrinsics from intrin.h declare the functions manually instead (you can copy them out of the intrin.h header."
 #endif
