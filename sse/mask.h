@@ -118,9 +118,9 @@ template<unsigned int VectorSize> class Mask
 
         inline operator bool() const { return isFull(); }
 
-        inline int shiftMask() const CONST;
+        inline int CONST_L shiftMask() const CONST_R;
 
-        int toInt() const CONST;
+        int CONST_L toInt() const CONST_R;
 
         inline _M128  data () const { return k; }
         inline _M128I dataI() const { return _mm_castps_si128(k); }

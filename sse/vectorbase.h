@@ -46,21 +46,21 @@ namespace SSE
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
 
-            inline Vector<EntryType> &operator|= (const VectorBase<EntryType> &x) INTRINSIC;
-            inline Vector<EntryType> &operator&= (const VectorBase<EntryType> &x) INTRINSIC;
-            inline Vector<EntryType> &operator^= (const VectorBase<EntryType> &x) INTRINSIC;
+            inline INTRINSIC_L Vector<EntryType> &operator|= (const VectorBase<EntryType> &x) INTRINSIC_R;
+            inline INTRINSIC_L Vector<EntryType> &operator&= (const VectorBase<EntryType> &x) INTRINSIC_R;
+            inline INTRINSIC_L Vector<EntryType> &operator^= (const VectorBase<EntryType> &x) INTRINSIC_R;
             inline Vector<EntryType> &operator>>=(const VectorBase<EntryType> &x);
             inline Vector<EntryType> &operator<<=(const VectorBase<EntryType> &x);
-            inline Vector<EntryType> &operator>>=(int x) INTRINSIC;
-            inline Vector<EntryType> &operator<<=(int x) INTRINSIC;
+            inline INTRINSIC_L Vector<EntryType> &operator>>=(int x) INTRINSIC_R;
+            inline INTRINSIC_L Vector<EntryType> &operator<<=(int x) INTRINSIC_R;
 
-            inline Vector<EntryType> operator| (const VectorBase<EntryType> &x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator& (const VectorBase<EntryType> &x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator^ (const VectorBase<EntryType> &x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator>>(const VectorBase<EntryType> &x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator<<(const VectorBase<EntryType> &x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator>>(int x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator<<(int x) const INTRINSIC PURE;
+            inline INTRINSIC_L Vector<EntryType> operator| (const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator& (const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator^ (const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator>>(const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator<<(const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator>>(int x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator<<(int x) const INTRINSIC_R PURE;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }

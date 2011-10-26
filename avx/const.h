@@ -73,15 +73,15 @@ namespace AVX
         typedef Vector<T> V;
         static const T _data[8];
 
-        static V _1_2pi()  CONST;
-        static V _2pi()    CONST;
-        static V _pi_2()   CONST;
-        static V _pi()     CONST;
+        static V CONST_L _1_2pi()  CONST_R;
+        static V CONST_L _2pi()    CONST_R;
+        static V CONST_L _pi_2()   CONST_R;
+        static V CONST_L _pi()     CONST_R;
 
-        static V _1_3fac() CONST;
-        static V _1_5fac() CONST;
-        static V _1_7fac() CONST;
-        static V _1_9fac() CONST;
+        static V CONST_L _1_3fac() CONST_R;
+        static V CONST_L _1_5fac() CONST_R;
+        static V CONST_L _1_7fac() CONST_R;
+        static V CONST_L _1_9fac() CONST_R;
     } STRUCT_ALIGN2(64);
 
     template<typename T> struct IntForFloat { typedef unsigned int Type; };
@@ -97,18 +97,18 @@ namespace AVX
         static const Int _dataI[15];
         static const T   _dataT[6];
 
-        static M128iDummy bias()  CONST;
-        static Mask exponentMask() CONST;
-        static Vec _1_2() CONST;
-        static Vec _1_sqrt2() CONST;
-        static Vec P(int i) CONST;
-        static Vec Q(int i) CONST;
-        static Vec min() CONST;
-        static Vec ln2_small() CONST;
-        static Vec ln2_large() CONST;
-        static Vec neginf() CONST;
-        static Vec log10_e() CONST;
-        static Vec log2_e() CONST;
+        static M128iDummy CONST_L bias()  CONST_R;
+        static Mask CONST_L exponentMask() CONST_R;
+        static Vec CONST_L _1_2() CONST_R;
+        static Vec CONST_L _1_sqrt2() CONST_R;
+        static Vec CONST_L P(int i) CONST_R;
+        static Vec CONST_L Q(int i) CONST_R;
+        static Vec CONST_L min() CONST_R;
+        static Vec CONST_L ln2_small() CONST_R;
+        static Vec CONST_L ln2_large() CONST_R;
+        static Vec CONST_L neginf() CONST_R;
+        static Vec CONST_L log10_e() CONST_R;
+        static Vec CONST_L log2_e() CONST_R;
     };
 } // namespace AVX
 } // namespace Vc

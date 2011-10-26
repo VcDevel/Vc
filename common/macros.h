@@ -44,21 +44,22 @@
 
 #ifdef __GNUC__
 #  define INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
+#  define INTRINSIC_L
+#  define INTRINSIC_R INTRINSIC
 #  define FLATTEN __attribute__((__flatten__))
 #  define CONST __attribute__((__const__))
+#  define CONST_L
+#  define CONST_R CONST
 #  define PURE __attribute__((__pure__))
 #  define MAY_ALIAS __attribute__((__may_alias__))
 #  define ALWAYS_INLINE __attribute__((__always_inline__))
+#  define ALWAYS_INLINE_L
+#  define ALWAYS_INLINE_R ALWAYS_INLINE
 #  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
 #else
-#  define INTRINSIC
 #  define FLATTEN
-#  ifdef CONST
-#    undef CONST
-#  endif
-#  define CONST
 #  ifdef PURE
 #    undef PURE
 #  endif
@@ -66,8 +67,24 @@
 #  define MAY_ALIAS
 #  ifdef VC_MSVC
 #    define ALWAYS_INLINE __forceinline
+#    define ALWAYS_INLINE_L ALWAYS_INLINE
+#    define ALWAYS_INLINE_R
+#    define CONST __declspec(noalias)
+#    define CONST_L CONST
+#    define CONST_R
+#    define INTRINSIC __forceinline
+#    define INTRINSIC_L INTRINSIC
+#    define INTRINSIC_R
 #  else
 #    define ALWAYS_INLINE
+#    define ALWAYS_INLINE_L
+#    define ALWAYS_INLINE_R
+#    define CONST
+#    define CONST_L
+#    define CONST_R
+#    define INTRINSIC
+#    define INTRINSIC_L
+#    define INTRINSIC_R
 #  endif
 #  define VC_IS_UNLIKELY(x) x
 #  define VC_IS_LIKELY(x) x
