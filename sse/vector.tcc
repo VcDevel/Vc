@@ -437,8 +437,9 @@ template<> VC_WORKAROUND_IN Vector<T> VC_WORKAROUND &VectorBase<T>::operator sym
 template<> inline Vector<T>  VectorBase<T>::operator symbol(const VectorBase<T> &x) const \
 { \
     Vector<T> r; \
+	VectorBase<T> &r2 = r; /* MSVC workaround */ \
     for_all_vector_entries(i, \
-            r.d.m(i) = d.m(i) symbol x.d.m(i); \
+            r2.d.m(i) = d.m(i) symbol x.d.m(i); \
             ); \
     return r; \
 }
