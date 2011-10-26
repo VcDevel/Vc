@@ -51,6 +51,7 @@
 #  define ALWAYS_INLINE __attribute__((__always_inline__))
 #  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
+#  define VC_RESTRICT __restrict__
 #else
 #  define INTRINSIC
 #  define FLATTEN
@@ -66,6 +67,7 @@
 #  define ALWAYS_INLINE
 #  define VC_IS_UNLIKELY(x) x
 #  define VC_IS_LIKELY(x) x
+#  define VC_RESTRICT __restrict
 #endif
 
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
