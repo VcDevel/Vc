@@ -588,7 +588,7 @@ int main(int argc, char **argv)
         } else if (std::strcmp(argv[i - 1], "-cpu") == 0) {
 // On OS X there is no way to set CPU affinity
 // TODO there is a way to ask the system to not move the process around
-#ifndef __APPLE__
+#if !defined __APPLE__ && !defined _WIN32 && !defined _WIN64
             if (std::strcmp(argv[i], "all") == 0) {
                 useCpus = UseAllCpus;
             } else if (std::strcmp(argv[i], "any") == 0) {
@@ -627,7 +627,8 @@ int main(int argc, char **argv)
     if (useCpus == UseAnyOneCpu) {
         r += bmain();
         Benchmark::finalize();
-    } else {
+#if !defined _WIN32 && !defined _WIN64
+	} else {
         cpu_set_t cpumask;
         sched_getaffinity(0, sizeof(cpu_set_t), &cpumask);
         int cpucount = cpuCount(&cpumask);
@@ -660,6 +661,7 @@ int main(int argc, char **argv)
             r += bmain();
             Benchmark::finalize();
         }
+#endif
     }
     delete file;
     return r;
