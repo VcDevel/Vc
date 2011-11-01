@@ -20,6 +20,7 @@
 #ifndef BENCHMARK_H
 #define BENCHMARK_H
 
+#include <Vc/Vc>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
