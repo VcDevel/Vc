@@ -687,6 +687,8 @@ template<> Vc::Vector<double> KeepResultsHelper<Vc::Vector<double>, sizeof(Vc::V
 #ifdef VC_IMPL_Scalar
 template<> Vc::Scalar::Mask<1> KeepResultsHelper<Vc::Scalar::Mask<1>, sizeof(Vc::Scalar::Mask<1>)>::blackHole[8];
 #elif defined VC_IMPL_SSE
+template<> Vc::SSE::Vector<Vc::SSE::float8>  KeepResultsHelper<Vc::SSE::Vector<Vc::SSE::float8>,
+    sizeof(Vc::SSE::Vector<Vc::SSE::float8>)>::blackHole[8];
 template<> Vc::SSE::Mask<2>  KeepResultsHelper<Vc::SSE::Mask<2>,  sizeof(Vc::SSE::Mask<2>)>::blackHole[8];
 template<> Vc::SSE::Mask<4>  KeepResultsHelper<Vc::SSE::Mask<4>,  sizeof(Vc::SSE::Mask<4>)>::blackHole[8];
 template<> Vc::SSE::Mask<8>  KeepResultsHelper<Vc::SSE::Mask<8>,  sizeof(Vc::SSE::Mask<8>)>::blackHole[8];
