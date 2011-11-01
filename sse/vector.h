@@ -371,13 +371,17 @@ template<typename T> inline typename Vector<T>::Mask INTRINSIC operator!=(const 
   template<typename T> static inline typename Vector<T>::Mask isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
   template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
-#ifdef _MSC_VER
-#define VC_FTR_EMPTY
-#include "forceToRegisters.def"
-#undef VC_FTR_EMPTY
-#else
-#include "forceToRegisters.def"
-template<> inline void forceToRegisters(const Vector<float8> &x) { __asm__ __volatile__(""::"x"(x.data()[0]), "x"(x.data()[1])); }
+#include "forceToRegisters.tcc"
+#ifdef __GNUC__
+template<>
+inline void ALWAYS_INLINE forceToRegisters(const Vector<float8> &x1) {
+  __asm__ __volatile__(""::"x"(x1.data()[0]), "x"(x1.data()[1]));
+}
+#elif defined(VC_MSVC)
+#pragma optimize("g", off)
+template<>
+inline void ALWAYS_INLINE forceToRegisters(const Vector<float8> &/*x1*/) {
+}
 #endif
 
 #undef STORE_VECTOR
