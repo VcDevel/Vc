@@ -344,13 +344,7 @@ template<typename T> inline typename Vector<T>::Mask  operator!=(const typename 
   template<typename T> static inline typename Vector<T>::Mask isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
   template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
-#ifdef _MSC_VER
-#define VC_FTR_EMPTY
-#include "forceToRegisters.def"
-#undef VC_FTR_EMPTY
-#else
-#include "forceToRegisters.def"
-#endif
+#include "forceToRegisters.tcc"
 
 #undef STORE_VECTOR
 } // namespace AVX
