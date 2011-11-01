@@ -59,7 +59,7 @@ inline void readsConstantIndexTest(const V a, const V b)
 template<typename V, size_t Index>
 struct ReadsConstantIndex
 {
-    ReadsConstantIndex(const V a, const V b)
+    ReadsConstantIndex(const V &a, const V &b)
     {
         readsConstantIndexTest<V, Index>(a, b);
         ReadsConstantIndex<V, Index - 1>(a, b);
@@ -70,7 +70,7 @@ struct ReadsConstantIndex
 template<typename V>
 struct ReadsConstantIndex<V, 0>
 {
-    ReadsConstantIndex(const V a, const V b)
+    ReadsConstantIndex(const V &a, const V &b)
     {
         readsConstantIndexTest<V, 0>(a, b);
     }
