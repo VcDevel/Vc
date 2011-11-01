@@ -60,6 +60,7 @@ puts '#elif defined(VC_MSVC)'
 	end
 	print "Vector<T1> &/*x1*/) {\n"
 	print "}\n"
+	puts '#pragma optimize("g", on)'
 end
 
 puts '#else'
