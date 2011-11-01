@@ -254,7 +254,7 @@ template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 16> {
         _keepXRegister(tmp0.data(), tmp1.data(), tmp2.data(), tmp3.data(), tmp4.data(), tmp5.data(), tmp6.data(), tmp7.data());
     }
 #ifndef __GNUC__
-	static T blackHole[8];
+	static Vc::Vector<T> blackHole[8];
 #endif
 };
 template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 32> {
@@ -266,7 +266,7 @@ template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 32> {
         _keepXRegister(tmp0.data(), tmp1.data(), tmp2.data(), tmp3.data(), tmp4.data(), tmp5.data(), tmp6.data(), tmp7.data());
     }
 #ifndef __GNUC__
-	static T blackHole[8];
+	static Vc::Vector<T> blackHole[8];
 #endif
 };
 template<unsigned int S1, size_t S2, int S3> struct KeepResultsHelper<Vc::AVX::Mask<S1, S2>, S3> {
@@ -275,7 +275,7 @@ template<unsigned int S1, size_t S2, int S3> struct KeepResultsHelper<Vc::AVX::M
         _keepXRegister(tmp0.data(), tmp1.data(), tmp2.data(), tmp3.data(), tmp4.data(), tmp5.data(), tmp6.data(), tmp7.data());
     }
 #ifndef __GNUC__
-	static T blackHole[8];
+	static Vc::AVX::Mask<S1, S2> blackHole[8];
 #endif
 };
 #elif defined(VC_IMPL_SSE)
@@ -286,7 +286,7 @@ template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 16> {
         _keepXRegister(tmp0.data(), tmp1.data(), tmp2.data(), tmp3.data(), tmp4.data(), tmp5.data(), tmp6.data(), tmp7.data());
     }
 #ifndef __GNUC__
-	static T blackHole[8];
+	static Vc::Vector<T> blackHole[8];
 #endif
 };
 template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 32> {
@@ -299,7 +299,7 @@ template<typename T> struct KeepResultsHelper<Vc::Vector<T>, 32> {
         _keepXRegister(tmp4.data()[0], tmp4.data()[1], tmp5.data()[0], tmp5.data()[1], tmp6.data()[0], tmp6.data()[1], tmp7.data()[0], tmp7.data()[1]);
     }
 #ifndef __GNUC__
-	static T blackHole[8];
+	static Vc::Vector<T> blackHole[8];
 #endif
 };
 template<unsigned int S> struct KeepResultsHelper<Vc::SSE::Mask<S>, 16> {
@@ -309,17 +309,17 @@ template<unsigned int S> struct KeepResultsHelper<Vc::SSE::Mask<S>, 16> {
         _keepXRegister(tmp0.data(), tmp1.data(), tmp2.data(), tmp3.data(), tmp4.data(), tmp5.data(), tmp6.data(), tmp7.data());
     }
 #ifndef __GNUC__
-	static T blackHole[8];
+	static Vc::SSE::Mask<S> blackHole[8];
 #endif
 };
 template<> struct KeepResultsHelper<Vc::SSE::Float8Mask, 32> {
-    static inline void keep(Vc::SSE::Float8Mask tmp0, Vc::SSE::Float8Mask tmp1, Vc::SSE::Float8Mask tmp2, Vc::SSE::Float8Mask tmp3,
-            Vc::SSE::Float8Mask tmp4, Vc::SSE::Float8Mask tmp5, Vc::SSE::Float8Mask tmp6, Vc::SSE::Float8Mask tmp7) {
+    static inline void keep(Vc::SSE::Float8Mask::Argument tmp0, Vc::SSE::Float8Mask::Argument tmp1, Vc::SSE::Float8Mask::Argument tmp2, Vc::SSE::Float8Mask::Argument tmp3,
+            Vc::SSE::Float8Mask::Argument tmp4, Vc::SSE::Float8Mask::Argument tmp5, Vc::SSE::Float8Mask::Argument tmp6, Vc::SSE::Float8Mask::Argument tmp7) {
         _keepXRegister(tmp0.data()[0], tmp0.data()[1], tmp1.data()[0], tmp1.data()[1], tmp2.data()[0], tmp2.data()[1], tmp3.data()[0], tmp3.data()[1]);
         _keepXRegister(tmp4.data()[0], tmp4.data()[1], tmp5.data()[0], tmp5.data()[1], tmp6.data()[0], tmp6.data()[1], tmp7.data()[0], tmp7.data()[1]);
     }
 #ifndef __GNUC__
-	static T blackHole[8];
+	static Vc::SSE::Float8Mask blackHole[8];
 #endif
 };
 #endif
