@@ -693,6 +693,7 @@ template<> Vc::SSE::Mask<2>  KeepResultsHelper<Vc::SSE::Mask<2>,  sizeof(Vc::SSE
 template<> Vc::SSE::Mask<4>  KeepResultsHelper<Vc::SSE::Mask<4>,  sizeof(Vc::SSE::Mask<4>)>::blackHole[8];
 template<> Vc::SSE::Mask<8>  KeepResultsHelper<Vc::SSE::Mask<8>,  sizeof(Vc::SSE::Mask<8>)>::blackHole[8];
 template<> Vc::SSE::Mask<16> KeepResultsHelper<Vc::SSE::Mask<16>, sizeof(Vc::SSE::Mask<16>)>::blackHole[8];
+Vc::SSE::Float8Mask KeepResultsHelper<Vc::SSE::Float8Mask, sizeof(Vc::SSE::Float8Mask)>::blackHole[8];
 #endif
 
 template<> float const * KeepResultsHelper<float const *, sizeof(float *)>::blackHole[8];
