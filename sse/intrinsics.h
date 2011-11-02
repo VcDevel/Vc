@@ -28,7 +28,7 @@
 // do it explicitly. Therefore we try to be the first to include it
 // but with __midl defined, in which case it is basically empty.
 #ifdef __INTRIN_H_
-#error "intrin.h was already included, polluting the namespace. Please fix your code to include the Vc headers before anything that includes intrin.h. If you need any of the intrinsics from intrin.h declare the functions manually instead (you can copy them out of the intrin.h header."
+#error "intrin.h was already included, polluting the namespace. Please fix your code to include the Vc headers before anything that includes intrin.h. (Vc will declare the relevant intrinsics as they are required by some system headers.)"
 #endif
 #define __midl
 #include <intrin.h>
