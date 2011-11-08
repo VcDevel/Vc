@@ -326,6 +326,7 @@ VECTOR_TYPE operator+(VECTOR_TYPE x) const;
 VECTOR_TYPE operator-(VECTOR_TYPE x) const;
 VECTOR_TYPE operator*(VECTOR_TYPE x) const;
 VECTOR_TYPE operator/(VECTOR_TYPE x) const;
+VECTOR_TYPE operator-() const;
 VECTOR_TYPE operator|(VECTOR_TYPE x) const;
 VECTOR_TYPE operator&(VECTOR_TYPE x) const;
 VECTOR_TYPE operator^(VECTOR_TYPE x) const;
