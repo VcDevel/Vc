@@ -334,6 +334,8 @@ class Vector : public VectorBase<T>
                 }
             }
         }
+
+        inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;
 };
 
 template<> inline Vector<float8> Vector<float8>::broadcast4(const float *x) {

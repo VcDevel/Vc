@@ -233,6 +233,8 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename F> void callWithValuesSorted(F &f) {
             f(m_data);
         }
+
+        inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;
 };
 
 template<typename T> class SwizzledVector : public Vector<T> {};
@@ -414,6 +416,7 @@ template<typename T1, typename T2> inline Mask<1u>   operator!=(T1 x, const Vect
 } // namespace Scalar
 } // namespace Vc
 
+#include "vector.tcc"
 #include "memory.h"
 #include "math.h"
 #include "undomacros.h"

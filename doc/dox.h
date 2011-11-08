@@ -252,6 +252,7 @@ namespace Vc
     {
         public:
 #include "dox-common-ops.h"
+#include "dox-real-ops.h"
     };
     /**
      * \class float_m dox.h <Vc/float_v>
@@ -284,6 +285,7 @@ namespace Vc
     {
         public:
 #include "dox-common-ops.h"
+#include "dox-real-ops.h"
     };
     /**
      * \class double_m dox.h <Vc/double_v>
@@ -449,6 +451,7 @@ namespace Vc
     {
         public:
 #include "dox-common-ops.h"
+#include "dox-real-ops.h"
     };
     /**
      * \class sfloat_m dox.h <Vc/sfloat_v>

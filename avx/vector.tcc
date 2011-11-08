@@ -1018,7 +1018,22 @@ template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(Mask m)
     Vector<T> tmp(VectorSpecialInitializerZero::Zero);
     tmp(m) = *this;
     return tmp.sum();
+}//}}}
+// stuff {{{1
+template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float> reference) const
+{
+    return _mm256_or_ps(
+            _mm256_and_ps(reference.d.v(), _mm256_setsignmask_ps()),
+            _mm256_and_ps(d.v(), _mm256_setabsmask_ps())
+            );
 }
+template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<double> reference) const
+{
+    return _mm256_or_pd(
+            _mm256_and_pd(reference.d.v(), _mm256_setsignmask_pd()),
+            _mm256_and_pd(d.v(), _mm256_setabsmask_pd())
+            );
+}//}}}1
 } // namespace AVX
 } // namespace Vc
 

@@ -1102,6 +1102,33 @@ template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(MaskArg
     return tmp.sum();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// stuff {{{1
+template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float> reference) const
+{
+    return _mm_or_ps(
+            _mm_and_ps(reference.d.v(), _mm_setsignmask_ps()),
+            _mm_and_ps(d.v(), _mm_setabsmask_ps())
+            );
+}
+template<> inline Vector<float8> INTRINSIC Vector<float8>::copySign(Vector<float8> reference) const
+{
+    return M256::create( _mm_or_ps(
+                _mm_and_ps(reference.d.v()[0], _mm_setsignmask_ps()),
+                _mm_and_ps(d.v()[0], _mm_setabsmask_ps())
+                ), _mm_or_ps(
+                _mm_and_ps(reference.d.v()[1], _mm_setsignmask_ps()),
+                _mm_and_ps(d.v()[1], _mm_setabsmask_ps())
+                )
+            );
+}
+template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<double> reference) const
+{
+    return _mm_or_pd(
+            _mm_and_pd(reference.d.v(), _mm_setsignmask_pd()),
+            _mm_and_pd(d.v(), _mm_setabsmask_pd())
+            );
+}//}}}1
 } // namespace SSE
 } // namespace Vc
 

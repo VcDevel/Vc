@@ -115,6 +115,16 @@ template<typename V> void testForeachBit()
     }
 }
 
+template<typename V> void copySign()
+{
+    typedef typename V::EntryType T;
+    V v(One);
+    V positive(One);
+    V negative = -positive;
+    COMPARE(v, v.copySign(positive));
+    COMPARE(-v, v.copySign(negative));
+}
+
 int main()
 {
     runTest(testCall<int_v>);
@@ -140,6 +150,10 @@ int main()
     runTest(testSort<sfloat_v>);
     runTest(testSort<short_v>);
     runTest(testSort<ushort_v>);
+
+    runTest(copySign<float_v>);
+    runTest(copySign<sfloat_v>);
+    runTest(copySign<double_v>);
 
     return 0;
 }
