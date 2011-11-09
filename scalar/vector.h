@@ -64,6 +64,7 @@ class Vector : public VectorBase<T, Vector<T> >
         inline Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : m_data(0) {}
 
         static inline Vector Zero() { Vector r; r.m_data = 0; return r; }
+        static inline Vector One() { Vector r; r.m_data = 1; return r; }
         static inline Vector IndexesFromZero() { return Zero(); }
 
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> *a) : m_data(static_cast<T>(a->data())) {}
