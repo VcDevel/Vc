@@ -120,6 +120,40 @@ template<typename Vec> void testRSqrt()
     setFuzzyness<float>(0.f);
 }
 
+template<typename T> void my_sincos(T x, T *sin, T *cos);
+template<> void my_sincos<double>(double x, double *sin, double *cos)
+{
+    sincos(x, sin, cos);
+}
+template<> void my_sincos<float>(float x, float *sin, float *cos)
+{
+    sincosf(x, sin, cos);
+}
+
+template<typename Vec> void testSincos()
+{
+    typedef typename Vec::EntryType T;
+    setFuzzyness<double>(4e-6);
+    typename Vec::Memory base;
+    for (int i = 0; i < Vec::Size; ++i) {
+        base[i] = static_cast<T>(i);
+    }
+    for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
+        const T scale = T(0.01);
+        Vec sin, cos;
+        Vc::sincos((base.vector(0) + offset) * scale, &sin, &cos);
+
+        for (int i = 0; i < Vec::Size; ++i) {
+            T scalarSin, scalarCos;
+            my_sincos((i + offset) * scale, &scalarSin, &scalarCos);
+            setFuzzyness<float>(6e-5f);
+            FUZZY_COMPARE(T(sin[i]), scalarSin);
+            setFuzzyness<float>(2.1e-4f);
+            FUZZY_COMPARE(T(cos[i]), scalarCos);
+        }
+    }
+}
+
 template<typename Vec> void testSin()
 {
     typedef typename Vec::EntryType T;
@@ -440,6 +474,10 @@ int main(int argc, char **argv)
     runTest(testReduceSum<uint_v>);
     runTest(testReduceSum<short_v>);
     runTest(testReduceSum<ushort_v>);
+
+    runTest(testSincos<float_v>);
+    runTest(testSincos<sfloat_v>);
+    runTest(testSincos<double_v>);
 
     return 0;
 }

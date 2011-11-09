@@ -78,125 +78,6 @@ namespace AVX
     template<> inline float_v c_log<float, float_m>::log10_e()      { return _mm256_broadcast_ss(&_dataT[4]); }
     template<> inline float_v c_log<float, float_m>::log2_e()       { return _mm256_broadcast_ss(&_dataT[5]); }
 
-    template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
-        typedef Vector<T> V;
-        typedef c_sin<T> C;
-
-        // x - x**3/3! + x**5/5! - x**7/7! + x**9/9! - x**11/11! for [-pi/2:pi/2]
-
-        V x = _x - round(_x * C::_1_2pi()) * C::_2pi();
-        x(x >  C::_pi_2()) =  C::_pi() - x;
-        x(x < -C::_pi_2()) = -C::_pi() - x;
-
-        const V &x2 = x * x;
-        return x * (V::One() - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
-    }
-    template<typename T> static inline Vector<T> cos(const Vector<T> &_x) {
-        typedef Vector<T> V;
-        typedef c_sin<T> C;
-
-        V x = _x - round(_x * C::_1_2pi()) * C::_2pi() + C::_pi_2();
-        x(x > C::_pi_2()) = C::_pi() - x;
-
-        const V &x2 = x * x;
-        return x * (V::One() - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
-    }
-    template<typename T> static inline Vector<T> asin (const Vector<T> &_x) {
-        typedef Vector<T> V;
-        typedef typename V::Mask M;
-        using namespace VectorSpecialInitializerZero;
-        using namespace VectorSpecialInitializerOne;
-
-        const V pi_2(M_PI / 2);
-        const M &negative = _x < V(Zero);
-
-        const V &a = abs(_x);
-        //const M &outOfRange = a > V(One);
-        const M &small = a < V(1.e-4);
-        const M &gt_0_5 = a > V(0.5);
-        V x = a;
-        V z = a * a;
-        z(gt_0_5) = (V(One) - a) * V(0.5);
-        x(gt_0_5) = sqrt(z);
-        z = ((((4.2163199048e-2  * z
-              + 2.4181311049e-2) * z
-              + 4.5470025998e-2) * z
-              + 7.4953002686e-2) * z
-              + 1.6666752422e-1) * z * x
-              + x;
-        z(gt_0_5) = pi_2 - (z + z);
-        z(small) = a;
-        z(negative) = -z;
-        //z(outOfRange) = nan;
-
-        return z;
-    }
-    template<typename T> static inline Vector<T> atan (const Vector<T> &_x) {
-        typedef Vector<T> V;
-        typedef typename V::Mask M;
-        using namespace VectorSpecialInitializerZero;
-        using namespace VectorSpecialInitializerOne;
-        V x = abs(_x);
-        const V pi_2(M_PI / 2);
-        const V pi_4(M_PI / 4);
-        const M &gt_tan_3pi_8 = x > V(2.414213562373095);
-        const M &gt_tan_pi_8  = x > V(0.4142135623730950) && !gt_tan_3pi_8;
-        const V minusOne(-1);
-        V y(Zero);
-        y(gt_tan_3pi_8) = pi_2;
-        y(gt_tan_pi_8)  = pi_4;
-        x(gt_tan_3pi_8) = minusOne / x;
-        x(gt_tan_pi_8)  = (x - V(One)) / (x + V(One));
-        const V &x2 = x * x;
-        y += (((8.05374449538e-2 * x2
-              - 1.38776856032E-1) * x2
-              + 1.99777106478E-1) * x2
-              - 3.33329491539E-1) * x2 * x
-              + x;
-        y(_x < V(Zero)) = -y;
-        return y;
-    }
-    template<typename T> static inline Vector<T> atan2(const Vector<T> &y, const Vector<T> &x) {
-        typedef Vector<T> V;
-        typedef typename V::Mask M;
-        using namespace VectorSpecialInitializerZero;
-        const V pi(M_PI);
-        const V pi_2(M_PI / 2);
-
-        const M &xZero = x == V(Zero);
-        const M &yZero = y == V(Zero);
-        const M &xNeg = x < V(Zero);
-        const M &yNeg = y < V(Zero);
-
-        const V &absX = abs(x);
-        const V &absY = abs(y);
-
-        V a = absY / absX;
-        const V pi_4(M_PI / 4);
-        const M &gt_tan_3pi_8 = a > V(2.414213562373095);
-        const M &gt_tan_pi_8  = a > V(0.4142135623730950) && !gt_tan_3pi_8;
-        const V minusOne(-1);
-        V b(Zero);
-        b(gt_tan_3pi_8) = pi_2;
-        b(gt_tan_pi_8)  = pi_4;
-        a(gt_tan_3pi_8) = minusOne / a;
-        a(gt_tan_pi_8)  = (absY - absX) / (absY + absX);
-        const V &a2 = a * a;
-        b += (((8.05374449538e-2 * a2
-              - 1.38776856032E-1) * a2
-              + 1.99777106478E-1) * a2
-              - 3.33329491539E-1) * a2 * a
-              + a;
-        b(xNeg ^ yNeg) = -b;
-
-        b(xNeg && !yNeg) += pi;
-        b(xNeg &&  yNeg) -= pi;
-        //b(xZero) = pi_2;
-        b.setZero(xZero && yZero);
-        b(xZero && yNeg) = -pi_2;
-        //b(yZero && xNeg) = pi;
-        return b;
-    }
     inline __m256d INTRINSIC CONST extractExponent(__m256d x) {
         typedef c_log<double, double_m> C;
         __m128i emm0lo = _mm_srli_epi64(avx_cast<__m128i>(x), 52);
@@ -317,5 +198,7 @@ namespace AVX
 } // namespace Vc
 
 #include "undomacros.h"
+#define VC__USE_NAMESPACE AVX
+#include "../common/trigonometric.h"
 
 #endif // VC_AVX_MATH_H

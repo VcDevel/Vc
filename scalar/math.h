@@ -70,6 +70,24 @@ template<typename T> static inline Vector<T> abs  (const Vector<T> &x)
     return std::abs( x.data() );
 }
 
+template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos)
+{
+#ifdef __GNUC__
+    __builtin_sincosf(x.data(), &sin->data(), &cos->data());
+#else
+    sincosf(x.data(), &sin->data(), &cos->data());
+#endif
+}
+
+template<> inline void sincos(const Vector<double> &x, Vector<double> *sin, Vector<double> *cos)
+{
+#ifdef __GNUC__
+    __builtin_sincos(x.data(), &sin->data(), &cos->data());
+#else
+    sincos(x.data(), &sin->data(), &cos->data());
+#endif
+}
+
 template<typename T> static inline Vector<T> sin  (const Vector<T> &x)
 {
     return std::sin( x.data() );
