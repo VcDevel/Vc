@@ -306,6 +306,7 @@ template<typename T> class Vector
         }
 
         inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;
+        inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };
 
 template<typename T> class SwizzledVector : public Vector<T> {};

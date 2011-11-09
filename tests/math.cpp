@@ -377,6 +377,48 @@ template<typename Vec> void testReduceSum()
     }
 }
 
+template<typename V> void testExponent()
+{
+    typedef typename V::EntryType T;
+    Vc::Memory<V, 32> input;
+    Vc::Memory<V, 32> expected;
+    input[ 0] = T(0.25); expected[ 0] = T(-2);
+    input[ 1] = T(   1); expected[ 1] = T( 0);
+    input[ 2] = T(   2); expected[ 2] = T( 1);
+    input[ 3] = T(   3); expected[ 3] = T( 1);
+    input[ 4] = T(   4); expected[ 4] = T( 2);
+    input[ 5] = T( 0.5); expected[ 5] = T(-1);
+    input[ 6] = T(   6); expected[ 6] = T( 2);
+    input[ 7] = T(   7); expected[ 7] = T( 2);
+    input[ 8] = T(   8); expected[ 8] = T( 3);
+    input[ 9] = T(   9); expected[ 9] = T( 3);
+    input[10] = T(  10); expected[10] = T( 3);
+    input[11] = T(  11); expected[11] = T( 3);
+    input[12] = T(  12); expected[12] = T( 3);
+    input[13] = T(  13); expected[13] = T( 3);
+    input[14] = T(  14); expected[14] = T( 3);
+    input[15] = T(  15); expected[15] = T( 3);
+    input[16] = T(  16); expected[16] = T( 4);
+    input[17] = T(  17); expected[17] = T( 4);
+    input[18] = T(  18); expected[18] = T( 4);
+    input[19] = T(  19); expected[19] = T( 4);
+    input[20] = T(  20); expected[20] = T( 4);
+    input[21] = T(  21); expected[21] = T( 4);
+    input[22] = T(  22); expected[22] = T( 4);
+    input[23] = T(  23); expected[23] = T( 4);
+    input[24] = T(  24); expected[24] = T( 4);
+    input[25] = T(  25); expected[25] = T( 4);
+    input[26] = T(  26); expected[26] = T( 4);
+    input[27] = T(  27); expected[27] = T( 4);
+    input[28] = T(  28); expected[28] = T( 4);
+    input[29] = T(  29); expected[29] = T( 4);
+    input[30] = T(  32); expected[30] = T( 5);
+    input[31] = T(  31); expected[31] = T( 4);
+    for (size_t i = 0; i < input.vectorsCount(); ++i) {
+        COMPARE(V(input.vector(i)).exponent(), V(expected.vector(i)));
+    }
+}
+
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
@@ -478,6 +520,10 @@ int main(int argc, char **argv)
     runTest(testSincos<float_v>);
     runTest(testSincos<sfloat_v>);
     runTest(testSincos<double_v>);
+
+    runTest(testExponent<float_v>);
+    runTest(testExponent<sfloat_v>);
+    runTest(testExponent<double_v>);
 
     return 0;
 }

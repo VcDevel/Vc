@@ -141,5 +141,10 @@ namespace Vc {
     CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__) CAT3(Error_,__LINE__,msg)
 #define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg); (void) CAT3(Error_,__LINE__,msg)
 
+#ifdef NDEBUG
+#define VC_ASSERT(x)
+#else
+#define VC_ASSERT(x) assert(x);
+#endif
 
 #endif // VC_COMMON_MACROS_H

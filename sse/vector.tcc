@@ -1108,7 +1108,7 @@ template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(MaskArg
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// stuff {{{1
+// copySign {{{1
 template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float> reference) const
 {
     return _mm_or_ps(
@@ -1134,6 +1134,31 @@ template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<doubl
             _mm_and_pd(d.v(), _mm_setabsmask_pd())
             );
 }//}}}1
+// exponent {{{1
+template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
+{
+    VC_ASSERT((*this > 0.f).isFull());
+    __m128i tmp = _mm_srli_epi32(_mm_castps_si128(d.v()), 23);
+    tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x7f));
+    return _mm_cvtepi32_ps(tmp);
+}
+template<> inline Vector<float8> INTRINSIC Vector<float8>::exponent() const
+{
+    VC_ASSERT((*this > 0.f).isFull());
+    __m128i tmp0 = _mm_srli_epi32(_mm_castps_si128(d.v()[0]), 23);
+    __m128i tmp1 = _mm_srli_epi32(_mm_castps_si128(d.v()[1]), 23);
+    tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
+    tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
+    return M256::create( _mm_cvtepi32_ps(tmp0), _mm_cvtepi32_ps(tmp1));
+}
+template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
+{
+    VC_ASSERT((*this > 0.).isFull());
+    __m128i tmp = _mm_srli_epi64(_mm_castpd_si128(d.v()), 52);
+    tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x3ff));
+    return _mm_cvtepi32_pd(_mm_shuffle_epi32(tmp, 0x08));
+}
+// }}}1
 } // namespace SSE
 } // namespace Vc
 

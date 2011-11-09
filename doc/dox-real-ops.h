@@ -25,3 +25,33 @@
  * sign(v.copySign(r)) == sign(r).
  */
 inline VECTOR_TYPE copySign(VECTOR_TYPE reference) const;
+
+/**
+ * Returns the exponent to base 2.
+ *
+ * This function provides efficient access to the exponent of the floating point number. The
+ * returned value is a fast approximation to the logarithm of base 2. The absolute error of that
+ * approximation is between [0, 1[.
+ *
+ * Examples:
+\verbatim
+ value | exponent | log2
+=======|==========|=======
+   1.0 |        0 | 0
+   2.0 |        1 | 1
+   3.0 |        1 | 1.585
+   3.9 |        1 | 1.963
+   4.0 |        2 | 2
+   4.1 |        2 | 2.036
+\endverbatim
+ *
+ * \warning This function assumes a positive value (non-zero). If the value is negative the sign bit will
+ * modify the returned value. If you compile with Vc runtime checks the function will assert
+ * values greater than zero.
+ *
+ * You may use abs to apply this function to negative values:
+ * \code
+ * abs(v).exponent()
+ * \endcode
+ */
+inline VECTOR_TYPE exponent() const;

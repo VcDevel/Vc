@@ -44,8 +44,22 @@ template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<doubl
     sign.f = reference.data();
     value.i = (sign.i & 0x8000000000000000u) | (value.i & 0x7fffffffffffffffu);
     return value.f;
+} // }}}1
+// exponent {{{1
+template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
+{
+    VC_ASSERT(m_data > 0.f);
+    union { float f; int i; } value;
+    value.f = m_data;
+    return static_cast<float>((value.i >> 23) - 0x7f);
 }
-
+template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
+{
+    VC_ASSERT(m_data > 0.);
+    union { double f; long long i; } value;
+    value.f = m_data;
+    return static_cast<double>((value.i >> 52) - 0x3ff);
+}
 // }}}1
 } // namespace Scalar
 } // namespace Vc
