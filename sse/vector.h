@@ -139,6 +139,7 @@ class Vector : public VectorBase<T>
         explicit inline INTRINSIC_L Vector(VectorSpecialInitializerOne::OEnum) INTRINSIC_R;
         explicit inline INTRINSIC_L Vector(VectorSpecialInitializerIndexesFromZero::IEnum) INTRINSIC_R;
         static inline INTRINSIC_L Vector Zero() INTRINSIC_R;
+        static inline INTRINSIC_L Vector One() INTRINSIC_R;
         static inline INTRINSIC_L Vector IndexesFromZero() INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////

@@ -48,6 +48,11 @@ template<typename T> inline Vector<T> Vector<T>::Zero()
     return VectorHelper<VectorType>::zero();
 }
 
+template<typename T> inline Vector<T> Vector<T>::One()
+{
+    return VectorHelper<T>::one();
+}
+
 template<typename T> inline Vector<T> Vector<T>::IndexesFromZero()
 {
     return VectorHelper<VectorType>::load(Base::_IndexesFromZero(), Aligned);
