@@ -101,6 +101,11 @@ static VECTOR_TYPE Zero();
  */
 VECTOR_TYPE(Vc::One);
 
+/**
+ * Returns a vector with the entries initialized to one.
+ */
+static VECTOR_TYPE One();
+
 #ifdef INTEGER
 /**
  * Construct a vector with the entries initialized to 0, 1, 2, 3, 4, 5, ...
