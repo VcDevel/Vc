@@ -170,13 +170,13 @@ void load(const ENTRY_TYPE *memory, LoadStoreFlags align = Aligned);
 /**
  * Set all entries to zero.
  */
-void makeZero();
+void setZero();
 
 /**
  * Set all entries to zero where the mask is set. I.e. a 4-vector with a mask of 0111 would
  * set the last three entries to 0.
  */
-void makeZero(const MASK_TYPE &mask);
+void setZero(const MASK_TYPE &mask);
 
 /**
  * Store the vector data to \p memory.
