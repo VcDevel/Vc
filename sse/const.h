@@ -51,15 +51,15 @@ namespace SSE
         enum { Size = 16 / sizeof(T) };
         ALIGN(64) static const T _data[Size * 8];
 
-        static V _1_2pi()  CONST;
-        static V _2pi()    CONST;
-        static V _pi_2()   CONST;
-        static V _pi()     CONST;
+        static V CONST_L _1_2pi()  CONST_R;
+        static V CONST_L _2pi()    CONST_R;
+        static V CONST_L _pi_2()   CONST_R;
+        static V CONST_L _pi()     CONST_R;
 
-        static V _1_3fac() CONST;
-        static V _1_5fac() CONST;
-        static V _1_7fac() CONST;
-        static V _1_9fac() CONST;
+        static V CONST_L _1_3fac() CONST_R;
+        static V CONST_L _1_5fac() CONST_R;
+        static V CONST_L _1_7fac() CONST_R;
+        static V CONST_L _1_9fac() CONST_R;
     };
 } // namespace SSE
 } // namespace Vc

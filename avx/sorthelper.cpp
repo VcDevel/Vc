@@ -221,7 +221,7 @@ template<> __m256 SortHelper<float>::sort(__m256 hgfedcba)
 
     return concat(_mm_unpacklo_ps(l, h), _mm_unpackhi_ps(l, h));
 }
-template<> void SortHelper<double>::sort(__m256d &__restrict__ x, __m256d &__restrict__ y)
+template<> void SortHelper<double>::sort(__m256d &VC_RESTRICT x, __m256d &VC_RESTRICT y)
 {
     __m256d l = _mm256_min_pd(x, y); // ↓x3y3 ↓x2y2 ↓x1y1 ↓x0y0
     __m256d h = _mm256_max_pd(x, y); // ↑x3y3 ↑x2y2 ↑x1y1 ↑x0y0

@@ -95,8 +95,10 @@ vc_generate_plots(compare VC_DISABLE_PTEST)
 vc_generate_plots(math)
 vc_generate_plots(memio)
 
-add_executable(constants constants.cpp benchmark.cpp)
-target_link_libraries(constants Vc ${LIBS} CpuId)
+if(NOT COMPILER_IS_MSVC)
+   add_executable(constants constants.cpp benchmark.cpp)
+   target_link_libraries(constants Vc ${LIBS} CpuId)
+endif()
 
 if(QT4_FOUND)
    include(${QT_USE_FILE})

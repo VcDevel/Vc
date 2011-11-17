@@ -45,22 +45,27 @@ namespace SSE
             typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
+#if defined VC_MSVC && defined _WIN32
+            typedef const Vector<T> &AsArg;
+#else
+            typedef Vector<T> AsArg;
+#endif
 
-            inline Vector<EntryType> &operator|= (const VectorBase<EntryType> &x) INTRINSIC;
-            inline Vector<EntryType> &operator&= (const VectorBase<EntryType> &x) INTRINSIC;
-            inline Vector<EntryType> &operator^= (const VectorBase<EntryType> &x) INTRINSIC;
+            inline INTRINSIC_L Vector<EntryType> &operator|= (const VectorBase<EntryType> &x) INTRINSIC_R;
+            inline INTRINSIC_L Vector<EntryType> &operator&= (const VectorBase<EntryType> &x) INTRINSIC_R;
+            inline INTRINSIC_L Vector<EntryType> &operator^= (const VectorBase<EntryType> &x) INTRINSIC_R;
             inline Vector<EntryType> &operator>>=(const VectorBase<EntryType> &x);
             inline Vector<EntryType> &operator<<=(const VectorBase<EntryType> &x);
-            inline Vector<EntryType> &operator>>=(int x) INTRINSIC;
-            inline Vector<EntryType> &operator<<=(int x) INTRINSIC;
+            inline INTRINSIC_L Vector<EntryType> &operator>>=(int x) INTRINSIC_R;
+            inline INTRINSIC_L Vector<EntryType> &operator<<=(int x) INTRINSIC_R;
 
-            inline Vector<EntryType> operator| (const VectorBase<EntryType> &x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator& (const VectorBase<EntryType> &x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator^ (const VectorBase<EntryType> &x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator>>(const VectorBase<EntryType> &x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator<<(const VectorBase<EntryType> &x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator>>(int x) const INTRINSIC PURE;
-            inline Vector<EntryType> operator<<(int x) const INTRINSIC PURE;
+            inline INTRINSIC_L Vector<EntryType> operator| (const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator& (const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator^ (const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator>>(const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator<<(const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator>>(int x) const INTRINSIC_R PURE;
+            inline INTRINSIC_L Vector<EntryType> operator<<(int x) const INTRINSIC_R PURE;
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }
@@ -97,13 +102,20 @@ namespace SSE
             typedef Float8Mask MaskType;
             typedef Float8GatherMask GatherMaskType;
 
+            typedef ParameterHelper<VectorType>::ByValue ByValue;
+#if defined VC_MSVC && defined _WIN32
+            typedef const Vector<float8> &AsArg;
+#else
+            typedef Vector<float8> AsArg;
+#endif
+
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }
 
         protected:
             enum { HasVectorDivision = 1 };
             inline VectorBase() {}
-            inline VectorBase(const VectorType &x) : d(x) {}
+            inline VectorBase(ByValue x) : d(x) {}
 
             typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
             StorageType d;
@@ -119,6 +131,11 @@ namespace SSE
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
+#if defined VC_MSVC && defined _WIN32
+            typedef const Vector<float> &AsArg;
+#else
+            typedef Vector<float> AsArg;
+#endif
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }
@@ -142,6 +159,11 @@ namespace SSE
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
+#if defined VC_MSVC && defined _WIN32
+            typedef const Vector<double> &AsArg;
+#else
+            typedef Vector<double> AsArg;
+#endif
 
             VectorType &data() { return d.v(); }
             const VectorType &data() const { return d.v(); }

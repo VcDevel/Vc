@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -25,6 +25,15 @@
 #include <cstdlib>
 
 using namespace Vc;
+
+static inline void doNothingButDontOptimize()
+{
+#ifdef __GNUC__
+    asm volatile("");
+#else
+    __asm {};
+#endif
+}
 
 template<typename Vector> class DoCompares
 {
@@ -87,12 +96,12 @@ template<typename Vector> class DoCompares
                     timer.Start();
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
-                            if ((a[i + 0] < a[i + 1]).isFull()) asm volatile("");
-                            if ((a[i + 0] < a[i + 2]).isFull()) asm volatile("");
-                            if ((a[i + 0] < a[i + 3]).isFull()) asm volatile("");
-                            if ((a[i + 1] < a[i + 2]).isFull()) asm volatile("");
-                            if ((a[i + 1] < a[i + 3]).isFull()) asm volatile("");
-                            if ((a[i + 2] < a[i + 3]).isFull()) asm volatile("");
+                            if ((a[i + 0] < a[i + 1]).isFull()) doNothingButDontOptimize();
+                            if ((a[i + 0] < a[i + 2]).isFull()) doNothingButDontOptimize();
+                            if ((a[i + 0] < a[i + 3]).isFull()) doNothingButDontOptimize();
+                            if ((a[i + 1] < a[i + 2]).isFull()) doNothingButDontOptimize();
+                            if ((a[i + 1] < a[i + 3]).isFull()) doNothingButDontOptimize();
+                            if ((a[i + 2] < a[i + 3]).isFull()) doNothingButDontOptimize();
                         }
                     }
                     timer.Stop();
@@ -105,12 +114,12 @@ template<typename Vector> class DoCompares
                     timer.Start();
                     for (int j = 0; j < Factor2; ++j) {
                         for (int i = 0; i < Factor; ++i) {
-                            if (!(a[i + 0] < a[i + 1]).isEmpty()) asm volatile("");
-                            if (!(a[i + 0] < a[i + 2]).isEmpty()) asm volatile("");
-                            if (!(a[i + 0] < a[i + 3]).isEmpty()) asm volatile("");
-                            if (!(a[i + 1] < a[i + 2]).isEmpty()) asm volatile("");
-                            if (!(a[i + 1] < a[i + 3]).isEmpty()) asm volatile("");
-                            if (!(a[i + 2] < a[i + 3]).isEmpty()) asm volatile("");
+                            if (!(a[i + 0] < a[i + 1]).isEmpty()) doNothingButDontOptimize();
+                            if (!(a[i + 0] < a[i + 2]).isEmpty()) doNothingButDontOptimize();
+                            if (!(a[i + 0] < a[i + 3]).isEmpty()) doNothingButDontOptimize();
+                            if (!(a[i + 1] < a[i + 2]).isEmpty()) doNothingButDontOptimize();
+                            if (!(a[i + 1] < a[i + 3]).isEmpty()) doNothingButDontOptimize();
+                            if (!(a[i + 2] < a[i + 3]).isEmpty()) doNothingButDontOptimize();
                         }
                     }
                     timer.Stop();

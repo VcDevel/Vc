@@ -43,8 +43,8 @@ template<> struct HelperImpl<Vc::ScalarImpl>
     static inline void prefetchFar(const void *) {}
 
     template<Vc::MallocAlignment A>
-    static inline void *malloc(size_t n) ALWAYS_INLINE;
-    static inline void free(void *p) ALWAYS_INLINE;
+    static inline ALWAYS_INLINE_L void *malloc(size_t n) ALWAYS_INLINE_R;
+    static inline ALWAYS_INLINE_L void free(void *p) ALWAYS_INLINE_R;
 };
 
 } // namespace Scalar

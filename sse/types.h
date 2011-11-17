@@ -61,6 +61,21 @@ namespace SSE
             _M128 d[2];
     };
 
+    template<typename T> struct ParameterHelper {
+        typedef T ByValue;
+        typedef T & Reference;
+        typedef const T & ConstRef;
+    };
+#if defined VC_MSVC && !defined _WIN64
+    // The calling convention on WIN32 can't guarantee alignment.
+    // An exception are the first three arguments, which may be passed in a register.
+    template<> struct ParameterHelper<M256> {
+        typedef const M256 & ByValue;
+        typedef M256 & Reference;
+        typedef const M256 & ConstRef;
+    };
+#endif
+
     template<typename T> struct VectorHelper {};
 
     template<typename T> struct NegateTypeHelper { typedef T Type; };

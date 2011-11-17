@@ -49,7 +49,11 @@ int bmain()
 {
     Benchmark timer("auto-vect reference", 2 * Size * Factor, "FLOP");
     while (timer.wantsMoreDataPoints()) {
+#ifdef __GNUC__
         float x[Size] __attribute__((aligned(VectorAlignment)));
+#else
+        __declspec(align(VectorAlignment)) float x[Size];
+#endif
         for (int i = 0; i < Size; ++i) {
             x[i] = randomF12();
         }

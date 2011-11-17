@@ -22,10 +22,16 @@
 #undef VC_COMMON_MACROS_H
 
 #undef INTRINSIC
+#undef INTRINSIC_L
+#undef INTRINSIC_R
 #undef CONST
+#undef CONST_L
+#undef CONST_R
 #undef PURE
 #undef MAY_ALIAS
 #undef ALWAYS_INLINE
+#undef ALWAYS_INLINE_L
+#undef ALWAYS_INLINE_R
 
 #undef ALIGN
 #undef STRUCT_ALIGN1

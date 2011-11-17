@@ -235,10 +235,15 @@ elseif(COMPILER_IS_INTEL)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS} -w1 -fp-model precise")
 elseif(COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4800") # Disable warning "forcing value to bool"
+   AddCompilerFlag("/wd4996") # Disable warning about strdup vs. _strdup
+   AddCompilerFlag("/wd4244") # Disable warning "conversion from 'unsigned int' to 'float', possible loss of data"
+   AddCompilerFlag("/wd4146") # Disable warning "unary minus operator applied to unsigned type, result still unsigned"
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
    # MSVC does not support inline assembly on 64 bit! :(
    # searching the help for xgetbv doesn't turn up anything. So just fall back to not supporting AVX on Windows :(
    add_definitions(-DVC_NO_XGETBV)
+   # get rid of the min/max macros
+   add_definitions(-DNOMINMAX)
 endif()
 
 find_package(Qt4)

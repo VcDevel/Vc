@@ -47,7 +47,7 @@ namespace Vc
  * \headerfile memory.h <Vc/Memory>
  */
 template<typename T, Vc::MallocAlignment A>
-inline T *ALWAYS_INLINE malloc(size_t n)
+inline ALWAYS_INLINE_L T *ALWAYS_INLINE_R malloc(size_t n)
 {
     return static_cast<T *>(Internal::Helper::malloc<A>(n * sizeof(T)));
 }

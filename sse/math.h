@@ -22,6 +22,16 @@
 
 #include "const.h"
 
+#if !defined M_PI
+# define M_PI 3.14159265358979323846
+#endif
+#if !defined M_PI_2
+# define M_PI_2 1.57079632679489661923
+#endif
+#if !defined M_PI_4
+# define M_PI_4 0.785398163397448309616
+#endif
+
 namespace Vc
 {
 namespace SSE
@@ -76,28 +86,29 @@ namespace SSE
         const V &x2 = x * x;
         return x * (V(One) - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
     }
-    template<typename T> static inline Vector<T> asin (const Vector<T> &_x) {
-        typedef Vector<T> V;
+    template<typename _T> static inline Vector<_T> asin (const Vector<_T> &_x) {
+        typedef Vector<_T> V;
+        typedef typename V::EntryType T;
         typedef typename V::Mask M;
         using namespace VectorSpecialInitializerZero;
         using namespace VectorSpecialInitializerOne;
 
-        const V pi_2(M_PI / 2);
+        const V pi_2(T(M_PI_2));
         const M &negative = _x < V(Zero);
 
         const V &a = abs(_x);
         //const M &outOfRange = a > V(One);
-        const M &small = a < V(1.e-4);
-        const M &gt_0_5 = a > V(0.5);
+        const M &small = a < V(T(1.e-4));
+        const M &gt_0_5 = a > V(T(0.5));
         V x = a;
         V z = a * a;
-        z(gt_0_5) = (V(One) - a) * V(0.5);
+        z(gt_0_5) = (V(One) - a) * V(T(0.5));
         x(gt_0_5) = sqrt(z);
-        z = ((((4.2163199048e-2  * z
-              + 2.4181311049e-2) * z
-              + 4.5470025998e-2) * z
-              + 7.4953002686e-2) * z
-              + 1.6666752422e-1) * z * x
+        z = ((((T(4.2163199048e-2)  * z
+              + T(2.4181311049e-2)) * z
+              + T(4.5470025998e-2)) * z
+              + T(7.4953002686e-2)) * z
+              + T(1.6666752422e-1)) * z * x
               + x;
         z(gt_0_5) = pi_2 - (z + z);
         z(small) = a;
@@ -106,16 +117,17 @@ namespace SSE
 
         return z;
     }
-    template<typename T> static inline Vector<T> atan (const Vector<T> &_x) {
-        typedef Vector<T> V;
+    template<typename _T> static inline Vector<_T> atan (const Vector<_T> &_x) {
+        typedef Vector<_T> V;
+        typedef typename V::EntryType T;
         typedef typename V::Mask M;
         using namespace VectorSpecialInitializerZero;
         using namespace VectorSpecialInitializerOne;
         V x = abs(_x);
-        const V pi_2(M_PI / 2);
-        const V pi_4(M_PI / 4);
-        const M &gt_tan_3pi_8 = x > V(2.414213562373095);
-        const M &gt_tan_pi_8  = x > V(0.4142135623730950) && !gt_tan_3pi_8;
+        const V pi_2(T(M_PI_2));
+        const V pi_4(T(M_PI_4));
+        const M &gt_tan_3pi_8 = x > V(T(2.414213562373095));
+        const M &gt_tan_pi_8  = x > V(T(0.4142135623730950)) && !gt_tan_3pi_8;
         const V minusOne(-1);
         V y(Zero);
         y(gt_tan_3pi_8) = pi_2;
@@ -123,20 +135,21 @@ namespace SSE
         x(gt_tan_3pi_8) = minusOne / x;
         x(gt_tan_pi_8)  = (x - V(One)) / (x + V(One));
         const V &x2 = x * x;
-        y += (((8.05374449538e-2 * x2
-              - 1.38776856032E-1) * x2
-              + 1.99777106478E-1) * x2
-              - 3.33329491539E-1) * x2 * x
+        y += (((T(8.05374449538e-2) * x2
+              - T(1.38776856032E-1)) * x2
+              + T(1.99777106478E-1)) * x2
+              - T(3.33329491539E-1)) * x2 * x
               + x;
         y(_x < V(Zero)) = -y;
         return y;
     }
-    template<typename T> static inline Vector<T> atan2(const Vector<T> &y, const Vector<T> &x) {
-        typedef Vector<T> V;
+    template<typename _T> static inline Vector<_T> atan2(const Vector<_T> &y, const Vector<_T> &x) {
+        typedef Vector<_T> V;
+        typedef typename V::EntryType T;
         typedef typename V::Mask M;
         using namespace VectorSpecialInitializerZero;
-        const V pi(M_PI);
-        const V pi_2(M_PI / 2);
+        const V pi(T(M_PI));
+        const V pi_2(T(M_PI_2));
 
         const M &xZero = x == V(Zero);
         const M &yZero = y == V(Zero);
@@ -147,9 +160,9 @@ namespace SSE
         const V &absY = abs(y);
 
         V a = absY / absX;
-        const V pi_4(M_PI / 4);
-        const M &gt_tan_3pi_8 = a > V(2.414213562373095);
-        const M &gt_tan_pi_8  = a > V(0.4142135623730950) && !gt_tan_3pi_8;
+        const V pi_4(T(M_PI_4));
+        const M &gt_tan_3pi_8 = a > V(T(2.414213562373095));
+        const M &gt_tan_pi_8  = a > V(T(0.4142135623730950)) && !gt_tan_3pi_8;
         const V minusOne(-1);
         V b(Zero);
         b(gt_tan_3pi_8) = pi_2;
@@ -157,10 +170,10 @@ namespace SSE
         a(gt_tan_3pi_8) = minusOne / a;
         a(gt_tan_pi_8)  = (absY - absX) / (absY + absX);
         const V &a2 = a * a;
-        b += (((8.05374449538e-2 * a2
-              - 1.38776856032E-1) * a2
-              + 1.99777106478E-1) * a2
-              - 3.33329491539E-1) * a2 * a
+        b += (((T(8.05374449538e-2) * a2
+              - T(1.38776856032E-1)) * a2
+              + T(1.99777106478E-1)) * a2
+              - T(3.33329491539E-1)) * a2 * a
               + a;
         b(xNeg ^ yNeg) = -b;
 

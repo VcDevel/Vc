@@ -51,7 +51,7 @@ template<typename Vec> void testLog()
     typedef typename Vec::IndexType I;
     const I indexesFromZero(IndexesFromZero);
     Vec a(indexesFromZero);
-    a *= 0.1;
+    a *= T(0.1);
     const Vec end(1000);
     for (; a < end; a += Vec::Size) {
         Vec b = Vc::log(a);
@@ -126,7 +126,7 @@ template<typename Vec> void testSin()
     setFuzzyness<float>(6e-5f);
     setFuzzyness<double>(4e-6);
     for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
-        const T scale = 0.01;
+        const T scale = T(0.01);
         FillHelperMemory(std::sin((i + offset) * scale));
         Vec a(data);
         Vec b(reference);
@@ -141,7 +141,7 @@ template<typename Vec> void testCos()
     setFuzzyness<float>(2.1e-4f);
     setFuzzyness<double>(4e-6);
     for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
-        const T scale = 0.01;
+        const T scale = T(0.01);
         FillHelperMemory(std::cos((i + offset) * scale));
         Vec a(data);
         Vec b(reference);
@@ -156,7 +156,7 @@ template<typename Vec> void testAsin()
     setFuzzyness<float>(1.1e-6f);
     setFuzzyness<double>(8.8e-9);
     for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
-        const T scale = 0.001;
+        const T scale = T(0.001);
         FillHelperMemory(std::asin((i + offset) * scale));
         Vec a(data);
         Vec b(reference);
@@ -171,7 +171,7 @@ template<typename Vec> void testAtan()
     setFuzzyness<float>(1e-7f);
     setFuzzyness<double>(2e-8);
     for (int offset = -1000; offset < 1000; offset += 10) {
-        const T scale = 0.1;
+        const T scale = T(0.1);
         FillHelperMemory(std::atan((i + offset) * scale));
         Vec a(data);
         Vec b(reference);
@@ -192,7 +192,7 @@ template<typename Vec> void testAtan2()
             Vec b(reference);
 
             //std::cout << (a + xoffset) * 0.15 << (a + yoffset) * 0.15 << std::endl;
-            FUZZY_COMPARE(Vc::atan2((a + xoffset) * 0.15, (a + yoffset) * 0.15), b);
+            FUZZY_COMPARE(Vc::atan2((a + xoffset) * T(0.15), (a + yoffset) * T(0.15)), b);
         }
     }
 }
@@ -204,7 +204,7 @@ template<typename Vec> void testReciprocal()
     setFuzzyness<double>(0);
     const T one = 1;
     for (int offset = -1000; offset < 1000; offset += 10) {
-        const T scale = 0.1;
+        const T scale = T(0.1);
         typename Vec::Memory data;
         typename Vec::Memory reference;
         for (int ii = 0; ii < Vec::Size; ++ii) {

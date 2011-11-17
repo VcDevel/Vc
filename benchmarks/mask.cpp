@@ -198,7 +198,7 @@ template<typename Vector> struct CondAssignment
         }
 
         for (int i = 0; i < Factor; ++i) {
-            blackHole &= (data[i] < 1);
+            blackHole &= static_cast<int>(data[i] < 1);
         }
         delete[] data;
     }

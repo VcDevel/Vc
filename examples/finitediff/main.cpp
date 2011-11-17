@@ -83,7 +83,7 @@ using Vc::float_v;
 // where the value is used in printResults.
 Vc::Memory<float_v, N> x_points;
 Vc::Memory<float_v, N> y_points;
-float *__restrict__ dy_points;
+float *VC_RESTRICT dy_points;
 
 void printResults()
 {

@@ -59,6 +59,10 @@ namespace SSE
     {
         static VectorType sort(VectorType) PURE;
     };
+    template<unsigned int Size> struct SortHelper<M256, Size>
+    {
+        static M256 sort(const M256 &) PURE;
+    };
 
 #undef OP_DECL
 #undef PARENT_DATA
@@ -96,14 +100,14 @@ namespace SSE
         {
             typedef M256 VectorType;
             template<typename A> static VectorType load(const float *x, A) PURE;
-            static void store(float *mem, const VectorType x, AlignedFlag);
-            static void store(float *mem, const VectorType x, UnalignedFlag);
-            static void store(float *mem, const VectorType x, StreamingAndAlignedFlag);
-            static void store(float *mem, const VectorType x, StreamingAndUnalignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, AlignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, UnalignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
+            static void store(float *mem, const VectorType &x, AlignedFlag);
+            static void store(float *mem, const VectorType &x, UnalignedFlag);
+            static void store(float *mem, const VectorType &x, StreamingAndAlignedFlag);
+            static void store(float *mem, const VectorType &x, StreamingAndUnalignedFlag);
+            static void store(float *mem, const VectorType &x, const VectorType &m, AlignedFlag);
+            static void store(float *mem, const VectorType &x, const VectorType &m, UnalignedFlag);
+            static void store(float *mem, const VectorType &x, const VectorType &m, StreamingAndAlignedFlag);
+            static void store(float *mem, const VectorType &x, const VectorType &m, StreamingAndUnalignedFlag);
 
             OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
             OP0(zero, VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()))
