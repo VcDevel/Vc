@@ -98,7 +98,16 @@ inline void deinterleave(Vector<unsigned short> &VC_RESTRICT a, Vector<unsigned 
 
 inline void deinterleave(Vector<float> &a, Vector<float> &b)
 {
-    Generated::deinterleave(a, b);
+    // a7 a6 a5 a4 a3 a2 a1 a0
+    // b7 b6 b5 b4 b3 b2 b1 b0
+    const _M256 tmp0 = Reg::permute128<Y0, X0>(a.data(), b.data()); // b3 b2 b1 b0 a3 a2 a1 a0
+    const _M256 tmp1 = Reg::permute128<Y1, X1>(a.data(), b.data()); // b7 b6 b5 b4 a7 a6 a5 a4
+
+    const _M256 tmp2 = _mm256_unpacklo_ps(tmp0, tmp1); // b5 b1 b4 b0 a5 a1 a4 a0
+    const _M256 tmp3 = _mm256_unpackhi_ps(tmp0, tmp1); // b7 b3 b6 b2 a7 a3 a6 a2
+
+    a.data() = _mm256_unpacklo_ps(tmp2, tmp3); // b6 b4 b2 b0 a6 a4 a2 a0
+    b.data() = _mm256_unpackhi_ps(tmp2, tmp3); // b7 b5 b3 b1 a7 a5 a3 a1
 }
 
 inline void deinterleave(Vector<short> &a, Vector<short> &b)
@@ -253,50 +262,6 @@ inline void HelperImpl<Vc::AVXImpl>::deinterleave(V &VC_RESTRICT a, V &VC_RESTRI
     b.load(&memory[1 * V::Size], align);
     c.load(&memory[2 * V::Size], align);
     Vc::AVX::deinterleave(a, b, c);
-}
-
-// only support M == V::EntryType -> no specialization
-template<typename V, typename M, typename A>
-inline void HelperImpl<Vc::AVXImpl>::deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
-        V &VC_RESTRICT c, V &VC_RESTRICT d, const M *VC_RESTRICT memory, A align)
-{
-    a.load(&memory[0 * V::Size], align);
-    b.load(&memory[1 * V::Size], align);
-    c.load(&memory[2 * V::Size], align);
-    d.load(&memory[3 * V::Size], align);
-    Vc::AVX::Generated::deinterleave(a, b, c, d);
-}
-
-// only support M == V::EntryType -> no specialization
-template<typename V, typename M, typename A>
-inline void HelperImpl<Vc::AVXImpl>::deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
-        V &VC_RESTRICT c, V &VC_RESTRICT d, V &VC_RESTRICT e, V &VC_RESTRICT f,
-        const M *VC_RESTRICT memory, A align)
-{
-    a.load(&memory[0 * V::Size], align);
-    b.load(&memory[1 * V::Size], align);
-    c.load(&memory[2 * V::Size], align);
-    d.load(&memory[3 * V::Size], align);
-    e.load(&memory[4 * V::Size], align);
-    f.load(&memory[5 * V::Size], align);
-    Vc::AVX::Generated::deinterleave(a, b, c, d, e, f);
-}
-
-// only support M == V::EntryType -> no specialization
-template<typename V, typename M, typename A>
-inline void HelperImpl<Vc::AVXImpl>::deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
-        V &VC_RESTRICT c, V &VC_RESTRICT d, V &VC_RESTRICT e, V &VC_RESTRICT f,
-        V &VC_RESTRICT g, V &VC_RESTRICT h, const M *VC_RESTRICT memory, A align)
-{
-    a.load(&memory[0 * V::Size], align);
-    b.load(&memory[1 * V::Size], align);
-    c.load(&memory[2 * V::Size], align);
-    d.load(&memory[3 * V::Size], align);
-    e.load(&memory[4 * V::Size], align);
-    f.load(&memory[5 * V::Size], align);
-    g.load(&memory[6 * V::Size], align);
-    h.load(&memory[7 * V::Size], align);
-    Vc::AVX::Generated::deinterleave(a, b, c, d, e, f, g, h);
 }
 
 } // namespace Internal
