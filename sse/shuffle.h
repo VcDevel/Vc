@@ -133,12 +133,12 @@ namespace Vc
     {
         // shuffle<Y2, Y0, X2, X1>([x3 x2 x1 x0], [y3 y2 y1 y0]) = [y2 y0 x2 x1]
         template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> __m128 ALWAYS_INLINE CONST shuffle(__m128 x, __m128 y) {
-            return shuffle<Dst0, Dst1, Dst2, Dst3>(x, y);
+            return Mem::shuffle<Dst0, Dst1, Dst2, Dst3>(x, y);
         }
 
         // shuffle<Y0, X1>([x1 x0], [y1 y0]) = [y0 x1]
         template<VecPos Dst1, VecPos Dst0> __m128d ALWAYS_INLINE CONST shuffle(__m128d x, __m128d y) {
-            return shuffle<Dst0, Dst1>(x, y);
+            return Mem::shuffle<Dst0, Dst1>(x, y);
         }
 
         // shuffle<X3, X0, X2, X1>([x3 x2 x1 x0]) = [x3 x0 x2 x1]
