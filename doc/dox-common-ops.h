@@ -231,13 +231,20 @@ MaskedVector operator()(const MASK_TYPE &mask);
  * The gather and scatter functions allow you to easily use vectors with structured data and random
  * accesses.
  *
- * There are two variants:
- * \li For random access in arrays.
- * \li For random access of members of structs in an array.
+ * There are several variants:
+ * \li random access in arrays (a[i])
+ * \li random access of members of structs in an array (a[i].member)
+ * \li random access of members of members of structs in an array (a[i].member1.member2)
  *
  * All gather and scatter functions optionally take a mask as last argument. In that case only the
  * entries that are selected in the mask are read in memory and copied to the vector. This allows
  * you to have invalid indexes in the \p indexes vector if those are masked off in \p mask.
+ *
+ * \note If you use a constructor for a masked gather then the unmodified entries of the vector are
+ * initilized to 0 before the gather. If you really want them uninitialized you can create a
+ * uninitialized vector object first and then call the masked gather function on it.
+ *
+ * The index type (IndexT) can either be a pointer to integers (array) or a vector of integers.
  *
  * Accessing values of a struct works like this:
  * \code
@@ -255,36 +262,36 @@ MaskedVector operator()(const MASK_TYPE &mask);
  * \endcode
  */
 //@{
-VECTOR_TYPE(const ENTRY_TYPE *array, const INDEX_TYPE &indexes);
-VECTOR_TYPE(const ENTRY_TYPE *array, const INDEX_TYPE &indexes, const MASK_TYPE &mask);
+template<typename IndexT> VECTOR_TYPE(const ENTRY_TYPE *array, const IndexT indexes);
+template<typename IndexT> VECTOR_TYPE(const ENTRY_TYPE *array, const IndexT indexes, const MASK_TYPE &mask);
 
-template<typename S1> VECTOR_TYPE(const S1 *array, const ENTRY_TYPE S1::* member1, const INDEX_TYPE &indexes);
-template<typename S1> VECTOR_TYPE(const S1 *array, const ENTRY_TYPE S1::* member1, const INDEX_TYPE &indexes, const MASK_TYPE &mask);
+template<typename IndexT> void gather(const ENTRY_TYPE *array, const IndexT indexes);
+template<typename IndexT> void gather(const ENTRY_TYPE *array, const IndexT indexes, const MASK_TYPE &mask);
 
-template<typename S1, typename S2> VECTOR_TYPE(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const INDEX_TYPE &indexes);
-template<typename S1, typename S2> VECTOR_TYPE(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const INDEX_TYPE &indexes, const MASK_TYPE &mask);
-
-/////////////////////////
-
-void gather(const ENTRY_TYPE *array, const INDEX_TYPE &indexes);
-void gather(const ENTRY_TYPE *array, const INDEX_TYPE &indexes, const MASK_TYPE &mask);
-
-template<typename S1> void gather(const S1 *array, const ENTRY_TYPE S1::* member1, const INDEX_TYPE &indexes);
-template<typename S1> void gather(const S1 *array, const ENTRY_TYPE S1::* member1, const INDEX_TYPE &indexes, const MASK_TYPE &mask);
-
-template<typename S1, typename S2> void gather(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const INDEX_TYPE &indexes);
-template<typename S1, typename S2> void gather(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const INDEX_TYPE &indexes, const MASK_TYPE &mask);
+template<typename IndexT> void scatter(ENTRY_TYPE *array, const IndexT indexes) const;
+template<typename IndexT> void scatter(ENTRY_TYPE *array, const IndexT indexes, const MASK_TYPE &mask) const;
 
 /////////////////////////
 
-void scatter(ENTRY_TYPE *array, const INDEX_TYPE &indexes) const ;
-void scatter(ENTRY_TYPE *array, const INDEX_TYPE &indexes, const MASK_TYPE &mask) const ;
+template<typename S1, typename IndexT> VECTOR_TYPE(const S1 *array, const ENTRY_TYPE S1::* member1, const IndexT indexes);
+template<typename S1, typename IndexT> VECTOR_TYPE(const S1 *array, const ENTRY_TYPE S1::* member1, const IndexT indexes, const MASK_TYPE &mask);
 
-template<typename S1> void scatter(S1 *array, ENTRY_TYPE S1::* member1, const INDEX_TYPE &indexes) const ;
-template<typename S1> void scatter(S1 *array, ENTRY_TYPE S1::* member1, const INDEX_TYPE &indexes, const MASK_TYPE &mask) const ;
+template<typename S1, typename IndexT> void gather(const S1 *array, const ENTRY_TYPE S1::* member1, const IndexT indexes);
+template<typename S1, typename IndexT> void gather(const S1 *array, const ENTRY_TYPE S1::* member1, const IndexT indexes, const MASK_TYPE &mask);
 
-template<typename S1, typename S2> void scatter(S1 *array, S2 S1::* member1, ENTRY_TYPE S2::* member2, const INDEX_TYPE &indexes) const ;
-template<typename S1, typename S2> void scatter(S1 *array, S2 S1::* member1, ENTRY_TYPE S2::* member2, const INDEX_TYPE &indexes, const MASK_TYPE &mask) const ;
+template<typename S1, typename IndexT> void scatter(S1 *array, ENTRY_TYPE S1::* member1, const IndexT indexes) const ;
+template<typename S1, typename IndexT> void scatter(S1 *array, ENTRY_TYPE S1::* member1, const IndexT indexes, const MASK_TYPE &mask) const ;
+
+/////////////////////////
+
+template<typename S1, typename S2, typename IndexT> VECTOR_TYPE(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const IndexT indexes);
+template<typename S1, typename S2, typename IndexT> VECTOR_TYPE(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const IndexT indexes, const MASK_TYPE &mask);
+
+template<typename S1, typename S2, typename IndexT> void gather(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const IndexT indexes);
+template<typename S1, typename S2, typename IndexT> void gather(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const IndexT indexes, const MASK_TYPE &mask);
+
+template<typename S1, typename S2, typename IndexT> void scatter(S1 *array, S2 S1::* member1, ENTRY_TYPE S2::* member2, const IndexT indexes) const ;
+template<typename S1, typename S2, typename IndexT> void scatter(S1 *array, S2 S1::* member1, ENTRY_TYPE S2::* member2, const IndexT indexes, const MASK_TYPE &mask) const ;
 //@}
 
 /**
