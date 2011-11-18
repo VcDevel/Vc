@@ -21,6 +21,7 @@
 #define VC_COMMON_UNDOMACROS_H
 #undef VC_COMMON_MACROS_H
 
+#undef FLATTEN
 #undef CONST
 #undef PURE
 #undef MAY_ALIAS

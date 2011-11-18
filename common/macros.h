@@ -41,12 +41,14 @@
 #  define PURE __attribute__((__pure__))
 #  define MAY_ALIAS __attribute__((__may_alias__))
 #  define ALWAYS_INLINE __attribute__((__always_inline__))
+#  define FLATTEN __attribute__((__flatten__))
 #else
 #  define INTRINSIC
 #  define CONST
 #  define PURE
 #  define MAY_ALIAS
 #  define ALWAYS_INLINE
+#  define FLATTEN
 #endif
 
 #define CAT_HELPER(a, b) a##b
