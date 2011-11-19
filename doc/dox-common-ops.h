@@ -71,7 +71,7 @@ enum {
      * which would have two entries; thus double_v::IndexType is uint_v).
      *
      * Also you can easily use if clauses that compare sizes. The
-     * compiler can statically evaluate and fully optimize dead code away (very much like #ifdef,
+     * compiler can statically evaluate and fully optimize dead code away (very much like \#ifdef,
      * but with syntax checking).
      */
     Size
