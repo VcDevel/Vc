@@ -129,3 +129,10 @@ int count() const;
  * Returns the index of the first one in the mask.
  */
 int firstOne() const;
+
+/**
+ * Returns an int where each bit corresponds to the boolean value in the mask.
+ *
+ * E.g. a mask like [true, false, false, true] would result in a 9.
+ */
+int toInt() const;
