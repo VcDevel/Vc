@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# coding:utf-8
 
 class LabelTranslation #{{{
     def initialize(trans = Hash.new)
