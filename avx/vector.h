@@ -229,7 +229,7 @@ template<typename T> class Vector
         inline Vector &operator/=(const Vector<T> &x);
         inline Vector  operator/ (const Vector<T> &x) const;
 
-        // integer ops
+        // bitwise ops
         inline Vector<T> &operator|= (Vector<T> x) ALWAYS_INLINE;
         inline Vector<T> &operator&= (Vector<T> x) ALWAYS_INLINE;
         inline Vector<T> &operator^= (Vector<T> x) ALWAYS_INLINE;

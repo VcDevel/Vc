@@ -421,6 +421,15 @@ OP_IMPL(short, ^, xor_)
 OP_IMPL(unsigned short, &, and_)
 OP_IMPL(unsigned short, |, or_)
 OP_IMPL(unsigned short, ^, xor_)
+OP_IMPL(float, &, and_)
+OP_IMPL(float, |, or_)
+OP_IMPL(float, ^, xor_)
+OP_IMPL(float8, &, and_)
+OP_IMPL(float8, |, or_)
+OP_IMPL(float8, ^, xor_)
+OP_IMPL(double, &, and_)
+OP_IMPL(double, |, or_)
+OP_IMPL(double, ^, xor_)
 #undef OP_IMPL
 
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ == 4 && __GNUC_MINOR__ == 6 && __GNUC_PATCHLEVEL__ == 0 && __XOP__

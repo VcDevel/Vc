@@ -505,6 +505,12 @@ OP_IMPL(unsigned short, _mm, 16)
   OP_IMPL(unsigned short, &, and_)
   OP_IMPL(unsigned short, |, or_)
   OP_IMPL(unsigned short, ^, xor_)
+  OP_IMPL(float, &, and_)
+  OP_IMPL(float, |, or_)
+  OP_IMPL(float, ^, xor_)
+  OP_IMPL(double, &, and_)
+  OP_IMPL(double, |, or_)
+  OP_IMPL(double, ^, xor_)
 #undef OP_IMPL
 
 ///////////////////////////////////////////////////////////////////////////////////////////
