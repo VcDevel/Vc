@@ -180,25 +180,13 @@ namespace AVX
 
         return x;
     }
-    template<typename T> static inline Vector<T> log10(Vector<T> x) {
-        typedef Vector<T> V;
-        typedef typename V::Mask M;
-        typedef c_log<T, M> C;
-
-        return log(x) * C::log10_e();
-    }
-    template<typename T> static inline Vector<T> log2(Vector<T> x) {
-        typedef Vector<T> V;
-        typedef typename V::Mask M;
-        typedef c_log<T, M> C;
-
-        return log(x) * C::log2_e();
-    }
 } // namespace AVX
 } // namespace Vc
 
 #include "undomacros.h"
 #define VC__USE_NAMESPACE AVX
 #include "../common/trigonometric.h"
+#define VC__USE_NAMESPACE AVX
+#include "../common/logarithm.h"
 
 #endif // VC_AVX_MATH_H

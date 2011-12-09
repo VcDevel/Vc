@@ -50,5 +50,7 @@ namespace SSE
 
 #define VC__USE_NAMESPACE SSE
 #include "../common/trigonometric.h"
+#define VC__USE_NAMESPACE SSE
+#include "../common/logarithm.h"
 
 #endif // VC_SSE_MATH_H

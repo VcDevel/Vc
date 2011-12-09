@@ -17,34 +17,6 @@
 
 */
 
-/* The log implementations are based on code from Julien Pommier which carries the following
-   copyright information:
- */
-/*
-   Inspired by Intel Approximate Math library, and based on the
-   corresponding algorithms of the cephes math library
-*/
-/* Copyright (C) 2007  Julien Pommier
-
-  This software is provided 'as-is', without any express or implied
-  warranty.  In no event will the authors be held liable for any damages
-  arising from the use of this software.
-
-  Permission is granted to anyone to use this software for any purpose,
-  including commercial applications, and to alter it and redistribute it
-  freely, subject to the following restrictions:
-
-  1. The origin of this software must not be misrepresented; you must not
-     claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
-     appreciated but is not required.
-  2. Altered source versions must be plainly marked as such, and must not be
-     misrepresented as being the original software.
-  3. This notice may not be removed or altered from any source distribution.
-
-  (this is the zlib license)
-*/
-
 #ifndef SSE_VECTORHELPER_H
 #define SSE_VECTORHELPER_H
 
@@ -233,79 +205,6 @@ namespace SSE
             static inline VectorType isFinite(VectorType x) PURE {
                 return _mm_cmpord_pd(x, _mm_mul_pd(zero(), x));
             }
-            static VectorType log(VectorType x) PURE {
-                const _M128D one = set(1.);
-                const _M128D invalid_mask = cmplt(x, zero());
-                const _M128D infinity_mask = cmpeq(x, zero());
-
-                x = max(x, set(std::numeric_limits<double>::min()));  // lazy: cut off denormalized numbers
-
-                _M128I emm0 = _mm_srli_epi64(_mm_castpd_si128(x), 52);
-                emm0 = _mm_sub_epi32(emm0, _mm_set1_epi32(1023));
-                _M128D e = _mm_cvtepi32_pd(_mm_shuffle_epi32(emm0, _MM_SHUFFLE(2, 0, 2, 0)));
-                e = add(e, one);
-
-                // keep only the fractional part
-                const union {
-                    unsigned long long int i;
-                    double d;
-                } mantissa_mask = { 0x800fffffffffffffull };
-                x = _mm_and_pd(x, set(mantissa_mask.d));
-                x = _mm_or_pd(x, set(0.5));
-
-                const _M128D mask = cmplt(x, set(0.70710678118654757273731092936941422522068023681640625));
-
-                const _M128D tmp = _mm_and_pd(x, mask);
-                x = sub(x, one);
-                x = add(x, tmp);
-
-                e = sub(e, _mm_and_pd(one, mask));
-
-                const _M128D z = mul(x, x);
-
-                static const union {
-                    unsigned short s[6 * 4];
-                    double d[6];
-                } P = { {
-                    0x1bb0,0x93c3,0xb4c2,0x3f1a,
-                    0x52f2,0x3f56,0xd6f5,0x3fdf,
-                    0x6911,0xed92,0xd2ba,0x4012,
-                    0xeb2e,0xc63e,0xff72,0x402c,
-                    0xc84d,0x924b,0xefd6,0x4031,
-                    0xdcf8,0x7d7e,0xd563,0x401e
-                } };
-                static const union {
-                    unsigned short s[5 * 4];
-                    double d[5];
-                } Q = { {
-                    0xef8e,0xae97,0x9320,0x4026,
-                    0xc033,0x4e19,0x9d2c,0x4046,
-                    0xbdbd,0xa326,0xbf33,0x4054,
-                    0xae21,0xeb5e,0xc9e2,0x4051,
-                    0x25b2,0x9e1f,0x200a,0x4037
-                } };
-
-                _M128D y = set(P.d[0]);
-                for (int i = 1; i < 6; ++i) {
-                    y = add(mul(y, x), set(P.d[i]));
-                }
-                _M128D y2 = add(set(Q.d[0]), x);
-                for (int i = 1; i < 5; ++i) {
-                    y2 = add(mul(y2, x), set(Q.d[i]));
-                }
-                y = mul(y, x);
-                y = CAT(_mm_div_, SUFFIX)(y, y2);
-
-                y = mul(y, z);
-                y = sub(y, mul(e, set(2.121944400546905827679e-4)));
-                y = sub(y, mul(z, set(0.5)));
-
-                x = add(x, y);
-                x = add(x, mul(e, set(0.693359375)));
-                x = _mm_or_pd(x, invalid_mask); // negative arg will be NAN
-                x = _mm_or_pd(_mm_andnot_pd(infinity_mask, x), _mm_and_pd(infinity_mask, set(-std::numeric_limits<double>::infinity())));
-                return x;
-            }
             static inline VectorType abs(const VectorType a) PURE {
                 return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_pd());
             }
@@ -379,64 +278,6 @@ namespace SSE
             static inline VectorType reciprocal(VectorType x) PURE {
                 return _mm_rcp_ps(x);
             }
-            static VectorType log(VectorType x) PURE {
-                const _M128 one = set(1.);
-                const _M128 invalid_mask = cmplt(x, zero());
-                const _M128 infinity_mask = cmpeq(x, zero());
-
-                x = max(x, set(std::numeric_limits<float>::min()));  // cut off denormalized stuff
-
-                const _M128I emm0 = _mm_srli_epi32(_mm_castps_si128(x), 23);
-                _M128 e = _mm_cvtepi32_ps(_mm_sub_epi32(emm0, _mm_set1_epi32(127)));
-                e = add(e, one);
-
-                // keep only the fractional part
-                const union {
-                    unsigned int i;
-                    float f;
-                } mantissa_mask = { 0x807fffff };
-                x = _mm_and_ps(x, set(mantissa_mask.f));
-                x = _mm_or_ps(x, set(0.5));
-
-                const _M128 mask = cmplt(x, set(0.707106781186547524f));
-
-                const _M128 tmp = _mm_and_ps(x, mask);
-                x = sub(x, one);
-                x = add(x, tmp);
-
-                e = sub(e, _mm_and_ps(one, mask));
-
-                const _M128 z = mul(x, x);
-
-                _M128 y = set( 7.0376836292e-2f);
-                y = mul(y, x);
-                y = add(y, set(-1.1514610310e-1f));
-                y = mul(y, x);
-                y = add(y, set( 1.1676998740e-1f));
-                y = mul(y, x);
-                y = add(y, set(-1.2420140846e-1f));
-                y = mul(y, x);
-                y = add(y, set( 1.4249322787e-1f));
-                y = mul(y, x);
-                y = add(y, set(-1.6668057665e-1f));
-                y = mul(y, x);
-                y = add(y, set( 2.0000714765e-1f));
-                y = mul(y, x);
-                y = add(y, set(-2.4999993993e-1f));
-                y = mul(y, x);
-                y = add(y, set( 3.3333331174e-1f));
-                y = mul(y, x);
-
-                y = mul(y, z);
-                y = add(y, mul(e, set(-2.12194440e-4f)));
-                y = sub(y, mul(z, set(0.5)));
-
-                x = add(x, y);
-                x = add(x, mul(e, set(0.693359375f)));
-                x = _mm_or_ps(x, invalid_mask); // negative arg will be NAN
-                x = _mm_or_ps(_mm_andnot_ps(infinity_mask, x), _mm_and_ps(infinity_mask, set(-std::numeric_limits<float>::infinity())));
-                return x;
-            }
             static inline VectorType abs(const VectorType a) PURE {
                 return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_ps());
             }
@@ -509,7 +350,6 @@ namespace SSE
             REUSE_FLOAT_IMPL1(rsqrt)
             REUSE_FLOAT_IMPL1(isNaN)
             REUSE_FLOAT_IMPL1(isFinite)
-            REUSE_FLOAT_IMPL1(log)
             REUSE_FLOAT_IMPL1(abs)
             REUSE_FLOAT_IMPL1(round)
 

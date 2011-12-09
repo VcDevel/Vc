@@ -59,7 +59,7 @@ template<typename Vec> void testLog()
         const typename Vec::EntryType two = 2.;
 
         for (int i = 0; i < Vec::Size; ++i) {
-            FUZZY_COMPARE(static_cast<T>(b[i]), static_cast<T>(std::log(a[i])));
+            FUZZY_COMPARE(static_cast<T>(b[i]), static_cast<T>(std::log(a[i]))) << " i = " << i << ", b = " << b << ", a = " << a;
         }
 
         const Vec a2 = a * a;
