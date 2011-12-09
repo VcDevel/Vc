@@ -274,8 +274,8 @@ class Vector : public VectorBase<T>
         inline INTRINSIC_L Vector  operator/ (EntryType x) const PURE INTRINSIC_R;
 
 #define OP(symbol, fun) \
-        inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<VectorType>::fun(data(), x.data()); return *this; } \
-        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<VectorType>::fun(data(), x.data())); }
+        inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x); \
+        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const;
         OP(|, or_)
         OP(&, and_)
         OP(^, xor_)

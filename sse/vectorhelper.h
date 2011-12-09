@@ -165,6 +165,7 @@ namespace SSE
             typedef double EntryType;
 #define SUFFIX pd
 
+            OP_(or_) OP_(and_) OP_(xor_)
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) PURE { return CAT(_mm_and_, SUFFIX)(_mm_castps_pd(mask), a); }
             static inline VectorType set(const double a) PURE { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const double a, const double b) PURE { return CAT(_mm_set_, SUFFIX)(a, b); }
@@ -242,6 +243,7 @@ namespace SSE
             typedef _M128 VectorType;
 #define SUFFIX ps
 
+            OP_(or_) OP_(and_) OP_(xor_)
             static inline VectorType notMaskedToZero(VectorType a, _M128 mask) PURE { return CAT(_mm_and_, SUFFIX)(mask, a); }
             static inline VectorType set(const float a) PURE { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const float a, const float b, const float c, const float d) PURE { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
@@ -353,6 +355,9 @@ namespace SSE
             REUSE_FLOAT_IMPL1(abs)
             REUSE_FLOAT_IMPL1(round)
 
+            REUSE_FLOAT_IMPL2(and_)
+            REUSE_FLOAT_IMPL2(or_)
+            REUSE_FLOAT_IMPL2(xor_)
             REUSE_FLOAT_IMPL2(notMaskedToZero)
             REUSE_FLOAT_IMPL2(add)
             REUSE_FLOAT_IMPL2(sub)

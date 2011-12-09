@@ -51,17 +51,11 @@ namespace SSE
             typedef Vector<T> AsArg;
 #endif
 
-            inline INTRINSIC_L Vector<EntryType> &operator|= (const VectorBase<EntryType> &x) INTRINSIC_R;
-            inline INTRINSIC_L Vector<EntryType> &operator&= (const VectorBase<EntryType> &x) INTRINSIC_R;
-            inline INTRINSIC_L Vector<EntryType> &operator^= (const VectorBase<EntryType> &x) INTRINSIC_R;
             inline Vector<EntryType> &operator>>=(const VectorBase<EntryType> &x);
             inline Vector<EntryType> &operator<<=(const VectorBase<EntryType> &x);
             inline INTRINSIC_L Vector<EntryType> &operator>>=(int x) INTRINSIC_R;
             inline INTRINSIC_L Vector<EntryType> &operator<<=(int x) INTRINSIC_R;
 
-            inline INTRINSIC_L Vector<EntryType> operator| (const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
-            inline INTRINSIC_L Vector<EntryType> operator& (const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
-            inline INTRINSIC_L Vector<EntryType> operator^ (const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
             inline INTRINSIC_L Vector<EntryType> operator>>(const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
             inline INTRINSIC_L Vector<EntryType> operator<<(const VectorBase<EntryType> &x) const INTRINSIC_R PURE;
             inline INTRINSIC_L Vector<EntryType> operator>>(int x) const INTRINSIC_R PURE;

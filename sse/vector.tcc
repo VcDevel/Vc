@@ -427,14 +427,14 @@ template<> inline Vector<double> Vector<double>::operator/(const Vector<double> 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
 #define OP_IMPL(T, symbol, fun) \
-template<> inline Vector<T> &VectorBase<T>::operator symbol##=(const VectorBase<T> &x) \
+template<> inline Vector<T> &Vector<T>::operator symbol##=(const Vector<T> &x) \
 { \
     d.v() = VectorHelper<T>::fun(d.v(), x.d.v()); \
-    return *static_cast<Vector<T> *>(this); \
+    return *this; \
 } \
-template<> inline Vector<T>  VectorBase<T>::operator symbol(const VectorBase<T> &x) const \
+template<> inline Vector<T>  Vector<T>::operator symbol(const Vector<T> &x) const \
 { \
-    return Vector<T>(VectorHelper<T>::fun(d.v(), x.d.v())); \
+    return VectorHelper<T>::fun(d.v(), x.d.v()); \
 }
 OP_IMPL(int, &, and_)
 OP_IMPL(int, |, or_)
