@@ -57,26 +57,9 @@ namespace Common
     using Vc::VC__USE_NAMESPACE::c_log;
     using Vc::VC__USE_NAMESPACE::Vector;
 #endif
-    template<typename T> static inline ALWAYS_INLINE void log_series(Vector<T> &x, const Vector<T> exponent) {
-    template<> static inline ALWAYS_INLINE void log_series<double>(Vector<double> &x, const Vector<double> exponent) {
-        typedef Vector<double> V;
-        typedef c_log<double, V::Mask> C;
-        const V x2 = x * x;
-        V y = C::P(0);
-        V y2 = C::Q(0) + x;
-        unrolled_loop16(i, 1, 5,
-                y = y * x + C::P(i);
-                y2 = y2 * x + C::Q(i);
-                );
-        y2 = x / y2;
-        y = y * x + C::P(5);
-        y = x2 * y * y2 + exponent * C::ln2_small() - x2 * C::_1_2();
-        x += y;
-        x += exponent * C::ln2_large();
-    }
-    template<> static inline ALWAYS_INLINE void log_series<float>(Vector<float> &x, const Vector<float> exponent) {
-        typedef Vector<float> V;
-        typedef c_log<float, V::Mask> C;
+    template<typename T> static inline ALWAYS_INLINE void log_series(Vector<T> &VC_RESTRICT x, const Vector<T> exponent) {
+        typedef Vector<T> V;
+        typedef c_log<T, typename V::Mask> C;
         // Taylor series around x = 2^exponent
         //   f(x) = ln(x)   → exponent * ln(2) → C::ln2_small + C::ln2_large
         //  f'(x) =    x⁻¹  →  x               → 1
@@ -151,6 +134,22 @@ namespace Common
         // ln(2) is split in two parts to increase precision (i.e. ln2_small + ln2_large = ln(2))
         y += exponent * C::ln2_small();
         y -= x2 * C::_1_2(); // [0, 0.25[
+        x += y;
+        x += exponent * C::ln2_large();
+    }
+    template<> inline ALWAYS_INLINE void log_series<double>(Vector<double> &VC_RESTRICT x, const Vector<double> exponent) {
+        typedef Vector<double> V;
+        typedef c_log<double, V::Mask> C;
+        const V x2 = x * x;
+        V y = C::P(0);
+        V y2 = C::Q(0) + x;
+        unrolled_loop16(i, 1, 5,
+                y = y * x + C::P(i);
+                y2 = y2 * x + C::Q(i);
+                );
+        y2 = x / y2;
+        y = y * x + C::P(5);
+        y = x2 * y * y2 + exponent * C::ln2_small() - x2 * C::_1_2();
         x += y;
         x += exponent * C::ln2_large();
     }
