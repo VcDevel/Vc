@@ -258,6 +258,33 @@ template<typename T> inline void Vector<T>::setZero(const Mask &k)
     data() = VectorHelper<VectorType>::andnot_(mm128_reinterpret_cast<VectorType>(k.data()), data());
 }
 
+template<> inline void INTRINSIC Vector<double>::setQnan()
+{
+    data() = _mm_setallone_pd();
+}
+template<> inline void INTRINSIC Vector<double>::setQnan(Mask k)
+{
+    data() = _mm_or_pd(data(), k.dataD());
+}
+template<> inline void INTRINSIC Vector<float>::setQnan()
+{
+    data() = _mm_setallone_ps();
+}
+template<> inline void INTRINSIC Vector<float>::setQnan(Mask k)
+{
+    data() = _mm_or_ps(data(), k.data());
+}
+template<> inline void INTRINSIC Vector<float8>::setQnan()
+{
+    d.v()[0] = _mm_setallone_ps();
+    d.v()[1] = _mm_setallone_ps();
+}
+template<> inline void INTRINSIC Vector<float8>::setQnan(Mask k)
+{
+    d.v()[0] = _mm_or_ps(d.v()[0], k.data()[0]);
+    d.v()[1] = _mm_or_ps(d.v()[1], k.data()[1]);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 // stores {{{1
 template<typename T> inline void Vector<T>::store(EntryType *mem) const

@@ -187,6 +187,9 @@ class Vector : public VectorBase<T>
         inline void INTRINSIC_L setZero() INTRINSIC_R;
         inline void INTRINSIC_L setZero(const Mask &k) INTRINSIC_R;
 
+        inline void INTRINSIC_L setQnan() INTRINSIC_R;
+        inline void INTRINSIC_L setQnan(Mask k) INTRINSIC_R;
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
         inline void INTRINSIC_L store(EntryType *mem) const INTRINSIC_R;
