@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -27,6 +27,7 @@ namespace Vc
 namespace SSE
 {
     template<typename T> class Vector;
+    template<unsigned int VectorSize> class Mask;
 
     ALIGN(16) extern const unsigned int   _IndexesFromZero4[4];
     ALIGN(16) extern const unsigned short _IndexesFromZero8[8];
@@ -60,6 +61,35 @@ namespace SSE
         static V CONST_L _1_5fac() CONST_R;
         static V CONST_L _1_7fac() CONST_R;
         static V CONST_L _1_9fac() CONST_R;
+    };
+
+    class M128iDummy;
+    template<typename T> struct IntForFloat { typedef unsigned int Type; };
+    template<> struct IntForFloat<double> { typedef unsigned long long Type; };
+
+    template<typename T, typename Mask> struct c_log
+    {
+        typedef Vector<T> Vec;
+        typedef typename IntForFloat<T>::Type Int;
+        enum { Size = 16 / sizeof(T) };
+
+        static inline const double *d(int i) { return reinterpret_cast<const double *>(&_dataI[i * Size]); }
+        static inline const float *f(int i) { return reinterpret_cast<const float *>(&_dataI[i * Size]); }
+        ALIGN(64) static const Int _dataI[15 * Size];
+        ALIGN(16) static const T   _dataT[6 * Size];
+
+        static M128iDummy CONST_L bias()  CONST_R;
+        static Mask CONST_L exponentMask() CONST_R;
+        static Vec CONST_L _1_2() CONST_R;
+        static Vec CONST_L _1_sqrt2() CONST_R;
+        static Vec CONST_L P(int i) CONST_R;
+        static Vec CONST_L Q(int i) CONST_R;
+        static Vec CONST_L min() CONST_R;
+        static Vec CONST_L ln2_small() CONST_R;
+        static Vec CONST_L ln2_large() CONST_R;
+        static Vec CONST_L neginf() CONST_R;
+        static Vec CONST_L log10_e() CONST_R;
+        static Vec CONST_L log2_e() CONST_R;
     };
 } // namespace SSE
 } // namespace Vc

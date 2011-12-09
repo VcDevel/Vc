@@ -390,7 +390,7 @@ inline void ALWAYS_INLINE forceToRegisters(const Vector<float8> &/*x1*/) {
 } // namespace SSE
 } // namespace Vc
 
-#include "math.h"
 #include "undomacros.h"
 #include "vector.tcc"
+#include "math.h"
 #endif // SSE_VECTOR_H
