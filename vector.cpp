@@ -152,7 +152,7 @@ namespace SSE
     V_ALIGN(16) const double c_general::oneDouble[2] = { 1., 1. };
     V_ALIGN(16) const long long c_general::absMaskDouble[2] = { 0x7fffffffffffffffll, 0x7fffffffffffffffll };
     V_ALIGN(16) const unsigned long long c_general::signMaskDouble[2] = { 0x8000000000000000ull, 0x8000000000000000ull };
-    V_ALIGN(16) extern const int _padding00[4] = { 0, 0, 0, 0 };
+    V_ALIGN(16) const unsigned long long c_general::frexpMask[2] = { 0xbfefffffffffffffull, 0xbfefffffffffffffull };
 
     template<> const float c_sin<float>::_data[4 * 8] = {
     // cacheline 4

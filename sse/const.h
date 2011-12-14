@@ -45,6 +45,7 @@ namespace SSE
         ALIGN(16) static const unsigned int signMaskFloat[4];
         ALIGN(16) static const unsigned long long signMaskDouble[2];
         ALIGN(16) static const short minShort[8];
+        ALIGN(16) static const unsigned long long frexpMask[2];
     };
     template<typename T> struct c_sin
     {
