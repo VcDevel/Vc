@@ -491,8 +491,8 @@ OP_IMPL(unsigned short, _mm, 16)
 #undef OP_IMPL
 
 #define OP_IMPL(T, symbol, fun) \
-  template<> inline Vector<T> &Vector<T>::operator symbol##=(Vector<T> x) { d.v() = VectorHelper<T>::fun(d.v(), x.d.v()); return *this; } \
-  template<> inline Vector<T>  Vector<T>::operator symbol(Vector<T> x) const { return Vector<T>(VectorHelper<T>::fun(d.v(), x.d.v())); }
+  template<> inline Vector<T> &Vector<T>::operator symbol##=(Vector<T> x) { d.v() = HV::fun(d.v(), x.d.v()); return *this; } \
+  template<> inline Vector<T>  Vector<T>::operator symbol(Vector<T> x) const { return Vector<T>(HV::fun(d.v(), x.d.v())); }
   OP_IMPL(int, &, and_)
   OP_IMPL(int, |, or_)
   OP_IMPL(int, ^, xor_)
