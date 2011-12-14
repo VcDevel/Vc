@@ -75,6 +75,7 @@ namespace AVX
 
     // cacheline 4
     const             double c_general::oneDouble = 1.;
+    const unsigned long long c_general::frexpMask = 0xbfefffffffffffffull;
 
     template<> const unsigned long long c_log<double, Vc::AVX::Mask<4, 32> >::_dataI[15] = {
         0x000003ff000003ffull, // bias

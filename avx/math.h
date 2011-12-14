@@ -52,8 +52,11 @@ namespace AVX
 
     typedef Vector<double> double_v;
     typedef Vector<float> float_v;
+    typedef Vector<int> int_v;
+    typedef Vector<short> short_v;
     typedef Vector<double>::Mask double_m;
     typedef Vector<float >::Mask float_m;
+    typedef int_v::Mask int_m;
 
     template<> inline double_m c_log<double, double_m>::exponentMask() { return _mm256_broadcast_sd(d(1)); }
     template<> inline double_v c_log<double, double_m>::_1_2()         { return _mm256_broadcast_sd(&_dataT[3]); }
@@ -77,6 +80,46 @@ namespace AVX
     template<> inline float_v c_log<float, float_m>::neginf()       { return _mm256_broadcast_ss(f(13)); }
     template<> inline float_v c_log<float, float_m>::log10_e()      { return _mm256_broadcast_ss(&_dataT[4]); }
     template<> inline float_v c_log<float, float_m>::log2_e()       { return _mm256_broadcast_ss(&_dataT[5]); }
+    ///////////////////////////////////////////////////////////////////////////
+
+    /**
+     * splits \p v into exponent and mantissa, the sign is kept with the mantissa
+     *
+     * The return value will be in the range [0.5, 1.0[
+     * The \p e value will be an integer defining the power-of-two exponent
+     */
+    inline double_v frexp(const double_v &v, int_v *e) {
+        const __m256d exponentBits = c_log<double, double_m>::exponentMask().dataD();
+        const __m256d exponentPart = _mm256_and_pd(v.data(), exponentBits);
+        e->data() = _mm256_sub_epi32(_mm256_srli_epi64(avx_cast<__m256i>(exponentPart), 52), _mm256_set1_epi32(0x3fe));
+        const __m256d exponentMaximized = _mm256_or_pd(v.data(), exponentBits);
+        double_v ret = _mm256_and_pd(exponentMaximized, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::frexpMask)));
+        double_m zeroMask = v == double_v::Zero();
+        ret(isnan(v) || !isfinite(v) || zeroMask) = v;
+        e->setZero(zeroMask.data());
+        return ret;
+    }
+    inline float_v frexp(const float_v &v, int_v *e) {
+        const __m256 exponentBits = c_log<float, float_m>::exponentMask().data();
+        const __m256 exponentPart = _mm256_and_ps(v.data(), exponentBits);
+        e->data() = _mm256_sub_epi32(_mm256_srli_epi32(avx_cast<__m256i>(exponentPart), 23), _mm256_set1_epi32(0x7e));
+        const __m256 exponentMaximized = _mm256_or_ps(v.data(), exponentBits);
+        float_v ret = _mm256_and_ps(exponentMaximized, avx_cast<__m256>(_mm256_set1_epi32(0xbf7fffffu)));
+        ret(isnan(v) || !isfinite(v) || v == float_v::Zero()) = v;
+        e->setZero(v == float_v::Zero());
+        return ret;
+    }
+    inline float_v frexp(const float_v &v, short_v *e) {
+        const __m256 exponentBits = c_log<float, float_m>::exponentMask().data();
+        const __m256 exponentPart = _mm256_and_ps(v.data(), exponentBits);
+        e->data() = _mm_sub_epi32(_mm_packs_epi32(_mm_srli_epi32(avx_cast<__m128i>(exponentPart), 23),
+                    _mm_srli_epi32(avx_cast<__m128i>(hi128(exponentPart)), 23)), _mm_set1_epi16(0x7e));
+        const __m256 exponentMaximized = _mm256_or_ps(v.data(), exponentBits);
+        float_v ret = _mm256_and_ps(exponentMaximized, avx_cast<__m256>(_mm256_set1_epi32(0xbf7fffffu)));
+        ret(isnan(v) || !isfinite(v) || v == float_v::Zero()) = v;
+        e->setZero(v == float_v::Zero());
+        return ret;
+    }
 } // namespace AVX
 } // namespace Vc
 
