@@ -180,6 +180,19 @@ template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T
 #endif
 }
 
+inline Vector<float> frexp(Vector<float> x, Vector<int> *e) {
+    return ::frexpf(x.data(), &e->data());
+}
+inline Vector<double> frexp(Vector<double> x, Vector<int> *e) {
+    return ::frexp(x.data(), &e->data());
+}
+inline Vector<float> frexp(Vector<float> x, Vector<short> *e) {
+    int ee;
+    const float r = ::frexpf(x.data(), &ee);
+    e->data() = ee;
+    return r;
+}
+
 } // namespace Scalar
 } // namespace Vc
 
