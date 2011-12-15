@@ -159,8 +159,7 @@ namespace SSE
         return _mm_castsi128_pd(_mm_add_epi64(_mm_castpd_si128(v.data()), exponentBits));
     }
     inline float_v ldexp(float_v v, int_v e) {
-        const __m128i exponentBits = _mm_slli_epi32(e.data(), 23);
-        return _mm_castsi128_ps(_mm_add_epi32(_mm_castps_si128(v.data()), exponentBits));
+        return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
     }
     inline sfloat_v ldexp(sfloat_v v, short_v e) {
         e <<= (23 - 16);
