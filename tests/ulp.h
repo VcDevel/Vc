@@ -1,0 +1,78 @@
+/*  This file is part of the Vc library. {{{
+
+    Copyright (C) 2011 Matthias Kretz <kretz@kde.org>
+
+    Vc is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3 of
+    the License, or (at your option) any later version.
+
+    Vc is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+
+}}}*/
+
+#ifndef TESTS_ULP_H
+#define TESTS_ULP_H
+
+#include <Vc/Vc>
+#include <Vc/limits>
+
+template<typename T> static inline T ulpDiffToReference(T val, T ref)
+{
+    using namespace std;
+
+    if (val == ref || (isnan(val) && isnan(ref))) {
+        return 0;
+    }
+    if (ref == T(0)) {
+        return 1 + ulpDiffToReference(abs(val), numeric_limits<T>::min());
+    }
+
+    int exp;
+    /*tmp = */ frexp(ref, &exp); // ref == tmp * 2 ^ exp => tmp == ref * 2 ^ -exp
+    // tmp is now in the range [0.5, 1.0[
+    // now we want to know how many times we can fit 2^-numeric_limits<T>::digits between tmp and
+    // val * 2 ^ -exp
+    return ldexp(abs(ref - val), numeric_limits<T>::digits - exp);
+    //const T refX = ldexp(tmp, numeric_limits<T>::digits);
+    //const T valX = ldexp(val, numeric_limits<T>::digits - exp);
+    //return abs(refX - valX);
+}
+
+template<typename T> struct _Ulp_ExponentVector { typedef int_v Type; };
+#ifdef VC_IMPL_SSE
+template<> struct _Ulp_ExponentVector<sfloat_v> { typedef short_v Type; };
+#endif
+
+template<typename _T> static inline Vc::Vector<_T> ulpDiffToReference(Vc::Vector<_T> val, Vc::Vector<_T> ref)
+{
+    using namespace Vc;
+    typedef Vector<_T> V;
+    typedef typename V::EntryType T;
+    typedef typename V::Mask M;
+
+    V diff = V::Zero();
+
+    if (val == ref || (isnan(val) && isnan(ref))) {
+        return diff;
+    }
+
+    const M zeroMask = ref == V::Zero();
+    val  (zeroMask)= abs(val);
+    ref  (zeroMask)= std::numeric_limits<V>::min();
+    diff (zeroMask)= V::One();
+
+    typename _Ulp_ExponentVector<V>::Type exp;
+    const V rfrac = frexp(ref, &exp);
+    return diff + ldexp(abs(ref - val), std::numeric_limits<T>::digits - exp);
+}
+
+#endif // TESTS_ULP_H
+
+// vim: foldmethod=marker
