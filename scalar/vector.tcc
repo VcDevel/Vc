@@ -45,6 +45,75 @@ template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<doubl
     value.i = (sign.i & 0x8000000000000000u) | (value.i & 0x7fffffffffffffffu);
     return value.f;
 } // }}}1
+// bitwise operators {{{1
+template<> inline Vector<float> &Vector<float>::operator|=(const Vector<float> &x) {
+    typedef unsigned int uinta MAY_ALIAS;
+    uinta *left = reinterpret_cast<uinta *>(&m_data);
+    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
+    *left |= *right;
+    return *this;
+}
+template<> inline Vector<float> Vector<float>::operator|(const Vector<float> &x) const {
+    Vector<float> ret = *this;
+    return ret |= x;
+}
+template<> inline Vector<float> &Vector<float>::operator&=(const Vector<float> &x) {
+    typedef unsigned int uinta MAY_ALIAS;
+    uinta *left = reinterpret_cast<uinta *>(&m_data);
+    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
+    *left &= *right;
+    return *this;
+}
+template<> inline Vector<float> Vector<float>::operator&(const Vector<float> &x) const {
+    Vector<float> ret = *this;
+    return ret &= x;
+}
+template<> inline Vector<float> &Vector<float>::operator^=(const Vector<float> &x) {
+    typedef unsigned int uinta MAY_ALIAS;
+    uinta *left = reinterpret_cast<uinta *>(&m_data);
+    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
+    *left ^= *right;
+    return *this;
+}
+template<> inline Vector<float> Vector<float>::operator^(const Vector<float> &x) const {
+    Vector<float> ret = *this;
+    return ret ^= x;
+}
+
+template<> inline Vector<double> &Vector<double>::operator|=(const Vector<double> &x) {
+    typedef unsigned long long uinta MAY_ALIAS;
+    uinta *left = reinterpret_cast<uinta *>(&m_data);
+    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
+    *left |= *right;
+    return *this;
+}
+template<> inline Vector<double> Vector<double>::operator|(const Vector<double> &x) const {
+    Vector<double> ret = *this;
+    return ret |= x;
+}
+template<> inline Vector<double> &Vector<double>::operator&=(const Vector<double> &x) {
+    typedef unsigned long long uinta MAY_ALIAS;
+    uinta *left = reinterpret_cast<uinta *>(&m_data);
+    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
+    *left &= *right;
+    return *this;
+}
+template<> inline Vector<double> Vector<double>::operator&(const Vector<double> &x) const {
+    Vector<double> ret = *this;
+    return ret &= x;
+}
+template<> inline Vector<double> &Vector<double>::operator^=(const Vector<double> &x) {
+    typedef unsigned long long uinta MAY_ALIAS;
+    uinta *left = reinterpret_cast<uinta *>(&m_data);
+    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
+    *left ^= *right;
+    return *this;
+}
+template<> inline Vector<double> Vector<double>::operator^(const Vector<double> &x) const {
+    Vector<double> ret = *this;
+    return ret ^= x;
+}
+// }}}1
 // exponent {{{1
 template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
 {
