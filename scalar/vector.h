@@ -206,7 +206,10 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         template<typename V2> inline V2 staticCast() const { return static_cast<typename V2::EntryType>(m_data); }
-        template<typename V2> inline V2 reinterpretCast() const { return reinterpret_cast<typename V2::EntryType>(m_data); }
+        template<typename V2> inline V2 reinterpretCast() const {
+            typedef typename V2::EntryType AliasT2 MAY_ALIAS;
+            return *reinterpret_cast<const AliasT2 *>(&m_data);
+        }
 
         inline WriteMaskedVector<T> operator()(Mask m) { return WriteMaskedVector<T>(this, m); }
 
