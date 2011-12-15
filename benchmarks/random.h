@@ -104,18 +104,12 @@ template<> class PseudoRandom<Vc::sfloat_v>
 {
     public:
         static Vc::sfloat_v next();
-
-    private:
-        static Vc::ushort_v state;
 };
-
-Vc::ushort_v PseudoRandom<Vc::sfloat_v>::state(Vc::ushort_v(Vc::IndexesFromZero) + std::rand());
 
 inline Vc::sfloat_v PseudoRandom<Vc::sfloat_v>::next()
 {
-    const Vc::sfloat_v ConvertFactor = 1.f / 0xffffu;
-    state = (state * 257 + 24151);
-    return Vc::sfloat_v(state) * ConvertFactor;
+    return Vc::SSE::M256::create(PseudoRandom<Vc::float_v>::next().data(),
+            PseudoRandom<Vc::float_v>::next().data());
 }
 #endif
 
