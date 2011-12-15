@@ -499,6 +499,22 @@ namespace Vc
     double_v frexp(const double_v &x, int_v *e);
 
     /**
+     * \ingroup Math
+     *
+     * multiply floating-point number by integral power of 2
+     *
+     * \returns x * 2 ^ e
+     */
+    float_v ldexp(float_v x, int_v e);
+    /*! \copydoc ldexp(float_v,int_v) */
+    sfloat_v ldexp(sfloat_v x, short_v e);
+    /** \copydoc ldexp(float_v,int_v)
+     *
+     * Since int_v::Size == double_v::Size * 2, only every second value in \p e is used.
+     */
+    double_v ldexp(double_v x, int_v e);
+
+    /**
      * \ingroup Utilities
      *
      * Force the vectors passed to the function into registers. This can be useful after looking at
