@@ -193,6 +193,16 @@ inline Vector<float> frexp(Vector<float> x, Vector<short> *e) {
     return r;
 }
 
+inline Vector<float> ldexp(Vector<float> x, Vector<int> e) {
+    return ::ldexpf(x.data(), e.data());
+}
+inline Vector<double> ldexp(Vector<double> x, Vector<int> e) {
+    return ::ldexp(x.data(), e.data());
+}
+inline Vector<float> ldexp(Vector<float> x, Vector<short> e) {
+    return ::ldexpf(x.data(), e.data());
+}
+
 } // namespace Scalar
 } // namespace Vc
 
