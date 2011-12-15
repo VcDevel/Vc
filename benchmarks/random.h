@@ -22,6 +22,7 @@
 
 #include <Vc/Vc>
 #include <cstdlib>
+#include <limits>
 
 // this is not a random number generator
 template<typename Vector> class PseudoRandom
@@ -72,13 +73,15 @@ template<> class PseudoRandom<Vc::float_v>
         static Vc::uint_v state;
 };
 
-Vc::uint_v PseudoRandom<Vc::float_v>::state(Vc::uint_v(Vc::IndexesFromZero) + std::rand());
+Vc::uint_v PseudoRandom<Vc::float_v>::state(((Vc::uint_v(Vc::IndexesFromZero) + std::rand()) * 1103515245 + 12345) * 1103515245 + 12345);
 
 inline Vc::float_v PseudoRandom<Vc::float_v>::next()
 {
-    const Vc::float_v ConvertFactor = 1.f / 0xffffffffu;
+    using Vc::float_v;
+    static const float_v mask(2.f - std::numeric_limits<float>::epsilon()); // 0x3fffffff
+    const float_v ret = ((state.reinterpretCast<float_v>() & mask) | float_v::One()) - float_v::One(); // [1.0, 2.0) - 1.0 => [0.0, 1.0)
     state = (state * 1103515245 + 12345);
-    return Vc::float_v(state) * ConvertFactor;
+    return ret;
 }
 
 template<> class PseudoRandom<Vc::double_v>
@@ -90,16 +93,31 @@ template<> class PseudoRandom<Vc::double_v>
         static Vc::uint_v state;
 };
 
-Vc::uint_v PseudoRandom<Vc::double_v>::state(Vc::uint_v(Vc::IndexesFromZero) + std::rand());
+Vc::uint_v PseudoRandom<Vc::double_v>::state(((Vc::uint_v(Vc::IndexesFromZero) + std::rand()) * 1103515245 + 12345) * 1103515245 + 12345);
 
 inline Vc::double_v PseudoRandom<Vc::double_v>::next()
 {
-    const Vc::double_v ConvertFactor = 1. / 0xffffffffu;
-    state = (state * 1103515245 + 12345);
-    return Vc::double_v(state) * ConvertFactor;
+    using Vc::double_v;
+    using Vc::uint_v;
+    static const double_v mask(2. - std::numeric_limits<double>::epsilon()); // 0x3fffffffffffffff
+    if (sizeof(double_v) == sizeof(state)) {
+        const double_v ret = ((state.reinterpretCast<double_v>() & mask) | double_v::One()) - double_v::One(); // [1.0, 2.0) - 1.0 => [0.0, 1.0)
+        state = (state * 1103515245 + 12345);
+        return ret;
+    } else if (double_v::Size == 1 && uint_v::Size == 1) {
+        union {
+            double_v::EntryType d;
+            uint_v::EntryType i[2];
+        } x;
+        x.i[0] = state[0];
+        state = (state * 1103515245 + 12345);
+        x.i[1] = state[0];
+        state = (state * 1103515245 + 12345);
+        return ((double_v(x.d) & mask) | double_v::One()) - double_v::One(); // [1.0, 2.0) - 1.0 => [0.0, 1.0)
+    }
 }
 
-#if VC_IMPL_SSE
+#ifdef VC_IMPL_SSE
 template<> class PseudoRandom<Vc::sfloat_v>
 {
     public:
