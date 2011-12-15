@@ -63,6 +63,8 @@ namespace Vc
   using VECTOR_NAMESPACE::reciprocal;
   using VECTOR_NAMESPACE::atan;
   using VECTOR_NAMESPACE::atan2;
+  using VECTOR_NAMESPACE::frexp;
+  using VECTOR_NAMESPACE::ldexp;
   using VECTOR_NAMESPACE::round;
   using VECTOR_NAMESPACE::isfinite;
   using VECTOR_NAMESPACE::isnan;
