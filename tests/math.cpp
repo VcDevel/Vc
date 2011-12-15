@@ -488,6 +488,22 @@ template<typename V> void testLdexp()
     }
 }
 
+#ifndef VC_IMPL_SSE
+template<> void testLdexp<float_v>()
+{
+    for (size_t i = 0; i < 1024 / float_v::Size; ++i) {
+        const float_v v = (PseudoRandom<float_v>::next() - 0.5f) * 1000.f;
+        int_v eI;
+        short_v eS;
+        const float_v mI = frexp(v, &eI);
+        const float_v mS = frexp(v, &eS);
+        COMPARE(mI, mS);
+        COMPARE(ldexp(mI, eI), v) << ", mI = " << mI << ", eI = " << eI;
+        COMPARE(ldexp(mS, eS), v) << ", mS = " << mS << ", eS = " << eS;
+    }
+}
+#endif
+
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
