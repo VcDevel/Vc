@@ -23,6 +23,7 @@
 #include "vectormemoryhelper.h"
 #include <cmath>
 #include <algorithm>
+#include "../benchmarks/random.h"
 
 using namespace Vc;
 
@@ -475,6 +476,18 @@ template<typename V> void testFrexp()
     }
 }
 
+template<typename V> void testLdexp()
+{
+    typedef typename V::EntryType T;
+    typedef typename _ExponentVector<V>::Type ExpV;
+    for (size_t i = 0; i < 1024 / V::Size; ++i) {
+        const V v = (PseudoRandom<V>::next() - T(0.5)) * T(1000);
+        ExpV e;
+        const V m = frexp(v, &e);
+        COMPARE(ldexp(m, e), v) << ", m = " << m << ", e = " << e;
+    }
+}
+
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
@@ -584,6 +597,10 @@ int main(int argc, char **argv)
     runTest(testFrexp<float_v>);
     runTest(testFrexp<sfloat_v>);
     runTest(testFrexp<double_v>);
+
+    runTest(testLdexp<float_v>);
+    runTest(testLdexp<sfloat_v>);
+    runTest(testLdexp<double_v>);
 
     return 0;
 }

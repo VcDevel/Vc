@@ -149,6 +149,26 @@ namespace SSE
         e->setZero(static_cast<short_m>(zeroMask));
         return ret;
     }
+
+    /*             -> x * 2^e
+     * x == NaN    -> NaN
+     * x == (-)inf -> (-)inf
+     */
+    inline double_v ldexp(double_v v, int_v e) {
+        const __m128i exponentBits = _mm_slli_epi64(e.data(), 52);
+        return _mm_castsi128_pd(_mm_add_epi64(_mm_castpd_si128(v.data()), exponentBits));
+    }
+    inline float_v ldexp(float_v v, int_v e) {
+        const __m128i exponentBits = _mm_slli_epi32(e.data(), 23);
+        return _mm_castsi128_ps(_mm_add_epi32(_mm_castps_si128(v.data()), exponentBits));
+    }
+    inline sfloat_v ldexp(sfloat_v v, short_v e) {
+        e <<= (23 - 16);
+        const __m128i exponentBits0 = _mm_unpacklo_epi16(_mm_setzero_si128(), e.data());
+        const __m128i exponentBits1 = _mm_unpackhi_epi16(_mm_setzero_si128(), e.data());
+        return M256::create(_mm_castsi128_ps(_mm_add_epi32(_mm_castps_si128(v.data()[0]), exponentBits0)),
+                _mm_castsi128_ps(_mm_add_epi32(_mm_castps_si128(v.data()[1]), exponentBits1)));
+    }
 } // namespace SSE
 } // namespace Vc
 
