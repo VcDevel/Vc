@@ -26,6 +26,8 @@ namespace Vc
 {
 namespace SSE
 {
+    ///////////////////////////////////////////////////////////////////////////
+    // helpers for all the required constants
     template<typename T> inline Vector<T> c_sin<T>::_1_2pi()  { return Vector<T>(&_data[0 * Size]); }
     template<typename T> inline Vector<T> c_sin<T>::_2pi()    { return Vector<T>(&_data[1 * Size]); }
     template<typename T> inline Vector<T> c_sin<T>::_pi_2()   { return Vector<T>(&_data[2 * Size]); }
@@ -109,8 +111,7 @@ namespace SSE
      * The return value will be in the range [0.5, 1.0[
      * The \p e value will be an integer defining the power-of-two exponent
      */
-    template<typename T, typename ExponentT> inline Vector<T> frexp(const Vector<T> &v, Vector<ExponentT> *e);
-    template<> inline double_v frexp(const double_v &v, int_v *e) {
+    inline double_v frexp(const double_v &v, int_v *e) {
         const __m128i exponentBits = _mm_load_si128(reinterpret_cast<const __m128i *>(&c_log<double, double_m>::_dataI[2]));
         const __m128i exponentPart = _mm_and_si128(_mm_castpd_si128(v.data()), exponentBits);
         *e = _mm_sub_epi32(_mm_srli_epi64(exponentPart, 52), _mm_set1_epi32(0x3fe));
@@ -121,7 +122,7 @@ namespace SSE
         e->setZero(zeroMask.data());
         return ret;
     }
-    template<> inline float_v frexp(const float_v &v, int_v *e) {
+    inline float_v frexp(const float_v &v, int_v *e) {
         const __m128i exponentBits = _mm_load_si128(reinterpret_cast<const __m128i *>(&c_log<float, float_m>::_dataI[4]));
         const __m128i exponentPart = _mm_and_si128(_mm_castps_si128(v.data()), exponentBits);
         *e = _mm_sub_epi32(_mm_srli_epi32(exponentPart, 23), _mm_set1_epi32(0x7e));
@@ -131,7 +132,7 @@ namespace SSE
         e->setZero(v == float_v::Zero());
         return ret;
     }
-    template<> inline sfloat_v frexp(const sfloat_v &v, short_v *e) {
+    inline sfloat_v frexp(const sfloat_v &v, short_v *e) {
         const __m128i exponentBits = _mm_load_si128(reinterpret_cast<const __m128i *>(&c_log<float, float_m>::_dataI[4]));
         const __m128i exponentPart0 = _mm_and_si128(_mm_castps_si128(v.data()[0]), exponentBits);
         const __m128i exponentPart1 = _mm_and_si128(_mm_castps_si128(v.data()[1]), exponentBits);
