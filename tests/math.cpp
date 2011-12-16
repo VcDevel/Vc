@@ -509,6 +509,9 @@ template<typename V> void testUlpDiff()
 {
     typedef typename V::EntryType T;
 
+    COMPARE(ulpDiffToReference(V::Zero(), V::Zero()), V::Zero());
+    COMPARE(ulpDiffToReference(std::numeric_limits<V>::min(), V::Zero()), V::One());
+    COMPARE(ulpDiffToReference(V::Zero(), std::numeric_limits<V>::min()), V::One());
     for (size_t count = 0; count < 1024 / V::Size; ++count) {
         const V base = (PseudoRandom<V>::next() - T(0.5)) * T(1000);
         typename _Ulp_ExponentVector<V>::Type exp;
@@ -516,12 +519,13 @@ template<typename V> void testUlpDiff()
         const V eps = ldexp(V(std::numeric_limits<T>::epsilon()), exp - 1);
         //std::cout << base << ", " << exp << ", " << eps << std::endl;
         for (int i = -10000; i <= 10000; ++i) {
-            const V diff = base + V(i) * eps;
+            const V i_v = V(T(i));
+            const V diff = base + i_v * eps;
 
             // if diff and base have a different exponent then ulpDiffToReference has an uncertainty
             // of +/-1
-            const V ulpDifference = ulpDiffToReference(V(diff), V(base));
-            const V expectedDifference = Vc::abs(V(T(i)));
+            const V ulpDifference = ulpDiffToReference(diff, base);
+            const V expectedDifference = Vc::abs(i_v);
             const V maxUncertainty = Vc::abs(diff.exponent() - base.exponent());
 
             VERIFY(Vc::abs(ulpDifference - expectedDifference) <= maxUncertainty)
