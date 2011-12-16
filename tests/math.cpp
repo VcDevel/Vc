@@ -46,8 +46,8 @@ template<typename Vec> void testAbs()
 
 template<typename Vec> void testLog()
 {
-    setFuzzyness<float>(1.2e-7f);
-    setFuzzyness<double>(3e-16);
+    setFuzzyness<float>(1e12);
+    setFuzzyness<double>(1e12);
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
     const I indexesFromZero(IndexesFromZero);
@@ -66,8 +66,6 @@ template<typename Vec> void testLog()
         const Vec a2 = a * a;
         FUZZY_COMPARE(Vc::log(a2), two * Vc::log(a));
     }
-    setFuzzyness<float>(0.f);
-    setFuzzyness<double>(0.);
 }
 
 template<typename Vec>
@@ -107,18 +105,14 @@ template<typename Vec> void testSqrt()
     FUZZY_COMPARE(Vc::sqrt(a), b);
 }
 
-template<typename Vec> void testRSqrt()
+template<typename V> void testRSqrt()
 {
-    typedef typename Vec::EntryType T;
-    const T one = 1;
-    FillHelperMemory(one / std::sqrt(i));
-    Vec a(data);
-    Vec b(reference);
-
-    // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
-    setFuzzyness<float>(0.0003662109375f);
-    FUZZY_COMPARE(Vc::rsqrt(a), b);
-    setFuzzyness<float>(0.f);
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 1024 / V::Size; ++i) {
+        const V x = PseudoRandom<V>::next() * T(1000);
+        // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
+        VERIFY(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12)));
+    }
 }
 
 template<typename T> void my_sincos(T x, T *sin, T *cos);
@@ -134,7 +128,7 @@ template<> void my_sincos<float>(float x, float *sin, float *cos)
 template<typename Vec> void testSincos()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<double>(4e-6);
+    setFuzzyness<double>(3.17318e+10); // FIXME: way too large!
     typename Vec::Memory base;
     for (int i = 0; i < Vec::Size; ++i) {
         base[i] = static_cast<T>(i);
@@ -147,9 +141,9 @@ template<typename Vec> void testSincos()
         for (int i = 0; i < Vec::Size; ++i) {
             T scalarSin, scalarCos;
             my_sincos((i + offset) * scale, &scalarSin, &scalarCos);
-            setFuzzyness<float>(6e-5f);
+            setFuzzyness<float>(751);
             FUZZY_COMPARE(T(sin[i]), scalarSin);
-            setFuzzyness<float>(2.1e-4f);
+            setFuzzyness<float>(2798); // FIXME
             FUZZY_COMPARE(T(cos[i]), scalarCos);
         }
     }
@@ -158,23 +152,24 @@ template<typename Vec> void testSincos()
 template<typename Vec> void testSin()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(6e-5f);
-    setFuzzyness<double>(4e-6);
+    setFuzzyness<float>(751);
+    setFuzzyness<double>(3.17318e+10); // FIXME: way too large!
+    Vec maxDiff = Vec::Zero();
     for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
         const T scale = T(0.01);
         FillHelperMemory(std::sin((i + offset) * scale));
         Vec a(data);
         Vec b(reference);
 
-        FUZZY_COMPARE(Vc::sin((a + offset) * scale), b);
+        FUZZY_COMPARE(Vc::sin((a + offset) * scale), b) << " failed at sin(" << (a + offset) * scale << ")";
     }
 }
 
 template<typename Vec> void testCos()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(2.1e-4f);
-    setFuzzyness<double>(4e-6);
+    setFuzzyness<float>(2798); // FIXME
+    setFuzzyness<double>(3.15557e+10); // FIXME: way too large!
     for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
         const T scale = T(0.01);
         FillHelperMemory(std::cos((i + offset) * scale));
@@ -188,8 +183,8 @@ template<typename Vec> void testCos()
 template<typename Vec> void testAsin()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(1.1e-6f);
-    setFuzzyness<double>(8.8e-9);
+    setFuzzyness<float>(2);
+    setFuzzyness<double>(4.418735e+07); // FIXME
     for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
         const T scale = T(0.001);
         FillHelperMemory(std::asin((i + offset) * scale));
@@ -203,8 +198,8 @@ template<typename Vec> void testAsin()
 template<typename Vec> void testAtan()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(1e-7f);
-    setFuzzyness<double>(2e-8);
+    setFuzzyness<float>(2);
+    setFuzzyness<double>(1.434825e+08); // FIXME
     for (int offset = -1000; offset < 1000; offset += 10) {
         const T scale = T(0.1);
         FillHelperMemory(std::atan((i + offset) * scale));
@@ -218,8 +213,8 @@ template<typename Vec> void testAtan()
 template<typename Vec> void testAtan2()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(3e-7f);
-    setFuzzyness<double>(3e-8);
+    setFuzzyness<float>(3);
+    setFuzzyness<double>(1.751135e+08); // FIXME
     for (int xoffset = -100; xoffset < 1000; xoffset += 10) {
         for (int yoffset = -100; yoffset < 1000; yoffset += 10) {
             FillHelperMemory(std::atan2((i + xoffset) * 0.15, (i + yoffset) * 0.15));
@@ -235,7 +230,7 @@ template<typename Vec> void testAtan2()
 template<typename Vec> void testReciprocal()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(3.e-4f);
+    setFuzzyness<float>(1.258295e+07);
     setFuzzyness<double>(0);
     const T one = 1;
     for (int offset = -1000; offset < 1000; offset += 10) {

@@ -27,6 +27,7 @@
 #include <cstring>
 #include <cmath>
 #include "../common/support.h"
+#include "ulp.h"
 
 #define _expand(name) #name
 #define runTest(name) _unit_test_global.runTestInt(&name, _expand(name))
@@ -74,9 +75,11 @@ class _UnitTest_Global_Object
             expect_failure(false),
             assert_failure(0),
             expect_assert_failure(false),
-            float_fuzzyness( 1e-6f ),
-            double_fuzzyness( 1e-20f ),
-            failedTests(0), passedTests(0)
+            float_fuzzyness( 1.f ),
+            double_fuzzyness( 1. ),
+            failedTests(0), passedTests(0),
+            findMaximumDistance(false),
+            maximumDistance(0)
         {
         }
 
@@ -99,6 +102,8 @@ class _UnitTest_Global_Object
         int failedTests;
     public:
         int passedTests;
+        bool findMaximumDistance;
+        double maximumDistance;
 };
 
 static _UnitTest_Global_Object _unit_test_global;
@@ -131,14 +136,20 @@ void initTest(int argc, char **argv)
     for (int i = 1; i < argc; ++i) {
         if (0 == std::strcmp(argv[i], "--help") || 0 == std::strcmp(argv[i], "-h")) {
             std::cout <<
-                "Usage: " << argv[0] << " [-h|--help] [--only <testname>]\n";
+                "Usage: " << argv[0] << " [-h|--help] [--only <testname>] [--maxdist]\n";
             exit(0);
         }
         if (0 == std::strcmp(argv[i], "--only") && i + 1 < argc) {
             _unit_test_global.only_name = argv[i + 1];
+        } else if (0 == std::strcmp(argv[i], "--maxdist")) {
+            _unit_test_global.findMaximumDistance = true;
         }
     }
 }
+
+template<typename T> static inline void setFuzzyness( T );
+template<> inline void setFuzzyness<float>( float fuzz ) { _unit_test_global.float_fuzzyness = fuzz; }
+template<> inline void setFuzzyness<double>( double fuzz ) { _unit_test_global.double_fuzzyness = fuzz; }
 
 void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
 {
@@ -148,6 +159,9 @@ void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
     _unit_test_global.status = true;
     _unit_test_global.expect_failure = false;
     try {
+        setFuzzyness<float>(1);
+        setFuzzyness<double>(1);
+        maximumDistance = 0.;
         fun();
     } catch(_UnitTest_Failure) {
     }
@@ -164,16 +178,15 @@ void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
             std::cout << _unittest_fail() << "┕ " << name << std::endl;
             ++failedTests;
         } else {
-            std::cout << " PASS: " << name << std::endl;
+            std::cout << " PASS: " << name;
+            if (findMaximumDistance && maximumDistance > 0.) {
+                std::cout << " with a maximal distance of " << maximumDistance << " to the reference.";
+            }
+            std::cout << std::endl;
             ++passedTests;
         }
     }
 }
-
-template<typename T> static inline void setFuzzyness( T );
-
-template<> inline void setFuzzyness<float>( float fuzz ) { _unit_test_global.float_fuzzyness = fuzz; }
-template<> inline void setFuzzyness<double>( double fuzz ) { _unit_test_global.double_fuzzyness = fuzz; }
 
 template<typename T1, typename T2> static inline bool unittest_compareHelper( const T1 &a, const T2 &b ) { return a == b; }
 template<> inline bool unittest_compareHelper<Vc::int_v, Vc::int_v>( const Vc::int_v &a, const Vc::int_v &b ) { return (a == b).isFull(); }
@@ -183,33 +196,37 @@ template<> inline bool unittest_compareHelper<Vc::double_v, Vc::double_v>( const
 template<> inline bool unittest_compareHelper<Vc::ushort_v, Vc::ushort_v>( const Vc::ushort_v &a, const Vc::ushort_v &b ) { return (a == b).isFull(); }
 template<> inline bool unittest_compareHelper<Vc::short_v, Vc::short_v>( const Vc::short_v &a, const Vc::short_v &b ) { return (a == b).isFull(); }
 
+template<typename T> T ulpDiffToReferenceWrapper(T a, T b) {
+    const T diff = ulpDiffToReference(a, b);
+    if (VC_IS_UNLIKELY(_unit_test_global.findMaximumDistance)) {
+        _unit_test_global.maximumDistance = std::max<double>(diff, _unit_test_global.maximumDistance);
+    }
+    return diff;
+}
+template<typename T> Vc::Vector<T> ulpDiffToReferenceWrapper(Vc::Vector<T> a, Vc::Vector<T> b) {
+    const Vc::Vector<T> diff = ulpDiffToReference(a, b);
+    if (VC_IS_UNLIKELY(_unit_test_global.findMaximumDistance)) {
+        _unit_test_global.maximumDistance = std::max<double>(diff.max(), _unit_test_global.maximumDistance);
+    }
+    return diff;
+}
 template<typename T> static inline bool unittest_fuzzyCompareHelper( const T &a, const T &b ) { return a == b; }
-
-template<> inline bool unittest_fuzzyCompareHelper<float>( const float &a, const float &b )
-{
-    return a == b || std::abs(a - b) <= _unit_test_global.float_fuzzyness * std::abs(b);
+template<> inline bool unittest_fuzzyCompareHelper<float>( const float &a, const float &b ) {
+    return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness;
 }
-
-template<> inline bool unittest_fuzzyCompareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b )
-{
-    return a == b || Vc::abs(a - b) <= _unit_test_global.float_fuzzyness * Vc::abs(b);
+template<> inline bool unittest_fuzzyCompareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b ) {
+    return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness;
 }
-
 #if VC_IMPL_SSE
-template<> inline bool unittest_fuzzyCompareHelper<Vc::sfloat_v>( const Vc::sfloat_v &a, const Vc::sfloat_v &b )
-{
-    return a == b || Vc::abs(a - b) <= _unit_test_global.float_fuzzyness * Vc::abs(b);
+template<> inline bool unittest_fuzzyCompareHelper<Vc::sfloat_v>( const Vc::sfloat_v &a, const Vc::sfloat_v &b ) {
+    return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness;
 }
 #endif
-
-template<> inline bool unittest_fuzzyCompareHelper<double>( const double &a, const double &b )
-{
-    return a == b || std::abs(a - b) <= _unit_test_global.double_fuzzyness * std::abs(b);
+template<> inline bool unittest_fuzzyCompareHelper<double>( const double &a, const double &b ) {
+    return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.double_fuzzyness;
 }
-
-template<> inline bool unittest_fuzzyCompareHelper<Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b )
-{
-    return a == b || Vc::abs(a - b) <= _unit_test_global.double_fuzzyness * Vc::abs(b);
+template<> inline bool unittest_fuzzyCompareHelper<Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b ) {
+    return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.double_fuzzyness;
 }
 
 template<typename T1, typename T2, typename M> inline void unitttest_comparePrintHelper(const T1 &a, const T2 &b, const M &m, const char *aa, const char *bb, const char *file, int line, double fuzzyness = 0.) {
@@ -274,7 +291,9 @@ class _UnitTest_Compare
                 print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") ≈ ");
                 print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
                 print(") -> "); print(a == b);
-                print("\nwith fuzzyness ");
+                print("\ndistance: ");
+                print(ulpDiffToReference(a, b));
+                print(", allowed distance: ");
                 print(unittest_fuzzynessHelper(a));
             }
         }
