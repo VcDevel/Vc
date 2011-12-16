@@ -45,9 +45,9 @@ template<typename T> static inline T ulpDiffToReference(T val, T ref)
     //return abs(refX - valX);
 }
 
-template<typename T> struct _Ulp_ExponentVector { typedef int_v Type; };
+template<typename T> struct _Ulp_ExponentVector { typedef Vc::int_v Type; };
 #ifdef VC_IMPL_SSE
-template<> struct _Ulp_ExponentVector<sfloat_v> { typedef short_v Type; };
+template<> struct _Ulp_ExponentVector<Vc::sfloat_v> { typedef Vc::short_v Type; };
 #endif
 
 template<typename _T> static inline Vc::Vector<_T> ulpDiffToReference(Vc::Vector<_T> val, Vc::Vector<_T> ref)
@@ -63,10 +63,14 @@ template<typename _T> static inline Vc::Vector<_T> ulpDiffToReference(Vc::Vector
         return diff;
     }
 
-    const M zeroMask = ref == V::Zero();
+    M zeroMask = ref == V::Zero();
     val  (zeroMask)= abs(val);
     ref  (zeroMask)= std::numeric_limits<V>::min();
     diff (zeroMask)= V::One();
+    zeroMask = val == V::Zero();
+    ref  (zeroMask)= abs(ref);
+    val  (zeroMask)= std::numeric_limits<V>::min();
+    diff (zeroMask)+= V::One();
 
     typename _Ulp_ExponentVector<V>::Type exp;
     const V rfrac = frexp(ref, &exp);
