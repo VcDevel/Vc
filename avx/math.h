@@ -57,6 +57,7 @@ namespace AVX
     typedef Vector<double>::Mask double_m;
     typedef Vector<float >::Mask float_m;
     typedef int_v::Mask int_m;
+    typedef short_v::Mask short_m;
 
     template<> inline double_m c_log<double, double_m>::exponentMask() { return _mm256_broadcast_sd(d(1)); }
     template<> inline double_v c_log<double, double_m>::_1_2()         { return _mm256_broadcast_sd(&_dataT[3]); }
@@ -126,13 +127,16 @@ namespace AVX
      * x == (-)inf -> (-)inf
      */
     inline double_v ldexp(double_v v, int_v e) {
+        e.setZero((v == double_v::Zero()).dataI());
         const __m256i exponentBits = _mm256_slli_epi64(e.data(), 52);
         return avx_cast<__m256d>(_mm256_add_epi64(avx_cast<__m256i>(v.data()), exponentBits));
     }
     inline float_v ldexp(float_v v, int_v e) {
+        e.setZero(static_cast<int_m>(v == float_v::Zero()));
         return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
     }
     inline float_v ldexp(float_v v, short_v e) {
+        e.setZero(static_cast<short_m>(v == sfloat_v::Zero()));
         e = e << (23 - 16);
         const __m256i exponentBits = concat(_mm_unpacklo_epi16(_mm_setzero_si128(), e.data()),
                 _mm_unpackhi_epi16(_mm_setzero_si128(), e.data()));
