@@ -46,8 +46,8 @@ template<typename Vec> void testAbs()
 
 template<typename Vec> void testLog()
 {
-    setFuzzyness<float>(1e12);
-    setFuzzyness<double>(1e12);
+    setFuzzyness<float>(1.258295e+07);
+    setFuzzyness<double>(1);
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
     const I indexesFromZero(IndexesFromZero);
@@ -154,7 +154,6 @@ template<typename Vec> void testSin()
     typedef typename Vec::EntryType T;
     setFuzzyness<float>(751);
     setFuzzyness<double>(3.17318e+10); // FIXME: way too large!
-    Vec maxDiff = Vec::Zero();
     for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
         const T scale = T(0.01);
         FillHelperMemory(std::sin((i + offset) * scale));
