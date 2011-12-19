@@ -73,7 +73,7 @@ template<typename _T> static inline Vc::Vector<_T> ulpDiffToReference(Vc::Vector
     diff (zeroMask)+= V::One();
 
     typename _Ulp_ExponentVector<V>::Type exp;
-    const V rfrac = frexp(ref, &exp);
+    frexp(ref, &exp);
     return diff + ldexp(abs(ref - val), std::numeric_limits<T>::digits - exp);
 }
 
