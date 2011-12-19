@@ -396,39 +396,30 @@ class _UnitTest_Compare
             std::cout << "at " << _file << ':' << _line << " (0x" << std::hex << _ip << std::dec << ')';
         }
         template<typename T> static inline void printFuzzyInfo(T a, T b);
+        template<typename T> static inline void printFuzzyInfoImpl(T a, T b, double fuzzyness) {
+            print("\ndistance: ");
+            print(ulpDiffToReference(a, b));
+            print(", allowed distance: ");
+            print(fuzzyness);
+        }
         const bool m_failed;
 };
 template<typename T> inline void _UnitTest_Compare::printFuzzyInfo(T, T) {}
 template<> inline void _UnitTest_Compare::printFuzzyInfo(float a, float b) {
-    print("\ndistance: ");
-    print(ulpDiffToReference(a, b));
-    print(", allowed distance: ");
-    print(_unit_test_global.float_fuzzyness);
+    printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
 }
 template<> inline void _UnitTest_Compare::printFuzzyInfo(double a, double b) {
-    print("\ndistance: ");
-    print(ulpDiffToReference(a, b));
-    print(", allowed distance: ");
-    print(_unit_test_global.double_fuzzyness);
+    printFuzzyInfoImpl(a, b, _unit_test_global.double_fuzzyness);
 }
 template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::float_v a, Vc::float_v b) {
-    print("\ndistance: ");
-    print(ulpDiffToReference(a, b));
-    print(", allowed distance: ");
-    print(_unit_test_global.float_fuzzyness);
+    printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
 }
 template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::double_v a, Vc::double_v b) {
-    print("\ndistance: ");
-    print(ulpDiffToReference(a, b));
-    print(", allowed distance: ");
-    print(_unit_test_global.double_fuzzyness);
+    printFuzzyInfoImpl(a, b, _unit_test_global.double_fuzzyness);
 }
 #ifdef VC_IMPL_SSE
 template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::sfloat_v a, Vc::sfloat_v b) {
-    print("\ndistance: ");
-    print(ulpDiffToReference(a, b));
-    print(", allowed distance: ");
-    print(_unit_test_global.float_fuzzyness);
+    printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
 }
 #endif
 #undef ALWAYS_INLINE
