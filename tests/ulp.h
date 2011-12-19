@@ -33,6 +33,9 @@ template<typename T> static inline T ulpDiffToReference(T val, T ref)
     if (ref == T(0)) {
         return 1 + ulpDiffToReference(abs(val), numeric_limits<T>::min());
     }
+    if (val == T(0)) {
+        return 1 + ulpDiffToReference(numeric_limits<T>::min(), abs(ref));
+    }
 
     int exp;
     /*tmp = */ frexp(ref, &exp); // ref == tmp * 2 ^ exp => tmp == ref * 2 ^ -exp
@@ -40,9 +43,6 @@ template<typename T> static inline T ulpDiffToReference(T val, T ref)
     // now we want to know how many times we can fit 2^-numeric_limits<T>::digits between tmp and
     // val * 2 ^ -exp
     return ldexp(abs(ref - val), numeric_limits<T>::digits - exp);
-    //const T refX = ldexp(tmp, numeric_limits<T>::digits);
-    //const T valX = ldexp(val, numeric_limits<T>::digits - exp);
-    //return abs(refX - valX);
 }
 
 template<typename T> struct _Ulp_ExponentVector { typedef Vc::int_v Type; };
