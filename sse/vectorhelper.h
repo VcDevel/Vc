@@ -567,6 +567,12 @@ namespace SSE
 
             static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
+            static inline VectorType shiftLeft(VectorType a, int shift) {
+                return CAT(_mm_slli_, SUFFIX)(a, shift);
+            }
+            static inline VectorType shiftRight(VectorType a, int shift) {
+                return CAT(_mm_srai_, SUFFIX)(a, shift);
+            }
             OP1(abs)
 
             MINMAX
@@ -715,6 +721,12 @@ namespace SSE
 
 #undef SUFFIX
 #define SUFFIX epi32
+            static inline VectorType shiftLeft(VectorType a, int shift) {
+                return CAT(_mm_slli_, SUFFIX)(a, shift);
+            }
+            static inline VectorType shiftRight(VectorType a, int shift) {
+                return CAT(_mm_srli_, SUFFIX)(a, shift);
+            }
             static inline VectorType set(const unsigned int a) PURE { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) PURE { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
 
@@ -757,6 +769,12 @@ namespace SSE
 #define SUFFIX epi16
             static inline VectorType one() PURE { return CAT(_mm_setone_, SUFFIX)(); }
 
+            static inline VectorType shiftLeft(VectorType a, int shift) {
+                return CAT(_mm_slli_, SUFFIX)(a, shift);
+            }
+            static inline VectorType shiftRight(VectorType a, int shift) {
+                return CAT(_mm_srai_, SUFFIX)(a, shift);
+            }
             static inline VectorType set(const EntryType a) PURE { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const EntryType a, const EntryType b, const EntryType c, const EntryType d,
                     const EntryType e, const EntryType f, const EntryType g, const EntryType h) PURE {
@@ -889,6 +907,12 @@ namespace SSE
 #endif
 #undef SUFFIX
 #define SUFFIX epi16
+            static inline VectorType shiftLeft(VectorType a, int shift) {
+                return CAT(_mm_slli_, SUFFIX)(a, shift);
+            }
+            static inline VectorType shiftRight(VectorType a, int shift) {
+                return CAT(_mm_srli_, SUFFIX)(a, shift);
+            }
             OPx(mul, mullo) // should work correctly for all values
 #if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(VC_IMPL_SSE4_1)
             OP(min) OP(max) // XXX breaks for values with MSB set

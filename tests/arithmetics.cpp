@@ -233,6 +233,24 @@ template<typename Vec> void testAnd()
 
 template<typename Vec> void testShift()
 {
+    typedef typename Vec::EntryType T;
+    const T step = std::max<T>(1, std::numeric_limits<T>::max() / 1000);
+    enum {
+        NShifts = sizeof(T) * 8
+    };
+    for (Vec x = std::numeric_limits<Vec>::min() + Vec::IndexesFromZero();
+            x <  std::numeric_limits<Vec>::max() - step;
+            x += step) {
+        for (size_t shift = 0; shift < NShifts; ++shift) {
+            const Vec rightShift = x >> shift;
+            const Vec leftShift  = x << shift;
+            for (size_t k = 0; k < Vec::Size; ++k) {
+                COMPARE(rightShift[k], T(x[k] >> shift)) << ", x[k] = " << x[k] << ", shift = " << shift;
+                COMPARE(leftShift [k], T(x[k] << shift)) << ", x[k] = " << x[k] << ", shift = " << shift;
+            }
+        }
+    }
+
     Vec a(1);
     Vec b(2);
 
