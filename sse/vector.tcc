@@ -496,30 +496,20 @@ OP_IMPL(unsigned short, >>)
 #undef VC_WORKAROUND
 #undef VC_WORKAROUND_IN
 
-#define OP_IMPL(T, SUFFIX) \
-template<> inline Vector<T> &VectorBase<T>::operator<<=(int x) \
-{ \
-    d.v() = CAT(_mm_slli_epi, SUFFIX)(d.v(), x); \
-    return *static_cast<Vector<T> *>(this); \
-} \
-template<> inline Vector<T> &VectorBase<T>::operator>>=(int x) \
-{ \
-    d.v() = CAT(_mm_srli_epi, SUFFIX)(d.v(), x); \
-    return *static_cast<Vector<T> *>(this); \
-} \
-template<> inline Vector<T> VectorBase<T>::operator<<(int x) const \
-{ \
-    return CAT(_mm_slli_epi, SUFFIX)(d.v(), x); \
-} \
-template<> inline Vector<T> VectorBase<T>::operator>>(int x) const \
-{ \
-    return CAT(_mm_srli_epi, SUFFIX)(d.v(), x); \
+template<typename T> inline Vector<T> &VectorBase<T>::operator>>=(int shift) {
+    d.v() = VectorHelper<T>::shiftRight(d.v(), shift);
+    return *static_cast<Vector<T> *>(this);
 }
-OP_IMPL(int, 32)
-OP_IMPL(unsigned int, 32)
-OP_IMPL(short, 16)
-OP_IMPL(unsigned short, 16)
-#undef OP_IMPL
+template<typename T> inline Vector<T> VectorBase<T>::operator>>(int shift) const {
+    return VectorHelper<T>::shiftRight(d.v(), shift);
+}
+template<typename T> inline Vector<T> &VectorBase<T>::operator<<=(int shift) {
+    d.v() = VectorHelper<T>::shiftLeft(d.v(), shift);
+    return *static_cast<Vector<T> *>(this);
+}
+template<typename T> inline Vector<T> VectorBase<T>::operator<<(int shift) const {
+    return VectorHelper<T>::shiftLeft(d.v(), shift);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // gathers {{{1
