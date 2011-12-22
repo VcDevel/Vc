@@ -125,6 +125,98 @@ template<typename V> void copySign()
     COMPARE(-v, v.copySign(negative));
 }
 
+#include <strings.h>
+
+template<typename V> void Random()
+{
+    typedef typename V::EntryType T;
+    enum {
+        NBits = 3,
+        NBins = 1 << NBits,                        // short int
+        TotalBits = sizeof(T) * 8,                 //    16  32
+        RightShift = TotalBits - NBits,            //    13  29
+        NHistograms = TotalBits - NBits + 1,       //    14  30
+        LeftShift = (RightShift + 1) / NHistograms,//     1   1
+        Mean = 135791,
+        MinGood = Mean - Mean/10,
+        MaxGood = Mean + Mean/10
+    };
+    const V mask((1 << NBits) - 1);
+    int histogram[NHistograms][NBins];
+    bzero(&histogram[0][0], sizeof(histogram));
+    for (size_t i = 0; i < NBins * Mean / V::Size; ++i) {
+        const V rand = V::Random();
+        for (size_t hist = 0; hist < NHistograms; ++hist) {
+            const V bin = ((rand << (hist * LeftShift)) >> RightShift) & mask;
+            for (size_t k = 0; k < V::Size; ++k) {
+                ++histogram[hist][bin[k]];
+            }
+        }
+    }
+//#define PRINT_RANDOM_HISTOGRAM
+#ifdef PRINT_RANDOM_HISTOGRAM
+    for (size_t hist = 0; hist < NHistograms; ++hist) {
+        std::cout << "histogram[" << std::setw(2) << hist << "]: ";
+        for (size_t bin = 0; bin < NBins; ++bin) {
+            std::cout << std::setw(3) << (histogram[hist][bin] - Mean) * 1000 / Mean << "|";
+        }
+        std::cout << std::endl;
+    }
+#endif
+    for (size_t hist = 0; hist < NHistograms; ++hist) {
+        for (size_t bin = 0; bin < NBins; ++bin) {
+            VERIFY(histogram[hist][bin] > MinGood)
+                << " bin = " << bin << " is " << histogram[0][bin];
+            VERIFY(histogram[hist][bin] < MaxGood)
+                << " bin = " << bin << " is " << histogram[0][bin];
+        }
+    }
+}
+
+template<typename V, typename I> void FloatRandom()
+{
+    typedef typename V::EntryType T;
+    enum {
+        NBins = 64,
+        NHistograms = 1,
+        Mean = 135791,
+        MinGood = Mean - Mean/10,
+        MaxGood = Mean + Mean/10
+    };
+    int histogram[NHistograms][NBins];
+    bzero(&histogram[0][0], sizeof(histogram));
+    for (size_t i = 0; i < NBins * Mean / V::Size; ++i) {
+        const V rand = V::Random();
+        const I bin = static_cast<I>(rand * T(NBins));
+        for (size_t k = 0; k < V::Size; ++k) {
+            ++histogram[0][bin[k]];
+        }
+    }
+#ifdef PRINT_RANDOM_HISTOGRAM
+    for (size_t hist = 0; hist < NHistograms; ++hist) {
+        std::cout << "histogram[" << std::setw(2) << hist << "]: ";
+        for (size_t bin = 0; bin < NBins; ++bin) {
+            std::cout << std::setw(3) << (histogram[hist][bin] - Mean) * 1000 / Mean << "|";
+        }
+        std::cout << std::endl;
+    }
+#endif
+    for (size_t hist = 0; hist < NHistograms; ++hist) {
+        for (size_t bin = 0; bin < NBins; ++bin) {
+            VERIFY(histogram[hist][bin] > MinGood)
+                << " bin = " << bin << " is " << histogram[0][bin];
+            VERIFY(histogram[hist][bin] < MaxGood)
+                << " bin = " << bin << " is " << histogram[0][bin];
+        }
+    }
+}
+
+template<> void Random<float_v>() { FloatRandom<float_v, int_v>(); }
+template<> void Random<double_v>() { FloatRandom<double_v, int_v>(); }
+#ifdef VC_IMPL_SSE
+template<> void Random<sfloat_v>() { FloatRandom<sfloat_v, short_v>(); }
+#endif
+
 int main()
 {
     runTest(testCall<int_v>);
@@ -154,6 +246,8 @@ int main()
     runTest(copySign<float_v>);
     runTest(copySign<sfloat_v>);
     runTest(copySign<double_v>);
+
+    testAllTypes(Random);
 
     return 0;
 }
