@@ -35,7 +35,7 @@ void cpuSet(size_t id, cpu_set_t *mask);
 #ifdef __cplusplus
 }
 #endif
-#else // WIN32/64
+#else /* WIN32/64 */
 #include <sched.h>
 
 #ifdef __cplusplus
@@ -52,4 +52,4 @@ void cpuSet(size_t id, cpu_set_t *mask);
 #endif
 
 #endif
-#endif // WIN32/64
+#endif /* WIN32/64 */
