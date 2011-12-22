@@ -136,7 +136,7 @@ namespace AVX
         return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
     }
     inline float_v ldexp(float_v v, short_v e) {
-        e.setZero(static_cast<short_m>(v == sfloat_v::Zero()));
+        e.setZero(static_cast<short_m>(v == float_v::Zero()));
         e = e << (23 - 16);
         const __m256i exponentBits = concat(_mm_unpacklo_epi16(_mm_setzero_si128(), e.data()),
                 _mm_unpackhi_epi16(_mm_setzero_si128(), e.data()));
