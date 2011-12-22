@@ -19,6 +19,8 @@
 
 namespace Vc
 {
+ALIGN(64) extern unsigned int RandomState[16];
+
 namespace Scalar
 {
 
@@ -128,6 +130,42 @@ template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
     union { double f; long long i; } value;
     value.f = m_data;
     return static_cast<double>((value.i >> 52) - 0x3ff);
+}
+// }}}1
+// Random {{{1
+static inline ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
+        Vector<unsigned int> &state1)
+{
+    typedef Vector<unsigned int> uint_v;
+    state0.load(&Vc::RandomState[0]);
+    state1.load(&Vc::RandomState[uint_v::Size]);
+    (state1 * 0xdeece66du + 11).store(&Vc::RandomState[uint_v::Size]);
+    uint_v((state0 * 0xdeece66du + 11).data() ^ (state1.data() >> 16)).store(&Vc::RandomState[0]);
+}
+
+template<typename T> inline INTRINSIC Vector<T> Vector<T>::Random()
+{
+    Vector<unsigned int> state0, state1;
+    _doRandomStep(state0, state1);
+    return static_cast<T>(state0.data());
+}
+template<> inline INTRINSIC Vector<float> Vector<float>::Random()
+{
+    Vector<unsigned int> state0, state1;
+    _doRandomStep(state0, state1);
+    union { unsigned int i; float f; } x;
+    x.i = (state0.data() & 0x0fffffffu) | 0x3f800000u;
+    return x.f - 1.f;
+}
+template<> inline INTRINSIC Vector<double> Vector<double>::Random()
+{
+    typedef unsigned long long uint64 MAY_ALIAS;
+    uint64 state0 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[8]);
+    state0 = (state0 * 0x5deece66dull + 11) & 0x000fffffffffffffull;
+    *reinterpret_cast<uint64 *>(&Vc::RandomState[8]) = state0;
+    union { unsigned long long i; double f; } x;
+    x.i = state0 | 0x3ff0000000000000ull;
+    return x.f - 1.;
 }
 // }}}1
 } // namespace Scalar

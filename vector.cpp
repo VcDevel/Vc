@@ -283,6 +283,13 @@ namespace SSE
     };
 } // namespace SSE
 
+V_ALIGN(64) unsigned int RandomState[16] = {
+    0x5a383a4fu, 0xc68bd45eu, 0x691d6d86u, 0xb367e14fu,
+    0xd689dbaau, 0xfde442aau, 0x3d265423u, 0x1a77885cu,
+    0x36ed2684u, 0xfb1f049du, 0x19e52f31u, 0x821e4dd7u,
+    0x23996d25u, 0x5962725au, 0x6aced4ceu, 0xd4c610f3u
+};
+
 // dummy symbol to emit warnings with GCC 4.3
 namespace Warnings {
     void _operator_bracket_warning() {}

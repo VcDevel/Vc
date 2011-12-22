@@ -66,6 +66,7 @@ class Vector : public VectorBase<T, Vector<T> >
         static inline Vector Zero() { Vector r; r.m_data = 0; return r; }
         static inline Vector One() { Vector r; r.m_data = 1; return r; }
         static inline Vector IndexesFromZero() { return Zero(); }
+        static inline INTRINSIC_L Vector Random() INTRINSIC_R;
 
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> *a) : m_data(static_cast<T>(a->data())) {}
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}

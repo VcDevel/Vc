@@ -22,6 +22,8 @@
 
 namespace Vc
 {
+ALIGN(64) extern unsigned int RandomState[16];
+
 namespace AVX
 {
 
@@ -1058,6 +1060,42 @@ template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
     tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x3ff));
     tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x3ff));
     return _mm256_cvtepi32_pd(avx_cast<__m128i>(shuffle<X0, X2, Y0, Y2>(avx_cast<__m128>(tmp0), avx_cast<__m128>(tmp1))));
+}
+// }}}1
+// Random {{{1
+static inline ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
+        Vector<unsigned int> &state1)
+{
+    typedef Vector<unsigned int> uint_v;
+    state0.load(&Vc::RandomState[0]);
+    state1.load(&Vc::RandomState[uint_v::Size]);
+    (state1 * 0xdeece66du + 11).store(&Vc::RandomState[uint_v::Size]);
+    uint_v(_mm256_xor_si256((state0 * 0xdeece66du + 11).data(), _mm256_srli_epi32(state1.data(), 16))).store(&Vc::RandomState[0]);
+}
+
+template<typename T> inline ALWAYS_INLINE Vector<T> Vector<T>::Random()
+{
+    Vector<unsigned int> state0, state1;
+    _doRandomStep(state0, state1);
+    return state0.reinterpretCast<Vector<T> >();
+}
+
+template<> inline ALWAYS_INLINE Vector<float> Vector<float>::Random()
+{
+    Vector<unsigned int> state0, state1;
+    _doRandomStep(state0, state1);
+    return HT::sub(HV::or_(_cast(_mm256_srli_epi32(state0.data(), 2)), HT::one()), HT::one());
+}
+
+template<> inline ALWAYS_INLINE Vector<double> Vector<double>::Random()
+{
+    const __m256i state = VectorHelper<__m256i>::load(&Vc::RandomState[0], Vc::Aligned);
+    for (size_t k = 0; k < 8; k += 2) {
+        typedef unsigned long long uint64 MAY_ALIAS;
+        const uint64 stateX = *reinterpret_cast<const uint64 *>(&Vc::RandomState[k]);
+        *reinterpret_cast<uint64 *>(&Vc::RandomState[k]) = (stateX * 0x5deece66dull + 11);
+    }
+    return (Vector<double>(_cast(_mm256_srli_epi64(state, 12))) | One()) - One();
 }
 // }}}1
 } // namespace AVX

@@ -89,6 +89,7 @@ template<typename T> class Vector
         static Vector Zero();
         static Vector One();
         static Vector IndexesFromZero();
+        static Vector Random();
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType
