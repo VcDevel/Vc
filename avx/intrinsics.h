@@ -146,10 +146,18 @@ namespace AVX
 
     AVX_TO_SSE_1i_si128_si256(srli)
     AVX_TO_SSE_1i_si128_si256(slli)
-    AVX_TO_SSE_2_si128_si256(and)
-    AVX_TO_SSE_2_si128_si256(andnot)
-    AVX_TO_SSE_2_si128_si256(or)
-    AVX_TO_SSE_2_si128_si256(xor)
+    static inline __m256i INTRINSIC CONST _mm256_and_si256(__m256i x, __m256i y) {
+        return _mm256_castps_si256(_mm256_and_ps(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
+    }
+    static inline __m256i INTRINSIC CONST _mm256_andnot_si256(__m256i x, __m256i y) {
+        return _mm256_castps_si256(_mm256_andnot_ps(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
+    }
+    static inline __m256i INTRINSIC CONST _mm256_or_si256(__m256i x, __m256i y) {
+        return _mm256_castps_si256(_mm256_or_ps(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
+    }
+    static inline __m256i INTRINSIC CONST _mm256_xor_si256(__m256i x, __m256i y) {
+        return _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
+    }
 
     AVX_TO_SSE_2(packs_epi16)
     AVX_TO_SSE_2(packs_epi32)
