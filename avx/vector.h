@@ -66,12 +66,12 @@ template<typename T> class Vector
         typedef VectorHelper<T> HT;
 
         // cast any m256/m128 to VectorType
-        static inline VectorType _cast(__m128  v) INTRINSIC { avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m128i v) INTRINSIC { avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m128d v) INTRINSIC { avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m256  v) INTRINSIC { avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m256i v) INTRINSIC { avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m256d v) INTRINSIC { avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m128  v) INTRINSIC { return avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m128i v) INTRINSIC { return avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m128d v) INTRINSIC { return avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m256  v) INTRINSIC { return avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m256i v) INTRINSIC { return avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m256d v) INTRINSIC { return avx_cast<VectorType>(v); }
 
         typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
         StorageType d;
