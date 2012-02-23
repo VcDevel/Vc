@@ -71,7 +71,7 @@ class Vector : public VectorBase<T, Vector<T> >
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> *a) : m_data(static_cast<T>(a->data())) {}
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}
         inline Vector(T x) : m_data(x) {}
-        inline Vector(const T *x) : m_data(x[0]) {}
+        explicit inline Vector(const T *x) : m_data(x[0]) {}
         template<typename A> inline Vector(const T *x, A) : m_data(x[0]) {}
         template<typename Other> inline Vector(const Other *x) : m_data(x[0]) {}
         template<typename Other, typename A> inline Vector(const Other *x, A) : m_data(x[0]) {}
