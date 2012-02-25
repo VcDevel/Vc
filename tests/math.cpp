@@ -63,6 +63,34 @@ template<typename V> void testLog()
     COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
 }
 
+static inline float my_log2(float x) { return ::log2f(x); }
+static inline double my_log2(double x) { return ::log2(x); }
+
+template<typename V> void testLog2()
+{
+    setFuzzyness<float>(2);
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 10000; ++i) {
+        const V x = V::Random() * T(54) + T(0.02);
+        const V reference = apply_v(x, my_log2);
+        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x;
+    }
+    COMPARE(Vc::log2(V::Zero()), V(my_log2(T(0))));
+}
+
+template<typename V> void testLog10()
+{
+    setFuzzyness<float>(2);
+    setFuzzyness<double>(2);
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 10000; ++i) {
+        const V x = V::Random() * T(54) + T(0.02);
+        const V reference = apply_v(x, std::log10);
+        FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
+    }
+    COMPARE(Vc::log10(V::Zero()), V(std::log10(T(0))));
+}
+
 template<typename Vec>
 void testMax()
 {
@@ -551,6 +579,14 @@ int main(int argc, char **argv)
     runTest(testLog<float_v>);
     runTest(testLog<double_v>);
     runTest(testLog<sfloat_v>);
+
+    runTest(testLog2<float_v>);
+    runTest(testLog2<double_v>);
+    runTest(testLog2<sfloat_v>);
+
+    runTest(testLog10<float_v>);
+    runTest(testLog10<double_v>);
+    runTest(testLog10<sfloat_v>);
 
     runTest(testMax<int_v>);
     runTest(testMax<uint_v>);
