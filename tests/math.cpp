@@ -34,6 +34,14 @@ using namespace Vc;
 #undef isnan
 #endif
 
+template<typename V> V apply_v(V x, typename V::EntryType (func)(typename V::EntryType))
+{
+    for (size_t i = 0; i < V::Size; ++i) {
+        x[i] = func(x[i]);
+    }
+    return x;
+}
+
 template<typename Vec> void testAbs()
 {
     for (int i = 0; i < 0x7fff; ++i) {
@@ -44,26 +52,15 @@ template<typename Vec> void testAbs()
     }
 }
 
-template<typename Vec> void testLog()
+template<typename V> void testLog()
 {
-    typedef typename Vec::EntryType T;
-    typedef typename Vec::IndexType I;
-    const I indexesFromZero(IndexesFromZero);
-    Vec a(indexesFromZero);
-    a *= T(0.1);
-    const Vec end(1000);
-    for (; a < end; a += Vec::Size) {
-        Vec b = Vc::log(a);
-        Vec reference;
-        for (int i = 0; i < Vec::Size; ++i) {
-            reference[i] = std::log(a[i]);
-        }
-        FUZZY_COMPARE(b, reference) << ", x = " << a;
-
-        const typename Vec::EntryType two = 2.;
-        const Vec a2 = a * a;
-        FUZZY_COMPARE(Vc::log(a2), two * Vc::log(a)) << ", a = " << a << ", a² = " << a2;
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 10000; ++i) {
+        const V x = V::Random() * T(54) + T(0.02);
+        const V reference = apply_v(x, std::log);
+        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x;
     }
+    COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
 }
 
 template<typename Vec>
