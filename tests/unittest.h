@@ -23,6 +23,7 @@
 #include <Vc/Vc>
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
@@ -77,6 +78,7 @@ class _UnitTest_Global_Object
             expect_assert_failure(false),
             float_fuzzyness( 1.f ),
             double_fuzzyness( 1. ),
+            only_name(0),
             failedTests(0), passedTests(0),
             findMaximumDistance(false),
             maximumDistance(0)
@@ -85,6 +87,10 @@ class _UnitTest_Global_Object
 
         ~_UnitTest_Global_Object()
         {
+            if (plotFile.is_open()) {
+                plotFile.flush();
+                plotFile.close();
+            }
             std::cout << "\n Testing done. " << passedTests << " tests passed. " << failedTests << " tests failed." << std::endl;
             std::exit(failedTests);
         }
@@ -98,6 +104,7 @@ class _UnitTest_Global_Object
         float float_fuzzyness;
         double double_fuzzyness;
         const char *only_name;
+        std::fstream plotFile;
     private:
         int failedTests;
     public:
@@ -136,13 +143,16 @@ void initTest(int argc, char **argv)
     for (int i = 1; i < argc; ++i) {
         if (0 == std::strcmp(argv[i], "--help") || 0 == std::strcmp(argv[i], "-h")) {
             std::cout <<
-                "Usage: " << argv[0] << " [-h|--help] [--only <testname>] [--maxdist]\n";
+                "Usage: " << argv[0] << " [-h|--help] [--only <testname>] [--maxdist] [--plotdist <plot.dat>]\n";
             exit(0);
         }
         if (0 == std::strcmp(argv[i], "--only") && i + 1 < argc) {
             _unit_test_global.only_name = argv[i + 1];
         } else if (0 == std::strcmp(argv[i], "--maxdist")) {
             _unit_test_global.findMaximumDistance = true;
+        } else if (0 == std::strcmp(argv[i], "--plotdist") && i + 1 < argc) {
+            _unit_test_global.plotFile.open(argv[i + 1], std::ios_base::out);
+            _unit_test_global.plotFile << "# reference\tdistance\n";
         }
     }
 }
@@ -293,6 +303,9 @@ class _UnitTest_Compare
                 print(") -> "); print(a == b);
                 printFuzzyInfo(a, b);
             }
+            if (_unit_test_global.plotFile.is_open()) {
+                writePlotData(_unit_test_global.plotFile, a, b);
+            }
         }
 
         inline _UnitTest_Compare(bool good, const char *cond, const char *_file, int _line)
@@ -395,6 +408,7 @@ class _UnitTest_Compare
         static void printPosition(const char *_file, int _line, size_t _ip) {
             std::cout << "at " << _file << ':' << _line << " (0x" << std::hex << _ip << std::dec << ')';
         }
+        template<typename T> static inline void writePlotData(std::fstream &file, T a, T b);
         template<typename T> static inline void printFuzzyInfo(T a, T b);
         template<typename T> static inline void printFuzzyInfoImpl(T a, T b, double fuzzyness) {
             print("\ndistance: ");
@@ -420,6 +434,36 @@ template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::double_v a, Vc::dou
 #ifdef VC_IMPL_SSE
 template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::sfloat_v a, Vc::sfloat_v b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
+}
+#endif
+template<typename T> inline void _UnitTest_Compare::writePlotData(std::fstream &, T, T) {}
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, float a, float b) {
+    file << b << "\t" << ulpDiffToReference(a, b) << "\n";
+}
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, double a, double b) {
+    file << b << "\t" << ulpDiffToReference(a, b) << "\n";
+}
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::float_v a, Vc::float_v b) {
+    const Vc::float_v ref = b;
+    const Vc::float_v dist = ulpDiffToReference(a, b);
+    for (size_t i = 0; i < Vc::float_v::Size; ++i) {
+        file << ref[i] << "\t" << dist[i] << "\n";
+    }
+}
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::double_v a, Vc::double_v b) {
+    const Vc::double_v ref = b;
+    const Vc::double_v dist = ulpDiffToReference(a, b);
+    for (size_t i = 0; i < Vc::double_v::Size; ++i) {
+        file << ref[i] << "\t" << dist[i] << "\n";
+    }
+}
+#ifdef VC_IMPL_SSE
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::sfloat_v a, Vc::sfloat_v b) {
+    const Vc::sfloat_v ref = b;
+    const Vc::sfloat_v dist = ulpDiffToReference(a, b);
+    for (size_t i = 0; i < Vc::sfloat_v::Size; ++i) {
+        file << ref[i] << "\t" << dist[i] << "\n";
+    }
 }
 #endif
 #undef ALWAYS_INLINE
