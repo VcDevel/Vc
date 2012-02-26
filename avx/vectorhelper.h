@@ -307,64 +307,6 @@ namespace AVX
             static inline VectorType reciprocal(VectorType x) {
                 return _mm256_rcp_ps(x);
             }
-            static VectorType log(VectorType x) {
-                const _M256 one = set(1.);
-                const _M256 invalid_mask = cmplt(x, zero());
-                const _M256 infinity_mask = cmpeq(x, zero());
-
-                x = max(x, set(std::numeric_limits<float>::min()));  // cut off denormalized stuff
-
-                const _M256I emm0 = _mm256_srli_epi32(_mm256_castps_si256(x), 23);
-                _M256 e = _mm256_cvtepi32_ps(_mm256_sub_epi32(emm0, _mm256_set1_epi32(127)));
-                e = add(e, one);
-
-                // keep only the fractional part
-                const union {
-                    unsigned int i;
-                    float f;
-                } mantissa_mask = { 0x807fffff };
-                x = _mm256_and_ps(x, set(mantissa_mask.f));
-                x = _mm256_or_ps(x, set(0.5));
-
-                const _M256 mask = cmplt(x, set(0.707106781186547524f));
-
-                const _M256 tmp = _mm256_and_ps(x, mask);
-                x = sub(x, one);
-                x = add(x, tmp);
-
-                e = sub(e, _mm256_and_ps(one, mask));
-
-                const _M256 z = mul(x, x);
-
-                _M256 y = set( 7.0376836292e-2f);
-                y = mul(y, x);
-                y = add(y, set(-1.1514610310e-1f));
-                y = mul(y, x);
-                y = add(y, set( 1.1676998740e-1f));
-                y = mul(y, x);
-                y = add(y, set(-1.2420140846e-1f));
-                y = mul(y, x);
-                y = add(y, set( 1.4249322787e-1f));
-                y = mul(y, x);
-                y = add(y, set(-1.6668057665e-1f));
-                y = mul(y, x);
-                y = add(y, set( 2.0000714765e-1f));
-                y = mul(y, x);
-                y = add(y, set(-2.4999993993e-1f));
-                y = mul(y, x);
-                y = add(y, set( 3.3333331174e-1f));
-                y = mul(y, x);
-
-                y = mul(y, z);
-                y = add(y, mul(e, set(-2.12194440e-4f)));
-                y = sub(y, mul(z, set(0.5)));
-
-                x = add(x, y);
-                x = add(x, mul(e, set(0.693359375f)));
-                x = _mm256_or_ps(x, invalid_mask); // negative arg will be NAN
-                x = _mm256_or_ps(_mm256_andnot_ps(infinity_mask, x), _mm256_and_ps(infinity_mask, set(-std::numeric_limits<float>::infinity())));
-                return x;
-            }
             static inline VectorType abs(const VectorType a) {
                 return CAT(_mm256_and_, SUFFIX)(a, _mm256_setabsmask_ps());
             }

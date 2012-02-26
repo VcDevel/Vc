@@ -75,6 +75,7 @@ namespace AVX
 
     // cacheline 4
     const             double c_general::oneDouble = 1.;
+    const unsigned long long c_general::frexpMask = 0xbfefffffffffffffull;
 
     template<> const unsigned long long c_log<double, Vc::AVX::Mask<4, 32> >::_dataI[15] = {
         0x000003ff000003ffull, // bias
@@ -152,7 +153,7 @@ namespace SSE
     V_ALIGN(16) const double c_general::oneDouble[2] = { 1., 1. };
     V_ALIGN(16) const long long c_general::absMaskDouble[2] = { 0x7fffffffffffffffll, 0x7fffffffffffffffll };
     V_ALIGN(16) const unsigned long long c_general::signMaskDouble[2] = { 0x8000000000000000ull, 0x8000000000000000ull };
-    V_ALIGN(16) extern const int _padding00[4] = { 0, 0, 0, 0 };
+    V_ALIGN(16) const unsigned long long c_general::frexpMask[2] = { 0xbfefffffffffffffull, 0xbfefffffffffffffull };
 
     template<> const float c_sin<float>::_data[4 * 8] = {
     // cacheline 4
@@ -281,6 +282,13 @@ namespace SSE
         1.44269504088896340735992468100189213742664595415298593413545f   // log2(e)
     };
 } // namespace SSE
+
+V_ALIGN(64) unsigned int RandomState[16] = {
+    0x5a383a4fu, 0xc68bd45eu, 0x691d6d86u, 0xb367e14fu,
+    0xd689dbaau, 0xfde442aau, 0x3d265423u, 0x1a77885cu,
+    0x36ed2684u, 0xfb1f049du, 0x19e52f31u, 0x821e4dd7u,
+    0x23996d25u, 0x5962725au, 0x6aced4ceu, 0xd4c610f3u
+};
 
 // dummy symbol to emit warnings with GCC 4.3
 namespace Warnings {

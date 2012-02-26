@@ -23,6 +23,7 @@
 #include "vectormemoryhelper.h"
 #include <cmath>
 #include <algorithm>
+#include "../benchmarks/random.h"
 
 using namespace Vc;
 
@@ -32,6 +33,14 @@ using namespace Vc;
 #ifdef isnan
 #undef isnan
 #endif
+
+template<typename V> V apply_v(V x, typename V::EntryType (func)(typename V::EntryType))
+{
+    for (size_t i = 0; i < V::Size; ++i) {
+        x[i] = func(x[i]);
+    }
+    return x;
+}
 
 template<typename Vec> void testAbs()
 {
@@ -43,30 +52,43 @@ template<typename Vec> void testAbs()
     }
 }
 
-template<typename Vec> void testLog()
+template<typename V> void testLog()
 {
-    setFuzzyness<float>(1.2e-7f);
-    setFuzzyness<double>(3e-16);
-    typedef typename Vec::EntryType T;
-    typedef typename Vec::IndexType I;
-    const I indexesFromZero(IndexesFromZero);
-    Vec a(indexesFromZero);
-    a *= T(0.1);
-    const Vec end(1000);
-    for (; a < end; a += Vec::Size) {
-        Vec b = Vc::log(a);
-
-        const typename Vec::EntryType two = 2.;
-
-        for (int i = 0; i < Vec::Size; ++i) {
-            FUZZY_COMPARE(static_cast<T>(b[i]), static_cast<T>(std::log(a[i]))) << " i = " << i << ", b = " << b << ", a = " << a;
-        }
-
-        const Vec a2 = a * a;
-        FUZZY_COMPARE(Vc::log(a2), two * Vc::log(a));
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 10000; ++i) {
+        const V x = V::Random() * T(54) + T(0.02);
+        const V reference = apply_v(x, std::log);
+        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x;
     }
-    setFuzzyness<float>(0.f);
-    setFuzzyness<double>(0.);
+    COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
+}
+
+static inline float my_log2(float x) { return ::log2f(x); }
+static inline double my_log2(double x) { return ::log2(x); }
+
+template<typename V> void testLog2()
+{
+    setFuzzyness<float>(2);
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 10000; ++i) {
+        const V x = V::Random() * T(54) + T(0.02);
+        const V reference = apply_v(x, my_log2);
+        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x;
+    }
+    COMPARE(Vc::log2(V::Zero()), V(my_log2(T(0))));
+}
+
+template<typename V> void testLog10()
+{
+    setFuzzyness<float>(2);
+    setFuzzyness<double>(2);
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 10000; ++i) {
+        const V x = V::Random() * T(54) + T(0.02);
+        const V reference = apply_v(x, std::log10);
+        FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
+    }
+    COMPARE(Vc::log10(V::Zero()), V(std::log10(T(0))));
 }
 
 template<typename Vec>
@@ -106,18 +128,14 @@ template<typename Vec> void testSqrt()
     FUZZY_COMPARE(Vc::sqrt(a), b);
 }
 
-template<typename Vec> void testRSqrt()
+template<typename V> void testRSqrt()
 {
-    typedef typename Vec::EntryType T;
-    const T one = 1;
-    FillHelperMemory(one / std::sqrt(i));
-    Vec a(data);
-    Vec b(reference);
-
-    // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
-    setFuzzyness<float>(0.0003662109375f);
-    FUZZY_COMPARE(Vc::rsqrt(a), b);
-    setFuzzyness<float>(0.f);
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 1024 / V::Size; ++i) {
+        const V x = PseudoRandom<V>::next() * T(1000);
+        // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
+        VERIFY(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12)));
+    }
 }
 
 template<typename T> void my_sincos(T x, T *sin, T *cos);
@@ -133,7 +151,7 @@ template<> void my_sincos<float>(float x, float *sin, float *cos)
 template<typename Vec> void testSincos()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<double>(4e-6);
+    setFuzzyness<double>(3.17318e+10); // FIXME: way too large!
     typename Vec::Memory base;
     for (int i = 0; i < Vec::Size; ++i) {
         base[i] = static_cast<T>(i);
@@ -146,9 +164,9 @@ template<typename Vec> void testSincos()
         for (int i = 0; i < Vec::Size; ++i) {
             T scalarSin, scalarCos;
             my_sincos((i + offset) * scale, &scalarSin, &scalarCos);
-            setFuzzyness<float>(6e-5f);
+            setFuzzyness<float>(751);
             FUZZY_COMPARE(T(sin[i]), scalarSin);
-            setFuzzyness<float>(2.1e-4f);
+            setFuzzyness<float>(2798); // FIXME
             FUZZY_COMPARE(T(cos[i]), scalarCos);
         }
     }
@@ -157,23 +175,23 @@ template<typename Vec> void testSincos()
 template<typename Vec> void testSin()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(6e-5f);
-    setFuzzyness<double>(4e-6);
+    setFuzzyness<float>(751);
+    setFuzzyness<double>(3.17318e+10); // FIXME: way too large!
     for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
         const T scale = T(0.01);
         FillHelperMemory(std::sin((i + offset) * scale));
         Vec a(data);
         Vec b(reference);
 
-        FUZZY_COMPARE(Vc::sin((a + offset) * scale), b);
+        FUZZY_COMPARE(Vc::sin((a + offset) * scale), b) << " failed at sin(" << (a + offset) * scale << ")";
     }
 }
 
 template<typename Vec> void testCos()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(2.1e-4f);
-    setFuzzyness<double>(4e-6);
+    setFuzzyness<float>(2798); // FIXME
+    setFuzzyness<double>(3.15557e+10); // FIXME: way too large!
     for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
         const T scale = T(0.01);
         FillHelperMemory(std::cos((i + offset) * scale));
@@ -187,8 +205,8 @@ template<typename Vec> void testCos()
 template<typename Vec> void testAsin()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(1.1e-6f);
-    setFuzzyness<double>(8.8e-9);
+    setFuzzyness<float>(2);
+    setFuzzyness<double>(4.418735e+07); // FIXME
     for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
         const T scale = T(0.001);
         FillHelperMemory(std::asin((i + offset) * scale));
@@ -202,8 +220,8 @@ template<typename Vec> void testAsin()
 template<typename Vec> void testAtan()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(1e-7f);
-    setFuzzyness<double>(2e-8);
+    setFuzzyness<float>(2);
+    setFuzzyness<double>(1.434825e+08); // FIXME
     for (int offset = -1000; offset < 1000; offset += 10) {
         const T scale = T(0.1);
         FillHelperMemory(std::atan((i + offset) * scale));
@@ -217,8 +235,8 @@ template<typename Vec> void testAtan()
 template<typename Vec> void testAtan2()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(3e-7f);
-    setFuzzyness<double>(3e-8);
+    setFuzzyness<float>(3);
+    setFuzzyness<double>(1.751135e+08); // FIXME
     for (int xoffset = -100; xoffset < 1000; xoffset += 10) {
         for (int yoffset = -100; yoffset < 1000; yoffset += 10) {
             FillHelperMemory(std::atan2((i + xoffset) * 0.15, (i + yoffset) * 0.15));
@@ -234,7 +252,7 @@ template<typename Vec> void testAtan2()
 template<typename Vec> void testReciprocal()
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(3.e-4f);
+    setFuzzyness<float>(1.258295e+07);
     setFuzzyness<double>(0);
     const T one = 1;
     for (int offset = -1000; offset < 1000; offset += 10) {
@@ -419,9 +437,138 @@ template<typename V> void testExponent()
     }
 }
 
+template<typename T> struct _ExponentVector { typedef int_v Type; };
+template<> struct _ExponentVector<sfloat_v> { typedef short_v Type; };
+
+template<typename V> void testFrexp()
+{
+    typedef typename V::EntryType T;
+    typedef typename _ExponentVector<V>::Type ExpV;
+    Vc::Memory<V, 32> input;
+    Vc::Memory<V, 32> expectedFraction;
+    Vc::Memory<ExpV, 32> expectedExponent;
+    input[ 0] = T(0.25); expectedFraction[ 0] = T(.5     ); expectedExponent[ 0] = T(-1);
+    input[ 1] = T(   1); expectedFraction[ 1] = T(.5     ); expectedExponent[ 1] = T( 1);
+    input[ 2] = T(   0); expectedFraction[ 2] = T(0.     ); expectedExponent[ 2] = T( 0);
+    input[ 3] = T(   3); expectedFraction[ 3] = T(.75    ); expectedExponent[ 3] = T( 2);
+    input[ 4] = T(   4); expectedFraction[ 4] = T(.5     ); expectedExponent[ 4] = T( 3);
+    input[ 5] = T( 0.5); expectedFraction[ 5] = T(.5     ); expectedExponent[ 5] = T( 0);
+    input[ 6] = T(   6); expectedFraction[ 6] = T( 6./8. ); expectedExponent[ 6] = T( 3);
+    input[ 7] = T(   7); expectedFraction[ 7] = T( 7./8. ); expectedExponent[ 7] = T( 3);
+    input[ 8] = T(   8); expectedFraction[ 8] = T( 8./16.); expectedExponent[ 8] = T( 4);
+    input[ 9] = T(   9); expectedFraction[ 9] = T( 9./16.); expectedExponent[ 9] = T( 4);
+    input[10] = T(  10); expectedFraction[10] = T(10./16.); expectedExponent[10] = T( 4);
+    input[11] = T(  11); expectedFraction[11] = T(11./16.); expectedExponent[11] = T( 4);
+    input[12] = T(  12); expectedFraction[12] = T(12./16.); expectedExponent[12] = T( 4);
+    input[13] = T(  13); expectedFraction[13] = T(13./16.); expectedExponent[13] = T( 4);
+    input[14] = T(  14); expectedFraction[14] = T(14./16.); expectedExponent[14] = T( 4);
+    input[15] = T(  15); expectedFraction[15] = T(15./16.); expectedExponent[15] = T( 4);
+    input[16] = T(  16); expectedFraction[16] = T(16./32.); expectedExponent[16] = T( 5);
+    input[17] = T(  17); expectedFraction[17] = T(17./32.); expectedExponent[17] = T( 5);
+    input[18] = T(  18); expectedFraction[18] = T(18./32.); expectedExponent[18] = T( 5);
+    input[19] = T(  19); expectedFraction[19] = T(19./32.); expectedExponent[19] = T( 5);
+    input[20] = T(  20); expectedFraction[20] = T(20./32.); expectedExponent[20] = T( 5);
+    input[21] = T(  21); expectedFraction[21] = T(21./32.); expectedExponent[21] = T( 5);
+    input[22] = T(  22); expectedFraction[22] = T(22./32.); expectedExponent[22] = T( 5);
+    input[23] = T(  23); expectedFraction[23] = T(23./32.); expectedExponent[23] = T( 5);
+    input[24] = T(  24); expectedFraction[24] = T(24./32.); expectedExponent[24] = T( 5);
+    input[25] = T(  25); expectedFraction[25] = T(25./32.); expectedExponent[25] = T( 5);
+    input[26] = T(  26); expectedFraction[26] = T(26./32.); expectedExponent[26] = T( 5);
+    input[27] = T(  27); expectedFraction[27] = T(27./32.); expectedExponent[27] = T( 5);
+    input[28] = T(  28); expectedFraction[28] = T(28./32.); expectedExponent[28] = T( 5);
+    input[29] = T(  29); expectedFraction[29] = T(29./32.); expectedExponent[29] = T( 5);
+    input[30] = T(  32); expectedFraction[30] = T(32./64.); expectedExponent[30] = T( 6);
+    input[31] = T(  31); expectedFraction[31] = T(31./32.); expectedExponent[31] = T( 5);
+    for (size_t i = 0; i < input.vectorsCount(); ++i) {
+        const V v = input.vector(i);
+        ExpV exp;
+        COMPARE(frexp(v, &exp), V(expectedFraction.vector(i)));
+        if (V::Size * 2 == ExpV::Size) {
+            for (size_t j = 0; j < V::Size; ++j) {
+                COMPARE(exp[j * 2], expectedExponent[i * V::Size + j]);
+            }
+        } else {
+            COMPARE(exp, ExpV(expectedExponent.vector(i)));
+        }
+    }
+}
+
+template<typename V> void testLdexp()
+{
+    typedef typename V::EntryType T;
+    typedef typename _ExponentVector<V>::Type ExpV;
+    for (size_t i = 0; i < 1024 / V::Size; ++i) {
+        const V v = (PseudoRandom<V>::next() - T(0.5)) * T(1000);
+        ExpV e;
+        const V m = frexp(v, &e);
+        COMPARE(ldexp(m, e), v) << ", m = " << m << ", e = " << e;
+    }
+}
+
+#ifndef VC_IMPL_SSE
+template<> void testLdexp<float_v>()
+{
+    for (size_t i = 0; i < 1024 / float_v::Size; ++i) {
+        const float_v v = (PseudoRandom<float_v>::next() - 0.5f) * 1000.f;
+        int_v eI;
+        short_v eS;
+        const float_v mI = frexp(v, &eI);
+        const float_v mS = frexp(v, &eS);
+        COMPARE(mI, mS);
+        COMPARE(ldexp(mI, eI), v) << ", mI = " << mI << ", eI = " << eI;
+        COMPARE(ldexp(mS, eS), v) << ", mS = " << mS << ", eS = " << eS;
+    }
+}
+#endif
+
+#include "ulp.h"
+template<typename V> void testUlpDiff()
+{
+    typedef typename V::EntryType T;
+
+    COMPARE(ulpDiffToReference(V::Zero(), V::Zero()), V::Zero());
+    COMPARE(ulpDiffToReference(std::numeric_limits<V>::min(), V::Zero()), V::One());
+    COMPARE(ulpDiffToReference(V::Zero(), std::numeric_limits<V>::min()), V::One());
+    for (size_t count = 0; count < 1024 / V::Size; ++count) {
+        const V base = (PseudoRandom<V>::next() - T(0.5)) * T(1000);
+        typename _Ulp_ExponentVector<V>::Type exp;
+        Vc::frexp(base, &exp);
+        const V eps = ldexp(V(std::numeric_limits<T>::epsilon()), exp - 1);
+        //std::cout << base << ", " << exp << ", " << eps << std::endl;
+        for (int i = -10000; i <= 10000; ++i) {
+            const V i_v = V(T(i));
+            const V diff = base + i_v * eps;
+
+            // if diff and base have a different exponent then ulpDiffToReference has an uncertainty
+            // of +/-1
+            const V ulpDifference = ulpDiffToReference(diff, base);
+            const V expectedDifference = Vc::abs(i_v);
+            const V maxUncertainty = Vc::abs(diff.exponent() - base.exponent());
+
+            VERIFY(Vc::abs(ulpDifference - expectedDifference) <= maxUncertainty)
+                << ", base = " << base << ", epsilon = " << eps << ", diff = " << diff;
+            for (int k = 0; k < V::Size; ++k) {
+                VERIFY(std::abs(ulpDifference[k] - expectedDifference[k]) <= maxUncertainty[k]);
+            }
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
+
+    runTest(testFrexp<float_v>);
+    runTest(testFrexp<sfloat_v>);
+    runTest(testFrexp<double_v>);
+
+    runTest(testLdexp<float_v>);
+    runTest(testLdexp<sfloat_v>);
+    runTest(testLdexp<double_v>);
+
+    runTest(testUlpDiff<float_v>);
+    runTest(testUlpDiff<sfloat_v>);
+    runTest(testUlpDiff<double_v>);
 
     runTest(testAbs<int_v>);
     runTest(testAbs<float_v>);
@@ -432,6 +579,14 @@ int main(int argc, char **argv)
     runTest(testLog<float_v>);
     runTest(testLog<double_v>);
     runTest(testLog<sfloat_v>);
+
+    runTest(testLog2<float_v>);
+    runTest(testLog2<double_v>);
+    runTest(testLog2<sfloat_v>);
+
+    runTest(testLog10<float_v>);
+    runTest(testLog10<double_v>);
+    runTest(testLog10<sfloat_v>);
 
     runTest(testMax<int_v>);
     runTest(testMax<uint_v>);

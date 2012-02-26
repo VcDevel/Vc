@@ -113,6 +113,22 @@ template<typename T> static inline Vector<T> log10(const Vector<T> &x)
     return std::log10( x.data() );
 }
 
+#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L
+static inline Vector<float> log2(const Vector<float> &x)
+{
+    return ::log2f(x.data());
+}
+static inline Vector<double> log2(const Vector<double> &x)
+{
+    return ::log2(x.data());
+}
+#else
+template<typename T> static inline Vector<T> log2(const Vector<T> &x)
+{
+    return std::log(x.data()) / M_LN2;
+}
+#endif
+
 template<typename T> static inline Vector<T> atan (const Vector<T> &x)
 {
     return std::atan( x.data() );
@@ -178,6 +194,29 @@ template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T
 #else
     return std::isnan(x.data());
 #endif
+}
+
+inline Vector<float> frexp(Vector<float> x, Vector<int> *e) {
+    return ::frexpf(x.data(), &e->data());
+}
+inline Vector<double> frexp(Vector<double> x, Vector<int> *e) {
+    return ::frexp(x.data(), &e->data());
+}
+inline Vector<float> frexp(Vector<float> x, Vector<short> *e) {
+    int ee;
+    const float r = ::frexpf(x.data(), &ee);
+    e->data() = ee;
+    return r;
+}
+
+inline Vector<float> ldexp(Vector<float> x, Vector<int> e) {
+    return ::ldexpf(x.data(), e.data());
+}
+inline Vector<double> ldexp(Vector<double> x, Vector<int> e) {
+    return ::ldexp(x.data(), e.data());
+}
+inline Vector<float> ldexp(Vector<float> x, Vector<short> e) {
+    return ::ldexpf(x.data(), e.data());
 }
 
 } // namespace Scalar

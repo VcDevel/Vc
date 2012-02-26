@@ -66,6 +66,7 @@ class Vector : public VectorBase<T, Vector<T> >
         static inline Vector Zero() { Vector r; r.m_data = 0; return r; }
         static inline Vector One() { Vector r; r.m_data = 1; return r; }
         static inline Vector IndexesFromZero() { return Zero(); }
+        static inline INTRINSIC_L Vector Random() INTRINSIC_R;
 
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> *a) : m_data(static_cast<T>(a->data())) {}
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<T>(x.data())) {}
@@ -206,7 +207,10 @@ class Vector : public VectorBase<T, Vector<T> >
         }
 
         template<typename V2> inline V2 staticCast() const { return static_cast<typename V2::EntryType>(m_data); }
-        template<typename V2> inline V2 reinterpretCast() const { return reinterpret_cast<typename V2::EntryType>(m_data); }
+        template<typename V2> inline V2 reinterpretCast() const {
+            typedef typename V2::EntryType AliasT2 MAY_ALIAS;
+            return *reinterpret_cast<const AliasT2 *>(&m_data);
+        }
 
         inline WriteMaskedVector<T> operator()(Mask m) { return WriteMaskedVector<T>(this, m); }
 

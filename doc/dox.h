@@ -472,6 +472,49 @@ namespace Vc
 #undef INDEX_TYPE
 
     /**
+     * \ingroup Math
+     *
+     * Convert floating-point number to fractional and interal components.
+     *
+     * This function is used to split the numbers in \p x into a normalized
+     * fraction and an exponent which is stored in \p e.
+     *
+     * \returns the normalized fraction. If \p x is non-zero, the return value is \p x times a power of two, and
+     * its absolute value is always in the range [0.5,1).
+     *
+     * If \p x is zero, then the normalized fraction is zero and zero is stored in \p e.
+     *
+     * If \p x is a NaN, a NaN is returned, and the value of \p *e is unspecified.
+     *
+     * If \p x is positive infinity (negative infinity), positive infinity (nega‐
+     * tive infinity) is returned, and the value of \p *e is unspecified.
+     */
+    float_v frexp(const float_v &x, int_v *e);
+    /*! \copydoc frexp(const float_v&,int_v&) */
+    sfloat_v frexp(const sfloat_v &x, short_v *e);
+    /** \copydoc frexp(const float_v&,int_v&)
+     *
+     * Since int_v::Size == double_v::Size * 2, only every second value in \p *e is defined.
+     */
+    double_v frexp(const double_v &x, int_v *e);
+
+    /**
+     * \ingroup Math
+     *
+     * multiply floating-point number by integral power of 2
+     *
+     * \returns x * 2 ^ e
+     */
+    float_v ldexp(float_v x, int_v e);
+    /*! \copydoc ldexp(float_v,int_v) */
+    sfloat_v ldexp(sfloat_v x, short_v e);
+    /** \copydoc ldexp(float_v,int_v)
+     *
+     * Since int_v::Size == double_v::Size * 2, only every second value in \p e is used.
+     */
+    double_v ldexp(double_v x, int_v e);
+
+    /**
      * \ingroup Utilities
      *
      * Force the vectors passed to the function into registers. This can be useful after looking at

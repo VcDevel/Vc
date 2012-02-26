@@ -141,6 +141,7 @@ class Vector : public VectorBase<T>
         static inline INTRINSIC_L Vector Zero() INTRINSIC_R;
         static inline INTRINSIC_L Vector One() INTRINSIC_R;
         static inline INTRINSIC_L Vector IndexesFromZero() INTRINSIC_R;
+        static inline INTRINSIC_L Vector Random() INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType

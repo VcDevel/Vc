@@ -67,6 +67,7 @@ namespace AVX
         static const unsigned short one16[2];
         static const float _2power31;
         static const double oneDouble;
+        static const unsigned long long frexpMask;
     } STRUCT_ALIGN2(64);
     template<typename T> struct STRUCT_ALIGN1(64) c_sin
     {

@@ -66,12 +66,12 @@ template<typename T> class Vector
         typedef VectorHelper<T> HT;
 
         // cast any m256/m128 to VectorType
-        static inline VectorType _cast(__m128  v) INTRINSIC { avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m128i v) INTRINSIC { avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m128d v) INTRINSIC { avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m256  v) INTRINSIC { avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m256i v) INTRINSIC { avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m256d v) INTRINSIC { avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m128  v) INTRINSIC { return avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m128i v) INTRINSIC { return avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m128d v) INTRINSIC { return avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m256  v) INTRINSIC { return avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m256i v) INTRINSIC { return avx_cast<VectorType>(v); }
+        static inline VectorType _cast(__m256d v) INTRINSIC { return avx_cast<VectorType>(v); }
 
         typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
         StorageType d;
@@ -89,6 +89,7 @@ template<typename T> class Vector
         static Vector Zero();
         static Vector One();
         static Vector IndexesFromZero();
+        static Vector Random();
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType
@@ -266,8 +267,8 @@ template<typename T> class Vector
             data() = VectorHelper<VectorType>::blend(data(), v.data(), k);
         }
 
-        template<typename T2> inline Vector<T2> staticCast() const { return StaticCastHelper<T, T2>::cast(data()); }
-        template<typename T2> inline Vector<T2> reinterpretCast() const { return ReinterpretCastHelper<T, T2>::cast(data()); }
+        template<typename V2> inline V2 staticCast() const { return V2(*this); }
+        template<typename V2> inline V2 reinterpretCast() const { return avx_cast<typename V2::VectorType>(data()); }
 
         inline WriteMaskedVector<T> operator()(const Mask &k) ALWAYS_INLINE { return WriteMaskedVector<T>(this, k); }
 

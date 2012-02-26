@@ -23,6 +23,8 @@
 
 namespace Vc
 {
+ALIGN(64) extern unsigned int RandomState[16];
+
 namespace SSE
 {
 
@@ -496,30 +498,20 @@ OP_IMPL(unsigned short, >>)
 #undef VC_WORKAROUND
 #undef VC_WORKAROUND_IN
 
-#define OP_IMPL(T, SUFFIX) \
-template<> inline Vector<T> &VectorBase<T>::operator<<=(int x) \
-{ \
-    d.v() = CAT(_mm_slli_epi, SUFFIX)(d.v(), x); \
-    return *static_cast<Vector<T> *>(this); \
-} \
-template<> inline Vector<T> &VectorBase<T>::operator>>=(int x) \
-{ \
-    d.v() = CAT(_mm_srli_epi, SUFFIX)(d.v(), x); \
-    return *static_cast<Vector<T> *>(this); \
-} \
-template<> inline Vector<T> VectorBase<T>::operator<<(int x) const \
-{ \
-    return CAT(_mm_slli_epi, SUFFIX)(d.v(), x); \
-} \
-template<> inline Vector<T> VectorBase<T>::operator>>(int x) const \
-{ \
-    return CAT(_mm_srli_epi, SUFFIX)(d.v(), x); \
+template<typename T> inline Vector<T> &VectorBase<T>::operator>>=(int shift) {
+    d.v() = VectorHelper<T>::shiftRight(d.v(), shift);
+    return *static_cast<Vector<T> *>(this);
 }
-OP_IMPL(int, 32)
-OP_IMPL(unsigned int, 32)
-OP_IMPL(short, 16)
-OP_IMPL(unsigned short, 16)
-#undef OP_IMPL
+template<typename T> inline Vector<T> VectorBase<T>::operator>>(int shift) const {
+    return VectorHelper<T>::shiftRight(d.v(), shift);
+}
+template<typename T> inline Vector<T> &VectorBase<T>::operator<<=(int shift) {
+    d.v() = VectorHelper<T>::shiftLeft(d.v(), shift);
+    return *static_cast<Vector<T> *>(this);
+}
+template<typename T> inline Vector<T> VectorBase<T>::operator<<(int shift) const {
+    return VectorHelper<T>::shiftLeft(d.v(), shift);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // gathers {{{1
@@ -1197,6 +1189,53 @@ template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
     __m128i tmp = _mm_srli_epi64(_mm_castpd_si128(d.v()), 52);
     tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x3ff));
     return _mm_cvtepi32_pd(_mm_shuffle_epi32(tmp, 0x08));
+}
+// }}}1
+// Random {{{1
+static inline ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
+        Vector<unsigned int> &state1)
+{
+    typedef Vector<unsigned int> uint_v;
+    state0.load(&Vc::RandomState[0]);
+    state1.load(&Vc::RandomState[uint_v::Size]);
+    (state1 * 0xdeece66du + 11).store(&Vc::RandomState[uint_v::Size]);
+    uint_v(_mm_xor_si128((state0 * 0xdeece66du + 11).data(), _mm_srli_epi32(state1.data(), 16))).store(&Vc::RandomState[0]);
+}
+
+template<typename T> inline ALWAYS_INLINE Vector<T> Vector<T>::Random()
+{
+    Vector<unsigned int> state0, state1;
+    _doRandomStep(state0, state1);
+    return state0.reinterpretCast<Vector<T> >();
+}
+
+template<> inline ALWAYS_INLINE Vector<float> Vector<float>::Random()
+{
+    Vector<unsigned int> state0, state1;
+    _doRandomStep(state0, state1);
+    return _mm_sub_ps(_mm_or_ps(_mm_castsi128_ps(_mm_srli_epi32(state0.data(), 2)), HT::one()), HT::one());
+}
+
+template<> inline ALWAYS_INLINE Vector<float8> Vector<float8>::Random()
+{
+    Vector<unsigned int> state0, state1;
+    _doRandomStep(state0, state1);
+    state1 ^= state0 >> 16;
+    return M256::create(
+            _mm_sub_ps(_mm_or_ps(_mm_castsi128_ps(_mm_srli_epi32(state0.data(), 2)), VectorHelper<float>::one()), VectorHelper<float>::one()),
+            _mm_sub_ps(_mm_or_ps(_mm_castsi128_ps(_mm_srli_epi32(state1.data(), 2)), VectorHelper<float>::one()), VectorHelper<float>::one())
+            );
+}
+
+template<> inline ALWAYS_INLINE Vector<double> Vector<double>::Random()
+{
+    typedef unsigned long long uint64 MAY_ALIAS;
+    uint64 state0 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[8]);
+    uint64 state1 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[10]);
+    const __m128i state = _mm_load_si128(reinterpret_cast<const __m128i *>(&Vc::RandomState[8]));
+    *reinterpret_cast<uint64 *>(&Vc::RandomState[ 8]) = (state0 * 0x5deece66dull + 11);
+    *reinterpret_cast<uint64 *>(&Vc::RandomState[10]) = (state1 * 0x5deece66dull + 11);
+    return (Vector<double>(_mm_castsi128_pd(_mm_srli_epi64(state, 12))) | One()) - One();
 }
 // }}}1
 } // namespace SSE

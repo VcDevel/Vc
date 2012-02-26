@@ -26,6 +26,8 @@ namespace Vc
 {
 namespace SSE
 {
+    ///////////////////////////////////////////////////////////////////////////
+    // helpers for all the required constants
     template<typename T> inline Vector<T> c_sin<T>::_1_2pi()  { return Vector<T>(&_data[0 * Size]); }
     template<typename T> inline Vector<T> c_sin<T>::_2pi()    { return Vector<T>(&_data[1 * Size]); }
     template<typename T> inline Vector<T> c_sin<T>::_pi_2()   { return Vector<T>(&_data[2 * Size]); }
@@ -55,14 +57,18 @@ namespace SSE
             operator __m128i &() { return d; }
             operator __m128i () const { return d; }
     };
-    template<typename T, typename M> inline M128iDummy c_log<T, M>::bias() { return _mm_load_si128(&_dataI[0]); }
+    template<typename T, typename M> inline M128iDummy c_log<T, M>::bias() { return _mm_load_si128(reinterpret_cast<const __m128i *>(&_dataI[0])); }
 
     typedef Vector<double> double_v;
     typedef Vector<float> float_v;
     typedef Vector<float8> sfloat_v;
+    typedef Vector<int> int_v;
+    typedef Vector<short> short_v;
     typedef Vector<double>::Mask double_m;
     typedef Vector<float >::Mask float_m;
     typedef Vector<float8>::Mask sfloat_m;
+    typedef int_v::Mask int_m;
+    typedef short_v::Mask short_m;
 
     template<> inline double_m c_log<double, double_m>::exponentMask() { return _mm_load_pd(d(1)); }
     template<> inline double_v c_log<double, double_m>::_1_2()         { return _mm_load_pd(&_dataT[6]); }
@@ -98,6 +104,74 @@ namespace SSE
     template<> inline sfloat_v c_log<float8, sfloat_m>::neginf()       { return M256::dup(c_log<float, float_m>::neginf().data()); }
     template<> inline sfloat_v c_log<float8, sfloat_m>::log10_e()      { return M256::dup(c_log<float, float_m>::log10_e().data()); }
     template<> inline sfloat_v c_log<float8, sfloat_m>::log2_e()       { return M256::dup(c_log<float, float_m>::log2_e().data()); }
+    ///////////////////////////////////////////////////////////////////////////
+
+    /**
+     * splits \p v into exponent and mantissa, the sign is kept with the mantissa
+     *
+     * The return value will be in the range [0.5, 1.0[
+     * The \p e value will be an integer defining the power-of-two exponent
+     */
+    inline double_v frexp(const double_v &v, int_v *e) {
+        const __m128i exponentBits = _mm_load_si128(reinterpret_cast<const __m128i *>(&c_log<double, double_m>::_dataI[2]));
+        const __m128i exponentPart = _mm_and_si128(_mm_castpd_si128(v.data()), exponentBits);
+        *e = _mm_sub_epi32(_mm_srli_epi64(exponentPart, 52), _mm_set1_epi32(0x3fe));
+        const __m128d exponentMaximized = _mm_or_pd(v.data(), _mm_castsi128_pd(exponentBits));
+        double_v ret = _mm_and_pd(exponentMaximized, _mm_load_pd(reinterpret_cast<const double *>(&c_general::frexpMask[0])));
+        double_m zeroMask = v == double_v::Zero();
+        ret(isnan(v) || !isfinite(v) || zeroMask) = v;
+        e->setZero(zeroMask.data());
+        return ret;
+    }
+    inline float_v frexp(const float_v &v, int_v *e) {
+        const __m128i exponentBits = _mm_load_si128(reinterpret_cast<const __m128i *>(&c_log<float, float_m>::_dataI[4]));
+        const __m128i exponentPart = _mm_and_si128(_mm_castps_si128(v.data()), exponentBits);
+        *e = _mm_sub_epi32(_mm_srli_epi32(exponentPart, 23), _mm_set1_epi32(0x7e));
+        const __m128 exponentMaximized = _mm_or_ps(v.data(), _mm_castsi128_ps(exponentBits));
+        float_v ret = _mm_and_ps(exponentMaximized, _mm_castsi128_ps(_mm_set1_epi32(0xbf7fffffu)));
+        ret(isnan(v) || !isfinite(v) || v == float_v::Zero()) = v;
+        e->setZero(v == float_v::Zero());
+        return ret;
+    }
+    inline sfloat_v frexp(const sfloat_v &v, short_v *e) {
+        const __m128i exponentBits = _mm_load_si128(reinterpret_cast<const __m128i *>(&c_log<float, float_m>::_dataI[4]));
+        const __m128i exponentPart0 = _mm_and_si128(_mm_castps_si128(v.data()[0]), exponentBits);
+        const __m128i exponentPart1 = _mm_and_si128(_mm_castps_si128(v.data()[1]), exponentBits);
+        *e = _mm_sub_epi16(_mm_packs_epi32(_mm_srli_epi32(exponentPart0, 23), _mm_srli_epi32(exponentPart1, 23)),
+                _mm_set1_epi16(0x7e));
+        const __m128 exponentMaximized0 = _mm_or_ps(v.data()[0], _mm_castsi128_ps(exponentBits));
+        const __m128 exponentMaximized1 = _mm_or_ps(v.data()[1], _mm_castsi128_ps(exponentBits));
+        sfloat_v ret = M256::create(
+                _mm_and_ps(exponentMaximized0, _mm_castsi128_ps(_mm_set1_epi32(0xbf7fffffu))),
+                _mm_and_ps(exponentMaximized1, _mm_castsi128_ps(_mm_set1_epi32(0xbf7fffffu)))
+                );
+        sfloat_m zeroMask = v == sfloat_v::Zero();
+        ret(isnan(v) || !isfinite(v) || zeroMask) = v;
+        e->setZero(static_cast<short_m>(zeroMask));
+        return ret;
+    }
+
+    /*             -> x * 2^e
+     * x == NaN    -> NaN
+     * x == (-)inf -> (-)inf
+     */
+    inline double_v ldexp(double_v v, int_v e) {
+        e.setZero((v == double_v::Zero()).dataI());
+        const __m128i exponentBits = _mm_slli_epi64(e.data(), 52);
+        return _mm_castsi128_pd(_mm_add_epi64(_mm_castpd_si128(v.data()), exponentBits));
+    }
+    inline float_v ldexp(float_v v, int_v e) {
+        e.setZero(static_cast<int_m>(v == float_v::Zero()));
+        return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
+    }
+    inline sfloat_v ldexp(sfloat_v v, short_v e) {
+        e.setZero(static_cast<short_m>(v == sfloat_v::Zero()));
+        e <<= (23 - 16);
+        const __m128i exponentBits0 = _mm_unpacklo_epi16(_mm_setzero_si128(), e.data());
+        const __m128i exponentBits1 = _mm_unpackhi_epi16(_mm_setzero_si128(), e.data());
+        return M256::create(_mm_castsi128_ps(_mm_add_epi32(_mm_castps_si128(v.data()[0]), exponentBits0)),
+                _mm_castsi128_ps(_mm_add_epi32(_mm_castps_si128(v.data()[1]), exponentBits1)));
+    }
 } // namespace SSE
 } // namespace Vc
 
