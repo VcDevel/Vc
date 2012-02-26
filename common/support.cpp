@@ -26,6 +26,7 @@ namespace Vc
 
 bool isImplementationSupported(Implementation impl)
 {
+    CpuId::init();
     // for AVX we need to check for OSXSAVE and AVX
 
     switch (impl) {
