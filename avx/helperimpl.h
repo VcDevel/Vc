@@ -52,6 +52,31 @@ template<> struct HelperImpl<Vc::AVXImpl>
 
     template<typename A> static void deinterleave(ushort_v &, ushort_v &, const unsigned short *, A);
 
+    template<typename V, typename M, typename A>
+        static inline void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+                V &VC_RESTRICT c, const M *VC_RESTRICT memory, A align);
+
+    template<typename V, typename M, typename A>
+        static inline void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+                V &VC_RESTRICT c, V &VC_RESTRICT d,
+                const M *VC_RESTRICT memory, A align);
+
+    template<typename V, typename M, typename A>
+        static inline void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+                V &VC_RESTRICT c, V &VC_RESTRICT d, V &VC_RESTRICT e,
+                const M *VC_RESTRICT memory, A align);
+
+    template<typename V, typename M, typename A>
+        static inline void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+                V &VC_RESTRICT c, V &VC_RESTRICT d, V &VC_RESTRICT e,
+                V &VC_RESTRICT f, const M *VC_RESTRICT memory, A align);
+
+    template<typename V, typename M, typename A>
+        static inline void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+                V &VC_RESTRICT c, V &VC_RESTRICT d, V &VC_RESTRICT e,
+                V &VC_RESTRICT f, V &VC_RESTRICT g, V &VC_RESTRICT h,
+                const M *VC_RESTRICT memory, A align);
+
     static inline void prefetchForOneRead(const void *addr) ALWAYS_INLINE;
     static inline void prefetchForModify(const void *addr) ALWAYS_INLINE;
     static inline void prefetchClose(const void *addr) ALWAYS_INLINE;

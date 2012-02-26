@@ -70,6 +70,10 @@ namespace Vc
   using VECTOR_NAMESPACE::Vector;
 } // namespace Vc
 
+#ifndef VC_CLEAN_NAMESPACE
+#define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
+#endif
+
 #undef VECTOR_NAMESPACE
 
 #endif // VECTOR_H

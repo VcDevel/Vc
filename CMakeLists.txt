@@ -1,4 +1,9 @@
-cmake_minimum_required(VERSION 2.6.2)
+cmake_minimum_required(VERSION 2.8.1)
+
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BUILD_DIR)
+   message(ERROR "You don't want to configure in the source directory!")
+endif()
+
 project(Vc)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -136,6 +141,13 @@ elseif(COMPILER_IS_GCC)
 
    # check the GCC version
    exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE _gcc_version)
+   # some distributions patch their GCC to return nothing or only major and minor version on -dumpversion.
+   # In that case we must extract the version number from --version.
+   if(NOT _gcc_version OR _gcc_version MATCHES "^[0-9]\\.[0-9]+$")
+      exec_program(${CMAKE_C_COMPILER} ARGS --version OUTPUT_VARIABLE _gcc_version)
+      string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" _gcc_version "${_gcc_version}")
+      message(STATUS "GCC Version from --version: ${_gcc_version}")
+   endif()
    macro_ensure_version("4.4.1" "${_gcc_version}" GCC_4_4_1)
    if(NOT GCC_4_4_1)
       message(STATUS "\n-- \n-- NOTE: Your GCC is older than 4.4.1. This is known to cause problems/bugs. Please update to the latest GCC if you can.\n-- \n-- ")

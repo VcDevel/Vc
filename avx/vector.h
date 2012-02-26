@@ -309,6 +309,14 @@ template<typename T> class Vector
         inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };
 
+typedef Vector<double>         double_v;
+typedef Vector<float>          float_v;
+typedef Vector<float>          sfloat_v;
+typedef Vector<int>            int_v;
+typedef Vector<unsigned int>   uint_v;
+typedef Vector<short>          short_v;
+typedef Vector<unsigned short> ushort_v;
+
 template<typename T> class SwizzledVector : public Vector<T> {};
 
 template<typename T> inline Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;

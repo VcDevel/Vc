@@ -183,8 +183,6 @@ struct ForeachHelper
     for (Vc::SSE::ForeachHelper _Vc_foreach_bit_helper((_mask_).toInt()); _Vc_foreach_bit_helper.outer(); ) \
         for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
 
-#define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
-
 template<unsigned int Size> inline int Mask<Size>::shiftMask() const
 {
     return _mm_movemask_epi8(dataI());

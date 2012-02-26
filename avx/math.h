@@ -86,7 +86,7 @@ namespace AVX
         emm0lo = _mm_sub_epi32(emm0lo, C::bias());
         emm0hi = _mm_sub_epi32(emm0hi, C::bias());
 
-        return _mm256_cvtepi32_pd(avx_cast<__m128i>(shuffle<X0, X2, Y0, Y2>(avx_cast<__m128>(emm0lo), avx_cast<__m128>(emm0hi))));
+        return _mm256_cvtepi32_pd(avx_cast<__m128i>(Mem::shuffle<X0, X2, Y0, Y2>(avx_cast<__m128>(emm0lo), avx_cast<__m128>(emm0hi))));
     }
     inline __m256 INTRINSIC CONST extractExponent(__m256 x) {
         typedef c_log<float, float_m> C;

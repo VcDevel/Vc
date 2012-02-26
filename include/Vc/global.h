@@ -60,6 +60,7 @@
 
 #  if defined(__AVX__)
 #    define VC_IMPL_AVX 1
+#    define VC_USE_VEX_CODING
 #  else
 #    if defined(__SSE4a__)
 #      define VC_IMPL_SSE 1
@@ -97,6 +98,7 @@
 
 #  if VC_IMPL == AVX // AVX supersedes SSE
 #    define VC_IMPL_AVX 1
+#    define VC_USE_VEX_CODING
 #  elif VC_IMPL == Scalar
 #    define VC_IMPL_Scalar 1
 #  elif VC_IMPL == SSE4a
@@ -104,6 +106,16 @@
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
+#    ifdef __SSE4_2__
+#      undef __SSE4_2__
+#    endif
+#    ifdef __SSE4_1__
+#      undef __SSE4_1__
+#    endif
+#    ifdef __AVX__
+#      undef __AVX__
+#      define VC_USE_VEX_CODING
+#    endif
 #  elif VC_IMPL == SSE4_2
 #    define VC_IMPL_SSE4_2 1
 #    define VC_IMPL_SSE4_1 1
@@ -111,24 +123,89 @@
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
+#    ifdef __SSE4A__
+#      undef __SSE4A__
+#    endif
+#    ifdef __AVX__
+#      undef __AVX__
+#      define VC_USE_VEX_CODING
+#    endif
 #  elif VC_IMPL == SSE4_1
 #    define VC_IMPL_SSE4_1 1
 #    define VC_IMPL_SSSE3 1
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
+#    ifdef __SSE4_2__
+#      undef __SSE4_2__
+#    endif
+#    ifdef __SSE4A__
+#      undef __SSE4A__
+#    endif
+#    ifdef __AVX__
+#      undef __AVX__
+#      define VC_USE_VEX_CODING
+#    endif
 #  elif VC_IMPL == SSSE3
 #    define VC_IMPL_SSSE3 1
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
+#    ifdef __SSE4_2__
+#      undef __SSE4_2__
+#    endif
+#    ifdef __SSE4_1__
+#      undef __SSE4_1__
+#    endif
+#    ifdef __SSE4A__
+#      undef __SSE4A__
+#    endif
+#    ifdef __AVX__
+#      undef __AVX__
+#      define VC_USE_VEX_CODING
+#    endif
 #  elif VC_IMPL == SSE3
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
+#    ifdef __SSE4_2__
+#      undef __SSE4_2__
+#    endif
+#    ifdef __SSE4_1__
+#      undef __SSE4_1__
+#    endif
+#    ifdef __SSE4A__
+#      undef __SSE4A__
+#    endif
+#    ifdef __SSSE3__
+#      undef __SSSE3__
+#    endif
+#    ifdef __AVX__
+#      undef __AVX__
+#      define VC_USE_VEX_CODING
+#    endif
 #  elif VC_IMPL == SSE2
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
+#    ifdef __SSE4_2__
+#      undef __SSE4_2__
+#    endif
+#    ifdef __SSE4_1__
+#      undef __SSE4_1__
+#    endif
+#    ifdef __SSE4A__
+#      undef __SSE4A__
+#    endif
+#    ifdef __SSSE3__
+#      undef __SSSE3__
+#    endif
+#    ifdef __SSE3__
+#      undef __SSE3__
+#    endif
+#    ifdef __AVX__
+#      undef __AVX__
+#      define VC_USE_VEX_CODING
+#    endif
 #  elif VC_IMPL == SSE
 #    define VC_IMPL_SSE 1
 #    if defined(__SSE4a__)
@@ -148,6 +225,10 @@
 #    endif
 #    if defined(__SSE2__)
 #      define VC_IMPL_SSE2 1
+#    endif
+#    ifdef __AVX__
+#      undef __AVX__
+#      define VC_USE_VEX_CODING
 #    endif
 #  endif
 #  undef VC_IMPL

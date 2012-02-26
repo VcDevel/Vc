@@ -67,4 +67,4 @@ void cpuSet(size_t id, cpu_set_t *mask)
     CPU_SET(id, mask);
 }
 
-#endif // WIN32|WIN64
+#endif /* WIN32|WIN64 */

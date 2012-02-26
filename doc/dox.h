@@ -496,7 +496,7 @@ namespace Vc
  * This allows you to write:
  * \code
  * float_v a = ...;
- * foreach_bit(int i, a < 0.f) {
+ * Vc_foreach_bit(int i, a < 0.f) {
  *   std::cout << a[i] << "\n";
  * }
  * \endcode
@@ -505,5 +505,12 @@ namespace Vc
  * \param iterator  The iterator variable. For example "int i".
  * \param mask      The mask to iterate over. You can also just write a vector operation that returns a
  *                  mask.
+ */
+#define Vc_foreach_bit(iterator, mask)
+
+/**
+ * \ingroup Utilities
+ *
+ * Alias for Vc_foreach_bit unless VC_CLEAN_NAMESPACE is defined.
  */
 #define foreach_bit(iterator, mask)
