@@ -344,6 +344,14 @@ class Vector : public VectorBase<T>
         inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };
 
+typedef Vector<double>         double_v;
+typedef Vector<float>          float_v;
+typedef Vector<float8>         sfloat_v;
+typedef Vector<int>            int_v;
+typedef Vector<unsigned int>   uint_v;
+typedef Vector<short>          short_v;
+typedef Vector<unsigned short> ushort_v;
+
 template<> inline Vector<float8> Vector<float8>::broadcast4(const float *x) {
     const _M128 &v = VectorHelper<_M128>::load(x, Aligned);
     return Vector<float8>(M256::create(v, v));

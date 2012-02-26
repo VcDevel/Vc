@@ -377,6 +377,8 @@ namespace SSE
 // SSE3
 #ifdef VC_IMPL_SSE3
 #include <pmmintrin.h>
+#elif defined _PMMINTRIN_H_INCLUDED
+#error "SSE3 was disabled but something includes <pmmintrin.h>. Please fix your code."
 #endif
 // SSSE3
 #ifdef VC_IMPL_SSSE3
@@ -398,6 +400,8 @@ namespace SSE
 
 } // namespace SSE
 } // namespace Vc
+#elif defined _TMMINTRIN_H_INCLUDED
+#error "SSSE3 was disabled but something includes <tmmintrin.h>. Please fix your code."
 #else
 namespace Vc
 {
@@ -475,6 +479,9 @@ namespace SSE
 #ifdef VC_IMPL_SSE4_1
 #include <smmintrin.h>
 #else
+#ifdef _SMMINTRIN_H_INCLUDED
+#error "SSE4.1 was disabled but something includes <smmintrin.h>. Please fix your code."
+#endif
 namespace Vc
 {
 namespace SSE
@@ -492,21 +499,18 @@ namespace SSE
     // only use the following blend functions with immediates as mask and, of course, compiling
     // with optimization
     static inline __m128d INTRINSIC _mm_blend_pd(__m128d a, __m128d b, const int mask) {
-        __m128i c;
         switch (mask) {
         case 0x0:
             return a;
         case 0x1:
-            c = _mm_srli_si128(_mm_setallone_si128(), 8);
-            break;
+            return _mm_shuffle_pd(b, a, 2);
         case 0x2:
-            c = _mm_slli_si128(_mm_setallone_si128(), 8);
-            break;
+            return _mm_shuffle_pd(a, b, 2);
         case 0x3:
             return b;
+        default:
+            abort();
         }
-        __m128d _c = _mm_castsi128_pd(c);
-        return _mm_or_pd(_mm_andnot_pd(_c, a), _mm_and_pd(_c, b));
     }
     static inline __m128  INTRINSIC _mm_blend_ps(__m128  a, __m128  b, const int mask) {
         __m128i c;
@@ -686,6 +690,8 @@ namespace SSE
 // SSE4.2
 #ifdef VC_IMPL_SSE4_2
 #include <nmmintrin.h>
+#elif defined _NMMINTRIN_H_INCLUDED
+#error "SSE4.2 was disabled but something includes <nmmintrin.h>. Please fix your code."
 #endif
 
 namespace Vc
@@ -787,5 +793,7 @@ namespace SSE
     }
 } // namespace SSE
 } // namespace Vc
+
+#include "shuffle.h"
 
 #endif // SSE_INTRINSICS_H

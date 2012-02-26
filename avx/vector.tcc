@@ -1059,7 +1059,7 @@ template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
     __m128i tmp1 = _mm_srli_epi64(avx_cast<__m128i>(hi128(d.v())), 52);
     tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x3ff));
     tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x3ff));
-    return _mm256_cvtepi32_pd(avx_cast<__m128i>(shuffle<X0, X2, Y0, Y2>(avx_cast<__m128>(tmp0), avx_cast<__m128>(tmp1))));
+    return _mm256_cvtepi32_pd(avx_cast<__m128i>(Mem::shuffle<X0, X2, Y0, Y2>(avx_cast<__m128>(tmp0), avx_cast<__m128>(tmp1))));
 }
 // }}}1
 // Random {{{1

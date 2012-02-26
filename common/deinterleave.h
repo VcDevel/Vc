@@ -28,7 +28,7 @@ namespace Vc
  *
  * Loads two vectors of values from an interleaved array.
  *
- * \param a, \p b The vectors to load the values from memory into.
+ * \param a, b The vectors to load the values from memory into.
  * \param memory The memory location where to read the next 2 * V::Size values from
  * \param align Either pass Vc::Aligned or Vc::Unaligned. It defaults to Vc::Aligned if nothing is
  * specified.
