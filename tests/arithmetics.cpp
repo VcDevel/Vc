@@ -21,6 +21,7 @@
 #include "unittest.h"
 #include <iostream>
 #include <limits>
+#include <Vc/limits>
 
 using namespace Vc;
 
