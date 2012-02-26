@@ -113,6 +113,22 @@ template<typename T> static inline Vector<T> log10(const Vector<T> &x)
     return std::log10( x.data() );
 }
 
+#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L
+static inline Vector<float> log2(const Vector<float> &x)
+{
+    return ::log2f(x.data());
+}
+static inline Vector<double> log2(const Vector<double> &x)
+{
+    return ::log2(x.data());
+}
+#else
+template<typename T> static inline Vector<T> log2(const Vector<T> &x)
+{
+    return std::log(x.data()) / M_LN2;
+}
+#endif
+
 template<typename T> static inline Vector<T> atan (const Vector<T> &x)
 {
     return std::atan( x.data() );
