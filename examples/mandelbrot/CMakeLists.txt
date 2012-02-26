@@ -20,6 +20,7 @@ if(QT4_FOUND)
    # binaries with them
    find_program(O64_CXX openCC HINTS /opt/x86_open64-4.2.4/bin /opt/open64/bin)
    find_program(ICC_CXX icpc HINTS
+      /opt/intel/bin
       $ENV{HOME}/intel/Compiler/11.1/072/bin/intel64)
 
    if(O64_CXX)
