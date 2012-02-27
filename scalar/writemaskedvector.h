@@ -48,7 +48,7 @@ template<typename T> class WriteMaskedVector
         }
     private:
         WriteMaskedVector(Vector<T> *v, Mask k) : vec(v), mask(k) {}
-        Vector<T> *vec;
+        Vector<T> *const vec;
         Mask mask;
 };
 

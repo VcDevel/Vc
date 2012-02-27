@@ -51,7 +51,7 @@ class WriteMaskedVector
 
     private:
         inline WriteMaskedVector(Vector<T> *v, const Mask &k) : vec(v), mask(k) {}
-        Vector<T> *vec;
+        Vector<T> *const vec;
         Mask mask;
 };
 
