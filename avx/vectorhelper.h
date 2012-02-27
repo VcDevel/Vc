@@ -362,6 +362,12 @@ namespace AVX
 
             static inline void INTRINSIC CONST multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
+            static inline VectorType shiftLeft(VectorType a, int shift) {
+                return CAT(_mm256_slli_, SUFFIX)(a, shift);
+            }
+            static inline VectorType shiftRight(VectorType a, int shift) {
+                return CAT(_mm256_srai_, SUFFIX)(a, shift);
+            }
             OP1(abs)
 
             MINMAX
@@ -447,6 +453,12 @@ namespace AVX
 
 #undef SUFFIX
 #define SUFFIX epi32
+            static inline VectorType shiftLeft(VectorType a, int shift) {
+                return CAT(_mm256_slli_, SUFFIX)(a, shift);
+            }
+            static inline VectorType shiftRight(VectorType a, int shift) {
+                return CAT(_mm256_srli_, SUFFIX)(a, shift);
+            }
             static inline VectorType INTRINSIC CONST set(const unsigned int a) { return CAT(_mm256_set1_, SUFFIX)(a); }
             static inline VectorType INTRINSIC CONST set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d,
                     const unsigned int e, const unsigned int f, const unsigned int g, const unsigned int h) {
@@ -489,6 +501,12 @@ namespace AVX
 #define SUFFIX epi16
             static inline VectorType INTRINSIC CONST one() { return CAT(_mm_setone_, SUFFIX)(); }
 
+            static inline VectorType shiftLeft(VectorType a, int shift) {
+                return CAT(_mm_slli_, SUFFIX)(a, shift);
+            }
+            static inline VectorType shiftRight(VectorType a, int shift) {
+                return CAT(_mm_srai_, SUFFIX)(a, shift);
+            }
             static inline VectorType INTRINSIC CONST set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType INTRINSIC CONST set(const EntryType a, const EntryType b, const EntryType c, const EntryType d,
                     const EntryType e, const EntryType f, const EntryType g, const EntryType h) {
@@ -560,6 +578,12 @@ namespace AVX
             static inline VectorType INTRINSIC CONST max(VectorType a, VectorType b) { return _mm_max_epu16(a, b); }
 
 #define SUFFIX epi16
+            static inline VectorType shiftLeft(VectorType a, int shift) {
+                return CAT(_mm_slli_, SUFFIX)(a, shift);
+            }
+            static inline VectorType shiftRight(VectorType a, int shift) {
+                return CAT(_mm_srli_, SUFFIX)(a, shift);
+            }
             static inline EntryType INTRINSIC CONST min(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
                 a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
