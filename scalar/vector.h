@@ -239,6 +239,18 @@ class Vector : public VectorBase<T, Vector<T> >
             f(m_data);
         }
 
+        template<typename F> inline Vector INTRINSIC apply(F &f) const {
+            return f(m_data);
+        }
+
+        template<typename F> inline Vector INTRINSIC apply(F &f, Mask mask) const {
+            if (mask) {
+                return f(m_data);
+            } else {
+                return *this;
+            }
+        }
+
         inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;
         inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };

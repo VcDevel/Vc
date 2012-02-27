@@ -306,6 +306,22 @@ template<typename T> class Vector
             }
         }
 
+        template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
+            Vector<T> r;
+            for_all_vector_entries(i,
+                    r.d.m(i) = f(EntryType(d.m(i)));
+                    );
+            return r;
+        }
+
+        template<typename F> inline Vector<T> INTRINSIC apply(F &f, const Mask &mask) const {
+            Vector<T> r(*this);
+            Vc_foreach_bit (size_t i, mask) {
+                r.d.m(i) = f(EntryType(r.d.m(i)));
+            }
+            return r;
+        }
+
         inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;
         inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };

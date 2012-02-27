@@ -49,6 +49,9 @@ class WriteMaskedVector
 
         Vector<T> &operator=(const Vector<T> &x) ALWAYS_INLINE;
 
+        template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
+            return vec->apply(f, mask);
+        }
     private:
         inline WriteMaskedVector(Vector<T> *v, const Mask &k) : vec(v), mask(k) {}
         Vector<T> *const vec;

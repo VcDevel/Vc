@@ -46,6 +46,14 @@ template<typename T> class WriteMaskedVector
             vec->assign(x, mask);
             return *vec;
         }
+
+        template<typename F> inline Vector<T> apply(F &f) const {
+            if (mask) {
+                return f(vec->m_data);
+            } else {
+                return vec->m_data;
+            }
+        }
     private:
         WriteMaskedVector(Vector<T> *v, Mask k) : vec(v), mask(k) {}
         Vector<T> *const vec;
