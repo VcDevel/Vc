@@ -20,8 +20,8 @@
 #ifndef VC_VERSION_H
 #define VC_VERSION_H
 
-#define VC_VERSION_STRING "0.5.80-dev"
-#define VC_VERSION_NUMBER 0x0005a1
+#define VC_VERSION_STRING "0.6.0"
+#define VC_VERSION_NUMBER 0x000600
 #define VC_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
 
 namespace Vc
