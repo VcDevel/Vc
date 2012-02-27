@@ -465,30 +465,20 @@ OP_IMPL(unsigned short, <<)
 OP_IMPL(unsigned short, >>)
 #undef OP_IMPL
 
-#define OP_IMPL(T, PREFIX, SUFFIX) \
-template<> inline Vector<T> & INTRINSIC CONST Vector<T>::operator<<=(int x) \
-{ \
-    d.v() = CAT3(PREFIX, _slli_epi, SUFFIX)(d.v(), x); \
-    return *this; \
-} \
-template<> inline Vector<T> & INTRINSIC CONST Vector<T>::operator>>=(int x) \
-{ \
-    d.v() = CAT3(PREFIX, _srli_epi, SUFFIX)(d.v(), x); \
-    return *this; \
-} \
-template<> inline Vector<T> INTRINSIC CONST Vector<T>::operator<<(int x) const \
-{ \
-    return CAT3(PREFIX, _slli_epi, SUFFIX)(d.v(), x); \
-} \
-template<> inline Vector<T> INTRINSIC CONST Vector<T>::operator>>(int x) const \
-{ \
-    return CAT3(PREFIX, _srli_epi, SUFFIX)(d.v(), x); \
+template<typename T> inline Vector<T> &Vector<T>::operator>>=(int shift) {
+    d.v() = VectorHelper<T>::shiftRight(d.v(), shift);
+    return *static_cast<Vector<T> *>(this);
 }
-OP_IMPL(int, _mm256, 32)
-OP_IMPL(unsigned int, _mm256, 32)
-OP_IMPL(short, _mm, 16)
-OP_IMPL(unsigned short, _mm, 16)
-#undef OP_IMPL
+template<typename T> inline Vector<T> Vector<T>::operator>>(int shift) const {
+    return VectorHelper<T>::shiftRight(d.v(), shift);
+}
+template<typename T> inline Vector<T> &Vector<T>::operator<<=(int shift) {
+    d.v() = VectorHelper<T>::shiftLeft(d.v(), shift);
+    return *static_cast<Vector<T> *>(this);
+}
+template<typename T> inline Vector<T> Vector<T>::operator<<(int shift) const {
+    return VectorHelper<T>::shiftLeft(d.v(), shift);
+}
 
 #define OP_IMPL(T, symbol, fun) \
   template<> inline Vector<T> &Vector<T>::operator symbol##=(Vector<T> x) { d.v() = VectorHelper<T>::fun(d.v(), x.d.v()); return *this; } \
