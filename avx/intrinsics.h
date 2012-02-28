@@ -50,7 +50,7 @@ namespace AVX
 #if defined(__GNUC__) && !defined(NVALGRIND)
     static inline __m256i CONST _mm256_setallone() { __m256i r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
 #else
-    static inline __m256i CONST _mm256_setallone() { __m256i r = _mm256_setzero_si256(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
+    static inline __m256i CONST _mm256_setallone() { __m256 r = _mm256_setzero_ps(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
 #endif
     static inline __m256i CONST _mm256_setallone_si256() { return _mm256_setallone(); }
     static inline __m256d CONST _mm256_setallone_pd() { return _mm256_castsi256_pd(_mm256_setallone()); }
