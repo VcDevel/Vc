@@ -42,7 +42,23 @@
         void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
         void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
 
-#ifdef __GNUC__
+#ifdef VC_CLANG
+#  define INTRINSIC __attribute__((always_inline))
+#  define INTRINSIC_L
+#  define INTRINSIC_R INTRINSIC
+#  define FLATTEN
+#  define CONST __attribute__((const))
+#  define CONST_L
+#  define CONST_R CONST
+#  define PURE __attribute__((pure))
+#  define MAY_ALIAS __attribute__((may_alias))
+#  define ALWAYS_INLINE __attribute__((always_inline))
+#  define ALWAYS_INLINE_L
+#  define ALWAYS_INLINE_R ALWAYS_INLINE
+#  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
+#  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
+#  define VC_RESTRICT __restrict__
+#elif defined(__GNUC__)
 #  define INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
 #  define INTRINSIC_L
 #  define INTRINSIC_R INTRINSIC
