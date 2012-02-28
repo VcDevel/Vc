@@ -363,3 +363,34 @@ ENTRY_TYPE max() const;
 ENTRY_TYPE product() const;
 ENTRY_TYPE sum() const;
 //@}
+
+/**
+ * \name Apply/Call Functions
+ *
+ * There are still many situations where the code needs to switch from SIMD operations to scalar
+ * execution. In this case you can, of course rely on operator[]. But there are also a number of
+ * functions that can help with common patterns.
+ *
+ * The apply functions expect a function that returns a scalar value, i.e. a function of the form "T f(T)".
+ * The call functions do not return a value and thus the function passed does not need a return
+ * value.
+ *
+ * Example:
+ * \code
+ * void foo(float_v v) {
+ *   float_v logarithm = v.apply(std::log);
+ *   float_v exponential = v.apply(std::exp);
+ * }
+ * \endcode
+ *
+ * Of course, with C++11, you can also use lambdas here:
+ * \code
+ *   float_v power = v.apply([](float f) { return std::pow(f, 0.6f); })
+ * \endcode
+ */
+//@{
+VECTOR_TYPE apply(VECTOR_TYPE x) const;
+VECTOR_TYPE apply(VECTOR_TYPE x, MASK_TYPE mask) const;
+void call(VECTOR_TYPE x) const;
+void call(VECTOR_TYPE x, MASK_TYPE mask) const;
+//@}
