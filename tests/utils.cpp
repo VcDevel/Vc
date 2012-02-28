@@ -219,8 +219,29 @@ template<> void Random<sfloat_v>() { FloatRandom<sfloat_v, short_v>(); }
 
 template<typename T> T add2(T x) { return x + T(2); }
 
+template<typename T, typename V>
+class CallTester
+{
+    public:
+        CallTester() : v(Vc::Zero), i(0) {}
+
+        void operator()(T x) {
+            v[i] = x;
+            ++i;
+        }
+
+        void reset() { v.setZero(); i = 0; }
+
+        int callCount() const { return i; }
+        V callValues() const { return v; }
+
+    private:
+        V v;
+        int i;
+};
+
 template<typename V>
-void apply()
+void applyAndCall()
 {
     typedef typename V::EntryType T;
 
@@ -228,12 +249,27 @@ void apply()
     for (int i = 0; i < 1000; ++i) {
         const V rand = V::Random();
         COMPARE(rand.apply(add2<T>), rand + two);
+
+        CallTester<T, V> callTester;
+        rand.call(callTester);
+        COMPARE(callTester.callCount(), V::Size);
+        COMPARE(callTester.callValues(), rand);
+
         for_all_masks(V, mask) {
             V copy1 = rand;
             V copy2 = rand;
             copy1(mask) += two;
+
             COMPARE(copy2(mask).apply(add2<T>), copy1) << mask;
             COMPARE(rand.apply(add2<T>, mask), copy1) << mask;
+
+            callTester.reset();
+            copy2(mask).call(callTester);
+            COMPARE(callTester.callCount(), mask.count());
+
+            callTester.reset();
+            rand.call(callTester, mask);
+            COMPARE(callTester.callCount(), mask.count());
         }
     }
 }
@@ -270,7 +306,7 @@ int main()
 
     testAllTypes(Random);
 
-    testAllTypes(apply);
+    testAllTypes(applyAndCall);
 
     return 0;
 }

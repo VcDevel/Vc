@@ -239,6 +239,16 @@ class Vector : public VectorBase<T, Vector<T> >
             f(m_data);
         }
 
+        template<typename F> inline void INTRINSIC call(F &f) const {
+            f(m_data);
+        }
+
+        template<typename F> inline void INTRINSIC call(F &f, Mask mask) const {
+            if (mask) {
+                f(m_data);
+            }
+        }
+
         template<typename F> inline Vector INTRINSIC apply(F &f) const {
             return f(m_data);
         }

@@ -100,6 +100,9 @@ class WriteMaskedVector
             return *vec;
         }
 
+        template<typename F> inline void INTRINSIC call(F &f) const {
+            return vec->call(f, mask);
+        }
         template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
             return vec->apply(f, mask);
         }
@@ -342,6 +345,18 @@ class Vector : public VectorBase<T>
                     value = Base::d.m(i);
                     f(value);
                 }
+            }
+        }
+
+        template<typename F> inline void INTRINSIC call(F &f) const {
+            for_all_vector_entries(i,
+                    f(EntryType(d.m(i)));
+                    );
+        }
+
+        template<typename F> inline void INTRINSIC call(F &f, const Mask &mask) const {
+            Vc_foreach_bit(size_t i, mask) {
+                f(EntryType(d.m(i)));
             }
         }
 

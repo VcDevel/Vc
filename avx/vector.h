@@ -306,6 +306,18 @@ template<typename T> class Vector
             }
         }
 
+        template<typename F> inline void INTRINSIC call(F &f) const {
+            for_all_vector_entries(i,
+                    f(EntryType(d.m(i)));
+                    );
+        }
+
+        template<typename F> inline void INTRINSIC call(F &f, const Mask &mask) const {
+            Vc_foreach_bit(size_t i, mask) {
+                f(EntryType(d.m(i)));
+            }
+        }
+
         template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
             Vector<T> r;
             for_all_vector_entries(i,
