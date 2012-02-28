@@ -10,25 +10,25 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(disabled_targets)
 
 if(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
-   set(COMPILER_IS_INTEL true)
-   set(COMPILER_IS_OPEN64 false)
-   set(COMPILER_IS_MSVC false)
-   set(COMPILER_IS_GCC false)
+   set(VC_COMPILER_IS_INTEL true)
+   set(VC_COMPILER_IS_OPEN64 false)
+   set(VC_COMPILER_IS_MSVC false)
+   set(VC_COMPILER_IS_GCC false)
 elseif(CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
-   set(COMPILER_IS_INTEL false)
-   set(COMPILER_IS_OPEN64 true)
-   set(COMPILER_IS_MSVC false)
-   set(COMPILER_IS_GCC false)
+   set(VC_COMPILER_IS_INTEL false)
+   set(VC_COMPILER_IS_OPEN64 true)
+   set(VC_COMPILER_IS_MSVC false)
+   set(VC_COMPILER_IS_GCC false)
 elseif(MSVC)
-   set(COMPILER_IS_INTEL false)
-   set(COMPILER_IS_OPEN64 false)
-   set(COMPILER_IS_MSVC true)
-   set(COMPILER_IS_GCC false)
+   set(VC_COMPILER_IS_INTEL false)
+   set(VC_COMPILER_IS_OPEN64 false)
+   set(VC_COMPILER_IS_MSVC true)
+   set(VC_COMPILER_IS_GCC false)
 elseif(CMAKE_COMPILER_IS_GNUCXX)
-   set(COMPILER_IS_INTEL false)
-   set(COMPILER_IS_OPEN64 false)
-   set(COMPILER_IS_MSVC false)
-   set(COMPILER_IS_GCC true)
+   set(VC_COMPILER_IS_INTEL false)
+   set(VC_COMPILER_IS_OPEN64 false)
+   set(VC_COMPILER_IS_MSVC false)
+   set(VC_COMPILER_IS_GCC true)
 else()
    message(ERROR "Unsupported Compiler. Please fill out the missing parts in the CMake scripts and submit a patch to http://code.compeng.uni-frankfurt.de/projects/vc")
 endif()
@@ -49,7 +49,7 @@ check_cxx_source_runs("int main() { return sizeof(void*) != 8; }" VOID_PTR_IS_64
 
 set(SSE_INTRINSICS_BROKEN false)
 
-if(COMPILER_IS_OPEN64)
+if(VC_COMPILER_IS_OPEN64)
    # Open64 is detected as GNUCXX :(
    AddCompilerFlag("-W")
    AddCompilerFlag("-Wall")
@@ -117,7 +117,7 @@ if(COMPILER_IS_OPEN64)
       endif(NOT _as_good)
    endif(NOT _binutils_as)
    mark_as_advanced(_binutils_as)
-elseif(COMPILER_IS_GCC)
+elseif(VC_COMPILER_IS_GCC)
    ##################################################################################################
    #                                              GCC                                               #
    ##################################################################################################
@@ -208,7 +208,7 @@ elseif(COMPILER_IS_GCC)
       endif(NOT _as_good)
    endif(NOT _binutils_as)
    mark_as_advanced(_binutils_as)
-elseif(COMPILER_IS_INTEL)
+elseif(VC_COMPILER_IS_INTEL)
    ##################################################################################################
    #                                          Intel Compiler                                        #
    ##################################################################################################
@@ -237,7 +237,7 @@ elseif(COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${ALIAS_FLAGS} -w1 -fp-model precise")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS} -w1 -fp-model precise")
-elseif(COMPILER_IS_MSVC)
+elseif(VC_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4800") # Disable warning "forcing value to bool"
    AddCompilerFlag("/wd4996") # Disable warning about strdup vs. _strdup
    AddCompilerFlag("/wd4244") # Disable warning "conversion from 'unsigned int' to 'float', possible loss of data"
