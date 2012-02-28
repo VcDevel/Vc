@@ -266,7 +266,7 @@ class _UnitTest_Compare
         enum OptionNoEq { NoEq };
 
         template<typename T1, typename T2>
-        inline _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line)
+        inline ALWAYS_INLINE _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line)
             : m_failed(!unittest_compareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -279,7 +279,7 @@ class _UnitTest_Compare
         }
 
         template<typename T1, typename T2>
-        inline _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
+        inline ALWAYS_INLINE _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
             : m_failed(!unittest_compareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -292,7 +292,7 @@ class _UnitTest_Compare
         }
 
         template<typename T>
-        inline _UnitTest_Compare(T a, T b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
+        inline ALWAYS_INLINE _UnitTest_Compare(T a, T b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
             : m_failed(!unittest_fuzzyCompareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -308,7 +308,7 @@ class _UnitTest_Compare
             }
         }
 
-        inline _UnitTest_Compare(bool good, const char *cond, const char *_file, int _line)
+        inline ALWAYS_INLINE _UnitTest_Compare(bool good, const char *cond, const char *_file, int _line)
             : m_failed(!good)
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -318,7 +318,7 @@ class _UnitTest_Compare
             }
         }
 
-        inline _UnitTest_Compare(const char *_file, int _line)
+        inline ALWAYS_INLINE _UnitTest_Compare(const char *_file, int _line)
             : m_failed(true)
         {
             if (VC_IS_UNLIKELY(m_failed)) {
