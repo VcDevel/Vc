@@ -345,7 +345,7 @@ VECTOR_TYPE operator^(VECTOR_TYPE x) const;
 //@}
 
 /**
- * \name Horizontal Operations
+ * \name Horizontal Reduction Operations
  *
  * There are four horizontal operations available to reduce the values of a vector to a scalar
  * value.
