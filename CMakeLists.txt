@@ -167,7 +167,6 @@ elseif(COMPILER_IS_GCC)
          gather_sse_LOOP
          scatter_avx
          scatter_sse
-         dhryrock_avx_benchmark
          )
    endif()
 
@@ -296,11 +295,6 @@ configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCu
 if(BUILD_TESTING)
    add_subdirectory(tests)
 endif(BUILD_TESTING)
-
-set(BUILD_BENCHMARKS TRUE CACHE BOOL "Build benchmarks.")
-if(BUILD_BENCHMARKS)
-   add_subdirectory(benchmarks)
-endif(BUILD_BENCHMARKS)
 
 set(BUILD_EXAMPLES FALSE CACHE BOOL "Build examples.")
 if(BUILD_EXAMPLES)
