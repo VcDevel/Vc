@@ -12,6 +12,18 @@ set(disabled_targets)
 include(VcMacros)
 vc_determine_compiler()
 
+if(VC_COMPILER_IS_GCC AND VC_GCC_VERSION STREQUAL "4.6.0")
+   list(APPEND disabled_targets
+      gather_avx
+      gather_sse
+      gather_VC_USE_SET_GATHERS_avx
+      gather_VC_USE_SET_GATHERS_sse
+      gather_sse_LOOP
+      scatter_avx
+      scatter_sse
+      )
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release CACHE STRING
       "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."

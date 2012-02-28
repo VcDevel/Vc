@@ -31,6 +31,17 @@ macro(vc_determine_compiler)
       set(VC_COMPILER_IS_MSVC true)
    elseif(CMAKE_COMPILER_IS_GNUCXX)
       set(VC_COMPILER_IS_GCC true)
+
+      # check the GCC version
+      exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE VC_GCC_VERSION)
+
+      # some distributions patch their GCC to return nothing or only major and minor version on -dumpversion.
+      # In that case we must extract the version number from --version.
+      if(NOT VC_GCC_VERSION OR VC_GCC_VERSION MATCHES "^[0-9]\\.[0-9]+$")
+         exec_program(${CMAKE_C_COMPILER} ARGS --version OUTPUT_VARIABLE VC_GCC_VERSION)
+         string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" VC_GCC_VERSION "${VC_GCC_VERSION}")
+         message(STATUS "GCC Version from --version: ${VC_GCC_VERSION}")
+      endif()
    else()
       message(ERROR "Unsupported Compiler for use with Vc.\nPlease fill out the missing parts in the CMake scripts and submit a patch to http://code.compeng.uni-frankfurt.de/projects/vc")
    endif()
@@ -132,36 +143,15 @@ macro(vc_set_preferred_compiler_flags)
       set(CMAKE_C_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}"        CACHE STRING "Flags used by the compiler during release builds (/MD /Ob1 /Oi /Ot /Oy /Gs will produce slightly less optimized but smaller files)." FORCE)
       set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Flags used by the compiler during Release with Debug Info builds." FORCE)
 
-      # check the GCC version
-      exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE _gcc_version)
-      # some distributions patch their GCC to return nothing or only major and minor version on -dumpversion.
-      # In that case we must extract the version number from --version.
-      if(NOT _gcc_version OR _gcc_version MATCHES "^[0-9]\\.[0-9]+$")
-         exec_program(${CMAKE_C_COMPILER} ARGS --version OUTPUT_VARIABLE _gcc_version)
-         string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" _gcc_version "${_gcc_version}")
-         message(STATUS "GCC Version from --version: ${_gcc_version}")
-      endif()
-      macro_ensure_version("4.4.1" "${_gcc_version}" GCC_4_4_1)
+      macro_ensure_version("4.4.1" "${VC_GCC_VERSION}" GCC_4_4_1)
       if(NOT GCC_4_4_1)
          message(STATUS "\n-- \n-- NOTE: Your GCC is older than 4.4.1. This is known to cause problems/bugs. Please update to the latest GCC if you can.\n-- \n-- ")
-         macro_ensure_version("4.3.0" "${_gcc_version}" GCC_4_3_0)
+         macro_ensure_version("4.3.0" "${VC_GCC_VERSION}" GCC_4_3_0)
          if(NOT GCC_4_3_0)
             message(STATUS "WARNING: Your GCC is older than 4.3.0. It is unable to handle all SSE2 intrinsics. All SSE code will be disabled. Please update to the latest GCC if you can.\n-- \n-- ")
             set(SSE_INTRINSICS_BROKEN true)
          endif(NOT GCC_4_3_0)
       endif(NOT GCC_4_4_1)
-
-      if(_gcc_version STREQUAL "4.6.0")
-         list(APPEND disabled_targets
-            gather_avx
-            gather_sse
-            gather_VC_USE_SET_GATHERS_avx
-            gather_VC_USE_SET_GATHERS_sse
-            gather_sse_LOOP
-            scatter_avx
-            scatter_sse
-            )
-      endif()
 
       if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
          set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")

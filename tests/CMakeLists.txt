@@ -49,7 +49,7 @@ macro(vc_add_test _name)
 endmacro(vc_add_test)
 
 vc_add_test(scalaraccess)
-if(CMAKE_COMPILER_IS_GNUCXX AND _gcc_version STRGREATER "4.5.0" AND _gcc_version STRLESS "4.5.3" )
+if(CMAKE_COMPILER_IS_GNUCXX AND VC_GCC_VERSION STRGREATER "4.5.0" AND VC_GCC_VERSION STRLESS "4.5.3" )
    message(STATUS "WARNING: GCC 4.5.[12] are known to generate an internal compiler error on the memory unit test. (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=46723) The test will therefore not be compiled and executed.")
 else()
    vc_add_test(memory)
