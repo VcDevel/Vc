@@ -9,7 +9,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 set(disabled_targets)
 
-include(VcMacros)
+include (VcMacros)
+include (AddTargetProperty)
+include (OptimizeForArchitecture)
+
+find_package(Qt4)
+
 vc_determine_compiler()
 
 if(VC_COMPILER_IS_GCC AND VC_GCC_VERSION STREQUAL "4.6.0")
@@ -30,12 +35,7 @@ if(NOT CMAKE_BUILD_TYPE)
       FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
-include (OptimizeForArchitecture)
-include (AddTargetProperty)
-
 vc_set_preferred_compiler_flags()
-
-find_package(Qt4)
 
 OptimizeForArchitecture()
 
