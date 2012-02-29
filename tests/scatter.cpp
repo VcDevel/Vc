@@ -157,7 +157,7 @@ int main(int argc, char **argv) //{{{1
     //  candidate template ignored: failed template argument deduction
     //  template<typename S1, typename IT> inline Vector(const S1 *array, const T S1::*
     //          member1, IT indexes, Mask mask = true)
-#warning "Skipping compilation of tests gatherStruct and gather2dim because of clang bug"
+#warning "Skipping compilation of tests scatterStruct and scatterStruct2 because of clang bug"
 #else
     runTest(scatterStruct<int_v>);
     runTest(scatterStruct<uint_v>);
