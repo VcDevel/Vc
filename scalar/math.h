@@ -84,7 +84,7 @@ template<> inline void sincos(const Vector<double> &x, Vector<double> *sin, Vect
 #ifdef __GNUC__
     __builtin_sincos(x.data(), &sin->data(), &cos->data());
 #else
-    sincos(x.data(), &sin->data(), &cos->data());
+    ::sincos(x.data(), &sin->data(), &cos->data());
 #endif
 }
 
