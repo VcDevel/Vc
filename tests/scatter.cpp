@@ -152,7 +152,7 @@ int main(int argc, char **argv) //{{{1
     runTest(scatterArray<short_v>);
     runTest(scatterArray<ushort_v>);
     testAllTypes(maskedScatterArray);
-#if defined(VC_CLANG) && VC_CLANG <= 0x020900
+#if defined(VC_CLANG) && VC_CLANG <= 0x030000
     // clang fails with:
     //  candidate template ignored: failed template argument deduction
     //  template<typename S1, typename IT> inline Vector(const S1 *array, const T S1::*
