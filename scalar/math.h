@@ -84,7 +84,7 @@ template<> inline void sincos(const Vector<double> &x, Vector<double> *sin, Vect
 #if (defined(VC_CLANG) && __has_builtin(__builtin_sincos)) || (!defined(VC_CLANG) && defined(__GNUC__))
     __builtin_sincos(x.data(), &sin->data(), &cos->data());
 #else
-    sincos(x.data(), &sin->data(), &cos->data());
+    ::sincos(x.data(), &sin->data(), &cos->data());
 #endif
 }
 
