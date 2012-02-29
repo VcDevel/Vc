@@ -252,7 +252,7 @@ void applyAndCall()
 
         CallTester<T, V> callTester;
         rand.call(callTester);
-        COMPARE(callTester.callCount(), V::Size);
+        COMPARE(callTester.callCount(), int(V::Size));
         COMPARE(callTester.callValues(), rand);
 
         for_all_masks(V, mask) {
