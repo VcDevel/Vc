@@ -2,5 +2,6 @@ larrabee/lrbni_prototypes.h
 doc/html
 doc/latex
 doc/man
+vc-benchmarks
 *.swp
 *~
