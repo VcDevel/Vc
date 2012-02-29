@@ -468,20 +468,22 @@ template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::
 #endif
 #undef ALWAYS_INLINE
 
+// Workaround for clang: The "<< ' '" is only added to silence the warnings about unused return
+// values.
 #define FUZZY_COMPARE( a, b ) \
-    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__, _UnitTest_Compare::Fuzzy)
+    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__, _UnitTest_Compare::Fuzzy) << ' '
 
 #define COMPARE( a, b ) \
-    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__)
+    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__) << ' '
 
 #define COMPARE_NOEQ( a, b ) \
-    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__, _UnitTest_Compare::NoEq)
+    _UnitTest_Compare(a, b, #a, #b, __FILE__, __LINE__, _UnitTest_Compare::NoEq) << ' '
 
 #define VERIFY(cond) \
-    _UnitTest_Compare(cond, #cond, __FILE__, __LINE__)
+    _UnitTest_Compare(cond, #cond, __FILE__, __LINE__) << ' '
 
 #define FAIL() \
-    _UnitTest_Compare(__FILE__, __LINE__)
+    _UnitTest_Compare(__FILE__, __LINE__) << ' '
 
 class ADD_PASS
 {
