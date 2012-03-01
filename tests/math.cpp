@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -23,7 +23,6 @@
 #include "vectormemoryhelper.h"
 #include <cmath>
 #include <algorithm>
-#include "../benchmarks/random.h"
 
 using namespace Vc;
 
@@ -132,7 +131,7 @@ template<typename V> void testRSqrt()
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
-        const V x = PseudoRandom<V>::next() * T(1000);
+        const V x = V::Random() * T(1000);
         // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
         VERIFY(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12)));
     }
@@ -498,7 +497,7 @@ template<typename V> void testLdexp()
     typedef typename V::EntryType T;
     typedef typename _ExponentVector<V>::Type ExpV;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
-        const V v = (PseudoRandom<V>::next() - T(0.5)) * T(1000);
+        const V v = (V::Random() - T(0.5)) * T(1000);
         ExpV e;
         const V m = frexp(v, &e);
         COMPARE(ldexp(m, e), v) << ", m = " << m << ", e = " << e;
@@ -509,7 +508,7 @@ template<typename V> void testLdexp()
 template<> void testLdexp<float_v>()
 {
     for (size_t i = 0; i < 1024 / float_v::Size; ++i) {
-        const float_v v = (PseudoRandom<float_v>::next() - 0.5f) * 1000.f;
+        const float_v v = (float_v::Random() - 0.5f) * 1000.f;
         int_v eI;
         short_v eS;
         const float_v mI = frexp(v, &eI);
@@ -530,7 +529,7 @@ template<typename V> void testUlpDiff()
     COMPARE(ulpDiffToReference(std::numeric_limits<V>::min(), V::Zero()), V::One());
     COMPARE(ulpDiffToReference(V::Zero(), std::numeric_limits<V>::min()), V::One());
     for (size_t count = 0; count < 1024 / V::Size; ++count) {
-        const V base = (PseudoRandom<V>::next() - T(0.5)) * T(1000);
+        const V base = (V::Random() - T(0.5)) * T(1000);
         typename _Ulp_ExponentVector<V>::Type exp;
         Vc::frexp(base, &exp);
         const V eps = ldexp(V(std::numeric_limits<T>::epsilon()), exp - 1);

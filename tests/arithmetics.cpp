@@ -210,7 +210,7 @@ template<typename Vec> void testDiv()
     typedef typename Vec::EntryType T;
     const T stepsize = std::max(T(1), T(std::numeric_limits<T>::max() / 1024));
     for (T divisor = 1; divisor < 5; ++divisor) {
-        for (T scalar = std::numeric_limits<T>::min(); scalar < std::numeric_limits<T>::max(); scalar += stepsize) {
+        for (T scalar = std::numeric_limits<T>::min(); scalar < std::numeric_limits<T>::max() - stepsize + 1; scalar += stepsize) {
             Vec vector(scalar);
             Vec reference(scalar / divisor);
 

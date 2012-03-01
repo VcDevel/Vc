@@ -1,5 +1,6 @@
 doc/html
 doc/latex
 doc/man
+vc-benchmarks
 *.swp
 *~

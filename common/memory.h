@@ -94,6 +94,8 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
             };
 #if defined(VC_ICC) && defined(_WIN32)
             __declspec(align(__alignof(VectorAlignedBaseT<V>)))
+#elif defined(VC_CLANG)
+            __attribute__((aligned(__alignof(VectorAlignedBaseT<V>))))
 #endif
             EntryType m_mem[Size1][PaddedSize2];
         public:
@@ -203,6 +205,8 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
             };
 #if defined(__INTEL_COMPILER) && defined(_WIN32)
             __declspec(align(__alignof(VectorAlignedBaseT<V>)))
+#elif defined(VC_CLANG)
+            __attribute__((aligned(__alignof(VectorAlignedBaseT<V>))))
 #endif
             EntryType m_mem[PaddedSize];
         public:

@@ -20,12 +20,12 @@
 #ifndef VC_COMMON_BITSCANINTRINSICS_H
 #define VC_COMMON_BITSCANINTRINSICS_H
 
-#ifdef VC_GCC
+#if defined(VC_GCC) || defined(VC_CLANG)
 #  if VC_GCC >= 0x40500
      // GCC 4.5.0 introduced _bit_scan_forward / _bit_scan_reverse
 #    include <x86intrin.h>
 #  else
-     // GCC 4.4 has x86intrin.h, but not the required functions
+     // GCC <= 4.4 and clang have x86intrin.h, but not the required functions
 #    define _bit_scan_forward(x) __builtin_ctz(x)
 static inline int _Vc_bit_scan_reverse_asm(unsigned int x) {
     int r;

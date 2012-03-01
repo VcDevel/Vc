@@ -25,6 +25,8 @@
 #define VC_ICC 1
 #elif defined(__OPENCC__)
 #define VC_OPEN64 1
+#elif defined(__clang__)
+#define VC_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
 #elif defined(__GNUC__)
 #define VC_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
 #elif defined(_MSC_VER)
