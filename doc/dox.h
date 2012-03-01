@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -25,6 +25,8 @@
  * and a scalar fallback.
  *
  * \subpage intro
+ *
+ * \subpage portability
  *
  * \li \ref Vectors
  * \li \ref Masks
@@ -99,6 +101,62 @@
  * As you can probably see, the new challenge with Vc is the use of good data-structures which
  * support horizontal vectorization. Depending on your problem at hand this may become the main
  * focus of design (it does not have to be, though).
+ */
+
+/**
+ * \page portability Portability Issues
+ *
+ * One of the major goals of Vc is to ease development of portable code, while achieving highest
+ * possible performance that requires target architecture specific instructions. This is possible
+ * through having just a single type use different implementations of the same API depending on the
+ * target architecture. Many of the details of the target architecture are often dependent on the
+ * compiler flags that were used. Also there can be subtle differences between the implementations
+ * that could lead to problems. This page aims to document all issues you might need to know about.
+ *
+ * \par Compiler Flags
+ *
+ * \li \e GCC: The compiler should be called with the -march=<target> flag. Take a look at the GCC
+ * manpage to find all possiblities for <target>. Additionally it is best to also add the -msse2
+ * -msse3 ... -mavx flags. If no SIMD instructions are enabled via compiler flags, Vc must fall back
+ * to the scalar implementation.
+ * \li \e Clang: The same as for GCC applies.
+ * \li \e ICC: Same as GCC, but the flags are called -xAVX -xSSE4.2 -xSSE4.1 -xSSSE3 -xSSE3 -xSSE2.
+ * \li \e MSVC: On 32bit you can add the /arch:SSE2 flag. That's about all the MSVC documentation
+ * says. Still the MSVC compiler knows about the newer instructions in SSE3 and upwards. How you can
+ * determine what CPUs will be supported by the resulting binary is unclear.
+ *
+ * \par Where does the final executable run?
+ *
+ * You must be aware of the fact that a binary that is built for a given SIMD hardware may not run
+ * on a processor that does not have these instructions. The executable will work fine as long as no
+ * such instruction is actually executed and only crash at the place where such an instruction is
+ * used. Thus it is better to check at application start whether the compiled in SIMD hardware is
+ * really supported on the executing CPU. This can be determined with the
+ * currentImplementationSupported function.
+ *
+ * If you want to distribute a binary that runs correctly on many different systems you either must
+ * restrict it to the least common denominator (which often is SSE2), or you must compile the code
+ * several times, with the different target architecture compiler options. A simple way to combine
+ * the resulting executables would be via a wrapping skript/executable that determines the correct
+ * executable to use. A more sophisticated option is the use of the ifunc attribute GCC provides.
+ * Other compilers might provide similar functionality.
+ *
+ * \par Guarantees
+ *
+ * It is guaranteed that:
+ * \li \code int_v::Size == uint_v::Size \endcode
+ * \li \code int_v::Size == float_v::Size \endcode
+ * \li \code short_v::Size == ushort_v::Size \endcode
+ * \li \code short_v::Size == sfloat_v::Size \endcode
+ *
+ * \par Important Differences between Implementations
+ *
+ * \li Obviously the number of entries in a vector depends on the target architecture.
+ * \li Because of the guarantees above sfloat_v does not necessarily map to a single SIMD register
+ * and thus there could be a higher register pressure when this type is used.
+ * \li Hardware that does not support 16-Bit integer vectors can implement the short_v and ushort_v
+ * API via 32-Bit integer vectors. Thus, some of the overflow behavior might be slightly different,
+ * and truncation will only happen when the vector is stored to memory.
  */
 
 /**
