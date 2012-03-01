@@ -72,7 +72,7 @@ template<typename T> static inline Vector<T> abs  (const Vector<T> &x)
 
 template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos)
 {
-#if (defined(VC_CLANG) && __has_builtin(__builtin_sincosf)) || (!defined(VC_CLANG) && defined(__GNUC__))
+#if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincosf)) || (!defined(VC_CLANG) && defined(__GNUC__))
     __builtin_sincosf(x.data(), &sin->data(), &cos->data());
 #else
     sincosf(x.data(), &sin->data(), &cos->data());
@@ -81,7 +81,7 @@ template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *si
 
 template<> inline void sincos(const Vector<double> &x, Vector<double> *sin, Vector<double> *cos)
 {
-#if (defined(VC_CLANG) && __has_builtin(__builtin_sincos)) || (!defined(VC_CLANG) && defined(__GNUC__))
+#if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincos)) || (!defined(VC_CLANG) && defined(__GNUC__))
     __builtin_sincos(x.data(), &sin->data(), &cos->data());
 #else
     ::sincos(x.data(), &sin->data(), &cos->data());

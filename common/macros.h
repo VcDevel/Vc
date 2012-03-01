@@ -163,4 +163,10 @@ namespace Vc {
 #define VC_ASSERT(x) assert(x);
 #endif
 
+#ifdef VC_CLANG
+#define VC_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#define VC_HAS_BUILTIN(x) 0
+#endif
+
 #endif // VC_COMMON_MACROS_H
