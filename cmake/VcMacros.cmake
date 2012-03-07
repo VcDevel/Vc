@@ -51,7 +51,7 @@ macro(vc_determine_compiler)
          message(STATUS "GCC Version from --version: ${VC_GCC_VERSION}")
       endif()
    else()
-      message(ERROR "Unsupported Compiler for use with Vc.\nPlease fill out the missing parts in the CMake scripts and submit a patch to http://code.compeng.uni-frankfurt.de/projects/vc")
+      message(FATAL_ERROR "Unsupported Compiler for use with Vc.\nPlease fill out the missing parts in the CMake scripts and submit a patch to http://code.compeng.uni-frankfurt.de/projects/vc")
    endif()
 endmacro()
 
