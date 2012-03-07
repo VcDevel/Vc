@@ -29,6 +29,8 @@
 inline VECTOR_TYPE copySign(VECTOR_TYPE reference) const;
 
 /**
+ * Extracts the exponent.
+ *
  * \return the exponent to base 2.
  *
  * This function provides efficient access to the exponent of the floating point number. The
