@@ -118,6 +118,8 @@ bool isMix() const;
 operator bool() const;
 
 /**
+ * Read-only access to mask entries.
+ *
  * \param i Determines the boolean to be accessed.
  * \return the \p i th entry of the mask as a bool.
  */
@@ -134,8 +136,10 @@ int count() const;
 int firstOne() const;
 
 /**
- * Returns an int where each bit corresponds to the boolean value in the mask.
+ * Convert mask to an integer.
  *
- * E.g. a mask like [true, false, false, true] would result in a 9.
+ * \return An int where each bit corresponds to the boolean value in the mask.
+ *
+ * E.g. a mask like [true, false, false, true] would result in a 9 (in binary: 1001).
  */
 int toInt() const;
