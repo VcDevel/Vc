@@ -275,33 +275,6 @@ namespace Vc
         Streaming
     };
 
-    /**
-     * \ingroup Utilities
-     *
-     * Enum that specifies the alignment and padding restrictions to use for memory allocation with
-     * Vc::malloc.
-     */
-    enum MallocAlignment {
-        /**
-         * Align on boundary of vector sizes (e.g. 16 Bytes on SSE platforms) and pad to allow
-         * vector access to the end. Thus the allocated memory contains a multiple of
-         * VectorAlignment bytes.
-         */
-        AlignOnVector,
-        /**
-         * Align on boundary of cache line sizes (e.g. 64 Bytes on x86) and pad to allow
-         * full cache line access to the end. Thus the allocated memory contains a multiple of
-         * 64 bytes.
-         */
-        AlignOnCacheline,
-        /**
-         * Align on boundary of page sizes (e.g. 4096 Bytes on x86) and pad to allow
-         * full page access to the end. Thus the allocated memory contains a multiple of
-         * 4096 bytes.
-         */
-        AlignOnPage
-    };
-
 #define INDEX_TYPE uint_v
 #define VECTOR_TYPE float_v
 #define ENTRY_TYPE float
