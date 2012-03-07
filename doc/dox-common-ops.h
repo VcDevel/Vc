@@ -133,6 +133,8 @@ template<typename OtherVector> explicit VECTOR_TYPE(const OtherVector &);
  *
  * Constructs a vector with all entries of the vector filled with the given value.
  *
+ * \param x The scalar value to broadcast to all entries of the constructed vector.
+ *
  * \note If you want to set it to 0 or 1 use the special initializer constructors above. Calling
  * this constructor with 0 will cause a compilation error because the compiler cannot know which
  * constructor you meant.
@@ -215,6 +217,8 @@ ENTRY_TYPE &operator[](int index);
 ENTRY_TYPE operator[](int index) const;
 
 /**
+ * Writemask the vector before an assignment.
+ *
  * \param mask The writemask to be used.
  *
  * \return an object that can be used for any kind of masked assignment.
@@ -266,37 +270,67 @@ MaskedVector operator()(const MASK_TYPE &mask);
  *   v2.scatter(data, &MyData::b, indexes - 1);
  * }
  * \endcode
+ *
+ * \param array   A pointer into memory (without alignment restrictions).
+ * \param member1 If \p array points to a struct, \p member1 determines the member in the struct to
+ *                be read. Thus the offsets in \p indexes are relative to the \p array and not to
+ *                the size of the gathered type (i.e. array[i].*member1 is accessed instead of
+ *                (&(array->*member1))[i])
+ * \param member2 If \p member1 is a struct then \p member2 selects the member to be read from that
+ *                struct (i.e. array[i].*member1.*member2 is read).
+ * \param indexes Determines the offsets into \p array where the values are gathered from/scattered
+ *                to. The type of indexes can either be an integer vector or a type that supports
+ *                operator[] access.
+ * \param mask    If a mask is given only the active entries will be gathered/scattered.
  */
 //@{
+/// gather constructor
 template<typename IndexT> VECTOR_TYPE(const ENTRY_TYPE *array, const IndexT indexes);
+/// masked gather constructor, initialized to zero
 template<typename IndexT> VECTOR_TYPE(const ENTRY_TYPE *array, const IndexT indexes, const MASK_TYPE &mask);
 
+/// gather
 template<typename IndexT> void gather(const ENTRY_TYPE *array, const IndexT indexes);
+/// masked gather
 template<typename IndexT> void gather(const ENTRY_TYPE *array, const IndexT indexes, const MASK_TYPE &mask);
 
+/// scatter
 template<typename IndexT> void scatter(ENTRY_TYPE *array, const IndexT indexes) const;
+/// masked scatter
 template<typename IndexT> void scatter(ENTRY_TYPE *array, const IndexT indexes, const MASK_TYPE &mask) const;
 
 /////////////////////////
 
+/// struct member gather constructor
 template<typename S1, typename IndexT> VECTOR_TYPE(const S1 *array, const ENTRY_TYPE S1::* member1, const IndexT indexes);
+/// masked struct member gather constructor, initialized to zero
 template<typename S1, typename IndexT> VECTOR_TYPE(const S1 *array, const ENTRY_TYPE S1::* member1, const IndexT indexes, const MASK_TYPE &mask);
 
+/// struct member gather
 template<typename S1, typename IndexT> void gather(const S1 *array, const ENTRY_TYPE S1::* member1, const IndexT indexes);
+/// masked struct member gather
 template<typename S1, typename IndexT> void gather(const S1 *array, const ENTRY_TYPE S1::* member1, const IndexT indexes, const MASK_TYPE &mask);
 
+/// struct member scatter
 template<typename S1, typename IndexT> void scatter(S1 *array, ENTRY_TYPE S1::* member1, const IndexT indexes) const ;
+/// masked struct member scatter
 template<typename S1, typename IndexT> void scatter(S1 *array, ENTRY_TYPE S1::* member1, const IndexT indexes, const MASK_TYPE &mask) const ;
 
 /////////////////////////
 
+/// struct member of struct member gather constructor
 template<typename S1, typename S2, typename IndexT> VECTOR_TYPE(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const IndexT indexes);
+/// masked struct member of struct member gather constructor, initialized to zero
 template<typename S1, typename S2, typename IndexT> VECTOR_TYPE(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const IndexT indexes, const MASK_TYPE &mask);
 
+/// struct member of struct member gather
 template<typename S1, typename S2, typename IndexT> void gather(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const IndexT indexes);
+/// masked struct member of struct member gather
 template<typename S1, typename S2, typename IndexT> void gather(const S1 *array, const S2 S1::* member1, const ENTRY_TYPE S2::* member2, const IndexT indexes, const MASK_TYPE &mask);
 
+/// struct member of struct member scatter
 template<typename S1, typename S2, typename IndexT> void scatter(S1 *array, S2 S1::* member1, ENTRY_TYPE S2::* member2, const IndexT indexes) const ;
+/// maksed struct member of struct member scatter
 template<typename S1, typename S2, typename IndexT> void scatter(S1 *array, S2 S1::* member1, ENTRY_TYPE S2::* member2, const IndexT indexes, const MASK_TYPE &mask) const ;
 //@}
 
@@ -311,13 +345,21 @@ template<typename S1, typename S2, typename IndexT> void scatter(S1 *array, S2 S
  *   ...
  * }
  * \endcode
+ *
+ * \param x The vector to compare with.
  */
 //@{
+/// Returns mask that is \c true where vector entries are equal and \c false otherwise.
 MASK_TYPE operator==(const VECTOR_TYPE &x) const;
+/// Returns mask that is \c true where vector entries are not equal and \c false otherwise.
 MASK_TYPE operator!=(const VECTOR_TYPE &x) const;
+/// Returns mask that is \c true where the left vector entries are greater than on the right and \c false otherwise.
 MASK_TYPE operator> (const VECTOR_TYPE &x) const;
+/// Returns mask that is \c true where the left vector entries are greater than on the right or equal and \c false otherwise.
 MASK_TYPE operator>=(const VECTOR_TYPE &x) const;
+/// Returns mask that is \c true where the left vector entries are less than on the right and \c false otherwise.
 MASK_TYPE operator< (const VECTOR_TYPE &x) const;
+/// Returns mask that is \c true where the left vector entries are less than on the right or equal and \c false otherwise.
 MASK_TYPE operator<=(const VECTOR_TYPE &x) const;
 //@}
 
@@ -335,12 +377,21 @@ MASK_TYPE operator<=(const VECTOR_TYPE &x) const;
  * \endcode
  */
 //@{
+/// Returns a new vector with the sum of the respective entries of the left and right vector.
 VECTOR_TYPE operator+(VECTOR_TYPE x) const;
+/// Returns a new vector with the difference of the respective entries of the left and right vector.
 VECTOR_TYPE operator-(VECTOR_TYPE x) const;
+/// Returns a new vector with the product of the respective entries of the left and right vector.
 VECTOR_TYPE operator*(VECTOR_TYPE x) const;
+/// Returns a new vector with the quotient of the respective entries of the left and right vector.
 VECTOR_TYPE operator/(VECTOR_TYPE x) const;
+/// Returns a new vector with all entries negated.
+VECTOR_TYPE operator-() const;
+/// Returns a new vector with the binary or of the respective entries of the left and right vector.
 VECTOR_TYPE operator|(VECTOR_TYPE x) const;
+/// Returns a new vector with the binary and of the respective entries of the left and right vector.
 VECTOR_TYPE operator&(VECTOR_TYPE x) const;
+/// Returns a new vector with the binary xor of the respective entries of the left and right vector.
 VECTOR_TYPE operator^(VECTOR_TYPE x) const;
 //@}
 
@@ -358,8 +409,12 @@ VECTOR_TYPE operator^(VECTOR_TYPE x) const;
  * \endcode
  */
 //@{
+/// Returns the smallest entry in the vector.
 ENTRY_TYPE min() const;
+/// Returns the largest entry in the vector.
 ENTRY_TYPE max() const;
+/// Returns the product of all entries in the vector.
 ENTRY_TYPE product() const;
+/// Returns the sum of all entries in the vector.
 ENTRY_TYPE sum() const;
 //@}
