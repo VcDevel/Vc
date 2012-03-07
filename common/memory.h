@@ -38,6 +38,8 @@ namespace Vc
  *
  * \param n Specifies the number of scalar values the allocated memory must be able to store.
  *
+ * \return Pointer to memory of the requested type and size, or 0 on error.
+ *
  * \warning The standard malloc function specifies the number of Bytes to allocate whereas this
  *          function specifies the number of values, thus differing in a factor of sizeof(T)
  *
@@ -77,7 +79,7 @@ template<typename V, size_t Size> struct _MemorySizeCalculation
 
 /**
  * Two-Dimensional Array.
- * \param V
+ * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
  * \param Size1 Number of rows
  * \param Size2 Number of columns
  */
@@ -104,33 +106,49 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
             };
 
             /**
-             * Returns the number of rows in the array.
+             * \return the number of rows in the array.
              *
              * \note This function can be eliminated by an optimizing compiler.
              */
             inline size_t rowsCount() const { return RowCount; }
             /**
-             * Returns the number of scalar entries in the whole array.
+             * \return the number of scalar entries in the whole array.
              *
              * \warning Do not use this function for scalar iteration over the array since there will be
              * padding between rows if \c Size2 is not divisible by \c V::Size.
              *
-             * \note This function can be eliminated by an optimizing compiler.
+             * \note This function can be optimized into a compile-time constant.
              */
             inline size_t entriesCount() const { return Size1 * Size2; }
             /**
-             * Returns the number of vectors in the whole array.
+             * \return the number of vectors in the whole array.
              *
-             * \note This function can be eliminated by an optimizing compiler.
+             * \note This function can be optimized into a compile-time constant.
              */
             inline size_t vectorsCount() const { return VectorsCount * Size1; }
 
+            /**
+             * Copies the data from a different object.
+             *
+             * \param rhs The object to copy the data from.
+             *
+             * \return reference to the modified Memory object.
+             *
+             * \note Both objects must have the exact same vectorsCount().
+             */
             template<typename Parent, typename RM>
             inline Memory &operator=(const MemoryBase<V, Parent, 2, RM> &rhs) {
                 assert(vectorsCount() == rhs.vectorsCount());
                 std::memcpy(m_mem, rhs.m_mem, vectorsCount() * sizeof(V));
                 return *this;
             }
+            /**
+             * Initialize all data with the given vector.
+             *
+             * \param v This vector will be used to initialize the memory.
+             *
+             * \return reference to the modified Memory object.
+             */
             inline Memory &operator=(const V &v) {
                 for (size_t i = 0; i < vectorsCount(); ++i) {
                     vector(i) = v;
@@ -211,7 +229,19 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
                 EntriesCount = Size,
                 VectorsCount = PaddedSize / V::Size
             };
+
+            /**
+             * \return the number of scalar entries in the whole array.
+             *
+             * \note This function can be optimized into a compile-time constant.
+             */
             inline size_t entriesCount() const { return EntriesCount; }
+
+            /**
+             * \return the number of vectors in the whole array.
+             *
+             * \note This function can be optimized into a compile-time constant.
+             */
             inline size_t vectorsCount() const { return VectorsCount; }
 
             template<typename Parent, typename RM>
@@ -303,6 +333,8 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
          * Allocate enough memory to access \p size values of type \p V::EntryType.
          *
          * The allocated memory is aligned and padded correctly for fully vectorized access.
+         *
+         * \param size Determines how many scalar values will fit into the allocated memory.
          */
         inline Memory(size_t size)
             : m_entriesCount(size),
@@ -316,6 +348,8 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
          * Copy the memory into a new memory area.
          *
          * The allocated memory is aligned and padded correctly for fully vectorized access.
+         *
+         * \param rhs The Memory object to copy from.
          */
         template<typename Parent, typename RM>
         inline Memory(const MemoryBase<V, Parent, 1, RM> &rhs)
@@ -330,6 +364,8 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
          * Overload of the above function.
          *
          * (Because C++ would otherwise not use the templated cctor and use a default-constructed cctor instead.)
+         *
+         * \param rhs The Memory object to copy from.
          */
         inline Memory(const Memory<V, 0u> &rhs)
             : m_entriesCount(rhs.entriesCount()),
@@ -347,18 +383,35 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
             Vc::free(m_mem);
         }
 
+        /**
+         * Swap the contents and size information of two Memory objects.
+         *
+         * \param rhs The other Memory object to swap.
+         */
         inline void swap(Memory &rhs) {
             std::swap(m_mem, rhs.m_mem);
             std::swap(m_entriesCount, rhs.m_entriesCount);
             std::swap(m_vectorsCount, rhs.m_vectorsCount);
         }
 
+        /**
+         * \return the number of scalar entries in the whole array.
+         */
         inline size_t entriesCount() const { return m_entriesCount; }
+
+        /**
+         * \return the number of vectors in the whole array.
+         */
         inline size_t vectorsCount() const { return m_vectorsCount; }
 
         /**
-         * Overwrite all entries with the values stored in rhs. This function requires the
-         * vectorsCount() of the left and right object to be equal.
+         * Overwrite all entries with the values stored in \p rhs.
+         *
+         * \param rhs The object to copy the data from.
+         *
+         * \return reference to the modified Memory object.
+         *
+         * \note this function requires the vectorsCount() of both Memory objects to be equal.
          */
         template<typename Parent, typename RM>
         inline Memory<V> &operator=(const MemoryBase<V, Parent, 1, RM> &rhs) {
@@ -368,8 +421,13 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
         }
 
         /**
-         * Overwrite all entries with the values stored in the memory at \p rhs. Note that this
-         * function assumes that there are entriesCount() many values accessible from \p rhs on.
+         * Overwrite all entries with the values stored in the memory at \p rhs.
+         *
+         * \param rhs The array to copy the data from.
+         *
+         * \return reference to the modified Memory object.
+         *
+         * \note this function requires that there are entriesCount() many values accessible from \p rhs.
          */
         inline Memory<V> &operator=(const EntryType *rhs) {
             std::memcpy(m_mem, rhs, entriesCount() * sizeof(EntryType));
@@ -381,6 +439,8 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
  * Prefetch the cacheline containing \p addr for a single read access.
  *
  * This prefetch completely bypasses the cache, not evicting any other data.
+ *
+ * \param addr The cacheline containing \p addr will be prefetched.
  *
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
@@ -397,6 +457,8 @@ inline void ALWAYS_INLINE prefetchForOneRead(const void *addr)
  * target system supports it the cacheline will be marked as modified while prefetching, saving work
  * later on.
  *
+ * \param addr The cacheline containing \p addr will be prefetched.
+ *
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
@@ -409,6 +471,8 @@ inline void ALWAYS_INLINE prefetchForModify(const void *addr)
  * Prefetch the cacheline containing \p addr to L1 cache.
  *
  * This prefetch evicts data from the cache. So use it only for data you really will use.
+ *
+ * \param addr The cacheline containing \p addr will be prefetched.
  *
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
@@ -423,6 +487,8 @@ inline void ALWAYS_INLINE prefetchClose(const void *addr)
  *
  * This prefetch evicts data from the cache. So use it only for data you really will use.
  *
+ * \param addr The cacheline containing \p addr will be prefetched.
+ *
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
@@ -435,6 +501,8 @@ inline void ALWAYS_INLINE prefetchMid(const void *addr)
  * Prefetch the cacheline containing \p addr to L3 cache.
  *
  * This prefetch evicts data from the cache. So use it only for data you really will use.
+ *
+ * \param addr The cacheline containing \p addr will be prefetched.
  *
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>

@@ -175,6 +175,8 @@ void setZero();
 /**
  * Set all entries to zero where the mask is set. I.e. a 4-vector with a mask of 0111 would
  * set the last three entries to 0.
+ *
+ * \param mask Selects the entries to be set to zero.
  */
 void setZero(const MASK_TYPE &mask);
 
@@ -189,12 +191,12 @@ void setZero(const MASK_TYPE &mask);
 void store(EntryType *memory, LoadStoreFlags align = Aligned) const;
 
 /**
- * Return a reference to the vector entry at the given \p index.
- *
  * This operator can be used to modify scalar entries of the vector.
  *
  * \param index A value between 0 and Size. This value is not checked internally so you must make/be
  *              sure it is in range.
+ *
+ * \return a reference to the vector entry at the given \p index.
  *
  * \warning This operator is known to miscompile with GCC 4.3.x.
  * \warning The use of this function may result in suboptimal performance. Please check whether you
@@ -203,15 +205,19 @@ void store(EntryType *memory, LoadStoreFlags align = Aligned) const;
 ENTRY_TYPE &operator[](int index);
 
 /**
- * Return the vector entry at the given \p index.
+ * This operator can be used to read scalar entries of the vector.
  *
  * \param index A value between 0 and Size. This value is not checked internally so you must make/be
  *              sure it is in range.
+ *
+ * \return the vector entry at the given \p index.
  */
 ENTRY_TYPE operator[](int index) const;
 
 /**
- * Returns an object that can be used for any kind of masked assignment.
+ * \param mask The writemask to be used.
+ *
+ * \return an object that can be used for any kind of masked assignment.
  *
  * The returned object is only to be used for assignments and should not be assigned to a variable.
  *

@@ -49,7 +49,7 @@ VECTOR_TYPE abs(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
- * Returns the closest integer to \p v. 0.5 is rounded to even.
+ * Returns the closest integer to \p v; 0.5 is rounded to even.
  */
 VECTOR_TYPE round(const VECTOR_TYPE &v);
 
@@ -112,13 +112,13 @@ VECTOR_TYPE max(const VECTOR_TYPE &x, const VECTOR_TYPE &y);
 /**
  * \ingroup Math
  *
- * Returns whether the values in the vector are finite (i.e. not NaN or +/-inf).
+ * Returns a mask that tells whether the values in the vector are finite (i.e.\ not NaN or +/-inf).
  */
 MASK_TYPE isfinite(const VECTOR_TYPE &x);
 
 /**
  * \ingroup Math
  *
- * Returns whether the values in the vector are NaN.
+ * Returns a mask that tells whether the values in the vector are NaN.
  */
 MASK_TYPE isnan(const VECTOR_TYPE &x);

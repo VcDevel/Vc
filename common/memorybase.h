@@ -218,7 +218,7 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
         }
 
         /**
-         * Returns the number of rows in the array.
+         * \return the number of rows in the array.
          *
          * \note This function can be eliminated by an optimizing compiler.
          */
@@ -228,6 +228,13 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
 //{{{1
 /**
  * \headerfile memorybase.h <Vc/Memory>
+ *
+ * Common interface to all Memory classes, independent of allocation on the stack or heap.
+ *
+ * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
+ * \param Parent This type is the complete type of the class that derives from MemoryBase.
+ * \param Dimension The number of dimensions the implementation provides.
+ * \param RowMemory Class to be used to work on a single row.
  */
 template<typename V, typename Parent, int Dimension, typename RowMemory> class MemoryBase : public MemoryDimensionBase<V, Parent, Dimension, RowMemory> //{{{1
 {
@@ -241,12 +248,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         typedef typename V::EntryType EntryType;
 
         /**
-         * Returns the number of scalar entries in the array. This function is optimized away
+         * \return the number of scalar entries in the array. This function is optimized away
          * if a constant size array is used.
          */
         inline size_t entriesCount() const { return p()->entriesCount(); }
         /**
-         * Returns the number of vector entries that span the array. This function is optimized away
+         * \return the number of vector entries that span the array. This function is optimized away
          * if a constant size array is used.
          */
         inline size_t vectorsCount() const { return p()->vectorsCount(); }
@@ -255,7 +262,9 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         using MemoryDimensionBase<V, Parent, Dimension, RowMemory>::scalar;
 
         /**
-         * Returns a smart object to wrap the \p i-th vector in the memory.
+         * \param i Selects the offset, where the vector should be read.
+         *
+         * \return a smart object to wrap the \p i-th vector in the memory.
          *
          * The return value can be used as any other vector object. I.e. you can substitute
          * something like
@@ -273,11 +282,16 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * needed the vector(size_t, int) function can be used.
          */
         inline VectorPointerHelper<V, AlignedFlag> vector(size_t i) { return &entries()[i * V::Size]; }
-        /// Const overload of the above function.
+        /** \brief Const overload of the above function
+         *
+         * \param i Selects the offset, where the vector should be read.
+         *
+         * \return a smart object to wrap the \p i-th vector in the memory.
+         */
         inline const VectorPointerHelperConst<V, AlignedFlag> vector(size_t i) const { return &entries()[i * V::Size]; }
 
         /**
-         * Returns a smart object to wrap the vector starting from the \p i-th scalar entry in the memory.
+         * \return a smart object to wrap the vector starting from the \p i-th scalar entry in the memory.
          *
          * Example:
          * \code
@@ -297,22 +311,30 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          */
 #ifdef DOXYGEN
         template<typename A> inline VectorPointerHelper<V, A> vectorAt(size_t i, A align = Vc::Aligned);
-        /// Const overload of the above function.
+        /** \brief Const overload of the above function
+         *
+         * \return a smart object to wrap the vector starting from the \p i-th scalar entry in the memory.
+         *
+         * \param i      Specifies the scalar entry from where the vector will be loaded/stored. I.e. the
+         * values scalar(i), scalar(i + 1), ..., scalar(i + V::Size - 1) will be read/overwritten.
+         *
+         * \param align  You must take care to determine whether an unaligned load/store is
+         * required. Per default an aligned load/store is used. If \p i is not a multiple of \c V::Size
+         * you must pass Vc::Unaligned here.
+         */
         template<typename A> inline const VectorPointerHelperConst<V, A> vectorAt(size_t i, A align = Vc::Aligned) const;
 #else
         template<typename A>
         inline VectorPointerHelper<V, A> vectorAt(size_t i, A) { return &entries()[i]; }
-        /// Const overload of the above function.
         template<typename A>
         inline const VectorPointerHelperConst<V, A> vectorAt(size_t i, A) const { return &entries()[i]; }
 
         inline VectorPointerHelper<V, AlignedFlag> vectorAt(size_t i) { return &entries()[i]; }
-        /// Const overload of the above function.
         inline const VectorPointerHelperConst<V, AlignedFlag> vectorAt(size_t i) const { return &entries()[i]; }
 #endif
 
         /**
-         * Returns a smart object to wrap the \p i-th vector + \p shift in the memory.
+         * \return a smart object to wrap the \p i-th vector + \p shift in the memory.
          *
          * This function ensures that only \em unaligned loads and stores are used.
          * It allows to access memory at any location aligned to the entry type.
@@ -343,7 +365,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         inline const VectorPointerHelperConst<V, UnalignedFlag> vector(size_t i, int shift) const { return &entries()[i * V::Size + shift]; }
 
         /**
-         * Returns the first vector in the allocated memory.
+         * \return the first vector in the allocated memory.
          *
          * This function is simply a shorthand for vector(0).
          */
@@ -352,7 +374,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         inline const VectorPointerHelperConst<V, AlignedFlag> firstVector() const { return entries(); }
 
         /**
-         * Returns the last vector in the allocated memory.
+         * \return the last vector in the allocated memory.
          *
          * This function is simply a shorthand for vector(vectorsCount() - 1).
          */
