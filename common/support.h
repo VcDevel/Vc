@@ -70,28 +70,12 @@ bool isImplementationSupported(Vc::Implementation impl);
 bool currentImplementationSupported()
 {
     return isImplementationSupported(
-#if VC_IMPL_AVX
-            AVXImpl
-#elif defined(__AVX__)
+#ifdef VC_USE_VEX_CODING
             // everything will use VEX coding, so the system has to support AVX even if VC_IMPL_AVX
             // is not set
             AVXImpl
-#elif VC_IMPL_Scalar
-            ScalarImpl
-#elif VC_IMPL_SSE4a
-            SSE4aImpl
-#elif VC_IMPL_SSE4_2
-            SSE42Impl
-#elif VC_IMPL_SSE4_1
-            SSE41Impl
-#elif VC_IMPL_SSSE3
-            SSSE3Impl
-#elif VC_IMPL_SSE3
-            SSE3Impl
-#elif VC_IMPL_SSE2
-            SSE2Impl
 #else
-            ERROR_unknown_vector_unit
+            VC_IMPL
 #endif
             );
 }
