@@ -116,7 +116,7 @@
  * \par Compiler Flags
  *
  * \li \e GCC: The compiler should be called with the -march=<target> flag. Take a look at the GCC
- * manpage to find all possiblities for <target>. Additionally it is best to also add the -msse2
+ * manpage to find all possibilities for <target>. Additionally it is best to also add the -msse2
  * -msse3 ... -mavx flags. If no SIMD instructions are enabled via compiler flags, Vc must fall back
  * to the scalar implementation.
  * \li \e Clang: The same as for GCC applies.
@@ -137,7 +137,7 @@
  * If you want to distribute a binary that runs correctly on many different systems you either must
  * restrict it to the least common denominator (which often is SSE2), or you must compile the code
  * several times, with the different target architecture compiler options. A simple way to combine
- * the resulting executables would be via a wrapping skript/executable that determines the correct
+ * the resulting executables would be via a wrapping script/executable that determines the correct
  * executable to use. A more sophisticated option is the use of the ifunc attribute GCC provides.
  * Other compilers might provide similar functionality.
  *
@@ -170,7 +170,7 @@
  *
  * Mask classes are abstractions for the results of vector comparisons. The actual implementation
  * differs depending on the SIMD instruction set. On SSE they contain a full 128-bit datatype while
- * on a different architecture they might be bitfields.
+ * on a different architecture they might be bit-fields.
  */
 
 /**
