@@ -266,6 +266,7 @@
 #undef AVX
 #undef Scalar
 
+#ifndef DOXYGEN
 namespace Vc {
 enum AlignedFlag {
     Aligned = 0
@@ -279,6 +280,7 @@ enum StreamingAndAlignedFlag { // implies Aligned
 enum StreamingAndUnalignedFlag {
     StreamingAndUnaligned = 3
 };
+#endif
 
 /**
  * \ingroup Utilities
