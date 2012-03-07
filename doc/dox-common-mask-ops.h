@@ -38,6 +38,8 @@ explicit MASK_TYPE(Vc::One);
  * Constructs a mask with the entries initialized to
  * \li one if \p b is \p true
  * \li zero if \p b is \p false
+ *
+ * \param b Determines the initial state of the mask.
  */
 explicit MASK_TYPE(bool b);
 
@@ -116,7 +118,8 @@ bool isMix() const;
 operator bool() const;
 
 /**
- * Return the \p i th entry of the mask as a bool.
+ * \param i Determines the boolean to be accessed.
+ * \return the \p i th entry of the mask as a bool.
  */
 bool operator[](int i) const;
 

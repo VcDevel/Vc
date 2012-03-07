@@ -70,6 +70,7 @@
  * instructions.
  *
  * \par Example 1:
+ *
  * You can modify a function to use vector types and thus implement a horizontal vectorization. The
  * original scalar function could look like this:
  * \code
@@ -97,7 +98,14 @@
  * The latter function is able to normalize four 3D vectors when compiled for SSE in the same
  * time the former function normalizes one 3D vector.
  *
- * \par
+ * For completeness, note that you can optimize the division in the normalize function further:
+ * \code
+ *   const float_v d_inv = float_v::One() / Vc::sqrt(x * x + y * y + z * z);
+ *   const float_v d_inv = Vc::rsqrt(x * x + y * y + z * z); // less accurate, but faster
+ * \endcode
+ * Then you can multiply \c x, \c y, and \c z with \c d_inv, which is considerably faster than three
+ * divisions.
+ *
  * As you can probably see, the new challenge with Vc is the use of good data-structures which
  * support horizontal vectorization. Depending on your problem at hand this may become the main
  * focus of design (it does not have to be, though).
@@ -115,8 +123,8 @@
  *
  * \par Compiler Flags
  *
- * \li \e GCC: The compiler should be called with the -march=<target> flag. Take a look at the GCC
- * manpage to find all possibilities for <target>. Additionally it is best to also add the -msse2
+ * \li \e GCC: The compiler should be called with the -march=\<target\> flag. Take a look at the GCC
+ * manpage to find all possibilities for \<target\>. Additionally it is best to also add the -msse2
  * -msse3 ... -mavx flags. If no SIMD instructions are enabled via compiler flags, Vc must fall back
  * to the scalar implementation.
  * \li \e Clang: The same as for GCC applies.
@@ -298,6 +306,7 @@ namespace Vc
 #define VECTOR_TYPE float_v
 #define ENTRY_TYPE float
 #define MASK_TYPE float_m
+#define EXPONENT_TYPE int_v
     /**
      * \class float_v dox.h <Vc/float_v>
      * \ingroup Vectors
@@ -492,7 +501,9 @@ namespace Vc
 #undef ENTRY_TYPE
 #undef MASK_TYPE
 #undef INTEGER
+#undef EXPONENT_TYPE
 
+#define EXPONENT_TYPE short_v
 #define VECTOR_TYPE sfloat_v
 #define ENTRY_TYPE float
 #define MASK_TYPE sfloat_m
@@ -522,6 +533,7 @@ namespace Vc
 #include "dox-common-mask-ops.h"
     };
 #include "dox-math.h"
+#undef EXPONENT_TYPE
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
 #undef MASK_TYPE
@@ -529,44 +541,12 @@ namespace Vc
 
     /**
      * \ingroup Math
-     *
-     * Convert floating-point number to fractional and interal components.
-     *
-     * This function is used to split the numbers in \p x into a normalized
-     * fraction and an exponent which is stored in \p e.
-     *
-     * \returns the normalized fraction. If \p x is non-zero, the return value is \p x times a power of two, and
-     * its absolute value is always in the range [0.5,1).
-     *
-     * If \p x is zero, then the normalized fraction is zero and zero is stored in \p e.
-     *
-     * If \p x is a NaN, a NaN is returned, and the value of \p *e is unspecified.
-     *
-     * If \p x is positive infinity (negative infinity), positive infinity (nega‐
-     * tive infinity) is returned, and the value of \p *e is unspecified.
-     */
-    float_v frexp(const float_v &x, int_v *e);
-    /*! \copydoc frexp(const float_v&,int_v&) */
-    sfloat_v frexp(const sfloat_v &x, short_v *e);
-    /** \copydoc frexp(const float_v&,int_v&)
-     *
-     * Since int_v::Size == double_v::Size * 2, only every second value in \p *e is defined.
+     * \note Often int_v::Size == double_v::Size * 2, then only every second value in \p *e is defined.
      */
     double_v frexp(const double_v &x, int_v *e);
-
     /**
      * \ingroup Math
-     *
-     * multiply floating-point number by integral power of 2
-     *
-     * \returns x * 2 ^ e
-     */
-    float_v ldexp(float_v x, int_v e);
-    /*! \copydoc ldexp(float_v,int_v) */
-    sfloat_v ldexp(sfloat_v x, short_v e);
-    /** \copydoc ldexp(float_v,int_v)
-     *
-     * Since int_v::Size == double_v::Size * 2, only every second value in \p e is used.
+     * \note Often int_v::Size == double_v::Size * 2, then only every second value in \p *e is defined.
      */
     double_v ldexp(double_v x, int_v e);
 

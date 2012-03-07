@@ -21,13 +21,15 @@
 /**
  * Copies the sign of \p reference.
  *
- * Returns a value where the sign of the value equals the sign of \p reference. I.e.
+ * \param reference This values sign bit will be transferred.
+ *
+ * \return a value where the sign of the value equals the sign of \p reference. I.e.
  * sign(v.copySign(r)) == sign(r).
  */
 inline VECTOR_TYPE copySign(VECTOR_TYPE reference) const;
 
 /**
- * Returns the exponent to base 2.
+ * \return the exponent to base 2.
  *
  * This function provides efficient access to the exponent of the floating point number. The
  * returned value is a fast approximation to the logarithm of base 2. The absolute error of that
