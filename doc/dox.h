@@ -144,15 +144,13 @@
  * \par Guarantees
  *
  * It is guaranteed that:
- * \li \code int_v::Size == uint_v::Size \endcode
- * \li \code int_v::Size == float_v::Size \endcode
- * \li \code short_v::Size == ushort_v::Size \endcode
- * \li \code short_v::Size == sfloat_v::Size \endcode
+ * \li \code int_v::Size == uint_v::Size == float_v::Size \endcode
+ * \li \code short_v::Size == ushort_v::Size == sfloat_v::Size \endcode
  *
  * \par Important Differences between Implementations
  *
  * \li Obviously the number of entries in a vector depends on the target architecture.
- * \li Because of the guarantees above sfloat_v does not necessarily map to a single SIMD register
+ * \li Because of the guarantees above, sfloat_v does not necessarily map to a single SIMD register
  * and thus there could be a higher register pressure when this type is used.
  * \li Hardware that does not support 16-Bit integer vectors can implement the short_v and ushort_v
  * API via 32-Bit integer vectors. Thus, some of the overflow behavior might be slightly different,
