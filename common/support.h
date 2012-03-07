@@ -27,16 +27,26 @@
 namespace Vc
 {
 
-bool isImplementationSupported(Implementation);
+/**
+ * \ingroup Utilities
+ *
+ * Tests whether the given implementation is supported by the system the code is executing on.
+ *
+ * \return \c true if the OS and hardware support execution of instructions defined by \p impl.
+ * \return \c false otherwise
+ *
+ * \param impl The SIMD target to test for.
+ */
+bool isImplementationSupported(Vc::Implementation impl);
 
 #ifndef VC_COMPILE_LIB
 /**
  * \ingroup Utilities
  *
  * Tests that the CPU and Operating System support the vector unit which was compiled for. This
- * function should be called before any other Vc functionality is used to check whether the program
- * will work. If this function returns \c false then the program should exit with
- * a non-zero exit status.
+ * function should be called before any other Vc functionality is used. It checks whether the program
+ * will work. If this function returns \c false then the program should exit with a useful error
+ * message before the OS has to kill it because of an invalid instruction exception.
  *
  * If the program continues and makes use of any vector features not supported by
  * hard- or software then the program will crash.
@@ -52,6 +62,10 @@ bool isImplementationSupported(Implementation);
  *   ...
  * }
  * \endcode
+ *
+ * \return \c true if the OS and hardware support execution of the currently selected SIMD
+ *                 instructions.
+ * \return \c false otherwise
  */
 bool currentImplementationSupported()
 {
