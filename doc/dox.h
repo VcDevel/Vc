@@ -178,6 +178,26 @@
  *   template<typename T> class Vector;
  * }
  * \endcode
+ *
+ * \par Some general information on using the vector classes:
+ *
+ * The following ways of initializing a vector are not allowed:
+ * \code
+ * int_v v(3, 2, 8, 0); // constructor does not exist because it is not portable
+ * int_v v;
+ * v[0] = 3; v[1] = 2; v[2] = 8; v[3] = 0; // do not hardcode the number of entries!
+ * // You can not know whether somebody will compile with Vc Scalar where int_v::Size == 1
+ * \endcode
+ *
+ * Instead, if really necessary you can do:
+ * \code
+ * Vc::int_v v;
+ * for (int i = 0; i < int_v::Size; ++i) {
+ *   v[i] = f(i);
+ * }
+ * // which is equivalent to:
+ * v = int_v::IndexesFromZero().apply(f);
+ * \endcode
  */
 
 /**

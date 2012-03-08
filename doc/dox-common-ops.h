@@ -18,36 +18,6 @@
 */
 
 /**
- * Type that simplifies scalar write access for a single vector object.
- *
- * The following ways of initializing a vector are not allowed:
- * \code
- * int_v v(3, 2, 8, 0); // constructor does not exist because it is not portable
- * int_v v;
- * v[0] = 3; v[1] = 2; v[2] = 8; v[3] = 0; // do not hardcode the number of entries!
- * // You can not know whether somebody will compile with Vc Scalar where int_v::Size == 1
- * \endcode
- *
- * Instead, if really necessary you can do:
- * \code
- * int_v v;
- * for (int i = 0; i < int_v::Size; ++i) {
- *   v[i] = f(i);
- * }
- * \endcode
- *
- * This is equivalent to:
- * \code
- * int_v::Memory m;
- * for (int i = 0; i < int_v::Size; ++i) {
- *   m[i] = f(i);
- * }
- * int_v v(m);
- * \endcode
- */
-typedef Memory<VECTOR_TYPE, VECTOR_TYPE::Size> Memory;
-
-/**
  * The type of the vector used for indexes in gather and scatter operations.
  */
 typedef INDEX_TYPE IndexType;
