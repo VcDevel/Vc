@@ -240,7 +240,6 @@ namespace Vc
 #define MASK_TYPE float_m
 #define EXPONENT_TYPE int_v
 #include "dox-common-ops.h"
-#include "dox-real-ops.h"
 #undef INDEX_TYPE
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
