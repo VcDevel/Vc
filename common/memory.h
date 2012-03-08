@@ -78,7 +78,11 @@ template<typename V, size_t Size> struct _MemorySizeCalculation
 };
 
 /**
- * Two-Dimensional Array.
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ *
+ * A helper class for fixed-size two-dimensional arrays.
+ *
  * \param V The vector type you want to operate on. (e.g. float_v or uint_v)
  * \param Size1 Number of rows
  * \param Size2 Number of columns
