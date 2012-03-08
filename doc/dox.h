@@ -646,3 +646,83 @@ namespace Vc
  * Alias for Vc_foreach_bit unless VC_CLEAN_NAMESPACE is defined.
  */
 #define foreach_bit(iterator, mask)
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/IO>
+ *
+ * Prints the contents of a vector into a stream object.
+ *
+ * \code
+ * const Vc::int_v v(Vc::IndexesFromZero);
+ * std::cout << v << std::endl;
+ * \endcode
+ * will output (with SSE):
+\verbatim
+[0, 1, 2, 3]
+\endverbatim
+ *
+ * \param s Any standard C++ ostream object. For example std::cout or a std::stringstream object.
+ * \param v Any Vc::Vector object.
+ * \return  The ostream object: to chain multiple stream operations.
+ *
+ * \note With the GNU standard library this function will check, whether the output stream is a tty.
+ * In that case it will colorize the output.
+ */
+template<typename T>
+std::ostream &operator<<(std::ostream &s, const Vc::Vector<T> &v);
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/IO>
+ *
+ * Prints the contents of a mask into a stream object.
+ *
+ * \code
+ * const Vc::short_m m = Vc::short_v::IndexesFromZero() < 3;
+ * std::cout << m << std::endl;
+ * \endcode
+ * will output (with SSE):
+\verbatim
+m[1110 0000]
+\endverbatim
+ *
+ * \param s Any standard C++ ostream object. For example std::cout or a std::stringstream object.
+ * \param v Any Vc mask object.
+ * \return  The ostream object: to chain multiple stream operations.
+ *
+ * \note With the GNU standard library this function will check, whether the output stream is a tty.
+ * In that case it will colorize the output.
+ */
+template<typename T>
+std::ostream &operator<<(std::ostream &s, const typename Vc::Vector<T>::Mask &v);
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/IO>
+ *
+ * Prints the contents of a Memory object into a stream object.
+ *
+ * \code
+ * Vc::Memory<int_v, 10> m;
+ * for (int i = 0; i < m.entriesCount(); ++i) {
+ *   m[i] = i;
+ * }
+ * std::cout << m << std::endl;
+ * \endcode
+ * will output (with SSE):
+\verbatim
+{[0, 1, 2, 3] [4, 5, 6, 7] [8, 9, 0, 0]}
+\endverbatim
+ *
+ * \param s Any standard C++ ostream object. For example std::cout or a std::stringstream object.
+ * \param m Any Vc::Memory object.
+ * \return  The ostream object: to chain multiple stream operations.
+ *
+ * \note With the GNU standard library this function will check, whether the output stream is a tty.
+ * In that case it will colorize the output.
+ *
+ * \warning Please do not forget that printing a large memory object can take a long time.
+ */
+template<typename V, typename Parent, typename Dimension, typename RM>
+inline std::ostream &operator<<(std::ostream &s, const Vc::MemoryBase<V, Parent, Dimension, RM> &m);
