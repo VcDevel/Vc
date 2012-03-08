@@ -24,9 +24,9 @@
  * The Vc library is a collection of vector classes with existing implementations for SSE, AVX,
  * and a scalar fallback.
  *
- * \subpage intro
+ * \ref intro
  *
- * \subpage portability
+ * \ref portability
  *
  * \li \ref Vectors
  * \li \ref Masks
@@ -168,7 +168,16 @@
 /**
  * \defgroup Vectors Vectors
  *
- * Vector classes are abstractions for SIMD instructions.
+ * The vector classes abstract the SIMD registers and their according instructions into types that
+ * feel very familiar to C++ developers.
+ *
+ * Note that the documented types Vc::float_v, Vc::double_v, Vc::int_v, Vc::uint_v, Vc::short_v,
+ * and Vc::ushort_v are actually \c typedefs of the \c Vc::Vector<T> class:
+ * \code
+ * namespace Vc {
+ *   template<typename T> class Vector;
+ * }
+ * \endcode
  */
 
 /**
@@ -194,12 +203,51 @@
  */
 
 /**
+ * \ingroup Vectors
  * \brief Vector Classes Namespace
  *
  * All functions and types of Vc are defined inside the Vc namespace.
+ *
+ * To be precise, most types are actually defined inside a second namespace, such as Vc::SSE. At
+ * compile-time the correct implementation is simply imported into the Vc namespace.
  */
 namespace Vc
 {
+    /**
+     * \class Vector dox.h <Vc/vector.h>
+     * \ingroup Vectors
+     *
+     * The main vector class.
+     *
+     * \li Vc::float_v
+     * \li Vc::sfloat_v
+     * \li Vc::double_v
+     * \li Vc::int_v
+     * \li Vc::uint_v
+     * \li Vc::short_v
+     * \li Vc::ushort_v
+     *
+     * are only specializations of this class. For the full documentation take a look at the
+     * specialized classes. For most cases there are no API differences for the specializations.
+     * Thus you can make use of \c Vector<T> for generic programming.
+     */
+    template<typename T> class Vector
+    {
+        public:
+#define INDEX_TYPE uint_v
+#define VECTOR_TYPE Vector<T>
+#define ENTRY_TYPE T
+#define MASK_TYPE float_m
+#define EXPONENT_TYPE int_v
+#include "dox-common-ops.h"
+#include "dox-real-ops.h"
+#undef INDEX_TYPE
+#undef VECTOR_TYPE
+#undef ENTRY_TYPE
+#undef MASK_TYPE
+#undef EXPONENT_TYPE
+    };
+
     /**
      * \ingroup Vectors
      *
@@ -285,6 +333,8 @@ namespace Vc
      * \ingroup Vectors
      *
      * SIMD Vector of single precision floats.
+     *
+     * \note This is the same type as Vc::Vector<float>.
      */
     class VECTOR_TYPE
     {
@@ -318,6 +368,8 @@ namespace Vc
      * \ingroup Vectors
      *
      * SIMD Vector of double precision floats.
+     *
+     * \note This is the same type as Vc::Vector<double>.
      */
     class VECTOR_TYPE
     {
@@ -350,6 +402,8 @@ namespace Vc
      * \ingroup Vectors
      *
      * SIMD Vector of 32 bit signed integers.
+     *
+     * \note This is the same type as Vc::Vector<int>.
      */
     class VECTOR_TYPE
     {
@@ -381,6 +435,8 @@ namespace Vc
      * \ingroup Vectors
      *
      * SIMD Vector of 32 bit unsigned integers.
+     *
+     * \note This is the same type as Vc::Vector<unsigned int>.
      */
     class VECTOR_TYPE
     {
@@ -415,6 +471,8 @@ namespace Vc
      *
      * SIMD Vector of 16 bit signed integers.
      *
+     * \note This is the same type as Vc::Vector<short>.
+     *
      * \warning Vectors of this type are not supported on all platforms. In that case the vector
      * class will silently fall back to a Vc::int_v.
      */
@@ -448,6 +506,8 @@ namespace Vc
      * \ingroup Vectors
      *
      * SIMD Vector of 16 bit unsigned integers.
+     *
+     * \note This is the same type as Vc::Vector<unsigned short>.
      *
      * \warning Vectors of this type are not supported on all platforms. In that case the vector
      * class will silently fall back to a Vc::uint_v.
