@@ -155,16 +155,19 @@ namespace SSE
      * x == NaN    -> NaN
      * x == (-)inf -> (-)inf
      */
-    inline double_v ldexp(double_v v, int_v e) {
+    inline double_v ldexp(double_v::AsArg v, int_v::AsArg _e) {
+        int_v e = _e;
         e.setZero((v == double_v::Zero()).dataI());
         const __m128i exponentBits = _mm_slli_epi64(e.data(), 52);
         return _mm_castsi128_pd(_mm_add_epi64(_mm_castpd_si128(v.data()), exponentBits));
     }
-    inline float_v ldexp(float_v v, int_v e) {
+    inline float_v ldexp(float_v::AsArg v, int_v::AsArg _e) {
+        int_v e = _e;
         e.setZero(static_cast<int_m>(v == float_v::Zero()));
         return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
     }
-    inline sfloat_v ldexp(sfloat_v v, short_v e) {
+    inline sfloat_v ldexp(sfloat_v::AsArg v, short_v::AsArg _e) {
+        short_v e = _e;
         e.setZero(static_cast<short_m>(v == sfloat_v::Zero()));
         e <<= (23 - 16);
         const __m128i exponentBits0 = _mm_unpacklo_epi16(_mm_setzero_si128(), e.data());
