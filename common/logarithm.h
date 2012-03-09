@@ -57,7 +57,7 @@ namespace Common
     using Vc::VC__USE_NAMESPACE::c_log;
     using Vc::VC__USE_NAMESPACE::Vector;
 #endif
-    template<typename T> static inline ALWAYS_INLINE void log_series(Vector<T> &VC_RESTRICT x, const Vector<T> exponent) {
+    template<typename T> static inline ALWAYS_INLINE void log_series(Vector<T> &VC_RESTRICT x, typename Vector<T>::AsArg exponent) {
         typedef Vector<T> V;
         typedef c_log<T, typename V::Mask> C;
         // Taylor series around x = 2^exponent
@@ -137,7 +137,7 @@ namespace Common
         x += y;
         x += exponent * C::ln2_large();
     }
-    template<> inline ALWAYS_INLINE void log_series<double>(Vector<double> &VC_RESTRICT x, const Vector<double> exponent) {
+    template<> inline ALWAYS_INLINE void log_series<double>(Vector<double> &VC_RESTRICT x, Vector<double>::AsArg exponent) {
         typedef Vector<double> V;
         typedef c_log<double, V::Mask> C;
         const V x2 = x * x;

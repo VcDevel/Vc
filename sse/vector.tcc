@@ -1141,14 +1141,14 @@ template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(MaskArg
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // copySign {{{1
-template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float> reference) const
+template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float>::AsArg reference) const
 {
     return _mm_or_ps(
             _mm_and_ps(reference.d.v(), _mm_setsignmask_ps()),
             _mm_and_ps(d.v(), _mm_setabsmask_ps())
             );
 }
-template<> inline Vector<float8> INTRINSIC Vector<float8>::copySign(Vector<float8> reference) const
+template<> inline Vector<float8> INTRINSIC Vector<float8>::copySign(Vector<float8>::AsArg reference) const
 {
     return M256::create( _mm_or_ps(
                 _mm_and_ps(reference.d.v()[0], _mm_setsignmask_ps()),
@@ -1159,7 +1159,7 @@ template<> inline Vector<float8> INTRINSIC Vector<float8>::copySign(Vector<float
                 )
             );
 }
-template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<double> reference) const
+template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<double>::AsArg reference) const
 {
     return _mm_or_pd(
             _mm_and_pd(reference.d.v(), _mm_setsignmask_pd()),

@@ -53,6 +53,7 @@ class Vector : public VectorBase<T, Vector<T> >
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
         typedef Scalar::Mask<1u> Mask;
+	typedef Vector<T> AsArg;
 
         T &data() { return m_data; }
         T data() const { return m_data; }

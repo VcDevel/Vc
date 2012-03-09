@@ -376,7 +376,7 @@ class Vector : public VectorBase<T>
             return r;
         }
 
-        inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;
+        inline INTRINSIC_L Vector copySign(typename Vector::AsArg reference) const INTRINSIC_R;
         inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };
 
