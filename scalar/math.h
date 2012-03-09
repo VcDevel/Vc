@@ -129,6 +129,9 @@ static inline Vector<double> log2(const Vector<double> &x)
     return ::log2(x.data());
 }
 #else
+#ifndef M_LN2
+#define M_LN2 0.69314718055994530942
+#endif
 template<typename T> static inline Vector<T> log2(const Vector<T> &x)
 {
     return std::log(x.data()) / M_LN2;

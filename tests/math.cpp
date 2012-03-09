@@ -63,8 +63,16 @@ template<typename V> void testLog()
     COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
 }
 
+#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L
 static inline float my_log2(float x) { return ::log2f(x); }
 static inline double my_log2(double x) { return ::log2(x); }
+#else
+#ifndef M_LN2
+#define M_LN2 0.69314718055994530942
+#endif
+static inline float my_log2(float x) { return ::logf(x) / float(M_LN2); }
+static inline double my_log2(double x) { return ::log(x) / M_LN2; }
+#endif
 
 template<typename V> void testLog2()
 {
