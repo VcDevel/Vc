@@ -138,14 +138,27 @@ template<typename V> void testRSqrt()
     }
 }
 
+
 template<typename T> void my_sincos(T x, T *sin, T *cos);
 template<> void my_sincos<double>(double x, double *sin, double *cos)
 {
+#ifdef VC_MSVC
+// no sincos on Windows
+    *sin = std::sin(x);
+    *cos = std::cos(x);
+#else
     sincos(x, sin, cos);
+#endif
 }
 template<> void my_sincos<float>(float x, float *sin, float *cos)
 {
+#ifdef VC_MSVC
+// no sincos on Windows
+    *sin = std::sin(x);
+    *cos = std::cos(x);
+#else
     sincosf(x, sin, cos);
+#endif
 }
 
 template<typename Vec> void testSincos()

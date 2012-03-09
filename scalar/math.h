@@ -74,6 +74,9 @@ template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *si
 {
 #ifdef __GNUC__
     __builtin_sincosf(x.data(), &sin->data(), &cos->data());
+#elif VC_MSVC
+    sin->data() = std::sin(x.data());
+    cos->data() = std::cos(x.data());
 #else
     sincosf(x.data(), &sin->data(), &cos->data());
 #endif
