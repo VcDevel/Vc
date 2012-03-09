@@ -125,7 +125,11 @@ template<typename V> void copySign()
     COMPARE(-v, v.copySign(negative));
 }
 
+#ifdef VC_MSVC
+void bzero(void *p, size_t n) { memset(p, 0, n); }
+#else
 #include <strings.h>
+#endif
 
 template<typename V> void Random()
 {
