@@ -197,7 +197,7 @@ class Vector : public VectorBase<T>
         inline void INTRINSIC_L setZero(const Mask &k) INTRINSIC_R;
 
         inline void INTRINSIC_L setQnan() INTRINSIC_R;
-        inline void INTRINSIC_L setQnan(Mask k) INTRINSIC_R;
+        inline void INTRINSIC_L setQnan(typename Mask::Argument k) INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
