@@ -81,11 +81,16 @@ template<typename V> void testCeil()
 
 template<typename V> void testLog()
 {
+    setFuzzyness<float>(1);
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 10000; ++i) {
-        const V x = V::Random() * T(54) + T(0.02);
-        const V reference = apply_v(x, std::log);
-        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x;
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = V::Random() * T(exp(20.)) + T(1);
+        V reference = apply_v(x, std::log);
+        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
+
+        x = V::One() / x;
+        reference = apply_v(x, std::log);
+        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
     }
     COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
 }
@@ -97,10 +102,14 @@ template<typename V> void testLog2()
 {
     setFuzzyness<float>(2);
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 10000; ++i) {
-        const V x = V::Random() * T(54) + T(0.02);
-        const V reference = apply_v(x, my_log2);
-        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x;
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = V::Random() * T(pow(2., 20.)) + T(1);
+        V reference = apply_v(x, my_log2);
+        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
+
+        x = V::One() / x;
+        reference = apply_v(x, my_log2);
+        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
     }
     COMPARE(Vc::log2(V::Zero()), V(my_log2(T(0))));
 }
@@ -110,9 +119,13 @@ template<typename V> void testLog10()
     setFuzzyness<float>(2);
     setFuzzyness<double>(2);
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 10000; ++i) {
-        const V x = V::Random() * T(54) + T(0.02);
-        const V reference = apply_v(x, std::log10);
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = V::Random() * T(pow(10., 20.)) + T(1);
+        V reference = apply_v(x, std::log10);
+        FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
+
+        x = V::One() / x;
+        reference = apply_v(x, std::log10);
         FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
     }
     COMPARE(Vc::log10(V::Zero()), V(std::log10(T(0))));
