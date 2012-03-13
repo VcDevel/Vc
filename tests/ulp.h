@@ -44,6 +44,10 @@ template<typename T> static inline T ulpDiffToReference(T val, T ref)
     // val * 2 ^ -exp
     return ldexp(abs(ref - val), numeric_limits<T>::digits - exp);
 }
+template<typename T> static inline T ulpDiffToReferenceSigned(T val, T ref)
+{
+    return ulpDiffToReference(val, ref) * (val - ref < 0 ? -1 : 1);
+}
 
 template<typename T> struct _Ulp_ExponentVector { typedef Vc::int_v Type; };
 #ifdef VC_IMPL_SSE
@@ -76,6 +80,11 @@ template<typename _T> static inline Vc::Vector<_T> ulpDiffToReference(const Vc::
     diff += ldexp(abs(ref - val), std::numeric_limits<T>::digits - exp);
     diff.setZero(_val == _ref || (isnan(_val) && isnan(_ref)));
     return diff;
+}
+
+template<typename _T> static inline Vc::Vector<_T> ulpDiffToReferenceSigned(const Vc::Vector<_T> &_val, const Vc::Vector<_T> &_ref)
+{
+    return ulpDiffToReference(_val, _ref).copySign(_val - _ref);
 }
 
 #endif // TESTS_ULP_H
