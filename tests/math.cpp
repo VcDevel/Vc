@@ -51,6 +51,34 @@ template<typename Vec> void testAbs()
     }
 }
 
+template<typename V> void testFloor()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = (V::Random() - T(0.5)) * T(100);
+        V reference = apply_v(x, std::floor);
+        COMPARE(Vc::floor(x), reference) << ", x = " << x << ", i = " << i;
+    }
+    V x = static_cast<V>(I::IndexesFromZero());
+    V reference = apply_v(x, std::floor);
+    COMPARE(Vc::floor(x), reference) << ", x = " << x;
+}
+
+template<typename V> void testCeil()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = (V::Random() - T(0.5)) * T(100);
+        V reference = apply_v(x, std::ceil);
+        COMPARE(Vc::ceil(x), reference) << ", x = " << x << ", i = " << i;
+    }
+    V x = static_cast<V>(I::IndexesFromZero());
+    V reference = apply_v(x, std::ceil);
+    COMPARE(Vc::ceil(x), reference) << ", x = " << x;
+}
+
 template<typename V> void testLog()
 {
     typedef typename V::EntryType T;
@@ -574,6 +602,9 @@ int main(int argc, char **argv)
     runTest(testAbs<double_v>);
     runTest(testAbs<short_v>);
     runTest(testAbs<sfloat_v>);
+
+    testRealTypes(testFloor);
+    testRealTypes(testCeil);
 
     runTest(testLog<float_v>);
     runTest(testLog<double_v>);

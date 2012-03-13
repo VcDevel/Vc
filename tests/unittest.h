@@ -40,6 +40,10 @@
     _unit_test_global.runTestInt(&name<int_v>, #name "<int_v>"); \
     _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>"); \
     _unit_test_global.runTestInt(&name<uint_v>, #name "<uint_v>")
+#define testRealTypes(name) \
+    _unit_test_global.runTestInt(&name<float_v>, #name "<float_v>"); \
+    _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>"); \
+    _unit_test_global.runTestInt(&name<sfloat_v>, #name "<sfloat_v>");
 
 template<typename A, typename B> struct isEqualType
 {
