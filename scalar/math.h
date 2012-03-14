@@ -129,6 +129,11 @@ template<typename T> static inline Vector<T> log2(const Vector<T> &x)
 }
 #endif
 
+template<typename T> static inline Vector<T> exp (const Vector<T> &x)
+{
+    return std::exp(x.data());
+}
+
 template<typename T> static inline Vector<T> atan (const Vector<T> &x)
 {
     return std::atan( x.data() );
@@ -137,6 +142,16 @@ template<typename T> static inline Vector<T> atan (const Vector<T> &x)
 template<typename T> static inline Vector<T> atan2(const Vector<T> &x, const Vector<T> &y)
 {
     return std::atan2( x.data(), y.data() );
+}
+
+template<typename T> static inline Vector<T> floor(const Vector<T> &x)
+{
+    return std::floor(x.data());
+}
+
+template<typename T> static inline Vector<T> ceil(const Vector<T> &x)
+{
+    return std::ceil(x.data());
 }
 
 template<typename T> static inline Vector<T> round(const Vector<T> &x)
