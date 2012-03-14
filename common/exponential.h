@@ -36,7 +36,7 @@ namespace Vc
 {
 namespace Common
 {
-    //using Vc::VC__USE_NAMESPACE::c_exp;
+    using Vc::VC__USE_NAMESPACE::c_log;
     using Vc::VC__USE_NAMESPACE::Vector;
     using Vc::VC__USE_NAMESPACE::floor;
     using Vc::VC__USE_NAMESPACE::ldexp;
@@ -47,12 +47,15 @@ namespace Common
     static const float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
 
     template<typename T> struct TypenameForLdexp { typedef Vector<int> Type; };
+#ifdef VC_IMPL_SSE
     template<> struct TypenameForLdexp<Vc::SSE::float8> { typedef Vector<short> Type; };
+#endif
 
     template<typename T> static inline Vector<T> exp(Vector<T> x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
         typedef typename TypenameForLdexp<T>::Type I;
+        typedef c_log<T, M> C;
 
         const M overflow  = x > MAXLOGF;
         const M underflow = x < MINLOGF;
@@ -63,10 +66,10 @@ namespace Common
         // => n  = ⌊x * log₂(e) + ½⌋
         // => y  = x - n * ln(2)       | recall that: ln(2) * log₂(e) == 1
         // <=> eˣ = 2ⁿ * eʸ
-        V z = floor(log2_e * x + 0.5f);
+        V z = floor(C::log2_e() * x + 0.5f);
         I n = static_cast<I>(z);
-        x -= z * 0.693359375f;    // ln2
-        x -= z * -2.12194440e-4f; // ln2
+        x -= z * C::ln2_large();
+        x -= z * C::ln2_small();
 
         /* Theoretical peak relative error in [-0.5, +0.5] is 4.2e-9. */
         z = ((((( 1.9875691500E-4  * x
@@ -88,17 +91,21 @@ namespace Common
     static inline Vector<double> exp(Vector<double> x) {
         typedef Vector<double> V;
         typedef V::Mask M;
+        typedef c_log<double, M> C;
 
         const M overflow  = x > Vc_buildDouble( 1, 0x0006232bdd7abcd2ull, 9); // max log
         const M underflow = x < Vc_buildDouble(-1, 0x0006232bdd7abcd2ull, 9); // min log
 
-        V px = floor(log2_e * x + 0.5);
-        Vector<int> n(px);
+        V px = floor(C::log2_e() * x + 0.5);
 #ifdef VC_IMPL_SSE
+        Vector<int> n(px);
         n.data() = Mem::permute<X0, X2, X1, X3>(n.data());
+#elif defined(VC_IMPL_AVX)
+        __m128i tmp = _mm256_cvttpd_epi32(px.data());
+        Vector<int> n = AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
 #endif
-        x -= px * Vc_buildDouble(1, 0x00062e4000000000ull, -1);  // ln2
-        x -= px * Vc_buildDouble(1, 0x0007f7d1cf79abcaull, -20); // ln2
+        x -= px * C::ln2_large(); //Vc_buildDouble(1, 0x00062e4000000000ull, -1);  // ln2
+        x -= px * C::ln2_small(); //Vc_buildDouble(1, 0x0007f7d1cf79abcaull, -20); // ln2
 
         const double P[] = {
             Vc_buildDouble(1, 0x000089cdd5e44be8ull, -13),

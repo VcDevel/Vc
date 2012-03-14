@@ -142,6 +142,12 @@ namespace AVX
                 _mm_unpackhi_epi16(_mm_setzero_si128(), e.data()));
         return (v.reinterpretCast<int_v>() + exponentBits).reinterpretCast<float_v>();
     }
+
+    static inline float_v floor(float_v v) { return _mm256_floor_ps(v.data()); }
+    static inline double_v floor(double_v v) { return _mm256_floor_pd(v.data()); }
+
+    static inline float_v ceil(float_v v) { return _mm256_ceil_ps(v.data()); }
+    static inline double_v ceil(double_v v) { return _mm256_ceil_pd(v.data()); }
 } // namespace AVX
 } // namespace Vc
 
@@ -150,5 +156,8 @@ namespace AVX
 #include "../common/trigonometric.h"
 #define VC__USE_NAMESPACE AVX
 #include "../common/logarithm.h"
+#define VC__USE_NAMESPACE AVX
+#include "../common/exponential.h"
+#undef VC__USE_NAMESPACE
 
 #endif // VC_AVX_MATH_H
