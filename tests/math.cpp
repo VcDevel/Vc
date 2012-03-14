@@ -79,6 +79,19 @@ template<typename V> void testCeil()
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }
 
+template<typename V> void testExp()
+{
+    setFuzzyness<float>(1);
+    setFuzzyness<double>(2);
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = (V::Random() - T(0.5)) * T(20);
+        V reference = apply_v(x, std::exp);
+        FUZZY_COMPARE(Vc::exp(x), reference) << ", x = " << x << ", i = " << i;
+    }
+    COMPARE(Vc::exp(V::Zero()), V::One());
+}
+
 template<typename V> void testLog()
 {
     setFuzzyness<float>(1);
@@ -618,6 +631,7 @@ int main(int argc, char **argv)
 
     testRealTypes(testFloor);
     testRealTypes(testCeil);
+    testRealTypes(testExp);
 
     runTest(testLog<float_v>);
     runTest(testLog<double_v>);
