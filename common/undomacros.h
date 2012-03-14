@@ -53,4 +53,7 @@
 
 #undef VC_HAS_BUILTIN
 
+#undef Vc_buildDouble
+#undef Vc_buildFloat
+
 #endif // VC_COMMON_UNDOMACROS_H
