@@ -611,17 +611,9 @@ int main(int argc, char **argv)
 {
     initTest(argc, argv);
 
-    runTest(testFrexp<float_v>);
-    runTest(testFrexp<sfloat_v>);
-    runTest(testFrexp<double_v>);
-
-    runTest(testLdexp<float_v>);
-    runTest(testLdexp<sfloat_v>);
-    runTest(testLdexp<double_v>);
-
-    runTest(testUlpDiff<float_v>);
-    runTest(testUlpDiff<sfloat_v>);
-    runTest(testUlpDiff<double_v>);
+    testRealTypes(testFrexp);
+    testRealTypes(testLdexp);
+    testRealTypes(testUlpDiff);
 
     runTest(testAbs<int_v>);
     runTest(testAbs<float_v>);
@@ -632,18 +624,9 @@ int main(int argc, char **argv)
     testRealTypes(testFloor);
     testRealTypes(testCeil);
     testRealTypes(testExp);
-
-    runTest(testLog<float_v>);
-    runTest(testLog<double_v>);
-    runTest(testLog<sfloat_v>);
-
-    runTest(testLog2<float_v>);
-    runTest(testLog2<double_v>);
-    runTest(testLog2<sfloat_v>);
-
-    runTest(testLog10<float_v>);
-    runTest(testLog10<double_v>);
-    runTest(testLog10<sfloat_v>);
+    testRealTypes(testLog);
+    testRealTypes(testLog2);
+    testRealTypes(testLog10);
 
     runTest(testMax<int_v>);
     runTest(testMax<uint_v>);
@@ -653,49 +636,17 @@ int main(int argc, char **argv)
     runTest(testMax<ushort_v>);
     runTest(testMax<sfloat_v>);
 
-    runTest(testSqrt<float_v>);
-    runTest(testSqrt<double_v>);
-    runTest(testSqrt<sfloat_v>);
-
-    runTest(testRSqrt<float_v>);
-    runTest(testRSqrt<double_v>);
-    runTest(testRSqrt<sfloat_v>);
-
-    runTest(testSin<float_v>);
-    runTest(testSin<sfloat_v>);
-    runTest(testSin<double_v>);
-
-    runTest(testCos<float_v>);
-    runTest(testCos<sfloat_v>);
-    runTest(testCos<double_v>);
-
-    runTest(testAsin<float_v>);
-    runTest(testAsin<sfloat_v>);
-    runTest(testAsin<double_v>);
-
-    runTest(testAtan<float_v>);
-    runTest(testAtan<sfloat_v>);
-    runTest(testAtan<double_v>);
-
-    runTest(testAtan2<float_v>);
-    runTest(testAtan2<sfloat_v>);
-    runTest(testAtan2<double_v>);
-
-    runTest(testReciprocal<float_v>);
-    runTest(testReciprocal<sfloat_v>);
-    runTest(testReciprocal<double_v>);
-
-    runTest(testInf<float_v>);
-    runTest(testInf<double_v>);
-    runTest(testInf<sfloat_v>);
-
-    runTest(testNaN<float_v>);
-    runTest(testNaN<double_v>);
-    runTest(testNaN<sfloat_v>);
-
-    runTest(testRound<float_v>);
-    runTest(testRound<double_v>);
-    runTest(testRound<sfloat_v>);
+    testRealTypes(testSqrt);
+    testRealTypes(testRSqrt);
+    testRealTypes(testSin);
+    testRealTypes(testCos);
+    testRealTypes(testAsin);
+    testRealTypes(testAtan);
+    testRealTypes(testAtan2);
+    testRealTypes(testReciprocal);
+    testRealTypes(testInf);
+    testRealTypes(testNaN);
+    testRealTypes(testRound);
 
     runTest(testReduceMin<float_v>);
     runTest(testReduceMin<sfloat_v>);
@@ -729,13 +680,8 @@ int main(int argc, char **argv)
     runTest(testReduceSum<short_v>);
     runTest(testReduceSum<ushort_v>);
 
-    runTest(testSincos<float_v>);
-    runTest(testSincos<sfloat_v>);
-    runTest(testSincos<double_v>);
-
-    runTest(testExponent<float_v>);
-    runTest(testExponent<sfloat_v>);
-    runTest(testExponent<double_v>);
+    testRealTypes(testSincos);
+    testRealTypes(testExponent);
 
     return 0;
 }
