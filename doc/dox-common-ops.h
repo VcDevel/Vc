@@ -430,3 +430,45 @@ template<typename Functor> void call(Functor &f) const;
 /// As above, but skip the entries where \p mask is not set.
 template<typename Functor> void call(Functor &f, MASK_TYPE mask) const;
 //@}
+
+/**
+ * \name Swizzles
+ *
+ * Swizzles are a special form of shuffles that, depending on the target hardware and swizzle type,
+ * may be used without extra cost. The swizzles act on every successive four entries in the vector.
+ * Thus the swizzle \verbatim [0, 1, 2, 3, 4, 5, 6, 7].dcba() \endverbatim results in
+ * \verbatim [3, 2, 1, 0, 7, 6, 5, 4] \endverbatim.
+ *
+ * This implies a portability issue. The swizzles can only work on vectors where Size is a
+ * multiple of four.
+ * On Vc::Scalar all swizzles are implemented as no-ops. If a swizzle is used on a vector of Size ==
+ * 2 compilation will fail.
+ */
+//@{
+/// Identity.
+const VECTOR_TYPE abcd() const;
+/// Permute pairs.
+const VECTOR_TYPE badc() const;
+/// Permute pairs of two / Rotate twice.
+const VECTOR_TYPE cdab() const;
+/// Broadcast a.
+const VECTOR_TYPE aaaa() const;
+/// Broadcast b.
+const VECTOR_TYPE bbbb() const;
+/// Broadcast c.
+const VECTOR_TYPE cccc() const;
+/// Broadcast d.
+const VECTOR_TYPE dddd() const;
+/// Rotate three: cross-product swizzle.
+const VECTOR_TYPE bcad() const;
+/// Rotate left.
+const VECTOR_TYPE bcda() const;
+/// Rotate right.
+const VECTOR_TYPE dabc() const;
+/// Permute inner pair.
+const VECTOR_TYPE acbd() const;
+/// Permute outer pair.
+const VECTOR_TYPE dbca() const;
+/// Reverse.
+const VECTOR_TYPE dcba() const;
+//@}
