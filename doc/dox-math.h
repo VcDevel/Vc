@@ -112,7 +112,7 @@ VECTOR_TYPE max(const VECTOR_TYPE &x, const VECTOR_TYPE &y);
 /**
  * \ingroup Math
  *
- * Convert floating-point number to fractional and interal components.
+ * Convert floating-point number to fractional and integral components.
  *
  * \param x value to be split into normalized fraction and exponent
  * \param e the exponent to base 2 of \p x
