@@ -208,14 +208,19 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
-        inline const Vector<T> INTRINSIC &dcba() const { return *this; }
-        inline const Vector<T> INTRINSIC cdab() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 3, 0, 1))); }
-        inline const Vector<T> INTRINSIC badc() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 0, 3, 2))); }
-        inline const Vector<T> INTRINSIC aaaa() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(0, 0, 0, 0))); }
-        inline const Vector<T> INTRINSIC bbbb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(1, 1, 1, 1))); }
-        inline const Vector<T> INTRINSIC cccc() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(2, 2, 2, 2))); }
-        inline const Vector<T> INTRINSIC dddd() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 3, 3, 3))); }
-        inline const Vector<T> INTRINSIC dacb() const { return reinterpret_cast<VectorType>(_mm_shuffle_epi32(data(), _MM_SHUFFLE(3, 0, 2, 1))); }
+        inline const Vector<T> INTRINSIC &dcba();
+        inline const Vector<T> INTRINSIC  cdab();
+        inline const Vector<T> INTRINSIC  badc();
+        inline const Vector<T> INTRINSIC  aaaa();
+        inline const Vector<T> INTRINSIC  bbbb();
+        inline const Vector<T> INTRINSIC  cccc();
+        inline const Vector<T> INTRINSIC  dddd();
+        inline const Vector<T> INTRINSIC  bcad();
+        inline const Vector<T> INTRINSIC  bcda();
+        inline const Vector<T> INTRINSIC  dabc();
+        inline const Vector<T> INTRINSIC  acbd();
+        inline const Vector<T> INTRINSIC  dbca();
+        inline const Vector<T> INTRINSIC  dcba();
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // gathers

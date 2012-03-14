@@ -514,6 +514,38 @@ template<typename T> inline Vector<T> VectorBase<T>::operator<<(int shift) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+// swizzles {{{1
+template<typename T> inline const Vector<T> INTRINSIC &Vector<T>::abcd() const { return *this; }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC  Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0>(data()); }
+
+#define VC_SWIZZLES_16BIT_IMPL(T) \
+template<> inline const Vector<T> INTRINSIC Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1, X6, X7, X4, X5>(data()); } \
+template<> inline const Vector<T> INTRINSIC Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(data()); } \
+template<> inline const Vector<T> INTRINSIC Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0, X4, X4, X4, X4>(data()); } \
+template<> inline const Vector<T> INTRINSIC Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1, X5, X5, X5, X5>(data()); } \
+template<> inline const Vector<T> INTRINSIC Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2, X6, X6, X6, X6>(data()); } \
+template<> inline const Vector<T> INTRINSIC Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3, X7, X7, X7, X7>(data()); } \
+template<> inline const Vector<T> INTRINSIC Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3, X5, X6, X4, X7>(data()); } \
+template<> inline const Vector<T> INTRINSIC Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0, X5, X6, X7, X4>(data()); } \
+template<> inline const Vector<T> INTRINSIC Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2, X7, X4, X5, X6>(data()); } \
+template<> inline const Vector<T> INTRINSIC Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3, X4, X6, X5, X7>(data()); } \
+template<> inline const Vector<T> INTRINSIC Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0, X7, X5, X6, X4>(data()); } \
+template<> inline const Vector<T> INTRINSIC Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(data()); }
+VC_SWIZZLES_16BIT_IMPL(short)
+VC_SWIZZLES_16BIT_IMPL(unsigned short)
+#undef VC_SWIZZLES_16BIT_IMPL
+
 // gathers {{{1
 template<typename T> template<typename IndexT> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, const IndexT *indexes)
 {
