@@ -60,11 +60,13 @@ template<typename T> inline Vector<T> Vector<T>::IndexesFromZero()
     return VectorHelper<VectorType>::load(Base::_IndexesFromZero(), Aligned);
 }
 
+// conversion/casts {{{1
 template<typename T> template<typename OtherT> inline Vector<T>::Vector(const Vector<OtherT> &x)
     : Base(StaticCastHelper<OtherT, T>::cast(x.data()))
 {
 }
 
+// broadcasts {{{1
 template<typename T> inline Vector<T>::Vector(EntryType a)
     : Base(VectorHelper<T>::set(a))
 {
