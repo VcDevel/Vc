@@ -54,12 +54,12 @@ namespace Vc
 namespace Common
 {
 #ifdef VC__USE_NAMESPACE
-    using Vc::VC__USE_NAMESPACE::c_log;
-    using Vc::VC__USE_NAMESPACE::Vector;
+using Vc::VC__USE_NAMESPACE::Const;
+using Vc::VC__USE_NAMESPACE::Vector;
 #endif
     template<typename T> static inline ALWAYS_INLINE void log_series(Vector<T> &VC_RESTRICT x, const Vector<T> exponent) {
         typedef Vector<T> V;
-        typedef c_log<T, typename V::Mask> C;
+        typedef Const<T> C;
         // Taylor series around x = 2^exponent
         //   f(x) = ln(x)   → exponent * ln(2) → C::ln2_small + C::ln2_large
         //  f'(x) =    x⁻¹  →  x               → 1
@@ -137,9 +137,10 @@ namespace Common
         x += y;
         x += exponent * C::ln2_large();
     }
-    template<> inline ALWAYS_INLINE void log_series<double>(Vector<double> &VC_RESTRICT x, const Vector<double> exponent) {
+
+    static inline ALWAYS_INLINE void log_series(Vector<double> &VC_RESTRICT x, const Vector<double> exponent) {
         typedef Vector<double> V;
-        typedef c_log<double, V::Mask> C;
+        typedef Const<double> C;
         const V x2 = x * x;
         V y = C::P(0);
         V y2 = C::Q(0) + x;
@@ -156,7 +157,7 @@ namespace Common
     template<typename T> static inline Vector<T> log(Vector<T> x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
-        typedef c_log<T, M> C;
+        typedef Const<T> C;
 
         const M invalidMask = x < V::Zero();
         const M infinityMask = x == V::Zero();

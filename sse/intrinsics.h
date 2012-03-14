@@ -308,7 +308,7 @@ unsigned __int64 __rdtscp(unsigned int*);
 #error "SSE Vector class needs at least SSE2"
 #endif
 
-#include "const.h"
+#include "const_data.h"
 #include "macros.h"
 #include <cstdlib>
 

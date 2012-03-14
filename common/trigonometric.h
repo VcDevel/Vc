@@ -36,12 +36,12 @@ namespace Vc
 namespace Common
 {
 #ifdef VC__USE_NAMESPACE
-    using Vc::VC__USE_NAMESPACE::c_sin;
+    using Vc::VC__USE_NAMESPACE::Const;
     using Vc::VC__USE_NAMESPACE::Vector;
 #endif
     namespace {
         template<typename T> static inline ALWAYS_INLINE CONST Vector<T> _foldMinusPiToPi(const Vector<T> &x) {
-            typedef c_sin<T> C;
+            typedef Const<T> C;
             // put the input in the range [-π, π]
             // 'f(x) = 2π * round(x/2π)' is the offset:
             // ⇒ f(x) = 0 ∀ x ∈ ]-π, π[ ;  f(x) = 2π ∀ x ∈ [π, 3π[
@@ -51,7 +51,7 @@ namespace Common
 
     template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
         typedef Vector<T> V;
-        typedef c_sin<T> C;
+        typedef Const<T> C;
 
         // x - x**3/3! + x**5/5! - x**7/7! + x**9/9! - x**11/11! for [-½π, ½π]
 
@@ -65,7 +65,7 @@ namespace Common
     }
     template<typename T> static inline Vector<T> cos(const Vector<T> &_x) {
         typedef Vector<T> V;
-        typedef c_sin<T> C;
+        typedef Const<T> C;
 
         V x = _foldMinusPiToPi(_x) + C::_pi_2(); // [-½π, ¾π[
         x(x > C::_pi_2()) = C::_pi() - x; // [-½π, ½π]
@@ -75,7 +75,7 @@ namespace Common
     }
     template<typename T> static inline void sincos(const Vector<T> &_x, Vector<T> *_sin, Vector<T> *_cos) {
         typedef Vector<T> V;
-        typedef c_sin<T> C;
+        typedef Const<T> C;
         // I did a short test how the results would look if I make use of 1=s²+c². There seems to be
         // no easy way to keep the results in an acceptable precision.
 

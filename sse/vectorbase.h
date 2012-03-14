@@ -23,7 +23,6 @@
 #include "intrinsics.h"
 #include "types.h"
 #include "casts.h"
-#include "const.h"
 
 namespace Vc
 {

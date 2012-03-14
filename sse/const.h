@@ -20,6 +20,8 @@
 #ifndef VC_SSE_CONST_H
 #define VC_SSE_CONST_H
 
+#include "const_data.h"
+#include "vector.h"
 #include "macros.h"
 
 namespace Vc
@@ -27,71 +29,63 @@ namespace Vc
 namespace SSE
 {
     template<typename T> class Vector;
-    template<unsigned int VectorSize> class Mask;
 
-    ALIGN(16) extern const unsigned int   _IndexesFromZero4[4];
-    ALIGN(16) extern const unsigned short _IndexesFromZero8[8];
-    ALIGN(16) extern const unsigned char  _IndexesFromZero16[16];
-
-    struct c_general
-    {
-        ALIGN(64) static const unsigned int allone[4];
-        ALIGN(16) static const unsigned short one16[8];
-        ALIGN(16) static const unsigned int one32[4];
-        ALIGN(16) static const float oneFloat[4];
-        ALIGN(16) static const double oneDouble[2];
-        ALIGN(16) static const int absMaskFloat[4];
-        ALIGN(16) static const long long absMaskDouble[2];
-        ALIGN(16) static const unsigned int signMaskFloat[4];
-        ALIGN(16) static const unsigned long long signMaskDouble[2];
-        ALIGN(16) static const short minShort[8];
-        ALIGN(16) static const unsigned long long frexpMask[2];
-    };
-    template<typename T> struct c_sin
+    template<typename T> struct Const
     {
         typedef Vector<T> V;
-        enum { Size = 16 / sizeof(T) };
-        ALIGN(64) static const T _data[Size * 8];
+        typedef typename V::Mask M;
 
-        static V CONST_L _1_2pi()  CONST_R;
-        static V CONST_L _2pi()    CONST_R;
-        static V CONST_L _pi_2()   CONST_R;
-        static V CONST_L _pi()     CONST_R;
+        static inline V CONST_L _1_2pi()  CONST_R { return V(&c_sin<T>::data[0 * V::Size]); }
+        static inline V CONST_L _2pi()    CONST_R { return V(&c_sin<T>::data[1 * V::Size]); }
+        static inline V CONST_L _pi_2()   CONST_R { return V(&c_sin<T>::data[2 * V::Size]); }
+        static inline V CONST_L _pi()     CONST_R { return V(&c_sin<T>::data[3 * V::Size]); }
+        static inline V CONST_L _1_3fac() CONST_R { return V(&c_sin<T>::data[4 * V::Size]); }
+        static inline V CONST_L _1_5fac() CONST_R { return V(&c_sin<T>::data[5 * V::Size]); }
+        static inline V CONST_L _1_7fac() CONST_R { return V(&c_sin<T>::data[6 * V::Size]); }
+        static inline V CONST_L _1_9fac() CONST_R { return V(&c_sin<T>::data[7 * V::Size]); }
 
-        static V CONST_L _1_3fac() CONST_R;
-        static V CONST_L _1_5fac() CONST_R;
-        static V CONST_L _1_7fac() CONST_R;
-        static V CONST_L _1_9fac() CONST_R;
+        static inline M CONST_L exponentMask() CONST_R { return M(V(c_log<T>::d(1)).data()); }
+        static inline V CONST_L _1_2()         CONST_R { return V(c_log<T>::d(18)); }
+        static inline V CONST_L _1_sqrt2()     CONST_R { return V(c_log<T>::d(15)); }
+        static inline V CONST_L P(int i)       CONST_R { return V(c_log<T>::d(2 + i)); }
+        static inline V CONST_L Q(int i)       CONST_R { return V(c_log<T>::d(8 + i)); }
+        static inline V CONST_L min()          CONST_R { return V(c_log<T>::d(14)); }
+        static inline V CONST_L ln2_small()    CONST_R { return V(c_log<T>::d(17)); }
+        static inline V CONST_L ln2_large()    CONST_R { return V(c_log<T>::d(16)); }
+        static inline V CONST_L neginf()       CONST_R { return V(c_log<T>::d(13)); }
+        static inline V CONST_L log10_e()      CONST_R { return V(c_log<T>::d(19)); }
+        static inline V CONST_L log2_e()       CONST_R { return V(c_log<T>::d(20)); }
     };
-
-    class M128iDummy;
-    template<typename T> struct IntForFloat { typedef unsigned int Type; };
-    template<> struct IntForFloat<double> { typedef unsigned long long Type; };
-
-    template<typename T, typename Mask> struct c_log
-    {
-        typedef Vector<T> Vec;
-        typedef typename IntForFloat<T>::Type Int;
-        enum { Size = 16 / sizeof(T) };
-
-        static inline const double *d(int i) { return reinterpret_cast<const double *>(&_dataI[i * Size]); }
-        static inline const float *f(int i) { return reinterpret_cast<const float *>(&_dataI[i * Size]); }
-        ALIGN(64) static const Int _dataI[15 * Size];
-        ALIGN(16) static const T   _dataT[6 * Size];
-
-        static M128iDummy CONST_L bias()  CONST_R;
-        static Mask CONST_L exponentMask() CONST_R;
-        static Vec CONST_L _1_2() CONST_R;
-        static Vec CONST_L _1_sqrt2() CONST_R;
-        static Vec CONST_L P(int i) CONST_R;
-        static Vec CONST_L Q(int i) CONST_R;
-        static Vec CONST_L min() CONST_R;
-        static Vec CONST_L ln2_small() CONST_R;
-        static Vec CONST_L ln2_large() CONST_R;
-        static Vec CONST_L neginf() CONST_R;
-        static Vec CONST_L log10_e() CONST_R;
-        static Vec CONST_L log2_e() CONST_R;
-    };
+#define VC_FLOAT8_CONST_IMPL(name) \
+    template<> inline Vector<float8> Const<float8>::name() { \
+        return M256::dup(Const<float>::name().data()); \
+    }
+    VC_FLOAT8_CONST_IMPL(_1_2pi)
+    VC_FLOAT8_CONST_IMPL(_2pi)
+    VC_FLOAT8_CONST_IMPL(_pi_2)
+    VC_FLOAT8_CONST_IMPL(_pi)
+    VC_FLOAT8_CONST_IMPL(_1_3fac)
+    VC_FLOAT8_CONST_IMPL(_1_5fac)
+    VC_FLOAT8_CONST_IMPL(_1_7fac)
+    VC_FLOAT8_CONST_IMPL(_1_9fac)
+    VC_FLOAT8_CONST_IMPL(_1_2)
+    VC_FLOAT8_CONST_IMPL(_1_sqrt2)
+    VC_FLOAT8_CONST_IMPL(min)
+    VC_FLOAT8_CONST_IMPL(ln2_small)
+    VC_FLOAT8_CONST_IMPL(ln2_large)
+    VC_FLOAT8_CONST_IMPL(neginf)
+    VC_FLOAT8_CONST_IMPL(log10_e)
+    VC_FLOAT8_CONST_IMPL(log2_e)
+    template<> inline Vector<float8> Const<float8>::P(int i) {
+        return M256::dup(Const<float>::P(i).data());
+    }
+    template<> inline Vector<float8> Const<float8>::Q(int i) {
+        return M256::dup(Const<float>::Q(i).data());
+    }
+    template<> inline Vector<float8>::Mask Const<float8>::exponentMask() {
+        return M256::dup(Const<float>::exponentMask().data());
+    }
+#undef VC_FLOAT8_CONST_IMPL
 } // namespace SSE
 } // namespace Vc
 
