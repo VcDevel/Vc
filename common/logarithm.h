@@ -161,10 +161,11 @@ using Vc::VC__USE_NAMESPACE::Vector;
 
         const M invalidMask = x < V::Zero();
         const M infinityMask = x == V::Zero();
+        const M denormal = x <= C::min();
 
-        x = max(x, C::min()); // lazy: cut off denormalized numbers
-
+        x(denormal) *= V(Vc_buildDouble(1, 0, 54)); // 2²⁵
         V exponent = x.exponent(); // = ⎣log₂(x)⎦
+        exponent(denormal) -= 54;
 
         x.setZero(C::exponentMask()); // keep only the fractional part ⇒ x ∈ [1, 2[
         x |= C::_1_2();               // and set the exponent to 2⁻¹   ⇒ x ∈ [½, 1[

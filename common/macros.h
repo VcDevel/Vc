@@ -171,12 +171,14 @@ namespace Vc {
 
 #ifndef VC_COMMON_MACROS_H_ONCE
 #define VC_COMMON_MACROS_H_ONCE
-    template<int e> struct exponentToMultiplier { enum {
-        X = exponentToMultiplier<e - 1>::X * 2,
+    template<int e, int center> struct exponentToMultiplier { enum {
+        X = exponentToMultiplier<e - 1, center>::X * ((e - center < 31) ? 2 : 1),
         Value = (X == 0 ? 1 : X)
     }; };
-    template<> struct exponentToMultiplier<0> { enum { X = 1, Value = X }; };
-    template<> struct exponentToMultiplier<-1024> { enum { X = 0 }; };
+    template<int center> struct exponentToMultiplier<center,center> { enum { X = 1, Value = X }; };
+    template<int center> struct exponentToMultiplier<   -1, center> { enum { X = 0 }; };
+    template<int center> struct exponentToMultiplier<-1024, center> { enum { X = 0 }; };
+
     template<int e> struct exponentToDivisor { enum {
         X = exponentToDivisor<e + 1>::X * 2,
       Value = (X == 0 ? 1 : X)
@@ -186,12 +188,18 @@ namespace Vc {
 #endif // VC_COMMON_MACROS_H_ONCE
 #define Vc_buildDouble(sign, mantissa, exponent) \
     ((static_cast<double>((mantissa & 0x000fffffffffffffull) | 0x0010000000000000ull) / 0x0010000000000000ull) \
-    * exponentToMultiplier<exponent>::Value \
+    * exponentToMultiplier<exponent, 0>::Value \
+    * exponentToMultiplier<exponent, 30>::Value \
+    * exponentToMultiplier<exponent, 60>::Value \
+    * exponentToMultiplier<exponent, 90>::Value \
     / exponentToDivisor<exponent>::Value \
     * static_cast<double>(sign))
 #define Vc_buildFloat(sign, mantissa, exponent) \
     ((static_cast<float>((mantissa & 0x007fffffu) | 0x00800000) / 0x00800000) \
-    * exponentToMultiplier<exponent>::Value \
+    * exponentToMultiplier<exponent, 0>::Value \
+    * exponentToMultiplier<exponent, 30>::Value \
+    * exponentToMultiplier<exponent, 60>::Value \
+    * exponentToMultiplier<exponent, 90>::Value \
     / exponentToDivisor<exponent>::Value \
     * static_cast<float>(sign))
 
