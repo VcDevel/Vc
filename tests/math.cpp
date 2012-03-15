@@ -101,7 +101,7 @@ template<typename V> void testLog()
     setFuzzyness<float>(1);
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
-        V x = V::Random() * T(exp(20.)) + T(1);
+        V x = exp(V::Random() * T(20));
         V reference = apply_v(x, std::log);
         FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
 
@@ -125,7 +125,7 @@ template<typename V> void testLog2()
     setFuzzyness<float>(2);
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
-        V x = V::Random() * T(pow(2., 20.)) + T(1);
+        V x = exp(V::Random() * T(20 * M_LN2));
         V reference = apply_v(x, my_log2);
         FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
 
@@ -142,7 +142,7 @@ template<typename V> void testLog10()
     setFuzzyness<double>(2);
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
-        V x = V::Random() * T(pow(10., 20.)) + T(1);
+        V x = exp(V::Random() * T(20 * M_LN10));
         V reference = apply_v(x, std::log10);
         FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
 
