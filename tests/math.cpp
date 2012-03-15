@@ -33,6 +33,10 @@ using namespace Vc;
 #undef isnan
 #endif
 
+template<typename T> struct Denormals { static Vc::Memory<Vector<T>, 64> data; };
+template<> Vc::Memory<float_v, 64> Denormals<float>::data = Vc::Memory<float_v, 64>();
+template<> Vc::Memory<double_v, 64> Denormals<double>::data = Vc::Memory<double_v, 64>();
+
 template<typename V> V apply_v(V x, typename V::EntryType (func)(typename V::EntryType))
 {
     for (size_t i = 0; i < V::Size; ++i) {
@@ -106,6 +110,11 @@ template<typename V> void testLog()
         FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
     }
     COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
+    for (size_t i = 0; i < Denormals<T>::data.entriesCount(); i += V::Size) {
+        V x(&Denormals<T>::data[i]);
+        V reference = apply_v(x, std::log);
+        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
+    }
 }
 
 static inline float my_log2(float x) { return ::log2f(x); }
@@ -610,6 +619,15 @@ template<typename V> void testUlpDiff()
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
+
+    Denormals<float>::data[0] = std::numeric_limits<float>::denorm_min();
+    for (size_t i = 1; i < Denormals<float>::data.entriesCount(); ++i) {
+        Denormals<float>::data[i] = Denormals<float>::data[i - 1] * 2;
+    }
+    Denormals<double>::data[0] = std::numeric_limits<double>::denorm_min();
+    for (size_t i = 1; i < Denormals<double>::data.entriesCount(); ++i) {
+        Denormals<double>::data[i] = Denormals<double>::data[i - 1] * 2;
+    }
 
     testRealTypes(testFrexp);
     testRealTypes(testLdexp);
