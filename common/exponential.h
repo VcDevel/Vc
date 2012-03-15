@@ -55,7 +55,7 @@ namespace Common
         typedef Vector<T> V;
         typedef typename V::Mask M;
         typedef typename TypenameForLdexp<T>::Type I;
-        typedef c_log<T, M> C;
+        typedef Const<T> C;
 
         const M overflow  = x > MAXLOGF;
         const M underflow = x < MINLOGF;
@@ -91,7 +91,7 @@ namespace Common
     static inline Vector<double> exp(Vector<double> x) {
         typedef Vector<double> V;
         typedef V::Mask M;
-        typedef c_log<double, M> C;
+        typedef Const<double> C;
 
         const M overflow  = x > Vc_buildDouble( 1, 0x0006232bdd7abcd2ull, 9); // max log
         const M underflow = x < Vc_buildDouble(-1, 0x0006232bdd7abcd2ull, 9); // min log

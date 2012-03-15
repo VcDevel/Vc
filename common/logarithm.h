@@ -189,13 +189,13 @@ using Vc::VC__USE_NAMESPACE::Vector;
     }
     template<typename T> static inline Vector<T> log10(Vector<T> x) {
         typedef typename Vector<T>::Mask M;
-        typedef c_log<T, M> C;
+        typedef Const<T> C;
 
         return log(x) * C::log10_e();
     }
     template<typename T> static inline Vector<T> log2(Vector<T> x) {
         typedef typename Vector<T>::Mask M;
-        typedef c_log<T, M> C;
+        typedef Const<T> C;
 
         return log(x) * C::log2_e();
     }
