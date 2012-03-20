@@ -7,8 +7,8 @@ Set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY_ONCE TRUE)
 
 include(CTestCustom.cmake)
 include(CTestConfig.cmake)
+set(CTEST_USE_LAUNCHERS 1) # much improved error/warning message logging
 
-Set(CTEST_CONFIGURE_COMMAND "${CMAKE_EXECUTABLE_NAME} ${CTEST_SOURCE_DIRECTORY} -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKS=TRUE -DBUILD_EXAMPLES=TRUE")
 if(NOT CMAKE_MAKE_PROGRAM)
    set(CMAKE_MAKE_PROGRAM "make")
 endif()
@@ -23,7 +23,10 @@ macro(go)
       endif()
    endif()
    if(NOT $ENV{ctest_model} STREQUAL "Continuous" OR res GREATER 0)
-      CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE res)
+      CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
+         OPTIONS "-DCTEST_USE_LAUNCHERS=${CTEST_USE_LAUNCHERS} -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=TRUE"
+         APPEND
+         RETURN_VALUE res)
       ctest_submit(PARTS Configure)
       if(res EQUAL 0)
          foreach(subproject ${CTEST_PROJECT_SUBPROJECTS})
@@ -33,11 +36,13 @@ macro(go)
             set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} -j$ENV{number_of_processors} -i ${CTEST_BUILD_TARGET}")
             ctest_build(
                BUILD "${CTEST_BINARY_DIRECTORY}"
+               APPEND
                RETURN_VALUE res)
             ctest_submit(PARTS Build)
             if(res EQUAL 0)
                ctest_test(
                   BUILD "${CTEST_BINARY_DIRECTORY}"
+                  APPEND
                   RETURN_VALUE res
                   PARALLEL_LEVEL $ENV{number_of_processors}
                   INCLUDE_LABEL "${subproject}")
