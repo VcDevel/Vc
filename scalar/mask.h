@@ -58,7 +58,9 @@ template<unsigned int VectorSize = 1> class Mask
         inline bool dataI() const { return m; }
         inline bool dataD() const { return m; }
 
+#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
         inline operator bool() const { return isFull(); }
+#endif
 
         template<unsigned int OtherSize>
             inline Mask cast() const { return *this; }

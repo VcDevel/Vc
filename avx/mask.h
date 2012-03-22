@@ -69,7 +69,9 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         inline bool isEmpty() const { return 0 != _mm256_testz_ps(k, k); }
         inline bool isMix  () const { return 0 != _mm256_testnzc_ps(k, _mm256_setallone_ps()); }
 
+#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
         inline operator bool() const { return isFull(); }
+#endif
 
         inline int CONST_L shiftMask() const CONST_R;
         int CONST_L toInt() const CONST_R;
@@ -126,7 +128,9 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
         inline bool isEmpty() const { return 0 != _mm_testz_si128(dataI(), dataI()); }
         inline bool isMix  () const { return 0 != _mm_testnzc_si128(dataI(), _mm_setallone_si128()); }
 
+#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
         inline operator bool() const { return isFull(); }
+#endif
 
         inline int CONST_L shiftMask() const CONST_R;
         int CONST_L toInt() const CONST_R;

@@ -126,7 +126,9 @@ template<unsigned int VectorSize> class Mask
 #endif
         }
 
+#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
         inline operator bool() const { return isFull(); }
+#endif
 
         inline int CONST_L shiftMask() const CONST_R;
 
@@ -418,7 +420,9 @@ class Float8Mask
 #endif
         }
 
+#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
         inline operator bool() const { return isFull(); }
+#endif
 
         inline int shiftMask() const {
             return (_mm_movemask_ps(k[1]) << 4) + _mm_movemask_ps(k[0]);
