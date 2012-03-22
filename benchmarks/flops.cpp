@@ -109,34 +109,31 @@ int bmain()
                     : "x"(y)
                        );
 #else
-            __m256 tmp;
             __asm__(
                     ".align 16\n\t0: "
-                    "vmulps  %10,%0,%0"   "\n\t"
-                    "vmulps  %10,%1,%1"   "\n\t"
-                    "vmulps  %10,%2,%2"   "\n\t"
-                    "vmovaps  %7,%8,%8"   "\n\t"
-                    "vmulps  %10,%8,%8"   "\n\t"
-                    "vaddps  %10,%0,%0"   "\n\t"
-                    "vmulps  %10,%3,%3"   "\n\t"
-                    "vaddps  %10,%1,%1"   "\n\t"
-                    "vmulps  %10,%4,%4"   "\n\t"
-                    "vaddps  %10,%2,%2"   "\n\t"
-                    "vaddps  %10,%8,%8"   "\n\t"
-                    "vmovaps  %8,%7,%7"   "\n\t"
-                    "vmulps  %10,%5,%5"   "\n\t"
-                    "vaddps  %10,%3,%3"   "\n\t"
-                    "vaddps  %10,%4,%4"   "\n\t"
-                    "vmovaps  %6,%8,%8"   "\n\t"
-                    "vmulps  %10,%8,%8"   "\n\t"
-                    "vaddps  %10,%5,%5"   "\n\t"
-                    "vaddps  %10,%8,%8"   "\n\t"
-                    "vmovaps  %8,%6,%6"   "\n\t"
-                    "dec      %9"      "\n\t"
+                    "vmulps  %[y],%0,%0"   "\n\t"
+                    "vmulps  (%[x7]),%[y],%%ymm7"   "\n\t"
+                    "vmulps  %[y],%1,%1"   "\n\t"
+                    "vmulps  %[y],%2,%2"   "\n\t"
+                    "vaddps  %[y],%0,%0"   "\n\t"
+                    "vmulps  %[y],%3,%3"   "\n\t"
+                    "vaddps  %[y],%1,%1"   "\n\t"
+                    "vmulps  %[y],%4,%4"   "\n\t"
+                    "vaddps  %[y],%2,%2"   "\n\t"
+                    "vaddps  %[y],%%ymm7,%%ymm7"   "\n\t"
+                    "vmovaps     %%ymm7,(%[x7])"   "\n\t"
+                    "vmulps  %[y],%5,%5"   "\n\t"
+                    "vaddps  %[y],%3,%3"   "\n\t"
+                    "vaddps  %[y],%4,%4"   "\n\t"
+                    "vmulps  (%[x6]),%[y],%%ymm7"   "\n\t"
+                    "vaddps  %[y],%5,%5"   "\n\t"
+                    "vaddps  %[y],%%ymm7,%%ymm7"   "\n\t"
+                    "vmovaps     %%ymm7,(%[x6])"   "\n\t"
+                    "sub     $1,%[r]"      "\n\t"
                     "jne 0b"         "\n\t"
-                    : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), "+m"(x[6]), "+m"(x[7]), "+x"(tmp), "+r"(i)
-                    : "x"(y)
-                       );
+                    : "+x"(x[0]), "+x"(x[1]), "+x"(x[2]), "+x"(x[3]), "+x"(x[4]), "+x"(x[5]), [r]"+r"(i)
+                    : [x6]"r"(&x[6]), [x7]"r"(&x[7]), [y]"x"(y)
+                    : "xmm7");
 #endif
             ///////////////////////////////////////
             timer.Stop();
