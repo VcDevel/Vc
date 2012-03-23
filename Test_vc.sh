@@ -59,9 +59,8 @@ chip=$(uname -m | tr '[A-Z]' '[a-z]')
 
 # extract information about the system and the machine and set
 # environment variables used by ctest
-SYSTEM=$arch-$chip
 if test -z "$CXX" ; then
-  COMPILER="`g++ --version 2>&1|head -n1`"
+  COMPILER="`c++ --version 2>&1|head -n1`"
 else
   COMPILER="`"$CXX" --version 2>&1|head -n1`"
 fi
@@ -74,7 +73,7 @@ if test "$arch" = "linux"; then
     LABEL1="$branch $LINUX_FLAVOUR $chip $COMPILER $CXXFLAGS"
   fi
 fi
-export LABEL=$(echo $LABEL1 | sed -e 's#/#_#g')
+export LABEL=$(echo $LABEL1 | tr '[/+]' '[_x]')
 
 # get the number of processors
 # and information about the host
