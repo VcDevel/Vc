@@ -25,7 +25,7 @@
 # endif
 #endif
 
-#include "avx/const.h"
+#include "avx/const_data.h"
 #include "sse/const_data.h"
 #include "include/Vc/version.h"
 
