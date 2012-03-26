@@ -65,6 +65,8 @@ namespace
 #endif
 } // anonymous namespace
 
+namespace std
+{
 inline std::ostream &operator<<(std::ostream &out, const AnsiColor::Type &c)
 {
     if (mayUseColor(out)) {
@@ -184,7 +186,7 @@ inline std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Paren
     out << AnsiColor::blue << "}" << AnsiColor::normal;
     return out;
 }
-
+} // namespace std
 
 #undef VECTOR_NAMESPACE
 
