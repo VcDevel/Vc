@@ -57,6 +57,13 @@ namespace Common
 using Vc::VC__USE_NAMESPACE::Const;
 using Vc::VC__USE_NAMESPACE::Vector;
 #endif
+enum LogarithmBase {
+    BaseE, Base10, Base2
+};
+
+template<LogarithmBase Base>
+struct LogImpl
+{
     template<typename T> static inline ALWAYS_INLINE void log_series(Vector<T> &VC_RESTRICT x, const Vector<T> exponent) {
         typedef Vector<T> V;
         typedef Const<T> C;
@@ -131,11 +138,32 @@ using Vc::VC__USE_NAMESPACE::Vector;
                 );
         y *= x * x2;
 #endif
-        // ln(2) is split in two parts to increase precision (i.e. ln2_small + ln2_large = ln(2))
-        y += exponent * C::ln2_small();
-        y -= x2 * C::_1_2(); // [0, 0.25[
-        x += y;
-        x += exponent * C::ln2_large();
+        switch (Base) {
+        case BaseE:
+            // ln(2) is split in two parts to increase precision (i.e. ln2_small + ln2_large = ln(2))
+            y += exponent * C::ln2_small();
+            y -= x2 * C::_1_2(); // [0, 0.25[
+            x += y;
+            x += exponent * C::ln2_large();
+            break;
+        case Base10:
+            y += exponent * C::ln2_small();
+            y -= x2 * C::_1_2(); // [0, 0.25[
+            x += y;
+            x += exponent * C::ln2_large();
+            x *= C::log10_e();
+            break;
+        case Base2:
+            {
+                const V x_ = x;
+                x *= C::log2_e();
+                y *= C::log2_e();
+                y -= x_ * x * C::_1_2(); // [0, 0.25[
+                x += y;
+                x += exponent;
+                break;
+            }
+        }
     }
 
     static inline ALWAYS_INLINE void log_series(Vector<double> &VC_RESTRICT x, const Vector<double> exponent) {
@@ -150,11 +178,37 @@ using Vc::VC__USE_NAMESPACE::Vector;
                 );
         y2 = x / y2;
         y = y * x + C::P(5);
-        y = x2 * y * y2 + exponent * C::ln2_small() - x2 * C::_1_2();
-        x += y;
-        x += exponent * C::ln2_large();
+        y = x2 * y * y2;
+        // TODO: refactor the following with the float implementation:
+        switch (Base) {
+        case BaseE:
+            // ln(2) is split in two parts to increase precision (i.e. ln2_small + ln2_large = ln(2))
+            y += exponent * C::ln2_small();
+            y -= x2 * C::_1_2(); // [0, 0.25[
+            x += y;
+            x += exponent * C::ln2_large();
+            break;
+        case Base10:
+            y += exponent * C::ln2_small();
+            y -= x2 * C::_1_2(); // [0, 0.25[
+            x += y;
+            x += exponent * C::ln2_large();
+            x *= C::log10_e();
+            break;
+        case Base2:
+            {
+                const V x_ = x;
+                x *= C::log2_e();
+                y *= C::log2_e();
+                y -= x_ * x * C::_1_2(); // [0, 0.25[
+                x += y;
+                x += exponent;
+                break;
+            }
+        }
     }
-    template<typename T> static inline Vector<T> log(Vector<T> x) {
+
+    template<typename T> static inline Vector<T> calc(Vector<T> x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
         typedef Const<T> C;
@@ -188,18 +242,23 @@ using Vc::VC__USE_NAMESPACE::Vector;
 
         return x;
     }
-    template<typename T> static inline Vector<T> log10(Vector<T> x) {
-        typedef typename Vector<T>::Mask M;
-        typedef Const<T> C;
+};
 
-        return log(x) * C::log10_e();
-    }
-    template<typename T> static inline Vector<T> log2(Vector<T> x) {
-        typedef typename Vector<T>::Mask M;
-        typedef Const<T> C;
-
-        return log(x) * C::log2_e();
-    }
+template<typename T> static inline Vector<T> log(Vector<T> x) {
+    typedef typename Vector<T>::Mask M;
+    typedef Const<T> C;
+    return LogImpl<BaseE>::calc(x);
+}
+template<typename T> static inline Vector<T> log10(Vector<T> x) {
+    typedef typename Vector<T>::Mask M;
+    typedef Const<T> C;
+    return LogImpl<Base10>::calc(x);
+}
+template<typename T> static inline Vector<T> log2(Vector<T> x) {
+    typedef typename Vector<T>::Mask M;
+    typedef Const<T> C;
+    return LogImpl<Base2>::calc(x);
+}
 } // namespace Common
 #ifdef VC__USE_NAMESPACE
 namespace VC__USE_NAMESPACE
