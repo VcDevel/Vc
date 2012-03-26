@@ -331,8 +331,8 @@ namespace AVX
                 _mm_cmpgt_epi32(_mm256_extractf128_si256(a, 1), _mm256_extractf128_si256(b, 1)), 1);
     }
 
-#if defined(VC_GCC) && (VC_GCC > 0x40502 || (VC_GCC == 0x40502 && defined(__GNUC_UBUNTU_VERSION__) && __GNUC_UBUNTU_VERSION__ == 0xb0409))
-// GCC 4.6.0 / 4.5.3 switched to the broken interface as defined by ICC
+#if defined(VC_GCC) && (VC_GCC > 0x40502 || (VC_GCC == 0x40502 && defined(__GNUC_UBUNTU_VERSION__) && __GNUC_UBUNTU_VERSION__ == 0xb0409) || (VC_GCC > 0x40405 && VC_GCC < 0x40500))
+// GCC 4.6.0 / 4.5.3 / 4.4.6 switched to the broken interface as defined by ICC
 // Ubuntu 11.04 ships a GCC 4.5.2 with the new interface
 #define VC_MASKSTORE_MASK_TYPE_IS_INT 1
 #endif
