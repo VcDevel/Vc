@@ -345,6 +345,13 @@ typedef Vector<int>            int_v;
 typedef Vector<unsigned int>   uint_v;
 typedef Vector<short>          short_v;
 typedef Vector<unsigned short> ushort_v;
+typedef double_v::Mask double_m;
+typedef  float_v::Mask float_m;
+typedef sfloat_v::Mask sfloat_m;
+typedef    int_v::Mask int_m;
+typedef   uint_v::Mask uint_m;
+typedef  short_v::Mask short_m;
+typedef ushort_v::Mask ushort_m;
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 

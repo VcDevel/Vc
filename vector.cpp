@@ -43,7 +43,7 @@ namespace AVX
     V_ALIGN(16) extern const unsigned char  _IndexesFromZero8 [16]= { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
     // cacheline 2
-    template<> const double c_sin<double>::_data[8] = {
+    template<> const double c_sin<double>::data[8] = {
         0.5 / M_PI, // 1 over 2pi
         M_PI * 2.,  // 2pi
         M_PI * 0.5, // pi over 2
@@ -55,7 +55,7 @@ namespace AVX
     };
 
     // cacheline 3
-    template<> const float c_sin<float>::_data[8] = {
+    template<> const float c_sin<float>::data[8] = {
         1.59154936671257019e-01f, // 1 over 2pi
         6.28318548202514648f,     // 2pi
         1.57079637050628662f,     // pi over 2
@@ -77,61 +77,57 @@ namespace AVX
     const             double c_general::oneDouble = 1.;
     const unsigned long long c_general::frexpMask = 0xbfefffffffffffffull;
 
-    template<> const unsigned long long c_log<double, Vc::AVX::Mask<4, 32> >::_dataI[15] = {
-        0x000003ff000003ffull, // bias TODO: remove
-        0x7ff0000000000000ull, // exponentMask (+inf)
+    const unsigned long long c_log<double>::data[21] = {
+        0x000003ff000003ffull // bias TODO: remove
+      , 0x7ff0000000000000ull // exponentMask (+inf)
 
-        0x3f1ab4c293c31bb0ull, // P[0]
-        0x3fdfd6f53f5652f2ull, // P[1]
-        0x4012d2baed926911ull, // P[2]
-        0x402cff72c63eeb2eull, // P[3]
-        0x4031efd6924bc84dull, // P[4]
-        0x401ed5637d7edcf8ull, // P[5]
+      , 0x3f1ab4c293c31bb0ull // P[0]
+      , 0x3fdfd6f53f5652f2ull // P[1]
+      , 0x4012d2baed926911ull // P[2]
+      , 0x402cff72c63eeb2eull // P[3]
+      , 0x4031efd6924bc84dull // P[4]
+      , 0x401ed5637d7edcf8ull // P[5]
 
-        0x40269320ae97ef8eull, // Q[0]
-        0x40469d2c4e19c033ull, // Q[1]
-        0x4054bf33a326bdbdull, // Q[2]
-        0x4051c9e2eb5eae21ull, // Q[3]
-        0x4037200a9e1f25b2ull, // Q[4]
+      , 0x40269320ae97ef8eull // Q[0]
+      , 0x40469d2c4e19c033ull // Q[1]
+      , 0x4054bf33a326bdbdull // Q[2]
+      , 0x4051c9e2eb5eae21ull // Q[3]
+      , 0x4037200a9e1f25b2ull // Q[4]
 
-        0xfff0000000000000ull, // -inf
-        0x0010000000000000ull  // min()
-    };
-    template<> const double c_log<double, Vc::AVX::Mask<4, 32> >::_dataT[6] = {
-        0.70710678118654757273731092936941422522068023681640625, // 1/sqrt(2)
-        -0.0002121944400546905827678785418234319244999, // ln(2) - 0.693359375
-        0.693359375, // ln(2) + 0.0002121944400546905827678785418234319244999
-        0.5,
-        0.434294481903251827651128918916605082294397005803666566114454, // log10(e)
-        1.44269504088896340735992468100189213742664595415298593413545   // log2(e)
+      , 0xfff0000000000000ull // -inf
+      , 0x0010000000000000ull // min()
+      , 0x3fe6a09e667f3bcdull // 1/sqrt(2)
+      , 0x3fe6300000000000ull // round(ln(2) * 512) / 512
+      , 0xbf2bd0105c610ca8ull // ln(2) - round(ln(2) * 512) / 512
+      , 0x3fe0000000000000ull // 0.5
+      , 0x3fdbcb7b1526e50eull // log10(e)
+      , 0x3ff71547652b82feull // log2(e)
     };
 
-    template<> const unsigned int c_log<float, Vc::AVX::Mask<8, 32> >::_dataI[15] = {
-        0x0000007fu, // bias TODO: remove
-        0x7f800000u, // exponentMask (+inf)
+    template<> const unsigned int c_log<float>::data[21] = {
+        0x0000007fu // bias TODO: remove
+      , 0x7f800000u // exponentMask (+inf)
 
-        0x3d9021bbu, //  7.0376836292e-2f // P[0]
-        0xbdebd1b8u, // -1.1514610310e-1f // P[1]
-        0x3def251au, //  1.1676998740e-1f // P[2]
-        0xbdfe5d4fu, // -1.2420140846e-1f // P[3]
-        0x3e11e9bfu, //  1.4249322787e-1f // P[4]
-        0xbe2aae50u, // -1.6668057665e-1f // P[5]
-        0x3e4cceacu, //  2.0000714765e-1f // P[6]
-        0xbe7ffffcu, // -2.4999993993e-1f // P[7]
-        0x3eaaaaaau, //  3.3333331174e-1f // P[8]
-        0, // padding
-        0, // padding
+      , 0x3d9021bbu //  7.0376836292e-2f // P[0]
+      , 0xbdebd1b8u // -1.1514610310e-1f // P[1]
+      , 0x3def251au //  1.1676998740e-1f // P[2]
+      , 0xbdfe5d4fu // -1.2420140846e-1f // P[3]
+      , 0x3e11e9bfu //  1.4249322787e-1f // P[4]
+      , 0xbe2aae50u // -1.6668057665e-1f // P[5]
+      , 0x3e4cceacu //  2.0000714765e-1f // P[6]
+      , 0xbe7ffffcu // -2.4999993993e-1f // P[7]
+      , 0x3eaaaaaau //  3.3333331174e-1f // P[8]
+      , 0           // padding because of c_log<double>
+      , 0           // padding because of c_log<double>
 
-        0xff800000u, // -inf
-        0x00800000u  // min()
-    };
-    template<> const float c_log<float, Vc::AVX::Mask<8, 32> >::_dataT[6] = {
-        0.70710678118654757273731092936941422522068023681640625f, // 1/sqrt(2)
-        -0.0002121944400546905827678785418234319244999f, // ln(2) - 0.693359375
-        0.693359375f, // ln(2) + 0.0002121944400546905827678785418234319244999
-        0.5f,
-        0.434294481903251827651128918916605082294397005803666566114454f, // log10(e)
-        1.44269504088896340735992468100189213742664595415298593413545f   // log2(e)
+      , 0xff800000u // -inf
+      , 0x00800000u // min()
+      , 0x3f3504f3u // 1/sqrt(2)
+      , 0x3f318000u // round(ln(2) * 512) / 512
+      , 0xb95e8083u // ln(2) - round(ln(2) * 512) / 512
+      , 0x3f000000u // 0.5
+      , 0x3ede5bd9u // log10(e)
+      , 0x3fb8aa3bu // log2(e)
     };
 } // namespace AVX
 
