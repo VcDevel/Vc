@@ -118,6 +118,19 @@ template<typename V> void testLog()
 }
 
 static inline float my_log2(float x) { return ::log2f(x); }
+/* I need to make sure whether the log2 that I compare against is really precise to <0.5ulp. At
+ * least I get different results when I use "double log2(double)", which is somewhat unexpected.
+ * Well, conversion from double to float goes via truncation, so if the most significant truncated
+ * mantissa bit is set the resulting float is incorrect by 1 ulp
+
+static inline float my_log2(float x) { return ::log2(static_cast<double>(x)); }
+static inline float my_log2(float x) {
+    double tmp = ::log2(static_cast<double>(x));
+    int e;
+    frexp(tmp, &e); // frexp(0.5) -> e = 0
+    return tmp + ldexp(tmp < 0 ? -0.5 : 0.5, e - 24);
+}
+ */
 static inline double my_log2(double x) { return ::log2(x); }
 
 template<typename V> void testLog2()
