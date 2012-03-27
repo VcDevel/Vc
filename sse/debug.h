@@ -80,7 +80,7 @@ class DebugStream
 };
 #endif
 
-#define VC_DEBUG DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define VC_DEBUG ::Vc::SSE::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 
 } // namespace SSE
 } // namespace Vc
