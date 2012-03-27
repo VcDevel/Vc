@@ -715,13 +715,13 @@ namespace SSE
             break;
 #else
         case 1:
-            f = _mm_cvtss_f32(_mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(v), 4)));
+            f = _mm_cvtss_f32(_mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(v), 4)));
             break;
         case 2:
             f = _mm_cvtss_f32(_mm_movehl_ps(v, v));
             break;
         case 3:
-            f = _mm_cvtss_f32(_mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(v), 12)));
+            f = _mm_cvtss_f32(_mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(v), 12)));
             break;
 #endif
         }

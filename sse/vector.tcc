@@ -981,7 +981,7 @@ template<> inline int PURE INTRINSIC Vector<int>::operator[](size_t index) const
 #ifdef VC_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
 #else
-        return _mm_cvtsi128_si32(_mm_slli_si128(d.v(), index * 4));
+        return _mm_cvtsi128_si32(_mm_srli_si128(d.v(), index * 4));
 #endif
     }
     return Base::d.m(index);
@@ -1000,7 +1000,7 @@ template<> inline unsigned int PURE INTRINSIC Vector<unsigned int>::operator[](s
 #ifdef VC_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
 #else
-        return _mm_cvtsi128_si32(_mm_slli_si128(d.v(), index * 4));
+        return _mm_cvtsi128_si32(_mm_srli_si128(d.v(), index * 4));
 #endif
     }
     return Base::d.m(index);
