@@ -17,16 +17,23 @@ find_package(Qt4)
 
 vc_determine_compiler()
 
-if(VC_COMPILER_IS_GCC AND VC_GCC_VERSION STREQUAL "4.6.0")
-   list(APPEND disabled_targets
-      gather_avx
-      gather_sse
-      gather_VC_USE_SET_GATHERS_avx
-      gather_VC_USE_SET_GATHERS_sse
-      gather_sse_LOOP
-      scatter_avx
-      scatter_sse
-      )
+if(VC_COMPILER_IS_GCC)
+   if(VC_GCC_VERSION STREQUAL "4.6.0")
+      #message(STATUS "GCC 4.7.0 miscompiles gather_avx, gather_sse, gather_VC_USE_SET_GATHERS_avx, gather_VC_USE_SET_GATHERS_sse, gather_sse_LOOP, scatter_avx, and scatter_sse")
+      list(APPEND disabled_targets
+         gather_avx
+         gather_sse
+         gather_VC_USE_SET_GATHERS_avx
+         gather_VC_USE_SET_GATHERS_sse
+         gather_sse_LOOP
+         scatter_avx
+         scatter_sse
+         )
+   elseif(VC_GCC_VERSION STREQUAL "4.7.0")
+      message(WARNING "GCC 4.7.0 miscompiles the following tests
+      - gatherStruct<double_v> in gather_VC_USE_SET_GATHERS_sse
+      - testVectorReorganization in memory_sse and memory_avx")
+   endif()
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
