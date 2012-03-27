@@ -150,7 +150,7 @@ template<typename V> void testLog2()
     for (size_t i = 0; i < Denormals<T>::data.entriesCount(); i += V::Size) {
         V x(&Denormals<T>::data[i]);
         V reference = apply_v(x, my_log2);
-        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
+        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
     }
 }
 
@@ -172,7 +172,7 @@ template<typename V> void testLog10()
     for (size_t i = 0; i < Denormals<T>::data.entriesCount(); i += V::Size) {
         V x(&Denormals<T>::data[i]);
         V reference = apply_v(x, std::log10);
-        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
+        FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x << ", i = " << i;
     }
 }
 
