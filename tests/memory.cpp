@@ -22,7 +22,7 @@
 
 using namespace Vc;
 
-template<typename V, unsigned int Size, template<typename V, unsigned int Size> class TestClass> struct TestWrapper
+template<typename V, unsigned int Size, template<typename V2, unsigned int Size2> class TestClass> struct TestWrapper
 {
     static inline void run()
     {
@@ -31,7 +31,7 @@ template<typename V, unsigned int Size, template<typename V, unsigned int Size> 
         TestClass<V, Size - 1>::test();
     }
 };
-template<typename V, template<typename V, unsigned int Size> class TestClass> struct TestWrapper<V, 1, TestClass> {
+template<typename V, template<typename V2, unsigned int Size> class TestClass> struct TestWrapper<V, 1, TestClass> {
     static inline void run() {}
 };
 

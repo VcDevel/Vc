@@ -25,6 +25,8 @@
 #define VC_ICC 1
 #elif defined(__OPENCC__)
 #define VC_OPEN64 1
+#elif defined(__clang__)
+#define VC_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
 #elif defined(__GNUC__)
 #define VC_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
 #elif defined(_MSC_VER)
@@ -266,7 +268,94 @@
 #undef AVX
 #undef Scalar
 
-#if VC_IMPL_Scalar
+#ifndef DOXYGEN
+namespace Vc {
+enum AlignedFlag {
+    Aligned = 0
+};
+enum UnalignedFlag {
+    Unaligned = 1
+};
+enum StreamingAndAlignedFlag { // implies Aligned
+    Streaming = 2
+};
+enum StreamingAndUnalignedFlag {
+    StreamingAndUnaligned = 3
+};
+#endif
+
+/**
+ * \ingroup Utilities
+ *
+ * Enum that specifies the alignment and padding restrictions to use for memory allocation with
+ * Vc::malloc.
+ */
+enum MallocAlignment {
+    /**
+     * Align on boundary of vector sizes (e.g. 16 Bytes on SSE platforms) and pad to allow
+     * vector access to the end. Thus the allocated memory contains a multiple of
+     * VectorAlignment bytes.
+     */
+    AlignOnVector,
+    /**
+     * Align on boundary of cache line sizes (e.g. 64 Bytes on x86) and pad to allow
+     * full cache line access to the end. Thus the allocated memory contains a multiple of
+     * 64 bytes.
+     */
+    AlignOnCacheline,
+    /**
+     * Align on boundary of page sizes (e.g. 4096 Bytes on x86) and pad to allow
+     * full page access to the end. Thus the allocated memory contains a multiple of
+     * 4096 bytes.
+     */
+    AlignOnPage
+};
+
+static inline StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+static inline StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+static inline StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+static inline StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+
+static inline StreamingAndAlignedFlag operator|(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
+static inline StreamingAndAlignedFlag operator|(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
+static inline StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
+static inline StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
+
+/**
+ * \ingroup Utilities
+ *
+ * Enum to identify a certain SIMD instruction set.
+ *
+ * You can use \ref VC_IMPL for the currently active implementation.
+ */
+enum Implementation {
+    /// uses only built-in types
+    ScalarImpl,
+    /// x86 SSE + SSE2
+    SSE2Impl,
+    /// x86 SSE + SSE2 + SSE3
+    SSE3Impl,
+    /// x86 SSE + SSE2 + SSE3 + SSSE3
+    SSSE3Impl,
+    /// x86 SSE + SSE2 + SSE3 + SSSE3 + SSE4.1
+    SSE41Impl,
+    /// x86 SSE + SSE2 + SSE3 + SSSE3 + SSE4.1 + SSE4.2
+    SSE42Impl,
+    /// x86 (AMD only) SSE + SSE2 + SSE3 + SSE4a
+    SSE4aImpl,
+    /// x86 AVX
+    AVXImpl
+};
+
+#ifdef DOXYGEN
+/**
+ * \ingroup Utilities
+ *
+ * This macro is set to the value of Vc::Implementation that the current translation unit is
+ * compiled with.
+ */
+#define VC_IMPL
+#elif VC_IMPL_Scalar
 #define VC_IMPL ::Vc::ScalarImpl
 #elif VC_IMPL_AVX
 #define VC_IMPL ::Vc::AVXImpl
@@ -284,39 +373,6 @@
 #define VC_IMPL ::Vc::SSE2Impl
 #endif
 
-namespace Vc {
-enum AlignedFlag {
-    Aligned = 0
-};
-enum UnalignedFlag {
-    Unaligned = 1
-};
-enum StreamingAndAlignedFlag { // implies Aligned
-    Streaming = 2
-};
-enum StreamingAndUnalignedFlag {
-    StreamingAndUnaligned = 3
-};
-
-enum MallocAlignment {
-    AlignOnVector,
-    AlignOnCacheline,
-    AlignOnPage
-};
-
-static inline StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-static inline StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
-static inline StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-static inline StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
-
-static inline StreamingAndAlignedFlag operator|(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-static inline StreamingAndAlignedFlag operator|(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
-static inline StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-static inline StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
-
-enum Implementation {
-    ScalarImpl, SSE2Impl, SSE3Impl, SSSE3Impl, SSE41Impl, SSE42Impl, SSE4aImpl, AVXImpl
-};
 namespace Internal {
     template<Implementation Impl> struct HelperImpl;
     typedef HelperImpl<VC_IMPL> Helper;

@@ -51,4 +51,9 @@
 #undef VC_STATIC_ASSERT_NC
 #undef VC_STATIC_ASSERT
 
+#undef VC_HAS_BUILTIN
+
+#undef Vc_buildDouble
+#undef Vc_buildFloat
+
 #endif // VC_COMMON_UNDOMACROS_H

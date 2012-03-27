@@ -99,9 +99,17 @@ class WriteMaskedVector
             vec->assign(x, mask);
             return *vec;
         }
+
+        template<typename F> inline void INTRINSIC call(F &f) const {
+            return vec->call(f, mask);
+        }
+        template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
+            return vec->apply(f, mask);
+        }
+
     private:
         WriteMaskedVector(Vector<T> *v, const Mask &k) : vec(v), mask(k) {}
-        Vector<T> *vec;
+        Vector<T> *const vec;
         Mask mask;
 };
 
@@ -338,6 +346,34 @@ class Vector : public VectorBase<T>
                     f(value);
                 }
             }
+        }
+
+        template<typename F> inline void INTRINSIC call(F &f) const {
+            for_all_vector_entries(i,
+                    f(EntryType(d.m(i)));
+                    );
+        }
+
+        template<typename F> inline void INTRINSIC call(F &f, const Mask &mask) const {
+            Vc_foreach_bit(size_t i, mask) {
+                f(EntryType(d.m(i)));
+            }
+        }
+
+        template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
+            Vector<T> r;
+            for_all_vector_entries(i,
+                    r.d.m(i) = f(EntryType(d.m(i)));
+                    );
+            return r;
+        }
+
+        template<typename F> inline Vector<T> INTRINSIC apply(F &f, const Mask &mask) const {
+            Vector<T> r(*this);
+            Vc_foreach_bit (size_t i, mask) {
+                r.d.m(i) = f(EntryType(r.d.m(i)));
+            }
+            return r;
         }
 
         inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;

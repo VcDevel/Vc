@@ -172,6 +172,82 @@ namespace SSE
         return M256::create(_mm_castsi128_ps(_mm_add_epi32(_mm_castps_si128(v.data()[0]), exponentBits0)),
                 _mm_castsi128_ps(_mm_add_epi32(_mm_castps_si128(v.data()[1]), exponentBits1)));
     }
+
+#ifdef VC_IMPL_SSE4_1
+    inline double_v floor(double_v v) { return _mm_floor_pd(v.data()); }
+    inline float_v floor(float_v v) { return _mm_floor_ps(v.data()); }
+    inline sfloat_v floor(sfloat_v v) { return M256::create(_mm_floor_ps(v.data()[0]),
+            _mm_floor_ps(v.data()[1])); }
+    inline double_v ceil(double_v v) { return _mm_ceil_pd(v.data()); }
+    inline float_v ceil(float_v v) { return _mm_ceil_ps(v.data()); }
+    inline sfloat_v ceil(sfloat_v v) { return M256::create(_mm_ceil_ps(v.data()[0]),
+            _mm_ceil_ps(v.data()[1])); }
+#else
+    static inline void floor_shift(float_v &v, float_v e)
+    {
+        int_v x = _mm_setallone_si128();
+        x <<= 23;
+        x >>= static_cast<int_v>(e);
+        v &= x.reinterpretCast<float_v>();
+    }
+
+    static inline void floor_shift(sfloat_v &v, sfloat_v e)
+    {
+        int_v x = _mm_setallone_si128();
+        x <<= 23;
+        int_v y = x;
+        x >>= _mm_cvttps_epi32(e.data()[0]);
+        y >>= _mm_cvttps_epi32(e.data()[1]);
+        v.data()[0] = _mm_and_ps(v.data()[0], _mm_castsi128_ps(x.data()));
+        v.data()[1] = _mm_and_ps(v.data()[1], _mm_castsi128_ps(y.data()));
+    }
+
+    static inline void floor_shift(double_v &v, double_v e)
+    {
+        Common::VectorMemoryUnion<__m128i, long long> x = _mm_setallone_si128();
+        const uint_v shifts = static_cast<uint_v>(e);
+        x.v() = _mm_slli_epi64(x.v(), 52);
+        x.m(0) >>= shifts[0];
+        x.m(1) >>= shifts[1];
+        v &= double_v(_mm_castsi128_pd(x.v()));
+    }
+
+    template<typename T>
+    inline Vector<T> floor(Vector<T> _v) {
+        typedef Vector<T> V;
+        typedef typename V::Mask M;
+
+        V v = _v;
+        V e = abs(v).exponent();
+        const M negativeExponent = e < 0;
+        e.setZero(negativeExponent);
+        const M negativeInput = v < V::Zero();
+
+        floor_shift(v, e);
+
+        v.setZero(negativeExponent);
+        v(negativeInput && _v != v) -= V::One();
+        return v;
+    }
+
+    template<typename T>
+    inline Vector<T> ceil(Vector<T> _v) {
+        typedef Vector<T> V;
+        typedef typename V::Mask M;
+
+        V v = _v;
+        V e = abs(v).exponent();
+        const M negativeExponent = e < 0;
+        e.setZero(negativeExponent);
+        const M positiveInput = v > V::Zero();
+
+        floor_shift(v, e);
+
+        v.setZero(negativeExponent);
+        v(positiveInput && _v != v) += V::One();
+        return v;
+    }
+#endif
 } // namespace SSE
 } // namespace Vc
 
@@ -179,5 +255,8 @@ namespace SSE
 #include "../common/trigonometric.h"
 #define VC__USE_NAMESPACE SSE
 #include "../common/logarithm.h"
+#define VC__USE_NAMESPACE SSE
+#include "../common/exponential.h"
+#undef VC__USE_NAMESPACE
 
 #endif // VC_SSE_MATH_H

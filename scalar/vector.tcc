@@ -44,7 +44,7 @@ template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<doubl
     } value, sign;
     value.f = data();
     sign.f = reference.data();
-    value.i = (sign.i & 0x8000000000000000u) | (value.i & 0x7fffffffffffffffu);
+    value.i = (sign.i & 0x8000000000000000ull) | (value.i & 0x7fffffffffffffffull);
     return value.f;
 } // }}}1
 // bitwise operators {{{1

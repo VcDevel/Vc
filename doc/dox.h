@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -24,7 +24,9 @@
  * The Vc library is a collection of vector classes with existing implementations for SSE, AVX,
  * and a scalar fallback.
  *
- * \subpage intro
+ * \ref intro
+ *
+ * \ref portability
  *
  * \li \ref Vectors
  * \li \ref Masks
@@ -68,6 +70,7 @@
  * instructions.
  *
  * \par Example 1:
+ *
  * You can modify a function to use vector types and thus implement a horizontal vectorization. The
  * original scalar function could look like this:
  * \code
@@ -95,16 +98,106 @@
  * The latter function is able to normalize four 3D vectors when compiled for SSE in the same
  * time the former function normalizes one 3D vector.
  *
- * \par
+ * For completeness, note that you can optimize the division in the normalize function further:
+ * \code
+ *   const float_v d_inv = float_v::One() / Vc::sqrt(x * x + y * y + z * z);
+ *   const float_v d_inv = Vc::rsqrt(x * x + y * y + z * z); // less accurate, but faster
+ * \endcode
+ * Then you can multiply \c x, \c y, and \c z with \c d_inv, which is considerably faster than three
+ * divisions.
+ *
  * As you can probably see, the new challenge with Vc is the use of good data-structures which
  * support horizontal vectorization. Depending on your problem at hand this may become the main
  * focus of design (it does not have to be, though).
  */
 
 /**
+ * \page portability Portability Issues
+ *
+ * One of the major goals of Vc is to ease development of portable code, while achieving highest
+ * possible performance that requires target architecture specific instructions. This is possible
+ * through having just a single type use different implementations of the same API depending on the
+ * target architecture. Many of the details of the target architecture are often dependent on the
+ * compiler flags that were used. Also there can be subtle differences between the implementations
+ * that could lead to problems. This page aims to document all issues you might need to know about.
+ *
+ * \par Compiler Flags
+ *
+ * \li \e GCC: The compiler should be called with the -march=\<target\> flag. Take a look at the GCC
+ * manpage to find all possibilities for \<target\>. Additionally it is best to also add the -msse2
+ * -msse3 ... -mavx flags. If no SIMD instructions are enabled via compiler flags, Vc must fall back
+ * to the scalar implementation.
+ * \li \e Clang: The same as for GCC applies.
+ * \li \e ICC: Same as GCC, but the flags are called -xAVX -xSSE4.2 -xSSE4.1 -xSSSE3 -xSSE3 -xSSE2.
+ * \li \e MSVC: On 32bit you can add the /arch:SSE2 flag. That's about all the MSVC documentation
+ * says. Still the MSVC compiler knows about the newer instructions in SSE3 and upwards. How you can
+ * determine what CPUs will be supported by the resulting binary is unclear.
+ *
+ * \par Where does the final executable run?
+ *
+ * You must be aware of the fact that a binary that is built for a given SIMD hardware may not run
+ * on a processor that does not have these instructions. The executable will work fine as long as no
+ * such instruction is actually executed and only crash at the place where such an instruction is
+ * used. Thus it is better to check at application start whether the compiled in SIMD hardware is
+ * really supported on the executing CPU. This can be determined with the
+ * currentImplementationSupported function.
+ *
+ * If you want to distribute a binary that runs correctly on many different systems you either must
+ * restrict it to the least common denominator (which often is SSE2), or you must compile the code
+ * several times, with the different target architecture compiler options. A simple way to combine
+ * the resulting executables would be via a wrapping script/executable that determines the correct
+ * executable to use. A more sophisticated option is the use of the ifunc attribute GCC provides.
+ * Other compilers might provide similar functionality.
+ *
+ * \par Guarantees
+ *
+ * It is guaranteed that:
+ * \li \code int_v::Size == uint_v::Size == float_v::Size \endcode
+ * \li \code short_v::Size == ushort_v::Size == sfloat_v::Size \endcode
+ *
+ * \par Important Differences between Implementations
+ *
+ * \li Obviously the number of entries in a vector depends on the target architecture.
+ * \li Because of the guarantees above, sfloat_v does not necessarily map to a single SIMD register
+ * and thus there could be a higher register pressure when this type is used.
+ * \li Hardware that does not support 16-Bit integer vectors can implement the short_v and ushort_v
+ * API via 32-Bit integer vectors. Thus, some of the overflow behavior might be slightly different,
+ * and truncation will only happen when the vector is stored to memory.
+ */
+
+/**
  * \defgroup Vectors Vectors
  *
- * Vector classes are abstractions for SIMD instructions.
+ * The vector classes abstract the SIMD registers and their according instructions into types that
+ * feel very familiar to C++ developers.
+ *
+ * Note that the documented types Vc::float_v, Vc::double_v, Vc::int_v, Vc::uint_v, Vc::short_v,
+ * and Vc::ushort_v are actually \c typedefs of the \c Vc::Vector<T> class:
+ * \code
+ * namespace Vc {
+ *   template<typename T> class Vector;
+ * }
+ * \endcode
+ *
+ * \par Some general information on using the vector classes:
+ *
+ * The following ways of initializing a vector are not allowed:
+ * \code
+ * int_v v(3, 2, 8, 0); // constructor does not exist because it is not portable
+ * int_v v;
+ * v[0] = 3; v[1] = 2; v[2] = 8; v[3] = 0; // do not hardcode the number of entries!
+ * // You can not know whether somebody will compile with Vc Scalar where int_v::Size == 1
+ * \endcode
+ *
+ * Instead, if really necessary you can do:
+ * \code
+ * Vc::int_v v;
+ * for (int i = 0; i < int_v::Size; ++i) {
+ *   v[i] = f(i);
+ * }
+ * // which is equivalent to:
+ * v = int_v::IndexesFromZero().apply(f);
+ * \endcode
  */
 
 /**
@@ -112,7 +205,7 @@
  *
  * Mask classes are abstractions for the results of vector comparisons. The actual implementation
  * differs depending on the SIMD instruction set. On SSE they contain a full 128-bit datatype while
- * on a different architecture they might be bitfields.
+ * on a different architecture they might be bit-fields.
  */
 
 /**
@@ -130,12 +223,51 @@
  */
 
 /**
+ * \ingroup Vectors
  * \brief Vector Classes Namespace
  *
  * All functions and types of Vc are defined inside the Vc namespace.
+ *
+ * To be precise, most types are actually defined inside a second namespace, such as Vc::SSE. At
+ * compile-time the correct implementation is simply imported into the Vc namespace.
  */
 namespace Vc
 {
+    /**
+     * \class Vector dox.h <Vc/vector.h>
+     * \ingroup Vectors
+     *
+     * The main vector class.
+     *
+     * \li Vc::float_v
+     * \li Vc::sfloat_v
+     * \li Vc::double_v
+     * \li Vc::int_v
+     * \li Vc::uint_v
+     * \li Vc::short_v
+     * \li Vc::ushort_v
+     *
+     * are only specializations of this class. For the full documentation take a look at the
+     * specialized classes. For most cases there are no API differences for the specializations.
+     * Thus you can make use of \c Vector<T> for generic programming.
+     */
+    template<typename T> class Vector
+    {
+        public:
+#define INDEX_TYPE uint_v
+#define VECTOR_TYPE Vector<T>
+#define ENTRY_TYPE T
+#define MASK_TYPE float_m
+#define EXPONENT_TYPE int_v
+#include "dox-common-ops.h"
+#include "dox-real-ops.h"
+#undef INDEX_TYPE
+#undef VECTOR_TYPE
+#undef ENTRY_TYPE
+#undef MASK_TYPE
+#undef EXPONENT_TYPE
+    };
+
     /**
      * \ingroup Vectors
      *
@@ -211,42 +343,18 @@ namespace Vc
         Streaming
     };
 
-    /**
-     * \ingroup Utilities
-     *
-     * Enum that specifies the alignment and padding restrictions to use for memory allocation with
-     * Vc::malloc.
-     */
-    enum MallocAlignment {
-        /**
-         * Align on boundary of vector sizes (e.g. 16 Bytes on SSE platforms) and pad to allow
-         * vector access to the end. Thus the allocated memory contains a multiple of
-         * VectorAlignment bytes.
-         */
-        AlignOnVector,
-        /**
-         * Align on boundary of cache line sizes (e.g. 64 Bytes on x86) and pad to allow
-         * full cache line access to the end. Thus the allocated memory contains a multiple of
-         * 64 bytes.
-         */
-        AlignOnCacheline,
-        /**
-         * Align on boundary of page sizes (e.g. 4096 Bytes on x86) and pad to allow
-         * full page access to the end. Thus the allocated memory contains a multiple of
-         * 4096 bytes.
-         */
-        AlignOnPage
-    };
-
 #define INDEX_TYPE uint_v
 #define VECTOR_TYPE float_v
 #define ENTRY_TYPE float
 #define MASK_TYPE float_m
+#define EXPONENT_TYPE int_v
     /**
      * \class float_v dox.h <Vc/float_v>
      * \ingroup Vectors
      *
      * SIMD Vector of single precision floats.
+     *
+     * \note This is the same type as Vc::Vector<float>.
      */
     class VECTOR_TYPE
     {
@@ -280,6 +388,8 @@ namespace Vc
      * \ingroup Vectors
      *
      * SIMD Vector of double precision floats.
+     *
+     * \note This is the same type as Vc::Vector<double>.
      */
     class VECTOR_TYPE
     {
@@ -312,6 +422,8 @@ namespace Vc
      * \ingroup Vectors
      *
      * SIMD Vector of 32 bit signed integers.
+     *
+     * \note This is the same type as Vc::Vector<int>.
      */
     class VECTOR_TYPE
     {
@@ -343,6 +455,8 @@ namespace Vc
      * \ingroup Vectors
      *
      * SIMD Vector of 32 bit unsigned integers.
+     *
+     * \note This is the same type as Vc::Vector<unsigned int>.
      */
     class VECTOR_TYPE
     {
@@ -376,6 +490,8 @@ namespace Vc
      * \ingroup Vectors
      *
      * SIMD Vector of 16 bit signed integers.
+     *
+     * \note This is the same type as Vc::Vector<short>.
      *
      * \warning Vectors of this type are not supported on all platforms. In that case the vector
      * class will silently fall back to a Vc::int_v.
@@ -411,6 +527,8 @@ namespace Vc
      *
      * SIMD Vector of 16 bit unsigned integers.
      *
+     * \note This is the same type as Vc::Vector<unsigned short>.
+     *
      * \warning Vectors of this type are not supported on all platforms. In that case the vector
      * class will silently fall back to a Vc::uint_v.
      */
@@ -436,7 +554,9 @@ namespace Vc
 #undef ENTRY_TYPE
 #undef MASK_TYPE
 #undef INTEGER
+#undef EXPONENT_TYPE
 
+#define EXPONENT_TYPE short_v
 #define VECTOR_TYPE sfloat_v
 #define ENTRY_TYPE float
 #define MASK_TYPE sfloat_m
@@ -466,6 +586,7 @@ namespace Vc
 #include "dox-common-mask-ops.h"
     };
 #include "dox-math.h"
+#undef EXPONENT_TYPE
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
 #undef MASK_TYPE
@@ -473,44 +594,12 @@ namespace Vc
 
     /**
      * \ingroup Math
-     *
-     * Convert floating-point number to fractional and interal components.
-     *
-     * This function is used to split the numbers in \p x into a normalized
-     * fraction and an exponent which is stored in \p e.
-     *
-     * \returns the normalized fraction. If \p x is non-zero, the return value is \p x times a power of two, and
-     * its absolute value is always in the range [0.5,1).
-     *
-     * If \p x is zero, then the normalized fraction is zero and zero is stored in \p e.
-     *
-     * If \p x is a NaN, a NaN is returned, and the value of \p *e is unspecified.
-     *
-     * If \p x is positive infinity (negative infinity), positive infinity (nega‐
-     * tive infinity) is returned, and the value of \p *e is unspecified.
-     */
-    float_v frexp(const float_v &x, int_v *e);
-    /*! \copydoc frexp(const float_v&,int_v&) */
-    sfloat_v frexp(const sfloat_v &x, short_v *e);
-    /** \copydoc frexp(const float_v&,int_v&)
-     *
-     * Since int_v::Size == double_v::Size * 2, only every second value in \p *e is defined.
+     * \note Often int_v::Size == double_v::Size * 2, then only every second value in \p *e is defined.
      */
     double_v frexp(const double_v &x, int_v *e);
-
     /**
      * \ingroup Math
-     *
-     * multiply floating-point number by integral power of 2
-     *
-     * \returns x * 2 ^ e
-     */
-    float_v ldexp(float_v x, int_v e);
-    /*! \copydoc ldexp(float_v,int_v) */
-    sfloat_v ldexp(sfloat_v x, short_v e);
-    /** \copydoc ldexp(float_v,int_v)
-     *
-     * Since int_v::Size == double_v::Size * 2, only every second value in \p e is used.
+     * \note Often int_v::Size == double_v::Size * 2, then only every second value in \p *e is defined.
      */
     double_v ldexp(double_v x, int_v e);
 
@@ -557,3 +646,83 @@ namespace Vc
  * Alias for Vc_foreach_bit unless VC_CLEAN_NAMESPACE is defined.
  */
 #define foreach_bit(iterator, mask)
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/IO>
+ *
+ * Prints the contents of a vector into a stream object.
+ *
+ * \code
+ * const Vc::int_v v(Vc::IndexesFromZero);
+ * std::cout << v << std::endl;
+ * \endcode
+ * will output (with SSE):
+\verbatim
+[0, 1, 2, 3]
+\endverbatim
+ *
+ * \param s Any standard C++ ostream object. For example std::cout or a std::stringstream object.
+ * \param v Any Vc::Vector object.
+ * \return  The ostream object: to chain multiple stream operations.
+ *
+ * \note With the GNU standard library this function will check, whether the output stream is a tty.
+ * In that case it will colorize the output.
+ */
+template<typename T>
+std::ostream &operator<<(std::ostream &s, const Vc::Vector<T> &v);
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/IO>
+ *
+ * Prints the contents of a mask into a stream object.
+ *
+ * \code
+ * const Vc::short_m m = Vc::short_v::IndexesFromZero() < 3;
+ * std::cout << m << std::endl;
+ * \endcode
+ * will output (with SSE):
+\verbatim
+m[1110 0000]
+\endverbatim
+ *
+ * \param s Any standard C++ ostream object. For example std::cout or a std::stringstream object.
+ * \param v Any Vc mask object.
+ * \return  The ostream object: to chain multiple stream operations.
+ *
+ * \note With the GNU standard library this function will check, whether the output stream is a tty.
+ * In that case it will colorize the output.
+ */
+template<typename T>
+std::ostream &operator<<(std::ostream &s, const typename Vc::Vector<T>::Mask &v);
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/IO>
+ *
+ * Prints the contents of a Memory object into a stream object.
+ *
+ * \code
+ * Vc::Memory<int_v, 10> m;
+ * for (int i = 0; i < m.entriesCount(); ++i) {
+ *   m[i] = i;
+ * }
+ * std::cout << m << std::endl;
+ * \endcode
+ * will output (with SSE):
+\verbatim
+{[0, 1, 2, 3] [4, 5, 6, 7] [8, 9, 0, 0]}
+\endverbatim
+ *
+ * \param s Any standard C++ ostream object. For example std::cout or a std::stringstream object.
+ * \param m Any Vc::Memory object.
+ * \return  The ostream object: to chain multiple stream operations.
+ *
+ * \note With the GNU standard library this function will check, whether the output stream is a tty.
+ * In that case it will colorize the output.
+ *
+ * \warning Please do not forget that printing a large memory object can take a long time.
+ */
+template<typename V, typename Parent, typename Dimension, typename RM>
+inline std::ostream &operator<<(std::ostream &s, const Vc::MemoryBase<V, Parent, Dimension, RM> &m);

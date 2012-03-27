@@ -49,7 +49,7 @@ VECTOR_TYPE abs(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
- * Returns the closest integer to \p v. 0.5 is rounded to even.
+ * Returns the closest integer to \p v; 0.5 is rounded to even.
  */
 VECTOR_TYPE round(const VECTOR_TYPE &v);
 
@@ -112,13 +112,48 @@ VECTOR_TYPE max(const VECTOR_TYPE &x, const VECTOR_TYPE &y);
 /**
  * \ingroup Math
  *
- * Returns whether the values in the vector are finite (i.e. not NaN or +/-inf).
+ * Convert floating-point number to fractional and integral components.
+ *
+ * \param x value to be split into normalized fraction and exponent
+ * \param e the exponent to base 2 of \p x
+ *
+ * \returns the normalized fraction. If \p x is non-zero, the return value is \p x times a power of two, and
+ * its absolute value is always in the range [0.5,1).
+ *
+ * \returns
+ * If \p x is zero, then the normalized fraction is zero and zero is stored in \p e.
+ *
+ * \returns
+ * If \p x is a NaN, a NaN is returned, and the value of \p *e is unspecified.
+ *
+ * \returns
+ * If \p x is positive infinity (negative infinity), positive infinity (nega‐
+ * tive infinity) is returned, and the value of \p *e is unspecified.
+ */
+VECTOR_TYPE frexp(const VECTOR_TYPE &x, EXPONENT_TYPE *e);
+
+/**
+ * \ingroup Math
+ *
+ * Multiply floating-point number by integral power of 2
+ *
+ * \param x value to be multiplied by 2 ^ \p e
+ * \param e exponent
+ *
+ * \returns \p x * 2 ^ \p e
+ */
+VECTOR_TYPE ldexp(VECTOR_TYPE x, EXPONENT_TYPE e);
+
+/**
+ * \ingroup Math
+ *
+ * Returns a mask that tells whether the values in the vector are finite (i.e.\ not NaN or +/-inf).
  */
 MASK_TYPE isfinite(const VECTOR_TYPE &x);
 
 /**
  * \ingroup Math
  *
- * Returns whether the values in the vector are NaN.
+ * Returns a mask that tells whether the values in the vector are NaN.
  */
 MASK_TYPE isnan(const VECTOR_TYPE &x);

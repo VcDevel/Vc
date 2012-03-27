@@ -38,6 +38,8 @@ explicit MASK_TYPE(Vc::One);
  * Constructs a mask with the entries initialized to
  * \li one if \p b is \p true
  * \li zero if \p b is \p false
+ *
+ * \param b Determines the initial state of the mask.
  */
 explicit MASK_TYPE(bool b);
 
@@ -116,7 +118,10 @@ bool isMix() const;
 operator bool() const;
 
 /**
- * Return the \p i th entry of the mask as a bool.
+ * Read-only access to mask entries.
+ *
+ * \param i Determines the boolean to be accessed.
+ * \return the \p i th entry of the mask as a bool.
  */
 bool operator[](int i) const;
 
@@ -131,8 +136,10 @@ int count() const;
 int firstOne() const;
 
 /**
- * Returns an int where each bit corresponds to the boolean value in the mask.
+ * Convert mask to an integer.
  *
- * E.g. a mask like [true, false, false, true] would result in a 9.
+ * \return An int where each bit corresponds to the boolean value in the mask.
+ *
+ * E.g. a mask like [true, false, false, true] would result in a 9 (in binary: 1001).
  */
 int toInt() const;

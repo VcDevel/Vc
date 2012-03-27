@@ -23,25 +23,43 @@
 
 using namespace Vc;
 
+template<typename Vec> unsigned long alignmentMask()
+{
+    if (Vec::Size == 1) {
+        // on 32bit the maximal alignment is 4 Bytes, even for 8-Byte doubles.
+        return std::min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1;
+    }
+    // sizeof(SSE::sfloat_v) is too large
+    // AVX::VectorAlignment is too large
+    return std::min<unsigned long>(sizeof(Vec), VectorAlignment) - 1;
+}
+
 template<typename Vec> void checkAlignment()
 {
     unsigned char i = 1;
     Vec a[10];
-    unsigned long mask = VectorAlignment - 1;
-    if (Vec::Size == 1 && sizeof(typename Vec::EntryType) != VectorAlignment) {
-        mask = sizeof(typename Vec::EntryType) - 1;
-    }
-#ifdef VC_IMPL_AVX
-    if (sizeof(typename Vec::EntryType) == 2) {
-        mask = sizeof(Vec) - 1;
-    }
-#endif
+    unsigned long mask = alignmentMask<Vec>();
     for (i = 0; i < 10; ++i) {
-        VERIFY((reinterpret_cast<unsigned long>(&a[i]) & mask) == 0);
+        VERIFY((reinterpret_cast<size_t>(&a[i]) & mask) == 0) << "a = " << a << ", mask = " << mask;
     }
     const char *data = reinterpret_cast<const char *>(&a[0]);
     for (i = 0; i < 10; ++i) {
         VERIFY(&data[i * Vec::Size * sizeof(typename Vec::EntryType)] == reinterpret_cast<const char *>(&a[i]));
+    }
+}
+
+void *hack_to_put_b_on_the_stack = 0;
+
+template<typename Vec> void checkMemoryAlignment()
+{
+    typedef typename Vec::EntryType T;
+    const T *b = 0;
+    Vc::Memory<Vec, 10> a;
+    b = a;
+    hack_to_put_b_on_the_stack = &b;
+    unsigned long mask = alignmentMask<Vec>();
+    for (int i = 0; i < 10; ++i) {
+        VERIFY((reinterpret_cast<size_t>(&b[i * Vec::Size]) & mask) == 0) << "b = " << b << ", mask = " << mask;
     }
 }
 
@@ -239,6 +257,7 @@ int main()
     runTest(checkAlignment<short_v>);
     runTest(checkAlignment<ushort_v>);
     runTest(checkAlignment<sfloat_v>);
+    testAllTypes(checkMemoryAlignment);
     runTest(loadArray<int_v>);
     runTest(loadArray<uint_v>);
     runTest(loadArray<float_v>);

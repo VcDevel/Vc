@@ -72,7 +72,7 @@ template<typename T> static inline Vector<T> abs  (const Vector<T> &x)
 
 template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos)
 {
-#ifdef __GNUC__
+#if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincosf)) || (!defined(VC_CLANG) && defined(__GNUC__))
     __builtin_sincosf(x.data(), &sin->data(), &cos->data());
 #else
     sincosf(x.data(), &sin->data(), &cos->data());
@@ -81,10 +81,10 @@ template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *si
 
 template<> inline void sincos(const Vector<double> &x, Vector<double> *sin, Vector<double> *cos)
 {
-#ifdef __GNUC__
+#if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincos)) || (!defined(VC_CLANG) && defined(__GNUC__))
     __builtin_sincos(x.data(), &sin->data(), &cos->data());
 #else
-    sincos(x.data(), &sin->data(), &cos->data());
+    ::sincos(x.data(), &sin->data(), &cos->data());
 #endif
 }
 
@@ -129,6 +129,11 @@ template<typename T> static inline Vector<T> log2(const Vector<T> &x)
 }
 #endif
 
+template<typename T> static inline Vector<T> exp (const Vector<T> &x)
+{
+    return std::exp(x.data());
+}
+
 template<typename T> static inline Vector<T> atan (const Vector<T> &x)
 {
     return std::atan( x.data() );
@@ -137,6 +142,16 @@ template<typename T> static inline Vector<T> atan (const Vector<T> &x)
 template<typename T> static inline Vector<T> atan2(const Vector<T> &x, const Vector<T> &y)
 {
     return std::atan2( x.data(), y.data() );
+}
+
+template<typename T> static inline Vector<T> floor(const Vector<T> &x)
+{
+    return std::floor(x.data());
+}
+
+template<typename T> static inline Vector<T> ceil(const Vector<T> &x)
+{
+    return std::ceil(x.data());
 }
 
 template<typename T> static inline Vector<T> round(const Vector<T> &x)

@@ -113,7 +113,7 @@ namespace AVX
     inline float_v frexp(const float_v &v, short_v *e) {
         const __m256 exponentBits = c_log<float, float_m>::exponentMask().data();
         const __m256 exponentPart = _mm256_and_ps(v.data(), exponentBits);
-        e->data() = _mm_sub_epi32(_mm_packs_epi32(_mm_srli_epi32(avx_cast<__m128i>(exponentPart), 23),
+        e->data() = _mm_sub_epi16(_mm_packs_epi32(_mm_srli_epi32(avx_cast<__m128i>(exponentPart), 23),
                     _mm_srli_epi32(avx_cast<__m128i>(hi128(exponentPart)), 23)), _mm_set1_epi16(0x7e));
         const __m256 exponentMaximized = _mm256_or_ps(v.data(), exponentBits);
         float_v ret = _mm256_and_ps(exponentMaximized, avx_cast<__m256>(_mm256_set1_epi32(0xbf7fffffu)));

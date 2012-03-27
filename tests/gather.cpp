@@ -199,8 +199,15 @@ int main(int argc, char **argv)
 
     testAllTypes(gatherArray);
     testAllTypes(maskedGatherArray);
+#if defined(VC_CLANG) && VC_CLANG <= 0x030000
+    // clang fails with:
+    //  candidate template ignored: failed template argument deduction
+    //  template<typename S1, typename IT> inline Vector(const S1 *array, const T S1::* member1, IT indexes, Mask mask = true)
+#warning "Skipping compilation of tests gatherStruct and gather2dim because of clang bug"
+#else
     testAllTypes(gatherStruct);
     testAllTypes(gather2dim);
+#endif
 
     return 0;
 }

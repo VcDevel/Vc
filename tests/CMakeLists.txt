@@ -1,5 +1,14 @@
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS)
 
+macro(vc_add_run_target _target)
+   add_custom_target(run_${_target}
+      ${_target}
+      DEPENDS ${_target}
+      COMMENT "Execute ${_target} test"
+      VERBATIM
+      )
+endmacro()
+
 macro(vc_add_test _name)
    set(_extra_flags)
    set(name ${_name})
@@ -17,6 +26,7 @@ macro(vc_add_test _name)
       add_dependencies(Scalar ${_target})
       add_test(${_target} "${CMAKE_CURRENT_BINARY_DIR}/${_target}")
       set_property(TEST ${_target} PROPERTY LABELS "Scalar")
+      vc_add_run_target(${_target})
    endif()
 
    if(USE_SSE2 AND NOT SSE_INTRINSICS_BROKEN)
@@ -30,6 +40,7 @@ macro(vc_add_test _name)
          add_dependencies(SSE ${_target})
          add_test(${_target} "${CMAKE_CURRENT_BINARY_DIR}/${_target}")
          set_property(TEST ${_target} PROPERTY LABELS "SSE")
+         vc_add_run_target(${_target})
       endif()
    endif(USE_SSE2 AND NOT SSE_INTRINSICS_BROKEN)
 
@@ -44,12 +55,13 @@ macro(vc_add_test _name)
          add_dependencies(AVX ${_target})
          add_test(${_target} "${CMAKE_CURRENT_BINARY_DIR}/${_target}")
          set_property(TEST ${_target} PROPERTY LABELS "AVX")
+         vc_add_run_target(${_target})
       endif()
    endif(USE_AVX)
 endmacro(vc_add_test)
 
 vc_add_test(scalaraccess)
-if(CMAKE_COMPILER_IS_GNUCXX AND _gcc_version STRGREATER "4.5.0" AND _gcc_version STRLESS "4.5.3" )
+if(CMAKE_COMPILER_IS_GNUCXX AND VC_GCC_VERSION STRGREATER "4.5.0" AND VC_GCC_VERSION STRLESS "4.5.3" )
    message(STATUS "WARNING: GCC 4.5.[12] are known to generate an internal compiler error on the memory unit test. (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=46723) The test will therefore not be compiled and executed.")
 else()
    vc_add_test(memory)

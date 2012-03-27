@@ -1195,7 +1195,6 @@ template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
 static inline ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)
 {
-    typedef Vector<unsigned int> uint_v;
     state0.load(&Vc::RandomState[0]);
     state1.load(&Vc::RandomState[uint_v::Size]);
     (state1 * 0xdeece66du + 11).store(&Vc::RandomState[uint_v::Size]);

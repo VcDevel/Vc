@@ -20,7 +20,9 @@
 #include "unittest.h"
 #include "../sse/intrinsics.h"
 
-std::ostream &operator<<(std::ostream &out, const __m128i &v)
+namespace std
+{
+ostream &operator<<(ostream &out, const __m128i &v)
 {
     union {
         __m128i v;
@@ -33,6 +35,7 @@ std::ostream &operator<<(std::ostream &out, const __m128i &v)
     }
     return out << "]";
 }
+} // namespace std
 
 template<> inline bool unittest_compareHelper<__m128i, __m128i>(const __m128i &a, const __m128i &b)
 {

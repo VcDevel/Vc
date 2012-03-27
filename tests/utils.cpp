@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -217,6 +217,63 @@ template<> void Random<double_v>() { FloatRandom<double_v, int_v>(); }
 template<> void Random<sfloat_v>() { FloatRandom<sfloat_v, short_v>(); }
 #endif
 
+template<typename T> T add2(T x) { return x + T(2); }
+
+template<typename T, typename V>
+class CallTester
+{
+    public:
+        CallTester() : v(Vc::Zero), i(0) {}
+
+        void operator()(T x) {
+            v[i] = x;
+            ++i;
+        }
+
+        void reset() { v.setZero(); i = 0; }
+
+        int callCount() const { return i; }
+        V callValues() const { return v; }
+
+    private:
+        V v;
+        int i;
+};
+
+template<typename V>
+void applyAndCall()
+{
+    typedef typename V::EntryType T;
+
+    const V two(T(2));
+    for (int i = 0; i < 1000; ++i) {
+        const V rand = V::Random();
+        COMPARE(rand.apply(add2<T>), rand + two);
+
+        CallTester<T, V> callTester;
+        rand.call(callTester);
+        COMPARE(callTester.callCount(), int(V::Size));
+        COMPARE(callTester.callValues(), rand);
+
+        for_all_masks(V, mask) {
+            V copy1 = rand;
+            V copy2 = rand;
+            copy1(mask) += two;
+
+            COMPARE(copy2(mask).apply(add2<T>), copy1) << mask;
+            COMPARE(rand.apply(add2<T>, mask), copy1) << mask;
+
+            callTester.reset();
+            copy2(mask).call(callTester);
+            COMPARE(callTester.callCount(), mask.count());
+
+            callTester.reset();
+            rand.call(callTester, mask);
+            COMPARE(callTester.callCount(), mask.count());
+        }
+    }
+}
+
 int main()
 {
     runTest(testCall<int_v>);
@@ -248,6 +305,8 @@ int main()
     runTest(copySign<double_v>);
 
     testAllTypes(Random);
+
+    testAllTypes(applyAndCall);
 
     return 0;
 }

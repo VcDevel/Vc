@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -23,7 +23,6 @@
 #include "vectormemoryhelper.h"
 #include <cmath>
 #include <algorithm>
-#include "../benchmarks/random.h"
 
 using namespace Vc;
 
@@ -52,13 +51,59 @@ template<typename Vec> void testAbs()
     }
 }
 
-template<typename V> void testLog()
+template<typename V> void testFloor()
 {
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 10000; ++i) {
-        const V x = V::Random() * T(54) + T(0.02);
-        const V reference = apply_v(x, std::log);
-        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x;
+    typedef typename V::IndexType I;
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = (V::Random() - T(0.5)) * T(100);
+        V reference = apply_v(x, std::floor);
+        COMPARE(Vc::floor(x), reference) << ", x = " << x << ", i = " << i;
+    }
+    V x = static_cast<V>(I::IndexesFromZero());
+    V reference = apply_v(x, std::floor);
+    COMPARE(Vc::floor(x), reference) << ", x = " << x;
+}
+
+template<typename V> void testCeil()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = (V::Random() - T(0.5)) * T(100);
+        V reference = apply_v(x, std::ceil);
+        COMPARE(Vc::ceil(x), reference) << ", x = " << x << ", i = " << i;
+    }
+    V x = static_cast<V>(I::IndexesFromZero());
+    V reference = apply_v(x, std::ceil);
+    COMPARE(Vc::ceil(x), reference) << ", x = " << x;
+}
+
+template<typename V> void testExp()
+{
+    setFuzzyness<float>(1);
+    setFuzzyness<double>(2);
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = (V::Random() - T(0.5)) * T(20);
+        V reference = apply_v(x, std::exp);
+        FUZZY_COMPARE(Vc::exp(x), reference) << ", x = " << x << ", i = " << i;
+    }
+    COMPARE(Vc::exp(V::Zero()), V::One());
+}
+
+template<typename V> void testLog()
+{
+    setFuzzyness<float>(1);
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = V::Random() * T(exp(20.)) + T(1);
+        V reference = apply_v(x, std::log);
+        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
+
+        x = V::One() / x;
+        reference = apply_v(x, std::log);
+        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
     }
     COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
 }
@@ -70,10 +115,14 @@ template<typename V> void testLog2()
 {
     setFuzzyness<float>(2);
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 10000; ++i) {
-        const V x = V::Random() * T(54) + T(0.02);
-        const V reference = apply_v(x, my_log2);
-        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x;
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = V::Random() * T(pow(2., 20.)) + T(1);
+        V reference = apply_v(x, my_log2);
+        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
+
+        x = V::One() / x;
+        reference = apply_v(x, my_log2);
+        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
     }
     COMPARE(Vc::log2(V::Zero()), V(my_log2(T(0))));
 }
@@ -83,9 +132,13 @@ template<typename V> void testLog10()
     setFuzzyness<float>(2);
     setFuzzyness<double>(2);
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 10000; ++i) {
-        const V x = V::Random() * T(54) + T(0.02);
-        const V reference = apply_v(x, std::log10);
+    for (size_t i = 0; i < 100000; ++i) {
+        V x = V::Random() * T(pow(10., 20.)) + T(1);
+        V reference = apply_v(x, std::log10);
+        FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
+
+        x = V::One() / x;
+        reference = apply_v(x, std::log10);
         FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
     }
     COMPARE(Vc::log10(V::Zero()), V(std::log10(T(0))));
@@ -132,7 +185,7 @@ template<typename V> void testRSqrt()
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
-        const V x = PseudoRandom<V>::next() * T(1000);
+        const V x = V::Random() * T(1000);
         // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
         VERIFY(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12)));
     }
@@ -498,7 +551,7 @@ template<typename V> void testLdexp()
     typedef typename V::EntryType T;
     typedef typename _ExponentVector<V>::Type ExpV;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
-        const V v = (PseudoRandom<V>::next() - T(0.5)) * T(1000);
+        const V v = (V::Random() - T(0.5)) * T(1000);
         ExpV e;
         const V m = frexp(v, &e);
         COMPARE(ldexp(m, e), v) << ", m = " << m << ", e = " << e;
@@ -509,7 +562,7 @@ template<typename V> void testLdexp()
 template<> void testLdexp<float_v>()
 {
     for (size_t i = 0; i < 1024 / float_v::Size; ++i) {
-        const float_v v = (PseudoRandom<float_v>::next() - 0.5f) * 1000.f;
+        const float_v v = (float_v::Random() - 0.5f) * 1000.f;
         int_v eI;
         short_v eS;
         const float_v mI = frexp(v, &eI);
@@ -530,7 +583,7 @@ template<typename V> void testUlpDiff()
     COMPARE(ulpDiffToReference(std::numeric_limits<V>::min(), V::Zero()), V::One());
     COMPARE(ulpDiffToReference(V::Zero(), std::numeric_limits<V>::min()), V::One());
     for (size_t count = 0; count < 1024 / V::Size; ++count) {
-        const V base = (PseudoRandom<V>::next() - T(0.5)) * T(1000);
+        const V base = (V::Random() - T(0.5)) * T(1000);
         typename _Ulp_ExponentVector<V>::Type exp;
         Vc::frexp(base, &exp);
         const V eps = ldexp(V(std::numeric_limits<T>::epsilon()), exp - 1);
@@ -575,6 +628,10 @@ int main(int argc, char **argv)
     runTest(testAbs<double_v>);
     runTest(testAbs<short_v>);
     runTest(testAbs<sfloat_v>);
+
+    testRealTypes(testFloor);
+    testRealTypes(testCeil);
+    testRealTypes(testExp);
 
     runTest(testLog<float_v>);
     runTest(testLog<double_v>);

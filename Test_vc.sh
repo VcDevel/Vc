@@ -59,9 +59,8 @@ chip=$(uname -m | tr '[A-Z]' '[a-z]')
 
 # extract information about the system and the machine and set
 # environment variables used by ctest
-SYSTEM=$arch-$chip
 if test -z "$CXX" ; then
-  COMPILER="`g++ --version 2>&1|head -n1`"
+  COMPILER="`c++ --version 2>&1|head -n1`"
 else
   COMPILER="`"$CXX" --version 2>&1|head -n1`"
 fi
@@ -74,7 +73,7 @@ if test "$arch" = "linux"; then
     LABEL1="$branch $LINUX_FLAVOUR $chip $COMPILER $CXXFLAGS"
   fi
 fi
-export LABEL=$(echo $LABEL1 | sed -e 's#/#_#g')
+export LABEL=$(echo $LABEL1 | tr '[/+]' '[_x]')
 
 # get the number of processors
 # and information about the host
@@ -99,4 +98,4 @@ echo "************************"
 test -z "$VC_BUILDDIR" && export VC_BUILDDIR="$VC_SOURCEDIR/build-${ctest_model}-${LABEL//[\[\] ()]/_}"
 test -d "$VC_BUILDDIR" || mkdir -p "$VC_BUILDDIR"
 
-ctest --debug -S test.cmake -V 2>&1 | tee "${VC_BUILDDIR}_ctest-debug.log"
+ctest --debug -S test.cmake -V > "${VC_BUILDDIR}_ctest-debug.log" 2>&1

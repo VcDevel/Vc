@@ -27,16 +27,26 @@
 namespace Vc
 {
 
-bool isImplementationSupported(Implementation);
+/**
+ * \ingroup Utilities
+ *
+ * Tests whether the given implementation is supported by the system the code is executing on.
+ *
+ * \return \c true if the OS and hardware support execution of instructions defined by \p impl.
+ * \return \c false otherwise
+ *
+ * \param impl The SIMD target to test for.
+ */
+bool isImplementationSupported(Vc::Implementation impl);
 
 #ifndef VC_COMPILE_LIB
 /**
  * \ingroup Utilities
  *
  * Tests that the CPU and Operating System support the vector unit which was compiled for. This
- * function should be called before any other Vc functionality is used to check whether the program
- * will work. If this function returns \c false then the program should exit with
- * a non-zero exit status.
+ * function should be called before any other Vc functionality is used. It checks whether the program
+ * will work. If this function returns \c false then the program should exit with a useful error
+ * message before the OS has to kill it because of an invalid instruction exception.
  *
  * If the program continues and makes use of any vector features not supported by
  * hard- or software then the program will crash.
@@ -52,32 +62,20 @@ bool isImplementationSupported(Implementation);
  *   ...
  * }
  * \endcode
+ *
+ * \return \c true if the OS and hardware support execution of the currently selected SIMD
+ *                 instructions.
+ * \return \c false otherwise
  */
 bool currentImplementationSupported()
 {
     return isImplementationSupported(
-#if VC_IMPL_AVX
-            AVXImpl
-#elif defined(__AVX__)
+#ifdef VC_USE_VEX_CODING
             // everything will use VEX coding, so the system has to support AVX even if VC_IMPL_AVX
             // is not set
             AVXImpl
-#elif VC_IMPL_Scalar
-            ScalarImpl
-#elif VC_IMPL_SSE4a
-            SSE4aImpl
-#elif VC_IMPL_SSE4_2
-            SSE42Impl
-#elif VC_IMPL_SSE4_1
-            SSE41Impl
-#elif VC_IMPL_SSSE3
-            SSSE3Impl
-#elif VC_IMPL_SSE3
-            SSE3Impl
-#elif VC_IMPL_SSE2
-            SSE2Impl
 #else
-            ERROR_unknown_vector_unit
+            VC_IMPL
 #endif
             );
 }

@@ -42,7 +42,23 @@
         void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
         void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
 
-#ifdef __GNUC__
+#ifdef VC_CLANG
+#  define INTRINSIC __attribute__((always_inline))
+#  define INTRINSIC_L
+#  define INTRINSIC_R INTRINSIC
+#  define FLATTEN
+#  define CONST __attribute__((const))
+#  define CONST_L
+#  define CONST_R CONST
+#  define PURE __attribute__((pure))
+#  define MAY_ALIAS __attribute__((may_alias))
+#  define ALWAYS_INLINE __attribute__((always_inline))
+#  define ALWAYS_INLINE_L
+#  define ALWAYS_INLINE_R ALWAYS_INLINE
+#  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
+#  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
+#  define VC_RESTRICT __restrict__
+#elif defined(__GNUC__)
 #  define INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
 #  define INTRINSIC_L
 #  define INTRINSIC_R INTRINSIC
@@ -146,5 +162,37 @@ namespace Vc {
 #else
 #define VC_ASSERT(x) assert(x);
 #endif
+
+#ifdef VC_CLANG
+#define VC_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#define VC_HAS_BUILTIN(x) 0
+#endif
+
+#ifndef VC_COMMON_MACROS_H_ONCE
+#define VC_COMMON_MACROS_H_ONCE
+    template<int e> struct exponentToMultiplier { enum {
+        X = exponentToMultiplier<e - 1>::X * 2,
+        Value = (X == 0 ? 1 : X)
+    }; };
+    template<> struct exponentToMultiplier<0> { enum { X = 1, Value = X }; };
+    template<> struct exponentToMultiplier<-1024> { enum { X = 0 }; };
+    template<int e> struct exponentToDivisor { enum {
+        X = exponentToDivisor<e + 1>::X * 2,
+      Value = (X == 0 ? 1 : X)
+    }; };
+    template<> struct exponentToDivisor<0> { enum { X = 1, Value = X }; };
+    template<> struct exponentToDivisor<1024> { enum { X = 0 }; };
+#endif // VC_COMMON_MACROS_H_ONCE
+#define Vc_buildDouble(sign, mantissa, exponent) \
+    ((static_cast<double>((mantissa & 0x000fffffffffffffull) | 0x0010000000000000ull) / 0x0010000000000000ull) \
+    * exponentToMultiplier<exponent>::Value \
+    / exponentToDivisor<exponent>::Value \
+    * static_cast<double>(sign))
+#define Vc_buildFloat(sign, mantissa, exponent) \
+    ((static_cast<float>((mantissa & 0x007fffffu) | 0x00800000) / 0x00800000) \
+    * exponentToMultiplier<exponent>::Value \
+    / exponentToDivisor<exponent>::Value \
+    * static_cast<float>(sign))
 
 #endif // VC_COMMON_MACROS_H
