@@ -322,7 +322,7 @@ template<typename Vec> void testAtan2()
 {
     typedef typename Vec::EntryType T;
     setFuzzyness<float>(3);
-    setFuzzyness<double>(1.751135e+08); // FIXME
+    setFuzzyness<double>(1.75118e+08); // FIXME
     for (int xoffset = -100; xoffset < 1000; xoffset += 10) {
         for (int yoffset = -100; yoffset < 1000; yoffset += 10) {
             FillHelperMemory(std::atan2((i + xoffset) * 0.15, (i + yoffset) * 0.15));
