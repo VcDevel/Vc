@@ -48,11 +48,11 @@ inline void readsConstantIndexTest(const V a, const V b)
     {
         const T x = a[Index];
         const T zero = 0;
-        COMPARE(x, zero);
+        COMPARE(x, zero) << Index;
     }{
         const T x = b[Index];
         const T y = Index;
-        COMPARE(x, y);
+        COMPARE(x, y) << Index;
     }
 }
 
