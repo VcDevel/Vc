@@ -136,6 +136,7 @@ static inline double my_log2(double x) { return ::log2(x); }
 template<typename V> void testLog2()
 {
     setFuzzyness<float>(2);
+    setFuzzyness<double>(3);
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = exp(V::Random() * T(20 * M_LN2));
