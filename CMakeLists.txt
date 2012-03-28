@@ -31,7 +31,6 @@ if(VC_COMPILER_IS_GCC)
          )
    elseif(VC_GCC_VERSION STREQUAL "4.7.0")
       message(WARNING "GCC 4.7.0 miscompiles the following tests
-      - gatherStruct<double_v> in gather_VC_USE_SET_GATHERS_sse
       - testVectorReorganization in memory_sse and memory_avx")
    endif()
 endif()
