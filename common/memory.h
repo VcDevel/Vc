@@ -386,7 +386,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
         /**
          * Frees the memory which was allocated in the constructor.
          */
-        inline ~Memory()
+        inline ALWAYS_INLINE ~Memory()
         {
             Vc::free(m_mem);
         }
