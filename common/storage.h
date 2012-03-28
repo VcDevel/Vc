@@ -60,14 +60,14 @@ template<typename VectorType, typename EntryType> class VectorMemoryUnion
             data = x; return *this;
         }
 
-        VectorType &v() { return data; }
-        const VectorType &v() const { return data; }
+        inline VectorType &v() { return data; }
+        inline const VectorType &v() const { return data; }
 
-        AliasingEntryType &m(int index) {
+        inline AliasingEntryType &m(int index) {
             return reinterpret_cast<AliasingEntryType *>(&data)[index];
         }
 
-        EntryType m(int index) const {
+        inline EntryType m(int index) const {
             return reinterpret_cast<const AliasingEntryType *>(&data)[index];
         }
 
