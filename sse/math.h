@@ -124,12 +124,15 @@ namespace SSE
 
     static inline void floor_shift(double_v &v, double_v e)
     {
-        Common::VectorMemoryUnion<__m128i, long long> x = _mm_setallone_si128();
+        const long long initialMask = 0xfff0000000000000ull;
         const uint_v shifts = static_cast<uint_v>(e);
-        x.v() = _mm_slli_epi64(x.v(), 52);
-        x.m(0) >>= shifts[0];
-        x.m(1) >>= shifts[1];
-        v &= double_v(_mm_castsi128_pd(x.v()));
+        union d_ll {
+            long long ll;
+            double d;
+        };
+        d_ll mask0 = { initialMask >> shifts[0] };
+        d_ll mask1 = { initialMask >> shifts[1] };
+        v &= double_v(_mm_setr_pd(mask0.d, mask1.d));
     }
 
     template<typename T>
