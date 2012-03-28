@@ -76,6 +76,28 @@ template<typename VectorType, typename EntryType> class VectorMemoryUnion
 #endif
 };
 
+#if VC_GCC == 0x40700 || (VC_GCC >= 0x40600 && VC_GCC <= 0x40603)
+// workaround bug 52736 in GCC
+template<typename T, typename V> static inline T &vectorMemoryUnionAliasedMember(V *data, int index) {
+    if (__builtin_constant_p(index) && index == 0) {
+        T *ret;
+        asm("mov %1,%0" : "=r"(ret) : "r"(data));
+        return *ret;
+    } else {
+        return reinterpret_cast<T *>(data)[index];
+    }
+}
+template<> inline VectorMemoryUnion<__m128d, double>::AliasingEntryType &VectorMemoryUnion<__m128d, double>::m(int index) {
+    return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
+}
+template<> inline VectorMemoryUnion<__m128i, long long>::AliasingEntryType &VectorMemoryUnion<__m128i, long long>::m(int index) {
+    return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
+}
+template<> inline VectorMemoryUnion<__m128i, unsigned long long>::AliasingEntryType &VectorMemoryUnion<__m128i, unsigned long long>::m(int index) {
+    return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
+}
+#endif
+
 } // namespace Common
 } // namespace Vc
 
