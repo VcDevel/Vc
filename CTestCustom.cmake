@@ -9,5 +9,5 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
 set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
    "^make\\[[1-9]\\]: "
    "^collect2: ld returned . exit status"
-   "error: .*\.o: No such file or directory" # This is just a followup error message: linking fails after compilation failed
+   "\.o: No such file or directory" # This is just a followup error message: linking fails after compilation failed
    "^make: \\*\\*\\* \\[all\\] Error ")
