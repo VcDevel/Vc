@@ -64,14 +64,13 @@ if test -z "$CXX" ; then
 else
   COMPILER="`"$CXX" --version 2>&1|head -n1`"
 fi
-#branch=`cat .git/HEAD|cut -d/ -f3`
-read hash < .git/`cut -c6- .git/HEAD`
+export git_branch=`cat .git/HEAD|cut -d/ -f3`
 
-LABEL1="$hash $arch $chip $COMPILER $CXXFLAGS"
+LABEL1="$arch $chip $COMPILER $CXXFLAGS"
 if test "$arch" = "linux"; then
   test -z "$LINUX_FLAVOUR" && LINUX_FLAVOUR=`lsb_release -d|cut -f2`
   if test -n "$LINUX_FLAVOUR"; then
-    LABEL1="$hash $LINUX_FLAVOUR $chip $COMPILER $CXXFLAGS"
+    LABEL1="$LINUX_FLAVOUR $chip $COMPILER $CXXFLAGS"
   fi
 fi
 export LABEL=$(echo $LABEL1 | tr '[/+]' '[_x]')
