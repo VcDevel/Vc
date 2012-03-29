@@ -23,6 +23,16 @@
 // AVX
 #include <immintrin.h>
 
+#if defined(VC_CLANG) && VC_CLANG < 0x30100
+// _mm_permute_ps is broken: http://llvm.org/bugs/show_bug.cgi?id=12401
+#undef _mm_permute_ps
+#define _mm_permute_ps(A, C) __extension__ ({ \
+  __m128 __A = (A); \
+  (__m128)__builtin_shufflevector((__v4sf)__A, (__v4sf) _mm_setzero_ps(), \
+                                   (C) & 0x3, ((C) & 0xc) >> 2, \
+                                   ((C) & 0x30) >> 4, ((C) & 0xc0) >> 6); })
+#endif
+
 #include <Vc/global.h>
 #include "const_data.h"
 #include "macros.h"
