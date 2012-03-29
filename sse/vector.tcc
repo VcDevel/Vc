@@ -970,7 +970,7 @@ template<> inline float PURE INTRINSIC Vector<float8>::operator[](size_t index) 
 template<> inline int PURE INTRINSIC Vector<int>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
-#if VC_GCC >= 0x40600 || !defined(VC_USE_VEX_CODING) // GCC < 4.6 incorrectly uses vmovq instead of movq for the following
+#if VC_GCC >= 0x40601 || !defined(VC_USE_VEX_CODING) // GCC < 4.6.1 incorrectly uses vmovq instead of movq for the following
 #ifdef __x86_64__
         if (index == 0) return _mm_cvtsi128_si64(d.v()) & 0xFFFFFFFFull;
         if (index == 1) return _mm_cvtsi128_si64(d.v()) >> 32;
@@ -989,7 +989,7 @@ template<> inline int PURE INTRINSIC Vector<int>::operator[](size_t index) const
 template<> inline unsigned int PURE INTRINSIC Vector<unsigned int>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
-#if VC_GCC >= 0x40600 || !defined(VC_USE_VEX_CODING) // GCC < 4.6 incorrectly uses vmovq instead of movq for the following
+#if VC_GCC >= 0x40601 || !defined(VC_USE_VEX_CODING) // GCC < 4.6.1 incorrectly uses vmovq instead of movq for the following
 #ifdef __x86_64__
         if (index == 0) return _mm_cvtsi128_si64(d.v()) & 0xFFFFFFFFull;
         if (index == 1) return _mm_cvtsi128_si64(d.v()) >> 32;
