@@ -136,16 +136,29 @@ namespace AVX
         __m128i r1 = _mm_##name(a1, i); \
         return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
     }
-#define AVX_TO_SSE_1i_si128_si256(name) \
-    static inline __m256i INTRINSIC CONST _mm256_##name##_si256(__m256i a0, const int i) { \
-        __m128i a1 = _mm256_extractf128_si256(a0, 1); \
-        __m128i r0 = _mm_##name##_si128(_mm256_castsi256_si128(a0), i); \
-        __m128i r1 = _mm_##name##_si128(a1, i); \
-        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
-    }
 
-    AVX_TO_SSE_1i_si128_si256(srli)
-    AVX_TO_SSE_1i_si128_si256(slli)
+#if defined(VC_CLANG) || (defined(VC_GCC) && !defined(__OPTIMIZE__))
+#   define _mm256_srli_si256(a, i) \
+        _mm256_insertf128_si256( \
+                _mm256_castsi128_si256(_mm_srli_si128(_mm256_castsi256_si128((a)), i)), \
+                _mm_srli_si128(_mm256_extractf128_si256((a), 1), i), 1);
+#   define _mm256_slli_si256(a, i) \
+        _mm256_insertf128_si256( \
+                _mm256_castsi128_si256( _mm_slli_si128(_mm256_castsi256_si128((a)), i)), \
+                _mm_slli_si128(_mm256_extractf128_si256((a), 1), i), 1);
+#else
+    static inline __m256i INTRINSIC CONST _mm256_srli_si256(__m256i a0, const int i) {
+        const __m128i r0 = _mm_srli_si128(_mm256_castsi256_si128(a0), i);
+        const __m128i r1 = _mm_srli_si128(_mm256_extractf128_si256(a0, 1), i);
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1);
+    }
+    static inline __m256i INTRINSIC CONST _mm256_slli_si256(__m256i a0, const int i) {
+        const __m128i r0 = _mm_slli_si128(_mm256_castsi256_si128(a0), i);
+        const __m128i r1 = _mm_slli_si128(_mm256_extractf128_si256(a0, 1), i);
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1);
+    }
+#endif
+
     static inline __m256i INTRINSIC CONST _mm256_and_si256(__m256i x, __m256i y) {
         return _mm256_castps_si256(_mm256_and_ps(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
     }
@@ -253,7 +266,7 @@ namespace AVX
     AVX_TO_SSE_1(abs_epi8)
     AVX_TO_SSE_1(abs_epi16)
     AVX_TO_SSE_1(abs_epi32)
-#if defined(__GNUC__) && defined(__OPTIMIZE__)
+#if !defined(VC_CLANG) || (defined(VC_GCC) && defined(__OPTIMIZE__))
     __m256i inline INTRINSIC CONST _mm256_blend_epi16(__m256i a0, __m256i b0, const int m) {
         __m128i a1 = _mm256_extractf128_si256(a0, 1);
         __m128i b1 = _mm256_extractf128_si256(b0, 1);
