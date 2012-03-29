@@ -301,7 +301,11 @@ namespace AVX
     AVX_TO_SSE_2(max_epu32)
     AVX_TO_SSE_2(mullo_epi32)
     AVX_TO_SSE_2(mul_epi32)
+#if !defined(VC_CLANG) || VC_CLANG > 0x30100
+    // clang is missing _mm_minpos_epu16 from smmintrin.h
+    // http://llvm.org/bugs/show_bug.cgi?id=12399
     AVX_TO_SSE_1(minpos_epu16)
+#endif
     AVX_TO_SSE_1(cvtepi8_epi32)
     AVX_TO_SSE_1(cvtepi16_epi32)
     AVX_TO_SSE_1(cvtepi8_epi64)
