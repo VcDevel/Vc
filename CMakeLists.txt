@@ -29,9 +29,6 @@ if(VC_COMPILER_IS_GCC)
          scatter_avx
          scatter_sse
          )
-   elseif(VC_GCC_VERSION STREQUAL "4.7.0")
-      message(WARNING "GCC 4.7.0 miscompiles the following tests
-      - testVectorReorganization in memory_sse and memory_avx")
    endif()
 endif()
 
