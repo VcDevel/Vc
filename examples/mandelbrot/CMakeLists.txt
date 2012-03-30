@@ -23,7 +23,7 @@ if(QT4_FOUND)
       /opt/intel/bin
       $ENV{HOME}/intel/Compiler/11.1/072/bin/intel64)
 
-   if(O64_CXX)
+   if(FALSE AND O64_CXX)
       add_custom_command(OUTPUT mandelbrot_open64
          COMMAND ${O64_CXX} -O3 -Wall -msse3
          -o ${CMAKE_CURRENT_BINARY_DIR}/mandelbrot_open64
@@ -39,7 +39,7 @@ if(QT4_FOUND)
       add_custom_target(build_mandelbrot_open64 ALL DEPENDS mandelbrot_open64)
       add_target_property(build_mandelbrot_open64 LABELS "other")
       add_dependencies(other build_mandelbrot_open64)
-   endif(O64_CXX)
+   endif()
 
    if(ICC_CXX)
       add_custom_command(OUTPUT mandelbrot_icc
