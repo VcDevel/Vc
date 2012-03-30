@@ -17,9 +17,9 @@
 
 */
 
-#include "../include/Vc/global.h"
-#include "support.h"
-#include "../cpuid.h"
+#include <Vc/global.h>
+#include <Vc/cpuid.h>
+#include "common/support.h"
 
 namespace Vc
 {
