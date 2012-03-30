@@ -34,7 +34,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
-#include "../../benchmarks/tsc.h"
+#include "../../tsc.h"
 
 #define USE_SCALAR_SINCOS
 
