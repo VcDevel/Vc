@@ -29,6 +29,9 @@
 #include "sse/const_data.h"
 #include "include/Vc/version.h"
 
+#include <cstdio>
+#include <cstdlib>
+
 #ifndef M_PI
 # define M_PI 3.14159265358979323846
 #endif
@@ -276,6 +279,13 @@ namespace Warnings {
 } // namespace Warnings
 
 extern const char LIBRARY_VERSION[] = VC_VERSION_STRING;
+
+void checkLibraryVersion(const char *compileTimeVersion) {
+    if (0 != std::strcmp(LIBRARY_VERSION, compileTimeVersion)) {
+        printf("The versions of libVc.a (%s) and Vc/version.h (%s) do not match. Aborting.", LIBRARY_VERSION, compileTimeVersion);
+        abort();
+    }
+}
 
 } // namespace Vc
 
