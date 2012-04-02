@@ -27,7 +27,7 @@
 
 #include "avx/const_data.h"
 #include "sse/const_data.h"
-#include "include/Vc/version.h"
+#include <Vc/version.h>
 
 #include <cstdio>
 #include <cstdlib>
