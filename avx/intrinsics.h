@@ -23,6 +23,16 @@
 // AVX
 #include <immintrin.h>
 
+#if defined(VC_CLANG) && VC_CLANG < 0x30100
+// _mm_permute_ps is broken: http://llvm.org/bugs/show_bug.cgi?id=12401
+#undef _mm_permute_ps
+#define _mm_permute_ps(A, C) __extension__ ({ \
+  __m128 __A = (A); \
+  (__m128)__builtin_shufflevector((__v4sf)__A, (__v4sf) _mm_setzero_ps(), \
+                                   (C) & 0x3, ((C) & 0xc) >> 2, \
+                                   ((C) & 0x30) >> 4, ((C) & 0xc0) >> 6); })
+#endif
+
 #include <Vc/global.h>
 #include "const_data.h"
 #include "macros.h"
@@ -136,16 +146,29 @@ namespace AVX
         __m128i r1 = _mm_##name(a1, i); \
         return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
     }
-#define AVX_TO_SSE_1i_si128_si256(name) \
-    static inline __m256i INTRINSIC CONST _mm256_##name##_si256(__m256i a0, const int i) { \
-        __m128i a1 = _mm256_extractf128_si256(a0, 1); \
-        __m128i r0 = _mm_##name##_si128(_mm256_castsi256_si128(a0), i); \
-        __m128i r1 = _mm_##name##_si128(a1, i); \
-        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
-    }
 
-    AVX_TO_SSE_1i_si128_si256(srli)
-    AVX_TO_SSE_1i_si128_si256(slli)
+#if defined(VC_CLANG) || (defined(VC_GCC) && !defined(__OPTIMIZE__))
+#   define _mm256_srli_si256(a, i) \
+        _mm256_insertf128_si256( \
+                _mm256_castsi128_si256(_mm_srli_si128(_mm256_castsi256_si128((a)), i)), \
+                _mm_srli_si128(_mm256_extractf128_si256((a), 1), i), 1);
+#   define _mm256_slli_si256(a, i) \
+        _mm256_insertf128_si256( \
+                _mm256_castsi128_si256( _mm_slli_si128(_mm256_castsi256_si128((a)), i)), \
+                _mm_slli_si128(_mm256_extractf128_si256((a), 1), i), 1);
+#else
+    static inline __m256i INTRINSIC CONST _mm256_srli_si256(__m256i a0, const int i) {
+        const __m128i r0 = _mm_srli_si128(_mm256_castsi256_si128(a0), i);
+        const __m128i r1 = _mm_srli_si128(_mm256_extractf128_si256(a0, 1), i);
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1);
+    }
+    static inline __m256i INTRINSIC CONST _mm256_slli_si256(__m256i a0, const int i) {
+        const __m128i r0 = _mm_slli_si128(_mm256_castsi256_si128(a0), i);
+        const __m128i r1 = _mm_slli_si128(_mm256_extractf128_si256(a0, 1), i);
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1);
+    }
+#endif
+
     static inline __m256i INTRINSIC CONST _mm256_and_si256(__m256i x, __m256i y) {
         return _mm256_castps_si256(_mm256_and_ps(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
     }
@@ -253,7 +276,7 @@ namespace AVX
     AVX_TO_SSE_1(abs_epi8)
     AVX_TO_SSE_1(abs_epi16)
     AVX_TO_SSE_1(abs_epi32)
-#if defined(__GNUC__) && defined(__OPTIMIZE__)
+#if !defined(VC_CLANG) || (defined(VC_GCC) && defined(__OPTIMIZE__))
     __m256i inline INTRINSIC CONST _mm256_blend_epi16(__m256i a0, __m256i b0, const int m) {
         __m128i a1 = _mm256_extractf128_si256(a0, 1);
         __m128i b1 = _mm256_extractf128_si256(b0, 1);
@@ -288,7 +311,11 @@ namespace AVX
     AVX_TO_SSE_2(max_epu32)
     AVX_TO_SSE_2(mullo_epi32)
     AVX_TO_SSE_2(mul_epi32)
+#if !defined(VC_CLANG) || VC_CLANG > 0x30100
+    // clang is missing _mm_minpos_epu16 from smmintrin.h
+    // http://llvm.org/bugs/show_bug.cgi?id=12399
     AVX_TO_SSE_1(minpos_epu16)
+#endif
     AVX_TO_SSE_1(cvtepi8_epi32)
     AVX_TO_SSE_1(cvtepi16_epi32)
     AVX_TO_SSE_1(cvtepi8_epi64)

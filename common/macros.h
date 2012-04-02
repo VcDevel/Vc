@@ -107,7 +107,7 @@
 #  define VC_RESTRICT __restrict
 #endif
 
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+#ifdef VC_GCC
 # define VC_WARN_INLINE
 # define VC_WARN(msg) __attribute__((warning("\n\t" msg)))
 #else
