@@ -34,10 +34,18 @@ namespace Vc
         return VC_VERSION_NUMBER;
     }
 
-#ifdef VC_GCC
+#ifndef VC_NO_VERSION_CHECK
     void checkLibraryVersion(const char *);
-    void __attribute__((constructor,weak)) runCheckLibraryVersion() {
-        checkLibraryVersion(VC_VERSION_STRING);
+    namespace {
+#ifdef VC_GCC
+#define VC_CONSTRUCTOR __attribute__((constructor))
+#else
+#define VC_CONSTRUCTOR
+#endif
+        static void VC_CONSTRUCTOR runCheckLibraryVersion() {
+            checkLibraryVersion(VC_VERSION_STRING);
+        }
+#undef VC_CONSTRUCTOR
     }
 #endif
 } // namespace Vc

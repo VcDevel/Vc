@@ -734,6 +734,12 @@ namespace Vc
  * \headerfile dox.h <Vc/version.h>
  *
  * \returns the version string of the Vc headers.
+ *
+ * \note There exists a built-in check that ensures on application startup that the Vc version of the
+ * library (link time) and the headers (compile time) are equal. A mismatch between headers and
+ * library could lead to errors that are very hard to debug.
+ * \note If you need to disable the check (it costs a very small amount of application startup time)
+ * you can define VC_NO_VERSION_CHECK at compile time.
  */
 const char *versionString();
 
