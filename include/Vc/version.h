@@ -34,7 +34,7 @@ namespace Vc
         return VC_VERSION_NUMBER;
     }
 
-#ifndef VC_NO_VERSION_CHECK
+#if !defined(VC_NO_VERSION_CHECK) && !defined(VC_COMPILE_LIB)
     void checkLibraryVersion(const char *);
     namespace {
 #ifdef VC_GCC
