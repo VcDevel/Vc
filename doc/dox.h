@@ -726,3 +726,51 @@ std::ostream &operator<<(std::ostream &s, const typename Vc::Vector<T>::Mask &v)
  */
 template<typename V, typename Parent, typename Dimension, typename RM>
 inline std::ostream &operator<<(std::ostream &s, const Vc::MemoryBase<V, Parent, Dimension, RM> &m);
+
+namespace Vc
+{
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/version.h>
+ *
+ * \returns the version string of the Vc headers.
+ */
+const char *versionString();
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/version.h>
+ *
+ * \returns the version of the Vc headers encoded in an integer.
+ */
+unsigned int versionNumber();
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/version.h>
+ *
+ * Contains the version string of the Vc headers. Same as Vc::versionString().
+ */
+#define VC_VERSION_STRING
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/version.h>
+ *
+ * Contains the encoded version number of the Vc headers. Same as Vc::versionNumber().
+ */
+#define VC_VERSION_NUMBER
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/version.h>
+ *
+ * Helper macro to compare against an encoded version number.
+ * Example:
+ * \code
+ * #if VC_VERSION_CHECK(0.5.1) >= VC_VERSION_NUMBER
+ * \endcode
+ */
+#define VC_VERSION_CHECK(major, minor, patch)
+
+} // namespace Vc

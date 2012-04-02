@@ -33,6 +33,13 @@ namespace Vc
     static inline unsigned int versionNumber() {
         return VC_VERSION_NUMBER;
     }
+
+#ifdef VC_GCC
+    void checkLibraryVersion(const char *);
+    void __attribute__((constructor,weak)) runCheckLibraryVersion() {
+        checkLibraryVersion(VC_VERSION_STRING);
+    }
+#endif
 } // namespace Vc
 
 #endif // VC_VERSION_H
