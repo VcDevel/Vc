@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -23,6 +23,7 @@
 #define VC_VERSION_STRING "0.6.70-dev"
 #define VC_VERSION_NUMBER 0x00068d
 #define VC_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
+#define VC_LIBRARY_ABI_VERSION 1
 
 namespace Vc
 {
@@ -35,17 +36,14 @@ namespace Vc
     }
 
 #if !defined(VC_NO_VERSION_CHECK) && !defined(VC_COMPILE_LIB)
-    void checkLibraryVersion(const char *);
+    void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *versionString);
     namespace {
-#ifdef VC_GCC
-#define VC_CONSTRUCTOR __attribute__((constructor))
-#else
-#define VC_CONSTRUCTOR
-#endif
-        static void VC_CONSTRUCTOR runCheckLibraryVersion() {
-            checkLibraryVersion(VC_VERSION_STRING);
-        }
-#undef VC_CONSTRUCTOR
+        static struct runLibraryAbiCheck
+        {
+            runLibraryAbiCheck() {
+                checkLibraryAbi(VC_LIBRARY_ABI_VERSION, VC_VERSION_NUMBER, VC_VERSION_STRING);
+            }
+        } _runLibraryAbiCheck;
     }
 #endif
 } // namespace Vc

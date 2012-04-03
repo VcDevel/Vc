@@ -279,11 +279,13 @@ namespace Warnings {
     void _operator_bracket_warning() {}
 } // namespace Warnings
 
-extern const char LIBRARY_VERSION[] = VC_VERSION_STRING;
+const char LIBRARY_VERSION[] = VC_VERSION_STRING;
+const unsigned int LIBRARY_VERSION_NUMBER = VC_VERSION_NUMBER;
+const unsigned int LIBRARY_ABI_VERSION = VC_LIBRARY_ABI_VERSION;
 
-void checkLibraryVersion(const char *compileTimeVersion) {
-    if (0 != std::strcmp(LIBRARY_VERSION, compileTimeVersion)) {
-        printf("The versions of libVc.a (%s) and Vc/version.h (%s) do not match. Aborting.", LIBRARY_VERSION, compileTimeVersion);
+void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *compileTimeVersion) {
+    if (LIBRARY_ABI_VERSION != compileTimeAbi || LIBRARY_VERSION_NUMBER < versionNumber) {
+        printf("The versions of libVc.a (%s) and Vc/version.h (%s) are incompatible. Aborting.\n", LIBRARY_VERSION, compileTimeVersion);
         abort();
     }
 }
