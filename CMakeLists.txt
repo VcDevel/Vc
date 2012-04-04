@@ -19,7 +19,9 @@ vc_determine_compiler()
 
 if(VC_COMPILER_IS_GCC)
    if(VC_GCC_VERSION STREQUAL "4.6.0")
-      #message(STATUS "GCC 4.7.0 miscompiles gather_avx, gather_sse, gather_VC_USE_SET_GATHERS_avx, gather_VC_USE_SET_GATHERS_sse, gather_sse_LOOP, scatter_avx, and scatter_sse")
+      message(WARNING "GCC 4.6.0 is broken. The following tests are therefore disabled:
+      gather_avx, gather_sse, gather_VC_USE_SET_GATHERS_avx, gather_VC_USE_SET_GATHERS_sse,
+      gather_sse_LOOP, scatter_avx, and scatter_sse")
       list(APPEND disabled_targets
          gather_avx
          gather_sse
@@ -28,6 +30,15 @@ if(VC_COMPILER_IS_GCC)
          gather_sse_LOOP
          scatter_avx
          scatter_sse
+         )
+   elseif(VC_GCC_VERSION STREQUAL "4.5.0" OR VC_GCC_VERSION STREQUAL "4.5.1")
+      message(WARNING "GCC 4.5.[12] are known to generate an internal compiler error on the memory unit test.
+      (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=46723)
+      The test will therefore not be compiled and executed.")
+      list(APPEND disabled_targets
+         memory_scalar
+         memory_sse
+         memory_avx
          )
    endif()
 endif()
