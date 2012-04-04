@@ -142,14 +142,18 @@ endif
 VCH          := \$(wildcard \$(MODDIRI)/Vc/*.h \$(MODDIRI)/Vc/*/*.h)
 
 ALLHDRS      += \$(patsubst \$(MODDIRI)/%.h,include/%.h,\$(VCH))
-ALLLIBS      += \$(VCLIBVC) \$(VCLIBCPUID)
+ALLLIBS      += \$(VCLIBVC)
 
 ##### local rules #####
 .PHONY:         all-\$(MODNAME) clean-\$(MODNAME) distclean-\$(MODNAME)
 
-VCFLAGS      := -DVC_COMPILE_LIB -Wall -Wextra -ansi -pedantic -Wno-long-long -O2 -msse2 -fabi-version=4 \$(CXXFLAGS) -Iinclude/Vc
+VCFLAGS      := -DVC_COMPILE_LIB \$(OPT) \$(CXXFLAGS) -Iinclude/Vc
+VCLIBVCOBJ   := \$(patsubst \$(MODDIRS)/%.cpp,\$(VCBUILDDIR)/%.cpp.o,\$(wildcard \$(MODDIRS)/*.cpp))
+ifndef AVXFLAGS
+VCLIBVCOBJ   := \$(filter-out \$(MODDIRS)/avx-%.cpp,\$(VCLIBVCOBJ))
+endif
 
-\$(VCLIBVC): \$(patsubst \$(MODDIRS)/%.cpp,\$(VCBUILDDIR)/%.cpp.o,\$(wildcard \$(MODDIRS)/*.cpp))
+\$(VCLIBVC): \$(VCLIBVCOBJ)
 	\$(MAKEDIR)
 	@echo "Create static library \$@"
 	@ar r \$@ \$?
@@ -158,24 +162,29 @@ VCFLAGS      := -DVC_COMPILE_LIB -Wall -Wextra -ansi -pedantic -Wno-long-long -O
 \$(VCBUILDDIR)/avx-%.cpp.o: \$(MODDIRS)/avx-%.cpp
 	\$(MAKEDIR)
 	@echo "Compiling (AVX) \$<"
-	@\$(CXX) \$(VCFLAGS) -mavx -Iinclude/Vc/avx -c -o \$@ \$<
+	@\$(CXX) \$(VCFLAGS) \$(AVXFLAGS) -Iinclude/Vc/avx -c \$(CXXOUT)\$@ \$<
 
 \$(VCBUILDDIR)/%.cpp.o: \$(MODDIRS)/%.cpp
 	\$(MAKEDIR)
 	@echo "Compiling \$<"
-	@\$(CXX) \$(VCFLAGS) -c -o \$@ \$<
+	@\$(CXX) \$(VCFLAGS) -c \$(CXXOUT)\$@ \$<
 
 include/%.h: \$(MODDIRI)/%.h
 	\$(MAKEDIR)
 	cp \$< \$@
 
-all-\$(MODNAME): \$(VCLIBVC) \$(VCLIBCPUID)
+all-\$(MODNAME): \$(VCLIBVC)
 
 clean-\$(MODNAME):
-	rm -f \$(VCLIBVC) \$(VCLIBCPUID)
+	@rm -f \$(VCLIBVC) \$(VCLIBVCOBJ)
+
+clean:: clean-\$(MODNAME)
+
+distclean-\$(MODNAME): clean-\$(MODNAME)
+	@rm -rf include/Vc
+
+distclean:: distclean-\$(MODNAME)
 
 EOF
-
-# TODO: adjust version string and append "-root"
 
 # vim: sw=2 noet ft=zsh
