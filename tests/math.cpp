@@ -654,7 +654,7 @@ template<typename V> void testUlpDiff()
             // of +/-1
             const V ulpDifference = ulpDiffToReference(diff, base);
             const V expectedDifference = Vc::abs(i_v);
-            const V maxUncertainty = Vc::abs(diff.exponent() - base.exponent());
+            const V maxUncertainty = Vc::abs(abs(diff).exponent() - abs(base).exponent());
 
             VERIFY(Vc::abs(ulpDifference - expectedDifference) <= maxUncertainty)
                 << ", base = " << base << ", epsilon = " << eps << ", diff = " << diff;
@@ -680,13 +680,14 @@ int main(int argc, char **argv)
 
     testRealTypes(testFrexp);
     testRealTypes(testLdexp);
-    testRealTypes(testUlpDiff);
 
     runTest(testAbs<int_v>);
     runTest(testAbs<float_v>);
     runTest(testAbs<double_v>);
     runTest(testAbs<short_v>);
     runTest(testAbs<sfloat_v>);
+
+    testRealTypes(testUlpDiff);
 
     testRealTypes(testFloor);
     testRealTypes(testCeil);
