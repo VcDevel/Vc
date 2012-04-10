@@ -160,6 +160,7 @@ namespace Vc {
 #ifdef NDEBUG
 #define VC_ASSERT(x)
 #else
+#include <assert.h>
 #define VC_ASSERT(x) assert(x);
 #endif
 
