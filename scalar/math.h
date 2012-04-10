@@ -74,6 +74,9 @@ template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *si
 {
 #if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincosf)) || (!defined(VC_CLANG) && defined(__GNUC__))
     __builtin_sincosf(x.data(), &sin->data(), &cos->data());
+#elif VC_MSVC
+    sin->data() = std::sin(x.data());
+    cos->data() = std::cos(x.data());
 #else
     sincosf(x.data(), &sin->data(), &cos->data());
 #endif
@@ -83,6 +86,9 @@ template<> inline void sincos(const Vector<double> &x, Vector<double> *sin, Vect
 {
 #if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincos)) || (!defined(VC_CLANG) && defined(__GNUC__))
     __builtin_sincos(x.data(), &sin->data(), &cos->data());
+#elif VC_MSVC
+    sin->data() = std::sin(x.data());
+    cos->data() = std::cos(x.data());
 #else
     ::sincos(x.data(), &sin->data(), &cos->data());
 #endif
@@ -123,6 +129,9 @@ static inline Vector<double> log2(const Vector<double> &x)
     return ::log2(x.data());
 }
 #else
+#ifndef M_LN2
+#define M_LN2 0.69314718055994530942
+#endif
 template<typename T> static inline Vector<T> log2(const Vector<T> &x)
 {
     return std::log(x.data()) / M_LN2;

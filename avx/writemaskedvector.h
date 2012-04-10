@@ -36,18 +36,18 @@ class WriteMaskedVector
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)
         //prefix
-        Vector<T> &operator++() ALWAYS_INLINE;
-        Vector<T> &operator--() ALWAYS_INLINE;
+        Vector<T> ALWAYS_INLINE_L &operator++() ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE_L &operator--() ALWAYS_INLINE_R;
         //postfix
-        Vector<T> operator++(int) ALWAYS_INLINE;
-        Vector<T> operator--(int) ALWAYS_INLINE;
+        Vector<T> ALWAYS_INLINE_L operator++(int) ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE_L operator--(int) ALWAYS_INLINE_R;
 
-        Vector<T> &operator+=(const Vector<T> &x) ALWAYS_INLINE;
-        Vector<T> &operator-=(const Vector<T> &x) ALWAYS_INLINE;
-        Vector<T> &operator*=(const Vector<T> &x) ALWAYS_INLINE;
-        Vector<T> &operator/=(const Vector<T> &x) ALWAYS_INLINE;
+        Vector<T> ALWAYS_INLINE_L &operator+=(const Vector<T> &x) ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE_L &operator-=(const Vector<T> &x) ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE_L &operator*=(const Vector<T> &x) ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE_L &operator/=(const Vector<T> &x) ALWAYS_INLINE_R;
 
-        Vector<T> &operator=(const Vector<T> &x) ALWAYS_INLINE;
+        Vector<T> ALWAYS_INLINE_L &operator=(const Vector<T> &x) ALWAYS_INLINE_R;
 
         template<typename F> inline void INTRINSIC call(F &f) const {
             return vec->call(f, mask);

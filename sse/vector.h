@@ -197,7 +197,7 @@ class Vector : public VectorBase<T>
         inline void INTRINSIC_L setZero(const Mask &k) INTRINSIC_R;
 
         inline void INTRINSIC_L setQnan() INTRINSIC_R;
-        inline void INTRINSIC_L setQnan(Mask k) INTRINSIC_R;
+        inline void INTRINSIC_L setQnan(typename Mask::Argument k) INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
@@ -376,7 +376,7 @@ class Vector : public VectorBase<T>
             return r;
         }
 
-        inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;
+        inline INTRINSIC_L Vector copySign(typename Vector::AsArg reference) const INTRINSIC_R;
         inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };
 

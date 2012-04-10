@@ -66,12 +66,12 @@ template<typename T> class Vector
         typedef VectorHelper<T> HT;
 
         // cast any m256/m128 to VectorType
-        static inline VectorType _cast(__m128  v) INTRINSIC { return avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m128i v) INTRINSIC { return avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m128d v) INTRINSIC { return avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m256  v) INTRINSIC { return avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m256i v) INTRINSIC { return avx_cast<VectorType>(v); }
-        static inline VectorType _cast(__m256d v) INTRINSIC { return avx_cast<VectorType>(v); }
+        static inline VectorType INTRINSIC _cast(__m128  v) { return avx_cast<VectorType>(v); }
+        static inline VectorType INTRINSIC _cast(__m128i v) { return avx_cast<VectorType>(v); }
+        static inline VectorType INTRINSIC _cast(__m128d v) { return avx_cast<VectorType>(v); }
+        static inline VectorType INTRINSIC _cast(__m256  v) { return avx_cast<VectorType>(v); }
+        static inline VectorType INTRINSIC _cast(__m256i v) { return avx_cast<VectorType>(v); }
+        static inline VectorType INTRINSIC _cast(__m256d v) { return avx_cast<VectorType>(v); }
 
         typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
         StorageType d;
@@ -105,25 +105,25 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
-        explicit inline
-            Vector(const EntryType *x) INTRINSIC;
-        template<typename Alignment> inline
-            Vector(const EntryType *x, Alignment align) INTRINSIC;
-        template<typename OtherT> explicit inline
-            Vector(const OtherT    *x) INTRINSIC;
-        template<typename OtherT, typename Alignment> inline
-            Vector(const OtherT    *x, Alignment align) INTRINSIC;
+        explicit inline INTRINSIC_L
+            Vector(const EntryType *x) INTRINSIC_R;
+        template<typename Alignment> inline INTRINSIC_L
+            Vector(const EntryType *x, Alignment align) INTRINSIC_R;
+        template<typename OtherT> explicit inline INTRINSIC_L
+            Vector(const OtherT    *x) INTRINSIC_R;
+        template<typename OtherT, typename Alignment> inline INTRINSIC_L
+            Vector(const OtherT    *x, Alignment align) INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
-        inline
-            void load(const EntryType *mem) INTRINSIC;
-        template<typename Alignment> inline
-            void load(const EntryType *mem, Alignment align) INTRINSIC;
-        template<typename OtherT> inline
-            void load(const OtherT    *mem) INTRINSIC;
-        template<typename OtherT, typename Alignment> inline
-            void load(const OtherT    *mem, Alignment align) INTRINSIC;
+        inline INTRINSIC_L
+            void load(const EntryType *mem) INTRINSIC_R;
+        template<typename Alignment> inline INTRINSIC_L
+            void load(const EntryType *mem, Alignment align) INTRINSIC_R;
+        template<typename OtherT> inline INTRINSIC_L
+            void load(const OtherT    *mem) INTRINSIC_R;
+        template<typename OtherT, typename Alignment> inline INTRINSIC_L
+            void load(const OtherT    *mem, Alignment align) INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX

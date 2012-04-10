@@ -117,6 +117,7 @@ template<typename V> void testLog()
     }
 }
 
+#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L
 static inline float my_log2(float x) { return ::log2f(x); }
 /* I need to make sure whether the log2 that I compare against is really precise to <0.5ulp. At
  * least I get different results when I use "double log2(double)", which is somewhat unexpected.
@@ -132,6 +133,13 @@ static inline float my_log2(float x) {
 }
  */
 static inline double my_log2(double x) { return ::log2(x); }
+#else
+#ifndef M_LN2
+#define M_LN2 0.69314718055994530942
+#endif
+static inline float my_log2(float x) { return ::logf(x) / float(M_LN2); }
+static inline double my_log2(double x) { return ::log(x) / M_LN2; }
+#endif
 
 template<typename V> void testLog2()
 {
@@ -224,14 +232,27 @@ template<typename V> void testRSqrt()
     }
 }
 
+
 template<typename T> void my_sincos(T x, T *sin, T *cos);
 template<> void my_sincos<double>(double x, double *sin, double *cos)
 {
+#ifdef VC_MSVC
+// no sincos on Windows
+    *sin = std::sin(x);
+    *cos = std::cos(x);
+#else
     sincos(x, sin, cos);
+#endif
 }
 template<> void my_sincos<float>(float x, float *sin, float *cos)
 {
+#ifdef VC_MSVC
+// no sincos on Windows
+    *sin = std::sin(x);
+    *cos = std::cos(x);
+#else
     sincosf(x, sin, cos);
+#endif
 }
 
 template<typename Vec> void testSincos()

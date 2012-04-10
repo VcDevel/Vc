@@ -64,7 +64,7 @@ enum LogarithmBase {
 template<LogarithmBase Base>
 struct LogImpl
 {
-    template<typename T> static inline ALWAYS_INLINE void log_series(Vector<T> &VC_RESTRICT x, const Vector<T> exponent) {
+    template<typename T> static inline ALWAYS_INLINE void log_series(Vector<T> &VC_RESTRICT x, typename Vector<T>::AsArg exponent) {
         typedef Vector<T> V;
         typedef Const<T> C;
         // Taylor series around x = 2^exponent
@@ -166,7 +166,7 @@ struct LogImpl
         }
     }
 
-    static inline ALWAYS_INLINE void log_series(Vector<double> &VC_RESTRICT x, const Vector<double> exponent) {
+    static inline ALWAYS_INLINE void log_series(Vector<double> &VC_RESTRICT x, Vector<double>::AsArg exponent) {
         typedef Vector<double> V;
         typedef Const<double> C;
         const V x2 = x * x;

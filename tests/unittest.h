@@ -270,7 +270,7 @@ class _UnitTest_Compare
         enum OptionNoEq { NoEq };
 
         template<typename T1, typename T2>
-        inline ALWAYS_INLINE _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line)
+        inline ALWAYS_INLINE _UnitTest_Compare(const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file, int _line)
             : m_failed(!unittest_compareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -283,7 +283,7 @@ class _UnitTest_Compare
         }
 
         template<typename T1, typename T2>
-        inline ALWAYS_INLINE _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
+        inline ALWAYS_INLINE _UnitTest_Compare(const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
             : m_failed(!unittest_compareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -296,7 +296,7 @@ class _UnitTest_Compare
         }
 
         template<typename T>
-        inline ALWAYS_INLINE _UnitTest_Compare(T a, T b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
+        inline ALWAYS_INLINE _UnitTest_Compare(const T &a, const T &b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
             : m_failed(!unittest_fuzzyCompareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -431,14 +431,14 @@ template<> inline void _UnitTest_Compare::printFuzzyInfo(float a, float b) {
 template<> inline void _UnitTest_Compare::printFuzzyInfo(double a, double b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.double_fuzzyness);
 }
-template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::float_v a, Vc::float_v b) {
+template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::float_v::AsArg a, Vc::float_v::AsArg b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
 }
-template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::double_v a, Vc::double_v b) {
+template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::double_v::AsArg a, Vc::double_v::AsArg b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.double_fuzzyness);
 }
 #ifdef VC_IMPL_SSE
-template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::sfloat_v a, Vc::sfloat_v b) {
+template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::sfloat_v::AsArg a, Vc::sfloat_v::AsArg b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
 }
 #endif
@@ -449,14 +449,14 @@ template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, floa
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, double a, double b) {
     file << std::setprecision(12) << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
 }
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::float_v a, Vc::float_v b) {
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::float_v::AsArg a, Vc::float_v::AsArg b) {
     const Vc::float_v ref = b;
     const Vc::float_v dist = ulpDiffToReferenceSigned(a, b);
     for (size_t i = 0; i < Vc::float_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::double_v a, Vc::double_v b) {
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::double_v::AsArg a, Vc::double_v::AsArg b) {
     const Vc::double_v ref = b;
     const Vc::double_v dist = ulpDiffToReferenceSigned(a, b);
     for (size_t i = 0; i < Vc::double_v::Size; ++i) {
@@ -464,7 +464,7 @@ template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::
     }
 }
 #ifdef VC_IMPL_SSE
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::sfloat_v a, Vc::sfloat_v b) {
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::sfloat_v::AsArg a, Vc::sfloat_v::AsArg b) {
     const Vc::sfloat_v ref = b;
     const Vc::sfloat_v dist = ulpDiffToReferenceSigned(a, b);
     for (size_t i = 0; i < Vc::sfloat_v::Size; ++i) {
