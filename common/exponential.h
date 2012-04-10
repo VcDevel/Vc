@@ -88,7 +88,12 @@ namespace Common
 
         return x;
     }
-    static inline Vector<double> exp(Vector<double> x) {
+    static inline Vector<double> exp(Vector<double>::AsArg _x) {
+#ifdef VC_MSVC
+        Vector<double> x = _x;
+#else
+        Vector<double> &x = _x;
+#endif
         typedef Vector<double> V;
         typedef V::Mask M;
         typedef Const<double> C;

@@ -106,7 +106,7 @@ namespace SSE
     inline sfloat_v ceil(sfloat_v v) { return M256::create(_mm_ceil_ps(v.data()[0]),
             _mm_ceil_ps(v.data()[1])); }
 #else
-    static inline void floor_shift(float_v &v, float_v e)
+    static inline void floor_shift(float_v &v, float_v::AsArg e)
     {
         int_v x = _mm_setallone_si128();
         x <<= 23;
@@ -114,7 +114,7 @@ namespace SSE
         v &= x.reinterpretCast<float_v>();
     }
 
-    static inline void floor_shift(sfloat_v &v, sfloat_v e)
+    static inline void floor_shift(sfloat_v &v, sfloat_v::AsArg e)
     {
         int_v x = _mm_setallone_si128();
         x <<= 23;
@@ -125,7 +125,7 @@ namespace SSE
         v.data()[1] = _mm_and_ps(v.data()[1], _mm_castsi128_ps(y.data()));
     }
 
-    static inline void floor_shift(double_v &v, double_v e)
+    static inline void floor_shift(double_v &v, double_v::AsArg e)
     {
         const long long initialMask = 0xfff0000000000000ull;
         const uint_v shifts = static_cast<uint_v>(e);
