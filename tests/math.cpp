@@ -163,6 +163,10 @@ template<typename V> void testLog2()
     }
 }
 
+#ifndef M_LN10
+#define M_LN10 2.30258509299404568402
+#endif
+
 template<typename V> void testLog10()
 {
     setFuzzyness<float>(2);
