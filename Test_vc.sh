@@ -64,7 +64,18 @@ if test -z "$CXX" ; then
 else
   COMPILER="`"$CXX" --version 2>&1|head -n1`"
 fi
-export git_branch=`cat .git/HEAD|cut -d/ -f3`
+case "$arch" in
+  linux)
+    export number_of_processors=$(cat /proc/cpuinfo | grep processor | wc -l)
+    ;;
+  darwin)
+    export number_of_processors=$(sysctl -n hw.ncpu)
+    ;;
+  mingw*)
+    export number_of_processors=0
+    COMPILER="MSVC `cl 2>&1|awk '/Version/ { print $8 }'`"
+    ;;
+esac
 
 LABEL1="$arch $chip $COMPILER $CXXFLAGS"
 if test "$arch" = "linux"; then
@@ -75,17 +86,8 @@ if test "$arch" = "linux"; then
 fi
 export LABEL=$(echo $LABEL1 | tr '[/+]' '[_x]')
 
-# get the number of processors
-# and information about the host
-if [ "$arch" = "linux" ];
-then
-  export number_of_processors=$(cat /proc/cpuinfo | grep processor | wc -l)
-  export SITE=$(hostname -s 2>/dev/null || hostname)
-elif [ "$arch" = "darwin" ];
-then
-  export number_of_processors=$(sysctl -n hw.ncpu)
-  export SITE=$(hostname -s)
-fi
+export SITE=$(hostname -s 2>/dev/null || hostname)
+export git_branch=`cat .git/HEAD|cut -d/ -f3`
 
 echo "************************"
 date
