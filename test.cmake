@@ -11,11 +11,11 @@ set(CTEST_USE_LAUNCHERS 1) # much improved error/warning message logging
 
 if(WIN32)
    set(CTEST_CMAKE_GENERATOR "NMake Makefiles")
-   set(CMAKE_MAKE_PROGRAM "nmake")
+   set(CMAKE_MAKE_PROGRAM "nmake -I")
 else()
    set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
    if(NOT CMAKE_MAKE_PROGRAM)
-      set(CMAKE_MAKE_PROGRAM "make")
+      set(CMAKE_MAKE_PROGRAM "make -j$ENV{number_of_processors} -i")
    endif()
 endif()
 
@@ -39,7 +39,7 @@ macro(go)
             set_property(GLOBAL PROPERTY SubProject ${subproject})
             set_property(GLOBAL PROPERTY Label ${subproject})
             set(CTEST_BUILD_TARGET "${subproject}")
-            set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} -j$ENV{number_of_processors} -i ${CTEST_BUILD_TARGET}")
+            set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} ${CTEST_BUILD_TARGET}")
             ctest_build(
                BUILD "${CTEST_BINARY_DIRECTORY}"
                APPEND
