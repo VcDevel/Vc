@@ -100,4 +100,4 @@ echo "************************"
 test -z "$VC_BUILDDIR" && export VC_BUILDDIR="$VC_SOURCEDIR/build-${ctest_model}-${LABEL//[\[\] ()]/_}"
 test -d "$VC_BUILDDIR" || mkdir -p "$VC_BUILDDIR"
 
-ctest -S test.cmake 2>&1 | grep -v 'Error in read script:'
+ctest --interactive-debug-mode 0 -S test.cmake 2>&1 | grep -v 'Error in read script:'
