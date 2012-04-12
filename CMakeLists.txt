@@ -65,7 +65,7 @@ else()
    set(_srcs vector.cpp cpuid.cpp support.cpp)
 
    # we'd still like to have avx/sorthelper.cpp built in, but that requires compilation with -mavx (or a comparable flag)
-   foreach(_flag "-mavx" "-xAVX")
+   foreach(_flag "-mavx" "-xAVX" "-arch:AVX")
       check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag})
       if(check_cxx_compiler_flag_${_flag})
          set(_srcs ${_srcs} avx/sorthelper.cpp)
