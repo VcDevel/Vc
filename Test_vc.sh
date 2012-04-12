@@ -72,7 +72,7 @@ case "$arch" in
     export number_of_processors=$(sysctl -n hw.ncpu)
     ;;
   mingw*)
-    export number_of_processors=0
+    export number_of_processors=$(reg query HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor|grep -c CentralProcessor)
     COMPILER="MSVC `cl 2>&1|awk '/Version/ { print $8 }'`"
     ;;
 esac
