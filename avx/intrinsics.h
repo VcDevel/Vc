@@ -38,6 +38,10 @@
 #include "macros.h"
 #include <cstdlib>
 
+#if defined(VC_CLANG) || defined(VC_MSVC) || (defined(VC_GCC) && !defined(__OPTIMIZE__))
+#define VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
+#endif
+
 namespace Vc
 {
 namespace AVX
@@ -90,7 +94,7 @@ namespace AVX
     static inline __m256i CONST _mm256_setmin_epi16() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
     static inline __m256i CONST _mm256_setmin_epi32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
 
-#ifdef VC_MSVC
+#ifdef VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
 #define _mm_extract_epu8 _mm_extract_epi8
 #define _mm_extract_epu16 _mm_extract_epi16
 #define _mm_extract_epu32 _mm_extract_epi32
@@ -153,7 +157,7 @@ namespace AVX
         return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
     }
 
-#if defined(VC_CLANG) || (defined(VC_GCC) && !defined(__OPTIMIZE__))
+#ifdef VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
 #   define _mm256_srli_si256(a, i) \
         _mm256_insertf128_si256( \
                 _mm256_castsi128_si256(_mm_srli_si128(_mm256_castsi256_si128((a)), i)), \
@@ -282,7 +286,7 @@ namespace AVX
     AVX_TO_SSE_1(abs_epi8)
     AVX_TO_SSE_1(abs_epi16)
     AVX_TO_SSE_1(abs_epi32)
-#if !defined(VC_CLANG) || (defined(VC_GCC) && defined(__OPTIMIZE__))
+#if !defined(VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT)
     __m256i inline INTRINSIC CONST _mm256_blend_epi16(__m256i a0, __m256i b0, const int m) {
         __m128i a1 = _mm256_extractf128_si256(a0, 1);
         __m128i b1 = _mm256_extractf128_si256(b0, 1);
