@@ -60,6 +60,7 @@ macro(vc_set_preferred_compiler_flags)
    check_cxx_source_runs("int main() { return sizeof(void*) != 8; }" VOID_PTR_IS_64BIT)
 
    set(SSE_INTRINSICS_BROKEN false)
+   set(VC_AVX_INTRINSICS_BROKEN false)
 
    if(VC_COMPILER_IS_OPEN64)
       # Open64 is detected as GNUCXX :(
@@ -166,6 +167,10 @@ macro(vc_set_preferred_compiler_flags)
             set(SSE_INTRINSICS_BROKEN true)
          endif(NOT GCC_4_3_0)
       endif(NOT GCC_4_4_1)
+      macro_ensure_version("4.4.6" "${VC_GCC_VERSION}" GCC_4_4_6)
+      if(NOT GCC_4_4_6)
+         set(VC_AVX_INTRINSICS_BROKEN true)
+      endif()
 
       if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
          set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
