@@ -34,7 +34,7 @@ namespace AVX
      * The return value will be in the range [0.5, 1.0[
      * The \p e value will be an integer defining the power-of-two exponent
      */
-    inline double_v frexp(double_v v, int_v *e) {
+    inline double_v frexp(double_v::AsArg v, int_v *e) {
         const __m256d exponentBits = Const<double>::exponentMask().dataD();
         const __m256d exponentPart = _mm256_and_pd(v.data(), exponentBits);
         e->data() = _mm256_sub_epi32(_mm256_srli_epi64(avx_cast<__m256i>(exponentPart), 52), _mm256_set1_epi32(0x3fe));
@@ -45,7 +45,7 @@ namespace AVX
         e->setZero(zeroMask.data());
         return ret;
     }
-    inline float_v frexp(float_v v, int_v *e) {
+    inline float_v frexp(float_v::AsArg v, int_v *e) {
         const __m256 exponentBits = Const<float>::exponentMask().data();
         const __m256 exponentPart = _mm256_and_ps(v.data(), exponentBits);
         e->data() = _mm256_sub_epi32(_mm256_srli_epi32(avx_cast<__m256i>(exponentPart), 23), _mm256_set1_epi32(0x7e));
@@ -55,7 +55,7 @@ namespace AVX
         e->setZero(v == float_v::Zero());
         return ret;
     }
-    inline float_v frexp(float_v v, short_v *e) {
+    inline float_v frexp(float_v::AsArg v, short_v *e) {
         const __m256 exponentBits = Const<float>::exponentMask().data();
         const __m256 exponentPart = _mm256_and_ps(v.data(), exponentBits);
         e->data() = _mm_sub_epi16(_mm_packs_epi32(_mm_srli_epi32(avx_cast<__m128i>(exponentPart), 23),
@@ -71,16 +71,16 @@ namespace AVX
      * x == NaN    -> NaN
      * x == (-)inf -> (-)inf
      */
-    inline double_v ldexp(double_v v, int_v e) {
+    inline double_v ldexp(double_v::AsArg v, int_v::AsArg e) {
         e.setZero((v == double_v::Zero()).dataI());
         const __m256i exponentBits = _mm256_slli_epi64(e.data(), 52);
         return avx_cast<__m256d>(_mm256_add_epi64(avx_cast<__m256i>(v.data()), exponentBits));
     }
-    inline float_v ldexp(float_v v, int_v e) {
+    inline float_v ldexp(float_v::AsArg v, int_v::AsArg e) {
         e.setZero(static_cast<int_m>(v == float_v::Zero()));
         return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
     }
-    inline float_v ldexp(float_v v, short_v e) {
+    inline float_v ldexp(float_v::AsArg v, short_v::AsArg e) {
         e.setZero(static_cast<short_m>(v == float_v::Zero()));
         e = e << (23 - 16);
         const __m256i exponentBits = concat(_mm_unpacklo_epi16(_mm_setzero_si128(), e.data()),

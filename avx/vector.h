@@ -57,6 +57,11 @@ template<typename T> class Vector
         typedef Vector<typename IndexTypeHelper<T>::Type> IndexType;
         typedef typename Vc::AVX::Mask<Size, sizeof(VectorType)> Mask;
         typedef Vc::Memory<Vector<T>, Size> Memory;
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+        typedef const Vector<T> &AsArg;
+#else
+        typedef Vector<T> AsArg;
+#endif
 
     protected:
         // helper that specializes on VectorType
@@ -334,7 +339,7 @@ template<typename T> class Vector
             return r;
         }
 
-        inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;
+        inline INTRINSIC_L Vector copySign(typename Vector::AsArg reference) const INTRINSIC_R;
         inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };
 
