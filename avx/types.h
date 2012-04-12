@@ -70,13 +70,27 @@ namespace AVX
     namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
     namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
+#ifdef VC_MSVC
+    // MSVC's __declspec(align(#)) only works with numbers, no enums or sizeof allowed ;(
+    template<size_t size> class _VectorAlignedBaseHack;
+    template<> class STRUCT_ALIGN1( 8) _VectorAlignedBaseHack< 8> {} STRUCT_ALIGN2( 8);
+    template<> class STRUCT_ALIGN1(16) _VectorAlignedBaseHack<16> {} STRUCT_ALIGN2(16);
+    template<> class STRUCT_ALIGN1(32) _VectorAlignedBaseHack<32> {} STRUCT_ALIGN2(32);
+    template<> class STRUCT_ALIGN1(64) _VectorAlignedBaseHack<64> {} STRUCT_ALIGN2(64);
+    template<typename V = Vector<float> >
+    class VectorAlignedBaseT : public _VectorAlignedBaseHack<sizeof(V)>
+    {
+        public:
+            FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
+    };
+#else
     template<typename V = Vector<float> >
     class STRUCT_ALIGN1(sizeof(V)) VectorAlignedBaseT
     {
         public:
             FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
     } STRUCT_ALIGN2(sizeof(V));
-
+#endif
 } // namespace AVX
 } // namespace Vc
 
