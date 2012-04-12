@@ -44,7 +44,7 @@ namespace SSE
             typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
-#if defined VC_MSVC && defined _WIN32
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const Vector<T> &AsArg;
 #else
             typedef Vector<T> AsArg;
@@ -96,7 +96,7 @@ namespace SSE
             typedef Float8GatherMask GatherMaskType;
 
             typedef ParameterHelper<VectorType>::ByValue ByValue;
-#if defined VC_MSVC && defined _WIN32
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const Vector<float8> &AsArg;
 #else
             typedef Vector<float8> AsArg;
@@ -124,7 +124,7 @@ namespace SSE
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
-#if defined VC_MSVC && defined _WIN32
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const Vector<float> &AsArg;
 #else
             typedef Vector<float> AsArg;
@@ -152,7 +152,7 @@ namespace SSE
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
-#if defined VC_MSVC && defined _WIN32
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const Vector<double> &AsArg;
 #else
             typedef Vector<double> AsArg;

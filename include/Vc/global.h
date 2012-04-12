@@ -268,6 +268,11 @@
 #undef AVX
 #undef Scalar
 
+#if defined VC_MSVC && defined _WIN32
+// the Win32 ABI can't handle function parameters with alignment >= 16
+#define VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#endif
+
 #ifndef DOXYGEN
 namespace Vc {
 enum AlignedFlag {
