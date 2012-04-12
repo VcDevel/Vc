@@ -178,6 +178,7 @@ namespace Vc {
     }; };
     template<int center> struct exponentToMultiplier<center,center> { enum { X = 1, Value = X }; };
     template<int center> struct exponentToMultiplier<   -1, center> { enum { X = 0 }; };
+    template<int center> struct exponentToMultiplier< -256, center> { enum { X = 0 }; };
     template<int center> struct exponentToMultiplier< -512, center> { enum { X = 0 }; };
     template<int center> struct exponentToMultiplier<-1024, center> { enum { X = 0 }; };
 
@@ -186,6 +187,7 @@ namespace Vc {
       Value = (X == 0 ? 1 : X)
     }; };
     template<> struct exponentToDivisor<0> { enum { X = 1, Value = X }; };
+    template<> struct exponentToDivisor<256> { enum { X = 0 }; };
     template<> struct exponentToDivisor<512> { enum { X = 0 }; };
     template<> struct exponentToDivisor<1024> { enum { X = 0 }; };
 #endif // VC_COMMON_MACROS_H_ONCE
