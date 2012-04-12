@@ -8,21 +8,21 @@ set(CTEST_NOTES_FILES ${CTEST_SOURCE_DIRECTORY}/.git/HEAD ${CTEST_SOURCE_DIRECTO
 include(CTestCustom.cmake)
 include(CTestConfig.cmake)
 set(CTEST_USE_LAUNCHERS 1) # much improved error/warning message logging
+set(MAKE_ARGS "-j$ENV{number_of_processors} -i")
 
 if(WIN32)
    find_program(JOM jom)
    if(JOM)
       set(CTEST_CMAKE_GENERATOR "NMake Makefiles JOM")
-      set(CMAKE_MAKE_PROGRAM "jom -j$ENV{number_of_processors} -i")
+      set(CMAKE_MAKE_PROGRAM "jom")
    else()
       set(CTEST_CMAKE_GENERATOR "NMake Makefiles")
-      set(CMAKE_MAKE_PROGRAM "nmake -I")
+      set(CMAKE_MAKE_PROGRAM "nmake")
+      set(MAKE_ARGS "-I")
    endif()
 else()
    set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
-   if(NOT CMAKE_MAKE_PROGRAM)
-      set(CMAKE_MAKE_PROGRAM "make -j$ENV{number_of_processors} -i")
-   endif()
+   set(CMAKE_MAKE_PROGRAM "make")
 endif()
 
 macro(go)
@@ -45,7 +45,7 @@ macro(go)
             set_property(GLOBAL PROPERTY SubProject ${subproject})
             set_property(GLOBAL PROPERTY Label ${subproject})
             set(CTEST_BUILD_TARGET "${subproject}")
-            set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} ${CTEST_BUILD_TARGET}")
+            set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} ${MAKE_ARGS} ${CTEST_BUILD_TARGET}")
             ctest_build(
                BUILD "${CTEST_BINARY_DIRECTORY}"
                APPEND
