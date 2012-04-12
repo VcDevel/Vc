@@ -90,9 +90,15 @@ namespace AVX
     static inline __m256i CONST _mm256_setmin_epi16() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
     static inline __m256i CONST _mm256_setmin_epi32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
 
+#ifdef VC_MSVC
+#define _mm_extract_epu8 _mm_extract_epi8
+#define _mm_extract_epu16 _mm_extract_epi16
+#define _mm_extract_epu32 _mm_extract_epi32
+#else
     static inline unsigned char INTRINSIC CONST _mm_extract_epu8(__m128i x, const int i) { return _mm_extract_epi8(x, i); }
     static inline unsigned short INTRINSIC CONST _mm_extract_epu16(__m128i x, const int i) { return _mm_extract_epi16(x, i); }
     static inline unsigned int INTRINSIC CONST _mm_extract_epu32(__m128i x, const int i) { return _mm_extract_epi32(x, i); }
+#endif
 
     /////////////////////// COMPARE OPS ///////////////////////
     static inline __m256d INTRINSIC CONST _mm256_cmpeq_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_EQ_OQ); }
