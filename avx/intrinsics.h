@@ -58,13 +58,13 @@ namespace AVX
     static inline __m128i CONST _mm_setone_epi32()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
 
 #if defined(__GNUC__) && !defined(NVALGRIND)
-    static inline __m256i CONST _mm256_setallone() { __m256i r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
+    static inline __m256 CONST _mm256_setallone() { __m256 r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
 #else
-    static inline __m256i CONST _mm256_setallone() { __m256 r = _mm256_setzero_ps(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
+    static inline __m256 CONST _mm256_setallone() { __m256 r = _mm256_setzero_ps(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
 #endif
-    static inline __m256i CONST _mm256_setallone_si256() { return _mm256_setallone(); }
-    static inline __m256d CONST _mm256_setallone_pd() { return _mm256_castsi256_pd(_mm256_setallone()); }
-    static inline __m256  CONST _mm256_setallone_ps() { return _mm256_castsi256_ps(_mm256_setallone()); }
+    static inline __m256i CONST _mm256_setallone_si256() { return _mm256_castps_si256(_mm256_setallone()); }
+    static inline __m256d CONST _mm256_setallone_pd() { return _mm256_castps_pd(_mm256_setallone()); }
+    static inline __m256  CONST _mm256_setallone_ps() { return _mm256_setallone(); }
 
     static inline __m256i CONST _mm256_setone_epi8 ()  { return _mm256_set1_epi8(1); }
     static inline __m256i CONST _mm256_setone_epu8 ()  { return _mm256_setone_epi8(); }
