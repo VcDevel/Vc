@@ -43,7 +43,7 @@ enum {
   PrintStep = 1000000
 };
 
-static const float epsilon = 1e-7;
+static const float epsilon = 1e-7f;
 static const float lower = 0.f;
 static const float upper = 40000.f;
 static const float h = (upper - lower) / N;
@@ -52,7 +52,7 @@ static const float h = (upper - lower) / N;
 static inline float  fu(float x) { return ( std::sin(x) ); }
 static inline float dfu(float x) { return ( std::cos(x) ); }
 
-static inline Vc::float_v fu(Vc::float_v x) {
+static inline Vc::float_v fu(Vc::float_v::AsArg x) {
 #ifdef USE_SCALAR_SINCOS
   Vc::float_v r;
   for (size_t i = 0; i < Vc::float_v::Size; ++i) {
@@ -64,7 +64,7 @@ static inline Vc::float_v fu(Vc::float_v x) {
 #endif
 }
 
-static inline Vc::float_v dfu(Vc::float_v x) {
+static inline Vc::float_v dfu(Vc::float_v::AsArg x) {
 #ifdef USE_SCALAR_SINCOS
   Vc::float_v r;
   for (size_t i = 0; i < Vc::float_v::Size; ++i) {
