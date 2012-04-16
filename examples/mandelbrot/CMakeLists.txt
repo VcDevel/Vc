@@ -42,13 +42,14 @@ if(QT4_FOUND)
    endif()
 
    if(ICC_CXX)
+      get_target_property(VcLocation Vc LOCATION)
       add_custom_command(OUTPUT mandelbrot_icc
          COMMAND ${ICC_CXX} -O3 -xSSE3
          -o ${CMAKE_CURRENT_BINARY_DIR}/mandelbrot_icc
          -I ${CMAKE_CURRENT_BINARY_DIR} -I ${QT_INCLUDE_DIR}
          -I ${QT_QTCORE_INCLUDE_DIR} -I ${QT_QTGUI_INCLUDE_DIR}
          -I ${CMAKE_SOURCE_DIR} -I ${CMAKE_SOURCE_DIR}/include
-         -L ${QT_LIBRARY_DIR} -lQtGui ${SOURCES}
+         -L ${QT_LIBRARY_DIR} -lQtGui ${SOURCES} ${VcLocation}
          -DVC_IMPL=Scalar
          DEPENDS ${SOURCES}
          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
