@@ -49,9 +49,14 @@ if(NOT CMAKE_BUILD_TYPE)
       FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
-vc_set_preferred_compiler_flags()
+vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
+add_definitions("${VC_DEFINITIONS}")
 
-OptimizeForArchitecture()
+if(VC_COMPILER_IS_INTEL)
+   # per default icc is not IEEE compliant, but we need that for verification
+   set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -w1 -fp-model precise")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w1 -fp-model precise")
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
    message(STATUS "WARNING! It seems you are compiling without optimization. Please set CMAKE_BUILD_TYPE.")
@@ -90,14 +95,28 @@ install(TARGETS Vc DESTINATION lib/)
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
 install(DIRECTORY scalar sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
+# read version parts from version.h to be put into VcConfig.cmake
+file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define VC_VERSION_STRING ")
+string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _version_matches "${_version_lines}")
+set(VC_VERSION_MAJOR ${CMAKE_MATCH_1})
+set(VC_VERSION_MINOR ${CMAKE_MATCH_2})
+set(VC_VERSION_PATCH ${CMAKE_MATCH_3})
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcConfig.cmake.in
+   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcConfigVersion.cmake.in
+   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake @ONLY)
 install(FILES
    cmake/VcMacros.cmake
+   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake
+   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake
    cmake/FindVc.cmake
    cmake/OptimizeForArchitecture.cmake
    cmake/AddCompilerFlag.cmake
    cmake/MacroEnsureVersion.cmake
    cmake/CheckCCompilerFlag.cmake
-   DESTINATION share/Vc/cmake/
+   cmake/CheckCXXCompilerFlag.cmake
+   DESTINATION lib/cmake/Vc
    )
 
 include (CTest)

@@ -1,5 +1,6 @@
-include (CheckCCompilerFlag)
-include (CheckCXXCompilerFlag)
+get_filename_component(_currentDir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include("${_currentDir}/CheckCCompilerFlag.cmake")
+include("${_currentDir}/CheckCXXCompilerFlag.cmake")
 macro(AddCompilerFlag _flag)
    string(REGEX REPLACE "[+/:= ]" "_" _flag_esc "${_flag}")
    check_c_compiler_flag("${_flag}" check_c_compiler_flag_${_flag_esc})
