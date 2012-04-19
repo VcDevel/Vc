@@ -3,6 +3,8 @@ if(NOT CTEST_SOURCE_DIRECTORY)
 endif()
 
 set(dashboard_model "$ENV{dashboard_model}")
+set(target_architecture "$ENV{target_architecture}")
+set(skip_tests "$ENV{skip_tests}")
 
 execute_process(COMMAND uname -s OUTPUT_VARIABLE arch OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(TOLOWER "${arch}" arch)
@@ -77,6 +79,11 @@ else()
    set(CMAKE_MAKE_PROGRAM "make")
 endif()
 
+set(configure_options "-DCTEST_USE_LAUNCHERS=${CTEST_USE_LAUNCHERS};-DCMAKE_BUILD_TYPE=Release;-DBUILD_EXAMPLES=TRUE")
+if(target_architecture)
+   set(configure_options "${configure_options};-DTARGET_ARCHITECTURE=${target_architecture}")
+endif()
+
 macro(go)
    CTEST_START (${dashboard_model})
    set(res 0)
@@ -88,7 +95,7 @@ macro(go)
    endif()
    if(NOT ${dashboard_model} STREQUAL "Continuous" OR res GREATER 0)
       CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
-         OPTIONS "-DCTEST_USE_LAUNCHERS=${CTEST_USE_LAUNCHERS};-DCMAKE_BUILD_TYPE=Release;-DBUILD_EXAMPLES=TRUE"
+         OPTIONS "${configure_options}"
          APPEND
          RETURN_VALUE res)
       ctest_submit(PARTS Notes Configure)
@@ -103,7 +110,7 @@ macro(go)
                APPEND
                RETURN_VALUE res)
             ctest_submit(PARTS Build)
-            if(res EQUAL 0)
+            if(res EQUAL 0 AND NOT skip_tests)
                ctest_test(
                   BUILD "${CTEST_BINARY_DIRECTORY}"
                   APPEND
