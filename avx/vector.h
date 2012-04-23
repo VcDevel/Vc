@@ -198,9 +198,9 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //prefix
-        inline Vector &operator++() ALWAYS_INLINE { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
+        inline Vector ALWAYS_INLINE &operator++() { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
         //postfix
-        inline Vector operator++(int) ALWAYS_INLINE { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
+        inline Vector ALWAYS_INLINE operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
         inline Common::AliasingEntryHelper<EntryType> INTRINSIC operator[](int index) {
 #if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
@@ -208,11 +208,11 @@ template<typename T> class Vector
 #endif
             return d.m(index);
         }
-        inline EntryType operator[](int index) const ALWAYS_INLINE {
+        inline EntryType ALWAYS_INLINE operator[](int index) const {
             return d.m(index);
         }
 
-        inline Vector operator~() const ALWAYS_INLINE { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
+        inline Vector ALWAYS_INLINE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
 
 #define OP1(fun) \
@@ -236,24 +236,24 @@ template<typename T> class Vector
         inline Vector  operator/ (const Vector<T> &x) const;
 
         // bitwise ops
-        inline Vector<T> &operator|= (Vector<T> x) ALWAYS_INLINE;
-        inline Vector<T> &operator&= (Vector<T> x) ALWAYS_INLINE;
-        inline Vector<T> &operator^= (Vector<T> x) ALWAYS_INLINE;
-        inline Vector<T> &operator>>=(Vector<T> x) ALWAYS_INLINE;
-        inline Vector<T> &operator<<=(Vector<T> x) ALWAYS_INLINE;
-        inline Vector<T> &operator>>=(int x) ALWAYS_INLINE;
-        inline Vector<T> &operator<<=(int x) ALWAYS_INLINE;
+        inline Vector<T> ALWAYS_INLINE_L &operator|= (Vector<T> x) ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L &operator&= (Vector<T> x) ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L &operator^= (Vector<T> x) ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L &operator>>=(Vector<T> x) ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L &operator<<=(Vector<T> x) ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L &operator>>=(int x) ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L &operator<<=(int x) ALWAYS_INLINE_R;
 
-        inline Vector<T> operator| (Vector<T> x) const ALWAYS_INLINE;
-        inline Vector<T> operator& (Vector<T> x) const ALWAYS_INLINE;
-        inline Vector<T> operator^ (Vector<T> x) const ALWAYS_INLINE;
-        inline Vector<T> operator>>(Vector<T> x) const ALWAYS_INLINE;
-        inline Vector<T> operator<<(Vector<T> x) const ALWAYS_INLINE;
-        inline Vector<T> operator>>(int x) const ALWAYS_INLINE;
-        inline Vector<T> operator<<(int x) const ALWAYS_INLINE;
+        inline Vector<T> ALWAYS_INLINE_L operator| (Vector<T> x) const ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L operator& (Vector<T> x) const ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L operator^ (Vector<T> x) const ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L operator>>(Vector<T> x) const ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L operator<<(Vector<T> x) const ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L operator>>(int x) const ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L operator<<(int x) const ALWAYS_INLINE_R;
 
 #define OPcmp(symbol, fun) \
-        inline Mask operator symbol(Vector<T> x) const ALWAYS_INLINE { return VectorHelper<T>::fun(data(), x.data()); }
+        inline Mask ALWAYS_INLINE operator symbol(Vector<T> x) const { return VectorHelper<T>::fun(data(), x.data()); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -275,7 +275,7 @@ template<typename T> class Vector
         template<typename V2> inline V2 staticCast() const { return V2(*this); }
         template<typename V2> inline V2 reinterpretCast() const { return avx_cast<typename V2::VectorType>(data()); }
 
-        inline WriteMaskedVector<T> operator()(const Mask &k) ALWAYS_INLINE { return WriteMaskedVector<T>(this, k); }
+        inline WriteMaskedVector<T> ALWAYS_INLINE operator()(const Mask &k) { return WriteMaskedVector<T>(this, k); }
 
         /**
          * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have
@@ -360,16 +360,16 @@ typedef ushort_v::Mask ushort_m;
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 
-template<typename T> inline Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
-template<typename T> inline Vector<T> operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
-template<typename T> inline Vector<T> operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
-template<typename T> inline Vector<T> operator/(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
-template<typename T> inline typename Vector<T>::Mask  operator< (const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
-template<typename T> inline typename Vector<T>::Mask  operator<=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
-template<typename T> inline typename Vector<T>::Mask  operator> (const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
-template<typename T> inline typename Vector<T>::Mask  operator>=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
-template<typename T> inline typename Vector<T>::Mask  operator==(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
-template<typename T> inline typename Vector<T>::Mask  operator!=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE;
+template<typename T> inline ALWAYS_INLINE_L Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
+template<typename T> inline ALWAYS_INLINE_L Vector<T> operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
+template<typename T> inline ALWAYS_INLINE_L Vector<T> operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
+template<typename T> inline ALWAYS_INLINE_L Vector<T> operator/(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
+template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator< (const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
+template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator<=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
+template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator> (const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
+template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator>=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
+template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator==(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
+template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator!=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
 template<typename T> inline Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator+(x); }
 template<typename T> inline Vector<T> operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator*(x); }
 template<typename T> inline Vector<T> operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) - v; }
