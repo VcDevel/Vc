@@ -48,7 +48,7 @@ void testSigned()
 
 void testUnsigned()
 {
-#ifdef __SSE4_1__
+#if defined(VC_IMPL_SSE4_1) || defined(VC_IMPL_AVX)
     for (unsigned int start = 0; start < 64000; start += 5) {
 #else
     for (unsigned int start = 0; start < 32000; start += 5) {
