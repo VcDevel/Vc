@@ -36,6 +36,14 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
     friend class Mask<16u, 16u>; // (u)char_v
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)
+
+        // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
+#if defined VC_MSVC && defined _WIN32
+        typedef const Mask<VectorSize, 32u> &AsArg;
+#else
+        typedef Mask<VectorSize, 32u> AsArg;
+#endif
+
         inline Mask() {}
         inline Mask(const __m256  &x) : k(x) {}
         inline Mask(const __m256d &x) : k(_mm256_castpd_ps(x)) {}
@@ -97,6 +105,14 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
     friend class Mask<16u, 16u>; // (u)char_v
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
+
+        // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
+#if defined VC_MSVC && defined _WIN32
+        typedef const Mask<VectorSize, 16u> &AsArg;
+#else
+        typedef Mask<VectorSize, 16u> AsArg;
+#endif
+
         inline Mask() {}
         inline Mask(const __m128  &x) : k(x) {}
         inline Mask(const __m128d &x) : k(_mm_castpd_ps(x)) {}
