@@ -22,13 +22,13 @@ namespace Vc
 namespace AVX
 {
 
-template<> inline Mask<4, 32>::Mask(Mask<8, 32> m)
+template<> inline Mask<4, 32>::Mask(const Mask<8, 32> &m)
     : k(concat(_mm_unpacklo_ps(lo128(m.data()), lo128(m.data())),
                 _mm_unpackhi_ps(lo128(m.data()), lo128(m.data()))))
 {
 }
 
-template<> inline Mask<8, 32>::Mask(Mask<4, 32> m)
+template<> inline Mask<8, 32>::Mask(const Mask<4, 32> &m)
     // aabb ccdd -> abcd 0000
     : k(concat(Mem::shuffle<X0, X2, Y0, Y2>(lo128(m.data()), hi128(m.data())),
                 _mm_setzero_ps()))

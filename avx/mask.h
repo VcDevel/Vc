@@ -47,8 +47,8 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         inline Mask(const Mask<VectorSize, 16u> &rhs) : k(avx_cast<__m256>(concat(
                         _mm_unpacklo_epi16(rhs.data(), rhs.data()),
                         _mm_unpackhi_epi16(rhs.data(), rhs.data())))) {}
-        inline Mask(Mask<VectorSize * 2, 32u> m);
-        inline Mask(Mask<VectorSize / 2, 32u> m);
+        inline Mask(const Mask<VectorSize * 2, 32u> &m);
+        inline Mask(const Mask<VectorSize / 2, 32u> &m);
 
         inline bool operator==(const Mask &rhs) const { return 0 != _mm256_testc_ps(k, rhs.k); }
         inline bool operator!=(const Mask &rhs) const { return 0 == _mm256_testc_ps(k, rhs.k); }
