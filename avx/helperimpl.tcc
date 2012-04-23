@@ -47,6 +47,11 @@ inline void *HelperImpl<AVXImpl>::malloc(size_t n)
         case Vc::AlignOnPage:
             // TODO: hardcoding 4096 is not such a great idea
             return _mm_malloc(nextMultipleOf<4096>(n), 4096);
+        default:
+#ifndef NDEBUG
+            abort();
+#endif
+            return _mm_malloc(n, 8);
     }
 }
 
