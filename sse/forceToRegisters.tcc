@@ -1,4 +1,4 @@
-#ifdef __GNUC__
+#ifdef VC_GNU_ASM
 template<typename T1>
 static inline void ALWAYS_INLINE forceToRegisters(const Vector<T1> &x1) {
   __asm__ __volatile__(""::"x"(x1.data()));

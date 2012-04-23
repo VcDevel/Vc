@@ -35,6 +35,12 @@
 #define VC_UNSUPPORTED_COMPILER 1
 #endif
 
+// Features/Quirks defines
+#if defined(__GNUC__) && !defined(VC_NO_INLINE_ASM)
+#define VC_GNU_ASM 1
+#endif
+
+
 #define SSE    9875294
 #define SSE2   9875295
 #define SSE3   9875296

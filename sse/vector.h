@@ -429,7 +429,7 @@ template<typename T> inline typename Vector<T>::Mask INTRINSIC operator!=(const 
   template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
 #include "forceToRegisters.tcc"
-#ifdef __GNUC__
+#ifdef VC_GNU_ASM
 template<>
 inline void ALWAYS_INLINE forceToRegisters(const Vector<float8> &x1) {
   __asm__ __volatile__(""::"x"(x1.data()[0]), "x"(x1.data()[1]));

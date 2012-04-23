@@ -331,7 +331,7 @@ namespace SSE
     static inline __m128i CONST _mm_srl_epi64(__m128i a, __m128i count) { __asm__("psrlq %1,%0" : "+x"(a) : "x"(count)); return a; }
 #endif
 
-#if defined(__GNUC__) && !defined(NVALGRIND)
+#if defined(VC_GNU_ASM) && !defined(NVALGRIND)
     static inline __m128i CONST _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
 #else
     static inline __m128i CONST _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }

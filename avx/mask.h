@@ -156,7 +156,7 @@ struct ForeachHelper
     inline bool outer() const { return mask != 0; }
     inline bool inner() { return (brk = !brk); }
     inline size_t next() {
-#if defined(__GNUC__) && !defined(VC_NO_INLINE_ASM)
+#ifdef VC_GNU_ASM
         const size_t bit = __builtin_ctzl(mask);
         __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
 #else

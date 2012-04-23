@@ -163,7 +163,7 @@ struct ForeachHelper
     inline bool outer() const { return mask != 0; }
     inline bool inner() { return (brk = !brk); }
     inline _long next() {
-#ifdef __GNUC__ // the compiler understands inline asm
+#ifdef VC_GNU_ASM
         const _long bit = __builtin_ctzl(mask);
         __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
 #elif defined(_WIN64)

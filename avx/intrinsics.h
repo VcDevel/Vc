@@ -46,7 +46,7 @@ namespace Vc
 {
 namespace AVX
 {
-#if defined(__GNUC__) && !defined(NVALGRIND)
+#if defined(VC_GNU_ASM) && !defined(NVALGRIND)
     static inline __m128i CONST _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
 #else
     static inline __m128i CONST _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
@@ -61,7 +61,7 @@ namespace AVX
     static inline __m128i CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
     static inline __m128i CONST _mm_setone_epi32()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
 
-#if defined(__GNUC__) && !defined(NVALGRIND)
+#if defined(VC_GNU_ASM) && !defined(NVALGRIND)
     static inline __m256 CONST _mm256_setallone() { __m256 r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
 #else
     static inline __m256 CONST _mm256_setallone() { __m256 r = _mm256_setzero_ps(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
