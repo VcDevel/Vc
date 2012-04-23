@@ -39,6 +39,7 @@ static inline int _Vc_bit_scan_reverse_asm(unsigned int x) {
 #elif defined(VC_OPEN64)
 // TODO
 #elif defined(VC_MSVC)
+#include "windows_fix_intrin.h"
 #pragma intrinsic(_BitScanForward)
 #pragma intrinsic(_BitScanReverse)
 static inline __forceinline unsigned long _bit_scan_forward(unsigned long x) {
