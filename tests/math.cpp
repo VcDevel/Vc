@@ -134,11 +134,8 @@ static inline float my_log2(float x) {
  */
 static inline double my_log2(double x) { return ::log2(x); }
 #else
-#ifndef M_LN2
-#define M_LN2 0.69314718055994530942
-#endif
-static inline float my_log2(float x) { return ::logf(x) / float(M_LN2); }
-static inline double my_log2(double x) { return ::log(x) / M_LN2; }
+static inline float my_log2(float x) { return ::logf(x) / Vc::Math<float>::ln2(); }
+static inline double my_log2(double x) { return ::log(x) / Vc::Math<double>::ln2(); }
 #endif
 
 template<typename V> void testLog2()
@@ -147,7 +144,7 @@ template<typename V> void testLog2()
     setFuzzyness<double>(3);
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
-        V x = exp(V::Random() * T(20 * M_LN2));
+        V x = exp(V::Random() * T(20 * Vc::Math<double>::ln2()));
         V reference = apply_v(x, my_log2);
         FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
 
@@ -163,17 +160,13 @@ template<typename V> void testLog2()
     }
 }
 
-#ifndef M_LN10
-#define M_LN10 2.30258509299404568402
-#endif
-
 template<typename V> void testLog10()
 {
     setFuzzyness<float>(2);
     setFuzzyness<double>(2);
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
-        V x = exp(V::Random() * T(20 * M_LN10));
+        V x = exp(V::Random() * T(20 * Vc::Math<double>::ln10()));
         V reference = apply_v(x, std::log10);
         FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
 
