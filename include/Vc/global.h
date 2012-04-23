@@ -30,7 +30,7 @@
 #elif defined(__GNUC__)
 #define VC_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
 #elif defined(_MSC_VER)
-#define VC_MSVC 1
+#define VC_MSVC _MSC_FULL_VER
 #else
 #define VC_UNSUPPORTED_COMPILER 1
 #endif
