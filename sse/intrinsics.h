@@ -322,7 +322,7 @@ namespace SSE
 {
     enum { VectorAlignment = 16 };
 
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ < 6 && !defined(VC_DONT_FIX_SSE_SHIFT)
+#if defined(VC_GCC) && VC_GCC < 0x40600 && !defined(VC_DONT_FIX_SSE_SHIFT)
     static inline __m128i CONST _mm_sll_epi16(__m128i a, __m128i count) { __asm__("psllw %1,%0" : "+x"(a) : "x"(count)); return a; }
     static inline __m128i CONST _mm_sll_epi32(__m128i a, __m128i count) { __asm__("pslld %1,%0" : "+x"(a) : "x"(count)); return a; }
     static inline __m128i CONST _mm_sll_epi64(__m128i a, __m128i count) { __asm__("psllq %1,%0" : "+x"(a) : "x"(count)); return a; }
@@ -390,7 +390,7 @@ namespace SSE
 
     // not overriding _mm_set1_epi8 because this one should only be used for non-constants
     static inline __m128i CONST set1_epi8(int a) {
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ < 5
+#if defined(VC_GCC) && VC_GCC < 0x40500
         return _mm_shuffle_epi8(_mm_cvtsi32_si128(a), _mm_setzero_si128());
 #else
         // GCC 4.5 nows about the pshufb improvement

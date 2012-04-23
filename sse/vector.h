@@ -258,7 +258,7 @@ class Vector : public VectorBase<T>
         inline Vector INTRINSIC operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
         inline Common::AliasingEntryHelper<EntryType> INTRINSIC operator[](size_t index) {
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 3
+#if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
             ::Vc::Warnings::_operator_bracket_warning();
 #endif
             return Base::d.m(index);

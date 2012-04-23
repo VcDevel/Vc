@@ -463,7 +463,7 @@ OP_IMPL(double, |, or_)
 OP_IMPL(double, ^, xor_)
 #undef OP_IMPL
 
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ == 4 && __GNUC_MINOR__ == 6 && __GNUC_PATCHLEVEL__ == 0 && __XOP__
+#if defined(VC_GCC) && VC_GCC == 0x40600 && __XOP__
 #define VC_WORKAROUND_IN
 #define VC_WORKAROUND __attribute__((optimize("no-tree-vectorize"),weak))
 #else
