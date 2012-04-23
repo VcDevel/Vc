@@ -392,7 +392,7 @@ static inline __m256i CONST divUInt(__m256i a, __m256i b) {
                             _mm_cmpeq_epi32(lo128(b), _mm_setone_epi32()),
                             _mm_cmpeq_epi32(hi128(b), _mm_setone_epi32())))));
 }
-template<> inline Vector<unsigned int> &ALWAYS_INLINE Vector<unsigned int>::operator/=(const Vector<unsigned int> &x)
+template<> inline Vector<unsigned int> ALWAYS_INLINE &Vector<unsigned int>::operator/=(const Vector<unsigned int> &x)
 {
     d.v() = divUInt(d.v(), x.d.v());
     return *this;
@@ -407,7 +407,7 @@ template<typename T> static inline __m128i CONST divShort(__m128i a, __m128i b)
             StaticCastHelper<T, float>::cast(b));
     return StaticCastHelper<float, T>::cast(r);
 }
-template<> inline Vector<short> &ALWAYS_INLINE Vector<short>::operator/=(const Vector<short> &x)
+template<> inline Vector<short> ALWAYS_INLINE &Vector<short>::operator/=(const Vector<short> &x)
 {
     d.v() = divShort<short>(d.v(), x.d.v());
     return *this;
@@ -416,7 +416,7 @@ template<> inline Vector<short> ALWAYS_INLINE PURE Vector<short>::operator/(cons
 {
     return divShort<short>(d.v(), x.d.v());
 }
-template<> inline Vector<unsigned short> &ALWAYS_INLINE Vector<unsigned short>::operator/=(const Vector<unsigned short> &x)
+template<> inline Vector<unsigned short> ALWAYS_INLINE &Vector<unsigned short>::operator/=(const Vector<unsigned short> &x)
 {
     d.v() = divShort<unsigned short>(d.v(), x.d.v());
     return *this;
@@ -425,7 +425,7 @@ template<> inline Vector<unsigned short> ALWAYS_INLINE PURE Vector<unsigned shor
 {
     return divShort<unsigned short>(d.v(), x.d.v());
 }
-template<> inline Vector<float> &INTRINSIC Vector<float>::operator/=(const Vector<float> &x)
+template<> inline Vector<float> INTRINSIC &Vector<float>::operator/=(const Vector<float> &x)
 {
     d.v() = _mm256_div_ps(d.v(), x.d.v());
     return *this;
@@ -434,7 +434,7 @@ template<> inline Vector<float> INTRINSIC PURE Vector<float>::operator/(const Ve
 {
     return _mm256_div_ps(d.v(), x.d.v());
 }
-template<> inline Vector<double> &INTRINSIC Vector<double>::operator/=(const Vector<double> &x)
+template<> inline Vector<double> INTRINSIC &Vector<double>::operator/=(const Vector<double> &x)
 {
     d.v() = _mm256_div_pd(d.v(), x.d.v());
     return *this;
