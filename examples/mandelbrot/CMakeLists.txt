@@ -32,7 +32,7 @@ if(QT4_FOUND)
          -I ${CMAKE_SOURCE_DIR} -I ${CMAKE_SOURCE_DIR}/include
          -L ${QT_LIBRARY_DIR} -lQtGui ${SOURCES}
          -DVC_IMPL=Scalar
-         DEPENDS ${SOURCES}
+         DEPENDS ${SOURCES} Vc
          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
          COMMENT "Bulding mandelbrot_open64"
          VERBATIM)
@@ -51,7 +51,7 @@ if(QT4_FOUND)
          -I ${CMAKE_SOURCE_DIR} -I ${CMAKE_SOURCE_DIR}/include
          -L ${QT_LIBRARY_DIR} -lQtGui ${SOURCES} ${VcLocation}
          -DVC_IMPL=Scalar
-         DEPENDS ${SOURCES}
+         DEPENDS ${SOURCES} Vc
          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
          COMMENT "Bulding mandelbrot_icc"
          VERBATIM)
