@@ -58,8 +58,8 @@ string(REGEX REPLACE "^.*/" "" git_branch "${git_branch}")
 # -> master
 set(CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/.git/HEAD" "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
 
-include(CTestCustom.cmake)
-include(CTestConfig.cmake)
+include(${CTEST_SOURCE_DIRECTORY}/CTestCustom.cmake)
+include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
 set(CTEST_USE_LAUNCHERS 1) # much improved error/warning message logging
 set(MAKE_ARGS "-j${number_of_processors} -i")
 
