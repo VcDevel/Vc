@@ -71,16 +71,19 @@ namespace AVX
      * x == NaN    -> NaN
      * x == (-)inf -> (-)inf
      */
-    inline double_v ldexp(double_v::AsArg v, int_v::AsArg e) {
+    inline double_v ldexp(double_v::AsArg v, int_v::AsArg _e) {
+        int_v e = _e;
         e.setZero((v == double_v::Zero()).dataI());
         const __m256i exponentBits = _mm256_slli_epi64(e.data(), 52);
         return avx_cast<__m256d>(_mm256_add_epi64(avx_cast<__m256i>(v.data()), exponentBits));
     }
-    inline float_v ldexp(float_v::AsArg v, int_v::AsArg e) {
+    inline float_v ldexp(float_v::AsArg v, int_v::AsArg _e) {
+        int_v e = _e;
         e.setZero(static_cast<int_m>(v == float_v::Zero()));
         return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
     }
-    inline float_v ldexp(float_v::AsArg v, short_v::AsArg e) {
+    inline float_v ldexp(float_v::AsArg v, short_v::AsArg _e) {
+        short_v e = _e;
         e.setZero(static_cast<short_m>(v == float_v::Zero()));
         e = e << (23 - 16);
         const __m256i exponentBits = concat(_mm_unpacklo_epi16(_mm_setzero_si128(), e.data()),
