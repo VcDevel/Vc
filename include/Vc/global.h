@@ -36,6 +36,10 @@
 #endif
 
 // Features/Quirks defines
+#if defined VC_MSVC && defined _WIN32
+// the Win32 ABI can't handle function parameters with alignment >= 16
+#define VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN 1
+#endif
 #if defined(__GNUC__) && !defined(VC_NO_INLINE_ASM)
 #define VC_GNU_ASM 1
 #endif
@@ -273,11 +277,6 @@
 #undef SSE4a
 #undef AVX
 #undef Scalar
-
-#if defined VC_MSVC && defined _WIN32
-// the Win32 ABI can't handle function parameters with alignment >= 16
-#define VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-#endif
 
 #ifndef DOXYGEN
 namespace Vc {
