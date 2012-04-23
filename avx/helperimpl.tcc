@@ -36,7 +36,7 @@ static inline size_t nextMultipleOf(size_t value)
 }
 
 template<Vc::MallocAlignment A>
-inline void *HelperImpl<AVXImpl>::malloc(size_t n)
+inline ALWAYS_INLINE void *HelperImpl<AVXImpl>::malloc(size_t n)
 {
     switch (A) {
         case Vc::AlignOnVector:
@@ -55,7 +55,7 @@ inline void *HelperImpl<AVXImpl>::malloc(size_t n)
     }
 }
 
-inline void HelperImpl<AVXImpl>::free(void *p)
+inline ALWAYS_INLINE void HelperImpl<AVXImpl>::free(void *p)
 {
     _mm_free(p);
 }
