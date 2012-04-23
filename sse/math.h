@@ -97,13 +97,13 @@ namespace SSE
     }
 
 #ifdef VC_IMPL_SSE4_1
-    inline double_v floor(double_v v) { return _mm_floor_pd(v.data()); }
-    inline float_v floor(float_v v) { return _mm_floor_ps(v.data()); }
-    inline sfloat_v floor(sfloat_v v) { return M256::create(_mm_floor_ps(v.data()[0]),
+    inline double_v floor(double_v::AsArg v) { return _mm_floor_pd(v.data()); }
+    inline float_v floor(float_v::AsArg v) { return _mm_floor_ps(v.data()); }
+    inline sfloat_v floor(sfloat_v::AsArg v) { return M256::create(_mm_floor_ps(v.data()[0]),
             _mm_floor_ps(v.data()[1])); }
-    inline double_v ceil(double_v v) { return _mm_ceil_pd(v.data()); }
-    inline float_v ceil(float_v v) { return _mm_ceil_ps(v.data()); }
-    inline sfloat_v ceil(sfloat_v v) { return M256::create(_mm_ceil_ps(v.data()[0]),
+    inline double_v ceil(double_v::AsArg v) { return _mm_ceil_pd(v.data()); }
+    inline float_v ceil(float_v::AsArg v) { return _mm_ceil_ps(v.data()); }
+    inline sfloat_v ceil(sfloat_v::AsArg v) { return M256::create(_mm_ceil_ps(v.data()[0]),
             _mm_ceil_ps(v.data()[1])); }
 #else
     static inline void floor_shift(float_v &v, float_v::AsArg e)
