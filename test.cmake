@@ -3,6 +3,9 @@ if(NOT CTEST_SOURCE_DIRECTORY)
 endif()
 
 set(dashboard_model "$ENV{dashboard_model}")
+if(NOT dashboard_model)
+   set(dashboard_model "Experimental")
+endif()
 set(target_architecture "$ENV{target_architecture}")
 set(skip_tests "$ENV{skip_tests}")
 
