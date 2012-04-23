@@ -91,11 +91,11 @@ namespace AVX
         return (v.reinterpretCast<int_v>() + exponentBits).reinterpretCast<float_v>();
     }
 
-    static inline float_v floor(float_v v) { return _mm256_floor_ps(v.data()); }
-    static inline double_v floor(double_v v) { return _mm256_floor_pd(v.data()); }
+    static inline float_v floor(float_v::AsArg v) { return _mm256_floor_ps(v.data()); }
+    static inline double_v floor(double_v::AsArg v) { return _mm256_floor_pd(v.data()); }
 
-    static inline float_v ceil(float_v v) { return _mm256_ceil_ps(v.data()); }
-    static inline double_v ceil(double_v v) { return _mm256_ceil_pd(v.data()); }
+    static inline float_v ceil(float_v::AsArg v) { return _mm256_ceil_ps(v.data()); }
+    static inline double_v ceil(double_v::AsArg v) { return _mm256_ceil_pd(v.data()); }
 } // namespace AVX
 } // namespace Vc
 
