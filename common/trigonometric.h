@@ -19,17 +19,9 @@
 
 #ifndef VC_COMMON_TRIGONOMETRIC_H
 #define VC_COMMON_TRIGONOMETRIC_H
-#include "macros.h"
 
-#if !defined M_PI
-# define M_PI 3.14159265358979323846
-#endif
-#if !defined M_PI_2
-# define M_PI_2 1.57079632679489661923
-#endif
-#if !defined M_PI_4
-# define M_PI_4 0.785398163397448309616
-#endif
+#include "const.h"
+#include "macros.h"
 
 namespace Vc
 {
@@ -98,7 +90,7 @@ namespace Common
         typedef typename V::EntryType T;
         typedef typename V::Mask M;
 
-        const V pi_2(T(M_PI_2));
+        const V pi_2(Math<T>::pi_2());
         const M &negative = _x < V::Zero();
 
         const V &a = abs(_x);
@@ -127,8 +119,8 @@ namespace Common
         typedef typename V::EntryType T;
         typedef typename V::Mask M;
         V x = abs(_x);
-        const V pi_2(T(M_PI_2));
-        const V pi_4(T(M_PI_4));
+        const V pi_2(Math<T>::pi_2());
+        const V pi_4(Math<T>::pi_4());
         const M &gt_tan_3pi_8 = x > V(T(2.414213562373095));
         const M &gt_tan_pi_8  = x > V(T(0.4142135623730950)) && !gt_tan_3pi_8;
         const V minusOne(-1);
@@ -150,8 +142,8 @@ namespace Common
         typedef Vector<_T> V;
         typedef typename V::EntryType T;
         typedef typename V::Mask M;
-        const V pi(T(M_PI));
-        const V pi_2(T(M_PI_2));
+        const V pi(Math<T>::pi());
+        const V pi_2(Math<T>::pi_2());
 
         const M &xZero = x == V::Zero();
         const M &yZero = y == V::Zero();
@@ -162,7 +154,7 @@ namespace Common
         const V &absY = abs(y);
 
         V a = absY / absX;
-        const V pi_4(T(M_PI_4));
+        const V pi_4(Math<T>::pi_4());
         const M &gt_tan_3pi_8 = a > V(T(2.414213562373095));
         const M &gt_tan_pi_8  = a > V(T(0.4142135623730950)) && !gt_tan_3pi_8;
         const V minusOne(-1);

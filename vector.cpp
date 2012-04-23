@@ -25,6 +25,7 @@
 # endif
 #endif
 
+#include "common/const.h"
 #include "avx/const_data.h"
 #include "sse/const_data.h"
 #include <Vc/version.h>
@@ -32,10 +33,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
-#ifndef M_PI
-# define M_PI 3.14159265358979323846
-#endif
 
 namespace Vc
 {
@@ -48,10 +45,10 @@ namespace AVX
 
     // cacheline 2
     template<> const double c_sin<double>::data[8] = {
-        0.5 / M_PI, // 1 over 2pi
-        M_PI * 2.,  // 2pi
-        M_PI * 0.5, // pi over 2
-        M_PI,       // pi
+        0.5 / Math<double>::pi(), // 1 over 2pi
+        Math<double>::pi() * 2.,  // 2pi
+        Math<double>::pi() * 0.5, // pi over 2
+        Math<double>::pi(),       // pi
         1.666666666666666574148081281236954964697360992431640625e-01, // 1 over 3!
         8.33333333333333321768510160154619370587170124053955078125e-03, // 1 over 5!
         1.984126984126984125263171154784913596813566982746124267578125e-04, // 1 over 7!
@@ -180,13 +177,13 @@ namespace SSE
     template<> const double c_sin<double>::data[2 * 8] = {
     // cacheline 6
         // 1 over 2pi
-        0.5 / M_PI, 0.5 / M_PI,
+        0.5 / Math<double>::pi(), 0.5 / Math<double>::pi(),
         // 2pi
-        M_PI * 2., M_PI * 2.,
+        Math<double>::pi() * 2., Math<double>::pi() * 2.,
         // pi over 2
-        M_PI * 0.5, M_PI * 0.5,
+        Math<double>::pi() * 0.5, Math<double>::pi() * 0.5,
         // pi
-        M_PI, M_PI,
+        Math<double>::pi(), Math<double>::pi(),
 
     // cacheline 7
         // 1 over 3!
