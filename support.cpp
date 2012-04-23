@@ -21,6 +21,10 @@
 #include <Vc/cpuid.h>
 #include "common/support.h"
 
+#ifdef VC_MSVC
+#include <intrin.h>
+#endif
+
 namespace Vc
 {
 
@@ -45,7 +49,10 @@ bool isImplementationSupported(Implementation impl)
     case SSE4aImpl:
         return CpuId::hasSse4a();
     case AVXImpl:
-#ifndef VC_NO_XGETBV
+#if defined(VC_MSVC) && VC_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
+        unsigned long long xcrFeatureMask = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
+        return (xcrFeatureMask & 0x6) != 0;
+#elif defined(VC_NO_XGETBV)
         if (CpuId::hasOsxsave() && CpuId::hasAvx()) {
             unsigned int eax;
             asm("xgetbv" : "=a"(eax) : "c"(0) : "edx");
