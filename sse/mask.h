@@ -51,7 +51,7 @@ template<unsigned int VectorSize> class Mask
     friend class Float8Mask;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
-        
+
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
         // Also Float8Mask requires const ref on MSVC 32bit.
 #if defined VC_MSVC && defined _WIN32
