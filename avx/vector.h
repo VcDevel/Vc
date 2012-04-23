@@ -237,24 +237,24 @@ template<typename T> class Vector
         inline Vector  operator/ (const Vector<T> &x) const;
 
         // bitwise ops
-        inline Vector<T> ALWAYS_INLINE_L &operator|= (Vector<T> x) ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L &operator&= (Vector<T> x) ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L &operator^= (Vector<T> x) ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L &operator>>=(Vector<T> x) ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L &operator<<=(Vector<T> x) ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L &operator|= (AsArg x) ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L &operator&= (AsArg x) ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L &operator^= (AsArg x) ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L &operator>>=(AsArg x) ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L &operator<<=(AsArg x) ALWAYS_INLINE_R;
         inline Vector<T> ALWAYS_INLINE_L &operator>>=(int x) ALWAYS_INLINE_R;
         inline Vector<T> ALWAYS_INLINE_L &operator<<=(int x) ALWAYS_INLINE_R;
 
-        inline Vector<T> ALWAYS_INLINE_L operator| (Vector<T> x) const ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L operator& (Vector<T> x) const ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L operator^ (Vector<T> x) const ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L operator>>(Vector<T> x) const ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L operator<<(Vector<T> x) const ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L operator| (AsArg x) const ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L operator& (AsArg x) const ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L operator^ (AsArg x) const ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L operator>>(AsArg x) const ALWAYS_INLINE_R;
+        inline Vector<T> ALWAYS_INLINE_L operator<<(AsArg x) const ALWAYS_INLINE_R;
         inline Vector<T> ALWAYS_INLINE_L operator>>(int x) const ALWAYS_INLINE_R;
         inline Vector<T> ALWAYS_INLINE_L operator<<(int x) const ALWAYS_INLINE_R;
 
 #define OPcmp(symbol, fun) \
-        inline Mask ALWAYS_INLINE operator symbol(Vector<T> x) const { return VectorHelper<T>::fun(data(), x.data()); }
+        inline Mask ALWAYS_INLINE operator symbol(AsArg x) const { return VectorHelper<T>::fun(data(), x.data()); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)

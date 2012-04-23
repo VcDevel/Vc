@@ -447,12 +447,12 @@ template<> inline Vector<double> INTRINSIC PURE Vector<double>::operator/(const 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
 #define OP_IMPL(T, symbol) \
-template<> inline Vector<T> &Vector<T>::operator symbol##=(Vector<T> x) \
+template<> inline Vector<T> &Vector<T>::operator symbol##=(AsArg x) \
 { \
     for_all_vector_entries(i, d.m(i) symbol##= x.d.m(i); ); \
     return *this; \
 } \
-template<> inline Vector<T>  Vector<T>::operator symbol(Vector<T> x) const \
+template<> inline Vector<T>  Vector<T>::operator symbol(AsArg x) const \
 { \
     Vector<T> r; \
     for_all_vector_entries(i, r.d.m(i) = d.m(i) symbol x.d.m(i); ); \
@@ -484,8 +484,8 @@ template<typename T> inline Vector<T> Vector<T>::operator<<(int shift) const {
 }
 
 #define OP_IMPL(T, symbol, fun) \
-  template<> inline Vector<T> &Vector<T>::operator symbol##=(Vector<T> x) { d.v() = HV::fun(d.v(), x.d.v()); return *this; } \
-  template<> inline Vector<T>  Vector<T>::operator symbol(Vector<T> x) const { return Vector<T>(HV::fun(d.v(), x.d.v())); }
+  template<> inline Vector<T> &Vector<T>::operator symbol##=(AsArg x) { d.v() = HV::fun(d.v(), x.d.v()); return *this; } \
+  template<> inline Vector<T>  Vector<T>::operator symbol(AsArg x) const { return Vector<T>(HV::fun(d.v(), x.d.v())); }
   OP_IMPL(int, &, and_)
   OP_IMPL(int, |, or_)
   OP_IMPL(int, ^, xor_)
