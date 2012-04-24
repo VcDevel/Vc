@@ -21,37 +21,37 @@ include ("${_currentDir}/AddCompilerFlag.cmake")
 include ("${_currentDir}/OptimizeForArchitecture.cmake")
 
 macro(vc_determine_compiler)
-   if(NOT DEFINED VC_COMPILER_IS_INTEL)
-      set(VC_COMPILER_IS_INTEL false)
-      set(VC_COMPILER_IS_OPEN64 false)
-      set(VC_COMPILER_IS_CLANG false)
-      set(VC_COMPILER_IS_MSVC false)
-      set(VC_COMPILER_IS_GCC false)
+   if(NOT DEFINED Vc_COMPILER_IS_INTEL)
+      set(Vc_COMPILER_IS_INTEL false)
+      set(Vc_COMPILER_IS_OPEN64 false)
+      set(Vc_COMPILER_IS_CLANG false)
+      set(Vc_COMPILER_IS_MSVC false)
+      set(Vc_COMPILER_IS_GCC false)
       if(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
-         set(VC_COMPILER_IS_INTEL true)
+         set(Vc_COMPILER_IS_INTEL true)
          message(STATUS "Detected Compiler: Intel")
       elseif(CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
-         set(VC_COMPILER_IS_OPEN64 true)
+         set(Vc_COMPILER_IS_OPEN64 true)
          message(STATUS "Detected Compiler: Open64")
       elseif(CMAKE_CXX_COMPILER MATCHES "/clang\\+\\+$")
-         set(VC_COMPILER_IS_CLANG true)
+         set(Vc_COMPILER_IS_CLANG true)
          message(STATUS "Detected Compiler: Clang")
       elseif(MSVC)
-         set(VC_COMPILER_IS_MSVC true)
+         set(Vc_COMPILER_IS_MSVC true)
          message(STATUS "Detected Compiler: MSVC")
       elseif(CMAKE_COMPILER_IS_GNUCXX)
-         set(VC_COMPILER_IS_GCC true)
+         set(Vc_COMPILER_IS_GCC true)
          message(STATUS "Detected Compiler: GCC")
 
          # check the GCC version
-         exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE VC_GCC_VERSION)
+         exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE Vc_GCC_VERSION)
 
          # some distributions patch their GCC to return nothing or only major and minor version on -dumpversion.
          # In that case we must extract the version number from --version.
-         if(NOT VC_GCC_VERSION OR VC_GCC_VERSION MATCHES "^[0-9]\\.[0-9]+$")
-            exec_program(${CMAKE_C_COMPILER} ARGS --version OUTPUT_VARIABLE VC_GCC_VERSION)
-            string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" VC_GCC_VERSION "${VC_GCC_VERSION}")
-            message(STATUS "GCC Version from --version: ${VC_GCC_VERSION}")
+         if(NOT Vc_GCC_VERSION OR Vc_GCC_VERSION MATCHES "^[0-9]\\.[0-9]+$")
+            exec_program(${CMAKE_C_COMPILER} ARGS --version OUTPUT_VARIABLE Vc_GCC_VERSION)
+            string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" Vc_GCC_VERSION "${Vc_GCC_VERSION}")
+            message(STATUS "GCC Version from --version: ${Vc_GCC_VERSION}")
          endif()
       else()
          message(WARNING "Untested/-supported Compiler for use with Vc.\nPlease fill out the missing parts in the CMake scripts and submit a patch to http://code.compeng.uni-frankfurt.de/projects/vc")
@@ -89,7 +89,7 @@ endmacro()
 
 macro(vc_check_assembler)
    if(APPLE)
-      if(NOT VC_COMPILER_IS_CLANG)
+      if(NOT Vc_COMPILER_IS_CLANG)
          message(WARNING "Apple does not provide an assembler with AVX support. Please use Clang instead of GCC.")
       endif()
    else(APPLE)
@@ -117,11 +117,11 @@ endmacro()
 macro(vc_check_fpmath)
    # if compiling for 32 bit x86 we need to use the -mfpmath=sse since the x87 is broken by design
    include (CheckCXXSourceRuns)
-   check_cxx_source_runs("int main() { return sizeof(void*) != 8; }" VC_VOID_PTR_IS_64BIT)
-   if(NOT VC_VOID_PTR_IS_64BIT)
+   check_cxx_source_runs("int main() { return sizeof(void*) != 8; }" Vc_VOID_PTR_IS_64BIT)
+   if(NOT Vc_VOID_PTR_IS_64BIT)
       exec_program(${CMAKE_C_COMPILER} ARGS -dumpmachine OUTPUT_VARIABLE _gcc_machine)
       if(_gcc_machine MATCHES "[x34567]86")
-         vc_add_compiler_flag(VC_DEFINITIONS "-mfpmath=sse")
+         vc_add_compiler_flag(Vc_DEFINITIONS "-mfpmath=sse")
       endif(_gcc_machine MATCHES "[x34567]86")
    endif()
 endmacro()
@@ -139,10 +139,10 @@ macro(vc_set_preferred_compiler_flags)
       endif()
    endforeach()
 
-   set(VC_SSE_INTRINSICS_BROKEN false)
-   set(VC_AVX_INTRINSICS_BROKEN false)
+   set(Vc_SSE_INTRINSICS_BROKEN false)
+   set(Vc_AVX_INTRINSICS_BROKEN false)
 
-   if(VC_COMPILER_IS_OPEN64)
+   if(Vc_COMPILER_IS_OPEN64)
       ##################################################################################################
       #                                             Open64                                             #
       ##################################################################################################
@@ -172,7 +172,7 @@ macro(vc_set_preferred_compiler_flags)
       endif()
 
       vc_check_assembler()
-   elseif(VC_COMPILER_IS_GCC)
+   elseif(Vc_COMPILER_IS_GCC)
       ##################################################################################################
       #                                              GCC                                               #
       ##################################################################################################
@@ -183,36 +183,36 @@ macro(vc_set_preferred_compiler_flags)
          AddCompilerFlag("-Wold-style-cast")
          AddCompilerFlag("-Wno-variadic-macros")
       endif()
-      vc_add_compiler_flag(VC_DEFINITIONS "-Wabi")
-      vc_add_compiler_flag(VC_DEFINITIONS "-fabi-version=4") # this is required to make __m128 and __m256 appear as different types.
+      vc_add_compiler_flag(Vc_DEFINITIONS "-Wabi")
+      vc_add_compiler_flag(Vc_DEFINITIONS "-fabi-version=4") # this is required to make __m128 and __m256 appear as different types.
 
       if(_add_buildtype_flags)
          vc_set_gnu_buildtype_flags()
       endif()
 
-      macro_ensure_version("4.4.6" "${VC_GCC_VERSION}" GCC_4_4_6)
+      macro_ensure_version("4.4.6" "${Vc_GCC_VERSION}" GCC_4_4_6)
       if(NOT GCC_4_4_6)
          message(WARNING "Your GCC is older than 4.4.6. This is known to cause problems/bugs. Please update to the latest GCC if you can.")
-         set(VC_AVX_INTRINSICS_BROKEN true)
-         macro_ensure_version("4.4.1" "${VC_GCC_VERSION}" GCC_4_4_1)
+         set(Vc_AVX_INTRINSICS_BROKEN true)
+         macro_ensure_version("4.4.1" "${Vc_GCC_VERSION}" GCC_4_4_1)
          if(NOT GCC_4_4_1)
             message(WARNING "Your GCC is older than 4.4.1. This is known to cause problems/bugs. Please update to the latest GCC if you can.")
-            macro_ensure_version("4.3.0" "${VC_GCC_VERSION}" GCC_4_3_0)
+            macro_ensure_version("4.3.0" "${Vc_GCC_VERSION}" GCC_4_3_0)
             if(NOT GCC_4_3_0)
                message(WARNING "Your GCC is older than 4.3.0. It is unable to handle all SSE2 intrinsics. All SSE code will be disabled. Please update to the latest GCC if you can.")
-               set(VC_SSE_INTRINSICS_BROKEN true)
+               set(Vc_SSE_INTRINSICS_BROKEN true)
             endif()
          endif()
       endif()
 
-      if(VC_GCC_VERSION STREQUAL "4.7.0")
+      if(Vc_GCC_VERSION STREQUAL "4.7.0")
          message(WARNING "GCC 4.7.0 miscompiles at -O3, adding -fno-predictive-commoning to the compiler flags as workaround")
-         set(VC_DEFINITIONS "${VC_DEFINITIONS} -fno-predictive-commoning")
+         set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -fno-predictive-commoning")
       endif()
 
       vc_check_fpmath()
       vc_check_assembler()
-   elseif(VC_COMPILER_IS_INTEL)
+   elseif(Vc_COMPILER_IS_INTEL)
       ##################################################################################################
       #                                          Intel Compiler                                        #
       ##################################################################################################
@@ -239,9 +239,9 @@ macro(vc_set_preferred_compiler_flags)
       macro_ensure_version("12.0.0" "${_icc_version}" ICC_12_0_0)
       if(ICC_12_0_0)
          # iomanip from latest libstdc++ makes ICC fail unless C++0x is selected
-         vc_add_compiler_flag(VC_DEFINITIONS "-std=c++0x")
+         vc_add_compiler_flag(Vc_DEFINITIONS "-std=c++0x")
       endif()
-   elseif(VC_COMPILER_IS_MSVC)
+   elseif(Vc_COMPILER_IS_MSVC)
       if(_add_warning_flags)
          AddCompilerFlag("/wd4800") # Disable warning "forcing value to bool"
          AddCompilerFlag("/wd4996") # Disable warning about strdup vs. _strdup
@@ -253,11 +253,11 @@ macro(vc_set_preferred_compiler_flags)
       # MSVC does not support inline assembly on 64 bit! :(
       # searching the help for xgetbv doesn't turn up anything. So just fall back to not supporting AVX on Windows :(
       # TODO: apparently MSVC 2010 SP1 added _xgetbv
-      set(VC_DEFINITIONS "${VC_DEFINITIONS} -DVC_NO_XGETBV")
+      set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVC_NO_XGETBV")
 
       # get rid of the min/max macros
-      set(VC_DEFINITIONS "${VC_DEFINITIONS} -DNOMINMAX")
-   elseif(VC_COMPILER_IS_CLANG)
+      set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DNOMINMAX")
+   elseif(Vc_COMPILER_IS_CLANG)
       # for now I don't know of any arguments I want to pass. -march and stuff is tried by OptimizeForArchitecture...
    endif()
 

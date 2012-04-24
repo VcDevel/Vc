@@ -17,8 +17,8 @@ find_package(Qt4)
 
 vc_determine_compiler()
 
-if(VC_COMPILER_IS_GCC)
-   if(VC_GCC_VERSION STREQUAL "4.6.0")
+if(Vc_COMPILER_IS_GCC)
+   if(Vc_GCC_VERSION STREQUAL "4.6.0")
       message(WARNING "GCC 4.6.0 is broken. The following tests are therefore disabled:
       gather_avx, gather_sse, gather_VC_USE_SET_GATHERS_avx, gather_VC_USE_SET_GATHERS_sse,
       gather_sse_LOOP, scatter_avx, and scatter_sse")
@@ -31,7 +31,7 @@ if(VC_COMPILER_IS_GCC)
          scatter_avx
          scatter_sse
          )
-   elseif(VC_GCC_VERSION STREQUAL "4.5.0" OR VC_GCC_VERSION STREQUAL "4.5.1")
+   elseif(Vc_GCC_VERSION STREQUAL "4.5.0" OR Vc_GCC_VERSION STREQUAL "4.5.1")
       message(WARNING "GCC 4.5.[12] are known to generate an internal compiler error on the memory unit test.
       (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=46723)
       The test will therefore not be compiled and executed.")
@@ -50,9 +50,9 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
-add_definitions("${VC_DEFINITIONS}")
+add_definitions("${Vc_DEFINITIONS}")
 
-if(VC_COMPILER_IS_INTEL)
+if(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -w1 -fp-model precise")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w1 -fp-model precise")
@@ -69,7 +69,7 @@ if(USE_AVX)
 else()
    set(_srcs vector.cpp cpuid.cpp support.cpp)
 
-   if(NOT VC_AVX_INTRINSICS_BROKEN)
+   if(NOT Vc_AVX_INTRINSICS_BROKEN)
       # we'd still like to have avx/sorthelper.cpp built in, but that requires compilation with -mavx (or a comparable flag)
       foreach(_flag "-mavx" "-xAVX" "-arch:AVX")
          check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag})
@@ -98,9 +98,9 @@ install(DIRECTORY scalar sse avx common DESTINATION include/Vc FILES_MATCHING RE
 # read version parts from version.h to be put into VcConfig.cmake
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define VC_VERSION_STRING ")
 string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _version_matches "${_version_lines}")
-set(VC_VERSION_MAJOR ${CMAKE_MATCH_1})
-set(VC_VERSION_MINOR ${CMAKE_MATCH_2})
-set(VC_VERSION_PATCH ${CMAKE_MATCH_3})
+set(Vc_VERSION_MAJOR ${CMAKE_MATCH_1})
+set(Vc_VERSION_MINOR ${CMAKE_MATCH_2})
+set(Vc_VERSION_PATCH ${CMAKE_MATCH_3})
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcConfig.cmake.in
    ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake @ONLY)

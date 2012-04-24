@@ -8,23 +8,23 @@
 # again after you integrated it into your project.
 #
 # This module defines the following variables:
-# VC_FOUND
-# VC_INCLUDE_DIR
-# VC_LIBRARIES
-# VC_DEFINITIONS
-# VC_VERSION_MAJOR
-# VC_VERSION_MINOR
-# VC_VERSION_PATCH
-# VC_VERSION
-# VC_VERSION_STRING
-# VC_INSTALL_DIR
-# VC_LIB_DIR
-# VC_CMAKE_MODULES_DIR
+# Vc_FOUND
+# Vc_INCLUDE_DIR
+# Vc_LIBRARIES
+# Vc_DEFINITIONS
+# Vc_VERSION_MAJOR
+# Vc_VERSION_MINOR
+# Vc_VERSION_PATCH
+# Vc_VERSION
+# Vc_VERSION_STRING
+# Vc_INSTALL_DIR
+# Vc_LIB_DIR
+# Vc_CMAKE_MODULES_DIR
 #
 # The following two variables are set according to the compiler used. Feel free
 # to use them to skip whole compilation units.
-# VC_SSE_INTRINSICS_BROKEN
-# VC_AVX_INTRINSICS_BROKEN
+# Vc_SSE_INTRINSICS_BROKEN
+# Vc_AVX_INTRINSICS_BROKEN
 
 find_package(Vc ${Vc_FIND_VERSION} QUIET NO_MODULE PATHS $ENV{HOME} /opt/Vc)
 
