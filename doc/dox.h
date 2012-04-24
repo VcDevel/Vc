@@ -28,6 +28,8 @@
  *
  * \ref portability
  *
+ * \ref featuremacros
+ *
  * \li \ref Vectors
  * \li \ref Masks
  * \li \ref Utilities
@@ -163,6 +165,16 @@
  * \li Hardware that does not support 16-Bit integer vectors can implement the short_v and ushort_v
  * API via 32-Bit integer vectors. Thus, some of the overflow behavior might be slightly different,
  * and truncation will only happen when the vector is stored to memory.
+ */
+
+/**
+ * \page featuremacros Feature Macros
+ *
+ * The following macros are available to enable/disable selected features:
+ * \li \e VC_NO_STD_FUNCTIONS
+ * \li \e VC_CLEAN_NAMESPACE
+ * \li \e VC_NO_AUTOMATIC_BOOL_FROM_MASK
+ * \li \e VC_NO_VERSION_CHECK
  */
 
 /**
