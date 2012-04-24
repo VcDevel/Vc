@@ -76,6 +76,34 @@ namespace Vc
   using VECTOR_NAMESPACE::Vector;
 } // namespace Vc
 
+#ifndef VC_NO_STD_FUNCTIONS
+namespace std
+{
+  using Vc::min;
+  using Vc::max;
+
+  using Vc::abs;
+  using Vc::asin;
+  using Vc::atan;
+  using Vc::atan2;
+  using Vc::ceil;
+  using Vc::cos;
+  using Vc::exp;
+  using Vc::floor;
+  using Vc::frexp;
+  using Vc::ldexp;
+  using Vc::log;
+  using Vc::log10;
+  using Vc::log2;
+  using Vc::round;
+  using Vc::sin;
+  using Vc::sqrt;
+
+  using Vc::isfinite;
+  using Vc::isnan;
+} // namespace std
+#endif
+
 #ifndef VC_CLEAN_NAMESPACE
 #define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
 #endif
