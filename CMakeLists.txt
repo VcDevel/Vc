@@ -40,6 +40,11 @@ if(Vc_COMPILER_IS_GCC)
          memory_sse
          memory_avx
          )
+   elseif(Vc_GCC_VERSION STREQUAL "4.5.2")
+      message(WARNING "GCC 4.5.2 generates an internal compiler error on the memory_scalar unit test. The test will not be compiled and executed.")
+      list(APPEND disabled_targets
+         memory_scalar
+         )
    endif()
 endif()
 
