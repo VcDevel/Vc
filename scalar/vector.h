@@ -266,6 +266,21 @@ class Vector : public VectorBase<T, Vector<T> >
         inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };
 
+typedef Vector<double>         double_v;
+typedef Vector<float>          float_v;
+typedef Vector<float>          sfloat_v;
+typedef Vector<int>            int_v;
+typedef Vector<unsigned int>   uint_v;
+typedef Vector<short>          short_v;
+typedef Vector<unsigned short> ushort_v;
+typedef double_v::Mask double_m;
+typedef float_v::Mask float_m;
+typedef sfloat_v::Mask sfloat_m;
+typedef int_v::Mask int_m;
+typedef uint_v::Mask uint_m;
+typedef short_v::Mask short_m;
+typedef ushort_v::Mask ushort_m;
+
 template<typename T> class SwizzledVector : public Vector<T> {};
 
 template<typename T1, typename T2> inline Vector<T2> operator+ (T1 x, const Vector<T2> &v) { return v.operator+(x); }
