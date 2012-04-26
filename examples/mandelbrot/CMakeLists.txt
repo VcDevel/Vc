@@ -7,13 +7,7 @@ if(QT4_FOUND)
    set(SOURCES main.cpp ${CMAKE_CURRENT_BINARY_DIR}/moc_main.cpp mandel.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/moc_mandel.cpp)
 
-   add_executable(mandelbrot_sse ${SOURCES})
-   add_target_property(mandelbrot_sse COMPILE_FLAGS "-DVC_IMPL=SSE")
-   target_link_libraries(mandelbrot_sse ${QT_LIBRARIES} Vc)
-
-   add_executable(mandelbrot_scalar ${SOURCES})
-   add_target_property(mandelbrot_scalar COMPILE_FLAGS "-DVC_IMPL=Scalar")
-   target_link_libraries(mandelbrot_scalar ${QT_LIBRARIES} Vc)
+   build_example(mandelbrot ${SOURCES} LIBS ${QT_LIBRARIES})
 
    # It is an interesting test if we can compare against the autovect
    # capabilities of Open64 and ICC, so we try to find those and compile extra
