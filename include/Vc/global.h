@@ -43,7 +43,11 @@
 #if defined(__GNUC__) && !defined(VC_NO_INLINE_ASM)
 #define VC_GNU_ASM 1
 #endif
-
+#if defined(VC_GCC) && (VC_GCC <= 0x40405 || (VC_GCC >= 0x40500 && VC_GCC <= 0x40502)) && !(VC_GCC == 0x40502 && defined(__GNUC_UBUNTU_VERSION__) && __GNUC_UBUNTU_VERSION__ == 0xb0408)
+// GCC 4.6.0 / 4.5.3 / 4.4.6 switched to the interface as defined by ICC
+// (Ubuntu 11.04 ships a GCC 4.5.2 with the new interface)
+#define VC_MM256_MASKSTORE_WRONG_MASK_TYPE 1
+#endif
 
 #define SSE    9875294
 #define SSE2   9875295

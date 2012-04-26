@@ -370,27 +370,22 @@ namespace AVX
                 _mm_cmpgt_epi32(_mm256_extractf128_si256(a, 1), _mm256_extractf128_si256(b, 1)), 1);
     }
 
-#if !defined(VC_GCC) || (VC_GCC > 0x40502 || (VC_GCC == 0x40502 && defined(__GNUC_UBUNTU_VERSION__) && __GNUC_UBUNTU_VERSION__ == 0xb0409) || (VC_GCC > 0x40405 && VC_GCC < 0x40500))
-// GCC 4.6.0 / 4.5.3 / 4.4.6 switched to the broken interface as defined by ICC
-// Ubuntu 11.04 ships a GCC 4.5.2 with the new interface
-#define VC_MASKSTORE_MASK_TYPE_IS_INT 1
-#endif
         static inline void INTRINSIC _mm256_maskstore(float *mem, const __m256 mask, const __m256 v) {
-#ifdef VC_MASKSTORE_MASK_TYPE_IS_INT
+#ifndef VC_MM256_MASKSTORE_WRONG_MASK_TYPE
             _mm256_maskstore_ps(mem, _mm256_castps_si256(mask), v);
 #else
             _mm256_maskstore_ps(mem, mask, v);
 #endif
         }
         static inline void INTRINSIC _mm256_maskstore(double *mem, const __m256d mask, const __m256d v) {
-#ifdef VC_MASKSTORE_MASK_TYPE_IS_INT
+#ifndef VC_MM256_MASKSTORE_WRONG_MASK_TYPE
             _mm256_maskstore_pd(mem, _mm256_castpd_si256(mask), v);
 #else
             _mm256_maskstore_pd(mem, mask, v);
 #endif
         }
         static inline void INTRINSIC _mm256_maskstore(int *mem, const __m256i mask, const __m256i v) {
-#ifdef VC_MASKSTORE_MASK_TYPE_IS_INT
+#ifndef VC_MM256_MASKSTORE_WRONG_MASK_TYPE
             _mm256_maskstore_ps(reinterpret_cast<float *>(mem), mask, _mm256_castsi256_ps(v));
 #else
             _mm256_maskstore_ps(reinterpret_cast<float *>(mem), _mm256_castsi256_ps(mask), _mm256_castsi256_ps(v));
