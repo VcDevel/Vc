@@ -56,4 +56,9 @@
 #undef Vc_buildDouble
 #undef Vc_buildFloat
 
+#undef VC_ALL_COMPARES
+#undef VC_ALL_LOGICAL
+#undef VC_ALL_BINARY
+#undef VC_ALL_ARITHMETICS
+
 #endif // VC_COMMON_UNDOMACROS_H

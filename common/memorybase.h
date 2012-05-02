@@ -21,9 +21,28 @@
 #define VC_COMMON_MEMORYBASE_H
 
 #include <assert.h>
+#include "macros.h"
 
 namespace Vc
 {
+
+#define VC_MEM_OPERATOR(op) \
+        template<typename T> \
+        inline V operator op(const T &v) const { \
+            return V(m_ptr, Internal::FlagObject<A>::the()) op v; \
+        }
+#define VC_MEM_OPERATOR_EQ(op) \
+        template<typename T> \
+        inline VectorPointerHelper &operator op##=(const T &x) { \
+            const V result = V(m_ptr, Internal::FlagObject<A>::the()) op x; \
+            result.store(m_ptr, Internal::FlagObject<A>::the()); \
+            return *this; \
+        }
+#define VC_MEM_OPERATOR_CMP(op) \
+        template<typename T> \
+        inline Mask operator op(const T &v) const { \
+            return V(m_ptr, Internal::FlagObject<A>::the()) op v; \
+        }
 
 /**
  * Helper class for the Memory::vector(size_t) class of functions.
@@ -47,16 +66,10 @@ template<typename V, typename A> class VectorPointerHelperConst
          * This function allows to assign this object to any object of type \p V.
          */
         inline operator const V() const { return V(m_ptr, Internal::FlagObject<A>::the()); }
-        inline V operator+(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) + v; }
-        inline V operator-(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) - v; }
-        inline V operator/(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) / v; }
-        inline V operator*(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) * v; }
-        inline Mask operator==(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) == v; }
-        inline Mask operator!=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) != v; }
-        inline Mask operator<=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <= v; }
-        inline Mask operator>=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >= v; }
-        inline Mask operator< (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <  v; }
-        inline Mask operator> (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >  v; }
+
+        VC_ALL_BINARY(VC_MEM_OPERATOR)
+        VC_ALL_ARITHMETICS(VC_MEM_OPERATOR)
+        VC_ALL_COMPARES(VC_MEM_OPERATOR_CMP)
 };
 
 /**
@@ -82,41 +95,23 @@ template<typename V, typename A> class VectorPointerHelper
          */
         inline operator const V() const { return V(m_ptr, Internal::FlagObject<A>::the()); }
 
-        inline VectorPointerHelper &operator=(const V &v) {
+        template<typename T>
+        inline VectorPointerHelper &operator=(const T &x) {
+            V v;
+            v = x;
             v.store(m_ptr, Internal::FlagObject<A>::the());
             return *this;
         }
-        inline VectorPointerHelper &operator+=(const V &v) {
-            V result = V(m_ptr, Internal::FlagObject<A>::the()) + v;
-            result.store(m_ptr, Internal::FlagObject<A>::the());
-            return *this;
-        }
-        inline VectorPointerHelper &operator-=(const V &v) {
-            V result = V(m_ptr, Internal::FlagObject<A>::the()) - v;
-            result.store(m_ptr, Internal::FlagObject<A>::the());
-            return *this;
-        }
-        inline VectorPointerHelper &operator*=(const V &v) {
-            V result = V(m_ptr, Internal::FlagObject<A>::the()) * v;
-            result.store(m_ptr, Internal::FlagObject<A>::the());
-            return *this;
-        }
-        inline VectorPointerHelper &operator/=(const V &v) {
-            V result = V(m_ptr, Internal::FlagObject<A>::the()) / v;
-            result.store(m_ptr, Internal::FlagObject<A>::the());
-            return *this;
-        }
-        inline V operator+(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) + v; }
-        inline V operator-(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) - v; }
-        inline V operator*(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) * v; }
-        inline V operator/(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) / v; }
-        inline Mask operator==(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) == v; }
-        inline Mask operator!=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) != v; }
-        inline Mask operator<=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <= v; }
-        inline Mask operator>=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >= v; }
-        inline Mask operator< (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <  v; }
-        inline Mask operator> (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >  v; }
+        VC_ALL_BINARY(VC_MEM_OPERATOR)
+        VC_ALL_BINARY(VC_MEM_OPERATOR_EQ)
+        VC_ALL_ARITHMETICS(VC_MEM_OPERATOR)
+        VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ)
+        VC_ALL_COMPARES(VC_MEM_OPERATOR_CMP)
 };
+
+#undef VC_MEM_OPERATOR_EQ
+#undef VC_MEM_OPERATOR
+#undef VC_MEM_OPERATOR_CMP
 
 template<typename V, typename Parent, int Dimension, typename RowMemory> class MemoryDimensionBase;
 template<typename V, typename Parent, typename RowMemory> class MemoryDimensionBase<V, Parent, 1, RowMemory> // {{{1
@@ -517,5 +512,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
 };
 
 } // namespace Vc
+
+#include "undomacros.h"
 
 #endif // VC_COMMON_MEMORYBASE_H

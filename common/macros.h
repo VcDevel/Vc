@@ -208,4 +208,13 @@ namespace Vc {
     / exponentToDivisor<exponent>::Value \
     * static_cast<float>(sign))
 
+#define VC_ALL_COMPARES(macro) \
+    macro(==) macro(!=) macro(<=) macro(>=) macro(<) macro(>)
+#define VC_ALL_LOGICAL(macro) \
+    macro(&&) macro(||)
+#define VC_ALL_BINARY(macro) \
+    macro(&) macro(|) macro(^) macro(<<) macro(>>)
+#define VC_ALL_ARITHMETICS(macro) \
+    macro(+) macro(-) macro(*) macro(/) macro(%)
+
 #endif // VC_COMMON_MACROS_H
