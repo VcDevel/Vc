@@ -45,15 +45,18 @@
  * if that fails, uses SSE4.1.
  * After you include a Vc header, you will have the following macros available, which you can (but
  * normally should not) use to determine the implementation Vc uses:
- * \li VC_IMPL_Scalar
- * \li VC_IMPL_SSE (shorthand for SSE2 || SSE3 || SSSE3 || SSE4_1. SSE1 alone is not supported.)
- * \li VC_IMPL_SSE2
- * \li VC_IMPL_SSE3
- * \li VC_IMPL_SSSE3
- * \li VC_IMPL_SSE4_1
- * \li VC_IMPL_SSE4_2
- * \li VC_IMPL_SSE4a
- * \li VC_IMPL_AVX
+ * \li \c VC_IMPL_Scalar
+ * \li \c VC_IMPL_SSE (shorthand for SSE2 || SSE3 || SSSE3 || SSE4_1. SSE1 alone is not supported.)
+ * \li \c VC_IMPL_SSE2
+ * \li \c VC_IMPL_SSE3
+ * \li \c VC_IMPL_SSSE3
+ * \li \c VC_IMPL_SSE4_1
+ * \li \c VC_IMPL_SSE4_2
+ * \li \c VC_IMPL_SSE4a
+ * \li \c VC_IMPL_AVX
+ *
+ * Another set of macros you may use for target specific implementations are the \c VC_*_V_SIZE
+ * macros: \ref Utilities
  */
 
 /**
@@ -790,5 +793,48 @@ unsigned int versionNumber();
  * \endcode
  */
 #define VC_VERSION_CHECK(major, minor, patch)
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a double_v.
+ */
+#define VC_DOUBLE_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a float_v.
+ */
+#define VC_FLOAT_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a sfloat_v.
+ */
+#define VC_SFLOAT_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a int_v.
+ */
+#define VC_INT_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a uint_v.
+ */
+#define VC_UINT_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a short_v.
+ */
+#define VC_SHORT_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a ushort_v.
+ */
+#define VC_USHORT_V_SIZE
 
 } // namespace Vc
