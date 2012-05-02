@@ -115,12 +115,6 @@
 # define VC_WARN(msg)
 #endif
 
-#define CAT_HELPER(a, b) a##b
-#define CAT(a, b) CAT_HELPER(a, b)
-
-#define CAT3_HELPER(a, b, c) a##b##c
-#define CAT3(a, b, c) CAT3_HELPER(a, b, c)
-
 #define unrolled_loop16(_it_, _start_, _end_, _code_) \
 if (_start_ +  0 < _end_) { enum { _it_ = (_start_ +  0) < _end_ ? (_start_ +  0) : _start_ }; _code_ } \
 if (_start_ +  1 < _end_) { enum { _it_ = (_start_ +  1) < _end_ ? (_start_ +  1) : _start_ }; _code_ } \
@@ -143,20 +137,6 @@ do {} while ( false )
 #define for_all_vector_entries(_it_, _code_) \
   unrolled_loop16(_it_, 0, Size, _code_)
 
-#ifndef _VC_STATIC_ASSERT_TYPES_H
-#define _VC_STATIC_ASSERT_TYPES_H
-namespace Vc {
-    namespace {
-        template<bool> class STATIC_ASSERT_FAILURE;
-        template<> class STATIC_ASSERT_FAILURE<true> {};
-}}
-#endif // _VC_STATIC_ASSERT_TYPES_H
-
-#define VC_STATIC_ASSERT_NC(cond, msg) \
-    typedef STATIC_ASSERT_FAILURE<cond> CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__); \
-    CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__) CAT3(Error_,__LINE__,msg)
-#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg); (void) CAT3(Error_,__LINE__,msg)
-
 #ifdef NDEBUG
 #define VC_ASSERT(x)
 #else
@@ -172,6 +152,27 @@ namespace Vc {
 
 #ifndef VC_COMMON_MACROS_H_ONCE
 #define VC_COMMON_MACROS_H_ONCE
+
+#define _VC_CAT3_HELPER(a, b, c) a##b##c
+#define _VC_CAT3(a, b, c) _VC_CAT3_HELPER(a, b, c)
+
+#if __cplusplus >= 201103 // C++11
+#define VC_STATIC_ASSERT_NC(cond, msg) \
+    static_assert(cond, #msg)
+#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg)
+#else // C++98
+namespace Vc {
+    namespace {
+        template<bool> struct STATIC_ASSERT_FAILURE;
+        template<> struct STATIC_ASSERT_FAILURE<true> { typedef int Test; };
+}}
+
+#define VC_STATIC_ASSERT_NC(cond, msg) \
+    typedef STATIC_ASSERT_FAILURE<cond> _VC_CAT3(static_assert_failed_on_line_, __LINE__,msg); \
+    typedef typename _VC_CAT3(static_assert_failed_on_line_, __LINE__,msg)::Test _VC_CAT3(static_assert_failed__on_line_,__LINE__,msg)
+#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg)
+#endif // C++11/98
+
     template<int e, int center> struct exponentToMultiplier { enum {
         X = exponentToMultiplier<e - 1, center>::X * ((e - center < 31) ? 2 : 1),
         Value = (X == 0 ? 1 : X)
@@ -191,6 +192,11 @@ namespace Vc {
     template<> struct exponentToDivisor<512> { enum { X = 0 }; };
     template<> struct exponentToDivisor<1024> { enum { X = 0 }; };
 #endif // VC_COMMON_MACROS_H_ONCE
+
+#define CAT_HELPER(a, b) a##b
+#define CAT(a, b) CAT_HELPER(a, b)
+#define CAT3(a, b) _VC_CAT3(a, b)
+
 #define Vc_buildDouble(sign, mantissa, exponent) \
     ((static_cast<double>((mantissa & 0x000fffffffffffffull) | 0x0010000000000000ull) / 0x0010000000000000ull) \
     * exponentToMultiplier<exponent, 0>::Value \

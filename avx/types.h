@@ -24,6 +24,14 @@
 #include "../common/storage.h"
 #include "macros.h"
 
+#define VC_DOUBLE_V_SIZE 4
+#define VC_FLOAT_V_SIZE 8
+#define VC_SFLOAT_V_SIZE 8
+#define VC_INT_V_SIZE 8
+#define VC_UINT_V_SIZE 8
+#define VC_SHORT_V_SIZE 8
+#define VC_USHORT_V_SIZE 8
+
 namespace Vc
 {
 namespace AVX
