@@ -37,11 +37,6 @@ namespace Vc
         template<typename V = float> class VectorAlignedBaseT {};
         template<typename T> class Vector;
         template<typename T> class _Memory;
-
-        template<typename T> struct NegateTypeHelper { typedef T Type; };
-        template<> struct NegateTypeHelper<unsigned char > { typedef char  Type; };
-        template<> struct NegateTypeHelper<unsigned short> { typedef short Type; };
-        template<> struct NegateTypeHelper<unsigned int  > { typedef int   Type; };
     } // namespace Scalar
 } // namespace Vc
 

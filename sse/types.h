@@ -89,11 +89,6 @@ namespace SSE
 
     template<typename T> struct VectorHelper {};
 
-    template<typename T> struct NegateTypeHelper { typedef T Type; };
-    template<> struct NegateTypeHelper<unsigned char > { typedef char  Type; };
-    template<> struct NegateTypeHelper<unsigned short> { typedef short Type; };
-    template<> struct NegateTypeHelper<unsigned int  > { typedef int   Type; };
-
     template<unsigned int Size> struct IndexTypeHelper;
     template<> struct IndexTypeHelper<2u> { typedef unsigned int   Type; };
     template<> struct IndexTypeHelper<4u> { typedef unsigned int   Type; };
