@@ -27,32 +27,25 @@ namespace Vc
 namespace Scalar
 {
 
-static inline int_v    min(const int_v    &x, const int_v    &y) { return std::min(x.data(), y.data()); }
-static inline uint_v   min(const uint_v   &x, const uint_v   &y) { return std::min(x.data(), y.data()); }
-static inline short_v  min(const short_v  &x, const short_v  &y) { return std::min(x.data(), y.data()); }
-static inline ushort_v min(const ushort_v &x, const ushort_v &y) { return std::min(x.data(), y.data()); }
-static inline float_v  min(const float_v  &x, const float_v  &y) { return std::min(x.data(), y.data()); }
-static inline double_v min(const double_v &x, const double_v &y) { return std::min(x.data(), y.data()); }
-static inline int_v    max(const int_v    &x, const int_v    &y) { return std::max(x.data(), y.data()); }
-static inline uint_v   max(const uint_v   &x, const uint_v   &y) { return std::max(x.data(), y.data()); }
-static inline short_v  max(const short_v  &x, const short_v  &y) { return std::max(x.data(), y.data()); }
-static inline ushort_v max(const ushort_v &x, const ushort_v &y) { return std::max(x.data(), y.data()); }
-static inline float_v  max(const float_v  &x, const float_v  &y) { return std::max(x.data(), y.data()); }
-static inline double_v max(const double_v &x, const double_v &y) { return std::max(x.data(), y.data()); }
+#define VC_MINMAX(V) \
+static inline V min(const V &x, const V &y) { return V(std::min(x.data(), y.data())); } \
+static inline V max(const V &x, const V &y) { return V(std::max(x.data(), y.data())); }
+VC_ALL_VECTOR_TYPES(VC_MINMAX)
+#undef VC_MINMAX
 
 template<typename T> static inline Vector<T> sqrt (const Vector<T> &x)
 {
-    return std::sqrt( x.data() );
+    return Vector<T>(std::sqrt(x.data()));
 }
 
 template<typename T> static inline Vector<T> rsqrt(const Vector<T> &x)
 {
-    const T one = 1; return one / std::sqrt( x.data() );
+    const T one = 1; return Vector<T>(one / std::sqrt(x.data()));
 }
 
 template<typename T> static inline Vector<T> abs  (const Vector<T> &x)
 {
-    return std::abs( x.data() );
+    return Vector<T>(std::abs(x.data()));
 }
 
 template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos)
@@ -81,68 +74,68 @@ template<> inline void sincos(const Vector<double> &x, Vector<double> *sin, Vect
 
 template<typename T> static inline Vector<T> sin  (const Vector<T> &x)
 {
-    return std::sin( x.data() );
+    return Vector<T>(std::sin(x.data()));
 }
 
 template<typename T> static inline Vector<T> asin (const Vector<T> &x)
 {
-    return std::asin( x.data() );
+    return Vector<T>(std::asin(x.data()));
 }
 
 template<typename T> static inline Vector<T> cos  (const Vector<T> &x)
 {
-    return std::cos( x.data() );
+    return Vector<T>(std::cos(x.data()));
 }
 
 template<typename T> static inline Vector<T> log  (const Vector<T> &x)
 {
-    return std::log( x.data() );
+    return Vector<T>(std::log(x.data()));
 }
 
 template<typename T> static inline Vector<T> log10(const Vector<T> &x)
 {
-    return std::log10( x.data() );
+    return Vector<T>(std::log10(x.data()));
 }
 
 #if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L
 static inline Vector<float> log2(const Vector<float> &x)
 {
-    return ::log2f(x.data());
+    return float_v(::log2f(x.data()));
 }
 static inline Vector<double> log2(const Vector<double> &x)
 {
-    return ::log2(x.data());
+    return double_v(::log2(x.data()));
 }
 #else
 template<typename T> static inline Vector<T> log2(const Vector<T> &x)
 {
-    return std::log(x.data()) / Math<double>::ln2();
+    return Vector<T>(std::log(x.data()) / Math<double>::ln2());
 }
 #endif
 
 template<typename T> static inline Vector<T> exp (const Vector<T> &x)
 {
-    return std::exp(x.data());
+    return Vector<T>(std::exp(x.data()));
 }
 
 template<typename T> static inline Vector<T> atan (const Vector<T> &x)
 {
-    return std::atan( x.data() );
+    return Vector<T>(std::atan( x.data() ));
 }
 
 template<typename T> static inline Vector<T> atan2(const Vector<T> &x, const Vector<T> &y)
 {
-    return std::atan2( x.data(), y.data() );
+    return Vector<T>(std::atan2( x.data(), y.data() ));
 }
 
 template<typename T> static inline Vector<T> floor(const Vector<T> &x)
 {
-    return std::floor(x.data());
+    return Vector<T>(std::floor(x.data()));
 }
 
 template<typename T> static inline Vector<T> ceil(const Vector<T> &x)
 {
-    return std::ceil(x.data());
+    return Vector<T>(std::ceil(x.data()));
 }
 
 template<typename T> static inline Vector<T> round(const Vector<T> &x)
@@ -161,17 +154,17 @@ namespace
 } // namespace
 template<> inline Vector<float>  round(const Vector<float>  &x)
 {
-    return std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f);
+    return float_v(std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f));
 }
 
 template<> inline Vector<double> round(const Vector<double> &x)
 {
-    return std::floor(x.data() + 0.5 ) - (_realIsEvenHalf(x.data()) ? 1.  : 0. );
+    return double_v(std::floor(x.data() + 0.5 ) - (_realIsEvenHalf(x.data()) ? 1.  : 0. ));
 }
 
 template<typename T> static inline Vector<T> reciprocal(const Vector<T> &x)
 {
-    const T one = 1; return one / x.data();
+    const T one = 1; return Vector<T>(one / x.data());
 }
 
 #ifdef isfinite
@@ -203,26 +196,26 @@ template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T
 }
 
 inline Vector<float> frexp(Vector<float> x, Vector<int> *e) {
-    return ::frexpf(x.data(), &e->data());
+    return float_v(::frexpf(x.data(), &e->data()));
 }
 inline Vector<double> frexp(Vector<double> x, Vector<int> *e) {
-    return ::frexp(x.data(), &e->data());
+    return double_v(::frexp(x.data(), &e->data()));
 }
 inline Vector<float> frexp(Vector<float> x, Vector<short> *e) {
     int ee;
     const float r = ::frexpf(x.data(), &ee);
     e->data() = ee;
-    return r;
+    return float_v(r);
 }
 
 inline Vector<float> ldexp(Vector<float> x, Vector<int> e) {
-    return ::ldexpf(x.data(), e.data());
+    return float_v(::ldexpf(x.data(), e.data()));
 }
 inline Vector<double> ldexp(Vector<double> x, Vector<int> e) {
-    return ::ldexp(x.data(), e.data());
+    return double_v(::ldexp(x.data(), e.data()));
 }
 inline Vector<float> ldexp(Vector<float> x, Vector<short> e) {
-    return ::ldexpf(x.data(), e.data());
+    return float_v(::ldexpf(x.data(), e.data()));
 }
 
 } // namespace Scalar
