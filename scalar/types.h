@@ -28,6 +28,8 @@
 #define VC_SHORT_V_SIZE 1
 #define VC_USHORT_V_SIZE 1
 
+#include "../common/types.h"
+
 namespace Vc
 {
     namespace Scalar
@@ -40,10 +42,6 @@ namespace Vc
         template<> struct NegateTypeHelper<unsigned char > { typedef char  Type; };
         template<> struct NegateTypeHelper<unsigned short> { typedef short Type; };
         template<> struct NegateTypeHelper<unsigned int  > { typedef int   Type; };
-
-        namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
-        namespace VectorSpecialInitializerOne { enum OEnum { One }; }
-        namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
     } // namespace Scalar
 } // namespace Vc
 

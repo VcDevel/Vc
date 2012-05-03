@@ -32,6 +32,8 @@
 #define VC_SHORT_V_SIZE 8
 #define VC_USHORT_V_SIZE 8
 
+#include "../common/types.h"
+
 namespace Vc
 {
 namespace AVX
@@ -73,10 +75,6 @@ namespace AVX
     //template<> struct HasVectorDivisionHelper<unsigned int> { enum { Value = 0 }; };
 
     template<typename T> struct VectorHelperSize;
-
-    namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
-    namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
-    namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
 #ifdef VC_MSVC
     // MSVC's __declspec(align(#)) only works with numbers, no enums or sizeof allowed ;(

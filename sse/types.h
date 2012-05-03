@@ -32,6 +32,8 @@
 #define VC_SHORT_V_SIZE 8
 #define VC_USHORT_V_SIZE 8
 
+#include "../common/types.h"
+
 namespace Vc
 {
 namespace SSE
@@ -109,10 +111,6 @@ namespace SSE
     template<> struct ExpandTypeHelper<float> { typedef double Type; };
 
     template<typename T> struct VectorHelperSize;
-
-    namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
-    namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
-    namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
     template<typename V = Vector<float> >
     class STRUCT_ALIGN1(16) VectorAlignedBaseT
