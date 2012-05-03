@@ -39,8 +39,8 @@ namespace std
     template<> inline Vc::SSE::Vector<float> numeric_limits<Vc::SSE::Vector<float> >::max() throw() { return _mm_set1_ps(numeric_limits<float>::max()); }
     template<> inline Vc::SSE::Vector<float> numeric_limits<Vc::SSE::Vector<float> >::min() throw() { return _mm_set1_ps(numeric_limits<float>::min()); }
 
-    template<> inline Vc::SSE::Vector<Vc::SSE::float8> numeric_limits<Vc::SSE::Vector<Vc::SSE::float8> >::max() throw() { return numeric_limits<float>::max(); }
-    template<> inline Vc::SSE::Vector<Vc::SSE::float8> numeric_limits<Vc::SSE::Vector<Vc::SSE::float8> >::min() throw() { return numeric_limits<float>::min(); }
+    template<> inline Vc::SSE::Vector<Vc::SSE::float8> numeric_limits<Vc::SSE::Vector<Vc::SSE::float8> >::max() throw() { return Vc::SSE::sfloat_v(numeric_limits<float>::max()); }
+    template<> inline Vc::SSE::Vector<Vc::SSE::float8> numeric_limits<Vc::SSE::Vector<Vc::SSE::float8> >::min() throw() { return Vc::SSE::sfloat_v(numeric_limits<float>::min()); }
 
     template<> inline Vc::SSE::Vector<double> numeric_limits<Vc::SSE::Vector<double> >::max() throw() { return _mm_set1_pd(numeric_limits<double>::max()); }
     template<> inline Vc::SSE::Vector<double> numeric_limits<Vc::SSE::Vector<double> >::min() throw() { return _mm_set1_pd(numeric_limits<double>::min()); }
