@@ -36,7 +36,6 @@ namespace Vc
     {
         template<typename V = float> class VectorAlignedBaseT {};
         template<typename T> class Vector;
-        template<typename T> class _Memory;
     } // namespace Scalar
 } // namespace Vc
 
