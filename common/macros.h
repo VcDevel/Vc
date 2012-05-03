@@ -219,8 +219,18 @@ namespace Vc {
 #define VC_ALL_LOGICAL(macro) \
     macro(&&) macro(||)
 #define VC_ALL_BINARY(macro) \
-    macro(&) macro(|) macro(^) macro(<<) macro(>>)
+    macro(&) macro(|) macro(^)
+#define VC_ALL_SHIFTS(macro) \
+    macro(<<) macro(>>)
 #define VC_ALL_ARITHMETICS(macro) \
     macro(+) macro(-) macro(*) macro(/) macro(%)
+#define VC_ALL_VECTOR_TYPES(macro) \
+    macro(double_v) \
+    macro(float_v) \
+    macro(sfloat_v) \
+    macro(int_v) \
+    macro(uint_v) \
+    macro(short_v) \
+    macro(ushort_v)
 
 #endif // VC_COMMON_MACROS_H
