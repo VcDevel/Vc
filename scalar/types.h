@@ -34,7 +34,6 @@ namespace Vc
     {
         template<typename V = float> class VectorAlignedBaseT {};
         template<typename T> class Vector;
-        template<typename T, typename Parent> struct VectorBase;
         template<typename T> class _Memory;
 
         template<typename T> struct NegateTypeHelper { typedef T Type; };

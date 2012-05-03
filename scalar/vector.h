@@ -31,7 +31,6 @@
 #include "../common/memoryfwd.h"
 #include "macros.h"
 #include "types.h"
-#include "vectorbase.h"
 #include "mask.h"
 #include "writemaskedvector.h"
 
@@ -42,9 +41,8 @@ namespace Scalar
     enum { VectorAlignment = 4 };
 
 template<typename T>
-class Vector : public VectorBase<T, Vector<T> >
+class Vector
 {
-    friend struct VectorBase<T, Vector<T> >;
     friend class WriteMaskedVector<T>;
     protected:
         T m_data;
@@ -53,7 +51,7 @@ class Vector : public VectorBase<T, Vector<T> >
         typedef T EntryType;
         typedef Vector<unsigned int> IndexType;
         typedef Scalar::Mask<1u> Mask;
-	typedef Vector<T> AsArg;
+        typedef V AsArg;
 
         T &data() { return m_data; }
         T data() const { return m_data; }
@@ -294,44 +292,27 @@ template<typename T1, typename T2> inline Mask<1u>   operator>=(T1 x, const Vect
 template<typename T1, typename T2> inline Mask<1u>   operator==(T1 x, const Vector<T2> &v) { return Vector<T2>(x) == v; }
 template<typename T1, typename T2> inline Mask<1u>   operator!=(T1 x, const Vector<T2> &v) { return Vector<T2>(x) != v; }
 
-#define PARENT_DATA (static_cast<Vector<T> *>(this)->m_data)
-#define PARENT_DATA_CONST (static_cast<const Vector<T> *>(this)->m_data)
 #define OP_IMPL(symbol) \
-  template<> inline Vector<T> &VectorBase<T, Vector<T> >::operator symbol##=(const Vector<T> &x) { PARENT_DATA symbol##= x.m_data; return *static_cast<Vector<T> *>(this); } \
-  template<> inline Vector<T> VectorBase<T, Vector<T> >::operator symbol(const Vector<T> &x) const { return Vector<T>(PARENT_DATA_CONST symbol x.m_data); }
+  template<> inline Vector<T> &Vector<T>::operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
+  template<> inline Vector<T> Vector<T>::operator symbol(const Vector<T> &x) const { return Vector<T>(m_data symbol x.m_data); }
 
 #define T int
-  OP_IMPL(&)
-  OP_IMPL(|)
-  OP_IMPL(^)
   OP_IMPL(<<)
   OP_IMPL(>>)
 #undef T
 #define T unsigned int
-  OP_IMPL(&)
-  OP_IMPL(|)
-  OP_IMPL(^)
   OP_IMPL(<<)
   OP_IMPL(>>)
 #undef T
 #define T short
-  OP_IMPL(&)
-  OP_IMPL(|)
-  OP_IMPL(^)
   OP_IMPL(<<)
   OP_IMPL(>>)
 #undef T
 #define T unsigned short
-  OP_IMPL(&)
-  OP_IMPL(|)
-  OP_IMPL(^)
   OP_IMPL(<<)
   OP_IMPL(>>)
 #undef T
 #undef OP_IMPL
-#undef PARENT_DATA_CONST
-#undef PARENT_DATA
-
 #ifdef _MSC_VER
   template<typename T> static inline void forceToRegisters(const Vector<T> &) {
   }
