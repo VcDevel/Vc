@@ -25,7 +25,7 @@
 
 namespace Vc
 {
-  typedef VECTOR_NAMESPACE::Vector<signed short> short_v;
+  typedef VECTOR_NAMESPACE::short_v short_v;
   typedef short_v::Mask short_m;
 } // namespace Vc
 

@@ -25,7 +25,7 @@
 
 namespace Vc
 {
-  typedef VECTOR_NAMESPACE::Vector<double> double_v;
+  typedef VECTOR_NAMESPACE::double_v double_v;
   typedef double_v::Mask double_m;
 } // namespace Vc
 
