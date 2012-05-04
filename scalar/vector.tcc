@@ -24,6 +24,20 @@ ALIGN(64) extern unsigned int RandomState[16];
 namespace Scalar
 {
 
+// conversion/casts {{{1
+template<> template<> inline short_v &INTRINSIC Vector<short>::operator=(const ushort_v &x) {
+    data() = static_cast<short>(x.data()); return *this;
+}
+template<> template<> inline ushort_v &INTRINSIC Vector<unsigned short>::operator=(const short_v &x) {
+    data() = static_cast<unsigned short>(x.data()); return *this;
+}
+template<> template<> inline int_v &INTRINSIC Vector<int>::operator=(const uint_v &x) {
+    data() = static_cast<int>(x.data()); return *this;
+}
+template<> template<> inline uint_v &INTRINSIC Vector<unsigned int>::operator=(const int_v &x) {
+    data() = static_cast<unsigned int>(x.data()); return *this;
+}
+
 // copySign ///////////////////////////////////////////////////////////////////////// {{{1
 template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float> reference) const
 {

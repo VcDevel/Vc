@@ -159,10 +159,17 @@ class Vector : public VectorBase<T>
         // static_cast / copy ctor
         template<typename OtherT> explicit inline INTRINSIC_L Vector(const Vector<OtherT> &x) INTRINSIC_R;
 
+        // implicit cast
+        template<typename OtherT> inline INTRINSIC_L Vector &operator=(const Vector<OtherT> &x) INTRINSIC_R;
+
+        // copy assignment
+        inline Vector &operator=(AsArg v) { d.v() = v.d.v(); return *this; }
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         Vector(EntryType a);
         static inline Vector INTRINSIC broadcast4(const EntryType *x) { return Vector<T>(x); }
+        inline Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors

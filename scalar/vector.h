@@ -77,9 +77,16 @@ class Vector
         // static_cast / copy ctor
         template<typename OtherT> explicit inline Vector(const Vector<OtherT> &x) : m_data(static_cast<EntryType>(x.data())) {}
 
+        // implicit cast
+        template<typename OtherT> inline Vector &operator=(const Vector<OtherT> &x);
+
+        // copy assignment
+        inline Vector &operator=(Vector v) { m_data = v.data(); return *this; }
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         inline Vector(EntryType x) : m_data(x) {}
+        inline Vector &operator=(EntryType a) { m_data = a; return *this; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors

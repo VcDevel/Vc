@@ -66,6 +66,19 @@ template<typename T> template<typename OtherT> inline Vector<T>::Vector(const Ve
 {
 }
 
+template<> template<> inline short_v &INTRINSIC Vector<short>::operator=(const ushort_v &x) {
+    data() = StaticCastHelper<unsigned short, short>::cast(x.data()); return *this;
+}
+template<> template<> inline ushort_v &INTRINSIC Vector<unsigned short>::operator=(const short_v &x) {
+    data() = StaticCastHelper<short, unsigned short>::cast(x.data()); return *this;
+}
+template<> template<> inline int_v &INTRINSIC Vector<int>::operator=(const uint_v &x) {
+    data() = StaticCastHelper<unsigned int, int>::cast(x.data()); return *this;
+}
+template<> template<> inline uint_v &INTRINSIC Vector<unsigned int>::operator=(const int_v &x) {
+    data() = StaticCastHelper<int, unsigned int>::cast(x.data()); return *this;
+}
+
 // broadcasts {{{1
 template<typename T> inline Vector<T>::Vector(EntryType a)
     : Base(VectorHelper<T>::set(a))
