@@ -45,7 +45,7 @@ class Vector
 {
     friend class WriteMaskedVector<T>;
     public:
-        typedef T EntryType;
+        typedef typename DetermineEntryType<T>::Type EntryType;
     protected:
         EntryType m_data;
     public:
@@ -277,7 +277,7 @@ class Vector
 
 typedef Vector<double>         double_v;
 typedef Vector<float>          float_v;
-typedef Vector<float>          sfloat_v;
+typedef Vector<sfloat>         sfloat_v;
 typedef Vector<int>            int_v;
 typedef Vector<unsigned int>   uint_v;
 typedef Vector<short>          short_v;

@@ -48,73 +48,28 @@ template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<doubl
     return value.f;
 } // }}}1
 // bitwise operators {{{1
-template<> inline Vector<float> &Vector<float>::operator|=(const Vector<float> &x) {
-    typedef unsigned int uinta MAY_ALIAS;
-    uinta *left = reinterpret_cast<uinta *>(&m_data);
-    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
-    *left |= *right;
-    return *this;
+#define VC_CAST_OPERATOR_FORWARD(op, IntT, VecT) \
+template<> inline VecT &VecT::operator op##=(const VecT &x) { \
+    typedef IntT uinta MAY_ALIAS; \
+    uinta *left = reinterpret_cast<uinta *>(&m_data); \
+    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data); \
+    *left op##= *right; \
+    return *this; \
+} \
+template<> inline VecT VecT::operator op(const VecT &x) const { \
+    VecT ret = *this; \
+    return VecT(ret op##= x); \
 }
-template<> inline Vector<float> Vector<float>::operator|(const Vector<float> &x) const {
-    Vector<float> ret = *this;
-    return ret |= x;
-}
-template<> inline Vector<float> &Vector<float>::operator&=(const Vector<float> &x) {
-    typedef unsigned int uinta MAY_ALIAS;
-    uinta *left = reinterpret_cast<uinta *>(&m_data);
-    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
-    *left &= *right;
-    return *this;
-}
-template<> inline Vector<float> Vector<float>::operator&(const Vector<float> &x) const {
-    Vector<float> ret = *this;
-    return ret &= x;
-}
-template<> inline Vector<float> &Vector<float>::operator^=(const Vector<float> &x) {
-    typedef unsigned int uinta MAY_ALIAS;
-    uinta *left = reinterpret_cast<uinta *>(&m_data);
-    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
-    *left ^= *right;
-    return *this;
-}
-template<> inline Vector<float> Vector<float>::operator^(const Vector<float> &x) const {
-    Vector<float> ret = *this;
-    return ret ^= x;
-}
-
-template<> inline Vector<double> &Vector<double>::operator|=(const Vector<double> &x) {
-    typedef unsigned long long uinta MAY_ALIAS;
-    uinta *left = reinterpret_cast<uinta *>(&m_data);
-    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
-    *left |= *right;
-    return *this;
-}
-template<> inline Vector<double> Vector<double>::operator|(const Vector<double> &x) const {
-    Vector<double> ret = *this;
-    return ret |= x;
-}
-template<> inline Vector<double> &Vector<double>::operator&=(const Vector<double> &x) {
-    typedef unsigned long long uinta MAY_ALIAS;
-    uinta *left = reinterpret_cast<uinta *>(&m_data);
-    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
-    *left &= *right;
-    return *this;
-}
-template<> inline Vector<double> Vector<double>::operator&(const Vector<double> &x) const {
-    Vector<double> ret = *this;
-    return ret &= x;
-}
-template<> inline Vector<double> &Vector<double>::operator^=(const Vector<double> &x) {
-    typedef unsigned long long uinta MAY_ALIAS;
-    uinta *left = reinterpret_cast<uinta *>(&m_data);
-    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data);
-    *left ^= *right;
-    return *this;
-}
-template<> inline Vector<double> Vector<double>::operator^(const Vector<double> &x) const {
-    Vector<double> ret = *this;
-    return ret ^= x;
-}
+#define VC_CAST_OPERATOR_FORWARD_FLOAT(op)  VC_CAST_OPERATOR_FORWARD(op, unsigned int, Vector<float>)
+#define VC_CAST_OPERATOR_FORWARD_SFLOAT(op) VC_CAST_OPERATOR_FORWARD(op, unsigned int, Vector<sfloat>)
+#define VC_CAST_OPERATOR_FORWARD_DOUBLE(op) VC_CAST_OPERATOR_FORWARD(op, unsigned long, Vector<double>)
+VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_FLOAT)
+VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_SFLOAT)
+VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_DOUBLE)
+#undef VC_CAST_OPERATOR_FORWARD
+#undef VC_CAST_OPERATOR_FORWARD_FLOAT
+#undef VC_CAST_OPERATOR_FORWARD_SFLOAT
+#undef VC_CAST_OPERATOR_FORWARD_DOUBLE
 // }}}1
 // exponent {{{1
 template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const

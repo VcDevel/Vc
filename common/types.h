@@ -23,6 +23,12 @@
 namespace Vc
 {
 
+// helper type to implement sfloat_v (Vector<Vc::sfloat>)
+struct sfloat {};
+
+template<typename T> struct DetermineEntryType { typedef T Type; };
+template<> struct DetermineEntryType<sfloat> { typedef float Type; };
+
 template<typename T> struct NegateTypeHelper { typedef T Type; };
 template<> struct NegateTypeHelper<unsigned char > { typedef char  Type; };
 template<> struct NegateTypeHelper<unsigned short> { typedef short Type; };
