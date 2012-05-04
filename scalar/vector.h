@@ -187,29 +187,20 @@ class Vector
         inline Vector operator~() const { return Vector(~m_data); }
         inline Vector<typename NegateTypeHelper<EntryType>::Type> operator-() const { return Vector<typename NegateTypeHelper<EntryType>::Type>(-m_data); }
 
-#define OP(symbol, fun) \
+#define OP(symbol) \
         inline Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
-        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(m_data symbol x.m_data); }
-
-        OP(+, add)
-        OP(-, sub)
-        OP(*, mul)
-        OP(/, div)
-        OP(%, rem)
-        OP(|, or_)
-        OP(&, and_)
-        OP(^, xor_)
-#undef OP
-#define OPcmp(symbol, fun) \
+        inline Vector &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
+        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(m_data symbol x.m_data); } \
+        inline Vector operator symbol(EntryType x) const { return operator symbol(Vector(x)); }
+#define OPcmp(symbol) \
         inline Mask operator symbol(const Vector<T> &x) const { return m_data symbol x.m_data; } \
         inline Mask operator symbol(EntryType x) const { return m_data symbol x; }
 
-        OPcmp(==, cmpeq)
-        OPcmp(!=, cmpneq)
-        OPcmp(>=, cmpnlt)
-        OPcmp(>, cmpnle)
-        OPcmp(<, cmplt)
-        OPcmp(<=, cmple)
+        VC_ALL_ARITHMETICS(OP)
+        VC_ALL_BINARY(OP)
+        VC_ALL_SHIFTS(OP)
+        VC_ALL_COMPARES(OPcmp)
+#undef OP
 #undef OPcmp
 
         inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
@@ -312,27 +303,6 @@ template<typename T1, typename T2> inline Mask<1u>   operator>=(T1 x, const Vect
 template<typename T1, typename T2> inline Mask<1u>   operator==(T1 x, const Vector<T2> &v) { return Vector<T2>(x) == v; }
 template<typename T1, typename T2> inline Mask<1u>   operator!=(T1 x, const Vector<T2> &v) { return Vector<T2>(x) != v; }
 
-#define OP_IMPL(symbol) \
-  template<> inline Vector<T> &Vector<T>::operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
-  template<> inline Vector<T> Vector<T>::operator symbol(const Vector<T> &x) const { return Vector<T>(m_data symbol x.m_data); }
-
-#define T int
-  OP_IMPL(<<)
-  OP_IMPL(>>)
-#undef T
-#define T unsigned int
-  OP_IMPL(<<)
-  OP_IMPL(>>)
-#undef T
-#define T short
-  OP_IMPL(<<)
-  OP_IMPL(>>)
-#undef T
-#define T unsigned short
-  OP_IMPL(<<)
-  OP_IMPL(>>)
-#undef T
-#undef OP_IMPL
 #ifdef _MSC_VER
   template<typename T> static inline void forceToRegisters(const Vector<T> &) {
   }
