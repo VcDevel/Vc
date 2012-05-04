@@ -29,6 +29,7 @@ template<typename T> class WriteMaskedVector
 {
     friend class Vector<T>;
     typedef bool Mask;
+    typedef typename Vector<T>::EntryType EntryType;
     public:
         //prefix
         inline Vector<T> &operator++() { if (mask) ++vec->m_data; return *vec; }
