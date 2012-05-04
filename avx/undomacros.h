@@ -21,8 +21,6 @@
 #define VC_AVX_UNDOMACROS_H
 #undef VC_AVX_MACROS_H
 
-#undef STORE_VECTOR
-
 #endif // VC_AVX_UNDOMACROS_H
 
 #include "../common/undomacros.h"

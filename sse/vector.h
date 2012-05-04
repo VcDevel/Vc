@@ -461,8 +461,6 @@ template<>
 inline void ALWAYS_INLINE forceToRegisters(const Vector<float8> &/*x1*/) {
 }
 #endif
-
-#undef STORE_VECTOR
 } // namespace SSE
 } // namespace Vc
 

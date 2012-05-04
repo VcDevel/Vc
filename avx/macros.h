@@ -35,9 +35,4 @@
 # define _M256D __m256d
 #endif
 
-#define STORE_VECTOR(type, name, vec) \
-    union { __m256i p; type v[sizeof(__m256i) / sizeof(type)]; } CAT(u, __LINE__); \
-    _mm256_store_si256(&CAT(u, __LINE__).p, vec); \
-    const type *const name = &CAT(u, __LINE__).v[0]
-
 #endif // VC_AVX_MACROS_H
