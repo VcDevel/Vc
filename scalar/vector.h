@@ -185,7 +185,7 @@ class Vector
         }
 
         inline Vector operator~() const { return Vector(~m_data); }
-        inline Vector<typename NegateTypeHelper<EntryType>::Type> operator-() const { return Vector<typename NegateTypeHelper<EntryType>::Type>(-m_data); }
+        inline Vector<typename NegateTypeHelper<T>::Type> operator-() const { return Vector<typename NegateTypeHelper<T>::Type>(-m_data); }
 
 #define OP(symbol) \
         inline Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \

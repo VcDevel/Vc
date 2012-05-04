@@ -40,7 +40,7 @@ template<typename T> static inline Vector<T> sqrt (const Vector<T> &x)
 
 template<typename T> static inline Vector<T> rsqrt(const Vector<T> &x)
 {
-    const T one = 1; return Vector<T>(one / std::sqrt(x.data()));
+    const typename Vector<T>::EntryType one = 1; return Vector<T>(one / std::sqrt(x.data()));
 }
 
 template<typename T> static inline Vector<T> abs  (const Vector<T> &x)
@@ -164,7 +164,7 @@ template<> inline Vector<double> round(const Vector<double> &x)
 
 template<typename T> static inline Vector<T> reciprocal(const Vector<T> &x)
 {
-    const T one = 1; return Vector<T>(one / x.data());
+    const typename Vector<T>::EntryType one = 1; return Vector<T>(one / x.data());
 }
 
 #ifdef isfinite
