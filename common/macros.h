@@ -227,7 +227,7 @@ namespace Vc {
 #define VC_ALL_VECTOR_TYPES(macro) \
     macro(double_v) \
     macro(float_v) \
-    macro(sfloat_v) \
+    /*macro(sfloat_v)*/ \
     macro(int_v) \
     macro(uint_v) \
     macro(short_v) \
