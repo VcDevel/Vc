@@ -52,7 +52,7 @@ class Vector
         typedef Vc::Memory<Vector<T>, 1> Memory;
         typedef Vector<unsigned int> IndexType;
         typedef Scalar::Mask<1u> Mask;
-        typedef V AsArg;
+        typedef Vector<T> AsArg;
 
         EntryType &data() { return m_data; }
         EntryType data() const { return m_data; }
