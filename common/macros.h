@@ -224,10 +224,12 @@ namespace Vc {
     macro(<<) macro(>>)
 #define VC_ALL_ARITHMETICS(macro) \
     macro(+) macro(-) macro(*) macro(/) macro(%)
-#define VC_ALL_VECTOR_TYPES(macro) \
+#define VC_ALL_FLOAT_VECTOR_TYPES(macro) \
     macro(double_v) \
     macro(float_v) \
-    macro(sfloat_v) \
+    macro(sfloat_v)
+#define VC_ALL_VECTOR_TYPES(macro) \
+    VC_ALL_FLOAT_VECTOR_TYPES(macro) \
     macro(int_v) \
     macro(uint_v) \
     macro(short_v) \
