@@ -217,7 +217,7 @@ template<typename V, typename I> void FloatRandom()
 
 template<> void Random<float_v>() { FloatRandom<float_v, int_v>(); }
 template<> void Random<double_v>() { FloatRandom<double_v, int_v>(); }
-#ifdef VC_IMPL_SSE
+#ifndef VC_IMPL_AVX
 template<> void Random<sfloat_v>() { FloatRandom<sfloat_v, short_v>(); }
 #endif
 
