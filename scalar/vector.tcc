@@ -24,7 +24,7 @@ ALIGN(64) extern unsigned int RandomState[16];
 namespace Scalar
 {
 
-// stuff //////////////////////////////////////////////////////////////////////////// {{{1
+// copySign ///////////////////////////////////////////////////////////////////////// {{{1
 template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float> reference) const
 {
     union {
