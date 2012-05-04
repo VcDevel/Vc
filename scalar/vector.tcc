@@ -34,7 +34,7 @@ template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float> 
     value.f = data();
     sign.f = reference.data();
     value.i = (sign.i & 0x80000000u) | (value.i & 0x7fffffffu);
-    return value.f;
+    return float_v(value.f);
 }
 template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<double> reference) const
 {
@@ -45,7 +45,7 @@ template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<doubl
     value.f = data();
     sign.f = reference.data();
     value.i = (sign.i & 0x8000000000000000ull) | (value.i & 0x7fffffffffffffffull);
-    return value.f;
+    return double_v(value.f);
 } // }}}1
 // bitwise operators {{{1
 #define VC_CAST_OPERATOR_FORWARD(op, IntT, VecT) \
@@ -77,14 +77,14 @@ template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
     VC_ASSERT(m_data > 0.f);
     union { float f; int i; } value;
     value.f = m_data;
-    return static_cast<float>((value.i >> 23) - 0x7f);
+    return float_v(static_cast<float>((value.i >> 23) - 0x7f));
 }
 template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
 {
     VC_ASSERT(m_data > 0.);
     union { double f; long long i; } value;
     value.f = m_data;
-    return static_cast<double>((value.i >> 52) - 0x3ff);
+    return double_v(static_cast<double>((value.i >> 52) - 0x3ff));
 }
 // }}}1
 // Random {{{1
@@ -109,7 +109,7 @@ template<> inline INTRINSIC Vector<float> Vector<float>::Random()
     _doRandomStep(state0, state1);
     union { unsigned int i; float f; } x;
     x.i = (state0.data() & 0x0fffffffu) | 0x3f800000u;
-    return x.f - 1.f;
+    return float_v(x.f - 1.f);
 }
 template<> inline INTRINSIC Vector<double> Vector<double>::Random()
 {
@@ -119,7 +119,7 @@ template<> inline INTRINSIC Vector<double> Vector<double>::Random()
     *reinterpret_cast<uint64 *>(&Vc::RandomState[8]) = state0;
     union { unsigned long long i; double f; } x;
     x.i = state0 | 0x3ff0000000000000ull;
-    return x.f - 1.;
+    return double_v(x.f - 1.);
 }
 // }}}1
 } // namespace Scalar
