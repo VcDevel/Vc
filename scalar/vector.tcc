@@ -36,6 +36,10 @@ template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float> 
     value.i = (sign.i & 0x80000000u) | (value.i & 0x7fffffffu);
     return value.f;
 }
+template<> inline sfloat_v INTRINSIC Vector<sfloat>::copySign(sfloat_v reference) const
+{
+    return sfloat_v(float_v(m_data).copySign(float_v(reference.data())).data());
+}
 template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<double> reference) const
 {
     union {
@@ -79,6 +83,10 @@ template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
     value.f = m_data;
     return static_cast<float>((value.i >> 23) - 0x7f);
 }
+template<> inline sfloat_v INTRINSIC Vector<sfloat>::exponent() const
+{
+    return sfloat_v(float_v(m_data).exponent().data());
+}
 template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
 {
     VC_ASSERT(m_data > 0.);
@@ -110,6 +118,10 @@ template<> inline INTRINSIC Vector<float> Vector<float>::Random()
     union { unsigned int i; float f; } x;
     x.i = (state0.data() & 0x0fffffffu) | 0x3f800000u;
     return x.f - 1.f;
+}
+template<> inline INTRINSIC sfloat_v Vector<sfloat>::Random()
+{
+    return sfloat_v(Vector<float>::Random().data());
 }
 template<> inline INTRINSIC Vector<double> Vector<double>::Random()
 {
