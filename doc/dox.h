@@ -191,10 +191,29 @@
  * \code
  * namespace Vc {
  *   template<typename T> class Vector;
+ *   typedef Vector<double> double_v;
+ *   typedef Vector<float> float_v;
+ *   // ...
  * }
  * \endcode
  *
  * \par Some general information on using the vector classes:
+ *
+ * Generally you can always mix scalar values with vectors as Vc will automatically broadcast the
+ * scalar to a vector and then execute a vector operation. But, in order to ensure that implicit
+ * type conversions only happen as defined by the C standard, there is no implicit scalar to vector
+ * constructor. Instead the relevant operators and functions are overloaded to handle the scalar
+ * types. Thus initialization of vectors with scalars only works with an explicit constructor call:
+ * \code
+ * int_v a = 1; // does not compile
+ * int_v b; b = 1; // good
+ * int_v c(1); // good
+ * int_v d = int_v(1); // good
+ * int_v e = d; // good, of course
+ * int_v f { 1 }; // good with C++11
+ * int_v g = { 1 }; // good with C++11
+ * int_v h = int_v::One(); // good
+ * \endcode
  *
  * The following ways of initializing a vector are not allowed:
  * \code
