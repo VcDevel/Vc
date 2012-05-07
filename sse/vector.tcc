@@ -326,6 +326,39 @@ template<typename T> template<typename A> inline void Vector<T>::store(EntryType
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // division {{{1
+template<typename T> inline INTRINSIC CONST Vector<T> &WriteMaskedVector<T>::operator/=(const Vector<T> &x)
+{
+    return operator=(*vec / x);
+}
+template<> inline INTRINSIC CONST int_v &WriteMaskedVector<int>::operator/=(const int_v &x)
+{
+    Vc_foreach_bit (int i, mask) {
+        vec->d.m(i) /= x.d.m(i);
+    }
+    return *vec;
+}
+template<> inline INTRINSIC CONST uint_v &WriteMaskedVector<unsigned int>::operator/=(const uint_v &x)
+{
+    Vc_foreach_bit (int i, mask) {
+        vec->d.m(i) /= x.d.m(i);
+    }
+    return *vec;
+}
+template<> inline INTRINSIC CONST short_v &WriteMaskedVector<short>::operator/=(const short_v &x)
+{
+    Vc_foreach_bit (int i, mask) {
+        vec->d.m(i) /= x.d.m(i);
+    }
+    return *vec;
+}
+template<> inline INTRINSIC CONST ushort_v &WriteMaskedVector<unsigned short>::operator/=(const ushort_v &x)
+{
+    Vc_foreach_bit (int i, mask) {
+        vec->d.m(i) /= x.d.m(i);
+    }
+    return *vec;
+}
+
 template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
 {
     if (Base::HasVectorDivision) {

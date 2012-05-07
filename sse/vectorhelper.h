@@ -180,13 +180,6 @@ namespace SSE
                     _mm_andnot_pd(mask, a)
                     );
             }
-            static inline VectorType div(VectorType a, VectorType b, _M128 _mask) PURE {
-                _M128D mask = _mm_castps_pd(_mask);
-                return _mm_or_pd(
-                    _mm_and_pd(mask, _mm_div_pd(a, b)),
-                    _mm_andnot_pd(mask, a)
-                    );
-            }
 
             OP(add) OP(sub) OP(mul)
             OPcmp(eq) OPcmp(neq)
@@ -255,12 +248,6 @@ namespace SSE
             static inline VectorType mul(VectorType a, VectorType b, _M128 mask) PURE {
                 return _mm_or_ps(
                     _mm_and_ps(mask, _mm_mul_ps(a, b)),
-                    _mm_andnot_ps(mask, a)
-                    );
-            }
-            static inline VectorType div(VectorType a, VectorType b, _M128 mask) PURE {
-                return _mm_or_ps(
-                    _mm_and_ps(mask, _mm_div_ps(a, b)),
                     _mm_andnot_ps(mask, a)
                     );
             }
@@ -389,7 +376,6 @@ namespace SSE
                 VectorHelper<float>::multiplyAndAdd(a[1], b[1], c[1]);
             }
             REUSE_FLOAT_IMPL3(mul)
-            REUSE_FLOAT_IMPL3(div)
 #undef REUSE_FLOAT_IMPL3
 #undef REUSE_FLOAT_IMPL2
 #undef REUSE_FLOAT_IMPL1
@@ -460,22 +446,6 @@ namespace SSE
 #endif
             static inline VectorType mul(const VectorType a, const VectorType b, _M128 _mask) PURE {
                 return _mm_blendv_epi8(a, mul(a, b), _mm_castps_si128(_mask));
-            }
-
-            static inline VectorType div(const VectorType a, const VectorType b, _M128 _mask) PURE {
-                const int mask = _mm_movemask_ps(_mask);
-                STORE_VECTOR(int, _a, a);
-                STORE_VECTOR(int, _b, b);
-                union {
-                    int i[4];
-                    VectorType v;
-                } x = { {
-                    (mask & 1 ? _a[0] / _b[0] : _a[0]),
-                    (mask & 2 ? _a[1] / _b[1] : _a[1]),
-                    (mask & 4 ? _a[2] / _b[2] : _a[2]),
-                    (mask & 8 ? _a[3] / _b[3] : _a[3])
-                } };
-                return x.v;
             }
 
             OP(add) OP(sub)
@@ -552,17 +522,6 @@ namespace SSE
 //X                 }
 //X                 return mul(a, set(b));
 //X             }
-            static inline VectorType div(const VectorType &_a, const VectorType &_b, const _M128 _mask) PURE {
-                const int mask = _mm_movemask_ps(_mask);
-                VectorType _r = _a;
-                typedef unsigned int uintA MAY_ALIAS;
-                const uintA *b = reinterpret_cast<const uintA *>(&_b);
-                uintA *r = reinterpret_cast<uintA *>(&_r);
-                unrolled_loop16(i, 0, 4,
-                    if (mask & (1 << i)) r[i] /= b[i];
-                    );
-                return _r;
-            }
 
 #undef SUFFIX
 #define SUFFIX epi32
@@ -667,18 +626,6 @@ namespace SSE
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
 
-            static inline VectorType div(const VectorType &a, const VectorType &b, const _M128 _mask) PURE {
-                const int mask = _mm_movemask_epi8(_mm_castps_si128(_mask));
-                VectorType r = a;
-                typedef EntryType Alias MAY_ALIAS;
-                const Alias *bb = reinterpret_cast<const Alias *>(&b);
-                Alias *rr = reinterpret_cast<Alias *>(&r);
-                unrolled_loop16(i, 0, 8,
-                    if (mask & (1 << i * 2)) rr[i] /= bb[i];
-                    );
-                return r;
-            }
-
             OP(add) OP(sub)
             OPcmp(eq)
             OPcmp(lt)
@@ -710,17 +657,6 @@ namespace SSE
 #undef SUFFIX
 #define SUFFIX epu16
             static inline VectorType one() PURE { return CAT(_mm_setone_, SUFFIX)(); }
-            static inline VectorType div(const VectorType &a, const VectorType &b, const _M128 _mask) PURE {
-                const int mask = _mm_movemask_epi8(_mm_castps_si128(_mask));
-                VectorType r = a;
-                typedef EntryType Alias MAY_ALIAS;
-                const Alias *bb = reinterpret_cast<const Alias *>(&b);
-                Alias *rr = reinterpret_cast<Alias *>(&r);
-                unrolled_loop16(i, 0, 8,
-                    if (mask & (1 << i * 2)) rr[i] /= bb[i];
-                    );
-                return r;
-            }
 
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) PURE {
                 _M128I mask = _mm_castps_si128(_mask);
