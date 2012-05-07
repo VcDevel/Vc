@@ -29,6 +29,7 @@ template<typename T> class WriteMaskedVector
 {
     friend class Vector<T>;
     typedef bool Mask;
+    typedef typename Vector<T>::EntryType EntryType;
     public:
         //prefix
         inline Vector<T> &operator++() { if (mask) ++vec->m_data; return *vec; }
@@ -44,6 +45,16 @@ template<typename T> class WriteMaskedVector
 
         inline Vector<T> &operator=(Vector<T> x) {
             vec->assign(x, mask);
+            return *vec;
+        }
+
+        inline Vector<T> &operator+=(EntryType x) { if (mask) vec->m_data += x; return *vec; }
+        inline Vector<T> &operator-=(EntryType x) { if (mask) vec->m_data -= x; return *vec; }
+        inline Vector<T> &operator*=(EntryType x) { if (mask) vec->m_data *= x; return *vec; }
+        inline Vector<T> &operator/=(EntryType x) { if (mask) vec->m_data /= x; return *vec; }
+
+        inline Vector<T> &operator=(EntryType x) {
+            vec->assign(Vector<T>(x), mask);
             return *vec;
         }
 

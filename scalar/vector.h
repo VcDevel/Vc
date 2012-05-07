@@ -85,14 +85,14 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
-        inline Vector(EntryType x) : m_data(x) {}
+        explicit inline Vector(EntryType x) : m_data(x) {}
         inline Vector &operator=(EntryType a) { m_data = a; return *this; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
         explicit inline Vector(const EntryType *x) : m_data(x[0]) {}
         template<typename A> inline Vector(const EntryType *x, A) : m_data(x[0]) {}
-        template<typename Other> inline Vector(const Other *x) : m_data(x[0]) {}
+        template<typename Other> explicit inline Vector(const Other *x) : m_data(x[0]) {}
         template<typename Other, typename A> inline Vector(const Other *x, A) : m_data(x[0]) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -298,17 +298,6 @@ typedef short_v::Mask short_m;
 typedef ushort_v::Mask ushort_m;
 
 template<typename T> class SwizzledVector : public Vector<T> {};
-
-template<typename T1, typename T2> inline Vector<T2> operator+ (T1 x, const Vector<T2> &v) { return v.operator+(x); }
-template<typename T1, typename T2> inline Vector<T2> operator* (T1 x, const Vector<T2> &v) { return v.operator*(x); }
-template<typename T1, typename T2> inline Vector<T2> operator- (T1 x, const Vector<T2> &v) { return Vector<T2>(x) - v; }
-template<typename T1, typename T2> inline Vector<T2> operator/ (T1 x, const Vector<T2> &v) { return Vector<T2>(x) / v; }
-template<typename T1, typename T2> inline Mask<1u>   operator< (T1 x, const Vector<T2> &v) { return Vector<T2>(x) <  v; }
-template<typename T1, typename T2> inline Mask<1u>   operator<=(T1 x, const Vector<T2> &v) { return Vector<T2>(x) <= v; }
-template<typename T1, typename T2> inline Mask<1u>   operator> (T1 x, const Vector<T2> &v) { return Vector<T2>(x) >  v; }
-template<typename T1, typename T2> inline Mask<1u>   operator>=(T1 x, const Vector<T2> &v) { return Vector<T2>(x) >= v; }
-template<typename T1, typename T2> inline Mask<1u>   operator==(T1 x, const Vector<T2> &v) { return Vector<T2>(x) == v; }
-template<typename T1, typename T2> inline Mask<1u>   operator!=(T1 x, const Vector<T2> &v) { return Vector<T2>(x) != v; }
 
 #ifdef _MSC_VER
   template<typename T> static inline void forceToRegisters(const Vector<T> &) {

@@ -37,6 +37,7 @@ namespace SSE
         friend struct VectorHelperSize<unsigned short>;
         friend struct VectorHelperSize<float8>;
         friend struct GeneralHelpers;
+        friend class WriteMaskedVector<T>;
         public:
             enum { Size = 16 / sizeof(T) };
             typedef _M128I VectorType;
@@ -87,6 +88,7 @@ namespace SSE
         friend struct VectorHelperSize<float8>;
         friend struct VectorHelperSize<float>;
         friend struct GeneralHelpers;
+        friend class WriteMaskedVector<float8>;
         public:
             enum { Size = 8 };
             typedef M256 VectorType;
@@ -117,6 +119,7 @@ namespace SSE
     template<> class VectorBase<float> {
         friend struct VectorHelperSize<float>;
         friend struct GeneralHelpers;
+        friend class WriteMaskedVector<float>;
         public:
             enum { Size = 16 / sizeof(float) };
             typedef _M128 VectorType;
@@ -145,6 +148,7 @@ namespace SSE
     template<> class VectorBase<double> {
         friend struct VectorHelperSize<double>;
         friend struct GeneralHelpers;
+        friend class WriteMaskedVector<double>;
         public:
             enum { Size = 16 / sizeof(double) };
             typedef _M128D VectorType;

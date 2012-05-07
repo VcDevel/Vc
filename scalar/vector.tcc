@@ -85,6 +85,9 @@ VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_DOUBLE)
 #undef VC_CAST_OPERATOR_FORWARD_SFLOAT
 #undef VC_CAST_OPERATOR_FORWARD_DOUBLE
 // }}}1
+// operators {{{1
+#include "../common/operators.h"
+// }}}1
 // exponent {{{1
 template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
 {

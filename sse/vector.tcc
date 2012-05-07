@@ -61,7 +61,7 @@ template<typename T> inline Vector<T> Vector<T>::IndexesFromZero()
 }
 
 // conversion/casts {{{1
-template<typename T> template<typename OtherT> inline Vector<T>::Vector(const Vector<OtherT> &x)
+template<typename T> template<typename OtherT> inline INTRINSIC Vector<T>::Vector(const Vector<OtherT> &x)
     : Base(StaticCastHelper<OtherT, T>::cast(x.data()))
 {
 }
@@ -528,7 +528,9 @@ template<typename T> inline Vector<T> VectorBase<T>::operator<<(int shift) const
     return VectorHelper<T>::shiftLeft(d.v(), shift);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////
+// operators {{{1
+#include "../common/operators.h"
+// }}}1
 // gathers {{{1
 template<typename T> template<typename IndexT> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, const IndexT *indexes)
 {

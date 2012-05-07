@@ -47,6 +47,7 @@ class WriteMaskedVector
 {
     friend class Vector<T>;
     typedef typename VectorBase<T>::MaskType Mask;
+    typedef typename Vector<T>::EntryType EntryType;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
         //prefix
@@ -90,13 +91,28 @@ class WriteMaskedVector
             vec->data() = VectorHelper<T>::mul(vec->data(), x.data(), mask.data());
             return *vec;
         }
-        inline INTRINSIC Vector<T> &operator/=(const Vector<T> &x) {
-            vec->data() = VectorHelper<T>::div(vec->data(), x.data(), mask.data());
-            return *vec;
+        inline INTRINSIC CONST Vector<T> &operator/=(const Vector<T> &x);
+
+        inline INTRINSIC Vector<T> &operator+=(EntryType x) {
+            return operator+=(Vector<T>(x));
+        }
+        inline INTRINSIC Vector<T> &operator-=(EntryType x) {
+            return operator-=(Vector<T>(x));
+        }
+        inline INTRINSIC Vector<T> &operator*=(EntryType x) {
+            return operator*=(Vector<T>(x));
+        }
+        inline INTRINSIC Vector<T> &operator/=(EntryType x) {
+            return operator/=(Vector<T>(x));
         }
 
         inline INTRINSIC Vector<T> &operator=(const Vector<T> &x) {
             vec->assign(x, mask);
+            return *vec;
+        }
+
+        inline INTRINSIC Vector<T> &operator=(EntryType x) {
+            vec->assign(Vector<T>(x), mask);
             return *vec;
         }
 
@@ -153,7 +169,7 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType
-        inline Vector(const VectorType &x) : Base(x) {}
+        inline Vector(VectorType x) : Base(x) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // static_cast / copy ctor
@@ -167,7 +183,7 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
-        Vector(EntryType a);
+        explicit Vector(EntryType a);
         static inline Vector INTRINSIC broadcast4(const EntryType *x) { return Vector<T>(x); }
         inline Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
 
@@ -277,7 +293,9 @@ class Vector : public VectorBase<T>
 
 #define OP(symbol, fun) \
         inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
-        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); }
+        inline Vector INTRINSIC &operator symbol##=(EntryType x) { return operator symbol##=(Vector<T>(x)); } \
+        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const { return HT::fun(data(), x.data()); } \
+        inline Vector PURE INTRINSIC operator symbol(EntryType x) const { return operator symbol(Vector(x)); }
 
         OP(+, add)
         OP(-, sub)
@@ -291,13 +309,16 @@ class Vector : public VectorBase<T>
 
 #define OP(symbol, fun) \
         inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x); \
-        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const;
+        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const; \
+        inline Vector INTRINSIC &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
+        inline Vector PURE INTRINSIC operator symbol(EntryType x) const { return operator symbol(Vector(x)); }
         OP(|, or_)
         OP(&, and_)
         OP(^, xor_)
 #undef OP
 #define OPcmp(symbol, fun) \
-        inline Mask PURE INTRINSIC operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data(), x.data()); }
+        inline Mask PURE INTRINSIC operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data(), x.data()); } \
+        inline Mask PURE INTRINSIC operator symbol(EntryType x) const { return operator symbol(Vector(x)); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -408,17 +429,6 @@ template<> inline Vector<float8> Vector<float8>::broadcast4(const float *x) {
 }
 
 template<typename T> class SwizzledVector : public Vector<T> {};
-
-template<typename T> inline Vector<T> INTRINSIC operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator+(x); }
-template<typename T> inline Vector<T> INTRINSIC operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator*(x); }
-template<typename T> inline Vector<T> INTRINSIC operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) - v; }
-template<typename T> inline Vector<T> INTRINSIC operator/(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) / v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator< (const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator<=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) <= v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator> (const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) >  v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator>=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) >= v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator==(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) == v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator!=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) != v; }
 
 static inline int_v    min(const int_v    &x, const int_v    &y) { return _mm_min_epi32(x.data(), y.data()); }
 static inline uint_v   min(const uint_v   &x, const uint_v   &y) { return _mm_min_epu32(x.data(), y.data()); }
