@@ -439,10 +439,6 @@ namespace SSE
                 const VectorType &ab13 = _mm_mul_epu32(aShift, bShift); // [a1 * b1, a3 * b3]
                 return _mm_unpacklo_epi32(_mm_shuffle_epi32(ab02, 8), _mm_shuffle_epi32(ab13, 8));
             }
-            static inline EntryType mul(VectorType a) PURE {
-                STORE_VECTOR(int, _a, a);
-                return _a[0] * _a[1] * _a[2] * _a[3];
-            }
 #endif
             static inline VectorType mul(const VectorType a, const VectorType b, _M128 _mask) PURE {
                 return _mm_blendv_epi8(a, mul(a, b), _mm_castps_si128(_mask));

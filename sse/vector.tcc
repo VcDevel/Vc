@@ -1164,6 +1164,17 @@ template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<unsigned short
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // horizontal ops {{{1
+#ifndef VC_IMPL_SSE4_1
+// without SSE4.1 integer multiplication is slow and we rather multiply the scalars
+template<> inline int INTRINSIC Vector<int>::product() const
+{
+    return (d.m(0) * d.m(1)) * (d.m(2) * d.m(3));
+}
+template<> inline unsigned int INTRINSIC Vector<unsigned int>::product() const
+{
+    return (d.m(0) * d.m(1)) * (d.m(2) * d.m(3));
+}
+#endif
 template<typename T> inline typename Vector<T>::EntryType Vector<T>::min(MaskArg m) const
 {
     Vector<T> tmp = std::numeric_limits<Vector<T> >::max();
