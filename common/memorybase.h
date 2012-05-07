@@ -83,9 +83,9 @@ template<typename V, typename A> class VectorPointerHelperConst
 
 };
 
-VC_APPLY_2(VC_ALL_BINARY_LIST,      VC_MEM_OPERATOR, VectorPointerHelperConst, V)
-VC_APPLY_2(VC_ALL_ARITHMETICS_LIST, VC_MEM_OPERATOR, VectorPointerHelperConst, V)
-VC_APPLY_2(VC_ALL_COMPARES_LIST,    VC_MEM_OPERATOR, VectorPointerHelperConst, typename V::Mask)
+VC_APPLY_2(VC_LIST_BINARY,      VC_MEM_OPERATOR, VectorPointerHelperConst, V)
+VC_APPLY_2(VC_LIST_ARITHMETICS, VC_MEM_OPERATOR, VectorPointerHelperConst, V)
+VC_APPLY_2(VC_LIST_COMPARES,    VC_MEM_OPERATOR, VectorPointerHelperConst, typename V::Mask)
 
 /**
  * Helper class for the Memory::vector(size_t) class of functions.
@@ -123,9 +123,9 @@ template<typename V, typename A> class VectorPointerHelper
         VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ_DECL)
 };
 
-VC_APPLY_2(VC_ALL_BINARY_LIST,      VC_MEM_OPERATOR, VectorPointerHelper, V)
-VC_APPLY_2(VC_ALL_ARITHMETICS_LIST, VC_MEM_OPERATOR, VectorPointerHelper, V)
-VC_APPLY_2(VC_ALL_COMPARES_LIST,    VC_MEM_OPERATOR, VectorPointerHelper, typename V::Mask)
+VC_APPLY_2(VC_LIST_BINARY,      VC_MEM_OPERATOR, VectorPointerHelper, V)
+VC_APPLY_2(VC_LIST_ARITHMETICS, VC_MEM_OPERATOR, VectorPointerHelper, V)
+VC_APPLY_2(VC_LIST_COMPARES,    VC_MEM_OPERATOR, VectorPointerHelper, typename V::Mask)
 
 VC_ALL_BINARY(VC_MEM_OPERATOR_EQ)
 VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ)
