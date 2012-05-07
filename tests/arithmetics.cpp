@@ -443,11 +443,12 @@ template<typename Vec> void testMulAdd()
 
 template<typename Vec> void testMulSub()
 {
+    typedef typename Vec::EntryType T;
     for (unsigned int i = 0; i < 0xffff; ++i) {
-        const Vec i2(i * i - i);
-        Vec a(i);
+        const T j = static_cast<T>(i);
+        const Vec test(j);
 
-        FUZZY_COMPARE(a * a - i, i2);
+        FUZZY_COMPARE(test * test - test, Vec(j * j - j));
     }
 }
 
