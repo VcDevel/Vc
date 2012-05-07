@@ -49,6 +49,7 @@
 #define VC_MM256_MASKSTORE_WRONG_MASK_TYPE 1
 #endif
 #if defined(VC_GCC) && VC_GCC >= 0x40300
+#define VC_HAVE_ATTRIBUTE_ERROR 1
 #define VC_HAVE_ATTRIBUTE_WARNING 1
 #endif
 
@@ -345,6 +346,11 @@ namespace Warnings
 #endif
         ;
 } // namespace Warnings
+
+namespace Error
+{
+    template<typename L, typename R> struct invalid_operands_of_types {};
+} // namespace Error
 
 } // namespace Vc
 
