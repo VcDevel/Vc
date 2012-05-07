@@ -220,10 +220,12 @@ namespace Vc {
 #define _VC_APPLY_IMPL_4(macro, a, b, c, d, e) macro(a, b, c, d)
 #define _VC_APPLY_IMPL_5(macro, a, b, c, d, e) macro(a, b, c, d, e)
 
-#define VC_LIST_VECTOR_TYPES(size, macro, a, b, c, d) \
+#define VC_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
     size(macro, double_v, a, b, c, d) \
     size(macro,  float_v, a, b, c, d) \
-    size(macro, sfloat_v, a, b, c, d) \
+    size(macro, sfloat_v, a, b, c, d)
+#define VC_LIST_VECTOR_TYPES(size, macro, a, b, c, d) \
+    VC_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
     size(macro,    int_v, a, b, c, d) \
     size(macro,   uint_v, a, b, c, d) \
     size(macro,  short_v, a, b, c, d) \
@@ -263,6 +265,7 @@ namespace Vc {
 #define VC_ALL_BINARY(macro)       VC_APPLY_0(VC_LIST_BINARY, macro)
 #define VC_ALL_SHIFTS(macro)       VC_APPLY_0(VC_LIST_SHIFTS, macro)
 #define VC_ALL_ARITHMETICS(macro)  VC_APPLY_0(VC_LIST_ARITHMETICS, macro)
+#define VC_ALL_FLOAT_VECTOR_TYPES(macro) VC_APPLY_0(VC_LIST_FLOAT_VECTOR_TYPES, macro)
 #define VC_ALL_VECTOR_TYPES(macro) VC_APPLY_0(VC_LIST_VECTOR_TYPES, macro)
 
 #endif // VC_COMMON_MACROS_H

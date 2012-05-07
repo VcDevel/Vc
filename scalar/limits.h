@@ -35,6 +35,8 @@ namespace std
     template<> inline Vc::Scalar::ushort_v numeric_limits<Vc::Scalar::ushort_v>::min() throw() { return Vc::Scalar::ushort_v(std::numeric_limits<unsigned short>::min()); }
     template<> inline Vc::Scalar::float_v  numeric_limits<Vc::Scalar::float_v >::max() throw() { return Vc::Scalar::float_v (std::numeric_limits<float>::max()); }
     template<> inline Vc::Scalar::float_v  numeric_limits<Vc::Scalar::float_v >::min() throw() { return Vc::Scalar::float_v (std::numeric_limits<float>::min()); }
+    template<> inline Vc::Scalar::sfloat_v numeric_limits<Vc::Scalar::sfloat_v>::max() throw() { return Vc::Scalar::sfloat_v(std::numeric_limits<float>::max()); }
+    template<> inline Vc::Scalar::sfloat_v numeric_limits<Vc::Scalar::sfloat_v>::min() throw() { return Vc::Scalar::sfloat_v(std::numeric_limits<float>::min()); }
     template<> inline Vc::Scalar::double_v numeric_limits<Vc::Scalar::double_v>::max() throw() { return Vc::Scalar::double_v(std::numeric_limits<double>::max()); }
     template<> inline Vc::Scalar::double_v numeric_limits<Vc::Scalar::double_v>::min() throw() { return Vc::Scalar::double_v(std::numeric_limits<double>::min()); }
 } // namespace std

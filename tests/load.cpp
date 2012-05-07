@@ -156,7 +156,7 @@ template<> struct TypeInfo<signed char   > { static const char *string() { retur
 template<> struct TypeInfo<unsigned char > { static const char *string() { return "uchar"; } };
 template<> struct TypeInfo<double_v      > { static const char *string() { return "double_v"; } };
 template<> struct TypeInfo<float_v       > { static const char *string() { return "float_v"; } };
-#ifdef VC_IMPL_SSE
+#ifndef VC_IMPL_AVX
 template<> struct TypeInfo<sfloat_v      > { static const char *string() { return "sfloat_v"; } };
 #endif
 template<> struct TypeInfo<int_v         > { static const char *string() { return "int_v"; } };

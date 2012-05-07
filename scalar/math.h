@@ -40,7 +40,7 @@ template<typename T> static inline Vector<T> sqrt (const Vector<T> &x)
 
 template<typename T> static inline Vector<T> rsqrt(const Vector<T> &x)
 {
-    const T one = 1; return Vector<T>(one / std::sqrt(x.data()));
+    const typename Vector<T>::EntryType one = 1; return Vector<T>(one / std::sqrt(x.data()));
 }
 
 template<typename T> static inline Vector<T> abs  (const Vector<T> &x)
@@ -98,20 +98,20 @@ template<typename T> static inline Vector<T> log10(const Vector<T> &x)
 }
 
 #if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L
-static inline Vector<float> log2(const Vector<float> &x)
-{
-    return float_v(::log2f(x.data()));
-}
-static inline Vector<double> log2(const Vector<double> &x)
-{
-    return double_v(::log2(x.data()));
+#define VC_LOG2(V) \
+static inline V log2(const V &x) \
+{ \
+    return V(::log2f(x.data())); \
 }
 #else
-template<typename T> static inline Vector<T> log2(const Vector<T> &x)
-{
-    return Vector<T>(std::log(x.data()) / Math<double>::ln2());
+#define VC_LOG2(V) \
+static inline V log2(const V &x) \
+{ \
+    return V(std::log(x.data()) / Math<V::EntryType>::ln2()); \
 }
 #endif
+VC_ALL_FLOAT_VECTOR_TYPES(VC_LOG2)
+#undef VC_LOG2
 
 template<typename T> static inline Vector<T> exp (const Vector<T> &x)
 {
@@ -164,7 +164,7 @@ template<> inline Vector<double> round(const Vector<double> &x)
 
 template<typename T> static inline Vector<T> reciprocal(const Vector<T> &x)
 {
-    const T one = 1; return Vector<T>(one / x.data());
+    const typename Vector<T>::EntryType one = 1; return Vector<T>(one / x.data());
 }
 
 #ifdef isfinite
@@ -201,11 +201,11 @@ inline Vector<float> frexp(Vector<float> x, Vector<int> *e) {
 inline Vector<double> frexp(Vector<double> x, Vector<int> *e) {
     return double_v(::frexp(x.data(), &e->data()));
 }
-inline Vector<float> frexp(Vector<float> x, Vector<short> *e) {
+inline sfloat_v frexp(sfloat_v x, short_v *e) {
     int ee;
     const float r = ::frexpf(x.data(), &ee);
     e->data() = ee;
-    return float_v(r);
+    return sfloat_v(r);
 }
 
 inline Vector<float> ldexp(Vector<float> x, Vector<int> e) {
@@ -214,8 +214,8 @@ inline Vector<float> ldexp(Vector<float> x, Vector<int> e) {
 inline Vector<double> ldexp(Vector<double> x, Vector<int> e) {
     return double_v(::ldexp(x.data(), e.data()));
 }
-inline Vector<float> ldexp(Vector<float> x, Vector<short> e) {
-    return float_v(::ldexpf(x.data(), e.data()));
+inline sfloat_v ldexp(sfloat_v x, short_v e) {
+    return sfloat_v(::ldexpf(x.data(), e.data()));
 }
 
 } // namespace Scalar

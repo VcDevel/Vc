@@ -609,7 +609,7 @@ template<typename V> void testLdexp()
     }
 }
 
-#ifndef VC_IMPL_SSE
+#ifdef VC_IMPL_AVX
 template<> void testLdexp<float_v>()
 {
     for (size_t i = 0; i < 1024 / float_v::Size; ++i) {
