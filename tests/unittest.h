@@ -29,6 +29,7 @@
 #include <cmath>
 #include "../common/support.h"
 #include "ulp.h"
+#include <typeinfo>
 
 #define _expand(name) #name
 #define runTest(name) _unit_test_global.runTestInt(&name, _expand(name))
@@ -209,6 +210,7 @@ template<> inline bool unittest_compareHelper<Vc::float_v, Vc::float_v>( const V
 template<> inline bool unittest_compareHelper<Vc::double_v, Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b ) { return (a == b).isFull(); }
 template<> inline bool unittest_compareHelper<Vc::ushort_v, Vc::ushort_v>( const Vc::ushort_v &a, const Vc::ushort_v &b ) { return (a == b).isFull(); }
 template<> inline bool unittest_compareHelper<Vc::short_v, Vc::short_v>( const Vc::short_v &a, const Vc::short_v &b ) { return (a == b).isFull(); }
+template<> inline bool unittest_compareHelper<std::type_info, std::type_info>(const std::type_info &a, const std::type_info &b ) { return &a == &b; }
 
 template<typename T> T ulpDiffToReferenceWrapper(T a, T b) {
     const T diff = ulpDiffToReference(a, b);
@@ -379,6 +381,7 @@ class _UnitTest_Compare
         }
         static void printFirst() { std::cout << _unittest_fail() << "┍ "; }
         template<typename T> static void print(const T &x) { std::cout << x; }
+        static void print(const std::type_info &x) { std::cout << x.name(); }
         static void print(const char *str) {
             const char *pos = 0;
             if (0 != (pos = std::strchr(str, '\n'))) {
