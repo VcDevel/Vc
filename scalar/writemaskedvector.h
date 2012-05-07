@@ -35,8 +35,8 @@ template<typename T> class WriteMaskedVector
         inline Vector<T> &operator++() { if (mask) ++vec->m_data; return *vec; }
         inline Vector<T> &operator--() { if (mask) --vec->m_data; return *vec; }
         //postfix
-        inline Vector<T> operator++(int) { if (mask) return vec->m_data++; return *vec; }
-        inline Vector<T> operator--(int) { if (mask) return vec->m_data--; return *vec; }
+        inline Vector<T> operator++(int) { if (mask) vec->m_data++; return *vec; }
+        inline Vector<T> operator--(int) { if (mask) vec->m_data--; return *vec; }
 
         inline Vector<T> &operator+=(Vector<T> x) { if (mask) vec->m_data += x.m_data; return *vec; }
         inline Vector<T> &operator-=(Vector<T> x) { if (mask) vec->m_data -= x.m_data; return *vec; }
