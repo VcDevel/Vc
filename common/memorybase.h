@@ -26,22 +26,35 @@
 namespace Vc
 {
 
-#define VC_MEM_OPERATOR(op) \
-        template<typename T> \
-        inline V operator op(const T &v) const { \
-            return V(m_ptr, Internal::FlagObject<A>::the()) op v; \
+#if __cplusplus >= 201103
+#define _VC_RETURN_TYPE(_ret, T1, T2, op) decltype(T1() op T2())
+#else
+#define _VC_RETURN_TYPE(_ret, T1, T2, op) _ret
+#endif
+#define VC_MEM_OPERATOR_(T, op, _class, _ret) \
+        template<typename V, typename A> \
+        inline _VC_RETURN_TYPE(_ret, V, T, op)  operator op(const _class<V, A> &a, const T &b) { \
+            return V(a.m_ptr, Internal::FlagObject<A>::the()) op b; \
+        } \
+        template<typename V, typename A> \
+        inline _VC_RETURN_TYPE(_ret, T, V, op)  operator op(const T &a, const _class<V, A> &b) { \
+            return a op V(b.m_ptr, Internal::FlagObject<A>::the()); \
         }
+#define VC_MEM_OPERATOR(op, _class, _ret) \
+    VC_APPLY_3(VC_LIST_VECTOR_TYPES, VC_MEM_OPERATOR_, op, _class, _ret) \
+        template<typename V1, typename A1, typename V2, typename A2> \
+        inline _VC_RETURN_TYPE(V1, V1, V2, op) operator op(const _class<V1, A1> &a, const _class<V2, A2> &b) { \
+            return V1(a.m_ptr, Internal::FlagObject<A1>::the()) op V2(b.m_ptr, Internal::FlagObject<A2>::the()); \
+        }
+#define VC_MEM_OPERATOR_EQ_DECL(op) \
+        template<typename T> inline VectorPointerHelper &operator op##=(const T &x);
 #define VC_MEM_OPERATOR_EQ(op) \
+        template<typename V, typename A> \
         template<typename T> \
-        inline VectorPointerHelper &operator op##=(const T &x) { \
+        inline VectorPointerHelper<V, A> &VectorPointerHelper<V, A>::operator op##=(const T &x) { \
             const V result = V(m_ptr, Internal::FlagObject<A>::the()) op x; \
             result.store(m_ptr, Internal::FlagObject<A>::the()); \
             return *this; \
-        }
-#define VC_MEM_OPERATOR_CMP(op) \
-        template<typename T> \
-        inline Mask operator op(const T &v) const { \
-            return V(m_ptr, Internal::FlagObject<A>::the()) op v; \
         }
 
 /**
@@ -56,8 +69,9 @@ template<typename V, typename A> class VectorPointerHelperConst
 {
     typedef typename V::EntryType EntryType;
     typedef typename V::Mask Mask;
-    const EntryType *const m_ptr;
     public:
+        const EntryType *const m_ptr;
+
         VectorPointerHelperConst(const EntryType *ptr) : m_ptr(ptr) {}
 
         /**
@@ -67,10 +81,11 @@ template<typename V, typename A> class VectorPointerHelperConst
          */
         inline operator const V() const { return V(m_ptr, Internal::FlagObject<A>::the()); }
 
-        VC_ALL_BINARY(VC_MEM_OPERATOR)
-        VC_ALL_ARITHMETICS(VC_MEM_OPERATOR)
-        VC_ALL_COMPARES(VC_MEM_OPERATOR_CMP)
 };
+
+VC_APPLY_2(VC_ALL_BINARY_LIST,      VC_MEM_OPERATOR, VectorPointerHelperConst, V)
+VC_APPLY_2(VC_ALL_ARITHMETICS_LIST, VC_MEM_OPERATOR, VectorPointerHelperConst, V)
+VC_APPLY_2(VC_ALL_COMPARES_LIST,    VC_MEM_OPERATOR, VectorPointerHelperConst, typename V::Mask)
 
 /**
  * Helper class for the Memory::vector(size_t) class of functions.
@@ -84,8 +99,9 @@ template<typename V, typename A> class VectorPointerHelper
 {
     typedef typename V::EntryType EntryType;
     typedef typename V::Mask Mask;
-    EntryType *const m_ptr;
     public:
+        EntryType *const m_ptr;
+
         VectorPointerHelper(EntryType *ptr) : m_ptr(ptr) {}
 
         /**
@@ -102,12 +118,17 @@ template<typename V, typename A> class VectorPointerHelper
             v.store(m_ptr, Internal::FlagObject<A>::the());
             return *this;
         }
-        VC_ALL_BINARY(VC_MEM_OPERATOR)
-        VC_ALL_BINARY(VC_MEM_OPERATOR_EQ)
-        VC_ALL_ARITHMETICS(VC_MEM_OPERATOR)
-        VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ)
-        VC_ALL_COMPARES(VC_MEM_OPERATOR_CMP)
+
+        VC_ALL_BINARY(VC_MEM_OPERATOR_EQ_DECL)
+        VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ_DECL)
 };
+
+VC_APPLY_2(VC_ALL_BINARY_LIST,      VC_MEM_OPERATOR, VectorPointerHelper, V)
+VC_APPLY_2(VC_ALL_ARITHMETICS_LIST, VC_MEM_OPERATOR, VectorPointerHelper, V)
+VC_APPLY_2(VC_ALL_COMPARES_LIST,    VC_MEM_OPERATOR, VectorPointerHelper, typename V::Mask)
+
+VC_ALL_BINARY(VC_MEM_OPERATOR_EQ)
+VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ)
 
 #undef VC_MEM_OPERATOR_EQ
 #undef VC_MEM_OPERATOR
