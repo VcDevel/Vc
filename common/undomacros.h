@@ -52,6 +52,25 @@
 #undef Vc_buildDouble
 #undef Vc_buildFloat
 
+#undef _VC_APPLY_IMPL_1
+#undef _VC_APPLY_IMPL_2
+#undef _VC_APPLY_IMPL_3
+#undef _VC_APPLY_IMPL_4
+#undef _VC_APPLY_IMPL_5
+
+#undef VC_LIST_VECTOR_TYPES
+#undef VC_LIST_COMPARES
+#undef VC_LIST_LOGICAL
+#undef VC_LIST_BINARY
+#undef VC_LIST_SHIFTS
+#undef VC_LIST_ARITHMETICS
+
+#undef VC_APPLY_0
+#undef VC_APPLY_1
+#undef VC_APPLY_2
+#undef VC_APPLY_3
+#undef VC_APPLY_4
+
 #undef VC_ALL_COMPARES
 #undef VC_ALL_LOGICAL
 #undef VC_ALL_BINARY

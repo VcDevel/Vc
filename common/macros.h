@@ -214,23 +214,55 @@ namespace Vc {
     / exponentToDivisor<exponent>::Value \
     * static_cast<float>(sign))
 
-#define VC_ALL_COMPARES(macro) \
-    macro(==) macro(!=) macro(<=) macro(>=) macro(<) macro(>)
-#define VC_ALL_LOGICAL(macro) \
-    macro(&&) macro(||)
-#define VC_ALL_BINARY(macro) \
-    macro(&) macro(|) macro(^)
-#define VC_ALL_SHIFTS(macro) \
-    macro(<<) macro(>>)
-#define VC_ALL_ARITHMETICS(macro) \
-    macro(+) macro(-) macro(*) macro(/) macro(%)
-#define VC_ALL_VECTOR_TYPES(macro) \
-    macro(double_v) \
-    macro(float_v) \
-    macro(sfloat_v) \
-    macro(int_v) \
-    macro(uint_v) \
-    macro(short_v) \
-    macro(ushort_v)
+#define _VC_APPLY_IMPL_1(macro, a, b, c, d, e) macro(a)
+#define _VC_APPLY_IMPL_2(macro, a, b, c, d, e) macro(a, b)
+#define _VC_APPLY_IMPL_3(macro, a, b, c, d, e) macro(a, b, c)
+#define _VC_APPLY_IMPL_4(macro, a, b, c, d, e) macro(a, b, c, d)
+#define _VC_APPLY_IMPL_5(macro, a, b, c, d, e) macro(a, b, c, d, e)
+
+#define VC_LIST_VECTOR_TYPES(size, macro, a, b, c, d) \
+    size(macro, double_v, a, b, c, d) \
+    size(macro,  float_v, a, b, c, d) \
+    size(macro, sfloat_v, a, b, c, d) \
+    size(macro,    int_v, a, b, c, d) \
+    size(macro,   uint_v, a, b, c, d) \
+    size(macro,  short_v, a, b, c, d) \
+    size(macro, ushort_v, a, b, c, d)
+#define VC_LIST_COMPARES(size, macro, a, b, c, d) \
+    size(macro, ==, a, b, c, d) \
+    size(macro, !=, a, b, c, d) \
+    size(macro, <=, a, b, c, d) \
+    size(macro, >=, a, b, c, d) \
+    size(macro, < , a, b, c, d) \
+    size(macro, > , a, b, c, d)
+#define VC_LIST_LOGICAL(size, macro, a, b, c, d) \
+    size(macro, &&, a, b, c, d) \
+    size(macro, ||, a, b, c, d)
+#define VC_LIST_BINARY(size, macro, a, b, c, d) \
+    size(macro, |, a, b, c, d) \
+    size(macro, &, a, b, c, d) \
+    size(macro, ^, a, b, c, d)
+#define VC_LIST_SHIFTS(size, macro, a, b, c, d) \
+    size(macro, <<, a, b, c, d) \
+    size(macro, >>, a, b, c, d)
+#define VC_LIST_ARITHMETICS(size, macro, a, b, c, d) \
+    size(macro, +, a, b, c, d) \
+    size(macro, -, a, b, c, d) \
+    size(macro, *, a, b, c, d) \
+    size(macro, /, a, b, c, d) \
+    size(macro, %, a, b, c, d)
+
+#define VC_APPLY_0(_list, macro)             _list(_VC_APPLY_IMPL_1, macro, 0, 0, 0, 0)
+#define VC_APPLY_1(_list, macro, a)          _list(_VC_APPLY_IMPL_2, macro, a, 0, 0, 0)
+#define VC_APPLY_2(_list, macro, a, b)       _list(_VC_APPLY_IMPL_3, macro, a, b, 0, 0)
+#define VC_APPLY_3(_list, macro, a, b, c)    _list(_VC_APPLY_IMPL_4, macro, a, b, c, 0)
+#define VC_APPLY_4(_list, macro, a, b, c, d) _list(_VC_APPLY_IMPL_5, macro, a, b, c, d)
+
+#define VC_ALL_COMPARES(macro)     VC_APPLY_0(VC_LIST_COMPARES, macro)
+#define VC_ALL_LOGICAL(macro)      VC_APPLY_0(VC_LIST_LOGICAL, macro)
+#define VC_ALL_BINARY(macro)       VC_APPLY_0(VC_LIST_BINARY, macro)
+#define VC_ALL_SHIFTS(macro)       VC_APPLY_0(VC_LIST_SHIFTS, macro)
+#define VC_ALL_ARITHMETICS(macro)  VC_APPLY_0(VC_LIST_ARITHMETICS, macro)
+#define VC_ALL_VECTOR_TYPES(macro) VC_APPLY_0(VC_LIST_VECTOR_TYPES, macro)
 
 #endif // VC_COMMON_MACROS_H
