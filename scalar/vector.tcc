@@ -126,7 +126,7 @@ template<typename T> inline INTRINSIC Vector<T> Vector<T>::Random()
 {
     Vector<unsigned int> state0, state1;
     _doRandomStep(state0, state1);
-    return static_cast<EntryType>(state0.data());
+    return Vector<T>(static_cast<EntryType>(state0.data()));
 }
 template<> inline INTRINSIC Vector<float> Vector<float>::Random()
 {

@@ -63,9 +63,9 @@ template<typename T> class WriteMaskedVector
         }
         template<typename F> inline Vector<T> apply(F &f) const {
             if (mask) {
-                return f(vec->m_data);
+                return Vector<T>(f(vec->m_data));
             } else {
-                return vec->m_data;
+                return *vec;
             }
         }
     private:
