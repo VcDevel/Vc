@@ -47,9 +47,7 @@ namespace Common
     static const float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
 
     template<typename T> struct TypenameForLdexp { typedef Vector<int> Type; };
-#ifdef VC_IMPL_SSE
-    template<> struct TypenameForLdexp<Vc::SSE::float8> { typedef Vector<short> Type; };
-#endif
+    template<> struct TypenameForLdexp<Vc::sfloat> { typedef Vector<short> Type; };
 
     template<typename T> static inline Vector<T> exp(Vector<T> x) {
         typedef Vector<T> V;
