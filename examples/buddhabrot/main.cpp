@@ -493,9 +493,9 @@ void Baker::createImage()
         m_progress.setValue(99.f * (real - realMin) / (realMax - realMin));
         for (float_v imag = imagMin2; imag <= imagMax; imag += imagStep2) {
             // FIXME: extra "tracks" if nSteps[1] is not a multiple of float_v::Size
-            Z c(real, imag);
-            Z c2 = Z(1.08f * real + 0.15f, imag);
-            if (fastNorm(Z(real + 1.f, imag)) < 0.06f || (std::real(c2) < 0.42f && fastNorm(c2) < 0.417f)) {
+            Z c(float_v(real), imag);
+            Z c2 = Z(float_v(1.08f * real + 0.15f), imag);
+            if (fastNorm(Z(float_v(real + 1.f), imag)) < 0.06f || (std::real(c2) < 0.42f && fastNorm(c2) < 0.417f)) {
                 continue;
             }
             Z z = c;
@@ -510,7 +510,7 @@ void Baker::createImage()
             if (inside.isFull()) {
                 continue;
             }
-            Z cn(real, -imag);
+            Z cn(float_v(real), -imag);
             Z zn = cn;
             z = c;
             for (int i = 0; i <= overallUpperBound; ++i) {
