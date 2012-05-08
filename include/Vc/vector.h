@@ -75,14 +75,29 @@ namespace Vc
   using VECTOR_NAMESPACE::forceToRegisters;
   using VECTOR_NAMESPACE::Vector;
 
+  typedef VECTOR_NAMESPACE::double_v double_v;
+  typedef double_v::Mask double_m;
+  typedef VECTOR_NAMESPACE::sfloat_v sfloat_v;
+  typedef sfloat_v::Mask sfloat_m;
+  typedef VECTOR_NAMESPACE::float_v float_v;
+  typedef float_v::Mask float_m;
+  typedef VECTOR_NAMESPACE::int_v int_v;
+  typedef int_v::Mask int_m;
+  typedef VECTOR_NAMESPACE::uint_v uint_v;
+  typedef uint_v::Mask uint_m;
+  typedef VECTOR_NAMESPACE::short_v short_v;
+  typedef short_v::Mask short_m;
+  typedef VECTOR_NAMESPACE::ushort_v ushort_v;
+  typedef ushort_v::Mask ushort_m;
+
   namespace {
-    VC_STATIC_ASSERT_NC(VECTOR_NAMESPACE::double_v::Size == VC_DOUBLE_V_SIZE, VC_DOUBLE_V_SIZE_MACRO_WRONG);
-    VC_STATIC_ASSERT_NC(VECTOR_NAMESPACE::float_v::Size  == VC_FLOAT_V_SIZE , VC_FLOAT_V_SIZE_MACRO_WRONG );
-    VC_STATIC_ASSERT_NC(VECTOR_NAMESPACE::sfloat_v::Size == VC_SFLOAT_V_SIZE, VC_SFLOAT_V_SIZE_MACRO_WRONG);
-    VC_STATIC_ASSERT_NC(VECTOR_NAMESPACE::int_v::Size    == VC_INT_V_SIZE   , VC_INT_V_SIZE_MACRO_WRONG   );
-    VC_STATIC_ASSERT_NC(VECTOR_NAMESPACE::uint_v::Size   == VC_UINT_V_SIZE  , VC_UINT_V_SIZE_MACRO_WRONG  );
-    VC_STATIC_ASSERT_NC(VECTOR_NAMESPACE::short_v::Size  == VC_SHORT_V_SIZE , VC_SHORT_V_SIZE_MACRO_WRONG );
-    VC_STATIC_ASSERT_NC(VECTOR_NAMESPACE::ushort_v::Size == VC_USHORT_V_SIZE, VC_USHORT_V_SIZE_MACRO_WRONG);
+    VC_STATIC_ASSERT_NC(double_v::Size == VC_DOUBLE_V_SIZE, VC_DOUBLE_V_SIZE_MACRO_WRONG);
+    VC_STATIC_ASSERT_NC(float_v::Size  == VC_FLOAT_V_SIZE , VC_FLOAT_V_SIZE_MACRO_WRONG );
+    VC_STATIC_ASSERT_NC(sfloat_v::Size == VC_SFLOAT_V_SIZE, VC_SFLOAT_V_SIZE_MACRO_WRONG);
+    VC_STATIC_ASSERT_NC(int_v::Size    == VC_INT_V_SIZE   , VC_INT_V_SIZE_MACRO_WRONG   );
+    VC_STATIC_ASSERT_NC(uint_v::Size   == VC_UINT_V_SIZE  , VC_UINT_V_SIZE_MACRO_WRONG  );
+    VC_STATIC_ASSERT_NC(short_v::Size  == VC_SHORT_V_SIZE , VC_SHORT_V_SIZE_MACRO_WRONG );
+    VC_STATIC_ASSERT_NC(ushort_v::Size == VC_USHORT_V_SIZE, VC_USHORT_V_SIZE_MACRO_WRONG);
   }
 } // namespace Vc
 
