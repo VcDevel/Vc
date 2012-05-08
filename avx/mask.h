@@ -53,8 +53,8 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         inline explicit Mask(bool b) : k(b ? _mm256_setallone_ps() : _mm256_setzero_ps()) {}
         inline Mask(const Mask &rhs) : k(rhs.k) {}
         inline Mask(const Mask<VectorSize, 16u> &rhs) : k(avx_cast<__m256>(concat(
-                        _mm_unpacklo_epi16(rhs.data(), rhs.data()),
-                        _mm_unpackhi_epi16(rhs.data(), rhs.data())))) {}
+                        _mm_unpacklo_epi16(rhs.dataI(), rhs.dataI()),
+                        _mm_unpackhi_epi16(rhs.dataI(), rhs.dataI())))) {}
         inline Mask(const Mask<VectorSize * 2, 32u> &m);
         inline Mask(const Mask<VectorSize / 2, 32u> &m);
 
