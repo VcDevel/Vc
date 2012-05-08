@@ -342,6 +342,8 @@ namespace AVX
             }
         };
 
+        template<> struct VectorHelper<sfloat> : public VectorHelper<float> {};
+
         template<> struct VectorHelper<int> {
             typedef int EntryType;
             typedef _M256I VectorType;

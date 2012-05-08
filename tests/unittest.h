@@ -233,11 +233,9 @@ template<> inline bool unittest_fuzzyCompareHelper<float>( const float &a, const
 template<> inline bool unittest_fuzzyCompareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b ) {
     return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness;
 }
-#ifndef VC_IMPL_AVX
 template<> inline bool unittest_fuzzyCompareHelper<Vc::sfloat_v>( const Vc::sfloat_v &a, const Vc::sfloat_v &b ) {
     return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness;
 }
-#endif
 template<> inline bool unittest_fuzzyCompareHelper<double>( const double &a, const double &b ) {
     return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.double_fuzzyness;
 }
@@ -440,11 +438,9 @@ template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::float_v::AsArg a, V
 template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::double_v::AsArg a, Vc::double_v::AsArg b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.double_fuzzyness);
 }
-#ifndef VC_IMPL_AVX
 template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::sfloat_v::AsArg a, Vc::sfloat_v::AsArg b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
 }
-#endif
 template<typename T> inline void _UnitTest_Compare::writePlotData(std::fstream &, T, T) {}
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, float a, float b) {
     file << std::setprecision(12) << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
@@ -466,7 +462,6 @@ template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
-#ifndef VC_IMPL_AVX
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::sfloat_v::AsArg a, Vc::sfloat_v::AsArg b) {
     const Vc::sfloat_v ref = b;
     const Vc::sfloat_v dist = ulpDiffToReferenceSigned(a, b);
@@ -474,7 +469,6 @@ template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
-#endif
 #undef ALWAYS_INLINE
 
 // Workaround for clang: The "<< ' '" is only added to silence the warnings about unused return

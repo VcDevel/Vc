@@ -42,6 +42,9 @@ namespace std
     NUM_LIM(float         )::max() throw() { return _mm256_set1_ps(numeric_limits<float>::max()); }
     NUM_LIM(float         )::min() throw() { return _mm256_set1_ps(numeric_limits<float>::min()); }
 
+    NUM_LIM(Vc::sfloat    )::max() throw() { return _mm256_set1_ps(numeric_limits<float>::max()); }
+    NUM_LIM(Vc::sfloat    )::min() throw() { return _mm256_set1_ps(numeric_limits<float>::min()); }
+
     NUM_LIM(double        )::max() throw() { return _mm256_set1_pd(numeric_limits<double>::max()); }
     NUM_LIM(double        )::min() throw() { return _mm256_set1_pd(numeric_limits<double>::min()); }
 #undef NUM_LIM

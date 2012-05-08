@@ -30,6 +30,7 @@ namespace Internal
 template<> struct HelperImpl<Vc::AVXImpl>
 {
     typedef AVX::Vector<float> float_v;
+    typedef AVX::Vector<sfloat> sfloat_v;
     typedef AVX::Vector<double> double_v;
     typedef AVX::Vector<int> int_v;
     typedef AVX::Vector<unsigned int> uint_v;
@@ -39,6 +40,8 @@ template<> struct HelperImpl<Vc::AVXImpl>
     template<typename A> static void deinterleave(float_v &, float_v &, const float *, A);
     template<typename A> static void deinterleave(float_v &, float_v &, const short *, A);
     template<typename A> static void deinterleave(float_v &, float_v &, const unsigned short *, A);
+
+    template<typename A, typename MemT> static void deinterleave(sfloat_v &, sfloat_v &, const MemT *, A);
 
     template<typename A> static void deinterleave(double_v &, double_v &, const double *, A);
 

@@ -30,7 +30,7 @@ class WriteMaskedVector
 {
     friend class Vector<T>;
     typedef typename VectorTypeHelper<T>::Type VectorType;
-    typedef T EntryType;
+    typedef typename DetermineEntryType<T>::Type EntryType;
     enum { Size = sizeof(VectorType) / sizeof(EntryType) };
     typedef typename Vc::AVX::Mask<Size, sizeof(VectorType)> Mask;
     public:

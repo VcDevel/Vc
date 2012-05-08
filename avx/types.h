@@ -54,6 +54,7 @@ namespace AVX
     template<> struct IndexTypeHelper<         int  > { typedef unsigned int   Type; };
     template<> struct IndexTypeHelper<unsigned int  > { typedef unsigned int   Type; };
     template<> struct IndexTypeHelper<         float> { typedef unsigned int   Type; };
+    template<> struct IndexTypeHelper<        sfloat> { typedef unsigned short Type; };
     template<> struct IndexTypeHelper<        double> { typedef unsigned int   Type; }; // _M128I based int32 would be nice
 
     template<typename T> struct VectorTypeHelper;
@@ -64,6 +65,7 @@ namespace AVX
     template<> struct VectorTypeHelper<         int  > { typedef _M256I Type; };
     template<> struct VectorTypeHelper<unsigned int  > { typedef _M256I Type; };
     template<> struct VectorTypeHelper<         float> { typedef _M256  Type; };
+    template<> struct VectorTypeHelper<        sfloat> { typedef _M256  Type; };
     template<> struct VectorTypeHelper<        double> { typedef _M256D Type; };
 
     template<typename T> struct HasVectorDivisionHelper { enum { Value = 1 }; };
