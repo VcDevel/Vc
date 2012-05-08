@@ -98,20 +98,18 @@ template<typename T> static inline Vector<T> log10(const Vector<T> &x)
 }
 
 #if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L
-#define VC_LOG2(V) \
-static inline V log2(const V &x) \
-{ \
-    return V(::log2f(x.data())); \
-}
+static inline double_v log2(double_v::AsArg x) { return double_v(::log2 (x.data())); }
+static inline sfloat_v log2(sfloat_v::AsArg x) { return sfloat_v(::log2f(x.data())); }
+static inline  float_v log2( float_v::AsArg x) { return  float_v(::log2f(x.data())); }
 #else
 #define VC_LOG2(V) \
 static inline V log2(const V &x) \
 { \
     return V(std::log(x.data()) / Math<V::EntryType>::ln2()); \
 }
-#endif
 VC_ALL_FLOAT_VECTOR_TYPES(VC_LOG2)
 #undef VC_LOG2
+#endif
 
 template<typename T> static inline Vector<T> exp (const Vector<T> &x)
 {
