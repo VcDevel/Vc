@@ -38,9 +38,7 @@ typedef float float_v;
 typedef int int_v;
 typedef bool int_m;
 #else
-#include <Vc/float_v>
-#include <Vc/int_v>
-#include <Vc/IO>
+#include <Vc/Vc>
 
 using Vc::float_v;
 using Vc::float_m;

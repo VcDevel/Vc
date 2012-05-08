@@ -26,8 +26,7 @@
 #include <QtCore/QtDebug>
 #include "tsc.h"
 
-#include <Vc/float_v>
-#include <Vc/uint_v>
+#include <Vc/vector.h>
 
 using Vc::float_v;
 using Vc::float_m;
