@@ -155,6 +155,11 @@ template<> inline Vector<float>  round(const Vector<float>  &x)
     return float_v(std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f));
 }
 
+template<> inline Vector<sfloat> round(const Vector<sfloat> &x)
+{
+    return sfloat_v(std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f));
+}
+
 template<> inline Vector<double> round(const Vector<double> &x)
 {
     return double_v(std::floor(x.data() + 0.5 ) - (_realIsEvenHalf(x.data()) ? 1.  : 0. ));
