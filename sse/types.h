@@ -59,7 +59,7 @@ namespace SSE
     /*
      * Hack to create a vector object with 8 floats
      */
-    class float8 {};
+    typedef Vc::sfloat float8;
 
     class M256 {
         public:
