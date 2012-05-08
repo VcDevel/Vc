@@ -63,7 +63,6 @@ typedef unsigned long long ulonglong;
 
 void testImplicitTypeConversions()
 {
-    /*
     typedef int* int_ptr;
     TYPE_TEST_ERR(double_v,  int_ptr, Vc::Error::invalid_operands_of_types);
     TYPE_TEST_ERR( float_v,  int_ptr, Vc::Error::invalid_operands_of_types);
@@ -268,7 +267,6 @@ TYPE_TEST_ERR(   uint_v,    ushort_v, Vc::Error::invalid_operands_of_types);
     TYPE_TEST(    ulong,      uint_v,   uint_v);
     TYPE_TEST( longlong,      uint_v,   uint_v);
     TYPE_TEST(ulonglong,      uint_v,   uint_v);
-    */
 }
 
 template<typename Vec> void testZero()

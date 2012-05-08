@@ -175,7 +175,7 @@ static inline   uint_##ret operator op(   unsigned int x,   uint_v::AsArg y) { r
 static inline  short_##ret operator op(          short x,  short_v::AsArg y) { return y op2 x; } \
 static inline ushort_##ret operator op( unsigned short x, ushort_v::AsArg y) { return y op2 x; } \
 VC_OPERATOR_FORWARD_(ret, op) \
-//VC_OPERATOR_INTENTIONAL_ERROR(op)
+VC_OPERATOR_INTENTIONAL_ERROR(op)
 
 #define VC_OPERATOR_FORWARD(ret, op) \
 static inline double_##ret operator op(         double x, double_v::AsArg y) { return double_v(x) op y; } \
@@ -186,7 +186,7 @@ static inline   uint_##ret operator op(   unsigned int x,   uint_v::AsArg y) { r
 static inline  short_##ret operator op(          short x,  short_v::AsArg y) { return  short_v(x) op y; } \
 static inline ushort_##ret operator op( unsigned short x, ushort_v::AsArg y) { return ushort_v(x) op y; } \
 VC_OPERATOR_FORWARD_(ret, op) \
-//VC_OPERATOR_INTENTIONAL_ERROR(op)
+VC_OPERATOR_INTENTIONAL_ERROR(op)
 
 VC_OPERATOR_FORWARD_COMMUTATIVE(v, *, *)
 VC_OPERATOR_FORWARD(v, /)
