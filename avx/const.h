@@ -79,6 +79,33 @@ namespace AVX
         static inline V CONST_L log10_e()      CONST_R { return V(c_log<T>::d(19)); }
         static inline V CONST_L log2_e()       CONST_R { return V(c_log<T>::d(20)); }
     };
+
+    template<> struct Const<sfloat>
+    {
+        typedef sfloat_v V;
+        typedef V::Mask M;
+
+        static inline V CONST_L _1_2pi()  CONST_R { return V(c_sin<float>::data[0]); }
+        static inline V CONST_L _2pi()    CONST_R { return V(c_sin<float>::data[1]); }
+        static inline V CONST_L _pi_2()   CONST_R { return V(c_sin<float>::data[2]); }
+        static inline V CONST_L _pi()     CONST_R { return V(c_sin<float>::data[3]); }
+        static inline V CONST_L _1_3fac() CONST_R { return V(c_sin<float>::data[4]); }
+        static inline V CONST_L _1_5fac() CONST_R { return V(c_sin<float>::data[5]); }
+        static inline V CONST_L _1_7fac() CONST_R { return V(c_sin<float>::data[6]); }
+        static inline V CONST_L _1_9fac() CONST_R { return V(c_sin<float>::data[7]); }
+
+        static inline M CONST_L exponentMask() CONST_R { return M(V(c_log<float>::d(1)).data()); }
+        static inline V CONST_L _1_2()         CONST_R { return V(c_log<float>::d(18)); }
+        static inline V CONST_L _1_sqrt2()     CONST_R { return V(c_log<float>::d(15)); }
+        static inline V CONST_L P(int i)       CONST_R { return V(c_log<float>::d(2 + i)); }
+        static inline V CONST_L Q(int i)       CONST_R { return V(c_log<float>::d(8 + i)); }
+        static inline V CONST_L min()          CONST_R { return V(c_log<float>::d(14)); }
+        static inline V CONST_L ln2_small()    CONST_R { return V(c_log<float>::d(17)); }
+        static inline V CONST_L ln2_large()    CONST_R { return V(c_log<float>::d(16)); }
+        static inline V CONST_L neginf()       CONST_R { return V(c_log<float>::d(13)); }
+        static inline V CONST_L log10_e()      CONST_R { return V(c_log<float>::d(19)); }
+        static inline V CONST_L log2_e()       CONST_R { return V(c_log<float>::d(20)); }
+    };
 } // namespace AVX
 } // namespace Vc
 
