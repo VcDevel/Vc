@@ -519,7 +519,8 @@ template<typename T> inline Vector<T> Vector<T>::operator<<(int shift) const {
   OP_IMPL(double, ^, xor_)
 #undef OP_IMPL
 
-///////////////////////////////////////////////////////////////////////////////////////////
+// operators {{{1
+#include "../common/operators.h"
 // gathers {{{1
 // Better implementation (hopefully) with _mm256_set_
 //X template<typename T> template<typename Index> Vector<T>::Vector(const EntryType *mem, const Index *indexes)
