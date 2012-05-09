@@ -132,6 +132,7 @@ class WriteMaskedVector
 template<typename T>
 class Vector : public VectorBase<T>
 {
+    friend class WriteMaskedVector<T>;
     protected:
         typedef VectorBase<T> Base;
         using Base::d;
