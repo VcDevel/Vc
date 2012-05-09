@@ -153,8 +153,8 @@ do {} while ( false )
 #ifndef VC_COMMON_MACROS_H_ONCE
 #define VC_COMMON_MACROS_H_ONCE
 
-#define _VC_CAT3_HELPER(a, b, c) a##b##c
-#define _VC_CAT3(a, b, c) _VC_CAT3_HELPER(a, b, c)
+#define _VC_CAT_HELPER(a, b, c, d) a##b##c##d
+#define _VC_CAT(a, b, c, d) _VC_CAT_HELPER(a, b, c, d)
 
 #if __cplusplus >= 201103 // C++11
 #define VC_STATIC_ASSERT_NC(cond, msg) \
@@ -164,12 +164,14 @@ do {} while ( false )
 namespace Vc {
     namespace {
         template<bool> struct STATIC_ASSERT_FAILURE;
-        template<> struct STATIC_ASSERT_FAILURE<true> { typedef int Test; };
+        template<> struct STATIC_ASSERT_FAILURE<true> {};
 }}
 
 #define VC_STATIC_ASSERT_NC(cond, msg) \
-    typedef STATIC_ASSERT_FAILURE<cond> _VC_CAT3(static_assert_failed_on_line_, __LINE__,msg); \
-    typedef typename _VC_CAT3(static_assert_failed_on_line_, __LINE__,msg)::Test _VC_CAT3(static_assert_failed__on_line_,__LINE__,msg)
+    typedef STATIC_ASSERT_FAILURE<cond> _VC_CAT(static_assert_failed_on_line_,__LINE__,_,msg); \
+    enum { \
+        _VC_CAT(static_assert_failed__on_line_,__LINE__,_,msg) = sizeof(_VC_CAT(static_assert_failed_on_line_,__LINE__,_,msg)) \
+    }
 #define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg)
 #endif // C++11/98
 
@@ -193,9 +195,8 @@ namespace Vc {
     template<> struct exponentToDivisor<1024> { enum { X = 0 }; };
 #endif // VC_COMMON_MACROS_H_ONCE
 
-#define CAT_HELPER(a, b) a##b
-#define CAT(a, b) CAT_HELPER(a, b)
-#define CAT3(a, b) _VC_CAT3(a, b)
+#define _CAT_IMPL(a, b) a##b
+#define CAT(a, b) _CAT_IMPL(a, b)
 
 #define Vc_buildDouble(sign, mantissa, exponent) \
     ((static_cast<double>((mantissa & 0x000fffffffffffffull) | 0x0010000000000000ull) / 0x0010000000000000ull) \

@@ -37,9 +37,8 @@
 #undef STRUCT_ALIGN1
 #undef STRUCT_ALIGN2
 #undef ALIGNED_TYPEDEF
+#undef _CAT_IMPL
 #undef CAT
-#undef CAT_HELPER
-#undef CAT3
 #undef unrolled_loop16
 #undef for_all_vector_entries
 #undef FREE_STORE_OPERATORS_ALIGNED
