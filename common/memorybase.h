@@ -72,7 +72,7 @@ template<typename V, typename A> class VectorPointerHelperConst
     public:
         const EntryType *const m_ptr;
 
-        VectorPointerHelperConst(const EntryType *ptr) : m_ptr(ptr) {}
+        explicit VectorPointerHelperConst(const EntryType *ptr) : m_ptr(ptr) {}
 
         /**
          * Cast to \p V operator.
@@ -102,7 +102,7 @@ template<typename V, typename A> class VectorPointerHelper
     public:
         EntryType *const m_ptr;
 
-        VectorPointerHelper(EntryType *ptr) : m_ptr(ptr) {}
+        explicit VectorPointerHelper(EntryType *ptr) : m_ptr(ptr) {}
 
         /**
          * Cast to \p V operator.
