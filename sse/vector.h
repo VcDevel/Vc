@@ -169,7 +169,7 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType
-        inline Vector(VectorType x) : Base(x) {}
+        inline Vector(const VectorType &x) : Base(x) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // static_cast / copy ctor
