@@ -66,16 +66,16 @@ template<typename T> template<typename OtherT> inline INTRINSIC Vector<T>::Vecto
 {
 }
 
-template<> template<> inline short_v &INTRINSIC Vector<short>::operator=(const ushort_v &x) {
+template<> template<> inline INTRINSIC short_v &Vector<short>::operator=(const ushort_v &x) {
     data() = StaticCastHelper<unsigned short, short>::cast(x.data()); return *this;
 }
-template<> template<> inline ushort_v &INTRINSIC Vector<unsigned short>::operator=(const short_v &x) {
+template<> template<> inline INTRINSIC ushort_v &Vector<unsigned short>::operator=(const short_v &x) {
     data() = StaticCastHelper<short, unsigned short>::cast(x.data()); return *this;
 }
-template<> template<> inline int_v &INTRINSIC Vector<int>::operator=(const uint_v &x) {
+template<> template<> inline INTRINSIC int_v &Vector<int>::operator=(const uint_v &x) {
     data() = StaticCastHelper<unsigned int, int>::cast(x.data()); return *this;
 }
-template<> template<> inline uint_v &INTRINSIC Vector<unsigned int>::operator=(const int_v &x) {
+template<> template<> inline INTRINSIC uint_v &Vector<unsigned int>::operator=(const int_v &x) {
     data() = StaticCastHelper<int, unsigned int>::cast(x.data()); return *this;
 }
 
