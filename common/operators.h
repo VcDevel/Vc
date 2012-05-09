@@ -152,13 +152,7 @@ static inline Vc::Error::invalid_operands_of_types<V2, V1> operator op(V2::AsArg
     VC_OPERATOR_INTENTIONAL_ERROR_2(  uint_v,  short_v, op) \
     VC_OPERATOR_INTENTIONAL_ERROR_2(   int_v, ushort_v, op) \
     VC_OPERATOR_INTENTIONAL_ERROR_2(  uint_v, ushort_v, op) \
-    VC_OPERATOR_INTENTIONAL_ERROR_1(double_v, op) \
-    VC_OPERATOR_INTENTIONAL_ERROR_1(sfloat_v, op) \
-    VC_OPERATOR_INTENTIONAL_ERROR_1( float_v, op) \
-    VC_OPERATOR_INTENTIONAL_ERROR_1(   int_v, op) \
-    VC_OPERATOR_INTENTIONAL_ERROR_1(  uint_v, op) \
-    VC_OPERATOR_INTENTIONAL_ERROR_1( short_v, op) \
-    VC_OPERATOR_INTENTIONAL_ERROR_1(ushort_v, op) \
+    VC_APPLY_1(VC_LIST_VECTOR_TYPES, VC_OPERATOR_INTENTIONAL_ERROR_1, op) \
     VC_OPERATOR_INTENTIONAL_ERROR_2( float_v,  short_v, op) \
     VC_OPERATOR_INTENTIONAL_ERROR_2( float_v, ushort_v, op) \
     VC_OPERATOR_INTENTIONAL_ERROR_2(sfloat_v, double_v, op) \
