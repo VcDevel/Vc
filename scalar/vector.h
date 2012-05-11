@@ -38,7 +38,7 @@ namespace Vc
 {
 namespace Scalar
 {
-    enum { VectorAlignment = 4 };
+    enum VectorAlignmentEnum { VectorAlignment = 4 };
 
 template<typename T>
 class Vector
@@ -57,7 +57,7 @@ class Vector
         EntryType &data() { return m_data; }
         EntryType data() const { return m_data; }
 
-        enum { Size = 1 };
+        enum Constants { Size = 1 };
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // uninitialized

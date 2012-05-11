@@ -56,7 +56,7 @@ template<typename T> struct c_log
 
 template<> struct c_log<double>
 {
-    enum { Size = 16 / sizeof(double) };
+    enum VectorSize { Size = 16 / sizeof(double) };
     typedef double doubleAlias MAY_ALIAS;
     static inline double d(int i) { return *reinterpret_cast<const doubleAlias *>(&data[i]); }
     ALIGN(64) static const unsigned long long data[];

@@ -68,7 +68,7 @@ template<typename Vec> void loadArray()
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
 
-    enum { count = 256 * 1024 / sizeof(T) };
+    enum loadArrayEnum { count = 256 * 1024 / sizeof(T) };
     Vc::Memory<Vec, count> array;
     for (int i = 0; i < count; ++i) {
         array[i] = i;
@@ -91,18 +91,21 @@ template<typename Vec> void loadArray()
     }
 }
 
+enum Enum {
+    loadArrayShortCount = 32 * 1024,
+    streamingLoadCount = 1024
+};
 template<typename Vec> void loadArrayShort()
 {
     typedef typename Vec::EntryType T;
 
-    enum { count = 32 * 1024 };
-    Vc::Memory<Vec, count> array;
-    for (int i = 0; i < count; ++i) {
+    Vc::Memory<Vec, loadArrayShortCount> array;
+    for (int i = 0; i < loadArrayShortCount; ++i) {
         array[i] = i;
     }
 
     const Vec &offsets = static_cast<Vec>(ushort_v::IndexesFromZero());
-    for (int i = 0; i < count; i += Vec::Size) {
+    for (int i = 0; i < loadArrayShortCount; i += Vec::Size) {
         const T *const addr = &array[i];
         Vec ii(i);
         ii += offsets;
@@ -120,18 +123,15 @@ template<typename Vec> void streamingLoad()
 {
     typedef typename Vec::EntryType T;
 
-    enum {
-        count = 1024
-    };
-    Vc::Memory<Vec, count> data;
-    data[0] = static_cast<T>(-count/2);
-    for (int i = 1; i < count; ++i) {
+    Vc::Memory<Vec, streamingLoadCount> data;
+    data[0] = static_cast<T>(-streamingLoadCount/2);
+    for (int i = 1; i < streamingLoadCount; ++i) {
         data[i] = data[i - 1];
         ++data[i];
     }
 
     Vec ref = data.firstVector();
-    for (int i = 0; i < count - Vec::Size; ++i, ++ref) {
+    for (int i = 0; i < streamingLoadCount - Vec::Size; ++i, ++ref) {
         Vec v1, v2;
         if (0 == i % Vec::Size) {
             v1 = Vec(&data[i], Vc::Streaming | Vc::Aligned);

@@ -39,7 +39,10 @@ namespace SSE
         friend struct GeneralHelpers;
         friend class WriteMaskedVector<T>;
         public:
-            enum { Size = 16 / sizeof(T) };
+            enum Constants {
+                Size = 16 / sizeof(T),
+                HasVectorDivision = 0
+            };
             typedef _M128I VectorType;
             typedef T EntryType;
             typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
@@ -66,7 +69,6 @@ namespace SSE
 
             inline VectorBase(VectorType x) : d(x) {}
         protected:
-            enum { HasVectorDivision = 0 };
             inline VectorBase() {}
 
             typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
@@ -90,7 +92,10 @@ namespace SSE
         friend struct GeneralHelpers;
         friend class WriteMaskedVector<float8>;
         public:
-            enum { Size = 8 };
+            enum Constants {
+                Size = 8,
+                HasVectorDivision = 1
+            };
             typedef M256 VectorType;
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
@@ -108,7 +113,6 @@ namespace SSE
             const VectorType &data() const { return d.v(); }
 
         protected:
-            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(ByValue x) : d(x) {}
 
@@ -121,7 +125,10 @@ namespace SSE
         friend struct GeneralHelpers;
         friend class WriteMaskedVector<float>;
         public:
-            enum { Size = 16 / sizeof(float) };
+            enum Constants {
+                Size = 16 / sizeof(float),
+                HasVectorDivision = 1
+            };
             typedef _M128 VectorType;
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
@@ -137,7 +144,6 @@ namespace SSE
             const VectorType &data() const { return d.v(); }
 
         protected:
-            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
@@ -150,7 +156,10 @@ namespace SSE
         friend struct GeneralHelpers;
         friend class WriteMaskedVector<double>;
         public:
-            enum { Size = 16 / sizeof(double) };
+            enum Constants {
+                Size = 16 / sizeof(double),
+                HasVectorDivision = 1
+            };
             typedef _M128D VectorType;
             typedef double EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
@@ -166,7 +175,6 @@ namespace SSE
             const VectorType &data() const { return d.v(); }
 
         protected:
-            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 

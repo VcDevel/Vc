@@ -299,7 +299,7 @@ template<> inline int Mask<16>::count() const
 
 class Float8Mask
 {
-    enum {
+    enum Constants {
         PartialSize = 4,
         VectorSize = 8
     };

@@ -42,7 +42,7 @@ namespace Vc
 {
 namespace AVX
 {
-enum { VectorAlignment = 32 };
+enum VectorAlignmentEnum { VectorAlignment = 32 };
 
 template<typename T> class Vector
 {
@@ -51,7 +51,8 @@ template<typename T> class Vector
 
         typedef typename VectorTypeHelper<T>::Type VectorType;
         typedef typename DetermineEntryType<T>::Type EntryType;
-        enum { Size = sizeof(VectorType) / sizeof(EntryType),
+        enum Constants {
+            Size = sizeof(VectorType) / sizeof(EntryType),
             HasVectorDivision = HasVectorDivisionHelper<T>::Value
         };
         typedef Vector<typename IndexTypeHelper<T>::Type> IndexType;

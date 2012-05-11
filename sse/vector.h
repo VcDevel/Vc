@@ -142,7 +142,7 @@ class Vector : public VectorBase<T>
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
-        enum { Size = Base::Size };
+        enum Constants { Size = Base::Size };
         typedef typename Base::VectorType VectorType;
         typedef typename Base::EntryType  EntryType;
         typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;

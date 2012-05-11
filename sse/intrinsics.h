@@ -45,7 +45,7 @@ namespace Vc
 {
 namespace SSE
 {
-    enum { VectorAlignment = 16 };
+    enum VectorAlignmentEnum { VectorAlignment = 16 };
 
 #if defined(VC_GCC) && VC_GCC < 0x40600 && !defined(VC_DONT_FIX_SSE_SHIFT)
     static inline __m128i CONST _mm_sll_epi16(__m128i a, __m128i count) { __asm__("psllw %1,%0" : "+x"(a) : "x"(count)); return a; }
