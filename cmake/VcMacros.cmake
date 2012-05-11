@@ -278,6 +278,10 @@ macro(vc_set_preferred_compiler_flags)
       set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DNOMINMAX")
    elseif(Vc_COMPILER_IS_CLANG)
       # for now I don't know of any arguments I want to pass. -march and stuff is tried by OptimizeForArchitecture...
+
+      # disable these warnings because clang shows them for function overloads that were discarded via SFINAE
+      vc_add_compiler_flag(Vc_DEFINITIONS "-Wno-local-type-template-args")
+      vc_add_compiler_flag(Vc_DEFINITIONS "-Wno-unnamed-type-template-args")
    endif()
 
    OptimizeForArchitecture()
