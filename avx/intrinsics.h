@@ -44,6 +44,12 @@
 #define VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
 #endif
 
+#if defined(VC_CLANG) && VC_CLANG <= 0x30000
+// _mm_alignr_epi8 doesn't specify its return type, thus breaking overload resolution
+#undef _mm_alignr_epi8
+#define _mm_alignr_epi8(a, b, n) ((__m128i)__builtin_ia32_palignr128((a), (b), (n)))
+#endif
+
 namespace Vc
 {
 namespace AVX
