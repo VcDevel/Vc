@@ -38,6 +38,58 @@ namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
 namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
+namespace
+{
+    template<bool Test, typename T = void> struct EnableIf { typedef T Value; };
+    template<typename T> struct EnableIf<false, T> {};
+
+    template<typename T> struct IsSignedInteger    { enum { Value = 0 }; };
+    template<> struct IsSignedInteger<signed char> { enum { Value = 1 }; };
+    template<> struct IsSignedInteger<short>       { enum { Value = 1 }; };
+    template<> struct IsSignedInteger<int>         { enum { Value = 1 }; };
+    template<> struct IsSignedInteger<long>        { enum { Value = 1 }; };
+    template<> struct IsSignedInteger<long long>   { enum { Value = 1 }; };
+
+    template<typename T> struct IsUnsignedInteger           { enum { Value = 0 }; };
+    template<> struct IsUnsignedInteger<unsigned char>      { enum { Value = 1 }; };
+    template<> struct IsUnsignedInteger<unsigned short>     { enum { Value = 1 }; };
+    template<> struct IsUnsignedInteger<unsigned int>       { enum { Value = 1 }; };
+    template<> struct IsUnsignedInteger<unsigned long>      { enum { Value = 1 }; };
+    template<> struct IsUnsignedInteger<unsigned long long> { enum { Value = 1 }; };
+
+    template<typename T> struct IsInteger { enum { Value = IsSignedInteger<T>::Value | IsUnsignedInteger<T>::Value }; };
+
+    template<typename T> struct IsReal { enum { Value = 0 }; };
+    template<> struct IsReal<float>    { enum { Value = 1 }; };
+    template<> struct IsReal<double>   { enum { Value = 1 }; };
+
+    template<typename T> struct IsBuiltin { enum { Value = IsInteger<T>::Value | IsReal<T>::Value }; };
+
+    template<typename T, typename U> struct IsEqualType { enum { Value = 0 }; };
+    template<typename T> struct IsEqualType<T, T> { enum { Value = 1 }; };
+
+    struct CanConvertToInt_Impl
+    {
+        struct yes { char x; };
+        struct no  { yes x, y; };
+        static yes foo(int) { return yes(); }
+        static no  foo(...) { return  no(); }
+    };
+    template<typename T> struct CanConvertToInt { enum { Value = !!(sizeof(CanConvertToInt_Impl::foo(*static_cast<T *>(0))) == sizeof(CanConvertToInt_Impl::yes)) }; };
+    template<> struct CanConvertToInt<bool>     { enum { Value = 0 }; };
+    //template<> struct CanConvertToInt<float>    { enum { Value = 0 }; };
+    //template<> struct CanConvertToInt<double>   { enum { Value = 0 }; };
+
+    enum TestEnum {};
+    VC_STATIC_ASSERT(CanConvertToInt<int>::Value == 1, CanConvertToInt_is_broken);
+    VC_STATIC_ASSERT(CanConvertToInt<unsigned char>::Value == 1, CanConvertToInt_is_broken);
+    VC_STATIC_ASSERT(CanConvertToInt<bool>::Value == 0, CanConvertToInt_is_broken);
+    VC_STATIC_ASSERT(CanConvertToInt<float>::Value == 1, CanConvertToInt_is_broken);
+    VC_STATIC_ASSERT(CanConvertToInt<double>::Value == 1, CanConvertToInt_is_broken);
+    VC_STATIC_ASSERT(CanConvertToInt<float*>::Value == 0, CanConvertToInt_is_broken);
+    VC_STATIC_ASSERT(CanConvertToInt<TestEnum>::Value == 1, CanConvertToInt_is_broken);
+} // anonymous namespace
+
 } // namespace Vc
 
 #endif // VC_COMMON_TYPES_H

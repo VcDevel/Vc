@@ -194,21 +194,28 @@ class Vector
         inline Vector operator~() const { return Vector(~m_data); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const { return Vector<typename NegateTypeHelper<T>::Type>(-m_data); }
 
-#define OP(symbol) \
+#define OPshift(symbol) \
         inline Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
         inline Vector &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
-        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(m_data symbol x.m_data); } \
-        inline Vector operator symbol(EntryType x) const { return operator symbol(Vector(x)); }
+        inline Vector operator symbol(const Vector<T> &x) const { return Vector<T>(m_data symbol x.m_data); }
+#define OPshift_int(symbol) \
+        inline Vector operator symbol(int x) const { return Vector(m_data symbol x); }
+#define OP(symbol) \
+        OPshift(symbol) \
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) operator symbol(TT x) const { return operator symbol(Vector(x)); }
 #define OPcmp(symbol) \
         inline Mask operator symbol(const Vector<T> &x) const { return Mask(m_data symbol x.m_data); } \
-        inline Mask operator symbol(EntryType x) const { return Mask(m_data symbol x); }
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Mask) operator symbol(TT x) const { return Mask(m_data symbol x); }
 
         VC_ALL_ARITHMETICS(OP)
         VC_ALL_BINARY(OP)
-        VC_ALL_SHIFTS(OP)
+        VC_ALL_SHIFTS(OPshift)
+        VC_ALL_SHIFTS(OPshift_int)
         VC_ALL_COMPARES(OPcmp)
 #undef OP
 #undef OPcmp
+#undef OPshift
+#undef OPshift_int
 
         inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
             m_data *= factor;

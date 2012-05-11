@@ -269,4 +269,7 @@ namespace Vc {
 #define VC_ALL_FLOAT_VECTOR_TYPES(macro) VC_APPLY_0(VC_LIST_FLOAT_VECTOR_TYPES, macro)
 #define VC_ALL_VECTOR_TYPES(macro) VC_APPLY_0(VC_LIST_VECTOR_TYPES, macro)
 
+#define VC_EXACT_TYPE(_test, _reference, _type) \
+    typename EnableIf<IsEqualType<_test, _reference>::Value, _type>::Value
+
 #endif // VC_COMMON_MACROS_H

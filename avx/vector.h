@@ -235,14 +235,14 @@ template<typename T> class Vector
         inline Vector ALWAYS_INLINE &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
         inline Vector ALWAYS_INLINE &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
         inline Vector ALWAYS_INLINE operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); } \
-        inline Vector ALWAYS_INLINE operator symbol(EntryType x) const { return operator symbol(Vector(x)); }
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) ALWAYS_INLINE operator symbol(TT x) const { return operator symbol(Vector(x)); }
 
         OP(+, add)
         OP(-, sub)
         OP(*, mul)
 #undef OP
         inline Vector &operator/=(EntryType x);
-        inline Vector  operator/ (EntryType x) const;
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) operator/(TT x) const;
         inline Vector &operator/=(const Vector<T> &x);
         inline Vector  operator/ (const Vector<T> &x) const;
 
@@ -252,7 +252,7 @@ template<typename T> class Vector
         inline Vector<T> ALWAYS_INLINE_L  operator op   (AsArg x) const ALWAYS_INLINE_R;
 #define OP_ENTRY(op) \
         inline Vector<T> ALWAYS_INLINE_L &operator op##=(EntryType x) ALWAYS_INLINE_R { return operator op##=(Vector(x)); } \
-        inline Vector<T> ALWAYS_INLINE_L  operator op   (EntryType x) const ALWAYS_INLINE_R { return operator op(Vector(x)); }
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) ALWAYS_INLINE_L  operator op(TT x) const ALWAYS_INLINE_R { return operator op(Vector(x)); }
         VC_ALL_BINARY(OP_VEC)
         VC_ALL_BINARY(OP_ENTRY)
         VC_ALL_SHIFTS(OP_VEC)
@@ -266,7 +266,7 @@ template<typename T> class Vector
 
 #define OPcmp(symbol, fun) \
         inline Mask ALWAYS_INLINE operator symbol(AsArg x) const { return VectorHelper<T>::fun(data(), x.data()); } \
-        inline Mask ALWAYS_INLINE operator symbol(EntryType x) const { return operator symbol(Vector(x)); }
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Mask) ALWAYS_INLINE operator symbol(TT x) const { return operator symbol(Vector(x)); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)

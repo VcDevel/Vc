@@ -296,7 +296,7 @@ class Vector : public VectorBase<T>
         inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
         inline Vector INTRINSIC &operator symbol##=(EntryType x) { return operator symbol##=(Vector<T>(x)); } \
         inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const { return HT::fun(data(), x.data()); } \
-        inline Vector PURE INTRINSIC operator symbol(EntryType x) const { return operator symbol(Vector(x)); }
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) PURE INTRINSIC operator symbol(TT x) const { return operator symbol(Vector(x)); }
 
         OP(+, add)
         OP(-, sub)
@@ -306,20 +306,20 @@ class Vector : public VectorBase<T>
         inline INTRINSIC_L Vector &operator/=(const Vector<T> &x) INTRINSIC_R;
         inline INTRINSIC_L Vector  operator/ (const Vector<T> &x) const PURE INTRINSIC_R;
         inline INTRINSIC_L Vector &operator/=(EntryType x) INTRINSIC_R;
-        inline INTRINSIC_L Vector  operator/ (EntryType x) const PURE INTRINSIC_R;
+        template<typename TT> inline INTRINSIC_L VC_EXACT_TYPE(TT, EntryType, Vector)  operator/ (TT x) const PURE INTRINSIC_R;
 
 #define OP(symbol, fun) \
         inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x); \
         inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const; \
         inline Vector INTRINSIC &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
-        inline Vector PURE INTRINSIC operator symbol(EntryType x) const { return operator symbol(Vector(x)); }
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) PURE INTRINSIC operator symbol(TT x) const { return operator symbol(Vector(x)); }
         OP(|, or_)
         OP(&, and_)
         OP(^, xor_)
 #undef OP
 #define OPcmp(symbol, fun) \
         inline Mask PURE INTRINSIC operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data(), x.data()); } \
-        inline Mask PURE INTRINSIC operator symbol(EntryType x) const { return operator symbol(Vector(x)); }
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Mask) PURE INTRINSIC operator symbol(TT x) const { return operator symbol(Vector(x)); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
