@@ -28,7 +28,7 @@ namespace Scalar
 template<typename T> class WriteMaskedVector
 {
     friend class Vector<T>;
-    typedef bool Mask;
+    typedef typename Vector<T>::Mask Mask;
     typedef typename Vector<T>::EntryType EntryType;
     public:
         //prefix

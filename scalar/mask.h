@@ -30,22 +30,25 @@ template<unsigned int VectorSize = 1> class Mask
 {
     public:
         inline Mask() {}
-        inline Mask(bool b) : m(b) {}
+        inline explicit Mask(bool b) : m(b) {}
         inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
         inline explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
         inline Mask(const Mask<VectorSize> *a) : m(a[0].m) {}
 
+        inline Mask &operator=(const Mask &rhs) { m = rhs.m; return *this; }
+        inline Mask &operator=(bool rhs) { m = rhs; return *this; }
+
         inline void expand(Mask *x) { x[0].m = m; }
 
-        inline bool operator==(const Mask &rhs) const { return m == rhs.m; }
-        inline bool operator!=(const Mask &rhs) const { return m != rhs.m; }
+        inline bool operator==(const Mask &rhs) const { return Mask(m == rhs.m); }
+        inline bool operator!=(const Mask &rhs) const { return Mask(m != rhs.m); }
 
-        inline Mask operator&&(const Mask &rhs) const { return m && rhs.m; }
-        inline Mask operator& (const Mask &rhs) const { return m && rhs.m; }
-        inline Mask operator||(const Mask &rhs) const { return m || rhs.m; }
-        inline Mask operator| (const Mask &rhs) const { return m || rhs.m; }
-        inline Mask operator^ (const Mask &rhs) const { return m ^  rhs.m; }
-        inline Mask operator!() const { return !m; }
+        inline Mask operator&&(const Mask &rhs) const { return Mask(m && rhs.m); }
+        inline Mask operator& (const Mask &rhs) const { return Mask(m && rhs.m); }
+        inline Mask operator||(const Mask &rhs) const { return Mask(m || rhs.m); }
+        inline Mask operator| (const Mask &rhs) const { return Mask(m || rhs.m); }
+        inline Mask operator^ (const Mask &rhs) const { return Mask(m ^  rhs.m); }
+        inline Mask operator!() const { return Mask(!m); }
 
         inline Mask &operator&=(const Mask &rhs) { m &= rhs.m; return *this; }
         inline Mask &operator|=(const Mask &rhs) { m |= rhs.m; return *this; }

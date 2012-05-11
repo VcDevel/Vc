@@ -178,24 +178,28 @@ template<typename T> static inline Vector<T> reciprocal(const Vector<T> &x)
 #endif
 template<typename T> static inline typename Vector<T>::Mask isfinite(const Vector<T> &x)
 {
+    return typename Vector<T>::Mask(
 #ifdef _MSC_VER
-    return !!_finite(x.data());
+            !!_finite(x.data())
 #elif defined(__INTEL_COMPILER)
-    return ::isfinite(x.data());
+            ::isfinite(x.data())
 #else
-    return std::isfinite(x.data());
+            std::isfinite(x.data())
 #endif
+            );
 }
 
 template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T> &x)
 {
+    return typename Vector<T>::Mask(
 #ifdef _MSC_VER
-    return !!_isnan(x.data());
+            !!_isnan(x.data())
 #elif defined(__INTEL_COMPILER)
-    return ::isnan(x.data());
+            ::isnan(x.data())
 #else
-    return std::isnan(x.data());
+            std::isnan(x.data())
 #endif
+            );
 }
 
 inline Vector<float> frexp(Vector<float> x, Vector<int> *e) {
