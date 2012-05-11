@@ -297,14 +297,18 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * access memory at fixed strides. If access to known offsets from the aligned vectors is
          * needed the vector(size_t, int) function can be used.
          */
-        inline VectorPointerHelper<V, AlignedFlag> vector(size_t i) { return &entries()[i * V::Size]; }
+        inline VectorPointerHelper<V, AlignedFlag> vector(size_t i) {
+            return VectorPointerHelper<V, AlignedFlag>(&entries()[i * V::Size]);
+        }
         /** \brief Const overload of the above function
          *
          * \param i Selects the offset, where the vector should be read.
          *
          * \return a smart object to wrap the \p i-th vector in the memory.
          */
-        inline const VectorPointerHelperConst<V, AlignedFlag> vector(size_t i) const { return &entries()[i * V::Size]; }
+        inline const VectorPointerHelperConst<V, AlignedFlag> vector(size_t i) const {
+            return VectorPointerHelperConst<V, AlignedFlag>(&entries()[i * V::Size]);
+        }
 
         /**
          * \return a smart object to wrap the vector starting from the \p i-th scalar entry in the memory.
@@ -341,12 +345,20 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         template<typename A> inline const VectorPointerHelperConst<V, A> vectorAt(size_t i, A align = Vc::Aligned) const;
 #else
         template<typename A>
-        inline VectorPointerHelper<V, A> vectorAt(size_t i, A) { return &entries()[i]; }
+        inline VectorPointerHelper<V, A> vectorAt(size_t i, A) {
+            return VectorPointerHelper<V, A>(&entries()[i]);
+        }
         template<typename A>
-        inline const VectorPointerHelperConst<V, A> vectorAt(size_t i, A) const { return &entries()[i]; }
+        inline const VectorPointerHelperConst<V, A> vectorAt(size_t i, A) const {
+            return VectorPointerHelperConst<V, A>(&entries()[i]);
+        }
 
-        inline VectorPointerHelper<V, AlignedFlag> vectorAt(size_t i) { return &entries()[i]; }
-        inline const VectorPointerHelperConst<V, AlignedFlag> vectorAt(size_t i) const { return &entries()[i]; }
+        inline VectorPointerHelper<V, AlignedFlag> vectorAt(size_t i) {
+            return VectorPointerHelper<V, AlignedFlag>(&entries()[i]);
+        }
+        inline const VectorPointerHelperConst<V, AlignedFlag> vectorAt(size_t i) const {
+            return VectorPointerHelperConst<V, AlignedFlag>(&entries()[i]);
+        }
 #endif
 
         /**
@@ -376,27 +388,39 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * mem.vector(0, i) += 1;
          * \endcode
          */
-        inline VectorPointerHelper<V, UnalignedFlag> vector(size_t i, int shift) { return &entries()[i * V::Size + shift]; }
+        inline VectorPointerHelper<V, UnalignedFlag> vector(size_t i, int shift) {
+            return VectorPointerHelper<V, UnalignedFlag>(&entries()[i * V::Size + shift]);
+        }
         /// Const overload of the above function.
-        inline const VectorPointerHelperConst<V, UnalignedFlag> vector(size_t i, int shift) const { return &entries()[i * V::Size + shift]; }
+        inline const VectorPointerHelperConst<V, UnalignedFlag> vector(size_t i, int shift) const {
+            return VectorPointerHelperConst<V, UnalignedFlag>(&entries()[i * V::Size + shift]);
+        }
 
         /**
          * \return the first vector in the allocated memory.
          *
          * This function is simply a shorthand for vector(0).
          */
-        inline VectorPointerHelper<V, AlignedFlag> firstVector() { return entries(); }
+        inline VectorPointerHelper<V, AlignedFlag> firstVector() {
+            return VectorPointerHelper<V, AlignedFlag>(entries());
+        }
         /// Const overload of the above function.
-        inline const VectorPointerHelperConst<V, AlignedFlag> firstVector() const { return entries(); }
+        inline const VectorPointerHelperConst<V, AlignedFlag> firstVector() const {
+            return VectorPointerHelperConst<V, AlignedFlag>(entries());
+        }
 
         /**
          * \return the last vector in the allocated memory.
          *
          * This function is simply a shorthand for vector(vectorsCount() - 1).
          */
-        inline VectorPointerHelper<V, AlignedFlag> lastVector() { return &entries()[vectorsCount() * V::Size - V::Size]; }
+        inline VectorPointerHelper<V, AlignedFlag> lastVector() {
+            return VectorPointerHelper<V, AlignedFlag>(&entries()[vectorsCount() * V::Size - V::Size]);
+        }
         /// Const overload of the above function.
-        inline const VectorPointerHelperConst<V, AlignedFlag> lastVector() const { return &entries()[vectorsCount() * V::Size - V::Size]; }
+        inline const VectorPointerHelperConst<V, AlignedFlag> lastVector() const {
+            return VectorPointerHelperConst<V, AlignedFlag>(&entries()[vectorsCount() * V::Size - V::Size]);
+        }
 
         inline V gather(const unsigned char  *indexes) const { return V(entries(), indexes); }
         inline V gather(const unsigned short *indexes) const { return V(entries(), indexes); }
