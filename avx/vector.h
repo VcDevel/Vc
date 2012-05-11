@@ -373,27 +373,6 @@ typedef ushort_v::Mask ushort_m;
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 
-template<typename T> inline ALWAYS_INLINE_L Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
-template<typename T> inline ALWAYS_INLINE_L Vector<T> operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
-template<typename T> inline ALWAYS_INLINE_L Vector<T> operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
-template<typename T> inline ALWAYS_INLINE_L Vector<T> operator/(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
-template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator< (const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
-template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator<=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
-template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator> (const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
-template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator>=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
-template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator==(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
-template<typename T> inline ALWAYS_INLINE_L typename Vector<T>::Mask operator!=(const typename Vector<T>::EntryType &x, const Vector<T> &v) ALWAYS_INLINE_R;
-template<typename T> inline Vector<T> operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator+(x); }
-template<typename T> inline Vector<T> operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator*(x); }
-template<typename T> inline Vector<T> operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) - v; }
-template<typename T> inline Vector<T> operator/(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) / v; }
-template<typename T> inline typename Vector<T>::Mask  operator< (const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
-template<typename T> inline typename Vector<T>::Mask  operator<=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) <= v; }
-template<typename T> inline typename Vector<T>::Mask  operator> (const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) >  v; }
-template<typename T> inline typename Vector<T>::Mask  operator>=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) >= v; }
-template<typename T> inline typename Vector<T>::Mask  operator==(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) == v; }
-template<typename T> inline typename Vector<T>::Mask  operator!=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) != v; }
-
 static inline int_v    min(const int_v    &x, const int_v    &y) { return _mm256_min_epi32(x.data(), y.data()); }
 static inline uint_v   min(const uint_v   &x, const uint_v   &y) { return _mm256_min_epu32(x.data(), y.data()); }
 static inline short_v  min(const short_v  &x, const short_v  &y) { return _mm_min_epi16(x.data(), y.data()); }
