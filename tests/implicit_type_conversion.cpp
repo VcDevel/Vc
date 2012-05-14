@@ -73,12 +73,38 @@ typedef unsigned long long ulonglong;
     COMPARE(typeid(a() >  b()), typeid(Vc::Error::invalid_operands_of_types<a, b>))
 #endif
 
+template<typename T>
+struct TestImplicitCast {
+    static bool test(  T) { return  true; }
+    static bool test(...) { return false; }
+};
+
 enum SomeEnum { EnumValue = 0 };
 SomeEnum Enum() { return EnumValue; }
 
 void testImplicitTypeConversions()
 {
     typedef int* int_ptr;
+
+    VERIFY( TestImplicitCast<     int>::test(double()));
+    VERIFY( TestImplicitCast<     int>::test( float()));
+    VERIFY( TestImplicitCast<     int>::test(  Enum()));
+    VERIFY( TestImplicitCast<     int>::test( short()));
+    VERIFY( TestImplicitCast<     int>::test(ushort()));
+    VERIFY( TestImplicitCast<     int>::test(  char()));
+    VERIFY( TestImplicitCast<     int>::test(  uint()));
+    VERIFY( TestImplicitCast<     int>::test(  long()));
+    VERIFY( TestImplicitCast<     int>::test( ulong()));
+    VERIFY( TestImplicitCast<     int>::test(  bool()));
+    VERIFY( TestImplicitCast<double_v>::test(double()));
+    VERIFY(!TestImplicitCast<double_v>::test( float()));
+    VERIFY(!TestImplicitCast<double_v>::test(   int()));
+    VERIFY( TestImplicitCast< float_v>::test( float()));
+    VERIFY( TestImplicitCast<sfloat_v>::test( float()));
+    VERIFY( TestImplicitCast<   int_v>::test(   int()));
+    VERIFY( TestImplicitCast<  uint_v>::test(  uint()));
+    VERIFY( TestImplicitCast< short_v>::test( short()));
+    VERIFY( TestImplicitCast<ushort_v>::test(ushort()));
 
     TYPE_TEST_ERR(double_v,  int_ptr);
     TYPE_TEST_ERR( float_v,  int_ptr);
