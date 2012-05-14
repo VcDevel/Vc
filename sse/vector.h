@@ -185,6 +185,7 @@ class Vector : public VectorBase<T>
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         explicit Vector(EntryType a);
+        template<typename TT> inline INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : Base(HT::set(x)) {}
         static inline Vector INTRINSIC broadcast4(const EntryType *x) { return Vector<T>(x); }
         inline Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
 

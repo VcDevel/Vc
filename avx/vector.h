@@ -115,6 +115,7 @@ template<typename T> class Vector
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         explicit Vector(EntryType a);
+        template<typename TT> inline INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : d(HT::set(x)) {}
         inline Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
