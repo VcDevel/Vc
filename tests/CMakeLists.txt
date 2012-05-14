@@ -129,7 +129,7 @@ macro(vc_test_implicit_type_conversion_failures A B)
       endif()
       set(type_b ${B})
       foreach(type_a ${A} ${B})
-         foreach(op "*") # "/" "+" "-" "&" "|" "^" "==" "!=" "<=" ">=" "<" ">")
+         foreach(op "^" "==" "*") # "/" "+" "-" "&" "|" "!=" "<=" ">=" "<" ">")
             set(name "implicit_type_conversion_failures_${type_a}_${op}_${type_b}_${impl}")
             add_test(NAME "${name}" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                COMMAND
