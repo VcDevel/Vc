@@ -26,32 +26,35 @@
 namespace Vc
 {
 
+namespace
+{
+    struct one { char x; };
+    struct two { one x, y; };
+    template<typename T1, typename T2> struct DecltypeHelper
+    {
+        static one test(const T1 &) { return one(); }
+        static two test(const T2 &) { return two(); }
+        //static void test(...) {}
+    };
+    template<typename T1> struct DecltypeHelper<T1, T1>
+    {
+        static one test(const T1 &) { return one(); }
+        //static void test(...) {}
+    };
+    template<typename T1, typename T2, size_t ToSelect> struct Decltype { typedef T1 Value; };
+    template<typename T1, typename T2> struct Decltype<T1, T2, sizeof(one)> { typedef T1 Value; };
+    template<typename T1, typename T2> struct Decltype<T1, T2, sizeof(two)> { typedef T2 Value; };
+} // anonymous namespace
+
 #if __cplusplus >= 201103
-#define _VC_RETURN_TYPE(_ret, T1, T2, op) decltype(T1() op T2())
+#define VC_DECLTYPE(T1, op, T2) decltype(T1() op T2())
 #else
-#define _VC_RETURN_TYPE(_ret, T1, T2, op) _ret
+#define VC_DECLTYPE(T1, op, T2) typename Decltype<T1, T2, sizeof(DecltypeHelper<T1, T2>::test(*static_cast<const T1*>(0) op *static_cast<const T2*>(0)))>::Value
 #endif
-#define VC_MEM_OPERATOR_(T, op, _class, _ret) \
-        template<typename V, typename A> \
-        inline _VC_RETURN_TYPE(_ret, V, T, op)  operator op(const _class<V, A> &a, const T &b) { \
-            return V(a.m_ptr, Internal::FlagObject<A>::the()) op b; \
-        } \
-        template<typename V, typename A> \
-        inline _VC_RETURN_TYPE(_ret, T, V, op)  operator op(const T &a, const _class<V, A> &b) { \
-            return a op V(b.m_ptr, Internal::FlagObject<A>::the()); \
-        }
-#define VC_MEM_OPERATOR(op, _class, _ret) \
-    VC_APPLY_3(VC_LIST_VECTOR_TYPES, VC_MEM_OPERATOR_, op, _class, _ret) \
-        template<typename V1, typename A1, typename V2, typename A2> \
-        inline _VC_RETURN_TYPE(V1, V1, V2, op) operator op(const _class<V1, A1> &a, const _class<V2, A2> &b) { \
-            return V1(a.m_ptr, Internal::FlagObject<A1>::the()) op V2(b.m_ptr, Internal::FlagObject<A2>::the()); \
-        }
-#define VC_MEM_OPERATOR_EQ_DECL(op) \
-        template<typename T> inline VectorPointerHelper &operator op##=(const T &x);
+
 #define VC_MEM_OPERATOR_EQ(op) \
-        template<typename V, typename A> \
         template<typename T> \
-        inline VectorPointerHelper<V, A> &VectorPointerHelper<V, A>::operator op##=(const T &x) { \
+        inline VectorPointerHelper<V, A> &operator op##=(const T &x) { \
             const V result = V(m_ptr, Internal::FlagObject<A>::the()) op x; \
             result.store(m_ptr, Internal::FlagObject<A>::the()); \
             return *this; \
@@ -80,12 +83,7 @@ template<typename V, typename A> class VectorPointerHelperConst
          * This function allows to assign this object to any object of type \p V.
          */
         inline operator const V() const { return V(m_ptr, Internal::FlagObject<A>::the()); }
-
 };
-
-VC_APPLY_2(VC_LIST_BINARY,      VC_MEM_OPERATOR, VectorPointerHelperConst, V)
-VC_APPLY_2(VC_LIST_ARITHMETICS, VC_MEM_OPERATOR, VectorPointerHelperConst, V)
-VC_APPLY_2(VC_LIST_COMPARES,    VC_MEM_OPERATOR, VectorPointerHelperConst, typename V::Mask)
 
 /**
  * Helper class for the Memory::vector(size_t) class of functions.
@@ -119,20 +117,20 @@ template<typename V, typename A> class VectorPointerHelper
             return *this;
         }
 
-        VC_ALL_BINARY(VC_MEM_OPERATOR_EQ_DECL)
-        VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ_DECL)
+        VC_ALL_BINARY(VC_MEM_OPERATOR_EQ)
+        VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ)
 };
-
-VC_APPLY_2(VC_LIST_BINARY,      VC_MEM_OPERATOR, VectorPointerHelper, V)
-VC_APPLY_2(VC_LIST_ARITHMETICS, VC_MEM_OPERATOR, VectorPointerHelper, V)
-VC_APPLY_2(VC_LIST_COMPARES,    VC_MEM_OPERATOR, VectorPointerHelper, typename V::Mask)
-
-VC_ALL_BINARY(VC_MEM_OPERATOR_EQ)
-VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ)
-
 #undef VC_MEM_OPERATOR_EQ
-#undef VC_MEM_OPERATOR
-#undef VC_MEM_OPERATOR_CMP
+
+#define VC_VPH_OPERATOR(op) \
+template<typename V1, typename A1, typename V2, typename A2> \
+VC_DECLTYPE(V1, op, V2) operator op(const VectorPointerHelper<V1, A1> &x, const VectorPointerHelper<V2, A2> &y) { \
+    return V1(x.m_ptr, Internal::FlagObject<A1>::the()) op V2(y.m_ptr, Internal::FlagObject<A2>::the()); \
+}
+VC_ALL_ARITHMETICS(VC_VPH_OPERATOR)
+VC_ALL_BINARY     (VC_VPH_OPERATOR)
+VC_ALL_COMPARES   (VC_VPH_OPERATOR)
+#undef VC_VPH_OPERATOR
 
 template<typename V, typename Parent, int Dimension, typename RowMemory> class MemoryDimensionBase;
 template<typename V, typename Parent, typename RowMemory> class MemoryDimensionBase<V, Parent, 1, RowMemory> // {{{1
