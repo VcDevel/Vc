@@ -1,63 +1,124 @@
 namespace
 {
-template<typename Cond, typename T, typename Except = void> struct EnableIfUnsignedInteger : public EnableIf<!IsEqualType<Except, Cond>::Value && IsUnsignedInteger<Cond>::Value, T> {};
-template<typename Cond, typename T, typename Except = void> struct EnableIfInteger         : public EnableIf<!IsEqualType<Except, Cond>::Value &&!IsReal<Cond>::Value && CanConvertToInt<Cond>::Value, T> {};
-template<typename Cond, typename T, typename Except = void> struct EnableIfSignedInteger   : public EnableIf<!IsEqualType<Except, Cond>::Value &&!IsReal<Cond>::Value && CanConvertToInt<Cond>::Value && !IsUnsignedInteger<Cond>::Value, T> {};
-template<typename Cond, typename T> struct EnableIfUnsignedInteger<Cond, T, void> : public EnableIf< IsUnsignedInteger<Cond>::Value, T> {};
-template<typename Cond, typename T> struct EnableIfInteger        <Cond, T, void> : public EnableIf<!IsReal<Cond>::Value && CanConvertToInt<Cond>::Value, T> {};
-template<typename Cond, typename T> struct EnableIfSignedInteger  <Cond, T, void> : public EnableIf<!IsReal<Cond>::Value && CanConvertToInt<Cond>::Value && !IsUnsignedInteger<Cond>::Value, T> {};
-template<typename Cond, typename T> struct EnableIf_short_v;
-template<               typename T> struct EnableIf_short_v< short_v, T> : public EnableIf<true, T> {};
-template<               typename T> struct EnableIf_short_v<ushort_v, T> : public EnableIf<true, T> {};
-template<typename Cond, typename T> struct EnableIf_int_v;
-template<               typename T> struct EnableIf_int_v  <   int_v, T> : public EnableIf<true, T> {};
-template<               typename T> struct EnableIf_int_v  <  uint_v, T> : public EnableIf<true, T> {};
 template<typename Cond, typename T> struct EnableIfNeitherIntegerNorVector : public EnableIf<!CanConvertToInt<Cond>::Value, T> {};
 template<typename Cond, typename T> struct EnableIfNeitherIntegerNorVector<Vector<Cond>, T>;
+
+template<typename T> struct IsVector             { enum { Value = false }; };
+template<typename T> struct IsVector<Vector<T> > { enum { Value =  true }; };
+
+template<typename T0, typename T1, typename V0, typename V1> struct IsTypeCombinationOf
+{
+    enum {
+        Value = IsVector<V0>::Value ? (IsVector<V1>::Value ? ( // Vec × Vec
+                    (    IsEqualType<T0, V0>::Value && HasImplicitCast<T1, V1>::Value && !HasImplicitCast<T1, int>::Value) ||
+                    (HasImplicitCast<T0, V0>::Value &&     IsEqualType<T1, V1>::Value && !HasImplicitCast<T0, int>::Value) ||
+                    (    IsEqualType<T0, V1>::Value && HasImplicitCast<T1, V0>::Value && !HasImplicitCast<T1, int>::Value) ||
+                    (HasImplicitCast<T0, V1>::Value &&     IsEqualType<T1, V0>::Value && !HasImplicitCast<T0, int>::Value)
+                ) : ( // Vec × Scalar
+                    (HasImplicitCast<T0, V0>::Value &&     IsEqualType<T1, V1>::Value && !HasImplicitCast<T0, int>::Value) ||
+                    (    IsEqualType<T0, V1>::Value && HasImplicitCast<T1, V0>::Value && !HasImplicitCast<T1, int>::Value)
+            )) : (IsVector<V1>::Value ? ( // Scalar × Vec
+                    (    IsEqualType<T0, V0>::Value && HasImplicitCast<T1, V1>::Value && !HasImplicitCast<T1, int>::Value) ||
+                    (HasImplicitCast<T0, V1>::Value &&     IsEqualType<T1, V0>::Value && !HasImplicitCast<T0, int>::Value)
+                ) : ( // Scalar × Scalar
+                    (    IsEqualType<T0, V0>::Value &&     IsEqualType<T1, V1>::Value) ||
+                    (    IsEqualType<T0, V1>::Value &&     IsEqualType<T1, V0>::Value)
+                    ))
+    };
+};
+
+template<typename T0, typename T1, typename V> struct IsVectorOperands
+{
+    enum {
+        Value = (HasImplicitCast<T0, V>::Value && !HasImplicitCast<T0, int>::Value && !IsEqualType<T0, V>::Value && IsEqualType<T1, V>::Value)
+            ||  (HasImplicitCast<T1, V>::Value && !HasImplicitCast<T1, int>::Value && !IsEqualType<T1, V>::Value && IsEqualType<T0, V>::Value)
+    };
+};
 }
 
 // float-int arithmetic operators //{{{1
+// These operators must be very picky about the exact types they want to handle. Once (uncontrolled)
+// implicit type conversions get involved, ambiguous overloads will occur. E.g. a simple int × enum
+// will become ambiguous because it can convert both to a vector type, which then can execute the
+// operator. We can't argue that such code should not be used - it could break existing code, not
+// under control of the developer, just by putting the Vc header somewhere on top.
+//
+// The following type combinations are safe (always symmetric):
+// 1. Vector × Vector
+// 2. Vector × Scalar (int, float, enum value, ...)
+// 3. Some object that has a vector cast operator × Vector
+// 4. Some object that has a vector cast operator × Scalar
+//
+// Additionally there are restrictions on which types combine to what resulting type:
+// 1.a.        float × double_v -> double_v
+// 1.b.      any int × double_v -> double_v
+// 2.a.     (u)int_v ×  float_v ->  float_v
+// 2.b.     (u)int_v ×    float ->  float_v
+// 2.c.      any int ×  float_v ->  float_v
+// 3.a.   (u)short_v × sfloat_v -> sfloat_v
+// 3.b.   (u)short_v ×    float -> sfloat_v
+// 3.c.        short × sfloat_v -> sfloat_v
+// 4.a.        int_v ×   uint_v ->   uint_v
+// 4.b.      any int ×   uint_v ->   uint_v
+// 4.c. unsigned int ×    int_v ->   uint_v
+// 4.d.   signed int ×    int_v ->    int_v
+// 5.              shorts like ints
+
 #define VC_OPERATOR_FORWARD_(ret, op) \
-template<typename Scalar> static inline VC_EXACT_TYPE(Scalar, float, double_##ret) operator op(Scalar x, double_v::AsArg y) { return double_v(x) op y; } \
-template<typename Scalar> static inline VC_EXACT_TYPE(Scalar, float, double_##ret) operator op(double_v::AsArg x, Scalar y) { return x op double_v(y); } \
-template<typename Scalar> static inline typename EnableIfInteger<Scalar, double_##ret>::Value operator op(Scalar x, double_v::AsArg y) { return double_v(x) op y; } \
-template<typename Scalar> static inline typename EnableIfInteger<Scalar, double_##ret>::Value operator op(double_v::AsArg x, Scalar y) { return x op double_v(y); } \
+template<typename T0, typename T1> static inline typename EnableIf< \
+    IsVectorOperands<T0, T1, double_v>::Value || \
+    ((IsEqualType<T0, float>::Value || IsLikeInteger<T0>::Value) && HasImplicitCast<T1, double_v>::Value && !HasImplicitCast<T1, int>::Value) || \
+    ((IsEqualType<T1, float>::Value || IsLikeInteger<T1>::Value) && HasImplicitCast<T0, double_v>::Value && !HasImplicitCast<T0, int>::Value) || \
+    false, double_##ret>::Value operator op(const T0 &x, const T1 &y) { return double_v(x) op double_v(y); } \
 \
-template<typename V> static inline typename EnableIf_int_v<V, float_##ret>::Value operator op(const V &x, float_v::AsArg y) { return float_v(x) op y; } \
-template<typename V> static inline typename EnableIf_int_v<V, float_##ret>::Value operator op(float_v::AsArg x, const V &y) { return x op float_v(y); } \
-template<typename V, typename Scalar> static inline typename EnableIf<IsEqualType<V,  int_v>::Value && IsEqualType<Scalar, float>::Value, float_##ret>::Value operator op(const V &x, Scalar y) { return float_v(x) op float_v(y); } \
-template<typename V, typename Scalar> static inline typename EnableIf<IsEqualType<V, uint_v>::Value && IsEqualType<Scalar, float>::Value, float_##ret>::Value operator op(const V &x, Scalar y) { return float_v(x) op float_v(y); } \
-template<typename V, typename Scalar> static inline typename EnableIf<IsEqualType<V,  int_v>::Value && IsEqualType<Scalar, float>::Value, float_##ret>::Value operator op(Scalar x, const V &y) { return float_v(x) op float_v(y); } \
-template<typename V, typename Scalar> static inline typename EnableIf<IsEqualType<V, uint_v>::Value && IsEqualType<Scalar, float>::Value, float_##ret>::Value operator op(Scalar x, const V &y) { return float_v(x) op float_v(y); } \
-template<typename Scalar> static inline typename EnableIfInteger<Scalar, float_##ret>::Value operator op(Scalar x, float_v::AsArg y) { return float_v(x) op y; } \
-template<typename Scalar> static inline typename EnableIfInteger<Scalar, float_##ret>::Value operator op(float_v::AsArg x, Scalar y) { return x op float_v(y); } \
+template<typename T0, typename T1> static inline typename EnableIf< \
+    IsVectorOperands<T0, T1, float_v>::Value || \
+    IsTypeCombinationOf<T0, T1,  int_v, float_v>::Value || \
+    IsTypeCombinationOf<T0, T1, uint_v, float_v>::Value || \
+    IsTypeCombinationOf<T0, T1,  int_v,   float>::Value || \
+    IsTypeCombinationOf<T0, T1, uint_v,   float>::Value || \
+    (IsLikeInteger<T0>::Value && HasImplicitCast<T1, float_v>::Value && !HasImplicitCast<T1, int>::Value) || \
+    (IsLikeInteger<T1>::Value && HasImplicitCast<T0, float_v>::Value && !HasImplicitCast<T0, int>::Value) || \
+    false, float_##ret>::Value operator op(const T0 &x, const T1 &y) { return float_v(x) op float_v(y); } \
 \
-template<typename V> static inline typename EnableIf_short_v<V, sfloat_##ret>::Value operator op(const V &x, sfloat_v::AsArg y) { return sfloat_v(x) op y; } \
-template<typename V> static inline typename EnableIf_short_v<V, sfloat_##ret>::Value operator op(sfloat_v::AsArg x, const V &y) { return x op sfloat_v(y); } \
-template<typename V, typename Scalar> static inline typename EnableIf<IsEqualType<V,  short_v>::Value && IsEqualType<Scalar, float>::Value, sfloat_##ret>::Value operator op(const V &x, Scalar y) { return sfloat_v(x) op sfloat_v(y); } \
-template<typename V, typename Scalar> static inline typename EnableIf<IsEqualType<V, ushort_v>::Value && IsEqualType<Scalar, float>::Value, sfloat_##ret>::Value operator op(const V &x, Scalar y) { return sfloat_v(x) op sfloat_v(y); } \
-template<typename V, typename Scalar> static inline typename EnableIf<IsEqualType<V,  short_v>::Value && IsEqualType<Scalar, float>::Value, sfloat_##ret>::Value operator op(Scalar x, const V &y) { return sfloat_v(x) op sfloat_v(y); } \
-template<typename V, typename Scalar> static inline typename EnableIf<IsEqualType<V, ushort_v>::Value && IsEqualType<Scalar, float>::Value, sfloat_##ret>::Value operator op(Scalar x, const V &y) { return sfloat_v(x) op sfloat_v(y); } \
-template<typename Scalar> static inline typename EnableIfInteger<Scalar, sfloat_##ret>::Value operator op(Scalar x, sfloat_v::AsArg y) { return sfloat_v(x) op y; } \
-template<typename Scalar> static inline typename EnableIfInteger<Scalar, sfloat_##ret>::Value operator op(sfloat_v::AsArg x, Scalar y) { return x op sfloat_v(y); } \
+template<typename T0, typename T1> static inline typename EnableIf< \
+    IsVectorOperands<T0, T1, sfloat_v>::Value || \
+    IsTypeCombinationOf<T0, T1,  short_v, sfloat_v>::Value || \
+    IsTypeCombinationOf<T0, T1, ushort_v, sfloat_v>::Value || \
+    IsTypeCombinationOf<T0, T1,  short_v,    float>::Value || \
+    IsTypeCombinationOf<T0, T1, ushort_v,    float>::Value || \
+    (IsLikeInteger<T0>::Value && HasImplicitCast<T1, sfloat_v>::Value && !HasImplicitCast<T1, int>::Value) || \
+    (IsLikeInteger<T1>::Value && HasImplicitCast<T0, sfloat_v>::Value && !HasImplicitCast<T0, int>::Value) || \
+    false, sfloat_##ret>::Value operator op(const T0 &x, const T1 &y) { return sfloat_v(x) op sfloat_v(y); } \
 \
-static inline   uint_##ret operator op(      int_v::AsArg x,      uint_v::AsArg y) { return uint_v(x) op        y ; } \
-static inline   uint_##ret operator op(     uint_v::AsArg x,       int_v::AsArg y) { return        x  op uint_v(y); } \
-template<typename Scalar> static inline typename EnableIfUnsignedInteger<Scalar,   uint_##ret              >::Value operator op(Scalar x,    int_v::AsArg y) { return   uint_v(x) op   uint_v(y); } \
-template<typename Scalar> static inline typename EnableIfSignedInteger  <Scalar,    int_##ret,          int>::Value operator op(Scalar x,    int_v::AsArg y) { return    int_v(x) op          y ; } \
-template<typename Scalar> static inline typename EnableIfInteger        <Scalar,   uint_##ret, unsigned int>::Value operator op(Scalar x,   uint_v::AsArg y) { return   uint_v(x) op          y ; } \
-template<typename Scalar> static inline typename EnableIfUnsignedInteger<Scalar,   uint_##ret              >::Value operator op(   int_v::AsArg x, Scalar y) { return   uint_v(x) op   uint_v(y); } \
-template<typename Scalar> static inline typename EnableIfSignedInteger  <Scalar,    int_##ret,          int>::Value operator op(   int_v::AsArg x, Scalar y) { return          x  op    int_v(y); } \
-template<typename Scalar> static inline typename EnableIfInteger        <Scalar,   uint_##ret, unsigned int>::Value operator op(  uint_v::AsArg x, Scalar y) { return          x  op   uint_v(y); } \
+template<typename T0, typename T1> static inline typename EnableIf< \
+    IsVectorOperands<T0, T1, uint_v>::Value || \
+    IsTypeCombinationOf<T0, T1, int_v, uint_v>::Value || \
+    (IsUnsignedInteger<T0>::Value && HasImplicitCast<T1, int_v>::Value && !HasImplicitCast<T1, int>::Value) || \
+    (IsUnsignedInteger<T1>::Value && HasImplicitCast<T0, int_v>::Value && !HasImplicitCast<T0, int>::Value) || \
+    (IsLikeInteger<T0>::Value && !IsEqualType<T0, unsigned int>::Value && HasImplicitCast<T1, uint_v>::Value && !HasImplicitCast<T1, int>::Value) || \
+    (IsLikeInteger<T1>::Value && !IsEqualType<T1, unsigned int>::Value && HasImplicitCast<T0, uint_v>::Value && !HasImplicitCast<T0, int>::Value) || \
+    false, uint_##ret>::Value operator op(const T0 &x, const T1 &y) { return uint_v(x) op uint_v(y); } \
+template<typename T0, typename T1> static inline typename EnableIf< \
+    IsVectorOperands<T0, T1, int_v>::Value || \
+    (IsLikeSignedInteger<T0>::Value && !IsEqualType<T0, int>::Value && HasImplicitCast<T1, int_v>::Value && !HasImplicitCast<T1, int>::Value) || \
+    (IsLikeSignedInteger<T1>::Value && !IsEqualType<T1, int>::Value && HasImplicitCast<T0, int_v>::Value && !HasImplicitCast<T0, int>::Value) || \
+    false, int_##ret>::Value operator op(const T0 &x, const T1 &y) { return  int_v(x) op  int_v(y); } \
 \
-static inline ushort_##ret operator op(    short_v::AsArg x,    ushort_v::AsArg y) { return ushort_v(x) op          y ; } \
-static inline ushort_##ret operator op(   ushort_v::AsArg x,     short_v::AsArg y) { return          x  op ushort_v(y); } \
-template<typename Scalar> static inline typename EnableIfUnsignedInteger<Scalar, ushort_##ret                >::Value operator op(Scalar x,  short_v::AsArg y) { return ushort_v(x) op ushort_v(y); } \
-template<typename Scalar> static inline typename EnableIfSignedInteger  <Scalar,  short_##ret,          short>::Value operator op(Scalar x,  short_v::AsArg y) { return  short_v(x) op          y ; } \
-template<typename Scalar> static inline typename EnableIfInteger        <Scalar, ushort_##ret, unsigned short>::Value operator op(Scalar x, ushort_v::AsArg y) { return ushort_v(x) op          y ; } \
-template<typename Scalar> static inline typename EnableIfUnsignedInteger<Scalar, ushort_##ret                >::Value operator op( short_v::AsArg x, Scalar y) { return ushort_v(x) op ushort_v(y); } \
-template<typename Scalar> static inline typename EnableIfSignedInteger  <Scalar,  short_##ret,          short>::Value operator op( short_v::AsArg x, Scalar y) { return          x  op  short_v(y); } \
-template<typename Scalar> static inline typename EnableIfInteger        <Scalar, ushort_##ret, unsigned short>::Value operator op(ushort_v::AsArg x, Scalar y) { return          x  op ushort_v(y); }
+template<typename T0, typename T1> static inline typename EnableIf< \
+    IsVectorOperands<T0, T1, ushort_v>::Value || \
+    IsTypeCombinationOf<T0, T1, short_v, ushort_v>::Value || \
+    (IsUnsignedInteger<T0>::Value && HasImplicitCast<T1, short_v>::Value && !HasImplicitCast<T1, int>::Value) || \
+    (IsUnsignedInteger<T1>::Value && HasImplicitCast<T0, short_v>::Value && !HasImplicitCast<T0, int>::Value) || \
+    (IsLikeInteger<T0>::Value && !IsEqualType<T0, unsigned short>::Value && HasImplicitCast<T1, ushort_v>::Value && !HasImplicitCast<T1, int>::Value) || \
+    (IsLikeInteger<T1>::Value && !IsEqualType<T1, unsigned short>::Value && HasImplicitCast<T0, ushort_v>::Value && !HasImplicitCast<T0, int>::Value) || \
+    false, ushort_##ret>::Value operator op(const T0 &x, const T1 &y) { return ushort_v(x) op ushort_v(y); } \
+template<typename T0, typename T1> static inline typename EnableIf< \
+    IsVectorOperands<T0, T1, short_v>::Value || \
+    (IsLikeSignedInteger<T0>::Value && !IsEqualType<T0, short>::Value && HasImplicitCast<T1, short_v>::Value && !HasImplicitCast<T1, int>::Value) || \
+    (IsLikeSignedInteger<T1>::Value && !IsEqualType<T1, short>::Value && HasImplicitCast<T0, short_v>::Value && !HasImplicitCast<T0, int>::Value) || \
+    false, short_##ret>::Value operator op(const T0 &x, const T1 &y) { return  short_v(x) op  short_v(y); }
+
 
 // break incorrect combinations
 #define VC_OPERATOR_INTENTIONAL_ERROR_1(V, op) \

@@ -63,19 +63,39 @@ namespace
     template<> struct IsReal<float>    { enum { Value = 1 }; };
     template<> struct IsReal<double>   { enum { Value = 1 }; };
 
-    template<typename T> struct IsBuiltin { enum { Value = IsInteger<T>::Value | IsReal<T>::Value }; };
-
     template<typename T, typename U> struct IsEqualType { enum { Value = 0 }; };
     template<typename T> struct IsEqualType<T, T> { enum { Value = 1 }; };
 
-    struct CanConvertToInt_Impl
+    template<typename T, typename List0, typename List1 = void, typename List2 = void, typename List3 = void, typename List4 = void, typename List5 = void, typename List6 = void>
+        struct IsInTypelist { enum { Value = false }; };
+    template<typename T, typename List1, typename List2, typename List3, typename List4, typename List5, typename List6> struct IsInTypelist<T, T, List1, List2, List3, List4, List5, List6> { enum { Value = true }; };
+    template<typename T, typename List0, typename List2, typename List3, typename List4, typename List5, typename List6> struct IsInTypelist<T, List0, T, List2, List3, List4, List5, List6> { enum { Value = true }; };
+    template<typename T, typename List0, typename List1, typename List3, typename List4, typename List5, typename List6> struct IsInTypelist<T, List0, List1, T, List3, List4, List5, List6> { enum { Value = true }; };
+    template<typename T, typename List0, typename List1, typename List2, typename List4, typename List5, typename List6> struct IsInTypelist<T, List0, List1, List2, T, List4, List5, List6> { enum { Value = true }; };
+    template<typename T, typename List0, typename List1, typename List2, typename List3, typename List5, typename List6> struct IsInTypelist<T, List0, List1, List2, List3, T, List5, List6> { enum { Value = true }; };
+    template<typename T, typename List0, typename List1, typename List2, typename List3, typename List4, typename List6> struct IsInTypelist<T, List0, List1, List2, List3, List4, T, List6> { enum { Value = true }; };
+    template<typename T, typename List0, typename List1, typename List2, typename List3, typename List4, typename List5> struct IsInTypelist<T, List0, List1, List2, List3, List4, List5, T> { enum { Value = true }; };
+
+    template<typename Arg0, typename Arg1, typename T0, typename T1> struct IsCombinationOf { enum { Value = false }; };
+    template<typename Arg0, typename Arg1> struct IsCombinationOf<Arg0, Arg1, Arg0, Arg1> { enum { Value = true }; };
+    template<typename Arg0, typename Arg1> struct IsCombinationOf<Arg0, Arg1, Arg1, Arg0> { enum { Value = true }; };
+
+    namespace
     {
         struct yes { char x; };
-        struct no  { yes x, y; };
-        static yes foo(int) { return yes(); }
-        static no  foo(...) { return  no(); }
+        struct  no { yes x, y; };
+    } // anonymous namespace
+
+    template<typename From, typename To> struct HasImplicitCast
+    {
+        static yes test( To) { return yes(); }
+        static  no test(...) { return  no(); }
+        enum {
+            Value = !!(sizeof(test(*static_cast<From *>(0))) == sizeof(yes))
+        };
     };
-    template<typename T> struct CanConvertToInt { enum { Value = !!(sizeof(CanConvertToInt_Impl::foo(*static_cast<T *>(0))) == sizeof(CanConvertToInt_Impl::yes)) }; };
+
+    template<typename T> struct CanConvertToInt : public HasImplicitCast<T, int> {};
     template<> struct CanConvertToInt<bool>     { enum { Value = 0 }; };
     //template<> struct CanConvertToInt<float>    { enum { Value = 0 }; };
     //template<> struct CanConvertToInt<double>   { enum { Value = 0 }; };
@@ -88,6 +108,21 @@ namespace
     VC_STATIC_ASSERT(CanConvertToInt<double>::Value == 1, CanConvertToInt_is_broken);
     VC_STATIC_ASSERT(CanConvertToInt<float*>::Value == 0, CanConvertToInt_is_broken);
     VC_STATIC_ASSERT(CanConvertToInt<TestEnum>::Value == 1, CanConvertToInt_is_broken);
+
+    typedef HasImplicitCast<TestEnum, short> HasImplicitCastTest0;
+    typedef HasImplicitCast<int *, void *> HasImplicitCastTest1;
+    typedef HasImplicitCast<int *, const void *> HasImplicitCastTest2;
+    typedef HasImplicitCast<const int *, const void *> HasImplicitCastTest3;
+    typedef HasImplicitCast<const int *, int *> HasImplicitCastTest4;
+
+    VC_STATIC_ASSERT(HasImplicitCastTest0::Value ==  true, HasImplicitCast0_is_broken);
+    VC_STATIC_ASSERT(HasImplicitCastTest1::Value ==  true, HasImplicitCast1_is_broken);
+    VC_STATIC_ASSERT(HasImplicitCastTest2::Value ==  true, HasImplicitCast2_is_broken);
+    VC_STATIC_ASSERT(HasImplicitCastTest3::Value ==  true, HasImplicitCast3_is_broken);
+    VC_STATIC_ASSERT(HasImplicitCastTest4::Value == false, HasImplicitCast4_is_broken);
+
+    template<typename T> struct IsLikeInteger { enum { Value = !IsReal<T>::Value && CanConvertToInt<T>::Value }; };
+    template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !IsUnsignedInteger<T>::Value }; };
 } // anonymous namespace
 
 } // namespace Vc
