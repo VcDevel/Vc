@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.1)
+cmake_minimum_required(VERSION 2.8.3)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BUILD_DIR)
    message(ERROR "You don't want to configure in the source directory!")
