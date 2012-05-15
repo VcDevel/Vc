@@ -370,7 +370,7 @@ template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
     return *this;
 }
 
-template<typename T> template<typename TT> inline VC_EXACT_TYPE(TT, typename Vector<T>::EntryType, Vector<T>) Vector<T>::operator/(TT x) const
+template<typename T> template<typename TT> inline PURE INTRINSIC VC_EXACT_TYPE(TT, typename Vector<T>::EntryType, Vector<T>) Vector<T>::operator/(TT x) const
 {
     if (Base::HasVectorDivision) {
         return operator/(Vector<T>(x));
