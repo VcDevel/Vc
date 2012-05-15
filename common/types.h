@@ -88,7 +88,7 @@ namespace
 
     template<typename From, typename To> struct HasImplicitCast
     {
-        static yes test( To) { return yes(); }
+        static yes test(const To &) { return yes(); }
         static  no test(...) { return  no(); }
         enum {
             Value = !!(sizeof(test(*static_cast<From *>(0))) == sizeof(yes))
