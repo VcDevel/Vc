@@ -57,6 +57,7 @@ macro(vc_determine_compiler)
          # some distributions patch their GCC to be API incompatible to what the FSF released. In
          # those cases we require a macro to identify the distribution version
          find_program(_lsb_release lsb_release)
+         mark_as_advanced(_lsb_release)
          if(_lsb_release)
             execute_process(COMMAND ${_lsb_release} -is OUTPUT_VARIABLE _distributor_id OUTPUT_STRIP_TRAILING_WHITESPACE)
             execute_process(COMMAND ${_lsb_release} -rs OUTPUT_VARIABLE _distributor_release OUTPUT_STRIP_TRAILING_WHITESPACE)
