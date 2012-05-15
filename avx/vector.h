@@ -252,8 +252,8 @@ template<typename T> class Vector
         inline Vector<T> ALWAYS_INLINE_L &operator op##=(AsArg x) ALWAYS_INLINE_R; \
         inline Vector<T> ALWAYS_INLINE_L  operator op   (AsArg x) const ALWAYS_INLINE_R;
 #define OP_ENTRY(op) \
-        inline Vector<T> ALWAYS_INLINE_L &operator op##=(EntryType x) ALWAYS_INLINE_R { return operator op##=(Vector(x)); } \
-        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) ALWAYS_INLINE_L  operator op(TT x) const ALWAYS_INLINE_R { return operator op(Vector(x)); }
+        inline ALWAYS_INLINE Vector<T> &operator op##=(EntryType x) { return operator op##=(Vector(x)); } \
+        template<typename TT> inline ALWAYS_INLINE VC_EXACT_TYPE(TT, EntryType, Vector) operator op(TT x) const { return operator op(Vector(x)); }
         VC_ALL_BINARY(OP_VEC)
         VC_ALL_BINARY(OP_ENTRY)
         VC_ALL_SHIFTS(OP_VEC)
