@@ -51,6 +51,8 @@
 #  define CONST_L
 #  define CONST_R CONST
 #  define PURE __attribute__((pure))
+#  define PURE_L
+#  define PURE_R PURE
 #  define MAY_ALIAS __attribute__((may_alias))
 #  define ALWAYS_INLINE __attribute__((always_inline))
 #  define ALWAYS_INLINE_L
@@ -67,6 +69,8 @@
 #  define CONST_L
 #  define CONST_R CONST
 #  define PURE __attribute__((__pure__))
+#  define PURE_L
+#  define PURE_R PURE
 #  define MAY_ALIAS __attribute__((__may_alias__))
 #  define ALWAYS_INLINE __attribute__((__always_inline__))
 #  define ALWAYS_INLINE_L
@@ -79,7 +83,6 @@
 #  ifdef PURE
 #    undef PURE
 #  endif
-#  define PURE
 #  define MAY_ALIAS
 #  ifdef VC_MSVC
 #    define ALWAYS_INLINE __forceinline
@@ -88,6 +91,9 @@
 #    define CONST __declspec(noalias)
 #    define CONST_L CONST
 #    define CONST_R
+#    define PURE /*CONST*/
+#    define PURE_L PURE
+#    define PURE_R
 #    define INTRINSIC __forceinline
 #    define INTRINSIC_L INTRINSIC
 #    define INTRINSIC_R
@@ -98,6 +104,9 @@
 #    define CONST
 #    define CONST_L
 #    define CONST_R
+#    define PURE
+#    define PURE_L
+#    define PURE_R
 #    define INTRINSIC
 #    define INTRINSIC_L
 #    define INTRINSIC_R
