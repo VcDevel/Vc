@@ -202,6 +202,10 @@ macro(vc_set_preferred_compiler_flags)
          AddCompilerFlag("-Wimplicit")
          AddCompilerFlag("-Wold-style-cast")
          AddCompilerFlag("-Wno-variadic-macros")
+         if(Vc_GCC_VERSION VERSION_GREATER "4.5.2" AND Vc_GCC_VERSION VERSION_LESS "4.6.4")
+            # GCC gives bogus "array subscript is above array bounds" warnings in math.cpp
+            AddCompilerFlag("-Wno-array-bounds")
+         endif()
       endif()
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wabi")
       vc_add_compiler_flag(Vc_DEFINITIONS "-fabi-version=4") # this is required to make __m128 and __m256 appear as different types.
