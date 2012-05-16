@@ -118,12 +118,12 @@ namespace
     //
     // Because the HasImplicitCast specializations can only be implemented after the Vector class
     // was declared we have to write some nasty hacks.
-    template<typename T1, typename T2> struct HasImplicitCast<_Vector<T1>, _Vector<T2> > { enum { Value = false }; };
+    template<typename T1, typename T2> struct HasImplicitCast<_Vector<T1>, T2> { enum { Value = false }; };
     template<typename T> struct HasImplicitCast<_Vector<T>, _Vector<T> > { enum { Value = true }; };
-    template<> struct HasImplicitCast<_Vector<           int>, _Vector<  unsigned int>> { enum { Value = true }; };
-    template<> struct HasImplicitCast<_Vector<  unsigned int>, _Vector<           int>> { enum { Value = true }; };
-    template<> struct HasImplicitCast<_Vector<         short>, _Vector<unsigned short>> { enum { Value = true }; };
-    template<> struct HasImplicitCast<_Vector<unsigned short>, _Vector<         short>> { enum { Value = true }; };
+    //template<> struct HasImplicitCast<_Vector<           int>, _Vector<  unsigned int>> { enum { Value = true }; };
+    //template<> struct HasImplicitCast<_Vector<  unsigned int>, _Vector<           int>> { enum { Value = true }; };
+    //template<> struct HasImplicitCast<_Vector<         short>, _Vector<unsigned short>> { enum { Value = true }; };
+    //template<> struct HasImplicitCast<_Vector<unsigned short>, _Vector<         short>> { enum { Value = true }; };
 #undef _Vector
 #endif
 
