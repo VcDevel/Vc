@@ -38,6 +38,7 @@ namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
 namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
+template<typename V, size_t Size1, size_t Size2> class Memory;
 #ifdef VC_MSVC
 #  if defined(VC_IMPL_Scalar)
 namespace Scalar {
@@ -146,6 +147,8 @@ namespace
     //template<> struct HasImplicitCast<_Vector<  unsigned int>, _Vector<           int>> { enum { Value = true }; };
     //template<> struct HasImplicitCast<_Vector<         short>, _Vector<unsigned short>> { enum { Value = true }; };
     //template<> struct HasImplicitCast<_Vector<unsigned short>, _Vector<         short>> { enum { Value = true }; };
+    template<typename V, size_t Size1, size_t Size2, typename T2> struct HasImplicitCast<Vc::Memory<V, Size1, Size2>, T2> { enum { Value = false }; };
+    template<typename V, size_t Size1, size_t Size2> struct HasImplicitCast<Vc::Memory<V, Size1, Size2>, Vc::Memory<V, Size1, Size2> > { enum { Value = true }; };
 #undef _Vector
 #endif
 
