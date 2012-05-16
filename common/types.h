@@ -40,13 +40,23 @@ namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero
 
 #ifdef VC_MSVC
 #  if defined(VC_IMPL_Scalar)
-namespace Scalar { template<typename T> class Vector; }
+namespace Scalar {
+    template<typename T> class Vector;
+    template<unsigned int VectorSize> class Mask;
+}
 #define _Vector Vc::Scalar::Vector
 #  elif defined(VC_IMPL_SSE)
-namespace SSE { template<typename T> class Vector; }
+namespace SSE {
+    template<typename T> class Vector;
+    template<unsigned int VectorSize> class Mask;
+    class Float8Mask;
+}
 #define _Vector Vc::SSE::Vector
 #  elif defined(VC_IMPL_AVX)
-namespace AVX { template<typename T> class Vector; }
+namespace AVX {
+    template<typename T> class Vector;
+    template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
+}
 #define _Vector Vc::AVX::Vector
 #  else
 #    error "Sorry, MSVC is a nasty compiler and needs extra care. Please help."
@@ -119,6 +129,18 @@ namespace
     // Because the HasImplicitCast specializations can only be implemented after the Vector class
     // was declared we have to write some nasty hacks.
     template<typename T1, typename T2> struct HasImplicitCast<_Vector<T1>, T2> { enum { Value = false }; };
+#if defined(VC_IMPL_Scalar)
+    template<unsigned int VS, typename T2> struct HasImplicitCast<Vc::Scalar::Mask<VS>, T2> { enum { Value = false }; };
+    template<unsigned int VS> struct HasImplicitCast<Vc::Scalar::Mask<VS>, Vc::Scalar::Mask<VS> > { enum { Value = true }; };
+#elif defined(VC_IMPL_SSE)
+    template<unsigned int VS, typename T2> struct HasImplicitCast<Vc::SSE::Mask<VS>, T2> { enum { Value = false }; };
+    template<unsigned int VS> struct HasImplicitCast<Vc::SSE::Mask<VS>, Vc::SSE::Mask<VS> > { enum { Value = true }; };
+    template<typename T2> struct HasImplicitCast<Vc::SSE::Float8Mask, T2> { enum { Value = false }; };
+    template<> struct HasImplicitCast<Vc::SSE::Float8Mask, Vc::SSE::Float8Mask> { enum { Value = true }; };
+#elif defined(VC_IMPL_AVX)
+    template<unsigned int VectorSize, size_t RegisterWidth, typename T2> struct HasImplicitCast<Vc::AVX::Mask<VectorSize, RegisterWidth>, T2> { enum { Value = false }; };
+    template<unsigned int VectorSize, size_t RegisterWidth> struct HasImplicitCast<Vc::AVX::Mask<VectorSize, RegisterWidth>, Vc::AVX::Mask<VectorSize, RegisterWidth> > { enum { Value = true }; };
+#endif
     template<typename T> struct HasImplicitCast<_Vector<T>, _Vector<T> > { enum { Value = true }; };
     //template<> struct HasImplicitCast<_Vector<           int>, _Vector<  unsigned int>> { enum { Value = true }; };
     //template<> struct HasImplicitCast<_Vector<  unsigned int>, _Vector<           int>> { enum { Value = true }; };
