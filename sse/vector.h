@@ -310,8 +310,8 @@ class Vector : public VectorBase<T>
         template<typename TT> inline INTRINSIC_L VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) operator/(TT x) const PURE INTRINSIC_R;
 
 #define OP(symbol, fun) \
-        inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x); \
-        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const; \
+        inline Vector INTRINSIC_L &operator symbol##=(const Vector<T> &x) INTRINSIC_R; \
+        inline Vector INTRINSIC_L operator symbol(const Vector<T> &x) const PURE INTRINSIC_R; \
         inline Vector INTRINSIC &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
         template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) PURE INTRINSIC operator symbol(TT x) const { return operator symbol(Vector(x)); }
         OP(|, or_)
