@@ -26,6 +26,9 @@
 namespace Vc
 {
 
+#if __cplusplus >= 201103 || defined(VC_MSVC)
+#define VC_DECLTYPE(T1, op, T2) decltype(T1() op T2())
+#else
 namespace
 {
     struct one { char x; };
@@ -45,10 +48,6 @@ namespace
     template<typename T1, typename T2> struct Decltype<T1, T2, sizeof(one)> { typedef T1 Value; };
     template<typename T1, typename T2> struct Decltype<T1, T2, sizeof(two)> { typedef T2 Value; };
 } // anonymous namespace
-
-#if __cplusplus >= 201103
-#define VC_DECLTYPE(T1, op, T2) decltype(T1() op T2())
-#else
 #define VC_DECLTYPE(T1, op, T2) typename Decltype<T1, T2, sizeof(DecltypeHelper<T1, T2>::test(*static_cast<const T1*>(0) op *static_cast<const T2*>(0)))>::Value
 #endif
 
