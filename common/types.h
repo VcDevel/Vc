@@ -38,6 +38,20 @@ namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
 namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
+#ifdef VC_MSVC
+#  if defined(VC_IMPL_Scalar)
+namespace Scalar { template<typename T> class Vector; }
+#define _Vector Vc::Scalar::Vector
+#  elif defined(VC_IMPL_SSE)
+namespace SSE { template<typename T> class Vector; }
+#define _Vector Vc::SSE::Vector
+#  elif defined(VC_IMPL_AVX)
+namespace AVX { template<typename T> class Vector; }
+#define _Vector Vc::AVX::Vector
+#  else
+#    error "Sorry, MSVC is a nasty compiler and needs extra care. Please help."
+#  endif
+#endif
 namespace
 {
     template<bool Test, typename T = void> struct EnableIf { typedef T Value; };
@@ -94,6 +108,24 @@ namespace
             Value = !!(sizeof(test(*static_cast<From *>(0))) == sizeof(yes))
         };
     };
+
+#ifdef VC_MSVC
+    // MSVC is such a broken compiler :'(
+    // HasImplicitCast breaks if From has an __declspec(align(#)) modifier and has no implicit cast
+    // to To.  That's because it'll call test(...) as test(From) and not test(const From &).
+    // This results in C2718. And MSVC is too stupid to see that it should just shut up and
+    // everybody would be happy.
+    //
+    // Because the HasImplicitCast specializations can only be implemented after the Vector class
+    // was declared we have to write some nasty hacks.
+    template<typename T1, typename T2> struct HasImplicitCast<_Vector<T1>, _Vector<T2> > { enum { Value = false }; };
+    template<typename T> struct HasImplicitCast<_Vector<T>, _Vector<T> > { enum { Value = true }; };
+    template<> struct HasImplicitCast<_Vector<           int>, _Vector<  unsigned int>> { enum { Value = true }; };
+    template<> struct HasImplicitCast<_Vector<  unsigned int>, _Vector<           int>> { enum { Value = true }; };
+    template<> struct HasImplicitCast<_Vector<         short>, _Vector<unsigned short>> { enum { Value = true }; };
+    template<> struct HasImplicitCast<_Vector<unsigned short>, _Vector<         short>> { enum { Value = true }; };
+#undef _Vector
+#endif
 
     template<typename T> struct CanConvertToInt : public HasImplicitCast<T, int> {};
     template<> struct CanConvertToInt<bool>     { enum { Value = 0 }; };
