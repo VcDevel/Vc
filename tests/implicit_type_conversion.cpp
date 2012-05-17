@@ -75,8 +75,8 @@ typedef unsigned long long ulonglong;
 
 template<typename T>
 struct TestImplicitCast {
-    static bool test(  T) { return  true; }
-    static bool test(...) { return false; }
+    static bool test(const T &) { return  true; }
+    static bool test(   ...   ) { return false; }
 };
 
 enum SomeEnum { EnumValue = 0 };
