@@ -88,7 +88,15 @@ namespace
 
     template<typename From, typename To> struct HasImplicitCast
     {
+#ifdef VC_MSVC
+        // MSVC can't compile this code if we pass a type that has large alignment restrictions by
+        // value
+        // clang OTOH warns about this code if we pass a null-reference, thus we ifdef the const-ref
+        // for MSVC only
         static yes test(const To &) { return yes(); }
+#else
+        static yes test( To) { return yes(); }
+#endif
         static  no test(...) { return  no(); }
         enum {
             Value = !!(sizeof(test(*static_cast<From *>(0))) == sizeof(yes))
