@@ -243,7 +243,7 @@ template<typename T> class Vector
         OP(*, mul)
 #undef OP
         inline Vector &operator/=(EntryType x);
-        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) operator/(TT x) const;
+        template<typename TT> inline PURE_L VC_EXACT_TYPE(TT, EntryType, Vector) operator/(TT x) const PURE_R;
         inline Vector &operator/=(const Vector<T> &x);
         inline Vector  operator/ (const Vector<T> &x) const;
 
