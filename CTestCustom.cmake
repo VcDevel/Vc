@@ -4,7 +4,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
    "call to .*Vc::Warnings::_operator_bracket_warning.* declared with attribute warning"
    "warning is a GCC extension"
    "^-- "  # Ignore output from cmake
-   "suggest parentheses around '\\&\\&' within '\\|\\|'" # GCC 4.4 gives bogus warnings
+   "suggest parentheses around .+&&.+ within .+\\|\\|.+" # GCC 4.4 gives bogus warnings
    "^\\*\\*\\* WARNING non-zero return value in ctest from: make") # Ignore output from ctest
 
 set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
