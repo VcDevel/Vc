@@ -51,6 +51,9 @@ namespace Vc
             VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
             return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256i ALWAYS_INLINE CONST permute(__m256i x) {
+            return _mm256_castps_si256(permute<Dst0, Dst1, Dst2, Dst3>(_mm256_castsi256_ps(x)));
+        }
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256d ALWAYS_INLINE CONST shuffle(__m256d x, __m256d y) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, Incorrect_Range);
