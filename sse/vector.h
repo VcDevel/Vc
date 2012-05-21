@@ -233,19 +233,19 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
-        inline const Vector<T> INTRINSIC &dcba();
-        inline const Vector<T> INTRINSIC  cdab();
-        inline const Vector<T> INTRINSIC  badc();
-        inline const Vector<T> INTRINSIC  aaaa();
-        inline const Vector<T> INTRINSIC  bbbb();
-        inline const Vector<T> INTRINSIC  cccc();
-        inline const Vector<T> INTRINSIC  dddd();
-        inline const Vector<T> INTRINSIC  bcad();
-        inline const Vector<T> INTRINSIC  bcda();
-        inline const Vector<T> INTRINSIC  dabc();
-        inline const Vector<T> INTRINSIC  acbd();
-        inline const Vector<T> INTRINSIC  dbca();
-        inline const Vector<T> INTRINSIC  dcba();
+        inline const Vector<T> INTRINSIC_L &abcd() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  cdab() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  badc() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  aaaa() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  bbbb() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  cccc() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  dddd() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  bcad() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  bcda() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  dabc() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  acbd() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  dbca() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L  dcba() const INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // gathers
