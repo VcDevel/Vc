@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2011-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -39,6 +39,7 @@ static inline int _Vc_bit_scan_reverse_asm(unsigned int x) {
 #elif defined(VC_OPEN64)
 // TODO
 #elif defined(VC_MSVC)
+#include "windows_fix_intrin.h"
 #pragma intrinsic(_BitScanForward)
 #pragma intrinsic(_BitScanReverse)
 static inline __forceinline unsigned long _bit_scan_forward(unsigned long x) {

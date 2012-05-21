@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -30,22 +30,25 @@ template<unsigned int VectorSize = 1> class Mask
 {
     public:
         inline Mask() {}
-        inline Mask(bool b) : m(b) {}
+        inline explicit Mask(bool b) : m(b) {}
         inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
         inline explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
         inline Mask(const Mask<VectorSize> *a) : m(a[0].m) {}
 
+        inline Mask &operator=(const Mask &rhs) { m = rhs.m; return *this; }
+        inline Mask &operator=(bool rhs) { m = rhs; return *this; }
+
         inline void expand(Mask *x) { x[0].m = m; }
 
-        inline bool operator==(const Mask &rhs) const { return m == rhs.m; }
-        inline bool operator!=(const Mask &rhs) const { return m != rhs.m; }
+        inline bool operator==(const Mask &rhs) const { return Mask(m == rhs.m); }
+        inline bool operator!=(const Mask &rhs) const { return Mask(m != rhs.m); }
 
-        inline Mask operator&&(const Mask &rhs) const { return m && rhs.m; }
-        inline Mask operator& (const Mask &rhs) const { return m && rhs.m; }
-        inline Mask operator||(const Mask &rhs) const { return m || rhs.m; }
-        inline Mask operator| (const Mask &rhs) const { return m || rhs.m; }
-        inline Mask operator^ (const Mask &rhs) const { return m ^  rhs.m; }
-        inline Mask operator!() const { return !m; }
+        inline Mask operator&&(const Mask &rhs) const { return Mask(m && rhs.m); }
+        inline Mask operator& (const Mask &rhs) const { return Mask(m && rhs.m); }
+        inline Mask operator||(const Mask &rhs) const { return Mask(m || rhs.m); }
+        inline Mask operator| (const Mask &rhs) const { return Mask(m || rhs.m); }
+        inline Mask operator^ (const Mask &rhs) const { return Mask(m ^  rhs.m); }
+        inline Mask operator!() const { return Mask(!m); }
 
         inline Mask &operator&=(const Mask &rhs) { m &= rhs.m; return *this; }
         inline Mask &operator|=(const Mask &rhs) { m |= rhs.m; return *this; }
@@ -58,7 +61,9 @@ template<unsigned int VectorSize = 1> class Mask
         inline bool dataI() const { return m; }
         inline bool dataD() const { return m; }
 
+#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
         inline operator bool() const { return isFull(); }
+#endif
 
         template<unsigned int OtherSize>
             inline Mask cast() const { return *this; }

@@ -168,6 +168,14 @@ template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
                 _mm_srli_epi32(AVX::hi128(tmp), 16)));
 }
 
+template<typename A, typename MemT> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+        sfloat_v &_a, sfloat_v &_b, const MemT *m, A align)
+{
+    float_v &a = reinterpret_cast<float_v &>(_a);
+    float_v &b = reinterpret_cast<float_v &>(_b);
+    HelperImpl<Vc::AVXImpl>::deinterleave(a, b, m, align);
+}
+
 template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
         double_v &a, double_v &b, const double *m, A align)
 {

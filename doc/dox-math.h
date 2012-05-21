@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -112,7 +112,7 @@ VECTOR_TYPE max(const VECTOR_TYPE &x, const VECTOR_TYPE &y);
 /**
  * \ingroup Math
  *
- * Convert floating-point number to fractional and interal components.
+ * Convert floating-point number to fractional and integral components.
  *
  * \param x value to be split into normalized fraction and exponent
  * \param e the exponent to base 2 of \p x

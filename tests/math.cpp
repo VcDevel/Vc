@@ -33,6 +33,10 @@ using namespace Vc;
 #undef isnan
 #endif
 
+template<typename T> struct Denormals { static Vc::Memory<Vector<T>, 64> data; };
+template<> Vc::Memory<float_v, 64> Denormals<float>::data = Vc::Memory<float_v, 64>();
+template<> Vc::Memory<double_v, 64> Denormals<double>::data = Vc::Memory<double_v, 64>();
+
 template<typename V> V apply_v(V x, typename V::EntryType (func)(typename V::EntryType))
 {
     for (size_t i = 0; i < V::Size; ++i) {
@@ -55,7 +59,7 @@ template<typename V> void testFloor()
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
-    for (size_t i = 0; i < 100000; ++i) {
+    for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
         V reference = apply_v(x, std::floor);
         COMPARE(Vc::floor(x), reference) << ", x = " << x << ", i = " << i;
@@ -69,7 +73,7 @@ template<typename V> void testCeil()
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
-    for (size_t i = 0; i < 100000; ++i) {
+    for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
         V reference = apply_v(x, std::ceil);
         COMPARE(Vc::ceil(x), reference) << ", x = " << x << ", i = " << i;
@@ -79,12 +83,25 @@ template<typename V> void testCeil()
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }
 
+template<typename V> void testExp()
+{
+    setFuzzyness<float>(1);
+    setFuzzyness<double>(2);
+    typedef typename V::EntryType T;
+    for (size_t i = 0; i < 100000 / V::Size; ++i) {
+        V x = (V::Random() - T(0.5)) * T(20);
+        V reference = apply_v(x, std::exp);
+        FUZZY_COMPARE(Vc::exp(x), reference) << ", x = " << x << ", i = " << i;
+    }
+    COMPARE(Vc::exp(V::Zero()), V::One());
+}
+
 template<typename V> void testLog()
 {
     setFuzzyness<float>(1);
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 100000; ++i) {
-        V x = V::Random() * T(exp(20.)) + T(1);
+    for (size_t i = 0; i < 100000 / V::Size; ++i) {
+        V x = exp(V::Random() * T(20));
         V reference = apply_v(x, std::log);
         FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
 
@@ -93,17 +110,41 @@ template<typename V> void testLog()
         FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
     }
     COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
+    for (size_t i = 0; i < Denormals<T>::data.entriesCount(); i += V::Size) {
+        V x(&Denormals<T>::data[i]);
+        V reference = apply_v(x, std::log);
+        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
+    }
 }
 
+#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L
 static inline float my_log2(float x) { return ::log2f(x); }
+/* I need to make sure whether the log2 that I compare against is really precise to <0.5ulp. At
+ * least I get different results when I use "double log2(double)", which is somewhat unexpected.
+ * Well, conversion from double to float goes via truncation, so if the most significant truncated
+ * mantissa bit is set the resulting float is incorrect by 1 ulp
+
+static inline float my_log2(float x) { return ::log2(static_cast<double>(x)); }
+static inline float my_log2(float x) {
+    double tmp = ::log2(static_cast<double>(x));
+    int e;
+    frexp(tmp, &e); // frexp(0.5) -> e = 0
+    return tmp + ldexp(tmp < 0 ? -0.5 : 0.5, e - 24);
+}
+ */
 static inline double my_log2(double x) { return ::log2(x); }
+#else
+static inline float my_log2(float x) { return ::logf(x) / Vc::Math<float>::ln2(); }
+static inline double my_log2(double x) { return ::log(x) / Vc::Math<double>::ln2(); }
+#endif
 
 template<typename V> void testLog2()
 {
     setFuzzyness<float>(2);
+    setFuzzyness<double>(3);
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 100000; ++i) {
-        V x = V::Random() * T(pow(2., 20.)) + T(1);
+    for (size_t i = 0; i < 100000 / V::Size; ++i) {
+        V x = exp(V::Random() * T(20 * Vc::Math<double>::ln2()));
         V reference = apply_v(x, my_log2);
         FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
 
@@ -112,6 +153,11 @@ template<typename V> void testLog2()
         FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
     }
     COMPARE(Vc::log2(V::Zero()), V(my_log2(T(0))));
+    for (size_t i = 0; i < Denormals<T>::data.entriesCount(); i += V::Size) {
+        V x(&Denormals<T>::data[i]);
+        V reference = apply_v(x, my_log2);
+        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
+    }
 }
 
 template<typename V> void testLog10()
@@ -119,8 +165,8 @@ template<typename V> void testLog10()
     setFuzzyness<float>(2);
     setFuzzyness<double>(2);
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 100000; ++i) {
-        V x = V::Random() * T(pow(10., 20.)) + T(1);
+    for (size_t i = 0; i < 100000 / V::Size; ++i) {
+        V x = exp(V::Random() * T(20 * Vc::Math<double>::ln10()));
         V reference = apply_v(x, std::log10);
         FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
 
@@ -129,6 +175,11 @@ template<typename V> void testLog10()
         FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
     }
     COMPARE(Vc::log10(V::Zero()), V(std::log10(T(0))));
+    for (size_t i = 0; i < Denormals<T>::data.entriesCount(); i += V::Size) {
+        V x(&Denormals<T>::data[i]);
+        V reference = apply_v(x, std::log10);
+        FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x << ", i = " << i;
+    }
 }
 
 template<typename Vec>
@@ -178,14 +229,27 @@ template<typename V> void testRSqrt()
     }
 }
 
+
 template<typename T> void my_sincos(T x, T *sin, T *cos);
 template<> void my_sincos<double>(double x, double *sin, double *cos)
 {
+#ifdef VC_MSVC
+// no sincos on Windows
+    *sin = std::sin(x);
+    *cos = std::cos(x);
+#else
     sincos(x, sin, cos);
+#endif
 }
 template<> void my_sincos<float>(float x, float *sin, float *cos)
 {
+#ifdef VC_MSVC
+// no sincos on Windows
+    *sin = std::sin(x);
+    *cos = std::cos(x);
+#else
     sincosf(x, sin, cos);
+#endif
 }
 
 template<typename Vec> void testSincos()
@@ -276,7 +340,7 @@ template<typename Vec> void testAtan2()
 {
     typedef typename Vec::EntryType T;
     setFuzzyness<float>(3);
-    setFuzzyness<double>(1.751135e+08); // FIXME
+    setFuzzyness<double>(1.75118e+08); // FIXME
     for (int xoffset = -100; xoffset < 1000; xoffset += 10) {
         for (int yoffset = -100; yoffset < 1000; yoffset += 10) {
             FillHelperMemory(std::atan2((i + xoffset) * 0.15, (i + yoffset) * 0.15));
@@ -545,22 +609,6 @@ template<typename V> void testLdexp()
     }
 }
 
-#ifndef VC_IMPL_SSE
-template<> void testLdexp<float_v>()
-{
-    for (size_t i = 0; i < 1024 / float_v::Size; ++i) {
-        const float_v v = (float_v::Random() - 0.5f) * 1000.f;
-        int_v eI;
-        short_v eS;
-        const float_v mI = frexp(v, &eI);
-        const float_v mS = frexp(v, &eS);
-        COMPARE(mI, mS);
-        COMPARE(ldexp(mI, eI), v) << ", mI = " << mI << ", eI = " << eI;
-        COMPARE(ldexp(mS, eS), v) << ", mS = " << mS << ", eS = " << eS;
-    }
-}
-#endif
-
 #include "ulp.h"
 template<typename V> void testUlpDiff()
 {
@@ -583,7 +631,7 @@ template<typename V> void testUlpDiff()
             // of +/-1
             const V ulpDifference = ulpDiffToReference(diff, base);
             const V expectedDifference = Vc::abs(i_v);
-            const V maxUncertainty = Vc::abs(diff.exponent() - base.exponent());
+            const V maxUncertainty = Vc::abs(abs(diff).exponent() - abs(base).exponent());
 
             VERIFY(Vc::abs(ulpDifference - expectedDifference) <= maxUncertainty)
                 << ", base = " << base << ", epsilon = " << eps << ", diff = " << diff;
@@ -598,17 +646,17 @@ int main(int argc, char **argv)
 {
     initTest(argc, argv);
 
-    runTest(testFrexp<float_v>);
-    runTest(testFrexp<sfloat_v>);
-    runTest(testFrexp<double_v>);
+    Denormals<float>::data[0] = std::numeric_limits<float>::denorm_min();
+    for (size_t i = 1; i < Denormals<float>::data.entriesCount(); ++i) {
+        Denormals<float>::data[i] = Denormals<float>::data[i - 1] * 2;
+    }
+    Denormals<double>::data[0] = std::numeric_limits<double>::denorm_min();
+    for (size_t i = 1; i < Denormals<double>::data.entriesCount(); ++i) {
+        Denormals<double>::data[i] = Denormals<double>::data[i - 1] * 2;
+    }
 
-    runTest(testLdexp<float_v>);
-    runTest(testLdexp<sfloat_v>);
-    runTest(testLdexp<double_v>);
-
-    runTest(testUlpDiff<float_v>);
-    runTest(testUlpDiff<sfloat_v>);
-    runTest(testUlpDiff<double_v>);
+    testRealTypes(testFrexp);
+    testRealTypes(testLdexp);
 
     runTest(testAbs<int_v>);
     runTest(testAbs<float_v>);
@@ -616,20 +664,14 @@ int main(int argc, char **argv)
     runTest(testAbs<short_v>);
     runTest(testAbs<sfloat_v>);
 
+    testRealTypes(testUlpDiff);
+
     testRealTypes(testFloor);
     testRealTypes(testCeil);
-
-    runTest(testLog<float_v>);
-    runTest(testLog<double_v>);
-    runTest(testLog<sfloat_v>);
-
-    runTest(testLog2<float_v>);
-    runTest(testLog2<double_v>);
-    runTest(testLog2<sfloat_v>);
-
-    runTest(testLog10<float_v>);
-    runTest(testLog10<double_v>);
-    runTest(testLog10<sfloat_v>);
+    testRealTypes(testExp);
+    testRealTypes(testLog);
+    testRealTypes(testLog2);
+    testRealTypes(testLog10);
 
     runTest(testMax<int_v>);
     runTest(testMax<uint_v>);
@@ -639,49 +681,17 @@ int main(int argc, char **argv)
     runTest(testMax<ushort_v>);
     runTest(testMax<sfloat_v>);
 
-    runTest(testSqrt<float_v>);
-    runTest(testSqrt<double_v>);
-    runTest(testSqrt<sfloat_v>);
-
-    runTest(testRSqrt<float_v>);
-    runTest(testRSqrt<double_v>);
-    runTest(testRSqrt<sfloat_v>);
-
-    runTest(testSin<float_v>);
-    runTest(testSin<sfloat_v>);
-    runTest(testSin<double_v>);
-
-    runTest(testCos<float_v>);
-    runTest(testCos<sfloat_v>);
-    runTest(testCos<double_v>);
-
-    runTest(testAsin<float_v>);
-    runTest(testAsin<sfloat_v>);
-    runTest(testAsin<double_v>);
-
-    runTest(testAtan<float_v>);
-    runTest(testAtan<sfloat_v>);
-    runTest(testAtan<double_v>);
-
-    runTest(testAtan2<float_v>);
-    runTest(testAtan2<sfloat_v>);
-    runTest(testAtan2<double_v>);
-
-    runTest(testReciprocal<float_v>);
-    runTest(testReciprocal<sfloat_v>);
-    runTest(testReciprocal<double_v>);
-
-    runTest(testInf<float_v>);
-    runTest(testInf<double_v>);
-    runTest(testInf<sfloat_v>);
-
-    runTest(testNaN<float_v>);
-    runTest(testNaN<double_v>);
-    runTest(testNaN<sfloat_v>);
-
-    runTest(testRound<float_v>);
-    runTest(testRound<double_v>);
-    runTest(testRound<sfloat_v>);
+    testRealTypes(testSqrt);
+    testRealTypes(testRSqrt);
+    testRealTypes(testSin);
+    testRealTypes(testCos);
+    testRealTypes(testAsin);
+    testRealTypes(testAtan);
+    testRealTypes(testAtan2);
+    testRealTypes(testReciprocal);
+    testRealTypes(testInf);
+    testRealTypes(testNaN);
+    testRealTypes(testRound);
 
     runTest(testReduceMin<float_v>);
     runTest(testReduceMin<sfloat_v>);
@@ -715,13 +725,8 @@ int main(int argc, char **argv)
     runTest(testReduceSum<short_v>);
     runTest(testReduceSum<ushort_v>);
 
-    runTest(testSincos<float_v>);
-    runTest(testSincos<sfloat_v>);
-    runTest(testSincos<double_v>);
-
-    runTest(testExponent<float_v>);
-    runTest(testExponent<sfloat_v>);
-    runTest(testExponent<double_v>);
+    testRealTypes(testSincos);
+    testRealTypes(testExponent);
 
     return 0;
 }

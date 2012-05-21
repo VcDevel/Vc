@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -21,9 +21,43 @@
 #define VC_COMMON_MEMORYBASE_H
 
 #include <assert.h>
+#include "macros.h"
 
 namespace Vc
 {
+
+#if __cplusplus >= 201103 || defined(VC_MSVC)
+#define VC_DECLTYPE(T1, op, T2) decltype(T1() op T2())
+#else
+namespace
+{
+    struct one { char x; };
+    struct two { one x, y; };
+    template<typename T1, typename T2> struct DecltypeHelper
+    {
+        static one test(const T1 &) { return one(); }
+        static two test(const T2 &) { return two(); }
+        //static void test(...) {}
+    };
+    template<typename T1> struct DecltypeHelper<T1, T1>
+    {
+        static one test(const T1 &) { return one(); }
+        //static void test(...) {}
+    };
+    template<typename T1, typename T2, size_t ToSelect> struct Decltype { typedef T1 Value; };
+    template<typename T1, typename T2> struct Decltype<T1, T2, sizeof(one)> { typedef T1 Value; };
+    template<typename T1, typename T2> struct Decltype<T1, T2, sizeof(two)> { typedef T2 Value; };
+} // anonymous namespace
+#define VC_DECLTYPE(T1, op, T2) typename Decltype<T1, T2, sizeof(DecltypeHelper<T1, T2>::test(*static_cast<const T1*>(0) op *static_cast<const T2*>(0)))>::Value
+#endif
+
+#define VC_MEM_OPERATOR_EQ(op) \
+        template<typename T> \
+        inline VectorPointerHelper<V, A> &operator op##=(const T &x) { \
+            const V result = V(m_ptr, Internal::FlagObject<A>::the()) op x; \
+            result.store(m_ptr, Internal::FlagObject<A>::the()); \
+            return *this; \
+        }
 
 /**
  * Helper class for the Memory::vector(size_t) class of functions.
@@ -37,9 +71,10 @@ template<typename V, typename A> class VectorPointerHelperConst
 {
     typedef typename V::EntryType EntryType;
     typedef typename V::Mask Mask;
-    const EntryType *const m_ptr;
     public:
-        VectorPointerHelperConst(const EntryType *ptr) : m_ptr(ptr) {}
+        const EntryType *const m_ptr;
+
+        explicit VectorPointerHelperConst(const EntryType *ptr) : m_ptr(ptr) {}
 
         /**
          * Cast to \p V operator.
@@ -47,16 +82,6 @@ template<typename V, typename A> class VectorPointerHelperConst
          * This function allows to assign this object to any object of type \p V.
          */
         inline operator const V() const { return V(m_ptr, Internal::FlagObject<A>::the()); }
-        inline V operator+(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) + v; }
-        inline V operator-(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) - v; }
-        inline V operator/(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) / v; }
-        inline V operator*(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) * v; }
-        inline Mask operator==(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) == v; }
-        inline Mask operator!=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) != v; }
-        inline Mask operator<=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <= v; }
-        inline Mask operator>=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >= v; }
-        inline Mask operator< (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <  v; }
-        inline Mask operator> (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >  v; }
 };
 
 /**
@@ -71,9 +96,10 @@ template<typename V, typename A> class VectorPointerHelper
 {
     typedef typename V::EntryType EntryType;
     typedef typename V::Mask Mask;
-    EntryType *const m_ptr;
     public:
-        VectorPointerHelper(EntryType *ptr) : m_ptr(ptr) {}
+        EntryType *const m_ptr;
+
+        explicit VectorPointerHelper(EntryType *ptr) : m_ptr(ptr) {}
 
         /**
          * Cast to \p V operator.
@@ -82,41 +108,28 @@ template<typename V, typename A> class VectorPointerHelper
          */
         inline operator const V() const { return V(m_ptr, Internal::FlagObject<A>::the()); }
 
-        inline VectorPointerHelper &operator=(const V &v) {
+        template<typename T>
+        inline VectorPointerHelper &operator=(const T &x) {
+            V v;
+            v = x;
             v.store(m_ptr, Internal::FlagObject<A>::the());
             return *this;
         }
-        inline VectorPointerHelper &operator+=(const V &v) {
-            V result = V(m_ptr, Internal::FlagObject<A>::the()) + v;
-            result.store(m_ptr, Internal::FlagObject<A>::the());
-            return *this;
-        }
-        inline VectorPointerHelper &operator-=(const V &v) {
-            V result = V(m_ptr, Internal::FlagObject<A>::the()) - v;
-            result.store(m_ptr, Internal::FlagObject<A>::the());
-            return *this;
-        }
-        inline VectorPointerHelper &operator*=(const V &v) {
-            V result = V(m_ptr, Internal::FlagObject<A>::the()) * v;
-            result.store(m_ptr, Internal::FlagObject<A>::the());
-            return *this;
-        }
-        inline VectorPointerHelper &operator/=(const V &v) {
-            V result = V(m_ptr, Internal::FlagObject<A>::the()) / v;
-            result.store(m_ptr, Internal::FlagObject<A>::the());
-            return *this;
-        }
-        inline V operator+(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) + v; }
-        inline V operator-(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) - v; }
-        inline V operator*(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) * v; }
-        inline V operator/(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) / v; }
-        inline Mask operator==(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) == v; }
-        inline Mask operator!=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) != v; }
-        inline Mask operator<=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <= v; }
-        inline Mask operator>=(const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >= v; }
-        inline Mask operator< (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) <  v; }
-        inline Mask operator> (const V &v) const { return V(m_ptr, Internal::FlagObject<A>::the()) >  v; }
+
+        VC_ALL_BINARY(VC_MEM_OPERATOR_EQ)
+        VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ)
 };
+#undef VC_MEM_OPERATOR_EQ
+
+#define VC_VPH_OPERATOR(op) \
+template<typename V1, typename A1, typename V2, typename A2> \
+VC_DECLTYPE(V1, op, V2) operator op(const VectorPointerHelper<V1, A1> &x, const VectorPointerHelper<V2, A2> &y) { \
+    return V1(x.m_ptr, Internal::FlagObject<A1>::the()) op V2(y.m_ptr, Internal::FlagObject<A2>::the()); \
+}
+VC_ALL_ARITHMETICS(VC_VPH_OPERATOR)
+VC_ALL_BINARY     (VC_VPH_OPERATOR)
+VC_ALL_COMPARES   (VC_VPH_OPERATOR)
+#undef VC_VPH_OPERATOR
 
 template<typename V, typename Parent, int Dimension, typename RowMemory> class MemoryDimensionBase;
 template<typename V, typename Parent, typename RowMemory> class MemoryDimensionBase<V, Parent, 1, RowMemory> // {{{1
@@ -281,14 +294,18 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * access memory at fixed strides. If access to known offsets from the aligned vectors is
          * needed the vector(size_t, int) function can be used.
          */
-        inline VectorPointerHelper<V, AlignedFlag> vector(size_t i) { return &entries()[i * V::Size]; }
+        inline VectorPointerHelper<V, AlignedFlag> vector(size_t i) {
+            return VectorPointerHelper<V, AlignedFlag>(&entries()[i * V::Size]);
+        }
         /** \brief Const overload of the above function
          *
          * \param i Selects the offset, where the vector should be read.
          *
          * \return a smart object to wrap the \p i-th vector in the memory.
          */
-        inline const VectorPointerHelperConst<V, AlignedFlag> vector(size_t i) const { return &entries()[i * V::Size]; }
+        inline const VectorPointerHelperConst<V, AlignedFlag> vector(size_t i) const {
+            return VectorPointerHelperConst<V, AlignedFlag>(&entries()[i * V::Size]);
+        }
 
         /**
          * \return a smart object to wrap the vector starting from the \p i-th scalar entry in the memory.
@@ -325,12 +342,20 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         template<typename A> inline const VectorPointerHelperConst<V, A> vectorAt(size_t i, A align = Vc::Aligned) const;
 #else
         template<typename A>
-        inline VectorPointerHelper<V, A> vectorAt(size_t i, A) { return &entries()[i]; }
+        inline VectorPointerHelper<V, A> vectorAt(size_t i, A) {
+            return VectorPointerHelper<V, A>(&entries()[i]);
+        }
         template<typename A>
-        inline const VectorPointerHelperConst<V, A> vectorAt(size_t i, A) const { return &entries()[i]; }
+        inline const VectorPointerHelperConst<V, A> vectorAt(size_t i, A) const {
+            return VectorPointerHelperConst<V, A>(&entries()[i]);
+        }
 
-        inline VectorPointerHelper<V, AlignedFlag> vectorAt(size_t i) { return &entries()[i]; }
-        inline const VectorPointerHelperConst<V, AlignedFlag> vectorAt(size_t i) const { return &entries()[i]; }
+        inline VectorPointerHelper<V, AlignedFlag> vectorAt(size_t i) {
+            return VectorPointerHelper<V, AlignedFlag>(&entries()[i]);
+        }
+        inline const VectorPointerHelperConst<V, AlignedFlag> vectorAt(size_t i) const {
+            return VectorPointerHelperConst<V, AlignedFlag>(&entries()[i]);
+        }
 #endif
 
         /**
@@ -360,27 +385,39 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * mem.vector(0, i) += 1;
          * \endcode
          */
-        inline VectorPointerHelper<V, UnalignedFlag> vector(size_t i, int shift) { return &entries()[i * V::Size + shift]; }
+        inline VectorPointerHelper<V, UnalignedFlag> vector(size_t i, int shift) {
+            return VectorPointerHelper<V, UnalignedFlag>(&entries()[i * V::Size + shift]);
+        }
         /// Const overload of the above function.
-        inline const VectorPointerHelperConst<V, UnalignedFlag> vector(size_t i, int shift) const { return &entries()[i * V::Size + shift]; }
+        inline const VectorPointerHelperConst<V, UnalignedFlag> vector(size_t i, int shift) const {
+            return VectorPointerHelperConst<V, UnalignedFlag>(&entries()[i * V::Size + shift]);
+        }
 
         /**
          * \return the first vector in the allocated memory.
          *
          * This function is simply a shorthand for vector(0).
          */
-        inline VectorPointerHelper<V, AlignedFlag> firstVector() { return entries(); }
+        inline VectorPointerHelper<V, AlignedFlag> firstVector() {
+            return VectorPointerHelper<V, AlignedFlag>(entries());
+        }
         /// Const overload of the above function.
-        inline const VectorPointerHelperConst<V, AlignedFlag> firstVector() const { return entries(); }
+        inline const VectorPointerHelperConst<V, AlignedFlag> firstVector() const {
+            return VectorPointerHelperConst<V, AlignedFlag>(entries());
+        }
 
         /**
          * \return the last vector in the allocated memory.
          *
          * This function is simply a shorthand for vector(vectorsCount() - 1).
          */
-        inline VectorPointerHelper<V, AlignedFlag> lastVector() { return &entries()[vectorsCount() * V::Size - V::Size]; }
+        inline VectorPointerHelper<V, AlignedFlag> lastVector() {
+            return VectorPointerHelper<V, AlignedFlag>(&entries()[vectorsCount() * V::Size - V::Size]);
+        }
         /// Const overload of the above function.
-        inline const VectorPointerHelperConst<V, AlignedFlag> lastVector() const { return &entries()[vectorsCount() * V::Size - V::Size]; }
+        inline const VectorPointerHelperConst<V, AlignedFlag> lastVector() const {
+            return VectorPointerHelperConst<V, AlignedFlag>(&entries()[vectorsCount() * V::Size - V::Size]);
+        }
 
         inline V gather(const unsigned char  *indexes) const { return V(entries(), indexes); }
         inline V gather(const unsigned short *indexes) const { return V(entries(), indexes); }
@@ -517,5 +554,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
 };
 
 } // namespace Vc
+
+#include "undomacros.h"
 
 #endif // VC_COMMON_MEMORYBASE_H

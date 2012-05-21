@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2011 Matthias Kretz <kretz@kde.org>
 
     Permission to use, copy, modify, and distribute this software
     and its documentation for any purpose and without fee is hereby
@@ -26,8 +26,7 @@
 #include <QtCore/QtDebug>
 #include "tsc.h"
 
-#include <Vc/float_v>
-#include <Vc/uint_v>
+#include <Vc/vector.h>
 
 using Vc::float_v;
 using Vc::float_m;
@@ -160,14 +159,14 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
     typedef MyComplex<float_v> Z;
     const unsigned int height = image.height();
     const unsigned int width = image.width();
-    const float_v colorScale = 0xff / static_cast<float>(maxIt);
+    const float_v colorScale(0xff / static_cast<float>(maxIt));
     for (unsigned int y = 0; y < height; ++y) {
         unsigned int *VC_RESTRICT line = reinterpret_cast<unsigned int *>(image.scanLine(y));
-        const float_v c_imag = y0 + y * scale;
+        const float_v c_imag(y0 + y * scale);
         uint_m toStore;
         for (uint_v x = uint_v::IndexesFromZero(); !(toStore = x < width).isEmpty();
                 x += float_v::Size) {
-            const float_v c_real = x0 + static_cast<float_v>(x) * scale;
+            const float_v c_real(x0 + x * scale);
             Z z(c_real, c_imag);
             float_v n = float_v::Zero();
             float_m inside = z.norm() < S;

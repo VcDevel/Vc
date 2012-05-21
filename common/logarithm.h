@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -54,12 +54,19 @@ namespace Vc
 namespace Common
 {
 #ifdef VC__USE_NAMESPACE
-    using Vc::VC__USE_NAMESPACE::c_log;
-    using Vc::VC__USE_NAMESPACE::Vector;
+using Vc::VC__USE_NAMESPACE::Const;
+using Vc::VC__USE_NAMESPACE::Vector;
 #endif
-    template<typename T> static inline ALWAYS_INLINE void log_series(Vector<T> &VC_RESTRICT x, const Vector<T> exponent) {
+enum LogarithmBase {
+    BaseE, Base10, Base2
+};
+
+template<LogarithmBase Base>
+struct LogImpl
+{
+    template<typename T> static inline ALWAYS_INLINE void log_series(Vector<T> &VC_RESTRICT x, typename Vector<T>::AsArg exponent) {
         typedef Vector<T> V;
-        typedef c_log<T, typename V::Mask> C;
+        typedef Const<T> C;
         // Taylor series around x = 2^exponent
         //   f(x) = ln(x)   → exponent * ln(2) → C::ln2_small + C::ln2_large
         //  f'(x) =    x⁻¹  →  x               → 1
@@ -131,15 +138,37 @@ namespace Common
                 );
         y *= x * x2;
 #endif
-        // ln(2) is split in two parts to increase precision (i.e. ln2_small + ln2_large = ln(2))
-        y += exponent * C::ln2_small();
-        y -= x2 * C::_1_2(); // [0, 0.25[
-        x += y;
-        x += exponent * C::ln2_large();
+        switch (Base) {
+        case BaseE:
+            // ln(2) is split in two parts to increase precision (i.e. ln2_small + ln2_large = ln(2))
+            y += exponent * C::ln2_small();
+            y -= x2 * C::_1_2(); // [0, 0.25[
+            x += y;
+            x += exponent * C::ln2_large();
+            break;
+        case Base10:
+            y += exponent * C::ln2_small();
+            y -= x2 * C::_1_2(); // [0, 0.25[
+            x += y;
+            x += exponent * C::ln2_large();
+            x *= C::log10_e();
+            break;
+        case Base2:
+            {
+                const V x_ = x;
+                x *= C::log2_e();
+                y *= C::log2_e();
+                y -= x_ * x * C::_1_2(); // [0, 0.25[
+                x += y;
+                x += exponent;
+                break;
+            }
+        }
     }
-    template<> inline ALWAYS_INLINE void log_series<double>(Vector<double> &VC_RESTRICT x, const Vector<double> exponent) {
+
+    static inline ALWAYS_INLINE void log_series(Vector<double> &VC_RESTRICT x, Vector<double>::AsArg exponent) {
         typedef Vector<double> V;
-        typedef c_log<double, V::Mask> C;
+        typedef Const<double> C;
         const V x2 = x * x;
         V y = C::P(0);
         V y2 = C::Q(0) + x;
@@ -149,21 +178,48 @@ namespace Common
                 );
         y2 = x / y2;
         y = y * x + C::P(5);
-        y = x2 * y * y2 + exponent * C::ln2_small() - x2 * C::_1_2();
-        x += y;
-        x += exponent * C::ln2_large();
+        y = x2 * y * y2;
+        // TODO: refactor the following with the float implementation:
+        switch (Base) {
+        case BaseE:
+            // ln(2) is split in two parts to increase precision (i.e. ln2_small + ln2_large = ln(2))
+            y += exponent * C::ln2_small();
+            y -= x2 * C::_1_2(); // [0, 0.25[
+            x += y;
+            x += exponent * C::ln2_large();
+            break;
+        case Base10:
+            y += exponent * C::ln2_small();
+            y -= x2 * C::_1_2(); // [0, 0.25[
+            x += y;
+            x += exponent * C::ln2_large();
+            x *= C::log10_e();
+            break;
+        case Base2:
+            {
+                const V x_ = x;
+                x *= C::log2_e();
+                y *= C::log2_e();
+                y -= x_ * x * C::_1_2(); // [0, 0.25[
+                x += y;
+                x += exponent;
+                break;
+            }
+        }
     }
-    template<typename T> static inline Vector<T> log(Vector<T> x) {
+
+    template<typename T> static inline Vector<T> calc(Vector<T> x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
-        typedef c_log<T, M> C;
+        typedef Const<T> C;
 
         const M invalidMask = x < V::Zero();
         const M infinityMask = x == V::Zero();
+        const M denormal = x <= C::min();
 
-        x = max(x, C::min()); // lazy: cut off denormalized numbers
-
+        x(denormal) *= V(Vc_buildDouble(1, 0, 54)); // 2²⁵
         V exponent = x.exponent(); // = ⎣log₂(x)⎦
+        exponent(denormal) -= 54;
 
         x.setZero(C::exponentMask()); // keep only the fractional part ⇒ x ∈ [1, 2[
         x |= C::_1_2();               // and set the exponent to 2⁻¹   ⇒ x ∈ [½, 1[
@@ -186,18 +242,23 @@ namespace Common
 
         return x;
     }
-    template<typename T> static inline Vector<T> log10(Vector<T> x) {
-        typedef typename Vector<T>::Mask M;
-        typedef c_log<T, M> C;
+};
 
-        return log(x) * C::log10_e();
-    }
-    template<typename T> static inline Vector<T> log2(Vector<T> x) {
-        typedef typename Vector<T>::Mask M;
-        typedef c_log<T, M> C;
-
-        return log(x) * C::log2_e();
-    }
+template<typename T> static inline Vector<T> log(Vector<T> x) {
+    typedef typename Vector<T>::Mask M;
+    typedef Const<T> C;
+    return LogImpl<BaseE>::calc(x);
+}
+template<typename T> static inline Vector<T> log10(Vector<T> x) {
+    typedef typename Vector<T>::Mask M;
+    typedef Const<T> C;
+    return LogImpl<Base10>::calc(x);
+}
+template<typename T> static inline Vector<T> log2(Vector<T> x) {
+    typedef typename Vector<T>::Mask M;
+    typedef Const<T> C;
+    return LogImpl<Base2>::calc(x);
+}
 } // namespace Common
 #ifdef VC__USE_NAMESPACE
 namespace VC__USE_NAMESPACE

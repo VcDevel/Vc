@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -51,6 +51,8 @@
 #  define CONST_L
 #  define CONST_R CONST
 #  define PURE __attribute__((pure))
+#  define PURE_L
+#  define PURE_R PURE
 #  define MAY_ALIAS __attribute__((may_alias))
 #  define ALWAYS_INLINE __attribute__((always_inline))
 #  define ALWAYS_INLINE_L
@@ -67,6 +69,8 @@
 #  define CONST_L
 #  define CONST_R CONST
 #  define PURE __attribute__((__pure__))
+#  define PURE_L
+#  define PURE_R PURE
 #  define MAY_ALIAS __attribute__((__may_alias__))
 #  define ALWAYS_INLINE __attribute__((__always_inline__))
 #  define ALWAYS_INLINE_L
@@ -79,7 +83,6 @@
 #  ifdef PURE
 #    undef PURE
 #  endif
-#  define PURE
 #  define MAY_ALIAS
 #  ifdef VC_MSVC
 #    define ALWAYS_INLINE __forceinline
@@ -88,6 +91,9 @@
 #    define CONST __declspec(noalias)
 #    define CONST_L CONST
 #    define CONST_R
+#    define PURE /*CONST*/
+#    define PURE_L PURE
+#    define PURE_R
 #    define INTRINSIC __forceinline
 #    define INTRINSIC_L INTRINSIC
 #    define INTRINSIC_R
@@ -98,6 +104,9 @@
 #    define CONST
 #    define CONST_L
 #    define CONST_R
+#    define PURE
+#    define PURE_L
+#    define PURE_R
 #    define INTRINSIC
 #    define INTRINSIC_L
 #    define INTRINSIC_R
@@ -107,19 +116,13 @@
 #  define VC_RESTRICT __restrict
 #endif
 
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+#ifdef VC_GCC
 # define VC_WARN_INLINE
 # define VC_WARN(msg) __attribute__((warning("\n\t" msg)))
 #else
 # define VC_WARN_INLINE inline
 # define VC_WARN(msg)
 #endif
-
-#define CAT_HELPER(a, b) a##b
-#define CAT(a, b) CAT_HELPER(a, b)
-
-#define CAT3_HELPER(a, b, c) a##b##c
-#define CAT3(a, b, c) CAT3_HELPER(a, b, c)
 
 #define unrolled_loop16(_it_, _start_, _end_, _code_) \
 if (_start_ +  0 < _end_) { enum { _it_ = (_start_ +  0) < _end_ ? (_start_ +  0) : _start_ }; _code_ } \
@@ -143,23 +146,10 @@ do {} while ( false )
 #define for_all_vector_entries(_it_, _code_) \
   unrolled_loop16(_it_, 0, Size, _code_)
 
-#ifndef _VC_STATIC_ASSERT_TYPES_H
-#define _VC_STATIC_ASSERT_TYPES_H
-namespace Vc {
-    namespace {
-        template<bool> class STATIC_ASSERT_FAILURE;
-        template<> class STATIC_ASSERT_FAILURE<true> {};
-}}
-#endif // _VC_STATIC_ASSERT_TYPES_H
-
-#define VC_STATIC_ASSERT_NC(cond, msg) \
-    typedef STATIC_ASSERT_FAILURE<cond> CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__); \
-    CAT(_STATIC_ASSERTION_FAILED_##msg, __LINE__) CAT3(Error_,__LINE__,msg)
-#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg); (void) CAT3(Error_,__LINE__,msg)
-
 #ifdef NDEBUG
 #define VC_ASSERT(x)
 #else
+#include <assert.h>
 #define VC_ASSERT(x) assert(x);
 #endif
 
@@ -168,5 +158,127 @@ namespace Vc {
 #else
 #define VC_HAS_BUILTIN(x) 0
 #endif
+
+#ifndef VC_COMMON_MACROS_H_ONCE
+#define VC_COMMON_MACROS_H_ONCE
+
+#define _VC_CAT_HELPER(a, b, c, d) a##b##c##d
+#define _VC_CAT(a, b, c, d) _VC_CAT_HELPER(a, b, c, d)
+
+#if __cplusplus >= 201103 /*C++11*/ || VC_MSVC >= 160000000
+#define VC_STATIC_ASSERT_NC(cond, msg) \
+    static_assert(cond, #msg)
+#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg)
+#else // C++98
+namespace Vc {
+    namespace {
+        template<bool> struct STATIC_ASSERT_FAILURE;
+        template<> struct STATIC_ASSERT_FAILURE<true> {};
+}}
+
+#define VC_STATIC_ASSERT_NC(cond, msg) \
+    typedef STATIC_ASSERT_FAILURE<cond> _VC_CAT(static_assert_failed_on_line_,__LINE__,_,msg); \
+    enum { \
+        _VC_CAT(static_assert_failed__on_line_,__LINE__,_,msg) = sizeof(_VC_CAT(static_assert_failed_on_line_,__LINE__,_,msg)) \
+    }
+#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg)
+#endif // C++11/98
+
+    template<int e, int center> struct exponentToMultiplier { enum {
+        X = exponentToMultiplier<e - 1, center>::X * ((e - center < 31) ? 2 : 1),
+        Value = (X == 0 ? 1 : X)
+    }; };
+    template<int center> struct exponentToMultiplier<center,center> { enum { X = 1, Value = X }; };
+    template<int center> struct exponentToMultiplier<   -1, center> { enum { X = 0 }; };
+    template<int center> struct exponentToMultiplier< -256, center> { enum { X = 0 }; };
+    template<int center> struct exponentToMultiplier< -512, center> { enum { X = 0 }; };
+    template<int center> struct exponentToMultiplier<-1024, center> { enum { X = 0 }; };
+
+    template<int e> struct exponentToDivisor { enum {
+        X = exponentToDivisor<e + 1>::X * 2,
+      Value = (X == 0 ? 1 : X)
+    }; };
+    template<> struct exponentToDivisor<0> { enum { X = 1, Value = X }; };
+    template<> struct exponentToDivisor<256> { enum { X = 0 }; };
+    template<> struct exponentToDivisor<512> { enum { X = 0 }; };
+    template<> struct exponentToDivisor<1024> { enum { X = 0 }; };
+#endif // VC_COMMON_MACROS_H_ONCE
+
+#define _CAT_IMPL(a, b) a##b
+#define CAT(a, b) _CAT_IMPL(a, b)
+
+#define Vc_buildDouble(sign, mantissa, exponent) \
+    ((static_cast<double>((mantissa & 0x000fffffffffffffull) | 0x0010000000000000ull) / 0x0010000000000000ull) \
+    * exponentToMultiplier<exponent, 0>::Value \
+    * exponentToMultiplier<exponent, 30>::Value \
+    * exponentToMultiplier<exponent, 60>::Value \
+    * exponentToMultiplier<exponent, 90>::Value \
+    / exponentToDivisor<exponent>::Value \
+    * static_cast<double>(sign))
+#define Vc_buildFloat(sign, mantissa, exponent) \
+    ((static_cast<float>((mantissa & 0x007fffffu) | 0x00800000) / 0x00800000) \
+    * exponentToMultiplier<exponent, 0>::Value \
+    * exponentToMultiplier<exponent, 30>::Value \
+    * exponentToMultiplier<exponent, 60>::Value \
+    * exponentToMultiplier<exponent, 90>::Value \
+    / exponentToDivisor<exponent>::Value \
+    * static_cast<float>(sign))
+
+#define _VC_APPLY_IMPL_1(macro, a, b, c, d, e) macro(a)
+#define _VC_APPLY_IMPL_2(macro, a, b, c, d, e) macro(a, b)
+#define _VC_APPLY_IMPL_3(macro, a, b, c, d, e) macro(a, b, c)
+#define _VC_APPLY_IMPL_4(macro, a, b, c, d, e) macro(a, b, c, d)
+#define _VC_APPLY_IMPL_5(macro, a, b, c, d, e) macro(a, b, c, d, e)
+
+#define VC_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
+    size(macro, double_v, a, b, c, d) \
+    size(macro,  float_v, a, b, c, d) \
+    size(macro, sfloat_v, a, b, c, d)
+#define VC_LIST_VECTOR_TYPES(size, macro, a, b, c, d) \
+    VC_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
+    size(macro,    int_v, a, b, c, d) \
+    size(macro,   uint_v, a, b, c, d) \
+    size(macro,  short_v, a, b, c, d) \
+    size(macro, ushort_v, a, b, c, d)
+#define VC_LIST_COMPARES(size, macro, a, b, c, d) \
+    size(macro, ==, a, b, c, d) \
+    size(macro, !=, a, b, c, d) \
+    size(macro, <=, a, b, c, d) \
+    size(macro, >=, a, b, c, d) \
+    size(macro, < , a, b, c, d) \
+    size(macro, > , a, b, c, d)
+#define VC_LIST_LOGICAL(size, macro, a, b, c, d) \
+    size(macro, &&, a, b, c, d) \
+    size(macro, ||, a, b, c, d)
+#define VC_LIST_BINARY(size, macro, a, b, c, d) \
+    size(macro, |, a, b, c, d) \
+    size(macro, &, a, b, c, d) \
+    size(macro, ^, a, b, c, d)
+#define VC_LIST_SHIFTS(size, macro, a, b, c, d) \
+    size(macro, <<, a, b, c, d) \
+    size(macro, >>, a, b, c, d)
+#define VC_LIST_ARITHMETICS(size, macro, a, b, c, d) \
+    size(macro, +, a, b, c, d) \
+    size(macro, -, a, b, c, d) \
+    size(macro, *, a, b, c, d) \
+    size(macro, /, a, b, c, d) \
+    size(macro, %, a, b, c, d)
+
+#define VC_APPLY_0(_list, macro)             _list(_VC_APPLY_IMPL_1, macro, 0, 0, 0, 0)
+#define VC_APPLY_1(_list, macro, a)          _list(_VC_APPLY_IMPL_2, macro, a, 0, 0, 0)
+#define VC_APPLY_2(_list, macro, a, b)       _list(_VC_APPLY_IMPL_3, macro, a, b, 0, 0)
+#define VC_APPLY_3(_list, macro, a, b, c)    _list(_VC_APPLY_IMPL_4, macro, a, b, c, 0)
+#define VC_APPLY_4(_list, macro, a, b, c, d) _list(_VC_APPLY_IMPL_5, macro, a, b, c, d)
+
+#define VC_ALL_COMPARES(macro)     VC_APPLY_0(VC_LIST_COMPARES, macro)
+#define VC_ALL_LOGICAL(macro)      VC_APPLY_0(VC_LIST_LOGICAL, macro)
+#define VC_ALL_BINARY(macro)       VC_APPLY_0(VC_LIST_BINARY, macro)
+#define VC_ALL_SHIFTS(macro)       VC_APPLY_0(VC_LIST_SHIFTS, macro)
+#define VC_ALL_ARITHMETICS(macro)  VC_APPLY_0(VC_LIST_ARITHMETICS, macro)
+#define VC_ALL_FLOAT_VECTOR_TYPES(macro) VC_APPLY_0(VC_LIST_FLOAT_VECTOR_TYPES, macro)
+#define VC_ALL_VECTOR_TYPES(macro) VC_APPLY_0(VC_LIST_VECTOR_TYPES, macro)
+
+#define VC_EXACT_TYPE(_test, _reference, _type) \
+    typename EnableIf<IsEqualType<_test, _reference>::Value, _type>::Value
 
 #endif // VC_COMMON_MACROS_H

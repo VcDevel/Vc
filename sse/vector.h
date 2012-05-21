@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -47,6 +47,7 @@ class WriteMaskedVector
 {
     friend class Vector<T>;
     typedef typename VectorBase<T>::MaskType Mask;
+    typedef typename Vector<T>::EntryType EntryType;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
         //prefix
@@ -90,13 +91,28 @@ class WriteMaskedVector
             vec->data() = VectorHelper<T>::mul(vec->data(), x.data(), mask.data());
             return *vec;
         }
-        inline INTRINSIC Vector<T> &operator/=(const Vector<T> &x) {
-            vec->data() = VectorHelper<T>::div(vec->data(), x.data(), mask.data());
-            return *vec;
+        inline INTRINSIC CONST Vector<T> &operator/=(const Vector<T> &x);
+
+        inline INTRINSIC Vector<T> &operator+=(EntryType x) {
+            return operator+=(Vector<T>(x));
+        }
+        inline INTRINSIC Vector<T> &operator-=(EntryType x) {
+            return operator-=(Vector<T>(x));
+        }
+        inline INTRINSIC Vector<T> &operator*=(EntryType x) {
+            return operator*=(Vector<T>(x));
+        }
+        inline INTRINSIC Vector<T> &operator/=(EntryType x) {
+            return operator/=(Vector<T>(x));
         }
 
         inline INTRINSIC Vector<T> &operator=(const Vector<T> &x) {
             vec->assign(x, mask);
+            return *vec;
+        }
+
+        inline INTRINSIC Vector<T> &operator=(EntryType x) {
+            vec->assign(Vector<T>(x), mask);
             return *vec;
         }
 
@@ -116,6 +132,7 @@ class WriteMaskedVector
 template<typename T>
 class Vector : public VectorBase<T>
 {
+    friend class WriteMaskedVector<T>;
     protected:
         typedef VectorBase<T> Base;
         using Base::d;
@@ -125,15 +142,15 @@ class Vector : public VectorBase<T>
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
-        enum { Size = Base::Size };
+        enum Constants { Size = Base::Size };
         typedef typename Base::VectorType VectorType;
         typedef typename Base::EntryType  EntryType;
         typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
         typedef typename Base::MaskType Mask;
-	typedef typename Mask::Argument MaskArg;
+        typedef typename Mask::Argument MaskArg;
         typedef Vc::Memory<Vector<T>, Size> Memory;
 
-	typedef typename Base::AsArg AsArg;
+        typedef typename Base::AsArg AsArg;
 
         typedef T _T;
 
@@ -159,10 +176,18 @@ class Vector : public VectorBase<T>
         // static_cast / copy ctor
         template<typename OtherT> explicit inline INTRINSIC_L Vector(const Vector<OtherT> &x) INTRINSIC_R;
 
+        // implicit cast
+        template<typename OtherT> inline INTRINSIC_L Vector &operator=(const Vector<OtherT> &x) INTRINSIC_R;
+
+        // copy assignment
+        inline Vector &operator=(AsArg v) { d.v() = v.d.v(); return *this; }
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
-        Vector(EntryType a);
+        explicit Vector(EntryType a);
+        template<typename TT> inline INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : Base(HT::set(x)) {}
         static inline Vector INTRINSIC broadcast4(const EntryType *x) { return Vector<T>(x); }
+        inline Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
@@ -197,7 +222,7 @@ class Vector : public VectorBase<T>
         inline void INTRINSIC_L setZero(const Mask &k) INTRINSIC_R;
 
         inline void INTRINSIC_L setQnan() INTRINSIC_R;
-        inline void INTRINSIC_L setQnan(Mask k) INTRINSIC_R;
+        inline void INTRINSIC_L setQnan(typename Mask::Argument k) INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
@@ -263,7 +288,7 @@ class Vector : public VectorBase<T>
         inline Vector INTRINSIC operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
         inline Common::AliasingEntryHelper<EntryType> INTRINSIC operator[](size_t index) {
-#if defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 3
+#if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
             ::Vc::Warnings::_operator_bracket_warning();
 #endif
             return Base::d.m(index);
@@ -275,7 +300,9 @@ class Vector : public VectorBase<T>
 
 #define OP(symbol, fun) \
         inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
-        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); }
+        inline Vector INTRINSIC &operator symbol##=(EntryType x) { return operator symbol##=(Vector<T>(x)); } \
+        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const { return HT::fun(data(), x.data()); } \
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) PURE INTRINSIC operator symbol(TT x) const { return operator symbol(Vector(x)); }
 
         OP(+, add)
         OP(-, sub)
@@ -285,17 +312,20 @@ class Vector : public VectorBase<T>
         inline INTRINSIC_L Vector &operator/=(const Vector<T> &x) INTRINSIC_R;
         inline INTRINSIC_L Vector  operator/ (const Vector<T> &x) const PURE INTRINSIC_R;
         inline INTRINSIC_L Vector &operator/=(EntryType x) INTRINSIC_R;
-        inline INTRINSIC_L Vector  operator/ (EntryType x) const PURE INTRINSIC_R;
+        template<typename TT> inline INTRINSIC_L VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) operator/(TT x) const PURE INTRINSIC_R;
 
 #define OP(symbol, fun) \
-        inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x); \
-        inline Vector PURE INTRINSIC operator symbol(const Vector<T> &x) const;
+        inline Vector INTRINSIC_L &operator symbol##=(const Vector<T> &x) INTRINSIC_R; \
+        inline Vector INTRINSIC_L operator symbol(const Vector<T> &x) const PURE INTRINSIC_R; \
+        inline Vector INTRINSIC &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) PURE INTRINSIC operator symbol(TT x) const { return operator symbol(Vector(x)); }
         OP(|, or_)
         OP(&, and_)
         OP(^, xor_)
 #undef OP
 #define OPcmp(symbol, fun) \
-        inline Mask PURE INTRINSIC operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data(), x.data()); }
+        inline Mask PURE INTRINSIC operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data(), x.data()); } \
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Mask) PURE INTRINSIC operator symbol(TT x) const { return operator symbol(Vector(x)); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -381,7 +411,7 @@ class Vector : public VectorBase<T>
             return r;
         }
 
-        inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;
+        inline INTRINSIC_L Vector copySign(typename Vector::AsArg reference) const INTRINSIC_R;
         inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };
 
@@ -392,6 +422,13 @@ typedef Vector<int>            int_v;
 typedef Vector<unsigned int>   uint_v;
 typedef Vector<short>          short_v;
 typedef Vector<unsigned short> ushort_v;
+typedef double_v::Mask double_m;
+typedef float_v::Mask float_m;
+typedef sfloat_v::Mask sfloat_m;
+typedef int_v::Mask int_m;
+typedef uint_v::Mask uint_m;
+typedef short_v::Mask short_m;
+typedef ushort_v::Mask ushort_m;
 
 template<> inline Vector<float8> Vector<float8>::broadcast4(const float *x) {
     const _M128 &v = VectorHelper<_M128>::load(x, Aligned);
@@ -400,23 +437,26 @@ template<> inline Vector<float8> Vector<float8>::broadcast4(const float *x) {
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 
-template<typename T> inline Vector<T> INTRINSIC operator+(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator+(x); }
-template<typename T> inline Vector<T> INTRINSIC operator*(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return v.operator*(x); }
-template<typename T> inline Vector<T> INTRINSIC operator-(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) - v; }
-template<typename T> inline Vector<T> INTRINSIC operator/(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) / v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator< (const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) <  v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator<=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) <= v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator> (const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) >  v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator>=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) >= v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator==(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) == v; }
-template<typename T> inline typename Vector<T>::Mask INTRINSIC operator!=(const typename Vector<T>::EntryType &x, const Vector<T> &v) { return Vector<T>(x) != v; }
+static inline int_v    min(const int_v    &x, const int_v    &y) { return _mm_min_epi32(x.data(), y.data()); }
+static inline uint_v   min(const uint_v   &x, const uint_v   &y) { return _mm_min_epu32(x.data(), y.data()); }
+static inline short_v  min(const short_v  &x, const short_v  &y) { return _mm_min_epi16(x.data(), y.data()); }
+static inline ushort_v min(const ushort_v &x, const ushort_v &y) { return _mm_min_epu16(x.data(), y.data()); }
+static inline float_v  min(const float_v  &x, const float_v  &y) { return _mm_min_ps(x.data(), y.data()); }
+static inline double_v min(const double_v &x, const double_v &y) { return _mm_min_pd(x.data(), y.data()); }
+static inline int_v    max(const int_v    &x, const int_v    &y) { return _mm_max_epi32(x.data(), y.data()); }
+static inline uint_v   max(const uint_v   &x, const uint_v   &y) { return _mm_max_epu32(x.data(), y.data()); }
+static inline short_v  max(const short_v  &x, const short_v  &y) { return _mm_max_epi16(x.data(), y.data()); }
+static inline ushort_v max(const ushort_v &x, const ushort_v &y) { return _mm_max_epu16(x.data(), y.data()); }
+static inline float_v  max(const float_v  &x, const float_v  &y) { return _mm_max_ps(x.data(), y.data()); }
+static inline double_v max(const double_v &x, const double_v &y) { return _mm_max_pd(x.data(), y.data()); }
 
-  template<typename T> static inline Vector<T> min  (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::min(x.data(), y.data()); }
-  template<typename T> static inline Vector<T> max  (const Vector<T> &x, const Vector<T> &y) { return VectorHelper<T>::max(x.data(), y.data()); }
-  template<typename T> static inline Vector<T> min  (const Vector<T> &x, const typename Vector<T>::EntryType &y) { return min(x.data(), Vector<T>(y).data()); }
-  template<typename T> static inline Vector<T> max  (const Vector<T> &x, const typename Vector<T>::EntryType &y) { return max(x.data(), Vector<T>(y).data()); }
-  template<typename T> static inline Vector<T> min  (const typename Vector<T>::EntryType &x, const Vector<T> &y) { return min(Vector<T>(x).data(), y.data()); }
-  template<typename T> static inline Vector<T> max  (const typename Vector<T>::EntryType &x, const Vector<T> &y) { return max(Vector<T>(x).data(), y.data()); }
+static inline sfloat_v min(const sfloat_v &x, const sfloat_v &y) {
+    return M256::create(_mm_min_ps(x.data()[0], y.data()[0]), _mm_min_ps(x.data()[1], y.data()[1]));
+}
+static inline sfloat_v max(const sfloat_v &x, const sfloat_v &y) {
+    return M256::create(_mm_max_ps(x.data()[0], y.data()[0]), _mm_max_ps(x.data()[1], y.data()[1]));
+}
+
   template<typename T> static inline Vector<T> sqrt (const Vector<T> &x) { return VectorHelper<T>::sqrt(x.data()); }
   template<typename T> static inline Vector<T> rsqrt(const Vector<T> &x) { return VectorHelper<T>::rsqrt(x.data()); }
   template<typename T> static inline Vector<T> abs  (const Vector<T> &x) { return VectorHelper<T>::abs(x.data()); }
@@ -427,7 +467,7 @@ template<typename T> inline typename Vector<T>::Mask INTRINSIC operator!=(const 
   template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
 #include "forceToRegisters.tcc"
-#ifdef __GNUC__
+#ifdef VC_GNU_ASM
 template<>
 inline void ALWAYS_INLINE forceToRegisters(const Vector<float8> &x1) {
   __asm__ __volatile__(""::"x"(x1.data()[0]), "x"(x1.data()[1]));
@@ -438,8 +478,6 @@ template<>
 inline void ALWAYS_INLINE forceToRegisters(const Vector<float8> &/*x1*/) {
 }
 #endif
-
-#undef STORE_VECTOR
 } // namespace SSE
 } // namespace Vc
 

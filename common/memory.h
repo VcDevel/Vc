@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -68,7 +68,7 @@ inline void ALWAYS_INLINE free(T *p)
 
 template<typename V, size_t Size> struct _MemorySizeCalculation
 {
-    enum {
+    enum AlignmentCalculations {
         Alignment = V::Size,
         AlignmentMask = Alignment - 1,
         MaskedSize = Size & AlignmentMask,
@@ -95,7 +95,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
         typedef MemoryBase<V, Memory<V, Size1, Size2>, 2, Memory<V, Size2> > Base;
             friend class MemoryBase<V, Memory<V, Size1, Size2>, 2, Memory<V, Size2> >;
             friend class MemoryDimensionBase<V, Memory<V, Size1, Size2>, 2, Memory<V, Size2> >;
-            enum {
+            enum InternalConstants {
                 PaddedSize2 = _MemorySizeCalculation<V, Size2>::PaddedSize
             };
 #if defined(VC_ICC) && defined(_WIN32)
@@ -106,7 +106,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
             EntryType m_mem[Size1][PaddedSize2];
         public:
             using Base::vector;
-            enum {
+            enum Constants {
                 RowCount = Size1,
                 VectorsCount = PaddedSize2 / V::Size
             };
@@ -218,7 +218,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
             typedef MemoryBase<V, Memory<V, Size, 0u>, 1, void> Base;
             friend class MemoryBase<V, Memory<V, Size, 0u>, 1, void>;
             friend class MemoryDimensionBase<V, Memory<V, Size, 0u>, 1, void>;
-            enum {
+            enum InternalConstants {
                 Alignment = V::Size,
                 AlignmentMask = Alignment - 1,
                 MaskedSize = Size & AlignmentMask,
@@ -233,7 +233,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
             EntryType m_mem[PaddedSize];
         public:
             using Base::vector;
-            enum {
+            enum Constants {
                 EntriesCount = Size,
                 VectorsCount = PaddedSize / V::Size
             };
@@ -322,7 +322,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
             typedef MemoryBase<V, Memory<V>, 1, void> Base;
             friend class MemoryBase<V, Memory<V>, 1, void>;
             friend class MemoryDimensionBase<V, Memory<V>, 1, void>;
-        enum {
+        enum InternalConstants {
             Alignment = V::Size,
             AlignmentMask = Alignment - 1
         };
@@ -386,7 +386,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
         /**
          * Frees the memory which was allocated in the constructor.
          */
-        inline ~Memory()
+        inline ALWAYS_INLINE ~Memory()
         {
             Vc::free(m_mem);
         }

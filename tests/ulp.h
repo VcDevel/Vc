@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library. {{{
 
-    Copyright (C) 2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2011-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -22,6 +22,10 @@
 
 #include <Vc/Vc>
 #include <Vc/limits>
+
+#ifdef VC_MSVC
+template<typename T> static inline bool isnan(T x) { return _isnan(x); }
+#endif
 
 template<typename T> static inline T ulpDiffToReference(T val, T ref)
 {
@@ -50,9 +54,7 @@ template<typename T> static inline T ulpDiffToReferenceSigned(T val, T ref)
 }
 
 template<typename T> struct _Ulp_ExponentVector { typedef Vc::int_v Type; };
-#ifdef VC_IMPL_SSE
 template<> struct _Ulp_ExponentVector<Vc::sfloat_v> { typedef Vc::short_v Type; };
-#endif
 
 template<typename _T> static inline Vc::Vector<_T> ulpDiffToReference(const Vc::Vector<_T> &_val, const Vc::Vector<_T> &_ref)
 {

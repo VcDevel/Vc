@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -29,6 +29,7 @@
 #include <cmath>
 #include "../common/support.h"
 #include "ulp.h"
+#include <typeinfo>
 
 #define _expand(name) #name
 #define runTest(name) _unit_test_global.runTestInt(&name, _expand(name))
@@ -209,6 +210,7 @@ template<> inline bool unittest_compareHelper<Vc::float_v, Vc::float_v>( const V
 template<> inline bool unittest_compareHelper<Vc::double_v, Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b ) { return (a == b).isFull(); }
 template<> inline bool unittest_compareHelper<Vc::ushort_v, Vc::ushort_v>( const Vc::ushort_v &a, const Vc::ushort_v &b ) { return (a == b).isFull(); }
 template<> inline bool unittest_compareHelper<Vc::short_v, Vc::short_v>( const Vc::short_v &a, const Vc::short_v &b ) { return (a == b).isFull(); }
+template<> inline bool unittest_compareHelper<std::type_info, std::type_info>(const std::type_info &a, const std::type_info &b ) { return &a == &b; }
 
 template<typename T> T ulpDiffToReferenceWrapper(T a, T b) {
     const T diff = ulpDiffToReference(a, b);
@@ -231,11 +233,9 @@ template<> inline bool unittest_fuzzyCompareHelper<float>( const float &a, const
 template<> inline bool unittest_fuzzyCompareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b ) {
     return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness;
 }
-#if VC_IMPL_SSE
 template<> inline bool unittest_fuzzyCompareHelper<Vc::sfloat_v>( const Vc::sfloat_v &a, const Vc::sfloat_v &b ) {
     return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness;
 }
-#endif
 template<> inline bool unittest_fuzzyCompareHelper<double>( const double &a, const double &b ) {
     return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.double_fuzzyness;
 }
@@ -270,7 +270,7 @@ class _UnitTest_Compare
         enum OptionNoEq { NoEq };
 
         template<typename T1, typename T2>
-        inline _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line)
+        inline ALWAYS_INLINE _UnitTest_Compare(const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file, int _line)
             : m_failed(!unittest_compareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -283,7 +283,7 @@ class _UnitTest_Compare
         }
 
         template<typename T1, typename T2>
-        inline _UnitTest_Compare(T1 a, T2 b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
+        inline ALWAYS_INLINE _UnitTest_Compare(const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
             : m_failed(!unittest_compareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -296,7 +296,7 @@ class _UnitTest_Compare
         }
 
         template<typename T>
-        inline _UnitTest_Compare(T a, T b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
+        inline ALWAYS_INLINE _UnitTest_Compare(const T &a, const T &b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
             : m_failed(!unittest_fuzzyCompareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -312,7 +312,7 @@ class _UnitTest_Compare
             }
         }
 
-        inline _UnitTest_Compare(bool good, const char *cond, const char *_file, int _line)
+        inline ALWAYS_INLINE _UnitTest_Compare(bool good, const char *cond, const char *_file, int _line)
             : m_failed(!good)
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -322,7 +322,7 @@ class _UnitTest_Compare
             }
         }
 
-        inline _UnitTest_Compare(const char *_file, int _line)
+        inline ALWAYS_INLINE _UnitTest_Compare(const char *_file, int _line)
             : m_failed(true)
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -379,6 +379,7 @@ class _UnitTest_Compare
         }
         static void printFirst() { std::cout << _unittest_fail() << "┍ "; }
         template<typename T> static void print(const T &x) { std::cout << x; }
+        static void print(const std::type_info &x) { std::cout << x.name(); }
         static void print(const char *str) {
             const char *pos = 0;
             if (0 != (pos = std::strchr(str, '\n'))) {
@@ -431,47 +432,43 @@ template<> inline void _UnitTest_Compare::printFuzzyInfo(float a, float b) {
 template<> inline void _UnitTest_Compare::printFuzzyInfo(double a, double b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.double_fuzzyness);
 }
-template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::float_v a, Vc::float_v b) {
+template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::float_v::AsArg a, Vc::float_v::AsArg b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
 }
-template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::double_v a, Vc::double_v b) {
+template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::double_v::AsArg a, Vc::double_v::AsArg b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.double_fuzzyness);
 }
-#ifdef VC_IMPL_SSE
-template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::sfloat_v a, Vc::sfloat_v b) {
+template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::sfloat_v::AsArg a, Vc::sfloat_v::AsArg b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
 }
-#endif
 template<typename T> inline void _UnitTest_Compare::writePlotData(std::fstream &, T, T) {}
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, float a, float b) {
-    file << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
+    file << std::setprecision(12) << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
 }
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, double a, double b) {
-    file << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
+    file << std::setprecision(12) << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
 }
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::float_v a, Vc::float_v b) {
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::float_v::AsArg a, Vc::float_v::AsArg b) {
     const Vc::float_v ref = b;
     const Vc::float_v dist = ulpDiffToReferenceSigned(a, b);
     for (size_t i = 0; i < Vc::float_v::Size; ++i) {
-        file << ref[i] << "\t" << dist[i] << "\n";
+        file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::double_v a, Vc::double_v b) {
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::double_v::AsArg a, Vc::double_v::AsArg b) {
     const Vc::double_v ref = b;
     const Vc::double_v dist = ulpDiffToReferenceSigned(a, b);
     for (size_t i = 0; i < Vc::double_v::Size; ++i) {
-        file << ref[i] << "\t" << dist[i] << "\n";
+        file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
-#ifdef VC_IMPL_SSE
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::sfloat_v a, Vc::sfloat_v b) {
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::sfloat_v::AsArg a, Vc::sfloat_v::AsArg b) {
     const Vc::sfloat_v ref = b;
     const Vc::sfloat_v dist = ulpDiffToReferenceSigned(a, b);
     for (size_t i = 0; i < Vc::sfloat_v::Size; ++i) {
-        file << ref[i] << "\t" << dist[i] << "\n";
+        file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
-#endif
 #undef ALWAYS_INLINE
 
 // Workaround for clang: The "<< ' '" is only added to silence the warnings about unused return

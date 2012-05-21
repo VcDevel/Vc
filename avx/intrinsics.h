@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,19 +20,41 @@
 #ifndef VC_AVX_INTRINSICS_H
 #define VC_AVX_INTRINSICS_H
 
+#include "../common/windows_fix_intrin.h"
+
 // AVX
 #include <immintrin.h>
 
+#if defined(VC_CLANG) && VC_CLANG < 0x30100
+// _mm_permute_ps is broken: http://llvm.org/bugs/show_bug.cgi?id=12401
+#undef _mm_permute_ps
+#define _mm_permute_ps(A, C) __extension__ ({ \
+  __m128 __A = (A); \
+  (__m128)__builtin_shufflevector((__v4sf)__A, (__v4sf) _mm_setzero_ps(), \
+                                   (C) & 0x3, ((C) & 0xc) >> 2, \
+                                   ((C) & 0x30) >> 4, ((C) & 0xc0) >> 6); })
+#endif
+
 #include <Vc/global.h>
-#include "const.h"
+#include "const_data.h"
 #include "macros.h"
 #include <cstdlib>
+
+#if defined(VC_CLANG) || defined(VC_MSVC) || (defined(VC_GCC) && !defined(__OPTIMIZE__))
+#define VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
+#endif
+
+#if defined(VC_CLANG) && VC_CLANG <= 0x30000
+// _mm_alignr_epi8 doesn't specify its return type, thus breaking overload resolution
+#undef _mm_alignr_epi8
+#define _mm_alignr_epi8(a, b, n) ((__m128i)__builtin_ia32_palignr128((a), (b), (n)))
+#endif
 
 namespace Vc
 {
 namespace AVX
 {
-#if defined(__GNUC__) && !defined(NVALGRIND)
+#if defined(VC_GNU_ASM) && !defined(NVALGRIND)
     static inline __m128i CONST _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
 #else
     static inline __m128i CONST _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
@@ -47,14 +69,14 @@ namespace AVX
     static inline __m128i CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
     static inline __m128i CONST _mm_setone_epi32()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
 
-#if defined(__GNUC__) && !defined(NVALGRIND)
-    static inline __m256i CONST _mm256_setallone() { __m256i r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
+#if defined(VC_GNU_ASM) && !defined(NVALGRIND)
+    static inline __m256 CONST _mm256_setallone() { __m256 r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
 #else
-    static inline __m256i CONST _mm256_setallone() { __m256 r = _mm256_setzero_ps(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
+    static inline __m256 CONST _mm256_setallone() { __m256 r = _mm256_setzero_ps(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
 #endif
-    static inline __m256i CONST _mm256_setallone_si256() { return _mm256_setallone(); }
-    static inline __m256d CONST _mm256_setallone_pd() { return _mm256_castsi256_pd(_mm256_setallone()); }
-    static inline __m256  CONST _mm256_setallone_ps() { return _mm256_castsi256_ps(_mm256_setallone()); }
+    static inline __m256i CONST _mm256_setallone_si256() { return _mm256_castps_si256(_mm256_setallone()); }
+    static inline __m256d CONST _mm256_setallone_pd() { return _mm256_castps_pd(_mm256_setallone()); }
+    static inline __m256  CONST _mm256_setallone_ps() { return _mm256_setallone(); }
 
     static inline __m256i CONST _mm256_setone_epi8 ()  { return _mm256_set1_epi8(1); }
     static inline __m256i CONST _mm256_setone_epu8 ()  { return _mm256_setone_epi8(); }
@@ -80,9 +102,15 @@ namespace AVX
     static inline __m256i CONST _mm256_setmin_epi16() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
     static inline __m256i CONST _mm256_setmin_epi32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
 
+#ifdef VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
+#define _mm_extract_epu8 _mm_extract_epi8
+#define _mm_extract_epu16 _mm_extract_epi16
+#define _mm_extract_epu32 _mm_extract_epi32
+#else
     static inline unsigned char INTRINSIC CONST _mm_extract_epu8(__m128i x, const int i) { return _mm_extract_epi8(x, i); }
     static inline unsigned short INTRINSIC CONST _mm_extract_epu16(__m128i x, const int i) { return _mm_extract_epi16(x, i); }
     static inline unsigned int INTRINSIC CONST _mm_extract_epu32(__m128i x, const int i) { return _mm_extract_epi32(x, i); }
+#endif
 
     /////////////////////// COMPARE OPS ///////////////////////
     static inline __m256d INTRINSIC CONST _mm256_cmpeq_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_EQ_OQ); }
@@ -136,16 +164,29 @@ namespace AVX
         __m128i r1 = _mm_##name(a1, i); \
         return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
     }
-#define AVX_TO_SSE_1i_si128_si256(name) \
-    static inline __m256i INTRINSIC CONST _mm256_##name##_si256(__m256i a0, const int i) { \
-        __m128i a1 = _mm256_extractf128_si256(a0, 1); \
-        __m128i r0 = _mm_##name##_si128(_mm256_castsi256_si128(a0), i); \
-        __m128i r1 = _mm_##name##_si128(a1, i); \
-        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
-    }
 
-    AVX_TO_SSE_1i_si128_si256(srli)
-    AVX_TO_SSE_1i_si128_si256(slli)
+#ifdef VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
+#   define _mm256_srli_si256(a, i) \
+        _mm256_insertf128_si256( \
+                _mm256_castsi128_si256(_mm_srli_si128(_mm256_castsi256_si128((a)), i)), \
+                _mm_srli_si128(_mm256_extractf128_si256((a), 1), i), 1);
+#   define _mm256_slli_si256(a, i) \
+        _mm256_insertf128_si256( \
+                _mm256_castsi128_si256( _mm_slli_si128(_mm256_castsi256_si128((a)), i)), \
+                _mm_slli_si128(_mm256_extractf128_si256((a), 1), i), 1);
+#else
+    static inline __m256i INTRINSIC CONST _mm256_srli_si256(__m256i a0, const int i) {
+        const __m128i r0 = _mm_srli_si128(_mm256_castsi256_si128(a0), i);
+        const __m128i r1 = _mm_srli_si128(_mm256_extractf128_si256(a0, 1), i);
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1);
+    }
+    static inline __m256i INTRINSIC CONST _mm256_slli_si256(__m256i a0, const int i) {
+        const __m128i r0 = _mm_slli_si128(_mm256_castsi256_si128(a0), i);
+        const __m128i r1 = _mm_slli_si128(_mm256_extractf128_si256(a0, 1), i);
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1);
+    }
+#endif
+
     static inline __m256i INTRINSIC CONST _mm256_and_si256(__m256i x, __m256i y) {
         return _mm256_castps_si256(_mm256_and_ps(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
     }
@@ -253,7 +294,7 @@ namespace AVX
     AVX_TO_SSE_1(abs_epi8)
     AVX_TO_SSE_1(abs_epi16)
     AVX_TO_SSE_1(abs_epi32)
-#if defined(__GNUC__) && defined(__OPTIMIZE__)
+#if !defined(VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT)
     __m256i inline INTRINSIC CONST _mm256_blend_epi16(__m256i a0, __m256i b0, const int m) {
         __m128i a1 = _mm256_extractf128_si256(a0, 1);
         __m128i b1 = _mm256_extractf128_si256(b0, 1);
@@ -288,7 +329,11 @@ namespace AVX
     AVX_TO_SSE_2(max_epu32)
     AVX_TO_SSE_2(mullo_epi32)
     AVX_TO_SSE_2(mul_epi32)
+#if !defined(VC_CLANG) || VC_CLANG > 0x30100
+    // clang is missing _mm_minpos_epu16 from smmintrin.h
+    // http://llvm.org/bugs/show_bug.cgi?id=12399
     AVX_TO_SSE_1(minpos_epu16)
+#endif
     AVX_TO_SSE_1(cvtepi8_epi32)
     AVX_TO_SSE_1(cvtepi16_epi32)
     AVX_TO_SSE_1(cvtepi8_epi64)
@@ -331,27 +376,22 @@ namespace AVX
                 _mm_cmpgt_epi32(_mm256_extractf128_si256(a, 1), _mm256_extractf128_si256(b, 1)), 1);
     }
 
-#if defined(VC_GCC) && (VC_GCC > 0x40502 || (VC_GCC == 0x40502 && defined(__GNUC_UBUNTU_VERSION__) && __GNUC_UBUNTU_VERSION__ == 0xb0409))
-// GCC 4.6.0 / 4.5.3 switched to the broken interface as defined by ICC
-// Ubuntu 11.04 ships a GCC 4.5.2 with the new interface
-#define VC_MASKSTORE_MASK_TYPE_IS_INT 1
-#endif
         static inline void INTRINSIC _mm256_maskstore(float *mem, const __m256 mask, const __m256 v) {
-#ifdef VC_MASKSTORE_MASK_TYPE_IS_INT
+#ifndef VC_MM256_MASKSTORE_WRONG_MASK_TYPE
             _mm256_maskstore_ps(mem, _mm256_castps_si256(mask), v);
 #else
             _mm256_maskstore_ps(mem, mask, v);
 #endif
         }
         static inline void INTRINSIC _mm256_maskstore(double *mem, const __m256d mask, const __m256d v) {
-#ifdef VC_MASKSTORE_MASK_TYPE_IS_INT
+#ifndef VC_MM256_MASKSTORE_WRONG_MASK_TYPE
             _mm256_maskstore_pd(mem, _mm256_castpd_si256(mask), v);
 #else
             _mm256_maskstore_pd(mem, mask, v);
 #endif
         }
         static inline void INTRINSIC _mm256_maskstore(int *mem, const __m256i mask, const __m256i v) {
-#ifdef VC_MASKSTORE_MASK_TYPE_IS_INT
+#ifndef VC_MM256_MASKSTORE_WRONG_MASK_TYPE
             _mm256_maskstore_ps(reinterpret_cast<float *>(mem), mask, _mm256_castsi256_ps(v));
 #else
             _mm256_maskstore_ps(reinterpret_cast<float *>(mem), _mm256_castsi256_ps(mask), _mm256_castsi256_ps(v));

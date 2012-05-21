@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -197,11 +197,12 @@ template<typename Vec> void testMulAdd()
 
 template<typename Vec> void testMulSub()
 {
+    typedef typename Vec::EntryType T;
     for (unsigned int i = 0; i < 0xffff; ++i) {
-        const Vec i2(i * i - i);
-        Vec a(i);
+        const T j = static_cast<T>(i);
+        const Vec test(j);
 
-        FUZZY_COMPARE(a * a - i, i2);
+        FUZZY_COMPARE(test * test - test, Vec(j * j - j));
     }
 }
 

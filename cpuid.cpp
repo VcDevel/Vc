@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2011-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -17,8 +17,10 @@
 
 */
 
-#include "cpuid.h"
+#include <Vc/cpuid.h>
 
+namespace Vc
+{
 CpuId::uint   CpuId::s_ecx0 = 0;
 CpuId::uint   CpuId::s_logicalProcessors = 0;
 CpuId::uint   CpuId::s_processorFeaturesC = 0;
@@ -496,8 +498,6 @@ void CpuId::interpret(uchar byte, bool *checkLeaf4)
         break;
     }
 }
-
-static int _Global_CpuId_Initializer() { CpuId::init(); return 0; }
-static int _Global_CpuId_Initializer_Data = _Global_CpuId_Initializer();
+} // namespace Vc
 
 // vim: sw=4 sts=4 et tw=100

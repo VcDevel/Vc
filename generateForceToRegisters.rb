@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-puts '#ifdef __GNUC__'
+puts '#ifdef VC_GNU_ASM'
 
 1.upto 8 do |max|
 	print 'template<'

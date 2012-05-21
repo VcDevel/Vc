@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -23,7 +23,6 @@
 #include "intrinsics.h"
 #include "types.h"
 #include "casts.h"
-#include "const.h"
 
 namespace Vc
 {
@@ -38,14 +37,18 @@ namespace SSE
         friend struct VectorHelperSize<unsigned short>;
         friend struct VectorHelperSize<float8>;
         friend struct GeneralHelpers;
+        friend class WriteMaskedVector<T>;
         public:
-            enum { Size = 16 / sizeof(T) };
+            enum Constants {
+                Size = 16 / sizeof(T),
+                HasVectorDivision = 0
+            };
             typedef _M128I VectorType;
             typedef T EntryType;
             typedef VectorBase<typename IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
-#if defined VC_MSVC && defined _WIN32
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const Vector<T> &AsArg;
 #else
             typedef Vector<T> AsArg;
@@ -66,7 +69,6 @@ namespace SSE
 
             inline VectorBase(VectorType x) : d(x) {}
         protected:
-            enum { HasVectorDivision = 0 };
             inline VectorBase() {}
 
             typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
@@ -88,8 +90,12 @@ namespace SSE
         friend struct VectorHelperSize<float8>;
         friend struct VectorHelperSize<float>;
         friend struct GeneralHelpers;
+        friend class WriteMaskedVector<float8>;
         public:
-            enum { Size = 8 };
+            enum Constants {
+                Size = 8,
+                HasVectorDivision = 1
+            };
             typedef M256 VectorType;
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
@@ -97,7 +103,7 @@ namespace SSE
             typedef Float8GatherMask GatherMaskType;
 
             typedef ParameterHelper<VectorType>::ByValue ByValue;
-#if defined VC_MSVC && defined _WIN32
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const Vector<float8> &AsArg;
 #else
             typedef Vector<float8> AsArg;
@@ -107,7 +113,6 @@ namespace SSE
             const VectorType &data() const { return d.v(); }
 
         protected:
-            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(ByValue x) : d(x) {}
 
@@ -118,14 +123,18 @@ namespace SSE
     template<> class VectorBase<float> {
         friend struct VectorHelperSize<float>;
         friend struct GeneralHelpers;
+        friend class WriteMaskedVector<float>;
         public:
-            enum { Size = 16 / sizeof(float) };
+            enum Constants {
+                Size = 16 / sizeof(float),
+                HasVectorDivision = 1
+            };
             typedef _M128 VectorType;
             typedef float EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
-#if defined VC_MSVC && defined _WIN32
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const Vector<float> &AsArg;
 #else
             typedef Vector<float> AsArg;
@@ -135,7 +144,6 @@ namespace SSE
             const VectorType &data() const { return d.v(); }
 
         protected:
-            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 
@@ -146,14 +154,18 @@ namespace SSE
     template<> class VectorBase<double> {
         friend struct VectorHelperSize<double>;
         friend struct GeneralHelpers;
+        friend class WriteMaskedVector<double>;
         public:
-            enum { Size = 16 / sizeof(double) };
+            enum Constants {
+                Size = 16 / sizeof(double),
+                HasVectorDivision = 1
+            };
             typedef _M128D VectorType;
             typedef double EntryType;
             typedef VectorBase<IndexTypeHelper<Size>::Type> IndexType;
             typedef Mask<Size> MaskType;
             typedef MaskType GatherMaskType;
-#if defined VC_MSVC && defined _WIN32
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const Vector<double> &AsArg;
 #else
             typedef Vector<double> AsArg;
@@ -163,7 +175,6 @@ namespace SSE
             const VectorType &data() const { return d.v(); }
 
         protected:
-            enum { HasVectorDivision = 1 };
             inline VectorBase() {}
             inline VectorBase(VectorType x) : d(x) {}
 

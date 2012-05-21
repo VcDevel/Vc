@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -51,7 +51,7 @@ template<unsigned int VectorSize> class Mask
     friend class Float8Mask;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
-        
+
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
         // Also Float8Mask requires const ref on MSVC 32bit.
 #if defined VC_MSVC && defined _WIN32
@@ -126,7 +126,9 @@ template<unsigned int VectorSize> class Mask
 #endif
         }
 
+#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
         inline operator bool() const { return isFull(); }
+#endif
 
         inline int CONST_L shiftMask() const CONST_R;
 
@@ -161,7 +163,7 @@ struct ForeachHelper
     inline bool outer() const { return mask != 0; }
     inline bool inner() { return (brk = !brk); }
     inline _long next() {
-#ifdef __GNUC__ // the compiler understands inline asm
+#ifdef VC_GNU_ASM
         const _long bit = __builtin_ctzl(mask);
         __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
 #elif defined(_WIN64)
@@ -297,7 +299,7 @@ template<> inline int Mask<16>::count() const
 
 class Float8Mask
 {
-    enum {
+    enum Constants {
         PartialSize = 4,
         VectorSize = 8
     };
@@ -418,7 +420,9 @@ class Float8Mask
 #endif
         }
 
+#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
         inline operator bool() const { return isFull(); }
+#endif
 
         inline int shiftMask() const {
             return (_mm_movemask_ps(k[1]) << 4) + _mm_movemask_ps(k[0]);

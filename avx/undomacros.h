@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,8 +20,6 @@
 #ifndef VC_AVX_UNDOMACROS_H
 #define VC_AVX_UNDOMACROS_H
 #undef VC_AVX_MACROS_H
-
-#undef STORE_VECTOR
 
 #endif // VC_AVX_UNDOMACROS_H
 

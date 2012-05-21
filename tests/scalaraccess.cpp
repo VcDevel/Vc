@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -48,11 +48,11 @@ inline void readsConstantIndexTest(const V a, const V b)
     {
         const T x = a[Index];
         const T zero = 0;
-        COMPARE(x, zero);
+        COMPARE(x, zero) << Index;
     }{
         const T x = b[Index];
         const T y = Index;
-        COMPARE(x, y);
+        COMPARE(x, y) << Index;
     }
 }
 

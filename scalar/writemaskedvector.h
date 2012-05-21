@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -28,14 +28,15 @@ namespace Scalar
 template<typename T> class WriteMaskedVector
 {
     friend class Vector<T>;
-    typedef bool Mask;
+    typedef typename Vector<T>::Mask Mask;
+    typedef typename Vector<T>::EntryType EntryType;
     public:
         //prefix
         inline Vector<T> &operator++() { if (mask) ++vec->m_data; return *vec; }
         inline Vector<T> &operator--() { if (mask) --vec->m_data; return *vec; }
         //postfix
-        inline Vector<T> operator++(int) { if (mask) return vec->m_data++; return *vec; }
-        inline Vector<T> operator--(int) { if (mask) return vec->m_data--; return *vec; }
+        inline Vector<T> operator++(int) { if (mask) vec->m_data++; return *vec; }
+        inline Vector<T> operator--(int) { if (mask) vec->m_data--; return *vec; }
 
         inline Vector<T> &operator+=(Vector<T> x) { if (mask) vec->m_data += x.m_data; return *vec; }
         inline Vector<T> &operator-=(Vector<T> x) { if (mask) vec->m_data -= x.m_data; return *vec; }
@@ -47,14 +48,24 @@ template<typename T> class WriteMaskedVector
             return *vec;
         }
 
+        inline Vector<T> &operator+=(EntryType x) { if (mask) vec->m_data += x; return *vec; }
+        inline Vector<T> &operator-=(EntryType x) { if (mask) vec->m_data -= x; return *vec; }
+        inline Vector<T> &operator*=(EntryType x) { if (mask) vec->m_data *= x; return *vec; }
+        inline Vector<T> &operator/=(EntryType x) { if (mask) vec->m_data /= x; return *vec; }
+
+        inline Vector<T> &operator=(EntryType x) {
+            vec->assign(Vector<T>(x), mask);
+            return *vec;
+        }
+
         template<typename F> inline void call(F &f) const {
             vec->call(f, mask);
         }
         template<typename F> inline Vector<T> apply(F &f) const {
             if (mask) {
-                return f(vec->m_data);
+                return Vector<T>(f(vec->m_data));
             } else {
-                return vec->m_data;
+                return *vec;
             }
         }
     private:

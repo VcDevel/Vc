@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -36,6 +36,14 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
     friend class Mask<16u, 16u>; // (u)char_v
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)
+
+        // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
+#if defined VC_MSVC && defined _WIN32
+        typedef const Mask<VectorSize, 32u> &AsArg;
+#else
+        typedef Mask<VectorSize, 32u> AsArg;
+#endif
+
         inline Mask() {}
         inline Mask(const __m256  &x) : k(x) {}
         inline Mask(const __m256d &x) : k(_mm256_castpd_ps(x)) {}
@@ -45,10 +53,10 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         inline explicit Mask(bool b) : k(b ? _mm256_setallone_ps() : _mm256_setzero_ps()) {}
         inline Mask(const Mask &rhs) : k(rhs.k) {}
         inline Mask(const Mask<VectorSize, 16u> &rhs) : k(avx_cast<__m256>(concat(
-                        _mm_unpacklo_epi16(rhs.data(), rhs.data()),
-                        _mm_unpackhi_epi16(rhs.data(), rhs.data())))) {}
-        inline Mask(Mask<VectorSize * 2, 32u> m);
-        inline Mask(Mask<VectorSize / 2, 32u> m);
+                        _mm_unpacklo_epi16(rhs.dataI(), rhs.dataI()),
+                        _mm_unpackhi_epi16(rhs.dataI(), rhs.dataI())))) {}
+        inline Mask(const Mask<VectorSize * 2, 32u> &m);
+        inline Mask(const Mask<VectorSize / 2, 32u> &m);
 
         inline bool operator==(const Mask &rhs) const { return 0 != _mm256_testc_ps(k, rhs.k); }
         inline bool operator!=(const Mask &rhs) const { return 0 == _mm256_testc_ps(k, rhs.k); }
@@ -69,7 +77,9 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         inline bool isEmpty() const { return 0 != _mm256_testz_ps(k, k); }
         inline bool isMix  () const { return 0 != _mm256_testnzc_ps(k, _mm256_setallone_ps()); }
 
+#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
         inline operator bool() const { return isFull(); }
+#endif
 
         inline int CONST_L shiftMask() const CONST_R;
         int CONST_L toInt() const CONST_R;
@@ -95,6 +105,14 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
     friend class Mask<16u, 16u>; // (u)char_v
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
+
+        // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
+#if defined VC_MSVC && defined _WIN32
+        typedef const Mask<VectorSize, 16u> &AsArg;
+#else
+        typedef Mask<VectorSize, 16u> AsArg;
+#endif
+
         inline Mask() {}
         inline Mask(const __m128  &x) : k(x) {}
         inline Mask(const __m128d &x) : k(_mm_castpd_ps(x)) {}
@@ -126,7 +144,9 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
         inline bool isEmpty() const { return 0 != _mm_testz_si128(dataI(), dataI()); }
         inline bool isMix  () const { return 0 != _mm_testnzc_si128(dataI(), _mm_setallone_si128()); }
 
+#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
         inline operator bool() const { return isFull(); }
+#endif
 
         inline int CONST_L shiftMask() const CONST_R;
         int CONST_L toInt() const CONST_R;
@@ -152,7 +172,7 @@ struct ForeachHelper
     inline bool outer() const { return mask != 0; }
     inline bool inner() { return (brk = !brk); }
     inline size_t next() {
-#if defined(__GNUC__) && !defined(VC_NO_INLINE_ASM)
+#ifdef VC_GNU_ASM
         const size_t bit = __builtin_ctzl(mask);
         __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
 #else

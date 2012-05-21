@@ -1,34 +1,3 @@
-/*  This file is part of the Vc library.
-
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
-
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
-
-#ifndef VC_DOUBLE_V
-#define VC_DOUBLE_V
-
-#include "vector.h"
-#include "internal/namespace.h"
-
-namespace Vc
-{
-  typedef VECTOR_NAMESPACE::Vector<double> double_v;
-  typedef double_v::Mask double_m;
-} // namespace Vc
-
-#undef VECTOR_NAMESPACE
-
-#endif // VC_DOUBLE_V
+#ifdef __GNUC__
+#warning "Use of the Vc/double_v header is deprecated. The header file will be removed in a future version of Vc."
+#endif

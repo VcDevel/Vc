@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -60,14 +60,14 @@ template<typename VectorType, typename EntryType> class VectorMemoryUnion
             data = x; return *this;
         }
 
-        VectorType &v() { return data; }
-        const VectorType &v() const { return data; }
+        inline VectorType &v() { return data; }
+        inline const VectorType &v() const { return data; }
 
-        AliasingEntryType &m(int index) {
+        inline AliasingEntryType &m(int index) {
             return reinterpret_cast<AliasingEntryType *>(&data)[index];
         }
 
-        EntryType m(int index) const {
+        inline EntryType m(int index) const {
             return reinterpret_cast<const AliasingEntryType *>(&data)[index];
         }
 
@@ -75,6 +75,28 @@ template<typename VectorType, typename EntryType> class VectorMemoryUnion
         VectorType data;
 #endif
 };
+
+#if VC_GCC == 0x40700 || (VC_GCC >= 0x40600 && VC_GCC <= 0x40603)
+// workaround bug 52736 in GCC
+template<typename T, typename V> static inline T &vectorMemoryUnionAliasedMember(V *data, int index) {
+    if (__builtin_constant_p(index) && index == 0) {
+        T *ret;
+        asm("mov %1,%0" : "=r"(ret) : "r"(data));
+        return *ret;
+    } else {
+        return reinterpret_cast<T *>(data)[index];
+    }
+}
+template<> inline VectorMemoryUnion<__m128d, double>::AliasingEntryType &VectorMemoryUnion<__m128d, double>::m(int index) {
+    return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
+}
+template<> inline VectorMemoryUnion<__m128i, long long>::AliasingEntryType &VectorMemoryUnion<__m128i, long long>::m(int index) {
+    return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
+}
+template<> inline VectorMemoryUnion<__m128i, unsigned long long>::AliasingEntryType &VectorMemoryUnion<__m128i, unsigned long long>::m(int index) {
+    return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
+}
+#endif
 
 } // namespace Common
 } // namespace Vc

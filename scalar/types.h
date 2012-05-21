@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,23 +20,22 @@
 #ifndef VC_SCALAR_TYPES_H
 #define VC_SCALAR_TYPES_H
 
+#define VC_DOUBLE_V_SIZE 1
+#define VC_FLOAT_V_SIZE 1
+#define VC_SFLOAT_V_SIZE 1
+#define VC_INT_V_SIZE 1
+#define VC_UINT_V_SIZE 1
+#define VC_SHORT_V_SIZE 1
+#define VC_USHORT_V_SIZE 1
+
+#include "../common/types.h"
+
 namespace Vc
 {
     namespace Scalar
     {
         template<typename V = float> class VectorAlignedBaseT {};
         template<typename T> class Vector;
-        template<typename T, typename Parent> struct VectorBase;
-        template<typename T> class _Memory;
-
-        template<typename T> struct NegateTypeHelper { typedef T Type; };
-        template<> struct NegateTypeHelper<unsigned char > { typedef char  Type; };
-        template<> struct NegateTypeHelper<unsigned short> { typedef short Type; };
-        template<> struct NegateTypeHelper<unsigned int  > { typedef int   Type; };
-
-        namespace VectorSpecialInitializerZero { enum ZEnum { Zero }; }
-        namespace VectorSpecialInitializerOne { enum OEnum { One }; }
-        namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
     } // namespace Scalar
 } // namespace Vc
 

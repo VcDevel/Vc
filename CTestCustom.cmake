@@ -4,8 +4,11 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
    "call to .*Vc::Warnings::_operator_bracket_warning.* declared with attribute warning"
    "warning is a GCC extension"
    "^-- "  # Ignore output from cmake
+   "suggest parentheses around .+&&.+ within .+\\|\\|.+" # GCC 4.4 gives bogus warnings
    "^\\*\\*\\* WARNING non-zero return value in ctest from: make") # Ignore output from ctest
 
-set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION} "^make\\[[1-9]\\]: ")
-set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION} "^collect2: ld returned . exit status")
-set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION} "^make: \\*\\*\\* \\[all\\] Error ")
+set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
+   "^make\\[[1-9]\\]: "
+   "^collect2: ld returned . exit status"
+   "\\.o: No such file or directory" # This is just a followup error message: linking fails after compilation failed
+   "^make: \\*\\*\\* \\[all\\] Error ")

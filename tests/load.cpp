@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -23,21 +23,24 @@
 
 using namespace Vc;
 
+template<typename Vec> unsigned long alignmentMask()
+{
+    if (Vec::Size == 1) {
+        // on 32bit the maximal alignment is 4 Bytes, even for 8-Byte doubles.
+        return std::min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1;
+    }
+    // sizeof(SSE::sfloat_v) is too large
+    // AVX::VectorAlignment is too large
+    return std::min<unsigned long>(sizeof(Vec), VectorAlignment) - 1;
+}
+
 template<typename Vec> void checkAlignment()
 {
     unsigned char i = 1;
     Vec a[10];
-    unsigned long mask = VectorAlignment - 1;
-    if (Vec::Size == 1 && sizeof(typename Vec::EntryType) != VectorAlignment) {
-        mask = sizeof(typename Vec::EntryType) - 1;
-    }
-#ifdef VC_IMPL_AVX
-    if (sizeof(typename Vec::EntryType) == 2) {
-        mask = sizeof(Vec) - 1;
-    }
-#endif
+    unsigned long mask = alignmentMask<Vec>();
     for (i = 0; i < 10; ++i) {
-        VERIFY((reinterpret_cast<size_t>(&a[i]) & mask) == 0);
+        VERIFY((reinterpret_cast<size_t>(&a[i]) & mask) == 0) << "a = " << a << ", mask = " << mask;
     }
     const char *data = reinterpret_cast<const char *>(&a[0]);
     for (i = 0; i < 10; ++i) {
@@ -54,15 +57,7 @@ template<typename Vec> void checkMemoryAlignment()
     Vc::Memory<Vec, 10> a;
     b = a;
     hack_to_put_b_on_the_stack = &b;
-    unsigned long mask = VectorAlignment - 1;
-    if (Vec::Size == 1 && sizeof(T) != VectorAlignment) {
-        mask = sizeof(T) - 1;
-    }
-#ifdef VC_IMPL_AVX
-    if (sizeof(T) == 2) {
-        mask = sizeof(Vec) - 1;
-    }
-#endif
+    unsigned long mask = alignmentMask<Vec>();
     for (int i = 0; i < 10; ++i) {
         VERIFY((reinterpret_cast<size_t>(&b[i * Vec::Size]) & mask) == 0) << "b = " << b << ", mask = " << mask;
     }
@@ -73,7 +68,7 @@ template<typename Vec> void loadArray()
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
 
-    enum { count = 256 * 1024 / sizeof(T) };
+    enum loadArrayEnum { count = 256 * 1024 / sizeof(T) };
     Vc::Memory<Vec, count> array;
     for (int i = 0; i < count; ++i) {
         array[i] = i;
@@ -96,18 +91,21 @@ template<typename Vec> void loadArray()
     }
 }
 
+enum Enum {
+    loadArrayShortCount = 32 * 1024,
+    streamingLoadCount = 1024
+};
 template<typename Vec> void loadArrayShort()
 {
     typedef typename Vec::EntryType T;
 
-    enum { count = 32 * 1024 };
-    Vc::Memory<Vec, count> array;
-    for (int i = 0; i < count; ++i) {
+    Vc::Memory<Vec, loadArrayShortCount> array;
+    for (int i = 0; i < loadArrayShortCount; ++i) {
         array[i] = i;
     }
 
     const Vec &offsets = static_cast<Vec>(ushort_v::IndexesFromZero());
-    for (int i = 0; i < count; i += Vec::Size) {
+    for (int i = 0; i < loadArrayShortCount; i += Vec::Size) {
         const T *const addr = &array[i];
         Vec ii(i);
         ii += offsets;
@@ -125,18 +123,15 @@ template<typename Vec> void streamingLoad()
 {
     typedef typename Vec::EntryType T;
 
-    enum {
-        count = 1024
-    };
-    Vc::Memory<Vec, count> data;
-    data[0] = static_cast<T>(-count/2);
-    for (int i = 1; i < count; ++i) {
+    Vc::Memory<Vec, streamingLoadCount> data;
+    data[0] = static_cast<T>(-streamingLoadCount/2);
+    for (int i = 1; i < streamingLoadCount; ++i) {
         data[i] = data[i - 1];
         ++data[i];
     }
 
     Vec ref = data.firstVector();
-    for (int i = 0; i < count - Vec::Size; ++i, ++ref) {
+    for (int i = 0; i < streamingLoadCount - Vec::Size; ++i, ++ref) {
         Vec v1, v2;
         if (0 == i % Vec::Size) {
             v1 = Vec(&data[i], Vc::Streaming | Vc::Aligned);
@@ -161,9 +156,7 @@ template<> struct TypeInfo<signed char   > { static const char *string() { retur
 template<> struct TypeInfo<unsigned char > { static const char *string() { return "uchar"; } };
 template<> struct TypeInfo<double_v      > { static const char *string() { return "double_v"; } };
 template<> struct TypeInfo<float_v       > { static const char *string() { return "float_v"; } };
-#ifdef VC_IMPL_SSE
 template<> struct TypeInfo<sfloat_v      > { static const char *string() { return "sfloat_v"; } };
-#endif
 template<> struct TypeInfo<int_v         > { static const char *string() { return "int_v"; } };
 template<> struct TypeInfo<uint_v        > { static const char *string() { return "uint_v"; } };
 template<> struct TypeInfo<short_v       > { static const char *string() { return "short_v"; } };

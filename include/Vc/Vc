@@ -19,13 +19,7 @@
 
 #ifndef VC_VC
 #define VC_VC
-#include "double_v"
-#include "float_v"
-#include "int_v"
-#include "sfloat_v"
-#include "short_v"
-#include "uint_v"
-#include "ushort_v"
+#include "vector.h"
 #include "IO"
 #include "Memory"
 #include "Utils"

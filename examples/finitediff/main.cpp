@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2010 Jochen Gerhard <gerhard@compeng.uni-frankfurt.de>
-    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2012 Matthias Kretz <kretz@kde.org>
 
     Permission to use, copy, modify, and distribute this software
     and its documentation for any purpose and without fee is hereby
@@ -34,7 +34,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
-#include "../../benchmarks/tsc.h"
+#include "../../tsc.h"
 
 #define USE_SCALAR_SINCOS
 
@@ -43,7 +43,7 @@ enum {
   PrintStep = 1000000
 };
 
-static const float epsilon = 1e-7;
+static const float epsilon = 1e-7f;
 static const float lower = 0.f;
 static const float upper = 40000.f;
 static const float h = (upper - lower) / N;
@@ -52,7 +52,7 @@ static const float h = (upper - lower) / N;
 static inline float  fu(float x) { return ( std::sin(x) ); }
 static inline float dfu(float x) { return ( std::cos(x) ); }
 
-static inline Vc::float_v fu(Vc::float_v x) {
+static inline Vc::float_v fu(Vc::float_v::AsArg x) {
 #ifdef USE_SCALAR_SINCOS
   Vc::float_v r;
   for (size_t i = 0; i < Vc::float_v::Size; ++i) {
@@ -64,7 +64,7 @@ static inline Vc::float_v fu(Vc::float_v x) {
 #endif
 }
 
-static inline Vc::float_v dfu(Vc::float_v x) {
+static inline Vc::float_v dfu(Vc::float_v::AsArg x) {
 #ifdef USE_SCALAR_SINCOS
   Vc::float_v r;
   for (size_t i = 0; i < Vc::float_v::Size; ++i) {
@@ -169,7 +169,7 @@ int main()
         // All the differentials require to calculate (r - l) / 2h, where we calculate 1/2h as a
         // constant before the loop to avoid unnecessary calculations. Note that a good compiler can
         // already do this for you.
-        const float_v oneOver2h = 0.5f / h;
+        const float_v oneOver2h(0.5f / h);
 
         // Calculate the left border
         dy_points[0] = (y_points[1] - y_points[0]) / h;

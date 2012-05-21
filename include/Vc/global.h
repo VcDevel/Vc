@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -30,9 +30,27 @@
 #elif defined(__GNUC__)
 #define VC_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
 #elif defined(_MSC_VER)
-#define VC_MSVC 1
+#define VC_MSVC _MSC_FULL_VER
 #else
 #define VC_UNSUPPORTED_COMPILER 1
+#endif
+
+// Features/Quirks defines
+#if defined VC_MSVC && defined _WIN32
+// the Win32 ABI can't handle function parameters with alignment >= 16
+#define VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN 1
+#endif
+#if defined(__GNUC__) && !defined(VC_NO_INLINE_ASM)
+#define VC_GNU_ASM 1
+#endif
+#if defined(VC_GCC) && (VC_GCC <= 0x40405 || (VC_GCC >= 0x40500 && VC_GCC <= 0x40502)) && !(VC_GCC == 0x40502 && defined(__GNUC_UBUNTU_VERSION__) && __GNUC_UBUNTU_VERSION__ == 0xb0408)
+// GCC 4.6.0 / 4.5.3 / 4.4.6 switched to the interface as defined by ICC
+// (Ubuntu 11.04 ships a GCC 4.5.2 with the new interface)
+#define VC_MM256_MASKSTORE_WRONG_MASK_TYPE 1
+#endif
+#if defined(VC_GCC) && VC_GCC >= 0x40300
+#define VC_HAVE_ATTRIBUTE_ERROR 1
+#define VC_HAVE_ATTRIBUTE_WARNING 1
 #endif
 
 #define SSE    9875294
@@ -62,7 +80,6 @@
 
 #  if defined(__AVX__)
 #    define VC_IMPL_AVX 1
-#    define VC_USE_VEX_CODING
 #  else
 #    if defined(__SSE4a__)
 #      define VC_IMPL_SSE 1
@@ -100,7 +117,6 @@
 
 #  if VC_IMPL == AVX // AVX supersedes SSE
 #    define VC_IMPL_AVX 1
-#    define VC_USE_VEX_CODING
 #  elif VC_IMPL == Scalar
 #    define VC_IMPL_Scalar 1
 #  elif VC_IMPL == SSE4a
@@ -108,16 +124,6 @@
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#    ifdef __SSE4_2__
-#      undef __SSE4_2__
-#    endif
-#    ifdef __SSE4_1__
-#      undef __SSE4_1__
-#    endif
-#    ifdef __AVX__
-#      undef __AVX__
-#      define VC_USE_VEX_CODING
-#    endif
 #  elif VC_IMPL == SSE4_2
 #    define VC_IMPL_SSE4_2 1
 #    define VC_IMPL_SSE4_1 1
@@ -125,89 +131,24 @@
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#    ifdef __SSE4A__
-#      undef __SSE4A__
-#    endif
-#    ifdef __AVX__
-#      undef __AVX__
-#      define VC_USE_VEX_CODING
-#    endif
 #  elif VC_IMPL == SSE4_1
 #    define VC_IMPL_SSE4_1 1
 #    define VC_IMPL_SSSE3 1
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#    ifdef __SSE4_2__
-#      undef __SSE4_2__
-#    endif
-#    ifdef __SSE4A__
-#      undef __SSE4A__
-#    endif
-#    ifdef __AVX__
-#      undef __AVX__
-#      define VC_USE_VEX_CODING
-#    endif
 #  elif VC_IMPL == SSSE3
 #    define VC_IMPL_SSSE3 1
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#    ifdef __SSE4_2__
-#      undef __SSE4_2__
-#    endif
-#    ifdef __SSE4_1__
-#      undef __SSE4_1__
-#    endif
-#    ifdef __SSE4A__
-#      undef __SSE4A__
-#    endif
-#    ifdef __AVX__
-#      undef __AVX__
-#      define VC_USE_VEX_CODING
-#    endif
 #  elif VC_IMPL == SSE3
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#    ifdef __SSE4_2__
-#      undef __SSE4_2__
-#    endif
-#    ifdef __SSE4_1__
-#      undef __SSE4_1__
-#    endif
-#    ifdef __SSE4A__
-#      undef __SSE4A__
-#    endif
-#    ifdef __SSSE3__
-#      undef __SSSE3__
-#    endif
-#    ifdef __AVX__
-#      undef __AVX__
-#      define VC_USE_VEX_CODING
-#    endif
 #  elif VC_IMPL == SSE2
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#    ifdef __SSE4_2__
-#      undef __SSE4_2__
-#    endif
-#    ifdef __SSE4_1__
-#      undef __SSE4_1__
-#    endif
-#    ifdef __SSE4A__
-#      undef __SSE4A__
-#    endif
-#    ifdef __SSSE3__
-#      undef __SSSE3__
-#    endif
-#    ifdef __SSE3__
-#      undef __SSE3__
-#    endif
-#    ifdef __AVX__
-#      undef __AVX__
-#      define VC_USE_VEX_CODING
-#    endif
 #  elif VC_IMPL == SSE
 #    define VC_IMPL_SSE 1
 #    if defined(__SSE4a__)
@@ -228,14 +169,24 @@
 #    if defined(__SSE2__)
 #      define VC_IMPL_SSE2 1
 #    endif
-#    ifdef __AVX__
-#      undef __AVX__
-#      define VC_USE_VEX_CODING
-#    endif
 #  endif
 #  undef VC_IMPL
 
 #endif // VC_IMPL
+
+// If AVX is enabled in the compiler it will use VEX coding for the SIMD instructions.
+#ifdef __AVX__
+#  define VC_USE_VEX_CODING 1
+#endif
+
+// There are no explicit switches for FMA4/XOP in Vc yet, so enable it when the compiler
+// says it's active
+#ifdef __FMA4__
+#  define VC_IMPL_FMA4 1
+#endif
+#ifdef __XOP__
+#  define VC_IMPL_XOP 1
+#endif
 
 #if defined(VC_GCC) && VC_GCC < 0x40300 && !defined(VC_IMPL_Scalar)
 #    ifndef VC_DONT_WARN_OLD_GCC
@@ -249,6 +200,9 @@
 #    undef VC_IMPL_SSE4_2
 #    undef VC_IMPL_SSSE3
 #    undef VC_IMPL_AVX
+#    undef VC_IMPL_FMA4
+#    undef VC_IMPL_XOP
+#    undef VC_USE_VEX_CODING
 #    define VC_IMPL_Scalar 1
 #endif
 
@@ -387,11 +341,16 @@ namespace Internal {
 namespace Warnings
 {
     void _operator_bracket_warning()
-#if defined(VC_GCC) && VC_GCC >= 0x40300
+#if VC_HAVE_ATTRIBUTE_WARNING
         __attribute__((warning("\n\tUse of Vc::Vector::operator[] to modify scalar entries is known to miscompile with GCC 4.3.x.\n\tPlease upgrade to a more recent GCC or avoid operator[] altogether.\n\t(This warning adds an unnecessary function call to operator[] which should work around the problem at a little extra cost.)")))
 #endif
         ;
 } // namespace Warnings
+
+namespace Error
+{
+    template<typename L, typename R> struct invalid_operands_of_types {};
+} // namespace Error
 
 } // namespace Vc
 

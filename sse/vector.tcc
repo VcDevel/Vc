@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2010-2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -60,11 +60,26 @@ template<typename T> inline Vector<T> Vector<T>::IndexesFromZero()
     return VectorHelper<VectorType>::load(Base::_IndexesFromZero(), Aligned);
 }
 
-template<typename T> template<typename OtherT> inline Vector<T>::Vector(const Vector<OtherT> &x)
+// conversion/casts {{{1
+template<typename T> template<typename OtherT> inline INTRINSIC Vector<T>::Vector(const Vector<OtherT> &x)
     : Base(StaticCastHelper<OtherT, T>::cast(x.data()))
 {
 }
 
+template<> template<> inline INTRINSIC short_v &Vector<short>::operator=(const ushort_v &x) {
+    data() = StaticCastHelper<unsigned short, short>::cast(x.data()); return *this;
+}
+template<> template<> inline INTRINSIC ushort_v &Vector<unsigned short>::operator=(const short_v &x) {
+    data() = StaticCastHelper<short, unsigned short>::cast(x.data()); return *this;
+}
+template<> template<> inline INTRINSIC int_v &Vector<int>::operator=(const uint_v &x) {
+    data() = StaticCastHelper<unsigned int, int>::cast(x.data()); return *this;
+}
+template<> template<> inline INTRINSIC uint_v &Vector<unsigned int>::operator=(const int_v &x) {
+    data() = StaticCastHelper<int, unsigned int>::cast(x.data()); return *this;
+}
+
+// broadcasts {{{1
 template<typename T> inline Vector<T>::Vector(EntryType a)
     : Base(VectorHelper<T>::set(a))
 {
@@ -264,7 +279,7 @@ template<> inline void INTRINSIC Vector<double>::setQnan()
 {
     data() = _mm_setallone_pd();
 }
-template<> inline void INTRINSIC Vector<double>::setQnan(Mask k)
+template<> inline void INTRINSIC Vector<double>::setQnan(Mask::Argument k)
 {
     data() = _mm_or_pd(data(), k.dataD());
 }
@@ -272,7 +287,7 @@ template<> inline void INTRINSIC Vector<float>::setQnan()
 {
     data() = _mm_setallone_ps();
 }
-template<> inline void INTRINSIC Vector<float>::setQnan(Mask k)
+template<> inline void INTRINSIC Vector<float>::setQnan(Mask::Argument k)
 {
     data() = _mm_or_ps(data(), k.data());
 }
@@ -281,7 +296,7 @@ template<> inline void INTRINSIC Vector<float8>::setQnan()
     d.v()[0] = _mm_setallone_ps();
     d.v()[1] = _mm_setallone_ps();
 }
-template<> inline void INTRINSIC Vector<float8>::setQnan(Mask k)
+template<> inline void INTRINSIC Vector<float8>::setQnan(Mask::Argument k)
 {
     d.v()[0] = _mm_or_ps(d.v()[0], k.data()[0]);
     d.v()[1] = _mm_or_ps(d.v()[1], k.data()[1]);
@@ -311,6 +326,39 @@ template<typename T> template<typename A> inline void Vector<T>::store(EntryType
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // division {{{1
+template<typename T> inline INTRINSIC CONST Vector<T> &WriteMaskedVector<T>::operator/=(const Vector<T> &x)
+{
+    return operator=(*vec / x);
+}
+template<> inline INTRINSIC CONST int_v &WriteMaskedVector<int>::operator/=(const int_v &x)
+{
+    Vc_foreach_bit (int i, mask) {
+        vec->d.m(i) /= x.d.m(i);
+    }
+    return *vec;
+}
+template<> inline INTRINSIC CONST uint_v &WriteMaskedVector<unsigned int>::operator/=(const uint_v &x)
+{
+    Vc_foreach_bit (int i, mask) {
+        vec->d.m(i) /= x.d.m(i);
+    }
+    return *vec;
+}
+template<> inline INTRINSIC CONST short_v &WriteMaskedVector<short>::operator/=(const short_v &x)
+{
+    Vc_foreach_bit (int i, mask) {
+        vec->d.m(i) /= x.d.m(i);
+    }
+    return *vec;
+}
+template<> inline INTRINSIC CONST ushort_v &WriteMaskedVector<unsigned short>::operator/=(const ushort_v &x)
+{
+    Vc_foreach_bit (int i, mask) {
+        vec->d.m(i) /= x.d.m(i);
+    }
+    return *vec;
+}
+
 template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
 {
     if (Base::HasVectorDivision) {
@@ -322,7 +370,7 @@ template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
     return *this;
 }
 
-template<typename T> inline Vector<T> Vector<T>::operator/(EntryType x) const
+template<typename T> template<typename TT> inline PURE INTRINSIC VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) Vector<T>::operator/(TT x) const
 {
     if (Base::HasVectorDivision) {
         return operator/(Vector<T>(x));
@@ -461,7 +509,7 @@ OP_IMPL(double, |, or_)
 OP_IMPL(double, ^, xor_)
 #undef OP_IMPL
 
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ == 4 && __GNUC_MINOR__ == 6 && __GNUC_PATCHLEVEL__ == 0 && __XOP__
+#if defined(VC_GCC) && VC_GCC == 0x40600 && VC_IMPL_XOP
 #define VC_WORKAROUND_IN
 #define VC_WORKAROUND __attribute__((optimize("no-tree-vectorize"),weak))
 #else
@@ -546,6 +594,9 @@ VC_SWIZZLES_16BIT_IMPL(short)
 VC_SWIZZLES_16BIT_IMPL(unsigned short)
 #undef VC_SWIZZLES_16BIT_IMPL
 
+// operators {{{1
+#include "../common/operators.h"
+// }}}1
 // gathers {{{1
 template<typename T> template<typename IndexT> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, const IndexT *indexes)
 {
@@ -1045,7 +1096,7 @@ template<> inline float PURE INTRINSIC Vector<float8>::operator[](size_t index) 
 template<> inline int PURE INTRINSIC Vector<int>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
-#if VC_GCC >= 0x40600 || !defined(VC_USE_VEX_CODING) // GCC < 4.6 incorrectly uses vmovq instead of movq for the following
+#if VC_GCC >= 0x40601 || !defined(VC_USE_VEX_CODING) // GCC < 4.6.1 incorrectly uses vmovq instead of movq for the following
 #ifdef __x86_64__
         if (index == 0) return _mm_cvtsi128_si64(d.v()) & 0xFFFFFFFFull;
         if (index == 1) return _mm_cvtsi128_si64(d.v()) >> 32;
@@ -1056,7 +1107,7 @@ template<> inline int PURE INTRINSIC Vector<int>::operator[](size_t index) const
 #ifdef VC_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
 #else
-        return _mm_cvtsi128_si32(_mm_slli_si128(d.v(), index * 4));
+        return _mm_cvtsi128_si32(_mm_srli_si128(d.v(), index * 4));
 #endif
     }
     return Base::d.m(index);
@@ -1064,7 +1115,7 @@ template<> inline int PURE INTRINSIC Vector<int>::operator[](size_t index) const
 template<> inline unsigned int PURE INTRINSIC Vector<unsigned int>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
-#if VC_GCC >= 0x40600 || !defined(VC_USE_VEX_CODING) // GCC < 4.6 incorrectly uses vmovq instead of movq for the following
+#if VC_GCC >= 0x40601 || !defined(VC_USE_VEX_CODING) // GCC < 4.6.1 incorrectly uses vmovq instead of movq for the following
 #ifdef __x86_64__
         if (index == 0) return _mm_cvtsi128_si64(d.v()) & 0xFFFFFFFFull;
         if (index == 1) return _mm_cvtsi128_si64(d.v()) >> 32;
@@ -1075,7 +1126,7 @@ template<> inline unsigned int PURE INTRINSIC Vector<unsigned int>::operator[](s
 #ifdef VC_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
 #else
-        return _mm_cvtsi128_si32(_mm_slli_si128(d.v(), index * 4));
+        return _mm_cvtsi128_si32(_mm_srli_si128(d.v(), index * 4));
 #endif
     }
     return Base::d.m(index);
@@ -1146,6 +1197,17 @@ template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<unsigned short
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // horizontal ops {{{1
+#ifndef VC_IMPL_SSE4_1
+// without SSE4.1 integer multiplication is slow and we rather multiply the scalars
+template<> inline int INTRINSIC Vector<int>::product() const
+{
+    return (d.m(0) * d.m(1)) * (d.m(2) * d.m(3));
+}
+template<> inline unsigned int INTRINSIC Vector<unsigned int>::product() const
+{
+    return (d.m(0) * d.m(1)) * (d.m(2) * d.m(3));
+}
+#endif
 template<typename T> inline typename Vector<T>::EntryType Vector<T>::min(MaskArg m) const
 {
     Vector<T> tmp = std::numeric_limits<Vector<T> >::max();
@@ -1173,14 +1235,14 @@ template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(MaskArg
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // copySign {{{1
-template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float> reference) const
+template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float>::AsArg reference) const
 {
     return _mm_or_ps(
             _mm_and_ps(reference.d.v(), _mm_setsignmask_ps()),
             _mm_and_ps(d.v(), _mm_setabsmask_ps())
             );
 }
-template<> inline Vector<float8> INTRINSIC Vector<float8>::copySign(Vector<float8> reference) const
+template<> inline Vector<float8> INTRINSIC Vector<float8>::copySign(Vector<float8>::AsArg reference) const
 {
     return M256::create( _mm_or_ps(
                 _mm_and_ps(reference.d.v()[0], _mm_setsignmask_ps()),
@@ -1191,7 +1253,7 @@ template<> inline Vector<float8> INTRINSIC Vector<float8>::copySign(Vector<float
                 )
             );
 }
-template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<double> reference) const
+template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<double>::AsArg reference) const
 {
     return _mm_or_pd(
             _mm_and_pd(reference.d.v(), _mm_setsignmask_pd()),

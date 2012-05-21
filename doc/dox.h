@@ -28,6 +28,8 @@
  *
  * \ref portability
  *
+ * \ref featuremacros
+ *
  * \li \ref Vectors
  * \li \ref Masks
  * \li \ref Utilities
@@ -43,15 +45,18 @@
  * if that fails, uses SSE4.1.
  * After you include a Vc header, you will have the following macros available, which you can (but
  * normally should not) use to determine the implementation Vc uses:
- * \li VC_IMPL_Scalar
- * \li VC_IMPL_SSE (shorthand for SSE2 || SSE3 || SSSE3 || SSE4_1. SSE1 alone is not supported.)
- * \li VC_IMPL_SSE2
- * \li VC_IMPL_SSE3
- * \li VC_IMPL_SSSE3
- * \li VC_IMPL_SSE4_1
- * \li VC_IMPL_SSE4_2
- * \li VC_IMPL_SSE4a
- * \li VC_IMPL_AVX
+ * \li \c VC_IMPL_Scalar
+ * \li \c VC_IMPL_SSE (shorthand for SSE2 || SSE3 || SSSE3 || SSE4_1. SSE1 alone is not supported.)
+ * \li \c VC_IMPL_SSE2
+ * \li \c VC_IMPL_SSE3
+ * \li \c VC_IMPL_SSSE3
+ * \li \c VC_IMPL_SSE4_1
+ * \li \c VC_IMPL_SSE4_2
+ * \li \c VC_IMPL_SSE4a
+ * \li \c VC_IMPL_AVX
+ *
+ * Another set of macros you may use for target specific implementations are the \c VC_*_V_SIZE
+ * macros: \ref Utilities
  */
 
 /**
@@ -166,6 +171,16 @@
  */
 
 /**
+ * \page featuremacros Feature Macros
+ *
+ * The following macros are available to enable/disable selected features:
+ * \li \e VC_NO_STD_FUNCTIONS
+ * \li \e VC_CLEAN_NAMESPACE
+ * \li \e VC_NO_AUTOMATIC_BOOL_FROM_MASK
+ * \li \e VC_NO_VERSION_CHECK
+ */
+
+/**
  * \defgroup Vectors Vectors
  *
  * The vector classes abstract the SIMD registers and their according instructions into types that
@@ -176,10 +191,29 @@
  * \code
  * namespace Vc {
  *   template<typename T> class Vector;
+ *   typedef Vector<double> double_v;
+ *   typedef Vector<float> float_v;
+ *   // ...
  * }
  * \endcode
  *
  * \par Some general information on using the vector classes:
+ *
+ * Generally you can always mix scalar values with vectors as Vc will automatically broadcast the
+ * scalar to a vector and then execute a vector operation. But, in order to ensure that implicit
+ * type conversions only happen as defined by the C standard, there is no implicit scalar to vector
+ * constructor. Instead the relevant operators and functions are overloaded to handle the scalar
+ * types. Thus initialization of vectors with scalars only works with an explicit constructor call:
+ * \code
+ * int_v a = 1; // does not compile
+ * int_v b; b = 1; // good
+ * int_v c(1); // good
+ * int_v d = int_v(1); // good
+ * int_v e = d; // good, of course
+ * int_v f { 1 }; // good with C++11
+ * int_v g = { 1 }; // good with C++11
+ * int_v h = int_v::One(); // good
+ * \endcode
  *
  * The following ways of initializing a vector are not allowed:
  * \code
@@ -726,3 +760,100 @@ std::ostream &operator<<(std::ostream &s, const typename Vc::Vector<T>::Mask &v)
  */
 template<typename V, typename Parent, typename Dimension, typename RM>
 inline std::ostream &operator<<(std::ostream &s, const Vc::MemoryBase<V, Parent, Dimension, RM> &m);
+
+namespace Vc
+{
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/version.h>
+ *
+ * \returns the version string of the Vc headers.
+ *
+ * \note There exists a built-in check that ensures on application startup that the Vc version of the
+ * library (link time) and the headers (compile time) are equal. A mismatch between headers and
+ * library could lead to errors that are very hard to debug.
+ * \note If you need to disable the check (it costs a very small amount of application startup time)
+ * you can define VC_NO_VERSION_CHECK at compile time.
+ */
+const char *versionString();
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/version.h>
+ *
+ * \returns the version of the Vc headers encoded in an integer.
+ */
+unsigned int versionNumber();
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/version.h>
+ *
+ * Contains the version string of the Vc headers. Same as Vc::versionString().
+ */
+#define VC_VERSION_STRING
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/version.h>
+ *
+ * Contains the encoded version number of the Vc headers. Same as Vc::versionNumber().
+ */
+#define VC_VERSION_NUMBER
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/version.h>
+ *
+ * Helper macro to compare against an encoded version number.
+ * Example:
+ * \code
+ * #if VC_VERSION_CHECK(0.5.1) >= VC_VERSION_NUMBER
+ * \endcode
+ */
+#define VC_VERSION_CHECK(major, minor, patch)
+
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a double_v.
+ */
+#define VC_DOUBLE_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a float_v.
+ */
+#define VC_FLOAT_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a sfloat_v.
+ */
+#define VC_SFLOAT_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a int_v.
+ */
+#define VC_INT_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a uint_v.
+ */
+#define VC_UINT_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a short_v.
+ */
+#define VC_SHORT_V_SIZE
+/**
+ * \ingroup Utilities
+ * \headerfile dox.h <Vc/vector.h>
+ * An integer (for use with the preprocessor) that gives the number of entries in a ushort_v.
+ */
+#define VC_USHORT_V_SIZE
+
+} // namespace Vc

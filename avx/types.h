@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -24,6 +24,16 @@
 #include "../common/storage.h"
 #include "macros.h"
 
+#define VC_DOUBLE_V_SIZE 4
+#define VC_FLOAT_V_SIZE 8
+#define VC_SFLOAT_V_SIZE 8
+#define VC_INT_V_SIZE 8
+#define VC_UINT_V_SIZE 8
+#define VC_SHORT_V_SIZE 8
+#define VC_USHORT_V_SIZE 8
+
+#include "../common/types.h"
+
 namespace Vc
 {
 namespace AVX
@@ -44,12 +54,8 @@ namespace AVX
     template<> struct IndexTypeHelper<         int  > { typedef unsigned int   Type; };
     template<> struct IndexTypeHelper<unsigned int  > { typedef unsigned int   Type; };
     template<> struct IndexTypeHelper<         float> { typedef unsigned int   Type; };
+    template<> struct IndexTypeHelper<        sfloat> { typedef unsigned short Type; };
     template<> struct IndexTypeHelper<        double> { typedef unsigned int   Type; }; // _M128I based int32 would be nice
-
-    template<typename T> struct NegateTypeHelper { typedef T Type; };
-    template<> struct NegateTypeHelper<unsigned char > { typedef char  Type; };
-    template<> struct NegateTypeHelper<unsigned short> { typedef short Type; };
-    template<> struct NegateTypeHelper<unsigned int  > { typedef int   Type; };
 
     template<typename T> struct VectorTypeHelper;
     template<> struct VectorTypeHelper<         char > { typedef __m128i Type; };
@@ -59,6 +65,7 @@ namespace AVX
     template<> struct VectorTypeHelper<         int  > { typedef _M256I Type; };
     template<> struct VectorTypeHelper<unsigned int  > { typedef _M256I Type; };
     template<> struct VectorTypeHelper<         float> { typedef _M256  Type; };
+    template<> struct VectorTypeHelper<        sfloat> { typedef _M256  Type; };
     template<> struct VectorTypeHelper<        double> { typedef _M256D Type; };
 
     template<typename T> struct HasVectorDivisionHelper { enum { Value = 1 }; };
@@ -66,17 +73,27 @@ namespace AVX
 
     template<typename T> struct VectorHelperSize;
 
-    namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
-    namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
-    namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
-
+#ifdef VC_MSVC
+    // MSVC's __declspec(align(#)) only works with numbers, no enums or sizeof allowed ;(
+    template<size_t size> class _VectorAlignedBaseHack;
+    template<> class STRUCT_ALIGN1( 8) _VectorAlignedBaseHack< 8> {} STRUCT_ALIGN2( 8);
+    template<> class STRUCT_ALIGN1(16) _VectorAlignedBaseHack<16> {} STRUCT_ALIGN2(16);
+    template<> class STRUCT_ALIGN1(32) _VectorAlignedBaseHack<32> {} STRUCT_ALIGN2(32);
+    template<> class STRUCT_ALIGN1(64) _VectorAlignedBaseHack<64> {} STRUCT_ALIGN2(64);
+    template<typename V = Vector<float> >
+    class VectorAlignedBaseT : public _VectorAlignedBaseHack<sizeof(V)>
+    {
+        public:
+            FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
+    };
+#else
     template<typename V = Vector<float> >
     class STRUCT_ALIGN1(sizeof(V)) VectorAlignedBaseT
     {
         public:
             FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
     } STRUCT_ALIGN2(sizeof(V));
-
+#endif
 } // namespace AVX
 } // namespace Vc
 

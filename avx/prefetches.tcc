@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2010, 2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010, 2011-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -25,23 +25,23 @@ namespace Vc
 namespace Internal
 {
 
-inline void HelperImpl<Vc::AVXImpl>::prefetchForOneRead(const void *addr)
+inline ALWAYS_INLINE void HelperImpl<Vc::AVXImpl>::prefetchForOneRead(const void *addr)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_NTA);
 }
-inline void HelperImpl<Vc::AVXImpl>::prefetchClose(const void *addr)
+inline ALWAYS_INLINE void HelperImpl<Vc::AVXImpl>::prefetchClose(const void *addr)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T0);
 }
-inline void HelperImpl<Vc::AVXImpl>::prefetchMid(const void *addr)
+inline ALWAYS_INLINE void HelperImpl<Vc::AVXImpl>::prefetchMid(const void *addr)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T1);
 }
-inline void HelperImpl<Vc::AVXImpl>::prefetchFar(const void *addr)
+inline ALWAYS_INLINE void HelperImpl<Vc::AVXImpl>::prefetchFar(const void *addr)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T2);
 }
-inline void HelperImpl<Vc::AVXImpl>::prefetchForModify(const void *addr)
+inline ALWAYS_INLINE void HelperImpl<Vc::AVXImpl>::prefetchForModify(const void *addr)
 {
 #ifdef __3dNOW__
     _m_prefetchw(const_cast<void *>(addr));

@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -30,24 +30,29 @@ class WriteMaskedVector
 {
     friend class Vector<T>;
     typedef typename VectorTypeHelper<T>::Type VectorType;
-    typedef T EntryType;
-    enum { Size = sizeof(VectorType) / sizeof(EntryType) };
+    typedef typename DetermineEntryType<T>::Type EntryType;
+    enum Constants { Size = sizeof(VectorType) / sizeof(EntryType) };
     typedef typename Vc::AVX::Mask<Size, sizeof(VectorType)> Mask;
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)
         //prefix
-        Vector<T> &operator++() ALWAYS_INLINE;
-        Vector<T> &operator--() ALWAYS_INLINE;
+        Vector<T> ALWAYS_INLINE_L &operator++() ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE_L &operator--() ALWAYS_INLINE_R;
         //postfix
-        Vector<T> operator++(int) ALWAYS_INLINE;
-        Vector<T> operator--(int) ALWAYS_INLINE;
+        Vector<T> ALWAYS_INLINE_L operator++(int) ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE_L operator--(int) ALWAYS_INLINE_R;
 
-        Vector<T> &operator+=(const Vector<T> &x) ALWAYS_INLINE;
-        Vector<T> &operator-=(const Vector<T> &x) ALWAYS_INLINE;
-        Vector<T> &operator*=(const Vector<T> &x) ALWAYS_INLINE;
-        Vector<T> &operator/=(const Vector<T> &x) ALWAYS_INLINE;
+        Vector<T> ALWAYS_INLINE_L &operator+=(const Vector<T> &x) ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE_L &operator-=(const Vector<T> &x) ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE_L &operator*=(const Vector<T> &x) ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE_L &operator/=(const Vector<T> &x) ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE &operator+=(EntryType x) { return operator+=(Vector<T>(x)); }
+        Vector<T> ALWAYS_INLINE &operator-=(EntryType x) { return operator-=(Vector<T>(x)); }
+        Vector<T> ALWAYS_INLINE &operator*=(EntryType x) { return operator*=(Vector<T>(x)); }
+        Vector<T> ALWAYS_INLINE &operator/=(EntryType x) { return operator/=(Vector<T>(x)); }
 
-        Vector<T> &operator=(const Vector<T> &x) ALWAYS_INLINE;
+        Vector<T> ALWAYS_INLINE_L &operator=(const Vector<T> &x) ALWAYS_INLINE_R;
+        Vector<T> ALWAYS_INLINE &operator=(EntryType x) { return operator=(Vector<T>(x)); }
 
         template<typename F> inline void INTRINSIC call(F &f) const {
             return vec->call(f, mask);

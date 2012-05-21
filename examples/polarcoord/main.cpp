@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
     Permission to use, copy, modify, and distribute this software
     and its documentation for any purpose and without fee is hereby
@@ -62,7 +62,7 @@ int main()
         const float_v y = y_mem.vector(i);
 
         r_mem.vector(i) = Vc::sqrt(x * x + y * y);
-        float_v phi = Vc::atan2(y, x) * (180. / M_PI);
+        float_v phi = Vc::atan2(y, x) * (180.f / 3.1415926535897932384626433832795029f);
         phi(phi < 0.f) += 360.f;
         phi_mem.vector(i) = phi;
     }

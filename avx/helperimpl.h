@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2011-2012 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -30,6 +30,7 @@ namespace Internal
 template<> struct HelperImpl<Vc::AVXImpl>
 {
     typedef AVX::Vector<float> float_v;
+    typedef AVX::Vector<sfloat> sfloat_v;
     typedef AVX::Vector<double> double_v;
     typedef AVX::Vector<int> int_v;
     typedef AVX::Vector<unsigned int> uint_v;
@@ -39,6 +40,8 @@ template<> struct HelperImpl<Vc::AVXImpl>
     template<typename A> static void deinterleave(float_v &, float_v &, const float *, A);
     template<typename A> static void deinterleave(float_v &, float_v &, const short *, A);
     template<typename A> static void deinterleave(float_v &, float_v &, const unsigned short *, A);
+
+    template<typename A, typename MemT> static void deinterleave(sfloat_v &, sfloat_v &, const MemT *, A);
 
     template<typename A> static void deinterleave(double_v &, double_v &, const double *, A);
 
@@ -77,15 +80,15 @@ template<> struct HelperImpl<Vc::AVXImpl>
                 V &VC_RESTRICT f, V &VC_RESTRICT g, V &VC_RESTRICT h,
                 const M *VC_RESTRICT memory, A align);
 
-    static inline void prefetchForOneRead(const void *addr) ALWAYS_INLINE;
-    static inline void prefetchForModify(const void *addr) ALWAYS_INLINE;
-    static inline void prefetchClose(const void *addr) ALWAYS_INLINE;
-    static inline void prefetchMid(const void *addr) ALWAYS_INLINE;
-    static inline void prefetchFar(const void *addr) ALWAYS_INLINE;
+    static inline void ALWAYS_INLINE_L prefetchForOneRead(const void *addr) ALWAYS_INLINE_R;
+    static inline void ALWAYS_INLINE_L prefetchForModify(const void *addr) ALWAYS_INLINE_R;
+    static inline void ALWAYS_INLINE_L prefetchClose(const void *addr) ALWAYS_INLINE_R;
+    static inline void ALWAYS_INLINE_L prefetchMid(const void *addr) ALWAYS_INLINE_R;
+    static inline void ALWAYS_INLINE_L prefetchFar(const void *addr) ALWAYS_INLINE_R;
 
     template<Vc::MallocAlignment A>
-    static inline void *malloc(size_t n) ALWAYS_INLINE;
-    static inline void free(void *p) ALWAYS_INLINE;
+    static inline ALWAYS_INLINE_L void *malloc(size_t n) ALWAYS_INLINE_R;
+    static inline ALWAYS_INLINE_L void free(void *p) ALWAYS_INLINE_R;
 };
 
 } // namespace Internal

@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -34,10 +34,5 @@
 #ifndef _M256D
 # define _M256D __m256d
 #endif
-
-#define STORE_VECTOR(type, name, vec) \
-    union { __m256i p; type v[sizeof(__m256i) / sizeof(type)]; } CAT(u, __LINE__); \
-    _mm256_store_si256(&CAT(u, __LINE__).p, vec); \
-    const type *const name = &CAT(u, __LINE__).v[0]
 
 #endif // VC_AVX_MACROS_H

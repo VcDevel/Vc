@@ -125,7 +125,11 @@ template<typename V> void copySign()
     COMPARE(-v, v.copySign(negative));
 }
 
+#ifdef VC_MSVC
+void bzero(void *p, size_t n) { memset(p, 0, n); }
+#else
 #include <strings.h>
+#endif
 
 template<typename V> void Random()
 {
@@ -213,9 +217,7 @@ template<typename V, typename I> void FloatRandom()
 
 template<> void Random<float_v>() { FloatRandom<float_v, int_v>(); }
 template<> void Random<double_v>() { FloatRandom<double_v, int_v>(); }
-#ifdef VC_IMPL_SSE
 template<> void Random<sfloat_v>() { FloatRandom<sfloat_v, short_v>(); }
-#endif
 
 template<typename T> T add2(T x) { return x + T(2); }
 
