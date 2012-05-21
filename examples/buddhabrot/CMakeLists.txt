@@ -1,5 +1,4 @@
-find_package(Qt4)
-if(QT4_FOUND)
+if(QT4_FOUND AND QT4_USABLE)
    include(${QT_USE_FILE})
    include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -14,4 +13,4 @@ if(QT4_FOUND)
    add_executable(buddhabrot_scalar2 main.cpp)
    add_target_property(buddhabrot_scalar2 COMPILE_FLAGS "-DScalar")
    target_link_libraries(buddhabrot_scalar2 ${QT_LIBRARIES})
-endif(QT4_FOUND)
+endif()

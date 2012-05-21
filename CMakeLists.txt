@@ -13,8 +13,6 @@ include (VcMacros)
 include (AddTargetProperty)
 include (OptimizeForArchitecture)
 
-find_package(Qt4)
-
 vc_determine_compiler()
 
 if(Vc_COMPILER_IS_GCC)
