@@ -316,10 +316,49 @@ template<> inline void ALWAYS_INLINE FLATTEN Vector<unsigned short>::expand(Vect
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // swizzles {{{1
-template<> inline const Vector<double> INTRINSIC Vector<double>::aaaa() const { const double &tmp = d.m(0); return _mm256_broadcast_sd(&tmp); }
-template<> inline const Vector<double> INTRINSIC Vector<double>::bbbb() const { const double &tmp = d.m(1); return _mm256_broadcast_sd(&tmp); }
-template<> inline const Vector<double> INTRINSIC Vector<double>::cccc() const { const double &tmp = d.m(2); return _mm256_broadcast_sd(&tmp); }
-template<> inline const Vector<double> INTRINSIC Vector<double>::dddd() const { const double &tmp = d.m(3); return _mm256_broadcast_sd(&tmp); }
+template<typename T> inline const Vector<T> INTRINSIC CONST &Vector<T>::abcd() const { return *this; }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0>(data()); }
+template<typename T> inline const Vector<T> INTRINSIC CONST  Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0>(data()); }
+
+template<> inline const double_v INTRINSIC CONST Vector<double>::cdab() const { return Mem::shuffle128<X1, X0>(data(), data()); }
+template<> inline const double_v INTRINSIC CONST Vector<double>::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
+template<> inline const double_v INTRINSIC CONST Vector<double>::aaaa() const { const double &tmp = d.m(0); return _mm256_broadcast_sd(&tmp); }
+template<> inline const double_v INTRINSIC CONST Vector<double>::bbbb() const { const double &tmp = d.m(1); return _mm256_broadcast_sd(&tmp); }
+template<> inline const double_v INTRINSIC CONST Vector<double>::cccc() const { const double &tmp = d.m(2); return _mm256_broadcast_sd(&tmp); }
+template<> inline const double_v INTRINSIC CONST Vector<double>::dddd() const { const double &tmp = d.m(3); return _mm256_broadcast_sd(&tmp); }
+template<> inline const double_v INTRINSIC CONST Vector<double>::bcad() const { return Mem::shuffle<X1, Y0, X2, Y3>(Mem::shuffle128<X0, X0>(data(), data()), Mem::shuffle128<X1, X1>(data(), data())); }
+template<> inline const double_v INTRINSIC CONST Vector<double>::bcda() const { return Mem::shuffle<X1, Y0, X3, Y2>(data(), Mem::shuffle128<X1, X0>(data(), data())); }
+template<> inline const double_v INTRINSIC CONST Vector<double>::dabc() const { return Mem::shuffle<X1, Y0, X3, Y2>(Mem::shuffle128<X1, X0>(data(), data()), data()); }
+template<> inline const double_v INTRINSIC CONST Vector<double>::acbd() const { return Mem::shuffle<X0, Y0, X3, Y3>(Mem::shuffle128<X0, X0>(data(), data()), Mem::shuffle128<X1, X1>(data(), data())); }
+template<> inline const double_v INTRINSIC CONST Vector<double>::dbca() const { return Mem::shuffle<X1, Y1, X2, Y2>(Mem::shuffle128<X1, X1>(data(), data()), Mem::shuffle128<X0, X0>(data(), data())); }
+template<> inline const double_v INTRINSIC CONST Vector<double>::dcba() const { return cdab().badc(); }
+
+#define VC_SWIZZLES_16BIT_IMPL(T) \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1, X6, X7, X4, X5>(data()); } \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(data()); } \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0, X4, X4, X4, X4>(data()); } \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1, X5, X5, X5, X5>(data()); } \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2, X6, X6, X6, X6>(data()); } \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3, X7, X7, X7, X7>(data()); } \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3, X5, X6, X4, X7>(data()); } \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0, X5, X6, X7, X4>(data()); } \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2, X7, X4, X5, X6>(data()); } \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3, X4, X6, X5, X7>(data()); } \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0, X7, X5, X6, X4>(data()); } \
+template<> inline const Vector<T> INTRINSIC CONST Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(data()); }
+VC_SWIZZLES_16BIT_IMPL(short)
+VC_SWIZZLES_16BIT_IMPL(unsigned short)
+#undef VC_SWIZZLES_16BIT_IMPL
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // division {{{1

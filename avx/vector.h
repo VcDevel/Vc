@@ -162,14 +162,19 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
-        inline const Vector<T> &dcba() const { return *this; }
-        inline const Vector<T> INTRINSIC CONST cdab() const { return HV::cdab(d.v()); }
-        inline const Vector<T> INTRINSIC CONST badc() const { return HV::badc(d.v()); }
-        inline const Vector<T> INTRINSIC CONST aaaa() const { return HV::aaaa(d.v()); }
-        inline const Vector<T> INTRINSIC CONST bbbb() const { return HV::bbbb(d.v()); }
-        inline const Vector<T> INTRINSIC CONST cccc() const { return HV::cccc(d.v()); }
-        inline const Vector<T> INTRINSIC CONST dddd() const { return HV::dddd(d.v()); }
-        inline const Vector<T> INTRINSIC CONST dacb() const { return HV::dacb(d.v()); }
+        inline const Vector<T> INTRINSIC_L CONST_L &abcd() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  cdab() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  badc() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  aaaa() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  bbbb() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  cccc() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  dddd() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  bcad() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  bcda() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  dabc() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  acbd() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  dbca() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  dcba() const INTRINSIC_R CONST_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // gathers
