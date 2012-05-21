@@ -40,6 +40,10 @@ template<typename T> class AliasingEntryHelper
         AliasingEntryHelper(A &d) : m_data(d) {}
 
         operator const T() const { return m_data; }
+        AliasingEntryHelper<T> &operator=(const AliasingEntryHelper<T> &rhs) {
+            m_data = rhs.m_data;
+            return *this;
+        }
 
         bool operator==(T x) const { return static_cast<T>(m_data) == x; }
         bool operator!=(T x) const { return static_cast<T>(m_data) != x; }
