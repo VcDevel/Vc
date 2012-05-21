@@ -233,19 +233,19 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
-        inline const Vector<T> INTRINSIC_L &abcd() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  cdab() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  badc() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  aaaa() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  bbbb() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  cccc() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  dddd() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  bcad() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  bcda() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  dabc() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  acbd() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  dbca() const INTRINSIC_R;
-        inline const Vector<T> INTRINSIC_L  dcba() const INTRINSIC_R;
+        inline const Vector<T> INTRINSIC_L CONST_L &abcd() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  cdab() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  badc() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  aaaa() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  bbbb() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  cccc() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  dddd() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  bcad() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  bcda() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  dabc() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  acbd() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  dbca() const INTRINSIC_R CONST_R;
+        inline const Vector<T> INTRINSIC_L CONST_L  dcba() const INTRINSIC_R CONST_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // gathers
