@@ -123,14 +123,21 @@ class Vector
         template<typename A> inline void store(EntryType *mem, A) const { store(mem); }
         template<typename A> inline void store(EntryType *mem, Mask m, A) const { store(mem, m); }
 
-        inline const Vector<T> &dcba() const { return *this; }
-        inline const Vector<T> cdab() const { return *this; }
-        inline const Vector<T> badc() const { return *this; }
-        inline const Vector<T> aaaa() const { return *this; }
-        inline const Vector<T> bbbb() const { return *this; }
-        inline const Vector<T> cccc() const { return *this; }
-        inline const Vector<T> dddd() const { return *this; }
-        inline const Vector<T> dbac() const { return *this; }
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // swizzles
+        inline INTRINSIC const Vector<T> &abcd() { return *this; }
+        inline INTRINSIC const Vector<T>  cdab() { return *this; }
+        inline INTRINSIC const Vector<T>  badc() { return *this; }
+        inline INTRINSIC const Vector<T>  aaaa() { return *this; }
+        inline INTRINSIC const Vector<T>  bbbb() { return *this; }
+        inline INTRINSIC const Vector<T>  cccc() { return *this; }
+        inline INTRINSIC const Vector<T>  dddd() { return *this; }
+        inline INTRINSIC const Vector<T>  bcad() { return *this; }
+        inline INTRINSIC const Vector<T>  bcda() { return *this; }
+        inline INTRINSIC const Vector<T>  dabc() { return *this; }
+        inline INTRINSIC const Vector<T>  acbd() { return *this; }
+        inline INTRINSIC const Vector<T>  dbca() { return *this; }
+        inline INTRINSIC const Vector<T>  dcba() { return *this; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // gathers
