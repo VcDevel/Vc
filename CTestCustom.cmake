@@ -10,6 +10,4 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
 set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
    "^make\\[[1-9]\\]: "
    "^collect2: ld returned . exit status"
-   "\\.o: No such file or directory" # This is just a followup error message: linking fails after compilation failed
-   "error #10236: File not found: .*\\.o" # This is just a followup error message: linking fails after compilation failed
    "^make: \\*\\*\\* \\[all\\] Error ")

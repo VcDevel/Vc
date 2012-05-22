@@ -79,7 +79,7 @@ endif()
 include(${CTEST_SOURCE_DIRECTORY}/CTestCustom.cmake)
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
 set(CTEST_USE_LAUNCHERS 1) # much improved error/warning message logging
-set(MAKE_ARGS "-j${number_of_processors} -i")
+set(MAKE_ARGS "-j${number_of_processors} -k")
 
 message("********************************")
 #message("src:        ${CTEST_SOURCE_DIRECTORY}")
