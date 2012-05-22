@@ -88,7 +88,7 @@ template<typename Vec> void testCmp()
         if (min == 0) {
             return;
         }
-        const T step = min / -201;
+        const T step = min / T(-201);
         T j = min;
         for (int i = 0; i < 200; ++i, j += step) {
             VERIFY(Vec(j) < Vec(Zero));
