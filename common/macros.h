@@ -61,7 +61,11 @@
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
 #elif defined(__GNUC__)
-#  define INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
+#  if defined(VC_OPEN64)
+#    define INTRINSIC __attribute__((__flatten__, __always_inline__))
+#  else
+#    define INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
+#  endif
 #  define INTRINSIC_L
 #  define INTRINSIC_R INTRINSIC
 #  define FLATTEN __attribute__((__flatten__))
