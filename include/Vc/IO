@@ -35,7 +35,7 @@ namespace
 {
     namespace AnsiColor
     {
-        struct Type { const char *const data; };
+        struct Type { const char *data; };
         static const Type green  = { "\033[1;40;32m" };
         static const Type yellow = { "\033[1;40;33m" };
         static const Type blue   = { "\033[1;40;34m" };
