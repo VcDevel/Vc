@@ -22,7 +22,7 @@
 
 // Compiler defines
 #ifdef __INTEL_COMPILER
-#define VC_ICC 1
+#define VC_ICC __INTEL_COMPILER_BUILD_DATE
 #elif defined(__OPENCC__)
 #define VC_OPEN64 1
 #elif defined(__clang__)
