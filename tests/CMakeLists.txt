@@ -153,7 +153,7 @@ macro(vc_test_implicit_type_conversion_failures A B)
                )
             set_property(TEST "${name}" PROPERTY LABELS "${impl}")
             set_tests_properties("${name}" PROPERTIES
-               PASS_REGULAR_EXPRESSION "invalid operands to binary expression;error: no match for .*operator\\${op};error C267[789]: binary .*\\${op}.* no (global )?operator found"
+               PASS_REGULAR_EXPRESSION "invalid operands to binary expression;error: no match for .*operator\\${op};error C267[789]: binary .*\\${op}.* no (global )?operator found;error: no operator \"\\${op}\" matches these operands"
                FAIL_REGULAR_EXPRESSION "no such file or directory;undefined reference to"
                )
          endforeach()
