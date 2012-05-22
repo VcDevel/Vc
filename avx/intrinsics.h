@@ -133,6 +133,13 @@ namespace AVX
     static inline __m256  INTRINSIC CONST _mm256_cmpord_ps  (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_ORD_Q); }
     static inline __m256  INTRINSIC CONST _mm256_cmpunord_ps(__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
 
+    static inline __m128i _mm_cmplt_epu16(__m128i a, __m128i b) {
+        return _mm_cmplt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
+    }
+    static inline __m128i _mm_cmpgt_epu16(__m128i a, __m128i b) {
+        return _mm_cmpgt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
+    }
+
     /////////////////////// INTEGER OPS ///////////////////////
 #define AVX_TO_SSE_2(name) \
     static inline __m256i INTRINSIC CONST _mm256_##name(__m256i a0, __m256i b0) { \
@@ -164,6 +171,19 @@ namespace AVX
         __m128i r1 = _mm_##name(a1, i); \
         return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
     }
+
+    AVX_TO_SSE_2(cmpeq_epi8)
+    AVX_TO_SSE_2(cmpeq_epi16)
+    AVX_TO_SSE_2(cmpeq_epi32)
+    AVX_TO_SSE_2(cmplt_epi8)
+    AVX_TO_SSE_2(cmplt_epi16)
+    AVX_TO_SSE_2(cmplt_epi32)
+    AVX_TO_SSE_2(cmpgt_epi8)
+    AVX_TO_SSE_2(cmpgt_epi16)
+    AVX_TO_SSE_2(cmpgt_epi32)
+
+#ifndef VC_ICC
+    // ICC ships the Integer intrinsics inside the AVX1 header these days.
 
 #ifdef VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
 #   define _mm256_srli_si256(a, i) \
@@ -247,15 +267,6 @@ namespace AVX
     AVX_TO_SSE_2(srl_epi16)
     AVX_TO_SSE_2(srl_epi32)
     AVX_TO_SSE_2(srl_epi64)
-    AVX_TO_SSE_2(cmpeq_epi8)
-    AVX_TO_SSE_2(cmpeq_epi16)
-    AVX_TO_SSE_2(cmpeq_epi32)
-    AVX_TO_SSE_2(cmplt_epi8)
-    AVX_TO_SSE_2(cmplt_epi16)
-    AVX_TO_SSE_2(cmplt_epi32)
-    AVX_TO_SSE_2(cmpgt_epi8)
-    AVX_TO_SSE_2(cmpgt_epi16)
-    AVX_TO_SSE_2(cmpgt_epi32)
     AVX_TO_SSE_2(max_epi16)
     AVX_TO_SSE_2(max_epu8)
     AVX_TO_SSE_2(min_epi16)
@@ -350,17 +361,12 @@ namespace AVX
     // mpsadbw_epu8 (__m128i __X, __m128i __Y, const int __M)
     // stream_load_si128 (__m128i *__X)
     AVX_TO_SSE_2(cmpgt_epi64)
+#endif
 
 //X     static inline __m256i _mm256_cmplt_epu8 (__m256i a, __m256i b) { return _mm256_cmplt_epi8 (
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
 //X     static inline __m256i _mm256_cmpgt_epu8 (__m256i a, __m256i b) { return _mm256_cmpgt_epi8 (
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
-    static inline __m128i _mm_cmplt_epu16(__m128i a, __m128i b) {
-        return _mm_cmplt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
-    }
-    static inline __m128i _mm_cmpgt_epu16(__m128i a, __m128i b) {
-        return _mm_cmpgt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
-    }
     static inline __m256i CONST _mm256_cmplt_epu32(__m256i a, __m256i b) {
         a = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(a), _mm256_castsi256_ps(_mm256_setmin_epi32())));
         b = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(b), _mm256_castsi256_ps(_mm256_setmin_epi32())));
