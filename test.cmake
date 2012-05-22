@@ -63,6 +63,19 @@ string(REGEX REPLACE "^.*/" "" git_branch "${git_branch}")
 # -> master
 set(CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/.git/HEAD" "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
 
+set(compiler)
+if(COMPILER_VERSION MATCHES "clang")
+   set(compiler "clang")
+elseif(COMPILER_VERSION MATCHES "g\\+\\+")
+   set(compiler "GCC")
+elseif(COMPILER_VERSION MATCHES "MSVC")
+   set(compiler "MSVC")
+elseif(COMPILER_VERSION MATCHES "ICC")
+   set(compiler "ICC")
+elseif(COMPILER_VERSION MATCHES "Open64")
+   set(compiler "Open64")
+endif()
+
 include(${CTEST_SOURCE_DIRECTORY}/CTestCustom.cmake)
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
 set(CTEST_USE_LAUNCHERS 1) # much improved error/warning message logging
@@ -97,6 +110,8 @@ if(target_architecture)
 endif()
 
 macro(go)
+   set_property(GLOBAL PROPERTY SubProject ${compiler})
+   set_property(GLOBAL PROPERTY Label other)
    CTEST_START (${dashboard_model})
    set(res 0)
    if(NOT ${dashboard_model} STREQUAL "Experimental")
@@ -112,10 +127,9 @@ macro(go)
          RETURN_VALUE res)
       ctest_submit(PARTS Notes Configure)
       if(res EQUAL 0)
-         foreach(subproject ${CTEST_PROJECT_SUBPROJECTS})
-            set_property(GLOBAL PROPERTY SubProject ${subproject})
-            set_property(GLOBAL PROPERTY Label ${subproject})
-            set(CTEST_BUILD_TARGET "${subproject}")
+         foreach(label other Scalar SSE AVX)
+            set_property(GLOBAL PROPERTY Label ${label})
+            set(CTEST_BUILD_TARGET "${label}")
             set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} ${MAKE_ARGS} ${CTEST_BUILD_TARGET}")
             ctest_build(
                BUILD "${CTEST_BINARY_DIRECTORY}"
@@ -128,7 +142,7 @@ macro(go)
                   APPEND
                   RETURN_VALUE res
                   PARALLEL_LEVEL ${number_of_processors}
-                  INCLUDE_LABEL "${subproject}")
+                  INCLUDE_LABEL "${label}")
                ctest_submit(PARTS Test)
             endif()
          endforeach()

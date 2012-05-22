@@ -7,13 +7,6 @@ set(CTEST_DROP_LOCATION "/dashboard/submit.php?project=Vc")
 
 set(CTEST_DROP_SITE_CDASH TRUE)
 
-set(CTEST_PROJECT_SUBPROJECTS
-   other
-   Scalar
-   SSE
-   AVX
-   )
-
 set(CTEST_UPDATE_TYPE "git")
 
 find_program(GITCOMMAND git)
