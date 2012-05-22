@@ -29,7 +29,8 @@ macro(vc_determine_compiler)
       set(Vc_COMPILER_IS_GCC false)
       if(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
          set(Vc_COMPILER_IS_INTEL true)
-         message(STATUS "Detected Compiler: Intel")
+         exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE Vc_ICC_VERSION)
+         message(STATUS "Detected Compiler: Intel ${Vc_ICC_VERSION}")
       elseif(CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
          set(Vc_COMPILER_IS_OPEN64 true)
          message(STATUS "Detected Compiler: Open64")
@@ -41,10 +42,8 @@ macro(vc_determine_compiler)
          message(STATUS "Detected Compiler: MSVC")
       elseif(CMAKE_COMPILER_IS_GNUCXX)
          set(Vc_COMPILER_IS_GCC true)
-         message(STATUS "Detected Compiler: GCC")
-
-         # check the GCC version
          exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE Vc_GCC_VERSION)
+         message(STATUS "Detected Compiler: GCC ${Vc_GCC_VERSION}")
 
          # some distributions patch their GCC to return nothing or only major and minor version on -dumpversion.
          # In that case we must extract the version number from --version.
@@ -257,13 +256,6 @@ macro(vc_set_preferred_compiler_flags)
          endif()
          set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${ALIAS_FLAGS}")
          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS}")
-      endif()
-
-      exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE _icc_version)
-      macro_ensure_version("12.0.0" "${_icc_version}" ICC_12_0_0)
-      if(ICC_12_0_0)
-         # iomanip from latest libstdc++ makes ICC fail unless C++0x is selected
-         vc_add_compiler_flag(Vc_DEFINITIONS "-std=c++0x")
       endif()
    elseif(Vc_COMPILER_IS_MSVC)
       if(_add_warning_flags)
