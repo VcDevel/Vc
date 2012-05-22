@@ -60,7 +60,6 @@ template<unsigned int VectorSize> class Mask
         typedef Mask<VectorSize> Argument;
 #endif
 
-
         inline Mask() {}
         inline Mask(const __m128  &x) : k(x) {}
         inline Mask(const __m128d &x) : k(_mm_castpd_ps(x)) {}

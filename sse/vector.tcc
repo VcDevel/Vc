@@ -28,20 +28,31 @@ ALIGN(64) extern unsigned int RandomState[16];
 namespace SSE
 {
 
+template<typename T, int Size> static inline const T *_IndexesFromZero() {
+    if (Size == 4) {
+        return reinterpret_cast<const T *>(_IndexesFromZero4);
+    } else if (Size == 8) {
+        return reinterpret_cast<const T *>(_IndexesFromZero8);
+    } else if (Size == 16) {
+        return reinterpret_cast<const T *>(_IndexesFromZero16);
+    }
+    return 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 // constants {{{1
 template<typename T> inline Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum)
-    : Base(VectorHelper<VectorType>::zero())
+    : d(VectorHelper<VectorType>::zero())
 {
 }
 
 template<typename T> inline Vector<T>::Vector(VectorSpecialInitializerOne::OEnum)
-    : Base(VectorHelper<T>::one())
+    : d(VectorHelper<T>::one())
 {
 }
 
 template<typename T> inline Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : Base(VectorHelper<VectorType>::load(Base::_IndexesFromZero(), Aligned))
+    : d(VectorHelper<VectorType>::load(_IndexesFromZero<EntryType, Size>(), Aligned))
 {
 }
 
@@ -57,12 +68,12 @@ template<typename T> inline Vector<T> Vector<T>::One()
 
 template<typename T> inline Vector<T> Vector<T>::IndexesFromZero()
 {
-    return VectorHelper<VectorType>::load(Base::_IndexesFromZero(), Aligned);
+    return VectorHelper<VectorType>::load(_IndexesFromZero<EntryType, Size>(), Aligned);
 }
 
 // conversion/casts {{{1
 template<typename T> template<typename OtherT> inline INTRINSIC Vector<T>::Vector(const Vector<OtherT> &x)
-    : Base(StaticCastHelper<OtherT, T>::cast(x.data()))
+    : d(StaticCastHelper<OtherT, T>::cast(x.data()))
 {
 }
 
@@ -81,7 +92,7 @@ template<> template<> inline INTRINSIC uint_v &Vector<unsigned int>::operator=(c
 
 // broadcasts {{{1
 template<typename T> inline Vector<T>::Vector(EntryType a)
-    : Base(VectorHelper<T>::set(a))
+    : d(VectorHelper<T>::set(a))
 {
 }
 
@@ -251,7 +262,7 @@ template<typename DstT> template<typename SrcT, typename Flags> inline void INTR
 ///////////////////////////////////////////////////////////////////////////////////////////
 // expand/combine {{{1
 template<typename T> inline Vector<T>::Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
-    : Base(VectorHelper<T>::concat(a[0].data(), a[1].data()))
+    : d(VectorHelper<T>::concat(a[0].data(), a[1].data()))
 {
 }
 
@@ -361,7 +372,7 @@ template<> inline INTRINSIC CONST ushort_v &WriteMaskedVector<unsigned short>::o
 
 template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
 {
-    if (Base::HasVectorDivision) {
+    if (VectorTraits<T>::HasVectorDivision) {
         return operator/=(Vector<T>(x));
     }
     for_all_vector_entries(i,
@@ -372,7 +383,7 @@ template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
 
 template<typename T> template<typename TT> inline PURE INTRINSIC VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) Vector<T>::operator/(TT x) const
 {
-    if (Base::HasVectorDivision) {
+    if (VectorTraits<T>::HasVectorDivision) {
         return operator/(Vector<T>(x));
     }
     Vector<T> r;
@@ -518,19 +529,18 @@ OP_IMPL(double, ^, xor_)
 #endif
 
 #define OP_IMPL(T, symbol) \
-template<> VC_WORKAROUND_IN Vector<T> VC_WORKAROUND &VectorBase<T>::operator symbol##=(const VectorBase<T> &x) \
+template<> VC_WORKAROUND_IN Vector<T> VC_WORKAROUND &Vector<T>::operator symbol##=(Vector<T>::AsArg x) \
 { \
     for_all_vector_entries(i, \
             d.m(i) symbol##= x.d.m(i); \
             ); \
-    return *static_cast<Vector<T> *>(this); \
+    return *this; \
 } \
-template<> inline Vector<T>  VectorBase<T>::operator symbol(const VectorBase<T> &x) const \
+template<> inline Vector<T>  Vector<T>::operator symbol(Vector<T>::AsArg x) const \
 { \
     Vector<T> r; \
-	VectorBase<T> &r2 = r; /* MSVC workaround */ \
     for_all_vector_entries(i, \
-            r2.d.m(i) = d.m(i) symbol x.d.m(i); \
+            r.d.m(i) = d.m(i) symbol x.d.m(i); \
             ); \
     return r; \
 }
@@ -546,18 +556,18 @@ OP_IMPL(unsigned short, >>)
 #undef VC_WORKAROUND
 #undef VC_WORKAROUND_IN
 
-template<typename T> inline Vector<T> &VectorBase<T>::operator>>=(int shift) {
+template<typename T> inline Vector<T> &Vector<T>::operator>>=(int shift) {
     d.v() = VectorHelper<T>::shiftRight(d.v(), shift);
-    return *static_cast<Vector<T> *>(this);
+    return *this;
 }
-template<typename T> inline Vector<T> VectorBase<T>::operator>>(int shift) const {
+template<typename T> inline Vector<T> Vector<T>::operator>>(int shift) const {
     return VectorHelper<T>::shiftRight(d.v(), shift);
 }
-template<typename T> inline Vector<T> &VectorBase<T>::operator<<=(int shift) {
+template<typename T> inline Vector<T> &Vector<T>::operator<<=(int shift) {
     d.v() = VectorHelper<T>::shiftLeft(d.v(), shift);
-    return *static_cast<Vector<T> *>(this);
+    return *this;
 }
-template<typename T> inline Vector<T> VectorBase<T>::operator<<(int shift) const {
+template<typename T> inline Vector<T> Vector<T>::operator<<(int shift) const {
     return VectorHelper<T>::shiftLeft(d.v(), shift);
 }
 
@@ -621,13 +631,13 @@ template<typename T> template<typename IndexT> inline ALWAYS_INLINE Vector<T>::V
 }
 
 template<typename T> template<typename IndexT> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, const IndexT *indexes, MaskArg mask)
-    : Base(HT::zero())
+    : d(HT::zero())
 {
     gather(mem, indexes, mask);
 }
 
 template<typename T> template<typename IndexT> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, const Vector<IndexT> indexes, MaskArg mask)
-    : Base(HT::zero())
+    : d(HT::zero())
 {
     gather(mem, indexes, mask);
 }
@@ -637,7 +647,7 @@ template<typename T> template<typename S1, typename IT> inline ALWAYS_INLINE Vec
     gather(array, member1, indexes);
 }
 template<typename T> template<typename S1, typename IT> inline ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType S1::* member1, const IT indexes, MaskArg mask)
-    : Base(HT::zero())
+    : d(HT::zero())
 {
     gather(array, member1, indexes, mask);
 }
@@ -646,7 +656,7 @@ template<typename T> template<typename S1, typename S2, typename IT> inline ALWA
     gather(array, member1, member2, indexes);
 }
 template<typename T> template<typename S1, typename S2, typename IT> inline ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes, MaskArg mask)
-    : Base(HT::zero())
+    : d(HT::zero())
 {
     gather(array, member1, member2, indexes, mask);
 }
@@ -655,7 +665,7 @@ template<typename T> template<typename S1, typename IT1, typename IT2> inline AL
     gather(array, ptrMember1, outerIndexes, innerIndexes);
 }
 template<typename T> template<typename S1, typename IT1, typename IT2> inline ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, MaskArg mask)
-    : Base(HT::zero())
+    : d(HT::zero())
 {
     gather(array, ptrMember1, outerIndexes, innerIndexes, mask);
 }
@@ -1090,7 +1100,7 @@ template<> inline double PURE INTRINSIC Vector<double>::operator[](size_t index)
     if (__builtin_constant_p(index)) {
         return extract_double_imm(d.v(), index);
     }
-    return Base::d.m(index);
+    return d.m(index);
 }
 template<> inline float PURE INTRINSIC Vector<float>::operator[](size_t index) const
 {
@@ -1104,7 +1114,7 @@ template<> inline float PURE INTRINSIC Vector<float8>::operator[](size_t index) 
         }
         return extract_float_imm(d.v()[1], index - 4);
     }
-    return Base::d.m(index);
+    return d.m(index);
 }
 template<> inline int PURE INTRINSIC Vector<int>::operator[](size_t index) const
 {
@@ -1123,7 +1133,7 @@ template<> inline int PURE INTRINSIC Vector<int>::operator[](size_t index) const
         return _mm_cvtsi128_si32(_mm_srli_si128(d.v(), index * 4));
 #endif
     }
-    return Base::d.m(index);
+    return d.m(index);
 }
 template<> inline unsigned int PURE INTRINSIC Vector<unsigned int>::operator[](size_t index) const
 {
@@ -1142,21 +1152,21 @@ template<> inline unsigned int PURE INTRINSIC Vector<unsigned int>::operator[](s
         return _mm_cvtsi128_si32(_mm_srli_si128(d.v(), index * 4));
 #endif
     }
-    return Base::d.m(index);
+    return d.m(index);
 }
 template<> inline short PURE INTRINSIC Vector<short>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
         return _mm_extract_epi16(d.v(), index);
     }
-    return Base::d.m(index);
+    return d.m(index);
 }
 template<> inline unsigned short PURE INTRINSIC Vector<unsigned short>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
         return _mm_extract_epi16(d.v(), index);
     }
-    return Base::d.m(index);
+    return d.m(index);
 }
 #endif // GCC
 ///////////////////////////////////////////////////////////////////////////////////////////

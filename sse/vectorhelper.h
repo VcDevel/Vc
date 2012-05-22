@@ -20,7 +20,7 @@
 #ifndef SSE_VECTORHELPER_H
 #define SSE_VECTORHELPER_H
 
-#include "vectorbase.h"
+#include "types.h"
 #include <limits>
 
 namespace Vc

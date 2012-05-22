@@ -21,7 +21,7 @@
 #define SSE_VECTOR_H
 
 #include "intrinsics.h"
-#include "vectorbase.h"
+#include "types.h"
 #include "vectorhelper.h"
 #include "mask.h"
 #include "../common/aliasingentryhelper.h"
@@ -46,7 +46,7 @@ template<typename T>
 class WriteMaskedVector
 {
     friend class Vector<T>;
-    typedef typename VectorBase<T>::MaskType Mask;
+    typedef typename VectorTraits<T>::MaskType Mask;
     typedef typename Vector<T>::EntryType EntryType;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
@@ -129,28 +129,30 @@ class WriteMaskedVector
         Mask mask;
 };
 
-template<typename T>
-class Vector : public VectorBase<T>
+template<typename T> class Vector
 {
     friend class WriteMaskedVector<T>;
     protected:
-        typedef VectorBase<T> Base;
-        using Base::d;
-        typedef typename Base::GatherMaskType GatherMask;
-        typedef VectorHelper<typename Base::VectorType> HV;
+        typedef typename VectorTraits<T>::StorageType StorageType;
+        StorageType d;
+        typedef typename VectorTraits<T>::GatherMaskType GatherMask;
+        typedef VectorHelper<typename VectorTraits<T>::VectorType> HV;
         typedef VectorHelper<T> HT;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
-        enum Constants { Size = Base::Size };
-        typedef typename Base::VectorType VectorType;
-        typedef typename Base::EntryType  EntryType;
-        typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
-        typedef typename Base::MaskType Mask;
+        enum Constants { Size = VectorTraits<T>::Size };
+        typedef typename VectorTraits<T>::VectorType VectorType;
+        typedef typename VectorTraits<T>::EntryType EntryType;
+        typedef typename VectorTraits<T>::IndexType IndexType;
+        typedef typename VectorTraits<T>::MaskType Mask;
         typedef typename Mask::Argument MaskArg;
         typedef Vc::Memory<Vector<T>, Size> Memory;
-
-        typedef typename Base::AsArg AsArg;
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+        typedef const Vector<T> &AsArg;
+#else
+        typedef const Vector<T> AsArg;
+#endif
 
         typedef T _T;
 
@@ -170,7 +172,7 @@ class Vector : public VectorBase<T>
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType
-        inline Vector(const VectorType &x) : Base(x) {}
+        inline Vector(const VectorType &x) : d(x) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // static_cast / copy ctor
@@ -185,7 +187,7 @@ class Vector : public VectorBase<T>
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         explicit Vector(EntryType a);
-        template<typename TT> inline INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : Base(HT::set(x)) {}
+        template<typename TT> inline INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : d(HT::set(x)) {}
         static inline Vector INTRINSIC broadcast4(const EntryType *x) { return Vector<T>(x); }
         inline Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
 
@@ -291,7 +293,7 @@ class Vector : public VectorBase<T>
 #if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
             ::Vc::Warnings::_operator_bracket_warning();
 #endif
-            return Base::d.m(index);
+            return d.m(index);
         }
         inline EntryType INTRINSIC_L operator[](size_t index) const PURE INTRINSIC_R;
 
@@ -308,6 +310,15 @@ class Vector : public VectorBase<T>
         OP(-, sub)
         OP(*, mul)
 #undef OP
+
+        inline INTRINSIC_L Vector &operator<<=(AsArg shift)       INTRINSIC_R;
+        inline INTRINSIC_L Vector  operator<< (AsArg shift) const INTRINSIC_R;
+        inline INTRINSIC_L Vector &operator<<=(  int shift)       INTRINSIC_R;
+        inline INTRINSIC_L Vector  operator<< (  int shift) const INTRINSIC_R;
+        inline INTRINSIC_L Vector &operator>>=(AsArg shift)       INTRINSIC_R;
+        inline INTRINSIC_L Vector  operator>> (AsArg shift) const INTRINSIC_R;
+        inline INTRINSIC_L Vector &operator>>=(  int shift)       INTRINSIC_R;
+        inline INTRINSIC_L Vector  operator>> (  int shift) const INTRINSIC_R;
 
         inline INTRINSIC_L Vector &operator/=(const Vector<T> &x) INTRINSIC_R;
         inline INTRINSIC_L Vector  operator/ (const Vector<T> &x) const PURE INTRINSIC_R;
@@ -358,8 +369,8 @@ class Vector : public VectorBase<T>
             //return VectorHelper<T>::pack(data(), m1.data, v2.data(), m2.data);
         //}
 
-        inline VectorType &data() { return Base::data(); }
-        inline const VectorType &data() const { return Base::data(); }
+        inline VectorType &data() { return d.v(); }
+        inline const VectorType &data() const { return d.v(); }
 
         inline EntryType INTRINSIC min() const { return VectorHelper<T>::min(data()); }
         inline EntryType INTRINSIC max() const { return VectorHelper<T>::max(data()); }
@@ -373,11 +384,11 @@ class Vector : public VectorBase<T>
         inline Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }
 
         template<typename F> void callWithValuesSorted(F &f) {
-            EntryType value = Base::d.m(0);
+            EntryType value = d.m(0);
             f(value);
             for (int i = 1; i < Size; ++i) {
-                if (Base::d.m(i) != value) {
-                    value = Base::d.m(i);
+                if (d.m(i) != value) {
+                    value = d.m(i);
                     f(value);
                 }
             }

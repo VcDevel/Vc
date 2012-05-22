@@ -106,6 +106,31 @@ namespace SSE
     template<> struct ExpandTypeHelper<unsigned short> { typedef unsigned int Type; };
     template<> struct ExpandTypeHelper<float> { typedef double Type; };
 
+    template<typename T> struct VectorTypeHelper { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<double>   { typedef __m128d Type; };
+    template<> struct VectorTypeHelper< float>   { typedef __m128  Type; };
+    template<> struct VectorTypeHelper<sfloat>   { typedef   M256  Type; };
+
+    template<typename T, unsigned int Size> struct DetermineMask { typedef Mask<Size> Type; };
+    template<> struct DetermineMask<sfloat, 8> { typedef Float8Mask Type; };
+
+    template<typename T> struct DetermineGatherMask { typedef T Type; };
+    template<> struct DetermineGatherMask<Float8Mask> { typedef Float8GatherMask Type; };
+
+    template<typename T> struct VectorTraits
+    {
+        typedef typename VectorTypeHelper<T>::Type VectorType;
+        typedef typename DetermineEntryType<T>::Type EntryType;
+        enum Constants {
+            Size = sizeof(VectorType) / sizeof(EntryType),
+            HasVectorDivision = !IsInteger<T>::Value
+        };
+        typedef typename DetermineMask<T, Size>::Type MaskType;
+        typedef typename DetermineGatherMask<MaskType>::Type GatherMaskType;
+        typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
+        typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
+    };
+
     template<typename T> struct VectorHelperSize;
 
     template<typename V = Vector<float> >

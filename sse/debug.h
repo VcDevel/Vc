@@ -21,7 +21,7 @@
 #define VC_SSE_DEBUG_H
 
 #ifndef NDEBUG
-#include "vectorbase.h"
+#include "types.h"
 #include <iostream>
 #include <iomanip>
 #endif
