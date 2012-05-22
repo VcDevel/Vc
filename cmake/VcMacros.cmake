@@ -263,6 +263,9 @@ macro(vc_set_preferred_compiler_flags)
          AddCompilerFlag("/wd4996") # Disable warning about strdup vs. _strdup
          AddCompilerFlag("/wd4244") # Disable warning "conversion from 'unsigned int' to 'float', possible loss of data"
          AddCompilerFlag("/wd4146") # Disable warning "unary minus operator applied to unsigned type, result still unsigned"
+         AddCompilerFlag("/wd4227") # Disable warning "anachronism used : qualifiers on reference are ignored" (this is about 'restrict' usage on references, stupid MSVC)
+         AddCompilerFlag("/wd4722") # Disable warning "destructor never returns, potential memory leak" (warns about ~_UnitTest_Global_Object which we don't care about)
+         AddCompilerFlag("/wd4748") # Disable warning "/GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function" (I don't get it)
          add_definitions(-D_CRT_SECURE_NO_WARNINGS)
       endif()
 
