@@ -35,7 +35,7 @@ if(QT4_FOUND AND QT4_USABLE)
       add_dependencies(other build_mandelbrot_open64)
    endif()
 
-   if(ICC_CXX)
+   if(FALSE AND ICC_CXX)
       get_target_property(VcLocation Vc LOCATION)
       add_custom_command(OUTPUT mandelbrot_icc
          COMMAND ${ICC_CXX} -O3 -xSSE3
@@ -52,5 +52,5 @@ if(QT4_FOUND AND QT4_USABLE)
       add_custom_target(build_mandelbrot_icc ALL DEPENDS mandelbrot_icc)
       add_target_property(build_mandelbrot_icc LABELS "other")
       add_dependencies(other build_mandelbrot_icc)
-   endif(ICC_CXX)
+   endif()
 endif()
