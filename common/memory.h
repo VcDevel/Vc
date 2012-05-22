@@ -162,7 +162,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
                 return *this;
             }
     }
-#if defined(__INTEL_COMPILER) && !defined(_WIN32)
+#if defined(VC_ICC) && VC_ICC < 20120212 && !defined(_WIN32)
     __attribute__((__aligned__(__alignof(VectorAlignedBaseT<V>))))
 #endif
     ;
