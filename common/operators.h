@@ -1,5 +1,8 @@
+#ifndef VC_ICC
+// ICC ICEs if the following type-traits are in the anonymous namespace
 namespace
 {
+#endif
 template<typename Cond, typename T> struct EnableIfNeitherIntegerNorVector : public EnableIf<!CanConvertToInt<Cond>::Value, T> {};
 template<typename Cond, typename T> struct EnableIfNeitherIntegerNorVector<Vector<Cond>, T>;
 
@@ -34,7 +37,9 @@ template<typename T0, typename T1, typename V> struct IsVectorOperands
             ||  (HasImplicitCast<T1, V>::Value && !HasImplicitCast<T1, int>::Value && !IsEqualType<T1, V>::Value && IsEqualType<T0, V>::Value)
     };
 };
+#ifndef VC_ICC
 }
+#endif
 
 // float-int arithmetic operators //{{{1
 // These operators must be very picky about the exact types they want to handle. Once (uncontrolled)
