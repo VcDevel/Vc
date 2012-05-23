@@ -262,6 +262,7 @@ macro(vc_set_preferred_compiler_flags)
          set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${ALIAS_FLAGS}")
          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS}")
       endif()
+      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 913")
    elseif(Vc_COMPILER_IS_MSVC)
       if(_add_warning_flags)
          AddCompilerFlag("/wd4800") # Disable warning "forcing value to bool"
