@@ -486,6 +486,55 @@ template<> inline Vector<double> Vector<double>::operator/(const Vector<double> 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+// operator- {{{1
+template<> inline Vector<double> PURE ALWAYS_INLINE FLATTEN Vector<double>::operator-() const
+{
+    return _mm_xor_pd(d.v(), _mm_setsignmask_pd());
+}
+template<> inline Vector<float> PURE ALWAYS_INLINE FLATTEN Vector<float>::operator-() const
+{
+    return _mm_xor_ps(d.v(), _mm_setsignmask_ps());
+}
+template<> inline Vector<float8> PURE ALWAYS_INLINE FLATTEN Vector<float8>::operator-() const
+{
+    return M256::create(
+            _mm_xor_ps(d.v()[0], _mm_setsignmask_ps()),
+            _mm_xor_ps(d.v()[1], _mm_setsignmask_ps()));
+}
+template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<int>::operator-() const
+{
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi32(d.v(), _mm_setallone_si128());
+#else
+    return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
+#endif
+}
+template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<unsigned int>::operator-() const
+{
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi32(d.v(), _mm_setallone_si128());
+#else
+    return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
+#endif
+}
+template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<short>::operator-() const
+{
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
+#else
+    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+#endif
+}
+template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<unsigned short>::operator-() const
+{
+#ifdef VC_IMPL_SSSE3
+    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
+#else
+    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
 #define OP_IMPL(T, symbol, fun) \
 template<> inline Vector<T> &Vector<T>::operator symbol##=(const Vector<T> &x) \
@@ -520,6 +569,30 @@ OP_IMPL(double, |, or_)
 OP_IMPL(double, ^, xor_)
 #undef OP_IMPL
 
+#ifdef VC_IMPL_XOP
+static inline INTRINSIC CONST __m128i shiftLeft (const    int_v &value, const    int_v &count) { return _mm_sha_epi32(value.data(), count.data()); }
+static inline INTRINSIC CONST __m128i shiftLeft (const   uint_v &value, const   uint_v &count) { return _mm_shl_epi32(value.data(), count.data()); }
+static inline INTRINSIC CONST __m128i shiftLeft (const  short_v &value, const  short_v &count) { return _mm_sha_epi16(value.data(), count.data()); }
+static inline INTRINSIC CONST __m128i shiftLeft (const ushort_v &value, const ushort_v &count) { return _mm_shl_epi16(value.data(), count.data()); }
+static inline INTRINSIC CONST __m128i shiftRight(const    int_v &value, const    int_v &count) { return shiftLeft(value,          -count ); }
+static inline INTRINSIC CONST __m128i shiftRight(const   uint_v &value, const   uint_v &count) { return shiftLeft(value,   uint_v(-count)); }
+static inline INTRINSIC CONST __m128i shiftRight(const  short_v &value, const  short_v &count) { return shiftLeft(value,          -count ); }
+static inline INTRINSIC CONST __m128i shiftRight(const ushort_v &value, const ushort_v &count) { return shiftLeft(value, ushort_v(-count)); }
+
+#define _VC_OP(T, symbol, impl) \
+template<> inline INTRINSIC T &T::operator symbol##=(T::AsArg shift) \
+{ \
+    d.v() = impl(*this, shift); \
+    return *this; \
+} \
+template<> inline INTRINSIC T  T::operator symbol   (T::AsArg shift) const \
+{ \
+    return impl(*this, shift); \
+}
+VC_APPLY_2(VC_LIST_INT_VECTOR_TYPES, _VC_OP, <<, shiftLeft)
+VC_APPLY_2(VC_LIST_INT_VECTOR_TYPES, _VC_OP, >>, shiftRight)
+#undef _VC_OP
+#else
 #if defined(VC_GCC) && VC_GCC == 0x40600 && VC_IMPL_XOP
 #define VC_WORKAROUND_IN
 #define VC_WORKAROUND __attribute__((optimize("no-tree-vectorize"),weak))
@@ -555,6 +628,7 @@ OP_IMPL(unsigned short, >>)
 #undef OP_IMPL
 #undef VC_WORKAROUND
 #undef VC_WORKAROUND_IN
+#endif
 
 template<typename T> inline Vector<T> &Vector<T>::operator>>=(int shift) {
     d.v() = VectorHelper<T>::shiftRight(d.v(), shift);
@@ -1169,55 +1243,6 @@ template<> inline unsigned short PURE INTRINSIC Vector<unsigned short>::operator
     return d.m(index);
 }
 #endif // GCC
-///////////////////////////////////////////////////////////////////////////////////////////
-// operator- {{{1
-template<> inline Vector<double> PURE ALWAYS_INLINE FLATTEN Vector<double>::operator-() const
-{
-    return _mm_xor_pd(d.v(), _mm_setsignmask_pd());
-}
-template<> inline Vector<float> PURE ALWAYS_INLINE FLATTEN Vector<float>::operator-() const
-{
-    return _mm_xor_ps(d.v(), _mm_setsignmask_ps());
-}
-template<> inline Vector<float8> PURE ALWAYS_INLINE FLATTEN Vector<float8>::operator-() const
-{
-    return M256::create(
-            _mm_xor_ps(d.v()[0], _mm_setsignmask_ps()),
-            _mm_xor_ps(d.v()[1], _mm_setsignmask_ps()));
-}
-template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<int>::operator-() const
-{
-#ifdef VC_IMPL_SSSE3
-    return _mm_sign_epi32(d.v(), _mm_setallone_si128());
-#else
-    return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
-#endif
-}
-template<> inline Vector<int> PURE ALWAYS_INLINE FLATTEN Vector<unsigned int>::operator-() const
-{
-#ifdef VC_IMPL_SSSE3
-    return _mm_sign_epi32(d.v(), _mm_setallone_si128());
-#else
-    return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
-#endif
-}
-template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<short>::operator-() const
-{
-#ifdef VC_IMPL_SSSE3
-    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
-#else
-    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
-#endif
-}
-template<> inline Vector<short> PURE ALWAYS_INLINE FLATTEN Vector<unsigned short>::operator-() const
-{
-#ifdef VC_IMPL_SSSE3
-    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
-#else
-    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
-#endif
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 // horizontal ops {{{1
 #ifndef VC_IMPL_SSE4_1

@@ -238,12 +238,14 @@ namespace Vc {
     size(macro, double_v, a, b, c, d) \
     size(macro,  float_v, a, b, c, d) \
     size(macro, sfloat_v, a, b, c, d)
-#define VC_LIST_VECTOR_TYPES(size, macro, a, b, c, d) \
-    VC_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
+#define VC_LIST_INT_VECTOR_TYPES(size, macro, a, b, c, d) \
     size(macro,    int_v, a, b, c, d) \
     size(macro,   uint_v, a, b, c, d) \
     size(macro,  short_v, a, b, c, d) \
     size(macro, ushort_v, a, b, c, d)
+#define VC_LIST_VECTOR_TYPES(size, macro, a, b, c, d) \
+    VC_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
+    VC_LIST_INT_VECTOR_TYPES(size, macro, a, b, c, d)
 #define VC_LIST_COMPARES(size, macro, a, b, c, d) \
     size(macro, ==, a, b, c, d) \
     size(macro, !=, a, b, c, d) \
