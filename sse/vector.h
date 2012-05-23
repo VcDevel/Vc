@@ -289,7 +289,7 @@ template<typename T> class Vector
         //postfix
         inline Vector INTRINSIC operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
-        inline Common::AliasingEntryHelper<EntryType> INTRINSIC operator[](size_t index) {
+        inline Common::AliasingEntryHelper<StorageType> INTRINSIC operator[](size_t index) {
 #if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
             ::Vc::Warnings::_operator_bracket_warning();
 #endif

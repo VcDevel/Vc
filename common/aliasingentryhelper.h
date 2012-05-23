@@ -27,23 +27,60 @@ namespace Vc
 namespace Common
 {
 
-template<typename T> class AliasingEntryHelper
+template<class StorageType> class AliasingEntryHelper
 {
     private:
+        typedef typename StorageType::EntryType T;
+#ifdef VC_ICC
+        StorageType *const m_storage;
+        const int m_index;
+    public:
+        AliasingEntryHelper(StorageType *d, int index) : m_storage(d), m_index(index) {}
+        AliasingEntryHelper(const AliasingEntryHelper &rhs) : m_storage(rhs.m_storage), m_index(rhs.m_index) {}
+        AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
+            m_storage->assign(m_index, rhs);
+            return *this;
+        }
+
+        AliasingEntryHelper &operator  =(T x) { m_storage->assign(m_index, x); return *this; }
+        AliasingEntryHelper &operator +=(T x) { m_storage->assign(m_index, m_storage->m(m_index) + x); return *this; }
+        AliasingEntryHelper &operator -=(T x) { m_storage->assign(m_index, m_storage->m(m_index) - x); return *this; }
+        AliasingEntryHelper &operator /=(T x) { m_storage->assign(m_index, m_storage->m(m_index) / x); return *this; }
+        AliasingEntryHelper &operator *=(T x) { m_storage->assign(m_index, m_storage->m(m_index) * x); return *this; }
+        AliasingEntryHelper &operator |=(T x) { m_storage->assign(m_index, m_storage->m(m_index) | x); return *this; }
+        AliasingEntryHelper &operator &=(T x) { m_storage->assign(m_index, m_storage->m(m_index) & x); return *this; }
+        AliasingEntryHelper &operator ^=(T x) { m_storage->assign(m_index, m_storage->m(m_index) ^ x); return *this; }
+        AliasingEntryHelper &operator %=(T x) { m_storage->assign(m_index, m_storage->m(m_index) % x); return *this; }
+        AliasingEntryHelper &operator<<=(T x) { m_storage->assign(m_index, m_storage->m(m_index)<< x); return *this; }
+        AliasingEntryHelper &operator>>=(T x) { m_storage->assign(m_index, m_storage->m(m_index)>> x); return *this; }
+#define m_data m_storage->read(m_index)
+#else
         typedef T A MAY_ALIAS;
         A &m_data;
-
     public:
         template<typename T2>
         AliasingEntryHelper(T2 &d) : m_data(reinterpret_cast<A &>(d)) {}
 
         AliasingEntryHelper(A &d) : m_data(d) {}
-
-        operator const T() const { return m_data; }
-        AliasingEntryHelper<T> &operator=(const AliasingEntryHelper<T> &rhs) {
+        AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
             m_data = rhs.m_data;
             return *this;
         }
+
+        AliasingEntryHelper &operator =(T x) { m_data  = x; return *this; }
+        AliasingEntryHelper &operator+=(T x) { m_data += x; return *this; }
+        AliasingEntryHelper &operator-=(T x) { m_data -= x; return *this; }
+        AliasingEntryHelper &operator/=(T x) { m_data /= x; return *this; }
+        AliasingEntryHelper &operator*=(T x) { m_data *= x; return *this; }
+        AliasingEntryHelper &operator|=(T x) { m_data |= x; return *this; }
+        AliasingEntryHelper &operator&=(T x) { m_data &= x; return *this; }
+        AliasingEntryHelper &operator^=(T x) { m_data ^= x; return *this; }
+        AliasingEntryHelper &operator%=(T x) { m_data %= x; return *this; }
+        AliasingEntryHelper &operator<<=(T x) { m_data <<= x; return *this; }
+        AliasingEntryHelper &operator>>=(T x) { m_data >>= x; return *this; }
+#endif
+
+        operator const T() const { return m_data; }
 
         bool operator==(T x) const { return static_cast<T>(m_data) == x; }
         bool operator!=(T x) const { return static_cast<T>(m_data) != x; }
@@ -62,16 +99,11 @@ template<typename T> class AliasingEntryHelper
         T operator&(T x) const { return static_cast<T>(m_data) & x; }
         T operator^(T x) const { return static_cast<T>(m_data) ^ x; }
         T operator%(T x) const { return static_cast<T>(m_data) % x; }
-
-        AliasingEntryHelper &operator =(T x) { m_data  = x; return *this; }
-        AliasingEntryHelper &operator+=(T x) { m_data += x; return *this; }
-        AliasingEntryHelper &operator-=(T x) { m_data -= x; return *this; }
-        AliasingEntryHelper &operator/=(T x) { m_data /= x; return *this; }
-        AliasingEntryHelper &operator*=(T x) { m_data *= x; return *this; }
-        AliasingEntryHelper &operator|=(T x) { m_data |= x; return *this; }
-        AliasingEntryHelper &operator&=(T x) { m_data &= x; return *this; }
-        AliasingEntryHelper &operator^=(T x) { m_data ^= x; return *this; }
-        AliasingEntryHelper &operator%=(T x) { m_data %= x; return *this; }
+        //T operator<<(T x) const { return static_cast<T>(m_data) << x; }
+        //T operator>>(T x) const { return static_cast<T>(m_data) >> x; }
+#ifdef m_data
+#undef m_data
+#endif
 };
 
 } // namespace Common

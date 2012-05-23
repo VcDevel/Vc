@@ -20,6 +20,7 @@
 #ifndef VC_COMMON_STORAGE_H
 #define VC_COMMON_STORAGE_H
 
+#include "aliasingentryhelper.h"
 #include "macros.h"
 
 namespace Vc
@@ -27,9 +28,11 @@ namespace Vc
 namespace Common
 {
 
-template<typename VectorType, typename EntryType> class VectorMemoryUnion
+template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
 {
     public:
+        typedef _VectorType VectorType;
+        typedef _EntryType EntryType;
         typedef EntryType AliasingEntryType MAY_ALIAS;
         inline VectorMemoryUnion() {}
 #if defined VC_ICC || defined VC_MSVC
@@ -41,16 +44,28 @@ template<typename VectorType, typename EntryType> class VectorMemoryUnion
         VectorType &v() { return data.v; }
         const VectorType &v() const { return data.v; }
 
+#if defined VC_ICC
+        AliasingEntryHelper<VectorMemoryUnion<VectorType, EntryType> > m(int index) {
+            return AliasingEntryHelper<VectorMemoryUnion<VectorType, EntryType> >(this, index);
+        }
+        void assign(int index, EntryType x) {
+            data.m[index] = x;
+        }
+        EntryType read(int index) const {
+            return data.m[index];
+        }
+#else
         EntryType &m(int index) {
             return data.m[index];
         }
+#endif
 
         EntryType m(int index) const {
             return data.m[index];
         }
 
     private:
-        union {
+        union VectorScalarUnion {
             VectorType v;
             EntryType m[sizeof(VectorType)/sizeof(EntryType)];
         } data;
