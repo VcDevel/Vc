@@ -25,9 +25,14 @@ if(Vc_COMPILER_IS_GCC)
          gather_sse
          gather_VC_USE_SET_GATHERS_avx
          gather_VC_USE_SET_GATHERS_sse
-         gather_sse_LOOP
          scatter_avx
          scatter_sse
+         c++11_gather_avx
+         c++11_gather_sse
+         c++11_gather_VC_USE_SET_GATHERS_avx
+         c++11_gather_VC_USE_SET_GATHERS_sse
+         c++11_scatter_avx
+         c++11_scatter_sse
          )
    elseif(Vc_GCC_VERSION STREQUAL "4.5.0" OR Vc_GCC_VERSION STREQUAL "4.5.1")
       message(WARNING "GCC 4.5.[12] are known to generate an internal compiler error on the memory unit test.
