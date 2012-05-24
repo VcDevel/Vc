@@ -4,7 +4,11 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
    "call to .*Vc::Warnings::_operator_bracket_warning.* declared with attribute warning"
    "warning is a GCC extension"
    "^-- "  # Ignore output from cmake
-   "suggest parentheses around .+&&.+ within .+\\|\\|.+" # GCC 4.4 gives bogus warnings
+   "GCC 4.6.0 is broken.  The following tests are therefore disabled" # This warning is meant for users not the dashboard
+   "Your GCC is older than 4.4.6.  This is known to cause problems/bugs" # This warning is meant for users not the dashboard
+   "GCC 4.4.x shows false positives for -Wparentheses, thus we rather disable" # This warning is meant for users not the dashboard
+   "AVX disabled per default because of old/broken compiler" # This warning is meant for users not the dashboard
+   "GCC 4.7.0 miscompiles at -O3, adding -fno-predictive-commoning to the" # This warning is meant for users not the dashboard
    "^\\*\\*\\* WARNING non-zero return value in ctest from: make") # Ignore output from ctest
 
 set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
