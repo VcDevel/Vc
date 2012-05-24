@@ -418,8 +418,8 @@ void Baker::createImage()
     // Parameters Begin
     const float S = 4.f;
     const float nSteps[2]   = {
-        m_opt.steps[0] == -1 ? std::sqrt(iWidth) * iWidth : m_opt.steps[0],
-        m_opt.steps[1] == -1 ? std::sqrt(iHeight) * iHeight : m_opt.steps[1]
+        static_cast<float>(m_opt.steps[0] == -1 ? std::sqrt(iWidth) * iWidth : m_opt.steps[0]),
+        static_cast<float>(m_opt.steps[1] == -1 ? std::sqrt(iHeight) * iHeight : m_opt.steps[1])
     };
     const int upperBound[3] = { m_opt.red[1], m_opt.green[1], m_opt.blue[1] };
     const int lowerBound[3] = { m_opt.red[0], m_opt.green[0], m_opt.blue[0] };
