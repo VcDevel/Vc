@@ -21,6 +21,7 @@
 #define VC_SCALAR_MATH_H
 
 #include "../common/const.h"
+#include "macros.h"
 
 namespace Vc
 {
@@ -227,5 +228,7 @@ inline sfloat_v ldexp(sfloat_v x, short_v e) {
 
 } // namespace Scalar
 } // namespace Vc
+
+#include "undomacros.h"
 
 #endif // VC_SCALAR_MATH_H
