@@ -41,7 +41,7 @@ template<typename Vec> void maskedGatherArray()
         }
 
         T x = Vec::Size + 1;
-        Vec b(x);
+        Vec b = x;
         b.gather(mem, indexes, m);
         for (int i = 0; i < Vec::Size; ++i) {
             COMPARE(b[i], m[i] ? mem[i] : x) << " i = " << i << ", m = " << m;

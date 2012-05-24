@@ -169,7 +169,7 @@ int main()
         // All the differentials require to calculate (r - l) / 2h, where we calculate 1/2h as a
         // constant before the loop to avoid unnecessary calculations. Note that a good compiler can
         // already do this for you.
-        const float_v oneOver2h(0.5f / h);
+        const float_v oneOver2h = 0.5f / h;
 
         // Calculate the left border
         dy_points[0] = (y_points[1] - y_points[0]) / h;
