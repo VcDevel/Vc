@@ -120,6 +120,12 @@
 #  define VC_RESTRICT __restrict
 #endif
 
+#if __cplusplus >= 201103 /*C++11*/
+#define _VC_CONSTEXPR constexpr
+#else
+#define _VC_CONSTEXPR inline INTRINSIC CONST
+#endif
+
 #ifdef VC_GCC
 # define VC_WARN_INLINE
 # define VC_WARN(msg) __attribute__((warning("\n\t" msg)))

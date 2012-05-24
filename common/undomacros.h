@@ -28,10 +28,13 @@
 #undef CONST_L
 #undef CONST_R
 #undef PURE
+#undef PURE_L
+#undef PURE_R
 #undef MAY_ALIAS
 #undef ALWAYS_INLINE
 #undef ALWAYS_INLINE_L
 #undef ALWAYS_INLINE_R
+#undef _VC_CONSTEXPR
 
 #undef ALIGN
 #undef STRUCT_ALIGN1
@@ -58,6 +61,7 @@
 #undef _VC_APPLY_IMPL_5
 
 #undef VC_LIST_FLOAT_VECTOR_TYPES
+#undef VC_LIST_INT_VECTOR_TYPES
 #undef VC_LIST_VECTOR_TYPES
 #undef VC_LIST_COMPARES
 #undef VC_LIST_LOGICAL
