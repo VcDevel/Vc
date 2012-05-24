@@ -80,6 +80,12 @@ bool currentImplementationSupported()
 #else
             VC_IMPL
 #endif
+#ifdef VC_IMPL_XOP
+            ) && isImplementationSupported(XopImpl
+#endif
+#ifdef VC_IMPL_FMA4
+            ) && isImplementationSupported(Fma4Impl
+#endif
             );
 }
 #endif // VC_COMPILE_LIB

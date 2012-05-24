@@ -298,7 +298,11 @@ enum Implementation {
     /// x86 (AMD only) SSE + SSE2 + SSE3 + SSE4a
     SSE4aImpl,
     /// x86 AVX
-    AVXImpl
+    AVXImpl,
+    /// x86 (AMD only) XOP
+    Fma4Impl,
+    /// x86 (AMD only) FMA4
+    XopImpl
 };
 
 #ifdef DOXYGEN
