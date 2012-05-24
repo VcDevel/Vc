@@ -22,29 +22,83 @@
 
 #include "intrinsics.h"
 #include "types.h"
+#include "macros.h"
+
+#if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103
+# define _VC_NOEXCEPT noexcept
+#else
+# define _VC_NOEXCEPT throw()
+#endif
 
 namespace std
 {
-
-    template<> inline Vc::SSE::Vector<unsigned short> numeric_limits<Vc::SSE::Vector<unsigned short> >::max() throw() { return Vc::SSE::_mm_setallone_si128(); }
-    template<> inline Vc::SSE::Vector<unsigned short> numeric_limits<Vc::SSE::Vector<unsigned short> >::min() throw() { return _mm_setzero_si128(); }
-    template<> inline Vc::SSE::Vector<short> numeric_limits<Vc::SSE::Vector<short> >::max() throw() { return _mm_srli_epi16(Vc::SSE::_mm_setallone_si128(), 1); }
-    template<> inline Vc::SSE::Vector<short> numeric_limits<Vc::SSE::Vector<short> >::min() throw() { return Vc::SSE::_mm_setmin_epi16(); }
-
-    template<> inline Vc::SSE::Vector<unsigned int> numeric_limits<Vc::SSE::Vector<unsigned int> >::max() throw() { return Vc::SSE::_mm_setallone_si128(); }
-    template<> inline Vc::SSE::Vector<unsigned int> numeric_limits<Vc::SSE::Vector<unsigned int> >::min() throw() { return _mm_setzero_si128(); }
-    template<> inline Vc::SSE::Vector<int> numeric_limits<Vc::SSE::Vector<int> >::max() throw() { return _mm_srli_epi32(Vc::SSE::_mm_setallone_si128(), 1); }
-    template<> inline Vc::SSE::Vector<int> numeric_limits<Vc::SSE::Vector<int> >::min() throw() { return Vc::SSE::_mm_setmin_epi32(); }
-
-    template<> inline Vc::SSE::Vector<float> numeric_limits<Vc::SSE::Vector<float> >::max() throw() { return _mm_set1_ps(numeric_limits<float>::max()); }
-    template<> inline Vc::SSE::Vector<float> numeric_limits<Vc::SSE::Vector<float> >::min() throw() { return _mm_set1_ps(numeric_limits<float>::min()); }
-
-    template<> inline Vc::SSE::Vector<Vc::SSE::float8> numeric_limits<Vc::SSE::Vector<Vc::SSE::float8> >::max() throw() { return Vc::SSE::sfloat_v(numeric_limits<float>::max()); }
-    template<> inline Vc::SSE::Vector<Vc::SSE::float8> numeric_limits<Vc::SSE::Vector<Vc::SSE::float8> >::min() throw() { return Vc::SSE::sfloat_v(numeric_limits<float>::min()); }
-
-    template<> inline Vc::SSE::Vector<double> numeric_limits<Vc::SSE::Vector<double> >::max() throw() { return _mm_set1_pd(numeric_limits<double>::max()); }
-    template<> inline Vc::SSE::Vector<double> numeric_limits<Vc::SSE::Vector<double> >::min() throw() { return _mm_set1_pd(numeric_limits<double>::min()); }
-
+template<typename T> struct numeric_limits<Vc::SSE::Vector<T> > : public numeric_limits<typename Vc::SSE::Vector<T>::EntryType>
+{
+private:
+    typedef numeric_limits<typename Vc::SSE::Vector<T>::EntryType> _Base;
+public:
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> max()           _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::max()); }
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> min()           _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::min()); }
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> lowest()        _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::lowest()); }
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> epsilon()       _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::epsilon()); }
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> round_error()   _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::round_error()); }
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> infinity()      _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::infinity()); }
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> quiet_NaN()     _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::quiet_NaN()); }
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> signaling_NaN() _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::signaling_NaN()); }
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> denorm_min()    _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::denorm_min()); }
+};
+template<> struct numeric_limits<Vc::SSE::ushort_v> : public numeric_limits<unsigned short>
+{
+    static inline INTRINSIC CONST Vc::SSE::ushort_v max()           _VC_NOEXCEPT { return Vc::SSE::_mm_setallone_si128(); }
+    static inline INTRINSIC CONST Vc::SSE::ushort_v min()           _VC_NOEXCEPT { return Vc::SSE::ushort_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::ushort_v lowest()        _VC_NOEXCEPT { return min(); }
+    static inline INTRINSIC CONST Vc::SSE::ushort_v epsilon()       _VC_NOEXCEPT { return Vc::SSE::ushort_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::ushort_v round_error()   _VC_NOEXCEPT { return Vc::SSE::ushort_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::ushort_v infinity()      _VC_NOEXCEPT { return Vc::SSE::ushort_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::ushort_v quiet_NaN()     _VC_NOEXCEPT { return Vc::SSE::ushort_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::ushort_v signaling_NaN() _VC_NOEXCEPT { return Vc::SSE::ushort_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::ushort_v denorm_min()    _VC_NOEXCEPT { return Vc::SSE::ushort_v::Zero(); }
+};
+template<> struct numeric_limits<Vc::SSE::short_v> : public numeric_limits<short>
+{
+    static inline INTRINSIC CONST Vc::SSE::short_v max()           _VC_NOEXCEPT { return _mm_srli_epi16(Vc::SSE::_mm_setallone_si128(), 1); }
+    static inline INTRINSIC CONST Vc::SSE::short_v min()           _VC_NOEXCEPT { return Vc::SSE::_mm_setmin_epi16(); }
+    static inline INTRINSIC CONST Vc::SSE::short_v lowest()        _VC_NOEXCEPT { return min(); }
+    static inline INTRINSIC CONST Vc::SSE::short_v epsilon()       _VC_NOEXCEPT { return Vc::SSE::short_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::short_v round_error()   _VC_NOEXCEPT { return Vc::SSE::short_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::short_v infinity()      _VC_NOEXCEPT { return Vc::SSE::short_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::short_v quiet_NaN()     _VC_NOEXCEPT { return Vc::SSE::short_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::short_v signaling_NaN() _VC_NOEXCEPT { return Vc::SSE::short_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::short_v denorm_min()    _VC_NOEXCEPT { return Vc::SSE::short_v::Zero(); }
+};
+template<> struct numeric_limits<Vc::SSE::uint_v> : public numeric_limits<unsigned int>
+{
+    static inline INTRINSIC CONST Vc::SSE::uint_v max()           _VC_NOEXCEPT { return Vc::SSE::_mm_setallone_si128(); }
+    static inline INTRINSIC CONST Vc::SSE::uint_v min()           _VC_NOEXCEPT { return Vc::SSE::uint_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::uint_v lowest()        _VC_NOEXCEPT { return min(); }
+    static inline INTRINSIC CONST Vc::SSE::uint_v epsilon()       _VC_NOEXCEPT { return Vc::SSE::uint_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::uint_v round_error()   _VC_NOEXCEPT { return Vc::SSE::uint_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::uint_v infinity()      _VC_NOEXCEPT { return Vc::SSE::uint_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::uint_v quiet_NaN()     _VC_NOEXCEPT { return Vc::SSE::uint_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::uint_v signaling_NaN() _VC_NOEXCEPT { return Vc::SSE::uint_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::uint_v denorm_min()    _VC_NOEXCEPT { return Vc::SSE::uint_v::Zero(); }
+};
+template<> struct numeric_limits<Vc::SSE::int_v> : public numeric_limits<int>
+{
+    static inline INTRINSIC CONST Vc::SSE::int_v max()           _VC_NOEXCEPT { return _mm_srli_epi32(Vc::SSE::_mm_setallone_si128(), 1); }
+    static inline INTRINSIC CONST Vc::SSE::int_v min()           _VC_NOEXCEPT { return Vc::SSE::_mm_setmin_epi32(); }
+    static inline INTRINSIC CONST Vc::SSE::int_v lowest()        _VC_NOEXCEPT { return min(); }
+    static inline INTRINSIC CONST Vc::SSE::int_v epsilon()       _VC_NOEXCEPT { return Vc::SSE::int_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::int_v round_error()   _VC_NOEXCEPT { return Vc::SSE::int_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::int_v infinity()      _VC_NOEXCEPT { return Vc::SSE::int_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::int_v quiet_NaN()     _VC_NOEXCEPT { return Vc::SSE::int_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::int_v signaling_NaN() _VC_NOEXCEPT { return Vc::SSE::int_v::Zero(); }
+    static inline INTRINSIC CONST Vc::SSE::int_v denorm_min()    _VC_NOEXCEPT { return Vc::SSE::int_v::Zero(); }
+};
 } // namespace std
+
+#undef _VC_NOEXCEPT
+
+#include "undomacros.h"
 
 #endif // VC_SSE_LIMITS_H
