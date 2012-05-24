@@ -28,6 +28,9 @@
 namespace Vc
 {
 
+#ifdef VC_GCC
+    __attribute__((target("no-sse,no-avx")))
+#endif
 bool isImplementationSupported(Implementation impl)
 {
     CpuId::init();

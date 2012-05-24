@@ -67,6 +67,9 @@ bool isImplementationSupported(Vc::Implementation impl);
  *                 instructions.
  * \return \c false otherwise
  */
+#ifdef VC_GCC
+    __attribute__((target("no-sse,no-avx")))
+#endif
 bool currentImplementationSupported()
 {
     return isImplementationSupported(
