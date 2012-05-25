@@ -29,16 +29,14 @@ template<typename T> static inline bool isnan(T x) { return _isnan(x); }
 
 template<typename T> static inline T ulpDiffToReference(T val, T ref)
 {
-    using namespace std;
-
-    if (val == ref || (isnan(val) && isnan(ref))) {
+    if (val == ref || (std::isnan(val) && std::isnan(ref))) {
         return 0;
     }
     if (ref == T(0)) {
-        return 1 + ulpDiffToReference(abs(val), numeric_limits<T>::min());
+        return 1 + ulpDiffToReference(std::abs(val), std::numeric_limits<T>::min());
     }
     if (val == T(0)) {
-        return 1 + ulpDiffToReference(numeric_limits<T>::min(), abs(ref));
+        return 1 + ulpDiffToReference(std::numeric_limits<T>::min(), std::abs(ref));
     }
 
     int exp;
@@ -46,7 +44,7 @@ template<typename T> static inline T ulpDiffToReference(T val, T ref)
     // tmp is now in the range [0.5, 1.0[
     // now we want to know how many times we can fit 2^-numeric_limits<T>::digits between tmp and
     // val * 2 ^ -exp
-    return ldexp(abs(ref - val), numeric_limits<T>::digits - exp);
+    return ldexp(abs(ref - val), std::numeric_limits<T>::digits - exp);
 }
 template<typename T> static inline T ulpDiffToReferenceSigned(T val, T ref)
 {
