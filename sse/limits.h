@@ -32,21 +32,6 @@
 
 namespace std
 {
-template<typename T> struct numeric_limits<Vc::SSE::Vector<T> > : public numeric_limits<typename Vc::SSE::Vector<T>::EntryType>
-{
-private:
-    typedef numeric_limits<typename Vc::SSE::Vector<T>::EntryType> _Base;
-public:
-    static inline INTRINSIC CONST Vc::SSE::Vector<T> max()           _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::max()); }
-    static inline INTRINSIC CONST Vc::SSE::Vector<T> min()           _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::min()); }
-    static inline INTRINSIC CONST Vc::SSE::Vector<T> lowest()        _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::lowest()); }
-    static inline INTRINSIC CONST Vc::SSE::Vector<T> epsilon()       _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::epsilon()); }
-    static inline INTRINSIC CONST Vc::SSE::Vector<T> round_error()   _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::round_error()); }
-    static inline INTRINSIC CONST Vc::SSE::Vector<T> infinity()      _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::infinity()); }
-    static inline INTRINSIC CONST Vc::SSE::Vector<T> quiet_NaN()     _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::quiet_NaN()); }
-    static inline INTRINSIC CONST Vc::SSE::Vector<T> signaling_NaN() _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::signaling_NaN()); }
-    static inline INTRINSIC CONST Vc::SSE::Vector<T> denorm_min()    _VC_NOEXCEPT { return Vc::SSE::Vector<T>(_Base::denorm_min()); }
-};
 template<> struct numeric_limits<Vc::SSE::ushort_v> : public numeric_limits<unsigned short>
 {
     static inline INTRINSIC CONST Vc::SSE::ushort_v max()           _VC_NOEXCEPT { return Vc::SSE::_mm_setallone_si128(); }

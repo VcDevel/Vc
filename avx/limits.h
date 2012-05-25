@@ -23,32 +23,35 @@
 #include "intrinsics.h"
 #include "types.h"
 
+#if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103
+# define _VC_NOEXCEPT noexcept
+#else
+# define _VC_NOEXCEPT throw()
+#endif
+
 namespace std
 {
-
-#define NUM_LIM(type) \
-    template<> inline Vc::AVX::Vector<type> numeric_limits<Vc::AVX::Vector<type> >
-
-    NUM_LIM(unsigned short)::max() throw() { return Vc::AVX::_mm_setallone_si128(); }
-    NUM_LIM(unsigned short)::min() throw() { return _mm_setzero_si128(); }
-    NUM_LIM(short         )::max() throw() { return _mm_srli_epi16(Vc::AVX::_mm_setallone_si128(), 1); }
-    NUM_LIM(short         )::min() throw() { return Vc::AVX::_mm_setmin_epi16(); }
-
-    NUM_LIM(unsigned int  )::max() throw() { return Vc::AVX::_mm256_setallone_si256(); }
-    NUM_LIM(unsigned int  )::min() throw() { return _mm256_setzero_si256(); }
-    NUM_LIM(int           )::max() throw() { const __m128i tmp =  _mm_srli_epi32(Vc::AVX::_mm_setallone_si128(), 1); return Vc::AVX::concat(tmp, tmp); }
-    NUM_LIM(int           )::min() throw() { return Vc::AVX::_mm256_setmin_epi32(); }
-
-    NUM_LIM(float         )::max() throw() { return _mm256_set1_ps(numeric_limits<float>::max()); }
-    NUM_LIM(float         )::min() throw() { return _mm256_set1_ps(numeric_limits<float>::min()); }
-
-    NUM_LIM(Vc::sfloat    )::max() throw() { return _mm256_set1_ps(numeric_limits<float>::max()); }
-    NUM_LIM(Vc::sfloat    )::min() throw() { return _mm256_set1_ps(numeric_limits<float>::min()); }
-
-    NUM_LIM(double        )::max() throw() { return _mm256_set1_pd(numeric_limits<double>::max()); }
-    NUM_LIM(double        )::min() throw() { return _mm256_set1_pd(numeric_limits<double>::min()); }
-#undef NUM_LIM
+#define _VC_NUM_LIM(T, _max, _min) \
+template<> struct numeric_limits<Vc::SSE::Vector<T> > : public numeric_limits<T> \
+{ \
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> max()           _VC_NOEXCEPT { return _max; } \
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> min()           _VC_NOEXCEPT { return _min; } \
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> lowest()        _VC_NOEXCEPT { return min(); } \
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> epsilon()       _VC_NOEXCEPT { return Vc::SSE::Vector<T>::Zero(); } \
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> round_error()   _VC_NOEXCEPT { return Vc::SSE::Vector<T>::Zero(); } \
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> infinity()      _VC_NOEXCEPT { return Vc::SSE::Vector<T>::Zero(); } \
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> quiet_NaN()     _VC_NOEXCEPT { return Vc::SSE::Vector<T>::Zero(); } \
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> signaling_NaN() _VC_NOEXCEPT { return Vc::SSE::Vector<T>::Zero(); } \
+    static inline INTRINSIC CONST Vc::SSE::Vector<T> denorm_min()    _VC_NOEXCEPT { return Vc::SSE::Vector<T>::Zero(); } \
+}
+_VC_NUM_LIM(unsigned short, Vc::AVX::_mm_setallone_si128(), _mm_setzero_si128());
+_VC_NUM_LIM(         short, _mm_srli_epi16(Vc::AVX::_mm_setallone_si128(), 1), Vc::AVX::_mm_setmin_epi16());
+_VC_NUM_LIM(  unsigned int, Vc::AVX::_mm256_setallone_si256(), _mm256_setzero_si256());
+_VC_NUM_LIM(           int, _mm256_srli_epi32(Vc::AVX::_mm256_setallone_si256(), 1), Vc::AVX::_mm256_setmin_epi32());
+#undef _VC_NUM_LIM
 
 } // namespace std
+
+#undef _VC_NOEXCEPT
 
 #endif // VC_AVX_LIMITS_H

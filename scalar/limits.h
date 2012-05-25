@@ -20,24 +20,5 @@
 #ifndef VC_SCALAR_LIMITS_H
 #define VC_SCALAR_LIMITS_H
 
-#include <limits>
-#include "types.h"
 
-namespace std
-{
-    template<> inline Vc::Scalar::int_v    numeric_limits<Vc::Scalar::int_v   >::max() throw() { return Vc::Scalar::int_v   (std::numeric_limits<int>::max()); }
-    template<> inline Vc::Scalar::int_v    numeric_limits<Vc::Scalar::int_v   >::min() throw() { return Vc::Scalar::int_v   (std::numeric_limits<int>::min()); }
-    template<> inline Vc::Scalar::uint_v   numeric_limits<Vc::Scalar::uint_v  >::max() throw() { return Vc::Scalar::uint_v  (std::numeric_limits<unsigned int>::max()); }
-    template<> inline Vc::Scalar::uint_v   numeric_limits<Vc::Scalar::uint_v  >::min() throw() { return Vc::Scalar::uint_v  (std::numeric_limits<unsigned int>::min()); }
-    template<> inline Vc::Scalar::short_v  numeric_limits<Vc::Scalar::short_v >::max() throw() { return Vc::Scalar::short_v (std::numeric_limits<short>::max()); }
-    template<> inline Vc::Scalar::short_v  numeric_limits<Vc::Scalar::short_v >::min() throw() { return Vc::Scalar::short_v (std::numeric_limits<short>::min()); }
-    template<> inline Vc::Scalar::ushort_v numeric_limits<Vc::Scalar::ushort_v>::max() throw() { return Vc::Scalar::ushort_v(std::numeric_limits<unsigned short>::max()); }
-    template<> inline Vc::Scalar::ushort_v numeric_limits<Vc::Scalar::ushort_v>::min() throw() { return Vc::Scalar::ushort_v(std::numeric_limits<unsigned short>::min()); }
-    template<> inline Vc::Scalar::float_v  numeric_limits<Vc::Scalar::float_v >::max() throw() { return Vc::Scalar::float_v (std::numeric_limits<float>::max()); }
-    template<> inline Vc::Scalar::float_v  numeric_limits<Vc::Scalar::float_v >::min() throw() { return Vc::Scalar::float_v (std::numeric_limits<float>::min()); }
-    template<> inline Vc::Scalar::sfloat_v numeric_limits<Vc::Scalar::sfloat_v>::max() throw() { return Vc::Scalar::sfloat_v(std::numeric_limits<float>::max()); }
-    template<> inline Vc::Scalar::sfloat_v numeric_limits<Vc::Scalar::sfloat_v>::min() throw() { return Vc::Scalar::sfloat_v(std::numeric_limits<float>::min()); }
-    template<> inline Vc::Scalar::double_v numeric_limits<Vc::Scalar::double_v>::max() throw() { return Vc::Scalar::double_v(std::numeric_limits<double>::max()); }
-    template<> inline Vc::Scalar::double_v numeric_limits<Vc::Scalar::double_v>::min() throw() { return Vc::Scalar::double_v(std::numeric_limits<double>::min()); }
-} // namespace std
 #endif // VC_SCALAR_LIMITS_H
