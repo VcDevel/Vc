@@ -63,6 +63,13 @@ VECTOR_TYPE log(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
+ * Returns the exponential of \p v.
+ */
+VECTOR_TYPE exp(const VECTOR_TYPE &v);
+
+/**
+ * \ingroup Math
+ *
  * Returns the sine of \p v.
  */
 VECTOR_TYPE sin(const VECTOR_TYPE &v);
