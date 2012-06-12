@@ -36,6 +36,7 @@ MACRO (CHECK_C_COMPILER_FLAG _FLAG _RESULT)
      FAIL_REGEX "[Ww]arning: [Oo]ption"                     # SunPro
      FAIL_REGEX "command option .* is not recognized"       # XL
      FAIL_REGEX "WARNING: unknown flag:"                    # Open64
+     FAIL_REGEX " #10159: "                                 # ICC
      )
    SET (CMAKE_REQUIRED_DEFINITIONS "${SAFE_CMAKE_REQUIRED_DEFINITIONS}")
 ENDMACRO (CHECK_C_COMPILER_FLAG)
