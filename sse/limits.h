@@ -24,12 +24,6 @@
 #include "types.h"
 #include "macros.h"
 
-#if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103
-# define _VC_NOEXCEPT noexcept
-#else
-# define _VC_NOEXCEPT throw()
-#endif
-
 namespace std
 {
 template<> struct numeric_limits<Vc::SSE::ushort_v> : public numeric_limits<unsigned short>
@@ -81,8 +75,6 @@ template<> struct numeric_limits<Vc::SSE::int_v> : public numeric_limits<int>
     static inline INTRINSIC CONST Vc::SSE::int_v denorm_min()    _VC_NOEXCEPT { return Vc::SSE::int_v::Zero(); }
 };
 } // namespace std
-
-#undef _VC_NOEXCEPT
 
 #include "undomacros.h"
 

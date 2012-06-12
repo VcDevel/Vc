@@ -130,6 +130,13 @@
 #define _VC_CONSTEXPR_R INTRINSIC_R CONST_R
 #endif
 
+#if (defined(__GXX_EXPERIMENTAL_CXX0X__) && VC_GCC >= 0x40500) || __cplusplus >= 201103
+# define _VC_NOEXCEPT noexcept
+#else
+# define _VC_NOEXCEPT throw()
+#endif
+
+
 #ifdef VC_GCC
 # define VC_WARN_INLINE
 # define VC_WARN(msg) __attribute__((warning("\n\t" msg)))

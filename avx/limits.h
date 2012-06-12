@@ -23,12 +23,6 @@
 #include "intrinsics.h"
 #include "types.h"
 
-#if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103
-# define _VC_NOEXCEPT noexcept
-#else
-# define _VC_NOEXCEPT throw()
-#endif
-
 namespace std
 {
 #define _VC_NUM_LIM(T, _max, _min) \
@@ -51,7 +45,5 @@ _VC_NUM_LIM(           int, Vc::AVX::_mm256_srli_epi32(Vc::AVX::_mm256_setallone
 #undef _VC_NUM_LIM
 
 } // namespace std
-
-#undef _VC_NOEXCEPT
 
 #endif // VC_AVX_LIMITS_H
