@@ -20,10 +20,6 @@
 #ifndef VC_SCALAR_WRITEMASKEDVECTOR_H
 #define VC_SCALAR_WRITEMASKEDVECTOR_H
 
-#if __cplusplus >= 201103
-#include <functional>
-#endif
-
 namespace Vc
 {
 namespace Scalar
@@ -62,18 +58,20 @@ template<typename T> class WriteMaskedVector
             return *vec;
         }
 
-#if __cplusplus >= 201103
-        inline void INTRINSIC call(std::function<void(EntryType)> const &f) const {
-#else
-        template<typename F> inline void call(F &f) const {
-#endif
+        template<typename F> inline void call(const F &f) const {
             vec->call(f, mask);
         }
-#if __cplusplus >= 201103
-        inline Vector<T> INTRINSIC apply(std::function<EntryType(EntryType)> const &f) const {
-#else
+        template<typename F> inline void call(F &f) const {
+            vec->call(f, mask);
+        }
+        template<typename F> inline Vector<T> apply(const F &f) const {
+            if (mask) {
+                return Vector<T>(f(vec->m_data));
+            } else {
+                return *vec;
+            }
+        }
         template<typename F> inline Vector<T> apply(F &f) const {
-#endif
             if (mask) {
                 return Vector<T>(f(vec->m_data));
             } else {

@@ -271,37 +271,39 @@ class Vector
             f(m_data);
         }
 
-#if __cplusplus >= 201103
-        inline void INTRINSIC call(std::function<void(EntryType)> const &f) const {
-#else
+        template<typename F> inline void INTRINSIC call(const F &f) const {
+            f(m_data);
+        }
         template<typename F> inline void INTRINSIC call(F &f) const {
-#endif
             f(m_data);
         }
 
-#if __cplusplus >= 201103
-        inline void INTRINSIC call(std::function<void(EntryType)> const &f, const Mask &mask) const {
-#else
+        template<typename F> inline void INTRINSIC call(const F &f, Mask mask) const {
+            if (mask) {
+                f(m_data);
+            }
+        }
         template<typename F> inline void INTRINSIC call(F &f, Mask mask) const {
-#endif
             if (mask) {
                 f(m_data);
             }
         }
 
-#if __cplusplus >= 201103
-        inline Vector<T> INTRINSIC apply(std::function<EntryType(EntryType)> const &f) const {
-#else
+        template<typename F> inline Vector INTRINSIC apply(const F &f) const {
+            return Vector(f(m_data));
+        }
         template<typename F> inline Vector INTRINSIC apply(F &f) const {
-#endif
             return Vector(f(m_data));
         }
 
-#if __cplusplus >= 201103
-        inline Vector<T> INTRINSIC apply(std::function<EntryType(EntryType)> const &f, const Mask &mask) const {
-#else
+        template<typename F> inline Vector INTRINSIC apply(const F &f, Mask mask) const {
+            if (mask) {
+                return Vector(f(m_data));
+            } else {
+                return *this;
+            }
+        }
         template<typename F> inline Vector INTRINSIC apply(F &f, Mask mask) const {
-#endif
             if (mask) {
                 return Vector(f(m_data));
             } else {

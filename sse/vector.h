@@ -20,9 +20,6 @@
 #ifndef SSE_VECTOR_H
 #define SSE_VECTOR_H
 
-#if __cplusplus >= 201103
-#include <functional>
-#endif
 #include "intrinsics.h"
 #include "types.h"
 #include "vectorhelper.h"
@@ -119,18 +116,16 @@ class WriteMaskedVector
             return *vec;
         }
 
-#if __cplusplus >= 201103
-        inline void INTRINSIC call(std::function<void(EntryType)> const &f) const {
-#else
-        template<typename F> inline void INTRINSIC call(F &f) const {
-#endif
+        template<typename F> inline void INTRINSIC call(const F &f) const {
             return vec->call(f, mask);
         }
-#if __cplusplus >= 201103
-        inline Vector<T> INTRINSIC apply(std::function<EntryType(EntryType)> const &f) const {
-#else
+        template<typename F> inline void INTRINSIC call(F &f) const {
+            return vec->call(f, mask);
+        }
+        template<typename F> inline Vector<T> INTRINSIC apply(const F &f) const {
+            return vec->apply(f, mask);
+        }
         template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
-#endif
             return vec->apply(f, mask);
         }
 
@@ -405,31 +400,36 @@ template<typename T> class Vector
             }
         }
 
-#if __cplusplus >= 201103
-        inline void INTRINSIC call(std::function<void(EntryType)> const &f) const {
-#else
+        template<typename F> inline void INTRINSIC call(const F &f) const {
+            for_all_vector_entries(i,
+                    f(EntryType(d.m(i)));
+                    );
+        }
         template<typename F> inline void INTRINSIC call(F &f) const {
-#endif
             for_all_vector_entries(i,
                     f(EntryType(d.m(i)));
                     );
         }
 
-#if __cplusplus >= 201103
-        inline void INTRINSIC call(std::function<void(EntryType)> const &f, const Mask &mask) const {
-#else
+        template<typename F> inline void INTRINSIC call(const F &f, const Mask &mask) const {
+            Vc_foreach_bit(size_t i, mask) {
+                f(EntryType(d.m(i)));
+            }
+        }
         template<typename F> inline void INTRINSIC call(F &f, const Mask &mask) const {
-#endif
             Vc_foreach_bit(size_t i, mask) {
                 f(EntryType(d.m(i)));
             }
         }
 
-#if __cplusplus >= 201103
-        inline Vector<T> INTRINSIC apply(std::function<EntryType(EntryType)> const &f) const {
-#else
+        template<typename F> inline Vector<T> INTRINSIC apply(const F &f) const {
+            Vector<T> r;
+            for_all_vector_entries(i,
+                    r.d.m(i) = f(EntryType(d.m(i)));
+                    );
+            return r;
+        }
         template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
-#endif
             Vector<T> r;
             for_all_vector_entries(i,
                     r.d.m(i) = f(EntryType(d.m(i)));
@@ -437,11 +437,14 @@ template<typename T> class Vector
             return r;
         }
 
-#if __cplusplus >= 201103
-        inline Vector<T> INTRINSIC apply(std::function<EntryType(EntryType)> const &f, const Mask &mask) const {
-#else
+        template<typename F> inline Vector<T> INTRINSIC apply(const F &f, const Mask &mask) const {
+            Vector<T> r(*this);
+            Vc_foreach_bit (size_t i, mask) {
+                r.d.m(i) = f(EntryType(r.d.m(i)));
+            }
+            return r;
+        }
         template<typename F> inline Vector<T> INTRINSIC apply(F &f, const Mask &mask) const {
-#endif
             Vector<T> r(*this);
             Vc_foreach_bit (size_t i, mask) {
                 r.d.m(i) = f(EntryType(r.d.m(i)));
