@@ -22,6 +22,7 @@
 
 #include "vector.h"
 #include "common/macros.h"
+#include <limits>
 
 namespace std
 {
