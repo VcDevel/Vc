@@ -35,6 +35,8 @@
 #undef ALWAYS_INLINE_L
 #undef ALWAYS_INLINE_R
 #undef _VC_CONSTEXPR
+#undef _VC_CONSTEXPR_L
+#undef _VC_CONSTEXPR_R
 
 #undef ALIGN
 #undef STRUCT_ALIGN1

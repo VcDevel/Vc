@@ -122,8 +122,12 @@
 
 #if __cplusplus >= 201103 /*C++11*/
 #define _VC_CONSTEXPR constexpr
+#define _VC_CONSTEXPR_L _VC_CONSTEXPR
+#define _VC_CONSTEXPR_R
 #else
 #define _VC_CONSTEXPR inline INTRINSIC CONST
+#define _VC_CONSTEXPR_L inline INTRINSIC_L CONST_R
+#define _VC_CONSTEXPR_R INTRINSIC_R CONST_R
 #endif
 
 #ifdef VC_GCC
