@@ -29,7 +29,7 @@ namespace Vc
 {
 
 #ifdef VC_GCC
-    __attribute__((target("no-sse,no-avx")))
+    __attribute__((target("no-sse2,no-avx")))
 #endif
 bool isImplementationSupported(Implementation impl)
 {
