@@ -251,6 +251,9 @@ void applyAndCall()
     for (int i = 0; i < 1000; ++i) {
         const V rand = V::Random();
         COMPARE(rand.apply(add2<T>), rand + two);
+#if __cplusplus >= 201103
+        COMPARE(rand.apply([](T x) { return x + T(2); }), rand + two);
+#endif
 
         CallTester<T, V> callTester;
         rand.call(callTester);
@@ -264,6 +267,10 @@ void applyAndCall()
 
             COMPARE(copy2(mask).apply(add2<T>), copy1) << mask;
             COMPARE(rand.apply(add2<T>, mask), copy1) << mask;
+#if __cplusplus >= 201103
+            COMPARE(copy2(mask).apply([](T x) { return x + T(2); }), copy1) << mask;
+            COMPARE(rand.apply([](T x) { return x + T(2); }, mask), copy1) << mask;
+#endif
 
             callTester.reset();
             copy2(mask).call(callTester);

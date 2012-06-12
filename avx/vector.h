@@ -330,19 +330,31 @@ template<typename T> class Vector
             }
         }
 
+#if __cplusplus >= 201103
+        inline void INTRINSIC call(std::function<void(EntryType)> const &f) const {
+#else
         template<typename F> inline void INTRINSIC call(F &f) const {
+#endif
             for_all_vector_entries(i,
                     f(EntryType(d.m(i)));
                     );
         }
 
+#if __cplusplus >= 201103
+        inline void INTRINSIC call(std::function<void(EntryType)> const &f, const Mask &mask) const {
+#else
         template<typename F> inline void INTRINSIC call(F &f, const Mask &mask) const {
+#endif
             Vc_foreach_bit(size_t i, mask) {
                 f(EntryType(d.m(i)));
             }
         }
 
+#if __cplusplus >= 201103
+        inline Vector<T> INTRINSIC apply(std::function<EntryType(EntryType)> const &f) const {
+#else
         template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
+#endif
             Vector<T> r;
             for_all_vector_entries(i,
                     r.d.m(i) = f(EntryType(d.m(i)));
@@ -350,7 +362,11 @@ template<typename T> class Vector
             return r;
         }
 
+#if __cplusplus >= 201103
+        inline Vector<T> INTRINSIC apply(std::function<EntryType(EntryType)> const &f, const Mask &mask) const {
+#else
         template<typename F> inline Vector<T> INTRINSIC apply(F &f, const Mask &mask) const {
+#endif
             Vector<T> r(*this);
             Vc_foreach_bit (size_t i, mask) {
                 r.d.m(i) = f(EntryType(r.d.m(i)));

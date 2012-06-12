@@ -20,6 +20,10 @@
 #ifndef VC_AVX_WRITEMASKEDVECTOR_H
 #define VC_AVX_WRITEMASKEDVECTOR_H
 
+#if __cplusplus >= 201103
+#include <functional>
+#endif
+
 namespace Vc
 {
 namespace AVX
@@ -54,10 +58,18 @@ class WriteMaskedVector
         Vector<T> ALWAYS_INLINE_L &operator=(const Vector<T> &x) ALWAYS_INLINE_R;
         Vector<T> ALWAYS_INLINE &operator=(EntryType x) { return operator=(Vector<T>(x)); }
 
+#if __cplusplus >= 201103
+        inline void INTRINSIC call(std::function<void(EntryType)> const &f) const {
+#else
         template<typename F> inline void INTRINSIC call(F &f) const {
+#endif
             return vec->call(f, mask);
         }
+#if __cplusplus >= 201103
+        inline Vector<T> INTRINSIC apply(std::function<EntryType(EntryType)> const &f) const {
+#else
         template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
+#endif
             return vec->apply(f, mask);
         }
     private:
