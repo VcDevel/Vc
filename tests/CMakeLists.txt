@@ -2,7 +2,7 @@ add_definitions(-DCOMPILE_FOR_UNIT_TESTS)
 
 set(CXX11_FLAG)
 foreach(_flag "-std=c++11" "-std=c++0x")
-   string(REGEX REPLACE "[+/:= ]" "_" _flag_esc "${_flag}")
+   string(REGEX REPLACE "[-+/:= ]" "_" _flag_esc "${_flag}")
    check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag_esc})
    if(check_cxx_compiler_flag_${_flag_esc})
       set(CXX11_FLAG ${_flag})
