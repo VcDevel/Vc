@@ -30,6 +30,8 @@
  *
  * \ref featuremacros
  *
+ * \ref buildsystem
+ *
  * \li \ref Vectors
  * \li \ref Masks
  * \li \ref Utilities
@@ -178,6 +180,37 @@
  * \li \e VC_CLEAN_NAMESPACE
  * \li \e VC_NO_AUTOMATIC_BOOL_FROM_MASK
  * \li \e VC_NO_VERSION_CHECK
+ */
+
+/**
+ * \page buildsystem Build System
+ *
+ * Vc uses CMake as its buildsystem. It also provides much of the CMake logic it
+ * uses for itself for other projects that use CMake and Vc. Here's an (incomplete) list of features
+ * you can get from the CMake scripts provided with Vc:
+ * \li check for a required Vc version
+ * \li locate libVc and Vc includes
+ * \li compiler flags to workaround quirks/bugs in specific compilers
+ * \li compiler flags to enable/disable SIMD instruction sets, defaulting to full support for the
+ * host
+ *
+ * To make use of these features simply copy the FindVc.cmake as installed by Vc to your project.
+ * Add \code find_package(Vc [version] [REQUIRED]) \endcode to your CMakeLists.txt. After that you
+ * can use the following macros:
+ * \li \e Vc_FOUND: tells whether the package was found
+ * \li \e Vc_INCLUDE_DIR: you must add this to your include directories for the targets that you
+ * want to compile against Vc: \code include_directories(${Vc_INCLUDE_DIR}) \endcode
+ * \li \e Vc_DEFINITIONS: recommended compiler flags. You can use them via add_definitions or the
+ * COMPILE_FLAGS property.
+ *
+ * The following two macros might be of interest, too:
+ * \li \e Vc_SSE_INTRINSICS_BROKEN
+ * \li \e Vc_AVX_INTRINSICS_BROKEN
+ *
+ * If your project does not use CMake all you need to do is the following:
+ * \li Find the header file "Vc/Vc" and add its path to your include paths.
+ * \li Find the library libVc and link to it.
+ * \li Ensure you use the right compiler flags to enable the relevant SIMD instructions.
  */
 
 /**
