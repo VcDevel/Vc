@@ -146,4 +146,5 @@ if(BUILD_EXAMPLES)
    add_subdirectory(examples)
 endif(BUILD_EXAMPLES)
 
-mark_as_advanced(prototypes_header)
+# Hide VC_IMPL as it is only meant for users of Vc
+mark_as_advanced(VC_IMPL)
