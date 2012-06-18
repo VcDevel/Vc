@@ -91,6 +91,13 @@ static VECTOR_TYPE IndexesFromZero();
 #endif
 
 /**
+ * Returns a vector with pseudo-random entries.
+ *
+ * \note This function may use a very small amount of state and thus will be a weak random number generator.
+ */
+static VECTOR_TYPE Random();
+
+/**
  * Construct a vector loading its entries from \p alignedMemory.
  *
  * \param alignedMemory A pointer to data. The pointer must be aligned on a
