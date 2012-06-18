@@ -190,9 +190,9 @@
  * you can get from the CMake scripts provided with Vc:
  * \li check for a required Vc version
  * \li locate libVc and Vc includes
- * \li compiler flags to workaround quirks/bugs in specific compilers
+ * \li compiler flags to workaround Vc related quirks/bugs in specific compilers
  * \li compiler flags to enable/disable SIMD instruction sets, defaulting to full support for the
- * host
+ * host system
  *
  * To make use of these features simply copy the FindVc.cmake as installed by Vc to your project.
  * Add \code find_package(Vc [version] [REQUIRED]) \endcode to your CMakeLists.txt. After that you
