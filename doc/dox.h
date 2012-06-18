@@ -260,6 +260,8 @@
  *   v[i] = f(i);
  * }
  * // which is equivalent to:
+ * v.fill(f);
+ * // or:
  * v = int_v::IndexesFromZero().apply(f);
  * \endcode
  */

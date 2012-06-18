@@ -395,7 +395,7 @@ ENTRY_TYPE sum() const;
 //@}
 
 /**
- * \name Apply/Call Functions
+ * \name Apply/Call/Fill Functions
  *
  * There are still many situations where the code needs to switch from SIMD operations to scalar
  * execution. In this case you can, of course rely on operator[]. But there are also a number of
@@ -403,7 +403,8 @@ ENTRY_TYPE sum() const;
  *
  * The apply functions expect a function that returns a scalar value, i.e. a function of the form "T f(T)".
  * The call functions do not return a value and thus the function passed does not need a return
- * value.
+ * value. The fill functions are used to serially set the entries of the vector from the return
+ * values of a function.
  *
  * Example:
  * \code
@@ -429,6 +430,10 @@ template<typename Functor> VECTOR_TYPE apply(Functor &f, MASK_TYPE mask) const;
 template<typename Functor> void call(Functor &f) const;
 /// As above, but skip the entries where \p mask is not set.
 template<typename Functor> void call(Functor &f, MASK_TYPE mask) const;
+/// Fill the vector with the values [f(), f(), f(), ...].
+void fill(ENTRY_TYPE (&f)());
+/// Fill the vector with the values [f(0), f(1), f(2), ...].
+template<typename IndexT> void fill(ENTRY_TYPE (&f)(IndexT));
 //@}
 
 /**
