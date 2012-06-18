@@ -424,12 +424,20 @@ ENTRY_TYPE sum() const;
 //@{
 /// Return a new vector where each entry is the return value of \p f called on the current value.
 template<typename Functor> VECTOR_TYPE apply(Functor &f) const;
+/// Const overload of the above function.
+template<typename Functor> VECTOR_TYPE apply(const Functor &f) const;
 /// As above, but skip the entries where \p mask is not set.
 template<typename Functor> VECTOR_TYPE apply(Functor &f, MASK_TYPE mask) const;
+/// Const overload of the above function.
+template<typename Functor> VECTOR_TYPE apply(const Functor &f, MASK_TYPE mask) const;
 /// Call \p f with the scalar entries of the vector.
 template<typename Functor> void call(Functor &f) const;
+/// Const overload of the above function.
+template<typename Functor> void call(const Functor &f) const;
 /// As above, but skip the entries where \p mask is not set.
 template<typename Functor> void call(Functor &f, MASK_TYPE mask) const;
+/// Const overload of the above function.
+template<typename Functor> void call(const Functor &f, MASK_TYPE mask) const;
 /// Fill the vector with the values [f(), f(), f(), ...].
 void fill(ENTRY_TYPE (&f)());
 /// Fill the vector with the values [f(0), f(1), f(2), ...].
