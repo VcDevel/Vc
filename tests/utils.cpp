@@ -285,6 +285,7 @@ void applyAndCall()
 
 template<typename T, int value> T returnConstant() { return T(value); }
 template<typename T, int value> T returnConstantOffset(int i) { return T(value) + T(i); }
+template<typename T, int value> T returnConstantOffset2(unsigned short i) { return T(value) + T(i); }
 
 template<typename V> void fill()
 {
@@ -296,6 +297,10 @@ template<typename V> void fill()
 
     test = V::Random();
     test.fill(returnConstantOffset<T, 0>);
+    COMPARE(test, static_cast<V>(I::IndexesFromZero()));
+
+    test = V::Random();
+    test.fill(returnConstantOffset2<T, 0>);
     COMPARE(test, static_cast<V>(I::IndexesFromZero()));
 }
 

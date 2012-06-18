@@ -382,7 +382,7 @@ template<typename T> class Vector
             return r;
         }
 
-        inline void INTRINSIC fill(EntryType (&f)(int)) {
+        template<typename IndexT> inline void INTRINSIC fill(EntryType (&f)(IndexT)) {
             for_all_vector_entries(i,
                     d.m(i) = f(i);
                     );
