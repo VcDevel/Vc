@@ -283,6 +283,22 @@ void applyAndCall()
     }
 }
 
+template<typename T, int value> T returnConstant() { return T(value); }
+template<typename T, int value> T returnConstantOffset(int i) { return T(value) + T(i); }
+
+template<typename V> void fill()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+    V test = V::Random();
+    test.fill(returnConstant<T, 2>);
+    COMPARE(test, V(T(2)));
+
+    test = V::Random();
+    test.fill(returnConstantOffset<T, 0>);
+    COMPARE(test, static_cast<V>(I::IndexesFromZero()));
+}
+
 int main()
 {
     runTest(testCall<int_v>);
@@ -316,6 +332,7 @@ int main()
     testAllTypes(Random);
 
     testAllTypes(applyAndCall);
+    testAllTypes(fill);
 
     return 0;
 }

@@ -311,6 +311,13 @@ class Vector
             }
         }
 
+        inline Vector INTRINSIC fill(EntryType (&f)(int)) {
+            m_data = f(0);
+        }
+        inline Vector INTRINSIC fill(EntryType (&f)()) {
+            m_data = f();
+        }
+
         inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;
         inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };

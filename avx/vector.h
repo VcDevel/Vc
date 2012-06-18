@@ -382,6 +382,17 @@ template<typename T> class Vector
             return r;
         }
 
+        inline void INTRINSIC fill(EntryType (&f)(int)) {
+            for_all_vector_entries(i,
+                    d.m(i) = f(i);
+                    );
+        }
+        inline void INTRINSIC fill(EntryType (&f)()) {
+            for_all_vector_entries(i,
+                    d.m(i) = f();
+                    );
+        }
+
         inline INTRINSIC_L Vector copySign(AsArg reference) const INTRINSIC_R;
         inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
 };
