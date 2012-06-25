@@ -35,6 +35,9 @@ CpuId::ushort CpuId::s_L1InstructionLineSize = 0;
 CpuId::ushort CpuId::s_L1DataLineSize = 0;
 CpuId::ushort CpuId::s_L2DataLineSize = 0;
 CpuId::ushort CpuId::s_L3DataLineSize = 0;
+CpuId::uint   CpuId::s_L1Associativity = 0;
+CpuId::uint   CpuId::s_L2Associativity = 0;
+CpuId::uint   CpuId::s_L3Associativity = 0;
 CpuId::ushort CpuId::s_prefetch = 32; // The Intel ORM says that if CPUID(2) doesn't set the prefetch size it is 32
 CpuId::uchar  CpuId::s_brandIndex = 0;
 CpuId::uchar  CpuId::s_cacheLineSize = 0;
@@ -185,14 +188,17 @@ void CpuId::init()
                         case 1:
                             s_L1Data = size;
                             s_L1DataLineSize = linesize;
+                            s_L1Associativity = ways;
                             break;
                         case 2:
                             s_L2Data = size;
                             s_L2DataLineSize = linesize;
+                            s_L2Associativity = ways;
                             break;
                         case 3:
                             s_L3Data = size;
                             s_L3DataLineSize = linesize;
+                            s_L3Associativity = ways;
                             break;
                     }
                     break;
@@ -209,14 +215,17 @@ void CpuId::init()
                         case 1:
                             s_L1Data = size;// / sharedBy;
                             s_L1DataLineSize = linesize;
+                            s_L1Associativity = ways;
                             break;
                         case 2:
                             s_L2Data = size;// / sharedBy;
                             s_L2DataLineSize = linesize;
+                            s_L2Associativity = ways;
                             break;
                         case 3:
                             s_L3Data = size;// / sharedBy;
                             s_L3DataLineSize = linesize;
+                            s_L3Associativity = ways;
                             break;
                     }
                     break;
@@ -235,58 +244,72 @@ void CpuId::interpret(uchar byte, bool *checkLeaf4)
     case 0x06:
         s_L1Instruction = 8 * 1024;
         s_L1InstructionLineSize = 32;
+        s_L1Associativity = 4;
         break;
     case 0x08:
         s_L1Instruction = 16 * 1024;
         s_L1InstructionLineSize = 32;
+        s_L1Associativity = 4;
         break;
     case 0x09:
         s_L1Instruction = 32 * 1024;
         s_L1InstructionLineSize = 64;
+        s_L1Associativity = 4;
         break;
     case 0x0A:
         s_L1Data = 8 * 1024;
         s_L1DataLineSize = 32;
+        s_L1Associativity = 2;
         break;
     case 0x0C:
         s_L1Data = 16 * 1024;
         s_L1DataLineSize = 32;
+        s_L1Associativity = 4;
         break;
     case 0x0D:
         s_L1Data = 16 * 1024;
         s_L1DataLineSize = 64;
+        s_L1Associativity = 4;
         break;
     case 0x0E:
         s_L1Data = 24 * 1024;
         s_L1DataLineSize = 64;
+        s_L1Associativity = 6;
         break;
     case 0x21:
         s_L2Data = 256 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 8;
         break;
     case 0x22:
         s_L3Data = 512 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 4;
         break;
     case 0x23:
         s_L3Data = 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 8;
         break;
     case 0x25:
         s_L3Data = 2 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 8;
         break;
     case 0x29:
         s_L3Data = 4 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 8;
         break;
     case 0x2C:
         s_L1Data = 32 * 1024;
         s_L1DataLineSize = 64;
+        s_L1Associativity = 8;
         break;
     case 0x30:
         s_L1Data = 32 * 1024;
         s_L1DataLineSize = 64;
+        s_L1Associativity = 8;
         break;
     case 0x40:
         s_noL2orL3 = true;
@@ -294,195 +317,243 @@ void CpuId::interpret(uchar byte, bool *checkLeaf4)
     case 0x41:
         s_L2Data = 128 * 1024;
         s_L2DataLineSize = 32;
+        s_L2Associativity = 4;
         break;
     case 0x42:
         s_L2Data = 256 * 1024;
         s_L2DataLineSize = 32;
+        s_L2Associativity = 4;
         break;
     case 0x43:
         s_L2Data = 512 * 1024;
         s_L2DataLineSize = 32;
+        s_L2Associativity = 4;
         break;
     case 0x44:
         s_L2Data = 1024 * 1024;
         s_L2DataLineSize = 32;
+        s_L2Associativity = 4;
         break;
     case 0x45:
         s_L2Data = 2 * 1024 * 1024;
         s_L2DataLineSize = 32;
+        s_L2Associativity = 4;
         break;
     case 0x46:
         s_L3Data = 4 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 4;
         break;
     case 0x47:
         s_L3Data = 8 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 8;
         break;
     case 0x48:
         s_L2Data = 3 * 1024 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 12;
         break;
     case 0x49:
         if (s_processorFamily == 0xf && s_processorModel == 0x6) {
             s_L3Data = 4 * 1024 * 1024;
             s_L3DataLineSize = 64;
+            s_L3Associativity = 16;
         } else {
             s_L2Data = 4 * 1024 * 1024;
             s_L2DataLineSize = 64;
+            s_L2Associativity = 16;
         }
         break;
     case 0x4A:
         s_L3Data = 6 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 12;
         break;
     case 0x4B:
         s_L3Data = 8 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 16;
         break;
     case 0x4C:
         s_L3Data = 12 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 12;
         break;
     case 0x4D:
         s_L3Data = 16 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 16;
         break;
     case 0x4E:
         s_L2Data = 6 * 1024 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 24;
         break;
     case 0x60:
         s_L1Data = 16 * 1024;
         s_L1DataLineSize = 64;
+        s_L1Associativity = 8;
         break;
     case 0x66:
         s_L1Data = 8 * 1024;
         s_L1DataLineSize = 64;
+        s_L1Associativity = 4;
         break;
     case 0x67:
         s_L1Data = 16 * 1024;
         s_L1DataLineSize = 64;
+        s_L1Associativity = 4;
         break;
     case 0x68:
         s_L1Data = 32 * 1024;
         s_L1DataLineSize = 64;
+        s_L1Associativity = 4;
         break;
     case 0x78:
         s_L2Data = 1024 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 4;
         break;
     case 0x79:
         s_L2Data = 128 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 8;
         break;
     case 0x7A:
         s_L2Data = 256 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 8;
         break;
     case 0x7B:
         s_L2Data = 512 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 8;
         break;
     case 0x7C:
         s_L2Data = 1024 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 8;
         break;
     case 0x7D:
         s_L2Data = 2 * 1024 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 8;
         break;
     case 0x7F:
         s_L2Data = 512 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 2;
         break;
     case 0x80:
         s_L2Data = 512 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 8;
         break;
     case 0x82:
         s_L2Data = 256 * 1024;
         s_L2DataLineSize = 32;
+        s_L2Associativity = 8;
         break;
     case 0x83:
         s_L2Data = 512 * 1024;
         s_L2DataLineSize = 32;
+        s_L2Associativity = 8;
         break;
     case 0x84:
         s_L2Data = 1024 * 1024;
         s_L2DataLineSize = 32;
+        s_L2Associativity = 8;
         break;
     case 0x85:
         s_L2Data = 2 * 1024 * 1024;
         s_L2DataLineSize = 32;
+        s_L2Associativity = 8;
         break;
     case 0x86:
         s_L2Data = 512 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 4;
         break;
     case 0x87:
         s_L2Data = 1024 * 1024;
         s_L2DataLineSize = 64;
+        s_L2Associativity = 8;
         break;
     case 0xD0:
         s_L3Data = 512 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 4;
         break;
     case 0xD1:
         s_L3Data = 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 4;
         break;
     case 0xD2:
         s_L3Data = 2 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 4;
         break;
     case 0xD6:
         s_L3Data = 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 8;
         break;
     case 0xD7:
         s_L3Data = 2 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 8;
         break;
     case 0xD8:
         s_L3Data = 4 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 8;
         break;
     case 0xDC:
         s_L3Data = 3 * 512 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 12;
         break;
     case 0xDD:
         s_L3Data = 3 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 12;
         break;
     case 0xDE:
         s_L3Data = 6 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 12;
         break;
     case 0xE2:
         s_L3Data = 2 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 16;
         break;
     case 0xE3:
         s_L3Data = 4 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 16;
         break;
     case 0xE4:
         s_L3Data = 8 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 16;
         break;
     case 0xEA:
         s_L3Data = 12 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 24;
         break;
     case 0xEB:
         s_L3Data = 18 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 24;
         break;
     case 0xEC:
         s_L3Data = 24 * 1024 * 1024;
         s_L3DataLineSize = 64;
+        s_L3Associativity = 24;
         break;
     case 0xF0:
         s_prefetch = 64;

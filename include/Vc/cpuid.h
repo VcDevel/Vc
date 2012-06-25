@@ -89,6 +89,9 @@ class CpuId
         static inline ushort L1DataLineSize() { return s_L1DataLineSize; }
         static inline ushort L2DataLineSize() { return s_L2DataLineSize; }
         static inline ushort L3DataLineSize() { return s_L3DataLineSize; }
+        static inline uint   L1Associativity() { return s_L1Associativity; }
+        static inline uint   L2Associativity() { return s_L2Associativity; }
+        static inline uint   L3Associativity() { return s_L3Associativity; }
         static inline ushort prefetch() { return s_prefetch; }
 
     private:
@@ -108,6 +111,9 @@ class CpuId
         static ushort s_L1DataLineSize;
         static ushort s_L2DataLineSize;
         static ushort s_L3DataLineSize;
+        static uint   s_L1Associativity;
+        static uint   s_L2Associativity;
+        static uint   s_L3Associativity;
         static ushort s_prefetch;
         static uchar  s_brandIndex;
         static uchar  s_cacheLineSize;
