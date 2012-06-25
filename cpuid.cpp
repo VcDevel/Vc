@@ -72,7 +72,7 @@ bool   CpuId::s_noL2orL3 = false;
 #define CPUID_C(leaf, _ecx_) \
     __asm__("mov $" #leaf ",%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "c"(_ecx_))
 #endif
-static uint CpuIdAmdAssociativityTable(int bits)
+static unsigned int CpuIdAmdAssociativityTable(int bits)
 {
     switch (bits) {
     case 0x0: return 0;
