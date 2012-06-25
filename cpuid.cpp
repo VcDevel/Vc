@@ -72,6 +72,25 @@ bool   CpuId::s_noL2orL3 = false;
 #define CPUID_C(leaf, _ecx_) \
     __asm__("mov $" #leaf ",%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "c"(_ecx_))
 #endif
+static uint CpuIdAmdAssociativityTable(int bits)
+{
+    switch (bits) {
+    case 0x0: return 0;
+    case 0x1: return 1;
+    case 0x2: return 2;
+    case 0x4: return 4;
+    case 0x6: return 8;
+    case 0x8: return 16;
+    case 0xA: return 32;
+    case 0xB: return 48;
+    case 0xC: return 64;
+    case 0xD: return 96;
+    case 0xE: return 128;
+    case 0xF: return 0xff;
+    }
+    return 0xffffffffu;
+}
+
 void CpuId::init()
 {
     {
@@ -123,14 +142,17 @@ void CpuId::init()
         CPUID(0x80000005);
         s_L1DataLineSize = ecx & 0xff;
         s_L1Data = (ecx >> 24) * 1024;
+        s_L1Associativity = (ecx >> 16) & 0xff;
         s_L1InstructionLineSize = edx & 0xff;
         s_L1Instruction = (edx >> 24) * 1024;
 
         CPUID(0x80000006);
         s_L2DataLineSize = ecx & 0xff;
         s_L2Data = (ecx >> 16) * 1024;
+        s_L2Associativity = CpuIdAmdAssociativityTable((ecx >> 12) & 0xf);
         s_L3DataLineSize = edx & 0xff;
         s_L3Data = (edx >> 18) * 512 * 1024;
+        s_L3Associativity = CpuIdAmdAssociativityTable((ecx >> 12) & 0xf);
         return;
     }
 
