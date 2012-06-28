@@ -111,6 +111,10 @@ if(NOT ALIROOT_RELEASE)
    add_dependencies(other Vc)
 
    install(TARGETS Vc DESTINATION lib/)
+else()
+   # libVc should be compiled in the AliRoot tree, so we need to install the sources
+   install(FILES vector.cpp cpuid.cpp support.cpp DESTINATION src)
+   install(FILES avx/sorthelper.cpp DESTINATION src/avx)
 endif()
 
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
