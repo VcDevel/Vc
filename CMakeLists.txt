@@ -7,6 +7,9 @@ endif()
 project(Vc)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+set(ALIROOT_RELEASE FALSE CACHE BOOL "Set up for creating a Vc copy inside AliRoot.")
+mark_as_advanced(ALIROOT_RELEASE)
+
 set(disabled_targets)
 
 include (VcMacros)
@@ -15,7 +18,7 @@ include (OptimizeForArchitecture)
 
 vc_determine_compiler()
 
-if(Vc_COMPILER_IS_GCC)
+if(Vc_COMPILER_IS_GCC AND NOT ALIROOT_RELEASE)
    if(Vc_GCC_VERSION STREQUAL "4.6.0")
       UserWarning("GCC 4.6.0 is broken. The following tests are therefore disabled:
       gather_avx, gather_sse, gather_VC_USE_SET_GATHERS_avx, gather_VC_USE_SET_GATHERS_sse,
@@ -76,37 +79,40 @@ endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-if(USE_AVX)
-   add_library(Vc STATIC vector.cpp cpuid.cpp support.cpp avx/sorthelper.cpp)
-else()
-   set(_srcs vector.cpp cpuid.cpp support.cpp)
-
-   if(NOT Vc_AVX_INTRINSICS_BROKEN)
-      # we'd still like to have avx/sorthelper.cpp built in, but that requires compilation with -mavx (or a comparable flag)
-      foreach(_flag "-xAVX" "-mavx" "-arch:AVX")
-         check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag})
-         if(check_cxx_compiler_flag_${_flag})
-            if(_flag STREQUAL "-xAVX")
-               set(_flag "${_flag} -diag-disable 10121") # disable the warning "overriding -xSSE4.2 with -xAVX"
-            endif()
-            set(_srcs ${_srcs} avx/sorthelper.cpp)
-            set_source_files_properties(avx/sorthelper.cpp PROPERTIES COMPILE_FLAGS "${_flag}")
-            break()
-         endif()
-      endforeach()
-   endif()
-   add_library(Vc STATIC ${_srcs})
-endif()
-add_target_property(Vc COMPILE_FLAGS "-DVC_COMPILE_LIB")
-add_target_property(Vc LABELS "other")
-
 add_custom_target(other VERBATIM)
 add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
 add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
 add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
-add_dependencies(other Vc)
 
-install(TARGETS Vc DESTINATION lib/)
+if(NOT ALIROOT_RELEASE)
+   if(USE_AVX)
+      add_library(Vc STATIC vector.cpp cpuid.cpp support.cpp avx/sorthelper.cpp)
+   else()
+      set(_srcs vector.cpp cpuid.cpp support.cpp)
+
+      if(NOT Vc_AVX_INTRINSICS_BROKEN)
+         # we'd still like to have avx/sorthelper.cpp built in, but that requires compilation with -mavx (or a comparable flag)
+         foreach(_flag "-xAVX" "-mavx" "-arch:AVX")
+            check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag})
+            if(check_cxx_compiler_flag_${_flag})
+               if(_flag STREQUAL "-xAVX")
+                  set(_flag "${_flag} -diag-disable 10121") # disable the warning "overriding -xSSE4.2 with -xAVX"
+               endif()
+               set(_srcs ${_srcs} avx/sorthelper.cpp)
+               set_source_files_properties(avx/sorthelper.cpp PROPERTIES COMPILE_FLAGS "${_flag}")
+               break()
+            endif()
+         endforeach()
+      endif()
+      add_library(Vc STATIC ${_srcs})
+   endif()
+   add_target_property(Vc COMPILE_FLAGS "-DVC_COMPILE_LIB")
+   add_target_property(Vc LABELS "other")
+   add_dependencies(other Vc)
+
+   install(TARGETS Vc DESTINATION lib/)
+endif()
+
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
 install(DIRECTORY scalar sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
@@ -135,16 +141,18 @@ install(FILES
    DESTINATION lib/cmake/Vc
    )
 
-include (CTest)
-configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
-if(BUILD_TESTING)
-   add_subdirectory(tests)
-endif(BUILD_TESTING)
+if(NOT ALIROOT_RELEASE)
+   include (CTest)
+   configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
+   if(BUILD_TESTING)
+      add_subdirectory(tests)
+   endif(BUILD_TESTING)
 
-set(BUILD_EXAMPLES FALSE CACHE BOOL "Build examples.")
-if(BUILD_EXAMPLES)
-   add_subdirectory(examples)
-endif(BUILD_EXAMPLES)
+   set(BUILD_EXAMPLES FALSE CACHE BOOL "Build examples.")
+   if(BUILD_EXAMPLES)
+      add_subdirectory(examples)
+   endif(BUILD_EXAMPLES)
+endif()
 
 # Hide VC_IMPL as it is only meant for users of Vc
 mark_as_advanced(VC_IMPL)
