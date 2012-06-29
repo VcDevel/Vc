@@ -311,10 +311,10 @@ class Vector
             }
         }
 
-        template<typename IndexT> inline Vector INTRINSIC fill(EntryType (&f)(IndexT)) {
+        template<typename IndexT> inline void INTRINSIC fill(EntryType (&f)(IndexT)) {
             m_data = f(0);
         }
-        inline Vector INTRINSIC fill(EntryType (&f)()) {
+        inline void INTRINSIC fill(EntryType (&f)()) {
             m_data = f();
         }
 
