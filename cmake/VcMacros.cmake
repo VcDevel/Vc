@@ -287,6 +287,7 @@ macro(vc_set_preferred_compiler_flags)
    endif()
 
    OptimizeForArchitecture()
+   set(Vc_DEFINITIONS "${Vc_ARCHITECTURE_FLAGS} ${Vc_DEFINITIONS}")
 
    set(VC_IMPL "auto" CACHE STRING "Force the Vc implementation globally to the selected instruction set. \"auto\" lets Vc use the best available instructions.")
    if(NOT VC_IMPL STREQUAL "auto")
