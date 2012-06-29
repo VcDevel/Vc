@@ -131,19 +131,30 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcConfig.cmake.in
    ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcConfigVersion.cmake.in
    ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake @ONLY)
-install(FILES
+
+set(cmake_install_files
    cmake/UserWarning.cmake
    cmake/VcMacros.cmake
-   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake
-   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake
-   cmake/FindVc.cmake
    cmake/OptimizeForArchitecture.cmake
    cmake/AddCompilerFlag.cmake
    cmake/MacroEnsureVersion.cmake
    cmake/CheckCCompilerFlag.cmake
    cmake/CheckCXXCompilerFlag.cmake
-   DESTINATION lib/cmake/Vc
    )
+if(ALIROOT_RELEASE)
+   install(FILES
+      ${cmake_install_files}
+      DESTINATION cmake
+      )
+else()
+   install(FILES
+      ${cmake_install_files}
+      ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake
+      ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake
+      cmake/FindVc.cmake
+      DESTINATION lib/cmake/Vc
+      )
+endif()
 
 if(NOT ALIROOT_RELEASE)
    include (CTest)
