@@ -137,7 +137,6 @@ set(cmake_install_files
    cmake/VcMacros.cmake
    cmake/OptimizeForArchitecture.cmake
    cmake/AddCompilerFlag.cmake
-   cmake/MacroEnsureVersion.cmake
    cmake/CheckCCompilerFlag.cmake
    cmake/CheckCXXCompilerFlag.cmake
    )
