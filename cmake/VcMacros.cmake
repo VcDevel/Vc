@@ -99,11 +99,7 @@ macro(vc_set_gnu_buildtype_flags)
 endmacro()
 
 macro(vc_add_compiler_flag VAR _flag)
-   string(REGEX REPLACE "[+/:= ]" "_" _flag_esc "${_flag}")
-   check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag_esc})
-   if(check_cxx_compiler_flag_${_flag_esc})
-      set(${VAR} "${${VAR}} ${_flag}")
-   endif(check_cxx_compiler_flag_${_flag_esc})
+   AddCompilerFlag("${_flag}" CXX_FLAGS ${VAR})
 endmacro()
 
 macro(vc_check_assembler)
