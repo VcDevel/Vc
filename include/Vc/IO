@@ -67,7 +67,7 @@ namespace
 
 namespace std
 {
-inline std::ostream &operator<<(std::ostream &out, const AnsiColor::Type &c)
+static inline std::ostream &operator<<(std::ostream &out, const AnsiColor::Type &c)
 {
     if (mayUseColor(out)) {
         out << c.data;
@@ -76,7 +76,7 @@ inline std::ostream &operator<<(std::ostream &out, const AnsiColor::Type &c)
 }
 
 template<typename T>
-inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<T> &v)
+static std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<T> &v)
 {
     out << AnsiColor::green << "[";
     out << v[0];
@@ -88,7 +88,7 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vecto
 }
 
 template<>
-inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<char> &v)
+std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<char> &v)
 {
     out << AnsiColor::green << "[";
     out << int(v[0]);
@@ -99,7 +99,7 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vecto
     return out;
 }
 template<>
-inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<unsigned char> &v)
+std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<unsigned char> &v)
 {
     out << AnsiColor::green << "[";
     out << int(v[0]);
@@ -112,7 +112,7 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vecto
 
 #ifdef VC_HAVE_FMA
 template<typename T>
-inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::VectorMultiplication<T> &v)
+static std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::VectorMultiplication<T> &v)
 {
     return out << VECTOR_NAMESPACE::Vector<T>(v);
 }
@@ -120,10 +120,10 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vecto
 
 #ifdef VC_IMPL_AVX
 template<unsigned int VectorSize, size_t RegisterWidth>
-inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<VectorSize, RegisterWidth> &m)
+static std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<VectorSize, RegisterWidth> &m)
 #else
 template<unsigned int VectorSize>
-inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<VectorSize> &m)
+static std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<VectorSize> &m)
 #endif
 {
     out << AnsiColor::blue << "m[";
@@ -141,7 +141,7 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<
     return out;
 }
 #if VC_IMPL_SSE
-inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float8Mask &m)
+static std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float8Mask &m)
 {
     out << AnsiColor::blue << "m[";
     for (unsigned int i = 0; i < 8; ++i) {
@@ -160,7 +160,7 @@ inline std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float
 #endif
 
 template<typename V, typename Parent, typename RM>
-inline std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Parent, 1, RM> &m )
+static std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Parent, 1, RM> &m )
 {
     out << AnsiColor::blue << "{" << AnsiColor::normal;
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
@@ -171,7 +171,7 @@ inline std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Paren
 }
 
 template<typename V, typename Parent, typename RM>
-inline std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Parent, 2, RM> &m )
+static std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Parent, 2, RM> &m )
 {
     out << AnsiColor::blue << "{" << AnsiColor::normal;
     for (size_t i = 0; i < m.rowsCount(); ++i) {
