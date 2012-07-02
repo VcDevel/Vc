@@ -216,3 +216,11 @@ if(TEST_OPERATOR_FAILURES)
    vc_test_implicit_type_conversion_failures( "short_v"       "bool")
    vc_test_implicit_type_conversion_failures("ushort_v"       "bool")
 endif()
+
+# compile and link test for targets that need to link lots of stuff together
+add_library(linkTestLibDynamic SHARED linkTestLib0.cpp linkTestLib1.cpp)
+add_library(linkTestLibStatic STATIC linkTestLib2.cpp linkTestLib3.cpp)
+add_executable(linkTest linkTest0.cpp linkTest1.cpp)
+target_link_libraries(linkTestLibDynamic Vc)
+target_link_libraries(linkTestLibStatic Vc)
+target_link_libraries(linkTest linkTestLibDynamic linkTestLibStatic Vc)
