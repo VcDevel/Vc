@@ -87,8 +87,7 @@ static std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vecto
     return out;
 }
 
-template<>
-std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<char> &v)
+static std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<char> &v)
 {
     out << AnsiColor::green << "[";
     out << int(v[0]);
@@ -98,8 +97,7 @@ std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<char>
     out << "]" << AnsiColor::normal;
     return out;
 }
-template<>
-std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<unsigned char> &v)
+static std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Vector<unsigned char> &v)
 {
     out << AnsiColor::green << "[";
     out << int(v[0]);
