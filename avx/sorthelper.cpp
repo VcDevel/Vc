@@ -17,10 +17,10 @@
 
 */
 
-#include "intrinsics.h"
-#include "casts.h"
-#include "sorthelper.h"
-#include "macros.h"
+#include <avx/intrinsics.h>
+#include <avx/casts.h>
+#include <avx/sorthelper.h>
+#include <avx/macros.h>
 
 namespace Vc
 {
