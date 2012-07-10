@@ -61,6 +61,7 @@ public:
     void operator=(const InterleavedMemoryAccess<StructSize, V> &access) const
     {
         VC_STATIC_ASSERT(Length <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has);
+        VC_STATIC_ASSERT(Length <= 8, You_are_gathering_too_many_vectors__This_is_not_implemented);
         switch (Length) {
         case 2:
             access.deinterleave(*pointers[0], *pointers[1]);
