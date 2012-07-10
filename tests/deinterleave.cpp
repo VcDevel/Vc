@@ -88,6 +88,51 @@ template<typename Pair> void testDeinterleave()
     }
 }
 
+template<typename T, size_t N> struct SomeStruct
+{
+    T d[N];
+};
+
+template<typename V> void testDeinterleaveGather()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+    typedef SomeStruct<T, 4> S;
+
+    const size_t N = 1024 * 1024 / sizeof(S);
+
+    S *data = Vc::malloc<S, Vc::AlignOnVector>(N);
+    for (size_t i = 0; i < N; ++i) {
+        data[i].d[0] = i * 4 + 0;
+        data[i].d[1] = i * 4 + 1;
+        data[i].d[2] = i * 4 + 2;
+        data[i].d[3] = i * 4 + 3;
+    }
+    Vc::InterleavedMemoryWrapper<S, V> data_v(data);
+
+    for (int retest = 0; retest < 10000; ++retest) {
+        I indexes = I::Random() >> 10;
+        indexes = Vc::min(I(N - 1), Vc::max(I::Zero(), indexes));
+        const V reference = static_cast<V>(indexes) * 4;
+
+        V a, b, c,d;
+        (a, b, c, d) = data_v[indexes];
+        COMPARE(a, reference + 0);
+        COMPARE(b, reference + 1);
+        COMPARE(c, reference + 2);
+        COMPARE(d, reference + 3);
+
+        (c, d, a) = data_v[indexes];
+        COMPARE(c, reference + 0);
+        COMPARE(d, reference + 1);
+        COMPARE(a, reference + 2);
+
+        (b, c) = data_v[indexes];
+        COMPARE(b, reference + 0);
+        COMPARE(c, reference + 1);
+    }
+}
+
 int main()
 {
     runTest(testDeinterleave<float_float>);
@@ -103,4 +148,6 @@ int main()
     runTest(testDeinterleave<uint_ushort>);
     runTest(testDeinterleave<short_short>);
     runTest(testDeinterleave<ushort_ushort>);
+
+    runTest(testDeinterleaveGather<float_v>);
 }

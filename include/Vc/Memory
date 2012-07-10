@@ -23,5 +23,15 @@
 
 #include "vector.h"
 #include "common/memory.h"
+#include "common/interleavedmemory.h"
+#if VC_IMPL_Scalar
+# include "scalar/interleavedmemory.tcc"
+#elif VC_IMPL_AVX
+# include "avx/interleavedmemory.tcc"
+#elif VC_IMPL_SSE
+# include "sse/interleavedmemory.tcc"
+#endif
 
 #endif // INCLUDE_VC_MEMORY
+
+// vim: ft=cpp
