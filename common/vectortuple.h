@@ -33,7 +33,7 @@ template<int Length, typename V> class VectorTuple
 {
     typedef typename V::EntryType T;
     friend class VectorTuple<Length + 1, V>;
-    typedef V *__restrict__ Ptr;
+    typedef V *VC_RESTRICT Ptr;
     Ptr pointers[Length];
 
 public:
