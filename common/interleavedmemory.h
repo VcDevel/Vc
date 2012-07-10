@@ -27,16 +27,15 @@ namespace Vc
 namespace Common
 {
 
-// delay execution of the deinterleaving gather until operator=
-template<size_t StructSize, typename V> struct InterleavedMemoryAccess
+template<typename V> struct InterleavedMemoryAccessBase
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef T Ta MAY_ALIAS;
-    I m_indexes;
+    const I m_indexes;
     Ta *const m_data;
 
-    InterleavedMemoryAccess(Ta *data, I indexes)
+    InterleavedMemoryAccessBase(I indexes, Ta *data)
         : m_indexes(indexes), m_data(data)
     {
     }
@@ -49,6 +48,19 @@ template<size_t StructSize, typename V> struct InterleavedMemoryAccess
     void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5) const;
     void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6) const;
     void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7) const;
+};
+
+// delay execution of the deinterleaving gather until operator=
+template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public InterleavedMemoryAccessBase<V>
+{
+    typedef InterleavedMemoryAccessBase<V> Base;
+    typedef typename Base::Ta Ta;
+    typedef typename Base::I I;
+
+    InterleavedMemoryAccess(Ta *data, I indexes)
+        : Base(indexes * I(StructSize), data)
+    {
+    }
 };
 
 /**
@@ -81,7 +93,7 @@ public:
     {
     }
 
-    Access operator[](I indexes)
+    Access operator[](I indexes) const
     {
         return Access(m_data, indexes);
     }

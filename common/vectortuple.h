@@ -71,6 +71,18 @@ public:
         case 4:
             access.deinterleave(*pointers[0], *pointers[1], *pointers[2], *pointers[3]);
             break;
+        case 5:
+            access.deinterleave(*pointers[0], *pointers[1], *pointers[2], *pointers[3], *pointers[4]);
+            break;
+        case 6:
+            access.deinterleave(*pointers[0], *pointers[1], *pointers[2], *pointers[3], *pointers[4], *pointers[5]);
+            break;
+        case 7:
+            access.deinterleave(*pointers[0], *pointers[1], *pointers[2], *pointers[3], *pointers[4], *pointers[5], *pointers[6]);
+            break;
+        case 8:
+            access.deinterleave(*pointers[0], *pointers[1], *pointers[2], *pointers[3], *pointers[4], *pointers[5], *pointers[6], *pointers[7]);
+            break;
         }
     }
 };
