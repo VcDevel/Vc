@@ -117,8 +117,21 @@ if(NOT ALIROOT_RELEASE)
    install(TARGETS Vc DESTINATION lib/)
 else()
    # libVc should be compiled in the AliRoot tree, so we need to install the sources
-   install(FILES vector.cpp cpuid.cpp support.cpp DESTINATION src)
-   install(FILES avx/sorthelper.cpp DESTINATION src/avx)
+   #
+   # Sadly there are messed up systems where putting include/Vc in the include paths will
+   # break the standard library (e.g. MacOS X Lion with case insensitive filesystem).
+   # Thus, we modify the includes such that include/Vc never needs to be in the path.
+   foreach(_src vector.cpp cpuid.cpp support.cpp avx/sorthelper.cpp)
+      message(STATUS "Processing ${CMAKE_SOURCE_DIR}/${_src} -> ${CMAKE_BINARY_DIR}/src/${_src}")
+      get_filename_component(_path "${CMAKE_BINARY_DIR}/src/${_src}" PATH)
+      file(MAKE_DIRECTORY "${_path}")
+      execute_process(
+         COMMAND sed "s,#include \\(.\\)\\(common\\|avx\\|sse\\|scalar\\)/,#include \\1Vc/\\2/,"
+         INPUT_FILE ${CMAKE_SOURCE_DIR}/${_src}
+         OUTPUT_FILE ${CMAKE_BINARY_DIR}/src/${_src}
+         )
+   endforeach()
+   install(DIRECTORY ${CMAKE_BINARY_DIR}/src/ DESTINATION src)
 endif()
 
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
