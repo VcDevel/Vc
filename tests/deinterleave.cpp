@@ -106,14 +106,14 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     {
         V v0, v1, v2, v3, v4, v5, v6, v7;
         (v0, v1, v2, v3, v4, v5, v6, v7) = data_v[indexes];
-        COMPARE(v0, reference + 0);
-        COMPARE(v1, reference + 1);
-        COMPARE(v2, reference + 2);
-        COMPARE(v3, reference + 3);
-        COMPARE(v4, reference + 4);
-        COMPARE(v5, reference + 5);
-        COMPARE(v6, reference + 6);
-        COMPARE(v7, reference + 7);
+        COMPARE(v0, reference + 0) << "N = 8";
+        COMPARE(v1, reference + 1) << "N = 8";
+        COMPARE(v2, reference + 2) << "N = 8";
+        COMPARE(v3, reference + 3) << "N = 8";
+        COMPARE(v4, reference + 4) << "N = 8";
+        COMPARE(v5, reference + 5) << "N = 8";
+        COMPARE(v6, reference + 6) << "N = 8";
+        COMPARE(v7, reference + 7) << "N = 8";
         TestDeinterleaveGatherCompare<V, StructSize, 7>::test(data_v, indexes, reference);
     }
 };
@@ -122,13 +122,13 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     {
         V v0, v1, v2, v3, v4, v5, v6;
         (v0, v1, v2, v3, v4, v5, v6) = data_v[indexes];
-        COMPARE(v0, reference + 0);
-        COMPARE(v1, reference + 1);
-        COMPARE(v2, reference + 2);
-        COMPARE(v3, reference + 3);
-        COMPARE(v4, reference + 4);
-        COMPARE(v5, reference + 5);
-        COMPARE(v6, reference + 6);
+        COMPARE(v0, reference + 0) << "N = 7";
+        COMPARE(v1, reference + 1) << "N = 7";
+        COMPARE(v2, reference + 2) << "N = 7";
+        COMPARE(v3, reference + 3) << "N = 7";
+        COMPARE(v4, reference + 4) << "N = 7";
+        COMPARE(v5, reference + 5) << "N = 7";
+        COMPARE(v6, reference + 6) << "N = 7";
         TestDeinterleaveGatherCompare<V, StructSize, 6>::test(data_v, indexes, reference);
     }
 };
@@ -137,12 +137,12 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     {
         V v0, v1, v2, v3, v4, v5;
         (v0, v1, v2, v3, v4, v5) = data_v[indexes];
-        COMPARE(v0, reference + 0);
-        COMPARE(v1, reference + 1);
-        COMPARE(v2, reference + 2);
-        COMPARE(v3, reference + 3);
-        COMPARE(v4, reference + 4);
-        COMPARE(v5, reference + 5);
+        COMPARE(v0, reference + 0) << "N = 6";
+        COMPARE(v1, reference + 1) << "N = 6";
+        COMPARE(v2, reference + 2) << "N = 6";
+        COMPARE(v3, reference + 3) << "N = 6";
+        COMPARE(v4, reference + 4) << "N = 6";
+        COMPARE(v5, reference + 5) << "N = 6";
         TestDeinterleaveGatherCompare<V, StructSize, 5>::test(data_v, indexes, reference);
     }
 };
@@ -151,11 +151,11 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     {
         V v0, v1, v2, v3, v4;
         (v0, v1, v2, v3, v4) = data_v[indexes];
-        COMPARE(v0, reference + 0);
-        COMPARE(v1, reference + 1);
-        COMPARE(v2, reference + 2);
-        COMPARE(v3, reference + 3);
-        COMPARE(v4, reference + 4);
+        COMPARE(v0, reference + 0) << "N = 5";
+        COMPARE(v1, reference + 1) << "N = 5";
+        COMPARE(v2, reference + 2) << "N = 5";
+        COMPARE(v3, reference + 3) << "N = 5";
+        COMPARE(v4, reference + 4) << "N = 5";
         TestDeinterleaveGatherCompare<V, StructSize, 4>::test(data_v, indexes, reference);
     }
 };
@@ -164,10 +164,10 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     {
         V a, b, c, d;
         (a, b, c, d) = data_v[indexes];
-        COMPARE(a, reference + 0);
-        COMPARE(b, reference + 1);
-        COMPARE(c, reference + 2);
-        COMPARE(d, reference + 3);
+        COMPARE(a, reference + 0) << "N = 4";
+        COMPARE(b, reference + 1) << "N = 4";
+        COMPARE(c, reference + 2) << "N = 4";
+        COMPARE(d, reference + 3) << "N = 4";
         TestDeinterleaveGatherCompare<V, StructSize, 3>::test(data_v, indexes, reference);
     }
 };
@@ -176,9 +176,9 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     {
         V a, b, c;
         (a, b, c) = data_v[indexes];
-        COMPARE(a, reference + 0);
-        COMPARE(b, reference + 1);
-        COMPARE(c, reference + 2);
+        COMPARE(a, reference + 0) << "N = 3";
+        COMPARE(b, reference + 1) << "N = 3";
+        COMPARE(c, reference + 2) << "N = 3";
         TestDeinterleaveGatherCompare<V, StructSize, 2>::test(data_v, indexes, reference);
     }
 };
@@ -187,8 +187,8 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     {
         V a, b;
         (a, b) = data_v[indexes];
-        COMPARE(a, reference + 0);
-        COMPARE(b, reference + 1);
+        COMPARE(a, reference + 0) << "N = 2";
+        COMPARE(b, reference + 1) << "N = 2";
     }
 };
 
