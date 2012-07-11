@@ -36,18 +36,18 @@ template<typename V> struct VectorTuple<2, V>
     typedef V &VC_RESTRICT Reference;
     Reference l, r;
 
-    VectorTuple(Reference a, Reference b)
+    inline ALWAYS_INLINE VectorTuple(Reference a, Reference b)
         : l(a), r(b)
     {
     }
 
-    VectorTuple<3, V> operator,(V &a) const
+    inline ALWAYS_INLINE VectorTuple<3, V> operator,(V &a) const
     {
         return VectorTuple<3, V>(*this, a);
     }
 
     template<size_t StructSize> ALWAYS_INLINE
-    void operator=(const InterleavedMemoryAccess<StructSize, V> &access) const
+    inline ALWAYS_INLINE void operator=(const InterleavedMemoryAccess<StructSize, V> &access) const
     {
         VC_STATIC_ASSERT(2 <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has);
         access.deinterleave(l, r);
@@ -62,18 +62,18 @@ template<typename V> struct VectorTuple<LENGTH, V> \
     const VectorTuple<LENGTH - 1, V> &l; \
     Reference r; \
  \
-    VectorTuple(const VectorTuple<LENGTH - 1, V> &tuple, Reference a) \
+    inline ALWAYS_INLINE VectorTuple(const VectorTuple<LENGTH - 1, V> &tuple, Reference a) \
         : l(tuple), r(a) \
     { \
     } \
  \
-    VectorTuple<LENGTH + 1, V> operator,(V &a) const \
+    inline ALWAYS_INLINE VectorTuple<LENGTH + 1, V> operator,(V &a) const \
     { \
         return VectorTuple<LENGTH + 1, V>(*this, a); \
     } \
  \
     template<size_t StructSize> ALWAYS_INLINE \
-    void operator=(const InterleavedMemoryAccess<StructSize, V> &access) const \
+    inline ALWAYS_INLINE void operator=(const InterleavedMemoryAccess<StructSize, V> &access) const \
     { \
         VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has); \
         access.deinterleave parameters; \
@@ -89,7 +89,7 @@ _VC_VECTORTUPLE_SPECIALIZATION(8, (l.l.l.l.l.l.l, l.l.l.l.l.l.r, l.l.l.l.l.r, l.
 
 } // namespace Common
 
-Common::VectorTuple<2, float_v> operator,(float_v &a, float_v &b)
+inline ALWAYS_INLINE Common::VectorTuple<2, float_v> operator,(float_v &a, float_v &b)
 {
     return Common::VectorTuple<2, float_v>(a, b);
 }
