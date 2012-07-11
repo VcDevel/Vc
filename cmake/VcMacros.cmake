@@ -123,7 +123,7 @@ macro(vc_check_assembler)
          string(REGEX REPLACE "\\([^\\)]*\\)" "" _as_version "${_as_version}")
          string(REGEX MATCH "[1-9]\\.[0-9]+(\\.[0-9]+)?" _as_version "${_as_version}")
          if(_as_version VERSION_LESS "2.18.93")
-            message(WARNING "Your binutils is too old (${_as_version}). Some optimizations of Vc will be disabled.")
+            UserWarning("Your binutils is too old (${_as_version}). Some optimizations of Vc will be disabled.")
             add_definitions(-DVC_NO_XGETBV) # old assembler doesn't know the xgetbv instruction
          endif()
       endif()
