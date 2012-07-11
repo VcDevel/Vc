@@ -17,8 +17,8 @@
 
 }}}*/
 
-#ifndef SSE_INTERLEAVEDMEMORY_TCC
-#define SSE_INTERLEAVEDMEMORY_TCC
+#ifndef VC_SSE_INTERLEAVEDMEMORY_TCC
+#define VC_SSE_INTERLEAVEDMEMORY_TCC
 
 namespace Vc
 {
@@ -179,4 +179,4 @@ template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_
 } // namespace Common
 } // namespace Vc
 
-#endif // SSE_INTERLEAVEDMEMORY_TCC
+#endif // VC_SSE_INTERLEAVEDMEMORY_TCC
