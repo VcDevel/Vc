@@ -29,70 +29,69 @@ namespace Common
 
 template<size_t StructSize, typename V> struct InterleavedMemoryAccess;
 
-template<int Length, typename V> class VectorTuple
+template<int Length, typename V> struct VectorTuple;
+template<typename V> struct VectorTuple<2, V>
 {
     typedef typename V::EntryType T;
-    friend class VectorTuple<Length + 1, V>;
-    typedef V *VC_RESTRICT Ptr;
-    Ptr pointers[Length];
+    typedef V &VC_RESTRICT Reference;
+    Reference l, r;
 
-public:
-    VectorTuple(V *const a, V *const b)
+    VectorTuple(Reference a, Reference b)
+        : l(a), r(b)
     {
-        pointers[0] = a;
-        pointers[1] = b;
     }
 
-    VectorTuple(const VectorTuple<Length - 1, V> &list, V *const a)
+    VectorTuple<3, V> operator,(V &a) const
     {
-        int i = 0;
-        for (; i < Length - 1; ++i) {
-            pointers[i] = list.pointers[i];
-        }
-        pointers[i] = a;
-    }
-
-    VectorTuple<Length + 1, V> operator,(V &a) const
-    {
-        return VectorTuple<Length + 1, V>(*this, &a);
+        return VectorTuple<3, V>(*this, a);
     }
 
     template<size_t StructSize> ALWAYS_INLINE
     void operator=(const InterleavedMemoryAccess<StructSize, V> &access) const
     {
-        VC_STATIC_ASSERT(Length <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has);
-        VC_STATIC_ASSERT(Length <= 8, You_are_gathering_too_many_vectors__This_is_not_implemented);
-        switch (Length) {
-        case 2:
-            access.deinterleave(*pointers[0], *pointers[1]);
-            break;
-        case 3:
-            access.deinterleave(*pointers[0], *pointers[1], *pointers[2]);
-            break;
-        case 4:
-            access.deinterleave(*pointers[0], *pointers[1], *pointers[2], *pointers[3]);
-            break;
-        case 5:
-            access.deinterleave(*pointers[0], *pointers[1], *pointers[2], *pointers[3], *pointers[4]);
-            break;
-        case 6:
-            access.deinterleave(*pointers[0], *pointers[1], *pointers[2], *pointers[3], *pointers[4], *pointers[5]);
-            break;
-        case 7:
-            access.deinterleave(*pointers[0], *pointers[1], *pointers[2], *pointers[3], *pointers[4], *pointers[5], *pointers[6]);
-            break;
-        case 8:
-            access.deinterleave(*pointers[0], *pointers[1], *pointers[2], *pointers[3], *pointers[4], *pointers[5], *pointers[6], *pointers[7]);
-            break;
-        }
+        VC_STATIC_ASSERT(2 <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has);
+        access.deinterleave(l, r);
     }
 };
+
+#define _VC_VECTORTUPLE_SPECIALIZATION(LENGTH, parameters) \
+template<typename V> struct VectorTuple<LENGTH, V> \
+{ \
+    typedef typename V::EntryType T; \
+    typedef V &VC_RESTRICT Reference; \
+    const VectorTuple<LENGTH - 1, V> &l; \
+    Reference r; \
+ \
+    VectorTuple(const VectorTuple<LENGTH - 1, V> &tuple, Reference a) \
+        : l(tuple), r(a) \
+    { \
+    } \
+ \
+    VectorTuple<LENGTH + 1, V> operator,(V &a) const \
+    { \
+        return VectorTuple<LENGTH + 1, V>(*this, a); \
+    } \
+ \
+    template<size_t StructSize> ALWAYS_INLINE \
+    void operator=(const InterleavedMemoryAccess<StructSize, V> &access) const \
+    { \
+        VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has); \
+        access.deinterleave parameters; \
+    } \
+}
+_VC_VECTORTUPLE_SPECIALIZATION(3, (l.l, l.r, r));
+_VC_VECTORTUPLE_SPECIALIZATION(4, (l.l.l, l.l.r, l.r, r));
+_VC_VECTORTUPLE_SPECIALIZATION(5, (l.l.l.l, l.l.l.r, l.l.r, l.r, r));
+_VC_VECTORTUPLE_SPECIALIZATION(6, (l.l.l.l.l, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
+_VC_VECTORTUPLE_SPECIALIZATION(7, (l.l.l.l.l.l, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
+_VC_VECTORTUPLE_SPECIALIZATION(8, (l.l.l.l.l.l.l, l.l.l.l.l.l.r, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
+//        VC_STATIC_ASSERT(false, You_are_gathering_too_many_vectors__This_is_not_implemented);
 
 } // namespace Common
 
 Common::VectorTuple<2, float_v> operator,(float_v &a, float_v &b)
 {
-    return Common::VectorTuple<2, float_v>(&a, &b);
+    return Common::VectorTuple<2, float_v>(a, b);
 }
 
 } // namespace Vc
