@@ -76,25 +76,25 @@ template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_
 
 template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1, float_v &v2, float_v &v3, float_v &v4) const
 {
-    v4.gather(m_data, m_indexes + I(float_v::Size));
+    v4.gather(m_data, m_indexes + I(4));
     deinterleave(v0, v1, v2, v3);
 }
 
 template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1, float_v &v2, float_v &v3, float_v &v4, float_v &v5) const
 {
     const __m128 a = _mm_loadu_ps(&m_data[m_indexes[0]]);
-    const __m128 e = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[0]]);
+    const __m128 e = _mm_loadu_ps(&m_data[4 + m_indexes[0]]);
     const __m128 b = _mm_loadu_ps(&m_data[m_indexes[1]]);
-    const __m128 f = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[1]]);
+    const __m128 f = _mm_loadu_ps(&m_data[4 + m_indexes[1]]);
 
     const __m128 tmp0 = _mm_unpacklo_ps(a, b); // [a0 a1 b0 b1]
     const __m128 tmp2 = _mm_unpackhi_ps(a, b); // [c0 c1 d0 d1]
     const __m128 tmp4 = _mm_unpacklo_ps(e, f); // [a0 a1 b0 b1]
 
     const __m128 c = _mm_loadu_ps(&m_data[m_indexes[2]]);
-    const __m128 g = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[2]]);
+    const __m128 g = _mm_loadu_ps(&m_data[4 + m_indexes[2]]);
     const __m128 d = _mm_loadu_ps(&m_data[m_indexes[3]]);
-    const __m128 h = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[3]]);
+    const __m128 h = _mm_loadu_ps(&m_data[4 + m_indexes[3]]);
 
     const __m128 tmp1 = _mm_unpacklo_ps(c, d); // [a2 a3 b2 b3]
     v0.data() = _mm_movelh_ps(tmp0, tmp1);
@@ -112,9 +112,9 @@ template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_
 template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1, float_v &v2, float_v &v3, float_v &v4, float_v &v5, float_v &v6) const
 {
     const __m128 a = _mm_loadu_ps(&m_data[m_indexes[0]]);
-    const __m128 e = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[0]]);
+    const __m128 e = _mm_loadu_ps(&m_data[4 + m_indexes[0]]);
     const __m128 b = _mm_loadu_ps(&m_data[m_indexes[1]]);
-    const __m128 f = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[1]]);
+    const __m128 f = _mm_loadu_ps(&m_data[4 + m_indexes[1]]);
 
     const __m128 tmp0 = _mm_unpacklo_ps(a, b); // [a0 a1 b0 b1]
     const __m128 tmp2 = _mm_unpackhi_ps(a, b); // [c0 c1 d0 d1]
@@ -122,9 +122,9 @@ template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_
     const __m128 tmp6 = _mm_unpackhi_ps(e, f); // [c0 c1 d0 d1]
 
     const __m128 c = _mm_loadu_ps(&m_data[m_indexes[2]]);
-    const __m128 g = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[2]]);
+    const __m128 g = _mm_loadu_ps(&m_data[4 + m_indexes[2]]);
     const __m128 d = _mm_loadu_ps(&m_data[m_indexes[3]]);
-    const __m128 h = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[3]]);
+    const __m128 h = _mm_loadu_ps(&m_data[4 + m_indexes[3]]);
 
     const __m128 tmp1 = _mm_unpacklo_ps(c, d); // [a2 a3 b2 b3]
     v0.data() = _mm_movelh_ps(tmp0, tmp1);
@@ -145,9 +145,9 @@ template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_
 template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1, float_v &v2, float_v &v3, float_v &v4, float_v &v5, float_v &v6, float_v &v7) const
 {
     const __m128 a = _mm_loadu_ps(&m_data[m_indexes[0]]);
-    const __m128 e = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[0]]);
+    const __m128 e = _mm_loadu_ps(&m_data[4 + m_indexes[0]]);
     const __m128 b = _mm_loadu_ps(&m_data[m_indexes[1]]);
-    const __m128 f = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[1]]);
+    const __m128 f = _mm_loadu_ps(&m_data[4 + m_indexes[1]]);
 
     const __m128 tmp0 = _mm_unpacklo_ps(a, b); // [a0 a1 b0 b1]
     const __m128 tmp2 = _mm_unpackhi_ps(a, b); // [c0 c1 d0 d1]
@@ -155,9 +155,9 @@ template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_
     const __m128 tmp6 = _mm_unpackhi_ps(e, f); // [c0 c1 d0 d1]
 
     const __m128 c = _mm_loadu_ps(&m_data[m_indexes[2]]);
-    const __m128 g = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[2]]);
+    const __m128 g = _mm_loadu_ps(&m_data[4 + m_indexes[2]]);
     const __m128 d = _mm_loadu_ps(&m_data[m_indexes[3]]);
-    const __m128 h = _mm_loadu_ps(&m_data[float_v::Size + m_indexes[3]]);
+    const __m128 h = _mm_loadu_ps(&m_data[4 + m_indexes[3]]);
 
     const __m128 tmp1 = _mm_unpacklo_ps(c, d); // [a2 a3 b2 b3]
     v0.data() = _mm_movelh_ps(tmp0, tmp1);
