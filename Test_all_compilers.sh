@@ -26,9 +26,9 @@ END
   return 0
 }
 
-cxxlist="`find /usr/bin /usr/local/bin -name 'g++-*'`"
+cxxlist="`find /usr/bin/ /usr/local/bin/ -name 'g++-*'`"
 if test -z "$cxxlist"; then
-  cxxlist="`find /usr/bin /usr/local/bin -name 'g++'`"
+  cxxlist="`find /usr/bin/ /usr/local/bin/ -name 'g++'`"
 fi
 if test -z "$cxxlist"; then
   # default compiler
@@ -48,7 +48,7 @@ else
   done
 fi
 
-for VcEnv in `find /opt -mindepth 2 -maxdepth 2 -name Vc.env`; do (
+for VcEnv in `find /opt/ -mindepth 2 -maxdepth 2 -name Vc.env`; do (
   . "$VcEnv"
   case "$VcEnv" in
     *-snapshot/Vc.env)
@@ -62,7 +62,7 @@ for VcEnv in `find /opt -mindepth 2 -maxdepth 2 -name Vc.env`; do (
 
 export CC=icc
 export CXX=icpc
-icclist="`find /opt -name 'iccvars.sh'`"
+icclist="`find /opt/ -name 'iccvars.sh'`"
 case x86_64 in
   x86_64)
     arch=intel64
