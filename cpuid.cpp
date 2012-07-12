@@ -72,17 +72,17 @@ bool   CpuId::s_noL2orL3 = false;
     __asm__("xchg{l} {%%}ebx, %1\n\t" \
             "cpuid\n\t"               \
             "xchg{l} {%%}ebx, %1\n\t" \
-            : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "0"(leaf))
+            : "=a"(eax), "=r"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf))
 #define CPUID_C(leaf, _ecx_) \
     __asm__("xchg{l} {%%}ebx, %1\n\t" \
             "cpuid\n\t"               \
             "xchg{l} {%%}ebx, %1\n\t" \
-            : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "0"(leaf), "2"(_ecx_))
+            : "=a"(eax), "=r"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf), "c"(_ecx_))
 #else
 #define CPUID(leaf) \
-    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "0"(leaf))
+    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf))
 #define CPUID_C(leaf, _ecx_) \
-    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "0"(leaf), "2"(_ecx_))
+    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf), "c"(_ecx_))
 #endif
 static unsigned int CpuIdAmdAssociativityTable(int bits)
 {
