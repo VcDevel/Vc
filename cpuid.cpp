@@ -68,16 +68,23 @@ bool   CpuId::s_noL2orL3 = false;
     } while (false)
 #elif defined(__i386__) && defined(__PIC__)
 // %ebx may be the PIC register.
+static inline void _Vc_cpuid(int leaf, unsigned int &eax, unsigned int &ebx, unsigned int &ecx, unsigned int &edx)
+{
+    int tmpb;
+    asm("mov %%ebx, %[tmpb]\n\t"
+        "cpuid\n\t"
+        "mov %%ebx, %[ebx]\n\t"
+        "mov %[tmpb], %%ebx\n\t"
+        : [tmpb]"=m"(tmpb), "=a"(eax), [ebx] "=m"(ebx), "+c"(ecx), "=d"(edx)
+        : [leaf] "a"(leaf)
+      );
+}
 #define CPUID(leaf) \
-    __asm__("xchg{l} {%%}ebx, %1\n\t" \
-            "cpuid\n\t"               \
-            "xchg{l} {%%}ebx, %1\n\t" \
-            : "=a"(eax), "=r"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf))
+    ecx = 0; \
+    _Vc_cpuid(leaf, eax, ebx, ecx, edx)
 #define CPUID_C(leaf, _ecx_) \
-    __asm__("xchg{l} {%%}ebx, %1\n\t" \
-            "cpuid\n\t"               \
-            "xchg{l} {%%}ebx, %1\n\t" \
-            : "=a"(eax), "=r"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf), "c"(_ecx_))
+    ecx = _ecx_; \
+    _Vc_cpuid(leaf, eax, ebx, ecx, edx)
 #else
 #define CPUID(leaf) \
     __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf))
