@@ -66,11 +66,23 @@ bool   CpuId::s_noL2orL3 = false;
         ecx = out[2]; \
         edx = out[3]; \
     } while (false)
+#elif defined(__i386__) && defined(__PIC__)
+// %ebx may be the PIC register.
+#define CPUID(leaf) \
+    __asm__("xchg{l} {%%}ebx, %1\n\t" \
+            "cpuid\n\t"               \
+            "xchg{l} {%%}ebx, %1\n\t" \
+            : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "0"(leaf))
+#define CPUID_C(leaf, _ecx_) \
+    __asm__("xchg{l} {%%}ebx, %1\n\t" \
+            "cpuid\n\t"               \
+            "xchg{l} {%%}ebx, %1\n\t" \
+            : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "0"(leaf), "2"(_ecx_))
 #else
 #define CPUID(leaf) \
-    __asm__("mov $" #leaf ",%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx))
+    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "0"(leaf))
 #define CPUID_C(leaf, _ecx_) \
-    __asm__("mov $" #leaf ",%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "c"(_ecx_))
+    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "0"(leaf), "2"(_ecx_))
 #endif
 static unsigned int CpuIdAmdAssociativityTable(int bits)
 {
