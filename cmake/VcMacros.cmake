@@ -202,7 +202,11 @@ macro(vc_set_preferred_compiler_flags)
             # GCC gives bogus "array subscript is above array bounds" warnings in math.cpp
             AddCompilerFlag("-Wno-array-bounds")
          endif()
-         AddCompilerFlag("-Wno-unused-local-typedefs")
+         if(Vc_GCC_VERSION VERSION_GREATER "4.7.99")
+            # GCC 4.8 warns about stuff we don't care about
+            # Some older GCC versions have problems to note that they don't support the flag
+            AddCompilerFlag("-Wno-unused-local-typedefs")
+         endif()
       endif()
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wabi")
       vc_add_compiler_flag(Vc_DEFINITIONS "-fabi-version=0") # ABI version 4 is required to make __m128 and __m256 appear as different types. 0 should give us the latest version.
