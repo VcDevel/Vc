@@ -47,7 +47,9 @@ CpuId::ProcessorType CpuId::s_processorType = CpuId::IntelReserved;
 bool   CpuId::s_noL2orL3 = false;
 
 #ifdef _MSC_VER
+} // better not include intrin.h inside the Vc namespace :)
 #include <intrin.h>
+namespace Vc {
 #define CPUID(leaf) \
     do { \
         int out[4]; \
