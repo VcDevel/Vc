@@ -157,6 +157,7 @@ macro(vc_set_preferred_compiler_flags)
 
    set(Vc_SSE_INTRINSICS_BROKEN false)
    set(Vc_AVX_INTRINSICS_BROKEN false)
+   set(Vc_XOP_INTRINSICS_BROKEN false)
 
    if(Vc_COMPILER_IS_OPEN64)
       ##################################################################################################
@@ -285,6 +286,9 @@ macro(vc_set_preferred_compiler_flags)
 
       # get rid of the min/max macros
       set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DNOMINMAX")
+
+      # MSVC doesn't implement the XOP intrinsics
+      set(Vc_XOP_INTRINSICS_BROKEN false)
    elseif(Vc_COMPILER_IS_CLANG)
       # for now I don't know of any arguments I want to pass. -march and stuff is tried by OptimizeForArchitecture...
 
