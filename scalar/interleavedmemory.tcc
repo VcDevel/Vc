@@ -25,37 +25,33 @@ namespace Vc
 namespace Common
 {
 
-template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1) const
+template<typename V> inline void InterleavedMemoryAccessBase<V>::deinterleave(V &v0, V &v1) const/*{{{*/
 {
     v0.data() = m_data[m_indexes.data() + 0];
     v1.data() = m_data[m_indexes.data() + 1];
-}
-
-template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1, float_v &v2) const
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::deinterleave(V &v0, V &v1, V &v2) const/*{{{*/
 {
     v0.data() = m_data[m_indexes.data() + 0];
     v1.data() = m_data[m_indexes.data() + 1];
     v2.data() = m_data[m_indexes.data() + 2];
-}
-
-template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1, float_v &v2, float_v &v3) const
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::deinterleave(V &v0, V &v1, V &v2, V &v3) const/*{{{*/
 {
     v0.data() = m_data[m_indexes.data() + 0];
     v1.data() = m_data[m_indexes.data() + 1];
     v2.data() = m_data[m_indexes.data() + 2];
     v3.data() = m_data[m_indexes.data() + 3];
-}
-
-template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1, float_v &v2, float_v &v3, float_v &v4) const
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4) const/*{{{*/
 {
     v0.data() = m_data[m_indexes.data() + 0];
     v1.data() = m_data[m_indexes.data() + 1];
     v2.data() = m_data[m_indexes.data() + 2];
     v3.data() = m_data[m_indexes.data() + 3];
     v4.data() = m_data[m_indexes.data() + 4];
-}
-
-template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1, float_v &v2, float_v &v3, float_v &v4, float_v &v5) const
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5) const/*{{{*/
 {
     v0.data() = m_data[m_indexes.data() + 0];
     v1.data() = m_data[m_indexes.data() + 1];
@@ -63,9 +59,8 @@ template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_
     v3.data() = m_data[m_indexes.data() + 3];
     v4.data() = m_data[m_indexes.data() + 4];
     v5.data() = m_data[m_indexes.data() + 5];
-}
-
-template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1, float_v &v2, float_v &v3, float_v &v4, float_v &v5, float_v &v6) const
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6) const/*{{{*/
 {
     v0.data() = m_data[m_indexes.data() + 0];
     v1.data() = m_data[m_indexes.data() + 1];
@@ -74,9 +69,8 @@ template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_
     v4.data() = m_data[m_indexes.data() + 4];
     v5.data() = m_data[m_indexes.data() + 5];
     v6.data() = m_data[m_indexes.data() + 6];
-}
-
-template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1, float_v &v2, float_v &v3, float_v &v4, float_v &v5, float_v &v6, float_v &v7) const
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7) const/*{{{*/
 {
     v0.data() = m_data[m_indexes.data() + 0];
     v1.data() = m_data[m_indexes.data() + 1];
@@ -86,9 +80,11 @@ template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_
     v5.data() = m_data[m_indexes.data() + 5];
     v6.data() = m_data[m_indexes.data() + 6];
     v7.data() = m_data[m_indexes.data() + 7];
-}
+}/*}}}*/
 
 } // namespace Common
 } // namespace Vc
 
 #endif // VC_SCALAR_INTERLEAVEDMEMORY_TCC
+
+// vim: foldmethod=marker
