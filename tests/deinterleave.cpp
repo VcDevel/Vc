@@ -198,7 +198,7 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
     typedef typename V::IndexType I;
     typedef SomeStruct<T, StructSize> S;
     typedef Vc::InterleavedMemoryWrapper<S, V> Wrapper;
-    const size_t N = 1024 * 1024 / sizeof(S);
+    const size_t N = std::min<size_t>(std::numeric_limits<typename I::EntryType>::max(), 1024 * 1024 / sizeof(S));
 
     S *data = Vc::malloc<S, Vc::AlignOnVector>(N);
     for (size_t i = 0; i < N; ++i) {
@@ -244,8 +244,5 @@ int main()
     runTest(testDeinterleave<short_short>);
     runTest(testDeinterleave<ushort_ushort>);
 
-    runTest(testDeinterleaveGather<float_v>);
-    runTest(testDeinterleaveGather<int_v>);
-    runTest(testDeinterleaveGather<uint_v>);
-    runTest(testDeinterleaveGather<double_v>);
+    testAllTypes(testDeinterleaveGather);
 }
