@@ -89,9 +89,10 @@ _VC_VECTORTUPLE_SPECIALIZATION(8, (l.l.l.l.l.l.l, l.l.l.l.l.l.r, l.l.l.l.l.r, l.
 
 } // namespace Common
 
-Common::VectorTuple<2, float_v> operator,(float_v &a, float_v &b)
+template<typename T>
+Common::VectorTuple<2, Vc::Vector<T> > operator,(Vc::Vector<T> &a, Vc::Vector<T> &b)
 {
-    return Common::VectorTuple<2, float_v>(a, b);
+    return Common::VectorTuple<2, Vc::Vector<T> >(a, b);
 }
 
 } // namespace Vc
