@@ -211,7 +211,7 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
     for (int retest = 0; retest < 10000; ++retest) {
         I indexes = I::Random() >> 10;
         indexes = Vc::min(I(N - 1), Vc::max(I::Zero(), indexes));
-        const V reference = static_cast<V>(indexes) * StructSize;
+        const V reference = static_cast<V>(indexes) * V(StructSize);
 
         TestDeinterleaveGatherCompare<V, StructSize>::test(data_v, indexes, reference);
     }
@@ -245,4 +245,7 @@ int main()
     runTest(testDeinterleave<ushort_ushort>);
 
     runTest(testDeinterleaveGather<float_v>);
+    runTest(testDeinterleaveGather<int_v>);
+    runTest(testDeinterleaveGather<uint_v>);
+    runTest(testDeinterleaveGather<double_v>);
 }
