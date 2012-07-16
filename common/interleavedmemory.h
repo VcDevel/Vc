@@ -64,18 +64,15 @@ template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public 
 };
 
 /**
+ * Wraps a pointer to memory with convenience functions to access it via vectors.
+ *
  * \param S The type of the struct.
  * \param V The type of the vector to be returned when read. This should reflect the type of the
  * members inside the struct.
  *
- * Example:
- * \code
- * struct Foo {
- *   int a, b, c;
- * };
- * Foo *data = Vc::malloc<Vc::AlignOnVector>(1024);
- * Vc::InterleavedMemoryWrapper<Foo, int_v> data_v(data);
- * \endcode
+ * \see operator[]
+ * \ingroup Utilities
+ * \headerfile interleavedmemory.h <Vc/Memory>
  */
 template<typename S, typename V> class InterleavedMemoryWrapper
 {
@@ -88,15 +85,54 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     VC_STATIC_ASSERT((sizeof(S) / sizeof(T)) * sizeof(T) == sizeof(S), InterleavedMemoryAccess_does_not_support_packed_structs);
 
 public:
+    /**
+     * Constructs the wrapper object.
+     *
+     * \param s A pointer to a C-array.
+     */
     inline ALWAYS_INLINE InterleavedMemoryWrapper(S *s)
         : m_data(reinterpret_cast<Ta *>(s))
     {
     }
 
+    /**
+     * Interleaved gather.
+     *
+     * Assuming you have a struct of floats and a vector of \p indexes into the array, this function
+     * can be used to return the struct entries as vectors using the minimal number of load
+     * instructions.
+     *
+     * Example:
+     * \code
+     * struct Foo {
+     *   float x, y, z;
+     * };
+     *
+     * float_v normalizeStuff(Foo *_data, uint_v indexes)
+     * {
+     *   Vc::InterleavedMemoryWrapper<Foo, float_v> data(_data);
+     *   float_v x, y, z;
+     *   (x, y, z) = data[indexes];
+     *   return Vc::sqrt(x * x + y * y + z * z);
+     * }
+     * \endcode
+     *
+     * You may think of the operation like this:
+\verbatim
+             Memory: {x0 y0 z0 x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 x5 y5 z5 x6 y6 z6 x7 y7 z7 x8 y8 z8}
+            indexes: [5, 0, 1, 7]
+Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
+\endverbatim
+     */
     inline ALWAYS_INLINE Access operator[](I indexes) const
     {
         return Access(m_data, indexes);
     }
+
+    /// alias of the above function
+    inline ALWAYS_INLINE Access gather(I indexes) const { return operator[](indexes); }
+
+    //inline ALWAYS_INLINE void scatter(I indexes, const V &v0, V v1
 };
 } // namespace Common
 

@@ -643,6 +643,7 @@ INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = dox.h \
                          memory.h \
                          memorybase.h \
+                         interleavedmemory.h \
                          deinterleave.h \
                          support.h
 
