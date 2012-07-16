@@ -35,7 +35,7 @@ template<typename V> struct InterleavedMemoryAccessBase
     const I m_indexes;
     Ta *const m_data;
 
-    InterleavedMemoryAccessBase(I indexes, Ta *data)
+    inline ALWAYS_INLINE InterleavedMemoryAccessBase(I indexes, Ta *data)
         : m_indexes(indexes), m_data(data)
     {
     }
@@ -57,7 +57,7 @@ template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public 
     typedef typename Base::Ta Ta;
     typedef typename Base::I I;
 
-    InterleavedMemoryAccess(Ta *data, I indexes)
+    inline ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, I indexes)
         : Base(indexes * I(StructSize), data)
     {
     }
@@ -88,12 +88,12 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     VC_STATIC_ASSERT((sizeof(S) / sizeof(T)) * sizeof(T) == sizeof(S), InterleavedMemoryAccess_does_not_support_packed_structs);
 
 public:
-    InterleavedMemoryWrapper(S *s)
+    inline ALWAYS_INLINE InterleavedMemoryWrapper(S *s)
         : m_data(reinterpret_cast<Ta *>(s))
     {
     }
 
-    Access operator[](I indexes) const
+    inline ALWAYS_INLINE Access operator[](I indexes) const
     {
         return Access(m_data, indexes);
     }
