@@ -61,7 +61,17 @@
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
 #elif defined(__GNUC__)
-#  if defined(VC_OPEN64)
+#  if VC_GCC < 0x40300 || defined(VC_OPEN64)
+// GCC 4.1 and 4.2 ICE on may_alias. Since Open64 uses the GCC 4.2 frontend it has the same problem.
+#    define MAY_ALIAS
+#  else
+#    define MAY_ALIAS __attribute__((__may_alias__))
+#  endif
+#  if VC_GCC < 0x40200
+// GCC 4.1 fails with "sorry unimplemented: inlining failed"
+#    define INTRINSIC __attribute__((__flatten__))
+#  elif VC_GCC < 0x40300 || defined(VC_OPEN64)
+// the GCC 4.2 frontend doesn't know the __artificial__ attribute
 #    define INTRINSIC __attribute__((__flatten__, __always_inline__))
 #  else
 #    define INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
@@ -75,7 +85,6 @@
 #  define PURE __attribute__((__pure__))
 #  define PURE_L
 #  define PURE_R PURE
-#  define MAY_ALIAS __attribute__((__may_alias__))
 #  define ALWAYS_INLINE __attribute__((__always_inline__))
 #  define ALWAYS_INLINE_L
 #  define ALWAYS_INLINE_R ALWAYS_INLINE
