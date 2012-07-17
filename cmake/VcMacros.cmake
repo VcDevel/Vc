@@ -189,6 +189,9 @@ macro(vc_set_preferred_compiler_flags)
       endif()
 
       vc_check_assembler()
+
+      # Open64 4.5.1 still doesn't ship immintrin.h
+      set(Vc_AVX_INTRINSICS_BROKEN true)
    elseif(Vc_COMPILER_IS_GCC)
       ##################################################################################################
       #                                              GCC                                               #
