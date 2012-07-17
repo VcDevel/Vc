@@ -101,6 +101,8 @@ namespace Vc
   }
 } // namespace Vc
 
+#include "common/vectortuple.h"
+
 #ifndef VC_NO_STD_FUNCTIONS
 namespace std
 {
