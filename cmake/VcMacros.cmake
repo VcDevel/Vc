@@ -293,7 +293,7 @@ macro(vc_set_preferred_compiler_flags)
       set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DNOMINMAX")
 
       # MSVC doesn't implement the XOP intrinsics
-      set(Vc_XOP_INTRINSICS_BROKEN false)
+      set(Vc_XOP_INTRINSICS_BROKEN true)
    elseif(Vc_COMPILER_IS_CLANG)
       # for now I don't know of any arguments I want to pass. -march and stuff is tried by OptimizeForArchitecture...
 
