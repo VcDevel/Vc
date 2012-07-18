@@ -242,6 +242,10 @@ class CallTester
         int i;
 };
 
+#if __cplusplus >= 201103 && (!defined(VC_CLANG) || VC_CLANG > 0x30000)
+#define DO_LAMBDA_TESTS 1
+#endif
+
 template<typename V>
 void applyAndCall()
 {
@@ -251,7 +255,7 @@ void applyAndCall()
     for (int i = 0; i < 1000; ++i) {
         const V rand = V::Random();
         COMPARE(rand.apply(add2<T>), rand + two);
-#if __cplusplus >= 201103
+#ifdef DO_LAMBDA_TESTS
         COMPARE(rand.apply([](T x) { return x + T(2); }), rand + two);
 #endif
 
@@ -267,7 +271,7 @@ void applyAndCall()
 
             COMPARE(copy2(mask).apply(add2<T>), copy1) << mask;
             COMPARE(rand.apply(add2<T>, mask), copy1) << mask;
-#if __cplusplus >= 201103
+#ifdef DO_LAMBDA_TESTS
             COMPARE(copy2(mask).apply([](T x) { return x + T(2); }), copy1) << mask;
             COMPARE(rand.apply([](T x) { return x + T(2); }, mask), copy1) << mask;
 #endif
