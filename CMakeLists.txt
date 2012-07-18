@@ -152,14 +152,19 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcConfigVersion.cmake.in
 set(cmake_install_files
    cmake/UserWarning.cmake
    cmake/VcMacros.cmake
-   cmake/OptimizeForArchitecture.cmake
    cmake/AddCompilerFlag.cmake
    cmake/CheckCCompilerFlag.cmake
    cmake/CheckCXXCompilerFlag.cmake
    )
 if(ALIROOT_RELEASE)
+   execute_process(
+      COMMAND sed "s, \"auto\" CACHE, \"none\" CACHE,"
+      INPUT_FILE ${CMAKE_SOURCE_DIR}/cmake/OptimizeForArchitecture.cmake
+      OUTPUT_FILE ${CMAKE_BINARY_DIR}/cmake/OptimizeForArchitecture.cmake
+      )
    install(FILES
       ${cmake_install_files}
+      ${CMAKE_BINARY_DIR}/cmake/OptimizeForArchitecture.cmake
       DESTINATION cmake
       )
 else()
@@ -167,6 +172,7 @@ else()
       ${cmake_install_files}
       ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake
       ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake
+      cmake/OptimizeForArchitecture.cmake
       cmake/FindVc.cmake
       DESTINATION lib/cmake/Vc
       )
