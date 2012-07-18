@@ -46,7 +46,7 @@ template<typename V> struct VectorTuple<2, V>
         return VectorTuple<3, V>(*this, a);
     }
 
-    template<size_t StructSize> ALWAYS_INLINE
+    template<size_t StructSize>
     inline ALWAYS_INLINE void operator=(const InterleavedMemoryAccess<StructSize, V> &access) const
     {
         VC_STATIC_ASSERT(2 <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has);
@@ -72,7 +72,7 @@ template<typename V> struct VectorTuple<LENGTH, V> \
         return VectorTuple<LENGTH + 1, V>(*this, a); \
     } \
  \
-    template<size_t StructSize> ALWAYS_INLINE \
+    template<size_t StructSize> \
     inline ALWAYS_INLINE void operator=(const InterleavedMemoryAccess<StructSize, V> &access) const \
     { \
         VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has); \
