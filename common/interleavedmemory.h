@@ -35,7 +35,7 @@ template<typename V> struct InterleavedMemoryAccessBase
     const I m_indexes;
     Ta *const m_data;
 
-    inline ALWAYS_INLINE InterleavedMemoryAccessBase(I indexes, Ta *data)
+    inline ALWAYS_INLINE InterleavedMemoryAccessBase(typename I::AsArg indexes, Ta *data)
         : m_indexes(indexes), m_data(data)
     {
     }
