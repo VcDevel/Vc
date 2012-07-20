@@ -54,7 +54,7 @@ else()
 endif()
 string(REPLACE "/" "_" CTEST_BUILD_NAME "${git_branch}: ${CTEST_BUILD_NAME}")
 string(REPLACE "+" "x" CTEST_BUILD_NAME "${CTEST_BUILD_NAME}") # CDash fails to escape '+' correctly in URIs
-string(REGEX REPLACE "[][ ()]" "_" CTEST_BINARY_DIRECTORY "${CTEST_BUILD_NAME}")
+string(REGEX REPLACE "[][ ():]" "_" CTEST_BINARY_DIRECTORY "${CTEST_BUILD_NAME}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build-${dashboard_model}-${CTEST_BINARY_DIRECTORY}")
 file(MAKE_DIRECTORY "${CTEST_BINARY_DIRECTORY}")
 
