@@ -57,7 +57,7 @@ template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public 
     typedef typename Base::Ta Ta;
     typedef typename Base::I I;
 
-    inline ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, I indexes)
+    inline ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, typename I::AsArg indexes)
         : Base(indexes * I(StructSize), data)
     {
     }
