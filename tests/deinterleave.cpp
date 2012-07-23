@@ -97,12 +97,14 @@ template<typename V, size_t StructSize> struct Types
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
+    typedef typename V::AsArg VArg;
+    typedef typename I::AsArg IArg;
     typedef SomeStruct<T, StructSize> S;
     typedef const Vc::InterleavedMemoryWrapper<S, V> &Wrapper;
 };
 template<typename V, size_t StructSize, size_t N = StructSize> struct TestDeinterleaveGatherCompare;
 template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 8> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::I indexes, const V reference)
+    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5, v6, v7;
         (v0, v1, v2, v3, v4, v5, v6, v7) = data_v[indexes];
@@ -118,7 +120,7 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     }
 };
 template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 7> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::I indexes, const V reference)
+    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5, v6;
         (v0, v1, v2, v3, v4, v5, v6) = data_v[indexes];
@@ -133,7 +135,7 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     }
 };
 template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 6> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::I indexes, const V reference)
+    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5;
         (v0, v1, v2, v3, v4, v5) = data_v[indexes];
@@ -147,7 +149,7 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     }
 };
 template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 5> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::I indexes, const V reference)
+    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4;
         (v0, v1, v2, v3, v4) = data_v[indexes];
@@ -160,7 +162,7 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     }
 };
 template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 4> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::I indexes, const V reference)
+    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b, c, d;
         (a, b, c, d) = data_v[indexes];
@@ -172,7 +174,7 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     }
 };
 template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 3> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::I indexes, const V reference)
+    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b, c;
         (a, b, c) = data_v[indexes];
@@ -183,7 +185,7 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     }
 };
 template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 2> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::I indexes, const V reference)
+    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b;
         (a, b) = data_v[indexes];
