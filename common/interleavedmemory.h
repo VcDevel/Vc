@@ -78,6 +78,7 @@ template<typename S, typename V> class InterleavedMemoryWrapper
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
+    typedef typename I::AsArg IndexType;
     typedef InterleavedMemoryAccess<sizeof(S) / sizeof(T), V> Access;
     typedef T Ta MAY_ALIAS;
     Ta *const m_data;
@@ -124,13 +125,13 @@ public:
 Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
 \endverbatim
      */
-    inline ALWAYS_INLINE Access operator[](I indexes) const
+    inline ALWAYS_INLINE Access operator[](IndexType indexes) const
     {
         return Access(m_data, indexes);
     }
 
     /// alias of the above function
-    inline ALWAYS_INLINE Access gather(I indexes) const { return operator[](indexes); }
+    inline ALWAYS_INLINE Access gather(IndexType indexes) const { return operator[](indexes); }
 
     //inline ALWAYS_INLINE void scatter(I indexes, const V &v0, V v1
 };
