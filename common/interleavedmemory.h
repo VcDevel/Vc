@@ -31,6 +31,7 @@ template<typename V> struct InterleavedMemoryAccessBase
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
+    typedef typename V::AsArg VArg;
     typedef T Ta MAY_ALIAS;
     const I m_indexes;
     Ta *const m_data;
@@ -48,6 +49,14 @@ template<typename V> struct InterleavedMemoryAccessBase
     void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5) const;
     void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6) const;
     void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7) const;
+
+    void interleave(VArg v0, VArg v1) const;
+    void interleave(VArg v0, VArg v1, VArg v2) const;
+    void interleave(VArg v0, VArg v1, VArg v2, VArg v3) const;
+    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4) const;
+    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5) const;
+    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6) const;
+    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6, VArg v7) const;
 };
 
 // delay execution of the deinterleaving gather until operator=
@@ -61,6 +70,21 @@ template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public 
         : Base(indexes * I(StructSize), data)
     {
     }
+
+#define _VC_SCATTER_ASSIGNMENT(LENGTH, parameters) \
+    inline ALWAYS_INLINE void operator=(const VectorTuple<2, V> &rhs) \
+    { \
+        VC_STATIC_ASSERT(2 <= StructSize, You_are_trying_to_scatter_more_data_into_the_struct_than_it_has); \
+        interleave parameters ; \
+    }
+    _VC_SCATTER_ASSIGNMENT(2, (rhs.l, rhs.r))
+    _VC_SCATTER_ASSIGNMENT(3, (rhs.l.l, rhs.l.r, rhs.r));
+    _VC_SCATTER_ASSIGNMENT(4, (rhs.l.l.l, rhs.l.l.r, rhs.l.r, rhs.r));
+    _VC_SCATTER_ASSIGNMENT(5, (rhs.l.l.l.l, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
+    _VC_SCATTER_ASSIGNMENT(6, (rhs.l.l.l.l.l, rhs.l.l.l.l.r, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
+    _VC_SCATTER_ASSIGNMENT(7, (rhs.l.l.l.l.l.l, rhs.l.l.l.l.l.r, rhs.l.l.l.l.r, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
+    _VC_SCATTER_ASSIGNMENT(8, (rhs.l.l.l.l.l.l.l, rhs.l.l.l.l.l.l.r, rhs.l.l.l.l.l.r, rhs.l.l.l.l.r, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
+#undef _VC_SCATTER_ASSIGNMENT
 };
 
 /**
