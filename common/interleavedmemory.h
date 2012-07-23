@@ -60,21 +60,33 @@ template<typename V> struct InterleavedMemoryAccessBase
 };
 
 // delay execution of the deinterleaving gather until operator=
-template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public InterleavedMemoryAccessBase<V>
+template<size_t StructSize, typename V> struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V>
+{
+    typedef InterleavedMemoryAccessBase<V> Base;
+    typedef typename Base::Ta Ta;
+    typedef typename Base::I I;
+
+    inline ALWAYS_INLINE InterleavedMemoryReadAccess(Ta *data, I indexes)
+        : Base(indexes * I(StructSize), data)
+    {
+    }
+};
+
+template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, V>
 {
     typedef InterleavedMemoryAccessBase<V> Base;
     typedef typename Base::Ta Ta;
     typedef typename Base::I I;
 
     inline ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, I indexes)
-        : Base(indexes * I(StructSize), data)
+        : InterleavedMemoryReadAccess<StructSize, V>(data, indexes)
     {
     }
 
 #define _VC_SCATTER_ASSIGNMENT(LENGTH, parameters) \
-    inline ALWAYS_INLINE void operator=(const VectorTuple<2, V> &rhs) \
+    inline ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, V> &rhs) \
     { \
-        VC_STATIC_ASSERT(2 <= StructSize, You_are_trying_to_scatter_more_data_into_the_struct_than_it_has); \
+        VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_scatter_more_data_into_the_struct_than_it_has); \
         interleave parameters ; \
     }
     _VC_SCATTER_ASSIGNMENT(2, (rhs.l, rhs.r))
@@ -102,7 +114,9 @@ template<typename S, typename V> class InterleavedMemoryWrapper
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
+    typedef typename V::AsArg VArg;
     typedef InterleavedMemoryAccess<sizeof(S) / sizeof(T), V> Access;
+    typedef InterleavedMemoryReadAccess<sizeof(S) / sizeof(T), V> ReadAccess;
     typedef T Ta MAY_ALIAS;
     Ta *const m_data;
 
@@ -120,10 +134,10 @@ public:
     }
 
     /**
-     * Interleaved gather.
+     * Interleaved scatter/gather access.
      *
      * Assuming you have a struct of floats and a vector of \p indexes into the array, this function
-     * can be used to return the struct entries as vectors using the minimal number of load
+     * can be used to access the struct entries as vectors using the minimal number of store or load
      * instructions.
      *
      * Example:
@@ -132,31 +146,55 @@ public:
      *   float x, y, z;
      * };
      *
+     * void fillWithBar(Foo *_data, uint_v indexes)
+     * {
+     *   Vc::InterleavedMemoryWrapper<Foo, float_v> data(_data);
+     *   const float_v x = bar(1);
+     *   const float_v y = bar(2);
+     *   const float_v z = bar(3);
+     *   data[indexes] = (x, y, z);
+     *   // it's also possible to just store a subset at the front of the struct:
+     *   data[indexes] = (x, y);
+     *   // if you want to store a single entry, use scatter:
+     *   z.scatter(_data, &Foo::x, indexes);
+     * }
+     *
      * float_v normalizeStuff(Foo *_data, uint_v indexes)
      * {
      *   Vc::InterleavedMemoryWrapper<Foo, float_v> data(_data);
      *   float_v x, y, z;
      *   (x, y, z) = data[indexes];
+     *   // it is also possible to just load a subset from the front of the struct:
+     *   // (x, y) = data[indexes];
      *   return Vc::sqrt(x * x + y * y + z * z);
      * }
      * \endcode
      *
-     * You may think of the operation like this:
+     * You may think of the gather operation (or scatter as the inverse) like this:
 \verbatim
              Memory: {x0 y0 z0 x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 x5 y5 z5 x6 y6 z6 x7 y7 z7 x8 y8 z8}
             indexes: [5, 0, 1, 7]
 Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
 \endverbatim
+     *
+     * \warning If \p indexes contains non-unique entries on scatter, the result is undefined. If
+     * \c NDEBUG is not defined the implementation will assert that the \p indexes entries are unique.
      */
-    inline ALWAYS_INLINE Access operator[](I indexes) const
+    inline ALWAYS_INLINE Access operator[](I indexes)
     {
         return Access(m_data, indexes);
     }
 
-    /// alias of the above function
-    inline ALWAYS_INLINE Access gather(I indexes) const { return operator[](indexes); }
+    /// const overload (gathers only) of the above function
+    inline ALWAYS_INLINE ReadAccess operator[](I indexes) const
+    {
+        return ReadAccess(m_data, indexes);
+    }
 
-    //inline ALWAYS_INLINE void scatter(I indexes, const V &v0, V v1
+    /// alias of the above function
+    inline ALWAYS_INLINE ReadAccess gather(I indexes) const { return operator[](indexes); }
+
+    //inline ALWAYS_INLINE Access scatter(I indexes, VArg v0, VArg v1);
 };
 } // namespace Common
 
