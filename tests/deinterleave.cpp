@@ -209,8 +209,9 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
     const Wrapper data_v(data);
 
     for (int retest = 0; retest < 10000; ++retest) {
-        I indexes = I::Random() >> 10;
-        indexes = Vc::min(I(N - 1), Vc::max(I::Zero(), indexes));
+        I indexes = (I::Random() >> 10) & I(N - 1);
+        VERIFY(indexes >= 0);
+        VERIFY(indexes < N);
         const V reference = static_cast<V>(indexes) * V(StructSize);
 
         TestDeinterleaveGatherCompare<V, StructSize>::test(data_v, indexes, reference);
