@@ -50,13 +50,13 @@ template<typename V> struct InterleavedMemoryAccessBase
     void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6) const;
     void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7) const;
 
-    void interleave(VArg v0, VArg v1) const;
-    void interleave(VArg v0, VArg v1, VArg v2) const;
-    void interleave(VArg v0, VArg v1, VArg v2, VArg v3) const;
-    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4) const;
-    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5) const;
-    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6) const;
-    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6, VArg v7) const;
+    void interleave(VArg v0, VArg v1);
+    void interleave(VArg v0, VArg v1, VArg v2);
+    void interleave(VArg v0, VArg v1, VArg v2, VArg v3);
+    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4);
+    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5);
+    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6);
+    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6, VArg v7);
 };
 
 // delay execution of the deinterleaving gather until operator=
