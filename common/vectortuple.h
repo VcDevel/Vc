@@ -46,11 +46,33 @@ template<typename V> struct VectorTuple<2, V>
         return VectorTuple<3, V>(*this, a);
     }
 
+    inline ALWAYS_INLINE VectorTuple<3, const V> operator,(const V &a) const
+    {
+        return VectorTuple<3, const V>(*this, a);
+    }
+
     template<size_t StructSize>
     inline ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V> &access) const
     {
         VC_STATIC_ASSERT(2 <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has);
         access.deinterleave(l, r);
+    }
+};
+
+template<typename V> struct VectorTuple<2, const V>
+{
+    typedef typename V::EntryType T;
+    typedef const V &VC_RESTRICT Reference;
+    const Reference l, r;
+
+    inline ALWAYS_INLINE VectorTuple(Reference a, Reference b)
+        : l(a), r(b)
+    {
+    }
+
+    inline ALWAYS_INLINE VectorTuple<3, const V> operator,(const V &a) const
+    {
+        return VectorTuple<3, const V>(*this, a);
     }
 };
 
@@ -78,6 +100,23 @@ template<typename V> struct VectorTuple<LENGTH, V> \
         VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has); \
         access.deinterleave parameters; \
     } \
+}; \
+template<typename V> struct VectorTuple<LENGTH, const V> \
+{ \
+    typedef typename V::EntryType T; \
+    typedef const V &VC_RESTRICT Reference; \
+    const VectorTuple<LENGTH - 1, const V> &l; \
+    const Reference r; \
+ \
+    inline ALWAYS_INLINE VectorTuple(const VectorTuple<LENGTH - 1, const V> &tuple, Reference a) \
+        : l(tuple), r(a) \
+    { \
+    } \
+ \
+    inline ALWAYS_INLINE VectorTuple<LENGTH + 1, const V> operator,(const V &a) const \
+    { \
+        return VectorTuple<LENGTH + 1, const V>(*this, a); \
+    } \
 }
 _VC_VECTORTUPLE_SPECIALIZATION(3, (l.l, l.r, r));
 _VC_VECTORTUPLE_SPECIALIZATION(4, (l.l.l, l.l.r, l.r, r));
@@ -93,6 +132,12 @@ template<typename T>
 inline ALWAYS_INLINE Common::VectorTuple<2, Vc::Vector<T> > operator,(Vc::Vector<T> &a, Vc::Vector<T> &b)
 {
     return Common::VectorTuple<2, Vc::Vector<T> >(a, b);
+}
+
+template<typename T>
+inline ALWAYS_INLINE Common::VectorTuple<2, const Vc::Vector<T> > operator,(const Vc::Vector<T> &a, const Vc::Vector<T> &b)
+{
+    return Common::VectorTuple<2, const Vc::Vector<T> >(a, b);
 }
 
 } // namespace Vc
