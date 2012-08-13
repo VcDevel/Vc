@@ -323,11 +323,12 @@ template<typename V> void shifted()
 template<typename V> void rotated()
 {
     for (int shift = -2 * V::Size; shift <= 2 * V::Size; ++shift) {
-        std::cout << "amount = " << shift % V::Size << std::endl;
+        //std::cout << "amount = " << shift % V::Size << std::endl;
         const V reference = V::Random();
         const V test = reference.rotated(shift);
         for (int i = 0; i < V::Size; ++i) {
-            COMPARE(test[i], reference[(i + shift) % V::Size]) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
+            unsigned int refShift = i + shift;
+            COMPARE(test[i], reference[refShift % V::Size]) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
         }
     }
 }
