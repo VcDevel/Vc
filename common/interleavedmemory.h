@@ -87,6 +87,7 @@ template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public 
     inline ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, const V> &rhs) \
     { \
         VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_scatter_more_data_into_the_struct_than_it_has); \
+        checkIndexesUnique(); \
         interleave parameters ; \
     }
     _VC_SCATTER_ASSIGNMENT(2, (rhs.l, rhs.r))
@@ -97,6 +98,17 @@ template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public 
     _VC_SCATTER_ASSIGNMENT(7, (rhs.l.l.l.l.l.l, rhs.l.l.l.l.l.r, rhs.l.l.l.l.r, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
     _VC_SCATTER_ASSIGNMENT(8, (rhs.l.l.l.l.l.l.l, rhs.l.l.l.l.l.l.r, rhs.l.l.l.l.l.r, rhs.l.l.l.l.r, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
 #undef _VC_SCATTER_ASSIGNMENT
+
+private:
+#ifdef NDEBUG
+    inline ALWAYS_INLINE void checkIndexesUnique() const {}
+#else
+    void checkIndexesUnique() const
+    {
+        const I test = Base::m_indexes.sorted();
+        VC_ASSERT(I::Size == 1 || (test == test.rotated(1)).isEmpty())
+    }
+#endif
 };
 
 /**
