@@ -199,6 +199,12 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
     typedef SomeStruct<T, StructSize> S;
     typedef Vc::InterleavedMemoryWrapper<S, V> Wrapper;
     const size_t N = std::min<size_t>(std::numeric_limits<typename I::EntryType>::max(), 1024 * 1024 / sizeof(S));
+    size_t NMask = (N >> 1) | (N >> 2);
+    NMask |= NMask >> 2;
+    NMask |= NMask >> 4;
+    NMask |= NMask >> 8;
+    NMask |= NMask >> 16;
+    NMask |= NMask >> 32;
 
     S *data = Vc::malloc<S, Vc::AlignOnVector>(N);
     for (size_t i = 0; i < N; ++i) {
@@ -209,7 +215,7 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
     const Wrapper data_v(data);
 
     for (int retest = 0; retest < 10000; ++retest) {
-        I indexes = (I::Random() >> 10) & I(N - 1);
+        I indexes = (I::Random() >> 10) & I(NMask);
         VERIFY(indexes >= 0);
         VERIFY(indexes < N);
         const V reference = static_cast<V>(indexes) * V(StructSize);
