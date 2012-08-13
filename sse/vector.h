@@ -387,6 +387,8 @@ template<typename T> class Vector
         inline INTRINSIC_L EntryType product(MaskArg m) const INTRINSIC_R;
         inline INTRINSIC_L EntryType sum(MaskArg m) const INTRINSIC_R;
 
+        inline INTRINSIC_L Vector shifted(int amount) const INTRINSIC_R;
+        inline INTRINSIC_L Vector rotated(int amount) const INTRINSIC_R;
         inline Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }
 
         template<typename F> void callWithValuesSorted(F &f) {
