@@ -66,7 +66,7 @@ template<size_t StructSize, typename V> struct InterleavedMemoryReadAccess : pub
     typedef typename Base::Ta Ta;
     typedef typename Base::I I;
 
-    inline ALWAYS_INLINE InterleavedMemoryReadAccess(Ta *data, I indexes)
+    inline ALWAYS_INLINE InterleavedMemoryReadAccess(Ta *data, typename I::AsArg indexes)
         : Base(indexes * I(StructSize), data)
     {
     }
@@ -127,6 +127,7 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef typename V::AsArg VArg;
+    typedef typename I::AsArg IndexType;
     typedef InterleavedMemoryAccess<sizeof(S) / sizeof(T), V> Access;
     typedef InterleavedMemoryReadAccess<sizeof(S) / sizeof(T), V> ReadAccess;
     typedef T Ta MAY_ALIAS;
@@ -192,7 +193,7 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
      * \warning If \p indexes contains non-unique entries on scatter, the result is undefined. If
      * \c NDEBUG is not defined the implementation will assert that the \p indexes entries are unique.
      */
-    inline ALWAYS_INLINE Access operator[](I indexes)
+    inline ALWAYS_INLINE Access operator[](IndexType indexes)
     {
         return Access(m_data, indexes);
     }
@@ -204,7 +205,7 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
     }
 
     /// alias of the above function
-    inline ALWAYS_INLINE ReadAccess gather(I indexes) const { return operator[](indexes); }
+    inline ALWAYS_INLINE ReadAccess gather(IndexType indexes) const { return operator[](indexes); }
 
     //inline ALWAYS_INLINE Access scatter(I indexes, VArg v0, VArg v1);
 };
