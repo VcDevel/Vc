@@ -119,6 +119,7 @@ vc_add_test(math VC_LOG_ILP2)
 vc_add_test(mask)
 vc_add_test(utils)
 vc_add_test(deinterleave)
+vc_add_test(deinterleave VC_USE_MASKMOV_SCATTER)
 vc_add_test(casts)
 vc_add_test(swizzles)
 

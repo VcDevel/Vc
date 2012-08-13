@@ -235,6 +235,171 @@ template<typename V> void testDeinterleaveGather()
     testDeinterleaveGatherImpl<V, 8>();
 }
 
+template<typename V, size_t StructSize> struct TestInterleavingScatterCompare;
+#define _IMPL(STRUCTSIZE, _code_) \
+template<typename V> struct TestInterleavingScatterCompare<V, STRUCTSIZE> { \
+    typedef TestInterleavingScatterCompare<V, STRUCTSIZE - 1> NextTest; \
+    template<typename Wrapper> static void test(Wrapper &data, const typename V::IndexType &i) { \
+        _code_ \
+    } \
+}
+_IMPL(2,
+        const V v0 = V::Random();
+        const V v1 = V::Random();
+        V t0;
+        V t1;
+        data[i] = (v0, v1);
+        (t0, t1) = data[i];
+        COMPARE(t0, v0) << 2;
+        COMPARE(t1, v1) << 2;
+     );
+_IMPL(3,
+        const V v0 = V::Random();
+        const V v1 = V::Random();
+        const V v2 = V::Random();
+        V t0; V t1; V t2;
+        data[i] = (v0, v1, v2);
+        (t0, t1, t2) = data[i];
+        COMPARE(t0, v0) << 3;
+        COMPARE(t1, v1) << 3;
+        COMPARE(t2, v2) << 3;
+        NextTest::test(data, i);
+     );
+_IMPL(4,
+        const V v0 = V::Random();
+        const V v1 = V::Random();
+        const V v2 = V::Random();
+        const V v3 = V::Random();
+        V t0; V t1; V t2; V t3;
+        data[i] = (v0, v1, v2, v3);
+        (t0, t1, t2, t3) = data[i];
+        COMPARE(t0, v0) << 4;
+        COMPARE(t1, v1) << 4;
+        COMPARE(t2, v2) << 4;
+        COMPARE(t3, v3) << 4;
+        NextTest::test(data, i);
+     );
+_IMPL(5,
+        const V v0 = V::Random();
+        const V v1 = V::Random();
+        const V v2 = V::Random();
+        const V v3 = V::Random();
+        const V v4 = V::Random();
+        V t0; V t1; V t2; V t3; V t4;
+        data[i] = (v0, v1, v2, v3, v4);
+        (t0, t1, t2, t3, t4) = data[i];
+        COMPARE(t0, v0) << 5;
+        COMPARE(t1, v1) << 5;
+        COMPARE(t2, v2) << 5;
+        COMPARE(t3, v3) << 5;
+        COMPARE(t4, v4) << 5;
+        NextTest::test(data, i);
+     );
+_IMPL(6,
+        const V v0 = V::Random();
+        const V v1 = V::Random();
+        const V v2 = V::Random();
+        const V v3 = V::Random();
+        const V v4 = V::Random();
+        const V v5 = V::Random();
+        V t0; V t1; V t2; V t3; V t4; V t5;
+        data[i] = (v0, v1, v2, v3, v4, v5);
+        (t0, t1, t2, t3, t4, t5) = data[i];
+        COMPARE(t0, v0) << 6;
+        COMPARE(t1, v1) << 6;
+        COMPARE(t2, v2) << 6;
+        COMPARE(t3, v3) << 6;
+        COMPARE(t4, v4) << 6;
+        COMPARE(t5, v5) << 6;
+        NextTest::test(data, i);
+     );
+_IMPL(7,
+        const V v0 = V::Random();
+        const V v1 = V::Random();
+        const V v2 = V::Random();
+        const V v3 = V::Random();
+        const V v4 = V::Random();
+        const V v5 = V::Random();
+        const V v6 = V::Random();
+        V t0; V t1; V t2; V t3; V t4; V t5; V t6;
+        data[i] = (v0, v1, v2, v3, v4, v5, v6);
+        (t0, t1, t2, t3, t4, t5, t6) = data[i];
+        COMPARE(t0, v0) << 7;
+        COMPARE(t1, v1) << 7;
+        COMPARE(t2, v2) << 7;
+        COMPARE(t3, v3) << 7;
+        COMPARE(t4, v4) << 7;
+        COMPARE(t5, v5) << 7;
+        COMPARE(t6, v6) << 7;
+        NextTest::test(data, i);
+     );
+_IMPL(8,
+        const V v0 = V::Random();
+        const V v1 = V::Random();
+        const V v2 = V::Random();
+        const V v3 = V::Random();
+        const V v4 = V::Random();
+        const V v5 = V::Random();
+        const V v6 = V::Random();
+        const V v7 = V::Random();
+        V t0; V t1; V t2; V t3; V t4; V t5; V t6; V t7;
+        data[i] = (v0, v1, v2, v3, v4, v5, v6, v7);
+        (t0, t1, t2, t3, t4, t5, t6, t7) = data[i];
+        COMPARE(t0, v0) << 8;
+        COMPARE(t1, v1) << 8;
+        COMPARE(t2, v2) << 8;
+        COMPARE(t3, v3) << 8;
+        COMPARE(t4, v4) << 8;
+        COMPARE(t5, v5) << 8;
+        COMPARE(t6, v6) << 8;
+        COMPARE(t7, v7) << 8;
+        NextTest::test(data, i);
+     );
+
+template<typename V, size_t StructSize> void testInterleavingScatterImpl()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+    typedef SomeStruct<T, StructSize> S;
+    typedef Vc::InterleavedMemoryWrapper<S, V> Wrapper;
+    const size_t N = std::min<size_t>(std::numeric_limits<typename I::EntryType>::max(), 1024 * 1024 / sizeof(S));
+    size_t NMask = (N >> 1) | (N >> 2);
+    NMask |= NMask >> 2;
+    NMask |= NMask >> 4;
+    NMask |= NMask >> 8;
+    NMask |= NMask >> 16;
+    NMask |= NMask >> 32;
+
+    S *data = Vc::malloc<S, Vc::AlignOnVector>(N);
+    std::memset(data, 0, sizeof(S) * N);
+    Wrapper data_v(data);
+
+    for (int retest = 0; retest < 10000; ++retest) {
+        I indexes = (I::Random() >> 10) & I(NMask);
+        if (I::Size != 1) {
+            // ensure the indexes are unique
+            while(!(indexes.sorted() == indexes.sorted().rotated(1)).isEmpty()) {
+                indexes = (I::Random() >> 10) & I(NMask);
+            }
+        }
+        VERIFY(indexes >= 0);
+        VERIFY(indexes < N);
+
+        TestInterleavingScatterCompare<V, StructSize>::test(data_v, indexes);
+    }
+}
+
+template<typename V> void testInterleavingScatter()
+{
+    testInterleavingScatterImpl<V, 2>();
+    testInterleavingScatterImpl<V, 3>();
+    testInterleavingScatterImpl<V, 4>();
+    testInterleavingScatterImpl<V, 5>();
+    testInterleavingScatterImpl<V, 6>();
+    testInterleavingScatterImpl<V, 7>();
+    testInterleavingScatterImpl<V, 8>();
+}
+
 int main()
 {
     runTest(testDeinterleave<float_float>);
@@ -252,4 +417,5 @@ int main()
     runTest(testDeinterleave<ushort_ushort>);
 
     testAllTypes(testDeinterleaveGather);
+    testAllTypes(testInterleavingScatter);
 }
