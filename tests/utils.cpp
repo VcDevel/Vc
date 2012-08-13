@@ -105,13 +105,12 @@ template<typename V> void testForeachBit()
     typedef typename V::Mask M;
     typedef typename I::Mask MI;
     const I indexes(IndexesFromZero);
-    for (int i = 0; i <= V::Size; ++i) {
-        const M mask(indexes < i);
-        int ref = 0;
+    for_all_masks(V, mask) {
+        V tmp = V::Zero();
         foreach_bit(int j, mask) {
-            ref += (1 << j);
+            tmp[j] = T(1);
         }
-        COMPARE(ref, (1 << i) - 1);
+        COMPARE(tmp == V::One(), mask);
     }
 }
 
