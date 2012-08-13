@@ -34,6 +34,7 @@ namespace SSE
     template<> inline _M128  CONST mm128_reinterpret_cast<_M128 , _M128I>(_M128I v) { return _mm_castsi128_ps(v); }
     template<> inline _M128D CONST mm128_reinterpret_cast<_M128D, _M128I>(_M128I v) { return _mm_castsi128_pd(v); }
     template<> inline _M128D CONST mm128_reinterpret_cast<_M128D, _M128 >(_M128  v) { return _mm_castps_pd(v);    }
+    template<typename To, typename From> static inline To CONST sse_cast(From v) { return mm128_reinterpret_cast<To, From>(v); }
 
     template<typename From, typename To> struct StaticCastHelper {};
     template<> struct StaticCastHelper<float       , int         > { static _M128I cast(const _M128  &v) { return _mm_cvttps_epi32(v); } };
