@@ -492,3 +492,43 @@ const VECTOR_TYPE dbca() const;
 /// Reverse.
 const VECTOR_TYPE dcba() const;
 //@}
+
+/**
+ * \name Shift and Rotate
+ *
+ * These functions allow to shift or rotate the entries in a vector by the given \p amount. Both
+ * functions support positive and negative numbers for the shift/rotate value.
+ *
+ * Example:
+ * \code
+ * using namespace Vc;
+ * int_v foo = int_v::IndexesFromZero() + 1; // e.g. [1, 2, 3, 4] with SSE
+ * int_v x;
+ * x = foo.shifted( 1); // [2, 3, 4, 0]
+ * x = foo.shifted( 2); // [3, 4, 0, 0]
+ * x = foo.shifted( 3); // [4, 0, 0, 0]
+ * x = foo.shifted( 4); // [0, 0, 0, 0]
+ * x = foo.shifted(-1); // [0, 1, 2, 3]
+ * x = foo.shifted(-2); // [0, 0, 1, 2]
+ * x = foo.shifted(-3); // [0, 0, 0, 1]
+ * x = foo.shifted(-4); // [0, 0, 0, 0]
+ *
+ * x = foo.rotated( 1); // [2, 3, 4, 1]
+ * x = foo.rotated( 2); // [3, 4, 1, 2]
+ * x = foo.rotated( 3); // [4, 1, 2, 3]
+ * x = foo.rotated( 4); // [1, 2, 3, 4]
+ * x = foo.rotated(-1); // [4, 1, 2, 3]
+ * x = foo.rotated(-2); // [3, 4, 1, 2]
+ * x = foo.rotated(-3); // [2, 3, 4, 1]
+ * x = foo.rotated(-4); // [1, 2, 3, 4]
+ * \endcode
+ *
+ * These functions are slightly related to the above swizzles. In any case, they are often useful for
+ * communication between SIMD lanes or binary decoding operations.
+ */
+//@{
+/// Shift vector entries to the left by \p amount; shifting in zeros.
+const VECTOR_TYPE shifted(int amount) const;
+/// Rotate vector entries to the left by \p amount.
+const VECTOR_TYPE rotated(int amount) const;
+//@}
