@@ -271,11 +271,11 @@ class _UnitTest_Compare
 
         template<typename T1, typename T2>
         inline ALWAYS_INLINE _UnitTest_Compare(const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file, int _line)
-            : m_failed(!unittest_compareHelper(a, b))
+            : m_ip(getIp()), m_failed(!unittest_compareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
-                printPosition(_file, _line, getIp()); print(":\n");
+                printPosition(_file, _line); print(":\n");
                 print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
                 print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
                 print(") -> "); print(a == b);
@@ -284,11 +284,11 @@ class _UnitTest_Compare
 
         template<typename T1, typename T2>
         inline ALWAYS_INLINE _UnitTest_Compare(const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
-            : m_failed(!unittest_compareHelper(a, b))
+            : m_ip(getIp()), m_failed(!unittest_compareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
-                printPosition(_file, _line, getIp()); print(":\n");
+                printPosition(_file, _line); print(":\n");
                 print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") == ");
                 print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
                 print(')');
@@ -297,11 +297,11 @@ class _UnitTest_Compare
 
         template<typename T>
         inline ALWAYS_INLINE _UnitTest_Compare(const T &a, const T &b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
-            : m_failed(!unittest_fuzzyCompareHelper(a, b))
+            : m_ip(getIp()), m_failed(!unittest_fuzzyCompareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
-                printPosition(_file, _line, getIp()); print(":\n");
+                printPosition(_file, _line); print(":\n");
                 print(_a); print(" ("); print(std::setprecision(10)); print(a); print(") ≈ ");
                 print(_b); print(" ("); print(std::setprecision(10)); print(b); print(std::setprecision(6));
                 print(") -> "); print(a == b);
@@ -313,21 +313,21 @@ class _UnitTest_Compare
         }
 
         inline ALWAYS_INLINE _UnitTest_Compare(bool good, const char *cond, const char *_file, int _line)
-            : m_failed(!good)
+            : m_ip(getIp()), m_failed(!good)
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
-                printPosition(_file, _line, getIp());
+                printPosition(_file, _line);
                 print(": "); print(cond);
             }
         }
 
         inline ALWAYS_INLINE _UnitTest_Compare(const char *_file, int _line)
-            : m_failed(true)
+            : m_ip(getIp()), m_failed(true)
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printFirst();
-                printPosition(_file, _line, getIp());
+                printPosition(_file, _line);
                 print(' ');
             }
         }
@@ -412,8 +412,8 @@ class _UnitTest_Compare
             throw _UnitTest_Failure();
             //}
         }
-        static void printPosition(const char *_file, int _line, size_t _ip) {
-            std::cout << "at " << _file << ':' << _line << " (0x" << std::hex << _ip << std::dec << ')';
+        void printPosition(const char *_file, int _line) {
+            std::cout << "at " << _file << ':' << _line << " (0x" << std::hex << m_ip << std::dec << ')';
         }
         template<typename T> static inline void writePlotData(std::fstream &file, T a, T b);
         template<typename T> static inline void printFuzzyInfo(T a, T b);
@@ -423,6 +423,7 @@ class _UnitTest_Compare
             print(", allowed distance: ");
             print(fuzzyness);
         }
+        const size_t m_ip;
         const bool m_failed;
 };
 template<typename T> inline void _UnitTest_Compare::printFuzzyInfo(T, T) {}
