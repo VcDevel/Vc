@@ -304,6 +304,34 @@ template<typename V> void fill()
     COMPARE(test, static_cast<V>(I::IndexesFromZero()));
 }
 
+template<typename V> void shifted()
+{
+    typedef typename V::EntryType T;
+    for (int shift = -2 * V::Size; shift <= 2 * V::Size; ++shift) {
+        const V reference = V::Random();
+        const V test = reference.shifted(shift);
+        for (int i = 0; i < V::Size; ++i) {
+            if (i + shift >= 0 && i + shift < V::Size) {
+                COMPARE(test[i], reference[i + shift]) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
+            } else {
+                COMPARE(test[i], T(0)) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
+            }
+        }
+    }
+}
+
+template<typename V> void rotated()
+{
+    for (int shift = -2 * V::Size; shift <= 2 * V::Size; ++shift) {
+        std::cout << "amount = " << shift % V::Size << std::endl;
+        const V reference = V::Random();
+        const V test = reference.rotated(shift);
+        for (int i = 0; i < V::Size; ++i) {
+            COMPARE(test[i], reference[(i + shift) % V::Size]) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
+        }
+    }
+}
+
 int main()
 {
     runTest(testCall<int_v>);
@@ -334,6 +362,8 @@ int main()
     runTest(copySign<sfloat_v>);
     runTest(copySign<double_v>);
 
+    testAllTypes(shifted);
+    testAllTypes(rotated);
     testAllTypes(Random);
 
     testAllTypes(applyAndCall);
