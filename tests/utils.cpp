@@ -111,6 +111,24 @@ template<typename V> void testForeachBit()
             tmp[j] = T(1);
         }
         COMPARE(tmp == V::One(), mask);
+
+        int count = 0;
+        foreach_bit(int j, mask) {
+            ++count;
+            if (j >= 0) {
+                continue;
+            }
+        }
+        COMPARE(count, mask.count());
+
+        count = 0;
+        foreach_bit(int j, mask) {
+            if (j >= 0) {
+                break;
+            }
+            ++count;
+        }
+        COMPARE(count, 0);
     }
 }
 
