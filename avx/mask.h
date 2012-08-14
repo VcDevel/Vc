@@ -168,10 +168,13 @@ struct ForeachHelper
 {
     size_t mask;
     bool brk;
-    inline ForeachHelper(size_t _mask) : mask(_mask), brk(false) {}
-    inline bool outer() const { return mask != 0; }
+    bool outerBreak;
+    inline ForeachHelper(size_t _mask) : mask(_mask), brk(false), outerBreak(false) {}
+    inline bool outer() const { return mask != 0 && !outerBreak; }
     inline bool inner() { return (brk = !brk); }
+    inline void noBreak() { outerBreak = false; }
     inline size_t next() {
+        outerBreak = true;
 #ifdef VC_GNU_ASM
         const size_t bit = __builtin_ctzl(mask);
         __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
@@ -185,7 +188,7 @@ struct ForeachHelper
 
 #define Vc_foreach_bit(_it_, _mask_) \
     for (Vc::AVX::ForeachHelper _Vc_foreach_bit_helper((_mask_).toInt()); _Vc_foreach_bit_helper.outer(); ) \
-        for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
+        for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); _Vc_foreach_bit_helper.noBreak())
 
 } // namespace AVX
 } // namespace Vc
