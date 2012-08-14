@@ -703,6 +703,8 @@ namespace Vc
  * \param iterator  The iterator variable. For example "int i".
  * \param mask      The mask to iterate over. You can also just write a vector operation that returns a
  *                  mask.
+ *
+ * \note Since Vc 0.7 break and continue are supported in foreach_bit loops.
  */
 #define Vc_foreach_bit(iterator, mask)
 

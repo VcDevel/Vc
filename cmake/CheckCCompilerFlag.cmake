@@ -28,6 +28,7 @@ MACRO (CHECK_C_COMPILER_FLAG _FLAG _RESULT)
    SET(CMAKE_REQUIRED_DEFINITIONS "${_FLAG}")
    CHECK_C_SOURCE_COMPILES("int main() { return 0;}" ${_RESULT}
      # Some compilers do not fail with a bad flag
+     FAIL_REGEX "error: bad value (.*) for .* switch"       # GNU
      FAIL_REGEX "argument unused during compilation"        # clang
      FAIL_REGEX "is valid for .* but not for C"             # GNU
      FAIL_REGEX "unrecognized .*option"                     # GNU

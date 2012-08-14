@@ -199,7 +199,7 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
     }
 
     /// const overload (gathers only) of the above function
-    inline ALWAYS_INLINE ReadAccess operator[](I indexes) const
+    inline ALWAYS_INLINE ReadAccess operator[](IndexType indexes) const
     {
         return ReadAccess(m_data, indexes);
     }

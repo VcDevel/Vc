@@ -85,14 +85,14 @@ template<unsigned int VectorSize = 1> class Mask
 
 struct ForeachHelper
 {
-    bool first;
-    inline ForeachHelper(bool mask) : first(mask) {}
-    inline void next() { first = false; }
+    bool continu;
+    inline ForeachHelper(bool mask) : continu(mask) {}
+    inline void next() { continu = false; }
 };
 
 #define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::Scalar::ForeachHelper _Vc_foreach_bit_helper(_mask_); _Vc_foreach_bit_helper.first; ) \
-        for (_it_ = 0; _Vc_foreach_bit_helper.first; _Vc_foreach_bit_helper.next())
+    for (Vc::Scalar::ForeachHelper _Vc_foreach_bit_helper(_mask_); _Vc_foreach_bit_helper.continu; _Vc_foreach_bit_helper.next()) \
+        for (_it_ = 0; _Vc_foreach_bit_helper.continu; _Vc_foreach_bit_helper.next())
 
 } // namespace Scalar
 } // namespace Vc

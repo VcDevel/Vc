@@ -47,7 +47,9 @@ CpuId::ProcessorType CpuId::s_processorType = CpuId::IntelReserved;
 bool   CpuId::s_noL2orL3 = false;
 
 #ifdef _MSC_VER
+} // better not include intrin.h inside the Vc namespace :)
 #include <intrin.h>
+namespace Vc {
 #define CPUID(leaf) \
     do { \
         int out[4]; \
@@ -66,11 +68,30 @@ bool   CpuId::s_noL2orL3 = false;
         ecx = out[2]; \
         edx = out[3]; \
     } while (false)
+#elif defined(__i386__) && defined(__PIC__)
+// %ebx may be the PIC register.
+static inline void _Vc_cpuid(int leaf, unsigned int &eax, unsigned int &ebx, unsigned int &ecx, unsigned int &edx)
+{
+    int tmpb;
+    asm("mov %%ebx, %[tmpb]\n\t"
+        "cpuid\n\t"
+        "mov %%ebx, %[ebx]\n\t"
+        "mov %[tmpb], %%ebx\n\t"
+        : [tmpb]"=m"(tmpb), "=a"(eax), [ebx] "=m"(ebx), "+c"(ecx), "=d"(edx)
+        : [leaf] "a"(leaf)
+      );
+}
+#define CPUID(leaf) \
+    ecx = 0; \
+    _Vc_cpuid(leaf, eax, ebx, ecx, edx)
+#define CPUID_C(leaf, _ecx_) \
+    ecx = _ecx_; \
+    _Vc_cpuid(leaf, eax, ebx, ecx, edx)
 #else
 #define CPUID(leaf) \
-    __asm__("mov $" #leaf ",%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx))
+    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf))
 #define CPUID_C(leaf, _ecx_) \
-    __asm__("mov $" #leaf ",%%eax\n\tcpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "c"(_ecx_))
+    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf), "c"(_ecx_))
 #endif
 static unsigned int CpuIdAmdAssociativityTable(int bits)
 {

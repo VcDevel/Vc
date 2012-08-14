@@ -105,13 +105,30 @@ template<typename V> void testForeachBit()
     typedef typename V::Mask M;
     typedef typename I::Mask MI;
     const I indexes(IndexesFromZero);
-    for (int i = 0; i <= V::Size; ++i) {
-        const M mask(indexes < i);
-        int ref = 0;
+    for_all_masks(V, mask) {
+        V tmp = V::Zero();
         foreach_bit(int j, mask) {
-            ref += (1 << j);
+            tmp[j] = T(1);
         }
-        COMPARE(ref, (1 << i) - 1);
+        COMPARE(tmp == V::One(), mask);
+
+        int count = 0;
+        foreach_bit(int j, mask) {
+            ++count;
+            if (j >= 0) {
+                continue;
+            }
+        }
+        COMPARE(count, mask.count());
+
+        count = 0;
+        foreach_bit(int j, mask) {
+            if (j >= 0) {
+                break;
+            }
+            ++count;
+        }
+        COMPARE(count, 0);
     }
 }
 
@@ -242,6 +259,10 @@ class CallTester
         int i;
 };
 
+#if __cplusplus >= 201103 && (!defined(VC_CLANG) || VC_CLANG > 0x30000)
+#define DO_LAMBDA_TESTS 1
+#endif
+
 template<typename V>
 void applyAndCall()
 {
@@ -251,7 +272,7 @@ void applyAndCall()
     for (int i = 0; i < 1000; ++i) {
         const V rand = V::Random();
         COMPARE(rand.apply(add2<T>), rand + two);
-#if __cplusplus >= 201103
+#ifdef DO_LAMBDA_TESTS
         COMPARE(rand.apply([](T x) { return x + T(2); }), rand + two);
 #endif
 
@@ -267,7 +288,7 @@ void applyAndCall()
 
             COMPARE(copy2(mask).apply(add2<T>), copy1) << mask;
             COMPARE(rand.apply(add2<T>, mask), copy1) << mask;
-#if __cplusplus >= 201103
+#ifdef DO_LAMBDA_TESTS
             COMPARE(copy2(mask).apply([](T x) { return x + T(2); }), copy1) << mask;
             COMPARE(rand.apply([](T x) { return x + T(2); }, mask), copy1) << mask;
 #endif
@@ -335,33 +356,10 @@ template<typename V> void rotated()
 
 int main()
 {
-    runTest(testCall<int_v>);
-    runTest(testCall<uint_v>);
-    runTest(testCall<short_v>);
-    runTest(testCall<ushort_v>);
-    runTest(testCall<float_v>);
-    runTest(testCall<sfloat_v>);
-    runTest(testCall<double_v>);
-
-    runTest(testForeachBit<int_v>);
-    runTest(testForeachBit<uint_v>);
-    runTest(testForeachBit<short_v>);
-    runTest(testForeachBit<ushort_v>);
-    runTest(testForeachBit<float_v>);
-    runTest(testForeachBit<sfloat_v>);
-    runTest(testForeachBit<double_v>);
-
-    runTest(testSort<int_v>);
-    runTest(testSort<uint_v>);
-    runTest(testSort<float_v>);
-    runTest(testSort<double_v>);
-    runTest(testSort<sfloat_v>);
-    runTest(testSort<short_v>);
-    runTest(testSort<ushort_v>);
-
-    runTest(copySign<float_v>);
-    runTest(copySign<sfloat_v>);
-    runTest(copySign<double_v>);
+    testAllTypes(testCall);
+    testAllTypes(testForeachBit);
+    testAllTypes(testSort);
+    testRealTypes(copySign);
 
     testAllTypes(shifted);
     testAllTypes(rotated);

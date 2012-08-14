@@ -24,7 +24,11 @@
 #include <Vc/limits>
 
 #ifdef VC_MSVC
-template<typename T> static inline bool isnan(T x) { return _isnan(x); }
+namespace std
+{
+    static inline bool isnan(float  x) { return _isnan(x); }
+    static inline bool isnan(double x) { return _isnan(x); }
+} // namespace std
 #endif
 
 template<typename T> static inline T ulpDiffToReference(T val, T ref)

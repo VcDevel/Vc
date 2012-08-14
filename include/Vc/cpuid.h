@@ -20,8 +20,6 @@
 #ifndef CPUID_H
 #define CPUID_H
 
-#include <iostream>
-
 namespace Vc
 {
 class CpuId

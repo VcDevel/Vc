@@ -18,43 +18,52 @@ include (OptimizeForArchitecture)
 
 vc_determine_compiler()
 
-if(Vc_COMPILER_IS_GCC AND NOT ALIROOT_RELEASE)
-   if(Vc_GCC_VERSION STREQUAL "4.6.0")
-      UserWarning("GCC 4.6.0 is broken. The following tests are therefore disabled:
-      gather_avx, gather_sse, gather_VC_USE_SET_GATHERS_avx, gather_VC_USE_SET_GATHERS_sse,
-      gather_sse_LOOP, scatter_avx, and scatter_sse")
-      list(APPEND disabled_targets
-         gather_avx
-         gather_sse
-         gather_VC_USE_SET_GATHERS_avx
-         gather_VC_USE_SET_GATHERS_sse
-         scatter_avx
-         scatter_sse
-         c++11_gather_avx
-         c++11_gather_sse
-         c++11_gather_VC_USE_SET_GATHERS_avx
-         c++11_gather_VC_USE_SET_GATHERS_sse
-         c++11_scatter_avx
-         c++11_scatter_sse
+if(NOT ALIROOT_RELEASE)
+   if(Vc_COMPILER_IS_GCC)
+      if(Vc_GCC_VERSION STREQUAL "4.6.0")
+         UserWarning("GCC 4.6.0 is broken. The following tests are therefore disabled:
+         gather_avx, gather_sse, gather_VC_USE_SET_GATHERS_avx, gather_VC_USE_SET_GATHERS_sse,
+         gather_sse_LOOP, scatter_avx, and scatter_sse")
+         list(APPEND disabled_targets
+            gather_avx
+            gather_sse
+            gather_VC_USE_SET_GATHERS_avx
+            gather_VC_USE_SET_GATHERS_sse
+            scatter_avx
+            scatter_sse
+            c++11_gather_avx
+            c++11_gather_sse
+            c++11_gather_VC_USE_SET_GATHERS_avx
+            c++11_gather_VC_USE_SET_GATHERS_sse
+            c++11_scatter_avx
+            c++11_scatter_sse
+            )
+      elseif(Vc_GCC_VERSION STREQUAL "4.5.0" OR Vc_GCC_VERSION STREQUAL "4.5.1")
+         UserWarning("GCC 4.5.[12] are known to generate an internal compiler error on the memory unit test.
+         (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=46723)
+         The test will therefore not be compiled and executed.")
+         list(APPEND disabled_targets
+            memory_scalar
+            memory_sse
+            memory_avx
+            c++11_memory_scalar
+            c++11_memory_sse
+            c++11_memory_avx
+            )
+      elseif(Vc_GCC_VERSION STREQUAL "4.5.2")
+         UserWarning("GCC 4.5.2 generates an internal compiler error on the memory_scalar unit test. The test will not be compiled and executed.")
+         list(APPEND disabled_targets
+            memory_scalar
+            c++11_memory_scalar
+            )
+      endif()
+   elseif(Vc_COMPILER_IS_CLANG)
+      if(Vc_CLANG_VERSION VERSION_EQUAL "3.0")
+         UserWarning("Clang 3.0 generates an internal compiler error on the finitediff example. The example will not be compiled.")
+         list(APPEND disabled_targets
+            example_finitediff
          )
-   elseif(Vc_GCC_VERSION STREQUAL "4.5.0" OR Vc_GCC_VERSION STREQUAL "4.5.1")
-      UserWarning("GCC 4.5.[12] are known to generate an internal compiler error on the memory unit test.
-      (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=46723)
-      The test will therefore not be compiled and executed.")
-      list(APPEND disabled_targets
-         memory_scalar
-         memory_sse
-         memory_avx
-         c++11_memory_scalar
-         c++11_memory_sse
-         c++11_memory_avx
-         )
-   elseif(Vc_GCC_VERSION STREQUAL "4.5.2")
-      UserWarning("GCC 4.5.2 generates an internal compiler error on the memory_scalar unit test. The test will not be compiled and executed.")
-      list(APPEND disabled_targets
-         memory_scalar
-         c++11_memory_scalar
-         )
+      endif()
    endif()
 endif()
 
@@ -117,8 +126,21 @@ if(NOT ALIROOT_RELEASE)
    install(TARGETS Vc DESTINATION lib/)
 else()
    # libVc should be compiled in the AliRoot tree, so we need to install the sources
-   install(FILES vector.cpp cpuid.cpp support.cpp DESTINATION src)
-   install(FILES avx/sorthelper.cpp DESTINATION src/avx)
+   #
+   # Sadly there are messed up systems where putting include/Vc in the include paths will
+   # break the standard library (e.g. MacOS X Lion with case insensitive filesystem).
+   # Thus, we modify the includes such that include/Vc never needs to be in the path.
+   foreach(_src vector.cpp cpuid.cpp support.cpp avx/sorthelper.cpp)
+      message(STATUS "Processing ${CMAKE_SOURCE_DIR}/${_src} -> ${CMAKE_BINARY_DIR}/src/${_src}")
+      get_filename_component(_path "${CMAKE_BINARY_DIR}/src/${_src}" PATH)
+      file(MAKE_DIRECTORY "${_path}")
+      execute_process(
+         COMMAND sed "s,#include \\(.\\)\\(common\\|avx\\|sse\\|scalar\\)/,#include \\1Vc/\\2/,"
+         INPUT_FILE ${CMAKE_SOURCE_DIR}/${_src}
+         OUTPUT_FILE ${CMAKE_BINARY_DIR}/src/${_src}
+         )
+   endforeach()
+   install(DIRECTORY ${CMAKE_BINARY_DIR}/src/ DESTINATION src)
 endif()
 
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
@@ -139,14 +161,19 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcConfigVersion.cmake.in
 set(cmake_install_files
    cmake/UserWarning.cmake
    cmake/VcMacros.cmake
-   cmake/OptimizeForArchitecture.cmake
    cmake/AddCompilerFlag.cmake
    cmake/CheckCCompilerFlag.cmake
    cmake/CheckCXXCompilerFlag.cmake
    )
 if(ALIROOT_RELEASE)
+   execute_process(
+      COMMAND sed "s, \"auto\" CACHE, \"none\" CACHE,"
+      INPUT_FILE ${CMAKE_SOURCE_DIR}/cmake/OptimizeForArchitecture.cmake
+      OUTPUT_FILE ${CMAKE_BINARY_DIR}/cmake/OptimizeForArchitecture.cmake
+      )
    install(FILES
       ${cmake_install_files}
+      ${CMAKE_BINARY_DIR}/cmake/OptimizeForArchitecture.cmake
       DESTINATION cmake
       )
 else()
@@ -154,6 +181,7 @@ else()
       ${cmake_install_files}
       ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake
       ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake
+      cmake/OptimizeForArchitecture.cmake
       cmake/FindVc.cmake
       DESTINATION lib/cmake/Vc
       )

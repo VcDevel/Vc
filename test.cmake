@@ -33,6 +33,12 @@ else()
    endif()
 endif()
 
+file(READ "${CTEST_SOURCE_DIRECTORY}/.git/HEAD" git_branch)
+string(STRIP "${git_branch}" git_branch)
+# -> ref: refs/heads/master
+string(REGEX REPLACE "^.*/" "" git_branch "${git_branch}")
+# -> master
+
 if(arch STREQUAL "linux")
    execute_process(COMMAND lsb_release -d COMMAND cut -f2 OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE lsbRelease)
    set(CTEST_BUILD_NAME "${lsbRelease} ${chip} ${COMPILER_VERSION} $ENV{CXXFLAGS}")
@@ -46,9 +52,9 @@ else()
    execute_process(COMMAND cmake -Darch=${arch} -P ${CTEST_SOURCE_DIRECTORY}/print_target_architecture.cmake OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE auto_target_arch ERROR_VARIABLE auto_target_arch)
    set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME} ${auto_target_arch}")
 endif()
-string(REPLACE "/" "_" CTEST_BUILD_NAME "${CTEST_BUILD_NAME}")
+string(REPLACE "/" "_" CTEST_BUILD_NAME "${git_branch}: ${CTEST_BUILD_NAME}")
 string(REPLACE "+" "x" CTEST_BUILD_NAME "${CTEST_BUILD_NAME}") # CDash fails to escape '+' correctly in URIs
-string(REGEX REPLACE "[][ ()]" "_" CTEST_BINARY_DIRECTORY "${CTEST_BUILD_NAME}")
+string(REGEX REPLACE "[][ ():]" "_" CTEST_BINARY_DIRECTORY "${CTEST_BUILD_NAME}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build-${dashboard_model}-${CTEST_BINARY_DIRECTORY}")
 file(MAKE_DIRECTORY "${CTEST_BINARY_DIRECTORY}")
 
@@ -59,11 +65,6 @@ endif()
 
 Set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY_ONCE TRUE)
 
-file(READ "${CTEST_SOURCE_DIRECTORY}/.git/HEAD" git_branch)
-string(STRIP "${git_branch}" git_branch)
-# -> ref: refs/heads/master
-string(REGEX REPLACE "^.*/" "" git_branch "${git_branch}")
-# -> master
 set(CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/.git/HEAD" "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
 
 set(compiler)

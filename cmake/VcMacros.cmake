@@ -31,12 +31,14 @@ macro(vc_determine_compiler)
          set(Vc_COMPILER_IS_INTEL true)
          exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE Vc_ICC_VERSION)
          message(STATUS "Detected Compiler: Intel ${Vc_ICC_VERSION}")
-      elseif(CMAKE_CXX_COMPILER MATCHES "/(opencc|openCC)$")
+      elseif(CMAKE_CXX_COMPILER MATCHES "(opencc|openCC)$")
          set(Vc_COMPILER_IS_OPEN64 true)
          message(STATUS "Detected Compiler: Open64")
-      elseif(CMAKE_CXX_COMPILER MATCHES "/clang\\+\\+$")
+      elseif(CMAKE_CXX_COMPILER MATCHES "clang\\+\\+$")
          set(Vc_COMPILER_IS_CLANG true)
-         message(STATUS "Detected Compiler: Clang")
+         exec_program(${CMAKE_CXX_COMPILER} ARGS --version OUTPUT_VARIABLE Vc_CLANG_VERSION)
+         string(REGEX MATCH "[0-9]+\\.[0-9]+(\\.[0-9]+)?" Vc_CLANG_VERSION "${Vc_CLANG_VERSION}")
+         message(STATUS "Detected Compiler: Clang ${Vc_CLANG_VERSION}")
       elseif(MSVC)
          set(Vc_COMPILER_IS_MSVC true)
          message(STATUS "Detected Compiler: MSVC")
@@ -123,7 +125,7 @@ macro(vc_check_assembler)
          string(REGEX REPLACE "\\([^\\)]*\\)" "" _as_version "${_as_version}")
          string(REGEX MATCH "[1-9]\\.[0-9]+(\\.[0-9]+)?" _as_version "${_as_version}")
          if(_as_version VERSION_LESS "2.18.93")
-            message(WARNING "Your binutils is too old (${_as_version}). Some optimizations of Vc will be disabled.")
+            UserWarning("Your binutils is too old (${_as_version}). Some optimizations of Vc will be disabled.")
             add_definitions(-DVC_NO_XGETBV) # old assembler doesn't know the xgetbv instruction
          endif()
       endif()
@@ -157,6 +159,7 @@ macro(vc_set_preferred_compiler_flags)
 
    set(Vc_SSE_INTRINSICS_BROKEN false)
    set(Vc_AVX_INTRINSICS_BROKEN false)
+   set(Vc_XOP_INTRINSICS_BROKEN false)
 
    if(Vc_COMPILER_IS_OPEN64)
       ##################################################################################################
@@ -188,6 +191,9 @@ macro(vc_set_preferred_compiler_flags)
       endif()
 
       vc_check_assembler()
+
+      # Open64 4.5.1 still doesn't ship immintrin.h
+      set(Vc_AVX_INTRINSICS_BROKEN true)
    elseif(Vc_COMPILER_IS_GCC)
       ##################################################################################################
       #                                              GCC                                               #
@@ -201,6 +207,11 @@ macro(vc_set_preferred_compiler_flags)
          if(Vc_GCC_VERSION VERSION_GREATER "4.5.2" AND Vc_GCC_VERSION VERSION_LESS "4.6.4")
             # GCC gives bogus "array subscript is above array bounds" warnings in math.cpp
             AddCompilerFlag("-Wno-array-bounds")
+         endif()
+         if(Vc_GCC_VERSION VERSION_GREATER "4.7.99")
+            # GCC 4.8 warns about stuff we don't care about
+            # Some older GCC versions have problems to note that they don't support the flag
+            AddCompilerFlag("-Wno-unused-local-typedefs")
          endif()
       endif()
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wabi")
@@ -217,7 +228,12 @@ macro(vc_set_preferred_compiler_flags)
          AddCompilerFlag("--param early-inlining-insns=12")
       endif()
 
-      if(Vc_GCC_VERSION VERSION_LESS "4.4.6")
+      if(Vc_GCC_VERSION VERSION_LESS "4.1.99")
+         UserWarning("Your GCC is ancient and crashes on some important optimizations.  The full set of SSE2 intrinsics is not supported.  Vc will fall back to the scalar implementation.  Use of the may_alias and always_inline attributes will be disabled.  In turn all code using Vc must be compiled with -fno-strict-aliasing")
+         vc_add_compiler_flag(Vc_DEFINITIONS "-fno-strict-aliasing")
+         set(Vc_AVX_INTRINSICS_BROKEN true)
+         set(Vc_SSE_INTRINSICS_BROKEN true)
+      elseif(Vc_GCC_VERSION VERSION_LESS "4.4.6")
          UserWarning("Your GCC is older than 4.4.6. This is known to cause problems/bugs. Please update to the latest GCC if you can.")
          set(Vc_AVX_INTRINSICS_BROKEN true)
          if(Vc_GCC_VERSION VERSION_LESS "4.3.0")
@@ -261,6 +277,12 @@ macro(vc_set_preferred_compiler_flags)
          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS}")
       endif()
       vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 913")
+
+      if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
+         # disable warning #2928: the __GXX_EXPERIMENTAL_CXX0X__ macro is disabled when using GNU version 4.6 with the c++0x option
+         # this warning just adds noise about problems in the compiler - but I'm only interested in seeing problems in Vc
+         vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 2928")
+      endif()
    elseif(Vc_COMPILER_IS_MSVC)
       if(_add_warning_flags)
          AddCompilerFlag("/wd4800") # Disable warning "forcing value to bool"
@@ -280,6 +302,9 @@ macro(vc_set_preferred_compiler_flags)
 
       # get rid of the min/max macros
       set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DNOMINMAX")
+
+      # MSVC doesn't implement the XOP intrinsics
+      set(Vc_XOP_INTRINSICS_BROKEN true)
    elseif(Vc_COMPILER_IS_CLANG)
       # for now I don't know of any arguments I want to pass. -march and stuff is tried by OptimizeForArchitecture...
 

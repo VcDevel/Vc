@@ -28,6 +28,8 @@ namespace Vc
 
 #if __cplusplus >= 201103 || defined(VC_MSVC)
 #define VC_DECLTYPE(T1, op, T2) decltype(T1() op T2())
+#elif VC_OPEN64 || (VC_GCC && VC_GCC < 0x40300)
+#define VC_DECLTYPE(T1, op, T2) T1
 #else
 namespace
 {
