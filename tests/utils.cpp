@@ -327,33 +327,10 @@ template<typename V> void fill()
 
 int main()
 {
-    runTest(testCall<int_v>);
-    runTest(testCall<uint_v>);
-    runTest(testCall<short_v>);
-    runTest(testCall<ushort_v>);
-    runTest(testCall<float_v>);
-    runTest(testCall<sfloat_v>);
-    runTest(testCall<double_v>);
-
-    runTest(testForeachBit<int_v>);
-    runTest(testForeachBit<uint_v>);
-    runTest(testForeachBit<short_v>);
-    runTest(testForeachBit<ushort_v>);
-    runTest(testForeachBit<float_v>);
-    runTest(testForeachBit<sfloat_v>);
-    runTest(testForeachBit<double_v>);
-
-    runTest(testSort<int_v>);
-    runTest(testSort<uint_v>);
-    runTest(testSort<float_v>);
-    runTest(testSort<double_v>);
-    runTest(testSort<sfloat_v>);
-    runTest(testSort<short_v>);
-    runTest(testSort<ushort_v>);
-
-    runTest(copySign<float_v>);
-    runTest(copySign<sfloat_v>);
-    runTest(copySign<double_v>);
+    testAllTypes(testCall);
+    testAllTypes(testForeachBit);
+    testAllTypes(testSort);
+    testRealTypes(copySign);
 
     testAllTypes(Random);
 
