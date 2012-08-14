@@ -68,6 +68,14 @@ namespace AVX
     template<> struct VectorTypeHelper<        sfloat> { typedef _M256  Type; };
     template<> struct VectorTypeHelper<        double> { typedef _M256D Type; };
 
+    template<typename T> struct SseVectorType;
+    template<> struct SseVectorType<__m256 > { typedef __m128  Type; };
+    template<> struct SseVectorType<__m256i> { typedef __m128i Type; };
+    template<> struct SseVectorType<__m256d> { typedef __m128d Type; };
+    template<> struct SseVectorType<__m128 > { typedef __m128  Type; };
+    template<> struct SseVectorType<__m128i> { typedef __m128i Type; };
+    template<> struct SseVectorType<__m128d> { typedef __m128d Type; };
+
     template<typename T> struct HasVectorDivisionHelper { enum { Value = 1 }; };
     //template<> struct HasVectorDivisionHelper<unsigned int> { enum { Value = 0 }; };
 
