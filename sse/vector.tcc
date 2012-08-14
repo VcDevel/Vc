@@ -1381,7 +1381,6 @@ template<> inline ALWAYS_INLINE Vector<double> Vector<double>::Random()
 // shifted / rotated {{{1
 template<typename T> inline INTRINSIC Vector<T> Vector<T>::shifted(int amount) const
 {
-    //if (amount >= Size || -amount >= Size) { return Zero(); }
     switch (amount) {
     case  0: return *this;
     case  1: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 1 * sizeof(EntryType)));
