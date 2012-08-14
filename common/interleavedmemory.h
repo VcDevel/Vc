@@ -88,7 +88,7 @@ template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public 
     { \
         VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_scatter_more_data_into_the_struct_than_it_has); \
         checkIndexesUnique(); \
-        interleave parameters ; \
+        this->interleave parameters ; \
     }
     _VC_SCATTER_ASSIGNMENT(2, (rhs.l, rhs.r))
     _VC_SCATTER_ASSIGNMENT(3, (rhs.l.l, rhs.l.r, rhs.r));
