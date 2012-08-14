@@ -26,6 +26,21 @@ namespace Vc
 {
     namespace Mem
     {
+        template<VecPos L, VecPos H> static inline __m256 ALWAYS_INLINE CONST permute128(__m256 x) {
+            VC_STATIC_ASSERT(L >= X0 && L <= X1, Incorrect_Range);
+            VC_STATIC_ASSERT(H >= X0 && H <= X1, Incorrect_Range);
+            return _mm256_permute2f128_ps(x, x, L + H * (1 << 4));
+        }
+        template<VecPos L, VecPos H> static inline __m256d ALWAYS_INLINE CONST permute128(__m256d x) {
+            VC_STATIC_ASSERT(L >= X0 && L <= X1, Incorrect_Range);
+            VC_STATIC_ASSERT(H >= X0 && H <= X1, Incorrect_Range);
+            return _mm256_permute2f128_pd(x, x, L + H * (1 << 4));
+        }
+        template<VecPos L, VecPos H> static inline __m256i ALWAYS_INLINE CONST permute128(__m256i x) {
+            VC_STATIC_ASSERT(L >= X0 && L <= X1, Incorrect_Range);
+            VC_STATIC_ASSERT(H >= X0 && H <= X1, Incorrect_Range);
+            return _mm256_permute2f128_si256(x, x, L + H * (1 << 4));
+        }
         template<VecPos L, VecPos H> static inline __m256 ALWAYS_INLINE CONST shuffle128(__m256 x, __m256 y) {
             VC_STATIC_ASSERT(L >= X0 && H >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(L <= Y1 && H <= Y1, Incorrect_Range);
