@@ -194,6 +194,15 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
     }
 };
 
+size_t createNMask(size_t N)
+{
+    size_t NMask = (N >> 1) | (N >> 2);
+    for (int shift = 2; shift <= sizeof(size_t) * 8; shift *= 2) {
+        NMask |= NMask >> shift;
+    }
+    return NMask;
+}
+
 template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
 {
     typedef typename V::EntryType T;
@@ -201,12 +210,7 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
     typedef SomeStruct<T, StructSize> S;
     typedef Vc::InterleavedMemoryWrapper<S, V> Wrapper;
     const size_t N = std::min<size_t>(std::numeric_limits<typename I::EntryType>::max(), 1024 * 1024 / sizeof(S));
-    size_t NMask = (N >> 1) | (N >> 2);
-    NMask |= NMask >> 2;
-    NMask |= NMask >> 4;
-    NMask |= NMask >> 8;
-    NMask |= NMask >> 16;
-    NMask |= NMask >> 32;
+    const size_t NMask = createNMask(N);
 
     S *data = Vc::malloc<S, Vc::AlignOnVector>(N);
     for (size_t i = 0; i < N; ++i) {
@@ -365,12 +369,7 @@ template<typename V, size_t StructSize> void testInterleavingScatterImpl()
     typedef SomeStruct<T, StructSize> S;
     typedef Vc::InterleavedMemoryWrapper<S, V> Wrapper;
     const size_t N = std::min<size_t>(std::numeric_limits<typename I::EntryType>::max(), 1024 * 1024 / sizeof(S));
-    size_t NMask = (N >> 1) | (N >> 2);
-    NMask |= NMask >> 2;
-    NMask |= NMask >> 4;
-    NMask |= NMask >> 8;
-    NMask |= NMask >> 16;
-    NMask |= NMask >> 32;
+    const size_t NMask = createNMask(N);
 
     S *data = Vc::malloc<S, Vc::AlignOnVector>(N);
     std::memset(data, 0, sizeof(S) * N);
