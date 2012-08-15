@@ -25,6 +25,260 @@ namespace Vc
 namespace Common
 {
 
+namespace
+{
+template<typename V, int Size, size_t VSize> struct InterleaveImpl;
+template<typename V> struct InterleaveImpl<V, 8, 16> {
+    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1)
+    {
+        const __m128i tmp0 = _mm_unpacklo_epi16(v0.data(), v1.data());
+        const __m128i tmp1 = _mm_unpackhi_epi16(v0.data(), v1.data());
+#ifdef __x86_64__
+        const long long tmp00 = _mm_cvtsi128_si64(tmp0);
+        const long long tmp01 = _mm_cvtsi128_si64(_mm_unpackhi_epi64(tmp0, tmp0));
+        const long long tmp10 = _mm_cvtsi128_si64(tmp1);
+        const long long tmp11 = _mm_cvtsi128_si64(_mm_unpackhi_epi64(tmp1, tmp1));
+        *reinterpret_cast<int *>(&data[i[0]]) = tmp00;
+        *reinterpret_cast<int *>(&data[i[1]]) = tmp00 >> 32;
+        *reinterpret_cast<int *>(&data[i[2]]) = tmp01;
+        *reinterpret_cast<int *>(&data[i[3]]) = tmp01 >> 32;
+        *reinterpret_cast<int *>(&data[i[4]]) = tmp10;
+        *reinterpret_cast<int *>(&data[i[5]]) = tmp10 >> 32;
+        *reinterpret_cast<int *>(&data[i[6]]) = tmp11;
+        *reinterpret_cast<int *>(&data[i[7]]) = tmp11 >> 32;
+#else
+        *reinterpret_cast<int *>(&data[i[0]]) = _mm_cvtsi128_si32(tmp0);
+        *reinterpret_cast<int *>(&data[i[1]]) = _mm_extract_epi32(tmp0, 1);
+        *reinterpret_cast<int *>(&data[i[2]]) = _mm_extract_epi32(tmp0, 2);
+        *reinterpret_cast<int *>(&data[i[3]]) = _mm_extract_epi32(tmp0, 3);
+        *reinterpret_cast<int *>(&data[i[4]]) = _mm_cvtsi128_si32(tmp1);
+        *reinterpret_cast<int *>(&data[i[5]]) = _mm_extract_epi32(tmp1, 1);
+        *reinterpret_cast<int *>(&data[i[6]]) = _mm_extract_epi32(tmp1, 2);
+        *reinterpret_cast<int *>(&data[i[7]]) = _mm_extract_epi32(tmp1, 3);
+#endif
+    }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
+    {
+#ifdef VC_USE_MASKMOV_SCATTER
+        const __m128i maskLo = _mm_set_epi16(0, 0, 0, 0, 0, -1, -1, -1);
+        const __m128i maskHi = _mm_set_epi16(0, -1, -1, -1, 0, 0, 0, 0);
+        typename V::EntryType *const dataHi = data - 4;
+        const __m128i tmp0 = _mm_unpacklo_epi16(v0.data(), v2.data());
+        const __m128i tmp1 = _mm_unpackhi_epi16(v0.data(), v2.data());
+        const __m128i tmp2 = _mm_unpacklo_epi16(v1.data(), v1.data());
+        const __m128i tmp3 = _mm_unpackhi_epi16(v1.data(), v1.data());
+
+        const __m128i tmp4 = _mm_unpacklo_epi16(tmp0, tmp2);
+        const __m128i tmp5 = _mm_unpackhi_epi16(tmp0, tmp2);
+        const __m128i tmp6 = _mm_unpacklo_epi16(tmp1, tmp3);
+        const __m128i tmp7 = _mm_unpackhi_epi16(tmp1, tmp3);
+        _mm_maskmoveu_si128(tmp4, maskLo, reinterpret_cast<char *>(&data[i[0]]));
+        _mm_maskmoveu_si128(tmp4, maskHi, reinterpret_cast<char *>(&dataHi[i[1]]));
+        _mm_maskmoveu_si128(tmp5, maskLo, reinterpret_cast<char *>(&data[i[2]]));
+        _mm_maskmoveu_si128(tmp5, maskHi, reinterpret_cast<char *>(&dataHi[i[3]]));
+        _mm_maskmoveu_si128(tmp6, maskLo, reinterpret_cast<char *>(&data[i[4]]));
+        _mm_maskmoveu_si128(tmp6, maskHi, reinterpret_cast<char *>(&dataHi[i[5]]));
+        _mm_maskmoveu_si128(tmp7, maskLo, reinterpret_cast<char *>(&data[i[6]]));
+        _mm_maskmoveu_si128(tmp7, maskHi, reinterpret_cast<char *>(&dataHi[i[7]]));
+#else
+        interleave(data, i, v0, v1);
+        v2.scatter(data + 2, i);
+#endif
+    }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1,
+            const typename V::AsArg v2, const typename V::AsArg v3)
+    {
+        const __m128i tmp0 = _mm_unpacklo_epi16(v0.data(), v2.data());
+        const __m128i tmp1 = _mm_unpackhi_epi16(v0.data(), v2.data());
+        const __m128i tmp2 = _mm_unpacklo_epi16(v1.data(), v3.data());
+        const __m128i tmp3 = _mm_unpackhi_epi16(v1.data(), v3.data());
+
+        const __m128i tmp4 = _mm_unpacklo_epi16(tmp0, tmp2);
+        const __m128i tmp5 = _mm_unpackhi_epi16(tmp0, tmp2);
+        const __m128i tmp6 = _mm_unpacklo_epi16(tmp1, tmp3);
+        const __m128i tmp7 = _mm_unpackhi_epi16(tmp1, tmp3);
+
+        _mm_storel_epi64(reinterpret_cast<__m128i *>(&data[i[0]]), tmp4);
+        _mm_storel_epi64(reinterpret_cast<__m128i *>(&data[i[2]]), tmp5);
+        _mm_storel_epi64(reinterpret_cast<__m128i *>(&data[i[4]]), tmp6);
+        _mm_storel_epi64(reinterpret_cast<__m128i *>(&data[i[6]]), tmp7);
+        _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[1]]), _mm_castsi128_ps(tmp4));
+        _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[3]]), _mm_castsi128_ps(tmp5));
+        _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[5]]), _mm_castsi128_ps(tmp6));
+        _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[7]]), _mm_castsi128_ps(tmp7));
+    }/*}}}*/
+};
+template<typename V> struct InterleaveImpl<V, 8, 32> {
+    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1)
+    {
+        using namespace Vc::AVX;
+        // [0a 1a 0b 1b 0e 1e 0f 1f]:
+        const __m256 tmp0 = _mm256_unpacklo_ps(AVX::avx_cast<__m256>(v0.data()), AVX::avx_cast<__m256>(v1.data()));
+        // [0c 1c 0d 1d 0g 1g 0h 1h]:
+        const __m256 tmp1 = _mm256_unpackhi_ps(AVX::avx_cast<__m256>(v0.data()), AVX::avx_cast<__m256>(v1.data()));
+        _mm_storel_pi(reinterpret_cast<__m64 *>(&data[i[0]]), lo128(tmp0));
+        _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[1]]), lo128(tmp0));
+        _mm_storel_pi(reinterpret_cast<__m64 *>(&data[i[2]]), lo128(tmp1));
+        _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[3]]), lo128(tmp1));
+        _mm_storel_pi(reinterpret_cast<__m64 *>(&data[i[4]]), hi128(tmp0));
+        _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[5]]), hi128(tmp0));
+        _mm_storel_pi(reinterpret_cast<__m64 *>(&data[i[6]]), hi128(tmp1));
+        _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[7]]), hi128(tmp1));
+    }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
+    {
+        using namespace Vc::AVX;
+#ifdef VC_USE_MASKMOV_SCATTER
+        // [0a 2a 0b 2b 0e 2e 0f 2f]:
+        const __m256 tmp0 = _mm256_unpacklo_ps(AVX::avx_cast<__m256>(v0.data()), AVX::avx_cast<__m256>(v2.data()));
+        // [0c 2c 0d 2d 0g 2g 0h 2h]:
+        const __m256 tmp1 = _mm256_unpackhi_ps(AVX::avx_cast<__m256>(v0.data()), AVX::avx_cast<__m256>(v2.data()));
+        // [1a __ 1b __ 1e __ 1f __]:
+        const __m256 tmp2 = _mm256_unpacklo_ps(AVX::avx_cast<__m256>(v1.data()), AVX::avx_cast<__m256>(v1.data()));
+        // [1c __ 1d __ 1g __ 1h __]:
+        const __m256 tmp3 = _mm256_unpackhi_ps(AVX::avx_cast<__m256>(v1.data()), AVX::avx_cast<__m256>(v1.data()));
+        const __m256 tmp4 = _mm256_unpacklo_ps(tmp0, tmp2);
+        const __m256 tmp5 = _mm256_unpackhi_ps(tmp0, tmp2);
+        const __m256 tmp6 = _mm256_unpacklo_ps(tmp1, tmp3);
+        const __m256 tmp7 = _mm256_unpackhi_ps(tmp1, tmp3);
+        const __m128i mask = _mm_set_epi32(0, -1, -1, -1);
+        _mm_maskstore_ps(reinterpret_cast<float *>(&data[i[0]]), mask, lo128(tmp4));
+        _mm_maskstore_ps(reinterpret_cast<float *>(&data[i[1]]), mask, lo128(tmp5));
+        _mm_maskstore_ps(reinterpret_cast<float *>(&data[i[2]]), mask, lo128(tmp6));
+        _mm_maskstore_ps(reinterpret_cast<float *>(&data[i[3]]), mask, lo128(tmp7));
+        _mm_maskstore_ps(reinterpret_cast<float *>(&data[i[4]]), mask, hi128(tmp4));
+        _mm_maskstore_ps(reinterpret_cast<float *>(&data[i[5]]), mask, hi128(tmp5));
+        _mm_maskstore_ps(reinterpret_cast<float *>(&data[i[6]]), mask, hi128(tmp6));
+        _mm_maskstore_ps(reinterpret_cast<float *>(&data[i[7]]), mask, hi128(tmp7));
+#else
+        interleave(data, i, v0, v1);
+        v2.scatter(data + 2, i);
+#endif
+    }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1,
+            const typename V::AsArg v2, const typename V::AsArg v3)
+    {
+        using namespace Vc::AVX;
+        const __m256 tmp0 = _mm256_unpacklo_ps(AVX::avx_cast<__m256>(v0.data()), AVX::avx_cast<__m256>(v2.data()));
+        const __m256 tmp1 = _mm256_unpackhi_ps(AVX::avx_cast<__m256>(v0.data()), AVX::avx_cast<__m256>(v2.data()));
+        const __m256 tmp2 = _mm256_unpacklo_ps(AVX::avx_cast<__m256>(v1.data()), AVX::avx_cast<__m256>(v3.data()));
+        const __m256 tmp3 = _mm256_unpackhi_ps(AVX::avx_cast<__m256>(v1.data()), AVX::avx_cast<__m256>(v3.data()));
+        const __m256 tmp4 = _mm256_unpacklo_ps(tmp0, tmp2);
+        const __m256 tmp5 = _mm256_unpackhi_ps(tmp0, tmp2);
+        const __m256 tmp6 = _mm256_unpacklo_ps(tmp1, tmp3);
+        const __m256 tmp7 = _mm256_unpackhi_ps(tmp1, tmp3);
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[0]]), lo128(tmp4));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[1]]), lo128(tmp5));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[2]]), lo128(tmp6));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[3]]), lo128(tmp7));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[4]]), hi128(tmp4));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[5]]), hi128(tmp5));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[6]]), hi128(tmp6));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[7]]), hi128(tmp7));
+    }/*}}}*/
+};
+template<typename V> struct InterleaveImpl<V, 4, 32> {
+    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1)
+    {
+        using namespace Vc::AVX;
+        const __m256d tmp0 = _mm256_unpacklo_pd(v0.data(), v1.data());
+        const __m256d tmp1 = _mm256_unpackhi_pd(v0.data(), v1.data());
+        _mm_storeu_pd(&data[i[0]], lo128(tmp0));
+        _mm_storeu_pd(&data[i[1]], lo128(tmp1));
+        _mm_storeu_pd(&data[i[2]], hi128(tmp0));
+        _mm_storeu_pd(&data[i[3]], hi128(tmp1));
+    }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
+    {
+        using namespace Vc::AVX;
+#ifdef VC_USE_MASKMOV_SCATTER
+        const __m256d tmp0 = _mm256_unpacklo_pd(v0.data(), v1.data());
+        const __m256d tmp1 = _mm256_unpackhi_pd(v0.data(), v1.data());
+        const __m256d tmp2 = _mm256_unpacklo_pd(v2.data(), v2.data());
+        const __m256d tmp3 = _mm256_unpackhi_pd(v2.data(), v2.data());
+
+        const __m256i mask = _mm256_set_epi64x(0, -1, -1, -1);
+        _mm256_maskstore_pd(&data[i[0]], mask, Mem::shuffle128<X0, Y0>(tmp0, tmp2));
+        _mm256_maskstore_pd(&data[i[1]], mask, Mem::shuffle128<X0, Y0>(tmp1, tmp3));
+        _mm256_maskstore_pd(&data[i[2]], mask, Mem::shuffle128<X1, Y1>(tmp0, tmp2));
+        _mm256_maskstore_pd(&data[i[3]], mask, Mem::shuffle128<X1, Y1>(tmp1, tmp3));
+#else
+        interleave(data, i, v0, v1);
+        v2.scatter(data + 2, i);
+#endif
+    }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1,
+            const typename V::AsArg v2, const typename V::AsArg v3)
+    {
+        using namespace Vc::AVX;
+        // 0a 1a 0c 1c:
+        const __m256d tmp0 = _mm256_unpacklo_pd(v0.data(), v1.data());
+        // 0b 1b 0b 1b:
+        const __m256d tmp1 = _mm256_unpackhi_pd(v0.data(), v1.data());
+        // 2a 3a 2c 3c:
+        const __m256d tmp2 = _mm256_unpacklo_pd(v2.data(), v3.data());
+        // 2b 3b 2b 3b:
+        const __m256d tmp3 = _mm256_unpackhi_pd(v2.data(), v3.data());
+        _mm256_storeu_pd(&data[i[0]], Mem::shuffle128<X0, Y0>(tmp0, tmp2));
+        _mm256_storeu_pd(&data[i[1]], Mem::shuffle128<X0, Y0>(tmp1, tmp3));
+        _mm256_storeu_pd(&data[i[2]], Mem::shuffle128<X1, Y1>(tmp0, tmp2));
+        _mm256_storeu_pd(&data[i[3]], Mem::shuffle128<X1, Y1>(tmp1, tmp3));
+    }/*}}}*/
+};
+} // anonymous namespace
+
+template<typename V> inline void InterleavedMemoryAccessBase<V>::interleave(const typename V::AsArg v0,/*{{{*/
+        const typename V::AsArg v1)
+{
+    InterleaveImpl<V, V::Size, sizeof(V)>::interleave(m_data, m_indexes, v0, v1);
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::interleave(const typename V::AsArg v0,/*{{{*/
+        const typename V::AsArg v1, const typename V::AsArg v2)
+{
+    InterleaveImpl<V, V::Size, sizeof(V)>::interleave(m_data, m_indexes, v0, v1, v2);
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::interleave(const typename V::AsArg v0,/*{{{*/
+        const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3)
+{
+    InterleaveImpl<V, V::Size, sizeof(V)>::interleave(m_data, m_indexes, v0, v1, v2, v3);
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::interleave(const typename V::AsArg v0,/*{{{*/
+        const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4)
+{
+    InterleaveImpl<V, V::Size, sizeof(V)>::interleave(m_data, m_indexes, v0, v1, v2, v3);
+    v4.scatter(m_data + 4, m_indexes);
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::interleave(const typename V::AsArg v0,/*{{{*/
+        const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4,
+        const typename V::AsArg v5)
+{
+    InterleaveImpl<V, V::Size, sizeof(V)>::interleave(m_data    , m_indexes, v0, v1, v2, v3);
+    InterleaveImpl<V, V::Size, sizeof(V)>::interleave(m_data + 4, m_indexes, v4, v5);
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::interleave(const typename V::AsArg v0,/*{{{*/
+        const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4,
+        const typename V::AsArg v5, const typename V::AsArg v6)
+{
+    InterleaveImpl<V, V::Size, sizeof(V)>::interleave(m_data + 0, m_indexes, v0, v1, v2, v3);
+    InterleaveImpl<V, V::Size, sizeof(V)>::interleave(m_data + 4, m_indexes, v4, v5, v6);
+}/*}}}*/
+template<typename V> inline void InterleavedMemoryAccessBase<V>::interleave(const typename V::AsArg v0,/*{{{*/
+        const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4,
+        const typename V::AsArg v5, const typename V::AsArg v6, const typename V::AsArg v7)
+{
+    InterleaveImpl<V, V::Size, sizeof(V)>::interleave(m_data + 0, m_indexes, v0, v1, v2, v3);
+    InterleaveImpl<V, V::Size, sizeof(V)>::interleave(m_data + 4, m_indexes, v4, v5, v6, v7);
+}/*}}}*/
+
 template<> inline void InterleavedMemoryAccessBase<float_v>::deinterleave(float_v &v0, float_v &v1) const/*{{{*/
 {
     const __m128  il0 = _mm_loadl_pi(_mm_setzero_ps(), reinterpret_cast<__m64 const *>(&m_data[m_indexes[0]])); // a0 b0
