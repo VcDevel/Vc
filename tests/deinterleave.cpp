@@ -197,7 +197,7 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
 size_t createNMask(size_t N)
 {
     size_t NMask = (N >> 1) | (N >> 2);
-    for (int shift = 2; shift <= sizeof(size_t) * 8; shift *= 2) {
+    for (size_t shift = 2; shift <= sizeof(size_t) * 8; shift *= 2) {
         NMask |= NMask >> shift;
     }
     return NMask;
