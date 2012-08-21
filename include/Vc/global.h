@@ -179,13 +179,15 @@
 #  define VC_USE_VEX_CODING 1
 #endif
 
+#ifdef VC_IMPL_AVX
 // There are no explicit switches for FMA4/XOP in Vc yet, so enable it when the compiler
-// says it's active
+// says it's active and AVX is enabled
 #ifdef __FMA4__
 #  define VC_IMPL_FMA4 1
 #endif
 #ifdef __XOP__
 #  define VC_IMPL_XOP 1
+#endif
 #endif
 
 #if defined(VC_GCC) && VC_GCC < 0x40300 && !defined(VC_IMPL_Scalar)
