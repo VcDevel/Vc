@@ -41,6 +41,22 @@ namespace Common
         }
     }
 
+    /*
+     * algorithm for sine and cosine:
+     *
+     * The result can be calculated with sine or cosine depending on the π/4 section the input is
+     * in.
+     * sine   ≈ x + x³
+     * cosine ≈ 1 - x²
+     *
+     * sine:
+     * Map -x to x and invert the output
+     * Extend precision of x - n * π/4 by calculating
+     * ((x - n * p1) - n * p2) - n * p3 (p1 + p2 + p3 = π/4)
+     *
+     * Calculate improved Taylor series.
+     * Fix sign.
+     */
     template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
         typedef Vector<T> V;
         typedef Const<T> C;
