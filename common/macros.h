@@ -219,10 +219,10 @@ namespace Vc {
         Value = (X == 0 ? 1 : X)
     }; };
     template<int center> struct exponentToMultiplier<center,center> { enum { X = 1, Value = X }; };
-    template<int center> struct exponentToMultiplier<   -1, center> { enum { X = 0 }; };
-    template<int center> struct exponentToMultiplier< -256, center> { enum { X = 0 }; };
-    template<int center> struct exponentToMultiplier< -512, center> { enum { X = 0 }; };
-    template<int center> struct exponentToMultiplier<-1024, center> { enum { X = 0 }; };
+    template<int center> struct exponentToMultiplier<   -1, center> { enum { X = 0, Value = X }; };
+    template<int center> struct exponentToMultiplier< -256, center> { enum { X = 0, Value = X }; };
+    template<int center> struct exponentToMultiplier< -512, center> { enum { X = 0, Value = X }; };
+    template<int center> struct exponentToMultiplier<-1024, center> { enum { X = 0, Value = X }; };
 
     template<int e> struct exponentToDivisor { enum {
         X = exponentToDivisor<e + 1>::X * 2,
