@@ -43,6 +43,7 @@ namespace SSE
         static inline ALWAYS_INLINE_L CONST_L V _1_5fac()      ALWAYS_INLINE_R CONST_R { return V(&c_sin<T>::data[5 * V::Size]); }
         static inline ALWAYS_INLINE_L CONST_L V _1_7fac()      ALWAYS_INLINE_R CONST_R { return V(&c_sin<T>::data[6 * V::Size]); }
         static inline ALWAYS_INLINE_L CONST_L V _1_9fac()      ALWAYS_INLINE_R CONST_R { return V(&c_sin<T>::data[7 * V::Size]); }
+        static inline ALWAYS_INLINE_L CONST_L V highMask()     ALWAYS_INLINE_R CONST_R;
 
         static inline ALWAYS_INLINE_L CONST_L M exponentMask() ALWAYS_INLINE_R CONST_R { return M(V(c_log<T>::d(1)).data()); }
         static inline ALWAYS_INLINE_L CONST_L V _1_2()         ALWAYS_INLINE_R CONST_R { return V(c_log<T>::d(18)); }
@@ -56,6 +57,8 @@ namespace SSE
         static inline ALWAYS_INLINE_L CONST_L V log10_e()      ALWAYS_INLINE_R CONST_R { return V(c_log<T>::d(19)); }
         static inline ALWAYS_INLINE_L CONST_L V log2_e()       ALWAYS_INLINE_R CONST_R { return V(c_log<T>::d(20)); }
     };
+    template<> inline CONST ALWAYS_INLINE Vector<float> Const<float>::highMask() { return Vector<float>(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }
+    template<> inline CONST ALWAYS_INLINE Vector<double> Const<double>::highMask() { return Vector<double>(reinterpret_cast<const double *>(&c_general::highMaskDouble)); }
 #define VC_FLOAT8_CONST_IMPL(name) \
     template<> inline ALWAYS_INLINE CONST Vector<float8> Const<float8>::name() { \
         return M256::dup(Const<float>::name().data()); \
@@ -68,6 +71,7 @@ namespace SSE
     VC_FLOAT8_CONST_IMPL(_1_5fac)
     VC_FLOAT8_CONST_IMPL(_1_7fac)
     VC_FLOAT8_CONST_IMPL(_1_9fac)
+    VC_FLOAT8_CONST_IMPL(highMask)
     VC_FLOAT8_CONST_IMPL(_1_2)
     VC_FLOAT8_CONST_IMPL(_1_sqrt2)
     VC_FLOAT8_CONST_IMPL(min)

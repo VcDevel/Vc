@@ -41,7 +41,9 @@ struct c_general
     ALIGN(16) static const int absMaskFloat[4];
     ALIGN(16) static const long long absMaskDouble[2];
     ALIGN(16) static const unsigned int signMaskFloat[4];
+    ALIGN(16) static const unsigned int highMaskFloat[4];
     ALIGN(16) static const unsigned long long signMaskDouble[2];
+    ALIGN(16) static const unsigned long long highMaskDouble[2];
     ALIGN(16) static const short minShort[8];
     ALIGN(16) static const unsigned long long frexpMask[2];
 };
