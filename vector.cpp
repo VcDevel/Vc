@@ -69,12 +69,14 @@ namespace AVX
 
     const unsigned       int c_general::absMaskFloat[2] = { 0xffffffffu, 0x7fffffffu };
     const unsigned       int c_general::signMaskFloat[2] = { 0x0u, 0x80000000u };
+    const unsigned       int c_general::highMaskFloat = 0xfffff000u;
     const              float c_general::oneFloat = 1.f;
     const unsigned     short c_general::minShort[2] = { 0x8000u, 0x8000u };
     const unsigned     short c_general::one16[2] = { 1, 1 };
     const              float c_general::_2power31 = 1u << 31;
 
     // cacheline 4
+    const unsigned long long c_general::highMaskDouble = 0xfffffffff8000000ull;
     const             double c_general::oneDouble = 1.;
     const unsigned long long c_general::frexpMask = 0xbfefffffffffffffull;
 
