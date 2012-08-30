@@ -33,6 +33,17 @@ using namespace Vc;
 #undef isnan
 #endif
 
+struct SincosReference
+{
+    const float x, s, c;
+    const float n;
+    const float xx;
+};
+const SincosReference sincosReference[] = {
+#include "sincos-reference.dat"
+  { 0, 0, 0x3f800000, 0, 0 }
+};
+
 template<typename T> struct Denormals { static T *data; };
 template<> float  *Denormals<float >::data = 0;
 template<> double *Denormals<double>::data = 0;
@@ -294,6 +305,24 @@ template<typename V> void testSin()
             FUZZY_COMPARE(Vc::sin(x), x.apply(_sin<T>)) << " x = " << x;
             x *= T(2);
         }
+    }
+}
+
+template<> void testSin<float_v>()
+{
+    typedef float T;
+    setFuzzyness<float>(0);
+    for (size_t i = 0; i < sizeof(sincosReference) / sizeof(SincosReference); i += float_v::Size) {
+        float_v x, sref, nref, xref;
+        for (int j = 0; j < float_v::Size; ++j) {
+            x[j] = sincosReference[i + j].x;
+            sref[j] = sincosReference[i + j].s;
+            nref[j] = sincosReference[i + j].n;
+            xref[j] = sincosReference[i + j].xx;
+        }
+        //Vc::sin(x);
+        FUZZY_COMPARE(Vc::sin(x), sref) << " x = " << x << ", nref = " << nref << ", xref = " << std::setprecision(25) << xref;
+        FUZZY_COMPARE(Vc::sin(-x), -sref) << " x = " << x << ", nref = " << nref << ", xref = " << std::setprecision(25) << xref;
     }
 }
 
