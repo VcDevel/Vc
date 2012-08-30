@@ -20,6 +20,11 @@
 #ifndef VC_COMMON_TRIGONOMETRIC_H
 #define VC_COMMON_TRIGONOMETRIC_H
 
+//#define VC_DEBUG_TRIGONOMETRIC
+#ifdef VC_DEBUG_TRIGONOMETRIC
+#include <iostream>
+#include <iomanip>
+#endif
 #include "const.h"
 #include "macros.h"
 
@@ -90,6 +95,9 @@ namespace Common
             const V n2 = n - n1;
             x = x - n1 * somePi1 - (n1 * somePi2 + n2 * somePi1) - n2 * somePi2;
             correction = n * somePi3;
+#ifdef VC_DEBUG_TRIGONOMETRIC
+            std::cerr << "very large input, fold: " << _x << "\t" << n << "\t" << x << "\t" << correction << "\n";
+#endif
         }
 
         // ñ = ⌊4x/π⌋
@@ -142,6 +150,9 @@ namespace Common
             const V nn = round(n * Vc_buildFloat(1, 0x4B8728, -13));
             x = (x - nn * cc1) - nn * cc2;
             correction += nn * cc3;
+#ifdef VC_DEBUG_TRIGONOMETRIC
+            std::cerr << "medium n: " << n << ", " << nn << ", " << x << "\n";
+#endif
             n -= nn * T(5152);
 
             /*
@@ -188,9 +199,23 @@ namespace Common
         V sin_s = x + xh2 * (xh * sc3h); // precise
         sin_s += (sc3h * xl) * (x2 + x * xh + xh2) + (sc3l * x) * x2 + ((x2 * sc7 + sc5) * x2) * (x2 * x);
 
+#ifdef VC_DEBUG_TRIGONOMETRIC
+        const V foldedX = x;
+#endif
+
         x = cos_s;
         x(evenN) = sin_s;
         x(negative) = -x;
+#ifdef VC_DEBUG_TRIGONOMETRIC
+        for (int i = 0; i < V::Size; ++i) {
+            std::cerr << std::setprecision(25) << _x[i]
+                << "\t" << n[i] << "\t" << foldedX[i]
+                << "\t" << evenN[i] << "\t" << negative[i]
+                << "\t" << cos_s[i] << "\t" << sin_s[i]
+                << "\t" << x[i]
+                << "\n";
+        }
+#endif
         return x;
     }
     template<typename T> static inline Vector<T> cos(const Vector<T> &_x) {
