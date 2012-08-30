@@ -44,6 +44,7 @@ namespace SSE
         static inline ALWAYS_INLINE_L CONST_L V _1_7fac()      ALWAYS_INLINE_R CONST_R { return V(&c_sin<T>::data[6 * V::Size]); }
         static inline ALWAYS_INLINE_L CONST_L V _1_9fac()      ALWAYS_INLINE_R CONST_R { return V(&c_sin<T>::data[7 * V::Size]); }
         static inline ALWAYS_INLINE_L CONST_L V highMask()     ALWAYS_INLINE_R CONST_R;
+        static inline ALWAYS_INLINE_L CONST_L V highMask(int bits) ALWAYS_INLINE_R CONST_R;
 
         static inline ALWAYS_INLINE_L CONST_L M exponentMask() ALWAYS_INLINE_R CONST_R { return M(V(c_log<T>::d(1)).data()); }
         static inline ALWAYS_INLINE_L CONST_L V _1_2()         ALWAYS_INLINE_R CONST_R { return V(c_log<T>::d(18)); }
@@ -59,6 +60,8 @@ namespace SSE
     };
     template<> inline CONST ALWAYS_INLINE Vector<float> Const<float>::highMask() { return Vector<float>(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }
     template<> inline CONST ALWAYS_INLINE Vector<double> Const<double>::highMask() { return Vector<double>(reinterpret_cast<const double *>(&c_general::highMaskDouble)); }
+    template<> inline CONST ALWAYS_INLINE Vector<float> Const<float>::highMask(int bits) { return _mm_castsi128_ps(_mm_slli_epi32(_mm_setallone_si128(), bits)); }
+    template<> inline CONST ALWAYS_INLINE Vector<double> Const<double>::highMask(int bits) { return _mm_castsi128_pd(_mm_slli_epi64(_mm_setallone_si128(), bits)); }
 #define VC_FLOAT8_CONST_IMPL(name) \
     template<> inline ALWAYS_INLINE CONST Vector<float8> Const<float8>::name() { \
         return M256::dup(Const<float>::name().data()); \
@@ -80,6 +83,9 @@ namespace SSE
     VC_FLOAT8_CONST_IMPL(neginf)
     VC_FLOAT8_CONST_IMPL(log10_e)
     VC_FLOAT8_CONST_IMPL(log2_e)
+    template<> inline ALWAYS_INLINE CONST Vector<float8> Const<float8>::highMask(int bits) {
+        return M256::dup(Const<float>::highMask(bits).data());
+    }
     template<> inline ALWAYS_INLINE CONST Vector<float8> Const<float8>::P(int i) {
         return M256::dup(Const<float>::P(i).data());
     }
