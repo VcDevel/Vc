@@ -279,18 +279,21 @@ template<typename Vec> void testSincos()
     }
 }
 
-template<typename Vec> void testSin()
-{
-    typedef typename Vec::EntryType T;
-    setFuzzyness<float>(751);
-    setFuzzyness<double>(3.17318e+10); // FIXME: way too large!
-    for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
-        const T scale = T(0.01);
-        FillHelperMemory(std::sin((i + offset) * scale));
-        Vec a(data);
-        Vec b(reference);
+template<typename T> T _sin(T x) { return std::sin(x); }
 
-        FUZZY_COMPARE(Vc::sin((a + offset) * scale), b) << " failed at sin(" << (a + offset) * scale << ")";
+template<typename V> void testSin()
+{
+    typedef typename V::EntryType T;
+    setFuzzyness<float>(1);
+    setFuzzyness<double>(3.17318e+10); // FIXME: way too large!
+    for (int i = 0; i < 10000; ++i) {
+        V x = V::Random() * T(0.1) + T(3.0915);
+        for (int j = 0; j < 12; ++j) {
+            FUZZY_COMPARE(Vc::sin(x), x.apply(_sin<T>)) << " x = " << x;
+            x = -x;
+            FUZZY_COMPARE(Vc::sin(x), x.apply(_sin<T>)) << " x = " << x;
+            x *= T(2);
+        }
     }
 }
 
