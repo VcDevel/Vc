@@ -91,7 +91,9 @@ class _UnitTest_Global_Object
             only_name(0),
             failedTests(0), passedTests(0),
             findMaximumDistance(false),
-            maximumDistance(0)
+            maximumDistance(0),
+            meanDistance(0),
+            meanCount(0)
         {
         }
 
@@ -121,6 +123,8 @@ class _UnitTest_Global_Object
         int passedTests;
         bool findMaximumDistance;
         double maximumDistance;
+        double meanDistance;
+        int meanCount;
 };
 
 static _UnitTest_Global_Object _unit_test_global;
@@ -182,6 +186,8 @@ void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
         setFuzzyness<float>(1);
         setFuzzyness<double>(1);
         maximumDistance = 0.;
+        meanDistance = 0.;
+        meanCount = 0;
         fun();
     } catch(_UnitTest_Failure) {
     }
@@ -195,13 +201,20 @@ void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
         }
     } else {
         if (!_unit_test_global.status) {
+            if (findMaximumDistance) {
+                std::cout << _unittest_fail() << "│ with a maximal distance of " << maximumDistance << " to the reference (mean: " << meanDistance / meanCount << ").\n";
+            }
             std::cout << _unittest_fail() << "┕ " << name << std::endl;
             ++failedTests;
         } else {
             printPass();
             std::cout << name;
-            if (findMaximumDistance && maximumDistance > 0.) {
-                std::cout << " with a maximal distance of " << maximumDistance << " to the reference.";
+            if (findMaximumDistance) {
+                if (maximumDistance > 0.) {
+                    std::cout << " with a maximal distance of " << maximumDistance << " to the reference (mean: " << meanDistance / meanCount << ").";
+                } else {
+                    std::cout << " all values matched the reference precisely.";
+                }
             }
             std::cout << std::endl;
             ++passedTests;
@@ -222,6 +235,8 @@ template<typename T> T ulpDiffToReferenceWrapper(T a, T b) {
     const T diff = ulpDiffToReference(a, b);
     if (VC_IS_UNLIKELY(_unit_test_global.findMaximumDistance)) {
         _unit_test_global.maximumDistance = std::max<double>(diff, _unit_test_global.maximumDistance);
+        _unit_test_global.meanDistance += std::abs(diff);
+        ++_unit_test_global.meanCount;
     }
     return diff;
 }
@@ -229,6 +244,8 @@ template<typename T> Vc::Vector<T> ulpDiffToReferenceWrapper(Vc::Vector<T> a, Vc
     const Vc::Vector<T> diff = ulpDiffToReference(a, b);
     if (VC_IS_UNLIKELY(_unit_test_global.findMaximumDistance)) {
         _unit_test_global.maximumDistance = std::max<double>(diff.max(), _unit_test_global.maximumDistance);
+        _unit_test_global.meanDistance += Vc::abs(diff).sum();
+        _unit_test_global.meanCount += Vc::Vector<T>::Size;
     }
     return diff;
 }
