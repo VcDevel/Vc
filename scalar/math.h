@@ -127,6 +127,15 @@ template<typename T> static inline Vector<T> atan2(const Vector<T> &x, const Vec
     return Vector<T>(std::atan2( x.data(), y.data() ));
 }
 
+template<typename T> static inline Vector<T> trunc(const Vector<T> &x)
+{
+#if __cplusplus >= 201103 /*C++11*/
+    return std::trunc(x);
+#else
+    return x.data() > 0 ? std::floor(x.data()) : std::ceil(x.data());
+#endif
+}
+
 template<typename T> static inline Vector<T> floor(const Vector<T> &x)
 {
     return Vector<T>(std::floor(x.data()));

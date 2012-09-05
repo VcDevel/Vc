@@ -69,6 +69,42 @@ template<typename Vec> void testAbs()
     }
 }
 
+static inline float my_trunc(float x)
+{
+#if __cplusplus >= 201103 /*C++11*/
+    return std::trunc(x);
+#elif defined(_ISOC99_SOURCE)
+    return truncf(x);
+#else
+    return x > 0 ? std::floor(x) : std::ceil(x);
+#endif
+}
+
+static inline double my_trunc(double x)
+{
+#if __cplusplus >= 201103 /*C++11*/
+    return std::trunc(x);
+#elif defined(_ISOC99_SOURCE)
+    return trunc(x);
+#else
+    return x > 0 ? std::floor(x) : std::ceil(x);
+#endif
+}
+
+template<typename V> void testTrunc()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+    for (size_t i = 0; i < 100000 / V::Size; ++i) {
+        V x = (V::Random() - T(0.5)) * T(100);
+        V reference = apply_v(x, my_trunc);
+        COMPARE(Vc::trunc(x), reference) << ", x = " << x << ", i = " << i;
+    }
+    V x = static_cast<V>(I::IndexesFromZero());
+    V reference = apply_v(x, my_trunc);
+    COMPARE(Vc::trunc(x), reference) << ", x = " << x;
+}
+
 template<typename V> void testFloor()
 {
     typedef typename V::EntryType T;
@@ -703,6 +739,7 @@ int main(int argc, char **argv)
 
     testRealTypes(testUlpDiff);
 
+    testRealTypes(testTrunc);
     testRealTypes(testFloor);
     testRealTypes(testCeil);
     testRealTypes(testExp);

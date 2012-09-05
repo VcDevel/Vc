@@ -58,6 +58,7 @@ namespace Vc
   using VECTOR_NAMESPACE::asin;
   using VECTOR_NAMESPACE::cos;
   using VECTOR_NAMESPACE::sincos;
+  using VECTOR_NAMESPACE::trunc;
   using VECTOR_NAMESPACE::floor;
   using VECTOR_NAMESPACE::ceil;
   using VECTOR_NAMESPACE::exp;
