@@ -22,6 +22,7 @@
 #include <iostream>
 #include <limits>
 #include <Vc/limits>
+#include "../common/macros.h"
 
 using namespace Vc;
 
@@ -399,9 +400,62 @@ template<typename Vec> void testSum()
     }
 }
 
+template<typename V> void fma()
+{
+    for (int i = 0; i < 1000; ++i) {
+        V a = V::Random();
+        const V b = V::Random();
+        const V c = V::Random();
+        const V reference = a * b + c;
+        a.fusedMultiplyAdd(b, c);
+        COMPARE(a, reference) << ", a = " << a << ", b = " << b << ", c = " << c;
+    }
+}
+
+template<> void fma<float_v>()
+{
+    const float_v b = Vc_buildFloat(1, 0x000002, 0);
+    const float_v c = Vc_buildFloat(1, 0x000000, -24);
+    float_v a = b;
+    a *= b;
+    a += c;
+    COMPARE(a, float_v(Vc_buildFloat(1, 0x000004, 0)));
+    a = b;
+    a.fusedMultiplyAdd(b, c);
+    COMPARE(a, float_v(Vc_buildFloat(1, 0x000005, 0)));
+}
+
+template<> void fma<sfloat_v>()
+{
+    const sfloat_v b = Vc_buildFloat(1, 0x000002, 0);
+    const sfloat_v c = Vc_buildFloat(1, 0x000000, -24);
+    sfloat_v a = b;
+    a *= b;
+    a += c;
+    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000004, 0)));
+    a = b;
+    a.fusedMultiplyAdd(b, c);
+    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000005, 0)));
+}
+
+template<> void fma<double_v>()
+{
+    const double_v b = Vc_buildDouble(1, 0x0000000000002, 0);
+    const double_v c = Vc_buildDouble(1, 0x0000000000000, -53);
+    double_v a = b;
+    a *= b;
+    a += c;
+    COMPARE(a, double_v(Vc_buildDouble(1, 0x0000000000004, 0)));
+    a = b;
+    a.fusedMultiplyAdd(b, c);
+    COMPARE(a, double_v(Vc_buildDouble(1, 0x0000000000005, 0)));
+}
+
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
+
+    testAllTypes(fma);
 
     runTest(testZero<int_v>);
     runTest(testZero<uint_v>);
