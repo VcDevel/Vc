@@ -375,6 +375,19 @@ VECTOR_TYPE operator|(VECTOR_TYPE x) const;
 VECTOR_TYPE operator&(VECTOR_TYPE x) const;
 /// Returns a new vector with the binary xor of the respective entries of the left and right vector.
 VECTOR_TYPE operator^(VECTOR_TYPE x) const;
+/**
+ * Multiplies this vector with \p factor and then adds \p summand, without rounding between the
+ * multiplication and the addition.
+ *
+ * \param factor The multiplication factor.
+ * \param summand The summand that will be added after multiplication.
+ *
+ * \note This operation may have explicit hardware support, in which case it is normally faster to
+ * use the FMA instead of separate multiply and add instructions.
+ * \note If the target hardware does not have FMA support this function will be considerably slower
+ * than a normal a * b + c. This is due to the increased precision fusedMultiplyAdd provides.
+ */
+void fusedMultiplyAdd(VECTOR_TYPE factor, VECTOR_TYPE summand);
 //@}
 
 /**

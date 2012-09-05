@@ -172,7 +172,20 @@ namespace SSE
             static inline VectorType zero() PURE { return CAT(_mm_setzero_, SUFFIX)(); }
             static inline VectorType one()  PURE { return CAT(_mm_setone_, SUFFIX)(); }// set(1.); }
 
-            static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+#ifdef VC_IMPL_FMA4
+#warning "Argument order of _mm_macc_pd unknown!"
+            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
+                v1 = _mm_macc_pd(v1, v2, v3);
+            }
+#else
+            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
+                VectorType h1 = _mm_and_pd(v1, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                VectorType l1 = _mm_sub_pd(v1, h1);
+                VectorType h2 = _mm_and_pd(v2, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                VectorType l2 = _mm_sub_pd(v2, h2);
+                v1 = add(add(add(add(v3, mul(l1, l2)), mul(l1, h2)), mul(h1, l2)), mul(h1, h2));
+            }
+#endif
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) PURE {
                 _M128D mask = _mm_castps_pd(_mask);
                 return _mm_or_pd(
@@ -244,7 +257,20 @@ namespace SSE
             static inline VectorType one()  PURE { return CAT(_mm_setone_, SUFFIX)(); }// set(1.f); }
             static inline _M128 concat(_M128D a, _M128D b) PURE { return _mm_movelh_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b)); }
 
-            static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+#ifdef VC_IMPL_FMA4
+#warning "Argument order of _mm_macc_ps unknown!"
+            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
+                v1 = _mm_macc_ps(v1, v2, v3);
+            }
+#else
+            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
+                VectorType h1 = _mm_and_ps(v1, _mm_load_ps(reinterpret_cast<const float *>(&c_general::highMaskFloat)));
+                VectorType l1 = _mm_sub_ps(v1, h1);
+                VectorType h2 = _mm_and_ps(v2, _mm_load_ps(reinterpret_cast<const float *>(&c_general::highMaskFloat)));
+                VectorType l2 = _mm_sub_ps(v2, h2);
+                v1 = add(add(add(add(v3, mul(l1, l2)), mul(l1, h2)), mul(h1, l2)), mul(h1, h2));
+            }
+#endif
             static inline VectorType mul(VectorType a, VectorType b, _M128 mask) PURE {
                 return _mm_or_ps(
                     _mm_and_ps(mask, _mm_mul_ps(a, b)),
@@ -371,9 +397,9 @@ namespace SSE
                 return VectorHelper<float>::add(VectorHelper<float>::add(a[0], a[1]));
             }
 
-            static inline void multiplyAndAdd(VectorType &a, const VectorType &b, const VectorType &c) {
-                VectorHelper<float>::multiplyAndAdd(a[0], b[0], c[0]);
-                VectorHelper<float>::multiplyAndAdd(a[1], b[1], c[1]);
+            static inline void fma(VectorType &a, const VectorType &b, const VectorType &c) {
+                VectorHelper<float>::fma(a[0], b[0], c[0]);
+                VectorHelper<float>::fma(a[1], b[1], c[1]);
             }
             REUSE_FLOAT_IMPL3(mul)
 #undef REUSE_FLOAT_IMPL3
@@ -396,7 +422,7 @@ namespace SSE
             static inline VectorType set(const int a) PURE { return CAT(_mm_set1_, SUFFIX)(a); }
             static inline VectorType set(const int a, const int b, const int c, const int d) PURE { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
 
-            static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
             static inline VectorType shiftLeft(VectorType a, int shift) {
                 return CAT(_mm_slli_, SUFFIX)(a, shift);
@@ -494,6 +520,8 @@ namespace SSE
                 return _mm_cvtsi128_si32(a);
             }
 
+            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+
             static inline VectorType mul(const VectorType a, const VectorType b, _M128 _mask) PURE {
                 return _mm_blendv_epi8(a, mul(a, b), _mm_castps_si128(_mask));
             }
@@ -581,7 +609,7 @@ namespace SSE
                 return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
 
-            static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) {
+            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
                 v1 = add(mul(v1, v2), v3); }
 
             OP1(abs)
@@ -690,6 +718,9 @@ namespace SSE
             static inline VectorType shiftRight(VectorType a, int shift) {
                 return CAT(_mm_srli_, SUFFIX)(a, shift);
             }
+
+            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+
             OPx(mul, mullo) // should work correctly for all values
 #if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(VC_IMPL_SSE4_1)
             OP(min) OP(max) // XXX breaks for values with MSB set

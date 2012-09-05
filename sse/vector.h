@@ -352,8 +352,8 @@ template<typename T> class Vector
         OPcmp(<=, cmple)
 #undef OPcmp
 
-        inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
-            VectorHelper<T>::multiplyAndAdd(data(), factor, summand);
+        inline void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
+            VectorHelper<T>::fma(data(), factor.data(), summand.data());
         }
 
         inline void assign( const Vector<T> &v, const Mask &mask ) {

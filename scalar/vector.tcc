@@ -112,6 +112,47 @@ template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
     return double_v(static_cast<double>((value.i >> 52) - 0x3ff));
 }
 // }}}1
+// FMA {{{1
+static inline ALWAYS_INLINE float highBits(float x)
+{
+    union {
+        float f;
+        unsigned int i;
+    } y;
+    y.f = x;
+    y.i &= 0xfffff000u;
+    return y.f;
+}
+static inline ALWAYS_INLINE double highBits(double x)
+{
+    union {
+        double f;
+        unsigned long long i;
+    } y;
+    y.f = x;
+    y.i &= 0xfffffffff8000000ull;
+    return y.f;
+}
+template<typename T> inline ALWAYS_INLINE T _fusedMultiplyAdd(T a, T b, T c)
+{
+    const T h1 = highBits(a);
+    const T l1 = a - h1;
+    const T h2 = highBits(b);
+    const T l2 = b - h2;
+    return (((c + l1 * l2) + l1 * h2) + h1 * l2) + h1 * h2;
+}
+template<> inline ALWAYS_INLINE void float_v::fusedMultiplyAdd(const float_v &f, const float_v &s)
+{
+    data() = _fusedMultiplyAdd(data(), f.data(), s.data());
+}
+template<> inline ALWAYS_INLINE void sfloat_v::fusedMultiplyAdd(const sfloat_v &f, const sfloat_v &s)
+{
+    data() = _fusedMultiplyAdd(data(), f.data(), s.data());
+}
+template<> inline ALWAYS_INLINE void double_v::fusedMultiplyAdd(const double_v &f, const double_v &s)
+{
+    data() = _fusedMultiplyAdd(data(), f.data(), s.data());
+}
 // Random {{{1
 static inline ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)

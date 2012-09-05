@@ -225,13 +225,8 @@ class Vector
 #undef OPshift
 #undef OPshift_int
 
-        inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
-            m_data *= factor;
-            m_data += summand;
-        }
-
-        inline Vector<T> multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) const {
-            return Vector<T>( m_data * factor.m_data + summand.m_data );
+        inline void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
+            m_data = m_data * factor.data() + summand.data();
         }
 
         inline void assign(const Vector<T> &v, const Mask &m) {
