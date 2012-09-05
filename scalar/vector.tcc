@@ -95,7 +95,7 @@ VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_DOUBLE)
 // exponent {{{1
 template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
 {
-    VC_ASSERT(m_data > 0.f);
+    VC_ASSERT(m_data >= 0.f);
     union { float f; int i; } value;
     value.f = m_data;
     return float_v(static_cast<float>((value.i >> 23) - 0x7f));
@@ -106,7 +106,7 @@ template<> inline sfloat_v INTRINSIC Vector<sfloat>::exponent() const
 }
 template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
 {
-    VC_ASSERT(m_data > 0.);
+    VC_ASSERT(m_data >= 0.);
     union { double f; long long i; } value;
     value.f = m_data;
     return double_v(static_cast<double>((value.i >> 52) - 0x3ff));

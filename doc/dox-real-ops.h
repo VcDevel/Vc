@@ -50,8 +50,9 @@ inline VECTOR_TYPE copySign(VECTOR_TYPE reference) const;
 \endverbatim
  *
  * \warning This function assumes a positive value (non-zero). If the value is negative the sign bit will
- * modify the returned value. If you compile with Vc runtime checks the function will assert
- * values greater than zero.
+ * modify the returned value. An input value of zero will return the bias of the floating-point
+ * representation. If you compile with Vc runtime checks, the function will assert
+ * values greater than or equal to zero.
  *
  * You may use abs to apply this function to negative values:
  * \code

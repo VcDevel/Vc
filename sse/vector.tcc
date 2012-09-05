@@ -1311,14 +1311,14 @@ template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<doubl
 // exponent {{{1
 template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
 {
-    VC_ASSERT((*this > 0.f).isFull());
+    VC_ASSERT((*this >= 0.f).isFull());
     __m128i tmp = _mm_srli_epi32(_mm_castps_si128(d.v()), 23);
     tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x7f));
     return _mm_cvtepi32_ps(tmp);
 }
 template<> inline Vector<float8> INTRINSIC Vector<float8>::exponent() const
 {
-    VC_ASSERT((*this > 0.f).isFull());
+    VC_ASSERT((*this >= 0.f).isFull());
     __m128i tmp0 = _mm_srli_epi32(_mm_castps_si128(d.v()[0]), 23);
     __m128i tmp1 = _mm_srli_epi32(_mm_castps_si128(d.v()[1]), 23);
     tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
@@ -1327,7 +1327,7 @@ template<> inline Vector<float8> INTRINSIC Vector<float8>::exponent() const
 }
 template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
 {
-    VC_ASSERT((*this > 0.).isFull());
+    VC_ASSERT((*this >= 0.).isFull());
     __m128i tmp = _mm_srli_epi64(_mm_castpd_si128(d.v()), 52);
     tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x3ff));
     return _mm_cvtepi32_pd(_mm_shuffle_epi32(tmp, 0x08));
