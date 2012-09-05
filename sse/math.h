@@ -145,6 +145,24 @@ namespace SSE
     }
 
     template<typename T>
+    inline Vector<T> trunc(Vector<T> _v) {
+        typedef Vector<T> V;
+        typedef typename V::Mask M;
+
+        V v = _v;
+        V e = abs(v).exponent();
+        const M negativeExponent = e < 0;
+        e.setZero(negativeExponent);
+        //const M negativeInput = v < V::Zero();
+
+        floor_shift(v, e);
+
+        v.setZero(negativeExponent);
+        //v(negativeInput && _v != v) -= V::One();
+        return v;
+    }
+
+    template<typename T>
     inline Vector<T> floor(Vector<T> _v) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
