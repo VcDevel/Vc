@@ -179,11 +179,21 @@ namespace SSE
             }
 #else
             static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
-                VectorType h1 = _mm_and_pd(v1, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
-                VectorType l1 = _mm_sub_pd(v1, h1);
-                VectorType h2 = _mm_and_pd(v2, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
-                VectorType l2 = _mm_sub_pd(v2, h2);
-                v1 = add(add(add(add(v3, mul(l1, l2)), mul(l1, h2)), mul(h1, l2)), mul(h1, h2));
+                const VectorType h1 = _mm_and_pd(v1, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                const VectorType l1 = _mm_sub_pd(v1, h1);
+                const VectorType h2 = _mm_and_pd(v2, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                const VectorType l2 = _mm_sub_pd(v2, h2);
+                const VectorType ll = mul(l1, l2);
+                const VectorType lh = add(mul(l1, h2), mul(h1, l2));
+                const VectorType hh = mul(h1, h2);
+                // ll < lh < hh for all entries is certain
+                const VectorType lh_lt_v3 = cmplt(abs(lh), abs(v3)); // |lh| < |v3|
+                const VectorType hh_lt_v3 = cmplt(abs(hh), abs(v3)); // |hh| < |v3|
+                const VectorType a = ll;
+                const VectorType b = _mm_blendv_pd(v3, lh, lh_lt_v3);
+                const VectorType c = _mm_blendv_pd(_mm_blendv_pd(lh, v3, lh_lt_v3), hh, hh_lt_v3);
+                const VectorType d = _mm_blendv_pd(hh, v3, hh_lt_v3);
+                v1 = add(add(a, b), add(c, d));
             }
 #endif
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) PURE {
@@ -264,11 +274,15 @@ namespace SSE
             }
 #else
             static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
-                VectorType h1 = _mm_and_ps(v1, _mm_load_ps(reinterpret_cast<const float *>(&c_general::highMaskFloat)));
-                VectorType l1 = _mm_sub_ps(v1, h1);
-                VectorType h2 = _mm_and_ps(v2, _mm_load_ps(reinterpret_cast<const float *>(&c_general::highMaskFloat)));
-                VectorType l2 = _mm_sub_ps(v2, h2);
-                v1 = add(add(add(add(v3, mul(l1, l2)), mul(l1, h2)), mul(h1, l2)), mul(h1, h2));
+                __m128d v1_0 = _mm_cvtps_pd(v1);
+                __m128d v1_1 = _mm_cvtps_pd(_mm_movehl_ps(v1, v1));
+                __m128d v2_0 = _mm_cvtps_pd(v2);
+                __m128d v2_1 = _mm_cvtps_pd(_mm_movehl_ps(v2, v2));
+                __m128d v3_0 = _mm_cvtps_pd(v3);
+                __m128d v3_1 = _mm_cvtps_pd(_mm_movehl_ps(v3, v3));
+                v1 = _mm_movelh_ps(
+                        _mm_cvtpd_ps(_mm_add_pd(_mm_mul_pd(v1_0, v2_0), v3_0)),
+                        _mm_cvtpd_ps(_mm_add_pd(_mm_mul_pd(v1_1, v2_1), v3_1)));
             }
 #endif
             static inline VectorType mul(VectorType a, VectorType b, _M128 mask) PURE {
