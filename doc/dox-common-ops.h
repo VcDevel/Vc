@@ -93,6 +93,12 @@ static VECTOR_TYPE IndexesFromZero();
 /**
  * Returns a vector with pseudo-random entries.
  *
+ * Currently the state of the random number generator cannot be modified and starts off with the
+ * same state. Thus you will get the same sequence of numbers for the same sequence of calls.
+ *
+ * \return a new random vector. Floating-point values will be in the 0-1 range. Integers will use
+ * the full range the integer representation allows.
+ *
  * \note This function may use a very small amount of state and thus will be a weak random number generator.
  */
 static VECTOR_TYPE Random();
