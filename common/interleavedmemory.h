@@ -103,6 +103,8 @@ public:
      * can be used to return the struct entries as vectors using the minimal number of load
      * instructions.
      *
+     * \param indexes Vector of indexes that determine the gather locations.
+     *
      * Example:
      * \code
      * struct Foo {
