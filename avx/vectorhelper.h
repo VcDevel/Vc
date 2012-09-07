@@ -200,14 +200,23 @@ namespace AVX
 
             static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
 #ifdef VC_IMPL_FMA4
-#warning "Argument order of _mm256_macc_pd unknown!"
                 v1 = _mm256_macc_pd(v1, v2, v3);
 #else
-                VectorType h1 = _mm256_and_pd(v1, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
-                VectorType l1 = _mm256_sub_pd(v1, h1);
-                VectorType h2 = _mm256_and_pd(v2, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
-                VectorType l2 = _mm256_sub_pd(v2, h2);
-                v1 = add(add(add(add(v3, mul(l1, l2)), mul(l1, h2)), mul(h1, l2)), mul(h1, h2));
+                const VectorType h1 = _mm256_and_pd(v1, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                const VectorType l1 = _mm256_sub_pd(v1, h1);
+                const VectorType h2 = _mm256_and_pd(v2, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                const VectorType l2 = _mm256_sub_pd(v2, h2);
+                const VectorType ll = mul(l1, l2);
+                const VectorType lh = add(mul(l1, h2), mul(h1, l2));
+                const VectorType hh = mul(h1, h2);
+                // ll < lh < hh for all entries is certain
+                const VectorType lh_lt_v3 = cmplt(abs(lh), abs(v3)); // |lh| < |v3|
+                const VectorType hh_lt_v3 = cmplt(abs(hh), abs(v3)); // |hh| < |v3|
+                const VectorType a = ll;
+                const VectorType b = _mm256_blendv_pd(v3, lh, lh_lt_v3);
+                const VectorType c = _mm256_blendv_pd(_mm256_blendv_pd(lh, v3, lh_lt_v3), hh, hh_lt_v3);
+                const VectorType d = _mm256_blendv_pd(hh, v3, hh_lt_v3);
+                v1 = add(add(a, b), add(c, d));
 #endif
             }
             static inline VectorType mul(VectorType a, VectorType b, _M256 _mask) {
@@ -291,14 +300,17 @@ namespace AVX
 
             static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
 #ifdef VC_IMPL_FMA4
-#warning "Argument order of _mm256_macc_ps unknown!"
                 v1 = _mm256_macc_ps(v1, v2, v3);
 #else
-                VectorType h1 = _mm256_and_ps(v1, _mm256_broadcast_ss(reinterpret_cast<const double *>(&c_general::highMaskFloat)));
-                VectorType l1 = _mm256_sub_ps(v1, h1);
-                VectorType h2 = _mm256_and_ps(v2, _mm256_broadcast_ss(reinterpret_cast<const double *>(&c_general::highMaskFloat)));
-                VectorType l2 = _mm256_sub_ps(v2, h2);
-                v1 = add(add(add(add(v3, mul(l1, l2)), mul(l1, h2)), mul(h1, l2)), mul(h1, h2));
+                __m256d v1_0 = _mm256_cvtps_pd(lo128(v1));
+                __m256d v1_1 = _mm256_cvtps_pd(hi128(v1));
+                __m256d v2_0 = _mm256_cvtps_pd(lo128(v2));
+                __m256d v2_1 = _mm256_cvtps_pd(hi128(v2));
+                __m256d v3_0 = _mm256_cvtps_pd(lo128(v3));
+                __m256d v3_1 = _mm256_cvtps_pd(hi128(v3));
+                v1 = concat(
+                        _mm256_cvtpd_ps(_mm256_add_pd(_mm_mul256_pd(v1_0, v2_0), v3_0)),
+                        _mm256_cvtpd_ps(_mm256_add_pd(_mm_mul256_pd(v1_1, v2_1), v3_1)));
 #endif
             }
             static inline VectorType mul(VectorType a, VectorType b, _M256 mask) {
