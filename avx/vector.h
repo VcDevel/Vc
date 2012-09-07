@@ -283,7 +283,7 @@ template<typename T> class Vector
 #undef OPcmp
 
         inline void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
-            VectorHelper<T>::fma(data(), factor, summand);
+            VectorHelper<T>::fma(data(), factor.data(), summand.data());
         }
 
         inline void assign( const Vector<T> &v, const Mask &mask ) {
