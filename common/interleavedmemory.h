@@ -105,6 +105,9 @@ public:
      *
      * \param indexes Vector of indexes that determine the gather locations.
      *
+     * \return A special (magic) object that executes the loads and deinterleave on assignment to a
+     * vector tuple.
+     *
      * Example:
      * \code
      * struct Foo {
