@@ -361,12 +361,20 @@ MASK_TYPE operator<=(const VECTOR_TYPE &x) const;
 //@{
 /// Returns a new vector with the sum of the respective entries of the left and right vector.
 VECTOR_TYPE operator+(VECTOR_TYPE x) const;
+/// Adds the respective entries of \p x to this vector.
+VECTOR_TYPE &operator+=(VECTOR_TYPE x);
 /// Returns a new vector with the difference of the respective entries of the left and right vector.
 VECTOR_TYPE operator-(VECTOR_TYPE x) const;
+/// Subtracts the respective entries of \p x from this vector.
+VECTOR_TYPE &operator-=(VECTOR_TYPE x);
 /// Returns a new vector with the product of the respective entries of the left and right vector.
 VECTOR_TYPE operator*(VECTOR_TYPE x) const;
+/// Multiplies the respective entries of \p x from to vector.
+VECTOR_TYPE &operator*=(VECTOR_TYPE x);
 /// Returns a new vector with the quotient of the respective entries of the left and right vector.
 VECTOR_TYPE operator/(VECTOR_TYPE x) const;
+/// Divides the respective entries of this vector by \p x.
+VECTOR_TYPE &operator/=(VECTOR_TYPE x);
 /// Returns a new vector with all entries negated.
 VECTOR_TYPE operator-() const;
 /// Returns a new vector with the binary or of the respective entries of the left and right vector.
