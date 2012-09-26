@@ -106,7 +106,7 @@ namespace Common
         return y;
     }
 
-    static inline double_v sin(const double_v &_x)
+    template<> inline double_v sin(const double_v &_x)
     {
         typedef double_v V;
         typedef Const<double> C;
@@ -154,15 +154,92 @@ namespace Common
         y(sign) = -y;
         return y;
     }
-    template<typename T> static inline Vector<T> cos(const Vector<T> &_x) {
-        typedef Vector<T> V;
-        typedef Const<T> C;
+    template<typename _T> static inline Vector<_T> cos(const Vector<_T> &_x) {
+        typedef Vector<_T> V;
+        typedef Const<_T> C;
+        typedef typename V::EntryType T;
+        typedef typename V::Mask M;
+        typedef typename V::IndexType IV;
 
-        V x = _foldMinusPiToPi(_x) + C::_pi_2(); // [-½π, ¾π[
-        x(x > C::_pi_2()) = C::_pi() - x; // [-½π, ½π]
+        const T DP1 = 0.78515625f;
+        const T DP2 = 2.4187564849853515625e-4f;
+        const T DP3 = 3.77489497744594108e-8f;
+        const T PIO4F = 0.7853981633974483096f;
+        const T lossth = 8192.f;
 
-        const V &x2 = x * x;
-        return x * (V::One() - x2 * (C::_1_3fac() - x2 * (C::_1_5fac() - x2 * (C::_1_7fac() - x2 * C::_1_9fac()))));
+        V x = abs(_x);
+        IV j = static_cast<IV>(x * 1.27323954473516f);
+        typename IV::Mask mask = (j & 1) != 0;
+        j(mask) += 1;
+        V y = static_cast<V>(j);
+        j &= 7;
+        M sign = j > 3;
+        j(j > 3) -= 4;
+        sign ^= j > 1;
+
+        M lossMask = x > lossth;
+        x(lossMask) = x - y * PIO4F;
+        x(!lossMask) = ((x - y * DP1) - y * DP2) - y * DP3;
+
+        V z = x * x;
+        V cos_s = ((2.443315711809948E-005f * z + -1.388731625493765E-003f)
+                * z + 4.166664568298827E-002f) * (z * z)
+            - 0.5f * z + 1.0f;
+        V sin_s = ((-1.9515295891E-4f * z + 8.3321608736E-3f)
+                * z + -1.6666654611E-1f) * (z * x)
+            + x;
+        y = cos_s;
+        y(j == 1 || j == 2) = sin_s;
+        y(sign) = -y;
+        return y;
+    }
+    template<> inline double_v cos(const double_v &_x)
+    {
+        typedef double_v V;
+        typedef Const<double> C;
+        typedef V::EntryType T;
+        typedef V::Mask M;
+        typedef V::IndexType IV;
+        const double PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
+        const double DP1  = Vc_buildDouble(1, 0x921fb40000000, -1);
+        const double DP2  = Vc_buildDouble(1, 0x4442d00000000, -25);
+        const double DP3  = Vc_buildDouble(1, 0x8469898cc5170, -49);
+
+        V x = abs(_x);
+        V y = floor(x / PIO4);
+        V z = y - floor(y * 0.0625) * 16.;
+        IV j = static_cast<IV>(z);
+        IV::Mask mask = (j & 1) != 0;
+        j(mask) += 1;
+        y(static_cast<M>(mask)) += 1.;
+        j &= 7;
+        M sign = static_cast<M>(j > 3);
+        j(j > 3) -= 4;
+        sign ^= static_cast<M>(j > 1);
+
+        // since y is an integer we don't need to split y into low and high parts until the integer
+        // requires more bits than there are zero bits at the end of DP1 (30 bits -> 1e9)
+        z = ((x - y * DP1) - y * DP2) - y * DP3;
+
+        V zz = z * z;
+        V cos_s = (((((Vc_buildDouble(-1, 0x8fa49a0861a9b, -37)  * zz +
+                       Vc_buildDouble( 1, 0x1ee9d7b4e3f05, -29)) * zz +
+                       Vc_buildDouble(-1, 0x27e4f7eac4bc6, -22)) * zz +
+                       Vc_buildDouble( 1, 0xa01a019c844f5, -16)) * zz +
+                       Vc_buildDouble(-1, 0x6c16c16c14f91, -10)) * zz +
+                       Vc_buildDouble( 1, 0x555555555554b,  -5)) * (zz * zz)
+                  - 0.5 * zz + 1.0;
+        V sin_s = (((((Vc_buildDouble( 1, 0x5d8fd1fd19ccd, -33)  * zz +
+                       Vc_buildDouble(-1, 0xae5e5a9291f5d, -26)) * zz +
+                       Vc_buildDouble( 1, 0x71de3567d48a1, -19)) * zz +
+                       Vc_buildDouble(-1, 0xa01a019bfdf03, -13)) * zz +
+                       Vc_buildDouble( 1, 0x111111110f7d0,  -7)) * zz +
+                       Vc_buildDouble(-1, 0x5555555555548,  -3)) * (zz * z)
+                  + z;
+        y = cos_s;
+        y(static_cast<M>(j == 1 || j == 2)) = sin_s;
+        y(sign) = -y;
+        return y;
     }
     template<typename T> static inline void sincos(const Vector<T> &_x, Vector<T> *_sin, Vector<T> *_cos) {
         typedef Vector<T> V;
