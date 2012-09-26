@@ -71,6 +71,10 @@ VECTOR_TYPE exp(const VECTOR_TYPE &v);
  * \ingroup Math
  *
  * Returns the sine of \p v.
+ *
+ * \note The single-precision implementation has an error of \pm 1 ulp in the range [-8096, 8096].
+ * \note The double-precision implementation has an error of \pm 2e6 ulp in the range [-8096, 8096].
+ * \note Before Vc 0.7 the errors were much larger.
  */
 VECTOR_TYPE sin(const VECTOR_TYPE &v);
 
