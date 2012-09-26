@@ -241,25 +241,101 @@ namespace Common
         y(sign) = -y;
         return y;
     }
-    template<typename T> static inline void sincos(const Vector<T> &_x, Vector<T> *_sin, Vector<T> *_cos) {
-        typedef Vector<T> V;
-        typedef Const<T> C;
-        // I did a short test how the results would look if I make use of 1=s²+c². There seems to be
-        // no easy way to keep the results in an acceptable precision.
+    template<typename _T> static inline void sincos(const Vector<_T> &_x, Vector<_T> *_sin, Vector<_T> *_cos) {
+        typedef Vector<_T> V;
+        typedef Const<_T> C;
+        typedef typename V::EntryType T;
+        typedef typename V::Mask M;
+        typedef typename V::IndexType IV;
 
-        V sin_x = _foldMinusPiToPi(_x); // [-π, π]
-        V cos_x = sin_x + C::_pi_2(); // [-½π, ¾π]
-        cos_x(cos_x > C::_pi_2()) = C::_pi() - cos_x; // [-½π, ½π]
+        const T DP1 = 0.78515625f;
+        const T DP2 = 2.4187564849853515625e-4f;
+        const T DP3 = 3.77489497744594108e-8f;
+        const T PIO4F = 0.7853981633974483096f;
+        const T lossth = 8192.f;
 
-        // fold the left and right fourths in to reduce the range to [-½π, ½π]
-        sin_x(sin_x >  C::_pi_2()) =  C::_pi() - sin_x;
-        sin_x(sin_x < -C::_pi_2()) = -C::_pi() - sin_x;
+        V x = abs(_x);
+        IV j = static_cast<IV>(x * 1.27323954473516f);
+        typename IV::Mask mask = (j & 1) != 0;
+        j(mask) += 1;
+        V y = static_cast<V>(j);
+        j &= 7;
+        M sign = static_cast<M>(j > 3);
+        j(j > 3) -= 4;
 
-        const V &sin_x2 = sin_x * sin_x;
-        const V &cos_x2 = cos_x * cos_x;
+        M lossMask = x > lossth;
+        x(lossMask) = x - y * PIO4F;
+        x(!lossMask) = ((x - y * DP1) - y * DP2) - y * DP3;
 
-        *_sin = sin_x * (V::One() - sin_x2 * (C::_1_3fac() - sin_x2 * (C::_1_5fac() - sin_x2 * (C::_1_7fac() - sin_x2 * C::_1_9fac()))));
-        *_cos = cos_x * (V::One() - cos_x2 * (C::_1_3fac() - cos_x2 * (C::_1_5fac() - cos_x2 * (C::_1_7fac() - cos_x2 * C::_1_9fac()))));
+        V z = x * x;
+        V cos_s = ((2.443315711809948E-005f * z + -1.388731625493765E-003f)
+                * z + 4.166664568298827E-002f) * (z * z)
+            - 0.5f * z + 1.0f;
+        V sin_s = ((-1.9515295891E-4f * z + 8.3321608736E-3f)
+                * z + -1.6666654611E-1f) * (z * x)
+            + x;
+
+        V c = cos_s;
+        c(static_cast<M>(j == 1 || j == 2)) = sin_s;
+        c(sign ^ static_cast<M>(j > 1)) = -c;
+        *_cos = c;
+
+        V s = sin_s;
+        s(static_cast<M>(j == 1 || j == 2)) = cos_s;
+        s(sign ^ static_cast<M>(_x < 0)) = -s;
+        *_sin = s;
+    }
+    template<> inline void sincos(const double_v &_x, double_v *_sin, double_v *_cos) {
+        typedef double_v V;
+        typedef Const<double> C;
+        typedef V::EntryType T;
+        typedef V::Mask M;
+        typedef V::IndexType IV;
+        const double PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
+        const double DP1  = Vc_buildDouble(1, 0x921fb40000000, -1);
+        const double DP2  = Vc_buildDouble(1, 0x4442d00000000, -25);
+        const double DP3  = Vc_buildDouble(1, 0x8469898cc5170, -49);
+
+        V x = abs(_x);
+        V y = floor(x / PIO4);
+        V z = y - floor(y * 0.0625) * 16.;
+        IV j = static_cast<IV>(z);
+        IV::Mask mask = (j & 1) != 0;
+        j(mask) += 1;
+        y(static_cast<M>(mask)) += 1.;
+        j &= 7;
+        M sign = static_cast<M>(j > 3);
+        j(j > 3) -= 4;
+
+        // since y is an integer we don't need to split y into low and high parts until the integer
+        // requires more bits than there are zero bits at the end of DP1 (30 bits -> 1e9)
+        z = ((x - y * DP1) - y * DP2) - y * DP3;
+
+        V zz = z * z;
+        V cos_s = (((((Vc_buildDouble(-1, 0x8fa49a0861a9b, -37)  * zz +
+                       Vc_buildDouble( 1, 0x1ee9d7b4e3f05, -29)) * zz +
+                       Vc_buildDouble(-1, 0x27e4f7eac4bc6, -22)) * zz +
+                       Vc_buildDouble( 1, 0xa01a019c844f5, -16)) * zz +
+                       Vc_buildDouble(-1, 0x6c16c16c14f91, -10)) * zz +
+                       Vc_buildDouble( 1, 0x555555555554b,  -5)) * (zz * zz)
+                  - 0.5 * zz + 1.0;
+        V sin_s = (((((Vc_buildDouble( 1, 0x5d8fd1fd19ccd, -33)  * zz +
+                       Vc_buildDouble(-1, 0xae5e5a9291f5d, -26)) * zz +
+                       Vc_buildDouble( 1, 0x71de3567d48a1, -19)) * zz +
+                       Vc_buildDouble(-1, 0xa01a019bfdf03, -13)) * zz +
+                       Vc_buildDouble( 1, 0x111111110f7d0,  -7)) * zz +
+                       Vc_buildDouble(-1, 0x5555555555548,  -3)) * (zz * z)
+                  + z;
+
+        V c = cos_s;
+        c(static_cast<M>(j == 1 || j == 2)) = sin_s;
+        c(sign ^ static_cast<M>(j > 1)) = -c;
+        *_cos = c;
+
+        V s = sin_s;
+        s(static_cast<M>(j == 1 || j == 2)) = cos_s;
+        s(sign ^ static_cast<M>(_x < 0)) = -s;
+        *_sin = s;
     }
     template<typename _T> static inline Vector<_T> asin (const Vector<_T> &_x) {
         typedef Vector<_T> V;
