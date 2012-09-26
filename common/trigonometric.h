@@ -65,24 +65,24 @@ namespace Common
      * Calculate Taylor series with tuned coefficients.
      * Fix sign.
      */
-    static inline float_v sin(const float_v &_x)
+    template<typename _T> static inline Vector<_T> sin(const Vector<_T> &_x)
     {
-        typedef float_v V;
-        typedef Const<float> C;
-        typedef V::EntryType T;
-        typedef V::Mask M;
-        typedef V::IndexType IV;
+        typedef Vector<_T> V;
+        typedef Const<_T> C;
+        typedef typename V::EntryType T;
+        typedef typename V::Mask M;
+        typedef typename V::IndexType IV;
 
-        const float DP1 = 0.78515625f;
-        const float DP2 = 2.4187564849853515625e-4f;
-        const float DP3 = 3.77489497744594108e-8f;
-        const float PIO4F = 0.7853981633974483096f;
-        const float lossth = 8192.f;
+        const T DP1 = 0.78515625f;
+        const T DP2 = 2.4187564849853515625e-4f;
+        const T DP3 = 3.77489497744594108e-8f;
+        const T PIO4F = 0.7853981633974483096f;
+        const T lossth = 8192.f;
 
         V x = abs(_x);
         M sign = _x < 0;
         IV j = static_cast<IV>(x * 1.27323954473516f);
-        IV::Mask mask = (j & 1) != 0;
+        typename IV::Mask mask = (j & 1) != 0;
         j(mask) += 1;
         V y = static_cast<V>(j);
         j &= 7;
