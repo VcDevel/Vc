@@ -35,16 +35,43 @@ using namespace Vc;
 
 template<typename T> struct SincosReference
 {
-    const T x, s, c;
+    T x, s, c;
 };
-const SincosReference<float> sincosReferenceF[] = {
-#include "sincos-reference.dat"
-  { 0, 0, 1.f }
+template<typename T> struct Array
+{
+    size_t size;
+    T *data;
+    Array() : size(0), data(0) {}
 };
-const SincosReference<double> sincosReferenceD[] = {
-#include "sincos-reference-double.dat"
-  { 0, 0, 1. }
+template<typename T> struct StaticDeleter
+{
+    T *ptr;
+    StaticDeleter(T *p) : ptr(p) {}
+    ~StaticDeleter() { delete[] ptr; }
 };
+
+template<typename T> static inline const char *filename();
+template<> inline const char *filename<float >() { return "sincos-reference-single.dat"; }
+template<> inline const char *filename<double>() { return "sincos-reference-double.dat"; }
+
+template<typename T>
+static Array<SincosReference<T> > sincosReference()
+{
+    static Array<SincosReference<T> > data;
+    if (data.data == 0) {
+        FILE *file = fopen(filename<T>(), "rb");
+        if (file) {
+            fseek(file, 0, SEEK_END);
+            const size_t size = ftell(file) / sizeof(SincosReference<T>);
+            rewind(file);
+            data.data = new SincosReference<T>[size];
+            static StaticDeleter<SincosReference<T> > _cleanup(data.data);
+            data.size = fread(data.data, sizeof(SincosReference<T>), size, file);
+            fclose(file);
+        }
+    }
+    return data;
+}
 
 template<typename T> struct Denormals { static T *data; };
 template<> float  *Denormals<float >::data = 0;
@@ -332,11 +359,12 @@ template<typename V> void testSin()
 {
     typedef typename V::EntryType T;
     setFuzzyness<float>(1);
-    for (size_t i = 0; i + float_v::Size - 1 < sizeof(sincosReferenceF) / sizeof(SincosReference<T>); i += float_v::Size) {
+    Array<SincosReference<T> > reference = sincosReference<T>();
+    for (size_t i = 0; i + float_v::Size - 1 < reference.size; i += float_v::Size) {
         float_v x, sref;
         for (int j = 0; j < float_v::Size; ++j) {
-            x[j] = sincosReferenceF[i + j].x;
-            sref[j] = sincosReferenceF[i + j].s;
+            x[j] = reference.data[i + j].x;
+            sref[j] = reference.data[i + j].s;
         }
         FUZZY_COMPARE(Vc::sin(x), sref) << " x = " << x << ", i = " << i;
         FUZZY_COMPARE(Vc::sin(-x), -sref) << " x = " << x << ", i = " << i;
@@ -347,11 +375,12 @@ template<> void testSin<double_v>()
 {
     typedef double T;
     setFuzzyness<double>(1e7);
-    for (size_t i = 0; i + double_v::Size - 1 < sizeof(sincosReferenceD) / sizeof(SincosReference<T>); i += double_v::Size) {
+    Array<SincosReference<T> > reference = sincosReference<T>();
+    for (size_t i = 0; i + double_v::Size - 1 < reference.size; i += double_v::Size) {
         double_v x, sref;
         for (int j = 0; j < double_v::Size; ++j) {
-            x[j] = sincosReferenceD[i + j].x;
-            sref[j] = sincosReferenceD[i + j].s;
+            x[j] = reference.data[i + j].x;
+            sref[j] = reference.data[i + j].s;
         }
         FUZZY_COMPARE(Vc::sin(x), sref) << " x = " << x << ", i = " << i;
         FUZZY_COMPARE(Vc::sin(-x), -sref) << " x = " << x << ", i = " << i;
@@ -362,11 +391,12 @@ template<typename V> void testCos()
 {
     typedef typename V::EntryType T;
     setFuzzyness<float>(3);
-    for (size_t i = 0; i + float_v::Size - 1 < sizeof(sincosReferenceF) / sizeof(SincosReference<T>); i += float_v::Size) {
+    Array<SincosReference<T> > reference = sincosReference<T>();
+    for (size_t i = 0; i + float_v::Size - 1 < reference.size; i += float_v::Size) {
         float_v x, cref;
         for (int j = 0; j < float_v::Size; ++j) {
-            x[j] = sincosReferenceF[i + j].x;
-            cref[j] = sincosReferenceF[i + j].c;
+            x[j] = reference.data[i + j].x;
+            cref[j] = reference.data[i + j].c;
         }
         FUZZY_COMPARE(Vc::cos(x), cref) << " x = " << x << ", i = " << i;
         FUZZY_COMPARE(Vc::cos(-x), cref) << " x = " << x << ", i = " << i;
@@ -377,11 +407,12 @@ template<> void testCos<double_v>()
 {
     typedef double T;
     setFuzzyness<double>(1e7);
-    for (size_t i = 0; i + double_v::Size - 1 < sizeof(sincosReferenceD) / sizeof(SincosReference<T>); i += double_v::Size) {
+    Array<SincosReference<T> > reference = sincosReference<T>();
+    for (size_t i = 0; i + double_v::Size - 1 < reference.size; i += double_v::Size) {
         double_v x, cref;
         for (int j = 0; j < double_v::Size; ++j) {
-            x[j] = sincosReferenceD[i + j].x;
-            cref[j] = sincosReferenceD[i + j].c;
+            x[j] = reference.data[i + j].x;
+            cref[j] = reference.data[i + j].c;
         }
         FUZZY_COMPARE(Vc::cos(x), cref) << " x = " << x << ", i = " << i;
         FUZZY_COMPARE(Vc::cos(-x), cref) << " x = " << x << ", i = " << i;
