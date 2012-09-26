@@ -36,6 +36,9 @@ namespace Common
     using Vc::VC__USE_NAMESPACE::Const;
     using Vc::VC__USE_NAMESPACE::Vector;
 #endif
+    typedef Vector<float> float_v;
+    typedef Vector<double> double_v;
+    typedef Vector<sfloat> sfloat_v;
     namespace {
         template<typename T> static inline ALWAYS_INLINE CONST Vector<T> _foldMinusPiToPi(const Vector<T> &x) {
             typedef Const<T> C;
@@ -45,21 +48,6 @@ namespace Common
             return x - round(x * C::_1_2pi()) * C::_2pi();
         }
     }
-
-    /*
-     * Goodie: Π=3450066π in single-precision approximates the real number very closely. Only a
-     * relative error of 7e-15 remains. For comparison, the relative error of π or 2π is 3e-8.
-     * Additionally, 3450066 can be represented as sp number without loss.
-     *
-     * Since trig(x + 2π) = trig(x) we can add or subtract n*Π from the input to bring the
-     * input into range.
-     *
-     * This requires to find n = round(x / Π)
-     * 1 / Π = Vc_buildFloat(1, 0x46218E, -24); // 9.22619705079341656528413295745849609375e-8.
-     * Calculation of n * Π will lose precision unless the last 22 bits of n are 0. Thus it is best
-     * to split Π and n into two 12-bit numbers and calculate:
-     *   x' = x - n₁Π₁ - (n₂Π₁ + n₁Π₂) - n₂Π₂
-     */
 
     /*
      * algorithm for sine and cosine:
@@ -77,146 +65,94 @@ namespace Common
      * Calculate Taylor series with tuned coefficients.
      * Fix sign.
      */
-    template<typename _T> static inline Vector<_T> sin(const Vector<_T> &_x) {
-        typedef Vector<_T> V;
-        typedef Const<_T> C;
-        typedef typename V::EntryType T;
-        typedef typename V::Mask M;
+    static inline float_v sin(const float_v &_x)
+    {
+        typedef float_v V;
+        typedef Const<float> C;
+        typedef V::EntryType T;
+        typedef V::Mask M;
+        typedef V::IndexType IV;
+
+        const float DP1 = 0.78515625f;
+        const float DP2 = 2.4187564849853515625e-4f;
+        const float DP3 = 3.77489497744594108e-8f;
+        const float PIO4F = 0.7853981633974483096f;
+        const float lossth = 8192.f;
 
         V x = abs(_x);
-        V correction = V::Zero();
+        M sign = _x < 0;
+        IV j = static_cast<IV>(x * 1.27323954473516f);
+        IV::Mask mask = (j & 1) != 0;
+        j(mask) += 1;
+        V y = static_cast<V>(j);
+        j &= 7;
+        sign ^= j > 3;
+        j(j > 3) -= 4;
 
-        if (VC_IS_UNLIKELY(!(x <= Vc_buildFloat(1, 0x2562AE, 22)).isFull())) {
-            const V somePi1(Vc_buildFloat(1, 0x256000, 23)); // Π₁
-            const V somePi2(Vc_buildFloat(1, 0x2B8000,  9)); // Π₂
-            const V somePi3(Vc_buildFloat(-1, 0x2411DE, -24)); // Π₃
-            const V n = round(x * Vc_buildFloat(1, 0x46218E, -24));
-            const V n1 = n & C::highMask();
-            const V n2 = n - n1;
-            x = x - n1 * somePi1 - (n1 * somePi2 + n2 * somePi1) - n2 * somePi2;
-            correction = n * somePi3;
-#ifdef VC_DEBUG_TRIGONOMETRIC
-            std::cerr << "very large input, fold: " << _x << "\t" << n << "\t" << x << "\t" << correction << "\n";
-#endif
-        }
+        M lossMask = x > lossth;
+        x(lossMask) = x - y * PIO4F;
+        x(!lossMask) = ((x - y * DP1) - y * DP2) - y * DP3;
 
-        // ñ = ⌊4x/π⌋
-        //  input value  ┃ ñ ┃ substitute
-        // ━━━━━━━━━━━━━━╋━━━╋━━━━━━━━━━━━
-        // [    0,1/4·π[ ┃ 0 ┃  sin_s(x)
-        // [1/4·π,2/4·π[ ┃ 1 ┃  cos_s(x-1/2·π)
-        // [2/4·π,3/4·π[ ┃ 2 ┃  cos_s(x-1/2·π)
-        // [3/4·π,π    [ ┃ 3 ┃ -sin_s(x-π)
-        // [    π,5/4·π[ ┃ 4 ┃ -sin_s(x-π)
-        // [5/4·π,6/4·π[ ┃ 5 ┃ -cos_s(x-3/2·π)
-        // [6/4·π,7/4·π[ ┃ 6 ┃ -cos_s(x-3/2·π)
-        // [7/4·π,2π   [ ┃ 7 ┃  sin_s(x-2π)
-        // [   2π,9/4·π[ ┃ 8 ┃  sin_s(x-2π)
-        // ...
-        // improved n:
-        // n = ⌊(4x/π+1)*0.5⌋ = ⌊(ñ + 1)/2⌋
-        //   input value   ┃ n ┃    substitute
-        // ━━━━━━━━━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━
-        // [     0, 1/4·π[ ┃ 0 ┃  sin_s(x)
-        // [ 1/4·π, 3/4·π[ ┃ 1 ┃  cos_s(x-1/2·π)
-        // [ 3/4·π, 5/4·π[ ┃ 2 ┃ -sin_s(x-π)
-        // [ 5/4·π, 7/4·π[ ┃ 3 ┃ -cos_s(x-3/2·π)
-        // [ 7/4·π, 9/4·π[ ┃ 4 ┃  sin_s(x-2π)
-        // [ 9/4·π,11/4·π[ ┃ 5 ┃  cos_s(x-5/2·π)
-        // [11/4·π,13/4·π[ ┃ 6 ┃ -sin_s(x-3π)
-        // ...
+        V z = x * x;
+        V cos_s = ((2.443315711809948E-005f * z + -1.388731625493765E-003f)
+                * z + 4.166664568298827E-002f) * (z * z)
+            - 0.5f * z + 1.0f;
+        V sin_s = ((-1.9515295891E-4f * z + 8.3321608736E-3f)
+                * z + -1.6666654611E-1f) * (z * x)
+            + x;
+        y = sin_s;
+        y(j == 1 || j == 2) = cos_s;
+        y(sign) = -y;
+        return y;
+    }
 
-        //V n = floor(x * Vc_buildFloat(1, 0x22f983, 0));
-        V n = floor((x * Vc_buildFloat(1, 0x22f983, 0) + V::One()) * 0.5f);
-        // c1+c2+c3 = π/2
-        // for large n, n should be split into parts,
-        // i.e. c1 has 12 significant bits. If n has more than 12 significant bits the multiplication
-        // n * c1 may lose information.
-        const V c1(Vc_buildFloat(1, 0x490000,   0)); // 1.5703125
-        const V c2(Vc_buildFloat(1, 0x7DA000, -12)); // .0004837512969970703125
-        const V c3(Vc_buildFloat(1, 0x222169, -24)); // .00000007549790126404332113452255725860595703125
+    static inline double_v sin(const double_v &_x)
+    {
+        typedef double_v V;
+        typedef Const<double> C;
+        typedef V::EntryType T;
+        typedef V::Mask M;
+        typedef V::IndexType IV;
+        const double PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
+        const double DP1  = Vc_buildDouble(1, 0x921fb40000000, -1);
+        const double DP2  = Vc_buildDouble(1, 0x4442d00000000, -25);
+        const double DP3  = Vc_buildDouble(1, 0x8469898cc5170, -49);
 
-        //const V c1(Vc_buildFloat( 1, 0x490000,   0));
-        //const V c2(Vc_buildFloat( 1, 0x7da000, -12));
-        //const V c3(Vc_buildFloat( 1, 0x222169, -24));
-        if (VC_IS_LIKELY((abs(n) <= 4096.f).isFull())) {
-        } else {
-            // use another magic value:
-            // 5152*π/2 can be split into
-            const V cc1(Vc_buildFloat( 1, 0x7CE000,  12)); // 16184
-            const V cc2(Vc_buildFloat( 1, 0x3E2000,  -1)); // 1.4853515625
-            const V cc3(Vc_buildFloat(-1, 0x0FD1DE, -23)); // -.00000026788524110088474117219448089599609375
-            //n / 5152:
-            const V nn = round(n * Vc_buildFloat(1, 0x4B8728, -13));
-            x = (x - nn * cc1) - nn * cc2;
-            correction += nn * cc3;
-#ifdef VC_DEBUG_TRIGONOMETRIC
-            std::cerr << "medium n: " << n << ", " << nn << ", " << x << "\n";
-#endif
-            n -= nn * T(5152);
+        V x = abs(_x);
+        M sign = _x < 0;
+        V y = floor(x / PIO4);
+        V z = y - floor(y * 0.0625) * 16.;
+        IV j = static_cast<IV>(z);
+        IV::Mask mask = (j & 1) != 0;
+        j(mask) += 1;
+        y(static_cast<M>(mask)) += 1.;
+        j &= 7;
+        sign ^= static_cast<M>(j > 3);
+        j(j > 3) -= 4;
 
-            /*
-            const V c3(Vc_buildFloat(1, 0x222000, -24)); // .0000000754953362047672271728515625
-            const V c4(Vc_buildFloat(1, 0x34611A, -39)); // .00000000000256334406825708960298015881562602636540
-            const V nh = n & C::highMask();
-            const V nl = n - nh;
-            x = (x - nh * c1) - (nl * c1 + nh * c2) - (nl * c2 + nh * c3) - (nl * c3 + nh * c4) - nl * c4;
-            */
-        }
-        x = ((x - n * c1) - n * c2) - (correction + n * c3);
-        const V n_2 = floor(n * 0.5f);
-        const M evenN = n_2 == n * 0.5f;
-        const M negative = (_x < V::Zero()) ^ (floor(n_2 * 0.5f) != n_2 * 0.5f);
+        // since y is an integer we don't need to split y into low and high parts until the integer
+        // requires more bits than there are zero bits at the end of DP1 (30 bits -> 1e9)
+        z = ((x - y * DP1) - y * DP2) - y * DP3;
 
-        const V xh = x & C::highMask(18);
-        const V xl = x - xh;
-
-        const V xh2 = xh * xh;
-        const V x2 = x * x;
-
-        const V cc2(-0.5f);
-        const V cc4(Vc_buildFloat( 1, 0x2aaa80,  -5)); // 0x2aaaa4
-        const V cc6(Vc_buildFloat(-1, 0x360596, -10)); // 0x360596
-        const V cc8(Vc_buildFloat( 1, 0x500000, -16)); // 0x4cd525
-        //const V cos_s = (((x2 * cc8 + cc6) * x2 + cc4) * x2 + cc2) * x2 + V::One();
-        V cos_s = V::One() + xh2 * cc2; // precise
-        // remainder: (x² - xh²) * cc2 = xl(x + xh) * cc2
-        cos_s += ((x2 * cc8 + cc6) * x2 + cc4) * (x2 * x2) + (xl * cc2) * (x + xh);
-
-        //const V sc3(Vc_buildFloat(-1, 0x2aaaa2,  -3));
-        const V sc3h(Vc_buildFloat(-1, 0x2c0000,  -3));
-        const V sc3l(Vc_buildFloat( 1, 0x2aa900,  -10)); // 0x2ab376
-        const V sc5(Vc_buildFloat( 1, 0x088a00,  -7)); // 0x08838c
-        const V sc7(Vc_buildFloat(-1, 0x4ca200, -13)); // 0x4ca140
-        // optimize calculation order for instruction count:
-        //const V sin_s = ((x2 * sc7 + sc5) * x2 + sc3) * (x2 * x) + x;
-
-        // optimize calculation order for precision:
-        //    |x|  ≤ 0.79 ~ 2^-1
-        // => |x²| ≤ 0.62 ~ 2^-1
-        // => |x³| ≤ 0.48 ~ 2^-2
-        // |sin(x) - x| < 0.08 ~ 2^-4
-        V sin_s = x + xh2 * (xh * sc3h); // precise
-        sin_s += (sc3h * xl) * (x2 + x * xh + xh2) + (sc3l * x) * x2 + ((x2 * sc7 + sc5) * x2) * (x2 * x);
-
-#ifdef VC_DEBUG_TRIGONOMETRIC
-        const V foldedX = x;
-#endif
-
-        x = cos_s;
-        x(evenN) = sin_s;
-        x(negative) = -x;
-#ifdef VC_DEBUG_TRIGONOMETRIC
-        for (int i = 0; i < V::Size; ++i) {
-            std::cerr << std::setprecision(25) << _x[i]
-                << "\t" << n[i] << "\t" << foldedX[i]
-                << "\t" << evenN[i] << "\t" << negative[i]
-                << "\t" << cos_s[i] << "\t" << sin_s[i]
-                << "\t" << x[i]
-                << "\n";
-        }
-#endif
-        return x;
+        V zz = z * z;
+        V cos_s = (((((Vc_buildDouble(-1, 0x8fa49a0861a9b, -37)  * zz +
+                       Vc_buildDouble( 1, 0x1ee9d7b4e3f05, -29)) * zz +
+                       Vc_buildDouble(-1, 0x27e4f7eac4bc6, -22)) * zz +
+                       Vc_buildDouble( 1, 0xa01a019c844f5, -16)) * zz +
+                       Vc_buildDouble(-1, 0x6c16c16c14f91, -10)) * zz +
+                       Vc_buildDouble( 1, 0x555555555554b,  -5)) * (zz * zz)
+                  - 0.5 * zz + 1.0;
+        V sin_s = (((((Vc_buildDouble( 1, 0x5d8fd1fd19ccd, -33)  * zz +
+                       Vc_buildDouble(-1, 0xae5e5a9291f5d, -26)) * zz +
+                       Vc_buildDouble( 1, 0x71de3567d48a1, -19)) * zz +
+                       Vc_buildDouble(-1, 0xa01a019bfdf03, -13)) * zz +
+                       Vc_buildDouble( 1, 0x111111110f7d0,  -7)) * zz +
+                       Vc_buildDouble(-1, 0x5555555555548,  -3)) * (zz * z)
+                  + z;
+        y = sin_s;
+        y(static_cast<M>(j == 1 || j == 2)) = cos_s;
+        y(sign) = -y;
+        return y;
     }
     template<typename T> static inline Vector<T> cos(const Vector<T> &_x) {
         typedef Vector<T> V;
