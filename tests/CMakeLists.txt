@@ -236,3 +236,6 @@ add_executable(linkTest linkTest0.cpp linkTest1.cpp)
 target_link_libraries(linkTestLibDynamic Vc)
 target_link_libraries(linkTestLibStatic Vc)
 target_link_libraries(linkTest linkTestLibDynamic linkTestLibStatic Vc)
+
+# Use the following program to generate the sincos-reference-*.dat files
+#add_executable(convert-sincos-reference convert-sincos-reference.cpp)
