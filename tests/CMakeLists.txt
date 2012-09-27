@@ -239,3 +239,18 @@ target_link_libraries(linkTest linkTestLibDynamic linkTestLibStatic Vc)
 
 # Use the following program to generate the sincos-reference-*.dat files
 #add_executable(convert-sincos-reference convert-sincos-reference.cpp)
+
+set(_deps)
+foreach(filename sincos-reference-single.dat sincos-reference-double.dat)
+   add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+      COMMAND ${CMAKE_COMMAND} -Dfilename=${filename} -P ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      COMMENT "Downloading Test Data: ${filename}"
+      VERBATIM
+      )
+   list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
+endforeach()
+add_custom_target(download-testdata ALL
+   DEPENDS ${_deps}
+   )
