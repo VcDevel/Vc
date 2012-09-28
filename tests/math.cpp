@@ -65,7 +65,7 @@ template<> inline const char *filename<float , Atan  >() { return "atan-referenc
 template<> inline const char *filename<double, Atan  >() { return "atan-reference-double.dat"; }
 template<> inline const char *filename<float , Asin  >() { return "asin-reference-single.dat"; }
 template<> inline const char *filename<double, Asin  >() { return "asin-reference-double.dat"; }
-template<> inline const char *filename<float , Acos  >() { return "acos-reference-cosgle.dat"; }
+template<> inline const char *filename<float , Acos  >() { return "acos-reference-single.dat"; }
 template<> inline const char *filename<double, Acos  >() { return "acos-reference-double.dat"; }
 
 template<typename T>
@@ -311,7 +311,8 @@ template<typename Vec> void testMax()/*{{{*/
     COMPARE(Vc::max(a, b), c);
 }
 /*}}}*/
-#define FillHelperMemory(code) \/*{{{*/
+    /*{{{*/
+#define FillHelperMemory(code) \
     typename Vec::Memory data; \
     typename Vec::Memory reference; \
     for (int ii = 0; ii < Vec::Size; ++ii) { \
