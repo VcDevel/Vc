@@ -1,4 +1,4 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
 
     Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
@@ -15,25 +15,25 @@
     You should have received a copy of the GNU Lesser General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
-*/
-
+}}}*/
+/*includes {{{*/
 #include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
 #include <cmath>
 #include <algorithm>
-
+/*}}}*/
 using namespace Vc;
-
+/*fix isfinite and isnan{{{*/
 #ifdef isfinite
 #undef isfinite
 #endif
 #ifdef isnan
 #undef isnan
 #endif
-
-template<typename T> struct SincosReference
+/*}}}*/
+template<typename T> struct SincosReference/*{{{*/
 {
     T x, s, c;
 };
@@ -71,24 +71,24 @@ static Array<SincosReference<T> > sincosReference()
         }
     }
     return data;
-}
+}/*}}}*/
 
-template<typename T> struct Denormals { static T *data; };
+template<typename T> struct Denormals { static T *data; };/*{{{*/
 template<> float  *Denormals<float >::data = 0;
 template<> double *Denormals<double>::data = 0;
 enum {
     NDenormals = 64
 };
-
-template<typename V> V apply_v(V x, typename V::EntryType (func)(typename V::EntryType))
+/*}}}*/
+template<typename V> V apply_v(V x, typename V::EntryType (func)(typename V::EntryType))/*{{{*/
 {
     for (size_t i = 0; i < V::Size; ++i) {
         x[i] = func(x[i]);
     }
     return x;
 }
-
-template<typename Vec> void testAbs()
+/*}}}*/
+template<typename Vec> void testAbs()/*{{{*/
 {
     for (int i = 0; i < 0x7fff; ++i) {
         Vec a(i);
@@ -97,8 +97,8 @@ template<typename Vec> void testAbs()
         COMPARE(a, Vc::abs(b));
     }
 }
-
-static inline float my_trunc(float x)
+/*}}}*/
+static inline float my_trunc(float x)/*{{{*/
 {
 #if __cplusplus >= 201103 /*C++11*/
     return std::trunc(x);
@@ -119,8 +119,8 @@ static inline double my_trunc(double x)
     return x > 0 ? std::floor(x) : std::ceil(x);
 #endif
 }
-
-template<typename V> void testTrunc()
+/*}}}*/
+template<typename V> void testTrunc()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
@@ -133,8 +133,8 @@ template<typename V> void testTrunc()
     V reference = apply_v(x, my_trunc);
     COMPARE(Vc::trunc(x), reference) << ", x = " << x;
 }
-
-template<typename V> void testFloor()
+/*}}}*/
+template<typename V> void testFloor()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
@@ -147,8 +147,8 @@ template<typename V> void testFloor()
     V reference = apply_v(x, std::floor);
     COMPARE(Vc::floor(x), reference) << ", x = " << x;
 }
-
-template<typename V> void testCeil()
+/*}}}*/
+template<typename V> void testCeil()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
@@ -161,8 +161,8 @@ template<typename V> void testCeil()
     V reference = apply_v(x, std::ceil);
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }
-
-template<typename V> void testExp()
+/*}}}*/
+template<typename V> void testExp()/*{{{*/
 {
     setFuzzyness<float>(1);
     setFuzzyness<double>(2);
@@ -174,8 +174,8 @@ template<typename V> void testExp()
     }
     COMPARE(Vc::exp(V::Zero()), V::One());
 }
-
-template<typename V> void testLog()
+/*}}}*/
+template<typename V> void testLog()/*{{{*/
 {
     setFuzzyness<float>(1);
     typedef typename V::EntryType T;
@@ -195,8 +195,8 @@ template<typename V> void testLog()
         FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
     }
 }
-
-#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L
+/*}}}*/
+#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L/*{{{*/
 static inline float my_log2(float x) { return ::log2f(x); }
 /* I need to make sure whether the log2 that I compare against is really precise to <0.5ulp. At
  * least I get different results when I use "double log2(double)", which is somewhat unexpected.
@@ -216,8 +216,8 @@ static inline double my_log2(double x) { return ::log2(x); }
 static inline float my_log2(float x) { return ::logf(x) / Vc::Math<float>::ln2(); }
 static inline double my_log2(double x) { return ::log(x) / Vc::Math<double>::ln2(); }
 #endif
-
-template<typename V> void testLog2()
+/*}}}*/
+template<typename V> void testLog2()/*{{{*/
 {
     setFuzzyness<float>(2);
     setFuzzyness<double>(3);
@@ -238,8 +238,8 @@ template<typename V> void testLog2()
         FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
     }
 }
-
-template<typename V> void testLog10()
+/*}}}*/
+template<typename V> void testLog10()/*{{{*/
 {
     setFuzzyness<float>(2);
     setFuzzyness<double>(2);
@@ -260,9 +260,8 @@ template<typename V> void testLog10()
         FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x << ", i = " << i;
     }
 }
-
-template<typename Vec>
-void testMax()
+/*}}}*/
+template<typename Vec> void testMax()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     VectorMemoryHelper<Vec> mem(3);
@@ -278,8 +277,8 @@ void testMax()
 
     COMPARE(Vc::max(a, b), c);
 }
-
-#define FillHelperMemory(code) \
+/*}}}*/
+#define FillHelperMemory(code) \/*{{{*/
     typename Vec::Memory data; \
     typename Vec::Memory reference; \
     for (int ii = 0; ii < Vec::Size; ++ii) { \
@@ -287,8 +286,8 @@ void testMax()
         data[ii] = i; \
         reference[ii] = code; \
     } do {} while (false)
-
-template<typename Vec> void testSqrt()
+/*}}}*/
+template<typename Vec> void testSqrt()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     FillHelperMemory(std::sqrt(i));
@@ -297,8 +296,8 @@ template<typename Vec> void testSqrt()
 
     FUZZY_COMPARE(Vc::sqrt(a), b);
 }
-
-template<typename V> void testRSqrt()
+/*}}}*/
+template<typename V> void testRSqrt()/*{{{*/
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
@@ -307,8 +306,8 @@ template<typename V> void testRSqrt()
         VERIFY(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12)));
     }
 }
-
-template<typename V> void testSincos()
+/*}}}*/
+template<typename V> void testSincos()/*{{{*/
 {
     typedef typename V::EntryType T;
     setFuzzyness<float>(3);
@@ -330,8 +329,8 @@ template<typename V> void testSincos()
         FUZZY_COMPARE(cos, cref) << " x = " << -x << ", i = " << i;
     }
 }
-
-template<typename V> void testSin()
+/*}}}*/
+template<typename V> void testSin()/*{{{*/
 {
     typedef typename V::EntryType T;
     setFuzzyness<float>(1);
@@ -347,8 +346,8 @@ template<typename V> void testSin()
         FUZZY_COMPARE(Vc::sin(-x), -sref) << " x = " << x << ", i = " << i;
     }
 }
-
-template<typename V> void testCos()
+/*}}}*/
+template<typename V> void testCos()/*{{{*/
 {
     typedef typename V::EntryType T;
     setFuzzyness<float>(3);
@@ -364,8 +363,8 @@ template<typename V> void testCos()
         FUZZY_COMPARE(Vc::cos(-x), cref) << " x = " << x << ", i = " << i;
     }
 }
-
-template<typename Vec> void testAsin()
+/*}}}*/
+template<typename Vec> void testAsin()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     setFuzzyness<float>(2);
@@ -379,8 +378,8 @@ template<typename Vec> void testAsin()
         FUZZY_COMPARE(Vc::asin((a + offset) * scale), b);
     }
 }
-
-template<typename Vec> void testAtan()
+/*}}}*/
+template<typename Vec> void testAtan()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     setFuzzyness<float>(2);
@@ -394,8 +393,8 @@ template<typename Vec> void testAtan()
         FUZZY_COMPARE(Vc::atan((a + offset) * scale), b);
     }
 }
-
-template<typename Vec> void testAtan2()
+/*}}}*/
+template<typename Vec> void testAtan2()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     setFuzzyness<float>(3);
@@ -411,8 +410,8 @@ template<typename Vec> void testAtan2()
         }
     }
 }
-
-template<typename Vec> void testReciprocal()
+/*}}}*/
+template<typename Vec> void testReciprocal()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     setFuzzyness<float>(1.258295e+07);
@@ -434,8 +433,8 @@ template<typename Vec> void testReciprocal()
         FUZZY_COMPARE(Vc::reciprocal((a + offset) * scale), b);
     }
 }
-
-template<typename Vec> void testInf()
+/*}}}*/
+template<typename Vec> void testInf()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     const T one = 1;
@@ -444,8 +443,8 @@ template<typename Vec> void testInf()
     VERIFY(Vc::isfinite(Vec(one)));
     VERIFY(!Vc::isfinite(one / zero));
 }
-
-template<typename Vec> void testNaN()
+/*}}}*/
+template<typename Vec> void testNaN()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     const T one = 1;
@@ -455,8 +454,8 @@ template<typename Vec> void testNaN()
     const Vec inf = one / zero;
     VERIFY(Vc::isnan(Vec(inf * zero)));
 }
-
-template<typename Vec> void testRound()
+/*}}}*/
+template<typename Vec> void testRound()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -482,8 +481,8 @@ template<typename Vec> void testRound()
         COMPARE(Vc::round(a), ref);
     }
 }
-
-template<typename Vec> void testReduceMin()
+/*}}}*/
+template<typename Vec> void testReduceMin()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     const T one = 1;
@@ -498,8 +497,8 @@ template<typename Vec> void testReduceMin()
         COMPARE(a.min(), one);
     }
 }
-
-template<typename Vec> void testReduceMax()
+/*}}}*/
+template<typename Vec> void testReduceMax()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     const T max = Vec::Size + 1;
@@ -514,8 +513,8 @@ template<typename Vec> void testReduceMax()
         COMPARE(a.max(), max);
     }
 }
-
-template<typename Vec> void testReduceProduct()
+/*}}}*/
+template<typename Vec> void testReduceProduct()/*{{{*/
 {
     enum {
         Max = Vec::Size > 8 ? Vec::Size / 2 : Vec::Size
@@ -537,8 +536,8 @@ template<typename Vec> void testReduceProduct()
         COMPARE(a.product(), product);
     }
 }
-
-template<typename Vec> void testReduceSum()
+/*}}}*/
+template<typename Vec> void testReduceSum()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     int _sum = 1;
@@ -557,8 +556,8 @@ template<typename Vec> void testReduceSum()
         COMPARE(a.sum(), sum);
     }
 }
-
-template<typename V> void testExponent()
+/*}}}*/
+template<typename V> void testExponent()/*{{{*/
 {
     typedef typename V::EntryType T;
     Vc::Memory<V, 32> input;
@@ -599,11 +598,11 @@ template<typename V> void testExponent()
         COMPARE(V(input.vector(i)).exponent(), V(expected.vector(i)));
     }
 }
-
+/*}}}*/
 template<typename T> struct _ExponentVector { typedef int_v Type; };
 template<> struct _ExponentVector<sfloat_v> { typedef short_v Type; };
 
-template<typename V> void testFrexp()
+template<typename V> void testFrexp()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename _ExponentVector<V>::Type ExpV;
@@ -655,8 +654,8 @@ template<typename V> void testFrexp()
         }
     }
 }
-
-template<typename V> void testLdexp()
+/*}}}*/
+template<typename V> void testLdexp()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename _ExponentVector<V>::Type ExpV;
@@ -667,9 +666,9 @@ template<typename V> void testLdexp()
         COMPARE(ldexp(m, e), v) << ", m = " << m << ", e = " << e;
     }
 }
-
+/*}}}*/
 #include "ulp.h"
-template<typename V> void testUlpDiff()
+template<typename V> void testUlpDiff()/*{{{*/
 {
     typedef typename V::EntryType T;
 
@@ -699,13 +698,13 @@ template<typename V> void testUlpDiff()
             }
         }
     }
-}
+}/*}}}*/
 
-int main(int argc, char **argv)
+int main(int argc, char **argv)/*{{{*/
 {
     initTest(argc, argv);
 
-    Denormals<float>::data = Vc::malloc<float, Vc::AlignOnVector>(NDenormals);
+    Denormals<float>::data = Vc::malloc<float, Vc::AlignOnVector>(NDenormals);/*{{{*/
     Denormals<float>::data[0] = std::numeric_limits<float>::denorm_min();
     for (int i = 1; i < NDenormals; ++i) {
         Denormals<float>::data[i] = Denormals<float>::data[i - 1] * 2.f;
@@ -714,7 +713,7 @@ int main(int argc, char **argv)
     Denormals<double>::data[0] = std::numeric_limits<double>::denorm_min();
     for (int i = 1; i < NDenormals; ++i) {
         Denormals<double>::data[i] = Denormals<double>::data[i - 1] * 2.;
-    }
+    }/*}}}*/
 
     testRealTypes(testFrexp);
     testRealTypes(testLdexp);
@@ -791,4 +790,6 @@ int main(int argc, char **argv)
     testRealTypes(testExponent);
 
     return 0;
-}
+}/*}}}*/
+
+// vim: foldmethod=marker
