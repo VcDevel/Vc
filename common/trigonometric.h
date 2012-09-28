@@ -346,7 +346,7 @@ namespace Common
         const M &negative = _x < V::Zero();
 
         const V &a = abs(_x);
-        //const M &outOfRange = a > V::One();
+        const M outOfRange = a > V::One();
         const M &small = a < V(T(1.e-4));
         const M &gt_0_5 = a > V(T(0.5));
         V x = a;
@@ -362,7 +362,65 @@ namespace Common
         z(gt_0_5) = pi_2 - (z + z);
         z(small) = a;
         z(negative) = -z;
-        //z(outOfRange) = nan;
+        z.setQnan(outOfRange);
+
+        return z;
+    }
+    template<> inline double_v asin (const double_v &_x) {
+        typedef double_v V;
+        typedef V::EntryType T;
+        typedef V::Mask M;
+
+        const V R0 = Vc_buildDouble( 1, 0x84fc3988e9f08, -9);
+        const V R1 = Vc_buildDouble(-1, 0x2079259f9290f, -1);
+        const V R2 = Vc_buildDouble( 1, 0xbdff5baf33e6a,  2);
+        const V R3 = Vc_buildDouble(-1, 0x991aaac01ab68,  4);
+        const V R4 = Vc_buildDouble( 1, 0xc896240f3081d,  4);
+
+        const V S0 = Vc_buildDouble(-1, 0x5f2a2b6bf5d8c,  4);
+        const V S1 = Vc_buildDouble( 1, 0x26219af6a7f42,  7);
+        const V S2 = Vc_buildDouble(-1, 0x7fe08959063ee,  8);
+        const V S3 = Vc_buildDouble( 1, 0x56709b0b644be,  8);
+
+        const V P0 = Vc_buildDouble( 1, 0x16b9b0bd48ad3, -8);
+        const V P1 = Vc_buildDouble(-1, 0x34341333e5c16, -1);
+        const V P2 = Vc_buildDouble( 1, 0x5c74b178a2dd9,  2);
+        const V P3 = Vc_buildDouble(-1, 0x04331de27907b,  4);
+        const V P4 = Vc_buildDouble( 1, 0x39007da779259,  4);
+        const V P5 = Vc_buildDouble(-1, 0x0656c06ceafd5,  3);
+
+        const V Q0 = Vc_buildDouble(-1, 0xd7b590b5e0eab,  3);
+        const V Q1 = Vc_buildDouble( 1, 0x19fc025fe9054,  6);
+        const V Q2 = Vc_buildDouble(-1, 0x265bb6d3576d7,  7);
+        const V Q3 = Vc_buildDouble( 1, 0x1705684ffbf9d,  7);
+        const V Q4 = Vc_buildDouble(-1, 0x898220a3607ac,  5);
+
+        const V PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
+
+        const V pi_2(Math<T>::pi_2());
+        const M negative = _x < V::Zero();
+
+        const V a = abs(_x);
+        const M outOfRange = a > V::One();
+        const M small = a < 1.e-8;
+        const M large = a > 0.625;
+
+        V zz = V::One() - a;
+        const V r = (((R0 * zz + R1) * zz + R2) * zz + R3) * zz + R4;
+        const V s = (((zz + S0) * zz + S1) * zz + S2) * zz + S3;
+        V sqrtzz = sqrt(zz + zz);
+        V z = PIO4 - sqrtzz;
+        z -= sqrtzz * (zz * r / s) - 6.123233995736765886130E-17; // remainder of PIO2
+        z += PIO4;
+
+        V a2 = a * a;
+        const V p = ((((P0 * a2 + P1) * a2 + P2) * a2 + P3) * a2 + P4) * a2 + P5;
+        const V q = ((((a2 + Q0) * a2 + Q1) * a2 + Q2) * a2 + Q3) * a2 + Q4;
+        z(!large) = a * (a2 * p / q) + a;
+
+        z(negative) = -z;
+        z(small) = _x;
+        z.setQnan(outOfRange);
 
         return z;
     }

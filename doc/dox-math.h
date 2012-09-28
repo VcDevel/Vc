@@ -93,6 +93,9 @@ VECTOR_TYPE cos(const VECTOR_TYPE &v);
  * \ingroup Math
  *
  * Returns the arcsine of \p v.
+ *
+ * \note The single-precision implementation has an error of max. 2 ulp (mean 0.3 ulp).
+ * \note The double-precision implementation has an error of max. 36 ulp (mean 0.4 ulp).
  */
 VECTOR_TYPE asin(const VECTOR_TYPE &v);
 
