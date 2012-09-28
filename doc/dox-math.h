@@ -103,6 +103,8 @@ VECTOR_TYPE asin(const VECTOR_TYPE &v);
  * \ingroup Math
  *
  * Returns the arctangent of \p v.
+ * \note The single-precision implementation has an error of max. 3 ulp (mean 0.4 ulp) in the range [-8096, 8096].
+ * \note The double-precision implementation has an error of max. 2e8 ulp (mean 8e6 ulp) in the range [-8096, 8096].
  */
 VECTOR_TYPE atan(const VECTOR_TYPE &v);
 
