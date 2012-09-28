@@ -37,6 +37,11 @@ template<typename T> struct SincosReference/*{{{*/
 {
     T x, s, c;
 };
+template<typename T> struct Reference
+{
+    T x, ref;
+};
+
 template<typename T> struct Array
 {
     size_t size;
@@ -50,16 +55,25 @@ template<typename T> struct StaticDeleter
     ~StaticDeleter() { delete[] ptr; }
 };
 
-template<typename T> static inline const char *filename();
-template<> inline const char *filename<float >() { return "sincos-reference-single.dat"; }
-template<> inline const char *filename<double>() { return "sincos-reference-double.dat"; }
+enum Function {
+    Sincos, Atan, Asin, Acos
+};
+template<typename T, Function F> static inline const char *filename();
+template<> inline const char *filename<float , Sincos>() { return "sincos-reference-single.dat"; }
+template<> inline const char *filename<double, Sincos>() { return "sincos-reference-double.dat"; }
+template<> inline const char *filename<float , Atan  >() { return "atan-reference-single.dat"; }
+template<> inline const char *filename<double, Atan  >() { return "atan-reference-double.dat"; }
+template<> inline const char *filename<float , Asin  >() { return "asin-reference-single.dat"; }
+template<> inline const char *filename<double, Asin  >() { return "asin-reference-double.dat"; }
+template<> inline const char *filename<float , Acos  >() { return "acos-reference-cosgle.dat"; }
+template<> inline const char *filename<double, Acos  >() { return "acos-reference-double.dat"; }
 
 template<typename T>
 static Array<SincosReference<T> > sincosReference()
 {
     static Array<SincosReference<T> > data;
     if (data.data == 0) {
-        FILE *file = fopen(filename<T>(), "rb");
+        FILE *file = fopen(filename<T, Sincos>(), "rb");
         if (file) {
             fseek(file, 0, SEEK_END);
             const size_t size = ftell(file) / sizeof(SincosReference<T>);
@@ -67,6 +81,25 @@ static Array<SincosReference<T> > sincosReference()
             data.data = new SincosReference<T>[size];
             static StaticDeleter<SincosReference<T> > _cleanup(data.data);
             data.size = fread(data.data, sizeof(SincosReference<T>), size, file);
+            fclose(file);
+        }
+    }
+    return data;
+}
+
+template<typename T, Function Fun>
+static Array<Reference<T> > referenceData()
+{
+    static Array<Reference<T> > data;
+    if (data.data == 0) {
+        FILE *file = fopen(filename<T, Fun>(), "rb");
+        if (file) {
+            fseek(file, 0, SEEK_END);
+            const size_t size = ftell(file) / sizeof(Reference<T>);
+            rewind(file);
+            data.data = new Reference<T>[size];
+            static StaticDeleter<Reference<T> > _cleanup(data.data);
+            data.size = fread(data.data, sizeof(Reference<T>), size, file);
             fclose(file);
         }
     }
