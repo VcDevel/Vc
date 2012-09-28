@@ -398,33 +398,37 @@ template<typename V> void testCos()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testAsin()/*{{{*/
+template<typename V> void testAsin()/*{{{*/
 {
-    typedef typename Vec::EntryType T;
+    typedef typename V::EntryType T;
     setFuzzyness<float>(2);
     setFuzzyness<double>(4.418735e+07); // FIXME
-    for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
-        const T scale = T(0.001);
-        FillHelperMemory(std::asin((i + offset) * scale));
-        Vec a(data);
-        Vec b(reference);
-
-        FUZZY_COMPARE(Vc::asin((a + offset) * scale), b);
+    Array<Reference<T> > reference = referenceData<T, Asin>();
+    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
+        V x, ref;
+        for (int j = 0; j < V::Size; ++j) {
+            x[j] = reference.data[i + j].x;
+            ref[j] = reference.data[i + j].ref;
+        }
+        FUZZY_COMPARE(Vc::asin(x), ref) << " x = " << x << ", i = " << i;
+        FUZZY_COMPARE(Vc::asin(-x), -ref) << " -x = " << -x << ", i = " << i;
     }
 }
 /*}}}*/
-template<typename Vec> void testAtan()/*{{{*/
+template<typename V> void testAtan()/*{{{*/
 {
-    typedef typename Vec::EntryType T;
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(1.434825e+08); // FIXME
-    for (int offset = -1000; offset < 1000; offset += 10) {
-        const T scale = T(0.1);
-        FillHelperMemory(std::atan((i + offset) * scale));
-        Vec a(data);
-        Vec b(reference);
-
-        FUZZY_COMPARE(Vc::atan((a + offset) * scale), b);
+    typedef typename V::EntryType T;
+    setFuzzyness<float>(3);
+    setFuzzyness<double>(1.751175e+08); // FIXME
+    Array<Reference<T> > reference = referenceData<T, Atan>();
+    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
+        V x, ref;
+        for (int j = 0; j < V::Size; ++j) {
+            x[j] = reference.data[i + j].x;
+            ref[j] = reference.data[i + j].ref;
+        }
+        FUZZY_COMPARE(Vc::atan(x), ref) << " x = " << x << ", i = " << i;
+        FUZZY_COMPARE(Vc::atan(-x), -ref) << " -x = " << -x << ", i = " << i;
     }
 }
 /*}}}*/
