@@ -419,7 +419,7 @@ template<typename V> void testAtan()/*{{{*/
 {
     typedef typename V::EntryType T;
     setFuzzyness<float>(3);
-    setFuzzyness<double>(1.751175e+08); // FIXME
+    setFuzzyness<double>(2);
     Array<Reference<T> > reference = referenceData<T, Atan>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, ref;
