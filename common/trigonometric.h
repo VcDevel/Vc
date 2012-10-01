@@ -448,6 +448,52 @@ namespace Common
         y(_x < V::Zero()) = -y;
         return y;
     }
+    template<> inline double_v atan (const double_v &_x) {
+        typedef double_v V;
+        typedef V::EntryType T;
+        typedef V::Mask M;
+
+        // tan( 3*pi/8 ) = 2.41421356237309504880
+        const double_v T3P8 = Vc_buildDouble(1, 0x3504f333f9de6, 1);
+        const double MOREBITS = 6.123233995736765886130E-17;
+
+        const double_v P0 = Vc_buildDouble(-1, 0xc007fa1f72594, -1);
+        const double_v P1 = Vc_buildDouble(-1, 0x028545b6b807a,  4);
+        const double_v P2 = Vc_buildDouble(-1, 0x2c08c36880273,  6);
+        const double_v P3 = Vc_buildDouble(-1, 0xeb8bf2d05ba25,  6);
+        const double_v P4 = Vc_buildDouble(-1, 0x03669fd28ec8e,  6);
+
+        const double_v Q0 = Vc_buildDouble( 1, 0x8dbc45b14603c,  4);
+        const double_v Q1 = Vc_buildDouble( 1, 0x4a0dd43b8fa25,  7);
+        const double_v Q2 = Vc_buildDouble( 1, 0xb0e18d2e2be3b,  8);
+        const double_v Q3 = Vc_buildDouble( 1, 0xe563f13b049ea,  8);
+        const double_v Q4 = Vc_buildDouble( 1, 0x8519efbbd62ec,  7);
+
+        const double PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
+        const double PIO2 = Vc_buildDouble(1, 0x921fb54442d18,  0);
+
+        M sign = _x < 0;
+        V x = abs(_x);
+        M finite = isfinite(_x);
+        V ret = PIO2;
+        V y = V::Zero();
+        const M flag1 = x > T3P8;
+        const M flag2 = x > 0.66 && !flag1;
+        x(flag1) = -V::One() / x;
+        x(flag2) = (x - V::One()) / (x + V::One());
+        y(flag1) = PIO2;
+        y(flag2) = PIO4;
+        V z = x * x;
+        const V p = (((P0 * z + P1) * z + P2) * z + P3) * z + P4;
+        const V q = ((((z + Q0) * z + Q1) * z + Q2) * z + Q3) * z + Q4;
+        z = z * p / q;
+        z = x * z + x;
+        z(flag2) += 0.5 * MOREBITS;
+        z(flag1) += MOREBITS;
+        ret(finite) = y + z;
+        ret(sign) = -ret;
+        return ret;
+    }
     template<typename _T> static inline Vector<_T> atan2(const Vector<_T> &y, const Vector<_T> &x) {
         typedef Vector<_T> V;
         typedef typename V::EntryType T;
