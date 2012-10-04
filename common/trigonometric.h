@@ -446,6 +446,7 @@ namespace Common
               - T(3.33329491539E-1)) * x2 * x
               + x;
         y(_x < V::Zero()) = -y;
+        y.setQnan(isnan(_x));
         return y;
     }
     template<> inline double_v atan (const double_v &_x) {
@@ -477,21 +478,24 @@ namespace Common
         M finite = isfinite(_x);
         V ret = PIO2;
         V y = V::Zero();
-        const M flag1 = x > T3P8;
-        const M flag2 = x > 0.66 && !flag1;
-        x(flag1) = -V::One() / x;
-        x(flag2) = (x - V::One()) / (x + V::One());
-        y(flag1) = PIO2;
-        y(flag2) = PIO4;
+        const M large = x > T3P8;
+        const M gt_06 = x > 0.66;
+        V tmp = (x - V::One()) / (x + V::One());
+        tmp(large) = -V::One() / x;
+        x(gt_06) = tmp;
+        y(gt_06) = PIO4;
+        y(large) = PIO2;
         V z = x * x;
         const V p = (((P0 * z + P1) * z + P2) * z + P3) * z + P4;
         const V q = ((((z + Q0) * z + Q1) * z + Q2) * z + Q3) * z + Q4;
         z = z * p / q;
         z = x * z + x;
-        z(flag2) += 0.5 * MOREBITS;
-        z(flag1) += MOREBITS;
+        V morebits = 0.5 * MOREBITS;
+        morebits(large) *= 2.;
+        z(gt_06) += morebits;
         ret(finite) = y + z;
         ret(sign) = -ret;
+        ret.setQnan(isnan(_x));
         return ret;
     }
     template<typename _T> static inline Vector<_T> atan2(const Vector<_T> &y, const Vector<_T> &x) {
@@ -500,40 +504,88 @@ namespace Common
         typedef typename V::Mask M;
         const V pi(Math<T>::pi());
         const V pi_2(Math<T>::pi_2());
-
-        const M &xZero = x == V::Zero();
-        const M &yZero = y == V::Zero();
-        const M &xNeg = x < V::Zero();
-        const M &yNeg = y < V::Zero();
-
-        const V &absX = abs(x);
-        const V &absY = abs(y);
-
-        V a = absY / absX;
         const V pi_4(Math<T>::pi_4());
-        const M &gt_tan_3pi_8 = a > V(T(2.414213562373095));
-        const M &gt_tan_pi_8  = a > V(T(0.4142135623730950)) && !gt_tan_3pi_8;
-        const V minusOne(-1);
-        V b = V::Zero();
-        b(gt_tan_3pi_8) = pi_2;
-        b(gt_tan_pi_8)  = pi_4;
-        a(gt_tan_3pi_8) = minusOne / a;
-        a(gt_tan_pi_8)  = (absY - absX) / (absY + absX);
-        const V &a2 = a * a;
-        b += (((T(8.05374449538e-2) * a2
-              - T(1.38776856032E-1)) * a2
-              + T(1.99777106478E-1)) * a2
-              - T(3.33329491539E-1)) * a2 * a
-              + a;
-        b(xNeg ^ yNeg) = -b;
 
-        b(xNeg && !yNeg) += pi;
-        b(xNeg &&  yNeg) -= pi;
-        //b(xZero) = pi_2;
-        b.setZero(xZero && yZero);
-        b(xZero && yNeg) = -pi_2;
-        //b(yZero && xNeg) = pi;
-        return b;
+        const M xZero = x == V::Zero();
+        const M yZero = y == V::Zero();
+        const M xMinusZero = xZero && x.isNegative();
+        const M yNeg = y < V::Zero();
+        const M xInf = !isfinite(x);
+        const M yInf = !isfinite(y);
+
+        V a = pi.copySign(y);
+        a.setZero(x >= V::Zero());
+
+        // setting x to any finite value will have atan(y/x) return sign(y/x)*pi/2, just in case x is inf
+        V _x = x;
+        _x(yInf) = V::One().copySign(x);
+
+        a += Vc::Common::atan(y / _x);
+
+        // if x is +0 and y is +/-0 the result is +0
+        a.setZero(xZero && yZero);
+
+        // for x = -0 we add/subtract pi to get the correct result
+        a(xMinusZero) += pi.copySign(y);
+
+        // atan2(-Y, +/-0) = -pi/2
+        a(xZero && yNeg) = -pi_2;
+
+        // if both inputs are inf the output is +/- (3)pi/4
+        a(xInf && yInf) += pi_4.copySign(x ^ ~y);
+
+        // correct the sign of y if the result is 0
+        a(a == V::Zero()) = a.copySign(y);
+
+        // any NaN input will lead to NaN output
+        a.setQnan(isnan(y) || isnan(x));
+
+        return a;
+    }
+    template<> inline double_v atan2 (const double_v &y, const double_v &x) {
+        typedef double_v V;
+        typedef V::EntryType T;
+        typedef V::Mask M;
+
+        const V PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
+        const V PIO2 = Vc_buildDouble(1, 0x921fb54442d18,  0);
+        const V PI   = Vc_buildDouble(1, 0x921fb54442d18,  1);
+
+        const M xZero = x == V::Zero();
+        const M yZero = y == V::Zero();
+        const M xMinusZero = xZero && x.isNegative();
+        const M yNeg = y < V::Zero();
+        const M xInf = !isfinite(x);
+        const M yInf = !isfinite(y);
+
+        V a = V(PI).copySign(y);
+        a.setZero(x >= V::Zero());
+
+        // setting x to any finite value will have atan(y/x) return sign(y/x)*pi/2, just in case x is inf
+        V _x = x;
+        _x(yInf) = V::One().copySign(x);
+
+        a += Vc::Common::atan(y / _x);
+
+        // if x is +0 and y is +/-0 the result is +0
+        a.setZero(xZero && yZero);
+
+        // for x = -0 we add/subtract pi to get the correct result
+        a(xMinusZero) += PI.copySign(y);
+
+        // atan2(-Y, +/-0) = -pi/2
+        a(xZero && yNeg) = -PIO2;
+
+        // if both inputs are inf the output is +/- (3)pi/4
+        a(xInf && yInf) += PIO4.copySign(x ^ ~y);
+
+        // correct the sign of y if the result is 0
+        a(a == V::Zero()) = a.copySign(y);
+
+        // any NaN input will lead to NaN output
+        a.setQnan(isnan(y) || isnan(x));
+
+        return a;
     }
 } // namespace Common
 #ifdef VC__USE_NAMESPACE

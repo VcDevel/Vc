@@ -23,6 +23,7 @@
 #include "vectormemoryhelper.h"
 #include <cmath>
 #include <algorithm>
+#include <common/macros.h>
 /*}}}*/
 using namespace Vc;
 /*fix isfinite and isnan{{{*/
@@ -313,20 +314,20 @@ template<typename Vec> void testMax()/*{{{*/
 /*}}}*/
     /*{{{*/
 #define FillHelperMemory(code) \
-    typename Vec::Memory data; \
-    typename Vec::Memory reference; \
-    for (int ii = 0; ii < Vec::Size; ++ii) { \
+    typename V::Memory data; \
+    typename V::Memory reference; \
+    for (int ii = 0; ii < V::Size; ++ii) { \
         const T i = static_cast<T>(ii); \
         data[ii] = i; \
         reference[ii] = code; \
     } do {} while (false)
 /*}}}*/
-template<typename Vec> void testSqrt()/*{{{*/
+template<typename V> void testSqrt()/*{{{*/
 {
-    typedef typename Vec::EntryType T;
+    typedef typename V::EntryType T;
     FillHelperMemory(std::sqrt(i));
-    Vec a(data);
-    Vec b(reference);
+    V a(data);
+    V b(reference);
 
     FUZZY_COMPARE(Vc::sqrt(a), b);
 }
@@ -420,6 +421,17 @@ template<typename V> void testAtan()/*{{{*/
     typedef typename V::EntryType T;
     setFuzzyness<float>(3);
     setFuzzyness<double>(2);
+
+    {
+        const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18,  0));
+        V nan; nan.setQnan();
+        const V inf = T(1./0.);
+
+        VERIFY(Vc::isnan(Vc::atan(nan)));
+        COMPARE(Vc::atan(+inf), +Pi_2);
+        COMPARE(Vc::atan(-inf), -Pi_2);
+    }
+
     Array<Reference<T> > reference = referenceData<T, Atan>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, ref;
@@ -432,19 +444,75 @@ template<typename V> void testAtan()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testAtan2()/*{{{*/
+template<typename V> void testAtan2()/*{{{*/
 {
-    typedef typename Vec::EntryType T;
+    typedef typename V::EntryType T;
     setFuzzyness<float>(3);
-    setFuzzyness<double>(1.75118e+08); // FIXME
-    for (int xoffset = -100; xoffset < 1000; xoffset += 10) {
-        for (int yoffset = -100; yoffset < 1000; yoffset += 10) {
-            FillHelperMemory(std::atan2((i + xoffset) * 0.15, (i + yoffset) * 0.15));
-            Vec a(data);
-            Vec b(reference);
+    setFuzzyness<double>(2);
 
-            //std::cout << (a + xoffset) * 0.15 << (a + yoffset) * 0.15 << std::endl;
-            FUZZY_COMPARE(Vc::atan2((a + xoffset) * T(0.15), (a + yoffset) * T(0.15)), b);
+    {
+        const V Pi   = T(Vc_buildDouble(1, 0x921fb54442d18,  1));
+        const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18,  0));
+        const V Pi_4 = T(Vc_buildDouble(1, 0x921fb54442d18, -1));
+        V nan; nan.setQnan();
+        const V inf = T(1./0.);
+
+        // If y is +0 (-0) and x is less than 0, +pi (-pi) is returned.
+        COMPARE(Vc::atan2(V(T(+0.)), V(T(-3.))), +Pi);
+        COMPARE(Vc::atan2(V(T(-0.)), V(T(-3.))), -Pi);
+        // If y is +0 (-0) and x is greater than 0, +0 (-0) is returned.
+        COMPARE(Vc::atan2(V(T(+0.)), V(T(+3.))), V(T(+0.)));
+        VERIFY(!Vc::atan2(V(T(+0.)), V(T(+3.))).isNegative());
+        COMPARE(Vc::atan2(V(T(-0.)), V(T(+3.))), V(T(-0.)));
+        VERIFY (Vc::atan2(V(T(-0.)), V(T(+3.))).isNegative());
+        // If y is less than 0 and x is +0 or -0, -pi/2 is returned.
+        COMPARE(Vc::atan2(V(T(-3.)), V(T(+0.))), -Pi_2);
+        COMPARE(Vc::atan2(V(T(-3.)), V(T(-0.))), -Pi_2);
+        // If y is greater than 0 and x is +0 or -0, pi/2 is returned.
+        COMPARE(Vc::atan2(V(T(+3.)), V(T(+0.))), +Pi_2);
+        COMPARE(Vc::atan2(V(T(+3.)), V(T(-0.))), +Pi_2);
+        // If either x or y is NaN, a NaN is returned.
+        VERIFY(Vc::isnan(Vc::atan2(nan, V(T(3.)))));
+        VERIFY(Vc::isnan(Vc::atan2(V(T(3.)), nan)));
+        VERIFY(Vc::isnan(Vc::atan2(nan, nan)));
+        // If y is +0 (-0) and x is -0, +pi (-pi) is returned.
+        COMPARE(Vc::atan2(V(T(+0.)), V(T(-0.))), +Pi);
+        COMPARE(Vc::atan2(V(T(-0.)), V(T(-0.))), -Pi);
+        // If y is +0 (-0) and x is +0, +0 (-0) is returned.
+        COMPARE(Vc::atan2(V(T(+0.)), V(T(+0.))), V(T(+0.)));
+        COMPARE(Vc::atan2(V(T(-0.)), V(T(+0.))), V(T(-0.)));
+        VERIFY(!Vc::atan2(V(T(+0.)), V(T(+0.))).isNegative());
+        VERIFY( Vc::atan2(V(T(-0.)), V(T(+0.))).isNegative());
+        // If y is a finite value greater (less) than 0, and x is negative infinity, +pi (-pi) is returned.
+        COMPARE(Vc::atan2(V(T(+1.)), -inf), +Pi);
+        COMPARE(Vc::atan2(V(T(-1.)), -inf), -Pi);
+        // If y is a finite value greater (less) than 0, and x is positive infinity, +0 (-0) is returned.
+        COMPARE(Vc::atan2(V(T(+3.)), +inf), V(T(+0.)));
+        VERIFY(!Vc::atan2(V(T(+3.)), +inf).isNegative());
+        COMPARE(Vc::atan2(V(T(-3.)), +inf), V(T(-0.)));
+        VERIFY (Vc::atan2(V(T(-3.)), +inf).isNegative());
+        // If y is positive infinity (negative infinity), and x is finite, pi/2 (-pi/2) is returned.
+        COMPARE(Vc::atan2(+inf, V(T(+3.))), +Pi_2);
+        COMPARE(Vc::atan2(-inf, V(T(+3.))), -Pi_2);
+        COMPARE(Vc::atan2(+inf, V(T(-3.))), +Pi_2);
+        COMPARE(Vc::atan2(-inf, V(T(-3.))), -Pi_2);
+        // If y is positive infinity (negative infinity) and x is negative	infinity, +3*pi/4 (-3*pi/4) is returned.
+        COMPARE(Vc::atan2(+inf, -inf), T(+3.) * Pi_4);
+        COMPARE(Vc::atan2(-inf, -inf), T(-3.) * Pi_4);
+        // If y is positive infinity (negative infinity) and x is positive infinity, +pi/4 (-pi/4) is returned.
+        COMPARE(Vc::atan2(+inf, +inf), +Pi_4);
+        COMPARE(Vc::atan2(-inf, +inf), -Pi_4);
+    }
+
+    for (int xoffset = -100; xoffset < 54613; xoffset += 47 * V::Size) {
+        for (int yoffset = -100; yoffset < 54613; yoffset += 47 * V::Size) {
+            FillHelperMemory(std::atan2((i + xoffset) * T(0.15), (i + yoffset) * T(0.15)));
+            const V a(data);
+            const V b(reference);
+
+            const V x = (a + xoffset) * T(0.15);
+            const V y = (a + yoffset) * T(0.15);
+            FUZZY_COMPARE(Vc::atan2(x, y), b) << ", x = " << x << ", y = " << y;
         }
     }
 }
