@@ -201,6 +201,7 @@ class Vector
 
         inline Vector operator~() const { return Vector(~m_data); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const { return Vector<typename NegateTypeHelper<T>::Type>(-m_data); }
+        inline Vector PURE INTRINSIC operator+() const { return *this; }
 
 #define OPshift(symbol) \
         inline Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \

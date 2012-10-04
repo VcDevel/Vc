@@ -229,6 +229,7 @@ template<typename T> class Vector
 
         inline Vector ALWAYS_INLINE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
+        inline Vector PURE INTRINSIC operator+() const { return *this; }
 
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \

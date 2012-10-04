@@ -305,6 +305,7 @@ template<typename T> class Vector
 
         inline Vector PURE INTRINSIC operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
+        inline Vector PURE INTRINSIC operator+() const { return *this; }
 
 #define OP(symbol, fun) \
         inline Vector INTRINSIC &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
