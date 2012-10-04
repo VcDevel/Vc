@@ -472,6 +472,15 @@ template<typename Vec> void testReciprocal()/*{{{*/
     }
 }
 /*}}}*/
+template<typename V> void isNegative()/*{{{*/
+{
+    typedef typename V::EntryType T;
+    VERIFY(V::One().isNegative().isEmpty());
+    VERIFY(V::Zero().isNegative().isEmpty());
+    VERIFY((-V::One()).isNegative().isFull());
+    VERIFY(V(T(-0.)).isNegative().isFull());
+}
+/*}}}*/
 template<typename Vec> void testInf()/*{{{*/
 {
     typedef typename Vec::EntryType T;
@@ -753,6 +762,7 @@ int main(int argc, char **argv)/*{{{*/
         Denormals<double>::data[i] = Denormals<double>::data[i - 1] * 2.;
     }/*}}}*/
 
+    testRealTypes(isNegative);
     testRealTypes(testFrexp);
     testRealTypes(testLdexp);
 

@@ -191,6 +191,19 @@ template<> inline INTRINSIC Vector<double> Vector<double>::Random()
     x.i = state0 | 0x3ff0000000000000ull;
     return double_v(x.f - 1.);
 }
+// isNegative {{{1
+template<typename T> inline PURE INTRINSIC typename Vector<T>::Mask Vector<T>::isNegative() const
+{
+    union { float f; unsigned int i; } u;
+    u.f = m_data;
+    return Mask(0u != (u.i & 0x80000000u));
+}
+template<> inline PURE INTRINSIC double_m double_v::isNegative() const
+{
+    union { double d; unsigned long long l; } u;
+    u.d = m_data;
+    return double_m(0ull != (u.l & 0x8000000000000000ull));
+}
 // }}}1
 } // namespace Scalar
 } // namespace Vc

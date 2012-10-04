@@ -282,6 +282,7 @@ template<typename T> class Vector
         OPcmp(<, cmplt)
         OPcmp(<=, cmple)
 #undef OPcmp
+        inline PURE_L INTRINSIC_L Mask isNegative() const PURE_R INTRINSIC_R;
 
         inline void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
             VectorHelper<T>::fma(data(), factor.data(), summand.data());

@@ -693,7 +693,24 @@ VC_SWIZZLES_16BIT_IMPL(unsigned short)
 
 // operators {{{1
 #include "../common/operators.h"
-// }}}1
+// isNegative {{{1
+template<> inline PURE INTRINSIC float_m float_v::isNegative() const
+{
+    return sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v())), 31));
+}
+template<> inline PURE INTRINSIC sfloat_m sfloat_v::isNegative() const
+{
+    return M256::create(
+            sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v()[0])), 31)),
+            sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v()[1])), 31))
+            );
+}
+template<> inline PURE INTRINSIC double_m double_v::isNegative() const
+{
+    return Mem::permute<X1, X1, X3, X3>(sse_cast<__m128>(
+                _mm_srai_epi32(sse_cast<__m128i>(_mm_and_pd(_mm_setsignmask_pd(), d.v())), 31)
+                ));
+}
 // gathers {{{1
 template<typename T> template<typename IndexT> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, const IndexT *indexes)
 {

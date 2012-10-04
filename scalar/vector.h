@@ -225,6 +225,7 @@ class Vector
 #undef OPcmp
 #undef OPshift
 #undef OPshift_int
+        inline PURE_L INTRINSIC_L Mask isNegative() const PURE_R INTRINSIC_R;
 
         inline void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
             m_data = m_data * factor.data() + summand.data();
