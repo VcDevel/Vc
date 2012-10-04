@@ -563,16 +563,16 @@ template<typename T> inline Vector<T> Vector<T>::operator<<(int shift) const {
 // isNegative {{{1
 template<> inline PURE INTRINSIC float_m float_v::isNegative() const
 {
-    return avx_cast<__m256>(_mm256_srai_epi32(avx_cast<__m256i>(_mm_and_ps(_mm_setsignmask_ps(), d.v())), 31));
+    return avx_cast<__m256>(_mm256_srai_epi32(avx_cast<__m256i>(_mm256_and_ps(_mm256_setsignmask_ps(), d.v())), 31));
 }
 template<> inline PURE INTRINSIC sfloat_m sfloat_v::isNegative() const
 {
-    return avx_cast<__m256>(_mm256_srai_epi32(avx_cast<__m256i>(_mm_and_ps(_mm_setsignmask_ps(), d.v())), 31));
+    return avx_cast<__m256>(_mm256_srai_epi32(avx_cast<__m256i>(_mm256_and_ps(_mm256_setsignmask_ps(), d.v())), 31));
 }
 template<> inline PURE INTRINSIC double_m double_v::isNegative() const
 {
     return Mem::permute<X1, X1, X3, X3>(avx_cast<__m256>(
-                _mm256_srai_epi32(avx_cast<__m256i>(_mm_and_pd(_mm_setsignmask_pd(), d.v())), 31)
+                _mm256_srai_epi32(avx_cast<__m256i>(_mm256_and_pd(_mm256_setsignmask_pd(), d.v())), 31)
                 ));
 }
 // gathers {{{1
