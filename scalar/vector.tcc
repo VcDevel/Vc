@@ -204,6 +204,31 @@ template<> inline PURE INTRINSIC double_m double_v::isNegative() const
     u.d = m_data;
     return double_m(0ull != (u.l & 0x8000000000000000ull));
 }
+// setQnan {{{1
+template<typename T> inline INTRINSIC void Vector<T>::setQnan()
+{
+    union { float f; unsigned int i; } u;
+    u.i = 0xffffffffu;
+    m_data = u.f;
+}
+template<> inline INTRINSIC void double_v::setQnan()
+{
+    union { double d; unsigned long long l; } u;
+    u.l = 0xffffffffffffffffull;
+    m_data = u.d;
+}
+template<typename T> inline INTRINSIC void Vector<T>::setQnan(Mask m)
+{
+    if (m) {
+        setQnan();
+    }
+}
+template<> inline INTRINSIC void double_v::setQnan(Mask m)
+{
+    if (m) {
+        setQnan();
+    }
+}
 // }}}1
 } // namespace Scalar
 } // namespace Vc

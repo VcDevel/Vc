@@ -106,6 +106,9 @@ class Vector
         inline void setZero() { m_data = 0; }
         inline void setZero(Mask k) { if (k) m_data = 0; }
 
+        inline INTRINSIC_L void setQnan() INTRINSIC_R;
+        inline INTRINSIC_L void setQnan(Mask m) INTRINSIC_R;
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
         template<typename Other> inline void load(const Other *mem) { m_data = mem[0]; }

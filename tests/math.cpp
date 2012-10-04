@@ -494,12 +494,20 @@ template<typename Vec> void testInf()/*{{{*/
 template<typename Vec> void testNaN()/*{{{*/
 {
     typedef typename Vec::EntryType T;
+    typedef typename Vec::IndexType I;
+    typedef typename Vec::Mask M;
     const T one = 1;
     const Vec zero(Zero);
     VERIFY(!Vc::isnan(zero));
     VERIFY(!Vc::isnan(Vec(one)));
     const Vec inf = one / zero;
     VERIFY(Vc::isnan(Vec(inf * zero)));
+    Vec nan = Vec::Zero();
+    const M mask(I::IndexesFromZero() == I::Zero());
+    nan.setQnan(mask);
+    COMPARE(Vc::isnan(nan), mask);
+    nan.setQnan();
+    VERIFY(Vc::isnan(nan));
 }
 /*}}}*/
 template<typename Vec> void testRound()/*{{{*/
