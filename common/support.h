@@ -70,7 +70,7 @@ bool isImplementationSupported(Vc::Implementation impl);
 #ifdef VC_GCC
     __attribute__((target("no-sse2,no-avx")))
 #endif
-bool currentImplementationSupported()
+static bool currentImplementationSupported()
 {
     return isImplementationSupported(
 #ifdef VC_USE_VEX_CODING
