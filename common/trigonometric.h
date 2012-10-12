@@ -423,18 +423,6 @@ namespace Common
         const double_v T3P8 = Vc_buildDouble(1, 0x3504f333f9de6, 1);
         const double MOREBITS = 6.123233995736765886130E-17;
 
-        const double_v P0 = Vc_buildDouble(-1, 0xc007fa1f72594, -1);
-        const double_v P1 = Vc_buildDouble(-1, 0x028545b6b807a,  4);
-        const double_v P2 = Vc_buildDouble(-1, 0x2c08c36880273,  6);
-        const double_v P3 = Vc_buildDouble(-1, 0xeb8bf2d05ba25,  6);
-        const double_v P4 = Vc_buildDouble(-1, 0x03669fd28ec8e,  6);
-
-        const double_v Q0 = Vc_buildDouble( 1, 0x8dbc45b14603c,  4);
-        const double_v Q1 = Vc_buildDouble( 1, 0x4a0dd43b8fa25,  7);
-        const double_v Q2 = Vc_buildDouble( 1, 0xb0e18d2e2be3b,  8);
-        const double_v Q3 = Vc_buildDouble( 1, 0xe563f13b049ea,  8);
-        const double_v Q4 = Vc_buildDouble( 1, 0x8519efbbd62ec,  7);
-
         M sign = _x < 0;
         V x = abs(_x);
         M finite = isfinite(_x);
@@ -448,8 +436,8 @@ namespace Common
         y(gt_06) = C::_pi_4();
         y(large) = C::_pi_2();
         V z = x * x;
-        const V p = (((P0 * z + P1) * z + P2) * z + P3) * z + P4;
-        const V q = ((((z + Q0) * z + Q1) * z + Q2) * z + Q3) * z + Q4;
+        const V p = (((C::atanP(0) * z + C::atanP(1)) * z + C::atanP(2)) * z + C::atanP(3)) * z + C::atanP(4);
+        const V q = ((((z + C::atanQ(0)) * z + C::atanQ(1)) * z + C::atanQ(2)) * z + C::atanQ(3)) * z + C::atanQ(4);
         z = z * p / q;
         z = x * z + x;
         V morebits = C::_1_2() * MOREBITS;

@@ -46,6 +46,8 @@ namespace SSE
 
         static inline ALWAYS_INLINE CONST V cosCoeff(int i) { return load(&c_trig<T>::data[( 8 + i) * Stride]); }
         static inline ALWAYS_INLINE CONST V sinCoeff(int i) { return load(&c_trig<T>::data[(14 + i) * Stride]); }
+        static inline ALWAYS_INLINE CONST V atanP(int i)    { return load(&c_trig<T>::data[(24 + i) * Stride]); }
+        static inline ALWAYS_INLINE CONST V atanQ(int i)    { return load(&c_trig<T>::data[(29 + i) * Stride]); }
         static inline ALWAYS_INLINE CONST V lossThreshold() { return load(&c_trig<T>::data[20 * Stride]); }
         static inline ALWAYS_INLINE CONST V _4_pi()         { return load(&c_trig<T>::data[21 * Stride]); }
         static inline ALWAYS_INLINE CONST V _pi_2()         { return load(&c_trig<T>::data[22 * Stride]); }

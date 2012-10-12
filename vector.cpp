@@ -185,10 +185,23 @@ namespace SSE
         _2(Vc_buildDouble(-1, 0xae5e5a9291f5d, -26)), // ~-1/11!
         _2(Vc_buildDouble( 1, 0x5d8fd1fd19ccd, -33)), // ~ 1/13!
     // cacheline 9
-        _2(0.), // padding
-        _2(0.), // padding
+        _2(0.), // padding (for alignment with float)
+        _2(Vc_buildDouble(1, 0x8BE60DB939105,  0)), // 4/π
         _2(Vc_buildDouble(1, 0x921fb54442d18,  0)), // π/2
         _2(Vc_buildDouble(1, 0x921fb54442d18,  1)), // π
+    // cacheline 10
+        _2(Vc_buildDouble(-1, 0xc007fa1f72594, -1)), // atan P coefficients
+        _2(Vc_buildDouble(-1, 0x028545b6b807a,  4)), // atan P coefficients
+        _2(Vc_buildDouble(-1, 0x2c08c36880273,  6)), // atan P coefficients
+        _2(Vc_buildDouble(-1, 0xeb8bf2d05ba25,  6)), // atan P coefficients
+    // cacheline 11
+        _2(Vc_buildDouble(-1, 0x03669fd28ec8e,  6)), // atan P coefficients
+        _2(Vc_buildDouble( 1, 0x8dbc45b14603c,  4)), // atan Q coefficients
+        _2(Vc_buildDouble( 1, 0x4a0dd43b8fa25,  7)), // atan Q coefficients
+        _2(Vc_buildDouble( 1, 0xb0e18d2e2be3b,  8)), // atan Q coefficients
+    // cacheline 12
+        _2(Vc_buildDouble( 1, 0xe563f13b049ea,  8)), // atan Q coefficients
+        _2(Vc_buildDouble( 1, 0x8519efbbd62ec,  7)), // atan Q coefficients
     };
 #undef _2
 #define _4(x) x, x, x, x
