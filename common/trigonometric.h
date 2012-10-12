@@ -81,7 +81,7 @@ namespace Common
         V cos_s = ((C::cosCoeff(2)  * z +
                     C::cosCoeff(1)) * z +
                     C::cosCoeff(0)) * (z * z)
-            - 0.5f * z + V::One();
+            - C::_1_2() * z + V::One();
         V sin_s = ((C::sinCoeff(2)  * z +
                     C::sinCoeff(1)) * z +
                     C::sinCoeff(0)) * (z * x)
@@ -123,7 +123,7 @@ namespace Common
                        C::cosCoeff(2)) * zz +
                        C::cosCoeff(1)) * zz +
                        C::cosCoeff(0)) * (zz * zz)
-                  - 0.5 * zz + V::One();
+                  - C::_1_2() * zz + V::One();
         V sin_s = (((((C::sinCoeff(5)  * zz +
                        C::sinCoeff(4)) * zz +
                        C::sinCoeff(3)) * zz +
@@ -161,7 +161,7 @@ namespace Common
         V cos_s = ((C::cosCoeff(2)  * z +
                     C::cosCoeff(1)) * z +
                     C::cosCoeff(0)) * (z * z)
-            - 0.5f * z + V::One();
+            - C::_1_2() * z + V::One();
         V sin_s = ((C::sinCoeff(2)  * z +
                     C::sinCoeff(1)) * z +
                     C::sinCoeff(0)) * (z * x)
@@ -202,7 +202,7 @@ namespace Common
                        C::cosCoeff(2)) * zz +
                        C::cosCoeff(1)) * zz +
                        C::cosCoeff(0)) * (zz * zz)
-                  - 0.5 * zz + V::One();
+                  - C::_1_2() * zz + V::One();
         V sin_s = (((((C::sinCoeff(5)  * zz +
                        C::sinCoeff(4)) * zz +
                        C::sinCoeff(3)) * zz +
@@ -239,7 +239,7 @@ namespace Common
         V cos_s = ((C::cosCoeff(2)  * z +
                     C::cosCoeff(1)) * z +
                     C::cosCoeff(0)) * (z * z)
-            - 0.5f * z + V::One();
+            - C::_1_2() * z + V::One();
         V sin_s = ((C::sinCoeff(2)  * z +
                     C::sinCoeff(1)) * z +
                     C::sinCoeff(0)) * (z * x)
@@ -284,7 +284,7 @@ namespace Common
                        C::cosCoeff(2)) * zz +
                        C::cosCoeff(1)) * zz +
                        C::cosCoeff(0)) * (zz * zz)
-                  - 0.5 * zz + V::One();
+                  - C::_1_2() * zz + V::One();
         V sin_s = (((((C::sinCoeff(5)  * zz +
                        C::sinCoeff(4)) * zz +
                        C::sinCoeff(3)) * zz +
@@ -314,10 +314,10 @@ namespace Common
         const V &a = abs(_x);
         const M outOfRange = a > V::One();
         const M &small = a < V(T(1.e-4));
-        const M &gt_0_5 = a > V(T(0.5));
+        const M &gt_0_5 = a > C::_1_2();
         V x = a;
         V z = a * a;
-        z(gt_0_5) = (V::One() - a) * V(T(0.5));
+        z(gt_0_5) = (V::One() - a) * C::_1_2();
         x(gt_0_5) = sqrt(z);
         z = ((((T(4.2163199048e-2)  * z
               + T(2.4181311049e-2)) * z
@@ -452,7 +452,7 @@ namespace Common
         const V q = ((((z + Q0) * z + Q1) * z + Q2) * z + Q3) * z + Q4;
         z = z * p / q;
         z = x * z + x;
-        V morebits = 0.5 * MOREBITS;
+        V morebits = C::_1_2() * MOREBITS;
         morebits(large) *= 2.;
         z(gt_06) += morebits;
         ret(finite) = y + z;
