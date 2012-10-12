@@ -38,15 +38,6 @@ namespace Common
     typedef Vector<float> float_v;
     typedef Vector<double> double_v;
     typedef Vector<sfloat> sfloat_v;
-    namespace {
-        template<typename T> static inline ALWAYS_INLINE CONST Vector<T> _foldMinusPiToPi(const Vector<T> &x) {
-            typedef Const<T> C;
-            // put the input in the range [-π, π]
-            // 'f(x) = 2π * round(x/2π)' is the offset:
-            // ⇒ f(x) = 0 ∀ x ∈ ]-π, π[ ;  f(x) = 2π ∀ x ∈ [π, 3π[
-            return x - round(x * C::_1_2pi()) * C::_2pi();
-        }
-    }
 
     /*
      * algorithm for sine and cosine:
