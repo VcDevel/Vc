@@ -25,7 +25,6 @@
 #include <iostream>
 #include <iomanip>
 #endif
-#include "const.h"
 #include "macros.h"
 
 namespace Vc
@@ -73,35 +72,31 @@ namespace Common
         typedef typename V::Mask M;
         typedef typename V::IndexType IV;
 
-        const T DP1 = 0.78515625f;
-        const T DP2 = 2.4187564849853515625e-4f;
-        const T DP3 = 3.77489497744594108e-8f;
-        const T PIO4F = 0.7853981633974483096f;
-        const T lossth = 8192.f;
-
         V x = abs(_x);
-        M sign = _x < 0;
-        IV j = static_cast<IV>(x * 1.27323954473516f);
-        typename IV::Mask mask = (j & 1) != 0;
-        j(mask) += 1;
+        M sign = _x < V::Zero();
+        IV j = static_cast<IV>(x * C::_4_pi());
+        typename IV::Mask mask = (j & IV::One()) != IV::Zero();
+        ++j(mask);
         V y = static_cast<V>(j);
         j &= 7;
         sign ^= j > 3;
         j(j > 3) -= 4;
 
-        M lossMask = x > lossth;
-        x(lossMask) = x - y * PIO4F;
-        x(!lossMask) = ((x - y * DP1) - y * DP2) - y * DP3;
+        M lossMask = x > C::lossThreshold();
+        x(lossMask) = x - y * C::_pi_4();
+        x(!lossMask) = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
         V z = x * x;
-        V cos_s = ((2.443315711809948E-005f * z + -1.388731625493765E-003f)
-                * z + 4.166664568298827E-002f) * (z * z)
-            - 0.5f * z + 1.0f;
-        V sin_s = ((-1.9515295891E-4f * z + 8.3321608736E-3f)
-                * z + -1.6666654611E-1f) * (z * x)
+        V cos_s = ((C::cosCoeff(2)  * z +
+                    C::cosCoeff(1)) * z +
+                    C::cosCoeff(0)) * (z * z)
+            - 0.5f * z + V::One();
+        V sin_s = ((C::sinCoeff(2)  * z +
+                    C::sinCoeff(1)) * z +
+                    C::sinCoeff(0)) * (z * x)
             + x;
         y = sin_s;
-        y(j == 1 || j == 2) = cos_s;
+        y(j == IV::One() || j == 2) = cos_s;
         y(sign) = -y;
         return y;
     }
@@ -113,44 +108,40 @@ namespace Common
         typedef V::EntryType T;
         typedef V::Mask M;
         typedef V::IndexType IV;
-        const double PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
-        const double DP1  = Vc_buildDouble(1, 0x921fb40000000, -1);
-        const double DP2  = Vc_buildDouble(1, 0x4442d00000000, -25);
-        const double DP3  = Vc_buildDouble(1, 0x8469898cc5170, -49);
 
         V x = abs(_x);
-        M sign = _x < 0;
-        V y = floor(x / PIO4);
-        V z = y - floor(y * 0.0625) * 16.;
+        M sign = _x < V::Zero();
+        V y = floor(x / V(C::_pi_4()));
+        V z = y - floor(y * C::_1_16()) * C::_16();
         IV j = static_cast<IV>(z);
-        IV::Mask mask = (j & 1) != 0;
-        j(mask) += 1;
-        y(static_cast<M>(mask)) += 1.;
+        IV::Mask mask = (j & IV::One()) != IV::Zero();
+        ++j(mask);
+        y(static_cast<M>(mask)) += V::One();
         j &= 7;
         sign ^= static_cast<M>(j > 3);
         j(j > 3) -= 4;
 
         // since y is an integer we don't need to split y into low and high parts until the integer
-        // requires more bits than there are zero bits at the end of DP1 (30 bits -> 1e9)
-        z = ((x - y * DP1) - y * DP2) - y * DP3;
+        // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
+        z = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
         V zz = z * z;
-        V cos_s = (((((Vc_buildDouble(-1, 0x8fa49a0861a9b, -37)  * zz +
-                       Vc_buildDouble( 1, 0x1ee9d7b4e3f05, -29)) * zz +
-                       Vc_buildDouble(-1, 0x27e4f7eac4bc6, -22)) * zz +
-                       Vc_buildDouble( 1, 0xa01a019c844f5, -16)) * zz +
-                       Vc_buildDouble(-1, 0x6c16c16c14f91, -10)) * zz +
-                       Vc_buildDouble( 1, 0x555555555554b,  -5)) * (zz * zz)
-                  - 0.5 * zz + 1.0;
-        V sin_s = (((((Vc_buildDouble( 1, 0x5d8fd1fd19ccd, -33)  * zz +
-                       Vc_buildDouble(-1, 0xae5e5a9291f5d, -26)) * zz +
-                       Vc_buildDouble( 1, 0x71de3567d48a1, -19)) * zz +
-                       Vc_buildDouble(-1, 0xa01a019bfdf03, -13)) * zz +
-                       Vc_buildDouble( 1, 0x111111110f7d0,  -7)) * zz +
-                       Vc_buildDouble(-1, 0x5555555555548,  -3)) * (zz * z)
+        V cos_s = (((((C::cosCoeff(5)  * zz +
+                       C::cosCoeff(4)) * zz +
+                       C::cosCoeff(3)) * zz +
+                       C::cosCoeff(2)) * zz +
+                       C::cosCoeff(1)) * zz +
+                       C::cosCoeff(0)) * (zz * zz)
+                  - 0.5 * zz + V::One();
+        V sin_s = (((((C::sinCoeff(5)  * zz +
+                       C::sinCoeff(4)) * zz +
+                       C::sinCoeff(3)) * zz +
+                       C::sinCoeff(2)) * zz +
+                       C::sinCoeff(1)) * zz +
+                       C::sinCoeff(0)) * (zz * z)
                   + z;
         y = sin_s;
-        y(static_cast<M>(j == 1 || j == 2)) = cos_s;
+        y(static_cast<M>(j == IV::One() || j == 2)) = cos_s;
         y(sign) = -y;
         return y;
     }
@@ -161,35 +152,31 @@ namespace Common
         typedef typename V::Mask M;
         typedef typename V::IndexType IV;
 
-        const T DP1 = 0.78515625f;
-        const T DP2 = 2.4187564849853515625e-4f;
-        const T DP3 = 3.77489497744594108e-8f;
-        const T PIO4F = 0.7853981633974483096f;
-        const T lossth = 8192.f;
-
         V x = abs(_x);
-        IV j = static_cast<IV>(x * 1.27323954473516f);
-        typename IV::Mask mask = (j & 1) != 0;
-        j(mask) += 1;
+        IV j = static_cast<IV>(x * C::_4_pi());
+        typename IV::Mask mask = (j & IV::One()) != IV::Zero();
+        ++j(mask);
         V y = static_cast<V>(j);
         j &= 7;
         M sign = j > 3;
         j(j > 3) -= 4;
-        sign ^= j > 1;
+        sign ^= j > IV::One();
 
-        M lossMask = x > lossth;
-        x(lossMask) = x - y * PIO4F;
-        x(!lossMask) = ((x - y * DP1) - y * DP2) - y * DP3;
+        M lossMask = x > C::lossThreshold();
+        x(lossMask) = x - y * C::_pi_4();
+        x(!lossMask) = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
         V z = x * x;
-        V cos_s = ((2.443315711809948E-005f * z + -1.388731625493765E-003f)
-                * z + 4.166664568298827E-002f) * (z * z)
-            - 0.5f * z + 1.0f;
-        V sin_s = ((-1.9515295891E-4f * z + 8.3321608736E-3f)
-                * z + -1.6666654611E-1f) * (z * x)
+        V cos_s = ((C::cosCoeff(2)  * z +
+                    C::cosCoeff(1)) * z +
+                    C::cosCoeff(0)) * (z * z)
+            - 0.5f * z + V::One();
+        V sin_s = ((C::sinCoeff(2)  * z +
+                    C::sinCoeff(1)) * z +
+                    C::sinCoeff(0)) * (z * x)
             + x;
         y = cos_s;
-        y(j == 1 || j == 2) = sin_s;
+        y(j == IV::One() || j == 2) = sin_s;
         y(sign) = -y;
         return y;
     }
@@ -200,44 +187,40 @@ namespace Common
         typedef V::EntryType T;
         typedef V::Mask M;
         typedef V::IndexType IV;
-        const double PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
-        const double DP1  = Vc_buildDouble(1, 0x921fb40000000, -1);
-        const double DP2  = Vc_buildDouble(1, 0x4442d00000000, -25);
-        const double DP3  = Vc_buildDouble(1, 0x8469898cc5170, -49);
 
         V x = abs(_x);
-        V y = floor(x / PIO4);
-        V z = y - floor(y * 0.0625) * 16.;
+        V y = floor(x / C::_pi_4());
+        V z = y - floor(y * C::_1_16()) * C::_16();
         IV j = static_cast<IV>(z);
-        IV::Mask mask = (j & 1) != 0;
-        j(mask) += 1;
-        y(static_cast<M>(mask)) += 1.;
+        IV::Mask mask = (j & IV::One()) != IV::Zero();
+        ++j(mask);
+        y(static_cast<M>(mask)) += V::One();
         j &= 7;
         M sign = static_cast<M>(j > 3);
         j(j > 3) -= 4;
-        sign ^= static_cast<M>(j > 1);
+        sign ^= static_cast<M>(j > IV::One());
 
         // since y is an integer we don't need to split y into low and high parts until the integer
-        // requires more bits than there are zero bits at the end of DP1 (30 bits -> 1e9)
-        z = ((x - y * DP1) - y * DP2) - y * DP3;
+        // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
+        z = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
         V zz = z * z;
-        V cos_s = (((((Vc_buildDouble(-1, 0x8fa49a0861a9b, -37)  * zz +
-                       Vc_buildDouble( 1, 0x1ee9d7b4e3f05, -29)) * zz +
-                       Vc_buildDouble(-1, 0x27e4f7eac4bc6, -22)) * zz +
-                       Vc_buildDouble( 1, 0xa01a019c844f5, -16)) * zz +
-                       Vc_buildDouble(-1, 0x6c16c16c14f91, -10)) * zz +
-                       Vc_buildDouble( 1, 0x555555555554b,  -5)) * (zz * zz)
-                  - 0.5 * zz + 1.0;
-        V sin_s = (((((Vc_buildDouble( 1, 0x5d8fd1fd19ccd, -33)  * zz +
-                       Vc_buildDouble(-1, 0xae5e5a9291f5d, -26)) * zz +
-                       Vc_buildDouble( 1, 0x71de3567d48a1, -19)) * zz +
-                       Vc_buildDouble(-1, 0xa01a019bfdf03, -13)) * zz +
-                       Vc_buildDouble( 1, 0x111111110f7d0,  -7)) * zz +
-                       Vc_buildDouble(-1, 0x5555555555548,  -3)) * (zz * z)
+        V cos_s = (((((C::cosCoeff(5)  * zz +
+                       C::cosCoeff(4)) * zz +
+                       C::cosCoeff(3)) * zz +
+                       C::cosCoeff(2)) * zz +
+                       C::cosCoeff(1)) * zz +
+                       C::cosCoeff(0)) * (zz * zz)
+                  - 0.5 * zz + V::One();
+        V sin_s = (((((C::sinCoeff(5)  * zz +
+                       C::sinCoeff(4)) * zz +
+                       C::sinCoeff(3)) * zz +
+                       C::sinCoeff(2)) * zz +
+                       C::sinCoeff(1)) * zz +
+                       C::sinCoeff(0)) * (zz * z)
                   + z;
         y = cos_s;
-        y(static_cast<M>(j == 1 || j == 2)) = sin_s;
+        y(static_cast<M>(j == IV::One() || j == 2)) = sin_s;
         y(sign) = -y;
         return y;
     }
@@ -248,41 +231,37 @@ namespace Common
         typedef typename V::Mask M;
         typedef typename V::IndexType IV;
 
-        const T DP1 = 0.78515625f;
-        const T DP2 = 2.4187564849853515625e-4f;
-        const T DP3 = 3.77489497744594108e-8f;
-        const T PIO4F = 0.7853981633974483096f;
-        const T lossth = 8192.f;
-
         V x = abs(_x);
-        IV j = static_cast<IV>(x * 1.27323954473516f);
-        typename IV::Mask mask = (j & 1) != 0;
-        j(mask) += 1;
+        IV j = static_cast<IV>(x * C::_4_pi());
+        typename IV::Mask mask = (j & IV::One()) != IV::Zero();
+        ++j(mask);
         V y = static_cast<V>(j);
         j &= 7;
         M sign = static_cast<M>(j > 3);
         j(j > 3) -= 4;
 
-        M lossMask = x > lossth;
-        x(lossMask) = x - y * PIO4F;
-        x(!lossMask) = ((x - y * DP1) - y * DP2) - y * DP3;
+        M lossMask = x > C::lossThreshold();
+        x(lossMask) = x - y * C::_pi_4();
+        x(!lossMask) = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
         V z = x * x;
-        V cos_s = ((2.443315711809948E-005f * z + -1.388731625493765E-003f)
-                * z + 4.166664568298827E-002f) * (z * z)
-            - 0.5f * z + 1.0f;
-        V sin_s = ((-1.9515295891E-4f * z + 8.3321608736E-3f)
-                * z + -1.6666654611E-1f) * (z * x)
+        V cos_s = ((C::cosCoeff(2)  * z +
+                    C::cosCoeff(1)) * z +
+                    C::cosCoeff(0)) * (z * z)
+            - 0.5f * z + V::One();
+        V sin_s = ((C::sinCoeff(2)  * z +
+                    C::sinCoeff(1)) * z +
+                    C::sinCoeff(0)) * (z * x)
             + x;
 
         V c = cos_s;
-        c(static_cast<M>(j == 1 || j == 2)) = sin_s;
-        c(sign ^ static_cast<M>(j > 1)) = -c;
+        c(static_cast<M>(j == IV::One() || j == 2)) = sin_s;
+        c(sign ^ static_cast<M>(j > IV::One())) = -c;
         *_cos = c;
 
         V s = sin_s;
-        s(static_cast<M>(j == 1 || j == 2)) = cos_s;
-        s(sign ^ static_cast<M>(_x < 0)) = -s;
+        s(static_cast<M>(j == IV::One() || j == 2)) = cos_s;
+        s(sign ^ static_cast<M>(_x < V::Zero())) = -s;
         *_sin = s;
     }
     template<> inline void sincos(const double_v &_x, double_v *_sin, double_v *_cos) {
@@ -291,58 +270,54 @@ namespace Common
         typedef V::EntryType T;
         typedef V::Mask M;
         typedef V::IndexType IV;
-        const double PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
-        const double DP1  = Vc_buildDouble(1, 0x921fb40000000, -1);
-        const double DP2  = Vc_buildDouble(1, 0x4442d00000000, -25);
-        const double DP3  = Vc_buildDouble(1, 0x8469898cc5170, -49);
 
         V x = abs(_x);
-        V y = floor(x / PIO4);
-        V z = y - floor(y * 0.0625) * 16.;
+        V y = floor(x / C::_pi_4());
+        V z = y - floor(y * C::_1_16()) * C::_16();
         IV j = static_cast<IV>(z);
-        IV::Mask mask = (j & 1) != 0;
-        j(mask) += 1;
-        y(static_cast<M>(mask)) += 1.;
+        IV::Mask mask = (j & IV::One()) != IV::Zero();
+        ++j(mask);
+        y(static_cast<M>(mask)) += V::One();
         j &= 7;
         M sign = static_cast<M>(j > 3);
         j(j > 3) -= 4;
 
         // since y is an integer we don't need to split y into low and high parts until the integer
-        // requires more bits than there are zero bits at the end of DP1 (30 bits -> 1e9)
-        z = ((x - y * DP1) - y * DP2) - y * DP3;
+        // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
+        z = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
         V zz = z * z;
-        V cos_s = (((((Vc_buildDouble(-1, 0x8fa49a0861a9b, -37)  * zz +
-                       Vc_buildDouble( 1, 0x1ee9d7b4e3f05, -29)) * zz +
-                       Vc_buildDouble(-1, 0x27e4f7eac4bc6, -22)) * zz +
-                       Vc_buildDouble( 1, 0xa01a019c844f5, -16)) * zz +
-                       Vc_buildDouble(-1, 0x6c16c16c14f91, -10)) * zz +
-                       Vc_buildDouble( 1, 0x555555555554b,  -5)) * (zz * zz)
-                  - 0.5 * zz + 1.0;
-        V sin_s = (((((Vc_buildDouble( 1, 0x5d8fd1fd19ccd, -33)  * zz +
-                       Vc_buildDouble(-1, 0xae5e5a9291f5d, -26)) * zz +
-                       Vc_buildDouble( 1, 0x71de3567d48a1, -19)) * zz +
-                       Vc_buildDouble(-1, 0xa01a019bfdf03, -13)) * zz +
-                       Vc_buildDouble( 1, 0x111111110f7d0,  -7)) * zz +
-                       Vc_buildDouble(-1, 0x5555555555548,  -3)) * (zz * z)
+        V cos_s = (((((C::cosCoeff(5)  * zz +
+                       C::cosCoeff(4)) * zz +
+                       C::cosCoeff(3)) * zz +
+                       C::cosCoeff(2)) * zz +
+                       C::cosCoeff(1)) * zz +
+                       C::cosCoeff(0)) * (zz * zz)
+                  - 0.5 * zz + V::One();
+        V sin_s = (((((C::sinCoeff(5)  * zz +
+                       C::sinCoeff(4)) * zz +
+                       C::sinCoeff(3)) * zz +
+                       C::sinCoeff(2)) * zz +
+                       C::sinCoeff(1)) * zz +
+                       C::sinCoeff(0)) * (zz * z)
                   + z;
 
         V c = cos_s;
-        c(static_cast<M>(j == 1 || j == 2)) = sin_s;
-        c(sign ^ static_cast<M>(j > 1)) = -c;
+        c(static_cast<M>(j == IV::One() || j == 2)) = sin_s;
+        c(sign ^ static_cast<M>(j > IV::One())) = -c;
         *_cos = c;
 
         V s = sin_s;
-        s(static_cast<M>(j == 1 || j == 2)) = cos_s;
-        s(sign ^ static_cast<M>(_x < 0)) = -s;
+        s(static_cast<M>(j == IV::One() || j == 2)) = cos_s;
+        s(sign ^ static_cast<M>(_x < V::Zero())) = -s;
         *_sin = s;
     }
     template<typename _T> static inline Vector<_T> asin (const Vector<_T> &_x) {
+        typedef Const<_T> C;
         typedef Vector<_T> V;
         typedef typename V::EntryType T;
         typedef typename V::Mask M;
 
-        const V pi_2(Math<T>::pi_2());
         const M &negative = _x < V::Zero();
 
         const V &a = abs(_x);
@@ -359,7 +334,7 @@ namespace Common
               + T(7.4953002686e-2)) * z
               + T(1.6666752422e-1)) * z * x
               + x;
-        z(gt_0_5) = pi_2 - (z + z);
+        z(gt_0_5) = C::_pi_2() - (z + z);
         z(small) = a;
         z(negative) = -z;
         z.setQnan(outOfRange);
@@ -367,6 +342,7 @@ namespace Common
         return z;
     }
     template<> inline double_v asin (const double_v &_x) {
+        typedef Const<double> C;
         typedef double_v V;
         typedef V::EntryType T;
         typedef V::Mask M;
@@ -395,9 +371,7 @@ namespace Common
         const V Q3 = Vc_buildDouble( 1, 0x1705684ffbf9d,  7);
         const V Q4 = Vc_buildDouble(-1, 0x898220a3607ac,  5);
 
-        const V PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
 
-        const V pi_2(Math<T>::pi_2());
         const M negative = _x < V::Zero();
 
         const V a = abs(_x);
@@ -409,9 +383,9 @@ namespace Common
         const V r = (((R0 * zz + R1) * zz + R2) * zz + R3) * zz + R4;
         const V s = (((zz + S0) * zz + S1) * zz + S2) * zz + S3;
         V sqrtzz = sqrt(zz + zz);
-        V z = PIO4 - sqrtzz;
-        z -= sqrtzz * (zz * r / s) - 6.123233995736765886130E-17; // remainder of PIO2
-        z += PIO4;
+        V z = C::_pi_4() - sqrtzz;
+        z -= sqrtzz * (zz * r / s) - 6.123233995736765886130E-17; // remainder of pi/2
+        z += C::_pi_4();
 
         V a2 = a * a;
         const V p = ((((P0 * a2 + P1) * a2 + P2) * a2 + P3) * a2 + P4) * a2 + P5;
@@ -425,18 +399,17 @@ namespace Common
         return z;
     }
     template<typename _T> static inline Vector<_T> atan (const Vector<_T> &_x) {
+        typedef Const<_T> C;
         typedef Vector<_T> V;
         typedef typename V::EntryType T;
         typedef typename V::Mask M;
         V x = abs(_x);
-        const V pi_2(Math<T>::pi_2());
-        const V pi_4(Math<T>::pi_4());
         const M &gt_tan_3pi_8 = x > V(T(2.414213562373095));
         const M &gt_tan_pi_8  = x > V(T(0.4142135623730950)) && !gt_tan_3pi_8;
         const V minusOne(-1);
         V y = V::Zero();
-        y(gt_tan_3pi_8) = pi_2;
-        y(gt_tan_pi_8)  = pi_4;
+        y(gt_tan_3pi_8) = C::_pi_2();
+        y(gt_tan_pi_8)  = C::_pi_4();
         x(gt_tan_3pi_8) = minusOne / x;
         x(gt_tan_pi_8)  = (x - V::One()) / (x + V::One());
         const V &x2 = x * x;
@@ -450,6 +423,7 @@ namespace Common
         return y;
     }
     template<> inline double_v atan (const double_v &_x) {
+        typedef Const<double> C;
         typedef double_v V;
         typedef V::EntryType T;
         typedef V::Mask M;
@@ -470,21 +444,18 @@ namespace Common
         const double_v Q3 = Vc_buildDouble( 1, 0xe563f13b049ea,  8);
         const double_v Q4 = Vc_buildDouble( 1, 0x8519efbbd62ec,  7);
 
-        const double PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
-        const double PIO2 = Vc_buildDouble(1, 0x921fb54442d18,  0);
-
         M sign = _x < 0;
         V x = abs(_x);
         M finite = isfinite(_x);
-        V ret = PIO2;
+        V ret = C::_pi_2();
         V y = V::Zero();
         const M large = x > T3P8;
         const M gt_06 = x > 0.66;
         V tmp = (x - V::One()) / (x + V::One());
         tmp(large) = -V::One() / x;
         x(gt_06) = tmp;
-        y(gt_06) = PIO4;
-        y(large) = PIO2;
+        y(gt_06) = C::_pi_4();
+        y(large) = C::_pi_2();
         V z = x * x;
         const V p = (((P0 * z + P1) * z + P2) * z + P3) * z + P4;
         const V q = ((((z + Q0) * z + Q1) * z + Q2) * z + Q3) * z + Q4;
@@ -499,12 +470,10 @@ namespace Common
         return ret;
     }
     template<typename _T> static inline Vector<_T> atan2(const Vector<_T> &y, const Vector<_T> &x) {
+        typedef Const<_T> C;
         typedef Vector<_T> V;
         typedef typename V::EntryType T;
         typedef typename V::Mask M;
-        const V pi(Math<T>::pi());
-        const V pi_2(Math<T>::pi_2());
-        const V pi_4(Math<T>::pi_4());
 
         const M xZero = x == V::Zero();
         const M yZero = y == V::Zero();
@@ -513,7 +482,7 @@ namespace Common
         const M xInf = !isfinite(x);
         const M yInf = !isfinite(y);
 
-        V a = pi.copySign(y);
+        V a = C::_pi().copySign(y);
         a.setZero(x >= V::Zero());
 
         // setting x to any finite value will have atan(y/x) return sign(y/x)*pi/2, just in case x is inf
@@ -526,13 +495,13 @@ namespace Common
         a.setZero(xZero && yZero);
 
         // for x = -0 we add/subtract pi to get the correct result
-        a(xMinusZero) += pi.copySign(y);
+        a(xMinusZero) += C::_pi().copySign(y);
 
         // atan2(-Y, +/-0) = -pi/2
-        a(xZero && yNeg) = -pi_2;
+        a(xZero && yNeg) = -C::_pi_2();
 
         // if both inputs are inf the output is +/- (3)pi/4
-        a(xInf && yInf) += pi_4.copySign(x ^ ~y);
+        a(xInf && yInf) += C::_pi_4().copySign(x ^ ~y);
 
         // correct the sign of y if the result is 0
         a(a == V::Zero()) = a.copySign(y);
@@ -543,13 +512,10 @@ namespace Common
         return a;
     }
     template<> inline double_v atan2 (const double_v &y, const double_v &x) {
+        typedef Const<double> C;
         typedef double_v V;
         typedef V::EntryType T;
         typedef V::Mask M;
-
-        const V PIO4 = Vc_buildDouble(1, 0x921fb54442d18, -1);
-        const V PIO2 = Vc_buildDouble(1, 0x921fb54442d18,  0);
-        const V PI   = Vc_buildDouble(1, 0x921fb54442d18,  1);
 
         const M xZero = x == V::Zero();
         const M yZero = y == V::Zero();
@@ -558,7 +524,7 @@ namespace Common
         const M xInf = !isfinite(x);
         const M yInf = !isfinite(y);
 
-        V a = V(PI).copySign(y);
+        V a = V(C::_pi()).copySign(y);
         a.setZero(x >= V::Zero());
 
         // setting x to any finite value will have atan(y/x) return sign(y/x)*pi/2, just in case x is inf
@@ -571,13 +537,13 @@ namespace Common
         a.setZero(xZero && yZero);
 
         // for x = -0 we add/subtract pi to get the correct result
-        a(xMinusZero) += PI.copySign(y);
+        a(xMinusZero) += C::_pi().copySign(y);
 
         // atan2(-Y, +/-0) = -pi/2
-        a(xZero && yNeg) = -PIO2;
+        a(xZero && yNeg) = -C::_pi_2();
 
         // if both inputs are inf the output is +/- (3)pi/4
-        a(xInf && yInf) += PIO4.copySign(x ^ ~y);
+        a(xInf && yInf) += C::_pi_4().copySign(x ^ ~y);
 
         // correct the sign of y if the result is 0
         a(a == V::Zero()) = a.copySign(y);

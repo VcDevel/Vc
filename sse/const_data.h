@@ -48,6 +48,11 @@ struct c_general
     ALIGN(16) static const unsigned long long frexpMask[2];
 };
 
+template<typename T> struct c_trig
+{
+    ALIGN(64) static const T data[];
+};
+
 template<typename T> struct c_sin
 {
     ALIGN(64) static const T data[];

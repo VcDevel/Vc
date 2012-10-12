@@ -25,7 +25,6 @@
 # endif
 #endif
 
-#include "common/const.h"
 #include "avx/const_data.h"
 #include "sse/const_data.h"
 #include <Vc/version.h>
@@ -33,6 +32,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
+#include "common/macros.h"
 
 namespace Vc
 {
@@ -155,6 +156,76 @@ namespace SSE
     V_ALIGN(16) const long long c_general::absMaskDouble[2] = { 0x7fffffffffffffffll, 0x7fffffffffffffffll };
     V_ALIGN(16) const unsigned long long c_general::signMaskDouble[2] = { 0x8000000000000000ull, 0x8000000000000000ull };
     V_ALIGN(16) const unsigned long long c_general::frexpMask[2] = { 0xbfefffffffffffffull, 0xbfefffffffffffffull };
+
+#define _2(x) x, x
+    template<> const double c_trig<double>::data[] = {
+    // cacheline 4
+        _2(Vc_buildDouble(1, 0x921fb54442d18, -1)), // π/4
+        _2(Vc_buildDouble(1, 0x921fb40000000, -1)), // π/4 - 30bits precision
+        _2(Vc_buildDouble(1, 0x4442d00000000, -25)), // π/4 remainder1 - 32bits precision
+        _2(Vc_buildDouble(1, 0x8469898cc5170, -49)), // π/4 remainder2
+    // cacheline 5
+        _2(0.0625),
+        _2(16.),
+        _2(0.), // padding
+        _2(0.), // padding
+    // cacheline 6
+        _2(Vc_buildDouble( 1, 0x555555555554b,  -5)), // ~ 1/4!
+        _2(Vc_buildDouble(-1, 0x6c16c16c14f91, -10)), // ~-1/6!
+        _2(Vc_buildDouble( 1, 0xa01a019c844f5, -16)), // ~ 1/8!
+        _2(Vc_buildDouble(-1, 0x27e4f7eac4bc6, -22)), // ~-1/10!
+    // cacheline 7
+        _2(Vc_buildDouble( 1, 0x1ee9d7b4e3f05, -29)), // ~ 1/12!
+        _2(Vc_buildDouble(-1, 0x8fa49a0861a9b, -37)), // ~-1/14!
+        _2(Vc_buildDouble(-1, 0x5555555555548,  -3)), // ~-1/3!
+        _2(Vc_buildDouble( 1, 0x111111110f7d0,  -7)), // ~ 1/5!
+    // cacheline 8
+        _2(Vc_buildDouble(-1, 0xa01a019bfdf03, -13)), // ~-1/7!
+        _2(Vc_buildDouble( 1, 0x71de3567d48a1, -19)), // ~ 1/9!
+        _2(Vc_buildDouble(-1, 0xae5e5a9291f5d, -26)), // ~-1/11!
+        _2(Vc_buildDouble( 1, 0x5d8fd1fd19ccd, -33)), // ~ 1/13!
+    // cacheline 9
+        _2(0.), // padding
+        _2(0.), // padding
+        _2(Vc_buildDouble(1, 0x921fb54442d18,  0)), // π/2
+        _2(Vc_buildDouble(1, 0x921fb54442d18,  1)), // π
+    };
+#undef _2
+#define _4(x) x, x, x, x
+    template<> const float c_trig<float>::data[] = {
+    // cacheline
+        _4(Vc_buildFloat(1, 0x490FDB,  -1)), // π/4
+        _4(Vc_buildFloat(1, 0x490000,  -1)), // π/4 - 16 bits precision
+        _4(Vc_buildFloat(1, 0x7DA000, -13)), // π/4 remainder1 - 13 bits precision
+        _4(Vc_buildFloat(1, 0x222169, -25)), // π/4 remainder2
+    // cacheline
+        _4(0.0625f),
+        _4(16.f),
+        _4(0.f), // padding
+        _4(0.f), // padding
+
+    // cacheline
+        _4(4.166664568298827e-2f),  // ~ 1/4!
+        _4(-1.388731625493765e-3f), // ~-1/6!
+        _4(2.443315711809948e-5f),  // ~ 1/8!
+        _4(0.f), // padding
+    // cacheline
+        _4(0.f), // padding
+        _4(0.f), // padding
+        _4(-1.6666654611e-1f), // ~-1/3!
+        _4(8.3321608736e-3f),  // ~ 1/5!
+    // cacheline
+        _4(-1.9515295891e-4f), // ~-1/7!
+        _4(0.f), // padding
+        _4(0.f), // padding
+        _4(0.f), // padding
+    // cacheline
+        _4(8192.f), // loss threshold
+        _4(1.27323954473516f), // 4/π
+        _4(Vc_buildFloat(1, 0x490FDB,   0)), // π/2
+        _4(Vc_buildFloat(1, 0x490FDB,   1)), // π
+    };
+#undef _4
 
     template<> const float c_sin<float>::data[4 * 8] = {
     // cacheline 4
