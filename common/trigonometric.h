@@ -395,19 +395,18 @@ namespace Common
         typedef typename V::EntryType T;
         typedef typename V::Mask M;
         V x = abs(_x);
-        const M &gt_tan_3pi_8 = x > V(T(2.414213562373095));
-        const M &gt_tan_pi_8  = x > V(T(0.4142135623730950)) && !gt_tan_3pi_8;
-        const V minusOne(-1);
+        const M &gt_tan_3pi_8 = x > C::atanThrsHi();
+        const M &gt_tan_pi_8  = x > C::atanThrsLo() && !gt_tan_3pi_8;
         V y = V::Zero();
         y(gt_tan_3pi_8) = C::_pi_2();
         y(gt_tan_pi_8)  = C::_pi_4();
-        x(gt_tan_3pi_8) = minusOne / x;
+        x(gt_tan_3pi_8) = -V::One() / x;
         x(gt_tan_pi_8)  = (x - V::One()) / (x + V::One());
         const V &x2 = x * x;
-        y += (((T(8.05374449538e-2) * x2
-              - T(1.38776856032E-1)) * x2
-              + T(1.99777106478E-1)) * x2
-              - T(3.33329491539E-1)) * x2 * x
+        y += (((C::atanP(0)  * x2
+              - C::atanP(1)) * x2
+              + C::atanP(2)) * x2
+              - C::atanP(3)) * x2 * x
               + x;
         y(_x < V::Zero()) = -y;
         y.setQnan(isnan(_x));
@@ -419,17 +418,13 @@ namespace Common
         typedef V::EntryType T;
         typedef V::Mask M;
 
-        // tan( 3*pi/8 ) = 2.41421356237309504880
-        const double_v T3P8 = Vc_buildDouble(1, 0x3504f333f9de6, 1);
-        const double MOREBITS = 6.123233995736765886130E-17;
-
-        M sign = _x < 0;
+        M sign = _x < V::Zero();
         V x = abs(_x);
         M finite = isfinite(_x);
         V ret = C::_pi_2();
         V y = V::Zero();
-        const M large = x > T3P8;
-        const M gt_06 = x > 0.66;
+        const M large = x > C::atanThrsHi();
+        const M gt_06 = x > C::atanThrsLo();
         V tmp = (x - V::One()) / (x + V::One());
         tmp(large) = -V::One() / x;
         x(gt_06) = tmp;
@@ -440,8 +435,8 @@ namespace Common
         const V q = ((((z + C::atanQ(0)) * z + C::atanQ(1)) * z + C::atanQ(2)) * z + C::atanQ(3)) * z + C::atanQ(4);
         z = z * p / q;
         z = x * z + x;
-        V morebits = C::_1_2() * MOREBITS;
-        morebits(large) *= 2.;
+        V morebits = C::atanExtraBits();
+        morebits(!large) *= C::_1_2();
         z(gt_06) += morebits;
         ret(finite) = y + z;
         ret(sign) = -ret;

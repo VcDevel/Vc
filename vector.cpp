@@ -202,6 +202,10 @@ namespace SSE
     // cacheline 12
         _2(Vc_buildDouble( 1, 0xe563f13b049ea,  8)), // atan Q coefficients
         _2(Vc_buildDouble( 1, 0x8519efbbd62ec,  7)), // atan Q coefficients
+        _2(Vc_buildDouble( 1, 0x3504f333f9de6,  1)), // tan( 3/8 π )
+        _2(0.66),                                    // lower threshold for special casing in atan
+    // cacheline 13
+        _2(6.123233995736765886130e-17), // more bits for atan
     };
 #undef _2
 #define _4(x) x, x, x, x
@@ -221,22 +225,39 @@ namespace SSE
         _4(4.166664568298827e-2f),  // ~ 1/4!
         _4(-1.388731625493765e-3f), // ~-1/6!
         _4(2.443315711809948e-5f),  // ~ 1/8!
-        _4(0.f), // padding
+        _4(0.f), // padding (for alignment with double)
     // cacheline
-        _4(0.f), // padding
-        _4(0.f), // padding
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
         _4(-1.6666654611e-1f), // ~-1/3!
         _4(8.3321608736e-3f),  // ~ 1/5!
     // cacheline
         _4(-1.9515295891e-4f), // ~-1/7!
-        _4(0.f), // padding
-        _4(0.f), // padding
-        _4(0.f), // padding
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
     // cacheline
         _4(8192.f), // loss threshold
-        _4(1.27323954473516f), // 4/π
-        _4(Vc_buildFloat(1, 0x490FDB,   0)), // π/2
-        _4(Vc_buildFloat(1, 0x490FDB,   1)), // π
+        _4(Vc_buildFloat(1, 0x22F983, 0)), // 1.27323949337005615234375 = 4/π
+        _4(Vc_buildFloat(1, 0x490FDB, 0)), // π/2
+        _4(Vc_buildFloat(1, 0x490FDB, 1)), // π
+    // cacheline
+        _4(8.05374449538e-2), // atan P coefficients
+        _4(1.38776856032e-1), // atan P coefficients
+        _4(1.99777106478e-1), // atan P coefficients
+        _4(3.33329491539e-1), // atan P coefficients
+    // cacheline
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+    // cacheline
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(2.414213562373095), // tan( 3/8 π )
+        _4(0.414213562373095), // tan( 1/8 π ) lower threshold for special casing in atan
+    // cacheline
+        _4(0.f), // padding (for alignment with double)
     };
 #undef _4
 
