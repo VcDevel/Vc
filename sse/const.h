@@ -53,9 +53,6 @@ namespace SSE
         static inline ALWAYS_INLINE CONST V _pi_2()         { return load(&c_trig<T>::data[22 * Stride]); }
         static inline ALWAYS_INLINE CONST V _pi()           { return load(&c_trig<T>::data[23 * Stride]); }
 
-        static inline ALWAYS_INLINE CONST V _1_2pi()       { return load(&c_sin<T>::data[0 * Stride]); }
-        static inline ALWAYS_INLINE CONST V _2pi()         { return load(&c_sin<T>::data[1 * Stride]); }
-
         static inline ALWAYS_INLINE CONST M exponentMask() { return M(load(c_log<T>::d(1)).data()); }
         static inline ALWAYS_INLINE CONST V _1_2()         { return load(c_log<T>::d(18)); }
         static inline ALWAYS_INLINE CONST V _1_sqrt2()     { return load(c_log<T>::d(15)); }
