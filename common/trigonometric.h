@@ -120,10 +120,8 @@ namespace Common
         x(lossMask) = x - y * C::_pi_4();
         x(!lossMask) = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
-        const V cos_s = cosSeries(x);
-        const V sin_s = sinSeries(x);
-        y = sin_s;
-        y(j == IV::One() || j == 2) = cos_s;
+        y = sinSeries(x);
+        y(j == IV::One() || j == 2) = cosSeries(x);
         y(sign) = -y;
         return y;
     }
@@ -152,10 +150,8 @@ namespace Common
         // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
         z = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
-        const V cos_s = cosSeries(z);
-        const V sin_s = sinSeries(z);
-        y = sin_s;
-        y(static_cast<M>(j == IV::One() || j == 2)) = cos_s;
+        y = sinSeries(z);
+        y(static_cast<M>(j == IV::One() || j == 2)) = cosSeries(z);
         y(sign) = -y;
         return y;
     }
@@ -180,10 +176,8 @@ namespace Common
         x(lossMask) = x - y * C::_pi_4();
         x(!lossMask) = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
-        const V cos_s = cosSeries(x);
-        const V sin_s = sinSeries(x);
-        y = cos_s;
-        y(j == IV::One() || j == 2) = sin_s;
+        y = cosSeries(x);
+        y(j == IV::One() || j == 2) = sinSeries(x);
         y(sign) = -y;
         return y;
     }
