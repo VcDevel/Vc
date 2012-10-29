@@ -53,11 +53,6 @@ template<typename T> struct c_trig
     ALIGN(64) static const T data[];
 };
 
-template<typename T> struct c_sin
-{
-    ALIGN(64) static const T data[];
-};
-
 template<typename T> struct c_log
 {
     enum VectorSize { Size = 16 / sizeof(T) };
