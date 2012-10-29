@@ -20,11 +20,6 @@
 #ifndef VC_COMMON_TRIGONOMETRIC_H
 #define VC_COMMON_TRIGONOMETRIC_H
 
-//#define VC_DEBUG_TRIGONOMETRIC
-#ifdef VC_DEBUG_TRIGONOMETRIC
-#include <iostream>
-#include <iomanip>
-#endif
 #include "macros.h"
 
 namespace Vc
