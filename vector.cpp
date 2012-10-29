@@ -205,7 +205,35 @@ namespace SSE
         _2(Vc_buildDouble( 1, 0x3504f333f9de6,  1)), // tan( 3/8 π )
         _2(0.66),                                    // lower threshold for special casing in atan
     // cacheline 13
-        _2(6.123233995736765886130e-17), // more bits for atan
+        _2(Vc_buildDouble(1, 0x1A62633145C07, -54)), // remainder of pi/2
+        _2(1.e-8), // small asin input threshold
+        _2(0.625), // large asin input threshold
+        _2(0.), // padding
+    // cacheline 14
+        _2(Vc_buildDouble( 1, 0x84fc3988e9f08, -9)), // asinCoeff0
+        _2(Vc_buildDouble(-1, 0x2079259f9290f, -1)), // asinCoeff0
+        _2(Vc_buildDouble( 1, 0xbdff5baf33e6a,  2)), // asinCoeff0
+        _2(Vc_buildDouble(-1, 0x991aaac01ab68,  4)), // asinCoeff0
+    // cacheline 15
+        _2(Vc_buildDouble( 1, 0xc896240f3081d,  4)), // asinCoeff0
+        _2(Vc_buildDouble(-1, 0x5f2a2b6bf5d8c,  4)), // asinCoeff1
+        _2(Vc_buildDouble( 1, 0x26219af6a7f42,  7)), // asinCoeff1
+        _2(Vc_buildDouble(-1, 0x7fe08959063ee,  8)), // asinCoeff1
+    // cacheline 16
+        _2(Vc_buildDouble( 1, 0x56709b0b644be,  8)), // asinCoeff1
+        _2(Vc_buildDouble( 1, 0x16b9b0bd48ad3, -8)), // asinCoeff2
+        _2(Vc_buildDouble(-1, 0x34341333e5c16, -1)), // asinCoeff2
+        _2(Vc_buildDouble( 1, 0x5c74b178a2dd9,  2)), // asinCoeff2
+    // cacheline 17
+        _2(Vc_buildDouble(-1, 0x04331de27907b,  4)), // asinCoeff2
+        _2(Vc_buildDouble( 1, 0x39007da779259,  4)), // asinCoeff2
+        _2(Vc_buildDouble(-1, 0x0656c06ceafd5,  3)), // asinCoeff2
+        _2(Vc_buildDouble(-1, 0xd7b590b5e0eab,  3)), // asinCoeff3
+    // cacheline 18
+        _2(Vc_buildDouble( 1, 0x19fc025fe9054,  6)), // asinCoeff3
+        _2(Vc_buildDouble(-1, 0x265bb6d3576d7,  7)), // asinCoeff3
+        _2(Vc_buildDouble( 1, 0x1705684ffbf9d,  7)), // asinCoeff3
+        _2(Vc_buildDouble(-1, 0x898220a3607ac,  5)), // asinCoeff3
     };
 #undef _2
 #define _4(x) x, x, x, x
@@ -220,7 +248,6 @@ namespace SSE
         _4(16.f),
         _4(0.f), // padding
         _4(0.f), // padding
-
     // cacheline
         _4(4.166664568298827e-2f),  // ~ 1/4!
         _4(-1.388731625493765e-3f), // ~-1/6!
@@ -257,7 +284,15 @@ namespace SSE
         _4(2.414213562373095), // tan( 3/8 π )
         _4(0.414213562373095), // tan( 1/8 π ) lower threshold for special casing in atan
     // cacheline
+        _4(Vc_buildFloat(-1, 0x3BBD2E, -25)), // remainder of pi/2
+        _4(1.e-4), // small asin input threshold
         _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(4.2163199048e-2),
+        _4(2.4181311049e-2),
+        _4(4.5470025998e-2),
+        _4(7.4953002686e-2),
+        _4(1.6666752422e-1),
     };
 #undef _4
 

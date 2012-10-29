@@ -50,11 +50,17 @@ namespace SSE
         static inline ALWAYS_INLINE CONST V atanQ(int i)    { return load(&c_trig<T>::data[(29 + i) * Stride]); }
         static inline ALWAYS_INLINE CONST V atanThrsHi()    { return load(&c_trig<T>::data[34 * Stride]); }
         static inline ALWAYS_INLINE CONST V atanThrsLo()    { return load(&c_trig<T>::data[35 * Stride]); }
-        static inline ALWAYS_INLINE CONST V atanExtraBits() { return load(&c_trig<T>::data[36 * Stride]); }
+        static inline ALWAYS_INLINE CONST V _pi_2_rem()     { return load(&c_trig<T>::data[36 * Stride]); }
         static inline ALWAYS_INLINE CONST V lossThreshold() { return load(&c_trig<T>::data[20 * Stride]); }
         static inline ALWAYS_INLINE CONST V _4_pi()         { return load(&c_trig<T>::data[21 * Stride]); }
         static inline ALWAYS_INLINE CONST V _pi_2()         { return load(&c_trig<T>::data[22 * Stride]); }
         static inline ALWAYS_INLINE CONST V _pi()           { return load(&c_trig<T>::data[23 * Stride]); }
+        static inline ALWAYS_INLINE CONST V asinCoeff0(int i) { return load(&c_trig<T>::data[(40 + i) * Stride]); }
+        static inline ALWAYS_INLINE CONST V asinCoeff1(int i) { return load(&c_trig<T>::data[(45 + i) * Stride]); }
+        static inline ALWAYS_INLINE CONST V asinCoeff2(int i) { return load(&c_trig<T>::data[(49 + i) * Stride]); }
+        static inline ALWAYS_INLINE CONST V asinCoeff3(int i) { return load(&c_trig<T>::data[(55 + i) * Stride]); }
+        static inline ALWAYS_INLINE CONST V smallAsinInput()  { return load(&c_trig<T>::data[37 * Stride]); }
+        static inline ALWAYS_INLINE CONST V largeAsinInput()  { return load(&c_trig<T>::data[38 * Stride]); }
 
         static inline ALWAYS_INLINE CONST M exponentMask() { return M(load(c_log<T>::d(1)).data()); }
         static inline ALWAYS_INLINE CONST V _1_2()         { return load(c_log<T>::d(18)); }
