@@ -39,6 +39,49 @@ namespace Common
     typedef Vector<double> double_v;
     typedef Vector<sfloat> sfloat_v;
 
+    template<typename T> static inline Vector<T> cosSeries(const Vector<T> x)
+    {
+        typedef Const<T> C;
+        const Vector<T> x2 = x * x;
+        return ((C::cosCoeff(2)  * x2 +
+                 C::cosCoeff(1)) * x2 +
+                 C::cosCoeff(0)) * (x2 * x2)
+            - C::_1_2() * x2 + Vector<T>::One();
+    }
+    static inline double_v cosSeries(const double_v x)
+    {
+        typedef Const<double> C;
+        const double_v x2 = x * x;
+        return (((((C::cosCoeff(5)  * x2 +
+                    C::cosCoeff(4)) * x2 +
+                    C::cosCoeff(3)) * x2 +
+                    C::cosCoeff(2)) * x2 +
+                    C::cosCoeff(1)) * x2 +
+                    C::cosCoeff(0)) * (x2 * x2)
+            - C::_1_2() * x2 + double_v::One();
+    }
+    template<typename T> static inline Vector<T> sinSeries(const Vector<T> x)
+    {
+        typedef Const<T> C;
+        const Vector<T> x2 = x * x;
+        return ((C::sinCoeff(2)  * x2 +
+                 C::sinCoeff(1)) * x2 +
+                 C::sinCoeff(0)) * (x2 * x)
+            + x;
+    }
+    static inline double_v sinSeries(const double_v x)
+    {
+        typedef Const<double> C;
+        const double_v x2 = x * x;
+        return (((((C::sinCoeff(5)  * x2 +
+                    C::sinCoeff(4)) * x2 +
+                    C::sinCoeff(3)) * x2 +
+                    C::sinCoeff(2)) * x2 +
+                    C::sinCoeff(1)) * x2 +
+                    C::sinCoeff(0)) * (x2 * x)
+            + x;
+    }
+
     /*
      * algorithm for sine and cosine:
      *
@@ -77,15 +120,8 @@ namespace Common
         x(lossMask) = x - y * C::_pi_4();
         x(!lossMask) = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
-        V z = x * x;
-        V cos_s = ((C::cosCoeff(2)  * z +
-                    C::cosCoeff(1)) * z +
-                    C::cosCoeff(0)) * (z * z)
-            - C::_1_2() * z + V::One();
-        V sin_s = ((C::sinCoeff(2)  * z +
-                    C::sinCoeff(1)) * z +
-                    C::sinCoeff(0)) * (z * x)
-            + x;
+        const V cos_s = cosSeries(x);
+        const V sin_s = sinSeries(x);
         y = sin_s;
         y(j == IV::One() || j == 2) = cos_s;
         y(sign) = -y;
@@ -116,21 +152,8 @@ namespace Common
         // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
         z = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
-        V zz = z * z;
-        V cos_s = (((((C::cosCoeff(5)  * zz +
-                       C::cosCoeff(4)) * zz +
-                       C::cosCoeff(3)) * zz +
-                       C::cosCoeff(2)) * zz +
-                       C::cosCoeff(1)) * zz +
-                       C::cosCoeff(0)) * (zz * zz)
-                  - C::_1_2() * zz + V::One();
-        V sin_s = (((((C::sinCoeff(5)  * zz +
-                       C::sinCoeff(4)) * zz +
-                       C::sinCoeff(3)) * zz +
-                       C::sinCoeff(2)) * zz +
-                       C::sinCoeff(1)) * zz +
-                       C::sinCoeff(0)) * (zz * z)
-                  + z;
+        const V cos_s = cosSeries(z);
+        const V sin_s = sinSeries(z);
         y = sin_s;
         y(static_cast<M>(j == IV::One() || j == 2)) = cos_s;
         y(sign) = -y;
@@ -157,15 +180,8 @@ namespace Common
         x(lossMask) = x - y * C::_pi_4();
         x(!lossMask) = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
-        V z = x * x;
-        V cos_s = ((C::cosCoeff(2)  * z +
-                    C::cosCoeff(1)) * z +
-                    C::cosCoeff(0)) * (z * z)
-            - C::_1_2() * z + V::One();
-        V sin_s = ((C::sinCoeff(2)  * z +
-                    C::sinCoeff(1)) * z +
-                    C::sinCoeff(0)) * (z * x)
-            + x;
+        const V cos_s = cosSeries(x);
+        const V sin_s = sinSeries(x);
         y = cos_s;
         y(j == IV::One() || j == 2) = sin_s;
         y(sign) = -y;
@@ -195,23 +211,8 @@ namespace Common
         // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
         z = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
-        V zz = z * z;
-        V cos_s = (((((C::cosCoeff(5)  * zz +
-                       C::cosCoeff(4)) * zz +
-                       C::cosCoeff(3)) * zz +
-                       C::cosCoeff(2)) * zz +
-                       C::cosCoeff(1)) * zz +
-                       C::cosCoeff(0)) * (zz * zz)
-                  - C::_1_2() * zz + V::One();
-        V sin_s = (((((C::sinCoeff(5)  * zz +
-                       C::sinCoeff(4)) * zz +
-                       C::sinCoeff(3)) * zz +
-                       C::sinCoeff(2)) * zz +
-                       C::sinCoeff(1)) * zz +
-                       C::sinCoeff(0)) * (zz * z)
-                  + z;
-        y = cos_s;
-        y(static_cast<M>(j == IV::One() || j == 2)) = sin_s;
+        y = cosSeries(z);
+        y(static_cast<M>(j == IV::One() || j == 2)) = sinSeries(z);
         y(sign) = -y;
         return y;
     }
@@ -235,15 +236,8 @@ namespace Common
         x(lossMask) = x - y * C::_pi_4();
         x(!lossMask) = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
-        V z = x * x;
-        V cos_s = ((C::cosCoeff(2)  * z +
-                    C::cosCoeff(1)) * z +
-                    C::cosCoeff(0)) * (z * z)
-            - C::_1_2() * z + V::One();
-        V sin_s = ((C::sinCoeff(2)  * z +
-                    C::sinCoeff(1)) * z +
-                    C::sinCoeff(0)) * (z * x)
-            + x;
+        const V cos_s = cosSeries(x);
+        const V sin_s = sinSeries(x);
 
         V c = cos_s;
         c(static_cast<M>(j == IV::One() || j == 2)) = sin_s;
@@ -277,21 +271,8 @@ namespace Common
         // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
         z = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
-        V zz = z * z;
-        V cos_s = (((((C::cosCoeff(5)  * zz +
-                       C::cosCoeff(4)) * zz +
-                       C::cosCoeff(3)) * zz +
-                       C::cosCoeff(2)) * zz +
-                       C::cosCoeff(1)) * zz +
-                       C::cosCoeff(0)) * (zz * zz)
-                  - C::_1_2() * zz + V::One();
-        V sin_s = (((((C::sinCoeff(5)  * zz +
-                       C::sinCoeff(4)) * zz +
-                       C::sinCoeff(3)) * zz +
-                       C::sinCoeff(2)) * zz +
-                       C::sinCoeff(1)) * zz +
-                       C::sinCoeff(0)) * (zz * z)
-                  + z;
+        const V cos_s = cosSeries(z);
+        const V sin_s = sinSeries(z);
 
         V c = cos_s;
         c(static_cast<M>(j == IV::One() || j == 2)) = sin_s;
