@@ -53,20 +53,36 @@ namespace AVX
         static const unsigned char *address() { return &_IndexesFromZero8[0]; }
     };
 
-    template<typename T> struct Const
+    template<typename _T> struct Const
     {
-        typedef Vector<T> V;
+        typedef Vector<_T> V;
+        typedef typename V::EntryType T;
         typedef typename V::Mask M;
 
-        static inline V CONST_L _1_2pi()  CONST_R { return V(c_sin<T>::data[0]); }
-        static inline V CONST_L _2pi()    CONST_R { return V(c_sin<T>::data[1]); }
-        static inline V CONST_L _pi_2()   CONST_R { return V(c_sin<T>::data[2]); }
-        static inline V CONST_L _pi()     CONST_R { return V(c_sin<T>::data[3]); }
-        static inline V CONST_L _1_3fac() CONST_R { return V(c_sin<T>::data[4]); }
-        static inline V CONST_L _1_5fac() CONST_R { return V(c_sin<T>::data[5]); }
-        static inline V CONST_L _1_7fac() CONST_R { return V(c_sin<T>::data[6]); }
-        static inline V CONST_L _1_9fac() CONST_R { return V(c_sin<T>::data[7]); }
-        static inline V CONST_L highMask() CONST_R;
+        static inline ALWAYS_INLINE CONST V _pi_4()        { return V(c_trig<T>::data[0]); }
+        static inline ALWAYS_INLINE CONST V _pi_4_hi()     { return V(c_trig<T>::data[1]); }
+        static inline ALWAYS_INLINE CONST V _pi_4_rem1()   { return V(c_trig<T>::data[2]); }
+        static inline ALWAYS_INLINE CONST V _pi_4_rem2()   { return V(c_trig<T>::data[3]); }
+        static inline ALWAYS_INLINE CONST V _1_16()        { return V(c_trig<T>::data[4]); }
+        static inline ALWAYS_INLINE CONST V _16()          { return V(c_trig<T>::data[5]); }
+
+        static inline ALWAYS_INLINE CONST V cosCoeff(int i)   { return V(c_trig<T>::data[( 8 + i)]); }
+        static inline ALWAYS_INLINE CONST V sinCoeff(int i)   { return V(c_trig<T>::data[(14 + i)]); }
+        static inline ALWAYS_INLINE CONST V atanP(int i)      { return V(c_trig<T>::data[(24 + i)]); }
+        static inline ALWAYS_INLINE CONST V atanQ(int i)      { return V(c_trig<T>::data[(29 + i)]); }
+        static inline ALWAYS_INLINE CONST V atanThrsHi()      { return V(c_trig<T>::data[34]); }
+        static inline ALWAYS_INLINE CONST V atanThrsLo()      { return V(c_trig<T>::data[35]); }
+        static inline ALWAYS_INLINE CONST V _pi_2_rem()       { return V(c_trig<T>::data[36]); }
+        static inline ALWAYS_INLINE CONST V lossThreshold()   { return V(c_trig<T>::data[20]); }
+        static inline ALWAYS_INLINE CONST V _4_pi()           { return V(c_trig<T>::data[21]); }
+        static inline ALWAYS_INLINE CONST V _pi_2()           { return V(c_trig<T>::data[22]); }
+        static inline ALWAYS_INLINE CONST V _pi()             { return V(c_trig<T>::data[23]); }
+        static inline ALWAYS_INLINE CONST V asinCoeff0(int i) { return V(c_trig<T>::data[(40 + i)]); }
+        static inline ALWAYS_INLINE CONST V asinCoeff1(int i) { return V(c_trig<T>::data[(45 + i)]); }
+        static inline ALWAYS_INLINE CONST V asinCoeff2(int i) { return V(c_trig<T>::data[(49 + i)]); }
+        static inline ALWAYS_INLINE CONST V asinCoeff3(int i) { return V(c_trig<T>::data[(55 + i)]); }
+        static inline ALWAYS_INLINE CONST V smallAsinInput()  { return V(c_trig<T>::data[37]); }
+        static inline ALWAYS_INLINE CONST V largeAsinInput()  { return V(c_trig<T>::data[38]); }
 
         static inline M CONST_L exponentMask() CONST_R { return M(V(c_log<T>::d(1)).data()); }
         static inline V CONST_L _1_2()         CONST_R { return V(c_log<T>::d(18)); }
@@ -79,39 +95,13 @@ namespace AVX
         static inline V CONST_L neginf()       CONST_R { return V(c_log<T>::d(13)); }
         static inline V CONST_L log10_e()      CONST_R { return V(c_log<T>::d(19)); }
         static inline V CONST_L log2_e()       CONST_R { return V(c_log<T>::d(20)); }
+
+        static inline V CONST_L highMask() CONST_R;
     };
 
     template<> inline Vector<float> CONST Const<float>::highMask() { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }
     template<> inline Vector<double> CONST Const<double>::highMask() { return _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)); }
-
-
-    template<> struct Const<sfloat>
-    {
-        typedef sfloat_v V;
-        typedef V::Mask M;
-
-        static inline V CONST_L _1_2pi()  CONST_R { return V(c_sin<float>::data[0]); }
-        static inline V CONST_L _2pi()    CONST_R { return V(c_sin<float>::data[1]); }
-        static inline V CONST_L _pi_2()   CONST_R { return V(c_sin<float>::data[2]); }
-        static inline V CONST_L _pi()     CONST_R { return V(c_sin<float>::data[3]); }
-        static inline V CONST_L _1_3fac() CONST_R { return V(c_sin<float>::data[4]); }
-        static inline V CONST_L _1_5fac() CONST_R { return V(c_sin<float>::data[5]); }
-        static inline V CONST_L _1_7fac() CONST_R { return V(c_sin<float>::data[6]); }
-        static inline V CONST_L _1_9fac() CONST_R { return V(c_sin<float>::data[7]); }
-        static inline V CONST_L highMask() CONST_R { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }
-
-        static inline M CONST_L exponentMask() CONST_R { return M(V(c_log<float>::d(1)).data()); }
-        static inline V CONST_L _1_2()         CONST_R { return V(c_log<float>::d(18)); }
-        static inline V CONST_L _1_sqrt2()     CONST_R { return V(c_log<float>::d(15)); }
-        static inline V CONST_L P(int i)       CONST_R { return V(c_log<float>::d(2 + i)); }
-        static inline V CONST_L Q(int i)       CONST_R { return V(c_log<float>::d(8 + i)); }
-        static inline V CONST_L min()          CONST_R { return V(c_log<float>::d(14)); }
-        static inline V CONST_L ln2_small()    CONST_R { return V(c_log<float>::d(17)); }
-        static inline V CONST_L ln2_large()    CONST_R { return V(c_log<float>::d(16)); }
-        static inline V CONST_L neginf()       CONST_R { return V(c_log<float>::d(13)); }
-        static inline V CONST_L log10_e()      CONST_R { return V(c_log<float>::d(19)); }
-        static inline V CONST_L log2_e()       CONST_R { return V(c_log<float>::d(20)); }
-    };
+    template<> inline Vector<sfloat> CONST Const<sfloat>::highMask() { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }
 } // namespace AVX
 } // namespace Vc
 

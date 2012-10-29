@@ -44,29 +44,144 @@ namespace AVX
     V_ALIGN(16) extern const unsigned short _IndexesFromZero16[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     V_ALIGN(16) extern const unsigned char  _IndexesFromZero8 [16]= { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
-    // cacheline 2
-    template<> const double c_sin<double>::data[8] = {
-        0.15915494309189533576888376337251436, // 1 over 2pi
-        6.2831853071795864769252867665590058,  // 2pi
-        1.5707963267948966192313216916397514, // pi over 2
-        3.1415926535897932384626433832795029, // pi
-        1.666666666666666574148081281236954964697360992431640625e-01, // 1 over 3!
-        8.33333333333333321768510160154619370587170124053955078125e-03, // 1 over 5!
-        1.984126984126984125263171154784913596813566982746124267578125e-04, // 1 over 7!
-        2.755731922398589251095059327045788677423843182623386383056640625e-06 // 1 over 9!
+    template<> const double c_trig<double>::data[] = {
+    // cacheline 4
+        Vc_buildDouble(1, 0x921fb54442d18, -1), // π/4
+        Vc_buildDouble(1, 0x921fb40000000, -1), // π/4 - 30bits precision
+        Vc_buildDouble(1, 0x4442d00000000, -25), // π/4 remainder1 - 32bits precision
+        Vc_buildDouble(1, 0x8469898cc5170, -49), // π/4 remainder2
+        0.0625,
+        16.,
+        0., // padding
+        0., // padding
+    // cacheline 5
+        Vc_buildDouble( 1, 0x555555555554b,  -5), // ~ 1/4!
+        Vc_buildDouble(-1, 0x6c16c16c14f91, -10), // ~-1/6!
+        Vc_buildDouble( 1, 0xa01a019c844f5, -16), // ~ 1/8!
+        Vc_buildDouble(-1, 0x27e4f7eac4bc6, -22), // ~-1/10!
+        Vc_buildDouble( 1, 0x1ee9d7b4e3f05, -29), // ~ 1/12!
+        Vc_buildDouble(-1, 0x8fa49a0861a9b, -37), // ~-1/14!
+        Vc_buildDouble(-1, 0x5555555555548,  -3), // ~-1/3!
+        Vc_buildDouble( 1, 0x111111110f7d0,  -7), // ~ 1/5!
+    // cacheline 8
+        Vc_buildDouble(-1, 0xa01a019bfdf03, -13), // ~-1/7!
+        Vc_buildDouble( 1, 0x71de3567d48a1, -19), // ~ 1/9!
+        Vc_buildDouble(-1, 0xae5e5a9291f5d, -26), // ~-1/11!
+        Vc_buildDouble( 1, 0x5d8fd1fd19ccd, -33), // ~ 1/13!
+        0., // padding (for alignment with float)
+        Vc_buildDouble(1, 0x8BE60DB939105,  0), // 4/π
+        Vc_buildDouble(1, 0x921fb54442d18,  0), // π/2
+        Vc_buildDouble(1, 0x921fb54442d18,  1), // π
+    // cacheline 10
+        Vc_buildDouble(-1, 0xc007fa1f72594, -1), // atan P coefficients
+        Vc_buildDouble(-1, 0x028545b6b807a,  4), // atan P coefficients
+        Vc_buildDouble(-1, 0x2c08c36880273,  6), // atan P coefficients
+        Vc_buildDouble(-1, 0xeb8bf2d05ba25,  6), // atan P coefficients
+        Vc_buildDouble(-1, 0x03669fd28ec8e,  6), // atan P coefficients
+        Vc_buildDouble( 1, 0x8dbc45b14603c,  4), // atan Q coefficients
+        Vc_buildDouble( 1, 0x4a0dd43b8fa25,  7), // atan Q coefficients
+        Vc_buildDouble( 1, 0xb0e18d2e2be3b,  8), // atan Q coefficients
+    // cacheline 12
+        Vc_buildDouble( 1, 0xe563f13b049ea,  8), // atan Q coefficients
+        Vc_buildDouble( 1, 0x8519efbbd62ec,  7), // atan Q coefficients
+        Vc_buildDouble( 1, 0x3504f333f9de6,  1), // tan( 3/8 π )
+        0.66,                                    // lower threshold for special casing in atan
+        Vc_buildDouble(1, 0x1A62633145C07, -54), // remainder of pi/2
+        1.e-8, // small asin input threshold
+        0.625, // large asin input threshold
+        0., // padding
+    // cacheline 14
+        Vc_buildDouble( 1, 0x84fc3988e9f08, -9), // asinCoeff0
+        Vc_buildDouble(-1, 0x2079259f9290f, -1), // asinCoeff0
+        Vc_buildDouble( 1, 0xbdff5baf33e6a,  2), // asinCoeff0
+        Vc_buildDouble(-1, 0x991aaac01ab68,  4), // asinCoeff0
+        Vc_buildDouble( 1, 0xc896240f3081d,  4), // asinCoeff0
+        Vc_buildDouble(-1, 0x5f2a2b6bf5d8c,  4), // asinCoeff1
+        Vc_buildDouble( 1, 0x26219af6a7f42,  7), // asinCoeff1
+        Vc_buildDouble(-1, 0x7fe08959063ee,  8), // asinCoeff1
+    // cacheline 16
+        Vc_buildDouble( 1, 0x56709b0b644be,  8), // asinCoeff1
+        Vc_buildDouble( 1, 0x16b9b0bd48ad3, -8), // asinCoeff2
+        Vc_buildDouble(-1, 0x34341333e5c16, -1), // asinCoeff2
+        Vc_buildDouble( 1, 0x5c74b178a2dd9,  2), // asinCoeff2
+        Vc_buildDouble(-1, 0x04331de27907b,  4), // asinCoeff2
+        Vc_buildDouble( 1, 0x39007da779259,  4), // asinCoeff2
+        Vc_buildDouble(-1, 0x0656c06ceafd5,  3), // asinCoeff2
+        Vc_buildDouble(-1, 0xd7b590b5e0eab,  3), // asinCoeff3
+    // cacheline 18
+        Vc_buildDouble( 1, 0x19fc025fe9054,  6), // asinCoeff3
+        Vc_buildDouble(-1, 0x265bb6d3576d7,  7), // asinCoeff3
+        Vc_buildDouble( 1, 0x1705684ffbf9d,  7), // asinCoeff3
+        Vc_buildDouble(-1, 0x898220a3607ac,  5), // asinCoeff3
     };
-
-    // cacheline 3
-    template<> const float c_sin<float>::data[8] = {
-        1.59154936671257019e-01f, // 1 over 2pi
-        6.28318548202514648f,     // 2pi
-        1.57079637050628662f,     // pi over 2
-        3.14159274101257324f,     // pi
-        1.66666671633720398e-01f, // 1 over 3!
-        8.33333376795053482e-03f, // 1 over 5!
-        1.98412701138295233e-04f, // 1 over 7!
-        2.75573188446287531e-06f  // 1 over 9!
+#define _4(x) x
+    template<> const float c_trig<float>::data[] = {
+    // cacheline
+        _4(Vc_buildFloat(1, 0x490FDB,  -1)), // π/4
+        _4(Vc_buildFloat(1, 0x490000,  -1)), // π/4 - 16 bits precision
+        _4(Vc_buildFloat(1, 0x7DA000, -13)), // π/4 remainder1 - 13 bits precision
+        _4(Vc_buildFloat(1, 0x222169, -25)), // π/4 remainder2
+        _4(0.0625f),
+        _4(16.f),
+        _4(0.f), // padding
+        _4(0.f), // padding
+        _4(4.166664568298827e-2f),  // ~ 1/4!
+        _4(-1.388731625493765e-3f), // ~-1/6!
+        _4(2.443315711809948e-5f),  // ~ 1/8!
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(-1.6666654611e-1f), // ~-1/3!
+        _4(8.3321608736e-3f),  // ~ 1/5!
+    // cacheline
+        _4(-1.9515295891e-4f), // ~-1/7!
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(8192.f), // loss threshold
+        _4(Vc_buildFloat(1, 0x22F983, 0)), // 1.27323949337005615234375 = 4/π
+        _4(Vc_buildFloat(1, 0x490FDB, 0)), // π/2
+        _4(Vc_buildFloat(1, 0x490FDB, 1)), // π
+        _4(8.05374449538e-2), // atan P coefficients
+        _4(1.38776856032e-1), // atan P coefficients
+        _4(1.99777106478e-1), // atan P coefficients
+        _4(3.33329491539e-1), // atan P coefficients
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+    // cacheline
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(2.414213562373095), // tan( 3/8 π )
+        _4(0.414213562373095), // tan( 1/8 π ) lower threshold for special casing in atan
+        _4(Vc_buildFloat(-1, 0x3BBD2E, -25)), // remainder of pi/2
+        _4(1.e-4), // small asin input threshold
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(4.2163199048e-2), // asinCoeff0
+        _4(2.4181311049e-2), // asinCoeff0
+        _4(4.5470025998e-2), // asinCoeff0
+        _4(7.4953002686e-2), // asinCoeff0
+        _4(1.6666752422e-1), // asinCoeff0
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+    // cacheline
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
     };
+#undef _4
 
     const unsigned       int c_general::absMaskFloat[2] = { 0xffffffffu, 0x7fffffffu };
     const unsigned       int c_general::signMaskFloat[2] = { 0x0u, 0x80000000u };

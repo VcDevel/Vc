@@ -44,7 +44,7 @@ struct STRUCT_ALIGN1(64) c_general
     static const unsigned long long highMaskDouble;
 } STRUCT_ALIGN2(64);
 
-template<typename T> struct c_sin
+template<typename T> struct c_trig
 {
     ALIGN(64) static const T data[];
 };
