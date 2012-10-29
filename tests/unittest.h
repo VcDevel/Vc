@@ -234,7 +234,7 @@ template<> inline bool unittest_compareHelper<std::type_info, std::type_info>(co
 template<typename T> T ulpDiffToReferenceWrapper(T a, T b) {
     const T diff = ulpDiffToReference(a, b);
     if (VC_IS_UNLIKELY(_unit_test_global.findMaximumDistance)) {
-        _unit_test_global.maximumDistance = std::max<double>(diff, _unit_test_global.maximumDistance);
+        _unit_test_global.maximumDistance = std::max<double>(std::abs(diff), _unit_test_global.maximumDistance);
         _unit_test_global.meanDistance += std::abs(diff);
         ++_unit_test_global.meanCount;
     }
@@ -243,7 +243,7 @@ template<typename T> T ulpDiffToReferenceWrapper(T a, T b) {
 template<typename T> Vc::Vector<T> ulpDiffToReferenceWrapper(Vc::Vector<T> a, Vc::Vector<T> b) {
     const Vc::Vector<T> diff = ulpDiffToReference(a, b);
     if (VC_IS_UNLIKELY(_unit_test_global.findMaximumDistance)) {
-        _unit_test_global.maximumDistance = std::max<double>(diff.max(), _unit_test_global.maximumDistance);
+        _unit_test_global.maximumDistance = std::max<double>(Vc::abs(diff).max(), _unit_test_global.maximumDistance);
         _unit_test_global.meanDistance += Vc::abs(diff).sum();
         _unit_test_global.meanCount += Vc::Vector<T>::Size;
     }
