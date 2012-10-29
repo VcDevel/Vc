@@ -183,18 +183,16 @@ namespace AVX
         return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
     }
 
-    AVX_TO_SSE_2(cmpeq_epi8)
-    AVX_TO_SSE_2(cmpeq_epi16)
-    AVX_TO_SSE_2(cmpeq_epi32)
     AVX_TO_SSE_2(cmplt_epi8)
     AVX_TO_SSE_2(cmplt_epi16)
     AVX_TO_SSE_2(cmplt_epi32)
+#ifndef VC_UNCONDINTIONAL_AVX2_INTRINSICS
+    AVX_TO_SSE_2(cmpeq_epi8)
+    AVX_TO_SSE_2(cmpeq_epi16)
+    AVX_TO_SSE_2(cmpeq_epi32)
     AVX_TO_SSE_2(cmpgt_epi8)
     AVX_TO_SSE_2(cmpgt_epi16)
     AVX_TO_SSE_2(cmpgt_epi32)
-
-#ifndef VC_ICC
-    // ICC ships the Integer intrinsics inside the AVX1 header these days.
 
 #ifdef VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
 #   define _mm256_srli_si256(a, i) \
