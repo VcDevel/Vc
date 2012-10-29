@@ -404,7 +404,7 @@ template<typename V> void testAsin()/*{{{*/
 {
     typedef typename V::EntryType T;
     setFuzzyness<float>(2);
-    setFuzzyness<double>(4.418735e+07); // FIXME
+    setFuzzyness<double>(36);
     Array<Reference<T> > reference = referenceData<T, Asin>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, ref;
