@@ -288,11 +288,31 @@ namespace SSE
         _4(1.e-4), // small asin input threshold
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
-        _4(4.2163199048e-2),
-        _4(2.4181311049e-2),
-        _4(4.5470025998e-2),
-        _4(7.4953002686e-2),
-        _4(1.6666752422e-1),
+    // cacheline
+        _4(4.2163199048e-2), // asinCoeff0
+        _4(2.4181311049e-2), // asinCoeff0
+        _4(4.5470025998e-2), // asinCoeff0
+        _4(7.4953002686e-2), // asinCoeff0
+    // cacheline
+        _4(1.6666752422e-1), // asinCoeff0
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+    // cacheline
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+    // cacheline
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+    // cacheline
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
+        _4(0.f), // padding (for alignment with double)
     };
 #undef _4
 

@@ -319,11 +319,11 @@ namespace Common
         V z = a * a;
         z(gt_0_5) = (V::One() - a) * C::_1_2();
         x(gt_0_5) = sqrt(z);
-        z = ((((T(4.2163199048e-2)  * z
-              + T(2.4181311049e-2)) * z
-              + T(4.5470025998e-2)) * z
-              + T(7.4953002686e-2)) * z
-              + T(1.6666752422e-1)) * z * x
+        z = ((((C::asinCoeff0(0)  * z
+              + C::asinCoeff0(1)) * z
+              + C::asinCoeff0(2)) * z
+              + C::asinCoeff0(3)) * z
+              + C::asinCoeff0(4)) * z * x
               + x;
         z(gt_0_5) = C::_pi_2() - (z + z);
         z(small) = a;
