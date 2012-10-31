@@ -111,12 +111,11 @@ namespace Common
         sign ^= j > 3;
         j(j > 3) -= 4;
 
-        M lossMask = x > C::lossThreshold();
-        x(lossMask) = x - y * C::_pi_4();
-        x(!lossMask) = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
+        V z = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
+        z(x > C::lossThreshold()) = x - y * C::_pi_4();
 
-        y = sinSeries(x);
-        y(j == IV::One() || j == 2) = cosSeries(x);
+        y = sinSeries(z);
+        y(j == IV::One() || j == 2) = cosSeries(z);
         y(sign) = -y;
         return y;
     }
