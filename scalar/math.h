@@ -20,7 +20,6 @@
 #ifndef VC_SCALAR_MATH_H
 #define VC_SCALAR_MATH_H
 
-#include "../common/const.h"
 #include "macros.h"
 
 namespace Vc
