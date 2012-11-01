@@ -336,7 +336,12 @@ endmacro()
 # helper macro for vc_compile_for_all_implementations
 macro(_vc_compile_one_implementation _objs _impl)
    set(_extra_flags)
+   set(_ok FALSE)
    foreach(_flag ${ARGN})
+      if(_flag STREQUAL "NO_FLAG")
+         set(_ok TRUE)
+         break()
+      endif()
       AddCompilerFlag(${_flag} CXX_RESULT _ok)
       if(_ok)
          set(_extra_flags ${_flag})
@@ -344,20 +349,22 @@ macro(_vc_compile_one_implementation _objs _impl)
       endif()
    endforeach()
 
-   get_filename_component(_out "${_vc_compile_src}" NAME_WE)
-   get_filename_component(_ext "${_vc_compile_src}" EXT)
-   set(_out "${_out}_${_impl}${_ext}.o")
-   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_out}
-      COMMAND ${CMAKE_CXX_COMPILER} ${_flags} ${_extra_flags}
-      -DVC_IMPL=${_impl}
-      -c -o ${_out} ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
-      MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
-      IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
-      COMMENT "Building CXX object ${_out}"
-      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-      VERBATIM
-      )
-   list(APPEND ${_objs} "${CMAKE_CURRENT_BINARY_DIR}/${_out}")
+   if(_ok)
+      get_filename_component(_out "${_vc_compile_src}" NAME_WE)
+      get_filename_component(_ext "${_vc_compile_src}" EXT)
+      set(_out "${_out}_${_impl}${_ext}.o")
+      add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_out}
+         COMMAND ${CMAKE_CXX_COMPILER} ${_flags} ${_extra_flags}
+         -DVC_IMPL=${_impl}
+         -c -o ${_out} ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+         MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+         IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+         COMMENT "Building CXX object ${_out}"
+         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+         VERBATIM
+         )
+      list(APPEND ${_objs} "${CMAKE_CURRENT_BINARY_DIR}/${_out}")
+   endif()
 endmacro()
 
 # Generate compile rules for the given C++ source file for all available implementations and return
@@ -386,7 +393,7 @@ macro(vc_compile_for_all_implementations _objs _src)
 
    set(_vc_compile_src "${_src}")
 
-   _vc_compile_one_implementation(${_objs} Scalar)
+   _vc_compile_one_implementation(${_objs} Scalar NO_FLAG)
    if(NOT Vc_SSE_INTRINSICS_BROKEN)
       _vc_compile_one_implementation(${_objs} SSE2   "-msse2"   "-xSSE2"   "/arch:SSE2")
       _vc_compile_one_implementation(${_objs} SSE3   "-msse3"   "-xSSE3"   "/arch:SSE2")
