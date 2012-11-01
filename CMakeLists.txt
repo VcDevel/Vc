@@ -93,12 +93,82 @@ add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
 add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
 add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
 
-if(NOT ALIROOT_RELEASE)
-   if(USE_AVX)
-      add_library(Vc STATIC src/const.cpp src/cpuid.cpp src/support.cpp src/avx_sorthelper.cpp)
-   else()
-      set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp)
+macro(_vc_compile_one_implementation _objs _impl)
+   set(_extra_flags)
+   foreach(_flag ${ARGN})
+      AddCompilerFlag(${_flag} CXX_RESULT _ok)
+      if(_ok)
+         set(_extra_flags ${_flag})
+         break()
+      endif()
+   endforeach()
 
+   get_filename_component(_out "${_vc_compile_src}" NAME_WE)
+   get_filename_component(_ext "${_vc_compile_src}" EXT)
+   set(_out "${_out}_${_impl}${_ext}.o")
+   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_out}
+      COMMAND ${CMAKE_CXX_COMPILER} ${_flags} ${_extra_flags}
+      -DVC_IMPL=${_impl}
+      -c -o ${_out} ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+      MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+      IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+      COMMENT "Building CXX object ${_out}"
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+      VERBATIM
+      )
+   list(APPEND ${_objs} "${CMAKE_CURRENT_BINARY_DIR}/${_out}")
+endmacro()
+
+macro(vc_compile_for_all_implementations _objs _src)
+   set(${_objs})
+
+   # remove all -march, -msse, etc. flags from the flags we want to pass
+   string(REPLACE "${Vc_ARCHITECTURE_FLAGS}" "" _flags "${Vc_DEFINITIONS}")
+   string(REPLACE "-DVC_IMPL=[^ ]*" "" _flags "${_flags}")
+
+   # capture the -march= switch as -mtune; if there is none skip it
+   if(Vc_ARCHITECTURE_FLAGS MATCHES "-march=")
+      string(REGEX REPLACE "^.*-march=([^ ]*).*$" "-mtune=\\1" _tmp "${Vc_ARCHITECTURE_FLAGS}")
+      set(_flags "${_flags} ${_tmp}")
+   endif()
+
+   # make a semicolon separated list of all flags
+   string(TOUPPER "${CMAKE_BUILD_TYPE}" _tmp)
+   set(_tmp "CMAKE_CXX_FLAGS_${_tmp}")
+   string(REPLACE " " ";" _flags "${CMAKE_CXX_FLAGS} ${${_tmp}} ${_flags} ${ARGN} -I${CMAKE_CURRENT_SOURCE_DIR}/include/ -I${CMAKE_CURRENT_SOURCE_DIR}/")
+
+   set(_vc_compile_src "${_src}")
+
+   _vc_compile_one_implementation(${_objs} Scalar)
+   if(NOT Vc_SSE_INTRINSICS_BROKEN)
+      _vc_compile_one_implementation(${_objs} SSE2   "-msse2"   "-xSSE2"   "/arch:SSE2")
+      _vc_compile_one_implementation(${_objs} SSE3   "-msse3"   "-xSSE3"   "/arch:SSE2")
+      _vc_compile_one_implementation(${_objs} SSSE3  "-mssse3"  "-xSSSE3"  "/arch:SSE2")
+      _vc_compile_one_implementation(${_objs} SSE4_1 "-msse4.1" "-xSSE4.1" "/arch:SSE2")
+      _vc_compile_one_implementation(${_objs} SSE4_2 "-msse4.2" "-xSSE4.2" "/arch:SSE2")
+      _vc_compile_one_implementation(${_objs} SSE4a  "-msse4a"  "-xSSSE3"  "/arch:SSE2")
+   endif()
+   if(NOT Vc_AVX_INTRINSICS_BROKEN)
+      _vc_compile_one_implementation(${_objs} AVX      "-mavx"    "-xAVX"    "/arch:AVX")
+      #_vc_compile_one_implementation(${_objs} SSE_FMA4 "-mfma4"   "-xAVX"    "/arch:AVX")
+      #_vc_compile_one_implementation(${_objs} AVX_FMA4 "-mfma4"   "-xAVX"    "/arch:AVX")
+      if(NOT Vc_XOP_INTRINSICS_BROKEN)
+         #_vc_compile_one_implementation(${_objs} SSE_XOP "-mxop"   "-xAVX"    "/arch:AVX")
+         #_vc_compile_one_implementation(${_objs} AVX_XOP "-mxop"   "-xAVX"    "/arch:AVX")
+         #_vc_compile_one_implementation(${_objs} SSE_XOP_FMA4 "-mxop -mfma4"   "-xAVX"    "/arch:AVX")
+         #_vc_compile_one_implementation(${_objs} AVX_XOP_FMA4 "-mxop -mfma4"   "-xAVX"    "/arch:AVX")
+      endif()
+   endif()
+endmacro()
+
+if(NOT ALIROOT_RELEASE)
+   set(libvc_compile_flags "-DVC_COMPILE_LIB")
+   AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
+   vc_compile_for_all_implementations(_objs src/trigonometric.cpp ${libvc_compile_flags})
+   set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp ${_objs})
+   if(USE_AVX)
+      list(APPEND _srcs src/avx_sorthelper.cpp)
+   else()
       if(NOT Vc_AVX_INTRINSICS_BROKEN)
          # we'd still like to have avx_sorthelper.cpp built in, but that requires compilation with -mavx (or a comparable flag)
          foreach(_flag "-xAVX" "-mavx" "-arch:AVX")
@@ -107,20 +177,16 @@ if(NOT ALIROOT_RELEASE)
                if(_flag STREQUAL "-xAVX")
                   set(_flag "${_flag} -diag-disable 10121") # disable the warning "overriding -xSSE4.2 with -xAVX"
                endif()
-               set(_srcs ${_srcs} src/avx_sorthelper.cpp)
+               list(APPEND _srcs src/avx_sorthelper.cpp)
                set_source_files_properties(src/avx_sorthelper.cpp PROPERTIES COMPILE_FLAGS "${_flag}")
                break()
             endif()
          endforeach()
       endif()
-      add_library(Vc STATIC ${_srcs})
    endif()
-   add_target_property(Vc COMPILE_FLAGS "-DVC_COMPILE_LIB")
+   add_library(Vc STATIC ${_srcs})
+   add_target_property(Vc COMPILE_FLAGS ${libvc_compile_flags})
    add_target_property(Vc LABELS "other")
-   AddCompilerFlag("-fPIC" CXX_RESULT _has_fPIC)
-   if(_has_fPIC)
-      add_target_property(Vc COMPILE_FLAGS "-fPIC")
-   endif()
    add_dependencies(other Vc)
 
    install(TARGETS Vc DESTINATION lib/)
@@ -130,7 +196,7 @@ else()
    # Sadly there are messed up systems where putting include/Vc in the include paths will
    # break the standard library (e.g. MacOS X Lion with case insensitive filesystem).
    # Thus, we modify the includes such that include/Vc never needs to be in the path.
-   foreach(_src src/const.cpp src/cpuid.cpp src/support.cpp src/avx_sorthelper.cpp)
+   foreach(_src src/const.cpp src/cpuid.cpp src/support.cpp src/avx_sorthelper.cpp src/trigonometric.cpp)
       message(STATUS "Processing ${CMAKE_SOURCE_DIR}/${_src} -> ${CMAKE_BINARY_DIR}/${_src}")
       get_filename_component(_path "${CMAKE_BINARY_DIR}/${_src}" PATH)
       file(MAKE_DIRECTORY "${_path}")
