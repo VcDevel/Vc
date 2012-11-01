@@ -92,6 +92,9 @@ namespace Vc
   typedef ushort_v::Mask ushort_m;
 
   namespace {
+#if defined(VC_IMPL_SSE) || defined(VC_IMPL_AVX)
+    using VECTOR_NAMESPACE::Const;
+#endif
     VC_STATIC_ASSERT_NC(double_v::Size == VC_DOUBLE_V_SIZE, VC_DOUBLE_V_SIZE_MACRO_WRONG);
     VC_STATIC_ASSERT_NC(float_v::Size  == VC_FLOAT_V_SIZE , VC_FLOAT_V_SIZE_MACRO_WRONG );
     VC_STATIC_ASSERT_NC(sfloat_v::Size == VC_SFLOAT_V_SIZE, VC_SFLOAT_V_SIZE_MACRO_WRONG);
