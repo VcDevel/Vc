@@ -389,7 +389,12 @@ macro(vc_compile_for_all_implementations _objs _src)
    # make a semicolon separated list of all flags
    string(TOUPPER "${CMAKE_BUILD_TYPE}" _tmp)
    set(_tmp "CMAKE_CXX_FLAGS_${_tmp}")
-   string(REPLACE " " ";" _flags "${CMAKE_CXX_FLAGS} ${${_tmp}} ${_flags} ${ARGN} -I${CMAKE_CURRENT_SOURCE_DIR}/include/ -I${CMAKE_CURRENT_SOURCE_DIR}/")
+   string(REPLACE " " ";" _flags "${CMAKE_CXX_FLAGS} ${${_tmp}} ${_flags} ${ARGN}")
+   get_directory_property(_inc INCLUDE_DIRECTORIES)
+   foreach(_i ${_inc})
+      list(APPEND _flags "-I${_i}")
+   endforeach()
+   message(STATUS "_flags: ${_flags}")
 
    set(_vc_compile_src "${_src}")
 
