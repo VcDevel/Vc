@@ -394,7 +394,6 @@ macro(vc_compile_for_all_implementations _objs _src)
    foreach(_i ${_inc})
       list(APPEND _flags "-I${_i}")
    endforeach()
-   message(STATUS "_flags: ${_flags}")
 
    set(_vc_compile_src "${_src}")
 
