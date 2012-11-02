@@ -25,7 +25,7 @@
 // AVX
 #include <immintrin.h>
 
-#if defined(VC_IMPL_XOP) || defined(VC_IMPL_FMA4)
+#if (defined(VC_IMPL_XOP) || defined(VC_IMPL_FMA4)) && !defined(VC_MSVC)
 #include <x86intrin.h>
 #endif
 
