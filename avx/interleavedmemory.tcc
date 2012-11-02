@@ -205,7 +205,12 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
         const __m256d tmp2 = _mm256_unpacklo_pd(v2.data(), v2.data());
         const __m256d tmp3 = _mm256_unpackhi_pd(v2.data(), v2.data());
 
+#if defined(VC_MSVC) && VC_MSVC < 170000000
+        // MSVC needs to be at Version 2012 before _mm256_set_epi64x works
+        const __m256i mask = AVX::concat(_mm_set_epi64x(-1, -1), _mm_set_epi64x(0, -1));
+#else
         const __m256i mask = _mm256_set_epi64x(0, -1, -1, -1);
+#endif
         _mm256_maskstore_pd(&data[i[0]], mask, Mem::shuffle128<X0, Y0>(tmp0, tmp2));
         _mm256_maskstore_pd(&data[i[1]], mask, Mem::shuffle128<X0, Y0>(tmp1, tmp3));
         _mm256_maskstore_pd(&data[i[2]], mask, Mem::shuffle128<X1, Y1>(tmp0, tmp2));
