@@ -97,10 +97,16 @@ namespace SSE
     }
 
 #ifdef VC_IMPL_SSE4_1
+    inline double_v trunc(double_v::AsArg v) { return _mm_round_pd(v.data(), 0x3); }
+    inline float_v trunc(float_v::AsArg v) { return _mm_round_ps(v.data(), 0x3); }
+    inline sfloat_v trunc(sfloat_v::AsArg v) { return M256::create(_mm_round_ps(v.data()[0], 0x3),
+            _mm_round_ps(v.data()[1], 0x3)); }
+
     inline double_v floor(double_v::AsArg v) { return _mm_floor_pd(v.data()); }
     inline float_v floor(float_v::AsArg v) { return _mm_floor_ps(v.data()); }
     inline sfloat_v floor(sfloat_v::AsArg v) { return M256::create(_mm_floor_ps(v.data()[0]),
             _mm_floor_ps(v.data()[1])); }
+
     inline double_v ceil(double_v::AsArg v) { return _mm_ceil_pd(v.data()); }
     inline float_v ceil(float_v::AsArg v) { return _mm_ceil_ps(v.data()); }
     inline sfloat_v ceil(sfloat_v::AsArg v) { return M256::create(_mm_ceil_ps(v.data()[0]),
@@ -136,6 +142,24 @@ namespace SSE
         d_ll mask0 = { initialMask >> shifts[0] };
         d_ll mask1 = { initialMask >> shifts[1] };
         v &= double_v(_mm_setr_pd(mask0.d, mask1.d));
+    }
+
+    template<typename T>
+    inline Vector<T> trunc(Vector<T> _v) {
+        typedef Vector<T> V;
+        typedef typename V::Mask M;
+
+        V v = _v;
+        V e = abs(v).exponent();
+        const M negativeExponent = e < 0;
+        e.setZero(negativeExponent);
+        //const M negativeInput = v < V::Zero();
+
+        floor_shift(v, e);
+
+        v.setZero(negativeExponent);
+        //v(negativeInput && _v != v) -= V::One();
+        return v;
     }
 
     template<typename T>

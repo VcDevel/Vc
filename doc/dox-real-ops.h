@@ -50,8 +50,9 @@ inline VECTOR_TYPE copySign(VECTOR_TYPE reference) const;
 \endverbatim
  *
  * \warning This function assumes a positive value (non-zero). If the value is negative the sign bit will
- * modify the returned value. If you compile with Vc runtime checks the function will assert
- * values greater than zero.
+ * modify the returned value. An input value of zero will return the bias of the floating-point
+ * representation. If you compile with Vc runtime checks, the function will assert
+ * values greater than or equal to zero.
  *
  * You may use abs to apply this function to negative values:
  * \code
@@ -59,3 +60,17 @@ inline VECTOR_TYPE copySign(VECTOR_TYPE reference) const;
  * \endcode
  */
 inline VECTOR_TYPE exponent() const;
+
+/**
+ * Check the sign bit of each vector entry.
+ *
+ * \return whether the sign bit is set.
+ *
+ * This function is especially useful to distinguish negative zero.
+ * \code
+ * float_v z  = float_v::Zero(); //  z.isNegative() will be m[0000],  z < float_v::Zero() will be m[0000]
+ * float_v nz = -0.f;            // nz.isNegative() will be m[1111], nz < float_v::Zero() will be m[0000]
+ * float_v n  = -1.f;            //  n.isNegative() will be m[1111],  n < float_v::Zero() will be m[1111]
+ * \endcode
+ */
+inline MASK_TYPE isNegative() const;

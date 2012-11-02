@@ -52,6 +52,7 @@ template<unsigned int VectorSize = 1> class Mask
 
         inline Mask &operator&=(const Mask &rhs) { m &= rhs.m; return *this; }
         inline Mask &operator|=(const Mask &rhs) { m |= rhs.m; return *this; }
+        inline Mask &operator^=(const Mask &rhs) { m ^= rhs.m; return *this; }
 
         inline bool isFull () const { return  m; }
         inline bool isEmpty() const { return !m; }

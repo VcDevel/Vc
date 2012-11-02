@@ -70,6 +70,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
 
         inline Mask &operator&=(const Mask &rhs) { k = _mm256_and_ps(k, rhs.k); return *this; }
         inline Mask &operator|=(const Mask &rhs) { k = _mm256_or_ps (k, rhs.k); return *this; }
+        inline Mask &operator^=(const Mask &rhs) { k = _mm256_xor_ps(k, rhs.k); return *this; }
 
         // no need for expression template optimizations because cmp(n)eq for floats are not bitwise
         // compares
@@ -138,6 +139,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
 
         inline Mask &operator&=(const Mask &rhs) { k = _mm_and_ps(k, rhs.k); return *this; }
         inline Mask &operator|=(const Mask &rhs) { k = _mm_or_ps (k, rhs.k); return *this; }
+        inline Mask &operator^=(const Mask &rhs) { k = _mm_xor_ps(k, rhs.k); return *this; }
 
         // TODO: use expression templates to optimize (v1 == v2).isFull() and friends
         inline bool isFull () const { return 0 != _mm_testc_si128(dataI(), _mm_setallone_si128()); }

@@ -106,6 +106,9 @@ class Vector
         inline void setZero() { m_data = 0; }
         inline void setZero(Mask k) { if (k) m_data = 0; }
 
+        inline INTRINSIC_L void setQnan() INTRINSIC_R;
+        inline INTRINSIC_L void setQnan(Mask m) INTRINSIC_R;
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
         template<typename Other> inline void load(const Other *mem) { m_data = mem[0]; }
@@ -201,6 +204,7 @@ class Vector
 
         inline Vector operator~() const { return Vector(~m_data); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const { return Vector<typename NegateTypeHelper<T>::Type>(-m_data); }
+        inline Vector PURE INTRINSIC operator+() const { return *this; }
 
 #define OPshift(symbol) \
         inline Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
@@ -224,14 +228,10 @@ class Vector
 #undef OPcmp
 #undef OPshift
 #undef OPshift_int
+        inline PURE_L INTRINSIC_L Mask isNegative() const PURE_R INTRINSIC_R;
 
-        inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
-            m_data *= factor;
-            m_data += summand;
-        }
-
-        inline Vector<T> multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) const {
-            return Vector<T>( m_data * factor.m_data + summand.m_data );
+        inline void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
+            m_data = m_data * factor.data() + summand.data();
         }
 
         inline void assign(const Vector<T> &v, const Mask &m) {

@@ -91,6 +91,10 @@ namespace AVX
         return (v.reinterpretCast<int_v>() + int_v(exponentBits)).reinterpretCast<sfloat_v>();
     }
 
+    static inline  float_v trunc( float_v::AsArg v) { return _mm256_round_ps(v.data(), 0x3); }
+    static inline sfloat_v trunc(sfloat_v::AsArg v) { return _mm256_round_ps(v.data(), 0x3); }
+    static inline double_v trunc(double_v::AsArg v) { return _mm256_round_pd(v.data(), 0x3); }
+
     static inline float_v floor(float_v::AsArg v) { return _mm256_floor_ps(v.data()); }
     static inline sfloat_v floor(sfloat_v::AsArg v) { return _mm256_floor_ps(v.data()); }
     static inline double_v floor(double_v::AsArg v) { return _mm256_floor_pd(v.data()); }

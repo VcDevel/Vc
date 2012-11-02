@@ -560,6 +560,21 @@ template<typename T> inline Vector<T> Vector<T>::operator<<(int shift) const {
 
 // operators {{{1
 #include "../common/operators.h"
+// isNegative {{{1
+template<> inline PURE INTRINSIC float_m float_v::isNegative() const
+{
+    return avx_cast<__m256>(_mm256_srai_epi32(avx_cast<__m256i>(_mm256_and_ps(_mm256_setsignmask_ps(), d.v())), 31));
+}
+template<> inline PURE INTRINSIC sfloat_m sfloat_v::isNegative() const
+{
+    return avx_cast<__m256>(_mm256_srai_epi32(avx_cast<__m256i>(_mm256_and_ps(_mm256_setsignmask_ps(), d.v())), 31));
+}
+template<> inline PURE INTRINSIC double_m double_v::isNegative() const
+{
+    return Mem::permute<X1, X1, X3, X3>(avx_cast<__m256>(
+                _mm256_srai_epi32(avx_cast<__m256i>(_mm256_and_pd(_mm256_setsignmask_pd(), d.v())), 31)
+                ));
+}
 // gathers {{{1
 // Better implementation (hopefully) with _mm256_set_
 //X template<typename T> template<typename Index> Vector<T>::Vector(const EntryType *mem, const Index *indexes)
@@ -1132,7 +1147,7 @@ template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<doubl
 // exponent {{{1
 template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
 {
-    VC_ASSERT((*this > 0.f).isFull());
+    VC_ASSERT((*this >= 0.f).isFull());
     __m128i tmp0 = _mm_srli_epi32(avx_cast<__m128i>(d.v()), 23);
     __m128i tmp1 = _mm_srli_epi32(avx_cast<__m128i>(hi128(d.v())), 23);
     tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
@@ -1141,7 +1156,7 @@ template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
 }
 template<> inline Vector<sfloat> INTRINSIC Vector<sfloat>::exponent() const
 {
-    VC_ASSERT((*this > 0.f).isFull());
+    VC_ASSERT((*this >= 0.f).isFull());
     __m128i tmp0 = _mm_srli_epi32(avx_cast<__m128i>(d.v()), 23);
     __m128i tmp1 = _mm_srli_epi32(avx_cast<__m128i>(hi128(d.v())), 23);
     tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
@@ -1150,7 +1165,7 @@ template<> inline Vector<sfloat> INTRINSIC Vector<sfloat>::exponent() const
 }
 template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
 {
-    VC_ASSERT((*this > 0.).isFull());
+    VC_ASSERT((*this >= 0.).isFull());
     __m128i tmp0 = _mm_srli_epi64(avx_cast<__m128i>(d.v()), 52);
     __m128i tmp1 = _mm_srli_epi64(avx_cast<__m128i>(hi128(d.v())), 52);
     tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x3ff));

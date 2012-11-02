@@ -31,7 +31,7 @@ namespace std
 } // namespace std
 #endif
 
-template<typename T> static inline T ulpDiffToReference(T val, T ref)
+template<typename T> static T ulpDiffToReference(T val, T ref)
 {
     if (val == ref || (std::isnan(val) && std::isnan(ref))) {
         return 0;
@@ -50,7 +50,7 @@ template<typename T> static inline T ulpDiffToReference(T val, T ref)
     // val * 2 ^ -exp
     return ldexp(abs(ref - val), std::numeric_limits<T>::digits - exp);
 }
-template<typename T> static inline T ulpDiffToReferenceSigned(T val, T ref)
+template<typename T> static T ulpDiffToReferenceSigned(T val, T ref)
 {
     return ulpDiffToReference(val, ref) * (val - ref < 0 ? -1 : 1);
 }
@@ -58,7 +58,7 @@ template<typename T> static inline T ulpDiffToReferenceSigned(T val, T ref)
 template<typename T> struct _Ulp_ExponentVector { typedef Vc::int_v Type; };
 template<> struct _Ulp_ExponentVector<Vc::sfloat_v> { typedef Vc::short_v Type; };
 
-template<typename _T> static inline Vc::Vector<_T> ulpDiffToReference(const Vc::Vector<_T> &_val, const Vc::Vector<_T> &_ref)
+template<typename _T> static Vc::Vector<_T> ulpDiffToReference(const Vc::Vector<_T> &_val, const Vc::Vector<_T> &_ref)
 {
     using namespace Vc;
     typedef Vector<_T> V;
@@ -86,7 +86,7 @@ template<typename _T> static inline Vc::Vector<_T> ulpDiffToReference(const Vc::
     return diff;
 }
 
-template<typename _T> static inline Vc::Vector<_T> ulpDiffToReferenceSigned(const Vc::Vector<_T> &_val, const Vc::Vector<_T> &_ref)
+template<typename _T> static Vc::Vector<_T> ulpDiffToReferenceSigned(const Vc::Vector<_T> &_val, const Vc::Vector<_T> &_ref)
 {
     return ulpDiffToReference(_val, _ref).copySign(_val - _ref);
 }

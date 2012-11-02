@@ -1,4 +1,4 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
 
     Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
 
@@ -15,40 +15,115 @@
     You should have received a copy of the GNU Lesser General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
-*/
-
+}}}*/
+/*includes {{{*/
 #include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
+#include "const.h"
 #include <cmath>
 #include <algorithm>
-
+#include <common/macros.h>
+/*}}}*/
 using namespace Vc;
-
+/*fix isfinite and isnan{{{*/
 #ifdef isfinite
 #undef isfinite
 #endif
 #ifdef isnan
 #undef isnan
 #endif
+/*}}}*/
+template<typename T> struct SincosReference/*{{{*/
+{
+    T x, s, c;
+};
+template<typename T> struct Reference
+{
+    T x, ref;
+};
 
-template<typename T> struct Denormals { static T *data; };
+template<typename T> struct Array
+{
+    size_t size;
+    T *data;
+    Array() : size(0), data(0) {}
+};
+template<typename T> struct StaticDeleter
+{
+    T *ptr;
+    StaticDeleter(T *p) : ptr(p) {}
+    ~StaticDeleter() { delete[] ptr; }
+};
+
+enum Function {
+    Sincos, Atan, Asin, Acos
+};
+template<typename T, Function F> static inline const char *filename();
+template<> inline const char *filename<float , Sincos>() { return "sincos-reference-single.dat"; }
+template<> inline const char *filename<double, Sincos>() { return "sincos-reference-double.dat"; }
+template<> inline const char *filename<float , Atan  >() { return "atan-reference-single.dat"; }
+template<> inline const char *filename<double, Atan  >() { return "atan-reference-double.dat"; }
+template<> inline const char *filename<float , Asin  >() { return "asin-reference-single.dat"; }
+template<> inline const char *filename<double, Asin  >() { return "asin-reference-double.dat"; }
+template<> inline const char *filename<float , Acos  >() { return "acos-reference-single.dat"; }
+template<> inline const char *filename<double, Acos  >() { return "acos-reference-double.dat"; }
+
+template<typename T>
+static Array<SincosReference<T> > sincosReference()
+{
+    static Array<SincosReference<T> > data;
+    if (data.data == 0) {
+        FILE *file = fopen(filename<T, Sincos>(), "rb");
+        if (file) {
+            fseek(file, 0, SEEK_END);
+            const size_t size = ftell(file) / sizeof(SincosReference<T>);
+            rewind(file);
+            data.data = new SincosReference<T>[size];
+            static StaticDeleter<SincosReference<T> > _cleanup(data.data);
+            data.size = fread(data.data, sizeof(SincosReference<T>), size, file);
+            fclose(file);
+        }
+    }
+    return data;
+}
+
+template<typename T, Function Fun>
+static Array<Reference<T> > referenceData()
+{
+    static Array<Reference<T> > data;
+    if (data.data == 0) {
+        FILE *file = fopen(filename<T, Fun>(), "rb");
+        if (file) {
+            fseek(file, 0, SEEK_END);
+            const size_t size = ftell(file) / sizeof(Reference<T>);
+            rewind(file);
+            data.data = new Reference<T>[size];
+            static StaticDeleter<Reference<T> > _cleanup(data.data);
+            data.size = fread(data.data, sizeof(Reference<T>), size, file);
+            fclose(file);
+        }
+    }
+    return data;
+}/*}}}*/
+
+template<typename T> struct Denormals { static T *data; };/*{{{*/
 template<> float  *Denormals<float >::data = 0;
 template<> double *Denormals<double>::data = 0;
 enum {
     NDenormals = 64
 };
-
-template<typename V> V apply_v(V x, typename V::EntryType (func)(typename V::EntryType))
+/*}}}*/
+template<typename V> V apply_v(V x, typename V::EntryType (func)(typename V::EntryType))/*{{{*/
 {
     for (size_t i = 0; i < V::Size; ++i) {
         x[i] = func(x[i]);
     }
     return x;
 }
-
-template<typename Vec> void testAbs()
+/*}}}*/
+template<typename Vec> void testAbs()/*{{{*/
 {
     for (int i = 0; i < 0x7fff; ++i) {
         Vec a(i);
@@ -57,8 +132,44 @@ template<typename Vec> void testAbs()
         COMPARE(a, Vc::abs(b));
     }
 }
+/*}}}*/
+static inline float my_trunc(float x)/*{{{*/
+{
+#if __cplusplus >= 201103 /*C++11*/
+    return std::trunc(x);
+#elif defined(_ISOC99_SOURCE)
+    return truncf(x);
+#else
+    return x > 0 ? std::floor(x) : std::ceil(x);
+#endif
+}
 
-template<typename V> void testFloor()
+static inline double my_trunc(double x)
+{
+#if __cplusplus >= 201103 /*C++11*/
+    return std::trunc(x);
+#elif defined(_ISOC99_SOURCE)
+    return trunc(x);
+#else
+    return x > 0 ? std::floor(x) : std::ceil(x);
+#endif
+}
+/*}}}*/
+template<typename V> void testTrunc()/*{{{*/
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+    for (size_t i = 0; i < 100000 / V::Size; ++i) {
+        V x = (V::Random() - T(0.5)) * T(100);
+        V reference = apply_v(x, my_trunc);
+        COMPARE(Vc::trunc(x), reference) << ", x = " << x << ", i = " << i;
+    }
+    V x = static_cast<V>(I::IndexesFromZero());
+    V reference = apply_v(x, my_trunc);
+    COMPARE(Vc::trunc(x), reference) << ", x = " << x;
+}
+/*}}}*/
+template<typename V> void testFloor()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
@@ -71,8 +182,8 @@ template<typename V> void testFloor()
     V reference = apply_v(x, std::floor);
     COMPARE(Vc::floor(x), reference) << ", x = " << x;
 }
-
-template<typename V> void testCeil()
+/*}}}*/
+template<typename V> void testCeil()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
@@ -85,8 +196,8 @@ template<typename V> void testCeil()
     V reference = apply_v(x, std::ceil);
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }
-
-template<typename V> void testExp()
+/*}}}*/
+template<typename V> void testExp()/*{{{*/
 {
     setFuzzyness<float>(1);
     setFuzzyness<double>(2);
@@ -98,8 +209,8 @@ template<typename V> void testExp()
     }
     COMPARE(Vc::exp(V::Zero()), V::One());
 }
-
-template<typename V> void testLog()
+/*}}}*/
+template<typename V> void testLog()/*{{{*/
 {
     setFuzzyness<float>(1);
     typedef typename V::EntryType T;
@@ -119,8 +230,8 @@ template<typename V> void testLog()
         FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
     }
 }
-
-#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L
+/*}}}*/
+#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L/*{{{*/
 static inline float my_log2(float x) { return ::log2f(x); }
 /* I need to make sure whether the log2 that I compare against is really precise to <0.5ulp. At
  * least I get different results when I use "double log2(double)", which is somewhat unexpected.
@@ -140,8 +251,8 @@ static inline double my_log2(double x) { return ::log2(x); }
 static inline float my_log2(float x) { return ::logf(x) / Vc::Math<float>::ln2(); }
 static inline double my_log2(double x) { return ::log(x) / Vc::Math<double>::ln2(); }
 #endif
-
-template<typename V> void testLog2()
+/*}}}*/
+template<typename V> void testLog2()/*{{{*/
 {
     setFuzzyness<float>(2);
     setFuzzyness<double>(3);
@@ -162,8 +273,8 @@ template<typename V> void testLog2()
         FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
     }
 }
-
-template<typename V> void testLog10()
+/*}}}*/
+template<typename V> void testLog10()/*{{{*/
 {
     setFuzzyness<float>(2);
     setFuzzyness<double>(2);
@@ -184,9 +295,8 @@ template<typename V> void testLog10()
         FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x << ", i = " << i;
     }
 }
-
-template<typename Vec>
-void testMax()
+/*}}}*/
+template<typename Vec> void testMax()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     VectorMemoryHelper<Vec> mem(3);
@@ -202,27 +312,28 @@ void testMax()
 
     COMPARE(Vc::max(a, b), c);
 }
-
+/*}}}*/
+    /*{{{*/
 #define FillHelperMemory(code) \
-    typename Vec::Memory data; \
-    typename Vec::Memory reference; \
-    for (int ii = 0; ii < Vec::Size; ++ii) { \
+    typename V::Memory data; \
+    typename V::Memory reference; \
+    for (int ii = 0; ii < V::Size; ++ii) { \
         const T i = static_cast<T>(ii); \
         data[ii] = i; \
         reference[ii] = code; \
     } do {} while (false)
-
-template<typename Vec> void testSqrt()
+/*}}}*/
+template<typename V> void testSqrt()/*{{{*/
 {
-    typedef typename Vec::EntryType T;
+    typedef typename V::EntryType T;
     FillHelperMemory(std::sqrt(i));
-    Vec a(data);
-    Vec b(reference);
+    V a(data);
+    V b(reference);
 
     FUZZY_COMPARE(Vc::sqrt(a), b);
 }
-
-template<typename V> void testRSqrt()
+/*}}}*/
+template<typename V> void testRSqrt()/*{{{*/
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
@@ -231,132 +342,183 @@ template<typename V> void testRSqrt()
         VERIFY(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12)));
     }
 }
-
-
-template<typename T> void my_sincos(T x, T *sin, T *cos);
-template<> void my_sincos<double>(double x, double *sin, double *cos)
+/*}}}*/
+template<typename V> void testSincos()/*{{{*/
 {
-#ifdef VC_MSVC
-// no sincos on Windows
-    *sin = std::sin(x);
-    *cos = std::cos(x);
-#else
-    sincos(x, sin, cos);
-#endif
-}
-template<> void my_sincos<float>(float x, float *sin, float *cos)
-{
-#ifdef VC_MSVC
-// no sincos on Windows
-    *sin = std::sin(x);
-    *cos = std::cos(x);
-#else
-    sincosf(x, sin, cos);
-#endif
-}
-
-template<typename Vec> void testSincos()
-{
-    typedef typename Vec::EntryType T;
-    setFuzzyness<double>(3.17318e+10); // FIXME: way too large!
-    typename Vec::Memory base;
-    for (int i = 0; i < Vec::Size; ++i) {
-        base[i] = static_cast<T>(i);
-    }
-    for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
-        const T scale = T(0.01);
-        Vec sin, cos;
-        Vc::sincos((base.vector(0) + offset) * scale, &sin, &cos);
-
-        for (int i = 0; i < Vec::Size; ++i) {
-            T scalarSin, scalarCos;
-            my_sincos((i + offset) * scale, &scalarSin, &scalarCos);
-            setFuzzyness<float>(751);
-            FUZZY_COMPARE(T(sin[i]), scalarSin);
-            setFuzzyness<float>(2798); // FIXME
-            FUZZY_COMPARE(T(cos[i]), scalarCos);
-        }
-    }
-}
-
-template<typename Vec> void testSin()
-{
-    typedef typename Vec::EntryType T;
-    setFuzzyness<float>(751);
-    setFuzzyness<double>(3.17318e+10); // FIXME: way too large!
-    for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
-        const T scale = T(0.01);
-        FillHelperMemory(std::sin((i + offset) * scale));
-        Vec a(data);
-        Vec b(reference);
-
-        FUZZY_COMPARE(Vc::sin((a + offset) * scale), b) << " failed at sin(" << (a + offset) * scale << ")";
-    }
-}
-
-template<typename Vec> void testCos()
-{
-    typedef typename Vec::EntryType T;
-    setFuzzyness<float>(2798); // FIXME
-    setFuzzyness<double>(3.15557e+10); // FIXME: way too large!
-    for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
-        const T scale = T(0.01);
-        FillHelperMemory(std::cos((i + offset) * scale));
-        Vec a(data);
-        Vec b(reference);
-
-        FUZZY_COMPARE(Vc::cos((a + offset) * scale), b);
-    }
-}
-
-template<typename Vec> void testAsin()
-{
-    typedef typename Vec::EntryType T;
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(4.418735e+07); // FIXME
-    for (int offset = -1000; offset < 1000 - Vec::Size; offset += Vec::Size) {
-        const T scale = T(0.001);
-        FillHelperMemory(std::asin((i + offset) * scale));
-        Vec a(data);
-        Vec b(reference);
-
-        FUZZY_COMPARE(Vc::asin((a + offset) * scale), b);
-    }
-}
-
-template<typename Vec> void testAtan()
-{
-    typedef typename Vec::EntryType T;
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(1.434825e+08); // FIXME
-    for (int offset = -1000; offset < 1000; offset += 10) {
-        const T scale = T(0.1);
-        FillHelperMemory(std::atan((i + offset) * scale));
-        Vec a(data);
-        Vec b(reference);
-
-        FUZZY_COMPARE(Vc::atan((a + offset) * scale), b);
-    }
-}
-
-template<typename Vec> void testAtan2()
-{
-    typedef typename Vec::EntryType T;
+    typedef typename V::EntryType T;
     setFuzzyness<float>(3);
-    setFuzzyness<double>(1.75118e+08); // FIXME
-    for (int xoffset = -100; xoffset < 1000; xoffset += 10) {
-        for (int yoffset = -100; yoffset < 1000; yoffset += 10) {
-            FillHelperMemory(std::atan2((i + xoffset) * 0.15, (i + yoffset) * 0.15));
-            Vec a(data);
-            Vec b(reference);
+    setFuzzyness<double>(1e7);
+    Array<SincosReference<T> > reference = sincosReference<T>();
+    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
+        V x, sref, cref;
+        for (int j = 0; j < V::Size; ++j) {
+            x[j] = reference.data[i + j].x;
+            sref[j] = reference.data[i + j].s;
+            cref[j] = reference.data[i + j].c;
+        }
+        V sin, cos;
+        Vc::sincos(x, &sin, &cos);
+        FUZZY_COMPARE(sin, sref) << " x = " << x << ", i = " << i;
+        FUZZY_COMPARE(cos, cref) << " x = " << x << ", i = " << i;
+        Vc::sincos(-x, &sin, &cos);
+        FUZZY_COMPARE(sin, -sref) << " x = " << -x << ", i = " << i;
+        FUZZY_COMPARE(cos, cref) << " x = " << -x << ", i = " << i;
+    }
+}
+/*}}}*/
+template<typename V> void testSin()/*{{{*/
+{
+    typedef typename V::EntryType T;
+    setFuzzyness<float>(1);
+    setFuzzyness<double>(1e7);
+    Array<SincosReference<T> > reference = sincosReference<T>();
+    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
+        V x, sref;
+        for (int j = 0; j < V::Size; ++j) {
+            x[j] = reference.data[i + j].x;
+            sref[j] = reference.data[i + j].s;
+        }
+        FUZZY_COMPARE(Vc::sin(x), sref) << " x = " << x << ", i = " << i;
+        FUZZY_COMPARE(Vc::sin(-x), -sref) << " x = " << x << ", i = " << i;
+    }
+}
+/*}}}*/
+template<typename V> void testCos()/*{{{*/
+{
+    typedef typename V::EntryType T;
+    setFuzzyness<float>(3);
+    setFuzzyness<double>(1e7);
+    Array<SincosReference<T> > reference = sincosReference<T>();
+    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
+        V x, cref;
+        for (int j = 0; j < V::Size; ++j) {
+            x[j] = reference.data[i + j].x;
+            cref[j] = reference.data[i + j].c;
+        }
+        FUZZY_COMPARE(Vc::cos(x), cref) << " x = " << x << ", i = " << i;
+        FUZZY_COMPARE(Vc::cos(-x), cref) << " x = " << x << ", i = " << i;
+    }
+}
+/*}}}*/
+template<typename V> void testAsin()/*{{{*/
+{
+    typedef typename V::EntryType T;
+    setFuzzyness<float>(2);
+    setFuzzyness<double>(36);
+    Array<Reference<T> > reference = referenceData<T, Asin>();
+    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
+        V x, ref;
+        for (int j = 0; j < V::Size; ++j) {
+            x[j] = reference.data[i + j].x;
+            ref[j] = reference.data[i + j].ref;
+        }
+        FUZZY_COMPARE(Vc::asin(x), ref) << " x = " << x << ", i = " << i;
+        FUZZY_COMPARE(Vc::asin(-x), -ref) << " -x = " << -x << ", i = " << i;
+    }
+}
+/*}}}*/
+template<typename V> void testAtan()/*{{{*/
+{
+    typedef typename V::EntryType T;
+    setFuzzyness<float>(3);
+    setFuzzyness<double>(2);
 
-            //std::cout << (a + xoffset) * 0.15 << (a + yoffset) * 0.15 << std::endl;
-            FUZZY_COMPARE(Vc::atan2((a + xoffset) * T(0.15), (a + yoffset) * T(0.15)), b);
+    {
+        const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18,  0));
+        V nan; nan.setQnan();
+        const V inf = T(1./0.);
+
+        VERIFY(Vc::isnan(Vc::atan(nan)));
+        COMPARE(Vc::atan(+inf), +Pi_2);
+        COMPARE(Vc::atan(-inf), -Pi_2);
+    }
+
+    Array<Reference<T> > reference = referenceData<T, Atan>();
+    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
+        V x, ref;
+        for (int j = 0; j < V::Size; ++j) {
+            x[j] = reference.data[i + j].x;
+            ref[j] = reference.data[i + j].ref;
+        }
+        FUZZY_COMPARE(Vc::atan(x), ref) << " x = " << x << ", i = " << i;
+        FUZZY_COMPARE(Vc::atan(-x), -ref) << " -x = " << -x << ", i = " << i;
+    }
+}
+/*}}}*/
+template<typename V> void testAtan2()/*{{{*/
+{
+    typedef typename V::EntryType T;
+    setFuzzyness<float>(3);
+    setFuzzyness<double>(2);
+
+    {
+        const V Pi   = T(Vc_buildDouble(1, 0x921fb54442d18,  1));
+        const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18,  0));
+        const V Pi_4 = T(Vc_buildDouble(1, 0x921fb54442d18, -1));
+        V nan; nan.setQnan();
+        const V inf = T(1./0.);
+
+        // If y is +0 (-0) and x is less than 0, +pi (-pi) is returned.
+        COMPARE(Vc::atan2(V(T(+0.)), V(T(-3.))), +Pi);
+        COMPARE(Vc::atan2(V(T(-0.)), V(T(-3.))), -Pi);
+        // If y is +0 (-0) and x is greater than 0, +0 (-0) is returned.
+        COMPARE(Vc::atan2(V(T(+0.)), V(T(+3.))), V(T(+0.)));
+        VERIFY(!Vc::atan2(V(T(+0.)), V(T(+3.))).isNegative());
+        COMPARE(Vc::atan2(V(T(-0.)), V(T(+3.))), V(T(-0.)));
+        VERIFY (Vc::atan2(V(T(-0.)), V(T(+3.))).isNegative());
+        // If y is less than 0 and x is +0 or -0, -pi/2 is returned.
+        COMPARE(Vc::atan2(V(T(-3.)), V(T(+0.))), -Pi_2);
+        COMPARE(Vc::atan2(V(T(-3.)), V(T(-0.))), -Pi_2);
+        // If y is greater than 0 and x is +0 or -0, pi/2 is returned.
+        COMPARE(Vc::atan2(V(T(+3.)), V(T(+0.))), +Pi_2);
+        COMPARE(Vc::atan2(V(T(+3.)), V(T(-0.))), +Pi_2);
+        // If either x or y is NaN, a NaN is returned.
+        VERIFY(Vc::isnan(Vc::atan2(nan, V(T(3.)))));
+        VERIFY(Vc::isnan(Vc::atan2(V(T(3.)), nan)));
+        VERIFY(Vc::isnan(Vc::atan2(nan, nan)));
+        // If y is +0 (-0) and x is -0, +pi (-pi) is returned.
+        COMPARE(Vc::atan2(V(T(+0.)), V(T(-0.))), +Pi);
+        COMPARE(Vc::atan2(V(T(-0.)), V(T(-0.))), -Pi);
+        // If y is +0 (-0) and x is +0, +0 (-0) is returned.
+        COMPARE(Vc::atan2(V(T(+0.)), V(T(+0.))), V(T(+0.)));
+        COMPARE(Vc::atan2(V(T(-0.)), V(T(+0.))), V(T(-0.)));
+        VERIFY(!Vc::atan2(V(T(+0.)), V(T(+0.))).isNegative());
+        VERIFY( Vc::atan2(V(T(-0.)), V(T(+0.))).isNegative());
+        // If y is a finite value greater (less) than 0, and x is negative infinity, +pi (-pi) is returned.
+        COMPARE(Vc::atan2(V(T(+1.)), -inf), +Pi);
+        COMPARE(Vc::atan2(V(T(-1.)), -inf), -Pi);
+        // If y is a finite value greater (less) than 0, and x is positive infinity, +0 (-0) is returned.
+        COMPARE(Vc::atan2(V(T(+3.)), +inf), V(T(+0.)));
+        VERIFY(!Vc::atan2(V(T(+3.)), +inf).isNegative());
+        COMPARE(Vc::atan2(V(T(-3.)), +inf), V(T(-0.)));
+        VERIFY (Vc::atan2(V(T(-3.)), +inf).isNegative());
+        // If y is positive infinity (negative infinity), and x is finite, pi/2 (-pi/2) is returned.
+        COMPARE(Vc::atan2(+inf, V(T(+3.))), +Pi_2);
+        COMPARE(Vc::atan2(-inf, V(T(+3.))), -Pi_2);
+        COMPARE(Vc::atan2(+inf, V(T(-3.))), +Pi_2);
+        COMPARE(Vc::atan2(-inf, V(T(-3.))), -Pi_2);
+        // If y is positive infinity (negative infinity) and x is negative	infinity, +3*pi/4 (-3*pi/4) is returned.
+        COMPARE(Vc::atan2(+inf, -inf), T(+3.) * Pi_4);
+        COMPARE(Vc::atan2(-inf, -inf), T(-3.) * Pi_4);
+        // If y is positive infinity (negative infinity) and x is positive infinity, +pi/4 (-pi/4) is returned.
+        COMPARE(Vc::atan2(+inf, +inf), +Pi_4);
+        COMPARE(Vc::atan2(-inf, +inf), -Pi_4);
+    }
+
+    for (int xoffset = -100; xoffset < 54613; xoffset += 47 * V::Size) {
+        for (int yoffset = -100; yoffset < 54613; yoffset += 47 * V::Size) {
+            FillHelperMemory(std::atan2((i + xoffset) * T(0.15), (i + yoffset) * T(0.15)));
+            const V a(data);
+            const V b(reference);
+
+            const V x = (a + xoffset) * T(0.15);
+            const V y = (a + yoffset) * T(0.15);
+            FUZZY_COMPARE(Vc::atan2(x, y), b) << ", x = " << x << ", y = " << y;
         }
     }
 }
-
-template<typename Vec> void testReciprocal()
+/*}}}*/
+template<typename Vec> void testReciprocal()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     setFuzzyness<float>(1.258295e+07);
@@ -378,8 +540,17 @@ template<typename Vec> void testReciprocal()
         FUZZY_COMPARE(Vc::reciprocal((a + offset) * scale), b);
     }
 }
-
-template<typename Vec> void testInf()
+/*}}}*/
+template<typename V> void isNegative()/*{{{*/
+{
+    typedef typename V::EntryType T;
+    VERIFY(V::One().isNegative().isEmpty());
+    VERIFY(V::Zero().isNegative().isEmpty());
+    VERIFY((-V::One()).isNegative().isFull());
+    VERIFY(V(T(-0.)).isNegative().isFull());
+}
+/*}}}*/
+template<typename Vec> void testInf()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     const T one = 1;
@@ -388,19 +559,27 @@ template<typename Vec> void testInf()
     VERIFY(Vc::isfinite(Vec(one)));
     VERIFY(!Vc::isfinite(one / zero));
 }
-
-template<typename Vec> void testNaN()
+/*}}}*/
+template<typename Vec> void testNaN()/*{{{*/
 {
     typedef typename Vec::EntryType T;
+    typedef typename Vec::IndexType I;
+    typedef typename Vec::Mask M;
     const T one = 1;
     const Vec zero(Zero);
     VERIFY(!Vc::isnan(zero));
     VERIFY(!Vc::isnan(Vec(one)));
     const Vec inf = one / zero;
     VERIFY(Vc::isnan(Vec(inf * zero)));
+    Vec nan = Vec::Zero();
+    const M mask(I::IndexesFromZero() == I::Zero());
+    nan.setQnan(mask);
+    COMPARE(Vc::isnan(nan), mask);
+    nan.setQnan();
+    VERIFY(Vc::isnan(nan));
 }
-
-template<typename Vec> void testRound()
+/*}}}*/
+template<typename Vec> void testRound()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -426,8 +605,8 @@ template<typename Vec> void testRound()
         COMPARE(Vc::round(a), ref);
     }
 }
-
-template<typename Vec> void testReduceMin()
+/*}}}*/
+template<typename Vec> void testReduceMin()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     const T one = 1;
@@ -442,8 +621,8 @@ template<typename Vec> void testReduceMin()
         COMPARE(a.min(), one);
     }
 }
-
-template<typename Vec> void testReduceMax()
+/*}}}*/
+template<typename Vec> void testReduceMax()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     const T max = Vec::Size + 1;
@@ -458,8 +637,8 @@ template<typename Vec> void testReduceMax()
         COMPARE(a.max(), max);
     }
 }
-
-template<typename Vec> void testReduceProduct()
+/*}}}*/
+template<typename Vec> void testReduceProduct()/*{{{*/
 {
     enum {
         Max = Vec::Size > 8 ? Vec::Size / 2 : Vec::Size
@@ -481,8 +660,8 @@ template<typename Vec> void testReduceProduct()
         COMPARE(a.product(), product);
     }
 }
-
-template<typename Vec> void testReduceSum()
+/*}}}*/
+template<typename Vec> void testReduceSum()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     int _sum = 1;
@@ -501,8 +680,8 @@ template<typename Vec> void testReduceSum()
         COMPARE(a.sum(), sum);
     }
 }
-
-template<typename V> void testExponent()
+/*}}}*/
+template<typename V> void testExponent()/*{{{*/
 {
     typedef typename V::EntryType T;
     Vc::Memory<V, 32> input;
@@ -543,11 +722,11 @@ template<typename V> void testExponent()
         COMPARE(V(input.vector(i)).exponent(), V(expected.vector(i)));
     }
 }
-
+/*}}}*/
 template<typename T> struct _ExponentVector { typedef int_v Type; };
 template<> struct _ExponentVector<sfloat_v> { typedef short_v Type; };
 
-template<typename V> void testFrexp()
+template<typename V> void testFrexp()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename _ExponentVector<V>::Type ExpV;
@@ -599,8 +778,8 @@ template<typename V> void testFrexp()
         }
     }
 }
-
-template<typename V> void testLdexp()
+/*}}}*/
+template<typename V> void testLdexp()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename _ExponentVector<V>::Type ExpV;
@@ -611,9 +790,9 @@ template<typename V> void testLdexp()
         COMPARE(ldexp(m, e), v) << ", m = " << m << ", e = " << e;
     }
 }
-
+/*}}}*/
 #include "ulp.h"
-template<typename V> void testUlpDiff()
+template<typename V> void testUlpDiff()/*{{{*/
 {
     typedef typename V::EntryType T;
 
@@ -643,13 +822,13 @@ template<typename V> void testUlpDiff()
             }
         }
     }
-}
+}/*}}}*/
 
-int main(int argc, char **argv)
+int main(int argc, char **argv)/*{{{*/
 {
     initTest(argc, argv);
 
-    Denormals<float>::data = Vc::malloc<float, Vc::AlignOnVector>(NDenormals);
+    Denormals<float>::data = Vc::malloc<float, Vc::AlignOnVector>(NDenormals);/*{{{*/
     Denormals<float>::data[0] = std::numeric_limits<float>::denorm_min();
     for (int i = 1; i < NDenormals; ++i) {
         Denormals<float>::data[i] = Denormals<float>::data[i - 1] * 2.f;
@@ -658,8 +837,9 @@ int main(int argc, char **argv)
     Denormals<double>::data[0] = std::numeric_limits<double>::denorm_min();
     for (int i = 1; i < NDenormals; ++i) {
         Denormals<double>::data[i] = Denormals<double>::data[i - 1] * 2.;
-    }
+    }/*}}}*/
 
+    testRealTypes(isNegative);
     testRealTypes(testFrexp);
     testRealTypes(testLdexp);
 
@@ -671,6 +851,7 @@ int main(int argc, char **argv)
 
     testRealTypes(testUlpDiff);
 
+    testRealTypes(testTrunc);
     testRealTypes(testFloor);
     testRealTypes(testCeil);
     testRealTypes(testExp);
@@ -734,4 +915,6 @@ int main(int argc, char **argv)
     testRealTypes(testExponent);
 
     return 0;
-}
+}/*}}}*/
+
+// vim: foldmethod=marker

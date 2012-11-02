@@ -693,7 +693,24 @@ VC_SWIZZLES_16BIT_IMPL(unsigned short)
 
 // operators {{{1
 #include "../common/operators.h"
-// }}}1
+// isNegative {{{1
+template<> inline PURE INTRINSIC float_m float_v::isNegative() const
+{
+    return sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v())), 31));
+}
+template<> inline PURE INTRINSIC sfloat_m sfloat_v::isNegative() const
+{
+    return M256::create(
+            sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v()[0])), 31)),
+            sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v()[1])), 31))
+            );
+}
+template<> inline PURE INTRINSIC double_m double_v::isNegative() const
+{
+    return Mem::permute<X1, X1, X3, X3>(sse_cast<__m128>(
+                _mm_srai_epi32(sse_cast<__m128i>(_mm_and_pd(_mm_setsignmask_pd(), d.v())), 31)
+                ));
+}
 // gathers {{{1
 template<typename T> template<typename IndexT> inline ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, const IndexT *indexes)
 {
@@ -1311,14 +1328,14 @@ template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<doubl
 // exponent {{{1
 template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
 {
-    VC_ASSERT((*this > 0.f).isFull());
+    VC_ASSERT((*this >= 0.f).isFull());
     __m128i tmp = _mm_srli_epi32(_mm_castps_si128(d.v()), 23);
     tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x7f));
     return _mm_cvtepi32_ps(tmp);
 }
 template<> inline Vector<float8> INTRINSIC Vector<float8>::exponent() const
 {
-    VC_ASSERT((*this > 0.f).isFull());
+    VC_ASSERT((*this >= 0.f).isFull());
     __m128i tmp0 = _mm_srli_epi32(_mm_castps_si128(d.v()[0]), 23);
     __m128i tmp1 = _mm_srli_epi32(_mm_castps_si128(d.v()[1]), 23);
     tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
@@ -1327,7 +1344,7 @@ template<> inline Vector<float8> INTRINSIC Vector<float8>::exponent() const
 }
 template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
 {
-    VC_ASSERT((*this > 0.).isFull());
+    VC_ASSERT((*this >= 0.).isFull());
     __m128i tmp = _mm_srli_epi64(_mm_castpd_si128(d.v()), 52);
     tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x3ff));
     return _mm_cvtepi32_pd(_mm_shuffle_epi32(tmp, 0x08));

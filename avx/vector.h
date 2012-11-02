@@ -229,6 +229,7 @@ template<typename T> class Vector
 
         inline Vector ALWAYS_INLINE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
+        inline Vector PURE INTRINSIC operator+() const { return *this; }
 
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
@@ -281,9 +282,10 @@ template<typename T> class Vector
         OPcmp(<, cmplt)
         OPcmp(<=, cmple)
 #undef OPcmp
+        inline PURE_L INTRINSIC_L Mask isNegative() const PURE_R INTRINSIC_R;
 
-        inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
-            VectorHelper<T>::multiplyAndAdd(data(), factor, summand);
+        inline void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
+            VectorHelper<T>::fma(data(), factor.data(), summand.data());
         }
 
         inline void assign( const Vector<T> &v, const Mask &mask ) {

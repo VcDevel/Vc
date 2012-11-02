@@ -198,7 +198,27 @@ namespace AVX
             static inline VectorType zero() { return CAT(_mm256_setzero_, SUFFIX)(); }
             static inline VectorType one()  { return CAT(_mm256_setone_, SUFFIX)(); }// set(1.); }
 
-            static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
+#ifdef VC_IMPL_FMA4
+                v1 = _mm256_macc_pd(v1, v2, v3);
+#else
+                const VectorType h1 = _mm256_and_pd(v1, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                const VectorType l1 = _mm256_sub_pd(v1, h1);
+                const VectorType h2 = _mm256_and_pd(v2, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                const VectorType l2 = _mm256_sub_pd(v2, h2);
+                const VectorType ll = mul(l1, l2);
+                const VectorType lh = add(mul(l1, h2), mul(h1, l2));
+                const VectorType hh = mul(h1, h2);
+                // ll < lh < hh for all entries is certain
+                const VectorType lh_lt_v3 = cmplt(abs(lh), abs(v3)); // |lh| < |v3|
+                const VectorType hh_lt_v3 = cmplt(abs(hh), abs(v3)); // |hh| < |v3|
+                const VectorType a = ll;
+                const VectorType b = _mm256_blendv_pd(v3, lh, lh_lt_v3);
+                const VectorType c = _mm256_blendv_pd(_mm256_blendv_pd(lh, v3, lh_lt_v3), hh, hh_lt_v3);
+                const VectorType d = _mm256_blendv_pd(hh, v3, hh_lt_v3);
+                v1 = add(add(a, b), add(c, d));
+#endif
+            }
             static inline VectorType mul(VectorType a, VectorType b, _M256 _mask) {
                 _M256D mask = _mm256_castps_pd(_mask);
                 return _mm256_or_pd(
@@ -278,7 +298,21 @@ namespace AVX
             static inline VectorType one()  { return CAT(_mm256_setone_, SUFFIX)(); }// set(1.f); }
             static inline _M256 concat(_M256D a, _M256D b) { return _mm256_insertf128_ps(avx_cast<_M256>(_mm256_cvtpd_ps(a)), _mm256_cvtpd_ps(b), 1); }
 
-            static inline void multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
+#ifdef VC_IMPL_FMA4
+                v1 = _mm256_macc_ps(v1, v2, v3);
+#else
+                __m256d v1_0 = _mm256_cvtps_pd(lo128(v1));
+                __m256d v1_1 = _mm256_cvtps_pd(hi128(v1));
+                __m256d v2_0 = _mm256_cvtps_pd(lo128(v2));
+                __m256d v2_1 = _mm256_cvtps_pd(hi128(v2));
+                __m256d v3_0 = _mm256_cvtps_pd(lo128(v3));
+                __m256d v3_1 = _mm256_cvtps_pd(hi128(v3));
+                v1 = AVX::concat(
+                        _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_0, v2_0), v3_0)),
+                        _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_1, v2_1), v3_1)));
+#endif
+            }
             static inline VectorType mul(VectorType a, VectorType b, _M256 mask) {
                 return _mm256_or_ps(
                     _mm256_and_ps(mask, _mm256_mul_ps(a, b)),
@@ -362,7 +396,7 @@ namespace AVX
                     const int e, const int f, const int g, const int h) {
                 return CAT(_mm256_set_, SUFFIX)(a, b, c, d, e, f, g, h); }
 
-            static inline void INTRINSIC CONST multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+            static inline void INTRINSIC CONST fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
             static inline VectorType shiftLeft(VectorType a, int shift) {
                 return CAT(_mm256_slli_, SUFFIX)(a, shift);
@@ -452,6 +486,7 @@ namespace AVX
             }
 
             static inline VectorType INTRINSIC CONST mul(VectorType a, VectorType b) { return _mm256_mullo_epi32(a, b); }
+            static inline void INTRINSIC CONST fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
 #undef SUFFIX
 #define SUFFIX epi32
@@ -515,7 +550,7 @@ namespace AVX
                 return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
 
-            static inline void INTRINSIC CONST multiplyAndAdd(VectorType &v1, VectorType v2, VectorType v3) {
+            static inline void INTRINSIC CONST fma(VectorType &v1, VectorType v2, VectorType v3) {
                 v1 = add(mul(v1, v2), v3); }
 
             static inline VectorType INTRINSIC CONST abs(VectorType a) { return _mm_abs_epi16(a); }
@@ -620,6 +655,7 @@ namespace AVX
                     const EntryType g, const EntryType h) {
                 return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
+            static inline void INTRINSIC CONST fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
             static inline VectorType INTRINSIC CONST add(VectorType a, VectorType b) { return _mm_add_epi16(a, b); }
             static inline VectorType INTRINSIC CONST sub(VectorType a, VectorType b) { return _mm_sub_epi16(a, b); }
