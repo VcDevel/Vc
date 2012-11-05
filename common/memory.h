@@ -37,11 +37,14 @@ namespace Vc
  * work but are not portable.
  *
  * \param n Specifies the number of scalar values the allocated memory must be able to store.
+ * \tparam T The type of the allocated memory. Beware, that the constructor is not called.
+ * \tparam A Determines the alignment of the memory. See \ref Vc::MallocAlignment.
  *
  * \return Pointer to memory of the requested type and size, or 0 on error.
  *
  * \warning The standard malloc function specifies the number of Bytes to allocate whereas this
  *          function specifies the number of values, thus differing in a factor of sizeof(T)
+ * \warning The constructor of T is not called.
  *
  * \see Vc::free
  *
@@ -56,6 +59,10 @@ inline ALWAYS_INLINE_L T *ALWAYS_INLINE_R malloc(size_t n)
 
 /**
  * Frees memory that was allocated with Vc::malloc.
+ *
+ * \tparam T The type of the allocated memory.
+ *
+ * \warning The destructor of T is not called.
  *
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
