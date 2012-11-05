@@ -46,73 +46,73 @@ namespace AVX
 
     template<> const double c_trig<double>::data[] = {
     // cacheline 4
-        Vc_buildDouble(1, 0x921fb54442d18, -1), // π/4
-        Vc_buildDouble(1, 0x921fb40000000, -1), // π/4 - 30bits precision
-        Vc_buildDouble(1, 0x4442d00000000, -25), // π/4 remainder1 - 32bits precision
-        Vc_buildDouble(1, 0x8469898cc5170, -49), // π/4 remainder2
+        Vc_buildDouble(1, 0x921fb54442d18ull, -1), // π/4
+        Vc_buildDouble(1, 0x921fb40000000ull, -1), // π/4 - 30bits precision
+        Vc_buildDouble(1, 0x4442d00000000ull, -25), // π/4 remainder1 - 32bits precision
+        Vc_buildDouble(1, 0x8469898cc5170ull, -49), // π/4 remainder2
         0.0625,
         16.,
         0., // padding
         0., // padding
     // cacheline 5
-        Vc_buildDouble( 1, 0x555555555554b,  -5), // ~ 1/4!
-        Vc_buildDouble(-1, 0x6c16c16c14f91, -10), // ~-1/6!
-        Vc_buildDouble( 1, 0xa01a019c844f5, -16), // ~ 1/8!
-        Vc_buildDouble(-1, 0x27e4f7eac4bc6, -22), // ~-1/10!
-        Vc_buildDouble( 1, 0x1ee9d7b4e3f05, -29), // ~ 1/12!
-        Vc_buildDouble(-1, 0x8fa49a0861a9b, -37), // ~-1/14!
-        Vc_buildDouble(-1, 0x5555555555548,  -3), // ~-1/3!
-        Vc_buildDouble( 1, 0x111111110f7d0,  -7), // ~ 1/5!
+        Vc_buildDouble( 1, 0x555555555554bull,  -5), // ~ 1/4!
+        Vc_buildDouble(-1, 0x6c16c16c14f91ull, -10), // ~-1/6!
+        Vc_buildDouble( 1, 0xa01a019c844f5ull, -16), // ~ 1/8!
+        Vc_buildDouble(-1, 0x27e4f7eac4bc6ull, -22), // ~-1/10!
+        Vc_buildDouble( 1, 0x1ee9d7b4e3f05ull, -29), // ~ 1/12!
+        Vc_buildDouble(-1, 0x8fa49a0861a9bull, -37), // ~-1/14!
+        Vc_buildDouble(-1, 0x5555555555548ull,  -3), // ~-1/3!
+        Vc_buildDouble( 1, 0x111111110f7d0ull,  -7), // ~ 1/5!
     // cacheline 8
-        Vc_buildDouble(-1, 0xa01a019bfdf03, -13), // ~-1/7!
-        Vc_buildDouble( 1, 0x71de3567d48a1, -19), // ~ 1/9!
-        Vc_buildDouble(-1, 0xae5e5a9291f5d, -26), // ~-1/11!
-        Vc_buildDouble( 1, 0x5d8fd1fd19ccd, -33), // ~ 1/13!
+        Vc_buildDouble(-1, 0xa01a019bfdf03ull, -13), // ~-1/7!
+        Vc_buildDouble( 1, 0x71de3567d48a1ull, -19), // ~ 1/9!
+        Vc_buildDouble(-1, 0xae5e5a9291f5dull, -26), // ~-1/11!
+        Vc_buildDouble( 1, 0x5d8fd1fd19ccdull, -33), // ~ 1/13!
         0., // padding (for alignment with float)
-        Vc_buildDouble(1, 0x8BE60DB939105,  0), // 4/π
-        Vc_buildDouble(1, 0x921fb54442d18,  0), // π/2
-        Vc_buildDouble(1, 0x921fb54442d18,  1), // π
+        Vc_buildDouble(1, 0x8BE60DB939105ul,  0), // 4/π
+        Vc_buildDouble(1, 0x921fb54442d18ul,  0), // π/2
+        Vc_buildDouble(1, 0x921fb54442d18ul,  1), // π
     // cacheline 10
-        Vc_buildDouble(-1, 0xc007fa1f72594, -1), // atan P coefficients
-        Vc_buildDouble(-1, 0x028545b6b807a,  4), // atan P coefficients
-        Vc_buildDouble(-1, 0x2c08c36880273,  6), // atan P coefficients
-        Vc_buildDouble(-1, 0xeb8bf2d05ba25,  6), // atan P coefficients
-        Vc_buildDouble(-1, 0x03669fd28ec8e,  6), // atan P coefficients
-        Vc_buildDouble( 1, 0x8dbc45b14603c,  4), // atan Q coefficients
-        Vc_buildDouble( 1, 0x4a0dd43b8fa25,  7), // atan Q coefficients
-        Vc_buildDouble( 1, 0xb0e18d2e2be3b,  8), // atan Q coefficients
+        Vc_buildDouble(-1, 0xc007fa1f72594ull, -1), // atan P coefficients
+        Vc_buildDouble(-1, 0x028545b6b807aull,  4), // atan P coefficients
+        Vc_buildDouble(-1, 0x2c08c36880273ull,  6), // atan P coefficients
+        Vc_buildDouble(-1, 0xeb8bf2d05ba25ull,  6), // atan P coefficients
+        Vc_buildDouble(-1, 0x03669fd28ec8eull,  6), // atan P coefficients
+        Vc_buildDouble( 1, 0x8dbc45b14603cull,  4), // atan Q coefficients
+        Vc_buildDouble( 1, 0x4a0dd43b8fa25ull,  7), // atan Q coefficients
+        Vc_buildDouble( 1, 0xb0e18d2e2be3bull,  8), // atan Q coefficients
     // cacheline 12
-        Vc_buildDouble( 1, 0xe563f13b049ea,  8), // atan Q coefficients
-        Vc_buildDouble( 1, 0x8519efbbd62ec,  7), // atan Q coefficients
-        Vc_buildDouble( 1, 0x3504f333f9de6,  1), // tan( 3/8 π )
+        Vc_buildDouble( 1, 0xe563f13b049eaull,  8), // atan Q coefficients
+        Vc_buildDouble( 1, 0x8519efbbd62ecull,  7), // atan Q coefficients
+        Vc_buildDouble( 1, 0x3504f333f9de6ull,  1), // tan( 3/8 π )
         0.66,                                    // lower threshold for special casing in atan
-        Vc_buildDouble(1, 0x1A62633145C07, -54), // remainder of pi/2
+        Vc_buildDouble(1, 0x1A62633145C07ull, -54), // remainder of pi/2
         1.e-8, // small asin input threshold
         0.625, // large asin input threshold
         0., // padding
     // cacheline 14
-        Vc_buildDouble( 1, 0x84fc3988e9f08, -9), // asinCoeff0
-        Vc_buildDouble(-1, 0x2079259f9290f, -1), // asinCoeff0
-        Vc_buildDouble( 1, 0xbdff5baf33e6a,  2), // asinCoeff0
-        Vc_buildDouble(-1, 0x991aaac01ab68,  4), // asinCoeff0
-        Vc_buildDouble( 1, 0xc896240f3081d,  4), // asinCoeff0
-        Vc_buildDouble(-1, 0x5f2a2b6bf5d8c,  4), // asinCoeff1
-        Vc_buildDouble( 1, 0x26219af6a7f42,  7), // asinCoeff1
-        Vc_buildDouble(-1, 0x7fe08959063ee,  8), // asinCoeff1
+        Vc_buildDouble( 1, 0x84fc3988e9f08ull, -9), // asinCoeff0
+        Vc_buildDouble(-1, 0x2079259f9290full, -1), // asinCoeff0
+        Vc_buildDouble( 1, 0xbdff5baf33e6aull,  2), // asinCoeff0
+        Vc_buildDouble(-1, 0x991aaac01ab68ull,  4), // asinCoeff0
+        Vc_buildDouble( 1, 0xc896240f3081dull,  4), // asinCoeff0
+        Vc_buildDouble(-1, 0x5f2a2b6bf5d8cull,  4), // asinCoeff1
+        Vc_buildDouble( 1, 0x26219af6a7f42ull,  7), // asinCoeff1
+        Vc_buildDouble(-1, 0x7fe08959063eeull,  8), // asinCoeff1
     // cacheline 16
-        Vc_buildDouble( 1, 0x56709b0b644be,  8), // asinCoeff1
-        Vc_buildDouble( 1, 0x16b9b0bd48ad3, -8), // asinCoeff2
-        Vc_buildDouble(-1, 0x34341333e5c16, -1), // asinCoeff2
-        Vc_buildDouble( 1, 0x5c74b178a2dd9,  2), // asinCoeff2
-        Vc_buildDouble(-1, 0x04331de27907b,  4), // asinCoeff2
-        Vc_buildDouble( 1, 0x39007da779259,  4), // asinCoeff2
-        Vc_buildDouble(-1, 0x0656c06ceafd5,  3), // asinCoeff2
-        Vc_buildDouble(-1, 0xd7b590b5e0eab,  3), // asinCoeff3
+        Vc_buildDouble( 1, 0x56709b0b644beull,  8), // asinCoeff1
+        Vc_buildDouble( 1, 0x16b9b0bd48ad3ull, -8), // asinCoeff2
+        Vc_buildDouble(-1, 0x34341333e5c16ull, -1), // asinCoeff2
+        Vc_buildDouble( 1, 0x5c74b178a2dd9ull,  2), // asinCoeff2
+        Vc_buildDouble(-1, 0x04331de27907bull,  4), // asinCoeff2
+        Vc_buildDouble( 1, 0x39007da779259ull,  4), // asinCoeff2
+        Vc_buildDouble(-1, 0x0656c06ceafd5ull,  3), // asinCoeff2
+        Vc_buildDouble(-1, 0xd7b590b5e0eabull,  3), // asinCoeff3
     // cacheline 18
-        Vc_buildDouble( 1, 0x19fc025fe9054,  6), // asinCoeff3
-        Vc_buildDouble(-1, 0x265bb6d3576d7,  7), // asinCoeff3
-        Vc_buildDouble( 1, 0x1705684ffbf9d,  7), // asinCoeff3
-        Vc_buildDouble(-1, 0x898220a3607ac,  5), // asinCoeff3
+        Vc_buildDouble( 1, 0x19fc025fe9054ull,  6), // asinCoeff3
+        Vc_buildDouble(-1, 0x265bb6d3576d7ull,  7), // asinCoeff3
+        Vc_buildDouble( 1, 0x1705684ffbf9dull,  7), // asinCoeff3
+        Vc_buildDouble(-1, 0x898220a3607acull,  5), // asinCoeff3
     };
 #define _4(x) x
     template<> const float c_trig<float>::data[] = {
@@ -275,80 +275,80 @@ namespace SSE
 #define _2(x) x, x
     template<> const double c_trig<double>::data[] = {
     // cacheline 4
-        _2(Vc_buildDouble(1, 0x921fb54442d18, -1)), // π/4
-        _2(Vc_buildDouble(1, 0x921fb40000000, -1)), // π/4 - 30bits precision
-        _2(Vc_buildDouble(1, 0x4442d00000000, -25)), // π/4 remainder1 - 32bits precision
-        _2(Vc_buildDouble(1, 0x8469898cc5170, -49)), // π/4 remainder2
+        _2(Vc_buildDouble(1, 0x921fb54442d18ull, -1)), // π/4
+        _2(Vc_buildDouble(1, 0x921fb40000000ull, -1)), // π/4 - 30bits precision
+        _2(Vc_buildDouble(1, 0x4442d00000000ull, -25)), // π/4 remainder1 - 32bits precision
+        _2(Vc_buildDouble(1, 0x8469898cc5170ull, -49)), // π/4 remainder2
     // cacheline 5
         _2(0.0625),
         _2(16.),
         _2(0.), // padding
         _2(0.), // padding
     // cacheline 6
-        _2(Vc_buildDouble( 1, 0x555555555554b,  -5)), // ~ 1/4!
-        _2(Vc_buildDouble(-1, 0x6c16c16c14f91, -10)), // ~-1/6!
-        _2(Vc_buildDouble( 1, 0xa01a019c844f5, -16)), // ~ 1/8!
-        _2(Vc_buildDouble(-1, 0x27e4f7eac4bc6, -22)), // ~-1/10!
+        _2(Vc_buildDouble( 1, 0x555555555554bull,  -5)), // ~ 1/4!
+        _2(Vc_buildDouble(-1, 0x6c16c16c14f91ull, -10)), // ~-1/6!
+        _2(Vc_buildDouble( 1, 0xa01a019c844f5ull, -16)), // ~ 1/8!
+        _2(Vc_buildDouble(-1, 0x27e4f7eac4bc6ull, -22)), // ~-1/10!
     // cacheline 7
-        _2(Vc_buildDouble( 1, 0x1ee9d7b4e3f05, -29)), // ~ 1/12!
-        _2(Vc_buildDouble(-1, 0x8fa49a0861a9b, -37)), // ~-1/14!
-        _2(Vc_buildDouble(-1, 0x5555555555548,  -3)), // ~-1/3!
-        _2(Vc_buildDouble( 1, 0x111111110f7d0,  -7)), // ~ 1/5!
+        _2(Vc_buildDouble( 1, 0x1ee9d7b4e3f05ull, -29)), // ~ 1/12!
+        _2(Vc_buildDouble(-1, 0x8fa49a0861a9bull, -37)), // ~-1/14!
+        _2(Vc_buildDouble(-1, 0x5555555555548ull,  -3)), // ~-1/3!
+        _2(Vc_buildDouble( 1, 0x111111110f7d0ull,  -7)), // ~ 1/5!
     // cacheline 8
-        _2(Vc_buildDouble(-1, 0xa01a019bfdf03, -13)), // ~-1/7!
-        _2(Vc_buildDouble( 1, 0x71de3567d48a1, -19)), // ~ 1/9!
-        _2(Vc_buildDouble(-1, 0xae5e5a9291f5d, -26)), // ~-1/11!
-        _2(Vc_buildDouble( 1, 0x5d8fd1fd19ccd, -33)), // ~ 1/13!
+        _2(Vc_buildDouble(-1, 0xa01a019bfdf03ull, -13)), // ~-1/7!
+        _2(Vc_buildDouble( 1, 0x71de3567d48a1ull, -19)), // ~ 1/9!
+        _2(Vc_buildDouble(-1, 0xae5e5a9291f5dull, -26)), // ~-1/11!
+        _2(Vc_buildDouble( 1, 0x5d8fd1fd19ccdull, -33)), // ~ 1/13!
     // cacheline 9
         _2(0.), // padding (for alignment with float)
-        _2(Vc_buildDouble(1, 0x8BE60DB939105,  0)), // 4/π
-        _2(Vc_buildDouble(1, 0x921fb54442d18,  0)), // π/2
-        _2(Vc_buildDouble(1, 0x921fb54442d18,  1)), // π
+        _2(Vc_buildDouble(1, 0x8BE60DB939105ull,  0)), // 4/π
+        _2(Vc_buildDouble(1, 0x921fb54442d18ull,  0)), // π/2
+        _2(Vc_buildDouble(1, 0x921fb54442d18ull,  1)), // π
     // cacheline 10
-        _2(Vc_buildDouble(-1, 0xc007fa1f72594, -1)), // atan P coefficients
-        _2(Vc_buildDouble(-1, 0x028545b6b807a,  4)), // atan P coefficients
-        _2(Vc_buildDouble(-1, 0x2c08c36880273,  6)), // atan P coefficients
-        _2(Vc_buildDouble(-1, 0xeb8bf2d05ba25,  6)), // atan P coefficients
+        _2(Vc_buildDouble(-1, 0xc007fa1f72594ull, -1)), // atan P coefficients
+        _2(Vc_buildDouble(-1, 0x028545b6b807aull,  4)), // atan P coefficients
+        _2(Vc_buildDouble(-1, 0x2c08c36880273ull,  6)), // atan P coefficients
+        _2(Vc_buildDouble(-1, 0xeb8bf2d05ba25ull,  6)), // atan P coefficients
     // cacheline 11
-        _2(Vc_buildDouble(-1, 0x03669fd28ec8e,  6)), // atan P coefficients
-        _2(Vc_buildDouble( 1, 0x8dbc45b14603c,  4)), // atan Q coefficients
-        _2(Vc_buildDouble( 1, 0x4a0dd43b8fa25,  7)), // atan Q coefficients
-        _2(Vc_buildDouble( 1, 0xb0e18d2e2be3b,  8)), // atan Q coefficients
+        _2(Vc_buildDouble(-1, 0x03669fd28ec8eull,  6)), // atan P coefficients
+        _2(Vc_buildDouble( 1, 0x8dbc45b14603cull,  4)), // atan Q coefficients
+        _2(Vc_buildDouble( 1, 0x4a0dd43b8fa25ull,  7)), // atan Q coefficients
+        _2(Vc_buildDouble( 1, 0xb0e18d2e2be3bull,  8)), // atan Q coefficients
     // cacheline 12
-        _2(Vc_buildDouble( 1, 0xe563f13b049ea,  8)), // atan Q coefficients
-        _2(Vc_buildDouble( 1, 0x8519efbbd62ec,  7)), // atan Q coefficients
-        _2(Vc_buildDouble( 1, 0x3504f333f9de6,  1)), // tan( 3/8 π )
+        _2(Vc_buildDouble( 1, 0xe563f13b049eaull,  8)), // atan Q coefficients
+        _2(Vc_buildDouble( 1, 0x8519efbbd62ecull,  7)), // atan Q coefficients
+        _2(Vc_buildDouble( 1, 0x3504f333f9de6ull,  1)), // tan( 3/8 π )
         _2(0.66),                                    // lower threshold for special casing in atan
     // cacheline 13
-        _2(Vc_buildDouble(1, 0x1A62633145C07, -54)), // remainder of pi/2
+        _2(Vc_buildDouble(1, 0x1A62633145C07ull, -54)), // remainder of pi/2
         _2(1.e-8), // small asin input threshold
         _2(0.625), // large asin input threshold
         _2(0.), // padding
     // cacheline 14
-        _2(Vc_buildDouble( 1, 0x84fc3988e9f08, -9)), // asinCoeff0
-        _2(Vc_buildDouble(-1, 0x2079259f9290f, -1)), // asinCoeff0
-        _2(Vc_buildDouble( 1, 0xbdff5baf33e6a,  2)), // asinCoeff0
-        _2(Vc_buildDouble(-1, 0x991aaac01ab68,  4)), // asinCoeff0
+        _2(Vc_buildDouble( 1, 0x84fc3988e9f08ull, -9)), // asinCoeff0
+        _2(Vc_buildDouble(-1, 0x2079259f9290full, -1)), // asinCoeff0
+        _2(Vc_buildDouble( 1, 0xbdff5baf33e6aull,  2)), // asinCoeff0
+        _2(Vc_buildDouble(-1, 0x991aaac01ab68ull,  4)), // asinCoeff0
     // cacheline 15
-        _2(Vc_buildDouble( 1, 0xc896240f3081d,  4)), // asinCoeff0
-        _2(Vc_buildDouble(-1, 0x5f2a2b6bf5d8c,  4)), // asinCoeff1
-        _2(Vc_buildDouble( 1, 0x26219af6a7f42,  7)), // asinCoeff1
-        _2(Vc_buildDouble(-1, 0x7fe08959063ee,  8)), // asinCoeff1
+        _2(Vc_buildDouble( 1, 0xc896240f3081dull,  4)), // asinCoeff0
+        _2(Vc_buildDouble(-1, 0x5f2a2b6bf5d8cull,  4)), // asinCoeff1
+        _2(Vc_buildDouble( 1, 0x26219af6a7f42ull,  7)), // asinCoeff1
+        _2(Vc_buildDouble(-1, 0x7fe08959063eeull,  8)), // asinCoeff1
     // cacheline 16
-        _2(Vc_buildDouble( 1, 0x56709b0b644be,  8)), // asinCoeff1
-        _2(Vc_buildDouble( 1, 0x16b9b0bd48ad3, -8)), // asinCoeff2
-        _2(Vc_buildDouble(-1, 0x34341333e5c16, -1)), // asinCoeff2
-        _2(Vc_buildDouble( 1, 0x5c74b178a2dd9,  2)), // asinCoeff2
+        _2(Vc_buildDouble( 1, 0x56709b0b644beull,  8)), // asinCoeff1
+        _2(Vc_buildDouble( 1, 0x16b9b0bd48ad3ull, -8)), // asinCoeff2
+        _2(Vc_buildDouble(-1, 0x34341333e5c16ull, -1)), // asinCoeff2
+        _2(Vc_buildDouble( 1, 0x5c74b178a2dd9ull,  2)), // asinCoeff2
     // cacheline 17
-        _2(Vc_buildDouble(-1, 0x04331de27907b,  4)), // asinCoeff2
-        _2(Vc_buildDouble( 1, 0x39007da779259,  4)), // asinCoeff2
-        _2(Vc_buildDouble(-1, 0x0656c06ceafd5,  3)), // asinCoeff2
-        _2(Vc_buildDouble(-1, 0xd7b590b5e0eab,  3)), // asinCoeff3
+        _2(Vc_buildDouble(-1, 0x04331de27907bull,  4)), // asinCoeff2
+        _2(Vc_buildDouble( 1, 0x39007da779259ull,  4)), // asinCoeff2
+        _2(Vc_buildDouble(-1, 0x0656c06ceafd5ull,  3)), // asinCoeff2
+        _2(Vc_buildDouble(-1, 0xd7b590b5e0eabull,  3)), // asinCoeff3
     // cacheline 18
-        _2(Vc_buildDouble( 1, 0x19fc025fe9054,  6)), // asinCoeff3
-        _2(Vc_buildDouble(-1, 0x265bb6d3576d7,  7)), // asinCoeff3
-        _2(Vc_buildDouble( 1, 0x1705684ffbf9d,  7)), // asinCoeff3
-        _2(Vc_buildDouble(-1, 0x898220a3607ac,  5)), // asinCoeff3
+        _2(Vc_buildDouble( 1, 0x19fc025fe9054ull,  6)), // asinCoeff3
+        _2(Vc_buildDouble(-1, 0x265bb6d3576d7ull,  7)), // asinCoeff3
+        _2(Vc_buildDouble( 1, 0x1705684ffbf9dull,  7)), // asinCoeff3
+        _2(Vc_buildDouble(-1, 0x898220a3607acull,  5)), // asinCoeff3
     };
 #undef _2
 #define _4(x) x, x, x, x
