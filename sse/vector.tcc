@@ -1440,7 +1440,6 @@ template<> inline INTRINSIC sfloat_v sfloat_v::shifted(int amount) const
     }
     return Zero();
 }
-#ifdef VC_IMPL_SSSE3
 template<typename T> inline INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
 {
     const __m128i v = mm128_reinterpret_cast<__m128i>(d.v());
@@ -1472,7 +1471,6 @@ template<> inline INTRINSIC sfloat_v sfloat_v::rotated(int amount) const
     }
     return Zero();
 }
-#endif
 // }}}1
 } // namespace SSE
 } // namespace Vc
