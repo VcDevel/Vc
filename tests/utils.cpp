@@ -21,6 +21,7 @@
 #include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
+#include "../cpuid.h"
 
 using namespace Vc;
 
@@ -115,6 +116,30 @@ template<typename V> void testForeachBit()
     }
 }
 
+void testMallocAlignment()
+{
+    int_v *a = Vc::malloc<int_v, Vc::AlignOnVector>(10);
+
+    unsigned long mask = VectorAlignment - 1;
+    for (int i = 0; i < 10; ++i) {
+        VERIFY((reinterpret_cast<unsigned long>(&a[i]) & mask) == 0);
+    }
+    const char *data = reinterpret_cast<const char *>(&a[0]);
+    for (int i = 0; i < 10; ++i) {
+        VERIFY(&data[i * int_v::Size * sizeof(int_v::EntryType)] == reinterpret_cast<const char *>(&a[i]));
+    }
+
+    a = Vc::malloc<int_v, Vc::AlignOnCacheline>(10);
+    mask = CpuId::cacheLineSize() - 1;
+    COMPARE((reinterpret_cast<unsigned long>(&a[0]) & mask), 0ul);
+
+    // I don't know how to properly check page alignment. So we check for 4 KiB alignment as this is
+    // the minimum page size on x86
+    a = Vc::malloc<int_v, Vc::AlignOnPage>(10);
+    mask = 4096 - 1;
+    COMPARE((reinterpret_cast<unsigned long>(&a[0]) & mask), 0ul);
+}
+
 int main()
 {
     runTest(testCall<int_v>);
@@ -140,6 +165,8 @@ int main()
     runTest(testSort<sfloat_v>);
     runTest(testSort<short_v>);
     runTest(testSort<ushort_v>);
+
+    runTest(testMallocAlignment);
 
     return 0;
 }
