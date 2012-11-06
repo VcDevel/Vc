@@ -311,7 +311,7 @@ enum Implementation {
 /**
  * \ingroup Utilities
  *
- * This macro is set to the value of Vc::Implementation that the current translation unit is
+ * This macro is set to the value of \ref Vc::Implementation that the current translation unit is
  * compiled with.
  */
 #define VC_IMPL
