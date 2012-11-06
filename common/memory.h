@@ -33,7 +33,7 @@ namespace Vc
 /**
  * Allocates memory on the Heap with alignment and padding suitable for vectorized access.
  *
- * \noref Memory that was allocated with this function must be released with Vc::free! Other methods might
+ * Memory that was allocated with this function must be released with Vc::free! Other methods might
  * work but are not portable.
  *
  * \param n Specifies the number of objects the allocated memory must be able to store.
