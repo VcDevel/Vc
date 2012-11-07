@@ -70,6 +70,8 @@ inline ALWAYS_INLINE_L T *ALWAYS_INLINE_R malloc(size_t n)
 /**
  * Frees memory that was allocated with Vc::malloc.
  *
+ * \param p The pointer to the memory to be freed.
+ *
  * \tparam T The type of the allocated memory.
  *
  * \warning The destructor of T is not called. If needed, you can call the destructor before calling
