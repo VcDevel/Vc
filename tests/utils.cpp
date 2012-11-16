@@ -21,7 +21,7 @@
 #include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
-#include "../cpuid.h"
+#include <Vc/cpuid.h>
 
 using namespace Vc;
 
