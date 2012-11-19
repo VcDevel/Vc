@@ -188,12 +188,9 @@ namespace SSE
                 const VectorType hh = mul(h1, h2);
                 // ll < lh < hh for all entries is certain
                 const VectorType lh_lt_v3 = cmplt(abs(lh), abs(v3)); // |lh| < |v3|
-                const VectorType hh_lt_v3 = cmplt(abs(hh), abs(v3)); // |hh| < |v3|
-                const VectorType a = ll;
                 const VectorType b = _mm_blendv_pd(v3, lh, lh_lt_v3);
-                const VectorType c = _mm_blendv_pd(_mm_blendv_pd(lh, v3, lh_lt_v3), hh, hh_lt_v3);
-                const VectorType d = _mm_blendv_pd(hh, v3, hh_lt_v3);
-                v1 = add(add(a, b), add(c, d));
+                const VectorType c = _mm_blendv_pd(lh, v3, lh_lt_v3);
+                v1 = add(add(ll, b), add(c, hh));
             }
 #endif
             static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) PURE {
