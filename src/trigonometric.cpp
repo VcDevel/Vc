@@ -476,27 +476,22 @@ template<> template<> double_v Trigonometric<VC_IMPL>::atan2 (const double_v &y,
 
 #include <common/undomacros.h>
 
-template Vc::double_v Vc::Trigonometric<VC_IMPL>::sin(const Vc::double_v &);
+// instantiate the non-specialized template functions above
 template Vc::float_v  Vc::Trigonometric<VC_IMPL>::sin(const Vc::float_v  &);
 template Vc::sfloat_v Vc::Trigonometric<VC_IMPL>::sin(const Vc::sfloat_v &);
 
-template Vc::double_v Vc::Trigonometric<VC_IMPL>::cos(const Vc::double_v &);
 template Vc::float_v  Vc::Trigonometric<VC_IMPL>::cos(const Vc::float_v  &);
 template Vc::sfloat_v Vc::Trigonometric<VC_IMPL>::cos(const Vc::sfloat_v &);
 
-template void Vc::Trigonometric<VC_IMPL>::sincos(const Vc::double_v &, Vc::double_v *, Vc::double_v *);
 template void Vc::Trigonometric<VC_IMPL>::sincos(const Vc::float_v  &, Vc::float_v  *, Vc::float_v  *);
 template void Vc::Trigonometric<VC_IMPL>::sincos(const Vc::sfloat_v &, Vc::sfloat_v *, Vc::sfloat_v *);
 
-template Vc::double_v Vc::Trigonometric<VC_IMPL>::asin(const Vc::double_v &);
 template Vc::float_v  Vc::Trigonometric<VC_IMPL>::asin(const Vc::float_v  &);
 template Vc::sfloat_v Vc::Trigonometric<VC_IMPL>::asin(const Vc::sfloat_v &);
 
-template Vc::double_v Vc::Trigonometric<VC_IMPL>::atan(const Vc::double_v &);
 template Vc::float_v  Vc::Trigonometric<VC_IMPL>::atan(const Vc::float_v  &);
 template Vc::sfloat_v Vc::Trigonometric<VC_IMPL>::atan(const Vc::sfloat_v &);
 
-template Vc::double_v Vc::Trigonometric<VC_IMPL>::atan2(const Vc::double_v &, const Vc::double_v &);
 template Vc::float_v  Vc::Trigonometric<VC_IMPL>::atan2(const Vc::float_v  &, const Vc::float_v  &);
 template Vc::sfloat_v Vc::Trigonometric<VC_IMPL>::atan2(const Vc::sfloat_v &, const Vc::sfloat_v &);
 #endif
