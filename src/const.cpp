@@ -69,9 +69,9 @@ namespace AVX
         Vc_buildDouble(-1, 0xae5e5a9291f5dull, -26), // ~-1/11!
         Vc_buildDouble( 1, 0x5d8fd1fd19ccdull, -33), // ~ 1/13!
         0., // padding (for alignment with float)
-        Vc_buildDouble(1, 0x8BE60DB939105ul,  0), // 4/π
-        Vc_buildDouble(1, 0x921fb54442d18ul,  0), // π/2
-        Vc_buildDouble(1, 0x921fb54442d18ul,  1), // π
+        Vc_buildDouble(1, 0x8BE60DB939105ull,  0), // 4/π
+        Vc_buildDouble(1, 0x921fb54442d18ull,  0), // π/2
+        Vc_buildDouble(1, 0x921fb54442d18ull,  1), // π
     // cacheline 10
         Vc_buildDouble(-1, 0xc007fa1f72594ull, -1), // atan P coefficients
         Vc_buildDouble(-1, 0x028545b6b807aull,  4), // atan P coefficients
