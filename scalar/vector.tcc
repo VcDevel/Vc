@@ -139,7 +139,14 @@ template<typename T> inline ALWAYS_INLINE T _fusedMultiplyAdd(T a, T b, T c)
     const T l1 = a - h1;
     const T h2 = highBits(b);
     const T l2 = b - h2;
-    return (((c + l1 * l2) + l1 * h2) + h1 * l2) + h1 * h2;
+    const T ll = l1 * l2;
+    const T lh = l1 * h2 + h1 * l2;
+    const T hh = h1 * h2;
+    if (std::abs(c) < std::abs(lh)) {
+        return (ll + c) + (lh + hh);
+    } else {
+        return (ll + lh) + (c + hh);
+    }
 }
 template<> inline ALWAYS_INLINE void float_v::fusedMultiplyAdd(const float_v &f, const float_v &s)
 {
