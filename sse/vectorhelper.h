@@ -179,9 +179,13 @@ namespace SSE
             }
 #else
             static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
-                const VectorType h1 = _mm_and_pd(v1, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                VectorType h1 = _mm_and_pd(v1, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                VectorType h2 = _mm_and_pd(v2, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+#if defined(VC_GCC) && VC_GCC < 0x40703
+                // GCC before 4.7.3 uses an incorrect optimization where it replaces the subtraction with an andnot
+                asm("":"+x"(h1), "+x"(h2));
+#endif
                 const VectorType l1 = _mm_sub_pd(v1, h1);
-                const VectorType h2 = _mm_and_pd(v2, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
                 const VectorType l2 = _mm_sub_pd(v2, h2);
                 const VectorType ll = mul(l1, l2);
                 const VectorType lh = add(mul(l1, h2), mul(h1, l2));
