@@ -254,7 +254,11 @@ static inline double my_log2(double x) { return ::log(x) / Vc::Math<double>::ln2
 /*}}}*/
 template<typename V> void testLog2()/*{{{*/
 {
+#if defined(VC_LOG_ILP) || defined(VC_LOG_ILP2)
+    setFuzzyness<float>(3);
+#else
     setFuzzyness<float>(2);
+#endif
     setFuzzyness<double>(3);
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
