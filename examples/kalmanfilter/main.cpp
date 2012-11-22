@@ -963,384 +963,394 @@ typedef  FitC FitInterface;
 
 #define MUTE
 
-Station * vStations;
+class KalmanFilter
+{
+    Track vTracks[MaxNTracks];
+    MCTrack vMCTracks[MaxNTracks];
+    Station * vStations;
+    int NStations;
+    int NTracks;
+    int NTracksV;
+    FieldRegion field0;
+    FitInterface fitter;
 
-Track vTracks[MaxNTracks];
-MCTrack vMCTracks[MaxNTracks];
-int NStations = 0;
-int NTracks = 0;
-int NTracksV = 0;
+    void ReadInput() {
 
-FieldRegion field0;
-FitInterface fitter;
+        fstream FileGeo, FileTracks, FileMCTracks;
 
-void ReadInput() {
-
-    fstream FileGeo, FileTracks, FileMCTracks;
-
-    FileGeo.open("geo.dat", ios::in);
-    FileTracks.open("tracks.dat", ios::in);
-    FileMCTracks.open("mctracksin.dat", ios::in);
-    {
-        FieldVector H[3];
-        V Hz[3];
-        for (int i = 0; i < 3; i++) {
-            V::EntryType Bx, By, Bz, z;
-            FileGeo >> z >> Bx >> By >> Bz;
-            Hz[i] = z; H[i].X = Bx;   H[i].Y = By; H[i].Z = Bz;
+        FileGeo.open("geo.dat", std::ios::in);
+        FileTracks.open("tracks.dat", std::ios::in);
+        FileMCTracks.open("mctracksin.dat", std::ios::in);
+        {
+            FieldVector H[3];
+            V Hz[3];
+            for (int i = 0; i < 3; i++) {
+                V::EntryType Bx, By, Bz, z;
+                FileGeo >> z >> Bx >> By >> Bz;
+                Hz[i] = z; H[i].X = Bx;   H[i].Y = By; H[i].Z = Bz;
 #ifndef MUTE
-            cout << "Input Magnetic field:" << z << " " << Bx << " " << By << " " << Bz << endl;
+                cout << "Input Magnetic field:" << z << " " << Bx << " " << By << " " << Bz << endl;
 #endif
+            }
+            field0.Set(H[0],Hz[0], H[1],Hz[1], H[2],Hz[2]);
         }
-        field0.Set(H[0],Hz[0], H[1],Hz[1], H[2],Hz[2]);
-    }
-    FileGeo >> NStations;
+        FileGeo >> NStations;
 #ifndef MUTE
-    cout << "Input " << NStations << " Stations:" << endl;
+        cout << "Input " << NStations << " Stations:" << endl;
 #endif
 
-    for (int i = 0; i < NStations; i++) {
-        int ist;
-        FileGeo >> ist;
-        if (ist!= i) break;
-        Station &st = vStations[i];
-
-        FileGeo >> st.z >> st.thick >> st.RL >> st.UInfo.sigma2 >> st.VInfo.sigma2;
-        st.UInfo.sigma2 *= st.UInfo.sigma2;
-        st.VInfo.sigma2 *= st.VInfo.sigma2;
-        st.UInfo.sigma216 = st.UInfo.sigma2 * 16.f;
-        st.VInfo.sigma216 = st.VInfo.sigma2 * 16.f;
-
-        if (i < 2) { // mvd // TODO From Geo File!!!
-            st.UInfo.cos_phi = 1.f;
-            st.UInfo.sin_phi = 0.f;
-            st.VInfo.cos_phi = 0.f;
-            st.VInfo.sin_phi = 1.f;
-        }
-        else{
-            st.UInfo.cos_phi = 1.f;           // 0 degree
-            st.UInfo.sin_phi = 0.f;
-            st.VInfo.cos_phi = 0.9659258244f; // 15 degree
-            st.VInfo.sin_phi = 0.2588190521f;
-        }
-
-        V idet = st.UInfo.cos_phi * st.VInfo.sin_phi - st.UInfo.sin_phi * st.VInfo.cos_phi;
-        idet = 1.f / (idet * idet);
-        st.XYInfo.C00 = (st.VInfo.sin_phi * st.VInfo.sin_phi * st.UInfo.sigma2 +
-                st.UInfo.sin_phi * st.UInfo.sin_phi * st.VInfo.sigma2) * idet;
-        st.XYInfo.C10 = - (st.VInfo.sin_phi * st.VInfo.cos_phi * st.UInfo.sigma2 +
-                st.UInfo.sin_phi * st.UInfo.cos_phi * st.VInfo.sigma2) * idet;
-        st.XYInfo.C11 = (st.VInfo.cos_phi * st.VInfo.cos_phi * st.UInfo.sigma2 +
-                st.UInfo.cos_phi * st.UInfo.cos_phi * st.VInfo.sigma2) * idet;
-
-#ifndef MUTE
-        cout << "    " << st.z[0] << " " << st.thick[0] << " " << st.RL[0] << ", ";
-#endif
-        st.zhit = st.z;
-        st.RadThick = st.thick / st.RL;
-        st.logRadThick = log(st.RadThick);
-
-        int N = 0;
-        FileGeo >> N;
-#ifndef MUTE
-        cout << N << " field coeff." << endl;
-#endif
-        for (int j = 0; j < N; j++) FileGeo >> st.Map.X[j];
-        for (int j = 0; j < N; j++) FileGeo >> st.Map.Y[j];
-        for (int j = 0; j < N; j++) FileGeo >> st.Map.Z[j];
-    }
-    {
-        // field intergals with respect to Last station
-        V z0  = vStations[NStations - 1].z;
-        V sy = 0.f, Sy = 0.f;
-        for (int i = NStations - 1; i >= 0; i--) {
-            Station &st = vStations[i];
-            V dz = st.z - z0;
-            V Hy = vStations[i].Map.Y[0];
-            Sy += dz * sy + dz * dz * Hy * 0.5f;
-            sy += dz * Hy;
-            st.SyL = Sy;
-            z0 = st.z;
-        }
-        // field intergals with respect to First station
-        z0 = vStations[0].z;
-        sy = 0.f, Sy = 0.f;
         for (int i = 0; i < NStations; i++) {
+            int ist;
+            FileGeo >> ist;
+            if (ist!= i) break;
             Station &st = vStations[i];
-            V dz = st.z - z0;
-            V Hy = vStations[i].Map.Y[0];
-            Sy += dz * sy + dz * dz * Hy * 0.5f;
-            sy += dz * Hy;
-            st.SyF = Sy;
-            z0 = st.z;
+
+            FileGeo >> st.z >> st.thick >> st.RL >> st.UInfo.sigma2 >> st.VInfo.sigma2;
+            st.UInfo.sigma2 *= st.UInfo.sigma2;
+            st.VInfo.sigma2 *= st.VInfo.sigma2;
+            st.UInfo.sigma216 = st.UInfo.sigma2 * 16.f;
+            st.VInfo.sigma216 = st.VInfo.sigma2 * 16.f;
+
+            if (i < 2) { // mvd // TODO From Geo File!!!
+                st.UInfo.cos_phi = 1.f;
+                st.UInfo.sin_phi = 0.f;
+                st.VInfo.cos_phi = 0.f;
+                st.VInfo.sin_phi = 1.f;
+            }
+            else{
+                st.UInfo.cos_phi = 1.f;           // 0 degree
+                st.UInfo.sin_phi = 0.f;
+                st.VInfo.cos_phi = 0.9659258244f; // 15 degree
+                st.VInfo.sin_phi = 0.2588190521f;
+            }
+
+            V idet = st.UInfo.cos_phi * st.VInfo.sin_phi - st.UInfo.sin_phi * st.VInfo.cos_phi;
+            idet = 1.f / (idet * idet);
+            st.XYInfo.C00 = (st.VInfo.sin_phi * st.VInfo.sin_phi * st.UInfo.sigma2 +
+                    st.UInfo.sin_phi * st.UInfo.sin_phi * st.VInfo.sigma2) * idet;
+            st.XYInfo.C10 = - (st.VInfo.sin_phi * st.VInfo.cos_phi * st.UInfo.sigma2 +
+                    st.UInfo.sin_phi * st.UInfo.cos_phi * st.VInfo.sigma2) * idet;
+            st.XYInfo.C11 = (st.VInfo.cos_phi * st.VInfo.cos_phi * st.UInfo.sigma2 +
+                    st.UInfo.cos_phi * st.UInfo.cos_phi * st.VInfo.sigma2) * idet;
+
+#ifndef MUTE
+            cout << "    " << st.z[0] << " " << st.thick[0] << " " << st.RL[0] << ", ";
+#endif
+            st.zhit = st.z;
+            st.RadThick = st.thick / st.RL;
+            st.logRadThick = log(st.RadThick);
+
+            int N = 0;
+            FileGeo >> N;
+#ifndef MUTE
+            cout << N << " field coeff." << endl;
+#endif
+            for (int j = 0; j < N; j++) FileGeo >> st.Map.X[j];
+            for (int j = 0; j < N; j++) FileGeo >> st.Map.Y[j];
+            for (int j = 0; j < N; j++) FileGeo >> st.Map.Z[j];
         }
-    }
-
-    FileGeo.close();
-
-    NTracks = 0;
-    int TrackIndex[MaxNTracks];
-    while(!FileTracks.eof()) {
-
-        int itr;
-        FileTracks >> itr;
-        // if (itr!= NTracks) break;
-        if (NTracks >= MaxNTracks) break;
-
-        Track &t = vTracks[NTracks];
-        MCTrack &mc = vMCTracks[NTracks];
-        FileTracks >> mc.MC_x   >> mc.MC_y  >> mc.MC_z
-            >> mc.MC_px >> mc.MC_py >> mc.MC_pz >> mc.MC_q
-            >> t.NHits;
-        for (int i = 0; i < t.NHits; i++) {
-            int ist;
-            FileTracks >> ist;
-            t.vHits[i].ista = ist;
-            FileTracks >> t.vHits[i].x >> t.vHits[i].y;
-        }
-        TrackIndex[NTracks] = itr;
-        if (t.NHits == NStations)   NTracks++;
-    }
-    int NMCTracks = 0;
-    int iPoint = 0;
-    while(!FileMCTracks.eof()) {
-
-        int itr;
-        FileMCTracks >> itr;
-        // if (itr!= NTracks) break;
-        if (NMCTracks >= MaxNTracks) break;
-        MCTrack &mc = vMCTracks[NMCTracks];
-        V::EntryType temp;
-        int NMCPoints;
-        FileMCTracks >> temp   >> temp  >> temp
-            >> temp >> temp >> temp >> temp
-            >> NMCPoints;
-        mc.NMCPoints = NMCPoints;
-        for (int i = 0; i < NMCPoints; i++) {
-            int ist;
-            FileMCTracks >> ist;
-            mc.vPoints[i].ista = ist;
-            FileMCTracks >> mc.vPoints[i].x >> mc.vPoints[i].y >> mc.vPoints[i].z >> mc.vPoints[i].px >> mc.vPoints[i].py >> mc.vPoints[i].pz;
-
+        {
+            // field intergals with respect to Last station
+            V z0  = vStations[NStations - 1].z;
+            V sy = 0.f, Sy = 0.f;
+            for (int i = NStations - 1; i >= 0; i--) {
+                Station &st = vStations[i];
+                V dz = st.z - z0;
+                V Hy = vStations[i].Map.Y[0];
+                Sy += dz * sy + dz * dz * Hy * 0.5f;
+                sy += dz * Hy;
+                st.SyL = Sy;
+                z0 = st.z;
+            }
+            // field intergals with respect to First station
+            z0 = vStations[0].z;
+            sy = 0.f, Sy = 0.f;
+            for (int i = 0; i < NStations; i++) {
+                Station &st = vStations[i];
+                V dz = st.z - z0;
+                V Hy = vStations[i].Map.Y[0];
+                Sy += dz * sy + dz * dz * Hy * 0.5f;
+                sy += dz * Hy;
+                st.SyF = Sy;
+                z0 = st.z;
+            }
         }
 
-        iPoint = 0; // compare paraments at the first station
-        // iPoint = NMCPoints - 1;
-        mc.MC_x = mc.vPoints[iPoint].x;
-        mc.MC_y = mc.vPoints[iPoint].y;
-        mc.MC_z = mc.vPoints[iPoint].z;
-        mc.MC_px = mc.vPoints[iPoint].px;
-        mc.MC_py = mc.vPoints[iPoint].py;
-        mc.MC_pz = mc.vPoints[iPoint].pz;
+        FileGeo.close();
 
-        if (itr == TrackIndex[NMCTracks]) NMCTracks++;
+        NTracks = 0;
+        int TrackIndex[MaxNTracks];
+        while(!FileTracks.eof()) {
+
+            int itr;
+            FileTracks >> itr;
+            // if (itr!= NTracks) break;
+            if (NTracks >= MaxNTracks) break;
+
+            Track &t = vTracks[NTracks];
+            MCTrack &mc = vMCTracks[NTracks];
+            FileTracks >> mc.MC_x   >> mc.MC_y  >> mc.MC_z
+                >> mc.MC_px >> mc.MC_py >> mc.MC_pz >> mc.MC_q
+                >> t.NHits;
+            for (int i = 0; i < t.NHits; i++) {
+                int ist;
+                FileTracks >> ist;
+                t.vHits[i].ista = ist;
+                FileTracks >> t.vHits[i].x >> t.vHits[i].y;
+            }
+            TrackIndex[NTracks] = itr;
+            if (t.NHits == NStations)   NTracks++;
+        }
+        int NMCTracks = 0;
+        int iPoint = 0;
+        while(!FileMCTracks.eof()) {
+
+            int itr;
+            FileMCTracks >> itr;
+            // if (itr!= NTracks) break;
+            if (NMCTracks >= MaxNTracks) break;
+            MCTrack &mc = vMCTracks[NMCTracks];
+            V::EntryType temp;
+            int NMCPoints;
+            FileMCTracks >> temp   >> temp  >> temp
+                >> temp >> temp >> temp >> temp
+                >> NMCPoints;
+            mc.NMCPoints = NMCPoints;
+            for (int i = 0; i < NMCPoints; i++) {
+                int ist;
+                FileMCTracks >> ist;
+                mc.vPoints[i].ista = ist;
+                FileMCTracks >> mc.vPoints[i].x >> mc.vPoints[i].y >> mc.vPoints[i].z >> mc.vPoints[i].px >> mc.vPoints[i].py >> mc.vPoints[i].pz;
+
+            }
+
+            iPoint = 0; // compare paraments at the first station
+            // iPoint = NMCPoints - 1;
+            mc.MC_x = mc.vPoints[iPoint].x;
+            mc.MC_y = mc.vPoints[iPoint].y;
+            mc.MC_z = mc.vPoints[iPoint].z;
+            mc.MC_px = mc.vPoints[iPoint].px;
+            mc.MC_py = mc.vPoints[iPoint].py;
+            mc.MC_pz = mc.vPoints[iPoint].pz;
+
+            if (itr == TrackIndex[NMCTracks]) NMCTracks++;
+        }
+        // 	cout << NTracks << " " << NMCTracks << " reco and Mc tracks have been read" << endl;
+        FileTracks.close();
+        FileMCTracks.close();
+
+        NTracksV = NTracks / V::Size;
+        NTracks =  NTracksV * V::Size;
     }
-    // 	cout << NTracks << " " << NMCTracks << " reco and Mc tracks have been read" << endl;
-    FileTracks.close();
-    FileMCTracks.close();
-
-    NTracksV = NTracks / V::Size;
-    NTracks =  NTracksV * V::Size;
-}
 
 #define _STRINGIFY(_x) #_x
 #define STRINGIFY(_x) _STRINGIFY(_x)
 
-void WriteOutput() {
+    void WriteOutput() {
 
-    fstream Out, Diff;
+        fstream Out, Diff;
 
-    Out.open(STRINGIFY(VC_IMPL) "_fit.dat", ios::out);
+        Out.open(STRINGIFY(VC_IMPL) "_fit.dat", std::ios::out);
 
-    Out << "Fitter" << endl;
+        Out << "Fitter" << endl;
 
-    Out << MaxNTracks << endl;
+        Out << MaxNTracks << endl;
 
-    for (int it = 0, itt = 0; itt < NTracks; itt++) {
-        Track &t = vTracks[itt];
-        MCTrack &mc = vMCTracks[itt];
+        for (int it = 0, itt = 0; itt < NTracks; itt++) {
+            Track &t = vTracks[itt];
+            MCTrack &mc = vMCTracks[itt];
 
-        bool ok = 1;
-        for (int i = 0; i < 6; i++) {
-            ok = ok && finite(t.T[i]);
+            bool ok = 1;
+            for (int i = 0; i < 6; i++) {
+                ok = ok && finite(t.T[i]);
+            }
+            for (int i = 0; i < 15; i++) ok = ok && finite(t.C[i]);
+
+            if (!ok) { cout << " infinite " << endl; }
+
+            const int iPoint = 0;
+            Out << it << endl << "   "
+                << " " << mc.vPoints[iPoint].x  << " " << mc.vPoints[iPoint].y  << " " << mc.vPoints[iPoint].z
+                << " " << mc.vPoints[iPoint].px << " " << mc.vPoints[iPoint].py << " " << mc.vPoints[iPoint].pz
+                << " " << mc.MC_q << endl;
+
+            Out << "   ";
+            for (int i = 0; i < 6; i++) Out << " " << t.T[i];
+            Out << endl << "   ";
+            for (int i = 0; i < 15; i++) Out << " " << t.C[i];
+            Out << endl;
+
+            it++;
         }
-        for (int i = 0; i < 15; i++) ok = ok && finite(t.C[i]);
-
-        if (!ok) { cout << " infinite " << endl; }
-
-        const int iPoint = 0;
-        Out << it << endl << "   "
-            << " " << mc.vPoints[iPoint].x  << " " << mc.vPoints[iPoint].y  << " " << mc.vPoints[iPoint].z
-            << " " << mc.vPoints[iPoint].px << " " << mc.vPoints[iPoint].py << " " << mc.vPoints[iPoint].pz
-            << " " << mc.MC_q << endl;
-
-        Out << "   ";
-        for (int i = 0; i < 6; i++) Out << " " << t.T[i];
-        Out << endl << "   ";
-        for (int i = 0; i < 15; i++) Out << " " << t.C[i];
-        Out << endl;
-
-        it++;
+        Out.close();
     }
-    Out.close();
-}
 
-void FitTracksV() {
+    void FitTracksV() {
 
-    double TimeTable[Ntimes];
+        double TimeTable[Ntimes];
 
-    TrackV * TracksV = new TrackV[MaxNTracks / V::Size + 1];
-    V * Z0      = new V[MaxNTracks / V::Size + 1]; // mc - z, used for result comparison
-    V * Z0s[MaxNStations];
-    for (int is = 0; is < NStations; ++is)
-        Z0s[is] = new V[MaxNTracks / V::Size + 1];
+        TrackV * TracksV = new TrackV[MaxNTracks / V::Size + 1];
+        V * Z0      = new V[MaxNTracks / V::Size + 1]; // mc - z, used for result comparison
+        V * Z0s[MaxNStations];
+        for (int is = 0; is < NStations; ++is)
+            Z0s[is] = new V[MaxNTracks / V::Size + 1];
 
-    V::Memory Z0mem;
-    V::Memory Z0smem[MaxNStations];
+        V::Memory Z0mem;
+        V::Memory Z0smem[MaxNStations];
 #ifndef MUTE
-    cout << "Prepare data..." << endl;
+        cout << "Prepare data..." << endl;
 #endif
-    TimeStampCounter timer1;
+        TimeStampCounter timer1;
 
-    for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
+        for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
 #ifndef MUTE
-        if (iV * V::Size%100 == 0) cout << iV * V::Size << endl;
+            if (iV * V::Size%100 == 0) cout << iV * V::Size << endl;
 #endif
-        TrackV &t = TracksV[iV];
-        for (int ist = 0; ist < NStations; ist++) {
-            HitV &h = t.vHits[ist];
+            TrackV &t = TracksV[iV];
+            for (int ist = 0; ist < NStations; ist++) {
+                HitV &h = t.vHits[ist];
 
-            h.x = 0.;
-            h.y = 0.;
-            h.w = 0.;
-            h.H.X = 0.;
-            h.H.Y = 0.;
-            h.H.Z = 0.;
-        }
-
-        for (int it = 0; it < V::Size; it++) {
-            Track &ts = vTracks[iV * V::Size + it];
-
-            Z0mem[it] = vMCTracks[iV * V::Size + it].MC_z;
-            for (int is = 0; is < NStations; ++is)
-                Z0smem[is][it] = vMCTracks[iV * V::Size + it].vPoints[is].z;
-
-            for (int ista = 0, ih = 0; ista < NStations; ista++) {
-                Hit &hs = ts.vHits[ih];
-                if (hs.ista != ista) continue;
-                ih++;
-
-                t.vHits[ista].x[it] = hs.x;
-                t.vHits[ista].y[it] = hs.y;
-                t.vHits[ista].w[it] = 1.;
+                h.x = 0.;
+                h.y = 0.;
+                h.w = 0.;
+                h.H.X = 0.;
+                h.H.Y = 0.;
+                h.H.Z = 0.;
             }
 
+            for (int it = 0; it < V::Size; it++) {
+                Track &ts = vTracks[iV * V::Size + it];
+
+                Z0mem[it] = vMCTracks[iV * V::Size + it].MC_z;
+                for (int is = 0; is < NStations; ++is)
+                    Z0smem[is][it] = vMCTracks[iV * V::Size + it].vPoints[is].z;
+
+                for (int ista = 0, ih = 0; ista < NStations; ista++) {
+                    Hit &hs = ts.vHits[ih];
+                    if (hs.ista != ista) continue;
+                    ih++;
+
+                    t.vHits[ista].x[it] = hs.x;
+                    t.vHits[ista].y[it] = hs.y;
+                    t.vHits[ista].w[it] = 1.;
+                }
+
+            }
+
+            V Z0temp(Z0mem);
+            Z0[iV] = Z0temp;
+
+            for (int is = 0; is < NStations; ++is) {
+                V Z0stemp(Z0smem[is]);
+                Z0s[is][iV] = Z0stemp;
+            }
+
+            if (0) {    // output for check
+                cout << "track " << iV << "  ";
+                for (int ista = 0; ista < NStations; ista++)
+                    cout << t.vHits[ista].x << " ";
+                cout << endl;
+            }
+
+
+            for (int ist = 0; ist < NStations; ist++) {
+                HitV &h = t.vHits[ist];
+                vStations[ist].Map.GetField(h.x, h.y, h.H);
+            }
         }
-
-        V Z0temp(Z0mem);
-        Z0[iV] = Z0temp;
-
-        for (int is = 0; is < NStations; ++is) {
-            V Z0stemp(Z0smem[is]);
-            Z0s[is][iV] = Z0stemp;
-        }
-
-        if (0) {    // output for check
-            cout << "track " << iV << "  ";
-            for (int ista = 0; ista < NStations; ista++)
-                cout << t.vHits[ista].x << " ";
-            cout << endl;
-        }
-
-
-        for (int ist = 0; ist < NStations; ist++) {
-            HitV &h = t.vHits[ist];
-            vStations[ist].Map.GetField(h.x, h.y, h.H);
-        }
-    }
-    timer1.Stop();
+        timer1.Stop();
 #ifndef MUTE
-    cout << "Start fit..." << endl;
+        cout << "Start fit..." << endl;
 #endif
-    TimeStampCounter timer;
-    TimeStampCounter timer2;
-    //   TimeStampCounter timer_test;
-    timer.Start();
-    for (int times = 0; times < Ntimes; times++) {
-        timer2.Start();
-        int ifit;
-        int iV;
+        TimeStampCounter timer;
+        TimeStampCounter timer2;
+        //   TimeStampCounter timer_test;
+        timer.Start();
+        for (int times = 0; times < Ntimes; times++) {
+            timer2.Start();
+            int ifit;
+            int iV;
 
-        {
-            for (iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
-                for (ifit = 0; ifit < NFits; ifit++) {
-                    fitter.Fit(TracksV[iV], vStations, NStations);
+            {
+                for (iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
+                    for (ifit = 0; ifit < NFits; ifit++) {
+                        fitter.Fit(TracksV[iV], vStations, NStations);
+                    }
                 }
             }
+            timer2.Stop();
+            TimeTable[times] = timer2.Cycles();
         }
-        timer2.Stop();
-        TimeTable[times] = timer2.Cycles();
-    }
-    timer.Stop();
+        timer.Stop();
 
 
-    for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
-        TrackV &t = TracksV[iV];
-        fitter.ExtrapolateALight(t.T, t.C, Z0[iV], TracksV[iV].T[4], t.f);
-    }
+        for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
+            TrackV &t = TracksV[iV];
+            fitter.ExtrapolateALight(t.T, t.C, Z0[iV], TracksV[iV].T[4], t.f);
+        }
 
-    double realtime = 0;
-    fstream TimeFile;
-    TimeFile.open("time.dat", ios::out);
-    for (int times = 0; times < Ntimes; times++) {
-        TimeFile << TimeTable[times] * 1.e6 / (NTracks * NFits) << endl;
-        realtime += TimeTable[times] * 1.e6 / (NTracks * NFits);
-    }
-    TimeFile.close();
-    realtime /= Ntimes;
+        double realtime = 0;
+        fstream TimeFile;
+        TimeFile.open("time.dat", std::ios::out);
+        for (int times = 0; times < Ntimes; times++) {
+            TimeFile << TimeTable[times] * 1.e6 / (NTracks * NFits) << endl;
+            realtime += TimeTable[times] * 1.e6 / (NTracks * NFits);
+        }
+        TimeFile.close();
+        realtime /= Ntimes;
 
 #ifndef MUTE
-    cout << "Preparation time / track = " << timer1.Cycles() * 1.e6 / NTracks / NFits << " [us]" << endl;
-    cout << "CPU  fit time / track = " << timer.Cycles() * 1.e6 / (NTracks * NFits) / Ntimes << " [us]" << endl;
-    cout << "Real fit time / track = " << realtime << " [us]" << endl;
-    cout << "Total fit time = " << timer.Cycles() << " [sec]" << endl;
-    cout << "Total fit real time = " << timer.Cycles() << " [sec]" << endl;
+        cout << "Preparation time / track = " << timer1.Cycles() * 1.e6 / NTracks / NFits << " [us]" << endl;
+        cout << "CPU  fit time / track = " << timer.Cycles() * 1.e6 / (NTracks * NFits) / Ntimes << " [us]" << endl;
+        cout << "Real fit time / track = " << realtime << " [us]" << endl;
+        cout << "Total fit time = " << timer.Cycles() << " [sec]" << endl;
+        cout << "Total fit real time = " << timer.Cycles() << " [sec]" << endl;
 #else
-    cout << "Prep[us], CPU fit / tr[us], Real fit / tr[us], CPU[sec], Real[sec] = " << timer1.Cycles() * 1.e6 / NTracks / NFits << "\t";
-    cout << timer.Cycles() * 1.e6 / (NTracks * NFits) / Ntimes << "\t";
-    cout << realtime << "\t";
-    cout << timer.Cycles() << "\t";
-    cout << timer.Cycles() << endl;
+        cout << "Prep[us], CPU fit / tr[us], Real fit / tr[us], CPU[sec], Real[sec] = " << timer1.Cycles() * 1.e6 / NTracks / NFits << "\t";
+        cout << timer.Cycles() * 1.e6 / (NTracks * NFits) / Ntimes << "\t";
+        cout << realtime << "\t";
+        cout << timer.Cycles() << "\t";
+        cout << timer.Cycles() << endl;
 #endif
 
-    for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
-        TrackV &t = TracksV[iV];
+        for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
+            TrackV &t = TracksV[iV];
 
-        for (int it = 0; it < V::Size; it++) {
-            Track &ts = vTracks[iV * V::Size + it];
+            for (int it = 0; it < V::Size; it++) {
+                Track &ts = vTracks[iV * V::Size + it];
 
-            for (int i = 0; i < 6; i++)
-                ts.T[i] = t.T[i][it];
-            for (int i = 0; i < 15; i++)
-                ts.C[i] = t.C[i][it];
+                for (int i = 0; i < 6; i++)
+                    ts.T[i] = t.T[i][it];
+                for (int i = 0; i < 15; i++)
+                    ts.C[i] = t.C[i][it];
+            }
         }
+
+        delete [] Z0;
+        for (int is = 0; is < NStations; ++is)
+            delete [] Z0s[is];
+        delete [] TracksV;
+    }
+public:
+    KalmanFilter()
+        : vStations(new Station[MaxNStations]),
+          NStations(0),
+          NTracks(0),
+          NTracksV(0)
+    {
+        ReadInput();
+        FitTracksV();
+        WriteOutput();
     }
 
-    delete [] Z0;
-    for (int is = 0; is < NStations; ++is)
-        delete [] Z0s[is];
-    delete [] TracksV;
-}
-
+    ~KalmanFilter()
+    {
+        delete[] vStations;
+    }
+};
 
 int main()
 {
-    vStations = new Station[MaxNStations];
-
-    ReadInput();
-    FitTracksV();
-    WriteOutput();
-
-    delete[] vStations;
+    delete new KalmanFilter;
     return 0;
 }
