@@ -416,7 +416,7 @@ inline void FitFunctional::ExtrapolateJAnalytic // extrapolates track parameters
  V       qp0    , // use Q / p linearisation at this value
  const FieldRegion &F,
  Jacobian_t &j,
- V w
+ V
  ) const
 {
     // cout << "Extrapolation..." << endl;
