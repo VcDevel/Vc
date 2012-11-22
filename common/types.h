@@ -20,6 +20,11 @@
 #ifndef VC_COMMON_TYPES_H
 #define VC_COMMON_TYPES_H
 
+#ifndef NDEBUG
+#include <cstdlib>
+#include <cstdio>
+#endif
+
 namespace Vc
 {
 
@@ -189,6 +194,19 @@ namespace
     template<typename T> struct IsLikeInteger { enum { Value = !IsReal<T>::Value && CanConvertToInt<T>::Value }; };
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !IsUnsignedInteger<T>::Value }; };
 } // anonymous namespace
+
+#ifdef NDEBUG
+template<typename _T> static inline ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
+#else
+template<typename _T> static inline ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)
+{
+    const size_t s = sizeof(_T);
+    if((reinterpret_cast<size_t>(ptr) & ((s ^ (s & (s - 1))) - 1)) != 0) {
+        fprintf(stderr, "A vector with incorrect alignment has just been created. Look at the stacktrace to find the guilty object.\n");
+        abort();
+    }
+}
+#endif
 
 } // namespace Vc
 

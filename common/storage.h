@@ -22,6 +22,7 @@
 
 #include "aliasingentryhelper.h"
 #include "macros.h"
+#include "types.h"
 
 namespace Vc
 {
@@ -34,9 +35,9 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
         typedef _VectorType VectorType;
         typedef _EntryType EntryType;
         typedef EntryType AliasingEntryType MAY_ALIAS;
-        inline VectorMemoryUnion() {}
+        inline VectorMemoryUnion() { assertCorrectAlignment(&v()); }
 #if defined VC_ICC || defined VC_MSVC
-        inline VectorMemoryUnion(const VectorType &x) { data.v = x; }
+        inline VectorMemoryUnion(const VectorType &x) { data.v = x; assertCorrectAlignment(&data.v); }
         inline VectorMemoryUnion &operator=(const VectorType &x) {
             data.v = x; return *this;
         }
@@ -70,7 +71,7 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
             EntryType m[sizeof(VectorType)/sizeof(EntryType)];
         } data;
 #else
-        inline VectorMemoryUnion(VectorType x) : data(x) {}
+        inline VectorMemoryUnion(VectorType x) : data(x) { assertCorrectAlignment(&data); }
         inline VectorMemoryUnion &operator=(VectorType x) {
             data = x; return *this;
         }
