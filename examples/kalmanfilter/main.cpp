@@ -1187,10 +1187,8 @@ class KalmanFilter : public Vc::VectorAlignedBase
         Out.close();
     }
 
-    void FitTracksV() {
-
-        double TimeTable[Ntimes];
-
+    void FitTracksV()
+    {
         TrackV * TracksV = new TrackV[MaxNTracks / V::Size + 1];
         V * Z0      = new V[MaxNTracks / V::Size + 1]; // mc - z, used for result comparison
         V * Z0s[MaxNStations];
@@ -1203,6 +1201,7 @@ class KalmanFilter : public Vc::VectorAlignedBase
         cout << "Prepare data..." << endl;
 #endif
         TimeStampCounter timer1;
+        timer1.Start();
 
         for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
 #ifndef MUTE
@@ -1265,11 +1264,8 @@ class KalmanFilter : public Vc::VectorAlignedBase
         cout << "Start fit..." << endl;
 #endif
         TimeStampCounter timer;
-        TimeStampCounter timer2;
-        //   TimeStampCounter timer_test;
         timer.Start();
         for (int times = 0; times < Ntimes; times++) {
-            timer2.Start();
             int ifit;
             int iV;
 
@@ -1280,40 +1276,17 @@ class KalmanFilter : public Vc::VectorAlignedBase
                     }
                 }
             }
-            timer2.Stop();
-            TimeTable[times] = timer2.Cycles();
         }
         timer.Stop();
-
 
         for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
             TrackV &t = TracksV[iV];
             fitter.ExtrapolateALight(t.T, t.C, Z0[iV], TracksV[iV].T[4], t.f);
         }
 
-        double realtime = 0;
-        fstream TimeFile;
-        TimeFile.open("time.dat", std::ios::out);
-        for (int times = 0; times < Ntimes; times++) {
-            TimeFile << TimeTable[times] * 1.e6 / (NTracks * NFits) << endl;
-            realtime += TimeTable[times] * 1.e6 / (NTracks * NFits);
-        }
-        TimeFile.close();
-        realtime /= Ntimes;
-
-#ifndef MUTE
-        cout << "Preparation time / track = " << timer1.Cycles() * 1.e6 / NTracks / NFits << " [us]" << endl;
-        cout << "CPU  fit time / track = " << timer.Cycles() * 1.e6 / (NTracks * NFits) / Ntimes << " [us]" << endl;
-        cout << "Real fit time / track = " << realtime << " [us]" << endl;
-        cout << "Total fit time = " << timer.Cycles() << " [sec]" << endl;
-        cout << "Total fit real time = " << timer.Cycles() << " [sec]" << endl;
-#else
-        cout << "Prep[us], CPU fit / tr[us], Real fit / tr[us], CPU[sec], Real[sec] = " << timer1.Cycles() * 1.e6 / NTracks / NFits << "\t";
-        cout << timer.Cycles() * 1.e6 / (NTracks * NFits) / Ntimes << "\t";
-        cout << realtime << "\t";
-        cout << timer.Cycles() << "\t";
-        cout << timer.Cycles() << endl;
-#endif
+        cout << "             preparation: " << std::setw(8) << timer1.Cycles() / NTracks / NFits << '\n'
+             << "cycles per track and fit: " << std::setw(8) << timer.Cycles() / (NTracks * NFits) / Ntimes << '\n'
+             << "     cycles for all fits: " << std::setw(8) << timer.Cycles() << endl;
 
         for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
             TrackV &t = TracksV[iV];
