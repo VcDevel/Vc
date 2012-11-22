@@ -963,16 +963,16 @@ typedef  FitC FitInterface;
 
 #define MUTE
 
-class KalmanFilter
+class KalmanFilter : public Vc::VectorAlignedBase
 {
+    FieldRegion field0;
+    FitInterface fitter;
     Track vTracks[MaxNTracks];
     MCTrack vMCTracks[MaxNTracks];
     Station * vStations;
     int NStations;
     int NTracks;
     int NTracksV;
-    FieldRegion field0;
-    FitInterface fitter;
 
     void ReadInput() {
 
