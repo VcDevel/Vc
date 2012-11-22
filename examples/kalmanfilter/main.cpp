@@ -966,6 +966,7 @@ class KalmanFilter
 #ifndef MUTE
         cout<<"Start fit..."<<endl;
 #endif
+        double checksum = 0.;
         TimeStampCounter timer;
         TimeStampCounter timer2;
         //   TimeStampCounter timer_test;
@@ -982,6 +983,10 @@ class KalmanFilter
                     for( ifit=0; ifit<NFits; ifit++){
                         Fit( TracksV[iV], vStations, NStations );
                     }
+                    checksum += (TracksV[iV].T[0]
+                               + TracksV[iV].T[1]
+                               + TracksV[iV].T[2]
+                               + TracksV[iV].T[3] * TracksV[iV].T[4]).sum();
                     // timer_test.Stop();
                     // cout<<"test time = "<<timer_test.RealTime()*1.e6<<" [us]"<<endl;
                 }
@@ -990,7 +995,7 @@ class KalmanFilter
             TimeTable[times]=timer2.Cycles();
         }
         timer.Stop();
-
+        std::cout << std::setprecision(20) << checksum << (checksum == 36874.828706623520702 ? " good" : " bad") << std::endl;
 
         for( int iV=0; iV<NTracksV; iV++ ){ // loop on set of 4 tracks
             TrackV &t = TracksV[iV];
