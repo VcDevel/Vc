@@ -9,7 +9,11 @@
 #include "../../tsc.h"
 #include <assert.h>
 
-using namespace std;
+using std::istream;
+using std::ostream;
+using std::fstream;
+using std::cout;
+using std::endl;
 
 const int NFits = 1;
 const int MaxNTracks = 20000;
@@ -696,7 +700,7 @@ inline void FitFunctional::AddMaterial(TrackV &track, Station &st, V &qp0, bool 
 inline void FitFunctional::AddPipeMaterial(TrackV &track, V &qp0) const
 {
     V Q22, Q32, Q33;
-    GetMSMatrix(track.T[2], track.T[3], PipeRadThick, log(PipeRadThick), qp0, Q22, Q32, Q33);
+    GetMSMatrix(track.T[2], track.T[3], PipeRadThick, std::log(PipeRadThick), qp0, Q22, Q32, Q33);
 
     AddMaterial(track.C, Q22, Q32, Q33);
 }
