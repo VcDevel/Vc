@@ -502,66 +502,62 @@ struct HitInfo{
  * \param u Is a measurement that we want to add - Strip coordinate (may be x or y)
  * \param w Mask which entries of u to use (just 1 or 0)
  */
-inline void Filter( TrackV &track, HitInfo &info, Vec &u, Vec &w )
+inline void Filter( TrackV &track, const HitInfo &info, const Vec &u, const Vec &w )
 {
     // convert input
     Vec *T = track.T;  // track paramenters: x, y, tx, ty, qp, z
     CovV &C = track.C; // covariance matrix
 
-    Vec weightMatrix, zeta, zetawi, HCH; // model of the measurement * cov-matrix * transposed model of the measurement
-    Vec F0, F1, F2, F3, F4;
-    Vec gain1, gain2, gain3, gain4;
-
     // residual: difference to new measurement
-    residual = info.cos_phi*T[0] + info.sin_phi*T[1] - u; // cos(phi) * x + sin(phi) * y - u
+    Vec residual = info.cos_phi*T[0] + info.sin_phi*T[1] - u; // cos(phi) * x + sin(phi) * y - u
     // F = CH'
 
-    F0 = info.cos_phi*C.C00 + info.sin_phi*C.C10;
-    F1 = info.cos_phi*C.C10 + info.sin_phi*C.C11;
-    F2 = info.cos_phi*C.C20 + info.sin_phi*C.C21;
-    F3 = info.cos_phi*C.C30 + info.sin_phi*C.C31;
-    F4 = info.cos_phi*C.C40 + info.sin_phi*C.C41;
+    const Vec F0 = info.cos_phi*C.C00 + info.sin_phi*C.C10;
+    const Vec F1 = info.cos_phi*C.C10 + info.sin_phi*C.C11;
+    const Vec F2 = info.cos_phi*C.C20 + info.sin_phi*C.C21;
+    const Vec F3 = info.cos_phi*C.C30 + info.sin_phi*C.C31;
+    const Vec F4 = info.cos_phi*C.C40 + info.sin_phi*C.C41;
 
-    HCH = ( F0*info.cos_phi +F1*info.sin_phi );
+    Vec HCH = ( F0*info.cos_phi +F1*info.sin_phi );
     float_m initialised = HCH < info.sigma216; // fix roundoff errors: if HCH is too small
 
-    weightMatrix = w * Vc::reciprocal(info.sigma2 +HCH); // matrix S (1x1)
+    Vec weightMatrix = w * Vc::reciprocal(info.sigma2 +HCH); // matrix S (1x1)
     Vec tmp = Vec::Zero();
     tmp(initialised) = info.sigma2;
-    residual_S = w * residual * Vc::reciprocal(tmp + HCH); // residual * S
+    const Vec residual_S = w * residual * Vc::reciprocal(tmp + HCH); // residual * S
     tmp.setZero();
     tmp(initialised) = residual * residual_S;
     track.Chi2 += tmp; // residual * S * residual
 
     track.NDF  += w;
 
-    // K0 = F0*weightMatrix
-    gain1 = F1*weightMatrix;
-    gain2 = F2*weightMatrix;
-    gain3 = F3*weightMatrix;
-    gain4 = F4*weightMatrix;
+    const Vec gain0 = F0 * weightMatrix;
+    const Vec gain1 = F1 * weightMatrix;
+    const Vec gain2 = F2 * weightMatrix;
+    const Vec gain3 = F3 * weightMatrix;
+    const Vec gain4 = F4 * weightMatrix;
 
-    T[0]-= F0*residual_S;
-    T[1]-= F1*residual_S;
-    T[2]-= F2*residual_S;
-    T[3]-= F3*residual_S;
-    T[4]-= F4*residual_S;
+    T[0]-= F0 * residual_S;
+    T[1]-= F1 * residual_S;
+    T[2]-= F2 * residual_S;
+    T[3]-= F3 * residual_S;
+    T[4]-= F4 * residual_S;
 
-    C.C00-= F0*F0*weightMatrix;
-    C.C10-= gain1*F0;
-    C.C11-= gain1*F1;
-    C.C20-= K2*F0;
-    C.C21-= K2*F1;
-    C.C22-= K2*F2;
-    C.C30-= K3*F0;
-    C.C31-= K3*F1;
-    C.C32-= K3*F2;
-    C.C33-= K3*F3;
-    C.C40-= K4*F0;
-    C.C41-= K4*F1;
-    C.C42-= K4*F2;
-    C.C43-= K4*F3;
-    C.C44-= K4*F4;
+    C.C00 -= gain0 * F0;
+    C.C10 -= gain1 * F0;
+    C.C11 -= gain1 * F1;
+    C.C20 -= gain2 * F0;
+    C.C21 -= gain2 * F1;
+    C.C22 -= gain2 * F2;
+    C.C30 -= gain3 * F0;
+    C.C31 -= gain3 * F1;
+    C.C32 -= gain3 * F2;
+    C.C33 -= gain3 * F3;
+    C.C40 -= gain4 * F0;
+    C.C41 -= gain4 * F1;
+    C.C42 -= gain4 * F2;
+    C.C43 -= gain4 * F3;
+    C.C44 -= gain4 * F4;
 }
 
 inline void FilterFirst( TrackV &track, HitV &hit, Station &st )
