@@ -1,5 +1,6 @@
 #include <Vc/Vc>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <cstring>
 #include <cstdlib>
@@ -863,8 +864,12 @@ class KalmanFilter
             for( int i=0; i<15; i++ ) Out<< " " <<C[i];
             Out << '\n';
 
-            float tmc[6] = { mc.MC_x, mc.MC_y, mc.MC_px/mc.MC_pz, mc.MC_py/mc.MC_pz,
-                mc.MC_q/sqrt(mc.MC_px*mc.MC_px+mc.MC_py*mc.MC_py+mc.MC_pz*mc.MC_pz), mc.MC_z};
+            float tmc[6] = {
+                mc.MC_x,
+                mc.MC_y,
+                mc.MC_px / mc.MC_pz,
+                mc.MC_py / mc.MC_pz,
+                mc.MC_q / std::sqrt(mc.MC_px*mc.MC_px+mc.MC_py*mc.MC_py+mc.MC_pz*mc.MC_pz), mc.MC_z};
             Diff << it << "\n   ";
             for( int i=0; i<6; i++ ) Diff<< " " <<t.T[i]-tmc[i];
             Diff << "\n   ";
