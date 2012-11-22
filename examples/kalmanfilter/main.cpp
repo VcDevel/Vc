@@ -267,8 +267,10 @@ struct TrackV : public Vc::VectorAlignedBase {
 
 #define cnst static const V::EntryType // with V 15% slower
 
-cnst INF = .01; cnst INF2 = .0001; cnst ZERO = 0.0; cnst ONE = 1.;
-cnst c_light = 0.000299792458; cnst c_light_i = 1. / c_light;
+cnst INF = .01;
+cnst INF2 = .0001;
+cnst c_light = 0.000299792458;
+cnst c_light_i = 1. / c_light;
 
 cnst PipeRadThick = 0.0009;
 
@@ -289,21 +291,21 @@ class FitFunctional { // base class for all approaches
     public:
 
         /// extrapolates track parameters
-        virtual void ExtrapolateALight(V T[], CovV &C,  const V &z_out,  V& qp0, FieldRegion &F, V w = ZERO) const = 0;
+        virtual void ExtrapolateALight(V T[], CovV &C,  const V &z_out,  V& qp0, FieldRegion &F, V w = V::Zero()) const = 0;
 
     protected:
         /// initial aproximation
         void GuessVec(TrackV &t, Station * vStations, int NStations, bool dir = 0) const;
 
-        virtual void Filter(TrackV &track, HitInfo &info, V &u, V w = ONE) const = 0;
+        virtual void Filter(TrackV &track, HitInfo &info, V &u, V w = V::One()) const = 0;
         // filter first mesurement
         virtual void FilterFirst(TrackV &track, HitV &hit, Station &st) const = 0;
 
-        void AddMaterial(TrackV &track, Station &st, V &qp0, bool isPipe = ZERO) const;
+        void AddMaterial(TrackV &track, Station &st, V &qp0, bool isPipe = false) const;
         void AddPipeMaterial(TrackV &track, V &qp0) const;
         void AddHalfMaterial(TrackV &track, Station &st, V &qp0) const;
 
-        virtual void ExtrapolateWithMaterial(TrackV &track, const V &z_out,  V& qp0, FieldRegion &F, Station &st, bool isPipe = 0, V w = ZERO) const = 0;
+        virtual void ExtrapolateWithMaterial(TrackV &track, const V &z_out,  V& qp0, FieldRegion &F, Station &st, bool isPipe = 0, V w = V::Zero()) const = 0;
 
         // ------------ help functions ------------
         virtual void AddMaterial(CovV &C, V Q22, V Q32, V Q33) const = 0;
@@ -340,8 +342,8 @@ inline void FitFunctional::GuessVec(TrackV &t, Station * vStations, int nStation
 
     int NHits = nStations;
 
-    V A0, A1 = ZERO, A2 = ZERO, A3 = ZERO, A4 = ZERO, A5 = ZERO, a0, a1 = ZERO, a2 = ZERO,
-      b0, b1 = ZERO, b2 = ZERO;
+    V A0, A1 = V::Zero(), A2 = V::Zero(), A3 = V::Zero(), A4 = V::Zero(), A5 = V::Zero(), a0, a1 = V::Zero(), a2 = V::Zero(),
+      b0, b1 = V::Zero(), b2 = V::Zero();
     V z0, x, y, z, S, w, wz, wS;
 
     int i = NHits - 1;
@@ -395,7 +397,7 @@ inline void FitFunctional::GuessVec(TrackV &t, Station * vStations, int nStation
     V L, L1;
     T[0] = (Ai0 * a0 + Ai1 * a1 + Ai3 * a2) * det;
     T[2] = (Ai1 * a0 + Ai2 * a1 + Ai4 * a2) * det;
-    V txtx1 = 1.f +  T[2] * T[2];
+    V txtx1 = V::One() +  T[2] * T[2];
     L    = (Ai3 * a0 + Ai4 * a1 + Ai5 * a2) * det * rcp(txtx1);
     L1 = L * T[2];
     A1 = A1 + A3 * L1;
@@ -667,7 +669,7 @@ inline void FitFunctional::GetMSMatrix(const V &tx, const V &ty, const V &radThi
 
     V txtx = tx * tx;
     V tyty = ty * ty;
-    V txtx1 = txtx + ONE;
+    V txtx1 = txtx + V::One();
     V h = txtx + tyty;
     V t = sqrt(txtx1 + tyty);
     V h2 = h * h;
@@ -677,12 +679,12 @@ inline void FitFunctional::GetMSMatrix(const V &tx, const V &ty, const V &radThi
 
     V s0 = (c1 + c2 * logRadThick + c3 * h + h2 * (c4 + c5 * h + c6 * h2)) * qp0t;
 
-    V a = (ONE + mass2 * qp0 * qp0t) * radThick * s0 * s0;
+    V a = (V::One() + mass2 * qp0 * qp0t) * radThick * s0 * s0;
 
 
     Q22 = txtx1 * a;
     Q32 = tx * ty * a;
-    Q33 = (ONE + tyty) * a;
+    Q33 = (V::One() + tyty) * a;
 }
 
 
@@ -782,10 +784,10 @@ inline void FitBase::Fit(TrackV &t, Station vStations[], int nStations) const
 
 class FitC: public virtual FitFunctional, public FitBase {
     public:
-        void ExtrapolateALight(V T[], CovV &C,  const V &z_out,  V& qp0, FieldRegion &F, V w = ZERO) const;
+        void ExtrapolateALight(V T[], CovV &C,  const V &z_out,  V& qp0, FieldRegion &F, V w = V::Zero()) const;
 
     protected:
-        void Filter(TrackV &track, HitInfo &info, V &u, V w = ONE) const;
+        void Filter(TrackV &track, HitInfo &info, V &u, V w = V::One()) const;
         void FilterFirst(TrackV &track, HitV &hit, Station &st) const;
 
         void ExtrapolateWithMaterial(TrackV &track, const V &z_out,  V& qp0, FieldRegion &F, Station &st, bool isPipe = 0, V w = 0) const;
@@ -854,7 +856,7 @@ void FitC::ExtrapolateALight
 
 inline void FitC::Filter(TrackV &track, HitInfo &info, V &u, V w) const
 {
-    const V p = ONE / w;
+    const V p = V::One() / w;
     cnst w_th = 0.001f; // max w to filter measurement
     const V::Mask mask = w > w_th;
 
@@ -888,9 +890,9 @@ inline void FitC::Filter(TrackV &track, HitInfo &info, V &u, V w) const
 
     const V::Mask initialised = HCH < info.sigma216 * p;
 
-    wi = ZERO;
+    wi = V::Zero();
     wi(mask) = rcp(sigma2 + HCH);
-    V sigma2m = ZERO;
+    V sigma2m = V::Zero();
     sigma2m(initialised) = sigma2;
     zetawi = zeta * rcp(sigma2m + HCH);
     track.Chi2(initialised) += (zeta * zetawi);
@@ -929,7 +931,7 @@ inline void FitC::FilterFirst(TrackV &track, HitV &hit, Station &st) const
 {
 
     CovV &C = track.C;
-    V w1 = ONE - hit.w;
+    V w1 = V::One() - hit.w;
     V c00 = hit.w * st.XYInfo.C00 + w1 * INF;
     V c10 = hit.w * st.XYInfo.C10 + w1 * INF;
     V c11 = hit.w * st.XYInfo.C11 + w1 * INF;
@@ -937,14 +939,14 @@ inline void FitC::FilterFirst(TrackV &track, HitV &hit, Station &st) const
     // // initialize covariance matrix
     C.C00 = c00;
     C.C10 = c10;       C.C11 = c11;
-    C.C20 = ZERO;      C.C21 = ZERO;      C.C22 = INF2; // needed for stability of smoother. improve FilterTracks and CHECKME
-    C.C30 = ZERO;      C.C31 = ZERO;      C.C32 = ZERO; C.C33 = INF2;
-    C.C40 = ZERO;      C.C41 = ZERO;      C.C42 = ZERO; C.C43 = ZERO; C.C44 = INF;
+    C.C20 = V::Zero();      C.C21 = V::Zero();      C.C22 = INF2; // needed for stability of smoother. improve FilterTracks and CHECKME
+    C.C30 = V::Zero();      C.C31 = V::Zero();      C.C32 = V::Zero(); C.C33 = INF2;
+    C.C40 = V::Zero();      C.C41 = V::Zero();      C.C42 = V::Zero(); C.C43 = V::Zero(); C.C44 = INF;
 
     track.T[0] = hit.w * hit.x + w1 * track.T[0];
     track.T[1] = hit.w * hit.y + w1 * track.T[1];
     track.NDF = - 3.0;
-    track.Chi2 = ZERO;
+    track.Chi2 = V::Zero();
 }
 
 inline void FitC::AddMaterial(CovV &C, V Q22, V Q32, V Q33) const
@@ -1012,20 +1014,20 @@ class KalmanFilter : public Vc::VectorAlignedBase
             st.VInfo.sigma216 = st.VInfo.sigma2 * 16.f;
 
             if (i < 2) { // mvd // TODO From Geo File!!!
-                st.UInfo.cos_phi = 1.f;
-                st.UInfo.sin_phi = 0.f;
-                st.VInfo.cos_phi = 0.f;
-                st.VInfo.sin_phi = 1.f;
+                st.UInfo.cos_phi = V::One();
+                st.UInfo.sin_phi = V::Zero();
+                st.VInfo.cos_phi = V::Zero();
+                st.VInfo.sin_phi = V::One();
             }
             else{
-                st.UInfo.cos_phi = 1.f;           // 0 degree
-                st.UInfo.sin_phi = 0.f;
+                st.UInfo.cos_phi = V::One();           // 0 degree
+                st.UInfo.sin_phi = V::Zero();
                 st.VInfo.cos_phi = 0.9659258244f; // 15 degree
                 st.VInfo.sin_phi = 0.2588190521f;
             }
 
             V idet = st.UInfo.cos_phi * st.VInfo.sin_phi - st.UInfo.sin_phi * st.VInfo.cos_phi;
-            idet = 1.f / (idet * idet);
+            idet = V::One() / (idet * idet);
             st.XYInfo.C00 = (st.VInfo.sin_phi * st.VInfo.sin_phi * st.UInfo.sigma2 +
                     st.UInfo.sin_phi * st.UInfo.sin_phi * st.VInfo.sigma2) * idet;
             st.XYInfo.C10 = - (st.VInfo.sin_phi * st.VInfo.cos_phi * st.UInfo.sigma2 +
