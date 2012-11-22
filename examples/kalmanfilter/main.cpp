@@ -22,7 +22,7 @@ const int MaxNStations = 10;
 
 typedef Vc::float_v V;
 
-istream & operator>>(istream &strm, V &a) {
+inline istream & operator>>(istream &strm, V &a) {
     float tmp;
     strm >> tmp;
     a = tmp;
