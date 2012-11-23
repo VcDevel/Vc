@@ -278,16 +278,36 @@ struct TrackV : public Vc::VectorAlignedBase {
     V NDF;
 
     FieldRegion f; // field at first hit (needed for extrapolation to MC and check of results)
+
+    V &x() { return T[0]; }
+    V &y() { return T[1]; }
+    V &tx() { return T[2]; }
+    V &ty() { return T[3]; }
+    V &qp() { return T[4]; }
+    V &z() { return T[5]; }
+
+    TrackV()
+        : Chi2(Vc::Zero),
+        NDF(Vc::Zero)
+    {
+        T[0] = V::Zero();
+        T[1] = V::Zero();
+        T[2] = V::Zero();
+        T[3] = V::Zero();
+        T[4] = V::Zero();
+        T[5] = V::Zero();
+    }
 };
 
-#define cnst static const V::EntryType // with V 15% slower
+//constants
+#define cnst static const V
 
-cnst INF = .01;
-cnst INF2 = .0001;
-cnst c_light = 0.000299792458;
-cnst c_light_i = 1. / c_light;
+cnst INF = .01f;
+cnst INF2 = .0001f;
+cnst c_light = 0.000299792458f;
+cnst c_light_i = 1.f / c_light;
 
-cnst PipeRadThick = 0.0009;
+cnst PipeRadThick = 0.0009f;
 
 class Jacobian_t{ // jacobian elements // j[0][0] - j[3][2] are j02 - j34
     public:
@@ -440,9 +460,19 @@ inline void FitFunctional::ExtrapolateJAnalytic // extrapolates track parameters
     //  Part of the analytic extrapolation formula with error (c_light * B * dz)^4 / 4!
     //
 
-    cnst
-        c1 = 1., c2 = 2., c3 = 3., c4 = 4., c6 = 6., c9 = 9., c15 = 15., c18 = 18., c45 = 45.,
-    c2i = 1. / 2., c3i = 1. / 3., c6i = 1. / 6., c12i = 1. / 12.;
+    cnst c1 = 1.f;
+    cnst c2 = 2.f;
+    cnst c3 = 3.f;
+    cnst c4 = 4.f;
+    cnst c6 = 6.f;
+    cnst c9 = 9.f;
+    cnst c15 = 15.f;
+    cnst c18 = 18.f;
+    cnst c45 = 45.f;
+    cnst c2i = .5f;
+    cnst c3i = .3333333432674407958984375f;
+    cnst c6i = .16666667163372039794921875f;
+    cnst c12i = .083333335816860198974609375f;
 
     const V qp = T[4];
     const V dz = (z_out - T[5]);
@@ -510,23 +540,31 @@ inline void FitFunctional::ExtrapolateJAnalytic // extrapolates track parameters
 
     V syz;
     {
-        cnst
-            d = 1. / 360.,
-              c00 = 30. * 6. * d, c01 = 30. * 2. * d,   c02 = 30. * d,
-              c10 = 3. * 40. * d, c11 = 3. * 15. * d,   c12 = 3. * 8. * d,
-              c20 = 2. * 45. * d, c21 = 2. * 2. * 9. * d, c22 = 2. * 2. * 5. * d;
+        cnst c00 = .5f;
+        cnst c01 = .16666667163372039794921875f;
+        cnst c02 = .083333335816860198974609375f;
+        cnst c10 = .3333333432674407958984375f;
+        cnst c11 = .125f;
+        cnst c12 = .066666670143604278564453125f;
+        cnst c20 = .25f;
+        cnst c21 = .100000001490116119384765625f;
+        cnst c22 = .0555555559694766998291015625f;
         syz = Fy0 * (c00 * Fz0 + c01 * Fz1 + c02 * Fz2)
-            +   Fy1 * (c10 * Fz0 + c11 * Fz1 + c12 * Fz2)
-            +   Fy2 * (c20 * Fz0 + c21 * Fz1 + c22 * Fz2) ;
+            + Fy1 * (c10 * Fz0 + c11 * Fz1 + c12 * Fz2)
+            + Fy2 * (c20 * Fz0 + c21 * Fz1 + c22 * Fz2);
     }
 
     V Syz;
     {
-        cnst
-            d = 1. / 2520.,
-              c00 = 21. * 20. * d, c01 = 21. * 5. * d, c02 = 21. * 2. * d,
-              c10 =  7. * 30. * d, c11 =  7. * 9. * d, c12 =  7. * 4. * d,
-              c20 =  2. * 63. * d, c21 = 2. * 21. * d, c22 = 2. * 10. * d;
+        cnst c00 = 21.f * 20.f / 2520.f;
+        cnst c01 = 21.f *  5.f / 2520.f;
+        cnst c02 = 21.f *  2.f / 2520.f;
+        cnst c10 =  7.f * 30.f / 2520.f;
+        cnst c11 =  7.f *  9.f / 2520.f;
+        cnst c12 =  7.f *  4.f / 2520.f;
+        cnst c20 =  2.f * 63.f / 2520.f;
+        cnst c21 =  2.f * 21.f / 2520.f;
+        cnst c22 =  2.f * 10.f / 2520.f;
         Syz = Fy0 * (c00 * Fz0 + c01 * Fz1 + c02 * Fz2)
             +   Fy1 * (c10 * Fz0 + c11 * Fz1 + c12 * Fz2)
             +   Fy2 * (c20 * Fz0 + c21 * Fz1 + c22 * Fz2) ;
@@ -537,19 +575,27 @@ inline void FitFunctional::ExtrapolateJAnalytic // extrapolates track parameters
 
     V Syy ;
     {
-        cnst
-            d = 1. / 2520., c00 = 420. * d, c01 = 21. * 15. * d, c02 = 21. * 8. * d,
-              c03 = 63. * d, c04 = 70. * d, c05 = 20. * d;
+        cnst c00 = 420.f / 2520.f;
+        cnst c01 =  21.f * 15.f / 2520.f;
+        cnst c02 =  21.f * 8.f / 2520.f;
+        cnst c03 =  63.f / 2520.f;
+        cnst c04 =  70.f / 2520.f;
+        cnst c05 =  20.f / 2520.f;
         Syy =  Fy0 * (c00 * Fy0 + c01 * Fy1 + c02 * Fy2) + Fy1 * (c03 * Fy1 + c04 * Fy2) + c05 * Fy2 * Fy2 ;
     }
 
     V Syyy;
     {
-        cnst
-            d = 1. / 181440.,
-              c000 =   7560 * d, c001 = 9 * 1008 * d, c002 = 5 * 1008 * d,
-              c011 = 21 * 180 * d, c012 = 24 * 180 * d, c022 =  7 * 180 * d,
-              c111 =    540 * d, c112 =    945 * d, c122 =    560 * d, c222 = 112 * d;
+        cnst c000 =       7560.f / 181440.f;
+        cnst c001 = 9.f * 1008.f / 181440.f;
+        cnst c002 = 5.f * 1008.f / 181440.f;
+        cnst c011 = 21.f * 180.f / 181440.f;
+        cnst c012 = 24.f * 180.f / 181440.f;
+        cnst c022 =  7.f * 180.f / 181440.f;
+        cnst c111 =        540.f / 181440.f;
+        cnst c112 =        945.f / 181440.f;
+        cnst c122 =        560.f / 181440.f;
+        cnst c222 =        112.f / 181440.f;
         const V Fy22 = Fy2 * Fy2;
         Syyy = Fy0 * (Fy0 * (c000 * Fy0 + c001 * Fy1 + c002 * Fy2) + Fy1 * (c011 * Fy1 + c012 * Fy2) + c022 * Fy22)
             +    Fy1 * (Fy1 * (c111 * Fy1 + c112 * Fy2) + c122 * Fy22) + c222 * Fy22 * Fy2                  ;
@@ -679,7 +725,7 @@ inline void FitFunctional::ExtrapolateJ // extrapolates track parameters and ret
 /// calculate covMatrix for Multiple Scattering
 inline void FitFunctional::GetMSMatrix(const V &tx, const V &ty, const V &radThick, const V &logRadThick, V qp0, V &Q22, V &Q32, V &Q33) const
 {
-    cnst mass2 = 0.1396 * 0.1396;
+    cnst mass2 = 0.1396f * 0.1396f;
 
     V txtx = tx * tx;
     V tyty = ty * ty;
@@ -689,7 +735,12 @@ inline void FitFunctional::GetMSMatrix(const V &tx, const V &ty, const V &radThi
     V h2 = h * h;
     V qp0t = qp0 * t;
 
-    cnst c1 = 0.0136, c2 = c1 * 0.038, c3 = c2 * 0.5, c4 = - c3 / 2.0, c5 = c3 / 3.0, c6 = - c3 / 4.0;
+    cnst c1 = 0.0136f;
+    cnst c2 = c1 * 0.038f;
+    cnst c3 = c2 * 0.5f;
+    cnst c4 = - c3 / 2.0f;
+    cnst c5 = c3 / 3.0f;
+    cnst c6 = - c3 / 4.0f;
 
     V s0 = (c1 + c2 * logRadThick + c3 * h + h2 * (c4 + c5 * h + c6 * h2)) * qp0t;
 
