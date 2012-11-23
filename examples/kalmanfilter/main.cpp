@@ -337,8 +337,6 @@ class FitFunctional { // base class for all approaches
         virtual void FilterFirst(TrackV &track, HitV &hit, Station &st) const = 0;
 
         void AddMaterial(TrackV &track, Station &st, const V qp0, bool isPipe = false) const;
-        void AddPipeMaterial(TrackV &track, V &qp0) const;
-        void AddHalfMaterial(TrackV &track, Station &st, V &qp0) const;
 
         virtual void ExtrapolateWithMaterial(TrackV &track, const V &z_out,  V& qp0, FieldRegion &F, Station &st, bool isPipe = 0, V w = V::Zero()) const = 0;
 
@@ -759,22 +757,6 @@ inline void FitFunctional::AddMaterial(TrackV &track, Station &st, const V qp0, 
         GetMSMatrix(track.T[2], track.T[3], st.RadThick + PipeRadThick, log(st.RadThick + PipeRadThick), qp0, Q22, Q32, Q33);
     else
         GetMSMatrix(track.T[2], track.T[3], st.RadThick, st.logRadThick, qp0, Q22, Q32, Q33);
-
-    AddMaterial(track.C, Q22, Q32, Q33);
-}
-
-inline void FitFunctional::AddPipeMaterial(TrackV &track, V &qp0) const
-{
-    V Q22, Q32, Q33;
-    GetMSMatrix(track.T[2], track.T[3], PipeRadThick, std::log(PipeRadThick), qp0, Q22, Q32, Q33);
-
-    AddMaterial(track.C, Q22, Q32, Q33);
-}
-
-inline void FitFunctional::AddHalfMaterial(TrackV &track, Station &st, V &qp0) const
-{
-    V Q22, Q32, Q33;
-    GetMSMatrix(track.T[2], track.T[3], st.RadThick * 0.5f, st.logRadThick + std::log(0.5f), qp0, Q22, Q32, Q33);
 
     AddMaterial(track.C, Q22, Q32, Q33);
 }
