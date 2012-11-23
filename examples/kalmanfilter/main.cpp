@@ -439,7 +439,8 @@ inline void FitFunctional::GuessVec(TrackV &t, Station * vStations, int nStation
 
     T[1] = (A2 * b0 - A1 * b1) * det;
     T[3] = (- A1 * b0 + A0 * b1) * det;
-    T[4] = - L * c_light_i * rsqrt(txtx1 + T[3] * T[3]);
+    T[4] = - L * c_light_i / sqrt(txtx1 + T[3] * T[3]);
+    //T[4] = - L * c_light_i * Vc::rsqrt(txtx1 + T[3] * T[3]);
     T[5] = z0;
 }
 
