@@ -212,6 +212,13 @@ struct Track : public Vc::VectorAlignedBase {
     Hit vHits[MaxNStations];
     int NHits;
     int NDF;
+
+    V::EntryType & x() { return T[0]; }
+    V::EntryType & y() { return T[1]; }
+    V::EntryType &tx() { return T[2]; }
+    V::EntryType &ty() { return T[3]; }
+    V::EntryType &qp() { return T[4]; }
+    V::EntryType & z() { return T[5]; }
 };
 
 struct HitV : public Vc::VectorAlignedBase {
@@ -249,6 +256,14 @@ struct CovV : public Vc::VectorAlignedBase {
             << a.C44;
         return os;
     }
+
+    CovV()
+      : C00(Vc::Zero),
+        C10(Vc::Zero), C11(Vc::Zero),
+        C20(Vc::Zero), C21(Vc::Zero), C22(Vc::Zero),
+        C30(Vc::Zero), C31(Vc::Zero), C32(Vc::Zero), C33(Vc::Zero),
+        C40(Vc::Zero), C41(Vc::Zero), C42(Vc::Zero), C43(Vc::Zero), C44(Vc::Zero)
+    {}
 };
 
 typedef CovV CovVConventional;
@@ -1171,15 +1186,25 @@ class KalmanFilter : public Vc::VectorAlignedBase
             if (!ok) { cout << " infinite " << endl; }
 
             const int iPoint = 0;
-            Out << it << endl << "   "
-                << " " << mc.vPoints[iPoint].x  << " " << mc.vPoints[iPoint].y  << " " << mc.vPoints[iPoint].z
-                << " " << mc.vPoints[iPoint].px << " " << mc.vPoints[iPoint].py << " " << mc.vPoints[iPoint].pz
-                << " " << mc.MC_q << endl;
+            Out << it << '\n'
+                << std::setw(15) << mc.vPoints[iPoint].x
+                << std::setw(15) << mc.vPoints[iPoint].y
+                << std::setw(15) << mc.vPoints[iPoint].z
+                << std::setw(15) << mc.vPoints[iPoint].px
+                << std::setw(15) << mc.vPoints[iPoint].py
+                << std::setw(15) << mc.vPoints[iPoint].pz
+                << '\n'
+                << std::setw(15) << t.x()
+                << std::setw(15) << t.y()
+                << std::setw(15) << t.z()
+                << std::setw(15) << t.tx()
+                << std::setw(15) << t.ty()
+                << std::setw(15) << t.qp()
+                << '\n';
 
-            Out << "   ";
-            for (int i = 0; i < 6; i++) Out << " " << t.T[i];
-            Out << endl << "   ";
-            for (int i = 0; i < 15; i++) Out << " " << t.C[i];
+            for (int i = 0; i < 15; i++) {
+                Out << std::setw(13) << t.C[i];
+            }
             Out << endl;
 
             it++;
