@@ -901,63 +901,56 @@ void FitC::ExtrapolateALight
     C.C33 = (j(3,2) * cj23 + j(3,3) * cj33 + j(3,4) * C.C43);
 }
 
+/**
+ * \param info Information about the coordinate system of the measurement
+ * \param u Is a measurement that we want to add - Strip coordinate (may be x or y)
+ * \param w Mask which entries of u to use (just 1 or 0)
+ */
 inline void FitC::Filter(TrackV &track, HitInfo &info, V &u, V w) const
 {
     const V p = V::One() / w;
-    cnst w_th = 0.001f; // max w to filter measurement
-    const V::Mask mask = w > w_th;
+    const V::Mask mask = w > 0.001f; // max w to filter measurement
 
     const V sigma2 = info.sigma2 * p;
 
     // convert input
-    V * T = track.T;
     CovV &C = track.C;
 
-    V wi, zeta, zetawi, HCH;
-    V F0, F1, F2, F3, F4;
-    V K1, K2, K3, K4;
-
-    //   V wi, zeta, zetawi, HCH;
-    //
-    //   V F0, F1, F2, F3, F4;
-    //   V  K1, K2, K3, K4;
-
-    zeta = info.cos_phi * T[0] + info.sin_phi * T[1] - u;
+    const V residual = info.cos_phi * track.x() + info.sin_phi * track.y() - u;
     // F = CH'
 
-    F0 = info.cos_phi * C.C00 + info.sin_phi * C.C10;
-    F1 = info.cos_phi * C.C10 + info.sin_phi * C.C11;
+    const V F0 = info.cos_phi * C.C00 + info.sin_phi * C.C10;
+    const V F1 = info.cos_phi * C.C10 + info.sin_phi * C.C11;
+    const V F2 = info.cos_phi * C.C20 + info.sin_phi * C.C21;
+    const V F3 = info.cos_phi * C.C30 + info.sin_phi * C.C31;
+    const V F4 = info.cos_phi * C.C40 + info.sin_phi * C.C41;
 
-    HCH = (F0 * info.cos_phi + F1 * info.sin_phi);
-
-
-    F2 = info.cos_phi * C.C20 + info.sin_phi * C.C21;
-    F3 = info.cos_phi * C.C30 + info.sin_phi * C.C31;
-    F4 = info.cos_phi * C.C40 + info.sin_phi * C.C41;
+    const V HCH = (F0 * info.cos_phi + F1 * info.sin_phi);
 
     const V::Mask initialised = HCH < info.sigma216 * p;
 
-    wi = V::Zero();
+    V wi = V::Zero();
     wi(mask) = rcp(sigma2 + HCH);
     V sigma2m = V::Zero();
     sigma2m(initialised) = sigma2;
-    zetawi = zeta * rcp(sigma2m + HCH);
-    track.Chi2(initialised) += (zeta * zetawi);
+    const V zetawi = residual * rcp(sigma2m + HCH);
+    track.Chi2(initialised) += (residual * zetawi);
 
     track.NDF += w;
 
-    K1 = F1 * wi;
-    K2 = F2 * wi;
-    K3 = F3 * wi;
-    K4 = F4 * wi;
+    const V K0 = F0 * wi;
+    const V K1 = F1 * wi;
+    const V K2 = F2 * wi;
+    const V K3 = F3 * wi;
+    const V K4 = F4 * wi;
 
-    T[0] -= F0 * zetawi;
-    T[1] -= F1 * zetawi;
-    T[2] -= F2 * zetawi;
-    T[3] -= F3 * zetawi;
-    T[4] -= F4 * zetawi;
+    track. x() -= F0 * zetawi;
+    track. y() -= F1 * zetawi;
+    track.tx() -= F2 * zetawi;
+    track.ty() -= F3 * zetawi;
+    track.qp() -= F4 * zetawi;
 
-    C.C00 -= F0 * F0 * wi;
+    C.C00 -= K0 * F0;
     C.C10 -= K1 * F0;
     C.C11 -= K1 * F1;
     C.C20 -= K2 * F0;
