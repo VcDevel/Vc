@@ -9,6 +9,8 @@
 #include "../../tsc.h"
 #include <assert.h>
 
+#define MUTE
+
 using std::istream;
 using std::ostream;
 using std::fstream;
@@ -167,7 +169,6 @@ struct FieldRegion : public Vc::VectorAlignedBase {
 
 };
 
-
 struct HitInfo : public Vc::VectorAlignedBase { // strip info
     V cos_phi, sin_phi, sigma2, sigma216;
 };
@@ -185,7 +186,6 @@ struct Station : public Vc::VectorAlignedBase {
 
     FieldSlice Map;
 };
-
 
 struct Hit : public Vc::VectorAlignedBase {
     V::EntryType x, y;
@@ -316,7 +316,7 @@ class FitFunctional { // base class for all approaches
         // filter first mesurement
         virtual void FilterFirst(TrackV &track, HitV &hit, Station &st) const = 0;
 
-        void AddMaterial(TrackV &track, Station &st, V &qp0, bool isPipe = false) const;
+        void AddMaterial(TrackV &track, Station &st, const V qp0, bool isPipe = false) const;
         void AddPipeMaterial(TrackV &track, V &qp0) const;
         void AddHalfMaterial(TrackV &track, Station &st, V &qp0) const;
 
@@ -349,7 +349,6 @@ class FitFunctional { // base class for all approaches
              V w = 0) const;
 
 };
-
 
 inline void FitFunctional::GuessVec(TrackV &t, Station * vStations, int nStations, bool dir) const
 {
@@ -702,8 +701,7 @@ inline void FitFunctional::GetMSMatrix(const V &tx, const V &ty, const V &radThi
     Q33 = (V::One() + tyty) * a;
 }
 
-
-inline void FitFunctional::AddMaterial(TrackV &track, Station &st, V &qp0, bool isPipe) const
+inline void FitFunctional::AddMaterial(TrackV &track, Station &st, const V qp0, bool isPipe) const
 {
     V Q22, Q32, Q33;
     if (isPipe)
@@ -976,14 +974,10 @@ inline void FitC::ExtrapolateWithMaterial(TrackV &track,  const V &z_out,  V& qp
     FitFunctional::AddMaterial(track, st, qp0, isPipe); // FIXME
 }
 
-typedef  FitC FitInterface;
-
-#define MUTE
-
 class KalmanFilter : public Vc::VectorAlignedBase
 {
     FieldRegion field0;
-    FitInterface fitter;
+    FitC fitter;
     Track vTracks[MaxNTracks];
     MCTrack vMCTracks[MaxNTracks];
     Station * vStations;
