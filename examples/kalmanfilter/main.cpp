@@ -1137,7 +1137,7 @@ class KalmanFilter : public Vc::VectorAlignedBase
                 FileTracks >> t.vHits[i].x >> t.vHits[i].y;
             }
             TrackIndex[NTracks] = itr;
-            if (t.NHits == NStations)   NTracks++;
+            if (t.NHits == NStations) NTracks++;
         }
         int NMCTracks = 0;
         int iPoint = 0;
@@ -1173,7 +1173,7 @@ class KalmanFilter : public Vc::VectorAlignedBase
 
             if (itr == TrackIndex[NMCTracks]) NMCTracks++;
         }
-        // 	cout << NTracks << " " << NMCTracks << " reco and Mc tracks have been read" << endl;
+        //cout << NTracks << " " << NMCTracks << " reco and Mc tracks have been read" << endl;
         FileTracks.close();
         FileMCTracks.close();
 
