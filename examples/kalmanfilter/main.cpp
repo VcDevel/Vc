@@ -352,7 +352,7 @@ class FitFunctional { // base class for all approaches
         /// initial aproximation
         void GuessVec(TrackV &t, Station * vStations, int NStations, bool dir = 0) const;
 
-        virtual void Filter(TrackV &track, HitInfo &info, V &u, V w = V::One()) const = 0;
+        virtual void Filter(TrackV &track, const HitInfo &info, const V u, const V w = V::One()) const = 0;
         // filter first mesurement
         virtual void FilterFirst(TrackV &track, HitV &hit, Station &st) const = 0;
 
@@ -854,7 +854,7 @@ class FitC: public virtual FitFunctional, public FitBase {
         void ExtrapolateALight(V T[], CovV &C,  const V &z_out,  V& qp0, FieldRegion &F, V w = V::Zero()) const;
 
     protected:
-        void Filter(TrackV &track, HitInfo &info, V &u, V w = V::One()) const;
+        void Filter(TrackV &track, const HitInfo &info, const V u, const V w = V::One()) const;
         void FilterFirst(TrackV &track, HitV &hit, Station &st) const;
 
         void ExtrapolateWithMaterial(TrackV &track, const V &z_out,  V& qp0, FieldRegion &F, Station &st, bool isPipe = 0, V w = 0) const;
@@ -926,7 +926,7 @@ void FitC::ExtrapolateALight
  * \param u Is a measurement that we want to add - Strip coordinate (may be x or y)
  * \param w Mask which entries of u to use (just 1 or 0)
  */
-inline void FitC::Filter(TrackV &track, HitInfo &info, V &u, V w) const
+inline void FitC::Filter(TrackV &track, const HitInfo &info, const V u, const V w) const
 {
     static RuntimeMean timer;
     timer.start();
