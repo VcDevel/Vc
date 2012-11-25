@@ -30,9 +30,9 @@ namespace Vc
 namespace AVX
 {
 #define OP0(name, code) static inline VectorType name() { return code; }
-#define OP1(name, code) static inline VectorType name(const VectorType &a) { return code; }
-#define OP2(name, code) static inline VectorType name(const VectorType &a, const VectorType &b) { return code; }
-#define OP3(name, code) static inline VectorType name(const VectorType &a, const VectorType &b, const VectorType &c) { return code; }
+#define OP1(name, code) static inline VectorType name(const VectorType a) { return code; }
+#define OP2(name, code) static inline VectorType name(const VectorType a, const VectorType b) { return code; }
+#define OP3(name, code) static inline VectorType name(const VectorType a, const VectorType b, const VectorType c) { return code; }
 
         template<> struct VectorHelper<_M256>
         {
@@ -166,17 +166,17 @@ namespace AVX
 #undef OP3
 
 #define OP1(op) \
-        static inline VectorType INTRINSIC CONST op(const VectorType &a) { return CAT(_mm256_##op##_, SUFFIX)(a); }
+        static inline VectorType INTRINSIC CONST op(const VectorType a) { return CAT(_mm256_##op##_, SUFFIX)(a); }
 #define OP(op) \
-        static inline VectorType INTRINSIC CONST op(const VectorType &a, const VectorType &b) { return CAT(_mm256_##op##_ , SUFFIX)(a, b); }
+        static inline VectorType INTRINSIC CONST op(const VectorType a, const VectorType b) { return CAT(_mm256_##op##_ , SUFFIX)(a, b); }
 #define OP_(op) \
-        static inline VectorType INTRINSIC CONST op(const VectorType &a, const VectorType &b) { return CAT(_mm256_##op    , SUFFIX)(a, b); }
+        static inline VectorType INTRINSIC CONST op(const VectorType a, const VectorType b) { return CAT(_mm256_##op    , SUFFIX)(a, b); }
 #define OPx(op, op2) \
-        static inline VectorType INTRINSIC CONST op(const VectorType &a, const VectorType &b) { return CAT(_mm256_##op2##_, SUFFIX)(a, b); }
+        static inline VectorType INTRINSIC CONST op(const VectorType a, const VectorType b) { return CAT(_mm256_##op2##_, SUFFIX)(a, b); }
 #define OPcmp(op) \
-        static inline VectorType INTRINSIC CONST cmp##op(const VectorType &a, const VectorType &b) { return CAT(_mm256_cmp##op##_, SUFFIX)(a, b); }
+        static inline VectorType INTRINSIC CONST cmp##op(const VectorType a, const VectorType b) { return CAT(_mm256_cmp##op##_, SUFFIX)(a, b); }
 #define OP_CAST_(op) \
-        static inline VectorType INTRINSIC CONST op(const VectorType &a, const VectorType &b) { return CAT(_mm256_castps_, SUFFIX)( \
+        static inline VectorType INTRINSIC CONST op(const VectorType a, const VectorType b) { return CAT(_mm256_castps_, SUFFIX)( \
             _mm256_##op##ps(CAT(CAT(_mm256_cast, SUFFIX), _ps)(a), \
               CAT(CAT(_mm256_cast, SUFFIX), _ps)(b))); \
         }
@@ -435,10 +435,10 @@ namespace AVX
             OPcmp(eq)
             OPcmp(lt)
             OPcmp(gt)
-            static inline VectorType INTRINSIC CONST cmpneq(const VectorType &a, const VectorType &b) { _M256I x = cmpeq(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
-            static inline VectorType INTRINSIC CONST cmpnlt(const VectorType &a, const VectorType &b) { _M256I x = cmplt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
-            static inline VectorType INTRINSIC CONST cmple (const VectorType &a, const VectorType &b) { _M256I x = cmpgt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
-            static inline VectorType INTRINSIC CONST cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
+            static inline VectorType INTRINSIC CONST cmpneq(const VectorType a, const VectorType b) { _M256I x = cmpeq(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmpnlt(const VectorType a, const VectorType b) { _M256I x = cmplt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmple (const VectorType a, const VectorType b) { _M256I x = cmpgt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
 #undef SUFFIX
             static inline VectorType INTRINSIC CONST round(VectorType a) { return a; }
         };
@@ -500,22 +500,22 @@ namespace AVX
 
             OP(add) OP(sub)
             OPcmp(eq)
-            static inline VectorType INTRINSIC CONST cmpneq(const VectorType &a, const VectorType &b) { return _mm256_andnot_si256(cmpeq(a, b), _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmpneq(const VectorType a, const VectorType b) { return _mm256_andnot_si256(cmpeq(a, b), _mm256_setallone_si256()); }
 
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
-            static inline VectorType INTRINSIC CONST cmplt(const VectorType &a, const VectorType &b) {
+            static inline VectorType INTRINSIC CONST cmplt(const VectorType a, const VectorType b) {
                 return _mm256_cmplt_epu32(a, b);
             }
-            static inline VectorType INTRINSIC CONST cmpgt(const VectorType &a, const VectorType &b) {
+            static inline VectorType INTRINSIC CONST cmpgt(const VectorType a, const VectorType b) {
                 return _mm256_cmpgt_epu32(a, b);
             }
 #else
             OPcmp(lt)
             OPcmp(gt)
 #endif
-            static inline VectorType INTRINSIC CONST cmpnlt(const VectorType &a, const VectorType &b) { return _mm256_andnot_si256(cmplt(a, b), _mm256_setallone_si256()); }
-            static inline VectorType INTRINSIC CONST cmple (const VectorType &a, const VectorType &b) { return _mm256_andnot_si256(cmpgt(a, b), _mm256_setallone_si256()); }
-            static inline VectorType INTRINSIC CONST cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
+            static inline VectorType INTRINSIC CONST cmpnlt(const VectorType a, const VectorType b) { return _mm256_andnot_si256(cmplt(a, b), _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmple (const VectorType a, const VectorType b) { return _mm256_andnot_si256(cmpgt(a, b), _mm256_setallone_si256()); }
+            static inline VectorType INTRINSIC CONST cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
 
 #undef SUFFIX
             static inline VectorType INTRINSIC CONST round(VectorType a) { return a; }
@@ -587,10 +587,10 @@ namespace AVX
             static inline VectorType INTRINSIC CONST cmpeq(VectorType a, VectorType b) { return _mm_cmpeq_epi16(a, b); }
             static inline VectorType INTRINSIC CONST cmplt(VectorType a, VectorType b) { return _mm_cmplt_epi16(a, b); }
             static inline VectorType INTRINSIC CONST cmpgt(VectorType a, VectorType b) { return _mm_cmpgt_epi16(a, b); }
-            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { __m128i x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
-            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { __m128i x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
-            static inline VectorType cmple (const VectorType &a, const VectorType &b) { __m128i x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
-            static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
+            static inline VectorType cmpneq(const VectorType a, const VectorType b) { __m128i x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static inline VectorType cmpnlt(const VectorType a, const VectorType b) { __m128i x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static inline VectorType cmple (const VectorType a, const VectorType b) { __m128i x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static inline VectorType cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
 #undef SUFFIX
             static inline VectorType round(VectorType a) { return a; }
         };
@@ -657,7 +657,7 @@ namespace AVX
             static inline VectorType INTRINSIC CONST add(VectorType a, VectorType b) { return _mm_add_epi16(a, b); }
             static inline VectorType INTRINSIC CONST sub(VectorType a, VectorType b) { return _mm_sub_epi16(a, b); }
             static inline VectorType INTRINSIC CONST cmpeq(VectorType a, VectorType b) { return _mm_cmpeq_epi16(a, b); }
-            static inline VectorType cmpneq(const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
+            static inline VectorType cmpneq(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
 
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
             static inline VectorType INTRINSIC CONST cmplt(VectorType a, VectorType b) { return _mm_cmplt_epu16(a, b); }
@@ -666,9 +666,9 @@ namespace AVX
             static inline VectorType INTRINSIC CONST cmplt(VectorType a, VectorType b) { return _mm_cmplt_epi16(a, b); }
             static inline VectorType INTRINSIC CONST cmpgt(VectorType a, VectorType b) { return _mm_cmpgt_epi16(a, b); }
 #endif
-            static inline VectorType cmpnlt(const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmplt(a, b), _mm_setallone_si128()); }
-            static inline VectorType cmple (const VectorType &a, const VectorType &b) { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
-            static inline VectorType cmpnle(const VectorType &a, const VectorType &b) { return cmpgt(a, b); }
+            static inline VectorType cmpnlt(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmplt(a, b), _mm_setallone_si128()); }
+            static inline VectorType cmple (const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
+            static inline VectorType cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
 #undef SUFFIX
             static inline VectorType round(VectorType a) { return a; }
         };
