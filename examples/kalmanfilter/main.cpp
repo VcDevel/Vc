@@ -24,6 +24,26 @@ const int MaxNStations = 10;
 
 typedef Vc::float_v V;
 
+class RuntimeMean
+{
+    TimeStampCounter tsc;
+    unsigned long cycles;
+    int count;
+public:
+    RuntimeMean()
+        : cycles(0), count(0)
+    {}
+    inline void start() { tsc.Start(); }
+    inline void stop() {
+        tsc.Stop();
+        cycles += tsc.Cycles();
+        ++count;
+    }
+    ~RuntimeMean()
+    {
+        std::cout << "runtime mean: " << cycles / count << '\n';
+    }
+};
 inline istream & operator>>(istream &strm, V &a) {
     float tmp;
     strm >> tmp;
@@ -908,6 +928,9 @@ void FitC::ExtrapolateALight
  */
 inline void FitC::Filter(TrackV &track, HitInfo &info, V &u, V w) const
 {
+    static RuntimeMean timer;
+    timer.start();
+
     const V p = V::One() / w;
     const V::Mask mask = w > 0.001f; // max w to filter measurement
 
@@ -965,6 +988,8 @@ inline void FitC::Filter(TrackV &track, HitInfo &info, V &u, V w) const
     C.C42 -= K4 * F2;
     C.C43 -= K4 * F3;
     C.C44 -= K4 * F4;
+
+    timer.stop();
 }
 
 inline void FitC::FilterFirst(TrackV &track, HitV &hit, Station &st) const
