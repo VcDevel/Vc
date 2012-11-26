@@ -23,6 +23,191 @@ const int Ntimes = 1;
 const int MaxNStations = 10;
 
 typedef Vc::float_v V;
+using Vc::float_v;
+using Vc::float_m;
+
+template<typename T, size_t Rows, size_t Cols = 1> struct Matrix;
+template<typename T, size_t Rows, size_t Cols> struct MatrixScalar;
+template<typename T, size_t Rows, size_t Cols, typename Impl> struct MatrixOperand;
+template<typename T, size_t Rows, size_t Cols, typename Impl> struct MatrixOperandTransposed;
+template<typename T, size_t Rows, size_t Cols, size_t FirstRow, size_t FirstCol, typename Impl> struct MatrixOperandSlice;
+template<typename T, typename L, typename R, size_t K> struct EvaluateMatrixProduct
+{
+    static inline T evaluate(const L &left, const R &right, size_t r, size_t c, T sum) {
+        return EvaluateMatrixProduct<T, L, R, K - 1>::evaluate(left, right, r, c, sum + left(r, K - 1) * right(K - 1, c));
+    }
+};
+template<typename T, typename L, typename R> struct EvaluateMatrixProduct<T, L, R, 0>
+{
+    static inline T evaluate(const L &, const R &, size_t, size_t, T sum) { return sum; }
+};
+
+template<typename T, size_t Rows, size_t Cols, size_t K, typename Left, typename Right> struct MatrixProduct
+    : MatrixOperand<T, Rows, Cols, MatrixProduct<T, Rows, Cols, K, Left, Right> >
+{
+    const Left &left;
+    const Right &right;
+    MatrixProduct(const Left &l, const Right &r) : left(l), right(r) {}
+
+    inline const T operator()(size_t r, size_t c = 0) const {
+        return EvaluateMatrixProduct<T, Left, Right, K - 1>::evaluate(left, right, r, c, left(r, K - 1) * right(K - 1, c));
+    }
+};
+template<typename T, size_t Rows, size_t Cols, typename Left> struct MatrixProduct<T, Rows, Cols, 1, Left, T>
+    : MatrixOperand<T, Rows, Cols, MatrixProduct<T, Rows, Cols, 1, Left, T> >
+{
+    const Left &left;
+    const T right;
+    MatrixProduct(const Left &l, const T r) : left(l), right(r) {}
+
+    inline const T operator()(size_t r, size_t c = 0) const {
+        return left(r, c) * right;
+    }
+};
+template<typename T, size_t Rows, size_t Cols, typename Left, typename Right> struct MatrixSubtraction
+    : MatrixOperand<T, Rows, Cols, MatrixSubtraction<T, Rows, Cols, Left, Right> >
+{
+    const Left &left;
+    const Right &right;
+    MatrixSubtraction(const Left &l, const Right &r) : left(l), right(r) {}
+
+    inline const T operator()(size_t r, size_t c = 0) const {
+        return left(r, c) - right(r, c);
+    }
+};
+template<typename T, size_t Rows, size_t Cols, typename Left> struct MatrixSubtraction<T, Rows, Cols, Left, T>
+    : MatrixOperand<T, Rows, Cols, MatrixSubtraction<T, Rows, Cols, Left, T> >
+{
+    const Left &left;
+    const T right;
+    MatrixSubtraction(const Left &l, const T r) : left(l), right(r) {}
+
+    inline const T operator()(size_t r, size_t c = 0) const {
+        return left(r, c) - right;
+    }
+};
+template<typename T, size_t Rows, size_t Cols, typename Impl> struct MatrixOperandCastHelper {};
+template<typename T, typename Impl> struct MatrixOperandCastHelper<T, 1, 1, Impl>
+{
+    // allow 1x1 matrices to cast to T
+    inline operator const T() const { return static_cast<const Impl *>(this)->operator()(0, 0); }
+};
+template<typename T, size_t Rows, size_t Cols, typename Impl> struct MatrixOperand : public MatrixOperandCastHelper<T, Rows, Cols, Impl>
+{
+    T &operator()(size_t r, size_t c = 0) { return static_cast<Impl *>(this)->operator()(r, c); }
+    const T operator()(size_t r, size_t c = 0) const { return static_cast<const Impl *>(this)->operator()(r, c); }
+    template<size_t RhsCols, typename RhsImpl>
+    inline MatrixProduct<T, Rows, RhsCols, Cols, Impl, RhsImpl> operator*(const MatrixOperand<T, Cols, RhsCols, RhsImpl> &rhs) const
+    {
+        return MatrixProduct<T, Rows, RhsCols, Cols, Impl, RhsImpl>(*static_cast<const Impl *>(this), static_cast<const RhsImpl &>(rhs));
+    }
+    inline MatrixProduct<T, Rows, Cols, 1, Impl, T> operator*(T scalar) const
+    {
+        return MatrixProduct<T, Rows, Cols, 1, Impl, T>(*static_cast<const Impl *>(this), scalar);
+    }
+
+    template<typename RhsImpl>
+    inline MatrixSubtraction<T, Rows, Cols, Impl, RhsImpl> operator-(const MatrixOperand<T, Rows, Cols, RhsImpl> &rhs) const
+    {
+        return MatrixSubtraction<T, Rows, Cols, Impl, RhsImpl>(*static_cast<const Impl *>(this), static_cast<const RhsImpl &>(rhs));
+    }
+    inline MatrixSubtraction<T, Rows, Cols, Impl, T> operator-(T scalar) const
+    {
+        return MatrixSubtraction<T, Rows, Cols, Impl, T>(*static_cast<const Impl *>(this), scalar);
+    }
+
+    inline MatrixOperandTransposed<T, Cols, Rows, Impl> transposed() const {
+        return MatrixOperandTransposed<T, Cols, Rows, Impl>(*this);
+    }
+
+    template<size_t FirstRow, size_t NewRows, size_t FirstCol, size_t NewCols>
+    inline MatrixOperandSlice<T, NewRows, NewCols, FirstRow, FirstCol, MatrixOperand<T, Rows, Cols, Impl> > slice() const {
+        return MatrixOperandSlice<T, NewRows, NewCols, FirstRow, FirstCol, MatrixOperand<T, Rows, Cols, Impl> >(*this);
+    }
+
+    template<size_t FirstRow, size_t NewRows>
+    inline MatrixOperandSlice<T, NewRows, Cols, FirstRow, 0, MatrixOperand<T, Rows, Cols, Impl> > slice() const {
+        return MatrixOperandSlice<T, NewRows, Cols, FirstRow, 0, MatrixOperand<T, Rows, Cols, Impl> >(*this);
+    }
+};
+
+template<typename T, size_t Rows, size_t Cols> struct MatrixScalar : public MatrixOperand<T, Rows, Cols, MatrixScalar<T, Rows, Cols> >
+// wrap one scalar like a matrix where all entries are equal
+{
+    T value;
+    MatrixScalar(T v) : value(v) {}
+    const T operator()(size_t, size_t) const { return value; }
+};
+template<typename T, size_t Rows, size_t Cols, typename Impl> struct MatrixOperandTransposed
+    : public MatrixOperand<T, Rows, Cols, MatrixOperandTransposed<T, Rows, Cols, Impl> >
+{
+    const MatrixOperand<T, Cols, Rows, Impl> &m_operand;
+    MatrixOperandTransposed(const MatrixOperand<T, Cols, Rows, Impl> &operand) : m_operand(operand) {}
+    T &operator()(size_t r, size_t c = 0) { return m_operand(c, r); }
+    const T operator()(size_t r, size_t c = 0) const { return m_operand(c, r); }
+};
+
+template<typename T, size_t Rows, size_t Cols, size_t FirstRow, size_t FirstCol, typename Impl> struct MatrixOperandSlice
+    : public MatrixOperand<T, Rows, Cols, MatrixOperandSlice<T, Rows, Cols, FirstRow, FirstCol, Impl> >
+{
+    const Impl &m_operand;
+    MatrixOperandSlice(const Impl &operand) : m_operand(operand) {}
+    T &operator()(size_t r, size_t c = 0) { return m_operand(r + FirstRow, c + FirstCol); }
+    const T operator()(size_t r, size_t c = 0) const { return m_operand(r + FirstRow, c + FirstCol); }
+};
+
+template<typename Lhs, typename Rhs, size_t R, size_t LastRow, size_t C, size_t LastCol> struct AssignMatrix
+{
+    static inline void evaluate(Lhs &lhs, const Rhs &rhs) {
+        lhs(R, C) = rhs(R, C);
+        AssignMatrix<Lhs, Rhs, R, LastRow, C + 1, LastCol>::evaluate(lhs, rhs);
+    }
+};
+template<typename Lhs, typename Rhs, size_t R, size_t LastRow, size_t LastCol> struct AssignMatrix<Lhs, Rhs, R, LastRow, LastCol, LastCol>
+{
+    static inline void evaluate(Lhs &lhs, const Rhs &rhs) {
+        lhs(R, LastCol) = rhs(R, LastCol);
+        // next row
+        AssignMatrix<Lhs, Rhs, R + 1, LastRow, 0, LastCol>::evaluate(lhs, rhs);
+    }
+};
+template<typename Lhs, typename Rhs, size_t LastRow, size_t LastCol> struct AssignMatrix<Lhs, Rhs, LastRow, LastRow, LastCol, LastCol>
+{
+    static inline void evaluate(Lhs &lhs, const Rhs &rhs) {
+        lhs(LastRow, LastCol) = rhs(LastRow, LastCol);
+        // done
+    }
+};
+template<typename T, size_t Rows, size_t Cols> struct Matrix : public MatrixOperand<T, Rows, Cols, Matrix<T, Rows, Cols> >
+{
+    T &operator()(size_t r, size_t c = 0) { return m_data[r][c]; }
+    const T operator()(size_t r, size_t c = 0) const { return m_data[r][c]; }
+    Matrix() {}
+    template<typename Impl> Matrix(const MatrixOperand<T, Rows, Cols, Impl> &p) { operator=(p); }
+    Matrix(T scalar) {
+        for (size_t r = 0; r < Rows; ++r) {
+            for (size_t c = 0; c < Cols; ++c) {
+                m_data[r][c] = scalar;
+            }
+        }
+    }
+    inline Matrix &operator=(T val) {
+        for (size_t r = 0; r < Rows; ++r) {
+            for (size_t c = 0; c < Cols; ++c) {
+                operator()(r, c) = val;
+            }
+        }
+        return *this;
+    }
+    template<typename Impl>
+    inline Matrix &operator=(const MatrixOperand<T, Rows, Cols, Impl> &p) {
+        AssignMatrix<Matrix<T, Rows, Cols>, MatrixOperand<T, Rows, Cols, Impl>, 0, Rows - 1, 0, Cols - 1>::evaluate(*this, p);
+        return *this;
+    }
+private:
+    T m_data[Rows][Cols];
+};
+
 
 class RuntimeMean
 {
@@ -189,8 +374,15 @@ struct FieldRegion : public Vc::VectorAlignedBase {
 
 };
 
-struct HitInfo : public Vc::VectorAlignedBase { // strip info
+struct HitInfo : public Vc::VectorAlignedBase, public MatrixOperand<V, 1, 2, HitInfo> { // strip info
     V cos_phi, sin_phi, sigma2, sigma216;
+
+    const V operator()(size_t, size_t c) const {
+        switch (c) {
+        case 0:  return cos_phi;
+        default: return sin_phi;
+        }
+    }
 };
 
 struct HitXYInfo : public Vc::VectorAlignedBase {
@@ -246,13 +438,62 @@ struct HitV : public Vc::VectorAlignedBase {
     FieldVector H;
 };
 
-struct CovV : public Vc::VectorAlignedBase {
+struct CovV : public Vc::VectorAlignedBase, public MatrixOperand<V, 5, 5, CovV> {
     V C00,
       C10, C11,
       C20, C21, C22,
       C30, C31, C32, C33,
       C40, C41, C42, C43, C44;
 
+    inline const V operator()(size_t r, size_t c) const {
+        switch (r) {
+        case 0:
+            switch (c) {
+            case 4: return C40;
+            case 3: return C30;
+            case 2: return C20;
+            default: return operator[](c);
+            }
+        case 1:
+            switch (c) {
+            case 4: return C41;
+            case 3: return C31;
+            case 2: return C21;
+            default: return operator[](1 + c);
+            }
+        case 2:
+            switch (c) {
+            case 4: return C42;
+            case 3: return C32;
+            default: return operator[](3 + c);
+            }
+        case 3:
+            switch (c) {
+            case 4: return C43;
+            default: return operator[](6 + c);
+            }
+        }
+        return operator[](10 + c);
+    }
+
+    template<typename RhsImpl> inline CovV &operator-=(const MatrixOperand<V, 5, 5, RhsImpl> &rhs) {
+        C00 -= rhs(0, 0);
+        C10 -= rhs(1, 0);
+        C11 -= rhs(1, 1);
+        C20 -= rhs(2, 0);
+        C21 -= rhs(2, 1);
+        C22 -= rhs(2, 2);
+        C30 -= rhs(3, 0);
+        C31 -= rhs(3, 1);
+        C32 -= rhs(3, 2);
+        C33 -= rhs(3, 3);
+        C40 -= rhs(4, 0);
+        C41 -= rhs(4, 1);
+        C42 -= rhs(4, 2);
+        C43 -= rhs(4, 3);
+        C44 -= rhs(4, 4);
+        return *this;
+    }
     const V &operator[](int i) const {
         const V *p = &C00;
         return p[i];
@@ -288,7 +529,7 @@ struct CovV : public Vc::VectorAlignedBase {
 
 typedef CovV CovVConventional;
 
-struct TrackV : public Vc::VectorAlignedBase {
+struct TrackV : public Vc::VectorAlignedBase, public MatrixOperand<V, 6, 1, TrackV> {
     HitV vHits[MaxNStations];
 
     V T[6]; // x, y, tx, ty, qp, z
@@ -316,6 +557,30 @@ struct TrackV : public Vc::VectorAlignedBase {
         T[3] = V::Zero();
         T[4] = V::Zero();
         T[5] = V::Zero();
+    }
+
+    template<typename RhsImpl> inline TrackV &operator-=(const MatrixOperand<V, 5, 1, RhsImpl> &rhs)
+    {
+        T[0] -= rhs(0);
+        T[1] -= rhs(1);
+        T[2] -= rhs(2);
+        T[3] -= rhs(3);
+        T[4] -= rhs(4);
+        return *this;
+    }
+
+    template<typename RhsImpl> inline TrackV &operator-=(const MatrixOperand<V, 6, 1, RhsImpl> &rhs)
+    {
+        T[0] -= rhs(0);
+        T[1] -= rhs(1);
+        T[2] -= rhs(2);
+        T[3] -= rhs(3);
+        T[4] -= rhs(4);
+        T[5] -= rhs(5);
+        return *this;
+    }
+    inline const V operator()(size_t r, size_t = 0) const {
+        return T[r];
     }
 };
 
@@ -922,72 +1187,29 @@ void FitC::ExtrapolateALight
 }
 
 /**
- * \param info Information about the coordinate system of the measurement
+ * \param measurementModel Information about the coordinate system of the measurement
  * \param u Is a measurement that we want to add - Strip coordinate (may be x or y)
- * \param w Mask which entries of u to use (just 1 or 0)
+ * \param w Weight. At this point either 1 or 0, simply masking invalid entries in the SIMD-vector.
  */
-inline void FitC::Filter(TrackV &track, const HitInfo &info, const V u, const V w) const
+inline void FitC::Filter(TrackV &track, const HitInfo &measurementModel, const float_v m, const float_v weight) const
 {
     static RuntimeMean timer;
     timer.start();
 
-    const V p = V::One() / w;
-    const V::Mask mask = w > 0.001f; // max w to filter measurement
+    const Matrix<float_v, 5> F = track.C.slice<0, 5, 0, 2>() * measurementModel.transposed(); // CHᵀ
+    const float_v HCH = (measurementModel * F.slice<0, 2>());              // HCHᵀ
+    const float_v residual = (measurementModel * track.slice<0, 2>()) - m; // ζ = Hr - m
+    const float_v wi = weight / (measurementModel.sigma2 + HCH);             // (V + HCHᵀ)⁻¹
 
-    const V sigma2 = info.sigma2 * p;
+    const float_m initialised = HCH < measurementModel.sigma216;
 
-    // convert input
-    CovV &C = track.C;
-
-    const V residual = info.cos_phi * track.x() + info.sin_phi * track.y() - u;
-    // F = CH'
-
-    const V F0 = info.cos_phi * C.C00 + info.sin_phi * C.C10;
-    const V F1 = info.cos_phi * C.C10 + info.sin_phi * C.C11;
-    const V F2 = info.cos_phi * C.C20 + info.sin_phi * C.C21;
-    const V F3 = info.cos_phi * C.C30 + info.sin_phi * C.C31;
-    const V F4 = info.cos_phi * C.C40 + info.sin_phi * C.C41;
-
-    const V HCH = (F0 * info.cos_phi + F1 * info.sin_phi);
-
-    const V::Mask initialised = HCH < info.sigma216 * p;
-
-    V wi = V::Zero();
-    wi(mask) = rcp(sigma2 + HCH);
-    V sigma2m = V::Zero();
-    sigma2m(initialised) = sigma2;
-    const V zetawi = residual * rcp(sigma2m + HCH);
-    track.Chi2(initialised) += (residual * zetawi);
-
-    track.NDF += w;
-
-    const V K0 = F0 * wi;
-    const V K1 = F1 * wi;
-    const V K2 = F2 * wi;
-    const V K3 = F3 * wi;
-    const V K4 = F4 * wi;
-
-    track. x() -= F0 * zetawi;
-    track. y() -= F1 * zetawi;
-    track.tx() -= F2 * zetawi;
-    track.ty() -= F3 * zetawi;
-    track.qp() -= F4 * zetawi;
-
-    C.C00 -= K0 * F0;
-    C.C10 -= K1 * F0;
-    C.C11 -= K1 * F1;
-    C.C20 -= K2 * F0;
-    C.C21 -= K2 * F1;
-    C.C22 -= K2 * F2;
-    C.C30 -= K3 * F0;
-    C.C31 -= K3 * F1;
-    C.C32 -= K3 * F2;
-    C.C33 -= K3 * F3;
-    C.C40 -= K4 * F0;
-    C.C41 -= K4 * F1;
-    C.C42 -= K4 * F2;
-    C.C43 -= K4 * F3;
-    C.C44 -= K4 * F4;
+    float_v sigma2m = float_v::Zero();
+    sigma2m(initialised) = measurementModel.sigma2;
+    const float_v zetawi = residual / (sigma2m + HCH); // (V + HCHᵀ)⁻¹ ζ
+    track -= F * zetawi; // r = r - CHᵀ (V + HCHᵀ)⁻¹ ζ
+    track.C -= F * wi * F.transposed(); // C = C - CHᵀ (V + HCHᵀ)⁻¹ HC
+    track.Chi2(initialised) += residual * zetawi; // Χ² = Χ² + ζ (V + HCHᵀ)⁻¹ ζ
+    track.NDF += weight;
 
     timer.stop();
 }
