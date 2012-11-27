@@ -1196,19 +1196,17 @@ inline void FitC::Filter(TrackV &track, const HitInfo &measurementModel, const f
     static RuntimeMean timer;
     timer.start();
 
+    const float_v sigma2 = measurementModel.sigma2;
+    const float_v sigma216 = measurementModel.sigma216;
     const Matrix<float_v, 5> F = track.C.slice<0, 5, 0, 2>() * measurementModel.transposed(); // CHᵀ
-    const float_v HCH = (measurementModel * F.slice<0, 2>());              // HCHᵀ
-    const float_v residual = (measurementModel * track.slice<0, 2>()) - m; // ζ = Hr - m
-    const float_v wi = weight / (measurementModel.sigma2 + HCH);             // (V + HCHᵀ)⁻¹
+    const float_v hch = measurementModel * F.slice<0, 2>();                                  // HCHᵀ
+    const float_v residual = measurementModel * track.slice<0, 2>() - m; // ζ = Hr - m
 
-    const float_m initialised = HCH < measurementModel.sigma216;
-
-    float_v sigma2m = float_v::Zero();
-    sigma2m(initialised) = measurementModel.sigma2;
-    const float_v zetawi = residual / (sigma2m + HCH); // (V + HCHᵀ)⁻¹ ζ
-    track -= F * zetawi; // r = r - CHᵀ (V + HCHᵀ)⁻¹ ζ
-    track.C -= F * wi * F.transposed(); // C = C - CHᵀ (V + HCHᵀ)⁻¹ HC
-    track.Chi2(initialised) += residual * zetawi; // Χ² = Χ² + ζ (V + HCHᵀ)⁻¹ ζ
+    const float_v denominator = Vc::iif (hch < sigma216, hch + sigma2, hch);
+    const float_v zetawi = residual / denominator;             //           (V' + HCHᵀ)⁻¹ ζ
+    track -= F * zetawi;                                       // r  -= CHᵀ (V' + HCHᵀ)⁻¹ ζ
+    track.C -= F * (weight / (sigma2 + hch)) * F.transposed(); // C  -= CHᵀ (V  + HCHᵀ)⁻¹ HC
+    track.Chi2(hch < sigma216) += residual * zetawi;           // χ² +=  ζ  (V' + HCHᵀ)⁻¹ ζ
     track.NDF += weight;
 
     timer.stop();
