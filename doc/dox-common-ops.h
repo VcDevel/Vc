@@ -389,6 +389,24 @@ VECTOR_TYPE operator|(VECTOR_TYPE x) const;
 VECTOR_TYPE operator&(VECTOR_TYPE x) const;
 /// Returns a new vector with the binary xor of the respective entries of the left and right vector.
 VECTOR_TYPE operator^(VECTOR_TYPE x) const;
+#ifdef VECTOR_TYPE_HAS_SHIFTS
+/// Returns a new vector with each entry bitshifted to the left by \p x bits.
+VECTOR_TYPE operator<<(int x) const;
+/// Bitshift each entry to the left by \p x bits.
+VECTOR_TYPE &operator<<=(int x);
+/// Returns a new vector with each entry bitshifted to the right by \p x bits.
+VECTOR_TYPE operator>>(int x) const;
+/// Bitshift each entry to the right by \p x bits.
+VECTOR_TYPE &operator>>=(int x);
+/// Returns a new vector with each entry bitshifted to the left by \p x[i] bits.
+VECTOR_TYPE operator<<(VECTOR_TYPE x) const;
+/// Bitshift each entry to the left by \p x[i] bits.
+VECTOR_TYPE &operator<<=(VECTOR_TYPE x);
+/// Returns a new vector with each entry bitshifted to the right by \p x[i] bits.
+VECTOR_TYPE operator>>(VECTOR_TYPE x) const;
+/// Bitshift each entry to the right by \p x[i] bits.
+VECTOR_TYPE &operator>>=(VECTOR_TYPE x);
+#endif
 /**
  * Multiplies this vector with \p factor and then adds \p summand, without rounding between the
  * multiplication and the addition.

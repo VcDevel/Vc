@@ -479,6 +479,7 @@ namespace Vc
 #undef ENTRY_TYPE
 #undef MASK_TYPE
 
+#define VECTOR_TYPE_HAS_SHIFTS 1
 #define VECTOR_TYPE int_v
 #define ENTRY_TYPE int
 #define MASK_TYPE int_m
@@ -621,6 +622,7 @@ namespace Vc
 #undef MASK_TYPE
 #undef INTEGER
 #undef EXPONENT_TYPE
+#undef VECTOR_TYPE_HAS_SHIFTS
 
 #define EXPONENT_TYPE short_v
 #define VECTOR_TYPE sfloat_v
