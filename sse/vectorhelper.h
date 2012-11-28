@@ -71,15 +71,20 @@ namespace SSE
         template<> struct VectorHelper<M256>
         {
             typedef M256 VectorType;
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+            typedef const VectorType &VectorTypeArg;
+#else
+            typedef const VectorType VectorTypeArg;
+#endif
             template<typename A> static VectorType load(const float *x, A) PURE;
-            static void store(float *mem, const VectorType x, AlignedFlag);
-            static void store(float *mem, const VectorType x, UnalignedFlag);
-            static void store(float *mem, const VectorType x, StreamingAndAlignedFlag);
-            static void store(float *mem, const VectorType x, StreamingAndUnalignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, AlignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, UnalignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
+            static void store(float *mem, VectorTypeArg x, AlignedFlag);
+            static void store(float *mem, VectorTypeArg x, UnalignedFlag);
+            static void store(float *mem, VectorTypeArg x, StreamingAndAlignedFlag);
+            static void store(float *mem, VectorTypeArg x, StreamingAndUnalignedFlag);
+            static void store(float *mem, VectorTypeArg x, VectorTypeArg m, AlignedFlag);
+            static void store(float *mem, VectorTypeArg x, VectorTypeArg m, UnalignedFlag);
+            static void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndAlignedFlag);
+            static void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndUnalignedFlag);
 
             OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
             OP0(zero, VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()))
@@ -347,6 +352,11 @@ namespace SSE
         template<> struct VectorHelper<float8> {
             typedef float EntryType;
             typedef M256 VectorType;
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+            typedef const VectorType &VectorTypeArg;
+#else
+            typedef const VectorType VectorTypeArg;
+#endif
 
             static inline VectorType set(const float a) PURE {
                 const _M128 x = _mm_set1_ps(a);
@@ -364,15 +374,15 @@ namespace SSE
             static inline VectorType one()  PURE { return set(1.f); }
 
 #define REUSE_FLOAT_IMPL1(fun) \
-            static inline VectorType fun(const VectorType x) PURE { \
+            static inline VectorType fun(VectorTypeArg x) PURE { \
                 return VectorType::create(VectorHelper<float>::fun(x[0]), VectorHelper<float>::fun(x[1])); \
             }
 #define REUSE_FLOAT_IMPL2(fun) \
-            static inline VectorType fun(const VectorType x, const VectorType y) PURE { \
+            static inline VectorType fun(VectorTypeArg x, VectorTypeArg y) PURE { \
                 return VectorType::create(VectorHelper<float>::fun(x[0], y[0]), VectorHelper<float>::fun(x[1], y[1])); \
             }
 #define REUSE_FLOAT_IMPL3(fun) \
-            static inline VectorType fun(const VectorType x, const VectorType y, const VectorType z) PURE { \
+            static inline VectorType fun(VectorTypeArg x, VectorTypeArg y, VectorTypeArg z) PURE { \
                 return VectorType::create(VectorHelper<float>::fun(x[0], y[0], z[0]), VectorHelper<float>::fun(x[1], y[1], z[1])); \
             }
             REUSE_FLOAT_IMPL1(reciprocal)
@@ -399,20 +409,20 @@ namespace SSE
             REUSE_FLOAT_IMPL2(min)
             REUSE_FLOAT_IMPL2(max)
 
-            static inline EntryType min(const VectorType a) PURE {
+            static inline EntryType min(VectorTypeArg a) PURE {
                 return VectorHelper<float>::min(VectorHelper<float>::min(a[0], a[1]));
             }
-            static inline EntryType max(const VectorType a) PURE {
+            static inline EntryType max(VectorTypeArg a) PURE {
                 return VectorHelper<float>::max(VectorHelper<float>::max(a[0], a[1]));
             }
-            static inline EntryType mul(const VectorType a) PURE {
+            static inline EntryType mul(VectorTypeArg a) PURE {
                 return VectorHelper<float>::mul(VectorHelper<float>::mul(a[0], a[1]));
             }
-            static inline EntryType add(const VectorType a) PURE {
+            static inline EntryType add(VectorTypeArg a) PURE {
                 return VectorHelper<float>::add(VectorHelper<float>::add(a[0], a[1]));
             }
 
-            static inline void fma(VectorType &a, const VectorType b, const VectorType c) {
+            static inline void fma(VectorType &a, VectorTypeArg b, VectorTypeArg c) {
                 VectorHelper<float>::fma(a[0], b[0], c[0]);
                 VectorHelper<float>::fma(a[1], b[1], c[1]);
             }

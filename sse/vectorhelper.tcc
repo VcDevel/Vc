@@ -106,42 +106,42 @@ template<> inline M256 VectorHelper<M256>::load(const float *x, StreamingAndUnal
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // stores
-inline void VectorHelper<M256>::store(float *mem, const VectorType x, AlignedFlag)
+inline void VectorHelper<M256>::store(float *mem, VectorTypeArg x, AlignedFlag)
 {
     _mm_store_ps(mem, x[0]);
     _mm_store_ps(mem + 4, x[1]);
 }
-inline void VectorHelper<M256>::store(float *mem, const VectorType x, UnalignedFlag)
+inline void VectorHelper<M256>::store(float *mem, VectorTypeArg x, UnalignedFlag)
 {
     _mm_storeu_ps(mem, x[0]);
     _mm_storeu_ps(mem + 4, x[1]);
 }
-inline void VectorHelper<M256>::store(float *mem, const VectorType x, StreamingAndAlignedFlag)
+inline void VectorHelper<M256>::store(float *mem, VectorTypeArg x, StreamingAndAlignedFlag)
 {
     _mm_stream_ps(mem, x[0]);
     _mm_stream_ps(mem + 4, x[1]);
 }
-inline void VectorHelper<M256>::store(float *mem, const VectorType x, StreamingAndUnalignedFlag)
+inline void VectorHelper<M256>::store(float *mem, VectorTypeArg x, StreamingAndUnalignedFlag)
 {
     _mm_maskmoveu_si128(_mm_castps_si128(x[0]), _mm_setallone_si128(), reinterpret_cast<char *>(mem));
     _mm_maskmoveu_si128(_mm_castps_si128(x[1]), _mm_setallone_si128(), reinterpret_cast<char *>(mem + 4));
 }
-inline void VectorHelper<M256>::store(float *mem, const VectorType x, const VectorType m, AlignedFlag)
+inline void VectorHelper<M256>::store(float *mem, VectorTypeArg x, VectorTypeArg m, AlignedFlag)
 {
     _mm_store_ps(mem, _mm_blendv_ps(_mm_load_ps(mem), x[0], m[0]));
     _mm_store_ps(mem + 4, _mm_blendv_ps(_mm_load_ps(mem + 4), x[1], m[1]));
 }
-inline void VectorHelper<M256>::store(float *mem, const VectorType x, const VectorType m, UnalignedFlag)
+inline void VectorHelper<M256>::store(float *mem, VectorTypeArg x, VectorTypeArg m, UnalignedFlag)
 {
     _mm_storeu_ps(mem, _mm_blendv_ps(_mm_loadu_ps(mem), x[0], m[0]));
     _mm_storeu_ps(mem + 4, _mm_blendv_ps(_mm_loadu_ps(mem + 4), x[1], m[1]));
 }
-inline void VectorHelper<M256>::store(float *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag)
+inline void VectorHelper<M256>::store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndAlignedFlag)
 {
     _mm_maskmoveu_si128(_mm_castps_si128(x[0]), _mm_castps_si128(m[0]), reinterpret_cast<char *>(mem));
     _mm_maskmoveu_si128(_mm_castps_si128(x[1]), _mm_castps_si128(m[1]), reinterpret_cast<char *>(mem + 4));
 }
-inline void VectorHelper<M256>::store(float *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag)
+inline void VectorHelper<M256>::store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndUnalignedFlag)
 {
     _mm_maskmoveu_si128(_mm_castps_si128(x[0]), _mm_castps_si128(m[0]), reinterpret_cast<char *>(mem));
     _mm_maskmoveu_si128(_mm_castps_si128(x[1]), _mm_castps_si128(m[1]), reinterpret_cast<char *>(mem + 4));
