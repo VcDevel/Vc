@@ -36,9 +36,38 @@ namespace SSE
         static M256 sort(const M256 &) PURE;
     };
 
-#undef OP_DECL
-#undef PARENT_DATA
-#undef PARENT_DATA_CONST
+#define OP0(name, code) static inline VectorType name() PURE { return code; }
+#define OP2(name, code) static inline VectorType name(VectorTypeArg a, VectorTypeArg b) PURE { return code; }
+#define OP3(name, code) static inline VectorType name(VectorTypeArg a, VectorTypeArg b, VectorTypeArg c) PURE { return code; }
+    template<> struct VectorHelper<M256>
+    {
+        typedef M256 VectorType;
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+        typedef const VectorType &VectorTypeArg;
+#else
+        typedef const VectorType VectorTypeArg;
+#endif
+        template<typename A> static VectorType load(const float *x, A) PURE;
+        static void store(float *mem, VectorTypeArg x, AlignedFlag);
+        static void store(float *mem, VectorTypeArg x, UnalignedFlag);
+        static void store(float *mem, VectorTypeArg x, StreamingAndAlignedFlag);
+        static void store(float *mem, VectorTypeArg x, StreamingAndUnalignedFlag);
+        static void store(float *mem, VectorTypeArg x, VectorTypeArg m, AlignedFlag);
+        static void store(float *mem, VectorTypeArg x, VectorTypeArg m, UnalignedFlag);
+        static void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndAlignedFlag);
+        static void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndUnalignedFlag);
+
+        OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
+        OP0(zero, VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()))
+        OP2(or_, VectorType::create(_mm_or_ps(a[0], b[0]), _mm_or_ps(a[1], b[1])))
+        OP2(xor_, VectorType::create(_mm_xor_ps(a[0], b[0]), _mm_xor_ps(a[1], b[1])))
+        OP2(and_, VectorType::create(_mm_and_ps(a[0], b[0]), _mm_and_ps(a[1], b[1])))
+        OP2(andnot_, VectorType::create(_mm_andnot_ps(a[0], b[0]), _mm_andnot_ps(a[1], b[1])))
+        OP3(blend, VectorType::create(_mm_blendv_ps(a[0], b[0], c[0]), _mm_blendv_ps(a[1], b[1], c[1])))
+    };
+#undef OP0
+#undef OP2
+#undef OP3
 
 #define OP0(name, code) static inline VectorType name() PURE { return code; }
 #define OP1(name, code) static inline VectorType name(const VectorType a) PURE { return code; }
@@ -67,33 +96,6 @@ namespace SSE
             OP3(blend, _mm_blendv_ps(a, b, c))
         };
 
-
-        template<> struct VectorHelper<M256>
-        {
-            typedef M256 VectorType;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-            typedef const VectorType &VectorTypeArg;
-#else
-            typedef const VectorType VectorTypeArg;
-#endif
-            template<typename A> static VectorType load(const float *x, A) PURE;
-            static void store(float *mem, VectorTypeArg x, AlignedFlag);
-            static void store(float *mem, VectorTypeArg x, UnalignedFlag);
-            static void store(float *mem, VectorTypeArg x, StreamingAndAlignedFlag);
-            static void store(float *mem, VectorTypeArg x, StreamingAndUnalignedFlag);
-            static void store(float *mem, VectorTypeArg x, VectorTypeArg m, AlignedFlag);
-            static void store(float *mem, VectorTypeArg x, VectorTypeArg m, UnalignedFlag);
-            static void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndAlignedFlag);
-            static void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndUnalignedFlag);
-
-            OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
-            OP0(zero, VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()))
-            OP2(or_, VectorType::create(_mm_or_ps(a[0], b[0]), _mm_or_ps(a[1], b[1])))
-            OP2(xor_, VectorType::create(_mm_xor_ps(a[0], b[0]), _mm_xor_ps(a[1], b[1])))
-            OP2(and_, VectorType::create(_mm_and_ps(a[0], b[0]), _mm_and_ps(a[1], b[1])))
-            OP2(andnot_, VectorType::create(_mm_andnot_ps(a[0], b[0]), _mm_andnot_ps(a[1], b[1])))
-            OP3(blend, VectorType::create(_mm_blendv_ps(a[0], b[0], c[0]), _mm_blendv_ps(a[1], b[1], c[1])))
-        };
 
         template<> struct VectorHelper<_M128D>
         {
