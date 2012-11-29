@@ -393,7 +393,7 @@ namespace AVX
                     const int e, const int f, const int g, const int h) {
                 return CAT(_mm256_set_, SUFFIX)(a, b, c, d, e, f, g, h); }
 
-            static inline void INTRINSIC CONST fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+            static inline void INTRINSIC fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
             static inline VectorType shiftLeft(VectorType a, int shift) {
                 return CAT(_mm256_slli_, SUFFIX)(a, shift);
@@ -483,7 +483,7 @@ namespace AVX
             }
 
             static inline VectorType INTRINSIC CONST mul(VectorType a, VectorType b) { return _mm256_mullo_epi32(a, b); }
-            static inline void INTRINSIC CONST fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+            static inline void INTRINSIC fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
 #undef SUFFIX
 #define SUFFIX epi32
@@ -547,8 +547,9 @@ namespace AVX
                 return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
 
-            static inline void INTRINSIC CONST fma(VectorType &v1, VectorType v2, VectorType v3) {
-                v1 = add(mul(v1, v2), v3); }
+            static inline void INTRINSIC fma(VectorType &v1, VectorType v2, VectorType v3) {
+                v1 = add(mul(v1, v2), v3);
+            }
 
             static inline VectorType INTRINSIC CONST abs(VectorType a) { return _mm_abs_epi16(a); }
             static inline VectorType INTRINSIC CONST mul(VectorType a, VectorType b) { return _mm_mullo_epi16(a, b); }
@@ -652,7 +653,7 @@ namespace AVX
                     const EntryType g, const EntryType h) {
                 return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
-            static inline void INTRINSIC CONST fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+            static inline void INTRINSIC fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
             static inline VectorType INTRINSIC CONST add(VectorType a, VectorType b) { return _mm_add_epi16(a, b); }
             static inline VectorType INTRINSIC CONST sub(VectorType a, VectorType b) { return _mm_sub_epi16(a, b); }
