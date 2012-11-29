@@ -36,8 +36,7 @@ inline istream & operator>>(istream &strm, V &a) {
 }
 
 inline V rcp(const V &a) {
-    // return reciprocal(a);
-    return 1 / a;
+    return 1.f / a;
 }
 
 struct FieldVector : public Vc::VectorAlignedBase {
@@ -1056,7 +1055,21 @@ class KalmanFilter : public Vc::VectorAlignedBase
     int NTracks;
     int NTracksV;
 
-    void ReadInput() {
+public:
+    KalmanFilter()
+        : vStations(new Station[MaxNStations]),
+          NStations(0),
+          NTracks(0),
+          NTracksV(0)
+    {
+    }
+
+    ~KalmanFilter()
+    {
+        delete[] vStations;
+    }
+
+    void readInput() {
 
         fstream FileGeo, FileTracks, FileMCTracks;
 
@@ -1228,7 +1241,7 @@ class KalmanFilter : public Vc::VectorAlignedBase
 #define _STRINGIFY(_x) #_x
 #define STRINGIFY(_x) _STRINGIFY(_x)
 
-    void WriteOutput() {
+    void writeOutput() {
 
         fstream Out, Diff;
 
@@ -1277,7 +1290,7 @@ class KalmanFilter : public Vc::VectorAlignedBase
         Out.close();
     }
 
-    void FitTracksV()
+    void fitTracks()
     {
         TrackV * TracksV = new TrackV[MaxNTracks / V::Size + 1];
         V * Z0      = new V[MaxNTracks / V::Size + 1]; // mc - z, used for result comparison
@@ -1396,26 +1409,14 @@ class KalmanFilter : public Vc::VectorAlignedBase
             delete [] Z0s[is];
         delete [] TracksV;
     }
-public:
-    KalmanFilter()
-        : vStations(new Station[MaxNStations]),
-          NStations(0),
-          NTracks(0),
-          NTracksV(0)
-    {
-        ReadInput();
-        FitTracksV();
-        WriteOutput();
-    }
-
-    ~KalmanFilter()
-    {
-        delete[] vStations;
-    }
 };
 
 int main()
 {
-    delete new KalmanFilter;
+    KalmanFilter *filter = new KalmanFilter;
+    filter->readInput();
+    filter->fitTracks();
+    filter->writeOutput();
+    delete filter;
     return 0;
 }
