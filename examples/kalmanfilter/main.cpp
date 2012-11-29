@@ -1,4 +1,5 @@
 #include "matrix.h"
+#include "runtimemean.h"
 #include <Vc/Vc>
 #include <iostream>
 #include <iomanip>
@@ -27,27 +28,6 @@ typedef Vc::float_v V;
 using Vc::float_v;
 using Vc::float_m;
 
-
-class RuntimeMean
-{
-    TimeStampCounter tsc;
-    unsigned long cycles;
-    int count;
-public:
-    RuntimeMean()
-        : cycles(0), count(0)
-    {}
-    inline void start() { tsc.Start(); }
-    inline void stop() {
-        tsc.Stop();
-        cycles += tsc.Cycles();
-        ++count;
-    }
-    ~RuntimeMean()
-    {
-        std::cout << "runtime mean: " << cycles / count << '\n';
-    }
-};
 inline istream & operator>>(istream &strm, V &a) {
     float tmp;
     strm >> tmp;
