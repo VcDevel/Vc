@@ -428,7 +428,7 @@ template<typename V> void testAtan()/*{{{*/
     setFuzzyness<double>(2);
 
     {
-        const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18,  0));
+        const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18ull,  0));
         V nan; nan.setQnan();
         const V inf = T(1./0.);
 
@@ -456,9 +456,9 @@ template<typename V> void testAtan2()/*{{{*/
     setFuzzyness<double>(2);
 
     {
-        const V Pi   = T(Vc_buildDouble(1, 0x921fb54442d18,  1));
-        const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18,  0));
-        const V Pi_4 = T(Vc_buildDouble(1, 0x921fb54442d18, -1));
+        const V Pi   = T(Vc_buildDouble(1, 0x921fb54442d18ull,  1));
+        const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18ull,  0));
+        const V Pi_4 = T(Vc_buildDouble(1, 0x921fb54442d18ull, -1));
         V nan; nan.setQnan();
         const V inf = T(1./0.);
 
