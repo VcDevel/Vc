@@ -407,24 +407,22 @@ class Jacobian_t{ // jacobian elements // j[0][0] - j[3][2] are j02 - j34
 
 class FitFunctional { // base class for all approaches
     public:
+        void Fit(TrackV &t, Station vStations[], int NStations) const;
 
         /// extrapolates track parameters
-        virtual void ExtrapolateALight(V T[], CovV &C,  const V &z_out,  V& qp0, FieldRegion &F, V w = V::Zero()) const = 0;
+        void ExtrapolateALight(V T[], CovV &C,  const V &z_out,  V& qp0, FieldRegion &F, V w = V::Zero()) const;
 
     protected:
-        /// initial aproximation
-        void GuessVec(TrackV &t, Station * vStations, int NStations, bool dir = 0) const;
+        void Filter(TrackV &track, const HitInfo &info, const V u, const V w = V::One()) const;
+        void FilterFirst(TrackV &track, HitV &hit, Station &st) const;
 
-        virtual void Filter(TrackV &track, const HitInfo &info, const V u, const V w = V::One()) const = 0;
-        // filter first mesurement
-        virtual void FilterFirst(TrackV &track, HitV &hit, Station &st) const = 0;
+        void ExtrapolateWithMaterial(TrackV &track, const V &z_out,  V& qp0, FieldRegion &F, Station &st, bool isPipe = false, V w = V::Zero()) const;
+
+        void AddMaterial(CovV &C, V Q22, V Q32, V Q33) const;
+        /// initial aproximation
+        void GuessVec(TrackV &t, Station * vStations, int NStations, bool dir = false) const;
 
         void AddMaterial(TrackV &track, Station &st, const V qp0, bool isPipe = false) const;
-
-        virtual void ExtrapolateWithMaterial(TrackV &track, const V &z_out,  V& qp0, FieldRegion &F, Station &st, bool isPipe = 0, V w = V::Zero()) const = 0;
-
-        // ------------ help functions ------------
-        virtual void AddMaterial(CovV &C, V Q22, V Q32, V Q33) const = 0;
 
         /// extrapolates track parameters and returns jacobian for extrapolation of CovMatrix
         void ExtrapolateJ (
@@ -433,7 +431,7 @@ class FitFunctional { // base class for all approaches
                 V       qp0    , // use Q / p linearisation at this value
                 const FieldRegion &F,
                 Jacobian_t &j,
-                V w = 0) const;
+                V w = V::Zero()) const;
 
         /// calculate covMatrix for Multiple Scattering
         void GetMSMatrix(const V &tx, const V &ty, const V &radThick, const V &logRadThick, V qp0, V &Q22, V &Q32, V &Q33) const;
@@ -447,7 +445,7 @@ class FitFunctional { // base class for all approaches
              V       qp0    , // use Q / p linearisation at this value
              const FieldRegion &F,
              Jacobian_t &j,
-             V w = 0) const;
+             V w = V::Zero()) const;
 
 };
 
@@ -845,14 +843,7 @@ inline void FitFunctional::AddMaterial(TrackV &track, Station &st, const V qp0, 
     AddMaterial(track.C, Q22, Q32, Q33);
 }
 
-class FitBase: public virtual FitFunctional{ // base class for all approaches
-    public:
-
-        /// Fit tracks
-        void Fit(TrackV &t, Station vStations[], int NStations) const;
-};
-
-inline void FitBase::Fit(TrackV &t, Station vStations[], int nStations) const
+inline void FitFunctional::Fit(TrackV &t, Station vStations[], int nStations) const
 {
     // upstream
 
@@ -912,21 +903,8 @@ inline void FitBase::Fit(TrackV &t, Station vStations[], int nStations) const
     }
 }
 
-class FitC: public virtual FitFunctional, public FitBase {
-    public:
-        void ExtrapolateALight(V T[], CovV &C,  const V &z_out,  V& qp0, FieldRegion &F, V w = V::Zero()) const;
-
-    protected:
-        void Filter(TrackV &track, const HitInfo &info, const V u, const V w = V::One()) const;
-        void FilterFirst(TrackV &track, HitV &hit, Station &st) const;
-
-        void ExtrapolateWithMaterial(TrackV &track, const V &z_out,  V& qp0, FieldRegion &F, Station &st, bool isPipe = 0, V w = 0) const;
-
-        void AddMaterial(CovV &C, V Q22, V Q32, V Q33) const;
-};
-
 // inline // --> causes a runtime overhead and problems for the MS compiler (error C2603)
-void FitC::ExtrapolateALight
+void FitFunctional::ExtrapolateALight
 (
  V T [], // input track parameters (x,y,tx,ty,Q / p)
  CovV &C,     // input covariance matrix
@@ -989,7 +967,7 @@ void FitC::ExtrapolateALight
  * \param u Is a measurement that we want to add - Strip coordinate (may be x or y)
  * \param w Weight. At this point either 1 or 0, simply masking invalid entries in the SIMD-vector.
  */
-inline void FitC::Filter(TrackV &track, const HitInfo &measurementModel, const float_v m, const float_v weight) const
+inline void FitFunctional::Filter(TrackV &track, const HitInfo &measurementModel, const float_v m, const float_v weight) const
 {
     static RuntimeMean timer;
     timer.start();
@@ -1010,7 +988,7 @@ inline void FitC::Filter(TrackV &track, const HitInfo &measurementModel, const f
     timer.stop();
 }
 
-inline void FitC::FilterFirst(TrackV &track, HitV &hit, Station &st) const
+inline void FitFunctional::FilterFirst(TrackV &track, HitV &hit, Station &st) const
 {
 
     CovV &C = track.C;
@@ -1032,13 +1010,13 @@ inline void FitC::FilterFirst(TrackV &track, HitV &hit, Station &st) const
     track.Chi2 = V::Zero();
 }
 
-inline void FitC::AddMaterial(CovV &C, V Q22, V Q32, V Q33) const
+inline void FitFunctional::AddMaterial(CovV &C, V Q22, V Q32, V Q33) const
 {
     C.C22 += Q22;
     C.C32 += Q32; C.C33 += Q33;
 }
 
-inline void FitC::ExtrapolateWithMaterial(TrackV &track,  const V &z_out,  V& qp0, FieldRegion &F, Station &st, bool isPipe, V w) const
+inline void FitFunctional::ExtrapolateWithMaterial(TrackV &track,  const V &z_out,  V& qp0, FieldRegion &F, Station &st, bool isPipe, V w) const
 {
     ExtrapolateALight(track.T, track.C, z_out, qp0, F, w);
     FitFunctional::AddMaterial(track, st, qp0, isPipe); // FIXME
@@ -1047,7 +1025,7 @@ inline void FitC::ExtrapolateWithMaterial(TrackV &track,  const V &z_out,  V& qp
 class KalmanFilter : public Vc::VectorAlignedBase
 {
     FieldRegion field0;
-    FitC fitter;
+    FitFunctional fitter;
     Track vTracks[MaxNTracks];
     MCTrack vMCTracks[MaxNTracks];
     Station * vStations;
