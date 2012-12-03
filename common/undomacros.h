@@ -24,7 +24,7 @@
 #undef INTRINSIC
 #undef INTRINSIC_L
 #undef INTRINSIC_R
-#undef CONST
+#undef Vc_CONST
 #undef CONST_L
 #undef CONST_R
 #undef PURE

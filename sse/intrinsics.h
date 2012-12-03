@@ -48,53 +48,53 @@ namespace SSE
     enum VectorAlignmentEnum { VectorAlignment = 16 };
 
 #if defined(VC_GCC) && VC_GCC < 0x40600 && !defined(VC_DONT_FIX_SSE_SHIFT)
-    static inline __m128i CONST _mm_sll_epi16(__m128i a, __m128i count) { __asm__("psllw %1,%0" : "+x"(a) : "x"(count)); return a; }
-    static inline __m128i CONST _mm_sll_epi32(__m128i a, __m128i count) { __asm__("pslld %1,%0" : "+x"(a) : "x"(count)); return a; }
-    static inline __m128i CONST _mm_sll_epi64(__m128i a, __m128i count) { __asm__("psllq %1,%0" : "+x"(a) : "x"(count)); return a; }
-    static inline __m128i CONST _mm_srl_epi16(__m128i a, __m128i count) { __asm__("psrlw %1,%0" : "+x"(a) : "x"(count)); return a; }
-    static inline __m128i CONST _mm_srl_epi32(__m128i a, __m128i count) { __asm__("psrld %1,%0" : "+x"(a) : "x"(count)); return a; }
-    static inline __m128i CONST _mm_srl_epi64(__m128i a, __m128i count) { __asm__("psrlq %1,%0" : "+x"(a) : "x"(count)); return a; }
+    static inline __m128i Vc_CONST _mm_sll_epi16(__m128i a, __m128i count) { __asm__("psllw %1,%0" : "+x"(a) : "x"(count)); return a; }
+    static inline __m128i Vc_CONST _mm_sll_epi32(__m128i a, __m128i count) { __asm__("pslld %1,%0" : "+x"(a) : "x"(count)); return a; }
+    static inline __m128i Vc_CONST _mm_sll_epi64(__m128i a, __m128i count) { __asm__("psllq %1,%0" : "+x"(a) : "x"(count)); return a; }
+    static inline __m128i Vc_CONST _mm_srl_epi16(__m128i a, __m128i count) { __asm__("psrlw %1,%0" : "+x"(a) : "x"(count)); return a; }
+    static inline __m128i Vc_CONST _mm_srl_epi32(__m128i a, __m128i count) { __asm__("psrld %1,%0" : "+x"(a) : "x"(count)); return a; }
+    static inline __m128i Vc_CONST _mm_srl_epi64(__m128i a, __m128i count) { __asm__("psrlq %1,%0" : "+x"(a) : "x"(count)); return a; }
 #endif
 
 #if defined(VC_GNU_ASM) && !defined(NVALGRIND)
-    static inline __m128i CONST _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
+    static inline __m128i Vc_CONST _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
 #else
-    static inline __m128i CONST _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
+    static inline __m128i Vc_CONST _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
 #endif
-    static inline __m128i CONST _mm_setallone_si128() { return _mm_setallone(); }
-    static inline __m128d CONST _mm_setallone_pd() { return _mm_castsi128_pd(_mm_setallone()); }
-    static inline __m128  CONST _mm_setallone_ps() { return _mm_castsi128_ps(_mm_setallone()); }
+    static inline __m128i Vc_CONST _mm_setallone_si128() { return _mm_setallone(); }
+    static inline __m128d Vc_CONST _mm_setallone_pd() { return _mm_castsi128_pd(_mm_setallone()); }
+    static inline __m128  Vc_CONST _mm_setallone_ps() { return _mm_castsi128_ps(_mm_setallone()); }
 
-    static inline __m128i CONST _mm_setone_epi8 ()  { return _mm_set1_epi8(1); }
-    static inline __m128i CONST _mm_setone_epu8 ()  { return _mm_setone_epi8(); }
-    static inline __m128i CONST _mm_setone_epi16()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one16)); }
-    static inline __m128i CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
-    static inline __m128i CONST _mm_setone_epi32()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one32)); }
-    static inline __m128i CONST _mm_setone_epu32()  { return _mm_setone_epi32(); }
+    static inline __m128i Vc_CONST _mm_setone_epi8 ()  { return _mm_set1_epi8(1); }
+    static inline __m128i Vc_CONST _mm_setone_epu8 ()  { return _mm_setone_epi8(); }
+    static inline __m128i Vc_CONST _mm_setone_epi16()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one16)); }
+    static inline __m128i Vc_CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
+    static inline __m128i Vc_CONST _mm_setone_epi32()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one32)); }
+    static inline __m128i Vc_CONST _mm_setone_epu32()  { return _mm_setone_epi32(); }
 
-    static inline __m128  CONST _mm_setone_ps()     { return _mm_load_ps(c_general::oneFloat); }
-    static inline __m128d CONST _mm_setone_pd()     { return _mm_load_pd(c_general::oneDouble); }
+    static inline __m128  Vc_CONST _mm_setone_ps()     { return _mm_load_ps(c_general::oneFloat); }
+    static inline __m128d Vc_CONST _mm_setone_pd()     { return _mm_load_pd(c_general::oneDouble); }
 
-    static inline __m128d CONST _mm_setabsmask_pd() { return _mm_load_pd(reinterpret_cast<const double *>(c_general::absMaskDouble)); }
-    static inline __m128  CONST _mm_setabsmask_ps() { return _mm_load_ps(reinterpret_cast<const float *>(c_general::absMaskFloat)); }
-    static inline __m128d CONST _mm_setsignmask_pd(){ return _mm_load_pd(reinterpret_cast<const double *>(c_general::signMaskDouble)); }
-    static inline __m128  CONST _mm_setsignmask_ps(){ return _mm_load_ps(reinterpret_cast<const float *>(c_general::signMaskFloat)); }
+    static inline __m128d Vc_CONST _mm_setabsmask_pd() { return _mm_load_pd(reinterpret_cast<const double *>(c_general::absMaskDouble)); }
+    static inline __m128  Vc_CONST _mm_setabsmask_ps() { return _mm_load_ps(reinterpret_cast<const float *>(c_general::absMaskFloat)); }
+    static inline __m128d Vc_CONST _mm_setsignmask_pd(){ return _mm_load_pd(reinterpret_cast<const double *>(c_general::signMaskDouble)); }
+    static inline __m128  Vc_CONST _mm_setsignmask_ps(){ return _mm_load_ps(reinterpret_cast<const float *>(c_general::signMaskFloat)); }
 
-    //X         static inline __m128i CONST _mm_setmin_epi8 () { return _mm_slli_epi8 (_mm_setallone_si128(),  7); }
-    static inline __m128i CONST _mm_setmin_epi16() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::minShort)); }
-    static inline __m128i CONST _mm_setmin_epi32() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::signMaskFloat)); }
+    //X         static inline __m128i Vc_CONST _mm_setmin_epi8 () { return _mm_slli_epi8 (_mm_setallone_si128(),  7); }
+    static inline __m128i Vc_CONST _mm_setmin_epi16() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::minShort)); }
+    static inline __m128i Vc_CONST _mm_setmin_epi32() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::signMaskFloat)); }
 
-    //X         static inline __m128i CONST _mm_cmplt_epu8 (__m128i a, __m128i b) { return _mm_cmplt_epi8 (
+    //X         static inline __m128i Vc_CONST _mm_cmplt_epu8 (__m128i a, __m128i b) { return _mm_cmplt_epi8 (
     //X                 _mm_xor_si128(a, _mm_setmin_epi8 ()), _mm_xor_si128(b, _mm_setmin_epi8 ())); }
-    //X         static inline __m128i CONST _mm_cmpgt_epu8 (__m128i a, __m128i b) { return _mm_cmpgt_epi8 (
+    //X         static inline __m128i Vc_CONST _mm_cmpgt_epu8 (__m128i a, __m128i b) { return _mm_cmpgt_epi8 (
     //X                 _mm_xor_si128(a, _mm_setmin_epi8 ()), _mm_xor_si128(b, _mm_setmin_epi8 ())); }
-    static inline __m128i CONST _mm_cmplt_epu16(__m128i a, __m128i b) { return _mm_cmplt_epi16(
+    static inline __m128i Vc_CONST _mm_cmplt_epu16(__m128i a, __m128i b) { return _mm_cmplt_epi16(
             _mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16())); }
-    static inline __m128i CONST _mm_cmpgt_epu16(__m128i a, __m128i b) { return _mm_cmpgt_epi16(
+    static inline __m128i Vc_CONST _mm_cmpgt_epu16(__m128i a, __m128i b) { return _mm_cmpgt_epi16(
             _mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16())); }
-    static inline __m128i CONST _mm_cmplt_epu32(__m128i a, __m128i b) { return _mm_cmplt_epi32(
+    static inline __m128i Vc_CONST _mm_cmplt_epu32(__m128i a, __m128i b) { return _mm_cmplt_epi32(
             _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
-    static inline __m128i CONST _mm_cmpgt_epu32(__m128i a, __m128i b) { return _mm_cmpgt_epi32(
+    static inline __m128i Vc_CONST _mm_cmpgt_epu32(__m128i a, __m128i b) { return _mm_cmpgt_epi32(
             _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
 } // namespace SSE
 } // namespace Vc
@@ -114,7 +114,7 @@ namespace SSE
 {
 
     // not overriding _mm_set1_epi8 because this one should only be used for non-constants
-    static inline __m128i CONST set1_epi8(int a) {
+    static inline __m128i Vc_CONST set1_epi8(int a) {
 #if defined(VC_GCC) && VC_GCC < 0x40500
         return _mm_shuffle_epi8(_mm_cvtsi32_si128(a), _mm_setzero_si128());
 #else
@@ -132,7 +132,7 @@ namespace Vc
 {
 namespace SSE
 {
-    static inline __m128i CONST _mm_abs_epi8 (__m128i a) {
+    static inline __m128i Vc_CONST _mm_abs_epi8 (__m128i a) {
         __m128i negative = _mm_cmplt_epi8 (a, _mm_setzero_si128());
         return _mm_add_epi8 (_mm_xor_si128(a, negative), _mm_and_si128(negative,  _mm_setone_epi8()));
     }
@@ -146,18 +146,18 @@ namespace SSE
     //   a xor -1 -> -a - 1
     //   -1 >> 31 -> 1
     //   -a - 1 + 1 -> -a
-    static inline __m128i CONST _mm_abs_epi16(__m128i a) {
+    static inline __m128i Vc_CONST _mm_abs_epi16(__m128i a) {
         __m128i negative = _mm_cmplt_epi16(a, _mm_setzero_si128());
         return _mm_add_epi16(_mm_xor_si128(a, negative), _mm_srli_epi16(negative, 15));
     }
-    static inline __m128i CONST _mm_abs_epi32(__m128i a) {
+    static inline __m128i Vc_CONST _mm_abs_epi32(__m128i a) {
         __m128i negative = _mm_cmplt_epi32(a, _mm_setzero_si128());
         return _mm_add_epi32(_mm_xor_si128(a, negative), _mm_srli_epi32(negative, 31));
     }
-    static inline __m128i CONST set1_epi8(int a) {
+    static inline __m128i Vc_CONST set1_epi8(int a) {
         return _mm_set1_epi8(a);
     }
-    static inline __m128i CONST _mm_alignr_epi8(__m128i a, __m128i b, const int s) {
+    static inline __m128i Vc_CONST _mm_alignr_epi8(__m128i a, __m128i b, const int s) {
         switch (s) {
             case  0: return b;
             case  1: return _mm_or_si128(_mm_slli_si128(a, 15), _mm_srli_si128(b,  1));
@@ -354,34 +354,34 @@ namespace SSE
         return _mm_or_si128(_mm_andnot_si128(c, a), _mm_and_si128(c, b));
     }
 
-    static inline __m128i CONST _mm_max_epi8 (__m128i a, __m128i b) {
+    static inline __m128i Vc_CONST _mm_max_epi8 (__m128i a, __m128i b) {
         return _mm_blendv_epi8(b, a, _mm_cmpgt_epi8 (a, b));
     }
-    static inline __m128i CONST _mm_max_epi32(__m128i a, __m128i b) {
+    static inline __m128i Vc_CONST _mm_max_epi32(__m128i a, __m128i b) {
         return _mm_blendv_epi8(b, a, _mm_cmpgt_epi32(a, b));
     }
-//X         static inline __m128i CONST _mm_max_epu8 (__m128i a, __m128i b) {
+//X         static inline __m128i Vc_CONST _mm_max_epu8 (__m128i a, __m128i b) {
 //X             return _mm_blendv_epi8(b, a, _mm_cmpgt_epu8 (a, b));
 //X         }
-    static inline __m128i CONST _mm_max_epu16(__m128i a, __m128i b) {
+    static inline __m128i Vc_CONST _mm_max_epu16(__m128i a, __m128i b) {
         return _mm_blendv_epi8(b, a, _mm_cmpgt_epu16(a, b));
     }
-    static inline __m128i CONST _mm_max_epu32(__m128i a, __m128i b) {
+    static inline __m128i Vc_CONST _mm_max_epu32(__m128i a, __m128i b) {
         return _mm_blendv_epi8(b, a, _mm_cmpgt_epu32(a, b));
     }
-//X         static inline __m128i CONST _mm_min_epu8 (__m128i a, __m128i b) {
+//X         static inline __m128i Vc_CONST _mm_min_epu8 (__m128i a, __m128i b) {
 //X             return _mm_blendv_epi8(a, b, _mm_cmpgt_epu8 (a, b));
 //X         }
-    static inline __m128i CONST _mm_min_epu16(__m128i a, __m128i b) {
+    static inline __m128i Vc_CONST _mm_min_epu16(__m128i a, __m128i b) {
         return _mm_blendv_epi8(a, b, _mm_cmpgt_epu16(a, b));
     }
-    static inline __m128i CONST _mm_min_epu32(__m128i a, __m128i b) {
+    static inline __m128i Vc_CONST _mm_min_epu32(__m128i a, __m128i b) {
         return _mm_blendv_epi8(a, b, _mm_cmpgt_epu32(a, b));
     }
-    static inline __m128i CONST _mm_min_epi8 (__m128i a, __m128i b) {
+    static inline __m128i Vc_CONST _mm_min_epi8 (__m128i a, __m128i b) {
         return _mm_blendv_epi8(a, b, _mm_cmpgt_epi8 (a, b));
     }
-    static inline __m128i CONST _mm_min_epi32(__m128i a, __m128i b) {
+    static inline __m128i Vc_CONST _mm_min_epi32(__m128i a, __m128i b) {
         return _mm_blendv_epi8(a, b, _mm_cmpgt_epi32(a, b));
     }
     static inline __m128i INTRINSIC _mm_cvtepu8_epi16(__m128i epu8) {

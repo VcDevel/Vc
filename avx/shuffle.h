@@ -26,61 +26,61 @@ namespace Vc
 {
     namespace Mem
     {
-        template<VecPos L, VecPos H> static inline __m256 Vc_ALWAYS_INLINE CONST permute128(__m256 x) {
+        template<VecPos L, VecPos H> static inline __m256 Vc_ALWAYS_INLINE Vc_CONST permute128(__m256 x) {
             VC_STATIC_ASSERT(L >= X0 && L <= X1, Incorrect_Range);
             VC_STATIC_ASSERT(H >= X0 && H <= X1, Incorrect_Range);
             return _mm256_permute2f128_ps(x, x, L + H * (1 << 4));
         }
-        template<VecPos L, VecPos H> static inline __m256d Vc_ALWAYS_INLINE CONST permute128(__m256d x) {
+        template<VecPos L, VecPos H> static inline __m256d Vc_ALWAYS_INLINE Vc_CONST permute128(__m256d x) {
             VC_STATIC_ASSERT(L >= X0 && L <= X1, Incorrect_Range);
             VC_STATIC_ASSERT(H >= X0 && H <= X1, Incorrect_Range);
             return _mm256_permute2f128_pd(x, x, L + H * (1 << 4));
         }
-        template<VecPos L, VecPos H> static inline __m256i Vc_ALWAYS_INLINE CONST permute128(__m256i x) {
+        template<VecPos L, VecPos H> static inline __m256i Vc_ALWAYS_INLINE Vc_CONST permute128(__m256i x) {
             VC_STATIC_ASSERT(L >= X0 && L <= X1, Incorrect_Range);
             VC_STATIC_ASSERT(H >= X0 && H <= X1, Incorrect_Range);
             return _mm256_permute2f128_si256(x, x, L + H * (1 << 4));
         }
-        template<VecPos L, VecPos H> static inline __m256 Vc_ALWAYS_INLINE CONST shuffle128(__m256 x, __m256 y) {
+        template<VecPos L, VecPos H> static inline __m256 Vc_ALWAYS_INLINE Vc_CONST shuffle128(__m256 x, __m256 y) {
             VC_STATIC_ASSERT(L >= X0 && H >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(L <= Y1 && H <= Y1, Incorrect_Range);
             return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos L, VecPos H> static inline __m256i Vc_ALWAYS_INLINE CONST shuffle128(__m256i x, __m256i y) {
+        template<VecPos L, VecPos H> static inline __m256i Vc_ALWAYS_INLINE Vc_CONST shuffle128(__m256i x, __m256i y) {
             VC_STATIC_ASSERT(L >= X0 && H >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(L <= Y1 && H <= Y1, Incorrect_Range);
             return _mm256_permute2f128_si256(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos L, VecPos H> static inline __m256d Vc_ALWAYS_INLINE CONST shuffle128(__m256d x, __m256d y) {
+        template<VecPos L, VecPos H> static inline __m256d Vc_ALWAYS_INLINE Vc_CONST shuffle128(__m256d x, __m256d y) {
             VC_STATIC_ASSERT(L >= X0 && H >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(L <= Y1 && H <= Y1, Incorrect_Range);
             return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256d Vc_ALWAYS_INLINE CONST permute(__m256d x) {
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256d Vc_ALWAYS_INLINE Vc_CONST permute(__m256d x) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X2 && Dst3 >= X2, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X1 && Dst1 <= X1 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
             return _mm256_permute_pd(x, Dst0 + Dst1 * 2 + (Dst2 - X2) * 4 + (Dst3 - X2) * 8);
         }
-        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256 Vc_ALWAYS_INLINE CONST permute(__m256 x) {
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256 Vc_ALWAYS_INLINE Vc_CONST permute(__m256 x) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
             return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
-        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256i Vc_ALWAYS_INLINE CONST permute(__m256i x) {
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256i Vc_ALWAYS_INLINE Vc_CONST permute(__m256i x) {
             return _mm256_castps_si256(permute<Dst0, Dst1, Dst2, Dst3>(_mm256_castsi256_ps(x)));
         }
-        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256d Vc_ALWAYS_INLINE CONST shuffle(__m256d x, __m256d y) {
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256d Vc_ALWAYS_INLINE Vc_CONST shuffle(__m256d x, __m256d y) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, Incorrect_Range);
             return _mm256_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2 + (Dst2 - X2) * 4 + (Dst3 - Y2) * 8);
         }
-        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256 Vc_ALWAYS_INLINE CONST shuffle(__m256 x, __m256 y) {
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static inline __m256 Vc_ALWAYS_INLINE Vc_CONST shuffle(__m256 x, __m256 y) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, Incorrect_Range);
             return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
         }
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
-        static inline __m256 Vc_ALWAYS_INLINE CONST blend(__m256 x, __m256 y) {
+        static inline __m256 Vc_ALWAYS_INLINE Vc_CONST blend(__m256 x, __m256 y) {
             VC_STATIC_ASSERT(Dst0 == X0 || Dst0 == Y0, Incorrect_Range);
             VC_STATIC_ASSERT(Dst1 == X1 || Dst1 == Y1, Incorrect_Range);
             VC_STATIC_ASSERT(Dst2 == X2 || Dst2 == Y2, Incorrect_Range);
@@ -97,12 +97,12 @@ namespace Vc
                     );
         }
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
-        static inline __m256i Vc_ALWAYS_INLINE CONST blend(__m256i x, __m256i y) {
+        static inline __m256i Vc_ALWAYS_INLINE Vc_CONST blend(__m256i x, __m256i y) {
             return _mm256_castps_si256(blend<Dst0, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6, Dst7>(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
         }
         template<VecPos Dst> struct ScaleForBlend { enum { Value = Dst >= X4 ? Dst - X4 + Y0 : Dst }; };
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
-        static inline __m256 Vc_ALWAYS_INLINE CONST permute(__m256 x) {
+        static inline __m256 Vc_ALWAYS_INLINE Vc_CONST permute(__m256 x) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst0 <= X7, Incorrect_Range);
             VC_STATIC_ASSERT(Dst1 >= X0 && Dst1 <= X7, Incorrect_Range);
             VC_STATIC_ASSERT(Dst2 >= X0 && Dst2 <= X7, Incorrect_Range);
@@ -172,47 +172,47 @@ namespace Vc
     // The shuffles and permutes above use memory ordering. The ones below use register ordering:
     namespace Reg
     {
-        template<VecPos H, VecPos L> static inline __m256 Vc_ALWAYS_INLINE CONST permute128(__m256 x, __m256 y) {
+        template<VecPos H, VecPos L> static inline __m256 Vc_ALWAYS_INLINE Vc_CONST permute128(__m256 x, __m256 y) {
             VC_STATIC_ASSERT(L >= X0 && H >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(L <= Y1 && H <= Y1, Incorrect_Range);
             return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos H, VecPos L> static inline __m256i Vc_ALWAYS_INLINE CONST permute128(__m256i x, __m256i y) {
+        template<VecPos H, VecPos L> static inline __m256i Vc_ALWAYS_INLINE Vc_CONST permute128(__m256i x, __m256i y) {
             VC_STATIC_ASSERT(L >= X0 && H >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(L <= Y1 && H <= Y1, Incorrect_Range);
             return _mm256_permute2f128_si256(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos H, VecPos L> static inline __m256d Vc_ALWAYS_INLINE CONST permute128(__m256d x, __m256d y) {
+        template<VecPos H, VecPos L> static inline __m256d Vc_ALWAYS_INLINE Vc_CONST permute128(__m256d x, __m256d y) {
             VC_STATIC_ASSERT(L >= X0 && H >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(L <= Y1 && H <= Y1, Incorrect_Range);
             return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static inline __m256d Vc_ALWAYS_INLINE CONST permute(__m256d x) {
+        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static inline __m256d Vc_ALWAYS_INLINE Vc_CONST permute(__m256d x) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X2 && Dst3 >= X2, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X1 && Dst1 <= X1 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
             return _mm256_permute_pd(x, Dst0 + Dst1 * 2 + (Dst2 - X2) * 4 + (Dst3 - X2) * 8);
         }
-        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static inline __m256 Vc_ALWAYS_INLINE CONST permute(__m256 x) {
+        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static inline __m256 Vc_ALWAYS_INLINE Vc_CONST permute(__m256 x) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
             return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
-        template<VecPos Dst1, VecPos Dst0> static inline __m128d Vc_ALWAYS_INLINE CONST permute(__m128d x) {
+        template<VecPos Dst1, VecPos Dst0> static inline __m128d Vc_ALWAYS_INLINE Vc_CONST permute(__m128d x) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X1 && Dst1 <= X1, Incorrect_Range);
             return _mm_permute_pd(x, Dst0 + Dst1 * 2);
         }
-        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static inline __m128 Vc_ALWAYS_INLINE CONST permute(__m128 x) {
+        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static inline __m128 Vc_ALWAYS_INLINE Vc_CONST permute(__m128 x) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, Incorrect_Range);
             return _mm_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
-        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static inline __m256d Vc_ALWAYS_INLINE CONST shuffle(__m256d x, __m256d y) {
+        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static inline __m256d Vc_ALWAYS_INLINE Vc_CONST shuffle(__m256d x, __m256d y) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, Incorrect_Range);
             return _mm256_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2 + (Dst2 - X2) * 4 + (Dst3 - Y2) * 8);
         }
-        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static inline __m256 Vc_ALWAYS_INLINE CONST shuffle(__m256 x, __m256 y) {
+        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static inline __m256 Vc_ALWAYS_INLINE Vc_CONST shuffle(__m256 x, __m256 y) {
             VC_STATIC_ASSERT(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, Incorrect_Range);
             VC_STATIC_ASSERT(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, Incorrect_Range);
             return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);

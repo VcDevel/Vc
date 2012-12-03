@@ -91,7 +91,7 @@ class WriteMaskedVector
             vec->data() = VectorHelper<T>::mul(vec->data(), x.data(), mask.data());
             return *vec;
         }
-        inline INTRINSIC CONST Vector<T> &operator/=(const Vector<T> &x);
+        inline INTRINSIC Vc_CONST Vector<T> &operator/=(const Vector<T> &x);
 
         inline INTRINSIC Vector<T> &operator+=(EntryType x) {
             return operator+=(Vector<T>(x));

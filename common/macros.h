@@ -47,9 +47,9 @@
 #  define INTRINSIC_L
 #  define INTRINSIC_R INTRINSIC
 #  define FLATTEN
-#  define CONST __attribute__((const))
+#  define Vc_CONST __attribute__((const))
 #  define CONST_L
-#  define CONST_R CONST
+#  define CONST_R Vc_CONST
 #  define PURE __attribute__((pure))
 #  define PURE_L
 #  define PURE_R PURE
@@ -79,9 +79,9 @@
 #  define INTRINSIC_L
 #  define INTRINSIC_R INTRINSIC
 #  define FLATTEN __attribute__((__flatten__))
-#  define CONST __attribute__((__const__))
+#  define Vc_CONST __attribute__((__const__))
 #  define CONST_L
-#  define CONST_R CONST
+#  define CONST_R Vc_CONST
 #  define PURE __attribute__((__pure__))
 #  define PURE_L
 #  define PURE_R PURE
@@ -101,10 +101,10 @@
 #    define Vc_ALWAYS_INLINE __forceinline
 #    define Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE
 #    define Vc_ALWAYS_INLINE_R
-#    define CONST __declspec(noalias)
-#    define CONST_L CONST
+#    define Vc_CONST __declspec(noalias)
+#    define CONST_L Vc_CONST
 #    define CONST_R
-#    define PURE /*CONST*/
+#    define PURE /*Vc_CONST*/
 #    define PURE_L PURE
 #    define PURE_R
 #    define INTRINSIC __forceinline
@@ -114,7 +114,7 @@
 #    define Vc_ALWAYS_INLINE
 #    define Vc_ALWAYS_INLINE_L
 #    define Vc_ALWAYS_INLINE_R
-#    define CONST
+#    define Vc_CONST
 #    define CONST_L
 #    define CONST_R
 #    define PURE
@@ -134,7 +134,7 @@
 #define _VC_CONSTEXPR_L _VC_CONSTEXPR
 #define _VC_CONSTEXPR_R
 #else
-#define _VC_CONSTEXPR inline INTRINSIC CONST
+#define _VC_CONSTEXPR inline INTRINSIC Vc_CONST
 #define _VC_CONSTEXPR_L inline INTRINSIC_L CONST_R
 #define _VC_CONSTEXPR_R INTRINSIC_R CONST_R
 #endif
