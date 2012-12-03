@@ -71,7 +71,7 @@ class Vector
         static inline Vector Zero() { Vector r; r.m_data = 0; return r; }
         static inline Vector One() { Vector r; r.m_data = 1; return r; }
         static inline Vector IndexesFromZero() { return Zero(); }
-        static inline INTRINSIC_L Vector Random() INTRINSIC_R;
+        static inline Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // static_cast / copy ctor
@@ -106,8 +106,8 @@ class Vector
         inline void setZero() { m_data = 0; }
         inline void setZero(Mask k) { if (k) m_data = 0; }
 
-        inline INTRINSIC_L void setQnan() INTRINSIC_R;
-        inline INTRINSIC_L void setQnan(Mask m) INTRINSIC_R;
+        inline Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
+        inline Vc_INTRINSIC_L void setQnan(Mask m) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
@@ -204,7 +204,7 @@ class Vector
 
         inline Vector operator~() const { return Vector(~m_data); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const { return Vector<typename NegateTypeHelper<T>::Type>(-m_data); }
-        inline Vector PURE Vc_INTRINSIC operator+() const { return *this; }
+        inline Vector Vc_PURE Vc_INTRINSIC operator+() const { return *this; }
 
 #define OPshift(symbol) \
         inline Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
@@ -228,7 +228,7 @@ class Vector
 #undef OPcmp
 #undef OPshift
 #undef OPshift_int
-        inline PURE_L INTRINSIC_L Mask isNegative() const PURE_R INTRINSIC_R;
+        inline Vc_PURE_L Vc_INTRINSIC_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
         inline void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
             m_data = m_data * factor.data() + summand.data();
@@ -240,7 +240,7 @@ class Vector
 
         template<typename V2> inline V2 staticCast() const { return V2(static_cast<typename V2::EntryType>(m_data)); }
         template<typename V2> inline V2 reinterpretCast() const {
-            typedef typename V2::EntryType AliasT2 MAY_ALIAS;
+            typedef typename V2::EntryType AliasT2 Vc_MAY_ALIAS;
             return V2(*reinterpret_cast<const AliasT2 *>(&m_data));
         }
 
@@ -320,8 +320,8 @@ class Vector
             m_data = f();
         }
 
-        inline INTRINSIC_L Vector copySign(Vector reference) const INTRINSIC_R;
-        inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
+        inline Vc_INTRINSIC_L Vector copySign(Vector reference) const Vc_INTRINSIC_R;
+        inline Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
 };
 
 typedef Vector<double>         double_v;

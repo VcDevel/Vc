@@ -381,7 +381,7 @@ template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
     return *this;
 }
 
-template<typename T> template<typename TT> inline PURE Vc_INTRINSIC VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) Vector<T>::operator/(TT x) const
+template<typename T> template<typename TT> inline Vc_PURE Vc_INTRINSIC VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) Vector<T>::operator/(TT x) const
 {
     if (VectorTraits<T>::HasVectorDivision) {
         return operator/(Vector<T>(x));
@@ -487,21 +487,21 @@ template<> inline Vector<double> Vector<double>::operator/(const Vector<double> 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator- {{{1
-template<> inline Vector<double> PURE Vc_ALWAYS_INLINE FLATTEN Vector<double>::operator-() const
+template<> inline Vector<double> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<double>::operator-() const
 {
     return _mm_xor_pd(d.v(), _mm_setsignmask_pd());
 }
-template<> inline Vector<float> PURE Vc_ALWAYS_INLINE FLATTEN Vector<float>::operator-() const
+template<> inline Vector<float> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float>::operator-() const
 {
     return _mm_xor_ps(d.v(), _mm_setsignmask_ps());
 }
-template<> inline Vector<float8> PURE Vc_ALWAYS_INLINE FLATTEN Vector<float8>::operator-() const
+template<> inline Vector<float8> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float8>::operator-() const
 {
     return M256::create(
             _mm_xor_ps(d.v()[0], _mm_setsignmask_ps()),
             _mm_xor_ps(d.v()[1], _mm_setsignmask_ps()));
 }
-template<> inline Vector<int> PURE Vc_ALWAYS_INLINE FLATTEN Vector<int>::operator-() const
+template<> inline Vector<int> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<int>::operator-() const
 {
 #ifdef VC_IMPL_SSSE3
     return _mm_sign_epi32(d.v(), _mm_setallone_si128());
@@ -509,7 +509,7 @@ template<> inline Vector<int> PURE Vc_ALWAYS_INLINE FLATTEN Vector<int>::operato
     return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
 #endif
 }
-template<> inline Vector<int> PURE Vc_ALWAYS_INLINE FLATTEN Vector<unsigned int>::operator-() const
+template<> inline Vector<int> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<unsigned int>::operator-() const
 {
 #ifdef VC_IMPL_SSSE3
     return _mm_sign_epi32(d.v(), _mm_setallone_si128());
@@ -517,7 +517,7 @@ template<> inline Vector<int> PURE Vc_ALWAYS_INLINE FLATTEN Vector<unsigned int>
     return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
 #endif
 }
-template<> inline Vector<short> PURE Vc_ALWAYS_INLINE FLATTEN Vector<short>::operator-() const
+template<> inline Vector<short> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<short>::operator-() const
 {
 #ifdef VC_IMPL_SSSE3
     return _mm_sign_epi16(d.v(), _mm_setallone_si128());
@@ -525,7 +525,7 @@ template<> inline Vector<short> PURE Vc_ALWAYS_INLINE FLATTEN Vector<short>::ope
     return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
 #endif
 }
-template<> inline Vector<short> PURE Vc_ALWAYS_INLINE FLATTEN Vector<unsigned short>::operator-() const
+template<> inline Vector<short> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<unsigned short>::operator-() const
 {
 #ifdef VC_IMPL_SSSE3
     return _mm_sign_epi16(d.v(), _mm_setallone_si128());
@@ -694,18 +694,18 @@ VC_SWIZZLES_16BIT_IMPL(unsigned short)
 // operators {{{1
 #include "../common/operators.h"
 // isNegative {{{1
-template<> inline PURE Vc_INTRINSIC float_m float_v::isNegative() const
+template<> inline Vc_PURE Vc_INTRINSIC float_m float_v::isNegative() const
 {
     return sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v())), 31));
 }
-template<> inline PURE Vc_INTRINSIC sfloat_m sfloat_v::isNegative() const
+template<> inline Vc_PURE Vc_INTRINSIC sfloat_m sfloat_v::isNegative() const
 {
     return M256::create(
             sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v()[0])), 31)),
             sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v()[1])), 31))
             );
 }
-template<> inline PURE Vc_INTRINSIC double_m double_v::isNegative() const
+template<> inline Vc_PURE Vc_INTRINSIC double_m double_v::isNegative() const
 {
     return Mem::permute<X1, X1, X3, X3>(sse_cast<__m128>(
                 _mm_srai_epi32(sse_cast<__m128i>(_mm_and_pd(_mm_setsignmask_pd(), d.v())), 31)
@@ -768,39 +768,39 @@ template<typename T, size_t Size> struct IndexSizeChecker<Vector<T>, Size>
         VC_STATIC_ASSERT(Vector<T>::Size >= Size, IndexVector_must_have_greater_or_equal_number_of_entries);
     }
 };
-template<> template<typename Index> inline void Vc_ALWAYS_INLINE FLATTEN Vector<double>::gather(const EntryType *mem, const Index indexes)
+template<> template<typename Index> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<double>::gather(const EntryType *mem, const Index indexes)
 {
     IndexSizeChecker<Index, Size>::check();
     d.v() = _mm_setr_pd(mem[indexes[0]], mem[indexes[1]]);
 }
-template<> template<typename Index> inline void Vc_ALWAYS_INLINE FLATTEN Vector<float>::gather(const EntryType *mem, const Index indexes)
+template<> template<typename Index> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float>::gather(const EntryType *mem, const Index indexes)
 {
     IndexSizeChecker<Index, Size>::check();
     d.v() = _mm_setr_ps(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
 }
-template<> template<typename Index> inline void Vc_ALWAYS_INLINE FLATTEN Vector<float8>::gather(const EntryType *mem, const Index indexes)
+template<> template<typename Index> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float8>::gather(const EntryType *mem, const Index indexes)
 {
     IndexSizeChecker<Index, Size>::check();
     d.v()[0] = _mm_setr_ps(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
     d.v()[1] = _mm_setr_ps(mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
-template<> template<typename Index> inline void Vc_ALWAYS_INLINE FLATTEN Vector<int>::gather(const EntryType *mem, const Index indexes)
+template<> template<typename Index> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<int>::gather(const EntryType *mem, const Index indexes)
 {
     IndexSizeChecker<Index, Size>::check();
     d.v() = _mm_setr_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
 }
-template<> template<typename Index> inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned int>::gather(const EntryType *mem, const Index indexes)
+template<> template<typename Index> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<unsigned int>::gather(const EntryType *mem, const Index indexes)
 {
     IndexSizeChecker<Index, Size>::check();
     d.v() = _mm_setr_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
 }
-template<> template<typename Index> inline void Vc_ALWAYS_INLINE FLATTEN Vector<short>::gather(const EntryType *mem, const Index indexes)
+template<> template<typename Index> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<short>::gather(const EntryType *mem, const Index indexes)
 {
     IndexSizeChecker<Index, Size>::check();
     d.v() = _mm_setr_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
             mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
-template<> template<typename Index> inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned short>::gather(const EntryType *mem, const Index indexes)
+template<> template<typename Index> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<unsigned short>::gather(const EntryType *mem, const Index indexes)
 {
     IndexSizeChecker<Index, Size>::check();
     d.v() = _mm_setr_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
@@ -882,20 +882,20 @@ inline void Vc_INTRINSIC Vector<T>::gather(const EntryType *mem, Index indexes, 
 }
 
 template<> template<typename S1, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<double>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<double>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_pd(array[indexes[0]].*(member1), array[indexes[1]].*(member1));
 }
 template<> template<typename S1, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<float>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_ps(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1));
 }
 template<> template<typename S1, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<float8>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float8>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v()[0] = _mm_setr_ps(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
@@ -904,21 +904,21 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<float8>::gather(const S1 *array, con
             array[indexes[7]].*(member1));
 }
 template<> template<typename S1, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<int>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<int>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_epi32(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1));
 }
 template<> template<typename S1, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned int>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<unsigned int>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_epi32(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1));
 }
 template<> template<typename S1, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<short>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<short>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_epi16(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
@@ -926,7 +926,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<short>::gather(const S1 *array, cons
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
 template<> template<typename S1, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned short>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_epi16(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
@@ -934,7 +934,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned short>::gather(const S1 *ar
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
 template<typename T> template<typename S1, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes, MaskArg mask)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::gather(const S1 *array, const EntryType S1::* member1, const IT indexes, MaskArg mask)
 {
     IndexSizeChecker<IT, Size>::check();
 #define ith_value(_i_) (array[indexes[_i_]].*(member1))
@@ -942,20 +942,20 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const En
 #undef ith_value
 }
 template<> template<typename S1, typename S2, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<double>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<double>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_pd(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2));
 }
 template<> template<typename S1, typename S2, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<float>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_ps(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
             array[indexes[3]].*(member1).*(member2));
 }
 template<> template<typename S1, typename S2, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<float8>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float8>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v()[0] = _mm_setr_ps(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2),
@@ -964,21 +964,21 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<float8>::gather(const S1 *array, con
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
 template<> template<typename S1, typename S2, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_epi32(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2),
             array[indexes[2]].*(member1).*(member2), array[indexes[3]].*(member1).*(member2));
 }
 template<> template<typename S1, typename S2, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<unsigned int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_epi32(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2),
             array[indexes[2]].*(member1).*(member2), array[indexes[3]].*(member1).*(member2));
 }
 template<> template<typename S1, typename S2, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_epi16(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
@@ -986,7 +986,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<short>::gather(const S1 *array, cons
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
 template<> template<typename S1, typename S2, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm_setr_epi16(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
@@ -994,7 +994,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned short>::gather(const S1 *ar
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
 template<typename T> template<typename S1, typename S2, typename IT>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes, MaskArg mask)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, const IT indexes, MaskArg mask)
 {
     IndexSizeChecker<IT, Size>::check();
 #define ith_value(_i_) (array[indexes[_i_]].*(member1).*(member2))
@@ -1002,7 +1002,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const S2
 #undef ith_value
 }
 template<> template<typename S1, typename IT1, typename IT2>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<double>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<double>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
@@ -1010,7 +1010,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<double>::gather(const S1 *array, con
             (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]]);
 }
 template<> template<typename S1, typename IT1, typename IT2>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<float>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
@@ -1018,7 +1018,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<float>::gather(const S1 *array, cons
             (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]]);
 }
 template<> template<typename S1, typename IT1, typename IT2>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<float8>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float8>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
@@ -1028,7 +1028,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<float8>::gather(const S1 *array, con
             (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
 }
 template<> template<typename S1, typename IT1, typename IT2>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<int>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<int>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
@@ -1036,7 +1036,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<int>::gather(const S1 *array, const 
             (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]]);
 }
 template<> template<typename S1, typename IT1, typename IT2>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned int>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<unsigned int>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
@@ -1044,7 +1044,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned int>::gather(const S1 *arra
             (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]]);
 }
 template<> template<typename S1, typename IT1, typename IT2>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<short>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<short>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
@@ -1054,7 +1054,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<short>::gather(const S1 *array, cons
             (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
 }
 template<> template<typename S1, typename IT1, typename IT2>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned short>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes)
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
@@ -1064,7 +1064,7 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<unsigned short>::gather(const S1 *ar
             (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
 }
 template<typename T> template<typename S1, typename IT1, typename IT2>
-inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, MaskArg mask)
+inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, MaskArg mask)
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
@@ -1130,49 +1130,49 @@ inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::gather(const S1 *array, const En
             );
 #endif
 
-template<typename T> template<typename Index> inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::scatter(EntryType *mem, const Index indexes) const
+template<typename T> template<typename Index> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::scatter(EntryType *mem, const Index indexes) const
 {
     for_all_vector_entries(i,
             mem[indexes[i]] = d.m(i);
             );
 }
-template<typename T> template<typename Index> inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::scatter(EntryType *mem, const Index indexes, MaskArg mask) const
+template<typename T> template<typename Index> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::scatter(EntryType *mem, const Index indexes, MaskArg mask) const
 {
 #define ith_value(_i_) mem[indexes[_i_]]
     VC_MASKED_SCATTER
 #undef ith_value
 }
-template<typename T> template<typename S1, typename IT> inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, const IT indexes) const
+template<typename T> template<typename S1, typename IT> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, const IT indexes) const
 {
     for_all_vector_entries(i,
             array[indexes[i]].*(member1) = d.m(i);
             );
 }
-template<typename T> template<typename S1, typename IT> inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, const IT indexes, MaskArg mask) const
+template<typename T> template<typename S1, typename IT> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, const IT indexes, MaskArg mask) const
 {
 #define ith_value(_i_) array[indexes[_i_]].*(member1)
     VC_MASKED_SCATTER
 #undef ith_value
 }
-template<typename T> template<typename S1, typename S2, typename IT> inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, const IT indexes) const
+template<typename T> template<typename S1, typename S2, typename IT> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, const IT indexes) const
 {
     for_all_vector_entries(i,
             array[indexes[i]].*(member1).*(member2) = d.m(i);
             );
 }
-template<typename T> template<typename S1, typename S2, typename IT> inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, const IT indexes, MaskArg mask) const
+template<typename T> template<typename S1, typename S2, typename IT> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, const IT indexes, MaskArg mask) const
 {
 #define ith_value(_i_) array[indexes[_i_]].*(member1).*(member2)
     VC_MASKED_SCATTER
 #undef ith_value
 }
-template<typename T> template<typename S1, typename IT1, typename IT2> inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes) const
+template<typename T> template<typename S1, typename IT1, typename IT2> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes) const
 {
     for_all_vector_entries(i,
             (array[innerIndexes[i]].*(ptrMember1))[outerIndexes[i]] = d.m(i);
             );
 }
-template<typename T> template<typename S1, typename IT1, typename IT2> inline void Vc_ALWAYS_INLINE FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, MaskArg mask) const
+template<typename T> template<typename S1, typename IT1, typename IT2> inline void Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, const IT1 outerIndexes, const IT2 innerIndexes, MaskArg mask) const
 {
 #define ith_value(_i_) (array[outerIndexes[_i_]].*(ptrMember1))[innerIndexes[_i_]]
     VC_MASKED_SCATTER
@@ -1181,23 +1181,23 @@ template<typename T> template<typename S1, typename IT1, typename IT2> inline vo
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator[] {{{1
-template<typename T> inline typename Vector<T>::EntryType PURE Vc_INTRINSIC Vector<T>::operator[](size_t index) const
+template<typename T> inline typename Vector<T>::EntryType Vc_PURE Vc_INTRINSIC Vector<T>::operator[](size_t index) const
 {
     return d.m(index);
 }
 #ifdef VC_GCC
-template<> inline double PURE Vc_INTRINSIC Vector<double>::operator[](size_t index) const
+template<> inline double Vc_PURE Vc_INTRINSIC Vector<double>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
         return extract_double_imm(d.v(), index);
     }
     return d.m(index);
 }
-template<> inline float PURE Vc_INTRINSIC Vector<float>::operator[](size_t index) const
+template<> inline float Vc_PURE Vc_INTRINSIC Vector<float>::operator[](size_t index) const
 {
     return extract_float(d.v(), index);
 }
-template<> inline float PURE Vc_INTRINSIC Vector<float8>::operator[](size_t index) const
+template<> inline float Vc_PURE Vc_INTRINSIC Vector<float8>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
         if (index < 4) {
@@ -1207,7 +1207,7 @@ template<> inline float PURE Vc_INTRINSIC Vector<float8>::operator[](size_t inde
     }
     return d.m(index);
 }
-template<> inline int PURE Vc_INTRINSIC Vector<int>::operator[](size_t index) const
+template<> inline int Vc_PURE Vc_INTRINSIC Vector<int>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
 #if VC_GCC >= 0x40601 || !defined(VC_USE_VEX_CODING) // GCC < 4.6.1 incorrectly uses vmovq instead of movq for the following
@@ -1226,7 +1226,7 @@ template<> inline int PURE Vc_INTRINSIC Vector<int>::operator[](size_t index) co
     }
     return d.m(index);
 }
-template<> inline unsigned int PURE Vc_INTRINSIC Vector<unsigned int>::operator[](size_t index) const
+template<> inline unsigned int Vc_PURE Vc_INTRINSIC Vector<unsigned int>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
 #if VC_GCC >= 0x40601 || !defined(VC_USE_VEX_CODING) // GCC < 4.6.1 incorrectly uses vmovq instead of movq for the following
@@ -1245,14 +1245,14 @@ template<> inline unsigned int PURE Vc_INTRINSIC Vector<unsigned int>::operator[
     }
     return d.m(index);
 }
-template<> inline short PURE Vc_INTRINSIC Vector<short>::operator[](size_t index) const
+template<> inline short Vc_PURE Vc_INTRINSIC Vector<short>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
         return _mm_extract_epi16(d.v(), index);
     }
     return d.m(index);
 }
-template<> inline unsigned short PURE Vc_INTRINSIC Vector<unsigned short>::operator[](size_t index) const
+template<> inline unsigned short Vc_PURE Vc_INTRINSIC Vector<unsigned short>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
         return _mm_extract_epi16(d.v(), index);
@@ -1387,7 +1387,7 @@ template<> inline Vc_ALWAYS_INLINE Vector<float8> Vector<float8>::Random()
 
 template<> inline Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 {
-    typedef unsigned long long uint64 MAY_ALIAS;
+    typedef unsigned long long uint64 Vc_MAY_ALIAS;
     uint64 state0 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[8]);
     uint64 state1 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[10]);
     const __m128i state = _mm_load_si128(reinterpret_cast<const __m128i *>(&Vc::RandomState[8]));

@@ -82,8 +82,8 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         inline operator bool() const { return isFull(); }
 #endif
 
-        inline int CONST_L shiftMask() const CONST_R;
-        int CONST_L toInt() const CONST_R;
+        inline int Vc_CONST_L shiftMask() const Vc_CONST_R;
+        int Vc_CONST_L toInt() const Vc_CONST_R;
 
         inline _M256  data () const { return k; }
         inline _M256I dataI() const { return _mm256_castps_si256(k); }
@@ -150,8 +150,8 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
         inline operator bool() const { return isFull(); }
 #endif
 
-        inline int CONST_L shiftMask() const CONST_R;
-        int CONST_L toInt() const CONST_R;
+        inline int Vc_CONST_L shiftMask() const Vc_CONST_R;
+        int Vc_CONST_L toInt() const Vc_CONST_R;
 
         inline __m128  data () const { return k; }
         inline __m128i dataI() const { return avx_cast<__m128i>(k); }

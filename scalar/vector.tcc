@@ -68,7 +68,7 @@ template<> inline Vector<double> Vc_INTRINSIC Vector<double>::copySign(Vector<do
 // bitwise operators {{{1
 #define VC_CAST_OPERATOR_FORWARD(op, IntT, VecT) \
 template<> inline VecT &VecT::operator op##=(const VecT &x) { \
-    typedef IntT uinta MAY_ALIAS; \
+    typedef IntT uinta Vc_MAY_ALIAS; \
     uinta *left = reinterpret_cast<uinta *>(&m_data); \
     const uinta *right = reinterpret_cast<const uinta *>(&x.m_data); \
     *left op##= *right; \
@@ -190,7 +190,7 @@ template<> inline Vc_INTRINSIC sfloat_v Vector<sfloat>::Random()
 }
 template<> inline Vc_INTRINSIC Vector<double> Vector<double>::Random()
 {
-    typedef unsigned long long uint64 MAY_ALIAS;
+    typedef unsigned long long uint64 Vc_MAY_ALIAS;
     uint64 state0 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[8]);
     state0 = (state0 * 0x5deece66dull + 11) & 0x000fffffffffffffull;
     *reinterpret_cast<uint64 *>(&Vc::RandomState[8]) = state0;
@@ -199,13 +199,13 @@ template<> inline Vc_INTRINSIC Vector<double> Vector<double>::Random()
     return double_v(x.f - 1.);
 }
 // isNegative {{{1
-template<typename T> inline PURE Vc_INTRINSIC typename Vector<T>::Mask Vector<T>::isNegative() const
+template<typename T> inline Vc_PURE Vc_INTRINSIC typename Vector<T>::Mask Vector<T>::isNegative() const
 {
     union { float f; unsigned int i; } u;
     u.f = m_data;
     return Mask(0u != (u.i & 0x80000000u));
 }
-template<> inline PURE Vc_INTRINSIC double_m double_v::isNegative() const
+template<> inline Vc_PURE Vc_INTRINSIC double_m double_v::isNegative() const
 {
     union { double d; unsigned long long l; } u;
     u.d = m_data;

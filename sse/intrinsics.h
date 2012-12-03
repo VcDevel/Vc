@@ -469,7 +469,7 @@ namespace SSE
 //X             return Common::AliasingEntryHelper<EntryType>(tmp);
 //X         }
         } else {
-            typedef float float4[4] MAY_ALIAS;
+            typedef float float4[4] Vc_MAY_ALIAS;
             const float4 &data = reinterpret_cast<const float4 &>(v);
             return data[i];
         }

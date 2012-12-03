@@ -22,15 +22,15 @@
 #undef VC_COMMON_MACROS_H
 
 #undef Vc_INTRINSIC
-#undef INTRINSIC_L
-#undef INTRINSIC_R
+#undef Vc_INTRINSIC_L
+#undef Vc_INTRINSIC_R
 #undef Vc_CONST
-#undef CONST_L
-#undef CONST_R
-#undef PURE
-#undef PURE_L
-#undef PURE_R
-#undef MAY_ALIAS
+#undef Vc_CONST_L
+#undef Vc_CONST_R
+#undef Vc_PURE
+#undef Vc_PURE_L
+#undef Vc_PURE_R
+#undef Vc_MAY_ALIAS
 #undef Vc_ALWAYS_INLINE
 #undef Vc_ALWAYS_INLINE_L
 #undef Vc_ALWAYS_INLINE_R

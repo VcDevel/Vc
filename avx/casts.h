@@ -27,12 +27,12 @@ namespace Vc
 {
 namespace AVX
 {
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m128  v) INTRINSIC_R;
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m128i v) INTRINSIC_R;
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m128d v) INTRINSIC_R;
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m256  v) INTRINSIC_R;
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m256i v) INTRINSIC_R;
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m256d v) INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m128  v) Vc_INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m128i v) Vc_INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m128d v) Vc_INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m256  v) Vc_INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m256i v) Vc_INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m256d v) Vc_INTRINSIC_R;
 
     // 128 -> 128
     template<> inline __m128  Vc_INTRINSIC avx_cast(__m128  v) { return v; }

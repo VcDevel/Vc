@@ -44,16 +44,16 @@
 
 #ifdef VC_CLANG
 #  define Vc_INTRINSIC __attribute__((always_inline))
-#  define INTRINSIC_L
-#  define INTRINSIC_R Vc_INTRINSIC
-#  define FLATTEN
+#  define Vc_INTRINSIC_L
+#  define Vc_INTRINSIC_R Vc_INTRINSIC
+#  define Vc_FLATTEN
 #  define Vc_CONST __attribute__((const))
-#  define CONST_L
-#  define CONST_R Vc_CONST
-#  define PURE __attribute__((pure))
-#  define PURE_L
-#  define PURE_R PURE
-#  define MAY_ALIAS __attribute__((may_alias))
+#  define Vc_CONST_L
+#  define Vc_CONST_R Vc_CONST
+#  define Vc_PURE __attribute__((pure))
+#  define Vc_PURE_L
+#  define Vc_PURE_R Vc_PURE
+#  define Vc_MAY_ALIAS __attribute__((may_alias))
 #  define Vc_ALWAYS_INLINE __attribute__((always_inline))
 #  define Vc_ALWAYS_INLINE_L
 #  define Vc_ALWAYS_INLINE_R Vc_ALWAYS_INLINE
@@ -63,9 +63,9 @@
 #elif defined(__GNUC__)
 #  if VC_GCC < 0x40300 || defined(VC_OPEN64)
 // GCC 4.1 and 4.2 ICE on may_alias. Since Open64 uses the GCC 4.2 frontend it has the same problem.
-#    define MAY_ALIAS
+#    define Vc_MAY_ALIAS
 #  else
-#    define MAY_ALIAS __attribute__((__may_alias__))
+#    define Vc_MAY_ALIAS __attribute__((__may_alias__))
 #  endif
 #  if VC_GCC < 0x40200
 // GCC 4.1 fails with "sorry unimplemented: inlining failed"
@@ -76,15 +76,15 @@
 #  else
 #    define Vc_INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
 #  endif
-#  define INTRINSIC_L
-#  define INTRINSIC_R Vc_INTRINSIC
-#  define FLATTEN __attribute__((__flatten__))
+#  define Vc_INTRINSIC_L
+#  define Vc_INTRINSIC_R Vc_INTRINSIC
+#  define Vc_FLATTEN __attribute__((__flatten__))
 #  define Vc_CONST __attribute__((__const__))
-#  define CONST_L
-#  define CONST_R Vc_CONST
-#  define PURE __attribute__((__pure__))
-#  define PURE_L
-#  define PURE_R PURE
+#  define Vc_CONST_L
+#  define Vc_CONST_R Vc_CONST
+#  define Vc_PURE __attribute__((__pure__))
+#  define Vc_PURE_L
+#  define Vc_PURE_R Vc_PURE
 #  define Vc_ALWAYS_INLINE __attribute__((__always_inline__))
 #  define Vc_ALWAYS_INLINE_L
 #  define Vc_ALWAYS_INLINE_R Vc_ALWAYS_INLINE
@@ -92,37 +92,37 @@
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
 #else
-#  define FLATTEN
-#  ifdef PURE
-#    undef PURE
+#  define Vc_FLATTEN
+#  ifdef Vc_PURE
+#    undef Vc_PURE
 #  endif
-#  define MAY_ALIAS
+#  define Vc_MAY_ALIAS
 #  ifdef VC_MSVC
 #    define Vc_ALWAYS_INLINE __forceinline
 #    define Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE
 #    define Vc_ALWAYS_INLINE_R
 #    define Vc_CONST __declspec(noalias)
-#    define CONST_L Vc_CONST
-#    define CONST_R
-#    define PURE /*Vc_CONST*/
-#    define PURE_L PURE
-#    define PURE_R
+#    define Vc_CONST_L Vc_CONST
+#    define Vc_CONST_R
+#    define Vc_PURE /*Vc_CONST*/
+#    define Vc_PURE_L Vc_PURE
+#    define Vc_PURE_R
 #    define Vc_INTRINSIC __forceinline
-#    define INTRINSIC_L Vc_INTRINSIC
-#    define INTRINSIC_R
+#    define Vc_INTRINSIC_L Vc_INTRINSIC
+#    define Vc_INTRINSIC_R
 #  else
 #    define Vc_ALWAYS_INLINE
 #    define Vc_ALWAYS_INLINE_L
 #    define Vc_ALWAYS_INLINE_R
 #    define Vc_CONST
-#    define CONST_L
-#    define CONST_R
-#    define PURE
-#    define PURE_L
-#    define PURE_R
+#    define Vc_CONST_L
+#    define Vc_CONST_R
+#    define Vc_PURE
+#    define Vc_PURE_L
+#    define Vc_PURE_R
 #    define Vc_INTRINSIC
-#    define INTRINSIC_L
-#    define INTRINSIC_R
+#    define Vc_INTRINSIC_L
+#    define Vc_INTRINSIC_R
 #  endif
 #  define VC_IS_UNLIKELY(x) x
 #  define VC_IS_LIKELY(x) x
@@ -135,8 +135,8 @@
 #define _VC_CONSTEXPR_R
 #else
 #define _VC_CONSTEXPR inline Vc_INTRINSIC Vc_CONST
-#define _VC_CONSTEXPR_L inline INTRINSIC_L CONST_R
-#define _VC_CONSTEXPR_R INTRINSIC_R CONST_R
+#define _VC_CONSTEXPR_L inline Vc_INTRINSIC_L Vc_CONST_R
+#define _VC_CONSTEXPR_R Vc_INTRINSIC_R Vc_CONST_R
 #endif
 
 #if (defined(__GXX_EXPERIMENTAL_CXX0X__) && VC_GCC >= 0x40600) || __cplusplus >= 201103

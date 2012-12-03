@@ -107,7 +107,7 @@ template<typename T> class Vector
         template<typename T2> explicit Vector(Vector<T2> x);
 
         // implicit cast
-        template<typename OtherT> inline INTRINSIC_L Vector &operator=(const Vector<OtherT> &x) INTRINSIC_R;
+        template<typename OtherT> inline Vc_INTRINSIC_L Vector &operator=(const Vector<OtherT> &x) Vc_INTRINSIC_R;
 
         // copy assignment
         inline Vector &operator=(AsArg v) { d.v() = v.d.v(); return *this; }
@@ -120,25 +120,25 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
-        explicit inline INTRINSIC_L
-            Vector(const EntryType *x) INTRINSIC_R;
-        template<typename Alignment> inline INTRINSIC_L
-            Vector(const EntryType *x, Alignment align) INTRINSIC_R;
-        template<typename OtherT> explicit inline INTRINSIC_L
-            Vector(const OtherT    *x) INTRINSIC_R;
-        template<typename OtherT, typename Alignment> inline INTRINSIC_L
-            Vector(const OtherT    *x, Alignment align) INTRINSIC_R;
+        explicit inline Vc_INTRINSIC_L
+            Vector(const EntryType *x) Vc_INTRINSIC_R;
+        template<typename Alignment> inline Vc_INTRINSIC_L
+            Vector(const EntryType *x, Alignment align) Vc_INTRINSIC_R;
+        template<typename OtherT> explicit inline Vc_INTRINSIC_L
+            Vector(const OtherT    *x) Vc_INTRINSIC_R;
+        template<typename OtherT, typename Alignment> inline Vc_INTRINSIC_L
+            Vector(const OtherT    *x, Alignment align) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
-        inline INTRINSIC_L
-            void load(const EntryType *mem) INTRINSIC_R;
-        template<typename Alignment> inline INTRINSIC_L
-            void load(const EntryType *mem, Alignment align) INTRINSIC_R;
-        template<typename OtherT> inline INTRINSIC_L
-            void load(const OtherT    *mem) INTRINSIC_R;
-        template<typename OtherT, typename Alignment> inline INTRINSIC_L
-            void load(const OtherT    *mem, Alignment align) INTRINSIC_R;
+        inline Vc_INTRINSIC_L
+            void load(const EntryType *mem) Vc_INTRINSIC_R;
+        template<typename Alignment> inline Vc_INTRINSIC_L
+            void load(const EntryType *mem, Alignment align) Vc_INTRINSIC_R;
+        template<typename OtherT> inline Vc_INTRINSIC_L
+            void load(const OtherT    *mem) Vc_INTRINSIC_R;
+        template<typename OtherT, typename Alignment> inline Vc_INTRINSIC_L
+            void load(const OtherT    *mem, Alignment align) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
@@ -162,19 +162,19 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
-        inline const Vector<T> INTRINSIC_L CONST_L &abcd() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  cdab() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  badc() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  aaaa() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  bbbb() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  cccc() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  dddd() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  bcad() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  bcda() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  dabc() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  acbd() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  dbca() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  dcba() const INTRINSIC_R CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L &abcd() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  cdab() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  badc() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  aaaa() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  bbbb() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  cccc() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  dddd() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  bcad() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  bcda() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  dabc() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  acbd() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  dbca() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  dcba() const Vc_INTRINSIC_R Vc_CONST_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // gathers
@@ -229,7 +229,7 @@ template<typename T> class Vector
 
         inline Vector Vc_ALWAYS_INLINE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
-        inline Vector PURE Vc_INTRINSIC operator+() const { return *this; }
+        inline Vector Vc_PURE Vc_INTRINSIC operator+() const { return *this; }
 
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
@@ -249,7 +249,7 @@ template<typename T> class Vector
         OP(*, mul)
 #undef OP
         inline Vector &operator/=(EntryType x);
-        template<typename TT> inline PURE_L VC_EXACT_TYPE(TT, EntryType, Vector) operator/(TT x) const PURE_R;
+        template<typename TT> inline Vc_PURE_L VC_EXACT_TYPE(TT, EntryType, Vector) operator/(TT x) const Vc_PURE_R;
         inline Vector &operator/=(const Vector<T> &x);
         inline Vector  operator/ (const Vector<T> &x) const;
 
@@ -282,7 +282,7 @@ template<typename T> class Vector
         OPcmp(<, cmplt)
         OPcmp(<=, cmple)
 #undef OPcmp
-        inline PURE_L INTRINSIC_L Mask isNegative() const PURE_R INTRINSIC_R;
+        inline Vc_PURE_L Vc_INTRINSIC_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
         inline void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
             VectorHelper<T>::fma(data(), factor.data(), summand.data());
@@ -319,8 +319,8 @@ template<typename T> class Vector
         inline EntryType product(MaskArg m) const;
         inline EntryType sum(MaskArg m) const;
 
-        inline INTRINSIC_L Vector shifted(int amount) const INTRINSIC_R;
-        inline INTRINSIC_L Vector rotated(int amount) const INTRINSIC_R;
+        inline Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
+        inline Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
         inline Vector sorted() const { return SortHelper<T>::sort(data()); }
 
         template<typename F> void callWithValuesSorted(F &f) {
@@ -397,8 +397,8 @@ template<typename T> class Vector
                     );
         }
 
-        inline INTRINSIC_L Vector copySign(AsArg reference) const INTRINSIC_R;
-        inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
+        inline Vc_INTRINSIC_L Vector copySign(AsArg reference) const Vc_INTRINSIC_R;
+        inline Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
 };
 
 typedef Vector<double>         double_v;

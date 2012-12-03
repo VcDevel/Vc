@@ -34,7 +34,7 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
     public:
         typedef _VectorType VectorType;
         typedef _EntryType EntryType;
-        typedef EntryType AliasingEntryType MAY_ALIAS;
+        typedef EntryType AliasingEntryType Vc_MAY_ALIAS;
         inline VectorMemoryUnion() { assertCorrectAlignment(&v()); }
 #if defined VC_ICC || defined VC_MSVC
         inline VectorMemoryUnion(const VectorType &x) { data.v = x; assertCorrectAlignment(&data.v); }

@@ -84,19 +84,19 @@ namespace AVX
         static inline Vc_ALWAYS_INLINE Vc_CONST V smallAsinInput()  { return V(c_trig<T>::data[37]); }
         static inline Vc_ALWAYS_INLINE Vc_CONST V largeAsinInput()  { return V(c_trig<T>::data[38]); }
 
-        static inline M CONST_L exponentMask() CONST_R { return M(V(c_log<T>::d(1)).data()); }
-        static inline V CONST_L _1_2()         CONST_R { return V(c_log<T>::d(18)); }
-        static inline V CONST_L _1_sqrt2()     CONST_R { return V(c_log<T>::d(15)); }
-        static inline V CONST_L P(int i)       CONST_R { return V(c_log<T>::d(2 + i)); }
-        static inline V CONST_L Q(int i)       CONST_R { return V(c_log<T>::d(8 + i)); }
-        static inline V CONST_L min()          CONST_R { return V(c_log<T>::d(14)); }
-        static inline V CONST_L ln2_small()    CONST_R { return V(c_log<T>::d(17)); }
-        static inline V CONST_L ln2_large()    CONST_R { return V(c_log<T>::d(16)); }
-        static inline V CONST_L neginf()       CONST_R { return V(c_log<T>::d(13)); }
-        static inline V CONST_L log10_e()      CONST_R { return V(c_log<T>::d(19)); }
-        static inline V CONST_L log2_e()       CONST_R { return V(c_log<T>::d(20)); }
+        static inline M Vc_CONST_L exponentMask() Vc_CONST_R { return M(V(c_log<T>::d(1)).data()); }
+        static inline V Vc_CONST_L _1_2()         Vc_CONST_R { return V(c_log<T>::d(18)); }
+        static inline V Vc_CONST_L _1_sqrt2()     Vc_CONST_R { return V(c_log<T>::d(15)); }
+        static inline V Vc_CONST_L P(int i)       Vc_CONST_R { return V(c_log<T>::d(2 + i)); }
+        static inline V Vc_CONST_L Q(int i)       Vc_CONST_R { return V(c_log<T>::d(8 + i)); }
+        static inline V Vc_CONST_L min()          Vc_CONST_R { return V(c_log<T>::d(14)); }
+        static inline V Vc_CONST_L ln2_small()    Vc_CONST_R { return V(c_log<T>::d(17)); }
+        static inline V Vc_CONST_L ln2_large()    Vc_CONST_R { return V(c_log<T>::d(16)); }
+        static inline V Vc_CONST_L neginf()       Vc_CONST_R { return V(c_log<T>::d(13)); }
+        static inline V Vc_CONST_L log10_e()      Vc_CONST_R { return V(c_log<T>::d(19)); }
+        static inline V Vc_CONST_L log2_e()       Vc_CONST_R { return V(c_log<T>::d(20)); }
 
-        static inline V CONST_L highMask() CONST_R;
+        static inline V Vc_CONST_L highMask() Vc_CONST_R;
     };
 
     template<> inline Vector<float> Vc_CONST Const<float>::highMask() { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }

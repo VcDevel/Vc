@@ -37,7 +37,7 @@ namespace AVX
         template<> struct VectorHelper<_M256>
         {
             typedef _M256 VectorType;
-            template<typename A> static VectorType load(const float *x, A) PURE;
+            template<typename A> static VectorType load(const float *x, A) Vc_PURE;
             static void store(float *mem, const VectorType x, AlignedFlag);
             static void store(float *mem, const VectorType x, UnalignedFlag);
             static void store(float *mem, const VectorType x, StreamingAndAlignedFlag);
@@ -67,7 +67,7 @@ namespace AVX
         template<> struct VectorHelper<_M256D>
         {
             typedef _M256D VectorType;
-            template<typename A> static VectorType load(const double *x, A) PURE;
+            template<typename A> static VectorType load(const double *x, A) Vc_PURE;
             static void store(double *mem, const VectorType x, AlignedFlag);
             static void store(double *mem, const VectorType x, UnalignedFlag);
             static void store(double *mem, const VectorType x, StreamingAndAlignedFlag);
@@ -99,10 +99,10 @@ namespace AVX
         template<> struct VectorHelper<_M256I>
         {
             typedef _M256I VectorType;
-            template<typename T> static VectorType load(const T *x, AlignedFlag) PURE;
-            template<typename T> static VectorType load(const T *x, UnalignedFlag) PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) PURE;
+            template<typename T> static VectorType load(const T *x, AlignedFlag) Vc_PURE;
+            template<typename T> static VectorType load(const T *x, UnalignedFlag) Vc_PURE;
+            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) Vc_PURE;
+            template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) Vc_PURE;
             template<typename T> static void store(T *mem, const VectorType x, AlignedFlag);
             template<typename T> static void store(T *mem, const VectorType x, UnalignedFlag);
             template<typename T> static void store(T *mem, const VectorType x, StreamingAndAlignedFlag);
@@ -132,10 +132,10 @@ namespace AVX
         template<> struct VectorHelper<__m128i>
         {
             typedef __m128i VectorType;
-            template<typename T> static VectorType load(const T *x, AlignedFlag) PURE;
-            template<typename T> static VectorType load(const T *x, UnalignedFlag) PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) PURE;
+            template<typename T> static VectorType load(const T *x, AlignedFlag) Vc_PURE;
+            template<typename T> static VectorType load(const T *x, UnalignedFlag) Vc_PURE;
+            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) Vc_PURE;
+            template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) Vc_PURE;
             template<typename T> static void store(T *mem, const VectorType x, AlignedFlag);
             template<typename T> static void store(T *mem, const VectorType x, UnalignedFlag);
             template<typename T> static void store(T *mem, const VectorType x, StreamingAndAlignedFlag);

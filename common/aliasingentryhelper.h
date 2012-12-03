@@ -55,7 +55,7 @@ template<class StorageType> class AliasingEntryHelper
         AliasingEntryHelper &operator>>=(T x) { m_storage->assign(m_index, m_storage->m(m_index)>> x); return *this; }
 #define m_data m_storage->read(m_index)
 #else
-        typedef T A MAY_ALIAS;
+        typedef T A Vc_MAY_ALIAS;
         A &m_data;
     public:
         template<typename T2>

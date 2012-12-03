@@ -74,10 +74,10 @@ namespace SSE
         static inline Vc_ALWAYS_INLINE Vc_CONST V log10_e()      { return load(c_log<T>::d(19)); }
         static inline Vc_ALWAYS_INLINE Vc_CONST V log2_e()       { return load(c_log<T>::d(20)); }
 
-        static inline Vc_ALWAYS_INLINE_L CONST_L V highMask()         Vc_ALWAYS_INLINE_R CONST_R;
-        static inline Vc_ALWAYS_INLINE_L CONST_L V highMask(int bits) Vc_ALWAYS_INLINE_R CONST_R;
+        static inline Vc_ALWAYS_INLINE_L Vc_CONST_L V highMask()         Vc_ALWAYS_INLINE_R Vc_CONST_R;
+        static inline Vc_ALWAYS_INLINE_L Vc_CONST_L V highMask(int bits) Vc_ALWAYS_INLINE_R Vc_CONST_R;
     private:
-        static inline Vc_ALWAYS_INLINE_L CONST_L V load(const T *mem) Vc_ALWAYS_INLINE_R CONST_R;
+        static inline Vc_ALWAYS_INLINE_L Vc_CONST_L V load(const T *mem) Vc_ALWAYS_INLINE_R Vc_CONST_R;
     };
     template<typename T> inline Vc_ALWAYS_INLINE Vc_CONST Vector<T> Const<T>::load(const T *mem) { return V(mem); }
     template<> inline Vc_ALWAYS_INLINE Vc_CONST sfloat_v Const<Vc::sfloat>::load(const float *mem) { return M256::dup(float_v(mem).data()); }

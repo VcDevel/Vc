@@ -32,7 +32,7 @@ template<typename V> struct InterleavedMemoryAccessBase
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef typename V::AsArg VArg;
-    typedef T Ta MAY_ALIAS;
+    typedef T Ta Vc_MAY_ALIAS;
     const I m_indexes;
     Ta *const m_data;
 
@@ -130,7 +130,7 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     typedef typename I::AsArg IndexType;
     typedef InterleavedMemoryAccess<sizeof(S) / sizeof(T), V> Access;
     typedef InterleavedMemoryReadAccess<sizeof(S) / sizeof(T), V> ReadAccess;
-    typedef T Ta MAY_ALIAS;
+    typedef T Ta Vc_MAY_ALIAS;
     Ta *const m_data;
 
     VC_STATIC_ASSERT((sizeof(S) / sizeof(T)) * sizeof(T) == sizeof(S), InterleavedMemoryAccess_does_not_support_packed_structs);
