@@ -69,8 +69,8 @@
  * \li Forget about containers that also go by the name of a vector. SIMD vectors are a different concept!
  * \li A vector is defined by the hardware as a special register which is wider than required for a
  * single value. Thus multiple values fit into one register. The width of this register and the
- * size of the scalar data type used normally determine the number of entries in the vector, and
- * thus this number is an unchangeable property of the hardware and therefore not a variable in the
+ * size of the scalar data type in use determine the number of entries in the vector.
+ * Therefore this number is an unchangeable property of the hardware and not a variable in the
  * Vc API.
  * \li Note that hardware is free to use different vector register widths for different data types.
  * For example AVX has instructions for 256-bit floating point registers, but only 128-bit integer
