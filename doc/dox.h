@@ -89,8 +89,8 @@
  *   z /= d;
  * }
  * \endcode
- * To vectorize it with Vc the types must be substituted by their Vc counterparts and math functions
- * must simply use the Vc implementation which is not part of the \c std namespace:
+ * To vectorize the \c normalize function with Vc, the types must be substituted by their Vc counterparts and math functions
+ * must use the Vc implementation (which is, per default, also imported into \c std namespace):
  * \code
  * using Vc::float_v;
  *
