@@ -352,14 +352,23 @@ macro(_vc_compile_one_implementation _objs _impl)
       endif()
    endforeach()
 
+   set(_outfile_flag -c -o)
+   if(Vc_COMPILER_IS_MSVC)
+      set(_outfile_flag /c /Fo)
+   endif()
+
    if(_ok)
       get_filename_component(_out "${_vc_compile_src}" NAME_WE)
       get_filename_component(_ext "${_vc_compile_src}" EXT)
-      set(_out "${_out}_${_impl}${_ext}.o")
+      if(Vc_COMPILER_IS_MSVC)
+         set(_out "${_out}_${_impl}${_ext}.obj")
+      else()
+         set(_out "${_out}_${_impl}${_ext}.o")
+      endif()
       add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_out}
          COMMAND ${CMAKE_CXX_COMPILER} ${_flags} ${_extra_flags}
          -DVC_IMPL=${_impl}
-         -c -o ${_out} ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+         ${_outfile_flag}${_out} ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
          MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
          IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
          COMMENT "Building CXX object ${_out}"
