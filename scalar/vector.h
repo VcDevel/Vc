@@ -128,19 +128,19 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
-        inline INTRINSIC const Vector<T> &abcd() const { return *this; }
-        inline INTRINSIC const Vector<T>  cdab() const { return *this; }
-        inline INTRINSIC const Vector<T>  badc() const { return *this; }
-        inline INTRINSIC const Vector<T>  aaaa() const { return *this; }
-        inline INTRINSIC const Vector<T>  bbbb() const { return *this; }
-        inline INTRINSIC const Vector<T>  cccc() const { return *this; }
-        inline INTRINSIC const Vector<T>  dddd() const { return *this; }
-        inline INTRINSIC const Vector<T>  bcad() const { return *this; }
-        inline INTRINSIC const Vector<T>  bcda() const { return *this; }
-        inline INTRINSIC const Vector<T>  dabc() const { return *this; }
-        inline INTRINSIC const Vector<T>  acbd() const { return *this; }
-        inline INTRINSIC const Vector<T>  dbca() const { return *this; }
-        inline INTRINSIC const Vector<T>  dcba() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T> &abcd() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  cdab() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  badc() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  aaaa() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  bbbb() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  cccc() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  dddd() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  bcad() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  bcda() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  dabc() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  acbd() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  dbca() const { return *this; }
+        inline Vc_INTRINSIC const Vector<T>  dcba() const { return *this; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // gathers
@@ -204,7 +204,7 @@ class Vector
 
         inline Vector operator~() const { return Vector(~m_data); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const { return Vector<typename NegateTypeHelper<T>::Type>(-m_data); }
-        inline Vector PURE INTRINSIC operator+() const { return *this; }
+        inline Vector PURE Vc_INTRINSIC operator+() const { return *this; }
 
 #define OPshift(symbol) \
         inline Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
@@ -265,47 +265,47 @@ class Vector
         inline EntryType product(Mask) const { return m_data; }
         inline EntryType sum(Mask m) const { if (m) return m_data; return static_cast<EntryType>(0); }
 
-        inline INTRINSIC Vector shifted(int amount) const { return amount == 0 ? *this : Zero(); }
-        inline INTRINSIC Vector rotated(int) const { return *this; }
+        inline Vc_INTRINSIC Vector shifted(int amount) const { return amount == 0 ? *this : Zero(); }
+        inline Vc_INTRINSIC Vector rotated(int) const { return *this; }
         Vector sorted() const { return *this; }
 
         template<typename F> void callWithValuesSorted(F &f) {
             f(m_data);
         }
 
-        template<typename F> inline void INTRINSIC call(const F &f) const {
+        template<typename F> inline void Vc_INTRINSIC call(const F &f) const {
             f(m_data);
         }
-        template<typename F> inline void INTRINSIC call(F &f) const {
+        template<typename F> inline void Vc_INTRINSIC call(F &f) const {
             f(m_data);
         }
 
-        template<typename F> inline void INTRINSIC call(const F &f, Mask mask) const {
+        template<typename F> inline void Vc_INTRINSIC call(const F &f, Mask mask) const {
             if (mask) {
                 f(m_data);
             }
         }
-        template<typename F> inline void INTRINSIC call(F &f, Mask mask) const {
+        template<typename F> inline void Vc_INTRINSIC call(F &f, Mask mask) const {
             if (mask) {
                 f(m_data);
             }
         }
 
-        template<typename F> inline Vector INTRINSIC apply(const F &f) const {
+        template<typename F> inline Vector Vc_INTRINSIC apply(const F &f) const {
             return Vector(f(m_data));
         }
-        template<typename F> inline Vector INTRINSIC apply(F &f) const {
+        template<typename F> inline Vector Vc_INTRINSIC apply(F &f) const {
             return Vector(f(m_data));
         }
 
-        template<typename F> inline Vector INTRINSIC apply(const F &f, Mask mask) const {
+        template<typename F> inline Vector Vc_INTRINSIC apply(const F &f, Mask mask) const {
             if (mask) {
                 return Vector(f(m_data));
             } else {
                 return *this;
             }
         }
-        template<typename F> inline Vector INTRINSIC apply(F &f, Mask mask) const {
+        template<typename F> inline Vector Vc_INTRINSIC apply(F &f, Mask mask) const {
             if (mask) {
                 return Vector(f(m_data));
             } else {
@@ -313,10 +313,10 @@ class Vector
             }
         }
 
-        template<typename IndexT> inline void INTRINSIC fill(EntryType (&f)(IndexT)) {
+        template<typename IndexT> inline void Vc_INTRINSIC fill(EntryType (&f)(IndexT)) {
             m_data = f(0);
         }
-        inline void INTRINSIC fill(EntryType (&f)()) {
+        inline void Vc_INTRINSIC fill(EntryType (&f)()) {
             m_data = f();
         }
 

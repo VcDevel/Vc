@@ -43,9 +43,9 @@
         void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
 
 #ifdef VC_CLANG
-#  define INTRINSIC __attribute__((always_inline))
+#  define Vc_INTRINSIC __attribute__((always_inline))
 #  define INTRINSIC_L
-#  define INTRINSIC_R INTRINSIC
+#  define INTRINSIC_R Vc_INTRINSIC
 #  define FLATTEN
 #  define Vc_CONST __attribute__((const))
 #  define CONST_L
@@ -69,15 +69,15 @@
 #  endif
 #  if VC_GCC < 0x40200
 // GCC 4.1 fails with "sorry unimplemented: inlining failed"
-#    define INTRINSIC __attribute__((__flatten__))
+#    define Vc_INTRINSIC __attribute__((__flatten__))
 #  elif VC_GCC < 0x40300 || defined(VC_OPEN64)
 // the GCC 4.2 frontend doesn't know the __artificial__ attribute
-#    define INTRINSIC __attribute__((__flatten__, __always_inline__))
+#    define Vc_INTRINSIC __attribute__((__flatten__, __always_inline__))
 #  else
-#    define INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
+#    define Vc_INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
 #  endif
 #  define INTRINSIC_L
-#  define INTRINSIC_R INTRINSIC
+#  define INTRINSIC_R Vc_INTRINSIC
 #  define FLATTEN __attribute__((__flatten__))
 #  define Vc_CONST __attribute__((__const__))
 #  define CONST_L
@@ -107,8 +107,8 @@
 #    define PURE /*Vc_CONST*/
 #    define PURE_L PURE
 #    define PURE_R
-#    define INTRINSIC __forceinline
-#    define INTRINSIC_L INTRINSIC
+#    define Vc_INTRINSIC __forceinline
+#    define INTRINSIC_L Vc_INTRINSIC
 #    define INTRINSIC_R
 #  else
 #    define Vc_ALWAYS_INLINE
@@ -120,7 +120,7 @@
 #    define PURE
 #    define PURE_L
 #    define PURE_R
-#    define INTRINSIC
+#    define Vc_INTRINSIC
 #    define INTRINSIC_L
 #    define INTRINSIC_R
 #  endif
@@ -134,7 +134,7 @@
 #define _VC_CONSTEXPR_L _VC_CONSTEXPR
 #define _VC_CONSTEXPR_R
 #else
-#define _VC_CONSTEXPR inline INTRINSIC Vc_CONST
+#define _VC_CONSTEXPR inline Vc_INTRINSIC Vc_CONST
 #define _VC_CONSTEXPR_L inline INTRINSIC_L CONST_R
 #define _VC_CONSTEXPR_R INTRINSIC_R CONST_R
 #endif

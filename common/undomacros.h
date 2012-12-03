@@ -21,7 +21,7 @@
 #define VC_COMMON_UNDOMACROS_H
 #undef VC_COMMON_MACROS_H
 
-#undef INTRINSIC
+#undef Vc_INTRINSIC
 #undef INTRINSIC_L
 #undef INTRINSIC_R
 #undef Vc_CONST

@@ -73,12 +73,12 @@ template<typename T> class Vector
         typedef VectorHelper<T> HT;
 
         // cast any m256/m128 to VectorType
-        static inline VectorType INTRINSIC _cast(__m128  v) { return avx_cast<VectorType>(v); }
-        static inline VectorType INTRINSIC _cast(__m128i v) { return avx_cast<VectorType>(v); }
-        static inline VectorType INTRINSIC _cast(__m128d v) { return avx_cast<VectorType>(v); }
-        static inline VectorType INTRINSIC _cast(__m256  v) { return avx_cast<VectorType>(v); }
-        static inline VectorType INTRINSIC _cast(__m256i v) { return avx_cast<VectorType>(v); }
-        static inline VectorType INTRINSIC _cast(__m256d v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m128  v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m128i v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m128d v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m256  v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m256i v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m256d v) { return avx_cast<VectorType>(v); }
 
         typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
         StorageType d;
@@ -115,7 +115,7 @@ template<typename T> class Vector
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         explicit Vector(EntryType a);
-        template<typename TT> inline INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : d(HT::set(x)) {}
+        template<typename TT> inline Vc_INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : d(HT::set(x)) {}
         inline Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -217,7 +217,7 @@ template<typename T> class Vector
         //postfix
         inline Vector Vc_ALWAYS_INLINE operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
-        inline Common::AliasingEntryHelper<StorageType> INTRINSIC operator[](int index) {
+        inline Common::AliasingEntryHelper<StorageType> Vc_INTRINSIC operator[](int index) {
 #if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
             ::Vc::Warnings::_operator_bracket_warning();
 #endif
@@ -229,7 +229,7 @@ template<typename T> class Vector
 
         inline Vector Vc_ALWAYS_INLINE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
-        inline Vector PURE INTRINSIC operator+() const { return *this; }
+        inline Vector PURE Vc_INTRINSIC operator+() const { return *this; }
 
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
@@ -334,36 +334,36 @@ template<typename T> class Vector
             }
         }
 
-        template<typename F> inline void INTRINSIC call(const F &f) const {
+        template<typename F> inline void Vc_INTRINSIC call(const F &f) const {
             for_all_vector_entries(i,
                     f(EntryType(d.m(i)));
                     );
         }
-        template<typename F> inline void INTRINSIC call(F &f) const {
+        template<typename F> inline void Vc_INTRINSIC call(F &f) const {
             for_all_vector_entries(i,
                     f(EntryType(d.m(i)));
                     );
         }
 
-        template<typename F> inline void INTRINSIC call(const F &f, const Mask &mask) const {
+        template<typename F> inline void Vc_INTRINSIC call(const F &f, const Mask &mask) const {
             Vc_foreach_bit(size_t i, mask) {
                 f(EntryType(d.m(i)));
             }
         }
-        template<typename F> inline void INTRINSIC call(F &f, const Mask &mask) const {
+        template<typename F> inline void Vc_INTRINSIC call(F &f, const Mask &mask) const {
             Vc_foreach_bit(size_t i, mask) {
                 f(EntryType(d.m(i)));
             }
         }
 
-        template<typename F> inline Vector<T> INTRINSIC apply(const F &f) const {
+        template<typename F> inline Vector<T> Vc_INTRINSIC apply(const F &f) const {
             Vector<T> r;
             for_all_vector_entries(i,
                     r.d.m(i) = f(EntryType(d.m(i)));
                     );
             return r;
         }
-        template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
+        template<typename F> inline Vector<T> Vc_INTRINSIC apply(F &f) const {
             Vector<T> r;
             for_all_vector_entries(i,
                     r.d.m(i) = f(EntryType(d.m(i)));
@@ -371,14 +371,14 @@ template<typename T> class Vector
             return r;
         }
 
-        template<typename F> inline Vector<T> INTRINSIC apply(const F &f, const Mask &mask) const {
+        template<typename F> inline Vector<T> Vc_INTRINSIC apply(const F &f, const Mask &mask) const {
             Vector<T> r(*this);
             Vc_foreach_bit (size_t i, mask) {
                 r.d.m(i) = f(EntryType(r.d.m(i)));
             }
             return r;
         }
-        template<typename F> inline Vector<T> INTRINSIC apply(F &f, const Mask &mask) const {
+        template<typename F> inline Vector<T> Vc_INTRINSIC apply(F &f, const Mask &mask) const {
             Vector<T> r(*this);
             Vc_foreach_bit (size_t i, mask) {
                 r.d.m(i) = f(EntryType(r.d.m(i)));
@@ -386,12 +386,12 @@ template<typename T> class Vector
             return r;
         }
 
-        template<typename IndexT> inline void INTRINSIC fill(EntryType (&f)(IndexT)) {
+        template<typename IndexT> inline void Vc_INTRINSIC fill(EntryType (&f)(IndexT)) {
             for_all_vector_entries(i,
                     d.m(i) = f(i);
                     );
         }
-        inline void INTRINSIC fill(EntryType (&f)()) {
+        inline void Vc_INTRINSIC fill(EntryType (&f)()) {
             for_all_vector_entries(i,
                     d.m(i) = f();
                     );

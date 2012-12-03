@@ -72,21 +72,21 @@ template<typename T> inline Vector<T> Vector<T>::IndexesFromZero()
 }
 
 // conversion/casts {{{1
-template<typename T> template<typename OtherT> inline INTRINSIC Vector<T>::Vector(const Vector<OtherT> &x)
+template<typename T> template<typename OtherT> inline Vc_INTRINSIC Vector<T>::Vector(const Vector<OtherT> &x)
     : d(StaticCastHelper<OtherT, T>::cast(x.data()))
 {
 }
 
-template<> template<> inline INTRINSIC short_v &Vector<short>::operator=(const ushort_v &x) {
+template<> template<> inline Vc_INTRINSIC short_v &Vector<short>::operator=(const ushort_v &x) {
     data() = StaticCastHelper<unsigned short, short>::cast(x.data()); return *this;
 }
-template<> template<> inline INTRINSIC ushort_v &Vector<unsigned short>::operator=(const short_v &x) {
+template<> template<> inline Vc_INTRINSIC ushort_v &Vector<unsigned short>::operator=(const short_v &x) {
     data() = StaticCastHelper<short, unsigned short>::cast(x.data()); return *this;
 }
-template<> template<> inline INTRINSIC int_v &Vector<int>::operator=(const uint_v &x) {
+template<> template<> inline Vc_INTRINSIC int_v &Vector<int>::operator=(const uint_v &x) {
     data() = StaticCastHelper<unsigned int, int>::cast(x.data()); return *this;
 }
-template<> template<> inline INTRINSIC uint_v &Vector<unsigned int>::operator=(const int_v &x) {
+template<> template<> inline Vc_INTRINSIC uint_v &Vector<unsigned int>::operator=(const int_v &x) {
     data() = StaticCastHelper<int, unsigned int>::cast(x.data()); return *this;
 }
 
@@ -105,23 +105,23 @@ template<typename T> template<typename OtherT, typename A> inline Vc_ALWAYS_INLI
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions {{{1
-template<typename T> inline void INTRINSIC Vector<T>::load(const EntryType *mem)
+template<typename T> inline void Vc_INTRINSIC Vector<T>::load(const EntryType *mem)
 {
     load(mem, Aligned);
 }
 
-template<typename T> template<typename A> inline void INTRINSIC Vector<T>::load(const EntryType *mem, A align)
+template<typename T> template<typename A> inline void Vc_INTRINSIC Vector<T>::load(const EntryType *mem, A align)
 {
     d.v() = VectorHelper<VectorType>::load(mem, align);
 }
 
-template<typename T> template<typename OtherT> inline void INTRINSIC Vector<T>::load(const OtherT *mem)
+template<typename T> template<typename OtherT> inline void Vc_INTRINSIC Vector<T>::load(const OtherT *mem)
 {
     load(mem, Aligned);
 }
 
 // float8: simply use the float implementation twice {{{2
-template<> template<typename OtherT, typename A> inline void INTRINSIC Vector<float8>::load(const OtherT *x, A a)
+template<> template<typename OtherT, typename A> inline void Vc_INTRINSIC Vector<float8>::load(const OtherT *x, A a)
 {
     d.v() = M256::create(
             Vector<float>(&x[0], a).data(),
@@ -254,7 +254,7 @@ template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags>
 };
 
 // general load, implemented via LoadHelper {{{2
-template<typename DstT> template<typename SrcT, typename Flags> inline void INTRINSIC Vector<DstT>::load(const SrcT *x, Flags f)
+template<typename DstT> template<typename SrcT, typename Flags> inline void Vc_INTRINSIC Vector<DstT>::load(const SrcT *x, Flags f)
 {
     d.v() = LoadHelper<DstT, SrcT, Flags>::load(x, f);
 }
@@ -286,28 +286,28 @@ template<typename T> inline void Vector<T>::setZero(const Mask &k)
     data() = VectorHelper<VectorType>::andnot_(mm128_reinterpret_cast<VectorType>(k.data()), data());
 }
 
-template<> inline void INTRINSIC Vector<double>::setQnan()
+template<> inline void Vc_INTRINSIC Vector<double>::setQnan()
 {
     data() = _mm_setallone_pd();
 }
-template<> inline void INTRINSIC Vector<double>::setQnan(Mask::Argument k)
+template<> inline void Vc_INTRINSIC Vector<double>::setQnan(Mask::Argument k)
 {
     data() = _mm_or_pd(data(), k.dataD());
 }
-template<> inline void INTRINSIC Vector<float>::setQnan()
+template<> inline void Vc_INTRINSIC Vector<float>::setQnan()
 {
     data() = _mm_setallone_ps();
 }
-template<> inline void INTRINSIC Vector<float>::setQnan(Mask::Argument k)
+template<> inline void Vc_INTRINSIC Vector<float>::setQnan(Mask::Argument k)
 {
     data() = _mm_or_ps(data(), k.data());
 }
-template<> inline void INTRINSIC Vector<float8>::setQnan()
+template<> inline void Vc_INTRINSIC Vector<float8>::setQnan()
 {
     d.v()[0] = _mm_setallone_ps();
     d.v()[1] = _mm_setallone_ps();
 }
-template<> inline void INTRINSIC Vector<float8>::setQnan(Mask::Argument k)
+template<> inline void Vc_INTRINSIC Vector<float8>::setQnan(Mask::Argument k)
 {
     d.v()[0] = _mm_or_ps(d.v()[0], k.data()[0]);
     d.v()[1] = _mm_or_ps(d.v()[1], k.data()[1]);
@@ -337,32 +337,32 @@ template<typename T> template<typename A> inline void Vector<T>::store(EntryType
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // division {{{1
-template<typename T> inline INTRINSIC Vc_CONST Vector<T> &WriteMaskedVector<T>::operator/=(const Vector<T> &x)
+template<typename T> inline Vc_INTRINSIC Vc_CONST Vector<T> &WriteMaskedVector<T>::operator/=(const Vector<T> &x)
 {
     return operator=(*vec / x);
 }
-template<> inline INTRINSIC Vc_CONST int_v &WriteMaskedVector<int>::operator/=(const int_v &x)
+template<> inline Vc_INTRINSIC Vc_CONST int_v &WriteMaskedVector<int>::operator/=(const int_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
-template<> inline INTRINSIC Vc_CONST uint_v &WriteMaskedVector<unsigned int>::operator/=(const uint_v &x)
+template<> inline Vc_INTRINSIC Vc_CONST uint_v &WriteMaskedVector<unsigned int>::operator/=(const uint_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
-template<> inline INTRINSIC Vc_CONST short_v &WriteMaskedVector<short>::operator/=(const short_v &x)
+template<> inline Vc_INTRINSIC Vc_CONST short_v &WriteMaskedVector<short>::operator/=(const short_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
-template<> inline INTRINSIC Vc_CONST ushort_v &WriteMaskedVector<unsigned short>::operator/=(const ushort_v &x)
+template<> inline Vc_INTRINSIC Vc_CONST ushort_v &WriteMaskedVector<unsigned short>::operator/=(const ushort_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
@@ -381,7 +381,7 @@ template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
     return *this;
 }
 
-template<typename T> template<typename TT> inline PURE INTRINSIC VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) Vector<T>::operator/(TT x) const
+template<typename T> template<typename TT> inline PURE Vc_INTRINSIC VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) Vector<T>::operator/(TT x) const
 {
     if (VectorTraits<T>::HasVectorDivision) {
         return operator/(Vector<T>(x));
@@ -570,22 +570,22 @@ OP_IMPL(double, ^, xor_)
 #undef OP_IMPL
 
 #ifdef VC_IMPL_XOP
-static inline INTRINSIC Vc_CONST __m128i shiftLeft (const    int_v &value, const    int_v &count) { return _mm_sha_epi32(value.data(), count.data()); }
-static inline INTRINSIC Vc_CONST __m128i shiftLeft (const   uint_v &value, const   uint_v &count) { return _mm_shl_epi32(value.data(), count.data()); }
-static inline INTRINSIC Vc_CONST __m128i shiftLeft (const  short_v &value, const  short_v &count) { return _mm_sha_epi16(value.data(), count.data()); }
-static inline INTRINSIC Vc_CONST __m128i shiftLeft (const ushort_v &value, const ushort_v &count) { return _mm_shl_epi16(value.data(), count.data()); }
-static inline INTRINSIC Vc_CONST __m128i shiftRight(const    int_v &value, const    int_v &count) { return shiftLeft(value,          -count ); }
-static inline INTRINSIC Vc_CONST __m128i shiftRight(const   uint_v &value, const   uint_v &count) { return shiftLeft(value,   uint_v(-count)); }
-static inline INTRINSIC Vc_CONST __m128i shiftRight(const  short_v &value, const  short_v &count) { return shiftLeft(value,          -count ); }
-static inline INTRINSIC Vc_CONST __m128i shiftRight(const ushort_v &value, const ushort_v &count) { return shiftLeft(value, ushort_v(-count)); }
+static inline Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const    int_v &value, const    int_v &count) { return _mm_sha_epi32(value.data(), count.data()); }
+static inline Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const   uint_v &value, const   uint_v &count) { return _mm_shl_epi32(value.data(), count.data()); }
+static inline Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const  short_v &value, const  short_v &count) { return _mm_sha_epi16(value.data(), count.data()); }
+static inline Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const ushort_v &value, const ushort_v &count) { return _mm_shl_epi16(value.data(), count.data()); }
+static inline Vc_INTRINSIC Vc_CONST __m128i shiftRight(const    int_v &value, const    int_v &count) { return shiftLeft(value,          -count ); }
+static inline Vc_INTRINSIC Vc_CONST __m128i shiftRight(const   uint_v &value, const   uint_v &count) { return shiftLeft(value,   uint_v(-count)); }
+static inline Vc_INTRINSIC Vc_CONST __m128i shiftRight(const  short_v &value, const  short_v &count) { return shiftLeft(value,          -count ); }
+static inline Vc_INTRINSIC Vc_CONST __m128i shiftRight(const ushort_v &value, const ushort_v &count) { return shiftLeft(value, ushort_v(-count)); }
 
 #define _VC_OP(T, symbol, impl) \
-template<> inline INTRINSIC T &T::operator symbol##=(T::AsArg shift) \
+template<> inline Vc_INTRINSIC T &T::operator symbol##=(T::AsArg shift) \
 { \
     d.v() = impl(*this, shift); \
     return *this; \
 } \
-template<> inline INTRINSIC T  T::operator symbol   (T::AsArg shift) const \
+template<> inline Vc_INTRINSIC T  T::operator symbol   (T::AsArg shift) const \
 { \
     return impl(*this, shift); \
 }
@@ -598,7 +598,7 @@ VC_APPLY_2(VC_LIST_INT_VECTOR_TYPES, _VC_OP, >>, shiftRight)
 #define VC_WORKAROUND __attribute__((optimize("no-tree-vectorize"),weak))
 #else
 #define VC_WORKAROUND_IN inline
-#define VC_WORKAROUND INTRINSIC
+#define VC_WORKAROUND Vc_INTRINSIC
 #endif
 
 #define OP_IMPL(T, symbol) \
@@ -647,46 +647,46 @@ template<typename T> inline Vector<T> Vector<T>::operator<<(int shift) const {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // swizzles {{{1
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST &Vector<T>::abcd() const { return *this; }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1>(data()); }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0>(data()); }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1>(data()); }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2>(data()); }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3>(data()); }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3>(data()); }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0>(data()); }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2>(data()); }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3>(data()); }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0>(data()); }
-template<typename T> inline const Vector<T> INTRINSIC Vc_CONST  Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST &Vector<T>::abcd() const { return *this; }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0>(data()); }
+template<typename T> inline const Vector<T> Vc_INTRINSIC Vc_CONST  Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0>(data()); }
 
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::cdab() const { return M256::create(Mem::permute<X2, X3, X0, X1>(d.v()[0]), Mem::permute<X2, X3, X0, X1>(d.v()[1])); }
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::badc() const { return M256::create(Mem::permute<X1, X0, X3, X2>(d.v()[0]), Mem::permute<X1, X0, X3, X2>(d.v()[1])); }
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::aaaa() const { return M256::create(Mem::permute<X0, X0, X0, X0>(d.v()[0]), Mem::permute<X0, X0, X0, X0>(d.v()[1])); }
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::bbbb() const { return M256::create(Mem::permute<X1, X1, X1, X1>(d.v()[0]), Mem::permute<X1, X1, X1, X1>(d.v()[1])); }
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::cccc() const { return M256::create(Mem::permute<X2, X2, X2, X2>(d.v()[0]), Mem::permute<X2, X2, X2, X2>(d.v()[1])); }
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::dddd() const { return M256::create(Mem::permute<X3, X3, X3, X3>(d.v()[0]), Mem::permute<X3, X3, X3, X3>(d.v()[1])); }
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::bcad() const { return M256::create(Mem::permute<X1, X2, X0, X3>(d.v()[0]), Mem::permute<X1, X2, X0, X3>(d.v()[1])); }
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::bcda() const { return M256::create(Mem::permute<X1, X2, X3, X0>(d.v()[0]), Mem::permute<X1, X2, X3, X0>(d.v()[1])); }
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::dabc() const { return M256::create(Mem::permute<X3, X0, X1, X2>(d.v()[0]), Mem::permute<X3, X0, X1, X2>(d.v()[1])); }
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::acbd() const { return M256::create(Mem::permute<X0, X2, X1, X3>(d.v()[0]), Mem::permute<X0, X2, X1, X3>(d.v()[1])); }
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::dbca() const { return M256::create(Mem::permute<X3, X1, X2, X0>(d.v()[0]), Mem::permute<X3, X1, X2, X0>(d.v()[1])); }
-template<> inline const sfloat_v INTRINSIC Vc_CONST Vector<sfloat>::dcba() const { return M256::create(Mem::permute<X3, X2, X1, X0>(d.v()[0]), Mem::permute<X3, X2, X1, X0>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::cdab() const { return M256::create(Mem::permute<X2, X3, X0, X1>(d.v()[0]), Mem::permute<X2, X3, X0, X1>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::badc() const { return M256::create(Mem::permute<X1, X0, X3, X2>(d.v()[0]), Mem::permute<X1, X0, X3, X2>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::aaaa() const { return M256::create(Mem::permute<X0, X0, X0, X0>(d.v()[0]), Mem::permute<X0, X0, X0, X0>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::bbbb() const { return M256::create(Mem::permute<X1, X1, X1, X1>(d.v()[0]), Mem::permute<X1, X1, X1, X1>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::cccc() const { return M256::create(Mem::permute<X2, X2, X2, X2>(d.v()[0]), Mem::permute<X2, X2, X2, X2>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::dddd() const { return M256::create(Mem::permute<X3, X3, X3, X3>(d.v()[0]), Mem::permute<X3, X3, X3, X3>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::bcad() const { return M256::create(Mem::permute<X1, X2, X0, X3>(d.v()[0]), Mem::permute<X1, X2, X0, X3>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::bcda() const { return M256::create(Mem::permute<X1, X2, X3, X0>(d.v()[0]), Mem::permute<X1, X2, X3, X0>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::dabc() const { return M256::create(Mem::permute<X3, X0, X1, X2>(d.v()[0]), Mem::permute<X3, X0, X1, X2>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::acbd() const { return M256::create(Mem::permute<X0, X2, X1, X3>(d.v()[0]), Mem::permute<X0, X2, X1, X3>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::dbca() const { return M256::create(Mem::permute<X3, X1, X2, X0>(d.v()[0]), Mem::permute<X3, X1, X2, X0>(d.v()[1])); }
+template<> inline const sfloat_v Vc_INTRINSIC Vc_CONST Vector<sfloat>::dcba() const { return M256::create(Mem::permute<X3, X2, X1, X0>(d.v()[0]), Mem::permute<X3, X2, X1, X0>(d.v()[1])); }
 
 #define VC_SWIZZLES_16BIT_IMPL(T) \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1, X6, X7, X4, X5>(data()); } \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(data()); } \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0, X4, X4, X4, X4>(data()); } \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1, X5, X5, X5, X5>(data()); } \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2, X6, X6, X6, X6>(data()); } \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3, X7, X7, X7, X7>(data()); } \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3, X5, X6, X4, X7>(data()); } \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0, X5, X6, X7, X4>(data()); } \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2, X7, X4, X5, X6>(data()); } \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3, X4, X6, X5, X7>(data()); } \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0, X7, X5, X6, X4>(data()); } \
-template<> inline const Vector<T> INTRINSIC Vc_CONST Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(data()); }
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1, X6, X7, X4, X5>(data()); } \
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(data()); } \
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0, X4, X4, X4, X4>(data()); } \
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1, X5, X5, X5, X5>(data()); } \
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2, X6, X6, X6, X6>(data()); } \
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3, X7, X7, X7, X7>(data()); } \
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3, X5, X6, X4, X7>(data()); } \
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0, X5, X6, X7, X4>(data()); } \
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2, X7, X4, X5, X6>(data()); } \
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3, X4, X6, X5, X7>(data()); } \
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0, X7, X5, X6, X4>(data()); } \
+template<> inline const Vector<T> Vc_INTRINSIC Vc_CONST Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(data()); }
 VC_SWIZZLES_16BIT_IMPL(short)
 VC_SWIZZLES_16BIT_IMPL(unsigned short)
 #undef VC_SWIZZLES_16BIT_IMPL
@@ -694,18 +694,18 @@ VC_SWIZZLES_16BIT_IMPL(unsigned short)
 // operators {{{1
 #include "../common/operators.h"
 // isNegative {{{1
-template<> inline PURE INTRINSIC float_m float_v::isNegative() const
+template<> inline PURE Vc_INTRINSIC float_m float_v::isNegative() const
 {
     return sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v())), 31));
 }
-template<> inline PURE INTRINSIC sfloat_m sfloat_v::isNegative() const
+template<> inline PURE Vc_INTRINSIC sfloat_m sfloat_v::isNegative() const
 {
     return M256::create(
             sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v()[0])), 31)),
             sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(_mm_setsignmask_ps(), d.v()[1])), 31))
             );
 }
-template<> inline PURE INTRINSIC double_m double_v::isNegative() const
+template<> inline PURE Vc_INTRINSIC double_m double_v::isNegative() const
 {
     return Mem::permute<X1, X1, X3, X3>(sse_cast<__m128>(
                 _mm_srai_epi32(sse_cast<__m128i>(_mm_and_pd(_mm_setsignmask_pd(), d.v())), 31)
@@ -873,7 +873,7 @@ template<typename T> template<typename IT> inline void Vc_ALWAYS_INLINE Vector<T
 #endif
 
 template<typename T> template<typename Index>
-inline void INTRINSIC Vector<T>::gather(const EntryType *mem, Index indexes, MaskArg mask)
+inline void Vc_INTRINSIC Vector<T>::gather(const EntryType *mem, Index indexes, MaskArg mask)
 {
     IndexSizeChecker<Index, Size>::check();
 #define ith_value(_i_) (mem[indexes[_i_]])
@@ -1181,23 +1181,23 @@ template<typename T> template<typename S1, typename IT1, typename IT2> inline vo
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator[] {{{1
-template<typename T> inline typename Vector<T>::EntryType PURE INTRINSIC Vector<T>::operator[](size_t index) const
+template<typename T> inline typename Vector<T>::EntryType PURE Vc_INTRINSIC Vector<T>::operator[](size_t index) const
 {
     return d.m(index);
 }
 #ifdef VC_GCC
-template<> inline double PURE INTRINSIC Vector<double>::operator[](size_t index) const
+template<> inline double PURE Vc_INTRINSIC Vector<double>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
         return extract_double_imm(d.v(), index);
     }
     return d.m(index);
 }
-template<> inline float PURE INTRINSIC Vector<float>::operator[](size_t index) const
+template<> inline float PURE Vc_INTRINSIC Vector<float>::operator[](size_t index) const
 {
     return extract_float(d.v(), index);
 }
-template<> inline float PURE INTRINSIC Vector<float8>::operator[](size_t index) const
+template<> inline float PURE Vc_INTRINSIC Vector<float8>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
         if (index < 4) {
@@ -1207,7 +1207,7 @@ template<> inline float PURE INTRINSIC Vector<float8>::operator[](size_t index) 
     }
     return d.m(index);
 }
-template<> inline int PURE INTRINSIC Vector<int>::operator[](size_t index) const
+template<> inline int PURE Vc_INTRINSIC Vector<int>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
 #if VC_GCC >= 0x40601 || !defined(VC_USE_VEX_CODING) // GCC < 4.6.1 incorrectly uses vmovq instead of movq for the following
@@ -1226,7 +1226,7 @@ template<> inline int PURE INTRINSIC Vector<int>::operator[](size_t index) const
     }
     return d.m(index);
 }
-template<> inline unsigned int PURE INTRINSIC Vector<unsigned int>::operator[](size_t index) const
+template<> inline unsigned int PURE Vc_INTRINSIC Vector<unsigned int>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
 #if VC_GCC >= 0x40601 || !defined(VC_USE_VEX_CODING) // GCC < 4.6.1 incorrectly uses vmovq instead of movq for the following
@@ -1245,14 +1245,14 @@ template<> inline unsigned int PURE INTRINSIC Vector<unsigned int>::operator[](s
     }
     return d.m(index);
 }
-template<> inline short PURE INTRINSIC Vector<short>::operator[](size_t index) const
+template<> inline short PURE Vc_INTRINSIC Vector<short>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
         return _mm_extract_epi16(d.v(), index);
     }
     return d.m(index);
 }
-template<> inline unsigned short PURE INTRINSIC Vector<unsigned short>::operator[](size_t index) const
+template<> inline unsigned short PURE Vc_INTRINSIC Vector<unsigned short>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
         return _mm_extract_epi16(d.v(), index);
@@ -1264,11 +1264,11 @@ template<> inline unsigned short PURE INTRINSIC Vector<unsigned short>::operator
 // horizontal ops {{{1
 #ifndef VC_IMPL_SSE4_1
 // without SSE4.1 integer multiplication is slow and we rather multiply the scalars
-template<> inline int INTRINSIC Vector<int>::product() const
+template<> inline int Vc_INTRINSIC Vector<int>::product() const
 {
     return (d.m(0) * d.m(1)) * (d.m(2) * d.m(3));
 }
-template<> inline unsigned int INTRINSIC Vector<unsigned int>::product() const
+template<> inline unsigned int Vc_INTRINSIC Vector<unsigned int>::product() const
 {
     return (d.m(0) * d.m(1)) * (d.m(2) * d.m(3));
 }
@@ -1300,14 +1300,14 @@ template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(MaskArg
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // copySign {{{1
-template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float>::AsArg reference) const
+template<> inline Vector<float> Vc_INTRINSIC Vector<float>::copySign(Vector<float>::AsArg reference) const
 {
     return _mm_or_ps(
             _mm_and_ps(reference.d.v(), _mm_setsignmask_ps()),
             _mm_and_ps(d.v(), _mm_setabsmask_ps())
             );
 }
-template<> inline Vector<float8> INTRINSIC Vector<float8>::copySign(Vector<float8>::AsArg reference) const
+template<> inline Vector<float8> Vc_INTRINSIC Vector<float8>::copySign(Vector<float8>::AsArg reference) const
 {
     return M256::create( _mm_or_ps(
                 _mm_and_ps(reference.d.v()[0], _mm_setsignmask_ps()),
@@ -1318,7 +1318,7 @@ template<> inline Vector<float8> INTRINSIC Vector<float8>::copySign(Vector<float
                 )
             );
 }
-template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<double>::AsArg reference) const
+template<> inline Vector<double> Vc_INTRINSIC Vector<double>::copySign(Vector<double>::AsArg reference) const
 {
     return _mm_or_pd(
             _mm_and_pd(reference.d.v(), _mm_setsignmask_pd()),
@@ -1326,14 +1326,14 @@ template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<doubl
             );
 }//}}}1
 // exponent {{{1
-template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
+template<> inline Vector<float> Vc_INTRINSIC Vector<float>::exponent() const
 {
     VC_ASSERT((*this >= 0.f).isFull());
     __m128i tmp = _mm_srli_epi32(_mm_castps_si128(d.v()), 23);
     tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x7f));
     return _mm_cvtepi32_ps(tmp);
 }
-template<> inline Vector<float8> INTRINSIC Vector<float8>::exponent() const
+template<> inline Vector<float8> Vc_INTRINSIC Vector<float8>::exponent() const
 {
     VC_ASSERT((*this >= 0.f).isFull());
     __m128i tmp0 = _mm_srli_epi32(_mm_castps_si128(d.v()[0]), 23);
@@ -1342,7 +1342,7 @@ template<> inline Vector<float8> INTRINSIC Vector<float8>::exponent() const
     tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
     return M256::create( _mm_cvtepi32_ps(tmp0), _mm_cvtepi32_ps(tmp1));
 }
-template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
+template<> inline Vector<double> Vc_INTRINSIC Vector<double>::exponent() const
 {
     VC_ASSERT((*this >= 0.).isFull());
     __m128i tmp = _mm_srli_epi64(_mm_castpd_si128(d.v()), 52);
@@ -1396,7 +1396,7 @@ template<> inline Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
     return (Vector<double>(_mm_castsi128_pd(_mm_srli_epi64(state, 12))) | One()) - One();
 }
 // shifted / rotated {{{1
-template<typename T> inline INTRINSIC Vector<T> Vector<T>::shifted(int amount) const
+template<typename T> inline Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount) const
 {
     switch (amount) {
     case  0: return *this;
@@ -1419,7 +1419,7 @@ template<typename T> inline INTRINSIC Vector<T> Vector<T>::shifted(int amount) c
     }
     return Zero();
 }
-template<> inline INTRINSIC sfloat_v sfloat_v::shifted(int amount) const
+template<> inline Vc_INTRINSIC sfloat_v sfloat_v::shifted(int amount) const
 {
     switch (amount) {
     case -7: return M256::create(_mm_setzero_ps(), _mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(d.v()[0]), 3 * sizeof(EntryType))));
@@ -1440,7 +1440,7 @@ template<> inline INTRINSIC sfloat_v sfloat_v::shifted(int amount) const
     }
     return Zero();
 }
-template<typename T> inline INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
+template<typename T> inline Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
 {
     const __m128i v = mm128_reinterpret_cast<__m128i>(d.v());
     switch (static_cast<unsigned int>(amount) % Size) {
@@ -1455,7 +1455,7 @@ template<typename T> inline INTRINSIC Vector<T> Vector<T>::rotated(int amount) c
     }
     return Zero();
 }
-template<> inline INTRINSIC sfloat_v sfloat_v::rotated(int amount) const
+template<> inline Vc_INTRINSIC sfloat_v sfloat_v::rotated(int amount) const
 {
     const __m128i v0 = sse_cast<__m128i>(d.v()[0]);
     const __m128i v1 = sse_cast<__m128i>(d.v()[1]);
