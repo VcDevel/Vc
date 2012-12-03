@@ -142,10 +142,10 @@ namespace AVX
         _4(Vc_buildFloat(1, 0x22F983, 0)), // 1.27323949337005615234375 = 4/π
         _4(Vc_buildFloat(1, 0x490FDB, 0)), // π/2
         _4(Vc_buildFloat(1, 0x490FDB, 1)), // π
-        _4(8.05374449538e-2), // atan P coefficients
-        _4(1.38776856032e-1), // atan P coefficients
-        _4(1.99777106478e-1), // atan P coefficients
-        _4(3.33329491539e-1), // atan P coefficients
+        _4(8.05374449538e-2f), // atan P coefficients
+        _4(1.38776856032e-1f), // atan P coefficients
+        _4(1.99777106478e-1f), // atan P coefficients
+        _4(3.33329491539e-1f), // atan P coefficients
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
@@ -153,17 +153,17 @@ namespace AVX
     // cacheline
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
-        _4(2.414213562373095), // tan( 3/8 π )
-        _4(0.414213562373095), // tan( 1/8 π ) lower threshold for special casing in atan
+        _4(2.414213562373095f), // tan( 3/8 π )
+        _4(0.414213562373095f), // tan( 1/8 π ) lower threshold for special casing in atan
         _4(Vc_buildFloat(-1, 0x3BBD2E, -25)), // remainder of pi/2
-        _4(1.e-4), // small asin input threshold
+        _4(1.e-4f), // small asin input threshold
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
-        _4(4.2163199048e-2), // asinCoeff0
-        _4(2.4181311049e-2), // asinCoeff0
-        _4(4.5470025998e-2), // asinCoeff0
-        _4(7.4953002686e-2), // asinCoeff0
-        _4(1.6666752422e-1), // asinCoeff0
+        _4(4.2163199048e-2f), // asinCoeff0
+        _4(2.4181311049e-2f), // asinCoeff0
+        _4(4.5470025998e-2f), // asinCoeff0
+        _4(7.4953002686e-2f), // asinCoeff0
+        _4(1.6666752422e-1f), // asinCoeff0
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
@@ -384,10 +384,10 @@ namespace SSE
         _4(Vc_buildFloat(1, 0x490FDB, 0)), // π/2
         _4(Vc_buildFloat(1, 0x490FDB, 1)), // π
     // cacheline
-        _4(8.05374449538e-2), // atan P coefficients
-        _4(1.38776856032e-1), // atan P coefficients
-        _4(1.99777106478e-1), // atan P coefficients
-        _4(3.33329491539e-1), // atan P coefficients
+        _4(8.05374449538e-2f), // atan P coefficients
+        _4(1.38776856032e-1f), // atan P coefficients
+        _4(1.99777106478e-1f), // atan P coefficients
+        _4(3.33329491539e-1f), // atan P coefficients
     // cacheline
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
@@ -396,20 +396,20 @@ namespace SSE
     // cacheline
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
-        _4(2.414213562373095), // tan( 3/8 π )
-        _4(0.414213562373095), // tan( 1/8 π ) lower threshold for special casing in atan
+        _4(2.414213562373095f), // tan( 3/8 π )
+        _4(0.414213562373095f), // tan( 1/8 π ) lower threshold for special casing in atan
     // cacheline
         _4(Vc_buildFloat(-1, 0x3BBD2E, -25)), // remainder of pi/2
-        _4(1.e-4), // small asin input threshold
+        _4(1.e-4f), // small asin input threshold
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
     // cacheline
-        _4(4.2163199048e-2), // asinCoeff0
-        _4(2.4181311049e-2), // asinCoeff0
-        _4(4.5470025998e-2), // asinCoeff0
-        _4(7.4953002686e-2), // asinCoeff0
+        _4(4.2163199048e-2f), // asinCoeff0
+        _4(2.4181311049e-2f), // asinCoeff0
+        _4(4.5470025998e-2f), // asinCoeff0
+        _4(7.4953002686e-2f), // asinCoeff0
     // cacheline
-        _4(1.6666752422e-1), // asinCoeff0
+        _4(1.6666752422e-1f), // asinCoeff0
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
         _4(0.f), // padding (for alignment with double)
