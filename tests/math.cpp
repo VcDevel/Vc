@@ -421,6 +421,11 @@ template<typename V> void testAsin()/*{{{*/
     }
 }
 /*}}}*/
+const union {
+    unsigned int hex;
+    float value;
+} INF = { 0x7f800000 };
+
 template<typename V> void testAtan()/*{{{*/
 {
     typedef typename V::EntryType T;
@@ -430,7 +435,7 @@ template<typename V> void testAtan()/*{{{*/
     {
         const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18ull,  0));
         V nan; nan.setQnan();
-        const V inf = T(1./0.);
+        const V inf = T(INF.value);
 
         VERIFY(Vc::isnan(Vc::atan(nan)));
         COMPARE(Vc::atan(+inf), +Pi_2);
@@ -460,7 +465,7 @@ template<typename V> void testAtan2()/*{{{*/
         const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18ull,  0));
         const V Pi_4 = T(Vc_buildDouble(1, 0x921fb54442d18ull, -1));
         V nan; nan.setQnan();
-        const V inf = T(1./0.);
+        const V inf = T(INF.value);
 
         // If y is +0 (-0) and x is less than 0, +pi (-pi) is returned.
         COMPARE(Vc::atan2(V(T(+0.)), V(T(-3.))), +Pi);
