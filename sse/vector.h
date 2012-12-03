@@ -525,13 +525,13 @@ static inline sfloat_v max(const sfloat_v &x, const sfloat_v &y) {
 #include "forceToRegisters.tcc"
 #ifdef VC_GNU_ASM
 template<>
-inline void ALWAYS_INLINE forceToRegisters(const Vector<float8> &x1) {
+inline void Vc_ALWAYS_INLINE forceToRegisters(const Vector<float8> &x1) {
   __asm__ __volatile__(""::"x"(x1.data()[0]), "x"(x1.data()[1]));
 }
 #elif defined(VC_MSVC)
 #pragma optimize("g", off)
 template<>
-inline void ALWAYS_INLINE forceToRegisters(const Vector<float8> &/*x1*/) {
+inline void Vc_ALWAYS_INLINE forceToRegisters(const Vector<float8> &/*x1*/) {
 }
 #endif
 } // namespace SSE

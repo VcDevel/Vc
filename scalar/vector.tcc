@@ -113,7 +113,7 @@ template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
 }
 // }}}1
 // FMA {{{1
-static inline ALWAYS_INLINE float highBits(float x)
+static inline Vc_ALWAYS_INLINE float highBits(float x)
 {
     union {
         float f;
@@ -123,7 +123,7 @@ static inline ALWAYS_INLINE float highBits(float x)
     y.i &= 0xfffff000u;
     return y.f;
 }
-static inline ALWAYS_INLINE double highBits(double x)
+static inline Vc_ALWAYS_INLINE double highBits(double x)
 {
     union {
         double f;
@@ -133,7 +133,7 @@ static inline ALWAYS_INLINE double highBits(double x)
     y.i &= 0xfffffffff8000000ull;
     return y.f;
 }
-template<typename T> inline ALWAYS_INLINE T _fusedMultiplyAdd(T a, T b, T c)
+template<typename T> inline Vc_ALWAYS_INLINE T _fusedMultiplyAdd(T a, T b, T c)
 {
     const T h1 = highBits(a);
     const T l1 = a - h1;
@@ -148,20 +148,20 @@ template<typename T> inline ALWAYS_INLINE T _fusedMultiplyAdd(T a, T b, T c)
         return (ll + lh) + (c + hh);
     }
 }
-template<> inline ALWAYS_INLINE void float_v::fusedMultiplyAdd(const float_v &f, const float_v &s)
+template<> inline Vc_ALWAYS_INLINE void float_v::fusedMultiplyAdd(const float_v &f, const float_v &s)
 {
     data() = _fusedMultiplyAdd(data(), f.data(), s.data());
 }
-template<> inline ALWAYS_INLINE void sfloat_v::fusedMultiplyAdd(const sfloat_v &f, const sfloat_v &s)
+template<> inline Vc_ALWAYS_INLINE void sfloat_v::fusedMultiplyAdd(const sfloat_v &f, const sfloat_v &s)
 {
     data() = _fusedMultiplyAdd(data(), f.data(), s.data());
 }
-template<> inline ALWAYS_INLINE void double_v::fusedMultiplyAdd(const double_v &f, const double_v &s)
+template<> inline Vc_ALWAYS_INLINE void double_v::fusedMultiplyAdd(const double_v &f, const double_v &s)
 {
     data() = _fusedMultiplyAdd(data(), f.data(), s.data());
 }
 // Random {{{1
-static inline ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
+static inline Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)
 {
     state0.load(&Vc::RandomState[0]);

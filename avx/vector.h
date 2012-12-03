@@ -213,9 +213,9 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //prefix
-        inline Vector ALWAYS_INLINE &operator++() { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
+        inline Vector Vc_ALWAYS_INLINE &operator++() { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
         //postfix
-        inline Vector ALWAYS_INLINE operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
+        inline Vector Vc_ALWAYS_INLINE operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
         inline Common::AliasingEntryHelper<StorageType> INTRINSIC operator[](int index) {
 #if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
@@ -223,11 +223,11 @@ template<typename T> class Vector
 #endif
             return d.m(index);
         }
-        inline EntryType ALWAYS_INLINE operator[](int index) const {
+        inline EntryType Vc_ALWAYS_INLINE operator[](int index) const {
             return d.m(index);
         }
 
-        inline Vector ALWAYS_INLINE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
+        inline Vector Vc_ALWAYS_INLINE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
         inline Vector PURE INTRINSIC operator+() const { return *this; }
 
@@ -239,10 +239,10 @@ template<typename T> class Vector
 #undef OP1
 
 #define OP(symbol, fun) \
-        inline Vector ALWAYS_INLINE &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
-        inline Vector ALWAYS_INLINE &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
-        inline Vector ALWAYS_INLINE operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); } \
-        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) ALWAYS_INLINE operator symbol(TT x) const { return operator symbol(Vector(x)); }
+        inline Vector Vc_ALWAYS_INLINE &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
+        inline Vector Vc_ALWAYS_INLINE &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
+        inline Vector Vc_ALWAYS_INLINE operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); } \
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) Vc_ALWAYS_INLINE operator symbol(TT x) const { return operator symbol(Vector(x)); }
 
         OP(+, add)
         OP(-, sub)
@@ -255,25 +255,25 @@ template<typename T> class Vector
 
         // bitwise ops
 #define OP_VEC(op) \
-        inline Vector<T> ALWAYS_INLINE_L &operator op##=(AsArg x) ALWAYS_INLINE_R; \
-        inline Vector<T> ALWAYS_INLINE_L  operator op   (AsArg x) const ALWAYS_INLINE_R;
+        inline Vector<T> Vc_ALWAYS_INLINE_L &operator op##=(AsArg x) Vc_ALWAYS_INLINE_R; \
+        inline Vector<T> Vc_ALWAYS_INLINE_L  operator op   (AsArg x) const Vc_ALWAYS_INLINE_R;
 #define OP_ENTRY(op) \
-        inline ALWAYS_INLINE Vector<T> &operator op##=(EntryType x) { return operator op##=(Vector(x)); } \
-        template<typename TT> inline ALWAYS_INLINE VC_EXACT_TYPE(TT, EntryType, Vector) operator op(TT x) const { return operator op(Vector(x)); }
+        inline Vc_ALWAYS_INLINE Vector<T> &operator op##=(EntryType x) { return operator op##=(Vector(x)); } \
+        template<typename TT> inline Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, EntryType, Vector) operator op(TT x) const { return operator op(Vector(x)); }
         VC_ALL_BINARY(OP_VEC)
         VC_ALL_BINARY(OP_ENTRY)
         VC_ALL_SHIFTS(OP_VEC)
 #undef OP_VEC
 #undef OP_ENTRY
 
-        inline Vector<T> ALWAYS_INLINE_L &operator>>=(int x) ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L &operator<<=(int x) ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L operator>>(int x) const ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L operator<<(int x) const ALWAYS_INLINE_R;
+        inline Vector<T> Vc_ALWAYS_INLINE_L &operator>>=(int x) Vc_ALWAYS_INLINE_R;
+        inline Vector<T> Vc_ALWAYS_INLINE_L &operator<<=(int x) Vc_ALWAYS_INLINE_R;
+        inline Vector<T> Vc_ALWAYS_INLINE_L operator>>(int x) const Vc_ALWAYS_INLINE_R;
+        inline Vector<T> Vc_ALWAYS_INLINE_L operator<<(int x) const Vc_ALWAYS_INLINE_R;
 
 #define OPcmp(symbol, fun) \
-        inline Mask ALWAYS_INLINE operator symbol(AsArg x) const { return VectorHelper<T>::fun(data(), x.data()); } \
-        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Mask) ALWAYS_INLINE operator symbol(TT x) const { return operator symbol(Vector(x)); }
+        inline Mask Vc_ALWAYS_INLINE operator symbol(AsArg x) const { return VectorHelper<T>::fun(data(), x.data()); } \
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Mask) Vc_ALWAYS_INLINE operator symbol(TT x) const { return operator symbol(Vector(x)); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -296,7 +296,7 @@ template<typename T> class Vector
         template<typename V2> inline V2 staticCast() const { return V2(*this); }
         template<typename V2> inline V2 reinterpretCast() const { return avx_cast<typename V2::VectorType>(data()); }
 
-        inline WriteMaskedVector<T> ALWAYS_INLINE operator()(const Mask &k) { return WriteMaskedVector<T>(this, k); }
+        inline WriteMaskedVector<T> Vc_ALWAYS_INLINE operator()(const Mask &k) { return WriteMaskedVector<T>(this, k); }
 
         /**
          * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have

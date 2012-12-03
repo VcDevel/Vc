@@ -31,9 +31,9 @@
 #undef PURE_L
 #undef PURE_R
 #undef MAY_ALIAS
-#undef ALWAYS_INLINE
-#undef ALWAYS_INLINE_L
-#undef ALWAYS_INLINE_R
+#undef Vc_ALWAYS_INLINE
+#undef Vc_ALWAYS_INLINE_L
+#undef Vc_ALWAYS_INLINE_R
 #undef _VC_CONSTEXPR
 #undef _VC_CONSTEXPR_L
 #undef _VC_CONSTEXPR_R

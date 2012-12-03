@@ -30,7 +30,7 @@ namespace
     using Vc::double_v;
     using Vc::sfloat_v;
 
-    template<typename T> static inline ALWAYS_INLINE Vector<T> cosSeries(const Vector<T> &x)
+    template<typename T> static inline Vc_ALWAYS_INLINE Vector<T> cosSeries(const Vector<T> &x)
     {
         typedef Const<T> C;
         const Vector<T> x2 = x * x;
@@ -39,7 +39,7 @@ namespace
                  C::cosCoeff(0)) * (x2 * x2)
             - C::_1_2() * x2 + Vector<T>::One();
     }
-    static inline ALWAYS_INLINE double_v cosSeries(const double_v &x)
+    static inline Vc_ALWAYS_INLINE double_v cosSeries(const double_v &x)
     {
         typedef Const<double> C;
         const double_v x2 = x * x;
@@ -51,7 +51,7 @@ namespace
                     C::cosCoeff(0)) * (x2 * x2)
             - C::_1_2() * x2 + double_v::One();
     }
-    template<typename T> static inline ALWAYS_INLINE Vector<T> sinSeries(const Vector<T> &x)
+    template<typename T> static inline Vc_ALWAYS_INLINE Vector<T> sinSeries(const Vector<T> &x)
     {
         typedef Const<T> C;
         const Vector<T> x2 = x * x;
@@ -60,7 +60,7 @@ namespace
                  C::sinCoeff(0)) * (x2 * x)
             + x;
     }
-    static inline ALWAYS_INLINE double_v sinSeries(const double_v &x)
+    static inline Vc_ALWAYS_INLINE double_v sinSeries(const double_v &x)
     {
         typedef Const<double> C;
         const double_v x2 = x * x;

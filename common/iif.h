@@ -43,10 +43,10 @@ namespace Vc
  * \endcode
  */
 #ifndef VC_MSVC
-template<typename T> static inline ALWAYS_INLINE Vector<T> iif (typename Vector<T>::Mask condition, Vector<T> trueValue, Vector<T> falseValue)
+template<typename T> static inline Vc_ALWAYS_INLINE Vector<T> iif (typename Vector<T>::Mask condition, Vector<T> trueValue, Vector<T> falseValue)
 {
 #else
-template<typename T> static inline ALWAYS_INLINE Vector<T> iif (const typename Vector<T>::Mask &condition, const Vector<T> &trueValue, const Vector<T> &_falseValue)
+template<typename T> static inline Vc_ALWAYS_INLINE Vector<T> iif (const typename Vector<T>::Mask &condition, const Vector<T> &trueValue, const Vector<T> &_falseValue)
 {
     Vector<T> falseValue(_falseValue);
 #endif

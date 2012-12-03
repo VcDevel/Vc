@@ -54,9 +54,9 @@
 #  define PURE_L
 #  define PURE_R PURE
 #  define MAY_ALIAS __attribute__((may_alias))
-#  define ALWAYS_INLINE __attribute__((always_inline))
-#  define ALWAYS_INLINE_L
-#  define ALWAYS_INLINE_R ALWAYS_INLINE
+#  define Vc_ALWAYS_INLINE __attribute__((always_inline))
+#  define Vc_ALWAYS_INLINE_L
+#  define Vc_ALWAYS_INLINE_R Vc_ALWAYS_INLINE
 #  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
@@ -85,9 +85,9 @@
 #  define PURE __attribute__((__pure__))
 #  define PURE_L
 #  define PURE_R PURE
-#  define ALWAYS_INLINE __attribute__((__always_inline__))
-#  define ALWAYS_INLINE_L
-#  define ALWAYS_INLINE_R ALWAYS_INLINE
+#  define Vc_ALWAYS_INLINE __attribute__((__always_inline__))
+#  define Vc_ALWAYS_INLINE_L
+#  define Vc_ALWAYS_INLINE_R Vc_ALWAYS_INLINE
 #  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
@@ -98,9 +98,9 @@
 #  endif
 #  define MAY_ALIAS
 #  ifdef VC_MSVC
-#    define ALWAYS_INLINE __forceinline
-#    define ALWAYS_INLINE_L ALWAYS_INLINE
-#    define ALWAYS_INLINE_R
+#    define Vc_ALWAYS_INLINE __forceinline
+#    define Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE
+#    define Vc_ALWAYS_INLINE_R
 #    define CONST __declspec(noalias)
 #    define CONST_L CONST
 #    define CONST_R
@@ -111,9 +111,9 @@
 #    define INTRINSIC_L INTRINSIC
 #    define INTRINSIC_R
 #  else
-#    define ALWAYS_INLINE
-#    define ALWAYS_INLINE_L
-#    define ALWAYS_INLINE_R
+#    define Vc_ALWAYS_INLINE
+#    define Vc_ALWAYS_INLINE_L
+#    define Vc_ALWAYS_INLINE_R
 #    define CONST
 #    define CONST_L
 #    define CONST_R

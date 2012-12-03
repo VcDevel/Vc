@@ -196,9 +196,9 @@ namespace
 } // anonymous namespace
 
 #ifdef NDEBUG
-template<typename _T> static inline ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
+template<typename _T> static inline Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
 #else
-template<typename _T> static inline ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)
+template<typename _T> static inline Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)
 {
     const size_t s = sizeof(_T);
     if((reinterpret_cast<size_t>(ptr) & ((s ^ (s & (s - 1))) - 1)) != 0) {
