@@ -2,9 +2,9 @@
 #include <Vc/IO>
 
 using namespace Vc;
-float_v fooLib2(float_v a)
+float_v fooLib2(float_v::AsArg a)
 {
-    a += float_v::One();
-    std::cerr << a;
-    return a;
+    const float_v b = a + float_v::One();
+    std::cerr << b;
+    return b;
 }

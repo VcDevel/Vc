@@ -4,16 +4,16 @@
 
 using namespace Vc;
 
-float_v fooLib0(float_v a);
-float_v fooLib1(float_v a);
-float_v fooLib2(float_v a);
-float_v fooLib3(float_v a);
-float_v foo0(float_v a);
-float_v foo1(float_v a)
+float_v fooLib0(float_v::AsArg a);
+float_v fooLib1(float_v::AsArg a);
+float_v fooLib2(float_v::AsArg a);
+float_v fooLib3(float_v::AsArg a);
+float_v foo0(float_v::AsArg a);
+float_v foo1(float_v::AsArg a)
 {
-    a += float_v::One();
-    std::cerr << a;
-    return a;
+    const float_v b = a + float_v::One();
+    std::cerr << b;
+    return b;
 }
 
 int main()
