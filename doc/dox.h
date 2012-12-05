@@ -22,7 +22,8 @@
  * \image html logo.png
  *
  * The Vc library is a collection of vector classes with existing implementations for SSE, AVX,
- * and a scalar fallback.
+ * and a scalar fallback. An implementation for the Intel Xeon Phi is expected to be ready for Vc
+ * 0.8.
  *
  * \ref intro
  *
