@@ -117,6 +117,8 @@
  * As you can probably see, the new challenge with Vc is the use of good data-structures which
  * support horizontal vectorization. Depending on your problem at hand this may become the main
  * focus of design (it does not have to be, though).
+ *
+ * \section intro_alignment Alignment
  */
 
 /**
@@ -202,18 +204,22 @@
  * \li compiler flags to enable/disable SIMD instruction sets, defaulting to full support for the
  * host system
  *
+ * \section buildsystem_variables CMake Variables
+ *
  * To make use of these features simply copy the FindVc.cmake as installed by Vc to your project.
  * Add \code find_package(Vc [version] [REQUIRED]) \endcode to your CMakeLists.txt. After that you
- * can use the following macros:
+ * can use the following variables:
  * \li \e Vc_FOUND: tells whether the package was found
  * \li \e Vc_INCLUDE_DIR: you must add this to your include directories for the targets that you
  * want to compile against Vc: \code include_directories(${Vc_INCLUDE_DIR}) \endcode
  * \li \e Vc_DEFINITIONS: recommended compiler flags. You can use them via add_definitions or the
  * COMPILE_FLAGS property.
  *
- * The following two macros might be of interest, too:
+ * The following variables might be of interest, too:
  * \li \e Vc_SSE_INTRINSICS_BROKEN
  * \li \e Vc_AVX_INTRINSICS_BROKEN
+ * \li \e Vc_XOP_INTRINSICS_BROKEN
+ * \li \e Vc_FMA4_INTRINSICS_BROKEN
  *
  * \section buildsystem_macros CMake Macros
  *
@@ -228,6 +234,8 @@
  * You can specify an arbitrary number of additional compiler flags after the FLAGS argument. These
  * flags will be used for all compiler calls. After the EXCLUDE argument you can specify targets
  * that you want to exclude. Often it suffices to have SSE2 or SSE3 as the least common denominator.
+ *
+ * \section buildsystem_other Using Vc without CMake
  *
  * If your project does not use CMake all you need to do is the following:
  * \li Find the header file "Vc/Vc" and add its path to your include paths.
