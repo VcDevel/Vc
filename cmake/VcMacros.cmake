@@ -202,8 +202,10 @@ macro(vc_set_preferred_compiler_flags)
       #                                              GCC                                               #
       ##################################################################################################
       if(_add_warning_flags)
-         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wshadow")
-         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -ansi -pedantic -Wno-long-long -Wshadow")
+         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -pedantic -Wno-long-long -Wshadow")
+         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -pedantic -Wno-long-long -Wshadow")
+         # the -ansi flag makes MinGW unusable, so maybe it's better to omit it
+         #AddCompilerFlag("-ansi")
          AddCompilerFlag("-Wold-style-cast")
          AddCompilerFlag("-Wno-variadic-macros")
          if(Vc_GCC_VERSION VERSION_GREATER "4.5.2" AND Vc_GCC_VERSION VERSION_LESS "4.6.4")
