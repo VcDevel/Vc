@@ -714,6 +714,56 @@ namespace Vc
      * compile for 32 bit systems if it forces more than 8 vectors in registers.
      */
     void forceToRegisters(const vec &, ...);
+
+    /**
+     * \ingroup Utilities
+     *
+     * Helper class to ensure proper alignment.
+     *
+     * This class reimplements the \c new and \c delete operators to align the allocated object
+     * suitably for vector data. Additionally the type is annotated to require that same alignment
+     * when placed on the stack.
+     *
+     * \see Vc::VectorAlignedBaseT
+     */
+    class VectorAlignedBase
+    {
+    public:
+        void *operator new(size_t size);
+        void *operator new(size_t, void *p);
+        void *operator new[](size_t size);
+        void operator delete(void *ptr, size_t);
+        void operator delete[](void *ptr, size_t);
+    };
+
+    /**
+     * \ingroup Utilities
+     *
+     * Helper class to ensure proper alignment.
+     *
+     * This class reimplements the \c new and \c delete operators to align the allocated object
+     * suitably for vector data. Additionally the type is annotated to require that same alignment
+     * when placed on the stack.
+     *
+     * This class differs from Vc::VectorAlignedBase in that the template parameter determines the
+     * alignment. The alignment rules for different vector types might be different. If you use
+     * Vc::VectorAlignedBase you will get the most restrictive alignment (i.e. it will work for all
+     * vector types, but might lead to unnecessary padding).
+     *
+     * \tparam V One of the Vc vector types.
+     *
+     * \see Vc::VectorAlignedBase
+     */
+    template<typename V>
+    class VectorAlignedBaseT
+    {
+    public:
+        void *operator new(size_t size);
+        void *operator new(size_t, void *p);
+        void *operator new[](size_t size);
+        void operator delete(void *ptr, size_t);
+        void operator delete[](void *ptr, size_t);
+    };
 }
 
 /**
