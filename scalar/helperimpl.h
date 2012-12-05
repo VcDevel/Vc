@@ -30,7 +30,7 @@ namespace Internal
 template<> struct HelperImpl<Vc::ScalarImpl>
 {
     template<typename V, typename M, typename A>
-    static inline void ALWAYS_INLINE deinterleave(V &a, V &b, const M *mem, A)
+    static inline void Vc_ALWAYS_INLINE deinterleave(V &a, V &b, const M *mem, A)
     {
         a = mem[0];
         b = mem[1];
@@ -43,8 +43,8 @@ template<> struct HelperImpl<Vc::ScalarImpl>
     static inline void prefetchFar(const void *) {}
 
     template<Vc::MallocAlignment A>
-    static inline ALWAYS_INLINE_L void *malloc(size_t n) ALWAYS_INLINE_R;
-    static inline ALWAYS_INLINE_L void free(void *p) ALWAYS_INLINE_R;
+    static inline Vc_ALWAYS_INLINE_L void *malloc(size_t n) Vc_ALWAYS_INLINE_R;
+    static inline Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 };
 
 } // namespace Scalar

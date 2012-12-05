@@ -25,21 +25,21 @@ namespace Scalar
 {
 
 // conversion/casts {{{1
-template<> template<> inline INTRINSIC short_v &Vector<short>::operator=(const ushort_v &x) {
+template<> template<> inline Vc_INTRINSIC short_v &Vector<short>::operator=(const ushort_v &x) {
     data() = static_cast<short>(x.data()); return *this;
 }
-template<> template<> inline INTRINSIC ushort_v &Vector<unsigned short>::operator=(const short_v &x) {
+template<> template<> inline Vc_INTRINSIC ushort_v &Vector<unsigned short>::operator=(const short_v &x) {
     data() = static_cast<unsigned short>(x.data()); return *this;
 }
-template<> template<> inline INTRINSIC int_v &Vector<int>::operator=(const uint_v &x) {
+template<> template<> inline Vc_INTRINSIC int_v &Vector<int>::operator=(const uint_v &x) {
     data() = static_cast<int>(x.data()); return *this;
 }
-template<> template<> inline INTRINSIC uint_v &Vector<unsigned int>::operator=(const int_v &x) {
+template<> template<> inline Vc_INTRINSIC uint_v &Vector<unsigned int>::operator=(const int_v &x) {
     data() = static_cast<unsigned int>(x.data()); return *this;
 }
 
 // copySign ///////////////////////////////////////////////////////////////////////// {{{1
-template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float> reference) const
+template<> inline Vector<float> Vc_INTRINSIC Vector<float>::copySign(Vector<float> reference) const
 {
     union {
         float f;
@@ -50,11 +50,11 @@ template<> inline Vector<float> INTRINSIC Vector<float>::copySign(Vector<float> 
     value.i = (sign.i & 0x80000000u) | (value.i & 0x7fffffffu);
     return float_v(value.f);
 }
-template<> inline sfloat_v INTRINSIC Vector<sfloat>::copySign(sfloat_v reference) const
+template<> inline sfloat_v Vc_INTRINSIC Vector<sfloat>::copySign(sfloat_v reference) const
 {
     return sfloat_v(float_v(m_data).copySign(float_v(reference.data())).data());
 }
-template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<double> reference) const
+template<> inline Vector<double> Vc_INTRINSIC Vector<double>::copySign(Vector<double> reference) const
 {
     union {
         double f;
@@ -68,7 +68,7 @@ template<> inline Vector<double> INTRINSIC Vector<double>::copySign(Vector<doubl
 // bitwise operators {{{1
 #define VC_CAST_OPERATOR_FORWARD(op, IntT, VecT) \
 template<> inline VecT &VecT::operator op##=(const VecT &x) { \
-    typedef IntT uinta MAY_ALIAS; \
+    typedef IntT uinta Vc_MAY_ALIAS; \
     uinta *left = reinterpret_cast<uinta *>(&m_data); \
     const uinta *right = reinterpret_cast<const uinta *>(&x.m_data); \
     *left op##= *right; \
@@ -93,27 +93,75 @@ VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_DOUBLE)
 #include "../common/operators.h"
 // }}}1
 // exponent {{{1
-template<> inline Vector<float> INTRINSIC Vector<float>::exponent() const
+template<> inline Vector<float> Vc_INTRINSIC Vector<float>::exponent() const
 {
-    VC_ASSERT(m_data > 0.f);
+    VC_ASSERT(m_data >= 0.f);
     union { float f; int i; } value;
     value.f = m_data;
     return float_v(static_cast<float>((value.i >> 23) - 0x7f));
 }
-template<> inline sfloat_v INTRINSIC Vector<sfloat>::exponent() const
+template<> inline sfloat_v Vc_INTRINSIC Vector<sfloat>::exponent() const
 {
     return sfloat_v(float_v(m_data).exponent().data());
 }
-template<> inline Vector<double> INTRINSIC Vector<double>::exponent() const
+template<> inline Vector<double> Vc_INTRINSIC Vector<double>::exponent() const
 {
-    VC_ASSERT(m_data > 0.);
+    VC_ASSERT(m_data >= 0.);
     union { double f; long long i; } value;
     value.f = m_data;
     return double_v(static_cast<double>((value.i >> 52) - 0x3ff));
 }
 // }}}1
+// FMA {{{1
+static inline Vc_ALWAYS_INLINE float highBits(float x)
+{
+    union {
+        float f;
+        unsigned int i;
+    } y;
+    y.f = x;
+    y.i &= 0xfffff000u;
+    return y.f;
+}
+static inline Vc_ALWAYS_INLINE double highBits(double x)
+{
+    union {
+        double f;
+        unsigned long long i;
+    } y;
+    y.f = x;
+    y.i &= 0xfffffffff8000000ull;
+    return y.f;
+}
+template<typename T> inline Vc_ALWAYS_INLINE T _fusedMultiplyAdd(T a, T b, T c)
+{
+    const T h1 = highBits(a);
+    const T l1 = a - h1;
+    const T h2 = highBits(b);
+    const T l2 = b - h2;
+    const T ll = l1 * l2;
+    const T lh = l1 * h2 + h1 * l2;
+    const T hh = h1 * h2;
+    if (std::abs(c) < std::abs(lh)) {
+        return (ll + c) + (lh + hh);
+    } else {
+        return (ll + lh) + (c + hh);
+    }
+}
+template<> inline Vc_ALWAYS_INLINE void float_v::fusedMultiplyAdd(const float_v &f, const float_v &s)
+{
+    data() = _fusedMultiplyAdd(data(), f.data(), s.data());
+}
+template<> inline Vc_ALWAYS_INLINE void sfloat_v::fusedMultiplyAdd(const sfloat_v &f, const sfloat_v &s)
+{
+    data() = _fusedMultiplyAdd(data(), f.data(), s.data());
+}
+template<> inline Vc_ALWAYS_INLINE void double_v::fusedMultiplyAdd(const double_v &f, const double_v &s)
+{
+    data() = _fusedMultiplyAdd(data(), f.data(), s.data());
+}
 // Random {{{1
-static inline ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
+static inline Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)
 {
     state0.load(&Vc::RandomState[0]);
@@ -122,13 +170,13 @@ static inline ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
     uint_v((state0 * 0xdeece66du + 11).data() ^ (state1.data() >> 16)).store(&Vc::RandomState[0]);
 }
 
-template<typename T> inline INTRINSIC Vector<T> Vector<T>::Random()
+template<typename T> inline Vc_INTRINSIC Vector<T> Vector<T>::Random()
 {
     Vector<unsigned int> state0, state1;
     _doRandomStep(state0, state1);
     return Vector<T>(static_cast<EntryType>(state0.data()));
 }
-template<> inline INTRINSIC Vector<float> Vector<float>::Random()
+template<> inline Vc_INTRINSIC Vector<float> Vector<float>::Random()
 {
     Vector<unsigned int> state0, state1;
     _doRandomStep(state0, state1);
@@ -136,19 +184,57 @@ template<> inline INTRINSIC Vector<float> Vector<float>::Random()
     x.i = (state0.data() & 0x0fffffffu) | 0x3f800000u;
     return float_v(x.f - 1.f);
 }
-template<> inline INTRINSIC sfloat_v Vector<sfloat>::Random()
+template<> inline Vc_INTRINSIC sfloat_v Vector<sfloat>::Random()
 {
     return sfloat_v(Vector<float>::Random().data());
 }
-template<> inline INTRINSIC Vector<double> Vector<double>::Random()
+template<> inline Vc_INTRINSIC Vector<double> Vector<double>::Random()
 {
-    typedef unsigned long long uint64 MAY_ALIAS;
+    typedef unsigned long long uint64 Vc_MAY_ALIAS;
     uint64 state0 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[8]);
     state0 = (state0 * 0x5deece66dull + 11) & 0x000fffffffffffffull;
     *reinterpret_cast<uint64 *>(&Vc::RandomState[8]) = state0;
     union { unsigned long long i; double f; } x;
     x.i = state0 | 0x3ff0000000000000ull;
     return double_v(x.f - 1.);
+}
+// isNegative {{{1
+template<typename T> inline Vc_PURE Vc_INTRINSIC typename Vector<T>::Mask Vector<T>::isNegative() const
+{
+    union { float f; unsigned int i; } u;
+    u.f = m_data;
+    return Mask(0u != (u.i & 0x80000000u));
+}
+template<> inline Vc_PURE Vc_INTRINSIC double_m double_v::isNegative() const
+{
+    union { double d; unsigned long long l; } u;
+    u.d = m_data;
+    return double_m(0ull != (u.l & 0x8000000000000000ull));
+}
+// setQnan {{{1
+template<typename T> inline Vc_INTRINSIC void Vector<T>::setQnan()
+{
+    union { float f; unsigned int i; } u;
+    u.i = 0xffffffffu;
+    m_data = u.f;
+}
+template<> inline Vc_INTRINSIC void double_v::setQnan()
+{
+    union { double d; unsigned long long l; } u;
+    u.l = 0xffffffffffffffffull;
+    m_data = u.d;
+}
+template<typename T> inline Vc_INTRINSIC void Vector<T>::setQnan(Mask m)
+{
+    if (m) {
+        setQnan();
+    }
+}
+template<> inline Vc_INTRINSIC void double_v::setQnan(Mask m)
+{
+    if (m) {
+        setQnan();
+    }
 }
 // }}}1
 } // namespace Scalar

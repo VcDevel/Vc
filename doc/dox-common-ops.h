@@ -367,12 +367,20 @@ MASK_TYPE operator<=(const VECTOR_TYPE &x) const;
 //@{
 /// Returns a new vector with the sum of the respective entries of the left and right vector.
 VECTOR_TYPE operator+(VECTOR_TYPE x) const;
+/// Adds the respective entries of \p x to this vector.
+VECTOR_TYPE &operator+=(VECTOR_TYPE x);
 /// Returns a new vector with the difference of the respective entries of the left and right vector.
 VECTOR_TYPE operator-(VECTOR_TYPE x) const;
+/// Subtracts the respective entries of \p x from this vector.
+VECTOR_TYPE &operator-=(VECTOR_TYPE x);
 /// Returns a new vector with the product of the respective entries of the left and right vector.
 VECTOR_TYPE operator*(VECTOR_TYPE x) const;
+/// Multiplies the respective entries of \p x from to vector.
+VECTOR_TYPE &operator*=(VECTOR_TYPE x);
 /// Returns a new vector with the quotient of the respective entries of the left and right vector.
 VECTOR_TYPE operator/(VECTOR_TYPE x) const;
+/// Divides the respective entries of this vector by \p x.
+VECTOR_TYPE &operator/=(VECTOR_TYPE x);
 /// Returns a new vector with all entries negated.
 VECTOR_TYPE operator-() const;
 /// Returns a new vector with the binary or of the respective entries of the left and right vector.
@@ -381,6 +389,37 @@ VECTOR_TYPE operator|(VECTOR_TYPE x) const;
 VECTOR_TYPE operator&(VECTOR_TYPE x) const;
 /// Returns a new vector with the binary xor of the respective entries of the left and right vector.
 VECTOR_TYPE operator^(VECTOR_TYPE x) const;
+#ifdef VECTOR_TYPE_HAS_SHIFTS
+/// Returns a new vector with each entry bitshifted to the left by \p x bits.
+VECTOR_TYPE operator<<(int x) const;
+/// Bitshift each entry to the left by \p x bits.
+VECTOR_TYPE &operator<<=(int x);
+/// Returns a new vector with each entry bitshifted to the right by \p x bits.
+VECTOR_TYPE operator>>(int x) const;
+/// Bitshift each entry to the right by \p x bits.
+VECTOR_TYPE &operator>>=(int x);
+/// Returns a new vector with each entry bitshifted to the left by \p x[i] bits.
+VECTOR_TYPE operator<<(VECTOR_TYPE x) const;
+/// Bitshift each entry to the left by \p x[i] bits.
+VECTOR_TYPE &operator<<=(VECTOR_TYPE x);
+/// Returns a new vector with each entry bitshifted to the right by \p x[i] bits.
+VECTOR_TYPE operator>>(VECTOR_TYPE x) const;
+/// Bitshift each entry to the right by \p x[i] bits.
+VECTOR_TYPE &operator>>=(VECTOR_TYPE x);
+#endif
+/**
+ * Multiplies this vector with \p factor and then adds \p summand, without rounding between the
+ * multiplication and the addition.
+ *
+ * \param factor The multiplication factor.
+ * \param summand The summand that will be added after multiplication.
+ *
+ * \note This operation may have explicit hardware support, in which case it is normally faster to
+ * use the FMA instead of separate multiply and add instructions.
+ * \note If the target hardware does not have FMA support this function will be considerably slower
+ * than a normal a * b + c. This is due to the increased precision fusedMultiplyAdd provides.
+ */
+void fusedMultiplyAdd(VECTOR_TYPE factor, VECTOR_TYPE summand);
 //@}
 
 /**

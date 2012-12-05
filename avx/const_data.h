@@ -35,21 +35,23 @@ struct STRUCT_ALIGN1(64) c_general
     static const float oneFloat;
     static const unsigned int absMaskFloat[2];
     static const unsigned int signMaskFloat[2];
+    static const unsigned int highMaskFloat;
     static const unsigned short minShort[2];
     static const unsigned short one16[2];
     static const float _2power31;
     static const double oneDouble;
     static const unsigned long long frexpMask;
+    static const unsigned long long highMaskDouble;
 } STRUCT_ALIGN2(64);
 
-template<typename T> struct c_sin
+template<typename T> struct c_trig
 {
     ALIGN(64) static const T data[];
 };
 
 template<typename T> struct c_log
 {
-    typedef float floatAlias MAY_ALIAS;
+    typedef float floatAlias Vc_MAY_ALIAS;
     static inline float d(int i) { return *reinterpret_cast<const floatAlias *>(&data[i]); }
     ALIGN(64) static const unsigned int data[];
 };
@@ -57,7 +59,7 @@ template<typename T> struct c_log
 template<> struct c_log<double>
 {
     enum VectorSize { Size = 16 / sizeof(double) };
-    typedef double doubleAlias MAY_ALIAS;
+    typedef double doubleAlias Vc_MAY_ALIAS;
     static inline double d(int i) { return *reinterpret_cast<const doubleAlias *>(&data[i]); }
     ALIGN(64) static const unsigned long long data[];
 };

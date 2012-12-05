@@ -27,69 +27,69 @@ namespace Vc
 {
 namespace AVX
 {
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m128  v) INTRINSIC_R;
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m128i v) INTRINSIC_R;
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m128d v) INTRINSIC_R;
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m256  v) INTRINSIC_R;
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m256i v) INTRINSIC_R;
-    template<typename T> static inline INTRINSIC_L T avx_cast(__m256d v) INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m128  v) Vc_INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m128i v) Vc_INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m128d v) Vc_INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m256  v) Vc_INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m256i v) Vc_INTRINSIC_R;
+    template<typename T> static inline Vc_INTRINSIC_L T avx_cast(__m256d v) Vc_INTRINSIC_R;
 
     // 128 -> 128
-    template<> inline __m128  INTRINSIC avx_cast(__m128  v) { return v; }
-    template<> inline __m128  INTRINSIC avx_cast(__m128i v) { return _mm_castsi128_ps(v); }
-    template<> inline __m128  INTRINSIC avx_cast(__m128d v) { return _mm_castpd_ps(v); }
-    template<> inline __m128i INTRINSIC avx_cast(__m128  v) { return _mm_castps_si128(v); }
-    template<> inline __m128i INTRINSIC avx_cast(__m128i v) { return v; }
-    template<> inline __m128i INTRINSIC avx_cast(__m128d v) { return _mm_castpd_si128(v); }
-    template<> inline __m128d INTRINSIC avx_cast(__m128  v) { return _mm_castps_pd(v); }
-    template<> inline __m128d INTRINSIC avx_cast(__m128i v) { return _mm_castsi128_pd(v); }
-    template<> inline __m128d INTRINSIC avx_cast(__m128d v) { return v; }
+    template<> inline __m128  Vc_INTRINSIC avx_cast(__m128  v) { return v; }
+    template<> inline __m128  Vc_INTRINSIC avx_cast(__m128i v) { return _mm_castsi128_ps(v); }
+    template<> inline __m128  Vc_INTRINSIC avx_cast(__m128d v) { return _mm_castpd_ps(v); }
+    template<> inline __m128i Vc_INTRINSIC avx_cast(__m128  v) { return _mm_castps_si128(v); }
+    template<> inline __m128i Vc_INTRINSIC avx_cast(__m128i v) { return v; }
+    template<> inline __m128i Vc_INTRINSIC avx_cast(__m128d v) { return _mm_castpd_si128(v); }
+    template<> inline __m128d Vc_INTRINSIC avx_cast(__m128  v) { return _mm_castps_pd(v); }
+    template<> inline __m128d Vc_INTRINSIC avx_cast(__m128i v) { return _mm_castsi128_pd(v); }
+    template<> inline __m128d Vc_INTRINSIC avx_cast(__m128d v) { return v; }
 
     // 128 -> 256
-    template<> inline __m256  INTRINSIC avx_cast(__m128  v) { return _mm256_castps128_ps256(v); }
-    template<> inline __m256  INTRINSIC avx_cast(__m128i v) { return _mm256_castps128_ps256(_mm_castsi128_ps(v)); }
-    template<> inline __m256  INTRINSIC avx_cast(__m128d v) { return _mm256_castps128_ps256(_mm_castpd_ps(v)); }
-    template<> inline __m256i INTRINSIC avx_cast(__m128  v) { return _mm256_castsi128_si256(_mm_castps_si128(v)); }
-    template<> inline __m256i INTRINSIC avx_cast(__m128i v) { return _mm256_castsi128_si256(v); }
-    template<> inline __m256i INTRINSIC avx_cast(__m128d v) { return _mm256_castsi128_si256(_mm_castpd_si128(v)); }
-    template<> inline __m256d INTRINSIC avx_cast(__m128  v) { return _mm256_castpd128_pd256(_mm_castps_pd(v)); }
-    template<> inline __m256d INTRINSIC avx_cast(__m128i v) { return _mm256_castpd128_pd256(_mm_castsi128_pd(v)); }
-    template<> inline __m256d INTRINSIC avx_cast(__m128d v) { return _mm256_castpd128_pd256(v); }
+    template<> inline __m256  Vc_INTRINSIC avx_cast(__m128  v) { return _mm256_castps128_ps256(v); }
+    template<> inline __m256  Vc_INTRINSIC avx_cast(__m128i v) { return _mm256_castps128_ps256(_mm_castsi128_ps(v)); }
+    template<> inline __m256  Vc_INTRINSIC avx_cast(__m128d v) { return _mm256_castps128_ps256(_mm_castpd_ps(v)); }
+    template<> inline __m256i Vc_INTRINSIC avx_cast(__m128  v) { return _mm256_castsi128_si256(_mm_castps_si128(v)); }
+    template<> inline __m256i Vc_INTRINSIC avx_cast(__m128i v) { return _mm256_castsi128_si256(v); }
+    template<> inline __m256i Vc_INTRINSIC avx_cast(__m128d v) { return _mm256_castsi128_si256(_mm_castpd_si128(v)); }
+    template<> inline __m256d Vc_INTRINSIC avx_cast(__m128  v) { return _mm256_castpd128_pd256(_mm_castps_pd(v)); }
+    template<> inline __m256d Vc_INTRINSIC avx_cast(__m128i v) { return _mm256_castpd128_pd256(_mm_castsi128_pd(v)); }
+    template<> inline __m256d Vc_INTRINSIC avx_cast(__m128d v) { return _mm256_castpd128_pd256(v); }
 
     // 256 -> 128
-    template<> inline __m128  INTRINSIC avx_cast(__m256  v) { return _mm256_castps256_ps128(v); }
-    template<> inline __m128  INTRINSIC avx_cast(__m256i v) { return _mm256_castps256_ps128(_mm256_castsi256_ps(v)); }
-    template<> inline __m128  INTRINSIC avx_cast(__m256d v) { return _mm256_castps256_ps128(_mm256_castpd_ps(v)); }
-    template<> inline __m128i INTRINSIC avx_cast(__m256  v) { return _mm256_castsi256_si128(_mm256_castps_si256(v)); }
-    template<> inline __m128i INTRINSIC avx_cast(__m256i v) { return _mm256_castsi256_si128(v); }
-    template<> inline __m128i INTRINSIC avx_cast(__m256d v) { return _mm256_castsi256_si128(_mm256_castpd_si256(v)); }
-    template<> inline __m128d INTRINSIC avx_cast(__m256  v) { return _mm256_castpd256_pd128(_mm256_castps_pd(v)); }
-    template<> inline __m128d INTRINSIC avx_cast(__m256i v) { return _mm256_castpd256_pd128(_mm256_castsi256_pd(v)); }
-    template<> inline __m128d INTRINSIC avx_cast(__m256d v) { return _mm256_castpd256_pd128(v); }
+    template<> inline __m128  Vc_INTRINSIC avx_cast(__m256  v) { return _mm256_castps256_ps128(v); }
+    template<> inline __m128  Vc_INTRINSIC avx_cast(__m256i v) { return _mm256_castps256_ps128(_mm256_castsi256_ps(v)); }
+    template<> inline __m128  Vc_INTRINSIC avx_cast(__m256d v) { return _mm256_castps256_ps128(_mm256_castpd_ps(v)); }
+    template<> inline __m128i Vc_INTRINSIC avx_cast(__m256  v) { return _mm256_castsi256_si128(_mm256_castps_si256(v)); }
+    template<> inline __m128i Vc_INTRINSIC avx_cast(__m256i v) { return _mm256_castsi256_si128(v); }
+    template<> inline __m128i Vc_INTRINSIC avx_cast(__m256d v) { return _mm256_castsi256_si128(_mm256_castpd_si256(v)); }
+    template<> inline __m128d Vc_INTRINSIC avx_cast(__m256  v) { return _mm256_castpd256_pd128(_mm256_castps_pd(v)); }
+    template<> inline __m128d Vc_INTRINSIC avx_cast(__m256i v) { return _mm256_castpd256_pd128(_mm256_castsi256_pd(v)); }
+    template<> inline __m128d Vc_INTRINSIC avx_cast(__m256d v) { return _mm256_castpd256_pd128(v); }
 
     // 256 -> 256
-    template<> inline __m256  INTRINSIC avx_cast(__m256  v) { return v; }
-    template<> inline __m256  INTRINSIC avx_cast(__m256i v) { return _mm256_castsi256_ps(v); }
-    template<> inline __m256  INTRINSIC avx_cast(__m256d v) { return _mm256_castpd_ps(v); }
-    template<> inline __m256i INTRINSIC avx_cast(__m256  v) { return _mm256_castps_si256(v); }
-    template<> inline __m256i INTRINSIC avx_cast(__m256i v) { return v; }
-    template<> inline __m256i INTRINSIC avx_cast(__m256d v) { return _mm256_castpd_si256(v); }
-    template<> inline __m256d INTRINSIC avx_cast(__m256  v) { return _mm256_castps_pd(v); }
-    template<> inline __m256d INTRINSIC avx_cast(__m256i v) { return _mm256_castsi256_pd(v); }
-    template<> inline __m256d INTRINSIC avx_cast(__m256d v) { return v; }
+    template<> inline __m256  Vc_INTRINSIC avx_cast(__m256  v) { return v; }
+    template<> inline __m256  Vc_INTRINSIC avx_cast(__m256i v) { return _mm256_castsi256_ps(v); }
+    template<> inline __m256  Vc_INTRINSIC avx_cast(__m256d v) { return _mm256_castpd_ps(v); }
+    template<> inline __m256i Vc_INTRINSIC avx_cast(__m256  v) { return _mm256_castps_si256(v); }
+    template<> inline __m256i Vc_INTRINSIC avx_cast(__m256i v) { return v; }
+    template<> inline __m256i Vc_INTRINSIC avx_cast(__m256d v) { return _mm256_castpd_si256(v); }
+    template<> inline __m256d Vc_INTRINSIC avx_cast(__m256  v) { return _mm256_castps_pd(v); }
+    template<> inline __m256d Vc_INTRINSIC avx_cast(__m256i v) { return _mm256_castsi256_pd(v); }
+    template<> inline __m256d Vc_INTRINSIC avx_cast(__m256d v) { return v; }
 
     // simplify splitting 256-bit registers in 128-bit registers
-    inline __m128  INTRINSIC lo128(__m256  v) { return avx_cast<__m128>(v); }
-    inline __m128d INTRINSIC lo128(__m256d v) { return avx_cast<__m128d>(v); }
-    inline __m128i INTRINSIC lo128(__m256i v) { return avx_cast<__m128i>(v); }
-    inline __m128  INTRINSIC hi128(__m256  v) { return _mm256_extractf128_ps(v, 1); }
-    inline __m128d INTRINSIC hi128(__m256d v) { return _mm256_extractf128_pd(v, 1); }
-    inline __m128i INTRINSIC hi128(__m256i v) { return _mm256_extractf128_si256(v, 1); }
+    inline __m128  Vc_INTRINSIC lo128(__m256  v) { return avx_cast<__m128>(v); }
+    inline __m128d Vc_INTRINSIC lo128(__m256d v) { return avx_cast<__m128d>(v); }
+    inline __m128i Vc_INTRINSIC lo128(__m256i v) { return avx_cast<__m128i>(v); }
+    inline __m128  Vc_INTRINSIC hi128(__m256  v) { return _mm256_extractf128_ps(v, 1); }
+    inline __m128d Vc_INTRINSIC hi128(__m256d v) { return _mm256_extractf128_pd(v, 1); }
+    inline __m128i Vc_INTRINSIC hi128(__m256i v) { return _mm256_extractf128_si256(v, 1); }
 
     // simplify combining 128-bit registers in 256-bit registers
-    inline __m256  INTRINSIC concat(__m128  a, __m128  b) { return _mm256_insertf128_ps   (avx_cast<__m256 >(a), b, 1); }
-    inline __m256d INTRINSIC concat(__m128d a, __m128d b) { return _mm256_insertf128_pd   (avx_cast<__m256d>(a), b, 1); }
-    inline __m256i INTRINSIC concat(__m128i a, __m128i b) { return _mm256_insertf128_si256(avx_cast<__m256i>(a), b, 1); }
+    inline __m256  Vc_INTRINSIC concat(__m128  a, __m128  b) { return _mm256_insertf128_ps   (avx_cast<__m256 >(a), b, 1); }
+    inline __m256d Vc_INTRINSIC concat(__m128d a, __m128d b) { return _mm256_insertf128_pd   (avx_cast<__m256d>(a), b, 1); }
+    inline __m256i Vc_INTRINSIC concat(__m128i a, __m128i b) { return _mm256_insertf128_si256(avx_cast<__m256i>(a), b, 1); }
 
     template<typename From, typename To> struct StaticCastHelper {};
     template<> struct StaticCastHelper<float         , int           > { static _M256I  cast(const _M256   v) { return _mm256_cvttps_epi32(v); } };

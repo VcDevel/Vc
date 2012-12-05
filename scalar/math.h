@@ -20,7 +20,6 @@
 #ifndef VC_SCALAR_MATH_H
 #define VC_SCALAR_MATH_H
 
-#include "../common/const.h"
 #include "macros.h"
 
 namespace Vc
@@ -103,10 +102,14 @@ static inline double_v log2(double_v::AsArg x) { return double_v(::log2 (x.data(
 static inline sfloat_v log2(sfloat_v::AsArg x) { return sfloat_v(::log2f(x.data())); }
 static inline  float_v log2( float_v::AsArg x) { return  float_v(::log2f(x.data())); }
 #else
+namespace {
+template<typename T> static _VC_CONSTEXPR T c_ln2() { return Vc_buildFloat(1, 0x317218, -1); } // .693147182464599609375
+template<> _VC_CONSTEXPR double c_ln2() { return Vc_buildDouble(1, 0xC5C85FDF473DEull, -1); } // .69314718055994528622676398299518041312694549560546875
+}
 #define VC_LOG2(V) \
 static inline V log2(const V &x) \
 { \
-    return V(std::log(x.data()) / Math<V::EntryType>::ln2()); \
+    return V(std::log(x.data()) / c_ln2<V::EntryType>()); \
 }
 VC_ALL_FLOAT_VECTOR_TYPES(VC_LOG2)
 #undef VC_LOG2
@@ -125,6 +128,15 @@ template<typename T> static inline Vector<T> atan (const Vector<T> &x)
 template<typename T> static inline Vector<T> atan2(const Vector<T> &x, const Vector<T> &y)
 {
     return Vector<T>(std::atan2( x.data(), y.data() ));
+}
+
+template<typename T> static inline Vector<T> trunc(const Vector<T> &x)
+{
+#if __cplusplus >= 201103 /*C++11*/
+    return std::trunc(x.data());
+#else
+    return x.data() > 0 ? std::floor(x.data()) : std::ceil(x.data());
+#endif
 }
 
 template<typename T> static inline Vector<T> floor(const Vector<T> &x)

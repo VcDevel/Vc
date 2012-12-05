@@ -73,12 +73,12 @@ template<typename T> class Vector
         typedef VectorHelper<T> HT;
 
         // cast any m256/m128 to VectorType
-        static inline VectorType INTRINSIC _cast(__m128  v) { return avx_cast<VectorType>(v); }
-        static inline VectorType INTRINSIC _cast(__m128i v) { return avx_cast<VectorType>(v); }
-        static inline VectorType INTRINSIC _cast(__m128d v) { return avx_cast<VectorType>(v); }
-        static inline VectorType INTRINSIC _cast(__m256  v) { return avx_cast<VectorType>(v); }
-        static inline VectorType INTRINSIC _cast(__m256i v) { return avx_cast<VectorType>(v); }
-        static inline VectorType INTRINSIC _cast(__m256d v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m128  v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m128i v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m128d v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m256  v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m256i v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(__m256d v) { return avx_cast<VectorType>(v); }
 
         typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
         StorageType d;
@@ -107,7 +107,7 @@ template<typename T> class Vector
         template<typename T2> explicit Vector(Vector<T2> x);
 
         // implicit cast
-        template<typename OtherT> inline INTRINSIC_L Vector &operator=(const Vector<OtherT> &x) INTRINSIC_R;
+        template<typename OtherT> inline Vc_INTRINSIC_L Vector &operator=(const Vector<OtherT> &x) Vc_INTRINSIC_R;
 
         // copy assignment
         inline Vector &operator=(AsArg v) { d.v() = v.d.v(); return *this; }
@@ -115,30 +115,30 @@ template<typename T> class Vector
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         explicit Vector(EntryType a);
-        template<typename TT> inline INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : d(HT::set(x)) {}
+        template<typename TT> inline Vc_INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : d(HT::set(x)) {}
         inline Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
-        explicit inline INTRINSIC_L
-            Vector(const EntryType *x) INTRINSIC_R;
-        template<typename Alignment> inline INTRINSIC_L
-            Vector(const EntryType *x, Alignment align) INTRINSIC_R;
-        template<typename OtherT> explicit inline INTRINSIC_L
-            Vector(const OtherT    *x) INTRINSIC_R;
-        template<typename OtherT, typename Alignment> inline INTRINSIC_L
-            Vector(const OtherT    *x, Alignment align) INTRINSIC_R;
+        explicit inline Vc_INTRINSIC_L
+            Vector(const EntryType *x) Vc_INTRINSIC_R;
+        template<typename Alignment> inline Vc_INTRINSIC_L
+            Vector(const EntryType *x, Alignment align) Vc_INTRINSIC_R;
+        template<typename OtherT> explicit inline Vc_INTRINSIC_L
+            Vector(const OtherT    *x) Vc_INTRINSIC_R;
+        template<typename OtherT, typename Alignment> inline Vc_INTRINSIC_L
+            Vector(const OtherT    *x, Alignment align) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
-        inline INTRINSIC_L
-            void load(const EntryType *mem) INTRINSIC_R;
-        template<typename Alignment> inline INTRINSIC_L
-            void load(const EntryType *mem, Alignment align) INTRINSIC_R;
-        template<typename OtherT> inline INTRINSIC_L
-            void load(const OtherT    *mem) INTRINSIC_R;
-        template<typename OtherT, typename Alignment> inline INTRINSIC_L
-            void load(const OtherT    *mem, Alignment align) INTRINSIC_R;
+        inline Vc_INTRINSIC_L
+            void load(const EntryType *mem) Vc_INTRINSIC_R;
+        template<typename Alignment> inline Vc_INTRINSIC_L
+            void load(const EntryType *mem, Alignment align) Vc_INTRINSIC_R;
+        template<typename OtherT> inline Vc_INTRINSIC_L
+            void load(const OtherT    *mem) Vc_INTRINSIC_R;
+        template<typename OtherT, typename Alignment> inline Vc_INTRINSIC_L
+            void load(const OtherT    *mem, Alignment align) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
@@ -162,19 +162,19 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
-        inline const Vector<T> INTRINSIC_L CONST_L &abcd() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  cdab() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  badc() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  aaaa() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  bbbb() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  cccc() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  dddd() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  bcad() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  bcda() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  dabc() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  acbd() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  dbca() const INTRINSIC_R CONST_R;
-        inline const Vector<T> INTRINSIC_L CONST_L  dcba() const INTRINSIC_R CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L &abcd() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  cdab() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  badc() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  aaaa() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  bbbb() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  cccc() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  dddd() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  bcad() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  bcda() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  dabc() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  acbd() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  dbca() const Vc_INTRINSIC_R Vc_CONST_R;
+        inline const Vector<T> Vc_INTRINSIC_L Vc_CONST_L  dcba() const Vc_INTRINSIC_R Vc_CONST_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // gathers
@@ -213,22 +213,23 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //prefix
-        inline Vector ALWAYS_INLINE &operator++() { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
+        inline Vector Vc_ALWAYS_INLINE &operator++() { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
         //postfix
-        inline Vector ALWAYS_INLINE operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
+        inline Vector Vc_ALWAYS_INLINE operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
-        inline Common::AliasingEntryHelper<StorageType> INTRINSIC operator[](int index) {
+        inline Common::AliasingEntryHelper<StorageType> Vc_INTRINSIC operator[](int index) {
 #if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
             ::Vc::Warnings::_operator_bracket_warning();
 #endif
             return d.m(index);
         }
-        inline EntryType ALWAYS_INLINE operator[](int index) const {
+        inline EntryType Vc_ALWAYS_INLINE operator[](int index) const {
             return d.m(index);
         }
 
-        inline Vector ALWAYS_INLINE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
+        inline Vector Vc_ALWAYS_INLINE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
         inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
+        inline Vector Vc_PURE Vc_INTRINSIC operator+() const { return *this; }
 
 #define OP1(fun) \
         inline Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
@@ -238,41 +239,41 @@ template<typename T> class Vector
 #undef OP1
 
 #define OP(symbol, fun) \
-        inline Vector ALWAYS_INLINE &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
-        inline Vector ALWAYS_INLINE &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
-        inline Vector ALWAYS_INLINE operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); } \
-        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) ALWAYS_INLINE operator symbol(TT x) const { return operator symbol(Vector(x)); }
+        inline Vector Vc_ALWAYS_INLINE &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
+        inline Vector Vc_ALWAYS_INLINE &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
+        inline Vector Vc_ALWAYS_INLINE operator symbol(const Vector<T> &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); } \
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Vector) Vc_ALWAYS_INLINE operator symbol(TT x) const { return operator symbol(Vector(x)); }
 
         OP(+, add)
         OP(-, sub)
         OP(*, mul)
 #undef OP
         inline Vector &operator/=(EntryType x);
-        template<typename TT> inline PURE_L VC_EXACT_TYPE(TT, EntryType, Vector) operator/(TT x) const PURE_R;
+        template<typename TT> inline Vc_PURE_L VC_EXACT_TYPE(TT, EntryType, Vector) operator/(TT x) const Vc_PURE_R;
         inline Vector &operator/=(const Vector<T> &x);
         inline Vector  operator/ (const Vector<T> &x) const;
 
         // bitwise ops
 #define OP_VEC(op) \
-        inline Vector<T> ALWAYS_INLINE_L &operator op##=(AsArg x) ALWAYS_INLINE_R; \
-        inline Vector<T> ALWAYS_INLINE_L  operator op   (AsArg x) const ALWAYS_INLINE_R;
+        inline Vector<T> Vc_ALWAYS_INLINE_L &operator op##=(AsArg x) Vc_ALWAYS_INLINE_R; \
+        inline Vector<T> Vc_ALWAYS_INLINE_L  operator op   (AsArg x) const Vc_ALWAYS_INLINE_R;
 #define OP_ENTRY(op) \
-        inline ALWAYS_INLINE Vector<T> &operator op##=(EntryType x) { return operator op##=(Vector(x)); } \
-        template<typename TT> inline ALWAYS_INLINE VC_EXACT_TYPE(TT, EntryType, Vector) operator op(TT x) const { return operator op(Vector(x)); }
+        inline Vc_ALWAYS_INLINE Vector<T> &operator op##=(EntryType x) { return operator op##=(Vector(x)); } \
+        template<typename TT> inline Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, EntryType, Vector) operator op(TT x) const { return operator op(Vector(x)); }
         VC_ALL_BINARY(OP_VEC)
         VC_ALL_BINARY(OP_ENTRY)
         VC_ALL_SHIFTS(OP_VEC)
 #undef OP_VEC
 #undef OP_ENTRY
 
-        inline Vector<T> ALWAYS_INLINE_L &operator>>=(int x) ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L &operator<<=(int x) ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L operator>>(int x) const ALWAYS_INLINE_R;
-        inline Vector<T> ALWAYS_INLINE_L operator<<(int x) const ALWAYS_INLINE_R;
+        inline Vector<T> Vc_ALWAYS_INLINE_L &operator>>=(int x) Vc_ALWAYS_INLINE_R;
+        inline Vector<T> Vc_ALWAYS_INLINE_L &operator<<=(int x) Vc_ALWAYS_INLINE_R;
+        inline Vector<T> Vc_ALWAYS_INLINE_L operator>>(int x) const Vc_ALWAYS_INLINE_R;
+        inline Vector<T> Vc_ALWAYS_INLINE_L operator<<(int x) const Vc_ALWAYS_INLINE_R;
 
 #define OPcmp(symbol, fun) \
-        inline Mask ALWAYS_INLINE operator symbol(AsArg x) const { return VectorHelper<T>::fun(data(), x.data()); } \
-        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Mask) ALWAYS_INLINE operator symbol(TT x) const { return operator symbol(Vector(x)); }
+        inline Mask Vc_ALWAYS_INLINE operator symbol(AsArg x) const { return VectorHelper<T>::fun(data(), x.data()); } \
+        template<typename TT> inline VC_EXACT_TYPE(TT, EntryType, Mask) Vc_ALWAYS_INLINE operator symbol(TT x) const { return operator symbol(Vector(x)); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -281,9 +282,10 @@ template<typename T> class Vector
         OPcmp(<, cmplt)
         OPcmp(<=, cmple)
 #undef OPcmp
+        inline Vc_PURE_L Vc_INTRINSIC_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
-        inline void multiplyAndAdd(const Vector<T> &factor, const Vector<T> &summand) {
-            VectorHelper<T>::multiplyAndAdd(data(), factor, summand);
+        inline void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
+            VectorHelper<T>::fma(data(), factor.data(), summand.data());
         }
 
         inline void assign( const Vector<T> &v, const Mask &mask ) {
@@ -294,7 +296,7 @@ template<typename T> class Vector
         template<typename V2> inline V2 staticCast() const { return V2(*this); }
         template<typename V2> inline V2 reinterpretCast() const { return avx_cast<typename V2::VectorType>(data()); }
 
-        inline WriteMaskedVector<T> ALWAYS_INLINE operator()(const Mask &k) { return WriteMaskedVector<T>(this, k); }
+        inline WriteMaskedVector<T> Vc_ALWAYS_INLINE operator()(const Mask &k) { return WriteMaskedVector<T>(this, k); }
 
         /**
          * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have
@@ -317,8 +319,8 @@ template<typename T> class Vector
         inline EntryType product(MaskArg m) const;
         inline EntryType sum(MaskArg m) const;
 
-        inline INTRINSIC_L Vector shifted(int amount) const INTRINSIC_R;
-        inline INTRINSIC_L Vector rotated(int amount) const INTRINSIC_R;
+        inline Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
+        inline Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
         inline Vector sorted() const { return SortHelper<T>::sort(data()); }
 
         template<typename F> void callWithValuesSorted(F &f) {
@@ -332,36 +334,36 @@ template<typename T> class Vector
             }
         }
 
-        template<typename F> inline void INTRINSIC call(const F &f) const {
+        template<typename F> inline void Vc_INTRINSIC call(const F &f) const {
             for_all_vector_entries(i,
                     f(EntryType(d.m(i)));
                     );
         }
-        template<typename F> inline void INTRINSIC call(F &f) const {
+        template<typename F> inline void Vc_INTRINSIC call(F &f) const {
             for_all_vector_entries(i,
                     f(EntryType(d.m(i)));
                     );
         }
 
-        template<typename F> inline void INTRINSIC call(const F &f, const Mask &mask) const {
+        template<typename F> inline void Vc_INTRINSIC call(const F &f, const Mask &mask) const {
             Vc_foreach_bit(size_t i, mask) {
                 f(EntryType(d.m(i)));
             }
         }
-        template<typename F> inline void INTRINSIC call(F &f, const Mask &mask) const {
+        template<typename F> inline void Vc_INTRINSIC call(F &f, const Mask &mask) const {
             Vc_foreach_bit(size_t i, mask) {
                 f(EntryType(d.m(i)));
             }
         }
 
-        template<typename F> inline Vector<T> INTRINSIC apply(const F &f) const {
+        template<typename F> inline Vector<T> Vc_INTRINSIC apply(const F &f) const {
             Vector<T> r;
             for_all_vector_entries(i,
                     r.d.m(i) = f(EntryType(d.m(i)));
                     );
             return r;
         }
-        template<typename F> inline Vector<T> INTRINSIC apply(F &f) const {
+        template<typename F> inline Vector<T> Vc_INTRINSIC apply(F &f) const {
             Vector<T> r;
             for_all_vector_entries(i,
                     r.d.m(i) = f(EntryType(d.m(i)));
@@ -369,14 +371,14 @@ template<typename T> class Vector
             return r;
         }
 
-        template<typename F> inline Vector<T> INTRINSIC apply(const F &f, const Mask &mask) const {
+        template<typename F> inline Vector<T> Vc_INTRINSIC apply(const F &f, const Mask &mask) const {
             Vector<T> r(*this);
             Vc_foreach_bit (size_t i, mask) {
                 r.d.m(i) = f(EntryType(r.d.m(i)));
             }
             return r;
         }
-        template<typename F> inline Vector<T> INTRINSIC apply(F &f, const Mask &mask) const {
+        template<typename F> inline Vector<T> Vc_INTRINSIC apply(F &f, const Mask &mask) const {
             Vector<T> r(*this);
             Vc_foreach_bit (size_t i, mask) {
                 r.d.m(i) = f(EntryType(r.d.m(i)));
@@ -384,19 +386,19 @@ template<typename T> class Vector
             return r;
         }
 
-        template<typename IndexT> inline void INTRINSIC fill(EntryType (&f)(IndexT)) {
+        template<typename IndexT> inline void Vc_INTRINSIC fill(EntryType (&f)(IndexT)) {
             for_all_vector_entries(i,
                     d.m(i) = f(i);
                     );
         }
-        inline void INTRINSIC fill(EntryType (&f)()) {
+        inline void Vc_INTRINSIC fill(EntryType (&f)()) {
             for_all_vector_entries(i,
                     d.m(i) = f();
                     );
         }
 
-        inline INTRINSIC_L Vector copySign(AsArg reference) const INTRINSIC_R;
-        inline INTRINSIC_L Vector exponent() const INTRINSIC_R;
+        inline Vc_INTRINSIC_L Vector copySign(AsArg reference) const Vc_INTRINSIC_R;
+        inline Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
 };
 
 typedef Vector<double>         double_v;

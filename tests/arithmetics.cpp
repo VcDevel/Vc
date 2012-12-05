@@ -22,6 +22,7 @@
 #include <iostream>
 #include <limits>
 #include <Vc/limits>
+#include "../common/macros.h"
 
 using namespace Vc;
 
@@ -399,9 +400,84 @@ template<typename Vec> void testSum()
     }
 }
 
+template<typename V> void fma()
+{
+    for (int i = 0; i < 1000; ++i) {
+        V a = V::Random();
+        const V b = V::Random();
+        const V c = V::Random();
+        const V reference = a * b + c;
+        a.fusedMultiplyAdd(b, c);
+        COMPARE(a, reference) << ", a = " << a << ", b = " << b << ", c = " << c;
+    }
+}
+
+template<> void fma<float_v>()
+{
+    float_v b = Vc_buildFloat(1, 0x000001, 0);
+    float_v c = Vc_buildFloat(1, 0x000000, -24);
+    float_v a = b;
+    a *= b;
+    a += c;
+    COMPARE(a, float_v(Vc_buildFloat(1, 0x000002, 0)));
+    a = b;
+    a.fusedMultiplyAdd(b, c);
+    COMPARE(a, float_v(Vc_buildFloat(1, 0x000003, 0)));
+
+    a = Vc_buildFloat(1, 0x000002, 0);
+    b = Vc_buildFloat(1, 0x000002, 0);
+    c = Vc_buildFloat(-1, 0x000000, 0);
+    a *= b;
+    a += c;
+    COMPARE(a, float_v(Vc_buildFloat(1, 0x000000, -21)));
+    a = b;
+    a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
+    COMPARE(a, float_v(Vc_buildFloat(1, 0x000001, -21)));
+}
+
+template<> void fma<sfloat_v>()
+{
+    sfloat_v b = Vc_buildFloat(1, 0x000001, 0);
+    sfloat_v c = Vc_buildFloat(1, 0x000000, -24);
+    sfloat_v a = b;
+    a *= b;
+    a += c;
+    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000002, 0)));
+    a = b;
+    a.fusedMultiplyAdd(b, c);
+    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000003, 0)));
+
+    a = Vc_buildFloat(1, 0x000002, 0);
+    b = Vc_buildFloat(1, 0x000002, 0);
+    c = Vc_buildFloat(-1, 0x000000, 0);
+    a *= b;
+    a += c;
+    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000000, -21)));
+    a = b;
+    a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
+    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000001, -21)));
+}
+
+template<> void fma<double_v>()
+{
+    double_v b = Vc_buildDouble(1, 0x0000000000001, 0);
+    double_v c = Vc_buildDouble(1, 0x0000000000000, -53);
+    double_v a = b;
+    a.fusedMultiplyAdd(b, c);
+    COMPARE(a, double_v(Vc_buildDouble(1, 0x0000000000003, 0)));
+
+    a = Vc_buildDouble(1, 0x0000000000002, 0);
+    b = Vc_buildDouble(1, 0x0000000000002, 0);
+    c = Vc_buildDouble(-1, 0x0000000000000, 0);
+    a.fusedMultiplyAdd(b, c); // 1 + 2^-50 + 2^-102 - 1
+    COMPARE(a, double_v(Vc_buildDouble(1, 0x0000000000001, -50)));
+}
+
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
+
+    testAllTypes(fma);
 
     runTest(testZero<int_v>);
     runTest(testZero<uint_v>);

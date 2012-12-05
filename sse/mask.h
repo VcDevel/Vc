@@ -101,6 +101,7 @@ template<unsigned int VectorSize> class Mask
 
         inline Mask &operator&=(const Mask &rhs) { k = _mm_and_ps(k, rhs.k); return *this; }
         inline Mask &operator|=(const Mask &rhs) { k = _mm_or_ps (k, rhs.k); return *this; }
+        inline Mask &operator^=(const Mask &rhs) { k = _mm_xor_ps(k, rhs.k); return *this; }
 
         inline bool isFull () const { return
 #ifdef VC_USE_PTEST
@@ -129,9 +130,9 @@ template<unsigned int VectorSize> class Mask
         inline operator bool() const { return isFull(); }
 #endif
 
-        inline int CONST_L shiftMask() const CONST_R;
+        inline int Vc_CONST_L shiftMask() const Vc_CONST_R;
 
-        int CONST_L toInt() const CONST_R;
+        int Vc_CONST_L toInt() const Vc_CONST_R;
 
         inline _M128  data () const { return k; }
         inline _M128I dataI() const { return _mm_castps_si128(k); }
@@ -389,6 +390,11 @@ class Float8Mask
         inline Float8Mask &operator|=(const Float8Mask &rhs) {
             k[0] = _mm_or_ps (k[0], rhs.k[0]);
             k[1] = _mm_or_ps (k[1], rhs.k[1]);
+            return *this;
+        }
+        inline Float8Mask &operator^=(const Float8Mask &rhs) {
+            k[0] = _mm_xor_ps(k[0], rhs.k[0]);
+            k[1] = _mm_xor_ps(k[1], rhs.k[1]);
             return *this;
         }
 

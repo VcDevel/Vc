@@ -71,6 +71,10 @@ VECTOR_TYPE exp(const VECTOR_TYPE &v);
  * \ingroup Math
  *
  * Returns the sine of \p v.
+ *
+ * \note The single-precision implementation has an error of max. 1 ulp (mean 0.15 ulp) in the range [-8192, 8192].
+ * \note The double-precision implementation has an error of max. 8e6 ulp (mean 1040 ulp) in the range [-8192, 8192].
+ * \note Vc versions before 0.7 had much larger errors.
  */
 VECTOR_TYPE sin(const VECTOR_TYPE &v);
 
@@ -78,6 +82,10 @@ VECTOR_TYPE sin(const VECTOR_TYPE &v);
  * \ingroup Math
  *
  * Returns the cosine of \p v.
+ *
+ * \note The single-precision implementation has an error of max. 3 ulp (mean 0.16 ulp) in the range [-8192, 8192].
+ * \note The double-precision implementation has an error of max. 8e6 ulp (mean 1160 ulp) in the range [-8192, 8192].
+ * \note Vc versions before 0.7 had much larger errors.
  */
 VECTOR_TYPE cos(const VECTOR_TYPE &v);
 
@@ -85,6 +93,9 @@ VECTOR_TYPE cos(const VECTOR_TYPE &v);
  * \ingroup Math
  *
  * Returns the arcsine of \p v.
+ *
+ * \note The single-precision implementation has an error of max. 2 ulp (mean 0.3 ulp).
+ * \note The double-precision implementation has an error of max. 36 ulp (mean 0.4 ulp).
  */
 VECTOR_TYPE asin(const VECTOR_TYPE &v);
 
@@ -92,6 +103,8 @@ VECTOR_TYPE asin(const VECTOR_TYPE &v);
  * \ingroup Math
  *
  * Returns the arctangent of \p v.
+ * \note The single-precision implementation has an error of max. 3 ulp (mean 0.4 ulp) in the range [-8192, 8192].
+ * \note The double-precision implementation has an error of max. 2 ulp (mean 0.1 ulp) in the range [-8192, 8192].
  */
 VECTOR_TYPE atan(const VECTOR_TYPE &v);
 

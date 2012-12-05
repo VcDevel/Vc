@@ -94,33 +94,31 @@ add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
 add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
 
 if(NOT ALIROOT_RELEASE)
+   set(libvc_compile_flags "-DVC_COMPILE_LIB")
+   AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
+   vc_compile_for_all_implementations(_objs src/trigonometric.cpp ${libvc_compile_flags})
+   set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp ${_objs})
    if(USE_AVX)
-      add_library(Vc STATIC vector.cpp cpuid.cpp support.cpp avx/sorthelper.cpp)
+      list(APPEND _srcs src/avx_sorthelper.cpp)
    else()
-      set(_srcs vector.cpp cpuid.cpp support.cpp)
-
       if(NOT Vc_AVX_INTRINSICS_BROKEN)
-         # we'd still like to have avx/sorthelper.cpp built in, but that requires compilation with -mavx (or a comparable flag)
+         # we'd still like to have avx_sorthelper.cpp built in, but that requires compilation with -mavx (or a comparable flag)
          foreach(_flag "-xAVX" "-mavx" "-arch:AVX")
             check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag})
             if(check_cxx_compiler_flag_${_flag})
                if(_flag STREQUAL "-xAVX")
                   set(_flag "${_flag} -diag-disable 10121") # disable the warning "overriding -xSSE4.2 with -xAVX"
                endif()
-               set(_srcs ${_srcs} avx/sorthelper.cpp)
-               set_source_files_properties(avx/sorthelper.cpp PROPERTIES COMPILE_FLAGS "${_flag}")
+               list(APPEND _srcs src/avx_sorthelper.cpp)
+               set_source_files_properties(src/avx_sorthelper.cpp PROPERTIES COMPILE_FLAGS "${_flag}")
                break()
             endif()
          endforeach()
       endif()
-      add_library(Vc STATIC ${_srcs})
    endif()
-   add_target_property(Vc COMPILE_FLAGS "-DVC_COMPILE_LIB")
+   add_library(Vc STATIC ${_srcs})
+   add_target_property(Vc COMPILE_FLAGS ${libvc_compile_flags})
    add_target_property(Vc LABELS "other")
-   AddCompilerFlag("-fPIC" CXX_RESULT _has_fPIC)
-   if(_has_fPIC)
-      add_target_property(Vc COMPILE_FLAGS "-fPIC")
-   endif()
    add_dependencies(other Vc)
 
    install(TARGETS Vc DESTINATION lib/)
@@ -130,14 +128,14 @@ else()
    # Sadly there are messed up systems where putting include/Vc in the include paths will
    # break the standard library (e.g. MacOS X Lion with case insensitive filesystem).
    # Thus, we modify the includes such that include/Vc never needs to be in the path.
-   foreach(_src vector.cpp cpuid.cpp support.cpp avx/sorthelper.cpp)
-      message(STATUS "Processing ${CMAKE_SOURCE_DIR}/${_src} -> ${CMAKE_BINARY_DIR}/src/${_src}")
-      get_filename_component(_path "${CMAKE_BINARY_DIR}/src/${_src}" PATH)
+   foreach(_src src/const.cpp src/cpuid.cpp src/support.cpp src/avx_sorthelper.cpp src/trigonometric.cpp)
+      message(STATUS "Processing ${CMAKE_SOURCE_DIR}/${_src} -> ${CMAKE_BINARY_DIR}/${_src}")
+      get_filename_component(_path "${CMAKE_BINARY_DIR}/${_src}" PATH)
       file(MAKE_DIRECTORY "${_path}")
       execute_process(
          COMMAND sed "s,#include \\(.\\)\\(common\\|avx\\|sse\\|scalar\\)/,#include \\1Vc/\\2/,"
          INPUT_FILE ${CMAKE_SOURCE_DIR}/${_src}
-         OUTPUT_FILE ${CMAKE_BINARY_DIR}/src/${_src}
+         OUTPUT_FILE ${CMAKE_BINARY_DIR}/${_src}
          )
    endforeach()
    install(DIRECTORY ${CMAKE_BINARY_DIR}/src/ DESTINATION src)

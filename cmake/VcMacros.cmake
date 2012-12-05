@@ -87,7 +87,7 @@ macro(vc_set_gnu_buildtype_flags)
    set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG" CACHE STRING "Flags used by the compiler during release minsize builds." FORCE)
    set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -DNDEBUG" CACHE STRING "Flags used by the compiler during release builds (/MD /Ob1 /Oi /Ot /Oy /Gs will produce slightly less optimized but smaller files)." FORCE)
    set(CMAKE_CXX_FLAGS_RELWITHDEBUG   "-O3"          CACHE STRING "Flags used by the compiler during release builds containing runtime checks." FORCE)
-   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -g" CACHE STRING "Flags used by the compiler during Release with Debug Info builds." FORCE)
+   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBUG} -g" CACHE STRING "Flags used by the compiler during Release with Debug Info builds." FORCE)
    set(CMAKE_C_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}"          CACHE STRING "Flags used by the compiler during debug builds." FORCE)
    set(CMAKE_C_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}"     CACHE STRING "Flags used by the compiler during release minsize builds." FORCE)
    set(CMAKE_C_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}"        CACHE STRING "Flags used by the compiler during release builds (/MD /Ob1 /Oi /Ot /Oy /Gs will produce slightly less optimized but smaller files)." FORCE)
@@ -162,6 +162,7 @@ macro(vc_set_preferred_compiler_flags)
    set(Vc_SSE_INTRINSICS_BROKEN false)
    set(Vc_AVX_INTRINSICS_BROKEN false)
    set(Vc_XOP_INTRINSICS_BROKEN false)
+   set(Vc_FMA4_INTRINSICS_BROKEN false)
 
    if(Vc_COMPILER_IS_OPEN64)
       ##################################################################################################
@@ -308,8 +309,9 @@ macro(vc_set_preferred_compiler_flags)
       # get rid of the min/max macros
       set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DNOMINMAX")
 
-      # MSVC doesn't implement the XOP intrinsics
+      # MSVC doesn't implement the XOP or FMA4 intrinsics
       set(Vc_XOP_INTRINSICS_BROKEN true)
+      set(Vc_FMA4_INTRINSICS_BROKEN true)
    elseif(Vc_COMPILER_IS_CLANG)
       # for now I don't know of any arguments I want to pass. -march and stuff is tried by OptimizeForArchitecture...
       if(Vc_CLANG_VERSION VERSION_EQUAL "3.0")
@@ -334,6 +336,105 @@ macro(vc_set_preferred_compiler_flags)
          endif()
          if(NOT ${_use_var})
             message(WARNING "The selected value for VC_IMPL (${VC_IMPL}) will not work because the relevant instructions are not enabled via compiler flags.")
+         endif()
+      endif()
+   endif()
+endmacro()
+
+# helper macro for vc_compile_for_all_implementations
+macro(_vc_compile_one_implementation _objs _impl)
+   set(_extra_flags)
+   set(_ok FALSE)
+   foreach(_flag ${ARGN})
+      if(_flag STREQUAL "NO_FLAG")
+         set(_ok TRUE)
+         break()
+      endif()
+      AddCompilerFlag(${_flag} CXX_RESULT _ok)
+      if(_ok)
+         set(_extra_flags ${_flag})
+         break()
+      endif()
+   endforeach()
+
+   set(_outfile_flag -c -o)
+   if(Vc_COMPILER_IS_MSVC)
+      set(_outfile_flag /c /Fo)
+   endif()
+
+   if(_ok)
+      get_filename_component(_out "${_vc_compile_src}" NAME_WE)
+      get_filename_component(_ext "${_vc_compile_src}" EXT)
+      if(Vc_COMPILER_IS_MSVC)
+         set(_out "${_out}_${_impl}${_ext}.obj")
+      else()
+         set(_out "${_out}_${_impl}${_ext}.o")
+      endif()
+      add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_out}
+         COMMAND ${CMAKE_CXX_COMPILER} ${_flags} ${_extra_flags}
+         -DVC_IMPL=${_impl}
+         ${_outfile_flag}${_out} ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+         MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+         IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+         COMMENT "Building CXX object ${_out}"
+         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+         VERBATIM
+         )
+      list(APPEND ${_objs} "${CMAKE_CURRENT_BINARY_DIR}/${_out}")
+   endif()
+endmacro()
+
+# Generate compile rules for the given C++ source file for all available implementations and return
+# the resulting list of object files in _obj
+# all remaining arguments are additional flags
+# Example:
+#   vc_compile_for_all_implementations(_objs src/trigonometric.cpp -DCOMPILE_BLAH)
+#   add_executable(executable main.cpp ${_objs})
+macro(vc_compile_for_all_implementations _objs _src)
+   set(${_objs})
+
+   # remove all -march, -msse, etc. flags from the flags we want to pass
+   string(REPLACE "${Vc_ARCHITECTURE_FLAGS}" "" _flags "${Vc_DEFINITIONS}")
+   string(REPLACE "-DVC_IMPL=[^ ]*" "" _flags "${_flags}")
+
+   # capture the -march= switch as -mtune; if there is none skip it
+   if(Vc_ARCHITECTURE_FLAGS MATCHES "-march=")
+      string(REGEX REPLACE "^.*-march=([^ ]*).*$" "-mtune=\\1" _tmp "${Vc_ARCHITECTURE_FLAGS}")
+      set(_flags "${_flags} ${_tmp}")
+   endif()
+
+   # make a semicolon separated list of all flags
+   string(TOUPPER "${CMAKE_BUILD_TYPE}" _tmp)
+   set(_tmp "CMAKE_CXX_FLAGS_${_tmp}")
+   string(REPLACE " " ";" _flags "${CMAKE_CXX_FLAGS} ${${_tmp}} ${_flags} ${ARGN}")
+   get_directory_property(_inc INCLUDE_DIRECTORIES)
+   foreach(_i ${_inc})
+      list(APPEND _flags "-I${_i}")
+   endforeach()
+
+   set(_vc_compile_src "${_src}")
+
+   _vc_compile_one_implementation(${_objs} Scalar NO_FLAG)
+   if(NOT Vc_SSE_INTRINSICS_BROKEN)
+      _vc_compile_one_implementation(${_objs} SSE2   "-msse2"   "-xSSE2"   "/arch:SSE2")
+      _vc_compile_one_implementation(${_objs} SSE3   "-msse3"   "-xSSE3"   "/arch:SSE2")
+      _vc_compile_one_implementation(${_objs} SSSE3  "-mssse3"  "-xSSSE3"  "/arch:SSE2")
+      _vc_compile_one_implementation(${_objs} SSE4_1 "-msse4.1" "-xSSE4.1" "/arch:SSE2")
+      _vc_compile_one_implementation(${_objs} SSE4_2 "-msse4.2" "-xSSE4.2" "/arch:SSE2")
+      _vc_compile_one_implementation(${_objs} SSE4a  "-msse4a"  "-xSSSE3"  "/arch:SSE2")
+   endif()
+   if(NOT Vc_AVX_INTRINSICS_BROKEN)
+      _vc_compile_one_implementation(${_objs} AVX      "-mavx"    "-xAVX"    "/arch:AVX")
+      if(NOT Vc_FMA4_INTRINSICS_BROKEN)
+         #_vc_compile_one_implementation(${_objs} SSE_FMA4 "-mfma4"   "-xAVX"    "/arch:AVX")
+         #_vc_compile_one_implementation(${_objs} AVX_FMA4 "-mfma4"   "-xAVX"    "/arch:AVX")
+      endif()
+      if(NOT Vc_XOP_INTRINSICS_BROKEN)
+         #_vc_compile_one_implementation(${_objs} SSE_XOP "-mxop"   "-xAVX"    "/arch:AVX")
+         #_vc_compile_one_implementation(${_objs} AVX_XOP "-mxop"   "-xAVX"    "/arch:AVX")
+         if(NOT Vc_FMA4_INTRINSICS_BROKEN)
+            #_vc_compile_one_implementation(${_objs} SSE_XOP_FMA4 "-mxop -mfma4"   "-xAVX"    "/arch:AVX")
+            #_vc_compile_one_implementation(${_objs} AVX_XOP_FMA4 "-mxop -mfma4"   "-xAVX"    "/arch:AVX")
          endif()
       endif()
    endif()

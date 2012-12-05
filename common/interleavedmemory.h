@@ -32,11 +32,11 @@ template<typename V> struct InterleavedMemoryAccessBase
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef typename V::AsArg VArg;
-    typedef T Ta MAY_ALIAS;
+    typedef T Ta Vc_MAY_ALIAS;
     const I m_indexes;
     Ta *const m_data;
 
-    inline ALWAYS_INLINE InterleavedMemoryAccessBase(typename I::AsArg indexes, Ta *data)
+    inline Vc_ALWAYS_INLINE InterleavedMemoryAccessBase(typename I::AsArg indexes, Ta *data)
         : m_indexes(indexes), m_data(data)
     {
     }
@@ -66,7 +66,7 @@ template<size_t StructSize, typename V> struct InterleavedMemoryReadAccess : pub
     typedef typename Base::Ta Ta;
     typedef typename Base::I I;
 
-    inline ALWAYS_INLINE InterleavedMemoryReadAccess(Ta *data, typename I::AsArg indexes)
+    inline Vc_ALWAYS_INLINE InterleavedMemoryReadAccess(Ta *data, typename I::AsArg indexes)
         : Base(indexes * I(StructSize), data)
     {
     }
@@ -78,13 +78,13 @@ template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public 
     typedef typename Base::Ta Ta;
     typedef typename Base::I I;
 
-    inline ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, typename I::AsArg indexes)
+    inline Vc_ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, typename I::AsArg indexes)
         : InterleavedMemoryReadAccess<StructSize, V>(data, indexes)
     {
     }
 
 #define _VC_SCATTER_ASSIGNMENT(LENGTH, parameters) \
-    inline ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, const V> &rhs) \
+    inline Vc_ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, const V> &rhs) \
     { \
         VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_scatter_more_data_into_the_struct_than_it_has); \
         checkIndexesUnique(); \
@@ -101,7 +101,7 @@ template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public 
 
 private:
 #ifdef NDEBUG
-    inline ALWAYS_INLINE void checkIndexesUnique() const {}
+    inline Vc_ALWAYS_INLINE void checkIndexesUnique() const {}
 #else
     void checkIndexesUnique() const
     {
@@ -130,7 +130,7 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     typedef typename I::AsArg IndexType;
     typedef InterleavedMemoryAccess<sizeof(S) / sizeof(T), V> Access;
     typedef InterleavedMemoryReadAccess<sizeof(S) / sizeof(T), V> ReadAccess;
-    typedef T Ta MAY_ALIAS;
+    typedef T Ta Vc_MAY_ALIAS;
     Ta *const m_data;
 
     VC_STATIC_ASSERT((sizeof(S) / sizeof(T)) * sizeof(T) == sizeof(S), InterleavedMemoryAccess_does_not_support_packed_structs);
@@ -141,7 +141,7 @@ public:
      *
      * \param s A pointer to a C-array.
      */
-    inline ALWAYS_INLINE InterleavedMemoryWrapper(S *s)
+    inline Vc_ALWAYS_INLINE InterleavedMemoryWrapper(S *s)
         : m_data(reinterpret_cast<Ta *>(s))
     {
     }
@@ -198,21 +198,21 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
      * \warning If \p indexes contains non-unique entries on scatter, the result is undefined. If
      * \c NDEBUG is not defined the implementation will assert that the \p indexes entries are unique.
      */
-    inline ALWAYS_INLINE Access operator[](IndexType indexes)
+    inline Vc_ALWAYS_INLINE Access operator[](IndexType indexes)
     {
         return Access(m_data, indexes);
     }
 
     /// const overload (gathers only) of the above function
-    inline ALWAYS_INLINE ReadAccess operator[](IndexType indexes) const
+    inline Vc_ALWAYS_INLINE ReadAccess operator[](IndexType indexes) const
     {
         return ReadAccess(m_data, indexes);
     }
 
     /// alias of the above function
-    inline ALWAYS_INLINE ReadAccess gather(IndexType indexes) const { return operator[](indexes); }
+    inline Vc_ALWAYS_INLINE ReadAccess gather(IndexType indexes) const { return operator[](indexes); }
 
-    //inline ALWAYS_INLINE Access scatter(I indexes, VArg v0, VArg v1);
+    //inline Vc_ALWAYS_INLINE Access scatter(I indexes, VArg v0, VArg v1);
 };
 } // namespace Common
 
