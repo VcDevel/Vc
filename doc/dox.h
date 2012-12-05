@@ -25,14 +25,14 @@
  * and a scalar fallback. An implementation for the Intel Xeon Phi is expected to be ready for Vc
  * 0.8.
  *
- * \ref intro
+ * \section background Background information and learning material
+ * \li \ref intro
+ * \li \ref portability
+ * \li \ref featuremacros
+ * \li \ref buildsystem
+ * \li \ref examples
  *
- * \ref portability
- *
- * \ref featuremacros
- *
- * \ref buildsystem
- *
+ * \section apidox API documentation
  * \li \ref Vectors
  * \li \ref Masks
  * \li \ref Utilities
