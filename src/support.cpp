@@ -52,9 +52,9 @@ bool isImplementationSupported(Implementation impl)
     case SSE4aImpl:
         return CpuId::hasSse4a();
     case XopImpl:
-        return CpuId::hasXop();
+        return isImplementationSupported(Vc::AVXImpl) && CpuId::hasXop();
     case Fma4Impl:
-        return CpuId::hasFma4();
+        return isImplementationSupported(Vc::AVXImpl) && CpuId::hasFma4();
     case AVXImpl:
 #if defined(VC_MSVC) && VC_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
         unsigned long long xcrFeatureMask = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
