@@ -347,44 +347,47 @@ endmacro()
 
 # helper macro for vc_compile_for_all_implementations
 macro(_vc_compile_one_implementation _objs _impl)
-   set(_extra_flags)
-   set(_ok FALSE)
-   foreach(_flag ${ARGN})
-      if(_flag STREQUAL "NO_FLAG")
-         set(_ok TRUE)
-         break()
-      endif()
-      AddCompilerFlag(${_flag} CXX_RESULT _ok)
-      if(_ok)
-         set(_extra_flags ${_flag})
-         break()
-      endif()
-   endforeach()
+   list(FIND _disabled_targets "${_impl}" _index)
+   if(_index EQUAL -1)
+      set(_extra_flags)
+      set(_ok FALSE)
+      foreach(_flag ${ARGN})
+         if(_flag STREQUAL "NO_FLAG")
+            set(_ok TRUE)
+            break()
+         endif()
+         AddCompilerFlag(${_flag} CXX_RESULT _ok)
+         if(_ok)
+            set(_extra_flags ${_flag})
+            break()
+         endif()
+      endforeach()
 
-   set(_outfile_flag -c -o)
-   if(Vc_COMPILER_IS_MSVC)
-      set(_outfile_flag /c /Fo)
-   endif()
-
-   if(_ok)
-      get_filename_component(_out "${_vc_compile_src}" NAME_WE)
-      get_filename_component(_ext "${_vc_compile_src}" EXT)
+      set(_outfile_flag -c -o)
       if(Vc_COMPILER_IS_MSVC)
-         set(_out "${_out}_${_impl}${_ext}.obj")
-      else()
-         set(_out "${_out}_${_impl}${_ext}.o")
+         set(_outfile_flag /c /Fo)
       endif()
-      add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_out}
-         COMMAND ${CMAKE_CXX_COMPILER} ${_flags} ${_extra_flags}
-         -DVC_IMPL=${_impl}
-         ${_outfile_flag}${_out} ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
-         MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
-         IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
-         COMMENT "Building CXX object ${_out}"
-         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-         VERBATIM
-         )
-      list(APPEND ${_objs} "${CMAKE_CURRENT_BINARY_DIR}/${_out}")
+
+      if(_ok)
+         get_filename_component(_out "${_vc_compile_src}" NAME_WE)
+         get_filename_component(_ext "${_vc_compile_src}" EXT)
+         if(Vc_COMPILER_IS_MSVC)
+            set(_out "${_out}_${_impl}${_ext}.obj")
+         else()
+            set(_out "${_out}_${_impl}${_ext}.o")
+         endif()
+         add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_out}
+            COMMAND ${CMAKE_CXX_COMPILER} ${_flags} ${_extra_flags}
+            -DVC_IMPL=${_impl}
+            ${_outfile_flag}${_out} ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+            MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+            IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_vc_compile_src}
+            COMMENT "Building CXX object ${_out}"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+            VERBATIM
+            )
+         list(APPEND ${_objs} "${CMAKE_CURRENT_BINARY_DIR}/${_out}")
+      endif()
    endif()
 endmacro()
 
@@ -392,7 +395,7 @@ endmacro()
 # the resulting list of object files in _obj
 # all remaining arguments are additional flags
 # Example:
-#   vc_compile_for_all_implementations(_objs src/trigonometric.cpp -DCOMPILE_BLAH)
+#   vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS -DCOMPILE_BLAH EXCLUDE Scalar)
 #   add_executable(executable main.cpp ${_objs})
 macro(vc_compile_for_all_implementations _objs _src)
    set(${_objs})
@@ -407,10 +410,26 @@ macro(vc_compile_for_all_implementations _objs _src)
       set(_flags "${_flags} ${_tmp}")
    endif()
 
+   set(_disabled_targets)
+   set(_state 0)
+   foreach(_arg ${ARGN})
+      if(_arg STREQUAL "FLAGS")
+         set(_state 1)
+      elseif(_arg STREQUAL "EXCLUDE")
+         set(_state 2)
+      elseif(_state EQUAL 1)
+         set(_flags "${_flags} ${_arg}")
+      elseif(_state EQUAL 2)
+         list(APPEND _disabled_targets "${_arg}")
+      else()
+         message(FATAL_ERROR "incorrect argument to vc_compile_for_all_implementations")
+      endif()
+   endforeach()
+
    # make a semicolon separated list of all flags
    string(TOUPPER "${CMAKE_BUILD_TYPE}" _tmp)
    set(_tmp "CMAKE_CXX_FLAGS_${_tmp}")
-   string(REPLACE " " ";" _flags "${CMAKE_CXX_FLAGS} ${${_tmp}} ${_flags} ${ARGN}")
+   string(REPLACE " " ";" _flags "${CMAKE_CXX_FLAGS} ${${_tmp}} ${_flags}")
    get_directory_property(_inc INCLUDE_DIRECTORIES)
    foreach(_i ${_inc})
       list(APPEND _flags "-I${_i}")
