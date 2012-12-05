@@ -89,6 +89,7 @@ class _UnitTest_Global_Object
             float_fuzzyness( 1.f ),
             double_fuzzyness( 1. ),
             only_name(0),
+            m_finalized(false),
             failedTests(0), passedTests(0),
             findMaximumDistance(false),
             maximumDistance(0),
@@ -99,11 +100,16 @@ class _UnitTest_Global_Object
 
         ~_UnitTest_Global_Object()
         {
+            if (m_finalized) {
+                // on windows std::exit will call the dtor again, leading to infinite recursion
+                return;
+            }
             if (plotFile.is_open()) {
                 plotFile.flush();
                 plotFile.close();
             }
             std::cout << "\n Testing done. " << passedTests << " tests passed. " << failedTests << " tests failed." << std::endl;
+            m_finalized = true;
             std::exit(failedTests);
         }
 
@@ -118,6 +124,7 @@ class _UnitTest_Global_Object
         const char *only_name;
         std::fstream plotFile;
     private:
+        bool m_finalized;
         int failedTests;
     public:
         int passedTests;
