@@ -22,12 +22,15 @@
 
 */
 
+//! [includes]
 #include <Vc/Vc>
 #include <iostream>
 #include <iomanip>
 
 using Vc::float_v;
+//! [includes]
 
+//! [memory allocation]
 int main()
 {
     // allocate memory for our initial x and y coordinates. Note that you can also put it into a
@@ -36,13 +39,17 @@ int main()
     Vc::Memory<float_v, 1000> y_mem;
     Vc::Memory<float_v, 1000> r_mem;
     Vc::Memory<float_v, 1000> phi_mem;
+//! [memory allocation]
 
+//! [random init]
     // fill the memory with values from -1.f to 1.f
     for (size_t i = 0; i < x_mem.vectorsCount(); ++i) {
         x_mem.vector(i) = float_v::Random() * 2.f - 1.f;
         y_mem.vector(i) = float_v::Random() * 2.f - 1.f;
     }
+//! [random init]
 
+//! [conversion]
     // calculate the polar coordinates for all coordinates and overwrite the euclidian coordinates
     // with the result
     for (size_t i = 0; i < x_mem.vectorsCount(); ++i) {
@@ -54,7 +61,9 @@ int main()
         phi(phi < 0.f) += 360.f;
         phi_mem.vector(i) = phi;
     }
+//! [conversion]
 
+//! [output]
     // print the results
     for (size_t i = 0; i < x_mem.entriesCount(); ++i) {
         std::cout << std::setw(3) << i << ": ";
@@ -64,3 +73,4 @@ int main()
 
     return 0;
 }
+//! [output]
