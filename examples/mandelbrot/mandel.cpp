@@ -120,6 +120,7 @@ static const float S = 4.f;
  * since we know that we require the square of r and i for norm and multiplication we can
  * explicitely cache it in the object
  */
+//! [MyComplex]
 template<typename T>
 class MyComplex
 {
@@ -147,11 +148,14 @@ class MyComplex
         T m_real, m_imag;
         T m_real2, m_imag2;
 };
+//! [MyComplex]
 
+//! [P function]
 template<typename T> inline MyComplex<T> P(MyComplex<T> z, T c_real, T c_imag)
 {
     return z.squaredPlus(c_real, c_imag);
 }
+//! [P function]
 
 template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
         float y0, float scale, int maxIt)
