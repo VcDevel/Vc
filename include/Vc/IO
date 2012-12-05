@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -25,12 +25,7 @@
 #include <iostream>
 
 #ifdef __GNUC__
-#ifdef _WIN32
-int _fileno(FILE *); // including <stdio.h> should do what we need, but it doesn't. Windows...
-#include <io.h>
-#else
 #include <unistd.h>
-#endif
 #include <ext/stdio_sync_filebuf.h>
 #endif
 
@@ -63,11 +58,7 @@ namespace
             return false;
         }
         FILE *file = hack->file();
-#ifdef _WIN32
-        return 1 == _isatty(_fileno(file));
-#else
         return 1 == isatty(fileno(file));
-#endif
     }
 #else
     static bool mayUseColor(const std::ostream &) { return false; }
