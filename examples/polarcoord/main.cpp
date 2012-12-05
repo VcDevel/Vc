@@ -23,52 +23,40 @@
 */
 
 #include <Vc/Vc>
-#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 
 using Vc::float_v;
 
-typedef Vc::Memory<float_v, 1000> Mem10;
-
-static const float_v TwoOverRandMax(2.f / RAND_MAX);
-
 int main()
 {
     // allocate memory for our initial x and y coordinates. Note that you can also put it into a
     // normal float C-array but that you then must ensure alignment to Vc::VectorAlignment!
-    Mem10 x_mem;
-    Mem10 y_mem;
-    Mem10 r_mem;
-    Mem10 phi_mem;
+    Vc::Memory<float_v, 1000> x_mem;
+    Vc::Memory<float_v, 1000> y_mem;
+    Vc::Memory<float_v, 1000> r_mem;
+    Vc::Memory<float_v, 1000> phi_mem;
 
-    // fill the memory with values from -1.f to 1.f (a proper implementation would use a vectorized
-    // RNG).
-    for (unsigned int i = 0; i < x_mem.vectorsCount(); ++i) {
-        Vc::Memory<float_v, 2 * float_v::Size> m;
-        // the following makes sure we get the same random number sequences regardless of float_v::Size
-        for (unsigned int j = 0; j < float_v::Size; ++j) {
-            m[j] = std::rand();
-            m[j + float_v::Size] = std::rand();
-        }
-        x_mem.vector(i) = m.vector(0) * TwoOverRandMax - 1.f;
-        y_mem.vector(i) = m.vector(1) * TwoOverRandMax - 1.f;
+    // fill the memory with values from -1.f to 1.f
+    for (size_t i = 0; i < x_mem.vectorsCount(); ++i) {
+        x_mem.vector(i) = float_v::Random() * 2.f - 1.f;
+        y_mem.vector(i) = float_v::Random() * 2.f - 1.f;
     }
 
     // calculate the polar coordinates for all coordinates and overwrite the euclidian coordinates
     // with the result
-    for (unsigned int i = 0; i < x_mem.vectorsCount(); ++i) {
+    for (size_t i = 0; i < x_mem.vectorsCount(); ++i) {
         const float_v x = x_mem.vector(i);
         const float_v y = y_mem.vector(i);
 
         r_mem.vector(i) = Vc::sqrt(x * x + y * y);
-        float_v phi = Vc::atan2(y, x) * (180.f / 3.1415926535897932384626433832795029f);
+        float_v phi = Vc::atan2(y, x) * 57.295780181884765625f; // 180/pi
         phi(phi < 0.f) += 360.f;
         phi_mem.vector(i) = phi;
     }
 
     // print the results
-    for (unsigned int i = 0; i < x_mem.entriesCount(); ++i) {
+    for (size_t i = 0; i < x_mem.entriesCount(); ++i) {
         std::cout << std::setw(3) << i << ": ";
         std::cout << std::setw(10) << x_mem[i] << ", " << std::setw(10) << y_mem[i] << " -> ";
         std::cout << std::setw(10) << r_mem[i] << ", " << std::setw(10) << phi_mem[i] << '\n';
