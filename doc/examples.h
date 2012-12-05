@@ -174,7 +174,7 @@
  * on the stack everything is fine (because the compiler knows about the alignment restrictions of
  * \c x and \c y and thus of \c CartesianCoordinate). But if \c CartesianCoordinate is allocated
  * with \c new (on the heap), the correct alignment is not ensured. Vc provides
- * Vc::VectorAlignedBase, which provides the correct reimplementations of the \c new and \c delete operators:
+ * Vc::VectorAlignedBase, which contains the correct reimplementations of the \c new and \c delete operators:
  * \code
  * template<size_t Size> struct CartesianCoordinate : public Vc::VectorAlignedBase
  * {
