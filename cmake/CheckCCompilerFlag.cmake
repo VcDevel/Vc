@@ -32,6 +32,7 @@ MACRO (CHECK_C_COMPILER_FLAG _FLAG _RESULT)
      FAIL_REGEX "argument unused during compilation"        # clang
      FAIL_REGEX "is valid for .* but not for C"             # GNU
      FAIL_REGEX "unrecognized .*option"                     # GNU
+     FAIL_REGEX "ignored for target"                        # GNU
      FAIL_REGEX "ignoring unknown option"                   # MSVC
      FAIL_REGEX "[Uu]nknown option"                         # HP
      FAIL_REGEX "[Ww]arning: [Oo]ption"                     # SunPro
