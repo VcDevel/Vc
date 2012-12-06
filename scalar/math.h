@@ -50,9 +50,9 @@ template<typename T> static inline Vector<T> abs  (const Vector<T> &x)
 
 template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos)
 {
-#if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincosf)) || (!defined(VC_CLANG) && defined(__GNUC__))
+#if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincosf)) || (!defined(VC_CLANG) && defined(__GNUC__) && !defined(_WIN32))
     __builtin_sincosf(x.data(), &sin->data(), &cos->data());
-#elif VC_MSVC
+#elif defined(_WIN32)
     sin->data() = std::sin(x.data());
     cos->data() = std::cos(x.data());
 #else
@@ -62,9 +62,9 @@ template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *si
 
 template<> inline void sincos(const Vector<double> &x, Vector<double> *sin, Vector<double> *cos)
 {
-#if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincos)) || (!defined(VC_CLANG) && defined(__GNUC__))
+#if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincos)) || (!defined(VC_CLANG) && defined(__GNUC__) && !defined(_WIN32))
     __builtin_sincos(x.data(), &sin->data(), &cos->data());
-#elif VC_MSVC
+#elif defined(_WIN32)
     sin->data() = std::sin(x.data());
     cos->data() = std::cos(x.data());
 #else
