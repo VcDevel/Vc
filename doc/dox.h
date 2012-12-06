@@ -173,6 +173,26 @@
  * \li Hardware that does not support 16-Bit integer vectors can implement the short_v and ushort_v
  * API via 32-Bit integer vectors. Thus, some of the overflow behavior might be slightly different,
  * and truncation will only happen when the vector is stored to memory.
+ *
+ * \section portability_compilerquirks Compiler Quirks
+ *
+ * Since SIMD is not part of the C/C++ language standards Vc abstracts more or less standardized
+ * compiler extensions. Sadly, not every issue can be transparently abstracted.
+ * Therefore this will be the place where differences are documented:
+ * \li MSVC is incapable of parameter passing by value, if the type has alignment restrictions. The
+ * consequence is that all Vc vector types and any type derived from Vc::VectorAlignedBase cannot be
+ * used as function parameters, unless a pointer is used (this includes reference and
+ * const-reference). So \code
+ * void foo(Vc::float_v) {}\endcode does not compile, while \code
+ * void foo(Vc::float_v &) {}
+ * void foo(const Vc::float_v &) {}
+ * void foo(Vc::float_v *) {}
+ * \endcode all work.
+ * Normally you should prefer passing by value since a sane compiler will then pass the data in a
+ * register and does not have to store/load the data to/from the stack. Vc defines \c
+ * VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN for such cases. Also the Vc vector types contain a composite
+ * typedef \c AsArg which resolves to either const-ref or const-by-value. Thus, you can always use
+ * \code void foo(Vc::float_v::AsArg) {}\endcode.
  */
 
 /**
