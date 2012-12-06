@@ -3,7 +3,12 @@ include(AddFileDependencies)
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS)
 
 set(CXX11_FLAG)
-foreach(_flag "-std=gnu++11" "-std=gnu++0x" "-std=c++11" "-std=c++0x")
+set(_cxx11_flags "-std=c++11" "-std=c++0x")
+if(Vc_COMPILER_IS_GCC AND WIN32)
+   # MinGW fails to compile POSIX code unless gnu++11 is used
+   set(_cxx11_flags "-std=gnu++11" "-std=gnu++0x")
+endif()
+foreach(_flag ${_cxx11_flags})
    string(REGEX REPLACE "[-+/:= ]" "_" _flag_esc "${_flag}")
    check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag_esc})
    if(check_cxx_compiler_flag_${_flag_esc})
