@@ -44,11 +44,11 @@
  * \endcode
  * \image html polarcoord-polar.png "Polar coordinate"
  *
- * Maybe you recall from math lessons that:
+ * Recall that:
  * \f[
  * r^2 = x^2 + y^2
  * \f]\f[
- * \tan\varphi = y/x
+ * \tan\phi = y/x
  * \f]
  * (One typically uses \c atan2 to calculate \c phi efficiently.)
  *
@@ -182,7 +182,8 @@
  * }
  * CartesianCoordinate<1000> *input = new CartesianCoordinate<1000>;
  * \endcode
- * Alignment is 
+ *
+ * For a thorough discussion of alignment see \ref intro_alignment.
  *
  * \section ex_polarcoord_complete The Complete Example
  *
