@@ -179,7 +179,6 @@ if(ROOT_RELEASE)
    install(DIRECTORY examples/ DESTINATION examples)
    install(DIRECTORY ${CMAKE_BINARY_DIR}/tests/ DESTINATION tests)
    install(FILES tests/CMakeLists.txt tests/download.cmake DESTINATION tests)
-   install(FILES tsc.h DESTINATION .)
 else()
    install(FILES
       ${cmake_install_files}

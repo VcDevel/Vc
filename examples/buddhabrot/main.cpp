@@ -22,7 +22,7 @@
 */
 
 #include "main.h"
-#include "tsc.h"
+#include "../tsc.h"
 #include <complex>
 #include <cmath>
 
