@@ -172,9 +172,13 @@ if(ROOT_RELEASE)
       )
    install(FILES
       ${cmake_install_files}
+      cmake/AddTargetProperty.cmake
       ${CMAKE_BINARY_DIR}/cmake/OptimizeForArchitecture.cmake
       DESTINATION cmake
       )
+   install(DIRECTORY examples/ DESTINATION examples)
+   install(DIRECTORY tests/ DESTINATION tests)
+   install(FILES tsc.h DESTINATION .)
 else()
    install(FILES
       ${cmake_install_files}
