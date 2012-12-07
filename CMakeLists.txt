@@ -128,7 +128,7 @@ else()
    # Sadly there are messed up systems where putting include/Vc in the include paths will
    # break the standard library (e.g. MacOS X Lion with case insensitive filesystem).
    # Thus, we modify the includes such that include/Vc never needs to be in the path.
-   file(GLOB _srcs RELATIVE "${CMAKE_SOURCE_DIR}" src/*.cpp)
+   file(GLOB _srcs RELATIVE "${CMAKE_SOURCE_DIR}" src/*.cpp tests/*.cpp tests/*.h)
    foreach(_src ${_srcs})
       message(STATUS "Processing ${CMAKE_SOURCE_DIR}/${_src} -> ${CMAKE_BINARY_DIR}/${_src}")
       get_filename_component(_path "${CMAKE_BINARY_DIR}/${_src}" PATH)
@@ -177,7 +177,8 @@ if(ROOT_RELEASE)
       DESTINATION cmake
       )
    install(DIRECTORY examples/ DESTINATION examples)
-   install(DIRECTORY tests/ DESTINATION tests)
+   install(DIRECTORY ${CMAKE_BINARY_DIR}/tests/ DESTINATION tests)
+   install(FILES tests/CMakeLists.txt tests/download.cmake DESTINATION tests)
    install(FILES tsc.h DESTINATION .)
 else()
    install(FILES

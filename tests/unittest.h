@@ -27,7 +27,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#include "../common/support.h"
+#include <common/support.h>
 #include "ulp.h"
 #include <typeinfo>
 

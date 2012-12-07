@@ -20,7 +20,7 @@
 #ifndef VC_COMMON_CONST_H
 #define VC_COMMON_CONST_H
 
-#include "../common/macros.h"
+#include <common/macros.h>
 
 namespace Vc
 {
@@ -59,6 +59,6 @@ namespace Vc
     };
 } // namespace Vc
 
-#include "../common/undomacros.h"
+#include <common/undomacros.h>
 
 #endif // VC_COMMON_CONST_H
