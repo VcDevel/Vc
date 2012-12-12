@@ -20,7 +20,7 @@
 #ifndef VC_COMMON_TYPES_H
 #define VC_COMMON_TYPES_H
 
-#ifndef NDEBUG
+#ifdef VC_CHECK_ALIGNMENT
 #include <cstdlib>
 #include <cstdio>
 #endif
@@ -195,7 +195,7 @@ namespace
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !IsUnsignedInteger<T>::Value }; };
 } // anonymous namespace
 
-#ifdef NDEBUG
+#ifndef VC_CHECK_ALIGNMENT
 template<typename _T> static inline Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
 #else
 template<typename _T> static inline Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)

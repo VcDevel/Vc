@@ -1,6 +1,6 @@
 include(AddFileDependencies)
 
-add_definitions(-DCOMPILE_FOR_UNIT_TESTS)
+add_definitions(-DCOMPILE_FOR_UNIT_TESTS -DVC_CHECK_ALIGNMENT)
 
 set(CXX11_FLAG)
 set(_cxx11_flags "-std=c++11" "-std=c++0x")

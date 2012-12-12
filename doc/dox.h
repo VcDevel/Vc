@@ -180,6 +180,9 @@
  * \li \e VC_CLEAN_NAMESPACE
  * \li \e VC_NO_AUTOMATIC_BOOL_FROM_MASK
  * \li \e VC_NO_VERSION_CHECK
+ * \li \e VC_CHECK_ALIGNMENT If this macro is defined Vc will assert correct alignment for all
+ *        objects that require correct alignment. This can be very useful to debug crashes resulting
+ *        from misaligned memory accesses. This check will introduce a significant overhead.
  */
 
 /**
