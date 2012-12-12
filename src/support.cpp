@@ -34,7 +34,6 @@ namespace Vc
 bool isImplementationSupported(Implementation impl)
 {
     CpuId::init();
-    // for AVX we need to check for OSXSAVE and AVX
 
     switch (impl) {
     case ScalarImpl:
@@ -57,9 +56,14 @@ bool isImplementationSupported(Implementation impl)
         return isImplementationSupported(Vc::AVXImpl) && CpuId::hasFma4();
     case AVXImpl:
         if (CpuId::hasOsxsave() && CpuId::hasAvx()) {
-#if defined(VC_MSVC) && VC_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
+#if defined(VC_MSVC)
+#if VC_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
             unsigned long long xcrFeatureMask = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
             return (xcrFeatureMask & 0x6) != 0;
+#else
+            // can't check, but if OSXSAVE is true let's assume it'll work
+            return true;
+#endif
 #elif !defined(VC_NO_XGETBV)
             unsigned int eax;
             asm("xgetbv" : "=a"(eax) : "c"(0) : "edx");

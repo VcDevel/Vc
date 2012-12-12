@@ -210,6 +210,9 @@
  * \li \e VC_NO_VERSION_CHECK Define this macro to disable the safety check for the libVc version.
  * The check generates a small check for every object file, which is called at startup, i.e. before
  * the main function.
+ * \li \e VC_CHECK_ALIGNMENT If this macro is defined Vc will assert correct alignment for all
+ *        objects that require correct alignment. This can be very useful to debug crashes resulting
+ *        from misaligned memory accesses. This check will introduce a significant overhead.
  */
 
 /**
@@ -256,6 +259,20 @@
  * that you want to exclude. Often it suffices to have SSE2 or SSE3 as the least common denominator.
  *
  * \section buildsystem_other Using Vc without CMake
+ *
+ * \section buildsystem_macros CMake Macros
+ *
+ * The macro vc_compile_for_all_implementations is provided to help with compiling a given source
+ * file multiple times with all different possible SIMD targets for the given architecture.
+ * Example:
+   \verbatim
+   vc_compile_for_all_implementations(objs src/trigonometric.cpp
+     FLAGS -DSOME_FLAG
+     EXCLUDE Scalar SSE2)
+   \endverbatim
+ * You can specify an arbitrary number of additional compiler flags after the FLAGS argument. These
+ * flags will be used for all compiler calls. After the EXCLUDE argument you can specify targets
+ * that you want to exclude. Often it suffices to have SSE2 or SSE3 as the least common denominator.
  *
  * If your project does not use CMake all you need to do is the following:
  * \li Find the header file "Vc/Vc" and add its path to your include paths.
