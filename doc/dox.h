@@ -210,6 +210,20 @@
  * \li \e Vc_SSE_INTRINSICS_BROKEN
  * \li \e Vc_AVX_INTRINSICS_BROKEN
  *
+ * \section buildsystem_macros CMake Macros
+ *
+ * The macro vc_compile_for_all_implementations is provided to help with compiling a given source
+ * file multiple times with all different possible SIMD targets for the given architecture.
+ * Example:
+   \verbatim
+   vc_compile_for_all_implementations(objs src/trigonometric.cpp
+     FLAGS -DSOME_FLAG
+     EXCLUDE Scalar SSE2)
+   \endverbatim
+ * You can specify an arbitrary number of additional compiler flags after the FLAGS argument. These
+ * flags will be used for all compiler calls. After the EXCLUDE argument you can specify targets
+ * that you want to exclude. Often it suffices to have SSE2 or SSE3 as the least common denominator.
+ *
  * If your project does not use CMake all you need to do is the following:
  * \li Find the header file "Vc/Vc" and add its path to your include paths.
  * \li Find the library libVc and link to it.
