@@ -48,7 +48,7 @@ if("${arch}" MATCHES "windows" OR "${arch}" MATCHES "win7")
       set(COMPILER_VERSION "${COMPILER_VERSION} x86 32bit")
    endif()
    set(number_of_processors "$ENV{NUMBER_OF_PROCESSORS}")
-   if(not number_of_processors)
+   if(NOT number_of_processors)
       execute_process(COMMAND
 	 reg query "HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor"
 	 OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE number_of_processors)
