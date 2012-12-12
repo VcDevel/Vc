@@ -18,7 +18,12 @@ include (OptimizeForArchitecture)
 
 vc_determine_compiler()
 
-if(NOT ALIROOT_RELEASE)
+if(ROOT_RELEASE)
+   file(READ "${CMAKE_INSTALL_PREFIX}/Module.mk" ROOT_MODULE_MK)
+   if(NOT ROOT_MODULE_MK MATCHES "\nMODNAME *:= *vc *\n")
+      message(FATAL_ERROR "CMAKE_INSTALL_PREFIX is incorrect. It must point to the Vc subdirectory inside ROOT/AliRoot")
+   endif()
+else()
    if(Vc_COMPILER_IS_GCC)
       if(Vc_GCC_VERSION STREQUAL "4.6.0")
          UserWarning("GCC 4.6.0 is broken. The following tests are therefore disabled:
