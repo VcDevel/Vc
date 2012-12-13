@@ -482,21 +482,21 @@ template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, doub
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::float_v::AsArg a, Vc::float_v::AsArg b) {
     const Vc::float_v ref = b;
     const Vc::float_v dist = ulpDiffToReferenceSigned(a, b);
-    for (size_t i = 0; i < Vc::float_v::Size; ++i) {
+    for (int i = 0; i < Vc::float_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::double_v::AsArg a, Vc::double_v::AsArg b) {
     const Vc::double_v ref = b;
     const Vc::double_v dist = ulpDiffToReferenceSigned(a, b);
-    for (size_t i = 0; i < Vc::double_v::Size; ++i) {
+    for (int i = 0; i < Vc::double_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::sfloat_v::AsArg a, Vc::sfloat_v::AsArg b) {
     const Vc::sfloat_v ref = b;
     const Vc::sfloat_v dist = ulpDiffToReferenceSigned(a, b);
-    for (size_t i = 0; i < Vc::sfloat_v::Size; ++i) {
+    for (int i = 0; i < Vc::sfloat_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
