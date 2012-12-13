@@ -27,9 +27,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#include "../common/support.h"
+#include <common/support.h>
 #include "ulp.h"
 #include <typeinfo>
+#include <common/macros.h>
 
 #define _expand(name) #name
 #define runTest(name) _unit_test_global.runTestInt(&name, _expand(name))
@@ -247,7 +248,7 @@ template<typename T> T ulpDiffToReferenceWrapper(T a, T b) {
     }
     return diff;
 }
-template<typename T> Vc::Vector<T> ulpDiffToReferenceWrapper(Vc::Vector<T> a, Vc::Vector<T> b) {
+template<typename T> Vc::Vector<T> ulpDiffToReferenceWrapper(VC_ALIGNED_PARAMETER(Vc::Vector<T>) a, VC_ALIGNED_PARAMETER(Vc::Vector<T>) b) {
     const Vc::Vector<T> diff = ulpDiffToReference(a, b);
     if (VC_IS_UNLIKELY(_unit_test_global.findMaximumDistance)) {
         _unit_test_global.maximumDistance = std::max<double>(Vc::abs(diff).max(), _unit_test_global.maximumDistance);
@@ -286,12 +287,6 @@ template<> inline double unittest_fuzzynessHelper<float>(const float &) { return
 template<> inline double unittest_fuzzynessHelper<Vc::float_v>(const Vc::float_v &) { return _unit_test_global.float_fuzzyness; }
 template<> inline double unittest_fuzzynessHelper<double>(const double &) { return _unit_test_global.double_fuzzyness; }
 template<> inline double unittest_fuzzynessHelper<Vc::double_v>(const Vc::double_v &) { return _unit_test_global.double_fuzzyness; }
-
-#ifdef __GNUC__
-#define Vc_ALWAYS_INLINE __attribute__((__always_inline__))
-#else
-#define Vc_ALWAYS_INLINE
-#endif
 
 class _UnitTest_Compare
 {
@@ -362,28 +357,28 @@ class _UnitTest_Compare
             }
         }
 
-        template<typename T> inline const _UnitTest_Compare &Vc_ALWAYS_INLINE operator<<(const T &x) const {
+        template<typename T> inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const T &x) const {
             if (m_failed) {
                 print(x);
             }
             return *this;
         }
 
-        inline const _UnitTest_Compare &Vc_ALWAYS_INLINE operator<<(const char *str) const {
+        inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const char *str) const {
             if (m_failed) {
                 print(str);
             }
             return *this;
         }
 
-        inline const _UnitTest_Compare &Vc_ALWAYS_INLINE operator<<(const char ch) const {
+        inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const char ch) const {
             if (m_failed) {
                 print(ch);
             }
             return *this;
         }
 
-        inline const _UnitTest_Compare &Vc_ALWAYS_INLINE operator<<(bool b) const {
+        inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(bool b) const {
             if (m_failed) {
                 print(b);
             }
@@ -398,7 +393,7 @@ class _UnitTest_Compare
         }
 
     private:
-        static inline size_t Vc_ALWAYS_INLINE getIp() {
+        static inline Vc_ALWAYS_INLINE size_t getIp() {
             size_t _ip;
 #if defined(__x86_64__) && defined(VC_GNU_ASM)
             asm("lea 0(%%rip),%0" : "=r"(_ip));
@@ -445,9 +440,9 @@ class _UnitTest_Compare
         void printPosition(const char *_file, int _line) {
             std::cout << "at " << _file << ':' << _line << " (0x" << std::hex << m_ip << std::dec << ')';
         }
-        template<typename T> static inline void writePlotData(std::fstream &file, T a, T b);
-        template<typename T> static inline void printFuzzyInfo(T a, T b);
-        template<typename T> static inline void printFuzzyInfoImpl(T a, T b, double fuzzyness) {
+        template<typename T> static inline void writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(T) a, VC_ALIGNED_PARAMETER(T) b);
+        template<typename T> static inline void printFuzzyInfo(VC_ALIGNED_PARAMETER(T) a, VC_ALIGNED_PARAMETER(T) b);
+        template<typename T> static inline void printFuzzyInfoImpl(VC_ALIGNED_PARAMETER(T) a, VC_ALIGNED_PARAMETER(T) b, double fuzzyness) {
             print("\ndistance: ");
             print(ulpDiffToReferenceSigned(a, b));
             print(", allowed distance: ");
@@ -456,51 +451,50 @@ class _UnitTest_Compare
         const size_t m_ip;
         const bool m_failed;
 };
-template<typename T> inline void _UnitTest_Compare::printFuzzyInfo(T, T) {}
-template<> inline void _UnitTest_Compare::printFuzzyInfo(float a, float b) {
+template<typename T> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(T), VC_ALIGNED_PARAMETER(T)) {}
+template<> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(float) a, VC_ALIGNED_PARAMETER(float) b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
 }
-template<> inline void _UnitTest_Compare::printFuzzyInfo(double a, double b) {
+template<> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(double) a, VC_ALIGNED_PARAMETER(double) b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.double_fuzzyness);
 }
-template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::float_v::AsArg a, Vc::float_v::AsArg b) {
+template<> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(Vc::float_v) a, VC_ALIGNED_PARAMETER(Vc::float_v) b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
 }
-template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::double_v::AsArg a, Vc::double_v::AsArg b) {
+template<> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(Vc::double_v) a, VC_ALIGNED_PARAMETER(Vc::double_v) b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.double_fuzzyness);
 }
-template<> inline void _UnitTest_Compare::printFuzzyInfo(Vc::sfloat_v::AsArg a, Vc::sfloat_v::AsArg b) {
+template<> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(Vc::sfloat_v) a, VC_ALIGNED_PARAMETER(Vc::sfloat_v) b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
 }
-template<typename T> inline void _UnitTest_Compare::writePlotData(std::fstream &, T, T) {}
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, float a, float b) {
+template<typename T> inline void _UnitTest_Compare::writePlotData(std::fstream &, VC_ALIGNED_PARAMETER(T), VC_ALIGNED_PARAMETER(T)) {}
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(float) a, VC_ALIGNED_PARAMETER(float) b) {
     file << std::setprecision(12) << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
 }
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, double a, double b) {
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(double) a, VC_ALIGNED_PARAMETER(double) b) {
     file << std::setprecision(12) << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
 }
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::float_v::AsArg a, Vc::float_v::AsArg b) {
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(Vc::float_v) a, VC_ALIGNED_PARAMETER(Vc::float_v) b) {
     const Vc::float_v ref = b;
     const Vc::float_v dist = ulpDiffToReferenceSigned(a, b);
     for (int i = 0; i < Vc::float_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::double_v::AsArg a, Vc::double_v::AsArg b) {
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(Vc::double_v) a, VC_ALIGNED_PARAMETER(Vc::double_v) b) {
     const Vc::double_v ref = b;
     const Vc::double_v dist = ulpDiffToReferenceSigned(a, b);
     for (int i = 0; i < Vc::double_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, Vc::sfloat_v::AsArg a, Vc::sfloat_v::AsArg b) {
+template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(Vc::sfloat_v) a, VC_ALIGNED_PARAMETER(Vc::sfloat_v) b) {
     const Vc::sfloat_v ref = b;
     const Vc::sfloat_v dist = ulpDiffToReferenceSigned(a, b);
     for (int i = 0; i < Vc::sfloat_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
-#undef Vc_ALWAYS_INLINE
 
 // Workaround for clang: The "<< ' '" is only added to silence the warnings about unused return
 // values.
