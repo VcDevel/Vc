@@ -144,13 +144,6 @@ namespace AVX
         return _mm_cmpgt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
     }
 
-    static inline __m128i _mm_cmplt_epu16(__m128i a, __m128i b) {
-        return _mm_cmplt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
-    }
-    static inline __m128i _mm_cmpgt_epu16(__m128i a, __m128i b) {
-        return _mm_cmpgt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
-    }
-
     /////////////////////// INTEGER OPS ///////////////////////
 #define AVX_TO_SSE_2(name) \
     static inline __m256i Vc_INTRINSIC Vc_CONST _mm256_##name(__m256i a0, __m256i b0) { \
