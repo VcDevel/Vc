@@ -566,6 +566,9 @@ template<typename Vec> void testInf()/*{{{*/
     const Vec zero(Zero);
     VERIFY(Vc::isfinite(zero));
     VERIFY(Vc::isfinite(Vec(one)));
+#ifdef VC_MSVC
+#pragma warning(suppress : 4723) // potential divide by 0
+#endif
     VERIFY(!Vc::isfinite(one / zero));
 }
 /*}}}*/
@@ -578,6 +581,9 @@ template<typename Vec> void testNaN()/*{{{*/
     const Vec zero(Zero);
     VERIFY(!Vc::isnan(zero));
     VERIFY(!Vc::isnan(Vec(one)));
+#ifdef VC_MSVC
+#pragma warning(suppress : 4723) // potential divide by 0
+#endif
     const Vec inf = one / zero;
     VERIFY(Vc::isnan(Vec(inf * zero)));
     Vec nan = Vec::Zero();
