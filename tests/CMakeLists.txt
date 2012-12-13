@@ -1,6 +1,9 @@
 include(AddFileDependencies)
 
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS -DVC_CHECK_ALIGNMENT)
+if(Vc_COMPILER_IS_MSVC)
+   AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data
+endif()
 
 set(CXX11_FLAG)
 set(_cxx11_flags "-std=c++11" "-std=c++0x")

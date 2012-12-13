@@ -181,6 +181,9 @@ struct ForeachHelper
         const size_t bit = __builtin_ctzl(mask);
         __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
 #else
+#ifdef VC_MSVC
+#pragma warning(suppress : 4267) // conversion from 'size_t' to 'unsigned long', possible loss of data
+#endif
         const size_t bit = _bit_scan_forward(mask);
         mask &= ~(1 << bit);
 #endif
