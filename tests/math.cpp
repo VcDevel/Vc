@@ -115,12 +115,13 @@ enum {
     NDenormals = 64
 };
 /*}}}*/
-template<typename V> V apply_v(V x, typename V::EntryType (func)(typename V::EntryType))/*{{{*/
+template<typename V> V apply_v(VC_ALIGNED_PARAMETER(V) x, typename V::EntryType (func)(typename V::EntryType))/*{{{*/
 {
+    V r;
     for (size_t i = 0; i < V::Size; ++i) {
-        x[i] = func(x[i]);
+        r[i] = func(x[i]);
     }
-    return x;
+    return r;
 }
 /*}}}*/
 template<typename Vec> void testAbs()/*{{{*/

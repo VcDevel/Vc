@@ -208,7 +208,7 @@ struct LogImpl
         }
     }
 
-    template<typename T> static inline Vector<T> calc(Vector<T> x) {
+    template<typename T> static inline Vector<T> calc(VC_ALIGNED_PARAMETER(Vector<T>) x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
         typedef Const<T> C;
@@ -244,17 +244,17 @@ struct LogImpl
     }
 };
 
-template<typename T> static inline Vector<T> log(Vector<T> x) {
+template<typename T> static inline Vector<T> log(VC_ALIGNED_PARAMETER(Vector<T>) x) {
     typedef typename Vector<T>::Mask M;
     typedef Const<T> C;
     return LogImpl<BaseE>::calc(x);
 }
-template<typename T> static inline Vector<T> log10(Vector<T> x) {
+template<typename T> static inline Vector<T> log10(VC_ALIGNED_PARAMETER(Vector<T>) x) {
     typedef typename Vector<T>::Mask M;
     typedef Const<T> C;
     return LogImpl<Base10>::calc(x);
 }
-template<typename T> static inline Vector<T> log2(Vector<T> x) {
+template<typename T> static inline Vector<T> log2(VC_ALIGNED_PARAMETER(Vector<T>) x) {
     typedef typename Vector<T>::Mask M;
     typedef Const<T> C;
     return LogImpl<Base2>::calc(x);
