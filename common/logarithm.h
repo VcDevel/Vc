@@ -208,10 +208,12 @@ struct LogImpl
         }
     }
 
-    template<typename T> static inline Vector<T> calc(VC_ALIGNED_PARAMETER(Vector<T>) x) {
+    template<typename T> static inline Vector<T> calc(VC_ALIGNED_PARAMETER(Vector<T>) _x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
         typedef Const<T> C;
+
+        V x(_x);
 
         const M invalidMask = x < V::Zero();
         const M infinityMask = x == V::Zero();
