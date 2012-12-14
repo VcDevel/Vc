@@ -41,7 +41,7 @@ template<> struct numeric_limits<Vc::AVX::Vector<T> > : public numeric_limits<T>
 
 #ifndef VC_UNCONDINTIONAL_AVX2_INTRINSICS
 namespace {
-    using Vc::AVX::_mm_srli_epi16;
+    using Vc::AVX::_mm256_srli_epi32;
 }
 #endif
 _VC_NUM_LIM(unsigned short, Vc::AVX::_mm_setallone_si128(), _mm_setzero_si128());
