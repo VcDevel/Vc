@@ -439,6 +439,9 @@ template<typename V> void testAtan()/*{{{*/
 
         VERIFY(Vc::isnan(Vc::atan(nan)));
         COMPARE(Vc::atan(+inf), +Pi_2);
+#ifdef VC_MSVC
+#pragma warning(suppress: 4756) // overflow in constant arithmetic
+#endif
         COMPARE(Vc::atan(-inf), -Pi_2);
     }
 
