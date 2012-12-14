@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <cstring>
+#include <cstddef>
 #include "memoryfwd.h"
 #include "macros.h"
 
@@ -270,6 +271,17 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
                 EntriesCount = Size,
                 VectorsCount = PaddedSize / V::Size
             };
+
+            static inline Vc_ALWAYS_INLINE Memory<V, Size, 0u> &fromRawData(EntryType *ptr)
+            {
+                // DANGER! This placement new has to use the right address. If the compiler decides
+                // RowMemory requires padding before the actual data then the address has to be adjusted
+                // accordingly
+                char *addr = reinterpret_cast<char *>(ptr);
+                typedef Memory<V, Size, 0u> MM;
+                addr -= offsetof(MM, m_mem);
+                return *new(addr) MM;
+            }
 
             /**
              * \return the number of scalar entries in the whole array.
