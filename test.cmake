@@ -42,7 +42,7 @@ else()
    endif()
 endif()
 
-if("${arch}" MATCHES "windows" OR "${arch}" MATCHES "win7")
+if("${arch}" MATCHES "[Ww]indows" OR "${arch}" MATCHES "win7")
    find_program(CL cl)
    execute_process(COMMAND ${CL} /nologo -EP "${CTEST_SOURCE_DIRECTORY}/cmake/msvc_version.c" OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE COMPILER_VERSION)
    string(STRIP "${COMPILER_VERSION}" COMPILER_VERSION)
