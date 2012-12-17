@@ -272,6 +272,24 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
                 VectorsCount = PaddedSize / V::Size
             };
 
+            /**
+             * Wrap existing data with the Memory convenience class.
+             *
+             * This function returns a \em reference to a Memory<V, Size, 0> object that you must
+             * capture to avoid a copy of the whole data:
+             * \code
+             * Memory<float_v, 16> &m = Memory<float_v, 16>::fromRawData(someAlignedPointerToFloat)
+             * \endcode
+             *
+             * \warning The pointer \p ptr passed to this function must be aligned according to the
+             * alignment restrictions of \p V.
+             * \warning The size of the accessible memory must match \p Size. This includes the
+             * required padding at the end to allow the last entries to be accessed via vectors. If
+             * you know what you are doing you might violate this constraint.
+             * \warning It is your responsibility to ensure that the memory is released correctly
+             * (not too early/not leaked). This function simply adds convenience functions to \em
+             * access the memory.
+             */
             static inline Vc_ALWAYS_INLINE Memory<V, Size, 0u> &fromRawData(EntryType *ptr)
             {
                 // DANGER! This placement new has to use the right address. If the compiler decides
