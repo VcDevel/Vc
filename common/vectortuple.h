@@ -63,7 +63,7 @@ template<typename V> struct VectorTuple<2, const V>
 {
     typedef typename V::EntryType T;
     typedef const V &VC_RESTRICT Reference;
-    const Reference l, r;
+    Reference l, r;
 
     inline Vc_ALWAYS_INLINE VectorTuple(Reference a, Reference b)
         : l(a), r(b)
@@ -106,7 +106,7 @@ template<typename V> struct VectorTuple<LENGTH, const V> \
     typedef typename V::EntryType T; \
     typedef const V &VC_RESTRICT Reference; \
     const VectorTuple<LENGTH - 1, const V> &l; \
-    const Reference r; \
+    Reference r; \
  \
     inline Vc_ALWAYS_INLINE VectorTuple(const VectorTuple<LENGTH - 1, const V> &tuple, Reference a) \
         : l(tuple), r(a) \
