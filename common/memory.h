@@ -281,6 +281,10 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
              * Memory<float_v, 16> &m = Memory<float_v, 16>::fromRawData(someAlignedPointerToFloat)
              * \endcode
              *
+             * \param ptr An aligned pointer to memory of type \p V::EntryType (e.g. \c float for
+             *            Vc::float_v).
+             * \return A Memory object placed at the given location in memory.
+             *
              * \warning The pointer \p ptr passed to this function must be aligned according to the
              * alignment restrictions of \p V.
              * \warning The size of the accessible memory must match \p Size. This includes the
