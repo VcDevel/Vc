@@ -39,7 +39,7 @@ template<> struct numeric_limits<Vc::AVX::Vector<T> > : public numeric_limits<T>
     static inline Vc_INTRINSIC Vc_CONST Vc::AVX::Vector<T> denorm_min()    _VC_NOEXCEPT { return Vc::AVX::Vector<T>::Zero(); } \
 }
 
-#ifndef VC_UNCONDINTIONAL_AVX2_INTRINSICS
+#ifndef VC_IMPL_AVX2
 namespace {
     using Vc::AVX::_mm256_srli_epi32;
 }
