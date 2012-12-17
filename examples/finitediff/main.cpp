@@ -55,7 +55,7 @@ static inline float dfu(float x) { return ( std::cos(x) ); }
 static inline Vc::float_v fu(Vc::float_v::AsArg x) {
 #ifdef USE_SCALAR_SINCOS
   Vc::float_v r;
-  for (size_t i = 0; i < Vc::float_v::Size; ++i) {
+  for (int i = 0; i < Vc::float_v::Size; ++i) {
     r[i] = std::sin(x[i]);
   }
   return r;
@@ -67,7 +67,7 @@ static inline Vc::float_v fu(Vc::float_v::AsArg x) {
 static inline Vc::float_v dfu(Vc::float_v::AsArg x) {
 #ifdef USE_SCALAR_SINCOS
   Vc::float_v r;
-  for (size_t i = 0; i < Vc::float_v::Size; ++i) {
+  for (int i = 0; i < Vc::float_v::Size; ++i) {
     r[i] = std::cos(x[i]);
   }
   return r;
@@ -224,7 +224,7 @@ int main()
         // dy [...................................]
         //                                   8888
         {
-            const unsigned int i = y_points.vectorsCount() - 1;
+            const size_t i = y_points.vectorsCount() - 1;
             const float_v left = y_points.vector(i, -2);
             const float_v right = y_points.lastVector();
             ((right - left) * oneOver2h).store(&dy_points[i * float_v::Size - 1], Vc::Unaligned);
