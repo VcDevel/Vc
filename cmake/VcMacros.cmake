@@ -365,6 +365,11 @@ macro(_vc_compile_one_implementation _objs _impl)
 
       set(_outfile_flag -c -o)
       if(Vc_COMPILER_IS_MSVC)
+         # MSVC for 64bit does not recognize /arch:SSE2 anymore. Therefore we set override _ok if _impl
+         # says SSE
+         if("${_impl}" MATCHES "SSE")
+            set(_ok TRUE)
+         endif()
          set(_outfile_flag /c /Fo)
       endif()
 

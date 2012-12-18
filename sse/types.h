@@ -72,6 +72,16 @@ namespace SSE
         private:
             _M128 d[2];
     };
+#ifdef VC_CHECK_ALIGNMENT
+static inline Vc_ALWAYS_INLINE void assertCorrectAlignment(const M256 *ptr)
+{
+    const size_t s = sizeof(__m128);
+    if((reinterpret_cast<size_t>(ptr) & ((s ^ (s & (s - 1))) - 1)) != 0) {
+        fprintf(stderr, "A vector with incorrect alignment has just been created. Look at the stacktrace to find the guilty object.\n");
+        abort();
+    }
+}
+#endif
 
     template<typename T> struct ParameterHelper {
         typedef T ByValue;

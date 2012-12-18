@@ -1,6 +1,10 @@
 include(AddFileDependencies)
 
-add_definitions(-DCOMPILE_FOR_UNIT_TESTS)
+add_definitions(-DCOMPILE_FOR_UNIT_TESTS -DVC_CHECK_ALIGNMENT)
+if(Vc_COMPILER_IS_MSVC)
+   AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"
+   AddCompilerFlag("/wd4723") # Disable warning "potential divide by 0" (suppress doesn't work)
+endif()
 
 set(CXX11_FLAG)
 set(_cxx11_flags "-std=c++11" "-std=c++0x")
@@ -169,7 +173,8 @@ if(TEST_OPERATOR_FAILURES)
             set(_implFlags)
          elseif(impl STREQUAL "SSE")
             if(Vc_COMPILER_IS_MSVC)
-               set(_implFlags "/arch:SSE2")
+	       AddCompilerFlag("/arch:SSE2" CXX_FLAGS _implFlags)
+               string(STRIP "${_implFlags}" _implFlags)
             elseif(Vc_COMPILER_IS_INTEL)
                set(_implFlags "-xSSE2")
             else()

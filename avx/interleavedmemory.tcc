@@ -205,7 +205,7 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
         const __m256d tmp2 = _mm256_unpacklo_pd(v2.data(), v2.data());
         const __m256d tmp3 = _mm256_unpackhi_pd(v2.data(), v2.data());
 
-#if defined(VC_MSVC) && VC_MSVC < 170000000
+#if defined(VC_MSVC) && (VC_MSVC < 170000000 || !defined(_WIN64))
         // MSVC needs to be at Version 2012 before _mm256_set_epi64x works
         const __m256i mask = AVX::concat(_mm_setallone_si128(), _mm_set_epi32(0, 0, -1, -1));
 #else

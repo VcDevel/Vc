@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <cstring>
+#include <cstddef>
 #include "memoryfwd.h"
 #include "macros.h"
 
@@ -253,10 +254,15 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
                 Padding = Alignment - MaskedSize,
                 PaddedSize = MaskedSize == 0 ? Size : Size + Padding
             };
-#if defined(__INTEL_COMPILER) && defined(_WIN32)
+#if defined(VC_ICC) && defined(_WIN32)
             __declspec(align(__alignof(VectorAlignedBaseT<V>)))
 #elif defined(VC_CLANG)
             __attribute__((aligned(__alignof(VectorAlignedBaseT<V>))))
+#elif defined(VC_MSVC)
+	    VectorAlignedBaseT<V> _force_alignment;
+            // __declspec(align(#)) accepts only numbers not __alignof nor just VectorAlignment
+	    // by putting VectorAlignedBaseT<V> here _force_alignment is aligned correctly.
+	    // the downside is that there's a lot of padding before m_mem (32 Bytes with SSE) :(
 #endif
             EntryType m_mem[PaddedSize];
         public:
@@ -265,6 +271,39 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
                 EntriesCount = Size,
                 VectorsCount = PaddedSize / V::Size
             };
+
+            /**
+             * Wrap existing data with the Memory convenience class.
+             *
+             * This function returns a \em reference to a Memory<V, Size, 0> object that you must
+             * capture to avoid a copy of the whole data:
+             * \code
+             * Memory<float_v, 16> &m = Memory<float_v, 16>::fromRawData(someAlignedPointerToFloat)
+             * \endcode
+             *
+             * \param ptr An aligned pointer to memory of type \p V::EntryType (e.g. \c float for
+             *            Vc::float_v).
+             * \return A Memory object placed at the given location in memory.
+             *
+             * \warning The pointer \p ptr passed to this function must be aligned according to the
+             * alignment restrictions of \p V.
+             * \warning The size of the accessible memory must match \p Size. This includes the
+             * required padding at the end to allow the last entries to be accessed via vectors. If
+             * you know what you are doing you might violate this constraint.
+             * \warning It is your responsibility to ensure that the memory is released correctly
+             * (not too early/not leaked). This function simply adds convenience functions to \em
+             * access the memory.
+             */
+            static inline Vc_ALWAYS_INLINE Memory<V, Size, 0u> &fromRawData(EntryType *ptr)
+            {
+                // DANGER! This placement new has to use the right address. If the compiler decides
+                // RowMemory requires padding before the actual data then the address has to be adjusted
+                // accordingly
+                char *addr = reinterpret_cast<char *>(ptr);
+                typedef Memory<V, Size, 0u> MM;
+                addr -= offsetof(MM, m_mem);
+                return *new(addr) MM;
+            }
 
             /**
              * \return the number of scalar entries in the whole array.

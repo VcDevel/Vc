@@ -320,4 +320,10 @@ namespace Vc {
 #define VC_EXACT_TYPE(_test, _reference, _type) \
     typename EnableIf<IsEqualType<_test, _reference>::Value, _type>::Value
 
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#define VC_ALIGNED_PARAMETER(_Type) const _Type &
+#else
+#define VC_ALIGNED_PARAMETER(_Type) const _Type
+#endif
+
 #endif // VC_COMMON_MACROS_H

@@ -27,14 +27,14 @@ namespace Vc
 {
 namespace SSE
 {
-    template<typename To, typename From> static inline To Vc_CONST mm128_reinterpret_cast(From v) { return v; }
-    template<> inline _M128I Vc_CONST mm128_reinterpret_cast<_M128I, _M128 >(_M128  v) { return _mm_castps_si128(v); }
-    template<> inline _M128I Vc_CONST mm128_reinterpret_cast<_M128I, _M128D>(_M128D v) { return _mm_castpd_si128(v); }
-    template<> inline _M128  Vc_CONST mm128_reinterpret_cast<_M128 , _M128D>(_M128D v) { return _mm_castpd_ps(v);    }
-    template<> inline _M128  Vc_CONST mm128_reinterpret_cast<_M128 , _M128I>(_M128I v) { return _mm_castsi128_ps(v); }
-    template<> inline _M128D Vc_CONST mm128_reinterpret_cast<_M128D, _M128I>(_M128I v) { return _mm_castsi128_pd(v); }
-    template<> inline _M128D Vc_CONST mm128_reinterpret_cast<_M128D, _M128 >(_M128  v) { return _mm_castps_pd(v);    }
-    template<typename To, typename From> static inline To Vc_CONST sse_cast(From v) { return mm128_reinterpret_cast<To, From>(v); }
+    template<typename To, typename From> static inline To Vc_CONST mm128_reinterpret_cast(VC_ALIGNED_PARAMETER(From) v) { return v; }
+    template<> inline _M128I Vc_CONST mm128_reinterpret_cast<_M128I, _M128 >(VC_ALIGNED_PARAMETER(_M128 ) v) { return _mm_castps_si128(v); }
+    template<> inline _M128I Vc_CONST mm128_reinterpret_cast<_M128I, _M128D>(VC_ALIGNED_PARAMETER(_M128D) v) { return _mm_castpd_si128(v); }
+    template<> inline _M128  Vc_CONST mm128_reinterpret_cast<_M128 , _M128D>(VC_ALIGNED_PARAMETER(_M128D) v) { return _mm_castpd_ps(v);    }
+    template<> inline _M128  Vc_CONST mm128_reinterpret_cast<_M128 , _M128I>(VC_ALIGNED_PARAMETER(_M128I) v) { return _mm_castsi128_ps(v); }
+    template<> inline _M128D Vc_CONST mm128_reinterpret_cast<_M128D, _M128I>(VC_ALIGNED_PARAMETER(_M128I) v) { return _mm_castsi128_pd(v); }
+    template<> inline _M128D Vc_CONST mm128_reinterpret_cast<_M128D, _M128 >(VC_ALIGNED_PARAMETER(_M128 ) v) { return _mm_castps_pd(v);    }
+    template<typename To, typename From> static inline To Vc_CONST sse_cast(VC_ALIGNED_PARAMETER(From) v) { return mm128_reinterpret_cast<To, From>(v); }
 
     template<typename From, typename To> struct StaticCastHelper {};
     template<> struct StaticCastHelper<float       , int         > { static _M128I cast(const _M128  &v) { return _mm_cvttps_epi32(v); } };

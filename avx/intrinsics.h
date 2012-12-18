@@ -20,10 +20,238 @@
 #ifndef VC_AVX_INTRINSICS_H
 #define VC_AVX_INTRINSICS_H
 
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
+#define _mm256_cmpeq_epi8   _Vc_hide_mm256_cmpeq_epi8
+#define _mm256_cmpeq_epi16  _Vc_hide_mm256_cmpeq_epi16
+#define _mm256_cmpeq_epi32  _Vc_hide_mm256_cmpeq_epi32
+#define _mm256_cmpgt_epi8   _Vc_hide_mm256_cmpgt_epi8
+#define _mm256_cmpgt_epi16  _Vc_hide_mm256_cmpgt_epi16
+#define _mm256_cmpgt_epi32  _Vc_hide_mm256_cmpgt_epi32
+#define _mm256_srli_si256   _Vc_hide_mm256_srli_si256
+#define _mm256_slli_si256   _Vc_hide_mm256_slli_si256
+#define _mm256_and_si256    _Vc_hide_mm256_and_si256
+#define _mm256_andnot_si256 _Vc_hide_mm256_andnot_si256
+#define _mm256_or_si256     _Vc_hide_mm256_or_si256
+#define _mm256_xor_si256    _Vc_hide_mm256_xor_si256
+#define _mm256_packs_epi16  _Vc_hide_mm256_packs_epi16
+#define _mm256_packs_epi32  _Vc_hide_mm256_packs_epi32
+#define _mm256_packus_epi16  _Vc_hide_mm256_packus_epi16
+#define _mm256_unpackhi_epi8   _Vc_hide_mm256_unpackhi_epi8
+#define _mm256_unpackhi_epi16  _Vc_hide_mm256_unpackhi_epi16
+#define _mm256_unpackhi_epi32  _Vc_hide_mm256_unpackhi_epi32
+#define _mm256_unpackhi_epi64  _Vc_hide_mm256_unpackhi_epi64
+#define _mm256_unpacklo_epi8   _Vc_hide_mm256_unpacklo_epi8
+#define _mm256_unpacklo_epi16  _Vc_hide_mm256_unpacklo_epi16
+#define _mm256_unpacklo_epi32  _Vc_hide_mm256_unpacklo_epi32
+#define _mm256_unpacklo_epi64  _Vc_hide_mm256_unpacklo_epi64
+#define _mm256_add_epi8        _Vc_hide_mm256_add_epi8
+#define _mm256_add_epi16       _Vc_hide_mm256_add_epi16
+#define _mm256_add_epi32       _Vc_hide_mm256_add_epi32
+#define _mm256_add_epi64       _Vc_hide_mm256_add_epi64
+#define _mm256_adds_epi8       _Vc_hide_mm256_adds_epi8
+#define _mm256_adds_epi16      _Vc_hide_mm256_adds_epi16
+#define _mm256_adds_epu8       _Vc_hide_mm256_adds_epu8
+#define _mm256_adds_epu16      _Vc_hide_mm256_adds_epu16
+#define _mm256_sub_epi8        _Vc_hide_mm256_sub_epi8
+#define _mm256_sub_epi16       _Vc_hide_mm256_sub_epi16
+#define _mm256_sub_epi32       _Vc_hide_mm256_sub_epi32
+#define _mm256_sub_epi64       _Vc_hide_mm256_sub_epi64
+#define _mm256_subs_epi8       _Vc_hide_mm256_subs_epi8
+#define _mm256_subs_epi16      _Vc_hide_mm256_subs_epi16
+#define _mm256_subs_epu8       _Vc_hide_mm256_subs_epu8
+#define _mm256_subs_epu16      _Vc_hide_mm256_subs_epu16
+#define _mm256_madd_epi16      _Vc_hide_mm256_madd_epi16
+#define _mm256_mulhi_epi16     _Vc_hide_mm256_mulhi_epi16
+#define _mm256_mullo_epi16     _Vc_hide_mm256_mullo_epi16
+#define _mm256_mul_epu32       _Vc_hide_mm256_mul_epu32
+#define _mm256_slli_epi16      _Vc_hide_mm256_slli_epi16
+#define _mm256_slli_epi32      _Vc_hide_mm256_slli_epi32
+#define _mm256_slli_epi64      _Vc_hide_mm256_slli_epi64
+#define _mm256_srai_epi16      _Vc_hide_mm256_srai_epi16
+#define _mm256_srai_epi32      _Vc_hide_mm256_srai_epi32
+#define _mm256_srli_epi16      _Vc_hide_mm256_srli_epi16
+#define _mm256_srli_epi32      _Vc_hide_mm256_srli_epi32
+#define _mm256_srli_epi64      _Vc_hide_mm256_srli_epi64
+#define _mm256_sll_epi16       _Vc_hide_mm256_sll_epi16
+#define _mm256_sll_epi32       _Vc_hide_mm256_sll_epi32
+#define _mm256_sll_epi64       _Vc_hide_mm256_sll_epi64
+#define _mm256_sra_epi16       _Vc_hide_mm256_sra_epi16
+#define _mm256_sra_epi32       _Vc_hide_mm256_sra_epi32
+#define _mm256_srl_epi16       _Vc_hide_mm256_srl_epi16
+#define _mm256_srl_epi32       _Vc_hide_mm256_srl_epi32
+#define _mm256_srl_epi64       _Vc_hide_mm256_srl_epi64
+#define _mm256_max_epi16       _Vc_hide_mm256_max_epi16
+#define _mm256_max_epu8        _Vc_hide_mm256_max_epu8
+#define _mm256_min_epi16       _Vc_hide_mm256_min_epi16
+#define _mm256_min_epu8        _Vc_hide_mm256_min_epu8
+#define _mm256_movemask_epi8   _Vc_hide_mm256_movemask_epi8
+#define _mm256_mulhi_epu16     _Vc_hide_mm256_mulhi_epu16
+#define _mm256_avg_epu8        _Vc_hide_mm256_avg_epu8
+#define _mm256_avg_epu16       _Vc_hide_mm256_avg_epu16
+#define _mm256_sad_epu8        _Vc_hide_mm256_sad_epu8
+#define _mm256_hadd_epi16      _Vc_hide_mm256_hadd_epi16
+#define _mm256_hadd_epi32      _Vc_hide_mm256_hadd_epi32
+#define _mm256_hadds_epi16     _Vc_hide_mm256_hadds_epi16
+#define _mm256_hsub_epi16      _Vc_hide_mm256_hsub_epi16
+#define _mm256_hsub_epi32      _Vc_hide_mm256_hsub_epi32
+#define _mm256_hsubs_epi16     _Vc_hide_mm256_hsubs_epi16
+#define _mm256_maddubs_epi16   _Vc_hide_mm256_maddubs_epi16
+#define _mm256_mulhrs_epi16    _Vc_hide_mm256_mulhrs_epi16
+#define _mm256_shuffle_epi8    _Vc_hide_mm256_shuffle_epi8
+#define _mm256_sign_epi8       _Vc_hide_mm256_sign_epi8
+#define _mm256_sign_epi16      _Vc_hide_mm256_sign_epi16
+#define _mm256_sign_epi32      _Vc_hide_mm256_sign_epi32
+#define _mm256_abs_epi8        _Vc_hide_mm256_abs_epi8
+#define _mm256_abs_epi16       _Vc_hide_mm256_abs_epi16
+#define _mm256_abs_epi32       _Vc_hide_mm256_abs_epi32
+#define _mm256_blend_epi16     _Vc_hide_mm256_blend_epi16
+#define _mm256_blendv_epi8     _Vc_hide_mm256_blendv_epi8
+#define _mm256_cmpeq_epi64     _Vc_hide_mm256_cmpeq_epi64
+#define _mm256_min_epi8        _Vc_hide_mm256_min_epi8
+#define _mm256_max_epi8        _Vc_hide_mm256_max_epi8
+#define _mm256_min_epu16       _Vc_hide_mm256_min_epu16
+#define _mm256_max_epu16       _Vc_hide_mm256_max_epu16
+#define _mm256_min_epi32       _Vc_hide_mm256_min_epi32
+#define _mm256_max_epi32       _Vc_hide_mm256_max_epi32
+#define _mm256_min_epu32       _Vc_hide_mm256_min_epu32
+#define _mm256_max_epu32       _Vc_hide_mm256_max_epu32
+#define _mm256_mullo_epi32     _Vc_hide_mm256_mullo_epi32
+#define _mm256_mul_epi32       _Vc_hide_mm256_mul_epi32
+#define _mm256_minpos_epu16    _Vc_hide_mm256_minpos_epu16
+#define _mm256_cvtepi8_epi32   _Vc_hide_mm256_cvtepi8_epi32
+#define _mm256_cvtepi16_epi32  _Vc_hide_mm256_cvtepi16_epi32
+#define _mm256_cvtepi8_epi64   _Vc_hide_mm256_cvtepi8_epi64
+#define _mm256_cvtepi32_epi64  _Vc_hide_mm256_cvtepi32_epi64
+#define _mm256_cvtepi16_epi64  _Vc_hide_mm256_cvtepi16_epi64
+#define _mm256_cvtepi8_epi16   _Vc_hide_mm256_cvtepi8_epi16
+#define _mm256_cvtepu8_epi32   _Vc_hide_mm256_cvtepu8_epi32
+#define _mm256_cvtepu16_epi32  _Vc_hide_mm256_cvtepu16_epi32
+#define _mm256_cvtepu8_epi64   _Vc_hide_mm256_cvtepu8_epi64
+#define _mm256_cvtepu32_epi64  _Vc_hide_mm256_cvtepu32_epi64
+#define _mm256_cvtepu16_epi64  _Vc_hide_mm256_cvtepu16_epi64
+#define _mm256_cvtepu8_epi16   _Vc_hide_mm256_cvtepu8_epi16
+#define _mm256_packus_epi32    _Vc_hide_mm256_packus_epi32
+#define _mm256_cmpgt_epi64     _Vc_hide_mm256_cmpgt_epi64
+#endif
+
 #include "../common/windows_fix_intrin.h"
 
 // AVX
 #include <immintrin.h>
+
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
+#undef _mm256_cmpeq_epi8
+#undef _mm256_cmpeq_epi16
+#undef _mm256_cmpeq_epi32
+#undef _mm256_cmpgt_epi8
+#undef _mm256_cmpgt_epi16
+#undef _mm256_cmpgt_epi32
+#undef _mm256_srli_si256
+#undef _mm256_slli_si256
+#undef _mm256_and_si256
+#undef _mm256_andnot_si256
+#undef _mm256_or_si256
+#undef _mm256_xor_si256
+#undef _mm256_packs_epi16
+#undef _mm256_packs_epi32
+#undef _mm256_packus_epi16
+#undef _mm256_unpackhi_epi8
+#undef _mm256_unpackhi_epi16
+#undef _mm256_unpackhi_epi32
+#undef _mm256_unpackhi_epi64
+#undef _mm256_unpacklo_epi8
+#undef _mm256_unpacklo_epi16
+#undef _mm256_unpacklo_epi32
+#undef _mm256_unpacklo_epi64
+#undef _mm256_add_epi8
+#undef _mm256_add_epi16
+#undef _mm256_add_epi32
+#undef _mm256_add_epi64
+#undef _mm256_adds_epi8
+#undef _mm256_adds_epi16
+#undef _mm256_adds_epu8
+#undef _mm256_adds_epu16
+#undef _mm256_sub_epi8
+#undef _mm256_sub_epi16
+#undef _mm256_sub_epi32
+#undef _mm256_sub_epi64
+#undef _mm256_subs_epi8
+#undef _mm256_subs_epi16
+#undef _mm256_subs_epu8
+#undef _mm256_subs_epu16
+#undef _mm256_madd_epi16
+#undef _mm256_mulhi_epi16
+#undef _mm256_mullo_epi16
+#undef _mm256_mul_epu32
+#undef _mm256_slli_epi16
+#undef _mm256_slli_epi32
+#undef _mm256_slli_epi64
+#undef _mm256_srai_epi16
+#undef _mm256_srai_epi32
+#undef _mm256_srli_epi16
+#undef _mm256_srli_epi32
+#undef _mm256_srli_epi64
+#undef _mm256_sll_epi16
+#undef _mm256_sll_epi32
+#undef _mm256_sll_epi64
+#undef _mm256_sra_epi16
+#undef _mm256_sra_epi32
+#undef _mm256_srl_epi16
+#undef _mm256_srl_epi32
+#undef _mm256_srl_epi64
+#undef _mm256_max_epi16
+#undef _mm256_max_epu8
+#undef _mm256_min_epi16
+#undef _mm256_min_epu8
+#undef _mm256_movemask_epi8
+#undef _mm256_mulhi_epu16
+#undef _mm256_avg_epu8
+#undef _mm256_avg_epu16
+#undef _mm256_sad_epu8
+#undef _mm256_hadd_epi16
+#undef _mm256_hadd_epi32
+#undef _mm256_hadds_epi16
+#undef _mm256_hsub_epi16
+#undef _mm256_hsub_epi32
+#undef _mm256_hsubs_epi16
+#undef _mm256_maddubs_epi16
+#undef _mm256_mulhrs_epi16
+#undef _mm256_shuffle_epi8
+#undef _mm256_sign_epi8
+#undef _mm256_sign_epi16
+#undef _mm256_sign_epi32
+#undef _mm256_abs_epi8
+#undef _mm256_abs_epi16
+#undef _mm256_abs_epi32
+#undef _mm256_blend_epi16
+#undef _mm256_blendv_epi8
+#undef _mm256_cmpeq_epi64
+#undef _mm256_min_epi8
+#undef _mm256_max_epi8
+#undef _mm256_min_epu16
+#undef _mm256_max_epu16
+#undef _mm256_min_epi32
+#undef _mm256_max_epi32
+#undef _mm256_min_epu32
+#undef _mm256_max_epu32
+#undef _mm256_mullo_epi32
+#undef _mm256_mul_epi32
+#undef _mm256_minpos_epu16
+#undef _mm256_cvtepi8_epi32
+#undef _mm256_cvtepi16_epi32
+#undef _mm256_cvtepi8_epi64
+#undef _mm256_cvtepi32_epi64
+#undef _mm256_cvtepi16_epi64
+#undef _mm256_cvtepi8_epi16
+#undef _mm256_cvtepu8_epi32
+#undef _mm256_cvtepu16_epi32
+#undef _mm256_cvtepu8_epi64
+#undef _mm256_cvtepu32_epi64
+#undef _mm256_cvtepu16_epi64
+#undef _mm256_cvtepu8_epi16
+#undef _mm256_packus_epi32
+#undef _mm256_cmpgt_epi64
+#endif
 
 #if (defined(VC_IMPL_XOP) || defined(VC_IMPL_FMA4)) && !defined(VC_MSVC)
 #include <x86intrin.h>
@@ -176,18 +404,15 @@ namespace AVX
         return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1); \
     }
 
-    AVX_TO_SSE_2(cmpeq_epi8)
-    AVX_TO_SSE_2(cmpeq_epi16)
-    AVX_TO_SSE_2(cmpeq_epi32)
     AVX_TO_SSE_2(cmplt_epi8)
     AVX_TO_SSE_2(cmplt_epi16)
     AVX_TO_SSE_2(cmplt_epi32)
+    AVX_TO_SSE_2(cmpeq_epi8)
+    AVX_TO_SSE_2(cmpeq_epi16)
+    AVX_TO_SSE_2(cmpeq_epi32)
     AVX_TO_SSE_2(cmpgt_epi8)
     AVX_TO_SSE_2(cmpgt_epi16)
     AVX_TO_SSE_2(cmpgt_epi32)
-
-#ifndef VC_ICC
-    // ICC ships the Integer intrinsics inside the AVX1 header these days.
 
 #ifdef VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
 #   define _mm256_srli_si256(a, i) \
@@ -365,7 +590,6 @@ namespace AVX
     // mpsadbw_epu8 (__m128i __X, __m128i __Y, const int __M)
     // stream_load_si128 (__m128i *__X)
     AVX_TO_SSE_2(cmpgt_epi64)
-#endif
 
 //X     static inline __m256i _mm256_cmplt_epu8 (__m256i a, __m256i b) { return _mm256_cmplt_epi8 (
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }

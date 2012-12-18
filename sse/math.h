@@ -21,6 +21,7 @@
 #define VC_SSE_MATH_H
 
 #include "const.h"
+#include "macros.h"
 
 namespace Vc
 {
@@ -145,7 +146,7 @@ namespace SSE
     }
 
     template<typename T>
-    inline Vector<T> trunc(Vector<T> _v) {
+    inline Vector<T> trunc(VC_ALIGNED_PARAMETER(Vector<T>) _v) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
 
@@ -163,7 +164,7 @@ namespace SSE
     }
 
     template<typename T>
-    inline Vector<T> floor(Vector<T> _v) {
+    inline Vector<T> floor(VC_ALIGNED_PARAMETER(Vector<T>) _v) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
 
@@ -181,7 +182,7 @@ namespace SSE
     }
 
     template<typename T>
-    inline Vector<T> ceil(Vector<T> _v) {
+    inline Vector<T> ceil(VC_ALIGNED_PARAMETER(Vector<T>) _v) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
 
@@ -200,6 +201,8 @@ namespace SSE
 #endif
 } // namespace SSE
 } // namespace Vc
+
+#include "undomacros.h"
 
 #define VC__USE_NAMESPACE SSE
 #include "../common/trigonometric.h"
