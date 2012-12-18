@@ -46,22 +46,22 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
         const VectorType &v() const { return data.v; }
 
 #if defined VC_ICC
-        AliasingEntryHelper<VectorMemoryUnion<VectorType, EntryType> > m(int index) {
+        AliasingEntryHelper<VectorMemoryUnion<VectorType, EntryType> > m(size_t index) {
             return AliasingEntryHelper<VectorMemoryUnion<VectorType, EntryType> >(this, index);
         }
-        void assign(int index, EntryType x) {
+        void assign(size_t index, EntryType x) {
             data.m[index] = x;
         }
-        EntryType read(int index) const {
+        EntryType read(size_t index) const {
             return data.m[index];
         }
 #else
-        EntryType &m(int index) {
+        EntryType &m(size_t index) {
             return data.m[index];
         }
 #endif
 
-        EntryType m(int index) const {
+        EntryType m(size_t index) const {
             return data.m[index];
         }
 
@@ -79,11 +79,11 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
         inline VectorType &v() { return data; }
         inline const VectorType &v() const { return data; }
 
-        inline AliasingEntryType &m(int index) {
+        inline AliasingEntryType &m(size_t index) {
             return reinterpret_cast<AliasingEntryType *>(&data)[index];
         }
 
-        inline EntryType m(int index) const {
+        inline EntryType m(size_t index) const {
             return reinterpret_cast<const AliasingEntryType *>(&data)[index];
         }
 
@@ -94,7 +94,7 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
 
 #if VC_GCC == 0x40700 || (VC_GCC >= 0x40600 && VC_GCC <= 0x40603)
 // workaround bug 52736 in GCC
-template<typename T, typename V> static inline T &vectorMemoryUnionAliasedMember(V *data, int index) {
+template<typename T, typename V> static inline T &vectorMemoryUnionAliasedMember(V *data, size_t index) {
     if (__builtin_constant_p(index) && index == 0) {
         T *ret;
         asm("mov %1,%0" : "=r"(ret) : "r"(data));
@@ -103,13 +103,13 @@ template<typename T, typename V> static inline T &vectorMemoryUnionAliasedMember
         return reinterpret_cast<T *>(data)[index];
     }
 }
-template<> inline VectorMemoryUnion<__m128d, double>::AliasingEntryType &VectorMemoryUnion<__m128d, double>::m(int index) {
+template<> inline VectorMemoryUnion<__m128d, double>::AliasingEntryType &VectorMemoryUnion<__m128d, double>::m(size_t index) {
     return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
 }
-template<> inline VectorMemoryUnion<__m128i, long long>::AliasingEntryType &VectorMemoryUnion<__m128i, long long>::m(int index) {
+template<> inline VectorMemoryUnion<__m128i, long long>::AliasingEntryType &VectorMemoryUnion<__m128i, long long>::m(size_t index) {
     return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
 }
-template<> inline VectorMemoryUnion<__m128i, unsigned long long>::AliasingEntryType &VectorMemoryUnion<__m128i, unsigned long long>::m(int index) {
+template<> inline VectorMemoryUnion<__m128i, unsigned long long>::AliasingEntryType &VectorMemoryUnion<__m128i, unsigned long long>::m(size_t index) {
     return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
 }
 #endif

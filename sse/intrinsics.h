@@ -235,6 +235,7 @@ namespace SSE
             return b;
         default:
             abort();
+            return a; // should never be reached, but MSVC needs it else it warns about 'not all control paths return a value'
         }
     }
     static inline __m128  Vc_INTRINSIC _mm_blend_ps(__m128  a, __m128  b, const int mask) {

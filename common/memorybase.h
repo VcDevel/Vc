@@ -226,11 +226,11 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
          * Returns the \p i-th row in the memory.
          */
         inline RowMemory &operator[](size_t i) {
-            return *new(entries(i)) RowMemory;
+            return RowMemory::fromRawData(entries(i));
         }
         /// Const overload of the above function.
         inline const RowMemory &operator[](size_t i) const {
-            return *new(const_cast<EntryType *>(entries(i))) RowMemory;
+            return RowMemory::fromRawData(const_cast<EntryType *>(entries(i)));
         }
 
         /**

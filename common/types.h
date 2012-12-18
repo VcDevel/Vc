@@ -20,7 +20,7 @@
 #ifndef VC_COMMON_TYPES_H
 #define VC_COMMON_TYPES_H
 
-#ifndef NDEBUG
+#ifdef VC_CHECK_ALIGNMENT
 #include <cstdlib>
 #include <cstdio>
 #endif
@@ -129,6 +129,10 @@ namespace
 #endif
         static  no test(...) { return  no(); }
         enum {
+#ifdef VC_MSVC
+            // I want to test whether implicit cast works. If it works MSVC thinks it should give a warning. Wrong. Shut up.
+#pragma warning(suppress : 4257 4267)
+#endif
             Value = !!(sizeof(test(*static_cast<From *>(0))) == sizeof(yes))
         };
     };
@@ -195,7 +199,7 @@ namespace
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !IsUnsignedInteger<T>::Value }; };
 } // anonymous namespace
 
-#ifdef NDEBUG
+#ifndef VC_CHECK_ALIGNMENT
 template<typename _T> static inline Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
 #else
 template<typename _T> static inline Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)

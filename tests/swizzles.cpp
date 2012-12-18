@@ -25,7 +25,7 @@ enum Swizzle {
     BADC, CDAB, AAAA, BBBB, CCCC, DDDD, BCAD, BCDA, DABC, ACBD, DBCA, DCBA
 };
 
-template<typename V> V scalarSwizzle(V v, Swizzle s)
+template<typename V> V scalarSwizzle(VC_ALIGNED_PARAMETER(V) v, Swizzle s)
 {
     V r = v;
     for (int i = 0; i + 4 <= V::Size; i += 4) {
