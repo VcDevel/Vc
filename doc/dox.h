@@ -167,12 +167,12 @@
  *                   Vc::MallocAlignment. Note, that (like \c malloc) the memory is only allocated
  *                   and not initialized. If you allocate memory for a type that has a constructor,
  *                   use the placement new syntax to initialize the memory.
- * \li Vc::Allocator<T> is an STL compatible allocator class that behaves as specified in the C++
+ * \li Vc::Allocator is an STL compatible allocator class that behaves as specified in the C++
  *                   specification, implementing the optional support for over-aligned types.
  *                   Therefore, memory addresses returned from this allocator will always be
  *                   aligned to at least the constraints attached to the type \c T. STL containers
  *                   will already default to Vc::Allocator for Vc::Vector<T>. For all other
- *                   composite types you want to use, you can take the Vc_DECLARE_ALLOCATOR
+ *                   composite types you want to use, you can take the \ref Vc_DECLARE_ALLOCATOR
  *                   convenience macro to set is as default.
  * \li Vc::Memory
  * \li Vc::Memory<V, Size, 0u>
