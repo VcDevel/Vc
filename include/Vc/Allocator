@@ -38,7 +38,7 @@ namespace Vc
      * T is larger than the size of a pointer, the allocate function allocates slightly more memory
      * to adjust the pointer for correct alignment.
      *
-     * If 
+     * If the \p T does not require over-alignment no additional memory will be allocated.
      *
      * \tparam T The type of objects to allocate.
      *
