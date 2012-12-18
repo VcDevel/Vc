@@ -105,6 +105,7 @@ macro(vc_add_test _name)
    endforeach()
 endmacro(vc_add_test)
 
+vc_add_test(stlcontainer)
 vc_add_test(scalaraccess)
 vc_add_test(memory)
 vc_add_test(arithmetics)
