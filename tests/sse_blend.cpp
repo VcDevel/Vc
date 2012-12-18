@@ -18,7 +18,7 @@
 */
 
 #include "unittest.h"
-#include "../sse/intrinsics.h"
+#include <sse/intrinsics.h>
 
 namespace std
 {

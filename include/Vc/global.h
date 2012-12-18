@@ -97,7 +97,7 @@
 #  if defined(__AVX__)
 #    define VC_IMPL_AVX 1
 #  else
-#    if defined(__SSE4a__)
+#    if defined(__SSE4A__)
 #      define VC_IMPL_SSE 1
 #      define VC_IMPL_SSE4a 1
 #    endif
@@ -167,7 +167,7 @@
 #    define VC_IMPL_SSE 1
 #  elif VC_IMPL == SSE
 #    define VC_IMPL_SSE 1
-#    if defined(__SSE4a__)
+#    if defined(__SSE4A__)
 #      define VC_IMPL_SSE4a 1
 #    endif
 #    if defined(__SSE4_2__)

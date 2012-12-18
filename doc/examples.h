@@ -187,6 +187,9 @@
  *
  * \section ex_polarcoord_complete The Complete Example
  *
+ * Now that we have covered the background and know what we need - let us take a look at the
+ * complete example code.
+ *
  * \snippet polarcoord/main.cpp includes
  * The example starts with the main include directive to use for Vc: \c #include \c <Vc/Vc>.
  * The remaining includes are required for terminal output.

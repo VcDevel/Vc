@@ -7,8 +7,8 @@ endif()
 project(Vc)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-set(ALIROOT_RELEASE FALSE CACHE BOOL "Set up for creating a Vc copy inside AliRoot.")
-mark_as_advanced(ALIROOT_RELEASE)
+set(ROOT_RELEASE FALSE CACHE BOOL "Set up for creating a Vc copy inside ROOT/AliRoot.")
+mark_as_advanced(ROOT_RELEASE)
 
 set(disabled_targets)
 
@@ -18,7 +18,12 @@ include (OptimizeForArchitecture)
 
 vc_determine_compiler()
 
-if(NOT ALIROOT_RELEASE)
+if(ROOT_RELEASE)
+   file(READ "${CMAKE_INSTALL_PREFIX}/Module.mk" ROOT_MODULE_MK)
+   if(NOT ROOT_MODULE_MK MATCHES "\nMODNAME *:= *vc *\n")
+      message(FATAL_ERROR "CMAKE_INSTALL_PREFIX is incorrect. It must point to the Vc subdirectory inside ROOT/AliRoot")
+   endif()
+else()
    if(Vc_COMPILER_IS_GCC)
       if(Vc_GCC_VERSION STREQUAL "4.6.0")
          UserWarning("GCC 4.6.0 is broken. The following tests are therefore disabled:
@@ -93,7 +98,7 @@ add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
 add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
 add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
 
-if(NOT ALIROOT_RELEASE)
+if(NOT ROOT_RELEASE)
    set(libvc_compile_flags "-DVC_COMPILE_LIB")
    AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
    vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS ${libvc_compile_flags} EXCLUDE Scalar)
@@ -128,7 +133,8 @@ else()
    # Sadly there are messed up systems where putting include/Vc in the include paths will
    # break the standard library (e.g. MacOS X Lion with case insensitive filesystem).
    # Thus, we modify the includes such that include/Vc never needs to be in the path.
-   foreach(_src src/const.cpp src/cpuid.cpp src/support.cpp src/avx_sorthelper.cpp src/trigonometric.cpp)
+   file(GLOB _srcs RELATIVE "${CMAKE_SOURCE_DIR}" src/*.cpp tests/*.cpp tests/*.h)
+   foreach(_src ${_srcs})
       message(STATUS "Processing ${CMAKE_SOURCE_DIR}/${_src} -> ${CMAKE_BINARY_DIR}/${_src}")
       get_filename_component(_path "${CMAKE_BINARY_DIR}/${_src}" PATH)
       file(MAKE_DIRECTORY "${_path}")
@@ -163,7 +169,7 @@ set(cmake_install_files
    cmake/CheckCCompilerFlag.cmake
    cmake/CheckCXXCompilerFlag.cmake
    )
-if(ALIROOT_RELEASE)
+if(ROOT_RELEASE)
    execute_process(
       COMMAND sed "s, \"auto\" CACHE, \"none\" CACHE,"
       INPUT_FILE ${CMAKE_SOURCE_DIR}/cmake/OptimizeForArchitecture.cmake
@@ -171,9 +177,13 @@ if(ALIROOT_RELEASE)
       )
    install(FILES
       ${cmake_install_files}
+      cmake/AddTargetProperty.cmake
       ${CMAKE_BINARY_DIR}/cmake/OptimizeForArchitecture.cmake
       DESTINATION cmake
       )
+   install(DIRECTORY examples/ DESTINATION examples)
+   install(DIRECTORY ${CMAKE_BINARY_DIR}/tests/ DESTINATION tests)
+   install(FILES tests/CMakeLists.txt tests/download.cmake DESTINATION tests)
 else()
    install(FILES
       ${cmake_install_files}
@@ -185,7 +195,7 @@ else()
       )
 endif()
 
-if(NOT ALIROOT_RELEASE)
+if(NOT ROOT_RELEASE)
    include (CTest)
    configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
    if(BUILD_TESTING)

@@ -24,7 +24,7 @@
 #include "mandel.h"
 #include <QMutexLocker>
 #include <QtCore/QtDebug>
-#include "tsc.h"
+#include "../tsc.h"
 
 #include <Vc/vector.h>
 
