@@ -21,8 +21,8 @@
  * \mainpage
  * \image html logo.png
  *
- * The Vc library is a collection of vector classes with existing implementations for SSE, AVX,
- * and a scalar fallback. An implementation for the Intel Xeon Phi is expected to be ready for Vc
+ * The %Vc library is a collection of vector classes with existing implementations for SSE, AVX,
+ * and a scalar fallback. An implementation for the Intel Xeon Phi is expected to be ready for %Vc
  * 0.8.
  *
  * \section background Background information and learning material
@@ -38,7 +38,7 @@
  * \li \ref Utilities
  * \li \ref Math
  *
- * Per default, code compiled against the Vc headers will use the instruction set that the compiler
+ * Per default, code compiled against the %Vc headers will use the instruction set that the compiler
  * says is available. For example compiling with "g++ -mssse3" will enable compilation against the
  * SSE implementation using SSE the instruction sets SSE, SSE2, SSE3 and SSSE3. If you want to force
  * compilation against a specific implementation of the vector classes you can set the macro
@@ -46,8 +46,8 @@
  * Setting VC_IMPL to
  * "SSE" will force the SSE instruction set, but lets the headers figure out the version to use or,
  * if that fails, uses SSE4.1.
- * After you include a Vc header, you will have the following macros available, which you can (but
- * normally should not) use to determine the implementation Vc uses:
+ * After you include a %Vc header, you will have the following macros available, which you can (but
+ * normally should not) use to determine the implementation %Vc uses:
  * \li \c VC_IMPL_Scalar
  * \li \c VC_IMPL_SSE (shorthand for SSE2 || SSE3 || SSSE3 || SSE4_1. SSE1 alone is not supported.)
  * \li \c VC_IMPL_SSE2
@@ -72,7 +72,7 @@
  * single value. Thus multiple values fit into one register. The width of this register and the
  * size of the scalar data type in use determine the number of entries in the vector.
  * Therefore this number is an unchangeable property of the hardware and not a variable in the
- * Vc API.
+ * %Vc API.
  * \li Note that hardware is free to use different vector register widths for different data types.
  * For example AVX has instructions for 256-bit floating point registers, but only 128-bit integer
  * instructions.
@@ -90,8 +90,8 @@
  *   z /= d;
  * }
  * \endcode
- * To vectorize the \c normalize function with Vc, the types must be substituted by their Vc counterparts and math functions
- * must use the Vc implementation (which is, per default, also imported into \c std namespace):
+ * To vectorize the \c normalize function with %Vc, the types must be substituted by their %Vc counterparts and math functions
+ * must use the %Vc implementation (which is, per default, also imported into \c std namespace):
  * \code
  * using Vc::float_v;
  *
@@ -114,7 +114,7 @@
  * Then you can multiply \c x, \c y, and \c z with \c d_inv, which is considerably faster than three
  * divisions.
  *
- * As you can probably see, the new challenge with Vc is the use of good data-structures which
+ * As you can probably see, the new challenge with %Vc is the use of good data-structures which
  * support horizontal vectorization. Depending on your problem at hand this may become the main
  * focus of design (it does not have to be, though).
  *
@@ -155,7 +155,7 @@
  *
  * \subsection intro_alignment_tools Tools
  *
- * Vc provides several classes and functions to get alignment right.
+ * %Vc provides several classes and functions to get alignment right.
  * \li Vc::VectorAlignment is a compile time constant that equals the largest alignment restriction
  * (in Bytes) for the selected target architecture.
  * \li Vc::VectorAlignedBase and Vc::VectorAlignedBaseT are helper classes that use compiler
@@ -173,7 +173,7 @@
 /**
  * \page portability Portability Issues
  *
- * One of the major goals of Vc is to ease development of portable code, while achieving highest
+ * One of the major goals of %Vc is to ease development of portable code, while achieving highest
  * possible performance that requires target architecture specific instructions. This is possible
  * through having just a single type use different implementations of the same API depending on the
  * target architecture. Many of the details of the target architecture are often dependent on the
@@ -184,7 +184,7 @@
  *
  * \li \e GCC: The compiler should be called with the -march=\<target\> flag. Take a look at the GCC
  * manpage to find all possibilities for \<target\>. Additionally it is best to also add the -msse2
- * -msse3 ... -mavx flags. If no SIMD instructions are enabled via compiler flags, Vc must fall back
+ * -msse3 ... -mavx flags. If no SIMD instructions are enabled via compiler flags, %Vc must fall back
  * to the scalar implementation.
  * \li \e Clang: The same as for GCC applies.
  * \li \e ICC: Same as GCC, but the flags are called -xAVX -xSSE4.2 -xSSE4.1 -xSSSE3 -xSSE3 -xSSE2.
@@ -225,11 +225,11 @@
  *
  * \section portability_compilerquirks Compiler Quirks
  *
- * Since SIMD is not part of the C/C++ language standards Vc abstracts more or less standardized
+ * Since SIMD is not part of the C/C++ language standards %Vc abstracts more or less standardized
  * compiler extensions. Sadly, not every issue can be transparently abstracted.
  * Therefore this will be the place where differences are documented:
  * \li MSVC is incapable of parameter passing by value, if the type has alignment restrictions. The
- * consequence is that all Vc vector types and any type derived from Vc::VectorAlignedBase cannot be
+ * consequence is that all %Vc vector types and any type derived from Vc::VectorAlignedBase cannot be
  * used as function parameters, unless a pointer is used (this includes reference and
  * const-reference). So \code
  * void foo(Vc::float_v) {}\endcode does not compile, while \code
@@ -238,8 +238,8 @@
  * void foo(Vc::float_v *) {}
  * \endcode all work.
  * Normally you should prefer passing by value since a sane compiler will then pass the data in a
- * register and does not have to store/load the data to/from the stack. Vc defines \c
- * VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN for such cases. Also the Vc vector types contain a composite
+ * register and does not have to store/load the data to/from the stack. %Vc defines \c
+ * VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN for such cases. Also the %Vc vector types contain a composite
  * typedef \c AsArg which resolves to either const-ref or const-by-value. Thus, you can always use
  * \code void foo(Vc::float_v::AsArg) {}\endcode.
  */
@@ -248,18 +248,18 @@
  * \page featuremacros Feature Macros
  *
  * The following macros are available to enable/disable selected features:
- * \li \e VC_NO_STD_FUNCTIONS If this macro is defined, the Vc math functions are
- * not imported into the \c std namespace. They are still available in the Vc namespace.
- * \li \e VC_CLEAN_NAMESPACE If this macro is defined, any symbol or macro that does not have a Vc
+ * \li \e VC_NO_STD_FUNCTIONS If this macro is defined, the %Vc math functions are
+ * not imported into the \c std namespace. They are still available in the %Vc namespace.
+ * \li \e VC_CLEAN_NAMESPACE If this macro is defined, any symbol or macro that does not have a %Vc
  * prefix will be disabled.
- * \li \e VC_NO_AUTOMATIC_BOOL_FROM_MASK Define this macro to disable automatic conversion from Vc
+ * \li \e VC_NO_AUTOMATIC_BOOL_FROM_MASK Define this macro to disable automatic conversion from %Vc
  * mask types to bool. The automatic conversion corresponds to the isFull() function. By disabling
  * the automatic conversion you can find places where the implicit isFull() conversion is not the
  * correct reduction.
  * \li \e VC_NO_VERSION_CHECK Define this macro to disable the safety check for the libVc version.
  * The check generates a small check for every object file, which is called at startup, i.e. before
  * the main function.
- * \li \e VC_CHECK_ALIGNMENT If this macro is defined Vc will assert correct alignment for all
+ * \li \e VC_CHECK_ALIGNMENT If this macro is defined %Vc will assert correct alignment for all
  *        objects that require correct alignment. This can be very useful to debug crashes resulting
  *        from misaligned memory accesses. This check will introduce a significant overhead.
  */
@@ -267,23 +267,23 @@
 /**
  * \page buildsystem Build System
  *
- * Vc uses CMake as its buildsystem. It also provides much of the CMake logic it
- * uses for itself for other projects that use CMake and Vc. Here's an (incomplete) list of features
- * you can get from the CMake scripts provided with Vc:
- * \li check for a required Vc version
- * \li locate libVc and Vc includes
- * \li compiler flags to workaround Vc related quirks/bugs in specific compilers
+ * %Vc uses CMake as its buildsystem. It also provides much of the CMake logic it
+ * uses for itself for other projects that use CMake and %Vc. Here's an (incomplete) list of features
+ * you can get from the CMake scripts provided with %Vc:
+ * \li check for a required %Vc version
+ * \li locate libVc and %Vc includes
+ * \li compiler flags to workaround %Vc related quirks/bugs in specific compilers
  * \li compiler flags to enable/disable SIMD instruction sets, defaulting to full support for the
  * host system
  *
  * \section buildsystem_variables CMake Variables
  *
- * To make use of these features simply copy the FindVc.cmake as installed by Vc to your project.
+ * To make use of these features simply copy the FindVc.cmake as installed by %Vc to your project.
  * Add \code find_package(Vc [version] [REQUIRED]) \endcode to your CMakeLists.txt. After that you
  * can use the following variables:
  * \li \e Vc_FOUND: tells whether the package was found
  * \li \e Vc_INCLUDE_DIR: you must add this to your include directories for the targets that you
- * want to compile against Vc: \code include_directories(${Vc_INCLUDE_DIR}) \endcode
+ * want to compile against %Vc: \code include_directories(${Vc_INCLUDE_DIR}) \endcode
  * \li \e Vc_DEFINITIONS: recommended compiler flags. You can use them via add_definitions or the
  * COMPILE_FLAGS property.
  *
@@ -348,7 +348,7 @@
  *
  * \par Some general information on using the vector classes:
  *
- * Generally you can always mix scalar values with vectors as Vc will automatically broadcast the
+ * Generally you can always mix scalar values with vectors as %Vc will automatically broadcast the
  * scalar to a vector and then execute a vector operation. But, in order to ensure that implicit
  * type conversions only happen as defined by the C standard, there is only a very strict implicit
  * scalar to vector constructor:
@@ -366,7 +366,7 @@
  * int_v v(3, 2, 8, 0); // constructor does not exist because it is not portable
  * int_v v;
  * v[0] = 3; v[1] = 2; v[2] = 8; v[3] = 0; // do not hardcode the number of entries!
- * // You can not know whether somebody will compile with Vc Scalar where int_v::Size == 1
+ * // You can not know whether somebody will compile with %Vc Scalar where int_v::Size == 1
  * \endcode
  *
  * Instead, if really necessary you can do:
@@ -408,10 +408,10 @@
  * \ingroup Vectors
  * \brief Vector Classes Namespace
  *
- * All functions and types of Vc are defined inside the Vc namespace.
+ * All functions and types of %Vc are defined inside the %Vc namespace.
  *
  * To be precise, most types are actually defined inside a second namespace, such as Vc::SSE. At
- * compile-time the correct implementation is simply imported into the Vc namespace.
+ * compile-time the correct implementation is simply imported into the %Vc namespace.
  */
 namespace Vc
 {
@@ -492,7 +492,7 @@ namespace Vc
      */
     enum LoadStoreFlags {
         /**
-         * Tells Vc that the load/store can expect a memory address that is aligned on the correct
+         * Tells %Vc that the load/store can expect a memory address that is aligned on the correct
          * boundary.
          *
          * If you specify Aligned, but the memory address is not aligned the program will most
@@ -501,7 +501,7 @@ namespace Vc
         Aligned,
 
         /**
-         * Tells Vc that the load/store can \em not expect a memory address that is aligned on the correct
+         * Tells %Vc that the load/store can \em not expect a memory address that is aligned on the correct
          * boundary.
          *
          * If you specify Unaligned, but the memory address is aligned the load/store will execute
@@ -510,7 +510,7 @@ namespace Vc
         Unaligned,
 
         /**
-         * Tells Vc to bypass the cache for the load/store. Whether this will actually be done
+         * Tells %Vc to bypass the cache for the load/store. Whether this will actually be done
          * depends on the instruction set in use.
          *
          * Streaming stores can be interesting when the code calculates values that, after being
@@ -836,7 +836,7 @@ namespace Vc
      * Vc::VectorAlignedBase you will get the most restrictive alignment (i.e. it will work for all
      * vector types, but might lead to unnecessary padding).
      *
-     * \tparam V One of the Vc vector types.
+     * \tparam V One of the %Vc vector types.
      *
      * \see Vc::VectorAlignedBase
      */
@@ -872,7 +872,7 @@ namespace Vc
  * \param mask      The mask to iterate over. You can also just write a vector operation that returns a
  *                  mask.
  *
- * \note Since Vc 0.7 break and continue are supported in foreach_bit loops.
+ * \note Since %Vc 0.7 break and continue are supported in foreach_bit loops.
  */
 #define Vc_foreach_bit(iterator, mask)
 
@@ -924,7 +924,7 @@ m[1110 0000]
 \endverbatim
  *
  * \param s Any standard C++ ostream object. For example std::cout or a std::stringstream object.
- * \param v Any Vc mask object.
+ * \param v Any %Vc mask object.
  * \return  The ostream object: to chain multiple stream operations.
  *
  * \note With the GNU standard library this function will check, whether the output stream is a tty.
@@ -969,9 +969,9 @@ namespace Vc
  * \ingroup Utilities
  * \headerfile dox.h <Vc/version.h>
  *
- * \returns the version string of the Vc headers.
+ * \returns the version string of the %Vc headers.
  *
- * \note There exists a built-in check that ensures on application startup that the Vc version of the
+ * \note There exists a built-in check that ensures on application startup that the %Vc version of the
  * library (link time) and the headers (compile time) are equal. A mismatch between headers and
  * library could lead to errors that are very hard to debug.
  * \note If you need to disable the check (it costs a very small amount of application startup time)
@@ -983,7 +983,7 @@ const char *versionString();
  * \ingroup Utilities
  * \headerfile dox.h <Vc/version.h>
  *
- * \returns the version of the Vc headers encoded in an integer.
+ * \returns the version of the %Vc headers encoded in an integer.
  */
 unsigned int versionNumber();
 
@@ -991,7 +991,7 @@ unsigned int versionNumber();
  * \ingroup Utilities
  * \headerfile dox.h <Vc/version.h>
  *
- * Contains the version string of the Vc headers. Same as Vc::versionString().
+ * Contains the version string of the %Vc headers. Same as Vc::versionString().
  */
 #define VC_VERSION_STRING
 
@@ -999,7 +999,7 @@ unsigned int versionNumber();
  * \ingroup Utilities
  * \headerfile dox.h <Vc/version.h>
  *
- * Contains the encoded version number of the Vc headers. Same as Vc::versionNumber().
+ * Contains the encoded version number of the %Vc headers. Same as Vc::versionNumber().
  */
 #define VC_VERSION_NUMBER
 
