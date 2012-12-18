@@ -52,6 +52,9 @@ template<typename V> void stdVectorAlignment()
     for (int i = 0; i < 11; ++i) {
         COMPARE((reinterpret_cast<char *>(&v2[i]) - null) & mask, 0u) << "&v2[i] = " << &v2[i] << ", mask = " << mask << ", i = " << i;
     }
+
+    std::vector<V> v3(v);
+    std::vector<SomeStruct<V>, Vc::Allocator<SomeStruct<V> > > v4(v2);
 }
 
 int main(int argc, char **argv)

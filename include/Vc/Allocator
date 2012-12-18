@@ -31,6 +31,26 @@ namespace Vc
 
     /**
      * \headerfile Allocator <Vc/Allocator>
+     * \ingroup Utilities
+     *
+     * Convenience macro to set the default allocator for a given \p Type to Vc::Allocator.
+     *
+     * \param Type Your type that you want to use with STL containers.
+     *
+     * \note You have to place this macro in the global namespace.
+     */
+#define Vc_DECLARE_ALLOCATOR(Type) \
+namespace std \
+{ \
+    template<> class allocator<Type> : public ::Vc::Allocator<Type> \
+    { \
+    public: \
+        template<typename U> struct rebind { typedef ::std::allocator<U> other; }; \
+    }; \
+}
+
+    /**
+     * \headerfile Allocator <Vc/Allocator>
      * An allocator that uses global new and supports over-aligned types, as per [C++11 20.6.9].
      *
      * Meant as a simple replacement for the allocator defined in the C++ Standard.
@@ -41,6 +61,36 @@ namespace Vc
      * If the \p T does not require over-alignment no additional memory will be allocated.
      *
      * \tparam T The type of objects to allocate.
+     *
+     * Example:
+     * \code
+     * struct Data {
+     *   Vc::float_v x, y, z;
+     * };
+     *
+     * void fun()
+     * {
+     *   std::vector<Data> dat0; // this will use std::allocator<Data>, which probably ignores the
+     *                           // alignment requirements for Data. Thus any access to dat0 may
+     *                           // crash your program.
+     *
+     *   std::vector<Data, Vc::Allocator<Data> > dat1; // now std::vector will get correctly aligned
+     *                           // memory. Accesses to dat1 are safe.
+     *   ...
+     * \endcode
+     *
+     * %Vc ships a macro to conveniently tell STL to use Vc::Allocator per default for a given type:
+     * \code
+     * struct Data {
+     *   Vc::float_v x, y, z;
+     * };
+     * Vc_DECLARE_ALLOCATOR(Data)
+     *
+     * void fun()
+     * {
+     *   std::vector<Data> dat0; // good now
+     *   ...
+     * \endcode
      *
      * \ingroup Utilities
      */
@@ -124,10 +174,13 @@ namespace Vc
 #include "vector.h"
 namespace std
 {
-    template<typename T> class Allocator<Vc::Vector<T> > : public Vc::Allocator<Vc::Vector<T> > {};
-} // namespace std
-
+    template<typename T> class allocator<Vc::Vector<T> > : public ::Vc::Allocator<Vc::Vector<T> >
+    {
+    public:
+        template<typename U> struct rebind { typedef ::std::allocator<U> other; };
+    };
+}
 
 #endif // VC_ALLOCATOR_H
 
-// vim: ft=cpp
+// vim: ft=cpp et sw=4 sts=4
