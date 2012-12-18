@@ -119,6 +119,55 @@
  * focus of design (it does not have to be, though).
  *
  * \section intro_alignment Alignment
+ *
+ * \subsection intro_alignment_background What is Alignment
+ *
+ * If you do not know what alignment is, and why it is important, read on, otherwise skip to \ref
+ * intro_alignment_tools. Normally the alignment of data is an implementation detail left to the
+ * compiler. Until C++11, the language did not even have any (official) means to query or modify
+ * alignment.
+ *
+ * Most data types require more than one Byte for storage. Thus, even most atomic data types span
+ * several locations in memory. E.g. if you have a pointer to \c float, the address stored in this
+ * pointer just determines the first of four Bytes of the \c float. Naively, one could think that
+ * any address (which belongs to the process) can be used to store such a float. While this is true
+ * for some architectures, some architectures may terminate the process when a misaligned pointer is
+ * dereferenced. The natural alignment for atomic data types typically is the same as their size.
+ * Thus the address of a \c float object should always be a multiple of 4 Bytes.
+ *
+ * Alignment becomes more important for SIMD data types.
+ * 1. There are different instructions to load/store aligned and unaligned vectors. The unaligned
+ * load/stores recently were greatly improved in x86 CPUs. Still, the rule of thumb
+ * says that aligned loads/stores are faster.
+ * 2. Access to an unaligned vector with an instruction that expects an aligned vector crashes the
+ * application. Once you write vectorized code you might want to make it a habit to check crashes
+ * for unaligned addresses.
+ * 3. Memory allocation on the heap will return addresses aligned to some system specific alignment
+ * rule. E.g. Linux 32bit aligns on 8 Bytes, while Linux 64bit aligns on 16 Bytes. Both alignments
+ * are not strict enough for AVX vectors. Worse, if you develop on Linux 64bit with SSE you won't
+ * notice any problems until you switch to a 32bit build or AVX.
+ * 4. Placement on the stack is determined at compile time and requires the compiler to know the
+ * alignment restrictions of the type.
+ * 5. The size of a cache line is just two or four times larger than the SIMD types (if not equal).
+ * Thus, if you load several vectors consecutively from memory every fourth, second, or even every
+ * load will have to be read from two different cache lines. This is called a cache line split. They
+ * lead to degraded performance, which becomes very noticeable for memory intensive code.
+ *
+ * \subsection intro_alignment_tools Tools
+ *
+ * Vc provides several classes and functions to get alignment right.
+ * \li Vc::VectorAlignment is a compile time constant that equals the largest alignment restriction
+ * (in Bytes) for the selected target architecture.
+ * \li Vc::VectorAlignedBase and Vc::VectorAlignedBaseT are helper classes that use compiler
+ * specific extensions to annotate the alignment restrictions for vector types. Additionally they
+ * reimplement \c new and \c delete to return correctly aligned pointers to the heap.
+ * \li Vc::malloc and Vc::free are meant as replacements for \c malloc and \c free. They can be used
+ * to allocate any type of memory with an abstract alignment restriction: \ref Vc::MallocAlignment.
+ * Note, that (like \c malloc) the memory is only allocated and not initialized. If you allocate
+ * memory for a type that has a constructor, use the placement new syntax to initialize the memory.
+ * \li Vc::Memory
+ * \li Vc::Memory<V, Size, 0u>
+ * \li Vc::Memory<V, 0u, 0u>
  */
 
 /**
