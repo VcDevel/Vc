@@ -1,0 +1,186 @@
+/*  This file is part of the Vc library. {{{
+
+    Copyright (C) 2012 Matthias Kretz <kretz@kde.org>
+
+    Vc is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3 of
+    the License, or (at your option) any later version.
+
+    Vc is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+
+}}}*/
+
+#ifndef VC_ALLOCATOR_H
+#define VC_ALLOCATOR_H
+
+#include <new>
+#include <cstdlib>
+#include "global.h"
+
+namespace Vc
+{
+    using std::size_t;
+    using std::ptrdiff_t;
+
+    /**
+     * \headerfile Allocator <Vc/Allocator>
+     * \ingroup Utilities
+     *
+     * Convenience macro to set the default allocator for a given \p Type to Vc::Allocator.
+     *
+     * \param Type Your type that you want to use with STL containers.
+     *
+     * \note You have to place this macro in the global namespace.
+     */
+#define Vc_DECLARE_ALLOCATOR(Type) \
+namespace std \
+{ \
+    template<> class allocator<Type> : public ::Vc::Allocator<Type> \
+    { \
+    public: \
+        template<typename U> struct rebind { typedef ::std::allocator<U> other; }; \
+    }; \
+}
+
+    /**
+     * \headerfile Allocator <Vc/Allocator>
+     * An allocator that uses global new and supports over-aligned types, as per [C++11 20.6.9].
+     *
+     * Meant as a simple replacement for the allocator defined in the C++ Standard.
+     * Allocation is done using the global new/delete operators. But if the alignment property of \p
+     * T is larger than the size of a pointer, the allocate function allocates slightly more memory
+     * to adjust the pointer for correct alignment.
+     *
+     * If the \p T does not require over-alignment no additional memory will be allocated.
+     *
+     * \tparam T The type of objects to allocate.
+     *
+     * Example:
+     * \code
+     * struct Data {
+     *   Vc::float_v x, y, z;
+     * };
+     *
+     * void fun()
+     * {
+     *   std::vector<Data> dat0; // this will use std::allocator<Data>, which probably ignores the
+     *                           // alignment requirements for Data. Thus any access to dat0 may
+     *                           // crash your program.
+     *
+     *   std::vector<Data, Vc::Allocator<Data> > dat1; // now std::vector will get correctly aligned
+     *                           // memory. Accesses to dat1 are safe.
+     *   ...
+     * \endcode
+     *
+     * %Vc ships a macro to conveniently tell STL to use Vc::Allocator per default for a given type:
+     * \code
+     * struct Data {
+     *   Vc::float_v x, y, z;
+     * };
+     * Vc_DECLARE_ALLOCATOR(Data)
+     *
+     * void fun()
+     * {
+     *   std::vector<Data> dat0; // good now
+     *   ...
+     * \endcode
+     *
+     * \ingroup Utilities
+     */
+    template<typename T> class Allocator
+    {
+    private:
+        enum Constants {
+            NaturalAlignment = sizeof(void *),
+#ifdef Vc_CXX11
+            Alignment = alignof(T),
+#elif VC_GCC
+            Alignment = __alignof(T),
+#else
+#error "please insert correct alignof extension of your compiler"
+#endif
+            ExtraBytes = Alignment > NaturalAlignment ? Alignment + sizeof(void *) : 0,
+            AlignmentMask = Alignment - 1
+        };
+    public:
+        typedef size_t    size_type;
+        typedef ptrdiff_t difference_type;
+        typedef T*        pointer;
+        typedef const T*  const_pointer;
+        typedef T&        reference;
+        typedef const T&  const_reference;
+        typedef T         value_type;
+
+        template<typename U> struct rebind { typedef Allocator<U> other; };
+
+        Allocator() throw() { }
+        Allocator(const Allocator&) throw() { }
+        template<typename U> Allocator(const Allocator<U>&) throw() { }
+
+        pointer address(reference x) const { return &x; }
+        const_pointer address(const_reference x) const { return &x; }
+
+        pointer allocate(size_type n, const void* = 0)
+        {
+            if (n > this->max_size()) {
+                throw std::bad_alloc();
+            }
+
+            char *p = static_cast<char *>(::operator new(n * sizeof(T) + ExtraBytes));
+            if (ExtraBytes > 0) {
+                char *const pp = p;
+                p += ExtraBytes;
+                const char *null = 0;
+                p -= ((p - null) & AlignmentMask); // equivalent to p &= ~AlignmentMask;
+                reinterpret_cast<char **>(p)[-1] = pp;
+            }
+            return reinterpret_cast<pointer>(p);
+        }
+
+        void deallocate(pointer p, size_type)
+        {
+            if (ExtraBytes > 0) {
+                p = reinterpret_cast<pointer *>(p)[-1];
+            }
+            ::operator delete(p);
+        }
+
+        size_type max_size() const throw() { return size_t(-1) / sizeof(T); }
+
+#ifdef Vc_CXX11
+        template<typename U, typename... Args> void construct(U* p, Args&&... args)
+        {
+            ::new(p) U(std::forward<Args>(args)...);
+        }
+        template<typename U> void destroy(U* p) { p->~U(); }
+#else
+        void construct(pointer p, const T& __val) { ::new(p) T(__val); }
+        void destroy(pointer p) { p->~T(); }
+#endif
+    };
+
+    template<typename T> inline bool operator==(const Allocator<T>&, const Allocator<T>&) { return true;  }
+    template<typename T> inline bool operator!=(const Allocator<T>&, const Allocator<T>&) { return false; }
+
+} // namespace Vc
+
+#include "vector.h"
+namespace std
+{
+    template<typename T> class allocator<Vc::Vector<T> > : public ::Vc::Allocator<Vc::Vector<T> >
+    {
+    public:
+        template<typename U> struct rebind { typedef ::std::allocator<U> other; };
+    };
+}
+
+#endif // VC_ALLOCATOR_H
+
+// vim: ft=cpp et sw=4 sts=4
