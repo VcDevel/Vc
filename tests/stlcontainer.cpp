@@ -21,7 +21,7 @@
 
 }}}*/
 
-#include <Vc/allocator>
+#include <Vc/Allocator>
 #include <vector>
 #include "unittest.h"
 
@@ -48,7 +48,7 @@ template<typename V> void stdVectorAlignment()
         COMPARE((reinterpret_cast<char *>(&v[i]) - null) & mask, 0u) << "&v[i] = " << &v[i] << ", mask = " << mask << ", i = " << i;
     }
 
-    std::vector<SomeStruct<V>, Vc::allocator<SomeStruct<V> > > v2(11);
+    std::vector<SomeStruct<V>, Vc::Allocator<SomeStruct<V> > > v2(11);
     for (int i = 0; i < 11; ++i) {
         COMPARE((reinterpret_cast<char *>(&v2[i]) - null) & mask, 0u) << "&v2[i] = " << &v2[i] << ", mask = " << mask << ", i = " << i;
     }
