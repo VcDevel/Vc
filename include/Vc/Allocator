@@ -21,8 +21,9 @@
 #define VC_ALLOCATOR_H
 
 #include <new>
+#include <cstddef>
 #include <cstdlib>
-#include "global.h"
+#include "common/macros.h"
 #ifdef VC_CXX11
 #include <utility>
 #endif
@@ -101,7 +102,11 @@ namespace std \
     {
     private:
         enum Constants {
-            NaturalAlignment = sizeof(void *),
+#if defined(VC_CXX11) && (!defined(VC_GCC) || VC_GCC >= 0x40800)
+            NaturalAlignment = alignof(std::max_align_t),
+#else
+            NaturalAlignment = sizeof(void *) > Vc_ALIGNOF(long double) ? sizeof(void *) : Vc_ALIGNOF(long double),
+#endif
 #ifdef VC_CXX11
             Alignment = alignof(T),
 #elif VC_GCC || VC_CLANG
@@ -174,6 +179,7 @@ namespace std \
 
 } // namespace Vc
 
+#include "common/undomacros.h"
 #include "vector.h"
 namespace std
 {
