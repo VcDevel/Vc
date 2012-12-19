@@ -139,8 +139,32 @@
  * data exchange, you already have to handle endian conversion anyway.)
  *
  * Note the unfortunate complication of determining the size of the array. In order to fit 1000
- * scalar values into the array the number of vectors times the vector size must be greater or equal
- * than 1000. But since integer division truncates, this calculation is required.
+ * scalar values into the array, the number of vectors times the vector size must be greater or equal
+ * than 1000. But integer division truncates.
+ *
+ * Sadly, there is one last issue with alignment. If the \c CartesianCoordinate object is allocated
+ * on the stack everything is fine (because the compiler knows about the alignment restrictions of
+ * \c x and \c y and thus of \c CartesianCoordinate). But if \c CartesianCoordinate is allocated on
+ * the heap (with \c new or inside an STL container), the correct alignment is not ensured. %Vc provides
+ * Vc::VectorAlignedBase, which contains the correct reimplementations of the \c new and \c delete operators:
+ * \code
+ * struct CartesianCoordinate : public Vc::VectorAlignedBase
+ * {
+ *   Vc::float_v x, y;
+ * }
+ * CartesianCoordinate *input = new CartesianCoordinate[(1000 + Vc::float_v::Size - 1) / Vc::float_v::Size];
+ * \endcode
+ * To ensure correctly aligned storage with STL containers you can use Vc::Allocator:
+ * \code
+ * struct CartesianCoordinate
+ * {
+ *   Vc::float_v x, y;
+ * }
+ * VC_DECLARE_ALLOCATOR(CartesianCoordinate)
+ * std::vector<CartesianCoordinate> input((1000 + Vc::float_v::Size - 1) / Vc::float_v::Size);
+ * \endcode
+ *
+ * For a thorough discussion of alignment see \ref intro_alignment.
  *
  * \subsection ex_polarcoord_data_soa Struct of Arrays (SoA)
  *
@@ -170,20 +194,6 @@
  * }
  * CartesianCoordinate<1000> input;
  * \endcode
- * Sadly, there is one last issue with alignment. If the \c CartesianCoordinate object is allocated
- * on the stack everything is fine (because the compiler knows about the alignment restrictions of
- * \c x and \c y and thus of \c CartesianCoordinate). But if \c CartesianCoordinate is allocated
- * with \c new (on the heap), the correct alignment is not ensured. %Vc provides
- * Vc::VectorAlignedBase, which contains the correct reimplementations of the \c new and \c delete operators:
- * \code
- * template<size_t Size> struct CartesianCoordinate : public Vc::VectorAlignedBase
- * {
- *   Vc::Memory<float_v, Size> x, y;
- * }
- * CartesianCoordinate<1000> *input = new CartesianCoordinate<1000>;
- * \endcode
- *
- * For a thorough discussion of alignment see \ref intro_alignment.
  *
  * \section ex_polarcoord_complete The Complete Example
  *
