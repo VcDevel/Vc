@@ -172,7 +172,7 @@
  *                   Therefore, memory addresses returned from this allocator will always be
  *                   aligned to at least the constraints attached to the type \c T. STL containers
  *                   will already default to Vc::Allocator for Vc::Vector<T>. For all other
- *                   composite types you want to use, you can take the \ref Vc_DECLARE_ALLOCATOR
+ *                   composite types you want to use, you can take the \ref VC_DECLARE_ALLOCATOR
  *                   convenience macro to set is as default.
  * \li Vc::Memory
  * \li Vc::Memory<V, Size, 0u>
