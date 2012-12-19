@@ -257,18 +257,33 @@
  * \page featuremacros Feature Macros
  *
  * The following macros are available to enable/disable selected features:
- * \li \e VC_NO_STD_FUNCTIONS If this macro is defined, the %Vc math functions are
+ *
+ * \par VC_NO_STD_FUNCTIONS
+ *
+ * If this macro is defined, the %Vc math functions are
  * not imported into the \c std namespace. They are still available in the %Vc namespace.
- * \li \e VC_CLEAN_NAMESPACE If this macro is defined, any symbol or macro that does not have a %Vc
+ *
+ * \par VC_CLEAN_NAMESPACE
+ *
+ * If this macro is defined, any symbol or macro that does not have a %Vc
  * prefix will be disabled.
- * \li \e VC_NO_AUTOMATIC_BOOL_FROM_MASK Define this macro to disable automatic conversion from %Vc
+ *
+ * \par VC_NO_AUTOMATIC_BOOL_FROM_MASK
+ *
+ * Define this macro to disable automatic conversion from %Vc
  * mask types to bool. The automatic conversion corresponds to the isFull() function. By disabling
  * the automatic conversion you can find places where the implicit isFull() conversion is not the
  * correct reduction.
- * \li \e VC_NO_VERSION_CHECK Define this macro to disable the safety check for the libVc version.
+ *
+ * \par VC_NO_VERSION_CHECK
+ *
+ * Define this macro to disable the safety check for the libVc version.
  * The check generates a small check for every object file, which is called at startup, i.e. before
  * the main function.
- * \li \e VC_CHECK_ALIGNMENT If this macro is defined %Vc will assert correct alignment for all
+ *
+ * \par VC_CHECK_ALIGNMENT
+ *
+ * If this macro is defined %Vc will assert correct alignment for all
  *        objects that require correct alignment. This can be very useful to debug crashes resulting
  *        from misaligned memory accesses. This check will introduce a significant overhead.
  */
