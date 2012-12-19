@@ -107,13 +107,7 @@ namespace std \
 #else
             NaturalAlignment = sizeof(void *) > Vc_ALIGNOF(long double) ? sizeof(void *) : Vc_ALIGNOF(long double),
 #endif
-#ifdef VC_CXX11
-            Alignment = alignof(T),
-#elif VC_GCC || VC_CLANG
-            Alignment = __alignof(T),
-#else
-#error "please insert correct alignof extension of your compiler"
-#endif
+            Alignment = Vc_ALIGNOF(T),
             ExtraBytes = Alignment > NaturalAlignment ? Alignment + sizeof(void *) : 0,
             AlignmentMask = Alignment - 1
         };
