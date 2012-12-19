@@ -53,6 +53,10 @@
 #define VC_HAVE_ATTRIBUTE_WARNING 1
 #endif
 
+#if (defined(__GXX_EXPERIMENTAL_CXX0X__) && VC_GCC >= 0x40600) || __cplusplus >= 201103
+#define VC_CXX11 1
+#endif
+
 // ICC ships the AVX2 intrinsics inside the AVX1 header.
 // FIXME: the number 20120731 is too large, but I don't know which one is the right one
 #if VC_ICC >= 20120731 || VC_MSVC >= 170000000

@@ -99,7 +99,7 @@ namespace std \
     private:
         enum Constants {
             NaturalAlignment = sizeof(void *),
-#ifdef Vc_CXX11
+#ifdef VC_CXX11
             Alignment = alignof(T),
 #elif VC_GCC
             Alignment = __alignof(T),
@@ -154,7 +154,7 @@ namespace std \
 
         size_type max_size() const throw() { return size_t(-1) / sizeof(T); }
 
-#ifdef Vc_CXX11
+#ifdef VC_CXX11
         template<typename U, typename... Args> void construct(U* p, Args&&... args)
         {
             ::new(p) U(std::forward<Args>(args)...);

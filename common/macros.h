@@ -139,7 +139,7 @@
 #define _VC_CONSTEXPR_R Vc_INTRINSIC_R Vc_CONST_R
 #endif
 
-#if (defined(__GXX_EXPERIMENTAL_CXX0X__) && VC_GCC >= 0x40600) || __cplusplus >= 201103
+#ifdef VC_CXX11
 # define _VC_NOEXCEPT noexcept
 #else
 # define _VC_NOEXCEPT throw()
