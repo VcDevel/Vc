@@ -101,7 +101,7 @@ namespace std \
             NaturalAlignment = sizeof(void *),
 #ifdef VC_CXX11
             Alignment = alignof(T),
-#elif VC_GCC
+#elif VC_GCC || VC_CLANG
             Alignment = __alignof(T),
 #else
 #error "please insert correct alignof extension of your compiler"
