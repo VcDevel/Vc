@@ -23,6 +23,9 @@
 #include <new>
 #include <cstdlib>
 #include "global.h"
+#ifdef VC_CXX11
+#include <utility>
+#endif
 
 namespace Vc
 {
