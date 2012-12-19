@@ -174,9 +174,12 @@
  *                   will already default to Vc::Allocator for Vc::Vector<T>. For all other
  *                   composite types you want to use, you can take the \ref VC_DECLARE_ALLOCATOR
  *                   convenience macro to set is as default.
- * \li Vc::Memory
- * \li Vc::Memory<V, Size, 0u>
- * \li Vc::Memory<V, 0u, 0u>
+ * \li Vc::Memory, Vc::Memory<V, Size, 0u>, Vc::Memory<V, 0u, 0u>
+ *                   The three different variants of the memory class can be used like a more
+ *                   convenient C-array. It supports two-dimensional statically sized arrays and
+ *                   one-dimensional statically and dynamically sized arrays. The memory can be
+ *                   accessed easily via aligned vectors, but also via unaligned vectors or
+ *                   gathers/scatters.
  */
 
 /**
