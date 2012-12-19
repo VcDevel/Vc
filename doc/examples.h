@@ -226,7 +226,7 @@
  * Next the x and y values are initialized with random numbers.
  * %Vc includes a simple vectorized random number generator.
  * The floating point RNGs in %Vc produce values in the range from 0 to 1.
- * Thus the value has to be scaled and subtracted to get into the wanted range of -1 to 1.
+ * Thus the value has to be scaled and subtracted to get into the desired range of -1 to 1.
  * The iteration over the memory goes from 0 (no surprise) to a value determined by the Vc::Memory
  * class. In the case of fixed-size allocation, this number is also available to the compiler as a
  * compile time constant. Vc::Memory has two functions to use as upper bound for iterations:
@@ -248,8 +248,8 @@
  * memory do not alias (i.e. point to the same location). Thus, the compiler might rather take the
  * safe way out and load the value from memory more often than necessary. By using local variables,
  * the compiler has an easy task to prove that the value does not change and can be cached in a
- * register. This is a general issue, and not a special issue with SIMD. In this case it certainly
- * helps to make the following code more readable, anyway.
+ * register. This is a general issue, and not a special issue with SIMD. In this case mainly serves
+ * to make the following code more readable.
  *
  *
  *
