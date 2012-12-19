@@ -27,9 +27,9 @@ namespace Vc
 namespace AVX
 {
 
-template<> __m128i SortHelper<short>::sort(__m128i x)
+template<> __m128i SortHelper<short>::sort(VTArg _x)
 {
-    __m128i lo, hi, y;
+    __m128i lo, hi, y, x = _x;
     // sort pairs
     y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1));
     lo = _mm_min_epi16(x, y);
@@ -64,9 +64,9 @@ template<> __m128i SortHelper<short>::sort(__m128i x)
 
     return _mm_unpacklo_epi16(lo, hi);
 }
-template<> __m128i SortHelper<unsigned short>::sort(__m128i x)
+template<> __m128i SortHelper<unsigned short>::sort(VTArg _x)
 {
-    __m128i lo, hi, y;
+    __m128i lo, hi, y, x = _x;
     // sort pairs
     y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1));
     lo = _mm_min_epu16(x, y);
@@ -102,8 +102,9 @@ template<> __m128i SortHelper<unsigned short>::sort(__m128i x)
     return _mm_unpacklo_epi16(lo, hi);
 }
 
-template<> __m256i SortHelper<int>::sort(__m256i hgfedcba)
+template<> __m256i SortHelper<int>::sort(VTArg _hgfedcba)
 {
+    VectorType hgfedcba = _hgfedcba;
     const __m128i hgfe = hi128(hgfedcba);
     const __m128i dcba = lo128(hgfedcba);
     __m128i l = _mm_min_epi32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
@@ -144,8 +145,9 @@ template<> __m256i SortHelper<int>::sort(__m256i hgfedcba)
     return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
 }
 
-template<> __m256i SortHelper<unsigned int>::sort(__m256i hgfedcba)
+template<> __m256i SortHelper<unsigned int>::sort(VTArg _hgfedcba)
 {
+    VectorType hgfedcba = _hgfedcba;
     const __m128i hgfe = hi128(hgfedcba);
     const __m128i dcba = lo128(hgfedcba);
     __m128i l = _mm_min_epu32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
@@ -186,8 +188,9 @@ template<> __m256i SortHelper<unsigned int>::sort(__m256i hgfedcba)
     return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
 }
 
-template<> __m256 SortHelper<float>::sort(__m256 hgfedcba)
+template<> __m256 SortHelper<float>::sort(VTArg _hgfedcba)
 {
+    VectorType hgfedcba = _hgfedcba;
     const __m128 hgfe = hi128(hgfedcba);
     const __m128 dcba = lo128(hgfedcba);
     __m128 l = _mm_min_ps(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
@@ -222,7 +225,7 @@ template<> __m256 SortHelper<float>::sort(__m256 hgfedcba)
     return concat(_mm_unpacklo_ps(l, h), _mm_unpackhi_ps(l, h));
 }
 
-template<> __m256 SortHelper<sfloat>::sort(__m256 hgfedcba)
+template<> __m256 SortHelper<sfloat>::sort(VTArg hgfedcba)
 {
     return SortHelper<float>::sort(hgfedcba);
 }
@@ -262,8 +265,9 @@ template<> void SortHelper<double>::sort(__m256d &VC_RESTRICT x, __m256d &VC_RES
     x = _mm256_unpacklo_pd(l, h); // h2 l2 h0 l0
     y = _mm256_unpackhi_pd(l, h); // h3 l3 h1 l1
 }
-template<> __m256d SortHelper<double>::sort(__m256d dcba)
+template<> __m256d SortHelper<double>::sort(VTArg _dcba)
 {
+    VectorType dcba = _dcba;
     /*
      * to find the second largest number find
      * max(min(max(ab),max(cd)), min(max(ad),max(bc)))

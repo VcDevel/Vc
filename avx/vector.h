@@ -73,14 +73,14 @@ template<typename T> class Vector
         typedef VectorHelper<T> HT;
 
         // cast any m256/m128 to VectorType
-        static inline VectorType Vc_INTRINSIC _cast(__m128  v) { return avx_cast<VectorType>(v); }
-        static inline VectorType Vc_INTRINSIC _cast(__m128i v) { return avx_cast<VectorType>(v); }
-        static inline VectorType Vc_INTRINSIC _cast(__m128d v) { return avx_cast<VectorType>(v); }
-        static inline VectorType Vc_INTRINSIC _cast(__m256  v) { return avx_cast<VectorType>(v); }
-        static inline VectorType Vc_INTRINSIC _cast(__m256i v) { return avx_cast<VectorType>(v); }
-        static inline VectorType Vc_INTRINSIC _cast(__m256d v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param128  v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param128i v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param128d v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param256  v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param256i v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param256d v) { return avx_cast<VectorType>(v); }
 
-        typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
+        typedef Common::VectorMemoryUnion<VectorType, EntryType, typename VectorType::Base> StorageType;
         StorageType d;
 
     public:
@@ -307,8 +307,8 @@ template<typename T> class Vector
             //return VectorHelper<T>::pack(data(), m1.data, v2.data(), m2.data);
         //}
 
-        inline VectorType &data() { return d.v(); }
-        inline const VectorType &data() const { return d.v(); }
+        inline typename VectorType::Base &data() { return d.v(); }
+        inline const VectorType data() const { return d.v(); }
 
         inline EntryType min() const { return VectorHelper<T>::min(data()); }
         inline EntryType max() const { return VectorHelper<T>::max(data()); }

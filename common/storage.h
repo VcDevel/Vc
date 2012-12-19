@@ -29,7 +29,7 @@ namespace Vc
 namespace Common
 {
 
-template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
+template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _VectorType> class VectorMemoryUnion
 {
     public:
         typedef _VectorType VectorType;
@@ -42,8 +42,8 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
             data.v = x; return *this;
         }
 
-        VectorType &v() { return data.v; }
-        const VectorType &v() const { return data.v; }
+        VectorTypeBase &v() { return data.v; }
+        const VectorType v() const { return data.v; }
 
 #if defined VC_ICC
         AliasingEntryHelper<VectorMemoryUnion<VectorType, EntryType> > m(size_t index) {
@@ -67,8 +67,8 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
 
     private:
         union VectorScalarUnion {
-            VectorType v;
-            EntryType m[sizeof(VectorType)/sizeof(EntryType)];
+            VectorTypeBase v;
+            EntryType m[sizeof(VectorTypeBase)/sizeof(EntryType)];
         } data;
 #else
         inline VectorMemoryUnion(VectorType x) : data(x) { assertCorrectAlignment(&data); }

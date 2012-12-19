@@ -144,7 +144,7 @@ template<typename Flags> struct LoadHelper<int, unsigned char, Flags> {
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const ::__m128i *>(mem));
         const __m128i epu16 = _mm_cvtepu8_epi16(epu8);
         return StaticCastHelper<unsigned short, unsigned int>::cast(epu16);
     }
@@ -154,7 +154,7 @@ template<typename Flags> struct LoadHelper<int, signed char, Flags> {
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epi8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const __m128i epi8 = _mm_loadl_epi64(reinterpret_cast<const ::__m128i *>(mem));
         const __m128i epi16 = _mm_cvtepi8_epi16(epi8);
         return StaticCastHelper<short, int>::cast(epi16);
     }
@@ -172,7 +172,7 @@ template<typename Flags> struct LoadHelper<unsigned int, unsigned char, Flags> {
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const ::__m128i *>(mem));
         const __m128i epu16 = _mm_cvtepu8_epi16(epu8);
         return StaticCastHelper<unsigned short, unsigned int>::cast(epu16);
     }
@@ -190,7 +190,7 @@ template<typename Flags> struct LoadHelper<short, unsigned char, Flags> {
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const ::__m128i *>(mem));
         return _mm_cvtepu8_epi16(epu8);
     }
 };
@@ -199,7 +199,7 @@ template<typename Flags> struct LoadHelper<short, signed char, Flags> {
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epi8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const __m128i epi8 = _mm_loadl_epi64(reinterpret_cast<const ::__m128i *>(mem));
         return _mm_cvtepi8_epi16(epi8);
     }
 };
@@ -210,7 +210,7 @@ template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags>
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const ::__m128i *>(mem));
         return _mm_cvtepu8_epi16(epu8);
     }
 };
@@ -401,7 +401,7 @@ template<typename T> inline Vector<T> Vc_PURE Vector<T>::operator/(const Vector<
     return r;
 }
 // specialize division on type
-static inline __m256i Vc_INTRINSIC Vc_CONST divInt(__m256i a, __m256i b) {
+static inline __m256i Vc_INTRINSIC Vc_CONST divInt(param256i a, param256i b) {
     const __m256d lo1 = _mm256_cvtepi32_pd(lo128(a));
     const __m256d lo2 = _mm256_cvtepi32_pd(lo128(b));
     const __m256d hi1 = _mm256_cvtepi32_pd(hi128(a));
@@ -420,7 +420,7 @@ template<> inline Vector<int> Vc_PURE Vector<int>::operator/(const Vector<int> &
 {
     return divInt(d.v(), x.d.v());
 }
-static inline __m256i Vc_CONST divUInt(__m256i a, __m256i b) {
+static inline __m256i Vc_CONST divUInt(param256i a, param256i b) {
     __m256d loa = _mm256_cvtepi32_pd(lo128(a));
     __m256d hia = _mm256_cvtepi32_pd(hi128(a));
     __m256d lob = _mm256_cvtepi32_pd(lo128(b));
@@ -450,7 +450,7 @@ template<> inline Vector<unsigned int> Vc_ALWAYS_INLINE Vc_PURE Vector<unsigned 
 {
     return divUInt(d.v(), x.d.v());
 }
-template<typename T> static inline __m128i Vc_CONST divShort(__m128i a, __m128i b)
+template<typename T> static inline __m128i Vc_CONST divShort(param128i a, param128i b)
 {
     const __m256 r = _mm256_div_ps(StaticCastHelper<T, float>::cast(a),
             StaticCastHelper<T, float>::cast(b));
@@ -1220,7 +1220,7 @@ template<> inline Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 template<size_t SIMDWidth, size_t Size, typename VectorType, typename EntryType> struct VectorShift;
 template<> struct VectorShift<32, 4, __m256d, double>
 {
-    static inline Vc_INTRINSIC __m256d shifted(__m256d v, int amount)
+    static inline Vc_INTRINSIC __m256d shifted(param256d v, int amount)
     {
         const __m128i vLo = avx_cast<__m128i>(lo128(v));
         const __m128i vHi = avx_cast<__m128i>(hi128(v));
