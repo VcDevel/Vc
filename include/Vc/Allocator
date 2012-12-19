@@ -108,7 +108,23 @@ namespace std \
             NaturalAlignment = sizeof(void *) > Vc_ALIGNOF(long double) ? sizeof(void *) : Vc_ALIGNOF(long double),
 #endif
             Alignment = Vc_ALIGNOF(T),
-            ExtraBytes = Alignment > NaturalAlignment ? Alignment + sizeof(void *) : 0,
+            /* The number of extra bytes allocated must be large enough to put a pointer right
+             * before the adjusted address. This pointer stores the original address, which is
+             * required to call ::operator delete in deallocate.
+             *
+             * The address we get from ::operator new is a multiple of NaturalAlignment:
+             *   p = N * NaturalAlignment
+             *
+             * Since all alignments are powers of two, Alignment is a multiple of NaturalAlignment:
+             *   Alignment = k * NaturalAlignment
+             *
+             * two cases:
+             * 1. If p is already aligned to Alignment then allocate will return p + Alignment. In
+             *    this case there are Alignment Bytes available to store a pointer.
+             * 2. If p is not aligned then p + (k - (N modulo k)) * NaturalAlignment will be
+             *    returned. Since NaturalAlignment >= sizeof(void*) the pointer fits.
+             */
+            ExtraBytes = Alignment > NaturalAlignment ? Alignment : 0,
             AlignmentMask = Alignment - 1
         };
     public:
