@@ -42,6 +42,12 @@
         void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
         void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
 
+#ifdef VC_CXX11
+#define Vc_ALIGNOF(_TYPE_) alignof(_TYPE_)
+#else
+#define Vc_ALIGNOF(_TYPE_) __alignof(_TYPE_)
+#endif
+
 #ifdef VC_CLANG
 #  define Vc_INTRINSIC __attribute__((always_inline))
 #  define Vc_INTRINSIC_L
