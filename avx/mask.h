@@ -45,14 +45,14 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
 #endif
 
         inline Mask() {}
-        inline Mask(const __m256  &x) : k(x) {}
-        inline Mask(const __m256d &x) : k(_mm256_castpd_ps(x)) {}
-        inline Mask(const __m256i &x) : k(_mm256_castsi256_ps(x)) {}
+        inline Mask(const m256  &x) : k(x) {}
+        inline Mask(const m256d &x) : k(_mm256_castpd_ps(x)) {}
+        inline Mask(const m256i &x) : k(_mm256_castsi256_ps(x)) {}
         inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(_mm256_setzero_ps()) {}
         inline explicit Mask(VectorSpecialInitializerOne::OEnum) : k(_mm256_setallone_ps()) {}
         inline explicit Mask(bool b) : k(b ? _mm256_setallone_ps() : _mm256_setzero_ps()) {}
         inline Mask(const Mask &rhs) : k(rhs.k) {}
-        inline Mask(const Mask<VectorSize, 16u> &rhs) : k(avx_cast<__m256>(concat(
+        inline Mask(const Mask<VectorSize, 16u> &rhs) : k(avx_cast<m256>(concat(
                         _mm_unpacklo_epi16(rhs.dataI(), rhs.dataI()),
                         _mm_unpackhi_epi16(rhs.dataI(), rhs.dataI())))) {}
         inline Mask(const Mask<VectorSize * 2, 32u> &m);
@@ -85,9 +85,9 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         inline int Vc_CONST_L shiftMask() const Vc_CONST_R;
         int Vc_CONST_L toInt() const Vc_CONST_R;
 
-        inline _M256  data () const { return k; }
-        inline _M256I dataI() const { return _mm256_castps_si256(k); }
-        inline _M256D dataD() const { return _mm256_castps_pd(k); }
+        inline m256  data () const { return k; }
+        inline m256i dataI() const { return _mm256_castps_si256(k); }
+        inline m256d dataD() const { return _mm256_castps_pd(k); }
 
         bool operator[](int index) const;
 
@@ -95,7 +95,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         int firstOne() const;
 
     private:
-        _M256 k;
+        m256 k;
 };
 
 template<unsigned int VectorSize> class Mask<VectorSize, 16u>
@@ -115,16 +115,16 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
 #endif
 
         inline Mask() {}
-        inline Mask(const __m128  &x) : k(x) {}
-        inline Mask(const __m128d &x) : k(_mm_castpd_ps(x)) {}
-        inline Mask(const __m128i &x) : k(_mm_castsi128_ps(x)) {}
+        inline Mask(const m128  &x) : k(x) {}
+        inline Mask(const m128d &x) : k(_mm_castpd_ps(x)) {}
+        inline Mask(const m128i &x) : k(_mm_castsi128_ps(x)) {}
         inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(_mm_setzero_ps()) {}
         inline explicit Mask(VectorSpecialInitializerOne::OEnum) : k(_mm_setallone_ps()) {}
         inline explicit Mask(bool b) : k(b ? _mm_setallone_ps() : _mm_setzero_ps()) {}
         inline Mask(const Mask &rhs) : k(rhs.k) {}
-        inline Mask(const Mask<VectorSize, 32u> &rhs) : k(avx_cast<__m128>(
-                _mm_packs_epi32(avx_cast<__m128i>(rhs.data()), _mm256_extractf128_si256(rhs.dataI(), 1)))) {}
-        inline Mask(const Mask<VectorSize / 2, 16u> *a) : k(avx_cast<__m128>(
+        inline Mask(const Mask<VectorSize, 32u> &rhs) : k(avx_cast<m128>(
+                _mm_packs_epi32(avx_cast<m128i>(rhs.data()), _mm256_extractf128_si256(rhs.dataI(), 1)))) {}
+        inline Mask(const Mask<VectorSize / 2, 16u> *a) : k(avx_cast<m128>(
                 _mm_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
 
         inline bool operator==(const Mask &rhs) const { return 0 != _mm_testc_si128(dataI(), rhs.dataI()); }
@@ -153,9 +153,9 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
         inline int Vc_CONST_L shiftMask() const Vc_CONST_R;
         int Vc_CONST_L toInt() const Vc_CONST_R;
 
-        inline __m128  data () const { return k; }
-        inline __m128i dataI() const { return avx_cast<__m128i>(k); }
-        inline __m128d dataD() const { return avx_cast<__m128d>(k); }
+        inline m128  data () const { return k; }
+        inline m128i dataI() const { return avx_cast<m128i>(k); }
+        inline m128d dataD() const { return avx_cast<m128d>(k); }
 
         bool operator[](int index) const;
 
@@ -163,7 +163,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
         int firstOne() const;
 
     private:
-        __m128 k;
+        m128 k;
 };
 
 struct ForeachHelper

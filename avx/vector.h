@@ -307,7 +307,7 @@ template<typename T> class Vector
             //return VectorHelper<T>::pack(data(), m1.data, v2.data(), m2.data);
         //}
 
-        inline typename VectorType::Base &data() { return d.v(); }
+        inline VectorType &data() { return d.v(); }
         inline const VectorType data() const { return d.v(); }
 
         inline EntryType min() const { return VectorHelper<T>::min(data()); }

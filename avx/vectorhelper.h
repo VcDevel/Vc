@@ -34,9 +34,9 @@ namespace AVX
 #define OP2(name, code) static inline VectorType name(VTArg a, VTArg b) { return code; }
 #define OP3(name, code) static inline VectorType name(VTArg a, VTArg b, VTArg c) { return code; }
 
-        template<> struct VectorHelper<__m256>
+        template<> struct VectorHelper<m256>
         {
-            typedef __m256 VectorType;
+            typedef m256 VectorType;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
@@ -69,9 +69,9 @@ namespace AVX
             OP3(blend, _mm256_blendv_ps(a, b, c))
         };
 
-        template<> struct VectorHelper<__m256d>
+        template<> struct VectorHelper<m256d>
         {
-            typedef __m256d VectorType;
+            typedef m256d VectorType;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
@@ -91,9 +91,9 @@ namespace AVX
             static VectorType badc(VTArg x) { return _mm256_permute2f128_pd(x, x, 1); }
             // aaaa bbbb cccc dddd specialized in vector.tcc
             static VectorType dacb(VTArg x) {
-                const __m128d cb = avx_cast<__m128d>(_mm_alignr_epi8(avx_cast<__m128i>(lo128(x)),
-                            avx_cast<__m128i>(hi128(x)), sizeof(double))); // XXX: lo and hi swapped?
-                const __m128d da = _mm_blend_pd(lo128(x), hi128(x), 0 + 2); // XXX: lo and hi swapped?
+                const m128d cb = avx_cast<m128d>(_mm_alignr_epi8(avx_cast<m128i>(lo128(x)),
+                            avx_cast<m128i>(hi128(x)), sizeof(double))); // XXX: lo and hi swapped?
+                const m128d da = _mm_blend_pd(lo128(x), hi128(x), 0 + 2); // XXX: lo and hi swapped?
                 return concat(cb, da);
             }
 
@@ -106,9 +106,9 @@ namespace AVX
             OP3(blend, _mm256_blendv_pd(a, b, c))
         };
 
-        template<> struct VectorHelper<__m256i>
+        template<> struct VectorHelper<m256i>
         {
-            typedef __m256i VectorType;
+            typedef m256i VectorType;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
@@ -127,13 +127,13 @@ namespace AVX
             template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingAndAlignedFlag);
             template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingAndUnalignedFlag);
 
-            static VectorType cdab(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(2, 3, 0, 1))); }
-            static VectorType badc(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(1, 0, 3, 2))); }
-            static VectorType aaaa(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(0, 0, 0, 0))); }
-            static VectorType bbbb(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(1, 1, 1, 1))); }
-            static VectorType cccc(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(2, 2, 2, 2))); }
-            static VectorType dddd(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(3, 3, 3, 3))); }
-            static VectorType dacb(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(3, 0, 2, 1))); }
+            static VectorType cdab(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<m256>(x), _MM_SHUFFLE(2, 3, 0, 1))); }
+            static VectorType badc(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<m256>(x), _MM_SHUFFLE(1, 0, 3, 2))); }
+            static VectorType aaaa(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<m256>(x), _MM_SHUFFLE(0, 0, 0, 0))); }
+            static VectorType bbbb(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<m256>(x), _MM_SHUFFLE(1, 1, 1, 1))); }
+            static VectorType cccc(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<m256>(x), _MM_SHUFFLE(2, 2, 2, 2))); }
+            static VectorType dddd(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<m256>(x), _MM_SHUFFLE(3, 3, 3, 3))); }
+            static VectorType dacb(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<m256>(x), _MM_SHUFFLE(3, 0, 2, 1))); }
 
             OP0(allone, _mm256_setallone_si256())
             OP0(zero, _mm256_setzero_si256())
@@ -144,9 +144,9 @@ namespace AVX
             OP3(blend, _mm256_blendv_epi8(a, b, c))
         };
 
-        template<> struct VectorHelper<__m128i>
+        template<> struct VectorHelper<m128i>
         {
-            typedef __m128i VectorType;
+            typedef m128i VectorType;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
@@ -205,7 +205,7 @@ namespace AVX
         static inline VectorType Vc_INTRINSIC Vc_CONST max(VTArg a, VTArg b) { return CAT(_mm256_max_, SUFFIX)(a, b); }
 
         template<> struct VectorHelper<double> {
-            typedef __m256d VectorType;
+            typedef m256d VectorType;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
@@ -242,14 +242,14 @@ namespace AVX
 #endif
             }
             static inline VectorType mul(VTArg a, VTArg b, param256 _mask) {
-                __m256d mask = _mm256_castps_pd(_mask);
+                m256d mask = _mm256_castps_pd(_mask);
                 return _mm256_or_pd(
                     _mm256_and_pd(mask, _mm256_mul_pd(a, b)),
                     _mm256_andnot_pd(mask, a)
                     );
             }
             static inline VectorType div(VTArg a, VTArg b, param256 _mask) {
-                __m256d mask = _mm256_castps_pd(_mask);
+                m256d mask = _mm256_castps_pd(_mask);
                 return _mm256_or_pd(
                     _mm256_and_pd(mask, _mm256_div_pd(a, b)),
                     _mm256_andnot_pd(mask, a)
@@ -280,22 +280,22 @@ namespace AVX
 
             MINMAX
             static inline EntryType min(VTArg a) {
-                __m128d b = _mm_min_pd(avx_cast<__m128d>(a), _mm256_extractf128_pd(a, 1));
+                m128d b = _mm_min_pd(avx_cast<m128d>(a), _mm256_extractf128_pd(a, 1));
                 b = _mm_min_sd(b, _mm_unpackhi_pd(b, b));
                 return _mm_cvtsd_f64(b);
             }
             static inline EntryType max(VTArg a) {
-                __m128d b = _mm_max_pd(avx_cast<__m128d>(a), _mm256_extractf128_pd(a, 1));
+                m128d b = _mm_max_pd(avx_cast<m128d>(a), _mm256_extractf128_pd(a, 1));
                 b = _mm_max_sd(b, _mm_unpackhi_pd(b, b));
                 return _mm_cvtsd_f64(b);
             }
             static inline EntryType mul(VTArg a) {
-                __m128d b = _mm_mul_pd(avx_cast<__m128d>(a), _mm256_extractf128_pd(a, 1));
+                m128d b = _mm_mul_pd(avx_cast<m128d>(a), _mm256_extractf128_pd(a, 1));
                 b = _mm_mul_sd(b, _mm_shuffle_pd(b, b, _MM_SHUFFLE2(0, 1)));
                 return _mm_cvtsd_f64(b);
             }
             static inline EntryType add(VTArg a) {
-                __m128d b = _mm_add_pd(avx_cast<__m128d>(a), _mm256_extractf128_pd(a, 1));
+                m128d b = _mm_add_pd(avx_cast<m128d>(a), _mm256_extractf128_pd(a, 1));
                 b = _mm_hadd_pd(b, b); // or: b = _mm_add_sd(b, _mm256_shuffle_pd(b, b, _MM_SHUFFLE2(0, 1)));
                 return _mm_cvtsd_f64(b);
             }
@@ -307,7 +307,7 @@ namespace AVX
 
         template<> struct VectorHelper<float> {
             typedef float EntryType;
-            typedef __m256 VectorType;
+            typedef m256 VectorType;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
@@ -323,18 +323,18 @@ namespace AVX
                 return CAT(_mm256_set_, SUFFIX)(a, b, c, d, e, f, g, h); }
             static inline VectorType zero() { return CAT(_mm256_setzero_, SUFFIX)(); }
             static inline VectorType one()  { return CAT(_mm256_setone_, SUFFIX)(); }// set(1.f); }
-            static inline __m256 concat(param256d a, param256d b) { return _mm256_insertf128_ps(avx_cast<__m256>(_mm256_cvtpd_ps(a)), _mm256_cvtpd_ps(b), 1); }
+            static inline m256 concat(param256d a, param256d b) { return _mm256_insertf128_ps(avx_cast<m256>(_mm256_cvtpd_ps(a)), _mm256_cvtpd_ps(b), 1); }
 
             static inline void fma(VectorType &v1, VTArg v2, VTArg v3) {
 #ifdef VC_IMPL_FMA4
                 v1 = _mm256_macc_ps(v1, v2, v3);
 #else
-                __m256d v1_0 = _mm256_cvtps_pd(lo128(v1));
-                __m256d v1_1 = _mm256_cvtps_pd(hi128(v1));
-                __m256d v2_0 = _mm256_cvtps_pd(lo128(v2));
-                __m256d v2_1 = _mm256_cvtps_pd(hi128(v2));
-                __m256d v3_0 = _mm256_cvtps_pd(lo128(v3));
-                __m256d v3_1 = _mm256_cvtps_pd(hi128(v3));
+                m256d v1_0 = _mm256_cvtps_pd(lo128(v1));
+                m256d v1_1 = _mm256_cvtps_pd(hi128(v1));
+                m256d v2_0 = _mm256_cvtps_pd(lo128(v2));
+                m256d v2_1 = _mm256_cvtps_pd(hi128(v2));
+                m256d v3_0 = _mm256_cvtps_pd(lo128(v3));
+                m256d v3_1 = _mm256_cvtps_pd(hi128(v3));
                 v1 = AVX::concat(
                         _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_0, v2_0), v3_0)),
                         _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_1, v2_1), v3_1)));
@@ -374,25 +374,25 @@ namespace AVX
 
             MINMAX
             static inline EntryType min(VTArg a) {
-                __m128 b = _mm_min_ps(avx_cast<__m128>(a), _mm256_extractf128_ps(a, 1));
+                m128 b = _mm_min_ps(avx_cast<m128>(a), _mm256_extractf128_ps(a, 1));
                 b = _mm_min_ps(b, _mm_movehl_ps(b, b));   // b = min(a0, a2), min(a1, a3), min(a2, a2), min(a3, a3)
                 b = _mm_min_ss(b, _mm_shuffle_ps(b, b, _MM_SHUFFLE(1, 1, 1, 1))); // b = min(a0, a1), a1, a2, a3
                 return _mm_cvtss_f32(b);
             }
             static inline EntryType max(VTArg a) {
-                __m128 b = _mm_max_ps(avx_cast<__m128>(a), _mm256_extractf128_ps(a, 1));
+                m128 b = _mm_max_ps(avx_cast<m128>(a), _mm256_extractf128_ps(a, 1));
                 b = _mm_max_ps(b, _mm_movehl_ps(b, b));   // b = max(a0, a2), max(a1, a3), max(a2, a2), max(a3, a3)
                 b = _mm_max_ss(b, _mm_shuffle_ps(b, b, _MM_SHUFFLE(1, 1, 1, 1))); // b = max(a0, a1), a1, a2, a3
                 return _mm_cvtss_f32(b);
             }
             static inline EntryType mul(VTArg a) {
-                __m128 b = _mm_mul_ps(avx_cast<__m128>(a), _mm256_extractf128_ps(a, 1));
+                m128 b = _mm_mul_ps(avx_cast<m128>(a), _mm256_extractf128_ps(a, 1));
                 b = _mm_mul_ps(b, _mm_shuffle_ps(b, b, _MM_SHUFFLE(0, 1, 2, 3)));
                 b = _mm_mul_ss(b, _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 2, 0, 1)));
                 return _mm_cvtss_f32(b);
             }
             static inline EntryType add(VTArg a) {
-                __m128 b = _mm_add_ps(avx_cast<__m128>(a), _mm256_extractf128_ps(a, 1));
+                m128 b = _mm_add_ps(avx_cast<m128>(a), _mm256_extractf128_ps(a, 1));
                 b = _mm_add_ps(b, _mm_shuffle_ps(b, b, _MM_SHUFFLE(0, 1, 2, 3)));
                 b = _mm_add_ss(b, _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 2, 0, 1)));
                 return _mm_cvtss_f32(b);
@@ -407,7 +407,7 @@ namespace AVX
 
         template<> struct VectorHelper<int> {
             typedef int EntryType;
-            typedef __m256i VectorType;
+            typedef m256i VectorType;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
@@ -440,25 +440,25 @@ namespace AVX
 
             MINMAX
             static inline EntryType Vc_INTRINSIC Vc_CONST min(VTArg a) {
-                __m128i b = _mm_min_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
+                m128i b = _mm_min_epi32(avx_cast<m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_min_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_min_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2))); // using lo_epi16 for speed here
                 return _mm_cvtsi128_si32(b);
             }
             static inline EntryType Vc_INTRINSIC Vc_CONST max(VTArg a) {
-                __m128i b = _mm_max_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
+                m128i b = _mm_max_epi32(avx_cast<m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_max_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_max_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2))); // using lo_epi16 for speed here
                 return _mm_cvtsi128_si32(b);
             }
             static inline EntryType Vc_INTRINSIC Vc_CONST add(VTArg a) {
-                __m128i b = _mm_add_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
+                m128i b = _mm_add_epi32(avx_cast<m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_add_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_add_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(b);
             }
             static inline EntryType Vc_INTRINSIC Vc_CONST mul(VTArg a) {
-                __m128i b = _mm_mullo_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
+                m128i b = _mm_mullo_epi32(avx_cast<m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_mullo_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_mullo_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(b);
@@ -470,9 +470,9 @@ namespace AVX
             OPcmp(eq)
             OPcmp(lt)
             OPcmp(gt)
-            static inline VectorType Vc_INTRINSIC Vc_CONST cmpneq(VTArg a, VTArg b) { __m256i x = cmpeq(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
-            static inline VectorType Vc_INTRINSIC Vc_CONST cmpnlt(VTArg a, VTArg b) { __m256i x = cmplt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
-            static inline VectorType Vc_INTRINSIC Vc_CONST cmple (VTArg a, VTArg b) { __m256i x = cmpgt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
+            static inline VectorType Vc_INTRINSIC Vc_CONST cmpneq(VTArg a, VTArg b) { m256i x = cmpeq(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
+            static inline VectorType Vc_INTRINSIC Vc_CONST cmpnlt(VTArg a, VTArg b) { m256i x = cmplt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
+            static inline VectorType Vc_INTRINSIC Vc_CONST cmple (VTArg a, VTArg b) { m256i x = cmpgt(a, b); return _mm256_andnot_si256(x, _mm256_setallone_si256()); }
             static inline VectorType Vc_INTRINSIC Vc_CONST cmpnle(VTArg a, VTArg b) { return cmpgt(a, b); }
 #undef SUFFIX
             static inline VectorType Vc_INTRINSIC Vc_CONST round(VTArg a) { return a; }
@@ -480,7 +480,7 @@ namespace AVX
 
         template<> struct VectorHelper<unsigned int> {
             typedef unsigned int EntryType;
-            typedef __m256i VectorType;
+            typedef m256i VectorType;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
@@ -498,25 +498,25 @@ namespace AVX
 
             MINMAX
             static inline EntryType Vc_INTRINSIC Vc_CONST min(VTArg a) {
-                __m128i b = _mm_min_epu32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
+                m128i b = _mm_min_epu32(avx_cast<m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_min_epu32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_min_epu32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2))); // using lo_epi16 for speed here
                 return _mm_cvtsi128_si32(b);
             }
             static inline EntryType Vc_INTRINSIC Vc_CONST max(VTArg a) {
-                __m128i b = _mm_max_epu32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
+                m128i b = _mm_max_epu32(avx_cast<m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_max_epu32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_max_epu32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2))); // using lo_epi16 for speed here
                 return _mm_cvtsi128_si32(b);
             }
             static inline EntryType Vc_INTRINSIC Vc_CONST add(VTArg a) {
-                __m128i b = _mm_add_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
+                m128i b = _mm_add_epi32(avx_cast<m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_add_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_add_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(b);
             }
             static inline EntryType Vc_INTRINSIC Vc_CONST mul(VTArg a) {
-                __m128i b = _mm_mullo_epi32(avx_cast<__m128i>(a), _mm256_extractf128_si256(a, 1));
+                m128i b = _mm_mullo_epi32(avx_cast<m128i>(a), _mm256_extractf128_si256(a, 1));
                 b = _mm_mullo_epi32(b, _mm_shuffle_epi32(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 b = _mm_mullo_epi32(b, _mm_shufflelo_epi16(b, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(b);
@@ -575,7 +575,7 @@ namespace AVX
             static inline VectorType Vc_INTRINSIC Vc_CONST and_(VTArg a, VTArg b) { return _mm_and_si128(a, b); }
             static inline VectorType Vc_INTRINSIC Vc_CONST xor_(VTArg a, VTArg b) { return _mm_xor_si128(a, b); }
             static inline VectorType Vc_INTRINSIC Vc_CONST zero() { return _mm_setzero_si128(); }
-            static inline VectorType Vc_INTRINSIC Vc_CONST notMaskedToZero(VTArg a, __m128 mask) { return _mm_and_si128(_mm_castps_si128(mask), a); }
+            static inline VectorType Vc_INTRINSIC Vc_CONST notMaskedToZero(VTArg a, param128 mask) { return _mm_and_si128(_mm_castps_si128(mask), a); }
 
 #define SUFFIX epi16
             static inline VectorType Vc_INTRINSIC Vc_CONST one() { return CAT(_mm_setone_, SUFFIX)(); }
@@ -633,9 +633,9 @@ namespace AVX
             static inline VectorType Vc_INTRINSIC Vc_CONST cmpeq(VTArg a, VTArg b) { return _mm_cmpeq_epi16(a, b); }
             static inline VectorType Vc_INTRINSIC Vc_CONST cmplt(VTArg a, VTArg b) { return _mm_cmplt_epi16(a, b); }
             static inline VectorType Vc_INTRINSIC Vc_CONST cmpgt(VTArg a, VTArg b) { return _mm_cmpgt_epi16(a, b); }
-            static inline VectorType cmpneq(VTArg a, VTArg b) { __m128i x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
-            static inline VectorType cmpnlt(VTArg a, VTArg b) { __m128i x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
-            static inline VectorType cmple (VTArg a, VTArg b) { __m128i x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static inline VectorType cmpneq(VTArg a, VTArg b) { m128i x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static inline VectorType cmpnlt(VTArg a, VTArg b) { m128i x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static inline VectorType cmple (VTArg a, VTArg b) { m128i x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
             static inline VectorType cmpnle(VTArg a, VTArg b) { return cmpgt(a, b); }
 #undef SUFFIX
             static inline VectorType round(VTArg a) { return a; }
@@ -655,7 +655,7 @@ namespace AVX
             static inline VectorType Vc_INTRINSIC Vc_CONST and_(VTArg a, VTArg b) { return _mm_and_si128(a, b); }
             static inline VectorType Vc_INTRINSIC Vc_CONST xor_(VTArg a, VTArg b) { return _mm_xor_si128(a, b); }
             static inline VectorType Vc_INTRINSIC Vc_CONST zero() { return _mm_setzero_si128(); }
-            static inline VectorType Vc_INTRINSIC Vc_CONST notMaskedToZero(VTArg a, __m128 mask) { return _mm_and_si128(_mm_castps_si128(mask), a); }
+            static inline VectorType Vc_INTRINSIC Vc_CONST notMaskedToZero(VTArg a, param128 mask) { return _mm_and_si128(_mm_castps_si128(mask), a); }
             static inline VectorType Vc_INTRINSIC Vc_CONST one() { return _mm_setone_epu16(); }
 
             static inline VectorType Vc_INTRINSIC Vc_CONST mul(VTArg a, VTArg b) { return _mm_mullo_epi16(a, b); }

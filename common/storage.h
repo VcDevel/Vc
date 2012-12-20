@@ -42,7 +42,7 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
             data.v = x; return *this;
         }
 
-        VectorTypeBase &v() { return data.v; }
+        VectorType &v() { return reinterpret_cast<VectorType &>(data.v); }
         const VectorType v() const { return data.v; }
 
 #if defined VC_ICC
