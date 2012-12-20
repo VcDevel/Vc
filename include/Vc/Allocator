@@ -52,6 +52,20 @@ namespace std \
         template<typename U> struct rebind { typedef ::std::allocator<U> other; }; \
     }; \
 }
+#ifdef VC_MSVC
+#undef Vc_DECLARE_ALLOCATOR
+#define Vc_DECLARE_ALLOCATOR(Type) \
+namespace std \
+{ \
+    template<> class allocator<Type> : public ::Vc::Allocator<Type> \
+    { \
+    public: \
+        template<typename U> struct rebind { typedef ::std::allocator<U> other; }; \
+        /* MSVC brokenness: the following function is optional - just doesn't compile without it */ \
+        const allocator &select_on_container_copy_construction() const { return *this; } \
+    }; \
+}
+#endif
 
     /**
      * \headerfile Allocator <Vc/Allocator>
@@ -172,7 +186,18 @@ namespace std \
 
         size_type max_size() const throw() { return size_t(-1) / sizeof(T); }
 
-#ifdef VC_CXX11
+#ifdef VC_MSVC
+        // MSVC brokenness: the following function is optional - just doesn't compile without it
+        const Allocator &select_on_container_copy_construction() const { return *this; }
+
+        // MSVC also requires a function that neither C++98 nor C++11 mention
+        // but it doesn't support variadic templates... otherwise the VC_CXX11 clause would be nice
+        void construct(pointer p) { ::new(p) T(); }
+
+        // we still need the C++98 version:
+        void construct(pointer p, const T& __val) { ::new(p) T(__val); }
+        void destroy(pointer p) { p->~T(); }
+#elif defined(VC_CXX11)
         template<typename U, typename... Args> void construct(U* p, Args&&... args)
         {
             ::new(p) U(std::forward<Args>(args)...);
@@ -197,6 +222,10 @@ namespace std
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };
+#ifdef VC_MSVC
+        // MSVC brokenness: the following function is optional - just doesn't compile without it
+        const allocator &select_on_container_copy_construction() const { return *this; }
+#endif
     };
 }
 
