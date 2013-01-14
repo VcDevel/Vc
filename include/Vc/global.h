@@ -20,6 +20,8 @@
 #ifndef VC_GLOBAL_H
 #define VC_GLOBAL_H
 
+#ifndef DOXYGEN
+
 // Compiler defines
 #ifdef __INTEL_COMPILER
 #define VC_ICC __INTEL_COMPILER_BUILD_DATE
@@ -248,7 +250,6 @@
 #undef AVX
 #undef Scalar
 
-#ifndef DOXYGEN
 namespace Vc {
 enum AlignedFlag {
     Aligned = 0
@@ -262,7 +263,7 @@ enum StreamingAndAlignedFlag { // implies Aligned
 enum StreamingAndUnalignedFlag {
     StreamingAndUnaligned = 3
 };
-#endif
+#endif // DOXYGEN
 
 /**
  * \ingroup Utilities
