@@ -63,6 +63,10 @@
 #define VC_UNCONDITIONAL_AVX2_INTRINSICS 1
 #endif
 
+/* Define the following strings to a unique integer, which is the only type the preprocessor can
+ * compare. This allows to use -DVC_IMPL=SSE3. The preprocessor will then consider VC_IMPL and SSE3
+ * to be equal. Of course, it is important to undefine the strings later on!
+ */
 #define SSE    9875294
 #define SSE2   9875295
 #define SSE3   9875296
