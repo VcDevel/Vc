@@ -201,7 +201,7 @@
  * complete example code.
  *
  * \snippet polarcoord/main.cpp includes
- * The example starts with the main include directive to use for %Vc: \c #include \c <Vc/Vc>.
+ * The example starts with the main include directive to use for %Vc: \c \#include \c <Vc/Vc>.
  * The remaining includes are required for terminal output.
  * Note that we include Vc::float_v into the global namespace.
  * It is not recommended to include the whole %Vc namespace into the global namespace
