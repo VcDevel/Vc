@@ -105,7 +105,8 @@ namespace std \
 #ifdef VC_HAVE_MAX_ALIGN_T
             NaturalAlignment = alignof(std::max_align_t),
 #else
-            NaturalAlignment = sizeof(void *) > Vc_ALIGNOF(long double) ? sizeof(void *) : Vc_ALIGNOF(long double),
+            NaturalAlignment = sizeof(void *) > Vc_ALIGNOF(long double) ? sizeof(void *) :
+                (Vc_ALIGNOF(long double) > Vc_ALIGNOF(long long) ? Vc_ALIGNOF(long double) : Vc_ALIGNOF(long long)),
 #endif
             Alignment = Vc_ALIGNOF(T),
             /* The number of extra bytes allocated must be large enough to put a pointer right
