@@ -106,7 +106,10 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType
-        inline Vector(const VectorType &x) : d(x) {}
+        inline Vector(VectorTypeArg x) : d(x) {}
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
+        inline Vector(typename VectorType::Base x) : d(x) {}
+#endif
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // static_cast / copy ctor
