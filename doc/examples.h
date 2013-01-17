@@ -1,7 +1,7 @@
 /**
  * \page examples Examples
  *
- * There are several examples shipping with Vc. If you have a suggestion for a useful or interesting
+ * There are several examples shipping with %Vc. If you have a suggestion for a useful or interesting
  * example, please contact vc@compeng.uni-frankfurt.de.
  *
  * \li \subpage ex-polarcoord
@@ -81,7 +81,7 @@
  * straightforward vectorization strategy for our problem:
  * From a loop, always execute N steps in parallel, where N is the number of entries in the SIMD vector.
  * The input values to the loop need to be placed into a vector.
- * Then all intermediate values and results are also vectors. Using the Vc datatypes a single loop
+ * Then all intermediate values and results are also vectors. Using the %Vc datatypes a single loop
  * step would then look like this:
  * \code
  * // x and y are of type float_v
@@ -111,7 +111,7 @@
  * Let us assume the storage format is given and we cannot change it.
  * We would rather not load and store all our vectors entry by entry as this would lead to
  * inefficient code, which mainly occupies the load/store ports of the processor. Instead, we can use
- * a little helper function Vc provides to load the data as vectors with subsequent deinterleaving:
+ * a little helper function %Vc provides to load the data as vectors with subsequent deinterleaving:
  * \code
  * Vc::float_v x, y;
  * Vc::deinterleave(&x, &y, &input[i], Vc::Aligned);
@@ -139,8 +139,32 @@
  * data exchange, you already have to handle endian conversion anyway.)
  *
  * Note the unfortunate complication of determining the size of the array. In order to fit 1000
- * scalar values into the array the number of vectors times the vector size must be greater or equal
- * than 1000. But since integer division truncates, this calculation is required.
+ * scalar values into the array, the number of vectors times the vector size must be greater or equal
+ * than 1000. But integer division truncates.
+ *
+ * Sadly, there is one last issue with alignment. If the \c CartesianCoordinate object is allocated
+ * on the stack everything is fine (because the compiler knows about the alignment restrictions of
+ * \c x and \c y and thus of \c CartesianCoordinate). But if \c CartesianCoordinate is allocated on
+ * the heap (with \c new or inside an STL container), the correct alignment is not ensured. %Vc provides
+ * Vc::VectorAlignedBase, which contains the correct reimplementations of the \c new and \c delete operators:
+ * \code
+ * struct CartesianCoordinate : public Vc::VectorAlignedBase
+ * {
+ *   Vc::float_v x, y;
+ * }
+ * CartesianCoordinate *input = new CartesianCoordinate[(1000 + Vc::float_v::Size - 1) / Vc::float_v::Size];
+ * \endcode
+ * To ensure correctly aligned storage with STL containers you can use Vc::Allocator:
+ * \code
+ * struct CartesianCoordinate
+ * {
+ *   Vc::float_v x, y;
+ * }
+ * VC_DECLARE_ALLOCATOR(CartesianCoordinate)
+ * std::vector<CartesianCoordinate> input((1000 + Vc::float_v::Size - 1) / Vc::float_v::Size);
+ * \endcode
+ *
+ * For a thorough discussion of alignment see \ref intro_alignment.
  *
  * \subsection ex_polarcoord_data_soa Struct of Arrays (SoA)
  *
@@ -162,7 +186,7 @@
  * 2. The size of the \c x and \c y arrays is not guaranteed to be large enough to allow the last
  * values in the arrays to be loaded/stored as vectors.
  *
- * Vc provides the Vc::Memory class to solve both issues:
+ * %Vc provides the Vc::Memory class to solve both issues:
  * \code
  * template<size_t Size> struct CartesianCoordinate
  * {
@@ -170,20 +194,6 @@
  * }
  * CartesianCoordinate<1000> input;
  * \endcode
- * Sadly, there is one last issue with alignment. If the \c CartesianCoordinate object is allocated
- * on the stack everything is fine (because the compiler knows about the alignment restrictions of
- * \c x and \c y and thus of \c CartesianCoordinate). But if \c CartesianCoordinate is allocated
- * with \c new (on the heap), the correct alignment is not ensured. Vc provides
- * Vc::VectorAlignedBase, which contains the correct reimplementations of the \c new and \c delete operators:
- * \code
- * template<size_t Size> struct CartesianCoordinate : public Vc::VectorAlignedBase
- * {
- *   Vc::Memory<float_v, Size> x, y;
- * }
- * CartesianCoordinate<1000> *input = new CartesianCoordinate<1000>;
- * \endcode
- *
- * For a thorough discussion of alignment see \ref intro_alignment.
  *
  * \section ex_polarcoord_complete The Complete Example
  *
@@ -191,10 +201,10 @@
  * complete example code.
  *
  * \snippet polarcoord/main.cpp includes
- * The example starts with the main include directive to use for Vc: \c #include \c <Vc/Vc>.
+ * The example starts with the main include directive to use for %Vc: \c \#include \c <Vc/Vc>.
  * The remaining includes are required for terminal output.
  * Note that we include Vc::float_v into the global namespace.
- * It is not recommended to include the whole Vc namespace into the global namespace
+ * It is not recommended to include the whole %Vc namespace into the global namespace
  * except maybe inside a function scope.
  *
  * \snippet polarcoord/main.cpp memory allocation
@@ -214,9 +224,9 @@
  *
  * \snippet polarcoord/main.cpp random init
  * Next the x and y values are initialized with random numbers.
- * Vc includes a simple vectorized random number generator.
- * The floating point RNGs in Vc produce values in the range from 0 to 1.
- * Thus the value has to be scaled and subtracted to get into the wanted range of -1 to 1.
+ * %Vc includes a simple vectorized random number generator.
+ * The floating point RNGs in %Vc produce values in the range from 0 to 1.
+ * Thus the value has to be scaled and subtracted to get into the desired range of -1 to 1.
  * The iteration over the memory goes from 0 (no surprise) to a value determined by the Vc::Memory
  * class. In the case of fixed-size allocation, this number is also available to the compiler as a
  * compile time constant. Vc::Memory has two functions to use as upper bound for iterations:
@@ -238,8 +248,8 @@
  * memory do not alias (i.e. point to the same location). Thus, the compiler might rather take the
  * safe way out and load the value from memory more often than necessary. By using local variables,
  * the compiler has an easy task to prove that the value does not change and can be cached in a
- * register. This is a general issue, and not a special issue with SIMD. In this case it certainly
- * helps to make the following code more readable, anyway.
+ * register. This is a general issue, and not a special issue with SIMD. In this case mainly serves
+ * to make the following code more readable.
  *
  *
  *

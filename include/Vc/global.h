@@ -20,6 +20,8 @@
 #ifndef VC_GLOBAL_H
 #define VC_GLOBAL_H
 
+#ifndef DOXYGEN
+
 // Compiler defines
 #ifdef __INTEL_COMPILER
 #define VC_ICC __INTEL_COMPILER_BUILD_DATE
@@ -63,6 +65,10 @@
 #define VC_UNCONDITIONAL_AVX2_INTRINSICS 1
 #endif
 
+/* Define the following strings to a unique integer, which is the only type the preprocessor can
+ * compare. This allows to use -DVC_IMPL=SSE3. The preprocessor will then consider VC_IMPL and SSE3
+ * to be equal. Of course, it is important to undefine the strings later on!
+ */
 #define SSE    9875294
 #define SSE2   9875295
 #define SSE3   9875296
@@ -244,7 +250,6 @@
 #undef AVX
 #undef Scalar
 
-#ifndef DOXYGEN
 namespace Vc {
 enum AlignedFlag {
     Aligned = 0
@@ -258,7 +263,7 @@ enum StreamingAndAlignedFlag { // implies Aligned
 enum StreamingAndUnalignedFlag {
     StreamingAndUnaligned = 3
 };
-#endif
+#endif // DOXYGEN
 
 /**
  * \ingroup Utilities
