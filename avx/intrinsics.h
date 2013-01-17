@@ -75,7 +75,7 @@ namespace AVX
      * names as used in the global namespace. Since a typedef is not enough I will simply use public
      * inheritance.
      */
-#ifdef VC_MSVC
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
     template<typename T> struct Alias
     {
         typedef T Base;
