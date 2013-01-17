@@ -56,7 +56,13 @@
 #endif
 
 #if (defined(__GXX_EXPERIMENTAL_CXX0X__) && VC_GCC >= 0x40600) || __cplusplus >= 201103
-#define VC_CXX11 1
+#  define VC_CXX11 1
+#  if (!defined(VC_GCC) || VC_GCC >= 0x40800) && (!defined(VC_CLANG) || VC_CLANG >=  0x30400)
+//   Sadly, std::max_align_t took a bit longer to be supported. libstdc++ only forwards the
+//   responsibility of defining max_align_t to stdalign.h, which is a header shipping with the
+//   compiler.
+#    define VC_HAVE_MAX_ALIGN_T 1
+#  endif
 #endif
 
 // ICC ships the AVX2 intrinsics inside the AVX1 header.

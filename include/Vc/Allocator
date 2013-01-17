@@ -102,7 +102,7 @@ namespace std \
     {
     private:
         enum Constants {
-#if defined(VC_CXX11) && (!defined(VC_GCC) || VC_GCC >= 0x40800)
+#ifdef VC_HAVE_MAX_ALIGN_T
             NaturalAlignment = alignof(std::max_align_t),
 #else
             NaturalAlignment = sizeof(void *) > Vc_ALIGNOF(long double) ? sizeof(void *) : Vc_ALIGNOF(long double),
