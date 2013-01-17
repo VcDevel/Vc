@@ -46,8 +46,8 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
         const VectorType v() const { return data.v; }
 
 #if defined VC_ICC
-        AliasingEntryHelper<VectorMemoryUnion<VectorType, EntryType> > m(size_t index) {
-            return AliasingEntryHelper<VectorMemoryUnion<VectorType, EntryType> >(this, index);
+        AliasingEntryHelper<VectorMemoryUnion> m(size_t index) {
+            return AliasingEntryHelper<VectorMemoryUnion>(this, index);
         }
         void assign(size_t index, EntryType x) {
             data.m[index] = x;
