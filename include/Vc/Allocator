@@ -116,10 +116,13 @@ namespace std \
     {
     private:
         enum Constants {
-#if defined(VC_CXX11) && (!defined(VC_GCC) || VC_GCC >= 0x40800)
+#if VC_HAVE_STD_MAX_ALIGN_T
             NaturalAlignment = alignof(std::max_align_t),
+#elif VC_HAVE_MAX_ALIGN_T
+            NaturalAlignment = alignof(::max_align_t),
 #else
-            NaturalAlignment = sizeof(void *) > Vc_ALIGNOF(long double) ? sizeof(void *) : Vc_ALIGNOF(long double),
+            NaturalAlignment = sizeof(void *) > Vc_ALIGNOF(long double) ? sizeof(void *) :
+                (Vc_ALIGNOF(long double) > Vc_ALIGNOF(long long) ? Vc_ALIGNOF(long double) : Vc_ALIGNOF(long long)),
 #endif
             Alignment = Vc_ALIGNOF(T),
             /* The number of extra bytes allocated must be large enough to put a pointer right

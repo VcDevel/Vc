@@ -37,6 +37,9 @@ namespace Vc
  *
  * \param impl The SIMD target to test for.
  */
+#ifdef VC_GCC
+    __attribute__((target("no-sse2,no-avx")))
+#endif
 bool isImplementationSupported(Vc::Implementation impl);
 
 #ifndef VC_COMPILE_LIB
