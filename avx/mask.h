@@ -45,12 +45,17 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
 #endif
 
         inline Mask() {}
-        inline Mask(const m256  &x) : k(x) {}
-        inline Mask(const m256d &x) : k(_mm256_castpd_ps(x)) {}
-        inline Mask(const m256i &x) : k(_mm256_castsi256_ps(x)) {}
+        inline Mask(param256  x) : k(x) {}
+        inline Mask(param256d x) : k(_mm256_castpd_ps(x)) {}
+        inline Mask(param256i x) : k(_mm256_castsi256_ps(x)) {}
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
+        inline Mask(__m256  x) : k(x) {}
+        inline Mask(__m256d x) : k(_mm256_castpd_ps(x)) {}
+        inline Mask(__m256i x) : k(_mm256_castsi256_ps(x)) {}
+#endif
         inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(_mm256_setzero_ps()) {}
         inline explicit Mask(VectorSpecialInitializerOne::OEnum) : k(_mm256_setallone_ps()) {}
-        inline explicit Mask(bool b) : k(b ? _mm256_setallone_ps() : _mm256_setzero_ps()) {}
+        inline explicit Mask(bool b) : k(b ? _mm256_setallone_ps() : m256(_mm256_setzero_ps())) {}
         inline Mask(const Mask &rhs) : k(rhs.k) {}
         inline Mask(const Mask<VectorSize, 16u> &rhs) : k(avx_cast<m256>(concat(
                         _mm_unpacklo_epi16(rhs.dataI(), rhs.dataI()),
@@ -115,12 +120,17 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
 #endif
 
         inline Mask() {}
-        inline Mask(const m128  &x) : k(x) {}
-        inline Mask(const m128d &x) : k(_mm_castpd_ps(x)) {}
-        inline Mask(const m128i &x) : k(_mm_castsi128_ps(x)) {}
+        inline Mask(param128  x) : k(x) {}
+        inline Mask(param128d x) : k(_mm_castpd_ps(x)) {}
+        inline Mask(param128i x) : k(_mm_castsi128_ps(x)) {}
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
+        inline Mask(__m128  x) : k(x) {}
+        inline Mask(__m128d x) : k(_mm_castpd_ps(x)) {}
+        inline Mask(__m128i x) : k(_mm_castsi128_ps(x)) {}
+#endif
         inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(_mm_setzero_ps()) {}
         inline explicit Mask(VectorSpecialInitializerOne::OEnum) : k(_mm_setallone_ps()) {}
-        inline explicit Mask(bool b) : k(b ? _mm_setallone_ps() : _mm_setzero_ps()) {}
+        inline explicit Mask(bool b) : k(b ? _mm_setallone_ps() : m128(_mm_setzero_ps())) {}
         inline Mask(const Mask &rhs) : k(rhs.k) {}
         inline Mask(const Mask<VectorSize, 32u> &rhs) : k(avx_cast<m128>(
                 _mm_packs_epi32(avx_cast<m128i>(rhs.data()), _mm256_extractf128_si256(rhs.dataI(), 1)))) {}
