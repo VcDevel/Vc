@@ -82,7 +82,11 @@ template<typename T> class Vector
         static inline VectorType Vc_INTRINSIC _cast(param256i v) { return avx_cast<VectorType>(v); }
         static inline VectorType Vc_INTRINSIC _cast(param256d v) { return avx_cast<VectorType>(v); }
 
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
         typedef Common::VectorMemoryUnion<VectorType, EntryType, typename VectorType::Base> StorageType;
+#else
+        typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
+#endif
         StorageType d;
 
     public:
