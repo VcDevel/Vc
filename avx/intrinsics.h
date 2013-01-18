@@ -102,7 +102,7 @@ namespace AVX
     typedef __m256d m256d;
     typedef __m256i m256i;
 #endif
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#if VC_UNCONDITIONAL_AVX2_INTRINSICS && VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
     typedef const m128  & param128 ;
     typedef const m128d & param128d;
     typedef const m128i & param128i;
@@ -118,12 +118,16 @@ namespace AVX
     typedef const m256i param256i;
 #endif
 
+#if VC_UNCONDITIONAL_AVX2_INTRINSICS
+    // Make use of cast intrinsics easier. But if param256 == const __m256 then these would lead to
+    // ambiguities.
     static inline m256i Vc_INTRINSIC Vc_CONST _mm256_castps_si256(param256  a) { return ::_mm256_castps_si256(a); }
     static inline m256d Vc_INTRINSIC Vc_CONST _mm256_castps_pd   (param256  a) { return ::_mm256_castps_pd   (a); }
     static inline m256i Vc_INTRINSIC Vc_CONST _mm256_castpd_si256(param256d a) { return ::_mm256_castpd_si256(a); }
     static inline m256  Vc_INTRINSIC Vc_CONST _mm256_castpd_ps   (param256d a) { return ::_mm256_castpd_ps   (a); }
     static inline m256  Vc_INTRINSIC Vc_CONST _mm256_castsi256_ps(param256i a) { return ::_mm256_castsi256_ps(a); }
     static inline m256d Vc_INTRINSIC Vc_CONST _mm256_castsi256_pd(param256i a) { return ::_mm256_castsi256_pd(a); }
+#endif
 
     static inline m256  Vc_INTRINSIC Vc_CONST _mm256_set1_ps   (float  a) { return ::_mm256_set1_ps   (a); }
     static inline m256d Vc_INTRINSIC Vc_CONST _mm256_set1_pd   (double a) { return ::_mm256_set1_pd   (a); }
