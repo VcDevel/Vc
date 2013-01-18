@@ -34,12 +34,14 @@ namespace AVX
     template<typename T> static inline Vc_INTRINSIC_L T avx_cast(param256i v) Vc_INTRINSIC_R;
     template<typename T> static inline Vc_INTRINSIC_L T avx_cast(param256d v) Vc_INTRINSIC_R;
 
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
     template<typename T> static inline Vc_INTRINSIC T avx_cast(__m128  v) { return avx_cast<T>(param128 (v)); }
     template<typename T> static inline Vc_INTRINSIC T avx_cast(__m128i v) { return avx_cast<T>(param128i(v)); }
     template<typename T> static inline Vc_INTRINSIC T avx_cast(__m128d v) { return avx_cast<T>(param128d(v)); }
     template<typename T> static inline Vc_INTRINSIC T avx_cast(__m256  v) { return avx_cast<T>(param256 (v)); }
     template<typename T> static inline Vc_INTRINSIC T avx_cast(__m256i v) { return avx_cast<T>(param256i(v)); }
     template<typename T> static inline Vc_INTRINSIC T avx_cast(__m256d v) { return avx_cast<T>(param256d(v)); }
+#endif
 
     // 128 -> 128
     template<> inline m128  Vc_INTRINSIC avx_cast(param128  v) { return v; }
@@ -97,6 +99,7 @@ namespace AVX
     inline m256  Vc_INTRINSIC concat(param128  a, param128  b) { return _mm256_insertf128_ps   (avx_cast<m256 >(a), b, 1); }
     inline m256d Vc_INTRINSIC concat(param128d a, param128d b) { return _mm256_insertf128_pd   (avx_cast<m256d>(a), b, 1); }
     inline m256i Vc_INTRINSIC concat(param128i a, param128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
     inline m256  Vc_INTRINSIC concat(__m128  a, param128  b) { return _mm256_insertf128_ps   (avx_cast<m256 >(a), b, 1); }
     inline m256d Vc_INTRINSIC concat(__m128d a, param128d b) { return _mm256_insertf128_pd   (avx_cast<m256d>(a), b, 1); }
     inline m256i Vc_INTRINSIC concat(__m128i a, param128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
@@ -106,6 +109,7 @@ namespace AVX
     inline m256  Vc_INTRINSIC concat(__m128  a, __m128  b) { return _mm256_insertf128_ps   (avx_cast<m256 >(a), b, 1); }
     inline m256d Vc_INTRINSIC concat(__m128d a, __m128d b) { return _mm256_insertf128_pd   (avx_cast<m256d>(a), b, 1); }
     inline m256i Vc_INTRINSIC concat(__m128i a, __m128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
+#endif
 
     template<typename From, typename To> struct StaticCastHelper {};
     template<> struct StaticCastHelper<float         , int           > { static m256i  cast(param256  v) { return _mm256_cvttps_epi32(v); } };
