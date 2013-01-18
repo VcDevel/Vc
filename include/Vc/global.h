@@ -57,9 +57,11 @@
 
 #if (defined(__GXX_EXPERIMENTAL_CXX0X__) && VC_GCC >= 0x40600) || __cplusplus >= 201103
 #  define VC_CXX11 1
-#  if defined(VC_GCC) //&& VC_GCC <= 0x40800)
-//   Sadly, std::max_align_t took a bit longer to be supported. ::max_align_t is there, though
-#    define VC_HAVE_MAX_ALIGN_T 1
+#  ifdef VC_GCC
+#    if VC_GCC >= 0x40700 // && VC_GCC < 0x408000)
+//     ::max_align_t was introduced with GCC 4.7. std::max_align_t took a bit longer.
+#      define VC_HAVE_MAX_ALIGN_T 1
+#    endif
 #  elif !defined(VC_CLANG)
 //   Clang doesn't provide max_align_t at all
 #    define VC_HAVE_STD_MAX_ALIGN_T 1
