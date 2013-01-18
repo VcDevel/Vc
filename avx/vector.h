@@ -61,8 +61,10 @@ template<typename T> class Vector
         typedef Vc::Memory<Vector<T>, Size> Memory;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
         typedef const Vector<T> &AsArg;
+        typedef const VectorType &VectorTypeArg;
 #else
         typedef Vector<T> AsArg;
+        typedef VectorType VectorTypeArg;
 #endif
 
     protected:
@@ -73,14 +75,18 @@ template<typename T> class Vector
         typedef VectorHelper<T> HT;
 
         // cast any m256/m128 to VectorType
-        static inline VectorType Vc_INTRINSIC _cast(__m128  v) { return avx_cast<VectorType>(v); }
-        static inline VectorType Vc_INTRINSIC _cast(__m128i v) { return avx_cast<VectorType>(v); }
-        static inline VectorType Vc_INTRINSIC _cast(__m128d v) { return avx_cast<VectorType>(v); }
-        static inline VectorType Vc_INTRINSIC _cast(__m256  v) { return avx_cast<VectorType>(v); }
-        static inline VectorType Vc_INTRINSIC _cast(__m256i v) { return avx_cast<VectorType>(v); }
-        static inline VectorType Vc_INTRINSIC _cast(__m256d v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param128  v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param128i v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param128d v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param256  v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param256i v) { return avx_cast<VectorType>(v); }
+        static inline VectorType Vc_INTRINSIC _cast(param256d v) { return avx_cast<VectorType>(v); }
 
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
+        typedef Common::VectorMemoryUnion<VectorType, EntryType, typename VectorType::Base> StorageType;
+#else
         typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
+#endif
         StorageType d;
 
     public:
@@ -100,7 +106,10 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType
-        inline Vector(const VectorType &x) : d(x) {}
+        inline Vector(VectorTypeArg x) : d(x) {}
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
+        inline Vector(typename VectorType::Base x) : d(x) {}
+#endif
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // static_cast / copy ctor
@@ -308,7 +317,7 @@ template<typename T> class Vector
         //}
 
         inline VectorType &data() { return d.v(); }
-        inline const VectorType &data() const { return d.v(); }
+        inline const VectorType data() const { return d.v(); }
 
         inline EntryType min() const { return VectorHelper<T>::min(data()); }
         inline EntryType max() const { return VectorHelper<T>::max(data()); }
