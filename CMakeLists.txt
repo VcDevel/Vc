@@ -69,6 +69,17 @@ else()
             example_finitediff
          )
       endif()
+   elseif(Vc_COMPILER_IS_MSVC)
+      if(MSVC_VERSION LESS 1700)
+         # MSVC before 2012 has a broken std::vector::resize implementation. STL + Vc code will probably not compile.
+         # UserWarning in VcMacros.cmake
+         list(APPEND disabled_targets
+            stlcontainer_sse
+            stlcontainer_avx
+            c++11_stlcontainer_sse
+            c++11_stlcontainer_avx
+            )
+      endif()
    endif()
 endif()
 
