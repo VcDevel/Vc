@@ -190,6 +190,7 @@ namespace SSE
                 VectorType h2 = _mm_and_pd(v2, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
 #if defined(VC_GCC) && VC_GCC < 0x40703
                 // GCC before 4.7.3 uses an incorrect optimization where it replaces the subtraction with an andnot
+                // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54703
                 asm("":"+x"(h1), "+x"(h2));
 #endif
                 const VectorType l1 = _mm_sub_pd(v1, h1);

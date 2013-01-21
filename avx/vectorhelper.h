@@ -202,9 +202,14 @@ namespace AVX
 #ifdef VC_IMPL_FMA4
                 v1 = _mm256_macc_pd(v1, v2, v3);
 #else
-                const VectorType h1 = _mm256_and_pd(v1, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                VectorType h1 = _mm256_and_pd(v1, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+                VectorType h2 = _mm256_and_pd(v2, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
+#if defined(VC_GCC) && VC_GCC < 0x40703
+                // GCC before 4.7.3 uses an incorrect optimization where it replaces the subtraction with an andnot
+                // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54703
+                asm("":"+x"(h1), "+x"(h2));
+#endif
                 const VectorType l1 = _mm256_sub_pd(v1, h1);
-                const VectorType h2 = _mm256_and_pd(v2, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
                 const VectorType l2 = _mm256_sub_pd(v2, h2);
                 const VectorType ll = mul(l1, l2);
                 const VectorType lh = add(mul(l1, h2), mul(h1, l2));
