@@ -287,6 +287,8 @@ macro(vc_set_preferred_compiler_flags)
          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS}")
       endif()
       vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 913")
+      # Disable warning #13211 "Immediate parameter to intrinsic call too large". (sse/vector.tcc rotated(int))
+      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 13211")
 
       if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
          # disable warning #2928: the __GXX_EXPERIMENTAL_CXX0X__ macro is disabled when using GNU version 4.6 with the c++0x option
