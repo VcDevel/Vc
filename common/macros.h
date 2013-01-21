@@ -332,4 +332,11 @@ namespace Vc {
 #define VC_ALIGNED_PARAMETER(_Type) const _Type
 #endif
 
+#ifdef VC_ICC
+#define VC_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0)->member) - reinterpret_cast<const char *>(0))
+#else
+#define VC_OFFSETOF(Type, member) offsetof(Type, member)
+#endif
+
+
 #endif // VC_COMMON_MACROS_H
