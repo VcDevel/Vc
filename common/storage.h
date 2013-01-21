@@ -43,7 +43,7 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
         }
 
         VectorType &v() { return reinterpret_cast<VectorType &>(data.v); }
-        const VectorType v() const { return data.v; }
+        const VectorType &v() const { return reinterpret_cast<const VectorType &>(data.v); }
 
 #if defined VC_ICC
         AliasingEntryHelper<VectorMemoryUnion> m(size_t index) {
