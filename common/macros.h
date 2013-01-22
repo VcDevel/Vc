@@ -82,21 +82,21 @@
 #  else
 #    define Vc_INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
 #  endif
-#  define Vc_INTRINSIC_L
-#  define Vc_INTRINSIC_R Vc_INTRINSIC
 #  define Vc_FLATTEN __attribute__((__flatten__))
 #  define Vc_CONST __attribute__((__const__))
-#  define Vc_CONST_L
-#  define Vc_CONST_R Vc_CONST
+#  define Vc_ALWAYS_INLINE __attribute__((__always_inline__))
 #  ifdef VC_ICC
      // ICC miscompiles if there are functions marked as pure
 #    define Vc_PURE
 #  else
 #    define Vc_PURE __attribute__((__pure__))
 #  endif
+#  define Vc_INTRINSIC_L
+#  define Vc_INTRINSIC_R Vc_INTRINSIC
+#  define Vc_CONST_L
+#  define Vc_CONST_R Vc_CONST
 #  define Vc_PURE_L
 #  define Vc_PURE_R Vc_PURE
-#  define Vc_ALWAYS_INLINE __attribute__((__always_inline__))
 #  define Vc_ALWAYS_INLINE_L
 #  define Vc_ALWAYS_INLINE_R Vc_ALWAYS_INLINE
 #  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
