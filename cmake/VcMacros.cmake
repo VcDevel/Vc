@@ -257,6 +257,9 @@ macro(vc_set_preferred_compiler_flags)
 
          UserWarning("GCC 4.4.x shows false positives for -Wstrict-aliasing, thus we rather disable the warning. Use a newer GCC for better warnings.")
          AddCompilerFlag("-Wno-strict-aliasing")
+
+         UserWarning("GCC 4.4.x shows false positives for -Wuninitialized, thus we rather disable the warning. Use a newer GCC for better warnings.")
+         AddCompilerFlag("-Wno-uninitialized")
       elseif(Vc_GCC_VERSION VERSION_EQUAL 4.6.0)
          UserWarning("GCC 4.6.0 miscompiles AVX loads/stores, leading to spurious segfaults. Disabling AVX per default.")
          set(Vc_AVX_INTRINSICS_BROKEN true)
