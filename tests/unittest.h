@@ -358,28 +358,28 @@ class _UnitTest_Compare
         }
 
         template<typename T> inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const T &x) const {
-            if (m_failed) {
+            if (VC_IS_UNLIKELY(m_failed)) {
                 print(x);
             }
             return *this;
         }
 
         inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const char *str) const {
-            if (m_failed) {
+            if (VC_IS_UNLIKELY(m_failed)) {
                 print(str);
             }
             return *this;
         }
 
         inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const char ch) const {
-            if (m_failed) {
+            if (VC_IS_UNLIKELY(m_failed)) {
                 print(ch);
             }
             return *this;
         }
 
         inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(bool b) const {
-            if (m_failed) {
+            if (VC_IS_UNLIKELY(m_failed)) {
                 print(b);
             }
             return *this;
@@ -387,7 +387,7 @@ class _UnitTest_Compare
 
         inline Vc_ALWAYS_INLINE ~_UnitTest_Compare()
         {
-            if (m_failed) {
+            if (VC_IS_UNLIKELY(m_failed)) {
                 printLast();
             }
         }
