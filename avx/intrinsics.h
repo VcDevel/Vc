@@ -483,11 +483,8 @@ namespace AVX
             _mm256_maskstore(reinterpret_cast<int *>(mem), mask, v);
         }
 
-#if defined(VC_IMPL_FMA4) && VC_CLANG < 0x30400
+#if defined(VC_IMPL_FMA4) && VC_CLANG < 0x30300
         // clang miscompiles _mm256_macc_ps: http://llvm.org/bugs/show_bug.cgi?id=15040
-#if VC_CLANG >= 0x30300
-#warning "Check whether the workaround for bug 15040 (_mm256_macc_ps miscompilation) is still necessary"
-#endif
         static inline Vc_INTRINSIC __m256 my256_macc_ps(__m256 a, __m256 b, __m256 c) {
             __m256 r;
             // avoid loading c from memory as that would trigger the bug
