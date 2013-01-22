@@ -88,7 +88,12 @@
 #  define Vc_CONST __attribute__((__const__))
 #  define Vc_CONST_L
 #  define Vc_CONST_R Vc_CONST
-#  define Vc_PURE __attribute__((__pure__))
+#  ifdef VC_ICC
+     // ICC miscompiles if there are functions marked as pure
+#    define Vc_PURE
+#  else
+#    define Vc_PURE __attribute__((__pure__))
+#  endif
 #  define Vc_PURE_L
 #  define Vc_PURE_R Vc_PURE
 #  define Vc_ALWAYS_INLINE __attribute__((__always_inline__))
