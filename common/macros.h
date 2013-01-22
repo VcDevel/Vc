@@ -338,7 +338,7 @@ namespace Vc {
 #define VC_ALIGNED_PARAMETER(_Type) const _Type
 #endif
 
-#ifdef VC_ICC
+#if defined(VC_ICC) || defined(VC_CLANG)
 #define VC_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0)->member) - reinterpret_cast<const char *>(0))
 #elif defined(VC_GCC) && VC_GCC < 0x40500
 #define VC_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0x1000)->member) - reinterpret_cast<const char *>(0x1000))
