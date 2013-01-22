@@ -83,13 +83,14 @@
 #    define Vc_INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
 #  endif
 #  define Vc_FLATTEN __attribute__((__flatten__))
-#  define Vc_CONST __attribute__((__const__))
 #  define Vc_ALWAYS_INLINE __attribute__((__always_inline__))
 #  ifdef VC_ICC
-     // ICC miscompiles if there are functions marked as pure
+     // ICC miscompiles if there are functions marked as pure or const
 #    define Vc_PURE
+#    define Vc_CONST
 #  else
 #    define Vc_PURE __attribute__((__pure__))
+#    define Vc_CONST __attribute__((__const__))
 #  endif
 #  define Vc_INTRINSIC_L
 #  define Vc_INTRINSIC_R Vc_INTRINSIC
