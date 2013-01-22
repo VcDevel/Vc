@@ -204,7 +204,7 @@ template<typename _T> static inline Vc_ALWAYS_INLINE void assertCorrectAlignment
 #else
 template<typename _T> static inline Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)
 {
-    const size_t s = sizeof(_T);
+    const size_t s = Vc_ALIGNOF(_T);
     if((reinterpret_cast<size_t>(ptr) & ((s ^ (s & (s - 1))) - 1)) != 0) {
         fprintf(stderr, "A vector with incorrect alignment has just been created. Look at the stacktrace to find the guilty object.\n");
         abort();

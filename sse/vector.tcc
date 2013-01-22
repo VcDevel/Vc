@@ -1449,6 +1449,9 @@ template<typename T> inline Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount
     case  1: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 1 * sizeof(EntryType)));
     case  2: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 2 * sizeof(EntryType)));
     case  3: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 3 * sizeof(EntryType)));
+             // warning "Immediate parameter to intrinsic call too large" disabled in VcMacros.cmake.
+             // ICC fails to see that the modulo operation (Size == sizeof(VectorType) / sizeof(EntryType))
+             // disables the following four calls unless sizeof(EntryType) == 2.
     case  4: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 4 * sizeof(EntryType)));
     case  5: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 5 * sizeof(EntryType)));
     case  6: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 6 * sizeof(EntryType)));

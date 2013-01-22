@@ -254,6 +254,12 @@ macro(vc_set_preferred_compiler_flags)
          string(REPLACE " -Wparentheses " " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
          string(REPLACE " -Wparentheses " " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
          set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -Wno-parentheses")
+
+         UserWarning("GCC 4.4.x shows false positives for -Wstrict-aliasing, thus we rather disable the warning. Use a newer GCC for better warnings.")
+         AddCompilerFlag("-Wno-strict-aliasing")
+
+         UserWarning("GCC 4.4.x shows false positives for -Wuninitialized, thus we rather disable the warning. Use a newer GCC for better warnings.")
+         AddCompilerFlag("-Wno-uninitialized")
       elseif(Vc_GCC_VERSION VERSION_EQUAL 4.6.0)
          UserWarning("GCC 4.6.0 miscompiles AVX loads/stores, leading to spurious segfaults. Disabling AVX per default.")
          set(Vc_AVX_INTRINSICS_BROKEN true)
@@ -287,6 +293,8 @@ macro(vc_set_preferred_compiler_flags)
          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS}")
       endif()
       vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 913")
+      # Disable warning #13211 "Immediate parameter to intrinsic call too large". (sse/vector.tcc rotated(int))
+      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 13211")
 
       if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
          # disable warning #2928: the __GXX_EXPERIMENTAL_CXX0X__ macro is disabled when using GNU version 4.6 with the c++0x option

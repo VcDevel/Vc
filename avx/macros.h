@@ -23,16 +23,4 @@
 #define VC_AVX_MACROS_H
 #undef VC_AVX_UNDOMACROS_H
 
-#ifndef _M256
-# define _M256 __m256
-#endif
-
-#ifndef _M256I
-# define _M256I __m256i
-#endif
-
-#ifndef _M256D
-# define _M256D __m256d
-#endif
-
 #endif // VC_AVX_MACROS_H

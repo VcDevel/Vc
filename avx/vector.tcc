@@ -75,44 +75,44 @@ template<typename DstT, typename SrcT, typename Flags> struct LoadHelper;
 
 // float {{{2
 template<typename Flags> struct LoadHelper<float, double, Flags> {
-    static __m256 load(const double *mem, Flags f)
+    static m256 load(const double *mem, Flags f)
     {
-        return concat(_mm256_cvtpd_ps(VectorHelper<__m256d>::load(&mem[0], f)),
-                      _mm256_cvtpd_ps(VectorHelper<__m256d>::load(&mem[4], f)));
+        return concat(_mm256_cvtpd_ps(VectorHelper<m256d>::load(&mem[0], f)),
+                      _mm256_cvtpd_ps(VectorHelper<m256d>::load(&mem[4], f)));
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned int, Flags> {
-    static __m256 load(const unsigned int *mem, Flags f)
+    static m256 load(const unsigned int *mem, Flags f)
     {
-        return StaticCastHelper<unsigned int, float>::cast(VectorHelper<__m256i>::load(mem, f));
+        return StaticCastHelper<unsigned int, float>::cast(VectorHelper<m256i>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<float, int, Flags> {
-    static __m256 load(const int *mem, Flags f)
+    static m256 load(const int *mem, Flags f)
     {
-        return StaticCastHelper<int, float>::cast(VectorHelper<__m256i>::load(mem, f));
+        return StaticCastHelper<int, float>::cast(VectorHelper<m256i>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned short, Flags> {
-    static __m256 load(const unsigned short *mem, Flags f)
+    static m256 load(const unsigned short *mem, Flags f)
     {
-        return StaticCastHelper<unsigned short, float>::cast(VectorHelper<__m128i>::load(mem, f));
+        return StaticCastHelper<unsigned short, float>::cast(VectorHelper<m128i>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<float, short, Flags> {
-    static __m256 load(const short *mem, Flags f)
+    static m256 load(const short *mem, Flags f)
     {
-        return StaticCastHelper<short, float>::cast(VectorHelper<__m128i>::load(mem, f));
+        return StaticCastHelper<short, float>::cast(VectorHelper<m128i>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned char, Flags> {
-    static __m256 load(const unsigned char *mem, Flags f)
+    static m256 load(const unsigned char *mem, Flags f)
     {
         return StaticCastHelper<unsigned int, float>::cast(LoadHelper<unsigned int, unsigned char, Flags>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<float, signed char, Flags> {
-    static __m256 load(const signed char *mem, Flags f)
+    static m256 load(const signed char *mem, Flags f)
     {
         return StaticCastHelper<int, float>::cast(LoadHelper<int, signed char, Flags>::load(mem, f));
     }
@@ -122,95 +122,95 @@ template<typename SrcT, typename Flags> struct LoadHelper<sfloat, SrcT, Flags> :
 
 // int {{{2
 template<typename Flags> struct LoadHelper<int, unsigned int, Flags> {
-    static __m256i load(const unsigned int *mem, Flags f)
+    static m256i load(const unsigned int *mem, Flags f)
     {
-        return VectorHelper<__m256i>::load(mem, f);
+        return VectorHelper<m256i>::load(mem, f);
     }
 };
 template<typename Flags> struct LoadHelper<int, unsigned short, Flags> {
-    static __m256i load(const unsigned short *mem, Flags f)
+    static m256i load(const unsigned short *mem, Flags f)
     {
-        return StaticCastHelper<unsigned short, unsigned int>::cast(VectorHelper<__m128i>::load(mem, f));
+        return StaticCastHelper<unsigned short, unsigned int>::cast(VectorHelper<m128i>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<int, short, Flags> {
-    static __m256i load(const short *mem, Flags f)
+    static m256i load(const short *mem, Flags f)
     {
-        return StaticCastHelper<short, int>::cast(VectorHelper<__m128i>::load(mem, f));
+        return StaticCastHelper<short, int>::cast(VectorHelper<m128i>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<int, unsigned char, Flags> {
-    static __m256i load(const unsigned char *mem, Flags)
+    static m256i load(const unsigned char *mem, Flags)
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
-        const __m128i epu16 = _mm_cvtepu8_epi16(epu8);
+        const m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const m128i epu16 = _mm_cvtepu8_epi16(epu8);
         return StaticCastHelper<unsigned short, unsigned int>::cast(epu16);
     }
 };
 template<typename Flags> struct LoadHelper<int, signed char, Flags> {
-    static __m256i load(const signed char *mem, Flags)
+    static m256i load(const signed char *mem, Flags)
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epi8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
-        const __m128i epi16 = _mm_cvtepi8_epi16(epi8);
+        const m128i epi8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const m128i epi16 = _mm_cvtepi8_epi16(epi8);
         return StaticCastHelper<short, int>::cast(epi16);
     }
 };
 
 // unsigned int {{{2
 template<typename Flags> struct LoadHelper<unsigned int, unsigned short, Flags> {
-    static __m256i load(const unsigned short *mem, Flags f)
+    static m256i load(const unsigned short *mem, Flags f)
     {
-        return StaticCastHelper<unsigned short, unsigned int>::cast(VectorHelper<__m128i>::load(mem, f));
+        return StaticCastHelper<unsigned short, unsigned int>::cast(VectorHelper<m128i>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<unsigned int, unsigned char, Flags> {
-    static __m256i load(const unsigned char *mem, Flags)
+    static m256i load(const unsigned char *mem, Flags)
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
-        const __m128i epu16 = _mm_cvtepu8_epi16(epu8);
+        const m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const m128i epu16 = _mm_cvtepu8_epi16(epu8);
         return StaticCastHelper<unsigned short, unsigned int>::cast(epu16);
     }
 };
 
 // short {{{2
 template<typename Flags> struct LoadHelper<short, unsigned short, Flags> {
-    static __m128i load(const unsigned short *mem, Flags f)
+    static m128i load(const unsigned short *mem, Flags f)
     {
-        return StaticCastHelper<unsigned short, short>::cast(VectorHelper<__m128i>::load(mem, f));
+        return StaticCastHelper<unsigned short, short>::cast(VectorHelper<m128i>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<short, unsigned char, Flags> {
-    static __m128i load(const unsigned char *mem, Flags)
+    static m128i load(const unsigned char *mem, Flags)
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
         return _mm_cvtepu8_epi16(epu8);
     }
 };
 template<typename Flags> struct LoadHelper<short, signed char, Flags> {
-    static __m128i load(const signed char *mem, Flags)
+    static m128i load(const signed char *mem, Flags)
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epi8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const m128i epi8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
         return _mm_cvtepi8_epi16(epi8);
     }
 };
 
 // unsigned short {{{2
 template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags> {
-    static __m128i load(const unsigned char *mem, Flags)
+    static m128i load(const unsigned char *mem, Flags)
     {
         // the only available streaming load loads 16 bytes - twice as much as we need => can't use
         // it, or we risk an out-of-bounds read and an unaligned load exception
-        const __m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+        const m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
         return _mm_cvtepu8_epi16(epu8);
     }
 };
@@ -401,11 +401,11 @@ template<typename T> inline Vector<T> Vc_PURE Vector<T>::operator/(const Vector<
     return r;
 }
 // specialize division on type
-static inline __m256i Vc_INTRINSIC Vc_CONST divInt(__m256i a, __m256i b) {
-    const __m256d lo1 = _mm256_cvtepi32_pd(lo128(a));
-    const __m256d lo2 = _mm256_cvtepi32_pd(lo128(b));
-    const __m256d hi1 = _mm256_cvtepi32_pd(hi128(a));
-    const __m256d hi2 = _mm256_cvtepi32_pd(hi128(b));
+static inline m256i Vc_INTRINSIC Vc_CONST divInt(param256i a, param256i b) {
+    const m256d lo1 = _mm256_cvtepi32_pd(lo128(a));
+    const m256d lo2 = _mm256_cvtepi32_pd(lo128(b));
+    const m256d hi1 = _mm256_cvtepi32_pd(hi128(a));
+    const m256d hi2 = _mm256_cvtepi32_pd(hi128(b));
     return concat(
             _mm256_cvttpd_epi32(_mm256_div_pd(lo1, lo2)),
             _mm256_cvttpd_epi32(_mm256_div_pd(hi1, hi2))
@@ -420,11 +420,11 @@ template<> inline Vector<int> Vc_PURE Vector<int>::operator/(const Vector<int> &
 {
     return divInt(d.v(), x.d.v());
 }
-static inline __m256i Vc_CONST divUInt(__m256i a, __m256i b) {
-    __m256d loa = _mm256_cvtepi32_pd(lo128(a));
-    __m256d hia = _mm256_cvtepi32_pd(hi128(a));
-    __m256d lob = _mm256_cvtepi32_pd(lo128(b));
-    __m256d hib = _mm256_cvtepi32_pd(hi128(b));
+static inline m256i Vc_CONST divUInt(param256i a, param256i b) {
+    m256d loa = _mm256_cvtepi32_pd(lo128(a));
+    m256d hia = _mm256_cvtepi32_pd(hi128(a));
+    m256d lob = _mm256_cvtepi32_pd(lo128(b));
+    m256d hib = _mm256_cvtepi32_pd(hi128(b));
     // if a >= 2^31 then after conversion to double it will contain a negative number (i.e. a-2^32)
     // to get the right number back we have to add 2^32 where a >= 2^31
     loa = _mm256_add_pd(loa, _mm256_and_pd(_mm256_cmp_pd(loa, _mm256_setzero_pd(), _CMP_LT_OS), _mm256_set1_pd(4294967296.)));
@@ -434,10 +434,10 @@ static inline __m256i Vc_CONST divUInt(__m256i a, __m256i b) {
     //
     // there is one remaining problem: a >= 2^31 and b == 1
     // in that case the return value would be 2^31
-    return avx_cast<__m256i>(_mm256_blendv_ps(avx_cast<__m256>(concat(
+    return avx_cast<m256i>(_mm256_blendv_ps(avx_cast<m256>(concat(
                         _mm256_cvttpd_epi32(_mm256_div_pd(loa, lob)),
                         _mm256_cvttpd_epi32(_mm256_div_pd(hia, hib))
-                        )), avx_cast<__m256>(a), avx_cast<__m256>(concat(
+                        )), avx_cast<m256>(a), avx_cast<m256>(concat(
                             _mm_cmpeq_epi32(lo128(b), _mm_setone_epi32()),
                             _mm_cmpeq_epi32(hi128(b), _mm_setone_epi32())))));
 }
@@ -450,9 +450,9 @@ template<> inline Vector<unsigned int> Vc_ALWAYS_INLINE Vc_PURE Vector<unsigned 
 {
     return divUInt(d.v(), x.d.v());
 }
-template<typename T> static inline __m128i Vc_CONST divShort(__m128i a, __m128i b)
+template<typename T> static inline m128i Vc_CONST divShort(param128i a, param128i b)
 {
-    const __m256 r = _mm256_div_ps(StaticCastHelper<T, float>::cast(a),
+    const m256 r = _mm256_div_ps(StaticCastHelper<T, float>::cast(a),
             StaticCastHelper<T, float>::cast(b));
     return StaticCastHelper<float, T>::cast(r);
 }
@@ -563,16 +563,16 @@ template<typename T> inline Vector<T> Vector<T>::operator<<(int shift) const {
 // isNegative {{{1
 template<> inline Vc_PURE Vc_INTRINSIC float_m float_v::isNegative() const
 {
-    return avx_cast<__m256>(_mm256_srai_epi32(avx_cast<__m256i>(_mm256_and_ps(_mm256_setsignmask_ps(), d.v())), 31));
+    return avx_cast<m256>(_mm256_srai_epi32(avx_cast<m256i>(_mm256_and_ps(_mm256_setsignmask_ps(), d.v())), 31));
 }
 template<> inline Vc_PURE Vc_INTRINSIC sfloat_m sfloat_v::isNegative() const
 {
-    return avx_cast<__m256>(_mm256_srai_epi32(avx_cast<__m256i>(_mm256_and_ps(_mm256_setsignmask_ps(), d.v())), 31));
+    return avx_cast<m256>(_mm256_srai_epi32(avx_cast<m256i>(_mm256_and_ps(_mm256_setsignmask_ps(), d.v())), 31));
 }
 template<> inline Vc_PURE Vc_INTRINSIC double_m double_v::isNegative() const
 {
-    return Mem::permute<X1, X1, X3, X3>(avx_cast<__m256>(
-                _mm256_srai_epi32(avx_cast<__m256i>(_mm256_and_pd(_mm256_setsignmask_pd(), d.v())), 31)
+    return Mem::permute<X1, X1, X3, X3>(avx_cast<m256>(
+                _mm256_srai_epi32(avx_cast<m256i>(_mm256_and_pd(_mm256_setsignmask_pd(), d.v())), 31)
                 ));
 }
 // gathers {{{1
@@ -1149,8 +1149,8 @@ template<> inline Vector<double> Vc_INTRINSIC Vector<double>::copySign(Vector<do
 template<> inline Vector<float> Vc_INTRINSIC Vector<float>::exponent() const
 {
     VC_ASSERT((*this >= 0.f).isFull());
-    __m128i tmp0 = _mm_srli_epi32(avx_cast<__m128i>(d.v()), 23);
-    __m128i tmp1 = _mm_srli_epi32(avx_cast<__m128i>(hi128(d.v())), 23);
+    m128i tmp0 = _mm_srli_epi32(avx_cast<m128i>(d.v()), 23);
+    m128i tmp1 = _mm_srli_epi32(avx_cast<m128i>(hi128(d.v())), 23);
     tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
     tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
     return _mm256_cvtepi32_ps(concat(tmp0, tmp1));
@@ -1158,8 +1158,8 @@ template<> inline Vector<float> Vc_INTRINSIC Vector<float>::exponent() const
 template<> inline Vector<sfloat> Vc_INTRINSIC Vector<sfloat>::exponent() const
 {
     VC_ASSERT((*this >= 0.f).isFull());
-    __m128i tmp0 = _mm_srli_epi32(avx_cast<__m128i>(d.v()), 23);
-    __m128i tmp1 = _mm_srli_epi32(avx_cast<__m128i>(hi128(d.v())), 23);
+    m128i tmp0 = _mm_srli_epi32(avx_cast<m128i>(d.v()), 23);
+    m128i tmp1 = _mm_srli_epi32(avx_cast<m128i>(hi128(d.v())), 23);
     tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
     tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
     return _mm256_cvtepi32_ps(concat(tmp0, tmp1));
@@ -1167,11 +1167,11 @@ template<> inline Vector<sfloat> Vc_INTRINSIC Vector<sfloat>::exponent() const
 template<> inline Vector<double> Vc_INTRINSIC Vector<double>::exponent() const
 {
     VC_ASSERT((*this >= 0.).isFull());
-    __m128i tmp0 = _mm_srli_epi64(avx_cast<__m128i>(d.v()), 52);
-    __m128i tmp1 = _mm_srli_epi64(avx_cast<__m128i>(hi128(d.v())), 52);
+    m128i tmp0 = _mm_srli_epi64(avx_cast<m128i>(d.v()), 52);
+    m128i tmp1 = _mm_srli_epi64(avx_cast<m128i>(hi128(d.v())), 52);
     tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x3ff));
     tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x3ff));
-    return _mm256_cvtepi32_pd(avx_cast<__m128i>(Mem::shuffle<X0, X2, Y0, Y2>(avx_cast<__m128>(tmp0), avx_cast<__m128>(tmp1))));
+    return _mm256_cvtepi32_pd(avx_cast<m128i>(Mem::shuffle<X0, X2, Y0, Y2>(avx_cast<m128>(tmp0), avx_cast<m128>(tmp1))));
 }
 // }}}1
 // Random {{{1
@@ -1207,7 +1207,7 @@ template<> inline Vc_ALWAYS_INLINE Vector<sfloat> Vector<sfloat>::Random()
 
 template<> inline Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 {
-    const __m256i state = VectorHelper<__m256i>::load(&Vc::RandomState[0], Vc::Aligned);
+    const m256i state = VectorHelper<m256i>::load(&Vc::RandomState[0], Vc::Aligned);
     for (size_t k = 0; k < 8; k += 2) {
         typedef unsigned long long uint64 Vc_MAY_ALIAS;
         const uint64 stateX = *reinterpret_cast<const uint64 *>(&Vc::RandomState[k]);
@@ -1218,20 +1218,20 @@ template<> inline Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 // }}}1
 // shifted / rotated {{{1
 template<size_t SIMDWidth, size_t Size, typename VectorType, typename EntryType> struct VectorShift;
-template<> struct VectorShift<32, 4, __m256d, double>
+template<> struct VectorShift<32, 4, m256d, double>
 {
-    static inline Vc_INTRINSIC __m256d shifted(__m256d v, int amount)
+    static inline Vc_INTRINSIC m256d shifted(param256d v, int amount)
     {
-        const __m128i vLo = avx_cast<__m128i>(lo128(v));
-        const __m128i vHi = avx_cast<__m128i>(hi128(v));
+        const m128i vLo = avx_cast<m128i>(lo128(v));
+        const m128i vHi = avx_cast<m128i>(hi128(v));
         switch (amount) {
         case  0: return v;
-        case  1: return concat(avx_cast<__m128d>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(double))), avx_cast<__m128d>(_mm_srli_si128(vHi, 1 * sizeof(double))));
-        case  2: return avx_cast<__m256d>(hi128(v));
-        case  3: return avx_cast<__m256d>(_mm_srli_si128(vHi, 1 * sizeof(double)));
-        case -1: return concat(avx_cast<__m128d>(_mm_slli_si128(vLo, 1 * sizeof(double))), avx_cast<__m128d>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(double))));
+        case  1: return concat(avx_cast<m128d>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(double))), avx_cast<m128d>(_mm_srli_si128(vHi, 1 * sizeof(double))));
+        case  2: return avx_cast<m256d>(hi128(v));
+        case  3: return avx_cast<m256d>(_mm_srli_si128(vHi, 1 * sizeof(double)));
+        case -1: return concat(avx_cast<m128d>(_mm_slli_si128(vLo, 1 * sizeof(double))), avx_cast<m128d>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(double))));
         case -2: return _mm256_permute2f128_pd(v, v, 0x8);
-        case -3: return concat(_mm_setzero_pd(), avx_cast<__m128d>(_mm_slli_si128(vLo, 1 * sizeof(double))));
+        case -3: return concat(_mm_setzero_pd(), avx_cast<m128d>(_mm_slli_si128(vLo, 1 * sizeof(double))));
         }
         return _mm256_setzero_pd();
     }
@@ -1239,10 +1239,10 @@ template<> struct VectorShift<32, 4, __m256d, double>
 template<typename VectorType, typename EntryType> struct VectorShift<32, 8, VectorType, EntryType>
 {
     typedef typename SseVectorType<VectorType>::Type SmallV;
-    static inline Vc_INTRINSIC VectorType shifted(VectorType v, int amount)
+    static inline Vc_INTRINSIC VectorType shifted(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
-        const __m128i vLo = avx_cast<__m128i>(lo128(v));
-        const __m128i vHi = avx_cast<__m128i>(hi128(v));
+        const m128i vLo = avx_cast<m128i>(lo128(v));
+        const m128i vHi = avx_cast<m128i>(hi128(v));
         const SmallV z = avx_cast<SmallV>(_mm_setzero_ps());
         switch (amount) {
         case  0: return v;
@@ -1256,7 +1256,7 @@ template<typename VectorType, typename EntryType> struct VectorShift<32, 8, Vect
         case -1: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 1 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 3 * sizeof(EntryType))));
         case -2: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 2 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 2 * sizeof(EntryType))));
         case -3: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 3 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(EntryType))));
-        case -4: return avx_cast<VectorType>(_mm256_permute2f128_ps(avx_cast<__m256>(v), avx_cast<__m256>(v), 0x8));
+        case -4: return avx_cast<VectorType>(_mm256_permute2f128_ps(avx_cast<m256>(v), avx_cast<m256>(v), 0x8));
         case -5: return concat(z, avx_cast<SmallV>(_mm_slli_si128(vLo, 1 * sizeof(EntryType))));
         case -6: return concat(z, avx_cast<SmallV>(_mm_slli_si128(vLo, 2 * sizeof(EntryType))));
         case -7: return concat(z, avx_cast<SmallV>(_mm_slli_si128(vLo, 3 * sizeof(EntryType))));
@@ -1266,24 +1266,24 @@ template<typename VectorType, typename EntryType> struct VectorShift<32, 8, Vect
 };
 template<typename VectorType, typename EntryType> struct VectorShift<16, 8, VectorType, EntryType>
 {
-    static inline Vc_INTRINSIC VectorType shifted(VectorType v, int amount)
+    static inline Vc_INTRINSIC VectorType shifted(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
         switch (amount) {
         case  0: return v;
-        case  1: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<__m128i>(v), 1 * sizeof(EntryType)));
-        case  2: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<__m128i>(v), 2 * sizeof(EntryType)));
-        case  3: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<__m128i>(v), 3 * sizeof(EntryType)));
-        case  4: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<__m128i>(v), 4 * sizeof(EntryType)));
-        case  5: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<__m128i>(v), 5 * sizeof(EntryType)));
-        case  6: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<__m128i>(v), 6 * sizeof(EntryType)));
-        case  7: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<__m128i>(v), 7 * sizeof(EntryType)));
-        case -1: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<__m128i>(v), 1 * sizeof(EntryType)));
-        case -2: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<__m128i>(v), 2 * sizeof(EntryType)));
-        case -3: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<__m128i>(v), 3 * sizeof(EntryType)));
-        case -4: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<__m128i>(v), 4 * sizeof(EntryType)));
-        case -5: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<__m128i>(v), 5 * sizeof(EntryType)));
-        case -6: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<__m128i>(v), 6 * sizeof(EntryType)));
-        case -7: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<__m128i>(v), 7 * sizeof(EntryType)));
+        case  1: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<m128i>(v), 1 * sizeof(EntryType)));
+        case  2: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<m128i>(v), 2 * sizeof(EntryType)));
+        case  3: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<m128i>(v), 3 * sizeof(EntryType)));
+        case  4: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<m128i>(v), 4 * sizeof(EntryType)));
+        case  5: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<m128i>(v), 5 * sizeof(EntryType)));
+        case  6: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<m128i>(v), 6 * sizeof(EntryType)));
+        case  7: return avx_cast<VectorType>(_mm_srli_si128(avx_cast<m128i>(v), 7 * sizeof(EntryType)));
+        case -1: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<m128i>(v), 1 * sizeof(EntryType)));
+        case -2: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<m128i>(v), 2 * sizeof(EntryType)));
+        case -3: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<m128i>(v), 3 * sizeof(EntryType)));
+        case -4: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<m128i>(v), 4 * sizeof(EntryType)));
+        case -5: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<m128i>(v), 5 * sizeof(EntryType)));
+        case -6: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<m128i>(v), 6 * sizeof(EntryType)));
+        case -7: return avx_cast<VectorType>(_mm_slli_si128(avx_cast<m128i>(v), 7 * sizeof(EntryType)));
         }
         return _mm_setzero_si128();
     }
@@ -1296,10 +1296,10 @@ template<size_t SIMDWidth, size_t Size, typename VectorType, typename EntryType>
 template<typename VectorType, typename EntryType> struct VectorRotate<32, 4, VectorType, EntryType>
 {
     typedef typename SseVectorType<VectorType>::Type SmallV;
-    static inline Vc_INTRINSIC VectorType rotated(VectorType v, int amount)
+    static inline Vc_INTRINSIC VectorType rotated(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
-        const __m128i vLo = avx_cast<__m128i>(lo128(v));
-        const __m128i vHi = avx_cast<__m128i>(hi128(v));
+        const m128i vLo = avx_cast<m128i>(lo128(v));
+        const m128i vHi = avx_cast<m128i>(hi128(v));
         switch (static_cast<unsigned int>(amount) % 4) {
         case  0: return v;
         case  1: return concat(avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vLo, vHi, 1 * sizeof(EntryType))));
@@ -1312,10 +1312,10 @@ template<typename VectorType, typename EntryType> struct VectorRotate<32, 4, Vec
 template<typename VectorType, typename EntryType> struct VectorRotate<32, 8, VectorType, EntryType>
 {
     typedef typename SseVectorType<VectorType>::Type SmallV;
-    static inline Vc_INTRINSIC VectorType rotated(VectorType v, int amount)
+    static inline Vc_INTRINSIC VectorType rotated(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
-        const __m128i vLo = avx_cast<__m128i>(lo128(v));
-        const __m128i vHi = avx_cast<__m128i>(hi128(v));
+        const m128i vLo = avx_cast<m128i>(lo128(v));
+        const m128i vHi = avx_cast<m128i>(hi128(v));
         switch (static_cast<unsigned int>(amount) % 8) {
         case  0: return v;
         case  1: return concat(avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vLo, vHi, 1 * sizeof(EntryType))));
@@ -1331,7 +1331,7 @@ template<typename VectorType, typename EntryType> struct VectorRotate<32, 8, Vec
 };
 template<typename VectorType, typename EntryType> struct VectorRotate<16, 8, VectorType, EntryType>
 {
-    static inline Vc_INTRINSIC VectorType rotated(VectorType v, int amount)
+    static inline Vc_INTRINSIC VectorType rotated(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
         switch (static_cast<unsigned int>(amount) % 8) {
         case  0: return v;
@@ -1350,17 +1350,17 @@ template<typename T> inline Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount
 {
     return VectorRotate<sizeof(VectorType), Size, VectorType, EntryType>::rotated(d.v(), amount);
     /*
-    const __m128i v0 = avx_cast<__m128i>(d.v()[0]);
-    const __m128i v1 = avx_cast<__m128i>(d.v()[1]);
+    const m128i v0 = avx_cast<m128i>(d.v()[0]);
+    const m128i v1 = avx_cast<m128i>(d.v()[1]);
     switch (static_cast<unsigned int>(amount) % Size) {
     case  0: return *this;
-    case  1: return concat(avx_cast<__m128>(_mm_alignr_epi8(v1, v0, 1 * sizeof(EntryType))), avx_cast<__m128>(_mm_alignr_epi8(v0, v1, 1 * sizeof(EntryType))));
-    case  2: return concat(avx_cast<__m128>(_mm_alignr_epi8(v1, v0, 2 * sizeof(EntryType))), avx_cast<__m128>(_mm_alignr_epi8(v0, v1, 2 * sizeof(EntryType))));
-    case  3: return concat(avx_cast<__m128>(_mm_alignr_epi8(v1, v0, 3 * sizeof(EntryType))), avx_cast<__m128>(_mm_alignr_epi8(v0, v1, 3 * sizeof(EntryType))));
+    case  1: return concat(avx_cast<m128>(_mm_alignr_epi8(v1, v0, 1 * sizeof(EntryType))), avx_cast<m128>(_mm_alignr_epi8(v0, v1, 1 * sizeof(EntryType))));
+    case  2: return concat(avx_cast<m128>(_mm_alignr_epi8(v1, v0, 2 * sizeof(EntryType))), avx_cast<m128>(_mm_alignr_epi8(v0, v1, 2 * sizeof(EntryType))));
+    case  3: return concat(avx_cast<m128>(_mm_alignr_epi8(v1, v0, 3 * sizeof(EntryType))), avx_cast<m128>(_mm_alignr_epi8(v0, v1, 3 * sizeof(EntryType))));
     case  4: return concat(d.v()[1], d.v()[0]);
-    case  5: return concat(avx_cast<__m128>(_mm_alignr_epi8(v0, v1, 1 * sizeof(EntryType))), avx_cast<__m128>(_mm_alignr_epi8(v1, v0, 1 * sizeof(EntryType))));
-    case  6: return concat(avx_cast<__m128>(_mm_alignr_epi8(v0, v1, 2 * sizeof(EntryType))), avx_cast<__m128>(_mm_alignr_epi8(v1, v0, 2 * sizeof(EntryType))));
-    case  7: return concat(avx_cast<__m128>(_mm_alignr_epi8(v0, v1, 3 * sizeof(EntryType))), avx_cast<__m128>(_mm_alignr_epi8(v1, v0, 3 * sizeof(EntryType))));
+    case  5: return concat(avx_cast<m128>(_mm_alignr_epi8(v0, v1, 1 * sizeof(EntryType))), avx_cast<m128>(_mm_alignr_epi8(v1, v0, 1 * sizeof(EntryType))));
+    case  6: return concat(avx_cast<m128>(_mm_alignr_epi8(v0, v1, 2 * sizeof(EntryType))), avx_cast<m128>(_mm_alignr_epi8(v1, v0, 2 * sizeof(EntryType))));
+    case  7: return concat(avx_cast<m128>(_mm_alignr_epi8(v0, v1, 3 * sizeof(EntryType))), avx_cast<m128>(_mm_alignr_epi8(v1, v0, 3 * sizeof(EntryType))));
     }
     */
 }

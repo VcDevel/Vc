@@ -58,23 +58,23 @@ namespace AVX
     template<> struct IndexTypeHelper<        double> { typedef unsigned int   Type; }; // _M128I based int32 would be nice
 
     template<typename T> struct VectorTypeHelper;
-    template<> struct VectorTypeHelper<         char > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<unsigned char > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<         short> { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<unsigned short> { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<         int  > { typedef _M256I Type; };
-    template<> struct VectorTypeHelper<unsigned int  > { typedef _M256I Type; };
-    template<> struct VectorTypeHelper<         float> { typedef _M256  Type; };
-    template<> struct VectorTypeHelper<        sfloat> { typedef _M256  Type; };
-    template<> struct VectorTypeHelper<        double> { typedef _M256D Type; };
+    template<> struct VectorTypeHelper<         char > { typedef m128i Type; };
+    template<> struct VectorTypeHelper<unsigned char > { typedef m128i Type; };
+    template<> struct VectorTypeHelper<         short> { typedef m128i Type; };
+    template<> struct VectorTypeHelper<unsigned short> { typedef m128i Type; };
+    template<> struct VectorTypeHelper<         int  > { typedef m256i Type; };
+    template<> struct VectorTypeHelper<unsigned int  > { typedef m256i Type; };
+    template<> struct VectorTypeHelper<         float> { typedef m256  Type; };
+    template<> struct VectorTypeHelper<        sfloat> { typedef m256  Type; };
+    template<> struct VectorTypeHelper<        double> { typedef m256d Type; };
 
     template<typename T> struct SseVectorType;
-    template<> struct SseVectorType<__m256 > { typedef __m128  Type; };
-    template<> struct SseVectorType<__m256i> { typedef __m128i Type; };
-    template<> struct SseVectorType<__m256d> { typedef __m128d Type; };
-    template<> struct SseVectorType<__m128 > { typedef __m128  Type; };
-    template<> struct SseVectorType<__m128i> { typedef __m128i Type; };
-    template<> struct SseVectorType<__m128d> { typedef __m128d Type; };
+    template<> struct SseVectorType<m256 > { typedef m128  Type; };
+    template<> struct SseVectorType<m256i> { typedef m128i Type; };
+    template<> struct SseVectorType<m256d> { typedef m128d Type; };
+    template<> struct SseVectorType<m128 > { typedef m128  Type; };
+    template<> struct SseVectorType<m128i> { typedef m128i Type; };
+    template<> struct SseVectorType<m128d> { typedef m128d Type; };
 
     template<typename T> struct HasVectorDivisionHelper { enum { Value = 1 }; };
     //template<> struct HasVectorDivisionHelper<unsigned int> { enum { Value = 0 }; };

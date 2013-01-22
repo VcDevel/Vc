@@ -301,7 +301,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
                 // accordingly
                 char *addr = reinterpret_cast<char *>(ptr);
                 typedef Memory<V, Size, 0u> MM;
-                addr -= offsetof(MM, m_mem);
+                addr -= VC_OFFSETOF(MM, m_mem);
                 return *new(addr) MM;
             }
 

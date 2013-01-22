@@ -27,9 +27,9 @@ namespace Vc
 namespace AVX
 {
 
-template<> __m128i SortHelper<short>::sort(__m128i x)
+template<> m128i SortHelper<short>::sort(VTArg _x)
 {
-    __m128i lo, hi, y;
+    m128i lo, hi, y, x = _x;
     // sort pairs
     y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1));
     lo = _mm_min_epi16(x, y);
@@ -64,9 +64,9 @@ template<> __m128i SortHelper<short>::sort(__m128i x)
 
     return _mm_unpacklo_epi16(lo, hi);
 }
-template<> __m128i SortHelper<unsigned short>::sort(__m128i x)
+template<> m128i SortHelper<unsigned short>::sort(VTArg _x)
 {
-    __m128i lo, hi, y;
+    m128i lo, hi, y, x = _x;
     // sort pairs
     y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1));
     lo = _mm_min_epu16(x, y);
@@ -102,15 +102,16 @@ template<> __m128i SortHelper<unsigned short>::sort(__m128i x)
     return _mm_unpacklo_epi16(lo, hi);
 }
 
-template<> __m256i SortHelper<int>::sort(__m256i hgfedcba)
+template<> m256i SortHelper<int>::sort(VTArg _hgfedcba)
 {
-    const __m128i hgfe = hi128(hgfedcba);
-    const __m128i dcba = lo128(hgfedcba);
-    __m128i l = _mm_min_epi32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
-    __m128i h = _mm_max_epi32(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
+    VectorType hgfedcba = _hgfedcba;
+    const m128i hgfe = hi128(hgfedcba);
+    const m128i dcba = lo128(hgfedcba);
+    m128i l = _mm_min_epi32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
+    m128i h = _mm_max_epi32(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
 
-    __m128i x = _mm_unpacklo_epi32(l, h); // ↑fb ↓fb ↑ea ↓ea
-    __m128i y = _mm_unpackhi_epi32(l, h); // ↑hd ↓hd ↑gc ↓gc
+    m128i x = _mm_unpacklo_epi32(l, h); // ↑fb ↓fb ↑ea ↓ea
+    m128i y = _mm_unpackhi_epi32(l, h); // ↑hd ↓hd ↑gc ↓gc
 
     l = _mm_min_epi32(x, y); // ↓(↑fb,↑hd) ↓hfdb ↓(↑ea,↑gc) ↓geca
     h = _mm_max_epi32(x, y); // ↑hfdb ↑(↓fb,↓hd) ↑geca ↑(↓ea,↓gc)
@@ -118,8 +119,8 @@ template<> __m256i SortHelper<int>::sort(__m256i hgfedcba)
     x = _mm_min_epi32(l, Reg::permute<X2, X2, X0, X0>(h)); // 2(hfdb) 1(hfdb) 2(geca) 1(geca)
     y = _mm_max_epi32(h, Reg::permute<X3, X3, X1, X1>(l)); // 4(hfdb) 3(hfdb) 4(geca) 3(geca)
 
-    __m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
-    __m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
+    m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
+    m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
 
     if (VC_IS_UNLIKELY(_mm_extract_epi32(x, 2) >= _mm_extract_epi32(y, 1))) {
         return concat(Reg::permute<X0, X1, X2, X3>(b), a);
@@ -144,15 +145,16 @@ template<> __m256i SortHelper<int>::sort(__m256i hgfedcba)
     return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
 }
 
-template<> __m256i SortHelper<unsigned int>::sort(__m256i hgfedcba)
+template<> m256i SortHelper<unsigned int>::sort(VTArg _hgfedcba)
 {
-    const __m128i hgfe = hi128(hgfedcba);
-    const __m128i dcba = lo128(hgfedcba);
-    __m128i l = _mm_min_epu32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
-    __m128i h = _mm_max_epu32(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
+    VectorType hgfedcba = _hgfedcba;
+    const m128i hgfe = hi128(hgfedcba);
+    const m128i dcba = lo128(hgfedcba);
+    m128i l = _mm_min_epu32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
+    m128i h = _mm_max_epu32(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
 
-    __m128i x = _mm_unpacklo_epi32(l, h); // ↑fb ↓fb ↑ea ↓ea
-    __m128i y = _mm_unpackhi_epi32(l, h); // ↑hd ↓hd ↑gc ↓gc
+    m128i x = _mm_unpacklo_epi32(l, h); // ↑fb ↓fb ↑ea ↓ea
+    m128i y = _mm_unpackhi_epi32(l, h); // ↑hd ↓hd ↑gc ↓gc
 
     l = _mm_min_epu32(x, y); // ↓(↑fb,↑hd) ↓hfdb ↓(↑ea,↑gc) ↓geca
     h = _mm_max_epu32(x, y); // ↑hfdb ↑(↓fb,↓hd) ↑geca ↑(↓ea,↓gc)
@@ -160,8 +162,8 @@ template<> __m256i SortHelper<unsigned int>::sort(__m256i hgfedcba)
     x = _mm_min_epu32(l, Reg::permute<X2, X2, X0, X0>(h)); // 2(hfdb) 1(hfdb) 2(geca) 1(geca)
     y = _mm_max_epu32(h, Reg::permute<X3, X3, X1, X1>(l)); // 4(hfdb) 3(hfdb) 4(geca) 3(geca)
 
-    __m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
-    __m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
+    m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
+    m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
 
     if (VC_IS_UNLIKELY(_mm_extract_epu32(x, 2) >= _mm_extract_epu32(y, 1))) {
         return concat(Reg::permute<X0, X1, X2, X3>(b), a);
@@ -186,15 +188,16 @@ template<> __m256i SortHelper<unsigned int>::sort(__m256i hgfedcba)
     return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
 }
 
-template<> __m256 SortHelper<float>::sort(__m256 hgfedcba)
+template<> m256 SortHelper<float>::sort(VTArg _hgfedcba)
 {
-    const __m128 hgfe = hi128(hgfedcba);
-    const __m128 dcba = lo128(hgfedcba);
-    __m128 l = _mm_min_ps(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
-    __m128 h = _mm_max_ps(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
+    VectorType hgfedcba = _hgfedcba;
+    const m128 hgfe = hi128(hgfedcba);
+    const m128 dcba = lo128(hgfedcba);
+    m128 l = _mm_min_ps(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
+    m128 h = _mm_max_ps(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
 
-    __m128 x = _mm_unpacklo_ps(l, h); // ↑fb ↓fb ↑ea ↓ea
-    __m128 y = _mm_unpackhi_ps(l, h); // ↑hd ↓hd ↑gc ↓gc
+    m128 x = _mm_unpacklo_ps(l, h); // ↑fb ↓fb ↑ea ↓ea
+    m128 y = _mm_unpackhi_ps(l, h); // ↑hd ↓hd ↑gc ↓gc
 
     l = _mm_min_ps(x, y); // ↓(↑fb,↑hd) ↓hfdb ↓(↑ea,↑gc) ↓geca
     h = _mm_max_ps(x, y); // ↑hfdb ↑(↓fb,↓hd) ↑geca ↑(↓ea,↓gc)
@@ -202,8 +205,8 @@ template<> __m256 SortHelper<float>::sort(__m256 hgfedcba)
     x = _mm_min_ps(l, Reg::permute<X2, X2, X0, X0>(h)); // 2(hfdb) 1(hfdb) 2(geca) 1(geca)
     y = _mm_max_ps(h, Reg::permute<X3, X3, X1, X1>(l)); // 4(hfdb) 3(hfdb) 4(geca) 3(geca)
 
-    __m128 a = _mm_castpd_ps(_mm_unpackhi_pd(_mm_castps_pd(x), _mm_castps_pd(y))); // a3 >= a2 >= a1 >= a0
-    __m128 b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
+    m128 a = _mm_castpd_ps(_mm_unpackhi_pd(_mm_castps_pd(x), _mm_castps_pd(y))); // a3 >= a2 >= a1 >= a0
+    m128 b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
 
     // merge
     l = _mm_min_ps(a, b); // ↓a3b3 ↓a2b2 ↓a1b1 ↓a0b0
@@ -222,15 +225,15 @@ template<> __m256 SortHelper<float>::sort(__m256 hgfedcba)
     return concat(_mm_unpacklo_ps(l, h), _mm_unpackhi_ps(l, h));
 }
 
-template<> __m256 SortHelper<sfloat>::sort(__m256 hgfedcba)
+template<> m256 SortHelper<sfloat>::sort(VTArg hgfedcba)
 {
     return SortHelper<float>::sort(hgfedcba);
 }
 
-template<> void SortHelper<double>::sort(__m256d &VC_RESTRICT x, __m256d &VC_RESTRICT y)
+template<> void SortHelper<double>::sort(m256d &VC_RESTRICT x, m256d &VC_RESTRICT y)
 {
-    __m256d l = _mm256_min_pd(x, y); // ↓x3y3 ↓x2y2 ↓x1y1 ↓x0y0
-    __m256d h = _mm256_max_pd(x, y); // ↑x3y3 ↑x2y2 ↑x1y1 ↑x0y0
+    m256d l = _mm256_min_pd(x, y); // ↓x3y3 ↓x2y2 ↓x1y1 ↓x0y0
+    m256d h = _mm256_max_pd(x, y); // ↑x3y3 ↑x2y2 ↑x1y1 ↑x0y0
     x = _mm256_unpacklo_pd(l, h); // ↑x2y2 ↓x2y2 ↑x0y0 ↓x0y0
     y = _mm256_unpackhi_pd(l, h); // ↑x3y3 ↓x3y3 ↑x1y1 ↓x1y1
     l = _mm256_min_pd(x, y); // ↓(↑x2y2,↑x3y3) ↓x3x2y3y2 ↓(↑x0y0,↑x1y1) ↓x1x0y1y0
@@ -239,8 +242,8 @@ template<> void SortHelper<double>::sort(__m256d &VC_RESTRICT x, __m256d &VC_RES
     y = _mm256_unpackhi_pd(h, l); // ↓(↑x2y2,↑x3y3) ↑x3x2y3y2 ↓(↑x0y0,↑x1y1) ↑x1x0y1y0
     l = _mm256_min_pd(x, y); // ↓(↑(↓x2y2,↓x3y3) ↓(↑x2y2,↑x3y3)) ↓x3x2y3y2 ↓(↑(↓x0y0,↓x1y1) ↓(↑x0y0,↑x1y1)) ↓x1x0y1y0
     h = _mm256_max_pd(x, y); // ↑(↑(↓x2y2,↓x3y3) ↓(↑x2y2,↑x3y3)) ↑x3x2y3y2 ↑(↑(↓x0y0,↓x1y1) ↓(↑x0y0,↑x1y1)) ↑x1x0y1y0
-    __m256d a = Reg::permute<X2, X3, X1, X0>(Reg::permute128<X0, X1>(h, h)); // h0 h1 h3 h2
-    __m256d b = Reg::permute<X2, X3, X1, X0>(l);                             // l2 l3 l1 l0
+    m256d a = Reg::permute<X2, X3, X1, X0>(Reg::permute128<X0, X1>(h, h)); // h0 h1 h3 h2
+    m256d b = Reg::permute<X2, X3, X1, X0>(l);                             // l2 l3 l1 l0
 
     // a3 >= a2 >= b1 >= b0
     // b3 <= b2 <= a1 <= a0
@@ -262,25 +265,26 @@ template<> void SortHelper<double>::sort(__m256d &VC_RESTRICT x, __m256d &VC_RES
     x = _mm256_unpacklo_pd(l, h); // h2 l2 h0 l0
     y = _mm256_unpackhi_pd(l, h); // h3 l3 h1 l1
 }
-template<> __m256d SortHelper<double>::sort(__m256d dcba)
+template<> m256d SortHelper<double>::sort(VTArg _dcba)
 {
+    VectorType dcba = _dcba;
     /*
      * to find the second largest number find
      * max(min(max(ab),max(cd)), min(max(ad),max(bc)))
      *  or
      * max(max(min(ab),min(cd)), min(max(ab),max(cd)))
      *
-    const __m256d adcb = avx_cast<__m256d>(concat(_mm_alignr_epi8(avx_cast<__m128i>(dc), avx_cast<__m128i>(ba), 8), _mm_alignr_epi8(avx_cast<__m128i>(ba), avx_cast<__m128i>(dc), 8)));
-    const __m256d l = _mm256_min_pd(dcba, adcb); // min(ad cd bc ab)
-    const __m256d h = _mm256_max_pd(dcba, adcb); // max(ad cd bc ab)
+    const m256d adcb = avx_cast<m256d>(concat(_mm_alignr_epi8(avx_cast<m128i>(dc), avx_cast<m128i>(ba), 8), _mm_alignr_epi8(avx_cast<m128i>(ba), avx_cast<m128i>(dc), 8)));
+    const m256d l = _mm256_min_pd(dcba, adcb); // min(ad cd bc ab)
+    const m256d h = _mm256_max_pd(dcba, adcb); // max(ad cd bc ab)
     // max(h3, h1)
     // max(min(h0,h2), min(h3,h1))
     // min(max(l0,l2), max(l3,l1))
     // min(l3, l1)
 
-    const __m256d ll = _mm256_min_pd(h, Reg::permute128<X0, X1>(h, h)); // min(h3h1 h2h0 h1h3 h0h2)
-    //const __m256d hh = _mm256_max_pd(h3 ll1_3 l1 l0, h1 ll0_2 l3 l2);
-    const __m256d hh = _mm256_max_pd(
+    const m256d ll = _mm256_min_pd(h, Reg::permute128<X0, X1>(h, h)); // min(h3h1 h2h0 h1h3 h0h2)
+    //const m256d hh = _mm256_max_pd(h3 ll1_3 l1 l0, h1 ll0_2 l3 l2);
+    const m256d hh = _mm256_max_pd(
             Reg::permute128<X1, Y0>(_mm256_unpackhi_pd(ll, h), l),
             Reg::permute128<X0, Y1>(_mm256_blend_pd(h ll, 0x1), l));
     _mm256_min_pd(hh0, hh1
@@ -291,10 +295,10 @@ template<> __m256d SortHelper<double>::sort(__m256d dcba)
     // max(max(min(ac),min(bd)), min(max(ac),max(bd)))
     // min(max(min(ac),min(bd)), min(max(ac),max(bd)))
     // min(min(ac), min(bd))
-    __m128d l = _mm_min_pd(lo128(dcba), hi128(dcba)); // min(bd) min(ac)
-    __m128d h = _mm_max_pd(lo128(dcba), hi128(dcba)); // max(bd) max(ac)
-    __m128d h0_l0 = _mm_unpacklo_pd(l, h);
-    __m128d h1_l1 = _mm_unpackhi_pd(l, h);
+    m128d l = _mm_min_pd(lo128(dcba), hi128(dcba)); // min(bd) min(ac)
+    m128d h = _mm_max_pd(lo128(dcba), hi128(dcba)); // max(bd) max(ac)
+    m128d h0_l0 = _mm_unpacklo_pd(l, h);
+    m128d h1_l1 = _mm_unpackhi_pd(l, h);
     l = _mm_min_pd(h0_l0, h1_l1);
     h = _mm_max_pd(h0_l0, h1_l1);
     return concat(
@@ -312,11 +316,11 @@ template<> __m256d SortHelper<double>::sort(__m256d dcba)
     // total:   17 cycles
 
     /*
-    __m256d cdab = Reg::permute<X2, X3, X0, X1>(dcba);
-    __m256d l = _mm256_min_pd(dcba, cdab);
-    __m256d h = _mm256_max_pd(dcba, cdab);
-    __m256d maxmin_ba = Reg::permute128<X0, Y0>(l, h);
-    __m256d maxmin_dc = Reg::permute128<X1, Y1>(l, h);
+    m256d cdab = Reg::permute<X2, X3, X0, X1>(dcba);
+    m256d l = _mm256_min_pd(dcba, cdab);
+    m256d h = _mm256_max_pd(dcba, cdab);
+    m256d maxmin_ba = Reg::permute128<X0, Y0>(l, h);
+    m256d maxmin_dc = Reg::permute128<X1, Y1>(l, h);
 
     l = _mm256_min_pd(maxmin_ba, maxmin_dc);
     h = _mm256_max_pd(maxmin_ba, maxmin_dc);
@@ -328,8 +332,8 @@ template<> __m256d SortHelper<double>::sort(__m256d dcba)
     // a b c d
     // b a d c
     // sort pairs
-    __m256d y, l, h;
-    __m128d l2, h2;
+    m256d y, l, h;
+    m128d l2, h2;
     y = shuffle<X1, Y0, X3, Y2>(x, x);
     l = _mm256_min_pd(x, y); // min[ab ab cd cd]
     h = _mm256_max_pd(x, y); // max[ab ab cd cd]
@@ -350,9 +354,9 @@ template<> __m256d SortHelper<double>::sort(__m256d dcba)
     // concat(_mm_unpacklo_pd(l2, h2), _mm_unpackhi_pd(l2, h2));
 
     // I'd like to have four useful compares
-    const __m128d dc = hi128(dcba);
-    const __m128d ba = lo128(dcba);
-    const __m256d adcb = avx_cast<__m256d>(concat(_mm_alignr_epi8(avx_cast<__m128i>(dc), avx_cast<__m128i>(ba), 8), _mm_alignr_epi8(avx_cast<__m128i>(ba), avx_cast<__m128i>(dc), 8)));
+    const m128d dc = hi128(dcba);
+    const m128d ba = lo128(dcba);
+    const m256d adcb = avx_cast<m256d>(concat(_mm_alignr_epi8(avx_cast<m128i>(dc), avx_cast<m128i>(ba), 8), _mm_alignr_epi8(avx_cast<m128i>(ba), avx_cast<m128i>(dc), 8)));
 
     const int extraCmp = _mm_movemask_pd(_mm_cmpgt_pd(dc, ba));
     // 0x0: d <= b && c <= a
