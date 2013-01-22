@@ -482,6 +482,34 @@ namespace AVX
         static inline void Vc_INTRINSIC _mm256_maskstore(unsigned int *mem, const param256i mask, const param256i v) {
             _mm256_maskstore(reinterpret_cast<int *>(mem), mask, v);
         }
+
+#if defined(VC_IMPL_FMA4) && VC_CLANG < 0x30400
+        // clang miscompiles _mm256_macc_ps: http://llvm.org/bugs/show_bug.cgi?id=15040
+#if VC_CLANG >= 0x30300
+#warning "Check whether the workaround for bug 15040 (_mm256_macc_ps miscompilation) is still necessary"
+#endif
+        static inline Vc_INTRINSIC __m256 my256_macc_ps(__m256 a, __m256 b, __m256 c) {
+            __m256 r;
+            // avoid loading c from memory as that would trigger the bug
+            asm("vfmaddps %[c], %[b], %[a], %[r]" : [r]"=x"(r) : [a]"x"(a), [b]"x"(b), [c]"x"(c));
+            return r;
+        }
+#ifdef _mm256_macc_ps
+#undef _mm256_macc_ps
+#endif
+#define _mm256_macc_ps(a, b, c) Vc::AVX::my256_macc_ps(a, b, c)
+
+        static inline Vc_INTRINSIC __m256d my256_macc_pd(__m256d a, __m256d b, __m256d c) {
+            __m256d r;
+            // avoid loading c from memory as that would trigger the bug
+            asm("vfmaddpd %[c], %[b], %[a], %[r]" : [r]"=x"(r) : [a]"x"(a), [b]"x"(b), [c]"x"(c));
+            return r;
+        }
+#ifdef _mm256_macc_pd
+#undef _mm256_macc_pd
+#endif
+#define _mm256_macc_pd(a, b, c) Vc::AVX::my256_macc_pd(a, b, c)
+#endif
 } // namespace AVX
 } // namespace Vc
 
