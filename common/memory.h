@@ -131,6 +131,11 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
             __declspec(align(__alignof(VectorAlignedBaseT<V>)))
 #elif defined(VC_CLANG)
             __attribute__((aligned(__alignof(VectorAlignedBaseT<V>))))
+#elif defined(VC_MSVC)
+	    VectorAlignedBaseT<V> _force_alignment;
+            // __declspec(align(#)) accepts only numbers not __alignof nor just VectorAlignment
+	    // by putting VectorAlignedBaseT<V> here _force_alignment is aligned correctly.
+	    // the downside is that there's a lot of padding before m_mem (32 Bytes with SSE) :(
 #endif
             EntryType m_mem[Size1][PaddedSize2];
         public:
