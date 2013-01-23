@@ -46,7 +46,7 @@ namespace Vc
         static _VC_CONSTEXPR double e()         { return 2.7182818284590452353602874713526625; }
         static _VC_CONSTEXPR double log2e()     { return 1.4426950408889634073599246810018921; }
         static _VC_CONSTEXPR double log10e()    { return 0.4342944819032518276511289189166051; }
-        static _VC_CONSTEXPR double ln2()       { return Vc_buildDouble(1, 0xC5C85FDF473DEull, -1); } // .69314718055994528622676398299518041312694549560546875
+        static _VC_CONSTEXPR double ln2()       { return Vc_buildDouble(1, 0x62E42FEFA39EFull, -1); } // .69314718055994528622676398299518041312694549560546875
         static _VC_CONSTEXPR double ln10()      { return 2.3025850929940456840179914546843642; }
         static _VC_CONSTEXPR double pi()        { return 3.1415926535897932384626433832795029; }
         static _VC_CONSTEXPR double pi_2()      { return 1.5707963267948966192313216916397514; }
