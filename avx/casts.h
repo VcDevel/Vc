@@ -55,6 +55,13 @@ namespace AVX
     template<> inline m128d Vc_INTRINSIC avx_cast(param128d v) { return v; }
 
     // 128 -> 256
+    // FIXME: the following casts leave the upper 128bits undefined. With GCC and ICC I've never
+    // seen the cast not do what I want though: after a VEX-coded SSE instruction the registers
+    // upper 128bits are zero. Thus using the same register as AVX register will have the upper
+    // 128bits zeroed. MSVC, though, implements _mm256_castxx128_xx256 with a 128bit move to memory
+    // + 256bit load. Thus the upper 128bits are really undefined. But there is no intrinsic to do
+    // what I want (i.e. alias the register, disallowing the move to memory in-between). I'm stuck,
+    // do we really want to rely on specific compiler behavior here?
     template<> inline m256  Vc_INTRINSIC avx_cast(param128  v) { return _mm256_castps128_ps256(v); }
     template<> inline m256  Vc_INTRINSIC avx_cast(param128i v) { return _mm256_castps128_ps256(_mm_castsi128_ps(v)); }
     template<> inline m256  Vc_INTRINSIC avx_cast(param128d v) { return _mm256_castps128_ps256(_mm_castpd_ps(v)); }
