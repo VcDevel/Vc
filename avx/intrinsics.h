@@ -85,13 +85,13 @@ namespace AVX
     {
         typedef T Base;
         T _d;
-        operator T &() { return _d; }
-        operator const T &() const { return _d; }
-        Alias() {}
-        Alias(T x) : _d(x) {}
-        Alias(const Alias &x) : _d(x._d) {}
-        Alias &operator=(T x) { _d = x; return *this; }
-        Alias &operator=(const Alias &x) { _d = x._d; return *this; }
+        inline Vc_ALWAYS_INLINE operator T &() { return _d; }
+        inline Vc_ALWAYS_INLINE operator const T &() const { return _d; }
+        inline Vc_ALWAYS_INLINE Alias() {}
+        inline Vc_ALWAYS_INLINE Alias(T x) : _d(x) {}
+        inline Vc_ALWAYS_INLINE Alias(const Alias &x) : _d(x._d) {}
+        inline Vc_ALWAYS_INLINE Alias &operator=(T x) { _d = x; return *this; }
+        inline Vc_ALWAYS_INLINE Alias &operator=(const Alias &x) { _d = x._d; return *this; }
     };
     typedef Alias<__m128 > m128 ;
     typedef Alias<__m128d> m128d;
