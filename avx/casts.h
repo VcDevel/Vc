@@ -56,7 +56,7 @@ namespace AVX
 
     // 128 -> 256
     // FIXME: the following casts leave the upper 128bits undefined. With GCC and ICC I've never
-    // seen the cast not do what I want though: after a VEX-coded SSE instruction the registers
+    // seen the cast not do what I want though: after a VEX-coded SSE instruction the register's
     // upper 128bits are zero. Thus using the same register as AVX register will have the upper
     // 128bits zeroed. MSVC, though, implements _mm256_castxx128_xx256 with a 128bit move to memory
     // + 256bit load. Thus the upper 128bits are really undefined. But there is no intrinsic to do
