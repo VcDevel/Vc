@@ -72,6 +72,16 @@ namespace AVX
     template<> inline m256d Vc_INTRINSIC avx_cast(param128i v) { return _mm256_castpd128_pd256(_mm_castsi128_pd(v)); }
     template<> inline m256d Vc_INTRINSIC avx_cast(param128d v) { return _mm256_castpd128_pd256(v); }
 
+#ifdef VC_MSVC
+    static inline Vc_INTRINSIC m256  zeroExtend(param128  v) { return _mm256_insertf128_ps   (_mm256_castps128_ps256(v)); }
+    static inline Vc_INTRINSIC m256i zeroExtend(param128i v) { return _mm256_insertf128_si256(_mm256_castsi128_si256(v)); }
+    static inline Vc_INTRINSIC m256d zeroExtend(param128d v) { return _mm256_insertf128_pd   (_mm256_castpd128_pd256(v)); }
+#else
+    static inline Vc_INTRINSIC m256  zeroExtend(param128  v) { return _mm256_castps128_ps256(v); }
+    static inline Vc_INTRINSIC m256i zeroExtend(param128i v) { return _mm256_castsi128_si256(v); }
+    static inline Vc_INTRINSIC m256d zeroExtend(param128d v) { return _mm256_castpd128_pd256(v); }
+#endif
+
     // 256 -> 128
     template<> inline m128  Vc_INTRINSIC avx_cast(param256  v) { return _mm256_castps256_ps128(v); }
     template<> inline m128  Vc_INTRINSIC avx_cast(param256i v) { return _mm256_castps256_ps128(_mm256_castsi256_ps(v)); }
