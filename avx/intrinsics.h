@@ -72,8 +72,13 @@ namespace AVX
      *
      * To make my own overloads of the intrinsics distinct I have to use a type that is inside the
      * Vc::AVX namespace. To reduce porting effort and increase generality I want to use the same
-     * names as used in the global namespace. Since a typedef is not enough I will simply use public
-     * inheritance.
+     * function names as used in the global namespace. The type name may not be the same, though
+     * because identifiers starting with two underscores are reserved by the standard. Thus using
+     * those would mean to depend on undefined behavior.
+     * Sadly a typedef is not enough.
+     * Public inheritance also does not work, because at least ICC considers the __m??? types to be
+     * some sort of fundamental types.
+     * Thus composition is the only solution.
      */
 #ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
     template<typename T> struct Alias
