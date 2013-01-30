@@ -24,11 +24,14 @@
 #error "Vc/global.h must be included first!"
 #endif
 
+#include <Vc/cpuid.h>
+
 namespace Vc
 {
 
 /**
  * \ingroup Utilities
+ * \headerfile support.h <Vc/support.h>
  *
  * Tests whether the given implementation is supported by the system the code is executing on.
  *
@@ -42,9 +45,34 @@ namespace Vc
 #endif
 bool isImplementationSupported(Vc::Implementation impl);
 
+/**
+ * \ingroup Utilities
+ * \headerfile support.h <Vc/support.h>
+ *
+ * Determines the best supported implementation for the current system.
+ *
+ * \return The enum value for the best implementation.
+ */
+#ifdef VC_GCC
+    __attribute__((target("no-sse2,no-avx")))
+#endif
+Vc::Implementation bestImplementationSupported();
+
+/**
+ * \ingroup Utilities
+ * \headerfile support.h <Vc/support.h>
+ *
+ * \return A combination of flags from Vc::ExtraInstructions that the current CPU supports.
+ */
+#ifdef VC_GCC
+__attribute__((target("no-sse2,no-avx")))
+#endif
+unsigned int extraInstructionsSupported();
+
 #ifndef VC_COMPILE_LIB
 /**
  * \ingroup Utilities
+ * \headerfile support.h <Vc/support.h>
  *
  * Tests that the CPU and Operating System support the vector unit which was compiled for. This
  * function should be called before any other Vc functionality is used. It checks whether the program
@@ -84,10 +112,10 @@ static bool currentImplementationSupported()
             VC_IMPL
 #endif
 #ifdef VC_IMPL_XOP
-            ) && isImplementationSupported(XopImpl
+            ) && CpuId::hasXop(
 #endif
 #ifdef VC_IMPL_FMA4
-            ) && isImplementationSupported(Fma4Impl
+            ) && CpuId::hasFma4(
 #endif
             );
 }

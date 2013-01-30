@@ -317,6 +317,8 @@ static inline StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, Aligned
  * Enum to identify a certain SIMD instruction set.
  *
  * You can use \ref VC_IMPL for the currently active implementation.
+ *
+ * \see ExtraInstructions
  */
 enum Implementation {
     /// uses only built-in types
@@ -335,10 +337,30 @@ enum Implementation {
     SSE4aImpl,
     /// x86 AVX
     AVXImpl,
-    /// x86 (AMD only) XOP
-    Fma4Impl,
-    /// x86 (AMD only) FMA4
-    XopImpl
+    /// x86 AVX + AVX2
+    AVX2Impl
+};
+
+/**
+ * \ingroup Utilities
+ *
+ * The list of available instructions is not easily described by a linear list of instruction sets.
+ * On x86 the following instruction sets always include their predecessors:
+ * SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2
+ *
+ * But there are additional instructions that are not necessarily required by this list. These are
+ * covered in this enum.
+ */
+enum ExtraInstructions {
+    _dummy = 0xffffffffu,
+    Float16cInstructions  = 0x01, // f16c
+    Fma4Instructions      = 0x02,
+    XopInstructions       = 0x04,
+    PopcntInstructions    = 0x08
+    // Fma3Instructions,
+    // PclmulqdqInstructions,
+    // AesInstructions,
+    // RdrandInstructions
 };
 
 #ifdef DOXYGEN

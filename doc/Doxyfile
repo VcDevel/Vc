@@ -667,6 +667,7 @@ WARN_LOGFILE           =
 
 INPUT                  = ../include/Vc/global.h \
                          ../include/Vc/cpuid.h \
+                         ../include/Vc/support.h \
                          ../include/Vc/Allocator \
                          ./ \
                          ../common/

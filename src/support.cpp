@@ -19,7 +19,7 @@
 
 #include <Vc/global.h>
 #include <Vc/cpuid.h>
-#include "common/support.h"
+#include <Vc/support.h>
 
 #ifdef VC_MSVC
 #include <intrin.h>
@@ -27,6 +27,20 @@
 
 namespace Vc
 {
+
+static inline bool xgetbvCheck(unsigned int bits)
+{
+#if VC_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
+    unsigned long long xcrFeatureMask = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
+    return (xcrFeatureMask & bits) == bits;
+#elif defined(VC_GNU_ASM) && !defined(VC_NO_XGETBV)
+    unsigned int eax;
+    asm("xgetbv" : "=a"(eax) : "c"(0) : "edx");
+    return (eax & bits) == bits;
+#endif
+    // can't check, but if OSXSAVE is true let's assume it'll work
+    return true;
+}
 
 #ifdef VC_GCC
     __attribute__((target("no-sse2,no-avx")))
@@ -50,29 +64,49 @@ bool isImplementationSupported(Implementation impl)
         return CpuId::hasSse42();
     case SSE4aImpl:
         return CpuId::hasSse4a();
-    case XopImpl:
-        return isImplementationSupported(Vc::AVXImpl) && CpuId::hasXop();
-    case Fma4Impl:
-        return isImplementationSupported(Vc::AVXImpl) && CpuId::hasFma4();
     case AVXImpl:
-        if (CpuId::hasOsxsave() && CpuId::hasAvx()) {
-#if defined(VC_MSVC)
-#if VC_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
-            unsigned long long xcrFeatureMask = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
-            return (xcrFeatureMask & 0x6) != 0;
-#else
-            // can't check, but if OSXSAVE is true let's assume it'll work
-            return true;
-#endif
-#elif !defined(VC_NO_XGETBV)
-            unsigned int eax;
-            asm("xgetbv" : "=a"(eax) : "c"(0) : "edx");
-            return (eax & 0x06) == 0x06;
-#endif
-        }
+        return CpuId::hasOsxsave() && CpuId::hasAvx() && xgetbvCheck(0x6);
+    case AVX2Impl:
         return false;
     }
     return false;
+}
+
+#ifdef VC_GCC
+__attribute__((target("no-sse2,no-avx")))
+#endif
+Vc::Implementation bestImplementationSupported()
+{
+    CpuId::init();
+
+    if (!CpuId::hasSse2 ()) return Vc::ScalarImpl;
+    if (!CpuId::hasSse3 ()) return Vc::SSE2Impl;
+    if (!CpuId::hasSsse3()) {
+        if (!CpuId::hasSse4a()) return Vc::SSE3Impl;
+        return Vc::SSE4aImpl;
+    }
+    if (!CpuId::hasSse41()) return Vc::SSSE3Impl;
+    if (!CpuId::hasSse42()) return Vc::SSE41Impl;
+    if (CpuId::hasAvx() && CpuId::hasOsxsave() && xgetbvCheck(0x6)) {
+        return Vc::AVXImpl;
+    }
+    return Vc::SSE42Impl;
+}
+
+#ifdef VC_GCC
+__attribute__((target("no-sse2,no-avx")))
+#endif
+unsigned int extraInstructionsSupported()
+{
+    unsigned int flags = 0;
+    if (CpuId::hasF16c()) flags |= Vc::Float16cInstructions;
+    if (CpuId::hasFma4()) flags |= Vc::Fma4Instructions;
+    if (CpuId::hasXop ()) flags |= Vc::XopInstructions;
+    if (CpuId::hasPopcnt()) flags |= Vc::PopcntInstructions;
+    //if (CpuId::hasPclmulqdq()) flags |= Vc::PclmulqdqInstructions;
+    //if (CpuId::hasAes()) flags |= Vc::AesInstructions;
+    //if (CpuId::hasRdrand()) flags |= Vc::RdrandInstructions;
+    return flags;
 }
 
 } // namespace Vc
