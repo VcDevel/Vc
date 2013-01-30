@@ -353,9 +353,13 @@ enum Implementation {
  */
 enum ExtraInstructions {
     _dummy = 0xffffffffu,
+    //! Support for float16 conversions in hardware
     Float16cInstructions  = 0x01, // f16c
+    //! Support for FMA4 instructions
     Fma4Instructions      = 0x02,
+    //! Support for XOP instructions
     XopInstructions       = 0x04,
+    //! Support for the population count instruction
     PopcntInstructions    = 0x08
     // Fma3Instructions,
     // PclmulqdqInstructions,
