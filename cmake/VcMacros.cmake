@@ -301,6 +301,10 @@ macro(vc_set_preferred_compiler_flags)
          # this warning just adds noise about problems in the compiler - but I'm only interested in seeing problems in Vc
          vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 2928")
       endif()
+
+      # Intel doesn't implement the XOP or FMA4 intrinsics
+      set(Vc_XOP_INTRINSICS_BROKEN true)
+      set(Vc_FMA4_INTRINSICS_BROKEN true)
    elseif(Vc_COMPILER_IS_MSVC)
       if(_add_warning_flags)
          AddCompilerFlag("/wd4800") # Disable warning "forcing value to bool"
