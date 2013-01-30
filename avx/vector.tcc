@@ -1228,7 +1228,7 @@ template<> struct VectorShift<32, 4, m256d, double>
         case  0: return v;
         case  1: return concat(avx_cast<m128d>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(double))), avx_cast<m128d>(_mm_srli_si128(vHi, 1 * sizeof(double))));
         case  2: return zeroExtend(hi128(v));
-        case  3: return zeroExtend(_mm_srli_si128(vHi, 1 * sizeof(double)));
+        case  3: return zeroExtend(avx_cast<m128d>(_mm_srli_si128(vHi, 1 * sizeof(double))));
         case -1: return concat(avx_cast<m128d>(_mm_slli_si128(vLo, 1 * sizeof(double))), avx_cast<m128d>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(double))));
         case -2: return _mm256_permute2f128_pd(v, v, 0x8);
         case -3: return concat(_mm_setzero_pd(), avx_cast<m128d>(_mm_slli_si128(vLo, 1 * sizeof(double))));
