@@ -41,7 +41,7 @@ namespace Vc
      *
      * \param Type Your type that you want to use with STL containers.
      *
-     * \note You have to place this macro in the global namespace.
+     * \note You have to use this macro in the global namespace.
      */
 #define VC_DECLARE_ALLOCATOR(Type) \
 namespace std \
