@@ -42,7 +42,8 @@
  * says is available. For example compiling with "g++ -mssse3" will enable compilation against the
  * SSE implementation using SSE the instruction sets SSE, SSE2, SSE3 and SSSE3. If you want to force
  * compilation against a specific implementation of the vector classes you can set the macro
- * VC_IMPL to either "Scalar", "SSE2", "SSE3", "SSSE3", "SSE4_1", "SSE4_2", "SSE4a", or "AVX".
+ * VC_IMPL to either "Scalar", "SSE", "SSE2", "SSE3", "SSSE3", "SSE4_1", "SSE4_2", "SSE4a", or "AVX".
+ * You may additionally append "+XOP", "+FMA4", "+F16C", and "+POPCNT", e.g. "-D VC_IMPL=SSE+XOP+FMA4"
  * Setting VC_IMPL to
  * "SSE" will force the SSE instruction set, but lets the headers figure out the version to use or,
  * if that fails, uses SSE4.1.
