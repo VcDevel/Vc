@@ -78,15 +78,23 @@
  * compare. This allows to use -DVC_IMPL=SSE3. The preprocessor will then consider VC_IMPL and SSE3
  * to be equal. Of course, it is important to undefine the strings later on!
  */
-#define SSE    9875294
-#define SSE2   9875295
-#define SSE3   9875296
-#define SSSE3  9875297
-#define SSE4_1 9875298
-#define Scalar 9875299
-#define SSE4_2 9875301
-#define SSE4a  9875302
-#define AVX    9875303
+#define Scalar 0x00100000
+#define SSE    0x00200000
+#define SSE2   0x00300000
+#define SSE3   0x00400000
+#define SSSE3  0x00500000
+#define SSE4_1 0x00600000
+#define SSE4_2 0x00700000
+#define SSE4a  0x00800000
+#define AVX    0x00900000
+
+#define XOP    0x00000001
+#define FMA4   0x00000002
+#define F16C   0x00000004
+#define POPCNT 0x00000008
+
+#define IMPL_MASK 0xFFF00000
+#define EXT_MASK  0x000FFFFF
 
 #ifdef VC_MSVC
 # ifdef _M_IX86_FP
@@ -115,6 +123,18 @@
 
 #  if defined(__AVX__)
 #    define VC_IMPL_AVX 1
+#    ifdef __FMA4__
+#      define VC_IMPL_FMA4 1
+#    endif
+#    ifdef __XOP__
+#      define VC_IMPL_XOP 1
+#    endif
+#    ifdef __F16C__
+#      define VC_IMPL_F16C 1
+#    endif
+#    ifdef __POPCNT__
+#      define VC_IMPL_POPCNT 1
+#    endif
 #  else
 #    if defined(__SSE4A__)
 #      define VC_IMPL_SSE 1
@@ -150,41 +170,41 @@
 
 #else // VC_IMPL
 
-#  if VC_IMPL == AVX // AVX supersedes SSE
+#  if (VC_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
 #    define VC_IMPL_AVX 1
-#  elif VC_IMPL == Scalar
+#  elif (VC_IMPL & IMPL_MASK) == Scalar
 #    define VC_IMPL_Scalar 1
-#  elif VC_IMPL == SSE4a
+#  elif (VC_IMPL & IMPL_MASK) == SSE4a
 #    define VC_IMPL_SSE4a 1
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#  elif VC_IMPL == SSE4_2
+#  elif (VC_IMPL & IMPL_MASK) == SSE4_2
 #    define VC_IMPL_SSE4_2 1
 #    define VC_IMPL_SSE4_1 1
 #    define VC_IMPL_SSSE3 1
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#  elif VC_IMPL == SSE4_1
+#  elif (VC_IMPL & IMPL_MASK) == SSE4_1
 #    define VC_IMPL_SSE4_1 1
 #    define VC_IMPL_SSSE3 1
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#  elif VC_IMPL == SSSE3
+#  elif (VC_IMPL & IMPL_MASK) == SSSE3
 #    define VC_IMPL_SSSE3 1
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#  elif VC_IMPL == SSE3
+#  elif (VC_IMPL & IMPL_MASK) == SSE3
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#  elif VC_IMPL == SSE2
+#  elif (VC_IMPL & IMPL_MASK) == SSE2
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
-#  elif VC_IMPL == SSE
+#  elif (VC_IMPL & IMPL_MASK) == SSE
 #    define VC_IMPL_SSE 1
 #    if defined(__SSE4A__)
 #      define VC_IMPL_SSE4a 1
@@ -205,6 +225,18 @@
 #      define VC_IMPL_SSE2 1
 #    endif
 #  endif
+#  if (VC_IMPL & XOP)
+#    define VC_IMPL_XOP 1
+#  endif
+#  if (VC_IMPL & FMA4)
+#    define VC_IMPL_FMA4 1
+#  endif
+#  if (VC_IMPL & F16C)
+#    define VC_IMPL_F16C 1
+#  endif
+#  if (VC_IMPL & POPCNT)
+#    define VC_IMPL_POPCNT 1
+#  endif
 #  undef VC_IMPL
 
 #endif // VC_IMPL
@@ -212,17 +244,6 @@
 // If AVX is enabled in the compiler it will use VEX coding for the SIMD instructions.
 #ifdef __AVX__
 #  define VC_USE_VEX_CODING 1
-#endif
-
-#ifdef VC_IMPL_AVX
-// There are no explicit switches for FMA4/XOP in Vc yet, so enable it when the compiler
-// says it's active and AVX is enabled
-#ifdef __FMA4__
-#  define VC_IMPL_FMA4 1
-#endif
-#ifdef __XOP__
-#  define VC_IMPL_XOP 1
-#endif
 #endif
 
 #if defined(VC_GCC) && VC_GCC < 0x40300 && !defined(VC_IMPL_Scalar)
@@ -239,6 +260,8 @@
 #    undef VC_IMPL_AVX
 #    undef VC_IMPL_FMA4
 #    undef VC_IMPL_XOP
+#    undef VC_IMPL_F16C
+#    undef VC_IMPL_POPCNT
 #    undef VC_USE_VEX_CODING
 #    define VC_IMPL_Scalar 1
 #endif
@@ -249,6 +272,7 @@
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
 # endif
 
+#undef Scalar
 #undef SSE
 #undef SSE2
 #undef SSE3
@@ -257,7 +281,14 @@
 #undef SSE4_2
 #undef SSE4a
 #undef AVX
-#undef Scalar
+
+#undef XOP
+#undef FMA4
+#undef F16C
+#undef POPCNT
+
+#undef IMPL_MASK
+#undef EXT_MASK
 
 namespace Vc {
 enum AlignedFlag {
@@ -392,6 +423,23 @@ enum ExtraInstructions {
 #elif VC_IMPL_SSE2
 #define VC_IMPL ::Vc::SSE2Impl
 #endif
+
+template<unsigned int Features> struct ImplementationT {};
+
+typedef ImplementationT<(VC_IMPL << 20)
+#ifdef VC_IMPL_XOP
+    + Vc::XopInstructions
+#endif
+#ifdef VC_IMPL_FMA4
+    + Vc::Fma4Instructions
+#endif
+#ifdef VC_IMPL_F16C
+    + Vc::Float16cInstructions
+#endif
+#ifdef VC_IMPL_POPCNT
+    + Vc::PopcntInstructions
+#endif
+    > CurrentImplementation;
 
 namespace Internal {
     template<Implementation Impl> struct HelperImpl;

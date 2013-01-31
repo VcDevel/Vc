@@ -28,8 +28,22 @@ namespace Vc
 namespace
 {
     using Vc::VC__USE_NAMESPACE::Vector;
-} // namespace 
-template<Implementation Impl> struct Trigonometric
+} // namespace
+
+namespace Internal
+{
+template<Vc::Implementation Impl> struct MapImpl { enum Dummy { Value = Impl << 20 }; };
+template<> struct MapImpl<Vc::SSE4aImpl> { enum Dummy { Value = MapImpl<Vc::SSE3Impl >::Value }; };
+template<> struct MapImpl<Vc::SSE42Impl> { enum Dummy { Value = MapImpl<Vc::SSE41Impl>::Value }; };
+typedef ImplementationT<MapImpl<VC_IMPL>::Value
+#if VC_IMPL_XOP && VC_IMPL_FMA4
+    + Vc::XopInstructions
+    + Vc::Fma4Instructions
+#endif
+    > TrigonometricImplementation;
+} // namespace Internal
+
+template<typename Impl> struct Trigonometric
 {
     template<typename T> static Vector<T> sin(const Vector<T> &_x);
     template<typename T> static Vector<T> cos(const Vector<T> &_x);
@@ -42,22 +56,22 @@ namespace VC__USE_NAMESPACE
 #undef VC__USE_NAMESPACE
 {
     template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
-        return Vc::Trigonometric<VC_IMPL>::sin(_x);
+        return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(_x);
     }
     template<typename T> static inline Vector<T> cos(const Vector<T> &_x) {
-        return Vc::Trigonometric<VC_IMPL>::cos(_x);
+        return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::cos(_x);
     }
     template<typename T> static inline void sincos(const Vector<T> &_x, Vector<T> *_sin, Vector<T> *_cos) {
-        Vc::Trigonometric<VC_IMPL>::sincos(_x, _sin, _cos);
+        Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::sincos(_x, _sin, _cos);
     }
     template<typename T> static inline Vector<T> asin (const Vector<T> &_x) {
-        return Vc::Trigonometric<VC_IMPL>::asin(_x);
+        return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::asin(_x);
     }
     template<typename T> static inline Vector<T> atan (const Vector<T> &_x) {
-        return Vc::Trigonometric<VC_IMPL>::atan(_x);
+        return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan(_x);
     }
     template<typename T> static inline Vector<T> atan2(const Vector<T> &y, const Vector<T> &x) {
-        return Vc::Trigonometric<VC_IMPL>::atan2(y, x);
+        return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan2(y, x);
     }
 } // namespace VC__USE_NAMESPACE
 } // namespace Vc

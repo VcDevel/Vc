@@ -331,24 +331,28 @@
      EXCLUDE Scalar SSE2)
    \endverbatim
  * You can specify an arbitrary number of additional compiler flags after the FLAGS argument. These
- * flags will be used for all compiler calls. After the EXCLUDE argument you can specify targets
- * that you want to exclude. Often it suffices to have SSE2 or SSE3 as the least common denominator.
+ * flags will be used for all compiler calls. After an optional EXCLUDE argument you can specify targets
+ * that you want to exclude. After an optional ONLY argument you can specify targets that you want
+ * to compile for. (So either you exclude some, or you explicitly list the targets you want.)
+ *
+ * Often it suffices to have SSE2 or SSE3 as the least common denominator and provide SSE4_1 and
+ * AVX. Here is the currently complete list of possible targets the macro will compile for:
+ * \li Scalar
+ * \li SSE2
+ * \li SSE3
+ * \li SSSE3
+ * \li SSE4_1
+ * \li SSE4_2
+ * \li SSE4a
+ * \li SSE+FMA4
+ * \li SSE+XOP
+ * \li SSE+XOP+FMA4
+ * \li AVX
+ * \li AVX+FMA4
+ * \li AVX+XOP
+ * \li AVX+XOP+FMA4
  *
  * \section buildsystem_other Using Vc without CMake
- *
- * \section buildsystem_macros CMake Macros
- *
- * The macro vc_compile_for_all_implementations is provided to help with compiling a given source
- * file multiple times with all different possible SIMD targets for the given architecture.
- * Example:
-   \verbatim
-   vc_compile_for_all_implementations(objs src/trigonometric.cpp
-     FLAGS -DSOME_FLAG
-     EXCLUDE Scalar SSE2)
-   \endverbatim
- * You can specify an arbitrary number of additional compiler flags after the FLAGS argument. These
- * flags will be used for all compiler calls. After the EXCLUDE argument you can specify targets
- * that you want to exclude. Often it suffices to have SSE2 or SSE3 as the least common denominator.
  *
  * If your project does not use CMake all you need to do is the following:
  * \li Find the header file "Vc/Vc" and add its path to your include paths.
