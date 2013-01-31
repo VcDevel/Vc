@@ -49,9 +49,9 @@
 #endif
 
 #ifdef VC_CLANG
-#  define Vc_INTRINSIC __attribute__((always_inline))
-#  define Vc_INTRINSIC_L
-#  define Vc_INTRINSIC_R Vc_INTRINSIC
+#  define Vc_INTRINSIC_L inline
+#  define Vc_INTRINSIC_R __attribute__((always_inline))
+#  define Vc_INTRINSIC Vc_INTRINSIC_L Vc_INTRINSIC_R
 #  define Vc_FLATTEN
 #  define Vc_CONST __attribute__((const))
 #  define Vc_CONST_L
@@ -60,9 +60,9 @@
 #  define Vc_PURE_L
 #  define Vc_PURE_R Vc_PURE
 #  define Vc_MAY_ALIAS __attribute__((may_alias))
-#  define Vc_ALWAYS_INLINE __attribute__((always_inline))
-#  define Vc_ALWAYS_INLINE_L
-#  define Vc_ALWAYS_INLINE_R Vc_ALWAYS_INLINE
+#  define Vc_ALWAYS_INLINE_L inline
+#  define Vc_ALWAYS_INLINE_R __attribute__((always_inline))
+#  define Vc_ALWAYS_INLINE Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE_R
 #  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
@@ -75,15 +75,19 @@
 #  endif
 #  if VC_GCC < 0x40200
 // GCC 4.1 fails with "sorry unimplemented: inlining failed"
-#    define Vc_INTRINSIC __attribute__((__flatten__))
+#    define Vc_INTRINSIC_R __attribute__((__flatten__))
 #  elif VC_GCC < 0x40300 || defined(VC_OPEN64)
 // the GCC 4.2 frontend doesn't know the __artificial__ attribute
-#    define Vc_INTRINSIC __attribute__((__flatten__, __always_inline__))
+#    define Vc_INTRINSIC_R __attribute__((__flatten__, __always_inline__))
 #  else
-#    define Vc_INTRINSIC __attribute__((__flatten__, __always_inline__, __artificial__))
+#    define Vc_INTRINSIC_R __attribute__((__flatten__, __always_inline__, __artificial__))
 #  endif
+#  define Vc_INTRINSIC_L inline
+#  define Vc_INTRINSIC Vc_INTRINSIC_L Vc_INTRINSIC_R
 #  define Vc_FLATTEN __attribute__((__flatten__))
-#  define Vc_ALWAYS_INLINE __attribute__((__always_inline__))
+#  define Vc_ALWAYS_INLINE_L inline
+#  define Vc_ALWAYS_INLINE_R __attribute__((__always_inline__))
+#  define Vc_ALWAYS_INLINE Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE_R
 #  ifdef VC_ICC
      // ICC miscompiles if there are functions marked as pure or const
 #    define Vc_PURE
@@ -92,14 +96,10 @@
 #    define Vc_PURE __attribute__((__pure__))
 #    define Vc_CONST __attribute__((__const__))
 #  endif
-#  define Vc_INTRINSIC_L
-#  define Vc_INTRINSIC_R Vc_INTRINSIC
 #  define Vc_CONST_L
 #  define Vc_CONST_R Vc_CONST
 #  define Vc_PURE_L
 #  define Vc_PURE_R Vc_PURE
-#  define Vc_ALWAYS_INLINE_L
-#  define Vc_ALWAYS_INLINE_R Vc_ALWAYS_INLINE
 #  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
@@ -110,7 +110,7 @@
 #  endif
 #  define Vc_MAY_ALIAS
 #  ifdef VC_MSVC
-#    define Vc_ALWAYS_INLINE __forceinline
+#    define Vc_ALWAYS_INLINE inline __forceinline
 #    define Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE
 #    define Vc_ALWAYS_INLINE_R
 #    define Vc_CONST __declspec(noalias)
@@ -119,7 +119,7 @@
 #    define Vc_PURE /*Vc_CONST*/
 #    define Vc_PURE_L Vc_PURE
 #    define Vc_PURE_R
-#    define Vc_INTRINSIC __forceinline
+#    define Vc_INTRINSIC inline __forceinline
 #    define Vc_INTRINSIC_L Vc_INTRINSIC
 #    define Vc_INTRINSIC_R
 #  else
@@ -146,8 +146,8 @@
 #define _VC_CONSTEXPR_L _VC_CONSTEXPR
 #define _VC_CONSTEXPR_R
 #else
-#define _VC_CONSTEXPR inline Vc_INTRINSIC Vc_CONST
-#define _VC_CONSTEXPR_L inline Vc_INTRINSIC_L Vc_CONST_R
+#define _VC_CONSTEXPR Vc_INTRINSIC Vc_CONST
+#define _VC_CONSTEXPR_L Vc_INTRINSIC_L Vc_CONST_L
 #define _VC_CONSTEXPR_R Vc_INTRINSIC_R Vc_CONST_R
 #endif
 

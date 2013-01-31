@@ -200,9 +200,9 @@ namespace
 } // anonymous namespace
 
 #ifndef VC_CHECK_ALIGNMENT
-template<typename _T> static inline Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
+template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
 #else
-template<typename _T> static inline Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)
+template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)
 {
     const size_t s = Vc_ALIGNOF(_T);
     if((reinterpret_cast<size_t>(ptr) & ((s ^ (s & (s - 1))) - 1)) != 0) {

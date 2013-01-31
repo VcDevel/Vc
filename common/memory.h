@@ -63,7 +63,7 @@ namespace Vc
  * \headerfile memory.h <Vc/Memory>
  */
 template<typename T, Vc::MallocAlignment A>
-inline Vc_ALWAYS_INLINE_L T *Vc_ALWAYS_INLINE_R malloc(size_t n)
+Vc_ALWAYS_INLINE_L T *Vc_ALWAYS_INLINE_R malloc(size_t n)
 {
     return static_cast<T *>(Internal::Helper::malloc<A>(n * sizeof(T)));
 }
@@ -90,7 +90,7 @@ inline Vc_ALWAYS_INLINE_L T *Vc_ALWAYS_INLINE_R malloc(size_t n)
  * \see Vc::malloc
  */
 template<typename T>
-inline void Vc_ALWAYS_INLINE free(T *p)
+Vc_ALWAYS_INLINE void free(T *p)
 {
     Internal::Helper::free(p);
 }
@@ -299,7 +299,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
              * (not too early/not leaked). This function simply adds convenience functions to \em
              * access the memory.
              */
-            static inline Vc_ALWAYS_INLINE Memory<V, Size, 0u> &fromRawData(EntryType *ptr)
+            static Vc_ALWAYS_INLINE Memory<V, Size, 0u> &fromRawData(EntryType *ptr)
             {
                 // DANGER! This placement new has to use the right address. If the compiler decides
                 // RowMemory requires padding before the actual data then the address has to be adjusted
@@ -458,7 +458,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
         /**
          * Frees the memory which was allocated in the constructor.
          */
-        inline Vc_ALWAYS_INLINE ~Memory()
+        Vc_ALWAYS_INLINE ~Memory()
         {
             Vc::free(m_mem);
         }
@@ -525,7 +525,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
-inline void Vc_ALWAYS_INLINE prefetchForOneRead(const void *addr)
+Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr)
 {
     Internal::Helper::prefetchForOneRead(addr);
 }
@@ -542,7 +542,7 @@ inline void Vc_ALWAYS_INLINE prefetchForOneRead(const void *addr)
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
-inline void Vc_ALWAYS_INLINE prefetchForModify(const void *addr)
+Vc_ALWAYS_INLINE void prefetchForModify(const void *addr)
 {
     Internal::Helper::prefetchForModify(addr);
 }
@@ -557,7 +557,7 @@ inline void Vc_ALWAYS_INLINE prefetchForModify(const void *addr)
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
-inline void Vc_ALWAYS_INLINE prefetchClose(const void *addr)
+Vc_ALWAYS_INLINE void prefetchClose(const void *addr)
 {
     Internal::Helper::prefetchClose(addr);
 }
@@ -572,7 +572,7 @@ inline void Vc_ALWAYS_INLINE prefetchClose(const void *addr)
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
-inline void Vc_ALWAYS_INLINE prefetchMid(const void *addr)
+Vc_ALWAYS_INLINE void prefetchMid(const void *addr)
 {
     Internal::Helper::prefetchMid(addr);
 }
@@ -587,7 +587,7 @@ inline void Vc_ALWAYS_INLINE prefetchMid(const void *addr)
  * \ingroup Utilities
  * \headerfile memory.h <Vc/Memory>
  */
-inline void Vc_ALWAYS_INLINE prefetchFar(const void *addr)
+Vc_ALWAYS_INLINE void prefetchFar(const void *addr)
 {
     Internal::Helper::prefetchFar(addr);
 }

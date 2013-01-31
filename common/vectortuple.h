@@ -36,23 +36,23 @@ template<typename V> struct VectorTuple<2, V>
     typedef V &VC_RESTRICT Reference;
     Reference l, r;
 
-    inline Vc_ALWAYS_INLINE VectorTuple(Reference a, Reference b)
+    Vc_ALWAYS_INLINE VectorTuple(Reference a, Reference b)
         : l(a), r(b)
     {
     }
 
-    inline Vc_ALWAYS_INLINE VectorTuple<3, V> operator,(V &a) const
+    Vc_ALWAYS_INLINE VectorTuple<3, V> operator,(V &a) const
     {
         return VectorTuple<3, V>(*this, a);
     }
 
-    inline Vc_ALWAYS_INLINE VectorTuple<3, const V> operator,(const V &a) const
+    Vc_ALWAYS_INLINE VectorTuple<3, const V> operator,(const V &a) const
     {
         return VectorTuple<3, const V>(*this, a);
     }
 
     template<size_t StructSize>
-    inline Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V> &access) const
+    Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V> &access) const
     {
         VC_STATIC_ASSERT(2 <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has);
         access.deinterleave(l, r);
@@ -65,12 +65,12 @@ template<typename V> struct VectorTuple<2, const V>
     typedef const V &VC_RESTRICT Reference;
     Reference l, r;
 
-    inline Vc_ALWAYS_INLINE VectorTuple(Reference a, Reference b)
+    Vc_ALWAYS_INLINE VectorTuple(Reference a, Reference b)
         : l(a), r(b)
     {
     }
 
-    inline Vc_ALWAYS_INLINE VectorTuple<3, const V> operator,(const V &a) const
+    Vc_ALWAYS_INLINE VectorTuple<3, const V> operator,(const V &a) const
     {
         return VectorTuple<3, const V>(*this, a);
     }
@@ -84,18 +84,18 @@ template<typename V> struct VectorTuple<LENGTH, V> \
     const VectorTuple<LENGTH - 1, V> &l; \
     Reference r; \
  \
-    inline Vc_ALWAYS_INLINE VectorTuple(const VectorTuple<LENGTH - 1, V> &tuple, Reference a) \
+    Vc_ALWAYS_INLINE VectorTuple(const VectorTuple<LENGTH - 1, V> &tuple, Reference a) \
         : l(tuple), r(a) \
     { \
     } \
  \
-    inline Vc_ALWAYS_INLINE VectorTuple<LENGTH + 1, V> operator,(V &a) const \
+    Vc_ALWAYS_INLINE VectorTuple<LENGTH + 1, V> operator,(V &a) const \
     { \
         return VectorTuple<LENGTH + 1, V>(*this, a); \
     } \
  \
     template<size_t StructSize> \
-    inline Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V> &access) const \
+    Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V> &access) const \
     { \
         VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has); \
         access.deinterleave parameters; \
@@ -108,12 +108,12 @@ template<typename V> struct VectorTuple<LENGTH, const V> \
     const VectorTuple<LENGTH - 1, const V> &l; \
     Reference r; \
  \
-    inline Vc_ALWAYS_INLINE VectorTuple(const VectorTuple<LENGTH - 1, const V> &tuple, Reference a) \
+    Vc_ALWAYS_INLINE VectorTuple(const VectorTuple<LENGTH - 1, const V> &tuple, Reference a) \
         : l(tuple), r(a) \
     { \
     } \
  \
-    inline Vc_ALWAYS_INLINE VectorTuple<LENGTH + 1, const V> operator,(const V &a) const \
+    Vc_ALWAYS_INLINE VectorTuple<LENGTH + 1, const V> operator,(const V &a) const \
     { \
         return VectorTuple<LENGTH + 1, const V>(*this, a); \
     } \
@@ -129,13 +129,13 @@ _VC_VECTORTUPLE_SPECIALIZATION(8, (l.l.l.l.l.l.l, l.l.l.l.l.l.r, l.l.l.l.l.r, l.
 } // namespace Common
 
 template<typename T>
-inline Vc_ALWAYS_INLINE Common::VectorTuple<2, Vc::Vector<T> > operator,(Vc::Vector<T> &a, Vc::Vector<T> &b)
+Vc_ALWAYS_INLINE Common::VectorTuple<2, Vc::Vector<T> > operator,(Vc::Vector<T> &a, Vc::Vector<T> &b)
 {
     return Common::VectorTuple<2, Vc::Vector<T> >(a, b);
 }
 
 template<typename T>
-inline Vc_ALWAYS_INLINE Common::VectorTuple<2, const Vc::Vector<T> > operator,(const Vc::Vector<T> &a, const Vc::Vector<T> &b)
+Vc_ALWAYS_INLINE Common::VectorTuple<2, const Vc::Vector<T> > operator,(const Vc::Vector<T> &a, const Vc::Vector<T> &b)
 {
     return Common::VectorTuple<2, const Vc::Vector<T> >(a, b);
 }

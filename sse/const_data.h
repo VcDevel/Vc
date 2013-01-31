@@ -56,14 +56,14 @@ template<typename T> struct c_trig
 template<typename T> struct c_log
 {
     enum VectorSize { Size = 16 / sizeof(T) };
-    static inline Vc_ALWAYS_INLINE Vc_CONST const float *d(int i) { return reinterpret_cast<const  float *>(&data[i * Size]); }
+    static Vc_ALWAYS_INLINE Vc_CONST const float *d(int i) { return reinterpret_cast<const  float *>(&data[i * Size]); }
     ALIGN(64) static const unsigned int data[];
 };
 
 template<> struct c_log<double>
 {
     enum VectorSize { Size = 16 / sizeof(double) };
-    static inline Vc_ALWAYS_INLINE Vc_CONST const double *d(int i) { return reinterpret_cast<const double *>(&data[i * Size]); }
+    static Vc_ALWAYS_INLINE Vc_CONST const double *d(int i) { return reinterpret_cast<const double *>(&data[i * Size]); }
     ALIGN(64) static const unsigned long long data[];
 };
 

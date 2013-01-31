@@ -23,7 +23,7 @@ namespace AVX
 {
 
 template<typename T>
-inline Vector<T> Vc_ALWAYS_INLINE &WriteMaskedVector<T>::operator++()
+Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator++()
 {
     vec->data() = VectorHelper<T>::add(vec->data(),
             VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
@@ -32,7 +32,7 @@ inline Vector<T> Vc_ALWAYS_INLINE &WriteMaskedVector<T>::operator++()
 }
 
 template<typename T>
-inline Vector<T> Vc_ALWAYS_INLINE &WriteMaskedVector<T>::operator--() {
+Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator--() {
     vec->data() = VectorHelper<T>::sub(vec->data(),
             VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
             );
@@ -40,7 +40,7 @@ inline Vector<T> Vc_ALWAYS_INLINE &WriteMaskedVector<T>::operator--() {
 }
 
 template<typename T>
-inline Vector<T> Vc_ALWAYS_INLINE WriteMaskedVector<T>::operator++(int) {
+Vc_ALWAYS_INLINE Vector<T> WriteMaskedVector<T>::operator++(int) {
     Vector<T> ret(*vec);
     vec->data() = VectorHelper<T>::add(vec->data(),
             VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
@@ -49,7 +49,7 @@ inline Vector<T> Vc_ALWAYS_INLINE WriteMaskedVector<T>::operator++(int) {
 }
 
 template<typename T>
-inline Vector<T> Vc_ALWAYS_INLINE WriteMaskedVector<T>::operator--(int) {
+Vc_ALWAYS_INLINE Vector<T> WriteMaskedVector<T>::operator--(int) {
     Vector<T> ret(*vec);
     vec->data() = VectorHelper<T>::sub(vec->data(),
             VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
@@ -58,31 +58,31 @@ inline Vector<T> Vc_ALWAYS_INLINE WriteMaskedVector<T>::operator--(int) {
 }
 
 template<typename T>
-inline Vector<T> Vc_ALWAYS_INLINE &WriteMaskedVector<T>::operator+=(const Vector<T> &x) {
+Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator+=(const Vector<T> &x) {
     vec->data() = VectorHelper<T>::add(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
     return *vec;
 }
 
 template<typename T>
-inline Vector<T> Vc_ALWAYS_INLINE &WriteMaskedVector<T>::operator-=(const Vector<T> &x) {
+Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator-=(const Vector<T> &x) {
     vec->data() = VectorHelper<T>::sub(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
     return *vec;
 }
 
 template<typename T>
-inline Vector<T> Vc_ALWAYS_INLINE &WriteMaskedVector<T>::operator*=(const Vector<T> &x) {
+Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator*=(const Vector<T> &x) {
     vec->assign(VectorHelper<T>::mul(vec->data(), x.data()), mask);
     return *vec;
 }
 
 template<typename T>
-inline Vector<T> Vc_ALWAYS_INLINE &WriteMaskedVector<T>::operator/=(const Vector<T> &x) {
+Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator/=(const Vector<T> &x) {
     vec->assign(*vec / x, mask);
     return *vec;
 }
 
 template<typename T>
-inline Vector<T> Vc_ALWAYS_INLINE &WriteMaskedVector<T>::operator=(const Vector<T> &x) {
+Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator=(const Vector<T> &x) {
     vec->assign(x, mask);
     return *vec;
 }

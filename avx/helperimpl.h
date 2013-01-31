@@ -80,15 +80,15 @@ template<> struct HelperImpl<Vc::AVXImpl>
                 V &VC_RESTRICT f, V &VC_RESTRICT g, V &VC_RESTRICT h,
                 const M *VC_RESTRICT memory, A align);
 
-    static inline void Vc_ALWAYS_INLINE_L prefetchForOneRead(const void *addr) Vc_ALWAYS_INLINE_R;
-    static inline void Vc_ALWAYS_INLINE_L prefetchForModify(const void *addr) Vc_ALWAYS_INLINE_R;
-    static inline void Vc_ALWAYS_INLINE_L prefetchClose(const void *addr) Vc_ALWAYS_INLINE_R;
-    static inline void Vc_ALWAYS_INLINE_L prefetchMid(const void *addr) Vc_ALWAYS_INLINE_R;
-    static inline void Vc_ALWAYS_INLINE_L prefetchFar(const void *addr) Vc_ALWAYS_INLINE_R;
+    static Vc_ALWAYS_INLINE_L void prefetchForOneRead(const void *addr) Vc_ALWAYS_INLINE_R;
+    static Vc_ALWAYS_INLINE_L void prefetchForModify(const void *addr) Vc_ALWAYS_INLINE_R;
+    static Vc_ALWAYS_INLINE_L void prefetchClose(const void *addr) Vc_ALWAYS_INLINE_R;
+    static Vc_ALWAYS_INLINE_L void prefetchMid(const void *addr) Vc_ALWAYS_INLINE_R;
+    static Vc_ALWAYS_INLINE_L void prefetchFar(const void *addr) Vc_ALWAYS_INLINE_R;
 
     template<Vc::MallocAlignment A>
-    static inline Vc_ALWAYS_INLINE_L void *malloc(size_t n) Vc_ALWAYS_INLINE_R;
-    static inline Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
+    static Vc_ALWAYS_INLINE_L void *malloc(size_t n) Vc_ALWAYS_INLINE_R;
+    static Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 };
 
 } // namespace Internal

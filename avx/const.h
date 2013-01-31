@@ -59,30 +59,30 @@ namespace AVX
         typedef typename V::EntryType T;
         typedef typename V::Mask M;
 
-        static inline Vc_ALWAYS_INLINE Vc_CONST V _pi_4()        { return V(c_trig<T>::data[0]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V _pi_4_hi()     { return V(c_trig<T>::data[1]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V _pi_4_rem1()   { return V(c_trig<T>::data[2]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V _pi_4_rem2()   { return V(c_trig<T>::data[3]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V _1_16()        { return V(c_trig<T>::data[4]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V _16()          { return V(c_trig<T>::data[5]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _pi_4()        { return V(c_trig<T>::data[0]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _pi_4_hi()     { return V(c_trig<T>::data[1]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _pi_4_rem1()   { return V(c_trig<T>::data[2]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _pi_4_rem2()   { return V(c_trig<T>::data[3]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _1_16()        { return V(c_trig<T>::data[4]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _16()          { return V(c_trig<T>::data[5]); }
 
-        static inline Vc_ALWAYS_INLINE Vc_CONST V cosCoeff(int i)   { return V(c_trig<T>::data[( 8 + i)]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V sinCoeff(int i)   { return V(c_trig<T>::data[(14 + i)]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V atanP(int i)      { return V(c_trig<T>::data[(24 + i)]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V atanQ(int i)      { return V(c_trig<T>::data[(29 + i)]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V atanThrsHi()      { return V(c_trig<T>::data[34]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V atanThrsLo()      { return V(c_trig<T>::data[35]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V _pi_2_rem()       { return V(c_trig<T>::data[36]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V lossThreshold()   { return V(c_trig<T>::data[20]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V _4_pi()           { return V(c_trig<T>::data[21]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V _pi_2()           { return V(c_trig<T>::data[22]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V _pi()             { return V(c_trig<T>::data[23]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V asinCoeff0(int i) { return V(c_trig<T>::data[(40 + i)]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V asinCoeff1(int i) { return V(c_trig<T>::data[(45 + i)]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V asinCoeff2(int i) { return V(c_trig<T>::data[(49 + i)]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V asinCoeff3(int i) { return V(c_trig<T>::data[(55 + i)]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V smallAsinInput()  { return V(c_trig<T>::data[37]); }
-        static inline Vc_ALWAYS_INLINE Vc_CONST V largeAsinInput()  { return V(c_trig<T>::data[38]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V cosCoeff(int i)   { return V(c_trig<T>::data[( 8 + i)]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V sinCoeff(int i)   { return V(c_trig<T>::data[(14 + i)]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V atanP(int i)      { return V(c_trig<T>::data[(24 + i)]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V atanQ(int i)      { return V(c_trig<T>::data[(29 + i)]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V atanThrsHi()      { return V(c_trig<T>::data[34]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V atanThrsLo()      { return V(c_trig<T>::data[35]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _pi_2_rem()       { return V(c_trig<T>::data[36]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V lossThreshold()   { return V(c_trig<T>::data[20]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _4_pi()           { return V(c_trig<T>::data[21]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _pi_2()           { return V(c_trig<T>::data[22]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _pi()             { return V(c_trig<T>::data[23]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff0(int i) { return V(c_trig<T>::data[(40 + i)]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff1(int i) { return V(c_trig<T>::data[(45 + i)]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff2(int i) { return V(c_trig<T>::data[(49 + i)]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff3(int i) { return V(c_trig<T>::data[(55 + i)]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V smallAsinInput()  { return V(c_trig<T>::data[37]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V largeAsinInput()  { return V(c_trig<T>::data[38]); }
 
         static inline M Vc_CONST_L exponentMask() Vc_CONST_R { return M(V(c_log<T>::d(1)).data()); }
         static inline V Vc_CONST_L _1_2()         Vc_CONST_R { return V(c_log<T>::d(18)); }

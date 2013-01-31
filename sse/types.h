@@ -73,7 +73,7 @@ namespace SSE
             _M128 d[2];
     };
 #ifdef VC_CHECK_ALIGNMENT
-static inline Vc_ALWAYS_INLINE void assertCorrectAlignment(const M256 *ptr)
+static Vc_ALWAYS_INLINE void assertCorrectAlignment(const M256 *ptr)
 {
     const size_t s = sizeof(__m128);
     if((reinterpret_cast<size_t>(ptr) & ((s ^ (s & (s - 1))) - 1)) != 0) {

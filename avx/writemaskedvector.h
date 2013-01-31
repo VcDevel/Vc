@@ -54,16 +54,16 @@ class WriteMaskedVector
         Vector<T> Vc_ALWAYS_INLINE_L &operator=(const Vector<T> &x) Vc_ALWAYS_INLINE_R;
         Vector<T> Vc_ALWAYS_INLINE &operator=(EntryType x) { return operator=(Vector<T>(x)); }
 
-        template<typename F> inline void Vc_INTRINSIC call(const F &f) const {
+        template<typename F> Vc_INTRINSIC void call(const F &f) const {
             return vec->call(f, mask);
         }
-        template<typename F> inline void Vc_INTRINSIC call(F &f) const {
+        template<typename F> Vc_INTRINSIC void call(F &f) const {
             return vec->call(f, mask);
         }
-        template<typename F> inline Vector<T> Vc_INTRINSIC apply(const F &f) const {
+        template<typename F> Vc_INTRINSIC Vector<T> apply(const F &f) const {
             return vec->apply(f, mask);
         }
-        template<typename F> inline Vector<T> Vc_INTRINSIC apply(F &f) const {
+        template<typename F> Vc_INTRINSIC Vector<T> apply(F &f) const {
             return vec->apply(f, mask);
         }
     private:

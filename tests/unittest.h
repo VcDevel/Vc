@@ -295,7 +295,7 @@ class _UnitTest_Compare
         enum OptionNoEq { NoEq };
 
         template<typename T1, typename T2>
-        inline Vc_ALWAYS_INLINE _UnitTest_Compare(const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file, int _line)
+        Vc_ALWAYS_INLINE _UnitTest_Compare(const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file, int _line)
             : m_ip(getIp()), m_failed(!unittest_compareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -308,7 +308,7 @@ class _UnitTest_Compare
         }
 
         template<typename T1, typename T2>
-        inline Vc_ALWAYS_INLINE _UnitTest_Compare(const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
+        Vc_ALWAYS_INLINE _UnitTest_Compare(const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file, int _line, OptionNoEq)
             : m_ip(getIp()), m_failed(!unittest_compareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -321,7 +321,7 @@ class _UnitTest_Compare
         }
 
         template<typename T>
-        inline Vc_ALWAYS_INLINE _UnitTest_Compare(const T &a, const T &b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
+        Vc_ALWAYS_INLINE _UnitTest_Compare(const T &a, const T &b, const char *_a, const char *_b, const char *_file, int _line, OptionFuzzy)
             : m_ip(getIp()), m_failed(!unittest_fuzzyCompareHelper(a, b))
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -337,7 +337,7 @@ class _UnitTest_Compare
             }
         }
 
-        inline Vc_ALWAYS_INLINE _UnitTest_Compare(bool good, const char *cond, const char *_file, int _line)
+        Vc_ALWAYS_INLINE _UnitTest_Compare(bool good, const char *cond, const char *_file, int _line)
             : m_ip(getIp()), m_failed(!good)
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -347,7 +347,7 @@ class _UnitTest_Compare
             }
         }
 
-        inline Vc_ALWAYS_INLINE _UnitTest_Compare(const char *_file, int _line)
+        Vc_ALWAYS_INLINE _UnitTest_Compare(const char *_file, int _line)
             : m_ip(getIp()), m_failed(true)
         {
             if (VC_IS_UNLIKELY(m_failed)) {
@@ -357,35 +357,35 @@ class _UnitTest_Compare
             }
         }
 
-        template<typename T> inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const T &x) const {
+        template<typename T> Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const T &x) const {
             if (VC_IS_UNLIKELY(m_failed)) {
                 print(x);
             }
             return *this;
         }
 
-        inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const char *str) const {
+        Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const char *str) const {
             if (VC_IS_UNLIKELY(m_failed)) {
                 print(str);
             }
             return *this;
         }
 
-        inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const char ch) const {
+        Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const char ch) const {
             if (VC_IS_UNLIKELY(m_failed)) {
                 print(ch);
             }
             return *this;
         }
 
-        inline Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(bool b) const {
+        Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(bool b) const {
             if (VC_IS_UNLIKELY(m_failed)) {
                 print(b);
             }
             return *this;
         }
 
-        inline Vc_ALWAYS_INLINE ~_UnitTest_Compare()
+        Vc_ALWAYS_INLINE ~_UnitTest_Compare()
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printLast();
@@ -393,7 +393,7 @@ class _UnitTest_Compare
         }
 
     private:
-        static inline Vc_ALWAYS_INLINE size_t getIp() {
+        static Vc_ALWAYS_INLINE size_t getIp() {
             size_t _ip;
 #if defined(__x86_64__) && defined(VC_GNU_ASM)
             asm("lea 0(%%rip),%0" : "=r"(_ip));
