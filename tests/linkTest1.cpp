@@ -1,6 +1,6 @@
 #include <Vc/Vc>
 #include <Vc/IO>
-#include <common/support.h>
+#include <Vc/support.h>
 
 using namespace Vc;
 
