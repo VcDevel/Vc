@@ -20,6 +20,8 @@
 #ifndef VC_AVX_INTERLEAVEDMEMORY_TCC
 #define VC_AVX_INTERLEAVEDMEMORY_TCC
 
+#include "macros.h"
+
 namespace Vc
 {
 namespace Common
@@ -878,6 +880,8 @@ _forward(ushort_v, short_v)
 
 } // namespace Common
 } // namespace Vc
+
+#include "undomacros.h"
 
 #endif // VC_AVX_INTERLEAVEDMEMORY_TCC
 

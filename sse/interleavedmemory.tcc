@@ -20,6 +20,8 @@
 #ifndef VC_SSE_INTERLEAVEDMEMORY_TCC
 #define VC_SSE_INTERLEAVEDMEMORY_TCC
 
+#include "macros.h"
+
 namespace Vc
 {
 namespace Common
@@ -1002,6 +1004,8 @@ _forward(ushort_v, short_v)
 
 } // namespace Common
 } // namespace Vc
+
+#include "undomacros.h"
 
 #endif // VC_SSE_INTERLEAVEDMEMORY_TCC
 
