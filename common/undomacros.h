@@ -36,6 +36,10 @@
 #undef Vc_ALWAYS_INLINE
 #undef Vc_ALWAYS_INLINE_L
 #undef Vc_ALWAYS_INLINE_R
+#undef VC_IS_UNLIKELY
+#undef VC_IS_LIKELY
+#undef VC_RESTRICT
+#undef VC_DEPRECATED
 #undef _VC_CONSTEXPR
 #undef _VC_CONSTEXPR_L
 #undef _VC_CONSTEXPR_R

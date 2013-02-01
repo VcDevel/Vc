@@ -66,6 +66,7 @@
 #  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
+#  define VC_DEPRECATED(msg)
 #elif defined(__GNUC__)
 #  if VC_GCC < 0x40300 || defined(VC_OPEN64)
 // GCC 4.1 and 4.2 ICE on may_alias. Since Open64 uses the GCC 4.2 frontend it has the same problem.
@@ -103,6 +104,7 @@
 #  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
+#  define VC_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
 #else
 #  define Vc_FLATTEN
 #  ifdef Vc_PURE
@@ -139,6 +141,7 @@
 #  define VC_IS_UNLIKELY(x) x
 #  define VC_IS_LIKELY(x) x
 #  define VC_RESTRICT __restrict
+#  define VC_DEPRECATED(msg)
 #endif
 
 #if __cplusplus >= 201103 /*C++11*/
