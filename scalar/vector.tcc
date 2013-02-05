@@ -80,7 +80,7 @@ template<> inline VecT VecT::operator op(const VecT &x) const { \
 }
 #define VC_CAST_OPERATOR_FORWARD_FLOAT(op)  VC_CAST_OPERATOR_FORWARD(op, unsigned int, Vector<float>)
 #define VC_CAST_OPERATOR_FORWARD_SFLOAT(op) VC_CAST_OPERATOR_FORWARD(op, unsigned int, Vector<sfloat>)
-#define VC_CAST_OPERATOR_FORWARD_DOUBLE(op) VC_CAST_OPERATOR_FORWARD(op, unsigned long, Vector<double>)
+#define VC_CAST_OPERATOR_FORWARD_DOUBLE(op) VC_CAST_OPERATOR_FORWARD(op, unsigned long long, Vector<double>)
 VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_FLOAT)
 VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_SFLOAT)
 VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_DOUBLE)
