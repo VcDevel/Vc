@@ -56,29 +56,29 @@ template<> struct HelperImpl<Vc::AVXImpl>
     template<typename A> static void deinterleave(ushort_v &, ushort_v &, const unsigned short *, A);
 
     template<typename V, typename M, typename A>
-        static inline void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
-                V &VC_RESTRICT c, const M *VC_RESTRICT memory, A align);
+        static Vc_ALWAYS_INLINE_L void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+                V &VC_RESTRICT c, const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
 
     template<typename V, typename M, typename A>
-        static inline void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+        static Vc_ALWAYS_INLINE_L void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
                 V &VC_RESTRICT c, V &VC_RESTRICT d,
-                const M *VC_RESTRICT memory, A align);
+                const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
 
     template<typename V, typename M, typename A>
-        static inline void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+        static Vc_ALWAYS_INLINE_L void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
                 V &VC_RESTRICT c, V &VC_RESTRICT d, V &VC_RESTRICT e,
-                const M *VC_RESTRICT memory, A align);
+                const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
 
     template<typename V, typename M, typename A>
-        static inline void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+        static Vc_ALWAYS_INLINE_L void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
                 V &VC_RESTRICT c, V &VC_RESTRICT d, V &VC_RESTRICT e,
-                V &VC_RESTRICT f, const M *VC_RESTRICT memory, A align);
+                V &VC_RESTRICT f, const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
 
     template<typename V, typename M, typename A>
-        static inline void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+        static Vc_ALWAYS_INLINE_L void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
                 V &VC_RESTRICT c, V &VC_RESTRICT d, V &VC_RESTRICT e,
                 V &VC_RESTRICT f, V &VC_RESTRICT g, V &VC_RESTRICT h,
-                const M *VC_RESTRICT memory, A align);
+                const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
 
     static Vc_ALWAYS_INLINE_L void prefetchForOneRead(const void *addr) Vc_ALWAYS_INLINE_R;
     static Vc_ALWAYS_INLINE_L void prefetchForModify(const void *addr) Vc_ALWAYS_INLINE_R;

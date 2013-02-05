@@ -28,7 +28,7 @@ ALIGN(64) extern unsigned int RandomState[16];
 namespace SSE
 {
 
-template<typename T, int Size> static inline const T *_IndexesFromZero() {
+template<typename T, int Size> static Vc_ALWAYS_INLINE Vc_CONST const T *_IndexesFromZero() {
     if (Size == 4) {
         return reinterpret_cast<const T *>(_IndexesFromZero4);
     } else if (Size == 8) {
@@ -41,32 +41,32 @@ template<typename T, int Size> static inline const T *_IndexesFromZero() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // constants {{{1
-template<typename T> inline Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum)
+template<typename T> Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum)
     : d(VectorHelper<VectorType>::zero())
 {
 }
 
-template<typename T> inline Vector<T>::Vector(VectorSpecialInitializerOne::OEnum)
+template<typename T> Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerOne::OEnum)
     : d(VectorHelper<T>::one())
 {
 }
 
-template<typename T> inline Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+template<typename T> Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
     : d(VectorHelper<VectorType>::load(_IndexesFromZero<EntryType, Size>(), Aligned))
 {
 }
 
-template<typename T> inline Vector<T> Vector<T>::Zero()
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::Zero()
 {
     return VectorHelper<VectorType>::zero();
 }
 
-template<typename T> inline Vector<T> Vector<T>::One()
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::One()
 {
     return VectorHelper<T>::one();
 }
 
-template<typename T> inline Vector<T> Vector<T>::IndexesFromZero()
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::IndexesFromZero()
 {
     return VectorHelper<VectorType>::load(_IndexesFromZero<EntryType, Size>(), Aligned);
 }
@@ -91,7 +91,7 @@ template<> template<> Vc_INTRINSIC uint_v &Vector<unsigned int>::operator=(const
 }
 
 // broadcasts {{{1
-template<typename T> inline Vector<T>::Vector(EntryType a)
+template<typename T> Vc_INTRINSIC Vector<T>::Vector(EntryType a)
     : d(VectorHelper<T>::set(a))
 {
 }
@@ -134,44 +134,44 @@ template<typename DstT, typename SrcT, typename Flags> struct LoadHelper;
 
 // float {{{2
 template<typename Flags> struct LoadHelper<float, double, Flags> {
-    static inline __m128 load(const double *mem, Flags f)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128 load(const double *mem, Flags f)
     {
         return _mm_movelh_ps(_mm_cvtpd_ps(VectorHelper<__m128d>::load(&mem[0], f)),
                              _mm_cvtpd_ps(VectorHelper<__m128d>::load(&mem[2], f)));
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned int, Flags> {
-    static inline __m128 load(const unsigned int *mem, Flags f)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128 load(const unsigned int *mem, Flags f)
     {
         return StaticCastHelper<unsigned int, float>::cast(VectorHelper<__m128i>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<float, int, Flags> {
-    static inline __m128 load(const int *mem, Flags f)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128 load(const int *mem, Flags f)
     {
         return StaticCastHelper<int, float>::cast(VectorHelper<__m128i>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned short, Flags> {
-    static inline __m128 load(const unsigned short *mem, Flags f)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128 load(const unsigned short *mem, Flags f)
     {
         return _mm_cvtepi32_ps(LoadHelper<int, unsigned short, Flags>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<float, short, Flags> {
-    static inline __m128 load(const short *mem, Flags f)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128 load(const short *mem, Flags f)
     {
         return _mm_cvtepi32_ps(LoadHelper<int, short, Flags>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned char, Flags> {
-    static inline __m128 load(const unsigned char *mem, Flags f)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128 load(const unsigned char *mem, Flags f)
     {
         return _mm_cvtepi32_ps(LoadHelper<int, unsigned char, Flags>::load(mem, f));
     }
 };
 template<typename Flags> struct LoadHelper<float, signed char, Flags> {
-    static inline __m128 load(const signed char *mem, Flags f)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128 load(const signed char *mem, Flags f)
     {
         return _mm_cvtepi32_ps(LoadHelper<int, signed char, Flags>::load(mem, f));
     }
@@ -179,7 +179,7 @@ template<typename Flags> struct LoadHelper<float, signed char, Flags> {
 
 // int {{{2
 template<typename Flags> struct LoadHelper<int, unsigned int, Flags> {
-    static inline __m128i load(const unsigned int *mem, Flags f)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned int *mem, Flags f)
     {
         return VectorHelper<__m128i>::load(mem, f);
     }
@@ -187,25 +187,25 @@ template<typename Flags> struct LoadHelper<int, unsigned int, Flags> {
 // no difference between streaming and alignment, because the
 // 32/64 bit loads are not available as streaming loads, and can always be unaligned
 template<typename Flags> struct LoadHelper<int, unsigned short, Flags> {
-    static inline __m128i load(const unsigned short *mem, Flags)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned short *mem, Flags)
     {
         return _mm_cvtepu16_epi32( _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<int, short, Flags> {
-    static inline __m128i load(const short *mem, Flags)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const short *mem, Flags)
     {
         return _mm_cvtepi16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<int, unsigned char, Flags> {
-    static inline __m128i load(const unsigned char *mem, Flags)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned char *mem, Flags)
     {
         return _mm_cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<int, signed char, Flags> {
-    static inline __m128i load(const signed char *mem, Flags)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const signed char *mem, Flags)
     {
         return _mm_cvtepi8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
     }
@@ -213,13 +213,13 @@ template<typename Flags> struct LoadHelper<int, signed char, Flags> {
 
 // unsigned int {{{2
 template<typename Flags> struct LoadHelper<unsigned int, unsigned short, Flags> {
-    static inline __m128i load(const unsigned short *mem, Flags)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned short *mem, Flags)
     {
         return _mm_cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<unsigned int, unsigned char, Flags> {
-    static inline __m128i load(const unsigned char *mem, Flags)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned char *mem, Flags)
     {
         return _mm_cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
     }
@@ -227,19 +227,19 @@ template<typename Flags> struct LoadHelper<unsigned int, unsigned char, Flags> {
 
 // short {{{2
 template<typename Flags> struct LoadHelper<short, unsigned short, Flags> {
-    static inline __m128i load(const unsigned short *mem, Flags f)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned short *mem, Flags f)
     {
         return VectorHelper<__m128i>::load(mem, f);
     }
 };
 template<typename Flags> struct LoadHelper<short, unsigned char, Flags> {
-    static inline __m128i load(const unsigned char *mem, Flags)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned char *mem, Flags)
     {
         return _mm_cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<short, signed char, Flags> {
-    static inline __m128i load(const signed char *mem, Flags)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const signed char *mem, Flags)
     {
         return _mm_cvtepi8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
@@ -247,7 +247,7 @@ template<typename Flags> struct LoadHelper<short, signed char, Flags> {
 
 // unsigned short {{{2
 template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags> {
-    static inline __m128i load(const unsigned char *mem, Flags)
+    static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned char *mem, Flags)
     {
         return _mm_cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
@@ -261,7 +261,7 @@ template<typename DstT> template<typename SrcT, typename Flags> Vc_INTRINSIC voi
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // expand/combine {{{1
-template<typename T> inline Vector<T>::Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
+template<typename T> Vc_INTRINSIC Vector<T>::Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
     : d(VectorHelper<T>::concat(a[0].data(), a[1].data()))
 {
 }
@@ -276,12 +276,12 @@ template<typename T> inline void Vector<T>::expand(Vector<typename ExpandTypeHel
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // zeroing {{{1
-template<typename T> inline void Vector<T>::setZero()
+template<typename T> Vc_INTRINSIC void Vector<T>::setZero()
 {
     data() = VectorHelper<VectorType>::zero();
 }
 
-template<typename T> inline void Vector<T>::setZero(const Mask &k)
+template<typename T> Vc_INTRINSIC void Vector<T>::setZero(const Mask &k)
 {
     data() = VectorHelper<VectorType>::andnot_(mm128_reinterpret_cast<VectorType>(k.data()), data());
 }
@@ -315,22 +315,22 @@ template<> Vc_INTRINSIC void Vector<float8>::setQnan(Mask::Argument k)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // stores {{{1
-template<typename T> inline void Vector<T>::store(EntryType *mem) const
+template<typename T> Vc_INTRINSIC void Vector<T>::store(EntryType *mem) const
 {
     VectorHelper<VectorType>::store(mem, data(), Aligned);
 }
 
-template<typename T> inline void Vector<T>::store(EntryType *mem, const Mask &mask) const
+template<typename T> Vc_INTRINSIC void Vector<T>::store(EntryType *mem, const Mask &mask) const
 {
     VectorHelper<VectorType>::store(mem, data(), mm128_reinterpret_cast<VectorType>(mask.data()), Aligned);
 }
 
-template<typename T> template<typename A> inline void Vector<T>::store(EntryType *mem, A align) const
+template<typename T> template<typename A> Vc_INTRINSIC void Vector<T>::store(EntryType *mem, A align) const
 {
     VectorHelper<VectorType>::store(mem, data(), align);
 }
 
-template<typename T> template<typename A> inline void Vector<T>::store(EntryType *mem, const Mask &mask, A align) const
+template<typename T> template<typename A> Vc_INTRINSIC void Vector<T>::store(EntryType *mem, const Mask &mask, A align) const
 {
     HV::store(mem, data(), mm128_reinterpret_cast<VectorType>(mask.data()), align);
 }
@@ -401,7 +401,7 @@ template<typename T> inline Vector<T> &Vector<T>::operator/=(const Vector<T> &x)
     return *this;
 }
 
-template<typename T> inline Vector<T> Vector<T>::operator/(const Vector<T> &x) const
+template<typename T> inline Vc_PURE Vector<T> Vector<T>::operator/(const Vector<T> &x) const
 {
     Vector<T> r;
     for_all_vector_entries(i,
@@ -420,7 +420,7 @@ template<> inline Vector<short> &Vector<short>::operator/=(const Vector<short> &
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Vector<short> Vector<short>::operator/(const Vector<short> &x) const
+template<> inline Vc_PURE Vector<short> Vector<short>::operator/(const Vector<short> &x) const
 {
     __m128 lo = _mm_cvtepi32_ps(VectorHelper<short>::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
@@ -439,7 +439,7 @@ template<> inline Vector<unsigned short> &Vector<unsigned short>::operator/=(con
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Vector<unsigned short> Vector<unsigned short>::operator/(const Vector<unsigned short> &x) const
+template<> Vc_ALWAYS_INLINE Vc_PURE Vector<unsigned short> Vector<unsigned short>::operator/(const Vector<unsigned short> &x) const
 {
     __m128 lo = _mm_cvtepi32_ps(VectorHelper<short>::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
@@ -448,25 +448,25 @@ template<> Vc_ALWAYS_INLINE Vector<unsigned short> Vector<unsigned short>::opera
     return _mm_packs_epi32(_mm_cvtps_epi32(lo), _mm_cvtps_epi32(hi));
 }
 
-template<> inline Vector<float> &Vector<float>::operator/=(const Vector<float> &x)
+template<> Vc_ALWAYS_INLINE Vector<float> &Vector<float>::operator/=(const Vector<float> &x)
 {
     d.v() = _mm_div_ps(d.v(), x.d.v());
     return *this;
 }
 
-template<> inline Vector<float> Vector<float>::operator/(const Vector<float> &x) const
+template<> Vc_ALWAYS_INLINE Vc_PURE Vector<float> Vector<float>::operator/(const Vector<float> &x) const
 {
     return _mm_div_ps(d.v(), x.d.v());
 }
 
-template<> inline Vector<float8> &Vector<float8>::operator/=(const Vector<float8> &x)
+template<> Vc_ALWAYS_INLINE Vector<float8> &Vector<float8>::operator/=(const Vector<float8> &x)
 {
     d.v()[0] = _mm_div_ps(d.v()[0], x.d.v()[0]);
     d.v()[1] = _mm_div_ps(d.v()[1], x.d.v()[1]);
     return *this;
 }
 
-template<> inline Vector<float8> Vector<float8>::operator/(const Vector<float8> &x) const
+template<> Vc_ALWAYS_INLINE Vc_PURE Vector<float8> Vector<float8>::operator/(const Vector<float8> &x) const
 {
     Vector<float8> r;
     r.d.v()[0] = _mm_div_ps(d.v()[0], x.d.v()[0]);
@@ -474,13 +474,13 @@ template<> inline Vector<float8> Vector<float8>::operator/(const Vector<float8> 
     return r;
 }
 
-template<> inline Vector<double> &Vector<double>::operator/=(const Vector<double> &x)
+template<> Vc_ALWAYS_INLINE Vector<double> &Vector<double>::operator/=(const Vector<double> &x)
 {
     d.v() = _mm_div_pd(d.v(), x.d.v());
     return *this;
 }
 
-template<> inline Vector<double> Vector<double>::operator/(const Vector<double> &x) const
+template<> Vc_ALWAYS_INLINE Vc_PURE Vector<double> Vector<double>::operator/(const Vector<double> &x) const
 {
     return _mm_div_pd(d.v(), x.d.v());
 }
@@ -537,12 +537,12 @@ template<> Vc_ALWAYS_INLINE Vector<short> Vc_PURE Vc_FLATTEN Vector<unsigned sho
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
 #define OP_IMPL(T, symbol, fun) \
-template<> inline Vector<T> &Vector<T>::operator symbol##=(const Vector<T> &x) \
+template<> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator symbol##=(const Vector<T> &x) \
 { \
     d.v() = VectorHelper<T>::fun(d.v(), x.d.v()); \
     return *this; \
 } \
-template<> inline Vector<T>  Vector<T>::operator symbol(const Vector<T> &x) const \
+template<> Vc_ALWAYS_INLINE Vc_PURE Vector<T>  Vector<T>::operator symbol(const Vector<T> &x) const \
 { \
     return VectorHelper<T>::fun(d.v(), x.d.v()); \
 }
@@ -585,7 +585,7 @@ template<> Vc_INTRINSIC T &T::operator symbol##=(T::AsArg shift) \
     d.v() = impl(*this, shift); \
     return *this; \
 } \
-template<> Vc_INTRINSIC T  T::operator symbol   (T::AsArg shift) const \
+template<> Vc_INTRINSIC Vc_PURE T  T::operator symbol   (T::AsArg shift) const \
 { \
     return impl(*this, shift); \
 }
@@ -607,7 +607,7 @@ template<> VC_WORKAROUND Vector<T> &Vector<T>::operator symbol##=(Vector<T>::AsA
             ); \
     return *this; \
 } \
-template<> inline Vector<T>  Vector<T>::operator symbol(Vector<T>::AsArg x) const \
+template<> inline Vc_PURE Vector<T>  Vector<T>::operator symbol(Vector<T>::AsArg x) const \
 { \
     Vector<T> r; \
     for_all_vector_entries(i, \
@@ -1262,34 +1262,34 @@ template<> Vc_INTRINSIC unsigned short Vc_PURE Vector<unsigned short>::operator[
 // horizontal ops {{{1
 #ifndef VC_IMPL_SSE4_1
 // without SSE4.1 integer multiplication is slow and we rather multiply the scalars
-template<> Vc_INTRINSIC int Vector<int>::product() const
+template<> Vc_INTRINSIC Vc_PURE int Vector<int>::product() const
 {
     return (d.m(0) * d.m(1)) * (d.m(2) * d.m(3));
 }
-template<> Vc_INTRINSIC unsigned int Vector<unsigned int>::product() const
+template<> Vc_INTRINSIC Vc_PURE unsigned int Vector<unsigned int>::product() const
 {
     return (d.m(0) * d.m(1)) * (d.m(2) * d.m(3));
 }
 #endif
-template<typename T> inline typename Vector<T>::EntryType Vector<T>::min(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::EntryType Vector<T>::min(MaskArg m) const
 {
     Vector<T> tmp = std::numeric_limits<Vector<T> >::max();
     tmp(m) = *this;
     return tmp.min();
 }
-template<typename T> inline typename Vector<T>::EntryType Vector<T>::max(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::EntryType Vector<T>::max(MaskArg m) const
 {
     Vector<T> tmp = std::numeric_limits<Vector<T> >::min();
     tmp(m) = *this;
     return tmp.max();
 }
-template<typename T> inline typename Vector<T>::EntryType Vector<T>::product(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::EntryType Vector<T>::product(MaskArg m) const
 {
     Vector<T> tmp(VectorSpecialInitializerOne::One);
     tmp(m) = *this;
     return tmp.product();
 }
-template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::EntryType Vector<T>::sum(MaskArg m) const
 {
     Vector<T> tmp(VectorSpecialInitializerZero::Zero);
     tmp(m) = *this;
@@ -1298,14 +1298,14 @@ template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(MaskArg
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // copySign {{{1
-template<> Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float>::AsArg reference) const
+template<> Vc_INTRINSIC Vc_PURE Vector<float> Vector<float>::copySign(Vector<float>::AsArg reference) const
 {
     return _mm_or_ps(
             _mm_and_ps(reference.d.v(), _mm_setsignmask_ps()),
             _mm_and_ps(d.v(), _mm_setabsmask_ps())
             );
 }
-template<> Vc_INTRINSIC Vector<float8> Vector<float8>::copySign(Vector<float8>::AsArg reference) const
+template<> Vc_INTRINSIC Vc_PURE Vector<float8> Vector<float8>::copySign(Vector<float8>::AsArg reference) const
 {
     return M256::create( _mm_or_ps(
                 _mm_and_ps(reference.d.v()[0], _mm_setsignmask_ps()),
@@ -1316,7 +1316,7 @@ template<> Vc_INTRINSIC Vector<float8> Vector<float8>::copySign(Vector<float8>::
                 )
             );
 }
-template<> Vc_INTRINSIC Vector<double> Vector<double>::copySign(Vector<double>::AsArg reference) const
+template<> Vc_INTRINSIC Vc_PURE Vector<double> Vector<double>::copySign(Vector<double>::AsArg reference) const
 {
     return _mm_or_pd(
             _mm_and_pd(reference.d.v(), _mm_setsignmask_pd()),
@@ -1324,14 +1324,14 @@ template<> Vc_INTRINSIC Vector<double> Vector<double>::copySign(Vector<double>::
             );
 }//}}}1
 // exponent {{{1
-template<> Vc_INTRINSIC Vector<float> Vector<float>::exponent() const
+template<> Vc_INTRINSIC Vc_PURE Vector<float> Vector<float>::exponent() const
 {
     VC_ASSERT((*this >= 0.f).isFull());
     __m128i tmp = _mm_srli_epi32(_mm_castps_si128(d.v()), 23);
     tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x7f));
     return _mm_cvtepi32_ps(tmp);
 }
-template<> Vc_INTRINSIC Vector<float8> Vector<float8>::exponent() const
+template<> Vc_INTRINSIC Vc_PURE Vector<float8> Vector<float8>::exponent() const
 {
     VC_ASSERT((*this >= 0.f).isFull());
     __m128i tmp0 = _mm_srli_epi32(_mm_castps_si128(d.v()[0]), 23);
@@ -1340,7 +1340,7 @@ template<> Vc_INTRINSIC Vector<float8> Vector<float8>::exponent() const
     tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
     return M256::create( _mm_cvtepi32_ps(tmp0), _mm_cvtepi32_ps(tmp1));
 }
-template<> Vc_INTRINSIC Vector<double> Vector<double>::exponent() const
+template<> Vc_INTRINSIC Vc_PURE Vector<double> Vector<double>::exponent() const
 {
     VC_ASSERT((*this >= 0.).isFull());
     __m128i tmp = _mm_srli_epi64(_mm_castpd_si128(d.v()), 52);
@@ -1349,7 +1349,7 @@ template<> Vc_INTRINSIC Vector<double> Vector<double>::exponent() const
 }
 // }}}1
 // Random {{{1
-static Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
+static void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)
 {
     state0.load(&Vc::RandomState[0]);
@@ -1394,7 +1394,7 @@ template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
     return (Vector<double>(_mm_castsi128_pd(_mm_srli_epi64(state, 12))) | One()) - One();
 }
 // shifted / rotated {{{1
-template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount) const
+template<typename T> Vc_INTRINSIC Vc_PURE Vector<T> Vector<T>::shifted(int amount) const
 {
     switch (amount) {
     case  0: return *this;
@@ -1417,7 +1417,7 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount) const
     }
     return Zero();
 }
-template<> Vc_INTRINSIC sfloat_v sfloat_v::shifted(int amount) const
+template<> Vc_INTRINSIC Vc_PURE sfloat_v sfloat_v::shifted(int amount) const
 {
     switch (amount) {
     case -7: return M256::create(_mm_setzero_ps(), _mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(d.v()[0]), 3 * sizeof(EntryType))));
@@ -1438,7 +1438,7 @@ template<> Vc_INTRINSIC sfloat_v sfloat_v::shifted(int amount) const
     }
     return Zero();
 }
-template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
+template<typename T> Vc_INTRINSIC Vc_PURE Vector<T> Vector<T>::rotated(int amount) const
 {
     const __m128i v = mm128_reinterpret_cast<__m128i>(d.v());
     switch (static_cast<unsigned int>(amount) % Size) {
@@ -1456,7 +1456,7 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
     }
     return Zero();
 }
-template<> Vc_INTRINSIC sfloat_v sfloat_v::rotated(int amount) const
+template<> Vc_INTRINSIC Vc_PURE sfloat_v sfloat_v::rotated(int amount) const
 {
     const __m128i v0 = sse_cast<__m128i>(d.v()[0]);
     const __m128i v1 = sse_cast<__m128i>(d.v()[1]);

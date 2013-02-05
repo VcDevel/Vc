@@ -52,7 +52,7 @@ template<typename T> struct c_trig
 template<typename T> struct c_log
 {
     typedef float floatAlias Vc_MAY_ALIAS;
-    static inline float d(int i) { return *reinterpret_cast<const floatAlias *>(&data[i]); }
+    static Vc_ALWAYS_INLINE float d(int i) { return *reinterpret_cast<const floatAlias *>(&data[i]); }
     ALIGN(64) static const unsigned int data[];
 };
 
@@ -60,7 +60,7 @@ template<> struct c_log<double>
 {
     enum VectorSize { Size = 16 / sizeof(double) };
     typedef double doubleAlias Vc_MAY_ALIAS;
-    static inline double d(int i) { return *reinterpret_cast<const doubleAlias *>(&data[i]); }
+    static Vc_ALWAYS_INLINE double d(int i) { return *reinterpret_cast<const doubleAlias *>(&data[i]); }
     ALIGN(64) static const unsigned long long data[];
 };
 

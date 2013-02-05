@@ -269,7 +269,7 @@ template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
 
 // only support M == V::EntryType -> no specialization
 template<typename V, typename M, typename A>
-inline void HelperImpl<Vc::AVXImpl>::deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+inline Vc_FLATTEN void HelperImpl<Vc::AVXImpl>::deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
         V &VC_RESTRICT c, const M *VC_RESTRICT memory, A align)
 {
     a.load(&memory[0 * V::Size], align);

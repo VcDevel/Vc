@@ -22,42 +22,42 @@ namespace Vc
 namespace AVX
 {
 
-template<> inline Mask<4, 32>::Mask(const Mask<8, 32> &m)
+template<> Vc_ALWAYS_INLINE Mask<4, 32>::Mask(const Mask<8, 32> &m)
     : k(concat(_mm_unpacklo_ps(lo128(m.data()), lo128(m.data())),
                 _mm_unpackhi_ps(lo128(m.data()), lo128(m.data()))))
 {
 }
 
-template<> inline Mask<8, 32>::Mask(const Mask<4, 32> &m)
+template<> Vc_ALWAYS_INLINE Mask<8, 32>::Mask(const Mask<4, 32> &m)
     // aabb ccdd -> abcd 0000
     : k(concat(Mem::shuffle<X0, X2, Y0, Y2>(lo128(m.data()), hi128(m.data())),
                 _mm_setzero_ps()))
 {
 }
 
-template<unsigned int Size> inline int Mask<Size, 32u>::shiftMask() const
+template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE int Mask<Size, 32u>::shiftMask() const
 {
     return _mm256_movemask_epi8(dataI());
 }
-template<unsigned int Size> inline int Mask<Size, 16u>::shiftMask() const
+template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE int Mask<Size, 16u>::shiftMask() const
 {
     return _mm_movemask_epi8(dataI());
 }
 
-template<> inline int Mask< 4, 32>::toInt() const { return _mm256_movemask_pd(dataD()); }
-template<> inline int Mask< 8, 32>::toInt() const { return _mm256_movemask_ps(data ()); }
-template<> inline int Mask< 8, 16>::toInt() const { return _mm_movemask_epi8(_mm_packs_epi16(dataI(), _mm_setzero_si128())); }
-template<> inline int Mask<16, 16>::toInt() const { return _mm_movemask_epi8(dataI()); }
+template<> Vc_ALWAYS_INLINE Vc_PURE int Mask< 4, 32>::toInt() const { return _mm256_movemask_pd(dataD()); }
+template<> Vc_ALWAYS_INLINE Vc_PURE int Mask< 8, 32>::toInt() const { return _mm256_movemask_ps(data ()); }
+template<> Vc_ALWAYS_INLINE Vc_PURE int Mask< 8, 16>::toInt() const { return _mm_movemask_epi8(_mm_packs_epi16(dataI(), _mm_setzero_si128())); }
+template<> Vc_ALWAYS_INLINE Vc_PURE int Mask<16, 16>::toInt() const { return _mm_movemask_epi8(dataI()); }
 
-template<> inline bool Mask< 4, 32>::operator[](int index) const { return toInt() & (1 << index); }
-template<> inline bool Mask< 8, 32>::operator[](int index) const { return toInt() & (1 << index); }
-template<> inline bool Mask< 8, 16>::operator[](int index) const { return shiftMask() & (1 << 2 * index); }
-template<> inline bool Mask<16, 16>::operator[](int index) const { return toInt() & (1 << index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 4, 32>::operator[](int index) const { return toInt() & (1 << index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 8, 32>::operator[](int index) const { return toInt() & (1 << index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 8, 16>::operator[](int index) const { return shiftMask() & (1 << 2 * index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<16, 16>::operator[](int index) const { return toInt() & (1 << index); }
 
-template<unsigned int Size> inline int Mask<Size, 32u>::count() const { return _mm_popcnt_u32(toInt()); }
-template<unsigned int Size> inline int Mask<Size, 16u>::count() const { return _mm_popcnt_u32(toInt()); }
-template<unsigned int Size> inline int Mask<Size, 32u>::firstOne() const { return _bit_scan_forward(toInt()); }
-template<unsigned int Size> inline int Mask<Size, 16u>::firstOne() const { return _bit_scan_forward(toInt()); }
+template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE int Mask<Size, 32u>::count() const { return _mm_popcnt_u32(toInt()); }
+template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE int Mask<Size, 16u>::count() const { return _mm_popcnt_u32(toInt()); }
+template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE int Mask<Size, 32u>::firstOne() const { return _bit_scan_forward(toInt()); }
+template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE int Mask<Size, 16u>::firstOne() const { return _bit_scan_forward(toInt()); }
 
 } // namespace AVX
 } // namespace Vc

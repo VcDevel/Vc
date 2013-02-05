@@ -150,7 +150,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
              *
              * \note This function can be eliminated by an optimizing compiler.
              */
-            inline size_t rowsCount() const { return RowCount; }
+            _VC_CONSTEXPR size_t rowsCount() const { return RowCount; }
             /**
              * \return the number of scalar entries in the whole array.
              *
@@ -159,13 +159,13 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
              *
              * \note This function can be optimized into a compile-time constant.
              */
-            inline size_t entriesCount() const { return Size1 * Size2; }
+            _VC_CONSTEXPR size_t entriesCount() const { return Size1 * Size2; }
             /**
              * \return the number of vectors in the whole array.
              *
              * \note This function can be optimized into a compile-time constant.
              */
-            inline size_t vectorsCount() const { return VectorsCount * Size1; }
+            _VC_CONSTEXPR size_t vectorsCount() const { return VectorsCount * Size1; }
 
             /**
              * Copies the data from a different object.
@@ -177,7 +177,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
              * \note Both objects must have the exact same vectorsCount().
              */
             template<typename Parent, typename RM>
-            inline Memory &operator=(const MemoryBase<V, Parent, 2, RM> &rhs) {
+            Vc_ALWAYS_INLINE Memory &operator=(const MemoryBase<V, Parent, 2, RM> &rhs) {
                 assert(vectorsCount() == rhs.vectorsCount());
                 std::memcpy(m_mem, rhs.m_mem, vectorsCount() * sizeof(V));
                 return *this;
@@ -299,7 +299,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
              * (not too early/not leaked). This function simply adds convenience functions to \em
              * access the memory.
              */
-            static Vc_ALWAYS_INLINE Memory<V, Size, 0u> &fromRawData(EntryType *ptr)
+            static Vc_ALWAYS_INLINE Vc_CONST Memory<V, Size, 0u> &fromRawData(EntryType *ptr)
             {
                 // DANGER! This placement new has to use the right address. If the compiler decides
                 // RowMemory requires padding before the actual data then the address has to be adjusted
@@ -315,22 +315,22 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
              *
              * \note This function can be optimized into a compile-time constant.
              */
-            inline size_t entriesCount() const { return EntriesCount; }
+            _VC_CONSTEXPR size_t entriesCount() const { return EntriesCount; }
 
             /**
              * \return the number of vectors in the whole array.
              *
              * \note This function can be optimized into a compile-time constant.
              */
-            inline size_t vectorsCount() const { return VectorsCount; }
+            _VC_CONSTEXPR size_t vectorsCount() const { return VectorsCount; }
 
             template<typename Parent, typename RM>
-            inline Memory<V> &operator=(const MemoryBase<V, Parent, 1, RM> &rhs) {
+            Vc_ALWAYS_INLINE Memory<V> &operator=(const MemoryBase<V, Parent, 1, RM> &rhs) {
                 assert(vectorsCount() == rhs.vectorsCount());
                 std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
                 return *this;
             }
-            inline Memory<V> &operator=(const EntryType *rhs) {
+            Vc_ALWAYS_INLINE Memory<V> &operator=(const EntryType *rhs) {
                 std::memcpy(m_mem, rhs, entriesCount() * sizeof(EntryType));
                 return *this;
             }
@@ -416,7 +416,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
          *
          * \param size Determines how many scalar values will fit into the allocated memory.
          */
-        inline Memory(size_t size)
+        Vc_ALWAYS_INLINE Memory(size_t size)
             : m_entriesCount(size),
             m_vectorsCount(calcPaddedEntriesCount(m_entriesCount)),
             m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
@@ -432,7 +432,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
          * \param rhs The Memory object to copy from.
          */
         template<typename Parent, typename RM>
-        inline Memory(const MemoryBase<V, Parent, 1, RM> &rhs)
+        Vc_ALWAYS_INLINE Memory(const MemoryBase<V, Parent, 1, RM> &rhs)
             : m_entriesCount(rhs.entriesCount()),
             m_vectorsCount(rhs.vectorsCount()),
             m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
@@ -447,7 +447,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
          *
          * \param rhs The Memory object to copy from.
          */
-        inline Memory(const Memory<V, 0u> &rhs)
+        Vc_ALWAYS_INLINE Memory(const Memory<V, 0u> &rhs)
             : m_entriesCount(rhs.entriesCount()),
             m_vectorsCount(rhs.vectorsCount()),
             m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
@@ -477,12 +477,12 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
         /**
          * \return the number of scalar entries in the whole array.
          */
-        inline size_t entriesCount() const { return m_entriesCount; }
+        Vc_ALWAYS_INLINE Vc_PURE size_t entriesCount() const { return m_entriesCount; }
 
         /**
          * \return the number of vectors in the whole array.
          */
-        inline size_t vectorsCount() const { return m_vectorsCount; }
+        Vc_ALWAYS_INLINE Vc_PURE size_t vectorsCount() const { return m_vectorsCount; }
 
         /**
          * Overwrite all entries with the values stored in \p rhs.
@@ -494,7 +494,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
          * \note this function requires the vectorsCount() of both Memory objects to be equal.
          */
         template<typename Parent, typename RM>
-        inline Memory<V> &operator=(const MemoryBase<V, Parent, 1, RM> &rhs) {
+        Vc_ALWAYS_INLINE Memory<V> &operator=(const MemoryBase<V, Parent, 1, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
             std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
             return *this;
@@ -509,7 +509,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
          *
          * \note this function requires that there are entriesCount() many values accessible from \p rhs.
          */
-        inline Memory<V> &operator=(const EntryType *rhs) {
+        Vc_ALWAYS_INLINE Memory<V> &operator=(const EntryType *rhs) {
             std::memcpy(m_mem, rhs, entriesCount() * sizeof(EntryType));
             return *this;
         }
@@ -596,7 +596,7 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *addr)
 
 namespace std
 {
-    template<typename V> inline void swap(Vc::Memory<V> &a, Vc::Memory<V> &b) { a.swap(b); }
+    template<typename V> Vc_ALWAYS_INLINE void swap(Vc::Memory<V> &a, Vc::Memory<V> &b) { a.swap(b); }
 } // namespace std
 
 #include "undomacros.h"

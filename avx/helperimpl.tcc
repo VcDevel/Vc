@@ -26,13 +26,9 @@ namespace Internal
 {
 
 template<size_t X>
-static inline size_t nextMultipleOf(size_t value)
+static _VC_CONSTEXPR size_t nextMultipleOf(size_t value)
 {
-    const size_t offset = value % X;
-    if ( offset > 0 ) {
-        return value + X - offset;
-    }
-    return value;
+    return (value % X) > 0 ? value + X - (value % X) : value;
 }
 
 template<Vc::MallocAlignment A>

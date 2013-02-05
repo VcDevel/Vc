@@ -140,52 +140,52 @@ namespace AVX
     //static Vc_INTRINSIC m256i Vc_CONST _mm256_set1_epu32(unsigned int a) { return ::_mm256_set1_epu32(a); }
 
 #if defined(VC_GNU_ASM) && !defined(NVALGRIND)
-    static inline m128i Vc_CONST _mm_setallone() { m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setallone() { m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
 #else
-    static inline m128i Vc_CONST _mm_setallone() { m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setallone() { m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
 #endif
-    static inline m128i Vc_CONST _mm_setallone_si128() { return _mm_setallone(); }
-    static inline m128d Vc_CONST _mm_setallone_pd() { return _mm_castsi128_pd(_mm_setallone()); }
-    static inline m128  Vc_CONST _mm_setallone_ps() { return _mm_castsi128_ps(_mm_setallone()); }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setallone_si128() { return _mm_setallone(); }
+    static Vc_INTRINSIC m128d Vc_CONST _mm_setallone_pd() { return _mm_castsi128_pd(_mm_setallone()); }
+    static Vc_INTRINSIC m128  Vc_CONST _mm_setallone_ps() { return _mm_castsi128_ps(_mm_setallone()); }
 
-    static inline m128i Vc_CONST _mm_setone_epi8 ()  { return _mm_set1_epi8(1); }
-    static inline m128i Vc_CONST _mm_setone_epu8 ()  { return _mm_setone_epi8(); }
-    static inline m128i Vc_CONST _mm_setone_epi16()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::one16))); }
-    static inline m128i Vc_CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
-    static inline m128i Vc_CONST _mm_setone_epi32()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epi8 ()  { return _mm_set1_epi8(1); }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epu8 ()  { return _mm_setone_epi8(); }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epi16()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::one16))); }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epi32()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
 
 #if defined(VC_GNU_ASM) && !defined(NVALGRIND)
-    static inline m256 Vc_CONST _mm256_setallone() { __m256 r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
+    static Vc_INTRINSIC m256 Vc_CONST _mm256_setallone() { __m256 r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
 #else
-    static inline m256 Vc_CONST _mm256_setallone() { m256 r = _mm256_setzero_ps(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
+    static Vc_INTRINSIC m256 Vc_CONST _mm256_setallone() { m256 r = _mm256_setzero_ps(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
 #endif
-    static inline m256i Vc_CONST _mm256_setallone_si256() { return _mm256_castps_si256(_mm256_setallone()); }
-    static inline m256d Vc_CONST _mm256_setallone_pd() { return _mm256_castps_pd(_mm256_setallone()); }
-    static inline m256  Vc_CONST _mm256_setallone_ps() { return _mm256_setallone(); }
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_setallone_si256() { return _mm256_castps_si256(_mm256_setallone()); }
+    static Vc_INTRINSIC m256d Vc_CONST _mm256_setallone_pd() { return _mm256_castps_pd(_mm256_setallone()); }
+    static Vc_INTRINSIC m256  Vc_CONST _mm256_setallone_ps() { return _mm256_setallone(); }
 
-    static inline m256i Vc_CONST _mm256_setone_epi8 ()  { return _mm256_set1_epi8(1); }
-    static inline m256i Vc_CONST _mm256_setone_epu8 ()  { return _mm256_setone_epi8(); }
-    static inline m256i Vc_CONST _mm256_setone_epi16()  { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::one16))); }
-    static inline m256i Vc_CONST _mm256_setone_epu16()  { return _mm256_setone_epi16(); }
-    static inline m256i Vc_CONST _mm256_setone_epi32()  { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
-    static inline m256i Vc_CONST _mm256_setone_epu32()  { return _mm256_setone_epi32(); }
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_setone_epi8 ()  { return _mm256_set1_epi8(1); }
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_setone_epu8 ()  { return _mm256_setone_epi8(); }
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_setone_epi16()  { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::one16))); }
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_setone_epu16()  { return _mm256_setone_epi16(); }
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_setone_epi32()  { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_setone_epu32()  { return _mm256_setone_epi32(); }
 
-    static inline m256  Vc_CONST _mm256_setone_ps()     { return _mm256_broadcast_ss(&c_general::oneFloat); }
-    static inline m256d Vc_CONST _mm256_setone_pd()     { return _mm256_broadcast_sd(&c_general::oneDouble); }
+    static Vc_INTRINSIC m256  Vc_CONST _mm256_setone_ps()     { return _mm256_broadcast_ss(&c_general::oneFloat); }
+    static Vc_INTRINSIC m256d Vc_CONST _mm256_setone_pd()     { return _mm256_broadcast_sd(&c_general::oneDouble); }
 
-    static inline m256d Vc_CONST _mm256_setabsmask_pd() { return _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::absMaskFloat[0])); }
-    static inline m256  Vc_CONST _mm256_setabsmask_ps() { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::absMaskFloat[1])); }
-    static inline m256d Vc_CONST _mm256_setsignmask_pd(){ return _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::signMaskFloat[0])); }
-    static inline m256  Vc_CONST _mm256_setsignmask_ps(){ return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1])); }
+    static Vc_INTRINSIC m256d Vc_CONST _mm256_setabsmask_pd() { return _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::absMaskFloat[0])); }
+    static Vc_INTRINSIC m256  Vc_CONST _mm256_setabsmask_ps() { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::absMaskFloat[1])); }
+    static Vc_INTRINSIC m256d Vc_CONST _mm256_setsignmask_pd(){ return _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::signMaskFloat[0])); }
+    static Vc_INTRINSIC m256  Vc_CONST _mm256_setsignmask_ps(){ return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1])); }
 
-    static inline m256  Vc_CONST _mm256_set2power31_ps()    { return _mm256_broadcast_ss(&c_general::_2power31); }
-    static inline m256i Vc_CONST _mm256_set2power31_epu32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
+    static Vc_INTRINSIC m256  Vc_CONST _mm256_set2power31_ps()    { return _mm256_broadcast_ss(&c_general::_2power31); }
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_set2power31_epu32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
 
-    //X         static inline m256i Vc_CONST _mm256_setmin_epi8 () { return _mm256_slli_epi8 (_mm256_setallone_si256(),  7); }
-    static inline m128i Vc_CONST _mm_setmin_epi16() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
-    static inline m128i Vc_CONST _mm_setmin_epi32() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
-    static inline m256i Vc_CONST _mm256_setmin_epi16() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
-    static inline m256i Vc_CONST _mm256_setmin_epi32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
+    //X         static Vc_INTRINSIC m256i Vc_CONST _mm256_setmin_epi8 () { return _mm256_slli_epi8 (_mm256_setallone_si256(),  7); }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setmin_epi16() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setmin_epi32() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_setmin_epi16() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_setmin_epi32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
 
 #ifdef VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
 #define _mm_extract_epu8 _mm_extract_epi8
@@ -218,10 +218,10 @@ namespace AVX
     static Vc_INTRINSIC m256  Vc_CONST _mm256_cmpord_ps  (param256  a, param256  b) { return _mm256_cmp_ps(a, b, _CMP_ORD_Q); }
     static Vc_INTRINSIC m256  Vc_CONST _mm256_cmpunord_ps(param256  a, param256  b) { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
 
-    static inline m128i _mm_cmplt_epu16(param128i a, param128i b) {
+    static Vc_INTRINSIC m128i _mm_cmplt_epu16(param128i a, param128i b) {
         return _mm_cmplt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
     }
-    static inline m128i _mm_cmpgt_epu16(param128i a, param128i b) {
+    static Vc_INTRINSIC m128i _mm_cmpgt_epu16(param128i a, param128i b) {
         return _mm_cmpgt_epi16(_mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16()));
     }
 
@@ -444,18 +444,18 @@ namespace AVX
     // stream_load_si128 (param128i *__X)
     AVX_TO_SSE_2(cmpgt_epi64)
 
-//X     static inline m256i _mm256_cmplt_epu8 (param256i a, param256i b) { return _mm256_cmplt_epi8 (
+//X     static Vc_INTRINSIC m256i _mm256_cmplt_epu8 (param256i a, param256i b) { return _mm256_cmplt_epi8 (
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
-//X     static inline m256i _mm256_cmpgt_epu8 (param256i a, param256i b) { return _mm256_cmpgt_epi8 (
+//X     static Vc_INTRINSIC m256i _mm256_cmpgt_epu8 (param256i a, param256i b) { return _mm256_cmpgt_epi8 (
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
-    static inline m256i Vc_CONST _mm256_cmplt_epu32(param256i _a, param256i _b) {
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_cmplt_epu32(param256i _a, param256i _b) {
         m256i a = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(_a), _mm256_castsi256_ps(_mm256_setmin_epi32())));
         m256i b = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(_b), _mm256_castsi256_ps(_mm256_setmin_epi32())));
         return _mm256_insertf128_si256(_mm256_castsi128_si256(
                     _mm_cmplt_epi32(_mm256_castsi256_si128(a), _mm256_castsi256_si128(b))),
                 _mm_cmplt_epi32(_mm256_extractf128_si256(a, 1), _mm256_extractf128_si256(b, 1)), 1);
     }
-    static inline m256i Vc_CONST _mm256_cmpgt_epu32(param256i _a, param256i _b) {
+    static Vc_INTRINSIC m256i Vc_CONST _mm256_cmpgt_epu32(param256i _a, param256i _b) {
         m256i a = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(_a), _mm256_castsi256_ps(_mm256_setmin_epi32())));
         m256i b = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(_b), _mm256_castsi256_ps(_mm256_setmin_epi32())));
         return _mm256_insertf128_si256(_mm256_castsi128_si256(

@@ -70,13 +70,13 @@ template<typename T0, typename T1, typename V> struct IsVectorOperands
 // 5.              shorts like ints
 
 #define VC_OPERATOR_FORWARD_(ret, op) \
-template<typename T0, typename T1> static inline typename EnableIf< \
+template<typename T0, typename T1> static Vc_ALWAYS_INLINE typename EnableIf< \
     IsVectorOperands<T0, T1, double_v>::Value || \
     ((IsEqualType<T0, float>::Value || IsLikeInteger<T0>::Value) && HasImplicitCast<T1, double_v>::Value && !HasImplicitCast<T1, int>::Value) || \
     ((IsEqualType<T1, float>::Value || IsLikeInteger<T1>::Value) && HasImplicitCast<T0, double_v>::Value && !HasImplicitCast<T0, int>::Value) || \
     false, double_##ret>::Value operator op(const T0 &x, const T1 &y) { return double_v(x) op double_v(y); } \
 \
-template<typename T0, typename T1> static inline typename EnableIf< \
+template<typename T0, typename T1> static Vc_ALWAYS_INLINE typename EnableIf< \
     IsVectorOperands<T0, T1, float_v>::Value || \
     IsTypeCombinationOf<T0, T1,  int_v, float_v>::Value || \
     IsTypeCombinationOf<T0, T1, uint_v, float_v>::Value || \
@@ -86,7 +86,7 @@ template<typename T0, typename T1> static inline typename EnableIf< \
     (IsLikeInteger<T1>::Value && HasImplicitCast<T0, float_v>::Value && !HasImplicitCast<T0, int>::Value) || \
     false, float_##ret>::Value operator op(const T0 &x, const T1 &y) { return float_v(x) op float_v(y); } \
 \
-template<typename T0, typename T1> static inline typename EnableIf< \
+template<typename T0, typename T1> static Vc_ALWAYS_INLINE typename EnableIf< \
     IsVectorOperands<T0, T1, sfloat_v>::Value || \
     IsTypeCombinationOf<T0, T1,  short_v, sfloat_v>::Value || \
     IsTypeCombinationOf<T0, T1, ushort_v, sfloat_v>::Value || \
@@ -96,7 +96,7 @@ template<typename T0, typename T1> static inline typename EnableIf< \
     (IsLikeInteger<T1>::Value && HasImplicitCast<T0, sfloat_v>::Value && !HasImplicitCast<T0, int>::Value) || \
     false, sfloat_##ret>::Value operator op(const T0 &x, const T1 &y) { return sfloat_v(x) op sfloat_v(y); } \
 \
-template<typename T0, typename T1> static inline typename EnableIf< \
+template<typename T0, typename T1> static Vc_ALWAYS_INLINE typename EnableIf< \
     IsVectorOperands<T0, T1, uint_v>::Value || \
     IsTypeCombinationOf<T0, T1, int_v, uint_v>::Value || \
     (IsUnsignedInteger<T0>::Value && HasImplicitCast<T1, int_v>::Value && !HasImplicitCast<T1, int>::Value) || \
@@ -104,13 +104,13 @@ template<typename T0, typename T1> static inline typename EnableIf< \
     (IsLikeInteger<T0>::Value && !IsEqualType<T0, unsigned int>::Value && HasImplicitCast<T1, uint_v>::Value && !HasImplicitCast<T1, int>::Value) || \
     (IsLikeInteger<T1>::Value && !IsEqualType<T1, unsigned int>::Value && HasImplicitCast<T0, uint_v>::Value && !HasImplicitCast<T0, int>::Value) || \
     false, uint_##ret>::Value operator op(const T0 &x, const T1 &y) { return uint_v(x) op uint_v(y); } \
-template<typename T0, typename T1> static inline typename EnableIf< \
+template<typename T0, typename T1> static Vc_ALWAYS_INLINE typename EnableIf< \
     IsVectorOperands<T0, T1, int_v>::Value || \
     (IsLikeSignedInteger<T0>::Value && !IsEqualType<T0, int>::Value && HasImplicitCast<T1, int_v>::Value && !HasImplicitCast<T1, int>::Value) || \
     (IsLikeSignedInteger<T1>::Value && !IsEqualType<T1, int>::Value && HasImplicitCast<T0, int_v>::Value && !HasImplicitCast<T0, int>::Value) || \
     false, int_##ret>::Value operator op(const T0 &x, const T1 &y) { return  int_v(x) op  int_v(y); } \
 \
-template<typename T0, typename T1> static inline typename EnableIf< \
+template<typename T0, typename T1> static Vc_ALWAYS_INLINE typename EnableIf< \
     IsVectorOperands<T0, T1, ushort_v>::Value || \
     IsTypeCombinationOf<T0, T1, short_v, ushort_v>::Value || \
     (IsUnsignedInteger<T0>::Value && HasImplicitCast<T1, short_v>::Value && !HasImplicitCast<T1, int>::Value) || \
@@ -118,7 +118,7 @@ template<typename T0, typename T1> static inline typename EnableIf< \
     (IsLikeInteger<T0>::Value && !IsEqualType<T0, unsigned short>::Value && HasImplicitCast<T1, ushort_v>::Value && !HasImplicitCast<T1, int>::Value) || \
     (IsLikeInteger<T1>::Value && !IsEqualType<T1, unsigned short>::Value && HasImplicitCast<T0, ushort_v>::Value && !HasImplicitCast<T0, int>::Value) || \
     false, ushort_##ret>::Value operator op(const T0 &x, const T1 &y) { return ushort_v(x) op ushort_v(y); } \
-template<typename T0, typename T1> static inline typename EnableIf< \
+template<typename T0, typename T1> static Vc_ALWAYS_INLINE typename EnableIf< \
     IsVectorOperands<T0, T1, short_v>::Value || \
     (IsLikeSignedInteger<T0>::Value && !IsEqualType<T0, short>::Value && HasImplicitCast<T1, short_v>::Value && !HasImplicitCast<T1, int>::Value) || \
     (IsLikeSignedInteger<T1>::Value && !IsEqualType<T1, short>::Value && HasImplicitCast<T0, short_v>::Value && !HasImplicitCast<T0, int>::Value) || \
@@ -164,24 +164,24 @@ template<typename T> static inline typename EnableIf<IsEqualType<T, _T>::Value, 
 #endif
 
 #define VC_OPERATOR_FORWARD_COMMUTATIVE(ret, op, op2) \
-template<typename T> static inline VC_EXACT_TYPE(T,         double, double_##ret) operator op(T x, double_v::AsArg y) { return y op2 x; } \
-template<typename T> static inline VC_EXACT_TYPE(T,          float, sfloat_##ret) operator op(T x, sfloat_v::AsArg y) { return y op2 x; } \
-template<typename T> static inline VC_EXACT_TYPE(T,          float,  float_##ret) operator op(T x,  float_v::AsArg y) { return y op2 x; } \
-template<typename T> static inline VC_EXACT_TYPE(T,            int,    int_##ret) operator op(T x,    int_v::AsArg y) { return y op2 x; } \
-template<typename T> static inline VC_EXACT_TYPE(T,   unsigned int,   uint_##ret) operator op(T x,   uint_v::AsArg y) { return y op2 x; } \
-template<typename T> static inline VC_EXACT_TYPE(T,          short,  short_##ret) operator op(T x,  short_v::AsArg y) { return y op2 x; } \
-template<typename T> static inline VC_EXACT_TYPE(T, unsigned short, ushort_##ret) operator op(T x, ushort_v::AsArg y) { return y op2 x; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,         double, double_##ret) operator op(T x, double_v::AsArg y) { return y op2 x; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,          float, sfloat_##ret) operator op(T x, sfloat_v::AsArg y) { return y op2 x; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,          float,  float_##ret) operator op(T x,  float_v::AsArg y) { return y op2 x; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,            int,    int_##ret) operator op(T x,    int_v::AsArg y) { return y op2 x; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,   unsigned int,   uint_##ret) operator op(T x,   uint_v::AsArg y) { return y op2 x; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,          short,  short_##ret) operator op(T x,  short_v::AsArg y) { return y op2 x; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T, unsigned short, ushort_##ret) operator op(T x, ushort_v::AsArg y) { return y op2 x; } \
 VC_OPERATOR_FORWARD_(ret, op) \
 VC_OPERATOR_INTENTIONAL_ERROR(op)
 
 #define VC_OPERATOR_FORWARD(ret, op) \
-template<typename T> static inline VC_EXACT_TYPE(T,         double, double_##ret) operator op(T x, double_v::AsArg y) { return double_v(x) op y; } \
-template<typename T> static inline VC_EXACT_TYPE(T,          float, sfloat_##ret) operator op(T x, sfloat_v::AsArg y) { return sfloat_v(x) op y; } \
-template<typename T> static inline VC_EXACT_TYPE(T,          float,  float_##ret) operator op(T x,  float_v::AsArg y) { return  float_v(x) op y; } \
-template<typename T> static inline VC_EXACT_TYPE(T,            int,    int_##ret) operator op(T x,    int_v::AsArg y) { return    int_v(x) op y; } \
-template<typename T> static inline VC_EXACT_TYPE(T,   unsigned int,   uint_##ret) operator op(T x,   uint_v::AsArg y) { return   uint_v(x) op y; } \
-template<typename T> static inline VC_EXACT_TYPE(T,          short,  short_##ret) operator op(T x,  short_v::AsArg y) { return  short_v(x) op y; } \
-template<typename T> static inline VC_EXACT_TYPE(T, unsigned short, ushort_##ret) operator op(T x, ushort_v::AsArg y) { return ushort_v(x) op y; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,         double, double_##ret) operator op(T x, double_v::AsArg y) { return double_v(x) op y; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,          float, sfloat_##ret) operator op(T x, sfloat_v::AsArg y) { return sfloat_v(x) op y; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,          float,  float_##ret) operator op(T x,  float_v::AsArg y) { return  float_v(x) op y; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,            int,    int_##ret) operator op(T x,    int_v::AsArg y) { return    int_v(x) op y; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,   unsigned int,   uint_##ret) operator op(T x,   uint_v::AsArg y) { return   uint_v(x) op y; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T,          short,  short_##ret) operator op(T x,  short_v::AsArg y) { return  short_v(x) op y; } \
+template<typename T> static Vc_ALWAYS_INLINE VC_EXACT_TYPE(T, unsigned short, ushort_##ret) operator op(T x, ushort_v::AsArg y) { return ushort_v(x) op y; } \
 VC_OPERATOR_FORWARD_(ret, op) \
 VC_OPERATOR_INTENTIONAL_ERROR(op)
 

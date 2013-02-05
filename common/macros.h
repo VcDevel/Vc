@@ -23,6 +23,12 @@
 
 #include <Vc/global.h>
 
+#if VC_GCC && !__OPTIMIZE__
+// GCC uses lots of old-style-casts in macros that disguise as intrinsics
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
+
 #ifdef VC_MSVC
 # define ALIGN(n) __declspec(align(n))
 # define STRUCT_ALIGN1(n) ALIGN(n)
@@ -36,11 +42,11 @@
 #endif
 
 #define FREE_STORE_OPERATORS_ALIGNED(alignment) \
-        void *operator new(size_t size) { return _mm_malloc(size, alignment); } \
-        void *operator new(size_t, void *p) { return p; } \
-        void *operator new[](size_t size) { return _mm_malloc(size, alignment); } \
-        void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
-        void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
+        inline void *operator new(size_t size) { return _mm_malloc(size, alignment); } \
+        inline void *operator new(size_t, void *p) { return p; } \
+        inline void *operator new[](size_t size) { return _mm_malloc(size, alignment); } \
+        inline void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
+        inline void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
 
 #ifdef VC_CXX11
 #define Vc_ALIGNOF(_TYPE_) alignof(_TYPE_)

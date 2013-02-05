@@ -246,17 +246,17 @@ struct LogImpl
     }
 };
 
-template<typename T> static inline Vector<T> log(VC_ALIGNED_PARAMETER(Vector<T>) x) {
+template<typename T> static Vc_ALWAYS_INLINE Vc_CONST Vector<T> log(VC_ALIGNED_PARAMETER(Vector<T>) x) {
     typedef typename Vector<T>::Mask M;
     typedef Const<T> C;
     return LogImpl<BaseE>::calc(x);
 }
-template<typename T> static inline Vector<T> log10(VC_ALIGNED_PARAMETER(Vector<T>) x) {
+template<typename T> static Vc_ALWAYS_INLINE Vc_CONST Vector<T> log10(VC_ALIGNED_PARAMETER(Vector<T>) x) {
     typedef typename Vector<T>::Mask M;
     typedef Const<T> C;
     return LogImpl<Base10>::calc(x);
 }
-template<typename T> static inline Vector<T> log2(VC_ALIGNED_PARAMETER(Vector<T>) x) {
+template<typename T> static Vc_ALWAYS_INLINE Vc_CONST Vector<T> log2(VC_ALIGNED_PARAMETER(Vector<T>) x) {
     typedef typename Vector<T>::Mask M;
     typedef Const<T> C;
     return LogImpl<Base2>::calc(x);

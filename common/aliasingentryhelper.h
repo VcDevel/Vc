@@ -35,70 +35,70 @@ template<class StorageType> class AliasingEntryHelper
         StorageType *const m_storage;
         const int m_index;
     public:
-        AliasingEntryHelper(StorageType *d, int index) : m_storage(d), m_index(index) {}
-        AliasingEntryHelper(const AliasingEntryHelper &rhs) : m_storage(rhs.m_storage), m_index(rhs.m_index) {}
-        AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
+        Vc_ALWAYS_INLINE AliasingEntryHelper(StorageType *d, int index) : m_storage(d), m_index(index) {}
+        Vc_ALWAYS_INLINE AliasingEntryHelper(const AliasingEntryHelper &rhs) : m_storage(rhs.m_storage), m_index(rhs.m_index) {}
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
             m_storage->assign(m_index, rhs);
             return *this;
         }
 
-        AliasingEntryHelper &operator  =(T x) { m_storage->assign(m_index, x); return *this; }
-        AliasingEntryHelper &operator +=(T x) { m_storage->assign(m_index, m_storage->m(m_index) + x); return *this; }
-        AliasingEntryHelper &operator -=(T x) { m_storage->assign(m_index, m_storage->m(m_index) - x); return *this; }
-        AliasingEntryHelper &operator /=(T x) { m_storage->assign(m_index, m_storage->m(m_index) / x); return *this; }
-        AliasingEntryHelper &operator *=(T x) { m_storage->assign(m_index, m_storage->m(m_index) * x); return *this; }
-        AliasingEntryHelper &operator |=(T x) { m_storage->assign(m_index, m_storage->m(m_index) | x); return *this; }
-        AliasingEntryHelper &operator &=(T x) { m_storage->assign(m_index, m_storage->m(m_index) & x); return *this; }
-        AliasingEntryHelper &operator ^=(T x) { m_storage->assign(m_index, m_storage->m(m_index) ^ x); return *this; }
-        AliasingEntryHelper &operator %=(T x) { m_storage->assign(m_index, m_storage->m(m_index) % x); return *this; }
-        AliasingEntryHelper &operator<<=(T x) { m_storage->assign(m_index, m_storage->m(m_index)<< x); return *this; }
-        AliasingEntryHelper &operator>>=(T x) { m_storage->assign(m_index, m_storage->m(m_index)>> x); return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator  =(T x) { m_storage->assign(m_index, x); return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator +=(T x) { m_storage->assign(m_index, m_storage->m(m_index) + x); return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator -=(T x) { m_storage->assign(m_index, m_storage->m(m_index) - x); return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator /=(T x) { m_storage->assign(m_index, m_storage->m(m_index) / x); return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator *=(T x) { m_storage->assign(m_index, m_storage->m(m_index) * x); return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator |=(T x) { m_storage->assign(m_index, m_storage->m(m_index) | x); return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator &=(T x) { m_storage->assign(m_index, m_storage->m(m_index) & x); return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator ^=(T x) { m_storage->assign(m_index, m_storage->m(m_index) ^ x); return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator %=(T x) { m_storage->assign(m_index, m_storage->m(m_index) % x); return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator<<=(T x) { m_storage->assign(m_index, m_storage->m(m_index)<< x); return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator>>=(T x) { m_storage->assign(m_index, m_storage->m(m_index)>> x); return *this; }
 #define m_data m_storage->read(m_index)
 #else
         typedef T A Vc_MAY_ALIAS;
         A &m_data;
     public:
         template<typename T2>
-        AliasingEntryHelper(T2 &d) : m_data(reinterpret_cast<A &>(d)) {}
+        Vc_ALWAYS_INLINE AliasingEntryHelper(T2 &d) : m_data(reinterpret_cast<A &>(d)) {}
 
-        AliasingEntryHelper(A &d) : m_data(d) {}
-        AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
+        Vc_ALWAYS_INLINE AliasingEntryHelper(A &d) : m_data(d) {}
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
             m_data = rhs.m_data;
             return *this;
         }
 
-        AliasingEntryHelper &operator =(T x) { m_data  = x; return *this; }
-        AliasingEntryHelper &operator+=(T x) { m_data += x; return *this; }
-        AliasingEntryHelper &operator-=(T x) { m_data -= x; return *this; }
-        AliasingEntryHelper &operator/=(T x) { m_data /= x; return *this; }
-        AliasingEntryHelper &operator*=(T x) { m_data *= x; return *this; }
-        AliasingEntryHelper &operator|=(T x) { m_data |= x; return *this; }
-        AliasingEntryHelper &operator&=(T x) { m_data &= x; return *this; }
-        AliasingEntryHelper &operator^=(T x) { m_data ^= x; return *this; }
-        AliasingEntryHelper &operator%=(T x) { m_data %= x; return *this; }
-        AliasingEntryHelper &operator<<=(T x) { m_data <<= x; return *this; }
-        AliasingEntryHelper &operator>>=(T x) { m_data >>= x; return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator =(T x) { m_data  = x; return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator+=(T x) { m_data += x; return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator-=(T x) { m_data -= x; return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator/=(T x) { m_data /= x; return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator*=(T x) { m_data *= x; return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator|=(T x) { m_data |= x; return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator&=(T x) { m_data &= x; return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator^=(T x) { m_data ^= x; return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator%=(T x) { m_data %= x; return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator<<=(T x) { m_data <<= x; return *this; }
+        Vc_ALWAYS_INLINE AliasingEntryHelper &operator>>=(T x) { m_data >>= x; return *this; }
 #endif
 
-        operator const T() const { return m_data; }
+        Vc_ALWAYS_INLINE Vc_PURE operator const T() const { return m_data; }
 
-        bool operator==(T x) const { return static_cast<T>(m_data) == x; }
-        bool operator!=(T x) const { return static_cast<T>(m_data) != x; }
-        bool operator<=(T x) const { return static_cast<T>(m_data) <= x; }
-        bool operator>=(T x) const { return static_cast<T>(m_data) >= x; }
-        bool operator< (T x) const { return static_cast<T>(m_data) <  x; }
-        bool operator> (T x) const { return static_cast<T>(m_data) >  x; }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator==(T x) const { return static_cast<T>(m_data) == x; }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator!=(T x) const { return static_cast<T>(m_data) != x; }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator<=(T x) const { return static_cast<T>(m_data) <= x; }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator>=(T x) const { return static_cast<T>(m_data) >= x; }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator< (T x) const { return static_cast<T>(m_data) <  x; }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator> (T x) const { return static_cast<T>(m_data) >  x; }
 
-        T operator-() const { return -static_cast<T>(m_data); }
-        T operator~() const { return ~static_cast<T>(m_data); }
-        T operator+(T x) const { return static_cast<T>(m_data) + x; }
-        T operator-(T x) const { return static_cast<T>(m_data) - x; }
-        T operator/(T x) const { return static_cast<T>(m_data) / x; }
-        T operator*(T x) const { return static_cast<T>(m_data) * x; }
-        T operator|(T x) const { return static_cast<T>(m_data) | x; }
-        T operator&(T x) const { return static_cast<T>(m_data) & x; }
-        T operator^(T x) const { return static_cast<T>(m_data) ^ x; }
-        T operator%(T x) const { return static_cast<T>(m_data) % x; }
+        Vc_ALWAYS_INLINE Vc_PURE T operator-() const { return -static_cast<T>(m_data); }
+        Vc_ALWAYS_INLINE Vc_PURE T operator~() const { return ~static_cast<T>(m_data); }
+        Vc_ALWAYS_INLINE Vc_PURE T operator+(T x) const { return static_cast<T>(m_data) + x; }
+        Vc_ALWAYS_INLINE Vc_PURE T operator-(T x) const { return static_cast<T>(m_data) - x; }
+        Vc_ALWAYS_INLINE Vc_PURE T operator/(T x) const { return static_cast<T>(m_data) / x; }
+        Vc_ALWAYS_INLINE Vc_PURE T operator*(T x) const { return static_cast<T>(m_data) * x; }
+        Vc_ALWAYS_INLINE Vc_PURE T operator|(T x) const { return static_cast<T>(m_data) | x; }
+        Vc_ALWAYS_INLINE Vc_PURE T operator&(T x) const { return static_cast<T>(m_data) & x; }
+        Vc_ALWAYS_INLINE Vc_PURE T operator^(T x) const { return static_cast<T>(m_data) ^ x; }
+        Vc_ALWAYS_INLINE Vc_PURE T operator%(T x) const { return static_cast<T>(m_data) % x; }
         //T operator<<(T x) const { return static_cast<T>(m_data) << x; }
         //T operator>>(T x) const { return static_cast<T>(m_data) >> x; }
 #ifdef m_data

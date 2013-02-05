@@ -23,6 +23,8 @@
 #ifndef VC__USE_NAMESPACE
 #error "Do not include Vc/common/trigonometric.h outside of Vc itself"
 #endif
+
+#include "macros.h"
 namespace Vc
 {
 namespace
@@ -55,25 +57,26 @@ template<typename Impl> struct Trigonometric
 namespace VC__USE_NAMESPACE
 #undef VC__USE_NAMESPACE
 {
-    template<typename T> static inline Vector<T> sin(const Vector<T> &_x) {
+    template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> sin(const Vector<T> &_x) {
         return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(_x);
     }
-    template<typename T> static inline Vector<T> cos(const Vector<T> &_x) {
+    template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> cos(const Vector<T> &_x) {
         return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::cos(_x);
     }
-    template<typename T> static inline void sincos(const Vector<T> &_x, Vector<T> *_sin, Vector<T> *_cos) {
+    template<typename T> static Vc_ALWAYS_INLINE void sincos(const Vector<T> &_x, Vector<T> *_sin, Vector<T> *_cos) {
         Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::sincos(_x, _sin, _cos);
     }
-    template<typename T> static inline Vector<T> asin (const Vector<T> &_x) {
+    template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> asin (const Vector<T> &_x) {
         return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::asin(_x);
     }
-    template<typename T> static inline Vector<T> atan (const Vector<T> &_x) {
+    template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> atan (const Vector<T> &_x) {
         return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan(_x);
     }
-    template<typename T> static inline Vector<T> atan2(const Vector<T> &y, const Vector<T> &x) {
+    template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> atan2(const Vector<T> &y, const Vector<T> &x) {
         return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan2(y, x);
     }
 } // namespace VC__USE_NAMESPACE
 } // namespace Vc
 
+#include "undomacros.h"
 #endif // VC_COMMON_TRIGONOMETRIC_H

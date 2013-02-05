@@ -88,7 +88,7 @@ class WriteMaskedVector
             return *vec;
         }
         Vc_INTRINSIC Vector<T> &operator*=(const Vector<T> &x) {
-            vec->data() = VectorHelper<T>::mul(vec->data(), x.data(), mask.data());
+            vec->assign(VectorHelper<T>::mul(vec->data(), x.data()), mask);
             return *vec;
         }
         Vc_INTRINSIC Vc_CONST Vector<T> &operator/=(const Vector<T> &x);
@@ -130,7 +130,7 @@ class WriteMaskedVector
         }
 
     private:
-        WriteMaskedVector(Vector<T> *v, const Mask &k) : vec(v), mask(k) {}
+        Vc_ALWAYS_INLINE WriteMaskedVector(Vector<T> *v, const Mask &k) : vec(v), mask(k) {}
         Vector<T> *const vec;
         Mask mask;
 };
@@ -164,7 +164,7 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // uninitialized
-        inline Vector() {}
+        Vc_ALWAYS_INLINE Vector() {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // constants
@@ -178,7 +178,7 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType
-        inline Vector(const VectorType &x) : d(x) {}
+        Vc_ALWAYS_INLINE Vector(const VectorType &x) : d(x) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // static_cast / copy ctor
@@ -188,14 +188,14 @@ template<typename T> class Vector
         template<typename OtherT> Vc_INTRINSIC_L Vector &operator=(const Vector<OtherT> &x) Vc_INTRINSIC_R;
 
         // copy assignment
-        inline Vector &operator=(AsArg v) { d.v() = v.d.v(); return *this; }
+        Vc_ALWAYS_INLINE Vector &operator=(AsArg v) { d.v() = v.d.v(); return *this; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
-        explicit Vector(EntryType a);
+        explicit Vc_INTRINSIC_L Vector(EntryType a) Vc_INTRINSIC_R;
         template<typename TT> Vc_INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : d(HT::set(x)) {}
         static Vc_INTRINSIC Vector broadcast4(const EntryType *x) { return Vector<T>(x); }
-        inline Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
+        Vc_ALWAYS_INLINE Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
@@ -222,7 +222,7 @@ template<typename T> class Vector
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
         explicit Vc_INTRINSIC_L Vector(const Vector<typename CtorTypeHelper<T>::Type> *a) Vc_INTRINSIC_R;
-        void expand(Vector<typename ExpandTypeHelper<T>::Type> *x) const;
+        inline void expand(Vector<typename ExpandTypeHelper<T>::Type> *x) const;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // zeroing
@@ -304,7 +304,7 @@ template<typename T> class Vector
         Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_PURE Vc_INTRINSIC_R;
 
         Vc_INTRINSIC Vector Vc_PURE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
-        inline Vector<typename NegateTypeHelper<T>::Type> operator-() const;
+        Vc_ALWAYS_INLINE_L Vector<typename NegateTypeHelper<T>::Type> operator-() const Vc_ALWAYS_INLINE_R;
         Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }
 
 #define OP(symbol, fun) \
@@ -354,17 +354,17 @@ template<typename T> class Vector
 #undef OPcmp
         Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
-        inline void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
+        Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
             VectorHelper<T>::fma(data(), factor.data(), summand.data());
         }
 
-        inline void assign( const Vector<T> &v, const Mask &mask ) {
+        Vc_ALWAYS_INLINE void assign( const Vector<T> &v, const Mask &mask ) {
             const VectorType k = mm128_reinterpret_cast<VectorType>(mask.data());
             data() = VectorHelper<VectorType>::blend(data(), v.data(), k);
         }
 
-        template<typename V2> inline V2 staticCast() const { return StaticCastHelper<T, typename V2::_T>::cast(data()); }
-        template<typename V2> inline V2 reinterpretCast() const { return mm128_reinterpret_cast<typename V2::VectorType>(data()); }
+        template<typename V2> Vc_ALWAYS_INLINE Vc_PURE V2 staticCast() const { return StaticCastHelper<T, typename V2::_T>::cast(data()); }
+        template<typename V2> Vc_ALWAYS_INLINE Vc_PURE V2 reinterpretCast() const { return mm128_reinterpret_cast<typename V2::VectorType>(data()); }
 
         Vc_INTRINSIC WriteMaskedVector<T> operator()(const Mask &k) { return WriteMaskedVector<T>(this, k); }
 
@@ -377,8 +377,8 @@ template<typename T> class Vector
             //return VectorHelper<T>::pack(data(), m1.data, v2.data(), m2.data);
         //}
 
-        inline VectorType &data() { return d.v(); }
-        inline const VectorType &data() const { return d.v(); }
+        Vc_ALWAYS_INLINE Vc_PURE VectorType &data() { return d.v(); }
+        Vc_ALWAYS_INLINE Vc_PURE const VectorType &data() const { return d.v(); }
 
         Vc_INTRINSIC EntryType min() const { return VectorHelper<T>::min(data()); }
         Vc_INTRINSIC EntryType max() const { return VectorHelper<T>::max(data()); }
@@ -391,7 +391,7 @@ template<typename T> class Vector
 
         Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
-        inline Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }
+        Vc_ALWAYS_INLINE Vc_PURE Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }
 
         template<typename F> void callWithValuesSorted(F &f) {
             EntryType value = d.m(0);
@@ -486,41 +486,41 @@ typedef uint_v::Mask uint_m;
 typedef short_v::Mask short_m;
 typedef ushort_v::Mask ushort_m;
 
-template<> inline Vector<float8> Vector<float8>::broadcast4(const float *x) {
+template<> Vc_ALWAYS_INLINE Vc_PURE Vector<float8> Vector<float8>::broadcast4(const float *x) {
     const _M128 &v = VectorHelper<_M128>::load(x, Aligned);
     return Vector<float8>(M256::create(v, v));
 }
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 
-static inline int_v    min(const int_v    &x, const int_v    &y) { return _mm_min_epi32(x.data(), y.data()); }
-static inline uint_v   min(const uint_v   &x, const uint_v   &y) { return _mm_min_epu32(x.data(), y.data()); }
-static inline short_v  min(const short_v  &x, const short_v  &y) { return _mm_min_epi16(x.data(), y.data()); }
-static inline ushort_v min(const ushort_v &x, const ushort_v &y) { return _mm_min_epu16(x.data(), y.data()); }
-static inline float_v  min(const float_v  &x, const float_v  &y) { return _mm_min_ps(x.data(), y.data()); }
-static inline double_v min(const double_v &x, const double_v &y) { return _mm_min_pd(x.data(), y.data()); }
-static inline int_v    max(const int_v    &x, const int_v    &y) { return _mm_max_epi32(x.data(), y.data()); }
-static inline uint_v   max(const uint_v   &x, const uint_v   &y) { return _mm_max_epu32(x.data(), y.data()); }
-static inline short_v  max(const short_v  &x, const short_v  &y) { return _mm_max_epi16(x.data(), y.data()); }
-static inline ushort_v max(const ushort_v &x, const ushort_v &y) { return _mm_max_epu16(x.data(), y.data()); }
-static inline float_v  max(const float_v  &x, const float_v  &y) { return _mm_max_ps(x.data(), y.data()); }
-static inline double_v max(const double_v &x, const double_v &y) { return _mm_max_pd(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE int_v    min(const int_v    &x, const int_v    &y) { return _mm_min_epi32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE uint_v   min(const uint_v   &x, const uint_v   &y) { return _mm_min_epu32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE short_v  min(const short_v  &x, const short_v  &y) { return _mm_min_epi16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE ushort_v min(const ushort_v &x, const ushort_v &y) { return _mm_min_epu16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE float_v  min(const float_v  &x, const float_v  &y) { return _mm_min_ps(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE double_v min(const double_v &x, const double_v &y) { return _mm_min_pd(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE int_v    max(const int_v    &x, const int_v    &y) { return _mm_max_epi32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE uint_v   max(const uint_v   &x, const uint_v   &y) { return _mm_max_epu32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE short_v  max(const short_v  &x, const short_v  &y) { return _mm_max_epi16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE ushort_v max(const ushort_v &x, const ushort_v &y) { return _mm_max_epu16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE float_v  max(const float_v  &x, const float_v  &y) { return _mm_max_ps(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE double_v max(const double_v &x, const double_v &y) { return _mm_max_pd(x.data(), y.data()); }
 
-static inline sfloat_v min(const sfloat_v &x, const sfloat_v &y) {
+static Vc_ALWAYS_INLINE Vc_PURE sfloat_v min(const sfloat_v &x, const sfloat_v &y) {
     return M256::create(_mm_min_ps(x.data()[0], y.data()[0]), _mm_min_ps(x.data()[1], y.data()[1]));
 }
-static inline sfloat_v max(const sfloat_v &x, const sfloat_v &y) {
+static Vc_ALWAYS_INLINE Vc_PURE sfloat_v max(const sfloat_v &x, const sfloat_v &y) {
     return M256::create(_mm_max_ps(x.data()[0], y.data()[0]), _mm_max_ps(x.data()[1], y.data()[1]));
 }
 
-  template<typename T> static inline Vector<T> sqrt (const Vector<T> &x) { return VectorHelper<T>::sqrt(x.data()); }
-  template<typename T> static inline Vector<T> rsqrt(const Vector<T> &x) { return VectorHelper<T>::rsqrt(x.data()); }
-  template<typename T> static inline Vector<T> abs  (const Vector<T> &x) { return VectorHelper<T>::abs(x.data()); }
-  template<typename T> static inline Vector<T> reciprocal(const Vector<T> &x) { return VectorHelper<T>::reciprocal(x.data()); }
-  template<typename T> static inline Vector<T> round(const Vector<T> &x) { return VectorHelper<T>::round(x.data()); }
+  template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> sqrt (const Vector<T> &x) { return VectorHelper<T>::sqrt(x.data()); }
+  template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> rsqrt(const Vector<T> &x) { return VectorHelper<T>::rsqrt(x.data()); }
+  template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs  (const Vector<T> &x) { return VectorHelper<T>::abs(x.data()); }
+  template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> reciprocal(const Vector<T> &x) { return VectorHelper<T>::reciprocal(x.data()); }
+  template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> round(const Vector<T> &x) { return VectorHelper<T>::round(x.data()); }
 
-  template<typename T> static inline typename Vector<T>::Mask isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
-  template<typename T> static inline typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
+  template<typename T> static Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
+  template<typename T> static Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
 #include "forceToRegisters.tcc"
 #ifdef VC_GNU_ASM

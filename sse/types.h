@@ -63,12 +63,12 @@ namespace SSE
 
     class M256 {
         public:
-            //inline M256() {}
-            //inline M256(_M128 a, _M128 b) { d[0] = a; d[1] = b; }
-            static inline M256 dup(_M128 a) { M256 r; r.d[0] = a; r.d[1] = a; return r; }
-            static inline M256 create(_M128 a, _M128 b) { M256 r; r.d[0] = a; r.d[1] = b; return r; }
-            inline _M128 &operator[](int i) { return d[i]; }
-            inline const _M128 &operator[](int i) const { return d[i]; }
+            //Vc_INTRINSIC M256() {}
+            //Vc_INTRINSIC M256(_M128 a, _M128 b) { d[0] = a; d[1] = b; }
+            static Vc_INTRINSIC Vc_CONST M256 dup(_M128 a) { M256 r; r.d[0] = a; r.d[1] = a; return r; }
+            static Vc_INTRINSIC Vc_CONST M256 create(_M128 a, _M128 b) { M256 r; r.d[0] = a; r.d[1] = b; return r; }
+            Vc_INTRINSIC _M128 &operator[](int i) { return d[i]; }
+            Vc_INTRINSIC const _M128 &operator[](int i) const { return d[i]; }
         private:
             _M128 d[2];
     };

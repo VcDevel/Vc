@@ -29,56 +29,56 @@ namespace Scalar
 template<unsigned int VectorSize = 1> class Mask
 {
     public:
-        inline Mask() {}
-        inline explicit Mask(bool b) : m(b) {}
-        inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
-        inline explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
-        inline Mask(const Mask<VectorSize> *a) : m(a[0].m) {}
+        Vc_ALWAYS_INLINE Mask() {}
+        Vc_ALWAYS_INLINE explicit Mask(bool b) : m(b) {}
+        Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
+        Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
+        Vc_ALWAYS_INLINE Mask(const Mask<VectorSize> *a) : m(a[0].m) {}
 
-        inline Mask &operator=(const Mask &rhs) { m = rhs.m; return *this; }
-        inline Mask &operator=(bool rhs) { m = rhs; return *this; }
+        Vc_ALWAYS_INLINE Mask &operator=(const Mask &rhs) { m = rhs.m; return *this; }
+        Vc_ALWAYS_INLINE Mask &operator=(bool rhs) { m = rhs; return *this; }
 
-        inline void expand(Mask *x) { x[0].m = m; }
+        Vc_ALWAYS_INLINE void expand(Mask *x) { x[0].m = m; }
 
-        inline bool operator==(const Mask &rhs) const { return Mask(m == rhs.m); }
-        inline bool operator!=(const Mask &rhs) const { return Mask(m != rhs.m); }
+        Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return Mask(m == rhs.m); }
+        Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return Mask(m != rhs.m); }
 
-        inline Mask operator&&(const Mask &rhs) const { return Mask(m && rhs.m); }
-        inline Mask operator& (const Mask &rhs) const { return Mask(m && rhs.m); }
-        inline Mask operator||(const Mask &rhs) const { return Mask(m || rhs.m); }
-        inline Mask operator| (const Mask &rhs) const { return Mask(m || rhs.m); }
-        inline Mask operator^ (const Mask &rhs) const { return Mask(m ^  rhs.m); }
-        inline Mask operator!() const { return Mask(!m); }
+        Vc_ALWAYS_INLINE Mask operator&&(const Mask &rhs) const { return Mask(m && rhs.m); }
+        Vc_ALWAYS_INLINE Mask operator& (const Mask &rhs) const { return Mask(m && rhs.m); }
+        Vc_ALWAYS_INLINE Mask operator||(const Mask &rhs) const { return Mask(m || rhs.m); }
+        Vc_ALWAYS_INLINE Mask operator| (const Mask &rhs) const { return Mask(m || rhs.m); }
+        Vc_ALWAYS_INLINE Mask operator^ (const Mask &rhs) const { return Mask(m ^  rhs.m); }
+        Vc_ALWAYS_INLINE Mask operator!() const { return Mask(!m); }
 
-        inline Mask &operator&=(const Mask &rhs) { m &= rhs.m; return *this; }
-        inline Mask &operator|=(const Mask &rhs) { m |= rhs.m; return *this; }
-        inline Mask &operator^=(const Mask &rhs) { m ^= rhs.m; return *this; }
+        Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { m &= rhs.m; return *this; }
+        Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) { m |= rhs.m; return *this; }
+        Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { m ^= rhs.m; return *this; }
 
-        inline bool isFull () const { return  m; }
-        inline bool isEmpty() const { return !m; }
-        inline bool isMix  () const { return false; }
+        Vc_ALWAYS_INLINE bool isFull () const { return  m; }
+        Vc_ALWAYS_INLINE bool isEmpty() const { return !m; }
+        Vc_ALWAYS_INLINE bool isMix  () const { return false; }
 
-        inline bool data () const { return m; }
-        inline bool dataI() const { return m; }
-        inline bool dataD() const { return m; }
+        Vc_ALWAYS_INLINE bool data () const { return m; }
+        Vc_ALWAYS_INLINE bool dataI() const { return m; }
+        Vc_ALWAYS_INLINE bool dataD() const { return m; }
 
 #ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
-        inline operator bool() const { return isFull(); }
+        Vc_ALWAYS_INLINE operator bool() const { return isFull(); }
 #endif
 
         template<unsigned int OtherSize>
-            inline Mask cast() const { return *this; }
+            Vc_ALWAYS_INLINE Mask cast() const { return *this; }
 
-        inline bool operator[](int) const { return m; }
+        Vc_ALWAYS_INLINE bool operator[](int) const { return m; }
 
-        inline int count() const { return m ? 1 : 0; }
+        Vc_ALWAYS_INLINE int count() const { return m ? 1 : 0; }
 
         /**
          * Returns the index of the first one in the mask.
          *
          * The return value is undefined if the mask is empty.
          */
-        int firstOne() const { return 0; }
+        Vc_ALWAYS_INLINE int firstOne() const { return 0; }
 
     private:
         bool m;
@@ -87,8 +87,8 @@ template<unsigned int VectorSize = 1> class Mask
 struct ForeachHelper
 {
     bool continu;
-    inline ForeachHelper(bool mask) : continu(mask) {}
-    inline void next() { continu = false; }
+    Vc_ALWAYS_INLINE ForeachHelper(bool mask) : continu(mask) {}
+    Vc_ALWAYS_INLINE void next() { continu = false; }
 };
 
 #define Vc_foreach_bit(_it_, _mask_) \

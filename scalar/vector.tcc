@@ -67,14 +67,14 @@ template<> Vc_INTRINSIC Vector<double> Vector<double>::copySign(Vector<double> r
 } // }}}1
 // bitwise operators {{{1
 #define VC_CAST_OPERATOR_FORWARD(op, IntT, VecT) \
-template<> inline VecT &VecT::operator op##=(const VecT &x) { \
+template<> Vc_ALWAYS_INLINE VecT &VecT::operator op##=(const VecT &x) { \
     typedef IntT uinta Vc_MAY_ALIAS; \
     uinta *left = reinterpret_cast<uinta *>(&m_data); \
     const uinta *right = reinterpret_cast<const uinta *>(&x.m_data); \
     *left op##= *right; \
     return *this; \
 } \
-template<> inline VecT VecT::operator op(const VecT &x) const { \
+template<> Vc_ALWAYS_INLINE Vc_PURE VecT VecT::operator op(const VecT &x) const { \
     VecT ret = *this; \
     return VecT(ret op##= x); \
 }

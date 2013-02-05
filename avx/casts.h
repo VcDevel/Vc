@@ -73,13 +73,13 @@ namespace AVX
     template<> Vc_INTRINSIC m256d avx_cast(param128d v) { return _mm256_castpd128_pd256(v); }
 
 #ifdef VC_MSVC
-    static Vc_INTRINSIC m256  zeroExtend(param128  v) { return _mm256_insertf128_ps   (_mm256_castps128_ps256(v), _mm_setzero_ps   (), 1); }
-    static Vc_INTRINSIC m256i zeroExtend(param128i v) { return _mm256_insertf128_si256(_mm256_castsi128_si256(v), _mm_setzero_si128(), 1); }
-    static Vc_INTRINSIC m256d zeroExtend(param128d v) { return _mm256_insertf128_pd   (_mm256_castpd128_pd256(v), _mm_setzero_pd   (), 1); }
+    static Vc_INTRINSIC Vc_CONST m256  zeroExtend(param128  v) { return _mm256_insertf128_ps   (_mm256_castps128_ps256(v), _mm_setzero_ps   (), 1); }
+    static Vc_INTRINSIC Vc_CONST m256i zeroExtend(param128i v) { return _mm256_insertf128_si256(_mm256_castsi128_si256(v), _mm_setzero_si128(), 1); }
+    static Vc_INTRINSIC Vc_CONST m256d zeroExtend(param128d v) { return _mm256_insertf128_pd   (_mm256_castpd128_pd256(v), _mm_setzero_pd   (), 1); }
 #else
-    static Vc_INTRINSIC m256  zeroExtend(param128  v) { return _mm256_castps128_ps256(v); }
-    static Vc_INTRINSIC m256i zeroExtend(param128i v) { return _mm256_castsi128_si256(v); }
-    static Vc_INTRINSIC m256d zeroExtend(param128d v) { return _mm256_castpd128_pd256(v); }
+    static Vc_INTRINSIC Vc_CONST m256  zeroExtend(param128  v) { return _mm256_castps128_ps256(v); }
+    static Vc_INTRINSIC Vc_CONST m256i zeroExtend(param128i v) { return _mm256_castsi128_si256(v); }
+    static Vc_INTRINSIC Vc_CONST m256d zeroExtend(param128d v) { return _mm256_castpd128_pd256(v); }
 #endif
 
     // 256 -> 128
@@ -105,36 +105,36 @@ namespace AVX
     template<> Vc_INTRINSIC m256d avx_cast(param256d v) { return v; }
 
     // simplify splitting 256-bit registers in 128-bit registers
-    Vc_INTRINSIC m128  lo128(param256  v) { return avx_cast<m128>(v); }
-    Vc_INTRINSIC m128d lo128(param256d v) { return avx_cast<m128d>(v); }
-    Vc_INTRINSIC m128i lo128(param256i v) { return avx_cast<m128i>(v); }
-    Vc_INTRINSIC m128  hi128(param256  v) { return _mm256_extractf128_ps(v, 1); }
-    Vc_INTRINSIC m128d hi128(param256d v) { return _mm256_extractf128_pd(v, 1); }
-    Vc_INTRINSIC m128i hi128(param256i v) { return _mm256_extractf128_si256(v, 1); }
+    Vc_INTRINSIC Vc_CONST m128  lo128(param256  v) { return avx_cast<m128>(v); }
+    Vc_INTRINSIC Vc_CONST m128d lo128(param256d v) { return avx_cast<m128d>(v); }
+    Vc_INTRINSIC Vc_CONST m128i lo128(param256i v) { return avx_cast<m128i>(v); }
+    Vc_INTRINSIC Vc_CONST m128  hi128(param256  v) { return _mm256_extractf128_ps(v, 1); }
+    Vc_INTRINSIC Vc_CONST m128d hi128(param256d v) { return _mm256_extractf128_pd(v, 1); }
+    Vc_INTRINSIC Vc_CONST m128i hi128(param256i v) { return _mm256_extractf128_si256(v, 1); }
 
     // simplify combining 128-bit registers in 256-bit registers
-    Vc_INTRINSIC m256  concat(param128  a, param128  b) { return _mm256_insertf128_ps   (avx_cast<m256 >(a), b, 1); }
-    Vc_INTRINSIC m256d concat(param128d a, param128d b) { return _mm256_insertf128_pd   (avx_cast<m256d>(a), b, 1); }
-    Vc_INTRINSIC m256i concat(param128i a, param128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256  concat(param128  a, param128  b) { return _mm256_insertf128_ps   (avx_cast<m256 >(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256d concat(param128d a, param128d b) { return _mm256_insertf128_pd   (avx_cast<m256d>(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256i concat(param128i a, param128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
 #ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
-    Vc_INTRINSIC m256  concat(__m128  a, param128  b) { return _mm256_insertf128_ps   (avx_cast<m256 >(a), b, 1); }
-    Vc_INTRINSIC m256d concat(__m128d a, param128d b) { return _mm256_insertf128_pd   (avx_cast<m256d>(a), b, 1); }
-    Vc_INTRINSIC m256i concat(__m128i a, param128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
-    Vc_INTRINSIC m256  concat(param128  a, __m128  b) { return _mm256_insertf128_ps   (avx_cast<m256 >(a), b, 1); }
-    Vc_INTRINSIC m256d concat(param128d a, __m128d b) { return _mm256_insertf128_pd   (avx_cast<m256d>(a), b, 1); }
-    Vc_INTRINSIC m256i concat(param128i a, __m128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
-    Vc_INTRINSIC m256  concat(__m128  a, __m128  b) { return _mm256_insertf128_ps   (avx_cast<m256 >(a), b, 1); }
-    Vc_INTRINSIC m256d concat(__m128d a, __m128d b) { return _mm256_insertf128_pd   (avx_cast<m256d>(a), b, 1); }
-    Vc_INTRINSIC m256i concat(__m128i a, __m128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256  concat(__m128  a, param128  b) { return _mm256_insertf128_ps   (avx_cast<m256 >(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256d concat(__m128d a, param128d b) { return _mm256_insertf128_pd   (avx_cast<m256d>(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256i concat(__m128i a, param128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256  concat(param128  a, __m128  b) { return _mm256_insertf128_ps   (avx_cast<m256 >(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256d concat(param128d a, __m128d b) { return _mm256_insertf128_pd   (avx_cast<m256d>(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256i concat(param128i a, __m128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256  concat(__m128  a, __m128  b) { return _mm256_insertf128_ps   (avx_cast<m256 >(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256d concat(__m128d a, __m128d b) { return _mm256_insertf128_pd   (avx_cast<m256d>(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST m256i concat(__m128i a, __m128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
 #endif
 
     template<typename From, typename To> struct StaticCastHelper {};
-    template<> struct StaticCastHelper<float         , int           > { static m256i  cast(param256  v) { return _mm256_cvttps_epi32(v); } };
-    template<> struct StaticCastHelper<double        , int           > { static m256i  cast(param256d v) { return avx_cast<m256i>(_mm256_cvttpd_epi32(v)); } };
-    template<> struct StaticCastHelper<int           , int           > { static m256i  cast(param256i v) { return v; } };
-    template<> struct StaticCastHelper<unsigned int  , int           > { static m256i  cast(param256i v) { return v; } };
-    template<> struct StaticCastHelper<short         , int           > { static m256i  cast(param128i   v) { return concat(_mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16), _mm_srai_epi32(_mm_unpackhi_epi16(v, v), 16)); } };
-    template<> struct StaticCastHelper<float         , unsigned int  > { static m256i  cast(param256  v) {
+    template<> struct StaticCastHelper<float         , int           > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256  v) { return _mm256_cvttps_epi32(v); } };
+    template<> struct StaticCastHelper<double        , int           > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256d v) { return avx_cast<m256i>(_mm256_cvttpd_epi32(v)); } };
+    template<> struct StaticCastHelper<int           , int           > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256i v) { return v; } };
+    template<> struct StaticCastHelper<unsigned int  , int           > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256i v) { return v; } };
+    template<> struct StaticCastHelper<short         , int           > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param128i   v) { return concat(_mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16), _mm_srai_epi32(_mm_unpackhi_epi16(v, v), 16)); } };
+    template<> struct StaticCastHelper<float         , unsigned int  > { static inline Vc_CONST m256i  cast(param256  v) {
         return _mm256_castps_si256(_mm256_blendv_ps(
                 _mm256_castsi256_ps(_mm256_cvttps_epi32(v)),
                 _mm256_castsi256_ps(_mm256_add_epi32(m256i(_mm256_cvttps_epi32(_mm256_sub_ps(v, _mm256_set2power31_ps()))), _mm256_set2power31_epu32())),
@@ -142,38 +142,38 @@ namespace AVX
                 ));
 
     } };
-    template<> struct StaticCastHelper<double        , unsigned int  > { static m256i  cast(param256d v) { return avx_cast<m256i>(_mm256_cvttpd_epi32(v)); } };
-    template<> struct StaticCastHelper<int           , unsigned int  > { static m256i  cast(param256i v) { return v; } };
-    template<> struct StaticCastHelper<unsigned int  , unsigned int  > { static m256i  cast(param256i v) { return v; } };
-    template<> struct StaticCastHelper<unsigned short, unsigned int  > { static m256i  cast(param128i   v) { return concat(_mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16), _mm_srli_epi32(_mm_unpackhi_epi16(v, v), 16)); } };
-    template<> struct StaticCastHelper<float         , float         > { static m256   cast(param256  v) { return v; } };
-    template<> struct StaticCastHelper<double        , float         > { static m256   cast(param256d v) { return avx_cast<m256>(_mm256_cvtpd_ps(v)); } };
-    template<> struct StaticCastHelper<int           , float         > { static m256   cast(param256i v) { return _mm256_cvtepi32_ps(v); } };
-    template<> struct StaticCastHelper<unsigned int  , float         > { static m256   cast(param256i v) {
+    template<> struct StaticCastHelper<double        , unsigned int  > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256d v) { return avx_cast<m256i>(_mm256_cvttpd_epi32(v)); } };
+    template<> struct StaticCastHelper<int           , unsigned int  > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256i v) { return v; } };
+    template<> struct StaticCastHelper<unsigned int  , unsigned int  > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256i v) { return v; } };
+    template<> struct StaticCastHelper<unsigned short, unsigned int  > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param128i   v) { return concat(_mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16), _mm_srli_epi32(_mm_unpackhi_epi16(v, v), 16)); } };
+    template<> struct StaticCastHelper<float         , float         > { static Vc_ALWAYS_INLINE Vc_CONST m256   cast(param256  v) { return v; } };
+    template<> struct StaticCastHelper<double        , float         > { static Vc_ALWAYS_INLINE Vc_CONST m256   cast(param256d v) { return avx_cast<m256>(_mm256_cvtpd_ps(v)); } };
+    template<> struct StaticCastHelper<int           , float         > { static Vc_ALWAYS_INLINE Vc_CONST m256   cast(param256i v) { return _mm256_cvtepi32_ps(v); } };
+    template<> struct StaticCastHelper<unsigned int  , float         > { static inline Vc_CONST m256   cast(param256i v) {
         return _mm256_blendv_ps(
                 _mm256_cvtepi32_ps(v),
                 _mm256_add_ps(_mm256_cvtepi32_ps(_mm256_sub_epi32(v, _mm256_set2power31_epu32())), _mm256_set2power31_ps()),
                 _mm256_castsi256_ps(_mm256_cmplt_epi32(v, _mm256_setzero_si256()))
                 );
     } };
-    template<> struct StaticCastHelper<short         , float         > { static m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<short, int>::cast(v)); } };
-    template<> struct StaticCastHelper<unsigned short, float         > { static m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<unsigned short, unsigned int>::cast(v)); } };
-    template<> struct StaticCastHelper<float         , double        > { static m256d cast(param256  v) { return _mm256_cvtps_pd(avx_cast<m128>(v)); } };
-    template<> struct StaticCastHelper<double        , double        > { static m256d cast(param256d v) { return v; } };
-    template<> struct StaticCastHelper<int           , double        > { static m256d cast(param256i v) { return _mm256_cvtepi32_pd(avx_cast<m128i>(v)); } };
-    template<> struct StaticCastHelper<unsigned int  , double        > { static m256d cast(param256i v) { return _mm256_cvtepi32_pd(avx_cast<m128i>(v)); } };
-    template<> struct StaticCastHelper<int           , short         > { static m128i cast(param256i v) { return _mm_packs_epi32(lo128(v), hi128(v)); } };
-    template<> struct StaticCastHelper<float         , short         > { static m128i cast(param256  v) { return StaticCastHelper<int, short>::cast(StaticCastHelper<float, int>::cast(v)); } };
-    template<> struct StaticCastHelper<short         , short         > { static m128i cast(param128i v) { return v; } };
-    template<> struct StaticCastHelper<unsigned short, short         > { static m128i cast(param128i v) { return v; } };
-    template<> struct StaticCastHelper<unsigned int  , unsigned short> { static m128i cast(param256i v) { return _mm_packus_epi32(lo128(v), hi128(v)); } };
-    template<> struct StaticCastHelper<float         , unsigned short> { static m128i cast(param256  v) { return StaticCastHelper<unsigned int, unsigned short>::cast(StaticCastHelper<float, unsigned int>::cast(v)); } };
-    template<> struct StaticCastHelper<short         , unsigned short> { static m128i cast(param128i v) { return v; } };
-    template<> struct StaticCastHelper<unsigned short, unsigned short> { static m128i cast(param128i v) { return v; } };
-    template<> struct StaticCastHelper<sfloat        , short         > { static m128i cast(param256  v) { return StaticCastHelper<int, short>::cast(StaticCastHelper<float, int>::cast(v)); } };
-    template<> struct StaticCastHelper<sfloat        , unsigned short> { static m128i cast(param256  v) { return StaticCastHelper<unsigned int, unsigned short>::cast(StaticCastHelper<float, unsigned int>::cast(v)); } };
-    template<> struct StaticCastHelper<short         , sfloat        > { static m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<short, int>::cast(v)); } };
-    template<> struct StaticCastHelper<unsigned short, sfloat        > { static m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<unsigned short, unsigned int>::cast(v)); } };
+    template<> struct StaticCastHelper<short         , float         > { static Vc_ALWAYS_INLINE Vc_CONST m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<short, int>::cast(v)); } };
+    template<> struct StaticCastHelper<unsigned short, float         > { static Vc_ALWAYS_INLINE Vc_CONST m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<unsigned short, unsigned int>::cast(v)); } };
+    template<> struct StaticCastHelper<float         , double        > { static Vc_ALWAYS_INLINE Vc_CONST m256d cast(param256  v) { return _mm256_cvtps_pd(avx_cast<m128>(v)); } };
+    template<> struct StaticCastHelper<double        , double        > { static Vc_ALWAYS_INLINE Vc_CONST m256d cast(param256d v) { return v; } };
+    template<> struct StaticCastHelper<int           , double        > { static Vc_ALWAYS_INLINE Vc_CONST m256d cast(param256i v) { return _mm256_cvtepi32_pd(avx_cast<m128i>(v)); } };
+    template<> struct StaticCastHelper<unsigned int  , double        > { static Vc_ALWAYS_INLINE Vc_CONST m256d cast(param256i v) { return _mm256_cvtepi32_pd(avx_cast<m128i>(v)); } };
+    template<> struct StaticCastHelper<int           , short         > { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param256i v) { return _mm_packs_epi32(lo128(v), hi128(v)); } };
+    template<> struct StaticCastHelper<float         , short         > { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param256  v) { return StaticCastHelper<int, short>::cast(StaticCastHelper<float, int>::cast(v)); } };
+    template<> struct StaticCastHelper<short         , short         > { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param128i v) { return v; } };
+    template<> struct StaticCastHelper<unsigned short, short         > { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param128i v) { return v; } };
+    template<> struct StaticCastHelper<unsigned int  , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param256i v) { return _mm_packus_epi32(lo128(v), hi128(v)); } };
+    template<> struct StaticCastHelper<float         , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param256  v) { return StaticCastHelper<unsigned int, unsigned short>::cast(StaticCastHelper<float, unsigned int>::cast(v)); } };
+    template<> struct StaticCastHelper<short         , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param128i v) { return v; } };
+    template<> struct StaticCastHelper<unsigned short, unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param128i v) { return v; } };
+    template<> struct StaticCastHelper<sfloat        , short         > { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param256  v) { return StaticCastHelper<int, short>::cast(StaticCastHelper<float, int>::cast(v)); } };
+    template<> struct StaticCastHelper<sfloat        , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param256  v) { return StaticCastHelper<unsigned int, unsigned short>::cast(StaticCastHelper<float, unsigned int>::cast(v)); } };
+    template<> struct StaticCastHelper<short         , sfloat        > { static Vc_ALWAYS_INLINE Vc_CONST m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<short, int>::cast(v)); } };
+    template<> struct StaticCastHelper<unsigned short, sfloat        > { static Vc_ALWAYS_INLINE Vc_CONST m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<unsigned short, unsigned int>::cast(v)); } };
 } // namespace AVX
 } // namespace Vc
 

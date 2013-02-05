@@ -36,11 +36,11 @@ template<> struct HelperImpl<Vc::ScalarImpl>
         b = mem[1];
     }
 
-    static inline void prefetchForOneRead(const void *) {}
-    static inline void prefetchForModify(const void *) {}
-    static inline void prefetchClose(const void *) {}
-    static inline void prefetchMid(const void *) {}
-    static inline void prefetchFar(const void *) {}
+    static Vc_ALWAYS_INLINE void prefetchForOneRead(const void *) {}
+    static Vc_ALWAYS_INLINE void prefetchForModify(const void *) {}
+    static Vc_ALWAYS_INLINE void prefetchClose(const void *) {}
+    static Vc_ALWAYS_INLINE void prefetchMid(const void *) {}
+    static Vc_ALWAYS_INLINE void prefetchFar(const void *) {}
 
     template<Vc::MallocAlignment A>
     static Vc_ALWAYS_INLINE_L void *malloc(size_t n) Vc_ALWAYS_INLINE_R;

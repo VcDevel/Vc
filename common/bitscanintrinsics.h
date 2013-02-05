@@ -27,11 +27,13 @@
 #  else
      // GCC <= 4.4 and clang have x86intrin.h, but not the required functions
 #    define _bit_scan_forward(x) __builtin_ctz(x)
-static inline int _Vc_bit_scan_reverse_asm(unsigned int x) {
+#include "macros.h"
+static Vc_ALWAYS_INLINE Vc_CONST int _Vc_bit_scan_reverse_asm(unsigned int x) {
     int r;
     __asm__("bsr %1,%0" : "=r"(r) : "X"(x));
     return r;
 }
+#include "undomacros.h"
 #    define _bit_scan_reverse(x) _Vc_bit_scan_reverse_asm(x)
 #  endif
 #elif defined(VC_ICC)

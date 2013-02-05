@@ -29,16 +29,16 @@ namespace SSE
 {
     template<typename VectorType, unsigned int Size> struct SortHelper
     {
-        static VectorType sort(VectorType) Vc_PURE;
+        static inline Vc_CONST_L VectorType sort(VectorType) Vc_CONST_R;
     };
     template<unsigned int Size> struct SortHelper<M256, Size>
     {
-        static M256 sort(const M256 &) Vc_PURE;
+        static inline Vc_PURE_L M256 sort(const M256 &) Vc_PURE_R;
     };
 
-#define OP0(name, code) static inline VectorType name() Vc_PURE { return code; }
-#define OP2(name, code) static inline VectorType name(VectorTypeArg a, VectorTypeArg b) Vc_PURE { return code; }
-#define OP3(name, code) static inline VectorType name(VectorTypeArg a, VectorTypeArg b, VectorTypeArg c) Vc_PURE { return code; }
+#define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
+#define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VectorTypeArg a, VectorTypeArg b) { return code; }
+#define OP3(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VectorTypeArg a, VectorTypeArg b, VectorTypeArg c) { return code; }
     template<> struct VectorHelper<M256>
     {
         typedef M256 VectorType;
@@ -47,15 +47,15 @@ namespace SSE
 #else
         typedef const VectorType VectorTypeArg;
 #endif
-        template<typename A> static VectorType load(const float *x, A) Vc_PURE;
-        static void store(float *mem, VectorTypeArg x, AlignedFlag);
-        static void store(float *mem, VectorTypeArg x, UnalignedFlag);
-        static void store(float *mem, VectorTypeArg x, StreamingAndAlignedFlag);
-        static void store(float *mem, VectorTypeArg x, StreamingAndUnalignedFlag);
-        static void store(float *mem, VectorTypeArg x, VectorTypeArg m, AlignedFlag);
-        static void store(float *mem, VectorTypeArg x, VectorTypeArg m, UnalignedFlag);
-        static void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndAlignedFlag);
-        static void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndUnalignedFlag);
+        template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const float *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, AlignedFlag) Vc_ALWAYS_INLINE_R;
+        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
+        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
+        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, AlignedFlag) Vc_ALWAYS_INLINE_R;
+        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
+        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
 
         OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
         OP0(zero, VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()))
@@ -69,23 +69,23 @@ namespace SSE
 #undef OP2
 #undef OP3
 
-#define OP0(name, code) static inline VectorType name() Vc_PURE { return code; }
-#define OP1(name, code) static inline VectorType name(const VectorType a) Vc_PURE { return code; }
-#define OP2(name, code) static inline VectorType name(const VectorType a, const VectorType b) Vc_PURE { return code; }
-#define OP3(name, code) static inline VectorType name(const VectorType a, const VectorType b, const VectorType c) Vc_PURE { return code; }
+#define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
+#define OP1(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a) { return code; }
+#define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a, const VectorType b) { return code; }
+#define OP3(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a, const VectorType b, const VectorType c) { return code; }
 
         template<> struct VectorHelper<_M128>
         {
             typedef _M128 VectorType;
-            template<typename A> static VectorType load(const float *x, A) Vc_PURE;
-            static void store(float *mem, const VectorType x, AlignedFlag);
-            static void store(float *mem, const VectorType x, UnalignedFlag);
-            static void store(float *mem, const VectorType x, StreamingAndAlignedFlag);
-            static void store(float *mem, const VectorType x, StreamingAndUnalignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, AlignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, UnalignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
-            static void store(float *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
+            template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const float *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, AlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, AlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
 
             OP0(allone, _mm_setallone_ps())
             OP0(zero, _mm_setzero_ps())
@@ -100,15 +100,15 @@ namespace SSE
         template<> struct VectorHelper<_M128D>
         {
             typedef _M128D VectorType;
-            template<typename A> static VectorType load(const double *x, A) Vc_PURE;
-            static void store(double *mem, const VectorType x, AlignedFlag);
-            static void store(double *mem, const VectorType x, UnalignedFlag);
-            static void store(double *mem, const VectorType x, StreamingAndAlignedFlag);
-            static void store(double *mem, const VectorType x, StreamingAndUnalignedFlag);
-            static void store(double *mem, const VectorType x, const VectorType m, AlignedFlag);
-            static void store(double *mem, const VectorType x, const VectorType m, UnalignedFlag);
-            static void store(double *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
-            static void store(double *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
+            template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const double *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, AlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, AlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
 
             OP0(allone, _mm_setallone_pd())
             OP0(zero, _mm_setzero_pd())
@@ -122,18 +122,18 @@ namespace SSE
         template<> struct VectorHelper<_M128I>
         {
             typedef _M128I VectorType;
-            template<typename T> static VectorType load(const T *x, AlignedFlag) Vc_PURE;
-            template<typename T> static VectorType load(const T *x, UnalignedFlag) Vc_PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) Vc_PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) Vc_PURE;
-            template<typename T> static void store(T *mem, const VectorType x, AlignedFlag);
-            template<typename T> static void store(T *mem, const VectorType x, UnalignedFlag);
-            template<typename T> static void store(T *mem, const VectorType x, StreamingAndAlignedFlag);
-            template<typename T> static void store(T *mem, const VectorType x, StreamingAndUnalignedFlag);
-            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, AlignedFlag);
-            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, UnalignedFlag);
-            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag);
-            template<typename T> static void store(T *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag);
+            template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, AlignedFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, UnalignedFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, AlignedFlag) Vc_ALWAYS_INLINE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, AlignedFlag) Vc_ALWAYS_INLINE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
 
             OP0(allone, _mm_setallone_si128())
             OP0(zero, _mm_setzero_si128())
@@ -149,23 +149,23 @@ namespace SSE
 #undef OP3
 
 #define OP1(op) \
-        static inline VectorType op(const VectorType a) Vc_PURE { return CAT(_mm_##op##_, SUFFIX)(a); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a) { return CAT(_mm_##op##_, SUFFIX)(a); }
 #define OP(op) \
-        static inline VectorType op(const VectorType a, const VectorType b) Vc_PURE { return CAT(_mm_##op##_ , SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_##op##_ , SUFFIX)(a, b); }
 #define OP_(op) \
-        static inline VectorType op(const VectorType a, const VectorType b) Vc_PURE { return CAT(_mm_##op    , SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_##op    , SUFFIX)(a, b); }
 #define OPx(op, op2) \
-        static inline VectorType op(const VectorType a, const VectorType b) Vc_PURE { return CAT(_mm_##op2##_, SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_##op2##_, SUFFIX)(a, b); }
 #define OPcmp(op) \
-        static inline VectorType cmp##op(const VectorType a, const VectorType b) Vc_PURE { return CAT(_mm_cmp##op##_, SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType cmp##op(const VectorType a, const VectorType b) { return CAT(_mm_cmp##op##_, SUFFIX)(a, b); }
 #define OP_CAST_(op) \
-        static inline VectorType op(const VectorType a, const VectorType b) Vc_PURE { return CAT(_mm_castps_, SUFFIX)( \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_castps_, SUFFIX)( \
             _mm_##op##ps(CAT(CAT(_mm_cast, SUFFIX), _ps)(a), \
               CAT(CAT(_mm_cast, SUFFIX), _ps)(b))); \
         }
 #define MINMAX \
-        static inline VectorType min(VectorType a, VectorType b) Vc_PURE { return CAT(_mm_min_, SUFFIX)(a, b); } \
-        static inline VectorType max(VectorType a, VectorType b) Vc_PURE { return CAT(_mm_max_, SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return CAT(_mm_min_, SUFFIX)(a, b); } \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return CAT(_mm_max_, SUFFIX)(a, b); }
 
         template<> struct VectorHelper<double> {
             typedef _M128D VectorType;
@@ -173,15 +173,14 @@ namespace SSE
 #define SUFFIX pd
 
             OP_(or_) OP_(and_) OP_(xor_)
-            static inline VectorType notMaskedToZero(VectorType a, _M128 mask) Vc_PURE { return CAT(_mm_and_, SUFFIX)(_mm_castps_pd(mask), a); }
-            static inline VectorType set(const double a) Vc_PURE { return CAT(_mm_set1_, SUFFIX)(a); }
-            static inline VectorType set(const double a, const double b) Vc_PURE { return CAT(_mm_set_, SUFFIX)(a, b); }
-            static inline VectorType zero() Vc_PURE { return CAT(_mm_setzero_, SUFFIX)(); }
-            static inline VectorType one()  Vc_PURE { return CAT(_mm_setone_, SUFFIX)(); }// set(1.); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_pd(mask), a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const double a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const double a, const double b) { return CAT(_mm_set_, SUFFIX)(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return CAT(_mm_setone_, SUFFIX)(); }// set(1.); }
 
 #ifdef VC_IMPL_FMA4
-#warning "Argument order of _mm_macc_pd unknown!"
-            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
+            static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) {
                 v1 = _mm_macc_pd(v1, v2, v3);
             }
 #else
@@ -205,13 +204,6 @@ namespace SSE
                 v1 = add(add(ll, b), add(c, hh));
             }
 #endif
-            static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) Vc_PURE {
-                _M128D mask = _mm_castps_pd(_mask);
-                return _mm_or_pd(
-                    _mm_and_pd(mask, _mm_mul_pd(a, b)),
-                    _mm_andnot_pd(mask, a)
-                    );
-            }
 
             OP(add) OP(sub) OP(mul)
             OPcmp(eq) OPcmp(neq)
@@ -219,41 +211,41 @@ namespace SSE
             OPcmp(le) OPcmp(nle)
 
             OP1(sqrt)
-            static inline VectorType rsqrt(VectorType x) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType rsqrt(VectorType x) {
                 return _mm_div_pd(one(), sqrt(x));
             }
-            static inline VectorType reciprocal(VectorType x) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType reciprocal(VectorType x) {
                 return _mm_div_pd(one(), x);
             }
-            static inline VectorType isNaN(VectorType x) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType isNaN(VectorType x) {
                 return _mm_cmpunord_pd(x, x);
             }
-            static inline VectorType isFinite(VectorType x) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType isFinite(VectorType x) {
                 return _mm_cmpord_pd(x, _mm_mul_pd(zero(), x));
             }
-            static inline VectorType abs(const VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) {
                 return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_pd());
             }
 
             MINMAX
-            static inline EntryType min(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 a = _mm_min_sd(a, _mm_unpackhi_pd(a, a));
                 return _mm_cvtsd_f64(a);
             }
-            static inline EntryType max(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
                 a = _mm_max_sd(a, _mm_unpackhi_pd(a, a));
                 return _mm_cvtsd_f64(a);
             }
-            static inline EntryType mul(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
                 a = _mm_mul_sd(a, _mm_shuffle_pd(a, a, _MM_SHUFFLE2(0, 1)));
                 return _mm_cvtsd_f64(a);
             }
-            static inline EntryType add(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType add(VectorType a) {
                 a = _mm_add_sd(a, _mm_shuffle_pd(a, a, _MM_SHUFFLE2(0, 1)));
                 return _mm_cvtsd_f64(a);
             }
 #undef SUFFIX
-            static inline VectorType round(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) {
 #if VC_IMPL_SSE4_1
                 return _mm_round_pd(a, _MM_FROUND_NINT);
 #else
@@ -269,16 +261,15 @@ namespace SSE
 #define SUFFIX ps
 
             OP_(or_) OP_(and_) OP_(xor_)
-            static inline VectorType notMaskedToZero(VectorType a, _M128 mask) Vc_PURE { return CAT(_mm_and_, SUFFIX)(mask, a); }
-            static inline VectorType set(const float a) Vc_PURE { return CAT(_mm_set1_, SUFFIX)(a); }
-            static inline VectorType set(const float a, const float b, const float c, const float d) Vc_PURE { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
-            static inline VectorType zero() Vc_PURE { return CAT(_mm_setzero_, SUFFIX)(); }
-            static inline VectorType one()  Vc_PURE { return CAT(_mm_setone_, SUFFIX)(); }// set(1.f); }
-            static inline _M128 concat(_M128D a, _M128D b) Vc_PURE { return _mm_movelh_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b)); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(mask, a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a, const float b, const float c, const float d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return CAT(_mm_setone_, SUFFIX)(); }// set(1.f); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128 concat(_M128D a, _M128D b) { return _mm_movelh_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b)); }
 
 #ifdef VC_IMPL_FMA4
-#warning "Argument order of _mm_macc_ps unknown!"
-            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
+            static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) {
                 v1 = _mm_macc_ps(v1, v2, v3);
             }
 #else
@@ -294,12 +285,6 @@ namespace SSE
                         _mm_cvtpd_ps(_mm_add_pd(_mm_mul_pd(v1_1, v2_1), v3_1)));
             }
 #endif
-            static inline VectorType mul(VectorType a, VectorType b, _M128 mask) Vc_PURE {
-                return _mm_or_ps(
-                    _mm_and_ps(mask, _mm_mul_ps(a, b)),
-                    _mm_andnot_ps(mask, a)
-                    );
-            }
 
             OP(add) OP(sub) OP(mul)
             OPcmp(eq) OPcmp(neq)
@@ -307,42 +292,42 @@ namespace SSE
             OPcmp(le) OPcmp(nle)
 
             OP1(sqrt) OP1(rsqrt)
-            static inline VectorType isNaN(VectorType x) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType isNaN(VectorType x) {
                 return _mm_cmpunord_ps(x, x);
             }
-            static inline VectorType isFinite(VectorType x) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType isFinite(VectorType x) {
                 return _mm_cmpord_ps(x, _mm_mul_ps(zero(), x));
             }
-            static inline VectorType reciprocal(VectorType x) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType reciprocal(VectorType x) {
                 return _mm_rcp_ps(x);
             }
-            static inline VectorType abs(const VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) {
                 return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_ps());
             }
 
             MINMAX
-            static inline EntryType min(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 a = _mm_min_ps(a, _mm_movehl_ps(a, a));   // a = min(a0, a2), min(a1, a3), min(a2, a2), min(a3, a3)
                 a = _mm_min_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1))); // a = min(a0, a1), a1, a2, a3
                 return _mm_cvtss_f32(a);
             }
-            static inline EntryType max(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
                 a = _mm_max_ps(a, _mm_movehl_ps(a, a));   // a = max(a0, a2), max(a1, a3), max(a2, a2), max(a3, a3)
                 a = _mm_max_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1))); // a = max(a0, a1), a1, a2, a3
                 return _mm_cvtss_f32(a);
             }
-            static inline EntryType mul(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
                 a = _mm_mul_ps(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(0, 1, 2, 3)));
                 a = _mm_mul_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 2, 0, 1)));
                 return _mm_cvtss_f32(a);
             }
-            static inline EntryType add(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType add(VectorType a) {
                 a = _mm_add_ps(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(0, 1, 2, 3)));
                 a = _mm_add_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 2, 0, 1)));
                 return _mm_cvtss_f32(a);
             }
 #undef SUFFIX
-            static inline VectorType round(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) {
 #if VC_IMPL_SSE4_1
                 return _mm_round_ps(a, _MM_FROUND_NINT);
 #else
@@ -361,32 +346,28 @@ namespace SSE
             typedef const VectorType VectorTypeArg;
 #endif
 
-            static inline VectorType set(const float a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a) {
                 const _M128 x = _mm_set1_ps(a);
                 return VectorType::create(x, x);
             }
-            static inline VectorType set(const float a, const float b, const float c, const float d) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a, const float b, const float c, const float d) {
                 const _M128 x = _mm_set_ps(a, b, c, d);
                 return VectorType::create(x, x);
             }
-            static inline VectorType set(const float a, const float b, const float c, const float d,
-                    const float e, const float f, const float g, const float h) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a, const float b, const float c, const float d,
+                    const float e, const float f, const float g, const float h) {
                 return VectorType::create(_mm_set_ps(a, b, c, d), _mm_set_ps(e, f, g, h));
             }
-            static inline VectorType zero() Vc_PURE { return VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()); }
-            static inline VectorType one()  Vc_PURE { return set(1.f); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return set(1.f); }
 
 #define REUSE_FLOAT_IMPL1(fun) \
-            static inline VectorType fun(VectorTypeArg x) Vc_PURE { \
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType fun(VectorTypeArg x) { \
                 return VectorType::create(VectorHelper<float>::fun(x[0]), VectorHelper<float>::fun(x[1])); \
             }
 #define REUSE_FLOAT_IMPL2(fun) \
-            static inline VectorType fun(VectorTypeArg x, VectorTypeArg y) Vc_PURE { \
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType fun(VectorTypeArg x, VectorTypeArg y) { \
                 return VectorType::create(VectorHelper<float>::fun(x[0], y[0]), VectorHelper<float>::fun(x[1], y[1])); \
-            }
-#define REUSE_FLOAT_IMPL3(fun) \
-            static inline VectorType fun(VectorTypeArg x, VectorTypeArg y, VectorTypeArg z) Vc_PURE { \
-                return VectorType::create(VectorHelper<float>::fun(x[0], y[0], z[0]), VectorHelper<float>::fun(x[1], y[1], z[1])); \
             }
             REUSE_FLOAT_IMPL1(reciprocal)
             REUSE_FLOAT_IMPL1(sqrt)
@@ -412,16 +393,16 @@ namespace SSE
             REUSE_FLOAT_IMPL2(min)
             REUSE_FLOAT_IMPL2(max)
 
-            static inline EntryType min(VectorTypeArg a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorTypeArg a) {
                 return VectorHelper<float>::min(VectorHelper<float>::min(a[0], a[1]));
             }
-            static inline EntryType max(VectorTypeArg a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorTypeArg a) {
                 return VectorHelper<float>::max(VectorHelper<float>::max(a[0], a[1]));
             }
-            static inline EntryType mul(VectorTypeArg a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorTypeArg a) {
                 return VectorHelper<float>::mul(VectorHelper<float>::mul(a[0], a[1]));
             }
-            static inline EntryType add(VectorTypeArg a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType add(VectorTypeArg a) {
                 return VectorHelper<float>::add(VectorHelper<float>::add(a[0], a[1]));
             }
 
@@ -429,8 +410,6 @@ namespace SSE
                 VectorHelper<float>::fma(a[0], b[0], c[0]);
                 VectorHelper<float>::fma(a[1], b[1], c[1]);
             }
-            REUSE_FLOAT_IMPL3(mul)
-#undef REUSE_FLOAT_IMPL3
 #undef REUSE_FLOAT_IMPL2
 #undef REUSE_FLOAT_IMPL1
         };
@@ -441,52 +420,52 @@ namespace SSE
 #define SUFFIX si128
 
             OP_(or_) OP_(and_) OP_(xor_)
-            static inline VectorType zero() Vc_PURE { return CAT(_mm_setzero_, SUFFIX)(); }
-            static inline VectorType notMaskedToZero(VectorType a, _M128 mask) Vc_PURE { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 #undef SUFFIX
 #define SUFFIX epi32
-            static inline VectorType one() Vc_PURE { return CAT(_mm_setone_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
 
-            static inline VectorType set(const int a) Vc_PURE { return CAT(_mm_set1_, SUFFIX)(a); }
-            static inline VectorType set(const int a, const int b, const int c, const int d) Vc_PURE { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const int a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const int a, const int b, const int c, const int d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
 
-            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+            static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
-            static inline VectorType shiftLeft(VectorType a, int shift) {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
                 return CAT(_mm_slli_, SUFFIX)(a, shift);
             }
-            static inline VectorType shiftRight(VectorType a, int shift) {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
                 return CAT(_mm_srai_, SUFFIX)(a, shift);
             }
             OP1(abs)
 
             MINMAX
-            static inline EntryType min(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-            static inline EntryType max(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
                 a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-            static inline EntryType add(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType add(VectorType a) {
                 a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
 #if VC_IMPL_SSE4_1
-            static inline VectorType mul(VectorType a, VectorType b) Vc_PURE { return _mm_mullo_epi32(a, b); }
-            static inline EntryType mul(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType mul(VectorType a, VectorType b) { return _mm_mullo_epi32(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
                 a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
 #else
-            static inline VectorType mul(const VectorType a, const VectorType b) Vc_PURE {
+            static inline Vc_CONST VectorType mul(const VectorType a, const VectorType b) {
                 const VectorType aShift = _mm_srli_si128(a, 4);
                 const VectorType ab02 = _mm_mul_epu32(a, b); // [a0 * b0, a2 * b2]
                 const VectorType bShift = _mm_srli_si128(b, 4);
@@ -494,20 +473,17 @@ namespace SSE
                 return _mm_unpacklo_epi32(_mm_shuffle_epi32(ab02, 8), _mm_shuffle_epi32(ab13, 8));
             }
 #endif
-            static inline VectorType mul(const VectorType a, const VectorType b, _M128 _mask) Vc_PURE {
-                return _mm_blendv_epi8(a, mul(a, b), _mm_castps_si128(_mask));
-            }
 
             OP(add) OP(sub)
             OPcmp(eq)
             OPcmp(lt)
             OPcmp(gt)
-            static inline VectorType cmpneq(const VectorType a, const VectorType b) Vc_PURE { _M128I x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
-            static inline VectorType cmpnlt(const VectorType a, const VectorType b) Vc_PURE { _M128I x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
-            static inline VectorType cmple (const VectorType a, const VectorType b) Vc_PURE { _M128I x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
-            static inline VectorType cmpnle(const VectorType a, const VectorType b) Vc_PURE { return cmpgt(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpneq(const VectorType a, const VectorType b) { _M128I x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnlt(const VectorType a, const VectorType b) { _M128I x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmple (const VectorType a, const VectorType b) { _M128I x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
 #undef SUFFIX
-            static inline VectorType round(VectorType a) Vc_PURE { return a; }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }
         };
 
         template<> struct VectorHelper<unsigned int> {
@@ -515,48 +491,45 @@ namespace SSE
             typedef _M128I VectorType;
 #define SUFFIX si128
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
-            static inline VectorType zero() Vc_PURE { return CAT(_mm_setzero_, SUFFIX)(); }
-            static inline VectorType notMaskedToZero(VectorType a, _M128 mask) Vc_PURE { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 
 #undef SUFFIX
 #define SUFFIX epu32
-            static inline VectorType one() Vc_PURE { return CAT(_mm_setone_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
 
             MINMAX
-            static inline EntryType min(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-            static inline EntryType max(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
                 a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-            static inline EntryType mul(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
                 a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
                 a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-            static inline EntryType add(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType add(VectorType a) {
                 a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
 
-            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+            static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
-            static inline VectorType mul(const VectorType a, const VectorType b, _M128 _mask) Vc_PURE {
-                return _mm_blendv_epi8(a, mul(a, b), _mm_castps_si128(_mask));
-            }
-            static inline VectorType mul(const VectorType a, const VectorType b) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType mul(const VectorType a, const VectorType b) {
                 return VectorHelper<int>::mul(a, b);
             }
-//X             template<unsigned int b> static inline VectorType mul(const VectorType a) Vc_PURE {
+//X             template<unsigned int b> static Vc_ALWAYS_INLINE Vc_CONST VectorType mul(const VectorType a) {
 //X                 switch (b) {
 //X                     case    0: return zero();
 //X                     case    1: return a;
@@ -577,36 +550,36 @@ namespace SSE
 
 #undef SUFFIX
 #define SUFFIX epi32
-            static inline VectorType shiftLeft(VectorType a, int shift) {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
                 return CAT(_mm_slli_, SUFFIX)(a, shift);
             }
-            static inline VectorType shiftRight(VectorType a, int shift) {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
                 return CAT(_mm_srli_, SUFFIX)(a, shift);
             }
-            static inline VectorType set(const unsigned int a) Vc_PURE { return CAT(_mm_set1_, SUFFIX)(a); }
-            static inline VectorType set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) Vc_PURE { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const unsigned int a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
 
             OP(add) OP(sub)
             OPcmp(eq)
-            static inline VectorType cmpneq(const VectorType a, const VectorType b) Vc_PURE { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpneq(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
 
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
-            static inline VectorType cmplt(const VectorType a, const VectorType b) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmplt(const VectorType a, const VectorType b) {
                 return _mm_cmplt_epu32(a, b);
             }
-            static inline VectorType cmpgt(const VectorType a, const VectorType b) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpgt(const VectorType a, const VectorType b) {
                 return _mm_cmpgt_epu32(a, b);
             }
 #else
             OPcmp(lt)
             OPcmp(gt)
 #endif
-            static inline VectorType cmpnlt(const VectorType a, const VectorType b) Vc_PURE { return _mm_andnot_si128(cmplt(a, b), _mm_setallone_si128()); }
-            static inline VectorType cmple (const VectorType a, const VectorType b) Vc_PURE { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
-            static inline VectorType cmpnle(const VectorType a, const VectorType b) Vc_PURE { return cmpgt(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnlt(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmplt(a, b), _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmple (const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
 
 #undef SUFFIX
-            static inline VectorType round(VectorType a) Vc_PURE { return a; }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }
         };
 
         template<> struct VectorHelper<signed short> {
@@ -615,63 +588,56 @@ namespace SSE
 #define SUFFIX si128
 
             OP_(or_) OP_(and_) OP_(xor_)
-            static inline VectorType zero() Vc_PURE { return CAT(_mm_setzero_, SUFFIX)(); }
-            static inline VectorType notMaskedToZero(VectorType a, _M128 mask) Vc_PURE { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
-            static inline _M128I concat(_M128I a, _M128I b) Vc_PURE { return _mm_packs_epi32(a, b); }
-            static inline _M128I expand0(_M128I x) Vc_PURE { return _mm_srai_epi32(_mm_unpacklo_epi16(x, x), 16); }
-            static inline _M128I expand1(_M128I x) Vc_PURE { return _mm_srai_epi32(_mm_unpackhi_epi16(x, x), 16); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packs_epi32(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand0(_M128I x) { return _mm_srai_epi32(_mm_unpacklo_epi16(x, x), 16); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand1(_M128I x) { return _mm_srai_epi32(_mm_unpackhi_epi16(x, x), 16); }
 
 #undef SUFFIX
 #define SUFFIX epi16
-            static inline VectorType one() Vc_PURE { return CAT(_mm_setone_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
 
-            static inline VectorType shiftLeft(VectorType a, int shift) {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
                 return CAT(_mm_slli_, SUFFIX)(a, shift);
             }
-            static inline VectorType shiftRight(VectorType a, int shift) {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
                 return CAT(_mm_srai_, SUFFIX)(a, shift);
             }
-            static inline VectorType set(const EntryType a) Vc_PURE { return CAT(_mm_set1_, SUFFIX)(a); }
-            static inline VectorType set(const EntryType a, const EntryType b, const EntryType c, const EntryType d,
-                    const EntryType e, const EntryType f, const EntryType g, const EntryType h) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a, const EntryType b, const EntryType c, const EntryType d,
+                    const EntryType e, const EntryType f, const EntryType g, const EntryType h) {
                 return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
 
-            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
+            static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) {
                 v1 = add(mul(v1, v2), v3); }
 
             OP1(abs)
 
-            static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) Vc_PURE {
-                _M128I mask = _mm_castps_si128(_mask);
-                return _mm_or_si128(
-                    _mm_and_si128(mask, mul(a, b)),
-                    _mm_andnot_si128(mask, a)
-                    );
-            }
             OPx(mul, mullo)
             OP(min) OP(max)
-            static inline EntryType min(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
                 a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
-            static inline EntryType max(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
                 a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
-            static inline EntryType mul(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
                 a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
-            static inline EntryType add(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType add(VectorType a) {
                 a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
@@ -682,12 +648,12 @@ namespace SSE
             OPcmp(eq)
             OPcmp(lt)
             OPcmp(gt)
-            static inline VectorType cmpneq(const VectorType a, const VectorType b) Vc_PURE { _M128I x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
-            static inline VectorType cmpnlt(const VectorType a, const VectorType b) Vc_PURE { _M128I x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
-            static inline VectorType cmple (const VectorType a, const VectorType b) Vc_PURE { _M128I x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
-            static inline VectorType cmpnle(const VectorType a, const VectorType b) Vc_PURE { return cmpgt(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpneq(const VectorType a, const VectorType b) { _M128I x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnlt(const VectorType a, const VectorType b) { _M128I x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmple (const VectorType a, const VectorType b) { _M128I x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
 #undef SUFFIX
-            static inline VectorType round(VectorType a) Vc_PURE { return a; }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }
         };
 
         template<> struct VectorHelper<unsigned short> {
@@ -695,29 +661,22 @@ namespace SSE
             typedef unsigned short EntryType;
 #define SUFFIX si128
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
-            static inline VectorType zero() Vc_PURE { return CAT(_mm_setzero_, SUFFIX)(); }
-            static inline VectorType notMaskedToZero(VectorType a, _M128 mask) Vc_PURE { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 #if VC_IMPL_SSE4_1
-            static inline _M128I concat(_M128I a, _M128I b) Vc_PURE { return _mm_packus_epi32(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packus_epi32(a, b); }
 #else
             // XXX too bad, but this is broken without SSE 4.1
-            static inline _M128I concat(_M128I a, _M128I b) Vc_PURE { return _mm_packs_epi32(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packs_epi32(a, b); }
 #endif
-            static inline _M128I expand0(_M128I x) Vc_PURE { return _mm_srli_epi32(_mm_unpacklo_epi16(x, x), 16); }
-            static inline _M128I expand1(_M128I x) Vc_PURE { return _mm_srli_epi32(_mm_unpackhi_epi16(x, x), 16); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand0(_M128I x) { return _mm_srli_epi32(_mm_unpacklo_epi16(x, x), 16); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand1(_M128I x) { return _mm_srli_epi32(_mm_unpackhi_epi16(x, x), 16); }
 
 #undef SUFFIX
 #define SUFFIX epu16
-            static inline VectorType one() Vc_PURE { return CAT(_mm_setone_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
 
-            static inline VectorType mul(VectorType a, VectorType b, _M128 _mask) Vc_PURE {
-                _M128I mask = _mm_castps_si128(_mask);
-                return _mm_or_si128(
-                    _mm_and_si128(mask, mul(a, b)),
-                    _mm_andnot_si128(mask, a)
-                    );
-            }
-//X             template<unsigned int b> static inline VectorType mul(const VectorType a) Vc_PURE {
+//X             template<unsigned int b> static Vc_ALWAYS_INLINE Vc_CONST VectorType mul(const VectorType a) {
 //X                 switch (b) {
 //X                     case    0: return zero();
 //X                     case    1: return a;
@@ -740,74 +699,74 @@ namespace SSE
 #endif
 #undef SUFFIX
 #define SUFFIX epi16
-            static inline VectorType shiftLeft(VectorType a, int shift) {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
                 return CAT(_mm_slli_, SUFFIX)(a, shift);
             }
-            static inline VectorType shiftRight(VectorType a, int shift) {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
                 return CAT(_mm_srli_, SUFFIX)(a, shift);
             }
 
-            static inline void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
+            static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
             OPx(mul, mullo) // should work correctly for all values
 #if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(VC_IMPL_SSE4_1)
             OP(min) OP(max) // XXX breaks for values with MSB set
 #endif
-            static inline EntryType min(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
                 a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
-            static inline EntryType max(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
                 a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
-            static inline EntryType mul(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
                 a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
-            static inline EntryType add(VectorType a) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType add(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
                 a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
-            static inline VectorType set(const EntryType a) Vc_PURE { return CAT(_mm_set1_, SUFFIX)(a); }
-            static inline VectorType set(const EntryType a, const EntryType b, const EntryType c,
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a, const EntryType b, const EntryType c,
                     const EntryType d, const EntryType e, const EntryType f,
-                    const EntryType g, const EntryType h) Vc_PURE {
+                    const EntryType g, const EntryType h) {
                 return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
 
             OP(add) OP(sub)
             OPcmp(eq)
-            static inline VectorType cmpneq(const VectorType a, const VectorType b) Vc_PURE { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpneq(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
 
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
-            static inline VectorType cmplt(const VectorType a, const VectorType b) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmplt(const VectorType a, const VectorType b) {
                 return _mm_cmplt_epu16(a, b);
             }
-            static inline VectorType cmpgt(const VectorType a, const VectorType b) Vc_PURE {
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpgt(const VectorType a, const VectorType b) {
                 return _mm_cmpgt_epu16(a, b);
             }
 #else
             OPcmp(lt)
             OPcmp(gt)
 #endif
-            static inline VectorType cmpnlt(const VectorType a, const VectorType b) Vc_PURE { return _mm_andnot_si128(cmplt(a, b), _mm_setallone_si128()); }
-            static inline VectorType cmple (const VectorType a, const VectorType b) Vc_PURE { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
-            static inline VectorType cmpnle(const VectorType a, const VectorType b) Vc_PURE { return cmpgt(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnlt(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmplt(a, b), _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmple (const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
 #undef SUFFIX
-            static inline VectorType round(VectorType a) Vc_PURE { return a; }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }
         };
 #undef OP1
 #undef OP

@@ -96,4 +96,8 @@
 #undef VC_ALIGNED_PARAMETER
 #undef VC_OFFSETOF
 
+#if VC_GCC && !__OPTIMIZE__
+#pragma GCC diagnostic pop
+#endif
+
 #endif // VC_COMMON_UNDOMACROS_H

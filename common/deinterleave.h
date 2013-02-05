@@ -20,6 +20,8 @@
 #ifndef VC_COMMON_DEINTERLEAVE_H
 #define VC_COMMON_DEINTERLEAVE_H
 
+#include "macros.h"
+
 namespace Vc
 {
 
@@ -63,18 +65,21 @@ double_v |       |    X   |        |       |      |
 ushort_v |       |        |    X   |       |      |
 \endverbatim
  */
-template<typename V, typename M, typename A> inline void deinterleave(V *a, V *b,
+template<typename V, typename M, typename A> Vc_ALWAYS_INLINE void deinterleave(V *a, V *b,
         const M *memory, A align)
 {
     Internal::Helper::deinterleave(*a, *b, memory, align);
 }
 
 // documented as default for align above
-template<typename V, typename M> inline void deinterleave(V *a, V *b,
+template<typename V, typename M> Vc_ALWAYS_INLINE void deinterleave(V *a, V *b,
         const M *memory)
 {
     Internal::Helper::deinterleave(*a, *b, memory, Aligned);
 }
 
 } // namespace Vc
+
+#include "undomacros.h"
+
 #endif // VC_COMMON_DEINTERLEAVE_H
