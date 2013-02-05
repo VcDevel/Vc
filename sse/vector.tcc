@@ -627,63 +627,63 @@ OP_IMPL(unsigned short, >>)
 #undef VC_WORKAROUND
 #endif
 
-template<typename T> inline Vector<T> &Vector<T>::operator>>=(int shift) {
+template<typename T> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator>>=(int shift) {
     d.v() = VectorHelper<T>::shiftRight(d.v(), shift);
     return *this;
 }
-template<typename T> inline Vector<T> Vector<T>::operator>>(int shift) const {
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator>>(int shift) const {
     return VectorHelper<T>::shiftRight(d.v(), shift);
 }
-template<typename T> inline Vector<T> &Vector<T>::operator<<=(int shift) {
+template<typename T> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator<<=(int shift) {
     d.v() = VectorHelper<T>::shiftLeft(d.v(), shift);
     return *this;
 }
-template<typename T> inline Vector<T> Vector<T>::operator<<(int shift) const {
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator<<(int shift) const {
     return VectorHelper<T>::shiftLeft(d.v(), shift);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // swizzles {{{1
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST &Vector<T>::abcd() const { return *this; }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1>(data()); }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0>(data()); }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1>(data()); }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2>(data()); }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3>(data()); }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3>(data()); }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0>(data()); }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2>(data()); }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3>(data()); }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0>(data()); }
-template<typename T> Vc_INTRINSIC const Vector<T> Vc_CONST  Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T> &Vector<T>::abcd() const { return *this; }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0>(data()); }
+template<typename T> Vc_INTRINSIC Vc_PURE const Vector<T>  Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0>(data()); }
 
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::cdab() const { return M256::create(Mem::permute<X2, X3, X0, X1>(d.v()[0]), Mem::permute<X2, X3, X0, X1>(d.v()[1])); }
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::badc() const { return M256::create(Mem::permute<X1, X0, X3, X2>(d.v()[0]), Mem::permute<X1, X0, X3, X2>(d.v()[1])); }
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::aaaa() const { return M256::create(Mem::permute<X0, X0, X0, X0>(d.v()[0]), Mem::permute<X0, X0, X0, X0>(d.v()[1])); }
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::bbbb() const { return M256::create(Mem::permute<X1, X1, X1, X1>(d.v()[0]), Mem::permute<X1, X1, X1, X1>(d.v()[1])); }
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::cccc() const { return M256::create(Mem::permute<X2, X2, X2, X2>(d.v()[0]), Mem::permute<X2, X2, X2, X2>(d.v()[1])); }
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::dddd() const { return M256::create(Mem::permute<X3, X3, X3, X3>(d.v()[0]), Mem::permute<X3, X3, X3, X3>(d.v()[1])); }
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::bcad() const { return M256::create(Mem::permute<X1, X2, X0, X3>(d.v()[0]), Mem::permute<X1, X2, X0, X3>(d.v()[1])); }
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::bcda() const { return M256::create(Mem::permute<X1, X2, X3, X0>(d.v()[0]), Mem::permute<X1, X2, X3, X0>(d.v()[1])); }
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::dabc() const { return M256::create(Mem::permute<X3, X0, X1, X2>(d.v()[0]), Mem::permute<X3, X0, X1, X2>(d.v()[1])); }
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::acbd() const { return M256::create(Mem::permute<X0, X2, X1, X3>(d.v()[0]), Mem::permute<X0, X2, X1, X3>(d.v()[1])); }
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::dbca() const { return M256::create(Mem::permute<X3, X1, X2, X0>(d.v()[0]), Mem::permute<X3, X1, X2, X0>(d.v()[1])); }
-template<> Vc_INTRINSIC const sfloat_v Vc_CONST Vector<sfloat>::dcba() const { return M256::create(Mem::permute<X3, X2, X1, X0>(d.v()[0]), Mem::permute<X3, X2, X1, X0>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::cdab() const { return M256::create(Mem::permute<X2, X3, X0, X1>(d.v()[0]), Mem::permute<X2, X3, X0, X1>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::badc() const { return M256::create(Mem::permute<X1, X0, X3, X2>(d.v()[0]), Mem::permute<X1, X0, X3, X2>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::aaaa() const { return M256::create(Mem::permute<X0, X0, X0, X0>(d.v()[0]), Mem::permute<X0, X0, X0, X0>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::bbbb() const { return M256::create(Mem::permute<X1, X1, X1, X1>(d.v()[0]), Mem::permute<X1, X1, X1, X1>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::cccc() const { return M256::create(Mem::permute<X2, X2, X2, X2>(d.v()[0]), Mem::permute<X2, X2, X2, X2>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::dddd() const { return M256::create(Mem::permute<X3, X3, X3, X3>(d.v()[0]), Mem::permute<X3, X3, X3, X3>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::bcad() const { return M256::create(Mem::permute<X1, X2, X0, X3>(d.v()[0]), Mem::permute<X1, X2, X0, X3>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::bcda() const { return M256::create(Mem::permute<X1, X2, X3, X0>(d.v()[0]), Mem::permute<X1, X2, X3, X0>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::dabc() const { return M256::create(Mem::permute<X3, X0, X1, X2>(d.v()[0]), Mem::permute<X3, X0, X1, X2>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::acbd() const { return M256::create(Mem::permute<X0, X2, X1, X3>(d.v()[0]), Mem::permute<X0, X2, X1, X3>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::dbca() const { return M256::create(Mem::permute<X3, X1, X2, X0>(d.v()[0]), Mem::permute<X3, X1, X2, X0>(d.v()[1])); }
+template<> Vc_INTRINSIC Vc_PURE const sfloat_v Vector<sfloat>::dcba() const { return M256::create(Mem::permute<X3, X2, X1, X0>(d.v()[0]), Mem::permute<X3, X2, X1, X0>(d.v()[1])); }
 
 #define VC_SWIZZLES_16BIT_IMPL(T) \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1, X6, X7, X4, X5>(data()); } \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(data()); } \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0, X4, X4, X4, X4>(data()); } \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1, X5, X5, X5, X5>(data()); } \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2, X6, X6, X6, X6>(data()); } \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3, X7, X7, X7, X7>(data()); } \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3, X5, X6, X4, X7>(data()); } \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0, X5, X6, X7, X4>(data()); } \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2, X7, X4, X5, X6>(data()); } \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3, X4, X6, X5, X7>(data()); } \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0, X7, X5, X6, X4>(data()); } \
-template<> Vc_INTRINSIC const Vector<T> Vc_CONST Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(data()); }
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1, X6, X7, X4, X5>(data()); } \
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(data()); } \
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0, X4, X4, X4, X4>(data()); } \
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1, X5, X5, X5, X5>(data()); } \
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2, X6, X6, X6, X6>(data()); } \
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3, X7, X7, X7, X7>(data()); } \
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3, X5, X6, X4, X7>(data()); } \
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0, X5, X6, X7, X4>(data()); } \
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2, X7, X4, X5, X6>(data()); } \
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3, X4, X6, X5, X7>(data()); } \
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0, X7, X5, X6, X4>(data()); } \
+template<> Vc_INTRINSIC Vc_PURE const Vector<T> Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(data()); }
 VC_SWIZZLES_16BIT_IMPL(short)
 VC_SWIZZLES_16BIT_IMPL(unsigned short)
 #undef VC_SWIZZLES_16BIT_IMPL
