@@ -1531,10 +1531,19 @@ INCLUDE_FILE_PATTERNS  =
 # instead of the = operator.
 
 PREDEFINED             = DOXYGEN \
-                         ALWAYS_INLINE \
-                         INTRINSIC \
-                         ALWAYS_INLINE_L \
-                         ALWAYS_INLINE_R
+                         Vc_INTRINSIC=inline \
+                         Vc_INTRINSIC_L=inline \
+                         Vc_INTRINSIC_R \
+                         Vc_ALWAYS_INLINE=inline \
+                         Vc_ALWAYS_INLINE_L=inline \
+                         Vc_ALWAYS_INLINE_R \
+                         Vc_PURE \
+                         Vc_PURE_L \
+                         Vc_PURE_R \
+                         Vc_CONST \
+                         Vc_CONST_L \
+                         Vc_CONST_R \
+                         _VC_CONSTEXPR=constexpr
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.
