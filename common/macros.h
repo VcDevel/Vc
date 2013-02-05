@@ -141,7 +141,7 @@
 #  define VC_IS_UNLIKELY(x) x
 #  define VC_IS_LIKELY(x) x
 #  define VC_RESTRICT __restrict
-#  define VC_DEPRECATED(msg)
+#  define VC_DEPRECATED(msg) __declspec(deprecated(msg))
 #endif
 
 #if __cplusplus >= 201103 /*C++11*/
