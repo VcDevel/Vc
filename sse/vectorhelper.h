@@ -22,6 +22,7 @@
 
 #include "types.h"
 #include <limits>
+#include "macros.h"
 
 namespace Vc
 {
@@ -778,5 +779,6 @@ namespace SSE
 } // namespace Vc
 
 #include "vectorhelper.tcc"
+#include "undomacros.h"
 
 #endif // SSE_VECTORHELPER_H

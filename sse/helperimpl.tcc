@@ -20,9 +20,7 @@
 #ifndef VC_SSE_HELPERIMPL_TCC
 #define VC_SSE_HELPERIMPL_TCC
 
-#include "intrinsics.h"
 #include <cstdio>
-#include "macros.h"
 
 namespace Vc
 {
@@ -62,6 +60,5 @@ Vc_ALWAYS_INLINE void HelperImpl<SSE2Impl>::free(void *p)
 
 } // namespace Internal
 } // namespace Vc
-#include "undomacros.h"
 
 #endif // VC_SSE_HELPERIMPL_TCC

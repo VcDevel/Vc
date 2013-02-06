@@ -22,7 +22,6 @@
 
 #include "intrinsics.h"
 #include "../common/storage.h"
-#include "macros.h"
 
 #define VC_DOUBLE_V_SIZE 2
 #define VC_FLOAT_V_SIZE 4
@@ -33,6 +32,7 @@
 #define VC_USHORT_V_SIZE 8
 
 #include "../common/types.h"
+#include "macros.h"
 
 namespace Vc
 {
@@ -152,5 +152,7 @@ static Vc_ALWAYS_INLINE void assertCorrectAlignment(const M256 *ptr)
 
 } // namespace SSE
 } // namespace Vc
+
+#include "undomacros.h"
 
 #endif // SSE_TYPES_H

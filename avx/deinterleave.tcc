@@ -17,8 +17,6 @@
 
 */
 
-#include "macros.h"
-
 namespace Vc
 {
 namespace AVX

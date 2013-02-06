@@ -24,6 +24,7 @@
 #include "types.h"
 #include "intrinsics.h"
 #include "casts.h"
+#include "macros.h"
 
 namespace Vc
 {
@@ -736,5 +737,6 @@ template<> struct VectorHelper<unsigned char>
 } // namespace Vc
 
 #include "vectorhelper.tcc"
+#include "undomacros.h"
 
 #endif // AVX_VECTORHELPER_H

@@ -34,8 +34,8 @@
 #endif
 
 #include "const_data.h"
-#include "macros.h"
 #include <cstdlib>
+#include "macros.h"
 
 #ifdef __3dNOW__
 #include <mm3dnow.h>
@@ -525,6 +525,7 @@ namespace SSE
 #include <x86intrin.h>
 #endif
 
+#include "undomacros.h"
 #include "shuffle.h"
 
 #endif // SSE_INTRINSICS_H

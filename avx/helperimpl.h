@@ -94,9 +94,9 @@ template<> struct HelperImpl<Vc::AVXImpl>
 } // namespace Internal
 } // namespace Vc
 
-#include "undomacros.h"
 #include "deinterleave.tcc"
 #include "prefetches.tcc"
 #include "helperimpl.tcc"
+#include "undomacros.h"
 
 #endif // VC_AVX_HELPERIMPL_H

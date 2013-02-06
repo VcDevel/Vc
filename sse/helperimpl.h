@@ -78,9 +78,9 @@ template<> struct HelperImpl<SSE4aImpl> : public HelperImpl<SSE3Impl> {};
 } // namespace Internal
 } // namespace Vc
 
-#include "undomacros.h"
 #include "deinterleave.tcc"
 #include "prefetches.tcc"
 #include "helperimpl.tcc"
+#include "undomacros.h"
 
 #endif // VC_SSE_DEINTERLEAVE_H

@@ -21,6 +21,7 @@
 #define SSE_MASK_H
 
 #include "intrinsics.h"
+#include "macros.h"
 
 namespace Vc
 {
@@ -532,5 +533,7 @@ class Float8GatherMask
 
 } // namespace SSE
 } // namespace Vc
+
+#include "undomacros.h"
 
 #endif // SSE_MASK_H

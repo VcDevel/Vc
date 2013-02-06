@@ -104,5 +104,6 @@ namespace AVX
 #endif
 } // namespace AVX
 } // namespace Vc
+#include "undomacros.h"
 
 #endif // AVX_TYPES_H

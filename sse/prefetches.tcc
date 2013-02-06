@@ -20,7 +20,6 @@
 #ifndef VC_SSE_PREFETCHES_TCC
 #define VC_SSE_PREFETCHES_TCC
 
-#include "macros.h"
 namespace Vc
 {
 namespace Internal
@@ -53,6 +52,5 @@ Vc_ALWAYS_INLINE void HelperImpl<Vc::SSE2Impl>::prefetchForModify(const void *ad
 
 } // namespace Internal
 } // namespace Vc
-#include "undomacros.h"
 
 #endif // VC_SSE_PREFETCHES_TCC
