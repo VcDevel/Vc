@@ -451,7 +451,7 @@ namespace Vc
      * \class Vector dox.h <Vc/vector.h>
      * \ingroup Vectors
      *
-     * The main vector class.
+     * The main SIMD vector class.
      *
      * \li Vc::float_v
      * \li Vc::sfloat_v
@@ -781,7 +781,7 @@ namespace Vc
      * \ingroup Vectors
      *
      * SIMD Vector of single precision floats that is guaranteed to have as many entries as a
-     * Vc::short_v / Vc::ushort_v.
+     * Vc::short_v and Vc::ushort_v.
      */
     class VECTOR_TYPE
     {
