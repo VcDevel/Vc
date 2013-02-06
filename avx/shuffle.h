@@ -21,6 +21,7 @@
 #define VC_AVX_SHUFFLE_H
 
 #include "../sse/shuffle.h"
+#include "macros.h"
 
 namespace Vc
 {
@@ -231,5 +232,6 @@ namespace Vc
         }
     } // namespace Reg
 } // namespace Vc
+#include "undomacros.h"
 
 #endif // VC_AVX_SHUFFLE_H

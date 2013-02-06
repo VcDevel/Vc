@@ -20,6 +20,8 @@
 #ifndef VC_SSE_SHUFFLE_H
 #define VC_SSE_SHUFFLE_H
 
+#include "macros.h"
+
 namespace Vc
 {
     enum VecPos {
@@ -165,5 +167,7 @@ namespace Vc
         }
     } // namespace Reg
 } // namespace Vc
+
+#include "undomacros.h"
 
 #endif // VC_SSE_SHUFFLE_H

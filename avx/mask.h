@@ -22,6 +22,7 @@
 
 #include "intrinsics.h"
 #include "../common/bitscanintrinsics.h"
+#include "macros.h"
 
 namespace Vc
 {
@@ -209,5 +210,6 @@ struct ForeachHelper
 } // namespace Vc
 
 #include "mask.tcc"
+#include "undomacros.h"
 
 #endif // VC_AVX_MASK_H

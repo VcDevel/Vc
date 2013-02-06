@@ -514,6 +514,7 @@ namespace AVX
 #endif
 } // namespace AVX
 } // namespace Vc
+#include "undomacros.h"
 
 #include "shuffle.h"
 
