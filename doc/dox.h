@@ -21,7 +21,7 @@
  * \mainpage
  * \image html logo.png
  *
- * The %Vc library is a collection of vector classes with existing implementations for SSE, AVX,
+ * The %Vc library is a collection of SIMD vector classes with existing implementations for SSE, AVX,
  * and a scalar fallback. An implementation for the Intel Xeon Phi is expected to be ready for %Vc
  * 0.8.
  *
