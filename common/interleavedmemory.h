@@ -27,6 +27,9 @@ namespace Vc
 namespace Common
 {
 
+/**
+ * \internal
+ */
 template<typename V> struct InterleavedMemoryAccessBase
 {
     typedef typename V::EntryType T;
@@ -59,6 +62,9 @@ template<typename V> struct InterleavedMemoryAccessBase
     void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6, VArg v7);
 };
 
+/**
+ * \internal
+ */
 // delay execution of the deinterleaving gather until operator=
 template<size_t StructSize, typename V> struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V>
 {
@@ -72,6 +78,9 @@ template<size_t StructSize, typename V> struct InterleavedMemoryReadAccess : pub
     }
 };
 
+/**
+ * \internal
+ */
 template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, V>
 {
     typedef InterleavedMemoryAccessBase<V> Base;
@@ -110,6 +119,12 @@ private:
     }
 #endif
 };
+
+#ifdef DOXYGEN
+} // namespace Common
+// in doxygen InterleavedMemoryWrapper should appear in the Vc namespace (see the using statement
+// below)
+#endif
 
 /**
  * Wraps a pointer to memory with convenience functions to access it via vectors.
@@ -214,9 +229,11 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
 
     //Vc_ALWAYS_INLINE Access scatter(I indexes, VArg v0, VArg v1);
 };
+#ifndef DOXYGEN
 } // namespace Common
 
 using Common::InterleavedMemoryWrapper;
+#endif
 
 } // namespace Vc
 
