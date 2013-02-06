@@ -267,8 +267,8 @@ target_link_libraries(linkTest Vc linkTestLibDynamic linkTestLibStatic)
 #add_executable(convert-sincos-reference convert-sincos-reference.cpp)
 
 set(_deps)
-foreach(fun sincos asin acos atan)
-   foreach(filename ${fun}-reference-single.dat ${fun}-reference-double.dat)
+foreach(fun sincos asin acos atan ln log2 log10)
+   foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
       add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
          COMMAND ${CMAKE_COMMAND} -Dfilename=${filename} -P ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
          DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake

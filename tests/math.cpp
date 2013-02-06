@@ -58,17 +58,23 @@ template<typename T> struct StaticDeleter
 };
 
 enum Function {
-    Sincos, Atan, Asin, Acos
+    Sincos, Atan, Asin, Acos, Log, Log2, Log10
 };
 template<typename T, Function F> static inline const char *filename();
-template<> inline const char *filename<float , Sincos>() { return "sincos-reference-single.dat"; }
-template<> inline const char *filename<double, Sincos>() { return "sincos-reference-double.dat"; }
-template<> inline const char *filename<float , Atan  >() { return "atan-reference-single.dat"; }
-template<> inline const char *filename<double, Atan  >() { return "atan-reference-double.dat"; }
-template<> inline const char *filename<float , Asin  >() { return "asin-reference-single.dat"; }
-template<> inline const char *filename<double, Asin  >() { return "asin-reference-double.dat"; }
-template<> inline const char *filename<float , Acos  >() { return "acos-reference-single.dat"; }
-template<> inline const char *filename<double, Acos  >() { return "acos-reference-double.dat"; }
+template<> inline const char *filename<float , Sincos>() { return "reference-sincos-sp.dat"; }
+template<> inline const char *filename<double, Sincos>() { return "reference-sincos-dp.dat"; }
+template<> inline const char *filename<float , Atan  >() { return "reference-atan-sp.dat"; }
+template<> inline const char *filename<double, Atan  >() { return "reference-atan-dp.dat"; }
+template<> inline const char *filename<float , Asin  >() { return "reference-asin-sp.dat"; }
+template<> inline const char *filename<double, Asin  >() { return "reference-asin-dp.dat"; }
+template<> inline const char *filename<float , Acos  >() { return "reference-acos-sp.dat"; }
+template<> inline const char *filename<double, Acos  >() { return "reference-acos-dp.dat"; }
+template<> inline const char *filename<float , Log   >() { return "reference-ln-sp.dat"; }
+template<> inline const char *filename<double, Log   >() { return "reference-ln-dp.dat"; }
+template<> inline const char *filename<float , Log2  >() { return "reference-log2-sp.dat"; }
+template<> inline const char *filename<double, Log2  >() { return "reference-log2-dp.dat"; }
+template<> inline const char *filename<float , Log10 >() { return "reference-log10-sp.dat"; }
+template<> inline const char *filename<double, Log10 >() { return "reference-log10-dp.dat"; }
 
 template<typename T>
 static Array<SincosReference<T> > sincosReference()
@@ -215,20 +221,21 @@ template<typename V> void testLog()/*{{{*/
 {
     setFuzzyness<float>(1);
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 100000 / V::Size; ++i) {
-        V x = exp(V::Random() * T(20));
-        V reference = apply_v(x, std::log);
-        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
-
-        x = V::One() / x;
-        reference = apply_v(x, std::log);
-        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
+    Array<Reference<T> > reference = referenceData<T, Log>();
+    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
+        V x, ref;
+        for (int j = 0; j < V::Size; ++j) {
+            x[j] = reference.data[i + j].x;
+            ref[j] = reference.data[i + j].ref;
+        }
+        FUZZY_COMPARE(Vc::log(x), ref) << " x = " << x << ", i = " << i;
     }
+
     COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
     for (int i = 0; i < NDenormals; i += V::Size) {
         V x(&Denormals<T>::data[i]);
-        V reference = apply_v(x, std::log);
-        FUZZY_COMPARE(Vc::log(x), reference) << ", x = " << x << ", i = " << i;
+        V ref = apply_v(x, std::log);
+        FUZZY_COMPARE(Vc::log(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
 /*}}}*/
@@ -262,20 +269,21 @@ template<typename V> void testLog2()/*{{{*/
 #endif
     setFuzzyness<double>(3);
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 100000 / V::Size; ++i) {
-        V x = exp(V::Random() * T(20 * Vc::Math<double>::ln2()));
-        V reference = apply_v(x, my_log2);
-        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
-
-        x = V::One() / x;
-        reference = apply_v(x, my_log2);
-        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
+    Array<Reference<T> > reference = referenceData<T, Log2>();
+    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
+        V x, ref;
+        for (int j = 0; j < V::Size; ++j) {
+            x[j] = reference.data[i + j].x;
+            ref[j] = reference.data[i + j].ref;
+        }
+        FUZZY_COMPARE(Vc::log2(x), ref) << " x = " << x << ", i = " << i;
     }
+
     COMPARE(Vc::log2(V::Zero()), V(my_log2(T(0))));
     for (int i = 0; i < NDenormals; i += V::Size) {
         V x(&Denormals<T>::data[i]);
-        V reference = apply_v(x, my_log2);
-        FUZZY_COMPARE(Vc::log2(x), reference) << ", x = " << x << ", i = " << i;
+        V ref = apply_v(x, my_log2);
+        FUZZY_COMPARE(Vc::log2(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
 /*}}}*/
@@ -284,20 +292,21 @@ template<typename V> void testLog10()/*{{{*/
     setFuzzyness<float>(2);
     setFuzzyness<double>(2);
     typedef typename V::EntryType T;
-    for (size_t i = 0; i < 100000 / V::Size; ++i) {
-        V x = exp(V::Random() * T(20 * Vc::Math<double>::ln10()));
-        V reference = apply_v(x, std::log10);
-        FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
-
-        x = V::One() / x;
-        reference = apply_v(x, std::log10);
-        FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x;
+    Array<Reference<T> > reference = referenceData<T, Log10>();
+    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
+        V x, ref;
+        for (int j = 0; j < V::Size; ++j) {
+            x[j] = reference.data[i + j].x;
+            ref[j] = reference.data[i + j].ref;
+        }
+        FUZZY_COMPARE(Vc::log10(x), ref) << " x = " << x << ", i = " << i;
     }
+
     COMPARE(Vc::log10(V::Zero()), V(std::log10(T(0))));
     for (int i = 0; i < NDenormals; i += V::Size) {
         V x(&Denormals<T>::data[i]);
-        V reference = apply_v(x, std::log10);
-        FUZZY_COMPARE(Vc::log10(x), reference) << ", x = " << x << ", i = " << i;
+        V ref = apply_v(x, std::log10);
+        FUZZY_COMPARE(Vc::log10(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
 /*}}}*/
