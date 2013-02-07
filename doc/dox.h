@@ -425,8 +425,8 @@
 /**
  * \defgroup Utilities Utilities
  *
- * Utilities that either extend the language or provide other useful functionality outside of the
- * classes.
+ * Additional classes, macros, and functions that help to work more easily with the main vector
+ * types.
  */
 
 /**
@@ -1020,24 +1020,104 @@ const char *versionString();
 unsigned int versionNumber();
 
 /**
+ * \name SIMD Support Feature Macros
  * \ingroup Utilities
- * \headerfile dox.h <Vc/version.h>
- *
+ */
+//@{
+/**
+ * \ingroup Utilities
+ * This macro is set to the value of \ref Vc::Implementation that the current translation unit is
+ * compiled with.
+ */
+#define VC_IMPL
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with XOP instruction support.
+ */
+#define VC_IMPL_XOP
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with FMA4 instruction support.
+ */
+#define VC_IMPL_FMA4
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with F16C instruction support.
+ */
+#define VC_IMPL_F16C
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with POPCNT instruction support.
+ */
+#define VC_IMPL_POPCNT
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled without any SIMD support.
+ */
+#define VC_IMPL_Scalar
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with any version of SSE (but not
+ * AVX).
+ */
+#define VC_IMPL_SSE
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with SSE2 instruction support
+ * (excluding SSE3 and up).
+ */
+#define VC_IMPL_SSE2
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with SSE3 instruction support (excluding SSSE3 and up).
+ */
+#define VC_IMPL_SSE3
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with SSSE3 instruction support (excluding SSE4.1 and up).
+ */
+#define VC_IMPL_SSSE3
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with SSE4.1 instruction support (excluding SSE4.2 and up).
+ */
+#define VC_IMPL_SSE4_1
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with SSE4.2 instruction support (excluding AVX and up).
+ */
+#define VC_IMPL_SSE4_2
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with SSE4a instruction support (excluding SSSE3 and up).
+ */
+#define VC_IMPL_SSE4a
+/**
+ * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with AVX instruction support (excluding AVX2 and up).
+ */
+#define VC_IMPL_AVX
+//@}
+
+/**
+ * \name Version Macros
+ * \ingroup Utilities
+ */
+//@{
+/**
+ * \ingroup Utilities
  * Contains the version string of the %Vc headers. Same as Vc::versionString().
  */
 #define VC_VERSION_STRING
 
 /**
  * \ingroup Utilities
- * \headerfile dox.h <Vc/version.h>
- *
  * Contains the encoded version number of the %Vc headers. Same as Vc::versionNumber().
  */
 #define VC_VERSION_NUMBER
 
 /**
  * \ingroup Utilities
- * \headerfile dox.h <Vc/version.h>
  *
  * Helper macro to compare against an encoded version number.
  * Example:
@@ -1046,48 +1126,48 @@ unsigned int versionNumber();
  * \endcode
  */
 #define VC_VERSION_CHECK(major, minor, patch)
+//@}
 
 /**
+ * \name SIMD Vector Size Macros
  * \ingroup Utilities
- * \headerfile dox.h <Vc/vector.h>
+ */
+//@{
+/**
+ * \ingroup Utilities
  * An integer (for use with the preprocessor) that gives the number of entries in a double_v.
  */
 #define VC_DOUBLE_V_SIZE
 /**
  * \ingroup Utilities
- * \headerfile dox.h <Vc/vector.h>
  * An integer (for use with the preprocessor) that gives the number of entries in a float_v.
  */
 #define VC_FLOAT_V_SIZE
 /**
  * \ingroup Utilities
- * \headerfile dox.h <Vc/vector.h>
  * An integer (for use with the preprocessor) that gives the number of entries in a sfloat_v.
  */
 #define VC_SFLOAT_V_SIZE
 /**
  * \ingroup Utilities
- * \headerfile dox.h <Vc/vector.h>
  * An integer (for use with the preprocessor) that gives the number of entries in a int_v.
  */
 #define VC_INT_V_SIZE
 /**
  * \ingroup Utilities
- * \headerfile dox.h <Vc/vector.h>
  * An integer (for use with the preprocessor) that gives the number of entries in a uint_v.
  */
 #define VC_UINT_V_SIZE
 /**
  * \ingroup Utilities
- * \headerfile dox.h <Vc/vector.h>
  * An integer (for use with the preprocessor) that gives the number of entries in a short_v.
  */
 #define VC_SHORT_V_SIZE
 /**
  * \ingroup Utilities
- * \headerfile dox.h <Vc/vector.h>
  * An integer (for use with the preprocessor) that gives the number of entries in a ushort_v.
  */
 #define VC_USHORT_V_SIZE
+//@}
 
 } // namespace Vc

@@ -407,15 +407,9 @@ enum ExtraInstructions {
     // RdrandInstructions
 };
 
-#ifdef DOXYGEN
-/**
- * \ingroup Utilities
- *
- * This macro is set to the value of \ref Vc::Implementation that the current translation unit is
- * compiled with.
- */
-#define VC_IMPL
-#elif VC_IMPL_Scalar
+#ifndef DOXYGEN
+
+#if VC_IMPL_Scalar
 #define VC_IMPL ::Vc::ScalarImpl
 #elif VC_IMPL_AVX
 #define VC_IMPL ::Vc::AVXImpl
@@ -475,6 +469,7 @@ namespace Error
     template<typename L, typename R> struct invalid_operands_of_types {};
 } // namespace Error
 
+#endif // DOXYGEN
 } // namespace Vc
 
 #undef Vc_CONSTEXPR
