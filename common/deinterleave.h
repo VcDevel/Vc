@@ -26,7 +26,7 @@ namespace Vc
 {
 
 /**
- * \ingroup Utilities
+ * \ingroup Vectors
  *
  * Loads two vectors of values from an interleaved array.
  *

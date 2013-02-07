@@ -437,7 +437,6 @@
  */
 
 /**
- * \ingroup Vectors
  * \brief Vector Classes Namespace
  *
  * All functions and types of %Vc are defined inside the %Vc namespace.
@@ -916,7 +915,7 @@ namespace Vc
 #define foreach_bit(iterator, mask)
 
 /**
- * \ingroup Utilities
+ * \ingroup Vectors
  * \headerfile dox.h <Vc/IO>
  *
  * Prints the contents of a vector into a stream object.
@@ -941,7 +940,7 @@ template<typename T>
 std::ostream &operator<<(std::ostream &s, const Vc::Vector<T> &v);
 
 /**
- * \ingroup Utilities
+ * \ingroup Masks
  * \headerfile dox.h <Vc/IO>
  *
  * Prints the contents of a mask into a stream object.
