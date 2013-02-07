@@ -22,7 +22,7 @@
 
 #include "global.h"
 
-#if VC_IMPL_Scalar
+#ifdef VC_IMPL_Scalar
 # define VECTOR_NAMESPACE Scalar
 #else
 # define VECTOR_NAMESPACE SSE

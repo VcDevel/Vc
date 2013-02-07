@@ -116,9 +116,9 @@ namespace std \
     {
     private:
         enum Constants {
-#if VC_HAVE_STD_MAX_ALIGN_T
+#ifdef VC_HAVE_STD_MAX_ALIGN_T
             NaturalAlignment = alignof(std::max_align_t),
-#elif VC_HAVE_MAX_ALIGN_T
+#elif defined(VC_HAVE_MAX_ALIGN_T)
             NaturalAlignment = alignof(::max_align_t),
 #else
             NaturalAlignment = sizeof(void *) > Vc_ALIGNOF(long double) ? sizeof(void *) :

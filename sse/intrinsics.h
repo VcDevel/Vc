@@ -521,7 +521,7 @@ namespace SSE
 } // namespace Vc
 
 // XOP / FMA4
-#if VC_IMPL_XOP || VC_IMPL_FMA4
+#if defined(VC_IMPL_XOP) || defined(VC_IMPL_FMA4)
 #include <x86intrin.h>
 #endif
 

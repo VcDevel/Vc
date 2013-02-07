@@ -24,11 +24,11 @@
 #include "vector.h"
 #include "common/memory.h"
 #include "common/interleavedmemory.h"
-#if VC_IMPL_Scalar
+#ifdef VC_IMPL_Scalar
 # include "scalar/interleavedmemory.tcc"
-#elif VC_IMPL_AVX
+#elif defined(VC_IMPL_AVX)
 # include "avx/interleavedmemory.tcc"
-#elif VC_IMPL_SSE
+#elif defined(VC_IMPL_SSE)
 # include "sse/interleavedmemory.tcc"
 #endif
 

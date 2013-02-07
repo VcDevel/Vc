@@ -107,7 +107,7 @@ namespace AVX
     typedef __m256d m256d;
     typedef __m256i m256i;
 #endif
-#if VC_UNCONDITIONAL_AVX2_INTRINSICS && VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#if defined(VC_UNCONDITIONAL_AVX2_INTRINSICS) && defined(VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN)
     typedef const m128  & param128 ;
     typedef const m128d & param128d;
     typedef const m128i & param128i;
@@ -123,7 +123,7 @@ namespace AVX
     typedef const m256i param256i;
 #endif
 
-#if VC_UNCONDITIONAL_AVX2_INTRINSICS
+#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
     // Make use of cast intrinsics easier. But if param256 == const __m256 then these would lead to
     // ambiguities.
     static Vc_INTRINSIC m256i Vc_CONST _mm256_castps_si256(param256  a) { return ::_mm256_castps_si256(a); }
@@ -488,7 +488,7 @@ namespace AVX
             _mm256_maskstore(reinterpret_cast<int *>(mem), mask, v);
         }
 
-#if defined(VC_IMPL_FMA4) && VC_CLANG < 0x30300
+#if defined(VC_IMPL_FMA4) && defined(VC_CLANG) && VC_CLANG < 0x30300
         // clang miscompiles _mm256_macc_ps: http://llvm.org/bugs/show_bug.cgi?id=15040
         static Vc_INTRINSIC __m256 my256_macc_ps(__m256 a, __m256 b, __m256 c) {
             __m256 r;

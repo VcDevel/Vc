@@ -247,7 +247,7 @@ namespace SSE
             }
 #undef SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) {
-#if VC_IMPL_SSE4_1
+#ifdef VC_IMPL_SSE4_1
                 return _mm_round_pd(a, _MM_FROUND_NINT);
 #else
                 //XXX: slow: _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
@@ -329,7 +329,7 @@ namespace SSE
             }
 #undef SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) {
-#if VC_IMPL_SSE4_1
+#ifdef VC_IMPL_SSE4_1
                 return _mm_round_ps(a, _MM_FROUND_NINT);
 #else
                 //XXX slow: _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
@@ -458,7 +458,7 @@ namespace SSE
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-#if VC_IMPL_SSE4_1
+#ifdef VC_IMPL_SSE4_1
             static Vc_ALWAYS_INLINE Vc_CONST VectorType mul(VectorType a, VectorType b) { return _mm_mullo_epi32(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
                 a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
@@ -664,7 +664,7 @@ namespace SSE
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
-#if VC_IMPL_SSE4_1
+#ifdef VC_IMPL_SSE4_1
             static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packus_epi32(a, b); }
 #else
             // XXX too bad, but this is broken without SSE 4.1

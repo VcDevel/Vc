@@ -38,7 +38,7 @@ template<Vc::Implementation Impl> struct MapImpl { enum Dummy { Value = Impl << 
 template<> struct MapImpl<Vc::SSE4aImpl> { enum Dummy { Value = MapImpl<Vc::SSE3Impl >::Value }; };
 template<> struct MapImpl<Vc::SSE42Impl> { enum Dummy { Value = MapImpl<Vc::SSE41Impl>::Value }; };
 typedef ImplementationT<MapImpl<VC_IMPL>::Value
-#if VC_IMPL_XOP && VC_IMPL_FMA4
+#if defined(VC_IMPL_XOP) && defined(VC_IMPL_FMA4)
     + Vc::XopInstructions
     + Vc::Fma4Instructions
 #endif

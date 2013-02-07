@@ -216,7 +216,7 @@ do {} while ( false )
 #define _VC_CAT_HELPER(a, b, c, d) a##b##c##d
 #define _VC_CAT(a, b, c, d) _VC_CAT_HELPER(a, b, c, d)
 
-#if __cplusplus >= 201103 /*C++11*/ || VC_MSVC >= 160000000
+#if __cplusplus >= 201103 /*C++11*/ || (defined(VC_MSVC) && VC_MSVC >= 160000000)
 #define VC_STATIC_ASSERT_NC(cond, msg) \
     static_assert(cond, #msg)
 #define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg)

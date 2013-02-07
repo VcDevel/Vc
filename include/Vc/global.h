@@ -70,7 +70,7 @@
 
 // ICC ships the AVX2 intrinsics inside the AVX1 header.
 // FIXME: the number 20120731 is too large, but I don't know which one is the right one
-#if VC_ICC >= 20120731 || VC_MSVC >= 170000000
+#if (defined(VC_ICC) && VC_ICC >= 20120731) || (defined(VC_MSVC) && VC_MSVC >= 170000000)
 #define VC_UNCONDITIONAL_AVX2_INTRINSICS 1
 #endif
 
@@ -336,7 +336,7 @@ enum MallocAlignment {
 #define Vc_CONSTEXPR static constexpr
 #elif defined(__GNUC__)
 #define Vc_CONSTEXPR static inline __attribute__((__always_inline__, __const__))
-#elif VC_MSVC
+#elif defined(VC_MSVC)
 #define Vc_CONSTEXPR static inline __forceinline
 #else
 #define Vc_CONSTEXPR static inline
@@ -409,21 +409,21 @@ enum ExtraInstructions {
 
 #ifndef DOXYGEN
 
-#if VC_IMPL_Scalar
+#ifdef VC_IMPL_Scalar
 #define VC_IMPL ::Vc::ScalarImpl
-#elif VC_IMPL_AVX
+#elif defined(VC_IMPL_AVX)
 #define VC_IMPL ::Vc::AVXImpl
-#elif VC_IMPL_SSE4a
+#elif defined(VC_IMPL_SSE4a)
 #define VC_IMPL ::Vc::SSE4aImpl
-#elif VC_IMPL_SSE4_2
+#elif defined(VC_IMPL_SSE4_2)
 #define VC_IMPL ::Vc::SSE42Impl
-#elif VC_IMPL_SSE4_1
+#elif defined(VC_IMPL_SSE4_1)
 #define VC_IMPL ::Vc::SSE41Impl
-#elif VC_IMPL_SSSE3
+#elif defined(VC_IMPL_SSSE3)
 #define VC_IMPL ::Vc::SSSE3Impl
-#elif VC_IMPL_SSE3
+#elif defined(VC_IMPL_SSE3)
 #define VC_IMPL ::Vc::SSE3Impl
-#elif VC_IMPL_SSE2
+#elif defined(VC_IMPL_SSE2)
 #define VC_IMPL ::Vc::SSE2Impl
 #endif
 

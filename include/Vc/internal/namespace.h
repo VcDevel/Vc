@@ -17,10 +17,10 @@
 
 */
 
-#if VC_IMPL_Scalar
+#ifdef VC_IMPL_Scalar
 # define VECTOR_NAMESPACE Vc::Scalar
-#elif VC_IMPL_AVX
+#elif defined(VC_IMPL_AVX)
 # define VECTOR_NAMESPACE Vc::AVX
-#elif VC_IMPL_SSE
+#elif defined(VC_IMPL_SSE)
 # define VECTOR_NAMESPACE Vc::SSE
 #endif

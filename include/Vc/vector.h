@@ -23,13 +23,13 @@
 #include "global.h"
 #include "internal/namespace.h"
 
-#if VC_IMPL_Scalar
+#ifdef VC_IMPL_Scalar
 # include "scalar/vector.h"
 # include "scalar/helperimpl.h"
-#elif VC_IMPL_AVX
+#elif defined(VC_IMPL_AVX)
 # include "avx/vector.h"
 # include "avx/helperimpl.h"
-#elif VC_IMPL_SSE
+#elif defined(VC_IMPL_SSE)
 # include "sse/vector.h"
 # include "sse/helperimpl.h"
 #endif

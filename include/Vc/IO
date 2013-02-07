@@ -138,7 +138,7 @@ static std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Mask<
     out << AnsiColor::blue << "]" << AnsiColor::normal;
     return out;
 }
-#if VC_IMPL_SSE
+#ifdef VC_IMPL_SSE
 static std::ostream &operator<<(std::ostream &out, const VECTOR_NAMESPACE::Float8Mask &m)
 {
     out << AnsiColor::blue << "m[";
