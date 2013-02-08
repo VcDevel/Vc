@@ -593,7 +593,7 @@ VC_APPLY_2(VC_LIST_INT_VECTOR_TYPES, _VC_OP, <<, shiftLeft)
 VC_APPLY_2(VC_LIST_INT_VECTOR_TYPES, _VC_OP, >>, shiftRight)
 #undef _VC_OP
 #else
-#if defined(VC_GCC) && VC_GCC == 0x40600 && VC_IMPL_XOP
+#if defined(VC_GCC) && VC_GCC == 0x40600 && defined(VC_IMPL_XOP)
 #define VC_WORKAROUND __attribute__((optimize("no-tree-vectorize"),weak))
 #else
 #define VC_WORKAROUND Vc_INTRINSIC
