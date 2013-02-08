@@ -474,21 +474,30 @@ template<> Vc_ALWAYS_INLINE Vector<unsigned short> Vc_PURE Vector<unsigned short
 {
     return divShort<unsigned short>(d.v(), x.d.v());
 }
-template<> Vc_INTRINSIC Vector<float> &Vector<float>::operator/=(const Vector<float> &x)
+template<> Vc_INTRINSIC float_v &float_v::operator/=(const float_v &x)
 {
     d.v() = _mm256_div_ps(d.v(), x.d.v());
     return *this;
 }
-template<> Vc_INTRINSIC Vector<float> Vc_PURE Vector<float>::operator/(const Vector<float> &x) const
+template<> Vc_INTRINSIC float_v Vc_PURE float_v::operator/(const float_v &x) const
 {
     return _mm256_div_ps(d.v(), x.d.v());
 }
-template<> Vc_INTRINSIC Vector<double> &Vector<double>::operator/=(const Vector<double> &x)
+template<> Vc_INTRINSIC sfloat_v &sfloat_v::operator/=(const sfloat_v &x)
+{
+    d.v() = _mm256_div_ps(d.v(), x.d.v());
+    return *this;
+}
+template<> Vc_INTRINSIC sfloat_v Vc_PURE sfloat_v::operator/(const sfloat_v &x) const
+{
+    return _mm256_div_ps(d.v(), x.d.v());
+}
+template<> Vc_INTRINSIC double_v &double_v::operator/=(const double_v &x)
 {
     d.v() = _mm256_div_pd(d.v(), x.d.v());
     return *this;
 }
-template<> Vc_INTRINSIC Vector<double> Vc_PURE Vector<double>::operator/(const Vector<double> &x) const
+template<> Vc_INTRINSIC double_v Vc_PURE double_v::operator/(const double_v &x) const
 {
     return _mm256_div_pd(d.v(), x.d.v());
 }
