@@ -256,12 +256,16 @@ if(TEST_OPERATOR_FAILURES)
 endif()
 
 # compile and link test for targets that need to link lots of stuff together
-add_library(linkTestLibDynamic SHARED linkTestLib0.cpp linkTestLib1.cpp)
+add_library(linkTestLibDynamic1 SHARED linkTestLib0.cpp linkTestLib1.cpp)
+add_library(linkTestLibDynamic2 SHARED linkTestLib0.cpp linkTestLib1.cpp)
 add_library(linkTestLibStatic STATIC linkTestLib2.cpp linkTestLib3.cpp)
 add_executable(linkTest linkTest0.cpp linkTest1.cpp)
-target_link_libraries(linkTestLibDynamic Vc)
+target_link_libraries(linkTestLibDynamic1 Vc)
+target_link_libraries(linkTestLibDynamic2 Vc)
+add_target_property(linkTestLibDynamic1 COMPILE_FLAGS "-DPOSTFIX=A")
+add_target_property(linkTestLibDynamic2 COMPILE_FLAGS "-DPOSTFIX=B")
 target_link_libraries(linkTestLibStatic Vc)
-target_link_libraries(linkTest Vc linkTestLibDynamic linkTestLibStatic)
+target_link_libraries(linkTest Vc linkTestLibDynamic1 linkTestLibDynamic2 linkTestLibStatic)
 
 # Use the following program to generate the sincos-reference-*.dat files
 #add_executable(convert-sincos-reference convert-sincos-reference.cpp)

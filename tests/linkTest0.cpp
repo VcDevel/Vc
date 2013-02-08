@@ -5,7 +5,7 @@
 using namespace Vc;
 float_v foo0(float_v::AsArg a)
 {
-    const float_v b = a + float_v::One();
+    const float_v b = sin(a + float_v::One());
     std::cerr << b;
     return b;
 }
