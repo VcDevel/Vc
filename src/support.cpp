@@ -99,6 +99,7 @@ unsigned int extraInstructionsSupported()
     if (CpuId::hasXop ()) flags |= Vc::XopInstructions;
     if (CpuId::hasPopcnt()) flags |= Vc::PopcntInstructions;
     if (CpuId::hasSse4a()) flags |= Vc::Sse4aInstructions;
+    if (CpuId::hasFma ()) flags |= Vc::FmaInstructions;
     //if (CpuId::hasPclmulqdq()) flags |= Vc::PclmulqdqInstructions;
     //if (CpuId::hasAes()) flags |= Vc::AesInstructions;
     //if (CpuId::hasRdrand()) flags |= Vc::RdrandInstructions;

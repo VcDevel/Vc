@@ -117,6 +117,15 @@ static bool currentImplementationSupported()
 #ifdef VC_IMPL_FMA4
             ) && CpuId::hasFma4(
 #endif
+#ifdef VC_IMPL_F16C
+            ) && CpuId::hasF16c(
+#endif
+#ifdef VC_IMPL_POPCNT
+            ) && CpuId::hasPopcnt(
+#endif
+#ifdef VC_IMPL_FMA
+            ) && CpuId::hasFma(
+#endif
             );
 }
 #endif // VC_COMPILE_LIB

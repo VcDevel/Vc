@@ -92,6 +92,7 @@
 #define F16C   0x00000004
 #define POPCNT 0x00000008
 #define SSE4a  0x00000010
+#define FMA    0x00000020
 
 #define IMPL_MASK 0xFFF00000
 #define EXT_MASK  0x000FFFFF
@@ -123,21 +124,6 @@
 
 #  if defined(__AVX__)
 #    define VC_IMPL_AVX 1
-#    ifdef __FMA4__
-#      define VC_IMPL_FMA4 1
-#    endif
-#    ifdef __XOP__
-#      define VC_IMPL_XOP 1
-#    endif
-#    ifdef __F16C__
-#      define VC_IMPL_F16C 1
-#    endif
-#    ifdef __POPCNT__
-#      define VC_IMPL_POPCNT 1
-#    endif
-#    ifdef __SSE4A__
-#      define VC_IMPL_SSE4a 1
-#    endif
 #  else
 #    if defined(__SSE4_2__)
 #      define VC_IMPL_SSE 1
@@ -161,11 +147,29 @@
 #    endif
 
 #    if defined(VC_IMPL_SSE)
-#      ifdef __SSE4A__
-#        define VC_IMPL_SSE4a 1
-#      endif
+       // nothing
 #    else
 #      define VC_IMPL_Scalar 1
+#    endif
+#  endif
+#  if defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE)
+#    ifdef __FMA4__
+#      define VC_IMPL_FMA4 1
+#    endif
+#    ifdef __XOP__
+#      define VC_IMPL_XOP 1
+#    endif
+#    ifdef __F16C__
+#      define VC_IMPL_F16C 1
+#    endif
+#    ifdef __POPCNT__
+#      define VC_IMPL_POPCNT 1
+#    endif
+#    ifdef __SSE4A__
+#      define VC_IMPL_SSE4a 1
+#    endif
+#    ifdef __FMA__
+#      define VC_IMPL_FMA 1
 #    endif
 #  endif
 
@@ -239,6 +243,9 @@
 #  if (VC_IMPL & SSE4a)
 #    define VC_IMPL_SSE4a 1
 #  endif
+#  if (VC_IMPL & FMA)
+#    define VC_IMPL_FMA 1
+#  endif
 #  undef VC_IMPL
 
 #endif // VC_IMPL
@@ -264,6 +271,7 @@
 #    undef VC_IMPL_F16C
 #    undef VC_IMPL_POPCNT
 #    undef VC_IMPL_SSE4a
+#    undef VC_IMPL_FMA
 #    undef VC_USE_VEX_CODING
 #    define VC_IMPL_Scalar 1
 #endif
@@ -288,6 +296,7 @@
 #undef F16C
 #undef POPCNT
 #undef SSE4a
+#undef FMA
 
 #undef IMPL_MASK
 #undef EXT_MASK
@@ -402,8 +411,9 @@ enum ExtraInstructions {
     //! Support for the population count instruction
     PopcntInstructions    = 0x08000,
     //! Support for SSE4a instructions
-    Sse4aInstructions     = 0x10000
-    // Fma3Instructions,
+    Sse4aInstructions     = 0x10000,
+    //! Support for FMA instructions (3 operand variant)
+    FmaInstructions       = 0x20000
     // PclmulqdqInstructions,
     // AesInstructions,
     // RdrandInstructions
@@ -441,6 +451,9 @@ typedef ImplementationT<VC_IMPL
 #endif
 #ifdef VC_IMPL_POPCNT
     + Vc::PopcntInstructions
+#endif
+#ifdef VC_IMPL_FMA
+    + Vc::FmaInstructions
 #endif
     > CurrentImplementation;
 
