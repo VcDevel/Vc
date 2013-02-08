@@ -72,7 +72,6 @@ template<> struct HelperImpl<SSE3Impl> : public HelperImpl<SSE2Impl> {};
 template<> struct HelperImpl<SSSE3Impl> : public HelperImpl<SSE3Impl> {};
 template<> struct HelperImpl<SSE41Impl> : public HelperImpl<SSSE3Impl> {};
 template<> struct HelperImpl<SSE42Impl> : public HelperImpl<SSE41Impl> {};
-template<> struct HelperImpl<SSE4aImpl> : public HelperImpl<SSE3Impl> {};
 
 
 } // namespace Internal
