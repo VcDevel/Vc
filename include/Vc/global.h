@@ -85,13 +85,13 @@
 #define SSSE3  0x00500000
 #define SSE4_1 0x00600000
 #define SSE4_2 0x00700000
-#define SSE4a  0x00800000
-#define AVX    0x00900000
+#define AVX    0x00800000
 
 #define XOP    0x00000001
 #define FMA4   0x00000002
 #define F16C   0x00000004
 #define POPCNT 0x00000008
+#define SSE4a  0x00000010
 
 #define IMPL_MASK 0xFFF00000
 #define EXT_MASK  0x000FFFFF
@@ -135,11 +135,10 @@
 #    ifdef __POPCNT__
 #      define VC_IMPL_POPCNT 1
 #    endif
-#  else
-#    if defined(__SSE4A__)
-#      define VC_IMPL_SSE 1
+#    ifdef __SSE4A__
 #      define VC_IMPL_SSE4a 1
 #    endif
+#  else
 #    if defined(__SSE4_2__)
 #      define VC_IMPL_SSE 1
 #      define VC_IMPL_SSE4_2 1
@@ -162,7 +161,9 @@
 #    endif
 
 #    if defined(VC_IMPL_SSE)
-       // nothing
+#      ifdef __SSE4A__
+#        define VC_IMPL_SSE4a 1
+#      endif
 #    else
 #      define VC_IMPL_Scalar 1
 #    endif
@@ -174,11 +175,6 @@
 #    define VC_IMPL_AVX 1
 #  elif (VC_IMPL & IMPL_MASK) == Scalar
 #    define VC_IMPL_Scalar 1
-#  elif (VC_IMPL & IMPL_MASK) == SSE4a
-#    define VC_IMPL_SSE4a 1
-#    define VC_IMPL_SSE3 1
-#    define VC_IMPL_SSE2 1
-#    define VC_IMPL_SSE 1
 #  elif (VC_IMPL & IMPL_MASK) == SSE4_2
 #    define VC_IMPL_SSE4_2 1
 #    define VC_IMPL_SSE4_1 1
@@ -206,9 +202,6 @@
 #    define VC_IMPL_SSE 1
 #  elif (VC_IMPL & IMPL_MASK) == SSE
 #    define VC_IMPL_SSE 1
-#    if defined(__SSE4A__)
-#      define VC_IMPL_SSE4a 1
-#    endif
 #    if defined(__SSE4_2__)
 #      define VC_IMPL_SSE4_2 1
 #    endif
@@ -224,6 +217,12 @@
 #    if defined(__SSE2__)
 #      define VC_IMPL_SSE2 1
 #    endif
+#  elif (VC_IMPL & IMPL_MASK) == 0 && (VC_IMPL & SSE4a)
+     // this is for backward compatibility only where SSE4a was included in the main
+     // line of available SIMD instruction sets
+#    define VC_IMPL_SSE3 1
+#    define VC_IMPL_SSE2 1
+#    define VC_IMPL_SSE 1
 #  endif
 #  if (VC_IMPL & XOP)
 #    define VC_IMPL_XOP 1
@@ -236,6 +235,9 @@
 #  endif
 #  if (VC_IMPL & POPCNT)
 #    define VC_IMPL_POPCNT 1
+#  endif
+#  if (VC_IMPL & SSE4a)
+#    define VC_IMPL_SSE4a 1
 #  endif
 #  undef VC_IMPL
 
@@ -253,7 +255,6 @@
 #    undef VC_IMPL_SSE
 #    undef VC_IMPL_SSE2
 #    undef VC_IMPL_SSE3
-#    undef VC_IMPL_SSE4a
 #    undef VC_IMPL_SSE4_1
 #    undef VC_IMPL_SSE4_2
 #    undef VC_IMPL_SSSE3
@@ -262,6 +263,7 @@
 #    undef VC_IMPL_XOP
 #    undef VC_IMPL_F16C
 #    undef VC_IMPL_POPCNT
+#    undef VC_IMPL_SSE4a
 #    undef VC_USE_VEX_CODING
 #    define VC_IMPL_Scalar 1
 #endif
@@ -279,13 +281,13 @@
 #undef SSSE3
 #undef SSE4_1
 #undef SSE4_2
-#undef SSE4a
 #undef AVX
 
 #undef XOP
 #undef FMA4
 #undef F16C
 #undef POPCNT
+#undef SSE4a
 
 #undef IMPL_MASK
 #undef EXT_MASK
@@ -361,7 +363,7 @@ Vc_CONSTEXPR StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedF
  * \see ExtraInstructions
  */
 enum Implementation {
-    /// uses only built-in types
+    /// uses only fundamental types
     ScalarImpl,
     /// x86 SSE + SSE2
     SSE2Impl,
@@ -373,8 +375,6 @@ enum Implementation {
     SSE41Impl,
     /// x86 SSE + SSE2 + SSE3 + SSSE3 + SSE4.1 + SSE4.2
     SSE42Impl,
-    /// x86 (AMD only) SSE + SSE2 + SSE3 + SSE4a
-    SSE4aImpl,
     /// x86 AVX
     AVXImpl,
     /// x86 AVX + AVX2
@@ -392,15 +392,17 @@ enum Implementation {
  * covered in this enum.
  */
 enum ExtraInstructions {
-    _dummy = 0xffffffffu,
+    _mask = 0xfffff000u,
     //! Support for float16 conversions in hardware
-    Float16cInstructions  = 0x01, // f16c
+    Float16cInstructions  = 0x01000,
     //! Support for FMA4 instructions
-    Fma4Instructions      = 0x02,
+    Fma4Instructions      = 0x02000,
     //! Support for XOP instructions
-    XopInstructions       = 0x04,
+    XopInstructions       = 0x04000,
     //! Support for the population count instruction
-    PopcntInstructions    = 0x08
+    PopcntInstructions    = 0x08000,
+    //! Support for SSE4a instructions
+    Sse4aInstructions     = 0x10000
     // Fma3Instructions,
     // PclmulqdqInstructions,
     // AesInstructions,
@@ -413,8 +415,6 @@ enum ExtraInstructions {
 #define VC_IMPL ::Vc::ScalarImpl
 #elif defined(VC_IMPL_AVX)
 #define VC_IMPL ::Vc::AVXImpl
-#elif defined(VC_IMPL_SSE4a)
-#define VC_IMPL ::Vc::SSE4aImpl
 #elif defined(VC_IMPL_SSE4_2)
 #define VC_IMPL ::Vc::SSE42Impl
 #elif defined(VC_IMPL_SSE4_1)
@@ -429,15 +429,15 @@ enum ExtraInstructions {
 
 template<unsigned int Features> struct ImplementationT {};
 
-typedef ImplementationT<(VC_IMPL << 20)
+typedef ImplementationT<VC_IMPL
+#ifdef VC_IMPL_SSE4a
+    + Vc::Sse4aInstructions
 #ifdef VC_IMPL_XOP
     + Vc::XopInstructions
-#endif
 #ifdef VC_IMPL_FMA4
     + Vc::Fma4Instructions
 #endif
-#ifdef VC_IMPL_F16C
-    + Vc::Float16cInstructions
+#endif
 #endif
 #ifdef VC_IMPL_POPCNT
     + Vc::PopcntInstructions

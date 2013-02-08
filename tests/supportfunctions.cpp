@@ -32,7 +32,6 @@ void testIsSupported()
     COMPARE(Vc::isImplementationSupported(Vc::SSSE3Impl), CpuId::hasSsse3());
     COMPARE(Vc::isImplementationSupported(Vc::SSE41Impl), CpuId::hasSse41());
     COMPARE(Vc::isImplementationSupported(Vc::SSE42Impl), CpuId::hasSse42());
-    COMPARE(Vc::isImplementationSupported(Vc::SSE4aImpl), CpuId::hasSse4a());
     COMPARE(Vc::isImplementationSupported(Vc::AVXImpl  ), CpuId::hasOsxsave() && CpuId::hasAvx());
     COMPARE(Vc::isImplementationSupported(Vc::AVX2Impl ), false);
 }
@@ -53,6 +52,7 @@ void testExtraInstructions()
     COMPARE(!(extra & Vc::XopInstructions), !CpuId::hasXop());
     COMPARE(!(extra & Vc::Fma4Instructions), !CpuId::hasFma4());
     COMPARE(!(extra & Vc::PopcntInstructions), !CpuId::hasPopcnt());
+    COMPARE(!(extra & Vc::Sse4aInstructions), !CpuId::hasSse4a());
 }
 
 int main(int argc, char **argv)

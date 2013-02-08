@@ -23,7 +23,7 @@
 #define VC_VERSION_STRING "0.6.70-dev"
 #define VC_VERSION_NUMBER 0x00068d
 #define VC_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
-#define VC_LIBRARY_ABI_VERSION 2
+#define VC_LIBRARY_ABI_VERSION 3
 
 namespace Vc
 {

@@ -44,7 +44,7 @@ template<> inline bool unittest_compareHelper<__m128i, __m128i>(const __m128i &a
 
 void blendpd()
 {
-#if VC_IMPL_SSE4_1
+#ifdef VC_IMPL_SSE4_1
 #define blend _mm_blend_pd
 #else
 #define blend Vc::SSE::_mm_blend_pd
@@ -60,7 +60,7 @@ void blendpd()
 }
 void blendps()
 {
-#if VC_IMPL_SSE4_1
+#ifdef VC_IMPL_SSE4_1
 #define blend _mm_blend_ps
 #else
 #define blend Vc::SSE::_mm_blend_ps
@@ -88,7 +88,7 @@ void blendps()
 }
 void blendepi16()
 {
-#if VC_IMPL_SSE4_1
+#ifdef VC_IMPL_SSE4_1
 #define blend _mm_blend_epi16
 #else
 #define blend Vc::SSE::_mm_blend_epi16

@@ -42,8 +42,8 @@
  * says is available. For example compiling with "g++ -mssse3" will enable compilation against the
  * SSE implementation using SSE the instruction sets SSE, SSE2, SSE3 and SSSE3. If you want to force
  * compilation against a specific implementation of the vector classes you can set the macro
- * VC_IMPL to either "Scalar", "SSE", "SSE2", "SSE3", "SSSE3", "SSE4_1", "SSE4_2", "SSE4a", or "AVX".
- * You may additionally append "+XOP", "+FMA4", "+F16C", and "+POPCNT", e.g. "-D VC_IMPL=SSE+XOP+FMA4"
+ * VC_IMPL to either "Scalar", "SSE", "SSE2", "SSE3", "SSSE3", "SSE4_1", "SSE4_2", or "AVX".
+ * You may additionally append "+XOP", "+FMA4", "+SSE4a", "+F16C", and "+POPCNT", e.g. "-D VC_IMPL=SSE+XOP+FMA4"
  * Setting VC_IMPL to
  * "SSE" will force the SSE instruction set, but lets the headers figure out the version to use or,
  * if that fails, uses SSE4.1.
@@ -56,7 +56,6 @@
  * \li \c VC_IMPL_SSSE3
  * \li \c VC_IMPL_SSE4_1
  * \li \c VC_IMPL_SSE4_2
- * \li \c VC_IMPL_SSE4a
  * \li \c VC_IMPL_AVX
  *
  * Another set of macros you may use for target specific implementations are the \c VC_*_V_SIZE
@@ -344,13 +343,9 @@
  * \li SSSE3
  * \li SSE4_1
  * \li SSE4_2
- * \li SSE4a
- * \li SSE+FMA4
- * \li SSE+XOP
+ * \li SSE3+SSE4a
  * \li SSE+XOP+FMA4
  * \li AVX
- * \li AVX+FMA4
- * \li AVX+XOP
  * \li AVX+XOP+FMA4
  *
  * \section buildsystem_other Using Vc without CMake
@@ -1051,6 +1046,11 @@ unsigned int versionNumber();
 #define VC_IMPL_POPCNT
 /**
  * \ingroup Utilities
+ * This macro is defined if the current translation unit is compiled with SSE4a instruction support.
+ */
+#define VC_IMPL_SSE4a
+/**
+ * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled without any SIMD support.
  */
 #define VC_IMPL_Scalar
@@ -1086,11 +1086,6 @@ unsigned int versionNumber();
  * This macro is defined if the current translation unit is compiled with SSE4.2 instruction support (excluding AVX and up).
  */
 #define VC_IMPL_SSE4_2
-/**
- * \ingroup Utilities
- * This macro is defined if the current translation unit is compiled with SSE4a instruction support (excluding SSSE3 and up).
- */
-#define VC_IMPL_SSE4a
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with AVX instruction support (excluding AVX2 and up).

@@ -62,8 +62,6 @@ bool isImplementationSupported(Implementation impl)
         return CpuId::hasSse41();
     case SSE42Impl:
         return CpuId::hasSse42();
-    case SSE4aImpl:
-        return CpuId::hasSse4a();
     case AVXImpl:
         return CpuId::hasOsxsave() && CpuId::hasAvx() && xgetbvCheck(0x6);
     case AVX2Impl:
@@ -81,10 +79,7 @@ Vc::Implementation bestImplementationSupported()
 
     if (!CpuId::hasSse2 ()) return Vc::ScalarImpl;
     if (!CpuId::hasSse3 ()) return Vc::SSE2Impl;
-    if (!CpuId::hasSsse3()) {
-        if (!CpuId::hasSse4a()) return Vc::SSE3Impl;
-        return Vc::SSE4aImpl;
-    }
+    if (!CpuId::hasSsse3()) return Vc::SSE3Impl;
     if (!CpuId::hasSse41()) return Vc::SSSE3Impl;
     if (!CpuId::hasSse42()) return Vc::SSE41Impl;
     if (CpuId::hasAvx() && CpuId::hasOsxsave() && xgetbvCheck(0x6)) {
@@ -103,6 +98,7 @@ unsigned int extraInstructionsSupported()
     if (CpuId::hasFma4()) flags |= Vc::Fma4Instructions;
     if (CpuId::hasXop ()) flags |= Vc::XopInstructions;
     if (CpuId::hasPopcnt()) flags |= Vc::PopcntInstructions;
+    if (CpuId::hasSse4a()) flags |= Vc::Sse4aInstructions;
     //if (CpuId::hasPclmulqdq()) flags |= Vc::PclmulqdqInstructions;
     //if (CpuId::hasAes()) flags |= Vc::AesInstructions;
     //if (CpuId::hasRdrand()) flags |= Vc::RdrandInstructions;
