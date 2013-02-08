@@ -134,6 +134,17 @@ namespace AVX
     static Vc_INTRINSIC m256d Vc_CONST _mm256_castsi256_pd(param256i a) { return ::_mm256_castsi256_pd(a); }
 #endif
 
+#ifdef VC_GCC
+    // Redefine the mul/add/sub intrinsics to use GCC-specific operators instead of builtin
+    // functions. This way the fp-contraction optimization step kicks in and creates FMAs! :)
+    static Vc_INTRINSIC Vc_CONST m256d _mm256_mul_pd(m256d a, m256d b) { return static_cast<m256d>(static_cast<__v4df>(a) * static_cast<__v4df>(b)); }
+    static Vc_INTRINSIC Vc_CONST m256d _mm256_add_pd(m256d a, m256d b) { return static_cast<m256d>(static_cast<__v4df>(a) + static_cast<__v4df>(b)); }
+    static Vc_INTRINSIC Vc_CONST m256d _mm256_sub_pd(m256d a, m256d b) { return static_cast<m256d>(static_cast<__v4df>(a) - static_cast<__v4df>(b)); }
+    static Vc_INTRINSIC Vc_CONST m256 _mm256_mul_ps(m256 a, m256 b) { return static_cast<m256>(static_cast<__v8sf>(a) * static_cast<__v8sf>(b)); }
+    static Vc_INTRINSIC Vc_CONST m256 _mm256_add_ps(m256 a, m256 b) { return static_cast<m256>(static_cast<__v8sf>(a) + static_cast<__v8sf>(b)); }
+    static Vc_INTRINSIC Vc_CONST m256 _mm256_sub_ps(m256 a, m256 b) { return static_cast<m256>(static_cast<__v8sf>(a) - static_cast<__v8sf>(b)); }
+#endif
+
     static Vc_INTRINSIC m256  Vc_CONST _mm256_set1_ps   (float  a) { return ::_mm256_set1_ps   (a); }
     static Vc_INTRINSIC m256d Vc_CONST _mm256_set1_pd   (double a) { return ::_mm256_set1_pd   (a); }
     static Vc_INTRINSIC m256i Vc_CONST _mm256_set1_epi32(int    a) { return ::_mm256_set1_epi32(a); }

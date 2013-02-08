@@ -56,6 +56,17 @@ namespace SSE
     static Vc_INTRINSIC Vc_CONST __m128i _mm_srl_epi64(__m128i a, __m128i count) { __asm__("psrlq %1,%0" : "+x"(a) : "x"(count)); return a; }
 #endif
 
+#ifdef VC_GCC
+    // Redefine the mul/add/sub intrinsics to use GCC-specific operators instead of builtin
+    // functions. This way the fp-contraction optimization step kicks in and creates FMAs! :)
+    static Vc_INTRINSIC Vc_CONST __m128d _mm_mul_pd(__m128d a, __m128d b) { return static_cast<__m128d>(static_cast<__v2df>(a) * static_cast<__v2df>(b)); }
+    static Vc_INTRINSIC Vc_CONST __m128d _mm_add_pd(__m128d a, __m128d b) { return static_cast<__m128d>(static_cast<__v2df>(a) + static_cast<__v2df>(b)); }
+    static Vc_INTRINSIC Vc_CONST __m128d _mm_sub_pd(__m128d a, __m128d b) { return static_cast<__m128d>(static_cast<__v2df>(a) - static_cast<__v2df>(b)); }
+    static Vc_INTRINSIC Vc_CONST __m128  _mm_mul_ps(__m128  a, __m128  b) { return static_cast<__m128 >(static_cast<__v4sf>(a) * static_cast<__v4sf>(b)); }
+    static Vc_INTRINSIC Vc_CONST __m128  _mm_add_ps(__m128  a, __m128  b) { return static_cast<__m128 >(static_cast<__v4sf>(a) + static_cast<__v4sf>(b)); }
+    static Vc_INTRINSIC Vc_CONST __m128  _mm_sub_ps(__m128  a, __m128  b) { return static_cast<__m128 >(static_cast<__v4sf>(a) - static_cast<__v4sf>(b)); }
+#endif
+
 #if defined(VC_GNU_ASM) && !defined(NVALGRIND)
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
 #else
