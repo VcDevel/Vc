@@ -30,7 +30,7 @@ namespace Vc
 
 static inline bool xgetbvCheck(unsigned int bits)
 {
-#if VC_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
+#if defined(VC_MSVC) && VC_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
     unsigned long long xcrFeatureMask = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
     return (xcrFeatureMask & bits) == bits;
 #elif defined(VC_GNU_ASM) && !defined(VC_NO_XGETBV)
