@@ -344,6 +344,10 @@ macro(vc_set_preferred_compiler_flags)
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wno-unnamed-type-template-args")
    endif()
 
+   if(NOT Vc_COMPILER_IS_MSVC)
+      vc_add_compiler_flag(Vc_DEFINITIONS "-ffp-contract=fast")
+   endif()
+
    OptimizeForArchitecture()
    set(Vc_DEFINITIONS "${Vc_ARCHITECTURE_FLAGS} ${Vc_DEFINITIONS}")
 
