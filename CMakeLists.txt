@@ -98,6 +98,19 @@ if(Vc_COMPILER_IS_INTEL)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w1 -fp-model precise")
 endif()
 
+set(USE_INTEL_SVML FALSE CACHE BOOL "Use Intel SVML Library.")
+if(USE_INTEL_SVML)
+    find_library(SVML_LIBRARY
+	         NAMES svml
+		 HINTS ${INTEL_SVML_PATH} "/opt/intel/composerxe/compiler/lib/intel64/")
+    if(SVML_LIBRARY)
+        AddCompilerFlag("-DUSE_INTEL_SVML")
+	set(CMAKE_EXE_LINKER_FLAGS ${SVML_LIBRARY})
+    else()
+        message(FATAL_ERROR "SVML library not found")
+    endif(SVML_LIBRARY)
+endif(USE_INTEL_SVML)
+    
 if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
    message(STATUS "WARNING! It seems you are compiling without optimization. Please set CMAKE_BUILD_TYPE.")
 endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")

@@ -50,6 +50,32 @@ namespace Common
     template<typename T> struct TypenameForLdexp { typedef Vector<int> Type; };
     template<> struct TypenameForLdexp<Vc::sfloat> { typedef Vector<short> Type; };
 
+#if defined(USE_INTEL_SVML)
+#if defined(VC_IMPL_SSE)
+static inline Vector<float> exp(VC_ALIGNED_PARAMETER(Vector<float>) x) {
+    return __svml_expf4(x.data());
+}
+
+static inline Vector<sfloat> exp(VC_ALIGNED_PARAMETER(Vector<sfloat>) x) {
+    Vector<sfloat> tmp;
+    tmp.data()[0] = __svml_expf4(x.data()[0]);
+    tmp.data()[1] = __svml_expf4(x.data()[1]);
+    return tmp;
+}
+
+static inline Vector<double> exp(VC_ALIGNED_PARAMETER(Vector<double>) x) {
+    return __svml_exp2(x.data());
+}
+#else
+template<typename T> static inline Vector<T> exp(VC_ALIGNED_PARAMETER(Vector<T>) x) {
+    return __svml_expf8(x.data());
+}
+
+template<> inline Vector<double> exp(VC_ALIGNED_PARAMETER(Vector<double>) x) {
+    return __svml_exp4(x.data());
+}
+#endif
+#else
     template<typename T> static inline Vector<T> exp(VC_ALIGNED_PARAMETER(Vector<T>) _x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
@@ -132,6 +158,7 @@ namespace Common
 
         return x;
     }
+#endif
 } // namespace Common
 namespace VC__USE_NAMESPACE
 {

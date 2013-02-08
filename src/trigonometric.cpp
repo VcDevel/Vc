@@ -20,6 +20,7 @@
 #include <Vc/Vc>
 #if defined(VC_IMPL_SSE) || defined(VC_IMPL_AVX)
 #include <common/macros.h>
+#include <common/svml.h>
 
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
@@ -74,6 +75,205 @@ namespace
             + x;
     }
 } // anonymous namespace
+
+#if defined(USE_INTEL_SVML)
+#if defined(VC_IMPL_SSE)
+// sin
+template<> template<> float_v Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(const float_v &_x){
+    return __svml_sinf4(_x.data());
+}
+
+template<> template<> sfloat_v Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(const sfloat_v &_x){
+    sfloat_v tmp;
+    tmp.data()[0] = __svml_sinf4(_x.data()[0]);
+    tmp.data()[1] = __svml_sinf4(_x.data()[1]);
+    return tmp;
+}
+
+template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(const double_v &_x){
+    return __svml_sin2(_x.data());
+}
+
+// cos
+template<> template<> float_v Trigonometric<Vc::Internal::TrigonometricImplementation>::cos(const float_v &_x){
+    return __svml_cosf4(_x.data());
+}
+
+template<> template<> sfloat_v Trigonometric<Vc::Internal::TrigonometricImplementation>::cos(const sfloat_v &_x){
+    sfloat_v tmp;
+    tmp.data()[0] = __svml_cosf4(_x.data()[0]);
+    tmp.data()[1] = __svml_cosf4(_x.data()[1]);
+    return tmp;
+}
+
+template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation>::cos(const double_v &_x){
+    return __svml_cos2(_x.data());
+}
+
+// sincos
+template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementation>::sincos(const float_v &_x, float_v *_sin, float_v *_cos) {
+    _sin->data() = __svml_sincosf4(_x.data());
+#if defined(VC_GNU_ASM)
+#if defined(VC_USE_VEX_CODING)
+     __asm__ __volatile__ ( "vmovaps %%xmm1, %0":"=m"(_cos->data()));
+#else
+     __asm__ __volatile__ ( "movaps %%xmm1, %0":"=m"(_cos->data()));
+#endif
+#else
+#error "GNU asm not supported."
+#endif
+}
+
+template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementation>::sincos(const sfloat_v &_x, sfloat_v *_sin, sfloat_v *_cos) {
+    _sin->data()[0] = __svml_sincosf4(_x.data()[0]);
+#if defined(VC_GNU_ASM)
+#if defined(VC_USE_VEX_CODING)
+     __asm__ __volatile__ ( "vmovaps %%xmm1, %0":"=m"(_cos->data()[0]));
+#else
+     __asm__ __volatile__ ( "movaps %%xmm1, %0":"=m"(_cos->data()[0]));
+#endif
+#else
+#error "GNU asm not supported."
+#endif
+
+    _sin->data()[1] = __svml_sincosf4(_x.data()[1]);
+#if defined(VC_GNU_ASM)
+#if defined(VC_USE_VEX_CODING)
+     __asm__ __volatile__ ( "vmovaps %%xmm1, %0":"=m"(_cos->data()[1]));
+#else
+     __asm__ __volatile__ ( "movaps %%xmm1, %0":"=m"(_cos->data()[1]));
+#endif
+#else
+#error "GNU asm not supported."
+#endif
+}
+
+template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementation>::sincos(const double_v &_x, double_v *_sin, double_v *_cos) {
+  _sin->data() = __svml_sincos2(_x.data());
+#if defined(VC_GNU_ASM)
+#if defined(VC_USE_VEX_CODING)
+     __asm__ __volatile__ ( "vmovaps %%xmm1, %0":"=m"(_cos->data()));
+#else
+     __asm__ __volatile__ ( "movaps %%xmm1, %0":"=m"(_cos->data()));
+#endif
+#else
+#error "GNU asm not supported."
+#endif
+}
+
+// asin
+template<> template<> float_v Trigonometric<Vc::Internal::TrigonometricImplementation>::asin(const float_v &_x){
+    return __svml_asinf4(_x.data());
+}
+
+template<> template<> sfloat_v Trigonometric<Vc::Internal::TrigonometricImplementation>::asin(const sfloat_v &_x){
+    sfloat_v tmp;
+    tmp.data()[0] = __svml_asinf4(_x.data()[0]);
+    tmp.data()[1] = __svml_asinf4(_x.data()[1]);
+    return tmp;
+}
+
+template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation>::asin(const double_v &_x){
+    return __svml_asin2(_x.data());
+}
+
+// atan
+template<> template<> float_v Trigonometric<Vc::Internal::TrigonometricImplementation>::atan(const float_v &_x){
+    return __svml_atanf4(_x.data());
+}
+
+template<> template<> sfloat_v Trigonometric<Vc::Internal::TrigonometricImplementation>::atan(const sfloat_v &_x){
+    sfloat_v tmp;
+    tmp.data()[0] = __svml_atanf4(_x.data()[0]);
+    tmp.data()[1] = __svml_atanf4(_x.data()[1]);
+    return tmp;
+}
+
+template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation>::atan(const double_v &_x){
+    return __svml_atan2(_x.data());
+}
+
+// atan2
+template<> template<> float_v Trigonometric<Vc::Internal::TrigonometricImplementation>::atan2(const float_v &_x, const float_v &_y){
+    return __svml_atan2f4(_x.data(), _y.data());
+}
+
+template<> template<> sfloat_v Trigonometric<Vc::Internal::TrigonometricImplementation>::atan2(const sfloat_v &_x, const sfloat_v &_y){
+    sfloat_v tmp;
+    tmp.data()[0] = __svml_atan2f4(_x.data()[0], _y.data()[0]);
+    tmp.data()[1] = __svml_atan2f4(_x.data()[1], _y.data()[1]);
+    return tmp;
+}
+
+template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation>::atan2(const double_v &_x, const double_v &_y){
+    return __svml_atan22(_x.data(), _y.data());
+}
+#else
+// sin
+template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(const Vector<_T> &_x){
+    return __svml_sinf8(_x.data());
+}
+
+template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(const double_v &_x){
+    return __svml_sin4(_x.data());
+}
+
+// cos
+template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::TrigonometricImplementation>::cos(const Vector<_T> &_x){
+    return __svml_cosf8(_x.data());
+}
+
+template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation>::cos(const double_v &_x){
+    return __svml_cos4(_x.data());
+}
+
+// sincos
+template<> template<typename _T> void Trigonometric<Vc::Internal::TrigonometricImplementation>::sincos(const Vector<_T> &_x, Vector<_T> *_sin, Vector<_T> *_cos) {
+    _sin->data() = __svml_sincosf8(_x.data());
+#if defined(VC_GNU_ASM)
+    __asm__ __volatile__ ( "vmovaps %%ymm1, %0":"=m"(_cos->data()));
+#else
+#error "GNU asm not supported."
+#endif
+}
+
+template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementation>::sincos(const double_v &_x, double_v *_sin, double_v *_cos) {
+    _sin->data() = __svml_sincos4(_x.data());
+#if defined(VC_GNU_ASM)
+    __asm__ __volatile__ ( "vmovaps %%ymm1, %0":"=m"(_cos->data()));
+#else
+#error "GNU asm not supported."
+#endif
+}
+
+// asin
+template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::TrigonometricImplementation>::asin(const Vector<_T> &_x){
+    return __svml_asinf8(_x.data());
+}
+
+template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation>::asin(const double_v &_x){
+    return __svml_asin4(_x.data());
+}
+
+// atan
+template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::TrigonometricImplementation>::atan(const Vector<_T> &_x){
+    return __svml_atanf8(_x.data());
+}
+
+template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation>::atan(const double_v &_x){
+    return __svml_atan4(_x.data());
+}
+
+// atan2
+template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::TrigonometricImplementation>::atan2(const Vector<_T> &_x, const Vector<_T> &_y){
+    return __svml_atan2f8(_x.data(), _y.data());
+}
+
+template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation>::atan2(const double_v &_x, const double_v &_y){
+    return __svml_atan24(_x.data(), _y.data());
+}
+#endif
+#else
 
 /*
  * algorithm for sine and cosine:
@@ -473,6 +673,8 @@ template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplemen
 
     return a;
 }
+#endif
+
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
 
