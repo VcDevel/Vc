@@ -34,13 +34,12 @@ namespace
 
 namespace Internal
 {
-template<Vc::Implementation Impl> struct MapImpl { enum Dummy { Value = Impl << 20 }; };
+template<Vc::Implementation Impl> struct MapImpl { enum Dummy { Value = Impl }; };
 template<> struct MapImpl<Vc::SSE42Impl> { enum Dummy { Value = MapImpl<Vc::SSE41Impl>::Value }; };
 typedef ImplementationT<MapImpl<VC_IMPL>::Value
-#if defined(VC_IMPL_XOP) && defined(VC_IMPL_FMA4) && defined(VC_IMPL_SSE4a)
+#if defined(VC_IMPL_XOP) && defined(VC_IMPL_FMA4)
     + Vc::XopInstructions
     + Vc::Fma4Instructions
-    + Vc::SSE4aInstructions
 #endif
     > TrigonometricImplementation;
 } // namespace Internal
