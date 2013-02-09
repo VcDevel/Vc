@@ -387,7 +387,8 @@ enum Implementation {
     /// x86 AVX
     AVXImpl,
     /// x86 AVX + AVX2
-    AVX2Impl
+    AVX2Impl,
+    ImplementationMask = 0xfff
 };
 
 /**
@@ -401,7 +402,6 @@ enum Implementation {
  * covered in this enum.
  */
 enum ExtraInstructions {
-    _mask = 0xfffff000u,
     //! Support for float16 conversions in hardware
     Float16cInstructions  = 0x01000,
     //! Support for FMA4 instructions
@@ -413,10 +413,11 @@ enum ExtraInstructions {
     //! Support for SSE4a instructions
     Sse4aInstructions     = 0x10000,
     //! Support for FMA instructions (3 operand variant)
-    FmaInstructions       = 0x20000
+    FmaInstructions       = 0x20000,
     // PclmulqdqInstructions,
     // AesInstructions,
     // RdrandInstructions
+    ExtraInstructionsMask = 0xfffff000u
 };
 
 #ifndef DOXYGEN
@@ -437,9 +438,15 @@ enum ExtraInstructions {
 #define VC_IMPL ::Vc::SSE2Impl
 #endif
 
-template<unsigned int Features> struct ImplementationT {};
+template<unsigned int Features> struct ImplementationT { enum _Value { Value = Features }; };
 
-typedef ImplementationT<VC_IMPL
+typedef ImplementationT<
+#ifdef VC_USE_VEX_CODING
+    // everything will use VEX coding, so the system has to support AVX even if VC_IMPL_AVX is not set
+    AVXImpl
+#else
+    VC_IMPL
+#endif
 #ifdef VC_IMPL_SSE4a
     + Vc::Sse4aInstructions
 #ifdef VC_IMPL_XOP

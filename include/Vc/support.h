@@ -30,6 +30,22 @@ namespace Vc
 {
 
 /**
+ * \name Micro-Architecture Feature Tests
+ */
+//@{
+/**
+ * \ingroup Utilities
+ * \headerfile support.h <Vc/support.h>
+ * Determines the extra instructions supported by the current CPU.
+ *
+ * \return A combination of flags from Vc::ExtraInstructions that the current CPU supports.
+ */
+#ifdef VC_GCC
+__attribute__((target("no-sse2,no-avx")))
+#endif
+unsigned int extraInstructionsSupported();
+
+/**
  * \ingroup Utilities
  * \headerfile support.h <Vc/support.h>
  *
@@ -46,6 +62,35 @@ namespace Vc
 bool isImplementationSupported(Vc::Implementation impl);
 
 /**
+ * \internal
+ * \ingroup Utilities
+ * \headerfile support.h <Vc/support.h>
+ *
+ * Tests whether the given implementation is supported by the system the code is executing on.
+ *
+ * \code
+ * if (!isImplementationSupported<Vc::CurrentImplementation>()) {
+ *   std::cerr << "This code was compiled with features that this system does not support.\n";
+ *   return EXIT_FAILURE;
+ * }
+ * \endcode
+ *
+ * \return \c true if the OS and hardware support execution of instructions defined by \p impl.
+ * \return \c false otherwise
+ *
+ * \tparam Impl The SIMD target to test for.
+ */
+template<typename Impl>
+#ifdef VC_GCC
+    __attribute__((target("no-sse2,no-avx")))
+#endif
+static inline bool isImplementationSupported()
+{
+    return isImplementationSupported(static_cast<Vc::Implementation>(Impl::Value & Vc::ImplementationMask)) &&
+        (extraInstructionsSupported() & Impl::Value) == (Impl::Value & Vc::ExtraInstructionsMask);
+}
+
+/**
  * \ingroup Utilities
  * \headerfile support.h <Vc/support.h>
  *
@@ -57,17 +102,6 @@ bool isImplementationSupported(Vc::Implementation impl);
     __attribute__((target("no-sse2,no-avx")))
 #endif
 Vc::Implementation bestImplementationSupported();
-
-/**
- * \ingroup Utilities
- * \headerfile support.h <Vc/support.h>
- *
- * \return A combination of flags from Vc::ExtraInstructions that the current CPU supports.
- */
-#ifdef VC_GCC
-__attribute__((target("no-sse2,no-avx")))
-#endif
-unsigned int extraInstructionsSupported();
 
 #ifndef VC_COMPILE_LIB
 /**
@@ -101,34 +135,15 @@ unsigned int extraInstructionsSupported();
 #ifdef VC_GCC
     __attribute__((target("no-sse2,no-avx")))
 #endif
-static bool currentImplementationSupported()
+#ifndef DOXYGEN
+static
+#endif
+inline bool currentImplementationSupported()
 {
-    return isImplementationSupported(
-#ifdef VC_USE_VEX_CODING
-            // everything will use VEX coding, so the system has to support AVX even if VC_IMPL_AVX
-            // is not set
-            AVXImpl
-#else
-            VC_IMPL
-#endif
-#ifdef VC_IMPL_XOP
-            ) && CpuId::hasXop(
-#endif
-#ifdef VC_IMPL_FMA4
-            ) && CpuId::hasFma4(
-#endif
-#ifdef VC_IMPL_F16C
-            ) && CpuId::hasF16c(
-#endif
-#ifdef VC_IMPL_POPCNT
-            ) && CpuId::hasPopcnt(
-#endif
-#ifdef VC_IMPL_FMA
-            ) && CpuId::hasFma(
-#endif
-            );
+    return isImplementationSupported<Vc::CurrentImplementation>();
 }
 #endif // VC_COMPILE_LIB
+//@}
 
 } // namespace Vc
 

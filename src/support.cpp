@@ -66,6 +66,8 @@ bool isImplementationSupported(Implementation impl)
         return CpuId::hasOsxsave() && CpuId::hasAvx() && xgetbvCheck(0x6);
     case AVX2Impl:
         return false;
+    case ImplementationMask:
+        return false;
     }
     return false;
 }
