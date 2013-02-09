@@ -86,8 +86,8 @@ template<typename Impl>
 #endif
 static inline bool isImplementationSupported()
 {
-    return isImplementationSupported(static_cast<Vc::Implementation>(Impl::Value & Vc::ImplementationMask)) &&
-        (extraInstructionsSupported() & Impl::Value) == (Impl::Value & Vc::ExtraInstructionsMask);
+    return isImplementationSupported(static_cast<Vc::Implementation>(Impl::Implementation)) &&
+        (extraInstructionsSupported() & Impl::ExtraInstructions) == Impl::ExtraInstructions;
 }
 
 /**
