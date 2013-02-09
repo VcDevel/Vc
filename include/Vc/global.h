@@ -438,7 +438,11 @@ enum ExtraInstructions {
 #define VC_IMPL ::Vc::SSE2Impl
 #endif
 
-template<unsigned int Features> struct ImplementationT { enum _Value { Value = Features }; };
+template<unsigned int Features> struct ImplementationT { enum _Value {
+    Value = Features,
+    Implementation = Features & Vc::ImplementationMask,
+    ExtraInstructions = Features & Vc::ExtraInstructionsMask
+}; };
 
 typedef ImplementationT<
 #ifdef VC_USE_VEX_CODING
