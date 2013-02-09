@@ -19,7 +19,6 @@
       <tab type="files" visible="yes" title="" intro=""/>
       <tab type="globals" visible="yes" title="" intro=""/>
     </tab>
-    <tab type="dirs" visible="yes" title="" intro=""/>
   </navindex>
 
   <!-- Layout definition for a class page -->
