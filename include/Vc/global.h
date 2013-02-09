@@ -443,6 +443,9 @@ template<unsigned int Features> struct ImplementationT { enum _Value { Value = F
 typedef ImplementationT<
 #ifdef VC_USE_VEX_CODING
     // everything will use VEX coding, so the system has to support AVX even if VC_IMPL_AVX is not set
+    // but AFAIU the OSXSAVE and xgetbv tests do not have to positive (unless, of course, the
+    // compiler decides to insert an instruction that uses the full register size - so better be on
+    // the safe side)
     AVXImpl
 #else
     VC_IMPL
