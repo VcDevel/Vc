@@ -417,20 +417,20 @@ template<> void fma<float_v>()
     float_v b = Vc_buildFloat(1, 0x000001, 0);
     float_v c = Vc_buildFloat(1, 0x000000, -24);
     float_v a = b;
-    a *= b;
+    /*a *= b;
     a += c;
     COMPARE(a, float_v(Vc_buildFloat(1, 0x000002, 0)));
-    a = b;
+    a = b;*/
     a.fusedMultiplyAdd(b, c);
     COMPARE(a, float_v(Vc_buildFloat(1, 0x000003, 0)));
 
     a = Vc_buildFloat(1, 0x000002, 0);
     b = Vc_buildFloat(1, 0x000002, 0);
     c = Vc_buildFloat(-1, 0x000000, 0);
-    a *= b;
+    /*a *= b;
     a += c;
     COMPARE(a, float_v(Vc_buildFloat(1, 0x000000, -21)));
-    a = b;
+    a = b;*/
     a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
     COMPARE(a, float_v(Vc_buildFloat(1, 0x000001, -21)));
 }
@@ -440,20 +440,20 @@ template<> void fma<sfloat_v>()
     sfloat_v b = Vc_buildFloat(1, 0x000001, 0);
     sfloat_v c = Vc_buildFloat(1, 0x000000, -24);
     sfloat_v a = b;
-    a *= b;
+    /*a *= b;
     a += c;
     COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000002, 0)));
-    a = b;
+    a = b;*/
     a.fusedMultiplyAdd(b, c);
     COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000003, 0)));
 
     a = Vc_buildFloat(1, 0x000002, 0);
     b = Vc_buildFloat(1, 0x000002, 0);
     c = Vc_buildFloat(-1, 0x000000, 0);
-    a *= b;
+    /*a *= b;
     a += c;
     COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000000, -21)));
-    a = b;
+    a = b;*/
     a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
     COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000001, -21)));
 }
