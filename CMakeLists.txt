@@ -113,7 +113,8 @@ if(NOT ROOT_RELEASE)
    set(libvc_compile_flags "-DVC_COMPILE_LIB")
    AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
    vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS ${libvc_compile_flags}
-      ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA)
+      ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4)
+   # add AVX+XOP+FMA AVX+FMA once there's a check in place whether the assembler can handle FMA instructions
    set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp ${_objs})
    if(USE_AVX)
       list(APPEND _srcs src/avx_sorthelper.cpp)
