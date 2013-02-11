@@ -110,6 +110,10 @@ namespace Vc
 #include "common/vectortuple.h"
 #include "common/iif.h"
 
+#ifndef VC_NO_NAMESPACE_ALIAS
+/*NAMESPACE_ALIAS*/
+#endif
+
 #ifndef VC_NO_STD_FUNCTIONS
 namespace std
 {
