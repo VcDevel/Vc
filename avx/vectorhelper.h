@@ -383,7 +383,6 @@ namespace AVX
                 return _mm256_round_ps(a, _MM_FROUND_NINT);
             }
         };
-/*OUTER_NAMESPACE_END*/
 
         template<> struct VectorHelper<sfloat> : public VectorHelper<float> {};
 
@@ -737,6 +736,7 @@ template<> struct VectorHelper<unsigned char>
 
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "vectorhelper.tcc"
 #include "undomacros.h"
