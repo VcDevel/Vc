@@ -26,28 +26,28 @@
 namespace std
 {
 #define _VC_NUM_LIM(T, _max, _min) \
-template<> struct numeric_limits<Vc::AVX::Vector<T> > : public numeric_limits<T> \
+template<> struct numeric_limits< ::Vc::AVX::Vector<T> > : public numeric_limits<T> \
 { \
-    static Vc_INTRINSIC Vc_CONST Vc::AVX::Vector<T> max()           _VC_NOEXCEPT { return _max; } \
-    static Vc_INTRINSIC Vc_CONST Vc::AVX::Vector<T> min()           _VC_NOEXCEPT { return _min; } \
-    static Vc_INTRINSIC Vc_CONST Vc::AVX::Vector<T> lowest()        _VC_NOEXCEPT { return min(); } \
-    static Vc_INTRINSIC Vc_CONST Vc::AVX::Vector<T> epsilon()       _VC_NOEXCEPT { return Vc::AVX::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST Vc::AVX::Vector<T> round_error()   _VC_NOEXCEPT { return Vc::AVX::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST Vc::AVX::Vector<T> infinity()      _VC_NOEXCEPT { return Vc::AVX::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST Vc::AVX::Vector<T> quiet_NaN()     _VC_NOEXCEPT { return Vc::AVX::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST Vc::AVX::Vector<T> signaling_NaN() _VC_NOEXCEPT { return Vc::AVX::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST Vc::AVX::Vector<T> denorm_min()    _VC_NOEXCEPT { return Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> max()           _VC_NOEXCEPT { return _max; } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> min()           _VC_NOEXCEPT { return _min; } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> lowest()        _VC_NOEXCEPT { return min(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> epsilon()       _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> round_error()   _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> infinity()      _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> quiet_NaN()     _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> signaling_NaN() _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> denorm_min()    _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
 }
 
 #ifndef VC_IMPL_AVX2
 namespace {
-    using Vc::AVX::_mm256_srli_epi32;
+    using ::Vc::AVX::_mm256_srli_epi32;
 }
 #endif
-_VC_NUM_LIM(unsigned short, Vc::AVX::_mm_setallone_si128(), _mm_setzero_si128());
-_VC_NUM_LIM(         short, _mm_srli_epi16(Vc::AVX::_mm_setallone_si128(), 1), Vc::AVX::_mm_setmin_epi16());
-_VC_NUM_LIM(  unsigned int, Vc::AVX::_mm256_setallone_si256(), _mm256_setzero_si256());
-_VC_NUM_LIM(           int, _mm256_srli_epi32(Vc::AVX::_mm256_setallone_si256(), 1), Vc::AVX::_mm256_setmin_epi32());
+_VC_NUM_LIM(unsigned short, ::Vc::AVX::_mm_setallone_si128(), _mm_setzero_si128());
+_VC_NUM_LIM(         short, _mm_srli_epi16(::Vc::AVX::_mm_setallone_si128(), 1), ::Vc::AVX::_mm_setmin_epi16());
+_VC_NUM_LIM(  unsigned int, ::Vc::AVX::_mm256_setallone_si256(), _mm256_setzero_si256());
+_VC_NUM_LIM(           int, _mm256_srli_epi32(::Vc::AVX::_mm256_setallone_si256(), 1), ::Vc::AVX::_mm256_setmin_epi32());
 #undef _VC_NUM_LIM
 
 } // namespace std
