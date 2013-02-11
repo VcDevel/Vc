@@ -104,12 +104,12 @@ endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_custom_target(other VERBATIM)
-add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
-add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
-add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
-
 if(NOT ROOT_RELEASE)
+   add_custom_target(other VERBATIM)
+   add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
+   add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
+   add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
+
    set(libvc_compile_flags "-DVC_COMPILE_LIB")
    AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
    vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS ${libvc_compile_flags}
