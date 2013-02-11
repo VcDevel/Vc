@@ -94,6 +94,14 @@ struct T2Helper
     typedef T2 V2;
 };
 
+void testFloatIndexesFromZero()
+{
+    Vc::float_v test(Vc::int_v(Vc::IndexesFromZero));
+    for (int i = 0; i < float_v::Size; ++i) {
+        COMPARE(test[i], float(i));
+    }
+}
+
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
@@ -130,6 +138,8 @@ int main(int argc, char **argv)
     TEST(sfloat_v, short_v);
     TEST(sfloat_v, ushort_v);
 #undef TEST
+
+    runTest(testFloatIndexesFromZero);
 
     return 0;
 }
