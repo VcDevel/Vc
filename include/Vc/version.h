@@ -25,6 +25,7 @@
 #define VC_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
 #define VC_LIBRARY_ABI_VERSION 3
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
     static inline const char *versionString() {
@@ -47,5 +48,6 @@ namespace Vc
     }
 #endif
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // VC_VERSION_H

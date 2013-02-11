@@ -24,6 +24,7 @@
 #include "../common/bitscanintrinsics.h"
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -208,6 +209,7 @@ struct ForeachHelper
 
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "mask.tcc"
 #include "undomacros.h"

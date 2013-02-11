@@ -38,6 +38,7 @@
 #undef isnan
 #endif
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -454,6 +455,7 @@ static Vc_ALWAYS_INLINE double_v max(const double_v &x, const double_v &y) { ret
 #include "forceToRegisters.tcc"
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "vector.tcc"
 #include "math.h"

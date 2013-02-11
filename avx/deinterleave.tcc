@@ -17,6 +17,7 @@
 
 */
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -278,3 +279,4 @@ inline Vc_FLATTEN void HelperImpl<Vc::AVXImpl>::deinterleave(V &VC_RESTRICT a, V
 
 } // namespace Internal
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/

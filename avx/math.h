@@ -24,6 +24,7 @@
 #include "limits.h"
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -104,6 +105,7 @@ namespace AVX
     static Vc_ALWAYS_INLINE double_v ceil(double_v::AsArg v) { return _mm256_ceil_pd(v.data()); }
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 #define VC__USE_NAMESPACE AVX

@@ -24,6 +24,7 @@
 #include "const_data.h"
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -104,6 +105,7 @@ namespace AVX
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<sfloat> Const<sfloat>::highMask() { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 

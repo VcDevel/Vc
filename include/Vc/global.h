@@ -301,6 +301,7 @@
 #undef IMPL_MASK
 #undef EXT_MASK
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc {
 enum AlignedFlag {
     Aligned = 0
@@ -498,6 +499,7 @@ namespace Error
 
 #endif // DOXYGEN
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #undef Vc_CONSTEXPR
 #include "version.h"

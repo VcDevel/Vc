@@ -22,6 +22,7 @@
 
 #include "types.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -39,5 +40,6 @@ template<typename T> struct SortHelper
 };
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // VC_AVX_SORTHELPER_H

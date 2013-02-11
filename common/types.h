@@ -25,6 +25,7 @@
 #include <cstdio>
 #endif
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 
@@ -213,5 +214,6 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 #endif
 
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // VC_COMMON_TYPES_H

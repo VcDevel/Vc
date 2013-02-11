@@ -21,6 +21,7 @@
 #include "../common/bitscanintrinsics.h"
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 ALIGN(64) extern unsigned int RandomState[16];
@@ -1475,6 +1476,7 @@ template<> Vc_INTRINSIC Vc_PURE sfloat_v sfloat_v::rotated(int amount) const
 // }}}1
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 

@@ -34,6 +34,7 @@
 
 #include "../common/types.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -104,6 +105,7 @@ namespace AVX
 #endif
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 #include "undomacros.h"
 
 #endif // AVX_TYPES_H

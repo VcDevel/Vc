@@ -22,6 +22,7 @@
 
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Common
@@ -141,6 +142,7 @@ Vc_ALWAYS_INLINE Common::VectorTuple<2, const Vc::Vector<T> > operator,(const Vc
 }
 
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 

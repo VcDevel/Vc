@@ -22,6 +22,7 @@
 
 #include <cstdio>
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Internal
@@ -60,5 +61,6 @@ Vc_ALWAYS_INLINE void HelperImpl<SSE2Impl>::free(void *p)
 
 } // namespace Internal
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // VC_SSE_HELPERIMPL_TCC

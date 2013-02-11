@@ -21,6 +21,7 @@
 #define VC_AVX_CONST_DATA_H
 
 #include "macros.h"
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -66,6 +67,7 @@ template<> struct c_log<double>
 
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 

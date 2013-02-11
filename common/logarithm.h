@@ -49,6 +49,7 @@
 #define VC_COMMON_LOGARITHM_H
 
 #include "macros.h"
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Common
@@ -272,6 +273,7 @@ namespace VC__USE_NAMESPACE
 #undef VC__USE_NAMESPACE
 #endif
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 #include "undomacros.h"
 
 #endif // VC_COMMON_LOGARITHM_H

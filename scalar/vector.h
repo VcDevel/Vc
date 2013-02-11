@@ -34,6 +34,7 @@
 #include "mask.h"
 #include "writemaskedvector.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Scalar
@@ -468,6 +469,7 @@ template<typename T> class SwizzledVector : public Vector<T> {};
 
 } // namespace Scalar
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "vector.tcc"
 #include "math.h"

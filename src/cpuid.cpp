@@ -19,6 +19,7 @@
 
 #include <Vc/cpuid.h>
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 CpuId::uint   CpuId::s_ecx0 = 0;
@@ -48,8 +49,11 @@ bool   CpuId::s_noL2orL3 = false;
 
 #ifdef _MSC_VER
 } // better not include intrin.h inside the Vc namespace :)
+/*OUTER_NAMESPACE_END*/
 #include <intrin.h>
-namespace Vc {
+/*OUTER_NAMESPACE_BEGIN*/
+namespace Vc
+{
 #define CPUID(leaf) \
     do { \
         int out[4]; \
@@ -613,5 +617,6 @@ void CpuId::interpret(uchar byte, bool *checkLeaf4)
     }
 }
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 // vim: sw=4 sts=4 et tw=100

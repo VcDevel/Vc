@@ -21,6 +21,7 @@
 #define VC_SCALAR_INTERLEAVEDMEMORY_TCC
 
 #include "macros.h"
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Common
@@ -151,6 +152,7 @@ template<typename V> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V>::deint
 
 } // namespace Common
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 #include "undomacros.h"
 
 #endif // VC_SCALAR_INTERLEAVEDMEMORY_TCC

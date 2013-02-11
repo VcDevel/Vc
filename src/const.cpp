@@ -35,6 +35,7 @@
 
 #include "common/macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -523,5 +524,6 @@ void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, co
 }
 
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #undef V_ALIGN

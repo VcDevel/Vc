@@ -17,6 +17,7 @@
 
 */
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 ALIGN(64) extern unsigned int RandomState[16];
@@ -239,4 +240,5 @@ template<> Vc_INTRINSIC void double_v::setQnan(Mask m)
 // }}}1
 } // namespace Scalar
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 // vim: foldmethod=marker

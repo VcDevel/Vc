@@ -17,6 +17,7 @@
 
 */
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -89,3 +90,4 @@ Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator=(const Vector<T> &x) 
 
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/

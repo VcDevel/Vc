@@ -28,6 +28,7 @@
 #include "memoryfwd.h"
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 
@@ -593,6 +594,7 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *addr)
 }
 
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 namespace std
 {

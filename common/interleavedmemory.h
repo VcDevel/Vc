@@ -22,6 +22,7 @@
 
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Common
@@ -231,6 +232,7 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
 };
 #ifndef DOXYGEN
 } // namespace Common
+/*OUTER_NAMESPACE_END*/
 
 using Common::InterleavedMemoryWrapper;
 #endif

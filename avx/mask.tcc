@@ -17,6 +17,7 @@
 
 */
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -61,3 +62,4 @@ template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE int Mask<Size, 16u>::firstO
 
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/

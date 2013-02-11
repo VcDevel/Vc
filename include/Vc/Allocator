@@ -28,6 +28,7 @@
 #include <utility>
 #endif
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
     using std::size_t;
@@ -216,6 +217,7 @@ namespace std \
     template<typename T> inline bool operator!=(const Allocator<T>&, const Allocator<T>&) { return false; }
 
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "common/undomacros.h"
 #include "vector.h"

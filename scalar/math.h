@@ -22,6 +22,7 @@
 
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Scalar
@@ -240,6 +241,7 @@ Vc_ALWAYS_INLINE sfloat_v ldexp(sfloat_v x, short_v e) {
 
 } // namespace Scalar
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 

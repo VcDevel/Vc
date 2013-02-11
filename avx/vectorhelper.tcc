@@ -20,6 +20,7 @@
 #include "casts.h"
 #include <cstdlib>
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -266,3 +267,4 @@ template<typename T> Vc_ALWAYS_INLINE void VectorHelper<m128i>::store(T *mem, VT
 
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/

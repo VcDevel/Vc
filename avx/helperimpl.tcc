@@ -20,6 +20,7 @@
 #ifndef VC_AVX_HELPERIMPL_TCC
 #define VC_AVX_HELPERIMPL_TCC
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Internal
@@ -58,5 +59,6 @@ Vc_ALWAYS_INLINE void HelperImpl<AVXImpl>::free(void *p)
 
 } // namespace Internal
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // VC_AVX_HELPERIMPL_TCC
