@@ -140,8 +140,10 @@ if(NOT ROOT_RELEASE)
    add_dependencies(other Vc)
 
    install(TARGETS Vc DESTINATION lib/)
+   install(DIRECTORY include/Vc/ DESTINATION include/Vc)
+   install(DIRECTORY scalar sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 else()
-   # libVc should be compiled in the AliRoot tree, so we need to install the sources
+   # libVc should be compiled in the ROOT/AliRoot tree, so we need to install the sources
    #
    # Sadly there are messed up systems where putting include/Vc in the include paths will
    # break the standard library (e.g. MacOS X Lion with case insensitive filesystem).
@@ -152,16 +154,38 @@ else()
       get_filename_component(_path "${CMAKE_BINARY_DIR}/${_src}" PATH)
       file(MAKE_DIRECTORY "${_path}")
       execute_process(
-         COMMAND sed "s,#include \\(.\\)\\(common\\|avx\\|sse\\|scalar\\)/,#include \\1Vc/\\2/,"
+         COMMAND sed -e "s,#include \\(.\\)\\(common\\|avx\\|sse\\|scalar\\)/,#include \\1Vc/\\2/,"
+                     -e 's,::Vc,::ROOT::Vc,g'
+                     -e 's,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ROOT {,'
+                     -e 's,/\\*OUTER_NAMESPACE_END\\*/,} // namespace ROOT,'
          INPUT_FILE ${CMAKE_SOURCE_DIR}/${_src}
          OUTPUT_FILE ${CMAKE_BINARY_DIR}/${_src}
          )
    endforeach()
    install(DIRECTORY ${CMAKE_BINARY_DIR}/src/ DESTINATION src)
-endif()
 
-install(DIRECTORY include/Vc/ DESTINATION include/Vc)
-install(DIRECTORY scalar sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+   function(copy_and_set_outer_namespace dst)
+      foreach(_src ${ARGN})
+         add_custom_command(OUTPUT "${dst}/${_src}"
+            COMMAND cp  "${CMAKE_SOURCE_DIR}/${_src}" "${dst}/${_src}"
+            COMMAND sed -e 's,::Vc,::ROOT::Vc,g'
+                        -e 's,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ROOT {,'
+                        -e 's,/\\*OUTER_NAMESPACE_END\\*/,} // namespace ROOT,'
+                        -i "${dst}/${_src}"
+            MAIN_DEPENDENCY "${CMAKE_SOURCE_DIR}/${_src}"
+            COMMENT "Rewrite ${CMAKE_SOURCE_DIR}/${_src}" VERBATIM)
+      endforeach()
+   endfunction()
+
+   file(GLOB_RECURSE _srcs RELATIVE "${CMAKE_SOURCE_DIR}" include/*.h include/*.tcc include/*.def)
+   copy_and_set_outer_namespace("${CMAKE_BINARY_DIR}" "${_srcs}")
+
+   foreach(_dir in scalar sse avx common)
+      file(GLOB_RECURSE _srcs RELATIVE "${CMAKE_SOURCE_DIR}" ${_dir}/*.h ${_dir}/*.tcc ${_dir}/*.def)
+      copy_and_set_outer_namespace("${CMAKE_BINARY_DIR}/include/Vc" "${_srcs}")
+   endforeach()
+   install(DIRECTORY ${CMAKE_BINARY_DIR}/include/Vc/ DESTINATION include/Vc)
+endif()
 
 # read version parts from version.h to be put into VcConfig.cmake
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define VC_VERSION_STRING ")
