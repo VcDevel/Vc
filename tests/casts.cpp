@@ -96,7 +96,7 @@ struct T2Helper
 
 void testFloatIndexesFromZero()
 {
-    Vc::float_v test(Vc::int_v(Vc::IndexesFromZero));
+    Vc::float_v test(Vc::int_v::IndexesFromZero());
     for (int i = 0; i < float_v::Size; ++i) {
         COMPARE(test[i], float(i));
     }
