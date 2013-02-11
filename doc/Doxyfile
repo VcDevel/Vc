@@ -32,7 +32,7 @@ PROJECT_NAME           = "Vc"
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = 0.6.70-dev
+PROJECT_NUMBER         = 0.7.70-dev
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer
