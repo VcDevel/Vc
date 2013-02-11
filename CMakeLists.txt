@@ -164,26 +164,35 @@ else()
    endforeach()
    install(DIRECTORY ${CMAKE_BINARY_DIR}/src/ DESTINATION src)
 
-   function(copy_and_set_outer_namespace dst)
-      foreach(_src ${ARGN})
-         add_custom_command(OUTPUT "${dst}/${_src}"
-            COMMAND cp  "${CMAKE_SOURCE_DIR}/${_src}" "${dst}/${_src}"
-            COMMAND sed -e 's,::Vc,::ROOT::Vc,g'
-                        -e 's,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ROOT {,'
-                        -e 's,/\\*OUTER_NAMESPACE_END\\*/,} // namespace ROOT,'
-                        -i "${dst}/${_src}"
-            MAIN_DEPENDENCY "${CMAKE_SOURCE_DIR}/${_src}"
-            COMMENT "Rewrite ${CMAKE_SOURCE_DIR}/${_src}" VERBATIM)
+   set(includes)
+   macro(copy_and_set_outer_namespace dst)
+      foreach(_name ${ARGN})
+         set(_dst "${dst}${_name}")
+         set(_src "${CMAKE_SOURCE_DIR}/${_name}")
+         get_filename_component(_dir "${_dst}" PATH)
+         add_custom_command(OUTPUT "${_dst}"
+            COMMAND mkdir -p "${_dir}"
+            COMMAND cp  "${_src}" "${_dst}"
+            COMMAND sed -e "s,::Vc::,::ROOT::Vc::,g"
+                        -e "s,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ROOT {,"
+                        -e "s,/\\*OUTER_NAMESPACE_END\\*/,} // namespace ROOT,"
+                        -i "${_dst}"
+            MAIN_DEPENDENCY "${_src}"
+            COMMENT "Rewrite ${_dst}"
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+            VERBATIM)
+         list(APPEND includes "${_dst}")
       endforeach()
-   endfunction()
+   endmacro()
 
    file(GLOB_RECURSE _srcs RELATIVE "${CMAKE_SOURCE_DIR}" include/*.h include/*.tcc include/*.def)
-   copy_and_set_outer_namespace("${CMAKE_BINARY_DIR}" "${_srcs}")
+   copy_and_set_outer_namespace("" "${_srcs}")
 
    foreach(_dir in scalar sse avx common)
       file(GLOB_RECURSE _srcs RELATIVE "${CMAKE_SOURCE_DIR}" ${_dir}/*.h ${_dir}/*.tcc ${_dir}/*.def)
-      copy_and_set_outer_namespace("${CMAKE_BINARY_DIR}/include/Vc" "${_srcs}")
+      copy_and_set_outer_namespace("include/Vc/" "${_srcs}")
    endforeach()
+   add_custom_target(rewrite ALL DEPENDS ${includes})
    install(DIRECTORY ${CMAKE_BINARY_DIR}/include/Vc/ DESTINATION include/Vc)
 endif()
 
