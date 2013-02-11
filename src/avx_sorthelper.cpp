@@ -22,6 +22,7 @@
 #include <avx/sorthelper.h>
 #include <avx/macros.h>
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -421,3 +422,4 @@ template<> m256d SortHelper<double>::sort(VTArg _dcba)
 
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/

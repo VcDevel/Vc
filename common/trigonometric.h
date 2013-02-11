@@ -25,6 +25,7 @@
 #endif
 
 #include "macros.h"
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace
@@ -76,6 +77,7 @@ namespace VC__USE_NAMESPACE
     }
 } // namespace VC__USE_NAMESPACE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 #endif // VC_COMMON_TRIGONOMETRIC_H

@@ -22,6 +22,7 @@
 
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
     enum VecPos {
@@ -167,6 +168,7 @@ namespace Vc
         }
     } // namespace Reg
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 

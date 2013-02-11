@@ -41,6 +41,7 @@
 #include <mm3dnow.h>
 #endif
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace SSE
@@ -109,6 +110,7 @@ namespace SSE
             _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 // SSE3
 #ifdef VC_IMPL_SSE3
@@ -119,6 +121,7 @@ namespace SSE
 // SSSE3
 #ifdef VC_IMPL_SSSE3
 #include <tmmintrin.h>
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace SSE
@@ -136,9 +139,11 @@ namespace SSE
 
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 #elif defined _TMMINTRIN_H_INCLUDED
 #error "SSSE3 was disabled but something includes <tmmintrin.h>. Please fix your code."
 #else
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace SSE
@@ -208,6 +213,7 @@ namespace SSE
 
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif
 
@@ -218,6 +224,7 @@ namespace SSE
 #ifdef _SMMINTRIN_H_INCLUDED
 #error "SSE4.1 was disabled but something includes <smmintrin.h>. Please fix your code."
 #endif
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace SSE
@@ -422,6 +429,7 @@ namespace SSE
 
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 #endif
 
 // SSE4.2
@@ -431,6 +439,7 @@ namespace SSE
 #error "SSE4.2 was disabled but something includes <nmmintrin.h>. Please fix your code."
 #endif
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace SSE
@@ -530,6 +539,7 @@ namespace SSE
     }
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 // XOP / FMA4
 #if defined(VC_IMPL_XOP) || defined(VC_IMPL_FMA4)

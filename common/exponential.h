@@ -32,6 +32,7 @@
 #define VC_COMMON_EXPONENTIAL_H
 
 #include "macros.h"
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Common
@@ -137,6 +138,7 @@ namespace VC__USE_NAMESPACE
     using Vc::Common::exp;
 } // namespace VC__USE_NAMESPACE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 #include "undomacros.h"
 
 #endif // VC_COMMON_EXPONENTIAL_H

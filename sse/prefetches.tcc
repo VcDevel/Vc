@@ -20,6 +20,7 @@
 #ifndef VC_SSE_PREFETCHES_TCC
 #define VC_SSE_PREFETCHES_TCC
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Internal
@@ -52,5 +53,6 @@ Vc_ALWAYS_INLINE void HelperImpl<Vc::SSE2Impl>::prefetchForModify(const void *ad
 
 } // namespace Internal
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // VC_SSE_PREFETCHES_TCC

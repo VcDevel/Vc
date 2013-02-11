@@ -26,6 +26,7 @@
 #include <iomanip>
 #endif
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace SSE
@@ -84,5 +85,6 @@ class DebugStream
 
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // VC_SSE_DEBUG_H

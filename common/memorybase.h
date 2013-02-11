@@ -23,6 +23,7 @@
 #include <assert.h>
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 
@@ -557,6 +558,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
 };
 
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 

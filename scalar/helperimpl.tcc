@@ -25,6 +25,7 @@
 #include <malloc.h>
 #endif
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Internal
@@ -80,5 +81,6 @@ Vc_ALWAYS_INLINE void HelperImpl<ScalarImpl>::free(void *p)
 
 } // namespace Internal
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // VC_SCALAR_HELPERIMPL_TCC

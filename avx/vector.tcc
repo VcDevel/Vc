@@ -21,6 +21,7 @@
 #include "const.h"
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 ALIGN(64) extern unsigned int RandomState[16];
@@ -1376,6 +1377,7 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
 // }}}1
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 

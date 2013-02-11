@@ -54,6 +54,7 @@
 #define _mm_alignr_epi8(a, b, n) ((m128i)__builtin_ia32_palignr128((a), (b), (n)))
 #endif
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -525,6 +526,7 @@ namespace AVX
 #endif
 } // namespace AVX
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 #include "undomacros.h"
 
 #include "shuffle.h"

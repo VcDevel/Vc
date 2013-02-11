@@ -26,6 +26,7 @@
 
 #include <Vc/cpuid.h>
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 
@@ -146,5 +147,6 @@ inline bool currentImplementationSupported()
 //@}
 
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // VC_COMMON_SUPPORT_H

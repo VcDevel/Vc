@@ -221,11 +221,13 @@ do {} while ( false )
     static_assert(cond, #msg)
 #define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg)
 #else // C++98
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc {
     namespace {
         template<bool> struct STATIC_ASSERT_FAILURE;
         template<> struct STATIC_ASSERT_FAILURE<true> {};
 }}
+/*OUTER_NAMESPACE_END*/
 
 #define VC_STATIC_ASSERT_NC(cond, msg) \
     typedef STATIC_ASSERT_FAILURE<cond> _VC_CAT(static_assert_failed_on_line_,__LINE__,_,msg); \

@@ -22,6 +22,7 @@
 
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Internal
@@ -93,6 +94,7 @@ template<> struct HelperImpl<Vc::AVXImpl>
 
 } // namespace Internal
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "deinterleave.tcc"
 #include "prefetches.tcc"

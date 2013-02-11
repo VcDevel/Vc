@@ -38,6 +38,7 @@
 #undef isnan
 #endif
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace SSE
@@ -536,6 +537,7 @@ Vc_ALWAYS_INLINE void forceToRegisters(const Vector<float8> &/*x1*/) {
 #endif
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 #include "vector.tcc"

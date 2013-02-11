@@ -26,6 +26,7 @@
 #include "casts.h"
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace AVX
@@ -382,6 +383,7 @@ namespace AVX
                 return _mm256_round_ps(a, _MM_FROUND_NINT);
             }
         };
+/*OUTER_NAMESPACE_END*/
 
         template<> struct VectorHelper<sfloat> : public VectorHelper<float> {};
 

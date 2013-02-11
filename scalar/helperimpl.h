@@ -22,6 +22,7 @@
 
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Internal
@@ -49,6 +50,7 @@ template<> struct HelperImpl<Vc::ScalarImpl>
 
 } // namespace Scalar
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "helperimpl.tcc"
 #include "undomacros.h"

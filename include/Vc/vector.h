@@ -41,6 +41,7 @@
 #undef isnan
 #endif
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
   using VECTOR_NAMESPACE::VectorAlignment;
@@ -104,6 +105,7 @@ namespace Vc
     VC_STATIC_ASSERT_NC(ushort_v::Size == VC_USHORT_V_SIZE, VC_USHORT_V_SIZE_MACRO_WRONG);
   }
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "common/vectortuple.h"
 #include "common/iif.h"

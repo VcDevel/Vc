@@ -23,6 +23,7 @@
 #include "../sse/shuffle.h"
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
         using AVX::m128;
@@ -232,6 +233,7 @@ namespace Vc
         }
     } // namespace Reg
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 #include "undomacros.h"
 
 #endif // VC_AVX_SHUFFLE_H

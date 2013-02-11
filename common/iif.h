@@ -22,6 +22,7 @@
 
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 /**
@@ -54,6 +55,7 @@ template<typename T> static Vc_ALWAYS_INLINE Vector<T> iif (const typename Vecto
     return falseValue;
 }
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 

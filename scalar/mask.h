@@ -22,6 +22,7 @@
 
 #include "types.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace Scalar
@@ -97,5 +98,6 @@ struct ForeachHelper
 
 } // namespace Scalar
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // VC_SCALAR_MASK_H

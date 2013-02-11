@@ -23,6 +23,7 @@
 #include "intrinsics.h"
 #include "types.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace SSE
@@ -98,5 +99,6 @@ namespace SSE
     template<> struct StaticCastHelper<unsigned short, unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // SSE_CASTS_H

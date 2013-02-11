@@ -20,6 +20,7 @@
 #include "casts.h"
 #include <cstdlib>
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace SSE
@@ -489,3 +490,4 @@ template<typename T> Vc_ALWAYS_INLINE void VectorHelper<_M128I>::store(T *mem, c
     }
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/

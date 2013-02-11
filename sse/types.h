@@ -34,6 +34,7 @@
 #include "../common/types.h"
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace SSE
@@ -152,6 +153,7 @@ static Vc_ALWAYS_INLINE void assertCorrectAlignment(const M256 *ptr)
 
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 

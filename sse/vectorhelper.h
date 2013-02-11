@@ -24,6 +24,7 @@
 #include <limits>
 #include "macros.h"
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace SSE
@@ -337,6 +338,7 @@ namespace SSE
 #endif
             }
         };
+/*OUTER_NAMESPACE_END*/
 
         template<> struct VectorHelper<float8> {
             typedef float EntryType;

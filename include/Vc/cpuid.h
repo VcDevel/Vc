@@ -20,6 +20,7 @@
 #ifndef CPUID_H
 #define CPUID_H
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 
@@ -208,5 +209,6 @@ class CpuId
         static bool   s_noL2orL3;
 };
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #endif // CPUID_H

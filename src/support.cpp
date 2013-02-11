@@ -25,6 +25,7 @@
 #include <intrin.h>
 #endif
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 
@@ -109,5 +110,6 @@ unsigned int extraInstructionsSupported()
 }
 
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 // vim: sw=4 sts=4 et tw=100
