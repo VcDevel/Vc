@@ -1259,10 +1259,10 @@ template<typename VectorType, typename EntryType> struct VectorShift<32, 8, Vect
         case  1: return concat(avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(EntryType))), avx_cast<SmallV>(_mm_srli_si128(vHi, 1 * sizeof(EntryType))));
         case  2: return concat(avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 2 * sizeof(EntryType))), avx_cast<SmallV>(_mm_srli_si128(vHi, 2 * sizeof(EntryType))));
         case  3: return concat(avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 3 * sizeof(EntryType))), avx_cast<SmallV>(_mm_srli_si128(vHi, 3 * sizeof(EntryType))));
-        case  4: return avx_cast<VectorType>(hi128(v));
-        case  5: return avx_cast<VectorType>(_mm_srli_si128(vHi, 1 * sizeof(EntryType)));
-        case  6: return avx_cast<VectorType>(_mm_srli_si128(vHi, 2 * sizeof(EntryType)));
-        case  7: return avx_cast<VectorType>(_mm_srli_si128(vHi, 3 * sizeof(EntryType)));
+        case  4: return zeroExtend(hi128(v));
+        case  5: return avx_cast<VectorType>(zeroExtend(_mm_srli_si128(vHi, 1 * sizeof(EntryType))));
+        case  6: return avx_cast<VectorType>(zeroExtend(_mm_srli_si128(vHi, 2 * sizeof(EntryType))));
+        case  7: return avx_cast<VectorType>(zeroExtend(_mm_srli_si128(vHi, 3 * sizeof(EntryType))));
         case -1: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 1 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 3 * sizeof(EntryType))));
         case -2: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 2 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 2 * sizeof(EntryType))));
         case -3: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 3 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(EntryType))));
