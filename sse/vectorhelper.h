@@ -338,7 +338,6 @@ namespace SSE
 #endif
             }
         };
-/*OUTER_NAMESPACE_END*/
 
         template<> struct VectorHelper<float8> {
             typedef float EntryType;
@@ -779,6 +778,7 @@ namespace SSE
 
 } // namespace SSE
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "vectorhelper.tcc"
 #include "undomacros.h"
