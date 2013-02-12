@@ -82,6 +82,11 @@ namespace AVX
     static Vc_INTRINSIC Vc_CONST m256  zeroExtend(param128  v) { return _mm256_castps128_ps256(v); }
     static Vc_INTRINSIC Vc_CONST m256i zeroExtend(param128i v) { return _mm256_castsi128_si256(v); }
     static Vc_INTRINSIC Vc_CONST m256d zeroExtend(param128d v) { return _mm256_castpd128_pd256(v); }
+#ifdef VC_ICC
+    static Vc_INTRINSIC Vc_CONST m256  zeroExtend(__m128  v) { return _mm256_castps128_ps256(v); }
+    static Vc_INTRINSIC Vc_CONST m256i zeroExtend(__m128i v) { return _mm256_castsi128_si256(v); }
+    static Vc_INTRINSIC Vc_CONST m256d zeroExtend(__m128d v) { return _mm256_castpd128_pd256(v); }
+#endif
 #endif
 
     // 256 -> 128
