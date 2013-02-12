@@ -1033,6 +1033,21 @@ template<typename T> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN V
             mem[indexes[i]] = d.m(i);
             );
 }
+#ifdef VC_MSVC
+// MSVC miscompiles the store mem[indexes[1]] = d.m(1) for T = (u)short
+template<> template<typename Index> Vc_ALWAYS_INLINE void short_v::scatter(EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes) const
+{
+    for_all_vector_entries(i,
+            mem[indexes[i]] = _mm_extract_epi16(d.v(), i);
+            );
+}
+template<> template<typename Index> Vc_ALWAYS_INLINE void ushort_v::scatter(EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes) const
+{
+    for_all_vector_entries(i,
+            mem[indexes[i]] = _mm_extract_epi16(d.v(), i);
+            );
+}
+#endif
 template<typename T> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::scatter(EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes, MaskArg mask) const
 {
 #define ith_value(_i_) mem[indexes[_i_]]
