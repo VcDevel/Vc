@@ -30,6 +30,50 @@ namespace Vc
 namespace Common
 {
 
+#ifdef VC_MSVC
+#ifdef VC_IMPL_AVX
+template<typename EntryType, typename VectorType> inline EntryType &accessScalar(VectorType &d, size_t i) { return accessScalar<EntryType>(d._d, i); }
+template<typename EntryType, typename VectorType> inline EntryType accessScalar(const VectorType &d, size_t i) { return accessScalar<EntryType>(d._d, i); }
+#else
+template<typename EntryType, typename VectorType> inline EntryType &accessScalar(VectorType &d, size_t i) { return accessScalar<EntryType>(d[i/4], i); }
+template<typename EntryType, typename VectorType> inline EntryType accessScalar(const VectorType &d, size_t i) { return accessScalar<EntryType>(d[i/4], i); }
+#endif
+
+template<> Vc_ALWAYS_INLINE double &accessScalar<double, __m128d>(__m128d &d, size_t i) { return d.m128d_f64[i]; }
+template<> Vc_ALWAYS_INLINE float  &accessScalar<float , __m128 >(__m128  &d, size_t i) { return d.m128_f32[i]; }
+template<> Vc_ALWAYS_INLINE short  &accessScalar<short , __m128i>(__m128i &d, size_t i) { return d.m128i_i16[i]; }
+template<> Vc_ALWAYS_INLINE unsigned short  &accessScalar<unsigned short , __m128i>(__m128i &d, size_t i) { return d.m128i_u16[i]; }
+template<> Vc_ALWAYS_INLINE int  &accessScalar<int , __m128i>(__m128i &d, size_t i) { return d.m128i_i32[i]; }
+template<> Vc_ALWAYS_INLINE unsigned int  &accessScalar<unsigned int , __m128i>(__m128i &d, size_t i) { return d.m128i_u32[i]; }
+template<> Vc_ALWAYS_INLINE char  &accessScalar<char , __m128i>(__m128i &d, size_t i) { return d.m128i_i8[i]; }
+template<> Vc_ALWAYS_INLINE unsigned char  &accessScalar<unsigned char , __m128i>(__m128i &d, size_t i) { return d.m128i_u8[i]; }
+
+template<> Vc_ALWAYS_INLINE double accessScalar<double, __m128d>(const __m128d &d, size_t i) { return d.m128d_f64[i]; }
+template<> Vc_ALWAYS_INLINE float  accessScalar<float , __m128 >(const __m128  &d, size_t i) { return d.m128_f32[i]; }
+template<> Vc_ALWAYS_INLINE short  accessScalar<short , __m128i>(const __m128i &d, size_t i) { return d.m128i_i16[i]; }
+template<> Vc_ALWAYS_INLINE unsigned short  accessScalar<unsigned short , __m128i>(const __m128i &d, size_t i) { return d.m128i_u16[i]; }
+template<> Vc_ALWAYS_INLINE int  accessScalar<int , __m128i>(const __m128i &d, size_t i) { return d.m128i_i32[i]; }
+template<> Vc_ALWAYS_INLINE unsigned int  accessScalar<unsigned int , __m128i>(const __m128i &d, size_t i) { return d.m128i_u32[i]; }
+template<> Vc_ALWAYS_INLINE char  accessScalar<char , __m128i>(const __m128i &d, size_t i) { return d.m128i_i8[i]; }
+template<> Vc_ALWAYS_INLINE unsigned char  accessScalar<unsigned char , __m128i>(const __m128i &d, size_t i) { return d.m128i_u8[i]; }
+
+#ifdef VC_IMPL_AVX
+template<> Vc_ALWAYS_INLINE double &accessScalar<double, __m256d>(__m256d &d, size_t i) { return d.m256d_f64[i]; }
+template<> Vc_ALWAYS_INLINE float  &accessScalar<float , __m256 >(__m256  &d, size_t i) { return d.m256_f32[i]; }
+template<> Vc_ALWAYS_INLINE short  &accessScalar<short , __m256i>(__m256i &d, size_t i) { return d.m256i_i16[i]; }
+template<> Vc_ALWAYS_INLINE unsigned short  &accessScalar<unsigned short , __m256i>(__m256i &d, size_t i) { return d.m256i_u16[i]; }
+template<> Vc_ALWAYS_INLINE int  &accessScalar<int , __m256i>(__m256i &d, size_t i) { return d.m256i_i32[i]; }
+template<> Vc_ALWAYS_INLINE unsigned int  &accessScalar<unsigned int , __m256i>(__m256i &d, size_t i) { return d.m256i_u32[i]; }
+
+template<> Vc_ALWAYS_INLINE double accessScalar<double, __m256d>(const __m256d &d, size_t i) { return d.m256d_f64[i]; }
+template<> Vc_ALWAYS_INLINE float  accessScalar<float , __m256 >(const __m256  &d, size_t i) { return d.m256_f32[i]; }
+template<> Vc_ALWAYS_INLINE short  accessScalar<short , __m256i>(const __m256i &d, size_t i) { return d.m256i_i16[i]; }
+template<> Vc_ALWAYS_INLINE unsigned short  accessScalar<unsigned short , __m256i>(const __m256i &d, size_t i) { return d.m256i_u16[i]; }
+template<> Vc_ALWAYS_INLINE int  accessScalar<int , __m256i>(const __m256i &d, size_t i) { return d.m256i_i32[i]; }
+template<> Vc_ALWAYS_INLINE unsigned int  accessScalar<unsigned int , __m256i>(const __m256i &d, size_t i) { return d.m256i_u32[i]; }
+#endif
+#endif
+
 template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _VectorType> class VectorMemoryUnion
 {
     public:
@@ -37,7 +81,7 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
         typedef _EntryType EntryType;
         typedef EntryType AliasingEntryType Vc_MAY_ALIAS;
         Vc_ALWAYS_INLINE VectorMemoryUnion() { assertCorrectAlignment(&v()); }
-#if defined VC_ICC || defined VC_MSVC
+#if defined VC_ICC
         Vc_ALWAYS_INLINE VectorMemoryUnion(const VectorType &x) { data.v = x; assertCorrectAlignment(&data.v); }
         Vc_ALWAYS_INLINE VectorMemoryUnion &operator=(const VectorType &x) {
             data.v = x; return *this;
@@ -46,7 +90,6 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
         Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return reinterpret_cast<VectorType &>(data.v); }
         Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return reinterpret_cast<const VectorType &>(data.v); }
 
-#if defined VC_ICC
         Vc_ALWAYS_INLINE Vc_PURE AliasingEntryHelper<VectorMemoryUnion> m(size_t index) {
             return AliasingEntryHelper<VectorMemoryUnion>(this, index);
         }
@@ -56,11 +99,6 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
         Vc_ALWAYS_INLINE Vc_PURE EntryType read(size_t index) const {
             return data.m[index];
         }
-#else
-        Vc_ALWAYS_INLINE Vc_PURE EntryType &m(size_t index) {
-            return data.m[index];
-        }
-#endif
 
         Vc_ALWAYS_INLINE Vc_PURE EntryType m(size_t index) const {
             return data.m[index];
@@ -72,14 +110,23 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
             EntryType m[sizeof(VectorTypeBase)/sizeof(EntryType)];
         } data;
 #else
-        Vc_ALWAYS_INLINE VectorMemoryUnion(VectorType x) : data(x) { assertCorrectAlignment(&data); }
-        Vc_ALWAYS_INLINE VectorMemoryUnion &operator=(VectorType x) {
+        Vc_ALWAYS_INLINE VectorMemoryUnion(VC_ALIGNED_PARAMETER(VectorType) x) : data(x) { assertCorrectAlignment(&data); }
+        Vc_ALWAYS_INLINE VectorMemoryUnion &operator=(VC_ALIGNED_PARAMETER(VectorType) x) {
             data = x; return *this;
         }
 
         Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return data; }
         Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return data; }
 
+#ifdef VC_MSVC
+        Vc_ALWAYS_INLINE EntryType &m(size_t index) {
+            return accessScalar<EntryType>(data, index);
+        }
+
+        Vc_ALWAYS_INLINE EntryType m(size_t index) const {
+            return accessScalar<EntryType>(data, index);
+        }
+#else
         Vc_ALWAYS_INLINE Vc_PURE AliasingEntryType &m(size_t index) {
             return reinterpret_cast<AliasingEntryType *>(&data)[index];
         }
@@ -87,6 +134,7 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
         Vc_ALWAYS_INLINE Vc_PURE EntryType m(size_t index) const {
             return reinterpret_cast<const AliasingEntryType *>(&data)[index];
         }
+#endif
 
     private:
         VectorType data;
