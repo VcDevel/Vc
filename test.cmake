@@ -9,6 +9,9 @@ endif()
 set(target_architecture "$ENV{target_architecture}")
 set(skip_tests "$ENV{skip_tests}")
 
+# better make sure we get english output (this is vital for the implicit_type_conversion_failures tests)
+set(ENV{LANG} "en_US")
+
 find_program(UNAME uname)
 if(UNAME)
    execute_process(COMMAND ${UNAME} -s OUTPUT_VARIABLE arch OUTPUT_STRIP_TRAILING_WHITESPACE)
