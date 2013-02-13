@@ -1037,15 +1037,27 @@ template<typename T> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN V
 // MSVC miscompiles the store mem[indexes[1]] = d.m(1) for T = (u)short
 template<> template<typename Index> Vc_ALWAYS_INLINE void short_v::scatter(EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes) const
 {
-    for_all_vector_entries(i,
-            mem[indexes[i]] = _mm_extract_epi16(d.v(), i);
-            );
+    const unsigned int tmp = d.v()._d.m128i_u32[0];
+    mem[indexes[0]] = tmp & 0xffff;
+    mem[indexes[1]] = tmp >> 16;
+    mem[indexes[2]] = _mm_extract_epi16(d.v(), 2);
+    mem[indexes[3]] = _mm_extract_epi16(d.v(), 3);
+    mem[indexes[4]] = _mm_extract_epi16(d.v(), 4);
+    mem[indexes[5]] = _mm_extract_epi16(d.v(), 5);
+    mem[indexes[6]] = _mm_extract_epi16(d.v(), 6);
+    mem[indexes[7]] = _mm_extract_epi16(d.v(), 7);
 }
 template<> template<typename Index> Vc_ALWAYS_INLINE void ushort_v::scatter(EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes) const
 {
-    for_all_vector_entries(i,
-            mem[indexes[i]] = _mm_extract_epi16(d.v(), i);
-            );
+    const unsigned int tmp = d.v()._d.m128i_u32[0];
+    mem[indexes[0]] = tmp & 0xffff;
+    mem[indexes[1]] = tmp >> 16;
+    mem[indexes[2]] = _mm_extract_epi16(d.v(), 2);
+    mem[indexes[3]] = _mm_extract_epi16(d.v(), 3);
+    mem[indexes[4]] = _mm_extract_epi16(d.v(), 4);
+    mem[indexes[5]] = _mm_extract_epi16(d.v(), 5);
+    mem[indexes[6]] = _mm_extract_epi16(d.v(), 6);
+    mem[indexes[7]] = _mm_extract_epi16(d.v(), 7);
 }
 #endif
 template<typename T> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::scatter(EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes, MaskArg mask) const
