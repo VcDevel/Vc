@@ -74,6 +74,35 @@ template<> Vc_ALWAYS_INLINE unsigned int  accessScalar<unsigned int , __m256i>(c
 #endif
 #endif
 
+#ifdef VC_USE_BUILTIN_VECTOR_TYPES
+template<typename EntryType, typename VectorType> struct GccTypeHelper;
+template<> struct GccTypeHelper<double        , __m128d> { typedef  __v2df Type; };
+template<> struct GccTypeHelper<float         , __m128 > { typedef  __v4sf Type; };
+template<> struct GccTypeHelper<long          , __m128i> { typedef  __v2di Type; };
+template<> struct GccTypeHelper<unsigned long , __m128i> { typedef  __v2di Type; };
+template<> struct GccTypeHelper<int           , __m128i> { typedef  __v4si Type; };
+template<> struct GccTypeHelper<unsigned int  , __m128i> { typedef  __v4si Type; };
+template<> struct GccTypeHelper<short         , __m128i> { typedef  __v8hi Type; };
+template<> struct GccTypeHelper<unsigned short, __m128i> { typedef  __v8hi Type; };
+template<> struct GccTypeHelper<char          , __m128i> { typedef __v16qi Type; };
+template<> struct GccTypeHelper<unsigned char , __m128i> { typedef __v16qi Type; };
+#ifdef VC_IMPL_SSE
+template<typename VectorType> struct GccTypeHelper<float, VectorType> { typedef  __v4sf Type; };
+#endif
+#ifdef VC_IMPL_AVX
+template<> struct GccTypeHelper<double        , __m256d> { typedef  __v4df Type; };
+template<> struct GccTypeHelper<float         , __m256 > { typedef  __v8sf Type; };
+template<> struct GccTypeHelper<long          , __m256i> { typedef  __v4di Type; };
+template<> struct GccTypeHelper<unsigned long , __m256i> { typedef  __v4di Type; };
+template<> struct GccTypeHelper<int           , __m256i> { typedef  __v8si Type; };
+template<> struct GccTypeHelper<unsigned int  , __m256i> { typedef  __v8si Type; };
+template<> struct GccTypeHelper<short         , __m256i> { typedef __v16hi Type; };
+template<> struct GccTypeHelper<unsigned short, __m256i> { typedef __v16hi Type; };
+template<> struct GccTypeHelper<char          , __m256i> { typedef __v32qi Type; };
+template<> struct GccTypeHelper<unsigned char , __m256i> { typedef __v32qi Type; };
+#endif
+#endif
+
 template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _VectorType> class VectorMemoryUnion
 {
     public:
@@ -134,6 +163,10 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
         Vc_ALWAYS_INLINE Vc_PURE EntryType m(size_t index) const {
             return reinterpret_cast<const AliasingEntryType *>(&data)[index];
         }
+#endif
+#ifdef VC_USE_BUILTIN_VECTOR_TYPES
+        typedef typename GccTypeHelper<EntryType, VectorType>::Type GccType;
+        Vc_ALWAYS_INLINE Vc_PURE GccType gcc() const { return GccType(data); }
 #endif
 
     private:

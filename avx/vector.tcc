@@ -1105,6 +1105,12 @@ template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator- {{{1
+#ifdef VC_USE_BUILTIN_VECTOR_TYPES
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vc_FLATTEN Vector<typename NegateTypeHelper<T>::Type> Vector<T>::operator-() const
+{
+    return VectorType(-d.gcc());
+}
+#else
 template<> Vc_ALWAYS_INLINE Vector<double> Vc_PURE Vc_FLATTEN Vector<double>::operator-() const
 {
     return _mm256_xor_pd(d.v(), _mm256_setsignmask_pd());
@@ -1133,6 +1139,7 @@ template<> Vc_ALWAYS_INLINE Vector<short> Vc_PURE Vc_FLATTEN Vector<unsigned sho
 {
     return _mm_sign_epi16(d.v(), _mm_setallone_si128());
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // horizontal ops {{{1

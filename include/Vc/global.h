@@ -68,6 +68,10 @@
 #  endif
 #endif
 
+#if defined(VC_GCC) || defined(VC_CLANG)
+#define VC_USE_BUILTIN_VECTOR_TYPES
+#endif
+
 // ICC ships the AVX2 intrinsics inside the AVX1 header.
 // FIXME: the number 20120731 is too large, but I don't know which one is the right one
 #if (defined(VC_ICC) && VC_ICC >= 20120731) || (defined(VC_MSVC) && VC_MSVC >= 170000000)
