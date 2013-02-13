@@ -168,6 +168,10 @@ namespace AVX
 
 #if defined(VC_GNU_ASM) && !defined(NVALGRIND)
     static Vc_INTRINSIC m256 Vc_CONST _mm256_setallone() { __m256 r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
+#elif defined(VC_MSVC)
+    // MSVC puts temporaries of this value on the stack, but sometimes at misaligned addresses, try
+    // some other generator instead...
+    static Vc_INTRINSIC m256 Vc_CONST _mm256_setallone() { return _mm256_castsi256_ps(_mm256_set1_epi32(-1)); }
 #else
     static Vc_INTRINSIC m256 Vc_CONST _mm256_setallone() { m256 r = _mm256_setzero_ps(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
 #endif
