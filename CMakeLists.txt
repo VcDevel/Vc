@@ -91,6 +91,9 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
 add_definitions("${Vc_DEFINITIONS}")
+if(Vc_COMPILER_IS_GCC AND Vc_GCC_VERSION VERSION_LESS 4.3.0)
+   add_definitions(-DVC_DONT_WARN_OLD_GCC) # this warning is only interesting for external users of Vc
+endif()
 
 if(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
