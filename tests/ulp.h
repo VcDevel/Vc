@@ -48,7 +48,7 @@ template<typename T> static T ulpDiffToReference(T val, T ref)
     // tmp is now in the range [0.5, 1.0[
     // now we want to know how many times we can fit 2^-numeric_limits<T>::digits between tmp and
     // val * 2 ^ -exp
-    return ldexp(abs(ref - val), std::numeric_limits<T>::digits - exp);
+    return ldexp(std::abs(ref - val), std::numeric_limits<T>::digits - exp);
 }
 template<typename T> static T ulpDiffToReferenceSigned(T val, T ref)
 {
