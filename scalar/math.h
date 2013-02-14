@@ -98,7 +98,7 @@ template<typename T> static Vc_ALWAYS_INLINE Vector<T> log10(const Vector<T> &x)
     return Vector<T>(std::log10(x.data()));
 }
 
-#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L
+#if (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600) || defined(_ISOC99_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L)
 static Vc_ALWAYS_INLINE double_v log2(double_v::AsArg x) { return double_v(::log2 (x.data())); }
 static Vc_ALWAYS_INLINE sfloat_v log2(sfloat_v::AsArg x) { return sfloat_v(::log2f(x.data())); }
 static Vc_ALWAYS_INLINE  float_v log2( float_v::AsArg x) { return  float_v(::log2f(x.data())); }
