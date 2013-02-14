@@ -38,9 +38,10 @@ static inline bool xgetbvCheck(unsigned int bits)
     unsigned int eax;
     asm("xgetbv" : "=a"(eax) : "c"(0) : "edx");
     return (eax & bits) == bits;
-#endif
+#else
     // can't check, but if OSXSAVE is true let's assume it'll work
-    return true;
+    return bits > 0; // ignore 'warning: unused parameter'
+#endif
 }
 
 #ifdef VC_GCC
