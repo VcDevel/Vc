@@ -1,5 +1,6 @@
 set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
    " C4723: " # MSVC 2012 can't suppress this warning
+   " C4756: " # MSVC 2012 can't suppress this warning
    "used uninitialized in this function"
    "Skipping compilation of tests gatherStruct and gather2dim because of clang bug" # Not a helpful warning for the dashboard
    "GCC < 4.3 does not have full support for SSE2 intrinsics." # Ignore self-made warning, though what I really want is a message when the warning is absent
