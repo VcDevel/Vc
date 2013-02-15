@@ -476,7 +476,6 @@ template<typename V> void testAtan2()/*{{{*/
     {
         const V Pi   = T(Vc_buildDouble(1, 0x921fb54442d18ull,  1));
         const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18ull,  0));
-        const V Pi_4 = T(Vc_buildDouble(1, 0x921fb54442d18ull, -1));
         V nan; nan.setQnan();
         const V inf = T(INF.value);
 
@@ -520,6 +519,7 @@ template<typename V> void testAtan2()/*{{{*/
         COMPARE(Vc::atan2(+inf, V(T(-3.))), +Pi_2);
         COMPARE(Vc::atan2(-inf, V(T(-3.))), -Pi_2);
 #ifndef _WIN32 // the Microsoft implementation of atan2 fails this test
+        const V Pi_4 = T(Vc_buildDouble(1, 0x921fb54442d18ull, -1));
         // If y is positive infinity (negative infinity) and x is negative	infinity, +3*pi/4 (-3*pi/4) is returned.
         COMPARE(Vc::atan2(+inf, -inf), T(+3.) * Pi_4);
         COMPARE(Vc::atan2(-inf, -inf), T(-3.) * Pi_4);
