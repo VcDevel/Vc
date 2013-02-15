@@ -97,8 +97,8 @@ endif()
 
 if(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
-   set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -w1 -fp-model precise")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w1 -fp-model precise")
+   set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -fp-model source")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model source")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
