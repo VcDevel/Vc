@@ -20,7 +20,7 @@
 #ifndef VC_COMMON_WINDOWS_FIX_INTRIN_H
 #define VC_COMMON_WINDOWS_FIX_INTRIN_H
 
-#if defined(_MSC_VER) && !defined(__midl)
+#if defined(VC_MSVC) && !defined(__midl)
 // MSVC sucks. If you include intrin.h you get all SSE and AVX intrinsics
 // declared. This is a problem because we need to implement the intrinsics
 // that are not supported in hardware ourselves.
