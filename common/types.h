@@ -137,6 +137,12 @@ namespace
             Value = !!(sizeof(test(*static_cast<From *>(0))) == sizeof(yes))
         };
     };
+#if defined(VC_GCC) && VC_GCC < 0x40300
+    // GCC 4.1 is very noisy because of the float->int and double->int type trait tests. We get
+    // around this noise with a little specialization.
+    template<> struct HasImplicitCast<float , int> { enum { Value = true }; };
+    template<> struct HasImplicitCast<double, int> { enum { Value = true }; };
+#endif
 
 #ifdef VC_MSVC
     // MSVC is such a broken compiler :'(
