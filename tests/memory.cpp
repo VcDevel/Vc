@@ -110,7 +110,7 @@ template<typename V, unsigned int Size> struct TestVectors { static void test()
     }
     x = startX;
     unsigned int i;
-    for (i = 0; i < m.vectorsCount() - 1; ++i) {
+    for (i = 0; i + 1 < m.vectorsCount(); ++i) {
         COMPARE(V(m.vector(i)), x);
         COMPARE(V(m2.vector(i)), x);
         COMPARE(V(m3.vector(i)), x);
