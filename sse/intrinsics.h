@@ -22,12 +22,18 @@
 
 #include "../common/windows_fix_intrin.h"
 
+// The GCC xxxintrin.h headers do not make sure that the intrinsics have C linkage. This not really
+// a problem, unless there is another place where the exact same functions are declared. Then the
+// linkage must be the same, otherwise it won't compile. Such a case occurs on Windows, where the
+// intrin.h header (included indirectly via unistd.h) declares many SSE intrinsics again.
+extern "C" {
 // MMX
 #include <mmintrin.h>
 // SSE
 #include <xmmintrin.h>
 // SSE2
 #include <emmintrin.h>
+}
 
 #if defined(__GNUC__) && !defined(VC_IMPL_SSE2)
 #error "SSE Vector class needs at least SSE2"
@@ -38,7 +44,9 @@
 #include "macros.h"
 
 #ifdef __3dNOW__
+extern "C" {
 #include <mm3dnow.h>
+}
 #endif
 
 /*OUTER_NAMESPACE_BEGIN*/
@@ -114,13 +122,17 @@ namespace SSE
 
 // SSE3
 #ifdef VC_IMPL_SSE3
+extern "C" {
 #include <pmmintrin.h>
+}
 #elif defined _PMMINTRIN_H_INCLUDED
 #error "SSE3 was disabled but something includes <pmmintrin.h>. Please fix your code."
 #endif
 // SSSE3
 #ifdef VC_IMPL_SSSE3
+extern "C" {
 #include <tmmintrin.h>
+}
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
@@ -219,7 +231,9 @@ namespace SSE
 
 // SSE4.1
 #ifdef VC_IMPL_SSE4_1
+extern "C" {
 #include <smmintrin.h>
+}
 #else
 #ifdef _SMMINTRIN_H_INCLUDED
 #error "SSE4.1 was disabled but something includes <smmintrin.h>. Please fix your code."
@@ -434,7 +448,9 @@ namespace SSE
 
 // SSE4.2
 #ifdef VC_IMPL_SSE4_2
+extern "C" {
 #include <nmmintrin.h>
+}
 #elif defined _NMMINTRIN_H_INCLUDED
 #error "SSE4.2 was disabled but something includes <nmmintrin.h>. Please fix your code."
 #endif
@@ -543,7 +559,9 @@ namespace SSE
 
 // XOP / FMA4
 #if defined(VC_IMPL_XOP) || defined(VC_IMPL_FMA4)
+extern "C" {
 #include <x86intrin.h>
+}
 #endif
 
 #include "undomacros.h"

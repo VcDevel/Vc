@@ -22,12 +22,15 @@
 
 #include "../common/windows_fix_intrin.h"
 
+// see comment in sse/intrinsics.h
+extern "C" {
 // AVX
 #include <immintrin.h>
 
 #if (defined(VC_IMPL_XOP) || defined(VC_IMPL_FMA4)) && !defined(VC_MSVC)
 #include <x86intrin.h>
 #endif
+}
 
 #if defined(VC_CLANG) && VC_CLANG < 0x30100
 // _mm_permute_ps is broken: http://llvm.org/bugs/show_bug.cgi?id=12401
