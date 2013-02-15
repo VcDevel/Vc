@@ -12,7 +12,9 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
    "AVX disabled per default because of old/broken compiler" # This warning is meant for users not the dashboard
    "GCC 4.7.0 miscompiles at -O3, adding -fno-predictive-commoning to the" # This warning is meant for users not the dashboard
    "warning: the mangled name of .*typename Vc::{anonymous}::Decltype.* will change in a future version of GCC"
-   "^\\*\\*\\* WARNING non-zero return value in ctest from: make") # Ignore output from ctest
+   "^\\*\\*\\* WARNING non-zero return value in ctest from: make" # Ignore output from ctest
+   "ipo: warning #11010:" # Ignore warning about incompatible libraries with ICC -m32 on 64-bit system
+   )
 
 set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
    "^make\\[[1-9]\\]: "
