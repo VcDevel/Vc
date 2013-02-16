@@ -173,16 +173,19 @@ template<> const int MulRangeHelper<short>::End = 0x7fff - 50;
 template<> const int MulRangeHelper<unsigned short>::Start = 0;
 template<> const int MulRangeHelper<unsigned short>::End = 0xffff - 50;
 
-template<typename Vec> void testMul()
+template<typename V> void testMul()
 {
-    typedef typename Vec::EntryType T;
-    typedef MulRangeHelper<T> Range;
-    for (typename Range::Iterator i = Range::Start; i < Range::End; i += 0xef) {
-        T i2 = static_cast<T>(i);
-        Vec a(i2);
-        i2 *= i2 - 9;
-
-        COMPARE(a * (a - 9), Vec(i2));
+    for (int i = 0; i < 10000; ++i) {
+        V a = V::Random();
+        V b = V::Random();
+        V reference = a;
+        for (int j = 0; j < V::Size; ++j) {
+            // this could overflow - but at least the compiler can't know about it so it doesn't
+            // matter that it's undefined behavior in C++. The only thing that matters is what the
+            // hardware does...
+            reference[j] *= b[j];
+        }
+        COMPARE(a * b, reference) << a << " * " << b;
     }
 }
 
