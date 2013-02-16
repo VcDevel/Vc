@@ -18,6 +18,7 @@
 */
 
 #include <Vc/cpuid.h>
+#include <Vc/global.h>
 
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
