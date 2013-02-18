@@ -25,7 +25,7 @@
 #include <intrin.h>
 #endif
 
-#if defined(VC_GCC) && VC_GCC >= 0x40300
+#if defined(VC_GCC) && VC_GCC >= 0x40400
 #define VC_TARGET_NO_SIMD __attribute__((target("no-sse2,no-avx")))
 #else
 #define VC_TARGET_NO_SIMD
