@@ -51,20 +51,17 @@ namespace Scalar {
     template<typename T> class Vector;
     template<unsigned int VectorSize> class Mask;
 }
-#define _Vector Vc::Scalar::Vector
 #  elif defined(VC_IMPL_SSE)
 namespace SSE {
     template<typename T> class Vector;
     template<unsigned int VectorSize> class Mask;
     class Float8Mask;
 }
-#define _Vector Vc::SSE::Vector
 #  elif defined(VC_IMPL_AVX)
 namespace AVX {
     template<typename T> class Vector;
     template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
 }
-#define _Vector Vc::AVX::Vector
 #  else
 #    error "Sorry, MSVC is a nasty compiler and needs extra care. Please help."
 #  endif
@@ -121,7 +118,11 @@ namespace
     {
         static yes test(const To &) { return yes(); }
         static  no test(...) { return  no(); }
-        static Vc_ALWAYS_INLINE const From &ref() { return *static_cast<From *>(0x100); } // use some value other than 0 to avoid warnings :S
+        struct ReferenceWrapper
+        {
+            Vc_ALWAYS_INLINE operator const From &() { return *static_cast<From *>(0x100); } // use some value other than 0 to avoid warnings :S
+        };
+        static Vc_ALWAYS_INLINE ReferenceWrapper ref() { return ReferenceWrapper(); }
         enum {
 #ifdef VC_MSVC
             // I want to test whether implicit cast works. If it works MSVC thinks it should give a warning. Wrong. Shut up.
@@ -135,38 +136,6 @@ namespace
     // around this noise with a little specialization.
     template<> struct HasImplicitCast<float , int> { enum { Value = true }; };
     template<> struct HasImplicitCast<double, int> { enum { Value = true }; };
-#endif
-
-#ifdef VC_MSVC
-    // MSVC is such a broken compiler :'(
-    // HasImplicitCast breaks if From has an __declspec(align(#)) modifier and has no implicit cast
-    // to To.  That's because it'll call test(...) as test(From) and not test(const From &).
-    // This results in C2718. And MSVC is too stupid to see that it should just shut up and
-    // everybody would be happy.
-    //
-    // Because the HasImplicitCast specializations can only be implemented after the Vector class
-    // was declared we have to write some nasty hacks.
-    template<typename T1, typename T2> struct HasImplicitCast<_Vector<T1>, T2> { enum { Value = false }; };
-#if defined(VC_IMPL_Scalar)
-    template<unsigned int VS, typename T2> struct HasImplicitCast<Vc::Scalar::Mask<VS>, T2> { enum { Value = false }; };
-    template<unsigned int VS> struct HasImplicitCast<Vc::Scalar::Mask<VS>, Vc::Scalar::Mask<VS> > { enum { Value = true }; };
-#elif defined(VC_IMPL_SSE)
-    template<unsigned int VS, typename T2> struct HasImplicitCast<Vc::SSE::Mask<VS>, T2> { enum { Value = false }; };
-    template<unsigned int VS> struct HasImplicitCast<Vc::SSE::Mask<VS>, Vc::SSE::Mask<VS> > { enum { Value = true }; };
-    template<typename T2> struct HasImplicitCast<Vc::SSE::Float8Mask, T2> { enum { Value = false }; };
-    template<> struct HasImplicitCast<Vc::SSE::Float8Mask, Vc::SSE::Float8Mask> { enum { Value = true }; };
-#elif defined(VC_IMPL_AVX)
-    template<unsigned int VectorSize, size_t RegisterWidth, typename T2> struct HasImplicitCast<Vc::AVX::Mask<VectorSize, RegisterWidth>, T2> { enum { Value = false }; };
-    template<unsigned int VectorSize, size_t RegisterWidth> struct HasImplicitCast<Vc::AVX::Mask<VectorSize, RegisterWidth>, Vc::AVX::Mask<VectorSize, RegisterWidth> > { enum { Value = true }; };
-#endif
-    template<typename T> struct HasImplicitCast<_Vector<T>, _Vector<T> > { enum { Value = true }; };
-    //template<> struct HasImplicitCast<_Vector<           int>, _Vector<  unsigned int>> { enum { Value = true }; };
-    //template<> struct HasImplicitCast<_Vector<  unsigned int>, _Vector<           int>> { enum { Value = true }; };
-    //template<> struct HasImplicitCast<_Vector<         short>, _Vector<unsigned short>> { enum { Value = true }; };
-    //template<> struct HasImplicitCast<_Vector<unsigned short>, _Vector<         short>> { enum { Value = true }; };
-    template<typename V, size_t Size1, size_t Size2, typename T2> struct HasImplicitCast<Vc::Memory<V, Size1, Size2>, T2> { enum { Value = false }; };
-    template<typename V, size_t Size1, size_t Size2> struct HasImplicitCast<Vc::Memory<V, Size1, Size2>, Vc::Memory<V, Size1, Size2> > { enum { Value = true }; };
-#undef _Vector
 #endif
 
     template<typename T> struct CanConvertToInt : public HasImplicitCast<T, int> {};
