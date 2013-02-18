@@ -15,6 +15,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
    "warning: the mangled name of .*typename Vc::{anonymous}::Decltype.* will change in a future version of GCC"
    "^\\*\\*\\* WARNING non-zero return value in ctest from: make" # Ignore output from ctest
    "ipo: warning #11010:" # Ignore warning about incompatible libraries with ICC -m32 on 64-bit system
+   "include/qt4" # -Wuninitialized in QWeakPointer(X *ptr)
    )
 
 set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
