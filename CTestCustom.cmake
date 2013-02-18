@@ -17,6 +17,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
    "ipo: warning #11010:" # Ignore warning about incompatible libraries with ICC -m32 on 64-bit system
    "include/qt4" # -Wuninitialized in QWeakPointer(X *ptr)
    "implicit_type_conversion.cpp.*(double|float).*argument 1 to.*TestImplicitCast" # ignore GCC 4.1 warning
+   "Vc::Warnings::_operator_bracket_warning" # GCC 4.3 is supposed to throw this warning like crazy
    )
 
 set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
