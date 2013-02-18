@@ -377,7 +377,7 @@ template<typename Vec> void testProduct()
                     x2 *= x;
                 }
             } else {
-                x2 = pow(static_cast<double>(x), m.count());
+                x2 = static_cast<T>(pow(static_cast<double>(x), m.count()));
             }
             COMPARE(v.product(m), x2) << m << v;
         } while (true);
