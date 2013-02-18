@@ -149,30 +149,6 @@ template<typename Vec> void testSub()
     COMPARE(a, b - c);
 }
 
-template<typename T> struct MulRangeHelper
-{
-    typedef int Iterator;
-    static const Iterator Start;
-    static const Iterator End;
-};
-template<> struct MulRangeHelper<unsigned int> {
-    typedef unsigned int Iterator;
-    static const Iterator Start;
-    static const Iterator End;
-};
-template<> const int MulRangeHelper<float>::Start = -0xffffff;
-template<> const int MulRangeHelper<float>::End   =  0xffffff - 133;
-template<> const int MulRangeHelper<double>::Start = -0xffffff;
-template<> const int MulRangeHelper<double>::End   =  0xffffff - 133;
-template<> const int MulRangeHelper<int>::Start = -0x80000000;
-template<> const int MulRangeHelper<int>::End   = 0x7fffffff - 110;
-const unsigned int MulRangeHelper<unsigned int>::Start = 0;
-const unsigned int MulRangeHelper<unsigned int>::End = 0xffffffff - 110;
-template<> const int MulRangeHelper<short>::Start = -0x8000;
-template<> const int MulRangeHelper<short>::End = 0x7fff - 50;
-template<> const int MulRangeHelper<unsigned short>::Start = 0;
-template<> const int MulRangeHelper<unsigned short>::End = 0xffff - 50;
-
 template<typename V> void testMul()
 {
     for (int i = 0; i < 10000; ++i) {
@@ -293,10 +269,34 @@ template<typename Vec> void testOnesComplement()
     COMPARE(~(a + b), Vec(Zero));
 }
 
+template<typename T> struct NegateRangeHelper
+{
+    typedef int Iterator;
+    static const Iterator Start;
+    static const Iterator End;
+};
+template<> struct NegateRangeHelper<unsigned int> {
+    typedef unsigned int Iterator;
+    static const Iterator Start;
+    static const Iterator End;
+};
+template<> const int NegateRangeHelper<float>::Start = -0xffffff;
+template<> const int NegateRangeHelper<float>::End   =  0xffffff - 133;
+template<> const int NegateRangeHelper<double>::Start = -0xffffff;
+template<> const int NegateRangeHelper<double>::End   =  0xffffff - 133;
+template<> const int NegateRangeHelper<int>::Start = -0x7fffffff;
+template<> const int NegateRangeHelper<int>::End   = 0x7fffffff - 0xee;
+const unsigned int NegateRangeHelper<unsigned int>::Start = 0;
+const unsigned int NegateRangeHelper<unsigned int>::End = 0xffffffff - 0xee;
+template<> const int NegateRangeHelper<short>::Start = -0x7fff;
+template<> const int NegateRangeHelper<short>::End = 0x7fff - 0xee;
+template<> const int NegateRangeHelper<unsigned short>::Start = 0;
+template<> const int NegateRangeHelper<unsigned short>::End = 0xffff - 0xee;
+
 template<typename Vec> void testNegate()
 {
     typedef typename Vec::EntryType T;
-    typedef MulRangeHelper<T> Range;
+    typedef NegateRangeHelper<T> Range;
     for (typename Range::Iterator i = Range::Start; i < Range::End; i += 0xef) {
         T i2 = static_cast<T>(i);
         Vec a(i2);
