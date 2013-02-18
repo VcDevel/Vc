@@ -80,10 +80,10 @@
 #  else
 #    define Vc_MAY_ALIAS __attribute__((__may_alias__))
 #  endif
-#  if VC_GCC < 0x40200
+#  if VC_GCC < 0x40300
 // GCC 4.1 fails with "sorry unimplemented: inlining failed"
 #    define Vc_INTRINSIC_R __attribute__((__flatten__))
-#  elif VC_GCC < 0x40300 || defined(VC_OPEN64)
+#  elif defined(VC_OPEN64)
 // the GCC 4.2 frontend doesn't know the __artificial__ attribute
 #    define Vc_INTRINSIC_R __attribute__((__flatten__, __always_inline__))
 #  else
