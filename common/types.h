@@ -119,22 +119,15 @@ namespace
 
     template<typename From, typename To> struct HasImplicitCast
     {
-#ifdef VC_MSVC
-        // MSVC can't compile this code if we pass a type that has large alignment restrictions by
-        // value
-        // clang OTOH warns about this code if we pass a null-reference, thus we ifdef the const-ref
-        // for MSVC only
         static yes test(const To &) { return yes(); }
-#else
-        static yes test( To) { return yes(); }
-#endif
         static  no test(...) { return  no(); }
+        static Vc_ALWAYS_INLINE const From &ref() { return *static_cast<From *>(0x100); } // use some value other than 0 to avoid warnings :S
         enum {
 #ifdef VC_MSVC
             // I want to test whether implicit cast works. If it works MSVC thinks it should give a warning. Wrong. Shut up.
 #pragma warning(suppress : 4257 4267)
 #endif
-            Value = !!(sizeof(test(*static_cast<From *>(0))) == sizeof(yes))
+            Value = !!(sizeof(test(ref())) == sizeof(yes))
         };
     };
 #if defined(VC_GCC) && VC_GCC < 0x40300
