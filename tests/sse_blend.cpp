@@ -102,9 +102,11 @@ void blendepi16()
 #define CALL_16(_i, code) CALL_8(_i, code) CALL_8(_i + 8, code)
 #define CALL_32(_i, code) CALL_16(_i, code) CALL_16(_i + 16, code)
 #define CALL_64(_i, code) CALL_32(_i, code) CALL_32(_i + 32, code)
+#define CALL_128(_i, code) CALL_64(_i, code) CALL_64(_i + 64, code)
+#define CALL_256(code) CALL_128(0, code) CALL_128(128, code)
 #define CALL_100(code) CALL_64(0, code) CALL_32(64, code) CALL_4(96, code)
 
-    CALL_100(
+    CALL_256(
         short r[8];
         for (int j = 0; j < 8; ++j) {
             r[j] = j + ((((i >> j) & 1) == 0) ? 10 : 20);
