@@ -364,7 +364,7 @@ template<typename V> void testRSqrt()/*{{{*/
 template<typename V> void testSincos()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(3);
+    setFuzzyness<float>(2);
     setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -387,7 +387,7 @@ template<typename V> void testSincos()/*{{{*/
 template<typename V> void testSin()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(1);
+    setFuzzyness<float>(2);
     setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -404,7 +404,7 @@ template<typename V> void testSin()/*{{{*/
 template<typename V> void testCos()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(3);
+    setFuzzyness<float>(2);
     setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
