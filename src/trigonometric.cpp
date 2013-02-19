@@ -109,8 +109,7 @@ template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::Trigonom
     sign ^= j > 3;
     j(j > 3) -= 4;
 
-    V z = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
-    z(x > C::lossThreshold()) = x - y * C::_pi_4();
+    const V z = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
     y = sinSeries(z);
     y(j == IV::One() || j == 2) = cosSeries(z);
@@ -164,9 +163,7 @@ template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::Trigonom
     j(j > 3) -= 4;
     sign ^= j > IV::One();
 
-    M lossMask = x > C::lossThreshold();
-    x(lossMask) = x - y * C::_pi_4();
-    x(!lossMask) = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
+    x = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
     y = cosSeries(x);
     y(j == IV::One() || j == 2) = sinSeries(x);
