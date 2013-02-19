@@ -90,6 +90,8 @@ static Array<SincosReference<T> > sincosReference()
             static StaticDeleter<SincosReference<T> > _cleanup(data.data);
             data.size = fread(data.data, sizeof(SincosReference<T>), size, file);
             fclose(file);
+        } else {
+            FAIL() << "the reference data " << filename<T, Sincos>() << " does not exist in the current working directory.";
         }
     }
     return data;
@@ -109,6 +111,8 @@ static Array<Reference<T> > referenceData()
             static StaticDeleter<Reference<T> > _cleanup(data.data);
             data.size = fread(data.data, sizeof(Reference<T>), size, file);
             fclose(file);
+        } else {
+            FAIL() << "the reference data " << filename<T, Fun>() << " does not exist in the current working directory.";
         }
     }
     return data;
