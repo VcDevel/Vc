@@ -210,17 +210,10 @@ template<> template<typename _T> void Trigonometric<Vc::Internal::TrigonometricI
     typedef typename V::Mask M;
     typedef typename signed_integer<V>::type IV;
 
-    V x = abs(_x);
-    IV quadrant = static_cast<IV>(x * C::_4_pi());
-    quadrant += quadrant & IV::One();
-    V y = static_cast<V>(quadrant);
-    quadrant &= 7;
+    IV quadrant;
+    const V x = foldInput(_x, quadrant);
     M sign = static_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
-
-    M lossMask = x > C::lossThreshold();
-    x(lossMask) = x - y * C::_pi_4();
-    x(!lossMask) = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
     const V cos_s = cosSeries(x);
     const V sin_s = sinSeries(x);
