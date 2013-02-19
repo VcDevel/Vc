@@ -118,10 +118,10 @@ namespace AVX
 #define _4(x) x
     template<> const float c_trig<float>::data[] = {
     // cacheline
-        _4(Vc_buildFloat(1, 0x490FDB,  -1)), // π/4
-        _4(Vc_buildFloat(1, 0x490000,  -1)), // π/4 - 16 bits precision
-        _4(Vc_buildFloat(1, 0x7DA000, -13)), // π/4 remainder1 - 13 bits precision
-        _4(Vc_buildFloat(1, 0x222169, -25)), // π/4 remainder2
+        _4(Vc_buildFloat( 1, 0x490FDB,  -1)), // π/4
+        _4(Vc_buildFloat( 1, 0x491000,  -1)), // π/4 - 12 bits precision
+        _4(Vc_buildFloat(-1, 0x157000, -19)), // π/4 remainder1 - 12 bits precision
+        _4(Vc_buildFloat(-1, 0x6F4B9F, -32)), // π/4 remainder2
         _4(0.0625f),
         _4(16.f),
         _4(0.f), // padding
@@ -355,10 +355,10 @@ namespace SSE
 #define _4(x) x, x, x, x
     template<> const float c_trig<float>::data[] = {
     // cacheline
-        _4(Vc_buildFloat(1, 0x490FDB,  -1)), // π/4
-        _4(Vc_buildFloat(1, 0x490000,  -1)), // π/4 - 16 bits precision
-        _4(Vc_buildFloat(1, 0x7DA000, -13)), // π/4 remainder1 - 13 bits precision
-        _4(Vc_buildFloat(1, 0x222169, -25)), // π/4 remainder2
+        _4(Vc_buildFloat( 1, 0x490FDB,  -1)), // π/4
+        _4(Vc_buildFloat( 1, 0x491000,  -1)), // π/4 - 12 bits precision
+        _4(Vc_buildFloat(-1, 0x157000, -19)), // π/4 remainder1 - 12 bits precision
+        _4(Vc_buildFloat(-1, 0x6F4B9F, -32)), // π/4 remainder2
     // cacheline
         _4(0.0625f),
         _4(16.f),
