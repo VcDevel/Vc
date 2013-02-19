@@ -73,6 +73,8 @@ namespace
                     C::sinCoeff(0)) * (x2 * x)
             + x;
     }
+    template<typename V> struct signed_integer { typedef   int_v type; };
+    template<> struct signed_integer<sfloat_v> { typedef short_v type; };
 } // anonymous namespace
 
 /*
@@ -97,7 +99,7 @@ template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::Trigonom
     typedef Const<_T> C;
     typedef typename V::EntryType T;
     typedef typename V::Mask M;
-    typedef typename V::IndexType IV;
+    typedef typename signed_integer<V>::type IV;
 
     V x = abs(_x);
     M sign = _x < V::Zero();
@@ -122,7 +124,7 @@ template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplemen
     typedef Const<double> C;
     typedef V::EntryType T;
     typedef V::Mask M;
-    typedef V::IndexType IV;
+    typedef typename signed_integer<V>::type IV;
 
     V x = abs(_x);
     M sign = _x < V::Zero();
@@ -150,7 +152,7 @@ template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::Trigonom
     typedef Const<_T> C;
     typedef typename V::EntryType T;
     typedef typename V::Mask M;
-    typedef typename V::IndexType IV;
+    typedef typename signed_integer<V>::type IV;
 
     V x = abs(_x);
     IV j = static_cast<IV>(x * C::_4_pi());
@@ -174,7 +176,7 @@ template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplemen
     typedef Const<double> C;
     typedef V::EntryType T;
     typedef V::Mask M;
-    typedef V::IndexType IV;
+    typedef typename signed_integer<V>::type IV;
 
     V x = abs(_x);
     V y = floor(x / C::_pi_4());
@@ -202,7 +204,7 @@ template<> template<typename _T> void Trigonometric<Vc::Internal::TrigonometricI
     typedef Const<_T> C;
     typedef typename V::EntryType T;
     typedef typename V::Mask M;
-    typedef typename V::IndexType IV;
+    typedef typename signed_integer<V>::type IV;
 
     V x = abs(_x);
     IV j = static_cast<IV>(x * C::_4_pi());
@@ -234,7 +236,7 @@ template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementati
     typedef Const<double> C;
     typedef V::EntryType T;
     typedef V::Mask M;
-    typedef V::IndexType IV;
+    typedef typename signed_integer<V>::type IV;
 
     V x = abs(_x);
     V y = floor(x / C::_pi_4());
