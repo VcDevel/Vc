@@ -102,8 +102,7 @@ template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::Trigonom
     V x = abs(_x);
     M sign = _x < V::Zero();
     IV j = static_cast<IV>(x * C::_4_pi());
-    typename IV::Mask mask = (j & IV::One()) != IV::Zero();
-    ++j(mask);
+    j += j & IV::One();
     V y = static_cast<V>(j);
     j &= 7;
     sign ^= j > 3;
@@ -155,8 +154,7 @@ template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::Trigonom
 
     V x = abs(_x);
     IV j = static_cast<IV>(x * C::_4_pi());
-    typename IV::Mask mask = (j & IV::One()) != IV::Zero();
-    ++j(mask);
+    j += j & IV::One();
     V y = static_cast<V>(j);
     j &= 7;
     M sign = j > 3;
@@ -208,8 +206,7 @@ template<> template<typename _T> void Trigonometric<Vc::Internal::TrigonometricI
 
     V x = abs(_x);
     IV j = static_cast<IV>(x * C::_4_pi());
-    typename IV::Mask mask = (j & IV::One()) != IV::Zero();
-    ++j(mask);
+    j += j & IV::One();
     V y = static_cast<V>(j);
     j &= 7;
     M sign = static_cast<M>(j > 3);
