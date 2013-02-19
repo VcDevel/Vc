@@ -103,8 +103,8 @@ template<> template<typename _T> Vector<_T> Trigonometric<Vc::Internal::Trigonom
 
     V x = abs(_x);
     M sign = _x < V::Zero();
-    IV j = static_cast<IV>(x * C::_4_pi());
-    j += j & IV::One();
+    IV j = static_cast<IV>(x * C::_4_pi() + V::One());
+    j &= ~IV::One();
     V y = static_cast<V>(j);
     j &= 7;
     sign ^= j > 3;
@@ -181,21 +181,21 @@ template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplemen
     V x = abs(_x);
     V y = floor(x / C::_pi_4());
     V z = y - floor(y * C::_1_16()) * C::_16();
-    IV j = static_cast<IV>(z);
-    IV::Mask mask = (j & IV::One()) != IV::Zero();
-    ++j(mask);
+    IV quadrant = static_cast<IV>(z);
+    IV::Mask mask = (quadrant & IV::One()) != IV::Zero();
+    ++quadrant(mask);
     y(static_cast<M>(mask)) += V::One();
-    j &= 7;
-    M sign = static_cast<M>(j > 3);
-    j(j > 3) -= 4;
-    sign ^= static_cast<M>(j > IV::One());
+    quadrant &= 7;
+    M sign = static_cast<M>(quadrant > 3);
+    quadrant(quadrant > 3) -= 4;
+    sign ^= static_cast<M>(quadrant > IV::One());
 
     // since y is an integer we don't need to split y into low and high parts until the integer
     // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
     z = ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
 
     y = cosSeries(z);
-    y(static_cast<M>(j == IV::One() || j == 2)) = sinSeries(z);
+    y(static_cast<M>(quadrant == IV::One() || quadrant == 2)) = sinSeries(z);
     y(sign) = -y;
     return y;
 }
@@ -207,12 +207,12 @@ template<> template<typename _T> void Trigonometric<Vc::Internal::TrigonometricI
     typedef typename signed_integer<V>::type IV;
 
     V x = abs(_x);
-    IV j = static_cast<IV>(x * C::_4_pi());
-    j += j & IV::One();
-    V y = static_cast<V>(j);
-    j &= 7;
-    M sign = static_cast<M>(j > 3);
-    j(j > 3) -= 4;
+    IV quadrant = static_cast<IV>(x * C::_4_pi());
+    quadrant += quadrant & IV::One();
+    V y = static_cast<V>(quadrant);
+    quadrant &= 7;
+    M sign = static_cast<M>(quadrant > 3);
+    quadrant(quadrant > 3) -= 4;
 
     M lossMask = x > C::lossThreshold();
     x(lossMask) = x - y * C::_pi_4();
@@ -222,12 +222,12 @@ template<> template<typename _T> void Trigonometric<Vc::Internal::TrigonometricI
     const V sin_s = sinSeries(x);
 
     V c = cos_s;
-    c(static_cast<M>(j == IV::One() || j == 2)) = sin_s;
-    c(sign ^ static_cast<M>(j > IV::One())) = -c;
+    c(static_cast<M>(quadrant == IV::One() || quadrant == 2)) = sin_s;
+    c(sign ^ static_cast<M>(quadrant > IV::One())) = -c;
     *_cos = c;
 
     V s = sin_s;
-    s(static_cast<M>(j == IV::One() || j == 2)) = cos_s;
+    s(static_cast<M>(quadrant == IV::One() || quadrant == 2)) = cos_s;
     s(sign ^ static_cast<M>(_x < V::Zero())) = -s;
     *_sin = s;
 }
@@ -241,13 +241,13 @@ template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementati
     V x = abs(_x);
     V y = floor(x / C::_pi_4());
     V z = y - floor(y * C::_1_16()) * C::_16();
-    IV j = static_cast<IV>(z);
-    IV::Mask mask = (j & IV::One()) != IV::Zero();
-    ++j(mask);
+    IV quadrant = static_cast<IV>(z);
+    IV::Mask mask = (quadrant & IV::One()) != IV::Zero();
+    ++quadrant(mask);
     y(static_cast<M>(mask)) += V::One();
-    j &= 7;
-    M sign = static_cast<M>(j > 3);
-    j(j > 3) -= 4;
+    quadrant &= 7;
+    M sign = static_cast<M>(quadrant > 3);
+    quadrant(quadrant > 3) -= 4;
 
     // since y is an integer we don't need to split y into low and high parts until the integer
     // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
@@ -257,12 +257,12 @@ template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementati
     const V sin_s = sinSeries(z);
 
     V c = cos_s;
-    c(static_cast<M>(j == IV::One() || j == 2)) = sin_s;
-    c(sign ^ static_cast<M>(j > IV::One())) = -c;
+    c(static_cast<M>(quadrant == IV::One() || quadrant == 2)) = sin_s;
+    c(sign ^ static_cast<M>(quadrant > IV::One())) = -c;
     *_cos = c;
 
     V s = sin_s;
-    s(static_cast<M>(j == IV::One() || j == 2)) = cos_s;
+    s(static_cast<M>(quadrant == IV::One() || quadrant == 2)) = cos_s;
     s(sign ^ static_cast<M>(_x < V::Zero())) = -s;
     *_sin = s;
 }
