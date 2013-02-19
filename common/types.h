@@ -116,19 +116,16 @@ namespace
 
     template<typename From, typename To> struct HasImplicitCast
     {
-        static yes test(const To &) { return yes(); }
-        static  no test(...) { return  no(); }
-        struct ReferenceWrapper
-        {
-            Vc_ALWAYS_INLINE operator const From &() { return *static_cast<From *>(0x100); } // use some value other than 0 to avoid warnings :S
-        };
-        static Vc_ALWAYS_INLINE ReferenceWrapper ref() { return ReferenceWrapper(); }
-        enum {
+        template<typename F> static F makeT();
+        template<typename T> static int test2(const T &);
 #ifdef VC_MSVC
             // I want to test whether implicit cast works. If it works MSVC thinks it should give a warning. Wrong. Shut up.
 #pragma warning(suppress : 4257 4267)
 #endif
-            Value = !!(sizeof(test(ref())) == sizeof(yes))
+        template<typename F, typename T> static typename EnableIf<sizeof(test2<T>(makeT<F>())) == sizeof(int), yes>::Value test(int);
+        template<typename, typename> static no  test(...);
+        enum {
+            Value = !!(sizeof(test<From, To>(0)) == sizeof(yes))
         };
     };
 #if defined(VC_GCC) && VC_GCC < 0x40300
