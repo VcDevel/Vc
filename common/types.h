@@ -112,20 +112,21 @@ namespace
     {
         struct yes { char x; };
         struct  no { yes x, y; };
-    } // anonymous namespace
 
-    template<typename From, typename To> struct HasImplicitCast
-    {
-        template<typename F> static F makeT();
-        template<typename T> static int test2(const T &);
+        template<typename F> static F HasImplicitCast_makeT();
+        template<typename T> static int HasImplicitCast_test2(const T &);
 #ifdef VC_MSVC
             // I want to test whether implicit cast works. If it works MSVC thinks it should give a warning. Wrong. Shut up.
 #pragma warning(suppress : 4257 4267)
 #endif
-        template<typename F, typename T> static typename EnableIf<sizeof(test2<T>(makeT<F>())) == sizeof(int), yes>::Value test(int);
-        template<typename, typename> static no  test(...);
+        template<typename F, typename T> static typename EnableIf<sizeof(HasImplicitCast_test2<T>(HasImplicitCast_makeT<F>())) == sizeof(int), yes>::Value HasImplicitCast_test(int);
+        template<typename, typename> static no  HasImplicitCast_test(...);
+    } // anonymous namespace
+
+    template<typename From, typename To> struct HasImplicitCast
+    {
         enum {
-            Value = !!(sizeof(test<From, To>(0)) == sizeof(yes))
+            Value = !!(sizeof(HasImplicitCast_test<From, To>(0)) == sizeof(yes))
         };
     };
 #if defined(VC_GCC) && VC_GCC < 0x40300
