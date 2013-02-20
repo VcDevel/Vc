@@ -117,6 +117,14 @@ namespace
     template<typename From, typename To> struct HasImplicitCast
     {
         template<typename F> static F makeT();
+#if defined(VC_GCC) && VC_GCC < 0x40300
+        // older GCCs don't do SFINAE correctly
+        static yes test( To) { return yes(); }
+        static  no test(...) { return  no(); }
+        enum {
+            Value = !!(sizeof(test(makeT<From>())) == sizeof(yes))
+        };
+#else
         template<typename T> static int test2(const T &);
 #ifdef VC_MSVC
             // I want to test whether implicit cast works. If it works MSVC thinks it should give a warning. Wrong. Shut up.
@@ -127,6 +135,7 @@ namespace
         enum {
             Value = !!(sizeof(test<From, To>(0)) == sizeof(yes))
         };
+#endif
     };
 #if defined(VC_GCC) && VC_GCC < 0x40300
     // GCC 4.1 is very noisy because of the float->int and double->int type trait tests. We get
