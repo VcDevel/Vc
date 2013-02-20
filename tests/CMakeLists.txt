@@ -293,3 +293,4 @@ endforeach()
 add_custom_target(download-testdata ALL
    DEPENDS ${_deps}
    )
+add_dependencies(other download-testdata)
