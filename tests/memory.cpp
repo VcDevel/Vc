@@ -17,7 +17,6 @@
 
 */
 
-#include <Vc/Vc>
 #include "unittest.h"
 
 using namespace Vc;

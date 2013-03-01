@@ -17,7 +17,6 @@
 
 */
 // includes {{{1
-#include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
 #include <cstring>
