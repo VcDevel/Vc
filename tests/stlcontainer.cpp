@@ -21,9 +21,15 @@
 
 }}}*/
 
+#include "unittest.h"
 #include <Vc/Allocator>
 #include <vector>
-#include "unittest.h"
+#ifdef VC_CXX11
+#include <array>
+#include <forward_list>
+#include <list>
+#include <deque>
+#endif
 
 template<typename Vec> size_t alignmentMask()
 {
@@ -57,10 +63,38 @@ template<typename V> void stdVectorAlignment()
     std::vector<SomeStruct<V>, Vc::Allocator<SomeStruct<V> > > v4(v2);
 }
 
+#ifdef VC_CXX11
+template<typename V, typename Container> void listInitialization()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+    const auto data = Vc::makeContainer<Container>({ T(1), T(2), T(3), T(4), T(5), T(6), T(7), T(8), T(9) });
+    V reference = V{ I::IndexesFromZero() + 1 };
+    for (const auto &v : data) {
+        reference.setZero(reference > 9);
+        COMPARE(v, reference);
+        reference += V::Size;
+    }
+}
+template<typename V> void listInitialization()
+{
+    listInitialization<V, std::vector<V>>();
+    listInitialization<V, std::array<V, 9>>();
+    listInitialization<V, std::deque<V>>();
+
+    // The following two crash (at least with AVX). Probably unaligned memory access.
+    //listInitialization<V, std::forward_list<V>>();
+    //listInitialization<V, std::list<V>>();
+}
+#endif
+
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
 
     using namespace Vc;
     testAllTypes(stdVectorAlignment);
+#ifdef VC_CXX11
+    testAllTypes(listInitialization);
+#endif
 }
