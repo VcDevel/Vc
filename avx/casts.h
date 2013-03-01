@@ -75,9 +75,9 @@ namespace AVX
     template<> Vc_INTRINSIC m256d avx_cast(param128d v) { return _mm256_castpd128_pd256(v); }
 
 #ifdef VC_MSVC
-    static Vc_INTRINSIC Vc_CONST m256  zeroExtend(param128  v) { return _mm256_insertf128_ps   (_mm256_castps128_ps256(v), _mm_setzero_ps   (), 1); }
-    static Vc_INTRINSIC Vc_CONST m256i zeroExtend(param128i v) { return _mm256_insertf128_si256(_mm256_castsi128_si256(v), _mm_setzero_si128(), 1); }
-    static Vc_INTRINSIC Vc_CONST m256d zeroExtend(param128d v) { return _mm256_insertf128_pd   (_mm256_castpd128_pd256(v), _mm_setzero_pd   (), 1); }
+    static Vc_INTRINSIC Vc_CONST m256  zeroExtend(param128  v) { return _mm256_permute2f128_ps   (v, v, 0x80); }
+    static Vc_INTRINSIC Vc_CONST m256i zeroExtend(param128i v) { return _mm256_permute2f128_si256(v, v, 0x80); }
+    static Vc_INTRINSIC Vc_CONST m256d zeroExtend(param128d v) { return _mm256_permute2f128_pd   (v, v, 0x80); }
 #else
     static Vc_INTRINSIC Vc_CONST m256  zeroExtend(param128  v) { return _mm256_castps128_ps256(v); }
     static Vc_INTRINSIC Vc_CONST m256i zeroExtend(param128i v) { return _mm256_castsi128_si256(v); }
