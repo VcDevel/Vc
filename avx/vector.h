@@ -324,6 +324,8 @@ template<typename T> class Vector
         Vc_ALWAYS_INLINE EntryType max() const { return VectorHelper<T>::max(data()); }
         Vc_ALWAYS_INLINE EntryType product() const { return VectorHelper<T>::mul(data()); }
         Vc_ALWAYS_INLINE EntryType sum() const { return VectorHelper<T>::add(data()); }
+        Vc_ALWAYS_INLINE_L Vector partialSum() const Vc_ALWAYS_INLINE_R;
+        //template<typename BinaryOperation> Vc_ALWAYS_INLINE_L Vector partialSum(BinaryOperation op) const Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L EntryType min(MaskArg m) const Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L EntryType max(MaskArg m) const Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L EntryType product(MaskArg m) const Vc_ALWAYS_INLINE_R;

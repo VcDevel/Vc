@@ -385,6 +385,7 @@ template<typename T> class Vector
         Vc_INTRINSIC EntryType max() const { return VectorHelper<T>::max(data()); }
         Vc_INTRINSIC EntryType product() const { return VectorHelper<T>::mul(data()); }
         Vc_INTRINSIC EntryType sum() const { return VectorHelper<T>::add(data()); }
+        Vc_INTRINSIC_L Vector partialSum() const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L EntryType min(MaskArg m) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L EntryType max(MaskArg m) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L EntryType product(MaskArg m) const Vc_INTRINSIC_R;

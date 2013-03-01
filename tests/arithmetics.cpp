@@ -402,6 +402,22 @@ template<typename Vec> void testSum()
     }
 }
 
+template<typename V> void testPartialSum()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+
+    V reference(I::IndexesFromZero() + 1);
+    COMPARE(V(1).partialSum(), reference);
+    /* disabled until correct masking is implemented
+#ifdef VC_CXX11
+
+    reference = V(I(2) << I::IndexesFromZero());
+    COMPARE(V(2).partialSum([](const V &a, const V &b) { return a * b; }), reference);
+#endif
+    */
+}
+
 template<typename V> void fma()
 {
     for (int i = 0; i < 1000; ++i) {
@@ -574,6 +590,7 @@ int main(int argc, char **argv)
     testAllTypes(testMax);
     testAllTypes(testProduct);
     testAllTypes(testSum);
+    testAllTypes(testPartialSum);
 
     return 0;
 }

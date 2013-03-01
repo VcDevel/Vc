@@ -1136,6 +1136,40 @@ template<> Vc_ALWAYS_INLINE Vector<short> Vc_PURE Vc_FLATTEN Vector<unsigned sho
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // horizontal ops {{{1
+template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::partialSum() const
+{
+    //   a    b    c    d    e    f    g    h
+    // +      a    b    c    d    e    f    g    -> a ab bc  cd   de    ef     fg      gh
+    // +           a    ab   bc   cd   de   ef   -> a ab abc abcd bcde  cdef   defg    efgh
+    // +                     a    ab   abc  abcd -> a ab abc abcd abcde abcdef abcdefg abcdefgh
+    Vector<T> tmp = *this;
+    if (Size >  1) tmp += tmp.shifted(-1);
+    if (Size >  2) tmp += tmp.shifted(-2);
+    if (Size >  4) tmp += tmp.shifted(-4);
+    if (Size >  8) tmp += tmp.shifted(-8);
+    if (Size > 16) tmp += tmp.shifted(-16);
+    return tmp;
+}
+
+/* This function requires correct masking because the neutral element of \p op is not necessarily 0
+ *
+template<typename T> template<typename BinaryOperation> Vc_ALWAYS_INLINE Vector<T> Vector<T>::partialSum(BinaryOperation op) const
+{
+    //   a    b    c    d    e    f    g    h
+    // +      a    b    c    d    e    f    g    -> a ab bc  cd   de    ef     fg      gh
+    // +           a    ab   bc   cd   de   ef   -> a ab abc abcd bcde  cdef   defg    efgh
+    // +                     a    ab   abc  abcd -> a ab abc abcd abcde abcdef abcdefg abcdefgh
+    Vector<T> tmp = *this;
+    Mask mask(true);
+    if (Size >  1) tmp(mask) = op(tmp, tmp.shifted(-1));
+    if (Size >  2) tmp(mask) = op(tmp, tmp.shifted(-2));
+    if (Size >  4) tmp(mask) = op(tmp, tmp.shifted(-4));
+    if (Size >  8) tmp(mask) = op(tmp, tmp.shifted(-8));
+    if (Size > 16) tmp(mask) = op(tmp, tmp.shifted(-16));
+    return tmp;
+}
+*/
+
 template<typename T> Vc_ALWAYS_INLINE typename Vector<T>::EntryType Vector<T>::min(MaskArg m) const
 {
     Vector<T> tmp = std::numeric_limits<Vector<T> >::max();

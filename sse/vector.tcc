@@ -1261,6 +1261,20 @@ template<> Vc_INTRINSIC unsigned short Vc_PURE Vector<unsigned short>::operator[
 #endif // GCC
 ///////////////////////////////////////////////////////////////////////////////////////////
 // horizontal ops {{{1
+template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::partialSum() const
+{
+    //   a    b    c    d    e    f    g    h
+    // +      a    b    c    d    e    f    g    -> a ab bc  cd   de    ef     fg      gh
+    // +           a    ab   bc   cd   de   ef   -> a ab abc abcd bcde  cdef   defg    efgh
+    // +                     a    ab   abc  abcd -> a ab abc abcd abcde abcdef abcdefg abcdefgh
+    Vector<T> tmp = *this;
+    if (Size >  1) tmp += tmp.shifted(-1);
+    if (Size >  2) tmp += tmp.shifted(-2);
+    if (Size >  4) tmp += tmp.shifted(-4);
+    if (Size >  8) tmp += tmp.shifted(-8);
+    if (Size > 16) tmp += tmp.shifted(-16);
+    return tmp;
+}
 #ifndef VC_IMPL_SSE4_1
 // without SSE4.1 integer multiplication is slow and we rather multiply the scalars
 template<> Vc_INTRINSIC Vc_PURE int Vector<int>::product() const
