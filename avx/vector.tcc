@@ -1259,16 +1259,14 @@ template<> struct VectorShift<32, 4, m256d, double>
 {
     static Vc_INTRINSIC m256d shifted(param256d v, int amount)
     {
-        const m128i vLo = avx_cast<m128i>(lo128(v));
-        const m128i vHi = avx_cast<m128i>(hi128(v));
         switch (amount) {
         case  0: return v;
-        case  1: return concat(avx_cast<m128d>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(double))), avx_cast<m128d>(_mm_srli_si128(vHi, 1 * sizeof(double))));
-        case  2: return zeroExtend(hi128(v));
-        case  3: return zeroExtend(avx_cast<m128d>(_mm_srli_si128(vHi, 1 * sizeof(double))));
-        case -1: return concat(avx_cast<m128d>(_mm_slli_si128(vLo, 1 * sizeof(double))), avx_cast<m128d>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(double))));
-        case -2: return _mm256_permute2f128_pd(v, v, 0x8);
-        case -3: return concat(_mm_setzero_pd(), avx_cast<m128d>(_mm_slli_si128(vLo, 1 * sizeof(double))));
+        case  1: return avx_cast<m256d>(_mm256_srli_si256(avx_cast<m256i>(v), 1 * sizeof(double)));
+        case  2: return avx_cast<m256d>(_mm256_srli_si256(avx_cast<m256i>(v), 2 * sizeof(double)));
+        case  3: return avx_cast<m256d>(_mm256_srli_si256(avx_cast<m256i>(v), 3 * sizeof(double)));
+        case -1: return avx_cast<m256d>(_mm256_slli_si256(avx_cast<m256i>(v), 1 * sizeof(double)));
+        case -2: return avx_cast<m256d>(_mm256_slli_si256(avx_cast<m256i>(v), 2 * sizeof(double)));
+        case -3: return avx_cast<m256d>(_mm256_slli_si256(avx_cast<m256i>(v), 3 * sizeof(double)));
         }
         return _mm256_setzero_pd();
     }
@@ -1278,25 +1276,22 @@ template<typename VectorType, typename EntryType> struct VectorShift<32, 8, Vect
     typedef typename SseVectorType<VectorType>::Type SmallV;
     static Vc_INTRINSIC VectorType shifted(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
-        const m128i vLo = avx_cast<m128i>(lo128(v));
-        const m128i vHi = avx_cast<m128i>(hi128(v));
-        const SmallV z = avx_cast<SmallV>(_mm_setzero_ps());
         switch (amount) {
         case  0: return v;
-        case  1: return concat(avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(EntryType))), avx_cast<SmallV>(_mm_srli_si128(vHi, 1 * sizeof(EntryType))));
-        case  2: return concat(avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 2 * sizeof(EntryType))), avx_cast<SmallV>(_mm_srli_si128(vHi, 2 * sizeof(EntryType))));
-        case  3: return concat(avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 3 * sizeof(EntryType))), avx_cast<SmallV>(_mm_srli_si128(vHi, 3 * sizeof(EntryType))));
-        case  4: return zeroExtend(hi128(v));
-        case  5: return avx_cast<VectorType>(zeroExtend(_mm_srli_si128(vHi, 1 * sizeof(EntryType))));
-        case  6: return avx_cast<VectorType>(zeroExtend(_mm_srli_si128(vHi, 2 * sizeof(EntryType))));
-        case  7: return avx_cast<VectorType>(zeroExtend(_mm_srli_si128(vHi, 3 * sizeof(EntryType))));
-        case -1: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 1 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 3 * sizeof(EntryType))));
-        case -2: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 2 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 2 * sizeof(EntryType))));
-        case -3: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 3 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(EntryType))));
-        case -4: return avx_cast<VectorType>(_mm256_permute2f128_ps(avx_cast<m256>(v), avx_cast<m256>(v), 0x8));
-        case -5: return concat(z, avx_cast<SmallV>(_mm_slli_si128(vLo, 1 * sizeof(EntryType))));
-        case -6: return concat(z, avx_cast<SmallV>(_mm_slli_si128(vLo, 2 * sizeof(EntryType))));
-        case -7: return concat(z, avx_cast<SmallV>(_mm_slli_si128(vLo, 3 * sizeof(EntryType))));
+        case  1: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 1 * sizeof(EntryType)));
+        case  2: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 2 * sizeof(EntryType)));
+        case  3: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 3 * sizeof(EntryType)));
+        case  4: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 4 * sizeof(EntryType)));
+        case  5: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 5 * sizeof(EntryType)));
+        case  6: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 6 * sizeof(EntryType)));
+        case  7: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 7 * sizeof(EntryType)));
+        case -1: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 1 * sizeof(EntryType)));
+        case -2: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 2 * sizeof(EntryType)));
+        case -3: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 3 * sizeof(EntryType)));
+        case -4: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 4 * sizeof(EntryType)));
+        case -5: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 5 * sizeof(EntryType)));
+        case -6: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 6 * sizeof(EntryType)));
+        case -7: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 7 * sizeof(EntryType)));
         }
         return avx_cast<VectorType>(_mm256_setzero_ps());
     }
