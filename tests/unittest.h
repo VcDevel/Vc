@@ -20,6 +20,12 @@
 #ifndef UNITTEST_H
 #define UNITTEST_H
 
+#ifdef VC_ASSERT
+#error "include unittest.h before any Vc header"
+#endif
+static void unittest_assert(bool cond, const char *code, const char *file, int line);
+#define VC_ASSERT(cond) unittest_assert(cond, #cond, __FILE__, __LINE__);
+
 #include <Vc/Vc>
 #include <iostream>
 #include <iomanip>
@@ -350,11 +356,9 @@ class _UnitTest_Compare
         Vc_ALWAYS_INLINE _UnitTest_Compare(const char *_file, int _line)
             : m_ip(getIp()), m_failed(true)
         {
-            if (VC_IS_UNLIKELY(m_failed)) {
-                printFirst();
-                printPosition(_file, _line);
-                print(' ');
-            }
+            printFirst();
+            printPosition(_file, _line);
+            print(":\n");
         }
 
         template<typename T> Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const T &x) const {
@@ -527,8 +531,7 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
         if (_unit_test_global.expect_assert_failure) {
             ++_unit_test_global.assert_failure;
         } else {
-            std::cout << "       " << code << " at " << file << ":" << line << " failed.\n";
-            std::abort();
+            _UnitTest_Compare(file, line) << "assert(" << code << ") failed.";
         }
     }
 }
