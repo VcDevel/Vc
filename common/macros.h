@@ -197,11 +197,15 @@ do {} while ( false )
 #define for_all_vector_entries(_it_, _code_) \
   unrolled_loop16(_it_, 0, Size, _code_)
 
+#ifdef VC_ASSERT
+#define VC_EXTERNAL_ASSERT 1
+#else
 #ifdef NDEBUG
 #define VC_ASSERT(x)
 #else
 #include <assert.h>
 #define VC_ASSERT(x) assert(x);
+#endif
 #endif
 
 #ifdef VC_CLANG
