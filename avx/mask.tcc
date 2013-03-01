@@ -55,6 +55,16 @@ template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 8, 32>::operator[](int index) con
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 8, 16>::operator[](int index) const { return shiftMask() & (1 << 2 * index); }
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<16, 16>::operator[](int index) const { return toInt() & (1 << index); }
 
+#ifndef VC_IMPL_POPCNT
+static Vc_ALWAYS_INLINE Vc_CONST unsigned int _mm_popcnt_u32(unsigned int n) {
+    n = (n & 0x55555555U) + ((n >> 1) & 0x55555555U);
+    n = (n & 0x33333333U) + ((n >> 2) & 0x33333333U);
+    n = (n & 0x0f0f0f0fU) + ((n >> 4) & 0x0f0f0f0fU);
+    //n = (n & 0x00ff00ffU) + ((n >> 8) & 0x00ff00ffU);
+    //n = (n & 0x0000ffffU) + ((n >>16) & 0x0000ffffU);
+    return n;
+}
+#endif
 template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<Size, 32u>::count() const { return _mm_popcnt_u32(toInt()); }
 template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<Size, 16u>::count() const { return _mm_popcnt_u32(toInt()); }
 template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<Size, 32u>::firstOne() const { return _bit_scan_forward(toInt()); }
