@@ -16,7 +16,6 @@
 
 }}}*/
 
-#include <Vc/Vc>
 #include "unittest.h"
 
 //#define QUICK 1

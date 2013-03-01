@@ -17,7 +17,6 @@
 
 */
 
-#include <Vc/Vc>
 #include "unittest.h"
 #include <limits>
 #include <algorithm>
