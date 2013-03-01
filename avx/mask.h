@@ -98,8 +98,8 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
 
         Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](int index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
-        Vc_ALWAYS_INLINE_L Vc_PURE_L int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
-        Vc_ALWAYS_INLINE_L Vc_PURE_L int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
     private:
         m256 k;
@@ -171,8 +171,8 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
 
         Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](int index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
-        Vc_ALWAYS_INLINE_L Vc_PURE_L int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
-        Vc_ALWAYS_INLINE_L Vc_PURE_L int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
     private:
         m128 k;

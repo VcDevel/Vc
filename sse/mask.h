@@ -144,14 +144,14 @@ template<unsigned int VectorSize> class Mask
 
         Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](int index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
-        Vc_ALWAYS_INLINE_L Vc_PURE_L int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         /**
          * Returns the index of the first one in the mask.
          *
          * The return value is undefined if the mask is empty.
          */
-        Vc_ALWAYS_INLINE_L Vc_PURE_L int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
     private:
         _M128 k;
@@ -251,13 +251,13 @@ template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 4>::operator[](int index) const {
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 8>::operator[](int index) const { return shiftMask() & (1 << 2 * index); }
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<16>::operator[](int index) const { return toInt() & (1 << index); }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE int Mask<2>::count() const
+template<> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<2>::count() const
 {
     int mask = _mm_movemask_pd(dataD());
     return (mask & 1) + (mask >> 1);
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE int Mask<4>::count() const
+template<> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<4>::count() const
 {
 #ifdef VC_IMPL_SSE4_2
     return _mm_popcnt_u32(_mm_movemask_ps(data()));
@@ -271,7 +271,7 @@ template<> Vc_ALWAYS_INLINE Vc_PURE int Mask<4>::count() const
 #endif
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE int Mask<8>::count() const
+template<> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<8>::count() const
 {
 #ifdef VC_IMPL_SSE4_2
     return _mm_popcnt_u32(_mm_movemask_epi8(dataI())) / 2;
@@ -288,7 +288,7 @@ template<> Vc_ALWAYS_INLINE Vc_PURE int Mask<8>::count() const
 #endif
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE int Mask<16>::count() const
+template<> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<16>::count() const
 {
     int tmp = _mm_movemask_epi8(dataI());
 #ifdef VC_IMPL_SSE4_2
@@ -445,7 +445,7 @@ class Float8Mask
             return (toInt() & (1 << index)) != 0;
         }
 
-        Vc_ALWAYS_INLINE Vc_PURE int count() const {
+        Vc_ALWAYS_INLINE Vc_PURE unsigned int count() const {
 #ifdef VC_IMPL_SSE4_2
 		return _mm_popcnt_u32(toInt());
 #else
@@ -462,13 +462,13 @@ class Float8Mask
 #endif
         }
 
-        Vc_ALWAYS_INLINE_L Vc_PURE_L int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
     private:
         M256 k;
 };
 
-template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE int Mask<Size>::firstOne() const
+template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<Size>::firstOne() const
 {
     const int mask = toInt();
 #ifdef _MSC_VER
@@ -480,7 +480,7 @@ template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE int Mask<Size>::firstOne() 
 #endif
     return bit;
 }
-Vc_ALWAYS_INLINE Vc_PURE int Float8Mask::firstOne() const
+Vc_ALWAYS_INLINE Vc_PURE unsigned int Float8Mask::firstOne() const
 {
     const int mask = toInt();
 #ifdef _MSC_VER
