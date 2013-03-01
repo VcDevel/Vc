@@ -58,6 +58,12 @@
 #undef VC_WARN_INLINE
 #undef VC_WARN
 
+#ifdef VC_EXTERNAL_ASSERT
+#undef VC_EXTERNAL_ASSERT
+#else
+#undef VC_ASSERT
+#endif
+
 #undef VC_HAS_BUILTIN
 
 #undef Vc_buildDouble
