@@ -397,7 +397,7 @@ template<typename Vec> void testSum()
         Mask m;
         do {
             m = allMasks<Vec>(j++);
-            COMPARE(v.sum(m), x * m.count()) << m << v;
+            COMPARE(v.sum(m), static_cast<T>(x * m.count())) << m << v;
         } while (!m.isEmpty());
     }
 }
