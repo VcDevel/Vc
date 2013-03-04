@@ -198,7 +198,7 @@ template<typename Vec> void testCount()
     typedef typename Vec::Mask M;
 
     for_all_masks(Vec, m) {
-        int count = 0;
+        unsigned int count = 0;
         for (int i = 0; i < Vec::Size; ++i) {
             if (m[i]) {
                 ++count;
