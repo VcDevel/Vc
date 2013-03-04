@@ -28,7 +28,7 @@ namespace Vc
 namespace Common
 {
 
-template<size_t StructSize, typename V> struct InterleavedMemoryReadAccess;
+template<size_t StructSize, typename V, typename I> struct InterleavedMemoryReadAccess;
 
 template<int Length, typename V> struct VectorTuple;
 template<typename V> struct VectorTuple<2, V>
@@ -52,8 +52,8 @@ template<typename V> struct VectorTuple<2, V>
         return VectorTuple<3, const V>(*this, a);
     }
 
-    template<size_t StructSize>
-    Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V> &access) const
+    template<size_t StructSize, typename I>
+    Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V, I> &access) const
     {
         VC_STATIC_ASSERT(2 <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has);
         access.deinterleave(l, r);
@@ -95,8 +95,8 @@ template<typename V> struct VectorTuple<LENGTH, V> \
         return VectorTuple<LENGTH + 1, V>(*this, a); \
     } \
  \
-    template<size_t StructSize> \
-    Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V> &access) const \
+    template<size_t StructSize, typename I> \
+    Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V, I> &access) const \
     { \
         VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has); \
         access.deinterleave parameters; \

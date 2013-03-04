@@ -30,11 +30,31 @@ namespace Common
 
 /**
  * \internal
+ *
+ * Helper interface to make m_indexes in InterleavedMemoryAccessBase behave like an integer vector.
+ * Only that the entries are successive entries from the given start index.
  */
-template<typename V> struct InterleavedMemoryAccessBase
+class SuccessiveEntries
 {
+    size_t m_first;
+public:
+    typedef SuccessiveEntries AsArg;
+    Vc_CONSTEXPR SuccessiveEntries(size_t first) : m_first(first) {}
+    Vc_CONSTEXPR Vc_PURE size_t operator[](size_t offset) const { return m_first + offset; }
+    Vc_CONSTEXPR Vc_PURE size_t data() const { return m_first; }
+    Vc_CONSTEXPR Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first + rhs.m_first); }
+    Vc_CONSTEXPR Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first * rhs.m_first); }
+};
+
+/**
+ * \internal
+ */
+template<typename V, typename I> struct InterleavedMemoryAccessBase
+{
+    // Partial specialization doesn't work for functions without partial specialization of the whole
+    // class. Therefore we capture the contents of InterleavedMemoryAccessBase in a macro to easily
+    // copy it into its specializations.
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
     typedef typename V::AsArg VArg;
     typedef T Ta Vc_MAY_ALIAS;
     const I m_indexes;
@@ -46,32 +66,31 @@ template<typename V> struct InterleavedMemoryAccessBase
     }
 
     // implementations of the following are in {scalar,sse,avx}/interleavedmemory.tcc
-    void deinterleave(V &v0, V &v1) const;
-    void deinterleave(V &v0, V &v1, V &v2) const;
-    void deinterleave(V &v0, V &v1, V &v2, V &v3) const;
-    void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4) const;
-    void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5) const;
-    void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6) const;
-    void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7) const;
+    inline void deinterleave(V &v0, V &v1) const;
+    inline void deinterleave(V &v0, V &v1, V &v2) const;
+    inline void deinterleave(V &v0, V &v1, V &v2, V &v3) const;
+    inline void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4) const;
+    inline void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5) const;
+    inline void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6) const;
+    inline void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7) const;
 
-    void interleave(VArg v0, VArg v1);
-    void interleave(VArg v0, VArg v1, VArg v2);
-    void interleave(VArg v0, VArg v1, VArg v2, VArg v3);
-    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4);
-    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5);
-    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6);
-    void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6, VArg v7);
+    inline void interleave(VArg v0, VArg v1);
+    inline void interleave(VArg v0, VArg v1, VArg v2);
+    inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3);
+    inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4);
+    inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5);
+    inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6);
+    inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6, VArg v7);
 };
 
 /**
  * \internal
  */
 // delay execution of the deinterleaving gather until operator=
-template<size_t StructSize, typename V> struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V>
+template<size_t StructSize, typename V, typename I = typename V::IndexType> struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V, I>
 {
-    typedef InterleavedMemoryAccessBase<V> Base;
+    typedef InterleavedMemoryAccessBase<V, I> Base;
     typedef typename Base::Ta Ta;
-    typedef typename Base::I I;
 
     Vc_ALWAYS_INLINE InterleavedMemoryReadAccess(Ta *data, typename I::AsArg indexes)
         : Base(indexes * I(StructSize), data)
@@ -82,11 +101,10 @@ template<size_t StructSize, typename V> struct InterleavedMemoryReadAccess : pub
 /**
  * \internal
  */
-template<size_t StructSize, typename V> struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, V>
+template<size_t StructSize, typename V, typename I = typename V::IndexType> struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, V, I>
 {
-    typedef InterleavedMemoryAccessBase<V> Base;
+    typedef InterleavedMemoryAccessBase<V, I> Base;
     typedef typename Base::Ta Ta;
-    typedef typename Base::I I;
 
     Vc_ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, typename I::AsArg indexes)
         : InterleavedMemoryReadAccess<StructSize, V>(data, indexes)
@@ -146,6 +164,7 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     typedef typename I::AsArg IndexType;
     typedef InterleavedMemoryAccess<sizeof(S) / sizeof(T), V> Access;
     typedef InterleavedMemoryReadAccess<sizeof(S) / sizeof(T), V> ReadAccess;
+    typedef InterleavedMemoryReadAccess<sizeof(S) / sizeof(T), V, SuccessiveEntries> ReadSuccessiveEntries;
     typedef T Ta Vc_MAY_ALIAS;
     Ta *const m_data;
 
@@ -227,6 +246,11 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
 
     /// alias of the above function
     Vc_ALWAYS_INLINE ReadAccess gather(IndexType indexes) const { return operator[](indexes); }
+
+    Vc_ALWAYS_INLINE ReadSuccessiveEntries operator[](size_t first) const
+    {
+        return ReadSuccessiveEntries(m_data, first);
+    }
 
     //Vc_ALWAYS_INLINE Access scatter(I indexes, VArg v0, VArg v1);
 };

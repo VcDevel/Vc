@@ -154,10 +154,18 @@
 #define _VC_CONSTEXPR constexpr
 #define _VC_CONSTEXPR_L _VC_CONSTEXPR
 #define _VC_CONSTEXPR_R
+#define Vc_CONSTEXPR constexpr
+#define Vc_CONSTEXPR_L Vc_CONSTEXPR
+#define Vc_CONSTEXPR_R
+#define Vc_CONSTEXPR_DATA static constexpr
 #else
 #define _VC_CONSTEXPR Vc_INTRINSIC Vc_CONST
 #define _VC_CONSTEXPR_L Vc_INTRINSIC_L Vc_CONST_L
 #define _VC_CONSTEXPR_R Vc_INTRINSIC_R Vc_CONST_R
+#define Vc_CONSTEXPR Vc_INTRINSIC
+#define Vc_CONSTEXPR_L Vc_INTRINSIC_L
+#define Vc_CONSTEXPR_R Vc_INTRINSIC_R
+#define Vc_CONSTEXPR_DATA static const
 #endif
 
 #ifdef VC_CXX11
