@@ -102,8 +102,8 @@ static Vc_ALWAYS_INLINE void assertCorrectAlignment(const M256 *ptr)
     template<typename T> struct VectorHelper {};
 
     template<unsigned int Size> struct IndexTypeHelper;
-    template<> struct IndexTypeHelper<2u> { typedef unsigned int   Type; };
-    template<> struct IndexTypeHelper<4u> { typedef unsigned int   Type; };
+    template<> struct IndexTypeHelper<2u> { typedef          int   Type; };
+    template<> struct IndexTypeHelper<4u> { typedef          int   Type; };
     template<> struct IndexTypeHelper<8u> { typedef unsigned short Type; };
     template<> struct IndexTypeHelper<16u>{ typedef unsigned char  Type; };
 
