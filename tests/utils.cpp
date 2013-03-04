@@ -112,7 +112,7 @@ template<typename V> void testForeachBit()
         }
         COMPARE(tmp == V::One(), mask);
 
-        int count = 0;
+        unsigned int count = 0;
         foreach_bit(int j, mask) {
             ++count;
             if (j >= 0) {
@@ -128,7 +128,7 @@ template<typename V> void testForeachBit()
             }
             ++count;
         }
-        COMPARE(count, 0);
+        COMPARE(count, 0U);
     }
 }
 
@@ -251,12 +251,12 @@ class CallTester
 
         void reset() { v.setZero(); i = 0; }
 
-        int callCount() const { return i; }
+        unsigned int callCount() const { return i; }
         V callValues() const { return v; }
 
     private:
         V v;
-        int i;
+        unsigned int i;
 };
 
 #if __cplusplus >= 201103 && (!defined(VC_CLANG) || VC_CLANG > 0x30000)
@@ -278,7 +278,7 @@ void applyAndCall()
 
         CallTester<T, V> callTester;
         rand.call(callTester);
-        COMPARE(callTester.callCount(), int(V::Size));
+        COMPARE(callTester.callCount(), static_cast<unsigned int>(V::Size));
         COMPARE(callTester.callValues(), rand);
 
         for_all_masks(V, mask) {
