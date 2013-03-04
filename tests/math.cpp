@@ -242,7 +242,7 @@ template<typename V> void testLog()/*{{{*/
     }
 }
 /*}}}*/
-#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L/*{{{*/
+#if (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600) || defined(_ISOC99_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L)/*{{{*/
 static inline float my_log2(float x) { return ::log2f(x); }
 /* I need to make sure whether the log2 that I compare against is really precise to <0.5ulp. At
  * least I get different results when I use "double log2(double)", which is somewhat unexpected.
