@@ -214,7 +214,7 @@ template<typename Vec> void testFirstOne()
     typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
-    for (int i = 0; i < Vec::Size; ++i) {
+    for (unsigned int i = 0; i < Vec::Size; ++i) {
         const M mask(I(Vc::IndexesFromZero) == i);
         COMPARE(mask.firstOne(), i);
     }
