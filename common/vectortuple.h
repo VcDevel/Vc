@@ -37,17 +37,17 @@ template<typename V> struct VectorTuple<2, V>
     typedef V &VC_RESTRICT Reference;
     Reference l, r;
 
-    Vc_ALWAYS_INLINE VectorTuple(Reference a, Reference b)
+    Vc_CONSTEXPR VectorTuple(Reference a, Reference b)
         : l(a), r(b)
     {
     }
 
-    Vc_ALWAYS_INLINE VectorTuple<3, V> operator,(V &a) const
+    Vc_CONSTEXPR VectorTuple<3, V> operator,(V &a) const
     {
         return VectorTuple<3, V>(*this, a);
     }
 
-    Vc_ALWAYS_INLINE VectorTuple<3, const V> operator,(const V &a) const
+    Vc_CONSTEXPR VectorTuple<3, const V> operator,(const V &a) const
     {
         return VectorTuple<3, const V>(*this, a);
     }
@@ -66,12 +66,12 @@ template<typename V> struct VectorTuple<2, const V>
     typedef const V &VC_RESTRICT Reference;
     Reference l, r;
 
-    Vc_ALWAYS_INLINE VectorTuple(Reference a, Reference b)
+    Vc_CONSTEXPR VectorTuple(Reference a, Reference b)
         : l(a), r(b)
     {
     }
 
-    Vc_ALWAYS_INLINE VectorTuple<3, const V> operator,(const V &a) const
+    Vc_CONSTEXPR VectorTuple<3, const V> operator,(const V &a) const
     {
         return VectorTuple<3, const V>(*this, a);
     }
@@ -85,12 +85,12 @@ template<typename V> struct VectorTuple<LENGTH, V> \
     const VectorTuple<LENGTH - 1, V> &l; \
     Reference r; \
  \
-    Vc_ALWAYS_INLINE VectorTuple(const VectorTuple<LENGTH - 1, V> &tuple, Reference a) \
+    Vc_CONSTEXPR VectorTuple(const VectorTuple<LENGTH - 1, V> &tuple, Reference a) \
         : l(tuple), r(a) \
     { \
     } \
  \
-    Vc_ALWAYS_INLINE VectorTuple<LENGTH + 1, V> operator,(V &a) const \
+    Vc_CONSTEXPR VectorTuple<LENGTH + 1, V> operator,(V &a) const \
     { \
         return VectorTuple<LENGTH + 1, V>(*this, a); \
     } \
@@ -109,12 +109,12 @@ template<typename V> struct VectorTuple<LENGTH, const V> \
     const VectorTuple<LENGTH - 1, const V> &l; \
     Reference r; \
  \
-    Vc_ALWAYS_INLINE VectorTuple(const VectorTuple<LENGTH - 1, const V> &tuple, Reference a) \
+    Vc_CONSTEXPR VectorTuple(const VectorTuple<LENGTH - 1, const V> &tuple, Reference a) \
         : l(tuple), r(a) \
     { \
     } \
  \
-    Vc_ALWAYS_INLINE VectorTuple<LENGTH + 1, const V> operator,(const V &a) const \
+    Vc_CONSTEXPR VectorTuple<LENGTH + 1, const V> operator,(const V &a) const \
     { \
         return VectorTuple<LENGTH + 1, const V>(*this, a); \
     } \
@@ -130,13 +130,13 @@ _VC_VECTORTUPLE_SPECIALIZATION(8, (l.l.l.l.l.l.l, l.l.l.l.l.l.r, l.l.l.l.l.r, l.
 } // namespace Common
 
 template<typename T>
-Vc_ALWAYS_INLINE Common::VectorTuple<2, Vc::Vector<T> > operator,(Vc::Vector<T> &a, Vc::Vector<T> &b)
+Vc_CONSTEXPR Common::VectorTuple<2, Vc::Vector<T> > operator,(Vc::Vector<T> &a, Vc::Vector<T> &b)
 {
     return Common::VectorTuple<2, Vc::Vector<T> >(a, b);
 }
 
 template<typename T>
-Vc_ALWAYS_INLINE Common::VectorTuple<2, const Vc::Vector<T> > operator,(const Vc::Vector<T> &a, const Vc::Vector<T> &b)
+Vc_CONSTEXPR Common::VectorTuple<2, const Vc::Vector<T> > operator,(const Vc::Vector<T> &a, const Vc::Vector<T> &b)
 {
     return Common::VectorTuple<2, const Vc::Vector<T> >(a, b);
 }
