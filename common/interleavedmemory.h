@@ -34,13 +34,13 @@ namespace Common
  * Helper interface to make m_indexes in InterleavedMemoryAccessBase behave like an integer vector.
  * Only that the entries are successive entries from the given start index.
  */
-class SuccessiveEntries
+template<size_t StructSize> class SuccessiveEntries
 {
     size_t m_first;
 public:
     typedef SuccessiveEntries AsArg;
     Vc_CONSTEXPR SuccessiveEntries(size_t first) : m_first(first) {}
-    Vc_CONSTEXPR Vc_PURE size_t operator[](size_t offset) const { return m_first + offset; }
+    Vc_CONSTEXPR Vc_PURE size_t operator[](size_t offset) const { return m_first + offset * StructSize; }
     Vc_CONSTEXPR Vc_PURE size_t data() const { return m_first; }
     Vc_CONSTEXPR Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first + rhs.m_first); }
     Vc_CONSTEXPR Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first * rhs.m_first); }
@@ -162,9 +162,10 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     typedef typename V::IndexType I;
     typedef typename V::AsArg VArg;
     typedef typename I::AsArg IndexType;
-    typedef InterleavedMemoryAccess<sizeof(S) / sizeof(T), V> Access;
-    typedef InterleavedMemoryReadAccess<sizeof(S) / sizeof(T), V> ReadAccess;
-    typedef InterleavedMemoryReadAccess<sizeof(S) / sizeof(T), V, SuccessiveEntries> ReadSuccessiveEntries;
+    enum Constants { StructSize = sizeof(S) / sizeof(T) };
+    typedef InterleavedMemoryAccess<StructSize, V> Access;
+    typedef InterleavedMemoryReadAccess<StructSize, V> ReadAccess;
+    typedef InterleavedMemoryReadAccess<StructSize, V, SuccessiveEntries<StructSize> > ReadSuccessiveEntries;
     typedef T Ta Vc_MAY_ALIAS;
     Ta *const m_data;
 
