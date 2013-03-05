@@ -129,6 +129,15 @@ _VC_VECTORTUPLE_SPECIALIZATION(8, (l.l.l.l.l.l.l, l.l.l.l.l.l.r, l.l.l.l.l.r, l.
 
 } // namespace Common
 
+#ifdef VC_IMPL_Scalar
+namespace Scalar
+#elif defined VC_IMPL_SSE
+namespace SSE
+#elif defined VC_IMPL_AVX
+namespace AVX
+#endif
+{
+
 template<typename T>
 Vc_ALWAYS_INLINE Common::VectorTuple<2, Vc::Vector<T> > operator,(Vc::Vector<T> &a, Vc::Vector<T> &b)
 {
@@ -140,6 +149,8 @@ Vc_ALWAYS_INLINE Common::VectorTuple<2, const Vc::Vector<T> > operator,(const Vc
 {
     return Common::VectorTuple<2, const Vc::Vector<T> >(a, b);
 }
+
+} // namespace Scalar/SSE/AVX
 
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
