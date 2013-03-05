@@ -244,7 +244,7 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
     }
 
     for (size_t i = 0; i < N - V::Size; ++i) {
-        const V reference = static_cast<V>(I::IndexesFromZero()) + V(i * StructSize);
+        const V reference = static_cast<V>(i + I::IndexesFromZero()) * T(StructSize);
         TestDeinterleaveGatherCompare<V, StructSize, false>::test(data_v, i, reference);
     }
 }
