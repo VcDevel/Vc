@@ -247,6 +247,39 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
     /// alias of the above function
     Vc_ALWAYS_INLINE ReadAccess gather(IndexType indexes) const { return operator[](indexes); }
 
+    /**
+     * Interleaved access.
+     *
+     * This function is an optimization of the function above, for cases where the index vector
+     * contains consecutive values. It will load \p V::Size consecutive entries from memory and
+     * deinterleave them into Vc vectors.
+     *
+     * \param first The first of \p V::Size indizes to be accessed.
+     *
+     * \return A special (magic) object that executes the loads and deinterleave on assignment to a
+     * vector tuple.
+     *
+     * Example:
+     * \code
+     * struct Foo {
+     *   float x, y, z;
+     * };
+     *
+     * void foo(Foo *_data)
+     * {
+     *   Vc::InterleavedMemoryWrapper<Foo, float_v> data(_data);
+     *   for (size_t i = 0; i < 32U; i += float_v::Size) {
+     *     float_v x, y, z;
+     *     (x, y, z) = data[i];
+     *     // now:
+     *     // x = { _data[i].x, _data[i + 1].x, _data[i + 2].x, ... }
+     *     // y = { _data[i].y, _data[i + 1].y, _data[i + 2].y, ... }
+     *     // z = { _data[i].z, _data[i + 1].z, _data[i + 2].z, ... }
+     *     ...
+     *   }
+     * }
+     * \endcode
+     */
     Vc_ALWAYS_INLINE ReadSuccessiveEntries operator[](size_t first) const
     {
         return ReadSuccessiveEntries(m_data, first);
