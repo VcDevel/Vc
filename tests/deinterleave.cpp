@@ -21,7 +21,13 @@
 #include <iostream>
 #include <limits>
 
-using namespace Vc;
+using Vc::float_v;
+using Vc::double_v;
+using Vc::sfloat_v;
+using Vc::int_v;
+using Vc::uint_v;
+using Vc::short_v;
+using Vc::ushort_v;
 
 
 /*
@@ -77,8 +83,8 @@ template<typename Pair> void testDeinterleave()
         // note that a 32 bit integer is certainly enough to decide on alignment...
         // ... but uintptr_t is C99 but not C++ yet
         // ... and GCC refuses to do the cast, even if I know what I'm doing
-        if (reinterpret_cast<unsigned long>(&memory[i]) & (VectorAlignment - 1)) {
-            Vc::deinterleave(&a, &b, &memory[i], Unaligned);
+        if (reinterpret_cast<unsigned long>(&memory[i]) & (Vc::VectorAlignment - 1)) {
+            Vc::deinterleave(&a, &b, &memory[i], Vc::Unaligned);
         } else {
             Vc::deinterleave(&a, &b, &memory[i]);
         }
