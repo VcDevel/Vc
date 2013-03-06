@@ -130,6 +130,11 @@ template<size_t StructSize, typename V, typename I = typename V::IndexType> stru
     }
 
 #define _VC_SCATTER_ASSIGNMENT(LENGTH, parameters) \
+    Vc_ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, V> &rhs) \
+    { \
+        VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_scatter_more_data_into_the_struct_than_it_has); \
+        this->interleave parameters ; \
+    } \
     Vc_ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, const V> &rhs) \
     { \
         VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_scatter_more_data_into_the_struct_than_it_has); \
