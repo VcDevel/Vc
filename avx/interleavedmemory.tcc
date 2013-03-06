@@ -480,8 +480,8 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4)
     {
-        deinterleave(data, i, v0, v1, v2, v3);
         v4.gather(data + 4, i);
+        deinterleave(data, i, v0, v1, v2, v3);
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4, V &v5)
@@ -581,9 +581,9 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4)
     {
+        v4.gather(data + 4, i);
         deinterleave(data, i, v0, v1);
         deinterleave(data + 2, i, v2, v3);
-        v4.gather(data + 4, i);
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4, V &v5)
@@ -595,10 +595,10 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6)
     {
+        v6.gather(data + 6, i);
         deinterleave(data, i, v0, v1);
         deinterleave(data + 2, i, v2, v3);
         deinterleave(data + 4, i, v4, v5);
-        v6.gather(data + 6, i);
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7)
