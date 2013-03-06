@@ -32,7 +32,7 @@ namespace
 {
 template<typename V, int Size, size_t VSize> struct InterleaveImpl;
 template<typename V> struct InterleaveImpl<V, 8, 16> {
-    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1)
     {
         const m128i tmp0 = _mm_unpacklo_epi16(v0.data(), v1.data());
@@ -61,7 +61,7 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
         *reinterpret_cast<int *>(&data[i[7]]) = _mm_extract_epi32(tmp1, 3);
 #endif
     }/*}}}*/
-    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
 #ifdef VC_USE_MASKMOV_SCATTER
@@ -90,7 +90,7 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
         v2.scatter(data + 2, i);
 #endif
     }/*}}}*/
-    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1,
             const typename V::AsArg v2, const typename V::AsArg v3)
     {
@@ -337,7 +337,7 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
     }/*}}}*/
 };
 template<typename V> struct InterleaveImpl<V, 8, 32> {
-    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1)
     {
         using namespace Vc::AVX;
@@ -354,7 +354,7 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         _mm_storel_pi(reinterpret_cast<__m64 *>(&data[i[6]]), hi128(tmp1));
         _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[7]]), hi128(tmp1));
     }/*}}}*/
-    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
         using namespace Vc::AVX;
@@ -385,7 +385,7 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         v2.scatter(data + 2, i);
 #endif
     }/*}}}*/
-    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1,
             const typename V::AsArg v2, const typename V::AsArg v3)
     {
@@ -503,7 +503,7 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
     }/*}}}*/
 };
 template<typename V> struct InterleaveImpl<V, 4, 32> {
-    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1)
     {
         using namespace Vc::AVX;
@@ -514,7 +514,7 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
         _mm_storeu_pd(&data[i[2]], hi128(tmp0));
         _mm_storeu_pd(&data[i[3]], hi128(tmp1));
     }/*}}}*/
-    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
         using namespace Vc::AVX;
@@ -539,7 +539,7 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
         v2.scatter(data + 2, i);
 #endif
     }/*}}}*/
-    static inline void interleave(typename V::EntryType *const data, const typename V::IndexType &i,/*{{{*/
+    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1,
             const typename V::AsArg v2, const typename V::AsArg v3)
     {

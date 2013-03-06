@@ -98,6 +98,23 @@ template<size_t StructSize, typename V, typename I = typename V::IndexType> stru
     }
 };
 
+template<typename I> struct CheckIndexesUnique
+{
+#ifdef NDEBUG
+    static Vc_INTRINSIC void test(const I &) {}
+#else
+    static void test(const I &indexes)
+    {
+        const I test = Base::indexes.sorted();
+        VC_ASSERT(I::Size == 1 || (test == test.rotated(1)).isEmpty())
+    }
+#endif
+};
+template<size_t S> struct CheckIndexesUnique<SuccessiveEntries<S> >
+{
+    static Vc_INTRINSIC void test(const SuccessiveEntries<S> &) {}
+};
+
 /**
  * \internal
  */
@@ -107,15 +124,15 @@ template<size_t StructSize, typename V, typename I = typename V::IndexType> stru
     typedef typename Base::Ta Ta;
 
     Vc_ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, typename I::AsArg indexes)
-        : InterleavedMemoryReadAccess<StructSize, V>(data, indexes)
+        : InterleavedMemoryReadAccess<StructSize, V, I>(data, indexes)
     {
+        CheckIndexesUnique<I>::test(indexes);
     }
 
 #define _VC_SCATTER_ASSIGNMENT(LENGTH, parameters) \
     Vc_ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, const V> &rhs) \
     { \
         VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_scatter_more_data_into_the_struct_than_it_has); \
-        checkIndexesUnique(); \
         this->interleave parameters ; \
     }
     _VC_SCATTER_ASSIGNMENT(2, (rhs.l, rhs.r))
@@ -128,15 +145,6 @@ template<size_t StructSize, typename V, typename I = typename V::IndexType> stru
 #undef _VC_SCATTER_ASSIGNMENT
 
 private:
-#ifdef NDEBUG
-    Vc_ALWAYS_INLINE void checkIndexesUnique() const {}
-#else
-    void checkIndexesUnique() const
-    {
-        const I test = Base::m_indexes.sorted();
-        VC_ASSERT(I::Size == 1 || (test == test.rotated(1)).isEmpty())
-    }
-#endif
 };
 
 #ifdef DOXYGEN
@@ -165,6 +173,7 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     enum Constants { StructSize = sizeof(S) / sizeof(T) };
     typedef InterleavedMemoryAccess<StructSize, V> Access;
     typedef InterleavedMemoryReadAccess<StructSize, V> ReadAccess;
+    typedef InterleavedMemoryAccess<StructSize, V, SuccessiveEntries<StructSize> > AccessSuccessiveEntries;
     typedef InterleavedMemoryReadAccess<StructSize, V, SuccessiveEntries<StructSize> > ReadSuccessiveEntries;
     typedef T Ta Vc_MAY_ALIAS;
     Ta *const m_data;
@@ -284,6 +293,11 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
     Vc_ALWAYS_INLINE ReadSuccessiveEntries operator[](size_t first) const
     {
         return ReadSuccessiveEntries(m_data, first);
+    }
+
+    Vc_ALWAYS_INLINE AccessSuccessiveEntries operator[](size_t first)
+    {
+        return AccessSuccessiveEntries(m_data, first);
     }
 
     //Vc_ALWAYS_INLINE Access scatter(I indexes, VArg v0, VArg v1);

@@ -260,11 +260,17 @@ template<typename V> void testDeinterleaveGather()
     testDeinterleaveGatherImpl<V, 8>();
 }
 
-template<typename V, size_t StructSize> struct TestInterleavingScatterCompare;
+template<typename V, size_t StructSize, bool Random> struct TestInterleavingScatterCompare;
 #define _IMPL(STRUCTSIZE, _code_) \
-template<typename V> struct TestInterleavingScatterCompare<V, STRUCTSIZE> { \
-    typedef TestInterleavingScatterCompare<V, STRUCTSIZE - 1> NextTest; \
+template<typename V> struct TestInterleavingScatterCompare<V, STRUCTSIZE, true> { \
+    typedef TestInterleavingScatterCompare<V, STRUCTSIZE - 1, true> NextTest; \
     template<typename Wrapper> static void test(Wrapper &data, const typename V::IndexType &i) { \
+        _code_ \
+    } \
+}; \
+template<typename V> struct TestInterleavingScatterCompare<V, STRUCTSIZE, false> { \
+    typedef TestInterleavingScatterCompare<V, STRUCTSIZE - 1, false> NextTest; \
+    template<typename Wrapper, typename I> static void test(Wrapper &data, const I &i) { \
         _code_ \
     } \
 }
@@ -405,7 +411,11 @@ template<typename V, size_t StructSize> void testInterleavingScatterImpl()
         VERIFY(indexes >= 0);
         VERIFY(indexes < N);
 
-        TestInterleavingScatterCompare<V, StructSize>::test(data_v, indexes);
+        TestInterleavingScatterCompare<V, StructSize, true>::test(data_v, indexes);
+    }
+
+    for (size_t i = 0; i < N - V::Size; ++i) {
+        TestInterleavingScatterCompare<V, StructSize, false>::test(data_v, i);
     }
 }
 
