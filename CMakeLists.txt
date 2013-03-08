@@ -141,7 +141,7 @@ if(NOT ROOT_RELEASE)
    add_target_property(Vc LABELS "other")
    add_dependencies(other Vc)
 
-   install(TARGETS Vc DESTINATION lib/)
+   install(TARGETS Vc DESTINATION lib${LIB_SUFFIX})
    install(DIRECTORY include/Vc/ DESTINATION include/Vc)
    install(DIRECTORY scalar sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 else()
