@@ -19,7 +19,10 @@ versionString=$newVersion
 versionNumber=`echo $newVersion | awk '{ split($0, v, "."); printf "0x%02x%02x%02x", v[1], v[2], v[3] * 2 }'`
 
 # Update the version number
-sed -i "s/^PROJECT_NUMBER         = .*\$/PROJECT_NUMBER         = $versionString/" doc/Doxyfile
+sed -i \
+	-e "s/^PROJECT_NUMBER         = .*\$/PROJECT_NUMBER         = $versionString/" \
+	-e "s/^HTML_TIMESTAMP         = YES/HTML_TIMESTAMP         = NO/" \
+	doc/Doxyfile
 sed -i \
 	-e "s/VC_VERSION_STRING \".*\"\$/VC_VERSION_STRING \"$versionString\"/" \
 	-e "s/VC_VERSION_NUMBER 0x.*\$/VC_VERSION_NUMBER $versionNumber/" \
@@ -35,7 +38,10 @@ git archive --format=tar --prefix="Vc-$versionString/" "$versionString" | gzip >
 versionString="$versionString-dev"
 versionNumber=`echo $versionNumber | awk '{ printf "0x%06x", (strtonum($0) + 1) }'`
 
-sed -i "s/^PROJECT_NUMBER         = .*\$/PROJECT_NUMBER         = $versionString/" doc/Doxyfile
+sed -i \
+	-e "s/^PROJECT_NUMBER         = .*\$/PROJECT_NUMBER         = $versionString/" \
+	-e "s/^HTML_TIMESTAMP         = YES/HTML_TIMESTAMP         = NO/" \
+	doc/Doxyfile
 sed -i \
 	-e "s/VC_VERSION_STRING \".*\"\$/VC_VERSION_STRING \"$versionString\"/" \
 	-e "s/VC_VERSION_NUMBER 0x.*\$/VC_VERSION_NUMBER $versionNumber/" \
