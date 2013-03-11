@@ -49,6 +49,19 @@ template<> struct InterleaveImpl<SSE::sfloat_v, 8> {
         _mm_storel_pi(reinterpret_cast<__m64 *>(&data[i[6]]), tmp3);
         _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[7]]), tmp3);
     }/*}}}*/
+    static inline void interleave(float *const data, const SuccessiveEntries<2> &i,/*{{{*/
+            const SSE::sfloat_v::AsArg v0, const SSE::sfloat_v::AsArg v1)
+    {
+        const __m128 tmp0 = _mm_unpacklo_ps(v0.data()[0], v1.data()[0]);
+        const __m128 tmp1 = _mm_unpackhi_ps(v0.data()[0], v1.data()[0]);
+        const __m128 tmp2 = _mm_unpacklo_ps(v0.data()[1], v1.data()[1]);
+        const __m128 tmp3 = _mm_unpackhi_ps(v0.data()[1], v1.data()[1]);
+
+        _mm_storeu_ps(&data[i[0]], tmp0);
+        _mm_storeu_ps(&data[i[2]], tmp1);
+        _mm_storeu_ps(&data[i[4]], tmp2);
+        _mm_storeu_ps(&data[i[6]], tmp3);
+    }/*}}}*/
     template<typename I> static inline void interleave(float *const data, const I &i,/*{{{*/
             const SSE::sfloat_v::AsArg v0, const SSE::sfloat_v::AsArg v1, const SSE::sfloat_v::AsArg v2)
     {
@@ -372,6 +385,14 @@ template<typename V> struct InterleaveImpl<V, 8> {
         *reinterpret_cast<int *>(&data[i[7]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 12));
 #endif
     }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const SuccessiveEntries<2> &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1)
+    {
+        const __m128i tmp0 = _mm_unpacklo_epi16(v0.data(), v1.data());
+        const __m128i tmp1 = _mm_unpackhi_epi16(v0.data(), v1.data());
+        V(tmp0).store(&data[i[0]], Vc::Unaligned);
+        V(tmp1).store(&data[i[4]], Vc::Unaligned);
+    }/*}}}*/
     template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
@@ -423,6 +444,25 @@ template<typename V> struct InterleaveImpl<V, 8> {
         _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[3]]), _mm_castsi128_ps(tmp5));
         _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[5]]), _mm_castsi128_ps(tmp6));
         _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[7]]), _mm_castsi128_ps(tmp7));
+    }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const SuccessiveEntries<4> &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1,
+            const typename V::AsArg v2, const typename V::AsArg v3)
+    {
+        const __m128i tmp0 = _mm_unpacklo_epi16(v0.data(), v2.data());
+        const __m128i tmp1 = _mm_unpackhi_epi16(v0.data(), v2.data());
+        const __m128i tmp2 = _mm_unpacklo_epi16(v1.data(), v3.data());
+        const __m128i tmp3 = _mm_unpackhi_epi16(v1.data(), v3.data());
+
+        const __m128i tmp4 = _mm_unpacklo_epi16(tmp0, tmp2);
+        const __m128i tmp5 = _mm_unpackhi_epi16(tmp0, tmp2);
+        const __m128i tmp6 = _mm_unpacklo_epi16(tmp1, tmp3);
+        const __m128i tmp7 = _mm_unpackhi_epi16(tmp1, tmp3);
+
+        V(tmp4).store(&data[i[0]], ::Vc::Unaligned);
+        V(tmp5).store(&data[i[2]], ::Vc::Unaligned);
+        V(tmp6).store(&data[i[4]], ::Vc::Unaligned);
+        V(tmp7).store(&data[i[6]], ::Vc::Unaligned);
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1)
@@ -657,6 +697,14 @@ template<typename V> struct InterleaveImpl<V, 4> {
         _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[1]]), tmp0);
         _mm_storel_pi(reinterpret_cast<__m64 *>(&data[i[2]]), tmp1);
         _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[3]]), tmp1);
+    }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const SuccessiveEntries<2> &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1)
+    {
+        const __m128 tmp0 = _mm_unpacklo_ps(SSE::sse_cast<__m128>(v0.data()),SSE::sse_cast<__m128>(v1.data()));
+        const __m128 tmp1 = _mm_unpackhi_ps(SSE::sse_cast<__m128>(v0.data()),SSE::sse_cast<__m128>(v1.data()));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[0]]), tmp0);
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[2]]), tmp1);
     }/*}}}*/
     template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)

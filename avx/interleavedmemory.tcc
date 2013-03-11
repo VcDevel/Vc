@@ -61,6 +61,14 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
         *reinterpret_cast<int *>(&data[i[7]]) = _mm_extract_epi32(tmp1, 3);
 #endif
     }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const SuccessiveEntries<2> &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1)
+    {
+        const m128i tmp0 = _mm_unpacklo_epi16(v0.data(), v1.data());
+        const m128i tmp1 = _mm_unpackhi_epi16(v0.data(), v1.data());
+        V(tmp0).store(&data[i[0]], Vc::Unaligned);
+        V(tmp1).store(&data[i[4]], Vc::Unaligned);
+    }/*}}}*/
     template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
@@ -112,6 +120,25 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
         _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[3]]), _mm_castsi128_ps(tmp5));
         _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[5]]), _mm_castsi128_ps(tmp6));
         _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[7]]), _mm_castsi128_ps(tmp7));
+    }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const SuccessiveEntries<4> &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1,
+            const typename V::AsArg v2, const typename V::AsArg v3)
+    {
+        const m128i tmp0 = _mm_unpacklo_epi16(v0.data(), v2.data());
+        const m128i tmp1 = _mm_unpackhi_epi16(v0.data(), v2.data());
+        const m128i tmp2 = _mm_unpacklo_epi16(v1.data(), v3.data());
+        const m128i tmp3 = _mm_unpackhi_epi16(v1.data(), v3.data());
+
+        const m128i tmp4 = _mm_unpacklo_epi16(tmp0, tmp2);
+        const m128i tmp5 = _mm_unpackhi_epi16(tmp0, tmp2);
+        const m128i tmp6 = _mm_unpacklo_epi16(tmp1, tmp3);
+        const m128i tmp7 = _mm_unpackhi_epi16(tmp1, tmp3);
+
+        V(tmp4).store(&data[i[0]], ::Vc::Unaligned);
+        V(tmp5).store(&data[i[2]], ::Vc::Unaligned);
+        V(tmp6).store(&data[i[4]], ::Vc::Unaligned);
+        V(tmp7).store(&data[i[6]], ::Vc::Unaligned);
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1)
@@ -354,6 +381,19 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         _mm_storel_pi(reinterpret_cast<__m64 *>(&data[i[6]]), hi128(tmp1));
         _mm_storeh_pi(reinterpret_cast<__m64 *>(&data[i[7]]), hi128(tmp1));
     }/*}}}*/
+    static inline void interleave(typename V::EntryType *const data, const SuccessiveEntries<2> &i,/*{{{*/
+            const typename V::AsArg v0, const typename V::AsArg v1)
+    {
+        using namespace Vc::AVX;
+        // [0a 1a 0b 1b 0e 1e 0f 1f]:
+        const m256 tmp0 = _mm256_unpacklo_ps(AVX::avx_cast<m256>(v0.data()), AVX::avx_cast<m256>(v1.data()));
+        // [0c 1c 0d 1d 0g 1g 0h 1h]:
+        const m256 tmp1 = _mm256_unpackhi_ps(AVX::avx_cast<m256>(v0.data()), AVX::avx_cast<m256>(v1.data()));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[0]]), lo128(tmp0));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[2]]), lo128(tmp1));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[4]]), hi128(tmp0));
+        _mm_storeu_ps(reinterpret_cast<float *>(&data[i[6]]), hi128(tmp1));
+    }/*}}}*/
     template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
@@ -428,6 +468,21 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         v0.data() = AVX::avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(tmp0, tmp1));
         v1.data() = AVX::avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(tmp0, tmp1));
     }/*}}}*/
+    static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
+            const SuccessiveEntries<2> &i, V &v0, V &v1)
+    {
+        const m256 il0123 = _mm256_loadu_ps(reinterpret_cast<const float *>(&data[i[0]])); // a0 b0 a1 b1 a2 b2 a3 b3
+        const m256 il4567 = _mm256_loadu_ps(reinterpret_cast<const float *>(&data[i[4]])); // a4 b4 a5 b5 a6 b6 a7 b7
+
+        const m256 tmp2 = Mem::shuffle128<X0, Y0>(il0123, il4567);
+        const m256 tmp3 = Mem::shuffle128<X1, Y1>(il0123, il4567);
+
+        const m256 tmp0 = _mm256_unpacklo_ps(tmp2, tmp3);
+        const m256 tmp1 = _mm256_unpackhi_ps(tmp2, tmp3);
+
+        v0.data() = AVX::avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(tmp0, tmp1));
+        v1.data() = AVX::avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(tmp0, tmp1));
+    }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2)
     {
@@ -488,6 +543,34 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
     {
         deinterleave(data, i, v0, v1, v2, v3);
         deinterleave(data + 4, i, v4, v5);
+    }/*}}}*/
+    static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
+            const SuccessiveEntries<6> &i, V &v0, V &v1, V &v2, V &v3, V &v4, V &v5)
+    {
+        const m256 a = _mm256_loadu_ps(reinterpret_cast<const float *>(&data[i[0]]));
+        const m256 b = _mm256_loadu_ps(reinterpret_cast<const float *>(&data[i[0] + 1 * V::Size]));
+        const m256 c = _mm256_loadu_ps(reinterpret_cast<const float *>(&data[i[0] + 2 * V::Size]));
+        const m256 d = _mm256_loadu_ps(reinterpret_cast<const float *>(&data[i[0] + 3 * V::Size]));
+        const m256 e = _mm256_loadu_ps(reinterpret_cast<const float *>(&data[i[0] + 4 * V::Size]));
+        const m256 f = _mm256_loadu_ps(reinterpret_cast<const float *>(&data[i[0] + 5 * V::Size]));
+        const __m256 tmp2 = Mem::shuffle128<X0, Y0>(a, d);
+        const __m256 tmp3 = Mem::shuffle128<X1, Y1>(b, e);
+        const __m256 tmp4 = Mem::shuffle128<X1, Y1>(a, d);
+        const __m256 tmp5 = Mem::shuffle128<X0, Y0>(c, f);
+        const __m256 tmp8 = Mem::shuffle128<X0, Y0>(b, e);
+        const __m256 tmp9 = Mem::shuffle128<X1, Y1>(c, f);
+        const __m256 tmp0 = _mm256_unpacklo_ps(tmp2, tmp3);
+        const __m256 tmp1 = _mm256_unpackhi_ps(tmp4, tmp5);
+        const __m256 tmp6 = _mm256_unpackhi_ps(tmp2, tmp3);
+        const __m256 tmp7 = _mm256_unpacklo_ps(tmp8, tmp9);
+        const __m256 tmp10 = _mm256_unpacklo_ps(tmp4, tmp5);
+        const __m256 tmp11 = _mm256_unpackhi_ps(tmp8, tmp9);
+        v0.data() = AVX::avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(tmp0, tmp1));
+        v1.data() = AVX::avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(tmp0, tmp1));
+        v2.data() = AVX::avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(tmp6, tmp7));
+        v3.data() = AVX::avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(tmp6, tmp7));
+        v4.data() = AVX::avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(tmp10, tmp11));
+        v5.data() = AVX::avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(tmp10, tmp11));
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6)
@@ -552,10 +635,21 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
         const m256d tmp2 = _mm256_unpacklo_pd(v2.data(), v3.data());
         // 2b 3b 2b 3b:
         const m256d tmp3 = _mm256_unpackhi_pd(v2.data(), v3.data());
+        /* The following might be more efficient once 256-bit stores are not split internally into 2
+         * 128-bit stores.
         _mm256_storeu_pd(&data[i[0]], Mem::shuffle128<X0, Y0>(tmp0, tmp2));
         _mm256_storeu_pd(&data[i[1]], Mem::shuffle128<X0, Y0>(tmp1, tmp3));
         _mm256_storeu_pd(&data[i[2]], Mem::shuffle128<X1, Y1>(tmp0, tmp2));
         _mm256_storeu_pd(&data[i[3]], Mem::shuffle128<X1, Y1>(tmp1, tmp3));
+        */
+        _mm_storeu_pd(&data[i[0]  ], lo128(tmp0));
+        _mm_storeu_pd(&data[i[0]+2], lo128(tmp2));
+        _mm_storeu_pd(&data[i[1]  ], lo128(tmp1));
+        _mm_storeu_pd(&data[i[1]+2], lo128(tmp3));
+        _mm_storeu_pd(&data[i[2]  ], hi128(tmp0));
+        _mm_storeu_pd(&data[i[2]+2], hi128(tmp2));
+        _mm_storeu_pd(&data[i[3]  ], hi128(tmp1));
+        _mm_storeu_pd(&data[i[3]+2], hi128(tmp3));
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1)
