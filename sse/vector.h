@@ -92,7 +92,7 @@ class WriteMaskedVector
             vec->assign(VectorHelper<T>::mul(vec->data(), x.data()), mask);
             return *vec;
         }
-        Vc_INTRINSIC Vc_CONST Vector<T> &operator/=(const Vector<T> &x);
+        Vc_INTRINSIC Vector<T> &operator/=(const Vector<T> &x);
 
         Vc_INTRINSIC Vector<T> &operator+=(EntryType x) {
             return operator+=(Vector<T>(x));
