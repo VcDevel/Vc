@@ -338,32 +338,32 @@ template<typename T> template<typename A> Vc_INTRINSIC void Vector<T>::store(Ent
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // division {{{1
-template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> &WriteMaskedVector<T>::operator/=(const Vector<T> &x)
+template<typename T> Vc_INTRINSIC Vector<T> &WriteMaskedVector<T>::operator/=(const Vector<T> &x)
 {
     return operator=(*vec / x);
 }
-template<> Vc_INTRINSIC Vc_CONST int_v &WriteMaskedVector<int>::operator/=(const int_v &x)
+template<> Vc_INTRINSIC int_v &WriteMaskedVector<int>::operator/=(const int_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
-template<> Vc_INTRINSIC Vc_CONST uint_v &WriteMaskedVector<unsigned int>::operator/=(const uint_v &x)
+template<> Vc_INTRINSIC uint_v &WriteMaskedVector<unsigned int>::operator/=(const uint_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
-template<> Vc_INTRINSIC Vc_CONST short_v &WriteMaskedVector<short>::operator/=(const short_v &x)
+template<> Vc_INTRINSIC short_v &WriteMaskedVector<short>::operator/=(const short_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
-template<> Vc_INTRINSIC Vc_CONST ushort_v &WriteMaskedVector<unsigned short>::operator/=(const ushort_v &x)
+template<> Vc_INTRINSIC ushort_v &WriteMaskedVector<unsigned short>::operator/=(const ushort_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
