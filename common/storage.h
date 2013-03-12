@@ -78,8 +78,8 @@ template<> Vc_ALWAYS_INLINE unsigned int  accessScalar<unsigned int , __m256i>(c
 template<typename EntryType, typename VectorType> struct GccTypeHelper;
 template<> struct GccTypeHelper<double        , __m128d> { typedef  __v2df Type; };
 template<> struct GccTypeHelper<float         , __m128 > { typedef  __v4sf Type; };
-template<> struct GccTypeHelper<long          , __m128i> { typedef  __v2di Type; };
-template<> struct GccTypeHelper<unsigned long , __m128i> { typedef  __v2di Type; };
+template<> struct GccTypeHelper<long long     , __m128i> { typedef  __v2di Type; };
+template<> struct GccTypeHelper<unsigned long long, __m128i> { typedef  __v2di Type; };
 template<> struct GccTypeHelper<int           , __m128i> { typedef  __v4si Type; };
 template<> struct GccTypeHelper<unsigned int  , __m128i> { typedef  __v4si Type; };
 template<> struct GccTypeHelper<short         , __m128i> { typedef  __v8hi Type; };
@@ -92,8 +92,8 @@ template<typename VectorType> struct GccTypeHelper<float, VectorType> { typedef 
 #ifdef VC_IMPL_AVX
 template<> struct GccTypeHelper<double        , __m256d> { typedef  __v4df Type; };
 template<> struct GccTypeHelper<float         , __m256 > { typedef  __v8sf Type; };
-template<> struct GccTypeHelper<long          , __m256i> { typedef  __v4di Type; };
-template<> struct GccTypeHelper<unsigned long , __m256i> { typedef  __v4di Type; };
+template<> struct GccTypeHelper<long long     , __m256i> { typedef  __v4di Type; };
+template<> struct GccTypeHelper<unsigned long long, __m256i> { typedef  __v4di Type; };
 template<> struct GccTypeHelper<int           , __m256i> { typedef  __v8si Type; };
 template<> struct GccTypeHelper<unsigned int  , __m256i> { typedef  __v8si Type; };
 template<> struct GccTypeHelper<short         , __m256i> { typedef __v16hi Type; };
