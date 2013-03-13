@@ -154,6 +154,9 @@ template<unsigned int VectorSize> class Mask
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
     private:
+#ifdef VC_COMPILE_BENCHMARKS
+    public:
+#endif
         _M128 k;
 };
 
@@ -465,6 +468,9 @@ class Float8Mask
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
     private:
+#ifdef VC_COMPILE_BENCHMARKS
+    public:
+#endif
         M256 k;
 };
 

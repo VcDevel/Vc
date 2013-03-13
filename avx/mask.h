@@ -102,6 +102,9 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
     private:
+#ifdef VC_COMPILE_BENCHMARKS
+    public:
+#endif
         m256 k;
 };
 
@@ -175,6 +178,9 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
     private:
+#ifdef VC_COMPILE_BENCHMARKS
+    public:
+#endif
         m128 k;
 };
 
