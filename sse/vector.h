@@ -329,7 +329,7 @@ template<typename T> class Vector
         Vc_INTRINSIC_L Vector  operator>> (  int shift) const Vc_INTRINSIC_R;
 
         Vc_INTRINSIC_L Vector &operator/=(const Vector<T> &x) Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L Vector  operator/ (const Vector<T> &x) const Vc_PURE Vc_INTRINSIC_R;
+        inline Vc_PURE_L Vector  operator/ (const Vector<T> &x) const Vc_PURE_R;
         Vc_INTRINSIC_L Vector &operator/=(EntryType x) Vc_INTRINSIC_R;
         template<typename TT> Vc_INTRINSIC_L VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) operator/(TT x) const Vc_PURE Vc_INTRINSIC_R;
 
