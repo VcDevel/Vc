@@ -71,6 +71,9 @@ namespace SSE
             Vc_INTRINSIC _M128 &operator[](int i) { return d[i]; }
             Vc_INTRINSIC const _M128 &operator[](int i) const { return d[i]; }
         private:
+#ifdef VC_COMPILE_BENCHMARKS
+        public:
+#endif
             _M128 d[2];
     };
 #ifdef VC_CHECK_ALIGNMENT
