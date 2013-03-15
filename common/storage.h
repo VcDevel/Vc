@@ -66,6 +66,9 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
             return data.m[index];
         }
 
+#ifdef VC_COMPILE_BENCHMARKS
+    public:
+#endif
     private:
         union VectorScalarUnion {
             VectorTypeBase v;
@@ -89,6 +92,9 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
         }
 
     private:
+#ifdef VC_COMPILE_BENCHMARKS
+    public:
+#endif
         VectorType data;
 #endif
 };

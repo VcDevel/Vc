@@ -140,6 +140,9 @@ template<typename T> class Vector
 {
     friend class WriteMaskedVector<T>;
     protected:
+#ifdef VC_COMPILE_BENCHMARKS
+    public:
+#endif
         typedef typename VectorTraits<T>::StorageType StorageType;
         StorageType d;
         typedef typename VectorTraits<T>::GatherMaskType GatherMask;
