@@ -155,13 +155,33 @@ namespace AVX
     static Vc_INTRINSIC m256i Vc_CONST _mm256_set1_epi32(int    a) { return ::_mm256_set1_epi32(a); }
     //static Vc_INTRINSIC m256i Vc_CONST _mm256_set1_epu32(unsigned int a) { return ::_mm256_set1_epu32(a); }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
+#endif
+
 #ifdef VC_IMPL_XOP
     static Vc_INTRINSIC m128i Vc_CONST _mm_setallone() { __m128i a; return _mm_comtrue_epu8(a, a); }
-#elif defined(VC_GNU_ASM) && !defined(NVALGRIND)
-    static Vc_INTRINSIC m128i Vc_CONST _mm_setallone() { m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
+#elif defined(__GNUC__) && !defined(NVALGRIND)
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setallone() { __m128i r; return _mm_cmpeq_epi8(r, r); }
 #else
     static Vc_INTRINSIC m128i Vc_CONST _mm_setallone() { m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
 #endif
+
+#if defined(__GNUC__) && !defined(NVALGRIND)
+    static Vc_INTRINSIC m256 Vc_CONST _mm256_setallone() { __m256 r; return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
+#elif defined(VC_MSVC)
+    // MSVC puts temporaries of this value on the stack, but sometimes at misaligned addresses, try
+    // some other generator instead...
+    static Vc_INTRINSIC m256 Vc_CONST _mm256_setallone() { return _mm256_castsi256_ps(_mm256_set1_epi32(-1)); }
+#else
+    static Vc_INTRINSIC m256 Vc_CONST _mm256_setallone() { m256 r = _mm256_setzero_ps(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
+#endif
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
     static Vc_INTRINSIC m128i Vc_CONST _mm_setallone_si128() { return _mm_setallone(); }
     static Vc_INTRINSIC m128d Vc_CONST _mm_setallone_pd() { return _mm_castsi128_pd(_mm_setallone()); }
     static Vc_INTRINSIC m128  Vc_CONST _mm_setallone_ps() { return _mm_castsi128_ps(_mm_setallone()); }
@@ -172,15 +192,6 @@ namespace AVX
     static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
     static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epi32()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
 
-#if defined(VC_GNU_ASM) && !defined(NVALGRIND)
-    static Vc_INTRINSIC m256 Vc_CONST _mm256_setallone() { __m256 r; __asm__("vcmpps $8,%0,%0,%0":"=x"(r)); return r; }
-#elif defined(VC_MSVC)
-    // MSVC puts temporaries of this value on the stack, but sometimes at misaligned addresses, try
-    // some other generator instead...
-    static Vc_INTRINSIC m256 Vc_CONST _mm256_setallone() { return _mm256_castsi256_ps(_mm256_set1_epi32(-1)); }
-#else
-    static Vc_INTRINSIC m256 Vc_CONST _mm256_setallone() { m256 r = _mm256_setzero_ps(); return _mm256_cmp_ps(r, r, _CMP_EQ_UQ); }
-#endif
     static Vc_INTRINSIC m256i Vc_CONST _mm256_setallone_si256() { return _mm256_castps_si256(_mm256_setallone()); }
     static Vc_INTRINSIC m256d Vc_CONST _mm256_setallone_pd() { return _mm256_castps_pd(_mm256_setallone()); }
     static Vc_INTRINSIC m256  Vc_CONST _mm256_setallone_ps() { return _mm256_setallone(); }
