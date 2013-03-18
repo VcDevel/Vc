@@ -22,6 +22,8 @@
 
 #include "../common/windows_fix_intrin.h"
 
+#include <Vc/global.h>
+
 // see comment in sse/intrinsics.h
 extern "C" {
 // AVX
@@ -42,7 +44,6 @@ extern "C" {
                                    ((C) & 0x30) >> 4, ((C) & 0xc0) >> 6); })
 #endif
 
-#include <Vc/global.h>
 #include "const_data.h"
 #include "macros.h"
 #include <cstdlib>
