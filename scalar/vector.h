@@ -193,12 +193,12 @@ class Vector
         //postfix
         Vc_ALWAYS_INLINE Vector operator++(int) { return m_data++; }
 
-        Vc_ALWAYS_INLINE EntryType &operator[](int index) {
+        Vc_ALWAYS_INLINE EntryType &operator[](size_t index) {
             assert(index == 0); if(index) {}
             return m_data;
         }
 
-        Vc_ALWAYS_INLINE EntryType operator[](int index) const {
+        Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
             assert(index == 0); if(index) {}
             return m_data;
         }
