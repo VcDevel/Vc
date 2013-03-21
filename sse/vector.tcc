@@ -863,7 +863,7 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
     }
 #else
 #define VC_MASKED_GATHER                        \
-    if (mask.isEmpty()) {                       \
+    if (VC_IS_UNLIKELY(mask.isEmpty())) {       \
         return;                                 \
     }                                           \
     for_all_vector_entries(i,                   \
