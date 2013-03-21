@@ -748,6 +748,7 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
         break;                                  \
     }
 #else
+#define VC_USE_SPECIALIZED_GATHER 1
 #define VC_MASKED_GATHER                        \
     if (VC_IS_UNLIKELY(mask.isEmpty())) {       \
         return;                                 \
@@ -757,13 +758,58 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
             );
 #endif
 
+namespace
+{
+    template<typename V> V setHelper(const typename V::EntryType *mem, const size_t ii[V::Size]);
+    template<> float_v setHelper(const float_v::EntryType *mem, const size_t ii[float_v::Size])
+    {
+        return _mm256_setr_ps(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<> sfloat_v setHelper(const sfloat_v::EntryType *mem, const size_t ii[sfloat_v::Size])
+    {
+        return _mm256_setr_ps(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<> double_v setHelper(const double_v::EntryType *mem, const size_t ii[double_v::Size])
+    {
+        return _mm256_setr_pd(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]]);
+    }
+    template<> int_v setHelper(const int_v::EntryType *mem, const size_t ii[int_v::Size])
+    {
+        return _mm256_setr_epi32(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<> uint_v setHelper(const uint_v::EntryType *mem, const size_t ii[uint_v::Size])
+    {
+        return _mm256_setr_epi32(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<> short_v setHelper(const short_v::EntryType *mem, const size_t ii[short_v::Size])
+    {
+        return _mm_setr_epi16(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<> ushort_v setHelper(const ushort_v::EntryType *mem, const size_t ii[ushort_v::Size])
+    {
+        return _mm_setr_epi16(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+} // anonymous namespace
+
 template<typename T> template<typename Index>
 Vc_INTRINSIC void Vector<T>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes, MaskArg mask)
 {
     IndexSizeChecker<Index, Size>::check();
-#define ith_value(_i_) (mem[indexes[_i_]])
+#ifdef VC_USE_SPECIALIZED_GATHER
+#undef VC_USE_SPECIALIZED_GATHER
+    if (VC_IS_UNLIKELY(mask.isEmpty())) {
+        return;
+    }
+    size_t ii[Size];
+    for_all_vector_entries(i,
+            ii[i] = mask[i] ? static_cast<unsigned int>(indexes[i]) : 0;
+            );
+    (*this)(mask) = setHelper<Vector<T> >(mem, ii);
+#else
+#define ith_value(_i_) (mem[static_cast<unsigned int>(indexes[_i_])])
     VC_MASKED_GATHER
 #undef ith_value
+#endif
 }
 
 template<> template<typename S1, typename IT>
