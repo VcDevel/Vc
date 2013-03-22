@@ -19,6 +19,7 @@
 
 #include "limits.h"
 #include "const.h"
+#include "../common/set.h"
 #include "macros.h"
 
 /*OUTER_NAMESPACE_BEGIN*/
@@ -678,17 +679,37 @@ template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsi
     d.v() = _mm256_setr_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
             mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
+namespace
+{
+    template<size_t S, typename EntryType, typename T> Vc_INTRINSIC Vc_PURE __m128i gatherHelper(const EntryType *mem,
+            VC_ALIGNED_PARAMETER(Vector<T>) indexes)
+    {
+        size_t ii[8];
+        unsigned int tmp;
+#ifdef VC_GCC
+        // GCC translates _mm_cvtsi128_si32 into vpextrd, which is three times slower
+        asm("vmovd %1,%0" : "=r"(tmp) : "x"(indexes));
+#else
+        tmp = _mm_cvtsi128_si32(indexes.data());
+#endif
+        ii[1] = tmp >> 0x10;
+        ii[0] = 0xffff & tmp;
+        unrolled_loop16(i, 2, 8,
+                ii[i] = static_cast<unsigned int>(_mm_extract_epi16(indexes.data(), i));
+                );
+        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]],
+                mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+} // anonymous namespace
 template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = _mm_setr_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-            mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
+    d.v() = gatherHelper<sizeof(EntryType)>(mem, indexes);
 }
 template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = _mm_setr_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-                mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
+    d.v() = gatherHelper<sizeof(EntryType)>(mem, indexes);
 }
 
 #ifdef VC_USE_SET_GATHERS
