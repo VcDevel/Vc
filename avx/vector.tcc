@@ -804,11 +804,11 @@ namespace
     }
     template<> short_v setHelper(const short_v::EntryType *mem, const size_t ii[short_v::Size])
     {
-        return _mm_setr_epi16(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
     }
     template<> ushort_v setHelper(const ushort_v::EntryType *mem, const size_t ii[ushort_v::Size])
     {
-        return _mm_setr_epi16(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
     }
 } // anonymous namespace
 
