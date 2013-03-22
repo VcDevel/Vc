@@ -245,10 +245,18 @@ void testFloat8GatherMask()
 }
 #endif
 
+template<typename V> void maskInit()
+{
+    typedef typename V::Mask M;
+    COMPARE(M(Vc::One), M(true));
+    COMPARE(M(Vc::Zero), M(false));
+}
+
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
 
+    testAllTypes(maskInit);
     testAllTypes(testInc);
     testAllTypes(testDec);
     testAllTypes(testPlusEq);
