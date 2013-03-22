@@ -198,17 +198,17 @@ template<typename T> class Vector
         template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask);
         template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes);
         template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes, MaskArg mask);
-        template<typename Index> void gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes);
-        template<typename Index> void gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes, MaskArg mask);
+        template<typename Index> Vc_ALWAYS_INLINE_L void gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes) Vc_ALWAYS_INLINE_R;
+        template<typename Index> Vc_ALWAYS_INLINE_L void gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes, MaskArg mask) Vc_ALWAYS_INLINE_R;
 #ifdef VC_USE_SET_GATHERS
-        template<typename IT> void gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Vector<IT>) indexes, MaskArg mask);
+        template<typename IT> Vc_ALWAYS_INLINE_L void gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Vector<IT>) indexes, MaskArg mask) Vc_ALWAYS_INLINE_R;
 #endif
-        template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes);
-        template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask);
-        template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes);
-        template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask);
-        template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes);
-        template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes, MaskArg mask);
+        template<typename S1, typename IT> Vc_ALWAYS_INLINE_L void gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes) Vc_ALWAYS_INLINE_R;
+        template<typename S1, typename IT> Vc_ALWAYS_INLINE_L void gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask) Vc_ALWAYS_INLINE_R;
+        template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE_L void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes) Vc_ALWAYS_INLINE_R;
+        template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE_L void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask) Vc_ALWAYS_INLINE_R;
+        template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE_L void gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes) Vc_ALWAYS_INLINE_R;
+        template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE_L void gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes, MaskArg mask) Vc_ALWAYS_INLINE_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // scatters
