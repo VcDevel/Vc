@@ -560,7 +560,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     typedef typename Vec::Mask M;
 
     if (i == 0) {
-        return M(true);
+        return M(Vc::One);
     }
     --i;
     if (i < Vec::Size) {
@@ -568,7 +568,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     }
     i -= Vec::Size;
     if (Vec::Size < 3) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -580,7 +580,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
         }
     }
     if (Vec::Size < 4) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -594,7 +594,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
         }
     }
     if (Vec::Size < 5) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -610,7 +610,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
         }
     }
     if (Vec::Size < 6) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -628,7 +628,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
         }
     }
     if (Vec::Size < 7) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -648,7 +648,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
         }
     }
     if (Vec::Size < 8) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -670,7 +670,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
             }
         }
     }
-    return M(false);
+    return M(Vc::Zero);
 }
 
 #define for_all_masks(VecType, _mask_) \
