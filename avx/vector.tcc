@@ -810,6 +810,11 @@ namespace
     {
         return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
     }
+
+    template<size_t S> struct DetermineUInt { typedef unsigned int Type; };
+    template<> struct DetermineUInt<2> { typedef unsigned short Type; };
+    template<> struct DetermineUInt<1> { typedef unsigned char Type; };
+    template<> struct DetermineUInt<8> { typedef unsigned long long Type; };
 } // anonymous namespace
 
 template<typename T> template<typename Index>
@@ -823,11 +828,11 @@ Vc_INTRINSIC void Vector<T>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(I
     }
     size_t ii[Size];
     for_all_vector_entries(i,
-            ii[i] = mask[i] ? static_cast<unsigned int>(indexes[i]) : 0;
+            ii[i] = mask[i] ? static_cast<typename DetermineUInt<sizeof(indexes[i])>::Type>(indexes[i]) : 0;
             );
     (*this)(mask) = setHelper<Vector<T> >(mem, ii);
 #else
-#define ith_value(_i_) (mem[static_cast<unsigned int>(indexes[_i_])])
+#define ith_value(_i_) (mem[static_cast<typename DetermineUInt<sizeof(indexes[0])>::Type>(indexes[_i_])])
     VC_MASKED_GATHER
 #undef ith_value
 #endif
