@@ -700,6 +700,12 @@ namespace
         return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]],
                 mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
     }
+    template<size_t S, typename EntryType, typename T> Vc_INTRINSIC Vc_PURE __m128i gatherHelper(const EntryType *mem,
+            const T *ii)
+    {
+        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]],
+                mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
 } // anonymous namespace
 template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
 {
