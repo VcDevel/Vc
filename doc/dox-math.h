@@ -57,8 +57,31 @@ VECTOR_TYPE round(const VECTOR_TYPE &v);
  * \ingroup Math
  *
  * Returns the natural logarithm of \p v.
+ *
+ * \note The single-precision implementation has an error of max. 1 ulp (mean 0.020 ulp) in the range ]0, 1000] (including denormals).
+ * \note The double-precision implementation has an error of max. 1 ulp (mean 0.020 ulp) in the range ]0, 1000] (including denormals).
  */
 VECTOR_TYPE log(const VECTOR_TYPE &v);
+
+/**
+ * \ingroup Math
+ *
+ * Returns the base-2 logarithm of \p v.
+ *
+ * \note The single-precision implementation has an error of max. 1 ulp (mean 0.016 ulp) in the range ]0, 1000] (including denormals).
+ * \note The double-precision implementation has an error of max. 1 ulp (mean 0.016 ulp) in the range ]0, 1000] (including denormals).
+ */
+VECTOR_TYPE log2(const VECTOR_TYPE &v);
+
+/**
+ * \ingroup Math
+ *
+ * Returns the base-10 logarithm of \p v.
+ *
+ * \note The single-precision implementation has an error of max. 2 ulp (mean 0.31 ulp) in the range ]0, 1000] (including denormals).
+ * \note The double-precision implementation has an error of max. 2 ulp (mean 0.26 ulp) in the range ]0, 1000] (including denormals).
+ */
+VECTOR_TYPE log10(const VECTOR_TYPE &v);
 
 /**
  * \ingroup Math
