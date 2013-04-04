@@ -862,12 +862,12 @@ int main(int argc, char **argv)/*{{{*/
     Denormals<float>::data = Vc::malloc<float, Vc::AlignOnVector>(NDenormals);/*{{{*/
     Denormals<float>::data[0] = std::numeric_limits<float>::denorm_min();
     for (int i = 1; i < NDenormals; ++i) {
-        Denormals<float>::data[i] = Denormals<float>::data[i - 1] * 2.f;
+        Denormals<float>::data[i] = Denormals<float>::data[i - 1] * 2.173f;
     }
     Denormals<double>::data = Vc::malloc<double, Vc::AlignOnVector>(NDenormals);
     Denormals<double>::data[0] = std::numeric_limits<double>::denorm_min();
     for (int i = 1; i < NDenormals; ++i) {
-        Denormals<double>::data[i] = Denormals<double>::data[i - 1] * 2.;
+        Denormals<double>::data[i] = Denormals<double>::data[i - 1] * 2.173;
     }/*}}}*/
 
     testRealTypes(isNegative);
