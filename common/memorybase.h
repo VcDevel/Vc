@@ -207,7 +207,7 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
          */
         typedef typename V::EntryType EntryType;
 
-        static _VC_CONSTEXPR size_t rowCount() { return Parent::RowCount; }
+        static constexpr size_t rowCount() { return Parent::RowCount; }
 
         /**
          * Returns a pointer to the start of the allocated memory.

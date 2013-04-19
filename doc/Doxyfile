@@ -1542,8 +1542,7 @@ PREDEFINED             = DOXYGEN \
                          Vc_PURE_R \
                          Vc_CONST \
                          Vc_CONST_L \
-                         Vc_CONST_R \
-                         _VC_CONSTEXPR=constexpr
+                         Vc_CONST_R
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.

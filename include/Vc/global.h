@@ -348,24 +348,15 @@ enum MallocAlignment {
     AlignOnPage
 };
 
-#if __cplusplus >= 201103 /*C++11*/
-#define Vc_CONSTEXPR static constexpr
-#elif defined(__GNUC__)
-#define Vc_CONSTEXPR static inline __attribute__((__always_inline__, __const__))
-#elif defined(VC_MSVC)
-#define Vc_CONSTEXPR static inline __forceinline
-#else
-#define Vc_CONSTEXPR static inline
-#endif
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+static constexpr StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+static constexpr StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+static constexpr StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+static constexpr StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
 
-Vc_CONSTEXPR StreamingAndAlignedFlag operator|(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-Vc_CONSTEXPR StreamingAndAlignedFlag operator|(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
-Vc_CONSTEXPR StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-Vc_CONSTEXPR StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
+static constexpr StreamingAndAlignedFlag operator|(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
+static constexpr StreamingAndAlignedFlag operator|(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
+static constexpr StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
+static constexpr StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
 
 /**
  * \ingroup Utilities
@@ -481,10 +472,10 @@ namespace Internal {
     typedef HelperImpl<VC_IMPL> Helper;
 
     template<typename A> struct FlagObject;
-    template<> struct FlagObject<AlignedFlag> { Vc_CONSTEXPR AlignedFlag the() { return Aligned; } };
-    template<> struct FlagObject<UnalignedFlag> { Vc_CONSTEXPR UnalignedFlag the() { return Unaligned; } };
-    template<> struct FlagObject<StreamingAndAlignedFlag> { Vc_CONSTEXPR StreamingAndAlignedFlag the() { return Streaming; } };
-    template<> struct FlagObject<StreamingAndUnalignedFlag> { Vc_CONSTEXPR StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
+    template<> struct FlagObject<AlignedFlag> { static constexpr AlignedFlag the() { return Aligned; } };
+    template<> struct FlagObject<UnalignedFlag> { static constexpr UnalignedFlag the() { return Unaligned; } };
+    template<> struct FlagObject<StreamingAndAlignedFlag> { static constexpr StreamingAndAlignedFlag the() { return Streaming; } };
+    template<> struct FlagObject<StreamingAndUnalignedFlag> { static constexpr StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
 } // namespace Internal
 
 namespace Warnings
@@ -505,7 +496,6 @@ namespace Error
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
 
-#undef Vc_CONSTEXPR
 #include "version.h"
 
 #endif // VC_GLOBAL_H

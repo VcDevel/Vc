@@ -39,11 +39,11 @@ template<size_t StructSize> class SuccessiveEntries
     size_t m_first;
 public:
     typedef SuccessiveEntries AsArg;
-    Vc_CONSTEXPR SuccessiveEntries(size_t first) : m_first(first) {}
-    Vc_CONSTEXPR Vc_PURE size_t operator[](size_t offset) const { return m_first + offset * StructSize; }
-    Vc_CONSTEXPR Vc_PURE size_t data() const { return m_first; }
-    Vc_CONSTEXPR Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first + rhs.m_first); }
-    Vc_CONSTEXPR Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first * rhs.m_first); }
+    constexpr SuccessiveEntries(size_t first) : m_first(first) {}
+    constexpr Vc_PURE size_t operator[](size_t offset) const { return m_first + offset * StructSize; }
+    constexpr Vc_PURE size_t data() const { return m_first; }
+    constexpr Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first + rhs.m_first); }
+    constexpr Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first * rhs.m_first); }
 };
 
 /**

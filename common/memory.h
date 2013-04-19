@@ -151,7 +151,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
              *
              * \note This function can be eliminated by an optimizing compiler.
              */
-            _VC_CONSTEXPR size_t rowsCount() const { return RowCount; }
+            constexpr size_t rowsCount() const { return RowCount; }
             /**
              * \return the number of scalar entries in the whole array.
              *
@@ -160,13 +160,13 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
              *
              * \note This function can be optimized into a compile-time constant.
              */
-            _VC_CONSTEXPR size_t entriesCount() const { return Size1 * Size2; }
+            constexpr size_t entriesCount() const { return Size1 * Size2; }
             /**
              * \return the number of vectors in the whole array.
              *
              * \note This function can be optimized into a compile-time constant.
              */
-            _VC_CONSTEXPR size_t vectorsCount() const { return VectorsCount * Size1; }
+            constexpr size_t vectorsCount() const { return VectorsCount * Size1; }
 
             /**
              * Copies the data from a different object.
@@ -316,14 +316,14 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
              *
              * \note This function can be optimized into a compile-time constant.
              */
-            _VC_CONSTEXPR size_t entriesCount() const { return EntriesCount; }
+            constexpr size_t entriesCount() const { return EntriesCount; }
 
             /**
              * \return the number of vectors in the whole array.
              *
              * \note This function can be optimized into a compile-time constant.
              */
-            _VC_CONSTEXPR size_t vectorsCount() const { return VectorsCount; }
+            constexpr size_t vectorsCount() const { return VectorsCount; }
 
             template<typename Parent, typename RM>
             Vc_ALWAYS_INLINE Memory<V> &operator=(const MemoryBase<V, Parent, 1, RM> &rhs) {

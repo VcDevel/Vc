@@ -38,9 +38,6 @@
 #undef VC_IS_LIKELY
 #undef VC_RESTRICT
 #undef VC_DEPRECATED
-#undef _VC_CONSTEXPR
-#undef _VC_CONSTEXPR_L
-#undef _VC_CONSTEXPR_R
 
 #undef ALIGN
 #undef STRUCT_ALIGN1
