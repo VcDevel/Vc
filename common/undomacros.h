@@ -43,7 +43,6 @@
 #undef _VC_CONSTEXPR
 #undef _VC_CONSTEXPR_L
 #undef _VC_CONSTEXPR_R
-#undef _VC_NOEXCEPT
 
 #undef ALIGN
 #undef STRUCT_ALIGN1
