@@ -25,6 +25,9 @@ if(ROOT_RELEASE)
    endif()
 else()
 
+   # TODO: skip the C++11 check for C
+   # TODO: check that 'decltype' compiles
+   # TODO: check that 'constexpr' compiles
    AddCompilerFlag("-std=c++11" _ok)
    if(NOT _ok)
       AddCompilerFlag("-std=c++0x" _ok)
