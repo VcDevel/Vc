@@ -150,13 +150,13 @@ namespace
     //template<> struct CanConvertToInt<double>   { enum { Value = 0 }; };
 
     enum TestEnum {};
-    VC_STATIC_ASSERT(CanConvertToInt<int>::Value == 1, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<unsigned char>::Value == 1, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<bool>::Value == 0, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<float>::Value == 1, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<double>::Value == 1, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<float*>::Value == 0, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<TestEnum>::Value == 1, CanConvertToInt_is_broken);
+    static_assert(CanConvertToInt<int>::Value == 1, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<unsigned char>::Value == 1, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<bool>::Value == 0, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<float>::Value == 1, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<double>::Value == 1, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<float*>::Value == 0, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<TestEnum>::Value == 1, "CanConvertToInt_is_broken");
 
     typedef HasImplicitCast<TestEnum, short> HasImplicitCastTest0;
     typedef HasImplicitCast<int *, void *> HasImplicitCastTest1;
@@ -164,11 +164,11 @@ namespace
     typedef HasImplicitCast<const int *, const void *> HasImplicitCastTest3;
     typedef HasImplicitCast<const int *, int *> HasImplicitCastTest4;
 
-    VC_STATIC_ASSERT(HasImplicitCastTest0::Value ==  true, HasImplicitCast0_is_broken);
-    VC_STATIC_ASSERT(HasImplicitCastTest1::Value ==  true, HasImplicitCast1_is_broken);
-    VC_STATIC_ASSERT(HasImplicitCastTest2::Value ==  true, HasImplicitCast2_is_broken);
-    VC_STATIC_ASSERT(HasImplicitCastTest3::Value ==  true, HasImplicitCast3_is_broken);
-    VC_STATIC_ASSERT(HasImplicitCastTest4::Value == false, HasImplicitCast4_is_broken);
+    static_assert(HasImplicitCastTest0::Value ==  true, "HasImplicitCast0_is_broken");
+    static_assert(HasImplicitCastTest1::Value ==  true, "HasImplicitCast1_is_broken");
+    static_assert(HasImplicitCastTest2::Value ==  true, "HasImplicitCast2_is_broken");
+    static_assert(HasImplicitCastTest3::Value ==  true, "HasImplicitCast3_is_broken");
+    static_assert(HasImplicitCastTest4::Value == false, "HasImplicitCast4_is_broken");
 
     template<typename T> struct IsLikeInteger { enum { Value = !IsReal<T>::Value && CanConvertToInt<T>::Value }; };
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !IsUnsignedInteger<T>::Value }; };

@@ -55,7 +55,7 @@ template<typename V> struct VectorTuple<2, V>
     template<size_t StructSize, typename I>
     Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V, I> &access) const
     {
-        VC_STATIC_ASSERT(2 <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has);
+        static_assert(2 <= StructSize, "You_are_trying_to_extract_more_data_from_the_struct_than_it_has");
         access.deinterleave(l, r);
     }
 };
@@ -98,7 +98,7 @@ template<typename V> struct VectorTuple<LENGTH, V> \
     template<size_t StructSize, typename I> \
     Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V, I> &access) const \
     { \
-        VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_extract_more_data_from_the_struct_than_it_has); \
+        static_assert(LENGTH <= StructSize, "You_are_trying_to_extract_more_data_from_the_struct_than_it_has"); \
         access.deinterleave parameters; \
     } \
 }; \
@@ -125,7 +125,7 @@ _VC_VECTORTUPLE_SPECIALIZATION(5, (l.l.l.l, l.l.l.r, l.l.r, l.r, r));
 _VC_VECTORTUPLE_SPECIALIZATION(6, (l.l.l.l.l, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
 _VC_VECTORTUPLE_SPECIALIZATION(7, (l.l.l.l.l.l, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
 _VC_VECTORTUPLE_SPECIALIZATION(8, (l.l.l.l.l.l.l, l.l.l.l.l.l.r, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
-//        VC_STATIC_ASSERT(false, You_are_gathering_too_many_vectors__This_is_not_implemented);
+//        static_assert(false, "You_are_gathering_too_many_vectors__This_is_not_implemented");
 
 } // namespace Common
 

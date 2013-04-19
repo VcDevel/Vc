@@ -132,12 +132,12 @@ template<size_t StructSize, typename V, typename I = typename V::IndexType> stru
 #define _VC_SCATTER_ASSIGNMENT(LENGTH, parameters) \
     Vc_ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, V> &rhs) \
     { \
-        VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_scatter_more_data_into_the_struct_than_it_has); \
+        static_assert(LENGTH <= StructSize, "You_are_trying_to_scatter_more_data_into_the_struct_than_it_has"); \
         this->interleave parameters ; \
     } \
     Vc_ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, const V> &rhs) \
     { \
-        VC_STATIC_ASSERT(LENGTH <= StructSize, You_are_trying_to_scatter_more_data_into_the_struct_than_it_has); \
+        static_assert(LENGTH <= StructSize, "You_are_trying_to_scatter_more_data_into_the_struct_than_it_has"); \
         this->interleave parameters ; \
     }
     _VC_SCATTER_ASSIGNMENT(2, (rhs.l, rhs.r))
@@ -183,7 +183,7 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     typedef T Ta Vc_MAY_ALIAS;
     Ta *const m_data;
 
-    VC_STATIC_ASSERT((sizeof(S) / sizeof(T)) * sizeof(T) == sizeof(S), InterleavedMemoryAccess_does_not_support_packed_structs);
+    static_assert((sizeof(S) / sizeof(T)) * sizeof(T) == sizeof(S), "InterleavedMemoryAccess_does_not_support_packed_structs");
 
 public:
     /**

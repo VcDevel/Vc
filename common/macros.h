@@ -197,27 +197,6 @@ do {} while ( false )
 #define _VC_CAT_HELPER(a, b, c, d) a##b##c##d
 #define _VC_CAT(a, b, c, d) _VC_CAT_HELPER(a, b, c, d)
 
-#if __cplusplus >= 201103 /*C++11*/ || (defined(VC_MSVC) && VC_MSVC >= 160000000)
-#define VC_STATIC_ASSERT_NC(cond, msg) \
-    static_assert(cond, #msg)
-#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg)
-#else // C++98
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc {
-    namespace {
-        template<bool> struct STATIC_ASSERT_FAILURE;
-        template<> struct STATIC_ASSERT_FAILURE<true> {};
-}}
-/*OUTER_NAMESPACE_END*/
-
-#define VC_STATIC_ASSERT_NC(cond, msg) \
-    typedef STATIC_ASSERT_FAILURE<cond> _VC_CAT(static_assert_failed_on_line_,__LINE__,_,msg); \
-    enum { \
-        _VC_CAT(static_assert_failed__on_line_,__LINE__,_,msg) = sizeof(_VC_CAT(static_assert_failed_on_line_,__LINE__,_,msg)) \
-    }
-#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg)
-#endif // C++11/98
-
     template<int e, int center> struct exponentToMultiplier { enum {
         X = exponentToMultiplier<e - 1, center>::X * ((e - center < 31) ? 2 : 1),
         Value = (X == 0 ? 1 : X)
