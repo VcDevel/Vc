@@ -145,24 +145,12 @@ template<typename Vec> void testAbs()/*{{{*/
 /*}}}*/
 static inline float my_trunc(float x)/*{{{*/
 {
-#if __cplusplus >= 201103 /*C++11*/
     return std::trunc(x);
-#elif defined(_ISOC99_SOURCE)
-    return truncf(x);
-#else
-    return x > 0 ? std::floor(x) : std::ceil(x);
-#endif
 }
 
 static inline double my_trunc(double x)
 {
-#if __cplusplus >= 201103 /*C++11*/
     return std::trunc(x);
-#elif defined(_ISOC99_SOURCE)
-    return trunc(x);
-#else
-    return x > 0 ? std::floor(x) : std::ceil(x);
-#endif
 }
 /*}}}*/
 template<typename V> void testTrunc()/*{{{*/

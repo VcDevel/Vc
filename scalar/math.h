@@ -133,11 +133,7 @@ template<typename T> static Vc_ALWAYS_INLINE Vector<T> atan2(const Vector<T> &x,
 
 template<typename T> static Vc_ALWAYS_INLINE Vector<T> trunc(const Vector<T> &x)
 {
-#if __cplusplus >= 201103 /*C++11*/
     return std::trunc(x.data());
-#else
-    return x.data() > 0 ? std::floor(x.data()) : std::ceil(x.data());
-#endif
 }
 
 template<typename T> static Vc_ALWAYS_INLINE Vector<T> floor(const Vector<T> &x)

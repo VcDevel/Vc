@@ -55,17 +55,14 @@
 #define VC_HAVE_ATTRIBUTE_WARNING 1
 #endif
 
-#if (defined(__GXX_EXPERIMENTAL_CXX0X__) && VC_GCC >= 0x40600) || __cplusplus >= 201103
-#  define VC_CXX11 1
-#  ifdef VC_GCC
-#    if VC_GCC >= 0x40700 // && VC_GCC < 0x408000)
+#ifdef VC_GCC
+#  if VC_GCC >= 0x40700 // && VC_GCC < 0x408000)
 //     ::max_align_t was introduced with GCC 4.7. std::max_align_t took a bit longer.
-#      define VC_HAVE_MAX_ALIGN_T 1
-#    endif
-#  elif !defined(VC_CLANG)
-//   Clang doesn't provide max_align_t at all
-#    define VC_HAVE_STD_MAX_ALIGN_T 1
+#    define VC_HAVE_MAX_ALIGN_T 1
 #  endif
+#elif !defined(VC_CLANG)
+//   Clang doesn't provide max_align_t at all
+#  define VC_HAVE_STD_MAX_ALIGN_T 1
 #endif
 
 #if defined(VC_GCC) || defined(VC_CLANG)

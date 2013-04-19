@@ -410,11 +410,9 @@ template<typename V> void testPartialSum()
     V reference(I::IndexesFromZero() + 1);
     COMPARE(V(1).partialSum(), reference);
     /* disabled until correct masking is implemented
-#ifdef VC_CXX11
 
     reference = V(I(2) << I::IndexesFromZero());
     COMPARE(V(2).partialSum([](const V &a, const V &b) { return a * b; }), reference);
-#endif
     */
 }
 
