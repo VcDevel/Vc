@@ -124,15 +124,6 @@ enum {
     NDenormals = 64
 };
 /*}}}*/
-template<typename V> V apply_v(VC_ALIGNED_PARAMETER(V) x, typename V::EntryType (func)(typename V::EntryType))/*{{{*/
-{
-    V r;
-    for (size_t i = 0; i < V::Size; ++i) {
-        r[i] = func(x[i]);
-    }
-    return r;
-}
-/*}}}*/
 template<typename Vec> void testAbs()/*{{{*/
 {
     for (int i = 0; i < 0x7fff; ++i) {
@@ -143,27 +134,17 @@ template<typename Vec> void testAbs()/*{{{*/
     }
 }
 /*}}}*/
-static inline float my_trunc(float x)/*{{{*/
-{
-    return std::trunc(x);
-}
-
-static inline double my_trunc(double x)
-{
-    return std::trunc(x);
-}
-/*}}}*/
 template<typename V> void testTrunc()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
-        V reference = apply_v(x, my_trunc);
+        V reference = x.apply([](T _x) { return std::trunc(_x); });
         COMPARE(Vc::trunc(x), reference) << ", x = " << x << ", i = " << i;
     }
     V x = static_cast<V>(I::IndexesFromZero());
-    V reference = apply_v(x, my_trunc);
+    V reference = x.apply([](T _x) { return std::trunc(_x); });
     COMPARE(Vc::trunc(x), reference) << ", x = " << x;
 }
 /*}}}*/
@@ -173,11 +154,11 @@ template<typename V> void testFloor()/*{{{*/
     typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
-        V reference = apply_v(x, std::floor);
+        V reference = x.apply([](T _x) { return std::floor(_x); });
         COMPARE(Vc::floor(x), reference) << ", x = " << x << ", i = " << i;
     }
     V x = static_cast<V>(I::IndexesFromZero());
-    V reference = apply_v(x, std::floor);
+    V reference = x.apply([](T _x) { return std::floor(_x); });
     COMPARE(Vc::floor(x), reference) << ", x = " << x;
 }
 /*}}}*/
@@ -187,11 +168,11 @@ template<typename V> void testCeil()/*{{{*/
     typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
-        V reference = apply_v(x, std::ceil);
+        V reference = x.apply([](T _x) { return std::ceil(_x); });
         COMPARE(Vc::ceil(x), reference) << ", x = " << x << ", i = " << i;
     }
     V x = static_cast<V>(I::IndexesFromZero());
-    V reference = apply_v(x, std::ceil);
+    V reference = x.apply([](T _x) { return std::ceil(_x); });
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }
 /*}}}*/
@@ -202,7 +183,7 @@ template<typename V> void testExp()/*{{{*/
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(20);
-        V reference = apply_v(x, std::exp);
+        V reference = x.apply([](T _x) { return std::exp(_x); });
         FUZZY_COMPARE(Vc::exp(x), reference) << ", x = " << x << ", i = " << i;
     }
     COMPARE(Vc::exp(V::Zero()), V::One());
@@ -225,7 +206,7 @@ template<typename V> void testLog()/*{{{*/
     COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
     for (int i = 0; i < NDenormals; i += V::Size) {
         V x(&Denormals<T>::data[i]);
-        V ref = apply_v(x, std::log);
+        V ref = x.apply([](T _x) { return std::log(_x); });
         FUZZY_COMPARE(Vc::log(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
@@ -256,7 +237,7 @@ template<typename V> void testLog2()/*{{{*/
     COMPARE(Vc::log2(V::Zero()), V(std::log2(T(0))));
     for (int i = 0; i < NDenormals; i += V::Size) {
         V x(&Denormals<T>::data[i]);
-        V ref = x.apply([](T _x) -> T { return std::log2(_x); });
+        V ref = x.apply([](T _x) { return std::log2(_x); });
         FUZZY_COMPARE(Vc::log2(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
@@ -279,7 +260,7 @@ template<typename V> void testLog10()/*{{{*/
     COMPARE(Vc::log10(V::Zero()), V(std::log10(T(0))));
     for (int i = 0; i < NDenormals; i += V::Size) {
         V x(&Denormals<T>::data[i]);
-        V ref = apply_v(x, std::log10);
+        V ref = x.apply([](T _x) { return std::log10(_x); });
         FUZZY_COMPARE(Vc::log10(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
