@@ -24,12 +24,10 @@
 #include "unittest.h"
 #include <Vc/Allocator>
 #include <vector>
-#ifdef VC_CXX11
 #include <array>
 #include <forward_list>
 #include <list>
 #include <deque>
-#endif
 
 template<typename Vec> size_t alignmentMask()
 {
@@ -63,7 +61,6 @@ template<typename V> void stdVectorAlignment()
     std::vector<SomeStruct<V>, Vc::Allocator<SomeStruct<V> > > v4(v2);
 }
 
-#ifdef VC_CXX11
 template<typename V, typename Container> void listInitialization()
 {
     typedef typename V::EntryType T;
@@ -86,7 +83,6 @@ template<typename V> void listInitialization()
     //listInitialization<V, std::forward_list<V>>();
     //listInitialization<V, std::list<V>>();
 }
-#endif
 
 int main(int argc, char **argv)
 {
@@ -94,7 +90,5 @@ int main(int argc, char **argv)
 
     using namespace Vc;
     testAllTypes(stdVectorAlignment);
-#ifdef VC_CXX11
     testAllTypes(listInitialization);
-#endif
 }

@@ -20,8 +20,6 @@
 #ifndef COMMON_MAKECONTAINER_H
 #define COMMON_MAKECONTAINER_H
 
-#ifdef VC_CXX11
-
 #include <Vc/vector.h>
 #include <initializer_list>
 #include "macros.h"
@@ -122,7 +120,5 @@ namespace Vc
 /*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
-
-#endif // VC_CXX11
 
 #endif // COMMON_MAKECONTAINER_H
