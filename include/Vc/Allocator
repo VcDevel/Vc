@@ -120,10 +120,10 @@ namespace std \
 #elif defined(VC_HAVE_MAX_ALIGN_T)
             NaturalAlignment = alignof(::max_align_t),
 #else
-            NaturalAlignment = sizeof(void *) > Vc_ALIGNOF(long double) ? sizeof(void *) :
-                (Vc_ALIGNOF(long double) > Vc_ALIGNOF(long long) ? Vc_ALIGNOF(long double) : Vc_ALIGNOF(long long)),
+            NaturalAlignment = sizeof(void *) > alignof(long double) ? sizeof(void *) :
+                (alignof(long double) > alignof(long long) ? alignof(long double) : alignof(long long)),
 #endif
-            Alignment = Vc_ALIGNOF(T),
+            Alignment = alignof(T),
             /* The number of extra bytes allocated must be large enough to put a pointer right
              * before the adjusted address. This pointer stores the original address, which is
              * required to call ::operator delete in deallocate.
