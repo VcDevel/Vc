@@ -168,12 +168,6 @@
 #define Vc_CONSTEXPR_DATA static const
 #endif
 
-#ifdef VC_CXX11
-# define _VC_NOEXCEPT noexcept
-#else
-# define _VC_NOEXCEPT throw()
-#endif
-
 
 #ifdef VC_GCC
 # define VC_WARN_INLINE
