@@ -24,9 +24,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include "common/macros.h"
-#ifdef VC_CXX11
 #include <utility>
-#endif
 
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
@@ -201,15 +199,12 @@ namespace std \
         // we still need the C++98 version:
         void construct(pointer p, const T& __val) { ::new(p) T(__val); }
         void destroy(pointer p) { p->~T(); }
-#elif defined(VC_CXX11)
+#else
         template<typename U, typename... Args> void construct(U* p, Args&&... args)
         {
             ::new(p) U(std::forward<Args>(args)...);
         }
         template<typename U> void destroy(U* p) { p->~U(); }
-#else
-        void construct(pointer p, const T& __val) { ::new(p) T(__val); }
-        void destroy(pointer p) { p->~T(); }
 #endif
     };
 
