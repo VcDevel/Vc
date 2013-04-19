@@ -230,27 +230,6 @@ template<typename V> void testLog()/*{{{*/
     }
 }
 /*}}}*/
-#if (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600) || defined(_ISOC99_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L)/*{{{*/
-static inline float my_log2(float x) { return ::log2f(x); }
-/* I need to make sure whether the log2 that I compare against is really precise to <0.5ulp. At
- * least I get different results when I use "double log2(double)", which is somewhat unexpected.
- * Well, conversion from double to float goes via truncation, so if the most significant truncated
- * mantissa bit is set the resulting float is incorrect by 1 ulp
-
-static inline float my_log2(float x) { return ::log2(static_cast<double>(x)); }
-static inline float my_log2(float x) {
-    double tmp = ::log2(static_cast<double>(x));
-    int e;
-    frexp(tmp, &e); // frexp(0.5) -> e = 0
-    return tmp + ldexp(tmp < 0 ? -0.5 : 0.5, e - 24);
-}
- */
-static inline double my_log2(double x) { return ::log2(x); }
-#else
-static inline float my_log2(float x) { return ::logf(x) / Vc::Math<float>::ln2(); }
-static inline double my_log2(double x) { return ::log(x) / Vc::Math<double>::ln2(); }
-#endif
-/*}}}*/
 template<typename V> void testLog2()/*{{{*/
 {
 #if defined(VC_LOG_ILP) || defined(VC_LOG_ILP2)
@@ -274,10 +253,10 @@ template<typename V> void testLog2()/*{{{*/
         FUZZY_COMPARE(Vc::log2(x), ref) << " x = " << x << ", i = " << i;
     }
 
-    COMPARE(Vc::log2(V::Zero()), V(my_log2(T(0))));
+    COMPARE(Vc::log2(V::Zero()), V(std::log2(T(0))));
     for (int i = 0; i < NDenormals; i += V::Size) {
         V x(&Denormals<T>::data[i]);
-        V ref = apply_v(x, my_log2);
+        V ref = x.apply([](T _x) -> T { return std::log2(_x); });
         FUZZY_COMPARE(Vc::log2(x), ref) << ", x = " << x << ", i = " << i;
     }
 }

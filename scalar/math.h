@@ -98,23 +98,10 @@ template<typename T> static Vc_ALWAYS_INLINE Vector<T> log10(const Vector<T> &x)
     return Vector<T>(std::log10(x.data()));
 }
 
-#if (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600) || defined(_ISOC99_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L)
-static Vc_ALWAYS_INLINE double_v log2(double_v::AsArg x) { return double_v(::log2 (x.data())); }
-static Vc_ALWAYS_INLINE sfloat_v log2(sfloat_v::AsArg x) { return sfloat_v(::log2f(x.data())); }
-static Vc_ALWAYS_INLINE  float_v log2( float_v::AsArg x) { return  float_v(::log2f(x.data())); }
-#else
-namespace {
-template<typename T> static constexpr T c_ln2() { return Vc_buildFloat(1, 0x317218, -1); } // .693147182464599609375
-template<> constexpr double c_ln2() { return Vc_buildDouble(1, 0x62E42FEFA39EFull, -1); } // .69314718055994528622676398299518041312694549560546875
+template<typename T> static Vc_ALWAYS_INLINE Vector<T> log2(const Vector<T> &x)
+{
+    return Vector<T>(std::log2(x.data()));
 }
-#define VC_LOG2(V) \
-static Vc_ALWAYS_INLINE V log2(const V &x) \
-{ \
-    return V(std::log(x.data()) / c_ln2<V::EntryType>()); \
-}
-VC_ALL_FLOAT_VECTOR_TYPES(VC_LOG2)
-#undef VC_LOG2
-#endif
 
 template<typename T> static Vc_ALWAYS_INLINE Vector<T> exp (const Vector<T> &x)
 {
