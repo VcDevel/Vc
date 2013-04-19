@@ -24,6 +24,15 @@ if(ROOT_RELEASE)
       message(FATAL_ERROR "CMAKE_INSTALL_PREFIX is incorrect. It must point to the Vc subdirectory inside ROOT/AliRoot")
    endif()
 else()
+
+   AddCompilerFlag("-std=c++11" _ok)
+   if(NOT _ok)
+      AddCompilerFlag("-std=c++0x" _ok)
+      if(NOT _ok)
+         message(FATAL_ERROR "Vc 1.x requires C++11 support. It seems this is not available. If this was incorrectly determined please notify vc-devel@compeng.uni-frankfurt.de")
+      endif()
+   endif()
+
    if(Vc_COMPILER_IS_GCC)
       if(Vc_GCC_VERSION STREQUAL "4.6.0")
          UserWarning("GCC 4.6.0 is broken. The following tests are therefore disabled:
@@ -36,12 +45,6 @@ else()
             gather_VC_USE_SET_GATHERS_sse
             scatter_avx
             scatter_sse
-            c++11_gather_avx
-            c++11_gather_sse
-            c++11_gather_VC_USE_SET_GATHERS_avx
-            c++11_gather_VC_USE_SET_GATHERS_sse
-            c++11_scatter_avx
-            c++11_scatter_sse
             )
       elseif(Vc_GCC_VERSION STREQUAL "4.5.0" OR Vc_GCC_VERSION STREQUAL "4.5.1")
          UserWarning("GCC 4.5.[12] are known to generate an internal compiler error on the memory unit test.
@@ -51,15 +54,11 @@ else()
             memory_scalar
             memory_sse
             memory_avx
-            c++11_memory_scalar
-            c++11_memory_sse
-            c++11_memory_avx
             )
       elseif(Vc_GCC_VERSION STREQUAL "4.5.2")
          UserWarning("GCC 4.5.2 generates an internal compiler error on the memory_scalar unit test. The test will not be compiled and executed.")
          list(APPEND disabled_targets
             memory_scalar
-            c++11_memory_scalar
             )
       endif()
    elseif(Vc_COMPILER_IS_CLANG)
@@ -76,8 +75,6 @@ else()
          list(APPEND disabled_targets
             stlcontainer_sse
             stlcontainer_avx
-            c++11_stlcontainer_sse
-            c++11_stlcontainer_avx
             )
       endif()
    endif()
