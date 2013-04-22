@@ -742,6 +742,9 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
     unsigned int low, high = 0;                 \
     switch (_mm_popcnt_u32(bits)) {             \
     case 8:                                     \
+        full_gather();                          \
+        break;                                  \
+    case 7:                                     \
         high = _bit_scan_reverse(bits);         \
         d.m(high) = ith_value(high);            \
         high = (1 << high);                     \
@@ -838,9 +841,11 @@ Vc_INTRINSIC void Vector<T>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(I
             );
     (*this)(mask) = setHelper<Vector<T> >(mem, ii);
 #else
+#define full_gather() gather(mem, indexes)
 #define ith_value(_i_) (mem[static_cast<typename DetermineUInt<sizeof(indexes[0])>::Type>(indexes[_i_])])
     VC_MASKED_GATHER
 #undef ith_value
+#undef full_gather
 #endif
 }
 
@@ -903,9 +908,11 @@ template<typename T> template<typename S1, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask)
 {
     IndexSizeChecker<IT, Size>::check();
+#define full_gather() gather(array, member1, indexes)
 #define ith_value(_i_) (array[indexes[_i_]].*(member1))
     VC_MASKED_GATHER
 #undef ith_value
+#undef full_gather
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
@@ -966,9 +973,11 @@ template<typename T> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask)
 {
     IndexSizeChecker<IT, Size>::check();
+#define full_gather() gather(array, member1, member2, indexes)
 #define ith_value(_i_) (array[indexes[_i_]].*(member1).*(member2))
     VC_MASKED_GATHER
 #undef ith_value
+#undef full_gather
 }
 template<> template<typename S1, typename IT1, typename IT2>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes)
@@ -1043,9 +1052,11 @@ Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::gather(const S1 *array, const EntryT
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
+#define full_gather() gather(array, ptrMember1, outerIndexes, innerIndexes)
 #define ith_value(_i_) (array[outerIndexes[_i_]].*(ptrMember1))[innerIndexes[_i_]]
     VC_MASKED_GATHER
 #undef ith_value
+#undef full_gather
 }
 
 #undef VC_MASKED_GATHER
