@@ -730,11 +730,16 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
 
 #ifdef VC_USE_BSF_GATHERS
 #define VC_MASKED_GATHER                        \
-    int bits = mask.toInt();                    \
+    size_t bits = mask.toInt();                    \
     while (bits) {                              \
-        const int i = _bit_scan_forward(bits);  \
-        bits &= ~(1 << i); /* btr? */           \
+        size_t i, j; \
+        asm("bsf %[bits],%[i]\n\t" \
+            "bsr %[bits],%[j]\n\t" \
+            "btr %[i],%[bits]\n\t" \
+            "btr %[j],%[bits]\n\t" \
+            : [i]"=r"(i), [j]"=r"(j), [bits]"+r"(bits)); \
         d.m(i) = ith_value(i);                  \
+        d.m(j) = ith_value(j);                  \
     }
 #elif defined(VC_USE_POPCNT_BSF_GATHERS)
 #define VC_MASKED_GATHER                        \
