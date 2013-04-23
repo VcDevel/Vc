@@ -28,11 +28,13 @@ else()
    # TODO: skip the C++11 check for C
    # TODO: check that 'decltype' compiles
    # TODO: check that 'constexpr' compiles
-   AddCompilerFlag("-std=c++11" _ok)
-   if(NOT _ok)
-      AddCompilerFlag("-std=c++0x" _ok)
+   if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
+      AddCompilerFlag("-std=c++11" _ok)
       if(NOT _ok)
-         message(FATAL_ERROR "Vc 1.x requires C++11 support. It seems this is not available. If this was incorrectly determined please notify vc-devel@compeng.uni-frankfurt.de")
+         AddCompilerFlag("-std=c++0x" _ok)
+         if(NOT _ok)
+            message(FATAL_ERROR "Vc 1.x requires C++11 support. It seems this is not available. If this was incorrectly determined please notify vc-devel@compeng.uni-frankfurt.de")
+         endif()
       endif()
    endif()
 
