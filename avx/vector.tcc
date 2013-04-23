@@ -750,12 +750,8 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
         full_gather();                          \
         break;                                  \
     case 7:                                     \
-        high = _bit_scan_reverse(bits);         \
-        d.m(high) = ith_value(high);            \
-        high = (1 << high);                     \
-    case 7:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= high | (1 << low);              \
+        bits ^= 1 << low;                       \
         d.m(low) = ith_value(low);              \
     case 6:                                     \
         high = _bit_scan_reverse(bits);         \
