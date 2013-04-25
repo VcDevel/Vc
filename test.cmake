@@ -208,11 +208,18 @@ macro(go)
       endif()
    endif()
    if(NOT ${dashboard_model} STREQUAL "Continuous" OR res GREATER 0)
-      CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
-         OPTIONS "${configure_options}"
-         APPEND
-         RETURN_VALUE res)
-      ctest_submit(PARTS Notes Configure)
+      if("${COMPILER_VERSION}" MATCHES "(g\\+\\+|GCC|Open64).*4\\.[012345]\\.")
+         file(WRITE "${CTEST_BINARY_DIRECTORY}/abort_reason" "Compiler too old for C++11: ${COMPILER_VERSION}")
+         list(APPEND CTEST_NOTES_FILES "${CTEST_BINARY_DIRECTORY}/abort_reason")
+         ctest_submit(PARTS Notes)
+         set(res 1)
+      else()
+         CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
+            OPTIONS "${configure_options}"
+            APPEND
+            RETURN_VALUE res)
+         ctest_submit(PARTS Notes Configure)
+      endif()
       if(res EQUAL 0)
          foreach(label other Scalar SSE AVX)
             set_property(GLOBAL PROPERTY Label ${label})
