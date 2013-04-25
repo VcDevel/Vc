@@ -59,6 +59,13 @@
 #define VC_HAVE_ATTRIBUTE_WARNING 1
 #endif
 
+#if defined(VC_MSVC) && VC_MSVC < 180000000
+// MSVC doesn't know constexpr
+#ifndef constexpr
+#define constexpr inline __forceinline
+#endif
+#endif
+
 #ifdef VC_GCC
 #  if VC_GCC >= 0x40700 // && VC_GCC < 0x408000)
 //     ::max_align_t was introduced with GCC 4.7. std::max_align_t took a bit longer.
