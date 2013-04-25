@@ -20,6 +20,10 @@
 #ifndef VC_GLOBAL_H
 #define VC_GLOBAL_H
 
+#if __cplusplus < 201103
+#error "Vc requires the C++ compiler to support C++11."
+#endif
+
 #ifndef DOXYGEN
 
 // Compiler defines
