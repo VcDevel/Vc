@@ -160,7 +160,7 @@ namespace AVX
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
 
-#ifdef VC_IMPL_XOP
+#if defined(VC_IMPL_XOP) && !defined(VC_CLANG)
     static Vc_INTRINSIC m128i Vc_CONST _mm_setallone() { __m128i a; return _mm_comtrue_epu8(a, a); }
 #elif defined(__GNUC__) && !defined(NVALGRIND)
     static Vc_INTRINSIC m128i Vc_CONST _mm_setallone() { __m128i r; return _mm_cmpeq_epi8(r, r); }
@@ -251,7 +251,7 @@ namespace AVX
     static Vc_INTRINSIC m256  Vc_CONST _mm256_cmpord_ps  (param256  a, param256  b) { return _mm256_cmp_ps(a, b, _CMP_ORD_Q); }
     static Vc_INTRINSIC m256  Vc_CONST _mm256_cmpunord_ps(param256  a, param256  b) { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
 
-#ifdef VC_IMPL_XOP
+#if defined(VC_IMPL_XOP) && !defined(VC_CLANG)
     static Vc_INTRINSIC m128i _mm_cmplt_epu16(param128i a, param128i b) {
         return _mm_comlt_epu16(a, b);
     }
@@ -547,7 +547,7 @@ namespace AVX
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
 //X     static Vc_INTRINSIC m256i _mm256_cmpgt_epu8 (param256i a, param256i b) { return _mm256_cmpgt_epi8 (
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
-#ifdef VC_IMPL_XOP
+#if defined(VC_IMPL_XOP) && !defined(VC_CLANG)
     AVX_TO_SSE_2(comlt_epu32)
     AVX_TO_SSE_2(comgt_epu32)
     static Vc_INTRINSIC m256i Vc_CONST _mm256_cmplt_epu32(param256i a, param256i b) { return _mm256_comlt_epu32(a, b); }
