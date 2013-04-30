@@ -1,6 +1,6 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
 
-    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -15,7 +15,7 @@
     You should have received a copy of the GNU Lesser General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
-*/
+}}}*/
 
 #include "unittest.h"
 #include <iostream>
@@ -24,7 +24,7 @@
 
 using namespace Vc;
 
-template<typename Vec> void testInc()
+template<typename Vec> void testInc()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -47,7 +47,8 @@ template<typename Vec> void testInc()
     }
 }
 
-template<typename Vec> void testDec()
+/*}}}*/
+template<typename Vec> void testDec()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -69,8 +70,8 @@ template<typename Vec> void testDec()
         COMPARE(aa, b);
     }
 }
-
-template<typename Vec> void testPlusEq()
+/*}}}*/
+template<typename Vec> void testPlusEq()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -89,8 +90,8 @@ template<typename Vec> void testPlusEq()
         COMPARE(a, b);
     }
 }
-
-template<typename Vec> void testMinusEq()
+/*}}}*/
+template<typename Vec> void testMinusEq()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -109,8 +110,8 @@ template<typename Vec> void testMinusEq()
         COMPARE(a, b);
     }
 }
-
-template<typename Vec> void testTimesEq()
+/*}}}*/
+template<typename Vec> void testTimesEq()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -129,8 +130,8 @@ template<typename Vec> void testTimesEq()
         COMPARE(a, b);
     }
 }
-
-template<typename Vec> void testDivEq()
+/*}}}*/
+template<typename Vec> void testDivEq()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -149,8 +150,8 @@ template<typename Vec> void testDivEq()
         COMPARE(a, b);
     }
 }
-
-template<typename Vec> void testAssign()
+/*}}}*/
+template<typename Vec> void testAssign()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -169,8 +170,8 @@ template<typename Vec> void testAssign()
         COMPARE(a, b);
     }
 }
-
-template<typename Vec> void testZero()
+/*}}}*/
+template<typename Vec> void testZero()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -190,8 +191,8 @@ template<typename Vec> void testZero()
         COMPARE(a, b);
     }
 }
-
-template<typename Vec> void testCount()
+/*}}}*/
+template<typename Vec> void testCount()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
@@ -207,8 +208,8 @@ template<typename Vec> void testCount()
         COMPARE(m.count(), count) << ", m = " << m;
     }
 }
-
-template<typename Vec> void testFirstOne()
+/*}}}*/
+template<typename Vec> void testFirstOne()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
@@ -219,9 +220,9 @@ template<typename Vec> void testFirstOne()
         COMPARE(mask.firstOne(), i);
     }
 }
-
+/*}}}*/
 #ifdef VC_IMPL_SSE
-void testFloat8GatherMask()
+void testFloat8GatherMask()/*{{{*/
 {
     Memory<short_v, short_v::Size * 256> data;
     short_v::Memory andMemory;
@@ -242,17 +243,17 @@ void testFloat8GatherMask()
             gatherMaskB(static_cast<sfloat_m>(mask));
         COMPARE(gatherMaskA.toInt(), gatherMaskB.toInt());
     }
-}
+}/*}}}*/
 #endif
 
-template<typename V> void maskInit()
+template<typename V> void maskInit()/*{{{*/
 {
     typedef typename V::Mask M;
     COMPARE(M(Vc::One), M(true));
     COMPARE(M(Vc::Zero), M(false));
 }
-
-int main(int argc, char **argv)
+/*}}}*/
+int main(int argc, char **argv)/*{{{*/
 {
     initTest(argc, argv);
 
@@ -273,4 +274,6 @@ int main(int argc, char **argv)
 #endif
 
     return 0;
-}
+}/*}}}*/
+
+// vim: foldmethod=marker
