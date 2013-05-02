@@ -122,6 +122,7 @@ namespace Vc
 #endif
     {
         using Vc::where;
+        using Vc::iif;
     } // namespace Scalar/AVX/SSE
 } // namespace Vc
 
