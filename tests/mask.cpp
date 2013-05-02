@@ -280,7 +280,7 @@ template<typename Vec> void testFirstOne()/*{{{*/
 #ifdef VC_IMPL_SSE
 void testFloat8GatherMask()/*{{{*/
 {
-    Memory<short_v, short_v::Size * 256> data;
+    Vc::Memory<short_v, short_v::Size * 256> data;
     short_v::Memory andMemory;
     for (int i = 0; i < short_v::Size; ++i) {
         andMemory[i] = 1 << i;
@@ -292,11 +292,11 @@ void testFloat8GatherMask()/*{{{*/
     }
 
     for (unsigned int i = 0; i < data.vectorsCount(); ++i) {
-        const short_m mask = data.vector(i) == short_v::Zero();
+        const Vc::short_m mask = data.vector(i) == short_v::Zero();
 
-        SSE::Float8GatherMask
+        Vc::SSE::Float8GatherMask
             gatherMaskA(mask),
-            gatherMaskB(static_cast<sfloat_m>(mask));
+            gatherMaskB(static_cast<Vc::sfloat_m>(mask));
         COMPARE(gatherMaskA.toInt(), gatherMaskB.toInt());
     }
 }/*}}}*/
