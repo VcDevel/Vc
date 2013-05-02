@@ -22,7 +22,16 @@
 #include "vectormemoryhelper.h"
 #include <cmath>
 
-using namespace Vc;
+using Vc::float_v;
+using Vc::double_v;
+using Vc::sfloat_v;
+using Vc::int_v;
+using Vc::uint_v;
+using Vc::short_v;
+using Vc::ushort_v;
+
+template<typename T> T two() { return T(2); }
+template<typename T> T three() { return T(3); }
 
 template<typename Vec> void testInc()/*{{{*/
 {
@@ -30,7 +39,7 @@ template<typename Vec> void testInc()/*{{{*/
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
-    for (int borderI = 0; borderI < Vec::Size; ++borderI) {
+    for (int borderI = 0; borderI < Vec::Size; ++borderI) {/*{{{*/
         const T border = static_cast<T>(borderI);
         for (int i = 0; i < Vec::Size; ++i) {
             data[i] = static_cast<T>(i);
@@ -45,8 +54,23 @@ template<typename Vec> void testInc()/*{{{*/
         COMPARE(++a(m), b) << ", border: " << border << ", m: " << m;
         COMPARE(a, b) << ", border: " << border << ", m: " << m;
     }
+/*}}}*/
+    for (int borderI = 0; borderI < Vec::Size; ++borderI) {
+        const T border = static_cast<T>(borderI);
+        for (int i = 0; i < Vec::Size; ++i) {
+            data[i] = static_cast<T>(i);
+            data[i + Vec::Size] = data[i] + static_cast<T>(data[i] < border ? 1 : 0);
+        }
+        Vec a(&data[0]);
+        Vec b(&data[Vec::Size]);
+        Mask m = a < border;
+        Vec aa(a);
+        where(m)(aa)++;
+        COMPARE(aa, b) << ", border: " << border << ", m: " << m;
+        ++where(m)(a);
+        COMPARE(a, b) << ", border: " << border << ", m: " << m;
+    }
 }
-
 /*}}}*/
 template<typename Vec> void testDec()/*{{{*/
 {
@@ -65,9 +89,18 @@ template<typename Vec> void testDec()/*{{{*/
         Mask m = a < border;
         Vec aa(a);
         COMPARE(aa(m)--, a);
+        COMPARE(aa, b);
+
+        aa = a;
+        where(m)(aa)--;
+        COMPARE(aa, b);
+
+        aa = a;
+        --where(m)(aa);
+        COMPARE(aa, b);
+
         COMPARE(--a(m), b);
         COMPARE(a, b);
-        COMPARE(aa, b);
     }
 }
 /*}}}*/
@@ -85,9 +118,12 @@ template<typename Vec> void testPlusEq()/*{{{*/
         }
         Vec a(&data[0]);
         Vec b(&data[Vec::Size]);
+        Vec c = a;
         Mask m = a < border;
-        COMPARE(a(m) += static_cast<T>(2), b);
+        COMPARE(a(m) += two<T>(), b);
         COMPARE(a, b);
+        where(m) | c += two<T>();
+        COMPARE(c, b);
     }
 }
 /*}}}*/
@@ -106,7 +142,12 @@ template<typename Vec> void testMinusEq()/*{{{*/
         Vec a(&data[0]);
         Vec b(&data[Vec::Size]);
         Mask m = a < border;
-        COMPARE(a(m) -= static_cast<T>(2), b);
+
+        Vec c = a;
+        where(m) | c -= two<T>();
+        COMPARE(c, b);
+
+        COMPARE(a(m) -= two<T>(), b);
         COMPARE(a, b);
     }
 }
@@ -126,7 +167,12 @@ template<typename Vec> void testTimesEq()/*{{{*/
         Vec a(&data[0]);
         Vec b(&data[Vec::Size]);
         Mask m = a < border;
-        COMPARE(a(m) *= static_cast<T>(2), b);
+
+        Vec c = a;
+        where(m) | c *= two<T>();
+        COMPARE(c, b);
+
+        COMPARE(a(m) *= two<T>(), b);
         COMPARE(a, b);
     }
 }
@@ -146,7 +192,12 @@ template<typename Vec> void testDivEq()/*{{{*/
         Vec a(&data[0]);
         Vec b(&data[Vec::Size]);
         Mask m = a < border;
-        COMPARE(a(m) /= static_cast<T>(3), b);
+
+        Vec c = a;
+        where(m) | c /= three<T>();
+        COMPARE(c, b);
+
+        COMPARE(a(m) /= three<T>(), b);
         COMPARE(a, b);
     }
 }
@@ -166,6 +217,11 @@ template<typename Vec> void testAssign()/*{{{*/
         Vec a(&data[0]);
         Vec b(&data[Vec::Size]);
         Mask m = a < border;
+
+        Vec c = a;
+        where(m) | c = b;
+        COMPARE(c, b);
+
         COMPARE(a(m) = b, b);
         COMPARE(a, b);
     }
@@ -185,7 +241,7 @@ template<typename Vec> void testZero()/*{{{*/
         Vec a(aa);
         Vec b(Vc::Zero);
 
-        b(!mask) = a;
+        where(!mask) | b = a;
         a.setZero(mask);
 
         COMPARE(a, b);

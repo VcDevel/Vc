@@ -38,6 +38,7 @@
 #undef VC_IS_LIKELY
 #undef VC_RESTRICT
 #undef VC_DEPRECATED
+#undef Vc_WARN_UNUSED_RESULT
 
 #undef ALIGN
 #undef STRUCT_ALIGN1

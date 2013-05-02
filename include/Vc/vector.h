@@ -108,7 +108,22 @@ namespace Vc
 /*OUTER_NAMESPACE_END*/
 
 #include "common/vectortuple.h"
+#include "common/where.h"
 #include "common/iif.h"
+
+namespace Vc
+{
+#ifdef VC_IMPL_Scalar
+    namespace Scalar
+#elif defined VC_IMPL_AVX
+    namespace AVX
+#elif defined VC_IMPL_SSE
+    namespace SSE
+#endif
+    {
+        using Vc::where;
+    } // namespace Scalar/AVX/SSE
+} // namespace Vc
 
 #ifndef VC_NO_NAMESPACE_ALIAS
 /*NAMESPACE_ALIAS*/
