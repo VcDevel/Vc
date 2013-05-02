@@ -126,8 +126,9 @@ namespace
  * Conditional assignment.
  *
  * Since compares between SIMD vectors do not return a single boolean, but rather a vector of
- * booleans (mask), one cannot use if / else statements in some places. Instead, one needs to express
- * that only a some entries of a given SIMD vector should be modified. The \c where function
+ * booleans (mask), one often cannot use if / else statements. Instead, one needs to state
+ * that only a subset of entries of a given SIMD vector should be modified. The \c where function
+ * can be prepended to any assignment operation to execute a masked assignment.
  *
  * \param mask The mask that selects the entries in the target vector that will be modified.
  *
@@ -137,20 +138,26 @@ namespace
  *
  * Example:
  * \code
- * template<typename T> void f(T x, T y)
+ * template<typename T> void f1(T &x, T &y)
  * {
- *   if (x < 2) { // (1)
+ *   if (x < 2) {
  *     x *= y;
  *     y += 2;
  *   }
- *   where(x < 2) | x *= y; // (2)
- *   where(x < 2) | y += 2; // (3)
+ * }
+ * template<typename T> void f2(T &x, T &y)
+ * {
+ *   where(x < 2) | x *= y;
+ *   where(x < 2) | y += 2;
  * }
  * \endcode
- * The block following the if statement at (1) will be executed if <code>x &lt; 2</code> evaluates
+ * The block following the if statement in \c f1 will be executed if <code>x &lt; 2</code> evaluates
  * to \c true. If \c T is a scalar type you normally get what you expect. But if \c T is a SIMD
  * vector type, the comparison will use the implicit conversion from a mask to bool, meaning
- * <code>all_of(x &lt; 2)</code>. This is radically different from lines (2) and (3). 
+ * <code>all_of(x &lt; 2)</code>.
+ *
+ * Most of the time the required operation is a masked assignment as stated in \c f2.
+ *
  */
 template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereMask<M> where(const M &mask)
 {
