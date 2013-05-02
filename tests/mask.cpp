@@ -309,9 +309,11 @@ template<typename V> void maskReductions()
         if (mask.count() > 0) {
             VERIFY(any_of(mask));
             VERIFY(!none_of(mask));
+            COMPARE(some_of(mask), mask.count() < V::Size);
         } else {
             VERIFY(!any_of(mask));
             VERIFY(none_of(mask));
+            VERIFY(!some_of(mask));
         }
     }
 }

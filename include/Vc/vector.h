@@ -126,6 +126,7 @@ namespace Vc
         using Vc::all_of;
         using Vc::any_of;
         using Vc::none_of;
+        using Vc::some_of;
         using Vc::iif;
     } // namespace Scalar/AVX/SSE
 } // namespace Vc
