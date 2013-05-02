@@ -58,6 +58,16 @@ template<typename Mask> constexpr bool none_of(const Mask &m) { return m.isEmpty
  *  Returns \p !b
  */
 constexpr bool none_of(bool b) { return !b; }
+
+/** \ingroup Utilities
+ *  Returns whether at least one entry in \p m is \c true and at least one entry in \p m is \c
+ *  false.
+ */
+template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix(); }
+/** \ingroup Utilities
+ *  Returns \c false
+ */
+constexpr bool some_of(bool) { return false; }
 //@}
 
 } // namespace Vc
