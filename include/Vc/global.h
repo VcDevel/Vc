@@ -64,9 +64,14 @@
 #endif
 
 #if defined(VC_MSVC) && VC_MSVC < 180000000
-// MSVC doesn't know constexpr
+// MSVC doesn't know constexpr and noexcept
+// first include the check that forbids macroizing keywords >:)
+#include <xkeycheck.h>
 #ifndef constexpr
 #define constexpr inline __forceinline
+#endif
+#ifndef noexcept
+#define noexcept throw()
 #endif
 #endif
 
