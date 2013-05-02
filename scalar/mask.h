@@ -56,6 +56,7 @@ template<unsigned int VectorSize = 1> class Mask
         Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { m ^= rhs.m; return *this; }
 
         Vc_ALWAYS_INLINE bool isFull () const { return  m; }
+        Vc_ALWAYS_INLINE bool isNotEmpty() const { return m; }
         Vc_ALWAYS_INLINE bool isEmpty() const { return !m; }
         Vc_ALWAYS_INLINE bool isMix  () const { return false; }
 

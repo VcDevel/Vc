@@ -112,9 +112,16 @@ template<unsigned int VectorSize> class Mask
             _mm_movemask_epi8(dataI()) == 0xffff;
 #endif
         }
+        Vc_ALWAYS_INLINE Vc_PURE bool isNotEmpty() const { return
+#ifdef VC_USE_PTEST
+            0 == _mm_testz_si128(dataI(), dataI()); // return 1 if (0, 0, 0, 0) == (k & k)
+#else
+            _mm_movemask_epi8(dataI()) != 0x0000;
+#endif
+        }
         Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const { return
 #ifdef VC_USE_PTEST
-            _mm_testz_si128(dataI(), dataI()); // return 1 if (0, 0, 0, 0) == (k & k)
+            0 != _mm_testz_si128(dataI(), dataI()); // return 1 if (0, 0, 0, 0) == (k & k)
 #else
             _mm_movemask_epi8(dataI()) == 0x0000;
 #endif
@@ -411,6 +418,14 @@ class Float8Mask
             return _mm_movemask_ps(tmp) == 0xf;
             //_mm_movemask_ps(k[0]) == 0xf &&
             //_mm_movemask_ps(k[1]) == 0xf;
+#endif
+        }
+        Vc_ALWAYS_INLINE Vc_PURE bool isNotEmpty() const {
+            const _M128 tmp = _mm_or_ps(k[0], k[1]);
+#ifdef VC_USE_PTEST
+            return 0 == _mm_testz_si128(_mm_castps_si128(tmp), _mm_castps_si128(tmp));
+#else
+            return _mm_movemask_ps(tmp) != 0x0;
 #endif
         }
         Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const {

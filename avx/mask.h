@@ -82,6 +82,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         // no need for expression template optimizations because cmp(n)eq for floats are not bitwise
         // compares
         Vc_ALWAYS_INLINE bool isFull () const { return 0 != _mm256_testc_ps(k, _mm256_setallone_ps()); }
+        Vc_ALWAYS_INLINE bool isNotEmpty() const { return 0 == _mm256_testz_ps(k, k); }
         Vc_ALWAYS_INLINE bool isEmpty() const { return 0 != _mm256_testz_ps(k, k); }
         Vc_ALWAYS_INLINE bool isMix  () const { return 0 != _mm256_testnzc_ps(k, _mm256_setallone_ps()); }
 
@@ -158,6 +159,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
 
         // TODO: use expression templates to optimize (v1 == v2).isFull() and friends
         Vc_ALWAYS_INLINE bool isFull () const { return 0 != _mm_testc_si128(dataI(), _mm_setallone_si128()); }
+        Vc_ALWAYS_INLINE bool isNotEmpty() const { return 0 == _mm_testz_si128(dataI(), dataI()); }
         Vc_ALWAYS_INLINE bool isEmpty() const { return 0 != _mm_testz_si128(dataI(), dataI()); }
         Vc_ALWAYS_INLINE bool isMix  () const { return 0 != _mm_testnzc_si128(dataI(), _mm_setallone_si128()); }
 
