@@ -302,6 +302,19 @@ void testFloat8GatherMask()/*{{{*/
 }/*}}}*/
 #endif
 
+template<typename V> void maskReductions()
+{
+    for_all_masks(V, mask) {
+        COMPARE(all_of(mask), mask.count() == V::Size);
+        if (mask.count() > 0) {
+            VERIFY(any_of(mask));
+            VERIFY(!none_of(mask));
+        } else {
+            VERIFY(!any_of(mask));
+            VERIFY(none_of(mask));
+        }
+    }
+}
 template<typename V> void maskInit()/*{{{*/
 {
     typedef typename V::Mask M;
@@ -324,6 +337,7 @@ int main(int argc, char **argv)/*{{{*/
     testAllTypes(testZero);
     testAllTypes(testCount);
     testAllTypes(testFirstOne);
+    testAllTypes(maskReductions);
 
 #ifdef VC_IMPL_SSE
     runTest(testFloat8GatherMask);
