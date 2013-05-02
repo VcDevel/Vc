@@ -17,8 +17,8 @@
 
 }}}*/
 
-#ifndef COMMON_MAKECONTAINER_H
-#define COMMON_MAKECONTAINER_H
+#ifndef VC_COMMON_MAKECONTAINER_H
+#define VC_COMMON_MAKECONTAINER_H
 
 #include <Vc/vector.h>
 #include <initializer_list>
@@ -99,20 +99,16 @@ namespace Vc
      * // data.size() == 5 if float_v::Size == 1 (i.e. VC_IMPL=Scalar)
      * // data.size() == 2 if float_v::Size == 4 (i.e. VC_IMPL=SSE)
      * // data.size() == 1 if float_v::Size == 8 (i.e. VC_IMPL=AVX)
-     *
-     * auto data2 = Vc::makeContainer<std::vector<float_v>, 5>({ 1.f, 2.f, 3.f, 4.f, 5.f });
      * \endcode
-     *
-     * \note Requires C++11.
      */
     template<typename Container, typename T>
-    static constexpr auto makeContainer(std::initializer_list<T> list) -> decltype(make_container_helper<Container, T>::help(list))
+    constexpr auto makeContainer(std::initializer_list<T> list) -> decltype(make_container_helper<Container, T>::help(list))
     {
         return make_container_helper<Container, T>::help(list);
     }
 
     template<typename Container, typename T>
-    static constexpr auto make_container(std::initializer_list<T> list) -> decltype(makeContainer<Container, T>(list))
+    constexpr auto make_container(std::initializer_list<T> list) -> decltype(makeContainer<Container, T>(list))
     {
         return makeContainer<Container, T>(list);
     }
@@ -121,4 +117,4 @@ namespace Vc
 
 #include "undomacros.h"
 
-#endif // COMMON_MAKECONTAINER_H
+#endif // VC_COMMON_MAKECONTAINER_H
