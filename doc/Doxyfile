@@ -690,6 +690,7 @@ INPUT_ENCODING         = UTF-8
 
 FILE_PATTERNS          = dox.h \
                          examples.h \
+                         algorithms.h \
                          deinterleave.h \
                          iif.h \
                          interleavedmemory.h \

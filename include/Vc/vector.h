@@ -108,6 +108,7 @@ namespace Vc
 /*OUTER_NAMESPACE_END*/
 
 #include "common/vectortuple.h"
+#include "common/algorithms.h"
 #include "common/where.h"
 #include "common/iif.h"
 
@@ -122,6 +123,9 @@ namespace Vc
 #endif
     {
         using Vc::where;
+        using Vc::all_of;
+        using Vc::any_of;
+        using Vc::none_of;
         using Vc::iif;
     } // namespace Scalar/AVX/SSE
 } // namespace Vc
