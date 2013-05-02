@@ -25,10 +25,17 @@
 #include <intrin.h>
 #endif
 
+#if defined(VC_GCC) && VC_GCC >= 0x40400
+#define VC_TARGET_NO_SIMD __attribute__((target("no-sse2,no-avx")))
+#else
+#define VC_TARGET_NO_SIMD
+#endif
+
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 
+VC_TARGET_NO_SIMD
 static inline bool xgetbvCheck(unsigned int bits)
 {
 #if defined(VC_MSVC) && VC_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
@@ -38,14 +45,13 @@ static inline bool xgetbvCheck(unsigned int bits)
     unsigned int eax;
     asm("xgetbv" : "=a"(eax) : "c"(0) : "edx");
     return (eax & bits) == bits;
-#endif
+#else
     // can't check, but if OSXSAVE is true let's assume it'll work
-    return true;
+    return bits > 0; // ignore 'warning: unused parameter'
+#endif
 }
 
-#ifdef VC_GCC
-    __attribute__((target("no-sse2,no-avx")))
-#endif
+VC_TARGET_NO_SIMD
 bool isImplementationSupported(Implementation impl)
 {
     CpuId::init();
@@ -73,9 +79,7 @@ bool isImplementationSupported(Implementation impl)
     return false;
 }
 
-#ifdef VC_GCC
-__attribute__((target("no-sse2,no-avx")))
-#endif
+VC_TARGET_NO_SIMD
 Vc::Implementation bestImplementationSupported()
 {
     CpuId::init();
@@ -91,9 +95,7 @@ Vc::Implementation bestImplementationSupported()
     return Vc::SSE42Impl;
 }
 
-#ifdef VC_GCC
-__attribute__((target("no-sse2,no-avx")))
-#endif
+VC_TARGET_NO_SIMD
 unsigned int extraInstructionsSupported()
 {
     unsigned int flags = 0;
@@ -111,5 +113,7 @@ unsigned int extraInstructionsSupported()
 
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
+
+#undef VC_TARGET_NO_SIMD
 
 // vim: sw=4 sts=4 et tw=100

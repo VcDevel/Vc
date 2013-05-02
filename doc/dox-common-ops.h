@@ -577,3 +577,33 @@ const VECTOR_TYPE shifted(int amount) const;
 /// Rotate vector entries to the left by \p amount.
 const VECTOR_TYPE rotated(int amount) const;
 //@}
+
+/**
+ * Return a sorted copy of the vector.
+ *
+ * \return A sorted vector. The returned values are in ascending order:
+   \verbatim
+   v[0] <= v[1] <= v[2] <= v[3] ...
+   \endverbatim
+ *
+ * Example:
+ * \code
+ * int_v v = int_v::Random();
+ * int_v s = v.sorted();
+ * std::cout << v << '\n' << s << '\n';
+ * \endcode
+ *
+ * With SSE the output would be:
+ *
+   \verbatim
+   [1513634383, -963914658, 1763536262, -1285037745]
+   [-1285037745, -963914658, 1513634383, 1763536262]
+   \endverbatim
+ *
+ * With the Scalar implementation:
+   \verbatim
+   [1513634383]
+   [1513634383]
+   \endverbatim
+ */
+VECTOR_TYPE sorted() const;

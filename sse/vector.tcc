@@ -19,6 +19,7 @@
 
 #include "limits.h"
 #include "../common/bitscanintrinsics.h"
+#include "../common/set.h"
 #include "macros.h"
 
 /*OUTER_NAMESPACE_BEGIN*/
@@ -338,32 +339,32 @@ template<typename T> template<typename A> Vc_INTRINSIC void Vector<T>::store(Ent
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // division {{{1
-template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> &WriteMaskedVector<T>::operator/=(const Vector<T> &x)
+template<typename T> Vc_INTRINSIC Vector<T> &WriteMaskedVector<T>::operator/=(const Vector<T> &x)
 {
     return operator=(*vec / x);
 }
-template<> Vc_INTRINSIC Vc_CONST int_v &WriteMaskedVector<int>::operator/=(const int_v &x)
+template<> Vc_INTRINSIC int_v &WriteMaskedVector<int>::operator/=(const int_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
-template<> Vc_INTRINSIC Vc_CONST uint_v &WriteMaskedVector<unsigned int>::operator/=(const uint_v &x)
+template<> Vc_INTRINSIC uint_v &WriteMaskedVector<unsigned int>::operator/=(const uint_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
-template<> Vc_INTRINSIC Vc_CONST short_v &WriteMaskedVector<short>::operator/=(const short_v &x)
+template<> Vc_INTRINSIC short_v &WriteMaskedVector<short>::operator/=(const short_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
-template<> Vc_INTRINSIC Vc_CONST ushort_v &WriteMaskedVector<unsigned short>::operator/=(const ushort_v &x)
+template<> Vc_INTRINSIC ushort_v &WriteMaskedVector<unsigned short>::operator/=(const ushort_v &x)
 {
     Vc_foreach_bit (int i, mask) {
         vec->d.m(i) /= x.d.m(i);
@@ -763,7 +764,7 @@ template<typename T, size_t Size> struct IndexSizeChecker { static void check() 
 template<typename T, size_t Size> struct IndexSizeChecker<Vector<T>, Size>
 {
     static void check() {
-        VC_STATIC_ASSERT(Vector<T>::Size >= Size, IndexVector_must_have_greater_or_equal_number_of_entries);
+        static_assert(Vector<T>::Size >= Size, "IndexVector_must_have_greater_or_equal_number_of_entries");
     }
 };
 template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
@@ -795,13 +796,13 @@ template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsi
 template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = _mm_setr_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
+    d.v() = set(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
             mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
 template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = _mm_setr_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
+    d.v() = set(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
                 mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
 
@@ -862,8 +863,9 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
         break;                                  \
     }
 #else
+#define VC_USE_SPECIALIZED_GATHER 1
 #define VC_MASKED_GATHER                        \
-    if (mask.isEmpty()) {                       \
+    if (VC_IS_UNLIKELY(mask.isEmpty())) {       \
         return;                                 \
     }                                           \
     for_all_vector_entries(i,                   \
@@ -871,13 +873,64 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
             );
 #endif
 
+namespace
+{
+    template<typename V> static Vc_INTRINSIC_L Vc_PURE_L V setHelper(const typename V::EntryType *mem, const size_t ii[]) Vc_INTRINSIC_R Vc_PURE_R;
+    template<> Vc_INTRINSIC Vc_PURE float_v setHelper(const float_v::EntryType *mem, const size_t ii[])
+    {
+        return _mm_setr_ps(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]]);
+    }
+    template<> Vc_INTRINSIC Vc_PURE sfloat_v setHelper(const sfloat_v::EntryType *mem, const size_t ii[])
+    {
+        return M256::create(_mm_setr_ps(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]]),
+                _mm_setr_ps(mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]));
+    }
+    template<> Vc_INTRINSIC Vc_PURE double_v setHelper(const double_v::EntryType *mem, const size_t ii[])
+    {
+        return _mm_setr_pd(mem[ii[0]], mem[ii[1]]);
+    }
+    template<> Vc_INTRINSIC Vc_PURE int_v setHelper(const int_v::EntryType *mem, const size_t ii[])
+    {
+        return _mm_setr_epi32(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]]);
+    }
+    template<> Vc_INTRINSIC Vc_PURE uint_v setHelper(const uint_v::EntryType *mem, const size_t ii[])
+    {
+        return _mm_setr_epi32(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]]);
+    }
+    template<> Vc_INTRINSIC Vc_PURE short_v setHelper(const short_v::EntryType *mem, const size_t ii[])
+    {
+        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<> Vc_INTRINSIC Vc_PURE ushort_v setHelper(const ushort_v::EntryType *mem, const size_t ii[])
+    {
+        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+
+    template<size_t S> struct DetermineUInt { typedef unsigned int Type; };
+    template<> struct DetermineUInt<2> { typedef unsigned short Type; };
+    template<> struct DetermineUInt<1> { typedef unsigned char Type; };
+    template<> struct DetermineUInt<8> { typedef unsigned long long Type; };
+} // anonymous namespace
+
 template<typename T> template<typename Index>
 Vc_INTRINSIC void Vector<T>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes, MaskArg mask)
 {
     IndexSizeChecker<Index, Size>::check();
-#define ith_value(_i_) (mem[indexes[_i_]])
+#ifdef VC_USE_SPECIALIZED_GATHER
+#undef VC_USE_SPECIALIZED_GATHER
+    if (VC_IS_UNLIKELY(mask.isEmpty())) {
+        return;
+    }
+    size_t ii[Size];
+    for_all_vector_entries(i,
+            ii[i] = mask[i] ? static_cast<typename DetermineUInt<sizeof(indexes[i])>::Type>(indexes[i]) : 0;
+            );
+    (*this)(mask) = setHelper<Vector<T> >(mem, ii);
+#else
+#define ith_value(_i_) (mem[static_cast<typename DetermineUInt<sizeof(indexes[0])>::Type>(indexes[_i_])])
     VC_MASKED_GATHER
 #undef ith_value
+#endif
 }
 
 template<> template<typename S1, typename IT>
@@ -920,7 +973,7 @@ template<> template<typename S1, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
+    d.v() = set(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
@@ -928,7 +981,7 @@ template<> template<typename S1, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
+    d.v() = set(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
@@ -980,7 +1033,7 @@ template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
+    d.v() = set(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
             array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
@@ -988,7 +1041,7 @@ template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
+    d.v() = set(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
             array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
@@ -1047,7 +1100,7 @@ Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const S1 *array, const En
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
-    d.v() = _mm_setr_epi16((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
+    d.v() = set((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
             (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]],
             (array[outerIndexes[4]].*(ptrMember1))[innerIndexes[4]], (array[outerIndexes[5]].*(ptrMember1))[innerIndexes[5]],
             (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
@@ -1057,7 +1110,7 @@ Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array,
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
-    d.v() = _mm_setr_epi16((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
+    d.v() = set((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
             (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]],
             (array[outerIndexes[4]].*(ptrMember1))[innerIndexes[4]], (array[outerIndexes[5]].*(ptrMember1))[innerIndexes[5]],
             (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
@@ -1261,6 +1314,20 @@ template<> Vc_INTRINSIC unsigned short Vc_PURE Vector<unsigned short>::operator[
 #endif // GCC
 ///////////////////////////////////////////////////////////////////////////////////////////
 // horizontal ops {{{1
+template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::partialSum() const
+{
+    //   a    b    c    d    e    f    g    h
+    // +      a    b    c    d    e    f    g    -> a ab bc  cd   de    ef     fg      gh
+    // +           a    ab   bc   cd   de   ef   -> a ab abc abcd bcde  cdef   defg    efgh
+    // +                     a    ab   abc  abcd -> a ab abc abcd abcde abcdef abcdefg abcdefgh
+    Vector<T> tmp = *this;
+    if (Size >  1) tmp += tmp.shifted(-1);
+    if (Size >  2) tmp += tmp.shifted(-2);
+    if (Size >  4) tmp += tmp.shifted(-4);
+    if (Size >  8) tmp += tmp.shifted(-8);
+    if (Size > 16) tmp += tmp.shifted(-16);
+    return tmp;
+}
 #ifndef VC_IMPL_SSE4_1
 // without SSE4.1 integer multiplication is slow and we rather multiply the scalars
 template<> Vc_INTRINSIC Vc_PURE int Vector<int>::product() const

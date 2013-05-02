@@ -28,15 +28,15 @@ namespace std
 #define _VC_NUM_LIM(T, _max, _min) \
 template<> struct numeric_limits< ::Vc::AVX::Vector<T> > : public numeric_limits<T> \
 { \
-    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> max()           _VC_NOEXCEPT { return _max; } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> min()           _VC_NOEXCEPT { return _min; } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> lowest()        _VC_NOEXCEPT { return min(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> epsilon()       _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> round_error()   _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> infinity()      _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> quiet_NaN()     _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> signaling_NaN() _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> denorm_min()    _VC_NOEXCEPT { return ::Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> max()           noexcept { return _max; } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> min()           noexcept { return _min; } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> lowest()        noexcept { return min(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> epsilon()       noexcept { return ::Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> round_error()   noexcept { return ::Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> infinity()      noexcept { return ::Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> quiet_NaN()     noexcept { return ::Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> signaling_NaN() noexcept { return ::Vc::AVX::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::AVX::Vector<T> denorm_min()    noexcept { return ::Vc::AVX::Vector<T>::Zero(); } \
 }
 
 #ifndef VC_IMPL_AVX2

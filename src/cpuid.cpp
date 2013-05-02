@@ -18,6 +18,7 @@
 */
 
 #include <Vc/cpuid.h>
+#include <Vc/global.h>
 
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
@@ -47,7 +48,7 @@ CpuId::uchar  CpuId::s_processorFamily = 0;
 CpuId::ProcessorType CpuId::s_processorType = CpuId::IntelReserved;
 bool   CpuId::s_noL2orL3 = false;
 
-#ifdef _MSC_VER
+#ifdef VC_MSVC
 } // better not include intrin.h inside the Vc namespace :)
 /*OUTER_NAMESPACE_END*/
 #include <intrin.h>

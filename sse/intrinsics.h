@@ -22,12 +22,18 @@
 
 #include "../common/windows_fix_intrin.h"
 
+// The GCC xxxintrin.h headers do not make sure that the intrinsics have C linkage. This not really
+// a problem, unless there is another place where the exact same functions are declared. Then the
+// linkage must be the same, otherwise it won't compile. Such a case occurs on Windows, where the
+// intrin.h header (included indirectly via unistd.h) declares many SSE intrinsics again.
+extern "C" {
 // MMX
 #include <mmintrin.h>
 // SSE
 #include <xmmintrin.h>
 // SSE2
 #include <emmintrin.h>
+}
 
 #if defined(__GNUC__) && !defined(VC_IMPL_SSE2)
 #error "SSE Vector class needs at least SSE2"
@@ -38,8 +44,18 @@
 #include "macros.h"
 
 #ifdef __3dNOW__
+extern "C" {
 #include <mm3dnow.h>
+}
 #endif
+
+// XOP / FMA4
+#if defined(VC_IMPL_XOP) || defined(VC_IMPL_FMA4)
+extern "C" {
+#include <x86intrin.h>
+}
+#endif
+
 
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
@@ -68,11 +84,21 @@ namespace SSE
     static Vc_INTRINSIC Vc_CONST __m128  _mm_sub_ps(__m128  a, __m128  b) { return static_cast<__m128 >(static_cast<__v4sf>(a) - static_cast<__v4sf>(b)); }
 #endif
 
-#if defined(VC_GNU_ASM) && !defined(NVALGRIND)
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone() { __m128i r; __asm__("pcmpeqb %0,%0":"=x"(r)); return r; }
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
+#endif
+#if defined(VC_IMPL_XOP) && !defined(VC_CLANG)
+    static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone() { __m128i a; return _mm_comtrue_epu8(a, a); }
+#elif defined(__GNUC__) && !defined(NVALGRIND)
+    static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone() { __m128i r; return _mm_cmpeq_epi8(r, r); }
 #else
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
 #endif
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone_si128() { return _mm_setallone(); }
     static Vc_INTRINSIC __m128d Vc_CONST _mm_setallone_pd() { return _mm_castsi128_pd(_mm_setallone()); }
     static Vc_INTRINSIC __m128  Vc_CONST _mm_setallone_ps() { return _mm_castsi128_ps(_mm_setallone()); }
@@ -100,6 +126,12 @@ namespace SSE
     //X                 _mm_xor_si128(a, _mm_setmin_epi8 ()), _mm_xor_si128(b, _mm_setmin_epi8 ())); }
     //X         static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu8 (__m128i a, __m128i b) { return _mm_cmpgt_epi8 (
     //X                 _mm_xor_si128(a, _mm_setmin_epi8 ()), _mm_xor_si128(b, _mm_setmin_epi8 ())); }
+#if defined(VC_IMPL_XOP) && !defined(VC_CLANG)
+    static Vc_INTRINSIC __m128i Vc_CONST _mm_cmplt_epu16(__m128i a, __m128i b) { return _mm_comlt_epu16(a, b); }
+    static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu16(__m128i a, __m128i b) { return _mm_comgt_epu16(a, b); }
+    static Vc_INTRINSIC __m128i Vc_CONST _mm_cmplt_epu32(__m128i a, __m128i b) { return _mm_comlt_epu32(a, b); }
+    static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu32(__m128i a, __m128i b) { return _mm_comgt_epu32(a, b); }
+#else
     static Vc_INTRINSIC __m128i Vc_CONST _mm_cmplt_epu16(__m128i a, __m128i b) { return _mm_cmplt_epi16(
             _mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16())); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu16(__m128i a, __m128i b) { return _mm_cmpgt_epi16(
@@ -108,19 +140,24 @@ namespace SSE
             _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu32(__m128i a, __m128i b) { return _mm_cmpgt_epi32(
             _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
+#endif
 } // namespace SSE
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
 
 // SSE3
 #ifdef VC_IMPL_SSE3
+extern "C" {
 #include <pmmintrin.h>
+}
 #elif defined _PMMINTRIN_H_INCLUDED
 #error "SSE3 was disabled but something includes <pmmintrin.h>. Please fix your code."
 #endif
 // SSSE3
 #ifdef VC_IMPL_SSSE3
+extern "C" {
 #include <tmmintrin.h>
+}
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
@@ -219,7 +256,9 @@ namespace SSE
 
 // SSE4.1
 #ifdef VC_IMPL_SSE4_1
+extern "C" {
 #include <smmintrin.h>
+}
 #else
 #ifdef _SMMINTRIN_H_INCLUDED
 #error "SSE4.1 was disabled but something includes <smmintrin.h>. Please fix your code."
@@ -434,7 +473,9 @@ namespace SSE
 
 // SSE4.2
 #ifdef VC_IMPL_SSE4_2
+extern "C" {
 #include <nmmintrin.h>
+}
 #elif defined _NMMINTRIN_H_INCLUDED
 #error "SSE4.2 was disabled but something includes <nmmintrin.h>. Please fix your code."
 #endif
@@ -540,11 +581,6 @@ namespace SSE
 } // namespace SSE
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
-
-// XOP / FMA4
-#if defined(VC_IMPL_XOP) || defined(VC_IMPL_FMA4)
-#include <x86intrin.h>
-#endif
 
 #include "undomacros.h"
 #include "shuffle.h"

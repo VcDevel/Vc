@@ -27,34 +27,6 @@
 namespace Vc
 {
 
-#if __cplusplus >= 201103 || defined(VC_MSVC)
-#define VC_DECLTYPE(T1, op, T2) decltype(T1() op T2())
-#elif defined(VC_OPEN64) || (defined(VC_GCC) && VC_GCC < 0x40300)
-#define VC_DECLTYPE(T1, op, T2) T1
-#else
-namespace
-{
-    struct one { char x; };
-    struct two { one x, y; };
-    template<typename T1, typename T2> struct DecltypeHelper
-    {
-        static one test(const T1 &) { return one(); }
-        static two test(const T2 &) { return two(); }
-        //static void test(...) {}
-    };
-    template<typename T1> struct DecltypeHelper<T1, T1>
-    {
-        static one test(const T1 &) { return one(); }
-        //static void test(...) {}
-    };
-    template<typename T1, typename T2, size_t ToSelect> struct Decltype { typedef T1 Value; };
-    template<typename T1, typename T2> struct Decltype<T1, T2, sizeof(one)> { typedef T1 Value; };
-    template<typename T1, typename T2> struct Decltype<T1, T2, sizeof(two)> { typedef T2 Value; };
-    static const void *SOME_PTR;
-} // anonymous namespace
-#define VC_DECLTYPE(T1, op, T2) typename Decltype<T1, T2, sizeof(DecltypeHelper<T1, T2>::test(*static_cast<const T1*>(SOME_PTR) op *static_cast<const T2*>(SOME_PTR)))>::Value
-#endif
-
 #define VC_MEM_OPERATOR_EQ(op) \
         template<typename T> \
         Vc_ALWAYS_INLINE VectorPointerHelper<V, A> &operator op##=(const T &x) { \
@@ -127,7 +99,7 @@ template<typename V, typename A> class VectorPointerHelper
 
 #define VC_VPH_OPERATOR(op) \
 template<typename V1, typename A1, typename V2, typename A2> \
-VC_DECLTYPE(V1, op, V2) operator op(const VectorPointerHelper<V1, A1> &x, const VectorPointerHelper<V2, A2> &y) { \
+decltype(V1() op V2()) operator op(const VectorPointerHelper<V1, A1> &x, const VectorPointerHelper<V2, A2> &y) { \
     return V1(x.m_ptr, Internal::FlagObject<A1>::the()) op V2(y.m_ptr, Internal::FlagObject<A2>::the()); \
 }
 VC_ALL_ARITHMETICS(VC_VPH_OPERATOR)
@@ -207,7 +179,7 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
          */
         typedef typename V::EntryType EntryType;
 
-        static _VC_CONSTEXPR size_t rowCount() { return Parent::RowCount; }
+        static constexpr size_t rowCount() { return Parent::RowCount; }
 
         /**
          * Returns a pointer to the start of the allocated memory.

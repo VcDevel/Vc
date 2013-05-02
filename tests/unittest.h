@@ -20,6 +20,12 @@
 #ifndef UNITTEST_H
 #define UNITTEST_H
 
+#ifdef VC_ASSERT
+#error "include unittest.h before any Vc header"
+#endif
+static void unittest_assert(bool cond, const char *code, const char *file, int line);
+#define VC_ASSERT(cond) unittest_assert(cond, #cond, __FILE__, __LINE__);
+
 #include <Vc/Vc>
 #include <iostream>
 #include <iomanip>
@@ -350,11 +356,9 @@ class _UnitTest_Compare
         Vc_ALWAYS_INLINE _UnitTest_Compare(const char *_file, int _line)
             : m_ip(getIp()), m_failed(true)
         {
-            if (VC_IS_UNLIKELY(m_failed)) {
-                printFirst();
-                printPosition(_file, _line);
-                print(' ');
-            }
+            printFirst();
+            printPosition(_file, _line);
+            print(":\n");
         }
 
         template<typename T> Vc_ALWAYS_INLINE const _UnitTest_Compare &operator<<(const T &x) const {
@@ -527,8 +531,7 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
         if (_unit_test_global.expect_assert_failure) {
             ++_unit_test_global.assert_failure;
         } else {
-            std::cout << "       " << code << " at " << file << ":" << line << " failed.\n";
-            std::abort();
+            _UnitTest_Compare(file, line) << "assert(" << code << ") failed.";
         }
     }
 }
@@ -557,7 +560,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     typedef typename Vec::Mask M;
 
     if (i == 0) {
-        return M(true);
+        return M(Vc::One);
     }
     --i;
     if (i < Vec::Size) {
@@ -565,7 +568,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     }
     i -= Vec::Size;
     if (Vec::Size < 3) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -577,7 +580,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
         }
     }
     if (Vec::Size < 4) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -591,7 +594,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
         }
     }
     if (Vec::Size < 5) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -607,7 +610,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
         }
     }
     if (Vec::Size < 6) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -625,7 +628,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
         }
     }
     if (Vec::Size < 7) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -645,7 +648,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
         }
     }
     if (Vec::Size < 8) {
-        return M(false);
+        return M(Vc::Zero);
     }
     for (int a = 0; a < Vec::Size - 1; ++a) {
         for (int b = a + 1; b < Vec::Size; ++b) {
@@ -667,7 +670,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
             }
         }
     }
-    return M(false);
+    return M(Vc::Zero);
 }
 
 #define for_all_masks(VecType, _mask_) \

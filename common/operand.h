@@ -44,9 +44,7 @@ template<typename Result, typename Left, typename Right> class BinaryOperation :
     Left m_left;
     Right m_right;
     public:
-#if VC_CXX11
         Vc_ALWAYS_INLINE BinaryOperation(Left &&l, Right &&r) 
-#endif
         operator Result() 
 };
 

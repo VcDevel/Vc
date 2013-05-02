@@ -51,20 +51,17 @@ namespace Scalar {
     template<typename T> class Vector;
     template<unsigned int VectorSize> class Mask;
 }
-#define _Vector Vc::Scalar::Vector
 #  elif defined(VC_IMPL_SSE)
 namespace SSE {
     template<typename T> class Vector;
     template<unsigned int VectorSize> class Mask;
     class Float8Mask;
 }
-#define _Vector Vc::SSE::Vector
 #  elif defined(VC_IMPL_AVX)
 namespace AVX {
     template<typename T> class Vector;
     template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
 }
-#define _Vector Vc::AVX::Vector
 #  else
 #    error "Sorry, MSVC is a nasty compiler and needs extra care. Please help."
 #  endif
@@ -119,55 +116,32 @@ namespace
 
     template<typename From, typename To> struct HasImplicitCast
     {
-#ifdef VC_MSVC
-        // MSVC can't compile this code if we pass a type that has large alignment restrictions by
-        // value
-        // clang OTOH warns about this code if we pass a null-reference, thus we ifdef the const-ref
-        // for MSVC only
-        static yes test(const To &) { return yes(); }
-#else
+        template<typename F> static F makeT();
+#if defined(VC_GCC) && VC_GCC < 0x40300
+        // older GCCs don't do SFINAE correctly
         static yes test( To) { return yes(); }
-#endif
         static  no test(...) { return  no(); }
         enum {
+            Value = !!(sizeof(test(makeT<From>())) == sizeof(yes))
+        };
+#else
+        template<typename T> static int test2(const T &);
 #ifdef VC_MSVC
             // I want to test whether implicit cast works. If it works MSVC thinks it should give a warning. Wrong. Shut up.
 #pragma warning(suppress : 4257 4267)
 #endif
-            Value = !!(sizeof(test(*static_cast<From *>(0))) == sizeof(yes))
+        template<typename F, typename T> static typename EnableIf<sizeof(test2<T>(makeT<F>())) == sizeof(int), yes>::Value test(int);
+        template<typename, typename> static no  test(...);
+        enum {
+            Value = !!(sizeof(test<From, To>(0)) == sizeof(yes))
         };
-    };
-
-#ifdef VC_MSVC
-    // MSVC is such a broken compiler :'(
-    // HasImplicitCast breaks if From has an __declspec(align(#)) modifier and has no implicit cast
-    // to To.  That's because it'll call test(...) as test(From) and not test(const From &).
-    // This results in C2718. And MSVC is too stupid to see that it should just shut up and
-    // everybody would be happy.
-    //
-    // Because the HasImplicitCast specializations can only be implemented after the Vector class
-    // was declared we have to write some nasty hacks.
-    template<typename T1, typename T2> struct HasImplicitCast<_Vector<T1>, T2> { enum { Value = false }; };
-#if defined(VC_IMPL_Scalar)
-    template<unsigned int VS, typename T2> struct HasImplicitCast<Vc::Scalar::Mask<VS>, T2> { enum { Value = false }; };
-    template<unsigned int VS> struct HasImplicitCast<Vc::Scalar::Mask<VS>, Vc::Scalar::Mask<VS> > { enum { Value = true }; };
-#elif defined(VC_IMPL_SSE)
-    template<unsigned int VS, typename T2> struct HasImplicitCast<Vc::SSE::Mask<VS>, T2> { enum { Value = false }; };
-    template<unsigned int VS> struct HasImplicitCast<Vc::SSE::Mask<VS>, Vc::SSE::Mask<VS> > { enum { Value = true }; };
-    template<typename T2> struct HasImplicitCast<Vc::SSE::Float8Mask, T2> { enum { Value = false }; };
-    template<> struct HasImplicitCast<Vc::SSE::Float8Mask, Vc::SSE::Float8Mask> { enum { Value = true }; };
-#elif defined(VC_IMPL_AVX)
-    template<unsigned int VectorSize, size_t RegisterWidth, typename T2> struct HasImplicitCast<Vc::AVX::Mask<VectorSize, RegisterWidth>, T2> { enum { Value = false }; };
-    template<unsigned int VectorSize, size_t RegisterWidth> struct HasImplicitCast<Vc::AVX::Mask<VectorSize, RegisterWidth>, Vc::AVX::Mask<VectorSize, RegisterWidth> > { enum { Value = true }; };
 #endif
-    template<typename T> struct HasImplicitCast<_Vector<T>, _Vector<T> > { enum { Value = true }; };
-    //template<> struct HasImplicitCast<_Vector<           int>, _Vector<  unsigned int>> { enum { Value = true }; };
-    //template<> struct HasImplicitCast<_Vector<  unsigned int>, _Vector<           int>> { enum { Value = true }; };
-    //template<> struct HasImplicitCast<_Vector<         short>, _Vector<unsigned short>> { enum { Value = true }; };
-    //template<> struct HasImplicitCast<_Vector<unsigned short>, _Vector<         short>> { enum { Value = true }; };
-    template<typename V, size_t Size1, size_t Size2, typename T2> struct HasImplicitCast<Vc::Memory<V, Size1, Size2>, T2> { enum { Value = false }; };
-    template<typename V, size_t Size1, size_t Size2> struct HasImplicitCast<Vc::Memory<V, Size1, Size2>, Vc::Memory<V, Size1, Size2> > { enum { Value = true }; };
-#undef _Vector
+    };
+#if defined(VC_GCC) && VC_GCC < 0x40300
+    // GCC 4.1 is very noisy because of the float->int and double->int type trait tests. We get
+    // around this noise with a little specialization.
+    template<> struct HasImplicitCast<float , int> { enum { Value = true }; };
+    template<> struct HasImplicitCast<double, int> { enum { Value = true }; };
 #endif
 
     template<typename T> struct CanConvertToInt : public HasImplicitCast<T, int> {};
@@ -176,13 +150,13 @@ namespace
     //template<> struct CanConvertToInt<double>   { enum { Value = 0 }; };
 
     enum TestEnum {};
-    VC_STATIC_ASSERT(CanConvertToInt<int>::Value == 1, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<unsigned char>::Value == 1, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<bool>::Value == 0, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<float>::Value == 1, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<double>::Value == 1, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<float*>::Value == 0, CanConvertToInt_is_broken);
-    VC_STATIC_ASSERT(CanConvertToInt<TestEnum>::Value == 1, CanConvertToInt_is_broken);
+    static_assert(CanConvertToInt<int>::Value == 1, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<unsigned char>::Value == 1, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<bool>::Value == 0, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<float>::Value == 1, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<double>::Value == 1, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<float*>::Value == 0, "CanConvertToInt_is_broken");
+    static_assert(CanConvertToInt<TestEnum>::Value == 1, "CanConvertToInt_is_broken");
 
     typedef HasImplicitCast<TestEnum, short> HasImplicitCastTest0;
     typedef HasImplicitCast<int *, void *> HasImplicitCastTest1;
@@ -190,11 +164,11 @@ namespace
     typedef HasImplicitCast<const int *, const void *> HasImplicitCastTest3;
     typedef HasImplicitCast<const int *, int *> HasImplicitCastTest4;
 
-    VC_STATIC_ASSERT(HasImplicitCastTest0::Value ==  true, HasImplicitCast0_is_broken);
-    VC_STATIC_ASSERT(HasImplicitCastTest1::Value ==  true, HasImplicitCast1_is_broken);
-    VC_STATIC_ASSERT(HasImplicitCastTest2::Value ==  true, HasImplicitCast2_is_broken);
-    VC_STATIC_ASSERT(HasImplicitCastTest3::Value ==  true, HasImplicitCast3_is_broken);
-    VC_STATIC_ASSERT(HasImplicitCastTest4::Value == false, HasImplicitCast4_is_broken);
+    static_assert(HasImplicitCastTest0::Value ==  true, "HasImplicitCast0_is_broken");
+    static_assert(HasImplicitCastTest1::Value ==  true, "HasImplicitCast1_is_broken");
+    static_assert(HasImplicitCastTest2::Value ==  true, "HasImplicitCast2_is_broken");
+    static_assert(HasImplicitCastTest3::Value ==  true, "HasImplicitCast3_is_broken");
+    static_assert(HasImplicitCastTest4::Value == false, "HasImplicitCast4_is_broken");
 
     template<typename T> struct IsLikeInteger { enum { Value = !IsReal<T>::Value && CanConvertToInt<T>::Value }; };
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !IsUnsignedInteger<T>::Value }; };
@@ -205,7 +179,7 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 #else
 template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)
 {
-    const size_t s = Vc_ALIGNOF(_T);
+    const size_t s = alignof(_T);
     if((reinterpret_cast<size_t>(ptr) & ((s ^ (s & (s - 1))) - 1)) != 0) {
         fprintf(stderr, "A vector with incorrect alignment has just been created. Look at the stacktrace to find the guilty object.\n");
         abort();

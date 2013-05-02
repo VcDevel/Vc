@@ -17,7 +17,6 @@
 
 */
 
-#include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
@@ -113,7 +112,7 @@ template<typename V> void testForeachBit()
         }
         COMPARE(tmp == V::One(), mask);
 
-        int count = 0;
+        unsigned int count = 0;
         foreach_bit(int j, mask) {
             ++count;
             if (j >= 0) {
@@ -129,7 +128,7 @@ template<typename V> void testForeachBit()
             }
             ++count;
         }
-        COMPARE(count, 0);
+        COMPARE(count, 0U);
     }
 }
 
@@ -252,17 +251,13 @@ class CallTester
 
         void reset() { v.setZero(); i = 0; }
 
-        int callCount() const { return i; }
+        unsigned int callCount() const { return i; }
         V callValues() const { return v; }
 
     private:
         V v;
-        int i;
+        unsigned int i;
 };
-
-#if __cplusplus >= 201103 && (!defined(VC_CLANG) || VC_CLANG > 0x30000)
-#define DO_LAMBDA_TESTS 1
-#endif
 
 template<typename V>
 void applyAndCall()
@@ -273,13 +268,11 @@ void applyAndCall()
     for (int i = 0; i < 1000; ++i) {
         const V rand = V::Random();
         COMPARE(rand.apply(add2<T>), rand + two);
-#ifdef DO_LAMBDA_TESTS
         COMPARE(rand.apply([](T x) { return x + T(2); }), rand + two);
-#endif
 
         CallTester<T, V> callTester;
         rand.call(callTester);
-        COMPARE(callTester.callCount(), int(V::Size));
+        COMPARE(callTester.callCount(), static_cast<unsigned int>(V::Size));
         COMPARE(callTester.callValues(), rand);
 
         for_all_masks(V, mask) {
@@ -289,10 +282,8 @@ void applyAndCall()
 
             COMPARE(copy2(mask).apply(add2<T>), copy1) << mask;
             COMPARE(rand.apply(add2<T>, mask), copy1) << mask;
-#ifdef DO_LAMBDA_TESTS
             COMPARE(copy2(mask).apply([](T x) { return x + T(2); }), copy1) << mask;
             COMPARE(rand.apply([](T x) { return x + T(2); }, mask), copy1) << mask;
-#endif
 
             callTester.reset();
             copy2(mask).call(callTester);

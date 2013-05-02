@@ -9,6 +9,9 @@ endif()
 set(target_architecture "$ENV{target_architecture}")
 set(skip_tests "$ENV{skip_tests}")
 
+# better make sure we get english output (this is vital for the implicit_type_conversion_failures tests)
+set(ENV{LANG} "en_US")
+
 find_program(UNAME uname)
 if(UNAME)
    execute_process(COMMAND ${UNAME} -s OUTPUT_VARIABLE arch OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -145,7 +148,7 @@ elseif(COMPILER_VERSION MATCHES "ICC")
 elseif(COMPILER_VERSION MATCHES "Open64")
    set(compiler "Open64")
 endif()
-if(COMPILER_VERSION MATCHES "\\(experimental\\)" OR COMPILER_VERSION MATCHES "clang version 3.3")
+if(COMPILER_VERSION MATCHES "\\((experimental|prerelease)\\)" OR COMPILER_VERSION MATCHES "clang version 3.3")
    set(compiler "experimental")
 endif()
 
@@ -205,11 +208,18 @@ macro(go)
       endif()
    endif()
    if(NOT ${dashboard_model} STREQUAL "Continuous" OR res GREATER 0)
-      CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
-         OPTIONS "${configure_options}"
-         APPEND
-         RETURN_VALUE res)
-      ctest_submit(PARTS Notes Configure)
+      if("${COMPILER_VERSION}" MATCHES "(g\\+\\+|GCC|Open64).*4\\.[012345]\\.")
+         file(WRITE "${CTEST_BINARY_DIRECTORY}/abort_reason" "Compiler too old for C++11: ${COMPILER_VERSION}")
+         list(APPEND CTEST_NOTES_FILES "${CTEST_BINARY_DIRECTORY}/abort_reason")
+         ctest_submit(PARTS Notes)
+         set(res 1)
+      else()
+         CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
+            OPTIONS "${configure_options}"
+            APPEND
+            RETURN_VALUE res)
+         ctest_submit(PARTS Notes Configure)
+      endif()
       if(res EQUAL 0)
          foreach(label other Scalar SSE AVX)
             set_property(GLOBAL PROPERTY Label ${label})

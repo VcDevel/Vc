@@ -193,12 +193,12 @@ class Vector
         //postfix
         Vc_ALWAYS_INLINE Vector operator++(int) { return m_data++; }
 
-        Vc_ALWAYS_INLINE EntryType &operator[](int index) {
+        Vc_ALWAYS_INLINE EntryType &operator[](size_t index) {
             assert(index == 0); if(index) {}
             return m_data;
         }
 
-        Vc_ALWAYS_INLINE EntryType operator[](int index) const {
+        Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
             assert(index == 0); if(index) {}
             return m_data;
         }
@@ -261,6 +261,7 @@ class Vector
         Vc_ALWAYS_INLINE EntryType max() const { return m_data; }
         Vc_ALWAYS_INLINE EntryType product() const { return m_data; }
         Vc_ALWAYS_INLINE EntryType sum() const { return m_data; }
+        Vc_ALWAYS_INLINE Vector partialSum() const { return *this; }
         Vc_ALWAYS_INLINE EntryType min(Mask) const { return m_data; }
         Vc_ALWAYS_INLINE EntryType max(Mask) const { return m_data; }
         Vc_ALWAYS_INLINE EntryType product(Mask) const { return m_data; }

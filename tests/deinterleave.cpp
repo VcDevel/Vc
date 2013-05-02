@@ -17,12 +17,17 @@
 
 */
 
-#include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
 #include <limits>
 
-using namespace Vc;
+using Vc::float_v;
+using Vc::double_v;
+using Vc::sfloat_v;
+using Vc::int_v;
+using Vc::uint_v;
+using Vc::short_v;
+using Vc::ushort_v;
 
 
 /*
@@ -78,8 +83,8 @@ template<typename Pair> void testDeinterleave()
         // note that a 32 bit integer is certainly enough to decide on alignment...
         // ... but uintptr_t is C99 but not C++ yet
         // ... and GCC refuses to do the cast, even if I know what I'm doing
-        if (reinterpret_cast<unsigned long>(&memory[i]) & (VectorAlignment - 1)) {
-            Vc::deinterleave(&a, &b, &memory[i], Unaligned);
+        if (reinterpret_cast<unsigned long>(&memory[i]) & (Vc::VectorAlignment - 1)) {
+            Vc::deinterleave(&a, &b, &memory[i], Vc::Unaligned);
         } else {
             Vc::deinterleave(&a, &b, &memory[i]);
         }
@@ -93,7 +98,7 @@ template<typename T, size_t N> struct SomeStruct
     T d[N];
 };
 
-template<typename V, size_t StructSize> struct Types
+template<typename V, size_t StructSize, bool Random = true> struct Types
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
@@ -102,9 +107,18 @@ template<typename V, size_t StructSize> struct Types
     typedef SomeStruct<T, StructSize> S;
     typedef const Vc::InterleavedMemoryWrapper<S, V> &Wrapper;
 };
-template<typename V, size_t StructSize, size_t N = StructSize> struct TestDeinterleaveGatherCompare;
-template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 8> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
+template<typename V, size_t StructSize> struct Types<V, StructSize, false>
+{
+    typedef typename V::EntryType T;
+    typedef int I;
+    typedef typename V::AsArg VArg;
+    typedef I IArg;
+    typedef SomeStruct<T, StructSize> S;
+    typedef const Vc::InterleavedMemoryWrapper<S, V> &Wrapper;
+};
+template<typename V, size_t StructSize, bool Random, size_t N = StructSize> struct TestDeinterleaveGatherCompare;
+template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGatherCompare<V, StructSize, Random, 8> {
+    static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5, v6, v7;
         (v0, v1, v2, v3, v4, v5, v6, v7) = data_v[indexes];
@@ -116,11 +130,11 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
         COMPARE(v5, reference + 5) << "N = 8";
         COMPARE(v6, reference + 6) << "N = 8";
         COMPARE(v7, reference + 7) << "N = 8";
-        TestDeinterleaveGatherCompare<V, StructSize, 7>::test(data_v, indexes, reference);
+        TestDeinterleaveGatherCompare<V, StructSize, Random, 7>::test(data_v, indexes, reference);
     }
 };
-template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 7> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
+template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGatherCompare<V, StructSize, Random, 7> {
+    static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5, v6;
         (v0, v1, v2, v3, v4, v5, v6) = data_v[indexes];
@@ -131,11 +145,11 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
         COMPARE(v4, reference + 4) << "N = 7";
         COMPARE(v5, reference + 5) << "N = 7";
         COMPARE(v6, reference + 6) << "N = 7";
-        TestDeinterleaveGatherCompare<V, StructSize, 6>::test(data_v, indexes, reference);
+        TestDeinterleaveGatherCompare<V, StructSize, Random, 6>::test(data_v, indexes, reference);
     }
 };
-template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 6> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
+template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGatherCompare<V, StructSize, Random, 6> {
+    static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5;
         (v0, v1, v2, v3, v4, v5) = data_v[indexes];
@@ -145,11 +159,11 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
         COMPARE(v3, reference + 3) << "N = 6";
         COMPARE(v4, reference + 4) << "N = 6";
         COMPARE(v5, reference + 5) << "N = 6";
-        TestDeinterleaveGatherCompare<V, StructSize, 5>::test(data_v, indexes, reference);
+        TestDeinterleaveGatherCompare<V, StructSize, Random, 5>::test(data_v, indexes, reference);
     }
 };
-template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 5> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
+template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGatherCompare<V, StructSize, Random, 5> {
+    static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4;
         (v0, v1, v2, v3, v4) = data_v[indexes];
@@ -158,11 +172,11 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
         COMPARE(v2, reference + 2) << "N = 5";
         COMPARE(v3, reference + 3) << "N = 5";
         COMPARE(v4, reference + 4) << "N = 5";
-        TestDeinterleaveGatherCompare<V, StructSize, 4>::test(data_v, indexes, reference);
+        TestDeinterleaveGatherCompare<V, StructSize, Random, 4>::test(data_v, indexes, reference);
     }
 };
-template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 4> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
+template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGatherCompare<V, StructSize, Random, 4> {
+    static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b, c, d;
         (a, b, c, d) = data_v[indexes];
@@ -170,22 +184,22 @@ template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, 
         COMPARE(b, reference + 1) << "N = 4";
         COMPARE(c, reference + 2) << "N = 4";
         COMPARE(d, reference + 3) << "N = 4";
-        TestDeinterleaveGatherCompare<V, StructSize, 3>::test(data_v, indexes, reference);
+        TestDeinterleaveGatherCompare<V, StructSize, Random, 3>::test(data_v, indexes, reference);
     }
 };
-template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 3> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
+template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGatherCompare<V, StructSize, Random, 3> {
+    static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b, c;
         (a, b, c) = data_v[indexes];
         COMPARE(a, reference + 0) << "N = 3";
         COMPARE(b, reference + 1) << "N = 3";
         COMPARE(c, reference + 2) << "N = 3";
-        TestDeinterleaveGatherCompare<V, StructSize, 2>::test(data_v, indexes, reference);
+        TestDeinterleaveGatherCompare<V, StructSize, Random, 2>::test(data_v, indexes, reference);
     }
 };
-template<typename V, size_t StructSize> struct TestDeinterleaveGatherCompare<V, StructSize, 2> {
-    static void test(typename Types<V, StructSize>::Wrapper data_v, typename Types<V, StructSize>::IArg indexes, const typename V::AsArg reference)
+template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGatherCompare<V, StructSize, Random, 2> {
+    static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b;
         (a, b) = data_v[indexes];
@@ -226,7 +240,12 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
         VERIFY(indexes < N);
         const V reference = static_cast<V>(indexes) * V(StructSize);
 
-        TestDeinterleaveGatherCompare<V, StructSize>::test(data_v, indexes, reference);
+        TestDeinterleaveGatherCompare<V, StructSize, true>::test(data_v, indexes, reference);
+    }
+
+    for (size_t i = 0; i < N - V::Size; ++i) {
+        const V reference = static_cast<V>(i + I::IndexesFromZero()) * T(StructSize);
+        TestDeinterleaveGatherCompare<V, StructSize, false>::test(data_v, i, reference);
     }
 }
 
@@ -241,11 +260,17 @@ template<typename V> void testDeinterleaveGather()
     testDeinterleaveGatherImpl<V, 8>();
 }
 
-template<typename V, size_t StructSize> struct TestInterleavingScatterCompare;
+template<typename V, size_t StructSize, bool Random> struct TestInterleavingScatterCompare;
 #define _IMPL(STRUCTSIZE, _code_) \
-template<typename V> struct TestInterleavingScatterCompare<V, STRUCTSIZE> { \
-    typedef TestInterleavingScatterCompare<V, STRUCTSIZE - 1> NextTest; \
+template<typename V> struct TestInterleavingScatterCompare<V, STRUCTSIZE, true> { \
+    typedef TestInterleavingScatterCompare<V, STRUCTSIZE - 1, true> NextTest; \
     template<typename Wrapper> static void test(Wrapper &data, const typename V::IndexType &i) { \
+        _code_ \
+    } \
+}; \
+template<typename V> struct TestInterleavingScatterCompare<V, STRUCTSIZE, false> { \
+    typedef TestInterleavingScatterCompare<V, STRUCTSIZE - 1, false> NextTest; \
+    template<typename Wrapper, typename I> static void test(Wrapper &data, const I &i) { \
         _code_ \
     } \
 }
@@ -386,7 +411,11 @@ template<typename V, size_t StructSize> void testInterleavingScatterImpl()
         VERIFY(indexes >= 0);
         VERIFY(indexes < N);
 
-        TestInterleavingScatterCompare<V, StructSize>::test(data_v, indexes);
+        TestInterleavingScatterCompare<V, StructSize, true>::test(data_v, indexes);
+    }
+
+    for (size_t i = 0; i < N - V::Size; ++i) {
+        TestInterleavingScatterCompare<V, StructSize, false>::test(data_v, i);
     }
 }
 

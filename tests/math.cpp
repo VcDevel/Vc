@@ -17,7 +17,6 @@
 
 }}}*/
 /*includes {{{*/
-#include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
@@ -90,6 +89,8 @@ static Array<SincosReference<T> > sincosReference()
             static StaticDeleter<SincosReference<T> > _cleanup(data.data);
             data.size = fread(data.data, sizeof(SincosReference<T>), size, file);
             fclose(file);
+        } else {
+            FAIL() << "the reference data " << filename<T, Sincos>() << " does not exist in the current working directory.";
         }
     }
     return data;
@@ -109,6 +110,8 @@ static Array<Reference<T> > referenceData()
             static StaticDeleter<Reference<T> > _cleanup(data.data);
             data.size = fread(data.data, sizeof(Reference<T>), size, file);
             fclose(file);
+        } else {
+            FAIL() << "the reference data " << filename<T, Fun>() << " does not exist in the current working directory.";
         }
     }
     return data;
@@ -121,15 +124,6 @@ enum {
     NDenormals = 64
 };
 /*}}}*/
-template<typename V> V apply_v(VC_ALIGNED_PARAMETER(V) x, typename V::EntryType (func)(typename V::EntryType))/*{{{*/
-{
-    V r;
-    for (size_t i = 0; i < V::Size; ++i) {
-        r[i] = func(x[i]);
-    }
-    return r;
-}
-/*}}}*/
 template<typename Vec> void testAbs()/*{{{*/
 {
     for (int i = 0; i < 0x7fff; ++i) {
@@ -140,39 +134,17 @@ template<typename Vec> void testAbs()/*{{{*/
     }
 }
 /*}}}*/
-static inline float my_trunc(float x)/*{{{*/
-{
-#if __cplusplus >= 201103 /*C++11*/
-    return std::trunc(x);
-#elif defined(_ISOC99_SOURCE)
-    return truncf(x);
-#else
-    return x > 0 ? std::floor(x) : std::ceil(x);
-#endif
-}
-
-static inline double my_trunc(double x)
-{
-#if __cplusplus >= 201103 /*C++11*/
-    return std::trunc(x);
-#elif defined(_ISOC99_SOURCE)
-    return trunc(x);
-#else
-    return x > 0 ? std::floor(x) : std::ceil(x);
-#endif
-}
-/*}}}*/
 template<typename V> void testTrunc()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
-        V reference = apply_v(x, my_trunc);
+        V reference = x.apply([](T _x) { return std::trunc(_x); });
         COMPARE(Vc::trunc(x), reference) << ", x = " << x << ", i = " << i;
     }
     V x = static_cast<V>(I::IndexesFromZero());
-    V reference = apply_v(x, my_trunc);
+    V reference = x.apply([](T _x) { return std::trunc(_x); });
     COMPARE(Vc::trunc(x), reference) << ", x = " << x;
 }
 /*}}}*/
@@ -182,11 +154,11 @@ template<typename V> void testFloor()/*{{{*/
     typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
-        V reference = apply_v(x, std::floor);
+        V reference = x.apply([](T _x) { return std::floor(_x); });
         COMPARE(Vc::floor(x), reference) << ", x = " << x << ", i = " << i;
     }
     V x = static_cast<V>(I::IndexesFromZero());
-    V reference = apply_v(x, std::floor);
+    V reference = x.apply([](T _x) { return std::floor(_x); });
     COMPARE(Vc::floor(x), reference) << ", x = " << x;
 }
 /*}}}*/
@@ -196,11 +168,11 @@ template<typename V> void testCeil()/*{{{*/
     typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
-        V reference = apply_v(x, std::ceil);
+        V reference = x.apply([](T _x) { return std::ceil(_x); });
         COMPARE(Vc::ceil(x), reference) << ", x = " << x << ", i = " << i;
     }
     V x = static_cast<V>(I::IndexesFromZero());
-    V reference = apply_v(x, std::ceil);
+    V reference = x.apply([](T _x) { return std::ceil(_x); });
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }
 /*}}}*/
@@ -211,7 +183,7 @@ template<typename V> void testExp()/*{{{*/
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(20);
-        V reference = apply_v(x, std::exp);
+        V reference = x.apply([](T _x) { return std::exp(_x); });
         FUZZY_COMPARE(Vc::exp(x), reference) << ", x = " << x << ", i = " << i;
     }
     COMPARE(Vc::exp(V::Zero()), V::One());
@@ -234,31 +206,10 @@ template<typename V> void testLog()/*{{{*/
     COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
     for (int i = 0; i < NDenormals; i += V::Size) {
         V x(&Denormals<T>::data[i]);
-        V ref = apply_v(x, std::log);
+        V ref = x.apply([](T _x) { return std::log(_x); });
         FUZZY_COMPARE(Vc::log(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
-/*}}}*/
-#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE >= 200112L/*{{{*/
-static inline float my_log2(float x) { return ::log2f(x); }
-/* I need to make sure whether the log2 that I compare against is really precise to <0.5ulp. At
- * least I get different results when I use "double log2(double)", which is somewhat unexpected.
- * Well, conversion from double to float goes via truncation, so if the most significant truncated
- * mantissa bit is set the resulting float is incorrect by 1 ulp
-
-static inline float my_log2(float x) { return ::log2(static_cast<double>(x)); }
-static inline float my_log2(float x) {
-    double tmp = ::log2(static_cast<double>(x));
-    int e;
-    frexp(tmp, &e); // frexp(0.5) -> e = 0
-    return tmp + ldexp(tmp < 0 ? -0.5 : 0.5, e - 24);
-}
- */
-static inline double my_log2(double x) { return ::log2(x); }
-#else
-static inline float my_log2(float x) { return ::logf(x) / Vc::Math<float>::ln2(); }
-static inline double my_log2(double x) { return ::log(x) / Vc::Math<double>::ln2(); }
-#endif
 /*}}}*/
 template<typename V> void testLog2()/*{{{*/
 {
@@ -267,7 +218,11 @@ template<typename V> void testLog2()/*{{{*/
 #else
     setFuzzyness<float>(1);
 #endif
+#if defined(VC_MSVC) && defined(VC_IMPL_Scalar)
+    setFuzzyness<double>(2);
+#else
     setFuzzyness<double>(1);
+#endif
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log2>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -279,10 +234,10 @@ template<typename V> void testLog2()/*{{{*/
         FUZZY_COMPARE(Vc::log2(x), ref) << " x = " << x << ", i = " << i;
     }
 
-    COMPARE(Vc::log2(V::Zero()), V(my_log2(T(0))));
+    COMPARE(Vc::log2(V::Zero()), V(std::log2(T(0))));
     for (int i = 0; i < NDenormals; i += V::Size) {
         V x(&Denormals<T>::data[i]);
-        V ref = apply_v(x, my_log2);
+        V ref = x.apply([](T _x) { return std::log2(_x); });
         FUZZY_COMPARE(Vc::log2(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
@@ -305,7 +260,7 @@ template<typename V> void testLog10()/*{{{*/
     COMPARE(Vc::log10(V::Zero()), V(std::log10(T(0))));
     for (int i = 0; i < NDenormals; i += V::Size) {
         V x(&Denormals<T>::data[i]);
-        V ref = apply_v(x, std::log10);
+        V ref = x.apply([](T _x) { return std::log10(_x); });
         FUZZY_COMPARE(Vc::log10(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
@@ -360,7 +315,7 @@ template<typename V> void testRSqrt()/*{{{*/
 template<typename V> void testSincos()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(3);
+    setFuzzyness<float>(2);
     setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -383,7 +338,7 @@ template<typename V> void testSincos()/*{{{*/
 template<typename V> void testSin()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(1);
+    setFuzzyness<float>(2);
     setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -400,7 +355,7 @@ template<typename V> void testSin()/*{{{*/
 template<typename V> void testCos()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(3);
+    setFuzzyness<float>(2);
     setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -476,7 +431,6 @@ template<typename V> void testAtan2()/*{{{*/
     {
         const V Pi   = T(Vc_buildDouble(1, 0x921fb54442d18ull,  1));
         const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18ull,  0));
-        const V Pi_4 = T(Vc_buildDouble(1, 0x921fb54442d18ull, -1));
         V nan; nan.setQnan();
         const V inf = T(INF.value);
 
@@ -520,6 +474,7 @@ template<typename V> void testAtan2()/*{{{*/
         COMPARE(Vc::atan2(+inf, V(T(-3.))), +Pi_2);
         COMPARE(Vc::atan2(-inf, V(T(-3.))), -Pi_2);
 #ifndef _WIN32 // the Microsoft implementation of atan2 fails this test
+        const V Pi_4 = T(Vc_buildDouble(1, 0x921fb54442d18ull, -1));
         // If y is positive infinity (negative infinity) and x is negative	infinity, +3*pi/4 (-3*pi/4) is returned.
         COMPARE(Vc::atan2(+inf, -inf), T(+3.) * Pi_4);
         COMPARE(Vc::atan2(-inf, -inf), T(-3.) * Pi_4);
@@ -757,38 +712,38 @@ template<typename V> void testFrexp()/*{{{*/
     Vc::Memory<V, 32> input;
     Vc::Memory<V, 32> expectedFraction;
     Vc::Memory<ExpV, 32> expectedExponent;
-    input[ 0] = T(0.25); expectedFraction[ 0] = T(.5     ); expectedExponent[ 0] = T(-1);
-    input[ 1] = T(   1); expectedFraction[ 1] = T(.5     ); expectedExponent[ 1] = T( 1);
-    input[ 2] = T(   0); expectedFraction[ 2] = T(0.     ); expectedExponent[ 2] = T( 0);
-    input[ 3] = T(   3); expectedFraction[ 3] = T(.75    ); expectedExponent[ 3] = T( 2);
-    input[ 4] = T(   4); expectedFraction[ 4] = T(.5     ); expectedExponent[ 4] = T( 3);
-    input[ 5] = T( 0.5); expectedFraction[ 5] = T(.5     ); expectedExponent[ 5] = T( 0);
-    input[ 6] = T(   6); expectedFraction[ 6] = T( 6./8. ); expectedExponent[ 6] = T( 3);
-    input[ 7] = T(   7); expectedFraction[ 7] = T( 7./8. ); expectedExponent[ 7] = T( 3);
-    input[ 8] = T(   8); expectedFraction[ 8] = T( 8./16.); expectedExponent[ 8] = T( 4);
-    input[ 9] = T(   9); expectedFraction[ 9] = T( 9./16.); expectedExponent[ 9] = T( 4);
-    input[10] = T(  10); expectedFraction[10] = T(10./16.); expectedExponent[10] = T( 4);
-    input[11] = T(  11); expectedFraction[11] = T(11./16.); expectedExponent[11] = T( 4);
-    input[12] = T(  12); expectedFraction[12] = T(12./16.); expectedExponent[12] = T( 4);
-    input[13] = T(  13); expectedFraction[13] = T(13./16.); expectedExponent[13] = T( 4);
-    input[14] = T(  14); expectedFraction[14] = T(14./16.); expectedExponent[14] = T( 4);
-    input[15] = T(  15); expectedFraction[15] = T(15./16.); expectedExponent[15] = T( 4);
-    input[16] = T(  16); expectedFraction[16] = T(16./32.); expectedExponent[16] = T( 5);
-    input[17] = T(  17); expectedFraction[17] = T(17./32.); expectedExponent[17] = T( 5);
-    input[18] = T(  18); expectedFraction[18] = T(18./32.); expectedExponent[18] = T( 5);
-    input[19] = T(  19); expectedFraction[19] = T(19./32.); expectedExponent[19] = T( 5);
-    input[20] = T(  20); expectedFraction[20] = T(20./32.); expectedExponent[20] = T( 5);
-    input[21] = T(  21); expectedFraction[21] = T(21./32.); expectedExponent[21] = T( 5);
-    input[22] = T(  22); expectedFraction[22] = T(22./32.); expectedExponent[22] = T( 5);
-    input[23] = T(  23); expectedFraction[23] = T(23./32.); expectedExponent[23] = T( 5);
-    input[24] = T(  24); expectedFraction[24] = T(24./32.); expectedExponent[24] = T( 5);
-    input[25] = T(  25); expectedFraction[25] = T(25./32.); expectedExponent[25] = T( 5);
-    input[26] = T(  26); expectedFraction[26] = T(26./32.); expectedExponent[26] = T( 5);
-    input[27] = T(  27); expectedFraction[27] = T(27./32.); expectedExponent[27] = T( 5);
-    input[28] = T(  28); expectedFraction[28] = T(28./32.); expectedExponent[28] = T( 5);
-    input[29] = T(  29); expectedFraction[29] = T(29./32.); expectedExponent[29] = T( 5);
-    input[30] = T(  32); expectedFraction[30] = T(32./64.); expectedExponent[30] = T( 6);
-    input[31] = T(  31); expectedFraction[31] = T(31./32.); expectedExponent[31] = T( 5);
+    input[ 0] = T(0.25); expectedFraction[ 0] = T(.5     ); expectedExponent[ 0] = -1;
+    input[ 1] = T(   1); expectedFraction[ 1] = T(.5     ); expectedExponent[ 1] =  1;
+    input[ 2] = T(   0); expectedFraction[ 2] = T(0.     ); expectedExponent[ 2] =  0;
+    input[ 3] = T(   3); expectedFraction[ 3] = T(.75    ); expectedExponent[ 3] =  2;
+    input[ 4] = T(   4); expectedFraction[ 4] = T(.5     ); expectedExponent[ 4] =  3;
+    input[ 5] = T( 0.5); expectedFraction[ 5] = T(.5     ); expectedExponent[ 5] =  0;
+    input[ 6] = T(   6); expectedFraction[ 6] = T( 6./8. ); expectedExponent[ 6] =  3;
+    input[ 7] = T(   7); expectedFraction[ 7] = T( 7./8. ); expectedExponent[ 7] =  3;
+    input[ 8] = T(   8); expectedFraction[ 8] = T( 8./16.); expectedExponent[ 8] =  4;
+    input[ 9] = T(   9); expectedFraction[ 9] = T( 9./16.); expectedExponent[ 9] =  4;
+    input[10] = T(  10); expectedFraction[10] = T(10./16.); expectedExponent[10] =  4;
+    input[11] = T(  11); expectedFraction[11] = T(11./16.); expectedExponent[11] =  4;
+    input[12] = T(  12); expectedFraction[12] = T(12./16.); expectedExponent[12] =  4;
+    input[13] = T(  13); expectedFraction[13] = T(13./16.); expectedExponent[13] =  4;
+    input[14] = T(  14); expectedFraction[14] = T(14./16.); expectedExponent[14] =  4;
+    input[15] = T(  15); expectedFraction[15] = T(15./16.); expectedExponent[15] =  4;
+    input[16] = T(  16); expectedFraction[16] = T(16./32.); expectedExponent[16] =  5;
+    input[17] = T(  17); expectedFraction[17] = T(17./32.); expectedExponent[17] =  5;
+    input[18] = T(  18); expectedFraction[18] = T(18./32.); expectedExponent[18] =  5;
+    input[19] = T(  19); expectedFraction[19] = T(19./32.); expectedExponent[19] =  5;
+    input[20] = T(  20); expectedFraction[20] = T(20./32.); expectedExponent[20] =  5;
+    input[21] = T(  21); expectedFraction[21] = T(21./32.); expectedExponent[21] =  5;
+    input[22] = T(  22); expectedFraction[22] = T(22./32.); expectedExponent[22] =  5;
+    input[23] = T(  23); expectedFraction[23] = T(23./32.); expectedExponent[23] =  5;
+    input[24] = T(  24); expectedFraction[24] = T(24./32.); expectedExponent[24] =  5;
+    input[25] = T(  25); expectedFraction[25] = T(25./32.); expectedExponent[25] =  5;
+    input[26] = T(  26); expectedFraction[26] = T(26./32.); expectedExponent[26] =  5;
+    input[27] = T(  27); expectedFraction[27] = T(27./32.); expectedExponent[27] =  5;
+    input[28] = T(  28); expectedFraction[28] = T(28./32.); expectedExponent[28] =  5;
+    input[29] = T(  29); expectedFraction[29] = T(29./32.); expectedExponent[29] =  5;
+    input[30] = T(  32); expectedFraction[30] = T(32./64.); expectedExponent[30] =  6;
+    input[31] = T(  31); expectedFraction[31] = T(31./32.); expectedExponent[31] =  5;
     for (size_t i = 0; i < input.vectorsCount(); ++i) {
         const V v = input.vector(i);
         ExpV exp;
@@ -855,12 +810,12 @@ int main(int argc, char **argv)/*{{{*/
     Denormals<float>::data = Vc::malloc<float, Vc::AlignOnVector>(NDenormals);/*{{{*/
     Denormals<float>::data[0] = std::numeric_limits<float>::denorm_min();
     for (int i = 1; i < NDenormals; ++i) {
-        Denormals<float>::data[i] = Denormals<float>::data[i - 1] * 2.f;
+        Denormals<float>::data[i] = Denormals<float>::data[i - 1] * 2.173f;
     }
     Denormals<double>::data = Vc::malloc<double, Vc::AlignOnVector>(NDenormals);
     Denormals<double>::data[0] = std::numeric_limits<double>::denorm_min();
     for (int i = 1; i < NDenormals; ++i) {
-        Denormals<double>::data[i] = Denormals<double>::data[i - 1] * 2.;
+        Denormals<double>::data[i] = Denormals<double>::data[i - 1] * 2.173;
     }/*}}}*/
 
     testRealTypes(isNegative);

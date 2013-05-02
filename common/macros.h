@@ -48,12 +48,6 @@
         inline void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
         inline void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
 
-#ifdef VC_CXX11
-#define Vc_ALIGNOF(_TYPE_) alignof(_TYPE_)
-#else
-#define Vc_ALIGNOF(_TYPE_) __alignof(_TYPE_)
-#endif
-
 #ifdef VC_CLANG
 #  define Vc_INTRINSIC_L inline
 #  define Vc_INTRINSIC_R __attribute__((always_inline))
@@ -73,6 +67,7 @@
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
 #  define VC_DEPRECATED(msg)
+#  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
 #  if VC_GCC < 0x40300 || defined(VC_OPEN64)
 // GCC 4.1 and 4.2 ICE on may_alias. Since Open64 uses the GCC 4.2 frontend it has the same problem.
@@ -80,10 +75,10 @@
 #  else
 #    define Vc_MAY_ALIAS __attribute__((__may_alias__))
 #  endif
-#  if VC_GCC < 0x40200
+#  if VC_GCC < 0x40300
 // GCC 4.1 fails with "sorry unimplemented: inlining failed"
 #    define Vc_INTRINSIC_R __attribute__((__flatten__))
-#  elif VC_GCC < 0x40300 || defined(VC_OPEN64)
+#  elif defined(VC_OPEN64)
 // the GCC 4.2 frontend doesn't know the __artificial__ attribute
 #    define Vc_INTRINSIC_R __attribute__((__flatten__, __always_inline__))
 #  else
@@ -111,6 +106,7 @@
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
 #  define VC_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+#  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #else
 #  define Vc_FLATTEN
 #  ifdef Vc_PURE
@@ -148,24 +144,8 @@
 #  define VC_IS_LIKELY(x) x
 #  define VC_RESTRICT __restrict
 #  define VC_DEPRECATED(msg) __declspec(deprecated(msg))
+#  define Vc_WARN_UNUSED_RESULT
 #endif
-
-#if __cplusplus >= 201103 /*C++11*/
-#define _VC_CONSTEXPR constexpr
-#define _VC_CONSTEXPR_L _VC_CONSTEXPR
-#define _VC_CONSTEXPR_R
-#else
-#define _VC_CONSTEXPR Vc_INTRINSIC Vc_CONST
-#define _VC_CONSTEXPR_L Vc_INTRINSIC_L Vc_CONST_L
-#define _VC_CONSTEXPR_R Vc_INTRINSIC_R Vc_CONST_R
-#endif
-
-#ifdef VC_CXX11
-# define _VC_NOEXCEPT noexcept
-#else
-# define _VC_NOEXCEPT throw()
-#endif
-
 
 #ifdef VC_GCC
 # define VC_WARN_INLINE
@@ -197,11 +177,15 @@ do {} while ( false )
 #define for_all_vector_entries(_it_, _code_) \
   unrolled_loop16(_it_, 0, Size, _code_)
 
+#ifdef VC_ASSERT
+#define VC_EXTERNAL_ASSERT 1
+#else
 #ifdef NDEBUG
 #define VC_ASSERT(x)
 #else
 #include <assert.h>
 #define VC_ASSERT(x) assert(x);
+#endif
 #endif
 
 #ifdef VC_CLANG
@@ -215,27 +199,6 @@ do {} while ( false )
 
 #define _VC_CAT_HELPER(a, b, c, d) a##b##c##d
 #define _VC_CAT(a, b, c, d) _VC_CAT_HELPER(a, b, c, d)
-
-#if __cplusplus >= 201103 /*C++11*/ || (defined(VC_MSVC) && VC_MSVC >= 160000000)
-#define VC_STATIC_ASSERT_NC(cond, msg) \
-    static_assert(cond, #msg)
-#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg)
-#else // C++98
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc {
-    namespace {
-        template<bool> struct STATIC_ASSERT_FAILURE;
-        template<> struct STATIC_ASSERT_FAILURE<true> {};
-}}
-/*OUTER_NAMESPACE_END*/
-
-#define VC_STATIC_ASSERT_NC(cond, msg) \
-    typedef STATIC_ASSERT_FAILURE<cond> _VC_CAT(static_assert_failed_on_line_,__LINE__,_,msg); \
-    enum { \
-        _VC_CAT(static_assert_failed__on_line_,__LINE__,_,msg) = sizeof(_VC_CAT(static_assert_failed_on_line_,__LINE__,_,msg)) \
-    }
-#define VC_STATIC_ASSERT(cond, msg) VC_STATIC_ASSERT_NC(cond, msg)
-#endif // C++11/98
 
     template<int e, int center> struct exponentToMultiplier { enum {
         X = exponentToMultiplier<e - 1, center>::X * ((e - center < 31) ? 2 : 1),

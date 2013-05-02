@@ -56,6 +56,7 @@ template<unsigned int VectorSize = 1> class Mask
         Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { m ^= rhs.m; return *this; }
 
         Vc_ALWAYS_INLINE bool isFull () const { return  m; }
+        Vc_ALWAYS_INLINE bool isNotEmpty() const { return m; }
         Vc_ALWAYS_INLINE bool isEmpty() const { return !m; }
         Vc_ALWAYS_INLINE bool isMix  () const { return false; }
 
@@ -72,14 +73,14 @@ template<unsigned int VectorSize = 1> class Mask
 
         Vc_ALWAYS_INLINE bool operator[](int) const { return m; }
 
-        Vc_ALWAYS_INLINE int count() const { return m ? 1 : 0; }
+        Vc_ALWAYS_INLINE unsigned int count() const { return m ? 1 : 0; }
 
         /**
          * Returns the index of the first one in the mask.
          *
          * The return value is undefined if the mask is empty.
          */
-        Vc_ALWAYS_INLINE int firstOne() const { return 0; }
+        Vc_ALWAYS_INLINE unsigned int firstOne() const { return 0; }
 
     private:
         bool m;

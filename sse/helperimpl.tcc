@@ -29,7 +29,7 @@ namespace Internal
 {
 
 template<size_t X>
-static _VC_CONSTEXPR size_t nextMultipleOf(size_t value)
+static constexpr size_t nextMultipleOf(size_t value)
 {
     return (value % X) > 0 ? value + X - (value % X) : value;
 }

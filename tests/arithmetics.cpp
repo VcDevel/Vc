@@ -17,7 +17,6 @@
 
 */
 
-#include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
 #include <limits>
@@ -149,40 +148,19 @@ template<typename Vec> void testSub()
     COMPARE(a, b - c);
 }
 
-template<typename T> struct MulRangeHelper
+template<typename V> void testMul()
 {
-    typedef int Iterator;
-    static const Iterator Start;
-    static const Iterator End;
-};
-template<> struct MulRangeHelper<unsigned int> {
-    typedef unsigned int Iterator;
-    static const Iterator Start;
-    static const Iterator End;
-};
-template<> const int MulRangeHelper<float>::Start = -0xffffff;
-template<> const int MulRangeHelper<float>::End   =  0xffffff - 133;
-template<> const int MulRangeHelper<double>::Start = -0xffffff;
-template<> const int MulRangeHelper<double>::End   =  0xffffff - 133;
-template<> const int MulRangeHelper<int>::Start = -0x80000000;
-template<> const int MulRangeHelper<int>::End   = 0x7fffffff - 110;
-const unsigned int MulRangeHelper<unsigned int>::Start = 0;
-const unsigned int MulRangeHelper<unsigned int>::End = 0xffffffff - 110;
-template<> const int MulRangeHelper<short>::Start = -0x8000;
-template<> const int MulRangeHelper<short>::End = 0x7fff - 50;
-template<> const int MulRangeHelper<unsigned short>::Start = 0;
-template<> const int MulRangeHelper<unsigned short>::End = 0xffff - 50;
-
-template<typename Vec> void testMul()
-{
-    typedef typename Vec::EntryType T;
-    typedef MulRangeHelper<T> Range;
-    for (typename Range::Iterator i = Range::Start; i < Range::End; i += 0xef) {
-        T i2 = static_cast<T>(i);
-        Vec a(i2);
-        i2 *= i2 - 9;
-
-        COMPARE(a * (a - 9), Vec(i2));
+    for (int i = 0; i < 10000; ++i) {
+        V a = V::Random();
+        V b = V::Random();
+        V reference = a;
+        for (int j = 0; j < V::Size; ++j) {
+            // this could overflow - but at least the compiler can't know about it so it doesn't
+            // matter that it's undefined behavior in C++. The only thing that matters is what the
+            // hardware does...
+            reference[j] *= b[j];
+        }
+        COMPARE(a * b, reference) << a << " * " << b;
     }
 }
 
@@ -290,10 +268,34 @@ template<typename Vec> void testOnesComplement()
     COMPARE(~(a + b), Vec(Zero));
 }
 
+template<typename T> struct NegateRangeHelper
+{
+    typedef int Iterator;
+    static const Iterator Start;
+    static const Iterator End;
+};
+template<> struct NegateRangeHelper<unsigned int> {
+    typedef unsigned int Iterator;
+    static const Iterator Start;
+    static const Iterator End;
+};
+template<> const int NegateRangeHelper<float>::Start = -0xffffff;
+template<> const int NegateRangeHelper<float>::End   =  0xffffff - 133;
+template<> const int NegateRangeHelper<double>::Start = -0xffffff;
+template<> const int NegateRangeHelper<double>::End   =  0xffffff - 133;
+template<> const int NegateRangeHelper<int>::Start = -0x7fffffff;
+template<> const int NegateRangeHelper<int>::End   = 0x7fffffff - 0xee;
+const unsigned int NegateRangeHelper<unsigned int>::Start = 0;
+const unsigned int NegateRangeHelper<unsigned int>::End = 0xffffffff - 0xee;
+template<> const int NegateRangeHelper<short>::Start = -0x7fff;
+template<> const int NegateRangeHelper<short>::End = 0x7fff - 0xee;
+template<> const int NegateRangeHelper<unsigned short>::Start = 0;
+template<> const int NegateRangeHelper<unsigned short>::End = 0xffff - 0xee;
+
 template<typename Vec> void testNegate()
 {
     typedef typename Vec::EntryType T;
-    typedef MulRangeHelper<T> Range;
+    typedef NegateRangeHelper<T> Range;
     for (typename Range::Iterator i = Range::Start; i < Range::End; i += 0xef) {
         T i2 = static_cast<T>(i);
         Vec a(i2);
@@ -374,7 +376,7 @@ template<typename Vec> void testProduct()
                     x2 *= x;
                 }
             } else {
-                x2 = pow(static_cast<double>(x), m.count());
+                x2 = static_cast<T>(pow(static_cast<double>(x), static_cast<int>(m.count())));
             }
             COMPARE(v.product(m), x2) << m << v;
         } while (true);
@@ -395,9 +397,23 @@ template<typename Vec> void testSum()
         Mask m;
         do {
             m = allMasks<Vec>(j++);
-            COMPARE(v.sum(m), x * m.count()) << m << v;
+            COMPARE(v.sum(m), static_cast<T>(x * m.count())) << m << v;
         } while (!m.isEmpty());
     }
+}
+
+template<typename V> void testPartialSum()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+
+    V reference(I::IndexesFromZero() + 1);
+    COMPARE(V(1).partialSum(), reference);
+    /* disabled until correct masking is implemented
+
+    reference = V(I(2) << I::IndexesFromZero());
+    COMPARE(V(2).partialSum([](const V &a, const V &b) { return a * b; }), reference);
+    */
 }
 
 template<typename V> void fma()
@@ -572,6 +588,7 @@ int main(int argc, char **argv)
     testAllTypes(testMax);
     testAllTypes(testProduct);
     testAllTypes(testSum);
+    testAllTypes(testPartialSum);
 
     return 0;
 }

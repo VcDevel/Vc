@@ -26,6 +26,12 @@
 
 #include <Vc/cpuid.h>
 
+#if defined(VC_GCC) && VC_GCC >= 0x40400
+#define VC_TARGET_NO_SIMD __attribute__((target("no-sse2,no-avx")))
+#else
+#define VC_TARGET_NO_SIMD
+#endif
+
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
@@ -41,9 +47,7 @@ namespace Vc
  *
  * \return A combination of flags from Vc::ExtraInstructions that the current CPU supports.
  */
-#ifdef VC_GCC
-__attribute__((target("no-sse2,no-avx")))
-#endif
+VC_TARGET_NO_SIMD
 unsigned int extraInstructionsSupported();
 
 /**
@@ -57,9 +61,7 @@ unsigned int extraInstructionsSupported();
  *
  * \param impl The SIMD target to test for.
  */
-#ifdef VC_GCC
-    __attribute__((target("no-sse2,no-avx")))
-#endif
+VC_TARGET_NO_SIMD
 bool isImplementationSupported(Vc::Implementation impl);
 
 /**
@@ -82,9 +84,7 @@ bool isImplementationSupported(Vc::Implementation impl);
  * \tparam Impl The SIMD target to test for.
  */
 template<typename Impl>
-#ifdef VC_GCC
-    __attribute__((target("no-sse2,no-avx")))
-#endif
+VC_TARGET_NO_SIMD
 static inline bool isImplementationSupported()
 {
     return isImplementationSupported(static_cast<Vc::Implementation>(Impl::Implementation)) &&
@@ -99,9 +99,7 @@ static inline bool isImplementationSupported()
  *
  * \return The enum value for the best implementation.
  */
-#ifdef VC_GCC
-    __attribute__((target("no-sse2,no-avx")))
-#endif
+VC_TARGET_NO_SIMD
 Vc::Implementation bestImplementationSupported();
 
 #ifndef VC_COMPILE_LIB
@@ -133,9 +131,7 @@ Vc::Implementation bestImplementationSupported();
  *                 instructions.
  * \return \c false otherwise
  */
-#ifdef VC_GCC
-    __attribute__((target("no-sse2,no-avx")))
-#endif
+VC_TARGET_NO_SIMD
 #ifndef DOXYGEN
 static
 #endif
@@ -148,5 +144,7 @@ inline bool currentImplementationSupported()
 
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
+
+#undef VC_TARGET_NO_SIMD
 
 #endif // VC_COMMON_SUPPORT_H

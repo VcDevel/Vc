@@ -1,6 +1,6 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
 
-    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -15,23 +15,31 @@
     You should have received a copy of the GNU Lesser General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
-*/
+}}}*/
 
-#include <Vc/Vc>
 #include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
 #include <cmath>
 
-using namespace Vc;
+using Vc::float_v;
+using Vc::double_v;
+using Vc::sfloat_v;
+using Vc::int_v;
+using Vc::uint_v;
+using Vc::short_v;
+using Vc::ushort_v;
 
-template<typename Vec> void testInc()
+template<typename T> T two() { return T(2); }
+template<typename T> T three() { return T(3); }
+
+template<typename Vec> void testInc()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
-    for (int borderI = 0; borderI < Vec::Size; ++borderI) {
+    for (int borderI = 0; borderI < Vec::Size; ++borderI) {/*{{{*/
         const T border = static_cast<T>(borderI);
         for (int i = 0; i < Vec::Size; ++i) {
             data[i] = static_cast<T>(i);
@@ -46,9 +54,25 @@ template<typename Vec> void testInc()
         COMPARE(++a(m), b) << ", border: " << border << ", m: " << m;
         COMPARE(a, b) << ", border: " << border << ", m: " << m;
     }
+/*}}}*/
+    for (int borderI = 0; borderI < Vec::Size; ++borderI) {
+        const T border = static_cast<T>(borderI);
+        for (int i = 0; i < Vec::Size; ++i) {
+            data[i] = static_cast<T>(i);
+            data[i + Vec::Size] = data[i] + static_cast<T>(data[i] < border ? 1 : 0);
+        }
+        Vec a(&data[0]);
+        Vec b(&data[Vec::Size]);
+        Mask m = a < border;
+        Vec aa(a);
+        where(m)(aa)++;
+        COMPARE(aa, b) << ", border: " << border << ", m: " << m;
+        ++where(m)(a);
+        COMPARE(a, b) << ", border: " << border << ", m: " << m;
+    }
 }
-
-template<typename Vec> void testDec()
+/*}}}*/
+template<typename Vec> void testDec()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -65,13 +89,22 @@ template<typename Vec> void testDec()
         Mask m = a < border;
         Vec aa(a);
         COMPARE(aa(m)--, a);
+        COMPARE(aa, b);
+
+        aa = a;
+        where(m)(aa)--;
+        COMPARE(aa, b);
+
+        aa = a;
+        --where(m)(aa);
+        COMPARE(aa, b);
+
         COMPARE(--a(m), b);
         COMPARE(a, b);
-        COMPARE(aa, b);
     }
 }
-
-template<typename Vec> void testPlusEq()
+/*}}}*/
+template<typename Vec> void testPlusEq()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -85,13 +118,16 @@ template<typename Vec> void testPlusEq()
         }
         Vec a(&data[0]);
         Vec b(&data[Vec::Size]);
+        Vec c = a;
         Mask m = a < border;
-        COMPARE(a(m) += static_cast<T>(2), b);
+        COMPARE(a(m) += two<T>(), b);
         COMPARE(a, b);
+        where(m) | c += two<T>();
+        COMPARE(c, b);
     }
 }
-
-template<typename Vec> void testMinusEq()
+/*}}}*/
+template<typename Vec> void testMinusEq()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -106,12 +142,17 @@ template<typename Vec> void testMinusEq()
         Vec a(&data[0]);
         Vec b(&data[Vec::Size]);
         Mask m = a < border;
-        COMPARE(a(m) -= static_cast<T>(2), b);
+
+        Vec c = a;
+        where(m) | c -= two<T>();
+        COMPARE(c, b);
+
+        COMPARE(a(m) -= two<T>(), b);
         COMPARE(a, b);
     }
 }
-
-template<typename Vec> void testTimesEq()
+/*}}}*/
+template<typename Vec> void testTimesEq()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -126,12 +167,17 @@ template<typename Vec> void testTimesEq()
         Vec a(&data[0]);
         Vec b(&data[Vec::Size]);
         Mask m = a < border;
-        COMPARE(a(m) *= static_cast<T>(2), b);
+
+        Vec c = a;
+        where(m) | c *= two<T>();
+        COMPARE(c, b);
+
+        COMPARE(a(m) *= two<T>(), b);
         COMPARE(a, b);
     }
 }
-
-template<typename Vec> void testDivEq()
+/*}}}*/
+template<typename Vec> void testDivEq()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -146,12 +192,17 @@ template<typename Vec> void testDivEq()
         Vec a(&data[0]);
         Vec b(&data[Vec::Size]);
         Mask m = a < border;
-        COMPARE(a(m) /= static_cast<T>(3), b);
+
+        Vec c = a;
+        where(m) | c /= three<T>();
+        COMPARE(c, b);
+
+        COMPARE(a(m) /= three<T>(), b);
         COMPARE(a, b);
     }
 }
-
-template<typename Vec> void testAssign()
+/*}}}*/
+template<typename Vec> void testAssign()/*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -166,12 +217,17 @@ template<typename Vec> void testAssign()
         Vec a(&data[0]);
         Vec b(&data[Vec::Size]);
         Mask m = a < border;
+
+        Vec c = a;
+        where(m) | c = b;
+        COMPARE(c, b);
+
         COMPARE(a(m) = b, b);
         COMPARE(a, b);
     }
 }
-
-template<typename Vec> void testZero()
+/*}}}*/
+template<typename Vec> void testZero()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -185,21 +241,21 @@ template<typename Vec> void testZero()
         Vec a(aa);
         Vec b(Vc::Zero);
 
-        b(!mask) = a;
+        where(!mask) | b = a;
         a.setZero(mask);
 
         COMPARE(a, b);
     }
 }
-
-template<typename Vec> void testCount()
+/*}}}*/
+template<typename Vec> void testCount()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
     for_all_masks(Vec, m) {
-        int count = 0;
+        unsigned int count = 0;
         for (int i = 0; i < Vec::Size; ++i) {
             if (m[i]) {
                 ++count;
@@ -208,23 +264,23 @@ template<typename Vec> void testCount()
         COMPARE(m.count(), count) << ", m = " << m;
     }
 }
-
-template<typename Vec> void testFirstOne()
+/*}}}*/
+template<typename Vec> void testFirstOne()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
-    for (int i = 0; i < Vec::Size; ++i) {
+    for (unsigned int i = 0; i < Vec::Size; ++i) {
         const M mask(I(Vc::IndexesFromZero) == i);
         COMPARE(mask.firstOne(), i);
     }
 }
-
+/*}}}*/
 #ifdef VC_IMPL_SSE
-void testFloat8GatherMask()
+void testFloat8GatherMask()/*{{{*/
 {
-    Memory<short_v, short_v::Size * 256> data;
+    Vc::Memory<short_v, short_v::Size * 256> data;
     short_v::Memory andMemory;
     for (int i = 0; i < short_v::Size; ++i) {
         andMemory[i] = 1 << i;
@@ -236,20 +292,43 @@ void testFloat8GatherMask()
     }
 
     for (unsigned int i = 0; i < data.vectorsCount(); ++i) {
-        const short_m mask = data.vector(i) == short_v::Zero();
+        const Vc::short_m mask = data.vector(i) == short_v::Zero();
 
-        SSE::Float8GatherMask
+        Vc::SSE::Float8GatherMask
             gatherMaskA(mask),
-            gatherMaskB(static_cast<sfloat_m>(mask));
+            gatherMaskB(static_cast<Vc::sfloat_m>(mask));
         COMPARE(gatherMaskA.toInt(), gatherMaskB.toInt());
     }
-}
+}/*}}}*/
 #endif
 
-int main(int argc, char **argv)
+template<typename V> void maskReductions()
+{
+    for_all_masks(V, mask) {
+        COMPARE(all_of(mask), mask.count() == V::Size);
+        if (mask.count() > 0) {
+            VERIFY(any_of(mask));
+            VERIFY(!none_of(mask));
+            COMPARE(some_of(mask), mask.count() < V::Size);
+        } else {
+            VERIFY(!any_of(mask));
+            VERIFY(none_of(mask));
+            VERIFY(!some_of(mask));
+        }
+    }
+}
+template<typename V> void maskInit()/*{{{*/
+{
+    typedef typename V::Mask M;
+    COMPARE(M(Vc::One), M(true));
+    COMPARE(M(Vc::Zero), M(false));
+}
+/*}}}*/
+int main(int argc, char **argv)/*{{{*/
 {
     initTest(argc, argv);
 
+    testAllTypes(maskInit);
     testAllTypes(testInc);
     testAllTypes(testDec);
     testAllTypes(testPlusEq);
@@ -260,10 +339,13 @@ int main(int argc, char **argv)
     testAllTypes(testZero);
     testAllTypes(testCount);
     testAllTypes(testFirstOne);
+    testAllTypes(maskReductions);
 
 #ifdef VC_IMPL_SSE
     runTest(testFloat8GatherMask);
 #endif
 
     return 0;
-}
+}/*}}}*/
+
+// vim: foldmethod=marker

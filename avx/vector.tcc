@@ -19,6 +19,7 @@
 
 #include "limits.h"
 #include "const.h"
+#include "../common/set.h"
 #include "macros.h"
 
 /*OUTER_NAMESPACE_BEGIN*/
@@ -646,7 +647,7 @@ template<typename T, size_t Size> struct IndexSizeChecker { static void check() 
 template<typename T, size_t Size> struct IndexSizeChecker<Vector<T>, Size>
 {
     static void check() {
-        VC_STATIC_ASSERT(Vector<T>::Size >= Size, IndexVector_must_have_greater_or_equal_number_of_entries);
+        static_assert(Vector<T>::Size >= Size, "IndexVector_must_have_greater_or_equal_number_of_entries");
     }
 };
 template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
@@ -678,17 +679,43 @@ template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsi
     d.v() = _mm256_setr_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
             mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
+namespace
+{
+    template<size_t S, typename EntryType, typename T> Vc_INTRINSIC Vc_PURE __m128i gatherHelper(const EntryType *mem,
+            VC_ALIGNED_PARAMETER(Vector<T>) indexes)
+    {
+        size_t ii[8];
+        unsigned int tmp;
+#ifdef VC_GCC
+        // GCC translates _mm_cvtsi128_si32 into vpextrd, which is three times slower
+        asm("vmovd %1,%0" : "=r"(tmp) : "x"(indexes));
+#else
+        tmp = _mm_cvtsi128_si32(indexes.data());
+#endif
+        ii[1] = tmp >> 0x10;
+        ii[0] = 0xffff & tmp;
+        unrolled_loop16(i, 2, 8,
+                ii[i] = static_cast<unsigned int>(_mm_extract_epi16(indexes.data(), i));
+                );
+        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]],
+                mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<size_t S, typename EntryType, typename T> Vc_INTRINSIC Vc_PURE __m128i gatherHelper(const EntryType *mem,
+            const T *ii)
+    {
+        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]],
+                mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+} // anonymous namespace
 template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = _mm_setr_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-            mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
+    d.v() = gatherHelper<sizeof(EntryType)>(mem, indexes);
 }
 template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = _mm_setr_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-                mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
+    d.v() = gatherHelper<sizeof(EntryType)>(mem, indexes);
 }
 
 #ifdef VC_USE_SET_GATHERS
@@ -703,11 +730,16 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
 
 #ifdef VC_USE_BSF_GATHERS
 #define VC_MASKED_GATHER                        \
-    int bits = mask.toInt();                    \
+    size_t bits = mask.toInt();                    \
     while (bits) {                              \
-        const int i = _bit_scan_forward(bits);  \
-        bits &= ~(1 << i); /* btr? */           \
+        size_t i, j; \
+        asm("bsf %[bits],%[i]\n\t" \
+            "bsr %[bits],%[j]\n\t" \
+            "btr %[i],%[bits]\n\t" \
+            "btr %[j],%[bits]\n\t" \
+            : [i]"=r"(i), [j]"=r"(j), [bits]"+r"(bits)); \
         d.m(i) = ith_value(i);                  \
+        d.m(j) = ith_value(j);                  \
     }
 #elif defined(VC_USE_POPCNT_BSF_GATHERS)
 #define VC_MASKED_GATHER                        \
@@ -715,12 +747,11 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
     unsigned int low, high = 0;                 \
     switch (_mm_popcnt_u32(bits)) {             \
     case 8:                                     \
-        high = _bit_scan_reverse(bits);         \
-        d.m(high) = ith_value(high);            \
-        high = (1 << high);                     \
+        full_gather();                          \
+        break;                                  \
     case 7:                                     \
         low = _bit_scan_forward(bits);          \
-        bits ^= high | (1 << low);              \
+        bits ^= 1 << low;                       \
         d.m(low) = ith_value(low);              \
     case 6:                                     \
         high = _bit_scan_reverse(bits);         \
@@ -748,8 +779,9 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
         break;                                  \
     }
 #else
+#define VC_USE_SPECIALIZED_GATHER 1
 #define VC_MASKED_GATHER                        \
-    if (mask.isEmpty()) {                       \
+    if (VC_IS_UNLIKELY(mask.isEmpty())) {       \
         return;                                 \
     }                                           \
     for_all_vector_entries(i,                   \
@@ -757,13 +789,65 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
             );
 #endif
 
+namespace
+{
+    template<typename V> static Vc_INTRINSIC_L Vc_PURE_L V setHelper(const typename V::EntryType *mem, const size_t ii[]) Vc_INTRINSIC_R Vc_PURE_R;
+    template<> Vc_INTRINSIC Vc_PURE float_v setHelper(const float_v::EntryType *mem, const size_t ii[])
+    {
+        return _mm256_setr_ps(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<> Vc_INTRINSIC Vc_PURE sfloat_v setHelper(const sfloat_v::EntryType *mem, const size_t ii[])
+    {
+        return _mm256_setr_ps(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<> Vc_INTRINSIC Vc_PURE double_v setHelper(const double_v::EntryType *mem, const size_t ii[])
+    {
+        return _mm256_setr_pd(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]]);
+    }
+    template<> Vc_INTRINSIC Vc_PURE int_v setHelper(const int_v::EntryType *mem, const size_t ii[])
+    {
+        return _mm256_setr_epi32(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<> Vc_INTRINSIC Vc_PURE uint_v setHelper(const uint_v::EntryType *mem, const size_t ii[])
+    {
+        return _mm256_setr_epi32(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<> Vc_INTRINSIC Vc_PURE short_v setHelper(const short_v::EntryType *mem, const size_t ii[])
+    {
+        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+    template<> Vc_INTRINSIC Vc_PURE ushort_v setHelper(const ushort_v::EntryType *mem, const size_t ii[])
+    {
+        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
+    }
+
+    template<size_t S> struct DetermineUInt { typedef unsigned int Type; };
+    template<> struct DetermineUInt<2> { typedef unsigned short Type; };
+    template<> struct DetermineUInt<1> { typedef unsigned char Type; };
+    template<> struct DetermineUInt<8> { typedef unsigned long long Type; };
+} // anonymous namespace
+
 template<typename T> template<typename Index>
 Vc_INTRINSIC void Vector<T>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes, MaskArg mask)
 {
     IndexSizeChecker<Index, Size>::check();
-#define ith_value(_i_) (mem[indexes[_i_]])
+#ifdef VC_USE_SPECIALIZED_GATHER
+#undef VC_USE_SPECIALIZED_GATHER
+    if (VC_IS_UNLIKELY(mask.isEmpty())) {
+        return;
+    }
+    size_t ii[Size];
+    for_all_vector_entries(i,
+            ii[i] = mask[i] ? static_cast<typename DetermineUInt<sizeof(indexes[i])>::Type>(indexes[i]) : 0;
+            );
+    (*this)(mask) = setHelper<Vector<T> >(mem, ii);
+#else
+#define full_gather() gather(mem, indexes)
+#define ith_value(_i_) (mem[static_cast<typename DetermineUInt<sizeof(indexes[0])>::Type>(indexes[_i_])])
     VC_MASKED_GATHER
 #undef ith_value
+#undef full_gather
+#endif
 }
 
 template<> template<typename S1, typename IT>
@@ -809,7 +893,7 @@ template<> template<typename S1, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
+    d.v() = set(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
@@ -817,7 +901,7 @@ template<> template<typename S1, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
+    d.v() = set(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
             array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
@@ -825,9 +909,11 @@ template<typename T> template<typename S1, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask)
 {
     IndexSizeChecker<IT, Size>::check();
+#define full_gather() gather(array, member1, indexes)
 #define ith_value(_i_) (array[indexes[_i_]].*(member1))
     VC_MASKED_GATHER
 #undef ith_value
+#undef full_gather
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
@@ -872,7 +958,7 @@ template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
+    d.v() = set(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
             array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
@@ -880,7 +966,7 @@ template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
 {
     IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi16(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
+    d.v() = set(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
             array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
             array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
 }
@@ -888,9 +974,11 @@ template<typename T> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask)
 {
     IndexSizeChecker<IT, Size>::check();
+#define full_gather() gather(array, member1, member2, indexes)
 #define ith_value(_i_) (array[indexes[_i_]].*(member1).*(member2))
     VC_MASKED_GATHER
 #undef ith_value
+#undef full_gather
 }
 template<> template<typename S1, typename IT1, typename IT2>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes)
@@ -945,7 +1033,7 @@ Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const S1 *array, const En
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
-    d.v() = _mm_setr_epi16((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
+    d.v() = set((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
             (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]],
             (array[outerIndexes[4]].*(ptrMember1))[innerIndexes[4]], (array[outerIndexes[5]].*(ptrMember1))[innerIndexes[5]],
             (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
@@ -955,7 +1043,7 @@ Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array,
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
-    d.v() = _mm_setr_epi16((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
+    d.v() = set((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
             (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]],
             (array[outerIndexes[4]].*(ptrMember1))[innerIndexes[4]], (array[outerIndexes[5]].*(ptrMember1))[innerIndexes[5]],
             (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
@@ -965,9 +1053,11 @@ Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::gather(const S1 *array, const EntryT
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
+#define full_gather() gather(array, ptrMember1, outerIndexes, innerIndexes)
 #define ith_value(_i_) (array[outerIndexes[_i_]].*(ptrMember1))[innerIndexes[_i_]]
     VC_MASKED_GATHER
 #undef ith_value
+#undef full_gather
 }
 
 #undef VC_MASKED_GATHER
@@ -1033,19 +1123,31 @@ template<typename T> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN V
             mem[indexes[i]] = d.m(i);
             );
 }
-#ifdef VC_MSVC
+#if defined(VC_MSVC) && VC_MSVC >= 170000000
 // MSVC miscompiles the store mem[indexes[1]] = d.m(1) for T = (u)short
 template<> template<typename Index> Vc_ALWAYS_INLINE void short_v::scatter(EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes) const
 {
-    for_all_vector_entries(i,
-            mem[indexes[i]] = _mm_extract_epi16(d.v(), i);
-            );
+    const unsigned int tmp = d.v()._d.m128i_u32[0];
+    mem[indexes[0]] = tmp & 0xffff;
+    mem[indexes[1]] = tmp >> 16;
+    mem[indexes[2]] = _mm_extract_epi16(d.v(), 2);
+    mem[indexes[3]] = _mm_extract_epi16(d.v(), 3);
+    mem[indexes[4]] = _mm_extract_epi16(d.v(), 4);
+    mem[indexes[5]] = _mm_extract_epi16(d.v(), 5);
+    mem[indexes[6]] = _mm_extract_epi16(d.v(), 6);
+    mem[indexes[7]] = _mm_extract_epi16(d.v(), 7);
 }
 template<> template<typename Index> Vc_ALWAYS_INLINE void ushort_v::scatter(EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes) const
 {
-    for_all_vector_entries(i,
-            mem[indexes[i]] = _mm_extract_epi16(d.v(), i);
-            );
+    const unsigned int tmp = d.v()._d.m128i_u32[0];
+    mem[indexes[0]] = tmp & 0xffff;
+    mem[indexes[1]] = tmp >> 16;
+    mem[indexes[2]] = _mm_extract_epi16(d.v(), 2);
+    mem[indexes[3]] = _mm_extract_epi16(d.v(), 3);
+    mem[indexes[4]] = _mm_extract_epi16(d.v(), 4);
+    mem[indexes[5]] = _mm_extract_epi16(d.v(), 5);
+    mem[indexes[6]] = _mm_extract_epi16(d.v(), 6);
+    mem[indexes[7]] = _mm_extract_epi16(d.v(), 7);
 }
 #endif
 template<typename T> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::scatter(EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes, MaskArg mask) const
@@ -1093,6 +1195,12 @@ template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator- {{{1
+#ifdef VC_USE_BUILTIN_VECTOR_TYPES
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vc_FLATTEN Vector<typename NegateTypeHelper<T>::Type> Vector<T>::operator-() const
+{
+    return VectorType(-d.gcc());
+}
+#else
 template<> Vc_ALWAYS_INLINE Vector<double> Vc_PURE Vc_FLATTEN Vector<double>::operator-() const
 {
     return _mm256_xor_pd(d.v(), _mm256_setsignmask_pd());
@@ -1121,9 +1229,44 @@ template<> Vc_ALWAYS_INLINE Vector<short> Vc_PURE Vc_FLATTEN Vector<unsigned sho
 {
     return _mm_sign_epi16(d.v(), _mm_setallone_si128());
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // horizontal ops {{{1
+template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::partialSum() const
+{
+    //   a    b    c    d    e    f    g    h
+    // +      a    b    c    d    e    f    g    -> a ab bc  cd   de    ef     fg      gh
+    // +           a    ab   bc   cd   de   ef   -> a ab abc abcd bcde  cdef   defg    efgh
+    // +                     a    ab   abc  abcd -> a ab abc abcd abcde abcdef abcdefg abcdefgh
+    Vector<T> tmp = *this;
+    if (Size >  1) tmp += tmp.shifted(-1);
+    if (Size >  2) tmp += tmp.shifted(-2);
+    if (Size >  4) tmp += tmp.shifted(-4);
+    if (Size >  8) tmp += tmp.shifted(-8);
+    if (Size > 16) tmp += tmp.shifted(-16);
+    return tmp;
+}
+
+/* This function requires correct masking because the neutral element of \p op is not necessarily 0
+ *
+template<typename T> template<typename BinaryOperation> Vc_ALWAYS_INLINE Vector<T> Vector<T>::partialSum(BinaryOperation op) const
+{
+    //   a    b    c    d    e    f    g    h
+    // +      a    b    c    d    e    f    g    -> a ab bc  cd   de    ef     fg      gh
+    // +           a    ab   bc   cd   de   ef   -> a ab abc abcd bcde  cdef   defg    efgh
+    // +                     a    ab   abc  abcd -> a ab abc abcd abcde abcdef abcdefg abcdefgh
+    Vector<T> tmp = *this;
+    Mask mask(true);
+    if (Size >  1) tmp(mask) = op(tmp, tmp.shifted(-1));
+    if (Size >  2) tmp(mask) = op(tmp, tmp.shifted(-2));
+    if (Size >  4) tmp(mask) = op(tmp, tmp.shifted(-4));
+    if (Size >  8) tmp(mask) = op(tmp, tmp.shifted(-8));
+    if (Size > 16) tmp(mask) = op(tmp, tmp.shifted(-16));
+    return tmp;
+}
+*/
+
 template<typename T> Vc_ALWAYS_INLINE typename Vector<T>::EntryType Vector<T>::min(MaskArg m) const
 {
     Vector<T> tmp = std::numeric_limits<Vector<T> >::max();
@@ -1247,16 +1390,14 @@ template<> struct VectorShift<32, 4, m256d, double>
 {
     static Vc_INTRINSIC m256d shifted(param256d v, int amount)
     {
-        const m128i vLo = avx_cast<m128i>(lo128(v));
-        const m128i vHi = avx_cast<m128i>(hi128(v));
         switch (amount) {
         case  0: return v;
-        case  1: return concat(avx_cast<m128d>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(double))), avx_cast<m128d>(_mm_srli_si128(vHi, 1 * sizeof(double))));
-        case  2: return zeroExtend(hi128(v));
-        case  3: return zeroExtend(avx_cast<m128d>(_mm_srli_si128(vHi, 1 * sizeof(double))));
-        case -1: return concat(avx_cast<m128d>(_mm_slli_si128(vLo, 1 * sizeof(double))), avx_cast<m128d>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(double))));
-        case -2: return _mm256_permute2f128_pd(v, v, 0x8);
-        case -3: return concat(_mm_setzero_pd(), avx_cast<m128d>(_mm_slli_si128(vLo, 1 * sizeof(double))));
+        case  1: return avx_cast<m256d>(_mm256_srli_si256(avx_cast<m256i>(v), 1 * sizeof(double)));
+        case  2: return avx_cast<m256d>(_mm256_srli_si256(avx_cast<m256i>(v), 2 * sizeof(double)));
+        case  3: return avx_cast<m256d>(_mm256_srli_si256(avx_cast<m256i>(v), 3 * sizeof(double)));
+        case -1: return avx_cast<m256d>(_mm256_slli_si256(avx_cast<m256i>(v), 1 * sizeof(double)));
+        case -2: return avx_cast<m256d>(_mm256_slli_si256(avx_cast<m256i>(v), 2 * sizeof(double)));
+        case -3: return avx_cast<m256d>(_mm256_slli_si256(avx_cast<m256i>(v), 3 * sizeof(double)));
         }
         return _mm256_setzero_pd();
     }
@@ -1266,25 +1407,22 @@ template<typename VectorType, typename EntryType> struct VectorShift<32, 8, Vect
     typedef typename SseVectorType<VectorType>::Type SmallV;
     static Vc_INTRINSIC VectorType shifted(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
-        const m128i vLo = avx_cast<m128i>(lo128(v));
-        const m128i vHi = avx_cast<m128i>(hi128(v));
-        const SmallV z = avx_cast<SmallV>(_mm_setzero_ps());
         switch (amount) {
         case  0: return v;
-        case  1: return concat(avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(EntryType))), avx_cast<SmallV>(_mm_srli_si128(vHi, 1 * sizeof(EntryType))));
-        case  2: return concat(avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 2 * sizeof(EntryType))), avx_cast<SmallV>(_mm_srli_si128(vHi, 2 * sizeof(EntryType))));
-        case  3: return concat(avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 3 * sizeof(EntryType))), avx_cast<SmallV>(_mm_srli_si128(vHi, 3 * sizeof(EntryType))));
-        case  4: return zeroExtend(hi128(v));
-        case  5: return avx_cast<VectorType>(zeroExtend(_mm_srli_si128(vHi, 1 * sizeof(EntryType))));
-        case  6: return avx_cast<VectorType>(zeroExtend(_mm_srli_si128(vHi, 2 * sizeof(EntryType))));
-        case  7: return avx_cast<VectorType>(zeroExtend(_mm_srli_si128(vHi, 3 * sizeof(EntryType))));
-        case -1: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 1 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 3 * sizeof(EntryType))));
-        case -2: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 2 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 2 * sizeof(EntryType))));
-        case -3: return concat(avx_cast<SmallV>(_mm_slli_si128(vLo, 3 * sizeof(EntryType))), avx_cast<SmallV>(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(EntryType))));
-        case -4: return avx_cast<VectorType>(_mm256_permute2f128_ps(avx_cast<m256>(v), avx_cast<m256>(v), 0x8));
-        case -5: return concat(z, avx_cast<SmallV>(_mm_slli_si128(vLo, 1 * sizeof(EntryType))));
-        case -6: return concat(z, avx_cast<SmallV>(_mm_slli_si128(vLo, 2 * sizeof(EntryType))));
-        case -7: return concat(z, avx_cast<SmallV>(_mm_slli_si128(vLo, 3 * sizeof(EntryType))));
+        case  1: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 1 * sizeof(EntryType)));
+        case  2: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 2 * sizeof(EntryType)));
+        case  3: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 3 * sizeof(EntryType)));
+        case  4: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 4 * sizeof(EntryType)));
+        case  5: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 5 * sizeof(EntryType)));
+        case  6: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 6 * sizeof(EntryType)));
+        case  7: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 7 * sizeof(EntryType)));
+        case -1: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 1 * sizeof(EntryType)));
+        case -2: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 2 * sizeof(EntryType)));
+        case -3: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 3 * sizeof(EntryType)));
+        case -4: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 4 * sizeof(EntryType)));
+        case -5: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 5 * sizeof(EntryType)));
+        case -6: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 6 * sizeof(EntryType)));
+        case -7: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 7 * sizeof(EntryType)));
         }
         return avx_cast<VectorType>(_mm256_setzero_ps());
     }

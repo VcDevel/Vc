@@ -24,6 +24,24 @@ if(ROOT_RELEASE)
       message(FATAL_ERROR "CMAKE_INSTALL_PREFIX is incorrect. It must point to the Vc subdirectory inside ROOT/AliRoot")
    endif()
 else()
+
+   # TODO: skip the C++11 check for C
+   # TODO: check that 'decltype' compiles
+   # TODO: check that 'constexpr' compiles
+   if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
+      if(Vc_COMPILER_IS_GCC AND Vc_GCC_VERSION VERSION_LESS 4.6.0)
+         message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least GCC 4.6.")
+      endif()
+
+      AddCompilerFlag("-std=c++11" _ok)
+      if(NOT _ok)
+         AddCompilerFlag("-std=c++0x" _ok)
+         if(NOT _ok)
+            message(FATAL_ERROR "Vc 1.x requires C++11 support. It seems this is not available. If this was incorrectly determined please notify vc-devel@compeng.uni-frankfurt.de")
+         endif()
+      endif()
+   endif()
+
    if(Vc_COMPILER_IS_GCC)
       if(Vc_GCC_VERSION STREQUAL "4.6.0")
          UserWarning("GCC 4.6.0 is broken. The following tests are therefore disabled:
@@ -36,12 +54,6 @@ else()
             gather_VC_USE_SET_GATHERS_sse
             scatter_avx
             scatter_sse
-            c++11_gather_avx
-            c++11_gather_sse
-            c++11_gather_VC_USE_SET_GATHERS_avx
-            c++11_gather_VC_USE_SET_GATHERS_sse
-            c++11_scatter_avx
-            c++11_scatter_sse
             )
       elseif(Vc_GCC_VERSION STREQUAL "4.5.0" OR Vc_GCC_VERSION STREQUAL "4.5.1")
          UserWarning("GCC 4.5.[12] are known to generate an internal compiler error on the memory unit test.
@@ -51,15 +63,11 @@ else()
             memory_scalar
             memory_sse
             memory_avx
-            c++11_memory_scalar
-            c++11_memory_sse
-            c++11_memory_avx
             )
       elseif(Vc_GCC_VERSION STREQUAL "4.5.2")
          UserWarning("GCC 4.5.2 generates an internal compiler error on the memory_scalar unit test. The test will not be compiled and executed.")
          list(APPEND disabled_targets
             memory_scalar
-            c++11_memory_scalar
             )
       endif()
    elseif(Vc_COMPILER_IS_CLANG)
@@ -76,8 +84,6 @@ else()
          list(APPEND disabled_targets
             stlcontainer_sse
             stlcontainer_avx
-            c++11_stlcontainer_sse
-            c++11_stlcontainer_avx
             )
       endif()
    endif()
@@ -91,11 +97,14 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
 add_definitions("${Vc_DEFINITIONS}")
+if(Vc_COMPILER_IS_GCC AND Vc_GCC_VERSION VERSION_LESS 4.3.0)
+   add_definitions(-DVC_DONT_WARN_OLD_GCC) # this warning is only interesting for external users of Vc
+endif()
 
 if(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
-   set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -w1 -fp-model precise")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w1 -fp-model precise")
+   set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -fp-model source")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model source")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
@@ -113,8 +122,7 @@ if(NOT ROOT_RELEASE)
    set(libvc_compile_flags "-DVC_COMPILE_LIB")
    AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
    vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS ${libvc_compile_flags}
-      ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4)
-   # add AVX+XOP+FMA AVX+FMA once there's a check in place whether the assembler can handle FMA instructions
+      ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA)
    set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp ${_objs})
    if(USE_AVX)
       list(APPEND _srcs src/avx_sorthelper.cpp)
@@ -139,7 +147,7 @@ if(NOT ROOT_RELEASE)
    add_target_property(Vc LABELS "other")
    add_dependencies(other Vc)
 
-   install(TARGETS Vc DESTINATION lib/)
+   install(TARGETS Vc DESTINATION lib${LIB_SUFFIX})
    install(DIRECTORY include/Vc/ DESTINATION include/Vc)
    install(DIRECTORY scalar sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 else()

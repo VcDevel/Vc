@@ -1,10 +1,6 @@
 #!/bin/sh
 output="`qhelpgenerator "$@" 2>&1`"
 errors="`echo "$output"|grep "Error in line .*: Opening and ending tag mismatch."`"
-if test -z "$errors"; then
-  echo "$output"
-  exit
-fi
 if echo "$1"|grep -q '\.qhp'; then
   file="$1"
 elif echo "$2"|grep -q '\.qhp'; then
@@ -12,7 +8,11 @@ elif echo "$2"|grep -q '\.qhp'; then
 elif echo "$3"|grep -q '\.qhp'; then
   file="$3"
 fi
-for i in `echo "$errors"|tac|sed 's/^.* \([0-9]\+\):.*$/\1/'`; do
-  sed -i "${i}d" "$file"
+while test -n "$errors"; do
+    for i in `echo "$errors"|tac|sed 's/^.* \([0-9]\+\):.*$/\1/'`; do
+      sed -i "${i}d" "$file"
+    done
+    output="`qhelpgenerator "$@" 2>&1`"
+    errors="`echo "$output"|grep "Error in line .*: Opening and ending tag mismatch."`"
 done
-qhelpgenerator "$@"
+echo "$output"

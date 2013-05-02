@@ -92,7 +92,7 @@ class WriteMaskedVector
             vec->assign(VectorHelper<T>::mul(vec->data(), x.data()), mask);
             return *vec;
         }
-        Vc_INTRINSIC Vc_CONST Vector<T> &operator/=(const Vector<T> &x);
+        Vc_INTRINSIC Vector<T> &operator/=(const Vector<T> &x);
 
         Vc_INTRINSIC Vector<T> &operator+=(EntryType x) {
             return operator+=(Vector<T>(x));
@@ -140,6 +140,9 @@ template<typename T> class Vector
 {
     friend class WriteMaskedVector<T>;
     protected:
+#ifdef VC_COMPILE_BENCHMARKS
+    public:
+#endif
         typedef typename VectorTraits<T>::StorageType StorageType;
         StorageType d;
         typedef typename VectorTraits<T>::GatherMaskType GatherMask;
@@ -329,7 +332,7 @@ template<typename T> class Vector
         Vc_INTRINSIC_L Vector  operator>> (  int shift) const Vc_INTRINSIC_R;
 
         Vc_INTRINSIC_L Vector &operator/=(const Vector<T> &x) Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L Vector  operator/ (const Vector<T> &x) const Vc_PURE Vc_INTRINSIC_R;
+        inline Vc_PURE_L Vector  operator/ (const Vector<T> &x) const Vc_PURE_R;
         Vc_INTRINSIC_L Vector &operator/=(EntryType x) Vc_INTRINSIC_R;
         template<typename TT> Vc_INTRINSIC_L VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) operator/(TT x) const Vc_PURE Vc_INTRINSIC_R;
 
@@ -385,6 +388,7 @@ template<typename T> class Vector
         Vc_INTRINSIC EntryType max() const { return VectorHelper<T>::max(data()); }
         Vc_INTRINSIC EntryType product() const { return VectorHelper<T>::mul(data()); }
         Vc_INTRINSIC EntryType sum() const { return VectorHelper<T>::add(data()); }
+        Vc_INTRINSIC_L Vector partialSum() const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L EntryType min(MaskArg m) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L EntryType max(MaskArg m) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L EntryType product(MaskArg m) const Vc_INTRINSIC_R;

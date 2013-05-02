@@ -37,6 +37,14 @@
 #define VC_UNSUPPORTED_COMPILER 1
 #endif
 
+#if __cplusplus < 201103
+#if (defined VC_MSVC && VC_MSVC >= 160000000) || (defined VC_GCC && VC_GCC >= 0x40600) || (defined VC_ICC && VC_ICC >= 20120731)
+// these compilers still work, even if they don't define __cplusplus as expected
+#else
+#error "Vc requires support for C++11."
+#endif
+#endif
+
 // Features/Quirks defines
 #if defined VC_MSVC && defined _WIN32
 // the Win32 ABI can't handle function parameters with alignment >= 16
@@ -55,17 +63,30 @@
 #define VC_HAVE_ATTRIBUTE_WARNING 1
 #endif
 
-#if (defined(__GXX_EXPERIMENTAL_CXX0X__) && VC_GCC >= 0x40600) || __cplusplus >= 201103
-#  define VC_CXX11 1
-#  ifdef VC_GCC
-#    if VC_GCC >= 0x40700 // && VC_GCC < 0x408000)
+#if defined(VC_MSVC) && VC_MSVC < 180000000
+// MSVC doesn't know constexpr and noexcept
+// first include the check that forbids macroizing keywords >:)
+#include <xkeycheck.h>
+#ifndef constexpr
+#define constexpr inline __forceinline
+#endif
+#ifndef noexcept
+#define noexcept throw()
+#endif
+#endif
+
+#ifdef VC_GCC
+#  if VC_GCC >= 0x40700 // && VC_GCC < 0x408000)
 //     ::max_align_t was introduced with GCC 4.7. std::max_align_t took a bit longer.
-#      define VC_HAVE_MAX_ALIGN_T 1
-#    endif
-#  elif !defined(VC_CLANG)
-//   Clang doesn't provide max_align_t at all
-#    define VC_HAVE_STD_MAX_ALIGN_T 1
+#    define VC_HAVE_MAX_ALIGN_T 1
 #  endif
+#elif !defined(VC_CLANG)
+//   Clang doesn't provide max_align_t at all
+#  define VC_HAVE_STD_MAX_ALIGN_T 1
+#endif
+
+#if defined(VC_GCC) || defined(VC_CLANG)
+#define VC_USE_BUILTIN_VECTOR_TYPES
 #endif
 
 // ICC ships the AVX2 intrinsics inside the AVX1 header.
@@ -344,24 +365,15 @@ enum MallocAlignment {
     AlignOnPage
 };
 
-#if __cplusplus >= 201103 /*C++11*/
-#define Vc_CONSTEXPR static constexpr
-#elif defined(__GNUC__)
-#define Vc_CONSTEXPR static inline __attribute__((__always_inline__, __const__))
-#elif defined(VC_MSVC)
-#define Vc_CONSTEXPR static inline __forceinline
-#else
-#define Vc_CONSTEXPR static inline
-#endif
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+static constexpr StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+static constexpr StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+static constexpr StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+static constexpr StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
 
-Vc_CONSTEXPR StreamingAndAlignedFlag operator|(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-Vc_CONSTEXPR StreamingAndAlignedFlag operator|(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
-Vc_CONSTEXPR StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-Vc_CONSTEXPR StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
+static constexpr StreamingAndAlignedFlag operator|(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
+static constexpr StreamingAndAlignedFlag operator|(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
+static constexpr StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
+static constexpr StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
 
 /**
  * \ingroup Utilities
@@ -477,16 +489,16 @@ namespace Internal {
     typedef HelperImpl<VC_IMPL> Helper;
 
     template<typename A> struct FlagObject;
-    template<> struct FlagObject<AlignedFlag> { Vc_CONSTEXPR AlignedFlag the() { return Aligned; } };
-    template<> struct FlagObject<UnalignedFlag> { Vc_CONSTEXPR UnalignedFlag the() { return Unaligned; } };
-    template<> struct FlagObject<StreamingAndAlignedFlag> { Vc_CONSTEXPR StreamingAndAlignedFlag the() { return Streaming; } };
-    template<> struct FlagObject<StreamingAndUnalignedFlag> { Vc_CONSTEXPR StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
+    template<> struct FlagObject<AlignedFlag> { static constexpr AlignedFlag the() { return Aligned; } };
+    template<> struct FlagObject<UnalignedFlag> { static constexpr UnalignedFlag the() { return Unaligned; } };
+    template<> struct FlagObject<StreamingAndAlignedFlag> { static constexpr StreamingAndAlignedFlag the() { return Streaming; } };
+    template<> struct FlagObject<StreamingAndUnalignedFlag> { static constexpr StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
 } // namespace Internal
 
 namespace Warnings
 {
     void _operator_bracket_warning()
-#if VC_HAVE_ATTRIBUTE_WARNING
+#ifdef VC_HAVE_ATTRIBUTE_WARNING
         __attribute__((warning("\n\tUse of Vc::Vector::operator[] to modify scalar entries is known to miscompile with GCC 4.3.x.\n\tPlease upgrade to a more recent GCC or avoid operator[] altogether.\n\t(This warning adds an unnecessary function call to operator[] which should work around the problem at a little extra cost.)")))
 #endif
         ;
@@ -501,7 +513,6 @@ namespace Error
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
 
-#undef Vc_CONSTEXPR
 #include "version.h"
 
 #endif // VC_GLOBAL_H

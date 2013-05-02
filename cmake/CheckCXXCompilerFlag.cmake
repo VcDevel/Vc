@@ -9,24 +9,47 @@
 #=============================================================================
 # Copyright 2006-2009 Kitware, Inc.
 # Copyright 2006 Alexander Neundorf <neundorf@kde.org>
-# Copyright 2011 Matthias Kretz <kretz@kde.org>
+# Copyright 2011-2013 Matthias Kretz <kretz@kde.org>
 #
-# Distributed under the OSI-approved BSD License (the "License");
-# see accompanying file Copyright.txt for details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
 #
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
+#  * Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+#  * Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+#  * The names of Kitware, Inc., the Insight Consortium, or the names of
+#    any consortium members, or of any contributors, may not be used to
+#    endorse or promote products derived from this software without
+#    specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS ``AS IS''
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #=============================================================================
-# (To distributed this file outside of CMake, substitute the full
-#  License text for the above reference.)
 
 INCLUDE(CheckCXXSourceCompiles)
 
 MACRO (CHECK_CXX_COMPILER_FLAG _FLAG _RESULT)
    SET(SAFE_CMAKE_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS}")
    SET(CMAKE_REQUIRED_DEFINITIONS "${_FLAG}")
-   CHECK_CXX_SOURCE_COMPILES("int main() { return 0;}" ${_RESULT}
+   if(${ARGC} GREATER 2)
+      SET(TEST_SOURCE "${ARGV2}")
+   else()
+      SET(TEST_SOURCE "int main() { return 0;}")
+   endif()
+   CHECK_CXX_SOURCE_COMPILES("${TEST_SOURCE}" ${_RESULT}
      # Some compilers do not fail with a bad flag
      FAIL_REGEX "error: bad value (.*) for .* switch"       # GNU
      FAIL_REGEX "argument unused during compilation"        # clang

@@ -21,8 +21,6 @@
 #define VC_COMMON_UNDOMACROS_H
 #undef VC_COMMON_MACROS_H
 
-#undef Vc_ALIGNOF
-
 #undef Vc_INTRINSIC
 #undef Vc_INTRINSIC_L
 #undef Vc_INTRINSIC_R
@@ -40,10 +38,7 @@
 #undef VC_IS_LIKELY
 #undef VC_RESTRICT
 #undef VC_DEPRECATED
-#undef _VC_CONSTEXPR
-#undef _VC_CONSTEXPR_L
-#undef _VC_CONSTEXPR_R
-#undef _VC_NOEXCEPT
+#undef Vc_WARN_UNUSED_RESULT
 
 #undef ALIGN
 #undef STRUCT_ALIGN1
@@ -57,6 +52,12 @@
 
 #undef VC_WARN_INLINE
 #undef VC_WARN
+
+#ifdef VC_EXTERNAL_ASSERT
+#undef VC_EXTERNAL_ASSERT
+#else
+#undef VC_ASSERT
+#endif
 
 #undef VC_HAS_BUILTIN
 
