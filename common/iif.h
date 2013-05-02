@@ -54,6 +54,23 @@ template<typename T> static Vc_ALWAYS_INLINE Vector<T> iif (const typename Vecto
     falseValue(condition) = trueValue;
     return falseValue;
 }
+
+/**
+ * Overload of the above for boolean conditions.
+ *
+ * This typically results in direct use of the ternary operator.
+ *
+ * \param condition  Determines which values are returned. This is analog to the first argument to
+ *                   the ternary operator.
+ * \param trueValue  The values to return where \p condition is \c true.
+ * \param falseValue The values to return where \p condition is \c false.
+ * \return A combination of entries from \p trueValue and \p falseValue, according to \p condition.
+ */
+template<typename T> static Vc_ALWAYS_INLINE Vector<T> iif (bool condition, const T &trueValue, const T &falseValue)
+{
+    return condition ? trueValue : falseValue;
+}
+
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
 
