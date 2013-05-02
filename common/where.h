@@ -92,15 +92,15 @@ namespace
         Vc_ALWAYS_INLINE void operator--(int) { if (mask) lhs--; }
     };
 
-    template<typename _Mask> struct MaskedLValueHelper
+    template<typename _Mask> struct WhereMask
     {
         typedef _Mask Mask;
         const Mask &mask;
 
         // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
-        MaskedLValueHelper(const Mask &m) : mask(m) {}
-        MaskedLValueHelper(const MaskedLValueHelper &) = delete;
-        MaskedLValueHelper(MaskedLValueHelper &&) = default;
+        WhereMask(const Mask &m) : mask(m) {}
+        WhereMask(const WhereMask &) = delete;
+        WhereMask(WhereMask &&) = default;
 
         template<typename T> constexpr Vc_WARN_UNUSED_RESULT MaskedLValue<Mask, T> operator|(T &&lhs) const
         {
@@ -119,11 +119,6 @@ namespace
         }
     };
 } // anonymous namespace
-
-template<typename Mask> constexpr Vc_WARN_UNUSED_RESULT MaskedLValueHelper<Mask> _if(const Mask &m)
-{
-    return { m };
-}
 
 /**
  * \ingroup Utilities
@@ -157,9 +152,14 @@ template<typename Mask> constexpr Vc_WARN_UNUSED_RESULT MaskedLValueHelper<Mask>
  * vector type, the comparison will use the implicit conversion from a mask to bool, meaning
  * <code>all_of(x &lt; 2)</code>. This is radically different from lines (2) and (3). 
  */
-template<typename Mask> constexpr Vc_WARN_UNUSED_RESULT MaskedLValueHelper<Mask> where(const Mask &mask)
+template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereMask<M> where(const M &mask)
 {
     return { mask };
+}
+
+template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereMask<M> _if(const M &m)
+{
+    return { m };
 }
 
 } // namespace Vc
