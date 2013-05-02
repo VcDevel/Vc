@@ -93,6 +93,14 @@ namespace Vc
      *
      * Construct a container of Vc vectors from a std::initializer_list of scalar entries.
      *
+     * \param list An initializer list of arbitrary size. The type of the entries is important!
+     * If you pass a list of integers you will get a container filled with Vc::int_v objects.
+     * If, instead, you want to have a container of Vc::float_v objects, be sure the include a
+     * period (.) and the 'f' postfix in the literals.
+     *
+     * \return Returns a container of the requested class filled with the minimum number of SIMD
+     * vectors to hold the values in the initializer list.
+     *
      * Example:
      * \code
      * auto data = Vc::makeContainer<std::vector<float_v>>({ 1.f, 2.f, 3.f, 4.f, 5.f });
