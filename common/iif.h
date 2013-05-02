@@ -49,10 +49,10 @@ namespace Vc
  * will be [2, 2, 3, 5].
  */
 #ifndef VC_MSVC
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> iif (typename Vector<T>::Mask condition, Vector<T> trueValue, Vector<T> falseValue)
+template<typename T> Vc_ALWAYS_INLINE Vector<T> iif (typename Vector<T>::Mask condition, Vector<T> trueValue, Vector<T> falseValue)
 {
 #else
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> iif (const typename Vector<T>::Mask &condition, const Vector<T> &trueValue, const Vector<T> &_falseValue)
+template<typename T> Vc_ALWAYS_INLINE Vector<T> iif (const typename Vector<T>::Mask &condition, const Vector<T> &trueValue, const Vector<T> &_falseValue)
 {
     Vector<T> falseValue(_falseValue);
 #endif
@@ -74,7 +74,7 @@ template<typename T> static Vc_ALWAYS_INLINE Vector<T> iif (const typename Vecto
  * \param falseValue The value to return if \p condition is \c false.
  * \return Either \p trueValue or \p falseValue, depending on \p condition.
  */
-template<typename T> static Vc_ALWAYS_INLINE T iif (bool condition, const T &trueValue, const T &falseValue)
+template<typename T> constexpr T iif (bool condition, const T &trueValue, const T &falseValue)
 {
     return condition ? trueValue : falseValue;
 }
