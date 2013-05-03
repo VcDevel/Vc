@@ -355,7 +355,7 @@ class Float8Mask
         }
         Vc_ALWAYS_INLINE Vc_PURE bool operator!=(const Float8Mask &rhs) const {
             return MaskHelper<PartialSize>::cmpneq(k[0], rhs.k[0])
-                && MaskHelper<PartialSize>::cmpneq(k[1], rhs.k[1]);
+                || MaskHelper<PartialSize>::cmpneq(k[1], rhs.k[1]);
         }
 
         Vc_ALWAYS_INLINE Vc_PURE Float8Mask operator&&(const Float8Mask &rhs) const {
