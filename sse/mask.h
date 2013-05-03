@@ -439,9 +439,15 @@ class Float8Mask
 #endif
         }
         Vc_ALWAYS_INLINE Vc_PURE bool isMix() const {
+            // consider [1111 0000]
+            // solution:
+            // if k[0] != k[1] => return true
+            // if k[0] == k[1] => return k[0].isMix
 #ifdef VC_USE_PTEST
-            return _mm_test_mix_ones_zeros(_mm_castps_si128(k[0]), _mm_castps_si128(k[0])) &&
-            _mm_test_mix_ones_zeros(_mm_castps_si128(k[1]), _mm_castps_si128(k[1]));
+            __m128i tmp = _mm_castps_si128(_mm_xor_ps(k[0], k[1]));
+            // tmp == 0 <=> k[0] == k[1]
+            return !_mm_testz_si128(tmp, tmp) ||
+                _mm_test_mix_ones_zeros(_mm_castps_si128(k[0]), _mm_setallone_si128());
 #else
             const int tmp = _mm_movemask_ps(k[0]) + _mm_movemask_ps(k[1]);
             return tmp > 0x0 && tmp < (0xf + 0xf);
