@@ -84,25 +84,9 @@ namespace SSE
     static Vc_INTRINSIC Vc_CONST __m128  _mm_sub_ps(__m128  a, __m128  b) { return static_cast<__m128 >(static_cast<__v4sf>(a) - static_cast<__v4sf>(b)); }
 #endif
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuninitialized"
-#endif
-    // GCC 4.6 - 4.8 fail if _mm_comtrue_epu8/_mm_cmpeq_epi8 are called with uninitialized argument (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57156)
-#if defined(VC_IMPL_XOP) && !defined(VC_CLANG) && !defined(VC_GCC)
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone() { __m128i a; return _mm_comtrue_epu8(a, a); }
-#elif defined(__GNUC__) && !defined(NVALGRIND) && !defined(VC_GCC)
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone() { __m128i r; return _mm_cmpeq_epi8(r, r); }
-#else
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
-#endif
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone_si128() { return _mm_setallone(); }
-    static Vc_INTRINSIC __m128d Vc_CONST _mm_setallone_pd() { return _mm_castsi128_pd(_mm_setallone()); }
-    static Vc_INTRINSIC __m128  Vc_CONST _mm_setallone_ps() { return _mm_castsi128_ps(_mm_setallone()); }
+    static Vc_INTRINSIC Vc_CONST __m128i _mm_setallone_si128() { return _mm_load_si128(reinterpret_cast<const __m128i *>(Common::AllBitsSet)); }
+    static Vc_INTRINSIC Vc_CONST __m128d _mm_setallone_pd() { return _mm_load_pd(reinterpret_cast<const double *>(Common::AllBitsSet)); }
+    static Vc_INTRINSIC Vc_CONST __m128  _mm_setallone_ps() { return _mm_load_ps(reinterpret_cast<const float *>(Common::AllBitsSet)); }
 
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epi8 ()  { return _mm_set1_epi8(1); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epu8 ()  { return _mm_setone_epi8(); }

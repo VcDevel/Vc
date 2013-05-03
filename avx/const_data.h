@@ -24,6 +24,12 @@
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
+
+namespace Common
+{
+    ALIGN(32) extern const unsigned int AllBitsSet[8];
+} // namespace Common
+
 namespace AVX
 {
 
