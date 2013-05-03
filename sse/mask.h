@@ -31,12 +31,14 @@ namespace SSE
 
 template<unsigned int Size1> struct MaskHelper
 {
+#ifdef VC_USE_PTEST
     static Vc_ALWAYS_INLINE Vc_CONST bool cmpeq (__m128 x, __m128 y) {
         return 0 != _mm_testc_si128(_mm_castps_si128(x), _mm_castps_si128(y));
     }
     static Vc_ALWAYS_INLINE Vc_CONST bool cmpneq(__m128 x, __m128 y) {
         return 0 == _mm_testc_si128(_mm_castps_si128(x), _mm_castps_si128(y));
     }
+#endif
 };
 #ifndef VC_USE_PTEST
 template<> struct MaskHelper<2> {
