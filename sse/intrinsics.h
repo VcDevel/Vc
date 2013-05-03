@@ -88,9 +88,10 @@ namespace SSE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
-#if defined(VC_IMPL_XOP) && !defined(VC_CLANG)
+    // GCC 4.6 - 4.8 fail if _mm_comtrue_epu8/_mm_cmpeq_epi8 are called with uninitialized argument (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57156)
+#if defined(VC_IMPL_XOP) && !defined(VC_CLANG) && !defined(VC_GCC)
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone() { __m128i a; return _mm_comtrue_epu8(a, a); }
-#elif defined(__GNUC__) && !defined(NVALGRIND)
+#elif defined(__GNUC__) && !defined(NVALGRIND) && !defined(VC_GCC)
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone() { __m128i r; return _mm_cmpeq_epi8(r, r); }
 #else
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setallone() { __m128i r = _mm_setzero_si128(); return _mm_cmpeq_epi8(r, r); }
