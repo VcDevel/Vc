@@ -302,7 +302,7 @@ void testFloat8GatherMask()/*{{{*/
 }/*}}}*/
 #endif
 
-template<typename V> void maskReductions()
+template<typename V> void maskReductions()/*{{{*/
 {
     for_all_masks(V, mask) {
         COMPARE(all_of(mask), mask.count() == V::Size);
@@ -316,7 +316,7 @@ template<typename V> void maskReductions()
             VERIFY(!some_of(mask));
         }
     }
-}
+}/*}}}*/
 template<typename V> void maskInit()/*{{{*/
 {
     typedef typename V::Mask M;
