@@ -39,7 +39,7 @@ namespace
         unsigned long long tmp3 = x5; tmp3 = (tmp3 << 16) | x4;
         asm("vpinsrq $1,%1,%0,%0" : "+x"(r) : "r"((tmp2 << 32) | tmp3));
         return r;
-#else
+#elif defined(VC_USE_VEX_CODING)
         __m128i r0, r1;
         unsigned int tmp0 = x1; tmp0 = (tmp0 << 16) | x0;
         unsigned int tmp1 = x3; tmp1 = (tmp1 << 16) | x2;
@@ -50,6 +50,18 @@ namespace
         asm("vmovd %1,%0" : "=x"(r1) : "r"(tmp2));
         asm("vpinsrd $1,%1,%0,%0" : "+x"(r1) : "r"(tmp3));
         asm("vpunpcklqdq %1,%0,%0" : "+x"(r0) : "x"(r1));
+        return r0;
+#else
+        __m128i r0, r1;
+        unsigned int tmp0 = x1; tmp0 = (tmp0 << 16) | x0;
+        unsigned int tmp1 = x3; tmp1 = (tmp1 << 16) | x2;
+        unsigned int tmp2 = x5; tmp2 = (tmp2 << 16) | x4;
+        unsigned int tmp3 = x7; tmp3 = (tmp3 << 16) | x6;
+        asm("movd %1,%0" : "=x"(r0) : "r"(tmp0));
+        asm("pinsrd $1,%1,%0" : "+x"(r0) : "r"(tmp1));
+        asm("movd %1,%0" : "=x"(r1) : "r"(tmp2));
+        asm("pinsrd $1,%1,%0" : "+x"(r1) : "r"(tmp3));
+        asm("punpcklqdq %1,%0" : "+x"(r0) : "x"(r1));
         return r0;
 #endif
 #else
