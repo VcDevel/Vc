@@ -39,7 +39,6 @@ namespace
         // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
         MaskedLValue(const Mask &m, LValue &l) : mask(m), lhs(l) {}
         MaskedLValue(const MaskedLValue &) = delete;
-        MaskedLValue(MaskedLValue &&) = default;
 
         /* It is intentional that the assignment operators return void: When a bool is used for the
          * mask the code might get skipped completely, thus nothing can be returned. This would be
@@ -73,7 +72,6 @@ namespace
         // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
         MaskedLValue(const Mask &m, LValue &l) : mask(m), lhs(l) {}
         MaskedLValue(const MaskedLValue &) = delete;
-        MaskedLValue(MaskedLValue &&) = default;
 
         template<typename T> Vc_ALWAYS_INLINE void operator  =(T &&rhs) { if (mask) lhs   = std::forward<T>(rhs); }
         template<typename T> Vc_ALWAYS_INLINE void operator +=(T &&rhs) { if (mask) lhs  += std::forward<T>(rhs); }
@@ -100,7 +98,6 @@ namespace
         // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
         WhereMask(const Mask &m) : mask(m) {}
         WhereMask(const WhereMask &) = delete;
-        WhereMask(WhereMask &&) = default;
 
         template<typename T> constexpr Vc_WARN_UNUSED_RESULT MaskedLValue<Mask, T> operator|(T &&lhs) const
         {
