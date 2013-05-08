@@ -370,6 +370,28 @@ void testMallocAlignment()
     COMPARE((reinterpret_cast<unsigned long>(&a[0]) & mask), 0ul);
 }
 
+template<typename V> void testIif()
+{
+    typedef typename V::EntryType T;
+    const T one = T(1);
+    const T two = T(2);
+
+    for (int i = 0; i < 10000; ++i) {
+        const V x = V::Random();
+        const V y = V::Random();
+        V reference = y;
+        V reference2 = two;
+        for (size_t j = 0; j < V::Size; ++j) {
+            if (x[j] > y[j]) {
+                reference[j] = x[j];
+                reference2[j] = one;
+            }
+        }
+        COMPARE(iif (x > y, x, y), reference);
+        COMPARE(iif (x > y, V(one), V(two)), reference2);
+    }
+}
+
 int main()
 {
     testAllTypes(testCall);
@@ -385,6 +407,7 @@ int main()
     testAllTypes(fill);
 
     runTest(testMallocAlignment);
+    testAllTypes(testIif);
 
     return 0;
 }
