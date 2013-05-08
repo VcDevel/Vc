@@ -76,13 +76,14 @@
 #endif
 
 #if defined(VC_ICC) && VC_ICC < 20140000
-// ICC doesn't know noexcept and alignof
+// ICC doesn't know noexcept, alignof, and move ctors
 #ifndef noexcept
 #define noexcept throw()
 #endif
 #ifndef alignof
 #define alignof(x) __alignof(x)
 #endif
+#define VC_NO_MOVE_CTOR 1
 #endif
 
 #ifdef VC_GCC
