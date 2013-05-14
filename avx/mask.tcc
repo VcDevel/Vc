@@ -17,11 +17,7 @@
 
 */
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 template<> Vc_ALWAYS_INLINE Mask<4, 32>::Mask(const Mask<8, 32> &m)
     : k(concat(_mm_unpacklo_ps(lo128(m.data()), lo128(m.data())),
@@ -70,6 +66,4 @@ template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<Size, 16u
 template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<Size, 32u>::firstOne() const { return _bit_scan_forward(toInt()); }
 template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<Size, 16u>::firstOne() const { return _bit_scan_forward(toInt()); }
 
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END

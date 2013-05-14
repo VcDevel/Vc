@@ -20,17 +20,13 @@
 #ifndef VC_COMMON_TRIGONOMETRIC_H
 #define VC_COMMON_TRIGONOMETRIC_H
 
-#ifndef VC__USE_NAMESPACE
-#error "Do not include Vc/common/trigonometric.h outside of Vc itself"
-#endif
-
 #include "macros.h"
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
 namespace
 {
-    using Vc::VC__USE_NAMESPACE::Vector;
+    using Vc::Vc_IMPL_NAMESPACE::Vector;
 } // namespace
 
 namespace Internal
@@ -54,8 +50,7 @@ template<typename Impl> struct Trigonometric
     template<typename T> static Vector<T> atan (const Vector<T> &_x);
     template<typename T> static Vector<T> atan2(const Vector<T> &y, const Vector<T> &x);
 };
-namespace VC__USE_NAMESPACE
-#undef VC__USE_NAMESPACE
+namespace Vc_IMPL_NAMESPACE
 {
     template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> sin(const Vector<T> &_x) {
         return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(_x);

@@ -112,24 +112,14 @@ namespace Vc
 #include "common/where.h"
 #include "common/iif.h"
 
-namespace Vc
-{
-#ifdef VC_IMPL_Scalar
-    namespace Scalar
-#elif defined VC_IMPL_AVX
-    namespace AVX
-#elif defined VC_IMPL_SSE
-    namespace SSE
-#endif
-    {
-        using Vc::where;
-        using Vc::all_of;
-        using Vc::any_of;
-        using Vc::none_of;
-        using Vc::some_of;
-        using Vc::iif;
-    } // namespace Scalar/AVX/SSE
-} // namespace Vc
+Vc_IMPL_NAMESPACE_BEGIN
+    using Vc::where;
+    using Vc::all_of;
+    using Vc::any_of;
+    using Vc::none_of;
+    using Vc::some_of;
+    using Vc::iif;
+Vc_IMPL_NAMESPACE_END
 
 #ifndef VC_NO_NAMESPACE_ALIAS
 /*NAMESPACE_ALIAS*/

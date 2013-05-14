@@ -22,11 +22,7 @@
 
 #include "types.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Scalar
-{
+Vc_IMPL_NAMESPACE_BEGIN
 template<unsigned int VectorSize = 1> class Mask
 {
     public:
@@ -97,8 +93,6 @@ struct ForeachHelper
     for (Vc::Scalar::ForeachHelper _Vc_foreach_bit_helper(_mask_); _Vc_foreach_bit_helper.continu; _Vc_foreach_bit_helper.next()) \
         for (_it_ = 0; _Vc_foreach_bit_helper.continu; _Vc_foreach_bit_helper.next())
 
-} // namespace Scalar
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #endif // VC_SCALAR_MASK_H

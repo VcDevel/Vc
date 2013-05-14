@@ -20,11 +20,7 @@
 #ifndef VC_SCALAR_WRITEMASKEDVECTOR_H
 #define VC_SCALAR_WRITEMASKEDVECTOR_H
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Scalar
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 template<typename T> class WriteMaskedVector
 {
@@ -85,7 +81,5 @@ template<typename T> class WriteMaskedVector
         Mask mask;
 };
 
-} // namespace Scalar
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 #endif // VC_SCALAR_WRITEMASKEDVECTOR_H

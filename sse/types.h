@@ -34,11 +34,7 @@
 #include "../common/types.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace SSE
-{
+Vc_IMPL_NAMESPACE_BEGIN
     template<typename T> class Vector;
     template<typename T> class WriteMaskedVector;
 
@@ -154,9 +150,7 @@ static Vc_ALWAYS_INLINE void assertCorrectAlignment(const M256 *ptr)
             FREE_STORE_OPERATORS_ALIGNED(16)
     } STRUCT_ALIGN2(16);
 
-} // namespace SSE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
 

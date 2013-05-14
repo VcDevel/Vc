@@ -17,11 +17,7 @@
 
 */
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace SSE
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 inline void deinterleave(Vector<float> &a, Vector<float> &b)
 {
@@ -232,6 +228,4 @@ template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
     Vc::SSE::deinterleave(a, b);
 }
 
-} // namespace Internal
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END

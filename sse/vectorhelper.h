@@ -24,11 +24,7 @@
 #include <limits>
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace SSE
-{
+Vc_IMPL_NAMESPACE_BEGIN
     template<typename VectorType, unsigned int Size> struct SortHelper
     {
         static inline Vc_CONST_L VectorType sort(VectorType) Vc_CONST_R;
@@ -776,9 +772,7 @@ namespace SSE
 #undef OPx
 #undef OPcmp
 
-} // namespace SSE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "vectorhelper.tcc"
 #include "undomacros.h"

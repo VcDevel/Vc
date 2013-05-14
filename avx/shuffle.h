@@ -26,18 +26,18 @@
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
-        using AVX::m128;
-        using AVX::m128d;
-        using AVX::m128i;
-        using AVX::m256;
-        using AVX::m256d;
-        using AVX::m256i;
-        using AVX::param128;
-        using AVX::param128d;
-        using AVX::param128i;
-        using AVX::param256;
-        using AVX::param256d;
-        using AVX::param256i;
+    using Vc_IMPL_NAMESPACE::m128;
+    using Vc_IMPL_NAMESPACE::m128d;
+    using Vc_IMPL_NAMESPACE::m128i;
+    using Vc_IMPL_NAMESPACE::m256;
+    using Vc_IMPL_NAMESPACE::m256d;
+    using Vc_IMPL_NAMESPACE::m256i;
+    using Vc_IMPL_NAMESPACE::param128;
+    using Vc_IMPL_NAMESPACE::param128d;
+    using Vc_IMPL_NAMESPACE::param128i;
+    using Vc_IMPL_NAMESPACE::param256;
+    using Vc_IMPL_NAMESPACE::param256d;
+    using Vc_IMPL_NAMESPACE::param256i;
     namespace Mem
     {
         template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE m256 Vc_CONST permute128(param256 x) {

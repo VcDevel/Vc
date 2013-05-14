@@ -37,10 +37,10 @@ namespace Vc
 {
 namespace Common
 {
-    using Vc::VC__USE_NAMESPACE::c_log;
-    using Vc::VC__USE_NAMESPACE::Vector;
-    using Vc::VC__USE_NAMESPACE::floor;
-    using Vc::VC__USE_NAMESPACE::ldexp;
+    using Vc::Vc_IMPL_NAMESPACE::c_log;
+    using Vc::Vc_IMPL_NAMESPACE::Vector;
+    using Vc::Vc_IMPL_NAMESPACE::floor;
+    using Vc::Vc_IMPL_NAMESPACE::ldexp;
 
     static const float log2_e = 1.44269504088896341f;
     static const float MAXLOGF = 88.72283905206835f;
@@ -133,10 +133,10 @@ namespace Common
         return x;
     }
 } // namespace Common
-namespace VC__USE_NAMESPACE
+namespace Vc_IMPL_NAMESPACE
 {
     using Vc::Common::exp;
-} // namespace VC__USE_NAMESPACE
+} // namespace Vc_IMPL_NAMESPACE
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
 #include "undomacros.h"

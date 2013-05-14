@@ -38,11 +38,7 @@
 #undef isnan
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
 enum VectorAlignmentEnum { VectorAlignment = 32 };
 
 template<typename T> class Vector
@@ -455,9 +451,7 @@ static Vc_ALWAYS_INLINE double_v max(const double_v &x, const double_v &y) { ret
   template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
 #include "forceToRegisters.tcc"
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "vector.tcc"
 #include "math.h"

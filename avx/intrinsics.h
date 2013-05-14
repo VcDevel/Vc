@@ -58,11 +58,7 @@ extern "C" {
 #define _mm_alignr_epi8(a, b, n) ((m128i)__builtin_ia32_palignr128((a), (b), (n)))
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
     /* super evil hacking around C++ features:
      * consider
      * void fun(int);
@@ -591,9 +587,7 @@ namespace AVX
 #endif
 #define _mm256_macc_pd(a, b, c) Vc::AVX::my256_macc_pd(a, b, c)
 #endif
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 #include "undomacros.h"
 
 #include "shuffle.h"

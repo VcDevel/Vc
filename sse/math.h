@@ -23,11 +23,7 @@
 #include "const.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace SSE
-{
+Vc_IMPL_NAMESPACE_BEGIN
     /**
      * splits \p v into exponent and mantissa, the sign is kept with the mantissa
      *
@@ -200,9 +196,7 @@ namespace SSE
         return v;
     }
 #endif
-} // namespace SSE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
 

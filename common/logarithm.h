@@ -54,10 +54,8 @@ namespace Vc
 {
 namespace Common
 {
-#ifdef VC__USE_NAMESPACE
-using Vc::VC__USE_NAMESPACE::Const;
-using Vc::VC__USE_NAMESPACE::Vector;
-#endif
+using Vc::Vc_IMPL_NAMESPACE::Const;
+using Vc::Vc_IMPL_NAMESPACE::Vector;
 enum LogarithmBase {
     BaseE, Base10, Base2
 };
@@ -263,15 +261,12 @@ template<typename T> static Vc_ALWAYS_INLINE Vc_CONST Vector<T> log2(VC_ALIGNED_
     return LogImpl<Base2>::calc(x);
 }
 } // namespace Common
-#ifdef VC__USE_NAMESPACE
-namespace VC__USE_NAMESPACE
+namespace Vc_IMPL_NAMESPACE
 {
     using Vc::Common::log;
     using Vc::Common::log10;
     using Vc::Common::log2;
-} // namespace VC__USE_NAMESPACE
-#undef VC__USE_NAMESPACE
-#endif
+} // namespace Vc_IMPL_NAMESPACE
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
 #include "undomacros.h"

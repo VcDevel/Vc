@@ -48,7 +48,7 @@ template<> struct HelperImpl<Vc::ScalarImpl>
     static Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 };
 
-} // namespace Scalar
+} // namespace Internal
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
 

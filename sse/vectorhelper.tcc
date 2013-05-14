@@ -20,11 +20,7 @@
 #include "casts.h"
 #include <cstdlib>
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace SSE
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // float_v
@@ -488,6 +484,4 @@ template<typename T> Vc_ALWAYS_INLINE void VectorHelper<_M128I>::store(T *mem, c
 #endif
         return H::mul(x.data(), H::set(constant));
     }
-} // namespace SSE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END

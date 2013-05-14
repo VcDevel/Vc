@@ -1,6 +1,6 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
 
-    Copyright (C) 2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -15,25 +15,26 @@
     You should have received a copy of the GNU Lesser General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
-*/
+}}}*/
 
-#ifndef VC_AVX_SORTHELPER_H
-#define VC_AVX_SORTHELPER_H
+#ifndef VC_COMMON_CONST_DATA_H
+#define VC_COMMON_CONST_DATA_H
 
-#include "types.h"
-
-Vc_IMPL_NAMESPACE_BEGIN
-template<typename T> struct SortHelper
+#include "macros.h"
+/*OUTER_NAMESPACE_BEGIN*/
+namespace Vc
 {
-    typedef typename VectorTypeHelper<T>::Type VectorType;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-    typedef const VectorType & VTArg;
-#else
-    typedef const VectorType VTArg;
-#endif
-    static VectorType sort(VTArg);
-    static void sort(VectorType &, VectorType &);
-};
-Vc_IMPL_NAMESPACE_END
 
-#endif // VC_AVX_SORTHELPER_H
+ALIGN(64) extern unsigned int RandomState[16];
+
+namespace Common
+{
+
+ALIGN(32) extern const unsigned int AllBitsSet[8];
+
+} // namespace Common
+} // namespace Vc
+/*OUTER_NAMESPACE_END*/
+#include "undomacros.h"
+
+#endif // VC_COMMON_CONST_DATA_H

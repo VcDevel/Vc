@@ -17,11 +17,7 @@
 
 */
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 template<typename T>
 Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator++()
@@ -88,6 +84,4 @@ Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator=(const Vector<T> &x) 
     return *vec;
 }
 
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END

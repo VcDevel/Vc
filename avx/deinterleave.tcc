@@ -17,11 +17,7 @@
 
 */
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 inline void deinterleave(double_v &VC_RESTRICT a, double_v &VC_RESTRICT b, double_v &VC_RESTRICT c)
 {   // estimated latency (AVX): 4.5 cycles
@@ -129,7 +125,7 @@ inline void deinterleave(Vector<unsigned short> &a, Vector<unsigned short> &b)
     b.data() = _mm_unpackhi_epi16(tmp2, tmp3);
 }
 
-} // namespace AVX
+} // namespace Vc_IMPL_NAMESPACE
 
 
 namespace Internal
@@ -277,6 +273,4 @@ inline Vc_FLATTEN void HelperImpl<Vc::AVXImpl>::deinterleave(V &VC_RESTRICT a, V
     Vc::AVX::deinterleave(a, b, c);
 }
 
-} // namespace Internal
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
