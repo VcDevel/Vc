@@ -167,7 +167,7 @@ else()
          COMMAND sed -e "s,#include \\(.\\)\\(common\\|avx\\|sse\\|scalar\\)/,#include \\1Vc/\\2/,"
                      -e "s,::Vc::,::ROOT::Vc::,g"
                      -e "s,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ROOT {,"
-                     -e "s,/\\*OUTER_NAMESPACE_END\\*/,} // namespace ROOT,"
+                     -e "s,/\\*OUTER_NAMESPACE_END\\*/,} /* namespace ROOT */,"
                      -e "s,/\\*NAMESPACE_ALIAS\\*/,namespace Vc = ROOT::Vc;,"
          INPUT_FILE ${CMAKE_SOURCE_DIR}/${_src}
          OUTPUT_FILE ${CMAKE_BINARY_DIR}/${_src}
@@ -186,7 +186,7 @@ else()
             COMMAND cp  "${_src}" "${_dst}"
             COMMAND sed -e "s,::Vc::,::ROOT::Vc::,g"
                         -e "s,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ROOT {,"
-                        -e "s,/\\*OUTER_NAMESPACE_END\\*/,} // namespace ROOT,"
+                        -e "s,/\\*OUTER_NAMESPACE_END\\*/,} /* namespace ROOT */,"
                         -e "s,/\\*NAMESPACE_ALIAS\\*/,namespace Vc = ROOT::Vc;,"
                         -i "${_dst}"
             MAIN_DEPENDENCY "${_src}"
