@@ -212,7 +212,7 @@
 
 #  if (VC_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
 #    define VC_IMPL_AVX2 1
-#  if (VC_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
+#  elif (VC_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
 #    define VC_IMPL_AVX 1
 #  elif (VC_IMPL & IMPL_MASK) == Scalar
 #    define VC_IMPL_Scalar 1
@@ -328,6 +328,7 @@
 #undef SSE4_1
 #undef SSE4_2
 #undef AVX
+#undef AVX2
 
 #undef XOP
 #undef FMA4
