@@ -23,7 +23,11 @@
 #include "../common/data.h"
 #include "macros.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+/*OUTER_NAMESPACE_BEGIN*/
+namespace Vc
+{
+namespace SSE
+{
 
 ALIGN(16) extern const unsigned int   _IndexesFromZero4[4];
 ALIGN(16) extern const unsigned short _IndexesFromZero8[8];
@@ -65,7 +69,9 @@ template<> struct c_log<double>
     ALIGN(64) static const unsigned long long data[];
 };
 
-Vc_IMPL_NAMESPACE_END
+} // namespace SSE
+} // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include "undomacros.h"
 
