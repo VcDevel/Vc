@@ -1,0 +1,55 @@
+/*  This file is part of the Vc library. {{{
+
+    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
+
+    Vc is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3 of
+    the License, or (at your option) any later version.
+
+    Vc is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+
+}}}*/
+
+#ifndef VC_TYPE_TRAITS
+#define VC_TYPE_TRAITS
+
+#include <type_traits>
+
+/*OUTER_NAMESPACE_BEGIN*/
+namespace Vc
+{
+
+template<typename T>
+struct is_simd_mask : public std::integral_constant<bool,
+    std::is_same<T,  float_m>::value ||
+    std::is_same<T, sfloat_m>::value ||
+    std::is_same<T, double_m>::value ||
+    std::is_same<T,    int_m>::value ||
+    std::is_same<T,   uint_m>::value ||
+    std::is_same<T,  short_m>::value ||
+    std::is_same<T, ushort_m>::value>
+    {};
+
+template<typename T>
+struct is_simd_vector : public std::integral_constant<bool,
+    std::is_same<T,  float_v>::value ||
+    std::is_same<T, sfloat_v>::value ||
+    std::is_same<T, double_v>::value ||
+    std::is_same<T,    int_v>::value ||
+    std::is_same<T,   uint_v>::value ||
+    std::is_same<T,  short_v>::value ||
+    std::is_same<T, ushort_v>::value>
+    {};
+
+} // namespace Vc
+/*OUTER_NAMESPACE_END*/
+
+#endif // VC_TYPE_TRAITS
+// vim: ft=cpp

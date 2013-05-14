@@ -561,6 +561,8 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
 
     if (i == 0) {
         return M(Vc::One);
+    } else if (Vec::Size == 1) {
+        return M(Vc::Zero);
     }
     --i;
     if (i < Vec::Size) {

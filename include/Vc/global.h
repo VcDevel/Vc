@@ -75,13 +75,24 @@
 #endif
 #endif
 
+#if defined(VC_ICC) && VC_ICC < 20140000
+// ICC doesn't know noexcept, alignof, and move ctors
+#ifndef noexcept
+#define noexcept throw()
+#endif
+#ifndef alignof
+#define alignof(x) __alignof(x)
+#endif
+#define VC_NO_MOVE_CTOR 1
+#endif
+
 #ifdef VC_GCC
 #  if VC_GCC >= 0x40700 // && VC_GCC < 0x408000)
 //     ::max_align_t was introduced with GCC 4.7. std::max_align_t took a bit longer.
 #    define VC_HAVE_MAX_ALIGN_T 1
 #  endif
-#elif !defined(VC_CLANG)
-//   Clang doesn't provide max_align_t at all
+#elif !defined(VC_CLANG) && !defined(VC_ICC)
+//   Clang/ICC don't provide max_align_t at all
 #  define VC_HAVE_STD_MAX_ALIGN_T 1
 #endif
 

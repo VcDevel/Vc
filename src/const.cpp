@@ -251,6 +251,13 @@ namespace AVX
     };
 } // namespace AVX
 
+namespace Common
+{
+    V_ALIGN(32) const unsigned int AllBitsSet[8] = {
+        0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU
+    };
+} // namespace Common
+
 namespace SSE
 {
     // cacheline 1

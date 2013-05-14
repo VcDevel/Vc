@@ -29,7 +29,18 @@ namespace Vc
 namespace SSE
 {
 
-template<unsigned int Size1> struct MaskHelper;
+template<unsigned int Size1> struct MaskHelper
+{
+#ifdef VC_USE_PTEST
+    static Vc_ALWAYS_INLINE Vc_CONST bool cmpeq (__m128 x, __m128 y) {
+        return 0 != _mm_testc_si128(_mm_castps_si128(x), _mm_castps_si128(y));
+    }
+    static Vc_ALWAYS_INLINE Vc_CONST bool cmpneq(__m128 x, __m128 y) {
+        return 0 == _mm_testc_si128(_mm_castps_si128(x), _mm_castps_si128(y));
+    }
+#endif
+};
+#ifndef VC_USE_PTEST
 template<> struct MaskHelper<2> {
     static Vc_ALWAYS_INLINE Vc_CONST bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) == _mm_movemask_pd(_mm_castps_pd(k2)); }
     static Vc_ALWAYS_INLINE Vc_CONST bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) != _mm_movemask_pd(_mm_castps_pd(k2)); }
@@ -42,6 +53,7 @@ template<> struct MaskHelper<8> {
     static Vc_ALWAYS_INLINE Vc_CONST bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_epi8(_mm_castps_si128(k1)) == _mm_movemask_epi8(_mm_castps_si128(k2)); }
     static Vc_ALWAYS_INLINE Vc_CONST bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_epi8(_mm_castps_si128(k1)) != _mm_movemask_epi8(_mm_castps_si128(k2)); }
 };
+#endif
 
 class Float8Mask;
 template<unsigned int VectorSize> class Mask
@@ -355,7 +367,7 @@ class Float8Mask
         }
         Vc_ALWAYS_INLINE Vc_PURE bool operator!=(const Float8Mask &rhs) const {
             return MaskHelper<PartialSize>::cmpneq(k[0], rhs.k[0])
-                && MaskHelper<PartialSize>::cmpneq(k[1], rhs.k[1]);
+                || MaskHelper<PartialSize>::cmpneq(k[1], rhs.k[1]);
         }
 
         Vc_ALWAYS_INLINE Vc_PURE Float8Mask operator&&(const Float8Mask &rhs) const {
@@ -439,9 +451,15 @@ class Float8Mask
 #endif
         }
         Vc_ALWAYS_INLINE Vc_PURE bool isMix() const {
+            // consider [1111 0000]
+            // solution:
+            // if k[0] != k[1] => return true
+            // if k[0] == k[1] => return k[0].isMix
 #ifdef VC_USE_PTEST
-            return _mm_test_mix_ones_zeros(_mm_castps_si128(k[0]), _mm_castps_si128(k[0])) &&
-            _mm_test_mix_ones_zeros(_mm_castps_si128(k[1]), _mm_castps_si128(k[1]));
+            __m128i tmp = _mm_castps_si128(_mm_xor_ps(k[0], k[1]));
+            // tmp == 0 <=> k[0] == k[1]
+            return !_mm_testz_si128(tmp, tmp) ||
+                _mm_test_mix_ones_zeros(_mm_castps_si128(k[0]), _mm_setallone_si128());
 #else
             const int tmp = _mm_movemask_ps(k[0]) + _mm_movemask_ps(k[1]);
             return tmp > 0x0 && tmp < (0xf + 0xf);
