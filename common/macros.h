@@ -320,5 +320,12 @@ do {} while ( false )
 #define VC_OFFSETOF(Type, member) offsetof(Type, member)
 #endif
 
+#ifndef Vc_IMPL_NAMESPACE_BEGIN
+#define Vc_IMPL_NAMESPACE_BEGIN \
+    /*OUTER_NAMESPACE_BEGIN*/ \
+        namespace Vc { \
+            namespace Vc_IMPL_NAMESPACE {
+#define Vc_IMPL_NAMESPACE_END /*OUTER_NAMESPACE_END*/}}
+#endif
 
 #endif // VC_COMMON_MACROS_H

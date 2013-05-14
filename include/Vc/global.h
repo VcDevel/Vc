@@ -454,20 +454,28 @@ enum ExtraInstructions {
 
 #ifdef VC_IMPL_Scalar
 #define VC_IMPL ::Vc::ScalarImpl
+#define Vc_IMPL_NAMESPACE Scalar
 #elif defined(VC_IMPL_AVX2)
 #define VC_IMPL ::Vc::AVX2Impl
+#define Vc_IMPL_NAMESPACE AVX2
 #elif defined(VC_IMPL_AVX)
 #define VC_IMPL ::Vc::AVXImpl
+#define Vc_IMPL_NAMESPACE AVX
 #elif defined(VC_IMPL_SSE4_2)
 #define VC_IMPL ::Vc::SSE42Impl
+#define Vc_IMPL_NAMESPACE SSE
 #elif defined(VC_IMPL_SSE4_1)
 #define VC_IMPL ::Vc::SSE41Impl
+#define Vc_IMPL_NAMESPACE SSE
 #elif defined(VC_IMPL_SSSE3)
 #define VC_IMPL ::Vc::SSSE3Impl
+#define Vc_IMPL_NAMESPACE SSE
 #elif defined(VC_IMPL_SSE3)
 #define VC_IMPL ::Vc::SSE3Impl
+#define Vc_IMPL_NAMESPACE SSE
 #elif defined(VC_IMPL_SSE2)
 #define VC_IMPL ::Vc::SSE2Impl
+#define Vc_IMPL_NAMESPACE SSE
 #endif
 
 template<unsigned int Features> struct ImplementationT { enum _Value {
