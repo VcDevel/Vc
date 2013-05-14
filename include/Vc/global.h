@@ -118,6 +118,7 @@
 #define SSE4_1 0x00600000
 #define SSE4_2 0x00700000
 #define AVX    0x00800000
+#define AVX2   0x00900000
 
 #define XOP    0x00000001
 #define FMA4   0x00000002
@@ -154,7 +155,9 @@
 
 #ifndef VC_IMPL
 
-#  if defined(__AVX__)
+#  if defined(__AVX2__)
+#    define VC_IMPL_AVX2 1
+#  elif defined(__AVX__)
 #    define VC_IMPL_AVX 1
 #  else
 #    if defined(__SSE4_2__)
@@ -184,7 +187,7 @@
 #      define VC_IMPL_Scalar 1
 #    endif
 #  endif
-#  if defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE)
+#  if defined(VC_IMPL_AVX2) || defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE)
 #    ifdef __FMA4__
 #      define VC_IMPL_FMA4 1
 #    endif
@@ -207,6 +210,8 @@
 
 #else // VC_IMPL
 
+#  if (VC_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
+#    define VC_IMPL_AVX2 1
 #  if (VC_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
 #    define VC_IMPL_AVX 1
 #  elif (VC_IMPL & IMPL_MASK) == Scalar
@@ -298,6 +303,7 @@
 #    undef VC_IMPL_SSE4_2
 #    undef VC_IMPL_SSSE3
 #    undef VC_IMPL_AVX
+#    undef VC_IMPL_AVX2
 #    undef VC_IMPL_FMA4
 #    undef VC_IMPL_XOP
 #    undef VC_IMPL_F16C
@@ -308,7 +314,7 @@
 #    define VC_IMPL_Scalar 1
 #endif
 
-# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX)
+# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX) && !defined(VC_IMPL_AVX2)
 #  error "No suitable Vc implementation was selected! Probably VC_IMPL was set to an invalid value."
 # elif defined(VC_IMPL_SSE) && !defined(VC_IMPL_SSE2)
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
@@ -448,6 +454,8 @@ enum ExtraInstructions {
 
 #ifdef VC_IMPL_Scalar
 #define VC_IMPL ::Vc::ScalarImpl
+#elif defined(VC_IMPL_AVX2)
+#define VC_IMPL ::Vc::AVX2Impl
 #elif defined(VC_IMPL_AVX)
 #define VC_IMPL ::Vc::AVXImpl
 #elif defined(VC_IMPL_SSE4_2)
@@ -474,7 +482,11 @@ typedef ImplementationT<
     // but AFAIU the OSXSAVE and xgetbv tests do not have to positive (unless, of course, the
     // compiler decides to insert an instruction that uses the full register size - so better be on
     // the safe side)
+#ifdef VC_IMPL_AVX2
+    AVX2Impl
+#else
     AVXImpl
+#endif
 #else
     VC_IMPL
 #endif
