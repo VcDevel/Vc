@@ -324,7 +324,7 @@ Vc_IMPL_NAMESPACE_BEGIN
                 m256d v2_1 = _mm256_cvtps_pd(hi128(v2));
                 m256d v3_0 = _mm256_cvtps_pd(lo128(v3));
                 m256d v3_1 = _mm256_cvtps_pd(hi128(v3));
-                v1 = AVX::concat(
+                v1 = Vc_IMPL_NAMESPACE::concat(
                         _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_0, v2_0), v3_0)),
                         _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_1, v2_1), v3_1)));
 #endif
