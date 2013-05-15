@@ -33,11 +33,11 @@ static constexpr size_t nextMultipleOf(size_t value)
 }
 
 template<Vc::MallocAlignment A>
-Vc_ALWAYS_INLINE void *HelperImpl<AVXImpl>::malloc(size_t n)
+Vc_ALWAYS_INLINE void *HelperImpl<VC_IMPL>::malloc(size_t n)
 {
     switch (A) {
         case Vc::AlignOnVector:
-            return _mm_malloc(nextMultipleOf<Vc::AVX::VectorAlignment>(n), Vc::AVX::VectorAlignment);
+            return _mm_malloc(nextMultipleOf<Vc::Vc_IMPL_NAMESPACE::VectorAlignment>(n), Vc::Vc_IMPL_NAMESPACE::VectorAlignment);
         case Vc::AlignOnCacheline:
             // TODO: hardcoding 64 is not such a great idea
             return _mm_malloc(nextMultipleOf<64>(n), 64);
@@ -52,7 +52,7 @@ Vc_ALWAYS_INLINE void *HelperImpl<AVXImpl>::malloc(size_t n)
     }
 }
 
-Vc_ALWAYS_INLINE void HelperImpl<AVXImpl>::free(void *p)
+Vc_ALWAYS_INLINE void HelperImpl<VC_IMPL>::free(void *p)
 {
     _mm_free(p);
 }
