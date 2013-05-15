@@ -157,6 +157,7 @@
 
 #  if defined(__AVX2__)
 #    define VC_IMPL_AVX2 1
+#    define VC_IMPL_AVX 1
 #  elif defined(__AVX__)
 #    define VC_IMPL_AVX 1
 #  else
@@ -212,6 +213,7 @@
 
 #  if (VC_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
 #    define VC_IMPL_AVX2 1
+#    define VC_IMPL_AVX 1
 #  elif (VC_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
 #    define VC_IMPL_AVX 1
 #  elif (VC_IMPL & IMPL_MASK) == Scalar
@@ -314,7 +316,7 @@
 #    define VC_IMPL_Scalar 1
 #endif
 
-# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX) && !defined(VC_IMPL_AVX2)
+# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX)
 #  error "No suitable Vc implementation was selected! Probably VC_IMPL was set to an invalid value."
 # elif defined(VC_IMPL_SSE) && !defined(VC_IMPL_SSE2)
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
