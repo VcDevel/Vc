@@ -68,6 +68,17 @@ template<> struct c_log<double>
 };
 
 } // namespace AVX
+#ifdef VC_IMPL_AVX2
+namespace AVX2
+{
+    using AVX::_IndexesFromZero8;
+    using AVX::_IndexesFromZero16;
+    using AVX::_IndexesFromZero32;
+    using AVX::c_general;
+    using AVX::c_trig;
+    using AVX::c_log;
+} // namespace AVX2
+#endif
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
 
