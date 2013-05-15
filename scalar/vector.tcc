@@ -17,6 +17,8 @@
 
 */
 
+#include "../common/data.h"
+#include "macros.h"
 Vc_IMPL_NAMESPACE_BEGIN
 
 // conversion/casts {{{1
@@ -233,4 +235,5 @@ template<> Vc_INTRINSIC void double_v::setQnan(Mask m)
 }
 // }}}1
 Vc_IMPL_NAMESPACE_END
+#include "undomacros.h"
 // vim: foldmethod=marker
