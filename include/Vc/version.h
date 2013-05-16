@@ -23,11 +23,10 @@
 #define VC_VERSION_STRING "0.99.70-dev"
 #define VC_VERSION_NUMBER 0x00638d
 #define VC_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
-#define VC_LIBRARY_ABI_VERSION 3
+#define VC_LIBRARY_ABI_VERSION 4
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_NAMESPACE_BEGIN(Common)
+
     static inline const char *versionString() {
         return VC_VERSION_STRING;
     }
@@ -47,6 +46,14 @@ namespace Vc
         } _runLibraryAbiCheck;
     }
 #endif
+
+Vc_NAMESPACE_END
+
+/*OUTER_NAMESPACE_BEGIN*/
+namespace Vc
+{
+    using Common::versionString;
+    using Common::versionNumber;
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
 

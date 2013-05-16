@@ -122,11 +122,8 @@ inline void deinterleave(Vector<unsigned int> &a, Vector<unsigned int> &b, Vecto
     b.data() = _mm_srli_epi32(tmp.data(), 16);
 }
 
-} // namespace SSE
-
-
-namespace Internal
-{
+Vc_NAMESPACE_END
+Vc_NAMESPACE_BEGIN(Internal)
 
 template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
         float_v &a, float_v &b, const float *m, A align)
@@ -228,4 +225,4 @@ template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
     Vc::SSE::deinterleave(a, b);
 }
 
-Vc_IMPL_NAMESPACE_END
+Vc_NAMESPACE_END

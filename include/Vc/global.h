@@ -518,16 +518,20 @@ typedef ImplementationT<
 #endif
     > CurrentImplementation;
 
-namespace Internal {
-    template<Implementation Impl> struct HelperImpl;
-    typedef HelperImpl<VC_IMPL> Helper;
+#define Vc_IMPL_NAMESPACE_BEGIN \
+    /*OUTER_NAMESPACE_BEGIN*/ \
+        namespace Vc { \
+            namespace Vc_IMPL_NAMESPACE { \
+                inline namespace v0 {
 
-    template<typename A> struct FlagObject;
-    template<> struct FlagObject<AlignedFlag> { static constexpr AlignedFlag the() { return Aligned; } };
-    template<> struct FlagObject<UnalignedFlag> { static constexpr UnalignedFlag the() { return Unaligned; } };
-    template<> struct FlagObject<StreamingAndAlignedFlag> { static constexpr StreamingAndAlignedFlag the() { return Streaming; } };
-    template<> struct FlagObject<StreamingAndUnalignedFlag> { static constexpr StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
-} // namespace Internal
+#define Vc_NAMESPACE_BEGIN(NAME) \
+    /*OUTER_NAMESPACE_BEGIN*/ \
+        namespace Vc { \
+            namespace NAME { \
+                inline namespace v0 {
+
+#define Vc_NAMESPACE_END }}}/*OUTER_NAMESPACE_END*/
+#define Vc_IMPL_NAMESPACE_END Vc_NAMESPACE_END
 
 namespace Warnings
 {
@@ -546,6 +550,17 @@ namespace Error
 #endif // DOXYGEN
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
+
+Vc_NAMESPACE_BEGIN(Internal)
+    template<Implementation Impl> struct HelperImpl;
+    typedef HelperImpl<VC_IMPL> Helper;
+
+    template<typename A> struct FlagObject;
+    template<> struct FlagObject<AlignedFlag> { static constexpr AlignedFlag the() { return Aligned; } };
+    template<> struct FlagObject<UnalignedFlag> { static constexpr UnalignedFlag the() { return Unaligned; } };
+    template<> struct FlagObject<StreamingAndAlignedFlag> { static constexpr StreamingAndAlignedFlag the() { return Streaming; } };
+    template<> struct FlagObject<StreamingAndUnalignedFlag> { static constexpr StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
+Vc_NAMESPACE_END
 
 #include "version.h"
 

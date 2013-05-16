@@ -1414,10 +1414,10 @@ template<> Vc_INTRINSIC Vc_PURE Vector<double> Vector<double>::exponent() const
 static void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)
 {
-    state0.load(&Vc::RandomState[0]);
-    state1.load(&Vc::RandomState[uint_v::Size]);
-    (state1 * 0xdeece66du + 11).store(&Vc::RandomState[uint_v::Size]);
-    uint_v(_mm_xor_si128((state0 * 0xdeece66du + 11).data(), _mm_srli_epi32(state1.data(), 16))).store(&Vc::RandomState[0]);
+    state0.load(&Common::RandomState[0]);
+    state1.load(&Common::RandomState[uint_v::Size]);
+    (state1 * 0xdeece66du + 11).store(&Common::RandomState[uint_v::Size]);
+    uint_v(_mm_xor_si128((state0 * 0xdeece66du + 11).data(), _mm_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
 }
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::Random()
@@ -1448,11 +1448,11 @@ template<> Vc_ALWAYS_INLINE Vector<float8> Vector<float8>::Random()
 template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 {
     typedef unsigned long long uint64 Vc_MAY_ALIAS;
-    uint64 state0 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[8]);
-    uint64 state1 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[10]);
-    const __m128i state = _mm_load_si128(reinterpret_cast<const __m128i *>(&Vc::RandomState[8]));
-    *reinterpret_cast<uint64 *>(&Vc::RandomState[ 8]) = (state0 * 0x5deece66dull + 11);
-    *reinterpret_cast<uint64 *>(&Vc::RandomState[10]) = (state1 * 0x5deece66dull + 11);
+    uint64 state0 = *reinterpret_cast<const uint64 *>(&Common::RandomState[8]);
+    uint64 state1 = *reinterpret_cast<const uint64 *>(&Common::RandomState[10]);
+    const __m128i state = _mm_load_si128(reinterpret_cast<const __m128i *>(&Common::RandomState[8]));
+    *reinterpret_cast<uint64 *>(&Common::RandomState[ 8]) = (state0 * 0x5deece66dull + 11);
+    *reinterpret_cast<uint64 *>(&Common::RandomState[10]) = (state1 * 0x5deece66dull + 11);
     return (Vector<double>(_mm_castsi128_pd(_mm_srli_epi64(state, 12))) | One()) - One();
 }
 // shifted / rotated {{{1
