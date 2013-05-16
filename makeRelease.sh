@@ -29,7 +29,7 @@ sed -i \
 	include/Vc/version.h
 cat include/Vc/version.h
 git commit doc/Doxyfile include/Vc/version.h -m"change version to $versionString"
-git tag "$versionString"
+git tag -m "Vc $versionString release" -s "$versionString"
 
 # Create tarball
 git archive --format=tar --prefix="Vc-$versionString/" "$versionString" | gzip > ../"Vc-$versionString.tar.gz"
