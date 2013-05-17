@@ -151,7 +151,6 @@ if(NOT ROOT_RELEASE)
 
    install(TARGETS Vc DESTINATION lib${LIB_SUFFIX})
    install(DIRECTORY include/Vc/ DESTINATION include/Vc)
-   install(DIRECTORY scalar sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 else()
    # libVc should be compiled in the ROOT/AliRoot tree, so we need to install the sources
    #
@@ -160,53 +159,32 @@ else()
    # Thus, we modify the includes such that include/Vc never needs to be in the path.
    file(GLOB _srcs RELATIVE "${CMAKE_SOURCE_DIR}" src/*.cpp tests/*.cpp tests/*.h)
    foreach(_src ${_srcs})
-      message(STATUS "Processing ${CMAKE_SOURCE_DIR}/${_src} -> ${CMAKE_BINARY_DIR}/${_src}")
-      get_filename_component(_path "${CMAKE_BINARY_DIR}/${_src}" PATH)
-      file(MAKE_DIRECTORY "${_path}")
-      execute_process(
-         COMMAND sed -e "s,#include \\(.\\)\\(common\\|avx\\|sse\\|scalar\\)/,#include \\1Vc/\\2/,"
-                     -e "s,::Vc::,::ROOT::Vc::,g"
-                     -e "s,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ROOT {,"
-                     -e "s,/\\*OUTER_NAMESPACE_END\\*/,} /* namespace ROOT */,"
-                     -e "s,/\\*NAMESPACE_ALIAS\\*/,namespace Vc = ROOT::Vc;,"
-         INPUT_FILE ${CMAKE_SOURCE_DIR}/${_src}
-         OUTPUT_FILE ${CMAKE_BINARY_DIR}/${_src}
-         )
+      install(CODE "
+      message(\"-- Rewriting and Installing: ${CMAKE_INSTALL_PREFIX}/${_src}\")
+         file(READ \"${CMAKE_SOURCE_DIR}/${_src}\" data)
+         string(REGEX REPLACE \"#include (.)(common|avx|sse|scalar)\"
+            \"#include \\\\1Vc/\\\\2\" data \"\${data}\")
+            file(WRITE \"${CMAKE_INSTALL_PREFIX}/${_src}\" \"\${data}\")
+      ")
    endforeach()
    install(DIRECTORY ${CMAKE_BINARY_DIR}/src/ DESTINATION src)
 
-   set(includes)
-   macro(copy_and_set_outer_namespace dst)
-      foreach(_name ${ARGN})
-         set(_dst "${dst}${_name}")
-         set(_src "${CMAKE_SOURCE_DIR}/${_name}")
-         get_filename_component(_dir "${_dst}" PATH)
-         add_custom_command(OUTPUT "${_dst}"
-            COMMAND mkdir -p "${_dir}"
-            COMMAND cp  "${_src}" "${_dst}"
-            COMMAND sed -e "s,::Vc::,::ROOT::Vc::,g"
-                        -e "s,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ROOT {,"
-                        -e "s,/\\*OUTER_NAMESPACE_END\\*/,} /* namespace ROOT */,"
-                        -e "s,/\\*NAMESPACE_ALIAS\\*/,namespace Vc = ROOT::Vc;,"
-                        -i "${_dst}"
-            MAIN_DEPENDENCY "${_src}"
-            COMMENT "Rewrite ${_dst}"
-            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-            VERBATIM)
-         list(APPEND includes "${_dst}")
-      endforeach()
-   endmacro()
-
-   file(GLOB_RECURSE _srcs RELATIVE "${CMAKE_SOURCE_DIR}" include/*.h include/*.tcc include/*.def)
-   copy_and_set_outer_namespace("" "${_srcs}")
-
-   foreach(_dir in scalar sse avx common)
-      file(GLOB_RECURSE _srcs RELATIVE "${CMAKE_SOURCE_DIR}" ${_dir}/*.h ${_dir}/*.tcc ${_dir}/*.def)
-      copy_and_set_outer_namespace("include/Vc/" "${_srcs}")
-   endforeach()
-   add_custom_target(rewrite ALL DEPENDS ${includes})
-   install(DIRECTORY ${CMAKE_BINARY_DIR}/include/Vc/ DESTINATION include/Vc)
+   install(DIRECTORY include/Vc/ DESTINATION include/Vc
+      PATTERN "global.h" EXCLUDE
+      PATTERN "*.swp" EXCLUDE
+      PATTERN "*.bak" EXCLUDE
+      )
+   install(CODE "
+   message(\"-- Rewriting and Installing: ${CMAKE_INSTALL_PREFIX}/include/Vc/global.h\")
+      file(READ \"${CMAKE_SOURCE_DIR}/include/Vc/global.h\" data)
+      string(REGEX REPLACE \"#define Vc__SYMBOL_VERSION ([^\\n]*)\"
+         \"#define Vc__SYMBOL_VERSION ROOT\\\\1\" data \"\${data}\")
+         file(WRITE \"${CMAKE_INSTALL_PREFIX}/include/Vc/global.h\" \"\${data}\")
+   ")
 endif()
+
+# Install all implementation headers
+install(DIRECTORY scalar sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 # read version parts from version.h to be put into VcConfig.cmake
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define VC_VERSION_STRING ")

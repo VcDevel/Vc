@@ -518,19 +518,19 @@ typedef ImplementationT<
 #endif
     > CurrentImplementation;
 
+#define Vc__SYMBOL_VERSION v0
+
 #define Vc_IMPL_NAMESPACE_BEGIN \
-    /*OUTER_NAMESPACE_BEGIN*/ \
-        namespace Vc { \
-            namespace Vc_IMPL_NAMESPACE { \
-                inline namespace v0 {
+    namespace Vc { \
+        inline namespace Vc__SYMBOL_VERSION { \
+            namespace Vc_IMPL_NAMESPACE {
 
 #define Vc_NAMESPACE_BEGIN(NAME) \
-    /*OUTER_NAMESPACE_BEGIN*/ \
-        namespace Vc { \
-            namespace NAME { \
-                inline namespace v0 {
+    namespace Vc { \
+        inline namespace Vc__SYMBOL_VERSION { \
+            namespace NAME {
 
-#define Vc_NAMESPACE_END }}}/*OUTER_NAMESPACE_END*/
+#define Vc_NAMESPACE_END }}}
 #define Vc_IMPL_NAMESPACE_END Vc_NAMESPACE_END
 
 namespace Warnings
