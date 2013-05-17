@@ -1534,6 +1534,8 @@ INCLUDE_FILE_PATTERNS  =
 # instead of the = operator.
 
 PREDEFINED             = DOXYGEN \
+                         Vc_NAMESPACE_BEGIN:="namespace Vc {" \
+                         Vc_NAMESPACE_END:=} \
                          Vc_INTRINSIC=inline \
                          Vc_INTRINSIC_L=inline \
                          Vc_INTRINSIC_R \
