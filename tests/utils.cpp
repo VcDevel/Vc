@@ -398,30 +398,34 @@ template<typename V> void rangeFor()
     typedef typename V::EntryType T;
     typedef typename V::Mask M;
 
-    V x = V::Zero();
-    for (auto i : x) {
-        COMPARE(i, T(0));
-    }
-    int n = 0;
-    for (auto &i : x) {
-        i = T(++n);
-    }
-    n = 0
-    for (auto i : x) {
-        COMPARE(i, T(++n));
+    {
+        V x = V::Zero();
+        for (auto i : x) {
+            COMPARE(i, T(0));
+        }
+        int n = 0;
+        for (auto &i : x) {
+            i = T(++n);
+        }
+        n = 0;
+        for (auto i : x) {
+            COMPARE(i, T(++n));
+        }
     }
 
-    M m(Vc::One);
-    for (auto i : m) {
-        COMPARE(i, true);
-    }
-    bool x = true;
-    for (auto &i : m) {
-        i = (x = !x);
-    }
-    x = true;
-    for (auto i : m) {
-        COMPARE(i, (x = !x));
+    {
+        M m(Vc::One);
+        for (auto i : m) {
+            COMPARE(i, true);
+        }
+        bool b = true;
+        for (auto &i : m) {
+            i = (b = !b);
+        }
+        b = true;
+        for (auto i : m) {
+            COMPARE(i, (b = !b));
+        }
     }
 }
 

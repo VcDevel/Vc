@@ -62,6 +62,8 @@ template<unsigned int VectorSize> class Mask
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
+        enum Constants { Size = VectorSize };
+
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
         // Also Float8Mask requires const ref on MSVC 32bit.
 #if defined VC_MSVC && defined _WIN32
@@ -157,7 +159,7 @@ template<unsigned int VectorSize> class Mask
 
         template<unsigned int OtherSize> Vc_ALWAYS_INLINE Vc_PURE Mask<OtherSize> cast() const { return Mask<OtherSize>(k); }
 
-        Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](int index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
@@ -264,10 +266,10 @@ template<> Vc_ALWAYS_INLINE Vc_PURE int Mask< 4>::toInt() const { return _mm_mov
 template<> Vc_ALWAYS_INLINE Vc_PURE int Mask< 8>::toInt() const { return _mm_movemask_epi8(_mm_packs_epi16(dataI(), _mm_setzero_si128())); }
 template<> Vc_ALWAYS_INLINE Vc_PURE int Mask<16>::toInt() const { return _mm_movemask_epi8(dataI()); }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 2>::operator[](int index) const { return toInt() & (1 << index); }
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 4>::operator[](int index) const { return toInt() & (1 << index); }
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 8>::operator[](int index) const { return shiftMask() & (1 << 2 * index); }
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<16>::operator[](int index) const { return toInt() & (1 << index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 2>::operator[](size_t index) const { return toInt() & (1 << index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 4>::operator[](size_t index) const { return toInt() & (1 << index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 8>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<16>::operator[](size_t index) const { return toInt() & (1 << index); }
 
 template<> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<2>::count() const
 {
@@ -322,12 +324,14 @@ template<> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<16>::count() const
 
 class Float8Mask
 {
-    enum Constants {
+    enum PrivateConstants {
         PartialSize = 4,
         VectorSize = 8
     };
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
+
+        enum Constants { Size = VectorSize };
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
         // Also Float8Mask requires const ref on MSVC 32bit.
@@ -473,7 +477,7 @@ class Float8Mask
 
         Vc_ALWAYS_INLINE Vc_PURE const M256 &data () const { return k; }
 
-        Vc_ALWAYS_INLINE Vc_PURE bool operator[](int index) const {
+        Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const {
             return (toInt() & (1 << index)) != 0;
         }
 

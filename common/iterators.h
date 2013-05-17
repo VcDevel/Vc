@@ -27,21 +27,20 @@ Vc_NAMESPACE_BEGIN(Common)
 
 namespace
 {
-    template<typename V, bool> struct DetermineIteratorType;
-    template<typename V> struct DetermineIteratorType<V, is_simd_vector<V>::value> { typedef V type; };
-    template<typename V> struct DetermineIteratorType<V, is_simd_mask  <V>::value> { typedef bool type; };
-
     template<typename V> class Iterator/*{{{*/
     {
-        typedef typename DetermineIteratorType<V>::type T;
         V &v;
         size_t i;
     public:
-        Vc_ALWAYS_INLINE T &operator->() { return v[i]; }
-        Vc_ALWAYS_INLINE T operator->() const { return v[i]; }
+        Iterator(V &_v, size_t _i) : v(_v), i(_i) {}
+        Iterator(const Iterator &) = default;
+        Iterator(Iterator &&) = default;
 
-        Vc_ALWAYS_INLINE T &operator*() { return v[i]; }
-        Vc_ALWAYS_INLINE T operator*() const { return v[i]; }
+        Vc_ALWAYS_INLINE decltype(v[i]) operator->() { return v[i]; }
+        Vc_ALWAYS_INLINE decltype(v[i]) operator->() const { return v[i]; }
+
+        Vc_ALWAYS_INLINE decltype(v[i]) operator*() { return v[i]; }
+        Vc_ALWAYS_INLINE decltype(v[i]) operator*() const { return v[i]; }
 
         Vc_ALWAYS_INLINE Iterator &operator++()    { ++i; return *this; }
         Vc_ALWAYS_INLINE Iterator  operator++(int) { Iterator tmp = *this; ++i; return tmp; }
@@ -60,12 +59,15 @@ namespace
 
     template<typename V> class ConstIterator/*{{{*/
     {
-        typedef typename DetermineIteratorType<V>::type T;
         const V &v;
         size_t i;
     public:
-        Vc_ALWAYS_INLINE T operator->() const { return v[i]; }
-        Vc_ALWAYS_INLINE T operator*() const { return v[i]; }
+        ConstIterator(V &_v, size_t _i) : v(_v), i(_i) {}
+        ConstIterator(const ConstIterator &) = default;
+        ConstIterator(ConstIterator &&) = default;
+
+        Vc_ALWAYS_INLINE decltype(v[i]) operator->() const { return v[i]; }
+        Vc_ALWAYS_INLINE decltype(v[i]) operator*() const { return v[i]; }
 
         Vc_ALWAYS_INLINE ConstIterator &operator++()    { ++i; return *this; }
         Vc_ALWAYS_INLINE ConstIterator  operator++(int) { ConstIterator tmp = *this; ++i; return tmp; }
@@ -82,7 +84,7 @@ namespace
         Vc_ALWAYS_INLINE bool operator>=(const ConstIterator<V> &rhs) const { return i >= rhs.i; }
     };/*}}}*/
 
-    template<typename V> class BitmaskIterator/*{{{*/
+    class BitmaskIterator/*{{{*/
     {
         size_t mask;
         size_t bit;
@@ -114,7 +116,7 @@ namespace
 #else
 #error "Not implemented yet. Please contact vc-devel@compeng.uni-frankfurt.de"
 #endif
-            return m
+            return m;
         }
     public:
         BitmaskIterator(size_t m) : mask(m) { bit = nextBit(mask); }
@@ -125,10 +127,10 @@ namespace
         Vc_ALWAYS_INLINE size_t operator*() const { return bit; }
 
         Vc_ALWAYS_INLINE BitmaskIterator &operator++()    { bit = nextBit(mask); return *this; }
-        Vc_ALWAYS_INLINE BitmaskIterator  operator++(int) { ConstIterator tmp = *this; ++i; return tmp; }
+        Vc_ALWAYS_INLINE BitmaskIterator  operator++(int) { BitmaskIterator tmp = *this; bit = nextBit(mask); return tmp; }
 
-        Vc_ALWAYS_INLINE bool operator==(const BitmaskIterator<V> &rhs) const { return mask == rhs.mask; }
-        Vc_ALWAYS_INLINE bool operator!=(const BitmaskIterator<V> &rhs) const { return mask != rhs.mask; }
+        Vc_ALWAYS_INLINE bool operator==(const BitmaskIterator &rhs) const { return mask == rhs.mask; }
+        Vc_ALWAYS_INLINE bool operator!=(const BitmaskIterator &rhs) const { return mask != rhs.mask; }
     };/*}}}*/
 } // anonymous namespace
 
@@ -136,14 +138,14 @@ template<typename V> constexpr
 typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, Iterator<V>>::type
 begin(V &v)
 {
-    return { v, 0 }
+    return { v, 0 };
 }
 
 template<typename V> constexpr
 typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, Iterator<V>>::type
 end(V &v)
 {
-    return { v, V::Size }
+    return { v, V::Size };
 }
 
 template<typename M> constexpr BitmaskIterator begin(const WhereMask<M> &w)

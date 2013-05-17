@@ -46,10 +46,31 @@ template<> Vc_ALWAYS_INLINE Vc_PURE int Mask< 8, 32>::toInt() const { return _mm
 template<> Vc_ALWAYS_INLINE Vc_PURE int Mask< 8, 16>::toInt() const { return _mm_movemask_epi8(_mm_packs_epi16(dataI(), _mm_setzero_si128())); }
 template<> Vc_ALWAYS_INLINE Vc_PURE int Mask<16, 16>::toInt() const { return _mm_movemask_epi8(dataI()); }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 4, 32>::operator[](int index) const { return toInt() & (1 << index); }
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 8, 32>::operator[](int index) const { return toInt() & (1 << index); }
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 8, 16>::operator[](int index) const { return shiftMask() & (1 << 2 * index); }
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<16, 16>::operator[](int index) const { return toInt() & (1 << index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 4, 32>::operator[](size_t index) const { return toInt() & (1 << index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 8, 32>::operator[](size_t index) const { return toInt() & (1 << index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< 8, 16>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<16, 16>::operator[](size_t index) const { return toInt() & (1 << index); }
+
+template<> Vc_ALWAYS_INLINE Vc_PURE void Mask< 4, 32>::setEntry(size_t index, bool value) {
+    Common::VectorMemoryUnion<__m256i, unsigned long long> mask(dataI());
+    mask.m(index) = value ? 0xffffffffffffffffull : 0ull;
+    k = avx_cast<m256>(mask.v());
+}
+template<> Vc_ALWAYS_INLINE Vc_PURE void Mask< 8, 32>::setEntry(size_t index, bool value) {
+    Common::VectorMemoryUnion<__m256i, unsigned int> mask(dataI());
+    mask.m(index) = value ? 0xffffffffu : 0u;
+    k = avx_cast<m256>(mask.v());
+}
+template<> Vc_ALWAYS_INLINE Vc_PURE void Mask< 8, 16>::setEntry(size_t index, bool value) {
+    Common::VectorMemoryUnion<__m128i, unsigned short> mask(dataI());
+    mask.m(index) = value ? 0xffffu : 0u;
+    k = avx_cast<m128>(mask.v());
+}
+template<> Vc_ALWAYS_INLINE Vc_PURE void Mask<16, 16>::setEntry(size_t index, bool value) {
+    Common::VectorMemoryUnion<__m128i, unsigned short> mask(dataI());
+    mask.m(index) = value ? 0xffffu: 0u;
+    k = avx_cast<m128>(mask.v());
+}
 
 #ifndef VC_IMPL_POPCNT
 static Vc_ALWAYS_INLINE Vc_CONST unsigned int _mm_popcnt_u32(unsigned int n) {
