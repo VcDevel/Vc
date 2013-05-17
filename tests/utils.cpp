@@ -21,6 +21,7 @@
 #include <iostream>
 #include "vectormemoryhelper.h"
 #include <Vc/cpuid.h>
+#include <Vc/iterators>
 
 using namespace Vc;
 
@@ -392,6 +393,38 @@ template<typename V> void testIif()
     }
 }
 
+template<typename V> void rangeFor()
+{
+    typedef typename V::EntryType T;
+    typedef typename V::Mask M;
+
+    V x = V::Zero();
+    for (auto i : x) {
+        COMPARE(i, T(0));
+    }
+    int n = 0;
+    for (auto &i : x) {
+        i = T(++n);
+    }
+    n = 0
+    for (auto i : x) {
+        COMPARE(i, T(++n));
+    }
+
+    M m(Vc::One);
+    for (auto i : m) {
+        COMPARE(i, true);
+    }
+    bool x = true;
+    for (auto &i : m) {
+        i = (x = !x);
+    }
+    x = true;
+    for (auto i : m) {
+        COMPARE(i, (x = !x));
+    }
+}
+
 int main()
 {
     testAllTypes(testCall);
@@ -408,6 +441,7 @@ int main()
 
     runTest(testMallocAlignment);
     testAllTypes(testIif);
+    testAllTypes(rangeFor);
 
     return 0;
 }
