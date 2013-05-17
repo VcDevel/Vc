@@ -95,13 +95,13 @@ namespace Vc
 #if defined(VC_IMPL_SSE) || defined(VC_IMPL_AVX)
     using Vc_IMPL_NAMESPACE::Const;
 #endif
-    static_assert(double_v::Size == VC_DOUBLE_V_SIZE, "VC_DOUBLE_V_SIZE_MACRO_WRONG");
-    static_assert(float_v::Size  == VC_FLOAT_V_SIZE , "VC_FLOAT_V_SIZE_MACRO_WRONG ");
-    static_assert(sfloat_v::Size == VC_SFLOAT_V_SIZE, "VC_SFLOAT_V_SIZE_MACRO_WRONG");
-    static_assert(int_v::Size    == VC_INT_V_SIZE   , "VC_INT_V_SIZE_MACRO_WRONG   ");
-    static_assert(uint_v::Size   == VC_UINT_V_SIZE  , "VC_UINT_V_SIZE_MACRO_WRONG  ");
-    static_assert(short_v::Size  == VC_SHORT_V_SIZE , "VC_SHORT_V_SIZE_MACRO_WRONG ");
-    static_assert(ushort_v::Size == VC_USHORT_V_SIZE, "VC_USHORT_V_SIZE_MACRO_WRONG");
+    static_assert(double_v::Size == VC_DOUBLE_V_SIZE, "VC_DOUBLE_V_SIZE macro defined to an incorrect value");
+    static_assert(float_v::Size  == VC_FLOAT_V_SIZE , "VC_FLOAT_V_SIZE macro defined to an incorrect value ");
+    static_assert(sfloat_v::Size == VC_SFLOAT_V_SIZE, "VC_SFLOAT_V_SIZE macro defined to an incorrect value");
+    static_assert(int_v::Size    == VC_INT_V_SIZE   , "VC_INT_V_SIZE macro defined to an incorrect value   ");
+    static_assert(uint_v::Size   == VC_UINT_V_SIZE  , "VC_UINT_V_SIZE macro defined to an incorrect value  ");
+    static_assert(short_v::Size  == VC_SHORT_V_SIZE , "VC_SHORT_V_SIZE macro defined to an incorrect value ");
+    static_assert(ushort_v::Size == VC_USHORT_V_SIZE, "VC_USHORT_V_SIZE macro defined to an incorrect value");
   }
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
