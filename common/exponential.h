@@ -32,15 +32,12 @@
 #define VC_COMMON_EXPONENTIAL_H
 
 #include "macros.h"
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Common
-{
-    using Vc::VC__USE_NAMESPACE::c_log;
-    using Vc::VC__USE_NAMESPACE::Vector;
-    using Vc::VC__USE_NAMESPACE::floor;
-    using Vc::VC__USE_NAMESPACE::ldexp;
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+
+    using Vc::Vc_IMPL_NAMESPACE::c_log;
+    using Vc::Vc_IMPL_NAMESPACE::Vector;
+    using Vc::Vc_IMPL_NAMESPACE::floor;
+    using Vc::Vc_IMPL_NAMESPACE::ldexp;
 
     static const float log2_e = 1.44269504088896341f;
     static const float MAXLOGF = 88.72283905206835f;
@@ -104,7 +101,7 @@ namespace Common
         n.data() = Mem::permute<X0, X2, X1, X3>(n.data());
 #elif defined(VC_IMPL_AVX)
         __m128i tmp = _mm256_cvttpd_epi32(px.data());
-        Vector<int> n = AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
+        Vector<int> n = Vc_IMPL_NAMESPACE::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
 #endif
         x -= px * C::ln2_large(); //Vc_buildDouble(1, 0x00062e4000000000ull, -1);  // ln2
         x -= px * C::ln2_small(); //Vc_buildDouble(1, 0x0007f7d1cf79abcaull, -20); // ln2
@@ -132,13 +129,8 @@ namespace Common
 
         return x;
     }
-} // namespace Common
-namespace VC__USE_NAMESPACE
-{
-    using Vc::Common::exp;
-} // namespace VC__USE_NAMESPACE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+
+Vc_NAMESPACE_END
 #include "undomacros.h"
 
 #endif // VC_COMMON_EXPONENTIAL_H

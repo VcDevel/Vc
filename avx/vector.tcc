@@ -22,13 +22,7 @@
 #include "../common/set.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-ALIGN(64) extern unsigned int RandomState[16];
-
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // constants {{{1
@@ -1346,10 +1340,10 @@ template<> Vc_INTRINSIC Vector<double> Vector<double>::exponent() const
 static Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)
 {
-    state0.load(&Vc::RandomState[0]);
-    state1.load(&Vc::RandomState[uint_v::Size]);
-    (state1 * 0xdeece66du + 11).store(&Vc::RandomState[uint_v::Size]);
-    uint_v(_mm256_xor_si256((state0 * 0xdeece66du + 11).data(), _mm256_srli_epi32(state1.data(), 16))).store(&Vc::RandomState[0]);
+    state0.load(&Common::RandomState[0]);
+    state1.load(&Common::RandomState[uint_v::Size]);
+    (state1 * 0xdeece66du + 11).store(&Common::RandomState[uint_v::Size]);
+    uint_v(_mm256_xor_si256((state0 * 0xdeece66du + 11).data(), _mm256_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
 }
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::Random()
@@ -1375,11 +1369,11 @@ template<> Vc_ALWAYS_INLINE Vector<sfloat> Vector<sfloat>::Random()
 
 template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 {
-    const m256i state = VectorHelper<m256i>::load(&Vc::RandomState[0], Vc::Aligned);
+    const m256i state = VectorHelper<m256i>::load(&Common::RandomState[0], Vc::Aligned);
     for (size_t k = 0; k < 8; k += 2) {
         typedef unsigned long long uint64 Vc_MAY_ALIAS;
-        const uint64 stateX = *reinterpret_cast<const uint64 *>(&Vc::RandomState[k]);
-        *reinterpret_cast<uint64 *>(&Vc::RandomState[k]) = (stateX * 0x5deece66dull + 11);
+        const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);
+        *reinterpret_cast<uint64 *>(&Common::RandomState[k]) = (stateX * 0x5deece66dull + 11);
     }
     return (Vector<double>(_cast(_mm256_srli_epi64(state, 12))) | One()) - One();
 }
@@ -1528,9 +1522,7 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
     */
 }
 // }}}1
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
 

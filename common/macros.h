@@ -320,5 +320,4 @@ do {} while ( false )
 #define VC_OFFSETOF(Type, member) offsetof(Type, member)
 #endif
 
-
 #endif // VC_COMMON_MACROS_H

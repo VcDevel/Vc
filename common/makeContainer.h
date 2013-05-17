@@ -24,9 +24,8 @@
 #include <initializer_list>
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_PUBLIC_NAMESPACE_BEGIN
+
     namespace
     {
         template<typename Container, typename T> struct make_container_helper
@@ -120,8 +119,8 @@ namespace Vc
     {
         return makeContainer<Container, T>(list);
     }
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 

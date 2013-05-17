@@ -118,6 +118,7 @@
 #define SSE4_1 0x00600000
 #define SSE4_2 0x00700000
 #define AVX    0x00800000
+#define AVX2   0x00900000
 
 #define XOP    0x00000001
 #define FMA4   0x00000002
@@ -154,7 +155,10 @@
 
 #ifndef VC_IMPL
 
-#  if defined(__AVX__)
+#  if defined(__AVX2__)
+#    define VC_IMPL_AVX2 1
+#    define VC_IMPL_AVX 1
+#  elif defined(__AVX__)
 #    define VC_IMPL_AVX 1
 #  else
 #    if defined(__SSE4_2__)
@@ -184,7 +188,7 @@
 #      define VC_IMPL_Scalar 1
 #    endif
 #  endif
-#  if defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE)
+#  if defined(VC_IMPL_AVX2) || defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE)
 #    ifdef __FMA4__
 #      define VC_IMPL_FMA4 1
 #    endif
@@ -207,7 +211,10 @@
 
 #else // VC_IMPL
 
-#  if (VC_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
+#  if (VC_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
+#    define VC_IMPL_AVX2 1
+#    define VC_IMPL_AVX 1
+#  elif (VC_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
 #    define VC_IMPL_AVX 1
 #  elif (VC_IMPL & IMPL_MASK) == Scalar
 #    define VC_IMPL_Scalar 1
@@ -298,6 +305,7 @@
 #    undef VC_IMPL_SSE4_2
 #    undef VC_IMPL_SSSE3
 #    undef VC_IMPL_AVX
+#    undef VC_IMPL_AVX2
 #    undef VC_IMPL_FMA4
 #    undef VC_IMPL_XOP
 #    undef VC_IMPL_F16C
@@ -322,6 +330,7 @@
 #undef SSE4_1
 #undef SSE4_2
 #undef AVX
+#undef AVX2
 
 #undef XOP
 #undef FMA4
@@ -448,18 +457,28 @@ enum ExtraInstructions {
 
 #ifdef VC_IMPL_Scalar
 #define VC_IMPL ::Vc::ScalarImpl
+#define Vc_IMPL_NAMESPACE Scalar
+#elif defined(VC_IMPL_AVX2)
+#define VC_IMPL ::Vc::AVX2Impl
+#define Vc_IMPL_NAMESPACE AVX2
 #elif defined(VC_IMPL_AVX)
 #define VC_IMPL ::Vc::AVXImpl
+#define Vc_IMPL_NAMESPACE AVX
 #elif defined(VC_IMPL_SSE4_2)
 #define VC_IMPL ::Vc::SSE42Impl
+#define Vc_IMPL_NAMESPACE SSE
 #elif defined(VC_IMPL_SSE4_1)
 #define VC_IMPL ::Vc::SSE41Impl
+#define Vc_IMPL_NAMESPACE SSE
 #elif defined(VC_IMPL_SSSE3)
 #define VC_IMPL ::Vc::SSSE3Impl
+#define Vc_IMPL_NAMESPACE SSE
 #elif defined(VC_IMPL_SSE3)
 #define VC_IMPL ::Vc::SSE3Impl
+#define Vc_IMPL_NAMESPACE SSE
 #elif defined(VC_IMPL_SSE2)
 #define VC_IMPL ::Vc::SSE2Impl
+#define Vc_IMPL_NAMESPACE SSE
 #endif
 
 template<unsigned int Features> struct ImplementationT { enum _Value {
@@ -474,7 +493,11 @@ typedef ImplementationT<
     // but AFAIU the OSXSAVE and xgetbv tests do not have to positive (unless, of course, the
     // compiler decides to insert an instruction that uses the full register size - so better be on
     // the safe side)
+#ifdef VC_IMPL_AVX2
+    AVX2Impl
+#else
     AVXImpl
+#endif
 #else
     VC_IMPL
 #endif
@@ -495,16 +518,27 @@ typedef ImplementationT<
 #endif
     > CurrentImplementation;
 
-namespace Internal {
-    template<Implementation Impl> struct HelperImpl;
-    typedef HelperImpl<VC_IMPL> Helper;
+#ifndef Vc__SYMBOL_VERSION
+#define Vc__SYMBOL_VERSION v0
+#endif
 
-    template<typename A> struct FlagObject;
-    template<> struct FlagObject<AlignedFlag> { static constexpr AlignedFlag the() { return Aligned; } };
-    template<> struct FlagObject<UnalignedFlag> { static constexpr UnalignedFlag the() { return Unaligned; } };
-    template<> struct FlagObject<StreamingAndAlignedFlag> { static constexpr StreamingAndAlignedFlag the() { return Streaming; } };
-    template<> struct FlagObject<StreamingAndUnalignedFlag> { static constexpr StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
-} // namespace Internal
+#define Vc_IMPL_NAMESPACE_BEGIN \
+    namespace Vc { \
+        inline namespace Vc__SYMBOL_VERSION { \
+            namespace Vc_IMPL_NAMESPACE {
+
+#define Vc_NAMESPACE_BEGIN(NAME) \
+    namespace Vc { \
+        inline namespace Vc__SYMBOL_VERSION { \
+            namespace NAME {
+
+#define Vc_PUBLIC_NAMESPACE_BEGIN \
+    namespace Vc { \
+        inline namespace Vc__SYMBOL_VERSION { \
+            inline namespace Public {
+
+#define Vc_NAMESPACE_END }}}
+#define Vc_IMPL_NAMESPACE_END Vc_NAMESPACE_END
 
 namespace Warnings
 {
@@ -523,6 +557,17 @@ namespace Error
 #endif // DOXYGEN
 } // namespace Vc
 /*OUTER_NAMESPACE_END*/
+
+Vc_NAMESPACE_BEGIN(Internal)
+    template<Implementation Impl> struct HelperImpl;
+    typedef HelperImpl<VC_IMPL> Helper;
+
+    template<typename A> struct FlagObject;
+    template<> struct FlagObject<AlignedFlag> { static constexpr AlignedFlag the() { return Aligned; } };
+    template<> struct FlagObject<UnalignedFlag> { static constexpr UnalignedFlag the() { return Unaligned; } };
+    template<> struct FlagObject<StreamingAndAlignedFlag> { static constexpr StreamingAndAlignedFlag the() { return Streaming; } };
+    template<> struct FlagObject<StreamingAndUnalignedFlag> { static constexpr StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
+Vc_NAMESPACE_END
 
 #include "version.h"
 

@@ -1,6 +1,6 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
 
-    Copyright (C) 2010-2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -15,12 +15,18 @@
     You should have received a copy of the GNU Lesser General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
-*/
+}}}*/
 
-#ifdef VC_IMPL_Scalar
-# define VECTOR_NAMESPACE Vc::Scalar
-#elif defined(VC_IMPL_AVX)
-# define VECTOR_NAMESPACE Vc::AVX
-#elif defined(VC_IMPL_SSE)
-# define VECTOR_NAMESPACE Vc::SSE
-#endif
+#ifndef VC_COMMON_CONST_DATA_H
+#define VC_COMMON_CONST_DATA_H
+
+#include "macros.h"
+Vc_NAMESPACE_BEGIN(Common)
+
+ALIGN(64) extern unsigned int RandomState[16];
+ALIGN(32) extern const unsigned int AllBitsSet[8];
+
+Vc_NAMESPACE_END
+#include "undomacros.h"
+
+#endif // VC_COMMON_CONST_DATA_H

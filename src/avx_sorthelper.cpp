@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2011-2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -22,11 +22,7 @@
 #include <avx/sorthelper.h>
 #include <avx/macros.h>
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 template<> m128i SortHelper<short>::sort(VTArg _x)
 {
@@ -420,6 +416,4 @@ template<> m256d SortHelper<double>::sort(VTArg _dcba)
     */
 }
 
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END

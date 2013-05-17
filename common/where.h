@@ -1,4 +1,5 @@
 /*  This file is part of the Vc library. {{{
+ *  Q_DECLARE_PRIVATE()
 
     Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
 
@@ -22,9 +23,7 @@
 
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_PUBLIC_NAMESPACE_BEGIN
 
 namespace
 {
@@ -176,8 +175,11 @@ template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereMask<M> _if(const M &m
     return { m };
 }
 
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
+
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+    using Vc::where;
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 

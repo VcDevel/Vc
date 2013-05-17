@@ -38,11 +38,7 @@
 #undef isnan
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
 enum VectorAlignmentEnum { VectorAlignment = 32 };
 
 template<typename T> class Vector
@@ -57,7 +53,7 @@ template<typename T> class Vector
             HasVectorDivision = HasVectorDivisionHelper<T>::Value
         };
         typedef Vector<typename IndexTypeHelper<T>::Type> IndexType;
-        typedef typename Vc::AVX::Mask<Size, sizeof(VectorType)> Mask;
+        typedef typename Vc_IMPL_NAMESPACE::Mask<Size, sizeof(VectorType)> Mask;
         typedef typename Mask::AsArg MaskArg;
         typedef Vc::Memory<Vector<T>, Size> Memory;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
@@ -455,9 +451,7 @@ static Vc_ALWAYS_INLINE double_v max(const double_v &x, const double_v &y) { ret
   template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
 #include "forceToRegisters.tcc"
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "vector.tcc"
 #include "math.h"

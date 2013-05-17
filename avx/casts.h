@@ -24,11 +24,7 @@
 #include "types.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
     template<typename T> static Vc_INTRINSIC_L T avx_cast(param128  v) Vc_INTRINSIC_R;
     template<typename T> static Vc_INTRINSIC_L T avx_cast(param128i v) Vc_INTRINSIC_R;
     template<typename T> static Vc_INTRINSIC_L T avx_cast(param128d v) Vc_INTRINSIC_R;
@@ -181,9 +177,7 @@ namespace AVX
     template<> struct StaticCastHelper<sfloat        , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param256  v) { return StaticCastHelper<unsigned int, unsigned short>::cast(StaticCastHelper<float, unsigned int>::cast(v)); } };
     template<> struct StaticCastHelper<short         , sfloat        > { static Vc_ALWAYS_INLINE Vc_CONST m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<short, int>::cast(v)); } };
     template<> struct StaticCastHelper<unsigned short, sfloat        > { static Vc_ALWAYS_INLINE Vc_CONST m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<unsigned short, unsigned int>::cast(v)); } };
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
 

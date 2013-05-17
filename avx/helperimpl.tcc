@@ -20,11 +20,7 @@
 #ifndef VC_AVX_HELPERIMPL_TCC
 #define VC_AVX_HELPERIMPL_TCC
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Internal
-{
+Vc_NAMESPACE_BEGIN(Internal)
 
 template<size_t X>
 static constexpr size_t nextMultipleOf(size_t value)
@@ -33,11 +29,11 @@ static constexpr size_t nextMultipleOf(size_t value)
 }
 
 template<Vc::MallocAlignment A>
-Vc_ALWAYS_INLINE void *HelperImpl<AVXImpl>::malloc(size_t n)
+Vc_ALWAYS_INLINE void *HelperImpl<VC_IMPL>::malloc(size_t n)
 {
     switch (A) {
         case Vc::AlignOnVector:
-            return _mm_malloc(nextMultipleOf<Vc::AVX::VectorAlignment>(n), Vc::AVX::VectorAlignment);
+            return _mm_malloc(nextMultipleOf<Vc::Vc_IMPL_NAMESPACE::VectorAlignment>(n), Vc::Vc_IMPL_NAMESPACE::VectorAlignment);
         case Vc::AlignOnCacheline:
             // TODO: hardcoding 64 is not such a great idea
             return _mm_malloc(nextMultipleOf<64>(n), 64);
@@ -52,13 +48,11 @@ Vc_ALWAYS_INLINE void *HelperImpl<AVXImpl>::malloc(size_t n)
     }
 }
 
-Vc_ALWAYS_INLINE void HelperImpl<AVXImpl>::free(void *p)
+Vc_ALWAYS_INLINE void HelperImpl<VC_IMPL>::free(void *p)
 {
     _mm_free(p);
 }
 
-} // namespace Internal
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #endif // VC_AVX_HELPERIMPL_TCC

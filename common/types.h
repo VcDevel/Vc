@@ -25,12 +25,12 @@
 #include <cstdio>
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-
+Vc_PUBLIC_NAMESPACE_BEGIN
 // helper type to implement sfloat_v (Vector<Vc::sfloat>)
 struct sfloat {};
+
+// TODO: all of the following doesn't really belong into the toplevel Vc namespace. An anonymous
+// namespace might be enough:
 
 template<typename T> struct DetermineEntryType { typedef T Type; };
 template<> struct DetermineEntryType<sfloat> { typedef float Type; };
@@ -44,7 +44,6 @@ namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
 namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
-template<typename V, size_t Size1, size_t Size2> class Memory;
 #ifdef VC_MSVC
 #  if defined(VC_IMPL_Scalar)
 namespace Scalar {
@@ -187,7 +186,10 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 }
 #endif
 
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
+
+Vc_NAMESPACE_BEGIN(Common)
+template<typename V, size_t Size1, size_t Size2> class Memory;
+Vc_NAMESPACE_END
 
 #endif // VC_COMMON_TYPES_H

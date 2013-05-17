@@ -20,11 +20,7 @@
 #include "casts.h"
 #include <cstdlib>
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // float_v
@@ -265,6 +261,4 @@ template<typename T> Vc_ALWAYS_INLINE void VectorHelper<m128i>::store(T *mem, VT
     _mm_maskmoveu_si128(x, m, reinterpret_cast<char *>(mem));
 }
 
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END

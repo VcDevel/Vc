@@ -22,11 +22,7 @@
 
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Scalar
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 #define VC_MINMAX(V) \
 static Vc_ALWAYS_INLINE V min(const V &x, const V &y) { return V(std::min(x.data(), y.data())); } \
@@ -222,9 +218,7 @@ Vc_ALWAYS_INLINE sfloat_v ldexp(sfloat_v x, short_v e) {
     return sfloat_v(::ldexpf(x.data(), e.data()));
 }
 
-} // namespace Scalar
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
 

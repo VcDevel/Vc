@@ -22,16 +22,14 @@
 
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_PUBLIC_NAMESPACE_BEGIN
     enum VecPos {
         X0, X1, X2, X3, X4, X5, X6, X7,
         Y0, Y1, Y2, Y3, Y4, Y5, Y6, Y7
     };
+Vc_NAMESPACE_END
 
-    namespace Mem
-    {
+Vc_NAMESPACE_BEGIN(Mem)
         // shuffle<X1, X2, Y0, Y2>([x0 x1 x2 x3], [y0 y1 y2 y3]) = [x1 x2 y0 y2]
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m128 Vc_CONST shuffle(__m128 x, __m128 y) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
@@ -130,10 +128,10 @@ namespace Vc
             }
             return x;
         }
-    } // namespace Mem
+Vc_NAMESPACE_END
+
     // The shuffles and permutes above use memory ordering. The ones below use register ordering:
-    namespace Reg
-    {
+Vc_NAMESPACE_BEGIN(Reg)
         // shuffle<Y2, Y0, X2, X1>([x3 x2 x1 x0], [y3 y2 y1 y0]) = [y2 y0 x2 x1]
         template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128 Vc_CONST shuffle(__m128 x, __m128 y) {
             return Mem::shuffle<Dst0, Dst1, Dst2, Dst3>(x, y);
@@ -166,9 +164,7 @@ namespace Vc
         template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128 Vc_CONST blend(__m128 x, __m128 y) {
             return Mem::blend<Dst0, Dst1, Dst2, Dst3>(x, y);
         }
-    } // namespace Reg
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 

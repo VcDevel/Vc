@@ -26,11 +26,7 @@
 #include "casts.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
 #define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
 #define OP1(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VTArg a) { return code; }
 #define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VTArg a, VTArg b) { return code; }
@@ -328,7 +324,7 @@ namespace AVX
                 m256d v2_1 = _mm256_cvtps_pd(hi128(v2));
                 m256d v3_0 = _mm256_cvtps_pd(lo128(v3));
                 m256d v3_1 = _mm256_cvtps_pd(hi128(v3));
-                v1 = AVX::concat(
+                v1 = Vc_IMPL_NAMESPACE::concat(
                         _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_0, v2_0), v3_0)),
                         _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_1, v2_1), v3_1)));
 #endif
@@ -734,9 +730,7 @@ template<> struct VectorHelper<unsigned char>
     typedef unsigned short ConcatType;
 };
 
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "vectorhelper.tcc"
 #include "undomacros.h"

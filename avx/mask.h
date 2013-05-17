@@ -24,11 +24,7 @@
 #include "../common/bitscanintrinsics.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 template<unsigned int VectorSize> class Mask<VectorSize, 32u>
 {
@@ -212,12 +208,10 @@ struct ForeachHelper
 };
 
 #define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::AVX::ForeachHelper _Vc_foreach_bit_helper((_mask_).toInt()); _Vc_foreach_bit_helper.outer(); ) \
+    for (::Vc::Vc_IMPL_NAMESPACE::ForeachHelper _Vc_foreach_bit_helper((_mask_).toInt()); _Vc_foreach_bit_helper.outer(); ) \
         for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); _Vc_foreach_bit_helper.noBreak())
 
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "mask.tcc"
 #include "undomacros.h"

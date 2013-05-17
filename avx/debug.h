@@ -26,11 +26,7 @@
 #include <iomanip>
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_IMPL_NAMESPACE_BEGIN
 
 #ifdef NDEBUG
 class DebugStream
@@ -93,10 +89,8 @@ class DebugStream
 };
 #endif
 
-#define VC_DEBUG ::Vc::AVX::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define VC_DEBUG ::Vc::Vc_IMPL_NAMESPACE::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #endif // VC_AVX_DEBUG_H

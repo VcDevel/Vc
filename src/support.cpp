@@ -31,9 +31,7 @@
 #define VC_TARGET_NO_SIMD
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_PUBLIC_NAMESPACE_BEGIN
 
 VC_TARGET_NO_SIMD
 static inline bool xgetbvCheck(unsigned int bits)
@@ -111,8 +109,7 @@ unsigned int extraInstructionsSupported()
     return flags;
 }
 
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #undef VC_TARGET_NO_SIMD
 
