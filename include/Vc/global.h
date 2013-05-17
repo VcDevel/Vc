@@ -518,7 +518,9 @@ typedef ImplementationT<
 #endif
     > CurrentImplementation;
 
+#ifndef Vc__SYMBOL_VERSION
 #define Vc__SYMBOL_VERSION v0
+#endif
 
 #define Vc_IMPL_NAMESPACE_BEGIN \
     namespace Vc { \
@@ -529,6 +531,11 @@ typedef ImplementationT<
     namespace Vc { \
         inline namespace Vc__SYMBOL_VERSION { \
             namespace NAME {
+
+#define Vc_PUBLIC_NAMESPACE_BEGIN \
+    namespace Vc { \
+        inline namespace Vc__SYMBOL_VERSION { \
+            inline namespace Public {
 
 #define Vc_NAMESPACE_END }}}
 #define Vc_IMPL_NAMESPACE_END Vc_NAMESPACE_END

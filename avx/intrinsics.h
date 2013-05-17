@@ -58,11 +58,7 @@ extern "C" {
 #define _mm_alignr_epi8(a, b, n) ((m128i)__builtin_ia32_palignr128((a), (b), (n)))
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AvxIntrinsics
-{
+Vc_NAMESPACE_BEGIN(AvxIntrinsics)
     using AVX::c_general;
     using AVX::_IndexesFromZero32;
     using AVX::_IndexesFromZero16;
@@ -597,12 +593,16 @@ namespace AvxIntrinsics
 #define _mm256_macc_pd(a, b, c) Vc::AVX::my256_macc_pd(a, b, c)
 #endif
 
-} // namespace AvxIntrinsics
-using namespace AvxIntrinsics;
-namespace AVX  { using namespace AvxIntrinsics; }
-namespace AVX2 { using namespace AvxIntrinsics; }
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
+
+Vc_NAMESPACE_BEGIN(AVX)
+    using namespace AvxIntrinsics;
+Vc_NAMESPACE_END
+
+Vc_NAMESPACE_BEGIN(AVX2)
+    using namespace AvxIntrinsics;
+Vc_NAMESPACE_END
+
 #include "undomacros.h"
 
 #include "shuffle.h"

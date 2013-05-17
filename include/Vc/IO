@@ -160,7 +160,7 @@ static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::
 #endif
 
 template<typename V, typename Parent, typename RM>
-static std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Parent, 1, RM> &m )
+static std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<V, Parent, 1, RM> &m )
 {
     out << AnsiColor::blue << "{" << AnsiColor::normal;
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
@@ -171,7 +171,7 @@ static std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Paren
 }
 
 template<typename V, typename Parent, typename RM>
-static std::ostream &operator<<(std::ostream &out, const Vc::MemoryBase<V, Parent, 2, RM> &m )
+static std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<V, Parent, 2, RM> &m )
 {
     out << AnsiColor::blue << "{" << AnsiColor::normal;
     for (size_t i = 0; i < m.rowsCount(); ++i) {

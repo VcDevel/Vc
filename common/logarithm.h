@@ -49,11 +49,8 @@
 #define VC_COMMON_LOGARITHM_H
 
 #include "macros.h"
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Common
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+
 using Vc::Vc_IMPL_NAMESPACE::Const;
 using Vc::Vc_IMPL_NAMESPACE::Vector;
 enum LogarithmBase {
@@ -260,15 +257,9 @@ template<typename T> static Vc_ALWAYS_INLINE Vc_CONST Vector<T> log2(VC_ALIGNED_
     typedef Const<T> C;
     return LogImpl<Base2>::calc(x);
 }
-} // namespace Common
-namespace Vc_IMPL_NAMESPACE
-{
-    using Vc::Common::log;
-    using Vc::Common::log10;
-    using Vc::Common::log2;
-} // namespace Vc_IMPL_NAMESPACE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+
+Vc_NAMESPACE_END
+
 #include "undomacros.h"
 
 #endif // VC_COMMON_LOGARITHM_H

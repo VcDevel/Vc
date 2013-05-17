@@ -23,8 +23,8 @@
 #include "../sse/shuffle.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
+Vc_NAMESPACE_BEGIN(Mem)
+namespace
 {
     using Vc_IMPL_NAMESPACE::m128;
     using Vc_IMPL_NAMESPACE::m128d;
@@ -38,8 +38,8 @@ namespace Vc
     using Vc_IMPL_NAMESPACE::param256;
     using Vc_IMPL_NAMESPACE::param256d;
     using Vc_IMPL_NAMESPACE::param256i;
-    namespace Mem
-    {
+} // anonymous namespace
+
         template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE m256 Vc_CONST permute128(param256 x) {
             static_assert(L >= X0 && L <= X1, "Incorrect_Range");
             static_assert(H >= X0 && H <= X1, "Incorrect_Range");
@@ -176,7 +176,7 @@ namespace Vc
 
             return _mm256_insertf128_ps(_mm256_castps128_ps256(lo), hi, 1);
         }
-    } // namespace Mem
+Vc_NAMESPACE_END
 
     // little endian has the lo bits on the right and high bits on the left
     // with vectors this becomes greatly confusing:
@@ -184,8 +184,23 @@ namespace Vc
     // Reg: dcba
     //
     // The shuffles and permutes above use memory ordering. The ones below use register ordering:
-    namespace Reg
-    {
+Vc_NAMESPACE_BEGIN(Reg)
+namespace
+{
+    using Vc_IMPL_NAMESPACE::m128;
+    using Vc_IMPL_NAMESPACE::m128d;
+    using Vc_IMPL_NAMESPACE::m128i;
+    using Vc_IMPL_NAMESPACE::m256;
+    using Vc_IMPL_NAMESPACE::m256d;
+    using Vc_IMPL_NAMESPACE::m256i;
+    using Vc_IMPL_NAMESPACE::param128;
+    using Vc_IMPL_NAMESPACE::param128d;
+    using Vc_IMPL_NAMESPACE::param128i;
+    using Vc_IMPL_NAMESPACE::param256;
+    using Vc_IMPL_NAMESPACE::param256d;
+    using Vc_IMPL_NAMESPACE::param256i;
+} // anonymous namespace
+
         template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE m256 Vc_CONST permute128(param256 x, param256 y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
             static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
@@ -231,9 +246,7 @@ namespace Vc
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
             return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
         }
-    } // namespace Reg
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 #include "undomacros.h"
 
 #endif // VC_AVX_SHUFFLE_H

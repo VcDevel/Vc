@@ -24,11 +24,7 @@
 #include "macros.h"
 #include "types.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Common
-{
+Vc_NAMESPACE_BEGIN(Common)
 
 #ifdef VC_MSVC
 #ifdef VC_IMPL_AVX
@@ -202,9 +198,7 @@ template<> Vc_ALWAYS_INLINE Vc_PURE VectorMemoryUnion<__m128i, unsigned long lon
 }
 #endif
 
-} // namespace Common
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 

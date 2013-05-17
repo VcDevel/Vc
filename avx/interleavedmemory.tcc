@@ -22,14 +22,11 @@
 
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Common
-{
+Vc_NAMESPACE_BEGIN(Common)
 
 namespace
 {
+    using namespace Vc::AvxIntrinsics;
 template<typename V, int Size, size_t VSize> struct InterleaveImpl;
 template<typename V> struct InterleaveImpl<V, 8, 16> {
     template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
@@ -783,9 +780,7 @@ template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::
     InterleaveImpl<V, V::Size, sizeof(V)>::deinterleave(m_data, m_indexes, v0, v1, v2, v3, v4, v5, v6, v7);
 }/*}}}*/
 
-} // namespace Common
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 

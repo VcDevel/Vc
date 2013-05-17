@@ -20,9 +20,8 @@
 #ifndef VC_COMMON_OPERAND_H
 #define VC_COMMON_OPERAND_H
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_NAMESPACE_BEGIN(Common)
+
 template<typename Parent> class Operand
 {
     public:
@@ -48,7 +47,6 @@ template<typename Result, typename Left, typename Right> class BinaryOperation :
         operator Result() 
 };
 
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #endif // VC_COMMON_OPERAND_H

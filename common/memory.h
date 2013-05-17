@@ -28,9 +28,7 @@
 #include "memoryfwd.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_NAMESPACE_BEGIN(Common)
 
 /**
  * Allocates memory on the Heap with alignment and padding suitable for vectorized access.
@@ -420,7 +418,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
         Vc_ALWAYS_INLINE Memory(size_t size)
             : m_entriesCount(size),
             m_vectorsCount(calcPaddedEntriesCount(m_entriesCount)),
-            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
+            m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
         {
             m_vectorsCount /= V::Size;
         }
@@ -436,7 +434,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
         Vc_ALWAYS_INLINE Memory(const MemoryBase<V, Parent, 1, RM> &rhs)
             : m_entriesCount(rhs.entriesCount()),
             m_vectorsCount(rhs.vectorsCount()),
-            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
+            m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
             std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
         }
@@ -451,7 +449,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
         Vc_ALWAYS_INLINE Memory(const Memory<V, 0u> &rhs)
             : m_entriesCount(rhs.entriesCount()),
             m_vectorsCount(rhs.vectorsCount()),
-            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
+            m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
             std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
         }
@@ -461,7 +459,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
          */
         Vc_ALWAYS_INLINE ~Memory()
         {
-            Vc::free(m_mem);
+            Common::free(m_mem);
         }
 
         /**
@@ -592,9 +590,18 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *addr)
 {
     Internal::Helper::prefetchFar(addr);
 }
+Vc_NAMESPACE_END
 
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_PUBLIC_NAMESPACE_BEGIN
+using Common::malloc;
+using Common::free;
+using Common::Memory;
+using Common::prefetchForOneRead;
+using Common::prefetchForModify;
+using Common::prefetchClose;
+using Common::prefetchMid;
+using Common::prefetchFar;
+Vc_NAMESPACE_END
 
 namespace std
 {

@@ -40,9 +40,7 @@
 #undef isnan
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_PUBLIC_NAMESPACE_BEGIN
   using Vc_IMPL_NAMESPACE::VectorAlignment;
   using Vc_IMPL_NAMESPACE::VectorAlignedBaseT;
   typedef VectorAlignedBaseT<> VectorAlignedBase;
@@ -92,9 +90,6 @@ namespace Vc
   typedef ushort_v::Mask ushort_m;
 
   namespace {
-#if defined(VC_IMPL_SSE) || defined(VC_IMPL_AVX)
-    using Vc_IMPL_NAMESPACE::Const;
-#endif
     static_assert(double_v::Size == VC_DOUBLE_V_SIZE, "VC_DOUBLE_V_SIZE macro defined to an incorrect value");
     static_assert(float_v::Size  == VC_FLOAT_V_SIZE , "VC_FLOAT_V_SIZE macro defined to an incorrect value ");
     static_assert(sfloat_v::Size == VC_SFLOAT_V_SIZE, "VC_SFLOAT_V_SIZE macro defined to an incorrect value");
@@ -103,26 +98,12 @@ namespace Vc
     static_assert(short_v::Size  == VC_SHORT_V_SIZE , "VC_SHORT_V_SIZE macro defined to an incorrect value ");
     static_assert(ushort_v::Size == VC_USHORT_V_SIZE, "VC_USHORT_V_SIZE macro defined to an incorrect value");
   }
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #include "common/vectortuple.h"
 #include "common/algorithms.h"
 #include "common/where.h"
 #include "common/iif.h"
-
-Vc_IMPL_NAMESPACE_BEGIN
-    using Vc::where;
-    using Vc::all_of;
-    using Vc::any_of;
-    using Vc::none_of;
-    using Vc::some_of;
-    using Vc::iif;
-Vc_IMPL_NAMESPACE_END
-
-#ifndef VC_NO_NAMESPACE_ALIAS
-/*NAMESPACE_ALIAS*/
-#endif
 
 #ifndef VC_NO_STD_FUNCTIONS
 namespace std

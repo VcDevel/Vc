@@ -17,14 +17,13 @@
 
 }}}*/
 
-#ifndef VC_TYPE_TRAITS
-#define VC_TYPE_TRAITS
+#ifndef VC_INCLUDE_VC_TYPE_TRAITS
+#define VC_INCLUDE_VC_TYPE_TRAITS
 
 #include <type_traits>
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+#include "common/macros.h"
+Vc_PUBLIC_NAMESPACE_BEGIN
 
 template<typename T>
 struct is_simd_mask : public std::integral_constant<bool,
@@ -48,8 +47,9 @@ struct is_simd_vector : public std::integral_constant<bool,
     std::is_same<T, ushort_v>::value>
     {};
 
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
+#include "common/undomacros.h"
 
-#endif // VC_TYPE_TRAITS
+#endif // VC_INCLUDE_VC_TYPE_TRAITS
+
 // vim: ft=cpp

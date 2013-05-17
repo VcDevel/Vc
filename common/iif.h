@@ -20,12 +20,11 @@
 #ifndef VC_COMMON_IIF_H
 #define VC_COMMON_IIF_H
 
-#include "macros.h"
 #include <Vc/type_traits>
+#include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_PUBLIC_NAMESPACE_BEGIN
+
 namespace
 {
     template<typename T> struct assert_for_iif
@@ -108,8 +107,11 @@ template<typename T> constexpr T iif (bool condition, const T &trueValue, const 
     return condition ? trueValue : falseValue;
 }
 
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
+
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+    using Vc::iif;
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 

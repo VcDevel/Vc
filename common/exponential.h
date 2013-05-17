@@ -32,11 +32,8 @@
 #define VC_COMMON_EXPONENTIAL_H
 
 #include "macros.h"
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Common
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+
     using Vc::Vc_IMPL_NAMESPACE::c_log;
     using Vc::Vc_IMPL_NAMESPACE::Vector;
     using Vc::Vc_IMPL_NAMESPACE::floor;
@@ -132,13 +129,8 @@ namespace Common
 
         return x;
     }
-} // namespace Common
-namespace Vc_IMPL_NAMESPACE
-{
-    using Vc::Common::exp;
-} // namespace Vc_IMPL_NAMESPACE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+
+Vc_NAMESPACE_END
 #include "undomacros.h"
 
 #endif // VC_COMMON_EXPONENTIAL_H
