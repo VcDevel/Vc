@@ -21,7 +21,7 @@
 #define VC_AVX_DEBUG_H
 
 #ifndef NDEBUG
-#include "vectorbase.h"
+#include "vector.h"
 #include <iostream>
 #include <iomanip>
 #endif
