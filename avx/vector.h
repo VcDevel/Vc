@@ -223,10 +223,7 @@ template<typename T> class Vector
         //postfix
         Vc_ALWAYS_INLINE Vector operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
 
-        Vc_INTRINSIC Common::AliasingEntryHelper<StorageType> operator[](size_t index) {
-#if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
-            ::Vc::Warnings::_operator_bracket_warning();
-#endif
+        Vc_INTRINSIC decltype(d.m(0)) &operator[](size_t index) {
             return d.m(index);
         }
         Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
