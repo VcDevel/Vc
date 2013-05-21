@@ -69,6 +69,7 @@ template<unsigned int VectorSize = 1> class Mask
         template<unsigned int OtherSize>
             Vc_ALWAYS_INLINE Mask cast() const { return *this; }
 
+        Vc_ALWAYS_INLINE bool &operator[](size_t) { return m; }
         Vc_ALWAYS_INLINE bool operator[](size_t) const { return m; }
 
         Vc_ALWAYS_INLINE unsigned int count() const { return m ? 1 : 0; }
