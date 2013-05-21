@@ -20,6 +20,8 @@
 #ifndef VC_AVX_MASK_H
 #define VC_AVX_MASK_H
 
+#include <array>
+
 #include "intrinsics.h"
 #include "../common/bitscanintrinsics.h"
 #include "../common/maskentry.h"
@@ -63,6 +65,10 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
                         _mm_unpackhi_epi16(rhs.dataI(), rhs.dataI())))) {}
         Vc_ALWAYS_INLINE_L Mask(const Mask<VectorSize * 2, 32u> &m) Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L Mask(const Mask<VectorSize / 2, 32u> &m) Vc_ALWAYS_INLINE_R;
+
+        Vc_ALWAYS_INLINE Mask &operator=(const Mask &) = default;
+        Vc_ALWAYS_INLINE_L Mask &operator=(const std::array<bool, Size> &values) Vc_ALWAYS_INLINE_R;
+        operator std::array<bool, Size> &&() const;
 
         Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return 0 != _mm256_testc_ps(k, rhs.k); }
         Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return 0 == _mm256_testc_ps(k, rhs.k); }
@@ -146,6 +152,10 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
                 _mm_packs_epi32(avx_cast<m128i>(rhs.data()), _mm256_extractf128_si256(rhs.dataI(), 1)))) {}
         Vc_ALWAYS_INLINE Mask(const Mask<VectorSize / 2, 16u> *a) : k(avx_cast<m128>(
                 _mm_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
+
+        Vc_ALWAYS_INLINE Mask &operator=(const Mask &) = default;
+        Vc_ALWAYS_INLINE_L Mask &operator=(const std::array<bool, Size> &values) Vc_ALWAYS_INLINE_R;
+        operator std::array<bool, Size> &&() const;
 
         Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return 0 != _mm_testc_si128(dataI(), rhs.dataI()); }
         Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return 0 == _mm_testc_si128(dataI(), rhs.dataI()); }
