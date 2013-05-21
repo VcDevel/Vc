@@ -20,6 +20,7 @@
 #ifndef VC_COMMON_ITERATORS_H
 #define VC_COMMON_ITERATORS_H
 
+#include <array>
 #include <Vc/type_traits>
 #include "macros.h"
 
@@ -27,6 +28,83 @@ Vc_NAMESPACE_BEGIN(Common)
 
 namespace
 {
+    template<typename M> class MaskIterator/*{{{*/
+    {
+        M &originalMask;
+        size_t i;
+        std::array<bool, M::Size> data;
+    public:
+        MaskIterator(M &m, size_t _i) : originalMask(m), i(_i), data(m) {}
+        MaskIterator(const MaskIterator &) = default;
+        MaskIterator(MaskIterator &&) = default;
+        MaskIterator &operator=(const MaskIterator &) = default;
+
+        ~MaskIterator()
+        {
+            originalMask = data;
+        }
+
+        Vc_ALWAYS_INLINE bool &operator->() { return data[i]; }
+        Vc_ALWAYS_INLINE bool  operator->() const { return data[i]; }
+
+        Vc_ALWAYS_INLINE bool &operator*() { return data[i]; }
+        Vc_ALWAYS_INLINE bool  operator*() const { return data[i]; }
+
+        Vc_ALWAYS_INLINE MaskIterator &operator++()    { ++i; return *this; }
+        Vc_ALWAYS_INLINE MaskIterator  operator++(int) { MaskIterator tmp = *this; ++i; return tmp; }
+
+        Vc_ALWAYS_INLINE MaskIterator &operator--()    { --i; return *this; }
+        Vc_ALWAYS_INLINE MaskIterator  operator--(int) { MaskIterator tmp = *this; --i; return tmp; }
+
+        Vc_ALWAYS_INLINE bool operator==(const MaskIterator &rhs) const { return i == rhs.i; }
+        Vc_ALWAYS_INLINE bool operator!=(const MaskIterator &rhs) const { return i != rhs.i; }
+        Vc_ALWAYS_INLINE bool operator< (const MaskIterator &rhs) const { return i <  rhs.i; }
+        Vc_ALWAYS_INLINE bool operator<=(const MaskIterator &rhs) const { return i <= rhs.i; }
+        Vc_ALWAYS_INLINE bool operator> (const MaskIterator &rhs) const { return i >  rhs.i; }
+        Vc_ALWAYS_INLINE bool operator>=(const MaskIterator &rhs) const { return i >= rhs.i; }
+    };/*}}}*/
+    template<typename M> class ConstMaskIterator/*{{{*/
+    {
+        const M &mask;
+        size_t i;
+    public:
+        ConstMaskIterator(const M &m, size_t _i) : mask(m), i(_i) {}
+        ConstMaskIterator(const ConstMaskIterator &) = default;
+        ConstMaskIterator(ConstMaskIterator &&) = default;
+        ConstMaskIterator &operator=(const ConstMaskIterator &) = default;
+
+        Vc_ALWAYS_INLINE bool  operator->() const { return mask[i]; }
+
+        Vc_ALWAYS_INLINE bool  operator*() const { return mask[i]; }
+
+        Vc_ALWAYS_INLINE ConstMaskIterator &operator++()    { ++i; return *this; }
+        Vc_ALWAYS_INLINE ConstMaskIterator  operator++(int) { ConstMaskIterator tmp = *this; ++i; return tmp; }
+
+        Vc_ALWAYS_INLINE ConstMaskIterator &operator--()    { --i; return *this; }
+        Vc_ALWAYS_INLINE ConstMaskIterator  operator--(int) { ConstMaskIterator tmp = *this; --i; return tmp; }
+
+        Vc_ALWAYS_INLINE bool operator==(const ConstMaskIterator &rhs) const { return i == rhs.i; }
+        Vc_ALWAYS_INLINE bool operator!=(const ConstMaskIterator &rhs) const { return i != rhs.i; }
+        Vc_ALWAYS_INLINE bool operator< (const ConstMaskIterator &rhs) const { return i <  rhs.i; }
+        Vc_ALWAYS_INLINE bool operator<=(const ConstMaskIterator &rhs) const { return i <= rhs.i; }
+        Vc_ALWAYS_INLINE bool operator> (const ConstMaskIterator &rhs) const { return i >  rhs.i; }
+        Vc_ALWAYS_INLINE bool operator>=(const ConstMaskIterator &rhs) const { return i >= rhs.i; }
+    };/*}}}*/
+/*relational operators MaskIterator <-> ConstMaskIterator{{{*/
+        template<typename M> Vc_ALWAYS_INLINE bool operator==(const MaskIterator<M> &lhs, const ConstMaskIterator<M> &rhs) { return lhs.i == rhs.i; }
+        template<typename M> Vc_ALWAYS_INLINE bool operator!=(const MaskIterator<M> &lhs, const ConstMaskIterator<M> &rhs) { return lhs.i != rhs.i; }
+        template<typename M> Vc_ALWAYS_INLINE bool operator< (const MaskIterator<M> &lhs, const ConstMaskIterator<M> &rhs) { return lhs.i <  rhs.i; }
+        template<typename M> Vc_ALWAYS_INLINE bool operator<=(const MaskIterator<M> &lhs, const ConstMaskIterator<M> &rhs) { return lhs.i <= rhs.i; }
+        template<typename M> Vc_ALWAYS_INLINE bool operator> (const MaskIterator<M> &lhs, const ConstMaskIterator<M> &rhs) { return lhs.i >  rhs.i; }
+        template<typename M> Vc_ALWAYS_INLINE bool operator>=(const MaskIterator<M> &lhs, const ConstMaskIterator<M> &rhs) { return lhs.i >= rhs.i; }
+
+        template<typename M> Vc_ALWAYS_INLINE bool operator==(const ConstMaskIterator<M> &lhs, const MaskIterator<M> &rhs) { return lhs.i == rhs.i; }
+        template<typename M> Vc_ALWAYS_INLINE bool operator!=(const ConstMaskIterator<M> &lhs, const MaskIterator<M> &rhs) { return lhs.i != rhs.i; }
+        template<typename M> Vc_ALWAYS_INLINE bool operator< (const ConstMaskIterator<M> &lhs, const MaskIterator<M> &rhs) { return lhs.i <  rhs.i; }
+        template<typename M> Vc_ALWAYS_INLINE bool operator<=(const ConstMaskIterator<M> &lhs, const MaskIterator<M> &rhs) { return lhs.i <= rhs.i; }
+        template<typename M> Vc_ALWAYS_INLINE bool operator> (const ConstMaskIterator<M> &lhs, const MaskIterator<M> &rhs) { return lhs.i >  rhs.i; }
+        template<typename M> Vc_ALWAYS_INLINE bool operator>=(const ConstMaskIterator<M> &lhs, const MaskIterator<M> &rhs) { return lhs.i >= rhs.i; }
+/*}}}*/
     template<typename V> class Iterator/*{{{*/
     {
         V &v;
@@ -56,13 +134,12 @@ namespace
         Vc_ALWAYS_INLINE bool operator> (const Iterator<V> &rhs) const { return i >  rhs.i; }
         Vc_ALWAYS_INLINE bool operator>=(const Iterator<V> &rhs) const { return i >= rhs.i; }
     };/*}}}*/
-
     template<typename V> class ConstIterator/*{{{*/
     {
         const V &v;
         size_t i;
     public:
-        ConstIterator(V &_v, size_t _i) : v(_v), i(_i) {}
+        ConstIterator(const V &_v, size_t _i) : v(_v), i(_i) {}
         ConstIterator(const ConstIterator &) = default;
         ConstIterator(ConstIterator &&) = default;
 
@@ -134,18 +211,44 @@ namespace
     };/*}}}*/
 } // anonymous namespace
 
-template<typename V> constexpr
-typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, Iterator<V>>::type
-begin(V &v)
+template<typename V> constexpr typename std::enable_if<is_simd_vector<V>::value, Iterator<V>>::type begin(V &v)
 {
     return { v, 0 };
 }
 
-template<typename V> constexpr
-typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, Iterator<V>>::type
-end(V &v)
+template<typename V> constexpr typename std::enable_if<is_simd_vector<V>::value, Iterator<V>>::type end(V &v)
 {
     return { v, V::Size };
+}
+
+template<typename V> constexpr typename std::enable_if<is_simd_vector<V>::value, ConstIterator<V>>::type begin(const V &v)
+{
+    return { v, 0 };
+}
+
+template<typename V> constexpr typename std::enable_if<is_simd_vector<V>::value, ConstIterator<V>>::type end(const V &v)
+{
+    return { v, V::Size };
+}
+
+template<typename M> constexpr typename std::enable_if<is_simd_mask<M>::value, MaskIterator<M>>::type begin(M &v)
+{
+    return { v, 0 };
+}
+
+template<typename M> constexpr typename std::enable_if<is_simd_mask<M>::value, MaskIterator<M>>::type end(M &v)
+{
+    return { v, M::Size };
+}
+
+template<typename M> constexpr typename std::enable_if<is_simd_mask<M>::value, ConstMaskIterator<M>>::type begin(const M &v)
+{
+    return { v, 0 };
+}
+
+template<typename M> constexpr typename std::enable_if<is_simd_mask<M>::value, ConstMaskIterator<M>>::type end(const M &v)
+{
+    return { v, M::Size };
 }
 
 template<typename M> constexpr BitmaskIterator begin(const WhereMask<M> &w)
