@@ -421,7 +421,7 @@ template<typename V> void rangeFor()
     {
         M m(Vc::One);
         for (auto i : m) {
-            COMPARE(i, true);
+            VERIFY(i);
         }
         bool b = true;
         for (auto &i : m) {
