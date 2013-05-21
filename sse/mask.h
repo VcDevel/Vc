@@ -21,6 +21,7 @@
 #define SSE_MASK_H
 
 #include "intrinsics.h"
+#include "../common/maskentry.h"
 #include "macros.h"
 
 Vc_IMPL_NAMESPACE_BEGIN
@@ -59,6 +60,7 @@ template<unsigned int VectorSize> class Mask
     friend class Mask<8u>;
     friend class Mask<16u>;
     friend class Float8Mask;
+    typedef Common::MaskBool<16 / VectorSize> MaskBool;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
@@ -159,6 +161,7 @@ template<unsigned int VectorSize> class Mask
 
         template<unsigned int OtherSize> Vc_ALWAYS_INLINE Vc_PURE Mask<OtherSize> cast() const { return Mask<OtherSize>(k); }
 
+        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return reinterpret_cast<MaskBool *>(&k)[index]; }
         Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
@@ -328,6 +331,7 @@ class Float8Mask
         PartialSize = 4,
         VectorSize = 8
     };
+    typedef Common::MaskBool<32 / VectorSize> MaskBool;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
@@ -477,6 +481,7 @@ class Float8Mask
 
         Vc_ALWAYS_INLINE Vc_PURE const M256 &data () const { return k; }
 
+        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return reinterpret_cast<MaskBool *>(&k)[index]; }
         Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const {
             return (toInt() & (1 << index)) != 0;
         }
