@@ -57,32 +57,8 @@ namespace
         Vc_ALWAYS_INLINE bool operator> (const Iterator<V> &rhs) const { return i >  rhs.i; }
         Vc_ALWAYS_INLINE bool operator>=(const Iterator<V> &rhs) const { return i >= rhs.i; }
     };/*}}}*/
-    template<typename V> class ConstIterator/*{{{*/
-    {
-        const V &v;
-        size_t i;
-    public:
-        ConstIterator(const V &_v, size_t _i) : v(_v), i(_i) {}
-        ConstIterator(const ConstIterator &) = default;
-        ConstIterator(ConstIterator &&) = default;
 
-        Vc_ALWAYS_INLINE decltype(v[i]) operator->() const { return v[i]; }
-        Vc_ALWAYS_INLINE decltype(v[i]) operator*() const { return v[i]; }
-
-        Vc_ALWAYS_INLINE ConstIterator &operator++()    { ++i; return *this; }
-        Vc_ALWAYS_INLINE ConstIterator  operator++(int) { ConstIterator tmp = *this; ++i; return tmp; }
-
-        Vc_ALWAYS_INLINE ConstIterator &operator--()    { --i; return *this; }
-        Vc_ALWAYS_INLINE ConstIterator  operator--(int) { ConstIterator tmp = *this; --i; return tmp; }
-
-        // XXX: doesn't check &v == &rhs.v
-        Vc_ALWAYS_INLINE bool operator==(const ConstIterator<V> &rhs) const { return i == rhs.i; }
-        Vc_ALWAYS_INLINE bool operator!=(const ConstIterator<V> &rhs) const { return i != rhs.i; }
-        Vc_ALWAYS_INLINE bool operator< (const ConstIterator<V> &rhs) const { return i <  rhs.i; }
-        Vc_ALWAYS_INLINE bool operator<=(const ConstIterator<V> &rhs) const { return i <= rhs.i; }
-        Vc_ALWAYS_INLINE bool operator> (const ConstIterator<V> &rhs) const { return i >  rhs.i; }
-        Vc_ALWAYS_INLINE bool operator>=(const ConstIterator<V> &rhs) const { return i >= rhs.i; }
-    };/*}}}*/
+    template<typename V> using ConstIterator = Iterator<const V>;
 
     class BitmaskIterator/*{{{*/
     {
