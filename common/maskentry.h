@@ -41,6 +41,30 @@ public:
     }
 };
 
+namespace
+{
+    template<size_t Bytes> struct MaskBoolStorage;
+    template<> struct MaskBoolStorage<1> { typedef signed char type; };
+    template<> struct MaskBoolStorage<2> { typedef signed short type; };
+    template<> struct MaskBoolStorage<4> { typedef signed int type; };
+    template<> struct MaskBoolStorage<8> { typedef signed long long type; };
+} // anonymous namespace
+
+template<size_t Bytes> class MaskBool
+{
+    typedef typename MaskBoolStorage<Bytes>::type storage_type Vc_MAY_ALIAS;
+    storage_type data;
+public:
+    MaskBool(bool x) : data(x ? -1 : 0) {}
+    MaskBool &operator=(bool x) { data = x ? -1 : 0; return *this; }
+
+    MaskBool(const MaskBool &) = default;
+    MaskBool(MaskBool &&) = default;
+    MaskBool &operator=(const MaskBool &) = default;
+
+    operator bool() const { return (data & 1) != 0; }
+} Vc_MAY_ALIAS;
+
 Vc_NAMESPACE_END
 
 #include "undomacros.h"

@@ -35,6 +35,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
     friend class Mask<8u, 32u>; // float_v, (u)int_v
     friend class Mask<8u, 16u>; // (u)short_v
     friend class Mask<16u, 16u>; // (u)char_v
+    typedef Common::MaskBool<32 / VectorSize> MaskBool;
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)
 
@@ -102,7 +103,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         Vc_ALWAYS_INLINE m256i dataI() const { return _mm256_castps_si256(k); }
         Vc_ALWAYS_INLINE m256d dataD() const { return _mm256_castps_pd(k); }
 
-        Vc_ALWAYS_INLINE Common::MaskEntry<Mask> operator[](size_t index) { return { *this, index }; }
+        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return reinterpret_cast<MaskBool *>(&k)[index]; }
         Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
@@ -123,6 +124,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
     friend class Mask<8u, 32u>; // float_v, (u)int_v
     friend class Mask<8u, 16u>; // (u)short_v
     friend class Mask<16u, 16u>; // (u)char_v
+    typedef Common::MaskBool<16 / VectorSize> MaskBool;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
@@ -188,7 +190,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
         Vc_ALWAYS_INLINE m128i dataI() const { return avx_cast<m128i>(k); }
         Vc_ALWAYS_INLINE m128d dataD() const { return avx_cast<m128d>(k); }
 
-        Vc_ALWAYS_INLINE Common::MaskEntry<Mask> operator[](size_t index) { return { *this, index }; }
+        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return reinterpret_cast<MaskBool *>(&k)[index]; }
         Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
