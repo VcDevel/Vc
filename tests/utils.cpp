@@ -410,6 +410,11 @@ template<typename V> void rangeFor()
         n = 0;
         for (auto i : x) {
             COMPARE(i, T(++n));
+            i = T(0);
+        }
+        n = 0;
+        for (auto i : static_cast<const V &>(x)) {
+            COMPARE(i, T(++n));
         }
     }
 
@@ -424,6 +429,11 @@ template<typename V> void rangeFor()
         }
         b = true;
         for (auto i : m) {
+            COMPARE(i, (b = !b));
+            i = true;
+        }
+        b = true;
+        for (auto i : static_cast<const M &>(m)) {
             COMPARE(i, (b = !b));
         }
     }
