@@ -24,6 +24,7 @@
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
+#ifndef VC_IMPL_AVX2
 template<> m128i SortHelper<short>::sort(VTArg _x)
 {
     m128i lo, hi, y, x = _x;
@@ -98,6 +99,7 @@ template<> m128i SortHelper<unsigned short>::sort(VTArg _x)
 
     return _mm_unpacklo_epi16(lo, hi);
 }
+#endif
 
 template<> m256i SortHelper<int>::sort(VTArg _hgfedcba)
 {
@@ -222,10 +224,12 @@ template<> m256 SortHelper<float>::sort(VTArg _hgfedcba)
     return concat(_mm_unpacklo_ps(l, h), _mm_unpackhi_ps(l, h));
 }
 
+#ifndef VC_IMPL_AVX2
 template<> m256 SortHelper<sfloat>::sort(VTArg hgfedcba)
 {
     return SortHelper<float>::sort(hgfedcba);
 }
+#endif
 
 template<> void SortHelper<double>::sort(m256d &VC_RESTRICT x, m256d &VC_RESTRICT y)
 {
