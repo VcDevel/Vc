@@ -24,7 +24,7 @@
 #include "types.h"
 #include "macros.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename T> static Vc_INTRINSIC_L T avx_cast(param128  v) Vc_INTRINSIC_R;
     template<typename T> static Vc_INTRINSIC_L T avx_cast(param128i v) Vc_INTRINSIC_R;
     template<typename T> static Vc_INTRINSIC_L T avx_cast(param128d v) Vc_INTRINSIC_R;

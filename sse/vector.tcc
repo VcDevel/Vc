@@ -22,7 +22,7 @@
 #include "../common/set.h"
 #include "macros.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 template<typename T, int Size> static Vc_ALWAYS_INLINE Vc_CONST const T *_IndexesFromZero() {
     if (Size == 4) {

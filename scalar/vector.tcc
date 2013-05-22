@@ -19,7 +19,7 @@
 
 #include "../common/data.h"
 #include "macros.h"
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 // conversion/casts {{{1
 template<> template<> Vc_INTRINSIC short_v &Vector<short>::operator=(const ushort_v &x) {

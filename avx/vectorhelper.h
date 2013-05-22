@@ -26,7 +26,7 @@
 #include "casts.h"
 #include "macros.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 #define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
 #define OP1(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VTArg a) { return code; }
 #define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VTArg a, VTArg b) { return code; }

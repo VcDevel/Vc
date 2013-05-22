@@ -23,7 +23,7 @@
 #include "intrinsics.h"
 #include "macros.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 template<unsigned int Size1> struct MaskHelper
 {

@@ -23,7 +23,7 @@
 #include "const.h"
 #include "macros.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     /**
      * splits \p v into exponent and mantissa, the sign is kept with the mantissa
      *

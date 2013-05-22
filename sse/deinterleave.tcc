@@ -17,7 +17,7 @@
 
 */
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 inline void deinterleave(Vector<float> &a, Vector<float> &b)
 {

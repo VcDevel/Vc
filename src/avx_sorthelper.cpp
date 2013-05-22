@@ -22,7 +22,7 @@
 #include <avx/sorthelper.h>
 #include <avx/macros.h>
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 template<> m128i SortHelper<short>::sort(VTArg _x)
 {

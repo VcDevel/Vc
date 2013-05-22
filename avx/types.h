@@ -34,7 +34,7 @@
 
 #include "../common/types.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename T> class Vector;
 
     template<unsigned int VectorSize, size_t RegisterWidth> class Mask;

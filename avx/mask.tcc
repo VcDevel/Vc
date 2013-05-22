@@ -17,7 +17,7 @@
 
 */
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 template<> Vc_ALWAYS_INLINE Mask<4, 32>::Mask(const Mask<8, 32> &m)
     : k(concat(_mm_unpacklo_ps(lo128(m.data()), lo128(m.data())),

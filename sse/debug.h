@@ -26,7 +26,7 @@
 #include <iomanip>
 #endif
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 #ifdef NDEBUG
 class DebugStream

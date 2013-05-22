@@ -30,7 +30,7 @@
 
 #include "../common/types.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
         template<typename V = float> class VectorAlignedBaseT {};
         template<typename T> class Vector;
 Vc_IMPL_NAMESPACE_END

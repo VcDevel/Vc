@@ -22,7 +22,7 @@
 #include "../common/set.h"
 #include "macros.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // constants {{{1

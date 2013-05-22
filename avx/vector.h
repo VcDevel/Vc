@@ -38,7 +38,7 @@
 #undef isnan
 #endif
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 enum VectorAlignmentEnum { VectorAlignment = 32 };
 
 template<typename T> class Vector

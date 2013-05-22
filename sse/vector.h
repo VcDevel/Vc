@@ -38,7 +38,7 @@
 #undef isnan
 #endif
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 template<typename T>
 class WriteMaskedVector
 {

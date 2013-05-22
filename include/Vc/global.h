@@ -522,11 +522,6 @@ typedef ImplementationT<
 #define Vc__SYMBOL_VERSION v0
 #endif
 
-#define Vc_IMPL_NAMESPACE_BEGIN \
-    namespace Vc { \
-        inline namespace Vc__SYMBOL_VERSION { \
-            namespace Vc_IMPL_NAMESPACE {
-
 #define Vc_NAMESPACE_BEGIN(NAME) \
     namespace Vc { \
         inline namespace Vc__SYMBOL_VERSION { \

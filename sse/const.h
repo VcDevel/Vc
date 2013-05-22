@@ -24,7 +24,7 @@
 #include "vector.h"
 #include "macros.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename T> class Vector;
 
     template<typename _T> struct Const

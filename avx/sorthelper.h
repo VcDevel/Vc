@@ -22,7 +22,7 @@
 
 #include "types.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 template<typename T> struct SortHelper
 {
     typedef typename VectorTypeHelper<T>::Type VectorType;

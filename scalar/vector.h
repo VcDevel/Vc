@@ -34,7 +34,7 @@
 #include "mask.h"
 #include "writemaskedvector.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     enum VectorAlignmentEnum { VectorAlignment = 4 };
 
 template<typename T>

@@ -24,7 +24,7 @@
 #include <limits>
 #include "macros.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename VectorType, unsigned int Size> struct SortHelper
     {
         static inline Vc_CONST_L VectorType sort(VectorType) Vc_CONST_R;

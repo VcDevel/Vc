@@ -23,7 +23,7 @@
 #include "intrinsics.h"
 #include "types.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename To, typename From> static Vc_ALWAYS_INLINE To Vc_CONST mm128_reinterpret_cast(VC_ALIGNED_PARAMETER(From) v) { return v; }
     template<> Vc_ALWAYS_INLINE _M128I Vc_CONST mm128_reinterpret_cast<_M128I, _M128 >(VC_ALIGNED_PARAMETER(_M128 ) v) { return _mm_castps_si128(v); }
     template<> Vc_ALWAYS_INLINE _M128I Vc_CONST mm128_reinterpret_cast<_M128I, _M128D>(VC_ALIGNED_PARAMETER(_M128D) v) { return _mm_castpd_si128(v); }

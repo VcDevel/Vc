@@ -24,7 +24,7 @@
 #include "../common/bitscanintrinsics.h"
 #include "macros.h"
 
-Vc_IMPL_NAMESPACE_BEGIN
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 template<unsigned int VectorSize> class Mask<VectorSize, 32u>
 {
