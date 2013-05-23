@@ -101,7 +101,7 @@ template<typename I> struct CheckIndexesUnique
 #else
     static void test(const I &indexes)
     {
-        const I test = Base::indexes.sorted();
+        const I test = indexes.sorted();
         VC_ASSERT(I::Size == 1 || (test == test.rotated(1)).isEmpty())
     }
 #endif

@@ -26,6 +26,8 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 template<unsigned int VectorSize = 1> class Mask
 {
     public:
+        enum Constants { Size = VectorSize };
+
         Vc_ALWAYS_INLINE Mask() {}
         Vc_ALWAYS_INLINE explicit Mask(bool b) : m(b) {}
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
@@ -67,7 +69,8 @@ template<unsigned int VectorSize = 1> class Mask
         template<unsigned int OtherSize>
             Vc_ALWAYS_INLINE Mask cast() const { return *this; }
 
-        Vc_ALWAYS_INLINE bool operator[](int) const { return m; }
+        Vc_ALWAYS_INLINE bool &operator[](size_t) { return m; }
+        Vc_ALWAYS_INLINE bool operator[](size_t) const { return m; }
 
         Vc_ALWAYS_INLINE unsigned int count() const { return m ? 1 : 0; }
 
