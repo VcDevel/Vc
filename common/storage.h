@@ -115,16 +115,9 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
         Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return reinterpret_cast<VectorType &>(data.v); }
         Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return reinterpret_cast<const VectorType &>(data.v); }
 
-        Vc_ALWAYS_INLINE Vc_PURE AliasingEntryHelper<VectorMemoryUnion> m(size_t index) {
-            return AliasingEntryHelper<VectorMemoryUnion>(this, index);
-        }
-        Vc_ALWAYS_INLINE void assign(size_t index, EntryType x) {
-            data.m[index] = x;
-        }
-        Vc_ALWAYS_INLINE Vc_PURE EntryType read(size_t index) const {
+        Vc_ALWAYS_INLINE Vc_PURE EntryType &m(size_t index) {
             return data.m[index];
         }
-
         Vc_ALWAYS_INLINE Vc_PURE EntryType m(size_t index) const {
             return data.m[index];
         }
