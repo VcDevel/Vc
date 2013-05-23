@@ -135,7 +135,7 @@ template<> Mask< 8, 16>::operator std::array<bool, 8> &&() const {
 }
 template<> Mask<16, 16>::operator std::array<bool, 16> &&() const {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
-    m128 x = _mm_and_ps(k, avx_cast<__m128>(_mm_set1_epi32(0x01010101)));
+    m128 x = _mm_and_ps(k, avx_cast<m128>(_mm_set1_epi32(0x01010101)));
     std::array<bool, 16> r;
     asm volatile("vmovups %1,%0" : "=m"(*r.data()) : "x"(x));
     return std::move(r);
