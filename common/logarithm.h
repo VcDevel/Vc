@@ -51,8 +51,6 @@
 #include "macros.h"
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
-using Vc::Vc_IMPL_NAMESPACE::Const;
-using Vc::Vc_IMPL_NAMESPACE::Vector;
 enum LogarithmBase {
     BaseE, Base10, Base2
 };

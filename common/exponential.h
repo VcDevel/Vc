@@ -34,11 +34,6 @@
 #include "macros.h"
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
-    using Vc::Vc_IMPL_NAMESPACE::c_log;
-    using Vc::Vc_IMPL_NAMESPACE::Vector;
-    using Vc::Vc_IMPL_NAMESPACE::floor;
-    using Vc::Vc_IMPL_NAMESPACE::ldexp;
-
     static const float log2_e = 1.44269504088896341f;
     static const float MAXLOGF = 88.72283905206835f;
     static const float MINLOGF = -103.278929903431851103f; /* log(2^-149) */
