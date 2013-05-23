@@ -31,7 +31,9 @@ template<typename M> class MaskEntry
 public:
     constexpr MaskEntry(M &m, size_t o) : mask(m), offset(o) {}
     constexpr MaskEntry(const MaskEntry &) = default;
+#ifndef VC_NO_MOVE_CTOR
     constexpr MaskEntry(MaskEntry &&) = default;
+#endif
     Vc_ALWAYS_INLINE MaskEntry &operator=(const MaskEntry &) = default;
 
     Vc_ALWAYS_INLINE Vc_PURE operator bool() const { const M &m = mask; return m[offset]; }
@@ -59,7 +61,9 @@ public:
     MaskBool &operator=(bool x) { data = x ? -1 : 0; return *this; }
 
     MaskBool(const MaskBool &) = default;
+#ifndef VC_NO_MOVE_CTOR
     MaskBool(MaskBool &&) = default;
+#endif
     MaskBool &operator=(const MaskBool &) = default;
 
     operator bool() const { return (data & 1) != 0; }

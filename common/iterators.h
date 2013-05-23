@@ -35,7 +35,9 @@ namespace
     public:
         Iterator(V &_v, size_t _i) : v(_v), i(_i) {}
         Iterator(const Iterator &) = default;
+#ifndef VC_NO_MOVE_CTOR
         Iterator(Iterator &&) = default;
+#endif
 
         Vc_ALWAYS_INLINE decltype(v[i]) operator->() { return v[i]; }
         Vc_ALWAYS_INLINE decltype(v[i]) operator->() const { return v[i]; }
@@ -97,7 +99,9 @@ namespace
     public:
         BitmaskIterator(size_t m) : mask(m) { bit = nextBit(mask); }
         BitmaskIterator(const BitmaskIterator &) = default;
+#ifndef VC_NO_MOVE_CTOR
         BitmaskIterator(BitmaskIterator &&) = default;
+#endif
 
         Vc_ALWAYS_INLINE size_t operator->() const { return bit; }
         Vc_ALWAYS_INLINE size_t operator*() const { return bit; }
