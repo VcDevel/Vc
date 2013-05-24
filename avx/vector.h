@@ -72,12 +72,7 @@ template<typename T> class Vector
         typedef VectorHelper<T> HT;
 
         // cast any m256/m128 to VectorType
-        static Vc_INTRINSIC VectorType _cast(param128  v) { return avx_cast<VectorType>(v); }
-        static Vc_INTRINSIC VectorType _cast(param128i v) { return avx_cast<VectorType>(v); }
-        static Vc_INTRINSIC VectorType _cast(param128d v) { return avx_cast<VectorType>(v); }
-        static Vc_INTRINSIC VectorType _cast(param256  v) { return avx_cast<VectorType>(v); }
-        static Vc_INTRINSIC VectorType _cast(param256i v) { return avx_cast<VectorType>(v); }
-        static Vc_INTRINSIC VectorType _cast(param256d v) { return avx_cast<VectorType>(v); }
+        template<typename V> static Vc_INTRINSIC VectorType _cast(VC_ALIGNED_PARAMETER(V) v) { return avx_cast<VectorType>(v); }
 
 #ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
         typedef Common::VectorMemoryUnion<VectorType, EntryType, typename VectorType::Base> StorageType;
