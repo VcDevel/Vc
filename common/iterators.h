@@ -33,10 +33,10 @@ namespace
         V &v;
         size_t i;
     public:
-        Iterator(V &_v, size_t _i) : v(_v), i(_i) {}
-        Iterator(const Iterator &) = default;
+        constexpr Iterator(V &_v, size_t _i) : v(_v), i(_i) {}
+        constexpr Iterator(const Iterator &) = default;
 #ifndef VC_NO_MOVE_CTOR
-        Iterator(Iterator &&) = default;
+        constexpr Iterator(Iterator &&) = default;
 #endif
 
         Vc_ALWAYS_INLINE decltype(v[i]) operator->() { return v[i]; }
