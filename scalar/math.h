@@ -49,6 +49,11 @@ template<typename T> static Vc_ALWAYS_INLINE Vector<T> abs  (const Vector<T> &x)
     return Vector<T>(std::abs(x.data()));
 }
 
+template<> Vc_ALWAYS_INLINE int_v abs(const int_v &x) { return x < 0 ? -x : x; }
+template<> Vc_ALWAYS_INLINE uint_v abs(const uint_v &x) { return x; }
+template<> Vc_ALWAYS_INLINE short_v abs(const short_v &x) { return x < 0 ? -x : x; }
+template<> Vc_ALWAYS_INLINE ushort_v abs(const ushort_v &x) { return x; }
+
 template<typename T> static Vc_ALWAYS_INLINE void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos)
 {
 #if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincosf)) || (!defined(VC_CLANG) && defined(__GNUC__) && !defined(_WIN32))
