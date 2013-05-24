@@ -24,7 +24,7 @@
 #include "Memory"
 #include <iostream>
 
-#if defined(__GNUC__) && !defined(_WIN32)
+#if defined(__GNUC__) && !defined(_WIN32) && defined(_GLIBCXX_OSTREAM)
 #define VC_HACK_OSTREAM_FOR_TTY 1
 #endif
 
