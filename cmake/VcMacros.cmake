@@ -328,6 +328,10 @@ macro(vc_set_preferred_compiler_flags)
       set(Vc_XOP_INTRINSICS_BROKEN true)
       set(Vc_FMA4_INTRINSICS_BROKEN true)
    elseif(Vc_COMPILER_IS_MSVC)
+      ##################################################################################################
+      #                                      Microsoft Visual Studio                                   #
+      ##################################################################################################
+
       if(_add_warning_flags)
          AddCompilerFlag("/wd4800") # Disable warning "forcing value to bool"
          AddCompilerFlag("/wd4996") # Disable warning about strdup vs. _strdup
@@ -355,6 +359,10 @@ macro(vc_set_preferred_compiler_flags)
          UserWarning("MSVC before 2012 has a broken std::vector::resize implementation. STL + Vc code will probably not compile.")
       endif()
    elseif(Vc_COMPILER_IS_CLANG)
+      ##################################################################################################
+      #                                              Clang                                             #
+      ##################################################################################################
+
       # for now I don't know of any arguments I want to pass. -march and stuff is tried by OptimizeForArchitecture...
       if(Vc_CLANG_VERSION VERSION_EQUAL "3.0")
          UserWarning("Clang 3.0 has serious issues to compile Vc code and will most likely crash when trying to do so.\nPlease update to a recent clang version.")
