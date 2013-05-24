@@ -69,7 +69,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
 
         Vc_ALWAYS_INLINE Mask &operator=(const Mask &) = default;
         Vc_ALWAYS_INLINE_L Mask &operator=(const std::array<bool, Size> &values) Vc_ALWAYS_INLINE_R;
-        operator std::array<bool, Size> &&() const;
+        Vc_ALWAYS_INLINE_L operator std::array<bool, Size>() const Vc_ALWAYS_INLINE_R;
 
         Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return 0 != _mm256_testc_ps(k, rhs.k); }
         Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return 0 == _mm256_testc_ps(k, rhs.k); }
@@ -157,7 +157,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
 
         Vc_ALWAYS_INLINE Mask &operator=(const Mask &) = default;
         Vc_ALWAYS_INLINE_L Mask &operator=(const std::array<bool, Size> &values) Vc_ALWAYS_INLINE_R;
-        operator std::array<bool, Size> &&() const;
+        Vc_ALWAYS_INLINE_L operator std::array<bool, Size>() const Vc_ALWAYS_INLINE_R;
 
         Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return 0 != _mm_testc_si128(dataI(), rhs.dataI()); }
         Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return 0 == _mm_testc_si128(dataI(), rhs.dataI()); }

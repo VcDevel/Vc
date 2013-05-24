@@ -106,7 +106,7 @@ template<> Vc_ALWAYS_INLINE Mask<16, 16> &Mask<16, 16>::operator=(const std::arr
     return *this;
 }
 
-template<> Mask< 4, 32>::operator std::array<bool, 4> &&() const {
+template<> Vc_ALWAYS_INLINE Mask< 4, 32>::operator std::array<bool, 4>() const {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
     m128i x = _mm_packs_epi32(lo128(dataI()), hi128(dataI())); // 64bit -> 32bit
     x = _mm_packs_epi32(x, x); // 32bit -> 16bit
@@ -114,31 +114,31 @@ template<> Mask< 4, 32>::operator std::array<bool, 4> &&() const {
     x = _mm_packs_epi16(x, x); // 16bit ->  8bit
     std::array<bool, 4> r;
     asm volatile("vmovd %1,%0" : "=m"(*r.data()) : "x"(x));
-    return std::move(r);
+    return r;
 }
-template<> Mask< 8, 32>::operator std::array<bool, 8> &&() const {
+template<> Vc_ALWAYS_INLINE Mask< 8, 32>::operator std::array<bool, 8>() const {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
     m128i x = _mm_packs_epi32(lo128(dataI()), hi128(dataI())); // 32bit -> 16bit
     x = _mm_srli_epi16(x, 15);
     x = _mm_packs_epi16(x, x); // 16bit ->  8bit
     std::array<bool, 8> r;
     asm volatile("vmovq %1,%0" : "=m"(*r.data()) : "x"(x));
-    return std::move(r);
+    return r;
 }
-template<> Mask< 8, 16>::operator std::array<bool, 8> &&() const {
+template<> Vc_ALWAYS_INLINE Mask< 8, 16>::operator std::array<bool, 8>() const {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
     m128i x = _mm_srli_epi16(dataI(), 15);
     x = _mm_packs_epi16(x, x); // 16bit ->  8bit
     std::array<bool, 8> r;
     asm volatile("vmovq %1,%0" : "=m"(*r.data()) : "x"(x));
-    return std::move(r);
+    return r;
 }
-template<> Mask<16, 16>::operator std::array<bool, 16> &&() const {
+template<> Vc_ALWAYS_INLINE Mask<16, 16>::operator std::array<bool, 16>() const {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
     m128 x = _mm_and_ps(k, avx_cast<m128>(_mm_set1_epi32(0x01010101)));
     std::array<bool, 16> r;
     asm volatile("vmovups %1,%0" : "=m"(*r.data()) : "x"(x));
-    return std::move(r);
+    return r;
 }
 
 #ifndef VC_IMPL_POPCNT
