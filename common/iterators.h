@@ -97,7 +97,7 @@ namespace
             return m;
         }
     public:
-        BitmaskIterator(size_t m) : mask(m) { bit = nextBit(mask); }
+        BitmaskIterator(size_t m) : mask(m), bit(nextBit(m)) {}
         BitmaskIterator(const BitmaskIterator &) = default;
 #ifndef VC_NO_MOVE_CTOR
         BitmaskIterator(BitmaskIterator &&) = default;
@@ -144,12 +144,12 @@ template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value ||
     return { v, V::Size };
 }
 
-template<typename M> constexpr BitmaskIterator begin(const WhereMask<M> &w)
+template<typename M> Vc_ALWAYS_INLINE BitmaskIterator begin(const WhereMask<M> &w)
 {
     return w.mask.toInt();
 }
 
-template<typename M> constexpr BitmaskIterator end(const WhereMask<M> &)
+template<typename M> Vc_ALWAYS_INLINE BitmaskIterator end(const WhereMask<M> &)
 {
     return 0;
 }
