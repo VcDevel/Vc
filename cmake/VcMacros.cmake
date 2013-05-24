@@ -374,6 +374,8 @@ macro(vc_set_preferred_compiler_flags)
       # disable these warnings because clang shows them for function overloads that were discarded via SFINAE
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wno-local-type-template-args")
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wno-unnamed-type-template-args")
+
+      AddCompilerFlag(-stdlib=libc++)
    endif()
 
    if(NOT Vc_COMPILER_IS_MSVC)
