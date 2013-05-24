@@ -50,6 +50,13 @@ macro(AddCompilerFlag _flag)
       int main() { return 0; }")
       check_c_compiler_flag("${_flag}" check_c_compiler_flag_${_flag_esc} "${_code}")
       check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag_esc} "${_code}")
+   elseif("${_flag}" STREQUAL "-stdlib=libc++")
+      # Compiling with libc++ not only requires a compiler that understands it, but also
+      # the libc++ headers itself
+      set(_code "#include <iostream>
+      int main() { return 0; }")
+      check_c_compiler_flag("${_flag}" check_c_compiler_flag_${_flag_esc} "${_code}")
+      check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag_esc} "${_code}")
    else()
       check_c_compiler_flag("${_flag}" check_c_compiler_flag_${_flag_esc})
       check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag_esc})
