@@ -295,7 +295,7 @@ template<> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<4>::count() const
 
 template<> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<8>::count() const
 {
-#ifdef VC_IMPL_SSE4_2
+#ifdef VC_IMPL_POPCNT
     return _mm_popcnt_u32(_mm_movemask_epi8(dataI())) / 2;
 #else
 //X     int tmp = _mm_movemask_epi8(dataI());
@@ -313,7 +313,7 @@ template<> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<8>::count() const
 template<> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<16>::count() const
 {
     int tmp = _mm_movemask_epi8(dataI());
-#ifdef VC_IMPL_SSE4_2
+#ifdef VC_IMPL_POPCNT
     return _mm_popcnt_u32(tmp);
 #else
     tmp = (tmp & 0x5555) + ((tmp >> 1) & 0x5555);
