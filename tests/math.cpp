@@ -270,7 +270,11 @@ template<typename V> void testLog2()/*{{{*/
 #else
     setFuzzyness<float>(1);
 #endif
+#if defined(VC_MSVC) && defined(VC_IMPL_Scalar)
+    setFuzzyness<double>(2);
+#else
     setFuzzyness<double>(1);
+#endif
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log2>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
