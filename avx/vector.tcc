@@ -1317,29 +1317,17 @@ template<> Vc_INTRINSIC Vector<double> Vector<double>::copySign(Vector<double>::
 template<> Vc_INTRINSIC Vector<float> Vector<float>::exponent() const
 {
     VC_ASSERT((*this >= 0.f).isFull());
-    m128i tmp0 = _mm_srli_epi32(avx_cast<m128i>(d.v()), 23);
-    m128i tmp1 = _mm_srli_epi32(avx_cast<m128i>(hi128(d.v())), 23);
-    tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
-    tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
-    return _mm256_cvtepi32_ps(concat(tmp0, tmp1));
+    return Internal::exponent(d.v());
 }
 template<> Vc_INTRINSIC Vector<sfloat> Vector<sfloat>::exponent() const
 {
     VC_ASSERT((*this >= 0.f).isFull());
-    m128i tmp0 = _mm_srli_epi32(avx_cast<m128i>(d.v()), 23);
-    m128i tmp1 = _mm_srli_epi32(avx_cast<m128i>(hi128(d.v())), 23);
-    tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
-    tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
-    return _mm256_cvtepi32_ps(concat(tmp0, tmp1));
+    return Internal::exponent(d.v());
 }
 template<> Vc_INTRINSIC Vector<double> Vector<double>::exponent() const
 {
     VC_ASSERT((*this >= 0.).isFull());
-    m128i tmp0 = _mm_srli_epi64(avx_cast<m128i>(d.v()), 52);
-    m128i tmp1 = _mm_srli_epi64(avx_cast<m128i>(hi128(d.v())), 52);
-    tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x3ff));
-    tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x3ff));
-    return _mm256_cvtepi32_pd(avx_cast<m128i>(Mem::shuffle<X0, X2, Y0, Y2>(avx_cast<m128>(tmp0), avx_cast<m128>(tmp1))));
+    return Internal::exponent(d.v());
 }
 // }}}1
 // Random {{{1

@@ -29,6 +29,31 @@ namespace Vc
 {
 namespace SSE
 {
+
+namespace Internal
+{
+Vc_INTRINSIC Vc_CONST __m128 exponent(__m128 v)
+{
+    __m128i tmp = _mm_srli_epi32(_mm_castps_si128(v), 23);
+    tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x7f));
+    return _mm_cvtepi32_ps(tmp);
+}
+Vc_INTRINSIC Vc_CONST M256 exponent(VC_ALIGNED_PARAMETER(M256) v)
+{
+    __m128i tmp0 = _mm_srli_epi32(_mm_castps_si128(v[0]), 23);
+    __m128i tmp1 = _mm_srli_epi32(_mm_castps_si128(v[1]), 23);
+    tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
+    tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
+    return M256::create( _mm_cvtepi32_ps(tmp0), _mm_cvtepi32_ps(tmp1));
+}
+Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
+{
+    __m128i tmp = _mm_srli_epi64(_mm_castpd_si128(v), 52);
+    tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x3ff));
+    return _mm_cvtepi32_pd(_mm_shuffle_epi32(tmp, 0x08));
+}
+} // namespace Internal
+
     template<typename VectorType, unsigned int Size> struct SortHelper
     {
         static inline Vc_CONST_L VectorType sort(VectorType) Vc_CONST_R;
