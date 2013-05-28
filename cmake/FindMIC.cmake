@@ -191,10 +191,18 @@ else()
       if(_ext STREQUAL "c")
          set(_compiler "${MIC_CC}")
       endif()
+      set(_flags "${_mic_cflags}")
+      string(TOUPPER "${CMAKE_BUILD_TYPE}" _tmp)
+      set(_tmp "CMAKE_CXX_FLAGS_${_tmp}")
+      string(REPLACE " " ";" _flags "${CMAKE_CXX_FLAGS} ${${_tmp}} ${_flags}")
+      get_directory_property(_inc INCLUDE_DIRECTORIES)
+      foreach(_i ${_inc})
+         list(APPEND _flags "-I${_i}")
+      endforeach()
       add_custom_command(OUTPUT "${${_output}}"
          COMMAND "${_compiler}" -mmic -fPIC
-         -DVC_IMPL=XeonPhi
-         ${_mic_cflags} ${ARGN} -c -o "${${_output}}" "${_abs}"
+         -DVC_IMPL=MIC
+         ${_flags} ${ARGN} -c -o "${${_output}}" "${_abs}"
          DEPENDS "${_abs}"
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
          COMMENT "Compiling (MIC) ${${_output}}"
@@ -249,34 +257,37 @@ else()
          set(_objectsStr "${_objectsStr} \"${_obj}\"")
       endforeach()
 
+      set(_outdir "${CMAKE_CURRENT_BINARY_DIR}/x86_64-k1om-linux")
+      file(MAKE_DIRECTORY "${_outdir}")
+
       #TODO: handle STATIC/SHARED/MODULE differently
       set(_output "lib${_target}.a")
-      set(_linkscript "CMakeFiles/${_target}.dir/link.txt")
+      set(_linkscript "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${_target}.dir/link.txt")
       set(_cleanscript "CMakeFiles/${_target}.dir/cmake_clean_target.cmake")
-      file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${_linkscript}"
+      file(WRITE "${_linkscript}"
          "${MIC_AR} cr ${_output} ${_objectsStr}
 ${MIC_RANLIB} ${_output}
 ")
       file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${_cleanscript}"
          "FILE(REMOVE_RECURSE \"${_output}\")
 ")
-
-      add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${_output}"
+      add_custom_command(OUTPUT "${_outdir}/${_output}"
          COMMAND "${CMAKE_COMMAND}" -E cmake_link_script "${_linkscript}" --verbose=$(VERBOSE)
          DEPENDS ${_objects}
-         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+         WORKING_DIRECTORY "${_outdir}"
          COMMENT "Linking (MIC) ${_output}"
          VERBATIM
          )
       add_custom_target("${_target}" ${_all}
-         DEPENDS "${_output}"
+         DEPENDS "${_outdir}/${_output}"
          COMMENT ""
          SOURCES ${_srcs}
          )
       set_target_properties("${_target}" PROPERTIES
-         OUTPUT_NAME "${CMAKE_CURRENT_BINARY_DIR}/${_output}"
+         OUTPUT_NAME "${_outdir}/${_output}"
          )
    endmacro()
+
    macro(mic_add_executable _target)
       set(_state 0)
       set(_all ALL)
