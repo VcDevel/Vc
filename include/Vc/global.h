@@ -412,7 +412,7 @@ static constexpr StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, Alig
  *
  * \see ExtraInstructions
  */
-enum Implementation {
+enum Implementation { // TODO: make enum class of uint32_t
     /// uses only fundamental types
     ScalarImpl,
     /// x86 SSE + SSE2
@@ -444,7 +444,7 @@ enum Implementation {
  * But there are additional instructions that are not necessarily required by this list. These are
  * covered in this enum.
  */
-enum ExtraInstructions {
+enum ExtraInstructions { // TODO: make enum class of uint32_t
     //! Support for float16 conversions in hardware
     Float16cInstructions  = 0x01000,
     //! Support for FMA4 instructions
