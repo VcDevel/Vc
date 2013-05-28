@@ -119,6 +119,7 @@
 #define SSE4_2 0x00700000
 #define AVX    0x00800000
 #define AVX2   0x00900000
+#define MIC    0x00A00000
 
 #define XOP    0x00000001
 #define FMA4   0x00000002
@@ -155,7 +156,9 @@
 
 #ifndef VC_IMPL
 
-#  if defined(__AVX2__)
+#  if defined(__MIC__)
+#    define VC_IMPL_MIC 1
+#  elif defined(__AVX2__)
 #    define VC_IMPL_AVX2 1
 #    define VC_IMPL_AVX 1
 #  elif defined(__AVX__)
@@ -188,7 +191,7 @@
 #      define VC_IMPL_Scalar 1
 #    endif
 #  endif
-#  if defined(VC_IMPL_AVX2) || defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE)
+#  if defined(VC_IMPL_AVX2) || defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE) || defined(VC_IMPL_MIC)
 #    ifdef __FMA4__
 #      define VC_IMPL_FMA4 1
 #    endif
@@ -211,7 +214,10 @@
 
 #else // VC_IMPL
 
-#  if (VC_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
+#  if (VC_IMPL & IMPL_MASK) == MIC // MIC supersedes everything else
+#    define VC_IMPL_MIC 1
+#    define VC_IMPL_POPCNT 1
+#  elif (VC_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
 #    define VC_IMPL_AVX2 1
 #    define VC_IMPL_AVX 1
 #  elif (VC_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
@@ -306,6 +312,7 @@
 #    undef VC_IMPL_SSSE3
 #    undef VC_IMPL_AVX
 #    undef VC_IMPL_AVX2
+#    undef VC_IMPL_MIC
 #    undef VC_IMPL_FMA4
 #    undef VC_IMPL_XOP
 #    undef VC_IMPL_F16C
@@ -316,7 +323,7 @@
 #    define VC_IMPL_Scalar 1
 #endif
 
-# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX)
+# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX) && !defined(VC_IMPL_MIC)
 #  error "No suitable Vc implementation was selected! Probably VC_IMPL was set to an invalid value."
 # elif defined(VC_IMPL_SSE) && !defined(VC_IMPL_SSE2)
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
@@ -331,6 +338,7 @@
 #undef SSE4_2
 #undef AVX
 #undef AVX2
+#undef MIC
 
 #undef XOP
 #undef FMA4
@@ -421,6 +429,8 @@ enum Implementation {
     AVXImpl,
     /// x86 AVX + AVX2
     AVX2Impl,
+    /// Intel Xeon Phi
+    MICImpl,
     ImplementationMask = 0xfff
 };
 
@@ -458,6 +468,9 @@ enum ExtraInstructions {
 #ifdef VC_IMPL_Scalar
 #define VC_IMPL ::Vc::ScalarImpl
 #define Vc_IMPL_NAMESPACE Scalar
+#elif defined(VC_IMPL_MIC)
+#define VC_IMPL ::Vc::MICImpl
+#define Vc_IMPL_NAMESPACE MIC
 #elif defined(VC_IMPL_AVX2)
 #define VC_IMPL ::Vc::AVX2Impl
 #define Vc_IMPL_NAMESPACE AVX2
