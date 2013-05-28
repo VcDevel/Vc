@@ -31,6 +31,27 @@ namespace Vc
 {
 namespace AVX
 {
+
+namespace Internal
+{
+Vc_INTRINSIC Vc_CONST m256 exponent(m256 v)
+{
+    m128i tmp0 = _mm_srli_epi32(avx_cast<m128i>(v), 23);
+    m128i tmp1 = _mm_srli_epi32(avx_cast<m128i>(hi128(v)), 23);
+    tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
+    tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
+    return _mm256_cvtepi32_ps(concat(tmp0, tmp1));
+}
+Vc_INTRINSIC Vc_CONST m256d exponent(m256d v)
+{
+    m128i tmp0 = _mm_srli_epi64(avx_cast<m128i>(v), 52);
+    m128i tmp1 = _mm_srli_epi64(avx_cast<m128i>(hi128(v)), 52);
+    tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x3ff));
+    tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x3ff));
+    return _mm256_cvtepi32_pd(avx_cast<m128i>(Mem::shuffle<X0, X2, Y0, Y2>(avx_cast<m128>(tmp0), avx_cast<m128>(tmp1))));
+}
+} // namespace Internal
+
 #define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
 #define OP1(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VTArg a) { return code; }
 #define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VTArg a, VTArg b) { return code; }
