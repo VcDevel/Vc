@@ -29,6 +29,40 @@ Vc_PUBLIC_NAMESPACE_BEGIN
 // helper type to implement sfloat_v (Vector<Vc::sfloat>)
 struct sfloat {};
 
+/* TODO: add type for half-float, something along these lines:
+class half_float
+{
+    uint16_t data;
+public:
+    constexpr half_float() : data(0) {}
+    constexpr half_float(const half_float &) = default;
+    constexpr half_float(half_float &&) = default;
+    constexpr half_float &operator=(const half_float &) = default;
+
+    constexpr explicit half_float(float);
+    constexpr explicit half_float(double);
+    constexpr explicit half_float(int);
+    constexpr explicit half_float(unsigned int);
+
+    explicit operator float       () const;
+    explicit operator double      () const;
+    explicit operator int         () const;
+    explicit operator unsigned int() const;
+
+    bool operator==(half_float rhs) const;
+    bool operator!=(half_float rhs) const;
+    bool operator>=(half_float rhs) const;
+    bool operator<=(half_float rhs) const;
+    bool operator> (half_float rhs) const;
+    bool operator< (half_float rhs) const;
+
+    half_float operator+(half_float rhs) const;
+    half_float operator-(half_float rhs) const;
+    half_float operator*(half_float rhs) const;
+    half_float operator/(half_float rhs) const;
+};
+*/
+
 // TODO: all of the following doesn't really belong into the toplevel Vc namespace. An anonymous
 // namespace might be enough:
 
