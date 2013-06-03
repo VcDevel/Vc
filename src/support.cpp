@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2010-2012 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -71,6 +71,9 @@ bool isImplementationSupported(Implementation impl)
         return CpuId::hasOsxsave() && CpuId::hasAvx() && xgetbvCheck(0x6);
     case AVX2Impl:
         return false;
+    case MICImpl:
+        return CpuId::processorFamily() == 0xB && CpuId::processorModel() == 0x1
+            && CpuId::isIntel();
     case ImplementationMask:
         return false;
     }
@@ -82,6 +85,10 @@ Vc::Implementation bestImplementationSupported()
 {
     CpuId::init();
 
+    if (CpuId::processorFamily() == 0xB && CpuId::processorModel() == 0x1
+            && CpuId::isIntel()) {
+        return Vc::MICImpl;
+    }
     if (!CpuId::hasSse2 ()) return Vc::ScalarImpl;
     if (!CpuId::hasSse3 ()) return Vc::SSE2Impl;
     if (!CpuId::hasSsse3()) return Vc::SSE3Impl;
