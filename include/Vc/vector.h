@@ -25,6 +25,9 @@
 #ifdef VC_IMPL_Scalar
 # include "scalar/vector.h"
 # include "scalar/helperimpl.h"
+#elif defined(VC_IMPL_MIC)
+# include "mic/vector.h"
+# include "mic/helperimpl.h"
 #elif defined(VC_IMPL_AVX)
 # include "avx/vector.h"
 # include "avx/helperimpl.h"
