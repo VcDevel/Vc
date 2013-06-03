@@ -22,15 +22,16 @@
 
 using namespace Vc;
 
-template<typename Vec> unsigned long alignmentMask()
+template<typename Vec> constexpr unsigned long alignmentMask()
 {
-    if (Vec::Size == 1) {
-        // on 32bit the maximal alignment is 4 Bytes, even for 8-Byte doubles.
-        return std::min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1;
-    }
-    // sizeof(SSE::sfloat_v) is too large
-    // AVX::VectorAlignment is too large
-    return std::min<unsigned long>(sizeof(Vec), VectorAlignment) - 1;
+    return Vec::Size == 1 ? (
+            // on 32bit the maximal alignment is 4 Bytes, even for 8-Byte doubles.
+            std::min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1
+        ) : (
+            // sizeof(SSE::sfloat_v) is too large
+            // AVX::VectorAlignment is too large
+            std::min<size_t>(sizeof(Vec), VectorAlignment) - 1
+        );
 }
 
 template<typename Vec> void checkAlignment()
