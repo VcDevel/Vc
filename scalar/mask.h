@@ -94,8 +94,8 @@ struct ForeachHelper
 };
 
 #define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::Scalar::ForeachHelper _Vc_foreach_bit_helper(_mask_); _Vc_foreach_bit_helper.continu; _Vc_foreach_bit_helper.next()) \
-        for (_it_ = 0; _Vc_foreach_bit_helper.continu; _Vc_foreach_bit_helper.next())
+    for (Vc::Scalar::ForeachHelper Vc__make_unique(foreach_bit_obj)(_mask_); Vc__make_unique(foreach_bit_obj).continu; Vc__make_unique(foreach_bit_obj).next()) \
+        for (_it_ = 0; Vc__make_unique(foreach_bit_obj).continu; Vc__make_unique(foreach_bit_obj).next())
 
 } // namespace Scalar
 } // namespace Vc

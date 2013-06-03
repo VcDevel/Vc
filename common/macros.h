@@ -312,6 +312,8 @@ do {} while ( false )
 #define VC_ALIGNED_PARAMETER(_Type) const _Type
 #endif
 
+#define Vc__make_unique(name) _VC_CAT(Vc__,name,_,__LINE__)
+
 #if defined(VC_ICC) || defined(VC_CLANG)
 #define VC_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0)->member) - reinterpret_cast<const char *>(0))
 #elif defined(VC_GCC) && VC_GCC < 0x40500
