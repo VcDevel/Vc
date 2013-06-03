@@ -205,6 +205,7 @@ else()
          -DVC_IMPL=MIC
          ${_flags} ${ARGN} -c -o "${${_output}}" "${_abs}"
          DEPENDS "${_abs}"
+         IMPLICIT_DEPENDS CXX "${_abs}"
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
          COMMENT "Compiling (MIC) ${${_output}}"
          VERBATIM
@@ -319,7 +320,7 @@ ${MIC_RANLIB} ${_output}
             get_target_property(_tmp "${_arg}" OUTPUT_NAME)
             if(_tmp)
                set(_libs ${_libs} "${_tmp}")
-               set(_libTargets ${_libTargets} "${_tmp}")
+               set(_libTargets ${_libTargets} "${_tmp}" "${_arg}")
             else()
                get_filename_component(_lpath "${_arg}" PATH)
                get_filename_component(_lname "${_arg}" NAME)
