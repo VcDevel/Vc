@@ -107,6 +107,32 @@ macro(vc_add_test _name)
          vc_add_run_target(${_target})
       endif()
    endif()
+
+   if(MIC_NATIVE_FOUND)
+      set(DVC_IMPL "-DVC_IMPL=MIC")
+      set(_target "${name}_mic")
+      list(FIND disabled_targets ${_target} _disabled)
+      if(_disabled EQUAL -1)
+         set(_exclude)
+      else()
+         set(_exclude EXCLUDE_FROM_ALL)
+      endif()
+      file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/mic/*.tcc" "${CMAKE_SOURCE_DIR}/mic/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
+      add_file_dependencies(${_name}.cpp "${_extra_deps}")
+      mic_add_executable(${_target}
+         LINK_LIBRARIES Vc_MIC
+         COMPILE_FLAGS "${DVC_IMPL} ${_extra_flags}"
+         SOURCES ${_name}.cpp
+         ${_exclude}
+         )
+      add_target_property(${_target} LABELS "MIC")
+      if(_disabled EQUAL -1)
+         add_dependencies(MIC ${_target})
+         add_test(${_target} "${CMAKE_CURRENT_BINARY_DIR}/${_target}")
+         set_property(TEST ${_target} PROPERTY LABELS "MIC")
+         #vc_add_run_target(${_target})
+      endif()
+   endif()
 endmacro(vc_add_test)
 
 vc_add_test(stlcontainer)
