@@ -23,9 +23,23 @@
 #include "../common/data.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+Vc_NAMESPACE_BEGIN(MIC)
 
 ALIGN(16) extern const char  _IndexesFromZero8[16];
+
+struct STRUCT_ALIGN1(64) c_general
+{
+    static const float oneFloat;
+    static const unsigned int absMaskFloat[2];
+    static const unsigned int signMaskFloat[2];
+    static const unsigned int highMaskFloat;
+    static const unsigned short minShort[2];
+    static const unsigned short one16[2];
+    static const float _2power31;
+    static const double oneDouble;
+    static const unsigned long long frexpMask;
+    static const unsigned long long highMaskDouble;
+} STRUCT_ALIGN2(64);
 
 Vc_NAMESPACE_END
 
