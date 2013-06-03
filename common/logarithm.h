@@ -214,7 +214,7 @@ struct LogImpl
         const M denormal = x <= C::min();
 
         x(denormal) *= V(Vc_buildDouble(1, 0, 54)); // 2²⁵
-        V exponent = x.exponent(); // = ⎣log₂(x)⎦
+        V exponent = Internal::exponent(x.data()); // = ⎣log₂(x)⎦
         exponent(denormal) -= 54;
 
         x.setZero(C::exponentMask()); // keep only the fractional part ⇒ x ∈ [1, 2[

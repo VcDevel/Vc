@@ -439,6 +439,10 @@ Vc_NAMESPACE_END
 #include <popcntintrin.h>
 #endif
 
+#ifdef VC_IMPL_POPCNT
+#include <popcntintrin.h>
+#endif
+
 // SSE4.2
 #ifdef VC_IMPL_SSE4_2
 extern "C" {
