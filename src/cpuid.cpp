@@ -148,6 +148,11 @@ void CpuId::init()
     } else if (s_processorFamily == 0x6) {
         const uchar processorModelExt = (eax & 0x000f0000) >> 12;
         s_processorModel += processorModelExt;
+    } else if (s_processorFamily == 0xB) {
+        const uchar processorFamilyExt = (eax & 0x0ff00000) >> 16;
+        s_processorFamily += processorFamilyExt;
+        const uchar processorModelExt = (eax & 0x000f0000) >> 12;
+        s_processorModel += processorModelExt;
     }
     s_processorType = static_cast<ProcessorType>((eax & 0x00003000) >> 12);
 
