@@ -319,11 +319,12 @@ ${MIC_RANLIB} ${_output}
             get_target_property(_tmp "${_arg}" OUTPUT_NAME)
             if(_tmp)
                set(_libs ${_libs} "${_tmp}")
-               set(_libTargets ${_libTargets} "${_arg}")
+               set(_libTargets ${_libTargets} "${_tmp}")
             else()
                get_filename_component(_lpath "${_arg}" PATH)
                get_filename_component(_lname "${_arg}" NAME)
                set(_libs "${_libs} \"-L${_lpath}\" \"-l${_lname}\"")
+               set(_libTargets ${_libTargets} "${_arg}")
             endif()
          elseif(_state EQUAL 3) # OUTPUT_NAME
             set(_exec_output_name "${_arg}")
