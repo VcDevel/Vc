@@ -216,7 +216,9 @@
 
 #  if (VC_IMPL & IMPL_MASK) == MIC // MIC supersedes everything else
 #    define VC_IMPL_MIC 1
-#    define VC_IMPL_POPCNT 1
+#    ifdef __POPCNT__
+#      define VC_IMPL_POPCNT 1
+#    endif
 #  elif (VC_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
 #    define VC_IMPL_AVX2 1
 #    define VC_IMPL_AVX 1
