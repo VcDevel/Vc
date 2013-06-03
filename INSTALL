@@ -1,0 +1,27 @@
+Build Requirements
+==================
+
+cmake >= 2.8.3
+
+C++11 Compiler:
+ * GCC >= 4.6
+ * clang >= 3.2
+ * ICC >= 13
+ * Visual Studio >= 2012
+
+Building and Installing Vc
+==========================
+
+* Create a build directory:
+
+$ mkdir build
+$ cd build
+
+* Call cmake with the relevant options:
+
+$ cmake -DCMAKE_INSTALL_PREFIX=/opt/Vc -DBUILD_TESTING=OFF <srcdir>
+
+* Build and install:
+
+$ make -j16
+$ make install
