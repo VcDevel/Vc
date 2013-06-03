@@ -108,7 +108,8 @@ find_path(MIC_TARGET_TOOLS_DIR bin/x86_64-k1om-linux-ar HINTS
    )
 find_program(MIC_AR x86_64-k1om-linux-ar PATHS "${MIC_TARGET_TOOLS_DIR}/bin")
 find_program(MIC_RANLIB x86_64-k1om-linux-ranlib PATHS "${MIC_TARGET_TOOLS_DIR}/bin")
-mark_as_advanced(MIC_AR MIC_RANLIB)
+find_program(MIC_NATIVELOAD micnativeloadex PATHS "/opt/intel/mic/bin")
+mark_as_advanced(MIC_AR MIC_RANLIB MIC_NATIVELOAD)
 
 if(MIC_SDK_DIR AND MIC_AR AND MIC_RANLIB)
    find_program(MIC_CC  icc  HINTS "${MIC_SDK_DIR}/bin" "${MIC_SDK_DIR}/bin/intel64")

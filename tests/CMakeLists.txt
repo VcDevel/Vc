@@ -7,12 +7,24 @@ if(Vc_COMPILER_IS_MSVC)
 endif()
 
 macro(vc_add_run_target _target)
-   add_custom_target(run_${_target}
-      ${_target}
-      DEPENDS ${_target}
-      COMMENT "Execute ${_target} test"
-      VERBATIM
-      )
+   if("${_target}" MATCHES "_mic$")
+      if(MIC_NATIVELOAD)
+         get_target_property(_exe "${_target}" OUTPUT_NAME)
+         add_custom_target(run_${_target}
+            ${MIC_NATIVELOAD} "${_exe}"
+            DEPENDS ${_target}
+            COMMENT "Execute ${_target} test"
+            VERBATIM
+            )
+      endif()
+   else()
+      add_custom_target(run_${_target}
+         ${_target}
+         DEPENDS ${_target}
+         COMMENT "Execute ${_target} test"
+         VERBATIM
+         )
+   endif()
 endmacro()
 
 macro(vc_add_test _name)
@@ -130,7 +142,7 @@ macro(vc_add_test _name)
          add_dependencies(MIC ${_target})
          add_test(${_target} "${CMAKE_CURRENT_BINARY_DIR}/${_target}")
          set_property(TEST ${_target} PROPERTY LABELS "MIC")
-         #vc_add_run_target(${_target})
+         vc_add_run_target(${_target})
       endif()
    endif()
 endmacro(vc_add_test)
