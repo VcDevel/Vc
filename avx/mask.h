@@ -210,8 +210,8 @@ struct ForeachHelper
 };
 
 #define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::AVX::ForeachHelper _Vc_foreach_bit_helper((_mask_).toInt()); _Vc_foreach_bit_helper.outer(); ) \
-        for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); _Vc_foreach_bit_helper.noBreak())
+    for (Vc::AVX::ForeachHelper Vc__make_unique(foreach_bit_obj)((_mask_).toInt()); Vc__make_unique(foreach_bit_obj).outer(); ) \
+        for (_it_ = Vc__make_unique(foreach_bit_obj).next(); Vc__make_unique(foreach_bit_obj).inner(); Vc__make_unique(foreach_bit_obj).noBreak())
 
 } // namespace AVX
 } // namespace Vc
