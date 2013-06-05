@@ -34,7 +34,7 @@ namespace AVX
 
 namespace Internal
 {
-Vc_INTRINSIC Vc_CONST m256 exponent(m256 v)
+Vc_INTRINSIC Vc_CONST m256 exponent(param256 v)
 {
     m128i tmp0 = _mm_srli_epi32(avx_cast<m128i>(v), 23);
     m128i tmp1 = _mm_srli_epi32(avx_cast<m128i>(hi128(v)), 23);
@@ -42,7 +42,7 @@ Vc_INTRINSIC Vc_CONST m256 exponent(m256 v)
     tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
     return _mm256_cvtepi32_ps(concat(tmp0, tmp1));
 }
-Vc_INTRINSIC Vc_CONST m256d exponent(m256d v)
+Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 {
     m128i tmp0 = _mm_srli_epi64(avx_cast<m128i>(v), 52);
     m128i tmp1 = _mm_srli_epi64(avx_cast<m128i>(hi128(v)), 52);
