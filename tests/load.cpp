@@ -57,7 +57,7 @@ template<typename Vec> void checkMemoryAlignment()
     Vc::Memory<Vec, 10> a;
     b = a;
     hack_to_put_b_on_the_stack = &b;
-    unsigned long mask = alignmentMask<Vec>();
+    size_t mask = memory_alignment<Vec>::value - 1;
     for (int i = 0; i < 10; ++i) {
         VERIFY((reinterpret_cast<size_t>(&b[i * Vec::Size]) & mask) == 0) << "b = " << b << ", mask = " << mask;
     }
