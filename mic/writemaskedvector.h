@@ -1,0 +1,96 @@
+/*  This file is part of the Vc library. {{{
+
+    Copyright (C) 2012 Matthias Kretz <kretz@kde.org>
+
+    Vc is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3 of
+    the License, or (at your option) any later version.
+
+    Vc is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+
+}}}*/
+
+#ifndef VC_MIC_WRITEMASKEDVECTOR_H
+#define VC_MIC_WRITEMASKEDVECTOR_H
+
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+
+template<typename T> class WriteMaskedVector
+{
+    friend class Vector<T>;
+    typedef typename VectorTypeHelper<T>::Type VectorType;
+    typedef typename DetermineEntryType<T>::Type EntryType;
+    typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
+    typedef MIC::Mask<sizeof(VectorType) / sizeof(VectorEntryType)> Mask;
+public:
+    //prefix
+    Vc_ALWAYS_INLINE Vector<T> &operator++() {
+        vec->d = _add(vec->d.v(), mask, _set1(VectorEntryType(1)), vec->d.v());
+        return *vec;
+    }
+    Vc_ALWAYS_INLINE Vector<T> &operator--() {
+        vec->d = _sub(vec->d.v(), mask, _set1(VectorEntryType(1)), vec->d.v());
+        return *vec;
+    }
+    //postfix
+    Vc_ALWAYS_INLINE Vector<T> operator++(int) {
+        Vector<T> ret(*vec);
+        vec->d = _add(vec->d.v(), mask, _set1(VectorEntryType(1)), vec->d.v());
+        return ret;
+    }
+    Vc_ALWAYS_INLINE Vector<T> operator--(int) {
+        Vector<T> ret(*vec);
+        vec->d = _sub(vec->d.v(), mask, _set1(VectorEntryType(1)), vec->d.v());
+        return ret;
+    }
+
+    Vc_ALWAYS_INLINE Vector<T> &operator+=(Vector<T> x) {
+        vec->d = _add(vec->d.v(), mask, x.d.v(), vec->d.v());
+        return *vec;
+    }
+    Vc_ALWAYS_INLINE Vector<T> &operator-=(Vector<T> x) {
+        vec->d = _sub(vec->d.v(), mask, x.d.v(), vec->d.v());
+        return *vec;
+    }
+    Vc_ALWAYS_INLINE Vector<T> &operator*=(Vector<T> x) {
+        vec->d = _mul(vec->d.v(), mask, x.d.v(), vec->d.v());
+        return *vec;
+    }
+    Vc_ALWAYS_INLINE Vector<T> &operator/=(Vector<T> x) {
+        vec->d = _div(vec->d.v(), mask, x.d.v(), vec->d.v());
+        return *vec;
+    }
+
+    Vc_ALWAYS_INLINE Vector<T> &operator+=(EntryType x) { return operator+=(Vector<T>(x)); }
+    Vc_ALWAYS_INLINE Vector<T> &operator-=(EntryType x) { return operator-=(Vector<T>(x)); }
+    Vc_ALWAYS_INLINE Vector<T> &operator*=(EntryType x) { return operator*=(Vector<T>(x)); }
+    Vc_ALWAYS_INLINE Vector<T> &operator/=(EntryType x) { return operator/=(Vector<T>(x)); }
+
+    Vc_ALWAYS_INLINE Vector<T> &operator=(Vector<T> x) {
+        vec->assign(x, mask);
+        return *vec;
+    }
+    Vc_ALWAYS_INLINE Vector<T> &operator=(EntryType x) { return operator=(Vector<T>(x)); }
+
+    template<typename F> Vc_INTRINSIC void call(F &&f) const {
+        return vec->call(std::forward<F>(f), mask);
+    }
+    template<typename F> Vc_INTRINSIC Vector<T> apply(F &&f) const {
+        return vec->apply(std::forward<F>(f), mask);
+    }
+private:
+    constexpr WriteMaskedVector(Vector<T> *v, Mask k) : vec(v), mask(k.data()) {}
+    Vector<T> *vec;
+    typename MaskTypeHelper<EntryType>::Type mask;
+};
+
+Vc_NAMESPACE_END
+
+#endif // VC_MIC_WRITEMASKEDVECTOR_H
