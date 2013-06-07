@@ -34,6 +34,11 @@ template<typename Vec> void testSort()
     const IndexType _ref(IndexesFromZero);
     Vec ref(_ref);
     Vec a;
+//X     for (int i = 0; i < Vec::Size; ++i) {
+//X         a[i] = Vec::Size - i - 1;
+//X     }
+//X     COMPARE(ref, a.sorted()) << ", a: " << a;
+
     int maxPerm = 1;
     for (int x = Vec::Size; x > 0 && maxPerm < 400000; --x) {
         maxPerm *= x;
