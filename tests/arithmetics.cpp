@@ -174,6 +174,16 @@ template<typename Vec> void testMulAdd()
     }
 }
 
+template<> void testMulAdd<short_v>()
+{ // short_v over-/underflow results in undefined behavior
+    for (unsigned int i = -0xb4; i < 0xb4; ++i) {
+        const short_v i2(i * i + 1);
+        short_v a(i);
+
+        COMPARE(a * a + 1, i2);
+    }
+}
+
 template<typename Vec> void testMulSub()
 {
     typedef typename Vec::EntryType T;
@@ -182,6 +192,16 @@ template<typename Vec> void testMulSub()
         const Vec test(j);
 
         FUZZY_COMPARE(test * test - test, Vec(j * j - j));
+    }
+}
+
+template<> void testMulSub<short_v>()
+{ // short_v over-/underflow results in undefined behavior
+    for (unsigned int i = -0xb4; i < 0xb4; ++i) {
+        const short j = static_cast<short>(i);
+        const short_v test(j);
+
+        COMPARE(test * test - test, short_v(j * j - j));
     }
 }
 
