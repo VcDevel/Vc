@@ -201,22 +201,22 @@ template<> Vc_INTRINSIC void ushort_v::assign(ushort_v v, ushort_m m)
 // stores {{{1
 template<typename Parent, typename T> template<typename T2> inline void StoreMixin<Parent, T>::store(T2 *mem) const
 {
-    VectorHelper<T>::store(mem, static_cast<const Parent *>(this)->data(), Aligned);
+    MICIntrinsics::store(mem, data(), UpDownC<T2>(), Aligned);
 }
 
 template<typename Parent, typename T> template<typename T2> inline void StoreMixin<Parent, T>::store(T2 *mem, Mask mask) const
 {
-    VectorHelper<T>::store(mem, static_cast<const Parent *>(this)->data(), mask.data(), Aligned);
+    MICIntrinsics::store(mask.data(), mem, data(), UpDownC<T2>(), Aligned);
 }
 
 template<typename Parent, typename T> template<typename T2, typename A> inline void StoreMixin<Parent, T>::store(T2 *mem, A align) const
 {
-    VectorHelper<T>::store(mem, static_cast<const Parent *>(this)->data(), align);
+    MICIntrinsics::store(mem, data(), UpDownC<T2>(), align);
 }
 
 template<typename Parent, typename T> template<typename T2, typename A> inline void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, A align) const
 {
-    VectorHelper<T>::store(mem, static_cast<const Parent *>(this)->data(), mask.data(), align);
+    MICIntrinsics::store(mask.data(), mem, data(), UpDownC<T2>(), align);
 }
 // negation {{{1
 template<> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<double> Vector<double>::operator-() const
