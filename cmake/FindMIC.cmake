@@ -46,6 +46,8 @@ set(MIC_FOUND false)
 set(MIC_NATIVE_FOUND false)
 
 file(GLOB _intel_dirs "/opt/intel/*")
+list(SORT _intel_dirs)
+list(REVERSE _intel_dirs)
 find_path(MIC_SDK_DIR bin/intel64_mic/icpc PATHS
    "$ENV{MIC_SDK_DIR}"
    ${_intel_dirs}
