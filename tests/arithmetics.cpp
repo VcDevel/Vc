@@ -262,7 +262,7 @@ template<typename Vec> void testShift()
 
     Vec shifts(IndexesFromZero);
     a <<= shifts;
-    for (typename Vec::EntryType i = 0, x = 1; i < Vec::Size; ++i, x <<= 1) {
+    for (typename Vec::EntryType i = 0, x = 1; i < (Vc::is_signed<Vec>::value ? Vec::Size - 1 : Vec::Size); ++i, x <<= 1) {
         COMPARE(a[i], x);
     }
 
