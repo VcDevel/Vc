@@ -35,7 +35,7 @@ template<typename Vec> void testSort()
     Vec ref(_ref);
     Vec a;
     int maxPerm = 1;
-    for (int x = Vec::Size; x > 0; --x) {
+    for (int x = Vec::Size; x > 0 && maxPerm < 400000; --x) {
         maxPerm *= x;
     }
     for (int perm = 0; perm < maxPerm; ++perm) {
