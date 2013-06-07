@@ -556,6 +556,9 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 
 template<typename Vec> static typename Vec::Mask allMasks(int i)
 {
+#ifdef VC_IMPL_MIC
+    return ((1 << Vec::Size) - 1) - i;
+#else
     typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
@@ -673,6 +676,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
         }
     }
     return M(Vc::Zero);
+#endif
 }
 
 #define for_all_masks(VecType, _mask_) \
