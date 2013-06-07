@@ -47,6 +47,12 @@ struct is_simd_vector : public std::integral_constant<bool,
     std::is_same<typename std::remove_cv<T>::type, ushort_v>::value>
     {};
 
+template<typename T>
+struct memory_alignment : public std::integral_constant<size_t, alignof(T)> {};
+
+template<> struct memory_alignment<short_v> : public std::integral_constant<size_t, short_v::MemoryAlignment> {};
+template<> struct memory_alignment<ushort_v> : public std::integral_constant<size_t, ushort_v::MemoryAlignment> {};
+
 Vc_NAMESPACE_END
 #include "common/undomacros.h"
 

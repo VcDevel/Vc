@@ -50,6 +50,7 @@ template<typename T> class Vector
         typedef typename DetermineEntryType<T>::Type EntryType;
         enum Constants {
             Size = sizeof(VectorType) / sizeof(EntryType),
+            MemoryAlignment = alignof(VectorType),
             HasVectorDivision = HasVectorDivisionHelper<T>::Value
         };
         typedef Vector<typename IndexTypeHelper<T>::Type> IndexType;
