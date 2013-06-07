@@ -147,11 +147,11 @@ template<typename T> class Vector
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
+        typedef typename VectorTraits<T>::VectorType VectorType;
         enum Constants {
             Size = VectorTraits<T>::Size,
             MemoryAlignment = alignof(VectorType)
         };
-        typedef typename VectorTraits<T>::VectorType VectorType;
         typedef typename VectorTraits<T>::EntryType EntryType;
         typedef typename VectorTraits<T>::IndexType IndexType;
         typedef typename VectorTraits<T>::MaskType Mask;
