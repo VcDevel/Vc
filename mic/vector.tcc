@@ -466,7 +466,7 @@ template<typename T, size_t Size> struct IndexSizeChecker { static void check() 
 template<typename T, size_t Size> struct IndexSizeChecker<Vector<T>, Size>
 {
     static void check() {
-        VC_STATIC_ASSERT(Vector<T>::Size >= Size, IndexVector_must_have_greater_or_equal_number_of_entries);
+        static_assert(Vector<T>::Size >= Size, "IndexVector must have greater or equal number of entries");
     }
 };
 template<typename T> template<typename Index> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::gather(const EntryType *mem, Index indexes)
