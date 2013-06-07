@@ -147,6 +147,7 @@ macro(vc_add_test _name)
    endif()
 endmacro(vc_add_test)
 
+vc_add_test(type_traits)
 vc_add_test(stlcontainer)
 vc_add_test(scalaraccess)
 vc_add_test(memory)
