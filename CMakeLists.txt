@@ -115,7 +115,7 @@ if(NOT ROOT_RELEASE)
    add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
    if(MIC_FOUND)
       add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
-      mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support.cpp)
+      mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support.cpp src/mic_sorthelper.cpp)
       add_dependencies(MIC Vc_MIC)
    endif()
 
