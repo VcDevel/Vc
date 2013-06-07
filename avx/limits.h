@@ -28,15 +28,15 @@ namespace std
 #define _VC_NUM_LIM(T, _max, _min) \
 template<> struct numeric_limits< ::Vc::Vc_IMPL_NAMESPACE::Vector<T> > : public numeric_limits<T> \
 { \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> max()           noexcept { return _max; } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> min()           noexcept { return _min; } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> lowest()        noexcept { return min(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> epsilon()       noexcept { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> round_error()   noexcept { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> infinity()      noexcept { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> quiet_NaN()     noexcept { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> signaling_NaN() noexcept { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> denorm_min()    noexcept { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> max()           Vc_NOEXCEPT { return _max; } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> min()           Vc_NOEXCEPT { return _min; } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> lowest()        Vc_NOEXCEPT { return min(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> epsilon()       Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> round_error()   Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> infinity()      Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> quiet_NaN()     Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> signaling_NaN() Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
+    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> denorm_min()    Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
 }
 
 #ifndef VC_IMPL_AVX2
