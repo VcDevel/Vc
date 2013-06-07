@@ -218,8 +218,8 @@ template<> m256 SortHelper<float>::sort(VTArg _hgfedcba)
 
     a = _mm_unpacklo_ps(l, h); // ↑a2b0 ↓(↑a0b0,↑a2b2) ↑(↓a0b0,↓a2b2) ↓a0b2
     b = _mm_unpackhi_ps(l, h); // ↑a3b1 ↓(↑a1b1,↑a3b3) ↑(↓a1b1,↓a3b3) ↓a1b3
-    l = _mm_min_ps(a, b); // ↓(↑a2b0,↑a3b1) ↓(↑a0b0,↑a2b2,↑a1b1,↑a3b3) ↓(↑(↓a0b0,↓a2b2) ↑(↓a1b1,↓a3b3)) ↓a0b3
-    h = _mm_max_ps(a, b); // ↑a3b0 ↑(↓(↑a0b0,↑a2b2) ↓(↑a1b1,↑a3b3)) ↑(↓a0b0,↓a2b2,↓a1b1,↓a3b3) ↑(↓a0b2,↓a1b3)
+    l = _mm_min_ps(a, b); // ↓(↑a2b0,↑a3b1) ↓(↑a0b0,↑a2b2,↑a1b1,↑a3b3) ↓(↑(↓a0b0,↓a2b2),↑(↓a1b1,↓a3b3)) ↓a0b3
+    h = _mm_max_ps(a, b); // ↑a3b0 ↑(↓(↑a0b0,↑a2b2),↓(↑a1b1,↑a3b3)) ↑(↓a0b0,↓a2b2,↓a1b1,↓a3b3) ↑(↓a0b2,↓a1b3)
 
     return concat(_mm_unpacklo_ps(l, h), _mm_unpackhi_ps(l, h));
 }
