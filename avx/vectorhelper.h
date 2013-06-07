@@ -739,6 +739,18 @@ template<> struct VectorHelper<char>
     typedef short ConcatType;
 };
 
+template<> struct VectorHelper<signed char>
+{
+    typedef VectorTypeHelper<signed char>::Type VectorType;
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+    typedef const VectorType & VTArg;
+#else
+    typedef const VectorType VTArg;
+#endif
+    typedef signed char EntryType;
+    typedef short ConcatType;
+};
+
 template<> struct VectorHelper<unsigned char>
 {
     typedef VectorTypeHelper<unsigned char>::Type VectorType;

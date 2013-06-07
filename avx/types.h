@@ -45,6 +45,7 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
     template<typename T> struct IndexTypeHelper;
     template<> struct IndexTypeHelper<         char > { typedef unsigned char  Type; };
+    template<> struct IndexTypeHelper<  signed char > { typedef unsigned char  Type; };
     template<> struct IndexTypeHelper<unsigned char > { typedef unsigned char  Type; };
     template<> struct IndexTypeHelper<         short> { typedef unsigned short Type; };
     template<> struct IndexTypeHelper<unsigned short> { typedef unsigned short Type; };
@@ -56,6 +57,7 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
     template<typename T> struct VectorTypeHelper;
     template<> struct VectorTypeHelper<         char > { typedef m128i Type; };
+    template<> struct VectorTypeHelper<  signed char > { typedef m128i Type; };
     template<> struct VectorTypeHelper<unsigned char > { typedef m128i Type; };
     template<> struct VectorTypeHelper<         short> { typedef m128i Type; };
     template<> struct VectorTypeHelper<unsigned short> { typedef m128i Type; };
