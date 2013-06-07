@@ -44,7 +44,7 @@ template<typename Vec> void checkAlignment()
     }
     const char *data = reinterpret_cast<const char *>(&a[0]);
     for (i = 0; i < 10; ++i) {
-        VERIFY(&data[i * Vec::Size * sizeof(typename Vec::EntryType)] == reinterpret_cast<const char *>(&a[i]));
+        VERIFY(&data[i * sizeof(Vec)] == reinterpret_cast<const char *>(&a[i]));
     }
 }
 
