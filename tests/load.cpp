@@ -140,8 +140,8 @@ template<typename Vec> void streamingLoad()
             v1 = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
             v2.load (&data[i], Vc::Streaming | Vc::Unaligned);
         }
-        COMPARE(v1, ref);
-        COMPARE(v2, ref);
+        COMPARE(v1, ref) << ", i = " << i;
+        COMPARE(v2, ref) << ", i = " << i;
     }
 }
 
