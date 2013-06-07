@@ -70,16 +70,12 @@
 #ifndef constexpr
 #define constexpr inline __forceinline
 #endif
-#ifndef noexcept
-#define noexcept throw()
-#endif
+#define Vc__NO_NOEXCEPT 1
 #endif
 
 #if defined(VC_ICC) && VC_ICC < 20140000
 // ICC doesn't know noexcept, alignof, and move ctors
-#ifndef noexcept
-#define noexcept throw()
-#endif
+#define Vc__NO_NOEXCEPT 1
 #ifndef alignof
 #define alignof(x) __alignof(x)
 #endif

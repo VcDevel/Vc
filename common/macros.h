@@ -324,4 +324,10 @@ do {} while ( false )
 #define VC_OFFSETOF(Type, member) offsetof(Type, member)
 #endif
 
+#if defined(Vc__NO_NOEXCEPT)
+#define Vc_NOEXCEPT throw()
+#else
+#define Vc_NOEXCEPT noexcept
+#endif
+
 #endif // VC_COMMON_MACROS_H
