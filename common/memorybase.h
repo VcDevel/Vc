@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -32,7 +32,7 @@ Vc_NAMESPACE_BEGIN(Common)
             result.store(m_ptr, Internal::FlagObject<A>::the()); \
             return *this; \
         }
-
+/*dox{{{*/
 /**
  * Helper class for the Memory::vector(size_t) class of functions.
  *
@@ -40,8 +40,8 @@ Vc_NAMESPACE_BEGIN(Common)
  * Memory API.
  *
  * \headerfile memorybase.h <Vc/Memory>
- */
-template<typename V, typename A> class VectorPointerHelperConst
+ *//*}}}*/
+template<typename V, typename A> class VectorPointerHelperConst/*{{{*/
 {
     typedef typename V::EntryType EntryType;
     typedef typename V::Mask Mask;
@@ -56,8 +56,8 @@ template<typename V, typename A> class VectorPointerHelperConst
          * This function allows to assign this object to any object of type \p V.
          */
         Vc_ALWAYS_INLINE Vc_PURE operator const V() const { return V(m_ptr, Internal::FlagObject<A>::the()); }
-};
-
+};/*}}}*/
+/*dox{{{*/
 /**
  * Helper class for the Memory::vector(size_t) class of functions.
  *
@@ -65,8 +65,8 @@ template<typename V, typename A> class VectorPointerHelperConst
  * Memory API.
  *
  * \headerfile memorybase.h <Vc/Memory>
- */
-template<typename V, typename A> class VectorPointerHelper
+ *//*}}}*/
+template<typename V, typename A> class VectorPointerHelper/*{{{*/
 {
     typedef typename V::EntryType EntryType;
     typedef typename V::Mask Mask;
@@ -92,7 +92,7 @@ template<typename V, typename A> class VectorPointerHelper
 
         VC_ALL_BINARY(VC_MEM_OPERATOR_EQ)
         VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ)
-};
+};/*}}}*/
 #undef VC_MEM_OPERATOR_EQ
 
 #define VC_VPH_OPERATOR(op) \
@@ -212,7 +212,7 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
         Vc_ALWAYS_INLINE Vc_PURE size_t rowsCount() const { return p()->rowsCount(); }
 };
 
-//{{{1
+//dox{{{1
 /**
  * \headerfile memorybase.h <Vc/Memory>
  *
@@ -532,3 +532,5 @@ Vc_NAMESPACE_END
 #include "undomacros.h"
 
 #endif // VC_COMMON_MEMORYBASE_H
+
+// vim: foldmethod=marker
