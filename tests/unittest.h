@@ -400,7 +400,7 @@ class _UnitTest_Compare
         static Vc_ALWAYS_INLINE size_t getIp() {
             size_t _ip;
 #if defined(__x86_64__) && defined(VC_GNU_ASM)
-            asm("lea 0(%%rip),%0" : "=r"(_ip));
+            asm volatile("lea 0(%%rip),%0" : "=r"(_ip));
 #else
             _ip = 0;
 #endif
