@@ -32,39 +32,39 @@ template<typename T> class WriteMaskedVector
 public:
     //prefix
     Vc_ALWAYS_INLINE Vector<T> &operator++() {
-        vec->d = _add(vec->d.v(), mask, _set1(VectorEntryType(1)), vec->d.v());
+        vec->d = _add(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
         return *vec;
     }
     Vc_ALWAYS_INLINE Vector<T> &operator--() {
-        vec->d = _sub(vec->d.v(), mask, _set1(VectorEntryType(1)), vec->d.v());
+        vec->d = _sub(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
         return *vec;
     }
     //postfix
     Vc_ALWAYS_INLINE Vector<T> operator++(int) {
         Vector<T> ret(*vec);
-        vec->d = _add(vec->d.v(), mask, _set1(VectorEntryType(1)), vec->d.v());
+        vec->d = _add(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
         return ret;
     }
     Vc_ALWAYS_INLINE Vector<T> operator--(int) {
         Vector<T> ret(*vec);
-        vec->d = _sub(vec->d.v(), mask, _set1(VectorEntryType(1)), vec->d.v());
+        vec->d = _sub(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
         return ret;
     }
 
     Vc_ALWAYS_INLINE Vector<T> &operator+=(Vector<T> x) {
-        vec->d = _add(vec->d.v(), mask, x.d.v(), vec->d.v());
+        vec->d = _add(vec->d.v(), mask, vec->d.v(), x.d.v());
         return *vec;
     }
     Vc_ALWAYS_INLINE Vector<T> &operator-=(Vector<T> x) {
-        vec->d = _sub(vec->d.v(), mask, x.d.v(), vec->d.v());
+        vec->d = _sub(vec->d.v(), mask, vec->d.v(), x.d.v());
         return *vec;
     }
     Vc_ALWAYS_INLINE Vector<T> &operator*=(Vector<T> x) {
-        vec->d = _mul(vec->d.v(), mask, x.d.v(), vec->d.v());
+        vec->d = _mul(vec->d.v(), mask, vec->d.v(), x.d.v());
         return *vec;
     }
     Vc_ALWAYS_INLINE Vector<T> &operator/=(Vector<T> x) {
-        vec->d = _div(vec->d.v(), mask, x.d.v(), vec->d.v());
+        vec->d = _div(vec->d.v(), mask, vec->d.v(), x.d.v());
         return *vec;
     }
 
