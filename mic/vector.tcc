@@ -439,7 +439,7 @@ template<typename T> template<typename S1, typename IT> Vc_ALWAYS_INLINE Vector<
     gather(array, member1, indexes);
 }
 template<typename T> template<typename S1, typename IT> Vc_ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType S1::* member1, IT indexes, MaskArg mask)
-    : d(HT::zero())
+    : d(HV::zero())
 {
     gather(array, member1, indexes, mask);
 }
@@ -448,7 +448,7 @@ template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_I
     gather(array, member1, member2, indexes);
 }
 template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
-    : d(HT::zero())
+    : d(HV::zero())
 {
     gather(array, member1, member2, indexes, mask);
 }
@@ -611,7 +611,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<double>::gather(const S1 *array, const S
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extlogather_pd(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32loextgather_pd(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<float>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
@@ -742,19 +742,19 @@ template<typename T> template<typename S1, typename IT> Vc_ALWAYS_INLINE Vc_FLAT
 {
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1)));
-    MICIntrinsics::scatter(mask.data(), mem, ((indexes * sizeof(S1)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
+    MICIntrinsics::scatter(mask.data(), array, ((indexes * sizeof(S1)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
 }
 template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes) const
 {
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    MICIntrinsics::scatter(mem, ((indexes * sizeof(S2)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
+    MICIntrinsics::scatter(array, ((indexes * sizeof(S2)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
 }
 template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, MaskArg mask) const
 {
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    MICIntrinsics::scatter(mask.data(), mem, ((indexes * sizeof(S2)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
+    MICIntrinsics::scatter(mask.data(), array, ((indexes * sizeof(S2)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
 }
 template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes) const
 {
