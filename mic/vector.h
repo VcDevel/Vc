@@ -392,21 +392,21 @@ template<typename T> struct SwizzledVector
 
 #define MATH_OP2(name, call) \
     template<typename T> static inline Vector<T> name(Vector<T> x, Vector<T> y) \
-    { return HT::call(x.data(), y.data()); } \
-    /*template<typename T> static inline Vector<T> name(Vector<T> x, VectorMultiplication<T> y) \
-    { return HT::call(x.data(), y.data()); } \
-    template<typename T> static inline Vector<T> name(VectorMultiplication<T> x, Vector<T> y) \
-    { return HT::call(x.data(), y.data()); } \
-    template<typename T> static inline Vector<T> name(VectorMultiplication<T> x, VectorMultiplication<T> y) \
-    { return HT::call(x.data(), y.data()); }*/
+    { \
+        typedef VectorHelper<typename Vector<T>::VectorEntryType> HT; \
+        return HT::call(x.data(), y.data()); \
+    }
     MATH_OP2(min, min)
     MATH_OP2(max, max)
     MATH_OP2(atan2, atan2)
 #undef MATH_OP2
 
 #define MATH_OP1(name, call) \
-    template<typename T> static inline Vector<T> name(const Vector<T> &x)               { return VectorHelper<T>::call(x.data()); } \
-    /*template<typename T> static inline Vector<T> name(const VectorMultiplication<T> &x) { return VectorHelper<T>::call(x.data()); }*/
+    template<typename T> static Vc_ALWAYS_INLINE Vector<T> name(const Vector<T> &x) \
+    { \
+        typedef VectorHelper<typename Vector<T>::VectorEntryType> HT; \
+        return HT::call(x.data()); \
+    }
     MATH_OP1(sqrt, sqrt)
     MATH_OP1(rsqrt, rsqrt)
     MATH_OP1(abs, abs)
@@ -432,7 +432,9 @@ template<typename T> struct SwizzledVector
     inline float_v ldexp(float_v::AsArg v, int_v::AsArg _e) { return v; }
     inline sfloat_v ldexp(sfloat_v::AsArg v, short_v::AsArg _e) { return v; }
     template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos) {
-        VectorHelper<T>::sincos(x.data(), sin->data(), cos->data());
+        typedef VectorHelper<typename Vector<T>::VectorEntryType> HT; \
+        *sin = HT::sin(x.data());
+        *cos = HT::cos(x.data());
     }
 
     template<typename T> static inline Mask<Vector<T>::Size> isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
