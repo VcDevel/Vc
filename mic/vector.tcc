@@ -804,6 +804,18 @@ template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS
     }
 }
 //}}}1
+// exponent {{{1
+template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::exponent() const
+{
+    VC_ASSERT((*this >= Zero()).isFull());
+    return _mm512_getexp_ps(d.v());
+}
+template<> Vc_INTRINSIC double_v double_v::exponent() const
+{
+    VC_ASSERT((*this >= Zero()).isFull());
+    return _mm512_getexp_pd(d.v());
+}
+// }}}1
 // Random {{{1
 static Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)
