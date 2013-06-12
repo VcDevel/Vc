@@ -48,6 +48,31 @@ template<typename Vec> void maskedGatherArray()
     }
 }
 
+template<typename Vec, bool = Vc::is_integral<Vec>::value && Vc::is_signed<Vec>::value> class incrementIndex
+{
+    typedef typename Vec::IndexType It;
+    It i;
+public:
+    incrementIndex(const It &ii) : i(ii) {}
+    operator Vec() { return static_cast<Vec>(++i); }
+};
+
+template<typename Vec> class incrementIndex<Vec, true>
+{
+    typedef typename Vec::IndexType It;
+    It i;
+public:
+    incrementIndex(const It &ii) : i(ii) {}
+    operator Vec() {
+        ++i;
+        // if (i + 1) > std::numeric_limits<Vec>::max() it will overflow, which results in
+        // undefined behavior for signed integers
+        where(i > static_cast<It>(std::numeric_limits<Vec>::max())) |
+            i = i - static_cast<It>(std::numeric_limits<Vec>::max()) + static_cast<It>(std::numeric_limits<Vec>::min()) - It::One();
+        return static_cast<Vec>(i);
+    }
+};
+
 template<typename Vec> void gatherArray()
 {
     typedef typename Vec::IndexType It;
@@ -61,7 +86,7 @@ template<typename Vec> void gatherArray()
     }
     M mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        const Vec ii(i + 1);
+        const Vec ii = incrementIndex<Vec>(i);
         const typename Vec::Mask castedMask = static_cast<typename Vec::Mask>(mask);
         if (castedMask.isFull()) {
             Vec a(array, i);
