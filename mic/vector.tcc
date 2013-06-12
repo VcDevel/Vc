@@ -757,6 +757,8 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::gather(const S1 *array, const EntryT
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// scatters {{{1
 template<typename T> template<typename Index> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(EntryType *mem, Index indexes) const
 {
     MICIntrinsics::scatter(mem, indexes.data(), d.v(), UpDownC<EntryType>(), sizeof(EntryType));
@@ -801,9 +803,6 @@ template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS
         (array[outerIndexes[i]].*(ptrMember1))[innerIndexes[i]] = d.m(i);
     }
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// scatters {{{1
 //}}}1
 // Random {{{1
 static Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
