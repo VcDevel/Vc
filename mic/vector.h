@@ -166,8 +166,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
     // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
     // TODO: handle 8 <-> 16 conversions
-    inline explicit Vector(const Vector *x) : d(x->d) {}
-    inline void expand(Vector *x) const { x->d = d; }
+    explicit Vc_ALWAYS_INLINE_L Vc_FLATTEN Vector(const Vector<typename ConcatTypeHelper<T>::Type> *a) Vc_ALWAYS_INLINE_R;
+    Vc_ALWAYS_INLINE_R Vc_FLATTEN void expand(Vector<typename ConcatTypeHelper<T>::Type> *x) const Vc_ALWAYS_INLINE_R;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // zeroing

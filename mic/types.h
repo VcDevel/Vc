@@ -61,6 +61,15 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<unsigned int VectorSize> class Mask;
     ALIGN(16) extern const char _IndexesFromZero[16];
 
+    template<typename T> struct ConcatTypeHelper { typedef T Type; };
+    template<> struct ConcatTypeHelper<         float> { typedef double Type; };
+    template<> struct ConcatTypeHelper<        sfloat> { typedef double Type; };
+    template<> struct ConcatTypeHelper<           int> { typedef long long Type; };
+    template<> struct ConcatTypeHelper<  unsigned int> { typedef unsigned long long Type; };
+    template<> struct ConcatTypeHelper<         short> { typedef int Type; };
+    template<> struct ConcatTypeHelper<unsigned short> { typedef unsigned int Type; };
+
+
     template<typename T> struct VectorTypeHelper;
     template<> struct VectorTypeHelper<  signed char > { typedef __m512i Type; };
     template<> struct VectorTypeHelper<unsigned char > { typedef __m512i Type; };

@@ -218,6 +218,39 @@ template<typename Parent, typename T> template<typename T2, typename A> inline v
 {
     MICIntrinsics::store(mask.data(), mem, data(), UpDownC<T2>(), align);
 }
+// expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX {{{1
+template<typename T> Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::Vector(const Vector<typename ConcatTypeHelper<T>::Type> *a)
+    : d(a[0].data())
+{
+}
+template<> Vc_ALWAYS_INLINE Vc_FLATTEN float_v::Vector(const double_v *a)
+    : d(mic_cast<__m512>(_mm512_mask_permute4f128_epi32(
+                    mic_cast<__m512i>(_mm512_cvtpd_pslo(a[0].data())), 0xff00,
+                    mic_cast<__m512i>(_mm512_cvtpd_pslo(a[1].data())), _MM_PERM_BABA)))
+{
+}
+template<> Vc_ALWAYS_INLINE Vc_FLATTEN sfloat_v::Vector(const double_v *a)
+    : d(_mm512_mask_permute4f128_ps(_mm512_cvtpd_pslo(a[0].data()), 0xff00,
+                _mm512_cvtpd_pslo(a[1].data()), _MM_PERM_BABA))
+{
+}
+
+template<typename T> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::expand(Vector<typename ConcatTypeHelper<T>::Type> *x) const
+{
+    x[0].data() = data();
+}
+template<> Vc_ALWAYS_INLINE void Vc_FLATTEN float_v::expand(double_v *x) const
+{
+    x[0].data() = _mm512_cvtpslo_pd(d.v());
+    x[1].data() = _mm512_cvtpslo_pd(_mm512_permute4f128_ps(d.v(), _MM_PERM_DCDC));
+}
+template<> Vc_ALWAYS_INLINE void Vc_FLATTEN sfloat_v::expand(double_v *x) const
+{
+    x[0].data() = _mm512_cvtpslo_pd(d.v());
+    x[1].data() = _mm512_cvtpslo_pd(_mm512_permute4f128_ps(d.v(), _MM_PERM_DCDC));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 // negation {{{1
 template<> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<double> Vector<double>::operator-() const
 {
