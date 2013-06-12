@@ -247,6 +247,7 @@ public:
     // unary operators
     Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator~() const { return _andnot(d.v(), _setallone<VectorType>()); }
     Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<typename NegateTypeHelper<T>::Type> operator-() const;
+    Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator+() const { return *this; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // binary operators
