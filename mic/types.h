@@ -71,6 +71,7 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 
     template<typename T> struct VectorTypeHelper;
+    template<> struct VectorTypeHelper<         char > { typedef __m512i Type; };
     template<> struct VectorTypeHelper<  signed char > { typedef __m512i Type; };
     template<> struct VectorTypeHelper<unsigned char > { typedef __m512i Type; };
     template<> struct VectorTypeHelper<         short> { typedef __m512i Type; };
