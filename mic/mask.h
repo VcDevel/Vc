@@ -126,7 +126,7 @@ struct ForeachHelper
         bit(_mm_tzcnt_32(mask)),
         brk(false)
     {}
-    inline bool outer() const { return bit != -1; }
+    inline bool outer() const { return bit != sizeof(mask) * 8; }
     inline bool inner() { return (brk = !brk); }
     inline short next() const { return bit; }
     inline void step() { bit = _mm_tzcnti_32(bit, mask); }
