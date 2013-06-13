@@ -144,9 +144,9 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load ctors
     explicit Vc_INTRINSIC_L
-        Vector(const VectorEntryType *x) Vc_INTRINSIC_R;
+        Vector(const EntryType *x) Vc_INTRINSIC_R;
     template<typename Alignment> Vc_INTRINSIC_L
-        Vector(const VectorEntryType *x, Alignment align) Vc_INTRINSIC_R;
+        Vector(const EntryType *x, Alignment align) Vc_INTRINSIC_R;
     template<typename OtherT> explicit Vc_INTRINSIC_L
         Vector(const OtherT    *x) Vc_INTRINSIC_R;
     template<typename OtherT, typename Alignment> Vc_INTRINSIC_L
@@ -155,9 +155,9 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load member functions
     Vc_INTRINSIC_L
-        void load(const VectorEntryType *mem) Vc_INTRINSIC_R;
+        void load(const EntryType *mem) Vc_INTRINSIC_R;
     template<typename Alignment> Vc_INTRINSIC_L
-        void load(const VectorEntryType *mem, Alignment align) Vc_INTRINSIC_R;
+        void load(const EntryType *mem, Alignment align) Vc_INTRINSIC_R;
     template<typename OtherT> Vc_INTRINSIC_L
         void load(const OtherT    *mem) Vc_INTRINSIC_R;
     template<typename OtherT, typename Alignment> Vc_INTRINSIC_L

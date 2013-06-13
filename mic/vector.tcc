@@ -132,13 +132,13 @@ template<typename T> template<typename OtherT> Vc_ALWAYS_INLINE Vector<T>::Vecto
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(EntryType x) : d(_set1(x)) {}
 
 // loads {{{1
-template<typename T> Vc_INTRINSIC Vector<T>::Vector(const VectorEntryType *x) { load(x); }
-template<typename T> template<typename A> Vc_INTRINSIC Vector<T>::Vector(const VectorEntryType *x, A a) { load(x, a); }
+template<typename T> Vc_INTRINSIC Vector<T>::Vector(const EntryType *x) { load(x); }
+template<typename T> template<typename A> Vc_INTRINSIC Vector<T>::Vector(const EntryType *x, A a) { load(x, a); }
 template<typename T> template<typename OtherT> Vc_INTRINSIC Vector<T>::Vector(const OtherT *x) { load(x); }
 template<typename T> template<typename OtherT, typename A> Vc_INTRINSIC Vector<T>::Vector(const OtherT *x, A a) { load(x, a); }
 
-template<typename T> Vc_INTRINSIC void Vector<T>::load(const VectorEntryType *x) { load(x, Aligned); }
-template<typename T> template<typename A> Vc_INTRINSIC void Vector<T>::load(const VectorEntryType *x, A align) {
+template<typename T> Vc_INTRINSIC void Vector<T>::load(const EntryType *x) { load(x, Aligned); }
+template<typename T> template<typename A> Vc_INTRINSIC void Vector<T>::load(const EntryType *x, A align) {
     d.v() = LoadHelper<Vector<T>>::load(x, align);
 }
 template<typename T> template<typename OtherT> Vc_INTRINSIC void Vector<T>::load(const OtherT *x) {
