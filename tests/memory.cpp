@@ -284,9 +284,25 @@ template<typename V> void testCCtor()
     }
 }
 
+void *hackToStoreToStack = 0;
+
+template<typename V> void paddingMustBeZero()
+{
+    typedef typename V::EntryType T;
+    { // poison the stack
+        V v = V::Random();
+        hackToStoreToStack = &v;
+    }
+    Memory<V, 1> m;
+    m[0] = T(0);
+    V x = m.vector(0);
+    COMPARE(x, V::Zero());
+}
+
 int main()
 {
     testAllTypes(testEntries);
+    testAllTypes(paddingMustBeZero);
     testAllTypes(testEntries2D);
     testAllTypes(testVectors);
     testAllTypes(testVectors2D);

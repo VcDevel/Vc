@@ -276,6 +276,11 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
                 VectorsCount = PaddedSize / V::Size
             };
 
+            Memory()
+            {
+                Base::lastVector() = V::Zero();
+            }
+
             /**
              * Wrap existing data with the Memory convenience class.
              *
