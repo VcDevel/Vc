@@ -39,6 +39,7 @@ struct STRUCT_ALIGN1(64) c_general
     static const double oneDouble;
     static const unsigned long long frexpMask;
     static const unsigned long long highMaskDouble;
+    static const unsigned char frexpAndMask[16];
 } STRUCT_ALIGN2(64);
 
 Vc_NAMESPACE_END

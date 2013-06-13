@@ -424,23 +424,11 @@ template<typename T> struct SwizzledVector
     MATH_OP1(exp, exp)
 #undef MATH_OP1
 
-    // TODO: implement the following:
-    inline double_v frexp(double_v::AsArg v, int_v *e) { return v; }
-    inline float_v frexp(float_v::AsArg v, int_v *e) { return v; }
-    inline sfloat_v frexp(sfloat_v::AsArg v, short_v *e) { return v; }
-    inline double_v ldexp(double_v::AsArg v, int_v::AsArg _e) { return v; }
-    inline float_v ldexp(float_v::AsArg v, int_v::AsArg _e) { return v; }
-    inline sfloat_v ldexp(sfloat_v::AsArg v, short_v::AsArg _e) { return v; }
     template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos) {
         typedef VectorHelper<typename Vector<T>::VectorEntryType> HT; \
         *sin = HT::sin(x.data());
         *cos = HT::cos(x.data());
     }
-
-    template<typename T> static inline Mask<Vector<T>::Size> isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
-    //template<typename T> static inline Mask<Vector<T>::Size> isfinite(const VectorMultiplication<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
-    template<typename T> static inline Mask<Vector<T>::Size> isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
-    //template<typename T> static inline Mask<Vector<T>::Size> isnan(const VectorMultiplication<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
 #include "forcetoregisters.tcc"
 

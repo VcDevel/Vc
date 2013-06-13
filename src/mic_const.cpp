@@ -40,6 +40,10 @@ Vc_NAMESPACE_BEGIN(MIC)
     const             double c_general::oneDouble = 1.;
     const unsigned long long c_general::frexpMask = 0xbfefffffffffffffull;
     const unsigned long long c_general::highMaskDouble = 0xfffffffff8000000ull;
+
+    ALIGN(16) const unsigned char c_general::frexpAndMask[16] = {
+        1, 0, 2, 0, 4, 0, 8, 0, 16, 0, 32, 0, 64, 0, 128, 0
+    };
 Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(Common)

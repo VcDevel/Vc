@@ -114,8 +114,6 @@ template<> struct VectorHelper<double> {
     OPcmp(nlt, _CMP_NLT_US)
     OPcmp( le, _CMP_LE_OS)
     OPcmp(nle, _CMP_NLE_US)
-    static Vc_INTRINSIC __mmask8 isNaN(VectorType x) { return _mm512_cmpunord_pd_mask(x, x); }
-    static Vc_INTRINSIC __mmask8 isFinite(VectorType x) { return _mm512_cmpord_pd_mask(x, mul(zero(), x)); }
     static Vc_INTRINSIC VectorType round(VectorType x) { return _mm512_roundfxpnt_adjust_pd(x, _MM_FROUND_TO_NEAREST_INT, _MM_EXPADJ_NONE); }
 #undef SUFFIX
 };
@@ -162,8 +160,6 @@ template<> struct VectorHelper<float> {
     OPcmp(nlt, _CMP_NLT_US)
     OPcmp( le, _CMP_LE_OS)
     OPcmp(nle, _CMP_NLE_US)
-    static Vc_INTRINSIC __mmask16 isNaN(VectorType x) { return _mm512_cmpunord_ps_mask(x, x); }
-    static Vc_INTRINSIC __mmask16 isFinite(VectorType x) { return _mm512_cmpord_ps_mask(x, mul(zero(), x)); }
     static Vc_INTRINSIC VectorType round(VectorType x) { return _mm512_round_ps(x, _MM_FROUND_TO_NEAREST_INT, _MM_EXPADJ_NONE); }
 #undef SUFFIX
 };
