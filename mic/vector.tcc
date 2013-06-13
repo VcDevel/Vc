@@ -1128,16 +1128,16 @@ template<> struct VectorRotate<64, 8>
     {
         switch (static_cast<unsigned int>(amount) % 8) {
         case  0: return v;
-        case  1:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC); // ghef cdab
+        case  1:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC);
                  return _mm512_mask_permute4f128_ps(tmp1, 0xcccc, tmp1, _MM_PERM_ADCB);}
         case  2: return _mm512_permute4f128_ps(v, _MM_PERM_ADCB);
-        case  3:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC); // ghef cdab
+        case  3:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC);
                  return _mm512_mask_permute4f128_ps(_mm512_permute4f128_ps(tmp1, _MM_PERM_ADCB), 0xcccc, tmp1, _MM_PERM_BADC);}
         case  4: return _mm512_permute4f128_ps(v, _MM_PERM_BADC);
-        case  5:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC); // ghef cdab
+        case  5:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC);
                  return _mm512_mask_permute4f128_ps(_mm512_permute4f128_ps(tmp1, _MM_PERM_BADC), 0xcccc, tmp1, _MM_PERM_CBAD);}
         case  6: return _mm512_permute4f128_ps(v, _MM_PERM_CBAD);
-        case  7:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC); // ghef cdab
+        case  7:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC);
                  return _mm512_mask_permute4f128_ps(_mm512_permute4f128_ps(tmp1, _MM_PERM_CBAD), 0xcccc, tmp1, _MM_PERM_DCBA);}
         }
         return _mm512_setzero_ps();
