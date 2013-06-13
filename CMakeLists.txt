@@ -68,9 +68,10 @@ else()
       endif()
    elseif(Vc_COMPILER_IS_INTEL)
       UserWarning("ICC does not support initializer lists (C++11). The following tests are therefore disabled:
-      stlcontainer_avx stlcontainer_scalar stlcontainer_sse.")
+      stlcontainer_avx stlcontainer_mic stlcontainer_scalar stlcontainer_sse.")
       list(APPEND disabled_targets
          stlcontainer_avx
+         stlcontainer_mic
          stlcontainer_scalar
          stlcontainer_sse
          )
