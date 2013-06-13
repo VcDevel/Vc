@@ -79,12 +79,27 @@ public:
     }
     Vc_ALWAYS_INLINE Vector<T> &operator=(EntryType x) { return operator=(Vector<T>(x)); }
 
+#ifdef VC_NO_MOVE_CTOR
+    template<typename F> Vc_INTRINSIC void call(const F &f) const {
+        return vec->call(f, mask);
+    }
+    template<typename F> Vc_INTRINSIC Vector<T> apply(const F &f) const {
+        return vec->apply(f, mask);
+    }
+    template<typename F> Vc_INTRINSIC void call(F &f) const {
+        return vec->call(f, mask);
+    }
+    template<typename F> Vc_INTRINSIC Vector<T> apply(F &f) const {
+        return vec->apply(f, mask);
+    }
+#else
     template<typename F> Vc_INTRINSIC void call(F &&f) const {
         return vec->call(std::forward<F>(f), mask);
     }
     template<typename F> Vc_INTRINSIC Vector<T> apply(F &&f) const {
         return vec->apply(std::forward<F>(f), mask);
     }
+#endif
 private:
     constexpr WriteMaskedVector(Vector<T> *v, Mask k) : vec(v), mask(k.data()) {}
     Vector<T> *vec;
