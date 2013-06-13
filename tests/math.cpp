@@ -709,9 +709,9 @@ template<typename V> void testFrexp()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename _ExponentVector<V>::Type ExpV;
-    Vc::Memory<V, 32> input;
-    Vc::Memory<V, 32> expectedFraction;
-    Vc::Memory<ExpV, 32> expectedExponent;
+    Vc::Memory<V, 33> input;
+    Vc::Memory<V, 33> expectedFraction;
+    Vc::Memory<ExpV, 33> expectedExponent;
     input[ 0] = T(0.25); expectedFraction[ 0] = T(.5     ); expectedExponent[ 0] = -1;
     input[ 1] = T(   1); expectedFraction[ 1] = T(.5     ); expectedExponent[ 1] =  1;
     input[ 2] = T(   0); expectedFraction[ 2] = T(0.     ); expectedExponent[ 2] =  0;
@@ -744,16 +744,23 @@ template<typename V> void testFrexp()/*{{{*/
     input[29] = T(  29); expectedFraction[29] = T(29./32.); expectedExponent[29] =  5;
     input[30] = T(  32); expectedFraction[30] = T(32./64.); expectedExponent[30] =  6;
     input[31] = T(  31); expectedFraction[31] = T(31./32.); expectedExponent[31] =  5;
+    input[32] = T( -0.); expectedFraction[32] = T(-0.    ); expectedExponent[32] =  0;
     for (size_t i = 0; i < input.vectorsCount(); ++i) {
         const V v = input.vector(i);
         ExpV exp;
-        COMPARE(frexp(v, &exp), V(expectedFraction.vector(i)));
+        const V fraction = frexp(v, &exp);
+        COMPARE(fraction, V(expectedFraction.vector(i))) << ", v = " << v;
+        VERIFY(0 == memcmp(&fraction, &expectedFraction[i * V::Size], sizeof(V)))
+            << ", fraction: " << fraction
+            << ", expectedFraction: " << V(expectedFraction.vector(i))
+            << ", delta: " << fraction - V(expectedFraction.vector(i));
         if (V::Size * 2 == ExpV::Size) {
             for (size_t j = 0; j < V::Size; ++j) {
-                COMPARE(exp[j * 2], expectedExponent[i * V::Size + j]);
+                COMPARE(exp[j * 2], expectedExponent[i * V::Size + j]) << ", i = " << i
+                    << ", j = " << j;
             }
         } else {
-            COMPARE(exp, ExpV(expectedExponent.vector(i)));
+            COMPARE(exp, ExpV(expectedExponent.vector(i))) << ", i = " << i;
         }
     }
 }
