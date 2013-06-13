@@ -25,7 +25,7 @@
 #include "const_data.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(MICIntrinsics)
+Vc_NAMESPACE_BEGIN(MicIntrinsics)
     using MIC::c_general;
 
     static Vc_INTRINSIC Vc_CONST __m512  _mm512_setallone_ps()    { return _mm512_castsi512_ps(_mm512_set_1to16_pi(~0)); }
@@ -361,7 +361,7 @@ template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
 Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
-    using namespace MICIntrinsics;
+    using namespace MicIntrinsics;
 Vc_NAMESPACE_END
 
 #include "undomacros.h"
