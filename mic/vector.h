@@ -288,7 +288,7 @@ public:
     OPcmp(<, cmplt)
     OPcmp(<=, cmple)
 #undef OPcmp
-    Vc_INTRINSIC Vc_PURE Mask isNegative() const { return *this < Zero(); }
+    Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_INTRINSIC_R Vc_PURE_R;
 
     Vc_INTRINSIC void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
         d.v() = HT::multiplyAndAdd(d.v(), factor.data(), summand.data());

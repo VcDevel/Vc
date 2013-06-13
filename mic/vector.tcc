@@ -445,6 +445,19 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator>>=(unsigned
 
 // operators {{{1
 #include "../common/operators.h"
+// isNegative {{{1
+template<> Vc_INTRINSIC Vc_PURE float_m float_v::isNegative() const
+{
+    return _mm512_cmpge_epu32_mask(mic_cast<__m512i>(d.v()), _set1(c_general::signMaskFloat[1]));
+}
+template<> Vc_INTRINSIC Vc_PURE sfloat_m sfloat_v::isNegative() const
+{
+    return _mm512_cmpge_epu32_mask(mic_cast<__m512i>(d.v()), _set1(c_general::signMaskFloat[1]));
+}
+template<> Vc_INTRINSIC Vc_PURE double_m double_v::isNegative() const
+{
+    return _mm512_cmpge_epu32_mask(mic_cast<__m512i>(_mm512_cvtpd_pslo(d.v())), _set1(c_general::signMaskFloat[1]));
+}
 // gathers {{{1
 template<typename T> template<typename IndexT> Vc_ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, const IndexT *indexes)
 {
