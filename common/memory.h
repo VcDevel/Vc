@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <cstring>
 #include <cstddef>
+#include <initializer_list>
 #include "memoryfwd.h"
 #include "macros.h"
 
@@ -279,6 +280,13 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
             Memory()
             {
                 Base::lastVector() = V::Zero();
+            }
+
+            Memory(std::initializer_list<EntryType> init)
+            {
+                VC_ASSERT(init.size() <= Size);
+                Base::lastVector() = V::Zero();
+                std::copy(init.begin(), init.end(), &m_mem[0]);
             }
 
             /**

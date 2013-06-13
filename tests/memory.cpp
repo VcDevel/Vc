@@ -299,10 +299,22 @@ template<typename V> void paddingMustBeZero()
     COMPARE(x, V::Zero());
 }
 
+template<typename V> void initializerList()
+{
+    typedef typename V::EntryType T;
+    Memory<V, 3> m = { T(1), T(2), T(3) };
+    for (int i = 0; i < 3; ++i) {
+        COMPARE(m[i], i + 1);
+    }
+}
+
 int main()
 {
     testAllTypes(testEntries);
     testAllTypes(paddingMustBeZero);
+#ifndef VC_ICC
+    testAllTypes(initializerList);
+#endif
     testAllTypes(testEntries2D);
     testAllTypes(testVectors);
     testAllTypes(testVectors2D);
