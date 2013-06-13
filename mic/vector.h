@@ -183,18 +183,18 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
     // swizzles
     Vc_INTRINSIC_L Vc_CONST_L const Vector<T> &abcd() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  cdab() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  badc() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  aaaa() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  bbbb() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  cccc() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  dddd() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  bcad() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  bcda() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  dabc() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  acbd() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  dbca() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T>  dcba() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  cdab() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  badc() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  aaaa() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  bbbb() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  cccc() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  dddd() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  bcad() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  bcda() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  dabc() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  acbd() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  dbca() const Vc_INTRINSIC_R Vc_CONST_R;
+    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  dcba() const Vc_INTRINSIC_R Vc_CONST_R;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // gathers

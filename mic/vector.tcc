@@ -218,6 +218,45 @@ template<typename Parent, typename T> template<typename T2, typename A> inline v
 {
     MicIntrinsics::store(mask.data(), mem, data(), UpDownC<T2>(), align);
 }
+// swizzles {{{1
+template<typename T> Vc_INTRINSIC Vc_CONST const Vector<T> &Vector<T>::abcd() const { return *this; }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::cdab() const { return MicIntrinsics::swizzle(d.v(), _MM_SWIZ_REG_BADC); }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::badc() const { return MicIntrinsics::swizzle(d.v(), _MM_SWIZ_REG_CDAB); }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::aaaa() const { return MicIntrinsics::swizzle(d.v(), _MM_SWIZ_REG_AAAA); }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::bbbb() const { return MicIntrinsics::swizzle(d.v(), _MM_SWIZ_REG_BBBB); }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::cccc() const { return MicIntrinsics::swizzle(d.v(), _MM_SWIZ_REG_CCCC); }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::dddd() const { return MicIntrinsics::swizzle(d.v(), _MM_SWIZ_REG_DDDD); }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::bcad() const { return MicIntrinsics::swizzle(d.v(), _MM_SWIZ_REG_DACB); }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::bcda() const { return MicIntrinsics::shuffle(d.v(), _MM_PERM_ADCB); }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::dabc() const { return MicIntrinsics::shuffle(d.v(), _MM_PERM_CBAD); }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::acbd() const { return MicIntrinsics::shuffle(d.v(), _MM_PERM_DBCA); }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::dbca() const { return MicIntrinsics::shuffle(d.v(), _MM_PERM_ACBD); }
+template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::dcba() const { return MicIntrinsics::shuffle(d.v(), _MM_PERM_ABCD); }
+
+template<> Vc_INTRINSIC Vc_CONST double_v double_v::bcda() const {
+    //ADCB
+    auto &&tmp = _mm512_swizzle_pd(d.v(), _MM_SWIZ_REG_DACB);
+    return _mm512_mask_swizzle_pd(tmp, 0xcc, tmp, _MM_SWIZ_REG_CDAB);
+}
+template<> Vc_INTRINSIC Vc_CONST double_v double_v::dabc() const {
+    //CBAD
+    auto &&tmp = _mm512_mask_swizzle_pd(d.v(), 0xaa, d.v(), _MM_SWIZ_REG_BADC); // BCDA
+    return _mm512_swizzle_pd(tmp, _MM_SWIZ_REG_CDAB);
+}
+template<> Vc_INTRINSIC Vc_CONST double_v double_v::acbd() const {
+    //DBCA
+    auto &&tmp = _mm512_swizzle_pd(d.v(), _MM_SWIZ_REG_BADC); // BXXC
+    return _mm512_mask_swizzle_pd(d.v(), 0x66, tmp, _MM_SWIZ_REG_CDAB); // XBCX
+}
+template<> Vc_INTRINSIC Vc_CONST double_v double_v::dbca() const {
+    //ACBD
+    auto &&tmp = _mm512_swizzle_pd(d.v(), _MM_SWIZ_REG_BADC); // XADX
+    return _mm512_mask_swizzle_pd(d.v(), 0x99, tmp, _MM_SWIZ_REG_CDAB); // AXXD
+}
+template<> Vc_INTRINSIC Vc_CONST double_v double_v::dcba() const {
+    //ABCD
+    return _mm512_swizzle_pd(_mm512_swizzle_pd(d.v(), _MM_SWIZ_REG_CDAB), _MM_SWIZ_REG_BADC);
+}
 // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX {{{1
 template<typename T> Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::Vector(const Vector<typename ConcatTypeHelper<T>::Type> *a)
     : d(a[0].data())
