@@ -882,6 +882,12 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::Random()
 {
     Vector<unsigned int> state0, state1;
     _doRandomStep(state0, state1);
+    if (std::is_same<T, short>::value) {
+        // short and ushort vectors would hold values that are outside of their range
+        // for ushort this doesn't matter because overflow behavior is defined in the compare
+        // operators
+        return state0.reinterpretCast<Vector<T>>() >> 16;
+    }
     return state0.reinterpretCast<Vector<T> >();
 }
 
