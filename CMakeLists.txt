@@ -117,6 +117,7 @@ if(NOT ROOT_RELEASE)
    if(MIC_FOUND)
       add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
       mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support.cpp src/mic_sorthelper.cpp)
+      add_target_property(Vc_MIC LABELS "MIC")
       add_dependencies(MIC Vc_MIC)
    endif()
 
