@@ -41,13 +41,6 @@
 # define ALIGNED_TYPEDEF(n, _type_, _newType_) typedef _type_ _newType_ ALIGN(n)
 #endif
 
-#define FREE_STORE_OPERATORS_ALIGNED(alignment) \
-        inline void *operator new(size_t size) { return _mm_malloc(size, alignment); } \
-        inline void *operator new(size_t, void *p) { return p; } \
-        inline void *operator new[](size_t size) { return _mm_malloc(size, alignment); } \
-        inline void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
-        inline void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
-
 #ifdef VC_CLANG
 #  define Vc_INTRINSIC_L inline
 #  define Vc_INTRINSIC_R __attribute__((always_inline))
@@ -146,6 +139,16 @@
 #  define VC_DEPRECATED(msg) __declspec(deprecated(msg))
 #  define Vc_WARN_UNUSED_RESULT
 #endif
+
+#define FREE_STORE_OPERATORS_ALIGNED(alignment) \
+        Vc_ALWAYS_INLINE void *operator new(size_t size) { return _mm_malloc(size, alignment); } \
+        Vc_ALWAYS_INLINE void *operator new(size_t, void *p) { return p; } \
+        Vc_ALWAYS_INLINE void *operator new[](size_t size) { return _mm_malloc(size, alignment); } \
+        Vc_ALWAYS_INLINE void *operator new[](size_t size, void *p) { return p; } \
+        Vc_ALWAYS_INLINE void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
+        Vc_ALWAYS_INLINE void operator delete(void *ptr, void *) {} \
+        Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t) { _mm_free(ptr); } \
+        Vc_ALWAYS_INLINE void operator delete[](void *ptr, void *) {}
 
 #ifdef VC_GCC
 # define VC_WARN_INLINE
