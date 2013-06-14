@@ -337,11 +337,34 @@ template<typename V> void maskCompare()/*{{{*/
         m1 = allMasks<V>(i);
     }
 }/*}}}*/
+template<typename V> void maskScalarAccess()/*{{{*/
+{
+    typedef typename V::Mask M;
+    for_all_masks(V, mask) {
+        const auto &mask2 = mask;
+        for (int i = 0; i < V::Size; ++i) {
+            COMPARE(bool(mask[i]), mask2[i]);
+        }
+
+        const auto maskInv = !mask;
+        for (int i = 0; i < V::Size; ++i) {
+            mask[i] = !mask[i];
+        }
+        COMPARE(mask, maskInv);
+
+        for (int i = 0; i < V::Size; ++i) {
+            mask[i] = true;
+        }
+        COMPARE(mask, M(true));
+    }
+}/*}}}*/
+
 int main(int argc, char **argv)/*{{{*/
 {
     initTest(argc, argv);
 
     testAllTypes(maskInit);
+    testAllTypes(maskScalarAccess);
     testAllTypes(maskCompare);
     testAllTypes(testInc);
     testAllTypes(testDec);
