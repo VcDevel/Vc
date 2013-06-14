@@ -271,7 +271,7 @@ void applyAndCall()
     typedef typename V::EntryType T;
 
     const V two(T(2));
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 10; ++i) {
         const V rand = V::Random();
         COMPARE(rand.apply(add2<T>), rand + two);
         COMPARE(rand.apply([](T x) { return x + T(2); }), rand + two);
