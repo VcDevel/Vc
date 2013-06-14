@@ -144,12 +144,12 @@ namespace
 #endif
 } // anonymous namespace
 
-template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, Iterator<V>>::type begin(V &v)
+template<typename V> constexpr typename std::enable_if<is_simd_vector<V>::value, Iterator<V>>::type begin(V &v)
 {
     return { v, 0 };
 }
 
-template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, Iterator<V>>::type end(V &v)
+template<typename V> constexpr typename std::enable_if<is_simd_vector<V>::value, Iterator<V>>::type end(V &v)
 {
     return { v, V::Size };
 }
