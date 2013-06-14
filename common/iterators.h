@@ -62,6 +62,35 @@ namespace
 
     template<typename V> using ConstIterator = Iterator<const V>;
 
+#ifdef VC_IMPL_MIC
+    class BitmaskIterator/*{{{*/
+    {
+        const int mask;
+        int bit;
+    public:
+        Vc_ALWAYS_INLINE BitmaskIterator(int m) : mask(m), bit(_mm_tzcnt_32(mask)) {}
+        Vc_ALWAYS_INLINE BitmaskIterator(const BitmaskIterator &) = default;
+#ifndef VC_NO_MOVE_CTOR
+        Vc_ALWAYS_INLINE BitmaskIterator(BitmaskIterator &&) = default;
+#endif
+
+        Vc_ALWAYS_INLINE size_t operator->() const { return bit; }
+        Vc_ALWAYS_INLINE size_t operator*() const { return bit; }
+
+        Vc_ALWAYS_INLINE BitmaskIterator &operator++()    {
+            bit = _mm_tzcnti_32(bit, mask);
+            return *this;
+        }
+        Vc_ALWAYS_INLINE BitmaskIterator  operator++(int) {
+            BitmaskIterator tmp = *this;
+            bit = _mm_tzcnti_32(bit, mask);
+            return tmp;
+        }
+
+        Vc_ALWAYS_INLINE bool operator==(const BitmaskIterator &rhs) const { return bit == rhs.bit; }
+        Vc_ALWAYS_INLINE bool operator!=(const BitmaskIterator &rhs) const { return bit != rhs.bit; }
+    };/*}}}*/
+#else
     class BitmaskIterator/*{{{*/
     {
         size_t mask;
@@ -112,6 +141,7 @@ namespace
         Vc_ALWAYS_INLINE bool operator==(const BitmaskIterator &rhs) const { return mask == rhs.mask; }
         Vc_ALWAYS_INLINE bool operator!=(const BitmaskIterator &rhs) const { return mask != rhs.mask; }
     };/*}}}*/
+#endif
 } // anonymous namespace
 
 template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, Iterator<V>>::type begin(V &v)
