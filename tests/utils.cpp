@@ -427,20 +427,41 @@ template<typename V> void rangeFor()
         M m(Vc::One);
         for (auto i : m) {
             VERIFY(i);
+            i = false;
+            VERIFY(!i);
         }
-        bool b = true;
-        for (auto &i : m) {
-            i = (b = !b);
-        }
-        b = true;
         for (auto i : m) {
-            COMPARE(i, (b = !b));
-            i = true;
+            VERIFY(i);
         }
-        b = true;
         for (auto i : static_cast<const M &>(m)) {
-            COMPARE(i, (b = !b));
+            VERIFY(i);
         }
+    }
+
+    for_all_masks(V, mask) {
+        V test = V::Zero();
+        for (auto i : where(mask)) {
+            test[i] = T(1);
+        }
+        COMPARE(test == V::One(), mask);
+
+        unsigned int count = 0;
+        for (int i : where(mask)) {
+            ++count;
+            if (i >= 0) {
+                continue;
+            }
+        }
+        COMPARE(count, mask.count());
+
+        count = 0;
+        for (int i : where(mask)) {
+            if (i >= 0) {
+                break;
+            }
+            ++count;
+        }
+        COMPARE(count, 0U);
     }
 }
 
