@@ -916,12 +916,15 @@ template<> Vc_ALWAYS_INLINE Vector<sfloat> Vector<sfloat>::Random()
 
 template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 {
-    const __m512i state = LoadHelper<uint_v>::load(&Common::RandomState[0], Vc::Aligned);
-    for (size_t k = 0; k < 8; k += 2) {
-        typedef unsigned long long uint64 Vc_MAY_ALIAS;
-        const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);
-        *reinterpret_cast<uint64 *>(&Common::RandomState[k]) = (stateX * 0x5deece66dull + 11);
-    }
+    using MicIntrinsics::swizzle;
+    const auto state = LoadHelper<uint_v>::load(&Common::RandomState[0], Vc::Aligned);
+    const auto factor = _set1(0x5deece66dull);
+    _mm512_store_epi32(&Common::RandomState[0],
+            _mm512_add_epi64(
+                // the following is not _mm512_mullo_epi64, but something close...
+                _mm512_add_epi32(_mm512_mullo_epi32(state, factor), swizzle(_mm512_mulhi_epu32(state, factor), _MM_SWIZ_REG_CDAB)),
+                _set1(11ull)));
+
     return (Vector<double>(_cast(_mm512_srli_epi64(mic_cast<__m512>(state), 12))) | One()) - One();
 }
 // }}}1
