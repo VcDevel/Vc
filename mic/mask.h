@@ -97,7 +97,7 @@ public:
     template<unsigned int OtherSize>
     inline Mask<OtherSize> cast() const { return Mask<OtherSize>(k); }
 
-    inline bool operator[](int index) const { return static_cast<bool>(k & (1 << index)); }
+    inline bool operator[](size_t index) const { return static_cast<bool>(k & (1 << index)); }
 
     inline int count() const { return _mm_countbits_32(k); }
 
