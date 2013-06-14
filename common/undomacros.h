@@ -97,6 +97,8 @@
 #undef VC_ALIGNED_PARAMETER
 #undef VC_OFFSETOF
 #undef Vc_NOEXCEPT
+#undef VC_RR_
+#undef VC_FORWARD_
 
 #if VC_GCC && !__OPTIMIZE__
 #pragma GCC diagnostic pop

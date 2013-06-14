@@ -330,4 +330,13 @@ do {} while ( false )
 #define Vc_NOEXCEPT noexcept
 #endif
 
+// ref-ref:
+#ifdef VC_NO_MOVE_CTOR
+#define VC_RR_ &
+#define VC_FORWARD_(T)
+#else
+#define VC_RR_ &&
+#define VC_FORWARD_(T) std::forward<T>
+#endif
+
 #endif // VC_COMMON_MACROS_H
