@@ -20,6 +20,8 @@
 #ifndef VC_MIC_MASK_H
 #define VC_MIC_MASK_H
 
+#include "../common/maskentry.h"
+
 #ifdef CAN_OFFLOAD
 #pragma offload_attribute(push, target(mic))
 #endif
@@ -97,6 +99,16 @@ public:
     template<unsigned int OtherSize>
     inline Mask<OtherSize> cast() const { return Mask<OtherSize>(k); }
 
+    //internal function for MaskEntry::operator=
+    inline void setEntry(size_t index, bool value) {
+        if (value) {
+            k |= (1 << index);
+        } else {
+            k &= ~(1 << index);
+        }
+    }
+
+    inline Common::MaskEntry<Mask<Size>> operator[](size_t index) { return Common::MaskEntry<Mask<Size>>(*this, index); }
     inline bool operator[](size_t index) const { return static_cast<bool>(k & (1 << index)); }
 
     inline int count() const { return _mm_countbits_32(k); }
