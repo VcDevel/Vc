@@ -264,10 +264,28 @@ template<typename T> Vc_INTRINSIC Vector<T>::Vector(const Vector<typename CtorTy
 
 template<typename T> inline void Vector<T>::expand(Vector<typename ExpandTypeHelper<T>::Type> *x) const
 {
-    if (Size == 8u) {
-        x[0].data() = VectorHelper<T>::expand0(data());
-        x[1].data() = VectorHelper<T>::expand1(data());
-    }
+    *x = *this;
+}
+
+template<> inline void sfloat_v::expand(float_v *x) const
+{
+    x[0].data() = data()[0];
+    x[1].data() = data()[1];
+}
+template<> inline void float_v::expand(double_v *x) const
+{
+    x[0].data() = _mm_cvtps_pd(data());
+    x[1].data() = _mm_cvtps_pd(_mm_movehl_ps(data(), data()));
+}
+template<> inline void short_v::expand(int_v *x) const
+{
+    x[0].data() = HT::expand0(data());
+    x[1].data() = HT::expand1(data());
+}
+template<> inline void ushort_v::expand(uint_v *x) const
+{
+    x[0].data() = HT::expand0(data());
+    x[1].data() = HT::expand1(data());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

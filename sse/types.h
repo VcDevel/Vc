@@ -115,6 +115,7 @@ static Vc_ALWAYS_INLINE void assertCorrectAlignment(const M256 *ptr)
     template<> struct ExpandTypeHelper<short> { typedef int Type; };
     template<> struct ExpandTypeHelper<unsigned short> { typedef unsigned int Type; };
     template<> struct ExpandTypeHelper<float> { typedef double Type; };
+    template<> struct ExpandTypeHelper<sfloat> { typedef float Type; };
 
     template<typename T> struct VectorTypeHelper { typedef __m128i Type; };
     template<> struct VectorTypeHelper<double>   { typedef __m128d Type; };
