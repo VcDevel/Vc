@@ -444,8 +444,10 @@ template<typename V> void rangeFor()
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    initTest(argc, argv);
+
     testAllTypes(testCall);
     testAllTypes(testForeachBit);
     testAllTypes(testSort);
