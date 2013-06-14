@@ -120,6 +120,8 @@ public:
      */
     int firstOne() const { return _mm_tzcnt_32(k); }
 
+    int toInt() const { return k; }
+
 private:
     M k;
 };
