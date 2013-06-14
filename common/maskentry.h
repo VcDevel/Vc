@@ -34,12 +34,11 @@ public:
 #ifndef VC_NO_MOVE_CTOR
     constexpr MaskEntry(MaskEntry &&) = default;
 #endif
-    Vc_ALWAYS_INLINE MaskEntry &operator=(const MaskEntry &) = default;
 
     Vc_ALWAYS_INLINE Vc_PURE operator bool() const { const M &m = mask; return m[offset]; }
-    Vc_ALWAYS_INLINE bool operator=(bool x) {
+    Vc_ALWAYS_INLINE MaskEntry &operator=(bool x) {
         mask.setEntry(offset, x);
-        return x;
+        return *this;
     }
 };
 
