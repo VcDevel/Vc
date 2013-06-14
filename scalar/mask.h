@@ -80,6 +80,7 @@ template<unsigned int VectorSize = 1> class Mask
          * The return value is undefined if the mask is empty.
          */
         Vc_ALWAYS_INLINE unsigned int firstOne() const { return 0; }
+        Vc_ALWAYS_INLINE int toInt() const { return m ? 1 : 0; }
 
     private:
         bool m;
