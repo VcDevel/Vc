@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -324,7 +324,34 @@ template<typename T> class Vector
         Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
         Vc_ALWAYS_INLINE Vector sorted() const { return SortHelper<T>::sort(data()); }
 
-        template<typename F> void callWithValuesSorted(F &f) {
+#ifdef VC_NO_MOVE_CTOR
+        template<typename F> Vc_INTRINSIC void call(const F &f) const {
+            for_all_vector_entries(i,
+                    f(EntryType(d.m(i)));
+                    );
+        }
+        template<typename F> Vc_INTRINSIC void call(const F &f, const Mask &mask) const {
+            Vc_foreach_bit(size_t i, mask) {
+                f(EntryType(d.m(i)));
+            }
+        }
+        template<typename F> Vc_INTRINSIC Vector<T> apply(const F &f) const {
+            Vector<T> r;
+            for_all_vector_entries(i,
+                    r.d.m(i) = f(EntryType(d.m(i)));
+                    );
+            return r;
+        }
+        template<typename F> Vc_INTRINSIC Vector<T> apply(const F &f, const Mask &mask) const {
+            Vector<T> r(*this);
+            Vc_foreach_bit (size_t i, mask) {
+                r.d.m(i) = f(EntryType(r.d.m(i)));
+            }
+            return r;
+        }
+#endif
+
+        template<typename F> void callWithValuesSorted(F VC_RR_ f) {
             EntryType value = d.m(0);
             f(value);
             for (int i = 1; i < Size; ++i) {
@@ -335,36 +362,19 @@ template<typename T> class Vector
             }
         }
 
-        template<typename F> Vc_INTRINSIC void call(const F &f) const {
-            for_all_vector_entries(i,
-                    f(EntryType(d.m(i)));
-                    );
-        }
-        template<typename F> Vc_INTRINSIC void call(F &f) const {
+        template<typename F> Vc_INTRINSIC void call(F VC_RR_ f) const {
             for_all_vector_entries(i,
                     f(EntryType(d.m(i)));
                     );
         }
 
-        template<typename F> Vc_INTRINSIC void call(const F &f, const Mask &mask) const {
-            Vc_foreach_bit(size_t i, mask) {
-                f(EntryType(d.m(i)));
-            }
-        }
-        template<typename F> Vc_INTRINSIC void call(F &f, const Mask &mask) const {
+        template<typename F> Vc_INTRINSIC void call(F VC_RR_ f, const Mask &mask) const {
             Vc_foreach_bit(size_t i, mask) {
                 f(EntryType(d.m(i)));
             }
         }
 
-        template<typename F> Vc_INTRINSIC Vector<T> apply(const F &f) const {
-            Vector<T> r;
-            for_all_vector_entries(i,
-                    r.d.m(i) = f(EntryType(d.m(i)));
-                    );
-            return r;
-        }
-        template<typename F> Vc_INTRINSIC Vector<T> apply(F &f) const {
+        template<typename F> Vc_INTRINSIC Vector<T> apply(F VC_RR_ f) const {
             Vector<T> r;
             for_all_vector_entries(i,
                     r.d.m(i) = f(EntryType(d.m(i)));
@@ -372,14 +382,7 @@ template<typename T> class Vector
             return r;
         }
 
-        template<typename F> Vc_INTRINSIC Vector<T> apply(const F &f, const Mask &mask) const {
-            Vector<T> r(*this);
-            Vc_foreach_bit (size_t i, mask) {
-                r.d.m(i) = f(EntryType(r.d.m(i)));
-            }
-            return r;
-        }
-        template<typename F> Vc_INTRINSIC Vector<T> apply(F &f, const Mask &mask) const {
+        template<typename F> Vc_INTRINSIC Vector<T> apply(F VC_RR_ f, const Mask &mask) const {
             Vector<T> r(*this);
             Vc_foreach_bit (size_t i, mask) {
                 r.d.m(i) = f(EntryType(r.d.m(i)));
