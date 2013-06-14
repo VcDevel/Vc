@@ -101,7 +101,8 @@ template<typename Vec> void testCmp()
 
 template<typename Vec> void testIsMix()
 {
-    Vec a { typename Vec::IndexType(IndexesFromZero) };
+    typedef typename Vec::IndexType IT;
+    Vec a(IT::IndexesFromZero());
     Vec b(Zero);
     Vec c(One);
     if (Vec::Size > 1) {
