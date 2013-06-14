@@ -91,12 +91,12 @@ void testFloat()
     }
     float_v f(d);
     for (int i = 0; i < float_v::Size; ++i) {
-        COMPARE(f[i], float(d[i / double_v::Size][i % double_v::Size]));
+        COMPARE(f[i], float(d[i / double_v::Size][i % double_v::Size])) << ", i = " << i;
     }
     f = float_v::Random();
     f.expand(d);
     for (int i = 0; i < float_v::Size; ++i) {
-        COMPARE(f[i], float(d[i / double_v::Size][i % double_v::Size]));
+        COMPARE(f[i], float(d[i / double_v::Size][i % double_v::Size])) << ", i = " << i;
     }
 }
 
