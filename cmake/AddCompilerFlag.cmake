@@ -38,10 +38,8 @@
 get_filename_component(_currentDir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 include("${_currentDir}/CheckCCompilerFlag.cmake")
 include("${_currentDir}/CheckCXXCompilerFlag.cmake")
-if(MIC_NATIVE_FOUND)
-   include("${_currentDir}/CheckMicCCompilerFlag.cmake")
-   include("${_currentDir}/CheckMicCXXCompilerFlag.cmake")
-endif()
+include("${_currentDir}/CheckMicCCompilerFlag.cmake")
+include("${_currentDir}/CheckMicCXXCompilerFlag.cmake")
 
 macro(AddCompilerFlag _flag)
    string(REGEX REPLACE "[-.+/:= ]" "_" _flag_esc "${_flag}")
