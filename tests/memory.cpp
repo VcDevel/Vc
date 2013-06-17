@@ -77,8 +77,8 @@ template<typename V, unsigned int Size> struct TestEntries2D { static void test(
     }
     for (size_t i = 0; i < Size; ++i) {
         for (size_t j = 0; j < Size; ++j) {
-            COMPARE(m[i][j], T(x + i + j));
-            COMPARE(m2[i][j], T(x + i + j));
+            COMPARE(m[i][j], T(x + i + j)) << i << ", j = " << j;
+            COMPARE(m2[i][j], T(x + i + j)) << i << ", j = " << j;
         }
     }
     for (size_t i = 0; i < Size; ++i) {
