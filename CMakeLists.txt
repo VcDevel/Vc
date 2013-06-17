@@ -218,6 +218,8 @@ set(cmake_install_files
    cmake/AddCompilerFlag.cmake
    cmake/CheckCCompilerFlag.cmake
    cmake/CheckCXXCompilerFlag.cmake
+   cmake/CheckMicCCompilerFlag.cmake
+   cmake/CheckMicCXXCompilerFlag.cmake
    )
 if(ROOT_RELEASE)
    execute_process(
