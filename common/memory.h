@@ -145,6 +145,16 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
                 VectorsCount = PaddedSize2 / V::Size
             };
 
+            Memory()
+            {
+                if (InitPadding) {
+                    if (Size1 > 32)
+                    for (size_t i = 0; i < Size1; ++i) {
+                        V::Zero().store(&m_mem[i][PaddedSize2 - V::Size], Vc::Streaming);
+                    }
+                }
+            }
+
             /**
              * \return the number of rows in the array.
              *
@@ -436,6 +446,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
             m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
         {
             m_vectorsCount /= V::Size;
+            Base::lastVector() = V::Zero();
         }
 
         /**
@@ -451,6 +462,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
             m_vectorsCount(rhs.vectorsCount()),
             m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
+            Base::lastVector() = V::Zero();
             std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
         }
 
@@ -466,6 +478,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
             m_vectorsCount(rhs.vectorsCount()),
             m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
+            Base::lastVector() = V::Zero();
             std::memcpy(m_mem, rhs.m_mem, entriesCount() * sizeof(EntryType));
         }
 
