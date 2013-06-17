@@ -39,6 +39,7 @@ Vc_PUBLIC_NAMESPACE_BEGIN
 template<typename T> struct DetermineVectorEntryType { typedef T Type; };
 template<> struct DetermineVectorEntryType<sfloat> { typedef float Type; };
 // MIC does not support epi8/epu8 operations, thus we change the EntryType to int/uint
+template<> struct DetermineVectorEntryType<char> { typedef int Type; };
 template<> struct DetermineVectorEntryType<signed char> { typedef int Type; };
 template<> struct DetermineVectorEntryType<unsigned char> { typedef unsigned int Type; };
 // MIC does not support epi16/epu16 operations, thus we change the EntryType to int/uint
