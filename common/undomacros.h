@@ -100,7 +100,7 @@
 #undef VC_RR_
 #undef VC_FORWARD_
 
-#if VC_GCC && !__OPTIMIZE__
+#if defined(VC_GCC) && !__OPTIMIZE__
 #pragma GCC diagnostic pop
 #endif
 

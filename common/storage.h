@@ -169,7 +169,7 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
 #endif
 };
 
-#if VC_GCC == 0x40700 || (VC_GCC >= 0x40600 && VC_GCC <= 0x40603)
+#if defined(VC_GCC) && (VC_GCC == 0x40700 || (VC_GCC >= 0x40600 && VC_GCC <= 0x40603))
 // workaround bug 52736 in GCC
 template<typename T, typename V> static Vc_ALWAYS_INLINE Vc_CONST T &vectorMemoryUnionAliasedMember(V *data, size_t index) {
     if (__builtin_constant_p(index) && index == 0) {
