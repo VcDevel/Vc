@@ -439,29 +439,16 @@ template<typename V> void rangeFor()
     }
 
     for_all_masks(V, mask) {
+        unsigned int count = 0;
         V test = V::Zero();
         for (auto i : where(mask)) {
+            VERIFY(i >= 0);
+            VERIFY(i < V::Size);
             test[i] = T(1);
+            ++count;
         }
         COMPARE(test == V::One(), mask);
-
-        unsigned int count = 0;
-        for (int i : where(mask)) {
-            ++count;
-            if (i >= 0) {
-                continue;
-            }
-        }
         COMPARE(count, mask.count());
-
-        count = 0;
-        for (int i : where(mask)) {
-            if (i >= 0) {
-                break;
-            }
-            ++count;
-        }
-        COMPARE(count, 0U);
     }
 }
 
