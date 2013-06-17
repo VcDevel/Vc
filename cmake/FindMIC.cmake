@@ -25,7 +25,6 @@
 #
 # When MIC_NATIVE_FOUND is true you can use the macros
 # mic_add_definitions
-# mic_add_flags
 # mic_include_directories
 # mic_set_link_libraries
 # mic_add_library
@@ -144,17 +143,18 @@ if(MIC_NATIVE_FOUND OR MIC_OFFLOAD_FOUND)
          set(_mic_cflags ${_mic_cflags} "${_def}")
       endforeach()
    endmacro()
-   macro(mic_add_flags)
-      foreach(_flag ${ARGN})
-         set(_mic_cflags ${_mic_cflags} "${_flag}")
-      endforeach()
-   endmacro()
    macro(mic_include_directories)
       foreach(_dir ${ARGN})
          set(_mic_cflags ${_mic_cflags} "-I${_dir}")
       endforeach()
       include_directories(${ARGN})
    endmacro()
+   if(NOT DEFINED MIC_C_FLAGS)
+      set(MIC_C_FLAGS)
+   endif()
+   if(NOT DEFINED MIC_CXX_FLAGS)
+      set(MIC_CXX_FLAGS)
+   endif()
 else()
    message(WARNING "MIC SDK was not found!")
 endif()
@@ -165,24 +165,28 @@ if(MIC_NATIVE_FOUND)
       get_filename_component(_ext "${_source}" EXT)
       get_filename_component(_tmp "${_source}" NAME_WE)
       set(${_output} "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${_target}.dir/${_tmp}${_ext}.mic.o")
+      set(_lang CXX)
       set(_compiler "${MIC_CXX}")
       if(_ext STREQUAL "c")
+         set(_lang C)
          set(_compiler "${MIC_CC}")
       endif()
-      set(_flags "${_mic_cflags}")
+
       string(TOUPPER "${CMAKE_BUILD_TYPE}" _tmp)
-      set(_tmp "CMAKE_CXX_FLAGS_${_tmp}")
-      string(REPLACE " " ";" _flags "${CMAKE_CXX_FLAGS} ${${_tmp}} ${_flags}")
+      string(STRIP "${CMAKE_MIC_${_lang}_FLAGS} ${CMAKE_${_lang}_FLAGS_${_tmp}} ${_mic_cflags}" _flags)
+      string(REPLACE " " ";" _flags "${_flags}")
+      message(STATUS "_mic_add_object _flags: ${_flags}")
       get_directory_property(_inc INCLUDE_DIRECTORIES)
       foreach(_i ${_inc})
          list(APPEND _flags "-I${_i}")
       endforeach()
+
       add_custom_command(OUTPUT "${${_output}}"
          COMMAND "${_compiler}" -mmic -fPIC
          -DVC_IMPL=MIC
          ${_flags} ${ARGN} -c -o "${${_output}}" "${_abs}"
          DEPENDS "${_abs}"
-         IMPLICIT_DEPENDS CXX "${_abs}"
+         IMPLICIT_DEPENDS ${_lang} "${_abs}"
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
          COMMENT "Compiling (MIC) ${${_output}}"
          VERBATIM
