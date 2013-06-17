@@ -31,7 +31,11 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 template<unsigned int VectorSize> struct MaskHelper;
 template<> struct MaskHelper<8> {
     typedef __mmask8  Type;
-    static inline bool isFull (Type k) { k = _mm512_kmovlhb(k, k); return _mm512_kortestc(k, k); }
+    static inline bool isFull (Type k) {
+        //__mmask16 kk; asm("kmerge2l1l %[in],%[out]" : [out]"=k"(kk) : [in]"k"(k));
+        __mmask16 kk = _mm512_kmovlhb(k, k);
+        return _mm512_kortestc(kk, kk);
+    }
     static inline bool isEmpty(Type k) { return _mm512_kortestz(k, k); }
     static inline bool isNotEmpty(Type k) { return !isEmpty(k); }
     static inline bool isMix  (Type k) { return !isFull(k) && !isEmpty(k); }
