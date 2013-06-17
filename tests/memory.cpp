@@ -132,15 +132,15 @@ template<typename V, unsigned int Size> struct TestVectors2D { static void test(
     const Memory<V, Size, Size> &m2 = m;
     V x = startX;
     for (size_t i = 0; i < m.rowsCount(); ++i, x += V::Size) {
-        Memory<V, Size> &mrow = m[i];
+        auto &mrow = m[i];
         for (size_t j = 0; j < mrow.vectorsCount(); ++j, x += V::Size) {
             mrow.vector(j) = x;
         }
     }
     x = startX;
     for (size_t i = 0; i < m.rowsCount(); ++i, x += V::Size) {
-        Memory<V, Size> &mrow = m[i];
-        const Memory<V, Size> &m2row = m2[i];
+        auto &mrow = m[i];
+        const auto &m2row = m2[i];
         size_t j;
         for (j = 0; j < mrow.vectorsCount() - 1; ++j) {
             COMPARE(V(mrow.vector(j)), x);

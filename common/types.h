@@ -222,8 +222,6 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 
 Vc_NAMESPACE_END
 
-Vc_NAMESPACE_BEGIN(Common)
-template<typename V, size_t Size1, size_t Size2> class Memory;
-Vc_NAMESPACE_END
+#include "memoryfwd.h"
 
 #endif // VC_COMMON_TYPES_H

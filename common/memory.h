@@ -116,14 +116,14 @@ template<typename V, size_t Size> struct _MemorySizeCalculation
  * \param Size1 Number of rows
  * \param Size2 Number of columns
  */
-template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size1, Size2>, 2, Memory<V, Size2> >
+template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> >
 {
     public:
         typedef typename V::EntryType EntryType;
     private:
-        typedef MemoryBase<V, Memory<V, Size1, Size2>, 2, Memory<V, Size2> > Base;
-            friend class MemoryBase<V, Memory<V, Size1, Size2>, 2, Memory<V, Size2> >;
-            friend class MemoryDimensionBase<V, Memory<V, Size1, Size2>, 2, Memory<V, Size2> >;
+        typedef MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> > Base;
+            friend class MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> >;
+            friend class MemoryDimensionBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> >;
             enum InternalConstants {
                 PaddedSize2 = _MemorySizeCalculation<V, Size2>::PaddedSize
             };
@@ -244,14 +244,14 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
      * \ingroup Utilities
      * \headerfile memory.h <Vc/Memory>
      */
-    template<typename V, size_t Size> class Memory<V, Size, 0u> : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size, 0u>, 1, void>
+    template<typename V, size_t Size, bool InitPadding> class Memory<V, Size, 0u, InitPadding> : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>
     {
         public:
             typedef typename V::EntryType EntryType;
         private:
-            typedef MemoryBase<V, Memory<V, Size, 0u>, 1, void> Base;
-            friend class MemoryBase<V, Memory<V, Size, 0u>, 1, void>;
-            friend class MemoryDimensionBase<V, Memory<V, Size, 0u>, 1, void>;
+            typedef MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void> Base;
+            friend class MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>;
+            friend class MemoryDimensionBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>;
             enum InternalConstants {
                 Alignment = V::Size,
                 AlignmentMask = Alignment - 1,
@@ -279,7 +279,9 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
 
             Memory()
             {
-                Base::lastVector() = V::Zero();
+                if (InitPadding) {
+                    Base::lastVector() = V::Zero();
+                }
             }
 
             Memory(std::initializer_list<EntryType> init)
@@ -311,13 +313,13 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
              * (not too early/not leaked). This function simply adds convenience functions to \em
              * access the memory.
              */
-            static Vc_ALWAYS_INLINE Vc_CONST Memory<V, Size, 0u> &fromRawData(EntryType *ptr)
+            static Vc_ALWAYS_INLINE Vc_CONST Memory<V, Size, 0u, false> &fromRawData(EntryType *ptr)
             {
                 // DANGER! This placement new has to use the right address. If the compiler decides
                 // RowMemory requires padding before the actual data then the address has to be adjusted
                 // accordingly
                 char *addr = reinterpret_cast<char *>(ptr);
-                typedef Memory<V, Size, 0u> MM;
+                typedef Memory<V, Size, 0u, false> MM;
                 addr -= VC_OFFSETOF(MM, m_mem);
                 return *new(addr) MM;
             }
@@ -398,7 +400,7 @@ template<typename V, size_t Size1, size_t Size2> class Memory : public VectorAli
      * \ingroup Utilities
      * \headerfile memory.h <Vc/Memory>
      */
-    template<typename V> class Memory<V, 0u, 0u> : public MemoryBase<V, Memory<V, 0u, 0u>, 1, void>
+    template<typename V> class Memory<V, 0u, 0u, true> : public MemoryBase<V, Memory<V, 0u, 0u, true>, 1, void>
     {
         public:
             typedef typename V::EntryType EntryType;

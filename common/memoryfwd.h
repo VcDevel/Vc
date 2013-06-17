@@ -21,7 +21,7 @@
 #define VC_COMMON_MEMORYFWD_H
 
 Vc_NAMESPACE_BEGIN(Common)
-    template<typename V, size_t Size1 = 0, size_t Size2 = 0> class Memory;
+    template<typename V, size_t Size1 = 0, size_t Size2 = 0, bool InitPadding = true> class Memory;
 Vc_NAMESPACE_END
 
 Vc_PUBLIC_NAMESPACE_BEGIN
