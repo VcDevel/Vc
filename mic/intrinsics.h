@@ -49,7 +49,7 @@ Vc_NAMESPACE_BEGIN(MicIntrinsics)
 #pragma warning(disable: 592)
         r = _mm512_extloadunpacklo_pd(r, mt, upconv, memHint);
 #pragma warning(default: 592)
-        r = _mm512_extloadunpackhi_pd(r, mt + 8 * sizeof(double), upconv, memHint);
+        r = _mm512_extloadunpackhi_pd(r, static_cast<const char *>(mt) + 8 * sizeof(double), upconv, memHint);
         return r;
     }
 
@@ -60,7 +60,7 @@ Vc_NAMESPACE_BEGIN(MicIntrinsics)
 #pragma warning(disable: 592)
         r = _mm512_extloadunpacklo_ps(r, mt, upconv, memHint);
 #pragma warning(default: 592)
-        r = _mm512_extloadunpackhi_ps(r, mt + 16 * sizeof(float), upconv, memHint);
+        r = _mm512_extloadunpackhi_ps(r, static_cast<const char *>(mt) + 16 * sizeof(float), upconv, memHint);
         return r;
     }
 
@@ -71,7 +71,7 @@ Vc_NAMESPACE_BEGIN(MicIntrinsics)
 #pragma warning(disable: 592)
         r = _mm512_extloadunpacklo_epi32(r, mt, upconv, memHint);
 #pragma warning(default: 592)
-        r = _mm512_extloadunpackhi_epi32(r, mt + 16 * sizeof(int), upconv, memHint);
+        r = _mm512_extloadunpackhi_epi32(r, static_cast<const char *>(mt) + 16 * sizeof(int), upconv, memHint);
         return r;
     }
 
@@ -82,7 +82,7 @@ Vc_NAMESPACE_BEGIN(MicIntrinsics)
 #pragma warning(disable: 592)
         r = _mm512_extloadunpacklo_epi32(r, mt, upconv, memHint);
 #pragma warning(default: 592)
-        r = _mm512_extloadunpackhi_epi32(r, mt + 16 * sizeof(int), upconv, memHint);
+        r = _mm512_extloadunpackhi_epi32(r, static_cast<const char *>(mt) + 16 * sizeof(int), upconv, memHint);
         return r;
     }
 
@@ -123,33 +123,33 @@ Vc_NAMESPACE_BEGIN(MicIntrinsics)
 static Vc_INTRINSIC void store_unaligned(void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
 {
     _mm512_extpackstorelo_ps(m, v, downconv, memHint);
-    _mm512_extpackstorehi_ps(m + 64, v, downconv, memHint);
+    _mm512_extpackstorehi_ps(static_cast<char *>(m) + 64, v, downconv, memHint);
 }
 static Vc_INTRINSIC void store_unaligned(void *m, __m512d v, _MM_DOWNCONV_PD_ENUM downconv, int memHint)
 {
     _mm512_extpackstorelo_pd(m, v, downconv, memHint);
-    _mm512_extpackstorehi_pd(m + 64, v, downconv, memHint);
+    _mm512_extpackstorehi_pd(static_cast<char *>(m) + 64, v, downconv, memHint);
 }
 static Vc_INTRINSIC void store_unaligned(void *m, __m512i v, _MM_DOWNCONV_EPI32_ENUM downconv, int memHint)
 {
     _mm512_extpackstorelo_epi32(m, v, downconv, memHint);
-    _mm512_extpackstorehi_epi32(m + 64, v, downconv, memHint);
+    _mm512_extpackstorehi_epi32(static_cast<char *>(m) + 64, v, downconv, memHint);
 }
 
 static Vc_INTRINSIC void store_unaligned(__mmask16 mask, void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
 {
     _mm512_mask_extpackstorelo_ps(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_ps(m + 64, mask, v, downconv, memHint);
+    _mm512_mask_extpackstorehi_ps(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
 }
 static Vc_INTRINSIC void store_unaligned(__mmask8 mask, void *m, __m512d v, _MM_DOWNCONV_PD_ENUM downconv, int memHint)
 {
     _mm512_mask_extpackstorelo_pd(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_pd(m + 64, mask, v, downconv, memHint);
+    _mm512_mask_extpackstorehi_pd(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
 }
 static Vc_INTRINSIC void store_unaligned(__mmask16 mask, void *m, __m512i v, _MM_DOWNCONV_EPI32_ENUM downconv, int memHint)
 {
     _mm512_mask_extpackstorelo_epi32(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_epi32(m + 64, mask, v, downconv, memHint);
+    _mm512_mask_extpackstorehi_epi32(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
 }
 
 static Vc_INTRINSIC void store_aligned(void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
