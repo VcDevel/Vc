@@ -306,7 +306,7 @@ macro(vc_set_preferred_compiler_flags)
          set(ALIAS_FLAGS "-no-ansi-alias")
          if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
             # default ICC to -no-ansi-alias because otherwise tests/utils_sse fails. So far I suspect a miscompilation...
-            set(ENABLE_STRICT_ALIASING false CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
+            set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
             if(ENABLE_STRICT_ALIASING)
                set(ALIAS_FLAGS "-ansi-alias")
             endif(ENABLE_STRICT_ALIASING)
