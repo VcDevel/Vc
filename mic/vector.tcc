@@ -1152,6 +1152,14 @@ template<size_t SIMDWidth, size_t Size> struct VectorRotate;
 template<> struct VectorRotate<64, 8>
 {
     typedef __m512 VectorType;
+    static Vc_INTRINSIC VectorType blend(VC_ALIGNED_PARAMETER(VectorType) v, VC_ALIGNED_PARAMETER(VectorType) w, int amount)
+    {
+        if (amount < 0) {
+            return mic_cast<VectorType>(_mm512_mask_blend_pd(0xff >> -amount, _mm512_castps_pd(w), _mm512_castps_pd(v)));
+        } else {
+            return mic_cast<VectorType>(_mm512_mask_blend_pd(0xff <<  amount, _mm512_castps_pd(w), _mm512_castps_pd(v)));
+        }
+    }
     static Vc_INTRINSIC VectorType rotated(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
         switch (static_cast<unsigned int>(amount) % 8) {
@@ -1174,6 +1182,14 @@ template<> struct VectorRotate<64, 8>
 template<> struct VectorRotate<64, 16>
 {
     typedef __m512i VectorType;
+    static Vc_INTRINSIC VectorType blend(VC_ALIGNED_PARAMETER(VectorType) v, VC_ALIGNED_PARAMETER(VectorType) w, int amount)
+    {
+        if (amount < 0) {
+            return _mm512_mask_blend_epi32(0xffff >> -amount, w, v);
+        } else {
+            return _mm512_mask_blend_epi32(0xffff <<  amount, w, v);
+        }
+    }
     static Vc_INTRINSIC VectorType rotated(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
         switch (static_cast<unsigned int>(amount) % 16) {
@@ -1214,6 +1230,16 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
 {
     typedef VectorRotate<sizeof(VectorType), Size> VR;
     return _cast(VR::rotated(mic_cast<typename VR::VectorType>(d.v()), amount));
+}
+
+template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount, Vector shiftIn) const
+{
+    typedef VectorRotate<sizeof(VectorType), Size> VR;
+    const auto &tmp = VR::blend(
+            mic_cast<typename VR::VectorType>(d.v()),
+            mic_cast<typename VR::VectorType>(shiftIn.d.v()),
+            amount);
+    return _cast(VR::rotated(tmp, amount));
 }
 // }}}1
 
