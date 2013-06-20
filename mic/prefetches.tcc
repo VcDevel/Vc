@@ -40,7 +40,7 @@ Vc_ALWAYS_INLINE void HelperImpl<Vc::MICImpl>::prefetchFar(const void *addr)
 }
 Vc_ALWAYS_INLINE void HelperImpl<Vc::MICImpl>::prefetchForModify(const void *addr)
 {
-    _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T0);
+    _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_ET0);
 }
 
 Vc_NAMESPACE_END
