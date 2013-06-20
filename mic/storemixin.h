@@ -54,6 +54,8 @@ public:
     inline void store(T *mem, Mask mask) const { store<T>(mem, mask); }
     template<typename A> inline void store(T *mem, A align) const { store<T, A>(mem, align); }
     template<typename A> inline void store(T *mem, Mask mask, A align) const { store<T, A>(mem, mask, align); }
+
+    inline void store(VectorEntryType *mem, Vc::StreamingAndAlignedFlag) const;
 };
 
 Vc_NAMESPACE_END

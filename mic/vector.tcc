@@ -218,6 +218,18 @@ template<typename Parent, typename T> template<typename T2, typename A> inline v
 {
     MicIntrinsics::store(mask.data(), mem, data(), UpDownC<T2>(), align);
 }
+
+template<typename Parent, typename T> inline void StoreMixin<Parent, T>::store(VectorEntryType *mem, Vc::StreamingAndAlignedFlag) const
+{
+    // NR = No-Read hint, NGO = Non-Globally Ordered hint
+    // It is not clear whether we will get issues with nrngo if users only expected nr
+    //_mm512_storenr_ps(mem, mic_cast<__m512>(data()));
+    _mm512_storenrngo_ps(mem, mic_cast<__m512>(data()));
+
+    // the ICC auto-vectorizer adds clevict after storenrngo, but testing shows this to be slower...
+    //_mm_clevict(mem, _MM_HINT_T1);
+}
+
 // swizzles {{{1
 template<typename T> Vc_INTRINSIC Vc_CONST const Vector<T> &Vector<T>::abcd() const { return *this; }
 template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::cdab() const { return MicIntrinsics::swizzle(d.v(), _MM_SWIZ_REG_BADC); }
