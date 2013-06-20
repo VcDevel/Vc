@@ -55,6 +55,16 @@ macro(build_example name)
       target_link_libraries("example_${name}_avx2" Vc ${_LIBS})
    endif()
 
+   if(MIC_NATIVE_FOUND)
+      mic_add_executable("example_${name}_mic"
+         #COMPILE_FLAGS -no-opt-prefetch
+         SOURCES ${_SRCS}
+         LINK_LIBRARIES Vc_MIC
+         )
+      add_target_property("example_${name}_mic" LABELS "MIC")
+      add_dependencies(MIC "example_${name}_mic")
+   endif()
+
    if(USE_AVX2)
       add_target_property("example_${name}_default" LABELS "AVX2")
       add_dependencies(AVX2 "example_${name}_default")
