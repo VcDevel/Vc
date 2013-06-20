@@ -42,7 +42,9 @@ class TimeStampCounter
 
 inline void TimeStampCounter::Start()
 {
-#ifdef _MSC_VER
+#ifdef VC_IMPL_MIC
+    asm volatile("xor %%eax,%%eax\n\tcpuid\n\trdtsc" : "=a"(m_start.b[0]), "=d"(m_start.b[1]) :: "ebx", "ecx" );
+#elif defined _MSC_VER
 	unsigned int tmp;
     m_start.a = __rdtscp(&tmp);
 #else
@@ -52,7 +54,9 @@ inline void TimeStampCounter::Start()
 
 inline void TimeStampCounter::Stop()
 {
-#ifdef _MSC_VER
+#ifdef VC_IMPL_MIC
+    asm volatile("xor %%eax,%%eax\n\tcpuid\n\trdtsc" : "=a"(m_end.b[0]), "=d"(m_end.b[1]) :: "ebx", "ecx" );
+#elif defined _MSC_VER
 	unsigned int tmp;
     m_end.a = __rdtscp(&tmp);
 #else
