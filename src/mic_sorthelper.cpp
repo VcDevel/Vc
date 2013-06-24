@@ -206,24 +206,25 @@ template<> __m512i SortHelper<unsigned short>::sort(VC_ALIGNED_PARAMETER(VectorT
 
 template<> __m512 SortHelper<float>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
 {
-    __int64 masks = 0x55559999aaaaf0f0;
-    //auto m0x5555 = _mm512_kextract_64(masks, 3);
-    //auto m0x9999 = _mm512_kextract_64(masks, 2);
-    //auto m0xaaaa = _mm512_kextract_64(masks, 1);
-    //auto m0xf0f0 = _mm512_kextract_64(masks, 0);
+    const __int64 masks = 0xaaaa6666f0f0ff00ULL;
+    const auto m0xaaaa = _mm512_kextract_64(masks, 3);
+    const auto m0x6666 = _mm512_kextract_64(masks, 2);
+    const auto m0xf0f0 = _mm512_kextract_64(masks, 1);
+    const auto m0xff00 = _mm512_kextract_64(masks, 0);
+    const auto m0xcccc = _mm512_kxor(m0xaaaa, m0x6666);
 
     auto lh  = in; // dcba
     auto min = _mm512_gmin_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_CDAB)); // ↓dc ↓dc ↓ba ↓ba
     auto max = _mm512_gmax_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_CDAB)); // ↑dc ↑dc ↑ba ↑ba
-    lh = _mm512_mask_mov_ps(min, 0xaaaa, max); // ↑dc ↓dc ↑ba ↓ba
+    lh = _mm512_mask_mov_ps(min, m0xaaaa, max); // ↑dc ↓dc ↑ba ↓ba
 
     min = _mm512_gmin_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_BADC)); // ↓↑dc↑ba  ↓dcba  ↓↑dc↑ba  ↓dcba
     max = _mm512_gmax_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_BADC)); //  ↑dcba  ↑↓dc↓ba  ↑dcba  ↑↓dc↓ba
-    lh = _mm512_mask_mov_ps(min, 0x6666, max);                         //  ↑dcba   ↓dcba  ↓↑dc↑ba ↑↓dc↓ba
+    lh = _mm512_mask_mov_ps(min, m0x6666, max);                         //  ↑dcba   ↓dcba  ↓↑dc↑ba ↑↓dc↓ba
     auto tmp = _mm512_swizzle_ps(lh, _MM_SWIZ_REG_CDAB);               //  ↓dcba   ↑dcba  ↑↓dc↓ba ↓↑dc↑ba
     min = _mm512_gmin_ps(lh, tmp); // ↓dcba ↓dcba ↓↑↓dc↓ba↓↑dc↑ba ↓↑↓dc↓ba↓↑dc↑ba  |  aabb
     max = _mm512_gmax_ps(lh, tmp); // ↑dcba ↑dcba ↑↑↓dc↓ba↓↑dc↑ba ↑↑↓dc↓ba↓↑dc↑ba  |  ddcc
-    lh  = _mm512_mask_mov_ps(max, 0x6666, _mm512_swizzle_ps(min, _MM_SWIZ_REG_DACB)); // hfeg|dbac
+    lh  = _mm512_mask_mov_ps(max, m0x6666, _mm512_swizzle_ps(min, _MM_SWIZ_REG_DACB)); // hfeg|dbac
 
     tmp = _mm512_permute4f128_ps(lh, _MM_PERM_CDAB);
     // a <= b <= c <= d
@@ -231,16 +232,16 @@ template<> __m512 SortHelper<float>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
     // bitonic merge 4+4 -> 8
     min = _mm512_gmin_ps(lh, _mm512_swizzle_ps(tmp, _MM_SWIZ_REG_BADC)); // ↓ed ↓gb ↓ha ↓fc ↓ed ↓gb ↓ha ↓fc
     max = _mm512_gmax_ps(lh, _mm512_swizzle_ps(tmp, _MM_SWIZ_REG_BADC)); // ↑ed ↑gb ↑ha ↑fc ↑ed ↑gb ↑ha ↑fc
-    lh  = _mm512_mask_mov_ps(min, 0xf0f0, max);                         // ↑ed  ↑gb  ↑ha  ↑fc ↓ha  ↓fc  ↓ed  ↓gb
+    lh  = _mm512_mask_mov_ps(min, m0xf0f0, max);                         // ↑ed  ↑gb  ↑ha  ↑fc ↓ha  ↓fc  ↓ed  ↓gb
                                                                         //  └╴x3╶┘    └╴x2╶┘   └╴x0╶┘    └╴x1╶┘
     min = _mm512_gmin_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_CDAB)); // ↓x3 ↓x3 ↓x2 ↓x2 ↓x0 ↓x0 ↓x1 ↓x1
     max = _mm512_gmax_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_CDAB)); // ↑x3 ↑x3 ↑x2 ↑x2 ↑x0 ↑x0 ↑x1 ↑x1
-    lh  = _mm512_mask_mov_ps(min, 0xaaaa, max);                        // ↑x3 ↓x3 ↑x2 ↓x2 ↑x0 ↓x0 ↑x1 ↓x1
+    lh  = _mm512_mask_mov_ps(min, m0xaaaa, max);                        // ↑x3 ↓x3 ↑x2 ↓x2 ↑x0 ↓x0 ↑x1 ↓x1
                                                                        //  └──╴y3╶─┘   │   └──╴y1╶─┘   │
                                                                        //      └──╴y2╶─┘       └──╴y0╶─┘
     min = _mm512_gmin_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_BADC)); // ↓y3 ↓y2 ↓y3 ↓y2 ↓y1 ↓y0 ↓y1 ↓y0
     max = _mm512_gmax_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_BADC)); // ↑y3 ↑y2 ↑y3 ↑y2 ↑y1 ↑y0 ↑y1 ↑y0
-    lh  = _mm512_mask_mov_ps(min, 0x6666, max);                        // ↓y3 ↑y2 ↑y3 ↓y2 ↓y1 ↑y0 ↑y1 ↓y0 | onpm|kjli|gfhe|cbda (2130)
+    lh  = _mm512_mask_mov_ps(min, m0x6666, max);                        // ↓y3 ↑y2 ↑y3 ↓y2 ↓y1 ↑y0 ↑y1 ↓y0 | onpm|kjli|gfhe|cbda (2130)
     tmp = _mm512_permute4f128_ps(lh, _MM_PERM_ABCD);                   //                                   cbda|gfhe|kjli|onpm
                                                                        // required after swizzle:           bcad|...
     // lh  = [8, 11, 9, 10, 12, 15, 13, 14, 0, 3, 1, 2, 4, 7, 5, 6]
@@ -251,7 +252,7 @@ template<> __m512 SortHelper<float>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
     // needed compares: v7=pa v6=ob v5=nc v4=md v3=le v2=kf v1=jg v0=ih
     min = _mm512_gmin_ps(lh, _mm512_swizzle_ps(tmp, _MM_SWIZ_REG_CDAB)); // ↓v6 ↓v5 ↓v7 ↓v4 ↓v2 ↓v1 ↓v3 ↓v0 ↓v6 ↓v5 ↓v7 ↓v4 ↓v2 ↓v1 ↓v3 ↓v0
     max = _mm512_gmax_ps(lh, _mm512_swizzle_ps(tmp, _MM_SWIZ_REG_CDAB)); // ↑v6 ↑v5 ↑v7 ↑v4 ↑v2 ↑v1 ↑v3 ↑v0 ↑v6 ↑v5 ↑v7 ↑v4 ↑v2 ↑v1 ↑v3 ↑v0
-    lh  = _mm512_mask_mov_ps(min, 0xff00, max);                         // ↑v6 ↑v5 ↑v7 ↑v4 ↑v2 ↑v1 ↑v3 ↑v0 ↓v6 ↓v5 ↓v7 ↓v4 ↓v2 ↓v1 ↓v3 ↓v0
+    lh  = _mm512_mask_mov_ps(min, m0xff00, max);                         // ↑v6 ↑v5 ↑v7 ↑v4 ↑v2 ↑v1 ↑v3 ↑v0 ↓v6 ↓v5 ↓v7 ↓v4 ↓v2 ↓v1 ↓v3 ↓v0
                                                                         //  │   └───│───│w5╶│───┘   │   │   │   └───│───│w1╶│───┘   │   │
                                                                         //  │       │   └───│──╴w4╶─│───┘   │       │   └───│──╴w0╶─│───┘
                                                                         //  └──────╴w6╶─────┘       │       └──────╴w2╶─────┘       │
@@ -263,19 +264,19 @@ template<> __m512 SortHelper<float>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
     // bitonic merge 4+4 -> 8
     min = _mm512_gmin_ps(lh, _mm512_swizzle_ps(tmp, _MM_SWIZ_REG_DCBA)); // ↓w6 ↓w5 ↓w7 ↓w4 ↓w6 ↓w5 ↓w7 ↓w4 ...
     max = _mm512_gmax_ps(lh, _mm512_swizzle_ps(tmp, _MM_SWIZ_REG_DCBA)); // ↑w6 ↑w5 ↑w7 ↑w4 ↑w6 ↑w5 ↑w7 ↑w4 ...
-    lh  = _mm512_mask_mov_ps(min, 0xf0f0, max);                         // ↑w6 ↑w5 ↓w7 ↓w4 ↓w6 ↓w5 ↑w7 ↑w4 ...
+    lh  = _mm512_mask_mov_ps(min, m0xf0f0, max);                         // ↑w6 ↑w5 ↓w7 ↓w4 ↓w6 ↓w5 ↑w7 ↑w4 ...
                                                                         //  │   └╴x7╶┘  │   │   └╴x5╶┘  │
                                                                         //  └────╴x6╶───┘   └────╴x4╶───┘
     lh  = _mm512_swizzle_ps(lh, _MM_SWIZ_REG_DACB);                     // ↑w6 ↓w4 ↑w5 ↓w7 ↓w6 ↑w4 ↓w5 ↑w7 ...
                                                                         //  └╴x6╶┘  └╴x7╶┘  └╴x4╶┘  └╴x5╶┘
     min = _mm512_gmin_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_CDAB));  // ↓x6 ↓x6 ↓x7 ↓x7 ↓x4 ↓x4 ↓x5 ↓x5 ...
     max = _mm512_gmax_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_CDAB));  // ↑x6 ↑x6 ↑x7 ↑x7 ↑x4 ↑x4 ↑x5 ↑x5 ...
-    lh  = _mm512_mask_mov_ps(min, 0xaaaa, max);                         // ↑x6 ↓x6 ↑x7 ↓x7 ↑x4 ↓x4 ↑x5 ↓x5 ...
+    lh  = _mm512_mask_mov_ps(min, m0xaaaa, max);                         // ↑x6 ↓x6 ↑x7 ↓x7 ↑x4 ↓x4 ↑x5 ↓x5 ...
                                                                         //  └──╴y7╶─┘   │   └──╴y5╶─┘   │
                                                                         //      └──╴y6╶─┘       └──╴y4╶─┘
     min = _mm512_gmin_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_BADC));  // ↓y7 ↓y6 ↓y7 ↓y6 ...
     max = _mm512_gmax_ps(lh, _mm512_swizzle_ps(lh, _MM_SWIZ_REG_BADC));  // ↑y7 ↑y6 ↑y7 ↑y6 ...
-    lh  = _mm512_mask_mov_ps(min, 0xcccc, max);
+    lh  = _mm512_mask_mov_ps(min, m0xcccc, max);
 
     return mic_cast<__m512>(_mm512_shuffle_epi32(mic_cast<__m512i>(lh), _MM_PERM_DBCA));
 }
