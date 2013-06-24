@@ -120,15 +120,19 @@ if(NOT ROOT_RELEASE)
    add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
    add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
    add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
+
+   set(libvc_compile_flags "-DVC_COMPILE_LIB")
+   set(libvc_mic_compile_flags "-DVC_COMPILE_LIB")
+   AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flags)
+
    if(MIC_FOUND)
       add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
-      mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support.cpp src/mic_sorthelper.cpp)
+      mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support.cpp src/mic_sorthelper.cpp
+         COMPILE_FLAGS ${libvc_mic_compile_flags})
       add_target_property(Vc_MIC LABELS "MIC")
       add_dependencies(MIC Vc_MIC)
    endif()
 
-   set(libvc_compile_flags "-DVC_COMPILE_LIB")
-   AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
    vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS ${libvc_compile_flags}
       ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA AVX2)
    set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp ${_objs})
