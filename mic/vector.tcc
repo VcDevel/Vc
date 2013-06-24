@@ -954,292 +954,142 @@ template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 }
 // }}}1
 // shifted / rotated {{{1
-template<size_t SIMDWidth, size_t Size> struct VectorShift;
-template<> struct VectorShift<64, 8>
+namespace
 {
-    typedef __m512 VectorType;
-    static Vc_INTRINSIC VectorType shifted(VC_ALIGNED_PARAMETER(VectorType) _v, int amount)
-    {
-        const __m512 z = _mm512_setzero_ps();
-        const __m512d v = mic_cast<__m512d>(_v);
-        // in memory  : ABCD
-        // in register: DCBA
-        switch (amount) {
-        case  7: return mic_cast<VectorType>(_mm512_mask_permute4f128_ps(z, 0x0003,
-                             mic_cast<__m512>(_mm512_swizzle_pd(v, _MM_SWIZ_REG_DDDD)), _MM_PERM_DDDD));
-        case  6: return mic_cast<VectorType>(_mm512_mask_permute4f128_ps(z, 0x000f, mic_cast<__m512>(v), _MM_PERM_CBAD));
-        case  5: {auto &&tmp1 = _mm512_swizzle_ps(mic_cast<__m512>(v), _MM_SWIZ_REG_BADC); // ghef cdab
-                 auto &&tmp2 = mic_cast<__m512i>(_mm512_mask_permute4f128_ps(_mm512_permute4f128_ps(tmp1, _MM_PERM_DDDC),
-                             0x000c, tmp1, _MM_PERM_DDDD));
-                 return mic_cast<VectorType>(_mm512_mask_xor_epi32(tmp2, 0xffc0, tmp2, tmp2));}
-        case  4: return mic_cast<VectorType>(_mm512_mask_permute4f128_ps(z, 0x00ff, mic_cast<__m512>(v), _MM_PERM_BADC));
-        case  3: {auto &&tmp1 = _mm512_swizzle_ps(mic_cast<__m512>(v), _MM_SWIZ_REG_BADC); // ghef cdab
-                 auto &&tmp2 = mic_cast<__m512i>(_mm512_mask_permute4f128_ps(_mm512_permute4f128_ps(tmp1, _MM_PERM_DDCB),
-                             0x00cc, tmp1, _MM_PERM_DDDC));
-                 return mic_cast<VectorType>(_mm512_mask_xor_epi32(tmp2, 0xfc00, tmp2, tmp2));}
-        case  2: return mic_cast<VectorType>(_mm512_mask_permute4f128_ps(z, 0x0fff, mic_cast<__m512>(v), _MM_PERM_ADCB));
-        case  1: {auto &&tmp1 = _mm512_swizzle_ps(mic_cast<__m512>(v), _MM_SWIZ_REG_BADC); // ghef cdab
-                 auto &&tmp2 = mic_cast<__m512i>(_mm512_mask_permute4f128_ps(tmp1,
-                             0x0ccc, tmp1, _MM_PERM_DDCB));
-                 return mic_cast<VectorType>(_mm512_mask_xor_epi32(tmp2, 0xc000, tmp2, tmp2));}
-        case  0: return _v;
-        case -1: {auto &&tmp1 = _mm512_swizzle_ps(mic_cast<__m512>(v), _MM_SWIZ_REG_BADC); // ghef cdab
-                 auto &&tmp2 = mic_cast<__m512i>(_mm512_mask_permute4f128_ps(tmp1,
-                             0x3330, tmp1, _MM_PERM_CBAA));
-                 return mic_cast<VectorType>(_mm512_mask_xor_epi32(tmp2, 0x0003, tmp2, tmp2));}
-        case -2: return mic_cast<VectorType>(_mm512_mask_permute4f128_ps(z, 0xfff0, mic_cast<__m512>(v), _MM_PERM_CBAD));
-        case -3: {auto &&tmp1 = _mm512_swizzle_ps(mic_cast<__m512>(v), _MM_SWIZ_REG_BADC); // ghef cdab
-                 auto &&tmp2 = mic_cast<__m512i>(_mm512_mask_permute4f128_ps(_mm512_permute4f128_ps(tmp1, _MM_PERM_CBAA),
-                             0x3300, tmp1, _MM_PERM_BAAA));
-                 return mic_cast<VectorType>(_mm512_mask_xor_epi32(tmp2, 0x003f, tmp2, tmp2));}
-        case -4: return mic_cast<VectorType>(_mm512_mask_permute4f128_ps(z, 0xff00, mic_cast<__m512>(v), _MM_PERM_BADC));
-        case -5: return mic_cast<VectorType>(_mm512_mask_permute4f128_ps(z, 0xfc00, mic_cast<__m512>(_mm512_mask_mov_pd(
-                                     _mm512_swizzle_pd(v, _MM_SWIZ_REG_AAAA), 0x07,
-                                     _mm512_swizzle_pd(v, _MM_SWIZ_REG_DACB))), _MM_PERM_ABAA));
-        case -6: return mic_cast<VectorType>(_mm512_mask_permute4f128_ps(z, 0xf000, mic_cast<__m512>(v), _MM_PERM_ADCB));
-        case -7: return mic_cast<VectorType>(_mm512_mask_permute4f128_ps(z, 0xc000,
-                             mic_cast<__m512>(_mm512_swizzle_pd(v, _MM_SWIZ_REG_AAAA)), _MM_PERM_AAAA));
-        }
-        return _mm512_setzero_ps();
-    }
-};
-template<> struct VectorShift<64, 16>
+template<size_t SIMDWidth, size_t Size> struct VectorShift;
+template<> struct VectorShift<64, 8>/*{{{*/
 {
     typedef __m512i VectorType;
-    static Vc_INTRINSIC __m512i shifted(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
+    static Vc_INTRINSIC VectorType shifted(VC_ALIGNED_PARAMETER(VectorType) v, int amount,
+            VC_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
     {
-        const __m512i z = _mm512_setzero_epi32();
         switch (amount) {
-        case 15: return _mm512_permute4f128_epi32(_mm512_mask_mov_epi32(z, 0x1000, _mm512_swizzle_epi32(v, _MM_SWIZ_REG_DDDD)), _MM_PERM_CBAD);
-        case 14: return _mm512_permute4f128_epi32(_mm512_mask_mov_epi32(z, 0x3000, _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC)), _MM_PERM_CBAD);
-        case 13: return _mm512_permute4f128_epi32(_mm512_mask_shuffle_epi32(z, 0x7000, v, _MM_PERM_ADCB), _MM_PERM_CBAD);
-        case 12: return mic_cast<__m512i>(_mm512_mask_permute4f128_epi32(z, 0x000f, v, _MM_PERM_CBAD));
-        case 11: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_CBAD);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x000e, tmp, _MM_PERM_CBAD),
-                             0x0011, _mm512_permute4f128_epi32(tmp, _MM_PERM_BADC)
-                             ));}
-        case 10: {auto &&tmp = _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x000c, tmp, _MM_PERM_CBAD),
-                             0x0033, _mm512_permute4f128_epi32(tmp, _MM_PERM_BADC)
-                             ));}
-        case  9: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_ADCB);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x0008, tmp, _MM_PERM_CBAD),
-                             0x0077, _mm512_permute4f128_epi32(tmp, _MM_PERM_BADC)
-                             ));}
-        case  8: return mic_cast<__m512i>(_mm512_mask_permute4f128_epi32(z, 0x00ff, v, _MM_PERM_BADC));
-        case  7: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_CBAD);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x00ee, tmp, _MM_PERM_BADC),
-                             0x0111, _mm512_permute4f128_epi32(tmp, _MM_PERM_ADCB)
-                             ));}
-        case  6: {auto &&tmp = _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x00cc, tmp, _MM_PERM_BADC),
-                             0x0333, _mm512_permute4f128_epi32(tmp, _MM_PERM_ADCB)
-                             ));}
-        case  5: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_ADCB);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x0088, tmp, _MM_PERM_BADC),
-                             0x0777, _mm512_permute4f128_epi32(tmp, _MM_PERM_ADCB)
-                             ));}
-        case  4: return mic_cast<__m512i>(_mm512_mask_permute4f128_epi32(z, 0x0fff, v, _MM_PERM_ADCB));
-        case  3: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_CBAD);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x0eee, tmp, _MM_PERM_ADCB),
-                             0x1111, tmp
-                             ));}
-        case  2: {auto &&tmp = _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x0ccc, tmp, _MM_PERM_ADCB),
-                             0x3333, tmp
-                             ));}
-        case  1: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_ADCB);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x0888, tmp, _MM_PERM_ADCB),
-                             0x7777, tmp
-                             ));}
-        case  0: return mic_cast<__m512i>(v);
-        case -1: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_CBAD);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x1110, tmp, _MM_PERM_CBAA),
-                             0xeeee, tmp
-                             ));}
-        case -2: {auto &&tmp = _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x3330, tmp, _MM_PERM_CBAA),
-                             0xcccc, tmp
-                             ));}
-        case -3: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_ADCB);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x7770, tmp, _MM_PERM_CBAA),
-                             0x8888, tmp
-                             ));}
-        case -4: return mic_cast<__m512i>(_mm512_mask_permute4f128_epi32(z, 0xfff0, v, _MM_PERM_CBAD));
-        case -5: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_CBAD);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0xeee0, tmp, _MM_PERM_CBAD),
-                             0x1100, _mm512_permute4f128_epi32(tmp, _MM_PERM_BAAA)
-                             ));}
-        case -6: {auto &&tmp = _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0xccc0, tmp, _MM_PERM_CBAD),
-                             0x3300, _mm512_permute4f128_epi32(tmp, _MM_PERM_BAAA)
-                             ));}
-        case -7: // ponm lkji hgfe dcba
-                 // mpon ilkj ehgf adcb (tmp)
-                 // i000 e000 a000 0000
-                 // 0hgf 0dcb 0000 0000
-                 // ihgf edcb a000 0000
-                 {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_ADCB);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x8880, tmp, _MM_PERM_CBAD),
-                             0x7700, _mm512_permute4f128_epi32(tmp, _MM_PERM_BAAA)
-                             ));}
-        case -8: return mic_cast<__m512i>(_mm512_mask_permute4f128_epi32(z, 0xff00, v, _MM_PERM_BADC));
-        case -9: // ponm lkji hgfe dcba
-                 // onmp kjil gfeh cbad (tmp)
-                 // gfe0 cba0 0000 0000
-                 // 000d 0000 0000 0000
-                 // gfed cba0 0000 0000
-                 {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_CBAD);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0xee00, tmp, _MM_PERM_BADC),
-                             0x1000, _mm512_permute4f128_epi32(tmp, _MM_PERM_AAAA)
-                             ));}
-        case-10: // ponm lkji hgfe dcba
-                 // nmpo jilk fehg badc (tmp)
-                 // fe00 ba00 0000 0000
-                 // 00dc 0000 0000 0000
-                 // fedc ba00 0000 0000
-                 {auto &&tmp = _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0xcc00, tmp, _MM_PERM_BADC),
-                             0x3000, _mm512_permute4f128_epi32(tmp, _MM_PERM_AAAA)
-                             ));}
-        case-11: // ponm lkji hgfe dcba
-                 // mpon ilkj ehgf adcb (tmp)
-                 // e000 a000 0000 0000
-                 // 0dcb 0000 0000 0000
-                 // edcb a000 0000 0000
-                 {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_ADCB);
-                 return mic_cast<__m512i>(_mm512_mask_mov_epi32(
-                             _mm512_mask_permute4f128_epi32(z, 0x8800, tmp, _MM_PERM_BADC),
-                             0x7000, _mm512_permute4f128_epi32(tmp, _MM_PERM_AAAA)
-                             ));}
-        case-12: return mic_cast<__m512i>(_mm512_mask_permute4f128_epi32(z, 0xf000, v, _MM_PERM_ABCD));
-        case-13: return mic_cast<__m512i>(_mm512_permute4f128_epi32(_mm512_mask_shuffle_epi32(z, 0x000e, v, _MM_PERM_CBAD),
-                             _MM_PERM_ABCD));
-        case-14: return mic_cast<__m512i>(_mm512_permute4f128_epi32(_mm512_mask_mov_epi32(z,
-                             0x000c, _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC)), _MM_PERM_ABCD));
-        case-15: return mic_cast<__m512i>(_mm512_permute4f128_epi32(_mm512_mask_mov_epi32(z,
-                             0x0008, _mm512_swizzle_epi32(v, _MM_SWIZ_REG_AAAA)), _MM_PERM_ABCD));
+        case  7: return _mm512_alignr_epi32(v, z, 14);
+        case  6: return _mm512_alignr_epi32(v, z, 12);
+        case  5: return _mm512_alignr_epi32(v, z, 10);
+        case  4: return _mm512_alignr_epi32(v, z,  8);
+        case  3: return _mm512_alignr_epi32(v, z,  6);
+        case  2: return _mm512_alignr_epi32(v, z,  4);
+        case  1: return _mm512_alignr_epi32(v, z,  2);
+        case  0: return v;
+        case -1: return _mm512_alignr_epi32(z, v, 14);
+        case -2: return _mm512_alignr_epi32(z, v, 12);
+        case -3: return _mm512_alignr_epi32(z, v, 10);
+        case -4: return _mm512_alignr_epi32(z, v,  8);
+        case -5: return _mm512_alignr_epi32(z, v,  6);
+        case -6: return _mm512_alignr_epi32(z, v,  4);
+        case -7: return _mm512_alignr_epi32(z, v,  2);
         }
         return z;
     }
-};
+};/*}}}*/
+template<> struct VectorShift<64, 16>/*{{{*/
+{
+    typedef __m512i VectorType;
+    static Vc_INTRINSIC VectorType shifted(VC_ALIGNED_PARAMETER(VectorType) v, int amount,
+            VC_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
+    {
+        switch (amount) {
+        case 15: return _mm512_alignr_epi32(v, z, 15);
+        case 14: return _mm512_alignr_epi32(v, z, 14);
+        case 13: return _mm512_alignr_epi32(v, z, 13);
+        case 12: return _mm512_alignr_epi32(v, z, 12);
+        case 11: return _mm512_alignr_epi32(v, z, 11);
+        case 10: return _mm512_alignr_epi32(v, z, 10);
+        case  9: return _mm512_alignr_epi32(v, z,  9);
+        case  8: return _mm512_alignr_epi32(v, z,  8);
+        case  7: return _mm512_alignr_epi32(v, z,  7);
+        case  6: return _mm512_alignr_epi32(v, z,  6);
+        case  5: return _mm512_alignr_epi32(v, z,  5);
+        case  4: return _mm512_alignr_epi32(v, z,  4);
+        case  3: return _mm512_alignr_epi32(v, z,  3);
+        case  2: return _mm512_alignr_epi32(v, z,  2);
+        case  1: return _mm512_alignr_epi32(v, z,  1);
+        case  0: return v;
+        case -1: return _mm512_alignr_epi32(z, v, 15);
+        case -2: return _mm512_alignr_epi32(z, v, 14);
+        case -3: return _mm512_alignr_epi32(z, v, 13);
+        case -4: return _mm512_alignr_epi32(z, v, 12);
+        case -5: return _mm512_alignr_epi32(z, v, 11);
+        case -6: return _mm512_alignr_epi32(z, v, 10);
+        case -7: return _mm512_alignr_epi32(z, v,  9);
+        case -8: return _mm512_alignr_epi32(z, v,  8);
+        case -9: return _mm512_alignr_epi32(z, v,  7);
+        case-10: return _mm512_alignr_epi32(z, v,  6);
+        case-11: return _mm512_alignr_epi32(z, v,  5);
+        case-12: return _mm512_alignr_epi32(z, v,  4);
+        case-13: return _mm512_alignr_epi32(z, v,  3);
+        case-14: return _mm512_alignr_epi32(z, v,  2);
+        case-15: return _mm512_alignr_epi32(z, v,  1);
+        }
+        return z;
+    }
+};/*}}}*/
+} // anonymous namespace
 template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount) const
 {
     typedef VectorShift<sizeof(VectorType), Size> VS;
     return _cast(VS::shifted(mic_cast<typename VS::VectorType>(d.v()), amount));
 }
+template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount, Vector shiftIn) const
+{
+    typedef VectorShift<sizeof(VectorType), Size> VS;
+    return _cast(VS::shifted(mic_cast<typename VS::VectorType>(d.v()), amount,
+                mic_cast<typename VS::VectorType>(shiftIn.d.v())));
+}
 
 namespace
 {
 template<size_t SIMDWidth, size_t Size> struct VectorRotate;
-template<> struct VectorRotate<64, 8>
+template<> struct VectorRotate<64, 8>/*{{{*/
 {
-    typedef __m512 VectorType;
-    static Vc_INTRINSIC VectorType blend(VC_ALIGNED_PARAMETER(VectorType) v, VC_ALIGNED_PARAMETER(VectorType) w, int amount)
-    {
-        if (amount < 0) {
-            return mic_cast<VectorType>(_mm512_mask_blend_pd(0xff >> -amount, _mm512_castps_pd(w), _mm512_castps_pd(v)));
-        } else {
-            return mic_cast<VectorType>(_mm512_mask_blend_pd(0xff <<  amount, _mm512_castps_pd(w), _mm512_castps_pd(v)));
-        }
-    }
+    typedef __m512i VectorType;
     static Vc_INTRINSIC VectorType rotated(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
         switch (static_cast<unsigned int>(amount) % 8) {
         case  0: return v;
-        case  1:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC);
-                 return _mm512_mask_permute4f128_ps(tmp1, 0xcccc, tmp1, _MM_PERM_ADCB);}
-        case  2: return _mm512_permute4f128_ps(v, _MM_PERM_ADCB);
-        case  3:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC);
-                 return _mm512_mask_permute4f128_ps(_mm512_permute4f128_ps(tmp1, _MM_PERM_ADCB), 0xcccc, tmp1, _MM_PERM_BADC);}
-        case  4: return _mm512_permute4f128_ps(v, _MM_PERM_BADC);
-        case  5:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC);
-                 return _mm512_mask_permute4f128_ps(_mm512_permute4f128_ps(tmp1, _MM_PERM_BADC), 0xcccc, tmp1, _MM_PERM_CBAD);}
-        case  6: return _mm512_permute4f128_ps(v, _MM_PERM_CBAD);
-        case  7:{auto &&tmp1 = _mm512_swizzle_ps(v, _MM_SWIZ_REG_BADC);
-                 return _mm512_mask_permute4f128_ps(_mm512_permute4f128_ps(tmp1, _MM_PERM_CBAD), 0xcccc, tmp1, _MM_PERM_DCBA);}
+        case  1: return _mm512_alignr_epi32(v, v,  2);
+        case  2: return _mm512_alignr_epi32(v, v,  4);
+        case  3: return _mm512_alignr_epi32(v, v,  6);
+        case  4: return _mm512_alignr_epi32(v, v,  8);
+        case  5: return _mm512_alignr_epi32(v, v, 10);
+        case  6: return _mm512_alignr_epi32(v, v, 12);
+        case  7: return _mm512_alignr_epi32(v, v, 14);
         }
         return _mm512_setzero_ps();
     }
-};
-template<> struct VectorRotate<64, 16>
+};/*}}}*/
+template<> struct VectorRotate<64, 16>/*{{{*/
 {
     typedef __m512i VectorType;
-    static Vc_INTRINSIC VectorType blend(VC_ALIGNED_PARAMETER(VectorType) v, VC_ALIGNED_PARAMETER(VectorType) w, int amount)
-    {
-        if (amount < 0) {
-            return _mm512_mask_blend_epi32(0xffff >> -amount, w, v);
-        } else {
-            return _mm512_mask_blend_epi32(0xffff <<  amount, w, v);
-        }
-    }
     static Vc_INTRINSIC VectorType rotated(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
         switch (static_cast<unsigned int>(amount) % 16) {
-        case 15: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_CBAD);
-                 return _mm512_mask_permute4f128_epi32(_mm512_permute4f128_epi32(tmp, _MM_PERM_CBAD), 0xeeee, tmp, _MM_PERM_DCBA);}
-        case 14: {auto &&tmp = _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC);
-                 return _mm512_mask_permute4f128_epi32(_mm512_permute4f128_epi32(tmp, _MM_PERM_CBAD), 0xcccc, tmp, _MM_PERM_DCBA);}
-        case 13: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_ADCB);
-                 return _mm512_mask_permute4f128_epi32(_mm512_permute4f128_epi32(tmp, _MM_PERM_CBAD), 0x8888, tmp, _MM_PERM_DCBA);}
-        case 12: return _mm512_permute4f128_epi32(v, _MM_PERM_CBAD);
-        case 11: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_CBAD);
-                 return _mm512_mask_permute4f128_epi32(_mm512_permute4f128_epi32(tmp, _MM_PERM_BADC), 0xeeee, tmp, _MM_PERM_CBAD);}
-        case 10: {auto &&tmp = _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC);
-                 return _mm512_mask_permute4f128_epi32(_mm512_permute4f128_epi32(tmp, _MM_PERM_BADC), 0xcccc, tmp, _MM_PERM_CBAD);}
-        case  9: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_ADCB);
-                 return _mm512_mask_permute4f128_epi32(_mm512_permute4f128_epi32(tmp, _MM_PERM_BADC), 0x8888, tmp, _MM_PERM_CBAD);}
-        case  8: return _mm512_permute4f128_epi32(v, _MM_PERM_BADC);
-        case  7: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_CBAD);
-                 return _mm512_mask_permute4f128_epi32(_mm512_permute4f128_epi32(tmp, _MM_PERM_ADCB), 0xeeee, tmp, _MM_PERM_BADC);}
-        case  6: {auto &&tmp = _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC);
-                 return _mm512_mask_permute4f128_epi32(_mm512_permute4f128_epi32(tmp, _MM_PERM_ADCB), 0xcccc, tmp, _MM_PERM_BADC);}
-        case  5: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_ADCB);
-                 return _mm512_mask_permute4f128_epi32(_mm512_permute4f128_epi32(tmp, _MM_PERM_ADCB), 0x8888, tmp, _MM_PERM_BADC);}
-        case  4: return _mm512_permute4f128_epi32(v, _MM_PERM_ADCB);
-        case  3: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_CBAD);
-                 return _mm512_mask_permute4f128_epi32(tmp, 0xeeee, tmp, _MM_PERM_ADCB);}
-        case  2: {auto &&tmp = _mm512_swizzle_epi32(v, _MM_SWIZ_REG_BADC);
-                 return _mm512_mask_permute4f128_epi32(tmp, 0xcccc, tmp, _MM_PERM_ADCB);}
-        case  1: {auto &&tmp = _mm512_shuffle_epi32(v, _MM_PERM_ADCB);
-                 return _mm512_mask_permute4f128_epi32(tmp, 0x8888, tmp, _MM_PERM_ADCB);}
+        case 15: return _mm512_alignr_epi32(v, v, 15);
+        case 14: return _mm512_alignr_epi32(v, v, 14);
+        case 13: return _mm512_alignr_epi32(v, v, 13);
+        case 12: return _mm512_alignr_epi32(v, v, 12);
+        case 11: return _mm512_alignr_epi32(v, v, 11);
+        case 10: return _mm512_alignr_epi32(v, v, 10);
+        case  9: return _mm512_alignr_epi32(v, v,  9);
+        case  8: return _mm512_alignr_epi32(v, v,  8);
+        case  7: return _mm512_alignr_epi32(v, v,  7);
+        case  6: return _mm512_alignr_epi32(v, v,  6);
+        case  5: return _mm512_alignr_epi32(v, v,  5);
+        case  4: return _mm512_alignr_epi32(v, v,  4);
+        case  3: return _mm512_alignr_epi32(v, v,  3);
+        case  2: return _mm512_alignr_epi32(v, v,  2);
+        case  1: return _mm512_alignr_epi32(v, v,  1);
         case  0: return v;
         }
         return _mm512_setzero_epi32();
     }
-};
+};/*}}}*/
 } // anonymous namespace
 template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
 {
     typedef VectorRotate<sizeof(VectorType), Size> VR;
     return _cast(VR::rotated(mic_cast<typename VR::VectorType>(d.v()), amount));
-}
-
-template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount, Vector shiftIn) const
-{
-    typedef VectorRotate<sizeof(VectorType), Size> VR;
-    const auto &tmp = VR::blend(
-            mic_cast<typename VR::VectorType>(d.v()),
-            mic_cast<typename VR::VectorType>(shiftIn.d.v()),
-            amount);
-    return _cast(VR::rotated(tmp, amount));
 }
 // }}}1
 
