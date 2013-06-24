@@ -174,7 +174,7 @@ if(MIC_NATIVE_FOUND)
 
       string(TOUPPER "${CMAKE_BUILD_TYPE}" _tmp)
       string(STRIP "${CMAKE_MIC_${_lang}_FLAGS} ${CMAKE_${_lang}_FLAGS_${_tmp}} ${_mic_cflags}" _flags)
-      string(REPLACE " " ";" _flags "${_flags}")
+      string(REPLACE " " ";" _flags "${_flags} ${ARGN}")
       get_directory_property(_inc INCLUDE_DIRECTORIES)
       foreach(_i ${_inc})
          list(APPEND _flags "-I${_i}")
@@ -183,7 +183,7 @@ if(MIC_NATIVE_FOUND)
       add_custom_command(OUTPUT "${${_output}}"
          COMMAND "${_compiler}" -mmic -fPIC
          -DVC_IMPL=MIC
-         ${_flags} ${ARGN} -c -o "${${_output}}" "${_abs}"
+         ${_flags} -c -o "${${_output}}" "${_abs}"
          DEPENDS "${_abs}"
          IMPLICIT_DEPENDS ${_lang} "${_abs}"
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -224,7 +224,7 @@ if(MIC_NATIVE_FOUND)
          elseif(_state EQUAL 0) # SOURCES
             set(_srcs ${_srcs} "${_arg}")
          elseif(_state EQUAL 1) # COMPILE_FLAGS
-            set(_cflags ${_cflags} "${_arg}")
+            list(APPEND _cflags "${_arg}")
          elseif(_state EQUAL 2) # LINK_LIBRARIES
             get_filename_component(_lpath "${_arg}" PATH)
             get_filename_component(_lname "${_arg}" NAME)
