@@ -586,6 +586,8 @@ const VECTOR_TYPE rotated(int amount) const;
    v[0] <= v[1] <= v[2] <= v[3] ...
    \endverbatim
  *
+ * \note If the vector contains NaNs the result is undefined.
+ *
  * Example:
  * \code
  * int_v v = int_v::Random();
