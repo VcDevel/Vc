@@ -69,8 +69,10 @@ macro(check_mic_cxx_compiler_flag _FLAG _RESULT)
                "[Ww]arning: [Oo]ption"                     # SunPro
                "command option .* is not recognized"       # XL
                "WARNING: unknown flag:"                    # Open64
-               " #10159: "                                 # ICC
-               " #10006: "                                 # ICC
+               " #10159: "  # ICC
+               " #10006: "  # ICC
+               " #10148: "  # ICC: option '-msse2avx' not supported
+               " #10353: "  # ICC: option '-mavx2' ignored, suggest using '-march=core-avx2'
                )
             if("${OUTPUT}" MATCHES "${_fail_regex}")
                set(${_RESULT} FALSE)
