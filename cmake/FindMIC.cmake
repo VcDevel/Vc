@@ -181,7 +181,7 @@ if(MIC_NATIVE_FOUND)
       endforeach()
 
       add_custom_command(OUTPUT "${${_output}}"
-         COMMAND "${_compiler}" -mmic -fPIC
+         COMMAND "${_compiler}" -mmic
          -DVC_IMPL=MIC
          ${_flags} -c -o "${${_output}}" "${_abs}"
          DEPENDS "${_abs}"
