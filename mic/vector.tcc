@@ -964,21 +964,21 @@ template<> struct VectorShift<64, 8>/*{{{*/
             VC_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
     {
         switch (amount) {
-        case  7: return _mm512_alignr_epi32(v, z, 14);
-        case  6: return _mm512_alignr_epi32(v, z, 12);
-        case  5: return _mm512_alignr_epi32(v, z, 10);
-        case  4: return _mm512_alignr_epi32(v, z,  8);
-        case  3: return _mm512_alignr_epi32(v, z,  6);
-        case  2: return _mm512_alignr_epi32(v, z,  4);
-        case  1: return _mm512_alignr_epi32(v, z,  2);
+        case  7: return _mm512_alignr_epi32(z, v, 14);
+        case  6: return _mm512_alignr_epi32(z, v, 12);
+        case  5: return _mm512_alignr_epi32(z, v, 10);
+        case  4: return _mm512_alignr_epi32(z, v,  8);
+        case  3: return _mm512_alignr_epi32(z, v,  6);
+        case  2: return _mm512_alignr_epi32(z, v,  4);
+        case  1: return _mm512_alignr_epi32(z, v,  2);
         case  0: return v;
-        case -1: return _mm512_alignr_epi32(z, v, 14);
-        case -2: return _mm512_alignr_epi32(z, v, 12);
-        case -3: return _mm512_alignr_epi32(z, v, 10);
-        case -4: return _mm512_alignr_epi32(z, v,  8);
-        case -5: return _mm512_alignr_epi32(z, v,  6);
-        case -6: return _mm512_alignr_epi32(z, v,  4);
-        case -7: return _mm512_alignr_epi32(z, v,  2);
+        case -1: return _mm512_alignr_epi32(v, z, 14);
+        case -2: return _mm512_alignr_epi32(v, z, 12);
+        case -3: return _mm512_alignr_epi32(v, z, 10);
+        case -4: return _mm512_alignr_epi32(v, z,  8);
+        case -5: return _mm512_alignr_epi32(v, z,  6);
+        case -6: return _mm512_alignr_epi32(v, z,  4);
+        case -7: return _mm512_alignr_epi32(v, z,  2);
         }
         return z;
     }
@@ -990,37 +990,37 @@ template<> struct VectorShift<64, 16>/*{{{*/
             VC_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
     {
         switch (amount) {
-        case 15: return _mm512_alignr_epi32(v, z, 15);
-        case 14: return _mm512_alignr_epi32(v, z, 14);
-        case 13: return _mm512_alignr_epi32(v, z, 13);
-        case 12: return _mm512_alignr_epi32(v, z, 12);
-        case 11: return _mm512_alignr_epi32(v, z, 11);
-        case 10: return _mm512_alignr_epi32(v, z, 10);
-        case  9: return _mm512_alignr_epi32(v, z,  9);
-        case  8: return _mm512_alignr_epi32(v, z,  8);
-        case  7: return _mm512_alignr_epi32(v, z,  7);
-        case  6: return _mm512_alignr_epi32(v, z,  6);
-        case  5: return _mm512_alignr_epi32(v, z,  5);
-        case  4: return _mm512_alignr_epi32(v, z,  4);
-        case  3: return _mm512_alignr_epi32(v, z,  3);
-        case  2: return _mm512_alignr_epi32(v, z,  2);
-        case  1: return _mm512_alignr_epi32(v, z,  1);
+        case 15: return _mm512_alignr_epi32(z, v, 15);
+        case 14: return _mm512_alignr_epi32(z, v, 14);
+        case 13: return _mm512_alignr_epi32(z, v, 13);
+        case 12: return _mm512_alignr_epi32(z, v, 12);
+        case 11: return _mm512_alignr_epi32(z, v, 11);
+        case 10: return _mm512_alignr_epi32(z, v, 10);
+        case  9: return _mm512_alignr_epi32(z, v,  9);
+        case  8: return _mm512_alignr_epi32(z, v,  8);
+        case  7: return _mm512_alignr_epi32(z, v,  7);
+        case  6: return _mm512_alignr_epi32(z, v,  6);
+        case  5: return _mm512_alignr_epi32(z, v,  5);
+        case  4: return _mm512_alignr_epi32(z, v,  4);
+        case  3: return _mm512_alignr_epi32(z, v,  3);
+        case  2: return _mm512_alignr_epi32(z, v,  2);
+        case  1: return _mm512_alignr_epi32(z, v,  1);
         case  0: return v;
-        case -1: return _mm512_alignr_epi32(z, v, 15);
-        case -2: return _mm512_alignr_epi32(z, v, 14);
-        case -3: return _mm512_alignr_epi32(z, v, 13);
-        case -4: return _mm512_alignr_epi32(z, v, 12);
-        case -5: return _mm512_alignr_epi32(z, v, 11);
-        case -6: return _mm512_alignr_epi32(z, v, 10);
-        case -7: return _mm512_alignr_epi32(z, v,  9);
-        case -8: return _mm512_alignr_epi32(z, v,  8);
-        case -9: return _mm512_alignr_epi32(z, v,  7);
-        case-10: return _mm512_alignr_epi32(z, v,  6);
-        case-11: return _mm512_alignr_epi32(z, v,  5);
-        case-12: return _mm512_alignr_epi32(z, v,  4);
-        case-13: return _mm512_alignr_epi32(z, v,  3);
-        case-14: return _mm512_alignr_epi32(z, v,  2);
-        case-15: return _mm512_alignr_epi32(z, v,  1);
+        case -1: return _mm512_alignr_epi32(v, z, 15);
+        case -2: return _mm512_alignr_epi32(v, z, 14);
+        case -3: return _mm512_alignr_epi32(v, z, 13);
+        case -4: return _mm512_alignr_epi32(v, z, 12);
+        case -5: return _mm512_alignr_epi32(v, z, 11);
+        case -6: return _mm512_alignr_epi32(v, z, 10);
+        case -7: return _mm512_alignr_epi32(v, z,  9);
+        case -8: return _mm512_alignr_epi32(v, z,  8);
+        case -9: return _mm512_alignr_epi32(v, z,  7);
+        case-10: return _mm512_alignr_epi32(v, z,  6);
+        case-11: return _mm512_alignr_epi32(v, z,  5);
+        case-12: return _mm512_alignr_epi32(v, z,  4);
+        case-13: return _mm512_alignr_epi32(v, z,  3);
+        case-14: return _mm512_alignr_epi32(v, z,  2);
+        case-15: return _mm512_alignr_epi32(v, z,  1);
         }
         return z;
     }
@@ -1056,7 +1056,7 @@ template<> struct VectorRotate<64, 8>/*{{{*/
         case  6: return _mm512_alignr_epi32(v, v, 12);
         case  7: return _mm512_alignr_epi32(v, v, 14);
         }
-        return _mm512_setzero_ps();
+        return _mm512_setzero_epi32();
     }
 };/*}}}*/
 template<> struct VectorRotate<64, 16>/*{{{*/
