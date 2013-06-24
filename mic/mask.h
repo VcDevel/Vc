@@ -32,7 +32,9 @@ template<unsigned int VectorSize> struct MaskHelper;
 template<> struct MaskHelper<8> {
     typedef __mmask8  Type;
     static inline bool isFull (Type k) {
-        //__mmask16 kk; asm("kmerge2l1l %[in],%[out]" : [out]"=k"(kk) : [in]"k"(k));
+        // I can't find a way around ICC creating an unnecessary kmov to GPR. Every method involves
+        // a cast to __mmask16 and thus induces the “problem”.
+        //__mmask16 kk; asm("kmerge2l1l %[in],%[out]" : [out]"=k"(kk) : [in]"k"((__mmask16)k));
         __mmask16 kk = _mm512_kmovlhb(k, k);
         return _mm512_kortestc(kk, kk);
     }
