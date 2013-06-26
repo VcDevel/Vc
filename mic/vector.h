@@ -143,25 +143,28 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load ctors
-    explicit Vc_INTRINSIC_L
-        Vector(const EntryType *x) Vc_INTRINSIC_R;
-    template<typename Alignment> Vc_INTRINSIC_L
-        Vector(const EntryType *x, Alignment align) Vc_INTRINSIC_R;
-    template<typename OtherT> explicit Vc_INTRINSIC_L
-        Vector(const OtherT    *x) Vc_INTRINSIC_R;
-    template<typename OtherT, typename Alignment> Vc_INTRINSIC_L
-        Vector(const OtherT    *x, Alignment align) Vc_INTRINSIC_R;
+    explicit Vc_INTRINSIC Vector(const EntryType *x) { load(x); }
+    template<typename Flag0, typename... Flags> Vc_INTRINSIC
+        Vector(typename std::enable_if<std::is_base_of<Vc::FlagBase, Flag0>::value, const EntryType *>::type x,
+                Flag0 f0, Flags... flags) { load(x, f0, flags...); }
+    template<typename OtherT> explicit Vc_INTRINSIC Vector(const OtherT *x) { load<OtherT>(x); }
+    template<typename OtherT, typename Flag0> Vc_INTRINSIC Vector(const OtherT *x, Flag0 f0,
+            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load<OtherT>(x, f0); }
+    template<typename OtherT, typename Flag0, typename Flag1> Vc_INTRINSIC Vector(const OtherT *x, Flag0 f0, Flag1 f1,
+            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load<OtherT>(x, f0, f1); }
+    template<typename OtherT, typename Flag0, typename Flag1, typename Flag2> Vc_INTRINSIC
+        Vector(const OtherT *x, Flag0 f0, Flag1 f1, Flag2 f2,
+            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load<OtherT>(x, f0, f1, f2); }
+    template<typename OtherT, typename Flag0, typename Flag1, typename Flag2, typename Flag3> Vc_INTRINSIC
+        Vector(const OtherT *x, Flag0 f0, Flag1 f1, Flag2 f2, Flag3 f3,
+            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load<OtherT>(x, f0, f1, f2, f3); }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load member functions
-    Vc_INTRINSIC_L
-        void load(const EntryType *mem) Vc_INTRINSIC_R;
-    template<typename Alignment> Vc_INTRINSIC_L
-        void load(const EntryType *mem, Alignment align) Vc_INTRINSIC_R;
-    template<typename OtherT> Vc_INTRINSIC_L
-        void load(const OtherT    *mem) Vc_INTRINSIC_R;
-    template<typename OtherT, typename Alignment> Vc_INTRINSIC_L
-        void load(const OtherT    *mem, Alignment align) Vc_INTRINSIC_R;
+    template<typename... Flags> Vc_INTRINSIC_L
+        void load(const EntryType *mem, Flags...) Vc_INTRINSIC_R;
+    template<typename OtherT, typename... Flags> Vc_INTRINSIC_L
+        void load(const OtherT    *mem, Flags...) Vc_INTRINSIC_R;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX

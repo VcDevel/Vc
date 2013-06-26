@@ -348,20 +348,6 @@
 #undef IMPL_MASK
 #undef EXT_MASK
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc {
-enum AlignedFlag {
-    Aligned = 0
-};
-enum UnalignedFlag {
-    Unaligned = 1
-};
-enum StreamingAndAlignedFlag { // implies Aligned
-    Streaming = 2
-};
-enum StreamingAndUnalignedFlag {
-    StreamingAndUnaligned = 3
-};
 #endif // DOXYGEN
 
 /**
@@ -390,16 +376,6 @@ enum MallocAlignment {
      */
     AlignOnPage
 };
-
-static constexpr StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-static constexpr StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
-static constexpr StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-static constexpr StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
-
-static constexpr StreamingAndAlignedFlag operator|(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-static constexpr StreamingAndAlignedFlag operator|(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
-static constexpr StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-static constexpr StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
 
 /**
  * \ingroup Utilities
@@ -567,14 +543,10 @@ namespace Error
 Vc_NAMESPACE_BEGIN(Internal)
     template<Implementation Impl> struct HelperImpl;
     typedef HelperImpl<VC_IMPL> Helper;
-
-    template<typename A> struct FlagObject;
-    template<> struct FlagObject<AlignedFlag> { static constexpr AlignedFlag the() { return Aligned; } };
-    template<> struct FlagObject<UnalignedFlag> { static constexpr UnalignedFlag the() { return Unaligned; } };
-    template<> struct FlagObject<StreamingAndAlignedFlag> { static constexpr StreamingAndAlignedFlag the() { return Streaming; } };
-    template<> struct FlagObject<StreamingAndUnalignedFlag> { static constexpr StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
 Vc_NAMESPACE_END
 
 #include "version.h"
 
 #endif // VC_GLOBAL_H
+
+// vim: foldmethod=marker

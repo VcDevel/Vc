@@ -75,18 +75,20 @@ template<typename V, typename A> class VectorPointerHelper/*{{{*/
 
         explicit VectorPointerHelper(EntryType *ptr) : m_ptr(ptr) {}
 
+        Vc_ALWAYS_INLINE Vc_PURE V value() const { return V(&m_data[0], A()); }
+
         /**
          * Cast to \p V operator.
          *
          * This function allows to assign this object to any object of type \p V.
          */
-        Vc_ALWAYS_INLINE Vc_PURE operator const V() const { return V(m_ptr, Internal::FlagObject<A>::the()); }
+        Vc_ALWAYS_INLINE Vc_PURE operator const V() const { return value(); }
 
         template<typename T>
         Vc_ALWAYS_INLINE VectorPointerHelper &operator=(const T &x) {
             V v;
             v = x;
-            v.store(m_ptr, Internal::FlagObject<A>::the());
+            v.store(&m_data[0], A());
             return *this;
         }
 

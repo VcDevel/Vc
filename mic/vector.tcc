@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2010 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -18,16 +18,84 @@
 */
 
 #include <type_traits>
+#include "helperimpl.h"
 #include "debug.h"
+#include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 // LoadHelper {{{1
 namespace
 {
+
+template<typename... Flags> struct get_loadstore_flags;/*{{{*/
+// iff only one flag is given and it's neither Aligned, Unaligned, nor Streaming we default to Aligned
+template<> struct get_loadstore_flags<>
+{
+    typedef AlignedFlag type;
+
+    static Vc_INTRINSIC type flag() { return type(); }
+};
+template<typename F> struct get_loadstore_flags<F>
+{
+    typedef typename std::conditional<std::is_base_of<LoadStoreFlag, F>::value, F, AlignedFlag>::type type;
+
+    static Vc_INTRINSIC type flag() { return type(); }
+};
+
+template<typename F, typename G> struct get_loadstore_flags<F, G>
+{
+    static_assert(
+            (std::is_same<F, AlignedFlag>::value && !std::is_same<UnalignedFlag, G>::value) ||
+            (std::is_same<F, UnalignedFlag>::value && !std::is_same<AlignedFlag, G>::value) ||
+            (!std::is_same<F, AlignedFlag>::value && !std::is_same<F, UnalignedFlag>::value),
+            "The Aligned and Unaligned load/store flags were combined. This is an ambiguous request. Please fix the code.");
+
+    typedef typename std::conditional<
+        std::is_base_of<LoadStoreFlag, F>::value,
+        typename std::conditional<std::is_base_of<LoadStoreFlag, G>::value,
+            typename std::conditional<std::is_same<F, G>::value,
+                F,
+                typename std::conditional<std::is_same<F, StreamingFlag>::value,
+                    typename std::conditional<std::is_same<G, AlignedFlag>::value,
+                        F,
+                        CombineFlags<F, G>
+                    >::type,
+                    typename std::conditional<std::is_same<F, AlignedFlag>::value,
+                        G,
+                        CombineFlags<G, F>
+                    >::type
+                >::type
+            >::type,
+            F
+        >::type,
+        typename get_loadstore_flags<G>::type
+    >::type type;
+
+    static Vc_INTRINSIC type flag() { return type(); }
+};
+
+template<typename F, typename G, typename... Flags> struct get_loadstore_flags<F, G, Flags...>
+{
+    static_assert(
+            (std::is_same<F, AlignedFlag>::value && !is_contained<UnalignedFlag, G, Flags...>::value) ||
+            (std::is_same<F, UnalignedFlag>::value && !is_contained<AlignedFlag, G, Flags...>::value) ||
+            (!std::is_same<F, AlignedFlag>::value && !std::is_same<F, UnalignedFlag>::value),
+            "The Aligned and Unaligned load/store flags were combined. This is an ambiguous request. Please fix the code.");
+
+    //TODO: need to combine several flags in some way
+    typedef typename std::conditional<
+        std::is_base_of<LoadStoreFlag, F>::value && !is_contained<F, G, Flags...>::value,
+        F,
+        typename get_loadstore_flags<G, Flags...>::type
+            >::type type;
+
+    static Vc_INTRINSIC type flag() { return type(); }
+};/*}}}*/
+
 template<typename V, typename T> struct LoadHelper2;
 
-template<typename V> struct LoadHelper
+template<typename V> struct LoadHelper/*{{{*/
 {
     typedef typename V::VectorType VectorType;
 
@@ -51,24 +119,23 @@ template<typename V> struct LoadHelper
         return _mm512_loadu_epi32(m, upconv, memHint);
     }
 
-    template<typename T, typename Flags> static Vc_ALWAYS_INLINE VectorType load(const T *mem, Flags f)
+    template<typename T, typename Flag> static Vc_ALWAYS_INLINE VectorType load(const T *mem, Flag f)
     {
         return LoadHelper2<V, T>::load(mem, f);
     }
-};
+};/*}}}*/
 
 template<typename V, typename T = typename V::VectorEntryType> struct LoadHelper2
 {
     typedef typename V::VectorType VectorType;
-    template<typename Flags> static Vc_ALWAYS_INLINE VectorType load(const T *mem, Flags f)
-    {
-        if (std::is_same<Flags, Vc::AlignedFlag>::value) {
+    template<typename Flag> static Vc_ALWAYS_INLINE VectorType load(const T *mem, Flag) {
+        if (std::is_same<Flag, AlignedFlag>::value) {
             return LoadHelper<V>::_load(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NONE);
-        } else if (std::is_same<Flags, Vc::UnalignedFlag>::value) {
+        } else if (std::is_same<Flag, UnalignedFlag>::value) {
             return LoadHelper<V>::_loadu(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NONE);
-        } else if (std::is_same<Flags, Vc::StreamingAndAlignedFlag>::value) {
+        } else if (std::is_same<Flag, StreamingFlag>::value) {
             return LoadHelper<V>::_load(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NT);
-        } else if (std::is_same<Flags, Vc::StreamingAndUnalignedFlag>::value) {
+        } else if (std::is_same<Flag, StreamingAndUnalignedFlag>::value) {
             return LoadHelper<V>::_loadu(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NT);
         }
         return VectorType();
@@ -108,6 +175,71 @@ template<> template<typename A> Vc_ALWAYS_INLINE __m512 LoadHelper2<sfloat_v, un
 {
     return StaticCastHelper<unsigned int, float>::cast(LoadHelper<uint_v>::load(mem, align));
 }
+
+/*prefetches{{{*/
+template<int L1, int L2> Vc_INTRINSIC void handlePrefetch(const void *addr_, Vc::PrefetchFlag<L1, L2, Shared>)
+{
+    const __m512 *addr = static_cast<const __m512 *>(addr_);
+    Internal::HelperImpl<MICImpl>::prefetchClose(addr + L1);
+    Internal::HelperImpl<MICImpl>::prefetchMid  (addr + L2);
+}
+template<int L1> Vc_INTRINSIC void handlePrefetches(const void *addr_, Vc::PrefetchFlag<L1, 0, Shared>)
+{
+    const __m512 *addr = static_cast<const __m512 *>(addr_);
+    Internal::HelperImpl<MICImpl>::prefetchClose(addr + L1);
+}
+template<int L2> Vc_INTRINSIC void handlePrefetches(const void *addr_, Vc::PrefetchFlag<0, L2, Shared>)
+{
+    const __m512 *addr = static_cast<const __m512 *>(addr_);
+    Internal::HelperImpl<MICImpl>::prefetchMid  (addr + L2);
+}
+template<int L1, int L2> Vc_INTRINSIC void handlePrefetch(const void *addr_, Vc::PrefetchFlag<L1, L2, Exclusive>)
+{
+    const __m512 *addr = static_cast<const __m512 *>(addr_);
+    _mm_prefetch(reinterpret_cast<char *>(const_cast<__m512 *>(addr + L1)), _MM_HINT_ET0);
+    _mm_prefetch(reinterpret_cast<char *>(const_cast<__m512 *>(addr + L2)), _MM_HINT_ET1);
+}
+template<int L1> Vc_INTRINSIC void handlePrefetches(const void *addr_, Vc::PrefetchFlag<L1, 0, Exclusive>)
+{
+    const __m512 *addr = static_cast<const __m512 *>(addr_);
+    _mm_prefetch(reinterpret_cast<char *>(const_cast<__m512 *>(addr + L1)), _MM_HINT_ET0);
+}
+template<int L2> Vc_INTRINSIC void handlePrefetches(const void *addr_, Vc::PrefetchFlag<0, L2, Exclusive>)
+{
+    const __m512 *addr = static_cast<const __m512 *>(addr_);
+    _mm_prefetch(reinterpret_cast<char *>(const_cast<__m512 *>(addr + L2)), _MM_HINT_ET1);
+}
+Vc_INTRINSIC void handleLoadPrefetches(const void *) {}
+template<typename F, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, F otherFlag, Flags... flags)
+{
+    handleLoadPrefetches(addr, flags...);
+}
+template<int L1, int L2, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, void>, Flags... flags)
+{
+    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, Shared>());
+    handleLoadPrefetches(addr, flags...);
+}
+template<int L1, int L2, typename SharedOrExclusive, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>, Flags... flags)
+{
+    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>());
+    handleLoadPrefetches(addr, flags...);
+}
+Vc_INTRINSIC void handleStorePrefetches(const void *) {}
+template<typename F, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, F otherFlag, Flags... flags)
+{
+    handleStorePrefetches(addr, flags...);
+}
+template<int L1, int L2, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, void>, Flags... flags)
+{
+    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, Exclusive>());
+    handleStorePrefetches(addr, flags...);
+}
+template<int L1, int L2, typename SharedOrExclusive, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>, Flags... flags)
+{
+    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>());
+    handleStorePrefetches(addr, flags...);
+}
+/*}}}*/
 } // anonymous namespace
 
 // constants {{{1
@@ -132,20 +264,13 @@ template<typename T> template<typename OtherT> Vc_ALWAYS_INLINE Vector<T>::Vecto
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(EntryType x) : d(_set1(x)) {}
 
 // loads {{{1
-template<typename T> Vc_INTRINSIC Vector<T>::Vector(const EntryType *x) { load(x); }
-template<typename T> template<typename A> Vc_INTRINSIC Vector<T>::Vector(const EntryType *x, A a) { load(x, a); }
-template<typename T> template<typename OtherT> Vc_INTRINSIC Vector<T>::Vector(const OtherT *x) { load(x); }
-template<typename T> template<typename OtherT, typename A> Vc_INTRINSIC Vector<T>::Vector(const OtherT *x, A a) { load(x, a); }
-
-template<typename T> Vc_INTRINSIC void Vector<T>::load(const EntryType *x) { load(x, Aligned); }
-template<typename T> template<typename A> Vc_INTRINSIC void Vector<T>::load(const EntryType *x, A align) {
-    d.v() = LoadHelper<Vector<T>>::load(x, align);
+template<typename T> template<typename... Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *x, Flags... flags) {
+    handleLoadPrefetches(x, flags...);
+    d.v() = LoadHelper<Vector<T>>::load(x, get_loadstore_flags<Flags...>::flag());
 }
-template<typename T> template<typename OtherT> Vc_INTRINSIC void Vector<T>::load(const OtherT *x) {
-    d.v() = LoadHelper<Vector<T>>::load(x, Aligned);
-}
-template<typename T> template<typename OtherT, typename A> Vc_INTRINSIC void Vector<T>::load(const OtherT *x, A align) {
-    d.v() = LoadHelper<Vector<T>>::load(x, align);
+template<typename T> template<typename OtherT, typename... Flags> Vc_INTRINSIC void Vector<T>::load(const OtherT *x, Flags... flags) {
+    handleLoadPrefetches(x, flags...);
+    d.v() = LoadHelper<Vector<T>>::load(x, get_loadstore_flags<Flags...>::flag());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -199,27 +324,21 @@ template<> Vc_INTRINSIC void ushort_v::assign(ushort_v v, ushort_m m)
     d.v() = _mm512_mask_mov_epi32(d.v(), m.data(), v.d.v());
 }
 // stores {{{1
-template<typename Parent, typename T> template<typename T2> inline void StoreMixin<Parent, T>::store(T2 *mem) const
+template<typename Parent, typename T> template<typename T2, typename... Flags>
+inline void StoreMixin<Parent, T>::store(T2 *mem, Flags... flags) const
 {
-    MicIntrinsics::store(mem, data(), UpDownC<T2>(), Aligned);
+    handleStorePrefetches(mem, flags...);
+    MicIntrinsics::store(mem, data(), UpDownC<T2>(), get_loadstore_flags<Flags...>::flag());
 }
 
-template<typename Parent, typename T> template<typename T2> inline void StoreMixin<Parent, T>::store(T2 *mem, Mask mask) const
+template<typename Parent, typename T> template<typename T2, typename... Flags>
+inline void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, Flags... flags) const
 {
-    MicIntrinsics::store(mask.data(), mem, data(), UpDownC<T2>(), Aligned);
+    handleStorePrefetches(mem, flags...);
+    MicIntrinsics::store(mask.data(), mem, data(), UpDownC<T2>(), get_loadstore_flags<Flags...>::flag());
 }
 
-template<typename Parent, typename T> template<typename T2, typename A> inline void StoreMixin<Parent, T>::store(T2 *mem, A align) const
-{
-    MicIntrinsics::store(mem, data(), UpDownC<T2>(), align);
-}
-
-template<typename Parent, typename T> template<typename T2, typename A> inline void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, A align) const
-{
-    MicIntrinsics::store(mask.data(), mem, data(), UpDownC<T2>(), align);
-}
-
-template<typename Parent, typename T> inline void StoreMixin<Parent, T>::store(VectorEntryType *mem, Vc::StreamingAndAlignedFlag) const
+template<typename Parent, typename T> inline void StoreMixin<Parent, T>::store(VectorEntryType *mem, Vc::StreamingFlag) const
 {
     // NR = No-Read hint, NGO = Non-Globally Ordered hint
     // It is not clear whether we will get issues with nrngo if users only expected nr

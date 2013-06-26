@@ -44,18 +44,14 @@ private:
     VectorType &data()       { return static_cast<      Parent *>(this)->data(); }
 
 public:
-    template<typename T2> void store(T2 *mem) const;
-    template<typename T2> void store(T2 *mem, Mask mask) const;
-    template<typename T2, typename A> void store(T2 *mem, A) const;
-    template<typename T2, typename A> void store(T2 *mem, Mask mask, A) const;
+    template<typename T2, typename... Flags> void store(T2 *mem, Flags...) const;
+    template<typename T2, typename... Flags> void store(T2 *mem, Mask mask, Flags...) const;
     // the following store overloads are here to support classes that have a cast operator to T.
     // Without this overload GCC complains about not finding a matching store function.
-    inline void store(T *mem) const { store<T>(mem); }
-    inline void store(T *mem, Mask mask) const { store<T>(mem, mask); }
-    template<typename A> inline void store(T *mem, A align) const { store<T, A>(mem, align); }
-    template<typename A> inline void store(T *mem, Mask mask, A align) const { store<T, A>(mem, mask, align); }
+    template<typename... Flags> inline void store(T *mem, Flags... flags) const { store<T, Flags...>(mem, flags...); }
+    template<typename... Flags> inline void store(T *mem, Mask mask, Flags... flags) const { store<T, Flags...>(mem, mask, flags...); }
 
-    inline void store(VectorEntryType *mem, Vc::StreamingAndAlignedFlag) const;
+    inline void store(VectorEntryType *mem, StreamingFlag) const;
 };
 
 Vc_NAMESPACE_END

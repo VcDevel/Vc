@@ -134,11 +134,11 @@ template<typename Vec> void streamingLoad()
     for (int i = 0; i < streamingLoadCount - Vec::Size; ++i, ++ref) {
         Vec v1, v2;
         if (0 == i % Vec::Size) {
-            v1 = Vec(&data[i], Vc::Streaming | Vc::Aligned);
-            v2.load (&data[i], Vc::Streaming | Vc::Aligned);
+            v1 = Vec(&data[i], Vc::Streaming, Vc::Aligned);
+            v2.load (&data[i], Vc::Aligned, Vc::Streaming);
         } else {
-            v1 = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
-            v2.load (&data[i], Vc::Streaming | Vc::Unaligned);
+            v1 = Vec(&data[i], Vc::Streaming, Vc::Unaligned);
+            v2.load (&data[i], Vc::Unaligned, Vc::Streaming);
         }
         COMPARE(v1, ref) << ", i = " << i;
         COMPARE(v2, ref) << ", i = " << i;
@@ -225,9 +225,9 @@ template<typename Vec, typename MemT> struct LoadCvt {
             if (i % (2 * Vec::Size) == 0) {
                 v = Vec(&data[i], Vc::Streaming);
             } else if (i % Vec::Size == 0) {
-                v = Vec(&data[i], Vc::Streaming | Vc::Aligned);
+                v = Vec(&data[i], Vc::Streaming, Vc::Aligned);
             } else {
-                v = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
+                v = Vec(&data[i], Vc::Streaming, Vc::Unaligned);
             }
             for (size_t j = 0; j < Vec::Size; ++j) {
                 COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << TypeInfo<MemT>::string();

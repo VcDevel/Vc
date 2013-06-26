@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library. {{{
 
-    Copyright (C) 2012 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2012-2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -24,6 +24,9 @@
 #include <cstdlib>
 #include <cstdio>
 #endif
+
+#include <type_traits>
+#include "macros.h"
 
 Vc_PUBLIC_NAMESPACE_BEGIN
 // helper type to implement sfloat_v (Vector<Vc::sfloat>)
@@ -99,8 +102,43 @@ namespace AVX {
 #    error "Sorry, MSVC is a nasty compiler and needs extra care. Please help."
 #  endif
 #endif
+
+struct FlagBase {};
+struct LoadStoreFlag : public FlagBase {};
+static struct AlignedFlag   : public LoadStoreFlag {} Aligned;
+static struct UnalignedFlag : public LoadStoreFlag {} Unaligned;
+static struct StreamingFlag : public LoadStoreFlag {} Streaming;
+struct Exclusive {};
+struct Shared {};
+#ifdef VC_IMPL_MIC
+template<int L1Stride = 8, int L2Stride = 64, typename ExclusiveOrShared = void> struct PrefetchFlag : public FlagBase {};
+#else
+// TODO: determine a good default for typical CPU use
+template<int L1Stride = 16, int L2Stride = 0, typename ExclusiveOrShared = void> struct PrefetchFlag : public FlagBase {};
+#endif
+static PrefetchFlag<> Prefetch;
+// CombineFlags: for now we can only combine 2 flags, more doesn't make sense with the current set/*{{{*/
 namespace
 {
+template<typename F0, typename F1> struct CombineFlags
+{
+    typedef F0 Flag0;
+    typedef F1 Flag1;
+};
+} // anonymous namespace
+typedef CombineFlags<StreamingFlag, UnalignedFlag> StreamingAndUnalignedFlag;
+/*}}}*/
+
+namespace
+{
+    template<typename T, typename... Us> struct is_contained;
+    template<typename T, typename U> struct is_contained<T, U> : public std::integral_constant<bool, std::is_same<T, U>::value> {};
+    template<typename T, typename U, typename... Vs> struct is_contained<T, U, Vs...>
+        : public std::integral_constant<bool, is_contained<T, Vs...>::value || std::is_same<T, U>::value> {};
+
+    //template<bool B, typename T = void> using enable_if = typename std::enable_if<B, T>::type;
+    template<typename B, typename T = void> using enable_if = typename std::enable_if<B::value, T>::type;
+
     template<bool Test, typename T = void> struct EnableIf { typedef T Value; };
     template<typename T> struct EnableIf<false, T> {};
 
@@ -223,5 +261,8 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 Vc_NAMESPACE_END
 
 #include "memoryfwd.h"
+#include "undomacros.h"
 
 #endif // VC_COMMON_TYPES_H
+
+// vim: foldmethod=marker
