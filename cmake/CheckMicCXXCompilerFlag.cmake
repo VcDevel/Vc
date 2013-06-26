@@ -69,10 +69,9 @@ macro(check_mic_cxx_compiler_flag _FLAG _RESULT)
                "[Ww]arning: [Oo]ption"                     # SunPro
                "command option .* is not recognized"       # XL
                "WARNING: unknown flag:"                    # Open64
-               " #10159: "  # ICC
-               " #10006: "  # ICC
-               " #10148: "  # ICC: option '-msse2avx' not supported
-               " #10353: "  # ICC: option '-mavx2' ignored, suggest using '-march=core-avx2'
+               "command line error"                        # ICC
+               "command line warning"                      # ICC
+               "#10236:"                                   # ICC: File not found
                )
             if("${OUTPUT}" MATCHES "${_fail_regex}")
                set(${_RESULT} FALSE)
@@ -86,6 +85,7 @@ macro(check_mic_cxx_compiler_flag _FLAG _RESULT)
          file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
             "Performing MIC C++ Compiler Flag Test ${_FLAG} succeded with the following output:\n"
             "${OUTPUT}\n"
+            "COMMAND: ${MIC_CXX} -mmic -c -o ${_tmpdir}/src.o ${_FLAG} ${_tmpdir}/src.cpp\n"
             )
       else()
          message(STATUS "Performing Test Check MIC C++ Compiler flag ${_FLAG} - Failed")
@@ -93,6 +93,7 @@ macro(check_mic_cxx_compiler_flag _FLAG _RESULT)
          file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
             "Performing MIC C++ Compiler Flag Test ${_FLAG} failed with the following output:\n"
             "${OUTPUT}\n"
+            "COMMAND: ${MIC_CXX} -mmic -c -o ${_tmpdir}/src.o ${_FLAG} ${_tmpdir}/src.cpp\n"
             )
       endif()
    endif()

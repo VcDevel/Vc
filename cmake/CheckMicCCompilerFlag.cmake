@@ -69,8 +69,9 @@ macro(check_mic_c_compiler_flag _FLAG _RESULT)
                "[Ww]arning: [Oo]ption"                     # SunPro
                "command option .* is not recognized"       # XL
                "WARNING: unknown flag:"                    # Open64
-               " #10159: "                                 # ICC
-               " #10006: "                                 # ICC
+               "command line error"                        # ICC
+               "command line warning"                      # ICC
+               "#10236:"                                   # ICC: File not found
                )
             if("${OUTPUT}" MATCHES "${_fail_regex}")
                set(${_RESULT} FALSE)
@@ -80,17 +81,19 @@ macro(check_mic_c_compiler_flag _FLAG _RESULT)
 
       if(${_RESULT})
          set(${_RESULT} 1 CACHE INTERNAL "Test ${_FLAG}")
-         message(STATUS "Performing Test Check MIC C Compiler flag ${_FLAG} - Success")
+         message(STATUS "Performing Test Check MIC C   Compiler flag ${_FLAG} - Success")
          file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
-            "Performing MIC C++ Compiler Flag Test ${_FLAG} succeded with the following output:\n"
+            "Performing MIC C Compiler Flag Test ${_FLAG} succeded with the following output:\n"
             "${OUTPUT}\n"
+            "COMMAND: ${MIC_CC} -mmic -c -o ${_tmpdir}/src.o ${_FLAG} ${_tmpdir}/src.cpp\n"
             )
       else()
-         message(STATUS "Performing Test Check MIC C Compiler flag ${_FLAG} - Failed")
+         message(STATUS "Performing Test Check MIC C   Compiler flag ${_FLAG} - Failed")
          set(${_RESULT} "" CACHE INTERNAL "Test ${_FLAG}")
          file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
-            "Performing MIC C++ Compiler Flag Test ${_FLAG} failed with the following output:\n"
+            "Performing MIC C Compiler Flag Test ${_FLAG} failed with the following output:\n"
             "${OUTPUT}\n"
+            "COMMAND: ${MIC_CC} -mmic -c -o ${_tmpdir}/src.o ${_FLAG} ${_tmpdir}/src.cpp\n"
             )
       endif()
    endif()
