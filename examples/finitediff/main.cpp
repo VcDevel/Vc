@@ -189,6 +189,25 @@ int main()
         // prefetching on architectures where four vectors fill one cache line. (Note that this
         // unrolling breaks auto-vectorization of the Vc::Scalar implementation when compiling with
         // GCC.)
+        const float *y_ptr = y_points;
+        const float *const y_ptr_end = y_ptr + y_points.entriesCount() - 2;
+        float_v y0(y_ptr, Vc::Prefetch);
+#pragma noprefetch
+        for (float *dy_ptr = &dy_points[1]; y_ptr < y_ptr_end; dy_ptr += 4 * float_v::Size) {
+            float_v y2(y_ptr += float_v::Size, Vc::Prefetch);
+            float_v y4(y_ptr += float_v::Size, Vc::Prefetch);
+            float_v y6(y_ptr += float_v::Size, Vc::Prefetch);
+
+            ((y0.shifted(2, y2) - y0) * oneOver2h).store(dy_ptr + 0 * float_v::Size, Vc::Streaming);
+
+            y0.load(y_ptr += float_v::Size, Vc::Prefetch);
+
+            ((y2.shifted(2, y4) - y2) * oneOver2h).store(dy_ptr + 1 * float_v::Size, Vc::Streaming);
+            ((y4.shifted(2, y6) - y4) * oneOver2h).store(dy_ptr + 2 * float_v::Size, Vc::Streaming);
+            ((y6.shifted(2, y0) - y6) * oneOver2h).store(dy_ptr + 3 * float_v::Size, Vc::Streaming);
+        }
+
+        /*
         for (unsigned int i = 0; i < (y_points.entriesCount() - 2) / float_v::Size; i += 4) {
             // Prefetches make sure the data which is going to be used in 24/4 iterations is already
             // in the L1 cache. The prefetchForOneRead additionally instructs the CPU to not evict
@@ -214,6 +233,7 @@ int main()
             dy2.store(&dy_points[(i + 2) * float_v::Size + 1], Vc::Streaming);
             dy3.store(&dy_points[(i + 3) * float_v::Size + 1], Vc::Streaming);
         }
+        */
 
         // Process the last vector. Note that this works for any N because Vc::Memory adds padding
         // to y_points and dy_points such that the last scalar value is somewhere inside lastVector.
