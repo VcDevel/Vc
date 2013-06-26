@@ -348,6 +348,28 @@
 #undef IMPL_MASK
 #undef EXT_MASK
 
+#ifndef Vc__SYMBOL_VERSION
+#define Vc__SYMBOL_VERSION v0
+#endif
+
+#define Vc_NAMESPACE_BEGIN(NAME) \
+    namespace Vc { \
+        inline namespace Vc__SYMBOL_VERSION { \
+            namespace NAME {
+
+#define Vc_PUBLIC_NAMESPACE_BEGIN \
+    namespace Vc { \
+        inline namespace Vc__SYMBOL_VERSION { \
+            inline namespace Public {
+
+#define Vc_NAMESPACE_END }}}
+#define Vc_IMPL_NAMESPACE_END Vc_NAMESPACE_END
+
+Vc_PUBLIC_NAMESPACE_BEGIN
+Vc_NAMESPACE_END
+
+Vc_PUBLIC_NAMESPACE_BEGIN
+
 #endif // DOXYGEN
 
 /**
@@ -470,8 +492,8 @@ enum ExtraInstructions { // TODO: make enum class of uint32_t
 
 template<unsigned int Features> struct ImplementationT { enum _Value {
     Value = Features,
-    Implementation = Features & Vc::ImplementationMask,
-    ExtraInstructions = Features & Vc::ExtraInstructionsMask
+    Implementation = Features & ImplementationMask,
+    ExtraInstructions = Features & ExtraInstructionsMask
 }; };
 
 typedef ImplementationT<
@@ -505,23 +527,6 @@ typedef ImplementationT<
 #endif
     > CurrentImplementation;
 
-#ifndef Vc__SYMBOL_VERSION
-#define Vc__SYMBOL_VERSION v0
-#endif
-
-#define Vc_NAMESPACE_BEGIN(NAME) \
-    namespace Vc { \
-        inline namespace Vc__SYMBOL_VERSION { \
-            namespace NAME {
-
-#define Vc_PUBLIC_NAMESPACE_BEGIN \
-    namespace Vc { \
-        inline namespace Vc__SYMBOL_VERSION { \
-            inline namespace Public {
-
-#define Vc_NAMESPACE_END }}}
-#define Vc_IMPL_NAMESPACE_END Vc_NAMESPACE_END
-
 namespace Warnings
 {
     void _operator_bracket_warning()
@@ -537,8 +542,7 @@ namespace Error
 } // namespace Error
 
 #endif // DOXYGEN
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(Internal)
     template<Implementation Impl> struct HelperImpl;
