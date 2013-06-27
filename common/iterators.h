@@ -183,11 +183,36 @@ template<typename M> Vc_ALWAYS_INLINE BitmaskIterator end(const WhereMask<M> &)
     return 0;
 }
 
+template<typename V, typename... Flags, typename T> Vc_ALWAYS_INLINE MemoryVectorIterator<V, Flags...>
+    makeIterator(T *mem, Flags...)
+{
+    return new(mem) MemoryVector<V, Flags...>;
+}
+
+template<typename V, typename... Flags, typename T> Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags...>
+    makeIterator(const T *mem, Flags...)
+{
+    return new(const_cast<T *>(mem)) MemoryVector<const V, Flags...>;
+}
+
+template<typename V, typename... Flags, typename... FlagsX> Vc_ALWAYS_INLINE MemoryVectorIterator<V, Flags...>
+    makeIterator(MemoryVector<V, FlagsX...> &mv, Flags...)
+{
+    return new(&mv) MemoryVector<V, Flags...>;
+}
+
+template<typename V, typename... Flags, typename... FlagsX> Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags...>
+    makeIterator(MemoryVector<const V, FlagsX...> &mv, Flags...)
+{
+    return new(&mv) MemoryVector<const V, Flags...>;
+}
+
 Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     using ::Vc::Common::begin;
     using ::Vc::Common::end;
+    using ::Vc::Common::makeIterator;
 Vc_NAMESPACE_END
 
 #include "undomacros.h"
