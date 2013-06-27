@@ -122,7 +122,7 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // internal: required to enable returning objects of VectorType
-    inline Vector(VectorType x) : d(x) {}
+    Vc_INTRINSIC Vector(VectorType x) : d(x) {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // static_cast / copy ctor
@@ -133,13 +133,13 @@ public:
     template<typename OtherT> Vc_INTRINSIC_L Vector &operator=(const Vector<OtherT> &x) Vc_INTRINSIC_R;
 
     // copy assignment
-    inline Vector &operator=(AsArg v) { d.v() = v.d.v(); return *this; }
+    Vc_INTRINSIC Vector &operator=(AsArg v) { d.v() = v.d.v(); return *this; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // broadcast
-    explicit Vector(EntryType a);
+    explicit Vc_ALWAYS_INLINE_L Vector(EntryType a) Vc_ALWAYS_INLINE_R;
     template<typename TT> Vc_INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : d(HT::set(x)) {}
-    inline Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
+    Vc_INTRINSIC Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load ctors

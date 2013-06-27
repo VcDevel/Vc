@@ -21,15 +21,16 @@
 #define VC_COMMON_MEMORYBASE_H
 
 #include <assert.h>
+#include <type_traits>
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Common)
 
 #define VC_MEM_OPERATOR_EQ(op) \
         template<typename T> \
-        Vc_ALWAYS_INLINE VectorPointerHelper<V, A> &operator op##=(const T &x) { \
-            const V result = V(m_ptr, Internal::FlagObject<A>::the()) op x; \
-            result.store(m_ptr, Internal::FlagObject<A>::the()); \
+        Vc_ALWAYS_INLINE typename std::enable_if<std::is_same<T, T>::value && !std::is_const<_V>::value, MemoryVector &>::type operator op##=(const T &x) { \
+            const V result = value() op x; \
+            result.store(&m_data[0], A()); \
             return *this; \
         }
 /*dox{{{*/
@@ -41,39 +42,25 @@ Vc_NAMESPACE_BEGIN(Common)
  *
  * \headerfile memorybase.h <Vc/Memory>
  *//*}}}*/
-template<typename V, typename A> class VectorPointerHelperConst/*{{{*/
+template<typename _V, typename A> class MemoryVector/*{{{*/
 {
+    typedef typename std::remove_cv<_V>::type V;
+
     typedef typename V::EntryType EntryType;
     typedef typename V::Mask Mask;
     public:
-        const EntryType *const m_ptr;
+        EntryType m_data[V::Size];
 
-        explicit VectorPointerHelperConst(const EntryType *ptr) : m_ptr(ptr) {}
+        Vc_ALWAYS_INLINE MemoryVector() {}
 
-        /**
-         * Cast to \p V operator.
-         *
-         * This function allows to assign this object to any object of type \p V.
-         */
-        Vc_ALWAYS_INLINE Vc_PURE operator const V() const { return V(m_ptr, Internal::FlagObject<A>::the()); }
-};/*}}}*/
-/*dox{{{*/
-/**
- * Helper class for the Memory::vector(size_t) class of functions.
- *
- * You will never need to directly make use of this class. It is an implementation detail of the
- * Memory API.
- *
- * \headerfile memorybase.h <Vc/Memory>
- *//*}}}*/
-template<typename V, typename A> class VectorPointerHelper/*{{{*/
-{
-    typedef typename V::EntryType EntryType;
-    typedef typename V::Mask Mask;
-    public:
-        EntryType *const m_ptr;
-
-        explicit VectorPointerHelper(EntryType *ptr) : m_ptr(ptr) {}
+        // disable copies because this type is supposed to alias the data in a Memory object,
+        // nothing else
+        MemoryVector(const MemoryVector &) = delete;
+#ifndef VC_NO_MOVE_CTOR
+        MemoryVector(MemoryVector &&) = delete;
+#endif
+        // Do not disable MemoryVector &operator=(const MemoryVector &) = delete; because it is
+        // covered nicely by the operator= below.
 
         Vc_ALWAYS_INLINE Vc_PURE V value() const { return V(&m_data[0], A()); }
 
@@ -84,8 +71,9 @@ template<typename V, typename A> class VectorPointerHelper/*{{{*/
          */
         Vc_ALWAYS_INLINE Vc_PURE operator const V() const { return value(); }
 
+        // TODO: change to T&& once ICC can do it
         template<typename T>
-        Vc_ALWAYS_INLINE VectorPointerHelper &operator=(const T &x) {
+        Vc_ALWAYS_INLINE typename std::enable_if<std::is_same<T, T>::value && !std::is_const<_V>::value, MemoryVector &>::type operator=(const T &x) {
             V v;
             v = x;
             v.store(&m_data[0], A());
@@ -99,14 +87,30 @@ template<typename V, typename A> class VectorPointerHelper/*{{{*/
 
 #define VC_VPH_OPERATOR(op) \
 template<typename V1, typename A1, typename V2, typename A2> \
-decltype(V1() op V2()) operator op(const VectorPointerHelper<V1, A1> &x, const VectorPointerHelper<V2, A2> &y) { \
-    return V1(x.m_ptr, Internal::FlagObject<A1>::the()) op V2(y.m_ptr, Internal::FlagObject<A2>::the()); \
+decltype(V1() op V2()) operator op(const MemoryVector<V1, A1> &x, const MemoryVector<V2, A2> &y) { \
+    return x.value() op y.value(); \
 }
 VC_ALL_ARITHMETICS(VC_VPH_OPERATOR)
 VC_ALL_BINARY     (VC_VPH_OPERATOR)
 VC_ALL_COMPARES   (VC_VPH_OPERATOR)
 #undef VC_VPH_OPERATOR
 
+template<typename V, typename Parent> class MemoryRange
+{
+    Parent *m_parent;
+    size_t m_first;
+    size_t m_last;
+
+public:
+    MemoryRange(Parent *p, size_t firstIndex, size_t lastIndex)
+        : m_parent(p), m_first(firstIndex), m_last(lastIndex)
+    {}
+
+    auto begin()       -> decltype(&m_parent->firstVector()) { return &m_parent->firstVector(); }
+    auto begin() const -> decltype(&m_parent->firstVector()) { return &m_parent->firstVector(); }
+    auto end()       -> decltype(&m_parent->lastVector()) { return &m_parent->lastVector() + 1; }
+    auto end() const -> decltype(&m_parent->lastVector()) { return &m_parent->lastVector() + 1; }
+};
 template<typename V, typename Parent, int Dimension, typename RowMemory> class MemoryDimensionBase;
 template<typename V, typename Parent, typename RowMemory> class MemoryDimensionBase<V, Parent, 1, RowMemory> // {{{1
 {
@@ -140,6 +144,13 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
         Vc_ALWAYS_INLINE Vc_PURE operator       EntryType*()       { return entries(); }
         /// Const overload of the above function.
         Vc_ALWAYS_INLINE Vc_PURE operator const EntryType*() const { return entries(); }
+
+        /**
+         *
+         */
+        inline MemoryRange<V, Parent> range(size_t firstIndex, size_t lastIndex) {
+            return MemoryRange<V, Parent>(p(), firstIndex, lastIndex);
+        }
 
         // omit operator[] because the EntryType* cast operator suffices, for dox it makes sense to
         // show it, though because it helps API discoverability.
@@ -251,6 +262,20 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         using MemoryDimensionBase<V, Parent, Dimension, RowMemory>::scalar;
 
         /**
+         * Return a (vectorized) iterator to the start of this memory object.
+         */
+        Vc_ALWAYS_INLINE       MemoryVector<      V, AlignedFlag> *begin()       { return &firstVector(); }
+        //! const overload of the above
+        Vc_ALWAYS_INLINE const MemoryVector<const V, AlignedFlag> *begin() const { return &firstVector(); }
+
+        /**
+         * Return a (vectorized) iterator to the end of this memory object.
+         */
+        Vc_ALWAYS_INLINE       MemoryVector<      V, AlignedFlag> *  end()       { return &lastVector() + 1; }
+        //! const overload of the above
+        Vc_ALWAYS_INLINE const MemoryVector<const V, AlignedFlag> *  end() const { return &lastVector() + 1; }
+
+        /**
          * \param i Selects the offset, where the vector should be read.
          *
          * \return a smart object to wrap the \p i-th vector in the memory.
@@ -270,8 +295,8 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * access memory at fixed strides. If access to known offsets from the aligned vectors is
          * needed the vector(size_t, int) function can be used.
          */
-        Vc_ALWAYS_INLINE Vc_PURE VectorPointerHelper<V, AlignedFlag> vector(size_t i) {
-            return VectorPointerHelper<V, AlignedFlag>(&entries()[i * V::Size]);
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, AlignedFlag> &vector(size_t i) {
+            return *new(&entries()[i * V::Size]) MemoryVector<V, AlignedFlag>;
         }
         /** \brief Const overload of the above function
          *
@@ -279,8 +304,8 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * \return a smart object to wrap the \p i-th vector in the memory.
          */
-        Vc_ALWAYS_INLINE Vc_PURE const VectorPointerHelperConst<V, AlignedFlag> vector(size_t i) const {
-            return VectorPointerHelperConst<V, AlignedFlag>(&entries()[i * V::Size]);
+        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<const V, AlignedFlag> &vector(size_t i) const {
+            return *new(const_cast<EntryType *>(&entries()[i * V::Size])) MemoryVector<const V, AlignedFlag>;
         }
 
         /**
@@ -303,7 +328,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * you must pass Vc::Unaligned here.
          */
 #ifdef DOXYGEN
-        template<typename A> inline VectorPointerHelper<V, A> vectorAt(size_t i, A align = Vc::Aligned);
+        template<typename A> inline MemoryVector<V, A> &vectorAt(size_t i, A align = Vc::Aligned);
         /** \brief Const overload of the above function
          *
          * \return a smart object to wrap the vector starting from the \p i-th scalar entry in the memory.
@@ -315,22 +340,22 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * required. Per default an aligned load/store is used. If \p i is not a multiple of \c V::Size
          * you must pass Vc::Unaligned here.
          */
-        template<typename A> inline const VectorPointerHelperConst<V, A> vectorAt(size_t i, A align = Vc::Aligned) const;
+        template<typename A> inline const MemoryVector<const V, A> &vectorAt(size_t i, A align = Vc::Aligned) const;
 #else
         template<typename A>
-        Vc_ALWAYS_INLINE Vc_PURE VectorPointerHelper<V, A> vectorAt(size_t i, A) {
-            return VectorPointerHelper<V, A>(&entries()[i]);
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, A> &vectorAt(size_t i, A) {
+            return *new(&entries()[i]) MemoryVector<V, A>;
         }
         template<typename A>
-        Vc_ALWAYS_INLINE Vc_PURE const VectorPointerHelperConst<V, A> vectorAt(size_t i, A) const {
-            return VectorPointerHelperConst<V, A>(&entries()[i]);
+        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<const V, A> &vectorAt(size_t i, A) const {
+            return *new(const_cast<EntryType *>(&entries()[i])) MemoryVector<const V, A>;
         }
 
-        Vc_ALWAYS_INLINE Vc_PURE VectorPointerHelper<V, AlignedFlag> vectorAt(size_t i) {
-            return VectorPointerHelper<V, AlignedFlag>(&entries()[i]);
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, AlignedFlag> &vectorAt(size_t i) {
+            return *new(&entries()[i]) MemoryVector<V, AlignedFlag>;
         }
-        Vc_ALWAYS_INLINE Vc_PURE const VectorPointerHelperConst<V, AlignedFlag> vectorAt(size_t i) const {
-            return VectorPointerHelperConst<V, AlignedFlag>(&entries()[i]);
+        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<V, AlignedFlag> &vectorAt(size_t i) const {
+            return *new(const_cast<EntryType *>(&entries()[i])) MemoryVector<const V, AlignedFlag>;
         }
 #endif
 
@@ -361,12 +386,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * mem.vector(0, i) += 1;
          * \endcode
          */
-        Vc_ALWAYS_INLINE Vc_PURE VectorPointerHelper<V, UnalignedFlag> vector(size_t i, int shift) {
-            return VectorPointerHelper<V, UnalignedFlag>(&entries()[i * V::Size + shift]);
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, UnalignedFlag> &vector(size_t i, int shift) {
+            return *new(&entries()[i * V::Size + shift]) MemoryVector<V, UnalignedFlag>;
         }
         /// Const overload of the above function.
-        Vc_ALWAYS_INLINE Vc_PURE const VectorPointerHelperConst<V, UnalignedFlag> vector(size_t i, int shift) const {
-            return VectorPointerHelperConst<V, UnalignedFlag>(&entries()[i * V::Size + shift]);
+        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<const V, UnalignedFlag> &vector(size_t i, int shift) const {
+            return *new(const_cast<EntryType *>(&entries()[i * V::Size + shift])) MemoryVector<const V, UnalignedFlag>;
         }
 
         /**
@@ -374,12 +399,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * This function is simply a shorthand for vector(0).
          */
-        Vc_ALWAYS_INLINE Vc_PURE VectorPointerHelper<V, AlignedFlag> firstVector() {
-            return VectorPointerHelper<V, AlignedFlag>(entries());
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, AlignedFlag> &firstVector() {
+            return *new(entries()) MemoryVector<V, AlignedFlag>;
         }
         /// Const overload of the above function.
-        Vc_ALWAYS_INLINE Vc_PURE const VectorPointerHelperConst<V, AlignedFlag> firstVector() const {
-            return VectorPointerHelperConst<V, AlignedFlag>(entries());
+        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<const V, AlignedFlag> &firstVector() const {
+            return *new(const_cast<EntryType *>(entries())) MemoryVector<const V, AlignedFlag>;
         }
 
         /**
@@ -387,12 +412,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * This function is simply a shorthand for vector(vectorsCount() - 1).
          */
-        Vc_ALWAYS_INLINE Vc_PURE VectorPointerHelper<V, AlignedFlag> lastVector() {
-            return VectorPointerHelper<V, AlignedFlag>(&entries()[vectorsCount() * V::Size - V::Size]);
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, AlignedFlag> &lastVector() {
+            return *new(&entries()[vectorsCount() * V::Size - V::Size]) MemoryVector<V, AlignedFlag>;
         }
         /// Const overload of the above function.
-        Vc_ALWAYS_INLINE Vc_PURE const VectorPointerHelperConst<V, AlignedFlag> lastVector() const {
-            return VectorPointerHelperConst<V, AlignedFlag>(&entries()[vectorsCount() * V::Size - V::Size]);
+        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<const V, AlignedFlag> &lastVector() const {
+            return *new(const_cast<EntryType *>(&entries()[vectorsCount() * V::Size - V::Size])) MemoryVector<const V, AlignedFlag>;
         }
 
         Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned char  *indexes) const { return V(entries(), indexes); }
