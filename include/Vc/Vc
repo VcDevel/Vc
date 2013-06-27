@@ -24,6 +24,7 @@
 #include "Memory"
 #include "Utils"
 #include "Allocator"
+#include "iterators"
 #endif // VC_VC
 
 // vim: ft=cpp

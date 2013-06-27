@@ -22,15 +22,15 @@
 
 #include <assert.h>
 #include <type_traits>
+#include <iterator>
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Common)
 
 #define VC_MEM_OPERATOR_EQ(op) \
         template<typename T> \
-        Vc_ALWAYS_INLINE typename std::enable_if<std::is_same<T, T>::value && !std::is_const<_V>::value, MemoryVector &>::type operator op##=(const T &x) { \
-            const V result = value() op x; \
-            result.store(&m_data[0], A()); \
+        Vc_ALWAYS_INLINE enable_if_mutable<T, MemoryVector &> operator op##=(const T &x) { \
+            storeHelper(value() op x); \
             return *this; \
         }
 /*dox{{{*/
@@ -42,15 +42,27 @@ Vc_NAMESPACE_BEGIN(Common)
  *
  * \headerfile memorybase.h <Vc/Memory>
  *//*}}}*/
-template<typename _V, typename A> class MemoryVector/*{{{*/
+template<typename _V, typename... Flags> class MemoryVector/*{{{*/
 {
     typedef typename std::remove_cv<_V>::type V;
 
+    template<typename T, typename R> using enable_if_mutable =
+        typename std::enable_if<std::is_same<T, T>::value && !std::is_const<_V>::value, R>::type;
+
     typedef typename V::EntryType EntryType;
     typedef typename V::Mask Mask;
-    public:
-        EntryType m_data[V::Size];
 
+    // this function is a workaround for a bug in ICC
+    // ICC fails to compile the pack expansion if the store is placed in operator=
+    Vc_ALWAYS_INLINE void storeHelper(const V &v, Flags... flags)
+    {
+        v.store(&m_data[0], flags...);
+    }
+
+    EntryType m_data[V::Size];
+public:
+        // It is important that neither initialization nor cleanup is done as MemoryVector aliases
+        // other memory
         Vc_ALWAYS_INLINE MemoryVector() {}
 
         // disable copies because this type is supposed to alias the data in a Memory object,
@@ -62,7 +74,8 @@ template<typename _V, typename A> class MemoryVector/*{{{*/
         // Do not disable MemoryVector &operator=(const MemoryVector &) = delete; because it is
         // covered nicely by the operator= below.
 
-        Vc_ALWAYS_INLINE Vc_PURE V value() const { return V(&m_data[0], A()); }
+        //! \internal
+        Vc_ALWAYS_INLINE Vc_PURE V value() const { return V(&m_data[0], Flags()...); }
 
         /**
          * Cast to \p V operator.
@@ -71,23 +84,95 @@ template<typename _V, typename A> class MemoryVector/*{{{*/
          */
         Vc_ALWAYS_INLINE Vc_PURE operator const V() const { return value(); }
 
-        // TODO: change to T&& once ICC can do it
         template<typename T>
-        Vc_ALWAYS_INLINE typename std::enable_if<std::is_same<T, T>::value && !std::is_const<_V>::value, MemoryVector &>::type operator=(const T &x) {
+        Vc_ALWAYS_INLINE enable_if_mutable<T, MemoryVector &> operator=(const T &x) {
             V v;
             v = x;
-            v.store(&m_data[0], A());
+            //ICC has issues with pack expansion: v.store(&m_data[0], Flags()...);
+            storeHelper(v, Flags()...);
             return *this;
         }
 
         VC_ALL_BINARY(VC_MEM_OPERATOR_EQ)
         VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ)
-};/*}}}*/
+};
+
+template<typename _V, typename... Flags> class MemoryVectorIterator
+{
+    typedef typename std::remove_cv<_V>::type V;
+
+    template<typename T, typename R> using enable_if_mutable =
+        typename std::enable_if<std::is_same<T, T>::value && !std::is_const<_V>::value, R>::type;
+
+    using iterator_traits = std::iterator_traits<MemoryVector<_V, Flags...> *>;
+
+    MemoryVector<_V, Flags...> *d;
+public:
+    typedef typename iterator_traits::difference_type difference_type;
+    typedef typename iterator_traits::value_type value_type;
+    typedef typename iterator_traits::pointer pointer;
+    typedef typename iterator_traits::reference reference;
+    typedef typename iterator_traits::iterator_category iterator_category;
+
+    constexpr MemoryVectorIterator(MemoryVector<_V, Flags...> *dd) : d(dd) {}
+    constexpr MemoryVectorIterator(const MemoryVectorIterator &) = default;
+#ifndef VC_NO_MOVE_CTOR
+    constexpr MemoryVectorIterator(MemoryVectorIterator &&) = default;
+#endif
+    Vc_ALWAYS_INLINE MemoryVectorIterator &operator=(const MemoryVectorIterator &) = default;
+
+    void *orderBy() const { return d; }
+
+    Vc_ALWAYS_INLINE difference_type operator-(const MemoryVectorIterator &rhs) const { return d - rhs.d; }
+    Vc_ALWAYS_INLINE reference operator[](size_t i) const { return d[i]; }
+    Vc_ALWAYS_INLINE reference operator*() const { return *d; }
+    Vc_ALWAYS_INLINE pointer operator->() const { return d; }
+    Vc_ALWAYS_INLINE MemoryVectorIterator &operator++() { ++d; return *this; }
+    Vc_ALWAYS_INLINE MemoryVectorIterator operator++(int) { MemoryVectorIterator r(*this); ++d; return r; }
+    Vc_ALWAYS_INLINE MemoryVectorIterator &operator--() { --d; return *this; }
+    Vc_ALWAYS_INLINE MemoryVectorIterator operator--(int) { MemoryVectorIterator r(*this); --d; return r; }
+    Vc_ALWAYS_INLINE MemoryVectorIterator &operator+=(size_t n) { d += n; return *this; }
+    Vc_ALWAYS_INLINE MemoryVectorIterator &operator-=(size_t n) { d -= n; return *this; }
+    Vc_ALWAYS_INLINE MemoryVectorIterator operator+(size_t n) const { return MemoryVectorIterator(d + n); }
+    Vc_ALWAYS_INLINE MemoryVectorIterator operator-(size_t n) const { return MemoryVectorIterator(d - n); }
+};
+
+template<typename V, typename... FlagsL, typename... FlagsR>
+bool operator==(const MemoryVectorIterator<V, FlagsL...> &l, const MemoryVectorIterator<V, FlagsR...> &r)
+{
+    return l.orderBy() == r.orderBy();
+}
+template<typename V, typename... FlagsL, typename... FlagsR>
+bool operator!=(const MemoryVectorIterator<V, FlagsL...> &l, const MemoryVectorIterator<V, FlagsR...> &r)
+{
+    return l.orderBy() != r.orderBy();
+}
+template<typename V, typename... FlagsL, typename... FlagsR>
+bool operator>=(const MemoryVectorIterator<V, FlagsL...> &l, const MemoryVectorIterator<V, FlagsR...> &r)
+{
+    return l.orderBy() >= r.orderBy();
+}
+template<typename V, typename... FlagsL, typename... FlagsR>
+bool operator<=(const MemoryVectorIterator<V, FlagsL...> &l, const MemoryVectorIterator<V, FlagsR...> &r)
+{
+    return l.orderBy() <= r.orderBy();
+}
+template<typename V, typename... FlagsL, typename... FlagsR>
+bool operator> (const MemoryVectorIterator<V, FlagsL...> &l, const MemoryVectorIterator<V, FlagsR...> &r)
+{
+    return l.orderBy() >  r.orderBy();
+}
+template<typename V, typename... FlagsL, typename... FlagsR>
+bool operator< (const MemoryVectorIterator<V, FlagsL...> &l, const MemoryVectorIterator<V, FlagsR...> &r)
+{
+    return l.orderBy() <  r.orderBy();
+}
+/*}}}*/
 #undef VC_MEM_OPERATOR_EQ
 
 #define VC_VPH_OPERATOR(op) \
-template<typename V1, typename A1, typename V2, typename A2> \
-decltype(V1() op V2()) operator op(const MemoryVector<V1, A1> &x, const MemoryVector<V2, A2> &y) { \
+template<typename V1, typename... Flags1, typename V2, typename... Flags2> \
+decltype(V1() op V2()) operator op(const MemoryVector<V1, Flags1...> &x, const MemoryVector<V2, Flags2...> &y) { \
     return x.value() op y.value(); \
 }
 VC_ALL_ARITHMETICS(VC_VPH_OPERATOR)
@@ -95,7 +180,7 @@ VC_ALL_BINARY     (VC_VPH_OPERATOR)
 VC_ALL_COMPARES   (VC_VPH_OPERATOR)
 #undef VC_VPH_OPERATOR
 
-template<typename V, typename Parent> class MemoryRange
+template<typename V, typename Parent, typename F0 = Vc::PrefetchFlag<>, typename... Flags> class MemoryRange/*{{{*/
 {
     Parent *m_parent;
     size_t m_first;
@@ -106,11 +191,9 @@ public:
         : m_parent(p), m_first(firstIndex), m_last(lastIndex)
     {}
 
-    auto begin()       -> decltype(&m_parent->firstVector()) { return &m_parent->firstVector(); }
-    auto begin() const -> decltype(&m_parent->firstVector()) { return &m_parent->firstVector(); }
-    auto end()       -> decltype(&m_parent->lastVector()) { return &m_parent->lastVector() + 1; }
-    auto end() const -> decltype(&m_parent->lastVector()) { return &m_parent->lastVector() + 1; }
-};
+    MemoryVectorIterator<V, Flags...> begin() const { return &m_parent->vector(m_first   , F0(), Flags()...); }
+    MemoryVectorIterator<V, Flags...> end() const   { return &m_parent->vector(m_last + 1, F0(), Flags()...); }
+};/*}}}*/
 template<typename V, typename Parent, int Dimension, typename RowMemory> class MemoryDimensionBase;
 template<typename V, typename Parent, typename RowMemory> class MemoryDimensionBase<V, Parent, 1, RowMemory> // {{{1
 {
@@ -148,8 +231,19 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
         /**
          *
          */
-        inline MemoryRange<V, Parent> range(size_t firstIndex, size_t lastIndex) {
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE MemoryRange<V, Parent, Flags...> range(size_t firstIndex, size_t lastIndex, Flags...) {
+            return MemoryRange<V, Parent, Flags...>(p(), firstIndex, lastIndex);
+        }
+        Vc_ALWAYS_INLINE MemoryRange<V, Parent> range(size_t firstIndex, size_t lastIndex) {
             return MemoryRange<V, Parent>(p(), firstIndex, lastIndex);
+        }
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE MemoryRange<const V, Parent, Flags...> range(size_t firstIndex, size_t lastIndex, Flags...) const {
+            return MemoryRange<const V, Parent, Flags...>(p(), firstIndex, lastIndex);
+        }
+        Vc_ALWAYS_INLINE MemoryRange<const V, Parent> range(size_t firstIndex, size_t lastIndex) const {
+            return MemoryRange<const V, Parent>(p(), firstIndex, lastIndex);
         }
 
         // omit operator[] because the EntryType* cast operator suffices, for dox it makes sense to
@@ -264,16 +358,20 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         /**
          * Return a (vectorized) iterator to the start of this memory object.
          */
-        Vc_ALWAYS_INLINE       MemoryVector<      V, AlignedFlag> *begin()       { return &firstVector(); }
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE MemoryVectorIterator<      V, Flags...> begin(Flags... flags)       { return &firstVector(flags...); }
         //! const overload of the above
-        Vc_ALWAYS_INLINE const MemoryVector<const V, AlignedFlag> *begin() const { return &firstVector(); }
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags...> begin(Flags... flags) const { return &firstVector(flags...); }
 
         /**
          * Return a (vectorized) iterator to the end of this memory object.
          */
-        Vc_ALWAYS_INLINE       MemoryVector<      V, AlignedFlag> *  end()       { return &lastVector() + 1; }
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE MemoryVectorIterator<      V, Flags...>   end(Flags... flags)       { return &lastVector(flags...) + 1; }
         //! const overload of the above
-        Vc_ALWAYS_INLINE const MemoryVector<const V, AlignedFlag> *  end() const { return &lastVector() + 1; }
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags...>   end(Flags... flags) const { return &lastVector(flags...) + 1; }
 
         /**
          * \param i Selects the offset, where the vector should be read.
@@ -295,8 +393,9 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * access memory at fixed strides. If access to known offsets from the aligned vectors is
          * needed the vector(size_t, int) function can be used.
          */
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, AlignedFlag> &vector(size_t i) {
-            return *new(&entries()[i * V::Size]) MemoryVector<V, AlignedFlag>;
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags...> &vector(size_t i, Flags...) {
+            return *new(&entries()[i * V::Size]) MemoryVector<V, Flags...>;
         }
         /** \brief Const overload of the above function
          *
@@ -304,8 +403,9 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * \return a smart object to wrap the \p i-th vector in the memory.
          */
-        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<const V, AlignedFlag> &vector(size_t i) const {
-            return *new(const_cast<EntryType *>(&entries()[i * V::Size])) MemoryVector<const V, AlignedFlag>;
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags...> &vector(size_t i, Flags...) const {
+            return *new(const_cast<EntryType *>(&entries()[i * V::Size])) MemoryVector<const V, Flags...>;
         }
 
         /**
@@ -327,8 +427,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * required. Per default an aligned load/store is used. If \p i is not a multiple of \c V::Size
          * you must pass Vc::Unaligned here.
          */
-#ifdef DOXYGEN
-        template<typename A> inline MemoryVector<V, A> &vectorAt(size_t i, A align = Vc::Aligned);
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags...> &vectorAt(size_t i, Flags...) {
+            return *new(&entries()[i]) MemoryVector<V, Flags...>;
+        }
         /** \brief Const overload of the above function
          *
          * \return a smart object to wrap the vector starting from the \p i-th scalar entry in the memory.
@@ -340,24 +442,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * required. Per default an aligned load/store is used. If \p i is not a multiple of \c V::Size
          * you must pass Vc::Unaligned here.
          */
-        template<typename A> inline const MemoryVector<const V, A> &vectorAt(size_t i, A align = Vc::Aligned) const;
-#else
-        template<typename A>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, A> &vectorAt(size_t i, A) {
-            return *new(&entries()[i]) MemoryVector<V, A>;
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags...> &vectorAt(size_t i, Flags...) const {
+            return *new(const_cast<EntryType *>(&entries()[i])) MemoryVector<const V, Flags...>;
         }
-        template<typename A>
-        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<const V, A> &vectorAt(size_t i, A) const {
-            return *new(const_cast<EntryType *>(&entries()[i])) MemoryVector<const V, A>;
-        }
-
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, AlignedFlag> &vectorAt(size_t i) {
-            return *new(&entries()[i]) MemoryVector<V, AlignedFlag>;
-        }
-        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<V, AlignedFlag> &vectorAt(size_t i) const {
-            return *new(const_cast<EntryType *>(&entries()[i])) MemoryVector<const V, AlignedFlag>;
-        }
-#endif
 
         /**
          * \return a smart object to wrap the \p i-th vector + \p shift in the memory.
@@ -386,12 +474,14 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * mem.vector(0, i) += 1;
          * \endcode
          */
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, UnalignedFlag> &vector(size_t i, int shift) {
-            return *new(&entries()[i * V::Size + shift]) MemoryVector<V, UnalignedFlag>;
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, UnalignedFlag, Flags...> &vector(size_t i, int shift, Flags...) {
+            return *new(&entries()[i * V::Size + shift]) MemoryVector<V, UnalignedFlag, Flags...>;
         }
         /// Const overload of the above function.
-        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<const V, UnalignedFlag> &vector(size_t i, int shift) const {
-            return *new(const_cast<EntryType *>(&entries()[i * V::Size + shift])) MemoryVector<const V, UnalignedFlag>;
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, UnalignedFlag, Flags...> &vector(size_t i, int shift, Flags...) const {
+            return *new(const_cast<EntryType *>(&entries()[i * V::Size + shift])) MemoryVector<const V, UnalignedFlag, Flags...>;
         }
 
         /**
@@ -399,12 +489,14 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * This function is simply a shorthand for vector(0).
          */
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, AlignedFlag> &firstVector() {
-            return *new(entries()) MemoryVector<V, AlignedFlag>;
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags...> &firstVector(Flags...) {
+            return *new(entries()) MemoryVector<V, Flags...>;
         }
         /// Const overload of the above function.
-        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<const V, AlignedFlag> &firstVector() const {
-            return *new(const_cast<EntryType *>(entries())) MemoryVector<const V, AlignedFlag>;
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags...> &firstVector(Flags...) const {
+            return *new(const_cast<EntryType *>(entries())) MemoryVector<const V, Flags...>;
         }
 
         /**
@@ -412,12 +504,14 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * This function is simply a shorthand for vector(vectorsCount() - 1).
          */
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, AlignedFlag> &lastVector() {
-            return *new(&entries()[vectorsCount() * V::Size - V::Size]) MemoryVector<V, AlignedFlag>;
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags...> &lastVector(Flags...) {
+            return *new(&entries()[vectorsCount() * V::Size - V::Size]) MemoryVector<V, Flags...>;
         }
         /// Const overload of the above function.
-        Vc_ALWAYS_INLINE Vc_PURE const MemoryVector<const V, AlignedFlag> &lastVector() const {
-            return *new(const_cast<EntryType *>(&entries()[vectorsCount() * V::Size - V::Size])) MemoryVector<const V, AlignedFlag>;
+        template<typename... Flags>
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags...> &lastVector(Flags...) const {
+            return *new(const_cast<EntryType *>(&entries()[vectorsCount() * V::Size - V::Size])) MemoryVector<const V, Flags...>;
         }
 
         Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned char  *indexes) const { return V(entries(), indexes); }

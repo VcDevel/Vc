@@ -210,10 +210,6 @@ template<int L2> Vc_INTRINSIC void handlePrefetches(const void *addr_, Vc::Prefe
     _mm_prefetch(reinterpret_cast<char *>(const_cast<__m512 *>(addr + L2)), _MM_HINT_ET1);
 }
 Vc_INTRINSIC void handleLoadPrefetches(const void *) {}
-template<typename F, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, F otherFlag, Flags... flags)
-{
-    handleLoadPrefetches(addr, flags...);
-}
 template<int L1, int L2, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, void>, Flags... flags)
 {
     handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, Shared>());
@@ -224,11 +220,11 @@ template<int L1, int L2, typename SharedOrExclusive, typename... Flags> Vc_INTRI
     handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>());
     handleLoadPrefetches(addr, flags...);
 }
-Vc_INTRINSIC void handleStorePrefetches(const void *) {}
-template<typename F, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, F otherFlag, Flags... flags)
+template<typename F, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, F otherFlag, Flags... flags)
 {
-    handleStorePrefetches(addr, flags...);
+    handleLoadPrefetches(addr, flags...);
 }
+Vc_INTRINSIC void handleStorePrefetches(const void *) {}
 template<int L1, int L2, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, void>, Flags... flags)
 {
     handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, Exclusive>());
@@ -237,6 +233,10 @@ template<int L1, int L2, typename... Flags> Vc_INTRINSIC void handleStorePrefetc
 template<int L1, int L2, typename SharedOrExclusive, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>, Flags... flags)
 {
     handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>());
+    handleStorePrefetches(addr, flags...);
+}
+template<typename F, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, F otherFlag, Flags... flags)
+{
     handleStorePrefetches(addr, flags...);
 }
 /*}}}*/
