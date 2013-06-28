@@ -55,7 +55,7 @@ macro(build_example name)
       target_link_libraries("example_${name}_avx2" Vc ${_LIBS})
    endif()
 
-   if(MIC_NATIVE_FOUND)
+   if(MIC_NATIVE_FOUND AND "${_LIBS}" STREQUAL "")
       mic_add_executable("example_${name}_mic"
          #COMPILE_FLAGS -no-opt-prefetch
          SOURCES ${_SRCS}
