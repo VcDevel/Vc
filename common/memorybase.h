@@ -30,7 +30,8 @@ Vc_NAMESPACE_BEGIN(Common)
 #define VC_MEM_OPERATOR_EQ(op) \
         template<typename T> \
         Vc_ALWAYS_INLINE enable_if_mutable<T, MemoryVector &> operator op##=(const T &x) { \
-            storeHelper(value() op x); \
+            const V v = value() op x; \
+            v.store(&m_data[0], Flags()...); \
             return *this; \
         }
 /*dox{{{*/
@@ -88,8 +89,8 @@ public:
         Vc_ALWAYS_INLINE enable_if_mutable<T, MemoryVector &> operator=(const T &x) {
             V v;
             v = x;
-            //ICC has issues with pack expansion: v.store(&m_data[0], Flags()...);
-            storeHelper(v, Flags()...);
+            //ICC has issues with pack expansion. You may try the alternative storeHelper(v, Flags()...);
+            v.store(&m_data[0], Flags()...);
             return *this;
         }
 
