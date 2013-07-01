@@ -25,6 +25,7 @@
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
+// constants {{{1
 template<typename T, int Size> static Vc_ALWAYS_INLINE Vc_CONST const T *_IndexesFromZero() {
     if (Size == 4) {
         return reinterpret_cast<const T *>(_IndexesFromZero4);
@@ -36,8 +37,6 @@ template<typename T, int Size> static Vc_ALWAYS_INLINE Vc_CONST const T *_Indexe
     return 0;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////
-// constants {{{1
 template<typename T> Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum)
     : d(VectorHelper<VectorType>::zero())
 {
