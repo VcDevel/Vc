@@ -1510,6 +1510,12 @@ template<> Vc_INTRINSIC Vc_PURE sfloat_v sfloat_v::shifted(int amount) const
     }
     return Zero();
 }
+template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount, Vector shiftIn) const
+{
+    return shifted(amount) | (amount > 0 ?
+                              shiftIn.shifted(amount - Size) :
+                              shiftIn.shifted(Size + amount));
+}
 template<typename T> Vc_INTRINSIC Vc_PURE Vector<T> Vector<T>::rotated(int amount) const
 {
     const __m128i v = mm128_reinterpret_cast<__m128i>(d.v());

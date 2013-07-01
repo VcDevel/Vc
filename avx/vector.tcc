@@ -1437,6 +1437,12 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount) const
 {
     return VectorShift<sizeof(VectorType), Size, VectorType, EntryType>::shifted(d.v(), amount);
 }
+template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount, Vector shiftIn) const
+{
+    return shifted(amount) | (amount > 0 ?
+                              shiftIn.shifted(amount - Size) :
+                              shiftIn.shifted(Size + amount));
+}
 template<size_t SIMDWidth, size_t Size, typename VectorType, typename EntryType> struct VectorRotate;
 template<typename VectorType, typename EntryType> struct VectorRotate<32, 4, VectorType, EntryType>
 {

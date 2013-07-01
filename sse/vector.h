@@ -395,6 +395,7 @@ template<typename T> class Vector
         Vc_INTRINSIC_L EntryType product(MaskArg m) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L EntryType sum(MaskArg m) const Vc_INTRINSIC_R;
 
+        Vc_INTRINSIC_L Vector shifted(int amount, Vector shiftIn) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
         Vc_ALWAYS_INLINE Vc_PURE Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }

@@ -266,6 +266,10 @@ class Vector
         Vc_ALWAYS_INLINE EntryType product(Mask) const { return m_data; }
         Vc_ALWAYS_INLINE EntryType sum(Mask m) const { if (m) return m_data; return static_cast<EntryType>(0); }
 
+        Vc_INTRINSIC Vector shifted(int amount, Vector shiftIn) const {
+            VC_ASSERT(amount >= 0 && amount <= 1);
+            return amount == 0 ? *this : shiftIn;
+        }
         Vc_INTRINSIC Vector shifted(int amount) const { return amount == 0 ? *this : Zero(); }
         Vc_INTRINSIC Vector rotated(int) const { return *this; }
         Vector sorted() const { return *this; }
