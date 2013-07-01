@@ -18,6 +18,7 @@
 */
 
 #include <type_traits>
+#include "../common/x86_prefetches.h"
 #include "helperimpl.h"
 #include "debug.h"
 #include "macros.h"
@@ -27,71 +28,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 // LoadHelper {{{1
 namespace
 {
-
-template<typename... Flags> struct get_loadstore_flags;/*{{{*/
-// iff only one flag is given and it's neither Aligned, Unaligned, nor Streaming we default to Aligned
-template<> struct get_loadstore_flags<>
-{
-    typedef AlignedFlag type;
-
-    static Vc_INTRINSIC type flag() { return type(); }
-};
-template<typename F> struct get_loadstore_flags<F>
-{
-    typedef typename std::conditional<std::is_base_of<LoadStoreFlag, F>::value, F, AlignedFlag>::type type;
-
-    static Vc_INTRINSIC type flag() { return type(); }
-};
-
-template<typename F, typename G> struct get_loadstore_flags<F, G>
-{
-    static_assert(
-            (std::is_same<F, AlignedFlag>::value && !std::is_same<UnalignedFlag, G>::value) ||
-            (std::is_same<F, UnalignedFlag>::value && !std::is_same<AlignedFlag, G>::value) ||
-            (!std::is_same<F, AlignedFlag>::value && !std::is_same<F, UnalignedFlag>::value),
-            "The Aligned and Unaligned load/store flags were combined. This is an ambiguous request. Please fix the code.");
-
-    typedef typename std::conditional<
-        std::is_base_of<LoadStoreFlag, F>::value,
-        typename std::conditional<std::is_base_of<LoadStoreFlag, G>::value,
-            typename std::conditional<std::is_same<F, G>::value,
-                F,
-                typename std::conditional<std::is_same<F, StreamingFlag>::value,
-                    typename std::conditional<std::is_same<G, AlignedFlag>::value,
-                        F,
-                        CombineFlags<F, G>
-                    >::type,
-                    typename std::conditional<std::is_same<F, AlignedFlag>::value,
-                        G,
-                        CombineFlags<G, F>
-                    >::type
-                >::type
-            >::type,
-            F
-        >::type,
-        typename get_loadstore_flags<G>::type
-    >::type type;
-
-    static Vc_INTRINSIC type flag() { return type(); }
-};
-
-template<typename F, typename G, typename... Flags> struct get_loadstore_flags<F, G, Flags...>
-{
-    static_assert(
-            (std::is_same<F, AlignedFlag>::value && !is_contained<UnalignedFlag, G, Flags...>::value) ||
-            (std::is_same<F, UnalignedFlag>::value && !is_contained<AlignedFlag, G, Flags...>::value) ||
-            (!std::is_same<F, AlignedFlag>::value && !std::is_same<F, UnalignedFlag>::value),
-            "The Aligned and Unaligned load/store flags were combined. This is an ambiguous request. Please fix the code.");
-
-    //TODO: need to combine several flags in some way
-    typedef typename std::conditional<
-        std::is_base_of<LoadStoreFlag, F>::value && !is_contained<F, G, Flags...>::value,
-        F,
-        typename get_loadstore_flags<G, Flags...>::type
-            >::type type;
-
-    static Vc_INTRINSIC type flag() { return type(); }
-};/*}}}*/
 
 template<typename V, typename T> struct LoadHelper2;
 
@@ -176,70 +112,6 @@ template<> template<typename A> Vc_ALWAYS_INLINE __m512 LoadHelper2<sfloat_v, un
     return StaticCastHelper<unsigned int, float>::cast(LoadHelper<uint_v>::load(mem, align));
 }
 
-/*prefetches{{{*/
-template<int L1, int L2> Vc_INTRINSIC void handlePrefetch(const void *addr_, Vc::PrefetchFlag<L1, L2, Shared>)
-{
-    const __m512 *addr = static_cast<const __m512 *>(addr_);
-    Internal::HelperImpl<MICImpl>::prefetchClose(addr + L1);
-    Internal::HelperImpl<MICImpl>::prefetchMid  (addr + L2);
-}
-template<int L1> Vc_INTRINSIC void handlePrefetches(const void *addr_, Vc::PrefetchFlag<L1, 0, Shared>)
-{
-    const __m512 *addr = static_cast<const __m512 *>(addr_);
-    Internal::HelperImpl<MICImpl>::prefetchClose(addr + L1);
-}
-template<int L2> Vc_INTRINSIC void handlePrefetches(const void *addr_, Vc::PrefetchFlag<0, L2, Shared>)
-{
-    const __m512 *addr = static_cast<const __m512 *>(addr_);
-    Internal::HelperImpl<MICImpl>::prefetchMid  (addr + L2);
-}
-template<int L1, int L2> Vc_INTRINSIC void handlePrefetch(const void *addr_, Vc::PrefetchFlag<L1, L2, Exclusive>)
-{
-    const __m512 *addr = static_cast<const __m512 *>(addr_);
-    _mm_prefetch(reinterpret_cast<char *>(const_cast<__m512 *>(addr + L1)), _MM_HINT_ET0);
-    _mm_prefetch(reinterpret_cast<char *>(const_cast<__m512 *>(addr + L2)), _MM_HINT_ET1);
-}
-template<int L1> Vc_INTRINSIC void handlePrefetches(const void *addr_, Vc::PrefetchFlag<L1, 0, Exclusive>)
-{
-    const __m512 *addr = static_cast<const __m512 *>(addr_);
-    _mm_prefetch(reinterpret_cast<char *>(const_cast<__m512 *>(addr + L1)), _MM_HINT_ET0);
-}
-template<int L2> Vc_INTRINSIC void handlePrefetches(const void *addr_, Vc::PrefetchFlag<0, L2, Exclusive>)
-{
-    const __m512 *addr = static_cast<const __m512 *>(addr_);
-    _mm_prefetch(reinterpret_cast<char *>(const_cast<__m512 *>(addr + L2)), _MM_HINT_ET1);
-}
-Vc_INTRINSIC void handleLoadPrefetches(const void *) {}
-template<int L1, int L2, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, void>, Flags... flags)
-{
-    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, Shared>());
-    handleLoadPrefetches(addr, flags...);
-}
-template<int L1, int L2, typename SharedOrExclusive, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>, Flags... flags)
-{
-    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>());
-    handleLoadPrefetches(addr, flags...);
-}
-template<typename F, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, F otherFlag, Flags... flags)
-{
-    handleLoadPrefetches(addr, flags...);
-}
-Vc_INTRINSIC void handleStorePrefetches(const void *) {}
-template<int L1, int L2, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, void>, Flags... flags)
-{
-    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, Exclusive>());
-    handleStorePrefetches(addr, flags...);
-}
-template<int L1, int L2, typename SharedOrExclusive, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>, Flags... flags)
-{
-    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>());
-    handleStorePrefetches(addr, flags...);
-}
-template<typename F, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, F otherFlag, Flags... flags)
-{
-    handleStorePrefetches(addr, flags...);
-}
-/*}}}*/
 } // anonymous namespace
 
 // constants {{{1

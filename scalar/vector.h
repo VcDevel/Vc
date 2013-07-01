@@ -91,10 +91,31 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
-        explicit Vc_ALWAYS_INLINE Vector(const EntryType *x) : m_data(x[0]) {}
-        template<typename A> Vc_ALWAYS_INLINE Vector(const EntryType *x, A) : m_data(x[0]) {}
-        template<typename Other> explicit Vc_ALWAYS_INLINE Vector(const Other *x) : m_data(x[0]) {}
-        template<typename Other, typename A> Vc_ALWAYS_INLINE Vector(const Other *x, A) : m_data(x[0]) {}
+        explicit Vc_INTRINSIC Vector(const EntryType *x) { load(x); }
+        template<typename Flag0, typename... Flags> Vc_INTRINSIC
+            Vector(enable_if<std::is_base_of<Vc::FlagBase, Flag0>, const EntryType *> x, Flag0 f0, Flags... flags) {
+                load(x, f0, flags...);
+            }
+        // the following ctors have no return type and no non-template argument, therefore enable_if
+        // doesn't work with variadic templates :(
+        // the enable_if is required to disambiguate between gather ctors and load ctors
+        template<typename OtherT> explicit Vc_INTRINSIC Vector(const OtherT *x) { load(x); }
+        template<typename OtherT, typename Flag0> Vc_INTRINSIC
+            Vector(const OtherT *x, Flag0 f0, enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) {
+                load(x, f0);
+            }
+        template<typename OtherT, typename Flag0, typename Flag1> Vc_INTRINSIC
+            Vector(const OtherT *x, Flag0 f0, Flag1 f1, enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) {
+                load(x, f0, f1);
+            }
+        template<typename OtherT, typename Flag0, typename Flag1, typename Flag2> Vc_INTRINSIC
+            Vector(const OtherT *x, Flag0 f0, Flag1 f1, Flag2 f2, enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) {
+                load(x, f0, f1, f2);
+            }
+        template<typename OtherT, typename Flag0, typename Flag1, typename Flag2, typename Flag3> Vc_INTRINSIC
+            Vector(const OtherT *x, Flag0 f0, Flag1 f1, Flag2 f2, Flag3 f3, enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) {
+                load(x, f0, f1, f2, f3);
+            }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
@@ -111,20 +132,19 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
-        template<typename Other> Vc_ALWAYS_INLINE void load(const Other *mem) { m_data = mem[0]; }
-        template<typename Other, typename A> Vc_ALWAYS_INLINE void load(const Other *mem, A) { m_data = mem[0]; }
-        template<typename Other> Vc_ALWAYS_INLINE void load(const Other *mem, Mask m) { if (m.data()) m_data = mem[0]; }
-
-        Vc_ALWAYS_INLINE void load(const EntryType *mem) { m_data = mem[0]; }
-        template<typename A> Vc_ALWAYS_INLINE void load(const EntryType *mem, A) { m_data = mem[0]; }
-        Vc_ALWAYS_INLINE void load(const EntryType *mem, Mask m) { if (m.data()) m_data = mem[0]; }
+        template<typename... Flags> Vc_INTRINSIC
+            void load(const EntryType *mem, Flags...) { m_data = mem[0]; }
+        template<typename OtherT, typename... Flags> Vc_INTRINSIC
+            void load(const OtherT    *mem, Flags...) { m_data = mem[0]; }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
-        Vc_ALWAYS_INLINE void store(EntryType *mem) const { mem[0] = m_data; }
-        Vc_ALWAYS_INLINE void store(EntryType *mem, Mask m) const { if (m.data()) mem[0] = m_data; }
-        template<typename A> Vc_ALWAYS_INLINE void store(EntryType *mem, A) const { store(mem); }
-        template<typename A> Vc_ALWAYS_INLINE void store(EntryType *mem, Mask m, A) const { store(mem, m); }
+        template<typename T2, typename... Flags> Vc_INTRINSIC void store(T2 *mem, Flags...) const { mem[0] = m_data; }
+        template<typename T2, typename... Flags> Vc_INTRINSIC void store(T2 *mem, Mask mask, Flags...) const { if (mask.data()) mem[0] = m_data; }
+        // the following store overloads are here to support classes that have a cast operator to EntryType.
+        // Without this overload GCC complains about not finding a matching store function.
+        template<typename... Flags> Vc_INTRINSIC void store(EntryType *mem, Flags... flags) const { store<EntryType, Flags...>(mem, flags...); }
+        template<typename... Flags> Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags... flags) const { store<EntryType, Flags...>(mem, mask, flags...); }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles

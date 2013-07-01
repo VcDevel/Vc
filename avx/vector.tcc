@@ -17,6 +17,7 @@
 
 }}}*/
 
+#include "../common/x86_prefetches.h"
 #include "limits.h"
 #include "const.h"
 #include "../common/set.h"
@@ -43,27 +44,11 @@ template<> Vc_ALWAYS_INLINE Vector<double>::Vector(EntryType x) : d(_mm256_set1_
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// load ctors {{{1
-template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(const EntryType *x) { load(x); }
-template<typename T> template<typename A> Vc_ALWAYS_INLINE Vector<T>::Vector(const EntryType *x, A a) { load(x, a); }
-template<typename T> template<typename OtherT> Vc_ALWAYS_INLINE Vector<T>::Vector(const OtherT *x) { load(x); }
-template<typename T> template<typename OtherT, typename A> Vc_ALWAYS_INLINE Vector<T>::Vector(const OtherT *x, A a) { load(x, a); }
-
-///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions {{{1
-template<typename T> Vc_INTRINSIC void Vector<T>::load(const EntryType *mem)
+template<typename T> template<typename... Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *mem, Flags... flags)
 {
-    load(mem, Aligned);
-}
-
-template<typename T> template<typename A> Vc_INTRINSIC void Vector<T>::load(const EntryType *mem, A align)
-{
-    d.v() = HV::load(mem, align);
-}
-
-template<typename T> template<typename OtherT> Vc_INTRINSIC void Vector<T>::load(const OtherT *mem)
-{
-    load(mem, Aligned);
+    handleLoadPrefetches(mem, flags...);
+    HV::load(mem, get_loadstore_flags<Flags...>::flag());
 }
 
 // LoadHelper {{{2
@@ -212,9 +197,11 @@ template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags>
 };
 
 // general load, implemented via LoadHelper {{{2
-template<typename DstT> template<typename SrcT, typename Flags> Vc_INTRINSIC void Vector<DstT>::load(const SrcT *x, Flags f)
+template<typename DstT> template<typename SrcT, typename... Flags> Vc_INTRINSIC void Vector<DstT>::load(const SrcT *mem, Flags... flags)
 {
-    d.v() = LoadHelper<DstT, SrcT, Flags>::load(x, f);
+    handleLoadPrefetches(mem, flags...);
+    using F = get_loadstore_flags<Flags...>;
+    d.v() = LoadHelper<DstT, SrcT, typename F::type>::load(mem, F::flag());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -255,21 +242,18 @@ template<> Vc_INTRINSIC void Vector<sfloat>::setQnan(MaskArg k)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // stores {{{1
-template<typename T> Vc_INTRINSIC void Vector<T>::store(EntryType *mem) const
+template<typename T> template<typename T2, typename... Flags>
+Vc_INTRINSIC void Vector<T>::store(T2 *mem, Flags... flags) const
 {
-    HV::store(mem, data(), Aligned);
+    handleStorePrefetches(mem, flags...);
+    HV::store(mem, data(), get_loadstore_flags<Flags...>::flag());
 }
-template<typename T> Vc_INTRINSIC void Vector<T>::store(EntryType *mem, const Mask &mask) const
+
+template<typename T> template<typename T2, typename... Flags>
+Vc_INTRINSIC void Vector<T>::store(T2 *mem, Mask mask, Flags... flags) const
 {
-    HV::store(mem, data(), avx_cast<VectorType>(mask.data()), Aligned);
-}
-template<typename T> template<typename A> Vc_INTRINSIC void Vector<T>::store(EntryType *mem, A align) const
-{
-    HV::store(mem, data(), align);
-}
-template<typename T> template<typename A> Vc_INTRINSIC void Vector<T>::store(EntryType *mem, const Mask &mask, A align) const
-{
-    HV::store(mem, data(), avx_cast<VectorType>(mask.data()), align);
+    handleStorePrefetches(mem, flags...);
+    HV::store(mem, data(), avx_cast<VectorType>(mask.data()), get_loadstore_flags<Flags...>::flag());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

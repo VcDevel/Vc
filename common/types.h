@@ -111,31 +111,95 @@ static struct StreamingFlag : public LoadStoreFlag {} Streaming;
 struct Exclusive {};
 struct Shared {};
 #ifdef VC_IMPL_MIC
-template<int L1Stride = 8, int L2Stride = 64, typename ExclusiveOrShared = void> struct PrefetchFlag : public FlagBase {};
+template<int L1Stride = 8 * 64, int L2Stride = 64 * 64, typename ExclusiveOrShared = void> struct PrefetchFlag : public FlagBase {};
 #else
 // TODO: determine a good default for typical CPU use
-template<int L1Stride = 16, int L2Stride = 0, typename ExclusiveOrShared = void> struct PrefetchFlag : public FlagBase {};
+template<int L1Stride = 16 * 64, int L2Stride = 128 * 64, typename ExclusiveOrShared = void> struct PrefetchFlag : public FlagBase {};
 #endif
 static PrefetchFlag<> Prefetch;
-// CombineFlags: for now we can only combine 2 flags, more doesn't make sense with the current set/*{{{*/
 namespace
 {
+// CombineFlags: for now we can only combine 2 flags, more doesn't make sense with the current set/*{{{*/
 template<typename F0, typename F1> struct CombineFlags
 {
     typedef F0 Flag0;
     typedef F1 Flag1;
+}; /*}}}*/
+
+template<typename T, typename... Us> struct is_contained;/*{{{*/
+template<typename T, typename U> struct is_contained<T, U> : public std::integral_constant<bool, std::is_same<T, U>::value> {};
+template<typename T, typename U, typename... Vs> struct is_contained<T, U, Vs...>
+    : public std::integral_constant<bool, is_contained<T, Vs...>::value || std::is_same<T, U>::value> {};/*}}}*/
+
+template<typename... Flags> struct get_loadstore_flags;/*{{{*/
+// iff only one flag is given and it's neither Aligned, Unaligned, nor Streaming we default to Aligned
+template<> struct get_loadstore_flags<>
+{
+    typedef AlignedFlag type;
+
+    static Vc_INTRINSIC type flag() { return type(); }
 };
+template<typename F> struct get_loadstore_flags<F>
+{
+    typedef typename std::conditional<std::is_base_of<LoadStoreFlag, F>::value, F, AlignedFlag>::type type;
+
+    static Vc_INTRINSIC type flag() { return type(); }
+};
+
+template<typename F, typename G> struct get_loadstore_flags<F, G>
+{
+    static_assert(
+            (std::is_same<F, AlignedFlag>::value && !std::is_same<UnalignedFlag, G>::value) ||
+            (std::is_same<F, UnalignedFlag>::value && !std::is_same<AlignedFlag, G>::value) ||
+            (!std::is_same<F, AlignedFlag>::value && !std::is_same<F, UnalignedFlag>::value),
+            "The Aligned and Unaligned load/store flags were combined. This is an ambiguous request. Please fix the code.");
+
+    typedef typename std::conditional<
+        std::is_base_of<LoadStoreFlag, F>::value,
+        typename std::conditional<std::is_base_of<LoadStoreFlag, G>::value,
+            typename std::conditional<std::is_same<F, G>::value,
+                F,
+                typename std::conditional<std::is_same<F, StreamingFlag>::value,
+                    typename std::conditional<std::is_same<G, AlignedFlag>::value,
+                        F,
+                        CombineFlags<F, G>
+                    >::type,
+                    typename std::conditional<std::is_same<F, AlignedFlag>::value,
+                        G,
+                        CombineFlags<G, F>
+                    >::type
+                >::type
+            >::type,
+            F
+        >::type,
+        typename get_loadstore_flags<G>::type
+    >::type type;
+
+    static Vc_INTRINSIC type flag() { return type(); }
+};
+
+template<typename F, typename G, typename... Flags> struct get_loadstore_flags<F, G, Flags...>
+{
+    static_assert(
+            (std::is_same<F, AlignedFlag>::value && !is_contained<UnalignedFlag, G, Flags...>::value) ||
+            (std::is_same<F, UnalignedFlag>::value && !is_contained<AlignedFlag, G, Flags...>::value) ||
+            (!std::is_same<F, AlignedFlag>::value && !std::is_same<F, UnalignedFlag>::value),
+            "The Aligned and Unaligned load/store flags were combined. This is an ambiguous request. Please fix the code.");
+
+    //TODO: need to combine several flags in some way
+    typedef typename std::conditional<
+        std::is_base_of<LoadStoreFlag, F>::value && !is_contained<F, G, Flags...>::value,
+        F,
+        typename get_loadstore_flags<G, Flags...>::type
+            >::type type;
+
+    static Vc_INTRINSIC type flag() { return type(); }
+};/*}}}*/
 } // anonymous namespace
 typedef CombineFlags<StreamingFlag, UnalignedFlag> StreamingAndUnalignedFlag;
-/*}}}*/
 
 namespace
 {
-    template<typename T, typename... Us> struct is_contained;
-    template<typename T, typename U> struct is_contained<T, U> : public std::integral_constant<bool, std::is_same<T, U>::value> {};
-    template<typename T, typename U, typename... Vs> struct is_contained<T, U, Vs...>
-        : public std::integral_constant<bool, is_contained<T, Vs...>::value || std::is_same<T, U>::value> {};
-
     //template<bool B, typename T = void> using enable_if = typename std::enable_if<B, T>::type;
     template<typename B, typename T = void> using enable_if = typename std::enable_if<B::value, T>::type;
 

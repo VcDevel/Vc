@@ -145,19 +145,23 @@ public:
     // load ctors
     explicit Vc_INTRINSIC Vector(const EntryType *x) { load(x); }
     template<typename Flag0, typename... Flags> Vc_INTRINSIC
-        Vector(typename std::enable_if<std::is_base_of<Vc::FlagBase, Flag0>::value, const EntryType *>::type x,
-                Flag0 f0, Flags... flags) { load(x, f0, flags...); }
-    template<typename OtherT> explicit Vc_INTRINSIC Vector(const OtherT *x) { load<OtherT>(x); }
+        Vector(enable_if<std::is_base_of<Vc::FlagBase, Flag0>, const EntryType *> x, Flag0 f0, Flags... flags) {
+            load(x, f0, flags...);
+        }
+    // the following ctors have no return type and no non-template argument, therefore enable_if
+    // doesn't work with variadic templates :(
+    // the enable_if is required to disambiguate between gather ctors and load ctors
+    template<typename OtherT> explicit Vc_INTRINSIC Vector(const OtherT *x) { load(x); }
     template<typename OtherT, typename Flag0> Vc_INTRINSIC Vector(const OtherT *x, Flag0 f0,
-            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load<OtherT>(x, f0); }
+            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load(x, f0); }
     template<typename OtherT, typename Flag0, typename Flag1> Vc_INTRINSIC Vector(const OtherT *x, Flag0 f0, Flag1 f1,
-            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load<OtherT>(x, f0, f1); }
+            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load(x, f0, f1); }
     template<typename OtherT, typename Flag0, typename Flag1, typename Flag2> Vc_INTRINSIC
         Vector(const OtherT *x, Flag0 f0, Flag1 f1, Flag2 f2,
-            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load<OtherT>(x, f0, f1, f2); }
+            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load(x, f0, f1, f2); }
     template<typename OtherT, typename Flag0, typename Flag1, typename Flag2, typename Flag3> Vc_INTRINSIC
         Vector(const OtherT *x, Flag0 f0, Flag1 f1, Flag2 f2, Flag3 f3,
-            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load<OtherT>(x, f0, f1, f2, f3); }
+            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load(x, f0, f1, f2, f3); }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load member functions
