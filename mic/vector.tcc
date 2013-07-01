@@ -325,20 +325,20 @@ template<> Vc_INTRINSIC void ushort_v::assign(ushort_v v, ushort_m m)
 }
 // stores {{{1
 template<typename Parent, typename T> template<typename T2, typename... Flags>
-inline void StoreMixin<Parent, T>::store(T2 *mem, Flags... flags) const
+Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Flags... flags) const
 {
     handleStorePrefetches(mem, flags...);
     MicIntrinsics::store(mem, data(), UpDownC<T2>(), get_loadstore_flags<Flags...>::flag());
 }
 
 template<typename Parent, typename T> template<typename T2, typename... Flags>
-inline void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, Flags... flags) const
+Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, Flags... flags) const
 {
     handleStorePrefetches(mem, flags...);
     MicIntrinsics::store(mask.data(), mem, data(), UpDownC<T2>(), get_loadstore_flags<Flags...>::flag());
 }
 
-template<typename Parent, typename T> inline void StoreMixin<Parent, T>::store(VectorEntryType *mem, Vc::StreamingFlag) const
+template<typename Parent, typename T> Vc_INTRINSIC void StoreMixin<Parent, T>::store(VectorEntryType *mem, Vc::StreamingFlag) const
 {
     // NR = No-Read hint, NGO = Non-Globally Ordered hint
     // It is not clear whether we will get issues with nrngo if users only expected nr
