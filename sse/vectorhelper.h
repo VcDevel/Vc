@@ -73,11 +73,11 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
         template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const float *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
         static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, AlignedFlag) Vc_ALWAYS_INLINE_R;
         static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, StreamingFlag) Vc_ALWAYS_INLINE_R;
         static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
         static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, AlignedFlag) Vc_ALWAYS_INLINE_R;
         static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingFlag) Vc_ALWAYS_INLINE_R;
         static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
 
         OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
@@ -103,11 +103,11 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
             template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const float *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, AlignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, StreamingFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, AlignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, StreamingFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
 
             OP0(allone, _mm_setallone_ps())
@@ -126,11 +126,11 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
             template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const double *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, AlignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, StreamingFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, AlignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, StreamingFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
 
             OP0(allone, _mm_setallone_pd())
@@ -147,15 +147,15 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
             typedef _M128I VectorType;
             template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, AlignedFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
             template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, UnalignedFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, StreamingFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
             template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
             template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, AlignedFlag) Vc_ALWAYS_INLINE_R;
             template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, StreamingFlag) Vc_ALWAYS_INLINE_R;
             template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
             template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, AlignedFlag) Vc_ALWAYS_INLINE_R;
             template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, StreamingFlag) Vc_ALWAYS_INLINE_R;
             template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
 
             OP0(allone, _mm_setallone_si128())

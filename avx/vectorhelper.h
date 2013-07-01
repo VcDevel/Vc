@@ -64,11 +64,11 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const float *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, AlignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, StreamingFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, VTArg m, AlignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, VTArg m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, VTArg m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, VTArg m, StreamingFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, VTArg m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
 
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cdab(VTArg x) { return _mm256_permute_ps(x, _MM_SHUFFLE(2, 3, 0, 1)); }
@@ -99,11 +99,11 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const double *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, AlignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, StreamingFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, VTArg m, AlignedFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, VTArg m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, VTArg m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
+            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, VTArg m, StreamingFlag) Vc_ALWAYS_INLINE_R;
             static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, VTArg m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
 
             static VectorType cdab(VTArg x) { return _mm256_permute_pd(x, 5); }
@@ -135,15 +135,15 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 #endif
             template<typename T> static VectorType load(const T *x, AlignedFlag) Vc_PURE;
             template<typename T> static VectorType load(const T *x, UnalignedFlag) Vc_PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) Vc_PURE;
+            template<typename T> static VectorType load(const T *x, StreamingFlag) Vc_PURE;
             template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) Vc_PURE;
             template<typename T> static void store(T *mem, VTArg x, AlignedFlag);
             template<typename T> static void store(T *mem, VTArg x, UnalignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, StreamingAndAlignedFlag);
+            template<typename T> static void store(T *mem, VTArg x, StreamingFlag);
             template<typename T> static void store(T *mem, VTArg x, StreamingAndUnalignedFlag);
             template<typename T> static void store(T *mem, VTArg x, VTArg m, AlignedFlag);
             template<typename T> static void store(T *mem, VTArg x, VTArg m, UnalignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingAndAlignedFlag);
+            template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingFlag);
             template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingAndUnalignedFlag);
 
             static VectorType cdab(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<m256>(x), _MM_SHUFFLE(2, 3, 0, 1))); }
@@ -173,15 +173,15 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 #endif
             template<typename T> static VectorType load(const T *x, AlignedFlag) Vc_PURE;
             template<typename T> static VectorType load(const T *x, UnalignedFlag) Vc_PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) Vc_PURE;
+            template<typename T> static VectorType load(const T *x, StreamingFlag) Vc_PURE;
             template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) Vc_PURE;
             template<typename T> static void store(T *mem, VTArg x, AlignedFlag);
             template<typename T> static void store(T *mem, VTArg x, UnalignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, StreamingAndAlignedFlag);
+            template<typename T> static void store(T *mem, VTArg x, StreamingFlag);
             template<typename T> static void store(T *mem, VTArg x, StreamingAndUnalignedFlag);
             template<typename T> static void store(T *mem, VTArg x, VTArg m, AlignedFlag);
             template<typename T> static void store(T *mem, VTArg x, VTArg m, UnalignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingAndAlignedFlag);
+            template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingFlag);
             template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingAndUnalignedFlag);
 
             static VectorType cdab(VTArg x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1)); }

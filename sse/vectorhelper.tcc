@@ -34,7 +34,7 @@ template<> Vc_ALWAYS_INLINE Vc_PURE _M128 VectorHelper<_M128>::load(const float 
     return _mm_loadu_ps(x);
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE _M128 VectorHelper<_M128>::load(const float *x, StreamingAndAlignedFlag)
+template<> Vc_ALWAYS_INLINE Vc_PURE _M128 VectorHelper<_M128>::load(const float *x, StreamingFlag)
 {
     return _mm_stream_load(x);
 }
@@ -54,7 +54,7 @@ Vc_ALWAYS_INLINE void VectorHelper<_M128>::store(float *mem, const VectorType x,
 {
     _mm_storeu_ps(mem, x);
 }
-Vc_ALWAYS_INLINE void VectorHelper<_M128>::store(float *mem, const VectorType x, StreamingAndAlignedFlag)
+Vc_ALWAYS_INLINE void VectorHelper<_M128>::store(float *mem, const VectorType x, StreamingFlag)
 {
     _mm_stream_ps(mem, x);
 }
@@ -70,7 +70,7 @@ Vc_ALWAYS_INLINE void VectorHelper<_M128>::store(float *mem, const VectorType x,
 {
     _mm_storeu_ps(mem, _mm_blendv_ps(_mm_loadu_ps(mem), x, m));
 }
-Vc_ALWAYS_INLINE void VectorHelper<_M128>::store(float *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag)
+Vc_ALWAYS_INLINE void VectorHelper<_M128>::store(float *mem, const VectorType x, const VectorType m, StreamingFlag)
 {
     _mm_maskmoveu_si128(_mm_castps_si128(x), _mm_castps_si128(m), reinterpret_cast<char *>(mem));
 }
@@ -91,7 +91,7 @@ template<> Vc_ALWAYS_INLINE Vc_PURE M256 VectorHelper<M256>::load(const float *x
     return VectorType::create(_mm_loadu_ps(x), _mm_loadu_ps(x + 4));
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE M256 VectorHelper<M256>::load(const float *x, StreamingAndAlignedFlag)
+template<> Vc_ALWAYS_INLINE Vc_PURE M256 VectorHelper<M256>::load(const float *x, StreamingFlag)
 {
     return VectorType::create(_mm_stream_load(&x[0]), _mm_stream_load(&x[4]));
 }
@@ -113,7 +113,7 @@ Vc_ALWAYS_INLINE void VectorHelper<M256>::store(float *mem, VectorTypeArg x, Una
     _mm_storeu_ps(mem, x[0]);
     _mm_storeu_ps(mem + 4, x[1]);
 }
-Vc_ALWAYS_INLINE void VectorHelper<M256>::store(float *mem, VectorTypeArg x, StreamingAndAlignedFlag)
+Vc_ALWAYS_INLINE void VectorHelper<M256>::store(float *mem, VectorTypeArg x, StreamingFlag)
 {
     _mm_stream_ps(mem, x[0]);
     _mm_stream_ps(mem + 4, x[1]);
@@ -133,7 +133,7 @@ Vc_ALWAYS_INLINE void VectorHelper<M256>::store(float *mem, VectorTypeArg x, Vec
     _mm_storeu_ps(mem, _mm_blendv_ps(_mm_loadu_ps(mem), x[0], m[0]));
     _mm_storeu_ps(mem + 4, _mm_blendv_ps(_mm_loadu_ps(mem + 4), x[1], m[1]));
 }
-Vc_ALWAYS_INLINE void VectorHelper<M256>::store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndAlignedFlag)
+Vc_ALWAYS_INLINE void VectorHelper<M256>::store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingFlag)
 {
     _mm_maskmoveu_si128(_mm_castps_si128(x[0]), _mm_castps_si128(m[0]), reinterpret_cast<char *>(mem));
     _mm_maskmoveu_si128(_mm_castps_si128(x[1]), _mm_castps_si128(m[1]), reinterpret_cast<char *>(mem + 4));
@@ -156,7 +156,7 @@ template<> Vc_ALWAYS_INLINE Vc_PURE _M128D VectorHelper<_M128D>::load(const doub
     return _mm_loadu_pd(x);
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE _M128D VectorHelper<_M128D>::load(const double *x, StreamingAndAlignedFlag)
+template<> Vc_ALWAYS_INLINE Vc_PURE _M128D VectorHelper<_M128D>::load(const double *x, StreamingFlag)
 {
     return _mm_stream_load(x);
 }
@@ -176,7 +176,7 @@ Vc_ALWAYS_INLINE void VectorHelper<_M128D>::store(double *mem, const VectorType 
 {
     _mm_storeu_pd(mem, x);
 }
-Vc_ALWAYS_INLINE void VectorHelper<_M128D>::store(double *mem, const VectorType x, StreamingAndAlignedFlag)
+Vc_ALWAYS_INLINE void VectorHelper<_M128D>::store(double *mem, const VectorType x, StreamingFlag)
 {
     _mm_stream_pd(mem, x);
 }
@@ -192,7 +192,7 @@ Vc_ALWAYS_INLINE void VectorHelper<_M128D>::store(double *mem, const VectorType 
 {
     _mm_storeu_pd(mem, _mm_blendv_pd(_mm_loadu_pd(mem), x, m));
 }
-Vc_ALWAYS_INLINE void VectorHelper<_M128D>::store(double *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag)
+Vc_ALWAYS_INLINE void VectorHelper<_M128D>::store(double *mem, const VectorType x, const VectorType m, StreamingFlag)
 {
     _mm_maskmoveu_si128(_mm_castpd_si128(x), _mm_castpd_si128(m), reinterpret_cast<char *>(mem));
 }
@@ -213,7 +213,7 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE _M128I VectorHelper<_M128I>::load(
     return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x));
 }
 
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE _M128I VectorHelper<_M128I>::load(const T *x, StreamingAndAlignedFlag)
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE _M128I VectorHelper<_M128I>::load(const T *x, StreamingFlag)
 {
     return _mm_stream_load(x);
 }
@@ -233,7 +233,7 @@ template<typename T> Vc_ALWAYS_INLINE void VectorHelper<_M128I>::store(T *mem, c
 {
     _mm_storeu_si128(reinterpret_cast<VectorType *>(mem), x);
 }
-template<typename T> Vc_ALWAYS_INLINE void VectorHelper<_M128I>::store(T *mem, const VectorType x, StreamingAndAlignedFlag)
+template<typename T> Vc_ALWAYS_INLINE void VectorHelper<_M128I>::store(T *mem, const VectorType x, StreamingFlag)
 {
     _mm_stream_si128(reinterpret_cast<VectorType *>(mem), x);
 }
@@ -249,7 +249,7 @@ template<typename T> Vc_ALWAYS_INLINE void VectorHelper<_M128I>::store(T *mem, c
 {
     store(mem, _mm_blendv_epi8(load(mem, align), x, m), align);
 }
-template<typename T> Vc_ALWAYS_INLINE void VectorHelper<_M128I>::store(T *mem, const VectorType x, const VectorType m, StreamingAndAlignedFlag)
+template<typename T> Vc_ALWAYS_INLINE void VectorHelper<_M128I>::store(T *mem, const VectorType x, const VectorType m, StreamingFlag)
 {
     _mm_maskmoveu_si128(x, m, reinterpret_cast<char *>(mem));
 }
