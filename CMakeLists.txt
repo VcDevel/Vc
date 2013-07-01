@@ -183,6 +183,9 @@ else()
    endmacro()
 
    file(GLOB_RECURSE _srcs RELATIVE "${CMAKE_SOURCE_DIR}" include/*.h include/*.tcc include/*.def)
+   file(GLOB _src2 RELATIVE "${CMAKE_SOURCE_DIR}" include/Vc/*)
+   list(APPEND _srcs ${_src2})
+   list(REMOVE_DUPLICATES _srcs)
    copy_and_set_outer_namespace("" "${_srcs}")
 
    foreach(_dir in scalar sse avx common)
