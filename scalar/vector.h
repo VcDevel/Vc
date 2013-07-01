@@ -29,10 +29,10 @@
 #endif
 
 #include "../common/memoryfwd.h"
-#include "macros.h"
 #include "types.h"
 #include "mask.h"
 #include "writemaskedvector.h"
+#include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     enum VectorAlignmentEnum { VectorAlignment = 4 };

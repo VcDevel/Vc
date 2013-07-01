@@ -20,6 +20,8 @@
 #ifndef VC_SCALAR_WRITEMASKEDVECTOR_H
 #define VC_SCALAR_WRITEMASKEDVECTOR_H
 
+#include "macros.h"
+
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 template<typename T> class WriteMaskedVector
@@ -83,5 +85,8 @@ template<typename T> class WriteMaskedVector
         Mask mask;
 };
 
-Vc_IMPL_NAMESPACE_END
+Vc_NAMESPACE_END
+
+#include "undomacros.h"
+
 #endif // VC_SCALAR_WRITEMASKEDVECTOR_H

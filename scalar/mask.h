@@ -21,6 +21,7 @@
 #define VC_SCALAR_MASK_H
 
 #include "types.h"
+#include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 template<unsigned int VectorSize = 1> class Mask
@@ -98,5 +99,7 @@ struct ForeachHelper
         for (_it_ = 0; Vc__make_unique(foreach_bit_obj).continu; Vc__make_unique(foreach_bit_obj).next())
 
 Vc_IMPL_NAMESPACE_END
+
+#include "undomacros.h"
 
 #endif // VC_SCALAR_MASK_H

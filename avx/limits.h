@@ -22,6 +22,7 @@
 
 #include "intrinsics.h"
 #include "types.h"
+#include "macros.h"
 
 namespace std
 {
@@ -51,5 +52,7 @@ _VC_NUM_LIM(           int, _mm256_srli_epi32(::Vc::Vc_IMPL_NAMESPACE::_mm256_se
 #undef _VC_NUM_LIM
 
 } // namespace std
+
+#include "undomacros.h"
 
 #endif // VC_AVX_LIMITS_H

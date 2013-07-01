@@ -21,8 +21,8 @@
 #define VC_COMMON_STORAGE_H
 
 #include "aliasingentryhelper.h"
-#include "macros.h"
 #include "types.h"
+#include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Common)
 
