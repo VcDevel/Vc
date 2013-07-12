@@ -19,9 +19,19 @@ include (OptimizeForArchitecture)
 vc_determine_compiler()
 
 if(ROOT_RELEASE)
-   file(READ "${CMAKE_INSTALL_PREFIX}/Module.mk" ROOT_MODULE_MK)
-   if(NOT ROOT_MODULE_MK MATCHES "\nMODNAME *:= *vc *\n")
-      message(FATAL_ERROR "CMAKE_INSTALL_PREFIX is incorrect. It must point to the Vc subdirectory inside ROOT/AliRoot")
+   if(EXISTS "${CMAKE_INSTALL_PREFIX}/Module.mk")
+      file(READ "${CMAKE_INSTALL_PREFIX}/Module.mk" ROOT_MODULE_MK)
+      if(NOT "${ROOT_MODULE_MK}" MATCHES "\nMODNAME *:= *vc *\n")
+         message(FATAL_ERROR "CMAKE_INSTALL_PREFIX is incorrect. It must point to the Vc subdirectory inside ROOT/AliRoot")
+      endif()
+      set(_extra_namespace "ROOT")
+   endif()
+   if(EXISTS "${CMAKE_INSTALL_PREFIX}/Vc.cmake")
+      file(READ "${CMAKE_INSTALL_PREFIX}/Vc.cmake" ALIROOT_VC_CMAKE)
+      if(NOT "${ALIROOT_VC_CMAKE}" MATCHES "\nmacro\\(ALICE_UseVc\\)\n")
+         message(FATAL_ERROR "CMAKE_INSTALL_PREFIX is incorrect. It must point to the Vc subdirectory inside ROOT/AliRoot")
+      endif()
+      set(_extra_namespace "AliRoot")
    endif()
 else()
 
@@ -150,10 +160,10 @@ else()
       file(MAKE_DIRECTORY "${_path}")
       execute_process(
          COMMAND sed -e "s,#include \\(.\\)\\(common\\|avx\\|sse\\|scalar\\)/,#include \\1Vc/\\2/,"
-                     -e "s,::Vc::,::ROOT::Vc::,g"
-                     -e "s,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ROOT {,"
-                     -e "s,/\\*OUTER_NAMESPACE_END\\*/,} // namespace ROOT,"
-                     -e "s,/\\*NAMESPACE_ALIAS\\*/,namespace Vc = ROOT::Vc;,"
+                     -e "s,::Vc::,::${_extra_namespace}::Vc::,g"
+                     -e "s,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ${_extra_namespace} {,"
+                     -e "s,/\\*OUTER_NAMESPACE_END\\*/,} // namespace ${_extra_namespace},"
+                     -e "s,/\\*NAMESPACE_ALIAS\\*/,namespace Vc = ${_extra_namespace}::Vc;,"
          INPUT_FILE ${CMAKE_SOURCE_DIR}/${_src}
          OUTPUT_FILE ${CMAKE_BINARY_DIR}/${_src}
          )
@@ -169,10 +179,10 @@ else()
          add_custom_command(OUTPUT "${_dst}"
             COMMAND mkdir -p "${_dir}"
             COMMAND cp  "${_src}" "${_dst}"
-            COMMAND sed -e "s,::Vc::,::ROOT::Vc::,g"
-                        -e "s,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ROOT {,"
-                        -e "s,/\\*OUTER_NAMESPACE_END\\*/,} // namespace ROOT,"
-                        -e "s,/\\*NAMESPACE_ALIAS\\*/,namespace Vc = ROOT::Vc;,"
+            COMMAND sed -e "s,::Vc::,::${_extra_namespace}::Vc::,g"
+                        -e "s,/\\*OUTER_NAMESPACE_BEGIN\\*/,namespace ${_extra_namespace} {,"
+                        -e "s,/\\*OUTER_NAMESPACE_END\\*/,} // namespace ${_extra_namespace},"
+                        -e "s,/\\*NAMESPACE_ALIAS\\*/,namespace Vc = ${_extra_namespace}::Vc;,"
                         -i "${_dst}"
             MAIN_DEPENDENCY "${_src}"
             COMMENT "Rewrite ${_dst}"
