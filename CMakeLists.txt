@@ -85,10 +85,12 @@ else()
       endif()
    endif()
    if(MIC_NATIVE_FOUND)
-      UserWarning("ICC does not support initializer lists (C++11). The following tests are therefore disabled:
+      UserWarning("ICC does not support initializer lists (C++11). Additionally it fails to optimize properly and therefore cannot provide an immediate parameter to an instrinsic. The following tests are therefore disabled:
+      deinterleave_mic
       stlcontainer_mic.")
       list(APPEND disabled_targets
          stlcontainer_mic
+         deinterleave_mic
          )
    endif()
 endif()
