@@ -141,7 +141,7 @@ int main()
 
     {
         std::cout << "\n" << std::setw(60) << "Classical finite difference method" << std::endl;
-        timer.Start();
+        timer.start();
 
         const float oneOver2h = 0.5f / h;
 
@@ -154,18 +154,18 @@ int main()
         }
         dy_points[N - 1] = (y_points[N - 1] - y_points[N - 2]) / h;
 
-        timer.Stop();
+        timer.stop();
         printResults();
-        std::cout << "cycle count: " << timer.Cycles()
-            << " | " << static_cast<double>(N * 2) / timer.Cycles() << " FLOP/cycle"
-            << " | " << static_cast<double>(N * 2 * sizeof(float)) / timer.Cycles() << " Byte/cycle"
+        std::cout << "cycle count: " << timer.cycles()
+            << " | " << static_cast<double>(N * 2) / timer.cycles() << " FLOP/cycle"
+            << " | " << static_cast<double>(N * 2 * sizeof(float)) / timer.cycles() << " Byte/cycle"
             << "\n";
     }
 
-    speedup = timer.Cycles();
+    speedup = timer.cycles();
     {
         std::cout << std::setw(60) << "Vectorized finite difference method" << std::endl;
-        timer.Start();
+        timer.start();
 
         // All the differentials require to calculate (r - l) / 2h, where we calculate 1/2h as a
         // constant before the loop to avoid unnecessary calculations. Note that a good compiler can
@@ -234,14 +234,14 @@ int main()
         // ... and finally the right border
         dy_points[N - 1] = (y_points[N - 1] - y_points[N - 2]) / h;
 
-        timer.Stop();
+        timer.stop();
         printResults();
-        std::cout << "cycle count: " << timer.Cycles()
-            << " | " << static_cast<double>(N * 2) / timer.Cycles() << " FLOP/cycle"
-            << " | " << static_cast<double>(N * 2 * sizeof(float)) / timer.Cycles() << " Byte/cycle"
+        std::cout << "cycle count: " << timer.cycles()
+            << " | " << static_cast<double>(N * 2) / timer.cycles() << " FLOP/cycle"
+            << " | " << static_cast<double>(N * 2 * sizeof(float)) / timer.cycles() << " Byte/cycle"
             << "\n";
     }
-    speedup /= timer.Cycles();
+    speedup /= timer.cycles();
     std::cout << "Speedup: " << speedup << "\n";
 
     Vc::free(dy_points - float_v::Size + 1);
