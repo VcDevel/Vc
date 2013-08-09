@@ -1309,33 +1309,31 @@ template<> Vc_INTRINSIC Vector<double> Vector<double>::exponent() const
 }
 // }}}1
 // Random {{{1
-static Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
-        Vector<unsigned int> &state1)
+static Vc_ALWAYS_INLINE uint_v _doRandomStep()
 {
+    Vector<unsigned int> state0, state1;
     state0.load(&Common::RandomState[0]);
     state1.load(&Common::RandomState[uint_v::Size]);
     (state1 * 0xdeece66du + 11).store(&Common::RandomState[uint_v::Size]);
     uint_v(_mm256_xor_si256((state0 * 0xdeece66du + 11).data(), _mm256_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
+    return state0;
 }
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::Random()
 {
-    Vector<unsigned int> state0, state1;
-    _doRandomStep(state0, state1);
+    const Vector<unsigned int> state0 = _doRandomStep();
     return state0.reinterpretCast<Vector<T> >();
 }
 
 template<> Vc_ALWAYS_INLINE Vector<float> Vector<float>::Random()
 {
-    Vector<unsigned int> state0, state1;
-    _doRandomStep(state0, state1);
+    const Vector<unsigned int> state0 = _doRandomStep();
     return HT::sub(HV::or_(_cast(_mm256_srli_epi32(state0.data(), 2)), HT::one()), HT::one());
 }
 
 template<> Vc_ALWAYS_INLINE Vector<sfloat> Vector<sfloat>::Random()
 {
-    Vector<unsigned int> state0, state1;
-    _doRandomStep(state0, state1);
+    const Vector<unsigned int> state0 = _doRandomStep();
     return HT::sub(HV::or_(_cast(_mm256_srli_epi32(state0.data(), 2)), HT::one()), HT::one());
 }
 
