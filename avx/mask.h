@@ -208,13 +208,13 @@ struct ForeachHelper
 // Operators
 namespace Intrinsics
 {
-    m256 and_(param256 a, param256 b) { return _mm256_and_ps(a, b); }
-    m256  or_(param256 a, param256 b) { return _mm256_or_ps(a, b); }
-    m256 xor_(param256 a, param256 b) { return _mm256_xor_ps(a, b); }
+    static Vc_ALWAYS_INLINE Vc_PURE m256 and_(param256 a, param256 b) { return _mm256_and_ps(a, b); }
+    static Vc_ALWAYS_INLINE Vc_PURE m256  or_(param256 a, param256 b) { return _mm256_or_ps(a, b); }
+    static Vc_ALWAYS_INLINE Vc_PURE m256 xor_(param256 a, param256 b) { return _mm256_xor_ps(a, b); }
 
-    m128 and_(param128 a, param128 b) { return _mm_and_ps(a, b); }
-    m128  or_(param128 a, param128 b) { return _mm_or_ps(a, b); }
-    m128 xor_(param128 a, param128 b) { return _mm_xor_ps(a, b); }
+    static Vc_ALWAYS_INLINE Vc_PURE m128 and_(param128 a, param128 b) { return _mm_and_ps(a, b); }
+    static Vc_ALWAYS_INLINE Vc_PURE m128  or_(param128 a, param128 b) { return _mm_or_ps(a, b); }
+    static Vc_ALWAYS_INLINE Vc_PURE m128 xor_(param128 a, param128 b) { return _mm_xor_ps(a, b); }
 } // namespace Intrinsics
 
 // binary and/or/xor cannot work with one operand larger than the other
