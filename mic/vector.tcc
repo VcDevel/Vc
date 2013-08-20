@@ -35,27 +35,27 @@ template<typename V> struct LoadHelper/*{{{*/
 {
     typedef typename V::VectorType VectorType;
 
-    static Vc_ALWAYS_INLINE VectorType _load(const void *m, _MM_UPCONV_PS_ENUM upconv, int memHint) {
+    static Vc_INTRINSIC VectorType _load(const void *m, _MM_UPCONV_PS_ENUM upconv, int memHint) {
         return _mm512_extload_ps(m, upconv, _MM_BROADCAST32_NONE, memHint);
     }
-    static Vc_ALWAYS_INLINE VectorType _load(const void *m, _MM_UPCONV_PD_ENUM upconv, int memHint) {
+    static Vc_INTRINSIC VectorType _load(const void *m, _MM_UPCONV_PD_ENUM upconv, int memHint) {
         return _mm512_extload_pd(m, upconv, _MM_BROADCAST64_NONE, memHint);
     }
-    static Vc_ALWAYS_INLINE VectorType _load(const void *m, _MM_UPCONV_EPI32_ENUM upconv, int memHint) {
+    static Vc_INTRINSIC VectorType _load(const void *m, _MM_UPCONV_EPI32_ENUM upconv, int memHint) {
         return _mm512_extload_epi32(m, upconv, _MM_BROADCAST32_NONE, memHint);
     }
 
-    static Vc_ALWAYS_INLINE VectorType _loadu(const void *m, _MM_UPCONV_PS_ENUM upconv, int memHint) {
+    static Vc_INTRINSIC VectorType _loadu(const void *m, _MM_UPCONV_PS_ENUM upconv, int memHint) {
         return _mm512_loadu_ps(m, upconv, memHint);
     }
-    static Vc_ALWAYS_INLINE VectorType _loadu(const void *m, _MM_UPCONV_PD_ENUM upconv, int memHint) {
+    static Vc_INTRINSIC VectorType _loadu(const void *m, _MM_UPCONV_PD_ENUM upconv, int memHint) {
         return _mm512_loadu_pd(m, upconv, memHint);
     }
-    static Vc_ALWAYS_INLINE VectorType _loadu(const void *m, _MM_UPCONV_EPI32_ENUM upconv, int memHint) {
+    static Vc_INTRINSIC VectorType _loadu(const void *m, _MM_UPCONV_EPI32_ENUM upconv, int memHint) {
         return _mm512_loadu_epi32(m, upconv, memHint);
     }
 
-    template<typename T, typename Flag> static Vc_ALWAYS_INLINE VectorType load(const T *mem, Flag f)
+    template<typename T, typename Flag> static Vc_INTRINSIC VectorType load(const T *mem, Flag f)
     {
         return LoadHelper2<V, T>::load(mem, f);
     }
@@ -64,7 +64,7 @@ template<typename V> struct LoadHelper/*{{{*/
 template<typename V, typename T = typename V::VectorEntryType> struct LoadHelper2
 {
     typedef typename V::VectorType VectorType;
-    template<typename Flag> static Vc_ALWAYS_INLINE VectorType load(const T *mem, Flag) {
+    template<typename Flag> static Vc_INTRINSIC VectorType load(const T *mem, Flag) {
         if (std::is_same<Flag, AlignedFlag>::value) {
             return LoadHelper<V>::_load(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NONE);
         } else if (std::is_same<Flag, UnalignedFlag>::value) {
@@ -78,7 +78,7 @@ template<typename V, typename T = typename V::VectorEntryType> struct LoadHelper
     }
 };
 
-template<> template<typename A> Vc_ALWAYS_INLINE __m512 LoadHelper2<float_v, double>::load(const double *mem, A align)
+template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<float_v, double>::load(const double *mem, A align)
 {
     return mic_cast<__m512>(_mm512_mask_permute4f128_epi32(mic_cast<__m512i>(
                     _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[0], align), _MM_FROUND_CUR_DIRECTION)),
@@ -86,16 +86,16 @@ template<> template<typename A> Vc_ALWAYS_INLINE __m512 LoadHelper2<float_v, dou
                     _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[double_v::Size], align), _MM_FROUND_CUR_DIRECTION)),
                 _MM_PERM_BABA));
 }
-template<> template<typename A> Vc_ALWAYS_INLINE __m512 LoadHelper2<float_v, int>::load(const int *mem, A align)
+template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<float_v, int>::load(const int *mem, A align)
 {
     return StaticCastHelper<int, float>::cast(LoadHelper<int_v>::load(mem, align));
 }
-template<> template<typename A> Vc_ALWAYS_INLINE __m512 LoadHelper2<float_v, unsigned int>::load(const unsigned int *mem, A align)
+template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<float_v, unsigned int>::load(const unsigned int *mem, A align)
 {
     return StaticCastHelper<unsigned int, float>::cast(LoadHelper<uint_v>::load(mem, align));
 }
 
-template<> template<typename A> Vc_ALWAYS_INLINE __m512 LoadHelper2<sfloat_v, double>::load(const double *mem, A align)
+template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, double>::load(const double *mem, A align)
 {
     return mic_cast<__m512>(_mm512_mask_permute4f128_epi32(mic_cast<__m512i>(
                     _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[0], align), _MM_FROUND_CUR_DIRECTION)),
@@ -103,11 +103,11 @@ template<> template<typename A> Vc_ALWAYS_INLINE __m512 LoadHelper2<sfloat_v, do
                     _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[double_v::Size], align), _MM_FROUND_CUR_DIRECTION)),
                 _MM_PERM_BABA));
 }
-template<> template<typename A> Vc_ALWAYS_INLINE __m512 LoadHelper2<sfloat_v, int>::load(const int *mem, A align)
+template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, int>::load(const int *mem, A align)
 {
     return StaticCastHelper<int, float>::cast(LoadHelper<int_v>::load(mem, align));
 }
-template<> template<typename A> Vc_ALWAYS_INLINE __m512 LoadHelper2<sfloat_v, unsigned int>::load(const unsigned int *mem, A align)
+template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, unsigned int>::load(const unsigned int *mem, A align)
 {
     return StaticCastHelper<unsigned int, float>::cast(LoadHelper<uint_v>::load(mem, align));
 }
