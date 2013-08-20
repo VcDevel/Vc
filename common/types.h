@@ -105,9 +105,9 @@ namespace AVX {
 
 struct FlagBase {};
 struct LoadStoreFlag : public FlagBase {};
-static struct AlignedFlag   : public LoadStoreFlag {} Aligned;
-static struct UnalignedFlag : public LoadStoreFlag {} Unaligned;
-static struct StreamingFlag : public LoadStoreFlag {} Streaming;
+extern struct AlignedFlag   : public LoadStoreFlag {} Aligned;
+extern struct UnalignedFlag : public LoadStoreFlag {} Unaligned;
+extern struct StreamingFlag : public LoadStoreFlag {} Streaming;
 struct Exclusive {};
 struct Shared {};
 #ifdef VC_IMPL_MIC
@@ -116,7 +116,7 @@ template<int L1Stride = 8 * 64, int L2Stride = 64 * 64, typename ExclusiveOrShar
 // TODO: determine a good default for typical CPU use
 template<int L1Stride = 16 * 64, int L2Stride = 128 * 64, typename ExclusiveOrShared = void> struct PrefetchFlag : public FlagBase {};
 #endif
-static PrefetchFlag<> Prefetch;
+extern PrefetchFlag<> Prefetch;
 namespace
 {
 // CombineFlags: for now we can only combine 2 flags, more doesn't make sense with the current set/*{{{*/
