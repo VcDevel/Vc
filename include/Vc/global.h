@@ -554,6 +554,7 @@ namespace Error
 Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(Internal)
+    // TODO (refactor): get rid of this abstraction:
     template<Implementation Impl> struct HelperImpl;
     typedef HelperImpl<VC_IMPL> Helper;
 Vc_NAMESPACE_END
