@@ -104,8 +104,8 @@ template<typename T> template<typename... Flags> Vc_INTRINSIC void Vector<T>::lo
 template<> template<typename OtherT, typename... Flags> Vc_INTRINSIC void Vector<float8>::load(const OtherT *x, Flags... flags)
 {
     d.v() = M256::create(
-            Vector<float>(&x[0], flags).data(),
-            Vector<float>(&x[4], flags).data()
+            Vector<float>(&x[0], flags...).data(),
+            Vector<float>(&x[4], flags...).data()
             );
 }
 
