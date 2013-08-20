@@ -112,88 +112,88 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
     template<typename EntryType, typename MemType> struct UpDownConversion;
     template<> struct UpDownConversion<double, double> {
-        operator _MM_DOWNCONV_PD_ENUM() const { return _MM_DOWNCONV_PD_NONE; }
-        operator _MM_UPCONV_PD_ENUM() const { return _MM_UPCONV_PD_NONE; }
+        constexpr operator _MM_DOWNCONV_PD_ENUM() const { return _MM_DOWNCONV_PD_NONE; }
+        constexpr operator _MM_UPCONV_PD_ENUM() const { return _MM_UPCONV_PD_NONE; }
     };
     template<> struct UpDownConversion<float, float> {
-        operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_NONE; }
-        operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_NONE; }
+        constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_NONE; }
+        constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_NONE; }
     };
     /*template<> struct UpDownConversion<float, half_float> {
-        operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_FLOAT16; }
-        operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_FLOAT16; }
+        constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_FLOAT16; }
+        constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_FLOAT16; }
     };*/
     template<> struct UpDownConversion<float, unsigned char> {
-        operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_UINT8; }
-        operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_UINT8; }
+        constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_UINT8; }
+        constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_UINT8; }
     };
     template<> struct UpDownConversion<float, signed char> {
-        operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_SINT8; }
-        operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_SINT8; }
+        constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_SINT8; }
+        constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_SINT8; }
     };
     template<> struct UpDownConversion<float, unsigned short> {
-        operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_UINT16; }
-        operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_UINT16; }
+        constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_UINT16; }
+        constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_UINT16; }
     };
     template<> struct UpDownConversion<float, signed short> {
-        operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_SINT16; }
-        operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_SINT16; }
+        constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_SINT16; }
+        constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_SINT16; }
     };
     template<> struct UpDownConversion<unsigned int, char> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
     };
     template<> struct UpDownConversion<unsigned int, signed char> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
     };
     template<> struct UpDownConversion<unsigned int, unsigned char> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT8; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT8; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT8; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT8; }
     };
     template<> struct UpDownConversion<unsigned int, short> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT16; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT16; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT16; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT16; }
     };
     template<> struct UpDownConversion<unsigned int, unsigned short> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT16; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT16; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT16; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT16; }
     };
     template<> struct UpDownConversion<unsigned int, int> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
     };
     template<> struct UpDownConversion<unsigned int, unsigned int> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
     };
     template<> struct UpDownConversion<int, char> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
     };
     template<> struct UpDownConversion<int, signed char> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
     };
     template<> struct UpDownConversion<int, unsigned char> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT8; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT8; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT8; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT8; }
     };
     template<> struct UpDownConversion<int, short> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT16; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT16; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT16; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT16; }
     };
     template<> struct UpDownConversion<int, unsigned short> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT16; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT16; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT16; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT16; }
     };
     template<> struct UpDownConversion<int, int> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
     };
     template<> struct UpDownConversion<int, unsigned int> {
-        operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
-        operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
+        constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
+        constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
     };
 
     enum { VectorAlignment = 64 };
