@@ -126,7 +126,7 @@ template<int L1, int L2, typename SharedOrExclusive, typename... Flags> Vc_INTRI
     handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>());
     handleLoadPrefetches(addr, flags...);
 }
-template<typename F, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, F otherFlag, Flags... flags)
+template<typename F, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, F /*otherFlag*/, Flags... flags)
 {
     handleLoadPrefetches(addr, flags...);
 }
@@ -141,7 +141,7 @@ template<int L1, int L2, typename SharedOrExclusive, typename... Flags> Vc_INTRI
     handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>());
     handleStorePrefetches(addr, flags...);
 }
-template<typename F, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, F otherFlag, Flags... flags)
+template<typename F, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, F /*otherFlag*/, Flags... flags)
 {
     handleStorePrefetches(addr, flags...);
 }
