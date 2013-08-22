@@ -20,9 +20,19 @@ vc_determine_compiler()
 find_package(MIC)
 
 if(ROOT_RELEASE)
-   file(READ "${CMAKE_INSTALL_PREFIX}/Module.mk" ROOT_MODULE_MK)
-   if(NOT ROOT_MODULE_MK MATCHES "\nMODNAME *:= *vc *\n")
-      message(FATAL_ERROR "CMAKE_INSTALL_PREFIX is incorrect. It must point to the Vc subdirectory inside ROOT/AliRoot")
+   if(EXISTS "${CMAKE_INSTALL_PREFIX}/Module.mk")
+      file(READ "${CMAKE_INSTALL_PREFIX}/Module.mk" ROOT_MODULE_MK)
+      if(NOT "${ROOT_MODULE_MK}" MATCHES "\nMODNAME *:= *vc *\n")
+         message(FATAL_ERROR "CMAKE_INSTALL_PREFIX is incorrect. It must point to the Vc subdirectory inside ROOT/AliRoot")
+      endif()
+      set(_extra_namespace "ROOT")
+   endif()
+   if(EXISTS "${CMAKE_INSTALL_PREFIX}/Vc.cmake")
+      file(READ "${CMAKE_INSTALL_PREFIX}/Vc.cmake" ALIROOT_VC_CMAKE)
+      if(NOT "${ALIROOT_VC_CMAKE}" MATCHES "\nmacro\\(ALICE_UseVc\\)\n")
+         message(FATAL_ERROR "CMAKE_INSTALL_PREFIX is incorrect. It must point to the Vc subdirectory inside ROOT/AliRoot")
+      endif()
+      set(_extra_namespace "AliRoot")
    endif()
 else()
 
@@ -85,10 +95,12 @@ else()
       endif()
    endif()
    if(MIC_NATIVE_FOUND)
-      UserWarning("ICC does not support initializer lists (C++11). The following tests are therefore disabled:
+      UserWarning("ICC does not support initializer lists (C++11). Additionally it fails to optimize properly and therefore cannot provide an immediate parameter to an instrinsic. The following tests are therefore disabled:
+      deinterleave_mic
       stlcontainer_mic.")
       list(APPEND disabled_targets
          stlcontainer_mic
+         deinterleave_mic
          )
    endif()
 endif()
@@ -131,6 +143,8 @@ if(NOT ROOT_RELEASE)
          COMPILE_FLAGS ${libvc_mic_compile_flags})
       add_target_property(Vc_MIC LABELS "MIC")
       add_dependencies(MIC Vc_MIC)
+      get_target_property(outputName Vc_MIC OUTPUT_NAME)
+      install(FILES ${outputName} DESTINATION lib${LIB_SUFFIX})
    endif()
 
    vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS ${libvc_compile_flags}
@@ -202,13 +216,13 @@ else()
    message(\"-- Rewriting and Installing: ${CMAKE_INSTALL_PREFIX}/include/Vc/global.h\")
       file(READ \"${CMAKE_SOURCE_DIR}/include/Vc/global.h\" data)
       string(REGEX REPLACE \"#define Vc__SYMBOL_VERSION ([^\\n]*)\"
-         \"#define Vc__SYMBOL_VERSION ROOT\\\\1\" data \"\${data}\")
+         \"#define Vc__SYMBOL_VERSION ${_extra_namespace}\\\\1\" data \"\${data}\")
          file(WRITE \"${CMAKE_INSTALL_PREFIX}/include/Vc/global.h\" \"\${data}\")
    ")
 endif()
 
 # Install all implementation headers
-install(DIRECTORY scalar sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+install(DIRECTORY scalar sse avx mic common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 # read version parts from version.h to be put into VcConfig.cmake
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define VC_VERSION_STRING ")

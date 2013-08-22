@@ -187,13 +187,13 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             // _mm_maskstore_* only works for 64bit and 32bit types. For shorts we have to resort to _mm_maskmoveu_si128
             template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, VTArg m) { _mm_maskmoveu_si128(x, m, reinterpret_cast<char *>(mem)); }
 
-            static VectorType cdab(VTArg x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1)); }
-            static VectorType badc(VTArg x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)), _MM_SHUFFLE(1, 0, 3, 2)); }
-            static VectorType aaaa(VTArg x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(0, 0, 0, 0)), _MM_SHUFFLE(0, 0, 0, 0)); }
-            static VectorType bbbb(VTArg x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 1, 1, 1)), _MM_SHUFFLE(1, 1, 1, 1)); }
-            static VectorType cccc(VTArg x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 2, 2, 2)), _MM_SHUFFLE(2, 2, 2, 2)); }
-            static VectorType dddd(VTArg x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(3, 3, 3, 3)), _MM_SHUFFLE(3, 3, 3, 3)); }
-            static VectorType dacb(VTArg x) { return _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, _MM_SHUFFLE(3, 0, 2, 1)), _MM_SHUFFLE(3, 0, 2, 1)); }
+            static VectorType cdab(VTArg x) { const __m128i tmp = _mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)); return _mm_shufflehi_epi16(tmp, _MM_SHUFFLE(2, 3, 0, 1)); }
+            static VectorType badc(VTArg x) { const __m128i tmp = _mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)); return _mm_shufflehi_epi16(tmp, _MM_SHUFFLE(1, 0, 3, 2)); }
+            static VectorType aaaa(VTArg x) { const __m128i tmp = _mm_shufflelo_epi16(x, _MM_SHUFFLE(0, 0, 0, 0)); return _mm_shufflehi_epi16(tmp, _MM_SHUFFLE(0, 0, 0, 0)); }
+            static VectorType bbbb(VTArg x) { const __m128i tmp = _mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 1, 1, 1)); return _mm_shufflehi_epi16(tmp, _MM_SHUFFLE(1, 1, 1, 1)); }
+            static VectorType cccc(VTArg x) { const __m128i tmp = _mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 2, 2, 2)); return _mm_shufflehi_epi16(tmp, _MM_SHUFFLE(2, 2, 2, 2)); }
+            static VectorType dddd(VTArg x) { const __m128i tmp = _mm_shufflelo_epi16(x, _MM_SHUFFLE(3, 3, 3, 3)); return _mm_shufflehi_epi16(tmp, _MM_SHUFFLE(3, 3, 3, 3)); }
+            static VectorType dacb(VTArg x) { const __m128i tmp = _mm_shufflelo_epi16(x, _MM_SHUFFLE(3, 0, 2, 1)); return _mm_shufflehi_epi16(tmp, _MM_SHUFFLE(3, 0, 2, 1)); }
 
             OP0(allone, _mm_setallone_si128())
             OP0(zero, _mm_setzero_si128())
