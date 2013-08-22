@@ -103,37 +103,8 @@ namespace AVX {
 #  endif
 #endif
 
-/**
- * Hint for \ref Prefetch to select prefetches that mark the memory as exclusive.
- *
- * This hint may optimize the prefetch if the memory will subsequently be written to.
- */
-struct Exclusive {};
-/**
- * Hint for \ref Prefetch to select prefetches that mark the memory as shared.
- */
-struct Shared {};
-
 namespace
 {
-
-struct StreamingFlag {};
-struct UnalignedFlag {};
-struct PrefetchFlagBase {};
-#ifdef VC_IMPL_MIC
-template<size_t L1 = 8 * 64, size_t L2 = 64 * 64,
-#else
-// TODO: determine a good default for typical CPU use
-template<size_t L1 = 16 * 64, size_t L2 = 128 * 64,
-#endif
-    typename ExclusiveOrShared_ = void> struct PrefetchFlag : public PrefetchFlagBase
-{
-    typedef ExclusiveOrShared_ ExclusiveOrShared;
-    static constexpr size_t L1Stride = L1;
-    static constexpr size_t L2Stride = L2;
-    static constexpr bool IsExclusive = std::is_same<ExclusiveOrShared, Exclusive>::value;
-    static constexpr bool IsShared = std::is_same<ExclusiveOrShared, Shared>::value;
-};
 
     //template<bool B, typename T = void> using enable_if = typename std::enable_if<B, T>::type;
     template<typename B, typename T = void> using enable_if = typename std::enable_if<B::value, T>::type;

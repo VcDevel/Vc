@@ -17,34 +17,63 @@
 
 }}}*/
 
-#ifndef VC_COMMON_TYPELIST_H
-#define VC_COMMON_TYPELIST_H
+#ifndef VC_COMMON_LOADSTOREFLAGS_H
+#define VC_COMMON_LOADSTOREFLAGS_H
 
 #include "types.h"
 #include "macros.h"
 
 Vc_PUBLIC_NAMESPACE_BEGIN
 
+/**
+ * Hint for \ref Prefetch to select prefetches that mark the memory as exclusive.
+ *
+ * This hint may optimize the prefetch if the memory will subsequently be written to.
+ */
+struct Exclusive {};
+/**
+ * Hint for \ref Prefetch to select prefetches that mark the memory as shared.
+ */
+struct Shared {};
+
 namespace
 {
 
-template<typename Base, typename Default, typename... TypeList> struct ExtractType
+struct StreamingFlag {};
+struct UnalignedFlag {};
+struct PrefetchFlagBase {};
+#ifdef VC_IMPL_MIC
+template<size_t L1 = 8 * 64, size_t L2 = 64 * 64,
+#else
+// TODO: determine a good default for typical CPU use
+template<size_t L1 = 16 * 64, size_t L2 = 128 * 64,
+#endif
+    typename ExclusiveOrShared_ = void> struct PrefetchFlag : public PrefetchFlagBase
+{
+    typedef ExclusiveOrShared_ ExclusiveOrShared;
+    static constexpr size_t L1Stride = L1;
+    static constexpr size_t L2Stride = L2;
+    static constexpr bool IsExclusive = std::is_same<ExclusiveOrShared, Exclusive>::value;
+    static constexpr bool IsShared = std::is_same<ExclusiveOrShared, Shared>::value;
+};
+
+template<typename Base, typename Default, typename... LoadStoreFlags> struct ExtractType
 {
     typedef Default type;
 };
-template<typename Base, typename Default, typename T, typename... TypeList> struct ExtractType<Base, Default, T, TypeList...>
+template<typename Base, typename Default, typename T, typename... LoadStoreFlags> struct ExtractType<Base, Default, T, LoadStoreFlags...>
 {
-    typedef typename std::conditional<std::is_base_of<Base, T>::value, T, typename ExtractType<Base, Default, TypeList...>::type>::type type;
+    typedef typename std::conditional<std::is_base_of<Base, T>::value, T, typename ExtractType<Base, Default, LoadStoreFlags...>::type>::type type;
 };
 
-// ICC warns about the constexpr members in TypeList: member "TypeList<Flags...>::IsAligned" was declared but never referenced
+// ICC warns about the constexpr members in LoadStoreFlags: member "LoadStoreFlags<Flags...>::IsAligned" was declared but never referenced
 // who needs that warning, especially if it was referenced...
-// The warning cannot be reenabled because it gets emitted whenever the TypeList is instantiated
+// The warning cannot be reenabled because it gets emitted whenever the LoadStoreFlags is instantiated
 // somewhere, so it could be anywhere.
 #ifdef VC_ICC
 #pragma warning(disable: 177)
 #endif
-template<typename... Flags> struct TypeList
+template<typename... Flags> struct LoadStoreFlags
 {
 private:
     // ICC doesn't grok this line:
@@ -60,7 +89,7 @@ public:
     static constexpr size_t L1Stride = Prefetch::L1Stride;
     static constexpr size_t L2Stride = Prefetch::L2Stride;
 
-    // The following EnableIf* convenience types cannot use enable_if because then no TypeList type
+    // The following EnableIf* convenience types cannot use enable_if because then no LoadStoreFlags type
     // could ever be instantiated. Instead these types are defined either as void* or void. The
     // function that does SFINAE then assigns "= nullptr" to this type. Thus, the ones with just
     // void result in substitution failure.
@@ -73,7 +102,7 @@ public:
     typedef typename std::conditional<!IsPrefetch                , void *, void>::type EnableIfNotPrefetch;
 };
 
-template<> struct TypeList<>
+template<> struct LoadStoreFlags<>
 {
     static constexpr bool IsStreaming = false;
     static constexpr bool IsUnaligned = false;
@@ -88,9 +117,9 @@ template<> struct TypeList<>
 };
 
 template<typename... LFlags, typename... RFlags>
-constexpr TypeList<LFlags..., RFlags...> operator|(TypeList<LFlags...>, TypeList<RFlags...>)
+constexpr LoadStoreFlags<LFlags..., RFlags...> operator|(LoadStoreFlags<LFlags...>, LoadStoreFlags<RFlags...>)
 {
-    return TypeList<LFlags..., RFlags...>();
+    return LoadStoreFlags<LFlags..., RFlags...>();
 }
 
 template<typename Flags> struct EnableIfAligned : public std::enable_if<Flags::IsAligned && !Flags::IsStreaming, void *> {};
@@ -101,11 +130,11 @@ template<typename Flags> struct EnableIfUnalignedAndStreaming : public std::enab
 
 } // anonymous namespace
 
-typedef TypeList<> AlignedT;
+typedef LoadStoreFlags<> AlignedT;
 constexpr AlignedT Aligned;
-constexpr TypeList<StreamingFlag> Streaming;
-constexpr TypeList<UnalignedFlag> Unaligned;
-constexpr TypeList<PrefetchFlag<>> PrefetchDefault;
+constexpr LoadStoreFlags<StreamingFlag> Streaming;
+constexpr LoadStoreFlags<UnalignedFlag> Unaligned;
+constexpr LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
 
 /**
  * \tparam L1
@@ -113,10 +142,10 @@ constexpr TypeList<PrefetchFlag<>> PrefetchDefault;
  * \tparam ExclusiveOrShared
  */
 template<size_t L1 = PrefetchFlag<>::L1Stride, size_t L2 = PrefetchFlag<>::L2Stride, typename ExclusiveOrShared = PrefetchFlag<>::ExclusiveOrShared>
-struct Prefetch : public TypeList<PrefetchFlag<L1, L2, ExclusiveOrShared>> {};
+struct Prefetch : public LoadStoreFlags<PrefetchFlag<L1, L2, ExclusiveOrShared>> {};
 
 Vc_NAMESPACE_END
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_TYPELIST_H
+#endif // VC_COMMON_LOADSTOREFLAGS_H

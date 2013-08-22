@@ -23,7 +23,7 @@
 #include <immintrin.h>
 
 #include "const_data.h"
-#include "../common/typelist.h"
+#include "../common/loadstoreflags.h"
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(MicIntrinsics)

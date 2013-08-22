@@ -45,7 +45,7 @@ template<> Vc_ALWAYS_INLINE Vector<double>::Vector(EntryType x) : d(_mm256_set1_
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions {{{1
-template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *mem, Flags)
+template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *mem, Flags flags)
 {
     handleLoadPrefetches(mem, flags);
     d.v() = HV::template load<Flags>(mem);

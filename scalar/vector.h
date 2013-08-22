@@ -29,7 +29,7 @@
 #endif
 
 #include "../common/memoryfwd.h"
-#include "../common/typelist.h"
+#include "../common/loadstoreflags.h"
 #include "types.h"
 #include "mask.h"
 #include "writemaskedvector.h"

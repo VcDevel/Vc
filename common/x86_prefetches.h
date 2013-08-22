@@ -103,15 +103,15 @@ template<size_t L1, size_t L2, bool UseExclusivePrefetch> Vc_INTRINSIC void hand
 {
 }
 
-template<typename Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *    , Flags      , typename Flags::EnableIfNotPrefetch = nullptr) {}
-template<typename Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, Flags flags, typename Flags::EnableIfPrefetch    = nullptr)
+template<typename Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *    , Flags, typename Flags::EnableIfNotPrefetch = nullptr) {}
+template<typename Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, Flags, typename Flags::EnableIfPrefetch    = nullptr)
 {
     // load prefetches default to Shared unless Exclusive was explicitely selected
     handlePrefetch<Flags::L1Stride, Flags::L2Stride, Flags::IsExclusivePrefetch>(addr);
 }
 
-template<typename Flags> Vc_INTRINSIC void handleStorePrefetches(const void *    , Flags      , typename Flags::EnableIfNotPrefetch = nullptr) {}
-template<typename Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, Flags flags, typename Flags::EnableIfPrefetch    = nullptr)
+template<typename Flags> Vc_INTRINSIC void handleStorePrefetches(const void *    , Flags, typename Flags::EnableIfNotPrefetch = nullptr) {}
+template<typename Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, Flags, typename Flags::EnableIfPrefetch    = nullptr)
 {
     // store prefetches default to Exclusive unless Shared was explicitely selected
     handlePrefetch<Flags::L1Stride, Flags::L2Stride, !Flags::IsSharedPrefetch>(addr);

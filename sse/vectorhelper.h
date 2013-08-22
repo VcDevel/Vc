@@ -21,7 +21,7 @@
 #define SSE_VECTORHELPER_H
 
 #include "types.h"
-#include "../common/typelist.h"
+#include "../common/loadstoreflags.h"
 #include <limits>
 #include "macros.h"
 

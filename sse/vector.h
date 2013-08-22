@@ -26,7 +26,7 @@
 #include "mask.h"
 #include "../common/aliasingentryhelper.h"
 #include "../common/memoryfwd.h"
-#include "../common/typelist.h"
+#include "../common/loadstoreflags.h"
 #include <algorithm>
 #include <cmath>
 

@@ -24,7 +24,7 @@
 #include "types.h"
 #include "intrinsics.h"
 #include "casts.h"
-#include "../common/typelist.h"
+#include "../common/loadstoreflags.h"
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
