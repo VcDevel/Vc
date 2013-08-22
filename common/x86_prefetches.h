@@ -83,68 +83,40 @@ Vc_INTRINSIC void prefetchFar(const void *addr)
 /*handlePrefetch/handleLoadPrefetches/handleStorePrefetches{{{*/
 namespace
 {
-template<int L1, int L2> Vc_INTRINSIC void handlePrefetch(const void *addr_, Vc::PrefetchFlag<L1, L2, Shared>)
+template<size_t L1, size_t L2, bool UseExclusivePrefetch> Vc_INTRINSIC void handlePrefetch(const void *addr_, typename std::enable_if<L1 != 0 && L2 != 0, void *>::type = nullptr)
 {
     const char *addr = static_cast<const char *>(addr_);
-    prefetchClose(addr + L1);
-    prefetchMid  (addr + L2);
+    prefetchClose<typename std::conditional<UseExclusivePrefetch, Vc::Exclusive, Vc::Shared>::type>(addr + L1);
+    prefetchMid  <typename std::conditional<UseExclusivePrefetch, Vc::Exclusive, Vc::Shared>::type>(addr + L2);
 }
-template<int L1> Vc_INTRINSIC void handlePrefetch(const void *addr_, Vc::PrefetchFlag<L1, 0, Shared>)
+template<size_t L1, size_t L2, bool UseExclusivePrefetch> Vc_INTRINSIC void handlePrefetch(const void *addr_, typename std::enable_if<L1 == 0 && L2 != 0, void *>::type = nullptr)
 {
     const char *addr = static_cast<const char *>(addr_);
-    prefetchClose(addr + L1);
+    prefetchMid  <typename std::conditional<UseExclusivePrefetch, Vc::Exclusive, Vc::Shared>::type>(addr + L2);
 }
-template<int L2> Vc_INTRINSIC void handlePrefetch(const void *addr_, Vc::PrefetchFlag<0, L2, Shared>)
+template<size_t L1, size_t L2, bool UseExclusivePrefetch> Vc_INTRINSIC void handlePrefetch(const void *addr_, typename std::enable_if<L1 != 0 && L2 == 0, void *>::type = nullptr)
 {
     const char *addr = static_cast<const char *>(addr_);
-    prefetchMid  (addr + L2);
+    prefetchClose<typename std::conditional<UseExclusivePrefetch, Vc::Exclusive, Vc::Shared>::type>(addr + L1);
 }
-template<int L1, int L2> Vc_INTRINSIC void handlePrefetch(const void *addr_, Vc::PrefetchFlag<L1, L2, Exclusive>)
+template<size_t L1, size_t L2, bool UseExclusivePrefetch> Vc_INTRINSIC void handlePrefetch(const void *, typename std::enable_if<L1 == 0 && L2 == 0, void *>::type = nullptr)
 {
-    const char *addr = static_cast<const char *>(addr_);
-    prefetchClose<Vc::Exclusive>(addr + L1);
-    prefetchMid  <Vc::Exclusive>(addr + L2);
 }
-template<int L1> Vc_INTRINSIC void handlePrefetch(const void *addr_, Vc::PrefetchFlag<L1, 0, Exclusive>)
+
+template<typename Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *    , Flags      , typename Flags::EnableIfNotPrefetch = nullptr) {}
+template<typename Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, Flags flags, typename Flags::EnableIfPrefetch    = nullptr)
 {
-    const char *addr = static_cast<const char *>(addr_);
-    prefetchClose<Vc::Exclusive>(addr + L1);
+    // load prefetches default to Shared unless Exclusive was explicitely selected
+    handlePrefetch<Flags::L1Stride, Flags::L2Stride, Flags::IsExclusivePrefetch>(addr);
 }
-template<int L2> Vc_INTRINSIC void handlePrefetch(const void *addr_, Vc::PrefetchFlag<0, L2, Exclusive>)
+
+template<typename Flags> Vc_INTRINSIC void handleStorePrefetches(const void *    , Flags      , typename Flags::EnableIfNotPrefetch = nullptr) {}
+template<typename Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, Flags flags, typename Flags::EnableIfPrefetch    = nullptr)
 {
-    const char *addr = static_cast<const char *>(addr_);
-    prefetchMid  <Vc::Exclusive>(addr + L2);
+    // store prefetches default to Exclusive unless Shared was explicitely selected
+    handlePrefetch<Flags::L1Stride, Flags::L2Stride, !Flags::IsSharedPrefetch>(addr);
 }
-Vc_INTRINSIC void handleLoadPrefetches(const void *) {}
-template<int L1, int L2, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, void>, Flags... flags)
-{
-    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, Shared>());
-    handleLoadPrefetches(addr, flags...);
-}
-template<int L1, int L2, typename SharedOrExclusive, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>, Flags... flags)
-{
-    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>());
-    handleLoadPrefetches(addr, flags...);
-}
-template<typename F, typename... Flags> Vc_INTRINSIC void handleLoadPrefetches(const void *addr, F /*otherFlag*/, Flags... flags)
-{
-    handleLoadPrefetches(addr, flags...);
-}
-Vc_INTRINSIC void handleStorePrefetches(const void *) {}
-template<int L1, int L2, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, void>, Flags... flags)
-{
-    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, Exclusive>());
-    handleStorePrefetches(addr, flags...);
-}
-template<int L1, int L2, typename SharedOrExclusive, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>, Flags... flags)
-{
-    handlePrefetch(addr, Vc::PrefetchFlag<L1, L2, SharedOrExclusive>());
-    handleStorePrefetches(addr, flags...);
-}
-template<typename F, typename... Flags> Vc_INTRINSIC void handleStorePrefetches(const void *addr, F /*otherFlag*/, Flags... flags)
-{
-    handleStorePrefetches(addr, flags...);
-}
+
 } // anonymous namespace
 /*}}}*/
 

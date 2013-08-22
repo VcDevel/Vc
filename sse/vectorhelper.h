@@ -21,6 +21,7 @@
 #define SSE_VECTORHELPER_H
 
 #include "types.h"
+#include "../common/typelist.h"
 #include <limits>
 #include "macros.h"
 
@@ -60,39 +61,6 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
     };
 
 #define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
-#define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VectorTypeArg a, VectorTypeArg b) { return code; }
-#define OP3(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VectorTypeArg a, VectorTypeArg b, VectorTypeArg c) { return code; }
-    template<> struct VectorHelper<M256>
-    {
-        typedef M256 VectorType;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-        typedef const VectorType &VectorTypeArg;
-#else
-        typedef const VectorType VectorTypeArg;
-#endif
-        template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const float *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
-        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, AlignedFlag) Vc_ALWAYS_INLINE_R;
-        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, StreamingFlag) Vc_ALWAYS_INLINE_R;
-        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
-        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, AlignedFlag) Vc_ALWAYS_INLINE_R;
-        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingFlag) Vc_ALWAYS_INLINE_R;
-        static Vc_ALWAYS_INLINE_L void store(float *mem, VectorTypeArg x, VectorTypeArg m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
-
-        OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
-        OP0(zero, VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()))
-        OP2(or_, VectorType::create(_mm_or_ps(a[0], b[0]), _mm_or_ps(a[1], b[1])))
-        OP2(xor_, VectorType::create(_mm_xor_ps(a[0], b[0]), _mm_xor_ps(a[1], b[1])))
-        OP2(and_, VectorType::create(_mm_and_ps(a[0], b[0]), _mm_and_ps(a[1], b[1])))
-        OP2(andnot_, VectorType::create(_mm_andnot_ps(a[0], b[0]), _mm_andnot_ps(a[1], b[1])))
-        OP3(blend, VectorType::create(_mm_blendv_ps(a[0], b[0], c[0]), _mm_blendv_ps(a[1], b[1], c[1])))
-    };
-#undef OP0
-#undef OP2
-#undef OP3
-
-#define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
 #define OP1(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a) { return code; }
 #define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a, const VectorType b) { return code; }
 #define OP3(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a, const VectorType b, const VectorType c) { return code; }
@@ -100,15 +68,18 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
         template<> struct VectorHelper<_M128>
         {
             typedef _M128 VectorType;
-            template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const float *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, AlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, StreamingFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, AlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, StreamingFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
+
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename EnableIfAligned  <Flags>::type = nullptr) { return _mm_load_ps(x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename EnableIfUnaligned<Flags>::type = nullptr) { return _mm_loadu_ps(x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename EnableIfStreaming<Flags>::type = nullptr) { return _mm_stream_load(x); }
+
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VectorType x, typename EnableIfAligned              <Flags>::type = nullptr) { _mm_store_ps(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VectorType x, typename EnableIfUnalignedNotStreaming<Flags>::type = nullptr) { _mm_storeu_ps(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VectorType x, typename EnableIfStreaming            <Flags>::type = nullptr) { _mm_stream_ps(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VectorType x, typename EnableIfUnalignedAndStreaming<Flags>::type = nullptr) { _mm_maskmoveu_si128(_mm_castps_si128(x), _mm_setallone_si128(), reinterpret_cast<char *>(mem)); }
+
+            // before AVX there was only one maskstore. load -> blend -> store would break the C++ memory model (read/write of memory that is actually not touched by this thread)
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VectorType x, VectorType m) { _mm_maskmoveu_si128(_mm_castps_si128(x), _mm_castps_si128(m), reinterpret_cast<char *>(mem)); }
 
             OP0(allone, _mm_setallone_ps())
             OP0(zero, _mm_setzero_ps())
@@ -123,15 +94,18 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
         template<> struct VectorHelper<_M128D>
         {
             typedef _M128D VectorType;
-            template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const double *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, AlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, StreamingFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, AlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, StreamingFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
+
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const double *x, typename EnableIfAligned  <Flags>::type = nullptr) { return _mm_load_pd(x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const double *x, typename EnableIfUnaligned<Flags>::type = nullptr) { return _mm_loadu_pd(x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const double *x, typename EnableIfStreaming<Flags>::type = nullptr) { return _mm_stream_load(x); }
+
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VectorType x, typename EnableIfAligned              <Flags>::type = nullptr) { _mm_store_pd(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VectorType x, typename EnableIfUnalignedNotStreaming<Flags>::type = nullptr) { _mm_storeu_pd(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VectorType x, typename EnableIfStreaming            <Flags>::type = nullptr) { _mm_stream_pd(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VectorType x, typename EnableIfUnalignedAndStreaming<Flags>::type = nullptr) { _mm_maskmoveu_si128(_mm_castpd_si128(x), _mm_setallone_si128(), reinterpret_cast<char *>(mem)); }
+
+            // before AVX there was only one maskstore. load -> blend -> store would break the C++ memory model (read/write of memory that is actually not touched by this thread)
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VectorType x, VectorType m) { _mm_maskmoveu_si128(_mm_castpd_si128(x), _mm_castpd_si128(m), reinterpret_cast<char *>(mem)); }
 
             OP0(allone, _mm_setallone_pd())
             OP0(zero, _mm_setzero_pd())
@@ -145,18 +119,18 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
         template<> struct VectorHelper<_M128I>
         {
             typedef _M128I VectorType;
-            template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, AlignedFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, UnalignedFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, StreamingFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const T *x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R Vc_PURE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, AlignedFlag) Vc_ALWAYS_INLINE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, StreamingFlag) Vc_ALWAYS_INLINE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, AlignedFlag) Vc_ALWAYS_INLINE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, StreamingFlag) Vc_ALWAYS_INLINE_R;
-            template<typename T> static Vc_ALWAYS_INLINE_L void store(T *mem, const VectorType x, const VectorType m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
+
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const T *x, typename EnableIfAligned  <Flags>::type = nullptr) { return _mm_load_si128(reinterpret_cast<const VectorType *>(x)); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const T *x, typename EnableIfUnaligned<Flags>::type = nullptr) { return _mm_loadu_si128(reinterpret_cast<const VectorType *>(x)); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const T *x, typename EnableIfStreaming<Flags>::type = nullptr) { return _mm_stream_load(x); }
+
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VectorType x, typename EnableIfAligned              <Flags>::type = nullptr) { _mm_store_si128(reinterpret_cast<VectorType *>(mem), x); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VectorType x, typename EnableIfUnalignedNotStreaming<Flags>::type = nullptr) { _mm_storeu_si128(reinterpret_cast<VectorType *>(mem), x); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VectorType x, typename EnableIfStreaming            <Flags>::type = nullptr) { _mm_stream_si128(reinterpret_cast<VectorType *>(mem), x); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VectorType x, typename EnableIfUnalignedAndStreaming<Flags>::type = nullptr) { _mm_maskmoveu_si128(x, _mm_setallone_si128(), reinterpret_cast<char *>(mem)); }
+
+            // before AVX there was only one maskstore. load -> blend -> store would break the C++ memory model (read/write of memory that is actually not touched by this thread)
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VectorType x, VectorType m) { _mm_maskmoveu_si128(x, m, reinterpret_cast<char *>(mem)); }
 
             OP0(allone, _mm_setallone_si128())
             OP0(zero, _mm_setzero_si128())
@@ -168,6 +142,34 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
         };
 
 #undef OP1
+#undef OP2
+#undef OP3
+
+#define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
+#define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VectorTypeArg a, VectorTypeArg b) { return code; }
+#define OP3(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VectorTypeArg a, VectorTypeArg b, VectorTypeArg c) { return code; }
+    template<> struct VectorHelper<M256>
+    {
+        typedef VectorHelper<__m128> VH1;
+        typedef M256 VectorType;
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+        typedef const VectorType &VectorTypeArg;
+#else
+        typedef const VectorType VectorTypeArg;
+#endif
+        template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x) { return VectorType::create(VH1::load<Flags>(x), VH1::load<Flags>(x + 4)); }
+        template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VectorTypeArg x) { VH1::store<Flags>(mem, x[0]); VH1::store<Flags>(mem + 4, x[1]); }
+        template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VectorTypeArg x, VectorTypeArg mask) { VH1::store<Flags>(mem, x[0], mask[0]); VH1::store<Flags>(mem + 4, x[1], mask[1]); }
+
+        OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
+        OP0(zero, VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()))
+        OP2(or_, VectorType::create(_mm_or_ps(a[0], b[0]), _mm_or_ps(a[1], b[1])))
+        OP2(xor_, VectorType::create(_mm_xor_ps(a[0], b[0]), _mm_xor_ps(a[1], b[1])))
+        OP2(and_, VectorType::create(_mm_and_ps(a[0], b[0]), _mm_and_ps(a[1], b[1])))
+        OP2(andnot_, VectorType::create(_mm_andnot_ps(a[0], b[0]), _mm_andnot_ps(a[1], b[1])))
+        OP3(blend, VectorType::create(_mm_blendv_ps(a[0], b[0], c[0]), _mm_blendv_ps(a[1], b[1], c[1])))
+    };
+#undef OP0
 #undef OP2
 #undef OP3
 

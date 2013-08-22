@@ -103,103 +103,38 @@ namespace AVX {
 #  endif
 #endif
 
-struct FlagBase {};
-struct LoadStoreFlag : public FlagBase {};
-extern struct AlignedFlag   : public LoadStoreFlag {} Aligned;
-extern struct UnalignedFlag : public LoadStoreFlag {} Unaligned;
-extern struct StreamingFlag : public LoadStoreFlag {} Streaming;
+/**
+ * Hint for \ref Prefetch to select prefetches that mark the memory as exclusive.
+ *
+ * This hint may optimize the prefetch if the memory will subsequently be written to.
+ */
 struct Exclusive {};
+/**
+ * Hint for \ref Prefetch to select prefetches that mark the memory as shared.
+ */
 struct Shared {};
+
+namespace
+{
+
+struct StreamingFlag {};
+struct UnalignedFlag {};
+struct PrefetchFlagBase {};
 #ifdef VC_IMPL_MIC
-template<int L1Stride = 8 * 64, int L2Stride = 64 * 64, typename ExclusiveOrShared = void> struct PrefetchFlag : public FlagBase {};
+template<size_t L1 = 8 * 64, size_t L2 = 64 * 64,
 #else
 // TODO: determine a good default for typical CPU use
-template<int L1Stride = 16 * 64, int L2Stride = 128 * 64, typename ExclusiveOrShared = void> struct PrefetchFlag : public FlagBase {};
+template<size_t L1 = 16 * 64, size_t L2 = 128 * 64,
 #endif
-extern PrefetchFlag<> Prefetch;
-namespace
+    typename ExclusiveOrShared_ = void> struct PrefetchFlag : public PrefetchFlagBase
 {
-// CombineFlags: for now we can only combine 2 flags, more doesn't make sense with the current set/*{{{*/
-template<typename F0, typename F1> struct CombineFlags
-{
-    typedef F0 Flag0;
-    typedef F1 Flag1;
-}; /*}}}*/
-
-template<typename T, typename... Us> struct is_contained;/*{{{*/
-template<typename T, typename U> struct is_contained<T, U> : public std::integral_constant<bool, std::is_same<T, U>::value> {};
-template<typename T, typename U, typename... Vs> struct is_contained<T, U, Vs...>
-    : public std::integral_constant<bool, is_contained<T, Vs...>::value || std::is_same<T, U>::value> {};/*}}}*/
-
-template<typename... Flags> struct get_loadstore_flags;/*{{{*/
-// iff only one flag is given and it's neither Aligned, Unaligned, nor Streaming we default to Aligned
-template<> struct get_loadstore_flags<>
-{
-    typedef AlignedFlag type;
-
-    static Vc_INTRINSIC type flag() { return type(); }
-};
-template<typename F> struct get_loadstore_flags<F>
-{
-    typedef typename std::conditional<std::is_base_of<LoadStoreFlag, F>::value, F, AlignedFlag>::type type;
-
-    static Vc_INTRINSIC type flag() { return type(); }
+    typedef ExclusiveOrShared_ ExclusiveOrShared;
+    static constexpr size_t L1Stride = L1;
+    static constexpr size_t L2Stride = L2;
+    static constexpr bool IsExclusive = std::is_same<ExclusiveOrShared, Exclusive>::value;
+    static constexpr bool IsShared = std::is_same<ExclusiveOrShared, Shared>::value;
 };
 
-template<typename F, typename G> struct get_loadstore_flags<F, G>
-{
-    static_assert(
-            (std::is_same<F, AlignedFlag>::value && !std::is_same<UnalignedFlag, G>::value) ||
-            (std::is_same<F, UnalignedFlag>::value && !std::is_same<AlignedFlag, G>::value) ||
-            (!std::is_same<F, AlignedFlag>::value && !std::is_same<F, UnalignedFlag>::value),
-            "The Aligned and Unaligned load/store flags were combined. This is an ambiguous request. Please fix the code.");
-
-    typedef typename std::conditional<
-        std::is_base_of<LoadStoreFlag, F>::value,
-        typename std::conditional<std::is_base_of<LoadStoreFlag, G>::value,
-            typename std::conditional<std::is_same<F, G>::value,
-                F,
-                typename std::conditional<std::is_same<F, StreamingFlag>::value,
-                    typename std::conditional<std::is_same<G, AlignedFlag>::value,
-                        F,
-                        CombineFlags<F, G>
-                    >::type,
-                    typename std::conditional<std::is_same<F, AlignedFlag>::value,
-                        G,
-                        CombineFlags<G, F>
-                    >::type
-                >::type
-            >::type,
-            F
-        >::type,
-        typename get_loadstore_flags<G>::type
-    >::type type;
-
-    static Vc_INTRINSIC type flag() { return type(); }
-};
-
-template<typename F, typename G, typename... Flags> struct get_loadstore_flags<F, G, Flags...>
-{
-    static_assert(
-            (std::is_same<F, AlignedFlag>::value && !is_contained<UnalignedFlag, G, Flags...>::value) ||
-            (std::is_same<F, UnalignedFlag>::value && !is_contained<AlignedFlag, G, Flags...>::value) ||
-            (!std::is_same<F, AlignedFlag>::value && !std::is_same<F, UnalignedFlag>::value),
-            "The Aligned and Unaligned load/store flags were combined. This is an ambiguous request. Please fix the code.");
-
-    //TODO: need to combine several flags in some way
-    typedef typename std::conditional<
-        std::is_base_of<LoadStoreFlag, F>::value && !is_contained<F, G, Flags...>::value,
-        F,
-        typename get_loadstore_flags<G, Flags...>::type
-            >::type type;
-
-    static Vc_INTRINSIC type flag() { return type(); }
-};/*}}}*/
-} // anonymous namespace
-typedef CombineFlags<StreamingFlag, UnalignedFlag> StreamingAndUnalignedFlag;
-
-namespace
-{
     //template<bool B, typename T = void> using enable_if = typename std::enable_if<B, T>::type;
     template<typename B, typename T = void> using enable_if = typename std::enable_if<B::value, T>::type;
 
@@ -249,35 +184,9 @@ namespace
         struct  no { yes x, y; };
     } // anonymous namespace
 
-    template<typename From, typename To> struct HasImplicitCast
-    {
-        template<typename F> static F makeT();
-#if defined(VC_GCC) && VC_GCC < 0x40300
-        // older GCCs don't do SFINAE correctly
-        static yes test( To) { return yes(); }
-        static  no test(...) { return  no(); }
-        enum {
-            Value = !!(sizeof(test(makeT<From>())) == sizeof(yes))
-        };
-#else
-        template<typename T> static int test2(const T &);
-#ifdef VC_MSVC
-            // I want to test whether implicit cast works. If it works MSVC thinks it should give a warning. Wrong. Shut up.
-#pragma warning(suppress : 4257 4267)
-#endif
-        template<typename F, typename T> static typename EnableIf<sizeof(test2<T>(makeT<F>())) == sizeof(int), yes>::Value test(int);
-        template<typename, typename> static no  test(...);
-        enum {
-            Value = !!(sizeof(test<From, To>(0)) == sizeof(yes))
-        };
-#endif
+    template<typename From, typename To> struct HasImplicitCast : public std::is_convertible<From, To> {
+        static constexpr bool Value = std::is_convertible<From, To>::value;
     };
-#if defined(VC_GCC) && VC_GCC < 0x40300
-    // GCC 4.1 is very noisy because of the float->int and double->int type trait tests. We get
-    // around this noise with a little specialization.
-    template<> struct HasImplicitCast<float , int> { enum { Value = true }; };
-    template<> struct HasImplicitCast<double, int> { enum { Value = true }; };
-#endif
 
     template<typename T> struct CanConvertToInt : public HasImplicitCast<T, int> {};
     template<> struct CanConvertToInt<bool>     { enum { Value = 0 }; };
@@ -293,17 +202,11 @@ namespace
     static_assert(CanConvertToInt<float*>::Value == 0, "CanConvertToInt_is_broken");
     static_assert(CanConvertToInt<TestEnum>::Value == 1, "CanConvertToInt_is_broken");
 
-    typedef HasImplicitCast<TestEnum, short> HasImplicitCastTest0;
-    typedef HasImplicitCast<int *, void *> HasImplicitCastTest1;
-    typedef HasImplicitCast<int *, const void *> HasImplicitCastTest2;
-    typedef HasImplicitCast<const int *, const void *> HasImplicitCastTest3;
-    typedef HasImplicitCast<const int *, int *> HasImplicitCastTest4;
-
-    static_assert(HasImplicitCastTest0::Value ==  true, "HasImplicitCast0_is_broken");
-    static_assert(HasImplicitCastTest1::Value ==  true, "HasImplicitCast1_is_broken");
-    static_assert(HasImplicitCastTest2::Value ==  true, "HasImplicitCast2_is_broken");
-    static_assert(HasImplicitCastTest3::Value ==  true, "HasImplicitCast3_is_broken");
-    static_assert(HasImplicitCastTest4::Value == false, "HasImplicitCast4_is_broken");
+    static_assert(HasImplicitCast<TestEnum, short>          ::Value ==  true, "HasImplicitCast0_is_broken");
+    static_assert(HasImplicitCast<int *, void *>            ::Value ==  true, "HasImplicitCast1_is_broken");
+    static_assert(HasImplicitCast<int *, const void *>      ::Value ==  true, "HasImplicitCast2_is_broken");
+    static_assert(HasImplicitCast<const int *, const void *>::Value ==  true, "HasImplicitCast3_is_broken");
+    static_assert(HasImplicitCast<const int *, int *>       ::Value == false, "HasImplicitCast4_is_broken");
 
     template<typename T> struct IsLikeInteger { enum { Value = !IsReal<T>::Value && CanConvertToInt<T>::Value }; };
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !IsUnsignedInteger<T>::Value }; };

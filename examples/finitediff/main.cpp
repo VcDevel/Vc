@@ -201,10 +201,10 @@ int main()
         auto dy = Vc::makeIterator<float_v>(&dy_points[1], Vc::Streaming);
 
         // Prefetches make sure the data which is going to be used in the next iterations is already
-        // in the L1 cache. The Vc::Prefetch flag provides some sensible default for loops where no
-        // elements are skipped. You can use Vc::PrefetchFlag<L1, L2>() instead to set the stride of
+        // in the L1 cache. The Vc::Prefetch<>() flag provides some sensible default for loops where no
+        // elements are skipped. You can use Vc::Prefetch<L1, L2, Shared/Exclusive>() instead to set the stride of
         // L1 and L2 prefetches manually.
-        auto y = y_points.begin(Vc::Prefetch);
+        auto y = y_points.begin(Vc::Prefetch<>());
         float_v y0 = *y++;
         const auto y_it_last = y_points.end();
 #pragma noprefetch
@@ -224,8 +224,8 @@ int main()
          * use the STL transform algorithm. We have to rely on the compiler for unrolling, though.
          * At least ICC doesn't produce the best code from this...
          *
-        std::transform(Vc::makeIterator(y_points.vector(1), Vc::Prefetch),
-                y_points.end(Vc::Prefetch),
+        std::transform(Vc::makeIterator(y_points.vector(1), Vc::Prefetch<>()),
+                y_points.end(Vc::Prefetch<>()),
                 Vc::makeIterator<float_v>(&dy_points[1], Vc::Streaming),
                 [&y0,oneOver2h](float_v y1) -> float_v {
                     const auto r = (y0.shifted(2, y1) - y0) * oneOver2h;

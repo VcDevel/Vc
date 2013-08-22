@@ -143,32 +143,23 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load ctors
-    explicit Vc_INTRINSIC Vector(const EntryType *x) { load(x); }
-    template<typename Flag0, typename... Flags> Vc_INTRINSIC
-        Vector(enable_if<std::is_base_of<Vc::FlagBase, Flag0>, const EntryType *> x, Flag0 f0, Flags... flags) {
-            load(x, f0, flags...);
-        }
-    // the following ctors have no return type and no non-template argument, therefore enable_if
-    // doesn't work with variadic templates :(
-    // the enable_if is required to disambiguate between gather ctors and load ctors
-    template<typename OtherT> explicit Vc_INTRINSIC Vector(const OtherT *x) { load(x); }
-    template<typename OtherT, typename Flag0> Vc_INTRINSIC Vector(const OtherT *x, Flag0 f0,
-            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load(x, f0); }
-    template<typename OtherT, typename Flag0, typename Flag1> Vc_INTRINSIC Vector(const OtherT *x, Flag0 f0, Flag1 f1,
-            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load(x, f0, f1); }
-    template<typename OtherT, typename Flag0, typename Flag1, typename Flag2> Vc_INTRINSIC
-        Vector(const OtherT *x, Flag0 f0, Flag1 f1, Flag2 f2,
-            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load(x, f0, f1, f2); }
-    template<typename OtherT, typename Flag0, typename Flag1, typename Flag2, typename Flag3> Vc_INTRINSIC
-        Vector(const OtherT *x, Flag0 f0, Flag1 f1, Flag2 f2, Flag3 f3,
-            enable_if<std::is_base_of<Vc::FlagBase, Flag0>>* = 0) { load(x, f0, f1, f2, f3); }
+    explicit Vc_INTRINSIC Vector(const EntryType * x) { load(x); }
+    template<typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const EntryType * x, Flags flags = Flags())
+    {
+        load(x, flags);
+    }
+    template<typename OtherT, typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const OtherT *x, Flags flags = Flags())
+    {
+        load(x, flags);
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load member functions
-    template<typename... Flags> Vc_INTRINSIC_L
-        void load(const EntryType *mem, Flags...) Vc_INTRINSIC_R;
-    template<typename OtherT, typename... Flags> Vc_INTRINSIC_L
-        void load(const OtherT    *mem, Flags...) Vc_INTRINSIC_R;
+    Vc_INTRINSIC void load(const EntryType *mem) { load<AlignedT>(mem, Aligned); }
+    template<typename Flags = AlignedT> Vc_INTRINSIC_L
+        void load(const EntryType *mem, Flags) Vc_INTRINSIC_R;
+    template<typename OtherT, typename Flags = AlignedT> Vc_INTRINSIC_L
+        void load(const OtherT    *mem, Flags = Flags()) Vc_INTRINSIC_R;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX

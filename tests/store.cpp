@@ -81,7 +81,7 @@ template<typename Vec> void streamingAndAlignedStore()
     T xValue = 1;
     const Vec x(xValue);
     for (int i = 0; i < Count; i += Vec::Size) {
-        x.store(&array[i], Streaming, Aligned);
+        x.store(&array[i], Streaming | Aligned);
     }
 
     for (int i = 0; i < Count; ++i) {
@@ -103,7 +103,7 @@ template<typename Vec> void streamingAndUnalignedStore()
     T xValue = 1;
     const Vec x(xValue);
     for (int i = 1; i < Count - Vec::Size + 1; i += Vec::Size) {
-        x.store(&array[i], Streaming, Unaligned);
+        x.store(&array[i], Streaming | Unaligned);
     }
 
     for (int i = 1; i < Count - Vec::Size + 1; ++i) {

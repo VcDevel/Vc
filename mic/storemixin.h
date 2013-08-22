@@ -44,14 +44,16 @@ private:
     VectorType &data()       { return static_cast<      Parent *>(this)->data(); }
 
 public:
-    template<typename T2, typename... Flags> Vc_INTRINSIC_L void store(T2 *mem, Flags...) const Vc_INTRINSIC_R;
-    template<typename T2, typename... Flags> Vc_INTRINSIC_L void store(T2 *mem, Mask mask, Flags...) const Vc_INTRINSIC_R;
+    template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC_L void store(T2 *mem, Flags = Flags()) const Vc_INTRINSIC_R;
+    template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC_L void store(T2 *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
     // the following store overloads are here to support classes that have a cast operator to EntryType.
     // Without this overload GCC complains about not finding a matching store function.
-    template<typename... Flags> Vc_INTRINSIC void store(EntryType *mem, Flags... flags) const { store<EntryType, Flags...>(mem, flags...); }
-    template<typename... Flags> Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags... flags) const { store<EntryType, Flags...>(mem, mask, flags...); }
+    Vc_INTRINSIC void store(EntryType *mem) const { store<EntryType, AlignedT>(mem); }
+    template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const { store<EntryType, Flags>(mem, flags); }
+    Vc_INTRINSIC void store(EntryType *mem, Mask mask) const { store<EntryType, AlignedT>(mem, mask); }
+    template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const { store<EntryType, Flags>(mem, mask, flags); }
 
-    inline void store(VectorEntryType *mem, StreamingFlag) const;
+    inline void store(VectorEntryType *mem, decltype(Streaming)) const;
 };
 
 Vc_NAMESPACE_END

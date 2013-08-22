@@ -129,19 +129,19 @@ Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(Internal)
 
-template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
-        float_v &a, float_v &b, const float *m, A align)
+template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
+        float_v &a, float_v &b, const float *m, Flags align)
 {
     a.load(m, align);
     b.load(m + float_v::Size, align);
     Vc::Vc_IMPL_NAMESPACE::deinterleave(a, b);
 }
 
-template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
-        float_v &a, float_v &b, const short *m, A align)
+template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
+        float_v &a, float_v &b, const short *m, Flags)
 {
     using namespace Vc::Vc_IMPL_NAMESPACE;
-    const m256i tmp = VectorHelper<m256i>::load(m, align);
+    const m256i tmp = VectorHelper<m256i>::template load<Flags>(m);
     a.data() = _mm256_cvtepi32_ps(concat(
                 _mm_srai_epi32(_mm_slli_epi32(lo128(tmp), 16), 16),
                 _mm_srai_epi32(_mm_slli_epi32(hi128(tmp), 16), 16)));
@@ -150,11 +150,11 @@ template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
                 _mm_srai_epi32(hi128(tmp), 16)));
 }
 
-template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
-        float_v &a, float_v &b, const unsigned short *m, A align)
+template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
+        float_v &a, float_v &b, const unsigned short *m, Flags)
 {
     using namespace Vc::Vc_IMPL_NAMESPACE;
-    const m256i tmp = VectorHelper<m256i>::load(m, align);
+    const m256i tmp = VectorHelper<m256i>::template load<Flags>(m);
     a.data() = _mm256_cvtepi32_ps(concat(
                 _mm_blend_epi16(lo128(tmp), _mm_setzero_si128(), 0xaa),
                 _mm_blend_epi16(hi128(tmp), _mm_setzero_si128(), 0xaa)));
@@ -163,16 +163,16 @@ template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
                 _mm_srli_epi32(hi128(tmp), 16)));
 }
 
-template<typename A, typename MemT> inline void HelperImpl<VC_IMPL>::deinterleave(
-        sfloat_v &_a, sfloat_v &_b, const MemT *m, A align)
+template<typename Flags, typename MemT> inline void HelperImpl<VC_IMPL>::deinterleave(
+        sfloat_v &_a, sfloat_v &_b, const MemT *m, Flags align)
 {
     float_v &a = reinterpret_cast<float_v &>(_a);
     float_v &b = reinterpret_cast<float_v &>(_b);
     HelperImpl<VC_IMPL>::deinterleave(a, b, m, align);
 }
 
-template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
-        double_v &a, double_v &b, const double *m, A align)
+template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
+        double_v &a, double_v &b, const double *m, Flags align)
 {
     using namespace Vc::Vc_IMPL_NAMESPACE;
 
@@ -186,8 +186,8 @@ template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
     b.data() = _mm256_unpackhi_pd(tmp0, tmp1); // b3 b1 a3 a1
 }
 
-template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
-        int_v &a, int_v &b, const int *m, A align)
+template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
+        int_v &a, int_v &b, const int *m, Flags align)
 {
     using namespace Vc::Vc_IMPL_NAMESPACE;
     a.load(m, align);
@@ -203,11 +203,11 @@ template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
     b.data() = avx_cast<m256i>(_mm256_unpackhi_ps(tmp2, tmp3)); // b7 b5 b3 b1 a7 a5 a3 a1
 }
 
-template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
-        int_v &a, int_v &b, const short *m, A align)
+template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
+        int_v &a, int_v &b, const short *m, Flags)
 {
     using namespace Vc::Vc_IMPL_NAMESPACE;
-    const m256i tmp = VectorHelper<m256i>::load(m, align);
+    const m256i tmp = VectorHelper<m256i>::template load<Flags>(m);
     a.data() = concat(
                 _mm_srai_epi32(_mm_slli_epi32(lo128(tmp), 16), 16),
                 _mm_srai_epi32(_mm_slli_epi32(hi128(tmp), 16), 16));
@@ -216,8 +216,8 @@ template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
                 _mm_srai_epi32(hi128(tmp), 16));
 }
 
-template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
-        uint_v &a, uint_v &b, const unsigned int *m, A align)
+template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
+        uint_v &a, uint_v &b, const unsigned int *m, Flags align)
 {
     using namespace Vc::Vc_IMPL_NAMESPACE;
     a.load(m, align);
@@ -233,11 +233,11 @@ template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
     b.data() = avx_cast<m256i>(_mm256_unpackhi_ps(tmp2, tmp3)); // b7 b5 b3 b1 a7 a5 a3 a1
 }
 
-template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
-        uint_v &a, uint_v &b, const unsigned short *m, A align)
+template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
+        uint_v &a, uint_v &b, const unsigned short *m, Flags)
 {
     using namespace Vc::Vc_IMPL_NAMESPACE;
-    const m256i tmp = VectorHelper<m256i>::load(m, align);
+    const m256i tmp = VectorHelper<m256i>::template load<Flags>(m);
     a.data() = concat(
                 _mm_srli_epi32(_mm_slli_epi32(lo128(tmp), 16), 16),
                 _mm_srli_epi32(_mm_slli_epi32(hi128(tmp), 16), 16));
@@ -246,16 +246,16 @@ template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
                 _mm_srli_epi32(hi128(tmp), 16));
 }
 
-template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
-        short_v &a, short_v &b, const short *m, A align)
+template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
+        short_v &a, short_v &b, const short *m, Flags align)
 {
     a.load(m, align);
     b.load(m + short_v::Size, align);
     Vc::Vc_IMPL_NAMESPACE::deinterleave(a, b);
 }
 
-template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
-        ushort_v &a, ushort_v &b, const unsigned short *m, A align)
+template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
+        ushort_v &a, ushort_v &b, const unsigned short *m, Flags align)
 {
     a.load(m, align);
     b.load(m + ushort_v::Size, align);
@@ -263,9 +263,9 @@ template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
 }
 
 // only support M == V::EntryType -> no specialization
-template<typename V, typename M, typename A>
+template<typename V, typename M, typename Flags>
 inline Vc_FLATTEN void HelperImpl<VC_IMPL>::deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
-        V &VC_RESTRICT c, const M *VC_RESTRICT memory, A align)
+        V &VC_RESTRICT c, const M *VC_RESTRICT memory, Flags align)
 {
     a.load(&memory[0 * V::Size], align);
     b.load(&memory[1 * V::Size], align);

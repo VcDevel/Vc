@@ -55,61 +55,66 @@ template<typename V> struct LoadHelper/*{{{*/
         return _mm512_loadu_epi32(m, upconv, memHint);
     }
 
-    template<typename T, typename Flag> static Vc_INTRINSIC VectorType load(const T *mem, Flag f)
+    template<typename T, typename Flags> static Vc_INTRINSIC VectorType load(const T *mem, Flags)
     {
-        return LoadHelper2<V, T>::load(mem, f);
+        return LoadHelper2<V, T>::template load<Flags>(mem);
     }
 };/*}}}*/
 
 template<typename V, typename T = typename V::VectorEntryType> struct LoadHelper2
 {
     typedef typename V::VectorType VectorType;
-    template<typename Flag> static Vc_INTRINSIC VectorType load(const T *mem, Flag) {
-        if (std::is_same<Flag, AlignedFlag>::value) {
-            return LoadHelper<V>::_load(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NONE);
-        } else if (std::is_same<Flag, UnalignedFlag>::value) {
-            return LoadHelper<V>::_loadu(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NONE);
-        } else if (std::is_same<Flag, StreamingFlag>::value) {
-            return LoadHelper<V>::_load(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NT);
-        } else if (std::is_same<Flag, StreamingAndUnalignedFlag>::value) {
-            return LoadHelper<V>::_loadu(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NT);
-        }
-        return VectorType();
+
+    template<typename Flags> static Vc_INTRINSIC VectorType genericLoad(const T *mem, typename Flags::EnableIfAligned = nullptr) {
+        return LoadHelper<V>::_load(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NONE);
+    }
+    template<typename Flags> static Vc_INTRINSIC VectorType genericLoad(const T *mem, typename Flags::EnableIfUnalignedNotStreaming = nullptr) {
+        return LoadHelper<V>::_loadu(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NONE);
+    }
+    template<typename Flags> static Vc_INTRINSIC VectorType genericLoad(const T *mem, typename Flags::EnableIfStreaming = nullptr) {
+        return LoadHelper<V>::_load(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NT);
+    }
+    template<typename Flags> static Vc_INTRINSIC VectorType genericLoad(const T *mem, typename Flags::EnableIfUnalignedAndStreaming = nullptr) {
+        return LoadHelper<V>::_loadu(mem, UpDownConversion<typename V::VectorEntryType, T>(), _MM_HINT_NT);
+    }
+
+    template<typename Flags> static Vc_INTRINSIC VectorType load(const T *mem) {
+        return genericLoad<Flags>(mem);
     }
 };
 
-template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<float_v, double>::load(const double *mem, A align)
+template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<float_v, double>::load(const double *mem)
 {
     return mic_cast<__m512>(_mm512_mask_permute4f128_epi32(mic_cast<__m512i>(
-                    _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[0], align), _MM_FROUND_CUR_DIRECTION)),
+                    _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[0], Flags()), _MM_FROUND_CUR_DIRECTION)),
                 0xff00, mic_cast<__m512i>(
-                    _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[double_v::Size], align), _MM_FROUND_CUR_DIRECTION)),
+                    _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[double_v::Size], Flags()), _MM_FROUND_CUR_DIRECTION)),
                 _MM_PERM_BABA));
 }
-template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<float_v, int>::load(const int *mem, A align)
+template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<float_v, int>::load(const int *mem)
 {
-    return StaticCastHelper<int, float>::cast(LoadHelper<int_v>::load(mem, align));
+    return StaticCastHelper<int, float>::cast(LoadHelper<int_v>::load(mem, Flags()));
 }
-template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<float_v, unsigned int>::load(const unsigned int *mem, A align)
+template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<float_v, unsigned int>::load(const unsigned int *mem)
 {
-    return StaticCastHelper<unsigned int, float>::cast(LoadHelper<uint_v>::load(mem, align));
+    return StaticCastHelper<unsigned int, float>::cast(LoadHelper<uint_v>::load(mem, Flags()));
 }
 
-template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, double>::load(const double *mem, A align)
+template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, double>::load(const double *mem)
 {
     return mic_cast<__m512>(_mm512_mask_permute4f128_epi32(mic_cast<__m512i>(
-                    _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[0], align), _MM_FROUND_CUR_DIRECTION)),
+                    _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[0], Flags()), _MM_FROUND_CUR_DIRECTION)),
                 0xff00, mic_cast<__m512i>(
-                    _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[double_v::Size], align), _MM_FROUND_CUR_DIRECTION)),
+                    _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[double_v::Size], Flags()), _MM_FROUND_CUR_DIRECTION)),
                 _MM_PERM_BABA));
 }
-template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, int>::load(const int *mem, A align)
+template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, int>::load(const int *mem)
 {
-    return StaticCastHelper<int, float>::cast(LoadHelper<int_v>::load(mem, align));
+    return StaticCastHelper<int, float>::cast(LoadHelper<int_v>::load(mem, Flags()));
 }
-template<> template<typename A> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, unsigned int>::load(const unsigned int *mem, A align)
+template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, unsigned int>::load(const unsigned int *mem)
 {
-    return StaticCastHelper<unsigned int, float>::cast(LoadHelper<uint_v>::load(mem, align));
+    return StaticCastHelper<unsigned int, float>::cast(LoadHelper<uint_v>::load(mem, Flags()));
 }
 
 } // anonymous namespace
@@ -136,13 +141,13 @@ template<typename T> template<typename OtherT> Vc_ALWAYS_INLINE Vector<T>::Vecto
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(EntryType x) : d(_set1(x)) {}
 
 // loads {{{1
-template<typename T> template<typename... Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *x, Flags... flags) {
-    handleLoadPrefetches(x, flags...);
-    d.v() = LoadHelper<Vector<T>>::load(x, get_loadstore_flags<Flags...>::flag());
+template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *x, Flags flags) {
+    handleLoadPrefetches(x, flags);
+    d.v() = LoadHelper<Vector<T>>::load(x, flags);
 }
-template<typename T> template<typename OtherT, typename... Flags> Vc_INTRINSIC void Vector<T>::load(const OtherT *x, Flags... flags) {
-    handleLoadPrefetches(x, flags...);
-    d.v() = LoadHelper<Vector<T>>::load(x, get_loadstore_flags<Flags...>::flag());
+template<typename T> template<typename OtherT, typename Flags> Vc_INTRINSIC void Vector<T>::load(const OtherT *x, Flags flags) {
+    handleLoadPrefetches(x, flags);
+    d.v() = LoadHelper<Vector<T>>::load(x, flags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -196,21 +201,21 @@ template<> Vc_INTRINSIC void ushort_v::assign(ushort_v v, ushort_m m)
     d.v() = _mm512_mask_mov_epi32(d.v(), m.data(), v.d.v());
 }
 // stores {{{1
-template<typename Parent, typename T> template<typename T2, typename... Flags>
-Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Flags... flags) const
+template<typename Parent, typename T> template<typename T2, typename Flags>
+Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Flags flags) const
 {
-    handleStorePrefetches(mem, flags...);
-    MicIntrinsics::store(mem, data(), UpDownC<T2>(), get_loadstore_flags<Flags...>::flag());
+    handleStorePrefetches(mem, flags);
+    MicIntrinsics::store<Flags>(mem, data(), UpDownC<T2>());
 }
 
-template<typename Parent, typename T> template<typename T2, typename... Flags>
-Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, Flags... flags) const
+template<typename Parent, typename T> template<typename T2, typename Flags>
+Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, Flags flags) const
 {
-    handleStorePrefetches(mem, flags...);
-    MicIntrinsics::store(mask.data(), mem, data(), UpDownC<T2>(), get_loadstore_flags<Flags...>::flag());
+    handleStorePrefetches(mem, flags);
+    MicIntrinsics::store<Flags>(mask.data(), mem, data(), UpDownC<T2>());
 }
 
-template<typename Parent, typename T> Vc_INTRINSIC void StoreMixin<Parent, T>::store(VectorEntryType *mem, Vc::StreamingFlag) const
+template<typename Parent, typename T> Vc_INTRINSIC void StoreMixin<Parent, T>::store(VectorEntryType *mem, decltype(Vc::Streaming)) const
 {
     // NR = No-Read hint, NGO = Non-Globally Ordered hint
     // It is not clear whether we will get issues with nrngo if users only expected nr

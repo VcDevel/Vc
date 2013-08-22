@@ -23,7 +23,7 @@
 #include <immintrin.h>
 
 #include "const_data.h"
-#include "../common/types.h"
+#include "../common/typelist.h"
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(MicIntrinsics)
@@ -179,23 +179,15 @@ static Vc_INTRINSIC void store_aligned(__mmask16 mask, void *m, __m512i v, _MM_D
     _mm512_mask_extstore_epi32(m, mask, v, downconv, memHint);
 }
 
-template<typename V, typename DownConv> static Vc_INTRINSIC
-    void store(void *m, V v, DownConv downconv, AlignedFlag) { store_aligned(m, v, downconv, _MM_HINT_NONE); }
-template<typename V, typename DownConv> static Vc_INTRINSIC
-    void store(void *m, V v, DownConv downconv, UnalignedFlag) { store_unaligned(m, v, downconv, _MM_HINT_NONE); }
-template<typename V, typename DownConv> static Vc_INTRINSIC
-    void store(void *m, V v, DownConv downconv, StreamingFlag) { store_aligned(m, v, downconv, _MM_HINT_NT); }
-template<typename V, typename DownConv> static Vc_INTRINSIC
-    void store(void *m, V v, DownConv downconv, StreamingAndUnalignedFlag) { store_unaligned(m, v, downconv, _MM_HINT_NT); }
+template<typename Flags, typename V, typename DownConv> static Vc_INTRINSIC void store(void *m, V v, DownConv downconv, typename Flags::EnableIfAligned               = nullptr) { store_aligned(m, v, downconv, _MM_HINT_NONE); }
+template<typename Flags, typename V, typename DownConv> static Vc_INTRINSIC void store(void *m, V v, DownConv downconv, typename Flags::EnableIfUnalignedNotStreaming = nullptr) { store_unaligned(m, v, downconv, _MM_HINT_NONE); }
+template<typename Flags, typename V, typename DownConv> static Vc_INTRINSIC void store(void *m, V v, DownConv downconv, typename Flags::EnableIfStreaming             = nullptr) { store_aligned(m, v, downconv, _MM_HINT_NT); }
+template<typename Flags, typename V, typename DownConv> static Vc_INTRINSIC void store(void *m, V v, DownConv downconv, typename Flags::EnableIfUnalignedAndStreaming = nullptr) { store_unaligned(m, v, downconv, _MM_HINT_NT); }
 
-template<typename M, typename V, typename DownConv> static Vc_INTRINSIC
-    void store(M mask, void *m, V v, DownConv downconv, AlignedFlag) { store_aligned(mask, m, v, downconv, _MM_HINT_NONE); }
-template<typename M, typename V, typename DownConv> static Vc_INTRINSIC
-    void store(M mask, void *m, V v, DownConv downconv, UnalignedFlag) { store_unaligned(mask, m, v, downconv, _MM_HINT_NONE); }
-template<typename M, typename V, typename DownConv> static Vc_INTRINSIC
-    void store(M mask, void *m, V v, DownConv downconv, StreamingFlag) { store_aligned(mask, m, v, downconv, _MM_HINT_NT); }
-template<typename M, typename V, typename DownConv> static Vc_INTRINSIC
-    void store(M mask, void *m, V v, DownConv downconv, StreamingAndUnalignedFlag) { store_unaligned(mask, m, v, downconv, _MM_HINT_NT); }
+template<typename Flags, typename M, typename V, typename DownConv> static Vc_INTRINSIC void store(M mask, void *m, V v, DownConv downconv, typename Flags::EnableIfAligned               = nullptr) { store_aligned(mask, m, v, downconv, _MM_HINT_NONE); }
+template<typename Flags, typename M, typename V, typename DownConv> static Vc_INTRINSIC void store(M mask, void *m, V v, DownConv downconv, typename Flags::EnableIfUnalignedNotStreaming = nullptr) { store_unaligned(mask, m, v, downconv, _MM_HINT_NONE); }
+template<typename Flags, typename M, typename V, typename DownConv> static Vc_INTRINSIC void store(M mask, void *m, V v, DownConv downconv, typename Flags::EnableIfStreaming             = nullptr) { store_aligned(mask, m, v, downconv, _MM_HINT_NT); }
+template<typename Flags, typename M, typename V, typename DownConv> static Vc_INTRINSIC void store(M mask, void *m, V v, DownConv downconv, typename Flags::EnableIfUnalignedAndStreaming = nullptr) { store_unaligned(mask, m, v, downconv, _MM_HINT_NT); }
 
 //__m512  _mm512_i32extgather_ps(__m512i, void const*, _MM_UPCONV_PS_ENUM, int, int /* mem hint */);
 //__m512  _mm512_mask_i32extgather_ps(__m512, __mmask16, __m512i, void const*, _MM_UPCONV_PS_ENUM, int, int /* mem hint */);
@@ -203,17 +195,17 @@ template<typename MemT> static Vc_INTRINSIC __m512  gather(__m512i i, MemT const
 template<typename MemT> static Vc_INTRINSIC __m512d gather(__m512i i, MemT const *mem, _MM_UPCONV_PD_ENUM    conv, int scale = sizeof(MemT)) { return _mm512_i32loextgather_pd (i, mem, conv, scale, _MM_HINT_NONE); }
 template<typename MemT> static Vc_INTRINSIC __m512i gather(__m512i i, MemT const *mem, _MM_UPCONV_EPI32_ENUM conv, int scale = sizeof(MemT)) { return _mm512_i32extgather_epi32(i, mem, conv, scale, _MM_HINT_NONE); }
 
-template<typename MemT> static Vc_INTRINSIC __m512  gather(__m512i i, MemT const *mem, _MM_UPCONV_PS_ENUM    conv, StreamingFlag, int scale = sizeof(MemT)) { return _mm512_i32extgather_ps   (i, mem, conv, scale, _MM_HINT_NT); }
-template<typename MemT> static Vc_INTRINSIC __m512d gather(__m512i i, MemT const *mem, _MM_UPCONV_PD_ENUM    conv, StreamingFlag, int scale = sizeof(MemT)) { return _mm512_i32loextgather_pd (i, mem, conv, scale, _MM_HINT_NT); }
-template<typename MemT> static Vc_INTRINSIC __m512i gather(__m512i i, MemT const *mem, _MM_UPCONV_EPI32_ENUM conv, StreamingFlag, int scale = sizeof(MemT)) { return _mm512_i32extgather_epi32(i, mem, conv, scale, _MM_HINT_NT); }
+template<typename MemT> static Vc_INTRINSIC __m512  gather(__m512i i, MemT const *mem, _MM_UPCONV_PS_ENUM    conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_i32extgather_ps   (i, mem, conv, scale, _MM_HINT_NT); }
+template<typename MemT> static Vc_INTRINSIC __m512d gather(__m512i i, MemT const *mem, _MM_UPCONV_PD_ENUM    conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_i32loextgather_pd (i, mem, conv, scale, _MM_HINT_NT); }
+template<typename MemT> static Vc_INTRINSIC __m512i gather(__m512i i, MemT const *mem, _MM_UPCONV_EPI32_ENUM conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_i32extgather_epi32(i, mem, conv, scale, _MM_HINT_NT); }
 
 template<typename MemT> static Vc_INTRINSIC __m512  gather(__m512  old, __mmask16 mask, __m512i i, MemT const *mem, _MM_UPCONV_PS_ENUM    conv, int scale = sizeof(MemT)) { return _mm512_mask_i32extgather_ps   (old, mask, i, mem, conv, scale, _MM_HINT_NONE); }
 template<typename MemT> static Vc_INTRINSIC __m512d gather(__m512d old, __mmask8  mask, __m512i i, MemT const *mem, _MM_UPCONV_PD_ENUM    conv, int scale = sizeof(MemT)) { return _mm512_mask_i32loextgather_pd (old, mask, i, mem, conv, scale, _MM_HINT_NONE); }
 template<typename MemT> static Vc_INTRINSIC __m512i gather(__m512i old, __mmask16 mask, __m512i i, MemT const *mem, _MM_UPCONV_EPI32_ENUM conv, int scale = sizeof(MemT)) { return _mm512_mask_i32extgather_epi32(old, mask, i, mem, conv, scale, _MM_HINT_NONE); }
 
-template<typename MemT> static Vc_INTRINSIC __m512  gather(__m512  old, __mmask16 mask, __m512i i, MemT const *mem, _MM_UPCONV_PS_ENUM    conv, StreamingFlag, int scale = sizeof(MemT)) { return _mm512_mask_i32extgather_ps   (old, mask, i, mem, conv, scale, _MM_HINT_NT); }
-template<typename MemT> static Vc_INTRINSIC __m512d gather(__m512d old, __mmask8  mask, __m512i i, MemT const *mem, _MM_UPCONV_PD_ENUM    conv, StreamingFlag, int scale = sizeof(MemT)) { return _mm512_mask_i32loextgather_pd (old, mask, i, mem, conv, scale, _MM_HINT_NT); }
-template<typename MemT> static Vc_INTRINSIC __m512i gather(__m512i old, __mmask16 mask, __m512i i, MemT const *mem, _MM_UPCONV_EPI32_ENUM conv, StreamingFlag, int scale = sizeof(MemT)) { return _mm512_mask_i32extgather_epi32(old, mask, i, mem, conv, scale, _MM_HINT_NT); }
+template<typename MemT> static Vc_INTRINSIC __m512  gather(__m512  old, __mmask16 mask, __m512i i, MemT const *mem, _MM_UPCONV_PS_ENUM    conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_mask_i32extgather_ps   (old, mask, i, mem, conv, scale, _MM_HINT_NT); }
+template<typename MemT> static Vc_INTRINSIC __m512d gather(__m512d old, __mmask8  mask, __m512i i, MemT const *mem, _MM_UPCONV_PD_ENUM    conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_mask_i32loextgather_pd (old, mask, i, mem, conv, scale, _MM_HINT_NT); }
+template<typename MemT> static Vc_INTRINSIC __m512i gather(__m512i old, __mmask16 mask, __m512i i, MemT const *mem, _MM_UPCONV_EPI32_ENUM conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_mask_i32extgather_epi32(old, mask, i, mem, conv, scale, _MM_HINT_NT); }
 
 template<typename DownConv> static Vc_INTRINSIC
     void scatter(void *m, __m512i i, __m512  v, DownConv downconv, int scale)
@@ -221,7 +213,7 @@ template<typename DownConv> static Vc_INTRINSIC
     _mm512_i32extscatter_ps(m, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename DownConv> static Vc_INTRINSIC
-    void scatter(void *m, __m512i i, __m512  v, DownConv downconv, int scale, StreamingFlag)
+    void scatter(void *m, __m512i i, __m512  v, DownConv downconv, int scale, decltype(Streaming))
 {
     _mm512_i32extscatter_ps(m, i, v, downconv, scale, _MM_HINT_NT);
 }
@@ -231,7 +223,7 @@ template<typename DownConv> static Vc_INTRINSIC
     _mm512_i32loextscatter_pd(m, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename DownConv> static Vc_INTRINSIC
-    void scatter(void *m, __m512i i, __m512d v, DownConv downconv, int scale, StreamingFlag)
+    void scatter(void *m, __m512i i, __m512d v, DownConv downconv, int scale, decltype(Streaming))
 {
     _mm512_i32loextscatter_pd(m, i, v, downconv, scale, _MM_HINT_NT);
 }
@@ -241,7 +233,7 @@ template<typename DownConv> static Vc_INTRINSIC
     _mm512_i32extscatter_epi32(m, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename DownConv> static Vc_INTRINSIC
-    void scatter(void *m, __m512i i, __m512i v, DownConv downconv, int scale, StreamingFlag)
+    void scatter(void *m, __m512i i, __m512i v, DownConv downconv, int scale, decltype(Streaming))
 {
     _mm512_i32extscatter_epi32(m, i, v, downconv, scale, _MM_HINT_NT);
 }
@@ -252,7 +244,7 @@ template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     _mm512_i32extscatter_ps(m, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
-    void scatter(M mask, MemT *m, __m512i i, __m512  v, DownConv downconv, StreamingFlag, int scale = sizeof(MemT))
+    void scatter(M mask, MemT *m, __m512i i, __m512  v, DownConv downconv, decltype(Streaming), int scale = sizeof(MemT))
 {
     _mm512_i32extscatter_ps(m, mask, i, v, downconv, scale, _MM_HINT_NT);
 }
@@ -262,7 +254,7 @@ template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     _mm512_i32loextscatter_pd(m, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
-    void scatter(M mask, MemT *m, __m512i i, __m512d v, DownConv downconv, StreamingFlag, int scale = sizeof(MemT))
+    void scatter(M mask, MemT *m, __m512i i, __m512d v, DownConv downconv, decltype(Streaming), int scale = sizeof(MemT))
 {
     _mm512_i32loextscatter_pd(m, mask, i, v, downconv, scale, _MM_HINT_NT);
 }
@@ -272,7 +264,7 @@ template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     _mm512_i32extscatter_epi32(m, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
-    void scatter(M mask, MemT *m, __m512i i, __m512i v, DownConv downconv, StreamingFlag, int scale = sizeof(MemT))
+    void scatter(M mask, MemT *m, __m512i i, __m512i v, DownConv downconv, decltype(Streaming), int scale = sizeof(MemT))
 {
     _mm512_i32extscatter_epi32(m, mask, i, v, downconv, scale, _MM_HINT_NT);
 }

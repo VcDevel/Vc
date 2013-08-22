@@ -30,11 +30,11 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum) : d(HT::zero()) {}
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerOne::OEnum) : d(HT::one()) {}
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(HV::load(IndexesFromZeroData<T>::address(), Aligned)) {}
+    : d(HV::template load<AlignedT>(IndexesFromZeroData<T>::address())) {}
 
 template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::Zero() { return HT::zero(); }
 template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::One() { return HT::one(); }
-template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::IndexesFromZero() { return HV::load(IndexesFromZeroData<T>::address(), Aligned); }
+template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::IndexesFromZero() { return HV::template load<AlignedT>(IndexesFromZeroData<T>::address()); }
 
 template<typename T> template<typename T2> Vc_ALWAYS_INLINE Vector<T>::Vector(VC_ALIGNED_PARAMETER(Vector<T2>) x)
     : d(StaticCastHelper<T2, T>::cast(x.data())) {}
@@ -45,10 +45,10 @@ template<> Vc_ALWAYS_INLINE Vector<double>::Vector(EntryType x) : d(_mm256_set1_
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions {{{1
-template<typename T> template<typename... Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *mem, Flags... flags)
+template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *mem, Flags)
 {
-    handleLoadPrefetches(mem, flags...);
-    HV::load(mem, get_loadstore_flags<Flags...>::flag());
+    handleLoadPrefetches(mem, flags);
+    d.v() = HV::template load<Flags>(mem);
 }
 
 // LoadHelper {{{2
@@ -56,34 +56,34 @@ template<typename DstT, typename SrcT, typename Flags> struct LoadHelper;
 
 // float {{{2
 template<typename Flags> struct LoadHelper<float, double, Flags> {
-    static m256 load(const double *mem, Flags f)
+    static m256 load(const double *mem, Flags)
     {
-        return concat(_mm256_cvtpd_ps(VectorHelper<m256d>::load(&mem[0], f)),
-                      _mm256_cvtpd_ps(VectorHelper<m256d>::load(&mem[4], f)));
+        return concat(_mm256_cvtpd_ps(VectorHelper<m256d>::template load<Flags>(&mem[0])),
+                      _mm256_cvtpd_ps(VectorHelper<m256d>::template load<Flags>(&mem[4])));
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned int, Flags> {
-    static m256 load(const unsigned int *mem, Flags f)
+    static m256 load(const unsigned int *mem, Flags)
     {
-        return StaticCastHelper<unsigned int, float>::cast(VectorHelper<m256i>::load(mem, f));
+        return StaticCastHelper<unsigned int, float>::cast(VectorHelper<m256i>::template load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<float, int, Flags> {
-    static m256 load(const int *mem, Flags f)
+    static m256 load(const int *mem, Flags)
     {
-        return StaticCastHelper<int, float>::cast(VectorHelper<m256i>::load(mem, f));
+        return StaticCastHelper<int, float>::cast(VectorHelper<m256i>::template load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned short, Flags> {
-    static m256 load(const unsigned short *mem, Flags f)
+    static m256 load(const unsigned short *mem, Flags)
     {
-        return StaticCastHelper<unsigned short, float>::cast(VectorHelper<m128i>::load(mem, f));
+        return StaticCastHelper<unsigned short, float>::cast(VectorHelper<m128i>::template load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<float, short, Flags> {
-    static m256 load(const short *mem, Flags f)
+    static m256 load(const short *mem, Flags)
     {
-        return StaticCastHelper<short, float>::cast(VectorHelper<m128i>::load(mem, f));
+        return StaticCastHelper<short, float>::cast(VectorHelper<m128i>::template load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned char, Flags> {
@@ -103,21 +103,21 @@ template<typename SrcT, typename Flags> struct LoadHelper<sfloat, SrcT, Flags> :
 
 // int {{{2
 template<typename Flags> struct LoadHelper<int, unsigned int, Flags> {
-    static m256i load(const unsigned int *mem, Flags f)
+    static m256i load(const unsigned int *mem, Flags)
     {
-        return VectorHelper<m256i>::load(mem, f);
+        return VectorHelper<m256i>::template load<Flags>(mem);
     }
 };
 template<typename Flags> struct LoadHelper<int, unsigned short, Flags> {
-    static m256i load(const unsigned short *mem, Flags f)
+    static m256i load(const unsigned short *mem, Flags)
     {
-        return StaticCastHelper<unsigned short, unsigned int>::cast(VectorHelper<m128i>::load(mem, f));
+        return StaticCastHelper<unsigned short, unsigned int>::cast(VectorHelper<m128i>::template load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<int, short, Flags> {
-    static m256i load(const short *mem, Flags f)
+    static m256i load(const short *mem, Flags)
     {
-        return StaticCastHelper<short, int>::cast(VectorHelper<m128i>::load(mem, f));
+        return StaticCastHelper<short, int>::cast(VectorHelper<m128i>::template load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<int, unsigned char, Flags> {
@@ -143,9 +143,9 @@ template<typename Flags> struct LoadHelper<int, signed char, Flags> {
 
 // unsigned int {{{2
 template<typename Flags> struct LoadHelper<unsigned int, unsigned short, Flags> {
-    static m256i load(const unsigned short *mem, Flags f)
+    static m256i load(const unsigned short *mem, Flags)
     {
-        return StaticCastHelper<unsigned short, unsigned int>::cast(VectorHelper<m128i>::load(mem, f));
+        return StaticCastHelper<unsigned short, unsigned int>::cast(VectorHelper<m128i>::template load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<unsigned int, unsigned char, Flags> {
@@ -161,9 +161,9 @@ template<typename Flags> struct LoadHelper<unsigned int, unsigned char, Flags> {
 
 // short {{{2
 template<typename Flags> struct LoadHelper<short, unsigned short, Flags> {
-    static m128i load(const unsigned short *mem, Flags f)
+    static m128i load(const unsigned short *mem, Flags)
     {
-        return StaticCastHelper<unsigned short, short>::cast(VectorHelper<m128i>::load(mem, f));
+        return StaticCastHelper<unsigned short, short>::cast(VectorHelper<m128i>::template load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<short, unsigned char, Flags> {
@@ -197,11 +197,10 @@ template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags>
 };
 
 // general load, implemented via LoadHelper {{{2
-template<typename DstT> template<typename SrcT, typename... Flags> Vc_INTRINSIC void Vector<DstT>::load(const SrcT *mem, Flags... flags)
+template<typename DstT> template<typename SrcT, typename Flags> Vc_INTRINSIC void Vector<DstT>::load(const SrcT *mem, Flags flags)
 {
-    handleLoadPrefetches(mem, flags...);
-    using F = get_loadstore_flags<Flags...>;
-    d.v() = LoadHelper<DstT, SrcT, typename F::type>::load(mem, F::flag());
+    handleLoadPrefetches(mem, flags);
+    d.v() = LoadHelper<DstT, SrcT, Flags>::load(mem, flags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -242,18 +241,18 @@ template<> Vc_INTRINSIC void Vector<sfloat>::setQnan(MaskArg k)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // stores {{{1
-template<typename T> template<typename T2, typename... Flags>
-Vc_INTRINSIC void Vector<T>::store(T2 *mem, Flags... flags) const
+template<typename T> template<typename T2, typename Flags>
+Vc_INTRINSIC void Vector<T>::store(T2 *mem, Flags flags) const
 {
-    handleStorePrefetches(mem, flags...);
-    HV::store(mem, data(), get_loadstore_flags<Flags...>::flag());
+    handleStorePrefetches(mem, flags);
+    HV::template store<Flags>(mem, data());
 }
 
-template<typename T> template<typename T2, typename... Flags>
-Vc_INTRINSIC void Vector<T>::store(T2 *mem, Mask mask, Flags... flags) const
+template<typename T> template<typename T2, typename Flags>
+Vc_INTRINSIC void Vector<T>::store(T2 *mem, Mask mask, Flags flags) const
 {
-    handleStorePrefetches(mem, flags...);
-    HV::store(mem, data(), avx_cast<VectorType>(mask.data()), get_loadstore_flags<Flags...>::flag());
+    handleStorePrefetches(mem, flags);
+    HV::template store<Flags>(mem, data(), avx_cast<VectorType>(mask.data()));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -1339,7 +1338,7 @@ template<> Vc_ALWAYS_INLINE Vector<sfloat> Vector<sfloat>::Random()
 
 template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 {
-    const m256i state = VectorHelper<m256i>::load(&Common::RandomState[0], Vc::Aligned);
+    const m256i state = VectorHelper<m256i>::template load<AlignedT>(&Common::RandomState[0]);
     for (size_t k = 0; k < 8; k += 2) {
         typedef unsigned long long uint64 Vc_MAY_ALIAS;
         const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);
