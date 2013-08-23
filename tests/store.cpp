@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -43,6 +43,9 @@ template<typename Vec> void alignedStore()
     for (int i = 0; i < Count; ++i) {
         COMPARE(array[i], xValue);
     }
+
+    // make sure store can be used with parameters that auto-convert to T*
+    x.store(array);
 }
 
 template<typename Vec> void unalignedStore()

@@ -89,6 +89,10 @@ template<typename Vec> void loadArray()
         b.load(addr);
         COMPARE(b, ii);
     }
+
+    // check that Vc allows construction from objects that auto-convert to T*
+    Vec tmp0(array);
+    tmp0.load(array);
 }
 
 enum Enum {
