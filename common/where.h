@@ -1,5 +1,4 @@
 /*  This file is part of the Vc library. {{{
- *  Q_DECLARE_PRIVATE()
 
     Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
 
