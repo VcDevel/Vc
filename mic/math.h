@@ -25,11 +25,11 @@
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 // trunc {{{1
-template<typename V> V trunc(V v)
+template<typename V> Vc_ALWAYS_INLINE V trunc(V v)
 {
     return _mm512_trunc_ps(v.data());
 }
-double_v trunc(double_v v)
+Vc_ALWAYS_INLINE double_v trunc(double_v v)
 {
     return _mm512_trunc_pd(v.data());
 }
