@@ -52,19 +52,19 @@ public:
     }
 
     Vc_ALWAYS_INLINE Vector<T> &operator+=(Vector<T> x) {
-        vec->d = _add(vec->d.v(), mask, vec->d.v(), x.d.v());
+        vec->d = _add<VectorEntryType>(vec->d.v(), mask, vec->d.v(), x.d.v());
         return *vec;
     }
     Vc_ALWAYS_INLINE Vector<T> &operator-=(Vector<T> x) {
-        vec->d = _sub(vec->d.v(), mask, vec->d.v(), x.d.v());
+        vec->d = _sub<VectorEntryType>(vec->d.v(), mask, vec->d.v(), x.d.v());
         return *vec;
     }
     Vc_ALWAYS_INLINE Vector<T> &operator*=(Vector<T> x) {
-        vec->d = _mul(vec->d.v(), mask, vec->d.v(), x.d.v());
+        vec->d = _mul<VectorEntryType>(vec->d.v(), mask, vec->d.v(), x.d.v());
         return *vec;
     }
     Vc_ALWAYS_INLINE Vector<T> &operator/=(Vector<T> x) {
-        vec->d = _div(vec->d.v(), mask, vec->d.v(), x.d.v());
+        vec->d = _div<VectorEntryType>(vec->d.v(), mask, vec->d.v(), x.d.v());
         return *vec;
     }
 

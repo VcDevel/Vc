@@ -310,24 +310,34 @@ static Vc_INTRINSIC __m512i shuffle(__m512i v, _MM_PERM_ENUM perm) { return _mm5
     Vc_INTEGER_FUN2(andnot)
 #undef Vc_INTEGER_FUN2
 
+    Vc_INTRINSIC __m512i _mm512_add_epu32(__m512i a, __m512i b) { return _mm512_add_epi32(a, b); }
+    Vc_INTRINSIC __m512i _mm512_sub_epu32(__m512i a, __m512i b) { return _mm512_sub_epi32(a, b); }
+    Vc_INTRINSIC __m512i _mm512_mask_add_epu32(__m512i r, __mmask16 k, __m512i a, __m512i b) { return _mm512_mask_add_epi32(r, k, a, b); }
+    Vc_INTRINSIC __m512i _mm512_mask_sub_epu32(__m512i r, __mmask16 k, __m512i a, __m512i b) { return _mm512_mask_sub_epi32(r, k, a, b); }
 #define Vc_FUN2(fun) \
-    static Vc_INTRINSIC __m512  _##fun(__m512  a, __m512  b) { \
+    template<typename> Vc_INTRINSIC __m512  _##fun(__m512  a, __m512  b) { \
         return _mm512_##fun##_ps(a, b); \
     } \
-    static Vc_INTRINSIC __m512d _##fun(__m512d a, __m512d b) { \
+    template<typename> Vc_INTRINSIC __m512d _##fun(__m512d a, __m512d b) { \
         return _mm512_##fun##_pd(a, b); \
     } \
-    static Vc_INTRINSIC __m512i _##fun(__m512i a, __m512i b) { \
+    template<typename> Vc_INTRINSIC __m512i _##fun(__m512i a, __m512i b) { \
         return _mm512_##fun##_epi32(a, b); \
     } \
-    static Vc_INTRINSIC __m512  _##fun(__m512  r, __mmask16 k, __m512  a, __m512  b) { \
+    template<> Vc_INTRINSIC __m512i _##fun<unsigned int>(__m512i a, __m512i b) { \
+        return _mm512_##fun##_epu32(a, b); \
+    } \
+    template<typename> Vc_INTRINSIC __m512  _##fun(__m512  r, __mmask16 k, __m512  a, __m512  b) { \
         return _mm512_mask_##fun##_ps(r, k, a, b); \
     } \
-    static Vc_INTRINSIC __m512d _##fun(__m512d r, __mmask8  k, __m512d a, __m512d b) { \
+    template<typename> Vc_INTRINSIC __m512d _##fun(__m512d r, __mmask8  k, __m512d a, __m512d b) { \
         return _mm512_mask_##fun##_pd(r, k, a, b); \
     } \
-    static Vc_INTRINSIC __m512i _##fun(__m512i r, __mmask16 k, __m512i a, __m512i b) { \
+    template<typename> Vc_INTRINSIC __m512i _##fun(__m512i r, __mmask16 k, __m512i a, __m512i b) { \
         return _mm512_mask_##fun##_epi32(r, k, a, b); \
+    } \
+    template<> Vc_INTRINSIC __m512i _##fun<unsigned int>(__m512i r, __mmask16 k, __m512i a, __m512i b) { \
+        return _mm512_mask_##fun##_epu32(r, k, a, b); \
     }
     Vc_FUN2(min)
     Vc_FUN2(max)
@@ -336,12 +346,12 @@ static Vc_INTRINSIC __m512i shuffle(__m512i v, _MM_PERM_ENUM perm) { return _mm5
     Vc_FUN2(div)
 #undef Vc_FUN2
 
-    static Vc_INTRINSIC __m512  _mul(__m512  a, __m512  b) { return _mm512_mul_ps(a, b); }
-    static Vc_INTRINSIC __m512d _mul(__m512d a, __m512d b) { return _mm512_mul_pd(a, b); }
-    static Vc_INTRINSIC __m512i _mul(__m512i a, __m512i b) { return _mm512_mullo_epi32(a, b); }
-    static Vc_INTRINSIC __m512  _mul(__m512  r, __mmask16 k, __m512  a, __m512  b) { return _mm512_mask_mul_ps(r, k, a, b); }
-    static Vc_INTRINSIC __m512d _mul(__m512d r, __mmask8  k, __m512d a, __m512d b) { return _mm512_mask_mul_pd(r, k, a, b); }
-    static Vc_INTRINSIC __m512i _mul(__m512i r, __mmask16 k, __m512i a, __m512i b) { return _mm512_mask_mullo_epi32(r, k, a, b); }
+    template<typename> Vc_INTRINSIC __m512  _mul(__m512  a, __m512  b) { return _mm512_mul_ps(a, b); }
+    template<typename> Vc_INTRINSIC __m512d _mul(__m512d a, __m512d b) { return _mm512_mul_pd(a, b); }
+    template<typename> Vc_INTRINSIC __m512i _mul(__m512i a, __m512i b) { return _mm512_mullo_epi32(a, b); }
+    template<typename> Vc_INTRINSIC __m512  _mul(__m512  r, __mmask16 k, __m512  a, __m512  b) { return _mm512_mask_mul_ps(r, k, a, b); }
+    template<typename> Vc_INTRINSIC __m512d _mul(__m512d r, __mmask8  k, __m512d a, __m512d b) { return _mm512_mask_mul_pd(r, k, a, b); }
+    template<typename> Vc_INTRINSIC __m512i _mul(__m512i r, __mmask16 k, __m512i a, __m512i b) { return _mm512_mask_mullo_epi32(r, k, a, b); }
 
     static Vc_INTRINSIC __m512  _mask_mov(__m512  r, __mmask16 k, __m512  a) { return _mm512_mask_mov_ps(r, k, a); }
     static Vc_INTRINSIC __m512d _mask_mov(__m512d r, __mmask8  k, __m512d a) { return _mm512_mask_mov_pd(r, k, a); }

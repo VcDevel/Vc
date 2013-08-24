@@ -255,10 +255,10 @@ public:
     Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const { return Vector<T>(fun(d.v(), x.d.v())); } \
     template<typename TT> Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, EntryType, Vector) operator symbol(TT x) const { return operator symbol(Vector(x)); }
 
-    Vc_OP(*, _mul)
-    Vc_OP(+, _add)
-    Vc_OP(-, _sub)
-    Vc_OP(/, _div)
+    Vc_OP(*, _mul<VectorEntryType>)
+    Vc_OP(+, _add<VectorEntryType>)
+    Vc_OP(-, _sub<VectorEntryType>)
+    Vc_OP(/, _div<VectorEntryType>)
     Vc_OP(|, _or)
     Vc_OP(&, _and)
     Vc_OP(^, _xor)
