@@ -78,7 +78,10 @@ bool _UnitTest_verify_vector_unit_supported()
     return s;
 }
 
-static bool _UnitTest_verify_vector_unit_supported_result = _UnitTest_verify_vector_unit_supported();
+namespace
+{
+bool _UnitTest_verify_vector_unit_supported_result = _UnitTest_verify_vector_unit_supported();
+} // anonymous namespace
 
 class _UnitTest_Failure
 {
