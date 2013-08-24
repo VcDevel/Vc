@@ -19,15 +19,15 @@
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
-template<> Vc_ALWAYS_INLINE Mask<4, 32>::Mask(const Mask<8, 32> &m)
-    : k(concat(_mm_unpacklo_ps(lo128(m.data()), lo128(m.data())),
+template<> template<> Vc_ALWAYS_INLINE Mask<4, 32>::Mask(const Mask<8, 32> &m)
+    : d(concat(_mm_unpacklo_ps(lo128(m.data()), lo128(m.data())),
                 _mm_unpackhi_ps(lo128(m.data()), lo128(m.data()))))
 {
 }
 
-template<> Vc_ALWAYS_INLINE Mask<8, 32>::Mask(const Mask<4, 32> &m)
+template<> template<> Vc_ALWAYS_INLINE Mask<8, 32>::Mask(const Mask<4, 32> &m)
     // aabb ccdd -> abcd 0000
-    : k(concat(Mem::shuffle<X0, X2, Y0, Y2>(lo128(m.data()), hi128(m.data())),
+    : d(concat(Mem::shuffle<X0, X2, Y0, Y2>(lo128(m.data()), hi128(m.data())),
                 _mm_setzero_ps()))
 {
 }
@@ -54,22 +54,22 @@ template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<16, 16>::operator[](size_t index) 
 template<> Vc_ALWAYS_INLINE void Mask< 4, 32>::setEntry(size_t index, bool value) {
     Common::VectorMemoryUnion<__m256i, unsigned long long> mask(dataI());
     mask.m(index) = value ? 0xffffffffffffffffull : 0ull;
-    k = avx_cast<m256>(mask.v());
+    d.v() = avx_cast<m256>(mask.v());
 }
 template<> Vc_ALWAYS_INLINE void Mask< 8, 32>::setEntry(size_t index, bool value) {
     Common::VectorMemoryUnion<__m256i, unsigned int> mask(dataI());
     mask.m(index) = value ? 0xffffffffu : 0u;
-    k = avx_cast<m256>(mask.v());
+    d.v() = avx_cast<m256>(mask.v());
 }
 template<> Vc_ALWAYS_INLINE void Mask< 8, 16>::setEntry(size_t index, bool value) {
     Common::VectorMemoryUnion<__m128i, unsigned short> mask(dataI());
     mask.m(index) = value ? 0xffffu : 0u;
-    k = avx_cast<m128>(mask.v());
+    d.v() = avx_cast<m128>(mask.v());
 }
 template<> Vc_ALWAYS_INLINE void Mask<16, 16>::setEntry(size_t index, bool value) {
     Common::VectorMemoryUnion<__m128i, unsigned short> mask(dataI());
     mask.m(index) = value ? 0xffffu: 0u;
-    k = avx_cast<m128>(mask.v());
+    d.v() = avx_cast<m128>(mask.v());
 }
 
 template<> Vc_ALWAYS_INLINE Mask< 4, 32> &Mask< 4, 32>::operator=(const std::array<bool, 4> &values) {
@@ -79,7 +79,7 @@ template<> Vc_ALWAYS_INLINE Mask< 4, 32> &Mask< 4, 32>::operator=(const std::arr
     m128i y = _mm_cvtsi32_si128(x); //  4 Bytes
     y = _mm_unpacklo_epi8(y, y);    //  8 Bytes
     y = _mm_unpacklo_epi16(y, y);   // 16 Bytes
-    k = avx_cast<decltype(k)>(concat(_mm_unpacklo_epi32(y, y), _mm_unpackhi_epi32(y, y)));
+    d.v() = avx_cast<m256>(concat(_mm_unpacklo_epi32(y, y), _mm_unpackhi_epi32(y, y)));
     return *this;
 }
 template<> Vc_ALWAYS_INLINE Mask< 8, 32> &Mask< 8, 32>::operator=(const std::array<bool, 8> &values) {
@@ -88,7 +88,7 @@ template<> Vc_ALWAYS_INLINE Mask< 8, 32> &Mask< 8, 32>::operator=(const std::arr
     x *= 0xffull;
     m128i y = _mm_cvtsi64_si128(x); //  8 Bytes
     y = _mm_unpacklo_epi8(y, y);   // 16 Bytes
-    k = avx_cast<decltype(k)>(concat(_mm_unpacklo_epi16(y, y), _mm_unpackhi_epi16(y, y)));
+    d.v() = avx_cast<m256>(concat(_mm_unpacklo_epi16(y, y), _mm_unpackhi_epi16(y, y)));
     return *this;
 }
 template<> Vc_ALWAYS_INLINE Mask< 8, 16> &Mask< 8, 16>::operator=(const std::array<bool, 8> &values) {
@@ -96,13 +96,13 @@ template<> Vc_ALWAYS_INLINE Mask< 8, 16> &Mask< 8, 16>::operator=(const std::arr
     unsigned long long x = *reinterpret_cast<const unsigned long long *>(values.data());
     x *= 0xffull;
     m128i y = _mm_cvtsi64_si128(x); //  8 Bytes
-    k = avx_cast<decltype(k)>(_mm_unpacklo_epi8(y, y));
+    d.v() = avx_cast<m128>(_mm_unpacklo_epi8(y, y));
     return *this;
 }
 template<> Vc_ALWAYS_INLINE Mask<16, 16> &Mask<16, 16>::operator=(const std::array<bool, 16> &values) {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
     m128i x = _mm_loadu_si128(reinterpret_cast<const __m128i *>(values.data()));
-    k = _mm_andnot_ps(_mm_setallone_ps(), avx_cast<m128>(_mm_sub_epi8(x, _mm_set1_epi8(1))));
+    d.v() = _mm_andnot_ps(_mm_setallone_ps(), avx_cast<m128>(_mm_sub_epi8(x, _mm_set1_epi8(1))));
     return *this;
 }
 
@@ -135,7 +135,7 @@ template<> Vc_ALWAYS_INLINE Mask< 8, 16>::operator std::array<bool, 8>() const {
 }
 template<> Vc_ALWAYS_INLINE Mask<16, 16>::operator std::array<bool, 16>() const {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
-    m128 x = _mm_and_ps(k, avx_cast<m128>(_mm_set1_epi32(0x01010101)));
+    m128 x = _mm_and_ps(d.v(), avx_cast<m128>(_mm_set1_epi32(0x01010101)));
     std::array<bool, 16> r;
     asm volatile("vmovups %1,%0" : "=m"(*r.data()) : "x"(x));
     return r;

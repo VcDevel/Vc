@@ -99,12 +99,16 @@ template<> struct GccTypeHelper<unsigned char , __m256i> { typedef __v32qi Type;
 #endif
 #endif
 
+namespace
+{
+template<typename T> struct MayAlias { typedef T Type Vc_MAY_ALIAS; };
+template<size_t Bytes> struct MayAlias<MaskBool<Bytes>> { typedef MaskBool<Bytes> Type; };
+} // anonymous namespace
 template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
 {
     public:
         typedef _VectorType VectorType;
         typedef _EntryType EntryType;
-        typedef EntryType AliasingEntryType Vc_MAY_ALIAS;
         Vc_ALWAYS_INLINE VectorMemoryUnion() { assertCorrectAlignment(&v()); }
 #if defined VC_ICC
         Vc_ALWAYS_INLINE VectorMemoryUnion(const VectorType &x) { data.v = x; assertCorrectAlignment(&data.v); }
@@ -151,6 +155,7 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
             return accessScalar<EntryType>(data, index);
         }
 #else
+        typedef typename MayAlias<EntryType>::Type AliasingEntryType;
         Vc_ALWAYS_INLINE Vc_PURE AliasingEntryType &m(size_t index) {
             return reinterpret_cast<AliasingEntryType *>(&data)[index];
         }
@@ -160,8 +165,10 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
         }
 #endif
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
-        typedef typename GccTypeHelper<EntryType, VectorType>::Type GccType;
-        Vc_ALWAYS_INLINE Vc_PURE GccType gcc() const { return GccType(data); }
+        template<typename JustForSfinae = void>
+        Vc_ALWAYS_INLINE Vc_PURE
+        typename GccTypeHelper<typename std::conditional<true, EntryType, JustForSfinae>::type, VectorType>::Type
+        gcc() const { return typename GccTypeHelper<EntryType, VectorType>::Type(data); }
 #endif
 
     private:

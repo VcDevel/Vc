@@ -198,6 +198,10 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 
 Vc_NAMESPACE_END
 
+Vc_NAMESPACE_BEGIN(Common)
+template<size_t Bytes> class MaskBool;
+Vc_NAMESPACE_END
+
 #include "memoryfwd.h"
 #include "undomacros.h"
 
