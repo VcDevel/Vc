@@ -228,9 +228,9 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     //prefix
-    Vc_ALWAYS_INLINE Vector &operator++() { d.v() = _add(d.v(), HV::one()); return *this; }
+    Vc_ALWAYS_INLINE Vector &operator++() { d.v() = _add<VectorEntryType>(d.v(), HV::one()); return *this; }
     //postfix
-    Vc_ALWAYS_INLINE Vector operator++(int) { const Vector<T> r = *this; d.v() = _add(d.v(), HV::one()); return r; }
+    Vc_ALWAYS_INLINE Vector operator++(int) { const Vector<T> r = *this; d.v() = _add<VectorEntryType>(d.v(), HV::one()); return r; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // aliasing scalar access

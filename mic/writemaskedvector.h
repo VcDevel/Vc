@@ -32,22 +32,22 @@ template<typename T> class WriteMaskedVector
 public:
     //prefix
     Vc_ALWAYS_INLINE Vector<T> &operator++() {
-        vec->d = _add(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
+        vec->d = _add<VectorEntryType>(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
         return *vec;
     }
     Vc_ALWAYS_INLINE Vector<T> &operator--() {
-        vec->d = _sub(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
+        vec->d = _sub<VectorEntryType>(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
         return *vec;
     }
     //postfix
     Vc_ALWAYS_INLINE Vector<T> operator++(int) {
         Vector<T> ret(*vec);
-        vec->d = _add(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
+        vec->d = _add<VectorEntryType>(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
         return ret;
     }
     Vc_ALWAYS_INLINE Vector<T> operator--(int) {
         Vector<T> ret(*vec);
-        vec->d = _sub(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
+        vec->d = _sub<VectorEntryType>(vec->d.v(), mask, vec->d.v(), _set1(VectorEntryType(1)));
         return ret;
     }
 
