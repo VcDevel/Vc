@@ -119,6 +119,7 @@ template<typename V> void writes()
         b(b == 2) += one;
         b(b == 3) += one;
         b(b == 4) += one;
+        // expected: [0, 1, 5, 5, 5, 5, 6, 7]
         COMPARE(a, b);
     } else if (V::Size == 2) { // a = [0, 1]; b = [0, 1]
         a(a == 0) += two;      // a = [2, 1]
