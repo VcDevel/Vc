@@ -99,7 +99,7 @@ template<> struct GccTypeHelper<unsigned char , __m256i> { typedef __v32qi Type;
 #endif
 #endif
 
-template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _VectorType> class VectorMemoryUnion
+template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
 {
     public:
         typedef _VectorType VectorType;
@@ -112,8 +112,8 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
             data.v = x; return *this;
         }
 
-        Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return reinterpret_cast<VectorType &>(data.v); }
-        Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return reinterpret_cast<const VectorType &>(data.v); }
+        Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return data.v; }
+        Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return data.v; }
 
         Vc_ALWAYS_INLINE Vc_PURE EntryType &m(size_t index) {
             return data.m[index];
@@ -127,8 +127,11 @@ template<typename _VectorType, typename _EntryType, typename VectorTypeBase = _V
 #endif
     private:
         union VectorScalarUnion {
-            VectorTypeBase v;
-            EntryType m[sizeof(VectorTypeBase)/sizeof(EntryType)];
+            Vc_INTRINSIC VectorScalarUnion() {}
+            Vc_INTRINSIC VectorScalarUnion(const VectorScalarUnion &rhs) : v(rhs.v) {}
+            Vc_INTRINSIC VectorScalarUnion &operator=(const VectorScalarUnion &rhs) { v = rhs.v; return *this; }
+            VectorType v;
+            EntryType m[sizeof(VectorType)/sizeof(EntryType)];
         } data;
 #else
         Vc_ALWAYS_INLINE VectorMemoryUnion(VC_ALIGNED_PARAMETER(VectorType) x) : data(x) { assertCorrectAlignment(&data); }

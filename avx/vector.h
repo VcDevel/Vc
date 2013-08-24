@@ -75,11 +75,7 @@ template<typename T> class Vector
         // cast any m256/m128 to VectorType
         template<typename V> static Vc_INTRINSIC VectorType _cast(VC_ALIGNED_PARAMETER(V) v) { return avx_cast<VectorType>(v); }
 
-#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
-        typedef Common::VectorMemoryUnion<VectorType, EntryType, typename VectorType::Base> StorageType;
-#else
         typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
-#endif
         StorageType d;
 
     public:
