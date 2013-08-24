@@ -385,7 +385,8 @@ template<typename Vec> void testProduct()
         COMPARE(v.product(), x2);
 
         int j = 0;
-        Mask m;
+        Mask m = allMasks<Vec>(j++);
+        COMPARE(v.product(m), x2) << m << v;
         do {
             m = allMasks<Vec>(j++);
             if (m.isEmpty()) {
@@ -396,10 +397,12 @@ template<typename Vec> void testProduct()
                 for (int k = m.count(); k > 1; --k) {
                     x2 *= x;
                 }
+                COMPARE(v.product(m), x2) << m << v;
             } else {
-                x2 = static_cast<T>(pow(static_cast<double>(x), static_cast<int>(m.count())));
+                x2 = std::round(std::pow(x, static_cast<int>(m.count())));
+                //x2 = static_cast<T>(pow(static_cast<double>(x), static_cast<int>(m.count())));
+                FUZZY_COMPARE(v.product(m), x2) << m << v;
             }
-            COMPARE(v.product(m), x2) << m << v;
         } while (true);
     }
 }
