@@ -99,13 +99,6 @@ namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero
 
 namespace
 {
-
-    //template<bool B, typename T = void> using enable_if = typename std::enable_if<B, T>::type;
-    template<typename B, typename T = void> using enable_if = typename std::enable_if<B::value, T>::type;
-
-    template<bool Test, typename T = void> struct EnableIf { typedef T Value; };
-    template<typename T> struct EnableIf<false, T> {};
-
     template<typename T> struct IsSignedInteger    { enum { Value = 0 }; };
     template<> struct IsSignedInteger<signed char> { enum { Value = 1 }; };
     template<> struct IsSignedInteger<short>       { enum { Value = 1 }; };
