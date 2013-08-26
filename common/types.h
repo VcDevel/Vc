@@ -99,10 +99,6 @@ namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero
 
 namespace
 {
-    template<typename T> struct IsReal { enum { Value = 0 }; };
-    template<> struct IsReal<float>    { enum { Value = 1 }; };
-    template<> struct IsReal<double>   { enum { Value = 1 }; };
-
     template<typename T> struct CanConvertToInt : public std::is_convertible<T, int> {
         static constexpr bool Value = std::is_convertible<T, int>::value;
     };
@@ -136,7 +132,7 @@ namespace
     template<> struct is_implicit_cast_allowed<V< int32_t>, V<sfloat>> : public std::false_type {};
     template<> struct is_implicit_cast_allowed<V<uint32_t>, V<sfloat>> : public std::false_type {};
 
-    template<typename T> struct IsLikeInteger { enum { Value = !IsReal<T>::Value && CanConvertToInt<T>::Value }; };
+    template<typename T> struct IsLikeInteger { enum { Value = !std::is_floating_point<T>::value && CanConvertToInt<T>::Value }; };
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !std::is_unsigned<T>::value }; };
 } // anonymous namespace
 
