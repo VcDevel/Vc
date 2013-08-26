@@ -127,10 +127,8 @@ template<typename V> void testSwizzle()
     }
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
 #if VC_DOUBLE_V_SIZE >= 4 || VC_DOUBLE_V_SIZE == 1
     runTest(testSwizzle<double_v>);
 #endif
@@ -140,6 +138,4 @@ int main(int argc, char **argv)
     runTest(testSwizzle<uint_v>);
     runTest(testSwizzle<short_v>);
     runTest(testSwizzle<ushort_v>);
-
-    return 0;
 }

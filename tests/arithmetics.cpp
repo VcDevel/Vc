@@ -513,10 +513,8 @@ template<> void fma<double_v>()
     COMPARE(a, double_v(Vc_buildDouble(1, 0x0000000000001, -50)));
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     testAllTypes(fma);
 
     runTest(testZero<int_v>);
@@ -613,6 +611,4 @@ int main(int argc, char **argv)
     testAllTypes(testProduct);
     testAllTypes(testSum);
     testAllTypes(testPartialSum);
-
-    return 0;
 }

@@ -110,17 +110,17 @@ class _UnitTest_Global_Object
 
         ~_UnitTest_Global_Object()
         {
-            if (m_finalized) {
-                // on windows std::exit will call the dtor again, leading to infinite recursion
-                return;
-            }
+        }
+
+        int finalize()
+        {
             if (plotFile.is_open()) {
                 plotFile.flush();
                 plotFile.close();
             }
-            std::cout << "\n Testing done. " << passedTests << " tests passed. " << failedTests << " tests failed." << std::endl;
             m_finalized = true;
-            std::exit(failedTests);
+            std::cout << "\n Testing done. " << passedTests << " tests passed. " << failedTests << " tests failed." << std::endl;
+            return failedTests;
         }
 
         void runTestInt(testFunction fun, const char *name);
@@ -685,5 +685,14 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
 #define for_all_masks(VecType, _mask_) \
     for (int _Vc_for_all_masks_i = 0; _Vc_for_all_masks_i == 0; ++_Vc_for_all_masks_i) \
         for (typename VecType::Mask _mask_ = allMasks<VecType>(_Vc_for_all_masks_i++); !_mask_.isEmpty(); _mask_ = allMasks<VecType>(_Vc_for_all_masks_i++))
+
+void testmain();
+
+int main(int argc, char **argv)
+{
+    initTest(argc, argv);
+    testmain();
+    return _unit_test_global.finalize();
+}
 
 #endif // UNITTEST_H

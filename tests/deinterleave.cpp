@@ -430,7 +430,7 @@ template<typename V> void testInterleavingScatter()
     testInterleavingScatterImpl<V, 8>();
 }
 
-int main()
+void testmain()
 {
     runTest(testDeinterleave<float_float>);
     runTest(testDeinterleave<float_ushort>);

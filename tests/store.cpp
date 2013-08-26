@@ -145,10 +145,8 @@ template<typename Vec> void maskedStore()
     }
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     testAllTypes(alignedStore);
     testAllTypes(unalignedStore);
     testAllTypes(streamingAndAlignedStore);
@@ -163,5 +161,4 @@ int main(int argc, char **argv)
         runTest(maskedStore<ushort_v>);
         runTest(maskedStore<sfloat_v>);
     }
-    return 0;
 }

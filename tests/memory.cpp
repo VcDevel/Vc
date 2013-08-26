@@ -308,7 +308,7 @@ template<typename V> void initializerList()
     }
 }
 
-int main()
+void testmain()
 {
     testAllTypes(testEntries);
     testAllTypes(paddingMustBeZero);
@@ -321,6 +321,4 @@ int main()
     testAllTypes(testVectorReorganization);
     testAllTypes(memoryOperators);
     testAllTypes(testCCtor);
-
-    return 0;
 }

@@ -250,7 +250,7 @@ template<typename Vec> void loadCvt()
     LoadCvt<Vec, typename SupportedConversions<T>::Next>::test();
 }
 
-int main()
+void testmain()
 {
     runTest(checkAlignment<int_v>);
     runTest(checkAlignment<uint_v>);
@@ -271,5 +271,4 @@ int main()
     testAllTypes(streamingLoad);
 
     testAllTypes(loadCvt);
-    return 0;
 }

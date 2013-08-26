@@ -55,13 +55,9 @@ template<> void isFloatingPoint<  uint_v>() { VERIFY(!Vc::is_floating_point<  ui
 template<> void isFloatingPoint< short_v>() { VERIFY(!Vc::is_floating_point< short_v>::value); }
 template<> void isFloatingPoint<ushort_v>() { VERIFY(!Vc::is_floating_point<ushort_v>::value); }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     testAllTypes(isIntegral);
     testAllTypes(isFloatingPoint);
     testAllTypes(isSigned);
-
-    return 0;
 }

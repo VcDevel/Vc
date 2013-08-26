@@ -84,10 +84,8 @@ template<typename V> void listInitialization()
     //listInitialization<V, std::list<V>>();
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     using namespace Vc;
     testAllTypes(stdVectorAlignment);
     testAllTypes(listInitialization);

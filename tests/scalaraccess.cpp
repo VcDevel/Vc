@@ -134,14 +134,10 @@ template<typename V> void writes()
     }
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     testAllTypes(reads);
     testAllTypes(writes);
     testAllTypes(readsConstantIndex);
     //testAllTypes(writesConstantIndex);
-
-    return 0;
 }

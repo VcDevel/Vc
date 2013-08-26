@@ -217,10 +217,8 @@ template<typename Vec> void gather2dim()
     }
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     testAllTypes(gatherArray);
     testAllTypes(maskedGatherArray);
 #if defined(VC_CLANG) && VC_CLANG <= 0x030000
@@ -232,6 +230,4 @@ int main(int argc, char **argv)
     testAllTypes(gatherStruct);
     testAllTypes(gather2dim);
 #endif
-
-    return 0;
 }

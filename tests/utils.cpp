@@ -452,10 +452,8 @@ template<typename V> void rangeFor()
     }
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     testAllTypes(testCall);
     testAllTypes(testForeachBit);
     testAllTypes(testSort);
@@ -471,6 +469,4 @@ int main(int argc, char **argv)
     runTest(testMallocAlignment);
     testAllTypes(testIif);
     testAllTypes(rangeFor);
-
-    return 0;
 }

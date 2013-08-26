@@ -93,10 +93,8 @@ struct T2Helper
     typedef T2 V2;
 };
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
 #define TEST(v1, v2) \
     typedef T2Helper<v1, v2> CONCAT(v1, v2); \
     runTest(testCast<CONCAT(v1, v2)>)
@@ -129,6 +127,4 @@ int main(int argc, char **argv)
     TEST(sfloat_v, short_v);
     TEST(sfloat_v, ushort_v);
 #undef TEST
-
-    return 0;
 }

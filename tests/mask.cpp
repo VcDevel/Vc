@@ -359,10 +359,8 @@ template<typename V> void maskScalarAccess()/*{{{*/
     }
 }/*}}}*/
 
-int main(int argc, char **argv)/*{{{*/
+void testmain()/*{{{*/
 {
-    initTest(argc, argv);
-
     testAllTypes(maskInit);
     testAllTypes(maskScalarAccess);
     testAllTypes(maskCompare);
@@ -381,8 +379,6 @@ int main(int argc, char **argv)/*{{{*/
 #ifdef VC_IMPL_SSE
     runTest(testFloat8GatherMask);
 #endif
-
-    return 0;
 }/*}}}*/
 
 // vim: foldmethod=marker

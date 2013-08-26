@@ -100,10 +100,9 @@ void testFloat()
     }
 }
 
-int main()
+void testmain()
 {
     runTest(testSigned);
     runTest(testUnsigned);
     runTest(testFloat);
-    return 0;
 }

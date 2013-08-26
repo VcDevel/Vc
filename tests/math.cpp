@@ -810,10 +810,8 @@ template<typename V> void testUlpDiff()/*{{{*/
     }
 }/*}}}*/
 
-int main(int argc, char **argv)/*{{{*/
+void testmain()/*{{{*/
 {
-    initTest(argc, argv);
-
     Denormals<float>::data = Vc::malloc<float, Vc::AlignOnVector>(NDenormals);/*{{{*/
     Denormals<float>::data[0] = std::numeric_limits<float>::denorm_min();
     for (int i = 1; i < NDenormals; ++i) {
@@ -899,8 +897,6 @@ int main(int argc, char **argv)/*{{{*/
 
     testRealTypes(testSincos);
     testRealTypes(testExponent);
-
-    return 0;
 }/*}}}*/
 
 // vim: foldmethod=marker

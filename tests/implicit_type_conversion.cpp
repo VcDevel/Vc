@@ -326,9 +326,7 @@ TYPE_TEST_ERR(   uint_v,    ushort_v);
     TYPE_TEST(ulonglong,      uint_v,   uint_v);
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
     runTest(testImplicitTypeConversions);
-    return 0;
 }

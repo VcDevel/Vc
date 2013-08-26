@@ -139,10 +139,8 @@ template<typename Vec> void scatterStruct2() //{{{1
     VERIFY(0 == memcmp(array, out, count * sizeof(S1)));
 }
 
-int main(int argc, char **argv) //{{{1
+void testmain() //{{{1
 {
-    initTest(argc, argv);
-
     runTest(scatterArray<int_v>);
     runTest(scatterArray<uint_v>);
     runTest(scatterArray<float_v>);
@@ -167,7 +165,6 @@ int main(int argc, char **argv) //{{{1
     runTest(scatterStruct<ushort_v>);
     testAllTypes(scatterStruct2);
 #endif
-    return 0;
 }
 
 // vim: foldmethod=marker
