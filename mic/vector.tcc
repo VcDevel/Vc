@@ -565,27 +565,27 @@ template<typename T, size_t Size> struct IndexSizeChecker<Vector<T>, Size>
 
 namespace
 {
-template<typename IT> struct GetIndexVector
+template<typename IT> struct EnsureVector
 {
     static Vc_ALWAYS_INLINE Vc_PURE __m512i convert(IT indexes) { return int_v(indexes, Vc::Unaligned).data(); }
 };
-template<typename T> struct GetIndexVector<Vector<T>>
+template<typename T> struct EnsureVector<Vector<T>>
 {
     static Vc_ALWAYS_INLINE Vc_CONST __m512i convert(Vector<T> indexes) { return indexes.data(); }
 };
-template<typename IT> static Vc_ALWAYS_INLINE __m512i getIndexVector(IT indexes) { return GetIndexVector<IT>::convert(indexes); }
+template<typename IT> static Vc_ALWAYS_INLINE __m512i ensureVector(IT indexes) { return EnsureVector<IT>::convert(indexes); }
 } // anonymous namespace
 
 template<typename T> template<typename Index> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::gather(const EntryType *mem, Index indexes)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = MicIntrinsics::gather(getIndexVector(indexes), mem, UpDownC<EntryType>());
+    d.v() = MicIntrinsics::gather(ensureVector(indexes), mem, UpDownC<EntryType>());
 }
 
 template<typename T> template<typename Index> Vc_INTRINSIC void Vector<T>::gather(const EntryType *mem, Index indexes, MaskArg mask)
 {
     IndexSizeChecker<Index, Size>::check();
-    d.v() = MicIntrinsics::gather(d.v(), mask.data(), getIndexVector(indexes), mem, UpDownC<EntryType>());
+    d.v() = MicIntrinsics::gather(d.v(), mask.data(), ensureVector(indexes), mem, UpDownC<EntryType>());
 }
 
 template<typename T> template<typename S1, typename IT>
@@ -834,11 +834,11 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::gather(const S1 *array, const EntryT
 // scatters {{{1
 template<typename T> template<typename Index> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(EntryType *mem, Index indexes) const
 {
-    MicIntrinsics::scatter(mem, getIndexVector(indexes), d.v(), UpDownC<EntryType>(), sizeof(EntryType));
+    MicIntrinsics::scatter(mem, ensureVector(indexes), d.v(), UpDownC<EntryType>(), sizeof(EntryType));
 }
 template<typename T> template<typename Index> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(EntryType *mem, Index indexes, MaskArg mask) const
 {
-    MicIntrinsics::scatter(mask.data(), mem, getIndexVector(indexes), d.v(), UpDownC<EntryType>(), sizeof(EntryType));
+    MicIntrinsics::scatter(mask.data(), mem, ensureVector(indexes), d.v(), UpDownC<EntryType>(), sizeof(EntryType));
 }
 template<typename T> template<typename S1, typename IT> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, EntryType S1::* member1, IT indexes) const
 {
