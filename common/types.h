@@ -119,17 +119,9 @@ namespace
     template<> struct IsReal<float>    { enum { Value = 1 }; };
     template<> struct IsReal<double>   { enum { Value = 1 }; };
 
-    namespace
-    {
-        struct yes { char x; };
-        struct  no { yes x, y; };
-    } // anonymous namespace
-
-    template<typename From, typename To> struct HasImplicitCast : public std::is_convertible<From, To> {
-        static constexpr bool Value = std::is_convertible<From, To>::value;
+    template<typename T> struct CanConvertToInt : public std::is_convertible<T, int> {
+        static constexpr bool Value = std::is_convertible<T, int>::value;
     };
-
-    template<typename T> struct CanConvertToInt : public HasImplicitCast<T, int> {};
     template<> struct CanConvertToInt<bool>     { enum { Value = 0 }; };
     //template<> struct CanConvertToInt<float>    { enum { Value = 0 }; };
     //template<> struct CanConvertToInt<double>   { enum { Value = 0 }; };
@@ -143,11 +135,11 @@ namespace
     static_assert(CanConvertToInt<float*>::Value == 0, "CanConvertToInt_is_broken");
     static_assert(CanConvertToInt<TestEnum>::Value == 1, "CanConvertToInt_is_broken");
 
-    static_assert(HasImplicitCast<TestEnum, short>          ::Value ==  true, "HasImplicitCast0_is_broken");
-    static_assert(HasImplicitCast<int *, void *>            ::Value ==  true, "HasImplicitCast1_is_broken");
-    static_assert(HasImplicitCast<int *, const void *>      ::Value ==  true, "HasImplicitCast2_is_broken");
-    static_assert(HasImplicitCast<const int *, const void *>::Value ==  true, "HasImplicitCast3_is_broken");
-    static_assert(HasImplicitCast<const int *, int *>       ::Value == false, "HasImplicitCast4_is_broken");
+    static_assert(std::is_convertible<TestEnum, short>          ::value ==  true, "HasImplicitCast0_is_broken");
+    static_assert(std::is_convertible<int *, void *>            ::value ==  true, "HasImplicitCast1_is_broken");
+    static_assert(std::is_convertible<int *, const void *>      ::value ==  true, "HasImplicitCast2_is_broken");
+    static_assert(std::is_convertible<const int *, const void *>::value ==  true, "HasImplicitCast3_is_broken");
+    static_assert(std::is_convertible<const int *, int *>       ::value == false, "HasImplicitCast4_is_broken");
 
     template<typename T> struct IsLikeInteger { enum { Value = !IsReal<T>::Value && CanConvertToInt<T>::Value }; };
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !IsUnsignedInteger<T>::Value }; };
