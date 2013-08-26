@@ -47,11 +47,16 @@ Vc_NAMESPACE_BEGIN(MIC)
 Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(Common)
-ALIGN(64) unsigned int RandomState[16] = {
+ALIGN(64) unsigned int RandomState[32] = {
     0x5a383a4fu, 0xc68bd45eu, 0x691d6d86u, 0xb367e14fu,
     0xd689dbaau, 0xfde442aau, 0x3d265423u, 0x1a77885cu,
     0x36ed2684u, 0xfb1f049du, 0x19e52f31u, 0x821e4dd7u,
-    0x23996d25u, 0x5962725au, 0x6aced4ceu, 0xd4c610f3u
+    0x23996d25u, 0x5962725au, 0x6aced4ceu, 0xd4c610f3u,
+
+    0x6ac4c828u, 0x34fcb8a2u, 0x34fe32a9u, 0xdd6fba5du,
+    0x112df788u, 0xa8241de1u, 0x0e1d1b1du, 0x813c9552u,
+    0xb0f88feeu, 0x1e4364fbu, 0xdb759fb3u, 0xcc01a0f3u,
+    0xa94dc0a0u, 0xf6fef349u, 0xcaee8edbu, 0x74af8a26u
 };
 
 const char LIBRARY_VERSION[] = VC_VERSION_STRING;
