@@ -134,7 +134,7 @@ static Vc_ALWAYS_INLINE void assertCorrectAlignment(const M256 *ptr)
         typedef typename DetermineEntryType<T>::Type EntryType;
         static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
         enum Constants {
-            HasVectorDivision = !IsInteger<T>::Value
+            HasVectorDivision = !std::is_integral<T>::value
         };
         typedef typename DetermineMask<T, Size>::Type MaskType;
         typedef typename DetermineGatherMask<MaskType>::Type GatherMaskType;

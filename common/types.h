@@ -99,22 +99,6 @@ namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero
 
 namespace
 {
-    template<typename T> struct IsSignedInteger    { enum { Value = 0 }; };
-    template<> struct IsSignedInteger<signed char> { enum { Value = 1 }; };
-    template<> struct IsSignedInteger<short>       { enum { Value = 1 }; };
-    template<> struct IsSignedInteger<int>         { enum { Value = 1 }; };
-    template<> struct IsSignedInteger<long>        { enum { Value = 1 }; };
-    template<> struct IsSignedInteger<long long>   { enum { Value = 1 }; };
-
-    template<typename T> struct IsUnsignedInteger           { enum { Value = 0 }; };
-    template<> struct IsUnsignedInteger<unsigned char>      { enum { Value = 1 }; };
-    template<> struct IsUnsignedInteger<unsigned short>     { enum { Value = 1 }; };
-    template<> struct IsUnsignedInteger<unsigned int>       { enum { Value = 1 }; };
-    template<> struct IsUnsignedInteger<unsigned long>      { enum { Value = 1 }; };
-    template<> struct IsUnsignedInteger<unsigned long long> { enum { Value = 1 }; };
-
-    template<typename T> struct IsInteger { enum { Value = IsSignedInteger<T>::Value | IsUnsignedInteger<T>::Value }; };
-
     template<typename T> struct IsReal { enum { Value = 0 }; };
     template<> struct IsReal<float>    { enum { Value = 1 }; };
     template<> struct IsReal<double>   { enum { Value = 1 }; };
@@ -141,9 +125,6 @@ namespace
     static_assert(std::is_convertible<const int *, const void *>::value ==  true, "HasImplicitCast3_is_broken");
     static_assert(std::is_convertible<const int *, int *>       ::value == false, "HasImplicitCast4_is_broken");
 
-    template<typename T> struct IsLikeInteger { enum { Value = !IsReal<T>::Value && CanConvertToInt<T>::Value }; };
-    template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !IsUnsignedInteger<T>::Value }; };
-
     template<typename From, typename To> struct is_implicit_cast_allowed : public std::integral_constant<bool,
         std::is_integral<typename From::EntryType>::value
         && From::Size == To::Size
@@ -154,6 +135,9 @@ namespace
     template<> struct is_implicit_cast_allowed<V<uint16_t>, V<sfloat>> : public std::true_type {};
     template<> struct is_implicit_cast_allowed<V< int32_t>, V<sfloat>> : public std::false_type {};
     template<> struct is_implicit_cast_allowed<V<uint32_t>, V<sfloat>> : public std::false_type {};
+
+    template<typename T> struct IsLikeInteger { enum { Value = !IsReal<T>::Value && CanConvertToInt<T>::Value }; };
+    template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !std::is_unsigned<T>::value }; };
 } // anonymous namespace
 
 #ifndef VC_CHECK_ALIGNMENT
