@@ -119,9 +119,6 @@ namespace
     template<> struct IsReal<float>    { enum { Value = 1 }; };
     template<> struct IsReal<double>   { enum { Value = 1 }; };
 
-    template<typename T, typename U> struct IsEqualType { enum { Value = 0 }; };
-    template<typename T> struct IsEqualType<T, T> { enum { Value = 1 }; };
-
     template<typename T, typename List0, typename List1 = void, typename List2 = void, typename List3 = void, typename List4 = void, typename List5 = void, typename List6 = void>
         struct IsInTypelist { enum { Value = false }; };
     template<typename T, typename List1, typename List2, typename List3, typename List4, typename List5, typename List6> struct IsInTypelist<T, T, List1, List2, List3, List4, List5, List6> { enum { Value = true }; };
