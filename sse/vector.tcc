@@ -107,20 +107,20 @@ template<typename DstT, typename SrcT, typename Flags> struct LoadHelper;
 template<typename Flags> struct LoadHelper<float, double, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128 load(const double *mem, Flags)
     {
-        return _mm_movelh_ps(_mm_cvtpd_ps(VectorHelper<__m128d>::template load<Flags>(&mem[0])),
-                             _mm_cvtpd_ps(VectorHelper<__m128d>::template load<Flags>(&mem[2])));
+        return _mm_movelh_ps(_mm_cvtpd_ps(VectorHelper<__m128d>::load<Flags>(&mem[0])),
+                             _mm_cvtpd_ps(VectorHelper<__m128d>::load<Flags>(&mem[2])));
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned int, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128 load(const unsigned int *mem, Flags)
     {
-        return StaticCastHelper<unsigned int, float>::cast(VectorHelper<__m128i>::template load<Flags>(mem));
+        return StaticCastHelper<unsigned int, float>::cast(VectorHelper<__m128i>::load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<float, int, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128 load(const int *mem, Flags)
     {
-        return StaticCastHelper<int, float>::cast(VectorHelper<__m128i>::template load<Flags>(mem));
+        return StaticCastHelper<int, float>::cast(VectorHelper<__m128i>::load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned short, Flags> {
@@ -173,13 +173,13 @@ template<typename Flags> struct LoadHelper<sfloat, int, Flags> {
 template<typename Flags> struct LoadHelper<sfloat, unsigned short, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE M256 load(const unsigned short *mem, Flags)
     {
-        return StaticCastHelper<unsigned short, sfloat>::cast(VectorHelper<__m128i>::template load<Flags>(mem));
+        return StaticCastHelper<unsigned short, sfloat>::cast(VectorHelper<__m128i>::load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<sfloat, short, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE M256 load(const short *mem, Flags)
     {
-        return StaticCastHelper<short, sfloat>::cast(VectorHelper<__m128i>::template load<Flags>(mem));
+        return StaticCastHelper<short, sfloat>::cast(VectorHelper<__m128i>::load<Flags>(mem));
     }
 };
 template<typename Flags> struct LoadHelper<sfloat, unsigned char, Flags> {
@@ -199,7 +199,7 @@ template<typename Flags> struct LoadHelper<sfloat, signed char, Flags> {
 template<typename Flags> struct LoadHelper<int, unsigned int, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned int *mem, Flags)
     {
-        return VectorHelper<__m128i>::template load<Flags>(mem);
+        return VectorHelper<__m128i>::load<Flags>(mem);
     }
 };
 // no difference between streaming and alignment, because the
@@ -247,7 +247,7 @@ template<typename Flags> struct LoadHelper<unsigned int, unsigned char, Flags> {
 template<typename Flags> struct LoadHelper<short, unsigned short, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned short *mem, Flags)
     {
-        return VectorHelper<__m128i>::template load<Flags>(mem);
+        return VectorHelper<__m128i>::load<Flags>(mem);
     }
 };
 template<typename Flags> struct LoadHelper<short, unsigned char, Flags> {
