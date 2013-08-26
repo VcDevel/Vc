@@ -119,10 +119,6 @@ namespace
     template<> struct IsReal<float>    { enum { Value = 1 }; };
     template<> struct IsReal<double>   { enum { Value = 1 }; };
 
-    template<typename Arg0, typename Arg1, typename T0, typename T1> struct IsCombinationOf { enum { Value = false }; };
-    template<typename Arg0, typename Arg1> struct IsCombinationOf<Arg0, Arg1, Arg0, Arg1> { enum { Value = true }; };
-    template<typename Arg0, typename Arg1> struct IsCombinationOf<Arg0, Arg1, Arg1, Arg0> { enum { Value = true }; };
-
     namespace
     {
         struct yes { char x; };
