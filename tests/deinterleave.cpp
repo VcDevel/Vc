@@ -79,7 +79,7 @@ template<typename Pair> void testDeinterleave()
 
     V a, b;
 
-    for (int i = 0; i < 1024 - 2 * V::Size; ++i) {
+    for (size_t i = 0; i < 1024 - 2 * V::Size; ++i) {
         // note that a 32 bit integer is certainly enough to decide on alignment...
         // ... but uintptr_t is C99 but not C++ yet
         // ... and GCC refuses to do the cast, even if I know what I'm doing

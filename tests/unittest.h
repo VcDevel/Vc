@@ -484,21 +484,21 @@ template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_A
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(Vc::float_v) a, VC_ALIGNED_PARAMETER(Vc::float_v) b) {
     const Vc::float_v ref = b;
     const Vc::float_v dist = ulpDiffToReferenceSigned(a, b);
-    for (int i = 0; i < Vc::float_v::Size; ++i) {
+    for (size_t i = 0; i < Vc::float_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(Vc::double_v) a, VC_ALIGNED_PARAMETER(Vc::double_v) b) {
     const Vc::double_v ref = b;
     const Vc::double_v dist = ulpDiffToReferenceSigned(a, b);
-    for (int i = 0; i < Vc::double_v::Size; ++i) {
+    for (size_t i = 0; i < Vc::double_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(Vc::sfloat_v) a, VC_ALIGNED_PARAMETER(Vc::sfloat_v) b) {
     const Vc::sfloat_v ref = b;
     const Vc::sfloat_v dist = ulpDiffToReferenceSigned(a, b);
-    for (int i = 0; i < Vc::sfloat_v::Size; ++i) {
+    for (size_t i = 0; i < Vc::sfloat_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
@@ -557,7 +557,7 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
     } \
     _unit_test_global.expect_assert_failure = false
 
-template<typename Vec> static typename Vec::Mask allMasks(int i)
+template<typename Vec> static typename Vec::Mask allMasks(size_t i)
 {
 #ifdef VC_IMPL_MIC
     return ((1 << Vec::Size) - 1) - i;
@@ -578,8 +578,8 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 3) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
             if (i == 0) {
                 I indexes(Vc::IndexesFromZero);
                 return M(indexes == a || indexes == b);
@@ -590,9 +590,9 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 4) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
-            for (int c = b + 1; c < Vec::Size; ++c) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
+            for (size_t c = b + 1; c < Vec::Size; ++c) {
                 if (i == 0) {
                     I indexes(Vc::IndexesFromZero);
                     return M(indexes == a || indexes == b || indexes == c);
@@ -604,10 +604,10 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 5) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
-            for (int c = b + 1; c < Vec::Size; ++c) {
-                for (int d = c + 1; d < Vec::Size; ++d) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
+            for (size_t c = b + 1; c < Vec::Size; ++c) {
+                for (size_t d = c + 1; d < Vec::Size; ++d) {
                     if (i == 0) {
                         I indexes(Vc::IndexesFromZero);
                         return M(indexes == a || indexes == b || indexes == c || indexes == d);
@@ -620,11 +620,11 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 6) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
-            for (int c = b + 1; c < Vec::Size; ++c) {
-                for (int d = c + 1; d < Vec::Size; ++d) {
-                    for (int e = d + 1; e < Vec::Size; ++e) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
+            for (size_t c = b + 1; c < Vec::Size; ++c) {
+                for (size_t d = c + 1; d < Vec::Size; ++d) {
+                    for (size_t e = d + 1; e < Vec::Size; ++e) {
                         if (i == 0) {
                             I indexes(Vc::IndexesFromZero);
                             return M(indexes == a || indexes == b || indexes == c || indexes == d || indexes == e);
@@ -638,12 +638,12 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 7) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
-            for (int c = b + 1; c < Vec::Size; ++c) {
-                for (int d = c + 1; d < Vec::Size; ++d) {
-                    for (int e = d + 1; e < Vec::Size; ++e) {
-                        for (int f = e + 1; f < Vec::Size; ++f) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
+            for (size_t c = b + 1; c < Vec::Size; ++c) {
+                for (size_t d = c + 1; d < Vec::Size; ++d) {
+                    for (size_t e = d + 1; e < Vec::Size; ++e) {
+                        for (size_t f = e + 1; f < Vec::Size; ++f) {
                             if (i == 0) {
                                 I indexes(Vc::IndexesFromZero);
                                 return M(indexes == a || indexes == b || indexes == c || indexes == d || indexes == e || indexes == f);
@@ -658,13 +658,13 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 8) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
-            for (int c = b + 1; c < Vec::Size; ++c) {
-                for (int d = c + 1; d < Vec::Size; ++d) {
-                    for (int e = d + 1; e < Vec::Size; ++e) {
-                        for (int f = e + 1; f < Vec::Size; ++f) {
-                            for (int g = f + 1; g < Vec::Size; ++g) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
+            for (size_t c = b + 1; c < Vec::Size; ++c) {
+                for (size_t d = c + 1; d < Vec::Size; ++d) {
+                    for (size_t e = d + 1; e < Vec::Size; ++e) {
+                        for (size_t f = e + 1; f < Vec::Size; ++f) {
+                            for (size_t g = f + 1; g < Vec::Size; ++g) {
                                 if (i == 0) {
                                     I indexes(Vc::IndexesFromZero);
                                     return M(indexes == a || indexes == b || indexes == c || indexes == d

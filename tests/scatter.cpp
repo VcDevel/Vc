@@ -35,7 +35,7 @@ template<typename Vec> void maskedScatterArray() //{{{1
         Vec::Zero().store(mem, Vc::Unaligned);
         v.scatter(&mem[0], It::IndexesFromZero(), m);
 
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(mem[i], m[i] ? v[i] : T(0)) << " i = " << i << ", m = " << m;
         }
     }

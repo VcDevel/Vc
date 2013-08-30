@@ -56,7 +56,7 @@ static inline float dfu(float x) { return ( std::cos(x) ); }
 static inline Vc::float_v fu(Vc::float_v::AsArg x) {
 #ifdef USE_SCALAR_SINCOS
   Vc::float_v r;
-  for (int i = 0; i < Vc::float_v::Size; ++i) {
+  for (size_t i = 0; i < Vc::float_v::Size; ++i) {
     r[i] = std::sin(x[i]);
   }
   return r;
@@ -68,7 +68,7 @@ static inline Vc::float_v fu(Vc::float_v::AsArg x) {
 static inline Vc::float_v dfu(Vc::float_v::AsArg x) {
 #ifdef USE_SCALAR_SINCOS
   Vc::float_v r;
-  for (int i = 0; i < Vc::float_v::Size; ++i) {
+  for (size_t i = 0; i < Vc::float_v::Size; ++i) {
     r[i] = std::cos(x[i]);
   }
   return r;

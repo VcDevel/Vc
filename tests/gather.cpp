@@ -28,21 +28,21 @@ template<typename Vec> void maskedGatherArray()
     typedef typename Vec::EntryType T;
 
     T mem[Vec::Size];
-    for (int i = 0; i < Vec::Size; ++i) {
+    for (size_t i = 0; i < Vec::Size; ++i) {
         mem[i] = i + 1;
     }
 
     It indexes = It::IndexesFromZero();
     for_all_masks(Vec, m) {
         const Vec a(mem, indexes, m);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(a[i], m[i] ? mem[i] : 0) << " i = " << i << ", m = " << m;
         }
 
         T x = Vec::Size + 1;
         Vec b = x;
         b.gather(mem, indexes, m);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(b[i], m[i] ? mem[i] : x) << " i = " << i << ", m = " << m;
         }
     }

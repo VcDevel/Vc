@@ -48,8 +48,8 @@ template<typename T> class Vector
 
         typedef typename VectorTypeHelper<T>::Type VectorType;
         typedef typename DetermineEntryType<T>::Type EntryType;
+        static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
         enum Constants {
-            Size = sizeof(VectorType) / sizeof(EntryType),
             MemoryAlignment = alignof(VectorType),
             HasVectorDivision = HasVectorDivisionHelper<T>::Value
         };
@@ -353,7 +353,7 @@ template<typename T> class Vector
         template<typename F> void callWithValuesSorted(F VC_RR_ f) {
             EntryType value = d.m(0);
             f(value);
-            for (int i = 1; i < Size; ++i) {
+            for (size_t i = 1; i < Size; ++i) {
                 if (d.m(i) != value) {
                     value = d.m(i);
                     f(value);
@@ -448,7 +448,6 @@ static Vc_ALWAYS_INLINE double_v max(const double_v &x, const double_v &y) { ret
 static_assert(!std::is_convertible<float *, short_v>::value, "A float* should never implicitly convert to short_v. Something is broken.");
 static_assert(!std::is_convertible<int *  , short_v>::value, "An int* should never implicitly convert to short_v. Something is broken.");
 static_assert(!std::is_convertible<short *, short_v>::value, "A short* should never implicitly convert to short_v. Something is broken.");
-static_assert(!std::is_convertible<decltype(float_v::Size), short_v>::value, "An enumeration should never implicitly convert to short_v. Something is broken.");
 
 #include "forceToRegisters.tcc"
 Vc_IMPL_NAMESPACE_END

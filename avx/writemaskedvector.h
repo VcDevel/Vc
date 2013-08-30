@@ -29,7 +29,7 @@ class WriteMaskedVector
     friend class Vector<T>;
     typedef typename VectorTypeHelper<T>::Type VectorType;
     typedef typename DetermineEntryType<T>::Type EntryType;
-    enum Constants { Size = sizeof(VectorType) / sizeof(EntryType) };
+    static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
     typedef typename Vector<T>::Mask Mask;
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)

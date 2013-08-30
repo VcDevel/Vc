@@ -151,8 +151,8 @@ template<typename T> class Vector
         FREE_STORE_OPERATORS_ALIGNED(16)
 
         typedef typename VectorTraits<T>::VectorType VectorType;
+        static constexpr size_t Size = VectorTraits<T>::Size;
         enum Constants {
-            Size = VectorTraits<T>::Size,
             MemoryAlignment = alignof(VectorType)
         };
         typedef typename VectorTraits<T>::EntryType EntryType;

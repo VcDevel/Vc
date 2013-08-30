@@ -65,8 +65,8 @@ public:
     typedef typename DetermineEntryType<T>::Type EntryType;
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
     typedef Vector<unsigned int> IndexType;
+    static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
     enum Constants {
-        Size = sizeof(VectorType) / sizeof(VectorEntryType),
         MemoryAlignment = sizeof(EntryType) * Size,
         HasVectorDivision = true
     };

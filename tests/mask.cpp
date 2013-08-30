@@ -39,9 +39,9 @@ template<typename Vec> void testInc()/*{{{*/
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
-    for (int borderI = 0; borderI < Vec::Size; ++borderI) {/*{{{*/
+    for (size_t borderI = 0; borderI < Vec::Size; ++borderI) {/*{{{*/
         const T border = static_cast<T>(borderI);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             data[i] = static_cast<T>(i);
             data[i + Vec::Size] = data[i] + static_cast<T>(data[i] < border ? 1 : 0);
         }
@@ -55,9 +55,9 @@ template<typename Vec> void testInc()/*{{{*/
         COMPARE(a, b) << ", border: " << border << ", m: " << m;
     }
 /*}}}*/
-    for (int borderI = 0; borderI < Vec::Size; ++borderI) {
+    for (size_t borderI = 0; borderI < Vec::Size; ++borderI) {
         const T border = static_cast<T>(borderI);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             data[i] = static_cast<T>(i);
             data[i + Vec::Size] = data[i] + static_cast<T>(data[i] < border ? 1 : 0);
         }
@@ -78,9 +78,9 @@ template<typename Vec> void testDec()/*{{{*/
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
-    for (int borderI = 0; borderI < Vec::Size; ++borderI) {
+    for (size_t borderI = 0; borderI < Vec::Size; ++borderI) {
         const T border = static_cast<T>(borderI);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             data[i] = static_cast<T>(i + 1);
             data[i + Vec::Size] = data[i] - static_cast<T>(data[i] < border ? 1 : 0);
         }
@@ -110,9 +110,9 @@ template<typename Vec> void testPlusEq()/*{{{*/
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
-    for (int borderI = 0; borderI < Vec::Size; ++borderI) {
+    for (size_t borderI = 0; borderI < Vec::Size; ++borderI) {
         const T border = static_cast<T>(borderI);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             data[i] = static_cast<T>(i + 1);
             data[i + Vec::Size] = data[i] + static_cast<T>(data[i] < border ? 2 : 0);
         }
@@ -133,9 +133,9 @@ template<typename Vec> void testMinusEq()/*{{{*/
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
-    for (int borderI = 0; borderI < Vec::Size; ++borderI) {
+    for (size_t borderI = 0; borderI < Vec::Size; ++borderI) {
         const T border = static_cast<T>(borderI);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             data[i] = static_cast<T>(i + 2);
             data[i + Vec::Size] = data[i] - static_cast<T>(data[i] < border ? 2 : 0);
         }
@@ -158,9 +158,9 @@ template<typename Vec> void testTimesEq()/*{{{*/
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
-    for (int borderI = 0; borderI < Vec::Size; ++borderI) {
+    for (size_t borderI = 0; borderI < Vec::Size; ++borderI) {
         const T border = static_cast<T>(borderI);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             data[i] = static_cast<T>(i);
             data[i + Vec::Size] = data[i] * static_cast<T>(data[i] < border ? 2 : 1);
         }
@@ -183,9 +183,9 @@ template<typename Vec> void testDivEq()/*{{{*/
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
-    for (int borderI = 0; borderI < Vec::Size; ++borderI) {
+    for (size_t borderI = 0; borderI < Vec::Size; ++borderI) {
         const T border = static_cast<T>(borderI);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             data[i] = static_cast<T>(5 * i);
             data[i + Vec::Size] = data[i] / static_cast<T>(data[i] < border ? 3 : 1);
         }
@@ -208,9 +208,9 @@ template<typename Vec> void testAssign()/*{{{*/
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     T *data = mem;
-    for (int borderI = 0; borderI < Vec::Size; ++borderI) {
+    for (size_t borderI = 0; borderI < Vec::Size; ++borderI) {
         const T border = static_cast<T>(borderI);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             data[i] = static_cast<T>(i);
             data[i + Vec::Size] = data[i] + static_cast<T>(data[i] < border ? 2 : 0);
         }
@@ -233,7 +233,7 @@ template<typename Vec> void testZero()/*{{{*/
     typedef typename Vec::Mask Mask;
     typedef typename Vec::IndexType I;
 
-    for (int cut = 0; cut < Vec::Size; ++cut) {
+    for (size_t cut = 0; cut < Vec::Size; ++cut) {
         const Mask mask(I(Vc::IndexesFromZero) < cut);
         //std::cout << mask << std::endl;
 
@@ -256,7 +256,7 @@ template<typename Vec> void testCount()/*{{{*/
 
     for_all_masks(Vec, m) {
         unsigned int count = 0;
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             if (m[i]) {
                 ++count;
             }
@@ -282,7 +282,7 @@ void testFloat8GatherMask()/*{{{*/
 {
     Vc::Memory<short_v, short_v::Size * 256> data;
     short_v::Memory andMemory;
-    for (int i = 0; i < short_v::Size; ++i) {
+    for (size_t i = 0; i < short_v::Size; ++i) {
         andMemory[i] = 1 << i;
     }
     const short_v andMask(andMemory);
@@ -342,17 +342,17 @@ template<typename V> void maskScalarAccess()/*{{{*/
     typedef typename V::Mask M;
     for_all_masks(V, mask) {
         const auto &mask2 = mask;
-        for (int i = 0; i < V::Size; ++i) {
+        for (size_t i = 0; i < V::Size; ++i) {
             COMPARE(bool(mask[i]), mask2[i]);
         }
 
         const auto maskInv = !mask;
-        for (int i = 0; i < V::Size; ++i) {
+        for (size_t i = 0; i < V::Size; ++i) {
             mask[i] = !mask[i];
         }
         COMPARE(mask, maskInv);
 
-        for (int i = 0; i < V::Size; ++i) {
+        for (size_t i = 0; i < V::Size; ++i) {
             mask[i] = true;
         }
         COMPARE(mask, M(true));

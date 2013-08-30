@@ -155,7 +155,7 @@ template<typename V> void testMul()
         V a = V::Random();
         V b = V::Random();
         V reference = a;
-        for (int j = 0; j < V::Size; ++j) {
+        for (size_t j = 0; j < V::Size; ++j) {
             // this could overflow - but at least the compiler can't know about it so it doesn't
             // matter that it's undefined behavior in C++. The only thing that matters is what the
             // hardware does...
@@ -263,7 +263,7 @@ template<typename Vec> void testShift()
 
     Vec shifts(IndexesFromZero);
     a <<= shifts;
-    for (typename Vec::EntryType i = 0, x = 1; i < (Vc::is_signed<Vec>::value ? Vec::Size - 1 : Vec::Size); ++i, x <<= 1) {
+    for (T i = 0, x = 1; i < T(Vc::is_signed<Vec>::value ? Vec::Size - 1 : Vec::Size); ++i, x <<= 1) {
         COMPARE(a[i], x);
     }
 
@@ -275,7 +275,7 @@ template<typename Vec> void testShift()
 
     a = Vec(16);
     a >>= shifts;
-    for (typename Vec::EntryType i = 0, x = 16; i < Vec::Size; ++i, x >>= 1) {
+    for (T i = 0, x = 16; i < T(Vec::Size); ++i, x >>= 1) {
         COMPARE(a[i], x);
     }
 }
@@ -415,7 +415,7 @@ template<typename Vec> void testSum()
     for (int i = 0; i < 10; ++i) {
         T x = static_cast<T>(i);
         Vec v(x);
-        COMPARE(v.sum(), x * Vec::Size);
+        COMPARE(v.sum(), T(x * Vec::Size));
 
         int j = 0;
         Mask m;

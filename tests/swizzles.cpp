@@ -28,7 +28,7 @@ enum Swizzle {
 template<typename V> V scalarSwizzle(VC_ALIGNED_PARAMETER(V) v, Swizzle s)
 {
     V r = v;
-    for (int i = 0; i + 4 <= V::Size; i += 4) {
+    for (size_t i = 0; i + 4 <= V::Size; i += 4) {
         switch (s) {
         case BADC:
             r[i + 0] = v[i + 1];

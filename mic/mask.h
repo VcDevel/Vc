@@ -60,9 +60,7 @@ template<unsigned int VectorSize> class Mask
     friend class Mask<16u>;
     typedef typename MaskHelper<VectorSize>::Type M;
 public:
-    enum Constants {
-        Size = VectorSize
-    };
+    static constexpr size_t Size = VectorSize;
     typedef Mask<VectorSize> AsArg; // for now only ICC can compile this code and it is not broken :)
     inline Mask() {}
     inline Mask(M _k) : k(_k) {}

@@ -55,8 +55,8 @@ class Vector
         Vc_ALWAYS_INLINE EntryType &data() { return m_data; }
         Vc_ALWAYS_INLINE EntryType data() const { return m_data; }
 
+        static constexpr size_t Size = 1;
         enum Constants {
-            Size = 1,
             MemoryAlignment = alignof(EntryType)
         };
 

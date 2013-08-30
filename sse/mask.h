@@ -65,7 +65,7 @@ template<unsigned int VectorSize> class Mask
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
-        enum Constants { Size = VectorSize };
+        static constexpr size_t Size = VectorSize;
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
         // Also Float8Mask requires const ref on MSVC 32bit.
@@ -337,7 +337,7 @@ class Float8Mask
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
-        enum Constants { Size = VectorSize };
+        static constexpr size_t Size = VectorSize;
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
         // Also Float8Mask requires const ref on MSVC 32bit.

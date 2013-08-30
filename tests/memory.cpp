@@ -113,7 +113,7 @@ template<typename V, unsigned int Size> struct TestVectors { static void test()
         COMPARE(V(m.vector(i)), x);
         COMPARE(V(m2.vector(i)), x);
         COMPARE(V(m3.vector(i)), x);
-        for (int shift = 0; shift < V::Size; ++shift, ++x) {
+        for (size_t shift = 0; shift < V::Size; ++shift, ++x) {
             COMPARE(V(m.vector(i, shift)), x);
             COMPARE(V(m2.vector(i, shift)), x);
             COMPARE(V(m3.vector(i, shift)), x);
@@ -145,7 +145,7 @@ template<typename V, unsigned int Size> struct TestVectors2D { static void test(
         for (j = 0; j < mrow.vectorsCount() - 1; ++j) {
             COMPARE(V(mrow.vector(j)), x);
             COMPARE(V(m2row.vector(j)), x);
-            for (int shift = 0; shift < V::Size; ++shift, ++x) {
+            for (size_t shift = 0; shift < V::Size; ++shift, ++x) {
                 COMPARE(V(mrow.vector(j, shift)), x);
                 COMPARE(V(m2row.vector(j, shift)), x);
             }
@@ -304,7 +304,7 @@ template<typename V> void initializerList()
     typedef typename V::EntryType T;
     Memory<V, 3> m = { T(1), T(2), T(3) };
     for (int i = 0; i < 3; ++i) {
-        COMPARE(m[i], i + 1);
+        COMPARE(m[i], T(i + 1));
     }
 }
 

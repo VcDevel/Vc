@@ -61,11 +61,11 @@ template<typename Vec> void unalignedStore()
     std::memset(array, 0xff, Count * sizeof(T));
     T xValue = 1;
     const Vec x(xValue);
-    for (int i = 1; i < Count - Vec::Size + 1; i += Vec::Size) {
+    for (size_t i = 1; i < Count - Vec::Size + 1; i += Vec::Size) {
         x.store(&array[i], Unaligned);
     }
 
-    for (int i = 1; i < Count - Vec::Size + 1; ++i) {
+    for (size_t i = 1; i < Count - Vec::Size + 1; ++i) {
         COMPARE(array[i], xValue);
     }
 }
@@ -105,11 +105,11 @@ template<typename Vec> void streamingAndUnalignedStore()
     std::memset(array, 0xff, Count * sizeof(T));
     T xValue = 1;
     const Vec x(xValue);
-    for (int i = 1; i < Count - Vec::Size + 1; i += Vec::Size) {
+    for (size_t i = 1; i < Count - Vec::Size + 1; i += Vec::Size) {
         x.store(&array[i], Streaming | Unaligned);
     }
 
-    for (int i = 1; i < Count - Vec::Size + 1; ++i) {
+    for (size_t i = 1; i < Count - Vec::Size + 1; ++i) {
         COMPARE(array[i], xValue);
     }
 }

@@ -41,7 +41,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)
 
-        enum Constants { Size = VectorSize };
+        static constexpr size_t Size = VectorSize;
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
 #if defined VC_MSVC && defined _WIN32
@@ -132,7 +132,7 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
 
-        enum Constants { Size = VectorSize };
+        static constexpr size_t Size = VectorSize;
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
 #if defined VC_MSVC && defined _WIN32

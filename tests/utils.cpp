@@ -45,9 +45,9 @@ template<typename Vec> void testSort()
     }
     for (int perm = 0; perm < maxPerm; ++perm) {
         int rest = perm;
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             _a[i] = 0;
-            for (int j = 0; j < i; ++j) {
+            for (size_t j = 0; j < i; ++j) {
                 if (_a[i] == _a[j]) {
                     ++_a[i];
                     j = -1;
@@ -55,7 +55,7 @@ template<typename Vec> void testSort()
             }
             _a[i] += rest % (Vec::Size - i);
             rest /= (Vec::Size - i);
-            for (int j = 0; j < i; ++j) {
+            for (size_t j = 0; j < i; ++j) {
                 if (_a[i] == _a[j]) {
                     ++_a[i];
                     j = -1;
@@ -96,10 +96,10 @@ template<typename V> void testCall()
     a(odd) -= 1;
     a.callWithValuesSorted(f);
     V c(f.d);
-    for (int i = 0; i < V::Size / 2; ++i) {
+    for (size_t i = 0; i < V::Size / 2; ++i) {
         COMPARE(a[i * 2], c[i]);
     }
-    for (int i = V::Size / 2; i < V::Size; ++i) {
+    for (size_t i = V::Size / 2; i < V::Size; ++i) {
         COMPARE(b[i], c[i]);
     }
 }
@@ -326,11 +326,12 @@ template<typename V> void fill()
 template<typename V> void shifted()
 {
     typedef typename V::EntryType T;
-    for (int shift = -2 * V::Size; shift <= 2 * V::Size; ++shift) {
+    constexpr int Size = V::Size;
+    for (int shift = -2 * Size; shift <= 2 * Size; ++shift) {
         const V reference = V::Random();
         const V test = reference.shifted(shift);
-        for (int i = 0; i < V::Size; ++i) {
-            if (i + shift >= 0 && i + shift < V::Size) {
+        for (int i = 0; i < Size; ++i) {
+            if (i + shift >= 0 && i + shift < Size) {
                 COMPARE(test[i], reference[i + shift]) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
             } else {
                 COMPARE(test[i], T(0)) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
@@ -341,11 +342,12 @@ template<typename V> void shifted()
 
 template<typename V> void rotated()
 {
-    for (int shift = -2 * V::Size; shift <= 2 * V::Size; ++shift) {
-        //std::cout << "amount = " << shift % V::Size << std::endl;
+    constexpr int Size = V::Size;
+    for (int shift = -2 * Size; shift <= 2 * Size; ++shift) {
+        //std::cout << "amount = " << shift % Size << std::endl;
         const V reference = V::Random();
         const V test = reference.rotated(shift);
-        for (int i = 0; i < V::Size; ++i) {
+        for (int i = 0; i < Size; ++i) {
             unsigned int refShift = i + shift;
             COMPARE(test[i], reference[refShift % V::Size]) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
         }
@@ -441,8 +443,7 @@ template<typename V> void rangeFor()
     for_all_masks(V, mask) {
         unsigned int count = 0;
         V test = V::Zero();
-        for (auto i : where(mask)) {
-            VERIFY(i >= 0);
+        for (size_t i : where(mask)) {
             VERIFY(i < V::Size);
             test[i] = T(1);
             ++count;

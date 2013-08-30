@@ -135,7 +135,7 @@ template<typename Vec> void streamingLoad()
     }
 
     Vec ref = data.firstVector();
-    for (int i = 0; i < streamingLoadCount - Vec::Size; ++i, ++ref) {
+    for (size_t i = 0; i < streamingLoadCount - Vec::Size; ++i, ++ref) {
         Vec v1, v2;
         if (0 == i % Vec::Size) {
             v1 = Vec(&data[i], Vc::Streaming);
