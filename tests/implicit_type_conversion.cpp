@@ -35,6 +35,17 @@ typedef unsigned long long ulonglong;
 #if defined(VC_GCC) && VC_GCC == 0x40801
 #warning "Skipping tests involving operator& because of a bug in GCC 4.8.1 (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57532)"
 #define _TYPE_TEST(a, b, c) \
+    static_assert(std::is_same<decltype(a() *  b()), c>::value, #a " *  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() /  b()), c>::value, #a " /  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() +  b()), c>::value, #a " +  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() -  b()), c>::value, #a " -  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() |  b()), c>::value, #a " |  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() ^  b()), c>::value, #a " ^  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() == b()), c::Mask>::value, #a " == " #b " => " #c "::Mask"); \
+    static_assert(std::is_same<decltype(a() != b()), c::Mask>::value, #a " != " #b " => " #c "::Mask"); \
+    static_assert(std::is_same<decltype(a() <= b()), c::Mask>::value, #a " <= " #b " => " #c "::Mask"); \
+    static_assert(std::is_same<decltype(a() >= b()), c::Mask>::value, #a " >= " #b " => " #c "::Mask"); \
+    static_assert(std::is_same<decltype(a() <  b()), c::Mask>::value, #a " <  " #b " => " #c "::Mask"); \
     COMPARE(typeid(a() * b()), typeid(c)); \
     COMPARE(typeid(a() / b()), typeid(c)); \
     COMPARE(typeid(a() + b()), typeid(c)); \
@@ -48,6 +59,18 @@ typedef unsigned long long ulonglong;
     COMPARE(typeid(a() <  b()), typeid(c::Mask));
 #else
 #define _TYPE_TEST(a, b, c) \
+    static_assert(std::is_same<decltype(a() *  b()), c>::value, #a " *  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() /  b()), c>::value, #a " /  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() +  b()), c>::value, #a " +  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() -  b()), c>::value, #a " -  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() &  b()), c>::value, #a " &  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() |  b()), c>::value, #a " |  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() ^  b()), c>::value, #a " ^  " #b " => " #c); \
+    static_assert(std::is_same<decltype(a() == b()), c::Mask>::value, #a " == " #b " => " #c "::Mask"); \
+    static_assert(std::is_same<decltype(a() != b()), c::Mask>::value, #a " != " #b " => " #c "::Mask"); \
+    static_assert(std::is_same<decltype(a() <= b()), c::Mask>::value, #a " <= " #b " => " #c "::Mask"); \
+    static_assert(std::is_same<decltype(a() >= b()), c::Mask>::value, #a " >= " #b " => " #c "::Mask"); \
+    static_assert(std::is_same<decltype(a() <  b()), c::Mask>::value, #a " <  " #b " => " #c "::Mask"); \
     COMPARE(typeid(a() * b()), typeid(c)); \
     COMPARE(typeid(a() / b()), typeid(c)); \
     COMPARE(typeid(a() + b()), typeid(c)); \
@@ -120,6 +143,13 @@ void testImplicitTypeConversions()
     VERIFY( TestImplicitCast<  uint_v>::test(  uint()));
     VERIFY( TestImplicitCast< short_v>::test( short()));
     VERIFY( TestImplicitCast<ushort_v>::test(ushort()));
+    VERIFY(!TestImplicitCast<double_v>::test(nullptr));
+    VERIFY(!TestImplicitCast< float_v>::test(nullptr));
+    VERIFY(!TestImplicitCast<sfloat_v>::test(nullptr));
+    VERIFY(!TestImplicitCast<   int_v>::test(nullptr));
+    VERIFY(!TestImplicitCast<  uint_v>::test(nullptr));
+    VERIFY(!TestImplicitCast< short_v>::test(nullptr));
+    VERIFY(!TestImplicitCast<ushort_v>::test(nullptr));
 
     TYPE_TEST_ERR(double_v,  int_ptr);
     TYPE_TEST_ERR( float_v,  int_ptr);
