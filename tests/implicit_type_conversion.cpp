@@ -28,6 +28,55 @@ typedef unsigned long ulong;
 typedef long long longlong;
 typedef unsigned long long ulonglong;
 
+static_assert(!std::is_convertible< float_v, double_v>::value, "!std::is_convertible< float_v, double_v>");
+static_assert(!std::is_convertible<sfloat_v, double_v>::value, "!std::is_convertible<sfloat_v, double_v>");
+static_assert(!std::is_convertible<   int_v, double_v>::value, "!std::is_convertible<   int_v, double_v>");
+static_assert(!std::is_convertible<  uint_v, double_v>::value, "!std::is_convertible<  uint_v, double_v>");
+static_assert(!std::is_convertible< short_v, double_v>::value, "!std::is_convertible< short_v, double_v>");
+static_assert(!std::is_convertible<ushort_v, double_v>::value, "!std::is_convertible<ushort_v, double_v>");
+
+static_assert(!std::is_convertible<double_v,  float_v>::value, "!std::is_convertible<double_v,  float_v>");
+static_assert(!std::is_convertible<sfloat_v,  float_v>::value, "!std::is_convertible<sfloat_v,  float_v>");
+static_assert( std::is_convertible<   int_v,  float_v>::value, " std::is_convertible<   int_v,  float_v>");
+static_assert( std::is_convertible<  uint_v,  float_v>::value, " std::is_convertible<  uint_v,  float_v>");
+static_assert(!std::is_convertible< short_v,  float_v>::value, "!std::is_convertible< short_v,  float_v>");
+static_assert(!std::is_convertible<ushort_v,  float_v>::value, "!std::is_convertible<ushort_v,  float_v>");
+
+static_assert(!std::is_convertible<double_v, sfloat_v>::value, "!std::is_convertible<double_v, sfloat_v>");
+static_assert(!std::is_convertible< float_v, sfloat_v>::value, "!std::is_convertible< float_v, sfloat_v>");
+static_assert(!std::is_convertible<   int_v, sfloat_v>::value, "!std::is_convertible<   int_v, sfloat_v>");
+static_assert(!std::is_convertible<  uint_v, sfloat_v>::value, "!std::is_convertible<  uint_v, sfloat_v>");
+static_assert( std::is_convertible< short_v, sfloat_v>::value, " std::is_convertible< short_v, sfloat_v>");
+static_assert( std::is_convertible<ushort_v, sfloat_v>::value, " std::is_convertible<ushort_v, sfloat_v>");
+
+static_assert(!std::is_convertible<double_v,    int_v>::value, "!std::is_convertible<double_v,    int_v>");
+static_assert(!std::is_convertible< float_v,    int_v>::value, "!std::is_convertible< float_v,    int_v>");
+static_assert(!std::is_convertible<sfloat_v,    int_v>::value, "!std::is_convertible<sfloat_v,    int_v>");
+static_assert( std::is_convertible<  uint_v,    int_v>::value, " std::is_convertible<  uint_v,    int_v>");
+static_assert(!std::is_convertible< short_v,    int_v>::value, "!std::is_convertible< short_v,    int_v>");
+static_assert(!std::is_convertible<ushort_v,    int_v>::value, "!std::is_convertible<ushort_v,    int_v>");
+
+static_assert(!std::is_convertible<double_v,   uint_v>::value, "!std::is_convertible<double_v,   uint_v>");
+static_assert(!std::is_convertible< float_v,   uint_v>::value, "!std::is_convertible< float_v,   uint_v>");
+static_assert(!std::is_convertible<sfloat_v,   uint_v>::value, "!std::is_convertible<sfloat_v,   uint_v>");
+static_assert( std::is_convertible<   int_v,   uint_v>::value, " std::is_convertible<   int_v,   uint_v>");
+static_assert(!std::is_convertible< short_v,   uint_v>::value, "!std::is_convertible< short_v,   uint_v>");
+static_assert(!std::is_convertible<ushort_v,   uint_v>::value, "!std::is_convertible<ushort_v,   uint_v>");
+
+static_assert(!std::is_convertible<double_v,  short_v>::value, "!std::is_convertible<double_v,  short_v>");
+static_assert(!std::is_convertible< float_v,  short_v>::value, "!std::is_convertible< float_v,  short_v>");
+static_assert(!std::is_convertible<sfloat_v,  short_v>::value, "!std::is_convertible<sfloat_v,  short_v>");
+static_assert(!std::is_convertible<   int_v,  short_v>::value, "!std::is_convertible<   int_v,  short_v>");
+static_assert(!std::is_convertible<  uint_v,  short_v>::value, "!std::is_convertible<  uint_v,  short_v>");
+static_assert( std::is_convertible<ushort_v,  short_v>::value, " std::is_convertible<ushort_v,  short_v>");
+
+static_assert(!std::is_convertible<double_v, ushort_v>::value, "!std::is_convertible<double_v, ushort_v>");
+static_assert(!std::is_convertible< float_v, ushort_v>::value, "!std::is_convertible< float_v, ushort_v>");
+static_assert(!std::is_convertible<sfloat_v, ushort_v>::value, "!std::is_convertible<sfloat_v, ushort_v>");
+static_assert(!std::is_convertible<   int_v, ushort_v>::value, "!std::is_convertible<   int_v, ushort_v>");
+static_assert(!std::is_convertible<  uint_v, ushort_v>::value, "!std::is_convertible<  uint_v, ushort_v>");
+static_assert( std::is_convertible< short_v, ushort_v>::value, " std::is_convertible< short_v, ushort_v>");
+
 #ifdef QUICK
 #define _TYPE_TEST(a, b, c)
 #define _TYPE_TEST_ERR(a, b)
