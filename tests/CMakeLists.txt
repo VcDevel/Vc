@@ -230,7 +230,7 @@ foreach(_d ${_incdirs})
    list(APPEND incdirs "-I${_d}")
 endforeach()
 
-separate_arguments(_flags UNIX_COMMAND ${CMAKE_CXX_FLAGS})
+separate_arguments(_flags UNIX_COMMAND "${CMAKE_CXX_FLAGS} ${Vc_DEFINITIONS}")
 foreach(_f ${_flags})
    if(_f MATCHES "^-m" OR _f MATCHES "^/arch:" OR _f MATCHES "^-x")
       list(REMOVE_ITEM _flags "${_f}")
@@ -271,7 +271,7 @@ if(TEST_OPERATOR_FAILURES)
                add_test(NAME "${name}" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                   COMMAND
                   ${CMAKE_CXX_COMPILER} ${_flags} ${_implFlags}
-                  ${incdirs} -o "${name}.tmp"
+                  ${incdirs} -c -o "${name}.tmp"
                   "-DTYPE_A=${type_a}" "-DTEST_OP=${op}" "-DTYPE_B=${type_b}" "-DVC_IMPL=${impl}"
                   ${CMAKE_CURRENT_SOURCE_DIR}/implicit_type_conversion_failures.cpp
                   )
