@@ -28,6 +28,22 @@
 #include <type_traits>
 #include "macros.h"
 
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+    template<typename T> class Vector;
+#ifdef VC_MSVC
+#  if defined(VC_IMPL_Scalar)
+    template<unsigned int VectorSize> class Mask;
+#  elif defined(VC_IMPL_SSE)
+    template<unsigned int VectorSize> class Mask;
+    class Float8Mask;
+#  elif defined(VC_IMPL_AVX)
+    template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
+#  else
+#    error "Sorry, MSVC is a nasty compiler and needs extra care. Please help."
+#  endif
+#endif
+Vc_NAMESPACE_END
+
 Vc_PUBLIC_NAMESPACE_BEGIN
 // helper type to implement sfloat_v (Vector<Vc::sfloat>)
 struct sfloat {};
@@ -80,28 +96,6 @@ template<> struct NegateTypeHelper<unsigned int  > { typedef int   Type; };
 namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
 namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
-
-#ifdef VC_MSVC
-#  if defined(VC_IMPL_Scalar)
-namespace Scalar {
-    template<typename T> class Vector;
-    template<unsigned int VectorSize> class Mask;
-}
-#  elif defined(VC_IMPL_SSE)
-namespace SSE {
-    template<typename T> class Vector;
-    template<unsigned int VectorSize> class Mask;
-    class Float8Mask;
-}
-#  elif defined(VC_IMPL_AVX)
-namespace AVX {
-    template<typename T> class Vector;
-    template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
-}
-#  else
-#    error "Sorry, MSVC is a nasty compiler and needs extra care. Please help."
-#  endif
-#endif
 
 namespace
 {
