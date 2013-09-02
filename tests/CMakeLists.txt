@@ -302,13 +302,6 @@ if(TEST_OPERATOR_FAILURES)
    vc_test_implicit_type_conversion_failures( "short_v"     "uint_v")
    vc_test_implicit_type_conversion_failures("ushort_v"      "int_v")
    vc_test_implicit_type_conversion_failures("ushort_v"     "uint_v")
-   vc_test_implicit_type_conversion_failures("double_v"       "bool")
-   vc_test_implicit_type_conversion_failures("sfloat_v"       "bool")
-   vc_test_implicit_type_conversion_failures( "float_v"       "bool")
-   vc_test_implicit_type_conversion_failures(   "int_v"       "bool")
-   vc_test_implicit_type_conversion_failures(  "uint_v"       "bool")
-   vc_test_implicit_type_conversion_failures( "short_v"       "bool")
-   vc_test_implicit_type_conversion_failures("ushort_v"       "bool")
 endif()
 
 # compile and link test for targets that need to link lots of stuff together
