@@ -329,4 +329,19 @@ do {} while ( false )
 #define VC_FORWARD_(T) std::forward<T>
 #endif
 
+#ifdef VC_NO_ALWAYS_INLINE
+#undef Vc_ALWAYS_INLINE
+#undef Vc_ALWAYS_INLINE_L
+#undef Vc_ALWAYS_INLINE_R
+#define Vc_ALWAYS_INLINE inline
+#define Vc_ALWAYS_INLINE_L inline
+#define Vc_ALWAYS_INLINE_R
+#undef Vc_INTRINSIC
+#undef Vc_INTRINSIC_L
+#undef Vc_INTRINSIC_R
+#define Vc_INTRINSIC inline
+#define Vc_INTRINSIC_L inline
+#define Vc_INTRINSIC_R
+#endif
+
 #endif // VC_COMMON_MACROS_H
