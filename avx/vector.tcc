@@ -647,7 +647,8 @@ namespace
         unsigned int tmp;
 #ifdef VC_GCC
         // GCC translates _mm_cvtsi128_si32 into vpextrd, which is three times slower
-        asm("vmovd %1,%0" : "=r"(tmp) : "x"(indexes));
+        const typename Vector<T>::VectorType indexesCopy = indexes.data();
+        asm("vmovd %1,%0" : "=r"(tmp) : "x"(indexesCopy));
 #else
         tmp = _mm_cvtsi128_si32(indexes.data());
 #endif
