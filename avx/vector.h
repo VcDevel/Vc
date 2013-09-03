@@ -231,13 +231,6 @@ template<typename T> class Vector
         Vc_ALWAYS_INLINE_L Vc_PURE_L Vector<typename NegateTypeHelper<T>::Type> operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
         Vc_INTRINSIC Vc_PURE Vector operator+() const { return *this; }
 
-#define OP1(fun) \
-        Vc_ALWAYS_INLINE Vector fun() const { return Vector<T>(VectorHelper<T>::fun(data())); } \
-        Vc_ALWAYS_INLINE Vector &fun##_eq() { data() = VectorHelper<T>::fun(data()); return *this; }
-        OP1(sqrt)
-        OP1(abs)
-#undef OP1
-
 #define OP(symbol, fun) \
         Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
         Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector<T>(VectorHelper<T>::fun(data(), x.data())); }
