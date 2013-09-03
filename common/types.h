@@ -97,8 +97,11 @@ namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
 namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
+#ifndef VC_ICC
+// ICC ICEs if the traits below are in an unnamed namespace
 namespace
 {
+#endif
     template<typename T> struct CanConvertToInt : public std::is_convertible<T, int> {
         static constexpr bool Value = std::is_convertible<T, int>::value;
     };
@@ -134,7 +137,9 @@ namespace
 
     template<typename T> struct IsLikeInteger { enum { Value = !std::is_floating_point<T>::value && CanConvertToInt<T>::Value }; };
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !std::is_unsigned<T>::value }; };
+#ifndef VC_ICC
 } // anonymous namespace
+#endif
 
 #ifndef VC_CHECK_ALIGNMENT
 template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
