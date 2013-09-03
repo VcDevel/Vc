@@ -125,21 +125,23 @@ public:
     Vc_INTRINSIC Vector(VectorType x) : d(x) {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    // static_cast / copy ctor
-    template<typename OtherT> explicit inline Vector(Vector<OtherT> x);
-    //template<typename OtherT> explicit inline Vector(VectorMultiplication<OtherT> x);
+    // copy
+    Vc_INTRINSIC Vector(const Vector &x) : d(x.data()) {}
+    Vc_INTRINSIC Vector &operator=(const Vector &v) { d.v() = v.d.v(); return *this; }
 
-    // implicit cast
-    template<typename OtherT> Vc_INTRINSIC_L Vector &operator=(const Vector<OtherT> &x) Vc_INTRINSIC_R;
+    // implict conversion from compatible Vector<U>
+    template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
+            typename std::enable_if<is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+        : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
-    // copy assignment
-    Vc_INTRINSIC Vector &operator=(AsArg v) { d.v() = v.d.v(); return *this; }
+    // static_cast from the remaining Vector<U>
+    template<typename U> Vc_INTRINSIC explicit Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
+            typename std::enable_if<!is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+        : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // broadcast
-    explicit Vc_ALWAYS_INLINE_L Vector(EntryType a) Vc_ALWAYS_INLINE_R;
-    template<typename TT> Vc_INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : d(HT::set(x)) {}
-    Vc_INTRINSIC Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
+    Vc_INTRINSIC Vector(EntryType a) : d(_set1(a)) {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load ctors
@@ -251,9 +253,7 @@ public:
     // binary operators
 #define Vc_OP(symbol, fun) \
     Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x) { d.v() = fun(d.v(), x.d.v()); return *this; } \
-    Vc_ALWAYS_INLINE Vector &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
-    Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const { return Vector<T>(fun(d.v(), x.d.v())); } \
-    template<typename TT> Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, EntryType, Vector) operator symbol(TT x) const { return operator symbol(Vector(x)); }
+    Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const { return Vector<T>(fun(d.v(), x.d.v())); }
 
     Vc_OP(*, _mul<VectorEntryType>)
     Vc_OP(+, _add<VectorEntryType>)
@@ -275,8 +275,7 @@ public:
     Vc_ALWAYS_INLINE_L Vector  operator>> (unsigned int x) const Vc_ALWAYS_INLINE_R;
 
 #define OPcmp(symbol, fun) \
-    Vc_ALWAYS_INLINE Mask operator symbol(AsArg x) const { return HT::fun(d.v(), x.d.v()); } \
-    template<typename TT> Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, EntryType, Mask) operator symbol(TT x) const { return operator symbol(Vector(x)); }
+    Vc_ALWAYS_INLINE Mask operator symbol(AsArg x) const { return HT::fun(d.v(), x.d.v()); }
 
     // ushort_v specializations are in vector.tcc!
     OPcmp(==, cmpeq)

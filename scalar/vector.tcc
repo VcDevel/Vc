@@ -21,20 +21,6 @@
 #include "macros.h"
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
-// conversion/casts {{{1
-template<> template<> Vc_INTRINSIC short_v &Vector<short>::operator=(const ushort_v &x) {
-    data() = static_cast<short>(x.data()); return *this;
-}
-template<> template<> Vc_INTRINSIC ushort_v &Vector<unsigned short>::operator=(const short_v &x) {
-    data() = static_cast<unsigned short>(x.data()); return *this;
-}
-template<> template<> Vc_INTRINSIC int_v &Vector<int>::operator=(const uint_v &x) {
-    data() = static_cast<int>(x.data()); return *this;
-}
-template<> template<> Vc_INTRINSIC uint_v &Vector<unsigned int>::operator=(const int_v &x) {
-    data() = static_cast<unsigned int>(x.data()); return *this;
-}
-
 // copySign ///////////////////////////////////////////////////////////////////////// {{{1
 template<> Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float> reference) const
 {

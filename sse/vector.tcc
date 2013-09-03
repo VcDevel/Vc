@@ -67,32 +67,6 @@ template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::IndexesFromZero(
     return VectorHelper<VectorType>::template load<AlignedT>(_IndexesFromZero<EntryType, Size>());
 }
 
-// conversion/casts {{{1
-template<typename T> template<typename OtherT> Vc_INTRINSIC Vector<T>::Vector(const Vector<OtherT> &x)
-    : d(StaticCastHelper<OtherT, T>::cast(x.data()))
-{
-}
-
-template<> template<> Vc_INTRINSIC short_v &Vector<short>::operator=(const ushort_v &x) {
-    data() = StaticCastHelper<unsigned short, short>::cast(x.data()); return *this;
-}
-template<> template<> Vc_INTRINSIC ushort_v &Vector<unsigned short>::operator=(const short_v &x) {
-    data() = StaticCastHelper<short, unsigned short>::cast(x.data()); return *this;
-}
-template<> template<> Vc_INTRINSIC int_v &Vector<int>::operator=(const uint_v &x) {
-    data() = StaticCastHelper<unsigned int, int>::cast(x.data()); return *this;
-}
-template<> template<> Vc_INTRINSIC uint_v &Vector<unsigned int>::operator=(const int_v &x) {
-    data() = StaticCastHelper<int, unsigned int>::cast(x.data()); return *this;
-}
-
-// broadcasts {{{1
-template<typename T> Vc_INTRINSIC Vector<T>::Vector(EntryType a)
-    : d(VectorHelper<T>::set(a))
-{
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions {{{1
 template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *mem, Flags flags)
 {
@@ -412,19 +386,7 @@ template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
     return *this;
 }
 
-template<typename T> template<typename TT> Vc_INTRINSIC Vc_PURE VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) Vector<T>::operator/(TT x) const
-{
-    if (VectorTraits<T>::HasVectorDivision) {
-        return operator/(Vector<T>(x));
-    }
-    Vector<T> r;
-    for_all_vector_entries(i,
-            r.d.m(i) = d.m(i) / x;
-            );
-    return r;
-}
-
-template<typename T> inline Vector<T> &Vector<T>::operator/=(const Vector<T> &x)
+template<typename T> inline Vector<T> &Vector<T>::operator/=(VC_ALIGNED_PARAMETER(Vector<T>) x)
 {
     for_all_vector_entries(i,
             d.m(i) /= x.d.m(i);
@@ -432,7 +394,7 @@ template<typename T> inline Vector<T> &Vector<T>::operator/=(const Vector<T> &x)
     return *this;
 }
 
-template<typename T> inline Vc_PURE Vector<T> Vector<T>::operator/(const Vector<T> &x) const
+template<typename T> inline Vc_PURE Vector<T> Vector<T>::operator/(VC_ALIGNED_PARAMETER(Vector<T>) x) const
 {
     Vector<T> r;
     for_all_vector_entries(i,
@@ -441,7 +403,7 @@ template<typename T> inline Vc_PURE Vector<T> Vector<T>::operator/(const Vector<
     return r;
 }
 
-template<> inline Vector<short> &Vector<short>::operator/=(const Vector<short> &x)
+template<> inline Vector<short> &Vector<short>::operator/=(VC_ALIGNED_PARAMETER(Vector<short>) x)
 {
     __m128 lo = _mm_cvtepi32_ps(VectorHelper<short>::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
@@ -451,7 +413,7 @@ template<> inline Vector<short> &Vector<short>::operator/=(const Vector<short> &
     return *this;
 }
 
-template<> inline Vc_PURE Vector<short> Vector<short>::operator/(const Vector<short> &x) const
+template<> inline Vc_PURE Vector<short> Vector<short>::operator/(VC_ALIGNED_PARAMETER(Vector<short>) x) const
 {
     __m128 lo = _mm_cvtepi32_ps(VectorHelper<short>::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
@@ -460,7 +422,7 @@ template<> inline Vc_PURE Vector<short> Vector<short>::operator/(const Vector<sh
     return _mm_packs_epi32(_mm_cvtps_epi32(lo), _mm_cvtps_epi32(hi));
 }
 
-template<> inline Vector<unsigned short> &Vector<unsigned short>::operator/=(const Vector<unsigned short> &x)
+template<> inline Vector<unsigned short> &Vector<unsigned short>::operator/=(VC_ALIGNED_PARAMETER(Vector<unsigned short>) x)
 {
     __m128 lo = _mm_cvtepi32_ps(VectorHelper<short>::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
@@ -470,7 +432,7 @@ template<> inline Vector<unsigned short> &Vector<unsigned short>::operator/=(con
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE Vector<unsigned short> Vector<unsigned short>::operator/(const Vector<unsigned short> &x) const
+template<> Vc_ALWAYS_INLINE Vc_PURE Vector<unsigned short> Vector<unsigned short>::operator/(VC_ALIGNED_PARAMETER(Vector<unsigned short>) x) const
 {
     __m128 lo = _mm_cvtepi32_ps(VectorHelper<short>::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
@@ -479,25 +441,25 @@ template<> Vc_ALWAYS_INLINE Vc_PURE Vector<unsigned short> Vector<unsigned short
     return _mm_packs_epi32(_mm_cvtps_epi32(lo), _mm_cvtps_epi32(hi));
 }
 
-template<> Vc_ALWAYS_INLINE Vector<float> &Vector<float>::operator/=(const Vector<float> &x)
+template<> Vc_ALWAYS_INLINE Vector<float> &Vector<float>::operator/=(VC_ALIGNED_PARAMETER(Vector<float>) x)
 {
     d.v() = _mm_div_ps(d.v(), x.d.v());
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE Vector<float> Vector<float>::operator/(const Vector<float> &x) const
+template<> Vc_ALWAYS_INLINE Vc_PURE Vector<float> Vector<float>::operator/(VC_ALIGNED_PARAMETER(Vector<float>) x) const
 {
     return _mm_div_ps(d.v(), x.d.v());
 }
 
-template<> Vc_ALWAYS_INLINE Vector<float8> &Vector<float8>::operator/=(const Vector<float8> &x)
+template<> Vc_ALWAYS_INLINE Vector<float8> &Vector<float8>::operator/=(VC_ALIGNED_PARAMETER(Vector<float8>) x)
 {
     d.v()[0] = _mm_div_ps(d.v()[0], x.d.v()[0]);
     d.v()[1] = _mm_div_ps(d.v()[1], x.d.v()[1]);
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE Vector<float8> Vector<float8>::operator/(const Vector<float8> &x) const
+template<> Vc_ALWAYS_INLINE Vc_PURE Vector<float8> Vector<float8>::operator/(VC_ALIGNED_PARAMETER(Vector<float8>) x) const
 {
     Vector<float8> r;
     r.d.v()[0] = _mm_div_ps(d.v()[0], x.d.v()[0]);
@@ -505,13 +467,13 @@ template<> Vc_ALWAYS_INLINE Vc_PURE Vector<float8> Vector<float8>::operator/(con
     return r;
 }
 
-template<> Vc_ALWAYS_INLINE Vector<double> &Vector<double>::operator/=(const Vector<double> &x)
+template<> Vc_ALWAYS_INLINE Vector<double> &Vector<double>::operator/=(VC_ALIGNED_PARAMETER(Vector<double>) x)
 {
     d.v() = _mm_div_pd(d.v(), x.d.v());
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE Vector<double> Vector<double>::operator/(const Vector<double> &x) const
+template<> Vc_ALWAYS_INLINE Vc_PURE Vector<double> Vector<double>::operator/(VC_ALIGNED_PARAMETER(Vector<double>) x) const
 {
     return _mm_div_pd(d.v(), x.d.v());
 }

@@ -175,6 +175,17 @@ namespace
 
     template<typename T> struct IsLikeInteger { enum { Value = !IsReal<T>::Value && CanConvertToInt<T>::Value }; };
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !IsUnsignedInteger<T>::Value }; };
+
+    template<typename From, typename To> struct is_implicit_cast_allowed : public std::integral_constant<bool,
+        std::is_integral<typename From::EntryType>::value
+        && From::Size == To::Size
+        && sizeof(typename From::EntryType) == sizeof(typename To::EntryType)
+        > {};
+    template<typename T> using V = Vc_IMPL_NAMESPACE::Vector<T>;
+    template<> struct is_implicit_cast_allowed<V< int16_t>, V<sfloat>> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed<V<uint16_t>, V<sfloat>> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed<V< int32_t>, V<sfloat>> : public std::false_type {};
+    template<> struct is_implicit_cast_allowed<V<uint32_t>, V<sfloat>> : public std::false_type {};
 } // anonymous namespace
 
 #ifndef VC_CHECK_ALIGNMENT

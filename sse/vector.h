@@ -187,21 +187,23 @@ template<typename T> class Vector
         Vc_ALWAYS_INLINE Vector(const VectorType &x) : d(x) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
-        // static_cast / copy ctor
-        template<typename OtherT> explicit Vc_INTRINSIC_L Vector(const Vector<OtherT> &x) Vc_INTRINSIC_R;
+        // copy
+        Vc_INTRINSIC Vector(const Vector &x) : d(x.data()) {}
+        Vc_INTRINSIC Vector &operator=(const Vector &v) { d.v() = v.d.v(); return *this; }
 
-        // implicit cast
-        template<typename OtherT> Vc_INTRINSIC_L Vector &operator=(const Vector<OtherT> &x) Vc_INTRINSIC_R;
+        // implict conversion from compatible Vector<U>
+        template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
+                typename std::enable_if<is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+            : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
-        // copy assignment
-        Vc_ALWAYS_INLINE Vector &operator=(AsArg v) { d.v() = v.d.v(); return *this; }
+        // static_cast from the remaining Vector<U>
+        template<typename U> Vc_INTRINSIC explicit Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
+                typename std::enable_if<!is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+            : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
-        explicit Vc_INTRINSIC_L Vector(EntryType a) Vc_INTRINSIC_R;
-        template<typename TT> Vc_INTRINSIC Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : d(HT::set(x)) {}
-        static Vc_INTRINSIC Vector broadcast4(const EntryType *x) { return Vector<T>(x); }
-        Vc_ALWAYS_INLINE Vector &operator=(EntryType a) { d.v() = HT::set(a); return *this; }
+        Vc_INTRINSIC Vector(EntryType a) : d(HT::set(a)) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
@@ -317,10 +319,8 @@ template<typename T> class Vector
         Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }
 
 #define OP(symbol, fun) \
-        Vc_INTRINSIC Vector &operator symbol##=(const Vector<T> &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
-        Vc_INTRINSIC Vector &operator symbol##=(EntryType x) { return operator symbol##=(Vector<T>(x)); } \
-        Vc_INTRINSIC Vector Vc_PURE operator symbol(const Vector<T> &x) const { return HT::fun(data(), x.data()); } \
-        template<typename TT> Vc_INTRINSIC VC_EXACT_TYPE(TT, EntryType, Vector) Vc_PURE operator symbol(TT x) const { return operator symbol(Vector(x)); }
+        Vc_INTRINSIC Vector &operator symbol##=(const Vector &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
+        Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector &x) const { return HT::fun(data(), x.data()); }
 
         OP(+, add)
         OP(-, sub)
@@ -336,23 +336,18 @@ template<typename T> class Vector
         Vc_INTRINSIC_L Vector &operator>>=(  int shift)       Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector  operator>> (  int shift) const Vc_INTRINSIC_R;
 
-        Vc_INTRINSIC_L Vector &operator/=(const Vector<T> &x) Vc_INTRINSIC_R;
-        inline Vc_PURE_L Vector  operator/ (const Vector<T> &x) const Vc_PURE_R;
-        Vc_INTRINSIC_L Vector &operator/=(EntryType x) Vc_INTRINSIC_R;
-        template<typename TT> Vc_INTRINSIC_L VC_EXACT_TYPE(TT, typename DetermineEntryType<T>::Type, Vector<T>) operator/(TT x) const Vc_PURE Vc_INTRINSIC_R;
+        inline Vector &operator/=(EntryType x);
+        inline Vector &operator/=(VC_ALIGNED_PARAMETER(Vector) x);
+        inline Vc_PURE_L Vector operator/ (VC_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
-#define OP(symbol, fun) \
+#define OP(symbol) \
         Vc_INTRINSIC_L Vector &operator symbol##=(const Vector<T> &x) Vc_INTRINSIC_R; \
-        Vc_INTRINSIC_L Vector operator symbol(const Vector<T> &x) const Vc_PURE Vc_INTRINSIC_R; \
-        Vc_INTRINSIC Vector &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
-        template<typename TT> Vc_INTRINSIC VC_EXACT_TYPE(TT, EntryType, Vector) Vc_PURE operator symbol(TT x) const { return operator symbol(Vector(x)); }
-        OP(|, or_)
-        OP(&, and_)
-        OP(^, xor_)
+        Vc_INTRINSIC_L Vc_PURE_L Vector operator symbol(const Vector<T> &x) const Vc_PURE_R Vc_INTRINSIC_R;
+        VC_ALL_BINARY(OP)
 #undef OP
+
 #define OPcmp(symbol, fun) \
-        Vc_INTRINSIC Mask Vc_PURE operator symbol(const Vector<T> &x) const { return VectorHelper<T>::fun(data(), x.data()); } \
-        template<typename TT> Vc_INTRINSIC VC_EXACT_TYPE(TT, EntryType, Mask) Vc_PURE operator symbol(TT x) const { return operator symbol(Vector(x)); }
+        Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const { return HT::fun(data(), x.data()); }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
@@ -498,11 +493,6 @@ typedef int_v::Mask int_m;
 typedef uint_v::Mask uint_m;
 typedef short_v::Mask short_m;
 typedef ushort_v::Mask ushort_m;
-
-template<> Vc_ALWAYS_INLINE Vc_PURE Vector<float8> Vector<float8>::broadcast4(const float *x) {
-    const _M128 &v = VectorHelper<_M128>::load<AlignedT>(x);
-    return Vector<float8>(M256::create(v, v));
-}
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 

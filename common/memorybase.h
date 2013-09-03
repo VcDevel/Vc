@@ -387,7 +387,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * needed the vector(size_t, int) function can be used.
          */
         template<typename Flags = AlignedT>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> &vector(size_t i, Flags = Flags()) {
+        Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<!std::is_convertible<Flags, int>::value, MemoryVector<V, Flags>>::type &vector(size_t i, Flags = Flags()) {
             return *new(&entries()[i * V::Size]) MemoryVector<V, Flags>;
         }
         /** \brief Const overload of the above function
@@ -397,7 +397,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * \return a smart object to wrap the \p i-th vector in the memory.
          */
         template<typename Flags = AlignedT>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> &vector(size_t i, Flags = Flags()) const {
+        Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<!std::is_convertible<Flags, int>::value, MemoryVector<const V, Flags>>::type &vector(size_t i, Flags = Flags()) const {
             return *new(const_cast<EntryType *>(&entries()[i * V::Size])) MemoryVector<const V, Flags>;
         }
 
@@ -467,13 +467,13 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * mem.vector(0, i) += 1;
          * \endcode
          */
-        template<typename Flags = decltype(Unaligned)>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, decltype(Flags() | Unaligned)> &vector(size_t i, int shift, Flags = Flags()) {
+        template<typename ShiftT, typename Flags = decltype(Unaligned)>
+        Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<std::is_convertible<ShiftT, int>::value, MemoryVector<V, decltype(Flags() | Unaligned)>>::type &vector(size_t i, ShiftT shift, Flags = Flags()) {
             return *new(&entries()[i * V::Size + shift]) MemoryVector<V, decltype(Flags() | Unaligned)>;
         }
         /// Const overload of the above function.
-        template<typename Flags = decltype(Unaligned)>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, decltype(Flags() | Unaligned)> &vector(size_t i, int shift, Flags = Flags()) const {
+        template<typename ShiftT, typename Flags = decltype(Unaligned)>
+        Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<std::is_convertible<ShiftT, int>::value, MemoryVector<const V, decltype(Flags() | Unaligned)>>::type &vector(size_t i, ShiftT shift, Flags = Flags()) const {
             return *new(const_cast<EntryType *>(&entries()[i * V::Size + shift])) MemoryVector<const V, decltype(Flags() | Unaligned)>;
         }
 

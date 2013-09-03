@@ -75,20 +75,23 @@ class Vector
         static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
-        // static_cast / copy ctor
-        template<typename OtherT> explicit Vc_ALWAYS_INLINE Vector(const Vector<OtherT> &x) : m_data(static_cast<EntryType>(x.data())) {}
+        // copy
+        Vc_INTRINSIC Vector(const Vector &x) : m_data(x.data()) {}
+        Vc_INTRINSIC Vector &operator=(const Vector &v) { m_data = v.data(); return *this; }
 
-        // implicit cast
-        template<typename OtherT> Vc_ALWAYS_INLINE_L Vector &operator=(const Vector<OtherT> &x) Vc_ALWAYS_INLINE_R;
+        // implict conversion from compatible Vector<U>
+        template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
+                typename std::enable_if<is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+            : m_data(static_cast<EntryType>(x.data())) {}
 
-        // copy assignment
-        Vc_ALWAYS_INLINE Vector &operator=(Vector v) { m_data = v.data(); return *this; }
+        // static_cast from the remaining Vector<U>
+        template<typename U> Vc_INTRINSIC explicit Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
+                typename std::enable_if<!is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+            : m_data(static_cast<EntryType>(x.data())) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
-        explicit Vc_ALWAYS_INLINE Vector(EntryType x) : m_data(x) {}
-        template<typename TT> Vc_ALWAYS_INLINE Vector(TT x, VC_EXACT_TYPE(TT, EntryType, void *) = 0) : m_data(x) {}
-        Vc_ALWAYS_INLINE Vector &operator=(EntryType a) { m_data = a; return *this; }
+        Vc_INTRINSIC Vector(EntryType a) : m_data(a) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
@@ -215,27 +218,23 @@ class Vector
         Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }
 
 #define OPshift(symbol) \
-        Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector<T> &x) { m_data symbol##= x.m_data; return *this; } \
-        Vc_ALWAYS_INLINE Vector &operator symbol##=(EntryType x) { return operator symbol##=(Vector(x)); } \
-        Vc_ALWAYS_INLINE Vector operator symbol(const Vector<T> &x) const { return Vector<T>(m_data symbol x.m_data); }
-#define OPshift_int(symbol) \
-        Vc_ALWAYS_INLINE Vector operator symbol(int x) const { return Vector(m_data symbol x); }
-#define OP(symbol) \
-        OPshift(symbol) \
-        template<typename TT> Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, EntryType, Vector) operator symbol(TT x) const { return operator symbol(Vector(x)); }
-#define OPcmp(symbol) \
-        Vc_ALWAYS_INLINE Mask operator symbol(const Vector<T> &x) const { return Mask(m_data symbol x.m_data); } \
-        template<typename TT> Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, EntryType, Mask) operator symbol(TT x) const { return Mask(m_data symbol x); }
+        Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x) { m_data symbol##= x.m_data; return *this; } \
+        Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector<T>(m_data symbol x.m_data); }
+        VC_ALL_SHIFTS(OPshift)
+#undef OPshift
 
+#define OP(symbol) \
+        Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x) { m_data symbol##= x.m_data; return *this; } \
+        Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector(m_data symbol x.m_data); }
         VC_ALL_ARITHMETICS(OP)
         VC_ALL_BINARY(OP)
-        VC_ALL_SHIFTS(OPshift)
-        VC_ALL_SHIFTS(OPshift_int)
-        VC_ALL_COMPARES(OPcmp)
 #undef OP
+
+#define OPcmp(symbol) \
+        Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const { return Mask(m_data symbol x.m_data); }
+        VC_ALL_COMPARES(OPcmp)
 #undef OPcmp
-#undef OPshift
-#undef OPshift_int
+
         Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
         Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {

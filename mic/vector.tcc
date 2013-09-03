@@ -131,15 +131,6 @@ template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::IndexesFromZero(
     return LoadHelper<Vector<T>>::load(IndexesFromZeroHelper<T>(), Aligned);
 }
 
-// static cast {{{1
-template<typename T> template<typename OtherT> Vc_ALWAYS_INLINE Vector<T>::Vector(Vector<OtherT> x)
-    : d(StaticCastHelper<OtherT, T>::cast(x.data())) {}
-//template<typename T> template<typename OtherT> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorMultiplication<OtherT> x)
-//    : d(StaticCastHelper<OtherT, T>::cast(x.data())) {}
-
-// broadcast {{{1
-template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(EntryType x) : d(_set1(x)) {}
-
 // loads {{{1
 template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *x, Flags flags) {
     handleLoadPrefetches(x, flags);
@@ -448,24 +439,6 @@ template<> Vc_ALWAYS_INLINE ushort_m ushort_v::operator<=(ushort_v::AsArg x) con
 }
 template<> Vc_ALWAYS_INLINE ushort_m ushort_v::operator< (ushort_v::AsArg x) const {
     return _mm512_cmplt_epu32_mask(_and(d.v(), _set1(0xffff)), _and(x.d.v(), _set1(0xffff)));
-}
-template<> template<typename TT> Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, unsigned short, ushort_m) ushort_v::operator==(TT x) const {
-    return _mm512_cmpeq_epu32_mask(_and(d.v(), _set1(0xffff)), _set1(x));
-}
-template<> template<typename TT> Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, unsigned short, ushort_m) ushort_v::operator!=(TT x) const {
-    return _mm512_cmpneq_epu32_mask(_and(d.v(), _set1(0xffff)), _set1(x));
-}
-template<> template<typename TT> Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, unsigned short, ushort_m) ushort_v::operator>=(TT x) const {
-    return _mm512_cmpge_epu32_mask(_and(d.v(), _set1(0xffff)), _set1(x));
-}
-template<> template<typename TT> Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, unsigned short, ushort_m) ushort_v::operator> (TT x) const {
-    return _mm512_cmpgt_epu32_mask(_and(d.v(), _set1(0xffff)), _set1(x));
-}
-template<> template<typename TT> Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, unsigned short, ushort_m) ushort_v::operator<=(TT x) const {
-    return _mm512_cmple_epu32_mask(_and(d.v(), _set1(0xffff)), _set1(x));
-}
-template<> template<typename TT> Vc_ALWAYS_INLINE VC_EXACT_TYPE(TT, unsigned short, ushort_m) ushort_v::operator< (TT x) const {
-    return _mm512_cmplt_epu32_mask(_and(d.v(), _set1(0xffff)), _set1(x));
 }
 
 template<> Vc_ALWAYS_INLINE    int_v    int_v::operator<<(   int_v::AsArg x) const { return _mm512_sllv_epi32(d.v(), x.d.v()); }

@@ -184,8 +184,8 @@ void testImplicitTypeConversions()
     VERIFY( TestImplicitCast<     int>::test( ulong()));
     VERIFY( TestImplicitCast<     int>::test(  bool()));
     VERIFY( TestImplicitCast<double_v>::test(double()));
-    VERIFY(!TestImplicitCast<double_v>::test( float()));
-    VERIFY(!TestImplicitCast<double_v>::test(   int()));
+    VERIFY( TestImplicitCast<double_v>::test( float()));
+    VERIFY( TestImplicitCast<double_v>::test(   int()));
     VERIFY( TestImplicitCast< float_v>::test( float()));
     VERIFY( TestImplicitCast<sfloat_v>::test( float()));
     VERIFY( TestImplicitCast<   int_v>::test(   int()));
