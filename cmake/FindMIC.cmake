@@ -125,9 +125,9 @@ if(MIC_SDK_DIR AND MIC_AR AND MIC_RANLIB)
    set(MIC_CFLAGS "-O2 -vec")
 
    exec_program(${MIC_CXX} ARGS -V OUTPUT_VARIABLE _mic_icc_version_string)
-   string(REGEX MATCH "Version (Mainline)?[0-9. a-zA-Z]+" mic_icc_version "${_mic_icc_version_string}")
-   string(SUBSTRING "${mic_icc_version}" 8 -1 mic_icc_version)
-   message(STATUS "MIC ICC Version: \"${mic_icc_version}\"")
+   string(REGEX MATCH "Version (Mainline)?[0-9. a-zA-Z]+" Vc_MIC_ICC_VERSION "${_mic_icc_version_string}")
+   string(SUBSTRING "${Vc_MIC_ICC_VERSION}" 8 -1 Vc_MIC_ICC_VERSION)
+   message(STATUS "MIC ICC Version: \"${Vc_MIC_ICC_VERSION}\"")
 
    if(MIC_CC AND MIC_CXX AND MIC_IMF_LIBRARY AND MIC_SVML_LIBRARY AND MIC_INTLC_LIBRARY)
       set(MIC_NATIVE_FOUND true)
