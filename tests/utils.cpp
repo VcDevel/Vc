@@ -29,7 +29,6 @@ template<typename Vec> void testSort()
     typedef typename Vec::EntryType EntryType;
     typedef typename Vec::IndexType IndexType;
 
-    typename Vec::Memory _a;
     const IndexType _ref(IndexesFromZero);
     Vec ref(_ref);
     Vec a;
@@ -40,23 +39,22 @@ template<typename Vec> void testSort()
     for (int perm = 0; perm < maxPerm; ++perm) {
         int rest = perm;
         for (int i = 0; i < Vec::Size; ++i) {
-            _a[i] = 0;
+            a[i] = 0;
             for (int j = 0; j < i; ++j) {
-                if (_a[i] == _a[j]) {
-                    ++_a[i];
+                if (a[i] == a[j]) {
+                    ++(a[i]);
                     j = -1;
                 }
             }
-            _a[i] += rest % (Vec::Size - i);
+            a[i] += rest % (Vec::Size - i);
             rest /= (Vec::Size - i);
             for (int j = 0; j < i; ++j) {
-                if (_a[i] == _a[j]) {
-                    ++_a[i];
+                if (a[i] == a[j]) {
+                    ++(a[i]);
                     j = -1;
                 }
             }
         }
-        a.load(_a);
         //std::cout << a << a.sorted() << std::endl;
         COMPARE(ref, a.sorted()) << ", a: " << a;
     }
