@@ -58,6 +58,15 @@ template<typename Vec> void testSort()
         //std::cout << a << a.sorted() << std::endl;
         COMPARE(ref, a.sorted()) << ", a: " << a;
     }
+
+    for (int repetition = 0; repetition < 1000; ++repetition) {
+        Vec test = Vec::Random();
+        Vc::Memory<Vec, Vec::Size> reference;
+        reference.vector(0) = test;
+        std::sort(&reference[0], &reference[Vec::Size]);
+        ref = reference.vector(0);
+        COMPARE(ref, test.sorted());
+    }
 }
 
 template<typename T, typename Mem> struct Foo
