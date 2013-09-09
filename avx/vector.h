@@ -217,8 +217,10 @@ template<typename T> class Vector
         ///////////////////////////////////////////////////////////////////////////////////////////
         //prefix
         Vc_ALWAYS_INLINE Vector &operator++() { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }
+        Vc_ALWAYS_INLINE Vector &operator--() { data() = VectorHelper<T>::sub(data(), VectorHelper<T>::one()); return *this; }
         //postfix
         Vc_ALWAYS_INLINE Vector operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
+        Vc_ALWAYS_INLINE Vector operator--(int) { const Vector<T> r = *this; data() = VectorHelper<T>::sub(data(), VectorHelper<T>::one()); return r; }
 
         Vc_INTRINSIC decltype(d.m(0)) &operator[](size_t index) {
             return d.m(index);
