@@ -22,15 +22,17 @@
 
 using namespace Vc;
 
+template<typename T> static constexpr T min(T a, T b) { return a < b ? a : b; }
+
 template<typename Vec> constexpr unsigned long alignmentMask()
 {
     return Vec::Size == 1 ? (
             // on 32bit the maximal alignment is 4 Bytes, even for 8-Byte doubles.
-            std::min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1
+            min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1
         ) : (
             // sizeof(SSE::sfloat_v) is too large
             // AVX::VectorAlignment is too large
-            std::min<size_t>(sizeof(Vec), VectorAlignment) - 1
+            min<size_t>(sizeof(Vec), VectorAlignment) - 1
         );
 }
 
