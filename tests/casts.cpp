@@ -69,6 +69,7 @@ template<typename V1, typename V2> void testCast2()
                 static_cast<double>(-std::numeric_limits<T2>::max())
                 );
 
+    testNumber<V1, V2>(-1.);
     testNumber<V1, V2>(0.);
     testNumber<V1, V2>(1.);
     testNumber<V1, V2>(2.);
