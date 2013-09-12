@@ -253,15 +253,15 @@ struct is_simd : public std::integral_constant<bool,
     Vc::is_simd_vector<T>::value || is_simd_array<T>::value>
 {};
 
-template<typename T1, typename T2> inline
+template<typename T1, typename T2> Vc_ALWAYS_INLINE
 typename std::enable_if<!(is_simd<T1>::value || is_simd<T2>::value), bool>::type
 unittest_compareHelper(const T1 &a, const T2 &b) { return a == b; }
 
-template<typename T1, typename T2> inline
+template<typename T1, typename T2> Vc_ALWAYS_INLINE
 typename std::enable_if< (is_simd<T1>::value || is_simd<T2>::value), bool>::type
 unittest_compareHelper(const T1 &a, const T2 &b) { return all_of(a == b); }
 
-template<> inline bool unittest_compareHelper<std::type_info, std::type_info>(const std::type_info &a, const std::type_info &b ) { return &a == &b; }
+template<> Vc_ALWAYS_INLINE bool unittest_compareHelper<std::type_info, std::type_info>(const std::type_info &a, const std::type_info &b ) { return &a == &b; }
 
 template<typename T> T ulpDiffToReferenceWrapper(T a, T b) {
     const T diff = ulpDiffToReference(a, b);
@@ -425,7 +425,7 @@ class _UnitTest_Compare
             return _ip;
         }
         static void printFirst() { std::cout << _unittest_fail() << "┍ "; }
-        template<typename T> static void print(const T &x) { std::cout << x; }
+        template<typename T> static inline void print(const T &x) { std::cout << x; }
         static void print(const std::type_info &x) { std::cout << x.name(); }
         static void print(const char *str) {
             const char *pos = 0;
