@@ -36,6 +36,8 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 #include <Vc/support.h>
 #include "ulp.h"
 #include <typeinfo>
+#include <vector>
+#include <tuple>
 #include <common/macros.h>
 
 #define _expand(name) #name
@@ -687,12 +689,67 @@ template<typename Vec> static typename Vec::Mask allMasks(size_t i)
     for (int _Vc_for_all_masks_i = 0; _Vc_for_all_masks_i == 0; ++_Vc_for_all_masks_i) \
         for (typename VecType::Mask _mask_ = allMasks<VecType>(_Vc_for_all_masks_i++); !_mask_.isEmpty(); _mask_ = allMasks<VecType>(_Vc_for_all_masks_i++))
 
+namespace UnitTest
+{
+using std::vector;
+using std::tuple;
+using std::get;
+
+class Test
+{
+    typedef tuple<testFunction, const char *> TestData;
+public:
+    Test(testFunction fun, const char *name)
+    {
+        s_allTests.push_back(TestData(fun, name));
+    }
+
+    static void runAll()
+    {
+        for (const auto &data : s_allTests) {
+            _unit_test_global.runTestInt(get<0>(data), get<1>(data));
+        }
+    }
+
+private:
+    static vector<TestData> s_allTests;
+};
+
+vector<Test::TestData> Test::s_allTests;
+
+} // namespace UnitTest
+
+#define TEST_ALL_NATIVE_V(V, fun) \
+template<typename V> void fun(); \
+static UnitTest::Test test_##fun##__float_v__(&fun< float_v>, #fun "< float_v>"); \
+static UnitTest::Test test_##fun##__short_v__(&fun< short_v>, #fun "< short_v>"); \
+static UnitTest::Test test_##fun##___uint_v__(&fun<  uint_v>, #fun "<  uint_v>"); \
+static UnitTest::Test test_##fun##_double_v__(&fun<double_v>, #fun "<double_v>"); \
+static UnitTest::Test test_##fun##_ushort_v__(&fun<ushort_v>, #fun "<ushort_v>"); \
+static UnitTest::Test test_##fun##____int_v__(&fun<   int_v>, #fun "<   int_v>"); \
+template<typename V> void fun()
+
+#define TEST_ALL_V(V, fun) \
+template<typename V> void fun(); \
+static UnitTest::Test test_##fun##__float_v__(&fun< float_v>, #fun "< float_v>"); \
+static UnitTest::Test test_##fun##__short_v__(&fun< short_v>, #fun "< short_v>"); \
+static UnitTest::Test test_##fun##_sfloat_v__(&fun<sfloat_v>, #fun "<sfloat_v>"); \
+static UnitTest::Test test_##fun##_ushort_v__(&fun<ushort_v>, #fun "<ushort_v>"); \
+static UnitTest::Test test_##fun##____int_v__(&fun<   int_v>, #fun "<   int_v>"); \
+static UnitTest::Test test_##fun##_double_v__(&fun<double_v>, #fun "<double_v>"); \
+static UnitTest::Test test_##fun##___uint_v__(&fun<  uint_v>, #fun "<  uint_v>"); \
+template<typename V> void fun()
+
 void testmain();
 
 int main(int argc, char **argv)
 {
     initTest(argc, argv);
+#ifdef VC_NEWTEST
+    UnitTest::Test::runAll();
+#else
     testmain();
+#endif
     return _unit_test_global.finalize();
 }
 
