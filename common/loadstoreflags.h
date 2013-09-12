@@ -79,7 +79,10 @@ private:
     // ICC doesn't grok this line:
     //template<typename Test> using TestFlag = std::is_same<typename ExtractType<StreamingFlag, void, Flags...>::type, void>;
     typedef typename ExtractType<PrefetchFlagBase, PrefetchFlag<0, 0>, Flags...>::type Prefetch;
+
 public:
+    constexpr LoadStoreFlags() {}
+
     static constexpr bool IsStreaming = !std::is_same<typename ExtractType<StreamingFlag, void, Flags...>::type, void>::value;
     static constexpr bool IsUnaligned = !std::is_same<typename ExtractType<UnalignedFlag, void, Flags...>::type, void>::value;
     static constexpr bool IsAligned = !IsUnaligned;
@@ -104,6 +107,8 @@ public:
 
 template<> struct LoadStoreFlags<>
 {
+    constexpr LoadStoreFlags() {}
+
     static constexpr bool IsStreaming = false;
     static constexpr bool IsUnaligned = false;
     static constexpr bool IsAligned = !IsUnaligned;
