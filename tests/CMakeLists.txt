@@ -192,6 +192,7 @@ vc_add_test(deinterleave)
 vc_add_test(deinterleave VC_USE_MASKMOV_SCATTER TARGETS SSE AVX AVX2)
 vc_add_test(casts)
 vc_add_test(swizzles)
+vc_add_test(simd_array)
 
 if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN)
    list(FIND disabled_targets sse_blend _disabled)

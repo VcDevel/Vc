@@ -1,0 +1,63 @@
+/*  This file is part of the Vc library. {{{
+
+    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
+
+    Vc is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3 of
+    the License, or (at your option) any later version.
+
+    Vc is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+
+}}}*/
+
+#ifndef VC_COMMON_SIMD_MASK_ARRAY_H
+#define VC_COMMON_SIMD_MASK_ARRAY_H
+
+#include <type_traits>
+#include <array>
+
+#include "macros.h"
+
+Vc_PUBLIC_NAMESPACE_BEGIN
+
+template<typename T, std::size_t N> class simd_mask_array
+{
+    typedef typename Vc::Vector<T> vector_type;
+
+public:
+    typedef typename vector_type::Mask mask_type;
+    static constexpr std::size_t size = N;
+    static constexpr std::size_t register_count = size > mask_type::Size ? size / mask_type::Size : 1;
+
+    // zero init
+    Vc_ALWAYS_INLINE simd_mask_array() {}
+
+    Vc_ALWAYS_INLINE simd_mask_array(bool x) {
+        d.fill(simd_mask_array(x));
+    }
+
+    // default copy ctor/operator
+    simd_mask_array(const simd_mask_array &) = default;
+    simd_mask_array(simd_mask_array &&) = default;
+    simd_mask_array &operator=(const simd_mask_array &) = default;
+
+    // internal:
+    Vc_ALWAYS_INLINE mask_type &data(std::size_t i) { return d[i]; }
+    Vc_ALWAYS_INLINE const mask_type &data(std::size_t i) const { return d[i]; }
+
+private:
+    std::array<mask_type, register_count> d;
+};
+
+Vc_NAMESPACE_END
+
+#include "undomacros.h"
+
+#endif // VC_COMMON_SIMD_MASK_ARRAY_H
