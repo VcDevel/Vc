@@ -301,7 +301,7 @@ template<> Vc_INTRINSIC void Vector<double>::setQnan()
 {
     data() = _mm_setallone_pd();
 }
-template<> Vc_INTRINSIC void Vector<double>::setQnan(Mask::Argument k)
+template<> Vc_INTRINSIC void Vector<double>::setQnan(const Mask &k)
 {
     data() = _mm_or_pd(data(), k.dataD());
 }
@@ -309,7 +309,7 @@ template<> Vc_INTRINSIC void Vector<float>::setQnan()
 {
     data() = _mm_setallone_ps();
 }
-template<> Vc_INTRINSIC void Vector<float>::setQnan(Mask::Argument k)
+template<> Vc_INTRINSIC void Vector<float>::setQnan(const Mask &k)
 {
     data() = _mm_or_ps(data(), k.data());
 }
@@ -318,7 +318,7 @@ template<> Vc_INTRINSIC void Vector<float8>::setQnan()
     d.v()[0] = _mm_setallone_ps();
     d.v()[1] = _mm_setallone_ps();
 }
-template<> Vc_INTRINSIC void Vector<float8>::setQnan(Mask::Argument k)
+template<> Vc_INTRINSIC void Vector<float8>::setQnan(const Mask &k)
 {
     d.v()[0] = _mm_or_ps(d.v()[0], k.data()[0]);
     d.v()[1] = _mm_or_ps(d.v()[1], k.data()[1]);

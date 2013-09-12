@@ -237,7 +237,7 @@ template<typename T> class Vector
         Vc_INTRINSIC_L void setZero(const Mask &k) Vc_INTRINSIC_R;
 
         Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L void setQnan(typename Mask::Argument k) Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L void setQnan(const Mask &k) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
