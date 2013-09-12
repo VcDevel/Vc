@@ -512,6 +512,9 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned int   *indexes) const { return V(entries(), indexes); }
         Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned long  *indexes) const { return V(entries(), indexes); }
 
+        /**
+         * Zero the whole memory area.
+         */
         Vc_ALWAYS_INLINE void setZero() {
             V zero(Vc::Zero);
             for (size_t i = 0; i < vectorsCount(); ++i) {
@@ -519,6 +522,19 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
         }
 
+        /**
+         * Assign a value to all vectors in the array.
+         */
+        template<typename U>
+        Vc_ALWAYS_INLINE Parent &operator=(U &&x) {
+            for (size_t i = 0; i < vectorsCount(); ++i) {
+                vector(i) = std::forward<U>(x);
+            }
+        }
+
+        /**
+         * (Inefficient) shorthand to add up two arrays.
+         */
         template<typename P2, typename RM>
         inline Parent &operator+=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -527,6 +543,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to subtract two arrays.
+         */
         template<typename P2, typename RM>
         inline Parent &operator-=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -535,6 +555,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to multiply two arrays.
+         */
         template<typename P2, typename RM>
         inline Parent &operator*=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -543,6 +567,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to divide two arrays.
+         */
         template<typename P2, typename RM>
         inline Parent &operator/=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -551,6 +579,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to add a value to an array.
+         */
         inline Parent &operator+=(EntryType rhs) {
             V v(rhs);
             for (size_t i = 0; i < vectorsCount(); ++i) {
@@ -558,6 +590,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to subtract a value from an array.
+         */
         inline Parent &operator-=(EntryType rhs) {
             V v(rhs);
             for (size_t i = 0; i < vectorsCount(); ++i) {
@@ -565,6 +601,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to multiply a value to an array.
+         */
         inline Parent &operator*=(EntryType rhs) {
             V v(rhs);
             for (size_t i = 0; i < vectorsCount(); ++i) {
@@ -572,6 +612,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to divide an array with a value.
+         */
         inline Parent &operator/=(EntryType rhs) {
             V v(rhs);
             for (size_t i = 0; i < vectorsCount(); ++i) {
@@ -579,6 +623,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand compare equality of two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator==(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -589,6 +637,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return true;
         }
+
+        /**
+         * (Inefficient) shorthand compare two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator!=(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -599,6 +651,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return true;
         }
+
+        /**
+         * (Inefficient) shorthand compare two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator<(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -609,6 +665,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return true;
         }
+
+        /**
+         * (Inefficient) shorthand compare two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator<=(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -619,6 +679,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return true;
         }
+
+        /**
+         * (Inefficient) shorthand compare two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator>(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -629,6 +693,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return true;
         }
+
+        /**
+         * (Inefficient) shorthand compare two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator>=(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
