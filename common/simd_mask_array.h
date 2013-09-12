@@ -22,6 +22,7 @@
 
 #include <type_traits>
 #include <array>
+#include "simd_array_data.h"
 
 #include "macros.h"
 
@@ -37,23 +38,24 @@ public:
     static constexpr std::size_t register_count = size > mask_type::Size ? size / mask_type::Size : 1;
 
     // zero init
-    Vc_ALWAYS_INLINE simd_mask_array() {}
+    simd_mask_array() = default;
 
-    Vc_ALWAYS_INLINE simd_mask_array(bool x) {
-        d.fill(simd_mask_array(x));
-    }
+    Vc_ALWAYS_INLINE simd_mask_array(bool x) : d(x) {}
 
     // default copy ctor/operator
     simd_mask_array(const simd_mask_array &) = default;
     simd_mask_array(simd_mask_array &&) = default;
     simd_mask_array &operator=(const simd_mask_array &) = default;
 
-    // internal:
-    Vc_ALWAYS_INLINE mask_type &data(std::size_t i) { return d[i]; }
-    Vc_ALWAYS_INLINE const mask_type &data(std::size_t i) const { return d[i]; }
+    Vc_ALWAYS_INLINE Vc_PURE bool isFull() const { return d.isFull(); }
 
-private:
-    std::array<mask_type, register_count> d;
+    bool operator[](std::size_t i) const {
+        const auto *m = &d.d;
+        return m[i / mask_type::Size][i % mask_type::Size];
+    }
+
+//private:
+    Common::MaskData<mask_type, register_count> d;
 };
 
 Vc_NAMESPACE_END

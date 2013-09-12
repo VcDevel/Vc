@@ -23,44 +23,11 @@
 #include <type_traits>
 #include <array>
 
+#include "simd_array_data.h"
 #include "simd_mask_array.h"
 #include "macros.h"
 
 Vc_PUBLIC_NAMESPACE_BEGIN
-
-namespace internal
-{
-template<typename V, std::size_t N> struct Data;
-template<typename V> struct Data<V, 1>
-{
-    V d;
-
-    V *begin() { return &d; }
-    const V *cbegin() const { return &d; }
-
-    V *end() { return &d + 1; }
-    const V *cend() { return &d + 1; }
-
-    Data() = default;
-    Vc_ALWAYS_INLINE Data(const V &x) : d(x) {}
-};
-template<typename V, std::size_t N> struct Data
-{
-    static_assert(N != 0, "error N must be nonzero!");
-
-    V d;
-    Data<V, N - 1> next;
-
-    V *begin() { return &d; }
-    const V *cbegin() const { return &d; }
-
-    V *end() { return next.end(); }
-    const V *cend() { return next.cend(); }
-
-    Data() = default;
-    Vc_ALWAYS_INLINE Data(const V &x) : d(x), next(x) {}
-};
-} // namespace internal
 
 template<typename T, std::size_t N> class simd_array
 {
@@ -105,9 +72,7 @@ public:
 #define VC_COMPARE_IMPL(op) \
     Vc_ALWAYS_INLINE Vc_PURE mask_type operator op(const simd_array &x) const { \
         mask_type r; \
-        for (std::size_t i = 0; i < register_count; ++i) { \
-            r.data(i) = d[i] op x.d[i]; \
-        } \
+        r.d.assign(d, x.d, &vector_type::operator op); \
         return r; \
     }
     VC_ALL_COMPARES(VC_COMPARE_IMPL)
@@ -132,8 +97,14 @@ public:
     VC_ALL_SHIFTS     (VC_OPERATOR_IMPL)
 #undef VC_OPERATOR_IMPL
 
+    value_type operator[](std::size_t i) const {
+        typedef value_type TT Vc_MAY_ALIAS;
+        auto m = reinterpret_cast<const TT *>(&d);
+        return m[i];
+    }
+
 private:
-    internal::Data<vector_type, register_count> d;
+    Common::ArrayData<vector_type, register_count> d;
 };
 
 Vc_NAMESPACE_END

@@ -40,3 +40,14 @@ TEST_ALL_NATIVE_V(V, broadcast)
     simd_array<T, 32> array = 0;
     array = 1;
 }
+
+TEST_ALL_NATIVE_V(V, broadcast_equal)
+{
+    typedef typename V::EntryType T;
+    simd_array<T, 32> a = 0;
+    simd_array<T, 32> b = 0;
+    COMPARE(a, b);
+    a = 1;
+    b = 1;
+    COMPARE(a, b);
+}
