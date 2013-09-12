@@ -27,5 +27,16 @@ TEST_ALL_NATIVE_V(V, createArray)
 {
     typedef typename V::EntryType T;
     simd_array<T, 32> array;
+
     COMPARE(array.size, 32);
+    VERIFY(array.register_count > 0);
+    VERIFY(array.register_count <= 32);
+    VERIFY(array.register_count * V::Size >= 32);
+}
+
+TEST_ALL_NATIVE_V(V, broadcast)
+{
+    typedef typename V::EntryType T;
+    simd_array<T, 32> array = 0;
+    array = 1;
 }

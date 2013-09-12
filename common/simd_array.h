@@ -28,6 +28,40 @@
 
 Vc_PUBLIC_NAMESPACE_BEGIN
 
+namespace internal
+{
+template<typename V, std::size_t N> struct Data;
+template<typename V> struct Data<V, 1>
+{
+    V d;
+
+    V *begin() { return &d; }
+    const V *cbegin() const { return &d; }
+
+    V *end() { return &d + 1; }
+    const V *cend() { return &d + 1; }
+
+    Data() = default;
+    Vc_ALWAYS_INLINE Data(const V &x) : d(x) {}
+};
+template<typename V, std::size_t N> struct Data
+{
+    static_assert(N != 0, "error N must be nonzero!");
+
+    V d;
+    Data<V, N - 1> next;
+
+    V *begin() { return &d; }
+    const V *cbegin() const { return &d; }
+
+    V *end() { return next.end(); }
+    const V *cend() { return next.cend(); }
+
+    Data() = default;
+    Vc_ALWAYS_INLINE Data(const V &x) : d(x), next(x) {}
+};
+} // namespace internal
+
 template<typename T, std::size_t N> class simd_array
 {
     static_assert(std::is_same<T,   double>::value ||
@@ -59,6 +93,9 @@ public:
     simd_array(const simd_array &) = default;
     simd_array(simd_array &&) = default;
     simd_array &operator=(const simd_array &) = default;
+
+    // broadcast
+    Vc_INTRINSIC simd_array(value_type a) : d(a) {}
 
     // implicit casts
     template<typename U> Vc_ALWAYS_INLINE simd_array(const simd_array<U, N> &x) {
@@ -95,12 +132,8 @@ public:
     VC_ALL_SHIFTS     (VC_OPERATOR_IMPL)
 #undef VC_OPERATOR_IMPL
 
-    // internal:
-    Vc_ALWAYS_INLINE vector_type &data(std::size_t i) { return d[i]; }
-    Vc_ALWAYS_INLINE const vector_type &data(std::size_t i) const { return d[i]; }
-
 private:
-    std::array<vector_type, register_count> d;
+    internal::Data<vector_type, register_count> d;
 };
 
 Vc_NAMESPACE_END
