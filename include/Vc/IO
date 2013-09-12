@@ -21,6 +21,7 @@
 #define VECIO_H
 
 #include "vector.h"
+#include "simd_array"
 #include "Memory"
 #include <iostream>
 
@@ -187,6 +188,36 @@ static std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<
     return out;
 }
 } // namespace std
+
+Vc_PUBLIC_NAMESPACE_BEGIN
+template<typename T, std::size_t N>
+inline std::ostream &operator<<(std::ostream &out, const simd_array<T, N> &v)
+{
+    out << AnsiColor::green << '<' << v[0];
+    for (size_t i = 1; i < N; ++i) {
+        if (i % 4 == 0) out << " |";
+        out << ' ' << v[i];
+    }
+    return out << '>' << AnsiColor::normal;
+}
+
+template<typename T, std::size_t N>
+inline std::ostream &operator<<(std::ostream &out, const simd_mask_array<T, N> &m)
+{
+    out << AnsiColor::blue << "«";
+    for (size_t i = 0; i < N; ++i) {
+        if (i > 0 && (i % 4) == 0) {
+            out << " ";
+        }
+        if ( m[i] ) {
+          out << AnsiColor::yellow << '1';
+        } else {
+          out << AnsiColor::blue << '0';
+        }
+    }
+    return out << AnsiColor::blue << "»" << AnsiColor::normal;
+}
+Vc_NAMESPACE_END
 
 #endif // VECIO_H
 

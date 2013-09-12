@@ -1,6 +1,6 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
 
-    Copyright (C) 2009 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -15,17 +15,11 @@
     You should have received a copy of the GNU Lesser General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
-*/
+}}}*/
 
-#ifndef VC_VC
-#define VC_VC
-#include "vector.h"
-#include "IO"
-#include "Memory"
-#include "Utils"
-#include "Allocator"
-#include "iterators"
-#include "simd_array"
-#endif // VC_VC
+#ifndef VC_VC_SIMD_ARRAY
+#define VC_VC_SIMD_ARRAY
 
-// vim: ft=cpp
+#include "common/simd_array.h"
+
+#endif // VC_VC_SIMD_ARRAY
