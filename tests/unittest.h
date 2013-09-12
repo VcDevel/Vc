@@ -752,6 +752,11 @@ static UnitTest::Test test_##fun##_double_v__(&fun<double_v>, #fun "<double_v>")
 static UnitTest::Test test_##fun##___uint_v__(&fun<  uint_v>, #fun "<  uint_v>"); \
 template<typename V> void fun()
 
+#define TEST(fun) \
+void fun(); \
+static UnitTest::Test test_##fun##__(&fun, #fun); \
+void fun()
+
 void testmain();
 
 int main(int argc, char **argv)
