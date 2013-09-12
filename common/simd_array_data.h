@@ -25,8 +25,12 @@
 Vc_NAMESPACE_BEGIN(Common)
 
 template<typename V, std::size_t N> struct ArrayData;
+template<typename M, std::size_t N> struct MaskData;
+
 template<typename V> struct ArrayData<V, 1>
 {
+    typedef typename V::EntryType value_type;
+
     V d;
 
     V *begin() { return &d; }
@@ -37,10 +41,21 @@ template<typename V> struct ArrayData<V, 1>
 
     ArrayData() = default;
     Vc_ALWAYS_INLINE ArrayData(const V &x) : d(x) {}
+    Vc_ALWAYS_INLINE ArrayData(const value_type *x) : d(x) {}
+    template<typename Flags> Vc_ALWAYS_INLINE ArrayData(const value_type *x, Flags flags)
+        : d(x, flags) {}
+    template<typename U, typename Flags> Vc_ALWAYS_INLINE ArrayData(const U *x, Flags flags)
+        : d(x, flags) {}
+
+    template<typename F, typename... Args>
+    inline void call(F function, Args... args) {
+        (d.*function)(args...);
+    }
 };
 template<typename V, std::size_t N> struct ArrayData
 {
     static_assert(N != 0, "error N must be nonzero!");
+    typedef typename V::EntryType value_type;
 
     V d;
     ArrayData<V, N - 1> next;
@@ -53,6 +68,17 @@ template<typename V, std::size_t N> struct ArrayData
 
     ArrayData() = default;
     Vc_ALWAYS_INLINE ArrayData(const V &x) : d(x), next(x) {}
+    Vc_ALWAYS_INLINE ArrayData(const value_type *x) : d(x), next(x + V::Size) {}
+    template<typename Flags> Vc_ALWAYS_INLINE ArrayData(const value_type *x, Flags flags)
+        : d(x, flags), next(x + V::Size, flags) {}
+    template<typename U, typename Flags> Vc_ALWAYS_INLINE ArrayData(const U *x, Flags flags)
+        : d(x, flags), next(x + V::Size, flags) {}
+
+    template<typename F, typename... Args>
+    inline void call(F function, Args... args) {
+        (d.*function)(args...);
+        next.call(function, args...);
+    }
 };
 
 template<typename M, std::size_t N> struct MaskData;
@@ -71,7 +97,7 @@ template<typename M> struct MaskData<M, 1>
     Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const { return d.isEmpty(); }
 
     template<typename V, typename F>
-    inline void assign(const ArrayData<V, 1> &lhs, const ArrayData<V, 1> &rhs, F function) {
+    Vc_ALWAYS_INLINE void assign(const ArrayData<V, 1> &lhs, const ArrayData<V, 1> &rhs, F function) {
         d = (lhs.d.*function)(rhs.d);
     }
 
@@ -95,7 +121,7 @@ template<typename M, std::size_t N> struct MaskData
     Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const { return d.isEmpty() && next.isEmpty(); }
 
     template<typename V, typename F>
-    inline void assign(const ArrayData<V, N> &lhs, const ArrayData<V, N> &rhs, F function) {
+    Vc_ALWAYS_INLINE void assign(const ArrayData<V, N> &lhs, const ArrayData<V, N> &rhs, F function) {
         d = (lhs.d.*function)(rhs.d);
         next.assign(lhs.next, rhs.next, function);
     }

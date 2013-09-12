@@ -62,7 +62,28 @@ public:
     simd_array &operator=(const simd_array &) = default;
 
     // broadcast
-    Vc_INTRINSIC simd_array(value_type a) : d(a) {}
+    Vc_ALWAYS_INLINE simd_array(value_type a) : d(a) {}
+
+    // load ctors
+    explicit Vc_ALWAYS_INLINE simd_array(const value_type *x) : d(x) {}
+    template<typename Flags = AlignedT> explicit Vc_ALWAYS_INLINE simd_array(const value_type *x, Flags flags = Flags())
+        : d(x, flags) {}
+    template<typename OtherT, typename Flags = AlignedT> explicit Vc_ALWAYS_INLINE simd_array(const OtherT *x, Flags flags = Flags())
+        : d(x, flags) {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // load member functions
+    Vc_ALWAYS_INLINE void load(const value_type *x) {
+        d.call(static_cast<void (vector_type::*)(const value_type *)>(&vector_type::load), x);
+    }
+    template<typename Flags>
+    Vc_ALWAYS_INLINE void load(const value_type *x, Flags f) {
+        d.call(static_cast<void (vector_type::*)(const value_type *, Flags)>(&vector_type::load), x, f);
+    }
+    template<typename U, typename Flags>
+    Vc_ALWAYS_INLINE void load(const U *x, Flags f) {
+        d.call(static_cast<void (vector_type::*)(const U *, Flags)>(&vector_type::load), x, f);
+    }
 
     // implicit casts
     template<typename U> Vc_ALWAYS_INLINE simd_array(const simd_array<U, N> &x) {

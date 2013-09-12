@@ -66,3 +66,41 @@ TEST_ALL_NATIVE_V(V, broadcast_not_equal)
     VERIFY(all_of(a <= b));
     VERIFY(all_of(a >= b));
 }
+
+TEST_ALL_NATIVE_V(V, load)
+{
+    typedef typename V::EntryType T;
+    Vc::Memory<V, 34> data;
+    data = V::Zero();
+
+    simd_array<T, 32> a{ &data[0] };
+    simd_array<T, 32> b = 0;
+    COMPARE(a, b);
+
+    b.load(&data[0]);
+    COMPARE(a, b);
+
+    a.load(&data[1], Vc::Unaligned);
+    COMPARE(a, b);
+
+    b = decltype(b)(&data[2], Vc::Unaligned | Vc::Streaming);
+    COMPARE(a, b);
+}
+
+TEST(load_converting)
+{
+    typedef simd_array<float, 32> A;
+
+    Vc::Memory<double_v, 34> data;
+    data = double_v::Zero();
+
+    A a{ &data[0] };
+    A b = 0.;
+    COMPARE(a, b);
+
+    b.load(&data[1], Vc::Unaligned);
+    COMPARE(a, b);
+
+    a = A(&data[2], Vc::Unaligned | Vc::Streaming);
+    COMPARE(a, b);
+}
