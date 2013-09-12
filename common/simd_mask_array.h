@@ -48,6 +48,7 @@ public:
     simd_mask_array &operator=(const simd_mask_array &) = default;
 
     Vc_ALWAYS_INLINE Vc_PURE bool isFull() const { return d.isFull(); }
+    Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const { return d.isEmpty(); }
 
     bool operator[](std::size_t i) const {
         const auto *m = &d.d;

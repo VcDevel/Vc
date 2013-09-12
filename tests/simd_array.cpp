@@ -51,3 +51,18 @@ TEST_ALL_NATIVE_V(V, broadcast_equal)
     b = 1;
     COMPARE(a, b);
 }
+
+TEST_ALL_NATIVE_V(V, broadcast_not_equal)
+{
+    typedef typename V::EntryType T;
+    simd_array<T, 32> a = 0;
+    simd_array<T, 32> b = 1;
+    VERIFY(all_of(a != b));
+    VERIFY(all_of(a < b));
+    VERIFY(all_of(a <= b));
+    VERIFY(none_of(a > b));
+    VERIFY(none_of(a >= b));
+    a = 1;
+    VERIFY(all_of(a <= b));
+    VERIFY(all_of(a >= b));
+}

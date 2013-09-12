@@ -68,6 +68,7 @@ template<typename M> struct MaskData<M, 1>
     Vc_ALWAYS_INLINE MaskData(const M &x) : d(x) {}
 
     Vc_ALWAYS_INLINE Vc_PURE bool isFull() const { return d.isFull(); }
+    Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const { return d.isEmpty(); }
 
     template<typename V, typename F>
     inline void assign(const ArrayData<V, 1> &lhs, const ArrayData<V, 1> &rhs, F function) {
@@ -91,6 +92,7 @@ template<typename M, std::size_t N> struct MaskData
     Vc_ALWAYS_INLINE MaskData(const M &x) : d(x), next(x) {}
 
     Vc_ALWAYS_INLINE Vc_PURE bool isFull() const { return d.isFull() && next.isFull(); }
+    Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const { return d.isEmpty() && next.isEmpty(); }
 
     template<typename V, typename F>
     inline void assign(const ArrayData<V, N> &lhs, const ArrayData<V, N> &rhs, F function) {
