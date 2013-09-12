@@ -27,6 +27,7 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 #define VC_ASSERT(cond) unittest_assert(cond, #cond, __FILE__, __LINE__);
 
 #include <Vc/Vc>
+#include <Vc/type_traits>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -241,14 +242,25 @@ void _UnitTest_Global_Object::runTestInt(testFunction fun, const char *name)
     }
 }
 
-template<typename T1, typename T2> static inline bool unittest_compareHelper( const T1 &a, const T2 &b ) { return a == b; }
-template<> inline bool unittest_compareHelper<Vc::int_v, Vc::int_v>( const Vc::int_v &a, const Vc::int_v &b ) { return (a == b).isFull(); }
-template<> inline bool unittest_compareHelper<Vc::uint_v, Vc::uint_v>( const Vc::uint_v &a, const Vc::uint_v &b ) { return (a == b).isFull(); }
-template<> inline bool unittest_compareHelper<Vc::float_v, Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b ) { return (a == b).isFull(); }
-template<> inline bool unittest_compareHelper<Vc::sfloat_v, Vc::sfloat_v>( const Vc::sfloat_v &a, const Vc::sfloat_v &b ) { return (a == b).isFull(); }
-template<> inline bool unittest_compareHelper<Vc::double_v, Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b ) { return (a == b).isFull(); }
-template<> inline bool unittest_compareHelper<Vc::ushort_v, Vc::ushort_v>( const Vc::ushort_v &a, const Vc::ushort_v &b ) { return (a == b).isFull(); }
-template<> inline bool unittest_compareHelper<Vc::short_v, Vc::short_v>( const Vc::short_v &a, const Vc::short_v &b ) { return (a == b).isFull(); }
+template<typename T> struct is_simd_array_internal : public std::false_type {};
+template<typename T, std::size_t N> struct is_simd_array_internal<Vc::simd_array<T, N>> : public std::true_type {};
+
+template<typename T> struct is_simd_array
+    : public is_simd_array_internal<typename std::remove_cv<typename std::remove_reference<T>::type>::type> {};
+
+template<typename T>
+struct is_simd : public std::integral_constant<bool,
+    Vc::is_simd_vector<T>::value || is_simd_array<T>::value>
+{};
+
+template<typename T1, typename T2> inline
+typename std::enable_if<!(is_simd<T1>::value || is_simd<T2>::value), bool>::type
+unittest_compareHelper(const T1 &a, const T2 &b) { return a == b; }
+
+template<typename T1, typename T2> inline
+typename std::enable_if< (is_simd<T1>::value || is_simd<T2>::value), bool>::type
+unittest_compareHelper(const T1 &a, const T2 &b) { return all_of(a == b); }
+
 template<> inline bool unittest_compareHelper<std::type_info, std::type_info>(const std::type_info &a, const std::type_info &b ) { return &a == &b; }
 
 template<typename T> T ulpDiffToReferenceWrapper(T a, T b) {
