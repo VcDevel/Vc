@@ -97,7 +97,7 @@ else()
       endif()
    endif()
    if(MIC_NATIVE_FOUND)
-      if("${Vc_MIC_ICC_VERSION}" VERSION_LESS "14.0.0")
+      if("${Vc_MIC_ICC_VERSION}" VERSION_LESS "14.1.0")
          UserWarning("ICC does not support initializer lists (C++11). Additionally it fails to optimize properly and therefore cannot provide an immediate parameter to an instrinsic. The following tests are therefore disabled:
          deinterleave_mic
          stlcontainer_mic.")
