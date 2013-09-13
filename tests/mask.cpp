@@ -301,7 +301,12 @@ template<typename M1, typename M2> void testBinaryOperatorsImpl()/*{{{*/
 /*}}}*/
 void testBinaryOperators()/*{{{*/
 {
-    using namespace Vc;
+    using Vc::float_m;
+    using Vc::double_m;
+    using Vc::int_m;
+    using Vc::uint_m;
+    using Vc::short_m;
+    using Vc::ushort_m;
 
     testBinaryOperatorsImpl< short_m,  short_m>();
     testBinaryOperatorsImpl< short_m, ushort_m>();
