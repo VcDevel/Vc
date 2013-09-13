@@ -224,13 +224,6 @@ template<> m256 SortHelper<float>::sort(VTArg _hgfedcba)
     return concat(_mm_unpacklo_ps(l, h), _mm_unpackhi_ps(l, h));
 }
 
-#ifndef VC_IMPL_AVX2
-template<> m256 SortHelper<sfloat>::sort(VTArg hgfedcba)
-{
-    return SortHelper<float>::sort(hgfedcba);
-}
-#endif
-
 template<> void SortHelper<double>::sort(m256d &VC_RESTRICT x, m256d &VC_RESTRICT y)
 {
     m256d l = _mm256_min_pd(x, y); // ↓x3y3 ↓x2y2 ↓x1y1 ↓x0y0

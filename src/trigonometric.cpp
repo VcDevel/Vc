@@ -28,7 +28,6 @@ namespace
     using Vc::Vector;
     using Vc::float_v;
     using Vc::double_v;
-    using Vc::sfloat_v;
     using Vc_IMPL_NAMESPACE::Const;
 
     template<typename T> static Vc_ALWAYS_INLINE Vector<T> cosSeries(const Vector<T> &x)
@@ -74,7 +73,6 @@ namespace
             + x;
     }
     template<typename V> struct signed_integer { typedef   int_v type; };
-    template<> struct signed_integer<sfloat_v> { typedef short_v type; };
 
     template<typename _T, typename IV> static Vc_ALWAYS_INLINE Vector<_T> foldInput(const Vector<_T> &_x, IV &quadrant)
     {
@@ -452,20 +450,14 @@ Vc_NAMESPACE_END
 
 // instantiate the non-specialized template functions above
 template Vc::float_v  Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(const Vc::float_v  &);
-template Vc::sfloat_v Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(const Vc::sfloat_v &);
 
 template Vc::float_v  Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::cos(const Vc::float_v  &);
-template Vc::sfloat_v Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::cos(const Vc::sfloat_v &);
 
 template void Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::sincos(const Vc::float_v  &, Vc::float_v  *, Vc::float_v  *);
-template void Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::sincos(const Vc::sfloat_v &, Vc::sfloat_v *, Vc::sfloat_v *);
 
 template Vc::float_v  Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::asin(const Vc::float_v  &);
-template Vc::sfloat_v Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::asin(const Vc::sfloat_v &);
 
 template Vc::float_v  Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan(const Vc::float_v  &);
-template Vc::sfloat_v Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan(const Vc::sfloat_v &);
 
 template Vc::float_v  Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan2(const Vc::float_v  &, const Vc::float_v  &);
-template Vc::sfloat_v Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan2(const Vc::sfloat_v &, const Vc::sfloat_v &);
 #endif

@@ -52,7 +52,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<> struct IndexTypeHelper<         int  > { typedef          int   Type; };
     template<> struct IndexTypeHelper<unsigned int  > { typedef          int   Type; };
     template<> struct IndexTypeHelper<         float> { typedef          int   Type; };
-    template<> struct IndexTypeHelper<        sfloat> { typedef unsigned short Type; };
     template<> struct IndexTypeHelper<        double> { typedef          int   Type; }; // _M128I based int32 would be nice
 
     template<typename T> struct VectorTypeHelper;
@@ -64,7 +63,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<> struct VectorTypeHelper<         int  > { typedef m256i Type; };
     template<> struct VectorTypeHelper<unsigned int  > { typedef m256i Type; };
     template<> struct VectorTypeHelper<         float> { typedef m256  Type; };
-    template<> struct VectorTypeHelper<        sfloat> { typedef m256  Type; };
     template<> struct VectorTypeHelper<        double> { typedef m256d Type; };
 
     template<typename T> struct SseVectorType;

@@ -28,7 +28,6 @@ Vc_PUBLIC_NAMESPACE_BEGIN
 template<typename T>
 struct is_simd_mask : public std::integral_constant<bool,
     std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  float_m>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, sfloat_m>::value ||
     std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, double_m>::value ||
     std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,    int_m>::value ||
     std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,   uint_m>::value ||
@@ -39,7 +38,6 @@ struct is_simd_mask : public std::integral_constant<bool,
 template<typename T>
 struct is_simd_vector : public std::integral_constant<bool,
     std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  float_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, sfloat_v>::value ||
     std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, double_v>::value ||
     std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,    int_v>::value ||
     std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,   uint_v>::value ||
@@ -65,7 +63,6 @@ struct is_integral : public std::integral_constant<bool,
 template<typename T>
 struct is_floating_point : public std::integral_constant<bool,
     std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  float_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, sfloat_v>::value ||
     std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, double_v>::value ||
     std::is_floating_point<T>::value>
     {};

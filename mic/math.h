@@ -96,20 +96,6 @@ inline float_v frexp(float_v::AsArg v, int_v *e) {
                 exponentMaximized, _set1(0xbf7fffffu)));
     return ret;
 }
-inline sfloat_v frexp(sfloat_v::AsArg v, short_v *e) {
-    const __m512i vi = mic_cast<__m512i>(v.data());
-    const __m512i exponentBits = _set1(0x7f800000u);
-    const __m512i exponentPart = _and(vi, exponentBits);
-    const __mmask16 zeroMask = _mm512_cmpneq_ps_mask(v.data(), _mm512_setzero_ps());
-    e->data() = _mm512_mask_sub_epi32(_mm512_setzero_epi32(), zeroMask,
-            _mm512_srli_epi32(exponentPart, 23), _set1(0x7e));
-    const __m512i exponentMaximized = _or(vi, exponentBits);
-    const __mmask16 nonzeroNumber = _mm512_kand(isfinite(v).data(),
-               _mm512_cmpneq_ps_mask(v.data(), _mm512_setzero_ps()));
-    sfloat_v ret = mic_cast<__m512>(_mm512_mask_and_epi32(vi, nonzeroNumber,
-                exponentMaximized, _set1(0xbf7fffffu)));
-    return ret;
-}
 // ldexp {{{1
 Vc_ALWAYS_INLINE double_v ldexp(double_v::AsArg v, int_v::AsArg _e)
 {
@@ -124,12 +110,6 @@ Vc_ALWAYS_INLINE float_v ldexp(float_v::AsArg v, int_v::AsArg _e)
     int_v e = _e;
     e.setZero(static_cast<int_m>(v == float_v::Zero()));
     return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
-}
-Vc_ALWAYS_INLINE sfloat_v ldexp(sfloat_v::AsArg v, short_v::AsArg _e)
-{
-    short_v e = _e;
-    e.setZero(static_cast<short_m>(v == sfloat_v::Zero()));
-    return (v.reinterpretCast<short_v>() + (e << 23)).reinterpretCast<sfloat_v>();
 }
 //}}}1
 Vc_NAMESPACE_END

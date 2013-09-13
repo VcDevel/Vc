@@ -35,7 +35,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<unsigned int VectorSize> class Mask;
 #  elif defined(VC_IMPL_SSE)
     template<unsigned int VectorSize> class Mask;
-    class Float8Mask;
 #  elif defined(VC_IMPL_AVX)
     template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
 #  else
@@ -45,8 +44,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 Vc_NAMESPACE_END
 
 Vc_PUBLIC_NAMESPACE_BEGIN
-// helper type to implement sfloat_v (Vector<Vc::sfloat>)
-struct sfloat {};
 
 /* TODO: add type for half-float, something along these lines:
 class half_float
@@ -86,7 +83,6 @@ public:
 // namespace might be enough:
 
 template<typename T> struct DetermineEntryType { typedef T Type; };
-template<> struct DetermineEntryType<sfloat> { typedef float Type; };
 
 template<typename T> struct NegateTypeHelper { typedef T Type; };
 template<> struct NegateTypeHelper<unsigned char > { typedef char  Type; };
@@ -129,11 +125,6 @@ namespace
         && From::Size == To::Size
         && sizeof(typename From::EntryType) == sizeof(typename To::EntryType)
         > {};
-    template<typename T> using V = Vc_IMPL_NAMESPACE::Vector<T>;
-    template<> struct is_implicit_cast_allowed<V< int16_t>, V<sfloat>> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<V<uint16_t>, V<sfloat>> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<V< int32_t>, V<sfloat>> : public std::false_type {};
-    template<> struct is_implicit_cast_allowed<V<uint32_t>, V<sfloat>> : public std::false_type {};
 
     template<typename T> struct IsLikeInteger { enum { Value = !std::is_floating_point<T>::value && CanConvertToInt<T>::Value }; };
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !std::is_unsigned<T>::value }; };

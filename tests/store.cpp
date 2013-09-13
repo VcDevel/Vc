@@ -159,6 +159,5 @@ void testmain()
         runTest(maskedStore<double_v>);
         runTest(maskedStore<short_v>);
         runTest(maskedStore<ushort_v>);
-        runTest(maskedStore<sfloat_v>);
     }
 }

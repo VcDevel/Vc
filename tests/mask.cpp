@@ -24,7 +24,6 @@
 
 using Vc::float_v;
 using Vc::double_v;
-using Vc::sfloat_v;
 using Vc::int_v;
 using Vc::uint_v;
 using Vc::short_v;
@@ -302,16 +301,12 @@ template<typename M1, typename M2> void testBinaryOperatorsImpl()/*{{{*/
 /*}}}*/
 void testBinaryOperators()/*{{{*/
 {
-    testLogicalOperatorsImpl< short_m, sfloat_m>();
-    testLogicalOperatorsImpl<ushort_m, sfloat_m>();
-    testLogicalOperatorsImpl<sfloat_m,  short_m>();
-    testLogicalOperatorsImpl<sfloat_m, ushort_m>();
+    using namespace Vc;
 
     testBinaryOperatorsImpl< short_m,  short_m>();
     testBinaryOperatorsImpl< short_m, ushort_m>();
     testBinaryOperatorsImpl<ushort_m,  short_m>();
     testBinaryOperatorsImpl<ushort_m, ushort_m>();
-    testBinaryOperatorsImpl<sfloat_m, sfloat_m>();
 
     testBinaryOperatorsImpl<   int_m,    int_m>();
     testBinaryOperatorsImpl<   int_m,   uint_m>();
@@ -326,30 +321,6 @@ void testBinaryOperators()/*{{{*/
     testBinaryOperatorsImpl<double_m, double_m>();
 }
 /*}}}*/
-#ifdef VC_IMPL_SSE
-void testFloat8GatherMask()/*{{{*/
-{
-    Vc::Memory<short_v, short_v::Size * 256> data;
-    short_v::Memory andMemory;
-    for (size_t i = 0; i < short_v::Size; ++i) {
-        andMemory[i] = 1 << i;
-    }
-    const short_v andMask(andMemory);
-
-    for (unsigned int i = 0; i < data.vectorsCount(); ++i) {
-        data.vector(i) = andMask & i;
-    }
-
-    for (unsigned int i = 0; i < data.vectorsCount(); ++i) {
-        const Vc::short_m mask = data.vector(i) == short_v::Zero();
-
-        Vc::SSE::Float8GatherMask
-            gatherMaskA(mask),
-            gatherMaskB(static_cast<Vc::sfloat_m>(mask));
-        COMPARE(gatherMaskA.toInt(), gatherMaskB.toInt());
-    }
-}/*}}}*/
-#endif
 
 template<typename V> void maskReductions()/*{{{*/
 {
@@ -425,10 +396,6 @@ void testmain()/*{{{*/
     testAllTypes(testFirstOne);
     testAllTypes(maskReductions);
     runTest(testBinaryOperators);
-
-#ifdef VC_IMPL_SSE
-    runTest(testFloat8GatherMask);
-#endif
 }/*}}}*/
 
 // vim: foldmethod=marker

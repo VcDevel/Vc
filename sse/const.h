@@ -77,24 +77,11 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
         static Vc_ALWAYS_INLINE_L Vc_CONST_L V load(const T *mem) Vc_ALWAYS_INLINE_R Vc_CONST_R;
     };
     template<typename T> Vc_ALWAYS_INLINE Vc_CONST Vector<T> Const<T>::load(const T *mem) { return V(mem); }
-    template<> Vc_ALWAYS_INLINE Vc_CONST sfloat_v Const<Vc::sfloat>::load(const float *mem) { return M256::dup(float_v(mem).data()); }
 
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float> Const<float>::highMask() { return Vector<float>(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask() { return Vector<double>(reinterpret_cast<const double *>(&c_general::highMaskDouble)); }
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float> Const<float>::highMask(int bits) { return _mm_castsi128_ps(_mm_slli_epi32(_mm_setallone_si128(), bits)); }
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask(int bits) { return _mm_castsi128_pd(_mm_slli_epi64(_mm_setallone_si128(), bits)); }
-    template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float8> Const<float8>::highMask(int bits) {
-        return M256::dup(Const<float>::highMask(bits).data());
-    }
-    template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float8> Const<float8>::P(int i) {
-        return M256::dup(Const<float>::P(i).data());
-    }
-    template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float8> Const<float8>::Q(int i) {
-        return M256::dup(Const<float>::Q(i).data());
-    }
-    template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float8>::Mask Const<float8>::exponentMask() {
-        return M256::dup(Const<float>::exponentMask().data());
-    }
 Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"

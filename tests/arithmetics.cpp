@@ -475,29 +475,6 @@ template<> void fma<float_v>()
     COMPARE(a, float_v(Vc_buildFloat(1, 0x000001, -21)));
 }
 
-template<> void fma<sfloat_v>()
-{
-    sfloat_v b = Vc_buildFloat(1, 0x000001, 0);
-    sfloat_v c = Vc_buildFloat(1, 0x000000, -24);
-    sfloat_v a = b;
-    /*a *= b;
-    a += c;
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000002, 0)));
-    a = b;*/
-    a.fusedMultiplyAdd(b, c);
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000003, 0)));
-
-    a = Vc_buildFloat(1, 0x000002, 0);
-    b = Vc_buildFloat(1, 0x000002, 0);
-    c = Vc_buildFloat(-1, 0x000000, 0);
-    /*a *= b;
-    a += c;
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000000, -21)));
-    a = b;*/
-    a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000001, -21)));
-}
-
 template<> void fma<double_v>()
 {
     double_v b = Vc_buildDouble(1, 0x0000000000001, 0);
@@ -523,7 +500,6 @@ void testmain()
     runTest(testZero<double_v>);
     runTest(testZero<short_v>);
     runTest(testZero<ushort_v>);
-    runTest(testZero<sfloat_v>);
 
     runTest(testCmp<int_v>);
     runTest(testCmp<uint_v>);
@@ -531,7 +507,6 @@ void testmain()
     runTest(testCmp<double_v>);
     runTest(testCmp<short_v>);
     runTest(testCmp<ushort_v>);
-    runTest(testCmp<sfloat_v>);
 
     runTest(testIsMix<int_v>);
     runTest(testIsMix<uint_v>);
@@ -539,7 +514,6 @@ void testmain()
     runTest(testIsMix<double_v>);
     runTest(testIsMix<short_v>);
     runTest(testIsMix<ushort_v>);
-    runTest(testIsMix<sfloat_v>);
 
     runTest(testAdd<int_v>);
     runTest(testAdd<uint_v>);
@@ -547,7 +521,6 @@ void testmain()
     runTest(testAdd<double_v>);
     runTest(testAdd<short_v>);
     runTest(testAdd<ushort_v>);
-    runTest(testAdd<sfloat_v>);
 
     runTest(testSub<int_v>);
     runTest(testSub<uint_v>);
@@ -555,7 +528,6 @@ void testmain()
     runTest(testSub<double_v>);
     runTest(testSub<short_v>);
     runTest(testSub<ushort_v>);
-    runTest(testSub<sfloat_v>);
 
     runTest(testMul<int_v>);
     runTest(testMul<uint_v>);
@@ -563,7 +535,6 @@ void testmain()
     runTest(testMul<double_v>);
     runTest(testMul<short_v>);
     runTest(testMul<ushort_v>);
-    runTest(testMul<sfloat_v>);
 
     runTest(testDiv<int_v>);
     runTest(testDiv<uint_v>);
@@ -571,7 +542,6 @@ void testmain()
     runTest(testDiv<double_v>);
     runTest(testDiv<short_v>);
     runTest(testDiv<ushort_v>);
-    runTest(testDiv<sfloat_v>);
 
     runTest(testAnd<int_v>);
     runTest(testAnd<uint_v>);
@@ -590,7 +560,6 @@ void testmain()
     runTest(testMulAdd<double_v>);
     runTest(testMulAdd<short_v>);
     runTest(testMulAdd<ushort_v>);
-    runTest(testMulAdd<sfloat_v>);
 
     runTest(testMulSub<int_v>);
     runTest(testMulSub<uint_v>);
@@ -598,7 +567,6 @@ void testmain()
     runTest(testMulSub<double_v>);
     runTest(testMulSub<short_v>);
     runTest(testMulSub<ushort_v>);
-    runTest(testMulSub<sfloat_v>);
 
     runTest(testOnesComplement<int_v>);
     runTest(testOnesComplement<uint_v>);

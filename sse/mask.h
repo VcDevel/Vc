@@ -52,14 +52,12 @@ template<> struct MaskHelper<8> {
 };
 #endif
 
-class Float8Mask;
 template<unsigned int VectorSize> class Mask
 {
     friend class Mask<2u>;
     friend class Mask<4u>;
     friend class Mask<8u>;
     friend class Mask<16u>;
-    friend class Float8Mask;
     typedef Common::MaskBool<16 / VectorSize> MaskBool;
     typedef Common::VectorMemoryUnion<__m128, MaskBool> Storage;
     public:
@@ -68,7 +66,6 @@ template<unsigned int VectorSize> class Mask
         static constexpr size_t Size = VectorSize;
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
-        // Also Float8Mask requires const ref on MSVC 32bit.
 #if defined VC_MSVC && defined _WIN32
         typedef const Mask<VectorSize> &Argument;
 #else
@@ -85,7 +82,6 @@ template<unsigned int VectorSize> class Mask
         Vc_ALWAYS_INLINE Mask(const Mask &rhs) : d(rhs.d) {}
         Vc_ALWAYS_INLINE Mask(const Mask<VectorSize / 2> *a)
           : d(_mm_castsi128_ps(_mm_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
-        Vc_ALWAYS_INLINE explicit Mask(const Float8Mask &m);
 
         template<unsigned int OtherSize> Vc_ALWAYS_INLINE_L explicit Mask(const Mask<OtherSize> &x) Vc_ALWAYS_INLINE_R;
 //X         {
@@ -321,194 +317,6 @@ template<> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<16>::count() const
 }
 
 
-class Float8Mask
-{
-    enum PrivateConstants {
-        PartialSize = 4,
-        VectorSize = 8
-    };
-    typedef Common::MaskBool<32 / VectorSize> MaskBool;
-    typedef Common::VectorMemoryUnion<M256, MaskBool> Storage;
-    public:
-        FREE_STORE_OPERATORS_ALIGNED(16)
-
-        static constexpr size_t Size = VectorSize;
-
-        // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
-        // Also Float8Mask requires const ref on MSVC 32bit.
-#if defined VC_MSVC && defined _WIN32
-        typedef const Float8Mask & Argument;
-#else
-        typedef Float8Mask Argument;
-#endif
-
-        Vc_ALWAYS_INLINE Float8Mask() {}
-        Vc_ALWAYS_INLINE Float8Mask(const M256 &x) : d(x) {}
-        Vc_ALWAYS_INLINE explicit Float8Mask(VectorSpecialInitializerZero::ZEnum) {
-            d.v()[0] = _mm_setzero_ps();
-            d.v()[1] = _mm_setzero_ps();
-        }
-        Vc_ALWAYS_INLINE explicit Float8Mask(VectorSpecialInitializerOne::OEnum) {
-            d.v()[0] = _mm_setallone_ps();
-            d.v()[1] = _mm_setallone_ps();
-        }
-        Vc_ALWAYS_INLINE explicit Float8Mask(bool b) {
-            const __m128 tmp = b ? _mm_setallone_ps() : _mm_setzero_ps();
-            d.v()[0] = tmp;
-            d.v()[1] = tmp;
-        }
-        Vc_ALWAYS_INLINE Float8Mask(const Mask<VectorSize> &a) {
-            d.v()[0] = _mm_castsi128_ps(_mm_unpacklo_epi16(a.dataI(), a.dataI()));
-            d.v()[1] = _mm_castsi128_ps(_mm_unpackhi_epi16(a.dataI(), a.dataI()));
-        }
-
-        Vc_ALWAYS_INLINE Vc_PURE bool operator==(const Float8Mask &rhs) const {
-            return MaskHelper<PartialSize>::cmpeq (d.v()[0], rhs.d.v()[0])
-                && MaskHelper<PartialSize>::cmpeq (d.v()[1], rhs.d.v()[1]);
-        }
-        Vc_ALWAYS_INLINE Vc_PURE bool operator!=(const Float8Mask &rhs) const {
-            return MaskHelper<PartialSize>::cmpneq(d.v()[0], rhs.d.v()[0])
-                || MaskHelper<PartialSize>::cmpneq(d.v()[1], rhs.d.v()[1]);
-        }
-
-        Vc_ALWAYS_INLINE Vc_PURE Float8Mask operator&&(const Float8Mask &rhs) const {
-            Float8Mask r;
-            r.d.v()[0] = _mm_and_ps(d.v()[0], rhs.d.v()[0]);
-            r.d.v()[1] = _mm_and_ps(d.v()[1], rhs.d.v()[1]);
-            return r;
-        }
-        Vc_ALWAYS_INLINE Vc_PURE Float8Mask operator& (const Float8Mask &rhs) const {
-            Float8Mask r;
-            r.d.v()[0] = _mm_and_ps(d.v()[0], rhs.d.v()[0]);
-            r.d.v()[1] = _mm_and_ps(d.v()[1], rhs.d.v()[1]);
-            return r;
-        }
-        Vc_ALWAYS_INLINE Vc_PURE Float8Mask operator||(const Float8Mask &rhs) const {
-            Float8Mask r;
-            r.d.v()[0] = _mm_or_ps(d.v()[0], rhs.d.v()[0]);
-            r.d.v()[1] = _mm_or_ps(d.v()[1], rhs.d.v()[1]);
-            return r;
-        }
-        Vc_ALWAYS_INLINE Vc_PURE Float8Mask operator| (const Float8Mask &rhs) const {
-            Float8Mask r;
-            r.d.v()[0] = _mm_or_ps(d.v()[0], rhs.d.v()[0]);
-            r.d.v()[1] = _mm_or_ps(d.v()[1], rhs.d.v()[1]);
-            return r;
-        }
-        Vc_ALWAYS_INLINE Vc_PURE Float8Mask operator^ (const Float8Mask &rhs) const {
-            Float8Mask r;
-            r.d.v()[0] = _mm_xor_ps(d.v()[0], rhs.d.v()[0]);
-            r.d.v()[1] = _mm_xor_ps(d.v()[1], rhs.d.v()[1]);
-            return r;
-        }
-        Vc_ALWAYS_INLINE Vc_PURE Float8Mask operator!() const {
-            Float8Mask r;
-            r.d.v()[0] = _mm_andnot_ps(d.v()[0], _mm_setallone_ps());
-            r.d.v()[1] = _mm_andnot_ps(d.v()[1], _mm_setallone_ps());
-            return r;
-        }
-        Vc_ALWAYS_INLINE Float8Mask &operator&=(const Float8Mask &rhs) {
-            d.v()[0] = _mm_and_ps(d.v()[0], rhs.d.v()[0]);
-            d.v()[1] = _mm_and_ps(d.v()[1], rhs.d.v()[1]);
-            return *this;
-        }
-        Vc_ALWAYS_INLINE Float8Mask &operator|=(const Float8Mask &rhs) {
-            d.v()[0] = _mm_or_ps (d.v()[0], rhs.d.v()[0]);
-            d.v()[1] = _mm_or_ps (d.v()[1], rhs.d.v()[1]);
-            return *this;
-        }
-        Vc_ALWAYS_INLINE Float8Mask &operator^=(const Float8Mask &rhs) {
-            d.v()[0] = _mm_xor_ps(d.v()[0], rhs.d.v()[0]);
-            d.v()[1] = _mm_xor_ps(d.v()[1], rhs.d.v()[1]);
-            return *this;
-        }
-
-        Vc_ALWAYS_INLINE Vc_PURE bool isFull () const {
-            const _M128 tmp = _mm_and_ps(d.v()[0], d.v()[1]);
-#ifdef VC_USE_PTEST
-            return _mm_testc_si128(_mm_castps_si128(tmp), _mm_setallone_si128());
-#else
-            return _mm_movemask_ps(tmp) == 0xf;
-            //_mm_movemask_ps(d.v()[0]) == 0xf &&
-            //_mm_movemask_ps(d.v()[1]) == 0xf;
-#endif
-        }
-        Vc_ALWAYS_INLINE Vc_PURE bool isNotEmpty() const {
-            const _M128 tmp = _mm_or_ps(d.v()[0], d.v()[1]);
-#ifdef VC_USE_PTEST
-            return 0 == _mm_testz_si128(_mm_castps_si128(tmp), _mm_castps_si128(tmp));
-#else
-            return _mm_movemask_ps(tmp) != 0x0;
-#endif
-        }
-        Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const {
-            const _M128 tmp = _mm_or_ps(d.v()[0], d.v()[1]);
-#ifdef VC_USE_PTEST
-            return _mm_testz_si128(_mm_castps_si128(tmp), _mm_castps_si128(tmp));
-#else
-            return _mm_movemask_ps(tmp) == 0x0;
-            //_mm_movemask_ps(d.v()[0]) == 0x0 &&
-            //_mm_movemask_ps(d.v()[1]) == 0x0;
-#endif
-        }
-        Vc_ALWAYS_INLINE Vc_PURE bool isMix() const {
-            // consider [1111 0000]
-            // solution:
-            // if d.v()[0] != d.v()[1] => return true
-            // if d.v()[0] == d.v()[1] => return d.v()[0].isMix
-#ifdef VC_USE_PTEST
-            __m128i tmp = _mm_castps_si128(_mm_xor_ps(d.v()[0], d.v()[1]));
-            // tmp == 0 <=> d.v()[0] == d.v()[1]
-            return !_mm_testz_si128(tmp, tmp) ||
-                _mm_test_mix_ones_zeros(_mm_castps_si128(d.v()[0]), _mm_setallone_si128());
-#else
-            const int tmp = _mm_movemask_ps(d.v()[0]) + _mm_movemask_ps(d.v()[1]);
-            return tmp > 0x0 && tmp < (0xf + 0xf);
-#endif
-        }
-
-#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
-        Vc_ALWAYS_INLINE Vc_PURE operator bool() const { return isFull(); }
-#endif
-
-        Vc_ALWAYS_INLINE Vc_PURE int shiftMask() const {
-            return (_mm_movemask_ps(d.v()[1]) << 4) + _mm_movemask_ps(d.v()[0]);
-        }
-        Vc_ALWAYS_INLINE Vc_PURE int toInt() const { return (_mm_movemask_ps(d.v()[1]) << 4) + _mm_movemask_ps(d.v()[0]); }
-
-        Vc_ALWAYS_INLINE Vc_PURE const M256 &data () const { return d.v(); }
-
-        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return d.m(index); }
-        Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const {
-            return (toInt() & (1 << index)) != 0;
-        }
-
-        Vc_ALWAYS_INLINE Vc_PURE unsigned int count() const {
-#ifdef VC_IMPL_POPCNT
-		return _mm_popcnt_u32(toInt());
-#else
-//X             int tmp1 = _mm_movemask_ps(d.v()[0]);
-//X             int tmp2 = _mm_movemask_ps(d.v()[1]);
-//X             tmp1 = (tmp1 & 5) + ((tmp1 >> 1) & 5);
-//X             tmp2 = (tmp2 & 5) + ((tmp2 >> 1) & 5);
-//X             return (tmp1 & 3) + (tmp2 & 3) + ((tmp1 >> 2) & 3) + ((tmp2 >> 2) & 3);
-            _M128I x = _mm_add_epi32(_mm_srli_epi32(_mm_castps_si128(d.v()[0]), 31),
-                                     _mm_srli_epi32(_mm_castps_si128(d.v()[1]), 31));
-            x = _mm_add_epi32(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
-            x = _mm_add_epi32(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)));
-            return _mm_cvtsi128_si32(x);
-#endif
-        }
-
-        Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
-
-    private:
-#ifdef VC_COMPILE_BENCHMARKS
-    public:
-#endif
-        Storage d;
-};
-
 template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<Size>::firstOne() const
 {
     const int mask = toInt();
@@ -521,32 +329,6 @@ template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE unsigned int Mask<Size>::fi
 #endif
     return bit;
 }
-Vc_ALWAYS_INLINE Vc_PURE unsigned int Float8Mask::firstOne() const
-{
-    const int mask = toInt();
-#ifdef _MSC_VER
-    unsigned long bit;
-    _BitScanForward(&bit, mask);
-#else
-    int bit;
-    __asm__("bsf %1,%0" : "=&r"(bit) : "r"(mask));
-#endif
-    return bit;
-}
-
-template<unsigned int VectorSize>
-Vc_ALWAYS_INLINE Mask<VectorSize>::Mask(const Float8Mask &m)
-    : d(_mm_castsi128_ps(_mm_packs_epi32(_mm_castps_si128(m.data()[0]), _mm_castps_si128(m.data()[1])))) {}
-
-class Float8GatherMask
-{
-    public:
-        Float8GatherMask(const Mask<8u> &k)   : mask(k.toInt()) {}
-        Float8GatherMask(const Float8Mask &k) : mask(k.toInt()) {}
-        int toInt() const { return mask; }
-    private:
-        const int mask;
-};
 
 /**
  * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
@@ -579,29 +361,13 @@ template<unsigned int LSize, unsigned int RSize> Mask<LSize> operator& (const Ma
 template<unsigned int LSize, unsigned int RSize> Mask<LSize> operator| (const Mask<LSize> &lhs, const Mask<RSize> &rhs) { return _mm_or_ps (lhs.data(), rhs.data()); }
 template<unsigned int LSize, unsigned int RSize> Mask<LSize> operator^ (const Mask<LSize> &lhs, const Mask<RSize> &rhs) { return _mm_xor_ps(lhs.data(), rhs.data()); }
 
-// binary and/or/xor cannot work with one operand larger than the other
-template<unsigned int Size> void operator& (const Mask<Size> &lhs, const Float8Mask &rhs);
-template<unsigned int Size> void operator| (const Mask<Size> &lhs, const Float8Mask &rhs);
-template<unsigned int Size> void operator^ (const Mask<Size> &lhs, const Float8Mask &rhs);
-template<unsigned int Size> void operator& (const Float8Mask &rhs, const Mask<Size> &lhs);
-template<unsigned int Size> void operator| (const Float8Mask &rhs, const Mask<Size> &lhs);
-template<unsigned int Size> void operator^ (const Float8Mask &rhs, const Mask<Size> &lhs);
-
 // disable logical and/or for incompatible masks
 template<unsigned int LSize, unsigned int RSize> void operator&&(const Mask<LSize> &lhs, const Mask<RSize> &rhs);
 template<unsigned int LSize, unsigned int RSize> void operator||(const Mask<LSize> &lhs, const Mask<RSize> &rhs);
-template<unsigned int Size> void operator&&(const Mask<Size> &lhs, const Float8Mask &rhs);
-template<unsigned int Size> void operator||(const Mask<Size> &lhs, const Float8Mask &rhs);
-template<unsigned int Size> void operator&&(const Float8Mask &rhs, const Mask<Size> &lhs);
-template<unsigned int Size> void operator||(const Float8Mask &rhs, const Mask<Size> &lhs);
 
 // logical and/or for compatible masks
 template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE Mask<Size> operator&&(const Mask<Size> &lhs, const Mask<Size> &rhs) { return _mm_and_ps(lhs.data(), rhs.data()); }
 template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE Mask<Size> operator||(const Mask<Size> &lhs, const Mask<Size> &rhs) { return _mm_or_ps (lhs.data(), rhs.data()); }
-Vc_ALWAYS_INLINE Vc_PURE Mask<8> operator&&(const Float8Mask &rhs, const Mask<8> &lhs) { return static_cast<Mask<8> >(rhs) && lhs; }
-Vc_ALWAYS_INLINE Vc_PURE Mask<8> operator||(const Float8Mask &rhs, const Mask<8> &lhs) { return static_cast<Mask<8> >(rhs) || lhs; }
-Vc_ALWAYS_INLINE Vc_PURE Mask<8> operator&&(const Mask<8> &rhs, const Float8Mask &lhs) { return rhs && static_cast<Mask<8> >(lhs); }
-Vc_ALWAYS_INLINE Vc_PURE Mask<8> operator||(const Mask<8> &rhs, const Float8Mask &lhs) { return rhs || static_cast<Mask<8> >(lhs); }
 
 Vc_IMPL_NAMESPACE_END
 

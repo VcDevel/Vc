@@ -153,11 +153,6 @@ template<> Vc_ALWAYS_INLINE Vector<float>  round(const Vector<float>  &x)
     return float_v(std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f));
 }
 
-template<> Vc_ALWAYS_INLINE Vector<sfloat> round(const Vector<sfloat> &x)
-{
-    return sfloat_v(std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f));
-}
-
 template<> Vc_ALWAYS_INLINE Vector<double> round(const Vector<double> &x)
 {
     return double_v(std::floor(x.data() + 0.5 ) - (_realIsEvenHalf(x.data()) ? 1.  : 0. ));
@@ -206,21 +201,12 @@ Vc_ALWAYS_INLINE Vector<float> frexp(Vector<float> x, Vector<int> *e) {
 Vc_ALWAYS_INLINE Vector<double> frexp(Vector<double> x, Vector<int> *e) {
     return double_v(::frexp(x.data(), &e->data()));
 }
-Vc_ALWAYS_INLINE sfloat_v frexp(sfloat_v x, short_v *e) {
-    int ee;
-    const float r = ::frexpf(x.data(), &ee);
-    e->data() = ee;
-    return sfloat_v(r);
-}
 
 Vc_ALWAYS_INLINE Vector<float> ldexp(Vector<float> x, Vector<int> e) {
     return float_v(::ldexpf(x.data(), e.data()));
 }
 Vc_ALWAYS_INLINE Vector<double> ldexp(Vector<double> x, Vector<int> e) {
     return double_v(::ldexp(x.data(), e.data()));
-}
-Vc_ALWAYS_INLINE sfloat_v ldexp(sfloat_v x, short_v e) {
-    return sfloat_v(::ldexpf(x.data(), e.data()));
 }
 
 Vc_IMPL_NAMESPACE_END

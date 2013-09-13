@@ -30,7 +30,6 @@ template<typename Vec> constexpr unsigned long alignmentMask()
             // on 32bit the maximal alignment is 4 Bytes, even for 8-Byte doubles.
             min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1
         ) : (
-            // sizeof(SSE::sfloat_v) is too large
             // AVX::VectorAlignment is too large
             min<size_t>(sizeof(Vec), VectorAlignment) - 1
         );
@@ -162,7 +161,6 @@ template<> struct TypeInfo<signed char   > { static const char *string() { retur
 template<> struct TypeInfo<unsigned char > { static const char *string() { return "uchar"; } };
 template<> struct TypeInfo<double_v      > { static const char *string() { return "double_v"; } };
 template<> struct TypeInfo<float_v       > { static const char *string() { return "float_v"; } };
-template<> struct TypeInfo<sfloat_v      > { static const char *string() { return "sfloat_v"; } };
 template<> struct TypeInfo<int_v         > { static const char *string() { return "int_v"; } };
 template<> struct TypeInfo<uint_v        > { static const char *string() { return "uint_v"; } };
 template<> struct TypeInfo<short_v       > { static const char *string() { return "short_v"; } };
@@ -260,13 +258,11 @@ void testmain()
     runTest(checkAlignment<double_v>);
     runTest(checkAlignment<short_v>);
     runTest(checkAlignment<ushort_v>);
-    runTest(checkAlignment<sfloat_v>);
     testAllTypes(checkMemoryAlignment);
     runTest(loadArray<int_v>);
     runTest(loadArray<uint_v>);
     runTest(loadArray<float_v>);
     runTest(loadArray<double_v>);
-    runTest(loadArray<sfloat_v>);
     runTest(loadArrayShort<short_v>);
     runTest(loadArrayShort<ushort_v>);
 

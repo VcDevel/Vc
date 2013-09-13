@@ -145,7 +145,6 @@ void testmain() //{{{1
     runTest(scatterArray<uint_v>);
     runTest(scatterArray<float_v>);
     runTest(scatterArray<double_v>);
-    runTest(scatterArray<sfloat_v>);
     runTest(scatterArray<short_v>);
     runTest(scatterArray<ushort_v>);
     testAllTypes(maskedScatterArray);
@@ -160,7 +159,6 @@ void testmain() //{{{1
     runTest(scatterStruct<uint_v>);
     runTest(scatterStruct<float_v>);
     runTest(scatterStruct<double_v>);
-    runTest(scatterStruct<sfloat_v>);
     runTest(scatterStruct<short_v>);
     runTest(scatterStruct<ushort_v>);
     testAllTypes(scatterStruct2);

@@ -404,8 +404,6 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             }
         };
 
-        template<> struct VectorHelper<sfloat> : public VectorHelper<float> {};
-
         template<> struct VectorHelper<int> {
             typedef int EntryType;
             typedef m256i VectorType;

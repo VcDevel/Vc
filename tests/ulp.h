@@ -56,7 +56,6 @@ template<typename T> static T ulpDiffToReferenceSigned(T val, T ref)
 }
 
 template<typename T> struct _Ulp_ExponentVector { typedef Vc::int_v Type; };
-template<> struct _Ulp_ExponentVector<Vc::sfloat_v> { typedef Vc::short_v Type; };
 
 template<typename _T> static Vc::Vector<_T> ulpDiffToReference(const Vc::Vector<_T> &_val, const Vc::Vector<_T> &_ref)
 {

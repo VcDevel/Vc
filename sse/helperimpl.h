@@ -27,7 +27,6 @@ Vc_NAMESPACE_BEGIN(Internal)
 template<> struct HelperImpl<Vc::SSE2Impl>
 {
     typedef SSE::Vector<float> float_v;
-    typedef SSE::Vector<SSE::float8> sfloat_v;
     typedef SSE::Vector<double> double_v;
     typedef SSE::Vector<int> int_v;
     typedef SSE::Vector<unsigned int> uint_v;
@@ -37,10 +36,6 @@ template<> struct HelperImpl<Vc::SSE2Impl>
     template<typename A> static void deinterleave(float_v &, float_v &, const float *, A);
     template<typename A> static void deinterleave(float_v &, float_v &, const short *, A);
     template<typename A> static void deinterleave(float_v &, float_v &, const unsigned short *, A);
-
-    template<typename A> static void deinterleave(sfloat_v &, sfloat_v &, const float *, A);
-    template<typename A> static void deinterleave(sfloat_v &, sfloat_v &, const short *, A);
-    template<typename A> static void deinterleave(sfloat_v &, sfloat_v &, const unsigned short *, A);
 
     template<typename A> static void deinterleave(double_v &, double_v &, const double *, A);
 
