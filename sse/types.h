@@ -48,7 +48,7 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     typedef unsigned long _ulong;
 #endif
 
-    template<unsigned int VectorSize> class Mask;
+    template<typename T> class Mask;
 
     template<typename T> struct ParameterHelper {
         typedef T ByValue;
@@ -78,8 +78,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<> struct VectorTypeHelper<double>   { typedef __m128d Type; };
     template<> struct VectorTypeHelper< float>   { typedef __m128  Type; };
 
-    template<typename T, unsigned int Size> struct DetermineMask { typedef Mask<Size> Type; };
-
     template<typename T> struct DetermineGatherMask { typedef T Type; };
 
     template<typename T> struct VectorTraits
@@ -90,7 +88,7 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
         enum Constants {
             HasVectorDivision = !std::is_integral<T>::value
         };
-        typedef typename DetermineMask<T, Size>::Type MaskType;
+        typedef Mask<T> MaskType;
         typedef typename DetermineGatherMask<MaskType>::Type GatherMaskType;
         typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
         typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
