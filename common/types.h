@@ -129,6 +129,10 @@ namespace
     template<> struct is_implicit_cast_allowed< int16_t, uint16_t> : public std::true_type {};
     template<> struct is_implicit_cast_allowed<uint16_t,  int16_t> : public std::true_type {};
 
+    template<typename From, typename To> struct is_implicit_cast_allowed_mask : public is_implicit_cast_allowed<From, To> {};
+    template<> struct is_implicit_cast_allowed_mask< float,  int32_t> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed_mask< float, uint32_t> : public std::true_type {};
+
     template<typename T> struct IsLikeInteger { enum { Value = !std::is_floating_point<T>::value && CanConvertToInt<T>::Value }; };
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !std::is_unsigned<T>::value }; };
 #ifndef VC_ICC

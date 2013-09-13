@@ -49,7 +49,7 @@ class Vector
     public:
         typedef Vc::Memory<Vector<T>, 1> Memory;
         typedef Vector<unsigned int> IndexType;
-        typedef Scalar::Mask<1u> Mask;
+        typedef Scalar::Mask<T> Mask;
         typedef Vector<T> AsArg;
 
         Vc_ALWAYS_INLINE EntryType &data() { return m_data; }
