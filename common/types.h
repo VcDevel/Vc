@@ -120,11 +120,14 @@ namespace
     static_assert(std::is_convertible<const int *, const void *>::value ==  true, "HasImplicitCast3_is_broken");
     static_assert(std::is_convertible<const int *, int *>       ::value == false, "HasImplicitCast4_is_broken");
 
-    template<typename From, typename To> struct is_implicit_cast_allowed : public std::integral_constant<bool,
-        std::is_integral<typename From::EntryType>::value
-        && From::Size == To::Size
-        && sizeof(typename From::EntryType) == sizeof(typename To::EntryType)
-        > {};
+    template<typename From, typename To> struct is_implicit_cast_allowed : public std::false_type {};
+    template<typename T> struct is_implicit_cast_allowed<T, T> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed< int32_t, uint32_t> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed< int32_t,    float> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed<uint32_t,  int32_t> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed<uint32_t,    float> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed< int16_t, uint16_t> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed<uint16_t,  int16_t> : public std::true_type {};
 
     template<typename T> struct IsLikeInteger { enum { Value = !std::is_floating_point<T>::value && CanConvertToInt<T>::Value }; };
     template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !std::is_unsigned<T>::value }; };

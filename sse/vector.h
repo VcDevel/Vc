@@ -193,12 +193,12 @@ template<typename T> class Vector
 
         // implict conversion from compatible Vector<U>
         template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-                typename std::enable_if<is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+                typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
             : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
         // static_cast from the remaining Vector<U>
         template<typename U> Vc_INTRINSIC explicit Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-                typename std::enable_if<!is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+                typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
             : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
