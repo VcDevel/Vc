@@ -73,7 +73,7 @@ template<typename T> class Mask
         static constexpr size_t Size = VectorTraits<T>::Size;
 
     private:
-        typedef Common::MaskBool<16 / Size> MaskBool;
+        typedef Common::MaskBool<sizeof(T)> MaskBool;
         typedef Common::VectorMemoryUnion<__m128, MaskBool> Storage;
 
     public:
