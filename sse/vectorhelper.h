@@ -574,11 +574,11 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 #ifdef VC_IMPL_SSE4_1
             static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packus_epi32(a, b); }
 #else
-            // XXX too bad, but this is broken without SSE 4.1
+            // FIXME too bad, but this is broken without SSE 4.1
             static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packs_epi32(a, b); }
 #endif
-            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand0(_M128I x) { return _mm_srli_epi32(_mm_unpacklo_epi16(x, x), 16); }
-            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand1(_M128I x) { return _mm_srli_epi32(_mm_unpackhi_epi16(x, x), 16); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand0(_M128I x) { return _mm_unpacklo_epi16(x, _mm_setzero_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand1(_M128I x) { return _mm_unpackhi_epi16(x, _mm_setzero_si128()); }
 
 #undef SUFFIX
 #define SUFFIX epu16

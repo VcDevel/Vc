@@ -348,7 +348,7 @@ template<> inline Vector<short> &Vector<short>::operator/=(VC_ALIGNED_PARAMETER(
     __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
     lo = _mm_div_ps(lo, _mm_cvtepi32_ps(VectorHelper<short>::expand0(x.d.v())));
     hi = _mm_div_ps(hi, _mm_cvtepi32_ps(VectorHelper<short>::expand1(x.d.v())));
-    d.v() = _mm_packs_epi32(_mm_cvtps_epi32(lo), _mm_cvtps_epi32(hi));
+    d.v() = HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
     return *this;
 }
 
@@ -358,26 +358,26 @@ template<> inline Vc_PURE Vector<short> Vector<short>::operator/(VC_ALIGNED_PARA
     __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
     lo = _mm_div_ps(lo, _mm_cvtepi32_ps(VectorHelper<short>::expand0(x.d.v())));
     hi = _mm_div_ps(hi, _mm_cvtepi32_ps(VectorHelper<short>::expand1(x.d.v())));
-    return _mm_packs_epi32(_mm_cvtps_epi32(lo), _mm_cvtps_epi32(hi));
+    return HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
 }
 
 template<> inline Vector<unsigned short> &Vector<unsigned short>::operator/=(VC_ALIGNED_PARAMETER(Vector<unsigned short>) x)
 {
-    __m128 lo = _mm_cvtepi32_ps(VectorHelper<short>::expand0(d.v()));
-    __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
-    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(VectorHelper<short>::expand0(x.d.v())));
-    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(VectorHelper<short>::expand1(x.d.v())));
-    d.v() = _mm_packs_epi32(_mm_cvtps_epi32(lo), _mm_cvtps_epi32(hi));
+    __m128 lo = _mm_cvtepi32_ps(VectorHelper<unsigned short>::expand0(d.v()));
+    __m128 hi = _mm_cvtepi32_ps(VectorHelper<unsigned short>::expand1(d.v()));
+    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(VectorHelper<unsigned short>::expand0(x.d.v())));
+    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(VectorHelper<unsigned short>::expand1(x.d.v())));
+    d.v() = HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
     return *this;
 }
 
 template<> Vc_ALWAYS_INLINE Vc_PURE Vector<unsigned short> Vector<unsigned short>::operator/(VC_ALIGNED_PARAMETER(Vector<unsigned short>) x) const
 {
-    __m128 lo = _mm_cvtepi32_ps(VectorHelper<short>::expand0(d.v()));
-    __m128 hi = _mm_cvtepi32_ps(VectorHelper<short>::expand1(d.v()));
-    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(VectorHelper<short>::expand0(x.d.v())));
-    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(VectorHelper<short>::expand1(x.d.v())));
-    return _mm_packs_epi32(_mm_cvtps_epi32(lo), _mm_cvtps_epi32(hi));
+    __m128 lo = _mm_cvtepi32_ps(VectorHelper<unsigned short>::expand0(d.v()));
+    __m128 hi = _mm_cvtepi32_ps(VectorHelper<unsigned short>::expand1(d.v()));
+    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(VectorHelper<unsigned short>::expand0(x.d.v())));
+    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(VectorHelper<unsigned short>::expand1(x.d.v())));
+    return HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
 }
 
 template<> Vc_ALWAYS_INLINE Vector<float> &Vector<float>::operator/=(VC_ALIGNED_PARAMETER(Vector<float>) x)
