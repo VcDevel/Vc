@@ -112,23 +112,40 @@ template<typename T> struct Struct2 //{{{1
     short y;
 };
 
+constexpr int scatterStruct2Count = 97;
+
+template<typename T>
+static std::ostream &operator<<(std::ostream &out, const Struct2<T> &s)
+{
+    return out << '{' << s.b.a << ' ' << s.b.b << ' ' << s.b.c << '}';
+}
+
+template<typename T>
+static std::ostream &operator<<(std::ostream &out, const Struct2<T> *s)
+{
+    for (int i = 0; i < scatterStruct2Count; ++i) {
+        out << s[i];
+    }
+    return out;
+}
+
 template<typename Vec> void scatterStruct2() //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef Struct2<typename Vec::EntryType> S1;
     typedef Struct<typename Vec::EntryType> S2;
-    const int count = 97;
-    S1 array[count], out[count];
-    memset(array, 0, count * sizeof(S1));
-    memset(out, 0, count * sizeof(S1));
-    for (int i = 0; i < count; ++i) {
+    S1 array[scatterStruct2Count], out[scatterStruct2Count];
+    memset(array, 0, scatterStruct2Count * sizeof(S1));
+    memset(out, 0, scatterStruct2Count * sizeof(S1));
+    for (int i = 0; i < scatterStruct2Count; ++i) {
         array[i].b.a = i + 0;
         array[i].b.b = i + 1;
         array[i].b.c = i + 2;
     }
     typename It::Mask mask;
-    for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        typename Vec::Mask castedMask(mask);
+    typename Vec::Mask castedMask;
+    for (It i(IndexesFromZero); !(mask = (i < scatterStruct2Count)).isEmpty(); i += Vec::Size) {
+        castedMask = static_cast<decltype(castedMask)>(mask);
         Vec a(array, &S1::b, &S2::a, i, castedMask);
         Vec b(array, &S1::b, &S2::b, i, castedMask);
         Vec c(array, &S1::b, &S2::c, i, castedMask);
@@ -136,7 +153,8 @@ template<typename Vec> void scatterStruct2() //{{{1
         b.scatter(out, &S1::b, &S2::b, i, castedMask);
         c.scatter(out, &S1::b, &S2::c, i, castedMask);
     }
-    VERIFY(0 == memcmp(array, out, count * sizeof(S1)));
+    VERIFY(0 == memcmp(array, out, scatterStruct2Count * sizeof(S1))) << mask << ' ' << castedMask << '\n'
+        << array << '\n' << out;
 }
 
 void testmain() //{{{1
