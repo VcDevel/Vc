@@ -372,25 +372,35 @@ template<> inline Vector<int> Vc_PURE Vector<int>::operator/(VC_ALIGNED_PARAMETE
     return divInt(d.v(), x.d.v());
 }
 static inline m256i Vc_CONST divUInt(param256i a, param256i b) {
-    m256d loa = _mm256_cvtepi32_pd(lo128(a));
-    m256d hia = _mm256_cvtepi32_pd(hi128(a));
-    m256d lob = _mm256_cvtepi32_pd(lo128(b));
-    m256d hib = _mm256_cvtepi32_pd(hi128(b));
-    // if a >= 2^31 then after conversion to double it will contain a negative number (i.e. a-2^32)
-    // to get the right number back we have to add 2^32 where a >= 2^31
-    loa = _mm256_add_pd(loa, _mm256_and_pd(_mm256_cmp_pd(loa, _mm256_setzero_pd(), _CMP_LT_OS), _mm256_set1_pd(4294967296.)));
-    hia = _mm256_add_pd(hia, _mm256_and_pd(_mm256_cmp_pd(hia, _mm256_setzero_pd(), _CMP_LT_OS), _mm256_set1_pd(4294967296.)));
-    // we don't do the same for b because division by b >= 2^31 should be a seldom corner case and
-    // we rather want the standard stuff fast
-    //
+    // SSE/AVX only has signed int conversion to doubles. Therefore we first adjust the input before
+    // conversion and take the adjustment back after the conversion.
+    // It could be argued that for b this is not really important because division by a b >= 2^31 is
+    // useless. But for full correctness it cannot be ignored.
+#ifdef VC_IMPL_AVX2
+    const auto aa = _mm256_add_epi32(a, _mm256_set1_epi32(-2147483648));
+    const auto bb = _mm256_add_epi32(b, _mm256_set1_epi32(-2147483648));
+    const m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(aa)), _mm256_set1_pd(2147483648.));
+    const m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(aa)), _mm256_set1_pd(2147483648.));
+    const m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(bb)), _mm256_set1_pd(2147483648.));
+    const m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(bb)), _mm256_set1_pd(2147483648.));
+#else
+    const auto a0 = _mm_add_epi32(lo128(a), _mm_set1_epi32(-2147483648));
+    const auto a1 = _mm_add_epi32(hi128(a), _mm_set1_epi32(-2147483648));
+    const auto b0 = _mm_add_epi32(lo128(b), _mm_set1_epi32(-2147483648));
+    const auto b1 = _mm_add_epi32(hi128(b), _mm_set1_epi32(-2147483648));
+    const m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(a0), _mm256_set1_pd(2147483648.));
+    const m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(a1), _mm256_set1_pd(2147483648.));
+    const m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(b0), _mm256_set1_pd(2147483648.));
+    const m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(b1), _mm256_set1_pd(2147483648.));
+#endif
     // there is one remaining problem: a >= 2^31 and b == 1
     // in that case the return value would be 2^31
     return avx_cast<m256i>(_mm256_blendv_ps(avx_cast<m256>(concat(
                         _mm256_cvttpd_epi32(_mm256_div_pd(loa, lob)),
                         _mm256_cvttpd_epi32(_mm256_div_pd(hia, hib))
-                        )), avx_cast<m256>(a), avx_cast<m256>(concat(
-                            _mm_cmpeq_epi32(lo128(b), _mm_setone_epi32()),
-                            _mm_cmpeq_epi32(hi128(b), _mm_setone_epi32())))));
+                        )), avx_cast<m256>(a), avx_cast<m256>(
+                            _mm256_cmpeq_epi32(b, _mm256_setone_epi32())
+                            )));
 }
 template<> Vc_ALWAYS_INLINE Vector<unsigned int> &Vector<unsigned int>::operator/=(VC_ALIGNED_PARAMETER(Vector<unsigned int>) x)
 {
