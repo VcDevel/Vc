@@ -22,13 +22,13 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 namespace internal
 {
 
-template<> m128 zero<m128>() { return _mm_setzero_ps(); }
-template<> m256 zero<m256>() { return _mm256_setzero_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128 zero<m128>() { return _mm_setzero_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256 zero<m256>() { return _mm256_setzero_ps(); }
 
-template<> m128 allone<m128>() { return _mm_setallone_ps(); }
-template<> m256 allone<m256>() { return _mm256_setallone_ps(); }
-template<> m128i allone<m128i>() { return _mm_setallone_si128(); }
-template<> m256i allone<m256i>() { return _mm256_setallone_si256(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128 allone<m128>() { return _mm_setallone_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256 allone<m256>() { return _mm256_setallone_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128i allone<m128i>() { return _mm_setallone_si128(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256i allone<m256i>() { return _mm256_setallone_si256(); }
 
 // mask_cast/*{{{*/
 template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE Vc_CONST R mask_cast(m128i k)

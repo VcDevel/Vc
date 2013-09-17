@@ -30,8 +30,8 @@
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 namespace internal {
-template<typename V> V zero();
-template<typename V> V allone();
+template<typename V> Vc_ALWAYS_INLINE_L Vc_CONST_L V zero() Vc_ALWAYS_INLINE_R Vc_CONST_R;
+template<typename V> Vc_ALWAYS_INLINE_L Vc_CONST_L V allone() Vc_ALWAYS_INLINE_R Vc_CONST_R;
 template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE_L Vc_CONST_L R mask_cast(m128i) Vc_ALWAYS_INLINE_R Vc_CONST_R;
 template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE_L Vc_CONST_L R mask_cast(m256i) Vc_ALWAYS_INLINE_R Vc_CONST_R;
 template<size_t Size> Vc_ALWAYS_INLINE_L Vc_CONST_L int mask_to_int(m128i) Vc_ALWAYS_INLINE_R Vc_CONST_R;
