@@ -208,6 +208,17 @@ template<> void testMulSub<short_v>()
 
 template<typename Vec> void testDiv()
 {
+    for (int repetition = 0; repetition < 10000; ++repetition) {
+        const Vec a = Vec::Random();
+        const Vec b = Vec::Random();
+        if (none_of(b == Vec::Zero())) {
+            Vec reference;
+            for (size_t i = 0; i < Vec::Size; ++i) {
+                reference[i] = a[i] / b[i];
+            }
+            COMPARE(a / b, reference) << '\n' << a << " / " << b;
+        }
+    }
     typedef typename Vec::EntryType T;
     const T stepsize = std::max(T(1), T(std::numeric_limits<T>::max() / 1024));
     for (T divisor = 1; divisor < 5; ++divisor) {
