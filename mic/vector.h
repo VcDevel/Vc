@@ -70,7 +70,7 @@ public:
         MemoryAlignment = sizeof(EntryType) * Size,
         HasVectorDivision = true
     };
-    typedef Vc_IMPL_NAMESPACE::Mask<Size> Mask;
+    typedef Vc_IMPL_NAMESPACE::Mask<T> Mask;
     typedef typename Mask::AsArg MaskArg;
     typedef Vc::Memory<Vector<T>, Size> Memory;
     typedef Vector<T> AsArg; // for now only ICC can compile this code and it is not broken :)

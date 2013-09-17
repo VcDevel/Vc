@@ -34,7 +34,7 @@ Vc_ALWAYS_INLINE double_v trunc(double_v v)
     return _mm512_trunc_pd(v.data());
 }
 // isfinite {{{1
-template<typename T> static Vc_ALWAYS_INLINE Mask<Vector<T>::Size> isfinite(Vector<T> x)
+template<typename T> static Vc_ALWAYS_INLINE Mask<T> isfinite(Vector<T> x)
 {
     return _mm512_cmpord_ps_mask(x.data(), (x * Vector<T>::Zero()).data());
 }
@@ -44,7 +44,7 @@ static Vc_ALWAYS_INLINE double_m isfinite(double_v x)
 }
 // isnotfinite {{{1
 // i.e. !isfinite(x), this is not equivalent to isinfinite because NaN also is not finite
-template<typename T> static Vc_ALWAYS_INLINE Mask<Vector<T>::Size> isnotfinite(Vector<T> x)
+template<typename T> static Vc_ALWAYS_INLINE Mask<T> isnotfinite(Vector<T> x)
 {
     return _mm512_cmpunord_ps_mask(x.data(), (x * Vector<T>::Zero()).data());
 }
@@ -53,7 +53,7 @@ static Vc_ALWAYS_INLINE double_m isnotfinite(double_v x)
     return _mm512_cmpunord_pd_mask(x.data(), (x * double_v::Zero()).data());
 }
 // isnan {{{1
-template<typename T> static Vc_ALWAYS_INLINE Mask<Vector<T>::Size> isnan(Vector<T> x)
+template<typename T> static Vc_ALWAYS_INLINE Mask<T> isnan(Vector<T> x)
 {
     return _mm512_cmpunord_ps_mask(x.data(), x.data());
 }

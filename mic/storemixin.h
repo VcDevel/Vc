@@ -30,7 +30,7 @@ private:
     typedef typename VectorTypeHelper<T>::Type VectorType;
     typedef typename DetermineEntryType<T>::Type EntryType;
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
-    typedef Vc_IMPL_NAMESPACE::Mask<64 / sizeof(VectorEntryType)> Mask;
+    typedef Vc_IMPL_NAMESPACE::Mask<T> Mask;
 
     // helper that specializes on VectorType
     typedef VectorHelper<VectorType> HV;

@@ -58,7 +58,7 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename T> class VectorMultiplication;
     template<typename T> class Vector;
     template<typename T> struct SwizzledVector;
-    template<unsigned int VectorSize> class Mask;
+    template<typename T> class Mask;
     ALIGN(16) extern const char _IndexesFromZero[16];
 
     template<typename T> struct ConcatTypeHelper { typedef T Type; };

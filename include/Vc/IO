@@ -118,16 +118,8 @@ static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::
 }
 #endif
 
-#ifdef VC_IMPL_AVX
-template<unsigned int VectorSize, size_t RegisterWidth>
-static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Mask<VectorSize, RegisterWidth> &m)
-#elif defined(VC_IMPL_Scalar) || defined(VC_IMPL_SSE)
 template<typename T>
 static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Mask<T> &m)
-#else
-template<unsigned int VectorSize>
-static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Mask<VectorSize> &m)
-#endif
 {
     out << AnsiColor::blue << "m[";
     for (unsigned int i = 0; i < m.Size; ++i) {
