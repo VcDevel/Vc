@@ -36,11 +36,11 @@ template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE_L Vc_CONST_L R mas
 template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE_L Vc_CONST_L R mask_cast(m256i) Vc_ALWAYS_INLINE_R Vc_CONST_R;
 template<size_t Size> Vc_ALWAYS_INLINE_L Vc_CONST_L int mask_to_int(m128i) Vc_ALWAYS_INLINE_R Vc_CONST_R;
 template<size_t Size> Vc_ALWAYS_INLINE_L Vc_CONST_L int mask_to_int(m256i) Vc_ALWAYS_INLINE_R Vc_CONST_R;
-Vc_INTRINSIC Vc_CONST int testc(m128 a, m128 b) { return _mm_testc_ps(a, b); }
+Vc_INTRINSIC Vc_CONST int testc(m128 a, m128 b) { return _mm_testc_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }
 Vc_INTRINSIC Vc_CONST int testc(m256 a, m256 b) { return _mm256_testc_ps(a, b); }
-Vc_INTRINSIC Vc_CONST int testz(m128 a, m128 b) { return _mm_testz_ps(a, b); }
+Vc_INTRINSIC Vc_CONST int testz(m128 a, m128 b) { return _mm_testz_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }
 Vc_INTRINSIC Vc_CONST int testz(m256 a, m256 b) { return _mm256_testz_ps(a, b); }
-Vc_INTRINSIC Vc_CONST int testnzc(m128 a, m128 b) { return _mm_testnzc_ps(a, b); }
+Vc_INTRINSIC Vc_CONST int testnzc(m128 a, m128 b) { return _mm_testnzc_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }
 Vc_INTRINSIC Vc_CONST int testnzc(m256 a, m256 b) { return _mm256_testnzc_ps(a, b); }
 Vc_INTRINSIC Vc_CONST m256 andnot_(param256 a, param256 b) { return _mm256_andnot_ps(a, b); }
 Vc_INTRINSIC Vc_CONST m128 andnot_(param128 a, param128 b) { return _mm_andnot_ps(a, b); }
