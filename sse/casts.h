@@ -33,7 +33,7 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<> Vc_ALWAYS_INLINE _M128D Vc_CONST mm128_reinterpret_cast<_M128D, _M128 >(VC_ALIGNED_PARAMETER(_M128 ) v) { return _mm_castps_pd(v);    }
     template<typename To, typename From> static Vc_ALWAYS_INLINE To Vc_CONST sse_cast(VC_ALIGNED_PARAMETER(From) v) { return mm128_reinterpret_cast<To, From>(v); }
 
-    template<typename From, typename To> struct StaticCastHelper {};
+    template<typename From, typename To> struct StaticCastHelper;
     template<> struct StaticCastHelper<float       , int         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128  &v) { return _mm_cvttps_epi32(v); } };
     template<> struct StaticCastHelper<double      , int         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128D &v) { return _mm_cvttpd_epi32(v); } };
     template<> struct StaticCastHelper<int         , int         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
@@ -67,7 +67,7 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<> struct StaticCastHelper<float         , short         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); } };
     template<> struct StaticCastHelper<short         , short         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
     template<> struct StaticCastHelper<unsigned short, short         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
-    template<> struct StaticCastHelper<float         , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); } };
+    // only works with SSE4.1: template<> struct StaticCastHelper<float         , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128  &v) { return _mm_packus_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); } };
     template<> struct StaticCastHelper<short         , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
     template<> struct StaticCastHelper<unsigned short, unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
 Vc_IMPL_NAMESPACE_END
