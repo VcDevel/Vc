@@ -651,7 +651,7 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
 {
     IndexSizeChecker<Vector<IT>, Size>::check();
     Vector<IT> indexesTmp = indexes;
-    indexesTmp.setZero(!mask);
+    indexesTmp.setZero(!static_cast<typename Vector<IT>::Mask>(mask));
     (*this)(mask) = Vector<T>(mem, indexesTmp);
 }
 #endif
