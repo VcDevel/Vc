@@ -439,10 +439,10 @@ void testmain()/*{{{*/
     testAllTypes(testZero);
     testAllTypes(testIntegerConversion);
     testAllTypes(testCount);
+    testAllTypes(maskConversions);
     testAllTypes(testFirstOne);
     testAllTypes(maskReductions);
     runTest(testBinaryOperators);
-    testAllTypes(maskConversions);
 }/*}}}*/
 
 // vim: foldmethod=marker
