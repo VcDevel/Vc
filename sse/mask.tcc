@@ -34,8 +34,8 @@ template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<2, 4>(__m128i k)
 }
 template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<2, 8>(__m128i k)
 {
-    auto tmp = _mm_packs_epi16(k, k);
-    return _mm_packs_epi16(tmp, tmp);
+    auto tmp = _mm_packs_epi16(k, _mm_setzero_si128());
+    return _mm_packs_epi16(tmp, _mm_setzero_si128());
 }
 
 template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<4, 2>(__m128i k)
@@ -44,7 +44,7 @@ template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<4, 2>(__m128i k)
 }
 template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<4, 8>(__m128i k)
 {
-    return _mm_packs_epi16(k, k);
+    return _mm_packs_epi16(k, _mm_setzero_si128());
 }
 
 template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<8, 2>(__m128i k)
