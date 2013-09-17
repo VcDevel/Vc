@@ -414,6 +414,16 @@ template<typename V> void maskConversions()
     }
 }
 
+template<typename V> void testIntegerConversion()
+{
+    for_all_masks(V, m) {
+        auto bit = m.toInt();
+        for (size_t i = 0; i < m.Size; ++i) {
+            COMPARE(!!((bit >> i) & 1), m[i]);
+        }
+    }
+}
+
 void testmain()/*{{{*/
 {
     testAllTypes(maskInit);
@@ -427,6 +437,7 @@ void testmain()/*{{{*/
     testAllTypes(testDivEq);
     testAllTypes(testAssign);
     testAllTypes(testZero);
+    testAllTypes(testIntegerConversion);
     testAllTypes(testCount);
     testAllTypes(testFirstOne);
     testAllTypes(maskReductions);
