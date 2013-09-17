@@ -95,7 +95,7 @@ template<typename T> class Mask
 #if defined VC_MSVC && defined _WIN32
         typedef const Mask<T> &AsArg;
 #else
-        typedef Mask<T> AsArg;
+        typedef const Mask<T> AsArg;
 #endif
 
         Vc_ALWAYS_INLINE Mask() {}
