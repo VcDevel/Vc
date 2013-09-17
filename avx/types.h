@@ -37,7 +37,7 @@
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename T> class Vector;
 
-    template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
+    template<typename T> class Mask;
 
     template<typename T> struct VectorHelper {};
     template<typename T> struct GatherHelper;
@@ -72,6 +72,15 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<> struct SseVectorType<m128 > { typedef m128  Type; };
     template<> struct SseVectorType<m128i> { typedef m128i Type; };
     template<> struct SseVectorType<m128d> { typedef m128d Type; };
+
+    template<typename T, size_t = sizeof(T)> struct IntegerVectorType { typedef m256i Type; };
+    template<typename T> struct IntegerVectorType<T, 16> { typedef m128i Type; };
+
+    template<typename T, size_t = sizeof(T)> struct DoubleVectorType { typedef m256d Type; };
+    template<typename T> struct DoubleVectorType<T, 16> { typedef m128d Type; };
+
+    template<typename T, size_t = sizeof(T)> struct FloatVectorType { typedef m256 Type; };
+    template<typename T> struct FloatVectorType<T, 16> { typedef m128 Type; };
 
     template<typename T> struct HasVectorDivisionHelper { enum { Value = 1 }; };
     //template<> struct HasVectorDivisionHelper<unsigned int> { enum { Value = 0 }; };
