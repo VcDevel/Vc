@@ -29,6 +29,13 @@ using Vc::uint_v;
 using Vc::short_v;
 using Vc::ushort_v;
 
+using Vc::float_m;
+using Vc::double_m;
+using Vc::int_m;
+using Vc::uint_m;
+using Vc::short_m;
+using Vc::ushort_m;
+
 template<typename T> T two() { return T(2); }
 template<typename T> T three() { return T(3); }
 
@@ -301,13 +308,6 @@ template<typename M1, typename M2> void testBinaryOperatorsImpl()/*{{{*/
 /*}}}*/
 void testBinaryOperators()/*{{{*/
 {
-    using Vc::float_m;
-    using Vc::double_m;
-    using Vc::int_m;
-    using Vc::uint_m;
-    using Vc::short_m;
-    using Vc::ushort_m;
-
     testBinaryOperatorsImpl< short_m,  short_m>();
     testBinaryOperatorsImpl< short_m, ushort_m>();
     testBinaryOperatorsImpl<ushort_m,  short_m>();
@@ -383,6 +383,36 @@ template<typename V> void maskScalarAccess()/*{{{*/
         COMPARE(mask, M(true));
     }
 }/*}}}*/
+template<typename T> constexpr const char *typeName();
+template<> constexpr const char *typeName< float_m>() { return "float_m"; }
+template<> constexpr const char *typeName<double_m>() { return "double_m"; }
+template<> constexpr const char *typeName<   int_m>() { return "int_m"; }
+template<> constexpr const char *typeName<  uint_m>() { return "uint_m"; }
+template<> constexpr const char *typeName< short_m>() { return "short_m"; }
+template<> constexpr const char *typeName<ushort_m>() { return "ushort_m"; }
+template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)
+{
+    MTo test(m);
+    size_t i = 0;
+    for (; i < std::min(m.Size, test.Size); ++i) {
+        COMPARE(test[i], m[i]) << i << " conversion from " << typeName<MFrom>() << " to " << typeName<MTo>();
+    }
+    for (; i < test.Size; ++i) {
+        COMPARE(test[i], false) << i << " conversion from " << typeName<MFrom>() << " to " << typeName<MTo>();
+    }
+}
+template<typename V> void maskConversions()
+{
+    typedef typename V::Mask M;
+    for_all_masks(V, m) {
+        testMaskConversion< float_m>(m);
+        testMaskConversion<double_m>(m);
+        testMaskConversion<   int_m>(m);
+        testMaskConversion<  uint_m>(m);
+        testMaskConversion< short_m>(m);
+        testMaskConversion<ushort_m>(m);
+    }
+}
 
 void testmain()/*{{{*/
 {
@@ -401,6 +431,7 @@ void testmain()/*{{{*/
     testAllTypes(testFirstOne);
     testAllTypes(maskReductions);
     runTest(testBinaryOperators);
+    testAllTypes(maskConversions);
 }/*}}}*/
 
 // vim: foldmethod=marker
