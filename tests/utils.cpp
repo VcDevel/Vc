@@ -120,13 +120,13 @@ template<typename V> void testForeachBit()
     const I indexes(IndexesFromZero);
     for_all_masks(V, mask) {
         V tmp = V::Zero();
-        foreach_bit(int j, mask) {
+        for (int j : where(mask)) {
             tmp[j] = T(1);
         }
         COMPARE(tmp == V::One(), mask);
 
         unsigned int count = 0;
-        foreach_bit(int j, mask) {
+        for (int j : where(mask)) {
             ++count;
             if (j >= 0) {
                 continue;
@@ -135,7 +135,7 @@ template<typename V> void testForeachBit()
         COMPARE(count, mask.count());
 
         count = 0;
-        foreach_bit(int j, mask) {
+        for (int j : where(mask)) {
             if (j >= 0) {
                 break;
             }
