@@ -298,6 +298,16 @@
 #  define VC_USE_VEX_CODING 1
 #endif
 
+#ifdef VC_IMPL_AVX
+// if we have AVX then we also have all SSE intrinsics
+#    define VC_IMPL_SSE4_2 1
+#    define VC_IMPL_SSE4_1 1
+#    define VC_IMPL_SSSE3 1
+#    define VC_IMPL_SSE3 1
+#    define VC_IMPL_SSE2 1
+#    define VC_IMPL_SSE 1
+#endif
+
 #if defined(VC_GCC) && VC_GCC < 0x40300 && !defined(VC_IMPL_Scalar)
 #    ifndef VC_DONT_WARN_OLD_GCC
 #      warning "GCC < 4.3 does not have full support for SSE2 intrinsics. Using scalar types/operations only. Define VC_DONT_WARN_OLD_GCC to silence this warning."
