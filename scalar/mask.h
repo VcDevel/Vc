@@ -24,16 +24,29 @@
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
-template<unsigned int VectorSize = 1> class Mask
+template<typename T> class Mask
 {
+    friend class Mask<  double>;
+    friend class Mask<   float>;
+    friend class Mask< int32_t>;
+    friend class Mask<uint32_t>;
+    friend class Mask< int16_t>;
+    friend class Mask<uint16_t>;
     public:
-        static constexpr size_t Size = VectorSize;
+        static constexpr size_t Size = 1;
 
         Vc_ALWAYS_INLINE Mask() {}
         Vc_ALWAYS_INLINE explicit Mask(bool b) : m(b) {}
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
-        Vc_ALWAYS_INLINE Mask(const Mask<VectorSize> *a) : m(a[0].m) {}
+
+        template<typename U> Vc_ALWAYS_INLINE Mask(const Mask<U> &a,
+          typename std::enable_if<is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
+            : m(a.m) {}
+
+        template<typename U> Vc_ALWAYS_INLINE explicit Mask(const Mask<U> &a,
+          typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
+            : m(a.m) {}
 
         Vc_ALWAYS_INLINE Mask &operator=(const Mask &rhs) { m = rhs.m; return *this; }
         Vc_ALWAYS_INLINE Mask &operator=(bool rhs) { m = rhs; return *this; }

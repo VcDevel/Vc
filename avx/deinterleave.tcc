@@ -163,14 +163,6 @@ template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
                 _mm_srli_epi32(hi128(tmp), 16)));
 }
 
-template<typename Flags, typename MemT> inline void HelperImpl<VC_IMPL>::deinterleave(
-        sfloat_v &_a, sfloat_v &_b, const MemT *m, Flags align)
-{
-    float_v &a = reinterpret_cast<float_v &>(_a);
-    float_v &b = reinterpret_cast<float_v &>(_b);
-    HelperImpl<VC_IMPL>::deinterleave(a, b, m, align);
-}
-
 template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
         double_v &a, double_v &b, const double *m, Flags align)
 {

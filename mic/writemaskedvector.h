@@ -28,7 +28,7 @@ template<typename T> class WriteMaskedVector
     typedef typename VectorTypeHelper<T>::Type VectorType;
     typedef typename DetermineEntryType<T>::Type EntryType;
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
-    typedef MIC::Mask<sizeof(VectorType) / sizeof(VectorEntryType)> Mask;
+    typedef MIC::Mask<T> Mask;
 public:
     //prefix
     Vc_ALWAYS_INLINE Vector<T> &operator++() {

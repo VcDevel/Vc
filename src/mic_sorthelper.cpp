@@ -281,11 +281,6 @@ template<> __m512 SortHelper<float>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
     return mic_cast<__m512>(_mm512_shuffle_epi32(mic_cast<__m512i>(lh), _MM_PERM_DBCA));
 }
 
-template<> __m512 SortHelper<sfloat>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
-{
-    return SortHelper<float>::sort(in);
-}
-
 template<> __m512d SortHelper<double>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
 {
     // in = hgfe dcba

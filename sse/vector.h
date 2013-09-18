@@ -195,12 +195,12 @@ template<typename T> class Vector
 
         // implict conversion from compatible Vector<U>
         template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-                typename std::enable_if<is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+                typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
             : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
         // static_cast from the remaining Vector<U>
         template<typename U> Vc_INTRINSIC explicit Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-                typename std::enable_if<!is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+                typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
             : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -485,14 +485,12 @@ template<typename T> class Vector
 
 typedef Vector<double>         double_v;
 typedef Vector<float>          float_v;
-typedef Vector<float8>         sfloat_v;
 typedef Vector<int>            int_v;
 typedef Vector<unsigned int>   uint_v;
 typedef Vector<short>          short_v;
 typedef Vector<unsigned short> ushort_v;
 typedef double_v::Mask double_m;
 typedef float_v::Mask float_m;
-typedef sfloat_v::Mask sfloat_m;
 typedef int_v::Mask int_m;
 typedef uint_v::Mask uint_m;
 typedef short_v::Mask short_m;
@@ -513,13 +511,6 @@ static Vc_ALWAYS_INLINE Vc_PURE ushort_v max(const ushort_v &x, const ushort_v &
 static Vc_ALWAYS_INLINE Vc_PURE float_v  max(const float_v  &x, const float_v  &y) { return _mm_max_ps(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE Vc_PURE double_v max(const double_v &x, const double_v &y) { return _mm_max_pd(x.data(), y.data()); }
 
-static Vc_ALWAYS_INLINE Vc_PURE sfloat_v min(const sfloat_v &x, const sfloat_v &y) {
-    return M256::create(_mm_min_ps(x.data()[0], y.data()[0]), _mm_min_ps(x.data()[1], y.data()[1]));
-}
-static Vc_ALWAYS_INLINE Vc_PURE sfloat_v max(const sfloat_v &x, const sfloat_v &y) {
-    return M256::create(_mm_max_ps(x.data()[0], y.data()[0]), _mm_max_ps(x.data()[1], y.data()[1]));
-}
-
   template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> sqrt (const Vector<T> &x) { return VectorHelper<T>::sqrt(x.data()); }
   template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> rsqrt(const Vector<T> &x) { return VectorHelper<T>::rsqrt(x.data()); }
   template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs  (const Vector<T> &x) { return VectorHelper<T>::abs(x.data()); }
@@ -530,17 +521,6 @@ static Vc_ALWAYS_INLINE Vc_PURE sfloat_v max(const sfloat_v &x, const sfloat_v &
   template<typename T> static Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
 #include "forceToRegisters.tcc"
-#ifdef VC_GNU_ASM
-template<>
-Vc_ALWAYS_INLINE void forceToRegisters(const Vector<float8> &x1) {
-  __asm__ __volatile__(""::"x"(x1.data()[0]), "x"(x1.data()[1]));
-}
-#elif defined(VC_MSVC)
-#pragma optimize("g", off)
-template<>
-Vc_ALWAYS_INLINE void forceToRegisters(const Vector<float8> &/*x1*/) {
-}
-#endif
 Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"

@@ -24,11 +24,17 @@
 
 using Vc::float_v;
 using Vc::double_v;
-using Vc::sfloat_v;
 using Vc::int_v;
 using Vc::uint_v;
 using Vc::short_v;
 using Vc::ushort_v;
+
+using Vc::float_m;
+using Vc::double_m;
+using Vc::int_m;
+using Vc::uint_m;
+using Vc::short_m;
+using Vc::ushort_m;
 
 template<typename T> T two() { return T(2); }
 template<typename T> T three() { return T(3); }
@@ -302,16 +308,10 @@ template<typename M1, typename M2> void testBinaryOperatorsImpl()/*{{{*/
 /*}}}*/
 void testBinaryOperators()/*{{{*/
 {
-    testLogicalOperatorsImpl< short_m, sfloat_m>();
-    testLogicalOperatorsImpl<ushort_m, sfloat_m>();
-    testLogicalOperatorsImpl<sfloat_m,  short_m>();
-    testLogicalOperatorsImpl<sfloat_m, ushort_m>();
-
     testBinaryOperatorsImpl< short_m,  short_m>();
     testBinaryOperatorsImpl< short_m, ushort_m>();
     testBinaryOperatorsImpl<ushort_m,  short_m>();
     testBinaryOperatorsImpl<ushort_m, ushort_m>();
-    testBinaryOperatorsImpl<sfloat_m, sfloat_m>();
 
     testBinaryOperatorsImpl<   int_m,    int_m>();
     testBinaryOperatorsImpl<   int_m,   uint_m>();
@@ -326,30 +326,6 @@ void testBinaryOperators()/*{{{*/
     testBinaryOperatorsImpl<double_m, double_m>();
 }
 /*}}}*/
-#ifdef VC_IMPL_SSE
-void testFloat8GatherMask()/*{{{*/
-{
-    Vc::Memory<short_v, short_v::Size * 256> data;
-    short_v::Memory andMemory;
-    for (size_t i = 0; i < short_v::Size; ++i) {
-        andMemory[i] = 1 << i;
-    }
-    const short_v andMask(andMemory);
-
-    for (unsigned int i = 0; i < data.vectorsCount(); ++i) {
-        data.vector(i) = andMask & i;
-    }
-
-    for (unsigned int i = 0; i < data.vectorsCount(); ++i) {
-        const Vc::short_m mask = data.vector(i) == short_v::Zero();
-
-        Vc::SSE::Float8GatherMask
-            gatherMaskA(mask),
-            gatherMaskB(static_cast<Vc::sfloat_m>(mask));
-        COMPARE(gatherMaskA.toInt(), gatherMaskB.toInt());
-    }
-}/*}}}*/
-#endif
 
 template<typename V> void maskReductions()/*{{{*/
 {
@@ -407,6 +383,46 @@ template<typename V> void maskScalarAccess()/*{{{*/
         COMPARE(mask, M(true));
     }
 }/*}}}*/
+template<typename T> constexpr const char *typeName();
+template<> constexpr const char *typeName< float_m>() { return "float_m"; }
+template<> constexpr const char *typeName<double_m>() { return "double_m"; }
+template<> constexpr const char *typeName<   int_m>() { return "int_m"; }
+template<> constexpr const char *typeName<  uint_m>() { return "uint_m"; }
+template<> constexpr const char *typeName< short_m>() { return "short_m"; }
+template<> constexpr const char *typeName<ushort_m>() { return "ushort_m"; }
+template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)
+{
+    MTo test(m);
+    size_t i = 0;
+    for (; i < std::min(m.Size, test.Size); ++i) {
+        COMPARE(test[i], m[i]) << i << " conversion from " << typeName<MFrom>() << " to " << typeName<MTo>();
+    }
+    for (; i < test.Size; ++i) {
+        COMPARE(test[i], false) << i << " conversion from " << typeName<MFrom>() << " to " << typeName<MTo>();
+    }
+}
+template<typename V> void maskConversions()
+{
+    typedef typename V::Mask M;
+    for_all_masks(V, m) {
+        testMaskConversion< float_m>(m);
+        testMaskConversion<double_m>(m);
+        testMaskConversion<   int_m>(m);
+        testMaskConversion<  uint_m>(m);
+        testMaskConversion< short_m>(m);
+        testMaskConversion<ushort_m>(m);
+    }
+}
+
+template<typename V> void testIntegerConversion()
+{
+    for_all_masks(V, m) {
+        auto bit = m.toInt();
+        for (size_t i = 0; i < m.Size; ++i) {
+            COMPARE(!!((bit >> i) & 1), m[i]);
+        }
+    }
+}
 
 void testmain()/*{{{*/
 {
@@ -421,14 +437,12 @@ void testmain()/*{{{*/
     testAllTypes(testDivEq);
     testAllTypes(testAssign);
     testAllTypes(testZero);
+    testAllTypes(testIntegerConversion);
     testAllTypes(testCount);
+    testAllTypes(maskConversions);
     testAllTypes(testFirstOne);
     testAllTypes(maskReductions);
     runTest(testBinaryOperators);
-
-#ifdef VC_IMPL_SSE
-    runTest(testFloat8GatherMask);
-#endif
 }/*}}}*/
 
 // vim: foldmethod=marker

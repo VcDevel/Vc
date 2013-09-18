@@ -39,34 +39,6 @@ inline void deinterleave(Vector<float> &a, Vector<float> &b, Vector<unsigned sho
     b.data() = _mm_cvtepi32_ps(_mm_srli_epi32(tmp.data(), 16));
 }
 
-inline void deinterleave(Vector<float8> &a, Vector<float8> &b)
-{
-    _M128 tmp0 = _mm_unpacklo_ps(a.data()[0], a.data()[1]);
-    _M128 tmp1 = _mm_unpackhi_ps(a.data()[0], a.data()[1]);
-    _M128 tmp2 = _mm_unpacklo_ps(b.data()[0], b.data()[1]);
-    _M128 tmp3 = _mm_unpackhi_ps(b.data()[0], b.data()[1]);
-    a.data()[0] = _mm_unpacklo_ps(tmp0, tmp1);
-    b.data()[0] = _mm_unpackhi_ps(tmp0, tmp1);
-    a.data()[1] = _mm_unpacklo_ps(tmp2, tmp3);
-    b.data()[1] = _mm_unpackhi_ps(tmp2, tmp3);
-}
-
-inline void deinterleave(Vector<float8> &a, Vector<float8> &b, Vector<short>::AsArg tmp0, Vector<short>::AsArg tmp1)
-{
-    a.data()[0] = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_slli_epi32(tmp0.data(), 16), 16));
-    b.data()[0] = _mm_cvtepi32_ps(_mm_srai_epi32(tmp0.data(), 16));
-    a.data()[1] = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_slli_epi32(tmp1.data(), 16), 16));
-    b.data()[1] = _mm_cvtepi32_ps(_mm_srai_epi32(tmp1.data(), 16));
-}
-
-inline void deinterleave(Vector<float8> &a, Vector<float8> &b, Vector<unsigned short>::AsArg tmp0, Vector<unsigned short>::AsArg tmp1)
-{
-    a.data()[0] = _mm_cvtepi32_ps(_mm_srli_epi32(_mm_slli_epi32(tmp0.data(), 16), 16));
-    b.data()[0] = _mm_cvtepi32_ps(_mm_srli_epi32(tmp0.data(), 16));
-    a.data()[1] = _mm_cvtepi32_ps(_mm_srli_epi32(_mm_slli_epi32(tmp1.data(), 16), 16));
-    b.data()[1] = _mm_cvtepi32_ps(_mm_srli_epi32(tmp1.data(), 16));
-}
-
 inline void deinterleave(Vector<double> &a, Vector<double> &b)
 {
     _M128D tmp = _mm_unpacklo_pd(a.data(), b.data());
@@ -145,30 +117,6 @@ template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
 {
     ushort_v tmp(m, align);
     Vc::SSE::deinterleave(a, b, tmp);
-}
-
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        sfloat_v &a, sfloat_v &b, const float *m, A align)
-{
-    a.load(m, align);
-    b.load(m + sfloat_v::Size, align);
-    Vc::SSE::deinterleave(a, b);
-}
-
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        sfloat_v &a, sfloat_v &b, const short *m, A align)
-{
-    short_v tmp0(m, align);
-    short_v tmp1(m + short_v::Size, align);
-    Vc::SSE::deinterleave(a, b, tmp0, tmp1);
-}
-
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        sfloat_v &a, sfloat_v &b, const unsigned short *m, A align)
-{
-    ushort_v tmp0(m, align);
-    ushort_v tmp1(m + short_v::Size, align);
-    Vc::SSE::deinterleave(a, b, tmp0, tmp1);
 }
 
 template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(

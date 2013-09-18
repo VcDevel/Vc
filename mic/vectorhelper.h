@@ -164,8 +164,6 @@ template<> struct VectorHelper<float> {
 #undef SUFFIX
 };
 
-template<> struct VectorHelper<sfloat> : public VectorHelper<float> {};
-
 template<> struct VectorHelper<int> {
     typedef int EntryType;
     typedef __m512i VectorType;

@@ -119,16 +119,11 @@ static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::
 }
 #endif
 
-#ifdef VC_IMPL_AVX
-template<unsigned int VectorSize, size_t RegisterWidth>
-static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Mask<VectorSize, RegisterWidth> &m)
-#else
-template<unsigned int VectorSize>
-static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Mask<VectorSize> &m)
-#endif
+template<typename T>
+static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Mask<T> &m)
 {
     out << AnsiColor::blue << "m[";
-    for (unsigned int i = 0; i < VectorSize; ++i) {
+    for (unsigned int i = 0; i < m.Size; ++i) {
         if (i > 0 && (i % 4) == 0) {
             out << " ";
         }
@@ -141,24 +136,6 @@ static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::
     out << AnsiColor::blue << "]" << AnsiColor::normal;
     return out;
 }
-#ifdef VC_IMPL_SSE
-static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Float8Mask &m)
-{
-    out << AnsiColor::blue << "m[";
-    for (unsigned int i = 0; i < 8; ++i) {
-        if (i > 0 && (i % 4) == 0) {
-            out << " ";
-        }
-        if ( m[i] ) {
-          out << AnsiColor::yellow << '1';
-        } else {
-          out << AnsiColor::blue << '0';
-        }
-    }
-    out << AnsiColor::blue << "]" << AnsiColor::normal;
-    return out;
-}
-#endif
 
 template<typename V, typename Parent, typename RM>
 static std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<V, Parent, 1, RM> &m )

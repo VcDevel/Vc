@@ -92,8 +92,6 @@ template<typename Flags> struct LoadHelper<float, signed char, Flags> {
     }
 };
 
-template<typename SrcT, typename Flags> struct LoadHelper<sfloat, SrcT, Flags> : public LoadHelper<float, SrcT, Flags> {};
-
 // int {{{2
 template<typename Flags> struct LoadHelper<int, unsigned int, Flags> {
     static m256i load(const unsigned int *mem, Flags)
@@ -220,14 +218,6 @@ template<> Vc_INTRINSIC void Vector<float>::setQnan()
     data() = _mm256_setallone_ps();
 }
 template<> Vc_INTRINSIC void Vector<float>::setQnan(MaskArg k)
-{
-    data() = _mm256_or_ps(data(), k.data());
-}
-template<> Vc_INTRINSIC void Vector<sfloat>::setQnan()
-{
-    data() = _mm256_setallone_ps();
-}
-template<> Vc_INTRINSIC void Vector<sfloat>::setQnan(MaskArg k)
 {
     data() = _mm256_or_ps(data(), k.data());
 }
@@ -382,25 +372,35 @@ template<> inline Vector<int> Vc_PURE Vector<int>::operator/(VC_ALIGNED_PARAMETE
     return divInt(d.v(), x.d.v());
 }
 static inline m256i Vc_CONST divUInt(param256i a, param256i b) {
-    m256d loa = _mm256_cvtepi32_pd(lo128(a));
-    m256d hia = _mm256_cvtepi32_pd(hi128(a));
-    m256d lob = _mm256_cvtepi32_pd(lo128(b));
-    m256d hib = _mm256_cvtepi32_pd(hi128(b));
-    // if a >= 2^31 then after conversion to double it will contain a negative number (i.e. a-2^32)
-    // to get the right number back we have to add 2^32 where a >= 2^31
-    loa = _mm256_add_pd(loa, _mm256_and_pd(_mm256_cmp_pd(loa, _mm256_setzero_pd(), _CMP_LT_OS), _mm256_set1_pd(4294967296.)));
-    hia = _mm256_add_pd(hia, _mm256_and_pd(_mm256_cmp_pd(hia, _mm256_setzero_pd(), _CMP_LT_OS), _mm256_set1_pd(4294967296.)));
-    // we don't do the same for b because division by b >= 2^31 should be a seldom corner case and
-    // we rather want the standard stuff fast
-    //
+    // SSE/AVX only has signed int conversion to doubles. Therefore we first adjust the input before
+    // conversion and take the adjustment back after the conversion.
+    // It could be argued that for b this is not really important because division by a b >= 2^31 is
+    // useless. But for full correctness it cannot be ignored.
+#ifdef VC_IMPL_AVX2
+    const auto aa = _mm256_add_epi32(a, _mm256_set1_epi32(-2147483648));
+    const auto bb = _mm256_add_epi32(b, _mm256_set1_epi32(-2147483648));
+    const m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(aa)), _mm256_set1_pd(2147483648.));
+    const m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(aa)), _mm256_set1_pd(2147483648.));
+    const m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(bb)), _mm256_set1_pd(2147483648.));
+    const m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(bb)), _mm256_set1_pd(2147483648.));
+#else
+    const auto a0 = _mm_add_epi32(lo128(a), _mm_set1_epi32(-2147483648));
+    const auto a1 = _mm_add_epi32(hi128(a), _mm_set1_epi32(-2147483648));
+    const auto b0 = _mm_add_epi32(lo128(b), _mm_set1_epi32(-2147483648));
+    const auto b1 = _mm_add_epi32(hi128(b), _mm_set1_epi32(-2147483648));
+    const m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(a0), _mm256_set1_pd(2147483648.));
+    const m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(a1), _mm256_set1_pd(2147483648.));
+    const m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(b0), _mm256_set1_pd(2147483648.));
+    const m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(b1), _mm256_set1_pd(2147483648.));
+#endif
     // there is one remaining problem: a >= 2^31 and b == 1
     // in that case the return value would be 2^31
     return avx_cast<m256i>(_mm256_blendv_ps(avx_cast<m256>(concat(
                         _mm256_cvttpd_epi32(_mm256_div_pd(loa, lob)),
                         _mm256_cvttpd_epi32(_mm256_div_pd(hia, hib))
-                        )), avx_cast<m256>(a), avx_cast<m256>(concat(
-                            _mm_cmpeq_epi32(lo128(b), _mm_setone_epi32()),
-                            _mm_cmpeq_epi32(hi128(b), _mm_setone_epi32())))));
+                        )), avx_cast<m256>(a), avx_cast<m256>(
+                            _mm256_cmpeq_epi32(b, _mm256_setone_epi32())
+                            )));
 }
 template<> Vc_ALWAYS_INLINE Vector<unsigned int> &Vector<unsigned int>::operator/=(VC_ALIGNED_PARAMETER(Vector<unsigned int>) x)
 {
@@ -441,15 +441,6 @@ template<> Vc_INTRINSIC float_v &float_v::operator/=(VC_ALIGNED_PARAMETER(float_
     return *this;
 }
 template<> Vc_INTRINSIC float_v Vc_PURE float_v::operator/(VC_ALIGNED_PARAMETER(float_v) x) const
-{
-    return _mm256_div_ps(d.v(), x.d.v());
-}
-template<> Vc_INTRINSIC sfloat_v &sfloat_v::operator/=(VC_ALIGNED_PARAMETER(sfloat_v) x)
-{
-    d.v() = _mm256_div_ps(d.v(), x.d.v());
-    return *this;
-}
-template<> Vc_INTRINSIC sfloat_v Vc_PURE sfloat_v::operator/(VC_ALIGNED_PARAMETER(sfloat_v) x) const
 {
     return _mm256_div_ps(d.v(), x.d.v());
 }
@@ -520,9 +511,6 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator<<(in
   OP_IMPL(float, &, and_)
   OP_IMPL(float, |, or_)
   OP_IMPL(float, ^, xor_)
-  OP_IMPL(sfloat, &, and_)
-  OP_IMPL(sfloat, |, or_)
-  OP_IMPL(sfloat, ^, xor_)
   OP_IMPL(double, &, and_)
   OP_IMPL(double, |, or_)
   OP_IMPL(double, ^, xor_)
@@ -532,10 +520,6 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator<<(in
 #include "../common/operators.h"
 // isNegative {{{1
 template<> Vc_INTRINSIC Vc_PURE float_m float_v::isNegative() const
-{
-    return avx_cast<m256>(_mm256_srai_epi32(avx_cast<m256i>(_mm256_and_ps(_mm256_setsignmask_ps(), d.v())), 31));
-}
-template<> Vc_INTRINSIC Vc_PURE sfloat_m sfloat_v::isNegative() const
 {
     return avx_cast<m256>(_mm256_srai_epi32(avx_cast<m256i>(_mm256_and_ps(_mm256_setsignmask_ps(), d.v())), 31));
 }
@@ -620,12 +604,6 @@ template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<floa
     d.v() = _mm256_setr_ps(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
             mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
-template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<sfloat>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
-{
-    IndexSizeChecker<Index, Size>::check();
-    d.v() = _mm256_setr_ps(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-            mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
-}
 template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<int>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
 {
     IndexSizeChecker<Index, Size>::check();
@@ -683,7 +661,7 @@ template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gath
 {
     IndexSizeChecker<Vector<IT>, Size>::check();
     Vector<IT> indexesTmp = indexes;
-    indexesTmp.setZero(!mask);
+    indexesTmp.setZero(!static_cast<typename Vector<IT>::Mask>(mask));
     (*this)(mask) = Vector<T>(mem, indexesTmp);
 }
 #endif
@@ -756,10 +734,6 @@ namespace
     {
         return _mm256_setr_ps(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
     }
-    template<> Vc_INTRINSIC Vc_PURE sfloat_v setHelper(const sfloat_v::EntryType *mem, const size_t ii[])
-    {
-        return _mm256_setr_ps(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
-    }
     template<> Vc_INTRINSIC Vc_PURE double_v setHelper(const double_v::EntryType *mem, const size_t ii[])
     {
         return _mm256_setr_pd(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]]);
@@ -826,14 +800,6 @@ Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<float>::gather(const S1 *array, const En
             array[indexes[6]].*(member1), array[indexes[7]].*(member1));
 }
 template<> template<typename S1, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<sfloat>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm256_setr_ps(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
-            array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
-            array[indexes[6]].*(member1), array[indexes[7]].*(member1));
-}
-template<> template<typename S1, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<int>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
 {
     IndexSizeChecker<IT, Size>::check();
@@ -884,14 +850,6 @@ Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const S1 *array, const S
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<float>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm256_setr_ps(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
-            array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
-            array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
-}
-template<> template<typename S1, typename S2, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<sfloat>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
 {
     IndexSizeChecker<IT, Size>::check();
     d.v() = _mm256_setr_ps(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
@@ -950,16 +908,6 @@ Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const S1 *array, const E
 }
 template<> template<typename S1, typename IT1, typename IT2>
 Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<float>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes)
-{
-    IndexSizeChecker<IT1, Size>::check();
-    IndexSizeChecker<IT2, Size>::check();
-    d.v() = _mm256_setr_ps((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
-            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]],
-            (array[outerIndexes[4]].*(ptrMember1))[innerIndexes[4]], (array[outerIndexes[5]].*(ptrMember1))[innerIndexes[5]],
-            (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
-}
-template<> template<typename S1, typename IT1, typename IT2>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<sfloat>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes)
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
@@ -1169,10 +1117,6 @@ template<> Vc_ALWAYS_INLINE Vector<float> Vc_PURE Vc_FLATTEN Vector<float>::oper
 {
     return _mm256_xor_ps(d.v(), _mm256_setsignmask_ps());
 }
-template<> Vc_ALWAYS_INLINE Vector<sfloat> Vc_PURE Vc_FLATTEN Vector<sfloat>::operator-() const
-{
-    return _mm256_xor_ps(d.v(), _mm256_setsignmask_ps());
-}
 template<> Vc_ALWAYS_INLINE Vector<int> Vc_PURE Vc_FLATTEN Vector<int>::operator-() const
 {
     return _mm256_sign_epi32(d.v(), _mm256_setallone_si256());
@@ -1259,13 +1203,6 @@ template<> Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float>::AsA
             _mm256_and_ps(d.v(), _mm256_setabsmask_ps())
             );
 }
-template<> Vc_INTRINSIC Vector<sfloat> Vector<sfloat>::copySign(Vector<sfloat>::AsArg reference) const
-{
-    return _mm256_or_ps(
-            _mm256_and_ps(reference.d.v(), _mm256_setsignmask_ps()),
-            _mm256_and_ps(d.v(), _mm256_setabsmask_ps())
-            );
-}
 template<> Vc_INTRINSIC Vector<double> Vector<double>::copySign(Vector<double>::AsArg reference) const
 {
     return _mm256_or_pd(
@@ -1275,11 +1212,6 @@ template<> Vc_INTRINSIC Vector<double> Vector<double>::copySign(Vector<double>::
 }//}}}1
 // exponent {{{1
 template<> Vc_INTRINSIC Vector<float> Vector<float>::exponent() const
-{
-    VC_ASSERT((*this >= 0.f).isFull());
-    return Internal::exponent(d.v());
-}
-template<> Vc_INTRINSIC Vector<sfloat> Vector<sfloat>::exponent() const
 {
     VC_ASSERT((*this >= 0.f).isFull());
     return Internal::exponent(d.v());
@@ -1308,12 +1240,6 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::Random()
 }
 
 template<> Vc_ALWAYS_INLINE Vector<float> Vector<float>::Random()
-{
-    const Vector<unsigned int> state0 = _doRandomStep();
-    return HT::sub(HV::or_(_cast(_mm256_srli_epi32(state0.data(), 2)), HT::one()), HT::one());
-}
-
-template<> Vc_ALWAYS_INLINE Vector<sfloat> Vector<sfloat>::Random()
 {
     const Vector<unsigned int> state0 = _doRandomStep();
     return HT::sub(HV::or_(_cast(_mm256_srli_epi32(state0.data(), 2)), HT::one()), HT::one());

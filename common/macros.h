@@ -245,8 +245,7 @@ do {} while ( false )
 
 #define VC_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
     size(macro, double_v, a, b, c, d) \
-    size(macro,  float_v, a, b, c, d) \
-    size(macro, sfloat_v, a, b, c, d)
+    size(macro,  float_v, a, b, c, d)
 #define VC_LIST_INT_VECTOR_TYPES(size, macro, a, b, c, d) \
     size(macro,    int_v, a, b, c, d) \
     size(macro,   uint_v, a, b, c, d) \

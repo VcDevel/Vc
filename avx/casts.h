@@ -173,10 +173,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<> struct StaticCastHelper<float         , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param256  v) { return StaticCastHelper<unsigned int, unsigned short>::cast(StaticCastHelper<float, unsigned int>::cast(v)); } };
     template<> struct StaticCastHelper<short         , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param128i v) { return v; } };
     template<> struct StaticCastHelper<unsigned short, unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param128i v) { return v; } };
-    template<> struct StaticCastHelper<sfloat        , short         > { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param256  v) { return StaticCastHelper<int, short>::cast(StaticCastHelper<float, int>::cast(v)); } };
-    template<> struct StaticCastHelper<sfloat        , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(param256  v) { return StaticCastHelper<unsigned int, unsigned short>::cast(StaticCastHelper<float, unsigned int>::cast(v)); } };
-    template<> struct StaticCastHelper<short         , sfloat        > { static Vc_ALWAYS_INLINE Vc_CONST m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<short, int>::cast(v)); } };
-    template<> struct StaticCastHelper<unsigned short, sfloat        > { static Vc_ALWAYS_INLINE Vc_CONST m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<unsigned short, unsigned int>::cast(v)); } };
 Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"

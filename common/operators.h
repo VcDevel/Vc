@@ -47,10 +47,6 @@ template<> struct DetermineReturnType<   int_v,    float> { typedef  float_v typ
 template<> struct DetermineReturnType<  uint_v,    float> { typedef  float_v type; };
 template<> struct DetermineReturnType<   int_v,  float_v> { typedef  float_v type; };
 template<> struct DetermineReturnType<  uint_v,  float_v> { typedef  float_v type; };
-template<> struct DetermineReturnType< short_v, sfloat_v> { typedef sfloat_v type; };
-template<> struct DetermineReturnType<ushort_v, sfloat_v> { typedef sfloat_v type; };
-template<> struct DetermineReturnType< short_v,    float> { typedef sfloat_v type; };
-template<> struct DetermineReturnType<ushort_v,    float> { typedef sfloat_v type; };
 template<> struct DetermineReturnType<   int_v,   uint_v> { typedef   uint_v type; };
 template<> struct DetermineReturnType< short_v, ushort_v> { typedef ushort_v type; };
 template<typename T> struct DetermineReturnType<   int_v, T> { typedef typename conditional<!is_same<bool, T>::value && is_unsigned<T>::value,   uint_v,   int_v>::type type; };

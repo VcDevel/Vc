@@ -49,7 +49,7 @@ class Vector
     public:
         typedef Vc::Memory<Vector<T>, 1> Memory;
         typedef Vector<unsigned int> IndexType;
-        typedef Scalar::Mask<1u> Mask;
+        typedef Scalar::Mask<T> Mask;
         typedef Vector<T> AsArg;
 
         Vc_ALWAYS_INLINE EntryType &data() { return m_data; }
@@ -81,12 +81,12 @@ class Vector
 
         // implict conversion from compatible Vector<U>
         template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-                typename std::enable_if<is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+                typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
             : m_data(static_cast<EntryType>(x.data())) {}
 
         // static_cast from the remaining Vector<U>
         template<typename U> Vc_INTRINSIC explicit Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-                typename std::enable_if<!is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+                typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
             : m_data(static_cast<EntryType>(x.data())) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -342,14 +342,12 @@ class Vector
 
 typedef Vector<double>         double_v;
 typedef Vector<float>          float_v;
-typedef Vector<sfloat>         sfloat_v;
 typedef Vector<int>            int_v;
 typedef Vector<unsigned int>   uint_v;
 typedef Vector<short>          short_v;
 typedef Vector<unsigned short> ushort_v;
 typedef double_v::Mask double_m;
 typedef float_v::Mask float_m;
-typedef sfloat_v::Mask sfloat_m;
 typedef int_v::Mask int_m;
 typedef uint_v::Mask uint_m;
 typedef short_v::Mask short_m;

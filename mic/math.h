@@ -34,7 +34,7 @@ Vc_ALWAYS_INLINE double_v trunc(double_v v)
     return _mm512_trunc_pd(v.data());
 }
 // isfinite {{{1
-template<typename T> static Vc_ALWAYS_INLINE Mask<Vector<T>::Size> isfinite(Vector<T> x)
+template<typename T> static Vc_ALWAYS_INLINE Mask<T> isfinite(Vector<T> x)
 {
     return _mm512_cmpord_ps_mask(x.data(), (x * Vector<T>::Zero()).data());
 }
@@ -44,7 +44,7 @@ static Vc_ALWAYS_INLINE double_m isfinite(double_v x)
 }
 // isnotfinite {{{1
 // i.e. !isfinite(x), this is not equivalent to isinfinite because NaN also is not finite
-template<typename T> static Vc_ALWAYS_INLINE Mask<Vector<T>::Size> isnotfinite(Vector<T> x)
+template<typename T> static Vc_ALWAYS_INLINE Mask<T> isnotfinite(Vector<T> x)
 {
     return _mm512_cmpunord_ps_mask(x.data(), (x * Vector<T>::Zero()).data());
 }
@@ -53,7 +53,7 @@ static Vc_ALWAYS_INLINE double_m isnotfinite(double_v x)
     return _mm512_cmpunord_pd_mask(x.data(), (x * double_v::Zero()).data());
 }
 // isnan {{{1
-template<typename T> static Vc_ALWAYS_INLINE Mask<Vector<T>::Size> isnan(Vector<T> x)
+template<typename T> static Vc_ALWAYS_INLINE Mask<T> isnan(Vector<T> x)
 {
     return _mm512_cmpunord_ps_mask(x.data(), x.data());
 }
@@ -96,20 +96,6 @@ inline float_v frexp(float_v::AsArg v, int_v *e) {
                 exponentMaximized, _set1(0xbf7fffffu)));
     return ret;
 }
-inline sfloat_v frexp(sfloat_v::AsArg v, short_v *e) {
-    const __m512i vi = mic_cast<__m512i>(v.data());
-    const __m512i exponentBits = _set1(0x7f800000u);
-    const __m512i exponentPart = _and(vi, exponentBits);
-    const __mmask16 zeroMask = _mm512_cmpneq_ps_mask(v.data(), _mm512_setzero_ps());
-    e->data() = _mm512_mask_sub_epi32(_mm512_setzero_epi32(), zeroMask,
-            _mm512_srli_epi32(exponentPart, 23), _set1(0x7e));
-    const __m512i exponentMaximized = _or(vi, exponentBits);
-    const __mmask16 nonzeroNumber = _mm512_kand(isfinite(v).data(),
-               _mm512_cmpneq_ps_mask(v.data(), _mm512_setzero_ps()));
-    sfloat_v ret = mic_cast<__m512>(_mm512_mask_and_epi32(vi, nonzeroNumber,
-                exponentMaximized, _set1(0xbf7fffffu)));
-    return ret;
-}
 // ldexp {{{1
 Vc_ALWAYS_INLINE double_v ldexp(double_v::AsArg v, int_v::AsArg _e)
 {
@@ -124,12 +110,6 @@ Vc_ALWAYS_INLINE float_v ldexp(float_v::AsArg v, int_v::AsArg _e)
     int_v e = _e;
     e.setZero(static_cast<int_m>(v == float_v::Zero()));
     return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
-}
-Vc_ALWAYS_INLINE sfloat_v ldexp(sfloat_v::AsArg v, short_v::AsArg _e)
-{
-    short_v e = _e;
-    e.setZero(static_cast<short_m>(v == sfloat_v::Zero()));
-    return (v.reinterpretCast<short_v>() + (e << 23)).reinterpretCast<sfloat_v>();
 }
 //}}}1
 Vc_NAMESPACE_END

@@ -224,13 +224,11 @@
  *
  * It is guaranteed that:
  * \li \code int_v::Size == uint_v::Size == float_v::Size \endcode
- * \li \code short_v::Size == ushort_v::Size == sfloat_v::Size \endcode
+ * \li \code short_v::Size == ushort_v::Size \endcode
  *
  * \par Important Differences between Implementations
  *
  * \li Obviously the number of entries in a vector depends on the target architecture.
- * \li Because of the guarantees above, sfloat_v does not necessarily map to a single SIMD register
- * and thus there could be a higher register pressure when this type is used.
  * \li Hardware that does not support 16-Bit integer vectors can implement the short_v and ushort_v
  * API via 32-Bit integer vectors. Thus, some of the overflow behavior might be slightly different,
  * and truncation will only happen when the vector is stored to memory.
@@ -448,7 +446,6 @@ namespace Vc
      * The main SIMD vector class.
      *
      * \li Vc::float_v
-     * \li Vc::sfloat_v
      * \li Vc::double_v
      * \li Vc::int_v
      * \li Vc::uint_v
@@ -765,42 +762,9 @@ namespace Vc
 #undef INTEGER
 #undef EXPONENT_TYPE
 #undef VECTOR_TYPE_HAS_SHIFTS
-
-#define EXPONENT_TYPE short_v
-#define VECTOR_TYPE sfloat_v
-#define ENTRY_TYPE float
-#define MASK_TYPE sfloat_m
-    /**
-     * \class sfloat_v dox.h <Vc/sfloat_v>
-     * \ingroup Vectors
-     *
-     * SIMD Vector of single precision floats that is guaranteed to have as many entries as a
-     * Vc::short_v and Vc::ushort_v.
-     */
-    class VECTOR_TYPE
-    {
-        public:
-#include "dox-common-ops.h"
-#include "dox-real-ops.h"
-    };
-    /**
-     * \class sfloat_m dox.h <Vc/sfloat_v>
-     * \ingroup Masks
-     * \ingroup Masks
-     *
-     * Mask object to use with sfloat_v objects.
-     */
-    class MASK_TYPE
-    {
-        public:
-#include "dox-common-mask-ops.h"
-    };
-#include "dox-math.h"
-#undef EXPONENT_TYPE
-#undef VECTOR_TYPE
-#undef ENTRY_TYPE
-#undef MASK_TYPE
 #undef INDEX_TYPE
+
+#include "dox-math.h"
 
     /**
      * \ingroup Math
@@ -1137,11 +1101,6 @@ unsigned int versionNumber();
  * An integer (for use with the preprocessor) that gives the number of entries in a float_v.
  */
 #define VC_FLOAT_V_SIZE
-/**
- * \ingroup Utilities
- * An integer (for use with the preprocessor) that gives the number of entries in a sfloat_v.
- */
-#define VC_SFLOAT_V_SIZE
 /**
  * \ingroup Utilities
  * An integer (for use with the preprocessor) that gives the number of entries in a int_v.

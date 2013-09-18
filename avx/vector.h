@@ -54,7 +54,7 @@ template<typename T> class Vector
             HasVectorDivision = HasVectorDivisionHelper<T>::Value
         };
         typedef Vector<typename IndexTypeHelper<T>::Type> IndexType;
-        typedef typename Vc_IMPL_NAMESPACE::Mask<Size, sizeof(VectorType)> Mask;
+        typedef Vc_IMPL_NAMESPACE::Mask<T> Mask;
         typedef typename Mask::AsArg MaskArg;
         typedef Vc::Memory<Vector<T>, Size> Memory;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
@@ -107,12 +107,12 @@ template<typename T> class Vector
 
         // implict conversion from compatible Vector<U>
         template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-                typename std::enable_if<is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+                typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
             : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
         // static_cast from the remaining Vector<U>
         template<typename U> Vc_INTRINSIC explicit Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-                typename std::enable_if<!is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+                typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
             : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -395,14 +395,12 @@ template<typename T> class Vector
 
 typedef Vector<double>         double_v;
 typedef Vector<float>          float_v;
-typedef Vector<sfloat>         sfloat_v;
 typedef Vector<int>            int_v;
 typedef Vector<unsigned int>   uint_v;
 typedef Vector<short>          short_v;
 typedef Vector<unsigned short> ushort_v;
 typedef double_v::Mask double_m;
 typedef  float_v::Mask float_m;
-typedef sfloat_v::Mask sfloat_m;
 typedef    int_v::Mask int_m;
 typedef   uint_v::Mask uint_m;
 typedef  short_v::Mask short_m;
@@ -415,14 +413,12 @@ static Vc_ALWAYS_INLINE uint_v   min(const uint_v   &x, const uint_v   &y) { ret
 static Vc_ALWAYS_INLINE short_v  min(const short_v  &x, const short_v  &y) { return _mm_min_epi16(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE ushort_v min(const ushort_v &x, const ushort_v &y) { return _mm_min_epu16(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE float_v  min(const float_v  &x, const float_v  &y) { return _mm256_min_ps(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE sfloat_v min(const sfloat_v &x, const sfloat_v &y) { return _mm256_min_ps(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE double_v min(const double_v &x, const double_v &y) { return _mm256_min_pd(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE int_v    max(const int_v    &x, const int_v    &y) { return _mm256_max_epi32(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE uint_v   max(const uint_v   &x, const uint_v   &y) { return _mm256_max_epu32(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE short_v  max(const short_v  &x, const short_v  &y) { return _mm_max_epi16(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE ushort_v max(const ushort_v &x, const ushort_v &y) { return _mm_max_epu16(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE float_v  max(const float_v  &x, const float_v  &y) { return _mm256_max_ps(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE sfloat_v max(const sfloat_v &x, const sfloat_v &y) { return _mm256_max_ps(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE double_v max(const double_v &x, const double_v &y) { return _mm256_max_pd(x.data(), y.data()); }
 
   template<typename T> static Vc_ALWAYS_INLINE Vector<T> sqrt (const Vector<T> &x) { return VectorHelper<T>::sqrt(x.data()); }

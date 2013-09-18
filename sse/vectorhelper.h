@@ -35,14 +35,6 @@ Vc_INTRINSIC Vc_CONST __m128 exponent(__m128 v)
     tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x7f));
     return _mm_cvtepi32_ps(tmp);
 }
-Vc_INTRINSIC Vc_CONST M256 exponent(VC_ALIGNED_PARAMETER(M256) v)
-{
-    __m128i tmp0 = _mm_srli_epi32(_mm_castps_si128(v[0]), 23);
-    __m128i tmp1 = _mm_srli_epi32(_mm_castps_si128(v[1]), 23);
-    tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
-    tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
-    return M256::create( _mm_cvtepi32_ps(tmp0), _mm_cvtepi32_ps(tmp1));
-}
 Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 {
     __m128i tmp = _mm_srli_epi64(_mm_castpd_si128(v), 52);
@@ -54,10 +46,6 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
     template<typename VectorType, unsigned int Size> struct SortHelper
     {
         static inline Vc_CONST_L VectorType sort(VectorType) Vc_CONST_R;
-    };
-    template<unsigned int Size> struct SortHelper<M256, Size>
-    {
-        static inline Vc_PURE_L M256 sort(const M256 &) Vc_PURE_R;
     };
 
 #define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
@@ -142,34 +130,6 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
         };
 
 #undef OP1
-#undef OP2
-#undef OP3
-
-#define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
-#define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VectorTypeArg a, VectorTypeArg b) { return code; }
-#define OP3(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VectorTypeArg a, VectorTypeArg b, VectorTypeArg c) { return code; }
-    template<> struct VectorHelper<M256>
-    {
-        typedef VectorHelper<__m128> VH1;
-        typedef M256 VectorType;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-        typedef const VectorType &VectorTypeArg;
-#else
-        typedef const VectorType VectorTypeArg;
-#endif
-        template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x) { return VectorType::create(VH1::load<Flags>(x), VH1::load<Flags>(x + 4)); }
-        template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VectorTypeArg x) { VH1::store<Flags>(mem, x[0]); VH1::store<Flags>(mem + 4, x[1]); }
-        template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VectorTypeArg x, VectorTypeArg mask) { VH1::store<Flags>(mem, x[0], mask[0]); VH1::store<Flags>(mem + 4, x[1], mask[1]); }
-
-        OP0(allone, VectorType::create(_mm_setallone_ps(), _mm_setallone_ps()))
-        OP0(zero, VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()))
-        OP2(or_, VectorType::create(_mm_or_ps(a[0], b[0]), _mm_or_ps(a[1], b[1])))
-        OP2(xor_, VectorType::create(_mm_xor_ps(a[0], b[0]), _mm_xor_ps(a[1], b[1])))
-        OP2(and_, VectorType::create(_mm_and_ps(a[0], b[0]), _mm_and_ps(a[1], b[1])))
-        OP2(andnot_, VectorType::create(_mm_andnot_ps(a[0], b[0]), _mm_andnot_ps(a[1], b[1])))
-        OP3(blend, VectorType::create(_mm_blendv_ps(a[0], b[0], c[0]), _mm_blendv_ps(a[1], b[1], c[1])))
-    };
-#undef OP0
 #undef OP2
 #undef OP3
 
@@ -360,83 +320,6 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
                 return _mm_cvtepi32_ps(_mm_cvtps_epi32(a));
 #endif
             }
-        };
-
-        template<> struct VectorHelper<float8> {
-            typedef float EntryType;
-            typedef M256 VectorType;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-            typedef const VectorType &VectorTypeArg;
-#else
-            typedef const VectorType VectorTypeArg;
-#endif
-
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a) {
-                const _M128 x = _mm_set1_ps(a);
-                return VectorType::create(x, x);
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a, const float b, const float c, const float d) {
-                const _M128 x = _mm_set_ps(a, b, c, d);
-                return VectorType::create(x, x);
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a, const float b, const float c, const float d,
-                    const float e, const float f, const float g, const float h) {
-                return VectorType::create(_mm_set_ps(a, b, c, d), _mm_set_ps(e, f, g, h));
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return VectorType::create(_mm_setzero_ps(), _mm_setzero_ps()); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return set(1.f); }
-
-#define REUSE_FLOAT_IMPL1(fun) \
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType fun(VectorTypeArg x) { \
-                return VectorType::create(VectorHelper<float>::fun(x[0]), VectorHelper<float>::fun(x[1])); \
-            }
-#define REUSE_FLOAT_IMPL2(fun) \
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType fun(VectorTypeArg x, VectorTypeArg y) { \
-                return VectorType::create(VectorHelper<float>::fun(x[0], y[0]), VectorHelper<float>::fun(x[1], y[1])); \
-            }
-            REUSE_FLOAT_IMPL1(reciprocal)
-            REUSE_FLOAT_IMPL1(sqrt)
-            REUSE_FLOAT_IMPL1(rsqrt)
-            REUSE_FLOAT_IMPL1(isNaN)
-            REUSE_FLOAT_IMPL1(isFinite)
-            REUSE_FLOAT_IMPL1(abs)
-            REUSE_FLOAT_IMPL1(round)
-
-            REUSE_FLOAT_IMPL2(and_)
-            REUSE_FLOAT_IMPL2(or_)
-            REUSE_FLOAT_IMPL2(xor_)
-            REUSE_FLOAT_IMPL2(notMaskedToZero)
-            REUSE_FLOAT_IMPL2(add)
-            REUSE_FLOAT_IMPL2(sub)
-            REUSE_FLOAT_IMPL2(mul)
-            REUSE_FLOAT_IMPL2(cmple)
-            REUSE_FLOAT_IMPL2(cmpnle)
-            REUSE_FLOAT_IMPL2(cmplt)
-            REUSE_FLOAT_IMPL2(cmpnlt)
-            REUSE_FLOAT_IMPL2(cmpeq)
-            REUSE_FLOAT_IMPL2(cmpneq)
-            REUSE_FLOAT_IMPL2(min)
-            REUSE_FLOAT_IMPL2(max)
-
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorTypeArg a) {
-                return VectorHelper<float>::min(VectorHelper<float>::min(a[0], a[1]));
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorTypeArg a) {
-                return VectorHelper<float>::max(VectorHelper<float>::max(a[0], a[1]));
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorTypeArg a) {
-                return VectorHelper<float>::mul(VectorHelper<float>::mul(a[0], a[1]));
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType add(VectorTypeArg a) {
-                return VectorHelper<float>::add(VectorHelper<float>::add(a[0], a[1]));
-            }
-
-            static inline void fma(VectorType &a, VectorTypeArg b, VectorTypeArg c) {
-                VectorHelper<float>::fma(a[0], b[0], c[0]);
-                VectorHelper<float>::fma(a[1], b[1], c[1]);
-            }
-#undef REUSE_FLOAT_IMPL2
-#undef REUSE_FLOAT_IMPL1
         };
 
         template<> struct VectorHelper<int> {
@@ -691,11 +574,11 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 #ifdef VC_IMPL_SSE4_1
             static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packus_epi32(a, b); }
 #else
-            // XXX too bad, but this is broken without SSE 4.1
+            // FIXME too bad, but this is broken without SSE 4.1
             static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packs_epi32(a, b); }
 #endif
-            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand0(_M128I x) { return _mm_srli_epi32(_mm_unpacklo_epi16(x, x), 16); }
-            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand1(_M128I x) { return _mm_srli_epi32(_mm_unpackhi_epi16(x, x), 16); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand0(_M128I x) { return _mm_unpacklo_epi16(x, _mm_setzero_si128()); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I expand1(_M128I x) { return _mm_unpackhi_epi16(x, _mm_setzero_si128()); }
 
 #undef SUFFIX
 #define SUFFIX epu16

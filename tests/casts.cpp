@@ -115,16 +115,10 @@ void testmain()
     TEST(uint_v, int_v);
     TEST(uint_v, uint_v);
 
-    TEST(ushort_v, sfloat_v);
     TEST(ushort_v, short_v);
     TEST(ushort_v, ushort_v);
 
-    TEST(short_v, sfloat_v);
     TEST(short_v, short_v);
     TEST(short_v, ushort_v);
-
-    TEST(sfloat_v, sfloat_v);
-    TEST(sfloat_v, short_v);
-    TEST(sfloat_v, ushort_v);
 #undef TEST
 }

@@ -46,15 +46,13 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 #define testAllTypes(name) \
     _unit_test_global.runTestInt(&name<float_v>, #name "<float_v>"); \
     _unit_test_global.runTestInt(&name<short_v>, #name "<short_v>"); \
-    _unit_test_global.runTestInt(&name<sfloat_v>, #name "<sfloat_v>"); \
     _unit_test_global.runTestInt(&name<ushort_v>, #name "<ushort_v>"); \
     _unit_test_global.runTestInt(&name<int_v>, #name "<int_v>"); \
     _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>"); \
     _unit_test_global.runTestInt(&name<uint_v>, #name "<uint_v>")
 #define testRealTypes(name) \
     _unit_test_global.runTestInt(&name<float_v>, #name "<float_v>"); \
-    _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>"); \
-    _unit_test_global.runTestInt(&name<sfloat_v>, #name "<sfloat_v>");
+    _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>");
 
 template<typename A, typename B> struct isEqualType
 {
@@ -288,9 +286,6 @@ template<> inline bool unittest_fuzzyCompareHelper<float>( const float &a, const
 template<> inline bool unittest_fuzzyCompareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b ) {
     return (ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness).isFull();
 }
-template<> inline bool unittest_fuzzyCompareHelper<Vc::sfloat_v>( const Vc::sfloat_v &a, const Vc::sfloat_v &b ) {
-    return (ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness).isFull();
-}
 template<> inline bool unittest_fuzzyCompareHelper<double>( const double &a, const double &b ) {
     return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.double_fuzzyness;
 }
@@ -407,7 +402,7 @@ class _UnitTest_Compare
             return *this;
         }
 
-        Vc_ALWAYS_INLINE ~_UnitTest_Compare()
+        Vc_ALWAYS_INLINE ~_UnitTest_Compare() noexcept(false)
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printLast();
@@ -486,9 +481,6 @@ template<> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(Vc
 template<> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(Vc::double_v) a, VC_ALIGNED_PARAMETER(Vc::double_v) b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.double_fuzzyness);
 }
-template<> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(Vc::sfloat_v) a, VC_ALIGNED_PARAMETER(Vc::sfloat_v) b) {
-    printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
-}
 template<typename T> inline void _UnitTest_Compare::writePlotData(std::fstream &, VC_ALIGNED_PARAMETER(T), VC_ALIGNED_PARAMETER(T)) {}
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(float) a, VC_ALIGNED_PARAMETER(float) b) {
     file << std::setprecision(12) << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
@@ -507,13 +499,6 @@ template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_A
     const Vc::double_v ref = b;
     const Vc::double_v dist = ulpDiffToReferenceSigned(a, b);
     for (size_t i = 0; i < Vc::double_v::Size; ++i) {
-        file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
-    }
-}
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(Vc::sfloat_v) a, VC_ALIGNED_PARAMETER(Vc::sfloat_v) b) {
-    const Vc::sfloat_v ref = b;
-    const Vc::sfloat_v dist = ulpDiffToReferenceSigned(a, b);
-    for (size_t i = 0; i < Vc::sfloat_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }

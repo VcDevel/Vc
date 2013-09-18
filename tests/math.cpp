@@ -703,7 +703,6 @@ template<typename V> void testExponent()/*{{{*/
 }
 /*}}}*/
 template<typename T> struct _ExponentVector { typedef int_v Type; };
-template<> struct _ExponentVector<sfloat_v> { typedef short_v Type; };
 
 template<typename V> void testFrexp()/*{{{*/
 {
@@ -831,7 +830,6 @@ void testmain()/*{{{*/
     runTest(testAbs<float_v>);
     runTest(testAbs<double_v>);
     runTest(testAbs<short_v>);
-    runTest(testAbs<sfloat_v>);
 
     testRealTypes(testUlpDiff);
 
@@ -849,7 +847,6 @@ void testmain()/*{{{*/
     runTest(testMax<double_v>);
     runTest(testMax<short_v>);
     runTest(testMax<ushort_v>);
-    runTest(testMax<sfloat_v>);
 
     testRealTypes(testSqrt);
     testRealTypes(testRSqrt);
@@ -864,7 +861,6 @@ void testmain()/*{{{*/
     testRealTypes(testRound);
 
     runTest(testReduceMin<float_v>);
-    runTest(testReduceMin<sfloat_v>);
     runTest(testReduceMin<double_v>);
     runTest(testReduceMin<int_v>);
     runTest(testReduceMin<uint_v>);
@@ -872,7 +868,6 @@ void testmain()/*{{{*/
     runTest(testReduceMin<ushort_v>);
 
     runTest(testReduceMax<float_v>);
-    runTest(testReduceMax<sfloat_v>);
     runTest(testReduceMax<double_v>);
     runTest(testReduceMax<int_v>);
     runTest(testReduceMax<uint_v>);
@@ -880,7 +875,6 @@ void testmain()/*{{{*/
     runTest(testReduceMax<ushort_v>);
 
     runTest(testReduceProduct<float_v>);
-    runTest(testReduceProduct<sfloat_v>);
     runTest(testReduceProduct<double_v>);
     runTest(testReduceProduct<int_v>);
     runTest(testReduceProduct<uint_v>);
@@ -888,7 +882,6 @@ void testmain()/*{{{*/
     runTest(testReduceProduct<ushort_v>);
 
     runTest(testReduceSum<float_v>);
-    runTest(testReduceSum<sfloat_v>);
     runTest(testReduceSum<double_v>);
     runTest(testReduceSum<int_v>);
     runTest(testReduceSum<uint_v>);
