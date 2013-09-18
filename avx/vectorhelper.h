@@ -729,6 +729,8 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 #undef OP_
 #undef OPx
 #undef OPcmp
+#undef OP_CAST_
+#undef MINMAX
 
 template<> struct VectorHelper<char>
 {

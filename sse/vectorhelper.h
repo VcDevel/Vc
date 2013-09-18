@@ -798,6 +798,8 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 #undef OP_
 #undef OPx
 #undef OPcmp
+#undef OP_CAST_
+#undef MINMAX
 
 Vc_IMPL_NAMESPACE_END
 
