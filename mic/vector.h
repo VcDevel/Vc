@@ -258,7 +258,7 @@ public:
     Vc_OP(*, _mul<VectorEntryType>)
     Vc_OP(+, _add<VectorEntryType>)
     Vc_OP(-, _sub<VectorEntryType>)
-    Vc_OP(/, _div<VectorEntryType>)
+    Vc_OP(/, _div<VectorEntryType>) // ushort_v::operator/ is specialized in vector.tcc
     Vc_OP(|, _or)
     Vc_OP(&, _and)
     Vc_OP(^, _xor)

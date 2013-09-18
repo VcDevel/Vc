@@ -407,6 +407,18 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator>>=(unsigned
 
 // operators {{{1
 #include "../common/operators.h"
+
+// this specialization is required because overflow is well defined (mod 2^16) for unsigned short,
+// but a / b is not independent of the high bits (in contrast to mul, add, and sub)
+template<> ushort_v &ushort_v::operator/=(ushort_v::AsArg x)
+{
+    d.v() = _div<VectorEntryType>(_and(d.v(), _set1(0xffff)), _and(x.d.v(), _set1(0xffff)));
+    return *this;
+}
+template<> ushort_v ushort_v::operator/(ushort_v::AsArg x) const
+{
+    return ushort_v(_div<VectorEntryType>(_and(d.v(), _set1(0xffff)), _and(x.d.v(), _set1(0xffff))));
+}
 // isNegative {{{1
 template<> Vc_INTRINSIC Vc_PURE float_m float_v::isNegative() const
 {
