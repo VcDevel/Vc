@@ -319,7 +319,7 @@ template<typename T> class Vector
                     );
         }
         template<typename F> Vc_INTRINSIC void call(const F &f, const Mask &mask) const {
-            Vc_foreach_bit(size_t i, mask) {
+            for (size_t i : where(mask)) {
                 f(EntryType(d.m(i)));
             }
         }
@@ -332,7 +332,7 @@ template<typename T> class Vector
         }
         template<typename F> Vc_INTRINSIC Vector<T> apply(const F &f, const Mask &mask) const {
             Vector<T> r(*this);
-            Vc_foreach_bit (size_t i, mask) {
+            for (size_t i : where(mask)) {
                 r.d.m(i) = f(EntryType(r.d.m(i)));
             }
             return r;
@@ -357,7 +357,7 @@ template<typename T> class Vector
         }
 
         template<typename F> Vc_INTRINSIC void call(F VC_RR_ f, const Mask &mask) const {
-            Vc_foreach_bit(size_t i, mask) {
+            for (size_t i : where(mask)) {
                 f(EntryType(d.m(i)));
             }
         }
@@ -372,7 +372,7 @@ template<typename T> class Vector
 
         template<typename F> Vc_INTRINSIC Vector<T> apply(F VC_RR_ f, const Mask &mask) const {
             Vector<T> r(*this);
-            Vc_foreach_bit (size_t i, mask) {
+            for (size_t i : where(mask)) {
                 r.d.m(i) = f(EntryType(r.d.m(i)));
             }
             return r;

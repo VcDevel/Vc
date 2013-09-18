@@ -348,28 +348,28 @@ template<typename T> Vc_INTRINSIC Vector<T> &WriteMaskedVector<T>::operator/=(co
 }
 template<> Vc_INTRINSIC int_v &WriteMaskedVector<int>::operator/=(const int_v &x)
 {
-    Vc_foreach_bit (int i, mask) {
+    for (int i : Vc::where(mask)) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
 template<> Vc_INTRINSIC uint_v &WriteMaskedVector<unsigned int>::operator/=(const uint_v &x)
 {
-    Vc_foreach_bit (int i, mask) {
+    for (int i : Vc::where(mask)) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
 template<> Vc_INTRINSIC short_v &WriteMaskedVector<short>::operator/=(const short_v &x)
 {
-    Vc_foreach_bit (int i, mask) {
+    for (int i : Vc::where(mask)) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
 }
 template<> Vc_INTRINSIC ushort_v &WriteMaskedVector<unsigned short>::operator/=(const ushort_v &x)
 {
-    Vc_foreach_bit (int i, mask) {
+    for (int i : Vc::where(mask)) {
         vec->d.m(i) /= x.d.m(i);
     }
     return *vec;
