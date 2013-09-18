@@ -23,7 +23,7 @@
 
 using namespace Vc;
 
-TEST_ALL_NATIVE_V(V, createArray)
+TEST_ALL_V(V, createArray)
 {
     typedef typename V::EntryType T;
     simd_array<T, 32> array;
@@ -34,14 +34,14 @@ TEST_ALL_NATIVE_V(V, createArray)
     VERIFY(array.register_count * V::Size >= 32);
 }
 
-TEST_ALL_NATIVE_V(V, broadcast)
+TEST_ALL_V(V, broadcast)
 {
     typedef typename V::EntryType T;
     simd_array<T, 32> array = 0;
     array = 1;
 }
 
-TEST_ALL_NATIVE_V(V, broadcast_equal)
+TEST_ALL_V(V, broadcast_equal)
 {
     typedef typename V::EntryType T;
     simd_array<T, 32> a = 0;
@@ -52,7 +52,7 @@ TEST_ALL_NATIVE_V(V, broadcast_equal)
     COMPARE(a, b);
 }
 
-TEST_ALL_NATIVE_V(V, broadcast_not_equal)
+TEST_ALL_V(V, broadcast_not_equal)
 {
     typedef typename V::EntryType T;
     simd_array<T, 32> a = 0;
@@ -67,7 +67,7 @@ TEST_ALL_NATIVE_V(V, broadcast_not_equal)
     VERIFY(all_of(a >= b));
 }
 
-TEST_ALL_NATIVE_V(V, load)
+TEST_ALL_V(V, load)
 {
     typedef typename V::EntryType T;
     Vc::Memory<V, 34> data;

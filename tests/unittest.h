@@ -716,21 +716,10 @@ vector<Test::TestData> Test::s_allTests;
 
 } // namespace UnitTest
 
-#define TEST_ALL_NATIVE_V(V, fun) \
-template<typename V> void fun(); \
-static UnitTest::Test test_##fun##__float_v__(&fun< float_v>, #fun "< float_v>"); \
-static UnitTest::Test test_##fun##__short_v__(&fun< short_v>, #fun "< short_v>"); \
-static UnitTest::Test test_##fun##___uint_v__(&fun<  uint_v>, #fun "<  uint_v>"); \
-static UnitTest::Test test_##fun##_double_v__(&fun<double_v>, #fun "<double_v>"); \
-static UnitTest::Test test_##fun##_ushort_v__(&fun<ushort_v>, #fun "<ushort_v>"); \
-static UnitTest::Test test_##fun##____int_v__(&fun<   int_v>, #fun "<   int_v>"); \
-template<typename V> void fun()
-
 #define TEST_ALL_V(V, fun) \
 template<typename V> void fun(); \
 static UnitTest::Test test_##fun##__float_v__(&fun< float_v>, #fun "< float_v>"); \
 static UnitTest::Test test_##fun##__short_v__(&fun< short_v>, #fun "< short_v>"); \
-static UnitTest::Test test_##fun##_sfloat_v__(&fun<sfloat_v>, #fun "<sfloat_v>"); \
 static UnitTest::Test test_##fun##_ushort_v__(&fun<ushort_v>, #fun "<ushort_v>"); \
 static UnitTest::Test test_##fun##____int_v__(&fun<   int_v>, #fun "<   int_v>"); \
 static UnitTest::Test test_##fun##_double_v__(&fun<double_v>, #fun "<double_v>"); \
