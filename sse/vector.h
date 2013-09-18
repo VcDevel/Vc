@@ -29,6 +29,8 @@
 #include "../common/loadstoreflags.h"
 #include <algorithm>
 #include <cmath>
+#include "../common/where.h"
+#include "../common/iterators.h"
 
 #include "macros.h"
 
