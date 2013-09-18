@@ -20,6 +20,7 @@
 #ifndef VC_SCALAR_TYPES_H
 #define VC_SCALAR_TYPES_H
 
+#ifndef VC_DOUBLE_V_SIZE
 #define VC_DOUBLE_V_SIZE 1
 #define VC_FLOAT_V_SIZE 1
 #define VC_SFLOAT_V_SIZE 1
@@ -27,6 +28,7 @@
 #define VC_UINT_V_SIZE 1
 #define VC_SHORT_V_SIZE 1
 #define VC_USHORT_V_SIZE 1
+#endif
 
 #include "../common/types.h"
 

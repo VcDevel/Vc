@@ -23,6 +23,7 @@
 #include "intrinsics.h"
 #include "../common/storage.h"
 
+#ifndef VC_DOUBLE_V_SIZE
 #define VC_DOUBLE_V_SIZE 2
 #define VC_FLOAT_V_SIZE 4
 #define VC_SFLOAT_V_SIZE 8
@@ -30,6 +31,7 @@
 #define VC_UINT_V_SIZE 4
 #define VC_SHORT_V_SIZE 8
 #define VC_USHORT_V_SIZE 8
+#endif
 
 #include "../common/types.h"
 #include "macros.h"

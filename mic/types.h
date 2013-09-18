@@ -25,6 +25,7 @@
 #include "../common/memoryfwd.h"
 #include "macros.h"
 
+#ifndef VC_DOUBLE_V_SIZE
 #define VC_DOUBLE_V_SIZE 8
 #define VC_FLOAT_V_SIZE 16
 #define VC_SFLOAT_V_SIZE 16
@@ -32,6 +33,7 @@
 #define VC_UINT_V_SIZE 16
 #define VC_SHORT_V_SIZE 16
 #define VC_USHORT_V_SIZE 16
+#endif
 
 #include "../common/types.h"
 
