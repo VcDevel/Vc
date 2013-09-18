@@ -136,8 +136,4 @@ namespace std
 } // namespace std
 #endif
 
-#ifndef VC_CLEAN_NAMESPACE
-#define foreach_bit(_it_, _mask_) Vc_foreach_bit(_it_, _mask_)
-#endif
-
 #endif // VECTOR_H

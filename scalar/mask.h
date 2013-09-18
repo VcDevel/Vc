@@ -87,17 +87,6 @@ template<unsigned int VectorSize = 1> class Mask
         bool m;
 };
 
-struct ForeachHelper
-{
-    bool continu;
-    Vc_ALWAYS_INLINE ForeachHelper(bool mask) : continu(mask) {}
-    Vc_ALWAYS_INLINE void next() { continu = false; }
-};
-
-#define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::Scalar::ForeachHelper Vc__make_unique(foreach_bit_obj)(_mask_); Vc__make_unique(foreach_bit_obj).continu; Vc__make_unique(foreach_bit_obj).next()) \
-        for (_it_ = 0; Vc__make_unique(foreach_bit_obj).continu; Vc__make_unique(foreach_bit_obj).next())
-
 Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"

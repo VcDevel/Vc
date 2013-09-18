@@ -176,39 +176,6 @@ template<unsigned int VectorSize> class Mask
         Storage d;
 };
 
-struct ForeachHelper
-{
-    _long mask;
-    bool brk;
-    bool outerBreak;
-    Vc_ALWAYS_INLINE ForeachHelper(_long _mask) : mask(_mask), brk(false), outerBreak(false) {}
-    Vc_ALWAYS_INLINE bool outer() const { return (mask != 0) && !outerBreak; }
-    Vc_ALWAYS_INLINE bool inner() { return (brk = !brk); }
-    Vc_ALWAYS_INLINE void noBreak() { outerBreak = false; }
-    Vc_ALWAYS_INLINE _long next() {
-        outerBreak = true;
-#ifdef VC_GNU_ASM
-        const _long bit = __builtin_ctzl(mask);
-        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
-#elif defined(_WIN64)
-       unsigned long bit;
-       _BitScanForward64(&bit, mask);
-       _bittestandreset64(&mask, bit);
-#elif defined(_WIN32)
-       unsigned long bit;
-       _BitScanForward(&bit, mask);
-       _bittestandreset(&mask, bit);
-#else
-#error "Not implemented yet. Please contact vc-devel@compeng.uni-frankfurt.de"
-#endif
-        return bit;
-    }
-};
-
-#define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::SSE::ForeachHelper Vc__make_unique(foreach_bit_obj)((_mask_).toInt()); Vc__make_unique(foreach_bit_obj).outer(); ) \
-        for (_it_ = Vc__make_unique(foreach_bit_obj).next(); Vc__make_unique(foreach_bit_obj).inner(); Vc__make_unique(foreach_bit_obj).noBreak())
-
 template<unsigned int Size> Vc_ALWAYS_INLINE Vc_PURE int Mask<Size>::shiftMask() const
 {
     return _mm_movemask_epi8(dataI());
@@ -547,31 +514,6 @@ class Float8GatherMask
     private:
         const int mask;
 };
-
-/**
- * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
- * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
- * 1, 3, and 4.
- *
- * This allows you to write:
- * \code
- * float_v a = ...;
- * foreach_bit(int i, a < 0.f) {
- *   std::cout << a[i] << "\n";
- * }
- * \endcode
- * The example prints all the values in \p a that are negative, and only those.
- *
- * \param it   The iterator variable. For example "int i".
- * \param mask The mask to iterate over. You can also just write a vector operation that returns a
- *             mask.
- */
-//X #define foreach_bit(it, mask)
-//X     for (int _sse_vector_foreach_inner = 1, ForeachScope _sse_vector_foreach_scope(mask.toInt()), int it = _sse_vector_foreach_scope.bit(); _sse_vector_foreach_inner; --_sse_vector_foreach_inner)
-//X     for (int _sse_vector_foreach_mask = (mask).toInt(), int _sse_vector_foreach_it = _sse_bitscan(mask.toInt());
-//X             _sse_vector_foreach_it > 0;
-//X             _sse_vector_foreach_it = _sse_bitscan_initialized(_sse_vector_foreach_it, mask.data()))
-//X         for (int _sse_vector_foreach_inner = 1, it = _sse_vector_foreach_it; _sse_vector_foreach_inner; --_sse_vector_foreach_inner)
 
 // Operators
 // let binary and/or/xor work for any combination of masks (as long as they have the same sizeof)

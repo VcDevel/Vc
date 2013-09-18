@@ -199,35 +199,6 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
         Storage d;
 };
 
-struct ForeachHelper
-{
-    size_t mask;
-    bool brk;
-    bool outerBreak;
-    Vc_ALWAYS_INLINE ForeachHelper(size_t _mask) : mask(_mask), brk(false), outerBreak(false) {}
-    Vc_ALWAYS_INLINE bool outer() const { return mask != 0 && !outerBreak; }
-    Vc_ALWAYS_INLINE bool inner() { return (brk = !brk); }
-    Vc_ALWAYS_INLINE void noBreak() { outerBreak = false; }
-    Vc_ALWAYS_INLINE size_t next() {
-        outerBreak = true;
-#ifdef VC_GNU_ASM
-        const size_t bit = __builtin_ctzl(mask);
-        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
-#else
-#ifdef VC_MSVC
-#pragma warning(suppress : 4267) // conversion from 'size_t' to 'unsigned long', possible loss of data
-#endif
-        const size_t bit = _bit_scan_forward(mask);
-        mask &= ~(1 << bit);
-#endif
-        return bit;
-    }
-};
-
-#define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::Vc_IMPL_NAMESPACE::ForeachHelper Vc__make_unique(foreach_bit_obj)((_mask_).toInt()); Vc__make_unique(foreach_bit_obj).outer(); ) \
-        for (_it_ = Vc__make_unique(foreach_bit_obj).next(); Vc__make_unique(foreach_bit_obj).inner(); Vc__make_unique(foreach_bit_obj).noBreak())
-
 // Operators
 namespace Intrinsics
 {
