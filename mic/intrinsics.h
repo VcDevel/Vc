@@ -286,28 +286,28 @@ static Vc_INTRINSIC __m512i shuffle(__m512i v, _MM_PERM_ENUM perm) { return _mm5
 #define _mm512_reduce_add_pi _mm512_reduce_add_epi32
 
 #define Vc_INTEGER_FUN2(fun) \
-    static Vc_INTRINSIC __m512  _##fun(__m512  a, __m512  b) { \
-        return _mm512_castsi512_ps(_mm512_##fun##_epi32(_mm512_castps_si512(a), _mm512_castps_si512(b))); \
+    static Vc_INTRINSIC __m512  fun(__m512  a, __m512  b) { \
+        return _mm512_castsi512_ps(_mm512##fun##_epi32(_mm512_castps_si512(a), _mm512_castps_si512(b))); \
     } \
-    static Vc_INTRINSIC __m512d _##fun(__m512d a, __m512d b) { \
-        return _mm512_castsi512_pd(_mm512_##fun##_epi64(_mm512_castpd_si512(a), _mm512_castpd_si512(b))); \
+    static Vc_INTRINSIC __m512d fun(__m512d a, __m512d b) { \
+        return _mm512_castsi512_pd(_mm512##fun##_epi64(_mm512_castpd_si512(a), _mm512_castpd_si512(b))); \
     } \
-    static Vc_INTRINSIC __m512i _##fun(__m512i a, __m512i b) { \
-        return _mm512_##fun##_epi32(a, b); \
+    static Vc_INTRINSIC __m512i fun(__m512i a, __m512i b) { \
+        return _mm512##fun##_epi32(a, b); \
     } \
-    static Vc_INTRINSIC __m512  _##fun(__m512  r, __mmask16 k, __m512  a, __m512  b) { \
-        return _mm512_castsi512_ps(_mm512_mask_##fun##_epi32(_mm512_castps_si512(r), k, _mm512_castps_si512(a), _mm512_castps_si512(b))); \
+    static Vc_INTRINSIC __m512  fun(__m512  r, __mmask16 k, __m512  a, __m512  b) { \
+        return _mm512_castsi512_ps(_mm512_mask##fun##_epi32(_mm512_castps_si512(r), k, _mm512_castps_si512(a), _mm512_castps_si512(b))); \
     } \
-    static Vc_INTRINSIC __m512d _##fun(__m512d r, __mmask8  k, __m512d a, __m512d b) { \
-        return _mm512_castsi512_pd(_mm512_mask_##fun##_epi64(_mm512_castpd_si512(r), k, _mm512_castpd_si512(a), _mm512_castpd_si512(b))); \
+    static Vc_INTRINSIC __m512d fun(__m512d r, __mmask8  k, __m512d a, __m512d b) { \
+        return _mm512_castsi512_pd(_mm512_mask##fun##_epi64(_mm512_castpd_si512(r), k, _mm512_castpd_si512(a), _mm512_castpd_si512(b))); \
     } \
-    static Vc_INTRINSIC __m512i _##fun(__m512i r, __mmask16 k, __m512i a, __m512i b) { \
-        return _mm512_mask_##fun##_epi32(r, k, a, b); \
+    static Vc_INTRINSIC __m512i fun(__m512i r, __mmask16 k, __m512i a, __m512i b) { \
+        return _mm512_mask##fun##_epi32(r, k, a, b); \
     }
-    Vc_INTEGER_FUN2(and)
-    Vc_INTEGER_FUN2(or)
-    Vc_INTEGER_FUN2(xor)
-    Vc_INTEGER_FUN2(andnot)
+    Vc_INTEGER_FUN2(_and)
+    Vc_INTEGER_FUN2(_or)
+    Vc_INTEGER_FUN2(_xor)
+    Vc_INTEGER_FUN2(_andnot)
 #undef Vc_INTEGER_FUN2
 
     Vc_INTRINSIC __m512i _mm512_add_epu32(__m512i a, __m512i b) { return _mm512_add_epi32(a, b); }
@@ -315,35 +315,35 @@ static Vc_INTRINSIC __m512i shuffle(__m512i v, _MM_PERM_ENUM perm) { return _mm5
     Vc_INTRINSIC __m512i _mm512_mask_add_epu32(__m512i r, __mmask16 k, __m512i a, __m512i b) { return _mm512_mask_add_epi32(r, k, a, b); }
     Vc_INTRINSIC __m512i _mm512_mask_sub_epu32(__m512i r, __mmask16 k, __m512i a, __m512i b) { return _mm512_mask_sub_epi32(r, k, a, b); }
 #define Vc_FUN2(fun) \
-    template<typename> Vc_INTRINSIC __m512  _##fun(__m512  a, __m512  b) { \
-        return _mm512_##fun##_ps(a, b); \
+    template<typename> Vc_INTRINSIC __m512  fun(__m512  a, __m512  b) { \
+        return _mm512##fun##_ps(a, b); \
     } \
-    template<typename> Vc_INTRINSIC __m512d _##fun(__m512d a, __m512d b) { \
-        return _mm512_##fun##_pd(a, b); \
+    template<typename> Vc_INTRINSIC __m512d fun(__m512d a, __m512d b) { \
+        return _mm512##fun##_pd(a, b); \
     } \
-    template<typename> Vc_INTRINSIC __m512i _##fun(__m512i a, __m512i b) { \
-        return _mm512_##fun##_epi32(a, b); \
+    template<typename> Vc_INTRINSIC __m512i fun(__m512i a, __m512i b) { \
+        return _mm512##fun##_epi32(a, b); \
     } \
-    template<> Vc_INTRINSIC __m512i _##fun<unsigned int>(__m512i a, __m512i b) { \
-        return _mm512_##fun##_epu32(a, b); \
+    template<> Vc_INTRINSIC __m512i fun<unsigned int>(__m512i a, __m512i b) { \
+        return _mm512##fun##_epu32(a, b); \
     } \
-    template<typename> Vc_INTRINSIC __m512  _##fun(__m512  r, __mmask16 k, __m512  a, __m512  b) { \
-        return _mm512_mask_##fun##_ps(r, k, a, b); \
+    template<typename> Vc_INTRINSIC __m512  fun(__m512  r, __mmask16 k, __m512  a, __m512  b) { \
+        return _mm512_mask##fun##_ps(r, k, a, b); \
     } \
-    template<typename> Vc_INTRINSIC __m512d _##fun(__m512d r, __mmask8  k, __m512d a, __m512d b) { \
-        return _mm512_mask_##fun##_pd(r, k, a, b); \
+    template<typename> Vc_INTRINSIC __m512d fun(__m512d r, __mmask8  k, __m512d a, __m512d b) { \
+        return _mm512_mask##fun##_pd(r, k, a, b); \
     } \
-    template<typename> Vc_INTRINSIC __m512i _##fun(__m512i r, __mmask16 k, __m512i a, __m512i b) { \
-        return _mm512_mask_##fun##_epi32(r, k, a, b); \
+    template<typename> Vc_INTRINSIC __m512i fun(__m512i r, __mmask16 k, __m512i a, __m512i b) { \
+        return _mm512_mask##fun##_epi32(r, k, a, b); \
     } \
-    template<> Vc_INTRINSIC __m512i _##fun<unsigned int>(__m512i r, __mmask16 k, __m512i a, __m512i b) { \
-        return _mm512_mask_##fun##_epu32(r, k, a, b); \
+    template<> Vc_INTRINSIC __m512i fun<unsigned int>(__m512i r, __mmask16 k, __m512i a, __m512i b) { \
+        return _mm512_mask##fun##_epu32(r, k, a, b); \
     }
-    Vc_FUN2(min)
-    Vc_FUN2(max)
-    Vc_FUN2(add)
-    Vc_FUN2(sub)
-    Vc_FUN2(div)
+    Vc_FUN2(_min)
+    Vc_FUN2(_max)
+    Vc_FUN2(_add)
+    Vc_FUN2(_sub)
+    Vc_FUN2(_div)
 #undef Vc_FUN2
 
     template<typename> Vc_INTRINSIC __m512  _mul(__m512  a, __m512  b) { return _mm512_mul_ps(a, b); }
