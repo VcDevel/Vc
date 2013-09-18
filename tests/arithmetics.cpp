@@ -133,7 +133,16 @@ template<typename Vec> void testAdd()
 
     COMPARE(a, b + 1);
     COMPARE(a, b + c);
-    Vec x(Zero);
+
+    for (int repetition = 0; repetition < 10000; ++repetition) {
+        const Vec x = Vec::Random();
+        const Vec y = Vec::Random();
+        Vec reference;
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            reference[i] = x[i] + y[i];
+        }
+        COMPARE(x + y, reference) << '\n' << x << " + " << y;
+    }
 }
 
 template<typename Vec> void testSub()
@@ -147,6 +156,16 @@ template<typename Vec> void testSub()
 
     COMPARE(a, b - 1);
     COMPARE(a, b - c);
+
+    for (int repetition = 0; repetition < 10000; ++repetition) {
+        const Vec x = Vec::Random();
+        const Vec y = Vec::Random();
+        Vec reference;
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            reference[i] = x[i] - y[i];
+        }
+        COMPARE(x - y, reference) << '\n' << x << " - " << y;
+    }
 }
 
 template<typename V> void testMul()
