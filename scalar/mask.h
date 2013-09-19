@@ -48,6 +48,8 @@ template<typename T> class Mask
           typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
             : m(a.m) {}
 
+        Vc_ALWAYS_INLINE explicit Mask(const bool *mem) : m(mem[0]) {}
+        Vc_ALWAYS_INLINE void load(const bool *mem) { m = mem[0]; }
         Vc_ALWAYS_INLINE void store(bool *mem) const { *mem = m; }
 
         Vc_ALWAYS_INLINE Mask &operator=(const Mask &rhs) { m = rhs.m; return *this; }

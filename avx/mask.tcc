@@ -101,6 +101,45 @@ template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<8>(m128i k)
     return movemask(_mm_packs_epi16(k, _mm_setzero_si128()));
 }
 /*}}}*/
+// mask_store/*{{{*/
+template<size_t> Vc_ALWAYS_INLINE void mask_store(m256i k, bool *mem);
+template<size_t> Vc_ALWAYS_INLINE void mask_store(m128i k, bool *mem);
+template<> Vc_ALWAYS_INLINE void mask_store<8>(m256i k, bool *mem)
+{
+    const auto k2 = _mm_srli_epi16(_mm_packs_epi16(lo128(k), hi128(k)), 15);
+    typedef uint64_t boolAlias Vc_MAY_ALIAS;
+    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(_mm_packs_epi16(k2, _mm_setzero_si128()));
+}
+template<> Vc_ALWAYS_INLINE void mask_store<8>(m128i k, bool *mem)
+{
+    k = _mm_srli_epi16(k, 15);
+    typedef uint64_t boolAlias Vc_MAY_ALIAS;
+    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(_mm_packs_epi16(k, _mm_setzero_si128()));
+}
+/*}}}*/
+// mask_load/*{{{*/
+template<typename R, size_t> Vc_ALWAYS_INLINE R mask_load(const bool *mem);
+template<> Vc_ALWAYS_INLINE m128 mask_load<m128, 8>(const bool *mem)
+{
+    m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
+    return avx_cast<m128>(_mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
+}
+template<> Vc_ALWAYS_INLINE m256 mask_load<m256, 8>(const bool *mem)
+{
+    m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
+    k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
+
+    return avx_cast<m256>(concat(_mm_unpacklo_epi16(k, k), _mm_unpackhi_epi16(k, k)));
+}
+template<> Vc_ALWAYS_INLINE m256 mask_load<m256, 4>(const bool *mem)
+{
+    m128i k = avx_cast<m128i>(_mm_and_ps(_mm_set1_ps(*reinterpret_cast<const float *>(mem)),
+                avx_cast<m128>(_mm_setr_epi32(0x1, 0x100, 0x10000, 0x1000000))
+                ));
+    k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
+    return avx_cast<m256>(concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k)));
+}
+/*}}}*/
 
 } // namespace internal
 
@@ -108,8 +147,16 @@ template<> Vc_ALWAYS_INLINE void Mask<double>::store(bool *mem) const
 {
     typedef uint16_t boolAlias Vc_MAY_ALIAS;
     boolAlias *ptr = reinterpret_cast<boolAlias *>(mem);
-    ptr[0] = _mm_movemask_epi8(lo128(dataI()));
-    ptr[1] = _mm_movemask_epi8(hi128(dataI()));
+    ptr[0] = _mm_movemask_epi8(lo128(dataI())) & 0x0101;
+    ptr[1] = _mm_movemask_epi8(hi128(dataI())) & 0x0101;
+}
+template<typename T> Vc_ALWAYS_INLINE void Mask<T>::store(bool *mem) const
+{
+    internal::mask_store<Size>(dataI(), mem);
+}
+template<typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
+{
+    d.v() = internal::mask_load<VectorType, Size>(mem);
 }
 
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE bool Mask<T>::operator[](size_t index) const { return toInt() & (1 << index); }

@@ -424,6 +424,20 @@ template<typename V> void testIntegerConversion()
     }
 }
 
+template<typename V> void boolConversion()
+{
+    bool mem[V::Size];
+    for_all_masks(V, m) {
+        m.store(mem);
+        for (size_t i = 0; i < V::Size; ++i) {
+            COMPARE(mem[i], m[i]);
+        }
+
+        typename V::Mask m2(mem);
+        COMPARE(m2, m);
+    }
+}
+
 void testmain()/*{{{*/
 {
     testAllTypes(maskInit);
@@ -443,6 +457,7 @@ void testmain()/*{{{*/
     testAllTypes(testFirstOne);
     testAllTypes(maskReductions);
     runTest(testBinaryOperators);
+    testAllTypes(boolConversion);
 }/*}}}*/
 
 // vim: foldmethod=marker

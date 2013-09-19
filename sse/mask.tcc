@@ -141,6 +141,35 @@ template<> Vc_ALWAYS_INLINE Vc_CONST int mask_count<16>(__m128i k)
 #endif
 }
 /*}}}*/
+// mask_store/*{{{*/
+template<size_t> Vc_ALWAYS_INLINE void mask_store(__m128i k, bool *mem);
+template<> Vc_ALWAYS_INLINE void mask_store<4>(__m128i k, bool *mem)
+{
+    const auto k2 = _mm_srli_epi16(_mm_packs_epi16(k, _mm_setzero_si128()), 15);
+    typedef int boolAlias Vc_MAY_ALIAS;
+    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si32(_mm_packs_epi16(k2, _mm_setzero_si128()));
+}
+template<> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
+{
+    k = _mm_srli_epi16(k, 15);
+    typedef int64_t boolAlias Vc_MAY_ALIAS;
+    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(_mm_packs_epi16(k, _mm_setzero_si128()));
+}
+/*}}}*/
+// mask_load/*{{{*/
+template<size_t> Vc_ALWAYS_INLINE __m128 mask_load(const bool *mem);
+template<> Vc_ALWAYS_INLINE __m128 mask_load<8>(const bool *mem)
+{
+    __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
+    return sse_cast<__m128>(_mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
+}
+template<> Vc_ALWAYS_INLINE __m128 mask_load<4>(const bool *mem)
+{
+    __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem));
+    k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
+    return sse_cast<__m128>(_mm_unpacklo_epi16(k, k));
+}
+/*}}}*/
 
 } // namespace internal
 
@@ -148,7 +177,20 @@ template<> Vc_ALWAYS_INLINE void Mask<double>::store(bool *mem) const
 {
     typedef uint16_t boolAlias Vc_MAY_ALIAS;
     boolAlias *ptr = reinterpret_cast<boolAlias *>(mem);
-    *ptr = _mm_movemask_epi8(dataI());
+    *ptr = _mm_movemask_epi8(dataI()) & 0x0101;
+}
+template<typename T> Vc_ALWAYS_INLINE void Mask<T>::store(bool *mem) const
+{
+    internal::mask_store<Size>(dataI(), mem);
+}
+template<> Vc_ALWAYS_INLINE void Mask<double>::load(const bool *mem)
+{
+    d.m(0) = mem[0];
+    d.m(1) = mem[1];
+}
+template<typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
+{
+    d.v() = internal::mask_load<Size>(mem);
 }
 
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
