@@ -144,6 +144,13 @@ template<> Vc_ALWAYS_INLINE Vc_CONST int mask_count<16>(__m128i k)
 
 } // namespace internal
 
+template<> Vc_ALWAYS_INLINE void Mask<double>::store(bool *mem) const
+{
+    typedef uint16_t boolAlias Vc_MAY_ALIAS;
+    boolAlias *ptr = reinterpret_cast<boolAlias *>(mem);
+    *ptr = _mm_movemask_epi8(dataI());
+}
+
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE int Mask<T>::firstOne() const

@@ -119,6 +119,8 @@ template<typename T> class Mask
           typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
             : d(internal::mask_cast<Mask<U>::Size, Size, VectorType>(rhs.dataI())) {}
 
+        Vc_ALWAYS_INLINE_L void store(bool *) const Vc_ALWAYS_INLINE_R;
+
         Vc_ALWAYS_INLINE Mask &operator=(const Mask &) = default;
         Vc_ALWAYS_INLINE_L Mask &operator=(const std::array<bool, Size> &values) Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L operator std::array<bool, Size>() const Vc_ALWAYS_INLINE_R;
