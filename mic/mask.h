@@ -89,6 +89,13 @@ public:
       typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
         : k(MaskHelper<Size>::cast(rhs.data())) {}
 
+    inline void store(bool *mem) const {
+        const auto zero = VectorHelper<VectorType>::zero();
+        const auto one = VectorHelper<VectorType>::one();
+        const auto tmp = _and(zero, k, one, one);
+        MicIntrinsics::store<AlignedT>(mem, tmp, UpDownConversion<T, unsigned char>());
+    }
+
     inline bool operator==(const Mask &rhs) const { return MaskHelper<Size>::cmpeq (k, rhs.k); }
     inline bool operator!=(const Mask &rhs) const { return MaskHelper<Size>::cmpneq(k, rhs.k); }
 
