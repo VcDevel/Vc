@@ -48,11 +48,10 @@ double_m contains(const Point &point)
     return inside[0] && inside[1] && inside[2];
 }
 
-
 std::array<bool, ArraySize> contains(const PointArray &points)
 {
     std::array<bool, ArraySize> inside;
-    auto storeIt = begin(inside);
+    auto storeIt = inside.begin();
     for (const auto &p : points) {
         contains(p).store(storeIt);
         storeIt += double_v::Size;
@@ -65,8 +64,8 @@ std::array<bool, ArraySize> g_inside;
 int main()
 {
     PointArray points;
-    std::generate(begin(points), end(points), []() {
-        return Point{{ double_v::Random(), double_v::Random(), double_v::Random() }};
+    std::generate(points.begin(), points.end(), []() -> Point {
+        return {{ double_v::Random(), double_v::Random(), double_v::Random() }};
     });
 
     TimeStampCounter tsc;
