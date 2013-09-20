@@ -90,10 +90,10 @@ public:
         : k(MaskHelper<Size>::cast(rhs.data())) {}
 
     inline void store(bool *mem) const {
-        const auto zero = VectorHelper<VectorType>::zero();
-        const auto one = VectorHelper<VectorType>::one();
-        const auto tmp = _and(zero, k, one, one);
-        MicIntrinsics::store<AlignedT>(mem, tmp, UpDownConversion<T, unsigned char>());
+        const __m512i zero = _mm512_setzero_epi32();
+        const __m512i one = VectorHelper<__m512i>::one();
+        const __m512i tmp = _and(zero, k, one, one);
+        MicIntrinsics::store<AlignedT>(mem, tmp, UpDownConversion<unsigned int, unsigned char>());
     }
 
     inline bool operator==(const Mask &rhs) const { return MaskHelper<Size>::cmpeq (k, rhs.k); }
@@ -202,5 +202,6 @@ struct ForeachHelper
 Vc_NAMESPACE_END
 
 #include "undomacros.h"
+#include "mask.tcc"
 
 #endif // VC_MIC_MASK_H
