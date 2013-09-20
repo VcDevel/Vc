@@ -77,7 +77,7 @@ else()
             )
       endif()
    elseif(Vc_COMPILER_IS_INTEL)
-      if("${Vc_ICC_VERSION}" VERSION_LESS "14.0.0")
+      if("${Vc_ICC_VERSION}" VERSION_LESS "14.1.0")
          UserWarning("ICC does not support initializer lists (C++11). The following tests are therefore disabled:
          stlcontainer_avx stlcontainer_scalar stlcontainer_sse.")
          list(APPEND disabled_targets
