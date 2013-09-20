@@ -98,7 +98,7 @@ template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<8>(m256i k)
 }
 template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<8>(m128i k)
 {
-    return movemask(_mm_packs_epi16(k, _mm_setzero_si128()));
+    return movemask(avx_cast<m128i>(_mm_packs_epi16(k, _mm_setzero_si128())));
 }
 /*}}}*/
 // mask_store/*{{{*/

@@ -377,8 +377,8 @@ static inline m256i Vc_CONST divUInt(param256i a, param256i b) {
     // It could be argued that for b this is not really important because division by a b >= 2^31 is
     // useless. But for full correctness it cannot be ignored.
 #ifdef VC_IMPL_AVX2
-    const auto aa = _mm256_add_epi32(a, _mm256_set1_epi32(-2147483648));
-    const auto bb = _mm256_add_epi32(b, _mm256_set1_epi32(-2147483648));
+    const m256i aa = _mm256_add_epi32(a, _mm256_set1_epi32(-2147483648));
+    const m256i bb = _mm256_add_epi32(b, _mm256_set1_epi32(-2147483648));
     const m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(aa)), _mm256_set1_pd(2147483648.));
     const m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(aa)), _mm256_set1_pd(2147483648.));
     const m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(bb)), _mm256_set1_pd(2147483648.));
