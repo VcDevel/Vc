@@ -387,7 +387,12 @@ class _UnitTest_Compare
             return *this;
         }
 
-        Vc_ALWAYS_INLINE ~_UnitTest_Compare() noexcept(false)
+        Vc_ALWAYS_INLINE ~_UnitTest_Compare()
+#ifdef Vc__NO_NOEXCEPT
+            throw(_UnitTest_Failure)
+#else
+            noexcept(false)
+#endif
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printLast();
