@@ -56,39 +56,43 @@ find_path(MIC_SDK_DIR bin/intel64_mic/icpc PATHS
 # First check whether offload works
 
 if(NOT DEFINED c_compiler_can_offload OR NOT DEFINED cxx_compiler_can_offload)
-   include(CheckCSourceCompiles)
-   include(CheckCXXSourceCompiles)
+   set(c_compiler_can_offload FALSE)
+   set(cxx_compiler_can_offload FALSE)
 
-   #find_library(MIC_HOST_IMF_LIBRARY   imf   HINTS ENV LIBRARY_PATH)
-   #find_library(MIC_HOST_SVML_LIBRARY  svml  HINTS ENV LIBRARY_PATH)
-   #find_library(MIC_HOST_INTLC_LIBRARY intlc HINTS ENV LIBRARY_PATH)
-
-   #set(MIC_HOST_LIBS ${MIC_HOST_IMF_LIBRARY} ${MIC_HOST_SVML_LIBRARY} ${MIC_HOST_INTLC_LIBRARY})
-
-   set(_mic_offload_test_source "
-#ifdef __MIC__
-#include <immintrin.h>
-#endif
-__attribute__((target(mic))) void test()
-{
-#ifdef __MIC__
- __m512 v = _mm512_setzero_ps();
- (void)v;
-#endif
-}
-
-int main()
-{
-#pragma offload target(mic)
- test();
- return 0;
-}
-")
-
-   set(CMAKE_REQUIRED_FLAGS "-offload-build")
-   check_c_source_compiles("${_mic_offload_test_source}" c_compiler_can_offload)
-   check_cxx_source_compiles("${_mic_offload_test_source}" cxx_compiler_can_offload)
-   set(CMAKE_REQUIRED_FLAGS)
+   # For now offload is not supported so skip it
+#   include(CheckCSourceCompiles)
+#   include(CheckCXXSourceCompiles)
+#
+#   #find_library(MIC_HOST_IMF_LIBRARY   imf   HINTS ENV LIBRARY_PATH)
+#   #find_library(MIC_HOST_SVML_LIBRARY  svml  HINTS ENV LIBRARY_PATH)
+#   #find_library(MIC_HOST_INTLC_LIBRARY intlc HINTS ENV LIBRARY_PATH)
+#
+#   #set(MIC_HOST_LIBS ${MIC_HOST_IMF_LIBRARY} ${MIC_HOST_SVML_LIBRARY} ${MIC_HOST_INTLC_LIBRARY})
+#
+#   set(_mic_offload_test_source "
+##ifdef __MIC__
+##include <immintrin.h>
+##endif
+#__attribute__((target(mic))) void test()
+#{
+##ifdef __MIC__
+# __m512 v = _mm512_setzero_ps();
+# (void)v;
+##endif
+#}
+#
+#int main()
+#{
+##pragma offload target(mic)
+# test();
+# return 0;
+#}
+#")
+#
+#   set(CMAKE_REQUIRED_FLAGS "-offload-build")
+#   check_c_source_compiles("${_mic_offload_test_source}" c_compiler_can_offload)
+#   check_cxx_source_compiles("${_mic_offload_test_source}" cxx_compiler_can_offload)
+#   set(CMAKE_REQUIRED_FLAGS)
 endif()
 
 if(c_compiler_can_offload AND cxx_compiler_can_offload)
