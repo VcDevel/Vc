@@ -126,7 +126,7 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // copy
-    Vc_INTRINSIC Vector(const Vector &x) : d(x.data()) {}
+    Vc_INTRINSIC Vector(const Vector &x) = default; //: d(x.data()) {}
     Vc_INTRINSIC Vector &operator=(const Vector &v) { d.v() = v.d.v(); return *this; }
 
     // implict conversion from compatible Vector<U>
