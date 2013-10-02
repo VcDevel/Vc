@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BUILD_DIR)
-   message(ERROR "You don't want to configure in the source directory!")
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+   message(FATAL_ERROR "You don't want to configure in the source directory!")
 endif()
 
 project(Vc)
