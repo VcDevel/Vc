@@ -578,7 +578,7 @@ static Vc_INTRINSIC m256i _mm256_cmplt_epi8(m256i a, m256i b) {
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
 //X     static Vc_INTRINSIC m256i _mm256_cmpgt_epu8 (param256i a, param256i b) { return _mm256_cmpgt_epi8 (
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
-#if defined(VC_IMPL_XOP) && (!defined(VC_CLANG) || VC_CLANG > 0x30300)
+#if defined(VC_IMPL_XOP) && (!defined(VC_CLANG) || VC_CLANG >= 0x30400)
     AVX_TO_SSE_2(comlt_epu32)
     AVX_TO_SSE_2(comgt_epu32)
     AVX_TO_SSE_2(comlt_epu16)
