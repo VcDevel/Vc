@@ -72,7 +72,7 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<> struct StaticCastHelper<short         , double        > { static __m512d cast(__m512i v) { return _mm512_cvtepi32lo_pd(v); } };
     template<> struct StaticCastHelper<unsigned short, unsigned int  > { static __m512i cast(__m512i v) { return v; } };
     template<> struct StaticCastHelper<unsigned short, int           > { static __m512i cast(__m512i v) { return v; } };
-    template<> struct StaticCastHelper<unsigned short, short         > { static __m512i cast(__m512i v) { return _mm512_and_ps(_mm512_castsi512_ps(v), _mm512_set1_epi32(0xffff)); } };
+    template<> struct StaticCastHelper<unsigned short, short         > { static __m512i cast(__m512i v) { return _mm512_and_epi32(v, _mm512_set1_epi32(0xffff)); } };
     template<> struct StaticCastHelper<unsigned short, float         > { static __m512  cast(__m512i v) { return _mm512_cvtfxpnt_round_adjustepu32_ps(v, _MM_FROUND_CUR_DIRECTION, _MM_EXPADJ_NONE); } };
     template<> struct StaticCastHelper<unsigned short, double        > { static __m512d cast(__m512i v) { return _mm512_cvtepu32lo_pd(v); } };
 
