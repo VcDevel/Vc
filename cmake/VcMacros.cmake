@@ -469,8 +469,6 @@ endmacro()
 #   vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS -DCOMPILE_BLAH EXCLUDE Scalar)
 #   add_executable(executable main.cpp ${_objs})
 macro(vc_compile_for_all_implementations _objs _src)
-   set(${_objs})
-
    # remove all -march, -msse, etc. flags from the flags we want to pass
    string(REPLACE "${Vc_ARCHITECTURE_FLAGS}" "" _flags "${Vc_DEFINITIONS}")
    string(REPLACE "-DVC_IMPL=[^ ]*" "" _flags "${_flags}")

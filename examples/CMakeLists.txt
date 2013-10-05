@@ -11,6 +11,9 @@ set(CMAKE_REQUIRED_LIBRARIES "${SAFE_CMAKE_REQUIRED_LIBRARIES}")
 
 add_custom_target(Examples COMMENT "build all examples" VERBATIM)
 
+# for the remaining targets unconditional Vc_ARCHITECTURE_FLAGS is mostly fine.
+add_definitions(${Vc_ARCHITECTURE_FLAGS})
+
 macro(build_example name)
    set(_SRCS)
    set(_LIBS)
