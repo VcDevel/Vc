@@ -100,7 +100,14 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
-add_definitions("${Vc_DEFINITIONS}")
+
+# FIXME: This needs cleanup for the next major Vc version
+# Vc_DEFINITIONS contains Vc_ARCHITECTURE_FLAGS which should not be unconditionally added to all targets.
+# Instead, Vc_DEFINITIONS - Vc_ARCHITECTURE_FLAGS is added unconditionally.
+# Vc_ARCHITECTURE_FLAGS then must be added per target.
+string(REPLACE "${Vc_ARCHITECTURE_FLAGS}" "" _flags "${Vc_DEFINITIONS}")
+add_definitions("${_flags}")
+
 if(Vc_COMPILER_IS_GCC AND Vc_GCC_VERSION VERSION_LESS 4.3.0)
    add_definitions(-DVC_DONT_WARN_OLD_GCC) # this warning is only interesting for external users of Vc
 endif()
@@ -125,27 +132,9 @@ if(NOT ROOT_RELEASE)
 
    set(libvc_compile_flags "-DVC_COMPILE_LIB")
    AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
-   vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS ${libvc_compile_flags}
-      ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA)
-   set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp ${_objs})
-   if(USE_AVX)
-      list(APPEND _srcs src/avx_sorthelper.cpp)
-   else()
-      if(NOT Vc_AVX_INTRINSICS_BROKEN)
-         # we'd still like to have avx_sorthelper.cpp built in, but that requires compilation with -mavx (or a comparable flag)
-         foreach(_flag "-xAVX" "-mavx" "-arch:AVX")
-            check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag})
-            if(check_cxx_compiler_flag_${_flag})
-               if(_flag STREQUAL "-xAVX")
-                  set(_flag "${_flag} -diag-disable 10121") # disable the warning "overriding -xSSE4.2 with -xAVX"
-               endif()
-               list(APPEND _srcs src/avx_sorthelper.cpp)
-               set_source_files_properties(src/avx_sorthelper.cpp PROPERTIES COMPILE_FLAGS "${_flag}")
-               break()
-            endif()
-         endforeach()
-      endif()
-   endif()
+   set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp)
+   vc_compile_for_all_implementations(_srcs src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA)
+   vc_compile_for_all_implementations(_srcs src/avx_sorthelper.cpp ONLY AVX)
    add_library(Vc STATIC ${_srcs})
    add_target_property(Vc COMPILE_FLAGS ${libvc_compile_flags})
    add_target_property(Vc LABELS "other")

@@ -9,6 +9,9 @@ mark_as_advanced(QT4_USABLE)
 set(CMAKE_REQUIRED_INCLUDES "${SAFE_CMAKE_REQUIRED_INCLUDES}")
 set(CMAKE_REQUIRED_LIBRARIES "${SAFE_CMAKE_REQUIRED_LIBRARIES}")
 
+# for the remaining targets unconditional Vc_ARCHITECTURE_FLAGS is mostly fine.
+add_definitions(${Vc_ARCHITECTURE_FLAGS})
+
 macro(build_example name)
    set(_SRCS)
    set(_LIBS)
