@@ -426,15 +426,25 @@ template<typename V> void testIntegerConversion()
 
 template<typename V> void boolConversion()
 {
-    bool mem[V::Size];
+    bool mem[V::Size + 64] __attribute__((aligned(16)));
     for_all_masks(V, m) {
-        m.store(mem);
+        bool *ptr = mem;
+        m.store(ptr);
         for (size_t i = 0; i < V::Size; ++i) {
-            COMPARE(mem[i], m[i]);
+            COMPARE(ptr[i], m[i]) << "offset: " << ptr - mem;
         }
 
-        typename V::Mask m2(mem);
-        COMPARE(m2, m);
+        typename V::Mask m2(ptr);
+        COMPARE(m2, m) << "offset: " << ptr - mem;
+        for (++ptr; ptr < &mem[64]; ++ptr) {
+            m.store(ptr, Vc::Unaligned);
+            for (size_t i = 0; i < V::Size; ++i) {
+                COMPARE(ptr[i], m[i]) << "offset: " << ptr - mem;
+            }
+
+            typename V::Mask m2(ptr, Vc::Unaligned);
+            COMPARE(m2, m) << "offset: " << ptr - mem;
+        }
     }
 }
 

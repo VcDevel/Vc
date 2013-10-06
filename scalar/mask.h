@@ -49,8 +49,13 @@ template<typename T> class Mask
             : m(a.m) {}
 
         Vc_ALWAYS_INLINE explicit Mask(const bool *mem) : m(mem[0]) {}
+        template<typename Flags> Vc_ALWAYS_INLINE explicit Mask(const bool *mem, Flags) : m(mem[0]) {}
+
         Vc_ALWAYS_INLINE void load(const bool *mem) { m = mem[0]; }
+        template<typename Flags> Vc_ALWAYS_INLINE void load(const bool *mem, Flags) { m = mem[0]; }
+
         Vc_ALWAYS_INLINE void store(bool *mem) const { *mem = m; }
+        template<typename Flags> Vc_ALWAYS_INLINE void store(bool *mem, Flags) const { *mem = m; }
 
         Vc_ALWAYS_INLINE Mask &operator=(const Mask &rhs) { m = rhs.m; return *this; }
         Vc_ALWAYS_INLINE Mask &operator=(bool rhs) { m = rhs; return *this; }

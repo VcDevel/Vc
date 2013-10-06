@@ -120,8 +120,13 @@ template<typename T> class Mask
             : d(internal::mask_cast<Mask<U>::Size, Size, VectorType>(rhs.dataI())) {}
 
         Vc_ALWAYS_INLINE explicit Mask(const bool *mem) { load(mem); }
+        template<typename Flags> Vc_ALWAYS_INLINE explicit Mask(const bool *mem, Flags f) { load(mem); }
+
         Vc_ALWAYS_INLINE_L void load(const bool *mem) Vc_ALWAYS_INLINE_R;
+        template<typename Flags> Vc_ALWAYS_INLINE void load(const bool *mem, Flags) { load(mem); }
+
         Vc_ALWAYS_INLINE_L void store(bool *) const Vc_ALWAYS_INLINE_R;
+        template<typename Flags> Vc_ALWAYS_INLINE void store(bool *mem, Flags) const { store(mem); }
 
         Vc_ALWAYS_INLINE Mask &operator=(const Mask &) = default;
         Vc_ALWAYS_INLINE_L Mask &operator=(const std::array<bool, Size> &values) Vc_ALWAYS_INLINE_R;
