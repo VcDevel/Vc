@@ -560,6 +560,7 @@ template<typename Vec> static typename Vec::Mask allMasks(size_t i)
     } else if (Vec::Size == 1) {
         return M(Vc::Zero);
     }
+#ifndef VC_IMPL_Scalar
     --i;
     if (i < Vec::Size) {
         return M (I(Vc::IndexesFromZero) == i);
@@ -668,6 +669,7 @@ template<typename Vec> static typename Vec::Mask allMasks(size_t i)
             }
         }
     }
+#endif
     return M(Vc::Zero);
 #endif
 }
