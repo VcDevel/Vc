@@ -48,7 +48,15 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<> struct StaticCastHelper<float         , short         > { static __m512i cast(__m512  v) { return _mm512_cvtfxpnt_round_adjustps_epi32(v, _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); } };
     template<> struct StaticCastHelper<float         , unsigned short> { static __m512i cast(__m512  v) { return _mm512_cvtfxpnt_round_adjustps_epu32(v, _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); } };
     template<> struct StaticCastHelper<float         , int           > { static __m512i cast(__m512  v) { return _mm512_cvtfxpnt_round_adjustps_epi32(v, _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); } };
-    template<> struct StaticCastHelper<float         , unsigned int  > { static __m512i cast(__m512  v) { return _mm512_cvtfxpnt_round_adjustps_epu32(v, _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); } };
+    template<> struct StaticCastHelper<float         , unsigned int  > { static __m512i cast(__m512  v) {
+        // cvtfxpntps2udq converts any negative input to 0
+        // but static_cast<unsigned int>(-1.f) == static_cast<unsigned int>(-1)
+        // => for negative input use cvtfxpntps2dq instead
+        const auto negative = _mm512_cmplt_ps_mask(v, _mm512_setzero_ps());
+        return _mm512_mask_cvtfxpnt_round_adjustps_epi32(
+                    _mm512_cvtfxpnt_round_adjustps_epu32(v, _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE), negative,
+                    v, _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE);
+    } };
     template<> struct StaticCastHelper<float         , double        > { static __m512d cast(__m512  v) { return _mm512_cvtpslo_pd(v); } };
     template<> struct StaticCastHelper<double        , short         > { static __m512i cast(__m512d v) { return _mm512_cvtfxpnt_roundpd_epi32lo(v, _MM_ROUND_MODE_TOWARD_ZERO); } };
     template<> struct StaticCastHelper<double        , unsigned short> { static __m512i cast(__m512d v) { return _mm512_cvtfxpnt_roundpd_epu32lo(v, _MM_ROUND_MODE_TOWARD_ZERO); } };
