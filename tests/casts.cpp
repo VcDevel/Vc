@@ -23,16 +23,39 @@
 
 using namespace Vc;
 
+template<typename T> struct is_overflow_undefined : public std::integral_constant<bool, false> {};
+template<> struct is_overflow_undefined<signed  char> : public std::integral_constant<bool, true> {};
+template<> struct is_overflow_undefined<signed short> : public std::integral_constant<bool, true> {};
+template<> struct is_overflow_undefined<signed   int> : public std::integral_constant<bool, true> {};
+template<> struct is_overflow_undefined<signed  long> : public std::integral_constant<bool, true> {};
+
 template<typename V1, typename V2> void testNumber(double n)
 {
     typedef typename V1::EntryType T1;
     typedef typename V2::EntryType T2;
 
+    constexpr T1 One = T1(1);
+
     // compare casts from T1 -> T2 with casts from V1 -> V2
 
     const T1 n1 = static_cast<T1>(n);
     //std::cerr << "n1 = " << n1 << ", static_cast<T2>(n1) = " << static_cast<T2>(n1) << std::endl;
-    COMPARE(static_cast<V2>(V1(n1)), V2(static_cast<T2>(n1))) << "\n       n1: " << n1;
+    COMPARE(static_cast<V2>(V1(n1)), V2(static_cast<T2>(n1)))
+        << "\n       n1: " << n1
+        << "\n   V1(n1): " << V1(n1)
+        << "\n   T2(n1): " << T2(n1)
+        ;
+    if (!is_overflow_undefined<T1>::value && !is_overflow_undefined<T2>::value) {
+        COMPARE(static_cast<V2>(V1(n1) + One), V2(static_cast<T2>(n1 + One))) << "\n       n1: " << n1;
+        COMPARE(static_cast<V2>(V1(n1) - One), V2(static_cast<T2>(n1 - One))) << "\n       n1: " << n1;
+    } else {
+        if (n1 <= std::numeric_limits<T1>::max() - One) {
+            COMPARE(static_cast<V2>(V1(n1) + One), V2(static_cast<T2>(n1 + One))) << "\n       n1: " << n1;
+        }
+        if (n1 >= std::numeric_limits<T1>::min() + One) {
+            COMPARE(static_cast<V2>(V1(n1) - One), V2(static_cast<T2>(n1 - One))) << "\n       n1: " << n1;
+        }
+    }
 }
 
 template<typename T> double maxHelper()
