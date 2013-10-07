@@ -103,9 +103,11 @@ template<typename V> void testCall()
     a(odd) -= 1;
     a.callWithValuesSorted(f);
     V c(f.d);
+#ifndef VC_IMPL_Scalar // avoid -Wtautological-compare warnings because of V::Size == 1
     for (size_t i = 0; i < V::Size / 2; ++i) {
         COMPARE(a[i * 2], c[i]);
     }
+#endif
     for (size_t i = V::Size / 2; i < V::Size; ++i) {
         COMPARE(b[i], c[i]);
     }
