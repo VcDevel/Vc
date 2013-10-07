@@ -344,24 +344,30 @@ enum MallocAlignment {
     AlignOnPage
 };
 
-#if __cplusplus >= 201103 /*C++11*/
-#define Vc_CONSTEXPR static constexpr
-#elif defined(__GNUC__)
-#define Vc_CONSTEXPR static inline __attribute__((__always_inline__, __const__))
-#elif defined(VC_MSVC)
-#define Vc_CONSTEXPR static inline __forceinline
-#else
-#define Vc_CONSTEXPR static inline
-#endif
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-Vc_CONSTEXPR StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+} // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
-Vc_CONSTEXPR StreamingAndAlignedFlag operator|(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-Vc_CONSTEXPR StreamingAndAlignedFlag operator|(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
-Vc_CONSTEXPR StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-Vc_CONSTEXPR StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
+#if __cplusplus >= 201103 /*C++11*/
+#define Vc_CONSTEXPR constexpr
+#elif defined(__GNUC__)
+#define Vc_CONSTEXPR inline __attribute__((__always_inline__, __const__))
+#elif defined(VC_MSVC)
+#define Vc_CONSTEXPR inline __forceinline
+#else
+#define Vc_CONSTEXPR inline
+#endif
+Vc_CONSTEXPR Vc::StreamingAndUnalignedFlag operator|(Vc::UnalignedFlag, Vc::StreamingAndAlignedFlag) { return Vc::StreamingAndUnaligned; }
+Vc_CONSTEXPR Vc::StreamingAndUnalignedFlag operator|(Vc::StreamingAndAlignedFlag, Vc::UnalignedFlag) { return Vc::StreamingAndUnaligned; }
+Vc_CONSTEXPR Vc::StreamingAndUnalignedFlag operator&(Vc::UnalignedFlag, Vc::StreamingAndAlignedFlag) { return Vc::StreamingAndUnaligned; }
+Vc_CONSTEXPR Vc::StreamingAndUnalignedFlag operator&(Vc::StreamingAndAlignedFlag, Vc::UnalignedFlag) { return Vc::StreamingAndUnaligned; }
+
+Vc_CONSTEXPR Vc::StreamingAndAlignedFlag operator|(Vc::AlignedFlag, Vc::StreamingAndAlignedFlag) { return Vc::Streaming; }
+Vc_CONSTEXPR Vc::StreamingAndAlignedFlag operator|(Vc::StreamingAndAlignedFlag, Vc::AlignedFlag) { return Vc::Streaming; }
+Vc_CONSTEXPR Vc::StreamingAndAlignedFlag operator&(Vc::AlignedFlag, Vc::StreamingAndAlignedFlag) { return Vc::Streaming; }
+Vc_CONSTEXPR Vc::StreamingAndAlignedFlag operator&(Vc::StreamingAndAlignedFlag, Vc::AlignedFlag) { return Vc::Streaming; }
+
+/*OUTER_NAMESPACE_BEGIN*/
+namespace Vc {
 
 /**
  * \ingroup Utilities
@@ -477,10 +483,10 @@ namespace Internal {
     typedef HelperImpl<VC_IMPL> Helper;
 
     template<typename A> struct FlagObject;
-    template<> struct FlagObject<AlignedFlag> { Vc_CONSTEXPR AlignedFlag the() { return Aligned; } };
-    template<> struct FlagObject<UnalignedFlag> { Vc_CONSTEXPR UnalignedFlag the() { return Unaligned; } };
-    template<> struct FlagObject<StreamingAndAlignedFlag> { Vc_CONSTEXPR StreamingAndAlignedFlag the() { return Streaming; } };
-    template<> struct FlagObject<StreamingAndUnalignedFlag> { Vc_CONSTEXPR StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
+    template<> struct FlagObject<AlignedFlag> { static Vc_CONSTEXPR AlignedFlag the() { return Aligned; } };
+    template<> struct FlagObject<UnalignedFlag> { static Vc_CONSTEXPR UnalignedFlag the() { return Unaligned; } };
+    template<> struct FlagObject<StreamingAndAlignedFlag> { static Vc_CONSTEXPR StreamingAndAlignedFlag the() { return Streaming; } };
+    template<> struct FlagObject<StreamingAndUnalignedFlag> { static Vc_CONSTEXPR StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
 } // namespace Internal
 
 namespace Warnings
