@@ -166,6 +166,7 @@ public:
 private:
     MaskType k;
 };
+template<typename T> constexpr size_t Mask<T>::Size;
 
 struct ForeachHelper
 {

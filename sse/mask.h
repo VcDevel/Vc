@@ -185,6 +185,7 @@ template<typename T> class Mask
 #endif
         Storage d;
 };
+template<typename T> constexpr size_t Mask<T>::Size;
 
 struct ForeachHelper
 {

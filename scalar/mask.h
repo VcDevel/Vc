@@ -108,6 +108,7 @@ template<typename T> class Mask
     private:
         bool m;
 };
+template<typename T> constexpr size_t Mask<T>::Size;
 
 struct ForeachHelper
 {
