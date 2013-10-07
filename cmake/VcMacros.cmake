@@ -370,13 +370,19 @@ macro(vc_set_preferred_compiler_flags)
       elseif(Vc_CLANG_VERSION VERSION_LESS "3.3")
          # the LLVM assembler gets FMAs wrong (bug 15040)
          vc_add_compiler_flag(Vc_DEFINITIONS "-no-integrated-as")
+      else()
+         vc_add_compiler_flag(Vc_DEFINITIONS "-integrated-as")
       endif()
 
       # disable these warnings because clang shows them for function overloads that were discarded via SFINAE
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wno-local-type-template-args")
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wno-unnamed-type-template-args")
 
-      AddCompilerFlag(-stdlib=libc++)
+      if(XCODE)
+         # set_target_properties(${_target} PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+      else()
+         AddCompilerFlag(-stdlib=libc++)
+      endif()
    endif()
 
    if(NOT Vc_COMPILER_IS_MSVC)
