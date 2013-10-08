@@ -236,6 +236,9 @@ extern "C" {
 #endif
 
 Vc_NAMESPACE_BEGIN(SseIntrinsics)
+    Vc_INTRINSIC int _mm_extract_epi32(__m128i v, const int index) {
+        return _mm_cvtsi128_si32(_mm_srli_si128(v, index * 4));
+    }
     static Vc_INTRINSIC __m128d _mm_blendv_pd(__m128d a, __m128d b, __m128d c) {
         return _mm_or_pd(_mm_andnot_pd(c, a), _mm_and_pd(c, b));
     }

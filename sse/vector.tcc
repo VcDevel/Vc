@@ -1107,11 +1107,7 @@ template<> Vc_INTRINSIC int Vc_PURE Vector<int>::operator[](size_t index) const
         if (index == 0) return _mm_cvtsi128_si32(d.v());
 #endif
 #endif
-#ifdef VC_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
-#else
-        return _mm_cvtsi128_si32(_mm_srli_si128(d.v(), index * 4));
-#endif
     }
     return d.m(index);
 }
@@ -1126,11 +1122,7 @@ template<> Vc_INTRINSIC unsigned int Vc_PURE Vector<unsigned int>::operator[](si
         if (index == 0) return _mm_cvtsi128_si32(d.v());
 #endif
 #endif
-#ifdef VC_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
-#else
-        return _mm_cvtsi128_si32(_mm_srli_si128(d.v(), index * 4));
-#endif
     }
     return d.m(index);
 }
