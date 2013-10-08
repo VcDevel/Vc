@@ -442,8 +442,8 @@ template<typename V> void boolConversion()
                 COMPARE(ptr[i], m[i]) << "offset: " << ptr - mem;
             }
 
-            typename V::Mask m2(ptr, Vc::Unaligned);
-            COMPARE(m2, m) << "offset: " << ptr - mem;
+            typename V::Mask m3(ptr, Vc::Unaligned);
+            COMPARE(m3, m) << "offset: " << ptr - mem;
         }
     }
 }
