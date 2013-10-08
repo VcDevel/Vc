@@ -101,7 +101,7 @@ template<typename T> class Mask
             : d(sse_cast<__m128>(internal::mask_cast<Mask<U>::Size, Size>(rhs.dataI()))) {}
 
         Vc_ALWAYS_INLINE explicit Mask(const bool *mem) { load(mem); }
-        template<typename Flags> Vc_ALWAYS_INLINE explicit Mask(const bool *mem, Flags f) { load(mem); }
+        template<typename Flags> Vc_ALWAYS_INLINE explicit Mask(const bool *mem, Flags f) { load(mem, f); }
 
         Vc_ALWAYS_INLINE_L void load(const bool *mem) Vc_ALWAYS_INLINE_R;
         template<typename Flags> Vc_ALWAYS_INLINE void load(const bool *mem, Flags) { load(mem); }
