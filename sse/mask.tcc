@@ -153,7 +153,13 @@ template<> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
 {
     k = _mm_srli_epi16(k, 15);
     typedef int64_t boolAlias Vc_MAY_ALIAS;
-    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(_mm_packs_epi16(k, _mm_setzero_si128()));
+    const auto k2 = _mm_packs_epi16(k, _mm_setzero_si128());
+#ifdef __x86_64__
+    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(k2);
+#else
+    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si32(k2);
+    *reinterpret_cast<boolAlias *>(mem + 4) = _mm_extract_epi32(k2, 1);
+#endif
 }
 /*}}}*/
 // mask_load/*{{{*/

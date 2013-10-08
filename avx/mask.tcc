@@ -108,13 +108,25 @@ template<> Vc_ALWAYS_INLINE void mask_store<8>(m256i k, bool *mem)
 {
     const auto k2 = _mm_srli_epi16(_mm_packs_epi16(lo128(k), hi128(k)), 15);
     typedef uint64_t boolAlias Vc_MAY_ALIAS;
-    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(_mm_packs_epi16(k2, _mm_setzero_si128()));
+    const auto k3 = _mm_packs_epi16(k2, _mm_setzero_si128());
+#ifdef __x86_64__
+    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(k3);
+#else
+    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si32(k3);
+    *reinterpret_cast<boolAlias *>(mem + 4) = _mm_extract_epi32(k3, 1);
+#endif
 }
 template<> Vc_ALWAYS_INLINE void mask_store<8>(m128i k, bool *mem)
 {
     k = _mm_srli_epi16(k, 15);
     typedef uint64_t boolAlias Vc_MAY_ALIAS;
-    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(_mm_packs_epi16(k, _mm_setzero_si128()));
+    const auto k2 = _mm_packs_epi16(k, _mm_setzero_si128());
+#ifdef __x86_64__
+    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(k2);
+#else
+    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si32(k2);
+    *reinterpret_cast<boolAlias *>(mem + 4) = _mm_extract_epi32(k2, 1);
+#endif
 }
 /*}}}*/
 // mask_load/*{{{*/
