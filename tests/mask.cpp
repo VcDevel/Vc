@@ -261,7 +261,7 @@ template<typename Vec> void testCount()/*{{{*/
     typedef typename Vec::Mask M;
 
     for_all_masks(Vec, m) {
-        unsigned int count = 0;
+        int count = 0;
         for (size_t i = 0; i < Vec::Size; ++i) {
             if (m[i]) {
                 ++count;
@@ -279,7 +279,7 @@ template<typename Vec> void testFirstOne()/*{{{*/
 
     for (unsigned int i = 0; i < Vec::Size; ++i) {
         const M mask(I(Vc::IndexesFromZero) == i);
-        COMPARE(mask.firstOne(), i);
+        COMPARE(mask.firstOne(), int(i));
     }
 }
 /*}}}*/
@@ -330,11 +330,12 @@ void testBinaryOperators()/*{{{*/
 template<typename V> void maskReductions()/*{{{*/
 {
     for_all_masks(V, mask) {
-        COMPARE(all_of(mask), mask.count() == V::Size);
+        constexpr decltype(mask.count()) size = V::Size;
+        COMPARE(all_of(mask), mask.count() == size);
         if (mask.count() > 0) {
             VERIFY(any_of(mask));
             VERIFY(!none_of(mask));
-            COMPARE(some_of(mask), mask.count() < V::Size);
+            COMPARE(some_of(mask), mask.count() < size);
         } else {
             VERIFY(!any_of(mask));
             VERIFY(none_of(mask));
