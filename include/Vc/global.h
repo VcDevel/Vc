@@ -344,9 +344,6 @@ enum MallocAlignment {
     AlignOnPage
 };
 
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
-
 #if __cplusplus >= 201103 /*C++11*/
 #define Vc_CONSTEXPR constexpr
 #elif defined(__GNUC__)
@@ -356,18 +353,16 @@ enum MallocAlignment {
 #else
 #define Vc_CONSTEXPR inline
 #endif
-Vc_CONSTEXPR Vc::StreamingAndUnalignedFlag operator|(Vc::UnalignedFlag, Vc::StreamingAndAlignedFlag) { return Vc::StreamingAndUnaligned; }
-Vc_CONSTEXPR Vc::StreamingAndUnalignedFlag operator|(Vc::StreamingAndAlignedFlag, Vc::UnalignedFlag) { return Vc::StreamingAndUnaligned; }
-Vc_CONSTEXPR Vc::StreamingAndUnalignedFlag operator&(Vc::UnalignedFlag, Vc::StreamingAndAlignedFlag) { return Vc::StreamingAndUnaligned; }
-Vc_CONSTEXPR Vc::StreamingAndUnalignedFlag operator&(Vc::StreamingAndAlignedFlag, Vc::UnalignedFlag) { return Vc::StreamingAndUnaligned; }
 
-Vc_CONSTEXPR Vc::StreamingAndAlignedFlag operator|(Vc::AlignedFlag, Vc::StreamingAndAlignedFlag) { return Vc::Streaming; }
-Vc_CONSTEXPR Vc::StreamingAndAlignedFlag operator|(Vc::StreamingAndAlignedFlag, Vc::AlignedFlag) { return Vc::Streaming; }
-Vc_CONSTEXPR Vc::StreamingAndAlignedFlag operator&(Vc::AlignedFlag, Vc::StreamingAndAlignedFlag) { return Vc::Streaming; }
-Vc_CONSTEXPR Vc::StreamingAndAlignedFlag operator&(Vc::StreamingAndAlignedFlag, Vc::AlignedFlag) { return Vc::Streaming; }
+Vc_CONSTEXPR StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+Vc_CONSTEXPR StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
+Vc_CONSTEXPR StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
+Vc_CONSTEXPR StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc {
+Vc_CONSTEXPR StreamingAndAlignedFlag operator|(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
+Vc_CONSTEXPR StreamingAndAlignedFlag operator|(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
+Vc_CONSTEXPR StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
+Vc_CONSTEXPR StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
 
 /**
  * \ingroup Utilities
