@@ -40,7 +40,7 @@ template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::IndexesFromZero(
 // load member functions {{{1
 template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *mem, Flags flags)
 {
-    handleLoadPrefetches(mem, flags);
+    Common::handleLoadPrefetches(mem, flags);
     d.v() = HV::template load<Flags>(mem);
 }
 
@@ -190,7 +190,7 @@ template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags>
 // general load, implemented via LoadHelper {{{2
 template<typename DstT> template<typename SrcT, typename Flags> Vc_INTRINSIC void Vector<DstT>::load(const SrcT *mem, Flags flags)
 {
-    handleLoadPrefetches(mem, flags);
+    Common::handleLoadPrefetches(mem, flags);
     d.v() = LoadHelper<DstT, SrcT, Flags>::load(mem, flags);
 }
 
@@ -227,14 +227,14 @@ template<> Vc_INTRINSIC void Vector<float>::setQnan(MaskArg k)
 template<typename T> template<typename T2, typename Flags>
 Vc_INTRINSIC void Vector<T>::store(T2 *mem, Flags flags) const
 {
-    handleStorePrefetches(mem, flags);
+    Common::handleStorePrefetches(mem, flags);
     HV::template store<Flags>(mem, data());
 }
 
 template<typename T> template<typename T2, typename Flags>
 Vc_INTRINSIC void Vector<T>::store(T2 *mem, Mask mask, Flags flags) const
 {
-    handleStorePrefetches(mem, flags);
+    Common::handleStorePrefetches(mem, flags);
     HV::template store<Flags>(mem, data(), avx_cast<VectorType>(mask.data()));
 }
 
@@ -1100,6 +1100,7 @@ template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS
     VC_MASKED_SCATTER
 #undef ith_value
 }
+#undef VC_MASKED_SCATTER
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator- {{{1

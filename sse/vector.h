@@ -29,8 +29,8 @@
 #include "../common/loadstoreflags.h"
 #include <algorithm>
 #include <cmath>
-#include "../common/where.h"
-#include "../common/iterators.h"
+#include "where.h"
+#include "iterators.h"
 
 #include "macros.h"
 
@@ -410,7 +410,7 @@ template<typename T> class Vector
                     );
         }
         template<typename F> Vc_INTRINSIC void call(const F &f, const Mask &mask) const {
-            for (size_t i : Vc::where(mask)) {
+            for (size_t i : where(mask)) {
                 f(EntryType(d.m(i)));
             }
         }
@@ -423,7 +423,7 @@ template<typename T> class Vector
         }
         template<typename F> Vc_INTRINSIC Vector<T> apply(const F &f, const Mask &mask) const {
             Vector<T> r(*this);
-            for (size_t i : Vc::where(mask)) {
+            for (size_t i : where(mask)) {
                 r.d.m(i) = f(EntryType(r.d.m(i)));
             }
             return r;
@@ -448,7 +448,7 @@ template<typename T> class Vector
         }
 
         template<typename F> Vc_INTRINSIC void call(F VC_RR_ f, const Mask &mask) const {
-            for(size_t i : Vc::where(mask)) {
+            for(size_t i : where(mask)) {
                 f(EntryType(d.m(i)));
             }
         }
@@ -462,7 +462,7 @@ template<typename T> class Vector
         }
         template<typename F> Vc_INTRINSIC Vector<T> apply(F VC_RR_ f, const Mask &mask) const {
             Vector<T> r(*this);
-            for (size_t i : Vc::where(mask)) {
+            for (size_t i : where(mask)) {
                 r.d.m(i) = f(EntryType(r.d.m(i)));
             }
             return r;

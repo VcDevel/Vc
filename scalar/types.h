@@ -30,11 +30,18 @@
 #define VC_USHORT_V_SIZE 1
 #endif
 
+#include "../common/type_traits.h"
 #include "../common/types.h"
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
         template<typename V = float> class VectorAlignedBaseT {};
         template<typename T> class Vector;
-Vc_IMPL_NAMESPACE_END
+        template<typename T> class Mask;
+Vc_NAMESPACE_END
+
+Vc_NAMESPACE_BEGIN(Common)
+template<typename T> struct is_simd_mask_internal<Vc_IMPL_NAMESPACE::Mask<T>> : public std::true_type {};
+template<typename T> struct is_simd_vector_internal<Vc_IMPL_NAMESPACE::Vector<T>> : public std::true_type {};
+Vc_NAMESPACE_END
 
 #endif // VC_SCALAR_TYPES_H

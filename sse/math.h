@@ -157,12 +157,4 @@ Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
 
-#define VC__USE_NAMESPACE SSE
-#include "../common/trigonometric.h"
-#define VC__USE_NAMESPACE SSE
-#include "../common/logarithm.h"
-#define VC__USE_NAMESPACE SSE
-#include "../common/exponential.h"
-#undef VC__USE_NAMESPACE
-
 #endif // VC_SSE_MATH_H

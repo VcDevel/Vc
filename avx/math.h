@@ -80,8 +80,5 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
-#include "../common/trigonometric.h"
-#include "../common/logarithm.h"
-#include "../common/exponential.h"
 
 #endif // VC_AVX_MATH_H

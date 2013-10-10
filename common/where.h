@@ -24,8 +24,6 @@
 
 Vc_PUBLIC_NAMESPACE_BEGIN
 
-namespace
-{
     template<typename _Mask, typename _LValue> struct MaskedLValue
     {
         typedef _Mask Mask;
@@ -123,7 +121,6 @@ namespace
             return operator|(std::forward<T>(lhs));
         }
     };
-} // anonymous namespace
 
 /**
  * \ingroup Utilities
@@ -174,10 +171,6 @@ template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereMask<M> _if(const M &m
     return { m };
 }
 
-Vc_NAMESPACE_END
-
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
-    using Vc::where;
 Vc_NAMESPACE_END
 
 #include "undomacros.h"

@@ -22,28 +22,12 @@
 
 #include <type_traits>
 
+#include "common/type_traits.h"
 #include "common/macros.h"
 Vc_PUBLIC_NAMESPACE_BEGIN
 
-template<typename T>
-struct is_simd_mask : public std::integral_constant<bool,
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  float_m>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, double_m>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,    int_m>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,   uint_m>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  short_m>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, ushort_m>::value>
-    {};
-
-template<typename T>
-struct is_simd_vector : public std::integral_constant<bool,
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  float_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, double_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,    int_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,   uint_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  short_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, ushort_v>::value>
-    {};
+using Common::is_simd_mask;
+using Common::is_simd_vector;
 
 template<typename T>
 struct memory_alignment : public std::integral_constant<size_t, alignof(T)> {};

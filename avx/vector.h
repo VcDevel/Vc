@@ -29,6 +29,8 @@
 #include <cmath>
 #include "../common/aliasingentryhelper.h"
 #include "../common/memoryfwd.h"
+#include "where.h"
+#include "iterators.h"
 #include "macros.h"
 
 #ifdef isfinite
@@ -405,6 +407,19 @@ typedef    int_v::Mask int_m;
 typedef   uint_v::Mask uint_m;
 typedef  short_v::Mask short_m;
 typedef ushort_v::Mask ushort_m;
+
+static_assert(Common::is_simd_vector<double_v>::value, "is_simd_vector<double_v>::value");
+static_assert(Common::is_simd_vector< float_v>::value, "is_simd_vector< float_v>::value");
+static_assert(Common::is_simd_vector<   int_v>::value, "is_simd_vector<   int_v>::value");
+static_assert(Common::is_simd_vector<  uint_v>::value, "is_simd_vector<  uint_v>::value");
+static_assert(Common::is_simd_vector< short_v>::value, "is_simd_vector< short_v>::value");
+static_assert(Common::is_simd_vector<ushort_v>::value, "is_simd_vector<ushort_v>::value");
+static_assert(Common::is_simd_mask  <double_m>::value, "is_simd_mask  <double_m>::value");
+static_assert(Common::is_simd_mask  < float_m>::value, "is_simd_mask  < float_m>::value");
+static_assert(Common::is_simd_mask  <   int_m>::value, "is_simd_mask  <   int_m>::value");
+static_assert(Common::is_simd_mask  <  uint_m>::value, "is_simd_mask  <  uint_m>::value");
+static_assert(Common::is_simd_mask  < short_m>::value, "is_simd_mask  < short_m>::value");
+static_assert(Common::is_simd_mask  <ushort_m>::value, "is_simd_mask  <ushort_m>::value");
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 

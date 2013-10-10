@@ -31,10 +31,30 @@
 #elif defined(VC_IMPL_AVX)
 # include "avx/vector.h"
 # include "avx/helperimpl.h"
+// a machine that supports AVX also supports SSE
+# undef VC_IMPL
+# undef Vc_IMPL_NAMESPACE
+# define VC_IMPL ::Vc::SSE42Impl
+# define Vc_IMPL_NAMESPACE SSE
+# include "sse/vector.h"
+//# include "sse/helperimpl.h"
+# undef VC_IMPL
+# undef Vc_IMPL_NAMESPACE
+# if defined(VC_IMPL_AVX2)
+#  define VC_IMPL ::Vc::AVX2Impl
+#  define Vc_IMPL_NAMESPACE AVX2
+# elif defined(VC_IMPL_AVX)
+#  define VC_IMPL ::Vc::AVXImpl
+#  define Vc_IMPL_NAMESPACE AVX
+# else
+#  error "I lost track of the targeted implementation now. Something is messed up or there's a bug in Vc."
+# endif
 #elif defined(VC_IMPL_SSE)
 # include "sse/vector.h"
 # include "sse/helperimpl.h"
 #endif
+
+#include "common/math.h"
 
 #ifdef isfinite
 #undef isfinite

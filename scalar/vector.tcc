@@ -18,6 +18,8 @@
 */
 
 #include "../common/data.h"
+#include "where.h"
+#include "iterators.h"
 #include "macros.h"
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 

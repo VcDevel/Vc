@@ -45,11 +45,7 @@
   (this is the zlib license)
 */
 
-#ifndef VC_COMMON_LOGARITHM_H
-#define VC_COMMON_LOGARITHM_H
-
-#include "macros.h"
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+#ifdef VC_COMMON_MATH_H_INTERNAL
 
 enum LogarithmBase {
     BaseE, Base10, Base2
@@ -256,8 +252,4 @@ template<typename T> static Vc_ALWAYS_INLINE Vc_CONST Vector<T> log2(VC_ALIGNED_
     return LogImpl<Base2>::calc(x);
 }
 
-Vc_NAMESPACE_END
-
-#include "undomacros.h"
-
-#endif // VC_COMMON_LOGARITHM_H
+#endif // VC_COMMON_MATH_H_INTERNAL

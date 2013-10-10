@@ -116,11 +116,11 @@ template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::IndexesFromZero(
 
 // loads {{{1
 template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *x, Flags flags) {
-    handleLoadPrefetches(x, flags);
+    Common::handleLoadPrefetches(x, flags);
     d.v() = LoadHelper<Vector<T>>::load(x, flags);
 }
 template<typename T> template<typename OtherT, typename Flags> Vc_INTRINSIC void Vector<T>::load(const OtherT *x, Flags flags) {
-    handleLoadPrefetches(x, flags);
+    Common::handleLoadPrefetches(x, flags);
     d.v() = LoadHelper<Vector<T>>::load(x, flags);
 }
 
@@ -174,14 +174,14 @@ template<> Vc_INTRINSIC void ushort_v::assign(ushort_v v, ushort_m m)
 template<typename Parent, typename T> template<typename T2, typename Flags>
 Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Flags flags) const
 {
-    handleStorePrefetches(mem, flags);
+    Common::handleStorePrefetches(mem, flags);
     MicIntrinsics::store<Flags>(mem, data(), UpDownC<T2>());
 }
 
 template<typename Parent, typename T> template<typename T2, typename Flags>
 Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, Flags flags) const
 {
-    handleStorePrefetches(mem, flags);
+    Common::handleStorePrefetches(mem, flags);
     MicIntrinsics::store<Flags>(mask.data(), mem, data(), UpDownC<T2>());
 }
 

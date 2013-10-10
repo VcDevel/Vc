@@ -34,6 +34,8 @@
 //#include "vectormultiplication.h"
 #include "writemaskedvector.h"
 #include "sorthelper.h"
+#include "iterators.h"
+#include "where.h"
 #include "macros.h"
 
 #ifdef isfinite

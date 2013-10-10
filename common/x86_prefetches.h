@@ -23,7 +23,7 @@
 #include <xmmintrin.h>
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+Vc_NAMESPACE_BEGIN(Common)
 
 #if !defined(VC_IMPL_MIC) && !defined(_MM_HINT_ENTA)
 #define VC__NO_SUPPORT_FOR_EXCLUSIVE_HINT 1
@@ -123,10 +123,10 @@ template<typename Flags> Vc_INTRINSIC void handleStorePrefetches(const void *add
 Vc_NAMESPACE_END
 
 Vc_PUBLIC_NAMESPACE_BEGIN
-using Vc_IMPL_NAMESPACE::prefetchForOneRead;
-using Vc_IMPL_NAMESPACE::prefetchClose;
-using Vc_IMPL_NAMESPACE::prefetchMid;
-using Vc_IMPL_NAMESPACE::prefetchFar;
+using Common::prefetchForOneRead;
+using Common::prefetchClose;
+using Common::prefetchMid;
+using Common::prefetchFar;
 Vc_NAMESPACE_END
 
 #include "undomacros.h"

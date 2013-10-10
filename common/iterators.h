@@ -21,13 +21,14 @@
 #define VC_COMMON_ITERATORS_H
 
 #include <array>
-#include <Vc/type_traits>
+#include "where.h"
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Common)
 
-namespace
-{
+template<typename _V, typename Flags> class MemoryVector;
+template<typename _V, typename Flags> class MemoryVectorIterator;
+
     template<typename V> class Iterator/*{{{*/
     {
         V &v;
@@ -141,34 +142,33 @@ namespace
         Vc_ALWAYS_INLINE bool operator!=(const BitmaskIterator &rhs) const { return mask != rhs.mask; }
     };/*}}}*/
 #endif
-} // anonymous namespace
 
-template<typename V> constexpr typename std::enable_if<is_simd_vector<V>::value, Iterator<V>>::type begin(V &v)
+template<typename V> constexpr typename std::enable_if<Common::is_simd_vector<V>::value, Iterator<V>>::type begin(V &v)
 {
     return { v, 0 };
 }
 
-template<typename V> constexpr typename std::enable_if<is_simd_vector<V>::value, Iterator<V>>::type end(V &v)
+template<typename V> constexpr typename std::enable_if<Common::is_simd_vector<V>::value, Iterator<V>>::type end(V &v)
 {
     return { v, V::Size };
 }
 
-template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, ConstIterator<V>>::type begin(const V &v)
+template<typename V> constexpr typename std::enable_if<Common::is_simd_mask<V>::value || Common::is_simd_vector<V>::value, ConstIterator<V>>::type begin(const V &v)
 {
     return { v, 0 };
 }
 
-template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, ConstIterator<V>>::type end(const V &v)
+template<typename V> constexpr typename std::enable_if<Common::is_simd_mask<V>::value || Common::is_simd_vector<V>::value, ConstIterator<V>>::type end(const V &v)
 {
     return { v, V::Size };
 }
 
-template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, ConstIterator<V>>::type cbegin(const V &v)
+template<typename V> constexpr typename std::enable_if<Common::is_simd_mask<V>::value || Common::is_simd_vector<V>::value, ConstIterator<V>>::type cbegin(const V &v)
 {
     return { v, 0 };
 }
 
-template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, ConstIterator<V>>::type cend(const V &v)
+template<typename V> constexpr typename std::enable_if<Common::is_simd_mask<V>::value || Common::is_simd_vector<V>::value, ConstIterator<V>>::type cend(const V &v)
 {
     return { v, V::Size };
 }
@@ -207,12 +207,6 @@ template<typename V, typename Flags, typename FlagsX> Vc_ALWAYS_INLINE MemoryVec
     return new(&mv) MemoryVector<const V, Flags>;
 }
 
-Vc_NAMESPACE_END
-
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
-    using ::Vc::Common::begin;
-    using ::Vc::Common::end;
-    using ::Vc::Common::makeIterator;
 Vc_NAMESPACE_END
 
 #include "undomacros.h"

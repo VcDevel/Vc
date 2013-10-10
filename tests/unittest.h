@@ -257,7 +257,7 @@ unittest_compareHelper(const T1 &a, const T2 &b) { return a == b; }
 
 template<typename T1, typename T2> Vc_ALWAYS_INLINE
 typename std::enable_if< (is_simd<T1>::value || is_simd<T2>::value), bool>::type
-unittest_compareHelper(const T1 &a, const T2 &b) { return all_of(a == b); }
+unittest_compareHelper(const T1 &a, const T2 &b) { return Vc::all_of(a == b); }
 
 template<> Vc_ALWAYS_INLINE bool unittest_compareHelper<std::type_info, std::type_info>(const std::type_info &a, const std::type_info &b ) { return &a == &b; }
 

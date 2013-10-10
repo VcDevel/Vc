@@ -22,6 +22,7 @@
 
 #include "intrinsics.h"
 #include "../common/storage.h"
+#include "../common/type_traits.h"
 
 #ifndef VC_DOUBLE_V_SIZE
 #define VC_DOUBLE_V_SIZE 2
@@ -105,7 +106,12 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
             FREE_STORE_OPERATORS_ALIGNED(16)
     } STRUCT_ALIGN2(16);
 
-Vc_IMPL_NAMESPACE_END
+Vc_NAMESPACE_END
+
+Vc_NAMESPACE_BEGIN(Common)
+template<typename T> struct is_simd_mask_internal<Vc_IMPL_NAMESPACE::Mask<T>> : public std::true_type {};
+template<typename T> struct is_simd_vector_internal<Vc_IMPL_NAMESPACE::Vector<T>> : public std::true_type {};
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 
