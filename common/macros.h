@@ -63,7 +63,7 @@
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
 #  define Vc_MAY_ALIAS __attribute__((__may_alias__))
-#  define Vc_INTRINSIC_R __attribute__((__flatten__, __always_inline__, __artificial__))
+#  define Vc_INTRINSIC_R __attribute__((__always_inline__, __artificial__))
 #  define Vc_INTRINSIC_L inline
 #  define Vc_INTRINSIC Vc_INTRINSIC_L Vc_INTRINSIC_R
 #  define Vc_FLATTEN __attribute__((__flatten__))
