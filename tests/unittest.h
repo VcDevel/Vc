@@ -63,7 +63,7 @@ template<typename T> struct isEqualType<T, T>
     operator bool() const { return true; }
 };
 
-inline inline void printPass()
+inline void printPass()
 {
     std::cout << AnsiColor::green << " PASS: " << AnsiColor::normal;
 }
