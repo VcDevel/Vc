@@ -40,7 +40,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     static const float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
 
     template<typename T> struct TypenameForLdexp { typedef Vector<int> Type; };
-    template<> struct TypenameForLdexp<Vc::sfloat> { typedef Vector<short> Type; };
 
     template<typename T> static inline Vector<T> exp(VC_ALIGNED_PARAMETER(Vector<T>) _x) {
         typedef Vector<T> V;

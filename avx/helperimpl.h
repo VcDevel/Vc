@@ -27,7 +27,6 @@ Vc_NAMESPACE_BEGIN(Internal)
 template<> struct HelperImpl<VC_IMPL>
 {
     typedef Vc_IMPL_NAMESPACE::float_v float_v;
-    typedef Vc_IMPL_NAMESPACE::sfloat_v sfloat_v;
     typedef Vc_IMPL_NAMESPACE::double_v double_v;
     typedef Vc_IMPL_NAMESPACE::int_v int_v;
     typedef Vc_IMPL_NAMESPACE::uint_v uint_v;
@@ -37,8 +36,6 @@ template<> struct HelperImpl<VC_IMPL>
     template<typename A> static void deinterleave(float_v &, float_v &, const float *, A);
     template<typename A> static void deinterleave(float_v &, float_v &, const short *, A);
     template<typename A> static void deinterleave(float_v &, float_v &, const unsigned short *, A);
-
-    template<typename A, typename MemT> static void deinterleave(sfloat_v &, sfloat_v &, const MemT *, A);
 
     template<typename A> static void deinterleave(double_v &, double_v &, const double *, A);
 

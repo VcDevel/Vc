@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BUILD_DIR)
-   message(ERROR "You don't want to configure in the source directory!")
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+   message(FATAL_ERROR "You don't want to configure in the source directory!")
 endif()
 
 project(Vc)
@@ -17,6 +17,7 @@ include (AddTargetProperty)
 include (OptimizeForArchitecture)
 
 vc_determine_compiler()
+find_package(MIC)
 
 if(ROOT_RELEASE)
    if(EXISTS "${CMAKE_INSTALL_PREFIX}/Module.mk")
@@ -39,8 +40,8 @@ else()
    # TODO: check that 'decltype' compiles
    # TODO: check that 'constexpr' compiles
    if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
-      if(Vc_COMPILER_IS_GCC AND Vc_GCC_VERSION VERSION_LESS 4.6.0)
-         message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least GCC 4.6.")
+      if(Vc_COMPILER_IS_GCC AND Vc_GCC_VERSION VERSION_LESS 4.7.0)
+         message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least GCC 4.7.")
       endif()
 
       AddCompilerFlag("-std=c++11" _ok)
@@ -76,13 +77,15 @@ else()
             )
       endif()
    elseif(Vc_COMPILER_IS_INTEL)
-      UserWarning("ICC does not support initializer lists (C++11). The following tests are therefore disabled:
-      stlcontainer_avx stlcontainer_scalar stlcontainer_sse.")
-      list(APPEND disabled_targets
-         stlcontainer_avx
-         stlcontainer_scalar
-         stlcontainer_sse
-         )
+      if("${Vc_ICC_VERSION}" VERSION_LESS "14.1.0")
+         UserWarning("ICC does not support initializer lists (C++11). The following tests are therefore disabled:
+         stlcontainer_avx stlcontainer_scalar stlcontainer_sse.")
+         list(APPEND disabled_targets
+            stlcontainer_avx
+            stlcontainer_scalar
+            stlcontainer_sse
+            )
+      endif()
    elseif(Vc_COMPILER_IS_MSVC)
       if(MSVC_VERSION LESS 1700)
          # MSVC before 2012 has a broken std::vector::resize implementation. STL + Vc code will probably not compile.
@@ -90,6 +93,17 @@ else()
          list(APPEND disabled_targets
             stlcontainer_sse
             stlcontainer_avx
+            )
+      endif()
+   endif()
+   if(MIC_NATIVE_FOUND)
+      if("${Vc_MIC_ICC_VERSION}" VERSION_LESS "14.1.0")
+         UserWarning("ICC does not support initializer lists (C++11). Additionally it fails to optimize properly and therefore cannot provide an immediate parameter to an instrinsic. The following tests are therefore disabled:
+         deinterleave_mic
+         stlcontainer_mic.")
+         list(APPEND disabled_targets
+            stlcontainer_mic
+            deinterleave_mic
             )
       endif()
    endif()
@@ -103,9 +117,6 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
 add_definitions("${Vc_DEFINITIONS}")
-if(Vc_COMPILER_IS_GCC AND Vc_GCC_VERSION VERSION_LESS 4.3.0)
-   add_definitions(-DVC_DONT_WARN_OLD_GCC) # this warning is only interesting for external users of Vc
-endif()
 
 if(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
@@ -127,7 +138,19 @@ if(NOT ROOT_RELEASE)
    add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
 
    set(libvc_compile_flags "-DVC_COMPILE_LIB")
-   AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
+   set(libvc_mic_compile_flags "-DVC_COMPILE_LIB")
+   AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flags)
+
+   if(MIC_FOUND)
+      add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
+      mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support.cpp src/mic_sorthelper.cpp
+         COMPILE_FLAGS ${libvc_mic_compile_flags})
+      add_target_property(Vc_MIC LABELS "MIC")
+      add_dependencies(MIC Vc_MIC)
+      get_target_property(outputName Vc_MIC OUTPUT_NAME)
+      install(FILES ${outputName} DESTINATION lib${LIB_SUFFIX})
+   endif()
+
    vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS ${libvc_compile_flags}
       ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA AVX2)
    set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp ${_objs})
@@ -197,13 +220,13 @@ else()
    message(\"-- Rewriting and Installing: ${CMAKE_INSTALL_PREFIX}/include/Vc/global.h\")
       file(READ \"${CMAKE_SOURCE_DIR}/include/Vc/global.h\" data)
       string(REGEX REPLACE \"#define Vc__SYMBOL_VERSION ([^\\n]*)\"
-         \"#define Vc__SYMBOL_VERSION ROOT\\\\1\" data \"\${data}\")
+         \"#define Vc__SYMBOL_VERSION ${_extra_namespace}\\\\1\" data \"\${data}\")
          file(WRITE \"${CMAKE_INSTALL_PREFIX}/include/Vc/global.h\" \"\${data}\")
    ")
 endif()
 
 # Install all implementation headers
-install(DIRECTORY scalar sse avx common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+install(DIRECTORY scalar sse avx mic common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 # read version parts from version.h to be put into VcConfig.cmake
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define VC_VERSION_STRING ")
@@ -223,6 +246,8 @@ set(cmake_install_files
    cmake/AddCompilerFlag.cmake
    cmake/CheckCCompilerFlag.cmake
    cmake/CheckCXXCompilerFlag.cmake
+   cmake/CheckMicCCompilerFlag.cmake
+   cmake/CheckMicCXXCompilerFlag.cmake
    )
 if(ROOT_RELEASE)
    execute_process(

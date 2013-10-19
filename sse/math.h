@@ -51,23 +51,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
         e->setZero(v == float_v::Zero());
         return ret;
     }
-    inline sfloat_v frexp(const sfloat_v &v, short_v *e) {
-        const __m128i exponentBits = Const<float>::exponentMask().dataI();
-        const __m128i exponentPart0 = _mm_and_si128(_mm_castps_si128(v.data()[0]), exponentBits);
-        const __m128i exponentPart1 = _mm_and_si128(_mm_castps_si128(v.data()[1]), exponentBits);
-        *e = _mm_sub_epi16(_mm_packs_epi32(_mm_srli_epi32(exponentPart0, 23), _mm_srli_epi32(exponentPart1, 23)),
-                _mm_set1_epi16(0x7e));
-        const __m128 exponentMaximized0 = _mm_or_ps(v.data()[0], _mm_castsi128_ps(exponentBits));
-        const __m128 exponentMaximized1 = _mm_or_ps(v.data()[1], _mm_castsi128_ps(exponentBits));
-        sfloat_v ret = M256::create(
-                _mm_and_ps(exponentMaximized0, _mm_castsi128_ps(_mm_set1_epi32(0xbf7fffffu))),
-                _mm_and_ps(exponentMaximized1, _mm_castsi128_ps(_mm_set1_epi32(0xbf7fffffu)))
-                );
-        sfloat_m zeroMask = v == sfloat_v::Zero();
-        ret(isnan(v) || !isfinite(v) || zeroMask) = v;
-        e->setZero(static_cast<short_m>(zeroMask));
-        return ret;
-    }
 
     /*             -> x * 2^e
      * x == NaN    -> NaN
@@ -84,31 +67,16 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
         e.setZero(static_cast<int_m>(v == float_v::Zero()));
         return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
     }
-    inline sfloat_v ldexp(sfloat_v::AsArg v, short_v::AsArg _e) {
-        short_v e = _e;
-        e.setZero(static_cast<short_m>(v == sfloat_v::Zero()));
-        e <<= (23 - 16);
-        const __m128i exponentBits0 = _mm_unpacklo_epi16(_mm_setzero_si128(), e.data());
-        const __m128i exponentBits1 = _mm_unpackhi_epi16(_mm_setzero_si128(), e.data());
-        return M256::create(_mm_castsi128_ps(_mm_add_epi32(_mm_castps_si128(v.data()[0]), exponentBits0)),
-                _mm_castsi128_ps(_mm_add_epi32(_mm_castps_si128(v.data()[1]), exponentBits1)));
-    }
 
 #ifdef VC_IMPL_SSE4_1
     inline double_v trunc(double_v::AsArg v) { return _mm_round_pd(v.data(), 0x3); }
     inline float_v trunc(float_v::AsArg v) { return _mm_round_ps(v.data(), 0x3); }
-    inline sfloat_v trunc(sfloat_v::AsArg v) { return M256::create(_mm_round_ps(v.data()[0], 0x3),
-            _mm_round_ps(v.data()[1], 0x3)); }
 
     inline double_v floor(double_v::AsArg v) { return _mm_floor_pd(v.data()); }
     inline float_v floor(float_v::AsArg v) { return _mm_floor_ps(v.data()); }
-    inline sfloat_v floor(sfloat_v::AsArg v) { return M256::create(_mm_floor_ps(v.data()[0]),
-            _mm_floor_ps(v.data()[1])); }
 
     inline double_v ceil(double_v::AsArg v) { return _mm_ceil_pd(v.data()); }
     inline float_v ceil(float_v::AsArg v) { return _mm_ceil_ps(v.data()); }
-    inline sfloat_v ceil(sfloat_v::AsArg v) { return M256::create(_mm_ceil_ps(v.data()[0]),
-            _mm_ceil_ps(v.data()[1])); }
 #else
     static inline void floor_shift(float_v &v, float_v::AsArg e)
     {
@@ -116,17 +84,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
         x <<= 23;
         x >>= static_cast<int_v>(e);
         v &= x.reinterpretCast<float_v>();
-    }
-
-    static inline void floor_shift(sfloat_v &v, sfloat_v::AsArg e)
-    {
-        int_v x = _mm_setallone_si128();
-        x <<= 23;
-        int_v y = x;
-        x >>= _mm_cvttps_epi32(e.data()[0]);
-        y >>= _mm_cvttps_epi32(e.data()[1]);
-        v.data()[0] = _mm_and_ps(v.data()[0], _mm_castsi128_ps(x.data()));
-        v.data()[1] = _mm_and_ps(v.data()[1], _mm_castsi128_ps(y.data()));
     }
 
     static inline void floor_shift(double_v &v, double_v::AsArg e)

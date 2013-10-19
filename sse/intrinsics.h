@@ -35,6 +35,8 @@ extern "C" {
 #include <emmintrin.h>
 }
 
+#include "../common/fix_clang_emmintrin.h"
+
 #if defined(__GNUC__) && !defined(VC_IMPL_SSE2)
 #error "SSE Vector class needs at least SSE2"
 #endif
@@ -234,6 +236,14 @@ extern "C" {
 #endif
 
 Vc_NAMESPACE_BEGIN(SseIntrinsics)
+    Vc_INTRINSIC int _mm_extract_epi32(__m128i v, const int index) {
+#ifdef VC_CLANG
+        typedef int int32v4 __attribute__((__vector_size__(16)));
+        return static_cast<int32v4>(v)[index];
+#else
+        return _mm_cvtsi128_si32(_mm_srli_si128(v, index * 4));
+#endif
+    }
     static Vc_INTRINSIC __m128d _mm_blendv_pd(__m128d a, __m128d b, __m128d c) {
         return _mm_or_pd(_mm_andnot_pd(c, a), _mm_and_pd(c, b));
     }

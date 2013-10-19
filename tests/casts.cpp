@@ -23,16 +23,39 @@
 
 using namespace Vc;
 
+template<typename T> struct is_overflow_undefined : public std::integral_constant<bool, false> {};
+template<> struct is_overflow_undefined<signed  char> : public std::integral_constant<bool, true> {};
+template<> struct is_overflow_undefined<signed short> : public std::integral_constant<bool, true> {};
+template<> struct is_overflow_undefined<signed   int> : public std::integral_constant<bool, true> {};
+template<> struct is_overflow_undefined<signed  long> : public std::integral_constant<bool, true> {};
+
 template<typename V1, typename V2> void testNumber(double n)
 {
     typedef typename V1::EntryType T1;
     typedef typename V2::EntryType T2;
 
+    constexpr T1 One = T1(1);
+
     // compare casts from T1 -> T2 with casts from V1 -> V2
 
     const T1 n1 = static_cast<T1>(n);
     //std::cerr << "n1 = " << n1 << ", static_cast<T2>(n1) = " << static_cast<T2>(n1) << std::endl;
-    COMPARE(static_cast<V2>(V1(n1)), V2(static_cast<T2>(n1))) << "\n       n1: " << n1;
+    COMPARE(static_cast<V2>(V1(n1)), V2(static_cast<T2>(n1)))
+        << "\n       n1: " << n1
+        << "\n   V1(n1): " << V1(n1)
+        << "\n   T2(n1): " << T2(n1)
+        ;
+    if (!is_overflow_undefined<T1>::value && !is_overflow_undefined<T2>::value) {
+        COMPARE(static_cast<V2>(V1(n1) + One), V2(static_cast<T2>(n1 + One))) << "\n       n1: " << n1;
+        COMPARE(static_cast<V2>(V1(n1) - One), V2(static_cast<T2>(n1 - One))) << "\n       n1: " << n1;
+    } else {
+        if (n1 <= std::numeric_limits<T1>::max() - One) {
+            COMPARE(static_cast<V2>(V1(n1) + One), V2(static_cast<T2>(n1 + One))) << "\n       n1: " << n1;
+        }
+        if (n1 >= std::numeric_limits<T1>::min() + One) {
+            COMPARE(static_cast<V2>(V1(n1) - One), V2(static_cast<T2>(n1 - One))) << "\n       n1: " << n1;
+        }
+    }
 }
 
 template<typename T> double maxHelper()
@@ -69,6 +92,7 @@ template<typename V1, typename V2> void testCast2()
                 static_cast<double>(-std::numeric_limits<T2>::max())
                 );
 
+    testNumber<V1, V2>(-1.);
     testNumber<V1, V2>(0.);
     testNumber<V1, V2>(1.);
     testNumber<V1, V2>(2.);
@@ -93,10 +117,8 @@ struct T2Helper
     typedef T2 V2;
 };
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
 #define TEST(v1, v2) \
     typedef T2Helper<v1, v2> CONCAT(v1, v2); \
     runTest(testCast<CONCAT(v1, v2)>)
@@ -117,18 +139,10 @@ int main(int argc, char **argv)
     TEST(uint_v, int_v);
     TEST(uint_v, uint_v);
 
-    TEST(ushort_v, sfloat_v);
     TEST(ushort_v, short_v);
     TEST(ushort_v, ushort_v);
 
-    TEST(short_v, sfloat_v);
     TEST(short_v, short_v);
     TEST(short_v, ushort_v);
-
-    TEST(sfloat_v, sfloat_v);
-    TEST(sfloat_v, short_v);
-    TEST(sfloat_v, ushort_v);
 #undef TEST
-
-    return 0;
 }

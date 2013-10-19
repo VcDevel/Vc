@@ -28,7 +28,7 @@ enum Swizzle {
 template<typename V> V scalarSwizzle(VC_ALIGNED_PARAMETER(V) v, Swizzle s)
 {
     V r = v;
-    for (int i = 0; i + 4 <= V::Size; i += 4) {
+    for (size_t i = 0; i + 4 <= V::Size; i += 4) {
         switch (s) {
         case BADC:
             r[i + 0] = v[i + 1];
@@ -127,19 +127,14 @@ template<typename V> void testSwizzle()
     }
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
 #if VC_DOUBLE_V_SIZE >= 4 || VC_DOUBLE_V_SIZE == 1
     runTest(testSwizzle<double_v>);
 #endif
     runTest(testSwizzle<float_v>);
-    runTest(testSwizzle<sfloat_v>);
     runTest(testSwizzle<int_v>);
     runTest(testSwizzle<uint_v>);
     runTest(testSwizzle<short_v>);
     runTest(testSwizzle<ushort_v>);
-
-    return 0;
 }

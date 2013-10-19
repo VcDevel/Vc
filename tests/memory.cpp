@@ -77,8 +77,8 @@ template<typename V, unsigned int Size> struct TestEntries2D { static void test(
     }
     for (size_t i = 0; i < Size; ++i) {
         for (size_t j = 0; j < Size; ++j) {
-            COMPARE(m[i][j], T(x + i + j));
-            COMPARE(m2[i][j], T(x + i + j));
+            COMPARE(m[i][j], T(x + i + j)) << i << ", j = " << j;
+            COMPARE(m2[i][j], T(x + i + j)) << i << ", j = " << j;
         }
     }
     for (size_t i = 0; i < Size; ++i) {
@@ -113,7 +113,7 @@ template<typename V, unsigned int Size> struct TestVectors { static void test()
         COMPARE(V(m.vector(i)), x);
         COMPARE(V(m2.vector(i)), x);
         COMPARE(V(m3.vector(i)), x);
-        for (int shift = 0; shift < V::Size; ++shift, ++x) {
+        for (size_t shift = 0; shift < V::Size; ++shift, ++x) {
             COMPARE(V(m.vector(i, shift)), x);
             COMPARE(V(m2.vector(i, shift)), x);
             COMPARE(V(m3.vector(i, shift)), x);
@@ -132,20 +132,20 @@ template<typename V, unsigned int Size> struct TestVectors2D { static void test(
     const Memory<V, Size, Size> &m2 = m;
     V x = startX;
     for (size_t i = 0; i < m.rowsCount(); ++i, x += V::Size) {
-        Memory<V, Size> &mrow = m[i];
+        auto &mrow = m[i];
         for (size_t j = 0; j < mrow.vectorsCount(); ++j, x += V::Size) {
             mrow.vector(j) = x;
         }
     }
     x = startX;
     for (size_t i = 0; i < m.rowsCount(); ++i, x += V::Size) {
-        Memory<V, Size> &mrow = m[i];
-        const Memory<V, Size> &m2row = m2[i];
+        auto &mrow = m[i];
+        const auto &m2row = m2[i];
         size_t j;
         for (j = 0; j < mrow.vectorsCount() - 1; ++j) {
             COMPARE(V(mrow.vector(j)), x);
             COMPARE(V(m2row.vector(j)), x);
-            for (int shift = 0; shift < V::Size; ++shift, ++x) {
+            for (size_t shift = 0; shift < V::Size; ++shift, ++x) {
                 COMPARE(V(mrow.vector(j, shift)), x);
                 COMPARE(V(m2row.vector(j, shift)), x);
             }
@@ -284,15 +284,41 @@ template<typename V> void testCCtor()
     }
 }
 
-int main()
+void *hackToStoreToStack = 0;
+
+template<typename V> void paddingMustBeZero()
+{
+    typedef typename V::EntryType T;
+    { // poison the stack
+        V v = V::Random();
+        hackToStoreToStack = &v;
+    }
+    Memory<V, 1> m;
+    m[0] = T(0);
+    V x = m.vector(0);
+    COMPARE(x, V::Zero());
+}
+
+template<typename V> void initializerList()
+{
+    typedef typename V::EntryType T;
+    Memory<V, 3> m = { T(1), T(2), T(3) };
+    for (int i = 0; i < 3; ++i) {
+        COMPARE(m[i], T(i + 1));
+    }
+}
+
+void testmain()
 {
     testAllTypes(testEntries);
+    testAllTypes(paddingMustBeZero);
+#ifndef VC_ICC
+    testAllTypes(initializerList);
+#endif
     testAllTypes(testEntries2D);
     testAllTypes(testVectors);
     testAllTypes(testVectors2D);
     testAllTypes(testVectorReorganization);
     testAllTypes(memoryOperators);
     testAllTypes(testCCtor);
-
-    return 0;
 }

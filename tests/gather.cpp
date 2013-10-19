@@ -28,25 +28,50 @@ template<typename Vec> void maskedGatherArray()
     typedef typename Vec::EntryType T;
 
     T mem[Vec::Size];
-    for (int i = 0; i < Vec::Size; ++i) {
+    for (size_t i = 0; i < Vec::Size; ++i) {
         mem[i] = i + 1;
     }
 
     It indexes = It::IndexesFromZero();
     for_all_masks(Vec, m) {
         const Vec a(mem, indexes, m);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(a[i], m[i] ? mem[i] : 0) << " i = " << i << ", m = " << m;
         }
 
         T x = Vec::Size + 1;
         Vec b = x;
         b.gather(mem, indexes, m);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(b[i], m[i] ? mem[i] : x) << " i = " << i << ", m = " << m;
         }
     }
 }
+
+template<typename Vec, bool = Vc::is_integral<Vec>::value && Vc::is_signed<Vec>::value> class incrementIndex
+{
+    typedef typename Vec::IndexType It;
+    It i;
+public:
+    incrementIndex(const It &ii) : i(ii) {}
+    operator Vec() { return static_cast<Vec>(++i); }
+};
+
+template<typename Vec> class incrementIndex<Vec, true>
+{
+    typedef typename Vec::IndexType It;
+    It i;
+public:
+    incrementIndex(const It &ii) : i(ii) {}
+    operator Vec() {
+        ++i;
+        // if (i + 1) > std::numeric_limits<Vec>::max() it will overflow, which results in
+        // undefined behavior for signed integers
+        where(i > static_cast<It>(std::numeric_limits<Vec>::max())) |
+            i = i - static_cast<It>(std::numeric_limits<Vec>::max()) + static_cast<It>(std::numeric_limits<Vec>::min()) - It::One();
+        return static_cast<Vec>(i);
+    }
+};
 
 template<typename Vec> void gatherArray()
 {
@@ -61,7 +86,7 @@ template<typename Vec> void gatherArray()
     }
     M mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        const Vec ii(i + 1);
+        const Vec ii = incrementIndex<Vec>(i);
         const typename Vec::Mask castedMask = static_cast<typename Vec::Mask>(mask);
         if (castedMask.isFull()) {
             Vec a(array, i);
@@ -192,10 +217,8 @@ template<typename Vec> void gather2dim()
     }
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     testAllTypes(gatherArray);
     testAllTypes(maskedGatherArray);
 #if defined(VC_CLANG) && VC_CLANG <= 0x030000
@@ -207,6 +230,4 @@ int main(int argc, char **argv)
     testAllTypes(gatherStruct);
     testAllTypes(gather2dim);
 #endif
-
-    return 0;
 }

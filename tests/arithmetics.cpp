@@ -101,7 +101,8 @@ template<typename Vec> void testCmp()
 
 template<typename Vec> void testIsMix()
 {
-    Vec a { typename Vec::IndexType(IndexesFromZero) };
+    typedef typename Vec::IndexType IT;
+    Vec a(IT::IndexesFromZero());
     Vec b(Zero);
     Vec c(One);
     if (Vec::Size > 1) {
@@ -132,7 +133,16 @@ template<typename Vec> void testAdd()
 
     COMPARE(a, b + 1);
     COMPARE(a, b + c);
-    Vec x(Zero);
+
+    for (int repetition = 0; repetition < 10000; ++repetition) {
+        const Vec x = Vec::Random();
+        const Vec y = Vec::Random();
+        Vec reference;
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            reference[i] = x[i] + y[i];
+        }
+        COMPARE(x + y, reference) << '\n' << x << " + " << y;
+    }
 }
 
 template<typename Vec> void testSub()
@@ -146,6 +156,16 @@ template<typename Vec> void testSub()
 
     COMPARE(a, b - 1);
     COMPARE(a, b - c);
+
+    for (int repetition = 0; repetition < 10000; ++repetition) {
+        const Vec x = Vec::Random();
+        const Vec y = Vec::Random();
+        Vec reference;
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            reference[i] = x[i] - y[i];
+        }
+        COMPARE(x - y, reference) << '\n' << x << " - " << y;
+    }
 }
 
 template<typename V> void testMul()
@@ -154,7 +174,7 @@ template<typename V> void testMul()
         V a = V::Random();
         V b = V::Random();
         V reference = a;
-        for (int j = 0; j < V::Size; ++j) {
+        for (size_t j = 0; j < V::Size; ++j) {
             // this could overflow - but at least the compiler can't know about it so it doesn't
             // matter that it's undefined behavior in C++. The only thing that matters is what the
             // hardware does...
@@ -174,6 +194,16 @@ template<typename Vec> void testMulAdd()
     }
 }
 
+template<> void testMulAdd<short_v>()
+{ // short_v over-/underflow results in undefined behavior
+    for (unsigned int i = -0xb4; i < 0xb4; ++i) {
+        const short_v i2(i * i + 1);
+        short_v a(i);
+
+        COMPARE(a * a + 1, i2);
+    }
+}
+
 template<typename Vec> void testMulSub()
 {
     typedef typename Vec::EntryType T;
@@ -185,8 +215,29 @@ template<typename Vec> void testMulSub()
     }
 }
 
+template<> void testMulSub<short_v>()
+{ // short_v over-/underflow results in undefined behavior
+    for (unsigned int i = -0xb4; i < 0xb4; ++i) {
+        const short j = static_cast<short>(i);
+        const short_v test(j);
+
+        COMPARE(test * test - test, short_v(j * j - j));
+    }
+}
+
 template<typename Vec> void testDiv()
 {
+    for (int repetition = 0; repetition < 10000; ++repetition) {
+        const Vec a = Vec::Random();
+        const Vec b = Vec::Random();
+        if (none_of(b == Vec::Zero())) {
+            Vec reference;
+            for (size_t i = 0; i < Vec::Size; ++i) {
+                reference[i] = a[i] / b[i];
+            }
+            COMPARE(a / b, reference) << '\n' << a << " / " << b;
+        }
+    }
     typedef typename Vec::EntryType T;
     const T stepsize = std::max(T(1), T(std::numeric_limits<T>::max() / 1024));
     for (T divisor = 1; divisor < 5; ++divisor) {
@@ -242,7 +293,7 @@ template<typename Vec> void testShift()
 
     Vec shifts(IndexesFromZero);
     a <<= shifts;
-    for (typename Vec::EntryType i = 0, x = 1; i < Vec::Size; ++i, x <<= 1) {
+    for (T i = 0, x = 1; i < T(Vc::is_signed<Vec>::value ? Vec::Size - 1 : Vec::Size); ++i, x <<= 1) {
         COMPARE(a[i], x);
     }
 
@@ -254,7 +305,7 @@ template<typename Vec> void testShift()
 
     a = Vec(16);
     a >>= shifts;
-    for (typename Vec::EntryType i = 0, x = 16; i < Vec::Size; ++i, x >>= 1) {
+    for (T i = 0, x = 16; i < T(Vec::Size); ++i, x >>= 1) {
         COMPARE(a[i], x);
     }
 }
@@ -364,7 +415,8 @@ template<typename Vec> void testProduct()
         COMPARE(v.product(), x2);
 
         int j = 0;
-        Mask m;
+        Mask m = allMasks<Vec>(j++);
+        COMPARE(v.product(m), x2) << m << v;
         do {
             m = allMasks<Vec>(j++);
             if (m.isEmpty()) {
@@ -375,10 +427,12 @@ template<typename Vec> void testProduct()
                 for (int k = m.count(); k > 1; --k) {
                     x2 *= x;
                 }
+                COMPARE(v.product(m), x2) << m << v;
             } else {
-                x2 = static_cast<T>(pow(static_cast<double>(x), static_cast<int>(m.count())));
+                x2 = std::round(std::pow(x, static_cast<int>(m.count())));
+                //x2 = static_cast<T>(pow(static_cast<double>(x), static_cast<int>(m.count())));
+                FUZZY_COMPARE(v.product(m), x2) << m << v;
             }
-            COMPARE(v.product(m), x2) << m << v;
         } while (true);
     }
 }
@@ -391,7 +445,7 @@ template<typename Vec> void testSum()
     for (int i = 0; i < 10; ++i) {
         T x = static_cast<T>(i);
         Vec v(x);
-        COMPARE(v.sum(), x * Vec::Size);
+        COMPARE(v.sum(), T(x * Vec::Size));
 
         int j = 0;
         Mask m;
@@ -451,29 +505,6 @@ template<> void fma<float_v>()
     COMPARE(a, float_v(Vc_buildFloat(1, 0x000001, -21)));
 }
 
-template<> void fma<sfloat_v>()
-{
-    sfloat_v b = Vc_buildFloat(1, 0x000001, 0);
-    sfloat_v c = Vc_buildFloat(1, 0x000000, -24);
-    sfloat_v a = b;
-    /*a *= b;
-    a += c;
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000002, 0)));
-    a = b;*/
-    a.fusedMultiplyAdd(b, c);
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000003, 0)));
-
-    a = Vc_buildFloat(1, 0x000002, 0);
-    b = Vc_buildFloat(1, 0x000002, 0);
-    c = Vc_buildFloat(-1, 0x000000, 0);
-    /*a *= b;
-    a += c;
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000000, -21)));
-    a = b;*/
-    a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000001, -21)));
-}
-
 template<> void fma<double_v>()
 {
     double_v b = Vc_buildDouble(1, 0x0000000000001, 0);
@@ -489,10 +520,8 @@ template<> void fma<double_v>()
     COMPARE(a, double_v(Vc_buildDouble(1, 0x0000000000001, -50)));
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     testAllTypes(fma);
 
     runTest(testZero<int_v>);
@@ -501,7 +530,6 @@ int main(int argc, char **argv)
     runTest(testZero<double_v>);
     runTest(testZero<short_v>);
     runTest(testZero<ushort_v>);
-    runTest(testZero<sfloat_v>);
 
     runTest(testCmp<int_v>);
     runTest(testCmp<uint_v>);
@@ -509,7 +537,6 @@ int main(int argc, char **argv)
     runTest(testCmp<double_v>);
     runTest(testCmp<short_v>);
     runTest(testCmp<ushort_v>);
-    runTest(testCmp<sfloat_v>);
 
     runTest(testIsMix<int_v>);
     runTest(testIsMix<uint_v>);
@@ -517,7 +544,6 @@ int main(int argc, char **argv)
     runTest(testIsMix<double_v>);
     runTest(testIsMix<short_v>);
     runTest(testIsMix<ushort_v>);
-    runTest(testIsMix<sfloat_v>);
 
     runTest(testAdd<int_v>);
     runTest(testAdd<uint_v>);
@@ -525,7 +551,6 @@ int main(int argc, char **argv)
     runTest(testAdd<double_v>);
     runTest(testAdd<short_v>);
     runTest(testAdd<ushort_v>);
-    runTest(testAdd<sfloat_v>);
 
     runTest(testSub<int_v>);
     runTest(testSub<uint_v>);
@@ -533,7 +558,6 @@ int main(int argc, char **argv)
     runTest(testSub<double_v>);
     runTest(testSub<short_v>);
     runTest(testSub<ushort_v>);
-    runTest(testSub<sfloat_v>);
 
     runTest(testMul<int_v>);
     runTest(testMul<uint_v>);
@@ -541,7 +565,6 @@ int main(int argc, char **argv)
     runTest(testMul<double_v>);
     runTest(testMul<short_v>);
     runTest(testMul<ushort_v>);
-    runTest(testMul<sfloat_v>);
 
     runTest(testDiv<int_v>);
     runTest(testDiv<uint_v>);
@@ -549,7 +572,6 @@ int main(int argc, char **argv)
     runTest(testDiv<double_v>);
     runTest(testDiv<short_v>);
     runTest(testDiv<ushort_v>);
-    runTest(testDiv<sfloat_v>);
 
     runTest(testAnd<int_v>);
     runTest(testAnd<uint_v>);
@@ -568,7 +590,6 @@ int main(int argc, char **argv)
     runTest(testMulAdd<double_v>);
     runTest(testMulAdd<short_v>);
     runTest(testMulAdd<ushort_v>);
-    runTest(testMulAdd<sfloat_v>);
 
     runTest(testMulSub<int_v>);
     runTest(testMulSub<uint_v>);
@@ -576,7 +597,6 @@ int main(int argc, char **argv)
     runTest(testMulSub<double_v>);
     runTest(testMulSub<short_v>);
     runTest(testMulSub<ushort_v>);
-    runTest(testMulSub<sfloat_v>);
 
     runTest(testOnesComplement<int_v>);
     runTest(testOnesComplement<uint_v>);
@@ -589,6 +609,4 @@ int main(int argc, char **argv)
     testAllTypes(testProduct);
     testAllTypes(testSum);
     testAllTypes(testPartialSum);
-
-    return 0;
 }

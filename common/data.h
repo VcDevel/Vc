@@ -23,7 +23,7 @@
 #include "macros.h"
 Vc_NAMESPACE_BEGIN(Common)
 
-ALIGN(64) extern unsigned int RandomState[16];
+ALIGN(64) extern unsigned int RandomState[];
 ALIGN(32) extern const unsigned int AllBitsSet[8];
 
 Vc_NAMESPACE_END

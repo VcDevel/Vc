@@ -32,7 +32,7 @@ PROJECT_NAME           = "Vc"
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = 0.99.70-dev
+PROJECT_NUMBER         = 0.99.71-dev
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer
@@ -963,7 +963,7 @@ HTML_COLORSTYLE_GAMMA  = 120
 # page will contain the date and time when the page was generated. Setting
 # this to NO can help when comparing the output of multiple runs.
 
-HTML_TIMESTAMP         = YES
+HTML_TIMESTAMP         = NO
 
 # If the HTML_DYNAMIC_SECTIONS tag is set to YES then the generated HTML
 # documentation will contain sections that can be hidden and shown after the

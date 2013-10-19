@@ -33,25 +33,30 @@ template<typename Vec> void testSort()
     const IndexType _ref(IndexesFromZero);
     Vec ref(_ref);
     Vec a;
+//X     for (int i = 0; i < Vec::Size; ++i) {
+//X         a[i] = Vec::Size - i - 1;
+//X     }
+//X     COMPARE(ref, a.sorted()) << ", a: " << a;
+
     int maxPerm = 1;
-    for (int x = Vec::Size; x > 0; --x) {
+    for (int x = Vec::Size; x > 0 && maxPerm < 400000; --x) {
         maxPerm *= x;
     }
     for (int perm = 0; perm < maxPerm; ++perm) {
         int rest = perm;
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (size_t i = 0; i < Vec::Size; ++i) {
             a[i] = 0;
-            for (int j = 0; j < i; ++j) {
+            for (size_t j = 0; j < i; ++j) {
                 if (a[i] == a[j]) {
-                    ++(a[i]);
+                    ++a[i];
                     j = -1;
                 }
             }
             a[i] += rest % (Vec::Size - i);
             rest /= (Vec::Size - i);
-            for (int j = 0; j < i; ++j) {
+            for (size_t j = 0; j < i; ++j) {
                 if (a[i] == a[j]) {
-                    ++(a[i]);
+                    ++a[i];
                     j = -1;
                 }
             }
@@ -98,10 +103,12 @@ template<typename V> void testCall()
     a(odd) -= 1;
     a.callWithValuesSorted(f);
     V c(f.d);
-    for (int i = 0; i < V::Size / 2; ++i) {
+#ifndef VC_IMPL_Scalar // avoid -Wtautological-compare warnings because of V::Size == 1
+    for (size_t i = 0; i < V::Size / 2; ++i) {
         COMPARE(a[i * 2], c[i]);
     }
-    for (int i = V::Size / 2; i < V::Size; ++i) {
+#endif
+    for (size_t i = V::Size / 2; i < V::Size; ++i) {
         COMPARE(b[i], c[i]);
     }
 }
@@ -242,7 +249,6 @@ template<typename V, typename I> void FloatRandom()
 
 template<> void Random<float_v>() { FloatRandom<float_v, int_v>(); }
 template<> void Random<double_v>() { FloatRandom<double_v, int_v>(); }
-template<> void Random<sfloat_v>() { FloatRandom<sfloat_v, short_v>(); }
 
 template<typename T> T add2(T x) { return x + T(2); }
 
@@ -273,7 +279,7 @@ void applyAndCall()
     typedef typename V::EntryType T;
 
     const V two(T(2));
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 10; ++i) {
         const V rand = V::Random();
         COMPARE(rand.apply(add2<T>), rand + two);
         COMPARE(rand.apply([](T x) { return x + T(2); }), rand + two);
@@ -328,11 +334,12 @@ template<typename V> void fill()
 template<typename V> void shifted()
 {
     typedef typename V::EntryType T;
-    for (int shift = -2 * V::Size; shift <= 2 * V::Size; ++shift) {
+    constexpr int Size = V::Size;
+    for (int shift = -2 * Size; shift <= 2 * Size; ++shift) {
         const V reference = V::Random();
         const V test = reference.shifted(shift);
-        for (int i = 0; i < V::Size; ++i) {
-            if (i + shift >= 0 && i + shift < V::Size) {
+        for (int i = 0; i < Size; ++i) {
+            if (i + shift >= 0 && i + shift < Size) {
                 COMPARE(test[i], reference[i + shift]) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
             } else {
                 COMPARE(test[i], T(0)) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
@@ -343,11 +350,12 @@ template<typename V> void shifted()
 
 template<typename V> void rotated()
 {
-    for (int shift = -2 * V::Size; shift <= 2 * V::Size; ++shift) {
-        //std::cout << "amount = " << shift % V::Size << std::endl;
+    constexpr int Size = V::Size;
+    for (int shift = -2 * Size; shift <= 2 * Size; ++shift) {
+        //std::cout << "amount = " << shift % Size << std::endl;
         const V reference = V::Random();
         const V test = reference.rotated(shift);
-        for (int i = 0; i < V::Size; ++i) {
+        for (int i = 0; i < Size; ++i) {
             unsigned int refShift = i + shift;
             COMPARE(test[i], reference[refShift % V::Size]) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
         }
@@ -429,24 +437,31 @@ template<typename V> void rangeFor()
         M m(Vc::One);
         for (auto i : m) {
             VERIFY(i);
+            i = false;
+            VERIFY(!i);
         }
-        bool b = true;
-        for (auto &i : m) {
-            i = (b = !b);
-        }
-        b = true;
         for (auto i : m) {
-            COMPARE(i, (b = !b));
-            i = true;
+            VERIFY(i);
         }
-        b = true;
         for (auto i : static_cast<const M &>(m)) {
-            COMPARE(i, (b = !b));
+            VERIFY(i);
         }
+    }
+
+    for_all_masks(V, mask) {
+        unsigned int count = 0;
+        V test = V::Zero();
+        for (size_t i : where(mask)) {
+            VERIFY(i < V::Size);
+            test[i] = T(1);
+            ++count;
+        }
+        COMPARE(test == V::One(), mask);
+        COMPARE(count, mask.count());
     }
 }
 
-int main()
+void testmain()
 {
     testAllTypes(testCall);
     testAllTypes(testForeachBit);
@@ -463,6 +478,4 @@ int main()
     runTest(testMallocAlignment);
     testAllTypes(testIif);
     testAllTypes(rangeFor);
-
-    return 0;
 }

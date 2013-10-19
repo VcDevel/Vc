@@ -23,7 +23,7 @@
 
 #include <Vc/global.h>
 
-#if VC_GCC && !__OPTIMIZE__
+#if defined(VC_GCC) && !defined(__OPTIMIZE__)
 // GCC uses lots of old-style-casts in macros that disguise as intrinsics
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -40,13 +40,6 @@
 # define STRUCT_ALIGN2(n) ALIGN(n)
 # define ALIGNED_TYPEDEF(n, _type_, _newType_) typedef _type_ _newType_ ALIGN(n)
 #endif
-
-#define FREE_STORE_OPERATORS_ALIGNED(alignment) \
-        inline void *operator new(size_t size) { return _mm_malloc(size, alignment); } \
-        inline void *operator new(size_t, void *p) { return p; } \
-        inline void *operator new[](size_t size) { return _mm_malloc(size, alignment); } \
-        inline void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
-        inline void operator delete[](void *ptr, size_t) { _mm_free(ptr); }
 
 #ifdef VC_CLANG
 #  define Vc_INTRINSIC_L inline
@@ -69,21 +62,8 @@
 #  define VC_DEPRECATED(msg)
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
-#  if VC_GCC < 0x40300 || defined(VC_OPEN64)
-// GCC 4.1 and 4.2 ICE on may_alias. Since Open64 uses the GCC 4.2 frontend it has the same problem.
-#    define Vc_MAY_ALIAS
-#  else
-#    define Vc_MAY_ALIAS __attribute__((__may_alias__))
-#  endif
-#  if VC_GCC < 0x40300
-// GCC 4.1 fails with "sorry unimplemented: inlining failed"
-#    define Vc_INTRINSIC_R __attribute__((__flatten__))
-#  elif defined(VC_OPEN64)
-// the GCC 4.2 frontend doesn't know the __artificial__ attribute
-#    define Vc_INTRINSIC_R __attribute__((__flatten__, __always_inline__))
-#  else
-#    define Vc_INTRINSIC_R __attribute__((__flatten__, __always_inline__, __artificial__))
-#  endif
+#  define Vc_MAY_ALIAS __attribute__((__may_alias__))
+#  define Vc_INTRINSIC_R __attribute__((__flatten__, __always_inline__, __artificial__))
 #  define Vc_INTRINSIC_L inline
 #  define Vc_INTRINSIC Vc_INTRINSIC_L Vc_INTRINSIC_R
 #  define Vc_FLATTEN __attribute__((__flatten__))
@@ -147,6 +127,16 @@
 #  define Vc_WARN_UNUSED_RESULT
 #endif
 
+#define FREE_STORE_OPERATORS_ALIGNED(alignment) \
+        Vc_ALWAYS_INLINE void *operator new(size_t size) { return _mm_malloc(size, alignment); } \
+        Vc_ALWAYS_INLINE void *operator new(size_t, void *p) { return p; } \
+        Vc_ALWAYS_INLINE void *operator new[](size_t size) { return _mm_malloc(size, alignment); } \
+        Vc_ALWAYS_INLINE void *operator new[](size_t , void *p) { return p; } \
+        Vc_ALWAYS_INLINE void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
+        Vc_ALWAYS_INLINE void operator delete(void *, void *) {} \
+        Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t) { _mm_free(ptr); } \
+        Vc_ALWAYS_INLINE void operator delete[](void *, void *) {}
+
 #ifdef VC_GCC
 # define VC_WARN_INLINE
 # define VC_WARN(msg) __attribute__((warning("\n\t" msg)))
@@ -206,8 +196,13 @@ do {} while ( false )
     }; };
     template<int center> struct exponentToMultiplier<center,center> { enum { X = 1, Value = X }; };
     template<int center> struct exponentToMultiplier<   -1, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToMultiplier< -128, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToMultiplier< -256, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToMultiplier< -384, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToMultiplier< -512, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToMultiplier< -640, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToMultiplier< -768, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToMultiplier< -896, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToMultiplier<-1024, center> { enum { X = 0, Value = 1 }; };
 
     template<int e, int center> struct exponentToDivisor { enum {
@@ -216,8 +211,13 @@ do {} while ( false )
     }; };
     template<int center> struct exponentToDivisor<center, center> { enum { X = 1, Value = X }; };
     template<int center> struct exponentToDivisor<     1, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToDivisor<   128, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToDivisor<   256, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToDivisor<   384, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToDivisor<   512, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToDivisor<   640, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToDivisor<   768, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToDivisor<   896, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToDivisor<  1024, center> { enum { X = 0, Value = 1 }; };
 #endif // VC_COMMON_MACROS_H_ONCE
 
@@ -255,8 +255,7 @@ do {} while ( false )
 
 #define VC_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
     size(macro, double_v, a, b, c, d) \
-    size(macro,  float_v, a, b, c, d) \
-    size(macro, sfloat_v, a, b, c, d)
+    size(macro,  float_v, a, b, c, d)
 #define VC_LIST_INT_VECTOR_TYPES(size, macro, a, b, c, d) \
     size(macro,    int_v, a, b, c, d) \
     size(macro,   uint_v, a, b, c, d) \
@@ -304,7 +303,7 @@ do {} while ( false )
 #define VC_ALL_VECTOR_TYPES(macro) VC_APPLY_0(VC_LIST_VECTOR_TYPES, macro)
 
 #define VC_EXACT_TYPE(_test, _reference, _type) \
-    typename EnableIf<IsEqualType<_test, _reference>::Value, _type>::Value
+    typename std::enable_if<std::is_same<_test, _reference>::value, _type>::type
 
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
 #define VC_ALIGNED_PARAMETER(_Type) const _Type &
@@ -328,6 +327,30 @@ do {} while ( false )
 #define Vc_NOEXCEPT throw()
 #else
 #define Vc_NOEXCEPT noexcept
+#endif
+
+// ref-ref:
+#ifdef VC_NO_MOVE_CTOR
+#define VC_RR_ &
+#define VC_FORWARD_(T)
+#else
+#define VC_RR_ &&
+#define VC_FORWARD_(T) std::forward<T>
+#endif
+
+#ifdef VC_NO_ALWAYS_INLINE
+#undef Vc_ALWAYS_INLINE
+#undef Vc_ALWAYS_INLINE_L
+#undef Vc_ALWAYS_INLINE_R
+#define Vc_ALWAYS_INLINE inline
+#define Vc_ALWAYS_INLINE_L inline
+#define Vc_ALWAYS_INLINE_R
+#undef Vc_INTRINSIC
+#undef Vc_INTRINSIC_L
+#undef Vc_INTRINSIC_R
+#define Vc_INTRINSIC inline
+#define Vc_INTRINSIC_L inline
+#define Vc_INTRINSIC_R
 #endif
 
 #endif // VC_COMMON_MACROS_H

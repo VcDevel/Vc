@@ -34,6 +34,8 @@ extern "C" {
 #endif
 }
 
+#include "../common/fix_clang_emmintrin.h"
+
 #if defined(VC_CLANG) && VC_CLANG < 0x30100
 // _mm_permute_ps is broken: http://llvm.org/bugs/show_bug.cgi?id=12401
 #undef _mm_permute_ps
@@ -576,7 +578,7 @@ static Vc_INTRINSIC m256i _mm256_cmplt_epi8(m256i a, m256i b) {
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
 //X     static Vc_INTRINSIC m256i _mm256_cmpgt_epu8 (param256i a, param256i b) { return _mm256_cmpgt_epi8 (
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
-#if defined(VC_IMPL_XOP) && (!defined(VC_CLANG) || VC_CLANG > 0x30300)
+#if defined(VC_IMPL_XOP) && (!defined(VC_CLANG) || VC_CLANG >= 0x30400)
     AVX_TO_SSE_2(comlt_epu32)
     AVX_TO_SSE_2(comgt_epu32)
     AVX_TO_SSE_2(comlt_epu16)
@@ -639,6 +641,67 @@ static Vc_INTRINSIC void _mm256_maskstore(unsigned int *mem, const param256i mas
 #undef AVX_TO_SSE_2_si128_si256
 #undef AVX_TO_SSE_1
 #undef AVX_TO_SSE_1i
+
+template<typename R> Vc_INTRINSIC_L R stream_load(const float *mem) Vc_INTRINSIC_R;
+template<> Vc_INTRINSIC m128 stream_load<m128>(const float *mem)
+{
+    return _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<float *>(mem))));
+}
+template<> Vc_INTRINSIC m256 stream_load<m256>(const float *mem)
+{
+    return _mm256_insertf128_ps(_mm256_castps128_ps256(stream_load<m128>(mem)),
+                                stream_load<m128>(mem + 4), 1);
+}
+
+template<typename R> Vc_INTRINSIC_L R stream_load(const double *mem) Vc_INTRINSIC_R;
+template<> Vc_INTRINSIC m128d stream_load<m128d>(const double *mem)
+{
+    return _mm_castsi128_pd(_mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<double *>(mem))));
+}
+template<> Vc_INTRINSIC m256d stream_load<m256d>(const double *mem)
+{
+    return _mm256_insertf128_pd(_mm256_castpd128_pd256(stream_load<m128d>(mem)),
+                                stream_load<m128d>(mem + 2), 1);
+}
+
+template<typename R> Vc_INTRINSIC_L R stream_load(const void *mem) Vc_INTRINSIC_R;
+template<> Vc_INTRINSIC m128i stream_load<m128i>(const void *mem)
+{
+    return _mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<void *>(mem)));
+}
+template<> Vc_INTRINSIC m256i stream_load<m256i>(const void *mem)
+{
+    return _mm256_insertf128_si256(_mm256_castsi128_si256(stream_load<m128i>(mem)),
+                                stream_load<m128i>(static_cast<const __m128i *>(mem) + 1), 1);
+}
+
+Vc_INTRINSIC void stream_store(float *mem, param128 value, param128 mask)
+{
+    _mm_maskmoveu_si128(_mm_castps_si128(value), _mm_castps_si128(mask), reinterpret_cast<char *>(mem));
+}
+Vc_INTRINSIC void stream_store(float *mem, param256 value, param256 mask)
+{
+    stream_store(mem, _mm256_castps256_ps128(value), _mm256_castps256_ps128(mask));
+    stream_store(mem + 4, _mm256_extractf128_ps(value, 1), _mm256_extractf128_ps(mask, 1));
+}
+Vc_INTRINSIC void stream_store(double *mem, param128d value, param128d mask)
+{
+    _mm_maskmoveu_si128(_mm_castpd_si128(value), _mm_castpd_si128(mask), reinterpret_cast<char *>(mem));
+}
+Vc_INTRINSIC void stream_store(double *mem, param256d value, param256d mask)
+{
+    stream_store(mem, _mm256_castpd256_pd128(value), _mm256_castpd256_pd128(mask));
+    stream_store(mem + 2, _mm256_extractf128_pd(value, 1), _mm256_extractf128_pd(mask, 1));
+}
+Vc_INTRINSIC void stream_store(void *mem, param128i value, param128i mask)
+{
+    _mm_maskmoveu_si128(value, mask, reinterpret_cast<char *>(mem));
+}
+Vc_INTRINSIC void stream_store(void *mem, param256i value, param256i mask)
+{
+    stream_store(mem, _mm256_castsi256_si128(value), _mm256_castsi256_si128(mask));
+    stream_store(static_cast<__m128i *>(mem) + 1, _mm256_extractf128_si256(value, 1), _mm256_extractf128_si256(mask, 1));
+}
 
 Vc_NAMESPACE_END
 

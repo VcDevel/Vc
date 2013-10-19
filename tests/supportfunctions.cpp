@@ -55,14 +55,10 @@ void testExtraInstructions()
     COMPARE(!(extra & Vc::Sse4aInstructions), !CpuId::hasSse4a());
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     runTest(testCompiledImplementation);
     runTest(testIsSupported);
     runTest(testBestImplementation);
     runTest(testExtraInstructions);
-
-    return 0;
 }

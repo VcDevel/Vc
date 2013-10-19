@@ -570,12 +570,40 @@ const VECTOR_TYPE dcba() const;
  *
  * These functions are slightly related to the above swizzles. In any case, they are often useful for
  * communication between SIMD lanes or binary decoding operations.
+ *
+ * \warning Use of these functions leads to less portable code. Consider the scalar implementation
+ * where every vector has only one entry. The shift and rotate functions have no useful task to
+ * fulfil there and you will almost certainly not get any useful results. It is recommended to add a
+ * static_assert for the assumed minimum vector size.
  */
 //@{
 /// Shift vector entries to the left by \p amount; shifting in zeros.
 const VECTOR_TYPE shifted(int amount) const;
 /// Rotate vector entries to the left by \p amount.
 const VECTOR_TYPE rotated(int amount) const;
+/**
+ * Shift vector entries to the left by \p amount; shifting in values from shiftIn (instead of
+ * zeros).
+ *
+ * This function can be used to create vectors from unaligned memory locations.
+ *
+ * Example:
+ * \code
+ * Vc::Memory<int_v, 256> mem;
+ * for (int i = 0; i < 256; ++i) { mem[i] = i + 1; }
+ * int_v a = mem.vectorAt(0);
+ * int_v b = mem.vectorAt(int_v::Size);
+ * int_v x = a.shifted(1, b);
+ * // now x == mem.vectorAt(1, Vc::Unaligned)
+ * \endcode
+ *
+ * \param amount  The number of entries to shift by. \p amount must be between \c -Size and \c Size,
+ *                otherwise the result is undefined.
+ * \param shiftIn The vector of values to shift in.
+ * \return        A new vector with values from \p this and \p shiftIn concatenated and then shifted
+ *                by \amount.
+ */
+const VECTOR_TYPE shifted(int amount, VECTOR_TYPE shiftIn) const;
 //@}
 
 /**
@@ -585,6 +613,8 @@ const VECTOR_TYPE rotated(int amount) const;
    \verbatim
    v[0] <= v[1] <= v[2] <= v[3] ...
    \endverbatim
+ *
+ * \note If the vector contains NaNs the result is undefined.
  *
  * Example:
  * \code

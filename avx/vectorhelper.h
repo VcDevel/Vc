@@ -24,6 +24,7 @@
 #include "types.h"
 #include "intrinsics.h"
 #include "casts.h"
+#include "../common/loadstoreflags.h"
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
@@ -61,15 +62,17 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 #else
             typedef const VectorType VTArg;
 #endif
-            template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const float *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, AlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, VTArg m, AlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, VTArg m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, VTArg m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(float *mem, VTArg x, VTArg m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename EnableIfAligned  <Flags>::type = nullptr) { return _mm256_load_ps(x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename EnableIfUnaligned<Flags>::type = nullptr) { return _mm256_loadu_ps(x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename EnableIfStreaming<Flags>::type = nullptr) { return AvxIntrinsics::stream_load<VectorType>(x); }
+
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VTArg x, typename EnableIfAligned              <Flags>::type = nullptr) { _mm256_store_ps(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VTArg x, typename EnableIfUnalignedNotStreaming<Flags>::type = nullptr) { _mm256_storeu_ps(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VTArg x, typename EnableIfStreaming            <Flags>::type = nullptr) { _mm256_stream_ps(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VTArg x, typename EnableIfUnalignedAndStreaming<Flags>::type = nullptr) { AvxIntrinsics::stream_store(mem, x, _mm256_setallone_ps()); }
+
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VTArg x, VTArg m, typename std::enable_if<!Flags::IsStreaming, void *>::type = nullptr) { _mm256_maskstore(mem, m, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VTArg x, VTArg m, typename std::enable_if< Flags::IsStreaming, void *>::type = nullptr) { AvxIntrinsics::stream_store(mem, x, m); }
 
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cdab(VTArg x) { return _mm256_permute_ps(x, _MM_SHUFFLE(2, 3, 0, 1)); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType badc(VTArg x) { return _mm256_permute_ps(x, _MM_SHUFFLE(1, 0, 3, 2)); }
@@ -96,15 +99,17 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 #else
             typedef const VectorType VTArg;
 #endif
-            template<typename A> static Vc_ALWAYS_INLINE_L Vc_PURE_L VectorType load(const double *x, A) Vc_ALWAYS_INLINE_R Vc_PURE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, AlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, VTArg m, AlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, VTArg m, UnalignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, VTArg m, StreamingAndAlignedFlag) Vc_ALWAYS_INLINE_R;
-            static Vc_ALWAYS_INLINE_L void store(double *mem, VTArg x, VTArg m, StreamingAndUnalignedFlag) Vc_ALWAYS_INLINE_R;
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const double *x, typename EnableIfAligned  <Flags>::type = nullptr) { return _mm256_load_pd(x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const double *x, typename EnableIfUnaligned<Flags>::type = nullptr) { return _mm256_loadu_pd(x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const double *x, typename EnableIfStreaming<Flags>::type = nullptr) { return AvxIntrinsics::stream_load<VectorType>(x); }
+
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VTArg x, typename EnableIfAligned              <Flags>::type = nullptr) { _mm256_store_pd(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VTArg x, typename EnableIfUnalignedNotStreaming<Flags>::type = nullptr) { _mm256_storeu_pd(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VTArg x, typename EnableIfStreaming            <Flags>::type = nullptr) { _mm256_stream_pd(mem, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VTArg x, typename EnableIfUnalignedAndStreaming<Flags>::type = nullptr) { AvxIntrinsics::stream_store(mem, x, _mm256_setallone_pd()); }
+
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VTArg x, VTArg m, typename std::enable_if<!Flags::IsStreaming, void *>::type = nullptr) { _mm256_maskstore(mem, m, x); }
+            template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VTArg x, VTArg m, typename std::enable_if< Flags::IsStreaming, void *>::type = nullptr) { AvxIntrinsics::stream_store(mem, x, m); }
 
             static VectorType cdab(VTArg x) { return _mm256_permute_pd(x, 5); }
             static VectorType badc(VTArg x) { return _mm256_permute2f128_pd(x, x, 1); }
@@ -133,18 +138,17 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 #else
             typedef const VectorType VTArg;
 #endif
-            template<typename T> static VectorType load(const T *x, AlignedFlag) Vc_PURE;
-            template<typename T> static VectorType load(const T *x, UnalignedFlag) Vc_PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) Vc_PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) Vc_PURE;
-            template<typename T> static void store(T *mem, VTArg x, AlignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, UnalignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, StreamingAndAlignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, StreamingAndUnalignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, VTArg m, AlignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, VTArg m, UnalignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingAndAlignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingAndUnalignedFlag);
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const T *x, typename EnableIfAligned  <Flags>::type = nullptr) { return _mm256_load_si256(reinterpret_cast<const __m256i *>(x)); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const T *x, typename EnableIfUnaligned<Flags>::type = nullptr) { return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(x)); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const T *x, typename EnableIfStreaming<Flags>::type = nullptr) { return AvxIntrinsics::stream_load<VectorType>(x); }
+
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename EnableIfAligned              <Flags>::type = nullptr) { _mm256_store_si256(reinterpret_cast<__m256i *>(mem), x); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename EnableIfUnalignedNotStreaming<Flags>::type = nullptr) { _mm256_storeu_si256(reinterpret_cast<__m256i *>(mem), x); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename EnableIfStreaming            <Flags>::type = nullptr) { _mm256_stream_si256(reinterpret_cast<__m256i *>(mem), x); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename EnableIfUnalignedAndStreaming<Flags>::type = nullptr) { AvxIntrinsics::stream_store(mem, x, _mm256_setallone_si256()); }
+
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, VTArg m, typename std::enable_if<!Flags::IsStreaming, void *>::type = nullptr) { _mm256_maskstore(mem, m, x); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, VTArg m, typename std::enable_if< Flags::IsStreaming, void *>::type = nullptr) { AvxIntrinsics::stream_store(mem, x, m); }
 
             static VectorType cdab(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<m256>(x), _MM_SHUFFLE(2, 3, 0, 1))); }
             static VectorType badc(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<m256>(x), _MM_SHUFFLE(1, 0, 3, 2))); }
@@ -171,18 +175,17 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 #else
             typedef const VectorType VTArg;
 #endif
-            template<typename T> static VectorType load(const T *x, AlignedFlag) Vc_PURE;
-            template<typename T> static VectorType load(const T *x, UnalignedFlag) Vc_PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndAlignedFlag) Vc_PURE;
-            template<typename T> static VectorType load(const T *x, StreamingAndUnalignedFlag) Vc_PURE;
-            template<typename T> static void store(T *mem, VTArg x, AlignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, UnalignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, StreamingAndAlignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, StreamingAndUnalignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, VTArg m, AlignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, VTArg m, UnalignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingAndAlignedFlag);
-            template<typename T> static void store(T *mem, VTArg x, VTArg m, StreamingAndUnalignedFlag);
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VTArg load(const T *x, typename EnableIfAligned  <Flags>::type = nullptr) { return _mm_load_si128(reinterpret_cast<const __m128i *>(x)); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VTArg load(const T *x, typename EnableIfUnaligned<Flags>::type = nullptr) { return _mm_loadu_si128(reinterpret_cast<const __m128i *>(x)); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VTArg load(const T *x, typename EnableIfStreaming<Flags>::type = nullptr) { return AvxIntrinsics::stream_load<VectorType>(x); }
+
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename EnableIfAligned              <Flags>::type = nullptr) { _mm_store_si128(reinterpret_cast<__m128i *>(mem), x); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename EnableIfUnalignedNotStreaming<Flags>::type = nullptr) { _mm_storeu_si128(reinterpret_cast<__m128i *>(mem), x); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename EnableIfStreaming            <Flags>::type = nullptr) { _mm_stream_si128(reinterpret_cast<__m128i *>(mem), x); }
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename EnableIfUnalignedAndStreaming<Flags>::type = nullptr) { _mm_maskmoveu_si128(x, _mm_setallone_si128(), reinterpret_cast<char *>(mem)); }
+
+            // _mm_maskstore_* only works for 64bit and 32bit types. For shorts we have to resort to _mm_maskmoveu_si128
+            template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, VTArg m) { _mm_maskmoveu_si128(x, m, reinterpret_cast<char *>(mem)); }
 
             static VectorType cdab(VTArg x) { const __m128i tmp = _mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)); return _mm_shufflehi_epi16(tmp, _MM_SHUFFLE(2, 3, 0, 1)); }
             static VectorType badc(VTArg x) { const __m128i tmp = _mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)); return _mm_shufflehi_epi16(tmp, _MM_SHUFFLE(1, 0, 3, 2)); }
@@ -400,8 +403,6 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
                 return _mm256_round_ps(a, _MM_FROUND_NINT);
             }
         };
-
-        template<> struct VectorHelper<sfloat> : public VectorHelper<float> {};
 
         template<> struct VectorHelper<int> {
             typedef int EntryType;
@@ -736,6 +737,18 @@ template<> struct VectorHelper<char>
     typedef const VectorType VTArg;
 #endif
     typedef char EntryType;
+    typedef short ConcatType;
+};
+
+template<> struct VectorHelper<signed char>
+{
+    typedef VectorTypeHelper<signed char>::Type VectorType;
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+    typedef const VectorType & VTArg;
+#else
+    typedef const VectorType VTArg;
+#endif
+    typedef signed char EntryType;
     typedef short ConcatType;
 };
 

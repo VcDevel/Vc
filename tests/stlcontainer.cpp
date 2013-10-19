@@ -35,7 +35,6 @@ template<typename Vec> size_t alignmentMask()
         // on 32bit the maximal alignment is 4 Bytes, even for 8-Byte doubles.
         return std::min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1;
     }
-    // sizeof(SSE::sfloat_v) is too large
     // AVX::VectorAlignment is too large
     return std::min<size_t>(sizeof(Vec), Vc::VectorAlignment) - 1;
 }
@@ -84,10 +83,8 @@ template<typename V> void listInitialization()
     //listInitialization<V, std::list<V>>();
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     using namespace Vc;
     testAllTypes(stdVectorAlignment);
     testAllTypes(listInitialization);

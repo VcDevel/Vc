@@ -196,7 +196,7 @@ template<typename V> void testLog()/*{{{*/
     Array<Reference<T> > reference = referenceData<T, Log>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, ref;
-        for (int j = 0; j < V::Size; ++j) {
+        for (size_t j = 0; j < V::Size; ++j) {
             x[j] = reference.data[i + j].x;
             ref[j] = reference.data[i + j].ref;
         }
@@ -227,7 +227,7 @@ template<typename V> void testLog2()/*{{{*/
     Array<Reference<T> > reference = referenceData<T, Log2>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, ref;
-        for (int j = 0; j < V::Size; ++j) {
+        for (size_t j = 0; j < V::Size; ++j) {
             x[j] = reference.data[i + j].x;
             ref[j] = reference.data[i + j].ref;
         }
@@ -250,7 +250,7 @@ template<typename V> void testLog10()/*{{{*/
     Array<Reference<T> > reference = referenceData<T, Log10>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, ref;
-        for (int j = 0; j < V::Size; ++j) {
+        for (size_t j = 0; j < V::Size; ++j) {
             x[j] = reference.data[i + j].x;
             ref[j] = reference.data[i + j].ref;
         }
@@ -270,7 +270,7 @@ template<typename Vec> void testMax()/*{{{*/
     typedef typename Vec::EntryType T;
     VectorMemoryHelper<Vec> mem(3);
     T *data = mem;
-    for (int i = 0; i < Vec::Size; ++i) {
+    for (size_t i = 0; i < Vec::Size; ++i) {
         data[i] = i;
         data[i + Vec::Size] = Vec::Size + 1 - i;
         data[i + 2 * Vec::Size] = std::max(data[i], data[i + Vec::Size]);
@@ -286,7 +286,7 @@ template<typename Vec> void testMax()/*{{{*/
 #define FillHelperMemory(code) \
     typename V::Memory data; \
     typename V::Memory reference; \
-    for (int ii = 0; ii < V::Size; ++ii) { \
+    for (size_t ii = 0; ii < V::Size; ++ii) { \
         const T i = static_cast<T>(ii); \
         data[ii] = i; \
         reference[ii] = code; \
@@ -320,7 +320,7 @@ template<typename V> void testSincos()/*{{{*/
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, sref, cref;
-        for (int j = 0; j < V::Size; ++j) {
+        for (size_t j = 0; j < V::Size; ++j) {
             x[j] = reference.data[i + j].x;
             sref[j] = reference.data[i + j].s;
             cref[j] = reference.data[i + j].c;
@@ -343,7 +343,7 @@ template<typename V> void testSin()/*{{{*/
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, sref;
-        for (int j = 0; j < V::Size; ++j) {
+        for (size_t j = 0; j < V::Size; ++j) {
             x[j] = reference.data[i + j].x;
             sref[j] = reference.data[i + j].s;
         }
@@ -360,7 +360,7 @@ template<typename V> void testCos()/*{{{*/
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, cref;
-        for (int j = 0; j < V::Size; ++j) {
+        for (size_t j = 0; j < V::Size; ++j) {
             x[j] = reference.data[i + j].x;
             cref[j] = reference.data[i + j].c;
         }
@@ -377,7 +377,7 @@ template<typename V> void testAsin()/*{{{*/
     Array<Reference<T> > reference = referenceData<T, Asin>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, ref;
-        for (int j = 0; j < V::Size; ++j) {
+        for (size_t j = 0; j < V::Size; ++j) {
             x[j] = reference.data[i + j].x;
             ref[j] = reference.data[i + j].ref;
         }
@@ -413,7 +413,7 @@ template<typename V> void testAtan()/*{{{*/
     Array<Reference<T> > reference = referenceData<T, Atan>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, ref;
-        for (int j = 0; j < V::Size; ++j) {
+        for (size_t j = 0; j < V::Size; ++j) {
             x[j] = reference.data[i + j].x;
             ref[j] = reference.data[i + j].ref;
         }
@@ -507,7 +507,7 @@ template<typename Vec> void testReciprocal()/*{{{*/
         const T scale = T(0.1);
         typename Vec::Memory data;
         typename Vec::Memory reference;
-        for (int ii = 0; ii < Vec::Size; ++ii) {
+        for (size_t ii = 0; ii < Vec::Size; ++ii) {
             const T i = static_cast<T>(ii);
             data[ii] = i;
             T tmp = (i + offset) * scale;
@@ -568,7 +568,7 @@ template<typename Vec> void testRound()/*{{{*/
     VectorMemoryHelper<Vec> mem2(Count);
     T *data = mem1;
     T *reference = mem2;
-    for (int i = 0; i < Count * Vec::Size; ++i) {
+    for (size_t i = 0; i < Count * Vec::Size; ++i) {
         data[i] = i * 0.25 - 2.0;
         reference[i] = std::floor(i * 0.25 - 2.0 + 0.5);
         if (i % 8 == 2) {
@@ -591,10 +591,10 @@ template<typename Vec> void testReduceMin()/*{{{*/
     const T one = 1;
     VectorMemoryHelper<Vec> mem(Vec::Size);
     T *data = mem;
-    for (int i = 0; i < Vec::Size * Vec::Size; ++i) {
+    for (size_t i = 0; i < Vec::Size * Vec::Size; ++i) {
         data[i] = i % (Vec::Size + 1) + one;
     }
-    for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
+    for (size_t i = 0; i < Vec::Size; ++i, data += Vec::Size) {
         const Vec a(&data[0]);
         //std::cout << a << std::endl;
         COMPARE(a.min(), one);
@@ -607,10 +607,10 @@ template<typename Vec> void testReduceMax()/*{{{*/
     const T max = Vec::Size + 1;
     VectorMemoryHelper<Vec> mem(Vec::Size);
     T *data = mem;
-    for (int i = 0; i < Vec::Size * Vec::Size; ++i) {
+    for (size_t i = 0; i < Vec::Size * Vec::Size; ++i) {
         data[i] = (i + Vec::Size) % (Vec::Size + 1) + 1;
     }
-    for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
+    for (size_t i = 0; i < Vec::Size; ++i, data += Vec::Size) {
         const Vec a(&data[0]);
         //std::cout << a << std::endl;
         COMPARE(a.max(), max);
@@ -624,16 +624,16 @@ template<typename Vec> void testReduceProduct()/*{{{*/
     };
     typedef typename Vec::EntryType T;
     int _product = 1;
-    for (int i = 1; i < Vec::Size; ++i) {
+    for (size_t i = 1; i < Vec::Size; ++i) {
         _product *= (i % Max) + 1;
     }
     const T product = _product;
     VectorMemoryHelper<Vec> mem(Vec::Size);
     T *data = mem;
-    for (int i = 0; i < Vec::Size * Vec::Size; ++i) {
+    for (size_t i = 0; i < Vec::Size * Vec::Size; ++i) {
         data[i] = ((i + (i / Vec::Size)) % Max) + 1;
     }
-    for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
+    for (size_t i = 0; i < Vec::Size; ++i, data += Vec::Size) {
         const Vec a(&data[0]);
         //std::cout << a << std::endl;
         COMPARE(a.product(), product);
@@ -644,16 +644,16 @@ template<typename Vec> void testReduceSum()/*{{{*/
 {
     typedef typename Vec::EntryType T;
     int _sum = 1;
-    for (int i = 2; i <= Vec::Size; ++i) {
+    for (size_t i = 2; i <= Vec::Size; ++i) {
         _sum += i;
     }
     const T sum = _sum;
     VectorMemoryHelper<Vec> mem(Vec::Size);
     T *data = mem;
-    for (int i = 0; i < Vec::Size * Vec::Size; ++i) {
+    for (size_t i = 0; i < Vec::Size * Vec::Size; ++i) {
         data[i] = (i + i / Vec::Size) % Vec::Size + 1;
     }
-    for (int i = 0; i < Vec::Size; ++i, data += Vec::Size) {
+    for (size_t i = 0; i < Vec::Size; ++i, data += Vec::Size) {
         const Vec a(&data[0]);
         //std::cout << a << std::endl;
         COMPARE(a.sum(), sum);
@@ -703,15 +703,14 @@ template<typename V> void testExponent()/*{{{*/
 }
 /*}}}*/
 template<typename T> struct _ExponentVector { typedef int_v Type; };
-template<> struct _ExponentVector<sfloat_v> { typedef short_v Type; };
 
 template<typename V> void testFrexp()/*{{{*/
 {
     typedef typename V::EntryType T;
     typedef typename _ExponentVector<V>::Type ExpV;
-    Vc::Memory<V, 32> input;
-    Vc::Memory<V, 32> expectedFraction;
-    Vc::Memory<ExpV, 32> expectedExponent;
+    Vc::Memory<V, 33> input;
+    Vc::Memory<V, 33> expectedFraction;
+    Vc::Memory<ExpV, 33> expectedExponent;
     input[ 0] = T(0.25); expectedFraction[ 0] = T(.5     ); expectedExponent[ 0] = -1;
     input[ 1] = T(   1); expectedFraction[ 1] = T(.5     ); expectedExponent[ 1] =  1;
     input[ 2] = T(   0); expectedFraction[ 2] = T(0.     ); expectedExponent[ 2] =  0;
@@ -744,16 +743,23 @@ template<typename V> void testFrexp()/*{{{*/
     input[29] = T(  29); expectedFraction[29] = T(29./32.); expectedExponent[29] =  5;
     input[30] = T(  32); expectedFraction[30] = T(32./64.); expectedExponent[30] =  6;
     input[31] = T(  31); expectedFraction[31] = T(31./32.); expectedExponent[31] =  5;
+    input[32] = T( -0.); expectedFraction[32] = T(-0.    ); expectedExponent[32] =  0;
     for (size_t i = 0; i < input.vectorsCount(); ++i) {
         const V v = input.vector(i);
         ExpV exp;
-        COMPARE(frexp(v, &exp), V(expectedFraction.vector(i)));
+        const V fraction = frexp(v, &exp);
+        COMPARE(fraction, V(expectedFraction.vector(i))) << ", v = " << v;
+        VERIFY(0 == memcmp(&fraction, &expectedFraction[i * V::Size], sizeof(V)))
+            << ", fraction: " << fraction
+            << ", expectedFraction: " << V(expectedFraction.vector(i))
+            << ", delta: " << fraction - V(expectedFraction.vector(i));
         if (V::Size * 2 == ExpV::Size) {
             for (size_t j = 0; j < V::Size; ++j) {
-                COMPARE(exp[j * 2], expectedExponent[i * V::Size + j]);
+                COMPARE(exp[j * 2], expectedExponent[i * V::Size + j]) << ", i = " << i
+                    << ", j = " << j;
             }
         } else {
-            COMPARE(exp, ExpV(expectedExponent.vector(i)));
+            COMPARE(exp, ExpV(expectedExponent.vector(i))) << ", i = " << i;
         }
     }
 }
@@ -796,17 +802,15 @@ template<typename V> void testUlpDiff()/*{{{*/
 
             VERIFY(Vc::abs(ulpDifference - expectedDifference) <= maxUncertainty)
                 << ", base = " << base << ", epsilon = " << eps << ", diff = " << diff;
-            for (int k = 0; k < V::Size; ++k) {
+            for (size_t k = 0; k < V::Size; ++k) {
                 VERIFY(std::abs(ulpDifference[k] - expectedDifference[k]) <= maxUncertainty[k]);
             }
         }
     }
 }/*}}}*/
 
-int main(int argc, char **argv)/*{{{*/
+void testmain()/*{{{*/
 {
-    initTest(argc, argv);
-
     Denormals<float>::data = Vc::malloc<float, Vc::AlignOnVector>(NDenormals);/*{{{*/
     Denormals<float>::data[0] = std::numeric_limits<float>::denorm_min();
     for (int i = 1; i < NDenormals; ++i) {
@@ -826,7 +830,6 @@ int main(int argc, char **argv)/*{{{*/
     runTest(testAbs<float_v>);
     runTest(testAbs<double_v>);
     runTest(testAbs<short_v>);
-    runTest(testAbs<sfloat_v>);
 
     testRealTypes(testUlpDiff);
 
@@ -844,7 +847,6 @@ int main(int argc, char **argv)/*{{{*/
     runTest(testMax<double_v>);
     runTest(testMax<short_v>);
     runTest(testMax<ushort_v>);
-    runTest(testMax<sfloat_v>);
 
     testRealTypes(testSqrt);
     testRealTypes(testRSqrt);
@@ -859,7 +861,6 @@ int main(int argc, char **argv)/*{{{*/
     testRealTypes(testRound);
 
     runTest(testReduceMin<float_v>);
-    runTest(testReduceMin<sfloat_v>);
     runTest(testReduceMin<double_v>);
     runTest(testReduceMin<int_v>);
     runTest(testReduceMin<uint_v>);
@@ -867,7 +868,6 @@ int main(int argc, char **argv)/*{{{*/
     runTest(testReduceMin<ushort_v>);
 
     runTest(testReduceMax<float_v>);
-    runTest(testReduceMax<sfloat_v>);
     runTest(testReduceMax<double_v>);
     runTest(testReduceMax<int_v>);
     runTest(testReduceMax<uint_v>);
@@ -875,7 +875,6 @@ int main(int argc, char **argv)/*{{{*/
     runTest(testReduceMax<ushort_v>);
 
     runTest(testReduceProduct<float_v>);
-    runTest(testReduceProduct<sfloat_v>);
     runTest(testReduceProduct<double_v>);
     runTest(testReduceProduct<int_v>);
     runTest(testReduceProduct<uint_v>);
@@ -883,7 +882,6 @@ int main(int argc, char **argv)/*{{{*/
     runTest(testReduceProduct<ushort_v>);
 
     runTest(testReduceSum<float_v>);
-    runTest(testReduceSum<sfloat_v>);
     runTest(testReduceSum<double_v>);
     runTest(testReduceSum<int_v>);
     runTest(testReduceSum<uint_v>);
@@ -892,8 +890,6 @@ int main(int argc, char **argv)/*{{{*/
 
     testRealTypes(testSincos);
     testRealTypes(testExponent);
-
-    return 0;
 }/*}}}*/
 
 // vim: foldmethod=marker

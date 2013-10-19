@@ -80,9 +80,29 @@ void testUnsigned()
     }
 }
 
-int main()
+void testFloat()
+{
+    enum {
+        SizeFactor = float_v::Size / double_v::Size
+    };
+    double_v d[SizeFactor];
+    for (int i = 0; i < SizeFactor; ++i) {
+        d[i] = double_v::Random();
+    }
+    float_v f(d);
+    for (size_t i = 0; i < float_v::Size; ++i) {
+        COMPARE(f[i], float(d[i / double_v::Size][i % double_v::Size])) << ", i = " << i;
+    }
+    f = float_v::Random();
+    f.expand(d);
+    for (size_t i = 0; i < float_v::Size; ++i) {
+        COMPARE(f[i], float(d[i / double_v::Size][i % double_v::Size])) << ", i = " << i;
+    }
+}
+
+void testmain()
 {
     runTest(testSigned);
     runTest(testUnsigned);
-    return 0;
+    runTest(testFloat);
 }

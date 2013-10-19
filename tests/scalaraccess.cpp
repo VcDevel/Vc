@@ -28,12 +28,12 @@ template<typename V> void reads()
 
     V a = V::Zero();
     const T zero = 0;
-    for (int i = 0; i < V::Size; ++i) {
+    for (size_t i = 0; i < V::Size; ++i) {
         const T x = a[i];
         COMPARE(x, zero);
     }
     a = static_cast<V>(I::IndexesFromZero());
-    for (int i = 0; i < V::Size; ++i) {
+    for (size_t i = 0; i < V::Size; ++i) {
         const T x = a[i];
         const T y = i;
         COMPARE(x, y);
@@ -90,7 +90,7 @@ template<typename V> void writes()
     typedef typename V::IndexType I;
 
     V a;
-    for (int i = 0; i < V::Size; ++i) {
+    for (size_t i = 0; i < V::Size; ++i) {
         a[i] = static_cast<T>(i);
     }
     V b = static_cast<V>(I::IndexesFromZero());
@@ -119,6 +119,7 @@ template<typename V> void writes()
         b(b == 2) += one;
         b(b == 3) += one;
         b(b == 4) += one;
+        // expected: [0, 1, 5, 5, 5, 5, 6, 7]
         COMPARE(a, b);
     } else if (V::Size == 2) { // a = [0, 1]; b = [0, 1]
         a(a == 0) += two;      // a = [2, 1]
@@ -133,14 +134,10 @@ template<typename V> void writes()
     }
 }
 
-int main(int argc, char **argv)
+void testmain()
 {
-    initTest(argc, argv);
-
     testAllTypes(reads);
     testAllTypes(writes);
     testAllTypes(readsConstantIndex);
     //testAllTypes(writesConstantIndex);
-
-    return 0;
 }

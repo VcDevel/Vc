@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2011-2012 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2011-2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -135,17 +135,22 @@ void CpuId::init()
     s_processorFamily = (eax & 0x00000f00) >> 8;
     if (isAmd()) {
         if (s_processorFamily >= 0xf) {
-            const uchar processorFamilyExt = (eax & 0x0ff00000) >> 20;
+            const uchar processorFamilyExt = (eax & 0x0ff00000) >> 16;
             s_processorFamily += processorFamilyExt;
             const uchar processorModelExt = (eax & 0x000f0000) >> 12;
             s_processorModel += processorModelExt;
         }
     } else if (s_processorFamily == 0xf) {
-        const uchar processorFamilyExt = (eax & 0x0ff00000) >> 20;
+        const uchar processorFamilyExt = (eax & 0x0ff00000) >> 16;
         s_processorFamily += processorFamilyExt;
         const uchar processorModelExt = (eax & 0x000f0000) >> 12;
         s_processorModel += processorModelExt;
     } else if (s_processorFamily == 0x6) {
+        const uchar processorModelExt = (eax & 0x000f0000) >> 12;
+        s_processorModel += processorModelExt;
+    } else if (s_processorFamily == 0xB) {
+        const uchar processorFamilyExt = (eax & 0x0ff00000) >> 16;
+        s_processorFamily += processorFamilyExt;
         const uchar processorModelExt = (eax & 0x000f0000) >> 12;
         s_processorModel += processorModelExt;
     }

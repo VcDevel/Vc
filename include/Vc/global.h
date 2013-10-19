@@ -73,13 +73,17 @@
 #define Vc__NO_NOEXCEPT 1
 #endif
 
-#if defined(VC_ICC) && VC_ICC < 20140000
+#if defined(VC_ICC)
+#if VC_ICC <= 20130728
 // ICC doesn't know noexcept, alignof, and move ctors
 #define Vc__NO_NOEXCEPT 1
 #ifndef alignof
 #define alignof(x) __alignof(x)
 #endif
 #define VC_NO_MOVE_CTOR 1
+#else
+#warning "Please check whether ICC now understands: noexcept, alignof, &&"
+#endif
 #endif
 
 #ifdef VC_GCC
@@ -115,6 +119,7 @@
 #define SSE4_2 0x00700000
 #define AVX    0x00800000
 #define AVX2   0x00900000
+#define MIC    0x00A00000
 
 #define XOP    0x00000001
 #define FMA4   0x00000002
@@ -151,7 +156,9 @@
 
 #ifndef VC_IMPL
 
-#  if defined(__AVX2__)
+#  if defined(__MIC__)
+#    define VC_IMPL_MIC 1
+#  elif defined(__AVX2__)
 #    define VC_IMPL_AVX2 1
 #    define VC_IMPL_AVX 1
 #  elif defined(__AVX__)
@@ -184,7 +191,7 @@
 #      define VC_IMPL_Scalar 1
 #    endif
 #  endif
-#  if defined(VC_IMPL_AVX2) || defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE)
+#  if defined(VC_IMPL_AVX2) || defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE) || defined(VC_IMPL_MIC)
 #    ifdef __FMA4__
 #      define VC_IMPL_FMA4 1
 #    endif
@@ -207,7 +214,12 @@
 
 #else // VC_IMPL
 
-#  if (VC_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
+#  if (VC_IMPL & IMPL_MASK) == MIC // MIC supersedes everything else
+#    define VC_IMPL_MIC 1
+#    ifdef __POPCNT__
+#      define VC_IMPL_POPCNT 1
+#    endif
+#  elif (VC_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
 #    define VC_IMPL_AVX2 1
 #    define VC_IMPL_AVX 1
 #  elif (VC_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
@@ -302,6 +314,7 @@
 #    undef VC_IMPL_SSSE3
 #    undef VC_IMPL_AVX
 #    undef VC_IMPL_AVX2
+#    undef VC_IMPL_MIC
 #    undef VC_IMPL_FMA4
 #    undef VC_IMPL_XOP
 #    undef VC_IMPL_F16C
@@ -312,7 +325,7 @@
 #    define VC_IMPL_Scalar 1
 #endif
 
-# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX)
+# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX) && !defined(VC_IMPL_MIC)
 #  error "No suitable Vc implementation was selected! Probably VC_IMPL was set to an invalid value."
 # elif defined(VC_IMPL_SSE) && !defined(VC_IMPL_SSE2)
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
@@ -327,6 +340,7 @@
 #undef SSE4_2
 #undef AVX
 #undef AVX2
+#undef MIC
 
 #undef XOP
 #undef FMA4
@@ -338,20 +352,37 @@
 #undef IMPL_MASK
 #undef EXT_MASK
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc {
-enum AlignedFlag {
-    Aligned = 0
-};
-enum UnalignedFlag {
-    Unaligned = 1
-};
-enum StreamingAndAlignedFlag { // implies Aligned
-    Streaming = 2
-};
-enum StreamingAndUnalignedFlag {
-    StreamingAndUnaligned = 3
-};
+#ifndef Vc__SYMBOL_VERSION
+#define Vc__SYMBOL_VERSION v0
+#endif
+
+#define Vc_NAMESPACE_BEGIN(NAME) \
+    namespace Vc { \
+        inline namespace Vc__SYMBOL_VERSION { \
+            namespace NAME {
+
+#define Vc_PUBLIC_NAMESPACE_BEGIN \
+    namespace Vc { \
+        inline namespace Vc__SYMBOL_VERSION { \
+            inline namespace Public {
+
+#define Vc_NAMESPACE_END }}}
+#define Vc_IMPL_NAMESPACE_END Vc_NAMESPACE_END
+
+Vc_PUBLIC_NAMESPACE_BEGIN
+Vc_NAMESPACE_END
+
+Vc_PUBLIC_NAMESPACE_BEGIN
+
+typedef   signed char        int8_t;
+typedef unsigned char       uint8_t;
+typedef   signed short      int16_t;
+typedef unsigned short     uint16_t;
+typedef   signed int        int32_t;
+typedef unsigned int       uint32_t;
+typedef   signed long long  int64_t;
+typedef unsigned long long uint64_t;
+
 #endif // DOXYGEN
 
 /**
@@ -381,16 +412,6 @@ enum MallocAlignment {
     AlignOnPage
 };
 
-static constexpr StreamingAndUnalignedFlag operator|(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-static constexpr StreamingAndUnalignedFlag operator|(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
-static constexpr StreamingAndUnalignedFlag operator&(UnalignedFlag, StreamingAndAlignedFlag) { return StreamingAndUnaligned; }
-static constexpr StreamingAndUnalignedFlag operator&(StreamingAndAlignedFlag, UnalignedFlag) { return StreamingAndUnaligned; }
-
-static constexpr StreamingAndAlignedFlag operator|(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-static constexpr StreamingAndAlignedFlag operator|(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
-static constexpr StreamingAndAlignedFlag operator&(AlignedFlag, StreamingAndAlignedFlag) { return Streaming; }
-static constexpr StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, AlignedFlag) { return Streaming; }
-
 /**
  * \ingroup Utilities
  *
@@ -400,7 +421,7 @@ static constexpr StreamingAndAlignedFlag operator&(StreamingAndAlignedFlag, Alig
  *
  * \see ExtraInstructions
  */
-enum Implementation {
+enum Implementation { // TODO: make enum class of uint32_t
     /// uses only fundamental types
     ScalarImpl,
     /// x86 SSE + SSE2
@@ -417,6 +438,8 @@ enum Implementation {
     AVXImpl,
     /// x86 AVX + AVX2
     AVX2Impl,
+    /// Intel Xeon Phi
+    MICImpl,
     ImplementationMask = 0xfff
 };
 
@@ -430,7 +453,7 @@ enum Implementation {
  * But there are additional instructions that are not necessarily required by this list. These are
  * covered in this enum.
  */
-enum ExtraInstructions {
+enum ExtraInstructions { // TODO: make enum class of uint32_t
     //! Support for float16 conversions in hardware
     Float16cInstructions  = 0x01000,
     //! Support for FMA4 instructions
@@ -454,6 +477,9 @@ enum ExtraInstructions {
 #ifdef VC_IMPL_Scalar
 #define VC_IMPL ::Vc::ScalarImpl
 #define Vc_IMPL_NAMESPACE Scalar
+#elif defined(VC_IMPL_MIC)
+#define VC_IMPL ::Vc::MICImpl
+#define Vc_IMPL_NAMESPACE MIC
 #elif defined(VC_IMPL_AVX2)
 #define VC_IMPL ::Vc::AVX2Impl
 #define Vc_IMPL_NAMESPACE AVX2
@@ -479,8 +505,8 @@ enum ExtraInstructions {
 
 template<unsigned int Features> struct ImplementationT { enum _Value {
     Value = Features,
-    Implementation = Features & Vc::ImplementationMask,
-    ExtraInstructions = Features & Vc::ExtraInstructionsMask
+    Implementation = Features & ImplementationMask,
+    ExtraInstructions = Features & ExtraInstructionsMask
 }; };
 
 typedef ImplementationT<
@@ -514,23 +540,6 @@ typedef ImplementationT<
 #endif
     > CurrentImplementation;
 
-#ifndef Vc__SYMBOL_VERSION
-#define Vc__SYMBOL_VERSION v0
-#endif
-
-#define Vc_NAMESPACE_BEGIN(NAME) \
-    namespace Vc { \
-        inline namespace Vc__SYMBOL_VERSION { \
-            namespace NAME {
-
-#define Vc_PUBLIC_NAMESPACE_BEGIN \
-    namespace Vc { \
-        inline namespace Vc__SYMBOL_VERSION { \
-            inline namespace Public {
-
-#define Vc_NAMESPACE_END }}}
-#define Vc_IMPL_NAMESPACE_END Vc_NAMESPACE_END
-
 namespace Warnings
 {
     void _operator_bracket_warning()
@@ -546,20 +555,16 @@ namespace Error
 } // namespace Error
 
 #endif // DOXYGEN
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(Internal)
+    // TODO (refactor): get rid of this abstraction:
     template<Implementation Impl> struct HelperImpl;
     typedef HelperImpl<VC_IMPL> Helper;
-
-    template<typename A> struct FlagObject;
-    template<> struct FlagObject<AlignedFlag> { static constexpr AlignedFlag the() { return Aligned; } };
-    template<> struct FlagObject<UnalignedFlag> { static constexpr UnalignedFlag the() { return Unaligned; } };
-    template<> struct FlagObject<StreamingAndAlignedFlag> { static constexpr StreamingAndAlignedFlag the() { return Streaming; } };
-    template<> struct FlagObject<StreamingAndUnalignedFlag> { static constexpr StreamingAndUnalignedFlag the() { return StreamingAndUnaligned; } };
 Vc_NAMESPACE_END
 
 #include "version.h"
 
 #endif // VC_GLOBAL_H
+
+// vim: foldmethod=marker

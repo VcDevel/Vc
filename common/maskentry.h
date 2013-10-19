@@ -34,22 +34,21 @@ public:
 #ifndef VC_NO_MOVE_CTOR
     constexpr MaskEntry(MaskEntry &&) = default;
 #endif
-    Vc_ALWAYS_INLINE MaskEntry &operator=(const MaskEntry &) = default;
 
     Vc_ALWAYS_INLINE Vc_PURE operator bool() const { const M &m = mask; return m[offset]; }
-    Vc_ALWAYS_INLINE bool operator=(bool x) {
+    Vc_ALWAYS_INLINE MaskEntry &operator=(bool x) {
         mask.setEntry(offset, x);
-        return x;
+        return *this;
     }
 };
 
 namespace
 {
     template<size_t Bytes> struct MaskBoolStorage;
-    template<> struct MaskBoolStorage<1> { typedef signed char type; };
-    template<> struct MaskBoolStorage<2> { typedef signed short type; };
-    template<> struct MaskBoolStorage<4> { typedef signed int type; };
-    template<> struct MaskBoolStorage<8> { typedef signed long long type; };
+    template<> struct MaskBoolStorage<1> { typedef int8_t  type; };
+    template<> struct MaskBoolStorage<2> { typedef int16_t type; };
+    template<> struct MaskBoolStorage<4> { typedef int32_t type; };
+    template<> struct MaskBoolStorage<8> { typedef int64_t type; };
 } // anonymous namespace
 
 template<size_t Bytes> class MaskBool
@@ -57,16 +56,16 @@ template<size_t Bytes> class MaskBool
     typedef typename MaskBoolStorage<Bytes>::type storage_type Vc_MAY_ALIAS;
     storage_type data;
 public:
-    MaskBool(bool x) : data(x ? -1 : 0) {}
-    MaskBool &operator=(bool x) { data = x ? -1 : 0; return *this; }
+    Vc_ALWAYS_INLINE MaskBool(bool x) : data(x ? -1 : 0) {}
+    Vc_ALWAYS_INLINE MaskBool &operator=(bool x) { data = x ? -1 : 0; return *this; }
 
-    MaskBool(const MaskBool &) = default;
+    Vc_ALWAYS_INLINE MaskBool(const MaskBool &) = default;
 #ifndef VC_NO_MOVE_CTOR
-    MaskBool(MaskBool &&) = default;
+    Vc_ALWAYS_INLINE MaskBool(MaskBool &&) = default;
 #endif
-    MaskBool &operator=(const MaskBool &) = default;
+    Vc_ALWAYS_INLINE MaskBool &operator=(const MaskBool &) = default;
 
-    operator bool() const { return (data & 1) != 0; }
+    Vc_ALWAYS_INLINE operator bool() const { return (data & 1) != 0; }
 } Vc_MAY_ALIAS;
 
 Vc_NAMESPACE_END

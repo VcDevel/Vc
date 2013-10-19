@@ -22,15 +22,17 @@
 
 using namespace Vc;
 
-template<typename Vec> unsigned long alignmentMask()
+template<typename T> static constexpr T min(T a, T b) { return a < b ? a : b; }
+
+template<typename Vec> constexpr unsigned long alignmentMask()
 {
-    if (Vec::Size == 1) {
-        // on 32bit the maximal alignment is 4 Bytes, even for 8-Byte doubles.
-        return std::min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1;
-    }
-    // sizeof(SSE::sfloat_v) is too large
-    // AVX::VectorAlignment is too large
-    return std::min<unsigned long>(sizeof(Vec), VectorAlignment) - 1;
+    return Vec::Size == 1 ? (
+            // on 32bit the maximal alignment is 4 Bytes, even for 8-Byte doubles.
+            min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1
+        ) : (
+            // AVX::VectorAlignment is too large
+            min<size_t>(sizeof(Vec), VectorAlignment) - 1
+        );
 }
 
 template<typename Vec> void checkAlignment()
@@ -43,7 +45,7 @@ template<typename Vec> void checkAlignment()
     }
     const char *data = reinterpret_cast<const char *>(&a[0]);
     for (i = 0; i < 10; ++i) {
-        VERIFY(&data[i * Vec::Size * sizeof(typename Vec::EntryType)] == reinterpret_cast<const char *>(&a[i]));
+        VERIFY(&data[i * sizeof(Vec)] == reinterpret_cast<const char *>(&a[i]));
     }
 }
 
@@ -56,7 +58,7 @@ template<typename Vec> void checkMemoryAlignment()
     Vc::Memory<Vec, 10> a;
     b = a;
     hack_to_put_b_on_the_stack = &b;
-    unsigned long mask = alignmentMask<Vec>();
+    size_t mask = memory_alignment<Vec>::value - 1;
     for (int i = 0; i < 10; ++i) {
         VERIFY((reinterpret_cast<size_t>(&b[i * Vec::Size]) & mask) == 0) << "b = " << b << ", mask = " << mask;
     }
@@ -88,6 +90,10 @@ template<typename Vec> void loadArray()
         b.load(addr);
         COMPARE(b, ii);
     }
+
+    // check that Vc allows construction from objects that auto-convert to T*
+    Vec tmp0(array);
+    tmp0.load(array);
 }
 
 enum Enum {
@@ -130,17 +136,17 @@ template<typename Vec> void streamingLoad()
     }
 
     Vec ref = data.firstVector();
-    for (int i = 0; i < streamingLoadCount - Vec::Size; ++i, ++ref) {
+    for (size_t i = 0; i < streamingLoadCount - Vec::Size; ++i, ++ref) {
         Vec v1, v2;
         if (0 == i % Vec::Size) {
-            v1 = Vec(&data[i], Vc::Streaming | Vc::Aligned);
-            v2.load (&data[i], Vc::Streaming | Vc::Aligned);
+            v1 = Vec(&data[i], Vc::Streaming);
+            v2.load (&data[i], Vc::Streaming);
         } else {
             v1 = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
-            v2.load (&data[i], Vc::Streaming | Vc::Unaligned);
+            v2.load (&data[i], Vc::Unaligned | Vc::Streaming);
         }
-        COMPARE(v1, ref);
-        COMPARE(v2, ref);
+        COMPARE(v1, ref) << ", i = " << i;
+        COMPARE(v2, ref) << ", i = " << i;
     }
 }
 
@@ -155,7 +161,6 @@ template<> struct TypeInfo<signed char   > { static const char *string() { retur
 template<> struct TypeInfo<unsigned char > { static const char *string() { return "uchar"; } };
 template<> struct TypeInfo<double_v      > { static const char *string() { return "double_v"; } };
 template<> struct TypeInfo<float_v       > { static const char *string() { return "float_v"; } };
-template<> struct TypeInfo<sfloat_v      > { static const char *string() { return "sfloat_v"; } };
 template<> struct TypeInfo<int_v         > { static const char *string() { return "int_v"; } };
 template<> struct TypeInfo<uint_v        > { static const char *string() { return "uint_v"; } };
 template<> struct TypeInfo<short_v       > { static const char *string() { return "short_v"; } };
@@ -245,7 +250,7 @@ template<typename Vec> void loadCvt()
     LoadCvt<Vec, typename SupportedConversions<T>::Next>::test();
 }
 
-int main()
+void testmain()
 {
     runTest(checkAlignment<int_v>);
     runTest(checkAlignment<uint_v>);
@@ -253,18 +258,15 @@ int main()
     runTest(checkAlignment<double_v>);
     runTest(checkAlignment<short_v>);
     runTest(checkAlignment<ushort_v>);
-    runTest(checkAlignment<sfloat_v>);
     testAllTypes(checkMemoryAlignment);
     runTest(loadArray<int_v>);
     runTest(loadArray<uint_v>);
     runTest(loadArray<float_v>);
     runTest(loadArray<double_v>);
-    runTest(loadArray<sfloat_v>);
     runTest(loadArrayShort<short_v>);
     runTest(loadArrayShort<ushort_v>);
 
     testAllTypes(streamingLoad);
 
     testAllTypes(loadCvt);
-    return 0;
 }

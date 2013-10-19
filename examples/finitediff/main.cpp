@@ -56,7 +56,7 @@ static inline float dfu(float x) { return ( std::cos(x) ); }
 static inline Vc::float_v fu(Vc::float_v::AsArg x) {
 #ifdef USE_SCALAR_SINCOS
   Vc::float_v r;
-  for (int i = 0; i < Vc::float_v::Size; ++i) {
+  for (size_t i = 0; i < Vc::float_v::Size; ++i) {
     r[i] = std::sin(x[i]);
   }
   return r;
@@ -68,7 +68,7 @@ static inline Vc::float_v fu(Vc::float_v::AsArg x) {
 static inline Vc::float_v dfu(Vc::float_v::AsArg x) {
 #ifdef USE_SCALAR_SINCOS
   Vc::float_v r;
-  for (int i = 0; i < Vc::float_v::Size; ++i) {
+  for (size_t i = 0; i < Vc::float_v::Size; ++i) {
     r[i] = std::cos(x[i]);
   }
   return r;
@@ -189,31 +189,50 @@ int main()
         // prefetching on architectures where four vectors fill one cache line. (Note that this
         // unrolling breaks auto-vectorization of the Vc::Scalar implementation when compiling with
         // GCC.)
-        for (unsigned int i = 0; i < (y_points.entriesCount() - 2) / float_v::Size; i += 4) {
-            // Prefetches make sure the data which is going to be used in 24/4 iterations is already
-            // in the L1 cache. The prefetchForOneRead additionally instructs the CPU to not evict
-            // these cache lines to L2/L3.
-            Vc::prefetchForOneRead(&y_points[(i + 24) * float_v::Size]);
 
+        // Use streaming stores to reduce the required memory bandwidth. Without streaming
+        // stores the CPU would first have to load the cache line, where the store occurs, from
+        // memory into L1, then overwrite the data, and finally write it back to memory. But
+        // since we never actually need the data that the CPU fetched from memory we'd like to
+        // keep that bandwidth free for real work. Streaming stores allow us to issue stores
+        // which the CPU gathers in store buffers to form full cache lines, which then get
+        // written back to memory directly without the costly read. Thus we make better use of
+        // the available memory bandwidth.
+        auto dy = Vc::makeIterator<float_v>(&dy_points[1], Vc::Streaming);
+
+        // Prefetches make sure the data which is going to be used in the next iterations is already
+        // in the L1 cache. The Vc::Prefetch<>() flag provides some sensible default for loops where no
+        // elements are skipped. You can use Vc::Prefetch<L1, L2, Shared/Exclusive>() instead to set the stride of
+        // L1 and L2 prefetches manually.
+        auto y = y_points.begin(Vc::Prefetch<>());
+        float_v y0 = *y++;
+        const auto y_it_last = y_points.end();
+#pragma noprefetch
+        for (; y < y_it_last; y += 4 , dy += 4) {
             // calculate float_v::Size differentials per (left - right) / 2h
-            const float_v dy0 = (y_points.vector(i + 0, 2) - y_points.vector(i + 0)) * oneOver2h;
-            const float_v dy1 = (y_points.vector(i + 1, 2) - y_points.vector(i + 1)) * oneOver2h;
-            const float_v dy2 = (y_points.vector(i + 2, 2) - y_points.vector(i + 2)) * oneOver2h;
-            const float_v dy3 = (y_points.vector(i + 3, 2) - y_points.vector(i + 3)) * oneOver2h;
-
-            // Use streaming stores to reduce the required memory bandwidth. Without streaming
-            // stores the CPU would first have to load the cache line, where the store occurs, from
-            // memory into L1, then overwrite the data, and finally write it back to memory. But
-            // since we never actually need the data that the CPU fetched from memory we'd like to
-            // keep that bandwidth free for real work. Streaming stores allow us to issue stores
-            // which the CPU gathers in store buffers to form full cache lines, which then get
-            // written back to memory directly without the costly read. Thus we make better use of
-            // the available memory bandwidth.
-            dy0.store(&dy_points[(i + 0) * float_v::Size + 1], Vc::Streaming);
-            dy1.store(&dy_points[(i + 1) * float_v::Size + 1], Vc::Streaming);
-            dy2.store(&dy_points[(i + 2) * float_v::Size + 1], Vc::Streaming);
-            dy3.store(&dy_points[(i + 3) * float_v::Size + 1], Vc::Streaming);
+            float_v y1 = y[0];
+            float_v y2 = y[1];
+            float_v y3 = y[2];
+            static_assert(float_v::Size >= 2, "This code requires a SIMD vector with at least two entries.");
+            dy[0] = (y0.shifted(2, y1) - y0) * oneOver2h;
+            y0 = y[3];
+            dy[1] = (y1.shifted(2, y2) - y1) * oneOver2h;
+            dy[2] = (y2.shifted(2, y3) - y2) * oneOver2h;
+            dy[3] = (y3.shifted(2, y0) - y3) * oneOver2h;
         }
+        /* Alternative:
+         * use the STL transform algorithm. We have to rely on the compiler for unrolling, though.
+         * At least ICC doesn't produce the best code from this...
+         *
+        std::transform(Vc::makeIterator(y_points.vector(1), Vc::Prefetch<>()),
+                y_points.end(Vc::Prefetch<>()),
+                Vc::makeIterator<float_v>(&dy_points[1], Vc::Streaming),
+                [&y0,oneOver2h](float_v y1) -> float_v {
+                    const auto r = (y0.shifted(2, y1) - y0) * oneOver2h;
+                    y0 = y1;
+                    return r;
+                });
+        */
 
         // Process the last vector. Note that this works for any N because Vc::Memory adds padding
         // to y_points and dy_points such that the last scalar value is somewhere inside lastVector.

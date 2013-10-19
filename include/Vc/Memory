@@ -26,6 +26,8 @@
 #include "common/interleavedmemory.h"
 #ifdef VC_IMPL_Scalar
 # include "scalar/interleavedmemory.tcc"
+#elif defined(VC_IMPL_MIC)
+# include "mic/interleavedmemory.tcc"
 #elif defined(VC_IMPL_AVX)
 # include "avx/interleavedmemory.tcc"
 #elif defined(VC_IMPL_SSE)

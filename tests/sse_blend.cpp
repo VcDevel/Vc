@@ -117,7 +117,7 @@ void blendepi16()
 #undef blend
 }
 
-int main()
+void testmain()
 {
     runTest(blendpd);
     runTest(blendps);

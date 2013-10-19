@@ -43,15 +43,13 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 #define testAllTypes(name) \
     _unit_test_global.runTestInt(&name<float_v>, #name "<float_v>"); \
     _unit_test_global.runTestInt(&name<short_v>, #name "<short_v>"); \
-    _unit_test_global.runTestInt(&name<sfloat_v>, #name "<sfloat_v>"); \
     _unit_test_global.runTestInt(&name<ushort_v>, #name "<ushort_v>"); \
     _unit_test_global.runTestInt(&name<int_v>, #name "<int_v>"); \
     _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>"); \
     _unit_test_global.runTestInt(&name<uint_v>, #name "<uint_v>")
 #define testRealTypes(name) \
     _unit_test_global.runTestInt(&name<float_v>, #name "<float_v>"); \
-    _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>"); \
-    _unit_test_global.runTestInt(&name<sfloat_v>, #name "<sfloat_v>");
+    _unit_test_global.runTestInt(&name<double_v>, #name "<double_v>");
 
 template<typename A, typename B> struct isEqualType
 {
@@ -78,7 +76,10 @@ bool _UnitTest_verify_vector_unit_supported()
     return s;
 }
 
-static bool _UnitTest_verify_vector_unit_supported_result = _UnitTest_verify_vector_unit_supported();
+namespace
+{
+bool _UnitTest_verify_vector_unit_supported_result = _UnitTest_verify_vector_unit_supported();
+} // anonymous namespace
 
 class _UnitTest_Failure
 {
@@ -107,17 +108,17 @@ class _UnitTest_Global_Object
 
         ~_UnitTest_Global_Object()
         {
-            if (m_finalized) {
-                // on windows std::exit will call the dtor again, leading to infinite recursion
-                return;
-            }
+        }
+
+        int finalize()
+        {
             if (plotFile.is_open()) {
                 plotFile.flush();
                 plotFile.close();
             }
-            std::cout << "\n Testing done. " << passedTests << " tests passed. " << failedTests << " tests failed." << std::endl;
             m_finalized = true;
-            std::exit(failedTests);
+            std::cout << "\n Testing done. " << passedTests << " tests passed. " << failedTests << " tests failed." << std::endl;
+            return failedTests;
         }
 
         void runTestInt(testFunction fun, const char *name);
@@ -240,7 +241,6 @@ template<typename T1, typename T2> static inline bool unittest_compareHelper( co
 template<> inline bool unittest_compareHelper<Vc::int_v, Vc::int_v>( const Vc::int_v &a, const Vc::int_v &b ) { return (a == b).isFull(); }
 template<> inline bool unittest_compareHelper<Vc::uint_v, Vc::uint_v>( const Vc::uint_v &a, const Vc::uint_v &b ) { return (a == b).isFull(); }
 template<> inline bool unittest_compareHelper<Vc::float_v, Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b ) { return (a == b).isFull(); }
-template<> inline bool unittest_compareHelper<Vc::sfloat_v, Vc::sfloat_v>( const Vc::sfloat_v &a, const Vc::sfloat_v &b ) { return (a == b).isFull(); }
 template<> inline bool unittest_compareHelper<Vc::double_v, Vc::double_v>( const Vc::double_v &a, const Vc::double_v &b ) { return (a == b).isFull(); }
 template<> inline bool unittest_compareHelper<Vc::ushort_v, Vc::ushort_v>( const Vc::ushort_v &a, const Vc::ushort_v &b ) { return (a == b).isFull(); }
 template<> inline bool unittest_compareHelper<Vc::short_v, Vc::short_v>( const Vc::short_v &a, const Vc::short_v &b ) { return (a == b).isFull(); }
@@ -269,9 +269,6 @@ template<> inline bool unittest_fuzzyCompareHelper<float>( const float &a, const
     return ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness;
 }
 template<> inline bool unittest_fuzzyCompareHelper<Vc::float_v>( const Vc::float_v &a, const Vc::float_v &b ) {
-    return (ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness).isFull();
-}
-template<> inline bool unittest_fuzzyCompareHelper<Vc::sfloat_v>( const Vc::sfloat_v &a, const Vc::sfloat_v &b ) {
     return (ulpDiffToReferenceWrapper(a, b) <= _unit_test_global.float_fuzzyness).isFull();
 }
 template<> inline bool unittest_fuzzyCompareHelper<double>( const double &a, const double &b ) {
@@ -391,6 +388,11 @@ class _UnitTest_Compare
         }
 
         Vc_ALWAYS_INLINE ~_UnitTest_Compare()
+#ifdef Vc__NO_NOEXCEPT
+            throw(_UnitTest_Failure)
+#else
+            noexcept(false)
+#endif
         {
             if (VC_IS_UNLIKELY(m_failed)) {
                 printLast();
@@ -401,7 +403,7 @@ class _UnitTest_Compare
         static Vc_ALWAYS_INLINE size_t getIp() {
             size_t _ip;
 #if defined(__x86_64__) && defined(VC_GNU_ASM)
-            asm("lea 0(%%rip),%0" : "=r"(_ip));
+            asm volatile("lea 0(%%rip),%0" : "=r"(_ip));
 #else
             _ip = 0;
 #endif
@@ -469,9 +471,6 @@ template<> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(Vc
 template<> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(Vc::double_v) a, VC_ALIGNED_PARAMETER(Vc::double_v) b) {
     printFuzzyInfoImpl(a, b, _unit_test_global.double_fuzzyness);
 }
-template<> inline void _UnitTest_Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(Vc::sfloat_v) a, VC_ALIGNED_PARAMETER(Vc::sfloat_v) b) {
-    printFuzzyInfoImpl(a, b, _unit_test_global.float_fuzzyness);
-}
 template<typename T> inline void _UnitTest_Compare::writePlotData(std::fstream &, VC_ALIGNED_PARAMETER(T), VC_ALIGNED_PARAMETER(T)) {}
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(float) a, VC_ALIGNED_PARAMETER(float) b) {
     file << std::setprecision(12) << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
@@ -482,21 +481,14 @@ template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_A
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(Vc::float_v) a, VC_ALIGNED_PARAMETER(Vc::float_v) b) {
     const Vc::float_v ref = b;
     const Vc::float_v dist = ulpDiffToReferenceSigned(a, b);
-    for (int i = 0; i < Vc::float_v::Size; ++i) {
+    for (size_t i = 0; i < Vc::float_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
 template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(Vc::double_v) a, VC_ALIGNED_PARAMETER(Vc::double_v) b) {
     const Vc::double_v ref = b;
     const Vc::double_v dist = ulpDiffToReferenceSigned(a, b);
-    for (int i = 0; i < Vc::double_v::Size; ++i) {
-        file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
-    }
-}
-template<> inline void _UnitTest_Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(Vc::sfloat_v) a, VC_ALIGNED_PARAMETER(Vc::sfloat_v) b) {
-    const Vc::sfloat_v ref = b;
-    const Vc::sfloat_v dist = ulpDiffToReferenceSigned(a, b);
-    for (int i = 0; i < Vc::sfloat_v::Size; ++i) {
+    for (size_t i = 0; i < Vc::double_v::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
@@ -555,8 +547,11 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
     } \
     _unit_test_global.expect_assert_failure = false
 
-template<typename Vec> static typename Vec::Mask allMasks(int i)
+template<typename Vec> static typename Vec::Mask allMasks(size_t i)
 {
+#ifdef VC_IMPL_MIC
+    return ((1 << Vec::Size) - 1) - i;
+#else
     typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
@@ -565,6 +560,7 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     } else if (Vec::Size == 1) {
         return M(Vc::Zero);
     }
+#ifndef VC_IMPL_Scalar
     --i;
     if (i < Vec::Size) {
         return M (I(Vc::IndexesFromZero) == i);
@@ -573,8 +569,8 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 3) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
             if (i == 0) {
                 I indexes(Vc::IndexesFromZero);
                 return M(indexes == a || indexes == b);
@@ -585,9 +581,9 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 4) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
-            for (int c = b + 1; c < Vec::Size; ++c) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
+            for (size_t c = b + 1; c < Vec::Size; ++c) {
                 if (i == 0) {
                     I indexes(Vc::IndexesFromZero);
                     return M(indexes == a || indexes == b || indexes == c);
@@ -599,10 +595,10 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 5) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
-            for (int c = b + 1; c < Vec::Size; ++c) {
-                for (int d = c + 1; d < Vec::Size; ++d) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
+            for (size_t c = b + 1; c < Vec::Size; ++c) {
+                for (size_t d = c + 1; d < Vec::Size; ++d) {
                     if (i == 0) {
                         I indexes(Vc::IndexesFromZero);
                         return M(indexes == a || indexes == b || indexes == c || indexes == d);
@@ -615,11 +611,11 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 6) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
-            for (int c = b + 1; c < Vec::Size; ++c) {
-                for (int d = c + 1; d < Vec::Size; ++d) {
-                    for (int e = d + 1; e < Vec::Size; ++e) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
+            for (size_t c = b + 1; c < Vec::Size; ++c) {
+                for (size_t d = c + 1; d < Vec::Size; ++d) {
+                    for (size_t e = d + 1; e < Vec::Size; ++e) {
                         if (i == 0) {
                             I indexes(Vc::IndexesFromZero);
                             return M(indexes == a || indexes == b || indexes == c || indexes == d || indexes == e);
@@ -633,12 +629,12 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 7) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
-            for (int c = b + 1; c < Vec::Size; ++c) {
-                for (int d = c + 1; d < Vec::Size; ++d) {
-                    for (int e = d + 1; e < Vec::Size; ++e) {
-                        for (int f = e + 1; f < Vec::Size; ++f) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
+            for (size_t c = b + 1; c < Vec::Size; ++c) {
+                for (size_t d = c + 1; d < Vec::Size; ++d) {
+                    for (size_t e = d + 1; e < Vec::Size; ++e) {
+                        for (size_t f = e + 1; f < Vec::Size; ++f) {
                             if (i == 0) {
                                 I indexes(Vc::IndexesFromZero);
                                 return M(indexes == a || indexes == b || indexes == c || indexes == d || indexes == e || indexes == f);
@@ -653,13 +649,13 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
     if (Vec::Size < 8) {
         return M(Vc::Zero);
     }
-    for (int a = 0; a < Vec::Size - 1; ++a) {
-        for (int b = a + 1; b < Vec::Size; ++b) {
-            for (int c = b + 1; c < Vec::Size; ++c) {
-                for (int d = c + 1; d < Vec::Size; ++d) {
-                    for (int e = d + 1; e < Vec::Size; ++e) {
-                        for (int f = e + 1; f < Vec::Size; ++f) {
-                            for (int g = f + 1; g < Vec::Size; ++g) {
+    for (size_t a = 0; a < Vec::Size - 1; ++a) {
+        for (size_t b = a + 1; b < Vec::Size; ++b) {
+            for (size_t c = b + 1; c < Vec::Size; ++c) {
+                for (size_t d = c + 1; d < Vec::Size; ++d) {
+                    for (size_t e = d + 1; e < Vec::Size; ++e) {
+                        for (size_t f = e + 1; f < Vec::Size; ++f) {
+                            for (size_t g = f + 1; g < Vec::Size; ++g) {
                                 if (i == 0) {
                                     I indexes(Vc::IndexesFromZero);
                                     return M(indexes == a || indexes == b || indexes == c || indexes == d
@@ -673,11 +669,22 @@ template<typename Vec> static typename Vec::Mask allMasks(int i)
             }
         }
     }
+#endif
     return M(Vc::Zero);
+#endif
 }
 
 #define for_all_masks(VecType, _mask_) \
     for (int _Vc_for_all_masks_i = 0; _Vc_for_all_masks_i == 0; ++_Vc_for_all_masks_i) \
         for (typename VecType::Mask _mask_ = allMasks<VecType>(_Vc_for_all_masks_i++); !_mask_.isEmpty(); _mask_ = allMasks<VecType>(_Vc_for_all_masks_i++))
+
+void testmain();
+
+int main(int argc, char **argv)
+{
+    initTest(argc, argv);
+    testmain();
+    return _unit_test_global.finalize();
+}
 
 #endif // UNITTEST_H
