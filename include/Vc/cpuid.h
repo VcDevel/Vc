@@ -20,9 +20,8 @@
 #ifndef CPUID_H
 #define CPUID_H
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+#include "common/macros.h"
+Vc_PUBLIC_NAMESPACE_BEGIN
 
 /**
  * \ingroup Utilities
@@ -208,7 +207,8 @@ class CpuId
         static ProcessorType s_processorType;
         static bool   s_noL2orL3;
 };
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+
+Vc_NAMESPACE_END
+#include "common/undomacros.h"
 
 #endif // CPUID_H

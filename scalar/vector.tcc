@@ -17,13 +17,9 @@
 
 */
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-ALIGN(64) extern unsigned int RandomState[16];
-
-namespace Scalar
-{
+#include "../common/data.h"
+#include "macros.h"
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 // conversion/casts {{{1
 template<> template<> Vc_INTRINSIC short_v &Vector<short>::operator=(const ushort_v &x) {
@@ -165,10 +161,10 @@ template<> Vc_ALWAYS_INLINE void double_v::fusedMultiplyAdd(const double_v &f, c
 static Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)
 {
-    state0.load(&Vc::RandomState[0]);
-    state1.load(&Vc::RandomState[uint_v::Size]);
-    (state1 * 0xdeece66du + 11).store(&Vc::RandomState[uint_v::Size]);
-    uint_v((state0 * 0xdeece66du + 11).data() ^ (state1.data() >> 16)).store(&Vc::RandomState[0]);
+    state0.load(&Common::RandomState[0]);
+    state1.load(&Common::RandomState[uint_v::Size]);
+    (state1 * 0xdeece66du + 11).store(&Common::RandomState[uint_v::Size]);
+    uint_v((state0 * 0xdeece66du + 11).data() ^ (state1.data() >> 16)).store(&Common::RandomState[0]);
 }
 
 template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::Random()
@@ -192,9 +188,9 @@ template<> Vc_INTRINSIC sfloat_v Vector<sfloat>::Random()
 template<> Vc_INTRINSIC Vector<double> Vector<double>::Random()
 {
     typedef unsigned long long uint64 Vc_MAY_ALIAS;
-    uint64 state0 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[8]);
+    uint64 state0 = *reinterpret_cast<const uint64 *>(&Common::RandomState[8]);
     state0 = (state0 * 0x5deece66dull + 11) & 0x000fffffffffffffull;
-    *reinterpret_cast<uint64 *>(&Vc::RandomState[8]) = state0;
+    *reinterpret_cast<uint64 *>(&Common::RandomState[8]) = state0;
     union { unsigned long long i; double f; } x;
     x.i = state0 | 0x3ff0000000000000ull;
     return double_v(x.f - 1.);
@@ -238,7 +234,6 @@ template<> Vc_INTRINSIC void double_v::setQnan(Mask m)
     }
 }
 // }}}1
-} // namespace Scalar
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
+#include "undomacros.h"
 // vim: foldmethod=marker

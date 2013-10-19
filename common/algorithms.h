@@ -22,9 +22,7 @@
 
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_PUBLIC_NAMESPACE_BEGIN
 
 /**
  * \ingroup Utilities
@@ -70,8 +68,14 @@ template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix()
 constexpr bool some_of(bool) { return false; }
 //@}
 
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
+
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+    using Vc::all_of;
+    using Vc::any_of;
+    using Vc::none_of;
+    using Vc::some_of;
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 

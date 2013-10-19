@@ -23,11 +23,7 @@
 #include "intrinsics.h"
 #include "types.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace SSE
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename To, typename From> static Vc_ALWAYS_INLINE To Vc_CONST mm128_reinterpret_cast(VC_ALIGNED_PARAMETER(From) v) { return v; }
     template<> Vc_ALWAYS_INLINE _M128I Vc_CONST mm128_reinterpret_cast<_M128I, _M128 >(VC_ALIGNED_PARAMETER(_M128 ) v) { return _mm_castps_si128(v); }
     template<> Vc_ALWAYS_INLINE _M128I Vc_CONST mm128_reinterpret_cast<_M128I, _M128D>(VC_ALIGNED_PARAMETER(_M128D) v) { return _mm_castpd_si128(v); }
@@ -97,8 +93,6 @@ namespace SSE
     template<> struct StaticCastHelper<float         , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); } };
     template<> struct StaticCastHelper<short         , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
     template<> struct StaticCastHelper<unsigned short, unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
-} // namespace SSE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #endif // SSE_CASTS_H

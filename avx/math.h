@@ -24,11 +24,7 @@
 #include "limits.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     /**
      * splits \p v into exponent and mantissa, the sign is kept with the mantissa
      *
@@ -103,17 +99,11 @@ namespace AVX
     static Vc_ALWAYS_INLINE float_v ceil(float_v::AsArg v) { return _mm256_ceil_ps(v.data()); }
     static Vc_ALWAYS_INLINE sfloat_v ceil(sfloat_v::AsArg v) { return _mm256_ceil_ps(v.data()); }
     static Vc_ALWAYS_INLINE double_v ceil(double_v::AsArg v) { return _mm256_ceil_pd(v.data()); }
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
-#define VC__USE_NAMESPACE AVX
 #include "../common/trigonometric.h"
-#define VC__USE_NAMESPACE AVX
 #include "../common/logarithm.h"
-#define VC__USE_NAMESPACE AVX
 #include "../common/exponential.h"
-#undef VC__USE_NAMESPACE
 
 #endif // VC_AVX_MATH_H

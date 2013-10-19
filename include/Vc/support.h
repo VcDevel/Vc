@@ -32,9 +32,8 @@
 #define VC_TARGET_NO_SIMD
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+#include "common/macros.h"
+Vc_PUBLIC_NAMESPACE_BEGIN
 
 /**
  * \name Micro-Architecture Feature Tests
@@ -142,8 +141,8 @@ inline bool currentImplementationSupported()
 #endif // VC_COMPILE_LIB
 //@}
 
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
+#include "common/undomacros.h"
 
 #undef VC_TARGET_NO_SIMD
 

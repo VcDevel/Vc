@@ -20,11 +20,12 @@
 #ifndef VC_COMMON_MEMORYFWD_H
 #define VC_COMMON_MEMORYFWD_H
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_NAMESPACE_BEGIN(Common)
     template<typename V, size_t Size1 = 0, size_t Size2 = 0> class Memory;
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
+
+Vc_PUBLIC_NAMESPACE_BEGIN
+    using Common::Memory;
+Vc_NAMESPACE_END
 
 #endif // VC_COMMON_MEMORYFWD_H

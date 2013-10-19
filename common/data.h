@@ -1,6 +1,6 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
 
-    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -15,24 +15,18 @@
     You should have received a copy of the GNU Lesser General Public
     License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
 
-*/
+}}}*/
 
-#ifndef VC_SCALAR_TYPES_H
-#define VC_SCALAR_TYPES_H
+#ifndef VC_COMMON_CONST_DATA_H
+#define VC_COMMON_CONST_DATA_H
 
-#define VC_DOUBLE_V_SIZE 1
-#define VC_FLOAT_V_SIZE 1
-#define VC_SFLOAT_V_SIZE 1
-#define VC_INT_V_SIZE 1
-#define VC_UINT_V_SIZE 1
-#define VC_SHORT_V_SIZE 1
-#define VC_USHORT_V_SIZE 1
+#include "macros.h"
+Vc_NAMESPACE_BEGIN(Common)
 
-#include "../common/types.h"
+ALIGN(64) extern unsigned int RandomState[16];
+ALIGN(32) extern const unsigned int AllBitsSet[8];
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
-        template<typename V = float> class VectorAlignedBaseT {};
-        template<typename T> class Vector;
-Vc_IMPL_NAMESPACE_END
+Vc_NAMESPACE_END
+#include "undomacros.h"
 
-#endif // VC_SCALAR_TYPES_H
+#endif // VC_COMMON_CONST_DATA_H

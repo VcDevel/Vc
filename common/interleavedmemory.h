@@ -22,11 +22,7 @@
 
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Common
-{
+Vc_NAMESPACE_BEGIN(Common)
 
 /**
  * \internal
@@ -105,7 +101,7 @@ template<typename I> struct CheckIndexesUnique
 #else
     static void test(const I &indexes)
     {
-        const I test = Base::indexes.sorted();
+        const I test = indexes.sorted();
         VC_ASSERT(I::Size == 1 || (test == test.rotated(1)).isEmpty())
     }
 #endif
@@ -151,12 +147,6 @@ template<size_t StructSize, typename V, typename I = typename V::IndexType> stru
 
 private:
 };
-
-#ifdef DOXYGEN
-} // namespace Common
-// in doxygen InterleavedMemoryWrapper should appear in the Vc namespace (see the using statement
-// below)
-#endif
 
 /**
  * Wraps a pointer to memory with convenience functions to access it via vectors.
@@ -307,14 +297,11 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
 
     //Vc_ALWAYS_INLINE Access scatter(I indexes, VArg v0, VArg v1);
 };
-#ifndef DOXYGEN
-} // namespace Common
+Vc_NAMESPACE_END
 
+Vc_PUBLIC_NAMESPACE_BEGIN
 using Common::InterleavedMemoryWrapper;
-#endif
-
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 

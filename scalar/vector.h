@@ -34,11 +34,7 @@
 #include "mask.h"
 #include "writemaskedvector.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Scalar
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     enum VectorAlignmentEnum { VectorAlignment = 4 };
 
 template<typename T>
@@ -470,9 +466,7 @@ template<typename T> class SwizzledVector : public Vector<T> {};
         const Vector<T13> &, const Vector<T14> &,
         const Vector<T15> &, const Vector<T16> &) {}
 
-} // namespace Scalar
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "vector.tcc"
 #include "math.h"

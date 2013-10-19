@@ -38,11 +38,7 @@
 #undef isnan
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 enum VectorAlignmentEnum { VectorAlignment = 32 };
 
 template<typename T> class Vector
@@ -57,7 +53,7 @@ template<typename T> class Vector
             HasVectorDivision = HasVectorDivisionHelper<T>::Value
         };
         typedef Vector<typename IndexTypeHelper<T>::Type> IndexType;
-        typedef typename Vc::AVX::Mask<Size, sizeof(VectorType)> Mask;
+        typedef typename Vc_IMPL_NAMESPACE::Mask<Size, sizeof(VectorType)> Mask;
         typedef typename Mask::AsArg MaskArg;
         typedef Vc::Memory<Vector<T>, Size> Memory;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
@@ -76,12 +72,7 @@ template<typename T> class Vector
         typedef VectorHelper<T> HT;
 
         // cast any m256/m128 to VectorType
-        static Vc_INTRINSIC VectorType _cast(param128  v) { return avx_cast<VectorType>(v); }
-        static Vc_INTRINSIC VectorType _cast(param128i v) { return avx_cast<VectorType>(v); }
-        static Vc_INTRINSIC VectorType _cast(param128d v) { return avx_cast<VectorType>(v); }
-        static Vc_INTRINSIC VectorType _cast(param256  v) { return avx_cast<VectorType>(v); }
-        static Vc_INTRINSIC VectorType _cast(param256i v) { return avx_cast<VectorType>(v); }
-        static Vc_INTRINSIC VectorType _cast(param256d v) { return avx_cast<VectorType>(v); }
+        template<typename V> static Vc_INTRINSIC VectorType _cast(VC_ALIGNED_PARAMETER(V) v) { return avx_cast<VectorType>(v); }
 
 #ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
         typedef Common::VectorMemoryUnion<VectorType, EntryType, typename VectorType::Base> StorageType;
@@ -229,10 +220,7 @@ template<typename T> class Vector
         Vc_ALWAYS_INLINE Vector operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
         Vc_ALWAYS_INLINE Vector operator--(int) { const Vector<T> r = *this; data() = VectorHelper<T>::sub(data(), VectorHelper<T>::one()); return r; }
 
-        Vc_INTRINSIC Common::AliasingEntryHelper<StorageType> operator[](size_t index) {
-#if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
-            ::Vc::Warnings::_operator_bracket_warning();
-#endif
+        Vc_INTRINSIC decltype(d.m(0)) &operator[](size_t index) {
             return d.m(index);
         }
         Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
@@ -457,9 +445,7 @@ static Vc_ALWAYS_INLINE double_v max(const double_v &x, const double_v &y) { ret
   template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
 #include "forceToRegisters.tcc"
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "vector.tcc"
 #include "math.h"

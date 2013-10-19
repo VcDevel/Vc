@@ -24,11 +24,7 @@
 #include "const_data.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename T> class Vector;
 
     template<typename T> struct IndexesFromZeroData;
@@ -103,9 +99,7 @@ namespace AVX
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float>  Const<float>::highMask() { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask() { return _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)); }
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<sfloat> Const<sfloat>::highMask() { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
 

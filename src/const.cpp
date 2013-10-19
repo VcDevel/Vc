@@ -35,11 +35,7 @@
 
 #include "common/macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_NAMESPACE_BEGIN(AVX)
     // cacheline 1
     V_ALIGN(64) extern const unsigned int   _IndexesFromZero32[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     V_ALIGN(16) extern const unsigned short _IndexesFromZero16[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
@@ -249,17 +245,38 @@ namespace AVX
       , 0x3ede5bd9u // log10(e)
       , 0x3fb8aa3bu // log2(e)
     };
-} // namespace AVX
+Vc_NAMESPACE_END
 
-namespace Common
-{
+Vc_NAMESPACE_BEGIN(Common)
+    V_ALIGN(64) unsigned int RandomState[16] = {
+        0x5a383a4fu, 0xc68bd45eu, 0x691d6d86u, 0xb367e14fu,
+        0xd689dbaau, 0xfde442aau, 0x3d265423u, 0x1a77885cu,
+        0x36ed2684u, 0xfb1f049du, 0x19e52f31u, 0x821e4dd7u,
+        0x23996d25u, 0x5962725au, 0x6aced4ceu, 0xd4c610f3u
+    };
+
     V_ALIGN(32) const unsigned int AllBitsSet[8] = {
         0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU
     };
-} // namespace Common
 
-namespace SSE
-{
+    // dummy symbol to emit warnings with GCC 4.3
+    namespace Warnings {
+        void _operator_bracket_warning() {}
+    } // namespace Warnings
+
+    const char LIBRARY_VERSION[] = VC_VERSION_STRING;
+    const unsigned int LIBRARY_VERSION_NUMBER = VC_VERSION_NUMBER;
+    const unsigned int LIBRARY_ABI_VERSION = VC_LIBRARY_ABI_VERSION;
+
+    void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *compileTimeVersion) {
+        if (LIBRARY_ABI_VERSION != compileTimeAbi || LIBRARY_VERSION_NUMBER < versionNumber) {
+            printf("The versions of libVc.a (%s) and Vc/version.h (%s) are incompatible. Aborting.\n", LIBRARY_VERSION, compileTimeVersion);
+            abort();
+        }
+    }
+Vc_NAMESPACE_END
+
+Vc_NAMESPACE_BEGIN(SSE)
     // cacheline 1
     V_ALIGN(64) const int c_general::absMaskFloat[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
     V_ALIGN(16) const unsigned int c_general::signMaskFloat[4] = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
@@ -505,32 +522,6 @@ namespace SSE
         //Vc_buildFloat( 1, 0x001a209a, -2), // log10(2)
         //Vc_buildFloat( 1, 0x001a209a, -2), // log10(2)
     };
-} // namespace SSE
-
-V_ALIGN(64) unsigned int RandomState[16] = {
-    0x5a383a4fu, 0xc68bd45eu, 0x691d6d86u, 0xb367e14fu,
-    0xd689dbaau, 0xfde442aau, 0x3d265423u, 0x1a77885cu,
-    0x36ed2684u, 0xfb1f049du, 0x19e52f31u, 0x821e4dd7u,
-    0x23996d25u, 0x5962725au, 0x6aced4ceu, 0xd4c610f3u
-};
-
-// dummy symbol to emit warnings with GCC 4.3
-namespace Warnings {
-    void _operator_bracket_warning() {}
-} // namespace Warnings
-
-const char LIBRARY_VERSION[] = VC_VERSION_STRING;
-const unsigned int LIBRARY_VERSION_NUMBER = VC_VERSION_NUMBER;
-const unsigned int LIBRARY_ABI_VERSION = VC_LIBRARY_ABI_VERSION;
-
-void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *compileTimeVersion) {
-    if (LIBRARY_ABI_VERSION != compileTimeAbi || LIBRARY_VERSION_NUMBER < versionNumber) {
-        printf("The versions of libVc.a (%s) and Vc/version.h (%s) are incompatible. Aborting.\n", LIBRARY_VERSION, compileTimeVersion);
-        abort();
-    }
-}
-
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #undef V_ALIGN

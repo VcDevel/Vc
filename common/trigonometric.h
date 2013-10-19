@@ -20,21 +20,10 @@
 #ifndef VC_COMMON_TRIGONOMETRIC_H
 #define VC_COMMON_TRIGONOMETRIC_H
 
-#ifndef VC__USE_NAMESPACE
-#error "Do not include Vc/common/trigonometric.h outside of Vc itself"
-#endif
-
 #include "macros.h"
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace
-{
-    using Vc::VC__USE_NAMESPACE::Vector;
-} // namespace
 
-namespace Internal
-{
+Vc_NAMESPACE_BEGIN(Internal)
+
 template<Vc::Implementation Impl> struct MapImpl { enum Dummy { Value = Impl }; };
 template<> struct MapImpl<Vc::SSE42Impl> { enum Dummy { Value = MapImpl<Vc::SSE41Impl>::Value }; };
 typedef ImplementationT<MapImpl<VC_IMPL>::Value
@@ -43,7 +32,10 @@ typedef ImplementationT<MapImpl<VC_IMPL>::Value
     + Vc::Fma4Instructions
 #endif
     > TrigonometricImplementation;
-} // namespace Internal
+Vc_NAMESPACE_END
+
+Vc_NAMESPACE_BEGIN(Common)
+using Vc::Vc_IMPL_NAMESPACE::Vector;
 
 template<typename Impl> struct Trigonometric
 {
@@ -54,30 +46,28 @@ template<typename Impl> struct Trigonometric
     template<typename T> static Vector<T> atan (const Vector<T> &_x);
     template<typename T> static Vector<T> atan2(const Vector<T> &y, const Vector<T> &x);
 };
-namespace VC__USE_NAMESPACE
-#undef VC__USE_NAMESPACE
-{
+Vc_NAMESPACE_END
+
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> sin(const Vector<T> &_x) {
-        return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(_x);
+        return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::sin(_x);
     }
     template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> cos(const Vector<T> &_x) {
-        return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::cos(_x);
+        return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::cos(_x);
     }
     template<typename T> static Vc_ALWAYS_INLINE void sincos(const Vector<T> &_x, Vector<T> *_sin, Vector<T> *_cos) {
-        Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::sincos(_x, _sin, _cos);
+        Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::sincos(_x, _sin, _cos);
     }
     template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> asin (const Vector<T> &_x) {
-        return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::asin(_x);
+        return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::asin(_x);
     }
     template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> atan (const Vector<T> &_x) {
-        return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan(_x);
+        return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan(_x);
     }
     template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> atan2(const Vector<T> &y, const Vector<T> &x) {
-        return Vc::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan2(y, x);
+        return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation>::atan2(y, x);
     }
-} // namespace VC__USE_NAMESPACE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 #endif // VC_COMMON_TRIGONOMETRIC_H

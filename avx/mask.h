@@ -20,15 +20,14 @@
 #ifndef VC_AVX_MASK_H
 #define VC_AVX_MASK_H
 
+#include <array>
+
 #include "intrinsics.h"
 #include "../common/bitscanintrinsics.h"
+#include "../common/maskentry.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 template<unsigned int VectorSize> class Mask<VectorSize, 32u>
 {
@@ -36,8 +35,11 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
     friend class Mask<8u, 32u>; // float_v, (u)int_v
     friend class Mask<8u, 16u>; // (u)short_v
     friend class Mask<16u, 16u>; // (u)char_v
+    typedef Common::MaskBool<32 / VectorSize> MaskBool;
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)
+
+        enum Constants { Size = VectorSize };
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
 #if defined VC_MSVC && defined _WIN32
@@ -65,9 +67,18 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         Vc_ALWAYS_INLINE_L Mask(const Mask<VectorSize * 2, 32u> &m) Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L Mask(const Mask<VectorSize / 2, 32u> &m) Vc_ALWAYS_INLINE_R;
 
+        Vc_ALWAYS_INLINE Mask &operator=(const Mask &) = default;
+        Vc_ALWAYS_INLINE_L Mask &operator=(const std::array<bool, Size> &values) Vc_ALWAYS_INLINE_R;
+        Vc_ALWAYS_INLINE_L operator std::array<bool, Size>() const Vc_ALWAYS_INLINE_R;
+
         Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return 0 != _mm256_testc_ps(k, rhs.k); }
         Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return 0 == _mm256_testc_ps(k, rhs.k); }
 
+        Vc_ALWAYS_INLINE Mask operator&&(const Mask &rhs) const { return _mm256_and_ps(k, rhs.k); }
+        Vc_ALWAYS_INLINE Mask operator& (const Mask &rhs) const { return _mm256_and_ps(k, rhs.k); }
+        Vc_ALWAYS_INLINE Mask operator||(const Mask &rhs) const { return _mm256_or_ps (k, rhs.k); }
+        Vc_ALWAYS_INLINE Mask operator| (const Mask &rhs) const { return _mm256_or_ps (k, rhs.k); }
+        Vc_ALWAYS_INLINE Mask operator^ (const Mask &rhs) const { return _mm256_xor_ps(k, rhs.k); }
         Vc_ALWAYS_INLINE Mask operator!() const { return _mm256_andnot_ps(data(), _mm256_setallone_ps()); }
 
         Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { k = _mm256_and_ps(k, rhs.k); return *this; }
@@ -92,12 +103,15 @@ template<unsigned int VectorSize> class Mask<VectorSize, 32u>
         Vc_ALWAYS_INLINE m256i dataI() const { return _mm256_castps_si256(k); }
         Vc_ALWAYS_INLINE m256d dataD() const { return _mm256_castps_pd(k); }
 
-        Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](int index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return reinterpret_cast<MaskBool *>(&k)[index]; }
+        Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
     private:
+        friend class Common::MaskEntry<Mask>;
+        Vc_ALWAYS_INLINE_L void setEntry(size_t index, bool value) Vc_ALWAYS_INLINE_R;
 #ifdef VC_COMPILE_BENCHMARKS
     public:
 #endif
@@ -110,8 +124,11 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
     friend class Mask<8u, 32u>; // float_v, (u)int_v
     friend class Mask<8u, 16u>; // (u)short_v
     friend class Mask<16u, 16u>; // (u)char_v
+    typedef Common::MaskBool<16 / VectorSize> MaskBool;
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
+
+        enum Constants { Size = VectorSize };
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
 #if defined VC_MSVC && defined _WIN32
@@ -138,9 +155,18 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
         Vc_ALWAYS_INLINE Mask(const Mask<VectorSize / 2, 16u> *a) : k(avx_cast<m128>(
                 _mm_packs_epi16(a[0].dataI(), a[1].dataI()))) {}
 
+        Vc_ALWAYS_INLINE Mask &operator=(const Mask &) = default;
+        Vc_ALWAYS_INLINE_L Mask &operator=(const std::array<bool, Size> &values) Vc_ALWAYS_INLINE_R;
+        Vc_ALWAYS_INLINE_L operator std::array<bool, Size>() const Vc_ALWAYS_INLINE_R;
+
         Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return 0 != _mm_testc_si128(dataI(), rhs.dataI()); }
         Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return 0 == _mm_testc_si128(dataI(), rhs.dataI()); }
 
+        Vc_ALWAYS_INLINE Mask operator&&(const Mask &rhs) const { return _mm_and_ps(k, rhs.k); }
+        Vc_ALWAYS_INLINE Mask operator& (const Mask &rhs) const { return _mm_and_ps(k, rhs.k); }
+        Vc_ALWAYS_INLINE Mask operator||(const Mask &rhs) const { return _mm_or_ps (k, rhs.k); }
+        Vc_ALWAYS_INLINE Mask operator| (const Mask &rhs) const { return _mm_or_ps (k, rhs.k); }
+        Vc_ALWAYS_INLINE Mask operator^ (const Mask &rhs) const { return _mm_xor_ps(k, rhs.k); }
         Vc_ALWAYS_INLINE Mask operator!() const { return _mm_andnot_ps(data(), _mm_setallone_ps()); }
 
         Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { k = _mm_and_ps(k, rhs.k); return *this; }
@@ -164,12 +190,15 @@ template<unsigned int VectorSize> class Mask<VectorSize, 16u>
         Vc_ALWAYS_INLINE m128i dataI() const { return avx_cast<m128i>(k); }
         Vc_ALWAYS_INLINE m128d dataD() const { return avx_cast<m128d>(k); }
 
-        Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](int index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return reinterpret_cast<MaskBool *>(&k)[index]; }
+        Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int count() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
         Vc_ALWAYS_INLINE_L Vc_PURE_L unsigned int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
     private:
+        friend class Common::MaskEntry<Mask>;
+        Vc_ALWAYS_INLINE_L void setEntry(size_t index, bool value) Vc_ALWAYS_INLINE_R;
 #ifdef VC_COMPILE_BENCHMARKS
     public:
 #endif
@@ -202,45 +231,10 @@ struct ForeachHelper
 };
 
 #define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::AVX::ForeachHelper Vc__make_unique(foreach_bit_obj)((_mask_).toInt()); Vc__make_unique(foreach_bit_obj).outer(); ) \
+    for (Vc::Vc_IMPL_NAMESPACE::ForeachHelper Vc__make_unique(foreach_bit_obj)((_mask_).toInt()); Vc__make_unique(foreach_bit_obj).outer(); ) \
         for (_it_ = Vc__make_unique(foreach_bit_obj).next(); Vc__make_unique(foreach_bit_obj).inner(); Vc__make_unique(foreach_bit_obj).noBreak())
 
-// Operators
-namespace Intrinsics
-{
-    static Vc_ALWAYS_INLINE Vc_PURE m256 and_(param256 a, param256 b) { return _mm256_and_ps(a, b); }
-    static Vc_ALWAYS_INLINE Vc_PURE m256  or_(param256 a, param256 b) { return _mm256_or_ps(a, b); }
-    static Vc_ALWAYS_INLINE Vc_PURE m256 xor_(param256 a, param256 b) { return _mm256_xor_ps(a, b); }
-
-    static Vc_ALWAYS_INLINE Vc_PURE m128 and_(param128 a, param128 b) { return _mm_and_ps(a, b); }
-    static Vc_ALWAYS_INLINE Vc_PURE m128  or_(param128 a, param128 b) { return _mm_or_ps(a, b); }
-    static Vc_ALWAYS_INLINE Vc_PURE m128 xor_(param128 a, param128 b) { return _mm_xor_ps(a, b); }
-} // namespace Intrinsics
-
-// binary and/or/xor cannot work with one operand larger than the other
-template<unsigned int LSize, unsigned int RSize, size_t LWidth, size_t RWidth> void operator&(const Mask<LSize, LWidth> &l, const Mask<RSize, RWidth> &r);
-template<unsigned int LSize, unsigned int RSize, size_t LWidth, size_t RWidth> void operator|(const Mask<LSize, LWidth> &l, const Mask<RSize, RWidth> &r);
-template<unsigned int LSize, unsigned int RSize, size_t LWidth, size_t RWidth> void operator^(const Mask<LSize, LWidth> &l, const Mask<RSize, RWidth> &r);
-
-// let binary and/or/xor work for any combination of masks (as long as they have the same sizeof)
-template<unsigned int LSize, unsigned int RSize, size_t Width> Vc_ALWAYS_INLINE Vc_PURE Mask<LSize, Width> operator&(const Mask<LSize, Width> &l, const Mask<RSize, Width> &r) { return Intrinsics::and_(l.data(), r.data()); }
-template<unsigned int LSize, unsigned int RSize, size_t Width> Vc_ALWAYS_INLINE Vc_PURE Mask<LSize, Width> operator|(const Mask<LSize, Width> &l, const Mask<RSize, Width> &r) { return Intrinsics:: or_(l.data(), r.data()); }
-template<unsigned int LSize, unsigned int RSize, size_t Width> Vc_ALWAYS_INLINE Vc_PURE Mask<LSize, Width> operator^(const Mask<LSize, Width> &l, const Mask<RSize, Width> &r) { return Intrinsics::xor_(l.data(), r.data()); }
-
-// disable logical and/or for incompatible masks
-template<unsigned int LSize, unsigned int RSize, size_t LWidth, size_t RWidth> void operator&&(const Mask<LSize, LWidth> &lhs, const Mask<RSize, RWidth> &rhs);
-template<unsigned int LSize, unsigned int RSize, size_t LWidth, size_t RWidth> void operator||(const Mask<LSize, LWidth> &lhs, const Mask<RSize, RWidth> &rhs);
-
-// logical and/or for compatible masks
-template<unsigned int Size, size_t LWidth, size_t RWidth> Vc_ALWAYS_INLINE Vc_PURE Mask<Size, LWidth> operator&&(const Mask<Size, LWidth> &lhs, const Mask<Size, RWidth> &rhs) { return lhs && static_cast<Mask<Size, LWidth> >(rhs); }
-template<unsigned int Size, size_t LWidth, size_t RWidth> Vc_ALWAYS_INLINE Vc_PURE Mask<Size, LWidth> operator||(const Mask<Size, LWidth> &lhs, const Mask<Size, RWidth> &rhs) { return lhs || static_cast<Mask<Size, LWidth> >(rhs); }
-
-template<unsigned int Size, size_t Width> Vc_ALWAYS_INLINE Vc_PURE Mask<Size, Width> operator&&(const Mask<Size, Width> &lhs, const Mask<Size, Width> &rhs) { return Intrinsics::and_(lhs.data(), rhs.data()); }
-template<unsigned int Size, size_t Width> Vc_ALWAYS_INLINE Vc_PURE Mask<Size, Width> operator||(const Mask<Size, Width> &lhs, const Mask<Size, Width> &rhs) { return Intrinsics::or_ (lhs.data(), rhs.data()); }
-
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "mask.tcc"
 #include "undomacros.h"

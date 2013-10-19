@@ -22,11 +22,7 @@
 
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Common
-{
+Vc_NAMESPACE_BEGIN(Common)
 
 template<size_t StructSize, typename V, typename I> struct InterleavedMemoryReadAccess;
 
@@ -127,16 +123,8 @@ _VC_VECTORTUPLE_SPECIALIZATION(7, (l.l.l.l.l.l, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r,
 _VC_VECTORTUPLE_SPECIALIZATION(8, (l.l.l.l.l.l.l, l.l.l.l.l.l.r, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
 //        static_assert(false, "You_are_gathering_too_many_vectors__This_is_not_implemented");
 
-} // namespace Common
-
-#ifdef VC_IMPL_Scalar
-namespace Scalar
-#elif defined VC_IMPL_SSE
-namespace SSE
-#elif defined VC_IMPL_AVX
-namespace AVX
-#endif
-{
+Vc_NAMESPACE_END
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 template<typename T>
 constexpr Common::VectorTuple<2, Vc::Vector<T> > operator,(Vc::Vector<T> &a, Vc::Vector<T> &b)
@@ -150,10 +138,7 @@ constexpr Common::VectorTuple<2, const Vc::Vector<T> > operator,(const Vc::Vecto
     return Common::VectorTuple<2, const Vc::Vector<T> >(a, b);
 }
 
-} // namespace Scalar/SSE/AVX
-
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 

@@ -22,11 +22,7 @@
 
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Common
-{
+Vc_NAMESPACE_BEGIN(Common)
 
 template<class StorageType> class AliasingEntryHelper
 {
@@ -37,7 +33,10 @@ template<class StorageType> class AliasingEntryHelper
         const int m_index;
     public:
         Vc_ALWAYS_INLINE AliasingEntryHelper(StorageType *d, int index) : m_storage(d), m_index(index) {}
-        Vc_ALWAYS_INLINE AliasingEntryHelper(const AliasingEntryHelper &rhs) : m_storage(rhs.m_storage), m_index(rhs.m_index) {}
+        Vc_ALWAYS_INLINE AliasingEntryHelper(const AliasingEntryHelper &) = default;
+#ifndef VC_NO_MOVE_CTOR
+        Vc_ALWAYS_INLINE AliasingEntryHelper(AliasingEntryHelper &&) = default;
+#endif
         Vc_ALWAYS_INLINE AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
             m_storage->assign(m_index, rhs);
             return *this;
@@ -107,9 +106,7 @@ template<class StorageType> class AliasingEntryHelper
 #endif
 };
 
-} // namespace Common
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
 
 #include "undomacros.h"
 

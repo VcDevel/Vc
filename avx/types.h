@@ -34,11 +34,7 @@
 
 #include "../common/types.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename T> class Vector;
 
     template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
@@ -103,9 +99,7 @@ namespace AVX
             FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
     } STRUCT_ALIGN2(sizeof(V));
 #endif
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 #include "undomacros.h"
 
 #endif // AVX_TYPES_H

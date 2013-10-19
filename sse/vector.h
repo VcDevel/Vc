@@ -38,11 +38,7 @@
 #undef isnan
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace SSE
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 template<typename T>
 class WriteMaskedVector
 {
@@ -301,7 +297,7 @@ template<typename T> class Vector
         Vc_INTRINSIC Vector operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
         Vc_INTRINSIC Vector operator--(int) { const Vector<T> r = *this; data() = VectorHelper<T>::sub(data(), VectorHelper<T>::one()); return r; }
 
-        Vc_INTRINSIC Common::AliasingEntryHelper<StorageType> operator[](size_t index) {
+        Vc_INTRINSIC decltype(d.m(0)) &operator[](size_t index) {
 #if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
             ::Vc::Warnings::_operator_bracket_warning();
 #endif
@@ -541,9 +537,7 @@ template<>
 Vc_ALWAYS_INLINE void forceToRegisters(const Vector<float8> &/*x1*/) {
 }
 #endif
-} // namespace SSE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
 #include "vector.tcc"

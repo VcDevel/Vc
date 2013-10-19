@@ -20,9 +20,8 @@
 #include <Vc/cpuid.h>
 #include <Vc/global.h>
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_PUBLIC_NAMESPACE_BEGIN
+
 CpuId::uint   CpuId::s_ecx0 = 0;
 CpuId::uint   CpuId::s_logicalProcessors = 0;
 CpuId::uint   CpuId::s_processorFeaturesC = 0;
@@ -49,12 +48,12 @@ CpuId::ProcessorType CpuId::s_processorType = CpuId::IntelReserved;
 bool   CpuId::s_noL2orL3 = false;
 
 #ifdef VC_MSVC
-} // better not include intrin.h inside the Vc namespace :)
-/*OUTER_NAMESPACE_END*/
+
+Vc_NAMESPACE_END
+// better not include intrin.h inside the Vc namespace :)
 #include <intrin.h>
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+Vc_PUBLIC_NAMESPACE_BEGIN
+
 #define CPUID(leaf) \
     do { \
         int out[4]; \
@@ -617,7 +616,7 @@ void CpuId::interpret(uchar byte, bool *checkLeaf4)
         break;
     }
 }
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+
+Vc_NAMESPACE_END
 
 // vim: sw=4 sts=4 et tw=100

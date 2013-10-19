@@ -17,39 +17,39 @@
 
 }}}*/
 
-#ifndef VC_TYPE_TRAITS
-#define VC_TYPE_TRAITS
+#ifndef VC_INCLUDE_VC_TYPE_TRAITS
+#define VC_INCLUDE_VC_TYPE_TRAITS
 
 #include <type_traits>
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
+#include "common/macros.h"
+Vc_PUBLIC_NAMESPACE_BEGIN
 
 template<typename T>
 struct is_simd_mask : public std::integral_constant<bool,
-    std::is_same<T,  float_m>::value ||
-    std::is_same<T, sfloat_m>::value ||
-    std::is_same<T, double_m>::value ||
-    std::is_same<T,    int_m>::value ||
-    std::is_same<T,   uint_m>::value ||
-    std::is_same<T,  short_m>::value ||
-    std::is_same<T, ushort_m>::value>
+    std::is_same<typename std::remove_cv<T>::type,  float_m>::value ||
+    std::is_same<typename std::remove_cv<T>::type, sfloat_m>::value ||
+    std::is_same<typename std::remove_cv<T>::type, double_m>::value ||
+    std::is_same<typename std::remove_cv<T>::type,    int_m>::value ||
+    std::is_same<typename std::remove_cv<T>::type,   uint_m>::value ||
+    std::is_same<typename std::remove_cv<T>::type,  short_m>::value ||
+    std::is_same<typename std::remove_cv<T>::type, ushort_m>::value>
     {};
 
 template<typename T>
 struct is_simd_vector : public std::integral_constant<bool,
-    std::is_same<T,  float_v>::value ||
-    std::is_same<T, sfloat_v>::value ||
-    std::is_same<T, double_v>::value ||
-    std::is_same<T,    int_v>::value ||
-    std::is_same<T,   uint_v>::value ||
-    std::is_same<T,  short_v>::value ||
-    std::is_same<T, ushort_v>::value>
+    std::is_same<typename std::remove_cv<T>::type,  float_v>::value ||
+    std::is_same<typename std::remove_cv<T>::type, sfloat_v>::value ||
+    std::is_same<typename std::remove_cv<T>::type, double_v>::value ||
+    std::is_same<typename std::remove_cv<T>::type,    int_v>::value ||
+    std::is_same<typename std::remove_cv<T>::type,   uint_v>::value ||
+    std::is_same<typename std::remove_cv<T>::type,  short_v>::value ||
+    std::is_same<typename std::remove_cv<T>::type, ushort_v>::value>
     {};
 
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END
+#include "common/undomacros.h"
 
-#endif // VC_TYPE_TRAITS
+#endif // VC_INCLUDE_VC_TYPE_TRAITS
+
 // vim: ft=cpp

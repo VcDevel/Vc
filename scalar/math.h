@@ -22,11 +22,7 @@
 
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace Scalar
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 #define VC_MINMAX(V) \
 static Vc_ALWAYS_INLINE V min(const V &x, const V &y) { return V(std::min(x.data(), y.data())); } \
@@ -48,6 +44,11 @@ template<typename T> static Vc_ALWAYS_INLINE Vector<T> abs  (const Vector<T> &x)
 {
     return Vector<T>(std::abs(x.data()));
 }
+
+template<> Vc_ALWAYS_INLINE int_v abs(const int_v &x) { return x < 0 ? -x : x; }
+template<> Vc_ALWAYS_INLINE uint_v abs(const uint_v &x) { return x; }
+template<> Vc_ALWAYS_INLINE short_v abs(const short_v &x) { return x < 0 ? -x : x; }
+template<> Vc_ALWAYS_INLINE ushort_v abs(const ushort_v &x) { return x; }
 
 template<typename T> static Vc_ALWAYS_INLINE void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos)
 {
@@ -222,9 +223,7 @@ Vc_ALWAYS_INLINE sfloat_v ldexp(sfloat_v x, short_v e) {
     return sfloat_v(::ldexpf(x.data(), e.data()));
 }
 
-} // namespace Scalar
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
 

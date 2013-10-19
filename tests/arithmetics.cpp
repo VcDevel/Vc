@@ -101,7 +101,7 @@ template<typename Vec> void testCmp()
 
 template<typename Vec> void testIsMix()
 {
-    Vec a(IndexesFromZero);
+    Vec a { typename Vec::IndexType(IndexesFromZero) };
     Vec b(Zero);
     Vec c(One);
     if (Vec::Size > 1) {
@@ -513,11 +513,11 @@ int main(int argc, char **argv)
 
     runTest(testIsMix<int_v>);
     runTest(testIsMix<uint_v>);
-    //runTest(testIsMix<float_v>);
-    //runTest(testIsMix<double_v>);
+    runTest(testIsMix<float_v>);
+    runTest(testIsMix<double_v>);
     runTest(testIsMix<short_v>);
     runTest(testIsMix<ushort_v>);
-    //runTest(testIsMix<sfloat_v>);
+    runTest(testIsMix<sfloat_v>);
 
     runTest(testAdd<int_v>);
     runTest(testAdd<uint_v>);

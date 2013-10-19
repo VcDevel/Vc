@@ -22,13 +22,7 @@
 #include "../common/set.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-ALIGN(64) extern unsigned int RandomState[16];
-
-namespace SSE
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 template<typename T, int Size> static Vc_ALWAYS_INLINE Vc_CONST const T *_IndexesFromZero() {
     if (Size == 4) {
@@ -1412,10 +1406,10 @@ template<> Vc_INTRINSIC Vc_PURE Vector<double> Vector<double>::exponent() const
 static void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)
 {
-    state0.load(&Vc::RandomState[0]);
-    state1.load(&Vc::RandomState[uint_v::Size]);
-    (state1 * 0xdeece66du + 11).store(&Vc::RandomState[uint_v::Size]);
-    uint_v(_mm_xor_si128((state0 * 0xdeece66du + 11).data(), _mm_srli_epi32(state1.data(), 16))).store(&Vc::RandomState[0]);
+    state0.load(&Common::RandomState[0]);
+    state1.load(&Common::RandomState[uint_v::Size]);
+    (state1 * 0xdeece66du + 11).store(&Common::RandomState[uint_v::Size]);
+    uint_v(_mm_xor_si128((state0 * 0xdeece66du + 11).data(), _mm_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
 }
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::Random()
@@ -1446,11 +1440,11 @@ template<> Vc_ALWAYS_INLINE Vector<float8> Vector<float8>::Random()
 template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 {
     typedef unsigned long long uint64 Vc_MAY_ALIAS;
-    uint64 state0 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[8]);
-    uint64 state1 = *reinterpret_cast<const uint64 *>(&Vc::RandomState[10]);
-    const __m128i state = _mm_load_si128(reinterpret_cast<const __m128i *>(&Vc::RandomState[8]));
-    *reinterpret_cast<uint64 *>(&Vc::RandomState[ 8]) = (state0 * 0x5deece66dull + 11);
-    *reinterpret_cast<uint64 *>(&Vc::RandomState[10]) = (state1 * 0x5deece66dull + 11);
+    uint64 state0 = *reinterpret_cast<const uint64 *>(&Common::RandomState[8]);
+    uint64 state1 = *reinterpret_cast<const uint64 *>(&Common::RandomState[10]);
+    const __m128i state = _mm_load_si128(reinterpret_cast<const __m128i *>(&Common::RandomState[8]));
+    *reinterpret_cast<uint64 *>(&Common::RandomState[ 8]) = (state0 * 0x5deece66dull + 11);
+    *reinterpret_cast<uint64 *>(&Common::RandomState[10]) = (state1 * 0x5deece66dull + 11);
     return (Vector<double>(_mm_castsi128_pd(_mm_srli_epi64(state, 12))) | One()) - One();
 }
 // shifted / rotated {{{1
@@ -1532,7 +1526,6 @@ template<> Vc_INTRINSIC Vc_PURE sfloat_v sfloat_v::rotated(int amount) const
     }
     return Zero();
 }
-// }}}1
 // sorted specializations {{{1
 template<> inline Vc_PURE uint_v uint_v::sorted() const
 {
@@ -1591,9 +1584,7 @@ template<> inline Vc_PURE ushort_v ushort_v::sorted() const
     return _mm_unpacklo_epi16(lo, hi);
 }
 // }}}1
-} // namespace SSE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -29,9 +29,9 @@
 class TimeStampCounter
 {
     public:
-        void Start();
-        void Stop();
-        unsigned long long Cycles() const;
+        void start();
+        void stop();
+        unsigned long long cycles() const;
 
     private:
         union Data {
@@ -40,7 +40,7 @@ class TimeStampCounter
         } m_start, m_end;
 };
 
-inline void TimeStampCounter::Start()
+inline void TimeStampCounter::start()
 {
 #ifdef _MSC_VER
 	unsigned int tmp;
@@ -50,7 +50,7 @@ inline void TimeStampCounter::Start()
 #endif
 }
 
-inline void TimeStampCounter::Stop()
+inline void TimeStampCounter::stop()
 {
 #ifdef _MSC_VER
 	unsigned int tmp;
@@ -60,7 +60,7 @@ inline void TimeStampCounter::Stop()
 #endif
 }
 
-inline unsigned long long TimeStampCounter::Cycles() const
+inline unsigned long long TimeStampCounter::cycles() const
 {
     return m_end.a - m_start.a;
 }

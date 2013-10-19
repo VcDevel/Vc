@@ -24,11 +24,7 @@
 #include "vector.h"
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace SSE
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename T> class Vector;
 
     template<typename _T> struct Const
@@ -99,9 +95,7 @@ namespace SSE
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float8>::Mask Const<float8>::exponentMask() {
         return M256::dup(Const<float>::exponentMask().data());
     }
-} // namespace SSE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "undomacros.h"
 

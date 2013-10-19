@@ -24,11 +24,7 @@
 #include <limits>
 #include "macros.h"
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace SSE
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 namespace Internal
 {
@@ -801,9 +797,7 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 #undef OPx
 #undef OPcmp
 
-} // namespace SSE
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #include "vectorhelper.tcc"
 #include "undomacros.h"

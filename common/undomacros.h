@@ -96,6 +96,7 @@
 #undef VC_EXACT_TYPE
 #undef VC_ALIGNED_PARAMETER
 #undef VC_OFFSETOF
+#undef Vc_NOEXCEPT
 
 #if VC_GCC && !__OPTIMIZE__
 #pragma GCC diagnostic pop

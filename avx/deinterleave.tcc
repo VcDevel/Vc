@@ -17,11 +17,7 @@
 
 */
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 inline void deinterleave(double_v &VC_RESTRICT a, double_v &VC_RESTRICT b, double_v &VC_RESTRICT c)
 {   // estimated latency (AVX): 4.5 cycles
@@ -129,57 +125,57 @@ inline void deinterleave(Vector<unsigned short> &a, Vector<unsigned short> &b)
     b.data() = _mm_unpackhi_epi16(tmp2, tmp3);
 }
 
-} // namespace AVX
+Vc_NAMESPACE_END
 
+Vc_NAMESPACE_BEGIN(Internal)
 
-namespace Internal
-{
-
-template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
         float_v &a, float_v &b, const float *m, A align)
 {
     a.load(m, align);
     b.load(m + float_v::Size, align);
-    Vc::AVX::deinterleave(a, b);
+    Vc::Vc_IMPL_NAMESPACE::deinterleave(a, b);
 }
 
-template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
         float_v &a, float_v &b, const short *m, A align)
 {
-    using Vc::AVX::m256i;
-    const m256i tmp = Vc::AVX::VectorHelper<m256i>::load(m, align);
-    a.data() = _mm256_cvtepi32_ps(Vc::AVX::concat(
-                _mm_srai_epi32(_mm_slli_epi32(AVX::lo128(tmp), 16), 16),
-                _mm_srai_epi32(_mm_slli_epi32(AVX::hi128(tmp), 16), 16)));
-    b.data() = _mm256_cvtepi32_ps(Vc::AVX::concat(
-                _mm_srai_epi32(AVX::lo128(tmp), 16),
-                _mm_srai_epi32(AVX::hi128(tmp), 16)));
+    using namespace Vc::Vc_IMPL_NAMESPACE;
+    const m256i tmp = VectorHelper<m256i>::load(m, align);
+    a.data() = _mm256_cvtepi32_ps(concat(
+                _mm_srai_epi32(_mm_slli_epi32(lo128(tmp), 16), 16),
+                _mm_srai_epi32(_mm_slli_epi32(hi128(tmp), 16), 16)));
+    b.data() = _mm256_cvtepi32_ps(concat(
+                _mm_srai_epi32(lo128(tmp), 16),
+                _mm_srai_epi32(hi128(tmp), 16)));
 }
 
-template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
         float_v &a, float_v &b, const unsigned short *m, A align)
 {
-    using Vc::AVX::m256i;
-    const m256i tmp = Vc::AVX::VectorHelper<m256i>::load(m, align);
-    a.data() = _mm256_cvtepi32_ps(Vc::AVX::concat(
-                _mm_blend_epi16(AVX::lo128(tmp), _mm_setzero_si128(), 0xaa),
-                _mm_blend_epi16(AVX::hi128(tmp), _mm_setzero_si128(), 0xaa)));
-    b.data() = _mm256_cvtepi32_ps(Vc::AVX::concat(
-                _mm_srli_epi32(AVX::lo128(tmp), 16),
-                _mm_srli_epi32(AVX::hi128(tmp), 16)));
+    using namespace Vc::Vc_IMPL_NAMESPACE;
+    const m256i tmp = VectorHelper<m256i>::load(m, align);
+    a.data() = _mm256_cvtepi32_ps(concat(
+                _mm_blend_epi16(lo128(tmp), _mm_setzero_si128(), 0xaa),
+                _mm_blend_epi16(hi128(tmp), _mm_setzero_si128(), 0xaa)));
+    b.data() = _mm256_cvtepi32_ps(concat(
+                _mm_srli_epi32(lo128(tmp), 16),
+                _mm_srli_epi32(hi128(tmp), 16)));
 }
 
-template<typename A, typename MemT> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+template<typename A, typename MemT> inline void HelperImpl<VC_IMPL>::deinterleave(
         sfloat_v &_a, sfloat_v &_b, const MemT *m, A align)
 {
     float_v &a = reinterpret_cast<float_v &>(_a);
     float_v &b = reinterpret_cast<float_v &>(_b);
-    HelperImpl<Vc::AVXImpl>::deinterleave(a, b, m, align);
+    HelperImpl<VC_IMPL>::deinterleave(a, b, m, align);
 }
 
-template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
         double_v &a, double_v &b, const double *m, A align)
 {
+    using namespace Vc::Vc_IMPL_NAMESPACE;
+
     a.load(m, align);
     b.load(m + double_v::Size, align);
 
@@ -190,93 +186,91 @@ template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
     b.data() = _mm256_unpackhi_pd(tmp0, tmp1); // b3 b1 a3 a1
 }
 
-template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
         int_v &a, int_v &b, const int *m, A align)
 {
-    using Vc::AVX::m256;
+    using namespace Vc::Vc_IMPL_NAMESPACE;
     a.load(m, align);
     b.load(m + int_v::Size, align);
 
-    const m256 tmp0 = AVX::avx_cast<m256>(Mem::shuffle128<Vc::X0, Vc::Y0>(a.data(), b.data()));
-    const m256 tmp1 = AVX::avx_cast<m256>(Mem::shuffle128<Vc::X1, Vc::Y1>(a.data(), b.data()));
+    const m256 tmp0 = avx_cast<m256>(Mem::shuffle128<Vc::X0, Vc::Y0>(a.data(), b.data()));
+    const m256 tmp1 = avx_cast<m256>(Mem::shuffle128<Vc::X1, Vc::Y1>(a.data(), b.data()));
 
     const m256 tmp2 = _mm256_unpacklo_ps(tmp0, tmp1); // b5 b1 b4 b0 a5 a1 a4 a0
     const m256 tmp3 = _mm256_unpackhi_ps(tmp0, tmp1); // b7 b3 b6 b2 a7 a3 a6 a2
 
-    a.data() = AVX::avx_cast<m256i>(_mm256_unpacklo_ps(tmp2, tmp3)); // b6 b4 b2 b0 a6 a4 a2 a0
-    b.data() = AVX::avx_cast<m256i>(_mm256_unpackhi_ps(tmp2, tmp3)); // b7 b5 b3 b1 a7 a5 a3 a1
+    a.data() = avx_cast<m256i>(_mm256_unpacklo_ps(tmp2, tmp3)); // b6 b4 b2 b0 a6 a4 a2 a0
+    b.data() = avx_cast<m256i>(_mm256_unpackhi_ps(tmp2, tmp3)); // b7 b5 b3 b1 a7 a5 a3 a1
 }
 
-template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
         int_v &a, int_v &b, const short *m, A align)
 {
-    using Vc::AVX::m256i;
-    const m256i tmp = Vc::AVX::VectorHelper<m256i>::load(m, align);
-    a.data() = Vc::AVX::concat(
-                _mm_srai_epi32(_mm_slli_epi32(AVX::lo128(tmp), 16), 16),
-                _mm_srai_epi32(_mm_slli_epi32(AVX::hi128(tmp), 16), 16));
-    b.data() = Vc::AVX::concat(
-                _mm_srai_epi32(AVX::lo128(tmp), 16),
-                _mm_srai_epi32(AVX::hi128(tmp), 16));
+    using namespace Vc::Vc_IMPL_NAMESPACE;
+    const m256i tmp = VectorHelper<m256i>::load(m, align);
+    a.data() = concat(
+                _mm_srai_epi32(_mm_slli_epi32(lo128(tmp), 16), 16),
+                _mm_srai_epi32(_mm_slli_epi32(hi128(tmp), 16), 16));
+    b.data() = concat(
+                _mm_srai_epi32(lo128(tmp), 16),
+                _mm_srai_epi32(hi128(tmp), 16));
 }
 
-template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
         uint_v &a, uint_v &b, const unsigned int *m, A align)
 {
-    using Vc::AVX::m256;
+    using namespace Vc::Vc_IMPL_NAMESPACE;
     a.load(m, align);
     b.load(m + uint_v::Size, align);
 
-    const m256 tmp0 = AVX::avx_cast<m256>(Mem::shuffle128<Vc::X0, Vc::Y0>(a.data(), b.data()));
-    const m256 tmp1 = AVX::avx_cast<m256>(Mem::shuffle128<Vc::X1, Vc::Y1>(a.data(), b.data()));
+    const m256 tmp0 = avx_cast<m256>(Mem::shuffle128<Vc::X0, Vc::Y0>(a.data(), b.data()));
+    const m256 tmp1 = avx_cast<m256>(Mem::shuffle128<Vc::X1, Vc::Y1>(a.data(), b.data()));
 
     const m256 tmp2 = _mm256_unpacklo_ps(tmp0, tmp1); // b5 b1 b4 b0 a5 a1 a4 a0
     const m256 tmp3 = _mm256_unpackhi_ps(tmp0, tmp1); // b7 b3 b6 b2 a7 a3 a6 a2
 
-    a.data() = AVX::avx_cast<m256i>(_mm256_unpacklo_ps(tmp2, tmp3)); // b6 b4 b2 b0 a6 a4 a2 a0
-    b.data() = AVX::avx_cast<m256i>(_mm256_unpackhi_ps(tmp2, tmp3)); // b7 b5 b3 b1 a7 a5 a3 a1
+    a.data() = avx_cast<m256i>(_mm256_unpacklo_ps(tmp2, tmp3)); // b6 b4 b2 b0 a6 a4 a2 a0
+    b.data() = avx_cast<m256i>(_mm256_unpackhi_ps(tmp2, tmp3)); // b7 b5 b3 b1 a7 a5 a3 a1
 }
 
-template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
         uint_v &a, uint_v &b, const unsigned short *m, A align)
 {
-    using Vc::AVX::m256i;
-    const m256i tmp = Vc::AVX::VectorHelper<m256i>::load(m, align);
-    a.data() = Vc::AVX::concat(
-                _mm_srli_epi32(_mm_slli_epi32(AVX::lo128(tmp), 16), 16),
-                _mm_srli_epi32(_mm_slli_epi32(AVX::hi128(tmp), 16), 16));
-    b.data() = Vc::AVX::concat(
-                _mm_srli_epi32(AVX::lo128(tmp), 16),
-                _mm_srli_epi32(AVX::hi128(tmp), 16));
+    using namespace Vc::Vc_IMPL_NAMESPACE;
+    const m256i tmp = VectorHelper<m256i>::load(m, align);
+    a.data() = concat(
+                _mm_srli_epi32(_mm_slli_epi32(lo128(tmp), 16), 16),
+                _mm_srli_epi32(_mm_slli_epi32(hi128(tmp), 16), 16));
+    b.data() = concat(
+                _mm_srli_epi32(lo128(tmp), 16),
+                _mm_srli_epi32(hi128(tmp), 16));
 }
 
-template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
         short_v &a, short_v &b, const short *m, A align)
 {
     a.load(m, align);
     b.load(m + short_v::Size, align);
-    Vc::AVX::deinterleave(a, b);
+    Vc::Vc_IMPL_NAMESPACE::deinterleave(a, b);
 }
 
-template<typename A> inline void HelperImpl<Vc::AVXImpl>::deinterleave(
+template<typename A> inline void HelperImpl<VC_IMPL>::deinterleave(
         ushort_v &a, ushort_v &b, const unsigned short *m, A align)
 {
     a.load(m, align);
     b.load(m + ushort_v::Size, align);
-    Vc::AVX::deinterleave(a, b);
+    Vc::Vc_IMPL_NAMESPACE::deinterleave(a, b);
 }
 
 // only support M == V::EntryType -> no specialization
 template<typename V, typename M, typename A>
-inline Vc_FLATTEN void HelperImpl<Vc::AVXImpl>::deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
+inline Vc_FLATTEN void HelperImpl<VC_IMPL>::deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
         V &VC_RESTRICT c, const M *VC_RESTRICT memory, A align)
 {
     a.load(&memory[0 * V::Size], align);
     b.load(&memory[1 * V::Size], align);
     c.load(&memory[2 * V::Size], align);
-    Vc::AVX::deinterleave(a, b, c);
+    Vc::Vc_IMPL_NAMESPACE::deinterleave(a, b, c);
 }
 
-} // namespace Internal
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_NAMESPACE_END

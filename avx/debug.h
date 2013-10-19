@@ -21,16 +21,12 @@
 #define VC_AVX_DEBUG_H
 
 #ifndef NDEBUG
-#include "vectorbase.h"
+#include "vector.h"
 #include <iostream>
 #include <iomanip>
 #endif
 
-/*OUTER_NAMESPACE_BEGIN*/
-namespace Vc
-{
-namespace AVX
-{
+Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 #ifdef NDEBUG
 class DebugStream
@@ -93,10 +89,8 @@ class DebugStream
 };
 #endif
 
-#define VC_DEBUG ::Vc::AVX::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define VC_DEBUG ::Vc::Vc_IMPL_NAMESPACE::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 
-} // namespace AVX
-} // namespace Vc
-/*OUTER_NAMESPACE_END*/
+Vc_IMPL_NAMESPACE_END
 
 #endif // VC_AVX_DEBUG_H

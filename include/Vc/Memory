@@ -32,6 +32,11 @@
 # include "sse/interleavedmemory.tcc"
 #endif
 
+#include "common/make_unique.h"
+Vc_PUBLIC_NAMESPACE_BEGIN
+using Common::make_unique;
+Vc_NAMESPACE_END
+
 #endif // INCLUDE_VC_MEMORY
 
 // vim: ft=cpp

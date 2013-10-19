@@ -17,36 +17,31 @@
 
 }}}*/
 
-#ifndef VC_COMMON_OPERAND_H
-#define VC_COMMON_OPERAND_H
+#ifndef VC_COMMON_MAKE_UNIQUE_H
+#define VC_COMMON_MAKE_UNIQUE_H
+
+#include <memory>
+
+#include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Common)
 
-template<typename Parent> class Operand
+template<typename T> struct Deleter
 {
-    public:
-        Parent *parent() { return static_cast<Parent *>(this); }
-        const Parent *parent() const { return static_cast<const Parent *>(this); }
-
-    private:
+    Vc_ALWAYS_INLINE void operator()(T *ptr) {
+        ptr->~T();
+        Vc::free(ptr);
+    }
 };
 
-enum BinaryOperation {
-    AddOp,
-    SubOp,
-    MulOp,
-    DivOp
-};
-
-template<typename Result, typename Left, typename Right> class BinaryOperation : public Operand<BinaryOperation<Result, Left, Right> >
+template<class T, MallocAlignment A = Vc::AlignOnVector, class... Args>
+inline std::unique_ptr<T, Deleter<T>> make_unique(Args&&... args)
 {
-    Left m_left;
-    Right m_right;
-    public:
-        Vc_ALWAYS_INLINE BinaryOperation(Left &&l, Right &&r) 
-        operator Result() 
-};
+    return std::unique_ptr<T, Deleter<T>>(new(Vc::malloc<T, A>(1)) T(std::forward<Args>(args)...));
+}
 
 Vc_NAMESPACE_END
 
-#endif // VC_COMMON_OPERAND_H
+#include "undomacros.h"
+
+#endif // VC_COMMON_MAKE_UNIQUE_H
