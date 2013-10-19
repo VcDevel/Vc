@@ -112,11 +112,6 @@ template<typename T> class Mask
         Vc_ALWAYS_INLINE Vc_PURE bool operator==(const Mask &rhs) const { return MaskHelper<Size>::cmpeq (d.v(), rhs.d.v()); }
         Vc_ALWAYS_INLINE Vc_PURE bool operator!=(const Mask &rhs) const { return MaskHelper<Size>::cmpneq(d.v(), rhs.d.v()); }
 
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator&&(const Mask &rhs) const { return _mm_and_ps(k, rhs.k); }
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator& (const Mask &rhs) const { return _mm_and_ps(k, rhs.k); }
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator||(const Mask &rhs) const { return _mm_or_ps (k, rhs.k); }
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator| (const Mask &rhs) const { return _mm_or_ps (k, rhs.k); }
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator^ (const Mask &rhs) const { return _mm_xor_ps(k, rhs.k); }
         Vc_ALWAYS_INLINE Vc_PURE Mask operator!() const { return _mm_andnot_si128(dataI(), _mm_setallone_si128()); }
 
         Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { d.v() = _mm_and_ps(d.v(), rhs.d.v()); return *this; }
