@@ -432,7 +432,7 @@ void Baker::createImage()
     // Parameters End
 
     TimeStampCounter timer;
-    timer.Start();
+    timer.start();
 
     // helper constants
     const int overallUpperBound = maxOf(upperBound[0], maxOf(upperBound[1], upperBound[2]));
@@ -538,9 +538,9 @@ void Baker::createImage()
 #endif
     canvas.toQImage(&m_image);
 
-    timer.Stop();
+    timer.stop();
     m_progress.done();
-    qDebug() << timer.Cycles() << "cycles";
+    qDebug() << timer.cycles() << "cycles";
 
     if (m_filename.isEmpty()) {
         m_filename = QString("r%1-%2_g%3-%4_b%5-%6_s%7-%8_i%9-%10_%11x%12.png")
