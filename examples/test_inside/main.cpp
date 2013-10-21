@@ -69,11 +69,11 @@ int main()
     });
 
     TimeStampCounter tsc;
-    tsc.Start();
+    tsc.start();
     const auto &tmp = contains(points);
-    tsc.Stop();
+    tsc.stop();
     g_inside = tmp;
-    std::cout << tsc.Cycles() << std::endl;
+    std::cout << tsc.cycles() << std::endl;
 
     return 0;
 }
