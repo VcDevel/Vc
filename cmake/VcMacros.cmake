@@ -447,7 +447,12 @@ macro(_vc_compile_one_implementation _srcs _impl)
          get_filename_component(_out "${_vc_compile_src}" NAME_WE)
          get_filename_component(_ext "${_vc_compile_src}" EXT)
          set(_out "${CMAKE_CURRENT_BINARY_DIR}/${_out}_${_impl}${_ext}")
-         configure_file( ${_vc_compile_src} "${_out}" COPYONLY )
+         add_custom_command(OUTPUT "${_out}"
+            COMMAND ${CMAKE_COMMAND} -E copy "${_vc_compile_src}" "${_out}"
+            MAIN_DEPENDENCY "${_vc_compile_src}"
+            COMMENT "Copy to ${_out}"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            VERBATIM)
          set_source_files_properties( "${_out}" PROPERTIES
             COMPILE_DEFINITIONS "VC_IMPL=${_impl}"
             COMPILE_FLAGS "${_flags} ${_extra_flags}"
