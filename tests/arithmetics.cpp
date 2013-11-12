@@ -239,13 +239,20 @@ template<typename Vec> void testDiv()
         }
     }
     typedef typename Vec::EntryType T;
+#if defined(VC_ICC) && !defined(__x86_64__) && VC_ICC <= 20131008
+    if (isEqualType<short, T>()) {
+        EXPECT_FAILURE();
+    }
+#endif
+
     const T stepsize = std::max(T(1), T(std::numeric_limits<T>::max() / 1024));
     for (T divisor = 1; divisor < 5; ++divisor) {
         for (T scalar = std::numeric_limits<T>::min(); scalar < std::numeric_limits<T>::max() - stepsize + 1; scalar += stepsize) {
             Vec vector(scalar);
             Vec reference(scalar / divisor);
 
-            COMPARE(vector / divisor, reference) << '\n' << vector << " / " << divisor;
+            COMPARE(vector / divisor, reference) << '\n' << vector << " / " << divisor
+                << ", reference: " << scalar << " / " << divisor << " = " << scalar / divisor;
             vector /= divisor;
             COMPARE(vector, reference);
         }
