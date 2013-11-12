@@ -22,7 +22,7 @@
 #include <avx/sorthelper.h>
 #include <avx/macros.h>
 
-#include "avx_sorthelper.cpp"
+#include <src/avx_sorthelper.cpp>
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
