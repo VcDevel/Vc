@@ -36,7 +36,6 @@ if(ROOT_RELEASE)
    endif()
 else()
 
-   # TODO: skip the C++11 check for C
    # TODO: check that 'decltype' compiles
    # TODO: check that 'constexpr' compiles
    if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
@@ -44,9 +43,9 @@ else()
          message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least GCC 4.7.")
       endif()
 
-      AddCompilerFlag("-std=c++11" _ok)
+      AddCompilerFlag("-std=c++11" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
       if(NOT _ok)
-         AddCompilerFlag("-std=c++0x" _ok)
+         AddCompilerFlag("-std=c++0x" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
          if(NOT _ok)
             message(FATAL_ERROR "Vc 1.x requires C++11 support. It seems this is not available. If this was incorrectly determined please notify vc-devel@compeng.uni-frankfurt.de")
          endif()
