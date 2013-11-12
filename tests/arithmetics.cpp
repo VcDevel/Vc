@@ -240,6 +240,7 @@ template<typename Vec> void testDiv()
     }
     typedef typename Vec::EntryType T;
 #if defined(VC_ICC) && !defined(__x86_64__) && VC_ICC <= 20131008
+    // http://software.intel.com/en-us/forums/topic/488995
     if (isEqualType<short, T>()) {
         EXPECT_FAILURE();
     }
