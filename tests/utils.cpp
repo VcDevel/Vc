@@ -281,7 +281,8 @@ void applyAndCall()
     const V two(T(2));
     for (int i = 0; i < 10; ++i) {
         const V rand = V::Random();
-        COMPARE(rand.apply(add2<T>), rand + two);
+        auto add2Reference = static_cast<T (*)(T)>(add2);
+        COMPARE(rand.apply(add2Reference), rand + two);
         COMPARE(rand.apply([](T x) { return x + T(2); }), rand + two);
 
         CallTester<T, V> callTester;
@@ -294,8 +295,8 @@ void applyAndCall()
             V copy2 = rand;
             copy1(mask) += two;
 
-            COMPARE(copy2(mask).apply(add2<T>), copy1) << mask;
-            COMPARE(rand.apply(add2<T>, mask), copy1) << mask;
+            COMPARE(copy2(mask).apply(add2Reference), copy1) << mask;
+            COMPARE(rand.apply(add2Reference, mask), copy1) << mask;
             COMPARE(copy2(mask).apply([](T x) { return x + T(2); }), copy1) << mask;
             COMPARE(rand.apply([](T x) { return x + T(2); }, mask), copy1) << mask;
 
