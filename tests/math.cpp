@@ -900,6 +900,7 @@ void testmain()/*{{{*/
 
     testRealTypes(testSincos);
     testRealTypes(testExponent);
+    // TODO: copysign
 }/*}}}*/
 
 // vim: foldmethod=marker

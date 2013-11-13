@@ -24,6 +24,11 @@
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
+// copysign {{{1
+template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
+{
+    return a.copySign(b);
+}
 // trunc {{{1
 template<typename V> Vc_ALWAYS_INLINE V trunc(V v)
 {
