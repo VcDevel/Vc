@@ -703,6 +703,12 @@ Vc_INTRINSIC void stream_store(void *mem, param256i value, param256i mask)
     stream_store(static_cast<__m128i *>(mem) + 1, _mm256_extractf128_si256(value, 1), _mm256_extractf128_si256(mask, 1));
 }
 
+#ifndef __x86_64__
+Vc_INTRINSIC Vc_PURE __m128i _mm_cvtsi64_si128(int64_t x) {
+    return _mm_castpd_si128(_mm_load_sd(reinterpret_cast<const double *>(&x)));
+}
+#endif
+
 Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(AVX)

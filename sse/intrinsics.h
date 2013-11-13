@@ -556,6 +556,13 @@ Vc_NAMESPACE_BEGIN(SseIntrinsics)
     static Vc_INTRINSIC Vc_PURE __m128i _mm_stream_load(const unsigned char *mem) {
         return _mm_stream_load(reinterpret_cast<const int *>(mem));
     }
+
+#ifndef __x86_64__
+    Vc_INTRINSIC Vc_PURE __m128i _mm_cvtsi64_si128(int64_t x) {
+        return _mm_castpd_si128(_mm_load_sd(reinterpret_cast<const double *>(&x)));
+    }
+#endif
+
 Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(SSE)
