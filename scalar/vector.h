@@ -92,6 +92,14 @@ class Vector
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         Vc_INTRINSIC Vector(EntryType a) : m_data(a) {}
+        template <typename U>
+        Vc_INTRINSIC Vector(U a,
+                            typename std::enable_if<std::is_same<U, int>::value &&
+                                                        !std::is_same<U, EntryType>::value,
+                                                    void *>::type = nullptr)
+            : Vector(static_cast<EntryType>(a))
+        {
+        }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
