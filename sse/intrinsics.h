@@ -236,6 +236,10 @@ extern "C" {
 #endif
 
 Vc_NAMESPACE_BEGIN(SseIntrinsics)
+    Vc_INTRINSIC __m128i _mm_cmpeq_epi64(__m128i a, __m128i b) {
+        auto tmp = _mm_cmpeq_epi32(a, b);
+        return _mm_and_si128(tmp, _mm_shuffle_epi32(tmp, 1*1 + 0*4 + 3*16 + 2*64));
+    }
     Vc_INTRINSIC int _mm_extract_epi32(__m128i v, const int index) {
 #ifdef VC_CLANG
         typedef int int32v4 __attribute__((__vector_size__(16)));

@@ -287,6 +287,9 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType isFinite(VTArg x) {
                 return _mm256_cmpord_pd(x, _mm256_mul_pd(zero(), x));
             }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType isInfinite(VectorType x) {
+                return _mm256_castsi256_pd(_mm256_cmpeq_epi64(_mm256_castpd_si256(abs(x)), _mm256_castpd_si256(_mm256_set1_pd(c_log<double>::d(1)))));
+            }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(VTArg a) {
                 return CAT(_mm256_and_, SUFFIX)(a, _mm256_setabsmask_pd());
             }
@@ -365,6 +368,9 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType isFinite(VTArg x) {
                 return _mm256_cmpord_ps(x, _mm256_mul_ps(zero(), x));
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType isInfinite(VectorType x) {
+                return _mm256_castsi256_ps(_mm256_cmpeq_epi32(_mm256_castps_si256(abs(x)), _mm256_castps_si256(_mm256_set1_ps(c_log<float>::d(1)))));
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType reciprocal(VTArg x) {
                 return _mm256_rcp_ps(x);

@@ -182,6 +182,11 @@ template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isfinite(c
             );
 }
 
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T>::Mask isinf(const Vector<T> &x)
+{
+    return typename Vector<T>::Mask(std::isinf(x.data()));
+}
+
 template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(const Vector<T> &x)
 {
     return typename Vector<T>::Mask(

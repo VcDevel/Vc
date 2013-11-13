@@ -73,6 +73,7 @@ Vc_PUBLIC_NAMESPACE_BEGIN
   using Vc_IMPL_NAMESPACE::ldexp;
   using Vc_IMPL_NAMESPACE::round;
   using Vc_IMPL_NAMESPACE::isfinite;
+  using Vc_IMPL_NAMESPACE::isinf;
   using Vc_IMPL_NAMESPACE::isnan;
   using Vc_IMPL_NAMESPACE::forceToRegisters;
   using Vc_IMPL_NAMESPACE::Vector;

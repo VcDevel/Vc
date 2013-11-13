@@ -23,6 +23,7 @@
 #include "types.h"
 #include "../common/loadstoreflags.h"
 #include <limits>
+#include "const_data.h"
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
@@ -208,6 +209,9 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType isFinite(VectorType x) {
                 return _mm_cmpord_pd(x, _mm_mul_pd(zero(), x));
             }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType isInfinite(VectorType x) {
+                return _mm_castsi128_pd(_mm_cmpeq_epi64(_mm_castpd_si128(abs(x)), _mm_castpd_si128(_mm_load_pd(c_log<double>::d(1)))));
+            }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) {
                 return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_pd());
             }
@@ -282,6 +286,9 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType isFinite(VectorType x) {
                 return _mm_cmpord_ps(x, _mm_mul_ps(zero(), x));
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType isInfinite(VectorType x) {
+                return _mm_castsi128_ps(_mm_cmpeq_epi32(_mm_castps_si128(abs(x)), _mm_castps_si128(_mm_load_ps(c_log<float>::d(1)))));
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType reciprocal(VectorType x) {
                 return _mm_rcp_ps(x);

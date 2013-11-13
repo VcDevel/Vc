@@ -534,9 +534,19 @@ template<typename Vec> void testInf()/*{{{*/
     typedef typename Vec::EntryType T;
     const T one = 1;
     const Vec zero(Zero);
+    const Vec inf = one / zero;
+    Vec nan;
+    nan.setQnan();
+
     VERIFY(Vc::isfinite(zero));
     VERIFY(Vc::isfinite(Vec(one)));
-    VERIFY(!Vc::isfinite(one / zero));
+    VERIFY(!Vc::isfinite(inf));
+    VERIFY(!Vc::isfinite(nan));
+
+    VERIFY(!Vc::isinf(zero));
+    VERIFY(!Vc::isinf(Vec(one)));
+    VERIFY(Vc::isinf(inf));
+    VERIFY(!Vc::isinf(nan));
 }
 /*}}}*/
 template<typename Vec> void testNaN()/*{{{*/

@@ -428,6 +428,7 @@ static Vc_ALWAYS_INLINE double_v max(const double_v &x, const double_v &y) { ret
   template<typename T> static Vc_ALWAYS_INLINE Vector<T> round(const Vector<T> &x) { return VectorHelper<T>::round(x.data()); }
 
   template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
+  template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isinf(const Vector<T> &x) { return VectorHelper<T>::isInfinite(x.data()); }
   template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
 static_assert(!std::is_convertible<float *, short_v>::value, "A float* should never implicitly convert to short_v. Something is broken.");
