@@ -824,7 +824,7 @@ template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
                 _mm512_add_epi32(_mm512_mullo_epi32(state, factor), swizzle(_mm512_mulhi_epu32(state, factor), _MM_SWIZ_REG_CDAB)),
                 _set1(11ull)));
 
-    return (Vector<double>(_cast(_mm512_srli_epi64(mic_cast<__m512>(state), 12))) | One()) - One();
+    return (Vector<double>(_cast(_mm512_srli_epi64(mic_cast<__m512i>(state), 12))) | One()) - One();
 }
 // }}}1
 // shifted / rotated {{{1
