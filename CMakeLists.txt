@@ -43,7 +43,7 @@ else()
          message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least GCC 4.7.")
       endif()
 
-      AddCompilerFlag("-std=c++11" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
+      AddCompilerFlag("-std=c++11" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
       if(NOT _ok)
          AddCompilerFlag("-std=c++0x" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
          if(NOT _ok)

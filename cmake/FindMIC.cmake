@@ -143,6 +143,8 @@ if(MIC_NATIVE_FOUND OR MIC_OFFLOAD_FOUND)
    list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 2338") # this switch statement does not have a default clause
    list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 193") # zero used for undefined preprocessing identifier "VC_GCC"
 
+   set(VC_MIC_CXX_FLAGS "")
+
    macro(mic_add_definitions)
       add_definitions(${ARGN})
       foreach(_def ${ARGN})
@@ -179,7 +181,7 @@ if(MIC_NATIVE_FOUND)
       endif()
 
       string(TOUPPER "${CMAKE_BUILD_TYPE}" _tmp)
-      string(STRIP "${CMAKE_MIC_${_lang}_FLAGS} ${CMAKE_${_lang}_FLAGS_${_tmp}} ${_mic_cflags}" _flags)
+      string(STRIP "${CMAKE_MIC_${_lang}_FLAGS} ${CMAKE_${_lang}_FLAGS_${_tmp}} ${_mic_cflags} ${VC_MIC_CXX_FLAGS}" _flags)
       string(REPLACE " " ";" _flags "${_flags} ${ARGN}")
       get_directory_property(_inc INCLUDE_DIRECTORIES)
       foreach(_i ${_inc})
@@ -343,7 +345,7 @@ ${MIC_RANLIB} ${_output}
             get_filename_component(_name "${_src}" NAME)
             add_custom_command(OUTPUT "${_name}.s"
                COMMAND "${MIC_CXX}" -mmic
-               -DVC_IMPL=LRBni ${_mic_cflags} ${_cflags}
+               -DVC_IMPL=MIC ${_mic_cflags} ${_cflags} ${VC_MIC_CXX_FLAGS}
                ${_abs}
                -S -fsource-asm -fno-verbose-asm -o "${_name}.x"
                COMMAND sh -c "grep -v ___tag_value '${_name}.x' | c++filt > '${_name}.s'"
