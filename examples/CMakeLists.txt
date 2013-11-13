@@ -14,6 +14,8 @@ add_custom_target(Examples COMMENT "build all examples" VERBATIM)
 # for the remaining targets unconditional Vc_ARCHITECTURE_FLAGS is mostly fine.
 add_definitions(${Vc_ARCHITECTURE_FLAGS})
 
+AddCompilerFlag(-ftemplate-depth=1024)
+
 macro(build_example name)
    set(_SRCS)
    set(_LIBS)
