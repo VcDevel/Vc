@@ -26,7 +26,7 @@
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 // constants {{{1
-template<typename T, int Size> static Vc_ALWAYS_INLINE Vc_CONST const T *_IndexesFromZero() {
+template<typename T, int Size> Vc_ALWAYS_INLINE Vc_CONST const T *_IndexesFromZero() {
     if (Size == 4) {
         return reinterpret_cast<const T *>(_IndexesFromZero4);
     } else if (Size == 8) {
@@ -52,6 +52,16 @@ template<typename T> Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerInde
 {
 }
 
+template<> Vc_INTRINSIC float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(StaticCastHelper<int, float>::cast(int_v::IndexesFromZero().data()))
+{
+}
+
+template<> Vc_INTRINSIC double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(StaticCastHelper<int, double>::cast(int_v::IndexesFromZero().data()))
+{
+}
+
 template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::Zero()
 {
     return VectorHelper<VectorType>::zero();
@@ -64,7 +74,7 @@ template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::One()
 
 template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::IndexesFromZero()
 {
-    return VectorHelper<VectorType>::template load<AlignedT>(_IndexesFromZero<EntryType, Size>());
+    return Vector<T>(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
 }
 
 // load member functions {{{1
