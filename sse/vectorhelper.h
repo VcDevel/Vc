@@ -582,7 +582,13 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
             static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packus_epi32(a, b); }
 #else
             // FIXME too bad, but this is broken without SSE 4.1
-            static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packs_epi32(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) {
+                auto tmp0 = _mm_unpacklo_epi16(a, b); // 0 4 X X 1 5 X X
+                auto tmp1 = _mm_unpackhi_epi16(a, b); // 2 6 X X 3 7 X X
+                auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1); // 0 2 4 6 X X X X
+                auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1); // 1 3 5 7 X X X X
+                return _mm_unpacklo_epi16(tmp2, tmp3); // 0 1 2 3 4 5 6 7
+            }
 #endif
             static Vc_ALWAYS_INLINE Vc_CONST _M128I expand0(_M128I x) { return _mm_unpacklo_epi16(x, _mm_setzero_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST _M128I expand1(_M128I x) { return _mm_unpackhi_epi16(x, _mm_setzero_si128()); }
