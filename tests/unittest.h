@@ -402,8 +402,13 @@ class _UnitTest_Compare
     private:
         static Vc_ALWAYS_INLINE size_t getIp() {
             size_t _ip;
-#if defined(__x86_64__) && defined(VC_GNU_ASM)
+#ifdef VC_GNU_ASM
+#ifdef __x86_64__
             asm volatile("lea 0(%%rip),%0" : "=r"(_ip));
+#else
+            //asm volatile("call 1f\n\t1: pop %0" : "=r"(_ip));
+            asm volatile("1: movl $1b,%0" : "=r"(_ip));
+#endif
 #else
             _ip = 0;
 #endif
