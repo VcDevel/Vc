@@ -207,7 +207,9 @@ int main()
         auto y = y_points.begin(Vc::Prefetch<>());
         float_v y0 = *y++;
         const auto y_it_last = y_points.end();
+#ifdef VC_ICC
 #pragma noprefetch
+#endif
         for (; y < y_it_last; y += 4 , dy += 4) {
             // calculate float_v::Size differentials per (left - right) / 2h
             float_v y1 = y[0];
