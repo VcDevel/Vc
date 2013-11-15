@@ -144,7 +144,7 @@ struct ScaleWorkingSetSize
         }
 
         const long bytes = N * M * sizeof(float_v);
-        printf("%'10lu Byte | %4.2f FLOP/Byte | %4.1f FLOP/cycle\n", bytes, static_cast<double>(float_v::Size * FLOPs) / (4 * sizeof(float_v)), throughput
+        printf("%10lu Byte | %4.2f FLOP/Byte | %4.1f FLOP/cycle\n", bytes, static_cast<double>(float_v::Size * FLOPs) / (4 * sizeof(float_v)), throughput
                 );
     }
 };
