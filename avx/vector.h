@@ -400,6 +400,7 @@ template<typename T> class Vector
         Vc_INTRINSIC_L Vector copySign(AsArg reference) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
 };
+template<typename T> constexpr size_t Vector<T>::Size;
 
 typedef Vector<double>         double_v;
 typedef Vector<float>          float_v;
