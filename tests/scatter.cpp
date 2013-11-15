@@ -134,6 +134,11 @@ static std::ostream &operator<<(std::ostream &out, const Struct2<T> *s)
     return out;
 }
 
+template<typename V> V makeReference(V v, typename V::Mask m)
+{
+    v.setZero(!m);
+    return v;
+}
 template<typename Vec> void scatterStruct2() //{{{1
 {
     typedef typename Vec::IndexType It;
@@ -152,12 +157,17 @@ template<typename Vec> void scatterStruct2() //{{{1
     for (It i(IndexesFromZero); !(mask = (i < scatterStruct2Count)).isEmpty(); i += Vec::Size) {
         castedMask = static_cast<decltype(castedMask)>(mask);
         Vec a(array, &S1::b, &S2::a, i, castedMask);
+        COMPARE(a, static_cast<Vec>(makeReference(i, mask)));
         Vec b(array, &S1::b, &S2::b, i, castedMask);
+        COMPARE(b, static_cast<Vec>(makeReference(i + 1, mask)));
         Vec c(array, &S1::b, &S2::c, i, castedMask);
+        COMPARE(c, static_cast<Vec>(makeReference(i + 2, mask)));
         a.scatter(out, &S1::b, &S2::a, i, castedMask);
         b.scatter(out, &S1::b, &S2::b, i, castedMask);
         c.scatter(out, &S1::b, &S2::c, i, castedMask);
     }
+    // castedmask != mask here because mask is changed in the for loop, but castedmask has the value
+    // from the previous iteration
     VERIFY(0 == memcmp(array, out, scatterStruct2Count * sizeof(S1))) << mask << ' ' << castedMask << '\n'
         << array << '\n' << out;
 }
