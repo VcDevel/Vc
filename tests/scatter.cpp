@@ -29,15 +29,16 @@ template<typename Vec> void maskedScatterArray() //{{{1
     typedef typename Vec::EntryType T;
 
     T mem[Vec::Size];
-    const Vec v(It::IndexesFromZero() + 1);
+    const Vec v = Vec::IndexesFromZero() + 1;
 
     for_all_masks(Vec, m) {
         Vec::Zero().store(mem, Vc::Unaligned);
         v.scatter(&mem[0], It::IndexesFromZero(), m);
 
-        for (size_t i = 0; i < Vec::Size; ++i) {
-            COMPARE(mem[i], m[i] ? v[i] : T(0)) << " i = " << i << ", m = " << m;
-        }
+        Vec reference = v;
+        reference.setZero(!m);
+
+        COMPARE(Vec(mem, Vc::Unaligned), reference) << "m = " << m;
     }
 }
 
