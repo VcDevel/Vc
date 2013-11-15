@@ -9,6 +9,10 @@ if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4723") # Disable warning "potential divide by 0" (suppress doesn't work)
 endif()
 
+# don't warn about sanity checks:
+AddCompilerFlag(-Wno-tautological-constant-out-of-range-compare)
+AddCompilerFlag(-Wno-tautological-compare)
+
 macro(vc_set_first_flag_of _result)
    set(${_result})
    foreach(_flag ${ARGN})
