@@ -32,9 +32,14 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializer
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
     : d(HV::template load<AlignedT>(IndexesFromZeroData<T>::address())) {}
 
+template<> Vc_ALWAYS_INLINE float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(StaticCastHelper<int, float>::cast(int_v::IndexesFromZero().data())) {}
+template<> Vc_ALWAYS_INLINE double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(_mm256_cvtepi32_pd(_mm_load_si128(reinterpret_cast<const __m128i *>(_IndexesFromZero32)))) {}
+
 template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::Zero() { return HT::zero(); }
 template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::One() { return HT::one(); }
-template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::IndexesFromZero() { return HV::template load<AlignedT>(IndexesFromZeroData<T>::address()); }
+template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::IndexesFromZero() { return Vector<T>(VectorSpecialInitializerIndexesFromZero::IndexesFromZero); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions {{{1
