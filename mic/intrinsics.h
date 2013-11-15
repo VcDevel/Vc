@@ -238,35 +238,36 @@ template<typename DownConv> static Vc_INTRINSIC
     _mm512_i32extscatter_epi32(m, i, v, downconv, scale, _MM_HINT_NT);
 }
 
+// TODO:
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512  v, DownConv downconv, int scale = sizeof(MemT))
 {
-    _mm512_i32extscatter_ps(m, i, v, downconv, scale, _MM_HINT_NONE);
+    _mm512_mask_i32extscatter_ps(m, mask, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512  v, DownConv downconv, decltype(Streaming), int scale = sizeof(MemT))
 {
-    _mm512_i32extscatter_ps(m, mask, i, v, downconv, scale, _MM_HINT_NT);
+    _mm512_mask_i32extscatter_ps(m, mask, i, v, downconv, scale, _MM_HINT_NT);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512d v, DownConv downconv, int scale = sizeof(MemT))
 {
-    _mm512_i32loextscatter_pd(m, i, v, downconv, scale, _MM_HINT_NONE);
+    _mm512_mask_i32loextscatter_pd(m, mask, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512d v, DownConv downconv, decltype(Streaming), int scale = sizeof(MemT))
 {
-    _mm512_i32loextscatter_pd(m, mask, i, v, downconv, scale, _MM_HINT_NT);
+    _mm512_mask_i32loextscatter_pd(m, mask, i, v, downconv, scale, _MM_HINT_NT);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512i v, DownConv downconv, int scale = sizeof(MemT))
 {
-    _mm512_i32extscatter_epi32(m, i, v, downconv, scale, _MM_HINT_NONE);
+    _mm512_mask_i32extscatter_epi32(m, mask, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512i v, DownConv downconv, decltype(Streaming), int scale = sizeof(MemT))
 {
-    _mm512_i32extscatter_epi32(m, mask, i, v, downconv, scale, _MM_HINT_NT);
+    _mm512_mask_i32extscatter_epi32(m, mask, i, v, downconv, scale, _MM_HINT_NT);
 }
 
 static Vc_INTRINSIC __m512  swizzle(__m512  v, _MM_SWIZZLE_ENUM swiz) { return _mm512_swizzle_ps(v, swiz); }
