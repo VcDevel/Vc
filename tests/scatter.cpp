@@ -43,11 +43,15 @@ template<typename Vec> void maskedScatterArray() //{{{1
 
 template<typename Vec> void scatterArray() //{{{1
 {
+    typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType It;
     const int count = 31999;
     typename Vec::EntryType array[count], out[count];
     for (int i = 0; i < count; ++i) {
-        array[i] = i - 100;
+        array[i] = i;
+        if (!std::is_integral<T>::value || !std::is_unsigned<T>::value) {
+            array[i] -= 100;
+        }
     }
     typename It::Mask mask;
     for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
