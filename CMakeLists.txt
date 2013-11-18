@@ -229,6 +229,7 @@ set(cmake_install_files
    cmake/CheckCXXCompilerFlag.cmake
    cmake/CheckMicCCompilerFlag.cmake
    cmake/CheckMicCXXCompilerFlag.cmake
+   cmake/FindMIC.cmake
    )
 if(ROOT_RELEASE)
    execute_process(
