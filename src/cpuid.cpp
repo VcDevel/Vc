@@ -192,6 +192,11 @@ void CpuId::init()
     do {
         CPUID(2);
         if (repeat == 0) {
+            if (eax == 0 && ebx == 0 && ecx == 0 && edx == 0) {
+                // this is the case on MIC
+                checkLeaf4 = true;
+                break;
+            }
             repeat = eax & 0xff;
         }
         if (0 == (0x80000000u & eax)) {
