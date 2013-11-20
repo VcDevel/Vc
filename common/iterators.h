@@ -106,16 +106,19 @@ class Iterator
 #else
     class BitmaskIterator/*{{{*/
     {
+#ifdef Vc_MSVC
+        unsigned long mask;
+        unsigned long bit;
+#else
         size_t mask;
         size_t bit;
+#endif
 
         void nextBit()
         {
 #ifdef Vc_GNU_ASM
             bit = __builtin_ctzl(mask);
-#elif defined(_WIN64)
-            _BitScanForward64(&bit, mask);
-#elif defined(_WIN32)
+#elif defined(Vc_MSVC)
             _BitScanForward(&bit, mask);
 #else
 #error "Not implemented yet. Please contact vc-devel@compeng.uni-frankfurt.de"
@@ -138,7 +141,7 @@ class Iterator
             */
         }
     public:
-        BitmaskIterator(size_t m) : mask(m) { nextBit(); }
+        BitmaskIterator(decltype(mask) m) : mask(m) { nextBit(); }
         BitmaskIterator(const BitmaskIterator &) = default;
         BitmaskIterator(BitmaskIterator &&) = default;
 
