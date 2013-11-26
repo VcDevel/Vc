@@ -148,7 +148,7 @@ elseif(COMPILER_VERSION MATCHES "ICC")
 elseif(COMPILER_VERSION MATCHES "Open64")
    set(compiler "Open64")
 endif()
-if(COMPILER_VERSION MATCHES "\\((experimental|prerelease)\\)" OR COMPILER_VERSION MATCHES "clang version 3.4")
+if(COMPILER_VERSION MATCHES "\\((experimental|prerelease)\\)" OR COMPILER_VERSION MATCHES "clang version 3.5")
    set(compiler "experimental")
 endif()
 
