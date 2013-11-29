@@ -95,11 +95,11 @@ Vc_NAMESPACE_BEGIN(AvxIntrinsics)
         T _d;
         Vc_ALWAYS_INLINE operator T &() { return _d; }
         Vc_ALWAYS_INLINE operator const T &() const { return _d; }
-        Vc_ALWAYS_INLINE Alias() {}
+        Vc_ALWAYS_INLINE Alias() : _d() {}
         Vc_ALWAYS_INLINE Alias(T x) : _d(x) {}
-        Vc_ALWAYS_INLINE Alias(const Alias &x) : _d(x._d) {}
+        Vc_ALWAYS_INLINE Alias(const Alias &) = default;
         Vc_ALWAYS_INLINE Alias &operator=(T x) { _d = x; return *this; }
-        Vc_ALWAYS_INLINE Alias &operator=(const Alias &x) { _d = x._d; return *this; }
+        Vc_ALWAYS_INLINE Alias &operator=(const Alias &) = default;
     };
     typedef Alias<__m128 > m128 ;
     typedef Alias<__m128d> m128d;
