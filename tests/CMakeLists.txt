@@ -1,8 +1,5 @@
 include(AddFileDependencies)
 
-# for the remaining targets unconditional Vc_ARCHITECTURE_FLAGS is mostly fine.
-add_definitions(${Vc_ARCHITECTURE_FLAGS})
-
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS) # -DVC_CHECK_ALIGNMENT)
 if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"
@@ -108,7 +105,7 @@ macro(vc_add_test _name)
          file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/sse/*.tcc" "${CMAKE_SOURCE_DIR}/sse/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} ${_name}.cpp)
-         vc_set_test_target_properties(${_target} SSE "${DVC_IMPL} ${_sse2_flag}")
+         vc_set_test_target_properties(${_target} SSE "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
       endif()
    endif()
 
@@ -128,7 +125,7 @@ macro(vc_add_test _name)
          file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/avx/*.tcc" "${CMAKE_SOURCE_DIR}/avx/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} ${_name}.cpp)
-         vc_set_test_target_properties(${_target} AVX "${DVC_IMPL} ${_avx_flag}")
+         vc_set_test_target_properties(${_target} AVX "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
       endif()
    endif()
 
@@ -140,7 +137,7 @@ macro(vc_add_test _name)
          file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/avx/*.tcc" "${CMAKE_SOURCE_DIR}/avx/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} ${_name}.cpp)
-         vc_set_test_target_properties(${_target} AVX2 "${DVC_IMPL} ${_avx2_flag}")
+         vc_set_test_target_properties(${_target} AVX2 "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
       endif()
    endif()
 
@@ -215,7 +212,7 @@ if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN)
 
       if(USE_SSE4_1)
          add_executable(sse4_blend sse_blend.cpp)
-         add_target_property(sse4_blend COMPILE_FLAGS "-DVC_IMPL=SSE4_1 ${_sse4_1_flag}")
+         add_target_property(sse4_blend COMPILE_FLAGS "-DVC_IMPL=SSE4_1 ${Vc_ARCHITECTURE_FLAGS}")
          add_target_property(sse4_blend LABELS "SSE")
          add_dependencies(SSE sse4_blend)
          add_test(sse4_blend "${CMAKE_CURRENT_BINARY_DIR}/sse4_blend")
