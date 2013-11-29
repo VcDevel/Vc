@@ -167,7 +167,7 @@ template<typename T> class Mask
         Vc_ALWAYS_INLINE Vc_PURE _M128I dataI() const { return _mm_castps_si128(d.v()); }
         Vc_ALWAYS_INLINE Vc_PURE _M128D dataD() const { return _mm_castps_pd(d.v()); }
 
-        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return d.m(index); }
+        Vc_ALWAYS_INLINE decltype(std::declval<Storage &>().m(0)) operator[](size_t index) { return d.m(index); }
         Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const { return toInt() & (1 << index); }
 
         Vc_ALWAYS_INLINE Vc_PURE int count() const { return internal::mask_count<Size>(dataI()); }
