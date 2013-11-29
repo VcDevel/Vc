@@ -199,6 +199,46 @@ vc_add_test(deinterleave VC_USE_MASKMOV_SCATTER TARGETS SSE AVX AVX2)
 vc_add_test(casts)
 vc_add_test(swizzles)
 
+find_program(OBJDUMP objdump)
+
+if(OBJDUMP)
+   macro(test_abi _impl)
+      set(_target abi_${_impl})
+      set(_test test_${_target})
+      if("${_impl}" STREQUAL "MIC")
+         mic_add_executable(${_target} SOURCES abi.cpp LINK_LIBRARIES Vc_MIC COMPILE_FLAGS "-DVC_IMPL=${_impl}")
+      else()
+         add_executable(${_target} abi.cpp)
+         target_link_libraries(${_target} Vc)
+         add_target_property(${_target} COMPILE_FLAGS "-DVC_IMPL=${_impl} ${Vc_ARCHITECTURE_FLAGS}")
+      endif()
+      add_target_property(${_target} LABELS "${_impl}")
+      add_dependencies(${_impl} ${_target})
+
+      get_target_property(_exe ${_target} OUTPUT_NAME)
+      if(NOT _exe)
+         set(_exe ${_target})
+      endif()
+
+      add_test(NAME ${_test}
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+         COMMAND ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl} -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
+         )
+      set_property(TEST ${_test} PROPERTY LABELS "${_impl}")
+   endmacro()
+
+   test_abi(SSE)
+   test_abi(AVX)
+   test_abi(AVX2)
+   if(MIC_NATIVE_FOUND)
+      find_program(MIC_OBJDUMP x86_64-k1om-linux-objdump PATHS ENV PATH "${MIC_TARGET_TOOLS_DIR}/bin")
+      if(MIC_OBJDUMP)
+         set(OBJDUMP "${MIC_OBJDUMP}")
+         test_abi(MIC)
+      endif()
+   endif()
+endif()
+
 if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN)
    list(FIND disabled_targets sse_blend _disabled)
    if(_disabled EQUAL -1)
