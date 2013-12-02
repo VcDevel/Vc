@@ -78,6 +78,9 @@ template<typename T> class Vector
         typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
         StorageType d;
 
+        using WidthT = Common::WidthT<VectorType>;
+        static constexpr WidthT Width = WidthT();
+
     public:
         ///////////////////////////////////////////////////////////////////////////////////////////
         // uninitialized

@@ -1332,8 +1332,30 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount) const
 {
     return VectorShift<sizeof(VectorType), Size, VectorType, EntryType>::shifted(d.v(), amount);
 }
+
+template <typename VectorType>
+Vc_INTRINSIC Vc_CONST VectorType shifted_shortcut(VectorType left, VectorType right, Common::WidthT<m128>)
+{
+    return Mem::shuffle<X1, Y0>(left, right);
+}
+template <typename VectorType>
+Vc_INTRINSIC Vc_CONST VectorType shifted_shortcut(VectorType left, VectorType right, Common::WidthT<m256>)
+{
+    return Mem::shuffle128<X1, Y0>(left, right);
+}
+
 template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount, Vector shiftIn) const
 {
+#ifdef __GNUC__
+    if (__builtin_constant_p(amount)) {
+        switch (amount * 2) {
+        case int(Size):
+            return shifted_shortcut(d.v(), shiftIn.d.v(), Width);
+        case -int(Size):
+            return shifted_shortcut(shiftIn.d.v(), d.v(), Width);
+        }
+    }
+#endif
     return shifted(amount) | (amount > 0 ?
                               shiftIn.shifted(amount - Size) :
                               shiftIn.shifted(Size + amount));
