@@ -155,6 +155,8 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(Common)
+template <typename T> using WidthT = std::integral_constant<std::size_t, sizeof(T)>;
+
 template<size_t Bytes> class MaskBool;
 Vc_NAMESPACE_END
 
