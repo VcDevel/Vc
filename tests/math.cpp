@@ -22,6 +22,7 @@
 #include "vectormemoryhelper.h"
 #include <cmath>
 #include <algorithm>
+#include <common/const.h>
 #include <common/macros.h>
 /*}}}*/
 using namespace Vc;

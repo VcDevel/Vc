@@ -225,27 +225,9 @@ do {} while ( false )
 #define CAT(a, b) _CAT_IMPL(a, b)
 
 #define Vc_buildDouble(sign, mantissa, exponent) \
-    ((static_cast<double>((mantissa & 0x000fffffffffffffull) | 0x0010000000000000ull) / 0x0010000000000000ull) \
-    * exponentToMultiplier<exponent,  0>::Value \
-    * exponentToMultiplier<exponent, 30>::Value \
-    * exponentToMultiplier<exponent, 60>::Value \
-    * exponentToMultiplier<exponent, 90>::Value \
-    / exponentToDivisor<exponent,   0>::Value \
-    / exponentToDivisor<exponent, -30>::Value \
-    / exponentToDivisor<exponent, -60>::Value \
-    / exponentToDivisor<exponent, -90>::Value \
-    * static_cast<double>(sign))
+    Vc::Internal::doubleConstant<sign, mantissa, exponent>()
 #define Vc_buildFloat(sign, mantissa, exponent) \
-    ((static_cast<float>((mantissa & 0x007fffffu) | 0x00800000) / 0x00800000) \
-    * exponentToMultiplier<exponent,  0>::Value \
-    * exponentToMultiplier<exponent, 30>::Value \
-    * exponentToMultiplier<exponent, 60>::Value \
-    * exponentToMultiplier<exponent, 90>::Value \
-    / exponentToDivisor<exponent,   0>::Value \
-    / exponentToDivisor<exponent, -30>::Value \
-    / exponentToDivisor<exponent, -60>::Value \
-    / exponentToDivisor<exponent, -90>::Value \
-    * static_cast<float>(sign))
+    Vc::Internal::floatConstant<sign, mantissa, exponent>()
 
 #define _VC_APPLY_IMPL_1(macro, a, b, c, d, e) macro(a)
 #define _VC_APPLY_IMPL_2(macro, a, b, c, d, e) macro(a, b)

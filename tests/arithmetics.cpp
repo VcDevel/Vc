@@ -21,6 +21,7 @@
 #include <iostream>
 #include <limits>
 #include <Vc/limits>
+#include <common/const.h>
 #include <common/macros.h>
 
 using namespace Vc;

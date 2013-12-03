@@ -48,6 +48,7 @@
 #ifndef VC_COMMON_LOGARITHM_H
 #define VC_COMMON_LOGARITHM_H
 
+#include "const.h"
 #include "macros.h"
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
