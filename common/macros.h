@@ -224,11 +224,6 @@ do {} while ( false )
 #define _CAT_IMPL(a, b) a##b
 #define CAT(a, b) _CAT_IMPL(a, b)
 
-#define Vc_buildDouble(sign, mantissa, exponent) \
-    Vc::Internal::doubleConstant<sign, mantissa, exponent>()
-#define Vc_buildFloat(sign, mantissa, exponent) \
-    Vc::Internal::floatConstant<sign, mantissa, exponent>()
-
 #define _VC_APPLY_IMPL_1(macro, a, b, c, d, e) macro(a)
 #define _VC_APPLY_IMPL_2(macro, a, b, c, d, e) macro(a, b)
 #define _VC_APPLY_IMPL_3(macro, a, b, c, d, e) macro(a, b, c)
