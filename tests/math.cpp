@@ -20,7 +20,6 @@
 #include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
-#include "const.h"
 #include <cmath>
 #include <algorithm>
 #include <common/macros.h>
