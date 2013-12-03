@@ -21,6 +21,7 @@
 #include <iostream>
 #include <limits>
 #include <Vc/limits>
+#include <common/const.h>
 #include <common/macros.h>
 
 using namespace Vc;
@@ -492,40 +493,42 @@ template<typename V> void fma()
 
 template<> void fma<float_v>()
 {
-    float_v b = Vc_buildFloat(1, 0x000001, 0);
-    float_v c = Vc_buildFloat(1, 0x000000, -24);
+    using Vc::Internal::floatConstant;
+    float_v b = floatConstant<1, 0x000001, 0>();
+    float_v c = floatConstant<1, 0x000000, -24>();
     float_v a = b;
     /*a *= b;
     a += c;
-    COMPARE(a, float_v(Vc_buildFloat(1, 0x000002, 0)));
+    COMPARE(a, float_v(floatConstant<1, 0x000002, 0>()));
     a = b;*/
     a.fusedMultiplyAdd(b, c);
-    COMPARE(a, float_v(Vc_buildFloat(1, 0x000003, 0)));
+    COMPARE(a, float_v(floatConstant<1, 0x000003, 0>()));
 
-    a = Vc_buildFloat(1, 0x000002, 0);
-    b = Vc_buildFloat(1, 0x000002, 0);
-    c = Vc_buildFloat(-1, 0x000000, 0);
+    a = floatConstant<1, 0x000002, 0>();
+    b = floatConstant<1, 0x000002, 0>();
+    c = floatConstant<-1, 0x000000, 0>();
     /*a *= b;
     a += c;
-    COMPARE(a, float_v(Vc_buildFloat(1, 0x000000, -21)));
+    COMPARE(a, float_v(floatConstant<1, 0x000000, -21>()));
     a = b;*/
     a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
-    COMPARE(a, float_v(Vc_buildFloat(1, 0x000001, -21)));
+    COMPARE(a, float_v(floatConstant<1, 0x000001, -21>()));
 }
 
 template<> void fma<double_v>()
 {
-    double_v b = Vc_buildDouble(1, 0x0000000000001, 0);
-    double_v c = Vc_buildDouble(1, 0x0000000000000, -53);
+    using Vc::Internal::doubleConstant;
+    double_v b = doubleConstant<1, 0x0000000000001, 0>();
+    double_v c = doubleConstant<1, 0x0000000000000, -53>();
     double_v a = b;
     a.fusedMultiplyAdd(b, c);
-    COMPARE(a, double_v(Vc_buildDouble(1, 0x0000000000003, 0)));
+    COMPARE(a, double_v(doubleConstant<1, 0x0000000000003, 0>()));
 
-    a = Vc_buildDouble(1, 0x0000000000002, 0);
-    b = Vc_buildDouble(1, 0x0000000000002, 0);
-    c = Vc_buildDouble(-1, 0x0000000000000, 0);
+    a = doubleConstant<1, 0x0000000000002, 0>();
+    b = doubleConstant<1, 0x0000000000002, 0>();
+    c = doubleConstant<-1, 0x0000000000000, 0>();
     a.fusedMultiplyAdd(b, c); // 1 + 2^-50 + 2^-102 - 1
-    COMPARE(a, double_v(Vc_buildDouble(1, 0x0000000000001, -50)));
+    COMPARE(a, double_v(doubleConstant<1, 0x0000000000001, -50>()));
 }
 
 void testmain()

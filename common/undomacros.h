@@ -61,9 +61,6 @@
 
 #undef VC_HAS_BUILTIN
 
-#undef Vc_buildDouble
-#undef Vc_buildFloat
-
 #undef _VC_APPLY_IMPL_1
 #undef _VC_APPLY_IMPL_2
 #undef _VC_APPLY_IMPL_3
