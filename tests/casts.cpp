@@ -161,43 +161,43 @@ void fullConversion()
 
 void testmain()
 {
-#define TEST(v1, v2) \
+#define TEST_CAST(v1, v2) \
     typedef T2Helper<v1, v2> CONCAT(v1, v2); \
     runTest(testCast<CONCAT(v1, v2)>)
 
-    TEST(double_v, double_v);
-    TEST(double_v,  float_v);
-    TEST(double_v,    int_v);
-    TEST(double_v,   uint_v);
-    //TEST(double_v,  short_v);
-    //TEST(double_v, ushort_v);
+    TEST_CAST(double_v, double_v);
+    TEST_CAST(double_v,  float_v);
+    TEST_CAST(double_v,    int_v);
+    TEST_CAST(double_v,   uint_v);
+    //TEST_CAST(double_v,  short_v);
+    //TEST_CAST(double_v, ushort_v);
 
-    TEST(float_v, double_v);
-    TEST(float_v,  float_v);
-    TEST(float_v,    int_v);
-    TEST(float_v,   uint_v);
-    TEST(float_v,  short_v);
-    TEST(float_v, ushort_v);
+    TEST_CAST(float_v, double_v);
+    TEST_CAST(float_v,  float_v);
+    TEST_CAST(float_v,    int_v);
+    TEST_CAST(float_v,   uint_v);
+    TEST_CAST(float_v,  short_v);
+    TEST_CAST(float_v, ushort_v);
 
-    TEST(int_v, double_v);
-    TEST(int_v, float_v);
-    TEST(int_v, int_v);
-    TEST(int_v, uint_v);
-    TEST(int_v, short_v);
-    TEST(int_v, ushort_v);
+    TEST_CAST(int_v, double_v);
+    TEST_CAST(int_v, float_v);
+    TEST_CAST(int_v, int_v);
+    TEST_CAST(int_v, uint_v);
+    TEST_CAST(int_v, short_v);
+    TEST_CAST(int_v, ushort_v);
 
-    TEST(uint_v, double_v);
-    TEST(uint_v, float_v);
-    TEST(uint_v, int_v);
-    TEST(uint_v, uint_v);
-    TEST(uint_v, short_v);
-    TEST(uint_v, ushort_v);
+    TEST_CAST(uint_v, double_v);
+    TEST_CAST(uint_v, float_v);
+    TEST_CAST(uint_v, int_v);
+    TEST_CAST(uint_v, uint_v);
+    TEST_CAST(uint_v, short_v);
+    TEST_CAST(uint_v, ushort_v);
 
-    TEST(ushort_v, short_v);
-    TEST(ushort_v, ushort_v);
+    TEST_CAST(ushort_v, short_v);
+    TEST_CAST(ushort_v, ushort_v);
 
-    TEST(short_v, short_v);
-    TEST(short_v, ushort_v);
-#undef TEST
+    TEST_CAST(short_v, short_v);
+    TEST_CAST(short_v, ushort_v);
+#undef TEST_CAST
     runTest(fullConversion);
 }
