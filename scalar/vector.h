@@ -284,7 +284,7 @@ class Vector
         Vc_ALWAYS_INLINE EntryType sum(Mask m) const { if (m) return m_data; return static_cast<EntryType>(0); }
 
         Vc_INTRINSIC Vector shifted(int amount, Vector shiftIn) const {
-            VC_ASSERT(amount >= 0 && amount <= 1);
+            VC_ASSERT(amount >= -1 && amount <= 1);
             return amount == 0 ? *this : shiftIn;
         }
         Vc_INTRINSIC Vector shifted(int amount) const { return amount == 0 ? *this : Zero(); }
