@@ -223,17 +223,20 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
         Vc_ALWAYS_INLINE Vc_PURE operator const EntryType*() const { return entries(); }
 #else
         // The above conversion operator allows implicit conversion to bool. To prohibit this
-        // conversion we use SFINAE to allow only conversion to EntryType*.
+        // conversion we use SFINAE to allow only conversion to EntryType* and void*.
         template <typename T,
-                  typename std::enable_if<std::is_same<T, EntryType *>::value ||
-                                              std::is_same<T, const EntryType *>::value,
-                                          int>::type = 0>
+                  typename std::enable_if<
+                      std::is_same<typename std::remove_const<T>::type, EntryType *>::value ||
+                          std::is_same<typename std::remove_const<T>::type, void *>::value,
+                      int>::type = 0>
         Vc_ALWAYS_INLINE Vc_PURE operator T()
         {
             return entries();
         }
         template <typename T,
-                  typename std::enable_if<std::is_same<T, const EntryType *>::value, int>::type = 0>
+                  typename std::enable_if<std::is_same<T, const EntryType *>::value ||
+                                              std::is_same<T, const void *>::value,
+                                          int>::type = 0>
         Vc_ALWAYS_INLINE Vc_PURE operator T() const
         {
             return entries();
