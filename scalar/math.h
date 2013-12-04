@@ -23,6 +23,10 @@
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
+{
+    return a.copySign(b);
+}
 
 #define VC_MINMAX(V) \
 static Vc_ALWAYS_INLINE V min(const V &x, const V &y) { return V(std::min(x.data(), y.data())); } \
@@ -153,11 +157,6 @@ template<> Vc_ALWAYS_INLINE Vector<float>  round(const Vector<float>  &x)
     return float_v(std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f));
 }
 
-template<> Vc_ALWAYS_INLINE Vector<sfloat> round(const Vector<sfloat> &x)
-{
-    return sfloat_v(std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f));
-}
-
 template<> Vc_ALWAYS_INLINE Vector<double> round(const Vector<double> &x)
 {
     return double_v(std::floor(x.data() + 0.5 ) - (_realIsEvenHalf(x.data()) ? 1.  : 0. ));
@@ -187,6 +186,11 @@ template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isfinite(c
             );
 }
 
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T>::Mask isinf(const Vector<T> &x)
+{
+    return typename Vector<T>::Mask(std::isinf(x.data()));
+}
+
 template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(const Vector<T> &x)
 {
     return typename Vector<T>::Mask(
@@ -206,21 +210,12 @@ Vc_ALWAYS_INLINE Vector<float> frexp(Vector<float> x, Vector<int> *e) {
 Vc_ALWAYS_INLINE Vector<double> frexp(Vector<double> x, Vector<int> *e) {
     return double_v(::frexp(x.data(), &e->data()));
 }
-Vc_ALWAYS_INLINE sfloat_v frexp(sfloat_v x, short_v *e) {
-    int ee;
-    const float r = ::frexpf(x.data(), &ee);
-    e->data() = ee;
-    return sfloat_v(r);
-}
 
 Vc_ALWAYS_INLINE Vector<float> ldexp(Vector<float> x, Vector<int> e) {
     return float_v(::ldexpf(x.data(), e.data()));
 }
 Vc_ALWAYS_INLINE Vector<double> ldexp(Vector<double> x, Vector<int> e) {
     return double_v(::ldexp(x.data(), e.data()));
-}
-Vc_ALWAYS_INLINE sfloat_v ldexp(sfloat_v x, short_v e) {
-    return sfloat_v(::ldexpf(x.data(), e.data()));
 }
 
 Vc_IMPL_NAMESPACE_END

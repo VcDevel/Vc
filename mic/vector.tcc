@@ -100,23 +100,6 @@ template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<float_v, uns
     return StaticCastHelper<unsigned int, float>::cast(LoadHelper<uint_v>::load(mem, Flags()));
 }
 
-template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, double>::load(const double *mem)
-{
-    return mic_cast<__m512>(_mm512_mask_permute4f128_epi32(mic_cast<__m512i>(
-                    _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[0], Flags()), _MM_FROUND_CUR_DIRECTION)),
-                0xff00, mic_cast<__m512i>(
-                    _mm512_cvt_roundpd_pslo(LoadHelper<double_v>::load(&mem[double_v::Size], Flags()), _MM_FROUND_CUR_DIRECTION)),
-                _MM_PERM_BABA));
-}
-template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, int>::load(const int *mem)
-{
-    return StaticCastHelper<int, float>::cast(LoadHelper<int_v>::load(mem, Flags()));
-}
-template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<sfloat_v, unsigned int>::load(const unsigned int *mem)
-{
-    return StaticCastHelper<unsigned int, float>::cast(LoadHelper<uint_v>::load(mem, Flags()));
-}
-
 } // anonymous namespace
 
 // constants {{{1
@@ -125,10 +108,16 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializer
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
     : d(LoadHelper<Vector<T>>::load(IndexesFromZeroHelper<T>(), Aligned)) {}
 
+template<> Vc_ALWAYS_INLINE float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(_mm512_extload_ps(&_IndexesFromZero, _MM_UPCONV_PS_SINT8, _MM_BROADCAST32_NONE, _MM_HINT_NONE)) {}
+
+template<> Vc_ALWAYS_INLINE double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(StaticCastHelper<int, double>::cast(int_v::IndexesFromZero().data())) {}
+
 template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::Zero() { return HV::zero(); }
 template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::One() { return HV::one(); }
 template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::IndexesFromZero() {
-    return LoadHelper<Vector<T>>::load(IndexesFromZeroHelper<T>(), Aligned);
+    return Vector<T>(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
 }
 
 // loads {{{1
@@ -168,10 +157,6 @@ template<> Vc_INTRINSIC void double_v::assign(double_v v, double_m m)
     d.v() = _mm512_mask_mov_pd(d.v(), m.data(), v.d.v());
 }
 template<> Vc_INTRINSIC void float_v::assign(float_v v, float_m m)
-{
-    d.v() = _mm512_mask_mov_ps(d.v(), m.data(), v.d.v());
-}
-template<> Vc_INTRINSIC void sfloat_v::assign(sfloat_v v, sfloat_m m)
 {
     d.v() = _mm512_mask_mov_ps(d.v(), m.data(), v.d.v());
 }
@@ -267,22 +252,12 @@ template<> Vc_ALWAYS_INLINE Vc_FLATTEN float_v::Vector(const double_v *a)
                     mic_cast<__m512i>(_mm512_cvtpd_pslo(a[1].data())), _MM_PERM_BABA)))
 {
 }
-template<> Vc_ALWAYS_INLINE Vc_FLATTEN sfloat_v::Vector(const double_v *a)
-    : d(_mm512_mask_permute4f128_ps(_mm512_cvtpd_pslo(a[0].data()), 0xff00,
-                _mm512_cvtpd_pslo(a[1].data()), _MM_PERM_BABA))
-{
-}
 
 template<typename T> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::expand(Vector<typename ConcatTypeHelper<T>::Type> *x) const
 {
     x[0].data() = data();
 }
 template<> Vc_ALWAYS_INLINE void Vc_FLATTEN float_v::expand(double_v *x) const
-{
-    x[0].data() = _mm512_cvtpslo_pd(d.v());
-    x[1].data() = _mm512_cvtpslo_pd(_mm512_permute4f128_ps(d.v(), _MM_PERM_DCDC));
-}
-template<> Vc_ALWAYS_INLINE void Vc_FLATTEN sfloat_v::expand(double_v *x) const
 {
     x[0].data() = _mm512_cvtpslo_pd(d.v());
     x[1].data() = _mm512_cvtpslo_pd(_mm512_permute4f128_ps(d.v(), _MM_PERM_DCDC));
@@ -295,10 +270,6 @@ template<> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<double> Vector<double>::op
     return _xor(d.v(), mic_cast<VectorType>(_set1(0x8000000000000000ull)));
 }
 template<> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float> Vector<float>::operator-() const
-{
-    return _xor(d.v(), mic_cast<VectorType>(_set1(0x80000000u)));
-}
-template<> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<sfloat> Vector<sfloat>::operator-() const
 {
     return _xor(d.v(), mic_cast<VectorType>(_set1(0x80000000u)));
 }
@@ -341,10 +312,6 @@ template<> inline float Vector<float>::min(MaskArg m) const
 {
     return _mm512_mask_reduce_min_ps(m.data(), data());
 }
-template<> inline float Vector<sfloat>::min(MaskArg m) const
-{
-    return _mm512_mask_reduce_min_ps(m.data(), data());
-}
 template<> inline double Vector<double>::min(MaskArg m) const
 {
     return _mm512_mask_reduce_min_pd(m.data(), data());
@@ -354,10 +321,6 @@ template<typename T> inline typename Vector<T>::EntryType Vector<T>::max(MaskArg
     return _mm512_mask_reduce_max_epi32(m.data(), data());
 }
 template<> inline float Vector<float>::max(MaskArg m) const
-{
-    return _mm512_mask_reduce_max_ps(m.data(), data());
-}
-template<> inline float Vector<sfloat>::max(MaskArg m) const
 {
     return _mm512_mask_reduce_max_ps(m.data(), data());
 }
@@ -373,10 +336,6 @@ template<> inline float Vector<float>::product(MaskArg m) const
 {
     return _mm512_mask_reduce_mul_ps(m.data(), data());
 }
-template<> inline float Vector<sfloat>::product(MaskArg m) const
-{
-    return _mm512_mask_reduce_mul_ps(m.data(), data());
-}
 template<> inline double Vector<double>::product(MaskArg m) const
 {
     return _mm512_mask_reduce_mul_pd(m.data(), data());
@@ -389,10 +348,6 @@ template<> inline float Vector<float>::sum(MaskArg m) const
 {
     return _mm512_mask_reduce_add_ps(m.data(), data());
 }
-template<> inline float Vector<sfloat>::sum(MaskArg m) const
-{
-    return _mm512_mask_reduce_add_ps(m.data(), data());
-}
 template<> inline double Vector<double>::sum(MaskArg m) const
 {
     return _mm512_mask_reduce_add_pd(m.data(), data());
@@ -400,13 +355,6 @@ template<> inline double Vector<double>::sum(MaskArg m) const
 
 // copySign {{{1
 template<> Vc_INTRINSIC float_v float_v::copySign(float_v::AsArg reference) const
-{
-    return _or(
-            _and(reference.d.v(), _mm512_setsignmask_ps()),
-            _and(d.v(), _mm512_setabsmask_ps())
-            );
-}
-template<> Vc_INTRINSIC sfloat_v sfloat_v::copySign(sfloat_v::AsArg reference) const
 {
     return _or(
             _and(reference.d.v(), _mm512_setsignmask_ps()),
@@ -465,12 +413,20 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator>>=(unsigned
 
 // operators {{{1
 #include "../common/operators.h"
+
+// this specialization is required because overflow is well defined (mod 2^16) for unsigned short,
+// but a / b is not independent of the high bits (in contrast to mul, add, and sub)
+template<> ushort_v &ushort_v::operator/=(ushort_v::AsArg x)
+{
+    d.v() = _div<VectorEntryType>(_and(d.v(), _set1(0xffff)), _and(x.d.v(), _set1(0xffff)));
+    return *this;
+}
+template<> ushort_v ushort_v::operator/(ushort_v::AsArg x) const
+{
+    return ushort_v(_div<VectorEntryType>(_and(d.v(), _set1(0xffff)), _and(x.d.v(), _set1(0xffff))));
+}
 // isNegative {{{1
 template<> Vc_INTRINSIC Vc_PURE float_m float_v::isNegative() const
-{
-    return _mm512_cmpge_epu32_mask(mic_cast<__m512i>(d.v()), _set1(c_general::signMaskFloat[1]));
-}
-template<> Vc_INTRINSIC Vc_PURE sfloat_m sfloat_v::isNegative() const
 {
     return _mm512_cmpge_epu32_mask(mic_cast<__m512i>(d.v()), _set1(c_general::signMaskFloat[1]));
 }
@@ -587,14 +543,6 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<float>::gather(const S1 *array, const En
     d.v() = _mm512_mask_i32gather_ps(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, _MM_SCALE_1);
 }
 template<> template<typename S1, typename IT>
-Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<sfloat>::gather(const S1 *array, const EntryType S1::* member1, IT indexes, MaskArg mask)
-{
-    IndexSizeChecker<IT, Size>::check();
-    const char *start = reinterpret_cast<const char *>(array);
-    const char *offset = reinterpret_cast<const char *>(&(array->*(member1)));
-    d.v() = _mm512_mask_i32gather_ps(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, _MM_SCALE_1);
-}
-template<> template<typename S1, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<int>::gather(const S1 *array, const EntryType S1::* member1, IT indexes, MaskArg mask)
 {
     IndexSizeChecker<IT, Size>::check();
@@ -633,7 +581,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<double>::gather(const S1 *array, const S
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extlogather_pd(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extlogather_pd(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<float>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
@@ -641,15 +589,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<float>::gather(const S1 *array, const S2
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extgather_ps(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
-}
-template<> template<typename S1, typename S2, typename IT>
-Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<sfloat>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    const char *start = reinterpret_cast<const char *>(array);
-    const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extgather_ps(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extgather_ps(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
@@ -657,7 +597,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<int>::gather(const S1 *array, const S2 S
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
@@ -665,7 +605,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned int>::gather(const S1 *array, c
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
@@ -673,7 +613,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<short>::gather(const S1 *array, const S2
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
@@ -681,7 +621,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned short>::gather(const S1 *array,
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 
 template<> template<typename S1, typename S2, typename IT>
@@ -690,7 +630,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<double>::gather(const S1 *array, const S
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32loextgather_pd(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32loextgather_pd(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<float>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
@@ -698,15 +638,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<float>::gather(const S1 *array, const S2
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extgather_ps(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
-}
-template<> template<typename S1, typename S2, typename IT>
-Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<sfloat>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
-{
-    IndexSizeChecker<IT, Size>::check();
-    const char *start = reinterpret_cast<const char *>(array);
-    const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extgather_ps(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32extgather_ps(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
@@ -714,7 +646,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<int>::gather(const S1 *array, const S2 S
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
@@ -722,7 +654,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned int>::gather(const S1 *array, c
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
@@ -730,7 +662,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<short>::gather(const S1 *array, const S2
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
@@ -738,7 +670,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned short>::gather(const S1 *array,
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 
 template<> template<typename S1, typename IT1, typename IT2>
@@ -753,20 +685,6 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<double>::gather(const S1 *array, const E
 }
 template<> template<typename S1, typename IT1, typename IT2>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<float>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
-{
-    IndexSizeChecker<IT1, Size>::check();
-    IndexSizeChecker<IT2, Size>::check();
-    d.v() = _mm512_setr_ps((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
-            (array[outerIndexes[ 2]].*(ptrMember1))[innerIndexes[ 2]], (array[outerIndexes[ 3]].*(ptrMember1))[innerIndexes[ 3]],
-            (array[outerIndexes[ 4]].*(ptrMember1))[innerIndexes[ 4]], (array[outerIndexes[ 5]].*(ptrMember1))[innerIndexes[ 5]],
-            (array[outerIndexes[ 6]].*(ptrMember1))[innerIndexes[ 6]], (array[outerIndexes[ 7]].*(ptrMember1))[innerIndexes[ 7]],
-            (array[outerIndexes[ 8]].*(ptrMember1))[innerIndexes[ 8]], (array[outerIndexes[ 9]].*(ptrMember1))[innerIndexes[ 9]],
-            (array[outerIndexes[10]].*(ptrMember1))[innerIndexes[10]], (array[outerIndexes[11]].*(ptrMember1))[innerIndexes[11]],
-            (array[outerIndexes[12]].*(ptrMember1))[innerIndexes[12]], (array[outerIndexes[13]].*(ptrMember1))[innerIndexes[13]],
-            (array[outerIndexes[14]].*(ptrMember1))[innerIndexes[14]], (array[outerIndexes[15]].*(ptrMember1))[innerIndexes[15]]);
-}
-template<> template<typename S1, typename IT1, typename IT2>
-Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<sfloat>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes)
 {
     IndexSizeChecker<IT1, Size>::check();
     IndexSizeChecker<IT2, Size>::check();
@@ -829,13 +747,13 @@ template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_I
 {
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    MicIntrinsics::scatter(array, ((indexes * sizeof(S2)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
+    MicIntrinsics::scatter(array, ((indexes * sizeof(S1)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
 }
 template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, MaskArg mask) const
 {
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    MicIntrinsics::scatter(mask.data(), array, ((indexes * sizeof(S2)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
+    MicIntrinsics::scatter(mask.data(), array, ((indexes * sizeof(S1)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
 }
 template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes) const
 {
@@ -892,13 +810,6 @@ template<> Vc_ALWAYS_INLINE Vector<float> Vector<float>::Random()
     return HT::sub(_or(_cast(_mm512_srli_epi32(state0.data(), 2)), HV::one()), HV::one());
 }
 
-template<> Vc_ALWAYS_INLINE Vector<sfloat> Vector<sfloat>::Random()
-{
-    Vector<unsigned int> state0, state1;
-    _doRandomStep(state0, state1);
-    return HT::sub(_or(_cast(_mm512_srli_epi32(state0.data(), 2)), HV::one()), HV::one());
-}
-
 // _mm512_srli_epi64 is neither documented nor defined in any header, here's what it does:
 //Vc_INTRINSIC __m512i _mm512_srli_epi64(__m512i v, int n) {
 //    return _mm512_mask_mov_epi32(
@@ -919,7 +830,7 @@ template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
                 _mm512_add_epi32(_mm512_mullo_epi32(state, factor), swizzle(_mm512_mulhi_epu32(state, factor), _MM_SWIZ_REG_CDAB)),
                 _set1(11ull)));
 
-    return (Vector<double>(_cast(_mm512_srli_epi64(mic_cast<__m512>(state), 12))) | One()) - One();
+    return (Vector<double>(_cast(_mm512_srli_epi64(mic_cast<__m512i>(state), 12))) | One()) - One();
 }
 // }}}1
 // shifted / rotated {{{1

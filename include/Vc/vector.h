@@ -73,14 +73,13 @@ Vc_PUBLIC_NAMESPACE_BEGIN
   using Vc_IMPL_NAMESPACE::ldexp;
   using Vc_IMPL_NAMESPACE::round;
   using Vc_IMPL_NAMESPACE::isfinite;
+  using Vc_IMPL_NAMESPACE::isinf;
   using Vc_IMPL_NAMESPACE::isnan;
   using Vc_IMPL_NAMESPACE::forceToRegisters;
   using Vc_IMPL_NAMESPACE::Vector;
 
   typedef Vc_IMPL_NAMESPACE::double_v double_v;
   typedef double_v::Mask double_m;
-  typedef Vc_IMPL_NAMESPACE::sfloat_v sfloat_v;
-  typedef sfloat_v::Mask sfloat_m;
   typedef Vc_IMPL_NAMESPACE::float_v float_v;
   typedef float_v::Mask float_m;
   typedef Vc_IMPL_NAMESPACE::int_v int_v;
@@ -95,7 +94,6 @@ Vc_PUBLIC_NAMESPACE_BEGIN
   namespace {
     static_assert(double_v::Size == VC_DOUBLE_V_SIZE, "VC_DOUBLE_V_SIZE macro defined to an incorrect value");
     static_assert(float_v::Size  == VC_FLOAT_V_SIZE , "VC_FLOAT_V_SIZE macro defined to an incorrect value ");
-    static_assert(sfloat_v::Size == VC_SFLOAT_V_SIZE, "VC_SFLOAT_V_SIZE macro defined to an incorrect value");
     static_assert(int_v::Size    == VC_INT_V_SIZE   , "VC_INT_V_SIZE macro defined to an incorrect value   ");
     static_assert(uint_v::Size   == VC_UINT_V_SIZE  , "VC_UINT_V_SIZE macro defined to an incorrect value  ");
     static_assert(short_v::Size  == VC_SHORT_V_SIZE , "VC_SHORT_V_SIZE macro defined to an incorrect value ");

@@ -121,9 +121,10 @@ template<> m256i SortHelper<int>::sort(VTArg _hgfedcba)
     m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
     m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
 
-    if (VC_IS_UNLIKELY(_mm_extract_epi32(x, 2) >= _mm_extract_epi32(y, 1))) {
+    // _mm_extract_epi32 may return an unsigned int, breaking these comparisons.
+    if (VC_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 2)) >= static_cast<int>(_mm_extract_epi32(y, 1)))) {
         return concat(Reg::permute<X0, X1, X2, X3>(b), a);
-    } else if (VC_IS_UNLIKELY(_mm_extract_epi32(x, 0) >= _mm_extract_epi32(y, 3))) {
+    } else if (VC_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 0)) >= static_cast<int>(_mm_extract_epi32(y, 3)))) {
         return concat(a, Reg::permute<X0, X1, X2, X3>(b));
     }
 
@@ -223,13 +224,6 @@ template<> m256 SortHelper<float>::sort(VTArg _hgfedcba)
 
     return concat(_mm_unpacklo_ps(l, h), _mm_unpackhi_ps(l, h));
 }
-
-#ifndef VC_IMPL_AVX2
-template<> m256 SortHelper<sfloat>::sort(VTArg hgfedcba)
-{
-    return SortHelper<float>::sort(hgfedcba);
-}
-#endif
 
 template<> void SortHelper<double>::sort(m256d &VC_RESTRICT x, m256d &VC_RESTRICT y)
 {

@@ -22,7 +22,7 @@
 #include <avx/sorthelper.h>
 #include <avx/macros.h>
 
-#include "avx_sorthelper.cpp"
+#include <src/avx_sorthelper.cpp>
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
@@ -99,11 +99,6 @@ template<> m128i SortHelper<unsigned short>::sort(VTArg _x)
     hi = _mm_max_epu16(x, y);
 
     return _mm_unpacklo_epi16(lo, hi);
-}
-
-template<> m256 SortHelper<sfloat>::sort(VTArg hgfedcba)
-{
-    return SortHelper<float>::sort(hgfedcba);
 }
 
 Vc_NAMESPACE_END

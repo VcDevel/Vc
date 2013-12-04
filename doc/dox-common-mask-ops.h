@@ -18,6 +18,11 @@
 */
 
 /**
+ * Denotes the size of the mask (the number of entries).
+ */
+static constexpr size_t Size;
+
+/**
  * default constructor
  *
  * Leaves the mask uninitialized.
@@ -49,9 +54,30 @@ explicit MASK_TYPE(bool b);
 MASK_TYPE(const MASK_TYPE &);
 
 /**
- * Constructs a mask object from a mask of different size/type.
+ * Implicit conversion from a compatible mask object.
  */
 template<typename OtherMask> MASK_TYPE(const OtherMask &);
+
+/**
+ * Explicit conversion (static_cast) from a mask object that potentially has a different \ref Size.
+ */
+template<typename OtherMask> explicit MASK_TYPE(const OtherMask &);
+
+/**
+ * Explicit conversion from an array of bool to a mask object.
+ * This corresponds to a vector load.
+ */
+explicit MASK_TYPE(const bool *mem);
+
+/**
+ * Load the values of the mask from an array of bool.
+ */
+void load(const bool *mem);
+
+/**
+ * Store the values of the mask to an array of bool.
+ */
+void store(bool *) const;
 
 /**
  * Returns whether the two masks are equal in all entries.

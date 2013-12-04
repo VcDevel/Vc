@@ -35,6 +35,8 @@ extern "C" {
 #include <emmintrin.h>
 }
 
+#include "../common/fix_clang_emmintrin.h"
+
 #if defined(__GNUC__) && !defined(VC_IMPL_SSE2)
 #error "SSE Vector class needs at least SSE2"
 #endif
@@ -234,6 +236,18 @@ extern "C" {
 #endif
 
 Vc_NAMESPACE_BEGIN(SseIntrinsics)
+    Vc_INTRINSIC __m128i _mm_cmpeq_epi64(__m128i a, __m128i b) {
+        auto tmp = _mm_cmpeq_epi32(a, b);
+        return _mm_and_si128(tmp, _mm_shuffle_epi32(tmp, 1*1 + 0*4 + 3*16 + 2*64));
+    }
+    Vc_INTRINSIC int _mm_extract_epi32(__m128i v, const int index) {
+#ifdef VC_CLANG
+        typedef int int32v4 __attribute__((__vector_size__(16)));
+        return static_cast<int32v4>(v)[index];
+#else
+        return _mm_cvtsi128_si32(_mm_srli_si128(v, index * 4));
+#endif
+    }
     static Vc_INTRINSIC __m128d _mm_blendv_pd(__m128d a, __m128d b, __m128d c) {
         return _mm_or_pd(_mm_andnot_pd(c, a), _mm_and_pd(c, b));
     }
@@ -546,6 +560,13 @@ Vc_NAMESPACE_BEGIN(SseIntrinsics)
     static Vc_INTRINSIC Vc_PURE __m128i _mm_stream_load(const unsigned char *mem) {
         return _mm_stream_load(reinterpret_cast<const int *>(mem));
     }
+
+#ifndef __x86_64__
+    Vc_INTRINSIC Vc_PURE __m128i _mm_cvtsi64_si128(int64_t x) {
+        return _mm_castpd_si128(_mm_load_sd(reinterpret_cast<const double *>(&x)));
+    }
+#endif
+
 Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(SSE)

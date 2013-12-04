@@ -70,7 +70,7 @@ public:
         MemoryAlignment = sizeof(EntryType) * Size,
         HasVectorDivision = true
     };
-    typedef Vc_IMPL_NAMESPACE::Mask<Size> Mask;
+    typedef Vc_IMPL_NAMESPACE::Mask<T> Mask;
     typedef typename Mask::AsArg MaskArg;
     typedef Vc::Memory<Vector<T>, Size> Memory;
     typedef Vector<T> AsArg; // for now only ICC can compile this code and it is not broken :)
@@ -126,22 +126,30 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // copy
-    Vc_INTRINSIC Vector(const Vector &x) : d(x.data()) {}
+    Vc_INTRINSIC Vector(const Vector &x) = default; //: d(x.data()) {}
     Vc_INTRINSIC Vector &operator=(const Vector &v) { d.v() = v.d.v(); return *this; }
 
     // implict conversion from compatible Vector<U>
     template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-            typename std::enable_if<is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+            typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
         : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
     // static_cast from the remaining Vector<U>
     template<typename U> Vc_INTRINSIC explicit Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-            typename std::enable_if<!is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
         : d(StaticCastHelper<U, T>::cast(x.data())) {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // broadcast
     Vc_INTRINSIC Vector(EntryType a) : d(_set1(a)) {}
+    template <typename U>
+    Vc_INTRINSIC Vector(
+        U a,
+        typename std::enable_if<std::is_same<U, int>::value && !std::is_same<U, EntryType>::value,
+                                void *>::type = nullptr)
+        : Vector(static_cast<EntryType>(a))
+        {
+        }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load ctors
@@ -258,7 +266,7 @@ public:
     Vc_OP(*, _mul<VectorEntryType>)
     Vc_OP(+, _add<VectorEntryType>)
     Vc_OP(-, _sub<VectorEntryType>)
-    Vc_OP(/, _div<VectorEntryType>)
+    Vc_OP(/, _div<VectorEntryType>) // ushort_v::operator/ is specialized in vector.tcc
     Vc_OP(|, _or)
     Vc_OP(&, _and)
     Vc_OP(^, _xor)
@@ -418,17 +426,16 @@ public:
     Vc_INTRINSIC_L Vector copySign(AsArg reference) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
 };
+template<typename T> constexpr size_t Vector<T>::Size;
 
 typedef Vector<double>         double_v;
 typedef Vector<float>          float_v;
-typedef Vector<sfloat>         sfloat_v;
 typedef Vector<int>            int_v;
 typedef Vector<unsigned int>   uint_v;
 typedef Vector<short>          short_v;
 typedef Vector<unsigned short> ushort_v;
 typedef double_v::Mask double_m;
 typedef  float_v::Mask float_m;
-typedef sfloat_v::Mask sfloat_m;
 typedef    int_v::Mask int_m;
 typedef   uint_v::Mask uint_m;
 typedef  short_v::Mask short_m;

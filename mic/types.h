@@ -37,7 +37,6 @@
 
 Vc_PUBLIC_NAMESPACE_BEGIN
 template<typename T> struct DetermineVectorEntryType { typedef T Type; };
-template<> struct DetermineVectorEntryType<sfloat> { typedef float Type; };
 // MIC does not support epi8/epu8 operations, thus we change the EntryType to int/uint
 template<> struct DetermineVectorEntryType<char> { typedef int Type; };
 template<> struct DetermineVectorEntryType<signed char> { typedef int Type; };
@@ -59,12 +58,11 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename T> class VectorMultiplication;
     template<typename T> class Vector;
     template<typename T> struct SwizzledVector;
-    template<unsigned int VectorSize> class Mask;
+    template<typename T> class Mask;
     ALIGN(16) extern const char _IndexesFromZero[16];
 
     template<typename T> struct ConcatTypeHelper { typedef T Type; };
     template<> struct ConcatTypeHelper<         float> { typedef double Type; };
-    template<> struct ConcatTypeHelper<        sfloat> { typedef double Type; };
     template<> struct ConcatTypeHelper<           int> { typedef long long Type; };
     template<> struct ConcatTypeHelper<  unsigned int> { typedef unsigned long long Type; };
     template<> struct ConcatTypeHelper<         short> { typedef int Type; };
@@ -84,7 +82,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<> struct VectorTypeHelper<         long long> { typedef __m512i Type; };
     template<> struct VectorTypeHelper<unsigned long long> { typedef __m512i Type; };
     template<> struct VectorTypeHelper<         float> { typedef __m512  Type; };
-    template<> struct VectorTypeHelper<        sfloat> { typedef __m512  Type; };
     template<> struct VectorTypeHelper<        double> { typedef __m512d Type; };
     template<> struct VectorTypeHelper<       __m512i> { typedef __m512i Type; };
     template<> struct VectorTypeHelper<       __m512 > { typedef __m512  Type; };

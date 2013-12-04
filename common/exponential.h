@@ -31,6 +31,7 @@
 #ifndef VC_COMMON_EXPONENTIAL_H
 #define VC_COMMON_EXPONENTIAL_H
 
+#include "const.h"
 #include "macros.h"
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
@@ -40,7 +41,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     static const float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
 
     template<typename T> struct TypenameForLdexp { typedef Vector<int> Type; };
-    template<> struct TypenameForLdexp<Vc::sfloat> { typedef Vector<short> Type; };
 
     template<typename T> static inline Vector<T> exp(VC_ALIGNED_PARAMETER(Vector<T>) _x) {
         typedef Vector<T> V;
@@ -87,8 +87,8 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
         typedef V::Mask M;
         typedef Const<double> C;
 
-        const M overflow  = x > Vc_buildDouble( 1, 0x0006232bdd7abcd2ull, 9); // max log
-        const M underflow = x < Vc_buildDouble(-1, 0x0006232bdd7abcd2ull, 9); // min log
+        const M overflow  = x > Vc::Internal::doubleConstant< 1, 0x0006232bdd7abcd2ull, 9>(); // max log
+        const M underflow = x < Vc::Internal::doubleConstant<-1, 0x0006232bdd7abcd2ull, 9>(); // min log
 
         V px = floor(C::log2_e() * x + 0.5);
 #ifdef VC_IMPL_SSE
@@ -98,19 +98,19 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
         __m128i tmp = _mm256_cvttpd_epi32(px.data());
         Vector<int> n = Vc_IMPL_NAMESPACE::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
 #endif
-        x -= px * C::ln2_large(); //Vc_buildDouble(1, 0x00062e4000000000ull, -1);  // ln2
-        x -= px * C::ln2_small(); //Vc_buildDouble(1, 0x0007f7d1cf79abcaull, -20); // ln2
+        x -= px * C::ln2_large(); //Vc::Internal::doubleConstant<1, 0x00062e4000000000ull, -1>();  // ln2
+        x -= px * C::ln2_small(); //Vc::Internal::doubleConstant<1, 0x0007f7d1cf79abcaull, -20>(); // ln2
 
         const double P[] = {
-            Vc_buildDouble(1, 0x000089cdd5e44be8ull, -13),
-            Vc_buildDouble(1, 0x000f06d10cca2c7eull,  -6),
-            Vc_buildDouble(1, 0x0000000000000000ull,   0)
+            Vc::Internal::doubleConstant<1, 0x000089cdd5e44be8ull, -13>(),
+            Vc::Internal::doubleConstant<1, 0x000f06d10cca2c7eull,  -6>(),
+            Vc::Internal::doubleConstant<1, 0x0000000000000000ull,   0>()
         };
         const double Q[] = {
-            Vc_buildDouble(1, 0x00092eb6bc365fa0ull, -19),
-            Vc_buildDouble(1, 0x0004ae39b508b6c0ull,  -9),
-            Vc_buildDouble(1, 0x000d17099887e074ull,  -3),
-            Vc_buildDouble(1, 0x0000000000000000ull,   1)
+            Vc::Internal::doubleConstant<1, 0x00092eb6bc365fa0ull, -19>(),
+            Vc::Internal::doubleConstant<1, 0x0004ae39b508b6c0ull,  -9>(),
+            Vc::Internal::doubleConstant<1, 0x000d17099887e074ull,  -3>(),
+            Vc::Internal::doubleConstant<1, 0x0000000000000000ull,   1>()
         };
         const V x2 = x * x;
         px = x * ((P[0] * x2 + P[1]) * x2 + P[2]);

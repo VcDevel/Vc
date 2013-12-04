@@ -103,9 +103,11 @@ template<typename V> void testCall()
     a(odd) -= 1;
     a.callWithValuesSorted(f);
     V c(f.d);
+#ifndef VC_IMPL_Scalar // avoid -Wtautological-compare warnings because of V::Size == 1
     for (size_t i = 0; i < V::Size / 2; ++i) {
         COMPARE(a[i * 2], c[i]);
     }
+#endif
     for (size_t i = V::Size / 2; i < V::Size; ++i) {
         COMPARE(b[i], c[i]);
     }
@@ -247,7 +249,6 @@ template<typename V, typename I> void FloatRandom()
 
 template<> void Random<float_v>() { FloatRandom<float_v, int_v>(); }
 template<> void Random<double_v>() { FloatRandom<double_v, int_v>(); }
-template<> void Random<sfloat_v>() { FloatRandom<sfloat_v, short_v>(); }
 
 template<typename T> T add2(T x) { return x + T(2); }
 
@@ -280,7 +281,8 @@ void applyAndCall()
     const V two(T(2));
     for (int i = 0; i < 10; ++i) {
         const V rand = V::Random();
-        COMPARE(rand.apply(add2<T>), rand + two);
+        auto add2Reference = static_cast<T (*)(T)>(add2);
+        COMPARE(rand.apply(add2Reference), rand + two);
         COMPARE(rand.apply([](T x) { return x + T(2); }), rand + two);
 
         CallTester<T, V> callTester;
@@ -293,8 +295,8 @@ void applyAndCall()
             V copy2 = rand;
             copy1(mask) += two;
 
-            COMPARE(copy2(mask).apply(add2<T>), copy1) << mask;
-            COMPARE(rand.apply(add2<T>, mask), copy1) << mask;
+            COMPARE(copy2(mask).apply(add2Reference), copy1) << mask;
+            COMPARE(rand.apply(add2Reference, mask), copy1) << mask;
             COMPARE(copy2(mask).apply([](T x) { return x + T(2); }), copy1) << mask;
             COMPARE(rand.apply([](T x) { return x + T(2); }, mask), copy1) << mask;
 
@@ -359,6 +361,44 @@ template<typename V> void rotated()
             COMPARE(test[i], reference[refShift % V::Size]) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
         }
     }
+}
+
+template <typename V> void shiftedInConstant(const V &, std::integral_constant<int, V::Size + 1>)
+{
+}
+
+template <typename V, typename Shift> void shiftedInConstant(const V &data, Shift)
+{
+    constexpr int Size = V::Size;
+    const V test = data.shifted(Shift::value, data + V::One());
+    const V reference = data.rotated(Shift::value) +
+        iif(V::IndexesFromZero() + Size <
+            Size - Shift::value ||  // added Size on both sides of '<' to avoid
+            // overflow with unsigned integers
+            V::IndexesFromZero() >= Size - Shift::value,
+            V::One(),
+            V::Zero());
+    COMPARE(test, reference) << "shift = " << Shift::value;
+    shiftedInConstant(data, std::integral_constant<int, Shift::value + 1>());
+}
+
+template<typename V> void shiftedIn()
+{
+    typedef typename V::EntryType T;
+    constexpr int Size = V::Size;
+    for (int shift = -1 * Size; shift <= 1 * Size; ++shift) {
+        const V data = V::Random();
+        const V test = data.shifted(shift, data + V::One());
+        const V reference = data.rotated(shift) +
+                            iif(V::IndexesFromZero() + Size <
+                                        Size - shift ||  // added Size on both sides of '<' to avoid
+                                                         // overflow with unsigned integers
+                                    V::IndexesFromZero() >= Size - shift,
+                                V::One(),
+                                V::Zero());
+        COMPARE(test, reference) << "shift = " << shift;
+    }
+    shiftedInConstant(V::Random(), std::integral_constant<int, -Size>());
 }
 
 void testMallocAlignment()
@@ -469,6 +509,7 @@ void testmain()
 
     testAllTypes(shifted);
     testAllTypes(rotated);
+    testAllTypes(shiftedIn);
     testAllTypes(Random);
 
     testAllTypes(applyAndCall);

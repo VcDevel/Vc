@@ -21,6 +21,7 @@
 #include <iostream>
 #include <limits>
 #include <Vc/limits>
+#include <common/const.h>
 #include <common/macros.h>
 
 using namespace Vc;
@@ -133,7 +134,16 @@ template<typename Vec> void testAdd()
 
     COMPARE(a, b + 1);
     COMPARE(a, b + c);
-    Vec x(Zero);
+
+    for (int repetition = 0; repetition < 10000; ++repetition) {
+        const Vec x = Vec::Random();
+        const Vec y = Vec::Random();
+        Vec reference;
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            reference[i] = x[i] + y[i];
+        }
+        COMPARE(x + y, reference) << '\n' << x << " + " << y;
+    }
 }
 
 template<typename Vec> void testSub()
@@ -147,6 +157,16 @@ template<typename Vec> void testSub()
 
     COMPARE(a, b - 1);
     COMPARE(a, b - c);
+
+    for (int repetition = 0; repetition < 10000; ++repetition) {
+        const Vec x = Vec::Random();
+        const Vec y = Vec::Random();
+        Vec reference;
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            reference[i] = x[i] - y[i];
+        }
+        COMPARE(x - y, reference) << '\n' << x << " - " << y;
+    }
 }
 
 template<typename V> void testMul()
@@ -208,14 +228,33 @@ template<> void testMulSub<short_v>()
 
 template<typename Vec> void testDiv()
 {
+    for (int repetition = 0; repetition < 10000; ++repetition) {
+        const Vec a = Vec::Random();
+        const Vec b = Vec::Random();
+        if (none_of(b == Vec::Zero())) {
+            Vec reference;
+            for (size_t i = 0; i < Vec::Size; ++i) {
+                reference[i] = a[i] / b[i];
+            }
+            COMPARE(a / b, reference) << '\n' << a << " / " << b;
+        }
+    }
     typedef typename Vec::EntryType T;
+#if defined(VC_ICC) && !defined(__x86_64__) && VC_ICC <= 20131008
+    // http://software.intel.com/en-us/forums/topic/488995
+    if (isEqualType<short, T>()) {
+        EXPECT_FAILURE();
+    }
+#endif
+
     const T stepsize = std::max(T(1), T(std::numeric_limits<T>::max() / 1024));
     for (T divisor = 1; divisor < 5; ++divisor) {
         for (T scalar = std::numeric_limits<T>::min(); scalar < std::numeric_limits<T>::max() - stepsize + 1; scalar += stepsize) {
             Vec vector(scalar);
             Vec reference(scalar / divisor);
 
-            COMPARE(vector / divisor, reference) << '\n' << vector << " / " << divisor;
+            COMPARE(vector / divisor, reference) << '\n' << vector << " / " << divisor
+                << ", reference: " << scalar << " / " << divisor << " = " << scalar / divisor;
             vector /= divisor;
             COMPARE(vector, reference);
         }
@@ -454,63 +493,42 @@ template<typename V> void fma()
 
 template<> void fma<float_v>()
 {
-    float_v b = Vc_buildFloat(1, 0x000001, 0);
-    float_v c = Vc_buildFloat(1, 0x000000, -24);
+    using Vc::Internal::floatConstant;
+    float_v b = floatConstant<1, 0x000001, 0>();
+    float_v c = floatConstant<1, 0x000000, -24>();
     float_v a = b;
     /*a *= b;
     a += c;
-    COMPARE(a, float_v(Vc_buildFloat(1, 0x000002, 0)));
+    COMPARE(a, float_v(floatConstant<1, 0x000002, 0>()));
     a = b;*/
     a.fusedMultiplyAdd(b, c);
-    COMPARE(a, float_v(Vc_buildFloat(1, 0x000003, 0)));
+    COMPARE(a, float_v(floatConstant<1, 0x000003, 0>()));
 
-    a = Vc_buildFloat(1, 0x000002, 0);
-    b = Vc_buildFloat(1, 0x000002, 0);
-    c = Vc_buildFloat(-1, 0x000000, 0);
+    a = floatConstant<1, 0x000002, 0>();
+    b = floatConstant<1, 0x000002, 0>();
+    c = floatConstant<-1, 0x000000, 0>();
     /*a *= b;
     a += c;
-    COMPARE(a, float_v(Vc_buildFloat(1, 0x000000, -21)));
+    COMPARE(a, float_v(floatConstant<1, 0x000000, -21>()));
     a = b;*/
     a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
-    COMPARE(a, float_v(Vc_buildFloat(1, 0x000001, -21)));
-}
-
-template<> void fma<sfloat_v>()
-{
-    sfloat_v b = Vc_buildFloat(1, 0x000001, 0);
-    sfloat_v c = Vc_buildFloat(1, 0x000000, -24);
-    sfloat_v a = b;
-    /*a *= b;
-    a += c;
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000002, 0)));
-    a = b;*/
-    a.fusedMultiplyAdd(b, c);
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000003, 0)));
-
-    a = Vc_buildFloat(1, 0x000002, 0);
-    b = Vc_buildFloat(1, 0x000002, 0);
-    c = Vc_buildFloat(-1, 0x000000, 0);
-    /*a *= b;
-    a += c;
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000000, -21)));
-    a = b;*/
-    a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
-    COMPARE(a, sfloat_v(Vc_buildFloat(1, 0x000001, -21)));
+    COMPARE(a, float_v(floatConstant<1, 0x000001, -21>()));
 }
 
 template<> void fma<double_v>()
 {
-    double_v b = Vc_buildDouble(1, 0x0000000000001, 0);
-    double_v c = Vc_buildDouble(1, 0x0000000000000, -53);
+    using Vc::Internal::doubleConstant;
+    double_v b = doubleConstant<1, 0x0000000000001, 0>();
+    double_v c = doubleConstant<1, 0x0000000000000, -53>();
     double_v a = b;
     a.fusedMultiplyAdd(b, c);
-    COMPARE(a, double_v(Vc_buildDouble(1, 0x0000000000003, 0)));
+    COMPARE(a, double_v(doubleConstant<1, 0x0000000000003, 0>()));
 
-    a = Vc_buildDouble(1, 0x0000000000002, 0);
-    b = Vc_buildDouble(1, 0x0000000000002, 0);
-    c = Vc_buildDouble(-1, 0x0000000000000, 0);
+    a = doubleConstant<1, 0x0000000000002, 0>();
+    b = doubleConstant<1, 0x0000000000002, 0>();
+    c = doubleConstant<-1, 0x0000000000000, 0>();
     a.fusedMultiplyAdd(b, c); // 1 + 2^-50 + 2^-102 - 1
-    COMPARE(a, double_v(Vc_buildDouble(1, 0x0000000000001, -50)));
+    COMPARE(a, double_v(doubleConstant<1, 0x0000000000001, -50>()));
 }
 
 void testmain()
@@ -523,7 +541,6 @@ void testmain()
     runTest(testZero<double_v>);
     runTest(testZero<short_v>);
     runTest(testZero<ushort_v>);
-    runTest(testZero<sfloat_v>);
 
     runTest(testCmp<int_v>);
     runTest(testCmp<uint_v>);
@@ -531,7 +548,6 @@ void testmain()
     runTest(testCmp<double_v>);
     runTest(testCmp<short_v>);
     runTest(testCmp<ushort_v>);
-    runTest(testCmp<sfloat_v>);
 
     runTest(testIsMix<int_v>);
     runTest(testIsMix<uint_v>);
@@ -539,7 +555,6 @@ void testmain()
     runTest(testIsMix<double_v>);
     runTest(testIsMix<short_v>);
     runTest(testIsMix<ushort_v>);
-    runTest(testIsMix<sfloat_v>);
 
     runTest(testAdd<int_v>);
     runTest(testAdd<uint_v>);
@@ -547,7 +562,6 @@ void testmain()
     runTest(testAdd<double_v>);
     runTest(testAdd<short_v>);
     runTest(testAdd<ushort_v>);
-    runTest(testAdd<sfloat_v>);
 
     runTest(testSub<int_v>);
     runTest(testSub<uint_v>);
@@ -555,7 +569,6 @@ void testmain()
     runTest(testSub<double_v>);
     runTest(testSub<short_v>);
     runTest(testSub<ushort_v>);
-    runTest(testSub<sfloat_v>);
 
     runTest(testMul<int_v>);
     runTest(testMul<uint_v>);
@@ -563,7 +576,6 @@ void testmain()
     runTest(testMul<double_v>);
     runTest(testMul<short_v>);
     runTest(testMul<ushort_v>);
-    runTest(testMul<sfloat_v>);
 
     runTest(testDiv<int_v>);
     runTest(testDiv<uint_v>);
@@ -571,7 +583,6 @@ void testmain()
     runTest(testDiv<double_v>);
     runTest(testDiv<short_v>);
     runTest(testDiv<ushort_v>);
-    runTest(testDiv<sfloat_v>);
 
     runTest(testAnd<int_v>);
     runTest(testAnd<uint_v>);
@@ -590,7 +601,6 @@ void testmain()
     runTest(testMulAdd<double_v>);
     runTest(testMulAdd<short_v>);
     runTest(testMulAdd<ushort_v>);
-    runTest(testMulAdd<sfloat_v>);
 
     runTest(testMulSub<int_v>);
     runTest(testMulSub<uint_v>);
@@ -598,7 +608,6 @@ void testmain()
     runTest(testMulSub<double_v>);
     runTest(testMulSub<short_v>);
     runTest(testMulSub<ushort_v>);
-    runTest(testMulSub<sfloat_v>);
 
     runTest(testOnesComplement<int_v>);
     runTest(testOnesComplement<uint_v>);

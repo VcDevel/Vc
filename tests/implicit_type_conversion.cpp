@@ -29,50 +29,37 @@ typedef long long longlong;
 typedef unsigned long long ulonglong;
 
 static_assert(!std::is_convertible< float_v, double_v>::value, "!std::is_convertible< float_v, double_v>");
-static_assert(!std::is_convertible<sfloat_v, double_v>::value, "!std::is_convertible<sfloat_v, double_v>");
 static_assert(!std::is_convertible<   int_v, double_v>::value, "!std::is_convertible<   int_v, double_v>");
 static_assert(!std::is_convertible<  uint_v, double_v>::value, "!std::is_convertible<  uint_v, double_v>");
 static_assert(!std::is_convertible< short_v, double_v>::value, "!std::is_convertible< short_v, double_v>");
 static_assert(!std::is_convertible<ushort_v, double_v>::value, "!std::is_convertible<ushort_v, double_v>");
 
 static_assert(!std::is_convertible<double_v,  float_v>::value, "!std::is_convertible<double_v,  float_v>");
-static_assert(!std::is_convertible<sfloat_v,  float_v>::value, "!std::is_convertible<sfloat_v,  float_v>");
 static_assert( std::is_convertible<   int_v,  float_v>::value, " std::is_convertible<   int_v,  float_v>");
 static_assert( std::is_convertible<  uint_v,  float_v>::value, " std::is_convertible<  uint_v,  float_v>");
 static_assert(!std::is_convertible< short_v,  float_v>::value, "!std::is_convertible< short_v,  float_v>");
 static_assert(!std::is_convertible<ushort_v,  float_v>::value, "!std::is_convertible<ushort_v,  float_v>");
 
-static_assert(!std::is_convertible<double_v, sfloat_v>::value, "!std::is_convertible<double_v, sfloat_v>");
-static_assert(!std::is_convertible< float_v, sfloat_v>::value, "!std::is_convertible< float_v, sfloat_v>");
-static_assert(!std::is_convertible<   int_v, sfloat_v>::value, "!std::is_convertible<   int_v, sfloat_v>");
-static_assert(!std::is_convertible<  uint_v, sfloat_v>::value, "!std::is_convertible<  uint_v, sfloat_v>");
-static_assert( std::is_convertible< short_v, sfloat_v>::value, " std::is_convertible< short_v, sfloat_v>");
-static_assert( std::is_convertible<ushort_v, sfloat_v>::value, " std::is_convertible<ushort_v, sfloat_v>");
-
 static_assert(!std::is_convertible<double_v,    int_v>::value, "!std::is_convertible<double_v,    int_v>");
 static_assert(!std::is_convertible< float_v,    int_v>::value, "!std::is_convertible< float_v,    int_v>");
-static_assert(!std::is_convertible<sfloat_v,    int_v>::value, "!std::is_convertible<sfloat_v,    int_v>");
 static_assert( std::is_convertible<  uint_v,    int_v>::value, " std::is_convertible<  uint_v,    int_v>");
 static_assert(!std::is_convertible< short_v,    int_v>::value, "!std::is_convertible< short_v,    int_v>");
 static_assert(!std::is_convertible<ushort_v,    int_v>::value, "!std::is_convertible<ushort_v,    int_v>");
 
 static_assert(!std::is_convertible<double_v,   uint_v>::value, "!std::is_convertible<double_v,   uint_v>");
 static_assert(!std::is_convertible< float_v,   uint_v>::value, "!std::is_convertible< float_v,   uint_v>");
-static_assert(!std::is_convertible<sfloat_v,   uint_v>::value, "!std::is_convertible<sfloat_v,   uint_v>");
 static_assert( std::is_convertible<   int_v,   uint_v>::value, " std::is_convertible<   int_v,   uint_v>");
 static_assert(!std::is_convertible< short_v,   uint_v>::value, "!std::is_convertible< short_v,   uint_v>");
 static_assert(!std::is_convertible<ushort_v,   uint_v>::value, "!std::is_convertible<ushort_v,   uint_v>");
 
 static_assert(!std::is_convertible<double_v,  short_v>::value, "!std::is_convertible<double_v,  short_v>");
 static_assert(!std::is_convertible< float_v,  short_v>::value, "!std::is_convertible< float_v,  short_v>");
-static_assert(!std::is_convertible<sfloat_v,  short_v>::value, "!std::is_convertible<sfloat_v,  short_v>");
 static_assert(!std::is_convertible<   int_v,  short_v>::value, "!std::is_convertible<   int_v,  short_v>");
 static_assert(!std::is_convertible<  uint_v,  short_v>::value, "!std::is_convertible<  uint_v,  short_v>");
 static_assert( std::is_convertible<ushort_v,  short_v>::value, " std::is_convertible<ushort_v,  short_v>");
 
 static_assert(!std::is_convertible<double_v, ushort_v>::value, "!std::is_convertible<double_v, ushort_v>");
 static_assert(!std::is_convertible< float_v, ushort_v>::value, "!std::is_convertible< float_v, ushort_v>");
-static_assert(!std::is_convertible<sfloat_v, ushort_v>::value, "!std::is_convertible<sfloat_v, ushort_v>");
 static_assert(!std::is_convertible<   int_v, ushort_v>::value, "!std::is_convertible<   int_v, ushort_v>");
 static_assert(!std::is_convertible<  uint_v, ushort_v>::value, "!std::is_convertible<  uint_v, ushort_v>");
 static_assert( std::is_convertible< short_v, ushort_v>::value, " std::is_convertible< short_v, ushort_v>");
@@ -187,14 +174,12 @@ void testImplicitTypeConversions()
     VERIFY( TestImplicitCast<double_v>::test( float()));
     VERIFY( TestImplicitCast<double_v>::test(   int()));
     VERIFY( TestImplicitCast< float_v>::test( float()));
-    VERIFY( TestImplicitCast<sfloat_v>::test( float()));
     VERIFY( TestImplicitCast<   int_v>::test(   int()));
     VERIFY( TestImplicitCast<  uint_v>::test(  uint()));
     VERIFY( TestImplicitCast< short_v>::test( short()));
     VERIFY( TestImplicitCast<ushort_v>::test(ushort()));
     VERIFY(!TestImplicitCast<double_v>::test(nullptr));
     VERIFY(!TestImplicitCast< float_v>::test(nullptr));
-    VERIFY(!TestImplicitCast<sfloat_v>::test(nullptr));
     VERIFY(!TestImplicitCast<   int_v>::test(nullptr));
     VERIFY(!TestImplicitCast<  uint_v>::test(nullptr));
     VERIFY(!TestImplicitCast< short_v>::test(nullptr));
@@ -212,8 +197,6 @@ void testImplicitTypeConversions()
     TYPE_TEST_ERR( int_ptr,   uint_v);
     TYPE_TEST_ERR( int_ptr,  short_v);
     TYPE_TEST_ERR( int_ptr, ushort_v);
-    TYPE_TEST_ERR(sfloat_v,  int_ptr);
-    TYPE_TEST_ERR( int_ptr, sfloat_v);
 
     TYPE_TEST( double_v,    double_v, double_v);
     TYPE_TEST( double_v,      double, double_v);
@@ -287,46 +270,6 @@ TYPE_TEST_ERR(  short_v,     float_v);
 TYPE_TEST_ERR( ushort_v,     float_v);
     // double_v + float_v done
 
-    TYPE_TEST( sfloat_v,    sfloat_v, sfloat_v);
-    TYPE_TEST( sfloat_v,       float, sfloat_v);
-    TYPE_TEST( sfloat_v,     short_v, sfloat_v);
-    TYPE_TEST( sfloat_v,       short, sfloat_v);
-    TYPE_TEST( sfloat_v,    ushort_v, sfloat_v);
-    TYPE_TEST( sfloat_v,      ushort, sfloat_v);
-    TYPE_TEST( sfloat_v,         int, sfloat_v);
-    TYPE_TEST( sfloat_v,        uint, sfloat_v);
-    TYPE_TEST( sfloat_v,        long, sfloat_v);
-    TYPE_TEST( sfloat_v,       ulong, sfloat_v);
-    TYPE_TEST( sfloat_v,    longlong, sfloat_v);
-    TYPE_TEST( sfloat_v,   ulonglong, sfloat_v);
-    TYPE_TEST( sfloat_v,        Enum, sfloat_v);
-    TYPE_TEST( sfloat_v,        bool, sfloat_v);
-TYPE_TEST_ERR( sfloat_v,    double_v);
-TYPE_TEST_ERR( sfloat_v,      double);
-TYPE_TEST_ERR( sfloat_v,     float_v);
-TYPE_TEST_ERR( sfloat_v,       int_v);
-TYPE_TEST_ERR( sfloat_v,      uint_v);
-    TYPE_TEST( sfloat_v,    sfloat_v, sfloat_v);
-    TYPE_TEST(    float,    sfloat_v, sfloat_v);
-    TYPE_TEST(  short_v,    sfloat_v, sfloat_v);
-    TYPE_TEST(    short,    sfloat_v, sfloat_v);
-    TYPE_TEST( ushort_v,    sfloat_v, sfloat_v);
-    TYPE_TEST(   ushort,    sfloat_v, sfloat_v);
-    TYPE_TEST(      int,    sfloat_v, sfloat_v);
-    TYPE_TEST(     uint,    sfloat_v, sfloat_v);
-    TYPE_TEST(     long,    sfloat_v, sfloat_v);
-    TYPE_TEST(    ulong,    sfloat_v, sfloat_v);
-    TYPE_TEST( longlong,    sfloat_v, sfloat_v);
-    TYPE_TEST(ulonglong,    sfloat_v, sfloat_v);
-    TYPE_TEST(     Enum,    sfloat_v, sfloat_v);
-    TYPE_TEST(     bool,    sfloat_v, sfloat_v);
-TYPE_TEST_ERR( double_v,    sfloat_v);
-TYPE_TEST_ERR(   double,    sfloat_v);
-TYPE_TEST_ERR(  float_v,    sfloat_v);
-TYPE_TEST_ERR(    int_v,    sfloat_v);
-TYPE_TEST_ERR(   uint_v,    sfloat_v);
-    // double_v + float_v + sfloat_v done
-
     TYPE_TEST(  short_v,     short_v,  short_v);
     TYPE_TEST(  short_v,       short,  short_v);
     TYPE_TEST(  short_v,    ushort_v, ushort_v);
@@ -354,7 +297,7 @@ TYPE_TEST_ERR(  short_v,      uint_v);
     TYPE_TEST(     bool,     short_v,  short_v);
 TYPE_TEST_ERR(    int_v,     short_v);
 TYPE_TEST_ERR(   uint_v,     short_v);
-    // double_v + float_v + sfloat_v + short_v done
+    // double_v + float_v + short_v done
 
     TYPE_TEST( ushort_v,       short, ushort_v);
     TYPE_TEST( ushort_v,    ushort_v, ushort_v);
@@ -381,7 +324,7 @@ TYPE_TEST_ERR( ushort_v,      uint_v);
     TYPE_TEST(     bool,    ushort_v, ushort_v);
 TYPE_TEST_ERR(    int_v,    ushort_v);
 TYPE_TEST_ERR(   uint_v,    ushort_v);
-    // double_v + float_v + sfloat_v + short_v + ushort_v done
+    // double_v + float_v + short_v + ushort_v done
 
     TYPE_TEST(    int_v,      ushort,   uint_v);
     TYPE_TEST(    int_v,       short,    int_v);

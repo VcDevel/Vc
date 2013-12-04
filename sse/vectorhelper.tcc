@@ -120,34 +120,6 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 //X         k = _mm_shuffle_ps(k, k, _MM_SHUFFLE(0, 1, 1, 0));
 //X         return _mm_blendv_ps(x, y, k);
     }
-    template<> inline Vc_PURE M256 SortHelper<M256, 8>::sort(const M256 &_x)
-    {
-	    M256 x = _x;
-        typedef SortHelper<_M128, 4> H;
-
-        _M128 a, b, l, h;
-        a = H::sort(x[0]);
-        b = H::sort(x[1]);
-
-        // merge
-        b = _mm_shuffle_ps(b, b, _MM_SHUFFLE(0, 1, 2, 3));
-        l = _mm_min_ps(a, b);
-        h = _mm_max_ps(a, b);
-
-        a = _mm_unpacklo_ps(l, h);
-        b = _mm_unpackhi_ps(l, h);
-        l = _mm_min_ps(a, b);
-        h = _mm_max_ps(a, b);
-
-        a = _mm_unpacklo_ps(l, h);
-        b = _mm_unpackhi_ps(l, h);
-        l = _mm_min_ps(a, b);
-        h = _mm_max_ps(a, b);
-
-        x[0] = _mm_unpacklo_ps(l, h);
-        x[1] = _mm_unpackhi_ps(l, h);
-        return x;
-    }
     template<> inline Vc_CONST _M128D SortHelper<_M128D, 2>::sort(_M128D x)
     {
         const _M128D y = _mm_shuffle_pd(x, x, _MM_SHUFFLE2(0, 1));

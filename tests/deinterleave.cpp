@@ -23,7 +23,6 @@
 
 using Vc::float_v;
 using Vc::double_v;
-using Vc::sfloat_v;
 using Vc::int_v;
 using Vc::uint_v;
 using Vc::short_v;
@@ -34,7 +33,6 @@ using Vc::ushort_v;
  *   V \  M | float | double | ushort | short | uint | int
  * ---------+----------------------------------------------
  *  float_v |   X   |        |    X   |   X   |      |
- * sfloat_v |   X   |        |    X   |   X   |      |
  * double_v |       |    X   |        |       |      |
  *    int_v |       |        |        |   X   |      |  X
  *   uint_v |       |        |    X   |       |   X  |
@@ -46,10 +44,6 @@ template<typename A, typename B> struct TPair { typedef A V; typedef B M; };
 typedef TPair<float_v, float> float_float;
 typedef TPair<float_v, unsigned short> float_ushort;
 typedef TPair<float_v, short> float_short;
-
-typedef TPair<sfloat_v, float> sfloat_float;
-typedef TPair<sfloat_v, unsigned short> sfloat_ushort;
-typedef TPair<sfloat_v, short> sfloat_short;
 
 typedef TPair<double_v, double> double_double;
 typedef TPair<short_v, short> short_short;
@@ -435,9 +429,6 @@ void testmain()
     runTest(testDeinterleave<float_float>);
     runTest(testDeinterleave<float_ushort>);
     runTest(testDeinterleave<float_short>);
-    runTest(testDeinterleave<sfloat_float>);
-    runTest(testDeinterleave<sfloat_ushort>);
-    runTest(testDeinterleave<sfloat_short>);
     runTest(testDeinterleave<double_double>);
     runTest(testDeinterleave<int_int>);
     runTest(testDeinterleave<int_short>);

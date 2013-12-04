@@ -29,25 +29,30 @@ template<typename Vec> void maskedScatterArray() //{{{1
     typedef typename Vec::EntryType T;
 
     T mem[Vec::Size];
-    const Vec v(It::IndexesFromZero() + 1);
+    const Vec v = Vec::IndexesFromZero() + 1;
 
     for_all_masks(Vec, m) {
         Vec::Zero().store(mem, Vc::Unaligned);
         v.scatter(&mem[0], It::IndexesFromZero(), m);
 
-        for (size_t i = 0; i < Vec::Size; ++i) {
-            COMPARE(mem[i], m[i] ? v[i] : T(0)) << " i = " << i << ", m = " << m;
-        }
+        Vec reference = v;
+        reference.setZero(!m);
+
+        COMPARE(Vec(mem, Vc::Unaligned), reference) << "m = " << m;
     }
 }
 
 template<typename Vec> void scatterArray() //{{{1
 {
+    typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType It;
     const int count = 31999;
     typename Vec::EntryType array[count], out[count];
     for (int i = 0; i < count; ++i) {
-        array[i] = i - 100;
+        array[i] = i;
+        if (!std::is_integral<T>::value || !std::is_unsigned<T>::value) {
+            array[i] -= 100;
+        }
     }
     typename It::Mask mask;
     for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
@@ -112,31 +117,59 @@ template<typename T> struct Struct2 //{{{1
     short y;
 };
 
+constexpr int scatterStruct2Count = 97;
+
+template<typename T>
+static std::ostream &operator<<(std::ostream &out, const Struct2<T> &s)
+{
+    return out << '{' << s.b.a << ' ' << s.b.b << ' ' << s.b.c << '}';
+}
+
+template<typename T>
+static std::ostream &operator<<(std::ostream &out, const Struct2<T> *s)
+{
+    for (int i = 0; i < scatterStruct2Count; ++i) {
+        out << s[i];
+    }
+    return out;
+}
+
+template<typename V> V makeReference(V v, typename V::Mask m)
+{
+    v.setZero(!m);
+    return v;
+}
 template<typename Vec> void scatterStruct2() //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef Struct2<typename Vec::EntryType> S1;
     typedef Struct<typename Vec::EntryType> S2;
-    const int count = 97;
-    S1 array[count], out[count];
-    memset(array, 0, count * sizeof(S1));
-    memset(out, 0, count * sizeof(S1));
-    for (int i = 0; i < count; ++i) {
+    S1 array[scatterStruct2Count], out[scatterStruct2Count];
+    memset(array, 0, scatterStruct2Count * sizeof(S1));
+    memset(out, 0, scatterStruct2Count * sizeof(S1));
+    for (int i = 0; i < scatterStruct2Count; ++i) {
         array[i].b.a = i + 0;
         array[i].b.b = i + 1;
         array[i].b.c = i + 2;
     }
     typename It::Mask mask;
-    for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        typename Vec::Mask castedMask(mask);
+    typename Vec::Mask castedMask;
+    for (It i(IndexesFromZero); !(mask = (i < scatterStruct2Count)).isEmpty(); i += Vec::Size) {
+        castedMask = static_cast<decltype(castedMask)>(mask);
         Vec a(array, &S1::b, &S2::a, i, castedMask);
+        COMPARE(a, static_cast<Vec>(makeReference(i, mask)));
         Vec b(array, &S1::b, &S2::b, i, castedMask);
+        COMPARE(b, static_cast<Vec>(makeReference(i + 1, mask)));
         Vec c(array, &S1::b, &S2::c, i, castedMask);
+        COMPARE(c, static_cast<Vec>(makeReference(i + 2, mask)));
         a.scatter(out, &S1::b, &S2::a, i, castedMask);
         b.scatter(out, &S1::b, &S2::b, i, castedMask);
         c.scatter(out, &S1::b, &S2::c, i, castedMask);
     }
-    VERIFY(0 == memcmp(array, out, count * sizeof(S1)));
+    // castedmask != mask here because mask is changed in the for loop, but castedmask has the value
+    // from the previous iteration
+    VERIFY(0 == memcmp(array, out, scatterStruct2Count * sizeof(S1))) << mask << ' ' << castedMask << '\n'
+        << array << '\n' << out;
 }
 
 void testmain() //{{{1
@@ -145,7 +178,6 @@ void testmain() //{{{1
     runTest(scatterArray<uint_v>);
     runTest(scatterArray<float_v>);
     runTest(scatterArray<double_v>);
-    runTest(scatterArray<sfloat_v>);
     runTest(scatterArray<short_v>);
     runTest(scatterArray<ushort_v>);
     testAllTypes(maskedScatterArray);
@@ -160,7 +192,6 @@ void testmain() //{{{1
     runTest(scatterStruct<uint_v>);
     runTest(scatterStruct<float_v>);
     runTest(scatterStruct<double_v>);
-    runTest(scatterStruct<sfloat_v>);
     runTest(scatterStruct<short_v>);
     runTest(scatterStruct<ushort_v>);
     testAllTypes(scatterStruct2);

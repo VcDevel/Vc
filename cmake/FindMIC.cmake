@@ -56,39 +56,43 @@ find_path(MIC_SDK_DIR bin/intel64_mic/icpc PATHS
 # First check whether offload works
 
 if(NOT DEFINED c_compiler_can_offload OR NOT DEFINED cxx_compiler_can_offload)
-   include(CheckCSourceCompiles)
-   include(CheckCXXSourceCompiles)
+   set(c_compiler_can_offload FALSE)
+   set(cxx_compiler_can_offload FALSE)
 
-   #find_library(MIC_HOST_IMF_LIBRARY   imf   HINTS ENV LIBRARY_PATH)
-   #find_library(MIC_HOST_SVML_LIBRARY  svml  HINTS ENV LIBRARY_PATH)
-   #find_library(MIC_HOST_INTLC_LIBRARY intlc HINTS ENV LIBRARY_PATH)
-
-   #set(MIC_HOST_LIBS ${MIC_HOST_IMF_LIBRARY} ${MIC_HOST_SVML_LIBRARY} ${MIC_HOST_INTLC_LIBRARY})
-
-   set(_mic_offload_test_source "
-#ifdef __MIC__
-#include <immintrin.h>
-#endif
-__attribute__((target(mic))) void test()
-{
-#ifdef __MIC__
- __m512 v = _mm512_setzero_ps();
- (void)v;
-#endif
-}
-
-int main()
-{
-#pragma offload target(mic)
- test();
- return 0;
-}
-")
-
-   set(CMAKE_REQUIRED_FLAGS "-offload-build")
-   check_c_source_compiles("${_mic_offload_test_source}" c_compiler_can_offload)
-   check_cxx_source_compiles("${_mic_offload_test_source}" cxx_compiler_can_offload)
-   set(CMAKE_REQUIRED_FLAGS)
+   # For now offload is not supported so skip it
+#   include(CheckCSourceCompiles)
+#   include(CheckCXXSourceCompiles)
+#
+#   #find_library(MIC_HOST_IMF_LIBRARY   imf   HINTS ENV LIBRARY_PATH)
+#   #find_library(MIC_HOST_SVML_LIBRARY  svml  HINTS ENV LIBRARY_PATH)
+#   #find_library(MIC_HOST_INTLC_LIBRARY intlc HINTS ENV LIBRARY_PATH)
+#
+#   #set(MIC_HOST_LIBS ${MIC_HOST_IMF_LIBRARY} ${MIC_HOST_SVML_LIBRARY} ${MIC_HOST_INTLC_LIBRARY})
+#
+#   set(_mic_offload_test_source "
+##ifdef __MIC__
+##include <immintrin.h>
+##endif
+#__attribute__((target(mic))) void test()
+#{
+##ifdef __MIC__
+# __m512 v = _mm512_setzero_ps();
+# (void)v;
+##endif
+#}
+#
+#int main()
+#{
+##pragma offload target(mic)
+# test();
+# return 0;
+#}
+#")
+#
+#   set(CMAKE_REQUIRED_FLAGS "-offload-build")
+#   check_c_source_compiles("${_mic_offload_test_source}" c_compiler_can_offload)
+#   check_cxx_source_compiles("${_mic_offload_test_source}" cxx_compiler_can_offload)
+#   set(CMAKE_REQUIRED_FLAGS)
 endif()
 
 if(c_compiler_can_offload AND cxx_compiler_can_offload)
@@ -136,6 +140,10 @@ endif()
 
 if(MIC_NATIVE_FOUND OR MIC_OFFLOAD_FOUND)
    set(MIC_FOUND true)
+   list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 2338") # this switch statement does not have a default clause
+   list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 193") # zero used for undefined preprocessing identifier "VC_GCC"
+
+   set(VC_MIC_CXX_FLAGS "")
 
    macro(mic_add_definitions)
       add_definitions(${ARGN})
@@ -173,7 +181,7 @@ if(MIC_NATIVE_FOUND)
       endif()
 
       string(TOUPPER "${CMAKE_BUILD_TYPE}" _tmp)
-      string(STRIP "${CMAKE_MIC_${_lang}_FLAGS} ${CMAKE_${_lang}_FLAGS_${_tmp}} ${_mic_cflags}" _flags)
+      string(STRIP "${CMAKE_MIC_${_lang}_FLAGS} ${CMAKE_${_lang}_FLAGS_${_tmp}} ${_mic_cflags} ${VC_MIC_CXX_FLAGS}" _flags)
       string(REPLACE " " ";" _flags "${_flags} ${ARGN}")
       get_directory_property(_inc INCLUDE_DIRECTORIES)
       foreach(_i ${_inc})
@@ -302,10 +310,10 @@ ${MIC_RANLIB} ${_output}
                set(_libs ${_libs} "${_tmp}")
                set(_libTargets ${_libTargets} "${_tmp}" "${_arg}")
             else()
-               get_filename_component(_lpath "${_arg}" PATH)
-               get_filename_component(_lname "${_arg}" NAME)
-               set(_libs "${_libs} \"-L${_lpath}\" \"-l${_lname}\"")
-               set(_libTargets ${_libTargets} "${_arg}")
+               set(_libs ${_libs} "${_arg}")
+               if(EXISTS "${_arg}")
+                  set(_libTargets ${_libTargets} "${_arg}")
+               endif()
             endif()
          elseif(_state EQUAL 3) # OUTPUT_NAME
             set(_exec_output_name "${_arg}")
@@ -337,7 +345,7 @@ ${MIC_RANLIB} ${_output}
             get_filename_component(_name "${_src}" NAME)
             add_custom_command(OUTPUT "${_name}.s"
                COMMAND "${MIC_CXX}" -mmic
-               -DVC_IMPL=LRBni ${_mic_cflags} ${_cflags}
+               -DVC_IMPL=MIC ${_mic_cflags} ${_cflags} ${VC_MIC_CXX_FLAGS}
                ${_abs}
                -S -fsource-asm -fno-verbose-asm -o "${_name}.x"
                COMMAND sh -c "grep -v ___tag_value '${_name}.x' | c++filt > '${_name}.s'"

@@ -49,7 +49,7 @@ class Vector
     public:
         typedef Vc::Memory<Vector<T>, 1> Memory;
         typedef Vector<unsigned int> IndexType;
-        typedef Scalar::Mask<1u> Mask;
+        typedef Scalar::Mask<T> Mask;
         typedef Vector<T> AsArg;
 
         Vc_ALWAYS_INLINE EntryType &data() { return m_data; }
@@ -76,22 +76,30 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // copy
-        Vc_INTRINSIC Vector(const Vector &x) : m_data(x.data()) {}
+        Vc_INTRINSIC Vector(const Vector &x) = default;
         Vc_INTRINSIC Vector &operator=(const Vector &v) { m_data = v.data(); return *this; }
 
         // implict conversion from compatible Vector<U>
         template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-                typename std::enable_if<is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+                typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
             : m_data(static_cast<EntryType>(x.data())) {}
 
         // static_cast from the remaining Vector<U>
         template<typename U> Vc_INTRINSIC explicit Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-                typename std::enable_if<!is_implicit_cast_allowed<Vector<U>, Vector<T>>::value, void *>::type = nullptr)
+                typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
             : m_data(static_cast<EntryType>(x.data())) {}
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         Vc_INTRINSIC Vector(EntryType a) : m_data(a) {}
+        template <typename U>
+        Vc_INTRINSIC Vector(U a,
+                            typename std::enable_if<std::is_same<U, int>::value &&
+                                                        !std::is_same<U, EntryType>::value,
+                                                    void *>::type = nullptr)
+            : Vector(static_cast<EntryType>(a))
+        {
+        }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
@@ -339,17 +347,16 @@ class Vector
         Vc_INTRINSIC_L Vector copySign(Vector reference) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
 };
+template<typename T> constexpr size_t Vector<T>::Size;
 
 typedef Vector<double>         double_v;
 typedef Vector<float>          float_v;
-typedef Vector<sfloat>         sfloat_v;
 typedef Vector<int>            int_v;
 typedef Vector<unsigned int>   uint_v;
 typedef Vector<short>          short_v;
 typedef Vector<unsigned short> ushort_v;
 typedef double_v::Mask double_m;
 typedef float_v::Mask float_m;
-typedef sfloat_v::Mask sfloat_m;
 typedef int_v::Mask int_m;
 typedef uint_v::Mask uint_m;
 typedef short_v::Mask short_m;

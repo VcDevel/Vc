@@ -133,7 +133,6 @@ void testmain()
     runTest(testSwizzle<double_v>);
 #endif
     runTest(testSwizzle<float_v>);
-    runTest(testSwizzle<sfloat_v>);
     runTest(testSwizzle<int_v>);
     runTest(testSwizzle<uint_v>);
     runTest(testSwizzle<short_v>);
