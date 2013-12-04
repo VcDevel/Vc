@@ -166,7 +166,7 @@ template<typename T> class Mask
         Vc_ALWAYS_INLINE VectorTypeI dataI() const { return avx_cast<VectorTypeI>(d.v()); }
         Vc_ALWAYS_INLINE VectorTypeD dataD() const { return avx_cast<VectorTypeD>(d.v()); }
 
-        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return d.m(index); }
+        Vc_ALWAYS_INLINE decltype(std::declval<Storage &>().m(0)) operator[](size_t index) { return d.m(index); }
         Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         Vc_ALWAYS_INLINE Vc_PURE unsigned int count() const { return _mm_popcnt_u32(toInt()); }

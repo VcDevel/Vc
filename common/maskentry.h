@@ -35,7 +35,12 @@ public:
     constexpr MaskEntry(MaskEntry &&) = default;
 #endif
 
-    Vc_ALWAYS_INLINE Vc_PURE operator bool() const { const M &m = mask; return m[offset]; }
+    template <typename B, typename std::enable_if<std::is_same<B, bool>::value, int>::type = 0>
+    Vc_ALWAYS_INLINE Vc_PURE operator B() const
+    {
+        const M &m = mask;
+        return m[offset];
+    }
     Vc_ALWAYS_INLINE MaskEntry &operator=(bool x) {
         mask.setEntry(offset, x);
         return *this;
@@ -65,7 +70,11 @@ public:
 #endif
     Vc_ALWAYS_INLINE MaskBool &operator=(const MaskBool &) = default;
 
-    Vc_ALWAYS_INLINE operator bool() const { return (data & 1) != 0; }
+    template <typename B, typename std::enable_if<std::is_same<B, bool>::value, int>::type = 0>
+    Vc_ALWAYS_INLINE operator B() const
+    {
+        return (data & 1) != 0;
+    }
 } Vc_MAY_ALIAS;
 
 Vc_NAMESPACE_END

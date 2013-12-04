@@ -11,9 +11,6 @@ set(CMAKE_REQUIRED_LIBRARIES "${SAFE_CMAKE_REQUIRED_LIBRARIES}")
 
 add_custom_target(Examples COMMENT "build all examples" VERBATIM)
 
-# for the remaining targets unconditional Vc_ARCHITECTURE_FLAGS is mostly fine.
-add_definitions(${Vc_ARCHITECTURE_FLAGS})
-
 AddCompilerFlag(-ftemplate-depth=1024)
 
 macro(build_example name)
@@ -35,6 +32,7 @@ macro(build_example name)
       endif()
    endforeach()
    add_executable("example_${name}_default" ${_SRCS})
+   add_target_property("example_${name}_default" COMPILE_FLAGS "${Vc_ARCHITECTURE_FLAGS}")
    target_link_libraries("example_${name}_default" Vc ${_LIBS})
    add_dependencies(Examples "example_${name}_default")
 
