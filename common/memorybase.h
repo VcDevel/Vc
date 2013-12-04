@@ -213,6 +213,7 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
         /// Const overload of the above function.
         Vc_ALWAYS_INLINE Vc_PURE const EntryType scalar(size_t i) const { return entries()[i]; }
 
+#ifdef DOXYGEN
         /**
          * Cast operator to the scalar type. This allows to use the object very much like a standard
          * C array.
@@ -220,6 +221,24 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
         Vc_ALWAYS_INLINE Vc_PURE operator       EntryType*()       { return entries(); }
         /// Const overload of the above function.
         Vc_ALWAYS_INLINE Vc_PURE operator const EntryType*() const { return entries(); }
+#else
+        // The above conversion operator allows implicit conversion to bool. To prohibit this
+        // conversion we use SFINAE to allow only conversion to EntryType*.
+        template <typename T,
+                  typename std::enable_if<std::is_same<T, EntryType *>::value ||
+                                              std::is_same<T, const EntryType *>::value,
+                                          int>::type = 0>
+        Vc_ALWAYS_INLINE Vc_PURE operator T()
+        {
+            return entries();
+        }
+        template <typename T,
+                  typename std::enable_if<std::is_same<T, const EntryType *>::value, int>::type = 0>
+        Vc_ALWAYS_INLINE Vc_PURE operator T() const
+        {
+            return entries();
+        }
+#endif
 
         /**
          *
@@ -239,16 +258,12 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
             return MemoryRange<const V, Parent>(p(), firstIndex, lastIndex);
         }
 
-        // omit operator[] because the EntryType* cast operator suffices, for dox it makes sense to
-        // show it, though because it helps API discoverability.
-#ifdef DOXYGEN
         /**
          * Returns the \p i-th scalar value in the memory.
          */
-        inline EntryType &operator[](size_t i);
+        Vc_ALWAYS_INLINE EntryType &operator[](size_t i) { return entries()[i]; }
         /// Const overload of the above function.
-        inline const EntryType &operator[](size_t i) const;
-#endif
+        Vc_ALWAYS_INLINE const EntryType &operator[](size_t i) const { return entries()[i]; }
 
         /**
          * Uses a vector gather to combine the entries at the indexes in \p i into the returned
