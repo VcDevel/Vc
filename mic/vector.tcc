@@ -125,7 +125,12 @@ template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(
     handleLoadPrefetches(x, flags);
     d.v() = LoadHelper<Vector<T>>::load(x, flags);
 }
-template<typename T> template<typename OtherT, typename Flags> Vc_INTRINSIC void Vector<T>::load(const OtherT *x, Flags flags) {
+template <typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+Vc_INTRINSIC void Vector<T>::load(const U *x, Flags flags)
+{
     handleLoadPrefetches(x, flags);
     d.v() = LoadHelper<Vector<T>>::load(x, flags);
 }
@@ -177,18 +182,24 @@ template<> Vc_INTRINSIC void ushort_v::assign(ushort_v v, ushort_m m)
     d.v() = _mm512_mask_mov_epi32(d.v(), m.data(), v.d.v());
 }
 // stores {{{1
-template<typename Parent, typename T> template<typename T2, typename Flags>
-Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Flags flags) const
+template <typename Parent, typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+Vc_INTRINSIC void StoreMixin<Parent, T>::store(U *mem, Flags flags) const
 {
     handleStorePrefetches(mem, flags);
-    MicIntrinsics::store<Flags>(mem, data(), UpDownC<T2>());
+    MicIntrinsics::store<Flags>(mem, data(), UpDownC<U>());
 }
 
-template<typename Parent, typename T> template<typename T2, typename Flags>
-Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, Flags flags) const
+template <typename Parent, typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+Vc_INTRINSIC void StoreMixin<Parent, T>::store(U *mem, Mask mask, Flags flags) const
 {
     handleStorePrefetches(mem, flags);
-    MicIntrinsics::store<Flags>(mask.data(), mem, data(), UpDownC<T2>());
+    MicIntrinsics::store<Flags>(mask.data(), mem, data(), UpDownC<U>());
 }
 
 template<typename Parent, typename T> Vc_INTRINSIC void StoreMixin<Parent, T>::store(VectorEntryType *mem, decltype(Vc::Streaming)) const

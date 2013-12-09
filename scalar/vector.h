@@ -103,12 +103,18 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
-        explicit Vc_INTRINSIC Vector(const EntryType *x) { load(x); }
+        explicit Vc_INTRINSIC Vector(const EntryType *x)
+        {
+            load(x);
+        }
         template<typename Flags> explicit Vc_INTRINSIC Vector(const EntryType * x, Flags flags)
         {
             load(x, flags);
         }
-        template<typename U, typename Flags = DefaultLoadTag> explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags(), typename std::enable_if<std::is_arithmetic<U>::value, void *>::type = nullptr)
+        template <typename U,
+                  typename Flags = DefaultLoadTag,
+                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+        explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
         {
             load(x, flags);
         }
