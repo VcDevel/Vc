@@ -79,7 +79,8 @@ template<typename T> class Vector
         StorageType d;
 
         using WidthT = Common::WidthT<VectorType>;
-        static constexpr WidthT Width = WidthT();
+        // ICC can't compile this:
+        // static constexpr WidthT Width = WidthT();
 
     public:
         ///////////////////////////////////////////////////////////////////////////////////////////

@@ -1350,9 +1350,9 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount, Vecto
     if (__builtin_constant_p(amount)) {
         switch (amount * 2) {
         case int(Size):
-            return shifted_shortcut(d.v(), shiftIn.d.v(), Width);
+            return shifted_shortcut(d.v(), shiftIn.d.v(), WidthT());
         case -int(Size):
-            return shifted_shortcut(shiftIn.d.v(), d.v(), Width);
+            return shifted_shortcut(shiftIn.d.v(), d.v(), WidthT());
         }
     }
 #endif
