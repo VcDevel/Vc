@@ -363,6 +363,44 @@ template<typename V> void rotated()
     }
 }
 
+template <typename V> void shiftedInConstant(const V &, std::integral_constant<int, V::Size + 1>)
+{
+}
+
+template <typename V, typename Shift> void shiftedInConstant(const V &data, Shift)
+{
+    constexpr int Size = V::Size;
+    const V test = data.shifted(Shift::value, data + V::One());
+    const V reference = data.rotated(Shift::value) +
+        iif(V::IndexesFromZero() + Size <
+            Size - Shift::value ||  // added Size on both sides of '<' to avoid
+            // overflow with unsigned integers
+            V::IndexesFromZero() >= Size - Shift::value,
+            V::One(),
+            V::Zero());
+    COMPARE(test, reference) << "shift = " << Shift::value;
+    shiftedInConstant(data, std::integral_constant<int, Shift::value + 1>());
+}
+
+template<typename V> void shiftedIn()
+{
+    typedef typename V::EntryType T;
+    constexpr int Size = V::Size;
+    for (int shift = -1 * Size; shift <= 1 * Size; ++shift) {
+        const V data = V::Random();
+        const V test = data.shifted(shift, data + V::One());
+        const V reference = data.rotated(shift) +
+                            iif(V::IndexesFromZero() + Size <
+                                        Size - shift ||  // added Size on both sides of '<' to avoid
+                                                         // overflow with unsigned integers
+                                    V::IndexesFromZero() >= Size - shift,
+                                V::One(),
+                                V::Zero());
+        COMPARE(test, reference) << "shift = " << shift;
+    }
+    shiftedInConstant(V::Random(), std::integral_constant<int, -Size>());
+}
+
 void testMallocAlignment()
 {
     int_v *a = Vc::malloc<int_v, Vc::AlignOnVector>(10);
@@ -471,6 +509,7 @@ void testmain()
 
     testAllTypes(shifted);
     testAllTypes(rotated);
+    testAllTypes(shiftedIn);
     testAllTypes(Random);
 
     testAllTypes(applyAndCall);

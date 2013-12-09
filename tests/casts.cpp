@@ -146,6 +146,19 @@ struct T2Helper
     typedef T2 V2;
 };
 
+void fullConversion()
+{
+    float_v x = float_v::Random();
+    float_v r = static_cast<float_v>(0.1 * static_cast<double_v>(x)).rotated(double_v::Size);
+    for (size_t i = double_v::Size; i < float_v::Size; i += double_v::Size) {
+        float_v tmp = static_cast<float_v>(0.1 * static_cast<double_v>(x.shifted(double_v::Size)));
+        r = r.shifted(double_v::Size, tmp);
+    }
+    for (size_t i = 0; i < float_v::Size; ++i) {
+        COMPARE(r[i], static_cast<float>(x[i] * 0.1)) << "i = " << i;
+    }
+}
+
 void testmain()
 {
 #define TEST(v1, v2) \
@@ -186,4 +199,5 @@ void testmain()
     TEST(short_v, short_v);
     TEST(short_v, ushort_v);
 #undef TEST
+    runTest(fullConversion);
 }

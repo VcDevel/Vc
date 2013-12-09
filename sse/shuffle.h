@@ -44,6 +44,13 @@ Vc_NAMESPACE_BEGIN(Mem)
             return _mm_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2);
         }
 
+        // shuffle<X1, Y0>([x0 x1], [y0 y1]) = [x1 y0]
+        template<VecPos Dst0, VecPos Dst1> static Vc_ALWAYS_INLINE __m128i Vc_CONST shuffle(__m128i x, __m128i y) {
+            static_assert(Dst0 >= X0 && Dst1 >= Y0, "Incorrect_Range");
+            static_assert(Dst0 <= X1 && Dst1 <= Y1, "Incorrect_Range");
+            return _mm_castpd_si128(_mm_shuffle_pd(_mm_castsi128_pd(x), _mm_castsi128_pd(y), Dst0 + (Dst1 - Y0) * 2));
+        }
+
         // blend<X0, Y1>([x0 x1], [y0, y1]) = [x0 y1]
         template<VecPos Dst0, VecPos Dst1> static Vc_ALWAYS_INLINE __m128d Vc_CONST blend(__m128d x, __m128d y) {
             static_assert(Dst0 == X0 || Dst0 == Y0, "Incorrect_Range");
