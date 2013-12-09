@@ -135,10 +135,16 @@ template<typename Flags> struct EnableIfUnalignedAndStreaming : public std::enab
 
 } // anonymous namespace
 
-typedef LoadStoreFlags<> AlignedT;
-constexpr AlignedT Aligned;
-constexpr LoadStoreFlags<StreamingFlag> Streaming;
-constexpr LoadStoreFlags<UnalignedFlag> Unaligned;
+typedef LoadStoreFlags<> AlignedTag;
+typedef LoadStoreFlags<StreamingFlag> StreamingTag;
+typedef LoadStoreFlags<UnalignedFlag> UnalignedTag;
+
+typedef AlignedTag DefaultLoadTag;
+typedef AlignedTag DefaultStoreTag;
+
+constexpr AlignedTag Aligned;
+constexpr StreamingTag Streaming;
+constexpr UnalignedTag Unaligned;
 constexpr LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
 
 /**

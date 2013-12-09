@@ -30,7 +30,7 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum) : d(HT::zero()) {}
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerOne::OEnum) : d(HT::one()) {}
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(HV::template load<AlignedT>(IndexesFromZeroData<T>::address())) {}
+    : d(HV::template load<AlignedTag>(IndexesFromZeroData<T>::address())) {}
 
 template<> Vc_ALWAYS_INLINE float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
     : d(StaticCastHelper<int, float>::cast(int_v::IndexesFromZero().data())) {}
@@ -1252,7 +1252,7 @@ template<> Vc_ALWAYS_INLINE Vector<float> Vector<float>::Random()
 
 template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 {
-    const m256i state = VectorHelper<m256i>::load<AlignedT>(&Common::RandomState[0]);
+    const m256i state = VectorHelper<m256i>::load<AlignedTag>(&Common::RandomState[0]);
     for (size_t k = 0; k < 8; k += 2) {
         typedef unsigned long long uint64 Vc_MAY_ALIAS;
         const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);

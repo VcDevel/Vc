@@ -154,21 +154,21 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load ctors
     explicit Vc_INTRINSIC Vector(const EntryType * x) { load(x); }
-    template<typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const EntryType * x, Flags flags = Flags())
+    template<typename Flags = DefaultLoadTag> explicit Vc_INTRINSIC Vector(const EntryType * x, Flags flags = Flags())
     {
         load(x, flags);
     }
-    template<typename OtherT, typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const OtherT *x, Flags flags = Flags())
+    template<typename OtherT, typename Flags = DefaultLoadTag> explicit Vc_INTRINSIC Vector(const OtherT *x, Flags flags = Flags())
     {
         load(x, flags);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load member functions
-    Vc_INTRINSIC void load(const EntryType *mem) { load<AlignedT>(mem, Aligned); }
-    template<typename Flags = AlignedT> Vc_INTRINSIC_L
+    Vc_INTRINSIC void load(const EntryType *mem) { load<DefaultLoadTag>(mem, DefaultLoadTag()); }
+    template<typename Flags = DefaultLoadTag> Vc_INTRINSIC_L
         void load(const EntryType *mem, Flags) Vc_INTRINSIC_R;
-    template<typename OtherT, typename Flags = AlignedT> Vc_INTRINSIC_L
+    template<typename OtherT, typename Flags = DefaultLoadTag> Vc_INTRINSIC_L
         void load(const OtherT    *mem, Flags = Flags()) Vc_INTRINSIC_R;
 
     ///////////////////////////////////////////////////////////////////////////////////////////

@@ -134,21 +134,21 @@ template<typename T> class Vector
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
         explicit Vc_INTRINSIC Vector(const EntryType * x) { load(x); }
-        template<typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const EntryType * x, Flags flags = Flags())
+        template<typename Flags = DefaultLoadTag> explicit Vc_INTRINSIC Vector(const EntryType * x, Flags flags = Flags())
         {
             load(x, flags);
         }
-        template<typename OtherT, typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const OtherT *x, Flags flags = Flags())
+        template<typename OtherT, typename Flags = DefaultLoadTag> explicit Vc_INTRINSIC Vector(const OtherT *x, Flags flags = Flags())
         {
             load(x, flags);
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
-        Vc_INTRINSIC void load(const EntryType *mem) { load<AlignedT>(mem, Aligned); }
-        template<typename Flags = AlignedT> Vc_INTRINSIC_L
+        Vc_INTRINSIC void load(const EntryType *mem) { load<DefaultLoadTag>(mem, DefaultLoadTag()); }
+        template<typename Flags = DefaultLoadTag> Vc_INTRINSIC_L
             void load(const EntryType *mem, Flags) Vc_INTRINSIC_R;
-        template<typename OtherT, typename Flags = AlignedT> Vc_INTRINSIC_L
+        template<typename OtherT, typename Flags = DefaultLoadTag> Vc_INTRINSIC_L
             void load(const OtherT    *mem, Flags = Flags()) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -166,14 +166,14 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
-        template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC_L void store(T2 *mem, Flags = Flags()) const Vc_INTRINSIC_R;
-        template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC_L void store(T2 *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
+        template<typename T2, typename Flags = DefaultStoreTag> Vc_INTRINSIC_L void store(T2 *mem, Flags = Flags()) const Vc_INTRINSIC_R;
+        template<typename T2, typename Flags = DefaultStoreTag> Vc_INTRINSIC_L void store(T2 *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
         // the following store overloads are here to support classes that have a cast operator to EntryType.
         // Without this overload GCC complains about not finding a matching store function.
-        Vc_INTRINSIC void store(EntryType *mem) const { store<EntryType, AlignedT>(mem); }
-        template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const { store<EntryType, Flags>(mem, flags); }
-        Vc_INTRINSIC void store(EntryType *mem, Mask mask) const { store<EntryType, AlignedT>(mem, mask); }
-        template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const { store<EntryType, Flags>(mem, mask, flags); }
+        Vc_INTRINSIC void store(EntryType *mem) const { store<EntryType, DefaultStoreTag>(mem); }
+        template<typename Flags = DefaultStoreTag> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const { store<EntryType, Flags>(mem, flags); }
+        Vc_INTRINSIC void store(EntryType *mem, Mask mask) const { store<EntryType, DefaultStoreTag>(mem, mask); }
+        template<typename Flags = DefaultStoreTag> Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const { store<EntryType, Flags>(mem, mask, flags); }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
