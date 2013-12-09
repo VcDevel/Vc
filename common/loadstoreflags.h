@@ -139,8 +139,8 @@ typedef LoadStoreFlags<> AlignedTag;
 typedef LoadStoreFlags<StreamingFlag> StreamingTag;
 typedef LoadStoreFlags<UnalignedFlag> UnalignedTag;
 
-typedef AlignedTag DefaultLoadTag;
-typedef AlignedTag DefaultStoreTag;
+typedef UnalignedTag DefaultLoadTag;
+typedef UnalignedTag DefaultStoreTag;
 
 constexpr AlignedTag Aligned;
 constexpr StreamingTag Streaming;
