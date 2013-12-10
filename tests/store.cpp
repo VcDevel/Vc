@@ -142,21 +142,20 @@ template<typename Vec> void maskedStore()
     }
 
     const int count = 256 * 1024 / sizeof(T);
-    const int outerCount = count / Vec::Size;
     Vc::Memory<Vec> array(count);
-	array.setZero();
+    array.setZero();
     const T nullValue = 0;
     const T setValue = 170;
     const Vec x(setValue);
     for (int i = 0; i < count; i += Vec::Size) {
-        x.store(&array[i], mask);
+        x.store(&array[i], mask, Vc::Aligned);
     }
 
     for (int i = 1; i < count; i += 2) {
-        COMPARE(array[i], setValue) << ", i: " << i << ", count: " << count << ", outer: " << outerCount;
+        COMPARE(array[i], setValue) << ", i: " << i << ", count: " << count << ", mask: " << mask << ", array:\n" << array;
     }
     for (int i = 0; i < count; i += 2) {
-        COMPARE(array[i], nullValue) << ", i: " << i << ", count: " << count << ", outer: " << outerCount;
+        COMPARE(array[i], nullValue) << ", i: " << i << ", count: " << count << ", mask: " << mask << ", array:\n" << array;
     }
 }
 
