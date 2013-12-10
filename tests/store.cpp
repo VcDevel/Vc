@@ -46,6 +46,21 @@ template<typename Vec> void alignedStore()
 
     // make sure store can be used with parameters that auto-convert to T*
     x.store(array);
+
+    if (std::is_integral<T>::value && std::is_unsigned<T>::value) {
+        // ensure that over-/underflowed values are stored correctly.
+        Vec v = Vec::Zero() - Vec::One(); // underflow
+        v.store(array);
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            COMPARE(array[i], v[i]);
+        }
+
+        v = std::numeric_limits<T>::max() + Vec::One(); // overflow
+        v.store(array);
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            COMPARE(array[i], v[i]);
+        }
+    }
 }
 
 template<typename Vec> void unalignedStore()
