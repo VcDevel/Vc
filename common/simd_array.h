@@ -94,28 +94,27 @@ public:
         d[0] = x.data(0);
     }
 
-#define VC_COMPARE_IMPL(op) \
-    Vc_ALWAYS_INLINE Vc_PURE mask_type operator op(const simd_array &x) const { \
-        mask_type r; \
-        r.d.assign(d, x.d, &vector_type::operator op); \
-        return r; \
+#define VC_COMPARE_IMPL(op)                                                                        \
+    Vc_ALWAYS_INLINE Vc_PURE mask_type operator op(const simd_array &x) const                      \
+    {                                                                                              \
+        mask_type r;                                                                               \
+        r.d.assign(d, x.d, &vector_type::operator op);                                             \
+        return r;                                                                                  \
     }
     VC_ALL_COMPARES(VC_COMPARE_IMPL)
 #undef VC_COMPARE_IMPL
 
-#define VC_OPERATOR_IMPL(op) \
-    Vc_ALWAYS_INLINE simd_array &operator op##=(const simd_array &x) { \
-        for (std::size_t i = 0; i < register_count; ++i) { \
-            d[i] op##= x.d[i]; \
-        } \
-        return *this; \
-    } \
-    inline simd_array operator op(const simd_array &x) const { \
-        simd_array r; \
-        for (std::size_t i = 0; i < register_count; ++i) { \
-            r.data(i) = d[i] op x.d[i]; \
-        } \
-        return r; \
+#define VC_OPERATOR_IMPL(op)                                                                       \
+    Vc_ALWAYS_INLINE simd_array &operator op##=(const simd_array & x)                              \
+    {                                                                                              \
+        d op## = x.d;                                                                              \
+        return *this;                                                                              \
+    }                                                                                              \
+    inline simd_array operator op(const simd_array &x) const                                       \
+    {                                                                                              \
+        simd_array r = *this;                                                                      \
+        r op## = x;                                                                                \
+        return r;                                                                                  \
     }
     VC_ALL_BINARY     (VC_OPERATOR_IMPL)
     VC_ALL_ARITHMETICS(VC_OPERATOR_IMPL)

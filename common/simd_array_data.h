@@ -66,6 +66,16 @@ template<typename V> struct ArrayData<V, 1>
     inline void call(F function, Args... args) {
         (d.*function)(args...);
     }
+
+#define VC_OPERATOR_IMPL(op)                                                                       \
+    Vc_ALWAYS_INLINE void operator op##=(const ArrayData<V, 1> & rhs)                              \
+    {                                                                                              \
+        d op## = rhs.d;                                                                            \
+    }
+    VC_ALL_BINARY     (VC_OPERATOR_IMPL)
+    VC_ALL_ARITHMETICS(VC_OPERATOR_IMPL)
+    VC_ALL_SHIFTS     (VC_OPERATOR_IMPL)
+#undef VC_OPERATOR_IMPL
 };
 template<typename V, std::size_t N> struct ArrayData
 {
@@ -110,6 +120,17 @@ template<typename V, std::size_t N> struct ArrayData
         (d.*function)(args...);
         next.call(function, args...);
     }
+
+#define VC_OPERATOR_IMPL(op)                                                                       \
+    Vc_ALWAYS_INLINE void operator op##=(const ArrayData<V, N> & rhs)                              \
+    {                                                                                              \
+        d op## = rhs.d;                                                                            \
+        next op## = rhs.next;                                                                      \
+    }
+    VC_ALL_BINARY     (VC_OPERATOR_IMPL)
+    VC_ALL_ARITHMETICS(VC_OPERATOR_IMPL)
+    VC_ALL_SHIFTS     (VC_OPERATOR_IMPL)
+#undef VC_OPERATOR_IMPL
 };
 
 template<typename M, std::size_t N> struct MaskData;
