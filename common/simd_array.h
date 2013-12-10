@@ -64,6 +64,10 @@ public:
     // broadcast
     Vc_ALWAYS_INLINE simd_array(value_type a) : d(a) {}
 
+    explicit Vc_ALWAYS_INLINE simd_array(VectorSpecialInitializerZero::ZEnum) : d(0) {}
+    explicit Vc_ALWAYS_INLINE simd_array(VectorSpecialInitializerOne::OEnum) : d(1) {}
+    explicit Vc_ALWAYS_INLINE simd_array(VectorSpecialInitializerIndexesFromZero::IEnum x) : d(x) {}
+
     // load ctors
     explicit Vc_ALWAYS_INLINE simd_array(const value_type *x) : d(x) {}
     template<typename Flags = DefaultLoadTag> explicit Vc_ALWAYS_INLINE simd_array(const value_type *x, Flags flags = Flags())

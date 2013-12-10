@@ -47,6 +47,16 @@ template<typename V> struct ArrayData<V, 1>
     template<typename U, typename Flags> Vc_ALWAYS_INLINE ArrayData(const U *x, Flags flags)
         : d(x, flags) {}
 
+    Vc_ALWAYS_INLINE ArrayData(VectorSpecialInitializerIndexesFromZero::IEnum x)
+        : d(x)
+    {
+    }
+    Vc_ALWAYS_INLINE ArrayData(VectorSpecialInitializerIndexesFromZero::IEnum x, size_t offset)
+        : d(x)
+    {
+        d += offset;
+    }
+
     template<typename F, typename... Args>
     inline void call(F function, Args... args) {
         (d.*function)(args...);
