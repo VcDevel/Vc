@@ -128,7 +128,7 @@ template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(
 template <typename T>
 template <typename U,
           typename Flags,
-          typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
 Vc_INTRINSIC void Vector<T>::load(const U *x, Flags flags)
 {
     handleLoadPrefetches(x, flags);
@@ -194,7 +194,7 @@ Vc_INTRINSIC ushort_v foldAfterOverflow(ushort_v vector)
 template <typename Parent, typename T>
 template <typename U,
           typename Flags,
-          typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
 Vc_INTRINSIC void StoreMixin<Parent, T>::store(U *mem, Flags flags) const
 {
     handleStorePrefetches(mem, flags);
@@ -268,7 +268,7 @@ Vc_INTRINSIC void storeDispatch(V vector, Mem *address, Mask mask, Flags flags)
 template <typename Parent, typename T>
 template <typename U,
           typename Flags,
-          typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
 Vc_INTRINSIC void StoreMixin<Parent, T>::store(U *mem, Mask mask, Flags flags) const
 {
     handleStorePrefetches(mem, flags);

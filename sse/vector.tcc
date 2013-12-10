@@ -213,7 +213,7 @@ template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags>
 template <typename DstT>
 template <typename SrcT,
           typename Flags,
-          typename std::enable_if<std::is_arithmetic<SrcT>::value, int>::type = 0>
+          typename std::enable_if<std::is_arithmetic<SrcT>::value, int>::type>
 Vc_INTRINSIC void Vector<DstT>::load(const SrcT *mem, Flags flags)
 {
     handleLoadPrefetches(mem, flags);
@@ -282,7 +282,7 @@ template<> Vc_INTRINSIC void Vector<float>::setQnan(Mask::Argument k)
 template <typename T>
 template <typename U,
           typename Flags,
-          typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
 Vc_INTRINSIC void Vector<T>::store(U *mem, Flags flags) const
 {
     handleStorePrefetches(mem, flags);
@@ -292,7 +292,7 @@ Vc_INTRINSIC void Vector<T>::store(U *mem, Flags flags) const
 template <typename T>
 template <typename U,
           typename Flags,
-          typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
 Vc_INTRINSIC void Vector<T>::store(U *mem, Mask mask, Flags flags) const
 {
     handleStorePrefetches(mem, flags);
