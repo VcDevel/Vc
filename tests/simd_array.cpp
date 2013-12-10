@@ -71,20 +71,22 @@ TEST_ALL_NATIVE_V(V, load)
 {
     typedef typename V::EntryType T;
     Vc::Memory<V, 34> data;
-    data = V::Zero();
+    for (size_t i = 0; i < data.entriesCount(); ++i) {
+        data[i] = T(i);
+    }
 
     simd_array<T, 32> a{ &data[0] };
-    simd_array<T, 32> b = 0;
+    simd_array<T, 32> b(Vc::IndexesFromZero);
     COMPARE(a, b);
 
     b.load(&data[0]);
     COMPARE(a, b);
 
     a.load(&data[1], Vc::Unaligned);
-    COMPARE(a, b);
+    COMPARE(a, b + 1);
 
     b = decltype(b)(&data[2], Vc::Unaligned | Vc::Streaming);
-    COMPARE(a, b);
+    COMPARE(a, b - 1);
 }
 
 TEST(load_converting)
