@@ -66,9 +66,9 @@ public:
 
     // load ctors
     explicit Vc_ALWAYS_INLINE simd_array(const value_type *x) : d(x) {}
-    template<typename Flags = AlignedT> explicit Vc_ALWAYS_INLINE simd_array(const value_type *x, Flags flags = Flags())
+    template<typename Flags = DefaultLoadTag> explicit Vc_ALWAYS_INLINE simd_array(const value_type *x, Flags flags = Flags())
         : d(x, flags) {}
-    template<typename OtherT, typename Flags = AlignedT> explicit Vc_ALWAYS_INLINE simd_array(const OtherT *x, Flags flags = Flags())
+    template<typename OtherT, typename Flags = DefaultLoadTag> explicit Vc_ALWAYS_INLINE simd_array(const OtherT *x, Flags flags = Flags())
         : d(x, flags) {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////
