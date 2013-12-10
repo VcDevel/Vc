@@ -94,15 +94,17 @@ TEST(load_converting)
     typedef simd_array<float, 32> A;
 
     Vc::Memory<double_v, 34> data;
-    data = double_v::Zero();
+    for (size_t i = 0; i < data.entriesCount(); ++i) {
+        data[i] = double(i);
+    }
 
     A a{ &data[0] };
-    A b = 0.;
+    A b(Vc::IndexesFromZero);
     COMPARE(a, b);
 
     b.load(&data[1], Vc::Unaligned);
-    COMPARE(a, b);
+    COMPARE(a + 1, b);
 
     a = A(&data[2], Vc::Unaligned | Vc::Streaming);
-    COMPARE(a, b);
+    COMPARE(a, b + 1);
 }
