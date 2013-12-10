@@ -182,6 +182,15 @@ template<> Vc_INTRINSIC void ushort_v::assign(ushort_v v, ushort_m m)
     d.v() = _mm512_mask_mov_epi32(d.v(), m.data(), v.d.v());
 }
 // stores {{{1
+template <typename V> Vc_INTRINSIC V foldAfterOverflow(V vector)
+{
+    return vector;
+}
+Vc_INTRINSIC ushort_v foldAfterOverflow(ushort_v vector)
+{
+    return vector & 0xffffu;
+}
+
 template <typename Parent, typename T>
 template <typename U,
           typename Flags,
@@ -189,7 +198,7 @@ template <typename U,
 Vc_INTRINSIC void StoreMixin<Parent, T>::store(U *mem, Flags flags) const
 {
     handleStorePrefetches(mem, flags);
-    MicIntrinsics::store<Flags>(mem, data(), UpDownC<U>());
+    MicIntrinsics::store<Flags>(mem, foldAfterOverflow(*static_cast<const Parent *>(this)).data(), UpDownC<U>());
 }
 
 template <typename Parent, typename T>
