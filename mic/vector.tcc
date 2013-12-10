@@ -436,6 +436,23 @@ template<> ushort_v ushort_v::operator/(ushort_v::AsArg x) const
 {
     return ushort_v(_div<VectorEntryType>(_and(d.v(), _set1(0xffff)), _and(x.d.v(), _set1(0xffff))));
 }
+// subscript operators ([]){{{1
+template <typename T> Vc_INTRINSIC auto Vector<T>::operator[](size_t index) -> decltype(d.m(0)) &
+{
+    return d.m(index);
+}
+template <> Vc_INTRINSIC auto ushort_v::operator[](size_t index) -> decltype(d.m(0)) &
+{
+    // If the value over-/underflowed then the int reference returned from here is wrong. Since
+    // unsigned integers have well-defined overflow behavior we need to fix it up.
+    d.m(index) &= 0xffffu;
+    return d.m(index);
+}
+template <typename T>
+Vc_INTRINSIC typename Vector<T>::EntryType Vector<T>::operator[](size_t index) const
+{
+    return d.m(index);
+}
 // isNegative {{{1
 template<> Vc_INTRINSIC Vc_PURE float_m float_v::isNegative() const
 {

@@ -254,12 +254,8 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // aliasing scalar access
-    Vc_INTRINSIC decltype(d.m(0)) &operator[](size_t index) {
-        return d.m(index);
-    }
-    Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
-        return d.m(index);
-    }
+    Vc_INTRINSIC_L auto operator[](size_t index)Vc_INTRINSIC_R -> decltype(d.m(0)) & ;
+    Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_INTRINSIC_R;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // unary operators
