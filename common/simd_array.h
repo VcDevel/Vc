@@ -78,15 +78,15 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load member functions
     Vc_ALWAYS_INLINE void load(const value_type *x) {
-        d.call(static_cast<void (vector_type::*)(const value_type *)>(&vector_type::load), x);
+        d.load(x, DefaultLoadTag());
     }
     template<typename Flags>
     Vc_ALWAYS_INLINE void load(const value_type *x, Flags f) {
-        d.call(static_cast<void (vector_type::*)(const value_type *, Flags)>(&vector_type::load), x, f);
+        d.load(x, f);
     }
     template<typename U, typename Flags>
     Vc_ALWAYS_INLINE void load(const U *x, Flags f) {
-        d.call(static_cast<void (vector_type::*)(const U *, Flags)>(&vector_type::load), x, f);
+        d.load(x, f);
     }
 
     // implicit casts

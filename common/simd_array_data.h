@@ -57,6 +57,11 @@ template<typename V> struct ArrayData<V, 1>
         d += offset;
     }
 
+    template<typename U, typename Flags>
+    Vc_ALWAYS_INLINE void load(const U *x, Flags f) {
+        d.load(x, f);
+    }
+
     template<typename F, typename... Args>
     inline void call(F function, Args... args) {
         (d.*function)(args...);
@@ -83,6 +88,22 @@ template<typename V, std::size_t N> struct ArrayData
         : d(x, flags), next(x + V::Size, flags) {}
     template<typename U, typename Flags> Vc_ALWAYS_INLINE ArrayData(const U *x, Flags flags)
         : d(x, flags), next(x + V::Size, flags) {}
+
+    Vc_ALWAYS_INLINE ArrayData(VectorSpecialInitializerIndexesFromZero::IEnum x)
+        : d(x), next(x, V::Size)
+    {
+    }
+    Vc_ALWAYS_INLINE ArrayData(VectorSpecialInitializerIndexesFromZero::IEnum x, size_t offset)
+        : d(x), next(x, offset + V::Size)
+    {
+        d += offset;
+    }
+
+    template<typename U, typename Flags>
+    Vc_ALWAYS_INLINE void load(const U *x, Flags f) {
+        d.load(x, f);
+        next.load(x + V::Size, f);
+    }
 
     template<typename F, typename... Args>
     inline void call(F function, Args... args) {
