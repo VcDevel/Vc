@@ -38,7 +38,7 @@ private:
     // helper that specializes on T
     typedef VectorHelper<VectorEntryType> HT;
 
-    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::remove_cv<MemType>::type>;
+    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::decay<MemType>::type>;
 
     VectorType  data() const { return static_cast<const Parent *>(this)->data(); }
     VectorType &data()       { return static_cast<      Parent *>(this)->data(); }

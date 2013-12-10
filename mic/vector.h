@@ -90,11 +90,10 @@ protected:
     StorageType d;
     VC_DEPRECATED("renamed to data()") inline const VectorType vdata() const { return d.v(); }
 
-    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::remove_cv<MemType>::type>;
-
     template<typename V> static Vc_INTRINSIC VectorType _cast(VC_ALIGNED_PARAMETER(V) x) { return mic_cast<VectorType>(x); }
 
 public:
+    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::decay<MemType>::type>;
 
     /**
      * Reinterpret some array of T as a vector of T. You may only do this if the pointer is
