@@ -190,11 +190,9 @@ void testmain()
     testAllTypes(streamingAndUnalignedStore);
 
     if (float_v::Size > 1) {
-        runTest(maskedStore<int_v>);
-        runTest(maskedStore<uint_v>);
-        runTest(maskedStore<float_v>);
-        runTest(maskedStore<double_v>);
-        runTest(maskedStore<short_v>);
-        runTest(maskedStore<ushort_v>);
+        // only works with an even number of vector entries
+        // a) masked store with 01010101 will use only 0 for size 1
+        // b) the random masks will not be random, because mean == value
+        testAllTypes(maskedStore);
     }
 }
