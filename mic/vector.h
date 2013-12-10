@@ -90,11 +90,10 @@ protected:
     StorageType d;
     VC_DEPRECATED("renamed to data()") inline const VectorType vdata() const { return d.v(); }
 
-    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::remove_cv<MemType>::type>;
-
     template<typename V> static Vc_INTRINSIC VectorType _cast(VC_ALIGNED_PARAMETER(V) x) { return mic_cast<VectorType>(x); }
 
 public:
+    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::decay<MemType>::type>;
 
     /**
      * Reinterpret some array of T as a vector of T. You may only do this if the pointer is
@@ -153,23 +152,33 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load ctors
-    explicit Vc_INTRINSIC Vector(const EntryType * x) { load(x); }
-    template<typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const EntryType * x, Flags flags = Flags())
+    explicit Vc_INTRINSIC Vector(const EntryType *x)
+    {
+        load(x);
+    }
+    template <typename Flags> explicit Vc_INTRINSIC Vector(const EntryType *x, Flags flags)
     {
         load(x, flags);
     }
-    template<typename OtherT, typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const OtherT *x, Flags flags = Flags())
+    template <typename U,
+              typename Flags = DefaultLoadTag,
+              typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
     {
         load(x, flags);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load member functions
-    Vc_INTRINSIC void load(const EntryType *mem) { load<AlignedT>(mem, Aligned); }
-    template<typename Flags = AlignedT> Vc_INTRINSIC_L
-        void load(const EntryType *mem, Flags) Vc_INTRINSIC_R;
-    template<typename OtherT, typename Flags = AlignedT> Vc_INTRINSIC_L
-        void load(const OtherT    *mem, Flags = Flags()) Vc_INTRINSIC_R;
+    Vc_INTRINSIC void load(const EntryType *mem)
+    {
+        load<DefaultLoadTag>(mem, DefaultLoadTag());
+    }
+    template <typename Flags> Vc_INTRINSIC_L void load(const EntryType *mem, Flags) Vc_INTRINSIC_R;
+    template <typename U,
+              typename Flags = DefaultLoadTag,
+              typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    Vc_INTRINSIC_L void load(const U *mem, Flags = Flags()) Vc_INTRINSIC_R;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
@@ -244,12 +253,8 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // aliasing scalar access
-    Vc_INTRINSIC decltype(d.m(0)) &operator[](size_t index) {
-        return d.m(index);
-    }
-    Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
-        return d.m(index);
-    }
+    Vc_INTRINSIC_L auto operator[](size_t index)Vc_INTRINSIC_R -> decltype(d.m(0)) & ;
+    Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_INTRINSIC_R;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // unary operators

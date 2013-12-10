@@ -38,20 +38,38 @@ private:
     // helper that specializes on T
     typedef VectorHelper<VectorEntryType> HT;
 
-    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::remove_cv<MemType>::type>;
+    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::decay<MemType>::type>;
 
     VectorType  data() const { return static_cast<const Parent *>(this)->data(); }
     VectorType &data()       { return static_cast<      Parent *>(this)->data(); }
 
 public:
-    template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC_L void store(T2 *mem, Flags = Flags()) const Vc_INTRINSIC_R;
-    template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC_L void store(T2 *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
+    template <typename U,
+              typename Flags = DefaultStoreTag,
+              typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    Vc_INTRINSIC_L void store(U *mem, Flags = Flags()) const Vc_INTRINSIC_R;
+    template <typename U,
+              typename Flags = DefaultStoreTag,
+              typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    Vc_INTRINSIC_L void store(U *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
     // the following store overloads are here to support classes that have a cast operator to EntryType.
     // Without this overload GCC complains about not finding a matching store function.
-    Vc_INTRINSIC void store(EntryType *mem) const { store<EntryType, AlignedT>(mem); }
-    template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const { store<EntryType, Flags>(mem, flags); }
-    Vc_INTRINSIC void store(EntryType *mem, Mask mask) const { store<EntryType, AlignedT>(mem, mask); }
-    template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const { store<EntryType, Flags>(mem, mask, flags); }
+    Vc_INTRINSIC void store(EntryType *mem) const
+    {
+        store<EntryType, DefaultStoreTag>(mem);
+    }
+    template <typename Flags> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
+    {
+        store<EntryType, Flags>(mem, flags);
+    }
+    Vc_INTRINSIC void store(EntryType *mem, Mask mask) const
+    {
+        store<EntryType, DefaultStoreTag>(mem, mask);
+    }
+    template <typename Flags> Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const
+    {
+        store<EntryType, Flags>(mem, mask, flags);
+    }
 
     inline void store(VectorEntryType *mem, decltype(Streaming)) const;
 };

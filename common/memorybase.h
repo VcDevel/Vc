@@ -369,19 +369,19 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         /**
          * Return a (vectorized) iterator to the start of this memory object.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE MemoryVectorIterator<      V, Flags> begin(Flags flags = Flags())       { return &firstVector(flags); }
         //! const overload of the above
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags> begin(Flags flags = Flags()) const { return &firstVector(flags); }
 
         /**
          * Return a (vectorized) iterator to the end of this memory object.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE MemoryVectorIterator<      V, Flags>   end(Flags flags = Flags())       { return &lastVector(flags) + 1; }
         //! const overload of the above
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags>   end(Flags flags = Flags()) const { return &lastVector(flags) + 1; }
 
         /**
@@ -404,7 +404,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * access memory at fixed strides. If access to known offsets from the aligned vectors is
          * needed the vector(size_t, int) function can be used.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<!std::is_convertible<Flags, int>::value, MemoryVector<V, Flags>>::type &vector(size_t i, Flags = Flags()) {
             return *new(&entries()[i * V::Size]) MemoryVector<V, Flags>;
         }
@@ -414,7 +414,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * \return a smart object to wrap the \p i-th vector in the memory.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<!std::is_convertible<Flags, int>::value, MemoryVector<const V, Flags>>::type &vector(size_t i, Flags = Flags()) const {
             return *new(const_cast<EntryType *>(&entries()[i * V::Size])) MemoryVector<const V, Flags>;
         }
@@ -435,10 +435,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * values scalar(i), scalar(i + 1), ..., scalar(i + V::Size - 1) will be read/overwritten.
          *
          * \param align  You must take care to determine whether an unaligned load/store is
-         * required. Per default an aligned load/store is used. If \p i is not a multiple of \c V::Size
-         * you must pass Vc::Unaligned here.
+         * required. Per default an unaligned load/store is used. If \p i is a multiple of \c V::Size
+         * you may want to pass Vc::Aligned here.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = UnalignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> &vectorAt(size_t i, Flags = Flags()) {
             return *new(&entries()[i]) MemoryVector<V, Flags>;
         }
@@ -450,10 +450,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * values scalar(i), scalar(i + 1), ..., scalar(i + V::Size - 1) will be read/overwritten.
          *
          * \param align  You must take care to determine whether an unaligned load/store is
-         * required. Per default an aligned load/store is used. If \p i is not a multiple of \c V::Size
-         * you must pass Vc::Unaligned here.
+         * required. Per default an unaligned load/store is used. If \p i is a multiple of \c V::Size
+         * you may want to pass Vc::Aligned here.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = UnalignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> &vectorAt(size_t i, Flags = Flags()) const {
             return *new(const_cast<EntryType *>(&entries()[i])) MemoryVector<const V, Flags>;
         }
@@ -500,12 +500,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * This function is simply a shorthand for vector(0).
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> &firstVector(Flags = Flags()) {
             return *new(entries()) MemoryVector<V, Flags>;
         }
         /// Const overload of the above function.
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> &firstVector(Flags = Flags()) const {
             return *new(const_cast<EntryType *>(entries())) MemoryVector<const V, Flags>;
         }
@@ -515,12 +515,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * This function is simply a shorthand for vector(vectorsCount() - 1).
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> &lastVector(Flags = Flags()) {
             return *new(&entries()[vectorsCount() * V::Size - V::Size]) MemoryVector<V, Flags>;
         }
         /// Const overload of the above function.
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> &lastVector(Flags = Flags()) const {
             return *new(const_cast<EntryType *>(&entries()[vectorsCount() * V::Size - V::Size])) MemoryVector<const V, Flags>;
         }

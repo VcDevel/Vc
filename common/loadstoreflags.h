@@ -36,7 +36,7 @@ struct Exclusive {};
  */
 struct Shared {};
 
-namespace
+namespace LoadStoreFlags
 {
 
 struct StreamingFlag {};
@@ -92,6 +92,8 @@ public:
     static constexpr size_t L1Stride = Prefetch::L1Stride;
     static constexpr size_t L2Stride = Prefetch::L2Stride;
 
+    typedef LoadStoreFlags<typename std::conditional<std::is_same<Flags, UnalignedFlag>::value, void, Flags>::type...> UnalignedRemoved;
+
     // The following EnableIf* convenience types cannot use enable_if because then no LoadStoreFlags type
     // could ever be instantiated. Instead these types are defined either as void* or void. The
     // function that does SFINAE then assigns "= nullptr" to this type. Thus, the ones with just
@@ -101,6 +103,7 @@ public:
     typedef typename std::conditional<IsUnaligned && !IsStreaming, void *, void>::type EnableIfUnalignedNotStreaming;
     typedef typename std::conditional<IsUnaligned &&  IsStreaming, void *, void>::type EnableIfUnalignedAndStreaming;
     typedef typename std::conditional<IsUnaligned                , void *, void>::type EnableIfUnaligned;
+    typedef typename std::conditional<!IsUnaligned               , void *, void>::type EnableIfNotUnaligned;
     typedef typename std::conditional<IsPrefetch                 , void *, void>::type EnableIfPrefetch;
     typedef typename std::conditional<!IsPrefetch                , void *, void>::type EnableIfNotPrefetch;
 };
@@ -118,6 +121,7 @@ template<> struct LoadStoreFlags<>
     static constexpr size_t L1Stride = 0;
     static constexpr size_t L2Stride = 0;
     typedef void* EnableIfAligned;
+    typedef void* EnableIfNotUnaligned;
     typedef void* EnableIfNotPrefetch;
 };
 
@@ -127,19 +131,21 @@ constexpr LoadStoreFlags<LFlags..., RFlags...> operator|(LoadStoreFlags<LFlags..
     return LoadStoreFlags<LFlags..., RFlags...>();
 }
 
-template<typename Flags> struct EnableIfAligned : public std::enable_if<Flags::IsAligned && !Flags::IsStreaming, void *> {};
-template<typename Flags> struct EnableIfStreaming : public std::enable_if<Flags::IsAligned && Flags::IsStreaming, void *> {};
-template<typename Flags> struct EnableIfUnaligned : public std::enable_if<Flags::IsUnaligned, void *> {};
-template<typename Flags> struct EnableIfUnalignedNotStreaming : public std::enable_if<Flags::IsUnaligned && !Flags::IsStreaming, void *> {};
-template<typename Flags> struct EnableIfUnalignedAndStreaming : public std::enable_if<Flags::IsUnaligned && Flags::IsStreaming, void *> {};
+} // LoadStoreFlags namespace
 
-} // anonymous namespace
+using LoadStoreFlags::PrefetchFlag;
 
-typedef LoadStoreFlags<> AlignedT;
-constexpr AlignedT Aligned;
-constexpr LoadStoreFlags<StreamingFlag> Streaming;
-constexpr LoadStoreFlags<UnalignedFlag> Unaligned;
-constexpr LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
+typedef LoadStoreFlags::LoadStoreFlags<> AlignedTag;
+typedef LoadStoreFlags::LoadStoreFlags<LoadStoreFlags::StreamingFlag> StreamingTag;
+typedef LoadStoreFlags::LoadStoreFlags<LoadStoreFlags::UnalignedFlag> UnalignedTag;
+
+typedef UnalignedTag DefaultLoadTag;
+typedef UnalignedTag DefaultStoreTag;
+
+constexpr AlignedTag Aligned;
+constexpr StreamingTag Streaming;
+constexpr UnalignedTag Unaligned;
+constexpr LoadStoreFlags::LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
 
 /**
  * \tparam L1
@@ -147,7 +153,7 @@ constexpr LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
  * \tparam ExclusiveOrShared
  */
 template<size_t L1 = PrefetchFlag<>::L1Stride, size_t L2 = PrefetchFlag<>::L2Stride, typename ExclusiveOrShared = PrefetchFlag<>::ExclusiveOrShared>
-struct Prefetch : public LoadStoreFlags<PrefetchFlag<L1, L2, ExclusiveOrShared>> {};
+struct Prefetch : public LoadStoreFlags::LoadStoreFlags<PrefetchFlag<L1, L2, ExclusiveOrShared>> {};
 
 Vc_NAMESPACE_END
 

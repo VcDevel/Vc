@@ -125,7 +125,12 @@ template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(
     handleLoadPrefetches(x, flags);
     d.v() = LoadHelper<Vector<T>>::load(x, flags);
 }
-template<typename T> template<typename OtherT, typename Flags> Vc_INTRINSIC void Vector<T>::load(const OtherT *x, Flags flags) {
+template <typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+Vc_INTRINSIC void Vector<T>::load(const U *x, Flags flags)
+{
     handleLoadPrefetches(x, flags);
     d.v() = LoadHelper<Vector<T>>::load(x, flags);
 }
@@ -177,18 +182,98 @@ template<> Vc_INTRINSIC void ushort_v::assign(ushort_v v, ushort_m m)
     d.v() = _mm512_mask_mov_epi32(d.v(), m.data(), v.d.v());
 }
 // stores {{{1
-template<typename Parent, typename T> template<typename T2, typename Flags>
-Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Flags flags) const
+template <typename V> Vc_INTRINSIC V foldAfterOverflow(V vector)
 {
-    handleStorePrefetches(mem, flags);
-    MicIntrinsics::store<Flags>(mem, data(), UpDownC<T2>());
+    return vector;
+}
+Vc_INTRINSIC ushort_v foldAfterOverflow(ushort_v vector)
+{
+    return vector & 0xffffu;
 }
 
-template<typename Parent, typename T> template<typename T2, typename Flags>
-Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, Flags flags) const
+template <typename Parent, typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+Vc_INTRINSIC void StoreMixin<Parent, T>::store(U *mem, Flags flags) const
 {
     handleStorePrefetches(mem, flags);
-    MicIntrinsics::store<Flags>(mask.data(), mem, data(), UpDownC<T2>());
+    MicIntrinsics::store<Flags>(mem, foldAfterOverflow(*static_cast<const Parent *>(this)).data(), UpDownC<U>());
+}
+
+constexpr int alignrCount(int rotationStride, int offset)
+{
+    return 16 - (rotationStride * offset > 16 ? 16 : rotationStride * offset);
+}
+
+template<int rotationStride>
+inline __m512i rotationHelper(__m512i v, int offset, std::integral_constant<int, rotationStride>)
+{
+    switch (offset) {
+    case  1: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  1));
+    case  2: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  2));
+    case  3: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  3));
+    case  4: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  4));
+    case  5: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  5));
+    case  6: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  6));
+    case  7: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  7));
+    case  8: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  8));
+    case  9: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  9));
+    case 10: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 10));
+    case 11: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 11));
+    case 12: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 12));
+    case 13: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 13));
+    case 14: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 14));
+    case 15: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 15));
+    default: return v;
+    }
+}
+
+template <typename V,
+          typename Mem,
+          typename Mask,
+          typename Flags,
+          typename Flags::EnableIfUnaligned = nullptr>
+inline void storeDispatch(V vector, Mem *address, Mask mask, Flags flags)
+{
+    constexpr std::ptrdiff_t alignment = sizeof(Mem) * V::Size;
+    constexpr std::ptrdiff_t alignmentMask = ~(alignment - 1);
+
+    const auto loAddress = reinterpret_cast<Mem *>((reinterpret_cast<char *>(address) - static_cast<const char*>(0)) & alignmentMask);
+
+    const auto offset = address - loAddress;
+    if (offset == 0) {
+        MicIntrinsics::store<Flags::UnalignedRemoved>(mask.data(), address, vector.data(), V::template UpDownC<Mem>());
+        return;
+    }
+
+    constexpr int rotationStride = sizeof(typename V::VectorEntryType) / 4; // palignr shifts by 4 Bytes per "count"
+    auto v = rotationHelper(mic_cast<__m512i>(vector.data()), offset, std::integral_constant<int, rotationStride>());
+    auto rotated = mic_cast<typename V::VectorType>(v);
+
+    MicIntrinsics::store<Flags::UnalignedRemoved>(mask.data() << offset, loAddress, rotated, V::template UpDownC<Mem>());
+    MicIntrinsics::store<Flags::UnalignedRemoved>(mask.data() >> (V::Size - offset), loAddress + V::Size, rotated, V::template UpDownC<Mem>());
+}
+
+template <typename V,
+          typename Mem,
+          typename Mask,
+          typename Flags,
+          typename Flags::EnableIfNotUnaligned = nullptr>
+Vc_INTRINSIC void storeDispatch(V vector, Mem *address, Mask mask, Flags flags)
+{
+    MicIntrinsics::store<Flags>(mask.data(), address, vector.data(), V::template UpDownC<Mem>());
+}
+
+template <typename Parent, typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+Vc_INTRINSIC void StoreMixin<Parent, T>::store(U *mem, Mask mask, Flags flags) const
+{
+    handleStorePrefetches(mem, flags);
+    // MicIntrinsics::store does not exist for Flags containing Vc::Unaligned
+    storeDispatch(foldAfterOverflow(*static_cast<const Parent *>(this)), mem, mask, flags);
 }
 
 template<typename Parent, typename T> Vc_INTRINSIC void StoreMixin<Parent, T>::store(VectorEntryType *mem, decltype(Vc::Streaming)) const
@@ -424,6 +509,23 @@ template<> ushort_v &ushort_v::operator/=(ushort_v::AsArg x)
 template<> ushort_v ushort_v::operator/(ushort_v::AsArg x) const
 {
     return ushort_v(_div<VectorEntryType>(_and(d.v(), _set1(0xffff)), _and(x.d.v(), _set1(0xffff))));
+}
+// subscript operators ([]){{{1
+template <typename T> Vc_INTRINSIC auto Vector<T>::operator[](size_t index) -> decltype(d.m(0)) &
+{
+    return d.m(index);
+}
+template <> Vc_INTRINSIC auto ushort_v::operator[](size_t index) -> decltype(d.m(0)) &
+{
+    // If the value over-/underflowed then the int reference returned from here is wrong. Since
+    // unsigned integers have well-defined overflow behavior we need to fix it up.
+    d.m(index) &= 0xffffu;
+    return d.m(index);
+}
+template <typename T>
+Vc_INTRINSIC typename Vector<T>::EntryType Vector<T>::operator[](size_t index) const
+{
+    return d.m(index);
 }
 // isNegative {{{1
 template<> Vc_INTRINSIC Vc_PURE float_m float_v::isNegative() const
