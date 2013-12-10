@@ -157,6 +157,29 @@ template<typename Vec> void maskedStore()
     for (int i = 0; i < count; i += 2) {
         COMPARE(array[i], nullValue) << ", i: " << i << ", count: " << count << ", mask: " << mask << ", array:\n" << array;
     }
+
+    for (int offset = 0; offset < count - Vec::Size; ++offset) {
+        auto mem = &array[offset];
+        Vec::Zero().store(mem, Vc::Unaligned);
+
+        constexpr std::ptrdiff_t alignment = sizeof(T) * Vec::Size;
+        constexpr std::ptrdiff_t alignmentMask = ~(alignment - 1);
+
+        const auto loAddress = reinterpret_cast<T *>(
+            (reinterpret_cast<char *>(mem) - static_cast<const char *>(0)) & alignmentMask);
+        const auto offset2 = mem - loAddress;
+
+        const Vec rand = Vec::Random();
+        const auto mean = (rand / Vec::Size).sum();
+        const auto mask = rand < mean;
+        rand.store(mem, mask, Vc::Unaligned);
+        for (int i = 0; i < Vec::Size; ++i) {
+            COMPARE(mem[i], mask[i] ? rand[i] : T(0))
+                << ", i: " << i << ", mask: " << mask << "\nrand: " << rand << "\nmean: " << mean
+                << ", offset: " << offset << ", offset2: " << offset2 << ", mem: " << mem
+                << ", loAddress: " << loAddress;
+        }
+    }
 }
 
 void testmain()
