@@ -201,6 +201,70 @@ Vc_INTRINSIC void StoreMixin<Parent, T>::store(U *mem, Flags flags) const
     MicIntrinsics::store<Flags>(mem, foldAfterOverflow(*static_cast<const Parent *>(this)).data(), UpDownC<U>());
 }
 
+constexpr int alignrCount(int rotationStride, int offset)
+{
+    return 16 - (rotationStride * offset > 16 ? 16 : rotationStride * offset);
+}
+
+template<int rotationStride>
+inline __m512i rotationHelper(__m512i v, int offset, std::integral_constant<int, rotationStride>)
+{
+    switch (offset) {
+    case  1: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  1));
+    case  2: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  2));
+    case  3: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  3));
+    case  4: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  4));
+    case  5: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  5));
+    case  6: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  6));
+    case  7: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  7));
+    case  8: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  8));
+    case  9: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  9));
+    case 10: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 10));
+    case 11: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 11));
+    case 12: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 12));
+    case 13: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 13));
+    case 14: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 14));
+    case 15: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 15));
+    default: return v;
+    }
+}
+
+template <typename V,
+          typename Mem,
+          typename Mask,
+          typename Flags,
+          typename Flags::EnableIfUnaligned = nullptr>
+inline void storeDispatch(V vector, Mem *address, Mask mask, Flags flags)
+{
+    constexpr std::ptrdiff_t alignment = sizeof(Mem) * V::Size;
+    constexpr std::ptrdiff_t alignmentMask = ~(alignment - 1);
+
+    const auto loAddress = reinterpret_cast<Mem *>((reinterpret_cast<char *>(address) - static_cast<const char*>(0)) & alignmentMask);
+
+    const auto offset = address - loAddress;
+    if (offset == 0) {
+        MicIntrinsics::store<Flags::UnalignedRemoved>(mask.data(), address, vector.data(), V::template UpDownC<Mem>());
+        return;
+    }
+
+    constexpr int rotationStride = sizeof(typename V::VectorEntryType) / 4; // palignr shifts by 4 Bytes per "count"
+    auto v = rotationHelper(mic_cast<__m512i>(vector.data()), offset, std::integral_constant<int, rotationStride>());
+    auto rotated = mic_cast<typename V::VectorType>(v);
+
+    MicIntrinsics::store<Flags::UnalignedRemoved>(mask.data() << offset, loAddress, rotated, V::template UpDownC<Mem>());
+    MicIntrinsics::store<Flags::UnalignedRemoved>(mask.data() >> (V::Size - offset), loAddress + V::Size, rotated, V::template UpDownC<Mem>());
+}
+
+template <typename V,
+          typename Mem,
+          typename Mask,
+          typename Flags,
+          typename Flags::EnableIfNotUnaligned = nullptr>
+Vc_INTRINSIC void storeDispatch(V vector, Mem *address, Mask mask, Flags flags)
+{
+    MicIntrinsics::store<Flags>(mask.data(), address, vector.data(), V::template UpDownC<Mem>());
+}
+
 template <typename Parent, typename T>
 template <typename U,
           typename Flags,
@@ -208,7 +272,8 @@ template <typename U,
 Vc_INTRINSIC void StoreMixin<Parent, T>::store(U *mem, Mask mask, Flags flags) const
 {
     handleStorePrefetches(mem, flags);
-    MicIntrinsics::store<Flags>(mask.data(), mem, data(), UpDownC<U>());
+    // MicIntrinsics::store does not exist for Flags containing Vc::Unaligned
+    storeDispatch(foldAfterOverflow(*static_cast<const Parent *>(this)), mem, mask, flags);
 }
 
 template<typename Parent, typename T> Vc_INTRINSIC void StoreMixin<Parent, T>::store(VectorEntryType *mem, decltype(Vc::Streaming)) const

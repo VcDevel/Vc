@@ -137,21 +137,13 @@ static Vc_INTRINSIC void store_unaligned(void *m, __m512i v, _MM_DOWNCONV_EPI32_
     _mm512_extpackstorehi_epi32(static_cast<char *>(m) + 64, v, downconv, memHint);
 }
 
-static Vc_INTRINSIC void store_unaligned(__mmask16 mask, void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
-{
-    _mm512_mask_extpackstorelo_ps(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_ps(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
-}
-static Vc_INTRINSIC void store_unaligned(__mmask8 mask, void *m, __m512d v, _MM_DOWNCONV_PD_ENUM downconv, int memHint)
-{
-    _mm512_mask_extpackstorelo_pd(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_pd(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
-}
-static Vc_INTRINSIC void store_unaligned(__mmask16 mask, void *m, __m512i v, _MM_DOWNCONV_EPI32_ENUM downconv, int memHint)
-{
-    _mm512_mask_extpackstorelo_epi32(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_epi32(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
-}
+/*
+void store_unaligned(__mmask16 mask, void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
+and friends are not that easy. MIC only provides packstore for unaligned stores. But packstore packs
+the masked values consecutively, which is not what we want.
+The maskstore is thus better implemented in the Vector class - where more type information is still
+available.
+*/
 
 static Vc_INTRINSIC void store_aligned(void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
 {

@@ -92,6 +92,8 @@ public:
     static constexpr size_t L1Stride = Prefetch::L1Stride;
     static constexpr size_t L2Stride = Prefetch::L2Stride;
 
+    typedef LoadStoreFlags<typename std::conditional<std::is_same<Flags, UnalignedFlag>::value, void, Flags>::type...> UnalignedRemoved;
+
     // The following EnableIf* convenience types cannot use enable_if because then no LoadStoreFlags type
     // could ever be instantiated. Instead these types are defined either as void* or void. The
     // function that does SFINAE then assigns "= nullptr" to this type. Thus, the ones with just
@@ -101,6 +103,7 @@ public:
     typedef typename std::conditional<IsUnaligned && !IsStreaming, void *, void>::type EnableIfUnalignedNotStreaming;
     typedef typename std::conditional<IsUnaligned &&  IsStreaming, void *, void>::type EnableIfUnalignedAndStreaming;
     typedef typename std::conditional<IsUnaligned                , void *, void>::type EnableIfUnaligned;
+    typedef typename std::conditional<!IsUnaligned               , void *, void>::type EnableIfNotUnaligned;
     typedef typename std::conditional<IsPrefetch                 , void *, void>::type EnableIfPrefetch;
     typedef typename std::conditional<!IsPrefetch                , void *, void>::type EnableIfNotPrefetch;
 };
@@ -118,6 +121,7 @@ template<> struct LoadStoreFlags<>
     static constexpr size_t L1Stride = 0;
     static constexpr size_t L2Stride = 0;
     typedef void* EnableIfAligned;
+    typedef void* EnableIfNotUnaligned;
     typedef void* EnableIfNotPrefetch;
 };
 
