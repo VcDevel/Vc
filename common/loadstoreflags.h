@@ -131,12 +131,6 @@ constexpr LoadStoreFlags<LFlags..., RFlags...> operator|(LoadStoreFlags<LFlags..
     return LoadStoreFlags<LFlags..., RFlags...>();
 }
 
-template<typename Flags> struct EnableIfAligned : public std::enable_if<Flags::IsAligned && !Flags::IsStreaming, void *> {};
-template<typename Flags> struct EnableIfStreaming : public std::enable_if<Flags::IsAligned && Flags::IsStreaming, void *> {};
-template<typename Flags> struct EnableIfUnaligned : public std::enable_if<Flags::IsUnaligned, void *> {};
-template<typename Flags> struct EnableIfUnalignedNotStreaming : public std::enable_if<Flags::IsUnaligned && !Flags::IsStreaming, void *> {};
-template<typename Flags> struct EnableIfUnalignedAndStreaming : public std::enable_if<Flags::IsUnaligned && Flags::IsStreaming, void *> {};
-
 } // LoadStoreFlags namespace
 
 using LoadStoreFlags::PrefetchFlag;
