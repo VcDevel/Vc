@@ -94,6 +94,22 @@ public:
         d[0] = x.data(0);
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // store member functions
+    Vc_ALWAYS_INLINE void store(value_type *x) {
+        d.store(x, DefaultStoreTag());
+    }
+    template <typename Flags> Vc_ALWAYS_INLINE void store(value_type *x, Flags f)
+    {
+        d.store(x, f);
+    }
+    template <typename U, typename Flags = DefaultStoreTag>
+    Vc_ALWAYS_INLINE void store(U *x, Flags f = Flags())
+    {
+        d.store(x, f);
+    }
+
+
 #define VC_COMPARE_IMPL(op)                                                                        \
     Vc_ALWAYS_INLINE Vc_PURE mask_type operator op(const simd_array &x) const                      \
     {                                                                                              \
