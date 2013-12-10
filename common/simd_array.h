@@ -68,6 +68,10 @@ public:
     explicit Vc_ALWAYS_INLINE simd_array(VectorSpecialInitializerOne::OEnum x) : d(vector_type(x)) {}
     explicit Vc_ALWAYS_INLINE simd_array(VectorSpecialInitializerIndexesFromZero::IEnum x) : d(x) {}
 
+    static Vc_ALWAYS_INLINE simd_array Zero() { return simd_array(VectorSpecialInitializerZero::Zero); }
+    static Vc_ALWAYS_INLINE simd_array One() { return simd_array(VectorSpecialInitializerOne::One); }
+    static Vc_ALWAYS_INLINE simd_array IndexesFromZero() { return simd_array(VectorSpecialInitializerIndexesFromZero::IndexesFromZero); }
+
     // load ctors
     explicit Vc_ALWAYS_INLINE simd_array(const value_type *x) : d(x) {}
     template<typename Flags = DefaultLoadTag> explicit Vc_ALWAYS_INLINE simd_array(const value_type *x, Flags flags = Flags())
