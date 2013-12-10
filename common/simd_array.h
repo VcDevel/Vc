@@ -147,6 +147,31 @@ public:
         return m[i];
     }
 
+    //prefix
+    Vc_INTRINSIC simd_array &operator++()
+    {
+        d.call(static_cast<vector_type &(vector_type::*)()>(&vector_type::operator++));
+        return *this;
+    }
+    Vc_INTRINSIC simd_array &operator--()
+    {
+        d.call(static_cast<vector_type &(vector_type::*)()>(&vector_type::operator--));
+        return *this;
+    }
+    // postfix
+    Vc_INTRINSIC simd_array operator++(int)
+    {
+        const auto r = *this;
+        d.call(static_cast<vector_type &(vector_type::*)()>(&vector_type::operator++));
+        return r;
+    }
+    Vc_INTRINSIC simd_array operator--(int)
+    {
+        const auto r = *this;
+        d.call(static_cast<vector_type &(vector_type::*)()>(&vector_type::operator--));
+        return r;
+    }
+
 private:
     Common::ArrayData<vector_type, register_count> d;
 };
