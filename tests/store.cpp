@@ -170,8 +170,8 @@ template<typename Vec> void maskedStore()
         const auto offset2 = mem - loAddress;
 
         const Vec rand = Vec::Random();
-        const auto mean = (rand / Vec::Size).sum();
-        const auto mask = rand < mean;
+        const auto mean = (rand / T(Vec::Size)).sum();
+        mask = rand < mean;
         rand.store(mem, mask, Vc::Unaligned);
         for (int i = 0; i < Vec::Size; ++i) {
             COMPARE(mem[i], mask[i] ? rand[i] : T(0))
