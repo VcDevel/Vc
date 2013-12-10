@@ -36,7 +36,7 @@ struct Exclusive {};
  */
 struct Shared {};
 
-namespace
+namespace LoadStoreFlags
 {
 
 struct StreamingFlag {};
@@ -133,11 +133,13 @@ template<typename Flags> struct EnableIfUnaligned : public std::enable_if<Flags:
 template<typename Flags> struct EnableIfUnalignedNotStreaming : public std::enable_if<Flags::IsUnaligned && !Flags::IsStreaming, void *> {};
 template<typename Flags> struct EnableIfUnalignedAndStreaming : public std::enable_if<Flags::IsUnaligned && Flags::IsStreaming, void *> {};
 
-} // anonymous namespace
+} // LoadStoreFlags namespace
 
-typedef LoadStoreFlags<> AlignedTag;
-typedef LoadStoreFlags<StreamingFlag> StreamingTag;
-typedef LoadStoreFlags<UnalignedFlag> UnalignedTag;
+using LoadStoreFlags::PrefetchFlag;
+
+typedef LoadStoreFlags::LoadStoreFlags<> AlignedTag;
+typedef LoadStoreFlags::LoadStoreFlags<LoadStoreFlags::StreamingFlag> StreamingTag;
+typedef LoadStoreFlags::LoadStoreFlags<LoadStoreFlags::UnalignedFlag> UnalignedTag;
 
 typedef UnalignedTag DefaultLoadTag;
 typedef UnalignedTag DefaultStoreTag;
@@ -145,7 +147,7 @@ typedef UnalignedTag DefaultStoreTag;
 constexpr AlignedTag Aligned;
 constexpr StreamingTag Streaming;
 constexpr UnalignedTag Unaligned;
-constexpr LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
+constexpr LoadStoreFlags::LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
 
 /**
  * \tparam L1
@@ -153,7 +155,7 @@ constexpr LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
  * \tparam ExclusiveOrShared
  */
 template<size_t L1 = PrefetchFlag<>::L1Stride, size_t L2 = PrefetchFlag<>::L2Stride, typename ExclusiveOrShared = PrefetchFlag<>::ExclusiveOrShared>
-struct Prefetch : public LoadStoreFlags<PrefetchFlag<L1, L2, ExclusiveOrShared>> {};
+struct Prefetch : public LoadStoreFlags::LoadStoreFlags<PrefetchFlag<L1, L2, ExclusiveOrShared>> {};
 
 Vc_NAMESPACE_END
 
