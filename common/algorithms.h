@@ -70,7 +70,32 @@ constexpr bool some_of(bool) { return false; }
 
 Vc_NAMESPACE_END
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+// import to Implementation namespaces for automatic namespace lookup
+Vc_NAMESPACE_BEGIN(Scalar)
+    using Vc::all_of;
+    using Vc::any_of;
+    using Vc::none_of;
+    using Vc::some_of;
+Vc_NAMESPACE_END
+Vc_NAMESPACE_BEGIN(SSE)
+    using Vc::all_of;
+    using Vc::any_of;
+    using Vc::none_of;
+    using Vc::some_of;
+Vc_NAMESPACE_END
+Vc_NAMESPACE_BEGIN(AVX)
+    using Vc::all_of;
+    using Vc::any_of;
+    using Vc::none_of;
+    using Vc::some_of;
+Vc_NAMESPACE_END
+Vc_NAMESPACE_BEGIN(AVX2)
+    using Vc::all_of;
+    using Vc::any_of;
+    using Vc::none_of;
+    using Vc::some_of;
+Vc_NAMESPACE_END
+Vc_NAMESPACE_BEGIN(MIC)
     using Vc::all_of;
     using Vc::any_of;
     using Vc::none_of;

@@ -109,7 +109,19 @@ template<typename T> constexpr T iif (bool condition, const T &trueValue, const 
 
 Vc_NAMESPACE_END
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+Vc_NAMESPACE_BEGIN(Scalar)
+    using Vc::iif;
+Vc_NAMESPACE_END
+Vc_NAMESPACE_BEGIN(SSE)
+    using Vc::iif;
+Vc_NAMESPACE_END
+Vc_NAMESPACE_BEGIN(AVX)
+    using Vc::iif;
+Vc_NAMESPACE_END
+Vc_NAMESPACE_BEGIN(AVX2)
+    using Vc::iif;
+Vc_NAMESPACE_END
+Vc_NAMESPACE_BEGIN(MIC)
     using Vc::iif;
 Vc_NAMESPACE_END
 
