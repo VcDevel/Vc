@@ -23,74 +23,42 @@
 
 using namespace Vc;
 
-#define TEST_ALL_V_AND_N(V, N, fun) \
-template<typename V, std::size_t N> void fun(); \
-static UnitTest::Test test_##fun##__float_v_32_(&fun< float_v, 32>, #fun "< float_v, 32>"); \
-static UnitTest::Test test_##fun##__short_v_32_(&fun< short_v, 32>, #fun "< short_v, 32>"); \
-static UnitTest::Test test_##fun##_ushort_v_32_(&fun<ushort_v, 32>, #fun "<ushort_v, 32>"); \
-static UnitTest::Test test_##fun##____int_v_32_(&fun<   int_v, 32>, #fun "<   int_v, 32>"); \
-static UnitTest::Test test_##fun##_double_v_32_(&fun<double_v, 32>, #fun "<double_v, 32>"); \
-static UnitTest::Test test_##fun##___uint_v_32_(&fun<  uint_v, 32>, #fun "<  uint_v, 32>"); \
-static UnitTest::Test test_##fun##__float_v_16_(&fun< float_v, 16>, #fun "< float_v, 16>"); \
-static UnitTest::Test test_##fun##__short_v_16_(&fun< short_v, 16>, #fun "< short_v, 16>"); \
-static UnitTest::Test test_##fun##_ushort_v_16_(&fun<ushort_v, 16>, #fun "<ushort_v, 16>"); \
-static UnitTest::Test test_##fun##____int_v_16_(&fun<   int_v, 16>, #fun "<   int_v, 16>"); \
-static UnitTest::Test test_##fun##_double_v_16_(&fun<double_v, 16>, #fun "<double_v, 16>"); \
-static UnitTest::Test test_##fun##___uint_v_16_(&fun<  uint_v, 16>, #fun "<  uint_v, 16>"); \
-static UnitTest::Test test_##fun##__float_v__8_(&fun< float_v,  8>, #fun "< float_v,  8>"); \
-static UnitTest::Test test_##fun##__short_v__8_(&fun< short_v,  8>, #fun "< short_v,  8>"); \
-static UnitTest::Test test_##fun##_ushort_v__8_(&fun<ushort_v,  8>, #fun "<ushort_v,  8>"); \
-static UnitTest::Test test_##fun##____int_v__8_(&fun<   int_v,  8>, #fun "<   int_v,  8>"); \
-static UnitTest::Test test_##fun##_double_v__8_(&fun<double_v,  8>, #fun "<double_v,  8>"); \
-static UnitTest::Test test_##fun##___uint_v__8_(&fun<  uint_v,  8>, #fun "<  uint_v,  8>"); \
-static UnitTest::Test test_##fun##__float_v__4_(&fun< float_v,  4>, #fun "< float_v,  4>"); \
-static UnitTest::Test test_##fun##__short_v__4_(&fun< short_v,  4>, #fun "< short_v,  4>"); \
-static UnitTest::Test test_##fun##_ushort_v__4_(&fun<ushort_v,  4>, #fun "<ushort_v,  4>"); \
-static UnitTest::Test test_##fun##____int_v__4_(&fun<   int_v,  4>, #fun "<   int_v,  4>"); \
-static UnitTest::Test test_##fun##_double_v__4_(&fun<double_v,  4>, #fun "<double_v,  4>"); \
-static UnitTest::Test test_##fun##___uint_v__4_(&fun<  uint_v,  4>, #fun "<  uint_v,  4>"); \
-static UnitTest::Test test_##fun##__float_v__2_(&fun< float_v,  2>, #fun "< float_v,  2>"); \
-static UnitTest::Test test_##fun##__short_v__2_(&fun< short_v,  2>, #fun "< short_v,  2>"); \
-static UnitTest::Test test_##fun##_ushort_v__2_(&fun<ushort_v,  2>, #fun "<ushort_v,  2>"); \
-static UnitTest::Test test_##fun##____int_v__2_(&fun<   int_v,  2>, #fun "<   int_v,  2>"); \
-static UnitTest::Test test_##fun##_double_v__2_(&fun<double_v,  2>, #fun "<double_v,  2>"); \
-static UnitTest::Test test_##fun##___uint_v__2_(&fun<  uint_v,  2>, #fun "<  uint_v,  2>"); \
-static UnitTest::Test test_##fun##__float_v__1_(&fun< float_v,  1>, #fun "< float_v,  1>"); \
-static UnitTest::Test test_##fun##__short_v__1_(&fun< short_v,  1>, #fun "< short_v,  1>"); \
-static UnitTest::Test test_##fun##_ushort_v__1_(&fun<ushort_v,  1>, #fun "<ushort_v,  1>"); \
-static UnitTest::Test test_##fun##____int_v__1_(&fun<   int_v,  1>, #fun "<   int_v,  1>"); \
-static UnitTest::Test test_##fun##_double_v__1_(&fun<double_v,  1>, #fun "<double_v,  1>"); \
-static UnitTest::Test test_##fun##___uint_v__1_(&fun<  uint_v,  1>, #fun "<  uint_v,  1>"); \
-template<typename V, std::size_t N> void fun()
+#define SIMD_ARRAY_LIST                                                                            \
+    (SIMD_ARRAYS(32),                                                                              \
+     SIMD_ARRAYS(16),                                                                              \
+     SIMD_ARRAYS(8),                                                                               \
+     SIMD_ARRAYS(4),                                                                               \
+     SIMD_ARRAYS(2),                                                                               \
+     SIMD_ARRAYS(1))
 
-TEST_ALL_V_AND_N(V, N, createArray)
-{
+template<typename T, size_t N> constexpr size_t captureN(simd_array<T, N>) { return N; }
+
+TEST_BEGIN(V, createArray, SIMD_ARRAY_LIST)
     typedef typename V::EntryType T;
-    simd_array<T, N> array;
+    typedef typename V::vector_type Vec;
+    V array;
 
-    COMPARE(array.size, N);
+    COMPARE(array.size, captureN(V()));
     VERIFY(array.register_count > 0);
-    VERIFY(array.register_count <= N);
-    VERIFY(array.register_count * V::Size >= N);
-}
+    VERIFY(array.register_count <= captureN(V()));
+    VERIFY(array.register_count * Vec::Size >= captureN(V()));
+TEST_END
 
-TEST_ALL_V_AND_N(V, N, broadcast)
-{
+TEST_BEGIN(V, broadcast, SIMD_ARRAY_LIST)
     typedef typename V::EntryType T;
-    simd_array<T, N> array = 0;
+    V array = 0;
     array = 1;
-}
+TEST_END
 
-TEST_ALL_V_AND_N(V, N, broadcast_equal)
-{
+TEST_BEGIN(V, broadcast_equal, SIMD_ARRAY_LIST)
     typedef typename V::EntryType T;
-    simd_array<T, N> a = 0;
-    simd_array<T, N> b = 0;
+    V a = 0;
+    V b = 0;
     COMPARE(a, b);
     a = 1;
     b = 1;
     COMPARE(a, b);
-}
+TEST_END
 
 TEST_ALL_V(V, broadcast_not_equal)
 {
@@ -107,16 +75,15 @@ TEST_ALL_V(V, broadcast_not_equal)
     VERIFY(all_of(a >= b));
 }
 
-TEST_ALL_V_AND_N(V, N, load)
-{
+TEST_BEGIN(V, load, SIMD_ARRAY_LIST)
     typedef typename V::EntryType T;
-    Vc::Memory<V, N + 2> data;
+    Vc::Memory<V, V::Size + 2> data;
     for (size_t i = 0; i < data.entriesCount(); ++i) {
         data[i] = T(i);
     }
 
-    simd_array<T, N> a{ &data[0] };
-    simd_array<T, N> b(Vc::IndexesFromZero);
+    V a{ &data[0] };
+    V b(Vc::IndexesFromZero);
     COMPARE(a, b);
 
     b.load(&data[0]);
@@ -127,7 +94,7 @@ TEST_ALL_V_AND_N(V, N, load)
 
     b = decltype(b)(&data[2], Vc::Unaligned | Vc::Streaming);
     COMPARE(a, b - 1);
-}
+TEST_END
 
 TEST(load_converting)
 {
@@ -149,7 +116,7 @@ TEST(load_converting)
     COMPARE(a, b + 1);
 }
 
-TEST_ALL_NATIVE_V(V, store)
+TEST_ALL_V(V, store)
 {
     typedef typename V::EntryType T;
     Vc::Memory<V, 34> data;
