@@ -24,6 +24,7 @@
 
 #include "trigonometric.h"
 
+#include "const.h"
 #include "macros.h"
 
 #ifdef VC_IMPL_AVX
