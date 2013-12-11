@@ -27,6 +27,18 @@ Vc_NAMESPACE_BEGIN(Common)
 template<typename V, std::size_t N> struct ArrayData;
 template<typename M, std::size_t N> struct MaskData;
 
+template<std::size_t N, typename... Typelist> struct select_best_vector_type;
+
+template<std::size_t N, typename T> struct select_best_vector_type<N, T>
+{
+    using type = T;
+};
+template<std::size_t N, typename T, typename... Typelist> struct select_best_vector_type<N, T, Typelist...>
+{
+    using type = typename std::conditional <
+                 N<T::Size, typename select_best_vector_type<N, Typelist...>::type, T>::type;
+};
+
 template<typename V> struct ArrayData<V, 1>
 {
     typedef typename V::EntryType value_type;

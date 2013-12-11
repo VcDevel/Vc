@@ -40,14 +40,13 @@ template<typename T, std::size_t N> class simd_array
 
     static_assert((N & (N - 1)) == 0, "simd_array<T, N> must be used with a power of two value for N.");
 
-    typedef Vc::Vector<T> default_vector_type;
-
 public:
 #ifdef VC_IMPL_AVX
-    using vector_type = typename std::conditional<(N < default_vector_type::Size),
-            Vc::SSE::Vector<T>, Vc::Vector<T>>::type;
+    using vector_type = typename Common::select_best_vector_type<N, Vc::Vector<T>, Vc::SSE::Vector<T>, Vc::Scalar::Vector<T>>::type;
+#elif defined(VC_IMPL_Scalar)
+    using vector_type = typename Common::select_best_vector_type<N, Vc::Vector<T>>::type;
 #else
-    typedef Vc::Vector<T> vector_type;
+    using vector_type = typename Common::select_best_vector_type<N, Vc::Vector<T>, Vc::Scalar::Vector<T>>::type;
 #endif
     typedef T value_type;
     typedef simd_mask_array<T, N> mask_type;
