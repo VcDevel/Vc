@@ -35,7 +35,7 @@
 #include "writemaskedvector.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+Vc_NAMESPACE_BEGIN(Scalar)
     enum VectorAlignmentEnum { VectorAlignment = 4 };
 
 template<typename T>

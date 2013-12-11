@@ -37,7 +37,7 @@
 #include "../common/types.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+Vc_NAMESPACE_BEGIN(SSE)
     template<typename T> class Vector;
     template<typename T> class WriteMaskedVector;
 
@@ -109,8 +109,8 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 Vc_NAMESPACE_END
 
 Vc_NAMESPACE_BEGIN(Common)
-template<typename T> struct is_simd_mask_internal<Vc_IMPL_NAMESPACE::Mask<T>> : public std::true_type {};
-template<typename T> struct is_simd_vector_internal<Vc_IMPL_NAMESPACE::Vector<T>> : public std::true_type {};
+template<typename T> struct is_simd_mask_internal<SSE::Mask<T>> : public std::true_type {};
+template<typename T> struct is_simd_vector_internal<SSE::Vector<T>> : public std::true_type {};
 Vc_NAMESPACE_END
 
 #include "undomacros.h"

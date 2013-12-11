@@ -22,7 +22,7 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+Vc_NAMESPACE_BEGIN(Scalar)
 
 template<typename T> class WriteMaskedVector
 {

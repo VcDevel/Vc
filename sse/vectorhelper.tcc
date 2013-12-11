@@ -20,7 +20,7 @@
 #include "casts.h"
 #include <cstdlib>
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+Vc_NAMESPACE_BEGIN(SSE)
 
     template<> inline Vc_CONST _M128I SortHelper<_M128I, 8>::sort(_M128I x)
     {

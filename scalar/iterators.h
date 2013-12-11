@@ -22,7 +22,7 @@
 
 #include "../common/iterators.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+Vc_NAMESPACE_BEGIN(Scalar)
 
 using ::Vc::Common::begin;
 using ::Vc::Common::end;

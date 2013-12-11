@@ -21,7 +21,7 @@
 #include "where.h"
 #include "iterators.h"
 #include "macros.h"
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+Vc_NAMESPACE_BEGIN(Scalar)
 
 // copySign ///////////////////////////////////////////////////////////////////////// {{{1
 template<> Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float> reference) const

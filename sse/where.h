@@ -22,7 +22,7 @@
 
 #include "../common/where.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+Vc_NAMESPACE_BEGIN(SSE)
 using Vc::where;
 Vc_NAMESPACE_END
 
