@@ -30,17 +30,7 @@
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<typename T> class Vector;
-#ifdef VC_MSVC
-#  if defined(VC_IMPL_Scalar)
-    template<unsigned int VectorSize> class Mask;
-#  elif defined(VC_IMPL_SSE)
-    template<unsigned int VectorSize> class Mask;
-#  elif defined(VC_IMPL_AVX)
-    template<unsigned int VectorSize, size_t RegisterWidth> class Mask;
-#  else
-#    error "Sorry, MSVC is a nasty compiler and needs extra care. Please help."
-#  endif
-#endif
+    template<typename T> class Mask;
 Vc_NAMESPACE_END
 
 Vc_PUBLIC_NAMESPACE_BEGIN
