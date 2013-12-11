@@ -32,7 +32,7 @@ template<typename Vec> constexpr unsigned long alignmentMask()
             min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1
         ) : (
             // AVX::VectorAlignment is too large
-            min<size_t>(sizeof(Vec), VectorAlignment) - 1
+            min(sizeof(Vec), alignof(Vec)) - 1
         );
 }
 
