@@ -83,17 +83,17 @@ template<typename Vec> void loadArray()
         Vec ii(i);
         ii += offsets;
 
-        Vec a(addr);
+        Vec a(addr, Vc::Aligned);
         COMPARE(a, ii);
 
         Vec b = Vec::Zero();
-        b.load(addr);
+        b.load(addr, Vc::Aligned);
         COMPARE(b, ii);
     }
 
     // check that Vc allows construction from objects that auto-convert to T*
-    Vec tmp0(array);
-    tmp0.load(array);
+    Vec tmp0(array, Vc::Aligned);
+    tmp0.load(array, Vc::Aligned);
 }
 
 enum Enum {
@@ -115,11 +115,11 @@ template<typename Vec> void loadArrayShort()
         Vec ii(i);
         ii += offsets;
 
-        Vec a(addr);
+        Vec a(addr, Vc::Aligned);
         COMPARE(a, ii);
 
         Vec b = Vec::Zero();
-        b.load(addr);
+        b.load(addr, Vc::Aligned);
         COMPARE(b, ii);
     }
 }
@@ -139,8 +139,8 @@ template<typename Vec> void streamingLoad()
     for (size_t i = 0; i < streamingLoadCount - Vec::Size; ++i, ++ref) {
         Vec v1, v2;
         if (0 == i % Vec::Size) {
-            v1 = Vec(&data[i], Vc::Streaming);
-            v2.load (&data[i], Vc::Streaming);
+            v1 = Vec(&data[i], Vc::Aligned | Vc::Streaming);
+            v2.load (&data[i], Vc::Aligned | Vc::Streaming);
         } else {
             v1 = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
             v2.load (&data[i], Vc::Unaligned | Vc::Streaming);
