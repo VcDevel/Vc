@@ -17,6 +17,7 @@
 
 */
 
+#define VC_NEWTEST
 #include "unittest.h"
 #include <iostream>
 
@@ -35,7 +36,7 @@ template<typename Vec> constexpr unsigned long alignmentMask()
         );
 }
 
-template<typename Vec> void checkAlignment()
+TEST_ALL_V(Vec, checkAlignment)
 {
     unsigned char i = 1;
     Vec a[10];
@@ -51,7 +52,7 @@ template<typename Vec> void checkAlignment()
 
 void *hack_to_put_b_on_the_stack = 0;
 
-template<typename Vec> void checkMemoryAlignment()
+TEST_ALL_V(Vec, checkMemoryAlignment)
 {
     typedef typename Vec::EntryType T;
     const T *b = 0;
@@ -64,10 +65,42 @@ template<typename Vec> void checkMemoryAlignment()
     }
 }
 
-template<typename Vec> void loadArray()
+enum Enum {
+    loadArrayShortCount = 32 * 1024,
+    streamingLoadCount = 1024
+};
+template<typename Vec> void loadArrayShort()
+{
+    typedef typename Vec::EntryType T;
+
+    Vc::Memory<Vec, loadArrayShortCount> array;
+    for (int i = 0; i < loadArrayShortCount; ++i) {
+        array[i] = i;
+    }
+
+    const Vec offsets(IndexesFromZero);
+    for (int i = 0; i < loadArrayShortCount; i += Vec::Size) {
+        const T *const addr = &array[i];
+        Vec ii(i);
+        ii += offsets;
+
+        Vec a(addr, Vc::Aligned);
+        COMPARE(a, ii);
+
+        Vec b = Vec::Zero();
+        b.load(addr, Vc::Aligned);
+        COMPARE(b, ii);
+    }
+}
+
+TEST_ALL_V(Vec, loadArray)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
+    if (sizeof(T) < 32) {
+        loadArrayShort<Vec>();
+        return;
+    }
 
     enum loadArrayEnum { count = 256 * 1024 / sizeof(T) };
     Vc::Memory<Vec, count> array;
@@ -75,9 +108,7 @@ template<typename Vec> void loadArray()
         array[i] = i;
     }
 
-    const I indexesFromZero(IndexesFromZero);
-
-    const Vec offsets(indexesFromZero);
+    const Vec offsets(IndexesFromZero);
     for (int i = 0; i < count; i += Vec::Size) {
         const T *const addr = &array[i];
         Vec ii(i);
@@ -96,35 +127,7 @@ template<typename Vec> void loadArray()
     tmp0.load(array, Vc::Aligned);
 }
 
-enum Enum {
-    loadArrayShortCount = 32 * 1024,
-    streamingLoadCount = 1024
-};
-template<typename Vec> void loadArrayShort()
-{
-    typedef typename Vec::EntryType T;
-
-    Vc::Memory<Vec, loadArrayShortCount> array;
-    for (int i = 0; i < loadArrayShortCount; ++i) {
-        array[i] = i;
-    }
-
-    const Vec &offsets = static_cast<Vec>(ushort_v::IndexesFromZero());
-    for (int i = 0; i < loadArrayShortCount; i += Vec::Size) {
-        const T *const addr = &array[i];
-        Vec ii(i);
-        ii += offsets;
-
-        Vec a(addr, Vc::Aligned);
-        COMPARE(a, ii);
-
-        Vec b = Vec::Zero();
-        b.load(addr, Vc::Aligned);
-        COMPARE(b, ii);
-    }
-}
-
-template<typename Vec> void streamingLoad()
+TEST_ALL_V(Vec, streamingLoad)
 {
     typedef typename Vec::EntryType T;
 
@@ -244,29 +247,9 @@ template<typename Vec, typename MemT> struct LoadCvt {
 };
 template<typename Vec> struct LoadCvt<Vec, void> { static void test() {} };
 
-template<typename Vec> void loadCvt()
+TEST_ALL_V(Vec, loadCvt)
 {
     typedef typename Vec::EntryType T;
     LoadCvt<Vec, typename SupportedConversions<T>::Next>::test();
 }
 
-void testmain()
-{
-    runTest(checkAlignment<int_v>);
-    runTest(checkAlignment<uint_v>);
-    runTest(checkAlignment<float_v>);
-    runTest(checkAlignment<double_v>);
-    runTest(checkAlignment<short_v>);
-    runTest(checkAlignment<ushort_v>);
-    testAllTypes(checkMemoryAlignment);
-    runTest(loadArray<int_v>);
-    runTest(loadArray<uint_v>);
-    runTest(loadArray<float_v>);
-    runTest(loadArray<double_v>);
-    runTest(loadArrayShort<short_v>);
-    runTest(loadArrayShort<ushort_v>);
-
-    testAllTypes(streamingLoad);
-
-    testAllTypes(loadCvt);
-}
