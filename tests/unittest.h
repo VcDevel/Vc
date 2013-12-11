@@ -29,6 +29,7 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 #include <Vc/Vc>
 #include <Vc/type_traits>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <fstream>
 #include <cstdlib>
@@ -88,7 +89,8 @@ class _UnitTest_Failure
 {
 };
 
-typedef void (*testFunction)();
+typedef std::function<void (void)> testFunction;
+
 class _UnitTest_Global_Object
 {
     public:
@@ -704,55 +706,133 @@ using std::vector;
 using std::tuple;
 using std::get;
 
-class Test
+template<typename T> inline std::string typeToString();
+
+template<typename T, size_t N> inline std::string typeToString_impl(Vc::simd_array<T, N>)
 {
-    typedef tuple<testFunction, const char *> TestData;
+    std::stringstream s;
+    s << "simd_array<" << typeToString<T>() << ", " << N << '>';
+    return s.str();
+}
+
+template<typename T> inline std::string typeToString_impl(T)
+{
+    return typeid(T).name();
+}
+
+template<typename T> inline std::string typeToString()
+{
+    return typeToString_impl(T());
+}
+template<> inline std::string typeToString<void>() { return ""; }
+
+template<> inline std::string typeToString<Vc:: float_v>() { return " float_v"; }
+template<> inline std::string typeToString<Vc:: short_v>() { return " short_v"; }
+template<> inline std::string typeToString<Vc::  uint_v>() { return "  uint_v"; }
+template<> inline std::string typeToString<Vc::double_v>() { return "double_v"; }
+template<> inline std::string typeToString<Vc::ushort_v>() { return "ushort_v"; }
+template<> inline std::string typeToString<Vc::   int_v>() { return "   int_v"; }
+
+template<> inline std::string typeToString<long double>() { return "long double"; }
+template<> inline std::string typeToString<double>() { return "double"; }
+template<> inline std::string typeToString< float>() { return " float"; }
+template<> inline std::string typeToString<         long long>() { return " long long"; }
+template<> inline std::string typeToString<unsigned long long>() { return "ulong long"; }
+template<> inline std::string typeToString<         long>() { return "  long"; }
+template<> inline std::string typeToString<unsigned long>() { return " ulong"; }
+template<> inline std::string typeToString<         int>() { return "   int"; }
+template<> inline std::string typeToString<unsigned int>() { return "  uint"; }
+template<> inline std::string typeToString<         short>() { return " short"; }
+template<> inline std::string typeToString<unsigned short>() { return "ushort"; }
+template<> inline std::string typeToString<         char>() { return "  char"; }
+template<> inline std::string typeToString<unsigned char>() { return " uchar"; }
+template<> inline std::string typeToString<  signed char>() { return " schar"; }
+
+namespace
+{
+typedef tuple<testFunction, std::string> TestData;
+vector<TestData> g_allTests;
+
+void runAll()
+{
+    for (const auto &data : g_allTests) {
+        _unit_test_global.runTestInt(get<0>(data), get<1>(data).c_str());
+    }
+}
+} // anonymous namespace
+
+template <typename T> class Test
+{
 public:
-    Test(testFunction fun, const char *name)
+    Test(testFunction fun, std::string name)
     {
-        s_allTests.push_back(TestData(fun, name));
+        name += '<' + typeToString<T>() + '>';
+        g_allTests.emplace_back(fun, name);
     }
-
-    static void runAll()
-    {
-        for (const auto &data : s_allTests) {
-            _unit_test_global.runTestInt(get<0>(data), get<1>(data));
-        }
-    }
-
-private:
-    static vector<TestData> s_allTests;
 };
 
-vector<Test::TestData> Test::s_allTests;
+template<template<typename V> class TestFunctor, typename... TestTypes> class Test2;
+
+template <template <typename V> class TestFunctor> class Test2<TestFunctor>
+{
+protected:
+    Test2(const std::string &)
+    {
+    }
+};
+
+template <template <typename V> class TestFunctor, typename TestType0, typename... TestTypes>
+class Test2<TestFunctor, TestType0, TestTypes...> : public Test2<TestFunctor, TestTypes...>
+{
+    typedef Test2<TestFunctor, TestTypes...> Base;
+
+public:
+    Test2(std::string name) : Base(name)
+    {
+        name += '<' + typeToString<TestType0>() + '>';
+        g_allTests.emplace_back(TestFunctor<TestType0>(), name);
+    }
+};
+
+template <template <typename V> class F, typename... Typelist>
+UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
 
 } // namespace UnitTest
 
-#define TEST_ALL_NATIVE_V(V, fun) \
-template<typename V> void fun(); \
-static UnitTest::Test test_##fun##__float_v__(&fun< float_v>, #fun "< float_v>"); \
-static UnitTest::Test test_##fun##__short_v__(&fun< short_v>, #fun "< short_v>"); \
-static UnitTest::Test test_##fun##___uint_v__(&fun<  uint_v>, #fun "<  uint_v>"); \
-static UnitTest::Test test_##fun##_double_v__(&fun<double_v>, #fun "<double_v>"); \
-static UnitTest::Test test_##fun##_ushort_v__(&fun<ushort_v>, #fun "<ushort_v>"); \
-static UnitTest::Test test_##fun##____int_v__(&fun<   int_v>, #fun "<   int_v>"); \
-template<typename V> void fun()
+#define TEST_ALL_NATIVE_V(V__, fun__) TEST_ALL_V(V__, fun__)
 
-#define TEST_ALL_V(V, fun) \
-template<typename V> void fun(); \
-static UnitTest::Test test_##fun##__float_v__(&fun< float_v>, #fun "< float_v>"); \
-static UnitTest::Test test_##fun##__short_v__(&fun< short_v>, #fun "< short_v>"); \
-static UnitTest::Test test_##fun##_sfloat_v__(&fun<sfloat_v>, #fun "<sfloat_v>"); \
-static UnitTest::Test test_##fun##_ushort_v__(&fun<ushort_v>, #fun "<ushort_v>"); \
-static UnitTest::Test test_##fun##____int_v__(&fun<   int_v>, #fun "<   int_v>"); \
-static UnitTest::Test test_##fun##_double_v__(&fun<double_v>, #fun "<double_v>"); \
-static UnitTest::Test test_##fun##___uint_v__(&fun<  uint_v>, #fun "<  uint_v>"); \
-template<typename V> void fun()
+#define TEST_ALL_V(V__, fun__)                                                                     \
+    template <typename V__> void fun__();                                                          \
+    static UnitTest::Test< float_v> test_##fun__##__float_v__(&fun__< float_v>, #fun__);           \
+    static UnitTest::Test< short_v> test_##fun__##__short_v__(&fun__< short_v>, #fun__);           \
+    static UnitTest::Test<  uint_v> test_##fun__##_ushort_v__(&fun__<  uint_v>, #fun__);           \
+    static UnitTest::Test<double_v> test_##fun__##____int_v__(&fun__<double_v>, #fun__);           \
+    static UnitTest::Test<ushort_v> test_##fun__##_double_v__(&fun__<ushort_v>, #fun__);           \
+    static UnitTest::Test<   int_v> test_##fun__##___uint_v__(&fun__<   int_v>, #fun__);           \
+    template <typename V__> void fun__()
 
-#define TEST(fun) \
-void fun(); \
-static UnitTest::Test test_##fun##__(&fun, #fun); \
-void fun()
+#define TEST_BEGIN(V__, fun__, typelist__)                                                         \
+    template <typename V__> struct fun__;                                                          \
+    static auto test_##fun__##__ =                                                                 \
+        decltype(UnitTest::hackTypelist<fun__>(std::declval<void typelist__>()))(#fun__);          \
+    template <typename V__> struct fun__                                                           \
+    {                                                                                              \
+        void operator()()                                                                          \
+        {
+#define TEST_END                                                                                   \
+    }                                                                                              \
+    }                                                                                              \
+    ;
+
+#define ALL_VECTORS Vc::int_v, Vc::ushort_v, Vc::double_v, Vc::uint_v, Vc::short_v, Vc::float_v
+#define SIMD_ARRAYS(N__)                                                                             \
+    Vc::simd_array<int, N__>, Vc::simd_array<unsigned short, N__>, Vc::simd_array<double, N__>,       \
+        Vc::simd_array<unsigned int, N__>, Vc::simd_array<short, N__>, Vc::simd_array<float, N__>
+
+#define TEST(fun__)                                                                                \
+    void fun__();                                                                                  \
+    static UnitTest::Test<void> test_##fun__##__(&fun__, #fun__);                                  \
+    void fun__()
 
 void testmain();
 
@@ -760,7 +840,7 @@ int main(int argc, char **argv)
 {
     initTest(argc, argv);
 #ifdef VC_NEWTEST
-    UnitTest::Test::runAll();
+    UnitTest::runAll();
 #else
     testmain();
 #endif
