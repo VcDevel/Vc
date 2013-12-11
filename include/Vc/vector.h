@@ -22,22 +22,16 @@
 
 #include "global.h"
 
-#ifdef VC_IMPL_Scalar
-# include "scalar/vector.h"
-# include "scalar/helperimpl.h"
-#elif defined(VC_IMPL_MIC)
+#if defined(VC_IMPL_MIC)
 # include "mic/vector.h"
-# include "mic/helperimpl.h"
 #elif defined(VC_IMPL_AVX)
 # include "avx/vector.h"
-# include "avx/helperimpl.h"
 // a machine that supports AVX also supports SSE
 # undef VC_IMPL
 # undef Vc_IMPL_NAMESPACE
 # define VC_IMPL ::Vc::SSE42Impl
 # define Vc_IMPL_NAMESPACE SSE
 # include "sse/vector.h"
-//# include "sse/helperimpl.h"
 # undef VC_IMPL
 # undef Vc_IMPL_NAMESPACE
 # if defined(VC_IMPL_AVX2)
@@ -51,8 +45,27 @@
 # endif
 #elif defined(VC_IMPL_SSE)
 # include "sse/vector.h"
+#endif
+
+#include "scalar/vector.h"
+
+Vc_PUBLIC_NAMESPACE_BEGIN
+  using Vc_IMPL_NAMESPACE::VectorAlignment;
+Vc_NAMESPACE_END
+
+#if defined(VC_IMPL_MIC)
+# include "mic/helperimpl.h"
+#endif
+
+#if defined(VC_IMPL_AVX)
+# include "avx/helperimpl.h"
+#endif
+
+#if defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE)
 # include "sse/helperimpl.h"
 #endif
+
+#include "scalar/helperimpl.h"
 
 #include "common/math.h"
 

@@ -20,38 +20,19 @@
 #ifndef VC_MIC_HELPERIMPL_TCC
 #define VC_MIC_HELPERIMPL_TCC
 
-#include "types.h"
+#include "../common/malloc.h"
 
 Vc_NAMESPACE_BEGIN(Internal)
-
-template<size_t X>
-static inline size_t nextMultipleOf(size_t value)
-{
-    const size_t offset = value % X;
-    if ( offset > 0 ) {
-        return value + X - offset;
-    }
-    return value;
-}
 
 template<Vc::MallocAlignment A>
 inline void *HelperImpl<MICImpl>::malloc(size_t n)
 {
-    void *ptr = 0;
-    switch (A) {
-        case Vc::AlignOnVector:
-        case Vc::AlignOnCacheline:
-            return _mm_malloc(nextMultipleOf<MIC::VectorAlignment>(n), MIC::VectorAlignment);
-        case Vc::AlignOnPage:
-            // TODO: hardcoding 4096 is not such a great idea
-            return _mm_malloc(nextMultipleOf<4096>(n), 4096);
-    }
-    return 0;
+    return Common::malloc<A>(n);
 }
 
 inline void HelperImpl<MICImpl>::free(void *p)
 {
-    _mm_free(p);
+    Common::free(p);
 }
 
 Vc_NAMESPACE_END

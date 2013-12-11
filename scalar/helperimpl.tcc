@@ -20,59 +20,19 @@
 #ifndef VC_SCALAR_HELPERIMPL_TCC
 #define VC_SCALAR_HELPERIMPL_TCC
 
-#include <cstdlib>
-#if defined _WIN32 || defined _WIN64
-#include <malloc.h>
-#endif
+#include "../common/malloc.h"
 
 Vc_NAMESPACE_BEGIN(Internal)
 
-template<size_t X>
-static constexpr size_t nextMultipleOf(size_t value)
-{
-    return (value % X) > 0 ? value + X - (value % X) : value;
-}
-
 template<Vc::MallocAlignment A>
-Vc_ALWAYS_INLINE void *HelperImpl<ScalarImpl>::malloc(size_t n)
+inline void *HelperImpl<ScalarImpl>::malloc(size_t n)
 {
-    void *ptr = 0;
-    switch (A) {
-        case Vc::AlignOnVector:
-            return std::malloc(n);
-        case Vc::AlignOnCacheline:
-            // TODO: hardcoding 64 is not such a great idea
-#ifdef _WIN32
-#ifdef __GNUC__
-#define _VC_ALIGNED_MALLOC __mingw_aligned_malloc
-#else
-#define _VC_ALIGNED_MALLOC _aligned_malloc
-#endif
-            ptr = _VC_ALIGNED_MALLOC(nextMultipleOf<64>(n), 64);
-#else
-            if (0 == posix_memalign(&ptr, 64, nextMultipleOf<64>(n))) {
-                return ptr;
-            }
-#endif
-            break;
-        case Vc::AlignOnPage:
-            // TODO: hardcoding 4096 is not such a great idea
-#ifdef _WIN32
-            ptr = _VC_ALIGNED_MALLOC(nextMultipleOf<4096>(n), 4096);
-#undef _VC_ALIGNED_MALLOC
-#else
-            if (0 == posix_memalign(&ptr, 4096, nextMultipleOf<4096>(n))) {
-                return ptr;
-            }
-#endif
-            break;
-    }
-    return ptr;
+    return Common::malloc<A>(n);
 }
 
-Vc_ALWAYS_INLINE void HelperImpl<ScalarImpl>::free(void *p)
+inline void HelperImpl<ScalarImpl>::free(void *p)
 {
-    std::free(p);
+    Common::free(p);
 }
 
 Vc_NAMESPACE_END
