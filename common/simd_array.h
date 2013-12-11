@@ -88,8 +88,8 @@ public:
     Vc_ALWAYS_INLINE void load(const value_type *x, Flags f) {
         d.load(x, f);
     }
-    template<typename U, typename Flags>
-    Vc_ALWAYS_INLINE void load(const U *x, Flags f) {
+    template<typename U, typename Flags = DefaultLoadTag>
+    Vc_ALWAYS_INLINE void load(const U *x, Flags f = Flags()) {
         d.load(x, f);
     }
 
