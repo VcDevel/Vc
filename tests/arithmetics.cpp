@@ -188,12 +188,8 @@ template<typename Vec> void testMulSub()
 template<typename Vec> void testDiv()
 {
     typedef typename Vec::EntryType T;
-#if defined(VC_ICC) && !defined(__x86_64__) && VC_ICC <= 20131008
+    // If this test fails for ICC see here:
     // http://software.intel.com/en-us/forums/topic/488995
-    if (isEqualType<short, T>()) {
-        EXPECT_FAILURE();
-    }
-#endif
 
     const T stepsize = std::max(T(1), T(std::numeric_limits<T>::max() / 1024));
     for (T divisor = 1; divisor < 5; ++divisor) {
