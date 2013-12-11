@@ -25,13 +25,10 @@
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
-    template<typename T> class Vector;
-
-    template<typename _T> struct Const
+    template<typename T> struct Const
     {
-        typedef Vector<_T> V;
-        typedef typename V::EntryType T;
-        typedef typename V::Mask M;
+        typedef Vector<T> V;
+        typedef Mask<T> M;
         enum Constants { Stride = 16 / sizeof(T) };
 
         static Vc_ALWAYS_INLINE Vc_CONST V _pi_4()        { return load(&c_trig<T>::data[0 * Stride]); }

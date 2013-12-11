@@ -35,7 +35,12 @@ public:
     constexpr MaskEntry(MaskEntry &&) = default;
 #endif
 
-    Vc_ALWAYS_INLINE Vc_PURE operator bool() const { const M &m = mask; return m[offset]; }
+    template <typename B, typename std::enable_if<std::is_same<B, bool>::value, int>::type = 0>
+    Vc_ALWAYS_INLINE Vc_PURE operator B() const
+    {
+        const M &m = mask;
+        return m[offset];
+    }
     Vc_ALWAYS_INLINE MaskEntry &operator=(bool x) {
         mask.setEntry(offset, x);
         return *this;
@@ -56,17 +61,40 @@ template<size_t Bytes> class MaskBool
     typedef typename MaskBoolStorage<Bytes>::type storage_type Vc_MAY_ALIAS;
     storage_type data;
 public:
-    Vc_ALWAYS_INLINE MaskBool(bool x) : data(x ? -1 : 0) {}
+    constexpr MaskBool(bool x) : data(x ? -1 : 0) {}
     Vc_ALWAYS_INLINE MaskBool &operator=(bool x) { data = x ? -1 : 0; return *this; }
 
     Vc_ALWAYS_INLINE MaskBool(const MaskBool &) = default;
-#ifndef VC_NO_MOVE_CTOR
-    Vc_ALWAYS_INLINE MaskBool(MaskBool &&) = default;
-#endif
     Vc_ALWAYS_INLINE MaskBool &operator=(const MaskBool &) = default;
 
-    Vc_ALWAYS_INLINE operator bool() const { return (data & 1) != 0; }
+    template <typename B, typename std::enable_if<std::is_same<B, bool>::value, int>::type = 0>
+    constexpr operator B() const
+    {
+        return (data & 1) != 0;
+    }
 } Vc_MAY_ALIAS;
+
+template <typename A,
+          typename B,
+          typename std::enable_if<
+              std::is_convertible<A, bool>::value &&std::is_convertible<B, bool>::value,
+              int>::type = 0>
+constexpr bool operator==(A &&a, B &&b)
+{
+    return static_cast<bool>(a) == static_cast<bool>(b);
+}
+template <typename A,
+          typename B,
+          typename std::enable_if<
+              std::is_convertible<A, bool>::value &&std::is_convertible<B, bool>::value,
+              int>::type = 0>
+constexpr bool operator!=(A &&a, B &&b)
+{
+    return static_cast<bool>(a) != static_cast<bool>(b);
+}
+
+static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
+static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
 
 Vc_NAMESPACE_END
 

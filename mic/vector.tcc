@@ -108,10 +108,16 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializer
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
     : d(LoadHelper<Vector<T>>::load(IndexesFromZeroHelper<T>(), Aligned)) {}
 
+template<> Vc_ALWAYS_INLINE float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(_mm512_extload_ps(&_IndexesFromZero, _MM_UPCONV_PS_SINT8, _MM_BROADCAST32_NONE, _MM_HINT_NONE)) {}
+
+template<> Vc_ALWAYS_INLINE double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(StaticCastHelper<int, double>::cast(int_v::IndexesFromZero().data())) {}
+
 template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::Zero() { return HV::zero(); }
 template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::One() { return HV::one(); }
 template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::IndexesFromZero() {
-    return LoadHelper<Vector<T>>::load(IndexesFromZeroHelper<T>(), Aligned);
+    return Vector<T>(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
 }
 
 // loads {{{1
@@ -119,7 +125,12 @@ template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(
     Common::handleLoadPrefetches(x, flags);
     d.v() = LoadHelper<Vector<T>>::load(x, flags);
 }
-template<typename T> template<typename OtherT, typename Flags> Vc_INTRINSIC void Vector<T>::load(const OtherT *x, Flags flags) {
+template <typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+Vc_INTRINSIC void Vector<T>::load(const U *x, Flags flags)
+{
     Common::handleLoadPrefetches(x, flags);
     d.v() = LoadHelper<Vector<T>>::load(x, flags);
 }
@@ -171,18 +182,98 @@ template<> Vc_INTRINSIC void ushort_v::assign(ushort_v v, ushort_m m)
     d.v() = _mm512_mask_mov_epi32(d.v(), m.data(), v.d.v());
 }
 // stores {{{1
-template<typename Parent, typename T> template<typename T2, typename Flags>
-Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Flags flags) const
+template <typename V> Vc_INTRINSIC V foldAfterOverflow(V vector)
 {
-    Common::handleStorePrefetches(mem, flags);
-    MicIntrinsics::store<Flags>(mem, data(), UpDownC<T2>());
+    return vector;
+}
+Vc_INTRINSIC ushort_v foldAfterOverflow(ushort_v vector)
+{
+    return vector & 0xffffu;
 }
 
-template<typename Parent, typename T> template<typename T2, typename Flags>
-Vc_INTRINSIC void StoreMixin<Parent, T>::store(T2 *mem, Mask mask, Flags flags) const
+template <typename Parent, typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+Vc_INTRINSIC void StoreMixin<Parent, T>::store(U *mem, Flags flags) const
 {
     Common::handleStorePrefetches(mem, flags);
-    MicIntrinsics::store<Flags>(mask.data(), mem, data(), UpDownC<T2>());
+    MicIntrinsics::store<Flags>(mem, foldAfterOverflow(*static_cast<const Parent *>(this)).data(), UpDownC<U>());
+}
+
+constexpr int alignrCount(int rotationStride, int offset)
+{
+    return 16 - (rotationStride * offset > 16 ? 16 : rotationStride * offset);
+}
+
+template<int rotationStride>
+inline __m512i rotationHelper(__m512i v, int offset, std::integral_constant<int, rotationStride>)
+{
+    switch (offset) {
+    case  1: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  1));
+    case  2: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  2));
+    case  3: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  3));
+    case  4: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  4));
+    case  5: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  5));
+    case  6: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  6));
+    case  7: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  7));
+    case  8: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  8));
+    case  9: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride,  9));
+    case 10: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 10));
+    case 11: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 11));
+    case 12: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 12));
+    case 13: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 13));
+    case 14: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 14));
+    case 15: return _mm512_alignr_epi32(v, v, alignrCount(rotationStride, 15));
+    default: return v;
+    }
+}
+
+template <typename V,
+          typename Mem,
+          typename Mask,
+          typename Flags,
+          typename Flags::EnableIfUnaligned = nullptr>
+inline void storeDispatch(V vector, Mem *address, Mask mask, Flags flags)
+{
+    constexpr std::ptrdiff_t alignment = sizeof(Mem) * V::Size;
+    constexpr std::ptrdiff_t alignmentMask = ~(alignment - 1);
+
+    const auto loAddress = reinterpret_cast<Mem *>((reinterpret_cast<char *>(address) - static_cast<const char*>(0)) & alignmentMask);
+
+    const auto offset = address - loAddress;
+    if (offset == 0) {
+        MicIntrinsics::store<Flags::UnalignedRemoved>(mask.data(), address, vector.data(), V::template UpDownC<Mem>());
+        return;
+    }
+
+    constexpr int rotationStride = sizeof(typename V::VectorEntryType) / 4; // palignr shifts by 4 Bytes per "count"
+    auto v = rotationHelper(mic_cast<__m512i>(vector.data()), offset, std::integral_constant<int, rotationStride>());
+    auto rotated = mic_cast<typename V::VectorType>(v);
+
+    MicIntrinsics::store<Flags::UnalignedRemoved>(mask.data() << offset, loAddress, rotated, V::template UpDownC<Mem>());
+    MicIntrinsics::store<Flags::UnalignedRemoved>(mask.data() >> (V::Size - offset), loAddress + V::Size, rotated, V::template UpDownC<Mem>());
+}
+
+template <typename V,
+          typename Mem,
+          typename Mask,
+          typename Flags,
+          typename Flags::EnableIfNotUnaligned = nullptr>
+Vc_INTRINSIC void storeDispatch(V vector, Mem *address, Mask mask, Flags flags)
+{
+    MicIntrinsics::store<Flags>(mask.data(), address, vector.data(), V::template UpDownC<Mem>());
+}
+
+template <typename Parent, typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+Vc_INTRINSIC void StoreMixin<Parent, T>::store(U *mem, Mask mask, Flags flags) const
+{
+    Common::handleStorePrefetches(mem, flags);
+    // MicIntrinsics::store does not exist for Flags containing Vc::Unaligned
+    storeDispatch(foldAfterOverflow(*static_cast<const Parent *>(this)), mem, mask, flags);
 }
 
 template<typename Parent, typename T> Vc_INTRINSIC void StoreMixin<Parent, T>::store(VectorEntryType *mem, decltype(Vc::Streaming)) const
@@ -419,6 +510,23 @@ template<> ushort_v ushort_v::operator/(ushort_v::AsArg x) const
 {
     return ushort_v(_div<VectorEntryType>(_and(d.v(), _set1(0xffff)), _and(x.d.v(), _set1(0xffff))));
 }
+// subscript operators ([]){{{1
+template <typename T> Vc_INTRINSIC auto Vector<T>::operator[](size_t index) -> decltype(d.m(0)) &
+{
+    return d.m(index);
+}
+template <> Vc_INTRINSIC auto ushort_v::operator[](size_t index) -> decltype(d.m(0)) &
+{
+    // If the value over-/underflowed then the int reference returned from here is wrong. Since
+    // unsigned integers have well-defined overflow behavior we need to fix it up.
+    d.m(index) &= 0xffffu;
+    return d.m(index);
+}
+template <typename T>
+Vc_INTRINSIC typename Vector<T>::EntryType Vector<T>::operator[](size_t index) const
+{
+    return d.m(index);
+}
 // isNegative {{{1
 template<> Vc_INTRINSIC Vc_PURE float_m float_v::isNegative() const
 {
@@ -575,7 +683,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<double>::gather(const S1 *array, const S
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extlogather_pd(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extlogather_pd(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<float>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
@@ -583,7 +691,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<float>::gather(const S1 *array, const S2
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extgather_ps(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extgather_ps(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
@@ -591,7 +699,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<int>::gather(const S1 *array, const S2 S
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
@@ -599,7 +707,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned int>::gather(const S1 *array, c
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
@@ -607,7 +715,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<short>::gather(const S1 *array, const S2
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes)
@@ -615,7 +723,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned short>::gather(const S1 *array,
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_i32extgather_epi32(((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 
 template<> template<typename S1, typename S2, typename IT>
@@ -624,7 +732,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<double>::gather(const S1 *array, const S
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32loextgather_pd(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32loextgather_pd(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<float>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
@@ -632,7 +740,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<float>::gather(const S1 *array, const S2
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extgather_ps(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32extgather_ps(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
@@ -640,7 +748,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<int>::gather(const S1 *array, const S2 S
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
@@ -648,7 +756,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned int>::gather(const S1 *array, c
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
@@ -656,7 +764,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<short>::gather(const S1 *array, const S2
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 template<> template<typename S1, typename S2, typename IT>
 Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask)
@@ -664,7 +772,7 @@ Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<unsigned short>::gather(const S1 *array,
     IndexSizeChecker<IT, Size>::check();
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S2)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
+    d.v() = _mm512_mask_i32extgather_epi32(d.v(), mask.data(), ((indexes * sizeof(S1)) + (offset - start)).data(), array, UpDownC<EntryType>(), _MM_SCALE_1, _MM_HINT_NONE);
 }
 
 template<> template<typename S1, typename IT1, typename IT2>
@@ -741,13 +849,13 @@ template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_I
 {
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    MicIntrinsics::scatter(array, ((indexes * sizeof(S2)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
+    MicIntrinsics::scatter(array, ((indexes * sizeof(S1)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
 }
 template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, MaskArg mask) const
 {
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
-    MicIntrinsics::scatter(mask.data(), array, ((indexes * sizeof(S2)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
+    MicIntrinsics::scatter(mask.data(), array, ((indexes * sizeof(S1)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
 }
 template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes) const
 {
@@ -824,7 +932,7 @@ template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
                 _mm512_add_epi32(_mm512_mullo_epi32(state, factor), swizzle(_mm512_mulhi_epu32(state, factor), _MM_SWIZ_REG_CDAB)),
                 _set1(11ull)));
 
-    return (Vector<double>(_cast(_mm512_srli_epi64(mic_cast<__m512>(state), 12))) | One()) - One();
+    return (Vector<double>(_cast(_mm512_srli_epi64(mic_cast<__m512i>(state), 12))) | One()) - One();
 }
 // }}}1
 // shifted / rotated {{{1

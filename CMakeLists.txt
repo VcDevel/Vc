@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BUILD_DIR)
-   message(ERROR "You don't want to configure in the source directory!")
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+   message(FATAL_ERROR "You don't want to configure in the source directory!")
 endif()
 
 project(Vc)
@@ -36,7 +36,6 @@ if(ROOT_RELEASE)
    endif()
 else()
 
-   # TODO: skip the C++11 check for C
    # TODO: check that 'decltype' compiles
    # TODO: check that 'constexpr' compiles
    if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
@@ -44,9 +43,9 @@ else()
          message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least GCC 4.7.")
       endif()
 
-      AddCompilerFlag("-std=c++11" _ok)
+      AddCompilerFlag("-std=c++11" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
       if(NOT _ok)
-         AddCompilerFlag("-std=c++0x" _ok)
+         AddCompilerFlag("-std=c++0x" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
          if(NOT _ok)
             message(FATAL_ERROR "Vc 1.x requires C++11 support. It seems this is not available. If this was incorrectly determined please notify vc-devel@compeng.uni-frankfurt.de")
          endif()
@@ -77,7 +76,7 @@ else()
             )
       endif()
    elseif(Vc_COMPILER_IS_INTEL)
-      if("${Vc_ICC_VERSION}" VERSION_LESS "14.0.0")
+      if("${Vc_ICC_VERSION}" VERSION_LESS "14.1.0")
          UserWarning("ICC does not support initializer lists (C++11). The following tests are therefore disabled:
          stlcontainer_avx stlcontainer_scalar stlcontainer_sse.")
          list(APPEND disabled_targets
@@ -116,7 +115,13 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
-add_definitions("${Vc_DEFINITIONS}")
+
+# FIXME: This needs cleanup for the next major Vc version
+# Vc_DEFINITIONS contains Vc_ARCHITECTURE_FLAGS which should not be unconditionally added to all targets.
+# Instead, Vc_DEFINITIONS - Vc_ARCHITECTURE_FLAGS is added unconditionally.
+# Vc_ARCHITECTURE_FLAGS then must be added per target.
+string(REPLACE "${Vc_ARCHITECTURE_FLAGS}" "" _flags "${Vc_DEFINITIONS}")
+add_definitions("${_flags}")
 
 if(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
@@ -137,6 +142,8 @@ if(NOT ROOT_RELEASE)
    add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
    add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
 
+   AddCompilerFlag(-ftemplate-depth=64)
+
    set(libvc_compile_flags "-DVC_COMPILE_LIB")
    set(libvc_mic_compile_flags "-DVC_COMPILE_LIB")
    AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flags)
@@ -151,44 +158,20 @@ if(NOT ROOT_RELEASE)
       install(FILES ${outputName} DESTINATION lib${LIB_SUFFIX})
    endif()
 
-   vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS ${libvc_compile_flags}
-      ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA AVX2)
-   set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp ${_objs})
-   if(USE_AVX)
-      list(APPEND _srcs src/avx_sorthelper.cpp)
-   else()
-      if(NOT Vc_AVX_INTRINSICS_BROKEN)
-         # we'd still like to have avx_sorthelper.cpp built in, but that requires compilation with -mavx (or a comparable flag)
-         foreach(_flag "-xAVX" "-mavx" "-arch:AVX")
-            check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag})
-            if(check_cxx_compiler_flag_${_flag})
-               if(_flag STREQUAL "-xAVX")
-                  set(_flag "${_flag} -diag-disable 10121") # disable the warning "overriding -xSSE4.2 with -xAVX"
-               endif()
-               list(APPEND _srcs src/avx_sorthelper.cpp)
-               set_source_files_properties(src/avx_sorthelper.cpp PROPERTIES COMPILE_FLAGS "${_flag}")
-               break()
-            endif()
-         endforeach()
-      endif()
-      if(NOT Vc_AVX2_INTRINSICS_BROKEN)
-         # we'd still like to have avx_sorthelper.cpp built in, but that requires compilation with -mavx (or a comparable flag)
-         foreach(_flag "-xCORE-AVX2" "-mavx2" "-arch:AVX2")
-            check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag})
-            if(check_cxx_compiler_flag_${_flag})
-               if(_flag STREQUAL "-xCORE-AVX2")
-                  set(_flag "${_flag} -diag-disable 10121") # disable the warning "overriding -xSSE4.2 with -xAVX"
-               endif()
-               list(APPEND _srcs src/avx2_sorthelper.cpp)
-               set_source_files_properties(src/avx2_sorthelper.cpp PROPERTIES COMPILE_FLAGS "${_flag}")
-               break()
-            endif()
-         endforeach()
-      endif()
-   endif()
+   set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp)
+   vc_compile_for_all_implementations(_srcs src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA AVX2)
+   vc_compile_for_all_implementations(_srcs src/avx_sorthelper.cpp ONLY AVX)
+   vc_compile_for_all_implementations(_srcs src/avx2_sorthelper.cpp ONLY AVX2)
    add_library(Vc STATIC ${_srcs})
    add_target_property(Vc COMPILE_FLAGS ${libvc_compile_flags})
    add_target_property(Vc LABELS "other")
+   if(XCODE)
+      # TODO: document what this does and why it has no counterpart in the non-XCODE logic
+      set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+      set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "YES")
+      set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+      set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+   endif()
    add_dependencies(other Vc)
 
    install(TARGETS Vc DESTINATION lib${LIB_SUFFIX})
@@ -248,6 +231,7 @@ set(cmake_install_files
    cmake/CheckCXXCompilerFlag.cmake
    cmake/CheckMicCCompilerFlag.cmake
    cmake/CheckMicCXXCompilerFlag.cmake
+   cmake/FindMIC.cmake
    )
 if(ROOT_RELEASE)
    execute_process(

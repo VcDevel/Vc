@@ -20,12 +20,14 @@
 #include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
-#include "const.h"
 #include <cmath>
 #include <algorithm>
+#include <common/const.h>
 #include <common/macros.h>
 /*}}}*/
 using namespace Vc;
+using Vc::Internal::floatConstant;
+using Vc::Internal::doubleConstant;
 /*fix isfinite and isnan{{{*/
 #ifdef isfinite
 #undef isfinite
@@ -398,7 +400,7 @@ template<typename V> void testAtan()/*{{{*/
     setFuzzyness<double>(2);
 
     {
-        const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18ull,  0));
+        const V Pi_2 = T(doubleConstant<1, 0x921fb54442d18ull,  0>());
         V nan; nan.setQnan();
         const V inf = T(INF.value);
 
@@ -429,8 +431,8 @@ template<typename V> void testAtan2()/*{{{*/
     setFuzzyness<double>(2);
 
     {
-        const V Pi   = T(Vc_buildDouble(1, 0x921fb54442d18ull,  1));
-        const V Pi_2 = T(Vc_buildDouble(1, 0x921fb54442d18ull,  0));
+        const V Pi   = T(doubleConstant<1, 0x921fb54442d18ull,  1>());
+        const V Pi_2 = T(doubleConstant<1, 0x921fb54442d18ull,  0>());
         V nan; nan.setQnan();
         const V inf = T(INF.value);
 
@@ -474,7 +476,7 @@ template<typename V> void testAtan2()/*{{{*/
         COMPARE(Vc::atan2(+inf, V(T(-3.))), +Pi_2);
         COMPARE(Vc::atan2(-inf, V(T(-3.))), -Pi_2);
 #ifndef _WIN32 // the Microsoft implementation of atan2 fails this test
-        const V Pi_4 = T(Vc_buildDouble(1, 0x921fb54442d18ull, -1));
+        const V Pi_4 = T(doubleConstant<1, 0x921fb54442d18ull, -1>());
         // If y is positive infinity (negative infinity) and x is negative	infinity, +3*pi/4 (-3*pi/4) is returned.
         COMPARE(Vc::atan2(+inf, -inf), T(+3.) * Pi_4);
         COMPARE(Vc::atan2(-inf, -inf), T(-3.) * Pi_4);
@@ -534,9 +536,19 @@ template<typename Vec> void testInf()/*{{{*/
     typedef typename Vec::EntryType T;
     const T one = 1;
     const Vec zero(Zero);
+    const Vec inf = one / zero;
+    Vec nan;
+    nan.setQnan();
+
     VERIFY(Vc::isfinite(zero));
     VERIFY(Vc::isfinite(Vec(one)));
-    VERIFY(!Vc::isfinite(one / zero));
+    VERIFY(!Vc::isfinite(inf));
+    VERIFY(!Vc::isfinite(nan));
+
+    VERIFY(!Vc::isinf(zero));
+    VERIFY(!Vc::isinf(Vec(one)));
+    VERIFY(Vc::isinf(inf));
+    VERIFY(!Vc::isinf(nan));
 }
 /*}}}*/
 template<typename Vec> void testNaN()/*{{{*/
@@ -890,6 +902,7 @@ void testmain()/*{{{*/
 
     testRealTypes(testSincos);
     testRealTypes(testExponent);
+    // TODO: copysign
 }/*}}}*/
 
 // vim: foldmethod=marker

@@ -137,21 +137,13 @@ static Vc_INTRINSIC void store_unaligned(void *m, __m512i v, _MM_DOWNCONV_EPI32_
     _mm512_extpackstorehi_epi32(static_cast<char *>(m) + 64, v, downconv, memHint);
 }
 
-static Vc_INTRINSIC void store_unaligned(__mmask16 mask, void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
-{
-    _mm512_mask_extpackstorelo_ps(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_ps(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
-}
-static Vc_INTRINSIC void store_unaligned(__mmask8 mask, void *m, __m512d v, _MM_DOWNCONV_PD_ENUM downconv, int memHint)
-{
-    _mm512_mask_extpackstorelo_pd(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_pd(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
-}
-static Vc_INTRINSIC void store_unaligned(__mmask16 mask, void *m, __m512i v, _MM_DOWNCONV_EPI32_ENUM downconv, int memHint)
-{
-    _mm512_mask_extpackstorelo_epi32(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_epi32(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
-}
+/*
+void store_unaligned(__mmask16 mask, void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
+and friends are not that easy. MIC only provides packstore for unaligned stores. But packstore packs
+the masked values consecutively, which is not what we want.
+The maskstore is thus better implemented in the Vector class - where more type information is still
+available.
+*/
 
 static Vc_INTRINSIC void store_aligned(void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
 {
@@ -218,17 +210,17 @@ template<typename DownConv> static Vc_INTRINSIC
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512  v, DownConv downconv, int scale = sizeof(MemT))
 {
-    _mm512_i32extscatter_ps(m, i, v, downconv, scale, _MM_HINT_NONE);
+    _mm512_mask_i32extscatter_ps(m, mask, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512d v, DownConv downconv, int scale = sizeof(MemT))
 {
-    _mm512_i32loextscatter_pd(m, i, v, downconv, scale, _MM_HINT_NONE);
+    _mm512_mask_i32loextscatter_pd(m, mask, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512i v, DownConv downconv, int scale = sizeof(MemT))
 {
-    _mm512_i32extscatter_epi32(m, i, v, downconv, scale, _MM_HINT_NONE);
+    _mm512_mask_i32extscatter_epi32(m, mask, i, v, downconv, scale, _MM_HINT_NONE);
 }
 
 static Vc_INTRINSIC __m512  swizzle(__m512  v, _MM_SWIZZLE_ENUM swiz) { return _mm512_swizzle_ps(v, swiz); }

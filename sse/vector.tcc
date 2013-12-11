@@ -26,7 +26,7 @@
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 // constants {{{1
-template<typename T, int Size> static Vc_ALWAYS_INLINE Vc_CONST const T *_IndexesFromZero() {
+template<typename T, int Size> Vc_ALWAYS_INLINE Vc_CONST const T *_IndexesFromZero() {
     if (Size == 4) {
         return reinterpret_cast<const T *>(_IndexesFromZero4);
     } else if (Size == 8) {
@@ -48,7 +48,17 @@ template<typename T> Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerOne:
 }
 
 template<typename T> Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(VectorHelper<VectorType>::template load<AlignedT>(_IndexesFromZero<EntryType, Size>()))
+    : d(VectorHelper<VectorType>::template load<AlignedTag>(_IndexesFromZero<EntryType, Size>()))
+{
+}
+
+template<> Vc_INTRINSIC float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(StaticCastHelper<int, float>::cast(int_v::IndexesFromZero().data()))
+{
+}
+
+template<> Vc_INTRINSIC double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(StaticCastHelper<int, double>::cast(int_v::IndexesFromZero().data()))
 {
 }
 
@@ -64,7 +74,7 @@ template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::One()
 
 template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::IndexesFromZero()
 {
-    return VectorHelper<VectorType>::template load<AlignedT>(_IndexesFromZero<EntryType, Size>());
+    return Vector<T>(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
 }
 
 // load member functions {{{1
@@ -200,7 +210,11 @@ template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags>
 };
 
 // general load, implemented via LoadHelper {{{2
-template<typename DstT> template<typename SrcT, typename Flags> Vc_INTRINSIC void Vector<DstT>::load(const SrcT *mem, Flags flags)
+template <typename DstT>
+template <typename SrcT,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<SrcT>::value, int>::type>
+Vc_INTRINSIC void Vector<DstT>::load(const SrcT *mem, Flags flags)
 {
     Common::handleLoadPrefetches(mem, flags);
     d.v() = LoadHelper<DstT, SrcT, Flags>::load(mem, flags);
@@ -265,15 +279,21 @@ template<> Vc_INTRINSIC void Vector<float>::setQnan(const Mask &k)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // stores {{{1
-template<typename T> template<typename T2, typename Flags>
-Vc_INTRINSIC void Vector<T>::store(T2 *mem, Flags flags) const
+template <typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+Vc_INTRINSIC void Vector<T>::store(U *mem, Flags flags) const
 {
     Common::handleStorePrefetches(mem, flags);
     HV::template store<Flags>(mem, data());
 }
 
-template<typename T> template<typename T2, typename Flags>
-Vc_INTRINSIC void Vector<T>::store(T2 *mem, Mask mask, Flags flags) const
+template <typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+Vc_INTRINSIC void Vector<T>::store(U *mem, Mask mask, Flags flags) const
 {
     Common::handleStorePrefetches(mem, flags);
     HV::template store<Flags>(mem, data(), sse_cast<VectorType>(mask.data()));
@@ -1108,11 +1128,7 @@ template<> Vc_INTRINSIC int Vc_PURE Vector<int>::operator[](size_t index) const
         if (index == 0) return _mm_cvtsi128_si32(d.v());
 #endif
 #endif
-#ifdef VC_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
-#else
-        return _mm_cvtsi128_si32(_mm_srli_si128(d.v(), index * 4));
-#endif
     }
     return d.m(index);
 }
@@ -1127,11 +1143,7 @@ template<> Vc_INTRINSIC unsigned int Vc_PURE Vector<unsigned int>::operator[](si
         if (index == 0) return _mm_cvtsi128_si32(d.v());
 #endif
 #endif
-#ifdef VC_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
-#else
-        return _mm_cvtsi128_si32(_mm_srli_si128(d.v(), index * 4));
-#endif
     }
     return d.m(index);
 }

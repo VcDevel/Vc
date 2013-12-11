@@ -71,25 +71,33 @@ public:
     // broadcast
     Vc_ALWAYS_INLINE simd_array(value_type a) : d(a) {}
 
+    explicit Vc_ALWAYS_INLINE simd_array(VectorSpecialInitializerZero::ZEnum x) : d(vector_type(x)) {}
+    explicit Vc_ALWAYS_INLINE simd_array(VectorSpecialInitializerOne::OEnum x) : d(vector_type(x)) {}
+    explicit Vc_ALWAYS_INLINE simd_array(VectorSpecialInitializerIndexesFromZero::IEnum x) : d(x) {}
+
+    static Vc_ALWAYS_INLINE simd_array Zero() { return simd_array(VectorSpecialInitializerZero::Zero); }
+    static Vc_ALWAYS_INLINE simd_array One() { return simd_array(VectorSpecialInitializerOne::One); }
+    static Vc_ALWAYS_INLINE simd_array IndexesFromZero() { return simd_array(VectorSpecialInitializerIndexesFromZero::IndexesFromZero); }
+
     // load ctors
     explicit Vc_ALWAYS_INLINE simd_array(const value_type *x) : d(x) {}
-    template<typename Flags = AlignedT> explicit Vc_ALWAYS_INLINE simd_array(const value_type *x, Flags flags = Flags())
+    template<typename Flags = DefaultLoadTag> explicit Vc_ALWAYS_INLINE simd_array(const value_type *x, Flags flags = Flags())
         : d(x, flags) {}
-    template<typename OtherT, typename Flags = AlignedT> explicit Vc_ALWAYS_INLINE simd_array(const OtherT *x, Flags flags = Flags())
+    template<typename OtherT, typename Flags = DefaultLoadTag> explicit Vc_ALWAYS_INLINE simd_array(const OtherT *x, Flags flags = Flags())
         : d(x, flags) {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // load member functions
     Vc_ALWAYS_INLINE void load(const value_type *x) {
-        d.call(static_cast<void (vector_type::*)(const value_type *)>(&vector_type::load), x);
+        d.load(x, DefaultLoadTag());
     }
     template<typename Flags>
     Vc_ALWAYS_INLINE void load(const value_type *x, Flags f) {
-        d.call(static_cast<void (vector_type::*)(const value_type *, Flags)>(&vector_type::load), x, f);
+        d.load(x, f);
     }
-    template<typename U, typename Flags>
-    Vc_ALWAYS_INLINE void load(const U *x, Flags f) {
-        d.call(static_cast<void (vector_type::*)(const U *, Flags)>(&vector_type::load), x, f);
+    template<typename U, typename Flags = DefaultLoadTag>
+    Vc_ALWAYS_INLINE void load(const U *x, Flags f = Flags()) {
+        d.load(x, f);
     }
 
     // implicit casts
@@ -97,28 +105,43 @@ public:
         d[0] = x.data(0);
     }
 
-#define VC_COMPARE_IMPL(op) \
-    Vc_ALWAYS_INLINE Vc_PURE mask_type operator op(const simd_array &x) const { \
-        mask_type r; \
-        r.d.assign(d, x.d, &vector_type::operator op); \
-        return r; \
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // store member functions
+    Vc_ALWAYS_INLINE void store(value_type *x) {
+        d.store(x, DefaultStoreTag());
+    }
+    template <typename Flags> Vc_ALWAYS_INLINE void store(value_type *x, Flags f)
+    {
+        d.store(x, f);
+    }
+    template <typename U, typename Flags = DefaultStoreTag>
+    Vc_ALWAYS_INLINE void store(U *x, Flags f = Flags())
+    {
+        d.store(x, f);
+    }
+
+
+#define VC_COMPARE_IMPL(op)                                                                        \
+    Vc_ALWAYS_INLINE Vc_PURE mask_type operator op(const simd_array &x) const                      \
+    {                                                                                              \
+        mask_type r;                                                                               \
+        r.d.assign(d, x.d, &vector_type::operator op);                                             \
+        return r;                                                                                  \
     }
     VC_ALL_COMPARES(VC_COMPARE_IMPL)
 #undef VC_COMPARE_IMPL
 
-#define VC_OPERATOR_IMPL(op) \
-    Vc_ALWAYS_INLINE simd_array &operator op##=(const simd_array &x) { \
-        for (std::size_t i = 0; i < register_count; ++i) { \
-            d[i] op##= x.d[i]; \
-        } \
-        return *this; \
-    } \
-    inline simd_array operator op(const simd_array &x) const { \
-        simd_array r; \
-        for (std::size_t i = 0; i < register_count; ++i) { \
-            r.data(i) = d[i] op x.d[i]; \
-        } \
-        return r; \
+#define VC_OPERATOR_IMPL(op)                                                                       \
+    Vc_ALWAYS_INLINE simd_array &operator op##=(const simd_array & x)                              \
+    {                                                                                              \
+        d op## = x.d;                                                                              \
+        return *this;                                                                              \
+    }                                                                                              \
+    inline simd_array operator op(const simd_array &x) const                                       \
+    {                                                                                              \
+        simd_array r = *this;                                                                      \
+        r op## = x;                                                                                \
+        return r;                                                                                  \
     }
     VC_ALL_BINARY     (VC_OPERATOR_IMPL)
     VC_ALL_ARITHMETICS(VC_OPERATOR_IMPL)
@@ -129,6 +152,31 @@ public:
         typedef value_type TT Vc_MAY_ALIAS;
         auto m = reinterpret_cast<const TT *>(&d);
         return m[i];
+    }
+
+    //prefix
+    Vc_INTRINSIC simd_array &operator++()
+    {
+        d.call(static_cast<vector_type &(vector_type::*)()>(&vector_type::operator++));
+        return *this;
+    }
+    Vc_INTRINSIC simd_array &operator--()
+    {
+        d.call(static_cast<vector_type &(vector_type::*)()>(&vector_type::operator--));
+        return *this;
+    }
+    // postfix
+    Vc_INTRINSIC simd_array operator++(int)
+    {
+        const auto r = *this;
+        d.call(static_cast<vector_type &(vector_type::*)()>(&vector_type::operator++));
+        return r;
+    }
+    Vc_INTRINSIC simd_array operator--(int)
+    {
+        const auto r = *this;
+        d.call(static_cast<vector_type &(vector_type::*)()>(&vector_type::operator--));
+        return r;
     }
 
 private:

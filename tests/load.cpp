@@ -17,6 +17,7 @@
 
 */
 
+#define VC_NEWTEST
 #include "unittest.h"
 #include <iostream>
 
@@ -31,12 +32,11 @@ template<typename Vec> constexpr unsigned long alignmentMask()
             min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1
         ) : (
             // AVX::VectorAlignment is too large
-            min<size_t>(sizeof(Vec), VectorAlignment) - 1
+            min(sizeof(Vec), alignof(Vec)) - 1
         );
 }
 
-template<typename Vec> void checkAlignment()
-{
+TEST_BEGIN(Vec, checkAlignment, (ALL_VECTORS, SIMD_ARRAYS(32)))
     unsigned char i = 1;
     Vec a[10];
     unsigned long mask = alignmentMask<Vec>();
@@ -47,12 +47,11 @@ template<typename Vec> void checkAlignment()
     for (i = 0; i < 10; ++i) {
         VERIFY(&data[i * sizeof(Vec)] == reinterpret_cast<const char *>(&a[i]));
     }
-}
+TEST_END
 
 void *hack_to_put_b_on_the_stack = 0;
 
-template<typename Vec> void checkMemoryAlignment()
-{
+TEST_BEGIN(Vec, checkMemoryAlignment, (ALL_VECTORS, SIMD_ARRAYS(32)))
     typedef typename Vec::EntryType T;
     const T *b = 0;
     Vc::Memory<Vec, 10> a;
@@ -62,46 +61,13 @@ template<typename Vec> void checkMemoryAlignment()
     for (int i = 0; i < 10; ++i) {
         VERIFY((reinterpret_cast<size_t>(&b[i * Vec::Size]) & mask) == 0) << "b = " << b << ", mask = " << mask;
     }
-}
-
-template<typename Vec> void loadArray()
-{
-    typedef typename Vec::EntryType T;
-    typedef typename Vec::IndexType I;
-
-    enum loadArrayEnum { count = 256 * 1024 / sizeof(T) };
-    Vc::Memory<Vec, count> array;
-    for (int i = 0; i < count; ++i) {
-        array[i] = i;
-    }
-
-    const I indexesFromZero(IndexesFromZero);
-
-    const Vec offsets(indexesFromZero);
-    for (int i = 0; i < count; i += Vec::Size) {
-        const T *const addr = &array[i];
-        Vec ii(i);
-        ii += offsets;
-
-        Vec a(addr);
-        COMPARE(a, ii);
-
-        Vec b = Vec::Zero();
-        b.load(addr);
-        COMPARE(b, ii);
-    }
-
-    // check that Vc allows construction from objects that auto-convert to T*
-    Vec tmp0(array);
-    tmp0.load(array);
-}
+TEST_END
 
 enum Enum {
     loadArrayShortCount = 32 * 1024,
     streamingLoadCount = 1024
 };
-template<typename Vec> void loadArrayShort()
-{
+TEST_BEGIN(Vec, loadArrayShort, (short_v, ushort_v, simd_array<short, 32>, simd_array<unsigned short, 32>))
     typedef typename Vec::EntryType T;
 
     Vc::Memory<Vec, loadArrayShortCount> array;
@@ -109,23 +75,53 @@ template<typename Vec> void loadArrayShort()
         array[i] = i;
     }
 
-    const Vec &offsets = static_cast<Vec>(ushort_v::IndexesFromZero());
+    const Vec offsets(IndexesFromZero);
     for (int i = 0; i < loadArrayShortCount; i += Vec::Size) {
         const T *const addr = &array[i];
         Vec ii(i);
         ii += offsets;
 
-        Vec a(addr);
+        Vec a(addr, Vc::Aligned);
         COMPARE(a, ii);
 
         Vec b = Vec::Zero();
-        b.load(addr);
+        b.load(addr, Vc::Aligned);
         COMPARE(b, ii);
     }
-}
+TEST_END
 
-template<typename Vec> void streamingLoad()
-{
+TEST_BEGIN(Vec, loadArray, (ALL_VECTORS, SIMD_ARRAYS(32)))
+    typedef typename Vec::EntryType T;
+    if (sizeof(T) < 32) {
+        return;
+    }
+
+    enum loadArrayEnum { count = 256 * 1024 / sizeof(T) };
+    Vc::Memory<Vec, count> array;
+    for (int i = 0; i < count; ++i) {
+        array[i] = i;
+    }
+
+    const Vec offsets(IndexesFromZero);
+    for (int i = 0; i < count; i += Vec::Size) {
+        const T *const addr = &array[i];
+        Vec ii(i);
+        ii += offsets;
+
+        Vec a(addr, Vc::Aligned);
+        COMPARE(a, ii);
+
+        Vec b = Vec::Zero();
+        b.load(addr, Vc::Aligned);
+        COMPARE(b, ii);
+    }
+
+    // check that Vc allows construction from objects that auto-convert to T*
+    Vec tmp0(array, Vc::Aligned);
+    tmp0.load(array, Vc::Aligned);
+TEST_END
+
+TEST_BEGIN(Vec, streamingLoad, (ALL_VECTORS, SIMD_ARRAYS(32)))
     typedef typename Vec::EntryType T;
 
     Vc::Memory<Vec, streamingLoadCount> data;
@@ -139,8 +135,8 @@ template<typename Vec> void streamingLoad()
     for (size_t i = 0; i < streamingLoadCount - Vec::Size; ++i, ++ref) {
         Vec v1, v2;
         if (0 == i % Vec::Size) {
-            v1 = Vec(&data[i], Vc::Streaming);
-            v2.load (&data[i], Vc::Streaming);
+            v1 = Vec(&data[i], Vc::Aligned | Vc::Streaming);
+            v2.load (&data[i], Vc::Aligned | Vc::Streaming);
         } else {
             v1 = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
             v2.load (&data[i], Vc::Unaligned | Vc::Streaming);
@@ -148,23 +144,7 @@ template<typename Vec> void streamingLoad()
         COMPARE(v1, ref) << ", i = " << i;
         COMPARE(v2, ref) << ", i = " << i;
     }
-}
-
-template<typename T> struct TypeInfo;
-template<> struct TypeInfo<double        > { static const char *string() { return "double"; } };
-template<> struct TypeInfo<float         > { static const char *string() { return "float"; } };
-template<> struct TypeInfo<int           > { static const char *string() { return "int"; } };
-template<> struct TypeInfo<unsigned int  > { static const char *string() { return "uint"; } };
-template<> struct TypeInfo<short         > { static const char *string() { return "short"; } };
-template<> struct TypeInfo<unsigned short> { static const char *string() { return "ushort"; } };
-template<> struct TypeInfo<signed char   > { static const char *string() { return "schar"; } };
-template<> struct TypeInfo<unsigned char > { static const char *string() { return "uchar"; } };
-template<> struct TypeInfo<double_v      > { static const char *string() { return "double_v"; } };
-template<> struct TypeInfo<float_v       > { static const char *string() { return "float_v"; } };
-template<> struct TypeInfo<int_v         > { static const char *string() { return "int_v"; } };
-template<> struct TypeInfo<uint_v        > { static const char *string() { return "uint_v"; } };
-template<> struct TypeInfo<short_v       > { static const char *string() { return "short_v"; } };
-template<> struct TypeInfo<ushort_v      > { static const char *string() { return "ushort_v"; } };
+TEST_END
 
 template<typename T, typename Current = void> struct SupportedConversions { typedef void Next; };
 template<> struct SupportedConversions<float, void>           { typedef double         Next; };
@@ -208,7 +188,7 @@ template<typename Vec, typename MemT> struct LoadCvt {
                 v = Vec(&data[i], Vc::Unaligned);
             }
             for (size_t j = 0; j < Vec::Size; ++j) {
-                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << TypeInfo<MemT>::string();
+                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << UnitTest::typeToString<MemT>();
             }
         }
         for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
@@ -221,7 +201,7 @@ template<typename Vec, typename MemT> struct LoadCvt {
                 v.load(&data[i], Vc::Unaligned);
             }
             for (size_t j = 0; j < Vec::Size; ++j) {
-                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << TypeInfo<MemT>::string();
+                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << UnitTest::typeToString<MemT>();
             }
         }
         for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
@@ -234,39 +214,17 @@ template<typename Vec, typename MemT> struct LoadCvt {
                 v = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
             }
             for (size_t j = 0; j < Vec::Size; ++j) {
-                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << TypeInfo<MemT>::string();
+                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << UnitTest::typeToString<MemT>();
             }
         }
 
-        ADD_PASS() << "loadCvt: load " << TypeInfo<MemT>::string() << "* as " << TypeInfo<Vec>::string();
+        ADD_PASS() << "loadCvt: load " << UnitTest::typeToString<MemT>() << "* as " << UnitTest::typeToString<Vec>();
         LoadCvt<Vec, typename SupportedConversions<VecT, MemT>::Next>::test();
     }
 };
 template<typename Vec> struct LoadCvt<Vec, void> { static void test() {} };
 
-template<typename Vec> void loadCvt()
-{
+TEST_BEGIN(Vec, loadCvt, (ALL_VECTORS, SIMD_ARRAYS(32)))
     typedef typename Vec::EntryType T;
     LoadCvt<Vec, typename SupportedConversions<T>::Next>::test();
-}
-
-void testmain()
-{
-    runTest(checkAlignment<int_v>);
-    runTest(checkAlignment<uint_v>);
-    runTest(checkAlignment<float_v>);
-    runTest(checkAlignment<double_v>);
-    runTest(checkAlignment<short_v>);
-    runTest(checkAlignment<ushort_v>);
-    testAllTypes(checkMemoryAlignment);
-    runTest(loadArray<int_v>);
-    runTest(loadArray<uint_v>);
-    runTest(loadArray<float_v>);
-    runTest(loadArray<double_v>);
-    runTest(loadArrayShort<short_v>);
-    runTest(loadArrayShort<ushort_v>);
-
-    testAllTypes(streamingLoad);
-
-    testAllTypes(loadCvt);
-}
+TEST_END

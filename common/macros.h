@@ -196,8 +196,13 @@ do {} while ( false )
     }; };
     template<int center> struct exponentToMultiplier<center,center> { enum { X = 1, Value = X }; };
     template<int center> struct exponentToMultiplier<   -1, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToMultiplier< -128, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToMultiplier< -256, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToMultiplier< -384, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToMultiplier< -512, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToMultiplier< -640, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToMultiplier< -768, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToMultiplier< -896, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToMultiplier<-1024, center> { enum { X = 0, Value = 1 }; };
 
     template<int e, int center> struct exponentToDivisor { enum {
@@ -206,36 +211,18 @@ do {} while ( false )
     }; };
     template<int center> struct exponentToDivisor<center, center> { enum { X = 1, Value = X }; };
     template<int center> struct exponentToDivisor<     1, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToDivisor<   128, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToDivisor<   256, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToDivisor<   384, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToDivisor<   512, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToDivisor<   640, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToDivisor<   768, center> { enum { X = 0, Value = 1 }; };
+    template<int center> struct exponentToDivisor<   896, center> { enum { X = 0, Value = 1 }; };
     template<int center> struct exponentToDivisor<  1024, center> { enum { X = 0, Value = 1 }; };
 #endif // VC_COMMON_MACROS_H_ONCE
 
 #define _CAT_IMPL(a, b) a##b
 #define CAT(a, b) _CAT_IMPL(a, b)
-
-#define Vc_buildDouble(sign, mantissa, exponent) \
-    ((static_cast<double>((mantissa & 0x000fffffffffffffull) | 0x0010000000000000ull) / 0x0010000000000000ull) \
-    * exponentToMultiplier<exponent,  0>::Value \
-    * exponentToMultiplier<exponent, 30>::Value \
-    * exponentToMultiplier<exponent, 60>::Value \
-    * exponentToMultiplier<exponent, 90>::Value \
-    / exponentToDivisor<exponent,   0>::Value \
-    / exponentToDivisor<exponent, -30>::Value \
-    / exponentToDivisor<exponent, -60>::Value \
-    / exponentToDivisor<exponent, -90>::Value \
-    * static_cast<double>(sign))
-#define Vc_buildFloat(sign, mantissa, exponent) \
-    ((static_cast<float>((mantissa & 0x007fffffu) | 0x00800000) / 0x00800000) \
-    * exponentToMultiplier<exponent,  0>::Value \
-    * exponentToMultiplier<exponent, 30>::Value \
-    * exponentToMultiplier<exponent, 60>::Value \
-    * exponentToMultiplier<exponent, 90>::Value \
-    / exponentToDivisor<exponent,   0>::Value \
-    / exponentToDivisor<exponent, -30>::Value \
-    / exponentToDivisor<exponent, -60>::Value \
-    / exponentToDivisor<exponent, -90>::Value \
-    * static_cast<float>(sign))
 
 #define _VC_APPLY_IMPL_1(macro, a, b, c, d, e) macro(a)
 #define _VC_APPLY_IMPL_2(macro, a, b, c, d, e) macro(a, b)

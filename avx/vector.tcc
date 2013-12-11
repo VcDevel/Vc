@@ -30,11 +30,16 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum) : d(HT::zero()) {}
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerOne::OEnum) : d(HT::one()) {}
 template<typename T> Vc_ALWAYS_INLINE Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(HV::template load<AlignedT>(IndexesFromZeroData<T>::address())) {}
+    : d(HV::template load<AlignedTag>(IndexesFromZeroData<T>::address())) {}
+
+template<> Vc_ALWAYS_INLINE float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(StaticCastHelper<int, float>::cast(int_v::IndexesFromZero().data())) {}
+template<> Vc_ALWAYS_INLINE double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(_mm256_cvtepi32_pd(_mm_load_si128(reinterpret_cast<const __m128i *>(_IndexesFromZero32)))) {}
 
 template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::Zero() { return HT::zero(); }
 template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::One() { return HT::one(); }
-template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::IndexesFromZero() { return HV::template load<AlignedT>(IndexesFromZeroData<T>::address()); }
+template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::IndexesFromZero() { return Vector<T>(VectorSpecialInitializerIndexesFromZero::IndexesFromZero); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions {{{1
@@ -188,7 +193,11 @@ template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags>
 };
 
 // general load, implemented via LoadHelper {{{2
-template<typename DstT> template<typename SrcT, typename Flags> Vc_INTRINSIC void Vector<DstT>::load(const SrcT *mem, Flags flags)
+template <typename DstT>
+template <typename SrcT,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<SrcT>::value, int>::type>
+Vc_INTRINSIC void Vector<DstT>::load(const SrcT *mem, Flags flags)
 {
     Common::handleLoadPrefetches(mem, flags);
     d.v() = LoadHelper<DstT, SrcT, Flags>::load(mem, flags);
@@ -224,15 +233,21 @@ template<> Vc_INTRINSIC void Vector<float>::setQnan(MaskArg k)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // stores {{{1
-template<typename T> template<typename T2, typename Flags>
-Vc_INTRINSIC void Vector<T>::store(T2 *mem, Flags flags) const
+template <typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+Vc_INTRINSIC void Vector<T>::store(U *mem, Flags flags) const
 {
     Common::handleStorePrefetches(mem, flags);
     HV::template store<Flags>(mem, data());
 }
 
-template<typename T> template<typename T2, typename Flags>
-Vc_INTRINSIC void Vector<T>::store(T2 *mem, Mask mask, Flags flags) const
+template <typename T>
+template <typename U,
+          typename Flags,
+          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+Vc_INTRINSIC void Vector<T>::store(U *mem, Mask mask, Flags flags) const
 {
     Common::handleStorePrefetches(mem, flags);
     HV::template store<Flags>(mem, data(), avx_cast<VectorType>(mask.data()));
@@ -377,8 +392,8 @@ static inline m256i Vc_CONST divUInt(param256i a, param256i b) {
     // It could be argued that for b this is not really important because division by a b >= 2^31 is
     // useless. But for full correctness it cannot be ignored.
 #ifdef VC_IMPL_AVX2
-    const auto aa = _mm256_add_epi32(a, _mm256_set1_epi32(-2147483648));
-    const auto bb = _mm256_add_epi32(b, _mm256_set1_epi32(-2147483648));
+    const m256i aa = _mm256_add_epi32(a, _mm256_set1_epi32(-2147483648));
+    const m256i bb = _mm256_add_epi32(b, _mm256_set1_epi32(-2147483648));
     const m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(aa)), _mm256_set1_pd(2147483648.));
     const m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(aa)), _mm256_set1_pd(2147483648.));
     const m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(bb)), _mm256_set1_pd(2147483648.));
@@ -1248,7 +1263,7 @@ template<> Vc_ALWAYS_INLINE Vector<float> Vector<float>::Random()
 
 template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 {
-    const m256i state = VectorHelper<m256i>::load<AlignedT>(&Common::RandomState[0]);
+    const m256i state = VectorHelper<m256i>::load<AlignedTag>(&Common::RandomState[0]);
     for (size_t k = 0; k < 8; k += 2) {
         typedef unsigned long long uint64 Vc_MAY_ALIAS;
         const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);
@@ -1328,8 +1343,30 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount) const
 {
     return VectorShift<sizeof(VectorType), Size, VectorType, EntryType>::shifted(d.v(), amount);
 }
+
+template <typename VectorType>
+Vc_INTRINSIC Vc_CONST VectorType shifted_shortcut(VectorType left, VectorType right, Common::WidthT<m128>)
+{
+    return Mem::shuffle<X1, Y0>(left, right);
+}
+template <typename VectorType>
+Vc_INTRINSIC Vc_CONST VectorType shifted_shortcut(VectorType left, VectorType right, Common::WidthT<m256>)
+{
+    return Mem::shuffle128<X1, Y0>(left, right);
+}
+
 template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount, Vector shiftIn) const
 {
+#ifdef __GNUC__
+    if (__builtin_constant_p(amount)) {
+        switch (amount * 2) {
+        case int(Size):
+            return shifted_shortcut(d.v(), shiftIn.d.v(), WidthT());
+        case -int(Size):
+            return shifted_shortcut(shiftIn.d.v(), d.v(), WidthT());
+        }
+    }
+#endif
     return shifted(amount) | (amount > 0 ?
                               shiftIn.shifted(amount - Size) :
                               shiftIn.shifted(Size + amount));

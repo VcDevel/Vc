@@ -119,6 +119,15 @@ template<typename T> class Mask
           typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
             : d(internal::mask_cast<Mask<U>::Size, Size, VectorType>(rhs.dataI())) {}
 
+        Vc_ALWAYS_INLINE explicit Mask(const bool *mem) { load(mem); }
+        template<typename Flags> Vc_ALWAYS_INLINE explicit Mask(const bool *mem, Flags f) { load(mem, f); }
+
+        Vc_ALWAYS_INLINE_L void load(const bool *mem) Vc_ALWAYS_INLINE_R;
+        template<typename Flags> Vc_ALWAYS_INLINE void load(const bool *mem, Flags) { load(mem); }
+
+        Vc_ALWAYS_INLINE_L void store(bool *) const Vc_ALWAYS_INLINE_R;
+        template<typename Flags> Vc_ALWAYS_INLINE void store(bool *mem, Flags) const { store(mem); }
+
         Vc_ALWAYS_INLINE Mask &operator=(const Mask &) = default;
         Vc_ALWAYS_INLINE_L Mask &operator=(const std::array<bool, Size> &values) Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L operator std::array<bool, Size>() const Vc_ALWAYS_INLINE_R;
@@ -157,7 +166,7 @@ template<typename T> class Mask
         Vc_ALWAYS_INLINE VectorTypeI dataI() const { return avx_cast<VectorTypeI>(d.v()); }
         Vc_ALWAYS_INLINE VectorTypeD dataD() const { return avx_cast<VectorTypeD>(d.v()); }
 
-        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return d.m(index); }
+        Vc_ALWAYS_INLINE decltype(std::declval<Storage &>().m(0)) operator[](size_t index) { return d.m(index); }
         Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         Vc_ALWAYS_INLINE Vc_PURE unsigned int count() const { return _mm_popcnt_u32(toInt()); }
@@ -180,6 +189,7 @@ template<typename T> class Mask
 #endif
         Storage d;
 };
+template<typename T> constexpr size_t Mask<T>::Size;
 
 Vc_IMPL_NAMESPACE_END
 

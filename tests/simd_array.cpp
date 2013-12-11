@@ -111,20 +111,22 @@ TEST_ALL_V_AND_N(V, N, load)
 {
     typedef typename V::EntryType T;
     Vc::Memory<V, N + 2> data;
-    data = V::Zero();
+    for (size_t i = 0; i < data.entriesCount(); ++i) {
+        data[i] = T(i);
+    }
 
     simd_array<T, N> a{ &data[0] };
-    simd_array<T, N> b = 0;
+    simd_array<T, N> b(Vc::IndexesFromZero);
     COMPARE(a, b);
 
     b.load(&data[0]);
     COMPARE(a, b);
 
     a.load(&data[1], Vc::Unaligned);
-    COMPARE(a, b);
+    COMPARE(a, b + 1);
 
     b = decltype(b)(&data[2], Vc::Unaligned | Vc::Streaming);
-    COMPARE(a, b);
+    COMPARE(a, b - 1);
 }
 
 TEST(load_converting)
@@ -132,15 +134,34 @@ TEST(load_converting)
     typedef simd_array<float, 32> A;
 
     Vc::Memory<double_v, 34> data;
-    data = double_v::Zero();
+    for (size_t i = 0; i < data.entriesCount(); ++i) {
+        data[i] = double(i);
+    }
 
     A a{ &data[0] };
-    A b = 0.;
+    A b(Vc::IndexesFromZero);
     COMPARE(a, b);
 
     b.load(&data[1], Vc::Unaligned);
-    COMPARE(a, b);
+    COMPARE(a + 1, b);
 
     a = A(&data[2], Vc::Unaligned | Vc::Streaming);
-    COMPARE(a, b);
+    COMPARE(a, b + 1);
+}
+
+TEST_ALL_NATIVE_V(V, store)
+{
+    typedef typename V::EntryType T;
+    Vc::Memory<V, 34> data;
+    data = V::Zero();
+
+    simd_array<T, 32> a(Vc::IndexesFromZero);
+    a.store(&data[0], Vc::Aligned);
+    for (size_t i = 0; i < 32; ++i) COMPARE(data[i], i);
+    a.store(&data[1], Vc::Unaligned);
+    for (size_t i = 0; i < 32; ++i) COMPARE(data[i + 1], i);
+    a.store(&data[0], Vc::Aligned | Vc::Streaming);
+    for (size_t i = 0; i < 32; ++i) COMPARE(data[i], i);
+    a.store(&data[1], Vc::Unaligned | Vc::Streaming);
+    for (size_t i = 0; i < 32; ++i) COMPARE(data[i + 1], i);
 }

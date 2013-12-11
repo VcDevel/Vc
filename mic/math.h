@@ -24,6 +24,11 @@
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
+// copysign {{{1
+template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
+{
+    return a.copySign(b);
+}
 // trunc {{{1
 template<typename V> Vc_ALWAYS_INLINE V trunc(V v)
 {
@@ -51,6 +56,20 @@ template<typename T> static Vc_ALWAYS_INLINE Mask<T> isnotfinite(Vector<T> x)
 static Vc_ALWAYS_INLINE double_m isnotfinite(double_v x)
 {
     return _mm512_cmpunord_pd_mask(x.data(), (x * double_v::Zero()).data());
+}
+// isinf {{{1
+Vc_ALWAYS_INLINE float_m isinf(float_v x)
+{
+    return _mm512_cmpeq_epi32_mask(_mm512_castps_si512(abs(x).data()), _mm512_set1_epi32(0x7f800000));
+}
+Vc_ALWAYS_INLINE double_m isinf(double_v x)
+{
+    auto mask = _mm512_cmpeq_epi32_mask(_mm512_castpd_si512(abs(x).data()), _mm512_set1_epi64(0x7ff0000000000000ull));
+    // FIXME this is not efficient:
+    return ((mask & 0x01) | ((mask >> 2) & 0x06) | ((mask >> 4) & 0x18) | ((mask >> 6) & 0x60) |
+            ((mask >> 8) & 0x80)) &
+           (((mask >> 1) & 0x03) | ((mask >> 3) & 0x0c) | ((mask >> 5) & 0x30) |
+            ((mask >> 7) & 0xc0));
 }
 // isnan {{{1
 template<typename T> static Vc_ALWAYS_INLINE Mask<T> isnan(Vector<T> x)

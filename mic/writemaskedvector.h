@@ -20,6 +20,8 @@
 #ifndef VC_MIC_WRITEMASKEDVECTOR_H
 #define VC_MIC_WRITEMASKEDVECTOR_H
 
+#include <utility>
+
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
 template<typename T> class WriteMaskedVector

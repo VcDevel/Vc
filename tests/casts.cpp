@@ -23,16 +23,65 @@
 
 using namespace Vc;
 
+template<typename T> constexpr bool may_overflow() { return std::is_integral<T>::value && std::is_unsigned<T>::value; }
+
+template<typename T1, typename T2> struct is_conversion_exact
+{
+    static constexpr bool is_T2_integer = std::is_integral<T2>::value;
+    static constexpr bool is_T2_signed = is_T2_integer && std::is_signed<T2>::value;
+    static constexpr bool is_float_int_conversion = std::is_floating_point<T1>::value && is_T2_integer;
+
+    template <typename U, typename V> static constexpr bool can_represent(V x) {
+        return x <= std::numeric_limits<U>::max() && x >= std::numeric_limits<U>::min();
+    }
+
+    template<typename U> static constexpr U max() { return std::numeric_limits<U>::max() - U(1); }
+    template<typename U> static constexpr U min() { return std::numeric_limits<U>::min() + U(1); }
+
+    static constexpr bool for_value(T1 v) {
+        return (!is_float_int_conversion && !is_T2_signed) || can_represent<T2>(v);
+    }
+    static constexpr bool for_plus_one(T1 v) {
+        return (v <= max<T1>() || may_overflow<T1>()) && (v <= max<T2>() || may_overflow<T2>()) &&
+               for_value(v + 1);
+    }
+    static constexpr bool for_minus_one(T1 v) {
+        return (v >= min<T1>() || may_overflow<T1>()) && (v >= min<T2>() || may_overflow<T2>()) &&
+               for_value(v - 1);
+    }
+};
+
+template<typename V1, typename V2> V2 makeReference(V2 reference)
+{
+    reference.setZero(V2::IndexesFromZero() >= V1::Size);
+    return reference;
+}
+
 template<typename V1, typename V2> void testNumber(double n)
 {
     typedef typename V1::EntryType T1;
     typedef typename V2::EntryType T2;
 
+    constexpr T1 One = T1(1);
+
     // compare casts from T1 -> T2 with casts from V1 -> V2
 
     const T1 n1 = static_cast<T1>(n);
     //std::cerr << "n1 = " << n1 << ", static_cast<T2>(n1) = " << static_cast<T2>(n1) << std::endl;
-    COMPARE(static_cast<V2>(V1(n1)), V2(static_cast<T2>(n1))) << "\n       n1: " << n1;
+
+    if (is_conversion_exact<T1, T2>::for_value(n1)) {
+        COMPARE(static_cast<V2>(V1(n1)), makeReference<V1>(V2(static_cast<T1>(n1))))
+            << "\n       n1: " << n1
+            << "\n   V1(n1): " << V1(n1)
+            << "\n   T2(n1): " << T2(n1)
+            ;
+    }
+    if (is_conversion_exact<T1, T2>::for_plus_one(n1)) {
+        COMPARE(static_cast<V2>(V1(n1) + One), makeReference<V1>(V2(static_cast<T2>(n1 + One)))) << "\n       n1: " << n1;
+    }
+    if (is_conversion_exact<T1, T2>::for_minus_one(n1)) {
+        COMPARE(static_cast<V2>(V1(n1) - One), makeReference<V1>(V2(static_cast<T2>(n1 - One)))) << "\n       n1: " << n1;
+    }
 }
 
 template<typename T> double maxHelper()
@@ -69,6 +118,7 @@ template<typename V1, typename V2> void testCast2()
                 static_cast<double>(-std::numeric_limits<T2>::max())
                 );
 
+    testNumber<V1, V2>(-1.);
     testNumber<V1, V2>(0.);
     testNumber<V1, V2>(1.);
     testNumber<V1, V2>(2.);
@@ -77,6 +127,9 @@ template<typename V1, typename V2> void testCast2()
     testNumber<V1, V2>(max / 2);
     testNumber<V1, V2>(max / 4);
     testNumber<V1, V2>(min);
+
+    V1 test(IndexesFromZero);
+    COMPARE(static_cast<V2>(test), makeReference<V1>(V2::IndexesFromZero()));
 }
 
 template<typename T> void testCast()
@@ -93,27 +146,52 @@ struct T2Helper
     typedef T2 V2;
 };
 
+void fullConversion()
+{
+    float_v x = float_v::Random();
+    float_v r = static_cast<float_v>(0.1 * static_cast<double_v>(x)).rotated(double_v::Size);
+    for (size_t i = double_v::Size; i < float_v::Size; i += double_v::Size) {
+        float_v tmp = static_cast<float_v>(0.1 * static_cast<double_v>(x.shifted(double_v::Size)));
+        r = r.shifted(double_v::Size, tmp);
+    }
+    for (size_t i = 0; i < float_v::Size; ++i) {
+        COMPARE(r[i], static_cast<float>(x[i] * 0.1)) << "i = " << i;
+    }
+}
+
 void testmain()
 {
 #define TEST_CAST(v1, v2) \
     typedef T2Helper<v1, v2> CONCAT(v1, v2); \
     runTest(testCast<CONCAT(v1, v2)>)
 
-    TEST_CAST(float_v, float_v);
-    TEST_CAST(float_v, int_v);
-    TEST_CAST(float_v, uint_v);
-    // needs special handling for different Size:
-    //TEST_CAST(float_v, double_v);
-    //TEST_CAST(float_v, short_v);
-    //TEST_CAST(float_v, ushort_v);
+    TEST_CAST(double_v, double_v);
+    TEST_CAST(double_v,  float_v);
+    TEST_CAST(double_v,    int_v);
+    TEST_CAST(double_v,   uint_v);
+    //TEST_CAST(double_v,  short_v);
+    //TEST_CAST(double_v, ushort_v);
 
+    TEST_CAST(float_v, double_v);
+    TEST_CAST(float_v,  float_v);
+    TEST_CAST(float_v,    int_v);
+    TEST_CAST(float_v,   uint_v);
+    TEST_CAST(float_v,  short_v);
+    TEST_CAST(float_v, ushort_v);
+
+    TEST_CAST(int_v, double_v);
     TEST_CAST(int_v, float_v);
     TEST_CAST(int_v, int_v);
     TEST_CAST(int_v, uint_v);
+    TEST_CAST(int_v, short_v);
+    TEST_CAST(int_v, ushort_v);
 
+    TEST_CAST(uint_v, double_v);
     TEST_CAST(uint_v, float_v);
     TEST_CAST(uint_v, int_v);
     TEST_CAST(uint_v, uint_v);
+    TEST_CAST(uint_v, short_v);
+    TEST_CAST(uint_v, ushort_v);
 
     TEST_CAST(ushort_v, short_v);
     TEST_CAST(ushort_v, ushort_v);
@@ -121,4 +199,5 @@ void testmain()
     TEST_CAST(short_v, short_v);
     TEST_CAST(short_v, ushort_v);
 #undef TEST_CAST
+    runTest(fullConversion);
 }

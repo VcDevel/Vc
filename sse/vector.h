@@ -190,7 +190,7 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // copy
-        Vc_INTRINSIC Vector(const Vector &x) : d(x.data()) {}
+        Vc_INTRINSIC Vector(const Vector &x) = default;
         Vc_INTRINSIC Vector &operator=(const Vector &v) { d.v() = v.d.v(); return *this; }
 
         // implict conversion from compatible Vector<U>
@@ -206,27 +206,45 @@ template<typename T> class Vector
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         Vc_INTRINSIC Vector(EntryType a) : d(HT::set(a)) {}
+        template <typename U>
+        Vc_INTRINSIC Vector(U a,
+                            typename std::enable_if<std::is_same<U, int>::value &&
+                                                        !std::is_same<U, EntryType>::value,
+                                                    void *>::type = nullptr)
+            : Vector(static_cast<EntryType>(a))
+        {
+        }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
-        explicit Vc_INTRINSIC Vector(const EntryType *x) { load(x); }
-        template<typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const EntryType *x, Flags flags = Flags())
+        explicit Vc_INTRINSIC Vector(const EntryType *x)
+        {
+            load(x, DefaultLoadTag());
+        }
+        template <typename Flags> explicit Vc_INTRINSIC Vector(const EntryType *x, Flags flags)
         {
             load(x, flags);
         }
-        //template<typename OtherT> explicit Vc_INTRINSIC Vector(const OtherT *x) { load(x); }
-        template<typename OtherT, typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const OtherT *x, Flags flags = Flags())
+        template <typename U,
+                  typename Flags = DefaultLoadTag,
+                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+        explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
         {
             load(x, flags);
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
-        Vc_INTRINSIC void load(const EntryType *mem) { load<AlignedT>(mem, Aligned); }
-        template<typename Flags = AlignedT> Vc_INTRINSIC_L
-            void load(const EntryType *mem, Flags) Vc_INTRINSIC_R;
-        template<typename OtherT, typename Flags = AlignedT> Vc_INTRINSIC_L
-            void load(const OtherT *mem, Flags = Flags()) Vc_INTRINSIC_R;
+        Vc_INTRINSIC void load(const EntryType *mem)
+        {
+            load(mem, DefaultLoadTag());
+        }
+        template <typename Flags>
+        Vc_INTRINSIC_L void load(const EntryType *mem, Flags) Vc_INTRINSIC_R;
+        template <typename U,
+                  typename Flags = DefaultLoadTag,
+                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+        Vc_INTRINSIC_L void load(const U *mem, Flags = Flags()) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
@@ -243,14 +261,34 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
-        template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC_L void store(T2 *mem, Flags = Flags()) const Vc_INTRINSIC_R;
-        template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC_L void store(T2 *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
-        // the following store overloads are here to support classes that have a cast operator to EntryType.
+        template <typename U,
+                  typename Flags = DefaultStoreTag,
+                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+        Vc_INTRINSIC_L void store(U *mem, Flags = Flags()) const Vc_INTRINSIC_R;
+        template <typename U,
+                  typename Flags = DefaultStoreTag,
+                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+        Vc_INTRINSIC_L void store(U *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
+        // the following store overloads are here to support classes that have a cast operator to
+        // EntryType.
         // Without this overload GCC complains about not finding a matching store function.
-        Vc_INTRINSIC void store(EntryType *mem) const { store<EntryType, AlignedT>(mem); }
-        template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Flags flags = Flags()) const { store<EntryType, Flags>(mem, flags); }
-        Vc_INTRINSIC void store(EntryType *mem, Mask mask) const { store<EntryType, AlignedT>(mem, mask); }
-        template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags = Flags()) const { store<EntryType, Flags>(mem, mask, flags); }
+        Vc_INTRINSIC void store(EntryType *mem) const
+        {
+            store<EntryType, DefaultStoreTag>(mem, DefaultStoreTag());
+        }
+        template <typename Flags> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
+        {
+            store<EntryType, Flags>(mem, flags);
+        }
+        Vc_INTRINSIC void store(EntryType *mem, Mask mask) const
+        {
+            store<EntryType, DefaultStoreTag>(mem, mask, DefaultStoreTag());
+        }
+        template <typename Flags>
+        Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const
+        {
+            store<EntryType, Flags>(mem, mask, flags);
+        }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
@@ -310,7 +348,7 @@ template<typename T> class Vector
         Vc_INTRINSIC Vector operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
         Vc_INTRINSIC Vector operator--(int) { const Vector<T> r = *this; data() = VectorHelper<T>::sub(data(), VectorHelper<T>::one()); return r; }
 
-        Vc_INTRINSIC decltype(d.m(0)) &operator[](size_t index) {
+        Vc_INTRINSIC decltype(d.m(0)) operator[](size_t index) {
 #if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
             ::Vc::Warnings::_operator_bracket_warning();
 #endif
@@ -401,7 +439,7 @@ template<typename T> class Vector
         Vc_INTRINSIC_L Vector shifted(int amount, Vector shiftIn) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
-        Vc_ALWAYS_INLINE Vc_PURE Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }
+        inline Vc_PURE Vector sorted() const { return SortHelper<VectorType, Size>::sort(data()); }
 
 #ifdef VC_NO_MOVE_CTOR
         template<typename F> Vc_INTRINSIC void call(const F &f) const {
@@ -482,6 +520,7 @@ template<typename T> class Vector
         Vc_INTRINSIC_L Vector copySign(typename Vector::AsArg reference) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
 };
+template<typename T> constexpr size_t Vector<T>::Size;
 
 typedef Vector<double>         double_v;
 typedef Vector<float>          float_v;
@@ -518,6 +557,7 @@ static Vc_ALWAYS_INLINE Vc_PURE double_v max(const double_v &x, const double_v &
   template<typename T> static Vc_ALWAYS_INLINE Vc_PURE Vector<T> round(const Vector<T> &x) { return VectorHelper<T>::round(x.data()); }
 
   template<typename T> static Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isfinite(const Vector<T> &x) { return VectorHelper<T>::isFinite(x.data()); }
+  template<typename T> static Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isinf(const Vector<T> &x) { return VectorHelper<T>::isInfinite(x.data()); }
   template<typename T> static Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
 #include "forceToRegisters.tcc"

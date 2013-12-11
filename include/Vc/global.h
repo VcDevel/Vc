@@ -73,13 +73,17 @@
 #define Vc__NO_NOEXCEPT 1
 #endif
 
-#if defined(VC_ICC) && VC_ICC < 20140000
+#if defined(VC_ICC)
+#if VC_ICC <= 20130728
 // ICC doesn't know noexcept, alignof, and move ctors
 #define Vc__NO_NOEXCEPT 1
 #ifndef alignof
 #define alignof(x) __alignof(x)
 #endif
 #define VC_NO_MOVE_CTOR 1
+//#else
+//#warning "Please check whether ICC now understands: noexcept, alignof, &&"
+#endif
 #endif
 
 #ifdef VC_GCC
@@ -357,6 +361,33 @@
 
 #undef IMPL_MASK
 #undef EXT_MASK
+
+/* ICC includes intrinsics unconditionally - not checking whether __SSE2__ or such is defined.
+ * Now that <random> includes <ia32intrin.h> with latest libstdc++ ICC will declare all possible
+ * intrinsics. The only workaround is to fool ICC into thinking it already included the intrinsics
+ * headers by defining their include guards. :'(
+ */
+#if defined(VC_ICC) && !(defined(VC_IMPL_AVX) || defined(VC_IMPL_MIC))
+#  ifndef VC_IMPL_SSE4_2
+#    define _INCLUDED_NMM 1
+// also disable wmmintrin.h because it requires SSE4.2
+#    define _INCLUDED_WMM 1
+// also disable immintrin.h because it requires SSE4.2
+#    define _INCLUDED_IMM 1
+#    ifdef VC_IMPL_AVX2
+#      error "AA"
+#    endif
+#  endif
+#  ifndef VC_IMPL_SSE4_1
+#    define _INCLUDED_SMM 1
+#  endif
+#  ifndef VC_IMPL_SSSE3
+#    define _TMMINTRIN_H 1
+#  endif
+#  ifndef VC_IMPL_SSE3
+#    define _INCLUDED_PMM 1
+#  endif
+#endif
 
 #ifndef Vc__SYMBOL_VERSION
 #define Vc__SYMBOL_VERSION v0

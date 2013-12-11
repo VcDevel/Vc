@@ -64,6 +64,8 @@ MACRO (CHECK_CXX_COMPILER_FLAG _FLAG _RESULT)
      FAIL_REGEX "command line error"                        # ICC
      FAIL_REGEX "command line warning"                      # ICC
      FAIL_REGEX "#10236:"                                   # ICC: File not found
+     FAIL_REGEX " #10159: "                                 # ICC
+     FAIL_REGEX " #10353: "                                 # ICC: option '-mfma' ignored, suggest using '-march=core-avx2'
      )
    SET (CMAKE_REQUIRED_DEFINITIONS "${SAFE_CMAKE_REQUIRED_DEFINITIONS}")
 ENDMACRO (CHECK_CXX_COMPILER_FLAG)

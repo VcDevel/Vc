@@ -76,7 +76,7 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // copy
-        Vc_INTRINSIC Vector(const Vector &x) : m_data(x.data()) {}
+        Vc_INTRINSIC Vector(const Vector &x) = default;
         Vc_INTRINSIC Vector &operator=(const Vector &v) { m_data = v.data(); return *this; }
 
         // implict conversion from compatible Vector<U>
@@ -92,15 +92,29 @@ class Vector
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         Vc_INTRINSIC Vector(EntryType a) : m_data(a) {}
+        template <typename U>
+        Vc_INTRINSIC Vector(U a,
+                            typename std::enable_if<std::is_same<U, int>::value &&
+                                                        !std::is_same<U, EntryType>::value,
+                                                    void *>::type = nullptr)
+            : Vector(static_cast<EntryType>(a))
+        {
+        }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
-        explicit Vc_INTRINSIC Vector(const EntryType *x) { load(x); }
-        template<typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const EntryType * x, Flags flags = Flags())
+        explicit Vc_INTRINSIC Vector(const EntryType *x)
+        {
+            load(x);
+        }
+        template<typename Flags> explicit Vc_INTRINSIC Vector(const EntryType * x, Flags flags)
         {
             load(x, flags);
         }
-        template<typename OtherT, typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const OtherT *x, Flags flags = Flags(), typename std::enable_if<std::is_fundamental<OtherT>::value, void *>::type = nullptr)
+        template <typename U,
+                  typename Flags = DefaultLoadTag,
+                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+        explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
         {
             load(x, flags);
         }
@@ -120,22 +134,59 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load member functions
-        Vc_INTRINSIC void load(const EntryType *mem) { m_data = mem[0]; }
-        template<typename Flags = AlignedT> Vc_INTRINSIC
-            void load(const EntryType *mem, Flags) { m_data = mem[0]; }
-        template<typename OtherT, typename Flags = AlignedT> Vc_INTRINSIC
-            void load(const OtherT    *mem, Flags = Flags()) { m_data = mem[0]; }
+        Vc_INTRINSIC void load(const EntryType *mem)
+        {
+            m_data = mem[0];
+        }
+        template <typename Flags> Vc_INTRINSIC void load(const EntryType *mem, Flags)
+        {
+            m_data = mem[0];
+        }
+        template <typename U,
+                  typename Flags = DefaultLoadTag,
+                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+        Vc_INTRINSIC void load(const U *mem, Flags = Flags())
+        {
+            m_data = mem[0];
+        }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores
-        template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC void store(T2 *mem, Flags = Flags()) const { mem[0] = m_data; }
-        template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC void store(T2 *mem, Mask mask, Flags = Flags()) const { if (mask.data()) mem[0] = m_data; }
-        // the following store overloads are here to support classes that have a cast operator to EntryType.
+        template <typename U,
+                  typename Flags = DefaultStoreTag,
+                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+        Vc_INTRINSIC void store(U *mem, Flags = Flags()) const
+        {
+            mem[0] = m_data;
+        }
+        template <typename U,
+                  typename Flags = DefaultStoreTag,
+                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+        Vc_INTRINSIC void store(U *mem, Mask mask, Flags = Flags()) const
+        {
+            if (mask.data())
+                mem[0] = m_data;
+        }
+        // the following store overloads are here to support classes that have a cast operator to
+        // EntryType.
         // Without this overload GCC complains about not finding a matching store function.
-        Vc_INTRINSIC void store(EntryType *mem) const { store<EntryType, AlignedT>(mem); }
-        template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const { store<EntryType, Flags>(mem, flags); }
-        Vc_INTRINSIC void store(EntryType *mem, Mask mask) const { store<EntryType, AlignedT>(mem, mask); }
-        template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const { store<EntryType, Flags>(mem, mask, flags); }
+        Vc_INTRINSIC void store(EntryType *mem) const
+        {
+            store<EntryType, DefaultStoreTag>(mem);
+        }
+        template <typename Flags> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
+        {
+            store<EntryType, Flags>(mem, flags);
+        }
+        Vc_INTRINSIC void store(EntryType *mem, Mask mask) const
+        {
+            store<EntryType, DefaultStoreTag>(mem, mask);
+        }
+        template <typename Flags>
+        Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const
+        {
+            store<EntryType, Flags>(mem, mask, flags);
+        }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
@@ -276,7 +327,7 @@ class Vector
         Vc_ALWAYS_INLINE EntryType sum(Mask m) const { if (m) return m_data; return static_cast<EntryType>(0); }
 
         Vc_INTRINSIC Vector shifted(int amount, Vector shiftIn) const {
-            VC_ASSERT(amount >= 0 && amount <= 1);
+            VC_ASSERT(amount >= -1 && amount <= 1);
             return amount == 0 ? *this : shiftIn;
         }
         Vc_INTRINSIC Vector shifted(int amount) const { return amount == 0 ? *this : Zero(); }
@@ -339,6 +390,7 @@ class Vector
         Vc_INTRINSIC_L Vector copySign(Vector reference) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
 };
+template<typename T> constexpr size_t Vector<T>::Size;
 
 typedef Vector<double>         double_v;
 typedef Vector<float>          float_v;

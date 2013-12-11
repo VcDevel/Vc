@@ -111,10 +111,11 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
         typedef _EntryType EntryType;
         Vc_ALWAYS_INLINE VectorMemoryUnion() { assertCorrectAlignment(&v()); }
 #if defined VC_ICC
-        Vc_ALWAYS_INLINE VectorMemoryUnion(const VectorType &x) { data.v = x; assertCorrectAlignment(&data.v); }
+        Vc_ALWAYS_INLINE VectorMemoryUnion(const VectorType &x) : data(x) { assertCorrectAlignment(&data.v); }
         Vc_ALWAYS_INLINE VectorMemoryUnion &operator=(const VectorType &x) {
             data.v = x; return *this;
         }
+        VectorMemoryUnion(const VectorMemoryUnion &) = default;
 
         Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return data.v; }
         Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return data.v; }
@@ -131,11 +132,10 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
 #endif
     private:
         union VectorScalarUnion {
-            Vc_INTRINSIC VectorScalarUnion() {}
-            Vc_INTRINSIC VectorScalarUnion(const VectorScalarUnion &rhs) : v(rhs.v) {}
-            Vc_INTRINSIC VectorScalarUnion &operator=(const VectorScalarUnion &rhs) { v = rhs.v; return *this; }
+            Vc_INTRINSIC VectorScalarUnion() : v() {}
+            Vc_INTRINSIC VectorScalarUnion(VectorType vv) : v(vv) {}
             VectorType v;
-            EntryType m[sizeof(VectorType)/sizeof(EntryType)];
+            EntryType m[];
         } data;
 #else
         Vc_ALWAYS_INLINE VectorMemoryUnion(VC_ALIGNED_PARAMETER(VectorType) x) : data(x) { assertCorrectAlignment(&data); }

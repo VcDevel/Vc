@@ -89,6 +89,27 @@ public:
       typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
         : k(MaskHelper<Size>::cast(rhs.data())) {}
 
+    inline explicit Mask(const bool *mem) { load(mem, Aligned); }
+    template<typename Flags>
+    inline explicit Mask(const bool *mem, Flags f) { load(mem, f); }
+
+    inline void load(const bool *mem) { load(mem, Aligned); }
+    template<typename Flags>
+    inline void load(const bool *mem, Flags) {
+        const __m512i ones = _mm512_loadu_epi32(mem, UpDownConversion<unsigned int, unsigned char>());
+            //_mm512_extload_epi32(mem, UpDownConversion<unsigned int, unsigned char>(), _MM_BROADCAST32_NONE, _MM_HINT_NONE);
+        k = _mm512_cmpneq_epi32_mask(ones, _mm512_setzero_epi32());
+    }
+
+    inline void store(bool *mem) const { store(mem, Aligned); }
+    template<typename Flags>
+    inline void store(bool *mem, Flags) const {
+        const __m512i zero = _mm512_setzero_epi32();
+        const __m512i one = VectorHelper<__m512i>::one();
+        const __m512i tmp = _and(zero, k, one, one);
+        MicIntrinsics::store<decltype(Unaligned)>(mem, tmp, UpDownConversion<unsigned int, unsigned char>());
+    }
+
     inline bool operator==(const Mask &rhs) const { return MaskHelper<Size>::cmpeq (k, rhs.k); }
     inline bool operator!=(const Mask &rhs) const { return MaskHelper<Size>::cmpneq(k, rhs.k); }
 
@@ -145,6 +166,7 @@ public:
 private:
     MaskType k;
 };
+template<typename T> constexpr size_t Mask<T>::Size;
 
 struct ForeachHelper
 {
@@ -195,5 +217,6 @@ struct ForeachHelper
 Vc_NAMESPACE_END
 
 #include "undomacros.h"
+#include "mask.tcc"
 
 #endif // VC_MIC_MASK_H

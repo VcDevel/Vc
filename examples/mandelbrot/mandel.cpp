@@ -88,16 +88,16 @@ void MandelBase::run()
 
         // benchmark the number of cycles it takes
         TimeStampCounter timer;
-        timer.Start();
+        timer.start();
 
         // calculate the mandelbrot set/image
         mandelMe(image, x, y, scale, 255);
 
-        timer.Stop();
+        timer.stop();
 
         // if no new set was requested in the meantime - return the finished image
         if (!m_restart) {
-            emit ready(image, timer.Cycles());
+            emit ready(image, timer.cycles());
         }
 
         // wait for more work

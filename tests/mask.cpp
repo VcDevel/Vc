@@ -261,7 +261,7 @@ template<typename Vec> void testCount()/*{{{*/
     typedef typename Vec::Mask M;
 
     for_all_masks(Vec, m) {
-        unsigned int count = 0;
+        int count = 0;
         for (size_t i = 0; i < Vec::Size; ++i) {
             if (m[i]) {
                 ++count;
@@ -279,7 +279,7 @@ template<typename Vec> void testFirstOne()/*{{{*/
 
     for (unsigned int i = 0; i < Vec::Size; ++i) {
         const M mask(I(Vc::IndexesFromZero) == i);
-        COMPARE(mask.firstOne(), i);
+        COMPARE(mask.firstOne(), int(i));
     }
 }
 /*}}}*/
@@ -330,11 +330,12 @@ void testBinaryOperators()/*{{{*/
 template<typename V> void maskReductions()/*{{{*/
 {
     for_all_masks(V, mask) {
-        COMPARE(all_of(mask), mask.count() == V::Size);
+        constexpr decltype(mask.count()) size = V::Size;
+        COMPARE(all_of(mask), mask.count() == size);
         if (mask.count() > 0) {
             VERIFY(any_of(mask));
             VERIFY(!none_of(mask));
-            COMPARE(some_of(mask), mask.count() < V::Size);
+            COMPARE(some_of(mask), mask.count() < size);
         } else {
             VERIFY(!any_of(mask));
             VERIFY(none_of(mask));
@@ -424,6 +425,30 @@ template<typename V> void testIntegerConversion()
     }
 }
 
+template<typename V> void boolConversion()
+{
+    bool mem[V::Size + 64] __attribute__((aligned(16)));
+    for_all_masks(V, m) {
+        bool *ptr = mem;
+        m.store(ptr);
+        for (size_t i = 0; i < V::Size; ++i) {
+            COMPARE(ptr[i], m[i]) << "offset: " << ptr - mem;
+        }
+
+        typename V::Mask m2(ptr);
+        COMPARE(m2, m) << "offset: " << ptr - mem;
+        for (++ptr; ptr < &mem[64]; ++ptr) {
+            m.store(ptr, Vc::Unaligned);
+            for (size_t i = 0; i < V::Size; ++i) {
+                COMPARE(ptr[i], m[i]) << "offset: " << ptr - mem;
+            }
+
+            typename V::Mask m3(ptr, Vc::Unaligned);
+            COMPARE(m3, m) << "offset: " << ptr - mem;
+        }
+    }
+}
+
 void testmain()/*{{{*/
 {
     testAllTypes(maskInit);
@@ -443,6 +468,7 @@ void testmain()/*{{{*/
     testAllTypes(testFirstOne);
     testAllTypes(maskReductions);
     runTest(testBinaryOperators);
+    testAllTypes(boolConversion);
 }/*}}}*/
 
 // vim: foldmethod=marker

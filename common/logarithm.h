@@ -209,7 +209,7 @@ struct LogImpl
         const M infinityMask = x == V::Zero();
         const M denormal = x <= C::min();
 
-        x(denormal) *= V(Vc_buildDouble(1, 0, 54)); // 2²⁵
+        x(denormal) *= V(Vc::Internal::doubleConstant<1, 0, 54>()); // 2²⁵
         V exponent = Internal::exponent(x.data()); // = ⎣log₂(x)⎦
         exponent(denormal) -= 54;
 

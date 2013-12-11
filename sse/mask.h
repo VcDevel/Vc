@@ -100,6 +100,15 @@ template<typename T> class Mask
           typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
             : d(sse_cast<__m128>(internal::mask_cast<Mask<U>::Size, Size>(rhs.dataI()))) {}
 
+        Vc_ALWAYS_INLINE explicit Mask(const bool *mem) { load(mem); }
+        template<typename Flags> Vc_ALWAYS_INLINE explicit Mask(const bool *mem, Flags f) { load(mem, f); }
+
+        Vc_ALWAYS_INLINE_L void load(const bool *mem) Vc_ALWAYS_INLINE_R;
+        template<typename Flags> Vc_ALWAYS_INLINE void load(const bool *mem, Flags) { load(mem); }
+
+        Vc_ALWAYS_INLINE_L void store(bool *) const Vc_ALWAYS_INLINE_R;
+        template<typename Flags> Vc_ALWAYS_INLINE void store(bool *mem, Flags) const { store(mem); }
+
         Vc_ALWAYS_INLINE Vc_PURE bool operator==(const Mask &rhs) const { return MaskHelper<Size>::cmpeq (d.v(), rhs.d.v()); }
         Vc_ALWAYS_INLINE Vc_PURE bool operator!=(const Mask &rhs) const { return MaskHelper<Size>::cmpneq(d.v(), rhs.d.v()); }
 
@@ -158,7 +167,7 @@ template<typename T> class Mask
         Vc_ALWAYS_INLINE Vc_PURE _M128I dataI() const { return _mm_castps_si128(d.v()); }
         Vc_ALWAYS_INLINE Vc_PURE _M128D dataD() const { return _mm_castps_pd(d.v()); }
 
-        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return d.m(index); }
+        Vc_ALWAYS_INLINE decltype(std::declval<Storage &>().m(0)) operator[](size_t index) { return d.m(index); }
         Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const { return toInt() & (1 << index); }
 
         Vc_ALWAYS_INLINE Vc_PURE int count() const { return internal::mask_count<Size>(dataI()); }
@@ -176,6 +185,7 @@ template<typename T> class Mask
 #endif
         Storage d;
 };
+template<typename T> constexpr size_t Mask<T>::Size;
 
 Vc_IMPL_NAMESPACE_END
 

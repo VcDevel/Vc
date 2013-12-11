@@ -23,6 +23,10 @@
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
+{
+    return a.copySign(b);
+}
 
 #define VC_MINMAX(V) \
 static Vc_ALWAYS_INLINE V min(const V &x, const V &y) { return V(std::min(x.data(), y.data())); } \
@@ -180,6 +184,11 @@ template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isfinite(c
             std::isfinite(x.data())
 #endif
             );
+}
+
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T>::Mask isinf(const Vector<T> &x)
+{
+    return typename Vector<T>::Mask(std::isinf(x.data()));
 }
 
 template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(const Vector<T> &x)

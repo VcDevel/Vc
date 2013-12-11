@@ -34,6 +34,8 @@ extern "C" {
 #endif
 }
 
+#include "../common/fix_clang_emmintrin.h"
+
 #if defined(VC_CLANG) && VC_CLANG < 0x30100
 // _mm_permute_ps is broken: http://llvm.org/bugs/show_bug.cgi?id=12401
 #undef _mm_permute_ps
@@ -93,11 +95,11 @@ Vc_NAMESPACE_BEGIN(AvxIntrinsics)
         T _d;
         Vc_ALWAYS_INLINE operator T &() { return _d; }
         Vc_ALWAYS_INLINE operator const T &() const { return _d; }
-        Vc_ALWAYS_INLINE Alias() {}
+        Vc_ALWAYS_INLINE Alias() : _d() {}
         Vc_ALWAYS_INLINE Alias(T x) : _d(x) {}
-        Vc_ALWAYS_INLINE Alias(const Alias &x) : _d(x._d) {}
+        Vc_ALWAYS_INLINE Alias(const Alias &) = default;
         Vc_ALWAYS_INLINE Alias &operator=(T x) { _d = x; return *this; }
-        Vc_ALWAYS_INLINE Alias &operator=(const Alias &x) { _d = x._d; return *this; }
+        Vc_ALWAYS_INLINE Alias &operator=(const Alias &) = default;
     };
     typedef Alias<__m128 > m128 ;
     typedef Alias<__m128d> m128d;
@@ -195,9 +197,9 @@ Vc_NAMESPACE_BEGIN(AvxIntrinsics)
     static Vc_INTRINSIC m256i Vc_CONST _mm256_setmin_epi32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
 
 #ifdef VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
-#define _mm_extract_epu8 _mm_extract_epi8
-#define _mm_extract_epu16 _mm_extract_epi16
-#define _mm_extract_epu32 _mm_extract_epi32
+#define _mm_extract_epu8 (x, i) (static_cast<unsigned char> (_mm_extract_epi8 ((x), (i))))
+#define _mm_extract_epu16(x, i) (static_cast<unsigned short>(_mm_extract_epi16((x), (i))))
+#define _mm_extract_epu32(x, i) (static_cast<unsigned int>  (_mm_extract_epi32((x), (i))))
 #else
     static Vc_INTRINSIC unsigned char Vc_CONST _mm_extract_epu8(param128i x, const int i) { return _mm_extract_epi8(x, i); }
     static Vc_INTRINSIC unsigned short Vc_CONST _mm_extract_epu16(param128i x, const int i) { return _mm_extract_epi16(x, i); }
@@ -576,7 +578,7 @@ static Vc_INTRINSIC m256i _mm256_cmplt_epi8(m256i a, m256i b) {
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
 //X     static Vc_INTRINSIC m256i _mm256_cmpgt_epu8 (param256i a, param256i b) { return _mm256_cmpgt_epi8 (
 //X             _mm256_xor_si256(a, _mm256_setmin_epi8 ()), _mm256_xor_si256(b, _mm256_setmin_epi8 ())); }
-#if defined(VC_IMPL_XOP) && (!defined(VC_CLANG) || VC_CLANG > 0x30300)
+#if defined(VC_IMPL_XOP) && (!defined(VC_CLANG) || VC_CLANG >= 0x30400)
     AVX_TO_SSE_2(comlt_epu32)
     AVX_TO_SSE_2(comgt_epu32)
     AVX_TO_SSE_2(comlt_epu16)
@@ -700,6 +702,12 @@ Vc_INTRINSIC void stream_store(void *mem, param256i value, param256i mask)
     stream_store(mem, _mm256_castsi256_si128(value), _mm256_castsi256_si128(mask));
     stream_store(static_cast<__m128i *>(mem) + 1, _mm256_extractf128_si256(value, 1), _mm256_extractf128_si256(mask, 1));
 }
+
+#ifndef __x86_64__
+Vc_INTRINSIC Vc_PURE __m128i _mm_cvtsi64_si128(int64_t x) {
+    return _mm_castpd_si128(_mm_load_sd(reinterpret_cast<const double *>(&x)));
+}
+#endif
 
 Vc_NAMESPACE_END
 
