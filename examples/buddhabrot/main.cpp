@@ -525,7 +525,7 @@ void Baker::createImage()
                 const int green = (i >= lowerBound[1] && i <= upperBound[1]) ? 1 : 0;
                 const int blue  = (i >= lowerBound[2] && i <= upperBound[2]) ? 1 : 0;
 
-                foreach_bit(int j, drawMask) {
+                for(int j : where(drawMask)) {
                     canvas.addDot(x2[j], y2 [j], red, green, blue);
                     canvas.addDot(x2[j], yn2[j], red, green, blue);
                 }
