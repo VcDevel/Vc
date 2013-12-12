@@ -29,6 +29,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_MALLOC_H
 #define VC_COMMON_MALLOC_H
 
+#ifndef VC_VECTOR_DECLARED__
+#error "Incorrect inclusion order. This header must be included from Vc/vector.h only."
+#endif
+
 #if defined _WIN32 || defined _WIN64
 #include <malloc.h>
 #else

@@ -53,6 +53,8 @@ Vc_PUBLIC_NAMESPACE_BEGIN
   using Vc_IMPL_NAMESPACE::VectorAlignment;
 Vc_NAMESPACE_END
 
+#define VC_VECTOR_DECLARED__ 1
+
 #if defined(VC_IMPL_MIC)
 # include "mic/helperimpl.h"
 #endif
@@ -77,7 +79,6 @@ Vc_NAMESPACE_END
 #endif
 
 Vc_PUBLIC_NAMESPACE_BEGIN
-  using Vc_IMPL_NAMESPACE::VectorAlignment;
   using Vc_IMPL_NAMESPACE::VectorAlignedBaseT;
   typedef VectorAlignedBaseT<> VectorAlignedBase;
   using namespace VectorSpecialInitializerZero;
