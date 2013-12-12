@@ -500,7 +500,6 @@ Vc_NAMESPACE_END
 
 #include "vector.tcc"
 #include "undomacros.h"
-#include "helperimpl.h"
 #include "math.h"
 
 #ifdef CAN_OFFLOAD
