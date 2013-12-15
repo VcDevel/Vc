@@ -34,6 +34,8 @@
 #elif defined(VC_IMPL_SSE)
 # include "sse/vector.h"
 # include "sse/helperimpl.h"
+#else
+# error "No known Vc implementation was selected. This should not happen. The logic in Vc/global.h failed."
 #endif
 
 #ifdef isfinite
