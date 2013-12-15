@@ -416,12 +416,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * \param i      Specifies the scalar entry from where the vector will be loaded/stored. I.e. the
          * values scalar(i), scalar(i + 1), ..., scalar(i + V::Size - 1) will be read/overwritten.
          *
-         * \param align  You must take care to determine whether an unaligned load/store is
+         * \param flags  You must take care to determine whether an unaligned load/store is
          * required. Per default an aligned load/store is used. If \p i is not a multiple of \c V::Size
          * you must pass Vc::Unaligned here.
          */
         template<typename Flags = AlignedT>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> &vectorAt(size_t i, Flags = Flags()) {
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> &vectorAt(size_t i, Flags flags = Flags()) {
             return *new(&entries()[i]) MemoryVector<V, Flags>;
         }
         /** \brief Const overload of the above function
@@ -431,12 +431,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * \param i      Specifies the scalar entry from where the vector will be loaded/stored. I.e. the
          * values scalar(i), scalar(i + 1), ..., scalar(i + V::Size - 1) will be read/overwritten.
          *
-         * \param align  You must take care to determine whether an unaligned load/store is
+         * \param flags  You must take care to determine whether an unaligned load/store is
          * required. Per default an aligned load/store is used. If \p i is not a multiple of \c V::Size
          * you must pass Vc::Unaligned here.
          */
         template<typename Flags = AlignedT>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> &vectorAt(size_t i, Flags = Flags()) const {
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> &vectorAt(size_t i, Flags flags = Flags()) const {
             return *new(const_cast<EntryType *>(&entries()[i])) MemoryVector<const V, Flags>;
         }
 

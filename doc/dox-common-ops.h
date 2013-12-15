@@ -601,7 +601,7 @@ const VECTOR_TYPE rotated(int amount) const;
  *                otherwise the result is undefined.
  * \param shiftIn The vector of values to shift in.
  * \return        A new vector with values from \p this and \p shiftIn concatenated and then shifted
- *                by \amount.
+ *                by \p amount.
  */
 const VECTOR_TYPE shifted(int amount, VECTOR_TYPE shiftIn) const;
 //@}
