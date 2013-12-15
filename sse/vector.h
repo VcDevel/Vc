@@ -324,6 +324,54 @@ template<typename T> class Vector
         }
         Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_PURE Vc_INTRINSIC_R;
 
+        struct SubscriptRange
+        {
+            size_t offset, count;
+        };
+
+        struct Subvector
+        {
+            Vector &vector;
+            SubscriptRange range;
+
+            operator Vector() const
+            {
+                Vector r = vector.shifted(range.offset);
+                r.setZero(Vector::IndexesFromZero() >= range.count);
+                return r;
+            }
+            Subvector &operator=(const Vector &x)
+            {
+                if (range.offset == 0 && range.count == Vector::Size / 2) {
+                    vector.data() = sse_cast<VectorType>(Mem::shuffle<X0, Y1>(
+                        sse_cast<__m128d>(x.data()), sse_cast<__m128d>(vector.data())));
+                } else if (range.offset == Vector::Size / 2 && range.count == range.offset) {
+                    vector.data() = sse_cast<VectorType>(
+                        _mm_movelh_ps(sse_cast<__m128>(vector.data()), sse_cast<__m128>(x.data())));
+                } else {
+                    auto mask = Vector::IndexesFromZero() >= range.offset && Vector::IndexesFromZero() < range.offset + range.count;
+                    vector(mask) = x.shifted(-range.offset);
+                }
+                return *this;
+            }
+        };
+
+        Vc_INTRINSIC Vc_PURE Subvector operator[](SubscriptRange range)
+        {
+            return {*this, range};
+        }
+
+        Vc_INTRINSIC Vc_PURE Vector operator[](SubscriptRange range) const
+        {
+            if (range.offset == 0 && range.count == Vector::Size / 2) {
+                return sse_cast<VectorType>(_mm_movelh_ps(sse_cast<__m128>(d.v()), _mm_setzero_ps()));
+            } else if (range.offset == range.count && range.count == Vector::Size / 2) {
+                return sse_cast<VectorType>(_mm_movelh_ps(_mm_setzero_ps(), sse_cast<__m128>(d.v())));
+            } else {
+                return *this;
+            }
+        }
+
         Vc_INTRINSIC Vector Vc_PURE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
         Vc_ALWAYS_INLINE_L Vector<typename NegateTypeHelper<T>::Type> operator-() const Vc_ALWAYS_INLINE_R;
         Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }

@@ -157,6 +157,15 @@ void fullConversion()
     for (size_t i = 0; i < float_v::Size; ++i) {
         COMPARE(r[i], static_cast<float>(x[i] * 0.1)) << "i = " << i;
     }
+
+    x = float_v::Random();
+    for (size_t i = 0; i < float_v::Size; i += double_v::Size) {
+        float_v tmp = static_cast<float_v>(0.1 * static_cast<double_v>(static_cast<float_v>(x[{i, double_v::Size}])));
+        r[{i, double_v::Size}] = tmp;
+    }
+    for (size_t i = 0; i < float_v::Size; ++i) {
+        COMPARE(r[i], static_cast<float>(x[i] * 0.1)) << "i = " << i;
+    }
 }
 
 void testmain()
