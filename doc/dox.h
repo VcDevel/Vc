@@ -287,6 +287,12 @@
  * If this macro is defined %Vc will assert correct alignment for all
  *        objects that require correct alignment. This can be very useful to debug crashes resulting
  *        from misaligned memory accesses. This check will introduce a significant overhead.
+ *
+ * \par VC_ENABLE_FLOAT_BIT_OPERATORS
+ *
+ * Define this macro to enable bitwise operators (&, |, ^) on floating-point vectors. Since these
+ * operators are not provided for the builtin floating-point types, the default is to not provide
+ * them for SIMD vector types as well.
  */
 
 /**

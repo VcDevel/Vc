@@ -328,6 +328,13 @@ template<typename Vec> void testOnesComplement()
     COMPARE(~(a + b), Vec(Zero));
 }
 
+template <typename V> void logicalNegation()
+{
+    V a = V::Random();
+    COMPARE(!a, a == 0) << "a = " << a;
+    COMPARE(!V::Zero(), V() == V()) << "a = " << a;
+}
+
 template<typename T> struct NegateRangeHelper
 {
     typedef int Iterator;
@@ -613,6 +620,7 @@ void testmain()
     runTest(testOnesComplement<uint_v>);
     runTest(testOnesComplement<short_v>);
     runTest(testOnesComplement<ushort_v>);
+    testAllTypes(logicalNegation);
 
     testAllTypes(testNegate);
     testAllTypes(testMin);

@@ -354,7 +354,18 @@ template<typename T> class Vector
         }
         Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_PURE Vc_INTRINSIC_R;
 
-        Vc_INTRINSIC Vector Vc_PURE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
+        Vc_INTRINSIC Vc_PURE Mask operator!() const
+        {
+            return *this == Zero();
+        }
+        Vc_INTRINSIC Vc_PURE Vector operator~() const
+        {
+#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+            static_assert(std::is_integral<T>::value,
+                          "bit-complement can only be used with Vectors of integral type");
+#endif
+            return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone());
+        }
         Vc_ALWAYS_INLINE_L Vector<typename NegateTypeHelper<T>::Type> operator-() const Vc_ALWAYS_INLINE_R;
         Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }
 

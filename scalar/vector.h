@@ -266,7 +266,18 @@ class Vector
             return m_data;
         }
 
-        Vc_ALWAYS_INLINE Vector operator~() const { return Vector(~m_data); }
+        Vc_ALWAYS_INLINE Mask operator!() const
+        {
+            return Mask(!m_data);
+        }
+        Vc_ALWAYS_INLINE Vector operator~() const
+        {
+#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+            static_assert(std::is_integral<T>::value, "bit-complement can only be used with Vectors of integral type");
+#endif
+            return Vector(~m_data);
+        }
+
         Vc_ALWAYS_INLINE Vector<typename NegateTypeHelper<T>::Type> operator-() const { return Vector<typename NegateTypeHelper<T>::Type>(-m_data); }
         Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }
 

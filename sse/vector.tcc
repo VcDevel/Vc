@@ -489,12 +489,14 @@ OP_IMPL(short, ^, xor_)
 OP_IMPL(unsigned short, &, and_)
 OP_IMPL(unsigned short, |, or_)
 OP_IMPL(unsigned short, ^, xor_)
+#ifdef VC_ENABLE_FLOAT_BIT_OPERATORS
 OP_IMPL(float, &, and_)
 OP_IMPL(float, |, or_)
 OP_IMPL(float, ^, xor_)
 OP_IMPL(double, &, and_)
 OP_IMPL(double, |, or_)
 OP_IMPL(double, ^, xor_)
+#endif
 #undef OP_IMPL
 
 #ifdef VC_IMPL_XOP

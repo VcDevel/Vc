@@ -523,12 +523,14 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator<<(in
   OP_IMPL(unsigned short, &, and_)
   OP_IMPL(unsigned short, |, or_)
   OP_IMPL(unsigned short, ^, xor_)
+#ifdef VC_ENABLE_FLOAT_BIT_OPERATORS
   OP_IMPL(float, &, and_)
   OP_IMPL(float, |, or_)
   OP_IMPL(float, ^, xor_)
   OP_IMPL(double, &, and_)
   OP_IMPL(double, |, or_)
   OP_IMPL(double, ^, xor_)
+#endif
 #undef OP_IMPL
 
 // operators {{{1
@@ -1268,7 +1270,7 @@ template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
         const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);
         *reinterpret_cast<uint64 *>(&Common::RandomState[k]) = (stateX * 0x5deece66dull + 11);
     }
-    return (Vector<double>(_cast(_mm256_srli_epi64(state, 12))) | One()) - One();
+    return HT::sub(HV::or_(_cast(_mm256_srli_epi64(state, 12)), HT::one()), HT::one());
 }
 // }}}1
 // shifted / rotated {{{1

@@ -258,7 +258,18 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // unary operators
-    Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator~() const { return _andnot(d.v(), _setallone<VectorType>()); }
+    Vc_INTRINSIC Vc_PURE Mask operator!() const
+    {
+        return *this == Zero();
+    }
+    Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator~() const
+    {
+#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+        static_assert(std::is_integral<T>::value,
+                      "bit-complement can only be used with Vectors of integral type");
+#endif
+        return _andnot(d.v(), _setallone<VectorType>());
+    }
     Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<typename NegateTypeHelper<T>::Type> operator-() const;
     Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator+() const { return *this; }
 
