@@ -57,16 +57,16 @@ template <typename T,
           std::size_t N,
           typename VectorType = typename Common::select_best_vector_type<N,
 #ifdef VC_IMPL_AVX
-                                                                Vc::Vector<T>,
-                                                                Vc::SSE::Vector<T>,
-                                                                Vc::Scalar::Vector<T>
+                                                                         Vc::Vector<T>,
+                                                                         Vc::SSE::Vector<T>,
+                                                                         Vc::Scalar::Vector<T>
 #elif defined(VC_IMPL_Scalar)
-                                                                Vc::Vector<T>
+                                                                         Vc::Vector<T>
 #else
-                                                                Vc::Vector<T>,
-                                                                Vc::Scalar::Vector<T>
+                                                                         Vc::Vector<T>,
+                                                                         Vc::Scalar::Vector<T>
 #endif
-                                                                >::type>
+                                                                         >::type>
 class simd_array
 {
     static_assert(std::is_same<T,   double>::value ||
