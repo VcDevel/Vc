@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Internal
+{
 
 template<> struct HelperImpl<Vc::ScalarImpl>
 {
@@ -44,7 +47,8 @@ template<> struct HelperImpl<Vc::ScalarImpl>
     static Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 };
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "helperimpl.tcc"
 #include "undomacros.h"

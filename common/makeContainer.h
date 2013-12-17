@@ -24,7 +24,8 @@
 #include <initializer_list>
 #include "macros.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
     namespace
     {
@@ -120,7 +121,7 @@ Vc_PUBLIC_NAMESPACE_BEGIN
         return makeContainer<Container, T>(list);
     }
 
-Vc_NAMESPACE_END
+}
 
 #include "undomacros.h"
 

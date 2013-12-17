@@ -22,7 +22,10 @@
 #include <mic/sorthelper.h>
 #include <mic/macros.h>
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 // reference:
 //////////// bitonic merge kernel (Chhugani2008) ///////////////
@@ -367,6 +370,7 @@ template<> __m512d SortHelper<double>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
     */
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #include <mic/undomacros.h>

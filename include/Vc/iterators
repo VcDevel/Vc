@@ -21,11 +21,12 @@
 #define VC_INCLUDE_VC_ITERATORS_H
 
 #include "common/iterators.h"
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
     using ::Vc::Common::begin;
     using ::Vc::Common::end;
     using ::Vc::Common::makeIterator;
-Vc_NAMESPACE_END
+}
 
 #endif // VC_INCLUDE_VC_ITERATORS_H
 

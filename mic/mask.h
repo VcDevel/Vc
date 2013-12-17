@@ -27,7 +27,10 @@
 #pragma offload_attribute(push, target(mic))
 #endif
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<unsigned int VectorSize> struct MaskHelper;
 template<> struct MaskHelper<8> {
@@ -214,7 +217,8 @@ struct ForeachHelper
             _Vc_foreach_bit_helper.step()) \
         for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 #include "mask.tcc"

@@ -22,7 +22,10 @@
 
 #include <type_traits>
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<typename Parent, typename T> class StoreMixin
 {
@@ -74,5 +77,6 @@ public:
     inline void store(VectorEntryType *mem, decltype(Streaming)) const;
 };
 
-Vc_NAMESPACE_END
+}
+}
 #endif // VC_MIC_STOREMIXIN_H

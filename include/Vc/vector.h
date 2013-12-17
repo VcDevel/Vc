@@ -49,9 +49,9 @@
 
 #include "scalar/vector.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE {
   using Vc_IMPL_NAMESPACE::VectorAlignment;
-Vc_NAMESPACE_END
+} // namespace Vc_VERSIONED_NAMESPACE
 
 #define VC_VECTOR_DECLARED__ 1
 
@@ -78,7 +78,8 @@ Vc_NAMESPACE_END
 #undef isnan
 #endif
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
   using Vc_IMPL_NAMESPACE::VectorAlignedBaseT;
   typedef VectorAlignedBaseT<> VectorAlignedBase;
   using namespace VectorSpecialInitializerZero;
@@ -133,7 +134,7 @@ Vc_PUBLIC_NAMESPACE_BEGIN
     static_assert(short_v::Size  == VC_SHORT_V_SIZE , "VC_SHORT_V_SIZE macro defined to an incorrect value ");
     static_assert(ushort_v::Size == VC_USHORT_V_SIZE, "VC_USHORT_V_SIZE macro defined to an incorrect value");
   }
-Vc_NAMESPACE_END
+}
 
 #include "common/vectortuple.h"
 #include "common/algorithms.h"

@@ -27,7 +27,8 @@
 #include "simd_mask_array.h"
 #include "macros.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
 // === having simd_array<T, N> in the Vc namespace leads to a ABI bug ===
 //
@@ -214,7 +215,7 @@ private:
     Common::ArrayData<vector_type, register_count> d;
 };
 
-Vc_NAMESPACE_END
+} // namespace Vc_VERSIONED_NAMESPACE
 
 #include "undomacros.h"
 

@@ -17,7 +17,10 @@
 
 */
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 inline void deinterleave(double_v &VC_RESTRICT a, double_v &VC_RESTRICT b, double_v &VC_RESTRICT c)
 {   // estimated latency (AVX): 4.5 cycles
@@ -125,9 +128,13 @@ inline void deinterleave(Vector<unsigned short> &a, Vector<unsigned short> &b)
     b.data() = _mm_unpackhi_epi16(tmp2, tmp3);
 }
 
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Internal
+{
 
 template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
         float_v &a, float_v &b, const float *m, Flags align)
@@ -265,4 +272,5 @@ inline Vc_FLATTEN void HelperImpl<VC_IMPL>::deinterleave(V &VC_RESTRICT a, V &VC
     Vc::Vc_IMPL_NAMESPACE::deinterleave(a, b, c);
 }
 
-Vc_NAMESPACE_END
+}
+}

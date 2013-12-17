@@ -24,7 +24,10 @@
 #include "types.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<typename T> struct SortHelper
 {
@@ -33,7 +36,8 @@ template<typename T> struct SortHelper
     template<typename... Vs> static std::tuple<Vs...> sort(VC_ALIGNED_PARAMETER(std::tuple<Vs...>));
 };
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

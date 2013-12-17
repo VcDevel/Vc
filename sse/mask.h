@@ -24,7 +24,10 @@
 #include "../common/maskentry.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 
 template<unsigned int Size1> struct MaskHelper
 {
@@ -187,7 +190,8 @@ template<typename T> class Mask
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 #include "mask.tcc"

@@ -23,7 +23,10 @@
 #include "types.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Scalar)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Scalar
+{
 template<typename T> class Mask
 {
     friend class Mask<  double>;
@@ -110,7 +113,8 @@ template<typename T> class Mask
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

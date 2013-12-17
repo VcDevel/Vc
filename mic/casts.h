@@ -24,7 +24,10 @@
 #include "types.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
     template<typename T> static Vc_INTRINSIC_L Vc_CONST_L T mic_cast(__m512  v) Vc_INTRINSIC_R Vc_CONST_R;
     template<typename T> static Vc_INTRINSIC_L Vc_CONST_L T mic_cast(__m512i v) Vc_INTRINSIC_R Vc_CONST_R;
     template<typename T> static Vc_INTRINSIC_L Vc_CONST_L T mic_cast(__m512d v) Vc_INTRINSIC_R Vc_CONST_R;
@@ -118,7 +121,8 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
     template<> struct ReinterpretCastHelper<double      , double      > { static __m512d cast(__m512d v) { return v; } };
     template<> struct ReinterpretCastHelper<int         , double      > { static __m512d cast(__m512i v) { return _mm512_castsi512_pd(v); } };
     template<> struct ReinterpretCastHelper<unsigned int, double      > { static __m512d cast(__m512i v) { return _mm512_castsi512_pd(v); } };
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

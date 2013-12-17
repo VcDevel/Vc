@@ -17,7 +17,10 @@
 
 */
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<typename T>
 Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator++()
@@ -84,4 +87,5 @@ Vc_ALWAYS_INLINE Vector<T> &WriteMaskedVector<T>::operator=(const Vector<T> &x) 
     return *vec;
 }
 
-Vc_IMPL_NAMESPACE_END
+}
+}

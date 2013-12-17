@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 namespace Reductions
 {
@@ -280,7 +283,8 @@ template<typename M, std::size_t N> struct MaskData
     MaskData<M, N / 2> second;
 };
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

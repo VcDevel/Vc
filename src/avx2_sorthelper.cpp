@@ -24,7 +24,10 @@
 
 #include <src/avx_sorthelper.cpp>
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<> m128i SortHelper<short>::sort(VTArg _x)
 {
@@ -101,4 +104,5 @@ template<> m128i SortHelper<unsigned short>::sort(VTArg _x)
     return _mm_unpacklo_epi16(lo, hi);
 }
 
-Vc_NAMESPACE_END
+}
+}

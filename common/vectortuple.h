@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 template<size_t StructSize, typename V, typename I> struct InterleavedMemoryReadAccess;
 
@@ -123,8 +126,12 @@ _VC_VECTORTUPLE_SPECIALIZATION(7, (l.l.l.l.l.l, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r,
 _VC_VECTORTUPLE_SPECIALIZATION(8, (l.l.l.l.l.l.l, l.l.l.l.l.l.r, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
 //        static_assert(false, "You_are_gathering_too_many_vectors__This_is_not_implemented");
 
-Vc_NAMESPACE_END
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+}
+}
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<typename T>
 constexpr Common::VectorTuple<2, Vc::Vector<T> > operator,(Vc::Vector<T> &a, Vc::Vector<T> &b)
@@ -138,7 +145,8 @@ constexpr Common::VectorTuple<2, const Vc::Vector<T> > operator,(const Vc::Vecto
     return Common::VectorTuple<2, const Vc::Vector<T> >(a, b);
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

@@ -21,12 +21,16 @@
 #define VC_COMMON_CONST_DATA_H
 
 #include "macros.h"
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 ALIGN(64) extern unsigned int RandomState[];
 ALIGN(32) extern const unsigned int AllBitsSet[8];
 
-Vc_NAMESPACE_END
+}
+}
 #include "undomacros.h"
 
 #endif // VC_COMMON_CONST_DATA_H

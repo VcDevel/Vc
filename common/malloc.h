@@ -41,7 +41,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 template <size_t X> static constexpr size_t nextMultipleOf(size_t value)
 {
@@ -91,7 +94,8 @@ Vc_ALWAYS_INLINE void free(void *p)
 #endif
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

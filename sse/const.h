@@ -24,7 +24,10 @@
 #include "vector.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
     template<typename T> struct Const
     {
         typedef Vector<T> V;
@@ -79,7 +82,8 @@ Vc_NAMESPACE_BEGIN(SSE)
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask() { return Vector<double>(reinterpret_cast<const double *>(&c_general::highMaskDouble)); }
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float> Const<float>::highMask(int bits) { return _mm_castsi128_ps(_mm_slli_epi32(_mm_setallone_si128(), bits)); }
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask(int bits) { return _mm_castsi128_pd(_mm_slli_epi64(_mm_setallone_si128(), bits)); }
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

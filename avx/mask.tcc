@@ -17,7 +17,10 @@
 
 }}}*/
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 namespace internal
 {
@@ -246,6 +249,7 @@ template<> Vc_ALWAYS_INLINE Mask<16, 16>::operator std::array<bool, 16>() const 
 }
 */
 
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 // vim: foldmethod=marker

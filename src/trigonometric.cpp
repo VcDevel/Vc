@@ -21,7 +21,10 @@
 #if defined(VC_IMPL_SSE) || defined(VC_IMPL_AVX)
 #include <common/macros.h>
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 namespace
 {
@@ -438,7 +441,8 @@ template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplemen
     return a;
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #include <common/undomacros.h>
 

@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Internal
+{
 
 template<> struct HelperImpl<Vc::SSE2Impl>
 {
@@ -65,7 +68,8 @@ template<> struct HelperImpl<SSSE3Impl> : public HelperImpl<SSE3Impl> {};
 template<> struct HelperImpl<SSE41Impl> : public HelperImpl<SSSE3Impl> {};
 template<> struct HelperImpl<SSE42Impl> : public HelperImpl<SSE41Impl> {};
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "deinterleave.tcc"
 #include "prefetches.tcc"

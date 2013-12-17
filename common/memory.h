@@ -29,7 +29,10 @@
 #include "memoryfwd.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 /**
  * Allocates memory on the Heap with alignment and padding suitable for vectorized access.
@@ -618,9 +621,8 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *addr)
 {
     Internal::Helper::prefetchFar(addr);
 }
-Vc_NAMESPACE_END
+}
 
-Vc_PUBLIC_NAMESPACE_BEGIN
 using Common::malloc;
 using Common::free;
 using Common::Memory;
@@ -629,7 +631,7 @@ using Common::prefetchForModify;
 using Common::prefetchClose;
 using Common::prefetchMid;
 using Common::prefetchFar;
-Vc_NAMESPACE_END
+}
 
 namespace std
 {

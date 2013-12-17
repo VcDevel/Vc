@@ -36,7 +36,10 @@
 #include "common/const.h"
 #include "common/macros.h"
 
-Vc_NAMESPACE_BEGIN(AVX)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace AVX
+{
     using Internal::doubleConstant;
     using Internal::floatConstant;
 
@@ -249,9 +252,13 @@ Vc_NAMESPACE_BEGIN(AVX)
       , 0x3ede5bd9u // log10(e)
       , 0x3fb8aa3bu // log2(e)
     };
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
     V_ALIGN(64) unsigned int RandomState[16] = {
         0x5a383a4fu, 0xc68bd45eu, 0x691d6d86u, 0xb367e14fu,
         0xd689dbaau, 0xfde442aau, 0x3d265423u, 0x1a77885cu,
@@ -278,9 +285,13 @@ Vc_NAMESPACE_BEGIN(Common)
             abort();
         }
     }
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
     using Internal::doubleConstant;
     using Internal::floatConstant;
 
@@ -529,6 +540,7 @@ Vc_NAMESPACE_BEGIN(SSE)
         //floatConstant< 1, 0x001a209a, -2>(), // log10(2)
         //floatConstant< 1, 0x001a209a, -2>(), // log10(2)
     };
-Vc_NAMESPACE_END
+}
+}
 
 #undef V_ALIGN

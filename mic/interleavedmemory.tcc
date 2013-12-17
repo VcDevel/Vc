@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 namespace
 {
@@ -393,7 +396,8 @@ template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::
     std::tie(v0, v1, v2, v3, v4, v5, v6, v7) = InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size8());
 }/*}}}*/
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

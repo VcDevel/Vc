@@ -22,12 +22,16 @@
 
 #include "../common/iterators.h"
 
-Vc_NAMESPACE_BEGIN(Scalar)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Scalar
+{
 
 using ::Vc::Common::begin;
 using ::Vc::Common::end;
 using ::Vc::Common::makeIterator;
 
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_SCALAR_ITERATORS_H

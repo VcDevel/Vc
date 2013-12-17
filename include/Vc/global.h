@@ -389,27 +389,13 @@
 #  endif
 #endif
 
-#ifndef Vc__SYMBOL_VERSION
-#define Vc__SYMBOL_VERSION v0
-#endif
+#define Vc_VERSIONED_NAMESPACE Vc_0
 
-#define Vc_NAMESPACE_BEGIN(NAME) \
-    namespace Vc { \
-        inline namespace Vc__SYMBOL_VERSION { \
-            namespace NAME {
+namespace Vc_VERSIONED_NAMESPACE {}
+namespace Vc = Vc_VERSIONED_NAMESPACE;
 
-#define Vc_PUBLIC_NAMESPACE_BEGIN \
-    namespace Vc { \
-        inline namespace Vc__SYMBOL_VERSION { \
-            inline namespace Public {
-
-#define Vc_NAMESPACE_END }}}
-#define Vc_IMPL_NAMESPACE_END Vc_NAMESPACE_END
-
-Vc_PUBLIC_NAMESPACE_BEGIN
-Vc_NAMESPACE_END
-
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
 typedef   signed char        int8_t;
 typedef unsigned char       uint8_t;
@@ -592,13 +578,14 @@ namespace Error
 } // namespace Error
 
 #endif // DOXYGEN
-Vc_NAMESPACE_END
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Internal
+{
     // TODO (refactor): get rid of this abstraction:
     template<Implementation Impl> struct HelperImpl;
     typedef HelperImpl<VC_IMPL> Helper;
-Vc_NAMESPACE_END
+}
+}
 
 #include "version.h"
 

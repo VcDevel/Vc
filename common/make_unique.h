@@ -24,7 +24,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 template<typename T> struct Deleter
 {
@@ -40,7 +43,8 @@ inline std::unique_ptr<T, Deleter<T>> make_unique(Args&&... args)
     return std::unique_ptr<T, Deleter<T>>(new(Vc::malloc<T, A>(1)) T(std::forward<Args>(args)...));
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

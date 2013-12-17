@@ -26,7 +26,10 @@
 #include <iomanip>
 #endif
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 #ifdef NDEBUG
 class DebugStream
@@ -79,6 +82,7 @@ class DebugStream
 
 #define VC_DEBUG DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_MIC_DEBUG_H

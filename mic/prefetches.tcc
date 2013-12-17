@@ -20,7 +20,10 @@
 #ifndef VC_MIC_PREFETCH_TCC
 #define VC_MIC_PREFETCH_TCC
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Internal
+{
 
 Vc_ALWAYS_INLINE void HelperImpl<Vc::MICImpl>::prefetchForOneRead(const void *addr)
 {
@@ -43,6 +46,7 @@ Vc_ALWAYS_INLINE void HelperImpl<Vc::MICImpl>::prefetchForModify(const void *add
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_ET0);
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_MIC_PREFETCH_TCC

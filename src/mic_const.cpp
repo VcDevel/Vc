@@ -26,7 +26,10 @@
 
 #include "common/macros.h"
 
-Vc_NAMESPACE_BEGIN(MIC)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace MIC
+{
     ALIGN(16) extern const char _IndexesFromZero[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
     ALIGN(8) const unsigned       int c_general::absMaskFloat[2] = { 0xffffffffu, 0x7fffffffu };
@@ -44,9 +47,13 @@ Vc_NAMESPACE_BEGIN(MIC)
     ALIGN(16) const unsigned char c_general::frexpAndMask[16] = {
         1, 0, 2, 0, 4, 0, 8, 0, 16, 0, 32, 0, 64, 0, 128, 0
     };
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 ALIGN(64) unsigned int RandomState[32] = {
     0x5a383a4fu, 0xc68bd45eu, 0x691d6d86u, 0xb367e14fu,
     0xd689dbaau, 0xfde442aau, 0x3d265423u, 0x1a77885cu,
@@ -69,4 +76,5 @@ void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, co
         abort();
     }
 }
-Vc_NAMESPACE_END
+}
+}

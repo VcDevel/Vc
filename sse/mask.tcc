@@ -19,7 +19,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 namespace internal {
 
 // mask_cast/*{{{*/
@@ -216,7 +219,8 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE int Mask<T>::firstOne() const
 /*operators{{{*/
 /*}}}*/
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

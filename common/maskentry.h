@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 template<typename M> class MaskEntry
 {
@@ -96,7 +99,8 @@ constexpr bool operator!=(A &&a, B &&b)
 static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
 static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

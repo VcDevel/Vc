@@ -25,7 +25,10 @@
 #include <iterator>
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 #define VC_MEM_OPERATOR_EQ(op) \
         template<typename T> \
@@ -727,7 +730,8 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         }
 };
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

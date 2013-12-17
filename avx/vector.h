@@ -40,7 +40,10 @@
 #undef isnan
 #endif
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 enum VectorAlignmentEnum { VectorAlignment = 32 };
 
 template<typename T> class Vector
@@ -495,7 +498,8 @@ static_assert(!std::is_convertible<int *  , short_v>::value, "An int* should nev
 static_assert(!std::is_convertible<short *, short_v>::value, "A short* should never implicitly convert to short_v. Something is broken.");
 
 #include "forceToRegisters.tcc"
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "vector.tcc"
 #include "math.h"

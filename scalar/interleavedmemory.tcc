@@ -21,7 +21,10 @@
 #define VC_SCALAR_INTERLEAVEDMEMORY_TCC
 
 #include "macros.h"
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
         const typename V::AsArg v1)
@@ -146,7 +149,8 @@ template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBa
     v7.data() = m_data[m_indexes.data() + 7];
 }/*}}}*/
 
-Vc_NAMESPACE_END
+}
+}
 #include "undomacros.h"
 
 #endif // VC_SCALAR_INTERLEAVEDMEMORY_TCC

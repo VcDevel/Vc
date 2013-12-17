@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 // copysign {{{1
 template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
@@ -131,7 +134,8 @@ Vc_ALWAYS_INLINE float_v ldexp(float_v::AsArg v, int_v::AsArg _e)
     return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
 }
 //}}}1
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

@@ -23,7 +23,10 @@
 #include "../common/data.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(MIC)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace MIC
+{
 
 ALIGN(16) extern const char  _IndexesFromZero8[16];
 
@@ -42,7 +45,8 @@ struct STRUCT_ALIGN1(64) c_general
     static const unsigned char frexpAndMask[16];
 } STRUCT_ALIGN2(64);
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

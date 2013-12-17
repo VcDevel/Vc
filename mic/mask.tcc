@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<> template<typename Flags> inline void Mask<double>::load(const bool *mem, Flags)
 {
@@ -42,7 +45,8 @@ template<> template<typename Flags> inline void Mask<double>::store(bool *mem, F
     _mm512_mask_extpackstorehi_epi32(mem + 64, 0xff, tmp, UpDownConversion<unsigned int, unsigned char>(), _MM_HINT_NONE);
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

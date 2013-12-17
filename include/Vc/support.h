@@ -33,7 +33,8 @@
 #endif
 
 #include "common/macros.h"
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
 /**
  * \name Micro-Architecture Feature Tests
@@ -141,7 +142,7 @@ inline bool currentImplementationSupported()
 #endif // VC_COMPILE_LIB
 //@}
 
-Vc_NAMESPACE_END
+}
 #include "common/undomacros.h"
 
 #undef VC_TARGET_NO_SIMD

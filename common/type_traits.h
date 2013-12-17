@@ -23,7 +23,10 @@
 #include <type_traits>
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 template<typename T> struct is_simd_mask_internal : public std::false_type {};
 template<typename T> struct is_simd_vector_internal : public std::false_type {};
@@ -40,7 +43,8 @@ struct is_simd_vector
       typename std::remove_cv<typename std::remove_reference<T>::type>::type>
 {};
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

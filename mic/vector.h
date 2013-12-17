@@ -47,7 +47,10 @@
 
 #define VC_HAVE_FMA
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<typename T> class Vector : public StoreMixin<Vector<T>, T>
 {
@@ -496,7 +499,8 @@ template<typename T> struct SwizzledVector
 
 #include "forcetoregisters.tcc"
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "vector.tcc"
 #include "undomacros.h"

@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Internal
+{
 
 template<> struct HelperImpl<Vc::MICImpl>
 {
@@ -55,7 +58,8 @@ template<> struct HelperImpl<Vc::MICImpl>
     static Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 };
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "deinterleave.tcc"
 #include "prefetches.tcc"

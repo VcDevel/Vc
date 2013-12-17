@@ -24,7 +24,10 @@
 #include "where.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 template<typename _V, typename Flags> class MemoryVector;
 template<typename _V, typename Flags> class MemoryVectorIterator;
@@ -207,7 +210,8 @@ template<typename V, typename Flags, typename FlagsX> Vc_ALWAYS_INLINE MemoryVec
     return new(&mv) MemoryVector<const V, Flags>;
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

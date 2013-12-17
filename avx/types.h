@@ -37,7 +37,10 @@
 
 #include "../common/types.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
     template<typename T> class Vector;
 
     template<typename T> class Mask;
@@ -111,12 +114,17 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
             FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
     } STRUCT_ALIGN2(sizeof(V));
 #endif
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 template<typename T> struct is_simd_mask_internal<Vc_IMPL_NAMESPACE::Mask<T>> : public std::true_type {};
 template<typename T> struct is_simd_vector_internal<Vc_IMPL_NAMESPACE::Vector<T>> : public std::true_type {};
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

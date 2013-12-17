@@ -59,7 +59,10 @@ extern "C" {
 #endif
 
 
-Vc_NAMESPACE_BEGIN(SseIntrinsics)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SseIntrinsics
+{
     using SSE::c_general;
 
     enum VectorAlignmentEnum { VectorAlignment = 16 };
@@ -126,7 +129,8 @@ Vc_NAMESPACE_BEGIN(SseIntrinsics)
     static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu32(__m128i a, __m128i b) { return _mm_cmpgt_epi32(
             _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
 #endif
-Vc_NAMESPACE_END
+}
+}
 
 // SSE3
 #ifdef VC_IMPL_SSE3
@@ -142,7 +146,10 @@ extern "C" {
 #include <tmmintrin.h>
 }
 
-Vc_NAMESPACE_BEGIN(SseIntrinsics)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SseIntrinsics
+{
     // not overriding _mm_set1_epi8 because this one should only be used for non-constants
     static Vc_INTRINSIC __m128i Vc_CONST set1_epi8(int a) {
 #if defined(VC_GCC) && VC_GCC < 0x40500
@@ -152,13 +159,17 @@ Vc_NAMESPACE_BEGIN(SseIntrinsics)
         return _mm_set1_epi8(a);
 #endif
     }
-Vc_NAMESPACE_END
+}
+}
 
 #elif defined _TMMINTRIN_H_INCLUDED
 #error "SSSE3 was disabled but something includes <tmmintrin.h>. Please fix your code."
 #else
 
-Vc_NAMESPACE_BEGIN(SseIntrinsics)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SseIntrinsics
+{
     static Vc_INTRINSIC __m128i Vc_CONST _mm_abs_epi8 (__m128i a) {
         __m128i negative = _mm_cmplt_epi8 (a, _mm_setzero_si128());
         return _mm_add_epi8 (_mm_xor_si128(a, negative), _mm_and_si128(negative,  _mm_setone_epi8()));
@@ -221,7 +232,8 @@ Vc_NAMESPACE_BEGIN(SseIntrinsics)
         }
         return _mm_setzero_si128();
     }
-Vc_NAMESPACE_END
+}
+}
 
 #endif
 
@@ -235,7 +247,10 @@ extern "C" {
 #error "SSE4.1 was disabled but something includes <smmintrin.h>. Please fix your code."
 #endif
 
-Vc_NAMESPACE_BEGIN(SseIntrinsics)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SseIntrinsics
+{
     Vc_INTRINSIC __m128i _mm_cmpeq_epi64(__m128i a, __m128i b) {
         auto tmp = _mm_cmpeq_epi32(a, b);
         return _mm_and_si128(tmp, _mm_shuffle_epi32(tmp, 1*1 + 0*4 + 3*16 + 2*64));
@@ -445,7 +460,8 @@ Vc_NAMESPACE_BEGIN(SseIntrinsics)
     static Vc_INTRINSIC Vc_PURE __m128i _mm_stream_load_si128(__m128i *mem) {
         return _mm_load_si128(mem);
     }
-Vc_NAMESPACE_END
+}
+}
 
 #endif
 
@@ -462,7 +478,10 @@ extern "C" {
 #error "SSE4.2 was disabled but something includes <nmmintrin.h>. Please fix your code."
 #endif
 
-Vc_NAMESPACE_BEGIN(SseIntrinsics)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SseIntrinsics
+{
     static Vc_INTRINSIC Vc_CONST float extract_float_imm(const __m128 v, const size_t i) {
         float f;
         switch (i) {
@@ -563,11 +582,16 @@ Vc_NAMESPACE_BEGIN(SseIntrinsics)
     }
 #endif
 
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
     using namespace SseIntrinsics;
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 #include "shuffle.h"

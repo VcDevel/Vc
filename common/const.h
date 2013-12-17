@@ -32,7 +32,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 #include <Vc/global.h>
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Internal
+{
 
 template <int exponent> constexpr double exponentToFloat(std::integral_constant<bool, true>);
 template <int exponent> constexpr double exponentToFloat(std::integral_constant<bool, false>);
@@ -84,6 +87,7 @@ template <int sign, unsigned int mantissa, int exponent> constexpr float floatCo
            sign;
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_COMMON_CONST_H

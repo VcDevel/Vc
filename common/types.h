@@ -28,12 +28,17 @@
 #include <type_traits>
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
     template<typename T> class Vector;
     template<typename T> class Mask;
-Vc_NAMESPACE_END
+}
+}
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
 /* TODO: add type for half-float, something along these lines:
 class half_float
@@ -142,13 +147,17 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 }
 #endif
 
-Vc_NAMESPACE_END
+}
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 template <typename T> using WidthT = std::integral_constant<std::size_t, sizeof(T)>;
 
 template<size_t Bytes> class MaskBool;
-Vc_NAMESPACE_END
+}
+}
 
 #include "memoryfwd.h"
 #include "undomacros.h"

@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Scalar)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Scalar
+{
 
 template<typename T> class WriteMaskedVector
 {
@@ -85,7 +88,8 @@ template<typename T> class WriteMaskedVector
         Mask mask;
 };
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

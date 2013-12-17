@@ -17,7 +17,10 @@
 
 */
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Internal
+{
 
 template<typename V, typename M, typename A> inline void HelperImpl<MICImpl>::deinterleave(V &a, V &b, const M *m, A)
 //template<> inline void deinterleave(float_v &a, float_v &b, const float *m, A align)
@@ -28,4 +31,5 @@ template<typename V, typename M, typename A> inline void HelperImpl<MICImpl>::de
     b.data() = MicIntrinsics::gather(i.data(), m + 1, MIC::UpDownConversion<typename V::VectorEntryType, M>());
 }
 
-Vc_NAMESPACE_END
+}
+}

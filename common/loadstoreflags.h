@@ -23,7 +23,8 @@
 #include "types.h"
 #include "macros.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
 /**
  * Hint for \ref Prefetch to select prefetches that mark the memory as exclusive.
@@ -155,7 +156,7 @@ constexpr LoadStoreFlags::LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
 template<size_t L1 = PrefetchFlag<>::L1Stride, size_t L2 = PrefetchFlag<>::L2Stride, typename ExclusiveOrShared = PrefetchFlag<>::ExclusiveOrShared>
 struct Prefetch : public LoadStoreFlags::LoadStoreFlags<PrefetchFlag<L1, L2, ExclusiveOrShared>> {};
 
-Vc_NAMESPACE_END
+}
 
 #include "undomacros.h"
 

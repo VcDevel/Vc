@@ -21,7 +21,8 @@
 #define VC_COMMON_SET_H
 
 #include "macros.h"
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 namespace
 {
     static Vc_INTRINSIC Vc_CONST __m128i set(unsigned short x0, unsigned short x1, unsigned short x2, unsigned short x3,
@@ -78,7 +79,7 @@ namespace
                 static_cast<unsigned short>(x6), static_cast<unsigned short>(x7));
     }
 } // anonymous namespace
-Vc_NAMESPACE_END
+}
 #include "undomacros.h"
 
 #endif // VC_COMMON_SET_H

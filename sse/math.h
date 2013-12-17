@@ -23,7 +23,10 @@
 #include "const.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
 {
     return a.copySign(b);
@@ -157,7 +160,8 @@ template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T>
         return v;
     }
 #endif
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

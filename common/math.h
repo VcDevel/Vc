@@ -29,9 +29,15 @@
 
 #ifdef VC_IMPL_AVX
 #  ifdef VC_IMPL_AVX2
-Vc_NAMESPACE_BEGIN(AVX2)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace AVX2
+{
 #  else
-Vc_NAMESPACE_BEGIN(AVX)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace AVX
+{
 #  endif
 #include "logarithm.h"
 #include "exponential.h"
@@ -73,11 +79,15 @@ Vc_NAMESPACE_BEGIN(AVX)
 
         return x;
     }
-Vc_NAMESPACE_END
+}
+}
 #endif
 
 #ifdef VC_IMPL_SSE
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 #include "logarithm.h"
 #include "exponential.h"
     inline SSE::double_v exp(SSE::double_v::AsArg _x) {
@@ -118,7 +128,8 @@ Vc_NAMESPACE_BEGIN(SSE)
 
         return x;
     }
-Vc_NAMESPACE_END
+}
+}
 #endif
 #include "undomacros.h"
 

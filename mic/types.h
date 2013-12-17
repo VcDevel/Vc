@@ -38,7 +38,8 @@
 
 #include "../common/types.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 template<typename T> struct DetermineVectorEntryType { typedef T Type; };
 // MIC does not support epi8/epu8 operations, thus we change the EntryType to int/uint
 template<> struct DetermineVectorEntryType<char> { typedef int Type; };
@@ -53,9 +54,12 @@ template<> struct DetermineVectorEntryType<unsigned long> { typedef unsigned int
 // MIC does not support epi64/epu64 operations, thus we change the EntryType to int/uint
 template<> struct DetermineVectorEntryType<long long> { typedef int Type; };
 template<> struct DetermineVectorEntryType<unsigned long long> { typedef unsigned int Type; };
-Vc_NAMESPACE_END
+}
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
     template<typename T> struct VectorHelper;
     template<typename T> class VectorMultiplication;
@@ -205,12 +209,17 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
             FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
     } STRUCT_ALIGN2(sizeof(V));
 
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 template<typename T> struct is_simd_mask_internal<Vc_IMPL_NAMESPACE::Mask<T>> : public std::true_type {};
 template<typename T> struct is_simd_vector_internal<Vc_IMPL_NAMESPACE::Vector<T>> : public std::true_type {};
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

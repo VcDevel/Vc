@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Internal
+{
 template<Vc::Implementation Impl> struct MapImpl { enum Dummy { Value = Impl }; };
 template<> struct MapImpl<Vc::SSE42Impl> { enum Dummy { Value = MapImpl<Vc::SSE41Impl>::Value }; };
 
@@ -33,9 +36,13 @@ template<Vc::Implementation Impl> using TrigonometricImplementation =
     + Vc::Fma4Instructions
 #endif
     >;
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 template<typename Impl> struct Trigonometric
 {
     template<typename T> static T sin(const T &_x);
@@ -45,10 +52,14 @@ template<typename Impl> struct Trigonometric
     template<typename T> static T atan (const T &_x);
     template<typename T> static T atan2(const T &y, const T &x);
 };
-Vc_NAMESPACE_END
+}
+}
 
 #ifdef VC_IMPL_AVX
-Vc_NAMESPACE_BEGIN(AVX)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace AVX
+{
 using Trigonometric = Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<AVXImpl>>;
 template<typename T> Vc_ALWAYS_INLINE T sin(const T &x) { return Trigonometric::sin(x); }
 template<typename T> Vc_ALWAYS_INLINE T cos(const T &x) { return Trigonometric::cos(x); }
@@ -56,11 +67,15 @@ template<typename T> Vc_ALWAYS_INLINE void sincos(const T &x, T *sin, T *cos) { 
 template<typename T> Vc_ALWAYS_INLINE T asin(const T &x) { return Trigonometric::asin(x); }
 template<typename T> Vc_ALWAYS_INLINE T atan(const T &x) { return Trigonometric::atan(x); }
 template<typename T> Vc_ALWAYS_INLINE T atan2(const T &y, const T &x) { return Trigonometric::atan2(y, x); }
-Vc_NAMESPACE_END
+}
+}
 #endif
 
 #ifdef VC_IMPL_SSE
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 // FIXME is SSE42Impl right? Probably yes, but explain why...
 using Trigonometric = Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<SSE42Impl>>;
 template<typename T> Vc_ALWAYS_INLINE T sin(const T &x) { return Trigonometric::sin(x); }
@@ -69,10 +84,14 @@ template<typename T> Vc_ALWAYS_INLINE void sincos(const T &x, T *sin, T *cos) { 
 template<typename T> Vc_ALWAYS_INLINE T asin(const T &x) { return Trigonometric::asin(x); }
 template<typename T> Vc_ALWAYS_INLINE T atan(const T &x) { return Trigonometric::atan(x); }
 template<typename T> Vc_ALWAYS_INLINE T atan2(const T &y, const T &x) { return Trigonometric::atan2(y, x); }
-Vc_NAMESPACE_END
+}
+}
 
 // only needed for AVX2, AVX, or SSE:
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> sin(const Vector<T> &_x) {
     return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sin(_x);
 }
@@ -91,7 +110,8 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> atan (const Vector<T> &_
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> atan2(const Vector<T> &y, const Vector<T> &x) {
     return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan2(y, x);
 }
-Vc_NAMESPACE_END
+}
+}
 #endif
 
 #include "undomacros.h"

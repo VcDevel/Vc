@@ -24,7 +24,10 @@
 #include "types.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 #ifdef VC_MSVC
 #ifdef VC_IMPL_AVX
@@ -201,7 +204,8 @@ template<> Vc_ALWAYS_INLINE Vc_PURE VectorMemoryUnion<__m128i, unsigned long lon
 }
 #endif
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

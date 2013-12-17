@@ -27,7 +27,10 @@
 #include "../common/maskentry.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 namespace internal {
 template<typename V> Vc_ALWAYS_INLINE_L Vc_CONST_L V zero() Vc_ALWAYS_INLINE_R Vc_CONST_R;
@@ -191,7 +194,8 @@ template<typename T> class Mask
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "mask.tcc"
 #include "undomacros.h"

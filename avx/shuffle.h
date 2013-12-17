@@ -23,7 +23,10 @@
 #include "../sse/shuffle.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Mem)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Mem
+{
 namespace
 {
     using Vc_IMPL_NAMESPACE::m128;
@@ -176,7 +179,8 @@ namespace
 
             return _mm256_insertf128_ps(_mm256_castps128_ps256(lo), hi, 1);
         }
-Vc_NAMESPACE_END
+}
+}
 
     // little endian has the lo bits on the right and high bits on the left
     // with vectors this becomes greatly confusing:
@@ -184,7 +188,10 @@ Vc_NAMESPACE_END
     // Reg: dcba
     //
     // The shuffles and permutes above use memory ordering. The ones below use register ordering:
-Vc_NAMESPACE_BEGIN(Reg)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Reg
+{
 namespace
 {
     using Vc_IMPL_NAMESPACE::m128;
@@ -246,7 +253,8 @@ namespace
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
             return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
         }
-Vc_NAMESPACE_END
+}
+}
 #include "undomacros.h"
 
 #endif // VC_AVX_SHUFFLE_H

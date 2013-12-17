@@ -23,7 +23,10 @@
 #include "types.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<typename T> struct VectorHelper
 {
@@ -243,7 +246,8 @@ template<> struct VectorHelper<unsigned int> {
 #undef OPx
 #undef OPcmp
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "vectorhelper.tcc"
 

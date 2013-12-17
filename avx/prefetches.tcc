@@ -20,7 +20,10 @@
 #ifndef VC_AVX_PREFETCHES_TCC
 #define VC_AVX_PREFETCHES_TCC
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Internal
+{
 
 Vc_ALWAYS_INLINE void HelperImpl<VC_IMPL>::prefetchForOneRead(const void *addr)
 {
@@ -47,6 +50,7 @@ Vc_ALWAYS_INLINE void HelperImpl<VC_IMPL>::prefetchForModify(const void *addr)
 #endif
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_AVX_PREFETCHES_TCC

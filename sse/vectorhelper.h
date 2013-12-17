@@ -26,7 +26,10 @@
 #include "const_data.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 
 namespace Internal
 {
@@ -697,7 +700,8 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 #undef OP_CAST_
 #undef MINMAX
 
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "vectorhelper.tcc"
 #include "undomacros.h"

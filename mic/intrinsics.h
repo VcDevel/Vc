@@ -26,7 +26,10 @@
 #include "../common/loadstoreflags.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(MicIntrinsics)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace MicIntrinsics
+{
     using MIC::c_general;
 
     static Vc_INTRINSIC Vc_CONST __m512  _mm512_setallone_ps()    { return _mm512_castsi512_ps(_mm512_set_1to16_pi(~0)); }
@@ -322,11 +325,16 @@ static Vc_INTRINSIC __m512i shuffle(__m512i v, _MM_PERM_ENUM perm) { return _mm5
     static Vc_INTRINSIC __m512i _set1(       signed char a) { return _mm512_set1_epi32(a); }
     static Vc_INTRINSIC __m512i _set1(     unsigned char a) { return _mm512_set1_epi32(a); }
 
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
     using namespace MicIntrinsics;
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

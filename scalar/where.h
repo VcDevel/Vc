@@ -22,8 +22,12 @@
 
 #include "../common/where.h"
 
-Vc_NAMESPACE_BEGIN(Scalar)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Scalar
+{
 using Vc::where;
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_SCALAR_WHERE_H

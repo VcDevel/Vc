@@ -22,7 +22,10 @@
 #include "debug.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 // LoadHelper {{{1
 namespace
@@ -1074,6 +1077,7 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
 }
 // }}}1
 
-Vc_NAMESPACE_END
+}
+}
 
 // vim: foldmethod=marker

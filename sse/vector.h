@@ -41,7 +41,10 @@
 #undef isnan
 #endif
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 template<typename T>
 class WriteMaskedVector
 {
@@ -561,7 +564,8 @@ static Vc_ALWAYS_INLINE Vc_PURE double_v max(const double_v &x, const double_v &
   template<typename T> static Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
 #include "forceToRegisters.tcc"
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 #include "vector.tcc"

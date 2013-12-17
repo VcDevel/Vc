@@ -27,7 +27,10 @@
 #include "../common/loadstoreflags.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 namespace Internal
 {
@@ -772,7 +775,8 @@ template<> struct VectorHelper<unsigned char>
     typedef unsigned short ConcatType;
 };
 
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "vectorhelper.tcc"
 #include "undomacros.h"

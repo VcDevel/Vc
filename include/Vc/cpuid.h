@@ -21,7 +21,8 @@
 #define CPUID_H
 
 #include "common/macros.h"
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
 /**
  * \ingroup Utilities
@@ -208,7 +209,7 @@ class CpuId
         static bool   s_noL2orL3;
 };
 
-Vc_NAMESPACE_END
+}
 #include "common/undomacros.h"
 
 #endif // CPUID_H

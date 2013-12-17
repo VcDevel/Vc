@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Scalar)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Scalar
+{
 template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
 {
     return a.copySign(b);
@@ -218,7 +221,8 @@ Vc_ALWAYS_INLINE Vector<double> ldexp(Vector<double> x, Vector<int> e) {
     return double_v(::ldexp(x.data(), e.data()));
 }
 
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

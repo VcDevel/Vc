@@ -21,7 +21,10 @@
 #include "where.h"
 #include "iterators.h"
 #include "macros.h"
-Vc_NAMESPACE_BEGIN(Scalar)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Scalar
+{
 
 // copySign ///////////////////////////////////////////////////////////////////////// {{{1
 template<> Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float> reference) const
@@ -203,6 +206,7 @@ template<> Vc_INTRINSIC void double_v::setQnan(Mask m)
     }
 }
 // }}}1
-Vc_IMPL_NAMESPACE_END
+}
+}
 #include "undomacros.h"
 // vim: foldmethod=marker

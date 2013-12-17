@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 template<class StorageType> class AliasingEntryHelper
 {
@@ -106,7 +109,8 @@ template<class StorageType> class AliasingEntryHelper
 #endif
 };
 
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

@@ -24,7 +24,10 @@
 #include "limits.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
 {
     return a.copySign(b);
@@ -81,7 +84,8 @@ template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T>
 
     static Vc_ALWAYS_INLINE float_v ceil(float_v::AsArg v) { return _mm256_ceil_ps(v.data()); }
     static Vc_ALWAYS_INLINE double_v ceil(double_v::AsArg v) { return _mm256_ceil_pd(v.data()); }
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

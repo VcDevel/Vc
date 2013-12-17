@@ -21,7 +21,10 @@
 #define VC_AVX_WRITEMASKEDVECTOR_H
 
 #include "macros.h"
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<typename T>
 class WriteMaskedVector
@@ -72,7 +75,8 @@ class WriteMaskedVector
         Mask mask;
 };
 
-Vc_IMPL_NAMESPACE_END
+}
+}
 #include "writemaskedvector.tcc"
 #include "undomacros.h"
 #endif // VC_AVX_WRITEMASKEDVECTOR_H

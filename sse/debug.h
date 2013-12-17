@@ -26,7 +26,10 @@
 #include <iomanip>
 #endif
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 
 #ifdef NDEBUG
 class DebugStream
@@ -79,6 +82,7 @@ class DebugStream
 
 #define VC_DEBUG ::Vc::SSE::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #endif // VC_SSE_DEBUG_H

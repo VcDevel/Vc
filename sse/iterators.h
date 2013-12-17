@@ -22,12 +22,16 @@
 
 #include "../common/iterators.h"
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 
 using ::Vc::Common::begin;
 using ::Vc::Common::end;
 using ::Vc::Common::makeIterator;
 
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_SSE_ITERATORS_H

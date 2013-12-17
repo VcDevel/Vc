@@ -26,7 +26,8 @@
 
 #include "macros.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
 template <
     typename T,
@@ -74,7 +75,7 @@ public:
     Common::MaskData<mask_type, register_count> d;
 };
 
-Vc_NAMESPACE_END
+}
 
 #include "undomacros.h"
 

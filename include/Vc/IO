@@ -166,7 +166,8 @@ static std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<
 }
 } // namespace std
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 template<typename T, std::size_t N>
 inline std::ostream &operator<<(std::ostream &out, const simd_array<T, N> &v)
 {
@@ -194,7 +195,7 @@ inline std::ostream &operator<<(std::ostream &out, const simd_mask_array<T, N> &
     }
     return out << AnsiColor::blue << "»" << AnsiColor::normal;
 }
-Vc_NAMESPACE_END
+}
 
 #endif // VECIO_H
 

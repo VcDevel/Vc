@@ -20,12 +20,14 @@
 #ifndef VC_COMMON_MEMORYFWD_H
 #define VC_COMMON_MEMORYFWD_H
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
     template<typename V, size_t Size1 = 0, size_t Size2 = 0, bool InitPadding = true> class Memory;
-Vc_NAMESPACE_END
+}
 
-Vc_PUBLIC_NAMESPACE_BEGIN
-    using Common::Memory;
-Vc_NAMESPACE_END
+using Common::Memory;
+}
 
 #endif // VC_COMMON_MEMORYFWD_H

@@ -23,7 +23,8 @@
 #include <Vc/type_traits>
 #include "macros.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
 namespace
 {
@@ -107,23 +108,27 @@ template<typename T> constexpr T iif (bool condition, const T &trueValue, const 
     return condition ? trueValue : falseValue;
 }
 
-Vc_NAMESPACE_END
-
-Vc_NAMESPACE_BEGIN(Scalar)
+namespace Scalar
+{
     using Vc::iif;
-Vc_NAMESPACE_END
-Vc_NAMESPACE_BEGIN(SSE)
+}
+namespace SSE
+{
     using Vc::iif;
-Vc_NAMESPACE_END
-Vc_NAMESPACE_BEGIN(AVX)
+}
+namespace AVX
+{
     using Vc::iif;
-Vc_NAMESPACE_END
-Vc_NAMESPACE_BEGIN(AVX2)
+}
+namespace AVX2
+{
     using Vc::iif;
-Vc_NAMESPACE_END
-Vc_NAMESPACE_BEGIN(MIC)
+}
+namespace MIC
+{
     using Vc::iif;
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

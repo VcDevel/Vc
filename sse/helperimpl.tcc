@@ -22,7 +22,10 @@
 
 #include "../common/malloc.h"
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Internal
+{
 
 template<Vc::MallocAlignment A>
 inline void *HelperImpl<SSE2Impl>::malloc(size_t n)
@@ -35,6 +38,7 @@ inline void HelperImpl<SSE2Impl>::free(void *p)
     Common::free(p);
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_SSE_HELPERIMPL_TCC

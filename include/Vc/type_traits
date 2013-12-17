@@ -24,8 +24,8 @@
 
 #include "common/type_traits.h"
 #include "common/macros.h"
-Vc_PUBLIC_NAMESPACE_BEGIN
-
+namespace Vc_VERSIONED_NAMESPACE
+{
 using Common::is_simd_mask;
 using Common::is_simd_vector;
 
@@ -70,7 +70,7 @@ struct is_unsigned : public std::integral_constant<bool,
     is_arithmetic<T>::value && !is_signed<T>::value>
     {};
 
-Vc_NAMESPACE_END
+}
 
 #include "common/undomacros.h"
 

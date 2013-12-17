@@ -22,7 +22,10 @@
 
 #include <utility>
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<typename T> class WriteMaskedVector
 {
@@ -108,6 +111,7 @@ private:
     typename MaskTypeHelper<EntryType>::Type mask;
 };
 
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_MIC_WRITEMASKEDVECTOR_H

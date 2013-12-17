@@ -22,7 +22,8 @@
 
 #include "macros.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
 /**
  * \ingroup Utilities
@@ -68,39 +69,44 @@ template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix()
 constexpr bool some_of(bool) { return false; }
 //@}
 
-Vc_NAMESPACE_END
 
 // import to Implementation namespaces for automatic namespace lookup
-Vc_NAMESPACE_BEGIN(Scalar)
+namespace Scalar
+{
     using Vc::all_of;
     using Vc::any_of;
     using Vc::none_of;
     using Vc::some_of;
-Vc_NAMESPACE_END
-Vc_NAMESPACE_BEGIN(SSE)
+}
+namespace SSE
+{
     using Vc::all_of;
     using Vc::any_of;
     using Vc::none_of;
     using Vc::some_of;
-Vc_NAMESPACE_END
-Vc_NAMESPACE_BEGIN(AVX)
+}
+namespace AVX
+{
     using Vc::all_of;
     using Vc::any_of;
     using Vc::none_of;
     using Vc::some_of;
-Vc_NAMESPACE_END
-Vc_NAMESPACE_BEGIN(AVX2)
+}
+namespace AVX2
+{
     using Vc::all_of;
     using Vc::any_of;
     using Vc::none_of;
     using Vc::some_of;
-Vc_NAMESPACE_END
-Vc_NAMESPACE_BEGIN(MIC)
+}
+namespace MIC
+{
     using Vc::all_of;
     using Vc::any_of;
     using Vc::none_of;
     using Vc::some_of;
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

@@ -22,8 +22,12 @@
 
 #include "../common/where.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 using Vc::where;
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_MIC_WHERE_H

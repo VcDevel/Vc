@@ -22,7 +22,8 @@
 
 #include "macros.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
 /**
  * \ingroup Vectors
@@ -75,7 +76,7 @@ template<typename V, typename M> Vc_ALWAYS_INLINE void deinterleave(V *a, V *b,
     Internal::Helper::deinterleave(*a, *b, memory, Aligned);
 }
 
-Vc_NAMESPACE_END
+}
 
 #include "undomacros.h"
 

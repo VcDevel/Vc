@@ -17,7 +17,10 @@
 
 }}}*/
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 // zero, one {{{1
 template<> inline __m512  VectorHelper<__m512 >::zero() { return _mm512_setzero_ps(); }
 template<> inline __m512d VectorHelper<__m512d>::zero() { return _mm512_setzero_pd(); }
@@ -28,6 +31,7 @@ template<> inline __m512d VectorHelper<__m512d>::one() { return _mm512_set1_pd(1
 template<> inline __m512i VectorHelper<__m512i>::one() { return _mm512_set1_epi32(1); }
 
 //}}}1
-Vc_NAMESPACE_END
+}
+}
 
 // vim: foldmethod=marker

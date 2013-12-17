@@ -22,7 +22,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 /**
  * \internal
@@ -297,11 +300,10 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
 
     //Vc_ALWAYS_INLINE Access scatter(I indexes, VArg v0, VArg v1);
 };
-Vc_NAMESPACE_END
+}
 
-Vc_PUBLIC_NAMESPACE_BEGIN
 using Common::InterleavedMemoryWrapper;
-Vc_NAMESPACE_END
+}
 
 #include "undomacros.h"
 

@@ -33,15 +33,23 @@
 #include "../common/type_traits.h"
 #include "../common/types.h"
 
-Vc_NAMESPACE_BEGIN(Scalar)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Scalar
+{
         template<typename V = float> class VectorAlignedBaseT {};
         template<typename T> class Vector;
         template<typename T> class Mask;
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 template<typename T> struct is_simd_mask_internal<Scalar::Mask<T>> : public std::true_type {};
 template<typename T> struct is_simd_vector_internal<Scalar::Vector<T>> : public std::true_type {};
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_SCALAR_TYPES_H

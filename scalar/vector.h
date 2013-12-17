@@ -35,7 +35,10 @@
 #include "writemaskedvector.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Scalar)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Scalar
+{
     enum VectorAlignmentEnum { VectorAlignment = 4 };
 
 template<typename T>
@@ -532,7 +535,8 @@ template<typename T> class SwizzledVector : public Vector<T> {};
         const Vector<T13> &, const Vector<T14> &,
         const Vector<T15> &, const Vector<T16> &) {}
 
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "vector.tcc"
 #include "math.h"

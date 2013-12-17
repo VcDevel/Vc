@@ -22,12 +22,16 @@
 
 #include "../common/iterators.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 using ::Vc::Common::begin;
 using ::Vc::Common::end;
 using ::Vc::Common::makeIterator;
 
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_AVX_ITERATORS_H

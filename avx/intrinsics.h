@@ -60,7 +60,10 @@ extern "C" {
 #define _mm_alignr_epi8(a, b, n) ((m128i)__builtin_ia32_palignr128((a), (b), (n)))
 #endif
 
-Vc_NAMESPACE_BEGIN(AvxIntrinsics)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace AvxIntrinsics
+{
     using AVX::c_general;
     using AVX::_IndexesFromZero32;
     using AVX::_IndexesFromZero16;
@@ -709,15 +712,24 @@ Vc_INTRINSIC Vc_PURE __m128i _mm_cvtsi64_si128(int64_t x) {
 }
 #endif
 
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(AVX)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace AVX
+{
     using namespace AvxIntrinsics;
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(AVX2)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace AVX2
+{
     using namespace AvxIntrinsics;
-Vc_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

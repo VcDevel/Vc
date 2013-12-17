@@ -22,8 +22,12 @@
 
 #include "../common/where.h"
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 using Vc::where;
-Vc_NAMESPACE_END
+}
+}
 
 #endif // VC_SSE_WHERE_H

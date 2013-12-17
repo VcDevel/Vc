@@ -23,7 +23,10 @@
 #include "../common/set.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(SSE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 
 // constants {{{1
 template<typename T, int Size> Vc_ALWAYS_INLINE Vc_CONST const T *_IndexesFromZero() {
@@ -1382,7 +1385,8 @@ template<> inline Vc_PURE ushort_v ushort_v::sorted() const
     return _mm_unpacklo_epi16(lo, hi);
 }
 // }}}1
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 #include "undomacros.h"
 

@@ -22,7 +22,8 @@
 
 #include "macros.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
     template<typename _Mask, typename _LValue> struct MaskedLValue
     {
@@ -171,7 +172,7 @@ template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereMask<M> _if(const M &m
     return { m };
 }
 
-Vc_NAMESPACE_END
+}
 
 #include "undomacros.h"
 
