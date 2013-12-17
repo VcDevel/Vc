@@ -28,15 +28,24 @@
 
 Vc_PUBLIC_NAMESPACE_BEGIN
 
-template<typename T, std::size_t N> class simd_mask_array
-{
+template <
+    typename T,
+    std::size_t N,
+    typename VectorType = typename Common::select_best_vector_type<N,
 #ifdef VC_IMPL_AVX
-    using vector_type = typename Common::select_best_vector_type<N, Vc::Vector<T>, Vc::SSE::Vector<T>, Vc::Scalar::Vector<T>>::type;
+                                                                   Vc::Vector<T>,
+                                                                   Vc::SSE::Vector<T>,
+                                                                   Vc::Scalar::Vector<T>
 #elif defined(VC_IMPL_Scalar)
-    using vector_type = typename Common::select_best_vector_type<N, Vc::Vector<T>>::type;
+                                                                   Vc::Vector<T>
 #else
-    using vector_type = typename Common::select_best_vector_type<N, Vc::Vector<T>, Vc::Scalar::Vector<T>>::type;
+                                                                   Vc::Vector<T>,
+                                                                   Vc::Scalar::Vector<T>
 #endif
+                                                                   >::type>
+class simd_mask_array
+{
+    using vector_type = VectorType;
 
 public:
     typedef typename vector_type::Mask mask_type;

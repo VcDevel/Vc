@@ -29,7 +29,45 @@
 
 Vc_PUBLIC_NAMESPACE_BEGIN
 
-template<typename T, std::size_t N> class simd_array
+// === having simd_array<T, N> in the Vc namespace leads to a ABI bug ===
+//
+// simd_array<double, 4> can be { double[4] }, { __m128d[2] }, or { __m256d } even though the type
+// is the same.
+// The question is, what should simd_array focus on?
+// a) A type that makes interfacing between different implementations possible?
+// b) Or a type that makes fixed size SIMD easier and efficient?
+//
+// a) can be achieved by using a union with T[N] as one member. But this may have more serious
+// performance implications than only less efficient parameter passing (because compilers have a
+// much harder time wrt. aliasing issues). Also alignment would need to be set to the sizeof in
+// order to be compatible with targets with larger alignment requirements.
+// But, the in-memory representation of masks is not portable. Thus, at the latest with AVX-512,
+// there would be a problem with requiring simd_mask_array<T, N> to be an ABI compatible type.
+// AVX-512 uses one bit per boolean, whereas SSE/AVX use sizeof(T) Bytes per boolean. Conversion
+// between the two representations is not a trivial operation. Therefore choosing one or the other
+// representation will have a considerable impact for the targets that do not use this
+// representation. Since the future probably belongs to one bit per boolean representation, I would
+// go with that choice.
+//
+// b) requires that simd_array<T, N> != simd_array<T, N> if
+// simd_array<T, N>::vector_type != simd_array<T, N>::vector_type
+//
+// Therefore use simd_array<T, N, V>, where V follows from the above.
+template <typename T,
+          std::size_t N,
+          typename VectorType = typename Common::select_best_vector_type<N,
+#ifdef VC_IMPL_AVX
+                                                                Vc::Vector<T>,
+                                                                Vc::SSE::Vector<T>,
+                                                                Vc::Scalar::Vector<T>
+#elif defined(VC_IMPL_Scalar)
+                                                                Vc::Vector<T>
+#else
+                                                                Vc::Vector<T>,
+                                                                Vc::Scalar::Vector<T>
+#endif
+                                                                >::type>
+class simd_array
 {
     static_assert(std::is_same<T,   double>::value ||
                   std::is_same<T,    float>::value ||
@@ -41,15 +79,9 @@ template<typename T, std::size_t N> class simd_array
     static_assert((N & (N - 1)) == 0, "simd_array<T, N> must be used with a power of two value for N.");
 
 public:
-#ifdef VC_IMPL_AVX
-    using vector_type = typename Common::select_best_vector_type<N, Vc::Vector<T>, Vc::SSE::Vector<T>, Vc::Scalar::Vector<T>>::type;
-#elif defined(VC_IMPL_Scalar)
-    using vector_type = typename Common::select_best_vector_type<N, Vc::Vector<T>>::type;
-#else
-    using vector_type = typename Common::select_best_vector_type<N, Vc::Vector<T>, Vc::Scalar::Vector<T>>::type;
-#endif
+    using vector_type = VectorType;
     typedef T value_type;
-    typedef simd_mask_array<T, N> mask_type;
+    typedef simd_mask_array<T, N, vector_type> mask_type;
 
     static constexpr std::size_t size = N;
     static constexpr std::size_t register_count = size > vector_type::Size ? size / vector_type::Size : 1;
