@@ -391,10 +391,18 @@ template<typename T> class Vector
         inline Vector &operator/=(VC_ALIGNED_PARAMETER(Vector) x);
         inline Vc_PURE_L Vector operator/ (VC_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
-#define OP(symbol) \
-        Vc_INTRINSIC_L Vector &operator symbol##=(const Vector<T> &x) Vc_INTRINSIC_R; \
-        Vc_INTRINSIC_L Vc_PURE_L Vector operator symbol(const Vector<T> &x) const Vc_PURE_R Vc_INTRINSIC_R;
-        VC_ALL_BINARY(OP)
+#define OP(symbol)                                                                                 \
+    Vc_INTRINSIC Vector &operator symbol##=(const Vector<T> & x)                                   \
+    {                                                                                              \
+        static_assert(std::is_integral<T>::value,                                                  \
+                      "bitwise-operators can only be used with Vectors of integral type");         \
+    }                                                                                              \
+    Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector<T> &x) const                          \
+    {                                                                                              \
+        static_assert(std::is_integral<T>::value,                                                  \
+                      "bitwise-operators can only be used with Vectors of integral type");         \
+    }
+    VC_ALL_BINARY(OP)
 #undef OP
 
 #define OPcmp(symbol, fun) \

@@ -590,6 +590,11 @@ Vc_NAMESPACE_BEGIN(Internal)
     typedef HelperImpl<VC_IMPL> Helper;
 Vc_NAMESPACE_END
 
+// TODO: clean up headers (e.g. math.h) to remove the following:
+#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+#define VC_ENABLE_FLOAT_BIT_OPERATORS 1
+#endif
+
 #include "version.h"
 
 #endif // VC_GLOBAL_H

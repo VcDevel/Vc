@@ -275,9 +275,25 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // binary operators
-#define Vc_OP(symbol, fun) \
-    Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x) { d.v() = fun(d.v(), x.d.v()); return *this; } \
-    Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const { return Vector<T>(fun(d.v(), x.d.v())); }
+#ifdef VC_ENABLE_FLOAT_BIT_OPERATORS
+#define VC_ASSERT__
+#else
+#define VC_ASSERT__                                                                                \
+    static_assert(std::is_integral<T>::value,                                                      \
+                  "bitwise-operators can only be used with Vectors of integral type")
+#endif
+#define Vc_OP(symbol, fun)                                                                         \
+    Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x)                                           \
+    {                                                                                              \
+        VC_ASSERT__;                                                                               \
+        d.v() = fun(d.v(), x.d.v());                                                               \
+        return *this;                                                                              \
+    }                                                                                              \
+    Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const                                         \
+    {                                                                                              \
+        VC_ASSERT__;                                                                               \
+        return Vector<T>(fun(d.v(), x.d.v()));                                                     \
+    }
 
     Vc_OP(*, _mul<VectorEntryType>)
     Vc_OP(+, _add<VectorEntryType>)

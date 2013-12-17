@@ -300,11 +300,19 @@ template<typename T> class Vector
         inline Vc_PURE_L Vector operator/ (VC_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
         // bitwise ops
-#define OP_VEC(op) \
-        Vc_ALWAYS_INLINE_L Vector<T> &operator op##=(AsArg x) Vc_ALWAYS_INLINE_R; \
-        Vc_ALWAYS_INLINE_L Vc_PURE_L Vector<T>  operator op   (AsArg x) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
-        VC_ALL_BINARY(OP_VEC)
-        VC_ALL_SHIFTS(OP_VEC)
+#define OP_VEC(op)                                                                                 \
+    Vc_INTRINSIC Vector &operator op##=(AsArg x)                                                   \
+    {                                                                                              \
+        static_assert(std::is_integral<T>::value,                                                  \
+                      "bitwise-operators can only be used with Vectors of integral type");         \
+    }                                                                                              \
+    Vc_INTRINSIC Vc_PURE Vector operator op(AsArg x) const                                         \
+    {                                                                                              \
+        static_assert(std::is_integral<T>::value,                                                  \
+                      "bitwise-operators can only be used with Vectors of integral type");         \
+    }
+    VC_ALL_BINARY(OP_VEC)
+    VC_ALL_SHIFTS(OP_VEC)
 #undef OP_VEC
 
         Vc_ALWAYS_INLINE_L Vector<T> &operator>>=(int x) Vc_ALWAYS_INLINE_R;
