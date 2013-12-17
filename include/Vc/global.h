@@ -563,15 +563,6 @@ typedef ImplementationT<
 #endif
     > CurrentImplementation;
 
-namespace Warnings
-{
-    void _operator_bracket_warning()
-#ifdef VC_HAVE_ATTRIBUTE_WARNING
-        __attribute__((warning("\n\tUse of Vc::Vector::operator[] to modify scalar entries is known to miscompile with GCC 4.3.x.\n\tPlease upgrade to a more recent GCC or avoid operator[] altogether.\n\t(This warning adds an unnecessary function call to operator[] which should work around the problem at a little extra cost.)")))
-#endif
-        ;
-} // namespace Warnings
-
 namespace Error
 {
     template<typename L, typename R> struct invalid_operands_of_types {};
