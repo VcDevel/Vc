@@ -366,8 +366,8 @@ template<typename T> class Vector
 #endif
             return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone());
         }
-        Vc_ALWAYS_INLINE_L Vector<typename NegateTypeHelper<T>::Type> operator-() const Vc_ALWAYS_INLINE_R;
-        Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }
+        Vc_ALWAYS_INLINE_L Vc_PURE_L Vector operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_INTRINSIC Vc_PURE Vector operator+() const { return *this; }
 
 #define OP(symbol, fun) \
         Vc_INTRINSIC Vector &operator symbol##=(const Vector &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \

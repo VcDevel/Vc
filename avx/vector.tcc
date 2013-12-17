@@ -1121,34 +1121,34 @@ template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator- {{{1
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vc_FLATTEN Vector<typename NegateTypeHelper<T>::Type> Vector<T>::operator-() const
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator-() const
 {
     return VectorType(-d.gcc());
 }
 #else
-template<> Vc_ALWAYS_INLINE Vector<double> Vc_PURE Vc_FLATTEN Vector<double>::operator-() const
+namespace Internal
 {
-    return _mm256_xor_pd(d.v(), _mm256_setsignmask_pd());
+Vc_ALWAYS_INLINE Vc_CONST __m256 negate(__m256 v, std::integral_constant<std::size_t, 4>)
+{
+    return _mm256_xor_ps(v, _mm256_setsignmask_ps());
 }
-template<> Vc_ALWAYS_INLINE Vector<float> Vc_PURE Vc_FLATTEN Vector<float>::operator-() const
+Vc_ALWAYS_INLINE Vc_CONST __m256d negate(__m256d v, std::integral_constant<std::size_t, 8>)
 {
-    return _mm256_xor_ps(d.v(), _mm256_setsignmask_ps());
+    return _mm256_xor_pd(v, _mm256_setsignmask_pd());
 }
-template<> Vc_ALWAYS_INLINE Vector<int> Vc_PURE Vc_FLATTEN Vector<int>::operator-() const
+Vc_ALWAYS_INLINE Vc_CONST __m256i negate(__m256i v, std::integral_constant<std::size_t, 4>)
 {
-    return _mm256_sign_epi32(d.v(), _mm256_setallone_si256());
+    return _mm256_sign_epi32(v, _mm256_setallone_si256());
 }
-template<> Vc_ALWAYS_INLINE Vector<int> Vc_PURE Vc_FLATTEN Vector<unsigned int>::operator-() const
+Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 2>)
 {
-    return _mm256_sign_epi32(d.v(), _mm256_setallone_si256());
+    return _mm_sign_epi16(v, _mm_setallone_si128());
 }
-template<> Vc_ALWAYS_INLINE Vector<short> Vc_PURE Vc_FLATTEN Vector<short>::operator-() const
+}  // namespace
+
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator-() const
 {
-    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
-}
-template<> Vc_ALWAYS_INLINE Vector<short> Vc_PURE Vc_FLATTEN Vector<unsigned short>::operator-() const
-{
-    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
+    return Internal::negate(d.v(), std::integral_constant<std::size_t, sizeof(T)>());
 }
 #endif
 

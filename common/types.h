@@ -84,11 +84,6 @@ public:
 
 template<typename T> struct DetermineEntryType { typedef T Type; };
 
-template<typename T> struct NegateTypeHelper { typedef T Type; };
-template<> struct NegateTypeHelper<unsigned char > { typedef char  Type; };
-template<> struct NegateTypeHelper<unsigned short> { typedef short Type; };
-template<> struct NegateTypeHelper<unsigned int  > { typedef int   Type; };
-
 namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
 namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }

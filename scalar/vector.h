@@ -278,7 +278,10 @@ class Vector
             return Vector(~m_data);
         }
 
-        Vc_ALWAYS_INLINE Vector<typename NegateTypeHelper<T>::Type> operator-() const { return Vector<typename NegateTypeHelper<T>::Type>(-m_data); }
+        Vc_ALWAYS_INLINE Vector operator-() const
+        {
+            return -m_data;
+        }
         Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }
 
 #define OPshift(symbol) \

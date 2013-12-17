@@ -270,7 +270,7 @@ public:
 #endif
         return _andnot(d.v(), _setallone<VectorType>());
     }
-    Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<typename NegateTypeHelper<T>::Type> operator-() const;
+    Vc_PURE_L Vc_ALWAYS_INLINE_L Vector operator-() const Vc_PURE_R Vc_ALWAYS_INLINE_R;
     Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator+() const { return *this; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

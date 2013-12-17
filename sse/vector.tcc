@@ -424,47 +424,38 @@ template<> Vc_ALWAYS_INLINE Vc_PURE Vector<double> Vector<double>::operator/(VC_
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator- {{{1
-template<> Vc_ALWAYS_INLINE Vector<double> Vc_PURE Vc_FLATTEN Vector<double>::operator-() const
+namespace Internal
 {
-    return _mm_xor_pd(d.v(), _mm_setsignmask_pd());
-}
-template<> Vc_ALWAYS_INLINE Vector<float> Vc_PURE Vc_FLATTEN Vector<float>::operator-() const
+Vc_ALWAYS_INLINE Vc_CONST __m128 negate(__m128 v, std::integral_constant<std::size_t, 4>)
 {
-    return _mm_xor_ps(d.v(), _mm_setsignmask_ps());
+    return _mm_xor_ps(v, _mm_setsignmask_ps());
 }
-template<> Vc_ALWAYS_INLINE Vector<int> Vc_PURE Vc_FLATTEN Vector<int>::operator-() const
+Vc_ALWAYS_INLINE Vc_CONST __m128d negate(__m128d v, std::integral_constant<std::size_t, 8>)
 {
-#ifdef VC_IMPL_SSSE3
-    return _mm_sign_epi32(d.v(), _mm_setallone_si128());
-#else
-    return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
-#endif
+    return _mm_xor_pd(v, _mm_setsignmask_pd());
 }
-template<> Vc_ALWAYS_INLINE Vector<int> Vc_PURE Vc_FLATTEN Vector<unsigned int>::operator-() const
+Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 4>)
 {
 #ifdef VC_IMPL_SSSE3
-    return _mm_sign_epi32(d.v(), _mm_setallone_si128());
+    return _mm_sign_epi32(v, _mm_setallone_si128());
 #else
-    return _mm_add_epi32(_mm_xor_si128(d.v(), _mm_setallone_si128()), _mm_setone_epi32());
+    return _mm_sub_epi32(_mm_setzero_si128(), v);
 #endif
 }
-template<> Vc_ALWAYS_INLINE Vector<short> Vc_PURE Vc_FLATTEN Vector<short>::operator-() const
+Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 2>)
 {
 #ifdef VC_IMPL_SSSE3
-    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
+    return _mm_sign_epi16(v, _mm_setallone_si128());
 #else
-    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
+    return _mm_sub_epi16(_mm_setzero_si128(), v);
 #endif
 }
-template<> Vc_ALWAYS_INLINE Vector<short> Vc_PURE Vc_FLATTEN Vector<unsigned short>::operator-() const
-{
-#ifdef VC_IMPL_SSSE3
-    return _mm_sign_epi16(d.v(), _mm_setallone_si128());
-#else
-    return _mm_mullo_epi16(d.v(), _mm_setallone_si128());
-#endif
-}
+}  // namespace
 
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator-() const
+{
+    return Internal::negate(d.v(), std::integral_constant<std::size_t, sizeof(T)>());
+}
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
 #define OP_IMPL(T, symbol, fun) \

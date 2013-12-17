@@ -362,12 +362,22 @@ template<> const int NegateRangeHelper<unsigned short>::End = 0xffff - 0xee;
 template<typename Vec> void testNegate()
 {
     typedef typename Vec::EntryType T;
+
+    for (int i = 0; i < 1000; ++i) {
+        const Vec x = Vec::Random();
+        const auto negX = -x;
+        for (size_t j = 0; j < x.Size; ++j) {
+            const T reference = -x[j];
+            COMPARE(negX[j], reference) << "x = " << x;
+        }
+    }
+
     typedef NegateRangeHelper<T> Range;
     for (typename Range::Iterator i = Range::Start; i < Range::End; i += 0xef) {
         T i2 = static_cast<T>(i);
         Vec a(i2);
 
-        COMPARE(static_cast<Vec>(-a), Vec(-i2)) << " i2: " << i2;
+        COMPARE(-a, -i2) << " i2: " << i2;
     }
 }
 
