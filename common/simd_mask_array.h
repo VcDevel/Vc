@@ -57,7 +57,7 @@ public:
     Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const { return d.isEmpty(); }
 
     bool operator[](std::size_t i) const {
-        const auto *m = &d.d;
+        const auto m = d.cbegin();
         return m[i / mask_type::Size][i % mask_type::Size];
     }
 

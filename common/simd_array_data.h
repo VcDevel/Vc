@@ -24,6 +24,24 @@
 
 Vc_NAMESPACE_BEGIN(Common)
 
+namespace Reductions
+{
+struct LogicalAnd
+{
+    template <typename T> T operator()(T l, T r)
+    {
+        return l && r;
+    }
+};
+struct LogicalOr
+{
+    template <typename T> T operator()(T l, T r)
+    {
+        return l || r;
+    }
+};
+} // namespace Reductions
+
 template<typename V, std::size_t N> struct ArrayData;
 template<typename M, std::size_t N> struct MaskData;
 
@@ -96,59 +114,81 @@ template<typename V> struct ArrayData<V, 1>
 };
 template<typename V, std::size_t N> struct ArrayData
 {
+private:
+    static constexpr std::size_t secondOffset = N / 2 * V::Size;
+public:
     static_assert(N != 0, "error N must be nonzero!");
     typedef typename V::EntryType value_type;
 
-    V d;
-    ArrayData<V, N - 1> next;
+    ArrayData<V, N / 2> first;
+    ArrayData<V, N / 2> second;
 
-    V *begin() { return &d; }
-    const V *cbegin() const { return &d; }
+    V *begin()
+    {
+        return first.begin();
+    }
+    const V *cbegin() const
+    {
+        return first.cbegin();
+    }
 
-    V *end() { return next.end(); }
-    const V *cend() { return next.cend(); }
+    V *end()
+    {
+        return second.end();
+    }
+    const V *cend()
+    {
+        return second.cend();
+    }
 
     ArrayData() = default;
-    Vc_ALWAYS_INLINE ArrayData(const V &x) : d(x), next(x) {}
-    Vc_ALWAYS_INLINE ArrayData(const value_type *x) : d(x), next(x + V::Size) {}
-    template<typename Flags> Vc_ALWAYS_INLINE ArrayData(const value_type *x, Flags flags)
-        : d(x, flags), next(x + V::Size, flags) {}
+
+    Vc_ALWAYS_INLINE ArrayData(const V &x) : first(x), second(x)
+    {
+    }
+    Vc_ALWAYS_INLINE ArrayData(const value_type *x) : first(x), second(x + secondOffset)
+    {
+    }
+    template <typename Flags>
+    Vc_ALWAYS_INLINE ArrayData(const value_type *x, Flags flags)
+        : first(x, flags), second(x + secondOffset, flags)
+    {
+    }
     template<typename U, typename Flags> Vc_ALWAYS_INLINE ArrayData(const U *x, Flags flags)
-        : d(x, flags), next(x + V::Size, flags) {}
+        : first(x, flags), second(x + secondOffset, flags) {}
 
     Vc_ALWAYS_INLINE ArrayData(VectorSpecialInitializerIndexesFromZero::IEnum x)
-        : d(x), next(x, V::Size)
+        : first(x), second(x, secondOffset)
     {
     }
     Vc_ALWAYS_INLINE ArrayData(VectorSpecialInitializerIndexesFromZero::IEnum x, size_t offset)
-        : d(x), next(x, offset + V::Size)
+        : first(x, offset), second(x, offset + secondOffset)
     {
-        d += offset;
     }
 
     template<typename U, typename Flags>
     Vc_ALWAYS_INLINE void load(const U *x, Flags f) {
-        d.load(x, f);
-        next.load(x + V::Size, f);
+        first.load(x, f);
+        second.load(x + secondOffset, f);
     }
 
     template <typename U, typename Flags> Vc_ALWAYS_INLINE void store(U *x, Flags f)
     {
-        d.store(x, f);
-        next.store(x + V::Size, f);
+        first.store(x, f);
+        second.store(x + secondOffset, f);
     }
 
     template<typename F, typename... Args>
     inline void call(F function, Args... args) {
-        (d.*function)(args...);
-        next.call(function, args...);
+        first.call(function, args...);
+        second.call(function, args...);
     }
 
 #define VC_OPERATOR_IMPL(op)                                                                       \
     Vc_ALWAYS_INLINE void operator op##=(const ArrayData<V, N> & rhs)                              \
     {                                                                                              \
-        d op## = rhs.d;                                                                            \
-        next op## = rhs.next;                                                                      \
+        first op## = rhs.first;                                                                            \
+        second op## = rhs.second;                                                                      \
     }
     VC_ALL_BINARY     (VC_OPERATOR_IMPL)
     VC_ALL_ARITHMETICS(VC_OPERATOR_IMPL)
@@ -176,6 +216,12 @@ template<typename M> struct MaskData<M, 1>
         d = (lhs.d.*function)(rhs.d);
     }
 
+    template <typename ReductionFunctor>
+    Vc_ALWAYS_INLINE M reduce() const
+    {
+        return d;
+    }
+
 //private:
     M d;
 };
@@ -183,27 +229,55 @@ template<typename M, std::size_t N> struct MaskData
 {
     static_assert(N != 0, "error N must be nonzero!");
 
-    M *begin() { return &d; }
-    const M *cbegin() const { return &d; }
+    M *begin()
+    {
+        return first.begin();
+    }
+    const M *cbegin() const
+    {
+        return first.cbegin();
+    }
 
-    M *end() { return next.end(); }
-    const M *cend() { return next.cend(); }
+    M *end()
+    {
+        return second.end();
+    }
+    const M *cend()
+    {
+        return second.cend();
+    }
 
     MaskData() = default;
-    Vc_ALWAYS_INLINE MaskData(const M &x) : d(x), next(x) {}
 
-    Vc_ALWAYS_INLINE Vc_PURE bool isFull() const { return d.isFull() && next.isFull(); }
-    Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const { return d.isEmpty() && next.isEmpty(); }
+    Vc_ALWAYS_INLINE MaskData(const M &x) : first(x), second(x)
+    {
+    }
 
-    template<typename V, typename F>
-    Vc_ALWAYS_INLINE void assign(const ArrayData<V, N> &lhs, const ArrayData<V, N> &rhs, F function) {
-        d = (lhs.d.*function)(rhs.d);
-        next.assign(lhs.next, rhs.next, function);
+    Vc_ALWAYS_INLINE Vc_PURE bool isFull() const
+    {
+        return reduce<Reductions::LogicalAnd>().isFull();
+    }
+    Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const
+    {
+        return reduce<Reductions::LogicalOr>().isEmpty();
+    }
+
+    template <typename V, typename F>
+    Vc_ALWAYS_INLINE void assign(const ArrayData<V, N> &lhs, const ArrayData<V, N> &rhs, F function)
+    {
+        first.assign(lhs.first, rhs.first, function);
+        second.assign(lhs.second, rhs.second, function);
+    }
+
+    template <typename ReductionFunctor>
+    Vc_ALWAYS_INLINE M reduce() const
+    {
+        return ReductionFunctor()(first.reduce<ReductionFunctor>(), second.reduce<ReductionFunctor>());
     }
 
 //private:
-    M d;
-    MaskData<M, N - 1> next;
+    MaskData<M, N / 2> first;
+    MaskData<M, N / 2> second;
 };
 
 Vc_NAMESPACE_END
