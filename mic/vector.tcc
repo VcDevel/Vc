@@ -352,29 +352,17 @@ template<> Vc_ALWAYS_INLINE void Vc_FLATTEN float_v::expand(double_v *x) const
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // negation {{{1
-template<> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<double> Vector<double>::operator-() const
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator-() const
+{
+    return Zero() - *this;
+}
+template<> Vc_ALWAYS_INLINE Vc_PURE double_v double_v::operator-() const
 {
     return _xor(d.v(), mic_cast<VectorType>(_set1(0x8000000000000000ull)));
 }
-template<> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float> Vector<float>::operator-() const
+template<> Vc_ALWAYS_INLINE Vc_PURE float_v float_v::operator-() const
 {
     return _xor(d.v(), mic_cast<VectorType>(_set1(0x80000000u)));
-}
-template<> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<int> Vector<int>::operator-() const
-{
-    return (~(*this)) + 1;
-}
-template<> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<int> Vector<unsigned int>::operator-() const
-{
-    return Vector<int>(~(*this)) + 1;
-}
-template<> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<short> Vector<short>::operator-() const
-{
-    return (~(*this)) + EntryType(1);
-}
-template<> Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<short> Vector<unsigned short>::operator-() const
-{
-    return Vector<short>(~(*this)) + short(1);
 }
 // horizontal ops {{{1
 template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::partialSum() const

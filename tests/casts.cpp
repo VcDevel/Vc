@@ -149,9 +149,9 @@ struct T2Helper
 void fullConversion()
 {
     float_v x = float_v::Random();
-    float_v r = static_cast<float_v>(0.1 * static_cast<double_v>(x)).rotated(double_v::Size);
-    for (size_t i = double_v::Size; i < float_v::Size; i += double_v::Size) {
-        float_v tmp = static_cast<float_v>(0.1 * static_cast<double_v>(x.shifted(double_v::Size)));
+    float_v r;
+    for (size_t i = 0; i < float_v::Size; i += double_v::Size) {
+        float_v tmp = static_cast<float_v>(0.1 * static_cast<double_v>(x.shifted(i)));
         r = r.shifted(double_v::Size, tmp);
     }
     for (size_t i = 0; i < float_v::Size; ++i) {

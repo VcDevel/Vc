@@ -359,9 +359,20 @@ template<typename T> class Vector
         }
         Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_PURE Vc_INTRINSIC_R;
 
-        Vc_INTRINSIC Vector Vc_PURE operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
-        Vc_ALWAYS_INLINE_L Vector<typename NegateTypeHelper<T>::Type> operator-() const Vc_ALWAYS_INLINE_R;
-        Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }
+        Vc_INTRINSIC Vc_PURE Mask operator!() const
+        {
+            return *this == Zero();
+        }
+        Vc_INTRINSIC Vc_PURE Vector operator~() const
+        {
+#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+            static_assert(std::is_integral<T>::value,
+                          "bit-complement can only be used with Vectors of integral type");
+#endif
+            return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone());
+        }
+        Vc_ALWAYS_INLINE_L Vc_PURE_L Vector operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_INTRINSIC Vc_PURE Vector operator+() const { return *this; }
 
 #define OP(symbol, fun) \
         Vc_INTRINSIC Vector &operator symbol##=(const Vector &x) { data() = VectorHelper<T>::fun(data(), x.data()); return *this; } \
@@ -385,10 +396,18 @@ template<typename T> class Vector
         inline Vector &operator/=(VC_ALIGNED_PARAMETER(Vector) x);
         inline Vc_PURE_L Vector operator/ (VC_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
-#define OP(symbol) \
-        Vc_INTRINSIC_L Vector &operator symbol##=(const Vector<T> &x) Vc_INTRINSIC_R; \
-        Vc_INTRINSIC_L Vc_PURE_L Vector operator symbol(const Vector<T> &x) const Vc_PURE_R Vc_INTRINSIC_R;
-        VC_ALL_BINARY(OP)
+#define OP(symbol)                                                                                 \
+    Vc_INTRINSIC Vector &operator symbol##=(const Vector<T> & x)                                   \
+    {                                                                                              \
+        static_assert(std::is_integral<T>::value,                                                  \
+                      "bitwise-operators can only be used with Vectors of integral type");         \
+    }                                                                                              \
+    Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector<T> &x) const                          \
+    {                                                                                              \
+        static_assert(std::is_integral<T>::value,                                                  \
+                      "bitwise-operators can only be used with Vectors of integral type");         \
+    }
+    VC_ALL_BINARY(OP)
 #undef OP
 
 #define OPcmp(symbol, fun) \

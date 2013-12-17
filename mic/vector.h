@@ -263,15 +263,42 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // unary operators
-    Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator~() const { return _andnot(d.v(), _setallone<VectorType>()); }
-    Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<typename NegateTypeHelper<T>::Type> operator-() const;
+    Vc_INTRINSIC Vc_PURE Mask operator!() const
+    {
+        return *this == Zero();
+    }
+    Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator~() const
+    {
+#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+        static_assert(std::is_integral<T>::value,
+                      "bit-complement can only be used with Vectors of integral type");
+#endif
+        return _andnot(d.v(), _setallone<VectorType>());
+    }
+    Vc_PURE_L Vc_ALWAYS_INLINE_L Vector operator-() const Vc_PURE_R Vc_ALWAYS_INLINE_R;
     Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator+() const { return *this; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // binary operators
-#define Vc_OP(symbol, fun) \
-    Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x) { d.v() = fun(d.v(), x.d.v()); return *this; } \
-    Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const { return Vector<T>(fun(d.v(), x.d.v())); }
+#ifdef VC_ENABLE_FLOAT_BIT_OPERATORS
+#define VC_ASSERT__
+#else
+#define VC_ASSERT__                                                                                \
+    static_assert(std::is_integral<T>::value,                                                      \
+                  "bitwise-operators can only be used with Vectors of integral type")
+#endif
+#define Vc_OP(symbol, fun)                                                                         \
+    Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x)                                           \
+    {                                                                                              \
+        VC_ASSERT__;                                                                               \
+        d.v() = fun(d.v(), x.d.v());                                                               \
+        return *this;                                                                              \
+    }                                                                                              \
+    Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const                                         \
+    {                                                                                              \
+        VC_ASSERT__;                                                                               \
+        return Vector<T>(fun(d.v(), x.d.v()));                                                     \
+    }
 
     Vc_OP(*, _mul<VectorEntryType>)
     Vc_OP(+, _add<VectorEntryType>)

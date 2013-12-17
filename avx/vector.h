@@ -277,8 +277,19 @@ template<typename T> class Vector
             return d.m(index);
         }
 
-        Vc_ALWAYS_INLINE Vector operator~() const { return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone()); }
-        Vc_ALWAYS_INLINE_L Vc_PURE_L Vector<typename NegateTypeHelper<T>::Type> operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_INTRINSIC Vc_PURE Mask operator!() const
+        {
+            return *this == Zero();
+        }
+        Vc_ALWAYS_INLINE Vector operator~() const
+        {
+#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+            static_assert(std::is_integral<T>::value,
+                          "bit-complement can only be used with Vectors of integral type");
+#endif
+            return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone());
+        }
+        Vc_ALWAYS_INLINE_L Vc_PURE_L Vector operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
         Vc_INTRINSIC Vc_PURE Vector operator+() const { return *this; }
 
 #define OP(symbol, fun) \
@@ -294,11 +305,19 @@ template<typename T> class Vector
         inline Vc_PURE_L Vector operator/ (VC_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
         // bitwise ops
-#define OP_VEC(op) \
-        Vc_ALWAYS_INLINE_L Vector<T> &operator op##=(AsArg x) Vc_ALWAYS_INLINE_R; \
-        Vc_ALWAYS_INLINE_L Vc_PURE_L Vector<T>  operator op   (AsArg x) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
-        VC_ALL_BINARY(OP_VEC)
-        VC_ALL_SHIFTS(OP_VEC)
+#define OP_VEC(op)                                                                                 \
+    Vc_INTRINSIC Vector &operator op##=(AsArg x)                                                   \
+    {                                                                                              \
+        static_assert(std::is_integral<T>::value,                                                  \
+                      "bitwise-operators can only be used with Vectors of integral type");         \
+    }                                                                                              \
+    Vc_INTRINSIC Vc_PURE Vector operator op(AsArg x) const                                         \
+    {                                                                                              \
+        static_assert(std::is_integral<T>::value,                                                  \
+                      "bitwise-operators can only be used with Vectors of integral type");         \
+    }
+    VC_ALL_BINARY(OP_VEC)
+    VC_ALL_SHIFTS(OP_VEC)
 #undef OP_VEC
 
         Vc_ALWAYS_INLINE_L Vector<T> &operator>>=(int x) Vc_ALWAYS_INLINE_R;
