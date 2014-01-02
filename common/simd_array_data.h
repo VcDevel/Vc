@@ -219,6 +219,10 @@ template<typename M> struct MaskData<M, 1>
         d = (lhs.d.*function)(rhs.d);
     }
 
+    template <typename V, typename F>
+    Vc_ALWAYS_INLINE void assign(const ArrayData<V, 1> &operand, F function)
+    { d = (operand.d.*function)(); }
+
     template <typename ReductionFunctor>
     Vc_ALWAYS_INLINE M reduce() const
     {
@@ -270,6 +274,13 @@ template<typename M, std::size_t N> struct MaskData
     {
         first.assign(lhs.first, rhs.first, function);
         second.assign(lhs.second, rhs.second, function);
+    }
+
+    template <typename V, typename F>
+    Vc_ALWAYS_INLINE void assign(const ArrayData<V, N> &operand, F function)
+    {
+        first.assign(operand.first, function);
+        second.assign(operand.second, function);
     }
 
     template <typename ReductionFunctor>

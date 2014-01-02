@@ -186,6 +186,9 @@ public:
         return m[i];
     }
 
+    //////////////////////
+    // unary operators
+
     //prefix
     Vc_INTRINSIC simd_array &operator++()
     {
@@ -208,6 +211,13 @@ public:
     {
         const auto r = *this;
         d.call(static_cast<vector_type &(vector_type::*)()>(&vector_type::operator--));
+        return r;
+    }
+
+    Vc_INTRINSIC mask_type operator!() const
+    {
+        mask_type r;
+        r.d.assign(d, &vector_type::operator!);
         return r;
     }
 

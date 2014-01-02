@@ -17,6 +17,7 @@
 
 */
 
+#define VC_NEWTEST
 #include "unittest.h"
 #include <iostream>
 #include <limits>
@@ -26,7 +27,7 @@
 
 using namespace Vc;
 
-template<typename Vec> void testZero()
+TEST_ALL_V(Vec, testZero)
 {
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
@@ -44,7 +45,7 @@ template<typename Vec> void testZero()
     COMPARE(d, Vec(zero));
 }
 
-template<typename Vec> void testCmp()
+TEST_ALL_V(Vec, testCmp)
 {
     typedef typename Vec::EntryType T;
     Vec a(Zero), b(Zero);
@@ -100,7 +101,7 @@ template<typename Vec> void testCmp()
     }
 }
 
-template<typename Vec> void testIsMix()
+TEST_ALL_V(Vec, testIsMix)
 {
     typedef typename Vec::IndexType IT;
     Vec a(IT::IndexesFromZero());
@@ -123,7 +124,7 @@ template<typename Vec> void testIsMix()
     }
 }
 
-template<typename Vec> void testAdd()
+TEST_ALL_V(Vec, testAdd)
 {
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
@@ -146,7 +147,7 @@ template<typename Vec> void testAdd()
     }
 }
 
-template<typename Vec> void testSub()
+TEST_ALL_V(Vec, testSub)
 {
     Vec a(2), b(2);
     COMPARE(a, b);
@@ -169,7 +170,7 @@ template<typename Vec> void testSub()
     }
 }
 
-template<typename V> void testMul()
+TEST_ALL_V(V, testMul)
 {
     for (int i = 0; i < 10000; ++i) {
         V a = V::Random();
@@ -185,16 +186,7 @@ template<typename V> void testMul()
     }
 }
 
-template<typename Vec> void testMulAdd()
-{
-    for (unsigned int i = 0; i < 0xffff; ++i) {
-        const Vec i2(i * i + 1);
-        Vec a(i);
-
-        FUZZY_COMPARE(a * a + 1, i2);
-    }
-}
-
+template<typename> void testMulAdd();
 template<> void testMulAdd<short_v>()
 { // short_v over-/underflow results in undefined behavior
     for (unsigned int i = -0xb4; i < 0xb4; ++i) {
@@ -205,17 +197,17 @@ template<> void testMulAdd<short_v>()
     }
 }
 
-template<typename Vec> void testMulSub()
+TEST_ALL_V(Vec, testMulAdd)
 {
-    typedef typename Vec::EntryType T;
     for (unsigned int i = 0; i < 0xffff; ++i) {
-        const T j = static_cast<T>(i);
-        const Vec test(j);
+        const Vec i2(i * i + 1);
+        Vec a(i);
 
-        FUZZY_COMPARE(test * test - test, Vec(j * j - j));
+        FUZZY_COMPARE(a * a + 1, i2);
     }
 }
 
+template<typename> void testMulSub();
 template<> void testMulSub<short_v>()
 { // short_v over-/underflow results in undefined behavior
     for (unsigned int i = -0xb4; i < 0xb4; ++i) {
@@ -226,7 +218,18 @@ template<> void testMulSub<short_v>()
     }
 }
 
-template<typename Vec> void testDiv()
+TEST_ALL_V(Vec, testMulSub)
+{
+    typedef typename Vec::EntryType T;
+    for (unsigned int i = 0; i < 0xffff; ++i) {
+        const T j = static_cast<T>(i);
+        const Vec test(j);
+
+        FUZZY_COMPARE(test * test - test, Vec(j * j - j));
+    }
+}
+
+TEST_ALL_V(Vec, testDiv)
 {
     for (int repetition = 0; repetition < 10000; ++repetition) {
         const Vec a = Vec::Random();
@@ -261,8 +264,7 @@ template<typename Vec> void testDiv()
     }
 }
 
-template<typename Vec> void testAnd()
-{
+TEST_BEGIN(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
     Vec a(0x7fff);
     Vec b(0xf);
     COMPARE((a & 0xf), b);
@@ -270,10 +272,9 @@ template<typename Vec> void testAnd()
     COMPARE(c, (c & 0xf));
     const typename Vec::EntryType zero = 0;
     COMPARE((c & 0x7ff0), Vec(zero));
-}
+TEST_END
 
-template<typename Vec> void testShift()
-{
+TEST_BEGIN(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
     typedef typename Vec::EntryType T;
     const T step = std::max<T>(1, std::numeric_limits<T>::max() / 1000);
     enum {
@@ -317,24 +318,23 @@ template<typename Vec> void testShift()
     for (T i = 0, x = 16; i < T(Vec::Size); ++i, x >>= 1) {
         COMPARE(a[i], x);
     }
-}
+TEST_END
 
-template<typename Vec> void testOnesComplement()
-{
+TEST_BEGIN(Vec, testOnesComplement, (int_v, ushort_v, uint_v, short_v))
     Vec a(One);
     Vec b = ~a;
     COMPARE(~a, b);
     COMPARE(~b, a);
     COMPARE(~(a + b), Vec(Zero));
-}
+TEST_END
 
-template <typename V> void logicalNegation()
-{
+TEST_BEGIN(V, logicalNegation, (ALL_VECTORS))
     V a = V::Random();
     COMPARE(!a, a == 0) << "a = " << a;
     COMPARE(!V::Zero(), V() == V()) << "a = " << a;
-}
+TEST_END
 
+#if 0
 template<typename T> struct NegateRangeHelper
 {
     typedef int Iterator;
@@ -639,3 +639,4 @@ void testmain()
     testAllTypes(testSum);
     testAllTypes(testPartialSum);
 }
+#endif
