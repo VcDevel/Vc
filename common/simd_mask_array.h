@@ -66,6 +66,16 @@ public:
     Vc_ALWAYS_INLINE Vc_PURE bool isFull() const { return d.isFull(); }
     Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const { return d.isEmpty(); }
 
+#define VC_COMPARE_IMPL(op)                                                                        \
+    Vc_ALWAYS_INLINE Vc_PURE bool operator op(const simd_mask_array &x) const                      \
+    {                                                                                              \
+        return d.apply([](bool l, bool r) { return l && r; },                                      \
+                       [](mask_type l, mask_type r) { return l op r; },                            \
+                       x.d);                                                                       \
+    }
+    VC_ALL_COMPARES(VC_COMPARE_IMPL)
+#undef VC_COMPARE_IMPL
+
     bool operator[](std::size_t i) const {
         const auto m = d.cbegin();
         return m[i / mask_type::Size][i % mask_type::Size];

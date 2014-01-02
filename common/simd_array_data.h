@@ -222,6 +222,8 @@ public:
 template<typename M, std::size_t N> struct MaskData;
 template<typename M> struct MaskData<M, 1>
 {
+    using mask_type = M;
+
     M *begin() { return &d; }
     const M *cbegin() const { return &d; }
 
@@ -249,12 +251,19 @@ template<typename M> struct MaskData<M, 1>
         return d;
     }
 
+    template <typename Reduce, typename F, typename... Masks>
+    Vc_ALWAYS_INLINE auto apply(Reduce, F f, Masks... masks)
+        const -> decltype(f(std::declval<const mask_type &>(),
+                            std::declval<const typename Masks::mask_type &>()...))
+    { return f(d, masks.d...); }
+
 //private:
     M d;
 };
 template<typename M, std::size_t N> struct MaskData
 {
     static_assert(N != 0, "error N must be nonzero!");
+    using mask_type = M;
 
     M *begin()
     {
@@ -308,6 +317,21 @@ template<typename M, std::size_t N> struct MaskData
     {
         return ReductionFunctor()(first.reduce<ReductionFunctor>(), second.reduce<ReductionFunctor>());
     }
+
+    /**
+     * \internal
+     * Used for comparision operators in simd_mask_array.
+     *
+     * \param r reduction function that is applied on the return values of f
+     * \param f function applied to the actual mask objects in MaskData<M, 1>. The first argument to
+     *          f implicitly is the mask object in the leafs of this MaskData object.
+     * \param masks zero or more MaskData<M, N> objects that are inputs to f
+     */
+    template <typename Reduce, typename F, typename... Masks>
+    inline auto apply(Reduce r, F f, Masks... masks)
+        const -> decltype(f(std::declval<const mask_type &>(),
+                            std::declval<const typename Masks::mask_type &>()...))
+    { return r(first.apply(r, f, masks.first...), second.apply(r, f, masks.second...)); }
 
 //private:
     MaskData<M, N / 2> first;
