@@ -110,6 +110,12 @@ public:
     static Vc_ALWAYS_INLINE simd_array Zero() { return simd_array(VectorSpecialInitializerZero::Zero); }
     static Vc_ALWAYS_INLINE simd_array One() { return simd_array(VectorSpecialInitializerOne::One); }
     static Vc_ALWAYS_INLINE simd_array IndexesFromZero() { return simd_array(VectorSpecialInitializerIndexesFromZero::IndexesFromZero); }
+    static Vc_ALWAYS_INLINE simd_array Random()
+    {
+        simd_array r;
+        r.d.assign(&vector_type::Random);
+        return r;
+    }
 
     // load ctors
     explicit Vc_ALWAYS_INLINE simd_array(const value_type *x) : d(x) {}
