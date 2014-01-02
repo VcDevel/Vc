@@ -228,12 +228,12 @@ template<typename T> class Vector
     Vc_INTRINSIC Vector &operator symbol##=(const Vector<T> & x)                                   \
     {                                                                                              \
         static_assert(std::is_integral<T>::value,                                                  \
-                      "bitwise-operators can only be used with Vectors of integral type");         \
+                      "bitwise operators can only be used with Vectors of integral type");         \
     }                                                                                              \
     Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector<T> &x) const                          \
     {                                                                                              \
         static_assert(std::is_integral<T>::value,                                                  \
-                      "bitwise-operators can only be used with Vectors of integral type");         \
+                      "bitwise operators can only be used with Vectors of integral type");         \
     }
     VC_ALL_BINARY(OP)
 #undef OP
