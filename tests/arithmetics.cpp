@@ -27,6 +27,15 @@
 
 using namespace Vc;
 
+#define ALL_TYPES                                                                                  \
+    (SIMD_ARRAYS(32),                                                                              \
+     SIMD_ARRAYS(16),                                                                              \
+     SIMD_ARRAYS(8),                                                                               \
+     SIMD_ARRAYS(4),                                                                               \
+     SIMD_ARRAYS(2),                                                                               \
+     SIMD_ARRAYS(1),                                                                               \
+     ALL_VECTORS)
+
 TEST_ALL_V(Vec, testZero)
 {
     Vec a(Zero), b(Zero);
@@ -328,13 +337,12 @@ TEST_BEGIN(Vec, testOnesComplement, (int_v, ushort_v, uint_v, short_v))
     COMPARE(~(a + b), Vec(Zero));
 TEST_END
 
-TEST_BEGIN(V, logicalNegation, (ALL_VECTORS))
+TEST_BEGIN(V, logicalNegation, ALL_TYPES)
     V a = V::Random();
     COMPARE(!a, a == 0) << "a = " << a;
     COMPARE(!V::Zero(), V() == V()) << "a = " << a;
 TEST_END
 
-#if 0
 template<typename T> struct NegateRangeHelper
 {
     typedef int Iterator;
@@ -359,8 +367,7 @@ template<> const int NegateRangeHelper<short>::End = 0x7fff - 0xee;
 template<> const int NegateRangeHelper<unsigned short>::Start = 0;
 template<> const int NegateRangeHelper<unsigned short>::End = 0xffff - 0xee;
 
-template<typename Vec> void testNegate()
-{
+TEST_BEGIN(Vec, testNegate, ALL_TYPES)
     typedef typename Vec::EntryType T;
 
     for (int i = 0; i < 1000; ++i) {
@@ -379,10 +386,9 @@ template<typename Vec> void testNegate()
 
         COMPARE(-a, -i2) << " i2: " << i2;
     }
-}
+TEST_END
 
-template<typename Vec> void testMin()
-{
+TEST_BEGIN(Vec, testMin, (ALL_VECTORS))
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     typedef typename Vec::IndexType I;
@@ -401,10 +407,9 @@ template<typename Vec> void testMin()
         }
         COMPARE(v.min(m), static_cast<T>(m.firstOne())) << m << v;
     } while (true);
-}
+TEST_END
 
-template<typename Vec> void testMax()
-{
+TEST_BEGIN(Vec, testMax, (ALL_VECTORS))
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     typedef typename Vec::IndexType I;
@@ -424,10 +429,9 @@ template<typename Vec> void testMax()
         }
         COMPARE(v.max(m), static_cast<T>(Vec::Size - m.firstOne())) << m << v;
     } while (true);
-}
+TEST_END
 
-template<typename Vec> void testProduct()
-{
+TEST_BEGIN(Vec, testProduct, (ALL_VECTORS))
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
 
@@ -461,10 +465,9 @@ template<typename Vec> void testProduct()
             }
         } while (true);
     }
-}
+TEST_END
 
-template<typename Vec> void testSum()
-{
+TEST_BEGIN(Vec, testSum, (ALL_VECTORS))
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
 
@@ -480,10 +483,9 @@ template<typename Vec> void testSum()
             COMPARE(v.sum(m), static_cast<T>(x * m.count())) << m << v;
         } while (!m.isEmpty());
     }
-}
+TEST_END
 
-template<typename V> void testPartialSum()
-{
+TEST_BEGIN(V, testPartialSum, (ALL_VECTORS))
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
 
@@ -494,10 +496,9 @@ template<typename V> void testPartialSum()
     reference = V(I(2) << I::IndexesFromZero());
     COMPARE(V(2).partialSum([](const V &a, const V &b) { return a * b; }), reference);
     */
-}
+TEST_END
 
-template<typename V> void fma()
-{
+TEST_BEGIN(V, testFma, (ALL_VECTORS))
     for (int i = 0; i < 1000; ++i) {
         V a = V::Random();
         const V b = V::Random();
@@ -506,9 +507,11 @@ template<typename V> void fma()
         a.fusedMultiplyAdd(b, c);
         COMPARE(a, reference) << ", a = " << a << ", b = " << b << ", c = " << c;
     }
-}
+TEST_END
 
-template<> void fma<float_v>()
+template <> struct testFma<float_v>
+{
+void operator()()
 {
     using Vc::Internal::floatConstant;
     float_v b = floatConstant<1, 0x000001, 0>();
@@ -530,9 +533,11 @@ template<> void fma<float_v>()
     a = b;*/
     a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
     COMPARE(a, float_v(floatConstant<1, 0x000001, -21>()));
-}
+}};
 
-template<> void fma<double_v>()
+template<> struct testFma<double_v>
+{
+void operator()()
 {
     using Vc::Internal::doubleConstant;
     double_v b = doubleConstant<1, 0x0000000000001, 0>();
@@ -546,97 +551,4 @@ template<> void fma<double_v>()
     c = doubleConstant<-1, 0x0000000000000, 0>();
     a.fusedMultiplyAdd(b, c); // 1 + 2^-50 + 2^-102 - 1
     COMPARE(a, double_v(doubleConstant<1, 0x0000000000001, -50>()));
-}
-
-void testmain()
-{
-    testAllTypes(fma);
-
-    runTest(testZero<int_v>);
-    runTest(testZero<uint_v>);
-    runTest(testZero<float_v>);
-    runTest(testZero<double_v>);
-    runTest(testZero<short_v>);
-    runTest(testZero<ushort_v>);
-
-    runTest(testCmp<int_v>);
-    runTest(testCmp<uint_v>);
-    runTest(testCmp<float_v>);
-    runTest(testCmp<double_v>);
-    runTest(testCmp<short_v>);
-    runTest(testCmp<ushort_v>);
-
-    runTest(testIsMix<int_v>);
-    runTest(testIsMix<uint_v>);
-    runTest(testIsMix<float_v>);
-    runTest(testIsMix<double_v>);
-    runTest(testIsMix<short_v>);
-    runTest(testIsMix<ushort_v>);
-
-    runTest(testAdd<int_v>);
-    runTest(testAdd<uint_v>);
-    runTest(testAdd<float_v>);
-    runTest(testAdd<double_v>);
-    runTest(testAdd<short_v>);
-    runTest(testAdd<ushort_v>);
-
-    runTest(testSub<int_v>);
-    runTest(testSub<uint_v>);
-    runTest(testSub<float_v>);
-    runTest(testSub<double_v>);
-    runTest(testSub<short_v>);
-    runTest(testSub<ushort_v>);
-
-    runTest(testMul<int_v>);
-    runTest(testMul<uint_v>);
-    runTest(testMul<float_v>);
-    runTest(testMul<double_v>);
-    runTest(testMul<short_v>);
-    runTest(testMul<ushort_v>);
-
-    runTest(testDiv<int_v>);
-    runTest(testDiv<uint_v>);
-    runTest(testDiv<float_v>);
-    runTest(testDiv<double_v>);
-    runTest(testDiv<short_v>);
-    runTest(testDiv<ushort_v>);
-
-    runTest(testAnd<int_v>);
-    runTest(testAnd<uint_v>);
-    runTest(testAnd<short_v>);
-    runTest(testAnd<ushort_v>);
-    // no operator& for float/double
-
-    runTest(testShift<int_v>);
-    runTest(testShift<uint_v>);
-    runTest(testShift<short_v>);
-    runTest(testShift<ushort_v>);
-
-    runTest(testMulAdd<int_v>);
-    runTest(testMulAdd<uint_v>);
-    runTest(testMulAdd<float_v>);
-    runTest(testMulAdd<double_v>);
-    runTest(testMulAdd<short_v>);
-    runTest(testMulAdd<ushort_v>);
-
-    runTest(testMulSub<int_v>);
-    runTest(testMulSub<uint_v>);
-    runTest(testMulSub<float_v>);
-    runTest(testMulSub<double_v>);
-    runTest(testMulSub<short_v>);
-    runTest(testMulSub<ushort_v>);
-
-    runTest(testOnesComplement<int_v>);
-    runTest(testOnesComplement<uint_v>);
-    runTest(testOnesComplement<short_v>);
-    runTest(testOnesComplement<ushort_v>);
-    testAllTypes(logicalNegation);
-
-    testAllTypes(testNegate);
-    testAllTypes(testMin);
-    testAllTypes(testMax);
-    testAllTypes(testProduct);
-    testAllTypes(testSum);
-    testAllTypes(testPartialSum);
-}
-#endif
+}};
