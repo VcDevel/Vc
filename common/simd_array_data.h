@@ -110,6 +110,10 @@ template<typename V> struct ArrayData<V, 1>
         d = function(args...);
     }
 
+    Vc_ALWAYS_INLINE void assign(const ArrayData &object, V (V::* function)() const) {
+        d = (object.d.*function)();
+    }
+
 #define VC_OPERATOR_IMPL(op)                                                                       \
     Vc_ALWAYS_INLINE void operator op##=(const ArrayData<V, 1> & rhs)                              \
     {                                                                                              \
@@ -196,6 +200,11 @@ public:
     inline void assign(F function, Args... args) {
         first.assign(function, args...);
         second.assign(function, args...);
+    }
+
+    inline void assign(const ArrayData &object, V (V::* function)() const) {
+        first.assign(object.first, function);
+        second.assign(object.second, function);
     }
 
 #define VC_OPERATOR_IMPL(op)                                                                       \

@@ -227,6 +227,14 @@ public:
         return r;
     }
 
+    // TODO: perform integral promotion, simply return simd_array<decltype(-std::declval<T>()), N>
+    Vc_INTRINSIC simd_array operator-() const
+    {
+        simd_array r;
+        r.d.assign(d, static_cast<vector_type (vector_type::*)() const>(&vector_type::operator-));
+        return r;
+    }
+
 private:
     Common::ArrayData<vector_type, register_count> d;
 };
