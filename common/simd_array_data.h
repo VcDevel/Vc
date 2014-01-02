@@ -210,8 +210,8 @@ public:
 #define VC_OPERATOR_IMPL(op)                                                                       \
     Vc_ALWAYS_INLINE void operator op##=(const ArrayData<V, N> & rhs)                              \
     {                                                                                              \
-        first op## = rhs.first;                                                                            \
-        second op## = rhs.second;                                                                      \
+        first op## = rhs.first;                                                                    \
+        second op## = rhs.second;                                                                  \
     }
     VC_ALL_BINARY     (VC_OPERATOR_IMPL)
     VC_ALL_ARITHMETICS(VC_OPERATOR_IMPL)
