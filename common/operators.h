@@ -10,12 +10,26 @@ using conditional = typename std::conditional<C, T, F>::type;
 using std::is_convertible;
 using std::is_floating_point;
 using std::is_integral;
-using std::is_unsigned;
 using std::is_same;
+
+template <typename T> struct IsUnsignedInternal : public std::is_unsigned<T> {};
+template <typename T> struct IsUnsignedInternal<Vector<T>> : public std::is_unsigned<T> {};
+template <typename T> constexpr bool isUnsigned() { return !std::is_same<T, bool>::value && IsUnsignedInternal<T>::value; }
+
+template <typename T> struct IsIntegralInternal : public std::is_integral<T> {};
+template <typename T> struct IsIntegralInternal<Vector<T>> : public std::is_integral<T> {};
+template <typename T> constexpr bool isIntegral() { return IsIntegralInternal<T>::value; }
 
 template <typename T> struct IsVectorInternal             { static constexpr bool value = false; };
 template <typename T> struct IsVectorInternal<Vector<T> > { static constexpr bool value =  true; };
 template <typename T> constexpr bool isVector() { return IsVectorInternal<T>::value; }
+
+template <typename T, bool = isIntegral<T>()> struct MakeUnsignedInternal;
+template <typename T> struct MakeUnsignedInternal<Vector<T>, true > { using type = Vector<typename std::make_unsigned<T>::type>; };
+template <typename T> struct MakeUnsignedInternal<Vector<T>, false> { using type = Vector<T>; };
+
+template <typename Test, typename T>
+using CopyUnsigned = typename MakeUnsignedInternal<T, isIntegral<T>() && isUnsigned<Test>()>::type;
 
 /* § 8.5.4 p7:
  * A narrowing conversion is an implicit conversion
@@ -46,23 +60,20 @@ static_assert(false == ((is_convertible<double, float_v>::value ||
                         !isNarrowingFloatConversion<double, float_v::EntryType>()),
               "");
 
-template<typename V, typename W> struct DetermineReturnType  { using type = V; };
-template<> struct DetermineReturnType<   int_v,    float>    { using type =  float_v; };
-template<> struct DetermineReturnType<  uint_v,    float>    { using type =  float_v; };
-template<> struct DetermineReturnType<   int_v,  float_v>    { using type =  float_v; };
-template<> struct DetermineReturnType<  uint_v,  float_v>    { using type =  float_v; };
-template<> struct DetermineReturnType<   int_v,   uint_v>    { using type =   uint_v; };
-template<> struct DetermineReturnType< short_v, ushort_v>    { using type = ushort_v; };
-template<typename T> struct DetermineReturnType<   int_v, T> { using type = conditional<!is_same<bool, T>::value && is_unsigned<T>::value,   uint_v,   int_v>; };
-template<typename T> struct DetermineReturnType< short_v, T> { using type = conditional<!is_same<bool, T>::value && is_unsigned<T>::value, ushort_v, short_v>; };
+template <typename V, typename W>
+using DetermineReturnType =
+    conditional<(is_same<V, int_v>::value || is_same<V, uint_v>::value) &&
+                    (is_same<W, float>::value || is_same<W, float_v>::value),
+                float_v,
+                CopyUnsigned<W, V>>;
 
-template <typename V, bool = isVector<V>()> struct VectorEntryTypeOfInternal
+template <typename T> struct VectorEntryTypeOfInternal
 {
-    using type = typename V::EntryType;
+    using type = void *;
 };
-template <typename V> struct VectorEntryTypeOfInternal<V, false>
+template <typename T> struct VectorEntryTypeOfInternal<Vector<T>>
 {
-    using type = void*;
+    using type = T;
 };
 template <typename V> using VectorEntryTypeOf = typename VectorEntryTypeOfInternal<V>::type;
 
@@ -77,8 +88,7 @@ template <typename L,
                  !isNarrowingFloatConversion<W, VectorEntryTypeOf<V>>()>
 struct TypesForOperatorInternal
 {
-    // Vector<decltype(V::EntryType() + W::EntryType())> is not what we want since short_v * int should result in short_v not int_v
-    using type = typename DetermineReturnType<V, W>::type;
+    using type = DetermineReturnType<V, W>;
 };
 
 template <typename L, typename R, typename V, typename W>
@@ -90,11 +100,9 @@ struct TypesForOperatorInternal<L, R, V, W, false>
                      (isVector<W>() && !is_convertible<V, W>::value &&
                       !is_convertible<W, V>::value) ||
                      (std::is_arithmetic<W>::value && !is_convertible<W, V>::value))),
-                  "Invalid operands to binary expression. Vc does not allow operands that could "
+                  "invalid operands to binary expression. Vc does not allow operands that could "
                   "possibly have different Vector::Size.");
 };
-
-template <typename T> using GetMaskType = typename T::Mask;
 
 template <typename L, typename R>
 using TypesForOperator = typename TypesForOperatorInternal<typename std::decay<L>::type,
@@ -114,7 +122,7 @@ using TypesForOperator = typename TypesForOperatorInternal<typename std::decay<L
 
 #define VC_COMPARE_OPERATOR(op)                                                                    \
     template <typename L, typename R>                                                              \
-    Vc_ALWAYS_INLINE GetMaskType<TypesForOperator<L, R>> operator op(L &&x, R &&y)                 \
+    Vc_ALWAYS_INLINE typename TypesForOperator<L, R>::Mask operator op(L &&x, R &&y)                 \
     {                                                                                              \
         using V = TypesForOperator<L, R>;                                                          \
         return V(std::forward<L>(x)) op V(std::forward<R>(y));                                     \
