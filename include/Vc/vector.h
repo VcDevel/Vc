@@ -65,7 +65,7 @@ namespace Vc_VERSIONED_NAMESPACE {
 
 #if defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE)
 # include "sse/helperimpl.h"
-#else
+#elif !defined(VC_IMPL_Scalar)
 # error "No known Vc implementation was selected. This should not happen. The logic in Vc/global.h failed."
 #endif
 
