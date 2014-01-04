@@ -5,7 +5,9 @@ namespace
 #endif
 
 template <bool C, typename T, typename F>
-using conditional = typename std::conditional<C, T, F>::type;
+using Conditional = typename std::conditional<C, T, F>::type;
+
+template <typename T> using Decay = typename std::decay<T>::type;
 
 using std::is_convertible;
 using std::is_floating_point;
@@ -14,15 +16,15 @@ using std::is_same;
 
 template <typename T> struct IsUnsignedInternal : public std::is_unsigned<T> {};
 template <typename T> struct IsUnsignedInternal<Vector<T>> : public std::is_unsigned<T> {};
-template <typename T> constexpr bool isUnsigned() { return !std::is_same<T, bool>::value && IsUnsignedInternal<T>::value; }
+template <typename T> constexpr bool isUnsigned() { return !std::is_same<Decay<T>, bool>::value && IsUnsignedInternal<Decay<T>>::value; }
 
 template <typename T> struct IsIntegralInternal : public std::is_integral<T> {};
 template <typename T> struct IsIntegralInternal<Vector<T>> : public std::is_integral<T> {};
-template <typename T> constexpr bool isIntegral() { return IsIntegralInternal<T>::value; }
+template <typename T> constexpr bool isIntegral() { return IsIntegralInternal<Decay<T>>::value; }
 
 template <typename T> struct IsVectorInternal             { static constexpr bool value = false; };
 template <typename T> struct IsVectorInternal<Vector<T> > { static constexpr bool value =  true; };
-template <typename T> constexpr bool isVector() { return IsVectorInternal<T>::value; }
+template <typename T> constexpr bool isVector() { return IsVectorInternal<Decay<T>>::value; }
 
 template <typename T, bool = isIntegral<T>()> struct MakeUnsignedInternal;
 template <typename T> struct MakeUnsignedInternal<Vector<T>, true > { using type = Vector<typename std::make_unsigned<T>::type>; };
@@ -62,7 +64,7 @@ static_assert(false == ((is_convertible<double, float_v>::value ||
 
 template <typename V, typename W>
 using DetermineReturnType =
-    conditional<(is_same<V, int_v>::value || is_same<V, uint_v>::value) &&
+    Conditional<(is_same<V, int_v>::value || is_same<V, uint_v>::value) &&
                     (is_same<W, float>::value || is_same<W, float_v>::value),
                 float_v,
                 CopyUnsigned<W, V>>;
@@ -77,10 +79,8 @@ template <typename T> struct VectorEntryTypeOfInternal<Vector<T>>
 };
 template <typename V> using VectorEntryTypeOf = typename VectorEntryTypeOfInternal<V>::type;
 
-template <typename L,
-          typename R,
-          typename V = conditional<isVector<L>(), L, R>,
-          typename W = conditional<!isVector<L>(), L, R>,
+template <typename V,
+          typename W,
           bool = isVector<V>() &&          // one operand has to be a vector
                  !is_same<V, W>::value &&  // if they're the same type it's already covered by
                                            // Vector::operatorX
@@ -91,8 +91,8 @@ struct TypesForOperatorInternal
     using type = DetermineReturnType<V, W>;
 };
 
-template <typename L, typename R, typename V, typename W>
-struct TypesForOperatorInternal<L, R, V, W, false>
+template <typename V, typename W>
+struct TypesForOperatorInternal<V, W, false>
 {
     static_assert(!(isVector<V>() &&          // one operand has to be a vector
                     !is_same<V, W>::value &&  // if they're the same type it's allowed
@@ -105,8 +105,9 @@ struct TypesForOperatorInternal<L, R, V, W, false>
 };
 
 template <typename L, typename R>
-using TypesForOperator = typename TypesForOperatorInternal<typename std::decay<L>::type,
-                                                           typename std::decay<R>::type>::type;
+using TypesForOperator =
+    typename TypesForOperatorInternal<Decay<Conditional< isVector<L>(), L, R>>,
+                                      Decay<Conditional<!isVector<L>(), L, R>>>::type;
 
 #ifndef VC_ICC
 }
@@ -122,7 +123,7 @@ using TypesForOperator = typename TypesForOperatorInternal<typename std::decay<L
 
 #define VC_COMPARE_OPERATOR(op)                                                                    \
     template <typename L, typename R>                                                              \
-    Vc_ALWAYS_INLINE typename TypesForOperator<L, R>::Mask operator op(L &&x, R &&y)                 \
+    Vc_ALWAYS_INLINE typename TypesForOperator<L, R>::Mask operator op(L &&x, R &&y)               \
     {                                                                                              \
         using V = TypesForOperator<L, R>;                                                          \
         return V(std::forward<L>(x)) op V(std::forward<R>(y));                                     \
