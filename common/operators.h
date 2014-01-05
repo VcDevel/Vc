@@ -79,35 +79,30 @@ template <typename T> struct VectorEntryTypeOfInternal<Vector<T>>
 };
 template <typename V> using VectorEntryTypeOf = typename VectorEntryTypeOfInternal<V>::type;
 
-template <typename V,
-          typename W,
-          bool = isVector<V>() &&          // one operand has to be a vector
-                 !is_same<V, W>::value &&  // if they're the same type it's already covered by
-                                           // Vector::operatorX
-                 (is_convertible<W, V>::value || (isVector<W>() && is_convertible<V, W>::value)) &&
-                 !isNarrowingFloatConversion<W, VectorEntryTypeOf<V>>()>
-struct TypesForOperatorInternal
+template <typename V, typename W, bool VectorOperation> struct TypesForOperatorInternal
 {
     using type = DetermineReturnType<V, W>;
-};
 
-template <typename V, typename W>
-struct TypesForOperatorInternal<V, W, false>
-{
-    static_assert(!(isVector<V>() &&          // one operand has to be a vector
-                    !is_same<V, W>::value &&  // if they're the same type it's allowed
-                    (isNarrowingFloatConversion<W, VectorEntryTypeOf<V>>() ||
-                     (isVector<W>() && !is_convertible<V, W>::value &&
-                      !is_convertible<W, V>::value) ||
-                     (std::is_arithmetic<W>::value && !is_convertible<W, V>::value))),
+    // meaningful compiler error when incompatible operands are used:
+    static_assert(isVector<W>() ? (is_convertible<V, W>::value || is_convertible<W, V>::value)
+                                : (!isNarrowingFloatConversion<W, VectorEntryTypeOf<V>>() &&
+                                   is_convertible<W, V>::value),
                   "invalid operands to binary expression. Vc does not allow operands that could "
                   "possibly have different Vector::Size.");
 };
 
+template <typename V, typename W> struct TypesForOperatorInternal<V, W, false>
+{
+};
+
 template <typename L, typename R>
-using TypesForOperator =
-    typename TypesForOperatorInternal<Decay<Conditional< isVector<L>(), L, R>>,
-                                      Decay<Conditional<!isVector<L>(), L, R>>>::type;
+using TypesForOperator = typename TypesForOperatorInternal<
+    Decay<Conditional<isVector<L>(), L, R>>,
+    Decay<Conditional<!isVector<L>(), L, R>>,
+    (isVector<L>() || isVector<R>()) &&      // one operand has to be a vector
+        !is_same<Decay<L>, Decay<R>>::value  // if they're the same type it's already covered by
+                                             // Vector::operatorX
+    >::type;
 
 #ifndef VC_ICC
 }
