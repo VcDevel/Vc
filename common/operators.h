@@ -69,30 +69,20 @@ using DetermineReturnType =
                 float_v,
                 CopyUnsigned<W, V>>;
 
-template <typename T> struct VectorEntryTypeOfInternal
-{
-    using type = void *;
-};
-template <typename T> struct VectorEntryTypeOfInternal<Vector<T>>
-{
-    using type = T;
-};
-template <typename V> using VectorEntryTypeOf = typename VectorEntryTypeOfInternal<V>::type;
-
 template <typename V, typename W, bool VectorOperation> struct TypesForOperatorInternal
+{
+};
+
+template <typename V, typename W> struct TypesForOperatorInternal<V, W, true>
 {
     using type = DetermineReturnType<V, W>;
 
     // meaningful compiler error when incompatible operands are used:
     static_assert(isVector<W>() ? (is_convertible<V, W>::value || is_convertible<W, V>::value)
-                                : (!isNarrowingFloatConversion<W, VectorEntryTypeOf<V>>() &&
+                                : (!isNarrowingFloatConversion<W, typename V::EntryType>() &&
                                    is_convertible<W, V>::value),
                   "invalid operands to binary expression. Vc does not allow operands that could "
                   "possibly have different Vector::Size.");
-};
-
-template <typename V, typename W> struct TypesForOperatorInternal<V, W, false>
-{
 };
 
 template <typename L, typename R>
