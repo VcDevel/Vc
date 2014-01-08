@@ -338,6 +338,7 @@ TYPE_TEST_ERR(   uint_v,    ushort_v);
     TYPE_TEST(    int_v,   ulonglong,   uint_v);
     TYPE_TEST(    int_v,        Enum,    int_v);
     TYPE_TEST(    int_v,        bool,    int_v);
+    TYPE_TEST(    int_v,       float,  float_v);
     TYPE_TEST(   ushort,       int_v,   uint_v);
     TYPE_TEST(    short,       int_v,    int_v);
     TYPE_TEST(      int,       int_v,    int_v);
@@ -349,6 +350,7 @@ TYPE_TEST_ERR(   uint_v,    ushort_v);
     TYPE_TEST(ulonglong,       int_v,   uint_v);
     TYPE_TEST(     Enum,       int_v,    int_v);
     TYPE_TEST(     bool,       int_v,    int_v);
+    TYPE_TEST(    float,       int_v,  float_v);
 
     TYPE_TEST(   uint_v,       short,   uint_v);
     TYPE_TEST(   uint_v,      ushort,   uint_v);
@@ -362,6 +364,7 @@ TYPE_TEST_ERR(   uint_v,    ushort_v);
     TYPE_TEST(   uint_v,   ulonglong,   uint_v);
     TYPE_TEST(   uint_v,        Enum,   uint_v);
     TYPE_TEST(   uint_v,        bool,   uint_v);
+    TYPE_TEST(   uint_v,       float,  float_v);
     TYPE_TEST(    short,      uint_v,   uint_v);
     TYPE_TEST(   ushort,      uint_v,   uint_v);
     TYPE_TEST(    int_v,      uint_v,   uint_v);
@@ -373,6 +376,7 @@ TYPE_TEST_ERR(   uint_v,    ushort_v);
     TYPE_TEST(ulonglong,      uint_v,   uint_v);
     TYPE_TEST(     Enum,      uint_v,   uint_v);
     TYPE_TEST(     bool,      uint_v,   uint_v);
+    TYPE_TEST(    float,      uint_v,  float_v);
 }
 
 void testmain()
