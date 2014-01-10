@@ -71,7 +71,9 @@ macro(AutodetectHostArchitecture)
    if(_vendor_id STREQUAL "GenuineIntel")
       if(_cpu_family EQUAL 6)
          # Any recent Intel CPU except NetBurst
-         if(_cpu_model EQUAL 58)
+         if(_cpu_model EQUAL 62)
+            set(TARGET_ARCHITECTURE "ivy-bridge")
+         elseif(_cpu_model EQUAL 58)
             set(TARGET_ARCHITECTURE "ivy-bridge")
          elseif(_cpu_model EQUAL 47) # Xeon E7 4860
             set(TARGET_ARCHITECTURE "westmere")
