@@ -66,18 +66,24 @@ template<typename OtherMask> explicit MASK_TYPE(const OtherMask &);
 /**
  * Explicit conversion from an array of bool to a mask object.
  * This corresponds to a vector load.
+ *
+ * \param mem A pointer to the start of the array of booleans.
  */
 explicit MASK_TYPE(const bool *mem);
 
 /**
  * Load the values of the mask from an array of bool.
+ *
+ * \param mem A pointer to the start of the array of booleans.
  */
 void load(const bool *mem);
 
 /**
  * Store the values of the mask to an array of bool.
+ *
+ * \param mem A pointer to the start of the array of booleans.
  */
-void store(bool *) const;
+void store(bool *mem) const;
 
 /**
  * Returns whether the two masks are equal in all entries.
