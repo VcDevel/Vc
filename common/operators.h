@@ -79,8 +79,8 @@ template <typename V, typename W> struct TypesForOperatorInternal<V, W, true>
 
     // meaningful compiler error when incompatible operands are used:
     static_assert(isVector<W>() ? (is_convertible<V, W>::value || is_convertible<W, V>::value)
-                                : (!isNarrowingFloatConversion<W, typename type::EntryType>() &&
-                                   is_convertible<W, type>::value),
+                                : (is_convertible<W, type>::value &&
+                                   !isNarrowingFloatConversion<W, typename type::EntryType>()),
                   "invalid operands to binary expression. Vc does not allow operands that could "
                   "possibly have different Vector::Size.");
 };
