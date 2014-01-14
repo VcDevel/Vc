@@ -79,6 +79,7 @@ template <typename T, typename IndexVector> class SubscriptOperation
     IndexVector m_indexes;
     T *m_address;
     using ScalarType = typename std::decay<T>::type;
+    static_assert(std::is_arithmetic<ScalarType>::value, "SIMD vector subscripts are only possible for collections of arithmetic type (e.g. Vc::vector<float>, but not Vc::vector<SomeStruct>).");
     using VectorType = Vector<ScalarType>;
 
 public:
