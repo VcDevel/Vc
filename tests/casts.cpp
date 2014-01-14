@@ -120,6 +120,7 @@ template<typename V1, typename V2> void testCast2()
 
     testNumber<V1, V2>(-1.);
     testNumber<V1, V2>(0.);
+    testNumber<V1, V2>(0.5);
     testNumber<V1, V2>(1.);
     testNumber<V1, V2>(2.);
     testNumber<V1, V2>(max);
