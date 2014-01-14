@@ -149,7 +149,9 @@ namespace Vc_IMPL_NAMESPACE
 
     } };
     template<> struct StaticCastHelper<double        , unsigned int  > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256d v) {
-        return zeroExtend(_mm_add_epi32(m128i(_mm256_cvttpd_epi32(_mm256_sub_pd(v, _mm256_set1_pd(0x80000000u)))), _mm_set1_epi32(0x80000000u)));
+            return zeroExtend(_mm_add_epi32(m128i(_mm256_cvttpd_epi32(_mm256_sub_pd(
+                                                _mm256_floor_pd(v), _mm256_set1_pd(0x80000000u)))),
+                                            _mm_set1_epi32(0x80000000u)));
     } };
     template<> struct StaticCastHelper<int           , unsigned int  > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256i v) { return v; } };
     template<> struct StaticCastHelper<unsigned int  , unsigned int  > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256i v) { return v; } };
