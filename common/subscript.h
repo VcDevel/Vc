@@ -29,13 +29,50 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_SUBSCRIPT_H
 #define VC_COMMON_SUBSCRIPT_H
 
+#include <type_traits>
 #include "macros.h"
-#include <vector>
 
 namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
+
+template <typename Base> class AdaptSubscriptOperator : public Base
+{
+public:
+    // perfect forward all Base constructors
+    template <typename... Args>
+    AdaptSubscriptOperator(Args &&... arguments)
+        : Base(std::forward<Args>(arguments)...)
+    {
+    }
+
+    // explicitly enable Base::operator[] because the following would hide it
+    using Base::operator[];
+
+    // forward to non-member subscript_operator function
+    template <
+        typename I,
+        typename = typename std::enable_if<
+            !std::is_arithmetic<typename std::decay<I>::type>::value>::type  // arithmetic types
+                                                                             // should always use
+                                                                             // Base::operator[] and
+                                                                             // never match this one
+        >
+    auto operator[](I &&__arg) -> decltype(subscript_operator(*this, std::forward<I>(__arg)))
+    {
+        return subscript_operator(*this, std::forward<I>(__arg));
+    }
+
+    // const overload of the above
+    template <typename I,
+              typename = typename std::enable_if<
+                  !std::is_arithmetic<typename std::decay<I>::type>::value>::type>
+    auto operator[](I &&__arg) const -> decltype(subscript_operator(*this, std::forward<I>(__arg)))
+    {
+        return subscript_operator(*this, std::forward<I>(__arg));
+    }
+};
 
 template <typename T, typename IndexVector> class SubscriptOperation
 {
@@ -60,7 +97,7 @@ SubscriptOperation<typename std::remove_reference<decltype(std::declval<Containe
     return {&vec[0], std::forward<IndexVector>(indexes)};
 }
 
-}  // namespace
+}  // namespace Common
 
 namespace Scalar
 {
