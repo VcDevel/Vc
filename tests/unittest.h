@@ -89,7 +89,7 @@ class _UnitTest_Failure
 {
 };
 
-typedef std::function<void (void)> testFunction;
+typedef void (*testFunction)(void);
 
 class _UnitTest_Global_Object
 {
@@ -787,10 +787,14 @@ class Test2<TestFunctor, TestType0, TestTypes...> : public Test2<TestFunctor, Te
     typedef Test2<TestFunctor, TestTypes...> Base;
 
 public:
+    static void call() {
+        TestFunctor<TestType0>();
+    }
+
     Test2(std::string name) : Base(name)
     {
         name += '<' + typeToString<TestType0>() + '>';
-        g_allTests.emplace_back(TestFunctor<TestType0>(), name);
+        g_allTests.emplace_back(&call, name);
     }
 };
 
