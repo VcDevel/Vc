@@ -461,6 +461,11 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator-() c
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
+template <typename T> inline Vc_PURE Vector<T> Vector<T>::operator%(const Vector<T> &n) const
+{
+    return *this - *this / n * n;
+}
+
 #define OP_IMPL(T, symbol, fun) \
 template<> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator symbol##=(const Vector<T> &x) \
 { \

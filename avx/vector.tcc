@@ -474,6 +474,44 @@ template<> Vc_INTRINSIC double_v Vc_PURE double_v::operator/(VC_ALIGNED_PARAMETE
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
+template <> inline Vc_PURE int_v int_v::operator%(const int_v &n) const
+{
+    return HT::sub(
+        data(),
+        HT::mul(n.data(),
+                concat(_mm256_cvttpd_epi32(_mm256_div_pd(_mm256_cvtepi32_pd(lo128(data())),
+                                                         _mm256_cvtepi32_pd(lo128(n.data())))),
+                       _mm256_cvttpd_epi32(_mm256_div_pd(_mm256_cvtepi32_pd(hi128(data())),
+                                                         _mm256_cvtepi32_pd(hi128(n.data())))))));
+}
+template <> inline Vc_PURE uint_v uint_v::operator%(const uint_v &n) const
+{
+    auto cvt = [](m128i v) {
+        return _mm256_add_pd(
+            _mm256_cvtepi32_pd(_mm_sub_epi32(v, _mm_setmin_epi32())),
+            _mm256_set1_pd(1u << 31));
+    };
+    auto cvt2 = [](m256d v) {
+        return m128i(_mm256_cvttpd_epi32(
+                                 _mm256_sub_pd(_mm256_floor_pd(v), _mm256_set1_pd(0x80000000u))));
+    };
+    return HT::sub(
+        data(),
+        HT::mul(
+            n.data(),
+            _mm256_add_epi32(concat(cvt2(_mm256_div_pd(cvt(lo128(data())), cvt(lo128(n.data())))),
+                                    cvt2(_mm256_div_pd(cvt(hi128(data())), cvt(hi128(n.data()))))),
+                             _mm256_set2power31_epu32())));
+}
+template <> inline Vc_PURE short_v short_v::operator%(const short_v &n) const
+{
+    return *this - n * static_cast<short_v>(static_cast<float_v>(*this) / static_cast<float_v>(n));
+}
+template <> inline Vc_PURE ushort_v ushort_v::operator%(const ushort_v &n) const
+{
+    return *this - n * static_cast<ushort_v>(static_cast<float_v>(*this) / static_cast<float_v>(n));
+}
+
 #define OP_IMPL(T, symbol) \
 template<> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator symbol##=(AsArg x) \
 { \

@@ -273,6 +273,22 @@ TEST_ALL_V(Vec, testDiv)
     }
 }
 
+TEST_BEGIN(V, testModulo, (int_v, ushort_v, uint_v, short_v))
+    for (int repetition = 0; repetition < 1000; ++repetition) {
+        V x = V::Random();
+        V y = (V::Random() & 2047) - 1023;
+        y(y == 0) = -1024;
+        const V z = x % y;
+
+        V reference;
+        for (size_t i = 0; i < V::Size; ++i) {
+            reference[i] = x[i] % y[i];
+        }
+
+        COMPARE(z, reference) << ", x: " << x << ", y: " << y;
+    }
+TEST_END
+
 TEST_BEGIN(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
     Vec a(0x7fff);
     Vec b(0xf);
