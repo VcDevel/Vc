@@ -530,6 +530,7 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
                 return _mm_cvtsi128_si32(b);
             }
 
+            static Vc_INTRINSIC VectorType Vc_CONST abs(VTArg a) { return a; }
             static Vc_INTRINSIC VectorType Vc_CONST mul(VTArg a, VTArg b) { return _mm256_mullo_epi32(a, b); }
             static Vc_INTRINSIC void fma(VectorType &v1, VTArg v2, VTArg v3) { v1 = add(mul(v1, v2), v3); }
 
@@ -713,6 +714,7 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             }
             static Vc_INTRINSIC void fma(VectorType &v1, VTArg v2, VTArg v3) { v1 = add(mul(v1, v2), v3); }
 
+            static Vc_INTRINSIC VectorType Vc_CONST abs(VTArg a) { return a; }
             static Vc_INTRINSIC VectorType Vc_CONST add(VTArg a, VTArg b) { return _mm_add_epi16(a, b); }
             static Vc_INTRINSIC VectorType Vc_CONST sub(VTArg a, VTArg b) { return _mm_sub_epi16(a, b); }
             static Vc_INTRINSIC VectorType Vc_CONST cmpeq(VTArg a, VTArg b) { return _mm_cmpeq_epi16(a, b); }
