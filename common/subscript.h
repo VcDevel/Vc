@@ -88,6 +88,12 @@ public:
     }
 
     operator VectorType() const { return VectorType(m_address, m_indexes); }
+
+    SubscriptOperation &operator=(const VectorType &rhs)
+    {
+        rhs.scatter(m_address, m_indexes);
+        return *this;
+    }
 };
 
 template <typename Container, typename IndexVector>
