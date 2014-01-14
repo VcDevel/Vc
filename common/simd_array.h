@@ -117,6 +117,13 @@ public:
         return r;
     }
 
+    // initializer_list
+    Vc_ALWAYS_INLINE simd_array(std::initializer_list<value_type> x)
+        : d(x.begin(), Vc::Unaligned)  // TODO: it would be nice if there was a way to have the
+                                       // compiler understand what it's doing here and thus make
+                                       // aligned loads possible
+    {}
+
     // load ctors
     explicit Vc_ALWAYS_INLINE simd_array(const value_type *x) : d(x) {}
     template<typename Flags = DefaultLoadTag> explicit Vc_ALWAYS_INLINE simd_array(const value_type *x, Flags flags = Flags())
