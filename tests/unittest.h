@@ -788,7 +788,7 @@ class Test2<TestFunctor, TestType0, TestTypes...> : public Test2<TestFunctor, Te
 
 public:
     static void call() {
-        TestFunctor<TestType0>();
+        TestFunctor<TestType0>()();
     }
 
     Test2(std::string name) : Base(name)
