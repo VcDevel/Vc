@@ -90,9 +90,16 @@ template<typename V> struct ArrayData<V, 1>
         d += offset;
     }
 
-    template<typename U, typename Flags>
-    Vc_ALWAYS_INLINE void load(const U *x, Flags f) {
-        d.load(x, f);
+    template <typename... Args>
+    Vc_ALWAYS_INLINE void callMember(void (V::*m)(Args...), Args... args)
+    {
+        (d.*m)(args...);
+    }
+
+    template <typename R, typename... Args>
+    Vc_ALWAYS_INLINE void callMember(R (V::*m)(Args...), R r, Args... args)
+    {
+        r = (d.*m)(args...);
     }
 
     template <typename U, typename Flags> Vc_ALWAYS_INLINE void store(U *x, Flags f)
@@ -128,90 +135,104 @@ template<typename V, std::size_t N> struct ArrayData
 {
 private:
     static constexpr std::size_t secondOffset = N / 2 * V::Size;
+
+    template<typename U> static Vc_ALWAYS_INLINE U split0(U x) { return x; }
+    template<typename U> static Vc_ALWAYS_INLINE U split1(U x) { return x; }
+    template<typename U> static Vc_ALWAYS_INLINE U* split1(U* ptr) { return ptr + secondOffset; }
+    template<typename U> static Vc_ALWAYS_INLINE const ArrayData<U, N/2> &split0 (const ArrayData<U, N> &x) { return x.data0; }
+    template<typename U> static Vc_ALWAYS_INLINE const ArrayData<U, N/2> &split1(const ArrayData<U, N> &x) { return x.data1; }
+    template<typename M> static Vc_ALWAYS_INLINE const MaskData<M, N/2> &split0 (const MaskData<M, N> &x) { return x.data0; }
+    template<typename M> static Vc_ALWAYS_INLINE const MaskData<M, N/2> &split1(const MaskData<M, N> &x) { return x.data1; }
+    template<typename U> static Vc_ALWAYS_INLINE ArrayData<U, N/2> &split0 (ArrayData<U, N> &x) { return x.data0; }
+    template<typename U> static Vc_ALWAYS_INLINE ArrayData<U, N/2> &split1(ArrayData<U, N> &x) { return x.data1; }
+    template<typename M> static Vc_ALWAYS_INLINE MaskData<M, N/2> &split0 (MaskData<M, N> &x) { return x.data0; }
+    template<typename M> static Vc_ALWAYS_INLINE MaskData<M, N/2> &split1(MaskData<M, N> &x) { return x.data1; }
+
 public:
     static_assert(N != 0, "error N must be nonzero!");
     typedef typename V::EntryType value_type;
 
-    ArrayData<V, N / 2> first;
-    ArrayData<V, N / 2> second;
+    ArrayData<V, N / 2> data0;
+    ArrayData<V, N / 2> data1;
 
     V *begin()
     {
-        return first.begin();
+        return data0.begin();
     }
     const V *cbegin() const
     {
-        return first.cbegin();
+        return data0.cbegin();
     }
 
     V *end()
     {
-        return second.end();
+        return data1.end();
     }
     const V *cend()
     {
-        return second.cend();
+        return data1.cend();
     }
 
     ArrayData() = default;
 
-    Vc_ALWAYS_INLINE ArrayData(const V &x) : first(x), second(x)
+    template <typename... Us>
+    Vc_ALWAYS_INLINE ArrayData(Us... xs)
+        : data0(split0(xs)...), data1(split1(xs)...)
     {
     }
-    Vc_ALWAYS_INLINE ArrayData(const value_type *x) : first(x), second(x + secondOffset)
-    {
-    }
-    template <typename Flags>
-    Vc_ALWAYS_INLINE ArrayData(const value_type *x, Flags flags)
-        : first(x, flags), second(x + secondOffset, flags)
-    {
-    }
-    template<typename U, typename Flags> Vc_ALWAYS_INLINE ArrayData(const U *x, Flags flags)
-        : first(x, flags), second(x + secondOffset, flags) {}
 
     Vc_ALWAYS_INLINE ArrayData(VectorSpecialInitializerIndexesFromZero::IEnum x)
-        : first(x), second(x, secondOffset)
+        : data0(x), data1(x, secondOffset)
     {
     }
     Vc_ALWAYS_INLINE ArrayData(VectorSpecialInitializerIndexesFromZero::IEnum x, size_t offset)
-        : first(x, offset), second(x, offset + secondOffset)
+        : data0(x, offset), data1(x, offset + secondOffset)
     {
     }
 
-    template<typename U, typename Flags>
-    Vc_ALWAYS_INLINE void load(const U *x, Flags f) {
-        first.load(x, f);
-        second.load(x + secondOffset, f);
+    template <typename... Args>
+    Vc_ALWAYS_INLINE void callMember(void (V::*m)(Args...), Args... args)
+    {
+        data0.callMember(m, split0(args)...);
+        data1.callMember(m, split1(args)...);
     }
 
-    template <typename U, typename Flags> Vc_ALWAYS_INLINE void store(U *x, Flags f)
+    template <typename R, typename... Args>
+    Vc_ALWAYS_INLINE void callMember(R (V::*m)(Args...), R r, Args... args)
     {
-        first.store(x, f);
-        second.store(x + secondOffset, f);
+        data0.callMember(m, split0(r), split0(args)...);
+        data1.callMember(m, split1(r), split1(args)...);
+    }
+
+    template <typename U, typename Flags>
+    Vc_ALWAYS_INLINE void store(U *x, Flags f)
+    {
+        data0.store(x, f);
+        data1.store(x + secondOffset, f);
     }
 
     template<typename F, typename... Args>
     inline void call(F function, Args... args) {
-        first.call(function, args...);
-        second.call(function, args...);
+        data0.call(function, args...);
+        data1.call(function, args...);
     }
 
     template<typename F, typename... Args>
     inline void assign(F function, Args... args) {
-        first.assign(function, args...);
-        second.assign(function, args...);
+        data0.assign(function, args...);
+        data1.assign(function, args...);
     }
 
     inline void assign(const ArrayData &object, V (V::* function)() const) {
-        first.assign(object.first, function);
-        second.assign(object.second, function);
+        data0.assign(object.data0, function);
+        data1.assign(object.data1, function);
     }
 
 #define VC_OPERATOR_IMPL(op)                                                                       \
     Vc_ALWAYS_INLINE void operator op##=(const ArrayData<V, N> & rhs)                              \
     {                                                                                              \
-        first op## = rhs.first;                                                                    \
-        second op## = rhs.second;                                                                  \
+        data0 op## = rhs.data0;                                                                    \
+        data1 op## = rhs.data1;                                                                  \
     }
     VC_ALL_BINARY     (VC_OPERATOR_IMPL)
     VC_ALL_ARITHMETICS(VC_OPERATOR_IMPL)
@@ -267,25 +288,25 @@ template<typename M, std::size_t N> struct MaskData
 
     M *begin()
     {
-        return first.begin();
+        return data0.begin();
     }
     const M *cbegin() const
     {
-        return first.cbegin();
+        return data0.cbegin();
     }
 
     M *end()
     {
-        return second.end();
+        return data1.end();
     }
     const M *cend()
     {
-        return second.cend();
+        return data1.cend();
     }
 
     MaskData() = default;
 
-    Vc_ALWAYS_INLINE MaskData(const M &x) : first(x), second(x)
+    Vc_ALWAYS_INLINE MaskData(const M &x) : data0(x), data1(x)
     {
     }
 
@@ -301,21 +322,21 @@ template<typename M, std::size_t N> struct MaskData
     template <typename V, typename F>
     Vc_ALWAYS_INLINE void assign(const ArrayData<V, N> &lhs, const ArrayData<V, N> &rhs, F function)
     {
-        first.assign(lhs.first, rhs.first, function);
-        second.assign(lhs.second, rhs.second, function);
+        data0.assign(lhs.data0, rhs.data0, function);
+        data1.assign(lhs.data1, rhs.data1, function);
     }
 
     template <typename V, typename F>
     Vc_ALWAYS_INLINE void assign(const ArrayData<V, N> &operand, F function)
     {
-        first.assign(operand.first, function);
-        second.assign(operand.second, function);
+        data0.assign(operand.data0, function);
+        data1.assign(operand.data1, function);
     }
 
     template <typename ReductionFunctor>
     Vc_ALWAYS_INLINE M reduce() const
     {
-        return ReductionFunctor()(first.reduce<ReductionFunctor>(), second.reduce<ReductionFunctor>());
+        return ReductionFunctor()(data0.reduce<ReductionFunctor>(), data1.reduce<ReductionFunctor>());
     }
 
     /**
@@ -331,11 +352,11 @@ template<typename M, std::size_t N> struct MaskData
     inline auto apply(Reduce r, F f, Masks... masks)
         const -> decltype(f(std::declval<const mask_type &>(),
                             std::declval<const typename Masks::mask_type &>()...))
-    { return r(first.apply(r, f, masks.first...), second.apply(r, f, masks.second...)); }
+    { return r(data0.apply(r, f, masks.data0...), data1.apply(r, f, masks.data1...)); }
 
 //private:
-    MaskData<M, N / 2> first;
-    MaskData<M, N / 2> second;
+    MaskData<M, N / 2> data0;
+    MaskData<M, N / 2> data1;
 };
 
 }
