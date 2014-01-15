@@ -53,6 +53,13 @@ template <typename From, typename To> constexpr bool isNarrowingFloatConversion(
            (is_integral<To>::value || (is_floating_point<To>::value && sizeof(From) > sizeof(To)));
 }
 
+template <typename T> static constexpr bool convertsToSomeVector()
+{
+    return is_convertible<T, double_v>::value || is_convertible<T, float_v>::value ||
+           is_convertible<T, int_v>::value || is_convertible<T, uint_v>::value ||
+           is_convertible<T, short_v>::value || is_convertible<T, ushort_v>::value;
+}
+
 static_assert(isNarrowingFloatConversion<double, float>(), "");
 static_assert(isNarrowingFloatConversion<long double, float>(), "");
 static_assert(isNarrowingFloatConversion<long double, double>(), "");
@@ -69,7 +76,17 @@ using DetermineReturnType =
                 float_v,
                 CopyUnsigned<W, V>>;
 
-template <typename V, typename W, bool VectorOperation> struct TypesForOperatorInternal
+template <
+    typename V,
+    typename W,
+    bool VectorOperation = isVector<V>() &&           // one operand has to be a vector
+                           !is_same<V, W>::value &&   // if they're the same type it's already
+                                                      // covered by Vector::operatorX
+                           convertsToSomeVector<W>()  // if the other operand is not convertible to
+                                                      // a SIMD vector type at all then don't use
+                                                      // our operator in overload resolution at all
+    >
+struct TypesForOperatorInternal
 {
 };
 
@@ -86,13 +103,9 @@ template <typename V, typename W> struct TypesForOperatorInternal<V, W, true>
 };
 
 template <typename L, typename R>
-using TypesForOperator = typename TypesForOperatorInternal<
-    Decay<Conditional<isVector<L>(), L, R>>,
-    Decay<Conditional<!isVector<L>(), L, R>>,
-    (isVector<L>() || isVector<R>()) &&      // one operand has to be a vector
-        !is_same<Decay<L>, Decay<R>>::value  // if they're the same type it's already covered by
-                                             // Vector::operatorX
-    >::type;
+using TypesForOperator =
+    typename TypesForOperatorInternal<Decay<Conditional< isVector<L>(), L, R>>,
+                                      Decay<Conditional<!isVector<L>(), L, R>>>::type;
 
 #ifndef VC_ICC
 }
