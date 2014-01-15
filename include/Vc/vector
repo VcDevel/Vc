@@ -21,7 +21,7 @@
 
 }}}*/
 
-#include "../common/subscript.h"
+#include "common/subscript.h"
 #include <vector>
 
 namespace Vc_VERSIONED_NAMESPACE

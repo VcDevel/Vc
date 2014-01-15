@@ -23,8 +23,8 @@
 
 #define VC_NEWTEST
 #include "unittest.h"
-#include "../stl/array"
-#include "../stl/vector"
+#include <Vc/array>
+#include <Vc/vector>
 #include "../common/subscript.h"
 
 TEST_BEGIN(V, init, (ALL_VECTORS))
