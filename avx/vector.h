@@ -137,6 +137,14 @@ template<typename T> class Vector
         {
         }
 
+        //template<typename U>
+        explicit Vector(std::initializer_list<EntryType>)
+        {
+            static_assert(std::is_same<EntryType, void>::value,
+                          "A SIMD vector object cannot be initialized from an initializer list "
+                          "because the number of entries in the vector is target-dependent.");
+        }
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load ctors
         explicit Vc_INTRINSIC Vector(const EntryType *x)
