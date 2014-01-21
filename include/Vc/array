@@ -172,13 +172,13 @@ namespace Vc_VERSIONED_NAMESPACE
       { return _AT_Type::_S_ref(_M_elems, __n); }
 
       template <typename I>
-      auto operator[](I&& __arg) -> decltype(subscript_operator(*this, std::forward<I>(__arg)))
+      auto operator[](I&& __arg) -> decltype(subscript_operator(*this, std::declval<I>()))
       {
           return subscript_operator(*this, std::forward<I>(__arg));
       }
 
       template <typename I>
-      auto operator[](I&& __arg) const -> decltype(subscript_operator(*this, std::forward<I>(__arg)))
+      auto operator[](I&& __arg) const -> decltype(subscript_operator(*this, std::declval<I>()))
       {
           return subscript_operator(*this, std::forward<I>(__arg));
       }
