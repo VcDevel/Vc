@@ -53,6 +53,7 @@ template<typename T> class Vector
 
         typedef typename VectorTypeHelper<T>::Type VectorType;
         typedef typename DetermineEntryType<T>::Type EntryType;
+        typedef EntryType VectorEntryType;
         static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
         enum Constants {
             MemoryAlignment = alignof(VectorType),
