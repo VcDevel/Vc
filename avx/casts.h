@@ -26,7 +26,9 @@
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace AVX
+{
+namespace Casts
 {
     template<typename T> static Vc_INTRINSIC_L T avx_cast(param128  v) Vc_INTRINSIC_R;
     template<typename T> static Vc_INTRINSIC_L T avx_cast(param128i v) Vc_INTRINSIC_R;
@@ -134,6 +136,17 @@ namespace Vc_IMPL_NAMESPACE
     Vc_INTRINSIC Vc_CONST m256i concat(__m128i a, __m128i b) { return _mm256_insertf128_si256(avx_cast<m256i>(a), b, 1); }
 #endif
 
+}  // namespace Casts
+using namespace Casts;
+}  // namespace AVX
+
+namespace AVX2
+{
+using namespace AVX::Casts;
+}  // namespace AVX2
+
+namespace Vc_IMPL_NAMESPACE
+{
     template<typename From, typename To> struct StaticCastHelper {};
     template<> struct StaticCastHelper<float         , int           > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256  v) { return _mm256_cvttps_epi32(v); } };
     template<> struct StaticCastHelper<double        , int           > { static Vc_ALWAYS_INLINE Vc_CONST m256i  cast(param256d v) { return avx_cast<m256i>(_mm256_cvttpd_epi32(v)); } };
