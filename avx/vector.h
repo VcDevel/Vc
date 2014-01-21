@@ -151,13 +151,15 @@ template<typename T> class Vector
         {
             load(x);
         }
-        template <typename Flags> explicit Vc_INTRINSIC Vector(const EntryType *x, Flags flags)
+        template <typename Flags, typename = enable_if<Common::IsLoadStoreFlag<Flags>::value>>
+        explicit Vc_INTRINSIC Vector(const EntryType *x, Flags flags)
         {
             load(x, flags);
         }
         template <typename U,
                   typename Flags = DefaultLoadTag,
-                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+                  typename = enable_if<
+                      std::is_arithmetic<U>::value &&Common::IsLoadStoreFlag<Flags>::value>>
         explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
         {
             load(x, flags);
