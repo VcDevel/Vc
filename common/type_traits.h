@@ -25,23 +25,37 @@
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+// meta-programming helpers
+template <bool Test, typename T = void *> using enable_if = typename std::enable_if<Test, T>::type;
+
 namespace Common
 {
 
 template<typename T> struct is_simd_mask_internal : public std::false_type {};
 template<typename T> struct is_simd_vector_internal : public std::false_type {};
+template<typename T> struct is_subscript_operation_internal : public std::false_type {};
+template<typename T> struct is_simd_array_internal : public std::false_type {};
+template<typename T> struct is_loadstoreflag_internal : public std::false_type {};
+template <typename T>
+struct is_good_for_gatherscatter_internal
+    : public std::integral_constant<
+          bool,
+          std::is_array<T>::value || std::is_pointer<T>::value && !std::is_function<T>::value>
+{
+};
 
-template<typename T>
-struct is_simd_mask
-    : public Common::is_simd_mask_internal<
-      typename std::remove_cv<typename std::remove_reference<T>::type>::type>
+template <typename T>
+struct is_simd_mask : public Common::is_simd_mask_internal<typename std::decay<T>::type>
 {};
 
-template<typename T>
-struct is_simd_vector
-    : public Common::is_simd_vector_internal<
-      typename std::remove_cv<typename std::remove_reference<T>::type>::type>
+template <typename T>
+struct is_simd_vector : public Common::is_simd_vector_internal<typename std::decay<T>::type>
 {};
+
+template <typename T> struct IsSubscriptOperation : public is_subscript_operation_internal<typename std::decay<T>::type> {};
+template <typename T> struct IsSimdArray : public is_simd_array_internal<typename std::decay<T>::type> {};
+template <typename T> struct IsLoadStoreFlag : public is_loadstoreflag_internal<typename std::decay<T>::type> {};
+template <typename T> struct IsGoodForGatherScatter : public is_good_for_gatherscatter_internal<typename std::decay<T>::type> {};
 
 }
 }

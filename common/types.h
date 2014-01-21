@@ -25,7 +25,7 @@
 #include <cstdio>
 #endif
 
-#include <type_traits>
+#include "type_traits.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -35,10 +35,13 @@ namespace Vc_IMPL_NAMESPACE
     template<typename T> class Vector;
     template<typename T> class Mask;
 }
-}
 
-namespace Vc_VERSIONED_NAMESPACE
+template <typename T, std::size_t N, typename VectorType> class simd_array;
+
+namespace Common
 {
+template <typename T, std::size_t N, typename VectorType> struct is_simd_array_internal<simd_array<T, N, VectorType>> : public std::true_type {};
+}  // namespace Common
 
 /* TODO: add type for half-float, something along these lines:
 class half_float
