@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_SUBSCRIPT_H
 
 #include <type_traits>
+#include "types.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -103,6 +104,11 @@ SubscriptOperation<typename std::remove_reference<decltype(std::declval<Containe
 {
     return {&vec[0], std::forward<IndexVector>(indexes)};
 }
+
+template <typename T, typename IndexVector>
+struct is_subscript_operation_internal<Common::SubscriptOperation<T, IndexVector>> : public std::true_type
+{
+};
 
 }  // namespace Common
 
