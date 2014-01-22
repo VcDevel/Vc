@@ -42,7 +42,6 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace SSE
 {
     template<typename T> class Vector;
-    template<typename T> class WriteMaskedVector;
 
     // define our own long because on Windows64 long == int while on Linux long == max. register width
     // since we want to have a type that depends on 32 vs. 64 bit we need to do some special casing on Windows

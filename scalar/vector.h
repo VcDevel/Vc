@@ -44,7 +44,6 @@ namespace Scalar
 template<typename T>
 class Vector
 {
-    friend class WriteMaskedVector<T>;
     public:
         typedef typename DetermineEntryType<T>::Type EntryType;
     protected:

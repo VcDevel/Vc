@@ -24,6 +24,7 @@
 #include "types.h"
 #include "vectorhelper.h"
 #include "mask.h"
+#include "../common/writemaskedvector.h"
 #include "../common/aliasingentryhelper.h"
 #include "../common/memoryfwd.h"
 #include "../common/loadstoreflags.h"
@@ -45,104 +46,11 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
-template<typename T>
-class WriteMaskedVector
-{
-    friend class Vector<T>;
-    typedef typename VectorTraits<T>::MaskType Mask;
-    typedef typename Vector<T>::EntryType EntryType;
-    public:
-        FREE_STORE_OPERATORS_ALIGNED(16)
-        //prefix
-        Vc_INTRINSIC Vector<T> &operator++() {
-            vec->data() = VectorHelper<T>::add(vec->data(),
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
-                    );
-            return *vec;
-        }
-        Vc_INTRINSIC Vector<T> &operator--() {
-            vec->data() = VectorHelper<T>::sub(vec->data(),
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
-                    );
-            return *vec;
-        }
-        //postfix
-        Vc_INTRINSIC Vector<T> operator++(int) {
-            Vector<T> ret(*vec);
-            vec->data() = VectorHelper<T>::add(vec->data(),
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
-                    );
-            return ret;
-        }
-        Vc_INTRINSIC Vector<T> operator--(int) {
-            Vector<T> ret(*vec);
-            vec->data() = VectorHelper<T>::sub(vec->data(),
-                    VectorHelper<T>::notMaskedToZero(VectorHelper<T>::one(), mask.data())
-                    );
-            return ret;
-        }
 
-        Vc_INTRINSIC Vector<T> &operator+=(const Vector<T> &x) {
-            vec->data() = VectorHelper<T>::add(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
-            return *vec;
-        }
-        Vc_INTRINSIC Vector<T> &operator-=(const Vector<T> &x) {
-            vec->data() = VectorHelper<T>::sub(vec->data(), VectorHelper<T>::notMaskedToZero(x.data(), mask.data()));
-            return *vec;
-        }
-        Vc_INTRINSIC Vector<T> &operator*=(const Vector<T> &x) {
-            vec->assign(VectorHelper<T>::mul(vec->data(), x.data()), mask);
-            return *vec;
-        }
-        Vc_INTRINSIC Vector<T> &operator/=(const Vector<T> &x);
-
-        Vc_INTRINSIC Vector<T> &operator+=(EntryType x) {
-            return operator+=(Vector<T>(x));
-        }
-        Vc_INTRINSIC Vector<T> &operator-=(EntryType x) {
-            return operator-=(Vector<T>(x));
-        }
-        Vc_INTRINSIC Vector<T> &operator*=(EntryType x) {
-            return operator*=(Vector<T>(x));
-        }
-        Vc_INTRINSIC Vector<T> &operator/=(EntryType x) {
-            return operator/=(Vector<T>(x));
-        }
-
-        Vc_INTRINSIC Vector<T> &operator=(const Vector<T> &x) {
-            vec->assign(x, mask);
-            return *vec;
-        }
-
-        Vc_INTRINSIC Vector<T> &operator=(EntryType x) {
-            vec->assign(Vector<T>(x), mask);
-            return *vec;
-        }
-
-#ifdef VC_NO_MOVE_CTOR
-        template<typename F> Vc_INTRINSIC void call(const F &f) const {
-            return vec->call(f, mask);
-        }
-        template<typename F> Vc_INTRINSIC Vector<T> apply(const F &f) const {
-            return vec->apply(f, mask);
-        }
-#endif
-        template<typename F> Vc_INTRINSIC void call(F VC_RR_ f) const {
-            return vec->call(VC_FORWARD_(F)(f), mask);
-        }
-        template<typename F> Vc_INTRINSIC Vector<T> apply(F VC_RR_ f) const {
-            return vec->apply(VC_FORWARD_(F)(f), mask);
-        }
-
-    private:
-        Vc_ALWAYS_INLINE WriteMaskedVector(Vector<T> *v, const Mask &k) : vec(v), mask(k) {}
-        Vector<T> *const vec;
-        Mask mask;
-};
+template <typename T> using WriteMaskedVector = Common::WriteMaskedVector<Vector<T>, Mask<T>>;
 
 template<typename T> class Vector
 {
-    friend class WriteMaskedVector<T>;
     protected:
 #ifdef VC_COMPILE_BENCHMARKS
     public:
@@ -437,7 +345,7 @@ template<typename T> class Vector
         template<typename V2> Vc_ALWAYS_INLINE Vc_PURE V2 staticCast() const { return StaticCastHelper<T, typename V2::_T>::cast(data()); }
         template<typename V2> Vc_ALWAYS_INLINE Vc_PURE V2 reinterpretCast() const { return mm128_reinterpret_cast<typename V2::VectorType>(data()); }
 
-        Vc_INTRINSIC WriteMaskedVector<T> operator()(const Mask &k) { return WriteMaskedVector<T>(this, k); }
+        Vc_INTRINSIC WriteMaskedVector<T> operator()(const Mask &k) { return {this, k}; }
 
         /**
          * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have

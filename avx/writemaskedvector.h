@@ -1,82 +1,47 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #ifndef VC_AVX_WRITEMASKEDVECTOR_H
 #define VC_AVX_WRITEMASKEDVECTOR_H
 
+#include "../common/writemaskedvector.h"
 #include "macros.h"
+
 namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Vc_IMPL_NAMESPACE
 {
 
-template<typename T>
-class WriteMaskedVector
-{
-    friend class Vector<T>;
-    typedef typename VectorTypeHelper<T>::Type VectorType;
-    typedef typename DetermineEntryType<T>::Type EntryType;
-    static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
-    typedef typename Vector<T>::Mask Mask;
-    public:
-        FREE_STORE_OPERATORS_ALIGNED(32)
-        //prefix
-        Vector<T> Vc_ALWAYS_INLINE_L &operator++() Vc_ALWAYS_INLINE_R;
-        Vector<T> Vc_ALWAYS_INLINE_L &operator--() Vc_ALWAYS_INLINE_R;
-        //postfix
-        Vector<T> Vc_ALWAYS_INLINE_L operator++(int) Vc_ALWAYS_INLINE_R;
-        Vector<T> Vc_ALWAYS_INLINE_L operator--(int) Vc_ALWAYS_INLINE_R;
+template <typename T> using WriteMaskedVector = Common::WriteMaskedVector<Vector<T>, Mask<T>>;
 
-        Vector<T> Vc_ALWAYS_INLINE_L &operator+=(const Vector<T> &x) Vc_ALWAYS_INLINE_R;
-        Vector<T> Vc_ALWAYS_INLINE_L &operator-=(const Vector<T> &x) Vc_ALWAYS_INLINE_R;
-        Vector<T> Vc_ALWAYS_INLINE_L &operator*=(const Vector<T> &x) Vc_ALWAYS_INLINE_R;
-        Vector<T> Vc_ALWAYS_INLINE_L &operator/=(const Vector<T> &x) Vc_ALWAYS_INLINE_R;
-        Vector<T> Vc_ALWAYS_INLINE &operator+=(EntryType x) { return operator+=(Vector<T>(x)); }
-        Vector<T> Vc_ALWAYS_INLINE &operator-=(EntryType x) { return operator-=(Vector<T>(x)); }
-        Vector<T> Vc_ALWAYS_INLINE &operator*=(EntryType x) { return operator*=(Vector<T>(x)); }
-        Vector<T> Vc_ALWAYS_INLINE &operator/=(EntryType x) { return operator/=(Vector<T>(x)); }
+}  // namespace AVX(2)
+}  // namespace Vc
 
-        Vector<T> Vc_ALWAYS_INLINE_L &operator=(const Vector<T> &x) Vc_ALWAYS_INLINE_R;
-        Vector<T> Vc_ALWAYS_INLINE &operator=(EntryType x) { return operator=(Vector<T>(x)); }
-
-#ifdef VC_NO_MOVE_CTOR
-        template<typename F> Vc_INTRINSIC void call(const F &f) const {
-            return vec->call(f, mask);
-        }
-        template<typename F> Vc_INTRINSIC Vector<T> apply(const F &f) const {
-            return vec->apply(f, mask);
-        }
-#endif
-        template<typename F> Vc_INTRINSIC void call(F VC_RR_ f) const {
-            return vec->call(VC_FORWARD_(F)(f), mask);
-        }
-        template<typename F> Vc_INTRINSIC Vector<T> apply(F VC_RR_ f) const {
-            return vec->apply(VC_FORWARD_(F)(f), mask);
-        }
-    private:
-        Vc_ALWAYS_INLINE WriteMaskedVector(Vector<T> *v, const Mask &k) : vec(v), mask(k) {}
-        Vector<T> *const vec;
-        Mask mask;
-};
-
-}
-}
-#include "writemaskedvector.tcc"
 #include "undomacros.h"
+
 #endif // VC_AVX_WRITEMASKEDVECTOR_H
