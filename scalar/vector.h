@@ -131,6 +131,7 @@ class Vector
         // zeroing
         Vc_ALWAYS_INLINE void setZero() { m_data = 0; }
         Vc_ALWAYS_INLINE void setZero(Mask k) { if (k) m_data = 0; }
+        Vc_ALWAYS_INLINE void setZeroInverted(Mask k) { if (!k) m_data = 0; }
 
         Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setQnan(Mask m) Vc_INTRINSIC_R;

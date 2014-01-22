@@ -147,6 +147,10 @@ template<typename T> Vc_INTRINSIC void Vector<T>::setZero(MaskArg k)
 {
     data() = _xor(data(), k.data(), data(), data());
 }
+template<typename T> Vc_INTRINSIC void Vector<T>::setZero(MaskArg k)
+{
+    data() = _xor(data(), _mm512_knot(k.data()), data(), data());
+}
 
 template<typename T> Vc_INTRINSIC void Vector<T>::setQnan()
 {

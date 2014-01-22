@@ -263,6 +263,11 @@ template<typename T> Vc_INTRINSIC void Vector<T>::setZero(const Mask &k)
     data() = VectorHelper<VectorType>::andnot_(mm128_reinterpret_cast<VectorType>(k.data()), data());
 }
 
+template<typename T> Vc_INTRINSIC void Vector<T>::setZeroInverted(const Mask &k)
+{
+    data() = VectorHelper<VectorType>::and_(mm128_reinterpret_cast<VectorType>(k.data()), data());
+}
+
 template<> Vc_INTRINSIC void Vector<double>::setQnan()
 {
     data() = _mm_setallone_pd();

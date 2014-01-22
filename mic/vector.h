@@ -195,6 +195,7 @@ public:
     // zeroing
     inline void setZero();
     inline void setZero(MaskArg k);
+    inline void setZeroInverted(MaskArg k);
 
     inline void setQnan();
     inline void setQnan(MaskArg k);

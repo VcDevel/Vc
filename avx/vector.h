@@ -187,6 +187,7 @@ template<typename T> class Vector
         // zeroing
         Vc_INTRINSIC_L void setZero() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setZero(const Mask &k) Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L void setZeroInverted(const Mask &k) Vc_INTRINSIC_R;
 
         Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setQnan(MaskArg k) Vc_INTRINSIC_R;
