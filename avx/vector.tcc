@@ -1494,7 +1494,7 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
 }
 // simd_cast {{{1
 template <typename Return, typename T>
-inline Return simd_cast(T x0, T x1, enable_if<sizeof(Return) == 32> = nullptr)
+inline Return simd_cast(T x0, T x1, enable_if<sizeof(Return) == 32> = nullarg)
 {
     const auto lo = static_cast<Return>(x0);
     const auto hi = static_cast<Return>(x1);
@@ -1502,7 +1502,7 @@ inline Return simd_cast(T x0, T x1, enable_if<sizeof(Return) == 32> = nullptr)
 }
 
 template <typename Return, typename T>
-inline Return simd_cast(T x0, T x1, T x2, T x3, enable_if<sizeof(Return) == 32> = nullptr)
+inline Return simd_cast(T x0, T x1, T x2, T x3, enable_if<sizeof(Return) == 32> = nullarg)
 {
     const auto y0 = static_cast<Return>(x0);
     const auto y1 = static_cast<Return>(x1);
@@ -1519,7 +1519,7 @@ inline Return simd_cast(T x0, T x1, T x2, T x3, enable_if<sizeof(Return) == 32> 
 template <typename Return, int offset, typename T>
 inline Return simd_cast(
     T x,
-    enable_if<offset != 0 && (offset < T::Size / Return::Size / 2) && sizeof(T) == 32> = nullptr)
+    enable_if<offset != 0 && (offset < T::Size / Return::Size / 2) && sizeof(T) == 32> = nullarg)
 {
     constexpr int shift = sizeof(typename T::VectorEntryType) * offset * Return::Size;
     static_assert(shift >= 0 && shift < 16, "");
@@ -1528,16 +1528,16 @@ inline Return simd_cast(
 }
 
 template <typename Return, int offset, typename T>
-inline Return simd_cast(T x, enable_if<(offset >= T::Size / Return::Size / 2) && sizeof(T) == 32> = nullptr)
+inline Return simd_cast(T x, enable_if<(offset >= T::Size / Return::Size / 2) && sizeof(T) == 32> = nullarg)
 {
     constexpr int shift = sizeof(typename T::VectorEntryType) * offset * Return::Size - 16;
-    static_assert(shift == 0 || (T::Size / Return::Size > 2), "");
+    static_assert(shift == 0 || (T::Size / Return::Size > 2 && shift > 0 && shift < 16), "");
     if (shift == 0) {
         return static_cast<Return>(T(AVX::avx_cast<typename T::VectorType>(AVX::hi128(x.data()))));
+    } else {
+        return static_cast<Return>(T(AVX::avx_cast<typename T::VectorType>(
+            _mm_slli_si128(AVX::avx_cast<__m128i>(AVX::hi128(x.data())), shift))));
     }
-    static_assert(shift >= 0 && shift < 16, "");
-    return static_cast<Return>(T(AVX::avx_cast<typename T::VectorType>(
-        _mm_slli_si128(AVX::avx_cast<__m128i>(AVX::hi128(x.data())), shift))));
 }
 // }}}1
 }
