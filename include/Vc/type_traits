@@ -28,47 +28,17 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 using Common::is_simd_mask;
 using Common::is_simd_vector;
+using Common::is_integral;
+using Common::is_floating_point;
+using Common::is_arithmetic;
+using Common::is_signed;
+using Common::is_unsigned;
 
 template<typename T>
 struct memory_alignment : public std::integral_constant<size_t, alignof(T)> {};
 
 template<> struct memory_alignment<short_v> : public std::integral_constant<size_t, short_v::MemoryAlignment> {};
 template<> struct memory_alignment<ushort_v> : public std::integral_constant<size_t, ushort_v::MemoryAlignment> {};
-
-template<typename T>
-struct is_integral : public std::integral_constant<bool,
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,    int_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,   uint_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  short_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, ushort_v>::value ||
-    std::is_integral<T>::value>
-    {};
-
-template<typename T>
-struct is_floating_point : public std::integral_constant<bool,
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  float_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, double_v>::value ||
-    std::is_floating_point<T>::value>
-    {};
-
-template<typename T>
-struct is_arithmetic : public std::integral_constant<bool,
-    is_floating_point<T>::value ||
-    is_integral<T>::value>
-    {};
-
-template<typename T>
-struct is_signed : public std::integral_constant<bool,
-    is_floating_point<T>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,    int_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  short_v>::value ||
-    std::is_signed<T>::value>
-    {};
-
-template<typename T>
-struct is_unsigned : public std::integral_constant<bool,
-    is_arithmetic<T>::value && !is_signed<T>::value>
-    {};
 
 }
 
