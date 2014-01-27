@@ -112,7 +112,7 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
     public:
         typedef _VectorType VectorType;
         typedef _EntryType EntryType;
-        Vc_ALWAYS_INLINE VectorMemoryUnion() { assertCorrectAlignment(&v()); }
+        Vc_ALWAYS_INLINE VectorMemoryUnion() : data() { assertCorrectAlignment(&v()); }
 #if defined VC_ICC
         Vc_ALWAYS_INLINE VectorMemoryUnion(const VectorType &x) : data(x) { assertCorrectAlignment(&data.v); }
         Vc_ALWAYS_INLINE VectorMemoryUnion &operator=(const VectorType &x) {
