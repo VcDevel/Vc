@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_SUBSCRIPT_H
 #define VC_COMMON_SUBSCRIPT_H
 
+#include <initializer_list>
 #include <type_traits>
 #include "types.h"
 #include "macros.h"
@@ -43,8 +44,15 @@ template <typename Base> class AdaptSubscriptOperator : public Base
 public:
     // perfect forward all Base constructors
     template <typename... Args>
-    AdaptSubscriptOperator(Args &&... arguments)
+    Vc_ALWAYS_INLINE AdaptSubscriptOperator(Args &&... arguments)
         : Base(std::forward<Args>(arguments)...)
+    {
+    }
+
+    // perfect forward all Base constructors
+    template <typename T>
+    Vc_ALWAYS_INLINE AdaptSubscriptOperator(std::initializer_list<T> l)
+        : Base(l)
     {
     }
 
