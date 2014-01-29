@@ -36,6 +36,11 @@ TEST_BEGIN(V, init, (ALL_VECTORS))
         data[i] = i;
         data2[i] = i;
     }
+
+    Vc::vector<T> ctorTest1(6, T());
+    Vc::vector<T> ctorTest2{T(), T()};
+    COMPARE(ctorTest1.size(), 6);
+    COMPARE(ctorTest2.size(), 2);
 }
 TEST_END
 
