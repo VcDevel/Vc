@@ -34,6 +34,7 @@
 #include <stdexcept>
 #include <bits/stl_algobase.h>
 #include <bits/range_access.h>
+#include "traits/has_no_allocated_data.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -316,6 +317,25 @@ namespace Vc_VERSIONED_NAMESPACE
       static_assert(_Int < _Nm, "index is out of bounds");
       typedef _Tp type;
     };
+
+namespace Traits
+{
+template <typename T, std::size_t N>
+struct has_no_allocated_data_impl<Vc::array<T, N>> : public std::true_type
+{
+};
+
+static_assert(has_no_allocated_data<const volatile Vc::array<int, 256> &>::value, "");
+static_assert(has_no_allocated_data<const volatile Vc::array<int, 256>>::value, "");
+static_assert(has_no_allocated_data<volatile Vc::array<int, 256> &>::value, "");
+static_assert(has_no_allocated_data<volatile Vc::array<int, 256>>::value, "");
+static_assert(has_no_allocated_data<const Vc::array<int, 256> &>::value, "");
+static_assert(has_no_allocated_data<const Vc::array<int, 256>>::value, "");
+static_assert(has_no_allocated_data<Vc::array<int, 256>>::value, "");
+static_assert(has_no_allocated_data<Vc::array<int, 256> &>::value, "");
+static_assert(has_no_allocated_data<Vc::array<int, 256> &&>::value, "");
+
+}  // namespace Traits
 
 } // namespace Vc
 

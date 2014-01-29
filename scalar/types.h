@@ -30,7 +30,6 @@
 #define VC_USHORT_V_SIZE 1
 #endif
 
-#include "../common/type_traits.h"
 #include "../common/types.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -45,7 +44,7 @@ namespace Scalar
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Common
+namespace Traits
 {
 template<typename T> struct is_simd_mask_internal<Scalar::Mask<T>> : public std::true_type {};
 template<typename T> struct is_simd_vector_internal<Scalar::Vector<T>> : public std::true_type {};

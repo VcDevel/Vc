@@ -156,10 +156,10 @@ constexpr LoadStoreFlags::LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
 template<size_t L1 = PrefetchFlag<>::L1Stride, size_t L2 = PrefetchFlag<>::L2Stride, typename ExclusiveOrShared = PrefetchFlag<>::ExclusiveOrShared>
 struct Prefetch : public LoadStoreFlags::LoadStoreFlags<PrefetchFlag<L1, L2, ExclusiveOrShared>> {};
 
-namespace Common
+namespace Traits
 {
 template<typename... Ts> struct is_loadstoreflag_internal<LoadStoreFlags::LoadStoreFlags<Ts...>> : public std::true_type {};
-}  // namespace Common
+}  // namespace Traits
 }  // namespace Vc
 
 #include "undomacros.h"

@@ -22,7 +22,6 @@
 
 #include "intrinsics.h"
 #include "../common/storage.h"
-#include "../common/type_traits.h"
 
 #ifndef VC_DOUBLE_V_SIZE
 #define VC_DOUBLE_V_SIZE 2
@@ -113,7 +112,7 @@ namespace SSE
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Common
+namespace Traits
 {
 template<typename T> struct is_simd_mask_internal<SSE::Mask<T>> : public std::true_type {};
 template<typename T> struct is_simd_vector_internal<SSE::Vector<T>> : public std::true_type {};

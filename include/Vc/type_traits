@@ -22,17 +22,17 @@
 
 #include <type_traits>
 
-#include "common/type_traits.h"
+#include "traits/type_traits.h"
 #include "common/macros.h"
 namespace Vc_VERSIONED_NAMESPACE
 {
-using Common::is_simd_mask;
-using Common::is_simd_vector;
-using Common::is_integral;
-using Common::is_floating_point;
-using Common::is_arithmetic;
-using Common::is_signed;
-using Common::is_unsigned;
+using Traits::is_simd_mask;
+using Traits::is_simd_vector;
+using Traits::is_integral;
+using Traits::is_floating_point;
+using Traits::is_arithmetic;
+using Traits::is_signed;
+using Traits::is_unsigned;
 
 template<typename T>
 struct memory_alignment : public std::integral_constant<size_t, alignof(T)> {};

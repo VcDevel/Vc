@@ -146,32 +146,32 @@ template<typename _V, typename Flags> class MemoryVectorIterator;
     };/*}}}*/
 #endif
 
-template<typename V> constexpr typename std::enable_if<Common::is_simd_vector<V>::value, Iterator<V>>::type begin(V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_vector<V>::value, Iterator<V>>::type begin(V &v)
 {
     return { v, 0 };
 }
 
-template<typename V> constexpr typename std::enable_if<Common::is_simd_vector<V>::value, Iterator<V>>::type end(V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_vector<V>::value, Iterator<V>>::type end(V &v)
 {
     return { v, V::Size };
 }
 
-template<typename V> constexpr typename std::enable_if<Common::is_simd_mask<V>::value || Common::is_simd_vector<V>::value, ConstIterator<V>>::type begin(const V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_mask<V>::value || Traits::is_simd_vector<V>::value, ConstIterator<V>>::type begin(const V &v)
 {
     return { v, 0 };
 }
 
-template<typename V> constexpr typename std::enable_if<Common::is_simd_mask<V>::value || Common::is_simd_vector<V>::value, ConstIterator<V>>::type end(const V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_mask<V>::value || Traits::is_simd_vector<V>::value, ConstIterator<V>>::type end(const V &v)
 {
     return { v, V::Size };
 }
 
-template<typename V> constexpr typename std::enable_if<Common::is_simd_mask<V>::value || Common::is_simd_vector<V>::value, ConstIterator<V>>::type cbegin(const V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_mask<V>::value || Traits::is_simd_vector<V>::value, ConstIterator<V>>::type cbegin(const V &v)
 {
     return { v, 0 };
 }
 
-template<typename V> constexpr typename std::enable_if<Common::is_simd_mask<V>::value || Common::is_simd_vector<V>::value, ConstIterator<V>>::type cend(const V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_mask<V>::value || Traits::is_simd_vector<V>::value, ConstIterator<V>>::type cend(const V &v)
 {
     return { v, V::Size };
 }

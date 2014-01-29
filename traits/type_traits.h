@@ -1,27 +1,36 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_TYPE_TRAITS_H
-#define VC_COMMON_TYPE_TRAITS_H
+#ifndef VC_TRAITS_TYPE_TRAITS_H
+#define VC_TRAITS_TYPE_TRAITS_H
 
 #include <type_traits>
-#include "macros.h"
+#include "has_no_allocated_data.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -30,21 +39,16 @@ struct enable_if_default_type {};
 static constexpr enable_if_default_type nullarg;
 template <bool Test, typename T = enable_if_default_type> using enable_if = typename std::enable_if<Test, T>::type;
 
-namespace Common
+namespace Traits
 {
+#include "has_subscript_operator.h"
+#include "has_multiply_operator.h"
 
 template<typename T> struct is_simd_mask_internal : public std::false_type {};
 template<typename T> struct is_simd_vector_internal : public std::false_type {};
 template<typename T> struct is_subscript_operation_internal : public std::false_type {};
 template<typename T> struct is_simd_array_internal : public std::false_type {};
 template<typename T> struct is_loadstoreflag_internal : public std::false_type {};
-template <typename T>
-struct is_good_for_gatherscatter_internal
-    : public std::integral_constant<
-          bool,
-          std::is_array<T>::value || std::is_pointer<T>::value && !std::is_function<T>::value>
-{
-};
 
 template <std::size_t, typename... Args> struct is_gather_arguments_internal;
 template <std::size_t N__, typename Arg0, typename Arg1, typename... MoreArguments>
@@ -52,16 +56,23 @@ struct is_gather_arguments_internal<
     N__,
     Arg0,
     Arg1,
-    MoreArguments...> : public std::
-                            integral_constant<bool,
-                                              is_good_for_gatherscatter_internal<Arg0>::value &&
-                                                  !is_loadstoreflag_internal<Arg1>::value &&(
-                                                       std::is_pointer<Arg1>::value ||
-                                                       is_simd_vector_internal<Arg1>::value)>
+    MoreArguments...> : public std::integral_constant<bool,
+                                                      has_subscript_operator<Arg0>::value &&
+                                                          !is_loadstoreflag_internal<Arg1>::value&&
+                                                               has_subscript_operator<Arg1>::value>
 {
 };
 template<typename... Args> struct is_gather_arguments_internal<0, Args...> : public std::false_type {};
 template<typename... Args> struct is_gather_arguments_internal<1, Args...> : public std::false_type {};
+
+template <std::size_t, typename... Args> struct is_cast_arguments_internal : public std::false_type {};
+template <typename Arg>
+struct is_cast_arguments_internal<1, Arg> : public std::integral_constant<
+                                                bool,
+                                                is_simd_array_internal<Arg>::value ||
+                                                    is_simd_vector_internal<Arg>::value>
+{
+};
 
 template <typename T, bool = is_simd_vector_internal<T>::value> struct is_integral_internal;
 template <typename T, bool = is_simd_vector_internal<T>::value> struct is_floating_point_internal;
@@ -85,21 +96,26 @@ struct is_arithmetic_internal
           is_floating_point_internal<T>::value || is_integral_internal<T>::value>
     {};
 
+template <typename T, bool = is_simd_vector_internal<T>::value || is_simd_mask_internal<T>::value> struct vector_size_internal;
+template <typename T> struct vector_size_internal<T, true > : public std::integral_constant<std::size_t, T::Size> {};
+template <typename T> struct vector_size_internal<T, false> : public std::integral_constant<std::size_t, 0> {};
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-struct is_simd_mask : public Common::is_simd_mask_internal<typename std::decay<T>::type>
+struct is_simd_mask : public is_simd_mask_internal<typename std::decay<T>::type>
 {};
 
 template <typename T>
-struct is_simd_vector : public Common::is_simd_vector_internal<typename std::decay<T>::type>
+struct is_simd_vector : public is_simd_vector_internal<typename std::decay<T>::type>
 {};
 
 template <typename T> struct IsSubscriptOperation : public is_subscript_operation_internal<typename std::decay<T>::type> {};
 template <typename T> struct IsSimdArray : public is_simd_array_internal<typename std::decay<T>::type> {};
 template <typename T> struct IsLoadStoreFlag : public is_loadstoreflag_internal<typename std::decay<T>::type> {};
-template <typename T> struct IsGoodForGatherScatter : public is_good_for_gatherscatter_internal<typename std::decay<T>::type> {};
 template <typename... Args> struct IsGatherArguments : public is_gather_arguments_internal<sizeof...(Args), typename std::decay<Args>::type...> {};
+template <typename... Args> struct IsCastArguments : public is_cast_arguments_internal<sizeof...(Args), typename std::decay<Args>::type...> {};
+template <typename T> struct VectorSize : public vector_size_internal<typename std::decay<T>::type> {};
 
 template <typename T> struct is_integral : public is_integral_internal<typename std::decay<T>::type> {};
 template <typename T> struct is_floating_point : public is_floating_point_internal<typename std::decay<T>::type> {};
@@ -107,9 +123,7 @@ template <typename T> struct is_arithmetic : public is_arithmetic_internal<typen
 template <typename T> struct is_signed : public is_signed_internal<typename std::decay<T>::type> {};
 template <typename T> struct is_unsigned : public is_unsigned_internal<typename std::decay<T>::type> {};
 
-}
-}
+}  // namespace Traits
+}  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_COMMON_TYPE_TRAITS_H
+#endif // VC_TRAITS_TYPE_TRAITS_H

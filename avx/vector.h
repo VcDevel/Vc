@@ -151,7 +151,7 @@ template<typename T> class Vector
         {
             load(x);
         }
-        template <typename Flags, typename = enable_if<Common::IsLoadStoreFlag<Flags>::value>>
+        template <typename Flags, typename = enable_if<Traits::IsLoadStoreFlag<Flags>::value>>
         explicit Vc_INTRINSIC Vector(const EntryType *x, Flags flags)
         {
             load(x, flags);
@@ -159,7 +159,7 @@ template<typename T> class Vector
         template <typename U,
                   typename Flags = DefaultLoadTag,
                   typename = enable_if<
-                      std::is_arithmetic<U>::value &&Common::IsLoadStoreFlag<Flags>::value>>
+                      std::is_arithmetic<U>::value &&Traits::IsLoadStoreFlag<Flags>::value>>
         explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
         {
             load(x, flags);
@@ -493,18 +493,18 @@ typedef   uint_v::Mask uint_m;
 typedef  short_v::Mask short_m;
 typedef ushort_v::Mask ushort_m;
 
-static_assert(Common::is_simd_vector<double_v>::value, "is_simd_vector<double_v>::value");
-static_assert(Common::is_simd_vector< float_v>::value, "is_simd_vector< float_v>::value");
-static_assert(Common::is_simd_vector<   int_v>::value, "is_simd_vector<   int_v>::value");
-static_assert(Common::is_simd_vector<  uint_v>::value, "is_simd_vector<  uint_v>::value");
-static_assert(Common::is_simd_vector< short_v>::value, "is_simd_vector< short_v>::value");
-static_assert(Common::is_simd_vector<ushort_v>::value, "is_simd_vector<ushort_v>::value");
-static_assert(Common::is_simd_mask  <double_m>::value, "is_simd_mask  <double_m>::value");
-static_assert(Common::is_simd_mask  < float_m>::value, "is_simd_mask  < float_m>::value");
-static_assert(Common::is_simd_mask  <   int_m>::value, "is_simd_mask  <   int_m>::value");
-static_assert(Common::is_simd_mask  <  uint_m>::value, "is_simd_mask  <  uint_m>::value");
-static_assert(Common::is_simd_mask  < short_m>::value, "is_simd_mask  < short_m>::value");
-static_assert(Common::is_simd_mask  <ushort_m>::value, "is_simd_mask  <ushort_m>::value");
+static_assert(Traits::is_simd_vector<double_v>::value, "is_simd_vector<double_v>::value");
+static_assert(Traits::is_simd_vector< float_v>::value, "is_simd_vector< float_v>::value");
+static_assert(Traits::is_simd_vector<   int_v>::value, "is_simd_vector<   int_v>::value");
+static_assert(Traits::is_simd_vector<  uint_v>::value, "is_simd_vector<  uint_v>::value");
+static_assert(Traits::is_simd_vector< short_v>::value, "is_simd_vector< short_v>::value");
+static_assert(Traits::is_simd_vector<ushort_v>::value, "is_simd_vector<ushort_v>::value");
+static_assert(Traits::is_simd_mask  <double_m>::value, "is_simd_mask  <double_m>::value");
+static_assert(Traits::is_simd_mask  < float_m>::value, "is_simd_mask  < float_m>::value");
+static_assert(Traits::is_simd_mask  <   int_m>::value, "is_simd_mask  <   int_m>::value");
+static_assert(Traits::is_simd_mask  <  uint_m>::value, "is_simd_mask  <  uint_m>::value");
+static_assert(Traits::is_simd_mask  < short_m>::value, "is_simd_mask  < short_m>::value");
+static_assert(Traits::is_simd_mask  <ushort_m>::value, "is_simd_mask  <ushort_m>::value");
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 

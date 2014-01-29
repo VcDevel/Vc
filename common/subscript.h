@@ -105,12 +105,15 @@ SubscriptOperation<typename std::remove_reference<decltype(std::declval<Containe
     return {&vec[0], std::forward<IndexVector>(indexes)};
 }
 
+}  // namespace Common
+
+namespace Traits
+{
 template <typename T, typename IndexVector>
 struct is_subscript_operation_internal<Common::SubscriptOperation<T, IndexVector>> : public std::true_type
 {
 };
-
-}  // namespace Common
+}  // namespace Traits
 
 namespace Scalar
 {

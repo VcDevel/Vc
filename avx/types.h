@@ -22,7 +22,6 @@
 
 #include "intrinsics.h"
 #include "../common/storage.h"
-#include "../common/type_traits.h"
 #include "macros.h"
 
 #ifndef VC_DOUBLE_V_SIZE
@@ -119,10 +118,10 @@ namespace Vc_IMPL_NAMESPACE
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Common
+namespace Traits
 {
-template<typename T> struct is_simd_mask_internal<Vc_IMPL_NAMESPACE::Mask<T>> : public std::true_type {};
-template<typename T> struct is_simd_vector_internal<Vc_IMPL_NAMESPACE::Vector<T>> : public std::true_type {};
+template<typename T> struct is_simd_mask_internal<Vc_AVX_NAMESPACE::Mask<T>> : public std::true_type {};
+template<typename T> struct is_simd_vector_internal<Vc_AVX_NAMESPACE::Vector<T>> : public std::true_type {};
 }
 }
 
