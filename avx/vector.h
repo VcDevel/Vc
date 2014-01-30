@@ -146,38 +146,7 @@ template<typename T> class Vector
                           "because the number of entries in the vector is target-dependent.");
         }
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // load ctors
-        explicit Vc_INTRINSIC Vector(const EntryType *x)
-        {
-            load(x);
-        }
-        template <typename Flags, typename = enable_if<Traits::IsLoadStoreFlag<Flags>::value>>
-        explicit Vc_INTRINSIC Vector(const EntryType *x, Flags flags)
-        {
-            load(x, flags);
-        }
-        template <typename U,
-                  typename Flags = DefaultLoadTag,
-                  typename = enable_if<
-                      std::is_arithmetic<U>::value &&Traits::IsLoadStoreFlag<Flags>::value>>
-        explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
-        {
-            load(x, flags);
-        }
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // load member functions
-        Vc_INTRINSIC void load(const EntryType *mem)
-        {
-            load(mem, DefaultLoadTag());
-        }
-        template <typename Flags>
-        Vc_INTRINSIC_L void load(const EntryType *mem, Flags) Vc_INTRINSIC_R;
-        template <typename U,
-                  typename Flags = DefaultLoadTag,
-                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
-        Vc_INTRINSIC_L void load(const U *mem, Flags = Flags()) Vc_INTRINSIC_R;
+#include "common/loadinterface.h"
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
@@ -197,11 +166,11 @@ template<typename T> class Vector
         // stores
         template <typename U,
                   typename Flags = DefaultStoreTag,
-                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+                  typename = enable_if<std::is_arithmetic<U>::value && Traits::IsLoadStoreFlag<Flags>::value>>
         Vc_INTRINSIC_L void store(U *mem, Flags = Flags()) const Vc_INTRINSIC_R;
         template <typename U,
                   typename Flags = DefaultStoreTag,
-                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+                  typename = enable_if<std::is_arithmetic<U>::value && Traits::IsLoadStoreFlag<Flags>::value>>
         Vc_INTRINSIC_L void store(U *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
         // the following store overloads are here to support classes that have a cast operator to
         // EntryType.
@@ -210,7 +179,7 @@ template<typename T> class Vector
         {
             store<EntryType, DefaultStoreTag>(mem, DefaultStoreTag());
         }
-        template <typename Flags> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
+        template <typename Flags, typename = enable_if<Traits::IsLoadStoreFlag<Flags>::value>> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
         {
             store<EntryType, Flags>(mem, flags);
         }
@@ -218,7 +187,7 @@ template<typename T> class Vector
         {
             store<EntryType, DefaultStoreTag>(mem, mask);
         }
-        template <typename Flags>
+        template <typename Flags, typename = enable_if<Traits::IsLoadStoreFlag<Flags>::value>>
         Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const
         {
             store<EntryType, Flags>(mem, mask, flags);

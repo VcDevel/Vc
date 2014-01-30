@@ -103,23 +103,7 @@ class Vector
         {
         }
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // load ctors
-        explicit Vc_INTRINSIC Vector(const EntryType *x)
-        {
-            load(x);
-        }
-        template<typename Flags> explicit Vc_INTRINSIC Vector(const EntryType * x, Flags flags)
-        {
-            load(x, flags);
-        }
-        template <typename U,
-                  typename Flags = DefaultLoadTag,
-                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
-        explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
-        {
-            load(x, flags);
-        }
+#include "common/loadinterface.h"
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
@@ -134,24 +118,6 @@ class Vector
 
         Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setQnan(Mask m) Vc_INTRINSIC_R;
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // load member functions
-        Vc_INTRINSIC void load(const EntryType *mem)
-        {
-            m_data = mem[0];
-        }
-        template <typename Flags> Vc_INTRINSIC void load(const EntryType *mem, Flags)
-        {
-            m_data = mem[0];
-        }
-        template <typename U,
-                  typename Flags = DefaultLoadTag,
-                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
-        Vc_INTRINSIC void load(const U *mem, Flags = Flags())
-        {
-            m_data = mem[0];
-        }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // stores

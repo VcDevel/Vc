@@ -26,8 +26,17 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Scalar
 {
 
-// copySign ///////////////////////////////////////////////////////////////////////// {{{1
-template<> Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float> reference) const
+// load member functions{{{1
+template <typename T>
+template <typename U, typename Flags, typename>
+Vc_INTRINSIC void Vector<T>::load(const U *mem, Flags)
+{
+    m_data = mem[0];
+}
+
+// copySign {{{1
+template <>
+Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float> reference) const
 {
     union {
         float f;

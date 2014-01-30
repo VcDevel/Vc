@@ -81,14 +81,20 @@ template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::IndexesFromZero(
 }
 
 // load member functions {{{1
-template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *mem, Flags flags)
-{
-    Common::handleLoadPrefetches(mem, flags);
-    d.v() = HV::template load<Flags>(mem);
-}
-
 // LoadHelper {{{2
 template<typename DstT, typename SrcT, typename Flags> struct LoadHelper;
+
+// equal types {{{2
+template <typename T, typename Flags> struct LoadHelper<T, T, Flags>
+{
+    using VectorType = typename Vector<T>::VectorType;
+    using HV = VectorHelper<VectorType>;
+    static VectorType load(const T *mem, Flags flags)
+    {
+        Common::handleLoadPrefetches(mem, flags);
+        return HV::template load<Flags>(mem);
+    }
+};
 
 // float {{{2
 template<typename Flags> struct LoadHelper<float, double, Flags> {
@@ -214,9 +220,7 @@ template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags>
 
 // general load, implemented via LoadHelper {{{2
 template <typename DstT>
-template <typename SrcT,
-          typename Flags,
-          typename std::enable_if<std::is_arithmetic<SrcT>::value, int>::type>
+template <typename SrcT, typename Flags, typename>
 Vc_INTRINSIC void Vector<DstT>::load(const SrcT *mem, Flags flags)
 {
     Common::handleLoadPrefetches(mem, flags);
@@ -288,9 +292,7 @@ template<> Vc_INTRINSIC void Vector<float>::setQnan(const Mask &k)
 ///////////////////////////////////////////////////////////////////////////////////////////
 // stores {{{1
 template <typename T>
-template <typename U,
-          typename Flags,
-          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+template <typename U, typename Flags, typename>
 Vc_INTRINSIC void Vector<T>::store(U *mem, Flags flags) const
 {
     Common::handleStorePrefetches(mem, flags);
@@ -298,9 +300,7 @@ Vc_INTRINSIC void Vector<T>::store(U *mem, Flags flags) const
 }
 
 template <typename T>
-template <typename U,
-          typename Flags,
-          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+template <typename U, typename Flags, typename>
 Vc_INTRINSIC void Vector<T>::store(U *mem, Mask mask, Flags flags) const
 {
     Common::handleStorePrefetches(mem, flags);
