@@ -43,7 +43,7 @@
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace Vc_AVX_NAMESPACE
 {
 enum VectorAlignmentEnum { VectorAlignment = 32 };
 
@@ -61,7 +61,7 @@ template<typename T> class Vector
             HasVectorDivision = HasVectorDivisionHelper<T>::Value
         };
         typedef Vector<typename IndexTypeHelper<T>::Type> IndexType;
-        typedef Vc_IMPL_NAMESPACE::Mask<T> Mask;
+        typedef Vc_AVX_NAMESPACE::Mask<T> Mask;
         typedef typename Mask::AsArg MaskArg;
         typedef Vc::Memory<Vector<T>, Size> Memory;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN

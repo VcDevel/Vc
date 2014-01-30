@@ -23,4 +23,10 @@
 #define VC_AVX_MACROS_H
 #undef VC_AVX_UNDOMACROS_H
 
+#ifdef VC_IMPL_AVX2
+#define Vc_AVX_NAMESPACE AVX2
+#else
+#define Vc_AVX_NAMESPACE AVX
+#endif
+
 #endif // VC_AVX_MACROS_H

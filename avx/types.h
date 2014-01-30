@@ -38,7 +38,7 @@
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace Vc_AVX_NAMESPACE
 {
     template<typename T> class Vector;
 

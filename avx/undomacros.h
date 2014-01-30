@@ -21,6 +21,8 @@
 #define VC_AVX_UNDOMACROS_H
 #undef VC_AVX_MACROS_H
 
+#undef Vc_AVX_NAMESPACE
+
 #endif // VC_AVX_UNDOMACROS_H
 
 #include "../common/undomacros.h"
