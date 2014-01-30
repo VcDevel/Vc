@@ -31,6 +31,7 @@
 #include "../common/memoryfwd.h"
 #include "where.h"
 #include "iterators.h"
+#include "../common/simd_cast.h"
 #include "macros.h"
 
 #ifdef isfinite

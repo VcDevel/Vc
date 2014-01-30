@@ -1356,29 +1356,6 @@ template<> inline Vc_PURE ushort_v ushort_v::sorted() const
 }
 // }}}1
 }
-// simd_cast {{{1
-template <typename Return, typename T>
-inline Return simd_cast(T x0, T x1, enable_if<sizeof(Return) == 16> = nullarg)
-{
-    const auto lo = static_cast<Return>(x0);
-    const auto hi = static_cast<Return>(x1);
-    return _mm_movelh_ps(lo, hi);
-}
-
-template <typename Return, int offset, typename T>
-inline Return simd_cast(T x, enable_if<offset == 0> = nullarg)
-{
-    return static_cast<Return>(x);
-}
-
-template <typename Return, int offset, typename T>
-inline Return simd_cast(T x, enable_if<offset != 0 && sizeof(T) == 16> = nullarg)
-{
-    constexpr int shift = sizeof(typename T::VectorEntryType) * offset * Return::Size;
-    static_assert(shift >= 0 && shift < 16, "");
-    return static_cast<Return>(T(_mm_srli_si128(x.data(), shift)));
-}
-// }}}1
 }
 
 #include "undomacros.h"

@@ -43,8 +43,11 @@
 # else
 #  error "I lost track of the targeted implementation now. Something is messed up or there's a bug in Vc."
 # endif
+# include "sse/simd_cast.h"
+# include "avx/simd_cast.h"
 #elif defined(VC_IMPL_SSE)
 # include "sse/vector.h"
+# include "sse/simd_cast.h"
 #endif
 
 #include "scalar/vector.h"
