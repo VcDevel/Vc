@@ -35,6 +35,7 @@
 #include <bits/stl_algobase.h>
 #include <bits/range_access.h>
 #include "traits/has_no_allocated_data.h"
+#include "common/macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -173,15 +174,15 @@ namespace Vc_VERSIONED_NAMESPACE
       { return _AT_Type::_S_ref(_M_elems, __n); }
 
       template <typename I>
-      auto operator[](I&& __arg) -> decltype(subscript_operator(*this, std::declval<I>()))
+      Vc_ALWAYS_INLINE auto operator[](I&& arg__) -> decltype(subscript_operator(*this, std::forward<I>(arg__)))
       {
-          return subscript_operator(*this, std::forward<I>(__arg));
+          return subscript_operator(*this, std::forward<I>(arg__));
       }
 
       template <typename I>
-      auto operator[](I&& __arg) const -> decltype(subscript_operator(*this, std::declval<I>()))
+      Vc_ALWAYS_INLINE auto operator[](I&& arg__) const -> decltype(subscript_operator(*this, std::forward<I>(arg__)))
       {
-          return subscript_operator(*this, std::forward<I>(__arg));
+          return subscript_operator(*this, std::forward<I>(arg__));
       }
 
       reference
@@ -338,6 +339,8 @@ static_assert(has_no_allocated_data<Vc::array<int, 256> &&>::value, "");
 }  // namespace Traits
 
 } // namespace Vc
+
+#include "common/undomacros.h"
 
 #endif // VC_STL_ARRAY
 
