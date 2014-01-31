@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_HAS_SUBSCRIPT_OPERATOR_H
-#define VC_COMMON_HAS_SUBSCRIPT_OPERATOR_H
+#ifndef VC_TRAITS_HAS_SUBSCRIPT_OPERATOR_H
+#define VC_TRAITS_HAS_SUBSCRIPT_OPERATOR_H
 
 namespace has_subscript_operator_impl
 {
@@ -46,4 +46,4 @@ struct has_subscript_operator : public std::is_same<int, decltype(has_subscript_
 {
 };
 
-#endif // VC_COMMON_HAS_SUBSCRIPT_OPERATOR_H
+#endif // VC_TRAITS_HAS_SUBSCRIPT_OPERATOR_H
