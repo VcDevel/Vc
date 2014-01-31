@@ -104,6 +104,7 @@ class Vector
         }
 
 #include "common/loadinterface.h"
+#include "common/storeinterface.h"
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
@@ -118,44 +119,6 @@ class Vector
 
         Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setQnan(Mask m) Vc_INTRINSIC_R;
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // stores
-        template <typename U,
-                  typename Flags = DefaultStoreTag,
-                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
-        Vc_INTRINSIC void store(U *mem, Flags = Flags()) const
-        {
-            mem[0] = m_data;
-        }
-        template <typename U,
-                  typename Flags = DefaultStoreTag,
-                  typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
-        Vc_INTRINSIC void store(U *mem, Mask mask, Flags = Flags()) const
-        {
-            if (mask.data())
-                mem[0] = m_data;
-        }
-        // the following store overloads are here to support classes that have a cast operator to
-        // EntryType.
-        // Without this overload GCC complains about not finding a matching store function.
-        Vc_INTRINSIC void store(EntryType *mem) const
-        {
-            store<EntryType, DefaultStoreTag>(mem);
-        }
-        template <typename Flags> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
-        {
-            store<EntryType, Flags>(mem, flags);
-        }
-        Vc_INTRINSIC void store(EntryType *mem, Mask mask) const
-        {
-            store<EntryType, DefaultStoreTag>(mem, mask);
-        }
-        template <typename Flags>
-        Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const
-        {
-            store<EntryType, Flags>(mem, mask, flags);
-        }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles

@@ -34,6 +34,21 @@ Vc_INTRINSIC void Vector<T>::load(const U *mem, Flags)
     m_data = mem[0];
 }
 
+// store member functions{{{1
+template <typename T>
+template <typename U, typename Flags, typename>
+Vc_INTRINSIC void Vector<T>::store(U *mem, Flags) const
+{
+    mem[0] = m_data;
+}
+template <typename T>
+template <typename U, typename Flags, typename>
+Vc_INTRINSIC void Vector<T>::store(U *mem, Mask mask, Flags) const
+{
+    if (mask.data())
+        mem[0] = m_data;
+}
+
 // copySign {{{1
 template <>
 Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float> reference) const

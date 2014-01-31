@@ -127,6 +127,7 @@ template<typename T> class Vector
         }
 
 #include "common/loadinterface.h"
+#include "common/storeinterface.h"
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
@@ -141,40 +142,6 @@ template<typename T> class Vector
 
         Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setQnan(const Mask &k) Vc_INTRINSIC_R;
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // stores
-        template <typename U,
-                  typename Flags = DefaultStoreTag,
-                  typename = enable_if<
-                      std::is_arithmetic<U>::value &&Traits::IsLoadStoreFlag<Flags>::value>>
-        Vc_INTRINSIC_L void store(U *mem, Flags = Flags()) const Vc_INTRINSIC_R;
-        template <typename U,
-                  typename Flags = DefaultStoreTag,
-                  typename = enable_if<
-                      std::is_arithmetic<U>::value &&Traits::IsLoadStoreFlag<Flags>::value>>
-        Vc_INTRINSIC_L void store(U *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
-        // the following store overloads are here to support classes that have a cast operator to
-        // EntryType.
-        // Without this overload GCC complains about not finding a matching store function.
-        Vc_INTRINSIC void store(EntryType *mem) const
-        {
-            store<EntryType, DefaultStoreTag>(mem, DefaultStoreTag());
-        }
-        template <typename Flags, typename = enable_if<Traits::IsLoadStoreFlag<Flags>::value>>
-        Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
-        {
-            store<EntryType, Flags>(mem, flags);
-        }
-        Vc_INTRINSIC void store(EntryType *mem, Mask mask) const
-        {
-            store<EntryType, DefaultStoreTag>(mem, mask, DefaultStoreTag());
-        }
-        template <typename Flags, typename = enable_if<Traits::IsLoadStoreFlag<Flags>::value>>
-        Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const
-        {
-            store<EntryType, Flags>(mem, mask, flags);
-        }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
