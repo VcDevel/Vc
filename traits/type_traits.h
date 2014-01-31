@@ -50,20 +50,7 @@ template<typename T> struct is_subscript_operation_internal : public std::false_
 template<typename T> struct is_simd_array_internal : public std::false_type {};
 template<typename T> struct is_loadstoreflag_internal : public std::false_type {};
 
-template <std::size_t, typename... Args> struct is_gather_arguments_internal;
-template <std::size_t N__, typename Arg0, typename Arg1, typename... MoreArguments>
-struct is_gather_arguments_internal<
-    N__,
-    Arg0,
-    Arg1,
-    MoreArguments...> : public std::integral_constant<bool,
-                                                      has_subscript_operator<Arg0>::value &&
-                                                          !is_loadstoreflag_internal<Arg1>::value&&
-                                                               has_subscript_operator<Arg1>::value>
-{
-};
-template<typename... Args> struct is_gather_arguments_internal<0, Args...> : public std::false_type {};
-template<typename... Args> struct is_gather_arguments_internal<1, Args...> : public std::false_type {};
+#include "is_gather_signature.h"
 
 template <std::size_t, typename... Args> struct is_cast_arguments_internal : public std::false_type {};
 template <typename Arg>
@@ -113,7 +100,6 @@ struct is_simd_vector : public is_simd_vector_internal<typename std::decay<T>::t
 template <typename T> struct IsSubscriptOperation : public is_subscript_operation_internal<typename std::decay<T>::type> {};
 template <typename T> struct IsSimdArray : public is_simd_array_internal<typename std::decay<T>::type> {};
 template <typename T> struct IsLoadStoreFlag : public is_loadstoreflag_internal<typename std::decay<T>::type> {};
-template <typename... Args> struct IsGatherArguments : public is_gather_arguments_internal<sizeof...(Args), typename std::decay<Args>::type...> {};
 template <typename... Args> struct IsCastArguments : public is_cast_arguments_internal<sizeof...(Args), typename std::decay<Args>::type...> {};
 template <typename T> struct VectorSize : public vector_size_internal<typename std::decay<T>::type> {};
 
