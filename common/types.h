@@ -157,11 +157,25 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
+
 template <typename T> using WidthT = std::integral_constant<std::size_t, sizeof(T)>;
 
 template<size_t Bytes> class MaskBool;
+
+template <typename I, I Begin, I End, typename F>
+Vc_INTRINSIC enable_if<(Begin == End), void> unrolled_loop(F &&)
+{
 }
+
+template <typename I, I Begin, I End, typename F>
+Vc_INTRINSIC enable_if<(Begin < End), void> unrolled_loop(F &&f)
+{
+    f(Begin);
+    unrolled_loop<I, Begin + 1, End>(f);
 }
+
+}  // namespace Common
+}  // namespace Vc
 
 #include "memoryfwd.h"
 #include "undomacros.h"
