@@ -166,6 +166,10 @@ template <typename... Ts>
 struct is_loadstoreflag_internal<LoadStoreFlags::LoadStoreFlags<Ts...>> : public std::true_type
 {
 };
+template <size_t L1, size_t L2, typename ExclusiveOrShared>
+struct is_loadstoreflag_internal<Prefetch<L1, L2, ExclusiveOrShared>> : public std::true_type
+{
+};
 }  // namespace Traits
 }  // namespace Vc
 
