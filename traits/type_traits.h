@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <type_traits>
 #include "has_no_allocated_data.h"
+#include "has_contiguous_storage.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
