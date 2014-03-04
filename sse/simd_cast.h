@@ -53,7 +53,7 @@ inline Return simd_cast(T x, enable_if<offset != 0 && sizeof(T) == 16> = nullarg
 {
     constexpr int shift = sizeof(typename T::VectorEntryType) * offset * Return::Size;
     static_assert(shift >= 0 && shift < 16, "");
-    return static_cast<Return>(T(_mm_srli_si128(x.data(), shift)));
+    return static_cast<Return>(T(_mm_srli_si128(SSE::sse_cast<__m128i>(x.data()), shift)));
 }
 
 }  // namespace Vc
