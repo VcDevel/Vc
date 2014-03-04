@@ -44,6 +44,7 @@ namespace Traits
 {
 #include "has_subscript_operator.h"
 #include "has_multiply_operator.h"
+#include "has_addition_operator.h"
 
 template<typename T> struct is_simd_mask_internal : public std::false_type {};
 template<typename T> struct is_simd_vector_internal : public std::false_type {};
