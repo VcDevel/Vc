@@ -37,7 +37,7 @@ template <typename T, typename U> std::false_type test(...);
 
 }  // namespace has_multiply_operator_impl
 
-template <typename T, typename U>
+template <typename T, typename U = T>
 struct has_multiply_operator : public decltype(has_multiply_operator_impl::test<T, U>(1))
 {
 };
