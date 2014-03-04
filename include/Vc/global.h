@@ -284,7 +284,7 @@
 #  if (VC_IMPL & F16C)
 #    define VC_IMPL_F16C 1
 #  endif
-#  if (VC_IMPL & POPCNT)
+#  if (!defined(VC_IMPL_Scalar) && defined(__POPCNT__)) || (VC_IMPL & POPCNT)
 #    define VC_IMPL_POPCNT 1
 #  endif
 #  if (VC_IMPL & SSE4a)
