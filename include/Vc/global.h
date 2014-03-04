@@ -191,7 +191,7 @@
 #      define VC_IMPL_Scalar 1
 #    endif
 #  endif
-#  if defined(VC_IMPL_AVX2) || defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE) || defined(VC_IMPL_MIC)
+#  if !defined(VC_IMPL_Scalar)
 #    ifdef __FMA4__
 #      define VC_IMPL_FMA4 1
 #    endif
