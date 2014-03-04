@@ -19,6 +19,7 @@
 
 #include "../common/x86_prefetches.h"
 #include "../common/gatherimplementation.h"
+#include "../common/scatterimplementation.h"
 #include "limits.h"
 #include "const.h"
 #include "../common/set.h"
@@ -704,10 +705,21 @@ template <typename T>
 template <typename MT, typename IT>
 inline void Vector<T>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const
 {
-    Common::unrolled_loop<std::size_t, 0, Size>([&](std::size_t i) {
-        if (mask[i])
-            mem[indexes[i]] = d.m(i);
-    });
+    using Selector = std::integral_constant < Common::GatherScatterImplementation,
+#ifdef VC_USE_SET_GATHERS
+          Traits::is_simd_vector<IT>::value || Traits::IsSimdArray<IT>::value
+              ? Common::GatherScatterImplementation::SetIndexZero
+              :
+#endif
+#ifdef VC_USE_BSF_GATHERS
+              Common::GatherScatterImplementation::BitScanLoop
+#elif defined VC_USE_POPCNT_BSF_GATHERS
+              Common::GatherScatterImplementation::PopcntSwitch
+#else
+              Common::GatherScatterImplementation::SimpleLoop
+#endif
+              > ;
+    Common::executeScatter(Selector(), *this, mem, indexes, mask);
 }
 
 #if defined(VC_MSVC) && VC_MSVC >= 170000000
