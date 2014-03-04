@@ -21,6 +21,8 @@
 #include "limits.h"
 #include "../common/bitscanintrinsics.h"
 #include "../common/set.h"
+#include "../common/gatherimplementation.h"
+#include "../common/scatterimplementation.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -590,487 +592,99 @@ template<> Vc_INTRINSIC Vc_PURE double_m double_v::isNegative() const
                 ));
 }
 // gathers {{{1
-template<typename T> template<typename IndexT> Vc_ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, const IndexT *indexes)
+template <>
+template <typename MT, typename IT>
+Vc_ALWAYS_INLINE void double_v::gatherImplementation(const MT *mem, IT &&indexes)
 {
-    gather(mem, indexes);
-}
-template<typename T> template<typename IndexT> Vc_ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, VC_ALIGNED_PARAMETER(Vector<IndexT>) indexes)
-{
-    gather(mem, indexes);
-}
-
-template<typename T> template<typename IndexT> Vc_ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, const IndexT *indexes, MaskArg mask)
-    : d(HT::zero())
-{
-    gather(mem, indexes, mask);
-}
-
-template<typename T> template<typename IndexT> Vc_ALWAYS_INLINE Vector<T>::Vector(const EntryType *mem, VC_ALIGNED_PARAMETER(Vector<IndexT>) indexes, MaskArg mask)
-    : d(HT::zero())
-{
-    gather(mem, indexes, mask);
-}
-
-template<typename T> template<typename S1, typename IT> Vc_ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    gather(array, member1, indexes);
-}
-template<typename T> template<typename S1, typename IT> Vc_ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask)
-    : d(HT::zero())
-{
-    gather(array, member1, indexes, mask);
-}
-template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    gather(array, member1, member2, indexes);
-}
-template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask)
-    : d(HT::zero())
-{
-    gather(array, member1, member2, indexes, mask);
-}
-template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes)
-{
-    gather(array, ptrMember1, outerIndexes, innerIndexes);
-}
-template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE Vector<T>::Vector(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes, MaskArg mask)
-    : d(HT::zero())
-{
-    gather(array, ptrMember1, outerIndexes, innerIndexes, mask);
-}
-
-template<typename T, size_t Size> struct IndexSizeChecker { static void check() {} };
-template<typename T, size_t Size> struct IndexSizeChecker<Vector<T>, Size>
-{
-    static void check() {
-        static_assert(Vector<T>::Size >= Size, "IndexVector_must_have_greater_or_equal_number_of_entries");
-    }
-};
-template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
-{
-    IndexSizeChecker<Index, Size>::check();
     d.v() = _mm_setr_pd(mem[indexes[0]], mem[indexes[1]]);
 }
-template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<float>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
+
+template <>
+template <typename MT, typename IT>
+Vc_ALWAYS_INLINE void float_v::gatherImplementation(const MT *mem, IT &&indexes)
 {
-    IndexSizeChecker<Index, Size>::check();
     d.v() = _mm_setr_ps(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
 }
-template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<int>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
+
+template <>
+template <typename MT, typename IT>
+Vc_ALWAYS_INLINE void int_v::gatherImplementation(const MT *mem, IT &&indexes)
 {
-    IndexSizeChecker<Index, Size>::check();
     d.v() = _mm_setr_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
 }
-template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned int>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
+
+template <>
+template <typename MT, typename IT>
+Vc_ALWAYS_INLINE void uint_v::gatherImplementation(const MT *mem, IT &&indexes)
 {
-    IndexSizeChecker<Index, Size>::check();
     d.v() = _mm_setr_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
 }
-template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
+
+template <>
+template <typename MT, typename IT>
+Vc_ALWAYS_INLINE void short_v::gatherImplementation(const MT *mem, IT &&indexes)
 {
-    IndexSizeChecker<Index, Size>::check();
     d.v() = set(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
             mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
-template<> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes)
+
+template <>
+template <typename MT, typename IT>
+Vc_ALWAYS_INLINE void ushort_v::gatherImplementation(const MT *mem, IT &&indexes)
 {
-    IndexSizeChecker<Index, Size>::check();
     d.v() = set(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
                 mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
 
+template <typename T>
+template <typename MT, typename IT>
+inline void Vector<T>::gatherImplementation(const MT *mem, IT &&indexes, MaskArgument mask)
+{
+    using Selector = std::integral_constant < Common::GatherScatterImplementation,
 #ifdef VC_USE_SET_GATHERS
-template<typename T> template<typename IT> Vc_ALWAYS_INLINE void Vector<T>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Vector<IT>) indexes, MaskArg mask)
-{
-    IndexSizeChecker<Vector<IT>, Size>::check();
-    Vector<IT> indexesTmp = indexes;
-    indexesTmp.setZero(!static_cast<typename Vector<IT>::Mask>(mask));
-    (*this)(mask) = Vector<T>(mem, indexesTmp);
-}
+          Traits::is_simd_vector<IT>::value || Traits::IsSimdArray<IT>::value
+              ? Common::GatherScatterImplementation::SetIndexZero
+              :
 #endif
-
 #ifdef VC_USE_BSF_GATHERS
-#define VC_MASKED_GATHER                        \
-    int bits = mask.toInt();                    \
-    while (bits) {                              \
-        const int i = _bit_scan_forward(bits);  \
-        bits &= ~(1 << i); /* btr? */           \
-        d.m(i) = ith_value(i);                  \
-    }
-#elif defined(VC_USE_POPCNT_BSF_GATHERS)
-#define VC_MASKED_GATHER                        \
-    unsigned int bits = mask.toInt();           \
-    unsigned int low, high = 0;                 \
-    switch (mask.count()) {             \
-    case 8:                                     \
-        high = _bit_scan_reverse(bits);         \
-        d.m(high) = ith_value(high);            \
-        high = (1 << high);                     \
-    case 7:                                     \
-        low = _bit_scan_forward(bits);          \
-        bits ^= high | (1 << low);              \
-        d.m(low) = ith_value(low);              \
-    case 6:                                     \
-        high = _bit_scan_reverse(bits);         \
-        d.m(high) = ith_value(high);            \
-        high = (1 << high);                     \
-    case 5:                                     \
-        low = _bit_scan_forward(bits);          \
-        bits ^= high | (1 << low);              \
-        d.m(low) = ith_value(low);              \
-    case 4:                                     \
-        high = _bit_scan_reverse(bits);         \
-        d.m(high) = ith_value(high);            \
-        high = (1 << high);                     \
-    case 3:                                     \
-        low = _bit_scan_forward(bits);          \
-        bits ^= high | (1 << low);              \
-        d.m(low) = ith_value(low);              \
-    case 2:                                     \
-        high = _bit_scan_reverse(bits);         \
-        d.m(high) = ith_value(high);            \
-    case 1:                                     \
-        low = _bit_scan_forward(bits);          \
-        d.m(low) = ith_value(low);              \
-    case 0:                                     \
-        break;                                  \
-    }
+              Common::GatherScatterImplementation::BitScanLoop
+#elif defined VC_USE_POPCNT_BSF_GATHERS
+              Common::GatherScatterImplementation::PopcntSwitch
 #else
-#define VC_USE_SPECIALIZED_GATHER 1
-#define VC_MASKED_GATHER                        \
-    if (VC_IS_UNLIKELY(mask.isEmpty())) {       \
-        return;                                 \
-    }                                           \
-    for_all_vector_entries(i,                   \
-            if (mask[i]) d.m(i) = ith_value(i); \
-            );
+              Common::GatherScatterImplementation::SimpleLoop
 #endif
-
-namespace
-{
-    template<typename V> static Vc_INTRINSIC_L Vc_PURE_L V setHelper(const typename V::EntryType *mem, const size_t ii[]) Vc_INTRINSIC_R Vc_PURE_R;
-    template<> Vc_INTRINSIC Vc_PURE float_v setHelper(const float_v::EntryType *mem, const size_t ii[])
-    {
-        return _mm_setr_ps(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]]);
-    }
-    template<> Vc_INTRINSIC Vc_PURE double_v setHelper(const double_v::EntryType *mem, const size_t ii[])
-    {
-        return _mm_setr_pd(mem[ii[0]], mem[ii[1]]);
-    }
-    template<> Vc_INTRINSIC Vc_PURE int_v setHelper(const int_v::EntryType *mem, const size_t ii[])
-    {
-        return _mm_setr_epi32(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]]);
-    }
-    template<> Vc_INTRINSIC Vc_PURE uint_v setHelper(const uint_v::EntryType *mem, const size_t ii[])
-    {
-        return _mm_setr_epi32(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]]);
-    }
-    template<> Vc_INTRINSIC Vc_PURE short_v setHelper(const short_v::EntryType *mem, const size_t ii[])
-    {
-        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
-    }
-    template<> Vc_INTRINSIC Vc_PURE ushort_v setHelper(const ushort_v::EntryType *mem, const size_t ii[])
-    {
-        return set(mem[ii[0]], mem[ii[1]], mem[ii[2]], mem[ii[3]], mem[ii[4]], mem[ii[5]], mem[ii[6]], mem[ii[7]]);
-    }
-
-    template<size_t S> struct DetermineUInt { typedef unsigned int Type; };
-    template<> struct DetermineUInt<2> { typedef unsigned short Type; };
-    template<> struct DetermineUInt<1> { typedef unsigned char Type; };
-    template<> struct DetermineUInt<8> { typedef unsigned long long Type; };
-} // anonymous namespace
-
-template<typename T> template<typename Index>
-Vc_INTRINSIC void Vector<T>::gather(const EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes, MaskArg mask)
-{
-    IndexSizeChecker<Index, Size>::check();
-#ifdef VC_USE_SPECIALIZED_GATHER
-#undef VC_USE_SPECIALIZED_GATHER
-    if (VC_IS_UNLIKELY(mask.isEmpty())) {
-        return;
-    }
-    size_t ii[Size];
-    for_all_vector_entries(i,
-            ii[i] = mask[i] ? static_cast<typename DetermineUInt<sizeof(indexes[i])>::Type>(indexes[i]) : 0;
-            );
-    (*this)(mask) = setHelper<Vector<T> >(mem, ii);
-#else
-#define ith_value(_i_) (mem[static_cast<typename DetermineUInt<sizeof(indexes[0])>::Type>(indexes[_i_])])
-    VC_MASKED_GATHER
-#undef ith_value
-#endif
+              > ;
+    Common::executeGather(Selector(), *this, mem, indexes, mask);
 }
 
-template<> template<typename S1, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_pd(array[indexes[0]].*(member1), array[indexes[1]].*(member1));
-}
-template<> template<typename S1, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<float>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_ps(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
-            array[indexes[3]].*(member1));
-}
-template<> template<typename S1, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<int>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi32(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
-            array[indexes[3]].*(member1));
-}
-template<> template<typename S1, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned int>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi32(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
-            array[indexes[3]].*(member1));
-}
-template<> template<typename S1, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = set(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
-            array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
-            array[indexes[6]].*(member1), array[indexes[7]].*(member1));
-}
-template<> template<typename S1, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = set(array[indexes[0]].*(member1), array[indexes[1]].*(member1), array[indexes[2]].*(member1),
-            array[indexes[3]].*(member1), array[indexes[4]].*(member1), array[indexes[5]].*(member1),
-            array[indexes[6]].*(member1), array[indexes[7]].*(member1));
-}
-template<typename T> template<typename S1, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::gather(const S1 *array, const EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask)
-{
-    IndexSizeChecker<IT, Size>::check();
-#define ith_value(_i_) (array[indexes[_i_]].*(member1))
-    VC_MASKED_GATHER
-#undef ith_value
-}
-template<> template<typename S1, typename S2, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_pd(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2));
-}
-template<> template<typename S1, typename S2, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<float>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_ps(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
-            array[indexes[3]].*(member1).*(member2));
-}
-template<> template<typename S1, typename S2, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi32(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2),
-            array[indexes[2]].*(member1).*(member2), array[indexes[3]].*(member1).*(member2));
-}
-template<> template<typename S1, typename S2, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned int>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = _mm_setr_epi32(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2),
-            array[indexes[2]].*(member1).*(member2), array[indexes[3]].*(member1).*(member2));
-}
-template<> template<typename S1, typename S2, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = set(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
-            array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
-            array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
-}
-template<> template<typename S1, typename S2, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes)
-{
-    IndexSizeChecker<IT, Size>::check();
-    d.v() = set(array[indexes[0]].*(member1).*(member2), array[indexes[1]].*(member1).*(member2), array[indexes[2]].*(member1).*(member2),
-            array[indexes[3]].*(member1).*(member2), array[indexes[4]].*(member1).*(member2), array[indexes[5]].*(member1).*(member2),
-            array[indexes[6]].*(member1).*(member2), array[indexes[7]].*(member1).*(member2));
-}
-template<typename T> template<typename S1, typename S2, typename IT>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask)
-{
-    IndexSizeChecker<IT, Size>::check();
-#define ith_value(_i_) (array[indexes[_i_]].*(member1).*(member2))
-    VC_MASKED_GATHER
-#undef ith_value
-}
-template<> template<typename S1, typename IT1, typename IT2>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<double>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes)
-{
-    IndexSizeChecker<IT1, Size>::check();
-    IndexSizeChecker<IT2, Size>::check();
-    d.v() = _mm_setr_pd((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]],
-            (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]]);
-}
-template<> template<typename S1, typename IT1, typename IT2>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<float>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes)
-{
-    IndexSizeChecker<IT1, Size>::check();
-    IndexSizeChecker<IT2, Size>::check();
-    d.v() = _mm_setr_ps((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
-            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]]);
-}
-template<> template<typename S1, typename IT1, typename IT2>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<int>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes)
-{
-    IndexSizeChecker<IT1, Size>::check();
-    IndexSizeChecker<IT2, Size>::check();
-    d.v() = _mm_setr_epi32((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
-            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]]);
-}
-template<> template<typename S1, typename IT1, typename IT2>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned int>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes)
-{
-    IndexSizeChecker<IT1, Size>::check();
-    IndexSizeChecker<IT2, Size>::check();
-    d.v() = _mm_setr_epi32((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
-            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]]);
-}
-template<> template<typename S1, typename IT1, typename IT2>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes)
-{
-    IndexSizeChecker<IT1, Size>::check();
-    IndexSizeChecker<IT2, Size>::check();
-    d.v() = set((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
-            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]],
-            (array[outerIndexes[4]].*(ptrMember1))[innerIndexes[4]], (array[outerIndexes[5]].*(ptrMember1))[innerIndexes[5]],
-            (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
-}
-template<> template<typename S1, typename IT1, typename IT2>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes)
-{
-    IndexSizeChecker<IT1, Size>::check();
-    IndexSizeChecker<IT2, Size>::check();
-    d.v() = set((array[outerIndexes[0]].*(ptrMember1))[innerIndexes[0]], (array[outerIndexes[1]].*(ptrMember1))[innerIndexes[1]],
-            (array[outerIndexes[2]].*(ptrMember1))[innerIndexes[2]], (array[outerIndexes[3]].*(ptrMember1))[innerIndexes[3]],
-            (array[outerIndexes[4]].*(ptrMember1))[innerIndexes[4]], (array[outerIndexes[5]].*(ptrMember1))[innerIndexes[5]],
-            (array[outerIndexes[6]].*(ptrMember1))[innerIndexes[6]], (array[outerIndexes[7]].*(ptrMember1))[innerIndexes[7]]);
-}
-template<typename T> template<typename S1, typename IT1, typename IT2>
-Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::gather(const S1 *array, const EntryType *const S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes, MaskArg mask)
-{
-    IndexSizeChecker<IT1, Size>::check();
-    IndexSizeChecker<IT2, Size>::check();
-#define ith_value(_i_) (array[outerIndexes[_i_]].*(ptrMember1))[innerIndexes[_i_]]
-    VC_MASKED_GATHER
-#undef ith_value
-}
 // scatters {{{1
-#undef VC_MASKED_GATHER
-#ifdef VC_USE_BSF_SCATTERS
-#define VC_MASKED_SCATTER                       \
-    int bits = mask.toInt();                    \
-    while (bits) {                              \
-        const int i = _bit_scan_forward(bits);  \
-        bits ^= (1 << i); /* btr? */            \
-        ith_value(i) = d.m(i);                  \
-    }
-#elif defined(VC_USE_POPCNT_BSF_SCATTERS)
-#define VC_MASKED_SCATTER                       \
-    unsigned int bits = mask.toInt();           \
-    unsigned int low, high = 0;                 \
-    switch (mask.count()) {             \
-    case 8:                                     \
-        high = _bit_scan_reverse(bits);         \
-        ith_value(high) = d.m(high);            \
-        high = (1 << high);                     \
-    case 7:                                     \
-        low = _bit_scan_forward(bits);          \
-        bits ^= high | (1 << low);              \
-        ith_value(low) = d.m(low);              \
-    case 6:                                     \
-        high = _bit_scan_reverse(bits);         \
-        ith_value(high) = d.m(high);            \
-        high = (1 << high);                     \
-    case 5:                                     \
-        low = _bit_scan_forward(bits);          \
-        bits ^= high | (1 << low);              \
-        ith_value(low) = d.m(low);              \
-    case 4:                                     \
-        high = _bit_scan_reverse(bits);         \
-        ith_value(high) = d.m(high);            \
-        high = (1 << high);                     \
-    case 3:                                     \
-        low = _bit_scan_forward(bits);          \
-        bits ^= high | (1 << low);              \
-        ith_value(low) = d.m(low);              \
-    case 2:                                     \
-        high = _bit_scan_reverse(bits);         \
-        ith_value(high) = d.m(high);            \
-    case 1:                                     \
-        low = _bit_scan_forward(bits);          \
-        ith_value(low) = d.m(low);              \
-    case 0:                                     \
-        break;                                  \
-    }
-#else
-#define VC_MASKED_SCATTER                       \
-    if (mask.isEmpty()) {                       \
-        return;                                 \
-    }                                           \
-    for_all_vector_entries(i,                   \
-            if (mask[i]) ith_value(i) = d.m(i); \
-            );
-#endif
+template <typename T>
+template <typename MT, typename IT>
+inline void Vector<T>::scatterImplementation(MT *mem, IT &&indexes) const
+{
+    Common::unrolled_loop<std::size_t, 0, Size>([&](std::size_t i) { mem[indexes[i]] = d.m(i); });
+}
 
-template<typename T> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::scatter(EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes) const
+template <typename T>
+template <typename MT, typename IT>
+inline void Vector<T>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const
 {
-    for_all_vector_entries(i,
-            mem[indexes[i]] = d.m(i);
-            );
+    using Selector = std::integral_constant < Common::GatherScatterImplementation,
+#ifdef VC_USE_SET_GATHERS
+          Traits::is_simd_vector<IT>::value || Traits::IsSimdArray<IT>::value
+              ? Common::GatherScatterImplementation::SetIndexZero
+              :
+#endif
+#ifdef VC_USE_BSF_GATHERS
+              Common::GatherScatterImplementation::BitScanLoop
+#elif defined VC_USE_POPCNT_BSF_GATHERS
+              Common::GatherScatterImplementation::PopcntSwitch
+#else
+              Common::GatherScatterImplementation::SimpleLoop
+#endif
+              > ;
+    Common::executeScatter(Selector(), *this, mem, indexes, mask);
 }
-template<typename T> template<typename Index> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::scatter(EntryType *mem, VC_ALIGNED_PARAMETER(Index) indexes, MaskArg mask) const
-{
-#define ith_value(_i_) mem[indexes[_i_]]
-    VC_MASKED_SCATTER
-#undef ith_value
-}
-template<typename T> template<typename S1, typename IT> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes) const
-{
-    for_all_vector_entries(i,
-            array[indexes[i]].*(member1) = d.m(i);
-            );
-}
-template<typename T> template<typename S1, typename IT> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::scatter(S1 *array, EntryType S1::* member1, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask) const
-{
-#define ith_value(_i_) array[indexes[_i_]].*(member1)
-    VC_MASKED_SCATTER
-#undef ith_value
-}
-template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes) const
-{
-    for_all_vector_entries(i,
-            array[indexes[i]].*(member1).*(member2) = d.m(i);
-            );
-}
-template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, VC_ALIGNED_PARAMETER(IT) indexes, MaskArg mask) const
-{
-#define ith_value(_i_) array[indexes[_i_]].*(member1).*(member2)
-    VC_MASKED_SCATTER
-#undef ith_value
-}
-template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes) const
-{
-    for_all_vector_entries(i,
-            (array[innerIndexes[i]].*(ptrMember1))[outerIndexes[i]] = d.m(i);
-            );
-}
-template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, VC_ALIGNED_PARAMETER(IT1) outerIndexes, VC_ALIGNED_PARAMETER(IT2) innerIndexes, MaskArg mask) const
-{
-#define ith_value(_i_) (array[outerIndexes[_i_]].*(ptrMember1))[innerIndexes[_i_]]
-    VC_MASKED_SCATTER
-#undef ith_value
-}
-#undef VC_MASKED_SCATTER
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator[] {{{1

@@ -49,6 +49,41 @@ Vc_INTRINSIC void Vector<T>::store(U *mem, Mask mask, Flags) const
         mem[0] = m_data;
 }
 
+// gather {{{1
+template <typename T>
+template <typename MT, typename IT>
+Vc_ALWAYS_INLINE void Vector<T>::gatherImplementation(const MT *mem, IT &&indexes)
+{
+    m_data = mem[indexes[0]];
+}
+
+template <typename T>
+template <typename MT, typename IT>
+Vc_ALWAYS_INLINE void Vector<T>::gatherImplementation(const MT *mem,
+                                                      IT &&indexes,
+                                                      MaskArgument mask)
+{
+    if (mask.data()) {
+        m_data = mem[indexes[0]];
+    }
+}
+// scatter {{{1
+template <typename T>
+template <typename MT, typename IT>
+Vc_ALWAYS_INLINE void Vector<T>::scatterImplementation(MT *mem, IT &&indexes) const
+{
+    mem[indexes[0]] = m_data;
+}
+
+template <typename T>
+template <typename MT, typename IT>
+Vc_ALWAYS_INLINE void Vector<T>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const
+{
+    if (mask.data()) {
+        mem[indexes[0]] = m_data;
+    }
+}
+
 // copySign {{{1
 template <>
 Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float> reference) const

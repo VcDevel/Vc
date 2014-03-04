@@ -52,6 +52,7 @@ class Vector
         typedef Vc::Memory<Vector<T>, 1> Memory;
         typedef Vector<unsigned int> IndexType;
         typedef Scalar::Mask<T> Mask;
+        typedef Mask MaskArgument;
         typedef Vector<T> AsArg;
 
         Vc_ALWAYS_INLINE EntryType &data() { return m_data; }
@@ -136,50 +137,8 @@ class Vector
         Vc_INTRINSIC const Vector<T>  dbca() const { return *this; }
         Vc_INTRINSIC const Vector<T>  dcba() const { return *this; }
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // gathers
-        template<typename IndexT> Vc_ALWAYS_INLINE Vector(const EntryType *array, const IndexT *indexes) : m_data(array[indexes[0]]) {}
-        template<typename IndexT> Vc_ALWAYS_INLINE Vector(const EntryType *array, Vector<IndexT> indexes) : m_data(array[indexes[0]]) {}
-        template<typename IndexT> Vc_ALWAYS_INLINE Vector(const EntryType *array, IndexT indexes, Mask m) : m_data(m.data() ? array[indexes[0]] : 0) {}
-        template<typename S1, typename IT> Vc_ALWAYS_INLINE Vector(const S1 *array, const EntryType S1::* member1, IT indexes, Mask mask = Mask(true))
-            : m_data(mask.data() ? (&array[indexes[0]])->*(member1) : 0) {}
-        template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE Vector(const S1 *array, const S2 S1::* member1,
-                const EntryType S2::* member2, IT indexes, Mask mask = Mask(true))
-            : m_data(mask.data() ? array[indexes[0]].*(member1).*(member2) : 0) {}
-        template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE Vector(const S1 *array, const EntryType *const S1::* ptrMember1,
-                IT1 outerIndex, IT2 innerIndex, Mask mask = Mask(true))
-            : m_data(mask.data() ? (array[outerIndex[0]].*(ptrMember1))[innerIndex[0]] : 0) {}
-
-        template<typename IT> Vc_ALWAYS_INLINE void gather(const EntryType *array, IT indexes, Mask mask = Mask(true))
-            { if (mask.data()) m_data = array[indexes[0]]; }
-        template<typename S1, typename IT> Vc_ALWAYS_INLINE void gather(const S1 *array, const EntryType S1::* member1, IT indexes, Mask mask = Mask(true))
-            { if (mask.data()) m_data = (&array[indexes[0]])->*(member1); }
-        template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE void gather(const S1 *array, const S2 S1::* member1,
-                const EntryType S2::* member2, IT indexes, Mask mask = Mask(true))
-            { if (mask.data()) m_data = array[indexes[0]].*(member1).*(member2); }
-        template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE void gather(const S1 *array, const EntryType *const S1::* ptrMember1,
-                IT1 outerIndex, IT2 innerIndex, Mask mask = Mask(true))
-            { if (mask.data()) m_data = (array[outerIndex[0]].*(ptrMember1))[innerIndex[0]]; }
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // scatters
-        Vc_ALWAYS_INLINE void scatter(EntryType *array, const Vector<unsigned int> &indexes, Mask m = Mask(true)) const { if (m.data()) array[indexes[0]] = m_data; }
-        template<typename S1> Vc_ALWAYS_INLINE void scatter(S1 *array, EntryType S1::* member, const Vector<unsigned int> &indexes, Mask m = Mask(true)) const {
-            if (m.data()) array[indexes[0]].*(member) = m_data;
-        }
-        template<typename S1, typename S2> Vc_ALWAYS_INLINE void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2,
-                const Vector<unsigned int> &indexes, Mask m = Mask(true)) const {
-            if (m.data()) array[indexes[0]].*(member1).*(member2) = m_data;
-        }
-
-        Vc_ALWAYS_INLINE void scatter(EntryType *array, const Vector<unsigned short> &indexes, Mask m = Mask(true)) const { if (m.data()) array[indexes[0]] = m_data; }
-        template<typename S1> Vc_ALWAYS_INLINE void scatter(S1 *array, EntryType S1::* member, const Vector<unsigned short> &indexes, Mask m = Mask(true)) const {
-            if (m.data()) array[indexes[0]].*(member) = m_data;
-        }
-        template<typename S1, typename S2> Vc_ALWAYS_INLINE void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2,
-                const Vector<unsigned short> &indexes, Mask m = Mask(true)) const {
-            if (m.data()) array[indexes[0]].*(member1).*(member2) = m_data;
-        }
+#include "common/gatherinterface.h"
+#include "common/scatterinterface.h"
 
         //prefix
         Vc_ALWAYS_INLINE Vector &operator++() { ++m_data; return *this; }
