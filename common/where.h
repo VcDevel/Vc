@@ -24,6 +24,8 @@
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+namespace WhereImpl
+{
 
     template<typename _Mask, typename _LValue> struct MaskedLValue
     {
@@ -122,6 +124,7 @@ namespace Vc_VERSIONED_NAMESPACE
             return operator|(std::forward<T>(lhs));
         }
     };
+}  // namespace WhereImpl
 
 /**
  * \ingroup Utilities
@@ -162,12 +165,12 @@ namespace Vc_VERSIONED_NAMESPACE
  * Most of the time the required operation is a masked assignment as stated in \c f2.
  *
  */
-template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereMask<M> where(const M &mask)
+template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereImpl::WhereMask<M> where(const M &mask)
 {
     return { mask };
 }
 
-template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereMask<M> _if(const M &m)
+template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereImpl::WhereMask<M> _if(const M &m)
 {
     return { m };
 }

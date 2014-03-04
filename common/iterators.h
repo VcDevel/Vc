@@ -176,12 +176,12 @@ template<typename V> constexpr typename std::enable_if<Traits::is_simd_mask<V>::
     return { v, V::Size };
 }
 
-template<typename M> Vc_ALWAYS_INLINE BitmaskIterator begin(const WhereMask<M> &w)
+template<typename M> Vc_ALWAYS_INLINE BitmaskIterator begin(const WhereImpl::WhereMask<M> &w)
 {
     return w.mask.toInt();
 }
 
-template<typename M> Vc_ALWAYS_INLINE BitmaskIterator end(const WhereMask<M> &)
+template<typename M> Vc_ALWAYS_INLINE BitmaskIterator end(const WhereImpl::WhereMask<M> &)
 {
     return 0;
 }
