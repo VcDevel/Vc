@@ -320,6 +320,29 @@ namespace Vc_VERSIONED_NAMESPACE
       typedef _Tp type;
     };
 
+    // non-member begin / end
+    template <typename T, std::size_t N>
+    inline auto begin(array<T, N>& arr) -> decltype(arr.begin())
+    {
+        return arr.begin();
+    }
+    template <typename T, std::size_t N>
+    inline auto begin(const array<T, N>& arr) -> decltype(arr.begin())
+    {
+        return arr.begin();
+    }
+    template <typename T, std::size_t N>
+    inline auto end(array<T, N>& arr) -> decltype(arr.end())
+    {
+        return arr.end();
+    }
+    template <typename T, std::size_t N>
+    inline auto end(const array<T, N>& arr) -> decltype(arr.end())
+    {
+        return arr.end();
+    }
+
+
 namespace Traits
 {
 template <typename T, std::size_t N>
