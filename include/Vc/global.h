@@ -312,29 +312,6 @@
 #    define VC_IMPL_SSE 1
 #endif
 
-#if defined(VC_GCC) && VC_GCC < 0x40300 && !defined(VC_IMPL_Scalar)
-#    ifndef VC_DONT_WARN_OLD_GCC
-#      warning "GCC < 4.3 does not have full support for SSE2 intrinsics. Using scalar types/operations only. Define VC_DONT_WARN_OLD_GCC to silence this warning."
-#    endif
-#    undef VC_IMPL_SSE
-#    undef VC_IMPL_SSE2
-#    undef VC_IMPL_SSE3
-#    undef VC_IMPL_SSE4_1
-#    undef VC_IMPL_SSE4_2
-#    undef VC_IMPL_SSSE3
-#    undef VC_IMPL_AVX
-#    undef VC_IMPL_AVX2
-#    undef VC_IMPL_MIC
-#    undef VC_IMPL_FMA4
-#    undef VC_IMPL_XOP
-#    undef VC_IMPL_F16C
-#    undef VC_IMPL_POPCNT
-#    undef VC_IMPL_SSE4a
-#    undef VC_IMPL_FMA
-#    undef VC_USE_VEX_CODING
-#    define VC_IMPL_Scalar 1
-#endif
-
 # if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX) && !defined(VC_IMPL_MIC)
 #  error "No suitable Vc implementation was selected! Probably VC_IMPL was set to an invalid value."
 # elif defined(VC_IMPL_SSE) && !defined(VC_IMPL_SSE2)
