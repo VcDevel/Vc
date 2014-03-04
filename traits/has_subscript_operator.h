@@ -32,18 +32,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace has_subscript_operator_impl
 {
 
-struct any {
-    template <typename T> any(T &&);
-};
-
-template <typename T, typename = decltype(std::declval<T &>()[0])> int test(T);
-template <typename T> short test(any);
+template <typename T, typename I, typename = decltype(std::declval<T &>()[std::declval<I>()])> std::true_type test(int);
+template <typename T, typename I> std::false_type test(float);
 
 }  // namespace has_subscript_operator_impl
 
-template <typename T, typename TD = typename std::decay<T>::type>
-struct has_subscript_operator : public std::is_same<int, decltype(has_subscript_operator_impl::test<TD>(std::declval<TD &>()))>
+template <typename T, typename I = std::size_t>
+struct has_subscript_operator : public decltype(has_subscript_operator_impl::test<T, I>(1))
 {
 };
+
+static_assert(has_subscript_operator<int[]>::value, "");
+static_assert(has_subscript_operator<int[], int>::value, "");
+static_assert(!has_subscript_operator<int[], void *>::value, "");
 
 #endif // VC_TRAITS_HAS_SUBSCRIPT_OPERATOR_H
