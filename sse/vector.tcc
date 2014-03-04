@@ -67,21 +67,6 @@ template<> Vc_INTRINSIC double_v::Vector(VectorSpecialInitializerIndexesFromZero
 {
 }
 
-template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::Zero()
-{
-    return VectorHelper<VectorType>::zero();
-}
-
-template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::One()
-{
-    return VectorHelper<T>::one();
-}
-
-template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::IndexesFromZero()
-{
-    return Vector<T>(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
-}
-
 // load member functions {{{1
 // LoadHelper {{{2
 template<typename DstT, typename SrcT, typename Flags> struct LoadHelper;

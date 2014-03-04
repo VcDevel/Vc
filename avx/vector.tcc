@@ -41,10 +41,6 @@ template<> Vc_ALWAYS_INLINE float_v::Vector(VectorSpecialInitializerIndexesFromZ
 template<> Vc_ALWAYS_INLINE double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
     : d(_mm256_cvtepi32_pd(_mm_load_si128(reinterpret_cast<const __m128i *>(_IndexesFromZero32)))) {}
 
-template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::Zero() { return HT::zero(); }
-template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::One() { return HT::one(); }
-template<typename T> Vc_INTRINSIC Vector<T> Vc_CONST Vector<T>::IndexesFromZero() { return Vector<T>(VectorSpecialInitializerIndexesFromZero::IndexesFromZero); }
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 // load member functions {{{1
 // LoadHelper {{{2

@@ -112,14 +112,6 @@ public:
 
 #include "common/generalinterface.h"
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // constants
-    inline explicit Vector(VectorSpecialInitializerZero::ZEnum);
-    inline explicit Vector(VectorSpecialInitializerOne::OEnum);
-    inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum);
-    static inline Vector Zero();
-    static inline Vector One();
-    static inline Vector IndexesFromZero();
     static Vector Random();
 
     ///////////////////////////////////////////////////////////////////////////////////////////

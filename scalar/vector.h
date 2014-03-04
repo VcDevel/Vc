@@ -65,14 +65,6 @@ class Vector
 
 #include "common/generalinterface.h"
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // constants
-        Vc_ALWAYS_INLINE Vector(VectorSpecialInitializerZero::ZEnum) : m_data(0) {}
-        Vc_ALWAYS_INLINE Vector(VectorSpecialInitializerOne::OEnum) : m_data(1) {}
-        Vc_ALWAYS_INLINE Vector(VectorSpecialInitializerIndexesFromZero::IEnum) : m_data(0) {}
-        static Vc_ALWAYS_INLINE Vector Zero() { Vector r; r.m_data = 0; return r; }
-        static Vc_ALWAYS_INLINE Vector One() { Vector r; r.m_data = 1; return r; }
-        static Vc_ALWAYS_INLINE Vector IndexesFromZero() { return Zero(); }
         static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////

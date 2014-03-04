@@ -84,14 +84,6 @@ template<typename T> class Vector
 
 #include "common/generalinterface.h"
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // constants
-        explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerZero::ZEnum) Vc_INTRINSIC_R;
-        explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerOne::OEnum) Vc_INTRINSIC_R;
-        explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerIndexesFromZero::IEnum) Vc_INTRINSIC_R;
-        static Vc_INTRINSIC_L Vector Zero() Vc_INTRINSIC_R;
-        static Vc_INTRINSIC_L Vector One() Vc_INTRINSIC_R;
-        static Vc_INTRINSIC_L Vector IndexesFromZero() Vc_INTRINSIC_R;
         static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////

@@ -93,14 +93,6 @@ template<typename T> class Vector
     public:
 #include "common/generalinterface.h"
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // constants
-        explicit Vc_ALWAYS_INLINE_L Vector(VectorSpecialInitializerZero::ZEnum) Vc_ALWAYS_INLINE_R;
-        explicit Vc_ALWAYS_INLINE_L Vector(VectorSpecialInitializerOne::OEnum) Vc_ALWAYS_INLINE_R;
-        explicit Vc_ALWAYS_INLINE_L Vector(VectorSpecialInitializerIndexesFromZero::IEnum) Vc_ALWAYS_INLINE_R;
-        static Vc_INTRINSIC_L Vc_CONST_L Vector Zero() Vc_INTRINSIC_R Vc_CONST_R;
-        static Vc_INTRINSIC_L Vc_CONST_L Vector One() Vc_INTRINSIC_R Vc_CONST_R;
-        static Vc_INTRINSIC_L Vc_CONST_L Vector IndexesFromZero() Vc_INTRINSIC_R Vc_CONST_R;
         static Vc_ALWAYS_INLINE_L Vector Random() Vc_ALWAYS_INLINE_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////

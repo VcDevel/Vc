@@ -26,6 +26,22 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Scalar
 {
 
+template <typename T>
+Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum)
+    : m_data(0)
+{
+}
+template <typename T>
+Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerOne::OEnum)
+    : m_data(1)
+{
+}
+template <typename T>
+Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : m_data(0)
+{
+}
+
 // load member functions{{{1
 template <typename T>
 template <typename U, typename Flags, typename>

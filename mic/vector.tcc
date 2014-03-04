@@ -116,12 +116,6 @@ template<> Vc_ALWAYS_INLINE float_v::Vector(VectorSpecialInitializerIndexesFromZ
 template<> Vc_ALWAYS_INLINE double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
     : d(StaticCastHelper<int, double>::cast(int_v::IndexesFromZero().data())) {}
 
-template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::Zero() { return HV::zero(); }
-template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::One() { return HV::one(); }
-template<typename T> Vc_INTRINSIC Vc_CONST Vector<T> Vector<T>::IndexesFromZero() {
-    return Vector<T>(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
-}
-
 // loads {{{1
 template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *x, Flags flags) {
     Common::handleLoadPrefetches(x, flags);
