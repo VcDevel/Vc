@@ -17,12 +17,14 @@
 
 */
 
+#define VC_NEWTEST
 #include "unittest.h"
 #include <iostream>
+#include <Vc/array>
 
 using namespace Vc;
 
-template<typename Vec> void maskedGatherArray()
+TEST_BEGIN(Vec, maskedGatherArray, (ALL_VECTORS))
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
@@ -45,35 +47,47 @@ template<typename Vec> void maskedGatherArray()
         for (size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(b[i], m[i] ? mem[i] : x) << " i = " << i << ", m = " << m;
         }
+
+        // test with array of indexes instead of index-vector:
+        const Vec c(mem, &indexes[0], m);
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            COMPARE(a[i], m[i] ? mem[i] : 0) << " i = " << i << ", m = " << m;
+        }
+
+        b = x;
+        b.gather(mem, &indexes[0], m);
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            COMPARE(b[i], m[i] ? mem[i] : x) << " i = " << i << ", m = " << m;
+        }
     }
 }
+TEST_END
 
-template<typename Vec, bool = Vc::is_integral<Vec>::value && Vc::is_signed<Vec>::value> class incrementIndex
+template <typename Vec>
+Vec incrementIndex(
+    const typename Vec::IndexType &i,
+    typename std::enable_if<!(Vc::is_integral<Vec>::value &&Vc::is_signed<Vec>::value),
+                            void *>::type = nullptr)
 {
-    typedef typename Vec::IndexType It;
-    It i;
-public:
-    incrementIndex(const It &ii) : i(ii) {}
-    operator Vec() { return static_cast<Vec>(++i); }
-};
+    return static_cast<Vec>(i + i.One());
+}
 
-template<typename Vec> class incrementIndex<Vec, true>
+template <typename Vec>
+Vec incrementIndex(const typename Vec::IndexType &i,
+                   typename std::enable_if<Vc::is_integral<Vec>::value &&Vc::is_signed<Vec>::value,
+                                           void *>::type = nullptr)
 {
-    typedef typename Vec::IndexType It;
-    It i;
-public:
-    incrementIndex(const It &ii) : i(ii) {}
-    operator Vec() {
-        ++i;
-        // if (i + 1) > std::numeric_limits<Vec>::max() it will overflow, which results in
-        // undefined behavior for signed integers
-        where(i > static_cast<It>(std::numeric_limits<Vec>::max())) |
-            i = i - static_cast<It>(std::numeric_limits<Vec>::max()) + static_cast<It>(std::numeric_limits<Vec>::min()) - It::One();
-        return static_cast<Vec>(i);
-    }
-};
+    using IT = typename Vec::IndexType;
+    using T = typename Vec::EntryType;
+    // if (i + 1) > std::numeric_limits<Vec>::max() it will overflow, which results in
+    // undefined behavior for signed integers
+    const typename Vec::Mask overflowing{i >= static_cast<IT>(std::numeric_limits<T>::max())};
+    Vec r(i + IT::One());
+    where(overflowing) | r = static_cast<Vec>(i - std::numeric_limits<T>::max() + std::numeric_limits<T>::min());
+    return r;
+}
 
-template<typename Vec> void gatherArray()
+TEST_BEGIN(Vec, gatherArray, (ALL_VECTORS))
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
@@ -88,7 +102,7 @@ template<typename Vec> void gatherArray()
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         const Vec ii = incrementIndex<Vec>(i);
         const typename Vec::Mask castedMask = static_cast<typename Vec::Mask>(mask);
-        if (castedMask.isFull()) {
+        if (all_of(castedMask)) {
             Vec a(array, i);
             COMPARE(a, ii) << "\n       i: " << i;
             Vec b(Zero);
@@ -99,8 +113,8 @@ template<typename Vec> void gatherArray()
         Vec b(Zero);
         b.gather(array, i, castedMask);
         COMPARE(castedMask, (b == ii)) << ", b = " << b << ", ii = " << ii << ", i = " << i;
-        if (!castedMask.isFull()) {
-            COMPARE(!castedMask, b == Vec(Zero));
+        if (!all_of(castedMask)) {
+            COMPARE(!castedMask, b == Vec(Zero)) << "\nb: " << b << "\ncastedMask: " << castedMask << !castedMask;
         }
     }
 
@@ -109,6 +123,7 @@ template<typename Vec> void gatherArray()
     a.gather(array, It(IndexesFromZero), k);
     COMPARE(a, Vec(One));
 }
+TEST_END
 
 template<typename T> struct Struct
 {
@@ -120,13 +135,13 @@ template<typename T> struct Struct
     char z;
 };
 
-template<typename Vec> void gatherStruct()
+TEST_BEGIN(Vec, gatherStruct, (ALL_VECTORS))
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
     typedef Struct<T> S;
-    const int count = 3999;
-    S array[count];
+    constexpr int count = 3999;
+    Vc::array<S, count> array;
     for (int i = 0; i < count; ++i) {
         array[i].a = i;
         array[i].b = i + 1;
@@ -142,47 +157,47 @@ template<typename Vec> void gatherStruct()
         const typename Vec::Mask castedMask(mask);
 
         if (castedMask.isFull()) {
-            Vec a(array, &S::a, i);
+            Vec a = array[i][&S::a];
             COMPARE(a, i0) << "\ni: " << i;
-            a.gather(array, &S::b, i);
+            a = array[i][&S::b];
             COMPARE(a, i1);
-            a.gather(array, &S::c, i);
+            a = array[i][&S::c];
             COMPARE(a, i2);
         }
 
         Vec b(Zero);
-        b.gather(array, &S::a, i, castedMask);
+        where(castedMask) | b = array[i][&S::a];
         COMPARE(castedMask, (b == i0));
         if (!castedMask.isFull()) {
             COMPARE(!castedMask, b == Vec(Zero));
         }
-        b.gather(array, &S::b, i, castedMask);
+        where(castedMask) | b = array[i][&S::b];
         COMPARE(castedMask, (b == i1));
         if (!castedMask.isFull()) {
             COMPARE(!castedMask, b == Vec(Zero));
         }
-        b.gather(array, &S::c, i, castedMask);
+        where(castedMask) | b = array[i][&S::c];
         COMPARE(castedMask, (b == i2));
         if (!castedMask.isFull()) {
             COMPARE(!castedMask, b == Vec(Zero));
         }
     }
 }
+TEST_END
 
-template<typename T> struct Row
+template<typename T, int N> struct Row
 {
-    T *data;
+    T data[N];
 };
 
-template<typename Vec> void gather2dim()
+TEST_BEGIN(Vec, gather2dim, (ALL_VECTORS))
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
-    const int count = 399;
-    typedef Row<T> S;
-    S array[count];
+    constexpr int count = 19;
+    typedef Row<T, count> S;
+    Vc::array<S, count> array;
     for (int i = 0; i < count; ++i) {
-        array[i].data = new T[count];
         for (int j = 0; j < count; ++j) {
             array[i].data[j] = 2 * i + j + 1;
         }
@@ -194,40 +209,26 @@ template<typename Vec> void gather2dim()
             const Vec i0(i * 2 + j + 1);
             const typename Vec::Mask castedMask(mask);
 
-            Vec a(array, &S::data, i, j, castedMask);
+            Vec a;
+            where(castedMask) | a = array[i][&S::data][j];
             COMPARE(castedMask, castedMask && (a == i0)) << ", a = " << a << ", i0 = " << i0 << ", i = " << i << ", j = " << j;
 
             Vec b(Zero);
-            b.gather(array, &S::data, i, j, castedMask);
+            where(castedMask) | b = array[i][&S::data][j];
             COMPARE(castedMask, (b == i0));
             if (!castedMask.isFull()) {
                 COMPARE(!castedMask, b == Vec(Zero));
             } else {
-                Vec c(array, &S::data, i, j);
+                Vec c;
+                c = array[i][&S::data][j];
+                COMPARE(c, i0) << "i: " << i << ", j: " << j;
                 VERIFY((c == i0).isFull());
 
                 Vec d(Zero);
-                d.gather(array, &S::data, i, j);
+                d = array[i][&S::data][j];
                 VERIFY((d == i0).isFull());
             }
         }
     }
-    for (int i = 0; i < count; ++i) {
-        delete[] array[i].data;
-    }
 }
-
-void testmain()
-{
-    testAllTypes(gatherArray);
-    testAllTypes(maskedGatherArray);
-#if defined(VC_CLANG) && VC_CLANG <= 0x030000
-    // clang fails with:
-    //  candidate template ignored: failed template argument deduction
-    //  template<typename S1, typename IT> inline Vector(const S1 *array, const T S1::* member1, IT indexes, Mask mask = true)
-#warning "Skipping compilation of tests gatherStruct and gather2dim because of clang bug"
-#else
-    testAllTypes(gatherStruct);
-    testAllTypes(gather2dim);
-#endif
-}
+TEST_END
