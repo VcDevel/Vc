@@ -50,17 +50,25 @@ class simd_mask_array
 
 public:
     typedef typename vector_type::Mask mask_type;
-    static constexpr std::size_t size = N;
-    static constexpr std::size_t register_count = size > mask_type::Size ? size / mask_type::Size : 1;
+    static constexpr std::size_t size() { return N; }
+    static constexpr std::size_t Size = size();
+    static constexpr std::size_t register_count = size() > mask_type::Size ? size() / mask_type::Size : 1;
+
+    typedef Common::MaskData<mask_type, register_count> storage_type;
 
     // zero init
     simd_mask_array() = default;
 
+    Vc_ALWAYS_INLINE explicit simd_mask_array(VectorSpecialInitializerZero::ZEnum) : d(false) {}
+    Vc_ALWAYS_INLINE explicit simd_mask_array(VectorSpecialInitializerOne::OEnum) : d(true) {}
     Vc_ALWAYS_INLINE simd_mask_array(bool x) : d(x) {}
 
     // default copy ctor/operator
     simd_mask_array(const simd_mask_array &) = default;
     simd_mask_array(simd_mask_array &&) = default;
+    template <typename U> simd_mask_array(const simd_mask_array<U, N> &x) : d(x.d)
+    {
+    }
     simd_mask_array &operator=(const simd_mask_array &) = default;
 
     Vc_ALWAYS_INLINE Vc_PURE bool isFull() const { return d.isFull(); }
@@ -81,8 +89,24 @@ public:
         return m[i / mask_type::Size][i % mask_type::Size];
     }
 
+    simd_mask_array operator!() const
+    {
+        simd_mask_array r;
+        r.d.assign(d, &mask_type::operator!);
+        return r;
+    }
+
+    unsigned int count() const
+    {
+        return d.count();
+    }
+
 //private:
-    Common::MaskData<mask_type, register_count> d;
+    storage_type d;
+
+    friend const decltype(d) & simd_mask_array_data(const simd_mask_array &x) { return x.d; }
+    friend decltype(d) & simd_mask_array_data(simd_mask_array &x) { return x.d; }
+    friend decltype(std::move(d)) simd_mask_array_data(simd_mask_array &&x) { return std::move(x.d); }
 };
 
 }

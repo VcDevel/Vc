@@ -669,6 +669,8 @@ INPUT                  = ../include/Vc/global.h \
                          ../include/Vc/cpuid.h \
                          ../include/Vc/support.h \
                          ../include/Vc/Allocator \
+                         ../include/Vc/array \
+                         ../include/Vc/vector \
                          ./dox.h \
                          ./examples.h \
                          ../common/algorithms.h \
@@ -678,8 +680,11 @@ INPUT                  = ../include/Vc/global.h \
                          ../common/makeContainer.h \
                          ../common/memory.h \
                          ../common/memorybase.h \
+                         ../common/simd_array.h \
+                         ../common/simd_mask_array.h \
                          ../common/support.h \
-                         ../common/where.h
+                         ../common/where.h \
+                         ../traits
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
