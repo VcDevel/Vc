@@ -20,6 +20,7 @@
 #ifndef VC_COMMON_WHERE_H
 #define VC_COMMON_WHERE_H
 
+#include "types.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -65,6 +66,51 @@ namespace WhereImpl
         Vc_ALWAYS_INLINE void operator--(int) { lhs(mask)--; }
     };
 
+    template <typename _Mask, typename T_, typename I_, typename S_>
+    struct MaskedLValue<_Mask, Common::SubscriptOperation<T_, I_, S_>>
+    {
+        typedef _Mask Mask;
+        typedef Common::SubscriptOperation<T_, I_, S_> SO;
+
+        const Mask &mask;
+        const SO lhs;
+
+        template <typename T> using Decay = typename std::decay<T>::type;
+
+        // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
+        constexpr MaskedLValue(const Mask &m, SO &&l) : mask(m), lhs(l) {}
+        MaskedLValue(const MaskedLValue &) = delete;
+        constexpr MaskedLValue(MaskedLValue &&) = default;
+
+        /* It is intentional that the assignment operators return void: When a bool is used for the
+         * mask the code might get skipped completely, thus nothing can be returned. This would be
+         * like requiring an if statement to return a value.
+         */
+        template<typename T> Vc_ALWAYS_INLINE void operator  =(T &&rhs) { std::forward<T>(rhs).scatter(lhs.scatterArguments(), mask); }
+        /*
+         * The following operators maybe make some sense. But only if implemented directly on the
+         * scalar objects in memory. Thus, the user is probably better of with a manual loop.
+         *
+         * If implemented the operators would need to do a masked gather, one operation, and a
+         * masked scatter. There is no way this is going to be efficient.
+         *
+        template<typename T> Vc_ALWAYS_INLINE void operator +=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  + std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator -=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  - std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator *=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  * std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator /=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  / std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator %=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  % std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator ^=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  ^ std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator &=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  & std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator |=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  | std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator<<=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask) << std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator>>=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask) >> std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        Vc_ALWAYS_INLINE void operator++()    { ++lhs(mask); }
+        Vc_ALWAYS_INLINE void operator++(int) { lhs(mask)++; }
+        Vc_ALWAYS_INLINE void operator--()    { --lhs(mask); }
+        Vc_ALWAYS_INLINE void operator--(int) { lhs(mask)--; }
+        */
+    };
+
     template<typename _LValue> struct MaskedLValue<bool, _LValue>
     {
         typedef bool Mask;
@@ -107,6 +153,15 @@ namespace WhereImpl
         // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
         constexpr WhereMask(const Mask &m) : mask(m) {}
         WhereMask(const WhereMask &) = delete;
+
+        template <typename T, typename I, typename S>
+        constexpr Vc_WARN_UNUSED_RESULT MaskedLValue<Mask, Common::SubscriptOperation<T, I, S>> operator|(
+            Common::SubscriptOperation<T, I, S> &&lhs) const
+        {
+            static_assert(!std::is_const<T>::value,
+                          "masked scatter to constant memory not possible.");
+            return {mask, std::move(lhs)};
+        }
 
         template<typename T> constexpr Vc_WARN_UNUSED_RESULT MaskedLValue<Mask, T> operator|(T &&lhs) const
         {

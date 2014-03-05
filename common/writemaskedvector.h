@@ -98,6 +98,20 @@ public:
         return *vec;
     }
 
+    template<typename T, typename IndexVector>
+    Vc_ALWAYS_INLINE V &operator=(const GatherArguments<T, IndexVector> &x)
+    {
+        vec->gather(x, mask);
+        return *vec;
+    }
+
+    template <typename T, typename = enable_if<Traits::IsSubscriptOperation<T>::value>>
+    Vc_ALWAYS_INLINE V &operator=(T &&x)
+    {
+        vec->gather(std::forward<T>(x).gatherArguments(), mask);
+        return *vec;
+    }
+
     template <typename F> Vc_INTRINSIC void call(const F &f) const
     {
         return vec->call(f, mask);

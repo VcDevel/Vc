@@ -162,6 +162,34 @@ template <typename T> using WidthT = std::integral_constant<std::size_t, sizeof(
 
 template<size_t Bytes> class MaskBool;
 
+template <typename T, typename IndexVector, typename Scale> class SubscriptOperation;
+
+/**
+ * \internal
+ * Helper type to pass along the two arguments for a gather operation.
+ *
+ * \tparam IndexVector  Normally an integer SIMD vector, but an array or std::vector also works
+ *                      (though often not as efficient).
+ */
+template <typename T, typename IndexVector> struct GatherArguments
+{
+    const IndexVector indexes;
+    const T *const address;
+};
+
+/**
+ * \internal
+ * Helper type to pass along the two arguments for a scatter operation.
+ *
+ * \tparam IndexVector  Normally an integer SIMD vector, but an array or std::vector also works
+ *                      (though often not as efficient).
+ */
+template <typename T, typename IndexVector> struct ScatterArguments
+{
+    const IndexVector indexes;
+    T *const address;
+};
+
 template <typename I, I Begin, I End, typename F>
 Vc_INTRINSIC enable_if<(Begin == End), void> unrolled_loop(F &&)
 {
