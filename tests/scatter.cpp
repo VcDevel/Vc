@@ -17,37 +17,22 @@
 
 */
 // includes {{{1
+#define VC_NEWTEST
 #include "unittest.h"
 #include <iostream>
 #include <cstring>
+#include <Vc/array>
 
 using namespace Vc;
 
-template<typename Vec> void maskedScatterArray() //{{{1
-{
-    typedef typename Vec::IndexType It;
-    typedef typename Vec::EntryType T;
+#define ALL_TYPES /*SIMD_ARRAYS(32), SIMD_ARRAYS(16), SIMD_ARRAYS(8), SIMD_ARRAYS(4), SIMD_ARRAYS(2), SIMD_ARRAYS(1),*/ ALL_VECTORS
 
-    T mem[Vec::Size];
-    const Vec v = Vec::IndexesFromZero() + 1;
-
-    for_all_masks(Vec, m) {
-        Vec::Zero().store(mem, Vc::Unaligned);
-        v.scatter(&mem[0], It::IndexesFromZero(), m);
-
-        Vec reference = v;
-        reference.setZero(!m);
-
-        COMPARE(Vec(mem, Vc::Unaligned), reference) << "m = " << m;
-    }
-}
-
-template<typename Vec> void scatterArray() //{{{1
+TEST_BEGIN(Vec, scatterArray, (ALL_TYPES)) //{{{1
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType It;
-    const int count = 31999;
-    typename Vec::EntryType array[count], out[count];
+    constexpr int count = 31999;
+    Vc::array<T, count> array, out;
     for (int i = 0; i < count; ++i) {
         array[i] = i;
         if (!std::is_integral<T>::value || !std::is_unsigned<T>::value) {
@@ -57,22 +42,60 @@ template<typename Vec> void scatterArray() //{{{1
     typename It::Mask mask;
     for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         typename Vec::Mask castedMask(mask);
-        if (castedMask.isFull()) {
-            Vec a(array, i);
-            a += Vec(One);
-            a.scatter(out, i);
+        if (all_of(castedMask)) {
+            Vec a(&array[0], i);
+            a += 1;
+            a.scatter(&out[0], i);
         } else {
-            Vec a(array, i, castedMask);
-            a += Vec(One);
-            a.scatter(out, i, castedMask);
+            Vec a(&array[0], i, castedMask);
+            a += 1;
+            a.scatter(&out[0], i, castedMask);
         }
     }
     for (int i = 0; i < count; ++i) {
         array[i] += 1;
         COMPARE(array[i], out[i]);
     }
-    COMPARE(0, std::memcmp(array, out, count * sizeof(typename Vec::EntryType)));
+    COMPARE(0, std::memcmp(&array[0], &out[0], count * sizeof(typename Vec::EntryType)));
+
+    for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
+        typename Vec::Mask castedMask(mask);
+        if (all_of(castedMask)) {
+            Vec a = array[i];
+            out[i] = a + 1;
+        } else {
+            Vec a;
+            where(castedMask) | a = array[i];
+            where(castedMask) | out[i] = a + 1;
+        }
+    }
+    for (int i = 0; i < count; ++i) {
+        array[i] += 1;
+        COMPARE(array[i], out[i]);
+    }
+    COMPARE(0, std::memcmp(&array[0], &out[0], count * sizeof(typename Vec::EntryType)));
 }
+TEST_END
+
+TEST_BEGIN(Vec, maskedScatterArray, (ALL_TYPES)) //{{{1
+{
+    typedef typename Vec::IndexType It;
+    typedef typename Vec::EntryType T;
+
+    Vc::array<T, Vec::Size> mem;
+    const Vec v = Vec::IndexesFromZero() + 1;
+
+    for_all_masks(Vec, m) {
+        Vec::Zero().store(&mem[0], Vc::Unaligned);
+        where(m) | mem[It::IndexesFromZero()] = v;
+
+        Vec reference = v;
+        reference.setZeroInverted(m);
+
+        COMPARE(Vec(&mem[0], Vc::Unaligned), reference) << "m = " << m;
+    }
+}
+TEST_END
 
 template<typename T> struct Struct //{{{1
 {
@@ -84,14 +107,14 @@ template<typename T> struct Struct //{{{1
     char z;
 };
 
-template<typename Vec> void scatterStruct() //{{{1
+TEST_BEGIN(Vec, scatterStruct, (ALL_TYPES)) //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef Struct<typename Vec::EntryType> S;
-    const int count = 3999;
-    S array[count], out[count];
-    memset(array, 0, count * sizeof(S));
-    memset(out, 0, count * sizeof(S));
+    constexpr int count = 3999;
+    Vc::array<S, count> array, out;
+    memset(&array[0], 0, count * sizeof(S));
+    memset(&out[0], 0, count * sizeof(S));
     for (int i = 0; i < count; ++i) {
         array[i].a = i;
         array[i].b = i + 1;
@@ -100,15 +123,16 @@ template<typename Vec> void scatterStruct() //{{{1
     typename It::Mask mask;
     for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         typename Vec::Mask castedMask(mask);
-        Vec a(array, &S::a, i, castedMask);
-        Vec b(array, &S::b, i, castedMask);
-        Vec c(array, &S::c, i, castedMask);
-        a.scatter(out, &S::a, i, castedMask);
-        b.scatter(out, &S::b, i, castedMask);
-        c.scatter(out, &S::c, i, castedMask);
+        Vec a; a(castedMask) = array[i][&S::a];
+        where(castedMask) | out[i][&S::a] = a;
+        Vec b; b(castedMask) = array[i][&S::b];
+        where(castedMask) | out[i][&S::b] = b;
+        Vec c; c(castedMask) = array[i][&S::c];
+        where(castedMask) | out[i][&S::c] = c;
     }
-    VERIFY(0 == memcmp(array, out, count * sizeof(S)));
+    VERIFY(0 == memcmp(&array[0], &out[0], count * sizeof(S)));
 }
+TEST_END
 
 template<typename T> struct Struct2 //{{{1
 {
@@ -134,19 +158,29 @@ static std::ostream &operator<<(std::ostream &out, const Struct2<T> *s)
     return out;
 }
 
+template <typename T, std::size_t N>
+static std::ostream &operator<<(std::ostream &out, const Vc::array<T, N> &x)
+{
+    out << x[0];
+    for (std::size_t i = 1; i < N; ++i) {
+        out << ' ' << x[i];
+    }
+    return out;
+}
+
 template<typename V> V makeReference(V v, typename V::Mask m)
 {
     v.setZero(!m);
     return v;
 }
-template<typename Vec> void scatterStruct2() //{{{1
+TEST_BEGIN(Vec, scatterStruct2, (ALL_TYPES)) //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef Struct2<typename Vec::EntryType> S1;
     typedef Struct<typename Vec::EntryType> S2;
-    S1 array[scatterStruct2Count], out[scatterStruct2Count];
-    memset(array, 0, scatterStruct2Count * sizeof(S1));
-    memset(out, 0, scatterStruct2Count * sizeof(S1));
+    Vc::array<S1, scatterStruct2Count> array, out;
+    memset(&array[0], 0, scatterStruct2Count * sizeof(S1));
+    memset(&out[0], 0, scatterStruct2Count * sizeof(S1));
     for (int i = 0; i < scatterStruct2Count; ++i) {
         array[i].b.a = i + 0;
         array[i].b.b = i + 1;
@@ -156,46 +190,21 @@ template<typename Vec> void scatterStruct2() //{{{1
     typename Vec::Mask castedMask;
     for (It i(IndexesFromZero); !(mask = (i < scatterStruct2Count)).isEmpty(); i += Vec::Size) {
         castedMask = static_cast<decltype(castedMask)>(mask);
-        Vec a(array, &S1::b, &S2::a, i, castedMask);
+        Vec a = Vec(); a(castedMask) = array[i][&S1::b][&S2::a];
+        Vec b = Vec(); b(castedMask) = array[i][&S1::b][&S2::b];
+        Vec c = Vec(); c(castedMask) = array[i][&S1::b][&S2::c];
         COMPARE(a, static_cast<Vec>(makeReference(i, mask)));
-        Vec b(array, &S1::b, &S2::b, i, castedMask);
         COMPARE(b, static_cast<Vec>(makeReference(i + 1, mask)));
-        Vec c(array, &S1::b, &S2::c, i, castedMask);
         COMPARE(c, static_cast<Vec>(makeReference(i + 2, mask)));
-        a.scatter(out, &S1::b, &S2::a, i, castedMask);
-        b.scatter(out, &S1::b, &S2::b, i, castedMask);
-        c.scatter(out, &S1::b, &S2::c, i, castedMask);
+        where(castedMask) | out[i][&S1::b][&S2::a] = a;
+        where(castedMask) | out[i][&S1::b][&S2::b] = b;
+        where(castedMask) | out[i][&S1::b][&S2::c] = c;
     }
     // castedmask != mask here because mask is changed in the for loop, but castedmask has the value
     // from the previous iteration
-    VERIFY(0 == memcmp(array, out, scatterStruct2Count * sizeof(S1))) << mask << ' ' << castedMask << '\n'
+    VERIFY(0 == memcmp(&array[0], &out[0], scatterStruct2Count * sizeof(S1))) << mask << ' ' << castedMask << '\n'
         << array << '\n' << out;
 }
-
-void testmain() //{{{1
-{
-    runTest(scatterArray<int_v>);
-    runTest(scatterArray<uint_v>);
-    runTest(scatterArray<float_v>);
-    runTest(scatterArray<double_v>);
-    runTest(scatterArray<short_v>);
-    runTest(scatterArray<ushort_v>);
-    testAllTypes(maskedScatterArray);
-#if defined(VC_CLANG) && VC_CLANG <= 0x030000
-    // clang fails with:
-    //  candidate template ignored: failed template argument deduction
-    //  template<typename S1, typename IT> inline Vector(const S1 *array, const T S1::*
-    //          member1, IT indexes, Mask mask = true)
-#warning "Skipping compilation of tests scatterStruct and scatterStruct2 because of clang bug"
-#else
-    runTest(scatterStruct<int_v>);
-    runTest(scatterStruct<uint_v>);
-    runTest(scatterStruct<float_v>);
-    runTest(scatterStruct<double_v>);
-    runTest(scatterStruct<short_v>);
-    runTest(scatterStruct<ushort_v>);
-    testAllTypes(scatterStruct2);
-#endif
-}
+TEST_END
 
 // vim: foldmethod=marker
