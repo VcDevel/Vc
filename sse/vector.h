@@ -388,9 +388,17 @@ static Vc_ALWAYS_INLINE Vc_PURE ushort_v max(const ushort_v &x, const ushort_v &
 static Vc_ALWAYS_INLINE Vc_PURE float_v  max(const float_v  &x, const float_v  &y) { return _mm_max_ps(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE Vc_PURE double_v max(const double_v &x, const double_v &y) { return _mm_max_pd(x.data(), y.data()); }
 
+template <typename T,
+          typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
+                               std::is_same<T, short>::value ||
+                               std::is_same<T, int>::value>>
+Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
+{
+    return VectorHelper<T>::abs(x.data());
+}
+
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> sqrt (const Vector<T> &x) { return VectorHelper<T>::sqrt(x.data()); }
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> rsqrt(const Vector<T> &x) { return VectorHelper<T>::rsqrt(x.data()); }
-  template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs  (const Vector<T> &x) { return VectorHelper<T>::abs(x.data()); }
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> reciprocal(const Vector<T> &x) { return VectorHelper<T>::reciprocal(x.data()); }
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> round(const Vector<T> &x) { return VectorHelper<T>::round(x.data()); }
 

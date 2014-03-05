@@ -486,6 +486,15 @@ template<typename T> struct SwizzledVector
     MATH_OP2(atan2, atan2)
 #undef MATH_OP2
 
+template <typename T,
+          typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
+                               std::is_same<T, short>::value ||
+                               std::is_same<T, int>::value>>
+Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
+{
+    return VectorHelper<typename Vector<T>::VectorEntryType>::abs(x.data());
+}
+
 #define MATH_OP1(name, call) \
     template<typename T> static Vc_ALWAYS_INLINE Vector<T> name(const Vector<T> &x) \
     { \
@@ -494,7 +503,6 @@ template<typename T> struct SwizzledVector
     }
     MATH_OP1(sqrt, sqrt)
     MATH_OP1(rsqrt, rsqrt)
-    MATH_OP1(abs, abs)
     MATH_OP1(sin, sin)
     MATH_OP1(cos, cos)
     MATH_OP1(log, log)

@@ -47,15 +47,14 @@ template<typename T> static Vc_ALWAYS_INLINE Vector<T> rsqrt(const Vector<T> &x)
     const typename Vector<T>::EntryType one = 1; return Vector<T>(one / std::sqrt(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> abs  (const Vector<T> &x)
+template <typename T,
+          typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
+                               std::is_same<T, short>::value ||
+                               std::is_same<T, int>::value>>
+Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
 {
-    return Vector<T>(std::abs(x.data()));
+    return std::abs(x.data());
 }
-
-template<> Vc_ALWAYS_INLINE int_v abs(const int_v &x) { return x < 0 ? -x : x; }
-template<> Vc_ALWAYS_INLINE uint_v abs(const uint_v &x) { return x; }
-template<> Vc_ALWAYS_INLINE short_v abs(const short_v &x) { return x < 0 ? -x : x; }
-template<> Vc_ALWAYS_INLINE ushort_v abs(const ushort_v &x) { return x; }
 
 template<typename T> static Vc_ALWAYS_INLINE void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos)
 {
