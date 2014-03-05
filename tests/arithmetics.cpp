@@ -273,7 +273,7 @@ TEST_ALL_V(Vec, testDiv)
     }
 }
 
-TEST_BEGIN(V, testModulo, (int_v, ushort_v, uint_v, short_v))
+TEST_BEGIN(V, testModulo, (simd_array<int, 32>, simd_array<short, 32>, int_v, ushort_v, uint_v, short_v))
     for (int repetition = 0; repetition < 1000; ++repetition) {
         V x = V::Random();
         V y = (V::Random() & 2047) - 1023;

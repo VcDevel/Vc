@@ -87,7 +87,7 @@ Vec incrementIndex(const typename Vec::IndexType &i,
     return r;
 }
 
-TEST_BEGIN(Vec, gatherArray, (ALL_VECTORS))
+TEST_BEGIN(Vec, gatherArray, (SIMD_ARRAYS(32), ALL_VECTORS))
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
