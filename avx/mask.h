@@ -71,7 +71,24 @@ template<typename T> class Mask
     friend class Mask< int16_t>;
     friend class Mask<uint16_t>;
 
+public:
+    /**
+     * The \c EntryType of masks is always bool, independent of \c T.
+     */
+    typedef bool EntryType;
+
+    /**
+     * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the SIMD
+     * implementation. This type is useful for the \c sizeof operator in generic functions.
+     */
+    typedef T VectorEntryType;
+
+    /**
+     * The \c VectorType reveals the implementation-specific internal type used for the SIMD type.
+     */
     typedef typename FloatVectorType<typename VectorTypeHelper<T>::Type>::Type VectorType;
+
+private:
     typedef typename  DoubleVectorType<VectorType>::Type VectorTypeD;
     typedef typename IntegerVectorType<VectorType>::Type VectorTypeI;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN

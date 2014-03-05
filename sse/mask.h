@@ -71,15 +71,35 @@ template<typename T> class Mask
     friend class Mask< int16_t>;
     friend class Mask<uint16_t>;
 
+    /**
+     * A helper type for aliasing the entries in the mask but behaving like a bool.
+     */
+    typedef Common::MaskBool<sizeof(T)> MaskBool;
+
+    typedef Common::VectorMemoryUnion<__m128, MaskBool> Storage;
+
+public:
+
+    /**
+     * The \c EntryType of masks is always bool, independent of \c T.
+     */
+    typedef bool EntryType;
+
+    /**
+     * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the SIMD
+     * implementation. This type is useful for the \c sizeof operator in generic functions.
+     */
+    typedef MaskBool VectorEntryType;
+
+    /**
+     * The \c VectorType reveals the implementation-specific internal type used for the SIMD type.
+     */
+    typedef __m128 VectorType;
+
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
         static constexpr size_t Size = VectorTraits<T>::Size;
 
-    private:
-        typedef Common::MaskBool<sizeof(T)> MaskBool;
-        typedef Common::VectorMemoryUnion<__m128, MaskBool> Storage;
-
-    public:
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
 #if defined VC_MSVC && defined _WIN32
         typedef const Mask<T> &Argument;
