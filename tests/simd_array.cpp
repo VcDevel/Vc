@@ -38,7 +38,7 @@ TEST_BEGIN(V, createArray, SIMD_ARRAY_LIST)
     typedef typename V::vector_type Vec;
     V array;
 
-    COMPARE(array.size, captureN(V()));
+    COMPARE(array.size(), captureN(V()));
     VERIFY(array.register_count > 0);
     VERIFY(array.register_count <= captureN(V()));
     VERIFY(array.register_count * Vec::Size >= captureN(V()));
