@@ -69,6 +69,7 @@ template<typename T> class Vector
             MemoryAlignment = alignof(VectorType)
         };
         typedef typename VectorTraits<T>::EntryType EntryType;
+        using VectorEntryType = EntryType;
         typedef typename VectorTraits<T>::IndexType IndexType;
         typedef typename VectorTraits<T>::MaskType Mask;
         typedef typename Mask::Argument MaskArg;

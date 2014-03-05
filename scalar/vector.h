@@ -46,6 +46,7 @@ class Vector
 {
     public:
         typedef typename DetermineEntryType<T>::Type EntryType;
+        using VectorEntryType = EntryType;
     protected:
         EntryType m_data;
     public:
