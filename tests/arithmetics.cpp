@@ -286,6 +286,9 @@ TEST_BEGIN(V, testModulo, (int_v, ushort_v, uint_v, short_v))
         }
 
         COMPARE(z, reference) << ", x: " << x << ", y: " << y;
+
+        COMPARE(V::Zero() % y, V::Zero());
+        COMPARE(y % y, V::Zero());
     }
 TEST_END
 
