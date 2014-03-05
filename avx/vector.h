@@ -125,6 +125,13 @@ template<typename T> class Vector
         {
         }
 
+        // static_cast from other types, implemented via the non-member simd_cast function
+        template <typename U, typename = enable_if<Traits::is_simd_vector<U>::value>>
+        Vc_INTRINSIC explicit Vector(U &&x)
+            : d(simd_cast<Vector>(std::forward<U>(x)).data())
+        {
+        }
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         Vc_INTRINSIC Vector(EntryType a) : d(HT::set(a)) {}
