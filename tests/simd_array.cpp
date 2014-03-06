@@ -100,7 +100,6 @@ TEST_BEGIN(V, arithmetics, SIMD_ARRAY_LIST)
 }
 TEST_END
 
-#if 0
 TEST_BEGIN(V, load, SIMD_ARRAY_LIST)
     typedef typename V::EntryType T;
     Vc::Memory<V, V::Size + 2> data;
@@ -122,6 +121,7 @@ TEST_BEGIN(V, load, SIMD_ARRAY_LIST)
     COMPARE(a, b - 1);
 TEST_END
 
+#if 0
 TEST(load_converting)
 {
     typedef simd_array<float, 32> A;

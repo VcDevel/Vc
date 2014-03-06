@@ -91,6 +91,15 @@ public:
     {
     }
 
+    // forward all remaining ctors
+    template <typename... Args,
+              typename = enable_if<!Traits::IsCastArguments<Args...>::value &&
+                                   !Traits::is_initializer_list<Args...>::value>>
+    explicit Vc_INTRINSIC simd_array(Args &&... args)
+        : data(std::forward<Args>(args)...)
+    {
+    }
+
     // internal: execute specified Operation
     template <typename Op, typename... Args>
     static Vc_INTRINSIC simd_array fromOperation(Op op, Args &&... args)
@@ -100,9 +109,31 @@ public:
         return r;
     }
 
+    static Vc_INTRINSIC simd_array Zero()
+    {
+        return simd_array(VectorSpecialInitializerZero::Zero);
+    }
+    static Vc_INTRINSIC simd_array One()
+    {
+        return simd_array(VectorSpecialInitializerOne::One);
+    }
+    static Vc_INTRINSIC simd_array IndexesFromZero()
+    {
+        return simd_array(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
+    }
+    static Vc_INTRINSIC simd_array Random()
+    {
+        return fromOperation(Common::Operations::random());
+    }
+
     template <typename... Args> Vc_INTRINSIC void load(Args &&... args)
     {
         data.load(std::forward<Args>(args)...);
+    }
+
+    template <typename... Args> Vc_INTRINSIC void store(Args &&... args) const
+    {
+        data.store(std::forward<Args>(args)...);
     }
 
 #define Vc_ARITHMETIC(op)                                                                          \
@@ -230,6 +261,12 @@ public:
     {
         data0.load(Split::lo(std::forward<Args>(args))...);
         data1.load(Split::hi(std::forward<Args>(args))...);
+    }
+
+    template <typename... Args> Vc_INTRINSIC void store(Args &&... args) const
+    {
+        data0.store(Split::lo(std::forward<Args>(args))...);
+        data1.store(Split::hi(std::forward<Args>(args))...);
     }
 
     template <typename U>
