@@ -781,20 +781,41 @@ protected:
     }
 };
 
-template <template <typename V> class TestFunctor, typename TestType0, typename... TestTypes>
-class Test2<TestFunctor, TestType0, TestTypes...> : public Test2<TestFunctor, TestTypes...>
+template <template <typename V> class TestFunctor, typename TestType0>
+class Test2<TestFunctor, TestType0>
+{
+public:
+    static void call0() {
+        TestFunctor<TestType0>()();
+    }
+
+    Test2(std::string name)
+    {
+        g_allTests.emplace_back(&call0, name + '<' + typeToString<TestType0>() + '>');
+    }
+};
+
+template <template <typename V> class TestFunctor,
+          typename TestType0,
+          typename TestType1,
+          typename... TestTypes>
+class Test2<TestFunctor, TestType0, TestType1, TestTypes...> : public Test2<TestFunctor,
+                                                                            TestTypes...>
 {
     typedef Test2<TestFunctor, TestTypes...> Base;
 
 public:
-    static void call() {
+    static void call0() {
         TestFunctor<TestType0>()();
+    }
+    static void call1() {
+        TestFunctor<TestType1>()();
     }
 
     Test2(std::string name) : Base(name)
     {
-        name += '<' + typeToString<TestType0>() + '>';
-        g_allTests.emplace_back(&call, name);
+        g_allTests.emplace_back(&call1, name + '<' + typeToString<TestType1>() + '>');
+        g_allTests.emplace_back(&call0, name + '<' + typeToString<TestType0>() + '>');
     }
 };
 
