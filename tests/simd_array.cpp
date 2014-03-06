@@ -121,11 +121,17 @@ TEST_BEGIN(V, load, SIMD_ARRAY_LIST)
     COMPARE(a, b - 1);
 TEST_END
 
-#if 0
-TEST(load_converting)
+TEST_BEGIN(A,
+           load_converting,
+           (simd_array<float, 32>,
+            simd_array<float, 17>,
+            simd_array<float, 16>,
+            simd_array<float, 8>,
+            simd_array<float, 4>,
+            simd_array<float, 3>,
+            simd_array<float, 2>,
+            simd_array<float, 1>))
 {
-    typedef simd_array<float, 32> A;
-
     Vc::Memory<double_v, 34> data;
     for (size_t i = 0; i < data.entriesCount(); ++i) {
         data[i] = double(i);
@@ -141,7 +147,9 @@ TEST(load_converting)
     a = A(&data[2], Vc::Unaligned | Vc::Streaming);
     COMPARE(a, b + 1);
 }
+TEST_END
 
+#if 0
 TEST_ALL_V(V, store)
 {
     typedef typename V::EntryType T;
