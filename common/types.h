@@ -38,15 +38,15 @@ namespace Vc_IMPL_NAMESPACE
 
 template <typename T, std::size_t N> struct array;
 
-template <typename T, std::size_t N, typename VectorType> class simd_array;
+template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_array;
 
 namespace Traits
 {
-template <typename T, std::size_t N, typename VectorType> struct is_simd_array_internal<simd_array<T, N, VectorType>> : public std::true_type {};
-template <typename T, std::size_t N, typename V> struct is_integral_internal      <simd_array<T, N, V>, false> : public std::is_integral<T> {};
-template <typename T, std::size_t N, typename V> struct is_floating_point_internal<simd_array<T, N, V>, false> : public std::is_floating_point<T> {};
-template <typename T, std::size_t N, typename V> struct is_signed_internal        <simd_array<T, N, V>, false> : public std::is_signed<T> {};
-template <typename T, std::size_t N, typename V> struct is_unsigned_internal      <simd_array<T, N, V>, false> : public std::is_unsigned<T> {};
+template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simd_array_internal<simd_array<T, N, VectorType, M>> : public std::true_type {};
+template <typename T, std::size_t N, typename V, std::size_t M> struct is_integral_internal      <simd_array<T, N, V, M>, false> : public std::is_integral<T> {};
+template <typename T, std::size_t N, typename V, std::size_t M> struct is_floating_point_internal<simd_array<T, N, V, M>, false> : public std::is_floating_point<T> {};
+template <typename T, std::size_t N, typename V, std::size_t M> struct is_signed_internal        <simd_array<T, N, V, M>, false> : public std::is_signed<T> {};
+template <typename T, std::size_t N, typename V, std::size_t M> struct is_unsigned_internal      <simd_array<T, N, V, M>, false> : public std::is_unsigned<T> {};
 }  // namespace Traits
 
 /* TODO: add type for half-float, something along these lines:

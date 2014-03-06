@@ -31,6 +31,251 @@
 namespace Vc_VERSIONED_NAMESPACE
 {
 
+template <typename T,
+          std::size_t N,
+          typename VectorType = typename Common::select_best_vector_type<N,
+#ifdef VC_IMPL_AVX
+                                                                         Vc::Vector<T>,
+                                                                         Vc::SSE::Vector<T>,
+                                                                         Vc::Scalar::Vector<T>
+#elif defined(VC_IMPL_Scalar)
+                                                                         Vc::Vector<T>
+#else
+                                                                         Vc::Vector<T>,
+                                                                         Vc::Scalar::Vector<T>
+#endif
+                                                                         >::type,
+          std::size_t VectorSize = VectorType::size()  // this last parameter is only used for
+                                                       // specialization of N == VectorSize
+          >
+class simd_array;
+
+template <typename T, std::size_t N, typename VectorType> class simd_array<T, N, VectorType, N>
+{
+    static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value ||
+                      std::is_same<T, int32_t>::value ||
+                      std::is_same<T, uint32_t>::value ||
+                      std::is_same<T, int16_t>::value ||
+                      std::is_same<T, uint16_t>::value,
+                  "simd_array<T, N> may only be used with T = { double, float, int32_t, uint32_t, "
+                  "int16_t, uint16_t }");
+
+public:
+    using vector_type = VectorType;
+    using vectorentry_type = typename vector_type::VectorEntryType;
+    using value_type = T;
+    using mask_type = simd_mask_array<T, N, vector_type>;
+    using index_type = simd_array<int, N>;
+    static constexpr std::size_t size() { return N; }
+    using Mask = mask_type;
+    using VectorEntryType = vectorentry_type;
+    using EntryType = value_type;
+    using IndexType = index_type;
+    static constexpr std::size_t Size = size();
+
+    // zero init
+    simd_array() = default;
+
+    // default copy ctor/operator
+    simd_array(const simd_array &) = default;
+    simd_array(simd_array &&) = default;
+    simd_array &operator=(const simd_array &) = default;
+
+    // broadcast
+    Vc_ALWAYS_INLINE simd_array(value_type a) : data(a) {}
+    template <
+        typename U,
+        typename = enable_if<std::is_same<U, int>::value && !std::is_same<int, value_type>::value>>
+    simd_array(U a)
+        : simd_array(static_cast<value_type>(a))
+    {
+    }
+
+    // internal: execute specified Operation
+    template <typename Op, typename... Args>
+    static Vc_INTRINSIC simd_array fromOperation(Op op, Args &&... args)
+    {
+        simd_array r;
+        op(r.data, std::forward<Args>(args)...);
+        return r;
+    }
+
+    template <typename... Args> Vc_INTRINSIC void load(Args &&... args)
+    {
+        data.load(std::forward<Args>(args)...);
+    }
+
+    Vc_INTRINSIC simd_array operator+(const simd_array &rhs) const
+    {
+        return {data + rhs.data};
+    }
+
+#define Vc_COMPARES(op)                                                                            \
+    Vc_INTRINSIC bool operator op(const simd_array &rhs) const { return data op rhs.data; }
+    VC_ALL_COMPARES(Vc_COMPARES)
+#undef Vc_COMPARES
+
+    Vc_INTRINSIC value_type operator[](std::size_t i) const
+    {
+        return data[i];
+    }
+
+    Vc_INTRINSIC const vectorentry_type *begin() const
+    {
+        return reinterpret_cast<const vectorentry_type *>(&data);
+    }
+
+    Vc_INTRINSIC const vectorentry_type *end() const
+    {
+        return reinterpret_cast<const vectorentry_type *>(&data + 1);
+    }
+
+private:
+    Vc_INTRINSIC simd_array(VectorType &&x) : data(std::move(x)) {}
+    VectorType data;
+};
+
+template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_array
+{
+    static_assert(std::is_same<T,   double>::value ||
+                  std::is_same<T,    float>::value ||
+                  std::is_same<T,  int32_t>::value ||
+                  std::is_same<T, uint32_t>::value ||
+                  std::is_same<T,  int16_t>::value ||
+                  std::is_same<T, uint16_t>::value, "simd_array<T, N> may only be used with T = { double, float, int32_t, uint32_t, int16_t, uint16_t }");
+
+    using storage_type0 = simd_array<T, N / 2>;
+    using storage_type1 = simd_array<T, N - N / 2>;
+
+    using Split = Common::Split<storage_type0::size()>;
+
+public:
+    using vector_type = VectorType;
+    using vectorentry_type = typename storage_type0::vectorentry_type;
+    using value_type = T;
+    using mask_type = simd_mask_array<T, N, vector_type>;
+    using index_type = simd_array<int, N>;
+    static constexpr std::size_t size() { return N; }
+    using Mask = mask_type;
+    using VectorEntryType = vectorentry_type;
+    using EntryType = value_type;
+    using IndexType = index_type;
+    static constexpr std::size_t Size = size();
+
+    // zero init
+    simd_array() = default;
+
+    // default copy ctor/operator
+    simd_array(const simd_array &) = default;
+    simd_array(simd_array &&) = default;
+    simd_array &operator=(const simd_array &) = default;
+
+    // broadcast
+    Vc_ALWAYS_INLINE simd_array(value_type a) : data0(a), data1(a) {}
+    template <
+        typename U,
+        typename = enable_if<std::is_same<U, int>::value && !std::is_same<int, value_type>::value>>
+    simd_array(U a)
+        : simd_array(static_cast<value_type>(a))
+    {
+    }
+
+    // forward all remaining ctors
+    template <typename... Args,
+              typename = enable_if<!Traits::IsCastArguments<Args...>::value &&
+                                   !Traits::is_initializer_list<Args...>::value>>
+    explicit Vc_ALWAYS_INLINE simd_array(Args &&... args)
+        : data0(Split::lo(std::forward<Args>(args))...)
+        , data1(Split::hi(std::forward<Args>(args))...)
+    {
+    }
+
+    // implicit casts
+    template <typename U, typename V>
+    Vc_ALWAYS_INLINE simd_array(const simd_array<U, N, V> &x)
+        : data0(Split::lo(x)), data1(Split::hi(x))
+    {
+    }
+
+    // internal: execute specified Operation
+    template <typename Op, typename... Args>
+    static Vc_INTRINSIC simd_array fromOperation(Op op, Args &&... args)
+    {
+        simd_array r = {storage_type0::fromOperation(op, Split::lo(std::forward<Args>(args))...),
+                        storage_type1::fromOperation(op, Split::lo(std::forward<Args>(args))...)};
+        return r;
+    }
+
+    static Vc_ALWAYS_INLINE simd_array Zero()
+    {
+        return simd_array(VectorSpecialInitializerZero::Zero);
+    }
+    static Vc_ALWAYS_INLINE simd_array One()
+    {
+        return simd_array(VectorSpecialInitializerOne::One);
+    }
+    static Vc_ALWAYS_INLINE simd_array IndexesFromZero()
+    {
+        return simd_array(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
+    }
+    static Vc_ALWAYS_INLINE simd_array Random()
+    {
+        return fromOperation(Common::Operations::random());
+    }
+
+    template <typename... Args> Vc_INTRINSIC void load(Args &&... args)
+    {
+        data0.load(Split::lo(std::forward<Args>(args))...);
+        data1.load(Split::hi(std::forward<Args>(args))...);
+    }
+
+    template <typename U>
+    using result_vector_type = simd_array<decltype(std::declval<T>() + std::declval<U>()), N>;
+
+    template <typename U>
+    Vc_INTRINSIC result_vector_type<U> operator+(const simd_array<U, N> &rhs) const
+    {
+        return result_vector_type<U>{*this} + result_vector_type<U>{rhs};
+    }
+
+    Vc_INTRINSIC simd_array operator+(const simd_array &rhs) const
+    {
+        return {data0 + rhs.data0, data1 + rhs.data1};
+    }
+
+#define Vc_COMPARES(op)                                                                            \
+    Vc_INTRINSIC bool operator op(const simd_array &rhs) const                                     \
+    {                                                                                              \
+        return data0 op rhs.data0 && data1 op rhs.data1;                                           \
+    }
+    VC_ALL_COMPARES(Vc_COMPARES)
+#undef Vc_COMPARES
+
+    Vc_INTRINSIC value_type operator[](std::size_t i) const
+    {
+        return data0.begin()[i];
+    }
+
+    Vc_INTRINSIC const vectorentry_type *begin() const
+    {
+        return data0.begin();
+    }
+
+    Vc_INTRINSIC const vectorentry_type *end() const
+    {
+        return data0.end();
+    }
+
+private:
+    Vc_INTRINSIC simd_array(storage_type0 &&x, storage_type1 &&y)
+        : data0(std::move(x)), data1(std::move(y))
+    {
+    }
+    storage_type0 data0;
+    storage_type1 data1;
+};
+
+#if 0
 // === having simd_array<T, N> in the Vc namespace leads to a ABI bug ===
 //
 // simd_array<double, 4> can be { double[4] }, { __m128d[2] }, or { __m256d } even though the type
@@ -374,6 +619,7 @@ template <typename T, std::size_t N> simd_array<T, N> abs(simd_array<T, N> x)
     //simd_array_data(r).assign(static_cast<V(&)(const V &)>(abs), simd_array_data(x));
     return r;
 }
+#endif
 
 } // namespace Vc_VERSIONED_NAMESPACE
 

@@ -25,9 +25,11 @@ using namespace Vc;
 
 #define SIMD_ARRAY_LIST                                                                            \
     (SIMD_ARRAYS(32),                                                                              \
+     SIMD_ARRAYS(17),                                                                              \
      SIMD_ARRAYS(16),                                                                              \
      SIMD_ARRAYS(8),                                                                               \
      SIMD_ARRAYS(4),                                                                               \
+     SIMD_ARRAYS(3),                                                                               \
      SIMD_ARRAYS(2),                                                                               \
      SIMD_ARRAYS(1))
 
@@ -35,19 +37,23 @@ template<typename T, size_t N> constexpr size_t captureN(simd_array<T, N>) { ret
 
 TEST_BEGIN(V, createArray, SIMD_ARRAY_LIST)
     typedef typename V::EntryType T;
+    typedef typename V::VectorEntryType VT;
     typedef typename V::vector_type Vec;
     V array;
 
     COMPARE(array.size(), captureN(V()));
-    VERIFY(array.register_count > 0);
-    VERIFY(array.register_count <= captureN(V()));
-    VERIFY(array.register_count * Vec::Size >= captureN(V()));
+    VERIFY(sizeof(array) >= array.size() * sizeof(VT));
+    VERIFY(sizeof(array) <= 2 * array.size() * sizeof(VT));
 TEST_END
 
 TEST_BEGIN(V, broadcast, SIMD_ARRAY_LIST)
     typedef typename V::EntryType T;
     V array = 0;
     array = 1;
+    V v0{T(1)};
+    V v1 = T(2);
+    v0 = 2;
+    v1 = 3;
 TEST_END
 
 TEST_BEGIN(V, broadcast_equal, SIMD_ARRAY_LIST)
@@ -60,11 +66,10 @@ TEST_BEGIN(V, broadcast_equal, SIMD_ARRAY_LIST)
     COMPARE(a, b);
 TEST_END
 
-TEST_ALL_V(V, broadcast_not_equal)
-{
+TEST_BEGIN(V, broadcast_not_equal, SIMD_ARRAY_LIST)
     typedef typename V::EntryType T;
-    simd_array<T, 32> a = 0;
-    simd_array<T, 32> b = 1;
+    V a = 0;
+    V b = 1;
     VERIFY(all_of(a != b));
     VERIFY(all_of(a < b));
     VERIFY(all_of(a <= b));
@@ -73,8 +78,19 @@ TEST_ALL_V(V, broadcast_not_equal)
     a = 1;
     VERIFY(all_of(a <= b));
     VERIFY(all_of(a >= b));
-}
+TEST_END
 
+TEST_BEGIN(V, addition, SIMD_ARRAY_LIST)
+{
+    V a = 0;
+    V b = 1;
+    V c = 10;
+    COMPARE(a + b, b);
+    COMPARE(c + b, V{11});
+}
+TEST_END
+
+#if 0
 TEST_BEGIN(V, load, SIMD_ARRAY_LIST)
     typedef typename V::EntryType T;
     Vc::Memory<V, V::Size + 2> data;
@@ -132,3 +148,4 @@ TEST_ALL_V(V, store)
     a.store(&data[1], Vc::Unaligned | Vc::Streaming);
     for (size_t i = 0; i < 32; ++i) COMPARE(data[i + 1], i);
 }
+#endif

@@ -68,80 +68,39 @@ struct Count : public Defaults
 } // namespace Reductions}}}
 namespace Operations/*{{{*/
 {
-struct Gather
-{
-    template <typename V, typename... Args> void operator()(V &v, Args &&... args)
-    {
-        v.gather(std::forward<Args>(args)...);
+struct tag {};
+#define Vc_DEFINE_OPERATION(name__)                                                                \
+    struct name__ : public tag                                                                     \
+    {                                                                                              \
+        template <typename V, typename... Args>                                                    \
+        Vc_INTRINSIC void operator()(V &v, Args &&... args)                                        \
+        {                                                                                          \
+            v.name__(std::forward<Args>(args)...);                                                 \
+        }                                                                                          \
     }
-};
-struct Abs
-{
-    template <typename V, typename... Args> void operator()(V &v, Args &&... args)
-    {
-        v = abs(std::forward<Args>(args)...);
+Vc_DEFINE_OPERATION(gather);
+Vc_DEFINE_OPERATION(scatter);
+Vc_DEFINE_OPERATION(load);
+Vc_DEFINE_OPERATION(store);
+Vc_DEFINE_OPERATION(setZero);
+Vc_DEFINE_OPERATION(setZeroInverted);
+Vc_DEFINE_OPERATION(assign);
+#undef Vc_DEFINE_OPERATION
+#define Vc_DEFINE_OPERATION(name__, code__)                                                        \
+    struct name__ : public tag                                                                     \
+    {                                                                                              \
+        template <typename V, typename... Args>                                                    \
+        Vc_INTRINSIC void operator()(V &v, Args &&... args)                                        \
+        {                                                                                          \
+            code__;                                                                                \
+        }                                                                                          \
     }
-};
-struct Scatter
-{
-    template <typename V, typename... Args> void operator()(const V &v, Args &&... args)
-    {
-        v.scatter(std::forward<Args>(args)...);
-    }
-};
-struct Load
-{
-    template <typename V, typename... Args> void operator()(V &v, Args &&... args)
-    {
-        v.load(std::forward<Args>(args)...);
-    }
-};
-struct Store {
-    template <typename V, typename... Args> void operator()(const V &v, Args &&... args)
-    {
-        v.store(std::forward<Args>(args)...);
-    }
-};
-struct Increment {
-    template <typename V> void operator()(V &v)
-    {
-        ++v;
-    }
-};
-struct Decrement {
-    template <typename V> void operator()(V &v)
-    {
-        --v;
-    }
-};
-struct Subscript
-{
-    template <typename V> decltype(std::declval<V>()[0]) operator()(V &&v, std::size_t i)
-    {
-        return v[i];
-    }
-};
-struct SetZero
-{
-    template <typename V, typename... Args> void operator()(V &v, Args &&... args)
-    {
-        v.setZero(std::forward<Args>(args)...);
-    }
-};
-struct SetZeroInverted
-{
-    template <typename V, typename... Args> void operator()(V &v, Args &&... args)
-    {
-        v.setZeroInverted(std::forward<Args>(args)...);
-    }
-};
-struct Assign
-{
-    template <typename V, typename... Args> void operator()(V &v, Args &&... args)
-    {
-        v.assign(std::forward<Args>(args)...);
-    }
-};
+Vc_DEFINE_OPERATION(increment, ++v);
+Vc_DEFINE_OPERATION(decrement, --v);
+Vc_DEFINE_OPERATION(random, v = V::Random());
+Vc_DEFINE_OPERATION(abs, v = abs(v));
+#undef Vc_DEFINE_OPERATION
+template<typename T> using is_operation = std::is_base_of<tag, T>;
 }  // namespace Operations }}}
 /*select_best_vector_type{{{*/
 namespace internal
@@ -207,10 +166,8 @@ template <std::size_t secondOffset> struct Split/*{{{*/
 {
     template<typename Op = void, typename U> static Vc_ALWAYS_INLINE U lo(U &&x) { return std::forward<U>(x); }
     template<typename Op = void, typename U> static Vc_ALWAYS_INLINE U hi(U &&x) { return std::forward<U>(x); }
-    template <typename Op, typename U> static Vc_ALWAYS_INLINE U *hi(U *ptr, typename std::enable_if< std::is_same<Op, Operations::Gather>::value ||  std::is_same<Op, Operations::Scatter>::value>::type = nullptr) { return ptr; }
-    template <typename Op, typename U> static Vc_ALWAYS_INLINE U *hi(U *ptr, typename std::enable_if<!std::is_same<Op, Operations::Gather>::value && !std::is_same<Op, Operations::Scatter>::value>::type = nullptr) { return ptr + secondOffset; }
-    template <typename Op> static Vc_ALWAYS_INLINE std::size_t hi(std::size_t i, typename std::enable_if< std::is_same<Op, Operations::Subscript>::value>::type = nullptr) { return i + secondOffset; }
-    template <typename Op> static Vc_ALWAYS_INLINE std::size_t hi(std::size_t i, typename std::enable_if<!std::is_same<Op, Operations::Subscript>::value>::type = nullptr) { return i; }
+    template <typename Op, typename U> static Vc_ALWAYS_INLINE U *hi(U *ptr, typename std::enable_if< std::is_same<Op, Operations::gather>::value ||  std::is_same<Op, Operations::scatter>::value>::type = nullptr) { return ptr; }
+    template <typename Op, typename U> static Vc_ALWAYS_INLINE U *hi(U *ptr, typename std::enable_if<!std::is_same<Op, Operations::gather>::value && !std::is_same<Op, Operations::scatter>::value>::type = nullptr) { return ptr + secondOffset; }
 
     template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<const U &, 2, 0> lo(const ArrayData<U, 1> &x) { return {x.d}; }
     template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<const U &, 2, 1> hi(const ArrayData<U, 1> &x) { return {x.d}; }
@@ -246,6 +203,7 @@ template <std::size_t secondOffset> struct Split/*{{{*/
     template <typename Op = void, typename U, std::size_t Pieces, std::size_t Index> static Vc_ALWAYS_INLINE Segment<      U &, 2 * Pieces, Index * Pieces + 1> hi(      Segment<      U &, Pieces, Index>&&x) { return {x.data}; }
 };/*}}}*/
 
+#if 0
 //                                         ArrayData<M, 1>
 template<typename V> struct ArrayData<V, 1>/*{{{*/
 {
@@ -315,7 +273,7 @@ public:
     Vc_ALWAYS_INLINE ArrayData(Arg0 &&arg0, Args &&... args)
         : d()
     {
-        call<Common::Operations::Gather>(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
+        call<Common::Operations::gather>(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
     }
 
     Vc_ALWAYS_INLINE ArrayData(VectorSpecialInitializerIndexesFromZero::IEnum x, size_t offset)
@@ -431,7 +389,7 @@ public:
     Vc_ALWAYS_INLINE ArrayData(Arg0 &&arg0, Args &&... args)
         : data0(), data1()
     {
-        call<Common::Operations::Gather>(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
+        call<Common::Operations::gather>(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
     }
 
     Vc_ALWAYS_INLINE ArrayData(VectorSpecialInitializerIndexesFromZero::IEnum x)
@@ -534,7 +492,7 @@ public:
     value_type operator[](std::size_t);
     value_type operator[](std::size_t) const;
 };/*}}}*/
-
+#endif
 //                                         MaskData<M, 1>
 template<typename M> struct MaskData<M, 1>/*{{{*/
 {
