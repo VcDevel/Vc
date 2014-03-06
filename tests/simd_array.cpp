@@ -27,7 +27,9 @@ using namespace Vc;
     (SIMD_ARRAYS(32),                                                                              \
      SIMD_ARRAYS(17),                                                                              \
      SIMD_ARRAYS(16),                                                                              \
+     SIMD_ARRAYS(9),                                                                               \
      SIMD_ARRAYS(8),                                                                               \
+     SIMD_ARRAYS(5),                                                                               \
      SIMD_ARRAYS(4),                                                                               \
      SIMD_ARRAYS(3),                                                                               \
      SIMD_ARRAYS(2),                                                                               \
@@ -100,6 +102,15 @@ TEST_BEGIN(V, arithmetics, SIMD_ARRAY_LIST)
 }
 TEST_END
 
+TEST_BEGIN(V, indexesFromZero, SIMD_ARRAY_LIST)
+    typedef typename V::EntryType T;
+    V a(Vc::IndexesFromZero);
+    for (std::size_t i = 0; i < a.size(); ++i) {
+        COMPARE(a[i], T(i));
+    }
+TEST_END
+
+#if 0
 TEST_BEGIN(V, load, SIMD_ARRAY_LIST)
     typedef typename V::EntryType T;
     Vc::Memory<V, V::Size + 2> data;
@@ -149,7 +160,6 @@ TEST_BEGIN(A,
 }
 TEST_END
 
-#if 0
 TEST_ALL_V(V, store)
 {
     typedef typename V::EntryType T;

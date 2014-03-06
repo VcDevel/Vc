@@ -100,6 +100,14 @@ public:
     {
     }
 
+    template <std::size_t Offset>
+    explicit Vc_INTRINSIC simd_array(
+        Common::AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, Offset>)
+        : data(VectorSpecialInitializerIndexesFromZero::IndexesFromZero)
+    {
+        data += value_type(Offset);
+    }
+
     // internal: execute specified Operation
     template <typename Op, typename... Args>
     static Vc_INTRINSIC simd_array fromOperation(Op op, Args &&... args)

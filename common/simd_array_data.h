@@ -157,6 +157,11 @@ template <typename T_, std::size_t Pieces_, std::size_t Index_> struct Segment/*
     decltype(std::declval<type>()[0]) operator[](size_t i) const { return data[i + EntryOffset]; }
 };/*}}}*/
 
+template <typename T, std::size_t Offset> struct AddOffset
+{
+    constexpr AddOffset() = default;
+};
+
 /**
  * \internal
  * Helper type with static functions to generically adjust arguments for the data0 and data1
@@ -168,6 +173,19 @@ template <std::size_t secondOffset> struct Split/*{{{*/
     template<typename Op = void, typename U> static Vc_ALWAYS_INLINE U hi(U &&x) { return std::forward<U>(x); }
     template <typename Op, typename U> static Vc_ALWAYS_INLINE U *hi(U *ptr, typename std::enable_if< std::is_same<Op, Operations::gather>::value ||  std::is_same<Op, Operations::scatter>::value>::type = nullptr) { return ptr; }
     template <typename Op, typename U> static Vc_ALWAYS_INLINE U *hi(U *ptr, typename std::enable_if<!std::is_same<Op, Operations::gather>::value && !std::is_same<Op, Operations::scatter>::value>::type = nullptr) { return ptr + secondOffset; }
+
+    static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, secondOffset> hi(
+        VectorSpecialInitializerIndexesFromZero::IEnum)
+    {
+        return {};
+    }
+    template <std::size_t Offset>
+    static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum,
+                               Offset + secondOffset>
+        hi(AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, Offset>)
+    {
+        return {};
+    }
 
     template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<const U &, 2, 0> lo(const ArrayData<U, 1> &x) { return {x.d}; }
     template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<const U &, 2, 1> hi(const ArrayData<U, 1> &x) { return {x.d}; }
