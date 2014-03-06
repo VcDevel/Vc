@@ -105,10 +105,13 @@ public:
         data.load(std::forward<Args>(args)...);
     }
 
-    Vc_INTRINSIC simd_array operator+(const simd_array &rhs) const
-    {
-        return {data + rhs.data};
+#define Vc_ARITHMETIC(op)                                                                          \
+    Vc_INTRINSIC simd_array operator op(const simd_array &rhs) const                               \
+    {                                                                                              \
+        return {data op rhs.data};                                                                 \
     }
+    VC_ALL_ARITHMETICS(Vc_ARITHMETIC)
+#undef Vc_ARITHMETIC
 
 #define Vc_COMPARES(op)                                                                            \
     Vc_INTRINSIC bool operator op(const simd_array &rhs) const { return data op rhs.data; }
@@ -238,10 +241,13 @@ public:
         return result_vector_type<U>{*this} + result_vector_type<U>{rhs};
     }
 
-    Vc_INTRINSIC simd_array operator+(const simd_array &rhs) const
-    {
-        return {data0 + rhs.data0, data1 + rhs.data1};
+#define Vc_ARITHMETIC(op)                                                                          \
+    Vc_INTRINSIC simd_array operator op(const simd_array &rhs) const                               \
+    {                                                                                              \
+        return {data0 op rhs.data0, data1 op rhs.data1};                                           \
     }
+    VC_ALL_ARITHMETICS(Vc_ARITHMETIC)
+#undef Vc_ARITHMETIC
 
 #define Vc_COMPARES(op)                                                                            \
     Vc_INTRINSIC bool operator op(const simd_array &rhs) const                                     \

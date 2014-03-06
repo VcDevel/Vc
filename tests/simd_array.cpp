@@ -81,13 +81,22 @@ TEST_BEGIN(V, broadcast_not_equal, SIMD_ARRAY_LIST)
     VERIFY(all_of(a >= b));
 TEST_END
 
-TEST_BEGIN(V, addition, SIMD_ARRAY_LIST)
+TEST_BEGIN(V, arithmetics, SIMD_ARRAY_LIST)
 {
     V a = 0;
     V b = 1;
     V c = 10;
     COMPARE(a + b, b);
     COMPARE(c + b, V{11});
+    COMPARE(c - b, V{9});
+    COMPARE(b - a, b);
+    COMPARE(b * a, a);
+    COMPARE(b * b, b);
+    COMPARE(c * b, c);
+    COMPARE(c * c, V{100});
+    COMPARE(c / c, b);
+    COMPARE(a / c, a);
+    COMPARE(c / b, c);
 }
 TEST_END
 
