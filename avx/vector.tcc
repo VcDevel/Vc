@@ -520,18 +520,22 @@ template <> inline Vc_PURE ushort_v ushort_v::operator%(const ushort_v &n) const
     return *this - n * static_cast<ushort_v>(static_cast<float_v>(*this) / static_cast<float_v>(n));
 }
 
-#define OP_IMPL(T, symbol) \
-template<> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator symbol##=(AsArg x) \
-{ \
-    for_all_vector_entries(i, d.m(i) symbol##= x.d.m(i); ); \
-    return *this; \
-} \
-template<> Vc_ALWAYS_INLINE Vc_PURE Vector<T>  Vector<T>::operator symbol(AsArg x) const \
-{ \
-    Vector<T> r; \
-    for_all_vector_entries(i, r.d.m(i) = d.m(i) symbol x.d.m(i); ); \
-    return r; \
-}
+#define OP_IMPL(T, symbol)                                                                         \
+    template <> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator symbol##=(AsArg x)                 \
+    {                                                                                              \
+        Common::unrolled_loop<std::size_t, 0, Size>([&](std::size_t i) {                           \
+            d.m(i) symbol## = x.d.m(i);                                                            \
+        });                                                                                        \
+        return *this;                                                                              \
+    }                                                                                              \
+    template <> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator symbol(AsArg x) const       \
+    {                                                                                              \
+        Vector<T> r;                                                                               \
+        Common::unrolled_loop<std::size_t, 0, Size>([&](std::size_t i) {                           \
+            r.d.m(i) = d.m(i) symbol x.d.m(i);                                                     \
+        });                                                                                        \
+        return r;                                                                                  \
+    }
 OP_IMPL(int, <<)
 OP_IMPL(int, >>)
 OP_IMPL(unsigned int, <<)
