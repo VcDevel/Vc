@@ -100,18 +100,18 @@ namespace Vc_AVX_NAMESPACE
     template<> class STRUCT_ALIGN1(32) _VectorAlignedBaseHack<32> {} STRUCT_ALIGN2(32);
     template<> class STRUCT_ALIGN1(64) _VectorAlignedBaseHack<64> {} STRUCT_ALIGN2(64);
     template<typename V = Vector<float> >
-    class VectorAlignedBaseT : public _VectorAlignedBaseHack<sizeof(V)>
+    class VectorAlignedBaseT : public _VectorAlignedBaseHack<alignof(V)>
     {
         public:
-            FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
+            FREE_STORE_OPERATORS_ALIGNED(alignof(V))
     };
 #else
     template<typename V = Vector<float> >
-    class STRUCT_ALIGN1(sizeof(V)) VectorAlignedBaseT
+    class STRUCT_ALIGN1(alignof(V)) VectorAlignedBaseT
     {
         public:
-            FREE_STORE_OPERATORS_ALIGNED(sizeof(V))
-    } STRUCT_ALIGN2(sizeof(V));
+            FREE_STORE_OPERATORS_ALIGNED(alignof(V))
+    } STRUCT_ALIGN2(alignof(V));
 #endif
 }
 }
