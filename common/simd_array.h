@@ -82,7 +82,7 @@ public:
     simd_array &operator=(const simd_array &) = default;
 
     // broadcast
-    Vc_ALWAYS_INLINE simd_array(value_type a) : data(a) {}
+    Vc_INTRINSIC simd_array(value_type a) : data(a) {}
     template <
         typename U,
         typename = enable_if<std::is_same<U, int>::value && !std::is_same<int, value_type>::value>>
@@ -174,7 +174,7 @@ public:
     simd_array &operator=(const simd_array &) = default;
 
     // broadcast
-    Vc_ALWAYS_INLINE simd_array(value_type a) : data0(a), data1(a) {}
+    Vc_INTRINSIC simd_array(value_type a) : data0(a), data1(a) {}
     template <
         typename U,
         typename = enable_if<std::is_same<U, int>::value && !std::is_same<int, value_type>::value>>
@@ -187,7 +187,7 @@ public:
     template <typename... Args,
               typename = enable_if<!Traits::IsCastArguments<Args...>::value &&
                                    !Traits::is_initializer_list<Args...>::value>>
-    explicit Vc_ALWAYS_INLINE simd_array(Args &&... args)
+    explicit Vc_INTRINSIC simd_array(Args &&... args)
         : data0(Split::lo(std::forward<Args>(args))...)
         , data1(Split::hi(std::forward<Args>(args))...)
     {
@@ -195,7 +195,7 @@ public:
 
     // implicit casts
     template <typename U, typename V>
-    Vc_ALWAYS_INLINE simd_array(const simd_array<U, N, V> &x)
+    Vc_INTRINSIC simd_array(const simd_array<U, N, V> &x)
         : data0(Split::lo(x)), data1(Split::hi(x))
     {
     }
@@ -209,19 +209,19 @@ public:
         return r;
     }
 
-    static Vc_ALWAYS_INLINE simd_array Zero()
+    static Vc_INTRINSIC simd_array Zero()
     {
         return simd_array(VectorSpecialInitializerZero::Zero);
     }
-    static Vc_ALWAYS_INLINE simd_array One()
+    static Vc_INTRINSIC simd_array One()
     {
         return simd_array(VectorSpecialInitializerOne::One);
     }
-    static Vc_ALWAYS_INLINE simd_array IndexesFromZero()
+    static Vc_INTRINSIC simd_array IndexesFromZero()
     {
         return simd_array(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
     }
-    static Vc_ALWAYS_INLINE simd_array Random()
+    static Vc_INTRINSIC simd_array Random()
     {
         return fromOperation(Common::Operations::random());
     }
