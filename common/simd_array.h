@@ -169,6 +169,11 @@ private:
     VectorType data;
 };
 
+static constexpr std::size_t nextPowerOfTwo(std::size_t x)
+{
+    return (x & (x - 1)) == 0 ? x : nextPowerOfTwo((x | (x >> 1)) + 1);
+}
+
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_array
 {
     static_assert(std::is_same<T,   double>::value ||
@@ -178,8 +183,10 @@ template <typename T, std::size_t N, typename VectorType, std::size_t> class sim
                   std::is_same<T,  int16_t>::value ||
                   std::is_same<T, uint16_t>::value, "simd_array<T, N> may only be used with T = { double, float, int32_t, uint32_t, int16_t, uint16_t }");
 
-    using storage_type0 = simd_array<T, N / 2>;
-    using storage_type1 = simd_array<T, N - N / 2>;
+    static constexpr std::size_t N0 = nextPowerOfTwo(N - N / 2);
+
+    using storage_type0 = simd_array<T, N0>;
+    using storage_type1 = simd_array<T, N - N0>;
 
     using Split = Common::Split<storage_type0::size()>;
 
