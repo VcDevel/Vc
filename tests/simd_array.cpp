@@ -54,6 +54,7 @@ TEST_BEGIN(V, broadcast, SIMD_ARRAY_LIST)
     V v1 = T(2);
     v0 = 2;
     v1 = 3;
+    COMPARE(V(), V(0));
 TEST_END
 
 TEST_BEGIN(V, broadcast_equal, SIMD_ARRAY_LIST)
