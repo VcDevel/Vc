@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "has_no_allocated_data.h"
 #include "has_contiguous_storage.h"
 #include "is_initializer_list.h"
+#include "is_load_arguments.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
