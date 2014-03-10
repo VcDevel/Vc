@@ -108,6 +108,11 @@ public:
         data += value_type(Offset);
     }
 
+    Vc_INTRINSIC void setZero()
+    {
+        data.setZero();
+    }
+
     // internal: execute specified Operation
     template <typename Op, typename... Args>
     static Vc_INTRINSIC simd_array fromOperation(Op op, Args &&... args)
@@ -257,6 +262,12 @@ public:
     }
 
     //////////////////// other functions ///////////////
+
+    Vc_INTRINSIC void setZero()
+    {
+        data0.setZero();
+        data1.setZero();
+    }
 
     // internal: execute specified Operation
     template <typename Op, typename... Args>

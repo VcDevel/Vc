@@ -29,6 +29,7 @@ using namespace Vc;
 
 #define ALL_TYPES                                                                                  \
     (SIMD_ARRAYS(32),                                                                              \
+     SIMD_ARRAYS(31),                                                                              \
      SIMD_ARRAYS(16),                                                                              \
      SIMD_ARRAYS(8),                                                                               \
      SIMD_ARRAYS(4),                                                                               \
@@ -36,7 +37,7 @@ using namespace Vc;
      SIMD_ARRAYS(1),                                                                               \
      ALL_VECTORS)
 
-TEST_ALL_V(Vec, testZero)
+TEST_BEGIN(Vec, testZero, ALL_TYPES)
 {
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
@@ -53,6 +54,7 @@ TEST_ALL_V(Vec, testZero)
     COMPARE(c, Vec(zero));
     COMPARE(d, Vec(zero));
 }
+TEST_END
 
 TEST_ALL_V(Vec, testCmp)
 {
