@@ -131,7 +131,6 @@ TEST_BEGIN(V, load, SIMD_ARRAY_LIST)
     COMPARE(a, b - 1);
 TEST_END
 
-#if 0
 TEST_BEGIN(A,
            load_converting,
            (simd_array<float, 32>,
@@ -160,6 +159,7 @@ TEST_BEGIN(A,
 }
 TEST_END
 
+#if 0
 TEST_ALL_V(V, store)
 {
     typedef typename V::EntryType T;
