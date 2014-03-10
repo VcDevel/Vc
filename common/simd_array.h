@@ -290,10 +290,10 @@ public:
         data1.load(mem + storage_type0::size(), Split::hi(std::forward<Args>(args))...);
     }
 
-    template <typename... Args> Vc_INTRINSIC void store(Args &&... args) const
+    template <typename U, typename... Args> Vc_INTRINSIC void store(U *mem, Args &&... args) const
     {
-        data0.store(Split::lo(std::forward<Args>(args))...);
-        data1.store(Split::hi(std::forward<Args>(args))...);
+        data0.store(mem, Split::lo(std::forward<Args>(args))...);
+        data1.store(mem + storage_type0::size(), Split::hi(std::forward<Args>(args))...);
     }
 
     template <typename U>

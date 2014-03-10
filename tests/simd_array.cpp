@@ -159,21 +159,20 @@ TEST_BEGIN(A,
 }
 TEST_END
 
-#if 0
-TEST_ALL_V(V, store)
+TEST_BEGIN(V, store, SIMD_ARRAY_LIST)
 {
     typedef typename V::EntryType T;
     Vc::Memory<V, 34> data;
     data = V::Zero();
 
-    simd_array<T, 32> a(Vc::IndexesFromZero);
+    V a(Vc::IndexesFromZero);
     a.store(&data[0], Vc::Aligned);
-    for (size_t i = 0; i < 32; ++i) COMPARE(data[i], i);
+    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i], i);
     a.store(&data[1], Vc::Unaligned);
-    for (size_t i = 0; i < 32; ++i) COMPARE(data[i + 1], i);
+    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i + 1], i);
     a.store(&data[0], Vc::Aligned | Vc::Streaming);
-    for (size_t i = 0; i < 32; ++i) COMPARE(data[i], i);
+    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i], i);
     a.store(&data[1], Vc::Unaligned | Vc::Streaming);
-    for (size_t i = 0; i < 32; ++i) COMPARE(data[i + 1], i);
+    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i + 1], i);
 }
-#endif
+TEST_END
