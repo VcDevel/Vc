@@ -211,6 +211,8 @@ public:
     using IndexType = index_type;
     static constexpr std::size_t Size = size();
 
+    //////////////////// constructors //////////////////
+
     // zero init
     simd_array() = default;
 
@@ -229,10 +231,18 @@ public:
     {
     }
 
+    // load ctor
+    template <typename U, typename Flags = DefaultLoadTag>
+    explicit Vc_INTRINSIC simd_array(const U *mem, Flags f = Flags())
+        : data0(mem, f), data1(mem + storage_type0::size(), f)
+    {
+    }
+
     // forward all remaining ctors
     template <typename... Args,
               typename = enable_if<!Traits::IsCastArguments<Args...>::value &&
-                                   !Traits::is_initializer_list<Args...>::value>>
+                                   !Traits::is_initializer_list<Args...>::value &&
+                                   !Traits::is_load_arguments<Args...>::value>>
     explicit Vc_INTRINSIC simd_array(Args &&... args)
         : data0(Split::lo(std::forward<Args>(args))...)
         , data1(Split::hi(std::forward<Args>(args))...)
@@ -245,6 +255,8 @@ public:
         : data0(Split::lo(x)), data1(Split::hi(x))
     {
     }
+
+    //////////////////// other functions ///////////////
 
     // internal: execute specified Operation
     template <typename Op, typename... Args>
@@ -272,10 +284,10 @@ public:
         return fromOperation(Common::Operations::random());
     }
 
-    template <typename... Args> Vc_INTRINSIC void load(Args &&... args)
+    template <typename U, typename... Args> Vc_INTRINSIC void load(const U *mem, Args &&... args)
     {
-        data0.load(Split::lo(std::forward<Args>(args))...);
-        data1.load(Split::hi(std::forward<Args>(args))...);
+        data0.load(mem, Split::lo(std::forward<Args>(args))...);
+        data1.load(mem + storage_type0::size(), Split::hi(std::forward<Args>(args))...);
     }
 
     template <typename... Args> Vc_INTRINSIC void store(Args &&... args) const
