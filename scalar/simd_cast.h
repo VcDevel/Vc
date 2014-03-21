@@ -26,31 +26,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_SIMD_CAST_H
-#define VC_COMMON_SIMD_CAST_H
+#ifndef VC_SCALAR_SIMD_CAST_H_
+#define VC_SCALAR_SIMD_CAST_H_
 
-#include <type_traits>
+#include "../common/simd_cast.h"
+#include "type_traits.h"
+#include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+
 template <typename To, typename From>
-inline To simd_cast(From x, enable_if<std::is_same<To, From>::value> = nullarg)
+Vc_INTRINSIC To
+    simd_cast(Scalar::Vector<From> x, enable_if<Scalar::Traits::is_vector<To>::value> = nullarg)
 {
-    return x;
+    return x.data();
 }
 
-/*
- * I don't want to have the following visible in overload resolution:
 template <typename To, typename From>
-inline To simd_cast(From x0,
-                    From x1,
-                    enable_if<!(sizeof(To) == 16 && sizeof(From) == 16)> = nullarg)
+Vc_INTRINSIC To
+    simd_cast(Scalar::Mask<From> x, enable_if<Scalar::Traits::is_mask<To>::value> = nullarg)
 {
-    static_assert(std::is_same<From, void>::value,
-                  "simd_cast for the given type combination is not implemented.");
-    return To();
-}
-*/
+    return x.data();
 }
 
-#endif // VC_COMMON_SIMD_CAST_H
+}
+
+#include "undomacros.h"
+
+#endif  // VC_SCALAR_SIMD_CAST_H_
+
+// vim: foldmethod=marker

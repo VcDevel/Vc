@@ -26,31 +26,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_SIMD_CAST_H
-#define VC_COMMON_SIMD_CAST_H
+#ifndef VC_SSE_TYPE_TRAITS_H_
+#define VC_SSE_TYPE_TRAITS_H_
 
-#include <type_traits>
+#include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-template <typename To, typename From>
-inline To simd_cast(From x, enable_if<std::is_same<To, From>::value> = nullarg)
+namespace SSE
 {
-    return x;
+namespace Traits
+{
+template <typename T> struct is_vector : public std::false_type {};
+template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
+
+template <typename T> struct is_mask : public std::false_type {};
+template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
+}  // namespace Traits
+}
 }
 
-/*
- * I don't want to have the following visible in overload resolution:
-template <typename To, typename From>
-inline To simd_cast(From x0,
-                    From x1,
-                    enable_if<!(sizeof(To) == 16 && sizeof(From) == 16)> = nullarg)
-{
-    static_assert(std::is_same<From, void>::value,
-                  "simd_cast for the given type combination is not implemented.");
-    return To();
-}
-*/
-}
+#include "undomacros.h"
 
-#endif // VC_COMMON_SIMD_CAST_H
+#endif  // VC_SSE_TYPE_TRAITS_H_
+
+// vim: foldmethod=marker

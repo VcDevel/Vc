@@ -51,6 +51,7 @@
 #endif
 
 #include "scalar/vector.h"
+#include "scalar/simd_cast.h"
 
 namespace Vc_VERSIONED_NAMESPACE {
   using Vc_IMPL_NAMESPACE::VectorAlignment;

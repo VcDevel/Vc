@@ -282,13 +282,6 @@ template<> Vc_INTRINSIC void double_v::setQnan(Mask m)
 }
 // }}}1
 }
-// simd_cast {{{1
-template <typename Return, typename T>
-inline Return simd_cast(Scalar::Vector<T> x)
-{
-    return static_cast<Return>(x);
-}
-// }}}1
 }
 #include "undomacros.h"
 // vim: foldmethod=marker

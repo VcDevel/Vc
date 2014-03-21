@@ -34,30 +34,43 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 
-template <>
-inline Vc_AVX_NAMESPACE::int_v simd_cast<Vc_AVX_NAMESPACE::int_v, Vc_AVX_NAMESPACE::double_v>(
-    Vc_AVX_NAMESPACE::double_v x0,
-    Vc_AVX_NAMESPACE::double_v x1,
-    enable_if<true>)
+#define Vc_SIMD_CAST_1(from__, to__)                                                               \
+    template <typename To>                                                                         \
+    Vc_INTRINSIC To simd_cast(from__ x, enable_if<std::is_same<To, to__>::value> = nullarg)
+
+#define Vc_SIMD_CAST_2(from__, to__)                                                               \
+    template <typename To>                                                                         \
+    Vc_INTRINSIC To                                                                                \
+        simd_cast(from__ x0, from__ x1, enable_if<std::is_same<To, to__>::value> = nullarg)
+
+#define Vc_SIMD_CAST_4(from__, to__)                                                               \
+    template <typename To>                                                                         \
+    Vc_INTRINSIC To simd_cast(from__ x0,                                                           \
+                              from__ x1,                                                           \
+                              from__ x2,                                                           \
+                              from__ x3,                                                           \
+                              enable_if<std::is_same<To, to__>::value> = nullarg)
+
+Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE::double_v) { return _mm256_cvtepi32_pd(x.data()); }
+
+Vc_SIMD_CAST_2(Vc_AVX_NAMESPACE::double_v, Vc_AVX_NAMESPACE::int_v)
 {
     return AVX::concat(_mm256_cvttpd_epi32(x0.data()), _mm256_cvttpd_epi32(x1.data()));
 }
 
-template <>
-inline Vc_AVX_NAMESPACE::float_v simd_cast<Vc_AVX_NAMESPACE::float_v, SSE::int_v>(SSE::int_v x0,
-                                                                                  SSE::int_v x1,
-                                                                                  enable_if<true>)
+Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE::float_v)
 {
     return _mm256_cvtepi32_ps(AVX::concat(x0.data(), x1.data()));
 }
 
-template <>
-inline Vc_AVX_NAMESPACE::float_m simd_cast<Vc_AVX_NAMESPACE::float_m, SSE::int_m>(SSE::int_m x0,
-                                                                                  SSE::int_m x1,
-                                                                                  enable_if<true>)
+Vc_SIMD_CAST_2(SSE::int_m, Vc_AVX_NAMESPACE::float_m)
 {
     return AVX::concat(x0.data(), x1.data());
 }
+
+#undef Vc_SIMD_CAST_1
+#undef Vc_SIMD_CAST_2
+#undef Vc_SIMD_CAST_4
 
 template <typename To, typename From>
 inline To simd_cast(From x0, From x1, From x2, From x3, enable_if<sizeof(To) == 32> = nullarg)
@@ -96,12 +109,6 @@ inline To simd_cast(From x, enable_if<(offset >= From::Size / To::Size / 2) && s
         return static_cast<To>(From(AVX::avx_cast<typename From::VectorType>(
             _mm_slli_si128(AVX::avx_cast<__m128i>(AVX::hi128(x.data())), shift))));
     }
-}
-
-template <>
-inline Vc_AVX_NAMESPACE::double_v simd_cast<Vc_AVX_NAMESPACE::double_v, SSE::int_v>(SSE::int_v x)
-{
-    return _mm256_cvtepi32_pd(x.data());
 }
 
 }  // namespace Vc
