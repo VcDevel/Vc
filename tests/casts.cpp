@@ -60,12 +60,12 @@ template <typename To, typename From> bool is_conversion_undefined(From x)
     return false;
 }
 
-template <typename To, typename From> void simd_cast_impl(const From x)
+template <typename To, typename From> void simd_cast_1_impl(const From x)
 {
-    if (is_conversion_undefined<typename To::EntryType>(x[0])) {
+    using T = typename To::EntryType;
+    if (is_conversion_undefined<T>(x[0])) {
         return;
     }
-    using T = typename To::EntryType;
     /*
     std::cout << "conversion from " << UnitTest::typeToString<From>() << " to "
               << UnitTest::typeToString<To>() << " value " << x[0] << " -> " << T(x[0]) << " vs. "
@@ -79,10 +79,121 @@ template <typename To, typename From> void simd_cast_impl(const From x)
     }
 }
 
-TEST_ALL_V(V, simd_cast_1)
+template <typename To, typename From>
+void simd_cast_2_impl(const From x, Vc::enable_if<(To::size() > From::size())> = Vc::nullarg)
+{
+    using T = typename To::EntryType;
+    if (is_conversion_undefined<T>(x[0])) {
+        return;
+    }
+    /*
+    std::cout << "conversion from " << UnitTest::typeToString<From>() << " to "
+              << UnitTest::typeToString<To>() << " value " << x[0] << " -> " << T(x[0]) << " vs. "
+              << simd_cast<To>(x)[0] << '\n';
+              */
+    const To reference = static_cast<T>(x[0]);
+    if (To::size() > 2 * From::size()) {
+        COMPARE(simd_cast<To>(x, x), reference.shifted(To::size() - 2 * From::size()))
+            << "casted to " << UnitTest::typeToString<To>() << ", reference = " << reference
+            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+        ;
+    } else {
+        COMPARE(simd_cast<To>(x, x), reference) << "casted to " << UnitTest::typeToString<To>()
+                                                << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+    }
+}
+
+template <typename To, typename From>
+void simd_cast_2_impl(const From, Vc::enable_if<(To::size() <= From::size())> = Vc::nullarg)
+{
+}
+
+template <typename To, typename From>
+void simd_cast_4_impl(const From x, Vc::enable_if<(To::size() > 2 * From::size())> = Vc::nullarg)
+{
+    using T = typename To::EntryType;
+    if (is_conversion_undefined<T>(x[0])) {
+        return;
+    }
+    /*
+    std::cout << "conversion from " << UnitTest::typeToString<From>() << " to "
+              << UnitTest::typeToString<To>() << " value " << x[0] << " -> " << T(x[0]) << " vs. "
+              << simd_cast<To>(x)[0] << '\n';
+              */
+    const To reference = static_cast<T>(x[0]);
+    if (To::size() > 4 * From::size()) {
+        COMPARE(simd_cast<To>(x, x, x, x), reference.shifted(To::size() - 2 * From::size()))
+            << "casted to " << UnitTest::typeToString<To>() << ", reference = " << reference
+            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+        ;
+    } else {
+        COMPARE(simd_cast<To>(x, x, x, x), reference)
+            << "casted to " << UnitTest::typeToString<To>() << ", x[0] = " << x[0]
+            << ", T(x[0]) = " << T(x[0]);
+    }
+}
+
+template <typename To, typename From>
+void simd_cast_4_impl(const From, Vc::enable_if<(To::size() <= 2 * From::size())> = Vc::nullarg)
+{
+}
+
+template <typename To, typename From>
+void simd_cast_to2_impl(const From x, Vc::enable_if<(2 * To::size() <= From::size())> = Vc::nullarg)
+{
+    using T = typename To::EntryType;
+    if (is_conversion_undefined<T>(x[0])) {
+        return;
+    }
+    /*
+    std::cout << "conversion from " << UnitTest::typeToString<From>() << " to "
+              << UnitTest::typeToString<To>() << " value " << x[0] << " -> " << T(x[0]) << " vs. "
+              << simd_cast<To>(x)[0] << '\n';
+              */
+    const To reference = static_cast<T>(x[0]);
+    COMPARE((simd_cast<To, 0>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
+                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+    COMPARE((simd_cast<To, 1>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
+                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+}
+
+template <typename To, typename From>
+void simd_cast_to2_impl(const From, Vc::enable_if<(2 * To::size() > From::size())> = Vc::nullarg)
+{
+}
+
+template <typename To, typename From>
+void simd_cast_to4_impl(const From x, Vc::enable_if<(4 * To::size() <= From::size())> = Vc::nullarg)
+{
+    using T = typename To::EntryType;
+    if (is_conversion_undefined<T>(x[0])) {
+        return;
+    }
+    /*
+    std::cout << "conversion from " << UnitTest::typeToString<From>() << " to "
+              << UnitTest::typeToString<To>() << " value " << x[0] << " -> " << T(x[0]) << " vs. "
+              << simd_cast<To>(x)[0] << '\n';
+              */
+    const To reference = static_cast<T>(x[0]);
+    COMPARE((simd_cast<To, 0>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
+                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+    COMPARE((simd_cast<To, 1>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
+                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+    COMPARE((simd_cast<To, 2>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
+                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+    COMPARE((simd_cast<To, 3>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
+                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+}
+
+template <typename To, typename From>
+void simd_cast_to4_impl(const From, Vc::enable_if<(4 * To::size() > From::size())> = Vc::nullarg)
+{
+}
+
+TEST_ALL_V(V, simd_cast)
 {
     using T = typename V::EntryType;
-    for (T x : {std::numeric_limits<T>::min(), T(-1), T(0), T(1), std::numeric_limits<T>::max(),
+    for (T x : {std::numeric_limits<T>::min(), T(0), T(-1), T(1), std::numeric_limits<T>::max(),
                 T(std::numeric_limits<T>::max() - 1), T(std::numeric_limits<T>::max() - 0xff),
                 T(std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 6 - 1)),
                 T(-std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 6 - 1)),
@@ -94,27 +205,42 @@ TEST_ALL_V(V, simd_cast_1)
                 T(-std::numeric_limits<T>::min()), T(-std::numeric_limits<T>::max())}) {
         const V v = x;
 
-        simd_cast_impl<   int_v>(v);
-        simd_cast_impl<  uint_v>(v);
-        simd_cast_impl< short_v>(v);
-        simd_cast_impl<ushort_v>(v);
-        simd_cast_impl< float_v>(v);
-        simd_cast_impl<double_v>(v);
+        simd_cast_1_impl<   int_v>(v);
+        simd_cast_1_impl<  uint_v>(v);
+        simd_cast_1_impl< short_v>(v);
+        simd_cast_1_impl<ushort_v>(v);
+        simd_cast_1_impl< float_v>(v);
+        simd_cast_1_impl<double_v>(v);
+
+        simd_cast_2_impl<   int_v>(v);
+        simd_cast_2_impl<  uint_v>(v);
+        simd_cast_2_impl< short_v>(v);
+        simd_cast_2_impl<ushort_v>(v);
+        simd_cast_2_impl< float_v>(v);
+        simd_cast_2_impl<double_v>(v);
+
+        simd_cast_4_impl<   int_v>(v);
+        simd_cast_4_impl<  uint_v>(v);
+        simd_cast_4_impl< short_v>(v);
+        simd_cast_4_impl<ushort_v>(v);
+        simd_cast_4_impl< float_v>(v);
+        simd_cast_4_impl<double_v>(v);
+
+        simd_cast_to2_impl<   int_v>(v);
+        simd_cast_to2_impl<  uint_v>(v);
+        simd_cast_to2_impl< short_v>(v);
+        simd_cast_to2_impl<ushort_v>(v);
+        simd_cast_to2_impl< float_v>(v);
+        simd_cast_to2_impl<double_v>(v);
+
+        simd_cast_to4_impl<   int_v>(v);
+        simd_cast_to4_impl<  uint_v>(v);
+        simd_cast_to4_impl< short_v>(v);
+        simd_cast_to4_impl<ushort_v>(v);
+        simd_cast_to4_impl< float_v>(v);
+        simd_cast_to4_impl<double_v>(v);
     }
 }
-
-#ifndef VC_IMPL_Scalar
-TEST(simd_cast_2)
-{
-    using T = double;
-    for (T x : {std::numeric_limits<T>::min(), T(-1), T(0), T(1), std::numeric_limits<T>::max(),
-                T(-std::numeric_limits<T>::min()), T(-std::numeric_limits<T>::max())}) {
-        double_v v = x;
-
-        COMPARE(simd_cast<float_v>(v, v), float_v(x));
-    }
-}
-#endif
 
 #if 0
 
