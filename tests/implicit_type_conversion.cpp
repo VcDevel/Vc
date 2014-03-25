@@ -69,7 +69,7 @@ static_assert( std::is_convertible< short_v, ushort_v>::value, " std::is_convert
 #define _TYPE_TEST_ERR(a, b)
 #else
 #if defined(VC_GCC) && VC_GCC == 0x40801
-#warning "Skipping tests involving operator& because of a bug in GCC 4.8.1 (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57532)"
+// Skipping tests involving operator& because of a bug in GCC 4.8.1 (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57532)
 #define _TYPE_TEST(a, b, c) \
     static_assert(std::is_same<decltype(a() *  b()), c>::value, #a " *  " #b " => " #c); \
     static_assert(std::is_same<decltype(a() /  b()), c>::value, #a " /  " #b " => " #c); \
