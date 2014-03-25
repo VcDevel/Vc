@@ -17,11 +17,12 @@
 
 }}}*/
 
-#ifndef VC_COMMON_CONST_H
-#define VC_COMMON_CONST_H
+#ifndef VC_TESTS_CONST_H_
+#define VC_TESTS_CONST_H_
 
 #include <common/macros.h>
 
+/*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
     template<typename T> struct Math;
@@ -58,7 +59,8 @@ namespace Vc
         static _VC_CONSTEXPR double sqrt1_2()   { return 0.7071067811865475244008443621048490; }
     };
 } // namespace Vc
+/*OUTER_NAMESPACE_END*/
 
 #include <common/undomacros.h>
 
-#endif // VC_COMMON_CONST_H
+#endif  // VC_TESTS_CONST_H_
