@@ -156,7 +156,7 @@ else()
    # Sadly there are messed up systems where putting include/Vc in the include paths will
    # break the standard library (e.g. MacOS X Lion with case insensitive filesystem).
    # Thus, we modify the includes such that include/Vc never needs to be in the path.
-   file(GLOB _srcs RELATIVE "${CMAKE_SOURCE_DIR}" src/*.cpp tests/*.cpp tests/*.h)
+   file(GLOB_RECURSE _srcs RELATIVE "${CMAKE_SOURCE_DIR}" src/*.cpp examples/*.cpp examples/*.h tests/*.cpp tests/*.h)
    foreach(_src ${_srcs})
       message(STATUS "Processing ${CMAKE_SOURCE_DIR}/${_src} -> ${CMAKE_BINARY_DIR}/${_src}")
       get_filename_component(_path "${CMAKE_BINARY_DIR}/${_src}" PATH)
@@ -171,7 +171,6 @@ else()
          OUTPUT_FILE ${CMAKE_BINARY_DIR}/${_src}
          )
    endforeach()
-   install(DIRECTORY ${CMAKE_BINARY_DIR}/src/ DESTINATION src)
 
    set(includes)
    macro(copy_and_set_outer_namespace dst)
@@ -206,7 +205,6 @@ else()
       copy_and_set_outer_namespace("include/Vc/" "${_srcs}")
    endforeach()
    add_custom_target(rewrite ALL DEPENDS ${includes})
-   install(DIRECTORY ${CMAKE_BINARY_DIR}/include/Vc/ DESTINATION include/Vc)
 endif()
 
 # read version parts from version.h to be put into VcConfig.cmake
@@ -240,9 +238,12 @@ if(ROOT_RELEASE)
       ${CMAKE_BINARY_DIR}/cmake/OptimizeForArchitecture.cmake
       DESTINATION cmake
       )
-   install(DIRECTORY examples/ DESTINATION examples)
+   install(DIRECTORY ${CMAKE_BINARY_DIR}/examples/ DESTINATION examples)
    install(DIRECTORY ${CMAKE_BINARY_DIR}/tests/ DESTINATION tests)
    install(FILES tests/CMakeLists.txt tests/download.cmake DESTINATION tests)
+   install(DIRECTORY ${CMAKE_BINARY_DIR}/src/ DESTINATION src)
+   install(DIRECTORY ${CMAKE_BINARY_DIR}/include/Vc/ DESTINATION include/Vc)
+   install(DIRECTORY examples/ DESTINATION examples FILES_MATCHING PATTERN CMakeLists.txt)
 else()
    install(FILES
       ${cmake_install_files}
