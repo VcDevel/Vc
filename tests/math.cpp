@@ -220,7 +220,7 @@ template<typename V> void testLog2()/*{{{*/
 #else
     setFuzzyness<float>(1);
 #endif
-#if defined(VC_MSVC) && defined(VC_IMPL_Scalar)
+#if (defined(VC_MSVC) || defined(__APPLE__)) && defined(VC_IMPL_Scalar)
     setFuzzyness<double>(2);
 #else
     setFuzzyness<double>(1);
