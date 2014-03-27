@@ -26,6 +26,7 @@
 #include "writemaskedvector.h"
 #include "simd_array_data.h"
 #include "simd_mask_array.h"
+#include "utility.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -158,7 +159,10 @@ public:
 #undef Vc_ARITHMETIC
 
 #define Vc_COMPARES(op)                                                                            \
-    Vc_INTRINSIC bool operator op(const simd_array &rhs) const { return data op rhs.data; }
+    Vc_INTRINSIC mask_type operator op(const simd_array &rhs) const                                \
+    {                                                                                              \
+        return {data op rhs.data};                                                                 \
+    }
     VC_ALL_COMPARES(Vc_COMPARES)
 #undef Vc_COMPARES
 
@@ -182,11 +186,6 @@ private:
     VectorType data;
 };
 
-static constexpr std::size_t nextPowerOfTwo(std::size_t x)
-{
-    return (x & (x - 1)) == 0 ? x : nextPowerOfTwo((x | (x >> 1)) + 1);
-}
-
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_array
 {
     static_assert(std::is_same<T,   double>::value ||
@@ -196,7 +195,7 @@ template <typename T, std::size_t N, typename VectorType, std::size_t> class sim
                   std::is_same<T,  int16_t>::value ||
                   std::is_same<T, uint16_t>::value, "simd_array<T, N> may only be used with T = { double, float, int32_t, uint32_t, int16_t, uint16_t }");
 
-    static constexpr std::size_t N0 = nextPowerOfTwo(N - N / 2);
+    static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
 
     using storage_type0 = simd_array<T, N0>;
     using storage_type1 = simd_array<T, N - N0>;
@@ -325,9 +324,9 @@ public:
 #undef Vc_ARITHMETIC
 
 #define Vc_COMPARES(op)                                                                            \
-    Vc_INTRINSIC bool operator op(const simd_array &rhs) const                                     \
+    Vc_INTRINSIC mask_type operator op(const simd_array &rhs) const                                \
     {                                                                                              \
-        return data0 op rhs.data0 && data1 op rhs.data1;                                           \
+        return {data0 op rhs.data0, data1 op rhs.data1};                                           \
     }
     VC_ALL_COMPARES(Vc_COMPARES)
 #undef Vc_COMPARES

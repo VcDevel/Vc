@@ -56,7 +56,7 @@ TEST_BEGIN(Vec, testZero, ALL_TYPES)
 }
 TEST_END
 
-TEST_ALL_V(Vec, testCmp)
+TEST_BEGIN(Vec, testCmp, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     Vec a(Zero), b(Zero);
@@ -111,7 +111,9 @@ TEST_ALL_V(Vec, testCmp)
         }
     }
 }
+TEST_END
 
+#if 0
 TEST_ALL_V(Vec, testIsMix)
 {
     typedef typename Vec::IndexType IT;
@@ -573,3 +575,4 @@ void operator()()
     a.fusedMultiplyAdd(b, c); // 1 + 2^-50 + 2^-102 - 1
     COMPARE(a, double_v(doubleConstant<1, 0x0000000000001, -50>()));
 }};
+#endif

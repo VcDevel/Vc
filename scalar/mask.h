@@ -35,8 +35,20 @@ template<typename T> class Mask
     friend class Mask<uint32_t>;
     friend class Mask< int16_t>;
     friend class Mask<uint16_t>;
-    public:
-        static constexpr size_t Size = 1;
+
+public:
+    static constexpr size_t Size = 1;
+
+    /**
+     * The \c EntryType of masks is always bool, independent of \c T.
+     */
+    typedef bool EntryType;
+
+    /**
+     * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the SIMD
+     * implementation. This type is useful for the \c sizeof operator in generic functions.
+     */
+    typedef bool VectorEntryType;
 
         Vc_ALWAYS_INLINE Mask() {}
         Vc_ALWAYS_INLINE explicit Mask(bool b) : m(b) {}

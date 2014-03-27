@@ -29,7 +29,6 @@ namespace Common
 {
 
 template<typename V, std::size_t N> struct ArrayData;
-template<typename M, std::size_t N> struct MaskData;
 
 namespace Reductions/*{{{*/
 {
@@ -189,29 +188,17 @@ template <std::size_t secondOffset> struct Split/*{{{*/
 
     template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<const U &, 2, 0> lo(const ArrayData<U, 1> &x) { return {x.d}; }
     template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<const U &, 2, 1> hi(const ArrayData<U, 1> &x) { return {x.d}; }
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<const U &, 2, 0> lo(const  MaskData<U, 1> &x) { return {x.d}; }
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<const U &, 2, 1> hi(const  MaskData<U, 1> &x) { return {x.d}; }
     template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 0> lo(      ArrayData<U, 1> &x) { return {x.d}; }
     template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 1> hi(      ArrayData<U, 1> &x) { return {x.d}; }
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 0> lo(       MaskData<U, 1> &x) { return {x.d}; }
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 1> hi(       MaskData<U, 1> &x) { return {x.d}; }
     template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 0> lo(      ArrayData<U, 1>&&x) { return {x.d}; }
     template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 1> hi(      ArrayData<U, 1>&&x) { return {x.d}; }
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 0> lo(       MaskData<U, 1>&&x) { return {x.d}; }
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 1> hi(       MaskData<U, 1>&&x) { return {x.d}; }
 
     template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE const ArrayData<U, N2 / 2>  &lo(const ArrayData<U, N2>  &x) { return x.data0; }
     template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE const ArrayData<U, N2 / 2>  &hi(const ArrayData<U, N2>  &x) { return x.data1; }
-    template <typename Op = void, typename M, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE const  MaskData<M, N2 / 2>  &lo(const  MaskData<M, N2>  &x) { return x.data0; }
-    template <typename Op = void, typename M, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE const  MaskData<M, N2 / 2>  &hi(const  MaskData<M, N2>  &x) { return x.data1; }
     template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE       ArrayData<U, N2 / 2>  &lo(      ArrayData<U, N2>  &x) { return x.data0; }
     template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE       ArrayData<U, N2 / 2>  &hi(      ArrayData<U, N2>  &x) { return x.data1; }
-    template <typename Op = void, typename M, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE        MaskData<M, N2 / 2>  &lo(       MaskData<M, N2>  &x) { return x.data0; }
-    template <typename Op = void, typename M, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE        MaskData<M, N2 / 2>  &hi(       MaskData<M, N2>  &x) { return x.data1; }
     template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE       ArrayData<U, N2 / 2> &&lo(      ArrayData<U, N2> &&x) { return std::move(x.data0); }
     template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE       ArrayData<U, N2 / 2> &&hi(      ArrayData<U, N2> &&x) { return std::move(x.data1); }
-    template <typename Op = void, typename M, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE        MaskData<M, N2 / 2> &&lo(       MaskData<M, N2> &&x) { return std::move(x.data0); }
-    template <typename Op = void, typename M, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE        MaskData<M, N2 / 2> &&hi(       MaskData<M, N2> &&x) { return std::move(x.data1); }
 
     template <typename Op = void, typename U, std::size_t Pieces, std::size_t Index> static Vc_ALWAYS_INLINE Segment<const U &, 2 * Pieces, Index * Pieces + 0> lo(const Segment<const U &, Pieces, Index> &x) { return {x.data}; }
     template <typename Op = void, typename U, std::size_t Pieces, std::size_t Index> static Vc_ALWAYS_INLINE Segment<const U &, 2 * Pieces, Index * Pieces + 1> hi(const Segment<const U &, Pieces, Index> &x) { return {x.data}; }
@@ -510,7 +497,6 @@ public:
     value_type operator[](std::size_t);
     value_type operator[](std::size_t) const;
 };/*}}}*/
-#endif
 //                                         MaskData<M, 1>
 template<typename M> struct MaskData<M, 1>/*{{{*/
 {
@@ -707,6 +693,7 @@ template<typename M, std::size_t N> struct MaskData/*{{{*/
                             std::declval<const typename Masks::mask_type &>()...))
     { return r(data0.apply(r, f, masks.data0...), data1.apply(r, f, masks.data1...)); }
 };/*}}}*/
+#endif
 
 }  // namespace Common
 }  // namespace Vc
