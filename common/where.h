@@ -38,12 +38,8 @@ namespace WhereImpl
 
         // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
         constexpr MaskedLValue(const Mask &m, LValue &l) : mask(m), lhs(l) {}
-#ifdef VC_NO_MOVE_CTOR
-        constexpr MaskedLValue(const MaskedLValue &) = default;
-#else
         MaskedLValue(const MaskedLValue &) = delete;
         constexpr MaskedLValue(MaskedLValue &&) = default;
-#endif
 
         /* It is intentional that the assignment operators return void: When a bool is used for the
          * mask the code might get skipped completely, thus nothing can be returned. This would be
@@ -121,12 +117,8 @@ namespace WhereImpl
 
         // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
         constexpr MaskedLValue(const Mask &m, LValue &l) : mask(m), lhs(l) {}
-#ifdef VC_NO_MOVE_CTOR
-        constexpr MaskedLValue(const MaskedLValue &) = default;
-#else
         MaskedLValue(const MaskedLValue &) = delete;
         constexpr MaskedLValue(MaskedLValue &&) = default;
-#endif
 
         template<typename T> Vc_ALWAYS_INLINE void operator  =(T &&rhs) { if (mask) lhs   = std::forward<T>(rhs); }
         template<typename T> Vc_ALWAYS_INLINE void operator +=(T &&rhs) { if (mask) lhs  += std::forward<T>(rhs); }

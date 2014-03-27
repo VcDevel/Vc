@@ -39,9 +39,7 @@ template<typename _V, typename Flags> class MemoryVectorIterator;
     public:
         constexpr Iterator(V &_v, size_t _i) : v(_v), i(_i) {}
         constexpr Iterator(const Iterator &) = default;
-#ifndef VC_NO_MOVE_CTOR
         constexpr Iterator(Iterator &&) = default;
-#endif
 
         Vc_ALWAYS_INLINE decltype(v[i]) operator->() { return v[i]; }
         Vc_ALWAYS_INLINE decltype(v[i]) operator->() const { return v[i]; }
@@ -74,9 +72,7 @@ template<typename _V, typename Flags> class MemoryVectorIterator;
     public:
         Vc_ALWAYS_INLINE BitmaskIterator(int m) : mask(m), bit(_mm_tzcnt_32(mask)) {}
         Vc_ALWAYS_INLINE BitmaskIterator(const BitmaskIterator &) = default;
-#ifndef VC_NO_MOVE_CTOR
         Vc_ALWAYS_INLINE BitmaskIterator(BitmaskIterator &&) = default;
-#endif
 
         Vc_ALWAYS_INLINE size_t operator->() const { return bit; }
         Vc_ALWAYS_INLINE size_t operator*() const { return bit; }
@@ -131,9 +127,7 @@ template<typename _V, typename Flags> class MemoryVectorIterator;
     public:
         BitmaskIterator(size_t m) : mask(m) { nextBit(); }
         BitmaskIterator(const BitmaskIterator &) = default;
-#ifndef VC_NO_MOVE_CTOR
         BitmaskIterator(BitmaskIterator &&) = default;
-#endif
 
         Vc_ALWAYS_INLINE size_t operator->() const { return bit; }
         Vc_ALWAYS_INLINE size_t operator*() const { return bit; }

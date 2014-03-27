@@ -65,9 +65,7 @@ public:
         // disable copies because this type is supposed to alias the data in a Memory object,
         // nothing else
         MemoryVector(const MemoryVector &) = delete;
-#ifndef VC_NO_MOVE_CTOR
         MemoryVector(MemoryVector &&) = delete;
-#endif
         // Do not disable MemoryVector &operator=(const MemoryVector &) = delete; because it is
         // covered nicely by the operator= below.
 
@@ -112,9 +110,7 @@ public:
 
     constexpr MemoryVectorIterator(MemoryVector<_V, Flags> *dd) : d(dd) {}
     constexpr MemoryVectorIterator(const MemoryVectorIterator &) = default;
-#ifndef VC_NO_MOVE_CTOR
     constexpr MemoryVectorIterator(MemoryVectorIterator &&) = default;
-#endif
     Vc_ALWAYS_INLINE MemoryVectorIterator &operator=(const MemoryVectorIterator &) = default;
 
     Vc_ALWAYS_INLINE void *orderBy() const { return d; }

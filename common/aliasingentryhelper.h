@@ -37,9 +37,7 @@ template<class StorageType> class AliasingEntryHelper
     public:
         Vc_ALWAYS_INLINE AliasingEntryHelper(StorageType *d, int index) : m_storage(d), m_index(index) {}
         Vc_ALWAYS_INLINE AliasingEntryHelper(const AliasingEntryHelper &) = default;
-#ifndef VC_NO_MOVE_CTOR
         Vc_ALWAYS_INLINE AliasingEntryHelper(AliasingEntryHelper &&) = default;
-#endif
         Vc_ALWAYS_INLINE AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
             m_storage->assign(m_index, rhs);
             return *this;

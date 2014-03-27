@@ -306,15 +306,6 @@ do {} while ( false )
 #define Vc_NOEXCEPT noexcept
 #endif
 
-// ref-ref:
-#ifdef VC_NO_MOVE_CTOR
-#define VC_RR_ &
-#define VC_FORWARD_(T)
-#else
-#define VC_RR_ &&
-#define VC_FORWARD_(T) std::forward<T>
-#endif
-
 #ifdef VC_NO_ALWAYS_INLINE
 #undef Vc_ALWAYS_INLINE
 #undef Vc_ALWAYS_INLINE_L

@@ -34,9 +34,7 @@ template<typename M> class MaskEntry
 public:
     constexpr MaskEntry(M &m, size_t o) : mask(m), offset(o) {}
     constexpr MaskEntry(const MaskEntry &) = default;
-#ifndef VC_NO_MOVE_CTOR
     constexpr MaskEntry(MaskEntry &&) = default;
-#endif
 
     template <typename B, typename std::enable_if<std::is_same<B, bool>::value, int>::type = 0>
     Vc_ALWAYS_INLINE Vc_PURE operator B() const

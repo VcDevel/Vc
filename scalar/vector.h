@@ -238,45 +238,21 @@ class Vector
         Vc_INTRINSIC Vector rotated(int) const { return *this; }
         Vector sorted() const { return *this; }
 
-#ifdef VC_NO_MOVE_CTOR
-        template<typename F> Vc_INTRINSIC void call(const F &f) const {
-            f(m_data);
-        }
-        template<typename F> Vc_INTRINSIC void call(const F &f, Mask mask) const {
-            if (mask) {
-                f(m_data);
-            }
-        }
-        template<typename F> Vc_INTRINSIC Vector apply(const F &f) const {
-            return Vector(f(m_data));
-        }
-        template<typename F> Vc_INTRINSIC Vector apply(const F &f, Mask mask) const {
-            if (mask) {
-                return Vector(f(m_data));
-            } else {
-                return *this;
-            }
-        }
-#endif
-        template<typename F> void callWithValuesSorted(F VC_RR_ f) {
-            f(m_data);
-        }
+        template <typename F> void callWithValuesSorted(F &&f) { f(m_data); }
 
-        template<typename F> Vc_INTRINSIC void call(F VC_RR_ f) const {
-            f(m_data);
-        }
+        template <typename F> Vc_INTRINSIC void call(F &&f) const { f(m_data); }
 
-        template<typename F> Vc_INTRINSIC void call(F VC_RR_ f, Mask mask) const {
+        template <typename F> Vc_INTRINSIC void call(F &&f, Mask mask) const
+        {
             if (mask) {
                 f(m_data);
             }
         }
 
-        template<typename F> Vc_INTRINSIC Vector apply(F VC_RR_ f) const {
-            return Vector(f(m_data));
-        }
+        template <typename F> Vc_INTRINSIC Vector apply(F &&f) const { return Vector(f(m_data)); }
 
-        template<typename F> Vc_INTRINSIC Vector apply(F VC_RR_ f, Mask mask) const {
+        template <typename F> Vc_INTRINSIC Vector apply(F &&f, Mask mask) const
+        {
             if (mask) {
                 return Vector(f(m_data));
             } else {
