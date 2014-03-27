@@ -91,7 +91,7 @@ template<typename T> class Vector
         // static constexpr WidthT Width = WidthT();
 
     public:
-#include "common/generalinterface.h"
+#include "../common/generalinterface.h"
 
         static Vc_ALWAYS_INLINE_L Vector Random() Vc_ALWAYS_INLINE_R;
 
@@ -152,8 +152,8 @@ template<typename T> class Vector
                           "because the number of entries in the vector is target-dependent.");
         }
 
-#include "common/loadinterface.h"
-#include "common/storeinterface.h"
+#include "../common/loadinterface.h"
+#include "../common/storeinterface.h"
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX

@@ -64,7 +64,7 @@ class Vector
             MemoryAlignment = alignof(EntryType)
         };
 
-#include "common/generalinterface.h"
+#include "../common/generalinterface.h"
 
         static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
 
@@ -103,8 +103,8 @@ class Vector
         {
         }
 
-#include "common/loadinterface.h"
-#include "common/storeinterface.h"
+#include "../common/loadinterface.h"
+#include "../common/storeinterface.h"
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
@@ -136,8 +136,8 @@ class Vector
         Vc_INTRINSIC const Vector<T>  dbca() const { return *this; }
         Vc_INTRINSIC const Vector<T>  dcba() const { return *this; }
 
-#include "common/gatherinterface.h"
-#include "common/scatterinterface.h"
+#include "../common/gatherinterface.h"
+#include "../common/scatterinterface.h"
 
         //prefix
         Vc_ALWAYS_INLINE Vector &operator++() { ++m_data; return *this; }

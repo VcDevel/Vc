@@ -83,7 +83,7 @@ template<typename T> class Vector
 
         typedef T _T;
 
-#include "common/generalinterface.h"
+#include "../common/generalinterface.h"
 
         static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
 
@@ -126,8 +126,8 @@ template<typename T> class Vector
         {
         }
 
-#include "common/loadinterface.h"
-#include "common/storeinterface.h"
+#include "../common/loadinterface.h"
+#include "../common/storeinterface.h"
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
@@ -159,8 +159,8 @@ template<typename T> class Vector
         Vc_INTRINSIC_L Vc_PURE_L const Vector<T>  dbca() const Vc_INTRINSIC_R Vc_PURE_R;
         Vc_INTRINSIC_L Vc_PURE_L const Vector<T>  dcba() const Vc_INTRINSIC_R Vc_PURE_R;
 
-#include "common/gatherinterface.h"
-#include "common/scatterinterface.h"
+#include "../common/gatherinterface.h"
+#include "../common/scatterinterface.h"
 
         //prefix
         Vc_INTRINSIC Vector &operator++() { data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return *this; }

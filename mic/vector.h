@@ -110,7 +110,7 @@ public:
         return reinterpret_cast<Vector<T> >(mem);
     }
 
-#include "common/generalinterface.h"
+#include "../common/generalinterface.h"
 
     static Vector Random();
 
