@@ -484,7 +484,6 @@ template<typename Vec> void testSum()
 
 template<typename V> void testPartialSum()
 {
-    typedef typename V::EntryType T;
     typedef typename V::IndexType I;
 
     V reference(I::IndexesFromZero() + 1);
