@@ -86,7 +86,7 @@ protected:
     // helper that specializes on T
     typedef VectorHelper<VectorEntryType> HT;
 
-    typedef Common::VectorMemoryUnion<VectorType, VectorEntryType> StorageType;
+    typedef Common::VectorMemoryUnion<VectorType, EntryType, VectorEntryType> StorageType;
     StorageType d;
     VC_DEPRECATED("renamed to data()") inline const VectorType vdata() const { return d.v(); }
 
@@ -244,11 +244,11 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // aliasing scalar access
-    Vc_INTRINSIC decltype(d.m(0)) &operator[](size_t index) {
-        return d.m(index);
+    Vc_INTRINSIC decltype(std::declval<StorageType &>().entry(0)) operator[](size_t index) {
+        return d.entry(index);
     }
-    Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
-        return d.m(index);
+    Vc_ALWAYS_INLINE decltype(std::declval<const StorageType &>().entry(0)) operator[](size_t index) const {
+        return d.entry(index);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

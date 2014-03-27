@@ -61,6 +61,7 @@ template<size_t Bytes> class MaskBool
     typedef typename MaskBoolStorage<Bytes>::type storage_type Vc_MAY_ALIAS;
     storage_type data;
 public:
+    constexpr MaskBool() {}
     constexpr MaskBool(bool x) : data(x ? -1 : 0) {}
     Vc_ALWAYS_INLINE MaskBool &operator=(bool x) { data = x ? -1 : 0; return *this; }
 
@@ -95,6 +96,7 @@ constexpr bool operator!=(A &&a, B &&b)
 
 static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
 static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
+static_assert(std::is_convertible<MaskBool<4>, bool>::value, "std::is_convertible<MaskBool<4>, bool> failed");
 
 Vc_NAMESPACE_END
 

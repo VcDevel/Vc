@@ -134,10 +134,25 @@ template<typename V> void writes()
     }
 }
 
+template<typename V> void saneCopiedReferences()
+{
+    typedef typename V::EntryType T;
+    V a = V::Random();
+
+    T &tmp = a[0];
+    tmp += 1;
+    COMPARE(a[0], tmp);
+    a = V::Random();
+    COMPARE(a[0], tmp);
+    tmp += 1;
+    COMPARE(a[0], tmp);
+}
+
 void testmain()
 {
     testAllTypes(reads);
     testAllTypes(writes);
     testAllTypes(readsConstantIndex);
+    testAllTypes(saneCopiedReferences);
     //testAllTypes(writesConstantIndex);
 }

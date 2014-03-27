@@ -22,10 +22,14 @@
 
 #include "aliasingentryhelper.h"
 #include "types.h"
+#include <utility>
+#include <cstring>
+
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Common)
 
+// accessScalar for MSVC/*{{{*/
 #ifdef VC_MSVC
 #ifdef VC_IMPL_AVX
 template<typename EntryType, typename VectorType> inline EntryType &accessScalar(VectorType &d, size_t i) { return accessScalar<EntryType>(d._d, i); }
@@ -69,7 +73,8 @@ template<> Vc_ALWAYS_INLINE int  accessScalar<int , __m256i>(const __m256i &d, s
 template<> Vc_ALWAYS_INLINE unsigned int  accessScalar<unsigned int , __m256i>(const __m256i &d, size_t i) { return d.m256i_u32[i]; }
 #endif
 #endif
-
+/*}}}*/
+// GccTypeHelper/*{{{*/
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
 template<typename EntryType, typename VectorType> struct GccTypeHelper;
 template<> struct GccTypeHelper<double        , __m128d> { typedef  __v2df Type; };
@@ -98,44 +103,202 @@ template<> struct GccTypeHelper<char          , __m256i> { typedef __v32qi Type;
 template<> struct GccTypeHelper<unsigned char , __m256i> { typedef __v32qi Type; };
 #endif
 #endif
-
+/*}}}*/
 namespace
 {
 template<typename T> struct MayAlias { typedef T Type Vc_MAY_ALIAS; };
 template<size_t Bytes> struct MayAlias<MaskBool<Bytes>> { typedef MaskBool<Bytes> Type; };
 } // anonymous namespace
-template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
+
+template <typename VectorType, typename EntryType> class AliasedVectorEntry/*{{{*/
+{
+    typedef typename std::conditional<std::is_const<VectorType>::value,
+            const EntryType *const, EntryType *const>::type PointerType;
+    PointerType scalar;
+
+public:
+    constexpr AliasedVectorEntry(VectorType &d, size_t i) : scalar(&reinterpret_cast<PointerType>(&d)[i])
+    {
+    }
+
+    AliasedVectorEntry(const AliasedVectorEntry &rhs) = delete;
+    AliasedVectorEntry &operator=(const AliasedVectorEntry &rhs) = delete;
+    AliasedVectorEntry(AliasedVectorEntry &&rhs) = delete;
+    AliasedVectorEntry &operator=(AliasedVectorEntry &&rhs) = delete;
+
+    template <typename U,
+              typename std::enable_if<std::is_convertible<typename std::decay<U>::type, EntryType>::value &&
+                                          !std::is_const<VectorType>::value,
+                                      int>::type = 0>
+    Vc_INTRINSIC AliasedVectorEntry &operator=(U &&x)
+    {
+        EntryType tmp = std::forward<U>(x);
+        // memcpy does '*scalar = x' but in a way that tells the compiler that pointer aliasing
+        // occurred
+        std::memcpy(reinterpret_cast<VectorType *>(scalar), &tmp, sizeof(EntryType));
+        return *this;
+    }
+    Vc_INTRINSIC operator EntryType() const
+    {
+        return *scalar;
+    }
+    Vc_INTRINSIC operator EntryType &()
+    {
+        return *scalar;
+    }
+
+    template <typename U>
+    Vc_INTRINSIC decltype(std::declval<EntryType &>()[std::forward<U>(0)]) operator[](U &&i)
+    {
+        return (*scalar)[std::forward<U>(i)];
+    }
+    template <typename U>
+    Vc_INTRINSIC decltype(std::declval<const EntryType &>()[std::forward<U>(0)]) operator[](
+        U &&i) const
+    {
+        return (*scalar)[std::forward<U>(i)];
+    }
+
+    template <typename U,
+              typename std::enable_if<
+                  std::is_class<EntryType>::value &&std::is_convertible<EntryType, U>::value,
+                  int>::type = 0>
+    Vc_INTRINSIC operator U() const
+    {
+        return *scalar;
+    }
+
+#define VC_OP__(op__)                                                                              \
+    template <typename U> AliasedVectorEntry &operator op__##=(U &&x)                              \
+    {                                                                                              \
+        EntryType tmp = (*scalar)op__ std::forward<U>(x);                                          \
+        return operator=(tmp);                                                                     \
+    }
+    VC_ALL_BINARY(VC_OP__)
+    VC_ALL_SHIFTS(VC_OP__)
+    VC_ALL_ARITHMETICS(VC_OP__)
+#undef VC_OP__
+
+    AliasedVectorEntry &operator++()
+    {
+        EntryType tmp = *scalar;
+        return operator=(++tmp);
+    }
+    EntryType operator++(int)
+    {
+        EntryType tmp = *scalar;
+        EntryType r = tmp++;
+        operator=(tmp);
+        return r;
+    }
+    AliasedVectorEntry &operator--()
+    {
+        EntryType tmp = *scalar;
+        return operator=(--tmp);
+    }
+    EntryType operator--(int)
+    {
+        EntryType tmp = *scalar;
+        EntryType r = tmp--;
+        operator=(tmp);
+        return r;
+    }
+
+    // needs SFINAE
+    //decltype(std::declval<EntryType &>().operator->()) operator->() { return scalar->operator->(); }
+    //decltype(std::declval<const EntryType &>().operator->()) operator->() const { return scalar->operator->(); }
+};/*}}}*/
+
+#if 0 //defined VC_ICC
+template <typename _VectorType, typename _EntryType> class VectorMemoryUnion/*{{{*/
+{
+public:
+    typedef _VectorType VectorType;
+    typedef _EntryType EntryType;
+    Vc_ALWAYS_INLINE VectorMemoryUnion()
+        : data()
+    {
+        assertCorrectAlignment(&v());
+    }
+    Vc_ALWAYS_INLINE VectorMemoryUnion(VectorType vv)
+        : data(vv)
+    {
+        assertCorrectAlignment(&v());
+    }
+
+    Vc_ALWAYS_INLINE Vc_PURE VectorType &v()
+    {
+        return data;
+    }
+    Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const
+    {
+        return data;
+    }
+
+    Vc_ALWAYS_INLINE Vc_PURE AliasedVectorEntry<VectorType, EntryType> m(size_t index)
+    {
+        return AliasedVectorEntry<VectorType, EntryType>(data, index);
+    }
+    Vc_ALWAYS_INLINE Vc_PURE EntryType m(size_t index) const
+    {
+        return reinterpret_cast<const EntryType *>(&data)[index];
+    }
+
+private:
+    VectorType data;
+};/*}}}*/
+#else
+template<typename _VectorType, typename _EntryType, typename _VectorEntryType = _EntryType> class VectorMemoryUnion/*{{{*/
 {
     public:
         typedef _VectorType VectorType;
         typedef _EntryType EntryType;
+        typedef _VectorEntryType VectorEntryType;
+
         Vc_ALWAYS_INLINE VectorMemoryUnion() { assertCorrectAlignment(&v()); }
 #if defined VC_ICC
-        Vc_ALWAYS_INLINE VectorMemoryUnion(const VectorType &x) { data.v = x; assertCorrectAlignment(&data.v); }
-        Vc_ALWAYS_INLINE VectorMemoryUnion &operator=(const VectorType &x) {
-            data.v = x; return *this;
+        Vc_ALWAYS_INLINE VectorMemoryUnion(VectorType x) : data(x) {
+            assertCorrectAlignment(&v());
         }
+        Vc_ALWAYS_INLINE VectorMemoryUnion(const VectorMemoryUnion &) = default;
+        /*
+        Vc_ALWAYS_INLINE VectorMemoryUnion(VectorMemoryUnion &&) = default;
+        Vc_ALWAYS_INLINE VectorMemoryUnion(const VectorMemoryUnion &x) : data(x.v()) {
+            assertCorrectAlignment(&v());
+        }
+        Vc_ALWAYS_INLINE VectorMemoryUnion(VectorMemoryUnion &&x) : data(std::move(x.data.v)) {
+            assertCorrectAlignment(&v());
+        }
+        */
+
+        Vc_ALWAYS_INLINE VectorMemoryUnion &operator=(const VectorMemoryUnion &rhs) { data.v = rhs.data.v; return *this; }// = default;
+        //Vc_ALWAYS_INLINE VectorMemoryUnion &operator=(VectorMemoryUnion &&) = default;
 
         Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return data.v; }
         Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return data.v; }
 
-        Vc_ALWAYS_INLINE Vc_PURE EntryType &m(size_t index) {
+        Vc_ALWAYS_INLINE Vc_PURE VectorEntryType &m(size_t index) {
             return data.m[index];
         }
-        Vc_ALWAYS_INLINE Vc_PURE EntryType m(size_t index) const {
+        Vc_ALWAYS_INLINE Vc_PURE VectorEntryType m(size_t index) const {
             return data.m[index];
         }
 
-#ifdef VC_COMPILE_BENCHMARKS
-    public:
-#endif
+        Vc_ALWAYS_INLINE Vc_PURE EntryType &entry(size_t index) {
+            return data.m2[index * (sizeof(VectorEntryType) / sizeof(EntryType))];
+        }
+        Vc_ALWAYS_INLINE Vc_PURE EntryType entry(size_t index) const {
+            return data.m2[index * (sizeof(VectorEntryType) / sizeof(EntryType))];
+        }
+
     private:
         union VectorScalarUnion {
-            Vc_INTRINSIC VectorScalarUnion() {}
-            Vc_INTRINSIC VectorScalarUnion(const VectorScalarUnion &rhs) : v(rhs.v) {}
-            Vc_INTRINSIC VectorScalarUnion &operator=(const VectorScalarUnion &rhs) { v = rhs.v; return *this; }
+            Vc_INTRINSIC VectorScalarUnion() : v() {}
+            Vc_INTRINSIC VectorScalarUnion(VectorType vv) : v(vv) {}
+            Vc_INTRINSIC VectorScalarUnion(const VectorScalarUnion &x) = default;
             VectorType v;
-            EntryType m[sizeof(VectorType)/sizeof(EntryType)];
+            VectorEntryType m[];
+            EntryType m2[];
         } data;
 #else
         Vc_ALWAYS_INLINE VectorMemoryUnion(VC_ALIGNED_PARAMETER(VectorType) x) : data(x) { assertCorrectAlignment(&data); }
@@ -164,6 +327,13 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
             return reinterpret_cast<const AliasingEntryType *>(&data)[index];
         }
 #endif
+        Vc_ALWAYS_INLINE Vc_PURE decltype(m(0)) entry(size_t index) {
+            return m(index);
+        }
+        Vc_ALWAYS_INLINE Vc_PURE decltype(m(0)) entry(size_t index) const {
+            return m(index);
+        }
+
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
         template<typename JustForSfinae = void>
         Vc_ALWAYS_INLINE Vc_PURE
@@ -177,10 +347,11 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
 #endif
         VectorType data;
 #endif
-};
+};/*}}}*/
+#endif
 
 #if defined(VC_GCC) && (VC_GCC == 0x40700 || (VC_GCC >= 0x40600 && VC_GCC <= 0x40603))
-// workaround bug 52736 in GCC
+// workaround bug 52736 in GCC/*{{{*/
 template<typename T, typename V> static Vc_ALWAYS_INLINE Vc_CONST T &vectorMemoryUnionAliasedMember(V *data, size_t index) {
     if (__builtin_constant_p(index) && index == 0) {
         T *ret;
@@ -198,11 +369,21 @@ template<> Vc_ALWAYS_INLINE Vc_PURE VectorMemoryUnion<__m128i, long long>::Alias
 }
 template<> Vc_ALWAYS_INLINE Vc_PURE VectorMemoryUnion<__m128i, unsigned long long>::AliasingEntryType &VectorMemoryUnion<__m128i, unsigned long long>::m(size_t index) {
     return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
-}
+}/*}}}*/
 #endif
 
 Vc_NAMESPACE_END
 
 #include "undomacros.h"
 
+#ifdef __SSE2__
+#include "maskentry.h"
+    static_assert(
+        std::is_convertible<Vc::Common::AliasedVectorEntry<__m128, Vc::Common::MaskBool<4>>,
+                            bool>::value,
+        "std::is_convertible<MaskBool<4>, bool> failed");
+#endif
+
 #endif // VC_COMMON_STORAGE_H
+
+// vim: foldmethod=marker

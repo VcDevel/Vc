@@ -21,29 +21,169 @@
 #define VC_COMMON_ITERATORS_H
 
 #include <array>
+#include <iterator>
 #include <Vc/type_traits>
+#include "storage.h"
 #include "macros.h"
 
 Vc_NAMESPACE_BEGIN(Common)
 
 namespace
 {
-    template<typename V> class Iterator/*{{{*/
+
+/**
+ * \internal
+ *
+ * Base class for the case that Vector::operator[] returns an lvalue reference or the iterator is
+ * const - in which case the non-const dereference operators don't matter.
+ * In that case the iterator implements an RandomAccessIterator.
+ */
+template <typename V,
+          bool = std::is_lvalue_reference<decltype(std::declval<V &>()[0])>::value,
+          bool = std::is_const<V>::value>
+class IteratorBase
+    : public std::iterator<std::random_access_iterator_tag,
+                           typename std::decay<decltype(std::declval<V &>()[0])>::type>
+{
+protected:
+    typedef decltype(std::declval<const V &>()[0]) const_reference;
+
+    V &v;
+    size_t i;
+
+    constexpr IteratorBase(V &_v, size_t _i) : v(_v), i(_i)
     {
-        V &v;
-        size_t i;
+    }
+
+public:
+    using reference;
+
+    Vc_ALWAYS_INLINE reference operator->()
+    {
+        return v[i];
+    }
+    Vc_ALWAYS_INLINE const_reference operator->() const
+    {
+        return v[i];
+    }
+
+    Vc_ALWAYS_INLINE reference operator*()
+    {
+        return v[i];
+    }
+    Vc_ALWAYS_INLINE const_reference operator*() const
+    {
+        return v[i];
+    }
+};
+
+/**
+ * \internal
+ *
+ * Implements the storage for N wrapper objects of type T, which wrap vector type V.
+ *
+ * The struct uses a recursive storage because it needs to call the constructors of the array of
+ * wrappers with different arguments. For operator[] access a normal array would suffice.
+ */
+template <typename V, typename T, size_t N> struct ReferenceArray
+{
+    T data;
+    ReferenceArray<V, T, N - 1> next;
+
+    constexpr ReferenceArray(V *v) : data(*v, N - 1), next(v)
+    {
+    }
+
+    T &operator[](size_t i)
+    {
+        return (&data)[N - 1 - i];
+    }
+    const T &operator[](size_t i) const
+    {
+        return (&data)[N - 1 - i];
+    }
+};
+/**
+ * \internal
+ * Specialization of the above to end the recursion.
+ */
+template <typename V, typename T> struct ReferenceArray<V, T, 1>
+{
+    T data;
+
+    constexpr ReferenceArray(V *v) : data(*v, 0)
+    {
+    }
+
+    T &operator[](size_t)
+    {
+        return data;
+    }
+    const T &operator[](size_t) const
+    {
+        return data;
+    }
+};
+
+/**
+ * \internal
+ *
+ * Base class for the case that Vector::operator[] returns an rvalue. In that case the
+ * iterator only implements an OutputIterator.
+ *
+ * This class is crafted such that the non-const dereference operators return an lvalue reference,
+ * though.
+ */
+template <typename V>
+class IteratorBase<V, false, false> : public std::iterator<
+                                          std::output_iterator_tag,
+                                          AliasedVectorEntry<V,
+                                                             decltype(std::declval<const V &>()[0])>
+                                          // TODO: Distance == ptrdiff_t?
+                                          >
+{
+    // if copied to V::EntryType, detach
+    // if assigned to, write to v[i] immediately
+    ReferenceArray<V, value_type, V::Size> lvalues;
+
+protected:
+    size_t i;
+    constexpr IteratorBase(V &_v, size_t _i) : i(_i), lvalues(&_v)
+    {
+    }
+
+public:
+    Vc_ALWAYS_INLINE reference operator->()
+    {
+        return lvalues[i];
+    }
+    Vc_ALWAYS_INLINE value_type operator->() const
+    {
+        return lvalues[i];
+    }
+
+    Vc_ALWAYS_INLINE reference operator*()
+    {
+        return lvalues[i];
+    }
+    Vc_ALWAYS_INLINE value_type operator*() const
+    {
+        return lvalues[i];
+    }
+};
+
+/**
+ * \internal
+ */
+    template<typename V> class Iterator : public IteratorBase<V>/*{{{*/
+    {
+        using IteratorBase<V>::i;
     public:
-        constexpr Iterator(V &_v, size_t _i) : v(_v), i(_i) {}
+        constexpr Iterator(V &_v, size_t _i) : IteratorBase<V>(_v, _i) {}
         constexpr Iterator(const Iterator &) = default;
 #ifndef VC_NO_MOVE_CTOR
         constexpr Iterator(Iterator &&) = default;
 #endif
-
-        Vc_ALWAYS_INLINE decltype(v[i]) operator->() { return v[i]; }
-        Vc_ALWAYS_INLINE decltype(v[i]) operator->() const { return v[i]; }
-
-        Vc_ALWAYS_INLINE decltype(v[i]) operator*() { return v[i]; }
-        Vc_ALWAYS_INLINE decltype(v[i]) operator*() const { return v[i]; }
 
         Vc_ALWAYS_INLINE Iterator &operator++()    { ++i; return *this; }
         Vc_ALWAYS_INLINE Iterator  operator++(int) { Iterator tmp = *this; ++i; return tmp; }

@@ -420,6 +420,8 @@ template<typename V> void rangeFor()
             COMPARE(i, T(0));
         }
         int n = 0;
+        auto it = begin(x);
+        auto &ref = *it;
         for (auto &i : x) {
             i = T(++n);
         }
@@ -436,7 +438,7 @@ template<typename V> void rangeFor()
 
     {
         M m(Vc::One);
-        for (auto i : m) {
+        for (bool i : m) {
             VERIFY(i);
             i = false;
             VERIFY(!i);
