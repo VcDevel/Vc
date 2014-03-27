@@ -434,12 +434,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * \param i      Specifies the scalar entry from where the vector will be loaded/stored. I.e. the
          * values scalar(i), scalar(i + 1), ..., scalar(i + V::Size - 1) will be read/overwritten.
          *
-         * \param align  You must take care to determine whether an unaligned load/store is
+         * \param flags  You must take care to determine whether an unaligned load/store is
          * required. Per default an unaligned load/store is used. If \p i is a multiple of \c V::Size
          * you may want to pass Vc::Aligned here.
          */
         template<typename Flags = UnalignedTag>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> &vectorAt(size_t i, Flags = Flags()) {
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> &vectorAt(size_t i, Flags flags = Flags()) {
             return *new(&entries()[i]) MemoryVector<V, Flags>;
         }
         /** \brief Const overload of the above function
@@ -449,12 +449,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * \param i      Specifies the scalar entry from where the vector will be loaded/stored. I.e. the
          * values scalar(i), scalar(i + 1), ..., scalar(i + V::Size - 1) will be read/overwritten.
          *
-         * \param align  You must take care to determine whether an unaligned load/store is
+         * \param flags  You must take care to determine whether an unaligned load/store is
          * required. Per default an unaligned load/store is used. If \p i is a multiple of \c V::Size
          * you may want to pass Vc::Aligned here.
          */
         template<typename Flags = UnalignedTag>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> &vectorAt(size_t i, Flags = Flags()) const {
+        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> &vectorAt(size_t i, Flags flags = Flags()) const {
             return *new(const_cast<EntryType *>(&entries()[i])) MemoryVector<const V, Flags>;
         }
 
@@ -658,6 +658,35 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             return true;
         }
 };
+
+namespace Internal2
+{
+template <typename V,
+          typename ParentL,
+          typename ParentR,
+          int Dimension,
+          typename RowMemoryL,
+          typename RowMemoryR>
+inline void copyVectors(MemoryBase<V, ParentL, Dimension, RowMemoryL> &dst,
+                        const MemoryBase<V, ParentR, Dimension, RowMemoryR> &src)
+{
+    const size_t vectorsCount = dst.vectorsCount();
+    size_t i = 3;
+    for (; i < vectorsCount; i += 4) {
+        const V tmp3 = src.vector(i - 3);
+        const V tmp2 = src.vector(i - 2);
+        const V tmp1 = src.vector(i - 1);
+        const V tmp0 = src.vector(i - 0);
+        dst.vector(i - 3) = tmp3;
+        dst.vector(i - 2) = tmp2;
+        dst.vector(i - 1) = tmp1;
+        dst.vector(i - 0) = tmp0;
+    }
+    for (i -= 3; i < vectorsCount; ++i) {
+        dst.vector(i) = src.vector(i);
+    }
+}
+} // namespace Internal2
 
 Vc_NAMESPACE_END
 
