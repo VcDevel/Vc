@@ -18,6 +18,8 @@ AllowShortIfStatementsOnASingleLine: false
 #    If true, while (true) continue; can be put on a single line.
 AllowShortLoopsOnASingleLine: false
 
+AllowShortFunctionsOnASingleLine: true
+
 #    If true, always break before multiline string literals.
 AlwaysBreakBeforeMultilineStrings: false
 
