@@ -393,6 +393,12 @@ const union {
     float value;
 } INF = { 0x7f800000 };
 
+#if defined(__APPLE__) && defined(VC_IMPL_Scalar)
+#define ATAN_COMPARE FUZZY_COMPARE
+#else
+#define ATAN_COMPARE COMPARE
+#endif
+
 template<typename V> void testAtan()/*{{{*/
 {
     typedef typename V::EntryType T;
@@ -405,11 +411,11 @@ template<typename V> void testAtan()/*{{{*/
         const V inf = T(INF.value);
 
         VERIFY(Vc::isnan(Vc::atan(nan)));
-        COMPARE(Vc::atan(+inf), +Pi_2);
+        ATAN_COMPARE(Vc::atan(+inf), +Pi_2);
 #ifdef VC_MSVC
 #pragma warning(suppress: 4756) // overflow in constant arithmetic
 #endif
-        COMPARE(Vc::atan(-inf), -Pi_2);
+        ATAN_COMPARE(Vc::atan(-inf), -Pi_2);
     }
 
     Array<Reference<T> > reference = referenceData<T, Atan>();
@@ -437,8 +443,8 @@ template<typename V> void testAtan2()/*{{{*/
         const V inf = T(INF.value);
 
         // If y is +0 (-0) and x is less than 0, +pi (-pi) is returned.
-        COMPARE(Vc::atan2(V(T(+0.)), V(T(-3.))), +Pi);
-        COMPARE(Vc::atan2(V(T(-0.)), V(T(-3.))), -Pi);
+        ATAN_COMPARE(Vc::atan2(V(T(+0.)), V(T(-3.))), +Pi);
+        ATAN_COMPARE(Vc::atan2(V(T(-0.)), V(T(-3.))), -Pi);
         // If y is +0 (-0) and x is greater than 0, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+0.)), V(T(+3.))), V(T(+0.)));
         VERIFY(!Vc::atan2(V(T(+0.)), V(T(+3.))).isNegative());
@@ -455,16 +461,16 @@ template<typename V> void testAtan2()/*{{{*/
         VERIFY(Vc::isnan(Vc::atan2(V(T(3.)), nan)));
         VERIFY(Vc::isnan(Vc::atan2(nan, nan)));
         // If y is +0 (-0) and x is -0, +pi (-pi) is returned.
-        COMPARE(Vc::atan2(V(T(+0.)), V(T(-0.))), +Pi);
-        COMPARE(Vc::atan2(V(T(-0.)), V(T(-0.))), -Pi);
+        ATAN_COMPARE(Vc::atan2(V(T(+0.)), V(T(-0.))), +Pi);
+        ATAN_COMPARE(Vc::atan2(V(T(-0.)), V(T(-0.))), -Pi);
         // If y is +0 (-0) and x is +0, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+0.)), V(T(+0.))), V(T(+0.)));
         COMPARE(Vc::atan2(V(T(-0.)), V(T(+0.))), V(T(-0.)));
         VERIFY(!Vc::atan2(V(T(+0.)), V(T(+0.))).isNegative());
         VERIFY( Vc::atan2(V(T(-0.)), V(T(+0.))).isNegative());
         // If y is a finite value greater (less) than 0, and x is negative infinity, +pi (-pi) is returned.
-        COMPARE(Vc::atan2(V(T(+1.)), -inf), +Pi);
-        COMPARE(Vc::atan2(V(T(-1.)), -inf), -Pi);
+        ATAN_COMPARE(Vc::atan2(V(T(+1.)), -inf), +Pi);
+        ATAN_COMPARE(Vc::atan2(V(T(-1.)), -inf), -Pi);
         // If y is a finite value greater (less) than 0, and x is positive infinity, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+3.)), +inf), V(T(+0.)));
         VERIFY(!Vc::atan2(V(T(+3.)), +inf).isNegative());
