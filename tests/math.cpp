@@ -68,8 +68,8 @@ template<> inline const char *filename<float , Atan  >() { return "reference-ata
 template<> inline const char *filename<double, Atan  >() { return "reference-atan-dp.dat"; }
 template<> inline const char *filename<float , Asin  >() { return "reference-asin-sp.dat"; }
 template<> inline const char *filename<double, Asin  >() { return "reference-asin-dp.dat"; }
-template<> inline const char *filename<float , Acos  >() { return "reference-acos-sp.dat"; }
-template<> inline const char *filename<double, Acos  >() { return "reference-acos-dp.dat"; }
+// template<> inline const char *filename<float , Acos  >() { return "reference-acos-sp.dat"; }
+// template<> inline const char *filename<double, Acos  >() { return "reference-acos-dp.dat"; }
 template<> inline const char *filename<float , Log   >() { return "reference-ln-sp.dat"; }
 template<> inline const char *filename<double, Log   >() { return "reference-ln-dp.dat"; }
 template<> inline const char *filename<float , Log2  >() { return "reference-log2-sp.dat"; }
