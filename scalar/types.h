@@ -36,9 +36,9 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Scalar
 {
-        template<typename V = float> class VectorAlignedBaseT {};
-        template<typename T> class Vector;
-        template<typename T> class Mask;
+template<typename V = float> class VectorAlignedBaseT {};
+template<typename T> class Vector;
+template<typename T> class Mask;
 }
 }
 
