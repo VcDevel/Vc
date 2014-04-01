@@ -30,12 +30,16 @@ vc_set_first_flag_of(_sse2_flag "-xSSE2" "-msse2" "/arch:SSE2")
 vc_set_first_flag_of(_sse4_1_flag "-xSSE4.1" "-msse4.1" "/arch:SSE2")
 vc_set_first_flag_of(_avx_flag "-xAVX" "-mavx" "/arch:AVX")
 
-if(Vc_COMPILER_IS_GCC AND WIN32)
-   # MinGW fails to compile POSIX code unless gnu++11 is used
-   vc_set_first_flag_of(CXX11_FLAG "-std=gnu++11" "-std=gnu++0x")
+if(DEFINED Vc_INSIDE_ROOT)
+   set(CXX11_FLAG)
 else()
-   if (NOT XCODE)
-      vc_set_first_flag_of(CXX11_FLAG "-std=c++11" "-std=c++0x")
+   if(Vc_COMPILER_IS_GCC AND WIN32)
+      # MinGW fails to compile POSIX code unless gnu++11 is used
+      vc_set_first_flag_of(CXX11_FLAG "-std=gnu++11" "-std=gnu++0x")
+   else()
+      if (NOT XCODE)
+         vc_set_first_flag_of(CXX11_FLAG "-std=c++11" "-std=c++0x")
+      endif()
    endif()
 endif()
 
