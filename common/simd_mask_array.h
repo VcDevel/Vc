@@ -52,7 +52,9 @@ class simd_mask_array;
 template <typename T, std::size_t N, typename VectorType> class simd_mask_array<T, N, VectorType, N>
 {
     using vector_type = VectorType;
-    friend class simd_array<T, N, VectorType, N>;
+    using storage_type = typename vector_type::Mask;
+    friend storage_type &internal_data(simd_mask_array &m) { return m.data; }
+    friend storage_type internal_data(const simd_mask_array &m) { return m.data; }
 
 public:
     using mask_type = typename vector_type::Mask;
@@ -193,8 +195,6 @@ private:
 
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_mask_array
 {
-    friend class simd_array<T, N, VectorType, VectorType::size()>;
-
     static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
 
     using storage_type0 = simd_mask_array<T, N0>;
@@ -202,6 +202,11 @@ template <typename T, std::size_t N, typename VectorType, std::size_t> class sim
 
     using Split = Common::Split<storage_type0::size()>;
     using vector_type = VectorType;
+
+    friend storage_type0 &internal_data0(simd_mask_array &m) { return m.data0; }
+    friend storage_type1 &internal_data1(simd_mask_array &m) { return m.data1; }
+    friend const storage_type0 &internal_data0(const simd_mask_array &m) { return m.data0; }
+    friend const storage_type1 &internal_data1(const simd_mask_array &m) { return m.data1; }
 
 public:
     using mask_type = simd_mask_array;

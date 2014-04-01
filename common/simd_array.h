@@ -179,7 +179,7 @@ public:
 
     Vc_INTRINSIC void assign(const simd_array &v, const mask_type &k)
     {
-        data.assign(v.data, k.data);
+        data.assign(v.data, internal_data(k));
     }
 
     Vc_INTRINSIC const vectorentry_type *begin() const
@@ -365,8 +365,8 @@ public:
 
     Vc_INTRINSIC void assign(const simd_array &v, const mask_type &k)
     {
-        data0.assign(v.data0, k.data0);
-        data1.assign(v.data1, k.data1);
+        data0.assign(v.data0, internal_data0(k));
+        data1.assign(v.data1, internal_data1(k));
     }
 
     Vc_INTRINSIC const vectorentry_type *begin() const
