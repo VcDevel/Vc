@@ -113,7 +113,6 @@ TEST_BEGIN(Vec, testCmp, ALL_TYPES)
 }
 TEST_END
 
-#if 0
 TEST_ALL_V(Vec, testIsMix)
 {
     typedef typename Vec::IndexType IT;
@@ -277,6 +276,7 @@ TEST_ALL_V(Vec, testDiv)
     }
 }
 
+#if 0
 TEST_BEGIN(V, testModulo, (simd_array<int, 32>, simd_array<short, 32>, int_v, ushort_v, uint_v, short_v))
     for (int repetition = 0; repetition < 1000; ++repetition) {
         V x = V::Random();

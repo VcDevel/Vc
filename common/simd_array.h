@@ -150,13 +150,14 @@ public:
         data.store(std::forward<Args>(args)...);
     }
 
-#define Vc_ARITHMETIC(op)                                                                          \
+#define Vc_BINARY_OPERATOR_(op)                                                                    \
     Vc_INTRINSIC simd_array operator op(const simd_array &rhs) const                               \
     {                                                                                              \
         return {data op rhs.data};                                                                 \
     }
-    VC_ALL_ARITHMETICS(Vc_ARITHMETIC)
-#undef Vc_ARITHMETIC
+    VC_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
+    VC_ALL_BINARY(Vc_BINARY_OPERATOR_)
+#undef Vc_BINARY_OPERATOR_
 
 #define Vc_COMPARES(op)                                                                            \
     Vc_INTRINSIC mask_type operator op(const simd_array &rhs) const                                \
@@ -169,6 +170,11 @@ public:
     Vc_INTRINSIC value_type operator[](std::size_t i) const
     {
         return data[i];
+    }
+
+    Vc_INTRINSIC Common::WriteMaskedVector<simd_array, mask_type> operator()(const mask_type &k)
+    {
+        return {this, k};
     }
 
     Vc_INTRINSIC const vectorentry_type *begin() const
@@ -315,13 +321,14 @@ public:
         return result_vector_type<U>{*this} + result_vector_type<U>{rhs};
     }
 
-#define Vc_ARITHMETIC(op)                                                                          \
+#define Vc_BINARY_OPERATOR_(op)                                                                    \
     Vc_INTRINSIC simd_array operator op(const simd_array &rhs) const                               \
     {                                                                                              \
         return {data0 op rhs.data0, data1 op rhs.data1};                                           \
     }
-    VC_ALL_ARITHMETICS(Vc_ARITHMETIC)
-#undef Vc_ARITHMETIC
+    VC_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
+    VC_ALL_BINARY(Vc_BINARY_OPERATOR_)
+#undef Vc_BINARY_OPERATOR_
 
 #define Vc_COMPARES(op)                                                                            \
     Vc_INTRINSIC mask_type operator op(const simd_array &rhs) const                                \
@@ -334,6 +341,16 @@ public:
     Vc_INTRINSIC value_type operator[](std::size_t i) const
     {
         return data0.begin()[i];
+    }
+
+    Vc_INTRINSIC value_type &operator[](std::size_t i)
+    {
+        return data0.begin()[i];
+    }
+
+    Vc_INTRINSIC Common::WriteMaskedVector<simd_array, mask_type> operator()(const mask_type &k)
+    {
+        return {this, k};
     }
 
     Vc_INTRINSIC const vectorentry_type *begin() const
