@@ -102,11 +102,26 @@ template<> struct GccTypeHelper<unsigned char , __m256i> { typedef __v32qi Type;
 #endif
 #endif
 
-namespace
-{
-template<typename T> struct MayAlias { typedef T Type Vc_MAY_ALIAS; };
-template<size_t Bytes> struct MayAlias<MaskBool<Bytes>> { typedef MaskBool<Bytes> Type; };
-} // anonymous namespace
+template<typename T> struct MayAliasImpl { typedef T Type Vc_MAY_ALIAS; };
+template<size_t Bytes> struct MayAliasImpl<MaskBool<Bytes>> { typedef MaskBool<Bytes> Type; };
+/**
+ * \internal
+ * Helper MayAlias<T> that turns T into the type to be used for an aliasing pointer. This
+ * adds the may_alias attribute to T (with compilers that support it). But for MaskBool this
+ * attribute is already part of the type and applying it a second times leads to warnings/errors,
+ * therefore MaskBool is simply forwarded as is.
+ */
+template<typename T> using MayAlias = typename MayAliasImpl<T>::Type;
+
+/**
+ * \internal
+ * Helper class that abstracts the hackery needed for aliasing SIMD and fundamental types to the
+ * same memory. The C++ standard says that two pointers of different type may be assumed by the
+ * compiler to point to different memory. But all supported compilers have some extension that
+ * allows to work around this limitation. GCC (and compatible compilers) can use the `may_alias`
+ * attribute to specify memory aliasing exactly where it happens. Other compilers provide unions to
+ * allow memory aliasing. VectorMemoryUnion hides all this behind one common interface.
+ */
 template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
 {
     public:
@@ -158,13 +173,12 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
             return accessScalar<EntryType>(data, index);
         }
 #else
-        typedef typename MayAlias<EntryType>::Type AliasingEntryType;
-        Vc_ALWAYS_INLINE Vc_PURE AliasingEntryType &m(size_t index) {
-            return reinterpret_cast<AliasingEntryType *>(&data)[index];
+        Vc_ALWAYS_INLINE Vc_PURE MayAlias<EntryType> &m(size_t index) {
+            return reinterpret_cast<MayAlias<EntryType> *>(&data)[index];
         }
 
         Vc_ALWAYS_INLINE Vc_PURE EntryType m(size_t index) const {
-            return reinterpret_cast<const AliasingEntryType *>(&data)[index];
+            return reinterpret_cast<const MayAlias<EntryType> *>(&data)[index];
         }
 #endif
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
@@ -193,14 +207,14 @@ template<typename T, typename V> static Vc_ALWAYS_INLINE Vc_CONST T &vectorMemor
         return reinterpret_cast<T *>(data)[index];
     }
 }
-template<> Vc_ALWAYS_INLINE Vc_PURE VectorMemoryUnion<__m128d, double>::AliasingEntryType &VectorMemoryUnion<__m128d, double>::m(size_t index) {
-    return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
+template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<double> &VectorMemoryUnion<__m128d, double>::m(size_t index) {
+    return vectorMemoryUnionAliasedMember<MayAlias<EntryType>>(&data, index);
 }
-template<> Vc_ALWAYS_INLINE Vc_PURE VectorMemoryUnion<__m128i, long long>::AliasingEntryType &VectorMemoryUnion<__m128i, long long>::m(size_t index) {
-    return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
+template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<long long> &VectorMemoryUnion<__m128i, long long>::m(size_t index) {
+    return vectorMemoryUnionAliasedMember<MayAlias<EntryType>>(&data, index);
 }
-template<> Vc_ALWAYS_INLINE Vc_PURE VectorMemoryUnion<__m128i, unsigned long long>::AliasingEntryType &VectorMemoryUnion<__m128i, unsigned long long>::m(size_t index) {
-    return vectorMemoryUnionAliasedMember<AliasingEntryType>(&data, index);
+template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<unsigned long long> &VectorMemoryUnion<__m128i, unsigned long long>::m(size_t index) {
+    return vectorMemoryUnionAliasedMember<MayAlias<EntryType>>(&data, index);
 }
 #endif
 
