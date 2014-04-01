@@ -52,6 +52,7 @@ class simd_mask_array;
 template <typename T, std::size_t N, typename VectorType> class simd_mask_array<T, N, VectorType, N>
 {
     using vector_type = VectorType;
+    friend class simd_array<T, N, VectorType, N>;
 
 public:
     using mask_type = typename vector_type::Mask;
@@ -192,6 +193,8 @@ private:
 
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_mask_array
 {
+    friend class simd_array<T, N, VectorType, VectorType::size()>;
+
     static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
 
     using storage_type0 = simd_mask_array<T, N0>;

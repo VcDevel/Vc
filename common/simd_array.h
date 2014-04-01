@@ -177,9 +177,19 @@ public:
         return {this, k};
     }
 
+    Vc_INTRINSIC void assign(const simd_array &v, const mask_type &k)
+    {
+        data.assign(v.data, k.data);
+    }
+
     Vc_INTRINSIC const vectorentry_type *begin() const
     {
         return reinterpret_cast<const vectorentry_type *>(&data);
+    }
+
+    Vc_INTRINSIC decltype(&std::declval<VectorType &>()[0]) begin()
+    {
+        return &data[0];
     }
 
     Vc_INTRINSIC const vectorentry_type *end() const
@@ -353,7 +363,18 @@ public:
         return {this, k};
     }
 
+    Vc_INTRINSIC void assign(const simd_array &v, const mask_type &k)
+    {
+        data0.assign(v.data0, k.data0);
+        data1.assign(v.data1, k.data1);
+    }
+
     Vc_INTRINSIC const vectorentry_type *begin() const
+    {
+        return data0.begin();
+    }
+
+    Vc_INTRINSIC vectorentry_type *begin()
     {
         return data0.begin();
     }
