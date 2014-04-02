@@ -365,7 +365,6 @@ TEST_BEGIN(V, logicalNegation, ALL_TYPES)
     COMPARE(!V::Zero(), V() == V()) << "a = " << a;
 TEST_END
 
-#if 0
 template<typename T> struct NegateRangeHelper
 {
     typedef int Iterator;
@@ -411,6 +410,7 @@ TEST_BEGIN(Vec, testNegate, ALL_TYPES)
     }
 TEST_END
 
+#if 0
 TEST_BEGIN(Vec, testMin, (ALL_VECTORS))
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;

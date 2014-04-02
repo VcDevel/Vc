@@ -155,6 +155,11 @@ public:
         return {!data};
     }
 
+    Vc_INTRINSIC simd_array operator-() const
+    {
+        return {-data};
+    }
+
 #define Vc_BINARY_OPERATOR_(op)                                                                    \
     Vc_INTRINSIC simd_array operator op(const simd_array &rhs) const                               \
     {                                                                                              \
@@ -330,6 +335,11 @@ public:
     Vc_INTRINSIC mask_type operator!() const
     {
         return {!data0, !data1};
+    }
+
+    Vc_INTRINSIC simd_array operator-() const
+    {
+        return {-data0, -data1};
     }
 
     template <typename U>
