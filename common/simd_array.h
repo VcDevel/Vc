@@ -150,6 +150,11 @@ public:
         data.store(std::forward<Args>(args)...);
     }
 
+    Vc_INTRINSIC mask_type operator!() const
+    {
+        return {!data};
+    }
+
 #define Vc_BINARY_OPERATOR_(op)                                                                    \
     Vc_INTRINSIC simd_array operator op(const simd_array &rhs) const                               \
     {                                                                                              \
@@ -320,6 +325,11 @@ public:
     {
         data0.store(mem, Split::lo(std::forward<Args>(args))...);
         data1.store(mem + storage_type0::size(), Split::hi(std::forward<Args>(args))...);
+    }
+
+    Vc_INTRINSIC mask_type operator!() const
+    {
+        return {!data0, !data1};
     }
 
     template <typename U>

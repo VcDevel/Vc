@@ -295,7 +295,6 @@ TEST_BEGIN(V, testModulo, (simd_array<int, 32>, simd_array<short, 32>, int_v, us
     }
 TEST_END
 
-#if 0
 TEST_BEGIN(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
     Vec a(0x7fff);
     Vec b(0xf);
@@ -366,6 +365,7 @@ TEST_BEGIN(V, logicalNegation, ALL_TYPES)
     COMPARE(!V::Zero(), V() == V()) << "a = " << a;
 TEST_END
 
+#if 0
 template<typename T> struct NegateRangeHelper
 {
     typedef int Iterator;
