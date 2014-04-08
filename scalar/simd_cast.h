@@ -50,6 +50,12 @@ Vc_INTRINSIC To
     return x.data();
 }
 
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Return simd_cast(Scalar::Vector<T> x, enable_if<offset == 0> = nullarg)
+{
+    return simd_cast<Return>(x);
+}
+
 }
 
 #include "undomacros.h"
