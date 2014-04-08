@@ -17,8 +17,8 @@
 
 */
 
-#ifndef AVX_VECTOR_H
-#define AVX_VECTOR_H
+#ifndef VC_AVX_VECTOR_H__
+#define VC_AVX_VECTOR_H__
 
 #include "intrinsics.h"
 #include "vectorhelper.h"
@@ -443,4 +443,4 @@ static_assert(!std::is_convertible<short *, short_v>::value, "A short* should ne
 #include "math.h"
 #include "undomacros.h"
 
-#endif // AVX_VECTOR_H
+#endif // VC_AVX_VECTOR_H__
