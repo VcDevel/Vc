@@ -29,7 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SSE_SIMD_CAST_H
 #define VC_SSE_SIMD_CAST_H
 
-#include "../common/simd_cast.h"
 #include "intrinsics.h"
 #include "macros.h"
 
@@ -116,6 +115,7 @@ Vc_SIMD_CAST_SSE_1(ushort_v, double_v) { return simd_cast<SSE::double_v>(simd_ca
  *  destination type (and bit-field width); otherwise, the value is implementation-defined.
  */
 #ifdef VC_GCC
+// GCC uses wrapping
 Vc_SIMD_CAST_SSE_2(   int_v,  short_v) {
     auto tmp0 = _mm_unpacklo_epi16(x0.data(), x1.data());  // 0 4 X X 1 5 X X
     auto tmp1 = _mm_unpackhi_epi16(x0.data(), x1.data());  // 2 6 X X 3 7 X X
@@ -137,6 +137,7 @@ Vc_SIMD_CAST_SSE_1(  uint_v,  short_v) {
     return simd_cast<SSE::short_v>(x, SSE::uint_v::Zero());
 }
 #else
+// the default, which is probably incorrect for most compilers out there.
 Vc_SIMD_CAST_SSE_1(   int_v,  short_v) { return _mm_packs_epi32(x.data(), _mm_setzero_si128()); }
 Vc_SIMD_CAST_SSE_2(   int_v,  short_v) { return _mm_packs_epi32(x0.data(), x1.data()); }
 Vc_SIMD_CAST_SSE_1(  uint_v,  short_v) { return _mm_packs_epi32(x.data(), _mm_setzero_si128()); }
@@ -195,7 +196,6 @@ Vc_INTRINSIC Return simd_cast(SSE::Vector<T> x, enable_if<offset == 0> = nullarg
 {
     return simd_cast<Return>(x);
 }
-
 
 }  // namespace Vc
 
