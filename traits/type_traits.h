@@ -116,4 +116,6 @@ template <typename T> struct is_unsigned : public is_unsigned_internal<typename 
 }  // namespace Traits
 }  // namespace Vc
 
+#include "entry_type_of.h"
+
 #endif // VC_TRAITS_TYPE_TRAITS_H
