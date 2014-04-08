@@ -116,13 +116,6 @@ Vc_SIMD_CAST_SSE_1(ushort_v, double_v) { return simd_cast<SSE::double_v>(simd_ca
  *  destination type (and bit-field width); otherwise, the value is implementation-defined.
  */
 #ifdef VC_GCC
-Vc_SIMD_CAST_SSE_1(   int_v,  short_v) {
-    auto tmp0 = _mm_unpacklo_epi16(x.data(), _mm_setzero_si128());  // 0 4 X X 1 5 X X
-    auto tmp1 = _mm_unpackhi_epi16(x.data(), _mm_setzero_si128());  // 2 6 X X 3 7 X X
-    auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);                     // 0 2 4 6 X X X X
-    auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);                     // 1 3 5 7 X X X X
-    return _mm_unpacklo_epi16(tmp2, tmp3);                          // 0 1 2 3 4 5 6 7
-}
 Vc_SIMD_CAST_SSE_2(   int_v,  short_v) {
     auto tmp0 = _mm_unpacklo_epi16(x0.data(), x1.data());  // 0 4 X X 1 5 X X
     auto tmp1 = _mm_unpackhi_epi16(x0.data(), x1.data());  // 2 6 X X 3 7 X X
@@ -130,12 +123,8 @@ Vc_SIMD_CAST_SSE_2(   int_v,  short_v) {
     auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);            // 1 3 5 7 X X X X
     return _mm_unpacklo_epi16(tmp2, tmp3);                 // 0 1 2 3 4 5 6 7
 }
-Vc_SIMD_CAST_SSE_1(  uint_v,  short_v) {
-    auto tmp0 = _mm_unpacklo_epi16(x.data(), _mm_setzero_si128());  // 0 4 X X 1 5 X X
-    auto tmp1 = _mm_unpackhi_epi16(x.data(), _mm_setzero_si128());  // 2 6 X X 3 7 X X
-    auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);                     // 0 2 4 6 X X X X
-    auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);                     // 1 3 5 7 X X X X
-    return _mm_unpacklo_epi16(tmp2, tmp3);                          // 0 1 2 3 4 5 6 7
+Vc_SIMD_CAST_SSE_1(   int_v,  short_v) {
+    return simd_cast<SSE::short_v>(x, SSE::int_v::Zero());
 }
 Vc_SIMD_CAST_SSE_2(  uint_v,  short_v) {
     auto tmp0 = _mm_unpacklo_epi16(x0.data(), x1.data());  // 0 4 X X 1 5 X X
@@ -143,6 +132,9 @@ Vc_SIMD_CAST_SSE_2(  uint_v,  short_v) {
     auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);            // 0 2 4 6 X X X X
     auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);            // 1 3 5 7 X X X X
     return _mm_unpacklo_epi16(tmp2, tmp3);                 // 0 1 2 3 4 5 6 7
+}
+Vc_SIMD_CAST_SSE_1(  uint_v,  short_v) {
+    return simd_cast<SSE::short_v>(x, SSE::uint_v::Zero());
 }
 #else
 Vc_SIMD_CAST_SSE_1(   int_v,  short_v) { return _mm_packs_epi32(x.data(), _mm_setzero_si128()); }
@@ -157,13 +149,6 @@ Vc_SIMD_CAST_SSE_2(double_v,  short_v) { return _mm_packs_epi32(simd_cast<SSE::i
 Vc_SIMD_CAST_SSE_4(double_v,  short_v) { return _mm_packs_epi32(simd_cast<SSE::int_v>(x0, x1).data(), simd_cast<SSE::int_v>(x2, x3).data()); }
 Vc_SIMD_CAST_SSE_1(ushort_v,  short_v) { return x.data(); }
 
-Vc_SIMD_CAST_SSE_1(   int_v, ushort_v) {
-    auto tmp0 = _mm_unpacklo_epi16(x.data(), _mm_setzero_si128());  // 0 4 X X 1 5 X X
-    auto tmp1 = _mm_unpackhi_epi16(x.data(), _mm_setzero_si128());  // 2 6 X X 3 7 X X
-    auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);                     // 0 2 4 6 X X X X
-    auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);                     // 1 3 5 7 X X X X
-    return _mm_unpacklo_epi16(tmp2, tmp3);                          // 0 1 2 3 4 5 6 7
-}
 Vc_SIMD_CAST_SSE_2(   int_v, ushort_v) {
     auto tmp0 = _mm_unpacklo_epi16(x0.data(), x1.data());  // 0 4 X X 1 5 X X
     auto tmp1 = _mm_unpackhi_epi16(x0.data(), x1.data());  // 2 6 X X 3 7 X X
@@ -171,24 +156,23 @@ Vc_SIMD_CAST_SSE_2(   int_v, ushort_v) {
     auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);            // 1 3 5 7 X X X X
     return _mm_unpacklo_epi16(tmp2, tmp3);                 // 0 1 2 3 4 5 6 7
 }
+Vc_SIMD_CAST_SSE_1(   int_v, ushort_v) {
+    return simd_cast<SSE::ushort_v>(x, SSE::int_v::Zero());
+}
 Vc_SIMD_CAST_SSE_1( float_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x)); }
 Vc_SIMD_CAST_SSE_2( float_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x0), simd_cast<SSE::int_v>(x1)); }
 Vc_SIMD_CAST_SSE_1(double_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x)); }
 Vc_SIMD_CAST_SSE_2(double_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x0, x1)); }
 Vc_SIMD_CAST_SSE_4(double_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x0, x1), simd_cast<SSE::int_v>(x2, x3)); }
-Vc_SIMD_CAST_SSE_1(  uint_v, ushort_v) {
-    auto tmp0 = _mm_unpacklo_epi16(x.data(), _mm_setzero_si128());  // 0 4 X X 1 5 X X
-    auto tmp1 = _mm_unpackhi_epi16(x.data(), _mm_setzero_si128());  // 2 6 X X 3 7 X X
-    auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);                     // 0 2 4 6 X X X X
-    auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);                     // 1 3 5 7 X X X X
-    return _mm_unpacklo_epi16(tmp2, tmp3);                          // 0 1 2 3 4 5 6 7
-}
 Vc_SIMD_CAST_SSE_2(  uint_v, ushort_v) {
     auto tmp0 = _mm_unpacklo_epi16(x0.data(), x1.data());  // 0 4 X X 1 5 X X
     auto tmp1 = _mm_unpackhi_epi16(x0.data(), x1.data());  // 2 6 X X 3 7 X X
     auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);            // 0 2 4 6 X X X X
     auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);            // 1 3 5 7 X X X X
     return _mm_unpacklo_epi16(tmp2, tmp3);                 // 0 1 2 3 4 5 6 7
+}
+Vc_SIMD_CAST_SSE_1(  uint_v, ushort_v) {
+    return simd_cast<SSE::ushort_v>(x, SSE::uint_v::Zero());
 }
 Vc_SIMD_CAST_SSE_1( short_v, ushort_v) { return x.data(); }
 
