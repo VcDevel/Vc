@@ -577,122 +577,15 @@ template<typename Vec> static typename Vec::Mask allMasks(size_t i)
     typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
-    if (i == 0) {
-        return M(Vc::One);
-    } else if (Vec::Size == 1) {
-        return M(Vc::Zero);
-    }
-#ifndef VC_IMPL_Scalar
-    --i;
-    if (i < Vec::Size) {
-        return M (I(Vc::IndexesFromZero) == i);
-    }
-    i -= Vec::Size;
-    if (Vec::Size < 3) {
-        return M(Vc::Zero);
-    }
-    for (size_t a = 0; a < Vec::Size - 1; ++a) {
-        for (size_t b = a + 1; b < Vec::Size; ++b) {
-            if (i == 0) {
-                I indexes(Vc::IndexesFromZero);
-                return M(indexes == a || indexes == b);
-            }
-            --i;
+    const I indexes(Vc::IndexesFromZero);
+    M mask(true);
+
+    for (int j = 0; j < 8 * sizeof(i); ++j) {
+        if (i & (1u << j)) {
+            mask ^= static_cast<M>(indexes == j);
         }
     }
-    if (Vec::Size < 4) {
-        return M(Vc::Zero);
-    }
-    for (size_t a = 0; a < Vec::Size - 1; ++a) {
-        for (size_t b = a + 1; b < Vec::Size; ++b) {
-            for (size_t c = b + 1; c < Vec::Size; ++c) {
-                if (i == 0) {
-                    I indexes(Vc::IndexesFromZero);
-                    return M(indexes == a || indexes == b || indexes == c);
-                }
-                --i;
-            }
-        }
-    }
-    if (Vec::Size < 5) {
-        return M(Vc::Zero);
-    }
-    for (size_t a = 0; a < Vec::Size - 1; ++a) {
-        for (size_t b = a + 1; b < Vec::Size; ++b) {
-            for (size_t c = b + 1; c < Vec::Size; ++c) {
-                for (size_t d = c + 1; d < Vec::Size; ++d) {
-                    if (i == 0) {
-                        I indexes(Vc::IndexesFromZero);
-                        return M(indexes == a || indexes == b || indexes == c || indexes == d);
-                    }
-                    --i;
-                }
-            }
-        }
-    }
-    if (Vec::Size < 6) {
-        return M(Vc::Zero);
-    }
-    for (size_t a = 0; a < Vec::Size - 1; ++a) {
-        for (size_t b = a + 1; b < Vec::Size; ++b) {
-            for (size_t c = b + 1; c < Vec::Size; ++c) {
-                for (size_t d = c + 1; d < Vec::Size; ++d) {
-                    for (size_t e = d + 1; e < Vec::Size; ++e) {
-                        if (i == 0) {
-                            I indexes(Vc::IndexesFromZero);
-                            return M(indexes == a || indexes == b || indexes == c || indexes == d || indexes == e);
-                        }
-                        --i;
-                    }
-                }
-            }
-        }
-    }
-    if (Vec::Size < 7) {
-        return M(Vc::Zero);
-    }
-    for (size_t a = 0; a < Vec::Size - 1; ++a) {
-        for (size_t b = a + 1; b < Vec::Size; ++b) {
-            for (size_t c = b + 1; c < Vec::Size; ++c) {
-                for (size_t d = c + 1; d < Vec::Size; ++d) {
-                    for (size_t e = d + 1; e < Vec::Size; ++e) {
-                        for (size_t f = e + 1; f < Vec::Size; ++f) {
-                            if (i == 0) {
-                                I indexes(Vc::IndexesFromZero);
-                                return M(indexes == a || indexes == b || indexes == c || indexes == d || indexes == e || indexes == f);
-                            }
-                            --i;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    if (Vec::Size < 8) {
-        return M(Vc::Zero);
-    }
-    for (size_t a = 0; a < Vec::Size - 1; ++a) {
-        for (size_t b = a + 1; b < Vec::Size; ++b) {
-            for (size_t c = b + 1; c < Vec::Size; ++c) {
-                for (size_t d = c + 1; d < Vec::Size; ++d) {
-                    for (size_t e = d + 1; e < Vec::Size; ++e) {
-                        for (size_t f = e + 1; f < Vec::Size; ++f) {
-                            for (size_t g = f + 1; g < Vec::Size; ++g) {
-                                if (i == 0) {
-                                    I indexes(Vc::IndexesFromZero);
-                                    return M(indexes == a || indexes == b || indexes == c || indexes == d
-                                            || indexes == e || indexes == f || indexes == g);
-                                }
-                                --i;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-#endif
-    return M(Vc::Zero);
+    return mask;
 #endif
 }
 
