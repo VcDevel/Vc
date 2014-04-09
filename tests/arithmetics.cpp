@@ -219,27 +219,18 @@ TEST_ALL_V(Vec, testMulAdd)
     }
 }
 
-template<typename> void testMulSub();
-template<> void testMulSub<short_v>()
-{ // short_v over-/underflow results in undefined behavior
-    for (unsigned int i = -0xb4; i < 0xb4; ++i) {
-        const short j = static_cast<short>(i);
-        const short_v test(j);
-
-        COMPARE(test * test - test, short_v(j * j - j));
-    }
-}
-
-TEST_ALL_V(Vec, testMulSub)
+TEST_BEGIN(Vec, testMulSub, (ALL_TYPES))
 {
     typedef typename Vec::EntryType T;
-    for (unsigned int i = 0; i < 0xffff; ++i) {
+    const auto maxI = sizeof(T) < 4 ? 0xb4 : 0xffff;
+    for (unsigned int i = 0; i < maxI; ++i) {
         const T j = static_cast<T>(i);
         const Vec test(j);
 
         FUZZY_COMPARE(test * test - test, Vec(j * j - j));
     }
 }
+TEST_END
 
 TEST_BEGIN(Vec, testDiv, (ALL_TYPES))
 {
