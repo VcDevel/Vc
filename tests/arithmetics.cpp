@@ -241,7 +241,7 @@ TEST_ALL_V(Vec, testMulSub)
     }
 }
 
-TEST_ALL_V(Vec, testDiv)
+TEST_BEGIN(Vec, testDiv, (ALL_TYPES))
 {
     for (int repetition = 0; repetition < 10000; ++repetition) {
         const Vec a = Vec::Random();
@@ -275,6 +275,7 @@ TEST_ALL_V(Vec, testDiv)
         }
     }
 }
+TEST_END
 
 TEST_BEGIN(V,
            testModulo,

@@ -201,9 +201,14 @@ public:
     }
 
 #define Vc_BINARY_OPERATOR_(op)                                                                    \
-    Vc_INTRINSIC simd_array operator op(const simd_array &rhs) const                               \
+    Vc_INTRINSIC Vc_CONST simd_array operator op(const simd_array &rhs) const                      \
     {                                                                                              \
         return {data op rhs.data};                                                                 \
+    }                                                                                              \
+    Vc_INTRINSIC simd_array &operator op##=(const simd_array & rhs)                                \
+    {                                                                                              \
+        data op## = rhs.data;                                                                      \
+        return *this;                                                                              \
     }
     VC_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
     VC_ALL_BINARY(Vc_BINARY_OPERATOR_)
@@ -400,9 +405,15 @@ public:
     }
 
 #define Vc_BINARY_OPERATOR_(op)                                                                    \
-    Vc_INTRINSIC simd_array operator op(const simd_array &rhs) const                               \
+    Vc_INTRINSIC Vc_CONST simd_array operator op(const simd_array &rhs) const                      \
     {                                                                                              \
         return {data0 op rhs.data0, data1 op rhs.data1};                                           \
+    }                                                                                              \
+    Vc_INTRINSIC simd_array &operator op##=(const simd_array & rhs)                                \
+    {                                                                                              \
+        data0 op## = rhs.data0;                                                                    \
+        data1 op## = rhs.data1;                                                                    \
+        return *this;                                                                              \
     }
     VC_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
     VC_ALL_BINARY(Vc_BINARY_OPERATOR_)
