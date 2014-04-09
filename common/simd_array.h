@@ -235,7 +235,7 @@ public:
 
     Vc_INTRINSIC const vectorentry_type *begin() const
     {
-        return reinterpret_cast<const vectorentry_type *>(&data);
+        return reinterpret_cast<const vectorentry_type *>(&data.data());
     }
 
     Vc_INTRINSIC decltype(&std::declval<VectorType &>()[0]) begin()
