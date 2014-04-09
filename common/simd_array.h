@@ -287,6 +287,7 @@ template <typename T, std::size_t N, typename VectorType, std::size_t> class sim
 public:
     using vector_type = VectorType;
     using vectorentry_type = typename storage_type0::vectorentry_type;
+    typedef vectorentry_type alias_type Vc_MAY_ALIAS;
     using value_type = T;
     using mask_type = simd_mask_array<T, N, vector_type>;
     using index_type = simd_array<int, N>;
@@ -417,12 +418,14 @@ public:
 
     Vc_INTRINSIC value_type operator[](std::size_t i) const
     {
-        return data0.begin()[i];
+        const auto tmp = reinterpret_cast<const alias_type *>(&data0);
+        return tmp[i];
     }
 
-    Vc_INTRINSIC value_type &operator[](std::size_t i)
+    Vc_INTRINSIC alias_type &operator[](std::size_t i)
     {
-        return data0.begin()[i];
+        auto tmp = reinterpret_cast<alias_type *>(&data0);
+        return tmp[i];
     }
 
     Vc_INTRINSIC Common::WriteMaskedVector<simd_array, mask_type> operator()(const mask_type &k)
