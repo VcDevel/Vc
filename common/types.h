@@ -39,6 +39,7 @@ namespace Vc_IMPL_NAMESPACE
 template <typename T, std::size_t N> struct array;
 
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_array;
+template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_mask_array;
 
 namespace Traits
 {
