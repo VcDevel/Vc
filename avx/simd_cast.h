@@ -218,9 +218,15 @@ Vc_SIMD_CAST_AVX_1(ushort_v, double_v) { return simd_cast<Vc_AVX_NAMESPACE::doub
                                        from__ x3,                                                  \
                                        enable_if<std::is_same<To, to__>::value> = nullarg)
 
+Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE:: short_v) { return simd_cast<SSE::short_v>(x).data(); }
+Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE:: short_v) { return simd_cast<SSE::short_v>(x0, x1).data(); }
+Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE::ushort_v) { return simd_cast<SSE::ushort_v>(x).data(); }
+Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE::ushort_v) { return simd_cast<SSE::ushort_v>(x0, x1).data(); }
 Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE::double_v) { return _mm256_cvtepi32_pd(x.data()); }
-Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE::float_v) { return _mm256_cvtepi32_ps(AVX::concat(x0.data(), x1.data())); }
-Vc_SIMD_CAST_2(SSE::int_m, Vc_AVX_NAMESPACE::float_m) { return AVX::concat(x0.data(), x1.data()); }
+Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE:: float_v) { return AVX::zeroExtend(_mm_cvtepi32_ps(x.data())); }
+Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE:: float_v) { return _mm256_cvtepi32_ps(AVX::concat(x0.data(), x1.data())); }
+Vc_SIMD_CAST_1(SSE::int_m, Vc_AVX_NAMESPACE:: float_m) { return AVX::zeroExtend(x.data()); }
+Vc_SIMD_CAST_2(SSE::int_m, Vc_AVX_NAMESPACE:: float_m) { return AVX::concat(x0.data(), x1.data()); }
 
 #undef Vc_SIMD_CAST_1
 #undef Vc_SIMD_CAST_2
