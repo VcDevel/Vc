@@ -22,6 +22,8 @@
 
 #include "global.h"
 
+#include "scalar/vector.h"
+
 #if defined(VC_IMPL_MIC)
 # include "mic/vector.h"
 #elif defined(VC_IMPL_AVX)
@@ -50,7 +52,6 @@
 # include "sse/simd_cast.h"
 #endif
 
-#include "scalar/vector.h"
 #include "scalar/simd_cast.h"
 
 namespace Vc_VERSIONED_NAMESPACE {

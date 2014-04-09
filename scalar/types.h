@@ -20,7 +20,7 @@
 #ifndef VC_SCALAR_TYPES_H
 #define VC_SCALAR_TYPES_H
 
-#ifndef VC_DOUBLE_V_SIZE
+#if defined(VC_IMPL_Scalar) && !defined(VC_DOUBLE_V_SIZE)
 #define VC_DOUBLE_V_SIZE 1
 #define VC_FLOAT_V_SIZE 1
 #define VC_SFLOAT_V_SIZE 1
