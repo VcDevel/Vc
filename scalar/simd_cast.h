@@ -29,7 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SCALAR_SIMD_CAST_H_
 #define VC_SCALAR_SIMD_CAST_H_
 
-#include "../common/simd_cast.h"
 #include "type_traits.h"
 #include "macros.h"
 

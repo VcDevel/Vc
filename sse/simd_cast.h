@@ -181,6 +181,131 @@ Vc_SIMD_CAST_SSE_1( short_v, ushort_v) { return x.data(); }
 #undef Vc_SIMD_CAST_SSE_2
 #undef Vc_SIMD_CAST_SSE_4
 
+#define Vc_SIMD_CAST_1(from__, to__)                                                               \
+    template <typename To>                                                                         \
+    Vc_INTRINSIC Vc_CONST To                                                                       \
+        simd_cast(from__ x, enable_if<std::is_same<To, to__>::value> = nullarg)
+
+#define Vc_SIMD_CAST_2(from__, to__)                                                               \
+    template <typename To>                                                                         \
+    Vc_INTRINSIC Vc_CONST To                                                                       \
+        simd_cast(from__ x0, from__ x1, enable_if<std::is_same<To, to__>::value> = nullarg)
+
+#define Vc_SIMD_CAST_4(from__, to__)                                                               \
+    template <typename To>                                                                         \
+    Vc_INTRINSIC Vc_CONST To simd_cast(from__ x0,                                                  \
+                                       from__ x1,                                                  \
+                                       from__ x2,                                                  \
+                                       from__ x3,                                                  \
+                                       enable_if<std::is_same<To, to__>::value> = nullarg)
+
+#define Vc_SIMD_CAST_8(from__, to__)                                                               \
+    template <typename To>                                                                         \
+    Vc_INTRINSIC Vc_CONST To simd_cast(from__ x0,                                                  \
+                                       from__ x1,                                                  \
+                                       from__ x2,                                                  \
+                                       from__ x3,                                                  \
+                                       from__ x4,                                                  \
+                                       from__ x5,                                                  \
+                                       from__ x6,                                                  \
+                                       from__ x7,                                                  \
+                                       enable_if<std::is_same<To, to__>::value> = nullarg)
+
+Vc_SIMD_CAST_1(Scalar::int_v, SSE::double_v) { return _mm_setr_pd(x.data(), 0); } // FIXME: register - register mov
+Vc_SIMD_CAST_2(Scalar::int_v, SSE::double_v) { return _mm_setr_pd(x0.data(), x1.data()); }
+Vc_SIMD_CAST_1(Scalar::int_v, SSE::float_v) { return _mm_setr_ps(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::int_v, SSE::float_v) { return _mm_setr_ps(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::int_v, SSE::float_v) { return _mm_setr_ps(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::int_v, SSE::int_v) { return _mm_setr_epi32(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::int_v, SSE::int_v) { return _mm_setr_epi32(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::int_v, SSE::int_v) { return _mm_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::int_v, SSE::uint_v) { return _mm_setr_epi32(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::int_v, SSE::uint_v) { return _mm_setr_epi32(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::int_v, SSE::uint_v) { return _mm_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::int_v, SSE::short_v) { return _mm_setr_epi16(x.data(), 0, 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::int_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::int_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0); }
+Vc_SIMD_CAST_8(Scalar::int_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), x5.data(), x6.data(), x7.data()); }
+Vc_SIMD_CAST_1(Scalar::int_v, SSE::ushort_v) { return _mm_setr_epi16(x.data(), 0, 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::int_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::int_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0); }
+Vc_SIMD_CAST_8(Scalar::int_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), x5.data(), x6.data(), x7.data()); }
+
+Vc_SIMD_CAST_1(Scalar::uint_v, SSE::double_v) { return _mm_setr_pd(x.data(), 0); } // FIXME: register - register mov
+Vc_SIMD_CAST_2(Scalar::uint_v, SSE::double_v) { return _mm_setr_pd(x0.data(), x1.data()); }
+Vc_SIMD_CAST_1(Scalar::uint_v, SSE::float_v) { return _mm_setr_ps(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::uint_v, SSE::float_v) { return _mm_setr_ps(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::uint_v, SSE::float_v) { return _mm_setr_ps(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::uint_v, SSE::int_v) { return _mm_setr_epi32(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::uint_v, SSE::int_v) { return _mm_setr_epi32(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::uint_v, SSE::int_v) { return _mm_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::uint_v, SSE::uint_v) { return _mm_setr_epi32(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::uint_v, SSE::uint_v) { return _mm_setr_epi32(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::uint_v, SSE::uint_v) { return _mm_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::uint_v, SSE::short_v) { return _mm_setr_epi16(x.data(), 0, 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::uint_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::uint_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0); }
+Vc_SIMD_CAST_8(Scalar::uint_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), x5.data(), x6.data(), x7.data()); }
+Vc_SIMD_CAST_1(Scalar::uint_v, SSE::ushort_v) { return _mm_setr_epi16(x.data(), 0, 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::uint_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::uint_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0); }
+Vc_SIMD_CAST_8(Scalar::uint_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), x5.data(), x6.data(), x7.data()); }
+
+Vc_SIMD_CAST_1(Scalar::short_v, SSE::double_v) { return _mm_setr_pd(x.data(), 0); } // FIXME: register - register mov
+Vc_SIMD_CAST_2(Scalar::short_v, SSE::double_v) { return _mm_setr_pd(x0.data(), x1.data()); }
+Vc_SIMD_CAST_1(Scalar::short_v, SSE::float_v) { return _mm_setr_ps(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::short_v, SSE::float_v) { return _mm_setr_ps(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::short_v, SSE::float_v) { return _mm_setr_ps(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::short_v, SSE::int_v) { return _mm_setr_epi32(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::short_v, SSE::int_v) { return _mm_setr_epi32(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::short_v, SSE::int_v) { return _mm_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::short_v, SSE::uint_v) { return _mm_setr_epi32(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::short_v, SSE::uint_v) { return _mm_setr_epi32(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::short_v, SSE::uint_v) { return _mm_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::short_v, SSE::short_v) { return _mm_setr_epi16(x.data(), 0, 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::short_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::short_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0); }
+Vc_SIMD_CAST_8(Scalar::short_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), x5.data(), x6.data(), x7.data()); }
+Vc_SIMD_CAST_1(Scalar::short_v, SSE::ushort_v) { return _mm_setr_epi16(x.data(), 0, 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::short_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::short_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0); }
+Vc_SIMD_CAST_8(Scalar::short_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), x5.data(), x6.data(), x7.data()); }
+
+Vc_SIMD_CAST_1(Scalar::ushort_v, SSE::double_v) { return _mm_setr_pd(x.data(), 0); } // FIXME: register - register mov
+Vc_SIMD_CAST_2(Scalar::ushort_v, SSE::double_v) { return _mm_setr_pd(x0.data(), x1.data()); }
+Vc_SIMD_CAST_1(Scalar::ushort_v, SSE::float_v) { return _mm_setr_ps(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::ushort_v, SSE::float_v) { return _mm_setr_ps(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::ushort_v, SSE::float_v) { return _mm_setr_ps(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::ushort_v, SSE::int_v) { return _mm_setr_epi32(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::ushort_v, SSE::int_v) { return _mm_setr_epi32(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::ushort_v, SSE::int_v) { return _mm_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::ushort_v, SSE::uint_v) { return _mm_setr_epi32(x.data(), 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::ushort_v, SSE::uint_v) { return _mm_setr_epi32(x0.data(), x1.data(), 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::ushort_v, SSE::uint_v) { return _mm_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data()); }
+Vc_SIMD_CAST_1(Scalar::ushort_v, SSE::short_v) { return _mm_setr_epi16(x.data(), 0, 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::ushort_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::ushort_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0); }
+Vc_SIMD_CAST_8(Scalar::ushort_v, SSE::short_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), x5.data(), x6.data(), x7.data()); }
+Vc_SIMD_CAST_1(Scalar::ushort_v, SSE::ushort_v) { return _mm_setr_epi16(x.data(), 0, 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_2(Scalar::ushort_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), 0, 0, 0, 0, 0, 0); } // FIXME
+Vc_SIMD_CAST_4(Scalar::ushort_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0); }
+Vc_SIMD_CAST_8(Scalar::ushort_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), x5.data(), x6.data(), x7.data()); }
+
+#define Vc_SIMD_CAST_SSE_TO_SCALAR(to__)                                                           \
+    template <typename To, typename FromT>                                                         \
+    Vc_INTRINSIC Vc_CONST To simd_cast(SSE::Vector<FromT> x,                                       \
+                                       enable_if<std::is_same<To, Scalar::to__>::value> = nullarg) \
+    {                                                                                              \
+        return simd_cast<SSE::to__>(x)[0];                                                         \
+    }
+
+VC_ALL_VECTOR_TYPES(Vc_SIMD_CAST_SSE_TO_SCALAR)
+#undef Vc_SIMD_CAST_1
+#undef Vc_SIMD_CAST_2
+#undef Vc_SIMD_CAST_4
+#undef Vc_SIMD_CAST_8
+
+// SSE to SSE
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast(SSE::Vector<T> x, enable_if<offset != 0 && sizeof(Return) == 16> = nullarg)
 {
@@ -189,6 +314,15 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(SSE::Vector<T> x, enable_if<offset != 0 &
     static_assert(shift > 0 && shift < 16, "");
     return simd_cast<Return>(V{SSE::sse_cast<typename V::VectorType>(
         _mm_srli_si128(SSE::sse_cast<__m128i>(x.data()), shift))});
+}
+
+// SSE to Scalar
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST Return simd_cast(SSE::Vector<T> x, enable_if<(offset != 0 && sizeof(Return) <= 8)> = nullarg)
+{
+    using RT = typename Return::EntryType;
+    const auto tmp = simd_cast<SSE::Vector<RT>>(x);
+    return tmp[offset];
 }
 
 template <typename Return, int offset, typename T>
