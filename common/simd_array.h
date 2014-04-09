@@ -32,6 +32,18 @@
 namespace Vc_VERSIONED_NAMESPACE
 {
 
+template <typename T, std::size_t N, typename V, std::size_t M>
+simd_array<T, N, V, M> Vc_INTRINSIC Vc_PURE min(const simd_array<T, N, V, M> &l, const simd_array<T, N, V, M> &r)
+{
+    return {min(internal_data0(l), internal_data0(r)), min(internal_data1(l), internal_data1(r))};
+}
+
+template <typename T, std::size_t N, typename V>
+simd_array<T, N, V, N> Vc_INTRINSIC Vc_PURE min(const simd_array<T, N, V, N> &l, const simd_array<T, N, V, N> &r)
+{
+    return {min(internal_data(l), internal_data(r))};
+}
+
 template <typename T,
           std::size_t N,
           typename VectorType = typename Common::select_best_vector_type<N,
@@ -235,6 +247,17 @@ public:
         return reinterpret_cast<const vectorentry_type *>(&data + 1);
     }
 
+    // reductions ////////////////////////////////////////////////////////
+    Vc_INTRINSIC value_type min() const
+    {
+        return data.min();
+    }
+
+    Vc_INTRINSIC value_type min(mask_type mask) const
+    {
+        return data.min(internal_data(mask));
+    }
+
     friend Vc_INTRINSIC VectorType &internal_data(simd_array &x) { return x.data; }
     friend Vc_INTRINSIC VectorType internal_data(const simd_array &x) { return x.data; }
 
@@ -425,6 +448,30 @@ public:
     Vc_INTRINSIC const vectorentry_type *end() const
     {
         return data0.end();
+    }
+
+    // reductions ////////////////////////////////////////////////////////
+    template <typename ForSfinae = void>
+    Vc_INTRINSIC enable_if<
+        std::is_same<ForSfinae, void>::value &&storage_type0::size() == storage_type1::size(),
+        value_type>
+        min() const
+    {
+        return Vc::min(data0, data1).min();
+    }
+
+    template <typename ForSfinae = void>
+    Vc_INTRINSIC enable_if<
+        std::is_same<ForSfinae, void>::value &&storage_type0::size() != storage_type1::size(),
+        value_type>
+        min() const
+    {
+        return std::min(data0.min(), data1.min());
+    }
+
+    Vc_INTRINSIC value_type min(mask_type mask) const
+    {
+        return std::min(data0.min(internal_data0(mask)), data1.min(internal_data1(mask)));
     }
 
     friend Vc_INTRINSIC storage_type0 &internal_data0(simd_array &x) { return x.data0; }

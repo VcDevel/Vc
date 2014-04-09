@@ -276,7 +276,20 @@ TEST_ALL_V(Vec, testDiv)
     }
 }
 
-TEST_BEGIN(V, testModulo, (simd_array<int, 32>, simd_array<short, 32>, int_v, ushort_v, uint_v, short_v))
+TEST_BEGIN(V,
+           testModulo,
+           (simd_array<unsigned int, 31>,
+            simd_array<unsigned short, 31>,
+            simd_array<unsigned int, 32>,
+            simd_array<unsigned short, 32>,
+            simd_array<int, 31>,
+            simd_array<short, 31>,
+            simd_array<int, 32>,
+            simd_array<short, 32>,
+            int_v,
+            ushort_v,
+            uint_v,
+            short_v))
     for (int repetition = 0; repetition < 1000; ++repetition) {
         V x = V::Random();
         V y = (V::Random() & 2047) - 1023;
@@ -410,8 +423,7 @@ TEST_BEGIN(Vec, testNegate, ALL_TYPES)
     }
 TEST_END
 
-#if 0
-TEST_BEGIN(Vec, testMin, (ALL_VECTORS))
+TEST_BEGIN(Vec, testMin, (ALL_TYPES))
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     typedef typename Vec::IndexType I;
@@ -421,18 +433,20 @@ TEST_BEGIN(Vec, testMin, (ALL_VECTORS))
     COMPARE(v.min(), static_cast<T>(0));
     COMPARE((T(Vec::Size) - v).min(), static_cast<T>(1));
 
-    int j = 0;
-    Mask m;
-    do {
-        m = allMasks<Vec>(j++);
-        if (m.isEmpty()) {
-            break;
+    std::default_random_engine rand;
+    const size_t max = (size_t(1) << Vec::Size) - 1;
+    std::uniform_int_distribution<size_t> dist(0, max);
+    for (int rep = 0; rep < 100000; ++rep) {
+        const size_t j = dist(rand);
+        Mask m = allMasks<Vec>(j);
+        if (any_of(m)) {
+            COMPARE(v.min(m), static_cast<T>(m.firstOne())) << m << v;
         }
-        COMPARE(v.min(m), static_cast<T>(m.firstOne())) << m << v;
-    } while (true);
+    }
 TEST_END
 
-TEST_BEGIN(Vec, testMax, (ALL_VECTORS))
+#if 0
+TEST_BEGIN(Vec, testMax, (ALL_TYPES))
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     typedef typename Vec::IndexType I;
@@ -454,7 +468,7 @@ TEST_BEGIN(Vec, testMax, (ALL_VECTORS))
     } while (true);
 TEST_END
 
-TEST_BEGIN(Vec, testProduct, (ALL_VECTORS))
+TEST_BEGIN(Vec, testProduct, (ALL_TYPES))
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
 
@@ -490,7 +504,7 @@ TEST_BEGIN(Vec, testProduct, (ALL_VECTORS))
     }
 TEST_END
 
-TEST_BEGIN(Vec, testSum, (ALL_VECTORS))
+TEST_BEGIN(Vec, testSum, (ALL_TYPES))
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
 
@@ -508,7 +522,7 @@ TEST_BEGIN(Vec, testSum, (ALL_VECTORS))
     }
 TEST_END
 
-TEST_BEGIN(V, testPartialSum, (ALL_VECTORS))
+TEST_BEGIN(V, testPartialSum, (ALL_TYPES))
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
 
@@ -521,7 +535,7 @@ TEST_BEGIN(V, testPartialSum, (ALL_VECTORS))
     */
 TEST_END
 
-TEST_BEGIN(V, testFma, (ALL_VECTORS))
+TEST_BEGIN(V, testFma, (ALL_TYPES))
     for (int i = 0; i < 1000; ++i) {
         V a = V::Random();
         const V b = V::Random();
