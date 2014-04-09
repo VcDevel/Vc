@@ -217,10 +217,11 @@ public:
     VC_ALL_COMPARES(Vc_COMPARES)
 #undef Vc_COMPARES
 
-    Vc_INTRINSIC value_type operator[](std::size_t i) const
+    Vc_INTRINSIC decltype(std::declval<vector_type &>()[0]) operator[](std::size_t i)
     {
         return data[i];
     }
+    Vc_INTRINSIC value_type operator[](std::size_t i) const { return data[i]; }
 
     Vc_INTRINSIC Common::WriteMaskedVector<simd_array, mask_type> operator()(const mask_type &k)
     {
