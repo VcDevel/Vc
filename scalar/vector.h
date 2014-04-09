@@ -57,7 +57,7 @@ class Vector
         typedef Vector<T> AsArg;
 
         Vc_ALWAYS_INLINE EntryType &data() { return m_data; }
-        Vc_ALWAYS_INLINE EntryType data() const { return m_data; }
+        Vc_ALWAYS_INLINE const EntryType &data() const { return m_data; }
 
         static constexpr size_t Size = 1;
         enum Constants {

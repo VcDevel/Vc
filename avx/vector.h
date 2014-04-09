@@ -294,7 +294,7 @@ template<typename T> class Vector
         //}
 
         Vc_ALWAYS_INLINE VectorType &data() { return d.v(); }
-        Vc_ALWAYS_INLINE const VectorType data() const { return d.v(); }
+        Vc_ALWAYS_INLINE const VectorType &data() const { return d.v(); }
 
         Vc_ALWAYS_INLINE EntryType min() const { return VectorHelper<T>::min(data()); }
         Vc_ALWAYS_INLINE EntryType max() const { return VectorHelper<T>::max(data()); }
