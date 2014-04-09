@@ -37,21 +37,21 @@ namespace Vc_VERSIONED_NAMESPACE
 
 #define Vc_SIMD_CAST_SSE_1(from__, to__)                                                           \
     template <typename To>                                                                         \
-    Vc_INTRINSIC To                                                                                \
+    Vc_INTRINSIC Vc_CONST To                                                                       \
         simd_cast(SSE::from__ x, enable_if<std::is_same<To, SSE::to__>::value> = nullarg)
 
 #define Vc_SIMD_CAST_SSE_2(from__, to__)                                                           \
     template <typename To>                                                                         \
-    Vc_INTRINSIC To simd_cast(                                                                     \
+    Vc_INTRINSIC Vc_CONST To simd_cast(                                                            \
         SSE::from__ x0, SSE::from__ x1, enable_if<std::is_same<To, SSE::to__>::value> = nullarg)
 
 #define Vc_SIMD_CAST_SSE_4(from__, to__)                                                           \
     template <typename To>                                                                         \
-    Vc_INTRINSIC To simd_cast(SSE::from__ x0,                                                      \
-                              SSE::from__ x1,                                                      \
-                              SSE::from__ x2,                                                      \
-                              SSE::from__ x3,                                                      \
-                              enable_if<std::is_same<To, SSE::to__>::value> = nullarg)
+    Vc_INTRINSIC Vc_CONST To simd_cast(SSE::from__ x0,                                             \
+                                       SSE::from__ x1,                                             \
+                                       SSE::from__ x2,                                             \
+                                       SSE::from__ x3,                                             \
+                                       enable_if<std::is_same<To, SSE::to__>::value> = nullarg)
 
 Vc_SIMD_CAST_SSE_1( float_v,    int_v) { return _mm_cvttps_epi32(x.data()); }
 Vc_SIMD_CAST_SSE_1(double_v,    int_v) { return _mm_cvttpd_epi32(x.data()); }
@@ -182,7 +182,7 @@ Vc_SIMD_CAST_SSE_1( short_v, ushort_v) { return x.data(); }
 #undef Vc_SIMD_CAST_SSE_4
 
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Return simd_cast(SSE::Vector<T> x, enable_if<offset != 0> = nullarg)
+Vc_INTRINSIC Vc_CONST Return simd_cast(SSE::Vector<T> x, enable_if<offset != 0 && sizeof(Return) == 16> = nullarg)
 {
     using V = SSE::Vector<T>;
     constexpr int shift = sizeof(T) * offset * Return::Size;
@@ -192,7 +192,7 @@ Vc_INTRINSIC Return simd_cast(SSE::Vector<T> x, enable_if<offset != 0> = nullarg
 }
 
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Return simd_cast(SSE::Vector<T> x, enable_if<offset == 0> = nullarg)
+Vc_INTRINSIC Vc_CONST Return simd_cast(SSE::Vector<T> x, enable_if<offset == 0> = nullarg)
 {
     return simd_cast<Return>(x);
 }

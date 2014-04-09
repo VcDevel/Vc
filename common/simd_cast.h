@@ -30,11 +30,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_SIMD_CAST_H
 
 #include <type_traits>
+#include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename To, typename From>
-inline To simd_cast(From x, enable_if<std::is_same<To, From>::value> = nullarg)
+Vc_INTRINSIC Vc_CONST To simd_cast(From x, enable_if<std::is_same<To, From>::value> = nullarg)
 {
     return x;
 }
@@ -52,5 +53,7 @@ inline To simd_cast(From x0,
 }
 */
 }
+
+#include "undomacros.h"
 
 #endif // VC_COMMON_SIMD_CAST_H

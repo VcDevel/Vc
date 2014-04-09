@@ -40,20 +40,20 @@ namespace Vc_VERSIONED_NAMESPACE
 
 #define Vc_SIMD_CAST_AVX_1(from__, to__)                                                           \
     template <typename To>                                                                         \
-    Vc_INTRINSIC To                                                                                \
+    Vc_INTRINSIC Vc_CONST To                                                                       \
         simd_cast(Vc_AVX_NAMESPACE::from__ x,                                                      \
                   enable_if<std::is_same<To, Vc_AVX_NAMESPACE::to__>::value> = nullarg)
 
 #define Vc_SIMD_CAST_AVX_2(from__, to__)                                                           \
     template <typename To>                                                                         \
-    Vc_INTRINSIC To                                                                                \
+    Vc_INTRINSIC Vc_CONST To                                                                       \
         simd_cast(Vc_AVX_NAMESPACE::from__ x0,                                                     \
                   Vc_AVX_NAMESPACE::from__ x1,                                                     \
                   enable_if<std::is_same<To, Vc_AVX_NAMESPACE::to__>::value> = nullarg)
 
 #define Vc_SIMD_CAST_AVX_4(from__, to__)                                                           \
     template <typename To>                                                                         \
-    Vc_INTRINSIC To                                                                                \
+    Vc_INTRINSIC Vc_CONST To                                                                       \
         simd_cast(Vc_AVX_NAMESPACE::from__ x0,                                                     \
                   Vc_AVX_NAMESPACE::from__ x1,                                                     \
                   Vc_AVX_NAMESPACE::from__ x2,                                                     \
@@ -202,20 +202,21 @@ Vc_SIMD_CAST_AVX_1(ushort_v, double_v) { return simd_cast<Vc_AVX_NAMESPACE::doub
 
 #define Vc_SIMD_CAST_1(from__, to__)                                                               \
     template <typename To>                                                                         \
-    Vc_INTRINSIC To simd_cast(from__ x, enable_if<std::is_same<To, to__>::value> = nullarg)
+    Vc_INTRINSIC Vc_CONST To                                                                       \
+        simd_cast(from__ x, enable_if<std::is_same<To, to__>::value> = nullarg)
 
 #define Vc_SIMD_CAST_2(from__, to__)                                                               \
     template <typename To>                                                                         \
-    Vc_INTRINSIC To                                                                                \
+    Vc_INTRINSIC Vc_CONST To                                                                       \
         simd_cast(from__ x0, from__ x1, enable_if<std::is_same<To, to__>::value> = nullarg)
 
 #define Vc_SIMD_CAST_4(from__, to__)                                                               \
     template <typename To>                                                                         \
-    Vc_INTRINSIC To simd_cast(from__ x0,                                                           \
-                              from__ x1,                                                           \
-                              from__ x2,                                                           \
-                              from__ x3,                                                           \
-                              enable_if<std::is_same<To, to__>::value> = nullarg)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from__ x0,                                                  \
+                                       from__ x1,                                                  \
+                                       from__ x2,                                                  \
+                                       from__ x3,                                                  \
+                                       enable_if<std::is_same<To, to__>::value> = nullarg)
 
 Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE::double_v) { return _mm256_cvtepi32_pd(x.data()); }
 Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE::float_v) { return _mm256_cvtepi32_ps(AVX::concat(x0.data(), x1.data())); }
@@ -226,7 +227,7 @@ Vc_SIMD_CAST_2(SSE::int_m, Vc_AVX_NAMESPACE::float_m) { return AVX::concat(x0.da
 #undef Vc_SIMD_CAST_4
 
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Return
+Vc_INTRINSIC Vc_CONST Return
     simd_cast(Vc_AVX_NAMESPACE::Vector<T> x,
               enable_if<(offset != 0 && sizeof(Return) == 32 && sizeof(T) > 2)> = nullarg)
 {
@@ -245,7 +246,7 @@ Vc_INTRINSIC Return
 }
 
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Return
+Vc_INTRINSIC Vc_CONST Return
     simd_cast(Vc_AVX_NAMESPACE::Vector<T> x,
               enable_if<(offset != 0 && sizeof(Return) == 32 && sizeof(T) <= 2)> = nullarg)
 {
@@ -257,7 +258,8 @@ Vc_INTRINSIC Return
 }
 
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Return simd_cast(Vc_AVX_NAMESPACE::Vector<T> x, enable_if<offset == 0> = nullarg)
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(Vc_AVX_NAMESPACE::Vector<T> x, enable_if<offset == 0> = nullarg)
 {
     return simd_cast<Return>(x);
 }
