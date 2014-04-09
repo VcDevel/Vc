@@ -374,15 +374,6 @@ public:
         return {-data0, -data1};
     }
 
-    template <typename U>
-    using result_vector_type = simd_array<decltype(std::declval<T>() + std::declval<U>()), N>;
-
-    template <typename U>
-    Vc_INTRINSIC result_vector_type<U> operator+(const simd_array<U, N> &rhs) const
-    {
-        return result_vector_type<U>{*this} + result_vector_type<U>{rhs};
-    }
-
 #define Vc_BINARY_OPERATOR_(op)                                                                    \
     Vc_INTRINSIC simd_array operator op(const simd_array &rhs) const                               \
     {                                                                                              \
@@ -450,6 +441,67 @@ private:
     storage_type0 data0;
     storage_type1 data1;
 };
+
+// binary operators ////////////////////////////////////////////
+namespace result_vector_type_internal
+{
+template <typename T>
+using type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+
+template <typename T, bool = Traits::IsSimdArray<T>::value || Traits::is_simd_vector<T>::value>
+struct simd_size_of : public std::integral_constant<std::size_t, 1>
+{
+};
+
+template <typename T> using Decay = typename std::decay<T>::type;
+
+template <typename T>
+struct simd_size_of<T, true> : public std::integral_constant<std::size_t, Decay<T>::Size>
+{
+};
+
+template <typename L,
+          typename R,
+          std::size_t N = Traits::IsSimdArray<L>::value ? simd_size_of<L>::value
+                                                        : simd_size_of<R>::value,
+          bool = (Traits::IsSimdArray<L>::value ||
+                  Traits::IsSimdArray<R>::value) &&  // one of the operands must be a simd_array
+                 !std::is_same<Decay<L>, Decay<R>>::value,  // if the operands are of the same type
+                                                            // use the member function
+          bool = (std::is_arithmetic<type<L>>::value ^
+                  std::is_arithmetic<type<R>>::value)  // one of the operands is a scalar type
+                 &&
+                 (Traits::is_simd_vector<L>::value ^
+                  Traits::is_simd_vector<R>::value)  // one of the operands is Vector<T>
+                     > struct evaluate;
+
+template <typename L, typename R, std::size_t N> struct evaluate<L, R, N, true, false>
+{
+    using type = simd_array<decltype(std::declval<Traits::entry_type_of<L>>() +
+                                     std::declval<Traits::entry_type_of<R>>()),
+                            N>;
+};
+
+}  // namespace result_vector_type_internal
+
+template <typename L, typename R>
+using result_vector_type = typename result_vector_type_internal::evaluate<L, R>::type;
+
+static_assert(
+    std::is_same<result_vector_type<short unsigned int, Vc_0::simd_array<short unsigned int, 32ul>>,
+                 Vc_0::simd_array<int, 32ul>>::value,
+    "result_vector_type does not work");
+
+#define Vc_BINARY_OPERATORS_(op__)                                                                 \
+    template <typename L, typename R>                                                              \
+    Vc_INTRINSIC result_vector_type<L, R> operator op__(L &&lhs, R &&rhs)                          \
+    {                                                                                              \
+        using Return = result_vector_type<L, R>;                                                   \
+        return Return(std::forward<L>(lhs)) op__ Return(std::forward<R>(rhs));                     \
+    }
+VC_ALL_ARITHMETICS(Vc_BINARY_OPERATORS_)
+VC_ALL_BINARY(Vc_BINARY_OPERATORS_)
+#undef Vc_BINARY_OPERATORS_
 
 #if 0
 // === having simd_array<T, N> in the Vc namespace leads to a ABI bug ===
