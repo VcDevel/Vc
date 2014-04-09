@@ -186,26 +186,51 @@ template <std::size_t secondOffset> struct Split/*{{{*/
         return {};
     }
 
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<const U &, 2, 0> lo(const ArrayData<U, 1> &x) { return {x.d}; }
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<const U &, 2, 1> hi(const ArrayData<U, 1> &x) { return {x.d}; }
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 0> lo(      ArrayData<U, 1> &x) { return {x.d}; }
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 1> hi(      ArrayData<U, 1> &x) { return {x.d}; }
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 0> lo(      ArrayData<U, 1>&&x) { return {x.d}; }
-    template <typename Op = void, typename U> static Vc_ALWAYS_INLINE Segment<      U &, 2, 1> hi(      ArrayData<U, 1>&&x) { return {x.d}; }
+    // split composite simd_array
+    template <typename U, std::size_t N, typename V, std::size_t M>
+    static Vc_INTRINSIC auto lo(const simd_array<U, N, V, M> &x) -> decltype(internal_data0(x))
+    {
+        return internal_data0(x);
+    }
+    template <typename U, std::size_t N, typename V, std::size_t M>
+    static Vc_INTRINSIC auto hi(const simd_array<U, N, V, M> &x) -> decltype(internal_data1(x))
+    {
+        return internal_data1(x);
+    }
 
-    template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE const ArrayData<U, N2 / 2>  &lo(const ArrayData<U, N2>  &x) { return x.data0; }
-    template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE const ArrayData<U, N2 / 2>  &hi(const ArrayData<U, N2>  &x) { return x.data1; }
-    template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE       ArrayData<U, N2 / 2>  &lo(      ArrayData<U, N2>  &x) { return x.data0; }
-    template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE       ArrayData<U, N2 / 2>  &hi(      ArrayData<U, N2>  &x) { return x.data1; }
-    template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE       ArrayData<U, N2 / 2> &&lo(      ArrayData<U, N2> &&x) { return std::move(x.data0); }
-    template <typename Op = void, typename U, std::size_t N2, typename = enable_if<(N2 > 1)>> static Vc_ALWAYS_INLINE       ArrayData<U, N2 / 2> &&hi(      ArrayData<U, N2> &&x) { return std::move(x.data1); }
+    template <typename U, std::size_t N, typename V>
+    static Vc_INTRINSIC Segment<V, 2, 0> lo(const simd_array<U, N, V, N> &x)
+    {
+        return {internal_data(x)};
+    }
+    template <typename U, std::size_t N, typename V>
+    static Vc_INTRINSIC Segment<V, 2, 1> hi(const simd_array<U, N, V, N> &x)
+    {
+        return {internal_data(x)};
+    }
 
-    template <typename Op = void, typename U, std::size_t Pieces, std::size_t Index> static Vc_ALWAYS_INLINE Segment<const U &, 2 * Pieces, Index * Pieces + 0> lo(const Segment<const U &, Pieces, Index> &x) { return {x.data}; }
-    template <typename Op = void, typename U, std::size_t Pieces, std::size_t Index> static Vc_ALWAYS_INLINE Segment<const U &, 2 * Pieces, Index * Pieces + 1> hi(const Segment<const U &, Pieces, Index> &x) { return {x.data}; }
-    template <typename Op = void, typename U, std::size_t Pieces, std::size_t Index> static Vc_ALWAYS_INLINE Segment<      U &, 2 * Pieces, Index * Pieces + 0> lo(const Segment<      U &, Pieces, Index> &x) { return {x.data}; }
-    template <typename Op = void, typename U, std::size_t Pieces, std::size_t Index> static Vc_ALWAYS_INLINE Segment<      U &, 2 * Pieces, Index * Pieces + 1> hi(const Segment<      U &, Pieces, Index> &x) { return {x.data}; }
-    template <typename Op = void, typename U, std::size_t Pieces, std::size_t Index> static Vc_ALWAYS_INLINE Segment<      U &, 2 * Pieces, Index * Pieces + 0> lo(      Segment<      U &, Pieces, Index>&&x) { return {x.data}; }
-    template <typename Op = void, typename U, std::size_t Pieces, std::size_t Index> static Vc_ALWAYS_INLINE Segment<      U &, 2 * Pieces, Index * Pieces + 1> hi(      Segment<      U &, Pieces, Index>&&x) { return {x.data}; }
+    // split composite simd_mask_array
+    template <typename U, std::size_t N, typename V, std::size_t M>
+    static Vc_INTRINSIC auto lo(const simd_mask_array<U, N, V, M> &x) -> decltype(internal_data0(x))
+    {
+        return internal_data0(x);
+    }
+    template <typename U, std::size_t N, typename V, std::size_t M>
+    static Vc_INTRINSIC auto hi(const simd_mask_array<U, N, V, M> &x) -> decltype(internal_data1(x))
+    {
+        return internal_data1(x);
+    }
+
+    template <typename V, std::size_t Pieces, std::size_t Index>
+    static Vc_INTRINSIC Segment<V, 2 * Pieces, Index *Pieces + 0> lo(Segment<V, Pieces, Index> &&x)
+    {
+        return {x.data};
+    }
+    template <typename V, std::size_t Pieces, std::size_t Index>
+    static Vc_INTRINSIC Segment<V, 2 * Pieces, Index *Pieces + 1> hi(Segment<V, Pieces, Index> &&x)
+    {
+        return {x.data};
+    }
 };/*}}}*/
 
 #if 0

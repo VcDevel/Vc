@@ -92,6 +92,34 @@ public:
     {
     }
 
+    // implicit casts
+    template <typename U, typename V>
+    Vc_INTRINSIC simd_array(const simd_array<U, N, V> &x, enable_if<N == V::size()> = nullarg)
+        : data(simd_cast<vector_type>(internal_data(x)))
+    {
+    }
+    template <typename U, typename V>
+    Vc_INTRINSIC simd_array(const simd_array<U, N, V> &x,
+                            enable_if<(N > V::size() && N <= 2 * V::size())> = nullarg)
+        : data(simd_cast<vector_type>(internal_data(internal_data0(x)), internal_data(internal_data1(x))))
+    {
+    }
+    template <typename U, typename V>
+    Vc_INTRINSIC simd_array(const simd_array<U, N, V> &x,
+                            enable_if<(N > 2 * V::size() && N <= 4 * V::size())> = nullarg)
+        : data(simd_cast<vector_type>(internal_data(internal_data0(internal_data0(x))),
+                                      internal_data(internal_data1(internal_data0(x))),
+                                      internal_data(internal_data0(internal_data1(x))),
+                                      internal_data(internal_data1(internal_data1(x)))))
+    {
+    }
+
+    template <typename V, std::size_t Pieces, std::size_t Index>
+    Vc_INTRINSIC simd_array(Common::Segment<V, Pieces, Index> &&x)
+        : data(simd_cast<vector_type, Index>(x.data))
+    {
+    }
+
     // forward all remaining ctors
     template <typename... Args,
               typename = enable_if<!Traits::IsCastArguments<Args...>::value &&
@@ -207,8 +235,12 @@ public:
         return reinterpret_cast<const vectorentry_type *>(&data + 1);
     }
 
-private:
+    friend Vc_INTRINSIC VectorType &internal_data(simd_array &x) { return x.data; }
+    friend Vc_INTRINSIC VectorType internal_data(const simd_array &x) { return x.data; }
+
+    /// \internal
     Vc_INTRINSIC simd_array(VectorType &&x) : data(std::move(x)) {}
+private:
     VectorType data;
 };
 
@@ -404,11 +436,17 @@ public:
         return data0.end();
     }
 
-private:
+    friend Vc_INTRINSIC storage_type0 &internal_data0(simd_array &x) { return x.data0; }
+    friend Vc_INTRINSIC storage_type1 &internal_data1(simd_array &x) { return x.data1; }
+    friend Vc_INTRINSIC const storage_type0 &internal_data0(const simd_array &x) { return x.data0; }
+    friend Vc_INTRINSIC const storage_type1 &internal_data1(const simd_array &x) { return x.data1; }
+
+    /// \internal
     Vc_INTRINSIC simd_array(storage_type0 &&x, storage_type1 &&y)
         : data0(std::move(x)), data1(std::move(y))
     {
     }
+private:
     storage_type0 data0;
     storage_type1 data1;
 };
