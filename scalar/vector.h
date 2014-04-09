@@ -47,8 +47,11 @@ class Vector
     public:
         typedef typename DetermineEntryType<T>::Type EntryType;
         using VectorEntryType = EntryType;
+        using VectorType = EntryType;
+
     protected:
-        EntryType m_data;
+        VectorType m_data;
+
     public:
         typedef Vc::Memory<Vector<T>, 1> Memory;
         typedef Vector<unsigned int> IndexType;
@@ -56,12 +59,12 @@ class Vector
         typedef Mask MaskArgument;
         typedef Vector<T> AsArg;
 
-        Vc_ALWAYS_INLINE EntryType &data() { return m_data; }
-        Vc_ALWAYS_INLINE const EntryType &data() const { return m_data; }
+        Vc_ALWAYS_INLINE VectorType &data() { return m_data; }
+        Vc_ALWAYS_INLINE const VectorType &data() const { return m_data; }
 
         static constexpr size_t Size = 1;
         enum Constants {
-            MemoryAlignment = alignof(EntryType)
+            MemoryAlignment = alignof(VectorType)
         };
 
 #include "../common/generalinterface.h"
