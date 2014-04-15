@@ -37,7 +37,7 @@ using namespace Vc;
      SIMD_ARRAYS(1),                                                                               \
      ALL_VECTORS)
 
-TEST_BEGIN(Vec, testZero, ALL_TYPES)
+TEST_TYPES(Vec, testZero, ALL_TYPES)
 {
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
@@ -54,9 +54,8 @@ TEST_BEGIN(Vec, testZero, ALL_TYPES)
     COMPARE(c, Vec(zero));
     COMPARE(d, Vec(zero));
 }
-TEST_END
 
-TEST_BEGIN(Vec, testCmp, ALL_TYPES)
+TEST_TYPES(Vec, testCmp, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     Vec a(Zero), b(Zero);
@@ -111,7 +110,6 @@ TEST_BEGIN(Vec, testCmp, ALL_TYPES)
         }
     }
 }
-TEST_END
 
 TEST_ALL_V(Vec, testIsMix)
 {
@@ -219,20 +217,20 @@ TEST_ALL_V(Vec, testMulAdd)
     }
 }
 
-TEST_BEGIN(Vec, testMulSub, (ALL_TYPES))
+TEST_TYPES(Vec, testMulSub, (ALL_TYPES))
 {
     typedef typename Vec::EntryType T;
-    const auto maxI = sizeof(T) < 4 ? 0xb4 : 0xffff;
-    for (unsigned int i = 0; i < maxI; ++i) {
+    const unsigned int minI = sizeof(T) < 4 ? -0xb4 : 0;
+    const unsigned int maxI = sizeof(T) < 4 ? 0xb4 : 0xffff;
+    for (unsigned int i = minI; i < maxI; ++i) {
         const T j = static_cast<T>(i);
         const Vec test(j);
 
         FUZZY_COMPARE(test * test - test, Vec(j * j - j));
     }
 }
-TEST_END
 
-TEST_BEGIN(Vec, testDiv, (ALL_TYPES))
+TEST_TYPES(Vec, testDiv, (ALL_TYPES))
 {
     for (int repetition = 0; repetition < 10000; ++repetition) {
         const Vec a = Vec::Random();
@@ -266,9 +264,8 @@ TEST_BEGIN(Vec, testDiv, (ALL_TYPES))
         }
     }
 }
-TEST_END
 
-TEST_BEGIN(V,
+TEST_TYPES(V,
            testModulo,
            (simd_array<unsigned int, 31>,
             simd_array<unsigned short, 31>,
@@ -282,6 +279,7 @@ TEST_BEGIN(V,
             ushort_v,
             uint_v,
             short_v))
+{
     for (int repetition = 0; repetition < 1000; ++repetition) {
         V x = V::Random();
         V y = (V::Random() & 2047) - 1023;
@@ -298,9 +296,10 @@ TEST_BEGIN(V,
         COMPARE(V::Zero() % y, V::Zero());
         COMPARE(y % y, V::Zero());
     }
-TEST_END
+}
 
-TEST_BEGIN(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
+TEST_TYPES(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
+{
     Vec a(0x7fff);
     Vec b(0xf);
     COMPARE((a & 0xf), b);
@@ -308,9 +307,10 @@ TEST_BEGIN(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
     COMPARE(c, (c & 0xf));
     const typename Vec::EntryType zero = 0;
     COMPARE((c & 0x7ff0), Vec(zero));
-TEST_END
+}
 
-TEST_BEGIN(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
+TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
+{
     typedef typename Vec::EntryType T;
     const T step = std::max<T>(1, std::numeric_limits<T>::max() / 1000);
     enum {
@@ -354,21 +354,23 @@ TEST_BEGIN(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
     for (T i = 0, x = 16; i < T(Vec::Size); ++i, x >>= 1) {
         COMPARE(a[i], x);
     }
-TEST_END
+}
 
-TEST_BEGIN(Vec, testOnesComplement, (int_v, ushort_v, uint_v, short_v))
+TEST_TYPES(Vec, testOnesComplement, (int_v, ushort_v, uint_v, short_v))
+{
     Vec a(One);
     Vec b = ~a;
     COMPARE(~a, b);
     COMPARE(~b, a);
     COMPARE(~(a + b), Vec(Zero));
-TEST_END
+}
 
-TEST_BEGIN(V, logicalNegation, ALL_TYPES)
+TEST_TYPES(V, logicalNegation, ALL_TYPES)
+{
     V a = V::Random();
     COMPARE(!a, a == 0) << "a = " << a;
     COMPARE(!V::Zero(), V() == V()) << "a = " << a;
-TEST_END
+}
 
 template<typename T> struct NegateRangeHelper
 {
@@ -394,7 +396,8 @@ template<> const int NegateRangeHelper<short>::End = 0x7fff - 0xee;
 template<> const int NegateRangeHelper<unsigned short>::Start = 0;
 template<> const int NegateRangeHelper<unsigned short>::End = 0xffff - 0xee;
 
-TEST_BEGIN(Vec, testNegate, ALL_TYPES)
+TEST_TYPES(Vec, testNegate, ALL_TYPES)
+{
     typedef typename Vec::EntryType T;
 
     for (int i = 0; i < 1000; ++i) {
@@ -413,9 +416,10 @@ TEST_BEGIN(Vec, testNegate, ALL_TYPES)
 
         COMPARE(-a, -i2) << " i2: " << i2;
     }
-TEST_END
+}
 
-TEST_BEGIN(Vec, testMin, (ALL_TYPES))
+TEST_TYPES(Vec, testMin, (ALL_TYPES))
+{
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     typedef typename Vec::IndexType I;
@@ -435,10 +439,11 @@ TEST_BEGIN(Vec, testMin, (ALL_TYPES))
             COMPARE(v.min(m), static_cast<T>(m.firstOne())) << m << v;
         }
     }
-TEST_END
+}
 
 #if 0
-TEST_BEGIN(Vec, testMax, (ALL_TYPES))
+TEST_TYPES(Vec, testMax, (ALL_TYPES))
+{
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     typedef typename Vec::IndexType I;
@@ -458,9 +463,10 @@ TEST_BEGIN(Vec, testMax, (ALL_TYPES))
         }
         COMPARE(v.max(m), static_cast<T>(Vec::Size - m.firstOne())) << m << v;
     } while (true);
-TEST_END
+}
 
-TEST_BEGIN(Vec, testProduct, (ALL_TYPES))
+TEST_TYPES(Vec, testProduct, (ALL_TYPES))
+{
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
 
@@ -494,9 +500,10 @@ TEST_BEGIN(Vec, testProduct, (ALL_TYPES))
             }
         } while (true);
     }
-TEST_END
+}
 
-TEST_BEGIN(Vec, testSum, (ALL_TYPES))
+TEST_TYPES(Vec, testSum, (ALL_TYPES))
+{
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
 
@@ -512,9 +519,10 @@ TEST_BEGIN(Vec, testSum, (ALL_TYPES))
             COMPARE(v.sum(m), static_cast<T>(x * m.count())) << m << v;
         } while (!m.isEmpty());
     }
-TEST_END
+}
 
-TEST_BEGIN(V, testPartialSum, (ALL_TYPES))
+TEST_TYPES(V, testPartialSum, (ALL_TYPES))
+{
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
 
@@ -525,9 +533,10 @@ TEST_BEGIN(V, testPartialSum, (ALL_TYPES))
     reference = V(I(2) << I::IndexesFromZero());
     COMPARE(V(2).partialSum([](const V &a, const V &b) { return a * b; }), reference);
     */
-TEST_END
+}
 
-TEST_BEGIN(V, testFma, (ALL_TYPES))
+TEST_TYPES(V, testFma, (ALL_TYPES))
+{
     for (int i = 0; i < 1000; ++i) {
         V a = V::Random();
         const V b = V::Random();
@@ -536,7 +545,7 @@ TEST_BEGIN(V, testFma, (ALL_TYPES))
         a.fusedMultiplyAdd(b, c);
         COMPARE(a, reference) << ", a = " << a << ", b = " << b << ", c = " << c;
     }
-TEST_END
+}
 
 template <> struct testFma<float_v>
 {

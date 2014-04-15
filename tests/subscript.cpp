@@ -27,7 +27,7 @@
 #include <Vc/vector>
 #include "../common/subscript.h"
 
-TEST_BEGIN(V, init, (ALL_VECTORS))
+TEST_TYPES(V, init, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     Vc::array<T, 256> data;
@@ -53,7 +53,6 @@ TEST_BEGIN(V, init, (ALL_VECTORS))
     COMPARE(ctorTest5.size(), 2);
     COMPARE(ctorTest6.size(), 2);
 }
-TEST_END
 
 template <typename V>
 static typename std::enable_if<Vc::is_unsigned<V>::value, V>::type positiveRandom()
@@ -78,7 +77,7 @@ template <typename V, int Modulo> static V randomIndexes()
     return indexes;
 }
 
-TEST_BEGIN(V, gathers, (SIMD_ARRAYS(32), ALL_VECTORS))
+TEST_TYPES(V, gathers, (SIMD_ARRAYS(32), ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
@@ -102,7 +101,6 @@ TEST_BEGIN(V, gathers, (SIMD_ARRAYS(32), ALL_VECTORS))
         COMPARE(test, static_cast<V>(indexes));
     }
 }
-TEST_END
 
 template <typename T, std::size_t N>
 std::ostream &operator<<(std::ostream &s, const Vc::array<T, N> &data)
@@ -119,7 +117,7 @@ std::ostream &operator<<(std::ostream &s, const Vc::array<T, N> &data)
     return s;
 }
 
-TEST_BEGIN(V, scatters, (SIMD_ARRAYS(32), ALL_VECTORS))
+TEST_TYPES(V, scatters, (SIMD_ARRAYS(32), ALL_VECTORS))
 {
     static_assert(std::is_same<decltype(V() + 1), V>::value, "");
     typedef typename V::EntryType T;
@@ -153,7 +151,6 @@ TEST_BEGIN(V, scatters, (SIMD_ARRAYS(32), ALL_VECTORS))
         }
     }
 }
-TEST_END
 
 template <typename T> struct S
 {
@@ -172,7 +169,7 @@ template <typename T> struct S
     char x3;
 };
 
-TEST_BEGIN(V, structGathers, (SIMD_ARRAYS(32), ALL_VECTORS))
+TEST_TYPES(V, structGathers, (SIMD_ARRAYS(32), ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
@@ -230,9 +227,8 @@ TEST_BEGIN(V, structGathers, (SIMD_ARRAYS(32), ALL_VECTORS))
         COMPARE(test, static_cast<V>(indexes + 6));
     }
 }
-TEST_END
 
-TEST_BEGIN(V, subarrayGathers, (SIMD_ARRAYS(32), ALL_VECTORS))
+TEST_TYPES(V, subarrayGathers, (SIMD_ARRAYS(32), ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
@@ -273,9 +269,8 @@ TEST_BEGIN(V, subarrayGathers, (SIMD_ARRAYS(32), ALL_VECTORS))
     test = data2[IT::IndexesFromZero()][0];
     COMPARE(test, V::IndexesFromZero());
 }
-TEST_END
 
-TEST_BEGIN(V, fixedWidthGatherScatter4, (SIMD_ARRAYS(4)))
+TEST_TYPES(V, fixedWidthGatherScatter4, (SIMD_ARRAYS(4)))
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
@@ -307,9 +302,8 @@ TEST_BEGIN(V, fixedWidthGatherScatter4, (SIMD_ARRAYS(4)))
     }
     */
 }
-TEST_END
 
-TEST_BEGIN(V, fixedWidthGatherScatter32, (SIMD_ARRAYS(32)))
+TEST_TYPES(V, fixedWidthGatherScatter32, (SIMD_ARRAYS(32)))
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
@@ -330,7 +324,6 @@ TEST_BEGIN(V, fixedWidthGatherScatter32, (SIMD_ARRAYS(32)))
     test = data2[indexes];
     COMPARE(test, reference);
 }
-TEST_END
 
 TEST(promotionOfIndexVectorType)
 {
