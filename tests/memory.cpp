@@ -17,7 +17,7 @@
 
 */
 
-#include "unittest.h"
+#include "unittest-old.h"
 
 using namespace Vc;
 

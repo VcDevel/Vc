@@ -17,7 +17,7 @@
 
 }}}*/
 
-#include "unittest.h"
+#include "unittest-old.h"
 #include <Vc/type_traits>
 
 using Vc::float_v;

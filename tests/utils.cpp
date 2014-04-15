@@ -17,7 +17,7 @@
 
 */
 
-#include "unittest.h"
+#include "unittest-old.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
 #include <Vc/cpuid.h>

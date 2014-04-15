@@ -17,7 +17,7 @@
 
 }}}*/
 
-#include "unittest.h"
+#include "unittest-old.h"
 
 #if defined(VC_ICC) || (defined(VC_GCC) && VC_GCC < 0x40800)
 class A {} __attribute__((aligned(64)));

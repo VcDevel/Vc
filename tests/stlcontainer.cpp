@@ -21,7 +21,7 @@
 
 }}}*/
 
-#include "unittest.h"
+#include "unittest-old.h"
 #include <Vc/Allocator>
 #include <vector>
 #include <array>
