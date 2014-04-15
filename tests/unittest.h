@@ -240,13 +240,15 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 
 namespace UnitTest
 {
-
+// using statements {{{1
 using std::vector;
 using std::tuple;
 using std::get;
 
+// printPass {{{1
 static inline void printPass() { std::cout << AnsiColor::green << " PASS: " << AnsiColor::normal; }
 
+// verify_vector_unit_supported {{{1
 bool verify_vector_unit_supported()
 {
     bool s = Vc::currentImplementationSupported();
@@ -262,13 +264,13 @@ namespace
 bool verify_vector_unit_supported_result = verify_vector_unit_supported();
 } // anonymous namespace
 
-class UnitTestFailure
+class UnitTestFailure //{{{1
 {
 };
 
-using TestFunction = void (*)(void);
+using TestFunction = void (*)(void); //{{{1
 
-class UnitTester
+class UnitTester  //{{{1
 {
 public:
     UnitTester()
@@ -346,7 +348,7 @@ static const char *failString()  // {{{1
     return str;
 }
 
-void initTest(int argc, char **argv)
+void initTest(int argc, char **argv)  //{{{1
 {
     for (int i = 1; i < argc; ++i) {
         if (0 == std::strcmp(argv[i], "--help") || 0 == std::strcmp(argv[i], "-h")) {
@@ -364,7 +366,7 @@ void initTest(int argc, char **argv)
         }
     }
 }
-// setFuzzyness
+// setFuzzyness {{{1
 template <typename T> static inline void setFuzzyness(T);
 template <> inline void setFuzzyness<float>(float fuzz)
 {
@@ -375,7 +377,7 @@ template <> inline void setFuzzyness<double>(double fuzz)
     global_unit_test_object_.double_fuzzyness = fuzz;
 }
 
-void UnitTester::runTestInt(TestFunction fun, const char *name)
+void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
 {
     if (global_unit_test_object_.only_name &&
         0 != std::strcmp(name, global_unit_test_object_.only_name)) {
@@ -439,12 +441,14 @@ void UnitTester::runTestInt(TestFunction fun, const char *name)
     }
 }
 
+// is_simd {{{1
 template <typename T>
 struct is_simd
     : public std::integral_constant<bool, Vc::is_simd_vector<T>::value || Vc::Traits::IsSimdArray<T>::value>
 {
 };
 
+// unittest_compareHelper {{{1
 template <typename T1, typename T2>
 Vc_ALWAYS_INLINE typename std::enable_if<!(is_simd<T1>::value || is_simd<T2>::value), bool>::type
     unittest_compareHelper(const T1 &a, const T2 &b)
@@ -555,8 +559,9 @@ template <> inline double unittest_fuzzynessHelper<Vc::double_v>(const Vc::doubl
     return global_unit_test_object_.double_fuzzyness;
 }
 
-class Compare
+class Compare  //{{{1
 {
+    // absoluteErrorTest{{{2
     template <typename T, typename ET>
     static bool absoluteErrorTest(const T &a, const T &b, ET error)
     {
@@ -567,7 +572,7 @@ class Compare
             return b - a > error;
         }
     }
-
+    // relativeErrorTest{{{2
     template <typename T, typename ET>
     static bool relativeErrorTest(const T &a, const T &b, ET error)
     {
@@ -590,6 +595,7 @@ class Compare
     }
 
 public:
+    // tag types {{{2
     struct Fuzzy {};
     struct NoEq {};
     struct AbsoluteError {};
@@ -848,7 +854,7 @@ public:
 
     // }}}2
 private:
-    static Vc_ALWAYS_INLINE size_t getIp()
+    static Vc_ALWAYS_INLINE size_t getIp()  //{{{2
     {
         size_t _ip;
 #ifdef VC_GNU_ASM
@@ -863,8 +869,8 @@ private:
 #endif
         return _ip;
     }
-    static void printFirst() { std::cout << failString() << "┍ "; }
     // print overloads {{{2
+    static void printFirst() { std::cout << failString() << "┍ "; }
     template <typename T> static inline void print(const T &x) { std::cout << x; }
     static void print(const std::type_info &x) { std::cout << x.name(); }
     static void print(const char *str)
@@ -1091,7 +1097,7 @@ template <typename Vec> static typename Vec::Mask allMasks(size_t i)
              !_mask_.isEmpty();                                                                    \
              _mask_ = allMasks<VecType>(_Vc_for_all_masks_i++))
 
-// typeToString {{{2
+// typeToString {{{1
 template <typename T> inline std::string typeToString();
 
 template <typename T, size_t N> inline std::string typeToString_impl(Vc::simd_array<T, N>)
@@ -1127,7 +1133,7 @@ template <> inline std::string typeToString<unsigned short>() { return "ushort";
 template <> inline std::string typeToString<         char>() { return "  char"; }
 template <> inline std::string typeToString<unsigned char>() { return " uchar"; }
 template <> inline std::string typeToString<  signed char>() { return " schar"; }
-// runAll and TestData {{{2
+// runAll and TestData {{{1
 typedef tuple<TestFunction, std::string> TestData;
 vector<TestData> g_allTests;
 
@@ -1137,7 +1143,7 @@ void runAll()
         global_unit_test_object_.runTestInt(get<0>(data), get<1>(data).c_str());
     }
 }
-// class Test {{{2
+// class Test {{{1
 template <typename T, typename Exception = void, typename TestImpl = void> class Test : TestImpl
 {
 private:
@@ -1169,6 +1175,7 @@ public:
     }
 };
 
+// class Test2 {{{1
 template <template <typename V> class TestFunctor, typename... TestTypes> class Test2;
 
 template <template <typename V> class TestFunctor> class Test2<TestFunctor>
@@ -1208,9 +1215,10 @@ public:
         g_allTests.emplace_back(&call0, name + '<' + typeToString<TestType0>() + '>');
     }
 };
-// hackTypelist {{{2
+// hackTypelist {{{1
 template <template <typename V> class F, typename... Typelist>
 UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
+//}}}1
 }  // namespace UnitTest
 // TEST_BEGIN / TEST_END / TEST macros {{{1
 #define TEST_ALL_V(V__, fun__)                                                                     \
@@ -1251,7 +1259,7 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
     static UnitTest::Test<void, exception__, fun__> test_##fun__##__(#fun__);                      \
     void fun__::test_function()
 
-int main(int argc, char **argv)
+int main(int argc, char **argv)  //{{{1
 {
     UnitTest::initTest(argc, argv);
     UnitTest::runAll();
@@ -1261,6 +1269,7 @@ int main(int argc, char **argv)
     return UnitTest::global_unit_test_object_.finalize();
 }
 
+//}}}1
 #endif  // DOXYGEN
 #endif  // UNITTEST_H
 
