@@ -415,6 +415,8 @@ TEST_TYPES(Vec, testNegate, ALL_TYPES)
     }
 }
 
+std::default_random_engine randomEngine;
+
 TEST_TYPES(Vec, testMin, (ALL_TYPES))
 {
     typedef typename Vec::EntryType T;
@@ -426,11 +428,10 @@ TEST_TYPES(Vec, testMin, (ALL_TYPES))
     COMPARE(v.min(), static_cast<T>(0));
     COMPARE((T(Vec::Size) - v).min(), static_cast<T>(1));
 
-    std::default_random_engine rand;
     const size_t max = (size_t(1) << Vec::Size) - 1;
     std::uniform_int_distribution<size_t> dist(0, max);
     for (int rep = 0; rep < 100000; ++rep) {
-        const size_t j = dist(rand);
+        const size_t j = dist(randomEngine);
         Mask m = UnitTest::allMasks<Vec>(j);
         if (any_of(m)) {
             COMPARE(v.min(m), static_cast<T>(m.firstOne())) << m << v;
@@ -438,7 +439,6 @@ TEST_TYPES(Vec, testMin, (ALL_TYPES))
     }
 }
 
-#if 0
 TEST_TYPES(Vec, testMax, (ALL_TYPES))
 {
     typedef typename Vec::EntryType T;
@@ -451,17 +451,18 @@ TEST_TYPES(Vec, testMax, (ALL_TYPES))
     v = T(Vec::Size) - v;
     COMPARE(v.max(), static_cast<T>(Vec::Size));
 
-    int j = 0;
-    Mask m;
-    do {
-        m = UnitTest::allMasks<Vec>(j++);
-        if (m.isEmpty()) {
-            break;
+    const size_t max = (size_t(1) << Vec::Size) - 1;
+    std::uniform_int_distribution<size_t> dist(0, max);
+    for (int rep = 0; rep < 100000; ++rep) {
+        const size_t j = dist(randomEngine);
+        Mask m = UnitTest::allMasks<Vec>(j);
+        if (any_of(m)) {
+            COMPARE(v.max(m), static_cast<T>(Vec::Size - m.firstOne())) << m << v;
         }
-        COMPARE(v.max(m), static_cast<T>(Vec::Size - m.firstOne())) << m << v;
-    } while (true);
+    }
 }
 
+#if 0
 TEST_TYPES(Vec, testProduct, (ALL_TYPES))
 {
     typedef typename Vec::EntryType T;
