@@ -196,24 +196,21 @@ TEST_ALL_V(V, testMul)
     }
 }
 
-template<typename> void testMulAdd();
-template<> void testMulAdd<short_v>()
-{ // short_v over-/underflow results in undefined behavior
-    for (unsigned int i = -0xb4; i < 0xb4; ++i) {
-        const short_v i2(i * i + 1);
-        short_v a(i);
-
-        COMPARE(a * a + 1, i2);
-    }
-}
-
-TEST_ALL_V(Vec, testMulAdd)
+TEST_TYPES(Vec, testMulAdd, (ALL_TYPES))
 {
-    for (unsigned int i = 0; i < 0xffff; ++i) {
-        const Vec i2(i * i + 1);
-        Vec a(i);
-
-        FUZZY_COMPARE(a * a + 1, i2);
+    typedef typename Vec::EntryType T;
+    static_assert(std::is_arithmetic<T>::value, "The EntryType is not a builtin arithmetic type");
+    for (int rep = 0; rep < 10000 / Vec::Size; ++rep) {
+        Vec a = Vec::Random();
+        if (std::is_floating_point<T>::value) {
+            a *= std::sqrt(std::numeric_limits<T>::max());
+        } else if (std::is_signed<T>::value) {
+            a /= std::sqrt(std::numeric_limits<T>::max());
+        }
+        using ReferenceVector = decltype(a * a);
+        ReferenceVector reference = a;
+        reference = reference.apply([](T x) { return x * x + 1; });
+        FUZZY_COMPARE(a * a + T(1), reference) << "a: " << a;
     }
 }
 
