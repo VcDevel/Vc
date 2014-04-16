@@ -264,6 +264,15 @@ public:
         return data.min(internal_data(mask));
     }
 
+    template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
+    {
+        return {data.apply(std::forward<F>(f))};
+    }
+    template <typename F> Vc_INTRINSIC simd_array apply(F &&f, const mask_type &k) const
+    {
+        return {data.apply(std::forward<F>(f), k)};
+    }
+
     friend Vc_INTRINSIC VectorType &internal_data(simd_array &x) { return x.data; }
     friend Vc_INTRINSIC VectorType internal_data(const simd_array &x) { return x.data; }
 
@@ -487,6 +496,15 @@ public:
     Vc_INTRINSIC value_type min(mask_type mask) const
     {
         return std::min(data0.min(internal_data0(mask)), data1.min(internal_data1(mask)));
+    }
+
+    template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
+    {
+        return {data0.apply(f), data1.apply(f)};
+    }
+    template <typename F> Vc_INTRINSIC simd_array apply(F &&f, const mask_type &k) const
+    {
+        return {data0.apply(f, Split::lo(k)), data1.apply(f, Split::hi(k))};
     }
 
     friend Vc_INTRINSIC storage_type0 &internal_data0(simd_array &x) { return x.data0; }
