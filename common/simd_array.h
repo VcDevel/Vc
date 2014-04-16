@@ -557,9 +557,29 @@ template <typename L,
 
 template <typename L, typename R, std::size_t N> struct evaluate<L, R, N, true, false>
 {
-    using type = simd_array<decltype(std::declval<Traits::entry_type_of<L>>() +
-                                     std::declval<Traits::entry_type_of<R>>()),
-                            N>;
+private:
+    using LScalar = Traits::entry_type_of<L>;
+    using RScalar = Traits::entry_type_of<R>;
+
+    template <bool B, typename True, typename False>
+    using conditional = typename std::conditional<B, True, False>::type;
+
+public:
+    // In principle we want the exact same rules for simd_array<T> ⨉ simd_array<U> as the standard
+    // defines for T ⨉ U. BUT: short ⨉ short returns int (because all integral types smaller than
+    // int are promoted to int before any operation). This would imply that SIMD types with integral
+    // types smaller than int are more or less useless - and you could use simd_array<int> from the
+    // start. Therefore we special-case those operations where the scalar type of both operands is
+    // integral and smaller than int.
+    using type = simd_array<
+        conditional<(std::is_integral<LScalar>::value &&std::is_integral<RScalar>::value &&
+                     sizeof(LScalar) < sizeof(int) &&
+                     sizeof(RScalar) < sizeof(int)),
+                    conditional<(sizeof(LScalar) == sizeof(RScalar)),
+                                conditional<std::is_unsigned<LScalar>::value, LScalar, RScalar>,
+                                conditional<(sizeof(LScalar) > sizeof(RScalar)), LScalar, RScalar>>,
+                    decltype(std::declval<LScalar>() + std::declval<RScalar>())>,
+        N>;
 };
 
 }  // namespace result_vector_type_internal
@@ -568,8 +588,8 @@ template <typename L, typename R>
 using result_vector_type = typename result_vector_type_internal::evaluate<L, R>::type;
 
 static_assert(
-    std::is_same<result_vector_type<short unsigned int, Vc_0::simd_array<short unsigned int, 32ul>>,
-                 Vc_0::simd_array<int, 32ul>>::value,
+    std::is_same<result_vector_type<short int, Vc_0::simd_array<short unsigned int, 32ul>>,
+                 Vc_0::simd_array<short unsigned int, 32ul>>::value,
     "result_vector_type does not work");
 
 #define Vc_BINARY_OPERATORS_(op__)                                                                 \
