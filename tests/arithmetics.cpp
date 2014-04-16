@@ -134,7 +134,7 @@ TEST_TYPES(Vec, testIsMix, ALL_TYPES)
     }
 }
 
-TEST_ALL_V(Vec, testAdd)
+TEST_TYPES(Vec, testAdd, ALL_TYPES)
 {
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
@@ -157,7 +157,7 @@ TEST_ALL_V(Vec, testAdd)
     }
 }
 
-TEST_ALL_V(Vec, testSub)
+TEST_TYPES(Vec, testSub, ALL_TYPES)
 {
     Vec a(2), b(2);
     COMPARE(a, b);
@@ -180,7 +180,7 @@ TEST_ALL_V(Vec, testSub)
     }
 }
 
-TEST_ALL_V(V, testMul)
+TEST_TYPES(V, testMul, ALL_TYPES)
 {
     for (int i = 0; i < 10000; ++i) {
         V a = V::Random();
