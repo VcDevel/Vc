@@ -111,14 +111,14 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
     }
 }
 
-TEST_ALL_V(Vec, testIsMix)
+TEST_TYPES(Vec, testIsMix, ALL_TYPES)
 {
     typedef typename Vec::IndexType IT;
     Vec a(IT::IndexesFromZero());
     Vec b(Zero);
     Vec c(One);
     if (Vec::Size > 1) {
-        VERIFY((a == b).isMix());
+        VERIFY((a == b).isMix()) << "a == b: " << (a == b);
         VERIFY((a != b).isMix());
         VERIFY((a == c).isMix());
         VERIFY((a != c).isMix());
