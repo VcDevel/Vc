@@ -431,7 +431,7 @@ TEST_TYPES(Vec, testMin, (ALL_TYPES))
     std::uniform_int_distribution<size_t> dist(0, max);
     for (int rep = 0; rep < 100000; ++rep) {
         const size_t j = dist(rand);
-        Mask m = allMasks<Vec>(j);
+        Mask m = UnitTest::allMasks<Vec>(j);
         if (any_of(m)) {
             COMPARE(v.min(m), static_cast<T>(m.firstOne())) << m << v;
         }
@@ -454,7 +454,7 @@ TEST_TYPES(Vec, testMax, (ALL_TYPES))
     int j = 0;
     Mask m;
     do {
-        m = allMasks<Vec>(j++);
+        m = UnitTest::allMasks<Vec>(j++);
         if (m.isEmpty()) {
             break;
         }
@@ -477,10 +477,10 @@ TEST_TYPES(Vec, testProduct, (ALL_TYPES))
         COMPARE(v.product(), x2);
 
         int j = 0;
-        Mask m = allMasks<Vec>(j++);
+        Mask m = UnitTest::allMasks<Vec>(j++);
         COMPARE(v.product(m), x2) << m << v;
         do {
-            m = allMasks<Vec>(j++);
+            m = UnitTest::allMasks<Vec>(j++);
             if (m.isEmpty()) {
                 break;
             }
@@ -512,7 +512,7 @@ TEST_TYPES(Vec, testSum, (ALL_TYPES))
         int j = 0;
         Mask m;
         do {
-            m = allMasks<Vec>(j++);
+            m = UnitTest::allMasks<Vec>(j++);
             COMPARE(v.sum(m), static_cast<T>(x * m.count())) << m << v;
         } while (!m.isEmpty());
     }
