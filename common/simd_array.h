@@ -32,17 +32,23 @@
 namespace Vc_VERSIONED_NAMESPACE
 {
 
-template <typename T, std::size_t N, typename V, std::size_t M>
-simd_array<T, N, V, M> Vc_INTRINSIC Vc_PURE min(const simd_array<T, N, V, M> &l, const simd_array<T, N, V, M> &r)
-{
-    return {min(internal_data0(l), internal_data0(r)), min(internal_data1(l), internal_data1(r))};
-}
-
-template <typename T, std::size_t N, typename V>
-simd_array<T, N, V, N> Vc_INTRINSIC Vc_PURE min(const simd_array<T, N, V, N> &l, const simd_array<T, N, V, N> &r)
-{
-    return {min(internal_data(l), internal_data(r))};
-}
+#define Vc_BINARY_FUNCTION__(name__)                                                               \
+    template <typename T, std::size_t N, typename V, std::size_t M>                                \
+    simd_array<T, N, V, M> Vc_INTRINSIC Vc_PURE                                                    \
+        name__(const simd_array<T, N, V, M> &l, const simd_array<T, N, V, M> &r)                   \
+    {                                                                                              \
+        return {name__(internal_data0(l), internal_data0(r)),                                      \
+                name__(internal_data1(l), internal_data1(r))};                                     \
+    }                                                                                              \
+    template <typename T, std::size_t N, typename V>                                               \
+    simd_array<T, N, V, N> Vc_INTRINSIC Vc_PURE                                                    \
+        name__(const simd_array<T, N, V, N> &l, const simd_array<T, N, V, N> &r)                   \
+    {                                                                                              \
+        return {name__(internal_data(l), internal_data(r))};                                       \
+    }
+Vc_BINARY_FUNCTION__(min)
+Vc_BINARY_FUNCTION__(max)
+#undef Vc_BINARY_FUNCTION__
 
 template <typename T,
           std::size_t N,
@@ -254,15 +260,16 @@ public:
     }
 
     // reductions ////////////////////////////////////////////////////////
-    Vc_INTRINSIC value_type min() const
-    {
-        return data.min();
+#define Vc_REDUCTION_FUNCTION__(name__)                                                            \
+    Vc_INTRINSIC value_type name__() const { return data.name__(); }                               \
+                                                                                                   \
+    Vc_INTRINSIC value_type name__(mask_type mask) const                                           \
+    {                                                                                              \
+        return data.name__(internal_data(mask));                                                   \
     }
-
-    Vc_INTRINSIC value_type min(mask_type mask) const
-    {
-        return data.min(internal_data(mask));
-    }
+    Vc_REDUCTION_FUNCTION__(min)
+    Vc_REDUCTION_FUNCTION__(max)
+#undef Vc_REDUCTION_FUNCTION__
 
     template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
     {
@@ -475,28 +482,31 @@ public:
     }
 
     // reductions ////////////////////////////////////////////////////////
-    template <typename ForSfinae = void>
-    Vc_INTRINSIC enable_if<
-        std::is_same<ForSfinae, void>::value &&storage_type0::size() == storage_type1::size(),
-        value_type>
-        min() const
-    {
-        return Vc::min(data0, data1).min();
+#define Vc_REDUCTION_FUNCTION__(name__)                                                            \
+    template <typename ForSfinae = void>                                                           \
+    Vc_INTRINSIC enable_if<                                                                        \
+        std::is_same<ForSfinae, void>::value &&storage_type0::size() == storage_type1::size(),     \
+        value_type> name__() const                                                                 \
+    {                                                                                              \
+        return Vc::name__(data0, data1).name__();                                                  \
+    }                                                                                              \
+                                                                                                   \
+    template <typename ForSfinae = void>                                                           \
+    Vc_INTRINSIC enable_if<                                                                        \
+        std::is_same<ForSfinae, void>::value &&storage_type0::size() != storage_type1::size(),     \
+        value_type> name__() const                                                                 \
+    {                                                                                              \
+        return std::name__(data0.name__(), data1.name__());                                        \
+    }                                                                                              \
+                                                                                                   \
+    Vc_INTRINSIC value_type name__(mask_type mask) const                                           \
+    {                                                                                              \
+        return std::name__(data0.name__(internal_data0(mask)),                                     \
+                           data1.name__(internal_data1(mask)));                                    \
     }
-
-    template <typename ForSfinae = void>
-    Vc_INTRINSIC enable_if<
-        std::is_same<ForSfinae, void>::value &&storage_type0::size() != storage_type1::size(),
-        value_type>
-        min() const
-    {
-        return std::min(data0.min(), data1.min());
-    }
-
-    Vc_INTRINSIC value_type min(mask_type mask) const
-    {
-        return std::min(data0.min(internal_data0(mask)), data1.min(internal_data1(mask)));
-    }
+    Vc_REDUCTION_FUNCTION__(min)
+    Vc_REDUCTION_FUNCTION__(max)
+#undef Vc_REDUCTION_FUNCTION__
 
     template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
     {
