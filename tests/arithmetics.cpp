@@ -196,7 +196,7 @@ TEST_ALL_V(V, testMul)
     }
 }
 
-TEST_TYPES(Vec, testMulAdd, (ALL_TYPES))
+TEST_TYPES(Vec, testMulAdd, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     static_assert(std::is_arithmetic<T>::value, "The EntryType is not a builtin arithmetic type");
@@ -214,7 +214,7 @@ TEST_TYPES(Vec, testMulAdd, (ALL_TYPES))
     }
 }
 
-TEST_TYPES(Vec, testMulSub, (ALL_TYPES))
+TEST_TYPES(Vec, testMulSub, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     const unsigned int minI = sizeof(T) < 4 ? -0xb4 : 0;
@@ -227,7 +227,7 @@ TEST_TYPES(Vec, testMulSub, (ALL_TYPES))
     }
 }
 
-TEST_TYPES(Vec, testDiv, (ALL_TYPES))
+TEST_TYPES(Vec, testDiv, ALL_TYPES)
 {
     for (int repetition = 0; repetition < 10000; ++repetition) {
         const Vec a = Vec::Random();
@@ -417,7 +417,7 @@ TEST_TYPES(Vec, testNegate, ALL_TYPES)
 
 std::default_random_engine randomEngine;
 
-TEST_TYPES(Vec, testMin, (ALL_TYPES))
+TEST_TYPES(Vec, testMin, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -439,7 +439,7 @@ TEST_TYPES(Vec, testMin, (ALL_TYPES))
     }
 }
 
-TEST_TYPES(Vec, testMax, (ALL_TYPES))
+TEST_TYPES(Vec, testMax, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -463,7 +463,7 @@ TEST_TYPES(Vec, testMax, (ALL_TYPES))
 }
 
 #if 0
-TEST_TYPES(Vec, testProduct, (ALL_TYPES))
+TEST_TYPES(Vec, testProduct, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -500,7 +500,7 @@ TEST_TYPES(Vec, testProduct, (ALL_TYPES))
     }
 }
 
-TEST_TYPES(Vec, testSum, (ALL_TYPES))
+TEST_TYPES(Vec, testSum, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -519,7 +519,7 @@ TEST_TYPES(Vec, testSum, (ALL_TYPES))
     }
 }
 
-TEST_TYPES(V, testPartialSum, (ALL_TYPES))
+TEST_TYPES(V, testPartialSum, ALL_TYPES)
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
@@ -533,7 +533,7 @@ TEST_TYPES(V, testPartialSum, (ALL_TYPES))
     */
 }
 
-TEST_TYPES(V, testFma, (ALL_TYPES))
+TEST_TYPES(V, testFma, ALL_TYPES)
 {
     for (int i = 0; i < 1000; ++i) {
         V a = V::Random();
