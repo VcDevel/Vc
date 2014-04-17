@@ -597,17 +597,19 @@ template <typename L,
           std::size_t N = Traits::IsSimdArray<L>::value ? simd_size_of<L>::value
                                                         : simd_size_of<R>::value,
           bool = (Traits::IsSimdArray<L>::value ||
-                  Traits::IsSimdArray<R>::value) &&  // one of the operands must be a simd_array
-                 !std::is_same<Decay<L>, Decay<R>>::value,  // if the operands are of the same type
-                                                            // use the member function
-          bool = (std::is_arithmetic<type<L>>::value ^
-                  std::is_arithmetic<type<R>>::value)  // one of the operands is a scalar type
+                  Traits::IsSimdArray<R>::value)  // one of the operands must be a simd_array
                  &&
-                 (Traits::is_simd_vector<L>::value ^
-                  Traits::is_simd_vector<R>::value)  // one of the operands is Vector<T>
-                     > struct evaluate;
+                 !std::is_same<Decay<L>, Decay<R>>::value  // if the operands are of the same type
+                                                           // use the member function
+                 &&
+                 (std::is_arithmetic<type<L>>::value ||
+                  std::is_arithmetic<type<R>>::value  // one of the operands is a scalar type
+                  ||
+                  Traits::is_simd_vector<L>::value ||
+                  Traits::is_simd_vector<R>::value  // or one of the operands is Vector<T>
+                  ) > struct evaluate;
 
-template <typename L, typename R, std::size_t N> struct evaluate<L, R, N, true, false>
+template <typename L, typename R, std::size_t N> struct evaluate<L, R, N, true>
 {
 private:
     using LScalar = Traits::entry_type_of<L>;
