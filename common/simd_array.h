@@ -499,10 +499,15 @@ public:
         return std::name__(data0.name__(), data1.name__());                                        \
     }                                                                                              \
                                                                                                    \
-    Vc_INTRINSIC value_type name__(mask_type mask) const                                           \
+    Vc_INTRINSIC value_type name__(const mask_type &mask) const                                    \
     {                                                                                              \
-        return std::name__(data0.name__(internal_data0(mask)),                                     \
-                           data1.name__(internal_data1(mask)));                                    \
+        if (VC_IS_UNLIKELY(Split::lo(mask).isEmpty())) {                                           \
+            return data1.name__(Split::hi(mask));                                                  \
+        } else if (VC_IS_UNLIKELY(Split::hi(mask).isEmpty())) {                                    \
+            return data0.name__(Split::lo(mask));                                                  \
+        } else {                                                                                   \
+            return std::name__(data0.name__(Split::lo(mask)), data1.name__(Split::hi(mask)));      \
+        }                                                                                          \
     }
     Vc_REDUCTION_FUNCTION__(min)
     Vc_REDUCTION_FUNCTION__(max)
