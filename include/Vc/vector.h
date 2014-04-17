@@ -22,6 +22,13 @@
 
 #include "global.h"
 
+// first forward declare all possible SIMD impl types
+#include "scalar/types.h"
+#include "sse/types.h"
+#include "avx/types.h"
+#include "mic/types.h"
+
+// next define all of Vc::Scalar - this one is always present, so it makes sense to put it first
 #include "scalar/vector.h"
 
 #if defined(VC_IMPL_MIC)
