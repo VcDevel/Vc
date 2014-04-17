@@ -37,6 +37,8 @@ using namespace Vc;
      SIMD_ARRAYS(1),                                                                               \
      ALL_VECTORS)
 
+std::default_random_engine randomEngine;
+
 TEST_TYPES(Vec, testZero, ALL_TYPES)
 {
     Vec a(Zero), b(Zero);
@@ -414,8 +416,6 @@ TEST_TYPES(Vec, testNegate, ALL_TYPES)
         COMPARE(-a, -i2) << " i2: " << i2;
     }
 }
-
-std::default_random_engine randomEngine;
 
 TEST_TYPES(Vec, testMin, ALL_TYPES)
 {
