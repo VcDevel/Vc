@@ -322,7 +322,7 @@ public:
     }
 
     Vc_INTRINSIC Vc_PURE bool isFull() const { return data0.isFull() && data1.isFull(); }
-    Vc_INTRINSIC Vc_PURE bool isNotEmpty() const { return data0.isNotEmpty() && data1.isNotEmpty(); }
+    Vc_INTRINSIC Vc_PURE bool isNotEmpty() const { return data0.isNotEmpty() || data1.isNotEmpty(); }
     Vc_INTRINSIC Vc_PURE bool isEmpty() const { return data0.isEmpty() && data1.isEmpty(); }
     Vc_INTRINSIC Vc_PURE bool isMix() const { return !isFull() && !isEmpty(); }
 
