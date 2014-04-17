@@ -405,7 +405,7 @@ void testMallocAlignment()
 {
     int_v *a = Vc::malloc<int_v, Vc::AlignOnVector>(10);
 
-    unsigned long mask = VectorAlignment - 1;
+    size_t mask = VectorAlignment - 1;
     for (int i = 0; i < 10; ++i) {
         VERIFY((reinterpret_cast<unsigned long>(&a[i]) & mask) == 0);
     }
