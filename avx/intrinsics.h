@@ -772,6 +772,12 @@ namespace Vc_AVX_NAMESPACE
 
     template<typename T> struct HasVectorDivisionHelper { enum { Value = 1 }; };
     template<typename T> struct VectorHelperSize;
+
+    template <typename V> class alignas(alignof(V)) VectorAlignedBaseT
+    {
+    public:
+        FREE_STORE_OPERATORS_ALIGNED(alignof(V))
+    };
 }  // namespace Vc_AVX_NAMESPACE
 }
 

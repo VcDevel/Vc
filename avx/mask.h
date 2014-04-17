@@ -23,6 +23,7 @@
 #include <array>
 
 #include "intrinsics.h"
+#include "../common/storage.h"
 #include "../common/bitscanintrinsics.h"
 #include "../common/maskentry.h"
 #include "macros.h"

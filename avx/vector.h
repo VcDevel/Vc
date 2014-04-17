@@ -45,7 +45,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Vc_AVX_NAMESPACE
 {
-enum VectorAlignmentEnum { VectorAlignment = 32 };
+constexpr std::size_t VectorAlignment = 32;
 
 template<typename T> class Vector
 {

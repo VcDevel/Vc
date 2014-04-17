@@ -20,17 +20,14 @@
 #ifndef VC_SCALAR_TYPES_H
 #define VC_SCALAR_TYPES_H
 
-#if defined(VC_IMPL_Scalar) && !defined(VC_DOUBLE_V_SIZE)
+#ifdef VC_DEFAULT_IMPL_Scalar
 #define VC_DOUBLE_V_SIZE 1
 #define VC_FLOAT_V_SIZE 1
-#define VC_SFLOAT_V_SIZE 1
 #define VC_INT_V_SIZE 1
 #define VC_UINT_V_SIZE 1
 #define VC_SHORT_V_SIZE 1
 #define VC_USHORT_V_SIZE 1
 #endif
-
-#include "../common/types.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {

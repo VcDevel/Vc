@@ -41,6 +41,7 @@ extern "C" {
 #error "SSE Vector class needs at least SSE2"
 #endif
 
+#include "../common/storage.h"
 #include "const_data.h"
 #include <cstdlib>
 #include "macros.h"
@@ -65,7 +66,7 @@ namespace SseIntrinsics
 {
     using SSE::c_general;
 
-    enum VectorAlignmentEnum { VectorAlignment = 16 };
+    constexpr std::size_t VectorAlignment = 16;
 
 #if defined(VC_GCC) && VC_GCC < 0x40600 && !defined(VC_DONT_FIX_SSE_SHIFT)
     static Vc_INTRINSIC Vc_CONST __m128i _mm_sll_epi16(__m128i a, __m128i count) { __asm__("psllw %1,%0" : "+x"(a) : "x"(count)); return a; }
@@ -589,7 +590,109 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
-    using namespace SseIntrinsics;
+using namespace SseIntrinsics;
+
+template <typename T> struct ParameterHelper
+{
+    typedef T ByValue;
+    typedef T &Reference;
+    typedef const T &ConstRef;
+};
+
+template <typename T> struct VectorHelper
+{
+};
+
+template <unsigned int Size> struct IndexTypeHelper;
+template <> struct IndexTypeHelper<2u>
+{
+    typedef int Type;
+};
+template <> struct IndexTypeHelper<4u>
+{
+    typedef int Type;
+};
+template <> struct IndexTypeHelper<8u>
+{
+    typedef unsigned short Type;
+};
+template <> struct IndexTypeHelper<16u>
+{
+    typedef unsigned char Type;
+};
+
+template <typename T> struct CtorTypeHelper
+{
+    typedef T Type;
+};
+template <> struct CtorTypeHelper<short>
+{
+    typedef int Type;
+};
+template <> struct CtorTypeHelper<unsigned short>
+{
+    typedef unsigned int Type;
+};
+template <> struct CtorTypeHelper<float>
+{
+    typedef double Type;
+};
+
+template <typename T> struct ExpandTypeHelper
+{
+    typedef T Type;
+};
+template <> struct ExpandTypeHelper<short>
+{
+    typedef int Type;
+};
+template <> struct ExpandTypeHelper<unsigned short>
+{
+    typedef unsigned int Type;
+};
+template <> struct ExpandTypeHelper<float>
+{
+    typedef double Type;
+};
+
+template <typename T> struct VectorTypeHelper
+{
+    typedef __m128i Type;
+};
+template <> struct VectorTypeHelper<double>
+{
+    typedef __m128d Type;
+};
+template <> struct VectorTypeHelper<float>
+{
+    typedef __m128 Type;
+};
+
+template <typename T> struct DetermineGatherMask
+{
+    typedef T Type;
+};
+
+template <typename T> struct VectorTraits
+{
+    typedef typename VectorTypeHelper<T>::Type VectorType;
+    typedef typename DetermineEntryType<T>::Type EntryType;
+    static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
+    enum Constants { HasVectorDivision = !std::is_integral<T>::value };
+    typedef Mask<T> MaskType;
+    typedef typename DetermineGatherMask<MaskType>::Type GatherMaskType;
+    typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
+    typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
+};
+
+template <typename T> struct VectorHelperSize;
+
+template <typename V> class alignas(16) VectorAlignedBaseT
+{
+public:
+    FREE_STORE_OPERATORS_ALIGNED(16)
+};
+
 }
 }
 

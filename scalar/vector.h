@@ -39,7 +39,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Scalar
 {
-    enum VectorAlignmentEnum { VectorAlignment = 4 };
+constexpr std::size_t VectorAlignment = 4;
 
 template<typename T>
 class Vector

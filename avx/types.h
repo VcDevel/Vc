@@ -20,7 +20,7 @@
 #ifndef AVX_TYPES_H
 #define AVX_TYPES_H
 
-#include "../common/types.h"
+#include "../traits/type_traits.h"
 #include "macros.h"
 
 #ifdef VC_DEFAULT_IMPL_AVX2
@@ -28,11 +28,13 @@
 #define VC_FLOAT_V_SIZE 8
 #define VC_INT_V_SIZE 8
 #define VC_UINT_V_SIZE 8
-#define VC_SHORT_V_SIZE 16
-#define VC_USHORT_V_SIZE 16
+// TODO: 16
+#define VC_SHORT_V_SIZE 8
+#define VC_USHORT_V_SIZE 8
 #elif defined VC_DEFAULT_IMPL_AVX
 #define VC_DOUBLE_V_SIZE 4
 #define VC_FLOAT_V_SIZE 8
+// TODO: 4
 #define VC_INT_V_SIZE 8
 #define VC_UINT_V_SIZE 8
 #define VC_SHORT_V_SIZE 8
@@ -44,30 +46,9 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Vc_AVX_NAMESPACE
 {
     template<typename T> class Vector;
-
     template<typename T> class Mask;
 
-#ifdef VC_MSVC
-    // MSVC's __declspec(align(#)) only works with numbers, no enums or sizeof allowed ;(
-    template<size_t size> class _VectorAlignedBaseHack;
-    template<> class STRUCT_ALIGN1( 8) _VectorAlignedBaseHack< 8> {} STRUCT_ALIGN2( 8);
-    template<> class STRUCT_ALIGN1(16) _VectorAlignedBaseHack<16> {} STRUCT_ALIGN2(16);
-    template<> class STRUCT_ALIGN1(32) _VectorAlignedBaseHack<32> {} STRUCT_ALIGN2(32);
-    template<> class STRUCT_ALIGN1(64) _VectorAlignedBaseHack<64> {} STRUCT_ALIGN2(64);
-    template<typename V = Vector<float> >
-    class VectorAlignedBaseT : public _VectorAlignedBaseHack<alignof(V)>
-    {
-        public:
-            FREE_STORE_OPERATORS_ALIGNED(alignof(V))
-    };
-#else
-    template<typename V = Vector<float> >
-    class STRUCT_ALIGN1(alignof(V)) VectorAlignedBaseT
-    {
-        public:
-            FREE_STORE_OPERATORS_ALIGNED(alignof(V))
-    } STRUCT_ALIGN2(alignof(V));
-#endif
+    template <typename V = Vector<float>> class alignas(alignof(V)) VectorAlignedBaseT;
 }
 
 namespace Traits
