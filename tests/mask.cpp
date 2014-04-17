@@ -17,17 +17,10 @@
 
 }}}*/
 
-#include "unittest-old.h"
+#include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
 #include <cmath>
-
-using Vc::float_v;
-using Vc::double_v;
-using Vc::int_v;
-using Vc::uint_v;
-using Vc::short_v;
-using Vc::ushort_v;
 
 using Vc::float_m;
 using Vc::double_m;
@@ -39,7 +32,9 @@ using Vc::ushort_m;
 template<typename T> T two() { return T(2); }
 template<typename T> T three() { return T(3); }
 
-template<typename Vec> void testInc()/*{{{*/
+#define ALL_TYPES (ALL_VECTORS, Vc::simd_array<int, 1>)
+
+TEST_TYPES(Vec, testInc, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -78,7 +73,7 @@ template<typename Vec> void testInc()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testDec()/*{{{*/
+TEST_TYPES(Vec, testDec, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -110,7 +105,7 @@ template<typename Vec> void testDec()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testPlusEq()/*{{{*/
+TEST_TYPES(Vec, testPlusEq, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -133,7 +128,7 @@ template<typename Vec> void testPlusEq()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testMinusEq()/*{{{*/
+TEST_TYPES(Vec, testMinusEq, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -158,7 +153,7 @@ template<typename Vec> void testMinusEq()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testTimesEq()/*{{{*/
+TEST_TYPES(Vec, testTimesEq, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -183,7 +178,7 @@ template<typename Vec> void testTimesEq()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testDivEq()/*{{{*/
+TEST_TYPES(Vec, testDivEq, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -208,7 +203,7 @@ template<typename Vec> void testDivEq()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testAssign()/*{{{*/
+TEST_TYPES(Vec, testAssign, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -233,7 +228,7 @@ template<typename Vec> void testAssign()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testZero()/*{{{*/
+TEST_TYPES(Vec, testZero, ALL_TYPES) /*{{{*/
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -254,7 +249,7 @@ template<typename Vec> void testZero()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testCount()/*{{{*/
+TEST_TYPES(Vec, testCount, ALL_TYPES) /*{{{*/
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
@@ -271,7 +266,7 @@ template<typename Vec> void testCount()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testFirstOne()/*{{{*/
+TEST_TYPES(Vec, testFirstOne, ALL_TYPES) /*{{{*/
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
@@ -306,7 +301,7 @@ template<typename M1, typename M2> void testBinaryOperatorsImpl()/*{{{*/
     VERIFY((M1(true) ^ M2(false)).isFull());
 }
 /*}}}*/
-void testBinaryOperators()/*{{{*/
+TEST(testBinaryOperators) /*{{{*/
 {
     testBinaryOperatorsImpl< short_m,  short_m>();
     testBinaryOperatorsImpl< short_m, ushort_m>();
@@ -327,7 +322,7 @@ void testBinaryOperators()/*{{{*/
 }
 /*}}}*/
 
-template<typename V> void maskReductions()/*{{{*/
+TEST_TYPES(V, maskReductions, ALL_TYPES) /*{{{*/
 {
     for_all_masks(V, mask) {
         constexpr decltype(mask.count()) size = V::Size;
@@ -343,14 +338,14 @@ template<typename V> void maskReductions()/*{{{*/
         }
     }
 }/*}}}*/
-template<typename V> void maskInit()/*{{{*/
+TEST_TYPES(V, maskInit, ALL_TYPES) /*{{{*/
 {
     typedef typename V::Mask M;
     COMPARE(M(Vc::One), M(true));
     COMPARE(M(Vc::Zero), M(false));
 }
 /*}}}*/
-template<typename V> void maskCompare()/*{{{*/
+TEST_TYPES(V, maskCompare, ALL_TYPES) /*{{{*/
 {
     int i = 0;
     auto m0 = UnitTest::allMasks<V>(i);
@@ -363,7 +358,7 @@ template<typename V> void maskCompare()/*{{{*/
         m1 = UnitTest::allMasks<V>(i);
     }
 }/*}}}*/
-template<typename V> void maskScalarAccess()/*{{{*/
+TEST_TYPES(V, maskScalarAccess, ALL_TYPES) /*{{{*/
 {
     typedef typename V::Mask M;
     for_all_masks(V, mask) {
@@ -384,25 +379,18 @@ template<typename V> void maskScalarAccess()/*{{{*/
         COMPARE(mask, M(true));
     }
 }/*}}}*/
-template<typename T> constexpr const char *typeName();
-template<> constexpr const char *typeName< float_m>() { return "float_m"; }
-template<> constexpr const char *typeName<double_m>() { return "double_m"; }
-template<> constexpr const char *typeName<   int_m>() { return "int_m"; }
-template<> constexpr const char *typeName<  uint_m>() { return "uint_m"; }
-template<> constexpr const char *typeName< short_m>() { return "short_m"; }
-template<> constexpr const char *typeName<ushort_m>() { return "ushort_m"; }
-template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)
+template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)/*{{{*/
 {
     MTo test(m);
     size_t i = 0;
     for (; i < std::min(m.Size, test.Size); ++i) {
-        COMPARE(test[i], m[i]) << i << " conversion from " << typeName<MFrom>() << " to " << typeName<MTo>();
+        COMPARE(test[i], m[i]) << i << " conversion from " << UnitTest::typeToString<MFrom>() << " to " << UnitTest::typeToString<MTo>();
     }
     for (; i < test.Size; ++i) {
-        COMPARE(test[i], false) << i << " conversion from " << typeName<MFrom>() << " to " << typeName<MTo>();
+        COMPARE(test[i], false) << i << " conversion from " << UnitTest::typeToString<MFrom>() << " to " << UnitTest::typeToString<MTo>();
     }
-}
-template<typename V> void maskConversions()
+}/*}}}*/
+TEST_TYPES(V, maskConversions, ALL_TYPES) /*{{{*/
 {
     typedef typename V::Mask M;
     for_all_masks(V, m) {
@@ -414,8 +402,8 @@ template<typename V> void maskConversions()
         testMaskConversion<ushort_m>(m);
     }
 }
-
-template<typename V> void testIntegerConversion()
+/*}}}*/
+TEST_TYPES(V, testIntegerConversion, ALL_TYPES) /*{{{*/
 {
     for_all_masks(V, m) {
         auto bit = m.toInt();
@@ -424,8 +412,8 @@ template<typename V> void testIntegerConversion()
         }
     }
 }
-
-template<typename V> void boolConversion()
+/*}}}*/
+TEST_TYPES(V, boolConversion, ALL_TYPES) /*{{{*/
 {
     bool mem[V::Size + 64] __attribute__((aligned(16)));
     for_all_masks(V, m) {
@@ -448,27 +436,6 @@ template<typename V> void boolConversion()
         }
     }
 }
-
-void testmain()/*{{{*/
-{
-    testAllTypes(maskInit);
-    testAllTypes(maskScalarAccess);
-    testAllTypes(maskCompare);
-    testAllTypes(testInc);
-    testAllTypes(testDec);
-    testAllTypes(testPlusEq);
-    testAllTypes(testMinusEq);
-    testAllTypes(testTimesEq);
-    testAllTypes(testDivEq);
-    testAllTypes(testAssign);
-    testAllTypes(testZero);
-    testAllTypes(testIntegerConversion);
-    testAllTypes(testCount);
-    testAllTypes(maskConversions);
-    testAllTypes(testFirstOne);
-    testAllTypes(maskReductions);
-    runTest(testBinaryOperators);
-    testAllTypes(boolConversion);
-}/*}}}*/
+/*}}}*/
 
 // vim: foldmethod=marker
