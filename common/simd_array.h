@@ -269,6 +269,7 @@ public:
     }
     Vc_REDUCTION_FUNCTION__(min)
     Vc_REDUCTION_FUNCTION__(max)
+    Vc_REDUCTION_FUNCTION__(product)
 #undef Vc_REDUCTION_FUNCTION__
 
     template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
@@ -512,6 +513,28 @@ public:
     Vc_REDUCTION_FUNCTION__(min)
     Vc_REDUCTION_FUNCTION__(max)
 #undef Vc_REDUCTION_FUNCTION__
+    template <typename ForSfinae = void>
+    Vc_INTRINSIC enable_if<
+        std::is_same<ForSfinae, void>::value &&storage_type0::size() == storage_type1::size(),
+        value_type>
+        product() const
+    {
+        return (data0 * data1).product();
+    }
+
+    template <typename ForSfinae = void>
+    Vc_INTRINSIC enable_if<
+        std::is_same<ForSfinae, void>::value &&storage_type0::size() != storage_type1::size(),
+        value_type>
+        product() const
+    {
+        return data0.product() * data1.product();
+    }
+
+    Vc_INTRINSIC value_type product(mask_type mask) const
+    {
+        return data0.product(internal_data0(mask)) * data1.product(internal_data1(mask));
+    }
 
     template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
     {

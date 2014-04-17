@@ -462,7 +462,6 @@ TEST_TYPES(Vec, testMax, ALL_TYPES)
     }
 }
 
-#if 0
 TEST_TYPES(Vec, testProduct, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
@@ -472,34 +471,40 @@ TEST_TYPES(Vec, testProduct, ALL_TYPES)
         T x = static_cast<T>(i);
         Vec v(x);
         T x2 = x;
-        for (int k = Vec::Size; k > 1; k /= 2) {
-            x2 *= x2;
+        if (std::numeric_limits<T>::is_exact) {
+            for (int k = Vec::Size; k > 1; --k) {
+                x2 *= x;
+            }
+            COMPARE(v.product(), x2) << v;
+        } else {
+            x2 = std::round(std::pow(x, static_cast<int>(Vec::Size)));
+            FUZZY_COMPARE(v.product(), x2) << v;
         }
-        COMPARE(v.product(), x2);
 
-        int j = 0;
-        Mask m = UnitTest::allMasks<Vec>(j++);
-        COMPARE(v.product(m), x2) << m << v;
-        do {
-            m = UnitTest::allMasks<Vec>(j++);
-            if (m.isEmpty()) {
-                break;
-            }
-            if (std::numeric_limits<T>::is_exact) {
-                x2 = x;
-                for (int k = m.count(); k > 1; --k) {
-                    x2 *= x;
+        const size_t max = (size_t(1) << Vec::Size) - 1;
+        std::uniform_int_distribution<size_t> dist(0, max);
+        for (int rep = 0; rep < 10000; ++rep) {
+            const size_t j = dist(randomEngine);
+            Mask m = UnitTest::allMasks<Vec>(j);
+            if (any_of(m)) {
+                if (std::numeric_limits<T>::is_exact) {
+                    x2 = x;
+                    for (int k = m.count(); k > 1; --k) {
+                        x2 *= x;
+                    }
+                    COMPARE(v.product(m), x2) << v << ".product(" << m << ')';
+                } else {
+                    x2 = std::round(std::pow(x, static_cast<int>(m.count())));
+                    FUZZY_COMPARE(v.product(m), x2) << v << ".product(" << m << ')';
                 }
-                COMPARE(v.product(m), x2) << m << v;
             } else {
-                x2 = std::round(std::pow(x, static_cast<int>(m.count())));
-                //x2 = static_cast<T>(pow(static_cast<double>(x), static_cast<int>(m.count())));
-                FUZZY_COMPARE(v.product(m), x2) << m << v;
+                COMPARE(v.product(m), 1) << v << ".product(" << m << ')';
             }
-        } while (true);
+        }
     }
 }
 
+#if 0
 TEST_TYPES(Vec, testSum, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;

@@ -230,7 +230,14 @@ class Vector
         Vc_ALWAYS_INLINE Vector partialSum() const { return *this; }
         Vc_ALWAYS_INLINE EntryType min(Mask) const { return m_data; }
         Vc_ALWAYS_INLINE EntryType max(Mask) const { return m_data; }
-        Vc_ALWAYS_INLINE EntryType product(Mask) const { return m_data; }
+        Vc_ALWAYS_INLINE EntryType product(Mask m) const
+        {
+            if (m) {
+                return m_data;
+            } else {
+                return EntryType(1);
+            }
+        }
         Vc_ALWAYS_INLINE EntryType sum(Mask m) const { if (m) return m_data; return static_cast<EntryType>(0); }
 
         Vc_INTRINSIC Vector shifted(int amount, Vector shiftIn) const {
