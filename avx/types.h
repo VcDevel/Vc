@@ -20,21 +20,24 @@
 #ifndef AVX_TYPES_H
 #define AVX_TYPES_H
 
-#include "intrinsics.h"
-#include "../common/storage.h"
+#include "../common/types.h"
 #include "macros.h"
 
-#ifndef VC_DOUBLE_V_SIZE
+#ifdef VC_DEFAULT_IMPL_AVX2
 #define VC_DOUBLE_V_SIZE 4
 #define VC_FLOAT_V_SIZE 8
-#define VC_SFLOAT_V_SIZE 8
+#define VC_INT_V_SIZE 8
+#define VC_UINT_V_SIZE 8
+#define VC_SHORT_V_SIZE 16
+#define VC_USHORT_V_SIZE 16
+#elif defined VC_DEFAULT_IMPL_AVX
+#define VC_DOUBLE_V_SIZE 4
+#define VC_FLOAT_V_SIZE 8
 #define VC_INT_V_SIZE 8
 #define VC_UINT_V_SIZE 8
 #define VC_SHORT_V_SIZE 8
 #define VC_USHORT_V_SIZE 8
 #endif
-
-#include "../common/types.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -43,54 +46,6 @@ namespace Vc_AVX_NAMESPACE
     template<typename T> class Vector;
 
     template<typename T> class Mask;
-
-    template<typename T> struct VectorHelper {};
-    template<typename T> struct GatherHelper;
-    template<typename T> struct ScatterHelper;
-
-    template<typename T> struct IndexTypeHelper;
-    template<> struct IndexTypeHelper<         char > { typedef unsigned char  Type; };
-    template<> struct IndexTypeHelper<  signed char > { typedef unsigned char  Type; };
-    template<> struct IndexTypeHelper<unsigned char > { typedef unsigned char  Type; };
-    template<> struct IndexTypeHelper<         short> { typedef unsigned short Type; };
-    template<> struct IndexTypeHelper<unsigned short> { typedef unsigned short Type; };
-    template<> struct IndexTypeHelper<         int  > { typedef          int   Type; };
-    template<> struct IndexTypeHelper<unsigned int  > { typedef          int   Type; };
-    template<> struct IndexTypeHelper<         float> { typedef          int   Type; };
-    template<> struct IndexTypeHelper<        double> { typedef          int   Type; }; // _M128I based int32 would be nice
-
-    template<typename T> struct VectorTypeHelper;
-    template<> struct VectorTypeHelper<         char > { typedef m128i Type; };
-    template<> struct VectorTypeHelper<  signed char > { typedef m128i Type; };
-    template<> struct VectorTypeHelper<unsigned char > { typedef m128i Type; };
-    template<> struct VectorTypeHelper<         short> { typedef m128i Type; };
-    template<> struct VectorTypeHelper<unsigned short> { typedef m128i Type; };
-    template<> struct VectorTypeHelper<         int  > { typedef m256i Type; };
-    template<> struct VectorTypeHelper<unsigned int  > { typedef m256i Type; };
-    template<> struct VectorTypeHelper<         float> { typedef m256  Type; };
-    template<> struct VectorTypeHelper<        double> { typedef m256d Type; };
-
-    template<typename T> struct SseVectorType;
-    template<> struct SseVectorType<m256 > { typedef m128  Type; };
-    template<> struct SseVectorType<m256i> { typedef m128i Type; };
-    template<> struct SseVectorType<m256d> { typedef m128d Type; };
-    template<> struct SseVectorType<m128 > { typedef m128  Type; };
-    template<> struct SseVectorType<m128i> { typedef m128i Type; };
-    template<> struct SseVectorType<m128d> { typedef m128d Type; };
-
-    template<typename T, size_t = sizeof(T)> struct IntegerVectorType { typedef m256i Type; };
-    template<typename T> struct IntegerVectorType<T, 16> { typedef m128i Type; };
-
-    template<typename T, size_t = sizeof(T)> struct DoubleVectorType { typedef m256d Type; };
-    template<typename T> struct DoubleVectorType<T, 16> { typedef m128d Type; };
-
-    template<typename T, size_t = sizeof(T)> struct FloatVectorType { typedef m256 Type; };
-    template<typename T> struct FloatVectorType<T, 16> { typedef m128 Type; };
-
-    template<typename T> struct HasVectorDivisionHelper { enum { Value = 1 }; };
-    //template<> struct HasVectorDivisionHelper<unsigned int> { enum { Value = 0 }; };
-
-    template<typename T> struct VectorHelperSize;
 
 #ifdef VC_MSVC
     // MSVC's __declspec(align(#)) only works with numbers, no enums or sizeof allowed ;(
@@ -114,10 +69,7 @@ namespace Vc_AVX_NAMESPACE
     } STRUCT_ALIGN2(alignof(V));
 #endif
 }
-}
 
-namespace Vc_VERSIONED_NAMESPACE
-{
 namespace Traits
 {
 template<typename T> struct is_simd_mask_internal<Vc_AVX_NAMESPACE::Mask<T>> : public std::true_type {};
