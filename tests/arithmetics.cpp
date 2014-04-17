@@ -528,7 +528,6 @@ TEST_TYPES(Vec, testSum, ALL_TYPES)
     }
 }
 
-#if 0
 TEST_TYPES(V, testPartialSum, ALL_TYPES)
 {
     typedef typename V::EntryType T;
@@ -543,6 +542,7 @@ TEST_TYPES(V, testPartialSum, ALL_TYPES)
     */
 }
 
+#if 0
 TEST_TYPES(V, testFma, ALL_TYPES)
 {
     for (int i = 0; i < 1000; ++i) {

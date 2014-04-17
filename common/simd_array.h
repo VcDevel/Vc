@@ -286,6 +286,7 @@ public:
     Vc_REDUCTION_FUNCTION__(product)
     Vc_REDUCTION_FUNCTION__(sum)
 #undef Vc_REDUCTION_FUNCTION__
+    Vc_INTRINSIC Vc_PURE simd_array partialSum() const { return data.partialSum(); }
 
     template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
     {
@@ -530,6 +531,13 @@ public:
     Vc_REDUCTION_FUNCTION__(product, product_helper__)
     Vc_REDUCTION_FUNCTION__(sum, sum_helper__)
 #undef Vc_REDUCTION_FUNCTION__
+    Vc_INTRINSIC Vc_PURE simd_array partialSum() const
+    {
+        auto ps0 = data0.partialSum();
+        auto tmp = data1;
+        tmp[0] += ps0[data0.size() - 1];
+        return {std::move(ps0), tmp.partialSum()};
+    }
 
     template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
     {
