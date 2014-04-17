@@ -542,8 +542,7 @@ TEST_TYPES(V, testPartialSum, ALL_TYPES)
     */
 }
 
-#if 0
-TEST_TYPES(V, testFma, ALL_TYPES)
+template <typename V, typename T> void testFmaDispatch(T)
 {
     for (int i = 0; i < 1000; ++i) {
         V a = V::Random();
@@ -555,47 +554,48 @@ TEST_TYPES(V, testFma, ALL_TYPES)
     }
 }
 
-template <> struct testFma<float_v>
-{
-void operator()()
+template <typename V> void testFmaDispatch(float)
 {
     using Vc::Internal::floatConstant;
-    float_v b = floatConstant<1, 0x000001, 0>();
-    float_v c = floatConstant<1, 0x000000, -24>();
-    float_v a = b;
+    V b = floatConstant<1, 0x000001, 0>();
+    V c = floatConstant<1, 0x000000, -24>();
+    V a = b;
     /*a *= b;
     a += c;
-    COMPARE(a, float_v(floatConstant<1, 0x000002, 0>()));
+    COMPARE(a, V(floatConstant<1, 0x000002, 0>()));
     a = b;*/
     a.fusedMultiplyAdd(b, c);
-    COMPARE(a, float_v(floatConstant<1, 0x000003, 0>()));
+    COMPARE(a, V(floatConstant<1, 0x000003, 0>()));
 
     a = floatConstant<1, 0x000002, 0>();
     b = floatConstant<1, 0x000002, 0>();
     c = floatConstant<-1, 0x000000, 0>();
     /*a *= b;
     a += c;
-    COMPARE(a, float_v(floatConstant<1, 0x000000, -21>()));
+    COMPARE(a, V(floatConstant<1, 0x000000, -21>()));
     a = b;*/
     a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
-    COMPARE(a, float_v(floatConstant<1, 0x000001, -21>()));
-}};
+    COMPARE(a, V(floatConstant<1, 0x000001, -21>()));
+}
 
-template<> struct testFma<double_v>
-{
-void operator()()
+template <typename V> void testFmaDispatch(double)
 {
     using Vc::Internal::doubleConstant;
-    double_v b = doubleConstant<1, 0x0000000000001, 0>();
-    double_v c = doubleConstant<1, 0x0000000000000, -53>();
-    double_v a = b;
+    V b = doubleConstant<1, 0x0000000000001, 0>();
+    V c = doubleConstant<1, 0x0000000000000, -53>();
+    V a = b;
     a.fusedMultiplyAdd(b, c);
-    COMPARE(a, double_v(doubleConstant<1, 0x0000000000003, 0>()));
+    COMPARE(a, V(doubleConstant<1, 0x0000000000003, 0>()));
 
     a = doubleConstant<1, 0x0000000000002, 0>();
     b = doubleConstant<1, 0x0000000000002, 0>();
     c = doubleConstant<-1, 0x0000000000000, 0>();
     a.fusedMultiplyAdd(b, c); // 1 + 2^-50 + 2^-102 - 1
-    COMPARE(a, double_v(doubleConstant<1, 0x0000000000001, -50>()));
-}};
-#endif
+    COMPARE(a, V(doubleConstant<1, 0x0000000000001, -50>()));
+}
+
+TEST_TYPES(V, testFma, ALL_TYPES)
+{
+    using T = typename V::EntryType;
+    testFmaDispatch<V>(T());
+}

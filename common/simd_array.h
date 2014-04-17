@@ -288,6 +288,11 @@ public:
 #undef Vc_REDUCTION_FUNCTION__
     Vc_INTRINSIC Vc_PURE simd_array partialSum() const { return data.partialSum(); }
 
+    Vc_INTRINSIC void fusedMultiplyAdd(const simd_array &factor, const simd_array &summand)
+    {
+        data.fusedMultiplyAdd(internal_data(factor), internal_data(summand));
+    }
+
     template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
     {
         return {data.apply(std::forward<F>(f))};
@@ -537,6 +542,12 @@ public:
         auto tmp = data1;
         tmp[0] += ps0[data0.size() - 1];
         return {std::move(ps0), tmp.partialSum()};
+    }
+
+    void fusedMultiplyAdd(const simd_array &factor, const simd_array &summand)
+    {
+        data0.fusedMultiplyAdd(Split::lo(factor), Split::lo(summand));
+        data1.fusedMultiplyAdd(Split::hi(factor), Split::hi(summand));
     }
 
     template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
