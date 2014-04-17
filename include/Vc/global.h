@@ -338,6 +338,20 @@
 #undef IMPL_MASK
 #undef EXT_MASK
 
+#ifdef VC_IMPL_MIC
+#define VC_DEFAULT_IMPL_MIC
+#elif defined VC_IMPL_AVX2
+#define VC_DEFAULT_IMPL_AVX2
+#elif defined VC_IMPL_AVX
+#define VC_DEFAULT_IMPL_AVX
+#elif defined VC_IMPL_SSE
+#define VC_DEFAULT_IMPL_SSE
+#elif defined VC_IMPL_Scalar
+#define VC_DEFAULT_IMPL_Scalar
+#else
+#error "Preprocessor logic broken. Please report a bug."
+#endif
+
 /* ICC includes intrinsics unconditionally - not checking whether __SSE2__ or such is defined.
  * Now that <random> includes <ia32intrin.h> with latest libstdc++ ICC will declare all possible
  * intrinsics. The only workaround is to fool ICC into thinking it already included the intrinsics
