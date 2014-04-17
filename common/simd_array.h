@@ -275,9 +275,9 @@ public:
 
     // reductions ////////////////////////////////////////////////////////
 #define Vc_REDUCTION_FUNCTION__(name__)                                                            \
-    Vc_INTRINSIC value_type name__() const { return data.name__(); }                               \
+    Vc_INTRINSIC Vc_PURE value_type name__() const { return data.name__(); }                       \
                                                                                                    \
-    Vc_INTRINSIC value_type name__(mask_type mask) const                                           \
+    Vc_INTRINSIC Vc_PURE value_type name__(mask_type mask) const                                   \
     {                                                                                              \
         return data.name__(internal_data(mask));                                                   \
     }
