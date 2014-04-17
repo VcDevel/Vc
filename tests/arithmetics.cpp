@@ -504,7 +504,6 @@ TEST_TYPES(Vec, testProduct, ALL_TYPES)
     }
 }
 
-#if 0
 TEST_TYPES(Vec, testSum, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
@@ -513,17 +512,23 @@ TEST_TYPES(Vec, testSum, ALL_TYPES)
     for (int i = 0; i < 10; ++i) {
         T x = static_cast<T>(i);
         Vec v(x);
-        COMPARE(v.sum(), T(x * Vec::Size));
+        COMPARE(v.sum(), T(x * Vec::Size)) << v;
 
-        int j = 0;
-        Mask m;
-        do {
-            m = UnitTest::allMasks<Vec>(j++);
-            COMPARE(v.sum(m), static_cast<T>(x * m.count())) << m << v;
-        } while (!m.isEmpty());
+        const size_t max = (size_t(1) << Vec::Size) - 1;
+        std::uniform_int_distribution<size_t> dist(0, max);
+        for (int rep = 0; rep < 10000; ++rep) {
+            const size_t j = dist(randomEngine);
+            Mask m = UnitTest::allMasks<Vec>(j);
+            if (any_of(m)) {
+                COMPARE(v.sum(m), static_cast<T>(x * m.count())) << m << v;
+            } else {
+                COMPARE(v.sum(m), 0) << m << v;
+            }
+        }
     }
 }
 
+#if 0
 TEST_TYPES(V, testPartialSum, ALL_TYPES)
 {
     typedef typename V::EntryType T;

@@ -49,6 +49,20 @@ namespace Vc_VERSIONED_NAMESPACE
 Vc_BINARY_FUNCTION__(min)
 Vc_BINARY_FUNCTION__(max)
 #undef Vc_BINARY_FUNCTION__
+template <typename T> Vc_INTRINSIC Vc_PURE T min(const T &l, const T &r)
+{
+    T x = l;
+    where(r < l) | x = r;
+    return x;
+}
+template <typename T> Vc_INTRINSIC Vc_PURE T max(const T &l, const T &r)
+{
+    T x = l;
+    where(r > l) | x = r;
+    return x;
+}
+template <typename T> T Vc_INTRINSIC Vc_PURE product_helper__(const T &l, const T &r) { return l * r; }
+template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r) { return l + r; }
 
 template <typename T,
           std::size_t N,
@@ -270,6 +284,7 @@ public:
     Vc_REDUCTION_FUNCTION__(min)
     Vc_REDUCTION_FUNCTION__(max)
     Vc_REDUCTION_FUNCTION__(product)
+    Vc_REDUCTION_FUNCTION__(sum)
 #undef Vc_REDUCTION_FUNCTION__
 
     template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
@@ -483,13 +498,13 @@ public:
     }
 
     // reductions ////////////////////////////////////////////////////////
-#define Vc_REDUCTION_FUNCTION__(name__)                                                            \
+#define Vc_REDUCTION_FUNCTION__(name__, binary_fun__)                                              \
     template <typename ForSfinae = void>                                                           \
     Vc_INTRINSIC enable_if<                                                                        \
         std::is_same<ForSfinae, void>::value &&storage_type0::size() == storage_type1::size(),     \
         value_type> name__() const                                                                 \
     {                                                                                              \
-        return Vc::name__(data0, data1).name__();                                                  \
+        return binary_fun__(data0, data1).name__();                                                \
     }                                                                                              \
                                                                                                    \
     template <typename ForSfinae = void>                                                           \
@@ -497,7 +512,7 @@ public:
         std::is_same<ForSfinae, void>::value &&storage_type0::size() != storage_type1::size(),     \
         value_type> name__() const                                                                 \
     {                                                                                              \
-        return std::name__(data0.name__(), data1.name__());                                        \
+        return binary_fun__(data0.name__(), data1.name__());                                       \
     }                                                                                              \
                                                                                                    \
     Vc_INTRINSIC value_type name__(const mask_type &mask) const                                    \
@@ -507,34 +522,14 @@ public:
         } else if (VC_IS_UNLIKELY(Split::hi(mask).isEmpty())) {                                    \
             return data0.name__(Split::lo(mask));                                                  \
         } else {                                                                                   \
-            return std::name__(data0.name__(Split::lo(mask)), data1.name__(Split::hi(mask)));      \
+            return binary_fun__(data0.name__(Split::lo(mask)), data1.name__(Split::hi(mask)));     \
         }                                                                                          \
     }
-    Vc_REDUCTION_FUNCTION__(min)
-    Vc_REDUCTION_FUNCTION__(max)
+    Vc_REDUCTION_FUNCTION__(min, Vc::min)
+    Vc_REDUCTION_FUNCTION__(max, Vc::max)
+    Vc_REDUCTION_FUNCTION__(product, product_helper__)
+    Vc_REDUCTION_FUNCTION__(sum, sum_helper__)
 #undef Vc_REDUCTION_FUNCTION__
-    template <typename ForSfinae = void>
-    Vc_INTRINSIC enable_if<
-        std::is_same<ForSfinae, void>::value &&storage_type0::size() == storage_type1::size(),
-        value_type>
-        product() const
-    {
-        return (data0 * data1).product();
-    }
-
-    template <typename ForSfinae = void>
-    Vc_INTRINSIC enable_if<
-        std::is_same<ForSfinae, void>::value &&storage_type0::size() != storage_type1::size(),
-        value_type>
-        product() const
-    {
-        return data0.product() * data1.product();
-    }
-
-    Vc_INTRINSIC value_type product(mask_type mask) const
-    {
-        return data0.product(internal_data0(mask)) * data1.product(internal_data1(mask));
-    }
 
     template <typename F> Vc_INTRINSIC simd_array apply(F &&f) const
     {
