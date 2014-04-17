@@ -1100,14 +1100,45 @@ template <typename Vec> static typename Vec::Mask allMasks(size_t i)
 // typeToString {{{1
 template <typename T> inline std::string typeToString();
 
-template <typename T, size_t N> inline std::string typeToString_impl(Vc::simd_array<T, N>)
+template <typename T, std::size_t N, typename V, std::size_t M> inline std::string typeToString_impl(Vc::simd_array<T, N, V, M>)
 {
     std::stringstream s;
-    s << "simd_array<" << typeToString<T>() << ", " << N << '>';
+    s << "simd_array<" << typeToString<T>() << ", " << N << ", " << typeToString<V>() << '>';
+    return s.str();
+}
+template <typename T, std::size_t N, typename V, std::size_t M> inline std::string typeToString_impl(Vc::simd_mask_array<T, N, V, M>)
+{
+    std::stringstream s;
+    s << "simd_mask_array<" << typeToString<T>() << ", " << N << ", " << typeToString<V>() << '>';
+    return s.str();
+}
+template <typename V>
+inline std::string typeToString_impl(
+    V,
+    typename std::enable_if<Vc::is_simd_vector<V>::value, int>::type = 0)
+{
+    using T = typename V::EntryType;
+    std::stringstream s;
+    if (std::is_same<V, Vc::Scalar::Vector<T>>::value) {
+        s << "Scalar::";
+    } else if (std::is_same<V, Vc::SSE::Vector<T>>::value) {
+        s << "SSE::";
+    } else if (std::is_same<V, Vc::AVX::Vector<T>>::value) {
+        s << "AVX::";
+    } else if (std::is_same<V, Vc::MIC::Vector<T>>::value) {
+        s << "MIC::";
+    }
+    s << "Vector<" << typeToString<T>() << '>';
     return s.str();
 }
 
-template <typename T> inline std::string typeToString_impl(T) { return typeid(T).name(); }
+template <typename T>
+inline std::string typeToString_impl(
+    T,
+    typename std::enable_if<!Vc::is_simd_vector<T>::value, int>::type = 0)
+{
+    return typeid(T).name();
+}
 
 template <typename T> inline std::string typeToString() { return typeToString_impl(T()); }
 template <> inline std::string typeToString<void>() { return ""; }
@@ -1118,6 +1149,12 @@ template <> inline std::string typeToString<Vc::  uint_v>() { return "  uint_v";
 template <> inline std::string typeToString<Vc::double_v>() { return "double_v"; }
 template <> inline std::string typeToString<Vc::ushort_v>() { return "ushort_v"; }
 template <> inline std::string typeToString<Vc::   int_v>() { return "   int_v"; }
+template <> inline std::string typeToString<Vc:: float_m>() { return " float_m"; }
+template <> inline std::string typeToString<Vc:: short_m>() { return " short_m"; }
+template <> inline std::string typeToString<Vc::  uint_m>() { return "  uint_m"; }
+template <> inline std::string typeToString<Vc::double_m>() { return "double_m"; }
+template <> inline std::string typeToString<Vc::ushort_m>() { return "ushort_m"; }
+template <> inline std::string typeToString<Vc::   int_m>() { return "   int_m"; }
 
 template <> inline std::string typeToString<long double>() { return "long double"; }
 template <> inline std::string typeToString<double>() { return "double"; }
