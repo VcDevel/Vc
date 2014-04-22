@@ -232,6 +232,27 @@ Vc_SIMD_CAST_2(SSE::int_m, Vc_AVX_NAMESPACE:: float_m) { return AVX::concat(x0.d
 #undef Vc_SIMD_CAST_2
 #undef Vc_SIMD_CAST_4
 
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+              enable_if<AVX::is_mask<Return>::value || AVX2::is_mask<Return>::value> = nullarg)
+{
+    return {Vc_AVX_NAMESPACE::internal::mask_cast<Vc_AVX_NAMESPACE::Mask<T>::Size,
+                                                  Return::Size,
+                                                  typename Return::VectorType>(k.dataI())};
+}
+template <typename Return, typename T, std::size_t N, typename V, std::size_t M>
+Vc_INTRINSIC Vc_CONST Return simd_cast(const simd_mask_array<T, N, V, M> &k,
+                                       enable_if<AVX::is_mask<Return>::value || AVX2::is_mask<Return>::value> = nullarg)
+{
+    // FIXME: this needs optimized implementation (unless compilers are smart enough)
+    Return r(false);
+    for (size_t i = 0; i < std::min(r.size(), k.size()); ++i) {
+        r[i] = k[i];
+    }
+    return r;
+}
+
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast(Vc_AVX_NAMESPACE::Vector<T> x,
@@ -270,6 +291,16 @@ Vc_INTRINSIC Vc_CONST Return
     return simd_cast<Return>(x);
 }
 
+namespace Vc_AVX_NAMESPACE
+{
+template <typename T>
+template <typename U>
+Vc_INTRINSIC Mask<T>::Mask(U &&rhs, enable_if_explicitly_convertible<U>)
+    : Mask(simd_cast<Mask>(std::forward<U>(rhs)))
+{
+}
+
+}  // namespace Vc_AVX_NAMESPACE
 }  // namespace Vc
 
 #include "undomacros.h"

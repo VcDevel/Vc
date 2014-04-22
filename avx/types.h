@@ -43,18 +43,63 @@
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_AVX_NAMESPACE
+namespace AVX
 {
-    template<typename T> class Vector;
-    template<typename T> class Mask;
+template <typename T> class Vector;
+typedef Vector<double>         double_v;
+typedef Vector<float>           float_v;
+typedef Vector<int>               int_v;
+typedef Vector<unsigned int>     uint_v;
+typedef Vector<short>           short_v;
+typedef Vector<unsigned short> ushort_v;
 
-    template <typename V = Vector<float>> class alignas(alignof(V)) VectorAlignedBaseT;
+template <typename T> class Mask;
+typedef Mask<double>         double_m;
+typedef Mask<float>           float_m;
+typedef Mask<int>               int_m;
+typedef Mask<unsigned int>     uint_m;
+typedef Mask<short>           short_m;
+typedef Mask<unsigned short> ushort_m;
+
+template <typename V = Vector<float>> class alignas(alignof(V)) VectorAlignedBaseT;
+
+template <typename T> struct is_vector : public std::false_type {};
+template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
+template <typename T> struct is_mask : public std::false_type {};
+template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
+}
+namespace AVX2
+{
+template<typename T> class Vector;
+typedef Vector<double>         double_v;
+typedef Vector<float>           float_v;
+typedef Vector<int>               int_v;
+typedef Vector<unsigned int>     uint_v;
+typedef Vector<short>           short_v;
+typedef Vector<unsigned short> ushort_v;
+
+template<typename T> class Mask;
+typedef Mask<double>         double_m;
+typedef Mask<float>           float_m;
+typedef Mask<int>               int_m;
+typedef Mask<unsigned int>     uint_m;
+typedef Mask<short>           short_m;
+typedef Mask<unsigned short> ushort_m;
+
+template <typename V = Vector<float>> class alignas(alignof(V)) VectorAlignedBaseT;
+
+template <typename T> struct is_vector : public std::false_type {};
+template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
+template <typename T> struct is_mask : public std::false_type {};
+template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
 }
 
 namespace Traits
 {
-template<typename T> struct is_simd_mask_internal<Vc_AVX_NAMESPACE::Mask<T>> : public std::true_type {};
-template<typename T> struct is_simd_vector_internal<Vc_AVX_NAMESPACE::Vector<T>> : public std::true_type {};
+template<typename T> struct is_simd_mask_internal<AVX::Mask<T>> : public std::true_type {};
+template<typename T> struct is_simd_mask_internal<AVX2::Mask<T>> : public std::true_type {};
+template<typename T> struct is_simd_vector_internal<AVX::Vector<T>> : public std::true_type {};
+template<typename T> struct is_simd_vector_internal<AVX2::Vector<T>> : public std::true_type {};
 }
 }
 
