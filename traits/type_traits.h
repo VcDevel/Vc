@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_TRAITS_TYPE_TRAITS_H
 
 #include <type_traits>
+#include "decay.h"
 #include "has_no_allocated_data.h"
 #include "has_contiguous_storage.h"
 #include "is_initializer_list.h"
@@ -105,24 +106,30 @@ struct vector_size_internal<T, false> : public std::integral_constant<std::size_
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-struct is_simd_mask : public is_simd_mask_internal<typename std::decay<T>::type>
-{};
+struct is_simd_mask : public is_simd_mask_internal<decay<T>>
+{
+};
+
+template <typename T> struct is_simd_vector : public is_simd_vector_internal<decay<T>>
+{
+};
 
 template <typename T>
-struct is_simd_vector : public is_simd_vector_internal<typename std::decay<T>::type>
-{};
+struct is_simd_array : public is_simd_array_internal<decay<T>>
+{
+};
 
-template <typename T> struct is_subscript_operation : public is_subscript_operation_internal<typename std::decay<T>::type> {};
-template <typename T> struct is_simd_array : public is_simd_array_internal<typename std::decay<T>::type> {};
-template <typename T> struct is_load_store_flag : public is_loadstoreflag_internal<typename std::decay<T>::type> {};
-template <typename... Args> struct is_cast_arguments : public is_cast_arguments_internal<sizeof...(Args), typename std::decay<Args>::type...> {};
-template <typename T> struct simd_vector_size : public vector_size_internal<typename std::decay<T>::type> {};
+template <typename T> struct is_subscript_operation : public is_subscript_operation_internal<decay<T>> {};
+template <typename T> struct is_load_store_flag : public is_loadstoreflag_internal<decay<T>> {};
+template <typename... Args> struct is_cast_arguments : public is_cast_arguments_internal<sizeof...(Args), decay<Args>...> {};
 
-template <typename T> struct is_integral : public is_integral_internal<typename std::decay<T>::type> {};
-template <typename T> struct is_floating_point : public is_floating_point_internal<typename std::decay<T>::type> {};
-template <typename T> struct is_arithmetic : public is_arithmetic_internal<typename std::decay<T>::type> {};
-template <typename T> struct is_signed : public is_signed_internal<typename std::decay<T>::type> {};
-template <typename T> struct is_unsigned : public is_unsigned_internal<typename std::decay<T>::type> {};
+template <typename T> struct simd_vector_size : public vector_size_internal<decay<T>> {};
+
+template <typename T> struct is_integral : public is_integral_internal<decay<T>> {};
+template <typename T> struct is_floating_point : public is_floating_point_internal<decay<T>> {};
+template <typename T> struct is_arithmetic : public is_arithmetic_internal<decay<T>> {};
+template <typename T> struct is_signed : public is_signed_internal<decay<T>> {};
+template <typename T> struct is_unsigned : public is_unsigned_internal<decay<T>> {};
 
 }  // namespace Traits
 }  // namespace Vc
