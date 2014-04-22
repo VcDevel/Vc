@@ -41,4 +41,4 @@ struct is_gather_signature_impl<
 template<typename... Args> struct is_gather_signature_impl<0, Args...> : public std::false_type {};
 template<typename... Args> struct is_gather_signature_impl<1, Args...> : public std::false_type {};
 
-template <typename... Args> struct is_gather_signature : public is_gather_signature_impl<sizeof...(Args), typename std::decay<Args>::type...> {};
+template <typename... Args> struct is_gather_signature : public is_gather_signature_impl<sizeof...(Args), decay<Args>...> {};

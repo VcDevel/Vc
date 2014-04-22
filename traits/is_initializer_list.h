@@ -48,7 +48,7 @@ template <typename I> struct test<std::initializer_list<I>> : public std::true_t
  */
 template <typename... Args>
 struct is_initializer_list
-    : public is_initializer_list_impl::test<typename std::decay<Args>::type...>
+    : public is_initializer_list_impl::test<decay<Args>...>
 {
 };
 }

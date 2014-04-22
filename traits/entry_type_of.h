@@ -37,11 +37,9 @@ namespace entry_type_of_internal
 {
 template <typename T, bool = Traits::is_simd_vector<T>::value> struct entry_type;
 
-template <typename T> using Decay = typename std::decay<T>::type;
-
 template <typename T> struct entry_type<T, true>
 {
-    using type = typename Decay<T>::EntryType;
+    using type = typename decay<T>::EntryType;
 };
 
 template <typename T> struct entry_type<T, false>
