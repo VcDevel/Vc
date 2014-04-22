@@ -169,10 +169,10 @@ public:
         data += value_type(Offset);
     }
 
-    Vc_INTRINSIC void setZero()
-    {
-        data.setZero();
-    }
+    Vc_INTRINSIC void setZero() { data.setZero(); }
+    Vc_INTRINSIC void setZero(mask_type k) { data.setZero(internal_data(k)); }
+    Vc_INTRINSIC void setZeroInverted() { data.setZeroInverted(); }
+    Vc_INTRINSIC void setZeroInverted(mask_type k) { data.setZeroInverted(internal_data(k)); }
 
     // internal: execute specified Operation
     template <typename Op, typename... Args>
@@ -392,6 +392,21 @@ public:
     {
         data0.setZero();
         data1.setZero();
+    }
+    Vc_INTRINSIC void setZero(const mask_type &k)
+    {
+        data0.setZero(Split::lo(k));
+        data1.setZero(Split::hi(k));
+    }
+    Vc_INTRINSIC void setZeroInverted()
+    {
+        data0.setZeroInverted();
+        data1.setZeroInverted();
+    }
+    Vc_INTRINSIC void setZeroInverted(const mask_type &k)
+    {
+        data0.setZeroInverted(Split::lo(k));
+        data1.setZeroInverted(Split::hi(k));
     }
 
     // internal: execute specified Operation
