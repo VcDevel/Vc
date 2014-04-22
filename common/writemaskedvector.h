@@ -105,7 +105,7 @@ public:
         return *vec;
     }
 
-    template <typename T, typename = enable_if<Traits::IsSubscriptOperation<T>::value>>
+    template <typename T, typename = enable_if<Traits::is_subscript_operation<T>::value>>
     Vc_ALWAYS_INLINE V &operator=(T &&x)
     {
         vec->gather(std::forward<T>(x).gatherArguments(), mask);

@@ -444,7 +444,7 @@ void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
 // is_simd {{{1
 template <typename T>
 struct is_simd
-    : public std::integral_constant<bool, Vc::is_simd_vector<T>::value || Vc::Traits::IsSimdArray<T>::value>
+    : public std::integral_constant<bool, Vc::is_simd_vector<T>::value || Vc::Traits::is_simd_array<T>::value>
 {
 };
 

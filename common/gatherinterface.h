@@ -52,7 +52,7 @@ public:
         static_assert(                                                                             \
             Vc::Traits::has_subscript_operator<IT>::value,                                         \
             "The indexes argument must be a type that implements the subscript operator.");        \
-        static_assert(!Traits::is_simd_vector<IT>::value || Traits::VectorSize<IT>::value >= Size, \
+        static_assert(!Traits::is_simd_vector<IT>::value || Traits::simd_vector_size<IT>::value >= Size, \
                       "If you use a SIMD vector for the indexes parameter, the index vector must " \
                       "have at least as many entries as this SIMD vector.");                       \
         static_assert(!std::is_array<T>::value ||                                                  \

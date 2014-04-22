@@ -154,7 +154,7 @@ public:
 
     // forward all remaining ctors
     template <typename... Args,
-              typename = enable_if<!Traits::IsCastArguments<Args...>::value &&
+              typename = enable_if<!Traits::is_cast_arguments<Args...>::value &&
                                    !Traits::is_initializer_list<Args...>::value>>
     explicit Vc_INTRINSIC simd_array(Args &&... args)
         : data(std::forward<Args>(args)...)
@@ -370,7 +370,7 @@ public:
 
     // forward all remaining ctors
     template <typename... Args,
-              typename = enable_if<!Traits::IsCastArguments<Args...>::value &&
+              typename = enable_if<!Traits::is_cast_arguments<Args...>::value &&
                                    !Traits::is_initializer_list<Args...>::value &&
                                    !Traits::is_load_arguments<Args...>::value>>
     explicit Vc_INTRINSIC simd_array(Args &&... args)
@@ -595,7 +595,7 @@ namespace result_vector_type_internal
 template <typename T>
 using type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
 
-template <typename T, bool = Traits::IsSimdArray<T>::value || Traits::is_simd_vector<T>::value>
+template <typename T, bool = Traits::is_simd_array<T>::value || Traits::is_simd_vector<T>::value>
 struct simd_size_of : public std::integral_constant<std::size_t, 1>
 {
 };
@@ -609,10 +609,10 @@ struct simd_size_of<T, true> : public std::integral_constant<std::size_t, Decay<
 
 template <typename L,
           typename R,
-          std::size_t N = Traits::IsSimdArray<L>::value ? simd_size_of<L>::value
+          std::size_t N = Traits::is_simd_array<L>::value ? simd_size_of<L>::value
                                                         : simd_size_of<R>::value,
-          bool = (Traits::IsSimdArray<L>::value ||
-                  Traits::IsSimdArray<R>::value)  // one of the operands must be a simd_array
+          bool = (Traits::is_simd_array<L>::value ||
+                  Traits::is_simd_array<R>::value)  // one of the operands must be a simd_array
                  &&
                  !std::is_same<Decay<L>, Decay<R>>::value  // if the operands are of the same type
                                                            // use the member function
@@ -751,7 +751,7 @@ public:
     Vc_ALWAYS_INLINE simd_array(value_type a) : d(a) {}
 
     // forward all remaining ctors to ArrayData
-    template <typename... Args, typename = enable_if<!Traits::IsCastArguments<Args...>::value && !Traits::is_initializer_list<Args...>::value>>
+    template <typename... Args, typename = enable_if<!Traits::is_cast_arguments<Args...>::value && !Traits::is_initializer_list<Args...>::value>>
     explicit Vc_ALWAYS_INLINE simd_array(Args &&... args)
         : d(adjustArgument(std::forward<Args>(args))...)
     {

@@ -101,11 +101,11 @@ template <typename T>
 struct is_simd_vector : public is_simd_vector_internal<typename std::decay<T>::type>
 {};
 
-template <typename T> struct IsSubscriptOperation : public is_subscript_operation_internal<typename std::decay<T>::type> {};
-template <typename T> struct IsSimdArray : public is_simd_array_internal<typename std::decay<T>::type> {};
-template <typename T> struct IsLoadStoreFlag : public is_loadstoreflag_internal<typename std::decay<T>::type> {};
-template <typename... Args> struct IsCastArguments : public is_cast_arguments_internal<sizeof...(Args), typename std::decay<Args>::type...> {};
-template <typename T> struct VectorSize : public vector_size_internal<typename std::decay<T>::type> {};
+template <typename T> struct is_subscript_operation : public is_subscript_operation_internal<typename std::decay<T>::type> {};
+template <typename T> struct is_simd_array : public is_simd_array_internal<typename std::decay<T>::type> {};
+template <typename T> struct is_load_store_flag : public is_loadstoreflag_internal<typename std::decay<T>::type> {};
+template <typename... Args> struct is_cast_arguments : public is_cast_arguments_internal<sizeof...(Args), typename std::decay<Args>::type...> {};
+template <typename T> struct simd_vector_size : public vector_size_internal<typename std::decay<T>::type> {};
 
 template <typename T> struct is_integral : public is_integral_internal<typename std::decay<T>::type> {};
 template <typename T> struct is_floating_point : public is_floating_point_internal<typename std::decay<T>::type> {};

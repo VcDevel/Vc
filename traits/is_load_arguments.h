@@ -33,14 +33,14 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
-template <typename T> struct IsLoadStoreFlag;
+template <typename T> struct is_load_store_flag;
 
 template <typename... Args> struct is_load_arguments : public std::false_type {};
 template <typename U> struct is_load_arguments<U> : public std::is_pointer<U> {};
 template <typename U, typename F>
 struct is_load_arguments<U, F> : public std::integral_constant<
                                      bool,
-                                     std::is_pointer<U>::value&& IsLoadStoreFlag<F>::value>
+                                     std::is_pointer<U>::value&& is_load_store_flag<F>::value>
 {
 };
 }

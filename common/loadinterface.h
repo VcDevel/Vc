@@ -31,7 +31,7 @@ explicit Vc_INTRINSIC Vector(const EntryType *x)
 {
     load(x);
 }
-template <typename Flags, typename = enable_if<Traits::IsLoadStoreFlag<Flags>::value>>
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
 explicit Vc_INTRINSIC Vector(const EntryType *x, Flags flags)
 {
     load(x, flags);
@@ -39,7 +39,7 @@ explicit Vc_INTRINSIC Vector(const EntryType *x, Flags flags)
 template <
     typename U,
     typename Flags = DefaultLoadTag,
-    typename = enable_if<std::is_arithmetic<U>::value &&Traits::IsLoadStoreFlag<Flags>::value>>
+    typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
 explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
 {
     load(x, flags);
@@ -49,7 +49,7 @@ Vc_INTRINSIC void load(const EntryType *mem)
 {
     load(mem, DefaultLoadTag());
 }
-template <typename Flags, typename = enable_if<Traits::IsLoadStoreFlag<Flags>::value>>
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
 Vc_INTRINSIC void load(const EntryType *mem, Flags flags)
 {
     load<EntryType, Flags>(mem, flags);
@@ -57,7 +57,7 @@ Vc_INTRINSIC void load(const EntryType *mem, Flags flags)
 template <
     typename U,
     typename Flags = DefaultLoadTag,
-    typename = enable_if<std::is_arithmetic<U>::value &&Traits::IsLoadStoreFlag<Flags>::value>>
+    typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
 Vc_INTRINSIC_L void load(const U *mem, Flags = Flags()) Vc_INTRINSIC_R;
 //}}}1
 

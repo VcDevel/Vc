@@ -31,13 +31,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 template <
     typename U,
     typename Flags = DefaultStoreTag,
-    typename = enable_if<std::is_arithmetic<U>::value &&Traits::IsLoadStoreFlag<Flags>::value>>
+    typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
 Vc_INTRINSIC_L void store(U *mem, Flags = Flags()) const Vc_INTRINSIC_R;
 
 template <
     typename U,
     typename Flags = DefaultStoreTag,
-    typename = enable_if<std::is_arithmetic<U>::value &&Traits::IsLoadStoreFlag<Flags>::value>>
+    typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
 Vc_INTRINSIC_L void store(U *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
 
 // the following store overloads are here to support classes that have a cast operator to
@@ -48,7 +48,7 @@ Vc_INTRINSIC void store(EntryType *mem) const
     store<EntryType, DefaultStoreTag>(mem, DefaultStoreTag());
 }
 
-template <typename Flags, typename = enable_if<Traits::IsLoadStoreFlag<Flags>::value>>
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
 Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
 {
     store<EntryType, Flags>(mem, flags);
@@ -59,7 +59,7 @@ Vc_INTRINSIC void store(EntryType *mem, Mask mask) const
     store<EntryType, DefaultStoreTag>(mem, mask, DefaultStoreTag());
 }
 
-template <typename Flags, typename = enable_if<Traits::IsLoadStoreFlag<Flags>::value>>
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
 Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const
 {
     store<EntryType, Flags>(mem, mask, flags);

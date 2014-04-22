@@ -683,7 +683,7 @@ inline void Vector<T>::gatherImplementation(const MT *mem, IT &&indexes, MaskArg
 {
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
 #ifdef VC_USE_SET_GATHERS
-          Traits::is_simd_vector<IT>::value || Traits::IsSimdArray<IT>::value
+          Traits::is_simd_vector<IT>::value || Traits::is_simd_array<IT>::value
               ? Common::GatherScatterImplementation::SetIndexZero
               :
 #endif
@@ -711,7 +711,7 @@ inline void Vector<T>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument
 {
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
 #ifdef VC_USE_SET_GATHERS
-          Traits::is_simd_vector<IT>::value || Traits::IsSimdArray<IT>::value
+          Traits::is_simd_vector<IT>::value || Traits::is_simd_array<IT>::value
               ? Common::GatherScatterImplementation::SetIndexZero
               :
 #endif
