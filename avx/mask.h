@@ -82,12 +82,17 @@ public:
      * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the SIMD
      * implementation. This type is useful for the \c sizeof operator in generic functions.
      */
-    typedef T VectorEntryType;
+    using VectorEntryType = Common::MaskBool<sizeof(T)>;
 
     /**
      * The \c VectorType reveals the implementation-specific internal type used for the SIMD type.
      */
     typedef typename FloatVectorType<typename VectorTypeHelper<T>::Type>::Type VectorType;
+
+    /**
+     * The associated Vector<T> type.
+     */
+    using Vector = Vc_AVX_NAMESPACE::Vector<T>;
 
 private:
     typedef typename  DoubleVectorType<VectorType>::Type VectorTypeD;
@@ -109,8 +114,7 @@ private:
         FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
     private:
-        typedef Common::MaskBool<sizeof(T)> MaskBool;
-        typedef Common::VectorMemoryUnion<VectorType, MaskBool> Storage;
+        typedef Common::VectorMemoryUnion<VectorType, VectorEntryType> Storage;
 
     public:
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here

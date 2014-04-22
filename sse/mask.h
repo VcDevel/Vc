@@ -96,6 +96,11 @@ public:
      */
     typedef __m128 VectorType;
 
+    /**
+     * The associated Vector<T> type.
+     */
+    using Vector = SSE::Vector<T>;
+
     public:
         FREE_STORE_OPERATORS_ALIGNED(16)
         static constexpr size_t Size = VectorTraits<T>::Size;

@@ -51,6 +51,16 @@ public:
      */
     typedef bool VectorEntryType;
 
+    /**
+     * The \c VectorType reveals the implementation-specific internal type used for the SIMD type.
+     */
+    using VectorType = bool;
+
+    /**
+     * The associated Vector<T> type.
+     */
+    using Vector = Scalar::Vector<T>;
+
         Vc_ALWAYS_INLINE Mask() {}
         Vc_ALWAYS_INLINE explicit Mask(bool b) : m(b) {}
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}

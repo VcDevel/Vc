@@ -76,6 +76,11 @@ template<typename T> class Mask
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
 
 public:
+    /**
+     * The associated Vector<T> type.
+     */
+    using Vector = MIC::Vector<T>;
+
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
     static constexpr std::size_t size() { return Size; }
     typedef Mask<T> AsArg; // for now only ICC can compile this code and it is not broken :)
