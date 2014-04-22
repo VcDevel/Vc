@@ -77,6 +77,7 @@ template<typename T> class Mask
 
 public:
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
+    static constexpr std::size_t size() { return Size; }
     typedef Mask<T> AsArg; // for now only ICC can compile this code and it is not broken :)
     inline Mask() {}
     inline Mask(MaskType _k) : k(_k) {}

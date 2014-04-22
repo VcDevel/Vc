@@ -38,6 +38,7 @@ template<typename T> class Mask
 
 public:
     static constexpr size_t Size = 1;
+    static constexpr std::size_t size() { return Size; }
 
     /**
      * The \c EntryType of masks is always bool, independent of \c T.

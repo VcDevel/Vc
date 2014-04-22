@@ -105,6 +105,7 @@ private:
 
     public:
         static constexpr size_t Size = VSize / sizeof(T);
+        static constexpr std::size_t size() { return Size; }
         FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
     private:
