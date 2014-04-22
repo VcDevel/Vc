@@ -35,8 +35,7 @@ namespace Traits
 {
 namespace entry_type_of_internal
 {
-template <typename T, bool = Traits::is_simd_array<T>::value || Traits::is_simd_vector<T>::value>
-struct entry_type;
+template <typename T, bool = Traits::is_simd_vector<T>::value> struct entry_type;
 
 template <typename T> using Decay = typename std::decay<T>::type;
 

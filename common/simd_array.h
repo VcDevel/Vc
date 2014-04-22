@@ -608,8 +608,9 @@ template <typename L,
                  (std::is_arithmetic<type<L>>::value ||
                   std::is_arithmetic<type<R>>::value  // one of the operands is a scalar type
                   ||
-                  Traits::is_simd_vector<L>::value ||
-                  Traits::is_simd_vector<R>::value  // or one of the operands is Vector<T>
+                  (Traits::is_simd_vector<L>::value && !Traits::is_simd_array<L>::value) ||
+                  (Traits::is_simd_vector<R>::value &&
+                   !Traits::is_simd_array<R>::value)  // or one of the operands is Vector<T>
                   ) > struct evaluate;
 
 template <typename L, typename R, std::size_t N> struct evaluate<L, R, N, true>

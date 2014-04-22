@@ -627,18 +627,16 @@ inline void Vector<T>::gatherImplementation(const MT *mem, IT &&indexes, MaskArg
 {
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
 #ifdef VC_USE_SET_GATHERS
-          Traits::is_simd_vector<IT>::value || Traits::is_simd_array<IT>::value
-              ? Common::GatherScatterImplementation::SetIndexZero
-              :
+          Traits::is_simd_vector<IT>::value ? Common::GatherScatterImplementation::SetIndexZero :
 #endif
 #ifdef VC_USE_BSF_GATHERS
-              Common::GatherScatterImplementation::BitScanLoop
+                                            Common::GatherScatterImplementation::BitScanLoop
 #elif defined VC_USE_POPCNT_BSF_GATHERS
               Common::GatherScatterImplementation::PopcntSwitch
 #else
               Common::GatherScatterImplementation::SimpleLoop
 #endif
-              > ;
+                                                > ;
     Common::executeGather(Selector(), *this, mem, indexes, mask);
 }
 
@@ -656,18 +654,16 @@ inline void Vector<T>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument
 {
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
 #ifdef VC_USE_SET_GATHERS
-          Traits::is_simd_vector<IT>::value || Traits::is_simd_array<IT>::value
-              ? Common::GatherScatterImplementation::SetIndexZero
-              :
+          Traits::is_simd_vector<IT>::value ? Common::GatherScatterImplementation::SetIndexZero :
 #endif
 #ifdef VC_USE_BSF_GATHERS
-              Common::GatherScatterImplementation::BitScanLoop
+                                            Common::GatherScatterImplementation::BitScanLoop
 #elif defined VC_USE_POPCNT_BSF_GATHERS
               Common::GatherScatterImplementation::PopcntSwitch
 #else
               Common::GatherScatterImplementation::SimpleLoop
 #endif
-              > ;
+                                                > ;
     Common::executeScatter(Selector(), *this, mem, indexes, mask);
 }
 

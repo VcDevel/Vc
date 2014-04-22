@@ -187,7 +187,7 @@ template <> struct Fraction<1, 1>
 // IndexVectorSizeMatches {{{1
 template <std::size_t MinSize,
           typename IndexT,
-          bool = Traits::is_simd_vector<IndexT>::value || Traits::is_simd_array<IndexT>::value>
+          bool = Traits::is_simd_vector<IndexT>::value>
 struct IndexVectorSizeMatches
     : public std::true_type  // you might expect this should be false_type here, but the point is
                              // that IndexT is a type where the size is not known at compile time.
@@ -234,7 +234,7 @@ class SubscriptOperation
     using IndexVectorScaled = std::vector<unsigned int>;// typename std::conditional<
         //(sizeof(std::declval<const IndexVector &>()[0]) < sizeof(int)),
         //typename std::conditional<
-            //(Traits::is_simd_array<IndexVector>::value || Traits::is_simd_vector<IndexVector>::value),
+            //Traits::is_simd_vector<IndexVector>::value,
             //Vc::simd_array<unsigned int, IndexVector::Size>,
             //std::vector<unsigned int>/*>::type*/,
         //IndexVector>::type;
@@ -270,10 +270,8 @@ public:
     }
 
     template <typename V,
-              typename = enable_if<
-                  std::is_arithmetic<ScalarType>::value &&(Traits::is_simd_array<V>::value ||
-                                                           Traits::is_simd_vector<V>::value) &&
-                  IndexVectorSizeMatches<V::Size, IndexVector>::value>>
+              typename = enable_if<(std::is_arithmetic<ScalarType>::value &&Traits::is_simd_vector<
+                  V>::value &&IndexVectorSizeMatches<V::Size, IndexVector>::value)>>
     Vc_ALWAYS_INLINE operator V() const
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
@@ -282,10 +280,8 @@ public:
     }
 
     template <typename V,
-              typename = enable_if<
-                  std::is_arithmetic<ScalarType>::value &&(Traits::is_simd_array<V>::value ||
-                                                           Traits::is_simd_vector<V>::value) &&
-                  IndexVectorSizeMatches<V::Size, IndexVector>::value>>
+              typename = enable_if<(std::is_arithmetic<ScalarType>::value &&Traits::is_simd_vector<
+                  V>::value &&IndexVectorSizeMatches<V::Size, IndexVector>::value)>>
     Vc_ALWAYS_INLINE SubscriptOperation &operator=(const V &rhs)
     {
         static_assert(std::is_arithmetic<ScalarType>::value,

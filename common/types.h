@@ -44,6 +44,7 @@ template <typename T, std::size_t N, typename VectorType, std::size_t> class sim
 namespace Traits
 {
 template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simd_array_internal<simd_array<T, N, VectorType, M>> : public std::true_type {};
+template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simd_mask_array_internal<simd_mask_array<T, N, VectorType, M>> : public std::true_type {};
 template <typename T, std::size_t N, typename V, std::size_t M> struct is_integral_internal      <simd_array<T, N, V, M>, false> : public std::is_integral<T> {};
 template <typename T, std::size_t N, typename V, std::size_t M> struct is_floating_point_internal<simd_array<T, N, V, M>, false> : public std::is_floating_point<T> {};
 template <typename T, std::size_t N, typename V, std::size_t M> struct is_signed_internal        <simd_array<T, N, V, M>, false> : public std::is_signed<T> {};

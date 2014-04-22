@@ -53,6 +53,7 @@ template<typename T> struct is_simd_mask_internal : public std::false_type {};
 template<typename T> struct is_simd_vector_internal : public std::false_type {};
 template<typename T> struct is_subscript_operation_internal : public std::false_type {};
 template<typename T> struct is_simd_array_internal : public std::false_type {};
+template<typename T> struct is_simd_mask_array_internal : public std::false_type {};
 template<typename T> struct is_loadstoreflag_internal : public std::false_type {};
 
 #include "is_gather_signature.h"
@@ -91,7 +92,8 @@ struct is_arithmetic_internal
 
 template <typename T,
           bool = (is_simd_vector_internal<T>::value || is_simd_mask_internal<T>::value ||
-                  is_simd_array_internal<T>::value)>
+                  is_simd_array_internal<T>::value ||
+                  is_simd_mask_array_internal<T>::value)>
 struct vector_size_internal;
 
 template <typename T>
@@ -105,24 +107,52 @@ struct vector_size_internal<T, false> : public std::integral_constant<std::size_
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Identifies any SIMD mask type (independent of implementation or whether it's
+ * simd_mask_array<T, N>).
+ */
 template <typename T>
-struct is_simd_mask : public is_simd_mask_internal<decay<T>>
+struct is_simd_mask : public std::integral_constant<bool,
+                                                    (is_simd_mask_internal<decay<T>>::value ||
+                                                     is_simd_mask_array_internal<decay<T>>::value)>
 {
 };
 
-template <typename T> struct is_simd_vector : public is_simd_vector_internal<decay<T>>
+/**
+ * Identifies any SIMD vector type (independent of implementation or whether it's
+ * simd_array<T, N>).
+ */
+template <typename T>
+struct is_simd_vector
+    : public std::integral_constant<bool,
+                                    (is_simd_vector_internal<decay<T>>::value ||
+                                     is_simd_array_internal<decay<T>>::value)>
 {
 };
 
+/// Identifies any possible simd_array<T, N> type (independent of const/volatile or reference)
 template <typename T>
 struct is_simd_array : public is_simd_array_internal<decay<T>>
 {
 };
 
+/// Identifies any possible simd_mask_array<T, N> type (independent of const/volatile or reference)
+template <typename T>
+struct is_simd_mask_array : public is_simd_mask_array_internal<decay<T>>
+{
+};
+
+/// \internal Identifies SubscriptOperation types
 template <typename T> struct is_subscript_operation : public is_subscript_operation_internal<decay<T>> {};
+/// \internal Identifies LoadStoreFlag types
 template <typename T> struct is_load_store_flag : public is_loadstoreflag_internal<decay<T>> {};
+/// \internal Identifies the function signature of a cast
 template <typename... Args> struct is_cast_arguments : public is_cast_arguments_internal<sizeof...(Args), decay<Args>...> {};
 
+/**
+ * The \p value member will either be the number of SIMD vector entries or 0 if \p T is not a SIMD
+ * type.
+ */
 template <typename T> struct simd_vector_size : public vector_size_internal<decay<T>> {};
 
 template <typename T> struct is_integral : public is_integral_internal<decay<T>> {};
