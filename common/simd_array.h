@@ -598,12 +598,12 @@ using type = typename std::remove_cv<typename std::remove_reference<T>::type>::t
 template <typename L,
           typename R,
           std::size_t N = Traits::is_simd_array<L>::value ? Traits::simd_vector_size<L>::value
-                                                        : Traits::simd_vector_size<R>::value,
+                                                          : Traits::simd_vector_size<R>::value,
           bool = (Traits::is_simd_array<L>::value ||
                   Traits::is_simd_array<R>::value)  // one of the operands must be a simd_array
                  &&
                  !std::is_same<type<L>, type<R>>::value  // if the operands are of the same type
-                                                           // use the member function
+                                                         // use the member function
                  &&
                  (std::is_arithmetic<type<L>>::value ||
                   std::is_arithmetic<type<R>>::value  // one of the operands is a scalar type
