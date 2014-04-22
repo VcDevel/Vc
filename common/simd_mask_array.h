@@ -63,6 +63,7 @@ public:
     static_assert(Size == mask_type::Size, "size mismatch");
 
     using vectorentry_type = typename mask_type::VectorEntryType;
+    using vectorentry_reference = vectorentry_type &;
     using value_type = typename mask_type::EntryType;
     using Mask = mask_type;
     using VectorEntryType = vectorentry_type;
@@ -173,8 +174,10 @@ public:
 
     Vc_INTRINSIC Vc_PURE int toInt() const { return data.toInt(); }
 
-    // Vc_INTRINSIC decltype(std::declval<Storage &>().m(0)) operator[](size_t index) { return
-    // data.m(index); }
+    Vc_INTRINSIC Vc_PURE vectorentry_reference operator[](size_t index)
+    {
+        return data[index];
+    }
     Vc_INTRINSIC Vc_PURE bool operator[](size_t index) const { return data[index]; }
 
     Vc_INTRINSIC Vc_PURE int count() const { return data.count(); }
@@ -215,6 +218,9 @@ public:
     static_assert(Size == mask_type::Size, "size mismatch");
 
     using vectorentry_type = typename storage_type0::VectorEntryType;
+    using vectorentry_reference = vectorentry_type &;
+    static_assert(std::is_same<vectorentry_type, typename storage_type1::VectorEntryType>::value,
+                  "incompatible mask types combined: this will break operator[]");
     using value_type = typename storage_type0::EntryType;
     using Mask = mask_type;
     using VectorEntryType = vectorentry_type;
@@ -330,6 +336,10 @@ public:
     Vc_INTRINSIC Vc_PURE operator bool() const { return isFull(); }
 #endif
 
+    Vc_INTRINSIC Vc_PURE vectorentry_reference operator[](size_t index) {
+        auto alias = reinterpret_cast<vectorentry_type *>(&data0);
+        return alias[index];
+    }
     Vc_INTRINSIC Vc_PURE bool operator[](size_t index) const {
         auto alias = reinterpret_cast<const vectorentry_type *>(&data0);
         return alias[index];
