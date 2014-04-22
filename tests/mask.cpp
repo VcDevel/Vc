@@ -384,10 +384,12 @@ template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)/*
     MTo test(m);
     size_t i = 0;
     for (; i < std::min(m.Size, test.Size); ++i) {
-        COMPARE(test[i], m[i]) << i << " conversion from " << UnitTest::typeToString<MFrom>() << " to " << UnitTest::typeToString<MTo>();
+        COMPARE(test[i], m[i]) << i << " conversion from " << UnitTest::typeToString<MFrom>()
+                               << " to " << UnitTest::typeToString<MTo>();
     }
     for (; i < test.Size; ++i) {
-        COMPARE(test[i], false) << i << " conversion from " << UnitTest::typeToString<MFrom>() << " to " << UnitTest::typeToString<MTo>();
+        COMPARE(test[i], false) << i << " conversion from " << UnitTest::typeToString<MFrom>()
+                                << " to " << UnitTest::typeToString<MTo>();
     }
 }/*}}}*/
 TEST_TYPES(V, maskConversions, ALL_TYPES) /*{{{*/
