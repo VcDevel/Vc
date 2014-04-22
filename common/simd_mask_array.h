@@ -354,59 +354,6 @@ private:
     storage_type1 data1;
 };
 
-#if 0
-{
-    Vc_ALWAYS_INLINE explicit simd_mask_array(VectorSpecialInitializerZero::ZEnum) : d(false) {}
-    Vc_ALWAYS_INLINE explicit simd_mask_array(VectorSpecialInitializerOne::OEnum) : d(true) {}
-    Vc_ALWAYS_INLINE simd_mask_array(bool x) : d(x) {}
-
-    // default copy ctor/operator
-    simd_mask_array(const simd_mask_array &) = default;
-    simd_mask_array(simd_mask_array &&) = default;
-    template <typename U> simd_mask_array(const simd_mask_array<U, N> &x) : d(x.d)
-    {
-    }
-    simd_mask_array &operator=(const simd_mask_array &) = default;
-
-    Vc_ALWAYS_INLINE Vc_PURE bool isFull() const { return d.isFull(); }
-    Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const { return d.isEmpty(); }
-
-#define VC_COMPARE_IMPL(op)                                                                        \
-    Vc_ALWAYS_INLINE Vc_PURE bool operator op(const simd_mask_array &x) const                      \
-    {                                                                                              \
-        return d.apply([](bool l, bool r) { return l && r; },                                      \
-                       [](mask_type l, mask_type r) { return l op r; },                            \
-                       x.d);                                                                       \
-    }
-    VC_ALL_COMPARES(VC_COMPARE_IMPL)
-#undef VC_COMPARE_IMPL
-
-    bool operator[](std::size_t i) const {
-        const auto m = d.cbegin();
-        return m[i / mask_type::Size][i % mask_type::Size];
-    }
-
-    simd_mask_array operator!() const
-    {
-        simd_mask_array r;
-        r.d.assign(d, &mask_type::operator!);
-        return r;
-    }
-
-    unsigned int count() const
-    {
-        return d.count();
-    }
-
-//private:
-    storage_type d;
-
-    friend const decltype(d) & simd_mask_array_data(const simd_mask_array &x) { return x.d; }
-    friend decltype(d) & simd_mask_array_data(simd_mask_array &x) { return x.d; }
-    friend decltype(std::move(d)) simd_mask_array_data(simd_mask_array &&x) { return std::move(x.d); }
-};
-#endif
-
 }  // namespace Vc
 
 #include "undomacros.h"
