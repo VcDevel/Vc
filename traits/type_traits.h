@@ -84,12 +84,23 @@ template <typename T>
 struct is_arithmetic_internal
     : public std::integral_constant<
           bool,
-          is_floating_point_internal<T>::value || is_integral_internal<T>::value>
-    {};
+          (is_floating_point_internal<T>::value || is_integral_internal<T>::value)>
+{
+};
 
-template <typename T, bool = is_simd_vector_internal<T>::value || is_simd_mask_internal<T>::value> struct vector_size_internal;
-template <typename T> struct vector_size_internal<T, true > : public std::integral_constant<std::size_t, T::Size> {};
-template <typename T> struct vector_size_internal<T, false> : public std::integral_constant<std::size_t, 0> {};
+template <typename T,
+          bool = (is_simd_vector_internal<T>::value || is_simd_mask_internal<T>::value ||
+                  is_simd_array_internal<T>::value)>
+struct vector_size_internal;
+
+template <typename T>
+struct vector_size_internal<T, true> : public std::integral_constant<std::size_t, T::Size>
+{
+};
+template <typename T>
+struct vector_size_internal<T, false> : public std::integral_constant<std::size_t, 0>
+{
+};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
