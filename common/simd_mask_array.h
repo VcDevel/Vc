@@ -336,6 +336,11 @@ public:
     Vc_INTRINSIC Vc_PURE operator bool() const { return isFull(); }
 #endif
 
+    Vc_INTRINSIC Vc_PURE int toInt() const
+    {
+        return data0.toInt() | (data1.toInt() << data0.size());
+    }
+
     Vc_INTRINSIC Vc_PURE vectorentry_reference operator[](size_t index) {
         auto alias = reinterpret_cast<vectorentry_type *>(&data0);
         return alias[index];
