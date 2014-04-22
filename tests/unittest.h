@@ -1097,6 +1097,15 @@ template <typename Vec> static typename Vec::Mask allMasks(size_t i)
              !_mask_.isEmpty();                                                                    \
              _mask_ = UnitTest::allMasks<VecType>(_Vc_for_all_masks_i++))
 
+template <typename V, int Repetitions = 10000, typename F> void withRandomMask(F &&f)
+{
+    std::default_random_engine engine;
+    std::uniform_int_distribution<std::size_t> dist(0, (1ull << V::Size) - 1);
+    for (int repetition = 0; repetition < Repetitions; ++repetition) {
+        f(UnitTest::allMasks<V>(dist(engine)));
+    }
+}
+
 // typeToString {{{1
 template <typename T> inline std::string typeToString();
 

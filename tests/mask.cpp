@@ -255,7 +255,7 @@ TEST_TYPES(Vec, testCount, ALL_TYPES) /*{{{*/
     typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
-    for_all_masks(Vec, m) {
+    UnitTest::withRandomMask<Vec>([](M m) {
         int count = 0;
         for (size_t i = 0; i < Vec::Size; ++i) {
             if (m[i]) {
@@ -263,7 +263,7 @@ TEST_TYPES(Vec, testCount, ALL_TYPES) /*{{{*/
             }
         }
         COMPARE(m.count(), count) << ", m = " << m;
-    }
+    });
 }
 /*}}}*/
 TEST_TYPES(Vec, testFirstOne, ALL_TYPES) /*{{{*/
@@ -324,7 +324,7 @@ TEST(testBinaryOperators) /*{{{*/
 
 TEST_TYPES(V, maskReductions, ALL_TYPES) /*{{{*/
 {
-    for_all_masks(V, mask) {
+    UnitTest::withRandomMask<V>([](typename V::Mask mask) {
         constexpr decltype(mask.count()) size = V::Size;
         COMPARE(all_of(mask), mask.count() == size);
         if (mask.count() > 0) {
@@ -336,7 +336,7 @@ TEST_TYPES(V, maskReductions, ALL_TYPES) /*{{{*/
             VERIFY(none_of(mask));
             VERIFY(!some_of(mask));
         }
-    }
+    });
 }/*}}}*/
 TEST_TYPES(V, maskInit, ALL_TYPES) /*{{{*/
 {
@@ -361,7 +361,7 @@ TEST_TYPES(V, maskCompare, ALL_TYPES) /*{{{*/
 TEST_TYPES(V, maskScalarAccess, ALL_TYPES) /*{{{*/
 {
     typedef typename V::Mask M;
-    for_all_masks(V, mask) {
+    UnitTest::withRandomMask<V>([](M mask) {
         const auto &mask2 = mask;
         for (size_t i = 0; i < V::Size; ++i) {
             COMPARE(bool(mask[i]), mask2[i]);
@@ -377,7 +377,7 @@ TEST_TYPES(V, maskScalarAccess, ALL_TYPES) /*{{{*/
             mask[i] = true;
         }
         COMPARE(mask, M(true));
-    }
+    });
 }/*}}}*/
 template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)/*{{{*/
 {
@@ -393,30 +393,30 @@ template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)/*
 TEST_TYPES(V, maskConversions, ALL_TYPES) /*{{{*/
 {
     typedef typename V::Mask M;
-    for_all_masks(V, m) {
+    UnitTest::withRandomMask<V>([](M m) {
         testMaskConversion< float_m>(m);
         testMaskConversion<double_m>(m);
         testMaskConversion<   int_m>(m);
         testMaskConversion<  uint_m>(m);
         testMaskConversion< short_m>(m);
         testMaskConversion<ushort_m>(m);
-    }
+    });
 }
 /*}}}*/
 TEST_TYPES(V, testIntegerConversion, ALL_TYPES) /*{{{*/
 {
-    for_all_masks(V, m) {
+    UnitTest::withRandomMask<V>([](typename V::Mask m) {
         auto bit = m.toInt();
         for (size_t i = 0; i < m.Size; ++i) {
             COMPARE(!!((bit >> i) & 1), m[i]);
         }
-    }
+    });
 }
 /*}}}*/
 TEST_TYPES(V, boolConversion, ALL_TYPES) /*{{{*/
 {
     bool mem[V::Size + 64] __attribute__((aligned(16)));
-    for_all_masks(V, m) {
+    UnitTest::withRandomMask<V>([&](typename V::Mask m) {
         bool *ptr = mem;
         m.store(ptr);
         for (size_t i = 0; i < V::Size; ++i) {
@@ -434,7 +434,7 @@ TEST_TYPES(V, boolConversion, ALL_TYPES) /*{{{*/
             typename V::Mask m3(ptr, Vc::Unaligned);
             COMPARE(m3, m) << "offset: " << ptr - mem;
         }
-    }
+    });
 }
 /*}}}*/
 
