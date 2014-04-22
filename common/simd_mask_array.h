@@ -75,28 +75,15 @@ public:
     // zero init
     simd_mask_array() = default;
 
-    template <typename... Args>
-    Vc_INTRINSIC explicit simd_mask_array(Args &&... args)
-        : data(std::forward<Args>(args)...)
-    {
-    }
+    Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerOne::OEnum one) : data(one) {}
+    Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerZero::ZEnum zero) : data(zero) {}
+    Vc_INTRINSIC explicit simd_mask_array(bool b) : data(b) {}
 
-    /*
-    template <typename U>
-    Vc_INTRINSIC simd_mask_array(const simd_mask_array<U, N> &rhs)
-        : data(sse_cast<__m128>(internal::mask_cast<simd_mask_array<U>::Size, Size>(rhs.dataI())))
+    template <typename Flags = DefaultLoadTag>
+    Vc_INTRINSIC explicit simd_mask_array(const bool *mem, Flags f = Flags())
+        : data(mem, f)
     {
     }
-
-    template <typename U, std::size_t M>
-    Vc_INTRINSIC explicit simd_mask_array(
-        const simd_mask_array<U, M> &rhs,
-        typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type =
-            nullptr)
-        : data(sse_cast<__m128>(internal::mask_cast<simd_mask_array<U>::Size, Size>(rhs.dataI())))
-    {
-    }
-    */
 
     Vc_INTRINSIC void load(const bool *mem) { data.load(mem); }
     template <typename Flags> Vc_INTRINSIC void load(const bool *mem, Flags f)
@@ -167,10 +154,6 @@ public:
     Vc_INTRINSIC Vc_PURE bool isEmpty() const { return data.isEmpty(); }
     Vc_INTRINSIC Vc_PURE bool isMix() const { return data.isMix(); }
 
-#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
-    Vc_INTRINSIC Vc_PURE operator bool() const { return isFull(); }
-#endif
-
     Vc_INTRINSIC Vc_PURE int shiftMask() const { return data.shiftMask(); }
 
     Vc_INTRINSIC Vc_PURE int toInt() const { return data.toInt(); }
@@ -239,12 +222,15 @@ public:
     simd_mask_array &operator=(const simd_mask_array &) = default;
     simd_mask_array &operator=(simd_mask_array &&) = default;
 
-    template <typename... Args>
-    Vc_INTRINSIC explicit simd_mask_array(Args &&... args)
-        : data0(Split::lo(std::forward<Args>(args))...)
-        , data1(Split::hi(std::forward<Args>(args))...)
+    Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerOne::OEnum one)
+        : data0(one), data1(one)
     {
     }
+    Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerZero::ZEnum zero)
+        : data0(zero), data1(zero)
+    {
+    }
+    Vc_INTRINSIC explicit simd_mask_array(bool b) : data0(b), data1(b) {}
 
     template <typename Flags = DefaultLoadTag>
     Vc_INTRINSIC explicit simd_mask_array(const bool *mem, Flags f = Flags())
@@ -333,10 +319,6 @@ public:
     Vc_INTRINSIC Vc_PURE bool isNotEmpty() const { return data0.isNotEmpty() || data1.isNotEmpty(); }
     Vc_INTRINSIC Vc_PURE bool isEmpty() const { return data0.isEmpty() && data1.isEmpty(); }
     Vc_INTRINSIC Vc_PURE bool isMix() const { return !isFull() && !isEmpty(); }
-
-#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
-    Vc_INTRINSIC Vc_PURE operator bool() const { return isFull(); }
-#endif
 
     Vc_INTRINSIC Vc_PURE int toInt() const
     {
