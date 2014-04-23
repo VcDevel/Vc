@@ -472,7 +472,8 @@ Vc_ALWAYS_INLINE bool unittest_compareHelper<std::type_info, std::type_info>(
 }
 
 // ulpDiffToReferenceWrapper {{{1
-template <typename T> T ulpDiffToReferenceWrapper(T a, T b)
+template <typename T, typename = Vc::enable_if<!Vc::Traits::is_simd_vector<T>::value>>
+T ulpDiffToReferenceWrapper(T a, T b)
 {
     const T diff = ulpDiffToReference(a, b);
     if (VC_IS_UNLIKELY(global_unit_test_object_.findMaximumDistance)) {
@@ -483,41 +484,42 @@ template <typename T> T ulpDiffToReferenceWrapper(T a, T b)
     }
     return diff;
 }
-template <typename T>
-Vc::Vector<T> ulpDiffToReferenceWrapper(VC_ALIGNED_PARAMETER(Vc::Vector<T>) a,
-                                        VC_ALIGNED_PARAMETER(Vc::Vector<T>) b)
+template <typename T, typename = Vc::enable_if<Vc::Traits::is_simd_vector<T>::value>>
+T ulpDiffToReferenceWrapper(const T &a, const T &b)
 {
-    const Vc::Vector<T> diff = ulpDiffToReference(a, b);
+    const T diff = ulpDiffToReference(a, b);
     if (VC_IS_UNLIKELY(global_unit_test_object_.findMaximumDistance)) {
         global_unit_test_object_.maximumDistance =
             std::max<double>(Vc::abs(diff).max(), global_unit_test_object_.maximumDistance);
         global_unit_test_object_.meanDistance += Vc::abs(diff).sum();
-        global_unit_test_object_.meanCount += Vc::Vector<T>::Size;
+        global_unit_test_object_.meanCount += T::Size;
     }
     return diff;
 }
 // unittest_fuzzyCompareHelper {{{1
-template <typename T> static inline bool unittest_fuzzyCompareHelper(const T &a, const T &b)
+template <typename T>
+static inline bool unittest_fuzzyCompareHelper(
+    const T &a,
+    const T &b,
+    Vc::enable_if<std::is_same<float, Vc::Traits::scalar_type<T>>::value> = Vc::nullarg)
 {
-    return a == b;
+    return Vc::all_of(ulpDiffToReferenceWrapper(a, b) <= global_unit_test_object_.float_fuzzyness);
 }
-template <> inline bool unittest_fuzzyCompareHelper<float>(const float &a, const float &b)
+template <typename T>
+static inline bool unittest_fuzzyCompareHelper(
+    const T &a,
+    const T &b,
+    Vc::enable_if<std::is_same<double, Vc::Traits::scalar_type<T>>::value> = Vc::nullarg)
 {
-    return ulpDiffToReferenceWrapper(a, b) <= global_unit_test_object_.float_fuzzyness;
+    return Vc::all_of(ulpDiffToReferenceWrapper(a, b) <= global_unit_test_object_.double_fuzzyness);
 }
-template <>
-inline bool unittest_fuzzyCompareHelper<Vc::float_v>(const Vc::float_v &a, const Vc::float_v &b)
+template <typename T>
+static inline bool unittest_fuzzyCompareHelper(
+    const T &a,
+    const T &b,
+    Vc::enable_if<!std::is_floating_point<Vc::Traits::scalar_type<T>>::value> = Vc::nullarg)
 {
-    return (ulpDiffToReferenceWrapper(a, b) <= global_unit_test_object_.float_fuzzyness).isFull();
-}
-template <> inline bool unittest_fuzzyCompareHelper<double>(const double &a, const double &b)
-{
-    return ulpDiffToReferenceWrapper(a, b) <= global_unit_test_object_.double_fuzzyness;
-}
-template <>
-inline bool unittest_fuzzyCompareHelper<Vc::double_v>(const Vc::double_v &a, const Vc::double_v &b)
-{
-    return (ulpDiffToReferenceWrapper(a, b) <= global_unit_test_object_.double_fuzzyness).isFull();
+    return Vc::all_of(a == b);
 }
 
 // unitttest_comparePrintHelper {{{1

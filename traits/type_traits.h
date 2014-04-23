@@ -161,6 +161,10 @@ template <typename T> struct is_arithmetic : public is_arithmetic_internal<decay
 template <typename T> struct is_signed : public is_signed_internal<decay<T>> {};
 template <typename T> struct is_unsigned : public is_unsigned_internal<decay<T>> {};
 
+template <typename T, bool IsSimdVector> struct scalar_type_internal { using type = T; };
+template <typename T> struct scalar_type_internal<T, true> { using type = typename T::EntryType; };
+template <typename T> using scalar_type = typename scalar_type_internal<decay<T>, is_simd_vector<T>::value>::type;
+
 }  // namespace Traits
 }  // namespace Vc
 
