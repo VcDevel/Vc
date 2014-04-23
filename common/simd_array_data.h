@@ -30,41 +30,6 @@ namespace Common
 
 template<typename V, std::size_t N> struct ArrayData;
 
-namespace Reductions/*{{{*/
-{
-struct Defaults
-{
-    template <typename T> Vc_ALWAYS_INLINE Vc_CONST static T processLeaf(T &&x)
-    {
-        return std::forward<T>(x);
-    }
-};
-struct LogicalAnd : public Defaults
-{
-    template <typename T> T operator()(T l, T r)
-    {
-        return l && r;
-    }
-};
-struct LogicalOr : public Defaults
-{
-    template <typename T> T operator()(T l, T r)
-    {
-        return l || r;
-    }
-};
-struct Count : public Defaults
-{
-    template <typename T> T operator()(T l, T r)
-    {
-        return l + r;
-    }
-    template <typename T> Vc_ALWAYS_INLINE Vc_CONST static unsigned int processLeaf(T &&x)
-    {
-        return std::forward<T>(x).count();
-    }
-};
-} // namespace Reductions}}}
 namespace Operations/*{{{*/
 {
 struct tag {};
