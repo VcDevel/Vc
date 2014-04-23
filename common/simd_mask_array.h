@@ -75,10 +75,41 @@ public:
     // zero init
     simd_mask_array() = default;
 
+    // broadcasts
     Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerOne::OEnum one) : data(one) {}
     Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerZero::ZEnum zero) : data(zero) {}
     Vc_INTRINSIC explicit simd_mask_array(bool b) : data(b) {}
 
+    // conversion (casts)
+    template <typename U, typename V>
+    Vc_INTRINSIC simd_mask_array(const simd_mask_array<U, N, V> &x,
+                                 enable_if<N == V::size()> = nullarg)
+        : data(simd_cast<mask_type>(internal_data(x)))
+    {
+    }
+    template <typename U, typename V>
+    Vc_INTRINSIC simd_mask_array(const simd_mask_array<U, N, V> &x,
+                                 enable_if<(N > V::size() && N <= 2 * V::size())> = nullarg)
+        : data(simd_cast<mask_type>(internal_data(internal_data0(x)),
+                                    internal_data(internal_data1(x))))
+    {
+    }
+    template <typename U, typename V>
+    Vc_INTRINSIC simd_mask_array(const simd_mask_array<U, N, V> &x,
+                                 enable_if<(N > 2 * V::size() && N <= 4 * V::size())> = nullarg)
+        : data(simd_cast<mask_type>(internal_data(internal_data0(internal_data0(x))),
+                                    internal_data(internal_data1(internal_data0(x))),
+                                    internal_data(internal_data0(internal_data1(x))),
+                                    internal_data(internal_data1(internal_data1(x)))))
+    {
+    }
+    template <typename V, std::size_t Pieces, std::size_t Index>
+    Vc_INTRINSIC simd_mask_array(Common::Segment<V, Pieces, Index> &&x)
+        : data(simd_cast<mask_type, Index>(x.data))
+    {
+    }
+
+    // load/store (from/to bool arrays)
     template <typename Flags = DefaultLoadTag>
     Vc_INTRINSIC explicit simd_mask_array(const bool *mem, Flags f = Flags())
         : data(mem, f)
@@ -97,6 +128,7 @@ public:
         data.store(mem, f);
     }
 
+    // compares
     Vc_INTRINSIC Vc_PURE bool operator==(const simd_mask_array &rhs) const
     {
         return data == rhs.data;
@@ -106,11 +138,13 @@ public:
         return data != rhs.data;
     }
 
+    // inversion
     Vc_INTRINSIC Vc_PURE simd_mask_array operator!() const
     {
         return {!data};
     }
 
+    // binary operators
     Vc_INTRINSIC simd_mask_array &operator&=(const simd_mask_array &rhs)
     {
         data &= rhs.data;
@@ -221,6 +255,13 @@ public:
     simd_mask_array(simd_mask_array &&) = default;
     simd_mask_array &operator=(const simd_mask_array &) = default;
     simd_mask_array &operator=(simd_mask_array &&) = default;
+
+    // implicit conversion from simd_mask_array with same N
+    template <typename U, typename V>
+    Vc_INTRINSIC simd_mask_array(const simd_mask_array<U, N, V> &rhs)
+        : data0(Split::lo(rhs)), data1(Split::hi(rhs))
+    {
+    }
 
     Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerOne::OEnum one)
         : data0(one), data1(one)

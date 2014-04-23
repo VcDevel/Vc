@@ -186,6 +186,18 @@ template <std::size_t secondOffset> struct Split/*{{{*/
         return internal_data1(x);
     }
 
+    template <typename U, std::size_t N, typename V>
+    static Vc_INTRINSIC Segment<V, 2, 0> lo(const simd_mask_array<U, N, V, N> &x)
+    {
+        return {internal_data(x)};
+    }
+    template <typename U, std::size_t N, typename V>
+    static Vc_INTRINSIC Segment<V, 2, 1> hi(const simd_mask_array<U, N, V, N> &x)
+    {
+        return {internal_data(x)};
+    }
+
+    // generically split Segments
     template <typename V, std::size_t Pieces, std::size_t Index>
     static Vc_INTRINSIC Segment<V, 2 * Pieces, Index *Pieces + 0> lo(Segment<V, Pieces, Index> &&x)
     {
