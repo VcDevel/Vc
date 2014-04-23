@@ -39,7 +39,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 // meta-programming helpers
-struct enable_if_default_type {};
+struct enable_if_default_type
+{
+    constexpr enable_if_default_type() {}
+};
 static constexpr enable_if_default_type nullarg;
 template <bool Test, typename T = enable_if_default_type> using enable_if = typename std::enable_if<Test, T>::type;
 
