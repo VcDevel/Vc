@@ -51,6 +51,9 @@ template <typename T> using WriteMaskedVector = Common::WriteMaskedVector<Vector
 
 template<typename T> class Vector
 {
+    static_assert(std::is_arithmetic<T>::value,
+                  "Vector<T> only accepts arithmetic builtin types as template parameter T.");
+
     protected:
 #ifdef VC_COMPILE_BENCHMARKS
     public:

@@ -41,9 +41,11 @@ namespace Scalar
 {
 constexpr std::size_t VectorAlignment = 4;
 
-template<typename T>
-class Vector
+template <typename T> class Vector
 {
+    static_assert(std::is_arithmetic<T>::value,
+                  "Vector<T> only accepts arithmetic builtin types as template parameter T.");
+
     public:
         typedef typename DetermineEntryType<T>::Type EntryType;
         using VectorEntryType = EntryType;

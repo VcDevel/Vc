@@ -49,6 +49,9 @@ constexpr std::size_t VectorAlignment = 32;
 
 template<typename T> class Vector
 {
+    static_assert(std::is_arithmetic<T>::value,
+                  "Vector<T> only accepts arithmetic builtin types as template parameter T.");
+
     public:
         FREE_STORE_OPERATORS_ALIGNED(32)
 

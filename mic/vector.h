@@ -54,6 +54,9 @@ namespace Vc_IMPL_NAMESPACE
 
 template<typename T> class Vector : public StoreMixin<Vector<T>, T>
 {
+    static_assert(std::is_arithmetic<T>::value,
+                  "Vector<T> only accepts arithmetic builtin types as template parameter T.");
+
     //friend class VectorMultiplication<T>;
     friend class WriteMaskedVector<T>;
     //friend Vector<T> operator+<>(const Vector<T> &x, const VectorMultiplication<T> &y);
