@@ -51,9 +51,8 @@ namespace
         public:
             using std::ostream::_M_streambuf;
     };
-    static bool mayUseColor(const std::ostream &os)
-        __attribute__((__const__));
-    static bool mayUseColor(const std::ostream &os)
+    bool mayUseColor(const std::ostream &os) __attribute__((__const__));
+    bool mayUseColor(const std::ostream &os)
     {
         std::basic_streambuf<char> *hack1 = const_cast<std::basic_streambuf<char> *>(os.*(&hacked_ostream::_M_streambuf));
         __gnu_cxx::stdio_sync_filebuf<char> *hack = dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char> *>(hack1);
@@ -64,13 +63,13 @@ namespace
         return 1 == isatty(fileno(file));
     }
 #else
-    static bool mayUseColor(const std::ostream &) { return false; }
+    bool mayUseColor(const std::ostream &) { return false; }
 #endif
 } // anonymous namespace
 
 namespace std
 {
-static inline std::ostream &operator<<(std::ostream &out, const AnsiColor::Type &c)
+inline std::ostream &operator<<(std::ostream &out, const AnsiColor::Type &c)
 {
     if (mayUseColor(out)) {
         out << c.data;
@@ -79,7 +78,7 @@ static inline std::ostream &operator<<(std::ostream &out, const AnsiColor::Type 
 }
 
 template<typename T>
-static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Vector<T> &v)
+inline std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Vector<T> &v)
 {
     out << AnsiColor::green << "[";
     out << v[0];
@@ -90,7 +89,7 @@ static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::
     return out;
 }
 
-static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Vector<char> &v)
+inline std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Vector<char> &v)
 {
     out << AnsiColor::green << "[";
     out << int(v[0]);
@@ -100,7 +99,7 @@ static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::
     out << "]" << AnsiColor::normal;
     return out;
 }
-static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Vector<unsigned char> &v)
+inline std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Vector<unsigned char> &v)
 {
     out << AnsiColor::green << "[";
     out << int(v[0]);
@@ -113,14 +112,14 @@ static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::
 
 #ifdef VC_HAVE_FMA
 template<typename T>
-static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::VectorMultiplication<T> &v)
+inline std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::VectorMultiplication<T> &v)
 {
     return out << Vc::Vc_IMPL_NAMESPACE::Vector<T>(v);
 }
 #endif
 
 template<typename T>
-static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Mask<T> &m)
+inline std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Mask<T> &m)
 {
     out << AnsiColor::blue << "m[";
     for (unsigned int i = 0; i < m.Size; ++i) {
@@ -138,7 +137,7 @@ static std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::
 }
 
 template<typename V, typename Parent, typename RM>
-static std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<V, Parent, 1, RM> &m )
+inline std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<V, Parent, 1, RM> &m )
 {
     out << AnsiColor::blue << "{" << AnsiColor::normal;
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
@@ -149,7 +148,7 @@ static std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<
 }
 
 template<typename V, typename Parent, typename RM>
-static std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<V, Parent, 2, RM> &m )
+inline std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<V, Parent, 2, RM> &m )
 {
     out << AnsiColor::blue << "{" << AnsiColor::normal;
     for (size_t i = 0; i < m.rowsCount(); ++i) {

@@ -198,8 +198,6 @@ template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplemen
     return y;
 }
 template<> template<typename V> void Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sincos(const V &_x, V *_sin, V *_cos) {
-    typedef typename V::EntryType T;
-    typedef Const<T> C;
     typedef typename V::Mask M;
     typedef typename signed_integer<V>::type IV;
 
@@ -274,7 +272,6 @@ template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImple
 template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::asin (const double_v &_x) {
     typedef Const<double> C;
     typedef double_v V;
-    typedef V::EntryType T;
     typedef V::Mask M;
 
     const M negative = _x < V::Zero();
@@ -332,7 +329,6 @@ template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImple
 template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan (const double_v &_x) {
     typedef Const<double> C;
     typedef double_v V;
-    typedef V::EntryType T;
     typedef V::Mask M;
 
     M sign = _x < V::Zero();
@@ -404,7 +400,6 @@ template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImple
 template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan2 (const double_v &y, const double_v &x) {
     typedef Const<double> C;
     typedef double_v V;
-    typedef V::EntryType T;
     typedef V::Mask M;
 
     const M xZero = x == V::Zero();

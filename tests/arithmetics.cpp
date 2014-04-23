@@ -528,7 +528,6 @@ TEST_TYPES(Vec, testSum, ALL_TYPES)
 
 TEST_TYPES(V, testPartialSum, ALL_TYPES)
 {
-    typedef typename V::EntryType T;
     typedef typename V::IndexType I;
 
     V reference(I::IndexesFromZero() + 1);
