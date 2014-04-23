@@ -45,6 +45,8 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
+constexpr std::size_t VectorAlignment = 32;
+
 template <typename T> class Vector;
 typedef Vector<double>         double_v;
 typedef Vector<float>           float_v;
@@ -70,6 +72,8 @@ template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
 }
 namespace AVX2
 {
+constexpr std::size_t VectorAlignment = 32;
+
 template<typename T> class Vector;
 typedef Vector<double>         double_v;
 typedef Vector<float>           float_v;

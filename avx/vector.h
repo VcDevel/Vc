@@ -45,8 +45,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Vc_AVX_NAMESPACE
 {
-constexpr std::size_t VectorAlignment = 32;
-
 template<typename T> class Vector
 {
     static_assert(std::is_arithmetic<T>::value,

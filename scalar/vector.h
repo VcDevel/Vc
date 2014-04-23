@@ -39,8 +39,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Scalar
 {
-constexpr std::size_t VectorAlignment = 4;
-
 template <typename T> class Vector
 {
     static_assert(std::is_arithmetic<T>::value,
@@ -283,19 +281,6 @@ template <typename T> class Vector
         Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
 };
 template<typename T> constexpr size_t Vector<T>::Size;
-
-typedef Vector<double>         double_v;
-typedef Vector<float>          float_v;
-typedef Vector<int>            int_v;
-typedef Vector<unsigned int>   uint_v;
-typedef Vector<short>          short_v;
-typedef Vector<unsigned short> ushort_v;
-typedef double_v::Mask double_m;
-typedef float_v::Mask float_m;
-typedef int_v::Mask int_m;
-typedef uint_v::Mask uint_m;
-typedef short_v::Mask short_m;
-typedef ushort_v::Mask ushort_m;
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 
