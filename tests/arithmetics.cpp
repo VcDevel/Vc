@@ -80,21 +80,19 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
         const T min = 0;
         const T step = max / 200;
         T j = min;
-        VERIFY(Vec(Zero) == Vec(j));
-        VERIFY(!(Vec(Zero) < Vec(j)));
-        VERIFY(!(Vec(Zero) > Vec(j)));
-        VERIFY(!(Vec(Zero) != Vec(j)));
+        VERIFY(all_of(Vec(Zero) == Vec(j)));
+        VERIFY(none_of(Vec(Zero) < Vec(j)));
+        VERIFY(none_of(Vec(Zero) > Vec(j)));
+        VERIFY(none_of(Vec(Zero) != Vec(j)));
         j += step;
         for (int i = 0; i < 200; ++i, j += step) {
-            if(Vec(Zero) >= Vec(j)) {
+            if(all_of(Vec(Zero) >= Vec(j))) {
                 std::cout << j << " " << Vec(j) << " " << (Vec(Zero) >= Vec(j)) << std::endl;
             }
-            VERIFY(Vec(Zero) < Vec(j));
-            VERIFY(Vec(j) > Vec(Zero));
-            VERIFY(!(Vec(Zero) >= Vec(j)));
-            VERIFY(!(Vec(j) <= Vec(Zero)));
-            VERIFY(!static_cast<bool>(Vec(Zero) >= Vec(j)));
-            VERIFY(!static_cast<bool>(Vec(j) <= Vec(Zero)));
+            VERIFY(all_of(Vec(Zero) < Vec(j)));
+            VERIFY(all_of(Vec(j) > Vec(Zero)));
+            VERIFY(none_of(Vec(Zero) >= Vec(j)));
+            VERIFY(none_of(Vec(j) <= Vec(Zero)));
         }
     }
     if (std::numeric_limits<T>::min() <= 0) {
@@ -105,10 +103,10 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
         const T step = min / T(-201);
         T j = min;
         for (int i = 0; i < 200; ++i, j += step) {
-            VERIFY(Vec(j) < Vec(Zero));
-            VERIFY(Vec(Zero) > Vec(j));
-            VERIFY(!(Vec(Zero) <= Vec(j)));
-            VERIFY(!(Vec(j) >= Vec(Zero)));
+            VERIFY(all_of(Vec(j) < Vec(Zero)));
+            VERIFY(all_of(Vec(Zero) > Vec(j)));
+            VERIFY(none_of(Vec(Zero) <= Vec(j)));
+            VERIFY(none_of(Vec(j) >= Vec(Zero)));
         }
     }
 }
