@@ -90,18 +90,7 @@ template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r
 // Therefore use simd_array<T, N, V>, where V follows from the above.
 template <typename T,
           std::size_t N,
-          typename VectorType = typename Common::select_best_vector_type<N,
-#ifdef VC_IMPL_AVX
-                                                                         Vc::Vector<T>,
-                                                                         Vc::SSE::Vector<T>,
-                                                                         Vc::Scalar::Vector<T>
-#elif defined(VC_IMPL_Scalar)
-                                                                         Vc::Vector<T>
-#else
-                                                                         Vc::Vector<T>,
-                                                                         Vc::Scalar::Vector<T>
-#endif
-                                                                         >::type,
+          typename VectorType = Common::select_best_vector_type<T, N>,
           std::size_t VectorSize = VectorType::size()  // this last parameter is only used for
                                                        // specialization of N == VectorSize
           >

@@ -86,18 +86,40 @@ template <typename T> struct never_best_vector_type<AVX::Vector<T>> : public std
  * \internal
  * Selects the best SIMD type out of a typelist to store N scalar values.
  */
-template<std::size_t N, typename... Typelist> struct select_best_vector_type;
+template<std::size_t N, typename... Typelist> struct select_best_vector_type_impl;
 
-template<std::size_t N, typename T> struct select_best_vector_type<N, T>
+template<std::size_t N, typename T> struct select_best_vector_type_impl<N, T>
 {
     using type = T;
 };
-template<std::size_t N, typename T, typename... Typelist> struct select_best_vector_type<N, T, Typelist...>
+template<std::size_t N, typename T, typename... Typelist> struct select_best_vector_type_impl<N, T, Typelist...>
 {
     using type = typename std::conditional<(N < T::Size || internal::never_best_vector_type<T>::value),
-                                           typename select_best_vector_type<N, Typelist...>::type,
+                                           typename select_best_vector_type_impl<N, Typelist...>::type,
                                            T>::type;
-};//}}}
+};
+template <typename T, std::size_t N>
+using select_best_vector_type =
+    typename select_best_vector_type_impl<N,
+#ifdef VC_IMPL_AVX2
+                                          Vc::AVX2::Vector<T>,
+                                          Vc::SSE::Vector<T>,
+                                          Vc::Scalar::Vector<T>
+#elif defined(VC_IMPL_AVX)
+                                          Vc::AVX::Vector<T>,
+                                          Vc::SSE::Vector<T>,
+                                          Vc::Scalar::Vector<T>
+#elif defined(VC_IMPL_Scalar)
+                                          Vc::Scalar::Vector<T>
+#elif defined(VC_IMPL_SSE)
+                                          Vc::SSE::Vector<T>,
+                                          Vc::Scalar::Vector<T>
+#elif defined(VC_IMPL_MIC)
+                                          Vc::MIC::Vector<T>,
+                                          Vc::Scalar::Vector<T>
+#endif
+                                          >::type;
+//}}}
 
 /**
  * \internal
