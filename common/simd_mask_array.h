@@ -231,8 +231,10 @@ public:
 
     using vectorentry_type = typename storage_type0::VectorEntryType;
     using vectorentry_reference = vectorentry_type &;
+    /* FIXME:
     static_assert(std::is_same<vectorentry_type, typename storage_type1::VectorEntryType>::value,
                   "incompatible mask types combined: this will break operator[]");
+     */
     using value_type = typename storage_type0::EntryType;
     using Mask = mask_type;
     using VectorEntryType = vectorentry_type;
