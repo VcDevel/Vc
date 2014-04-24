@@ -194,7 +194,7 @@ public:
     static Vc_INTRINSIC simd_array fromOperation(Op op, Args &&... args)
     {
         simd_array r;
-        op(r.data, std::forward<Args>(args)...);
+        op(r.data, Common::actual_value(op, std::forward<Args>(args))...);
         return r;
     }
 
@@ -747,6 +747,26 @@ static_assert(
 VC_ALL_ARITHMETICS(Vc_BINARY_OPERATORS_)
 VC_ALL_BINARY(Vc_BINARY_OPERATORS_)
 #undef Vc_BINARY_OPERATORS_
+
+// math functions
+template <typename T, std::size_t N> simd_array<T, N> abs(const simd_array<T, N> &x)
+{
+    return simd_array<T, N>::fromOperation(Common::Operations::Abs(), x);
+}
+template <typename T, std::size_t N> simd_mask_array<T, N> isnan(const simd_array<T, N> &x)
+{
+    return simd_mask_array<T, N>::fromOperation(Common::Operations::Isnan(), x);
+}
+template <typename T, std::size_t N>
+simd_array<T, N> frexp(const simd_array<T, N> &x, simd_array<int, N> *e)
+{
+    return simd_array<T, N>::fromOperation(Common::Operations::Frexp(), x, e);
+}
+template <typename T, std::size_t N>
+simd_array<T, N> ldexp(const simd_array<T, N> &x, const simd_array<int, N> &e)
+{
+    return simd_array<T, N>::fromOperation(Common::Operations::Ldexp(), x, e);
+}
 
 } // namespace Vc_VERSIONED_NAMESPACE
 

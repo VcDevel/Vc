@@ -62,7 +62,10 @@ Vc_DEFINE_OPERATION(assign);
 Vc_DEFINE_OPERATION(increment, ++v);
 Vc_DEFINE_OPERATION(decrement, --v);
 Vc_DEFINE_OPERATION(random, v = V::Random());
-Vc_DEFINE_OPERATION(abs, v = abs(v));
+Vc_DEFINE_OPERATION(Abs, v = abs(v));
+Vc_DEFINE_OPERATION(Isnan, v = isnan(std::forward<Args>(args)...));
+Vc_DEFINE_OPERATION(Frexp, v = frexp(std::forward<Args>(args)...));
+Vc_DEFINE_OPERATION(Ldexp, v = ldexp(std::forward<Args>(args)...));
 #undef Vc_DEFINE_OPERATION
 template<typename T> using is_operation = std::is_base_of<tag, T>;
 }  // namespace Operations }}}
@@ -300,6 +303,41 @@ template <std::size_t secondOffset> struct Split/*{{{*/
         return {x.data};
     }
 };/*}}}*/
+
+template <typename Op, typename U> static Vc_INTRINSIC U actual_value(Op, U &&x)
+{
+  return std::forward<U>(x);
+}
+template <typename Op, typename U, std::size_t M, typename V>
+static Vc_INTRINSIC const V &actual_value(Op, const simd_array<U, M, V, M> &x)
+{
+  return internal_data(x);
+}
+template <typename Op, typename U, std::size_t M, typename V>
+static Vc_INTRINSIC const V &actual_value(Op, simd_array<U, M, V, M> &&x)
+{
+  return internal_data(x);
+}
+template <typename Op, typename U, std::size_t M, typename V>
+static Vc_INTRINSIC V *actual_value(Op, simd_array<U, M, V, M> *x)
+{
+  return &internal_data(*x);
+}
+template <typename Op, typename U, std::size_t M, typename V>
+static Vc_INTRINSIC const typename V::Mask &actual_value(Op, const simd_mask_array<U, M, V, M> &x)
+{
+  return internal_data(x);
+}
+template <typename Op, typename U, std::size_t M, typename V>
+static Vc_INTRINSIC const typename V::Mask &actual_value(Op, simd_mask_array<U, M, V, M> &&x)
+{
+  return internal_data(x);
+}
+template <typename Op, typename U, std::size_t M, typename V>
+static Vc_INTRINSIC typename V::Mask *actual_value(Op, simd_mask_array<U, M, V, M> *x)
+{
+  return &internal_data(*x);
+}
 
 }  // namespace Common
 }  // namespace Vc

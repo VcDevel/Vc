@@ -31,7 +31,8 @@ namespace std
 } // namespace std
 #endif
 
-template<typename T> static T ulpDiffToReference(T val, T ref)
+template <typename T, typename = Vc::enable_if<std::is_floating_point<T>::value>>
+static T ulpDiffToReference(T val, T ref)
 {
     if (val == ref || (std::isnan(val) && std::isnan(ref))) {
         return 0;
@@ -50,19 +51,25 @@ template<typename T> static T ulpDiffToReference(T val, T ref)
     // val * 2 ^ -exp
     return ldexp(std::abs(ref - val), std::numeric_limits<T>::digits - exp);
 }
-template<typename T> static T ulpDiffToReferenceSigned(T val, T ref)
+
+template <typename T, typename = Vc::enable_if<std::is_floating_point<T>::value>>
+static T ulpDiffToReferenceSigned(T val, T ref)
 {
     return ulpDiffToReference(val, ref) * (val - ref < 0 ? -1 : 1);
 }
 
-template<typename T> struct _Ulp_ExponentVector { typedef Vc::int_v Type; };
+template<typename T> struct UlpExponentVector_ { typedef Vc::int_v Type; };
+template <typename T, std::size_t N> struct UlpExponentVector_<Vc::simd_array<T, N>>
+{
+    using Type = Vc::simd_array<int, N>;
+};
 
-template<typename _T> static Vc::Vector<_T> ulpDiffToReference(const Vc::Vector<_T> &_val, const Vc::Vector<_T> &_ref)
+template <typename V, typename = Vc::enable_if<Vc::is_simd_vector<V>::value>>
+static V ulpDiffToReference(const V &_val, const V &_ref)
 {
     using namespace Vc;
-    typedef Vector<_T> V;
-    typedef typename V::EntryType T;
-    typedef typename V::Mask M;
+    using T = typename V::EntryType;
+    using M = typename V::Mask;
 
     V val = _val;
     V ref = _ref;
@@ -78,14 +85,14 @@ template<typename _T> static Vc::Vector<_T> ulpDiffToReference(const Vc::Vector<
     val  (zeroMask)= std::numeric_limits<V>::min();
     diff (zeroMask)+= V::One();
 
-    typename _Ulp_ExponentVector<V>::Type exp;
+    Vc::simd_array<int, V::Size> exp;
     frexp(ref, &exp);
     diff += ldexp(abs(ref - val), std::numeric_limits<T>::digits - exp);
     diff.setZero(_val == _ref || (isnan(_val) && isnan(_ref)));
     return diff;
 }
 
-template<typename _T> static Vc::Vector<_T> ulpDiffToReferenceSigned(const Vc::Vector<_T> &_val, const Vc::Vector<_T> &_ref)
+template<typename T> static Vc::Vector<T> ulpDiffToReferenceSigned(const Vc::Vector<T> &_val, const Vc::Vector<T> &_ref)
 {
     return ulpDiffToReference(_val, _ref).copySign(_val - _ref);
 }

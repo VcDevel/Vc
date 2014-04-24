@@ -725,7 +725,7 @@ template<typename T> struct _ExponentVector { typedef int_v Type; };
 template<typename V> void testFrexp()/*{{{*/
 {
     typedef typename V::EntryType T;
-    typedef typename _ExponentVector<V>::Type ExpV;
+    using ExpV = Vc::simd_array<int, V::Size>;
     Vc::Memory<V, 33> input;
     Vc::Memory<V, 33> expectedFraction;
     Vc::Memory<ExpV, 33> expectedExponent;
@@ -771,13 +771,8 @@ template<typename V> void testFrexp()/*{{{*/
             << ", fraction: " << fraction
             << ", expectedFraction: " << V(expectedFraction.vector(i))
             << ", delta: " << fraction - V(expectedFraction.vector(i));
-        if (V::Size * 2 == ExpV::Size) {
-            for (size_t j = 0; j < V::Size; ++j) {
-                COMPARE(exp[j * 2], expectedExponent[i * V::Size + j]) << ", i = " << i
-                    << ", j = " << j;
-            }
-        } else {
-            COMPARE(exp, ExpV(expectedExponent.vector(i))) << ", i = " << i;
+        for (size_t j = 0; j < V::Size; ++j) {
+            COMPARE(exp[j], expectedExponent[i * V::Size + j]) << ", i = " << i << ", j = " << j;
         }
     }
 }
@@ -785,7 +780,7 @@ template<typename V> void testFrexp()/*{{{*/
 template<typename V> void testLdexp()/*{{{*/
 {
     typedef typename V::EntryType T;
-    typedef typename _ExponentVector<V>::Type ExpV;
+    using ExpV = Vc::simd_array<int, V::Size>;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
         const V v = (V::Random() - T(0.5)) * T(1000);
         ExpV e;
@@ -804,7 +799,7 @@ template<typename V> void testUlpDiff()/*{{{*/
     COMPARE(ulpDiffToReference(V::Zero(), std::numeric_limits<V>::min()), V::One());
     for (size_t count = 0; count < 1024 / V::Size; ++count) {
         const V base = (V::Random() - T(0.5)) * T(1000);
-        typename _Ulp_ExponentVector<V>::Type exp;
+        Vc::simd_array<int, V::Size> exp;
         Vc::frexp(base, &exp);
         const V eps = ldexp(V(std::numeric_limits<T>::epsilon()), exp - 1);
         //std::cout << base << ", " << exp << ", " << eps << std::endl;

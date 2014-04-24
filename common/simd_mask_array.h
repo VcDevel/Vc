@@ -192,6 +192,15 @@ public:
      */
     Vc_INTRINSIC Vc_PURE int firstOne() const { return data.firstOne(); }
 
+    /// \internal execute specified Operation
+    template <typename Op, typename... Args>
+    static Vc_INTRINSIC simd_mask_array fromOperation(Op op, Args &&... args)
+    {
+        simd_mask_array r;
+        op(r.data, Common::actual_value(op, std::forward<Args>(args))...);
+        return r;
+    }
+
     /// \internal
     Vc_INTRINSIC simd_mask_array(mask_type &&x) : data(std::move(x)) {}
 
@@ -386,6 +395,16 @@ public:
             return data1.firstOne() + storage_type0::size();
         }
         return data0.firstOne();
+    }
+
+    /// \internal execute specified Operation
+    template <typename Op, typename... Args>
+    static Vc_INTRINSIC simd_mask_array fromOperation(Op op, Args &&... args)
+    {
+        simd_mask_array r = {
+            storage_type0::fromOperation(op, Split::lo(std::forward<Args>(args))...),
+            storage_type1::fromOperation(op, Split::lo(std::forward<Args>(args))...)};
+        return r;
     }
 
     /// \internal

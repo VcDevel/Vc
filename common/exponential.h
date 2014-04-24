@@ -36,7 +36,6 @@ constexpr float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
     template<typename T> inline Vector<T> exp(VC_ALIGNED_PARAMETER(Vector<T>) _x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
-        typedef Vector<int> I;
         typedef Vc_IMPL_NAMESPACE::Const<T> C;
 
         V x(_x);
@@ -51,7 +50,7 @@ constexpr float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
         // => y  = x - n * ln(2)       | recall that: ln(2) * log₂(e) == 1
         // <=> eˣ = 2ⁿ * eʸ
         V z = floor(C::log2_e() * x + 0.5f);
-        I n = static_cast<I>(z);
+        const auto n = static_cast<Vc::simd_array<int, V::Size>>(z);
         x -= z * C::ln2_large();
         x -= z * C::ln2_small();
 

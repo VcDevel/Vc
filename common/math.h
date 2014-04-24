@@ -52,7 +52,7 @@ namespace AVX
 
         V px = floor(C::log2_e() * x + 0.5);
         __m128i tmp = _mm256_cvttpd_epi32(px.data());
-        Vector<int> n = Vc_IMPL_NAMESPACE::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
+        const simd_array<int, double_v::Size> n = SSE::int_v{tmp};
         x -= px * C::ln2_large(); //Vc::Internal::doubleConstant<1, 0x00062e4000000000ull, -1>();  // ln2
         x -= px * C::ln2_small(); //Vc::Internal::doubleConstant<1, 0x0007f7d1cf79abcaull, -20>(); // ln2
 
