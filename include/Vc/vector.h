@@ -31,6 +31,7 @@
 
 // next define all of Vc::Scalar - this one is always present, so it makes sense to put it first
 #include "scalar/vector.h"
+#include "common/simd_cast.h"
 #include "scalar/simd_cast.h"
 
 #ifdef VC_IMPL_AVX
