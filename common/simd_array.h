@@ -96,7 +96,7 @@ template <typename T,
           std::size_t VectorSize = VectorType::size()  // this last parameter is only used for
                                                        // specialization of N == VectorSize
           >
-class simd_array;
+class alignas(N * sizeof(VectorType)) simd_array;
 
 template <typename T, std::size_t N, typename VectorType> class simd_array<T, N, VectorType, N>
 {
