@@ -346,7 +346,7 @@ public:
     }
 
     friend Vc_INTRINSIC VectorType &internal_data(simd_array &x) { return x.data; }
-    friend Vc_INTRINSIC VectorType internal_data(const simd_array &x) { return x.data; }
+    friend Vc_INTRINSIC const VectorType &internal_data(const simd_array &x) { return x.data; }
 
     /// \internal
     Vc_INTRINSIC simd_array(VectorType &&x) : data(std::move(x)) {}

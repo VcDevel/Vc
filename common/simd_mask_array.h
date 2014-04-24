@@ -42,7 +42,7 @@ template <typename T, std::size_t N, typename VectorType> class simd_mask_array<
     using vector_type = VectorType;
     using storage_type = typename vector_type::Mask;
     friend storage_type &internal_data(simd_mask_array &m) { return m.data; }
-    friend storage_type internal_data(const simd_mask_array &m) { return m.data; }
+    friend const storage_type &internal_data(const simd_mask_array &m) { return m.data; }
 
 public:
     using mask_type = typename vector_type::Mask;
