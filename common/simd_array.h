@@ -244,6 +244,33 @@ public:
         return {-data};
     }
 
+    template <typename U,
+              typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
+    Vc_INTRINSIC Vc_CONST simd_array operator<<(U x) const
+    {
+        return {data << x};
+    }
+    template <typename U,
+              typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
+    Vc_INTRINSIC simd_array &operator<<=(U x)
+    {
+        data <<= x;
+        return *this;
+    }
+    template <typename U,
+              typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
+    Vc_INTRINSIC Vc_CONST simd_array operator>>(U x) const
+    {
+        return {data >> x};
+    }
+    template <typename U,
+              typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
+    Vc_INTRINSIC simd_array &operator>>=(U x)
+    {
+        data >>= x;
+        return *this;
+    }
+
 #define Vc_BINARY_OPERATOR_(op)                                                                    \
     Vc_INTRINSIC Vc_CONST simd_array operator op(const simd_array &rhs) const                      \
     {                                                                                              \
@@ -256,6 +283,7 @@ public:
     }
     VC_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
     VC_ALL_BINARY(Vc_BINARY_OPERATOR_)
+    VC_ALL_SHIFTS(Vc_BINARY_OPERATOR_)
 #undef Vc_BINARY_OPERATOR_
 
 #define Vc_COMPARES(op)                                                                            \
@@ -481,6 +509,35 @@ public:
         return {-data0, -data1};
     }
 
+    template <typename U,
+              typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
+    Vc_INTRINSIC Vc_CONST simd_array operator<<(U x) const
+    {
+        return {data0 << x, data1 << x};
+    }
+    template <typename U,
+              typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
+    Vc_INTRINSIC simd_array &operator<<=(U x)
+    {
+        data0 <<= x;
+        data1 <<= x;
+        return *this;
+    }
+    template <typename U,
+              typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
+    Vc_INTRINSIC Vc_CONST simd_array operator>>(U x) const
+    {
+        return {data0 >> x, data1 >> x};
+    }
+    template <typename U,
+              typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
+    Vc_INTRINSIC simd_array &operator>>=(U x)
+    {
+        data0 >>= x;
+        data1 >>= x;
+        return *this;
+    }
+
 #define Vc_BINARY_OPERATOR_(op)                                                                    \
     Vc_INTRINSIC Vc_CONST simd_array operator op(const simd_array &rhs) const                      \
     {                                                                                              \
@@ -494,6 +551,7 @@ public:
     }
     VC_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
     VC_ALL_BINARY(Vc_BINARY_OPERATOR_)
+    VC_ALL_SHIFTS(Vc_BINARY_OPERATOR_)
 #undef Vc_BINARY_OPERATOR_
 
 #define Vc_COMPARES(op)                                                                            \
