@@ -248,6 +248,25 @@ public:
     {
     }
 
+    // conversion from any Segment object (could be simd_mask_array or Mask<T>)
+    template <typename M, std::size_t Pieces, std::size_t Index>
+    Vc_INTRINSIC simd_mask_array(
+        Common::Segment<M, Pieces, Index> &&rhs,
+        enable_if<Traits::simd_vector_size<M>::value == Size * Pieces> = nullarg)
+        : data0(Split::lo(rhs)), data1(Split::hi(rhs))
+    {
+    }
+
+    // conversion from Mask<T>
+    template <typename M>
+    Vc_INTRINSIC simd_mask_array(
+        M k,
+        enable_if<(Traits::is_simd_mask<M>::value && !Traits::is_simd_mask_array<M>::value &&
+                   Traits::simd_vector_size<M>::value == Size)> = nullarg)
+        : data0(Split::lo(k)), data1(Split::hi(k))
+    {
+    }
+
     Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerOne::OEnum one)
         : data0(one), data1(one)
     {

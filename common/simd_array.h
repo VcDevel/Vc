@@ -422,9 +422,23 @@ public:
     {
     }
 
+    // explicit casts
+    template <typename V>
+    Vc_INTRINSIC explicit simd_array(
+        V &&x,
+        enable_if<(Traits::is_simd_vector<V>::value && Traits::simd_vector_size<V>::value == N &&
+                   !(std::is_convertible<Traits::entry_type_of<V>, T>::value &&
+                     Traits::is_simd_array<V>::value))> = nullarg)
+        : data0(Split::lo(x)), data1(Split::hi(x))
+    {
+    }
+
     // implicit casts
-    template <typename U, typename V>
-    Vc_INTRINSIC simd_array(const simd_array<U, N, V> &x)
+    template <typename V>
+    Vc_INTRINSIC simd_array(
+        V &&x,
+        enable_if<(Traits::is_simd_array<V>::value && Traits::simd_vector_size<V>::value == N &&
+                   std::is_convertible<Traits::entry_type_of<V>, T>::value)> = nullarg)
         : data0(Split::lo(x)), data1(Split::hi(x))
     {
     }
