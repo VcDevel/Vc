@@ -262,11 +262,11 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(const simd_mask_array<T, N, V, M> &k,
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast(Vc_AVX_NAMESPACE::Vector<T> x,
-              enable_if<(offset != 0 && sizeof(Return) == 32 && sizeof(T) > 2)> = nullarg)
+              enable_if<(offset != 0 && sizeof(Return) <= 32 && sizeof(T) > 2)> = nullarg)
 {
     using V = Vc_AVX_NAMESPACE::Vector<T>;
     constexpr int shift = sizeof(T) * offset * Return::Size;
-    static_assert(shift > 0 && shift < 32, "");
+    static_assert(shift > 0 && shift < sizeof(x), "");
     if (shift < 16) {
         return simd_cast<Return>(V{AVX::avx_cast<typename V::VectorType>(
             _mm_srli_si128(AVX::avx_cast<__m128i>(AVX::lo128(x.data())), shift))});
@@ -281,11 +281,11 @@ Vc_INTRINSIC Vc_CONST Return
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast(Vc_AVX_NAMESPACE::Vector<T> x,
-              enable_if<(offset != 0 && sizeof(Return) == 32 && sizeof(T) <= 2)> = nullarg)
+              enable_if<(offset != 0 && sizeof(Return) <= 32 && sizeof(T) <= 2)> = nullarg)
 {
     using V = Vc_AVX_NAMESPACE::Vector<T>;
     constexpr int shift = sizeof(T) * offset * Return::Size;
-    static_assert(shift > 0 && shift < 32, "");
+    static_assert(shift > 0 && shift < sizeof(x), "");
     return simd_cast<Return>(V{AVX::avx_cast<typename V::VectorType>(
         _mm_srli_si128(AVX::avx_cast<__m128i>(x.data()), shift))});
 }
