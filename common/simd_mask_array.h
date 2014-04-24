@@ -70,32 +70,29 @@ public:
 
     // conversion (casts)
     template <typename U, typename V>
-    Vc_INTRINSIC simd_mask_array(const simd_mask_array<U, N, V> &x,
-                                 enable_if<N == V::size()> = nullarg)
-        : data(simd_cast<mask_type>(internal_data(x)))
-    {
-    }
+    Vc_INTRINSIC_L simd_mask_array(const simd_mask_array<U, N, V> &x,
+                                   enable_if<N == V::size()> = nullarg) Vc_INTRINSIC_R;
     template <typename U, typename V>
-    Vc_INTRINSIC simd_mask_array(const simd_mask_array<U, N, V> &x,
-                                 enable_if<(N > V::size() && N <= 2 * V::size())> = nullarg)
-        : data(simd_cast<mask_type>(internal_data(internal_data0(x)),
-                                    internal_data(internal_data1(x))))
-    {
-    }
+    Vc_INTRINSIC_L simd_mask_array(const simd_mask_array<U, N, V> &x,
+                                   enable_if<(N > V::size() && N <= 2 * V::size())> = nullarg)
+        Vc_INTRINSIC_R;
     template <typename U, typename V>
-    Vc_INTRINSIC simd_mask_array(const simd_mask_array<U, N, V> &x,
-                                 enable_if<(N > 2 * V::size() && N <= 4 * V::size())> = nullarg)
-        : data(simd_cast<mask_type>(internal_data(internal_data0(internal_data0(x))),
-                                    internal_data(internal_data1(internal_data0(x))),
-                                    internal_data(internal_data0(internal_data1(x))),
-                                    internal_data(internal_data1(internal_data1(x)))))
-    {
-    }
-    template <typename V, std::size_t Pieces, std::size_t Index>
-    Vc_INTRINSIC simd_mask_array(Common::Segment<V, Pieces, Index> &&x)
-        : data(simd_cast<mask_type, Index>(x.data))
-    {
-    }
+    Vc_INTRINSIC_L simd_mask_array(const simd_mask_array<U, N, V> &x,
+                                   enable_if<(N > 2 * V::size() && N <= 4 * V::size())> = nullarg)
+        Vc_INTRINSIC_R;
+
+    // conversion from any Segment object (could be simd_mask_array or Mask<T>)
+    template <typename M, std::size_t Pieces, std::size_t Index>
+    Vc_INTRINSIC_L simd_mask_array(
+        Common::Segment<M, Pieces, Index> &&x,
+        enable_if<Traits::simd_vector_size<M>::value == Size * Pieces> = nullarg) Vc_INTRINSIC_R;
+
+    // conversion from Mask<T>
+    template <typename M>
+    Vc_INTRINSIC_L simd_mask_array(
+        M k,
+        enable_if<(Traits::is_simd_mask<M>::value && !Traits::is_simd_mask_array<M>::value &&
+                   Traits::simd_vector_size<M>::value == Size)> = nullarg) Vc_INTRINSIC_R;
 
     // load/store (from/to bool arrays)
     template <typename Flags = DefaultLoadTag>
@@ -386,5 +383,9 @@ private:
 }  // namespace Vc
 
 #include "undomacros.h"
+
+// XXX: this include should be in <Vc/vector.h>. But at least clang 3.4 then fails to compile the
+// code. Not sure yet what is going on, but it looks a lot like a bug in clang.
+#include "simd_cast_caller.tcc"
 
 #endif // VC_COMMON_SIMD_MASK_ARRAY_H

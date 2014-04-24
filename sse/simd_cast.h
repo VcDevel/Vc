@@ -365,15 +365,6 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     return simd_cast<Return>(x);
 }
 
-namespace SSE
-{
-template <typename T>
-template <typename U>
-Vc_INTRINSIC Mask<T>::Mask(U &&rhs, enable_if_explicitly_convertible<U>)
-    : Mask(simd_cast<Mask>(std::forward<U>(rhs)))
-{
-}
-}  // namespace SSE
 }  // namespace Vc
 
 #include "undomacros.h"

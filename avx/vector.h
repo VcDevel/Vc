@@ -31,7 +31,6 @@
 #include "../common/memoryfwd.h"
 #include "where.h"
 #include "iterators.h"
-#include "../common/simd_cast.h"
 #include "macros.h"
 
 #ifdef isfinite
@@ -126,12 +125,10 @@ template<typename T> class Vector
         {
         }
 
-        // static_cast from other types, implemented via the non-member simd_cast function
+        // static_cast from other types, implemented via the non-member simd_cast function in
+        // simd_cast_caller.tcc
         template <typename U, typename = enable_if<Traits::is_simd_vector<U>::value>>
-        Vc_INTRINSIC explicit Vector(U &&x)
-            : d(simd_cast<Vector>(std::forward<U>(x)).data())
-        {
-        }
+        Vc_INTRINSIC_L explicit Vector(U &&x) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast

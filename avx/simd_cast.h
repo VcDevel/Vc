@@ -333,16 +333,6 @@ Vc_INTRINSIC Vc_CONST Return
     return simd_cast<Return>(x);
 }
 
-namespace Vc_AVX_NAMESPACE
-{
-template <typename T>
-template <typename U>
-Vc_INTRINSIC Mask<T>::Mask(U &&rhs, enable_if_explicitly_convertible<U>)
-    : Mask(simd_cast<Mask>(std::forward<U>(rhs)))
-{
-}
-
-}  // namespace Vc_AVX_NAMESPACE
 }  // namespace Vc
 
 #include "undomacros.h"

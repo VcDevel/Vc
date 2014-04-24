@@ -26,7 +26,6 @@
 #include "../common/storage.h"
 #include "../common/bitscanintrinsics.h"
 #include "../common/maskentry.h"
-#include "../common/simd_cast.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -158,7 +157,7 @@ private:
         {
         }
 
-        // explicit cast, implemented via simd_cast (implementation in avx/simd_cast.h)
+        // explicit cast, implemented via simd_cast (in avx/simd_cast_caller.h)
         template <typename U>
         Vc_INTRINSIC explicit Mask(U &&rhs, enable_if_explicitly_convertible<U> = nullarg);
 

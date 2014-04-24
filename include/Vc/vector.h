@@ -64,6 +64,8 @@
 #endif
 
 #include "common/simd_array.h"
+// XXX See bottom of common/simd_mask_array.h:
+//#include "common/simd_cast_caller.tcc"
 
 namespace Vc_VERSIONED_NAMESPACE {
   using Vc_IMPL_NAMESPACE::VectorAlignment;
@@ -73,17 +75,21 @@ namespace Vc_VERSIONED_NAMESPACE {
 
 #include "scalar/helperimpl.h"
 #include "scalar/math.h"
+#include "scalar/simd_cast_caller.tcc"
 #if defined(VC_IMPL_SSE)
 # include "sse/helperimpl.h"
 # include "sse/math.h"
+# include "sse/simd_cast_caller.tcc"
 #endif
 #if defined(VC_IMPL_AVX)
 # include "avx/helperimpl.h"
 # include "avx/math.h"
+# include "avx/simd_cast_caller.tcc"
 #endif
 #if defined(VC_IMPL_MIC)
 # include "mic/helperimpl.h"
 # include "mic/math.h"
+# include "mic/simd_cast_caller.tcc"
 #endif
 
 #include "common/math.h"
