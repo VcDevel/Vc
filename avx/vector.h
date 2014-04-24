@@ -428,7 +428,6 @@ static_assert(!std::is_convertible<short *, short_v>::value, "A short* should ne
 }
 
 #include "vector.tcc"
-#include "math.h"
 #include "undomacros.h"
 
 #endif // VC_AVX_VECTOR_H__

@@ -389,5 +389,4 @@ Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
 
 #include "undomacros.h"
 #include "vector.tcc"
-#include "math.h"
 #endif // SSE_VECTOR_H

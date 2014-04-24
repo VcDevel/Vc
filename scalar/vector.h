@@ -413,7 +413,6 @@ template<typename T> class SwizzledVector : public Vector<T> {};
 }
 
 #include "vector.tcc"
-#include "math.h"
 #include "undomacros.h"
 
 #endif // SCALAR_VECTOR_H

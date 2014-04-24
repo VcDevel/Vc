@@ -31,17 +31,15 @@
 
 // next define all of Vc::Scalar - this one is always present, so it makes sense to put it first
 #include "scalar/vector.h"
+#include "scalar/simd_cast.h"
 
-#if defined(VC_IMPL_MIC)
-# include "mic/vector.h"
-#elif defined(VC_IMPL_AVX)
-# include "avx/vector.h"
-// a machine that supports AVX also supports SSE
+#ifdef VC_IMPL_AVX
 # undef VC_IMPL
 # undef Vc_IMPL_NAMESPACE
 # define VC_IMPL ::Vc::SSE42Impl
 # define Vc_IMPL_NAMESPACE SSE
 # include "sse/vector.h"
+# include "sse/simd_cast.h"
 # undef VC_IMPL
 # undef Vc_IMPL_NAMESPACE
 # if defined(VC_IMPL_AVX2)
@@ -53,14 +51,19 @@
 # else
 #  error "I lost track of the targeted implementation now. Something is messed up or there's a bug in Vc."
 # endif
-# include "sse/simd_cast.h"
+# include "avx/vector.h"
 # include "avx/simd_cast.h"
 #elif defined(VC_IMPL_SSE)
 # include "sse/vector.h"
 # include "sse/simd_cast.h"
 #endif
 
-#include "scalar/simd_cast.h"
+#if defined(VC_IMPL_MIC)
+# include "mic/vector.h"
+# include "mic/simd_cast.h"
+#endif
+
+#include "common/simd_array.h"
 
 namespace Vc_VERSIONED_NAMESPACE {
   using Vc_IMPL_NAMESPACE::VectorAlignment;
@@ -68,21 +71,20 @@ namespace Vc_VERSIONED_NAMESPACE {
 
 #define VC_VECTOR_DECLARED__ 1
 
-#if defined(VC_IMPL_MIC)
-# include "mic/helperimpl.h"
+#include "scalar/helperimpl.h"
+#include "scalar/math.h"
+#if defined(VC_IMPL_SSE)
+# include "sse/helperimpl.h"
+# include "sse/math.h"
 #endif
-
 #if defined(VC_IMPL_AVX)
 # include "avx/helperimpl.h"
+# include "avx/math.h"
 #endif
-
-#if defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE)
-# include "sse/helperimpl.h"
-#elif !defined(VC_IMPL_Scalar)
-# error "No known Vc implementation was selected. This should not happen. The logic in Vc/global.h failed."
+#if defined(VC_IMPL_MIC)
+# include "mic/helperimpl.h"
+# include "mic/math.h"
 #endif
-
-#include "scalar/helperimpl.h"
 
 #include "common/math.h"
 

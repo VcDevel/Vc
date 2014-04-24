@@ -476,7 +476,6 @@ Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
 
 #include "vector.tcc"
 #include "undomacros.h"
-#include "math.h"
 
 #ifdef CAN_OFFLOAD
 #pragma offload_attribute(pop)
