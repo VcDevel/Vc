@@ -227,6 +227,12 @@ Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE:: float_v) { return AVX::zeroExtend(
 Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE:: float_v) { return _mm256_cvtepi32_ps(AVX::concat(x0.data(), x1.data())); }
 Vc_SIMD_CAST_1(SSE::int_m, Vc_AVX_NAMESPACE:: float_m) { return AVX::zeroExtend(x.data()); }
 Vc_SIMD_CAST_2(SSE::int_m, Vc_AVX_NAMESPACE:: float_m) { return AVX::concat(x0.data(), x1.data()); }
+Vc_SIMD_CAST_1(SSE::float_m, Vc_AVX_NAMESPACE::double_m) { return AVX::concat(_mm_unpacklo_epi32(x.data(), x.data()),
+                                                                              _mm_unpackhi_epi32(x.data(), x.data())); }
+
+Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE:: float_v, SSE::int_v) { return simd_cast<SSE::int_v>(SSE::float_v{AVX::lo128(x.data())}); }
+Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE::double_m, SSE::int_m) { return {_mm_packs_epi32(AVX::lo128(x.dataI()), AVX::hi128(x.dataI()))}; }
+Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE:: float_m, SSE::int_m) { return {AVX::lo128(x.data())}; }
 
 #undef Vc_SIMD_CAST_1
 #undef Vc_SIMD_CAST_2
@@ -284,9 +290,45 @@ Vc_INTRINSIC Vc_CONST Return
         _mm_srli_si128(AVX::avx_cast<__m128i>(x.data()), shift))});
 }
 
-template <typename Return, int offset, typename T>
+// AVX to SSE (Vector<T>)
+template <typename Return, int offset, typename V>
 Vc_INTRINSIC Vc_CONST Return
-    simd_cast(Vc_AVX_NAMESPACE::Vector<T> x, enable_if<offset == 0> = nullarg)
+    simd_cast(V x,
+              enable_if<offset != 0 && (AVX::is_vector<V>::value || AVX2::is_vector<V>::value) &&
+                        SSE::is_vector<Return>::value> = nullarg)
+{
+    constexpr int shift = sizeof(V) / V::Size * offset * Return::Size;
+    static_assert(shift > 0, "");
+    static_assert(shift < sizeof(V), "");
+    using SseVector = SSE::Vector<typename V::EntryType>;
+    using Intrin = typename SseVector::VectorType;
+    return simd_cast<Return>(SseVector{
+        AVX::avx_cast<Intrin>(_mm_alignr_epi8(AVX::lo128(x.data()), AVX::hi128(x.data()), shift))});
+}
+
+// AVX to SSE (Mask<T>)
+template <typename Return, int offset, typename M>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(M x,
+              enable_if<offset != 0 && (AVX::is_mask<M>::value || AVX2::is_mask<M>::value) &&
+                        SSE::is_mask<Return>::value> = nullarg)
+{
+    constexpr int shift = sizeof(M) / M::Size * offset * Return::Size;
+    static_assert(shift > 0, "");
+    static_assert(shift < sizeof(M), "");
+    using SseVector = SSE::Mask<Traits::entry_type_of<typename M::Vector>>;
+    using Intrin = typename SseVector::VectorType;
+    return simd_cast<Return>(SseVector{
+        AVX::avx_cast<Intrin>(_mm_alignr_epi8(AVX::lo128(x.data()), AVX::hi128(x.data()), shift))});
+}
+
+// offset == 0
+template <typename Return, int offset, typename V>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(V x,
+              enable_if<offset == 0 && (AVX::is_vector<V>::value || AVX::is_mask<V>::value ||
+                                        AVX2::is_vector<V>::value ||
+                                        AVX2::is_mask<V>::value)> = nullarg)
 {
     return simd_cast<Return>(x);
 }

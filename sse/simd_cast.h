@@ -314,6 +314,14 @@ Vc_INTRINSIC Vc_CONST Return
     return {SSE::sse_cast<__m128>(SSE::internal::mask_cast<M::Size, Return::Size>(x.dataI()))};
 }
 
+// any two SSE Mask to one other SSE Mask
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(SSE::Mask<T> x0, SSE::Mask<T> x1, enable_if<SSE::is_mask<Return>::value> = nullarg)
+{
+    return SSE::sse_cast<__m128>(_mm_packs_epi16(x0.dataI(), x1.dataI()));
+}
+
 // SSE to SSE (Vector and Mask)
 template <typename Return, int offset, typename V>
 Vc_INTRINSIC Vc_CONST Return
@@ -337,6 +345,15 @@ Vc_INTRINSIC Vc_CONST Return
     using RT = typename Return::EntryType;
     const auto tmp = simd_cast<SSE::Vector<RT>>(x);
     return tmp[offset];
+}
+
+// SSE to Scalar (Mask)
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(const SSE::Mask<T> x,
+              enable_if<offset != 0 && Scalar::is_mask<Return>::value> = nullarg)
+{
+    return static_cast<bool>(x[offset]);
 }
 
 // offset == 0
