@@ -180,8 +180,8 @@ template<typename V> void testCeil()/*{{{*/
 /*}}}*/
 template<typename V> void testExp()/*{{{*/
 {
-    setFuzzyness<float>(1);
-    setFuzzyness<double>(2);
+    UnitTest::setFuzzyness<float>(1);
+    UnitTest::setFuzzyness<double>(2);
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(20);
@@ -193,7 +193,7 @@ template<typename V> void testExp()/*{{{*/
 /*}}}*/
 template<typename V> void testLog()/*{{{*/
 {
-    setFuzzyness<float>(1);
+    UnitTest::setFuzzyness<float>(1);
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -216,14 +216,14 @@ template<typename V> void testLog()/*{{{*/
 template<typename V> void testLog2()/*{{{*/
 {
 #if defined(VC_LOG_ILP) || defined(VC_LOG_ILP2)
-    setFuzzyness<float>(3);
+    UnitTest::setFuzzyness<float>(3);
 #else
-    setFuzzyness<float>(1);
+    UnitTest::setFuzzyness<float>(1);
 #endif
 #if (defined(VC_MSVC) || defined(__APPLE__)) && defined(VC_IMPL_Scalar)
-    setFuzzyness<double>(2);
+    UnitTest::setFuzzyness<double>(2);
 #else
-    setFuzzyness<double>(1);
+    UnitTest::setFuzzyness<double>(1);
 #endif
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log2>();
@@ -246,8 +246,8 @@ template<typename V> void testLog2()/*{{{*/
 /*}}}*/
 template<typename V> void testLog10()/*{{{*/
 {
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(2);
+    UnitTest::setFuzzyness<float>(2);
+    UnitTest::setFuzzyness<double>(2);
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log10>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -317,8 +317,8 @@ template<typename V> void testRSqrt()/*{{{*/
 template<typename V> void testSincos()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(1e7);
+    UnitTest::setFuzzyness<float>(2);
+    UnitTest::setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, sref, cref;
@@ -340,8 +340,8 @@ template<typename V> void testSincos()/*{{{*/
 template<typename V> void testSin()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(1e7);
+    UnitTest::setFuzzyness<float>(2);
+    UnitTest::setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, sref;
@@ -357,8 +357,8 @@ template<typename V> void testSin()/*{{{*/
 template<typename V> void testCos()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(1e7);
+    UnitTest::setFuzzyness<float>(2);
+    UnitTest::setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, cref;
@@ -374,8 +374,8 @@ template<typename V> void testCos()/*{{{*/
 template<typename V> void testAsin()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(36);
+    UnitTest::setFuzzyness<float>(2);
+    UnitTest::setFuzzyness<double>(36);
     Array<Reference<T> > reference = referenceData<T, Asin>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, ref;
@@ -402,8 +402,8 @@ const union {
 template<typename V> void testAtan()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(3);
-    setFuzzyness<double>(2);
+    UnitTest::setFuzzyness<float>(3);
+    UnitTest::setFuzzyness<double>(2);
 
     {
         const V Pi_2 = T(doubleConstant<1, 0x921fb54442d18ull,  0>());
@@ -433,8 +433,8 @@ template<typename V> void testAtan()/*{{{*/
 template<typename V> void testAtan2()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(3);
-    setFuzzyness<double>(2);
+    UnitTest::setFuzzyness<float>(3);
+    UnitTest::setFuzzyness<double>(2);
 
     {
         const V Pi   = T(doubleConstant<1, 0x921fb54442d18ull,  1>());
@@ -508,8 +508,8 @@ template<typename V> void testAtan2()/*{{{*/
 template<typename Vec> void testReciprocal()/*{{{*/
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(1.258295e+07);
-    setFuzzyness<double>(0);
+    UnitTest::setFuzzyness<float>(1.258295e+07);
+    UnitTest::setFuzzyness<double>(0);
     const T one = 1;
     for (int offset = -1000; offset < 1000; offset += 10) {
         const T scale = T(0.1);
