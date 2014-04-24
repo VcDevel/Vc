@@ -155,10 +155,37 @@ template <typename T, std::size_t Offset> struct AddOffset
  */
 template <std::size_t secondOffset> struct Split/*{{{*/
 {
-    template<typename Op = void, typename U> static Vc_ALWAYS_INLINE U lo(U &&x) { return std::forward<U>(x); }
-    template<typename Op = void, typename U> static Vc_ALWAYS_INLINE U hi(U &&x) { return std::forward<U>(x); }
-    template <typename Op, typename U> static Vc_ALWAYS_INLINE U *hi(U *ptr, typename std::enable_if< std::is_same<Op, Operations::gather>::value ||  std::is_same<Op, Operations::scatter>::value>::type = nullptr) { return ptr; }
-    template <typename Op, typename U> static Vc_ALWAYS_INLINE U *hi(U *ptr, typename std::enable_if<!std::is_same<Op, Operations::gather>::value && !std::is_same<Op, Operations::scatter>::value>::type = nullptr) { return ptr + secondOffset; }
+    template <typename Op = void, typename U>
+    static Vc_ALWAYS_INLINE U lo(
+        U &&x,
+        enable_if<!Traits::is_simd_vector<U>::value && !Traits::is_simd_mask<U>::value> = nullarg)
+    {
+        return std::forward<U>(x);
+    }
+    template <typename Op = void, typename U>
+    static Vc_ALWAYS_INLINE U hi(
+        U &&x,
+        enable_if<!Traits::is_simd_vector<U>::value && !Traits::is_simd_mask<U>::value> = nullarg)
+    {
+        return std::forward<U>(x);
+    }
+
+    template <typename Op, typename U>
+    static Vc_ALWAYS_INLINE U *hi(
+        U *ptr,
+        typename std::enable_if<std::is_same<Op, Operations::gather>::value ||
+                                std::is_same<Op, Operations::scatter>::value>::type = nullptr)
+    {
+        return ptr;
+    }
+    template <typename Op, typename U>
+    static Vc_ALWAYS_INLINE U *hi(
+        U *ptr,
+        typename std::enable_if<!std::is_same<Op, Operations::gather>::value &&
+                                !std::is_same<Op, Operations::scatter>::value>::type = nullptr)
+    {
+        return ptr + secondOffset;
+    }
 
     static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, secondOffset> hi(
         VectorSpecialInitializerIndexesFromZero::IEnum)
@@ -184,6 +211,16 @@ template <std::size_t secondOffset> struct Split/*{{{*/
     {
         return internal_data1(x);
     }
+    template <typename U, std::size_t N, typename V, std::size_t M>
+    static Vc_INTRINSIC auto lo(simd_array<U, N, V, M> *x) -> decltype(internal_data0(*x)) *
+    {
+        return &internal_data0(*x);
+    }
+    template <typename U, std::size_t N, typename V, std::size_t M>
+    static Vc_INTRINSIC auto hi(simd_array<U, N, V, M> *x) -> decltype(internal_data1(*x)) *
+    {
+        return &internal_data1(*x);
+    }
 
     template <typename U, std::size_t N, typename V>
     static Vc_INTRINSIC Segment<V, 2, 0> lo(const simd_array<U, N, V, N> &x)
@@ -194,6 +231,16 @@ template <std::size_t secondOffset> struct Split/*{{{*/
     static Vc_INTRINSIC Segment<V, 2, 1> hi(const simd_array<U, N, V, N> &x)
     {
         return {internal_data(x)};
+    }
+    template <typename U, std::size_t N, typename V>
+    static Vc_INTRINSIC Segment<V *, 2, 0> lo(const simd_array<U, N, V, N> *x)
+    {
+        return {&internal_data(*x)};
+    }
+    template <typename U, std::size_t N, typename V>
+    static Vc_INTRINSIC Segment<V *, 2, 1> hi(const simd_array<U, N, V, N> *x)
+    {
+        return {&internal_data(*x)};
     }
 
     // split composite simd_mask_array
@@ -209,14 +256,36 @@ template <std::size_t secondOffset> struct Split/*{{{*/
     }
 
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V, 2, 0> lo(const simd_mask_array<U, N, V, N> &x)
+    static Vc_INTRINSIC Segment<typename simd_mask_array<U, N, V, N>::mask_type, 2, 0> lo(
+        const simd_mask_array<U, N, V, N> &x)
     {
         return {internal_data(x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V, 2, 1> hi(const simd_mask_array<U, N, V, N> &x)
+    static Vc_INTRINSIC Segment<typename simd_mask_array<U, N, V, N>::mask_type, 2, 1> hi(
+        const simd_mask_array<U, N, V, N> &x)
     {
         return {internal_data(x)};
+    }
+
+    // split Vector<T> and Mask<T>
+    template <typename T>
+    struct is_vector_or_mask
+        : public std::integral_constant<
+              bool,
+              (Traits::is_simd_vector<T>::value && !Traits::is_simd_array<T>::value) ||
+                  (Traits::is_simd_mask<T>::value && !Traits::is_simd_mask_array<T>::value)>
+    {
+    };
+    template <typename V>
+    static Vc_INTRINSIC Segment<V, 2, 0> lo(V &&x, enable_if<is_vector_or_mask<V>::value> = nullarg)
+    {
+        return {std::forward<V>(x)};
+    }
+    template <typename V>
+    static Vc_INTRINSIC Segment<V, 2, 1> hi(V &&x, enable_if<is_vector_or_mask<V>::value> = nullarg)
+    {
+        return {std::forward<V>(x)};
     }
 
     // generically split Segments
