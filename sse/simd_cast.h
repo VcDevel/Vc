@@ -305,32 +305,58 @@ VC_ALL_VECTOR_TYPES(Vc_SIMD_CAST_SSE_TO_SCALAR)
 #undef Vc_SIMD_CAST_4
 #undef Vc_SIMD_CAST_8
 
-// SSE to SSE
-template <typename Return, int offset, typename T>
-Vc_INTRINSIC Vc_CONST Return simd_cast(SSE::Vector<T> x, enable_if<offset != 0 && sizeof(Return) == 16> = nullarg)
+// any one SSE Mask to one other SSE Mask
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(SSE::Mask<T> x, enable_if<SSE::is_mask<Return>::value> = nullarg)
 {
-    using V = SSE::Vector<T>;
-    constexpr int shift = sizeof(T) * offset * Return::Size;
+    using M = SSE::Mask<T>;
+    return {SSE::sse_cast<__m128>(SSE::internal::mask_cast<M::Size, Return::Size>(x.dataI()))};
+}
+
+// SSE to SSE (Vector and Mask)
+template <typename Return, int offset, typename V>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(V x,
+              enable_if<offset != 0 &&
+                        ((SSE::is_mask<Return>::value&& SSE::is_mask<V>::value) ||
+                         (SSE::is_vector<Return>::value&& SSE::is_vector<V>::value))> = nullarg)
+{
+    constexpr int shift = (sizeof(V) / V::Size) * offset * Return::Size;
     static_assert(shift > 0 && shift < 16, "");
     return simd_cast<Return>(V{SSE::sse_cast<typename V::VectorType>(
         _mm_srli_si128(SSE::sse_cast<__m128i>(x.data()), shift))});
 }
 
-// SSE to Scalar
+// SSE to Scalar (Vector)
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Vc_CONST Return simd_cast(SSE::Vector<T> x, enable_if<(offset != 0 && sizeof(Return) <= 8)> = nullarg)
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(SSE::Vector<T> x,
+              enable_if<offset != 0 && Scalar::is_vector<Return>::value> = nullarg)
 {
     using RT = typename Return::EntryType;
     const auto tmp = simd_cast<SSE::Vector<RT>>(x);
     return tmp[offset];
 }
 
-template <typename Return, int offset, typename T>
-Vc_INTRINSIC Vc_CONST Return simd_cast(SSE::Vector<T> x, enable_if<offset == 0> = nullarg)
+// offset == 0
+template <typename Return, int offset, typename V>
+Vc_INTRINSIC Vc_CONST Return simd_cast(
+    V x,
+    enable_if<offset == 0 && (SSE::is_vector<V>::value || SSE::is_mask<V>::value)> = nullarg)
 {
     return simd_cast<Return>(x);
 }
 
+namespace SSE
+{
+template <typename T>
+template <typename U>
+Vc_INTRINSIC Mask<T>::Mask(U &&rhs, enable_if_explicitly_convertible<U>)
+    : Mask(simd_cast<Mask>(std::forward<U>(rhs)))
+{
+}
+}  // namespace SSE
 }  // namespace Vc
 
 #include "undomacros.h"

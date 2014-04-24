@@ -121,13 +121,29 @@ public:
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerOne::OEnum) : d(_mm_setallone_ps()) {}
         Vc_ALWAYS_INLINE explicit Mask(bool b) : d(b ? _mm_setallone_ps() : _mm_setzero_ps()) {}
 
-        template<typename U> Vc_ALWAYS_INLINE Mask(const Mask<U> &rhs,
-          typename std::enable_if<is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
-            : d(sse_cast<__m128>(internal::mask_cast<Mask<U>::Size, Size>(rhs.dataI()))) {}
+        template <typename U>
+        using enable_if_implicitly_convertible = enable_if<
+            (Traits::is_simd_mask<U>::value && !Traits::is_simd_mask_array<U>::value &&
+             is_implicit_cast_allowed_mask<Traits::entry_type_of<typename Traits::decay<U>::Vector>,
+                                           T>::value)>;
+        template <typename U>
+        using enable_if_explicitly_convertible =
+            enable_if<(Traits::is_simd_mask_array<U>::value ||
+                       (Traits::is_simd_mask<U>::value &&
+                        !is_implicit_cast_allowed_mask<
+                             Traits::entry_type_of<typename Traits::decay<U>::Vector>,
+                             T>::value))>;
 
-        template<typename U> Vc_ALWAYS_INLINE explicit Mask(const Mask<U> &rhs,
-          typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
-            : d(sse_cast<__m128>(internal::mask_cast<Mask<U>::Size, Size>(rhs.dataI()))) {}
+        // implicit cast
+        template <typename U>
+        Vc_INTRINSIC Mask(U &&rhs, enable_if_implicitly_convertible<U> = nullarg)
+            : d(internal::mask_cast<Traits::simd_vector_size<U>::value, Size>(rhs.dataI()))
+        {
+        }
+
+        // explicit cast, implemented via simd_cast (implementation in sse/simd_cast.h)
+        template <typename U>
+        Vc_INTRINSIC explicit Mask(U &&rhs, enable_if_explicitly_convertible<U> = nullarg);
 
         Vc_ALWAYS_INLINE explicit Mask(const bool *mem) { load(mem); }
         template<typename Flags> Vc_ALWAYS_INLINE explicit Mask(const bool *mem, Flags f) { load(mem, f); }
