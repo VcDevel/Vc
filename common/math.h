@@ -79,8 +79,8 @@ namespace AVX
 
         return x;
     }
-}
-}
+}  // namespace AVX(2)
+}  // namespace Vc
 #endif
 
 #ifdef VC_IMPL_SSE
@@ -128,8 +128,8 @@ namespace SSE
 
         return x;
     }
-}
-}
+}  // namespace SSE
+}  // namespace Vc
 #endif
 #include "undomacros.h"
 
