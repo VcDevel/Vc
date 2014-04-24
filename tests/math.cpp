@@ -310,7 +310,7 @@ template<typename V> void testRSqrt()/*{{{*/
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
         const V x = V::Random() * T(1000);
         // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
-        VERIFY(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12)));
+        VERIFY(all_of(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12))));
     }
 }
 /*}}}*/
@@ -410,7 +410,7 @@ template<typename V> void testAtan()/*{{{*/
         V nan; nan.setQnan();
         const V inf = T(INF.value);
 
-        VERIFY(Vc::isnan(Vc::atan(nan)));
+        VERIFY(all_of(Vc::isnan(Vc::atan(nan))));
         ATAN_COMPARE(Vc::atan(+inf), +Pi_2);
 #ifdef VC_MSVC
 #pragma warning(suppress: 4756) // overflow in constant arithmetic
@@ -447,9 +447,9 @@ template<typename V> void testAtan2()/*{{{*/
         ATAN_COMPARE(Vc::atan2(V(T(-0.)), V(T(-3.))), -Pi);
         // If y is +0 (-0) and x is greater than 0, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+0.)), V(T(+3.))), V(T(+0.)));
-        VERIFY(!Vc::atan2(V(T(+0.)), V(T(+3.))).isNegative());
+        VERIFY(none_of(Vc::atan2(V(T(+0.)), V(T(+3.))).isNegative()));
         COMPARE(Vc::atan2(V(T(-0.)), V(T(+3.))), V(T(-0.)));
-        VERIFY (Vc::atan2(V(T(-0.)), V(T(+3.))).isNegative());
+        VERIFY (all_of(Vc::atan2(V(T(-0.)), V(T(+3.))).isNegative()));
         // If y is less than 0 and x is +0 or -0, -pi/2 is returned.
         COMPARE(Vc::atan2(V(T(-3.)), V(T(+0.))), -Pi_2);
         COMPARE(Vc::atan2(V(T(-3.)), V(T(-0.))), -Pi_2);
@@ -457,25 +457,25 @@ template<typename V> void testAtan2()/*{{{*/
         COMPARE(Vc::atan2(V(T(+3.)), V(T(+0.))), +Pi_2);
         COMPARE(Vc::atan2(V(T(+3.)), V(T(-0.))), +Pi_2);
         // If either x or y is NaN, a NaN is returned.
-        VERIFY(Vc::isnan(Vc::atan2(nan, V(T(3.)))));
-        VERIFY(Vc::isnan(Vc::atan2(V(T(3.)), nan)));
-        VERIFY(Vc::isnan(Vc::atan2(nan, nan)));
+        VERIFY(all_of(Vc::isnan(Vc::atan2(nan, V(T(3.))))));
+        VERIFY(all_of(Vc::isnan(Vc::atan2(V(T(3.)), nan))));
+        VERIFY(all_of(Vc::isnan(Vc::atan2(nan, nan))));
         // If y is +0 (-0) and x is -0, +pi (-pi) is returned.
         ATAN_COMPARE(Vc::atan2(V(T(+0.)), V(T(-0.))), +Pi);
         ATAN_COMPARE(Vc::atan2(V(T(-0.)), V(T(-0.))), -Pi);
         // If y is +0 (-0) and x is +0, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+0.)), V(T(+0.))), V(T(+0.)));
         COMPARE(Vc::atan2(V(T(-0.)), V(T(+0.))), V(T(-0.)));
-        VERIFY(!Vc::atan2(V(T(+0.)), V(T(+0.))).isNegative());
-        VERIFY( Vc::atan2(V(T(-0.)), V(T(+0.))).isNegative());
+        VERIFY(none_of(Vc::atan2(V(T(+0.)), V(T(+0.))).isNegative()));
+        VERIFY( all_of(Vc::atan2(V(T(-0.)), V(T(+0.))).isNegative()));
         // If y is a finite value greater (less) than 0, and x is negative infinity, +pi (-pi) is returned.
         ATAN_COMPARE(Vc::atan2(V(T(+1.)), -inf), +Pi);
         ATAN_COMPARE(Vc::atan2(V(T(-1.)), -inf), -Pi);
         // If y is a finite value greater (less) than 0, and x is positive infinity, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+3.)), +inf), V(T(+0.)));
-        VERIFY(!Vc::atan2(V(T(+3.)), +inf).isNegative());
+        VERIFY(none_of(Vc::atan2(V(T(+3.)), +inf).isNegative()));
         COMPARE(Vc::atan2(V(T(-3.)), +inf), V(T(-0.)));
-        VERIFY (Vc::atan2(V(T(-3.)), +inf).isNegative());
+        VERIFY( all_of(Vc::atan2(V(T(-3.)), +inf).isNegative()));
         // If y is positive infinity (negative infinity), and x is finite, pi/2 (-pi/2) is returned.
         COMPARE(Vc::atan2(+inf, V(T(+3.))), +Pi_2);
         COMPARE(Vc::atan2(-inf, V(T(+3.))), -Pi_2);
@@ -546,15 +546,15 @@ template<typename Vec> void testInf()/*{{{*/
     Vec nan;
     nan.setQnan();
 
-    VERIFY(Vc::isfinite(zero));
-    VERIFY(Vc::isfinite(Vec(one)));
-    VERIFY(!Vc::isfinite(inf));
-    VERIFY(!Vc::isfinite(nan));
+    VERIFY(all_of(Vc::isfinite(zero)));
+    VERIFY(all_of(Vc::isfinite(Vec(one))));
+    VERIFY(none_of(Vc::isfinite(inf)));
+    VERIFY(none_of(Vc::isfinite(nan)));
 
-    VERIFY(!Vc::isinf(zero));
-    VERIFY(!Vc::isinf(Vec(one)));
-    VERIFY(Vc::isinf(inf));
-    VERIFY(!Vc::isinf(nan));
+    VERIFY(none_of(Vc::isinf(zero)));
+    VERIFY(none_of(Vc::isinf(Vec(one))));
+    VERIFY(all_of(Vc::isinf(inf)));
+    VERIFY(none_of(Vc::isinf(nan)));
 }
 /*}}}*/
 template<typename Vec> void testNaN()/*{{{*/
@@ -564,16 +564,16 @@ template<typename Vec> void testNaN()/*{{{*/
     typedef typename Vec::Mask M;
     const T one = 1;
     const Vec zero(Zero);
-    VERIFY(!Vc::isnan(zero));
-    VERIFY(!Vc::isnan(Vec(one)));
+    VERIFY(none_of(Vc::isnan(zero)));
+    VERIFY(none_of(Vc::isnan(Vec(one))));
     const Vec inf = one / zero;
-    VERIFY(Vc::isnan(Vec(inf * zero)));
+    VERIFY(all_of(Vc::isnan(Vec(inf * zero))));
     Vec nan = Vec::Zero();
     const M mask(I::IndexesFromZero() == I::Zero());
     nan.setQnan(mask);
     COMPARE(Vc::isnan(nan), mask);
     nan.setQnan();
-    VERIFY(Vc::isnan(nan));
+    VERIFY(all_of(Vc::isnan(nan)));
 }
 /*}}}*/
 template<typename Vec> void testRound()/*{{{*/
@@ -818,7 +818,7 @@ template<typename V> void testUlpDiff()/*{{{*/
             const V expectedDifference = Vc::abs(i_v);
             const V maxUncertainty = Vc::abs(abs(diff).exponent() - abs(base).exponent());
 
-            VERIFY(Vc::abs(ulpDifference - expectedDifference) <= maxUncertainty)
+            VERIFY(all_of(Vc::abs(ulpDifference - expectedDifference) <= maxUncertainty))
                 << ", base = " << base << ", epsilon = " << eps << ", diff = " << diff;
             for (size_t k = 0; k < V::Size; ++k) {
                 VERIFY(std::abs(ulpDifference[k] - expectedDifference[k]) <= maxUncertainty[k]);
