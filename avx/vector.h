@@ -127,7 +127,9 @@ template<typename T> class Vector
 
         // static_cast from other types, implemented via the non-member simd_cast function in
         // simd_cast_caller.tcc
-        template <typename U, typename = enable_if<Traits::is_simd_vector<U>::value>>
+        template <typename U,
+                  typename = enable_if<Traits::is_simd_vector<U>::value &&
+                                       !std::is_same<Vector, Traits::decay<U>>::value>>
         Vc_INTRINSIC_L explicit Vector(U &&x) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////

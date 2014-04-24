@@ -36,8 +36,8 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Vc_AVX_NAMESPACE
 {
 template <typename T>
-template <typename U, typename = enable_if<Traits::is_simd_vector<U>::value>>
-Vc_INTRINSIC explicit Vector<T>::Vector(U &&x)
+template <typename U, typename>
+Vc_INTRINSIC Vector<T>::Vector(U &&x)
     : d(simd_cast<Vector>(std::forward<U>(x)).data())
 {
 }
