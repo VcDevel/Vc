@@ -31,7 +31,8 @@
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-
+namespace internal
+{
 #define Vc_BINARY_FUNCTION__(name__)                                                               \
     template <typename T, std::size_t N, typename V, std::size_t M>                                \
     simd_array<T, N, V, M> Vc_INTRINSIC Vc_PURE                                                    \
@@ -63,6 +64,7 @@ template <typename T> Vc_INTRINSIC Vc_PURE T max(const T &l, const T &r)
 }
 template <typename T> T Vc_INTRINSIC Vc_PURE product_helper__(const T &l, const T &r) { return l * r; }
 template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r) { return l + r; }
+}  // namespace internal
 
 // === having simd_array<T, N> in the Vc namespace leads to a ABI bug ===
 //
@@ -617,10 +619,10 @@ public:
             return binary_fun__(data0.name__(Split::lo(mask)), data1.name__(Split::hi(mask)));     \
         }                                                                                          \
     }
-    Vc_REDUCTION_FUNCTION__(min, Vc::min)
-    Vc_REDUCTION_FUNCTION__(max, Vc::max)
-    Vc_REDUCTION_FUNCTION__(product, product_helper__)
-    Vc_REDUCTION_FUNCTION__(sum, sum_helper__)
+    Vc_REDUCTION_FUNCTION__(min, Vc::internal::min)
+    Vc_REDUCTION_FUNCTION__(max, Vc::internal::max)
+    Vc_REDUCTION_FUNCTION__(product, internal::product_helper__)
+    Vc_REDUCTION_FUNCTION__(sum, internal::sum_helper__)
 #undef Vc_REDUCTION_FUNCTION__
     Vc_INTRINSIC Vc_PURE simd_array partialSum() const
     {
