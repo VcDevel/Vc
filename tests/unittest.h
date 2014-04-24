@@ -32,8 +32,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef VC_ASSERT
 #error "include unittest.h before any Vc header"
 #endif
+namespace UnitTest
+{
 static void unittest_assert(bool cond, const char *code, const char *file, int line);
-#define VC_ASSERT(cond) unittest_assert(cond, #cond, __FILE__, __LINE__);
+}  // namespace UnitTest
+#define VC_ASSERT(cond) UnitTest::unittest_assert(cond, #cond, __FILE__, __LINE__);
 
 #include <Vc/Vc>
 #include <Vc/type_traits>
