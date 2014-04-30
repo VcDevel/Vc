@@ -196,6 +196,27 @@ Vc_SIMD_CAST_AVX_1(  uint_v, double_v) {
 Vc_SIMD_CAST_AVX_1( short_v, double_v) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<Vc_AVX_NAMESPACE::int_v>(x)); }
 Vc_SIMD_CAST_AVX_1(ushort_v, double_v) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<Vc_AVX_NAMESPACE::int_v>(x)); }
 
+Vc_SIMD_CAST_AVX_2(double_m,  float_m) {
+    return AVX::concat(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
+                       _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
+}
+Vc_SIMD_CAST_AVX_2(double_m,    int_m) {
+    return AVX::concat(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
+                       _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
+}
+Vc_SIMD_CAST_AVX_2(double_m,   uint_m) {
+    return AVX::concat(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
+                       _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
+}
+Vc_SIMD_CAST_AVX_2(double_m,  short_m) {
+    return _mm_packs_epi16(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
+                           _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
+}
+Vc_SIMD_CAST_AVX_2(double_m, ushort_m) {
+    return _mm_packs_epi16(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
+                           _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
+}
+
 #undef Vc_SIMD_CAST_AVX_1
 #undef Vc_SIMD_CAST_AVX_2
 #undef Vc_SIMD_CAST_AVX_4
