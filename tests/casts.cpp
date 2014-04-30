@@ -190,7 +190,7 @@ void simd_cast_to4_impl(const From, Vc::enable_if<(4 * To::size() > From::size()
 {
 }
 
-TEST_ALL_V(V, simd_cast)
+TEST_ALL_V(V, cast_vector)
 {
     using T = typename V::EntryType;
     for (T x : {std::numeric_limits<T>::min(), T(0), T(-1), T(1), std::numeric_limits<T>::max(),
@@ -242,6 +242,79 @@ TEST_ALL_V(V, simd_cast)
     }
 }
 
+template <typename To, typename From> void mask_cast_1(From mask)
+{
+    To casted = simd_cast<To>(mask);
+    std::size_t i = 0;
+    for (; i < std::min(To::Size, From::Size); ++i) {
+        COMPARE(casted[i], mask[i]) << "i: " << i;
+    }
+    for (; i < To::Size; ++i) {
+        COMPARE(casted[i], false) << "i: " << i;
+    }
+}
+template <typename To, typename From> void mask_cast_2(const From mask, Vc::enable_if<(To::size() > From::size())> = Vc::nullarg)
+{
+    To casted = simd_cast<To>(mask, mask);
+    std::size_t i = 0;
+    for (; i < From::Size; ++i) {
+        COMPARE(casted[i], mask[i]) << "i: " << i;
+    }
+    for (; i < std::min(To::Size, 2 * From::Size); ++i) {
+        COMPARE(casted[i], mask[i - From::Size]) << "i: " << i;
+    }
+    for (; i < To::Size; ++i) {
+        COMPARE(casted[i], false) << "i: " << i;
+    }
+}
+template <typename To, typename From>
+void mask_cast_2(const From, Vc::enable_if<!(To::size() > From::size())> = Vc::nullarg)
+{
+}
+template <typename To, typename From> void mask_cast_4(const From mask, Vc::enable_if<(To::size() > 2 * From::size())> = Vc::nullarg)
+{
+    To casted = simd_cast<To>(mask, mask, mask, mask);
+    std::size_t i = 0;
+    for (; i < From::Size; ++i) {
+        COMPARE(casted[i], mask[i]) << "i: " << i;
+    }
+    for (; i < std::min(To::Size, 2 * From::Size); ++i) {
+        COMPARE(casted[i], mask[i - From::Size]) << "i: " << i;
+    }
+    for (; i < std::min(To::Size, 3 * From::Size); ++i) {
+        COMPARE(casted[i], mask[i - 2 * From::Size]) << "i: " << i;
+    }
+    for (; i < std::min(To::Size, 4 * From::Size); ++i) {
+        COMPARE(casted[i], mask[i - 3 * From::Size]) << "i: " << i;
+    }
+    for (; i < To::Size; ++i) {
+        COMPARE(casted[i], false) << "i: " << i;
+    }
+}
+template <typename To, typename From>
+void mask_cast_4(const From, Vc::enable_if<!(To::size() > 2 * From::size())> = Vc::nullarg)
+{
+}
+
+template <typename To, typename From> void mask_cast(From mask)
+{
+    mask_cast_1<To>(mask);
+    mask_cast_2<To>(mask);
+    mask_cast_4<To>(mask);
+}
+
+TEST_ALL_V(V, cast_mask)
+{
+    using M = typename V::Mask;
+    UnitTest::withRandomMask<V>([](M mask) {
+        mask_cast<   int_m>(mask);
+        mask_cast<  uint_m>(mask);
+        mask_cast< short_m>(mask);
+        mask_cast<ushort_m>(mask);
+        mask_cast< float_m>(mask);
+        mask_cast<double_m>(mask);
+    });
+}
 #if 0
 
 template<typename T> constexpr bool may_overflow() { return std::is_integral<T>::value && std::is_unsigned<T>::value; }
