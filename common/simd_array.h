@@ -167,6 +167,13 @@ public:
     {
     }
 
+    Vc_INTRINSIC simd_array(const std::initializer_list<value_type> &init)
+        : data(init.begin(), Vc::Unaligned)
+    {
+        // TODO: when initializer_list::size() becomes constexpr (C++14) make this a static_assert
+        VC_ASSERT(init.size() == size());
+    }
+
     // forward all remaining ctors
     template <typename... Args,
               typename = enable_if<!Traits::is_cast_arguments<Args...>::value &&
@@ -409,6 +416,14 @@ public:
     explicit Vc_INTRINSIC simd_array(const U *mem, Flags f = Flags())
         : data0(mem, f), data1(mem + storage_type0::size(), f)
     {
+    }
+
+    Vc_INTRINSIC simd_array(const std::initializer_list<value_type> &init)
+        : data0(init.begin(), Vc::Unaligned)
+        , data1(init.begin() + storage_type0::size(), Vc::Unaligned)
+    {
+        // TODO: when initializer_list::size() becomes constexpr (C++14) make this a static_assert
+        VC_ASSERT(init.size() == size());
     }
 
     // forward all remaining ctors
