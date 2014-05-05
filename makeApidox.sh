@@ -2,7 +2,5 @@
 
 cd "`dirname "$0"`/doc"
 
-rm -rf html latex man
+rm -rf html
 doxygen
-cd latex
-make
