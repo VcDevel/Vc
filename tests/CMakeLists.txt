@@ -9,6 +9,13 @@ if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4723") # Disable warning "potential divide by 0" (suppress doesn't work)
 endif()
 
+if(DEFINED Vc_INSIDE_ROOT)
+   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "")  # Reset the ROOT default executable destination
+   set(Vc_TEST_TARGET_PREFIX "vc-")
+else()
+   set(Vc_TEST_TARGET_PREFIX "")
+endif()
+
 # don't warn about sanity checks:
 AddCompilerFlag(-Wno-tautological-constant-out-of-range-compare)
 AddCompilerFlag(-Wno-tautological-compare)
@@ -55,8 +62,8 @@ macro(vc_set_test_target_properties _target _impl _compile_flags)
    add_target_property(${_target} COMPILE_FLAGS "${_compile_flags} ${_extra_flags}")
    add_target_property(${_target} LABELS "${_impl}")
    add_dependencies(${_impl} ${_target})
-   add_test(${_target} "${CMAKE_CURRENT_BINARY_DIR}/${_target}")
-   set_property(TEST ${_target} PROPERTY LABELS "${_impl}")
+   add_test(${Vc_TEST_TARGET_PREFIX}${_target} "${CMAKE_CURRENT_BINARY_DIR}/${_target}")
+   set_property(TEST ${Vc_TEST_TARGET_PREFIX}${_target} PROPERTY LABELS "${_impl}")
    vc_add_run_target(${_target})
 endmacro()
 
@@ -166,10 +173,10 @@ macro(vc_add_test _name)
          add_dependencies(MIC ${_target})
          if(MIC_NATIVELOAD)
             get_target_property(_exe "${_target}" OUTPUT_NAME)
-            add_test(NAME ${_target}
+            add_test(NAME ${Vc_TEST_TARGET_PREFIX}${_target}
                COMMAND "${MIC_NATIVELOAD}" "${_exe}"
                )
-            set_property(TEST ${_target} PROPERTY LABELS "MIC")
+            set_property(TEST ${Vc_TEST_TARGET_PREFIX}${_target} PROPERTY LABELS "MIC")
             vc_add_run_target(${_target})
          endif()
       endif()
@@ -209,8 +216,8 @@ if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN)
       add_target_property(sse2_blend COMPILE_FLAGS "-DVC_IMPL=SSE2 ${_sse2_flag}")
       add_target_property(sse2_blend LABELS "SSE")
       add_dependencies(SSE sse2_blend)
-      add_test(sse2_blend "${CMAKE_CURRENT_BINARY_DIR}/sse2_blend")
-      set_property(TEST sse2_blend PROPERTY LABELS "SSE")
+      add_test(${Vc_TEST_TARGET_PREFIX}sse2_blend "${CMAKE_CURRENT_BINARY_DIR}/sse2_blend")
+      set_property(TEST ${Vc_TEST_TARGET_PREFIX}sse2_blend PROPERTY LABELS "SSE")
       target_link_libraries(sse2_blend Vc)
 
       if(USE_SSE4_1)
@@ -218,8 +225,8 @@ if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN)
          add_target_property(sse4_blend COMPILE_FLAGS "-DVC_IMPL=SSE4_1 ${_sse4_1_flag}")
          add_target_property(sse4_blend LABELS "SSE")
          add_dependencies(SSE sse4_blend)
-         add_test(sse4_blend "${CMAKE_CURRENT_BINARY_DIR}/sse4_blend")
-         set_property(TEST sse4_blend PROPERTY LABELS "SSE")
+         add_test(${Vc_TEST_TARGET_PREFIX}sse4_blend "${CMAKE_CURRENT_BINARY_DIR}/sse4_blend")
+         set_property(TEST ${Vc_TEST_TARGET_PREFIX}sse4_blend PROPERTY LABELS "SSE")
          target_link_libraries(sse4_blend Vc)
       endif()
    endif()
@@ -230,8 +237,8 @@ macro(vc_add_general_test _name)
    target_link_libraries(${_name} Vc)
    add_target_property(${_name} LABELS "other")
    add_dependencies(other ${_name})
-   add_test(${_name} "${CMAKE_CURRENT_BINARY_DIR}/${_name}")
-   set_property(TEST ${_name} PROPERTY LABELS "other")
+   add_test(${Vc_TEST_TARGET_PREFIX}${_name} "${CMAKE_CURRENT_BINARY_DIR}/${_name}")
+   set_property(TEST ${Vc_TEST_TARGET_PREFIX}${_name} PROPERTY LABELS "other")
    vc_add_run_target(${_name})
 endmacro()
 
@@ -269,15 +276,15 @@ if(TEST_OPERATOR_FAILURES)
          foreach(type_a ${A} ${B})
             foreach(op "^" "==" "*") # "/" "+" "-" "&" "|" "!=" "<=" ">=" "<" ">")
                set(name "implicit_type_conversion_failures_${type_a}_${op}_${type_b}_${impl}")
-               add_test(NAME "${name}" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+               add_test(NAME "${Vc_TEST_TARGET_PREFIX}${name}" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                   COMMAND
                   ${CMAKE_CXX_COMPILER} ${_flags} ${_implFlags}
                   ${incdirs} -c -o "${name}.tmp"
                   "-DTYPE_A=${type_a}" "-DTEST_OP=${op}" "-DTYPE_B=${type_b}" "-DVC_IMPL=${impl}"
                   ${CMAKE_CURRENT_SOURCE_DIR}/implicit_type_conversion_failures.cpp
                   )
-               set_property(TEST "${name}" PROPERTY LABELS "${impl}")
-               set_tests_properties("${name}" PROPERTIES
+               set_property(TEST "${Vc_TEST_TARGET_PREFIX}${name}" PROPERTY LABELS "${impl}")
+               set_tests_properties("${Vc_TEST_TARGET_PREFIX}${name}" PROPERTIES
                   PASS_REGULAR_EXPRESSION "invalid operands to binary expression;error: no match for .*operator\\${op};error C267[789]: binary .*\\${op}.* no (global )?operator found;error: no operator \"\\${op}\" matches these operands"
                   FAIL_REGULAR_EXPRESSION "no such file or directory;undefined reference to"
                   )
