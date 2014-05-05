@@ -374,7 +374,7 @@ macro(vc_set_preferred_compiler_flags)
 
       if(XCODE)
          # set_target_properties(${_target} PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-      else()
+      elseif(NOT DEFINED Vc_INSIDE_ROOT)  # ROOT has to set this up
          AddCompilerFlag(-stdlib=libc++)
       endif()
    endif()
