@@ -41,7 +41,7 @@ release: version $versionString
 * don't build tests with make all
 EOF
 
-git tag -m "Vc $versionString release" -s "$versionString"
+git tag -m "Vc $versionString release" -s "$versionString" || exit
 
 # Create tarball
 git archive --format=tar --prefix="Vc-$versionString/" "$versionString" | gzip > ../"Vc-$versionString.tar.gz"
