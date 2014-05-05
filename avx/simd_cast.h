@@ -259,6 +259,7 @@ Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE:: float_m, SSE::int_m) { return {AVX::lo128(x.da
 #undef Vc_SIMD_CAST_2
 #undef Vc_SIMD_CAST_4
 
+// 1 AVX::Mask to 1 AVX::Mask
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
@@ -268,6 +269,29 @@ Vc_INTRINSIC Vc_CONST Return
                                                   Return::Size,
                                                   typename Return::VectorType>(k.dataI())};
 }
+
+// 1 AVX::Mask to N AVX::Mask
+// It's rather limited: all AVX::Mask types except double_v have Size=8; and double_v::Size=4
+// Therefore Return is always double_m and k is either float_m == int_m == uint_m or
+// short_m == ushort_m
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+              enable_if<sizeof(k) == 32 && offset == 1 && AVX::is_mask<Return>::value> = nullarg)
+{
+    const auto tmp = AVX::hi128(k.dataI());
+    return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
+}
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+              enable_if<sizeof(k) == 16 && offset == 1 && AVX::is_mask<Return>::value> = nullarg)
+{
+    const auto tmp = _mm_unpackhi_epi16(k.dataI(), k.dataI());
+    return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
+}
+
+// 1 simd_mask_array to 1 AVX::Mask
 template <typename Return, typename T, std::size_t N, typename V, std::size_t M>
 Vc_INTRINSIC Vc_CONST Return simd_cast(const simd_mask_array<T, N, V, M> &k,
                                        enable_if<AVX::is_mask<Return>::value || AVX2::is_mask<Return>::value> = nullarg)

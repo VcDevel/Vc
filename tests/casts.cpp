@@ -295,12 +295,32 @@ template <typename To, typename From>
 void mask_cast_4(const From, Vc::enable_if<!(To::size() > 2 * From::size())> = Vc::nullarg)
 {
 }
+template <typename To, typename From> void mask_cast_0_5(const From mask, Vc::enable_if<(To::size() < From::size())> = Vc::nullarg)
+{
+    const To casted0 = simd_cast<To, 0>(mask);
+    const To casted1 = simd_cast<To, 1>(mask);
+    std::size_t i = 0;
+    for (; i < To::Size; ++i) {
+        COMPARE(casted0[i], mask[i]) << "i: " << i;
+    }
+    for (; i < std::min(2 * To::Size, From::Size); ++i) {
+        COMPARE(casted1[i - To::Size], mask[i]) << "i: " << i;
+    }
+    for (; i < 2 * To::Size; ++i) {
+        COMPARE(casted1[i - To::Size], false) << "i: " << i;
+    }
+}
+template <typename To, typename From>
+void mask_cast_0_5(const From, Vc::enable_if<!(To::size() < From::size())> = Vc::nullarg)
+{
+}
 
 template <typename To, typename From> void mask_cast(From mask)
 {
     mask_cast_1<To>(mask);
     mask_cast_2<To>(mask);
     mask_cast_4<To>(mask);
+    mask_cast_0_5<To>(mask);
 }
 
 TEST_ALL_V(V, cast_mask)
