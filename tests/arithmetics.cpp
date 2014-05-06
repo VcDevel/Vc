@@ -27,6 +27,8 @@
 
 using namespace Vc;
 
+#define ALL_TYPES (ALL_VECTORS)
+#if 0
 #define ALL_TYPES                                                                                  \
     (SIMD_ARRAYS(32),                                                                              \
      SIMD_ARRAYS(31),                                                                              \
@@ -36,6 +38,7 @@ using namespace Vc;
      SIMD_ARRAYS(2),                                                                               \
      SIMD_ARRAYS(1),                                                                               \
      ALL_VECTORS)
+#endif
 
 std::default_random_engine randomEngine;
 
