@@ -36,7 +36,8 @@ template<typename Vec> constexpr unsigned long alignmentMask()
         );
 }
 
-TEST_BEGIN(Vec, checkAlignment, (ALL_VECTORS, SIMD_ARRAYS(32)))
+TEST_TYPES(Vec, checkAlignment, (ALL_VECTORS, SIMD_ARRAYS(32)))
+{
     unsigned char i = 1;
     Vec a[10];
     unsigned long mask = alignmentMask<Vec>();
@@ -47,11 +48,12 @@ TEST_BEGIN(Vec, checkAlignment, (ALL_VECTORS, SIMD_ARRAYS(32)))
     for (i = 0; i < 10; ++i) {
         VERIFY(&data[i * sizeof(Vec)] == reinterpret_cast<const char *>(&a[i]));
     }
-TEST_END
+}
 
 void *hack_to_put_b_on_the_stack = 0;
 
-TEST_BEGIN(Vec, checkMemoryAlignment, (ALL_VECTORS, SIMD_ARRAYS(32)))
+TEST_TYPES(Vec, checkMemoryAlignment, (ALL_VECTORS, SIMD_ARRAYS(32)))
+{
     typedef typename Vec::EntryType T;
     const T *b = 0;
     Vc::Memory<Vec, 10> a;
@@ -61,13 +63,14 @@ TEST_BEGIN(Vec, checkMemoryAlignment, (ALL_VECTORS, SIMD_ARRAYS(32)))
     for (int i = 0; i < 10; ++i) {
         VERIFY((reinterpret_cast<size_t>(&b[i * Vec::Size]) & mask) == 0) << "b = " << b << ", mask = " << mask;
     }
-TEST_END
+}
 
 enum Enum {
     loadArrayShortCount = 32 * 1024,
     streamingLoadCount = 1024
 };
-TEST_BEGIN(Vec, loadArrayShort, (short_v, ushort_v, simd_array<short, 32>, simd_array<unsigned short, 32>))
+TEST_TYPES(Vec, loadArrayShort, (short_v, ushort_v, simd_array<short, 32>, simd_array<unsigned short, 32>))
+{
     typedef typename Vec::EntryType T;
 
     Vc::Memory<Vec, loadArrayShortCount> array;
@@ -88,9 +91,10 @@ TEST_BEGIN(Vec, loadArrayShort, (short_v, ushort_v, simd_array<short, 32>, simd_
         b.load(addr, Vc::Aligned);
         COMPARE(b, ii);
     }
-TEST_END
+}
 
-TEST_BEGIN(Vec, loadArray, (ALL_VECTORS, SIMD_ARRAYS(32)))
+TEST_TYPES(Vec, loadArray, (ALL_VECTORS, SIMD_ARRAYS(32)))
+{
     typedef typename Vec::EntryType T;
     if (sizeof(T) < 32) {
         return;
@@ -119,9 +123,10 @@ TEST_BEGIN(Vec, loadArray, (ALL_VECTORS, SIMD_ARRAYS(32)))
     // check that Vc allows construction from objects that auto-convert to T*
     Vec tmp0(array, Vc::Aligned);
     tmp0.load(array, Vc::Aligned);
-TEST_END
+}
 
-TEST_BEGIN(Vec, streamingLoad, (ALL_VECTORS, SIMD_ARRAYS(32)))
+TEST_TYPES(Vec, streamingLoad, (ALL_VECTORS, SIMD_ARRAYS(32)))
+{
     typedef typename Vec::EntryType T;
 
     Vc::Memory<Vec, streamingLoadCount> data;
@@ -144,7 +149,7 @@ TEST_BEGIN(Vec, streamingLoad, (ALL_VECTORS, SIMD_ARRAYS(32)))
         COMPARE(v1, ref) << ", i = " << i;
         COMPARE(v2, ref) << ", i = " << i;
     }
-TEST_END
+}
 
 template<typename T, typename Current = void> struct SupportedConversions { typedef void Next; };
 template<> struct SupportedConversions<float, void>           { typedef double         Next; };
@@ -218,13 +223,14 @@ template<typename Vec, typename MemT> struct LoadCvt {
             }
         }
 
-        ADD_PASS() << "loadCvt: load " << UnitTest::typeToString<MemT>() << "* as " << UnitTest::typeToString<Vec>();
+        UnitTest::ADD_PASS() << "loadCvt: load " << UnitTest::typeToString<MemT>() << "* as " << UnitTest::typeToString<Vec>();
         LoadCvt<Vec, typename SupportedConversions<VecT, MemT>::Next>::test();
     }
 };
 template<typename Vec> struct LoadCvt<Vec, void> { static void test() {} };
 
-TEST_BEGIN(Vec, loadCvt, (ALL_VECTORS, SIMD_ARRAYS(32)))
+TEST_TYPES(Vec, loadCvt, (ALL_VECTORS, SIMD_ARRAYS(32)))
+{
     typedef typename Vec::EntryType T;
     LoadCvt<Vec, typename SupportedConversions<T>::Next>::test();
-TEST_END
+}
