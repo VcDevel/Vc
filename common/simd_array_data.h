@@ -159,20 +159,24 @@ template <typename T, std::size_t Offset> struct AddOffset
 template <std::size_t secondOffset> struct Split/*{{{*/
 {
     template <typename Op = void, typename U>
-    static Vc_ALWAYS_INLINE U lo(
-        U &&x,
-        enable_if<!Traits::is_simd_vector<U>::value && !Traits::is_simd_mask<U>::value> = nullarg)
+    static Vc_ALWAYS_INLINE U
+        lo(U &&x,
+           enable_if<(!Traits::is_simd_vector<U>::value && !Traits::is_simd_mask<U>::value &&
+                      !std::is_pointer<Traits::decay<U>>::value)> = nullarg)
     {
         return std::forward<U>(x);
     }
     template <typename Op = void, typename U>
-    static Vc_ALWAYS_INLINE U hi(
-        U &&x,
-        enable_if<!Traits::is_simd_vector<U>::value && !Traits::is_simd_mask<U>::value> = nullarg)
+    static Vc_ALWAYS_INLINE U
+        hi(U &&x,
+           enable_if<(!Traits::is_simd_vector<U>::value && !Traits::is_simd_mask<U>::value &&
+                      !std::is_pointer<Traits::decay<U>>::value)> = nullarg)
     {
         return std::forward<U>(x);
     }
 
+    // generic pointer arguments (simd_array pointers below)
+    template <typename Op, typename U> static Vc_ALWAYS_INLINE U *lo(U *ptr) { return ptr; }
     template <typename Op, typename U>
     static Vc_ALWAYS_INLINE U *hi(
         U *ptr,
