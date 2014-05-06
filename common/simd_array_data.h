@@ -219,12 +219,12 @@ template <std::size_t secondOffset> struct Split/*{{{*/
         return internal_data1(x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto lo(simd_array<U, N, V, M> *x) -> decltype(internal_data0(*x)) *
+    static Vc_INTRINSIC auto lo(simd_array<U, N, V, M> *x) -> decltype(&internal_data0(*x))
     {
         return &internal_data0(*x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto hi(simd_array<U, N, V, M> *x) -> decltype(internal_data1(*x)) *
+    static Vc_INTRINSIC auto hi(simd_array<U, N, V, M> *x) -> decltype(&internal_data1(*x))
     {
         return &internal_data1(*x);
     }
