@@ -429,10 +429,21 @@ public:
         VC_ASSERT(init.size() == size());
     }
 
+    // gather
+    template <typename U,
+              typename... Args,
+              typename = enable_if<Traits::is_gather_signature<U *, Args...>::value>>
+    explicit Vc_INTRINSIC simd_array(U *mem, Args &&... args)
+        : data0(mem, Split::lo(std::forward<Args>(args))...)
+        , data1(mem, Split::hi(std::forward<Args>(args))...)
+    {
+    }
+
     // forward all remaining ctors
     template <typename... Args,
               typename = enable_if<!Traits::is_cast_arguments<Args...>::value &&
                                    !Traits::is_initializer_list<Args...>::value &&
+                                   !Traits::is_gather_signature<Args...>::value &&
                                    !Traits::is_load_arguments<Args...>::value>>
     explicit Vc_INTRINSIC simd_array(Args &&... args)
         : data0(Split::lo(std::forward<Args>(args))...)
