@@ -27,7 +27,9 @@
 #include <Vc/vector>
 #include "../common/subscript.h"
 
-TEST_TYPES(V, init, (ALL_VECTORS))
+#define ALL_TYPES (ALL_VECTORS)
+
+TEST_TYPES(V, init, ALL_TYPES)
 {
     typedef typename V::EntryType T;
     Vc::array<T, 256> data;
@@ -77,7 +79,7 @@ template <typename V, int Modulo> static V randomIndexes()
     return indexes;
 }
 
-TEST_TYPES(V, gathers, (SIMD_ARRAYS(32), ALL_VECTORS))
+TEST_TYPES(V, gathers, ALL_TYPES)
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
@@ -117,7 +119,7 @@ std::ostream &operator<<(std::ostream &s, const Vc::array<T, N> &data)
     return s;
 }
 
-TEST_TYPES(V, scatters, (SIMD_ARRAYS(32), ALL_VECTORS))
+TEST_TYPES(V, scatters, ALL_TYPES)
 {
     static_assert(std::is_same<decltype(V() + 1), V>::value, "");
     typedef typename V::EntryType T;
@@ -169,7 +171,7 @@ template <typename T> struct S
     char x3;
 };
 
-TEST_TYPES(V, structGathers, (SIMD_ARRAYS(32), ALL_VECTORS))
+TEST_TYPES(V, structGathers, ALL_TYPES)
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
@@ -228,7 +230,7 @@ TEST_TYPES(V, structGathers, (SIMD_ARRAYS(32), ALL_VECTORS))
     }
 }
 
-TEST_TYPES(V, subarrayGathers, (SIMD_ARRAYS(32), ALL_VECTORS))
+TEST_TYPES(V, subarrayGathers, ALL_TYPES)
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;

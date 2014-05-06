@@ -32,7 +32,8 @@ using Vc::ushort_m;
 template<typename T> T two() { return T(2); }
 template<typename T> T three() { return T(3); }
 
-#define ALL_TYPES (ALL_VECTORS, Vc::simd_array<int, 1>)
+#define ALL_TYPES (ALL_VECTORS)
+//, SIMD_ARRAYS(33), SIMD_ARRAYS(32), SIMD_ARRAYS(31), SIMD_ARRAYS(16), SIMD_ARRAYS(8), SIMD_ARRAYS(7), SIMD_ARRAYS(4), SIMD_ARRAYS(3), SIMD_ARRAYS(2), SIMD_ARRAYS(1))
 
 TEST_TYPES(Vec, testInc, ALL_TYPES) /*{{{*/
 {
