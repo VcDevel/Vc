@@ -412,12 +412,15 @@ public:
     }
 
     // load ctor
-    template <typename U, typename Flags = DefaultLoadTag>
+    template <typename U,
+              typename Flags = DefaultLoadTag,
+              typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
     explicit Vc_INTRINSIC simd_array(const U *mem, Flags f = Flags())
         : data0(mem, f), data1(mem + storage_type0::size(), f)
     {
     }
 
+    // initializer list
     Vc_INTRINSIC simd_array(const std::initializer_list<value_type> &init)
         : data0(init.begin(), Vc::Unaligned)
         , data1(init.begin() + storage_type0::size(), Vc::Unaligned)
