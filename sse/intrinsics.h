@@ -37,10 +37,6 @@ extern "C" {
 
 #include "../common/fix_clang_emmintrin.h"
 
-#if defined(__GNUC__) && !defined(VC_IMPL_SSE2)
-#error "SSE Vector class needs at least SSE2"
-#endif
-
 #include "const_data.h"
 #include <cstdlib>
 #include "macros.h"
