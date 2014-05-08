@@ -1,3 +1,4 @@
+#include <x86intrin.h>
 #include <Vc/Vc>
 #include <Vc/IO>
 #include <Vc/support.h>
