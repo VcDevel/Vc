@@ -23,10 +23,13 @@
 
 #include <Vc/global.h>
 
-#if VC_GCC && !defined(__OPTIMIZE__)
+#if defined(VC_GCC) && !defined(__OPTIMIZE__)
+#  if VC_GCC >= 0x40500
+#    pragma GCC diagnostic push
+#    define Vc_POP_GCC_DIAGNOSTIC__ 1
+#  endif
 // GCC uses lots of old-style-casts in macros that disguise as intrinsics
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
+#  pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
 #ifdef VC_MSVC
