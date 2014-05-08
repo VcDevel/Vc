@@ -115,6 +115,22 @@ VECTOR_TYPE cos(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
+ * Calculates the sine and cosine of \p v.
+ * The values are returned in the \p sin and \p cos parameters.
+ *
+ * \param[in]  v input value to sin and cos
+ * \param[out] sin Needs to be a non-null pointer which will be set to the sine of \p v.
+ * \param[out] cos Needs to be a non-null pointer which will be set to the cosine of \p v.
+ *
+ * \note The single-precision implementation has an error of max. 2 ulp (mean 0.18 ulp) in the range [-8192, 8192].
+ * \note The double-precision implementation has an error of max. 8e6 ulp (mean 1160 ulp) in the range [-8192, 8192].
+ * \note Vc versions before 0.7 had much larger errors.
+ */
+void sincos(const VECTOR_TYPE &v, VECTOR_TYPE *sin, VECTOR_TYPE *cos);
+
+/**
+ * \ingroup Math
+ *
  * Returns the arcsine of \p v.
  *
  * \note The single-precision implementation has an error of max. 2 ulp (mean 0.3 ulp).
