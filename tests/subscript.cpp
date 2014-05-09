@@ -274,7 +274,6 @@ TEST_TYPES(V, subarrayGathers, ALL_TYPES)
 TEST_TYPES(V, fixedWidthGatherScatter4, (SIMD_ARRAYS(4)))
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType IT;
     Vc::array<T, 256> data;
     Vc::vector<T> data2(256);
     for (int i = 0; i < data.size(); ++i) {
@@ -307,7 +306,6 @@ TEST_TYPES(V, fixedWidthGatherScatter4, (SIMD_ARRAYS(4)))
 TEST_TYPES(V, fixedWidthGatherScatter32, (SIMD_ARRAYS(32)))
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType IT;
     Vc::array<T, 256> data;
     Vc::vector<T> data2(256);
     for (int i = 0; i < data.size(); ++i) {

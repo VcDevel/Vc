@@ -252,8 +252,6 @@ TEST_TYPES(Vec, testZero, ALL_TYPES) /*{{{*/
 /*}}}*/
 TEST_TYPES(Vec, testCount, ALL_TYPES) /*{{{*/
 {
-    typedef typename Vec::EntryType T;
-    typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
     UnitTest::withRandomMask<Vec>([](M m) {
@@ -269,7 +267,6 @@ TEST_TYPES(Vec, testCount, ALL_TYPES) /*{{{*/
 /*}}}*/
 TEST_TYPES(Vec, testFirstOne, ALL_TYPES) /*{{{*/
 {
-    typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 

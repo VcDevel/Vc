@@ -27,7 +27,6 @@ using namespace Vc;
 
 template<typename Vec> void testSort()
 {
-    typedef typename Vec::EntryType EntryType;
     typedef typename Vec::IndexType IndexType;
 
     const IndexType _ref(IndexesFromZero);
@@ -117,8 +116,6 @@ template<typename V> void testForeachBit()
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
-    typedef typename V::Mask M;
-    typedef typename I::Mask MI;
     const I indexes(IndexesFromZero);
     for_all_masks(V, mask) {
         V tmp = V::Zero();
@@ -149,7 +146,6 @@ template<typename V> void testForeachBit()
 
 template<typename V> void copySign()
 {
-    typedef typename V::EntryType T;
     V v(One);
     V positive(One);
     V negative = -positive;
@@ -384,7 +380,6 @@ template <typename V, typename Shift> void shiftedInConstant(const V &data, Shif
 
 template<typename V> void shiftedIn()
 {
-    typedef typename V::EntryType T;
     constexpr int Size = V::Size;
     for (int shift = -1 * Size; shift <= 1 * Size; ++shift) {
         const V data = V::Random();
