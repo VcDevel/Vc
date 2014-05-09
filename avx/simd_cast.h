@@ -248,8 +248,8 @@ Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE:: float_v) { return AVX::zeroExtend(
 Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE:: float_v) { return _mm256_cvtepi32_ps(AVX::concat(x0.data(), x1.data())); }
 Vc_SIMD_CAST_1(SSE::int_m, Vc_AVX_NAMESPACE:: float_m) { return AVX::zeroExtend(x.data()); }
 Vc_SIMD_CAST_2(SSE::int_m, Vc_AVX_NAMESPACE:: float_m) { return AVX::concat(x0.data(), x1.data()); }
-Vc_SIMD_CAST_1(SSE::float_m, Vc_AVX_NAMESPACE::double_m) { return AVX::concat(_mm_unpacklo_epi32(x.data(), x.data()),
-                                                                              _mm_unpackhi_epi32(x.data(), x.data())); }
+Vc_SIMD_CAST_1(SSE::float_m, Vc_AVX_NAMESPACE::double_m) { return AVX::concat(_mm_unpacklo_epi32(x.dataI(), x.dataI()),
+                                                                              _mm_unpackhi_epi32(x.dataI(), x.dataI())); }
 
 Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE:: float_v, SSE::int_v) { return simd_cast<SSE::int_v>(SSE::float_v{AVX::lo128(x.data())}); }
 Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE::double_m, SSE::int_m) { return {_mm_packs_epi32(AVX::lo128(x.dataI()), AVX::hi128(x.dataI()))}; }
@@ -364,7 +364,7 @@ Vc_INTRINSIC Vc_CONST Return
     using SseVector = SSE::Mask<Traits::entry_type_of<typename M::Vector>>;
     using Intrin = typename SseVector::VectorType;
     return simd_cast<Return>(SseVector{
-        AVX::avx_cast<Intrin>(_mm_alignr_epi8(AVX::lo128(x.data()), AVX::hi128(x.data()), shift))});
+        AVX::avx_cast<Intrin>(_mm_alignr_epi8(AVX::lo128(x.dataI()), AVX::hi128(x.dataI()), shift))});
 }
 
 // offset == 0

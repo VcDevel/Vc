@@ -137,7 +137,8 @@ public:
         // implicit cast
         template <typename U>
         Vc_INTRINSIC Mask(U &&rhs, enable_if_implicitly_convertible<U> = nullarg)
-            : d(internal::mask_cast<Traits::simd_vector_size<U>::value, Size>(rhs.dataI()))
+            : d(sse_cast<__m128>(
+                  internal::mask_cast<Traits::simd_vector_size<U>::value, Size>(rhs.dataI())))
         {
         }
 
