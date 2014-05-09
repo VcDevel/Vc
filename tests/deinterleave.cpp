@@ -230,8 +230,8 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
 
     for (int retest = 0; retest < 10000; ++retest) {
         I indexes = (I::Random() >> 10) & I(NMask);
-        VERIFY(indexes >= 0);
-        VERIFY(indexes < N);
+        VERIFY(all_of(indexes >= 0));
+        VERIFY(all_of(indexes < N));
         const V reference = static_cast<V>(indexes) * V(StructSize);
 
         TestDeinterleaveGatherCompare<V, StructSize, true>::test(data_v, indexes, reference);
@@ -402,8 +402,8 @@ template<typename V, size_t StructSize> void testInterleavingScatterImpl()
                 indexes = (I::Random() >> 10) & I(NMask);
             }
         }
-        VERIFY(indexes >= 0);
-        VERIFY(indexes < N);
+        VERIFY(all_of(indexes >= 0));
+        VERIFY(all_of(indexes < N));
 
         TestInterleavingScatterCompare<V, StructSize, true>::test(data_v, indexes);
     }
