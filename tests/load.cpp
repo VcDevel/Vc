@@ -17,11 +17,11 @@
 
 */
 
-#define VC_NEWTEST
 #include "unittest.h"
-#include <iostream>
 
 using namespace Vc;
+
+#define ALL_TYPES (ALL_VECTORS)
 
 template<typename T> static constexpr T min(T a, T b) { return a < b ? a : b; }
 
@@ -36,7 +36,7 @@ template<typename Vec> constexpr unsigned long alignmentMask()
         );
 }
 
-TEST_TYPES(Vec, checkAlignment, (ALL_VECTORS, SIMD_ARRAYS(32)))
+TEST_TYPES(Vec, checkAlignment, ALL_TYPES)
 {
     unsigned char i = 1;
     Vec a[10];
@@ -52,7 +52,7 @@ TEST_TYPES(Vec, checkAlignment, (ALL_VECTORS, SIMD_ARRAYS(32)))
 
 void *hack_to_put_b_on_the_stack = 0;
 
-TEST_TYPES(Vec, checkMemoryAlignment, (ALL_VECTORS, SIMD_ARRAYS(32)))
+TEST_TYPES(Vec, checkMemoryAlignment, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     const T *b = 0;
@@ -93,7 +93,7 @@ TEST_TYPES(Vec, loadArrayShort, (short_v, ushort_v, simd_array<short, 32>, simd_
     }
 }
 
-TEST_TYPES(Vec, loadArray, (ALL_VECTORS, SIMD_ARRAYS(32)))
+TEST_TYPES(Vec, loadArray, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     if (sizeof(T) < 32) {
@@ -125,7 +125,7 @@ TEST_TYPES(Vec, loadArray, (ALL_VECTORS, SIMD_ARRAYS(32)))
     tmp0.load(array, Vc::Aligned);
 }
 
-TEST_TYPES(Vec, streamingLoad, (ALL_VECTORS, SIMD_ARRAYS(32)))
+TEST_TYPES(Vec, streamingLoad, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
 
@@ -229,7 +229,7 @@ template<typename Vec, typename MemT> struct LoadCvt {
 };
 template<typename Vec> struct LoadCvt<Vec, void> { static void test() {} };
 
-TEST_TYPES(Vec, loadCvt, (ALL_VECTORS, SIMD_ARRAYS(32)))
+TEST_TYPES(Vec, loadCvt, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     LoadCvt<Vec, typename SupportedConversions<T>::Next>::test();

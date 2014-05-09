@@ -17,7 +17,6 @@
 
 }}}*/
 
-#define VC_NEWTEST
 #include "unittest.h"
 #include "../common/simd_array.h"
 
@@ -37,18 +36,18 @@ using namespace Vc;
 
 template<typename T, size_t N> constexpr size_t captureN(simd_array<T, N>) { return N; }
 
-TEST_BEGIN(V, createArray, SIMD_ARRAY_LIST)
-    typedef typename V::EntryType T;
+TEST_TYPES(V, createArray, SIMD_ARRAY_LIST)
+{
     typedef typename V::VectorEntryType VT;
-    typedef typename V::vector_type Vec;
     V array;
 
     COMPARE(array.size(), captureN(V()));
     VERIFY(sizeof(array) >= array.size() * sizeof(VT));
     VERIFY(sizeof(array) <= 2 * array.size() * sizeof(VT));
-TEST_END
+}
 
-TEST_BEGIN(V, broadcast, SIMD_ARRAY_LIST)
+TEST_TYPES(V, broadcast, SIMD_ARRAY_LIST)
+{
     typedef typename V::EntryType T;
     V array = 0;
     array = 1;
@@ -57,20 +56,20 @@ TEST_BEGIN(V, broadcast, SIMD_ARRAY_LIST)
     v0 = 2;
     v1 = 3;
     COMPARE(V(), V(0));
-TEST_END
+}
 
-TEST_BEGIN(V, broadcast_equal, SIMD_ARRAY_LIST)
-    typedef typename V::EntryType T;
+TEST_TYPES(V, broadcast_equal, SIMD_ARRAY_LIST)
+{
     V a = 0;
     V b = 0;
     COMPARE(a, b);
     a = 1;
     b = 1;
     COMPARE(a, b);
-TEST_END
+}
 
-TEST_BEGIN(V, broadcast_not_equal, SIMD_ARRAY_LIST)
-    typedef typename V::EntryType T;
+TEST_TYPES(V, broadcast_not_equal, SIMD_ARRAY_LIST)
+{
     V a = 0;
     V b = 1;
     VERIFY(all_of(a != b));
@@ -81,9 +80,9 @@ TEST_BEGIN(V, broadcast_not_equal, SIMD_ARRAY_LIST)
     a = 1;
     VERIFY(all_of(a <= b));
     VERIFY(all_of(a >= b));
-TEST_END
+}
 
-TEST_BEGIN(V, arithmetics, SIMD_ARRAY_LIST)
+TEST_TYPES(V, arithmetics, SIMD_ARRAY_LIST)
 {
     V a = 0;
     V b = 1;
@@ -100,17 +99,18 @@ TEST_BEGIN(V, arithmetics, SIMD_ARRAY_LIST)
     COMPARE(a / c, a);
     COMPARE(c / b, c);
 }
-TEST_END
 
-TEST_BEGIN(V, indexesFromZero, SIMD_ARRAY_LIST)
+TEST_TYPES(V, indexesFromZero, SIMD_ARRAY_LIST)
+{
     typedef typename V::EntryType T;
     V a(Vc::IndexesFromZero);
     for (std::size_t i = 0; i < a.size(); ++i) {
         COMPARE(a[i], T(i));
     }
-TEST_END
+}
 
-TEST_BEGIN(V, load, SIMD_ARRAY_LIST)
+TEST_TYPES(V, load, SIMD_ARRAY_LIST)
+{
     typedef typename V::EntryType T;
     Vc::Memory<V, V::Size + 2> data;
     for (size_t i = 0; i < data.entriesCount(); ++i) {
@@ -129,9 +129,9 @@ TEST_BEGIN(V, load, SIMD_ARRAY_LIST)
 
     b = decltype(b)(&data[2], Vc::Unaligned | Vc::Streaming);
     COMPARE(a, b - 1);
-TEST_END
+}
 
-TEST_BEGIN(A,
+TEST_TYPES(A,
            load_converting,
            (simd_array<float, 32>,
             simd_array<float, 17>,
@@ -157,11 +157,9 @@ TEST_BEGIN(A,
     a = A(&data[2], Vc::Unaligned | Vc::Streaming);
     COMPARE(a, b + 1);
 }
-TEST_END
 
-TEST_BEGIN(V, store, SIMD_ARRAY_LIST)
+TEST_TYPES(V, store, SIMD_ARRAY_LIST)
 {
-    typedef typename V::EntryType T;
     Vc::Memory<V, 34> data;
     data = V::Zero();
 
@@ -175,4 +173,3 @@ TEST_BEGIN(V, store, SIMD_ARRAY_LIST)
     a.store(&data[1], Vc::Unaligned | Vc::Streaming);
     for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i + 1], i);
 }
-TEST_END

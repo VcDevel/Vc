@@ -21,7 +21,6 @@
 
 }}}*/
 
-#define VC_NEWTEST
 #include "unittest.h"
 #include <Vc/array>
 #include <Vc/vector>

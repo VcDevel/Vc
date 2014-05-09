@@ -17,14 +17,15 @@
 
 */
 
-#define VC_NEWTEST
 #include "unittest.h"
 #include <iostream>
 #include <Vc/array>
 
+#define ALL_TYPES (ALL_VECTORS)
+
 using namespace Vc;
 
-TEST_BEGIN(Vec, maskedGatherArray, (ALL_VECTORS))
+TEST_TYPES(Vec, maskedGatherArray, ALL_TYPES)
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
@@ -61,7 +62,6 @@ TEST_BEGIN(Vec, maskedGatherArray, (ALL_VECTORS))
         }
     }
 }
-TEST_END
 
 template <typename Vec>
 Vec incrementIndex(
@@ -87,7 +87,7 @@ Vec incrementIndex(const typename Vec::IndexType &i,
     return r;
 }
 
-TEST_BEGIN(Vec, gatherArray, (SIMD_ARRAYS(32), ALL_VECTORS))
+TEST_TYPES(Vec, gatherArray, ALL_TYPES)
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
@@ -123,7 +123,6 @@ TEST_BEGIN(Vec, gatherArray, (SIMD_ARRAYS(32), ALL_VECTORS))
     a.gather(array, It(IndexesFromZero), k);
     COMPARE(a, Vec(One));
 }
-TEST_END
 
 template<typename T> struct Struct
 {
@@ -135,7 +134,7 @@ template<typename T> struct Struct
     char z;
 };
 
-TEST_BEGIN(Vec, gatherStruct, (ALL_VECTORS))
+TEST_TYPES(Vec, gatherStruct, ALL_TYPES)
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
@@ -183,14 +182,13 @@ TEST_BEGIN(Vec, gatherStruct, (ALL_VECTORS))
         }
     }
 }
-TEST_END
 
 template<typename T, int N> struct Row
 {
     T data[N];
 };
 
-TEST_BEGIN(Vec, gather2dim, (ALL_VECTORS))
+TEST_TYPES(Vec, gather2dim, ALL_TYPES)
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
@@ -231,4 +229,3 @@ TEST_BEGIN(Vec, gather2dim, (ALL_VECTORS))
         }
     }
 }
-TEST_END

@@ -17,7 +17,6 @@
 
 */
 // includes {{{1
-#define VC_NEWTEST
 #include "unittest.h"
 #include <iostream>
 #include <cstring>
@@ -27,7 +26,7 @@ using namespace Vc;
 
 #define ALL_TYPES /*SIMD_ARRAYS(32), SIMD_ARRAYS(16), SIMD_ARRAYS(8), SIMD_ARRAYS(4), SIMD_ARRAYS(2), SIMD_ARRAYS(1),*/ ALL_VECTORS
 
-TEST_BEGIN(Vec, scatterArray, (ALL_TYPES)) //{{{1
+TEST_TYPES(Vec, scatterArray, (ALL_TYPES)) //{{{1
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType It;
@@ -75,9 +74,8 @@ TEST_BEGIN(Vec, scatterArray, (ALL_TYPES)) //{{{1
     }
     COMPARE(0, std::memcmp(&array[0], &out[0], count * sizeof(typename Vec::EntryType)));
 }
-TEST_END
 
-TEST_BEGIN(Vec, maskedScatterArray, (ALL_TYPES)) //{{{1
+TEST_TYPES(Vec, maskedScatterArray, (ALL_TYPES)) //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
@@ -95,7 +93,6 @@ TEST_BEGIN(Vec, maskedScatterArray, (ALL_TYPES)) //{{{1
         COMPARE(Vec(&mem[0], Vc::Unaligned), reference) << "m = " << m;
     }
 }
-TEST_END
 
 template<typename T> struct Struct //{{{1
 {
@@ -107,7 +104,7 @@ template<typename T> struct Struct //{{{1
     char z;
 };
 
-TEST_BEGIN(Vec, scatterStruct, (ALL_TYPES)) //{{{1
+TEST_TYPES(Vec, scatterStruct, (ALL_TYPES)) //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef Struct<typename Vec::EntryType> S;
@@ -132,7 +129,6 @@ TEST_BEGIN(Vec, scatterStruct, (ALL_TYPES)) //{{{1
     }
     VERIFY(0 == memcmp(&array[0], &out[0], count * sizeof(S)));
 }
-TEST_END
 
 template<typename T> struct Struct2 //{{{1
 {
@@ -173,7 +169,7 @@ template<typename V> V makeReference(V v, typename V::Mask m)
     v.setZero(!m);
     return v;
 }
-TEST_BEGIN(Vec, scatterStruct2, (ALL_TYPES)) //{{{1
+TEST_TYPES(Vec, scatterStruct2, (ALL_TYPES)) //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef Struct2<typename Vec::EntryType> S1;
@@ -205,6 +201,5 @@ TEST_BEGIN(Vec, scatterStruct2, (ALL_TYPES)) //{{{1
     VERIFY(0 == memcmp(&array[0], &out[0], scatterStruct2Count * sizeof(S1))) << mask << ' ' << castedMask << '\n'
         << array << '\n' << out;
 }
-TEST_END
 
 // vim: foldmethod=marker

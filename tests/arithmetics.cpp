@@ -17,7 +17,6 @@
 
 */
 
-#define VC_NEWTEST
 #include "unittest.h"
 #include <iostream>
 #include <limits>

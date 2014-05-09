@@ -26,7 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#define VC_NEWTEST
 #include "unittest.h"
 #include <limits>
 #include <algorithm>
