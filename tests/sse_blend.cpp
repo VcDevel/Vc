@@ -37,10 +37,13 @@ ostream &operator<<(ostream &out, const __m128i &v)
 }
 } // namespace std
 
+namespace UnitTest
+{
 template<> inline bool unittest_compareHelper<__m128i, __m128i>(const __m128i &a, const __m128i &b)
 {
     return _mm_movemask_epi8(_mm_cmpeq_epi16(a, b)) == 0xffff;
 }
+}  // namespace UnitTest
 
 void blendpd()
 {
