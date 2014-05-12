@@ -314,12 +314,24 @@ Vc_INTRINSIC Vc_CONST Return
     return {SSE::sse_cast<__m128>(SSE::internal::mask_cast<M::Size, Return::Size>(x.dataI()))};
 }
 
-// any two SSE Mask to one other SSE Mask
+// any two SSE Masks to one other SSE Mask
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast(SSE::Mask<T> x0, SSE::Mask<T> x1, enable_if<SSE::is_mask<Return>::value> = nullarg)
 {
     return SSE::sse_cast<__m128>(_mm_packs_epi16(x0.dataI(), x1.dataI()));
+}
+
+// any four SSE Masks to one other SSE Mask
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return simd_cast(SSE::Mask<T> x0,
+                                       SSE::Mask<T> x1,
+                                       SSE::Mask<T> x2,
+                                       SSE::Mask<T> x3,
+                                       enable_if<SSE::is_mask<Return>::value> = nullarg)
+{
+    return SSE::sse_cast<__m128>(_mm_packs_epi16(_mm_packs_epi16(x0.dataI(), x1.dataI()),
+                                                 _mm_packs_epi16(x2.dataI(), x3.dataI())));
 }
 
 // SSE to SSE (Vector and Mask)
