@@ -175,6 +175,15 @@ public:
         VC_ASSERT(init.size() == size());
     }
 
+    // implicit conversion from underlying vector_type
+    template <
+        typename V,
+        typename = enable_if<Traits::is_simd_vector<V>::value && !Traits::is_simd_array<V>::value>>
+    explicit Vc_INTRINSIC simd_array(const V &x)
+        : data(simd_cast<vector_type>(x))
+    {
+    }
+
     // forward all remaining ctors
     template <typename... Args,
               typename = enable_if<!Traits::is_cast_arguments<Args...>::value &&
