@@ -100,8 +100,8 @@ namespace SSE
         const M underflow = x < Vc::Internal::doubleConstant<-1, 0x0006232bdd7abcd2ull, 9>(); // min log
 
         V px = floor(C::log2_e() * x + 0.5);
-        SSE::Vector<int> n(px);
-        n.data() = Mem::permute<X0, X2, X1, X3>(n.data());
+        simd_array<int, double_v::Size> n;
+        _mm_storel_epi64(reinterpret_cast<__m128i *>(&n), _mm_cvttpd_epi32(px.data()));
         x -= px * C::ln2_large(); //Vc::Internal::doubleConstant<1, 0x00062e4000000000ull, -1>();  // ln2
         x -= px * C::ln2_small(); //Vc::Internal::doubleConstant<1, 0x0007f7d1cf79abcaull, -20>(); // ln2
 

@@ -37,21 +37,25 @@ template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T>
      * The return value will be in the range [0.5, 1.0[
      * The \p e value will be an integer defining the power-of-two exponent
      */
-    inline double_v frexp(const double_v &v, int_v *e) {
+    inline double_v frexp(const double_v &v, simd_array<int, 2, Scalar::int_v, 1> *e) {
         const __m128i exponentBits = Const<double>::exponentMask().dataI();
         const __m128i exponentPart = _mm_and_si128(_mm_castpd_si128(v.data()), exponentBits);
-        *e = _mm_sub_epi32(_mm_srli_epi64(exponentPart, 52), _mm_set1_epi32(0x3fe));
+        int_v exponent = _mm_sub_epi32(_mm_srli_epi64(exponentPart, 52), _mm_set1_epi32(0x3fe));
         const __m128d exponentMaximized = _mm_or_pd(v.data(), _mm_castsi128_pd(exponentBits));
-        double_v ret = _mm_and_pd(exponentMaximized, _mm_load_pd(reinterpret_cast<const double *>(&c_general::frexpMask[0])));
+        double_v ret =
+            _mm_and_pd(exponentMaximized,
+                       _mm_load_pd(reinterpret_cast<const double *>(&c_general::frexpMask[0])));
         double_m zeroMask = v == double_v::Zero();
         ret(isnan(v) || !isfinite(v) || zeroMask) = v;
-        e->setZero(zeroMask.data());
+        exponent.setZero(zeroMask.data());
+        (*e)[0] = exponent[0];
+        (*e)[1] = exponent[2];
         return ret;
     }
-    inline float_v frexp(const float_v &v, int_v *e) {
+    inline float_v frexp(const float_v &v, simd_array<int, 4, SSE::int_v, 4> *e) {
         const __m128i exponentBits = Const<float>::exponentMask().dataI();
         const __m128i exponentPart = _mm_and_si128(_mm_castps_si128(v.data()), exponentBits);
-        *e = _mm_sub_epi32(_mm_srli_epi32(exponentPart, 23), _mm_set1_epi32(0x7e));
+        internal_data(*e) = _mm_sub_epi32(_mm_srli_epi32(exponentPart, 23), _mm_set1_epi32(0x7e));
         const __m128 exponentMaximized = _mm_or_ps(v.data(), _mm_castsi128_ps(exponentBits));
         float_v ret = _mm_and_ps(exponentMaximized, _mm_castsi128_ps(_mm_set1_epi32(0xbf7fffffu)));
         ret(isnan(v) || !isfinite(v) || v == float_v::Zero()) = v;
@@ -63,14 +67,14 @@ template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T>
      * x == NaN    -> NaN
      * x == (-)inf -> (-)inf
      */
-    inline double_v ldexp(double_v::AsArg v, int_v::AsArg _e) {
-        int_v e = _e;
+    inline double_v ldexp(double_v::AsArg v, const simd_array<int, 2, Scalar::int_v, 1> &_e) {
+        int_v e = _mm_setr_epi32(_e[0], 0, _e[1], 0);
         e.setZero((v == double_v::Zero()).dataI());
         const __m128i exponentBits = _mm_slli_epi64(e.data(), 52);
         return _mm_castsi128_pd(_mm_add_epi64(_mm_castpd_si128(v.data()), exponentBits));
     }
-    inline float_v ldexp(float_v::AsArg v, int_v::AsArg _e) {
-        int_v e = _e;
+    inline float_v ldexp(float_v::AsArg v, const simd_array<int, 4, SSE::int_v, 4> &_e) {
+        int_v e = internal_data(_e);
         e.setZero(static_cast<int_m>(v == float_v::Zero()));
         return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
     }
