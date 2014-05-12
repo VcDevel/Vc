@@ -39,14 +39,14 @@ template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
     simd_cast(Scalar::Vector<From> x, enable_if<Scalar::Traits::is_vector<To>::value> = nullarg)
 {
-    return x.data();
+    return static_cast<To>(x.data());
 }
 
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
     simd_cast(Scalar::Mask<From> x, enable_if<Scalar::Traits::is_mask<To>::value> = nullarg)
 {
-    return x.data();
+    return static_cast<To>(x.data());
 }
 
 template <typename Return, int offset, typename T>

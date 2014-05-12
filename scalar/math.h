@@ -206,18 +206,18 @@ template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(cons
             );
 }
 
-Vc_ALWAYS_INLINE Vector<float> frexp(Vector<float> x, Vector<int> *e) {
-    return float_v(::frexpf(x.data(), &e->data()));
+Vc_ALWAYS_INLINE Vector<float> frexp(Vector<float> x, simd_array<int, 1, Vector<int>, 1> *e) {
+    return float_v(std::frexp(x.data(), &internal_data(*e).data()));
 }
-Vc_ALWAYS_INLINE Vector<double> frexp(Vector<double> x, Vector<int> *e) {
-    return double_v(::frexp(x.data(), &e->data()));
+Vc_ALWAYS_INLINE Vector<double> frexp(Vector<double> x, simd_array<int, 1, Vector<int>, 1> *e) {
+    return double_v(std::frexp(x.data(), &internal_data(*e).data()));
 }
 
-Vc_ALWAYS_INLINE Vector<float> ldexp(Vector<float> x, Vector<int> e) {
-    return float_v(::ldexpf(x.data(), e.data()));
+Vc_ALWAYS_INLINE Vector<float> ldexp(Vector<float> x, const simd_array<int, 1, Vector<int>, 1> &e) {
+    return float_v(std::ldexp(x.data(), internal_data(e).data()));
 }
-Vc_ALWAYS_INLINE Vector<double> ldexp(Vector<double> x, Vector<int> e) {
-    return double_v(::ldexp(x.data(), e.data()));
+Vc_ALWAYS_INLINE Vector<double> ldexp(Vector<double> x, const simd_array<int, 1, Vector<int>, 1> &e) {
+    return double_v(std::ldexp(x.data(), internal_data(e).data()));
 }
 
 }
