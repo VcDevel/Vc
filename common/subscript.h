@@ -235,7 +235,7 @@ class SubscriptOperation
         //(sizeof(std::declval<const IndexVector &>()[0]) < sizeof(int)),
         //typename std::conditional<
             //Traits::is_simd_vector<IndexVector>::value,
-            //Vc::simd_array<unsigned int, IndexVector::Size>,
+            //Vc::simdarray<unsigned int, IndexVector::Size>,
             //std::vector<unsigned int>/*>::type*/,
         //IndexVector>::type;
 

@@ -51,6 +51,6 @@ TEST_TYPES(V, check_MaskType, ALL_TYPES)
 
 TEST_TYPES(V, check_IndexType, ALL_TYPES)
 {
-    static_assert(std::is_same<typename V::IndexType, Vc::simd_array<int, V::Size>>::value,
-                  "IndexType is not the expected simd_array");
+    static_assert(std::is_same<typename V::IndexType, Vc::simdarray<int, V::Size>>::value,
+                  "IndexType is not the expected simdarray");
 }

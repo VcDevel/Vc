@@ -1114,10 +1114,10 @@ template <typename V, int Repetitions = 10000, typename F> void withRandomMask(F
 // typeToString {{{1
 template <typename T> inline std::string typeToString();
 
-template <typename T, std::size_t N, typename V, std::size_t M> inline std::string typeToString_impl(Vc::simd_array<T, N, V, M>)
+template <typename T, std::size_t N, typename V, std::size_t M> inline std::string typeToString_impl(Vc::simdarray<T, N, V, M>)
 {
     std::stringstream s;
-    s << "simd_array<" << typeToString<T>() << ", " << N << ", " << typeToString<V>() << '>';
+    s << "simdarray<" << typeToString<T>() << ", " << N << ", " << typeToString<V>() << '>';
     return s.str();
 }
 template <typename T, std::size_t N, typename V, std::size_t M> inline std::string typeToString_impl(Vc::simd_mask_array<T, N, V, M>)
@@ -1294,8 +1294,8 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
 
 #define ALL_VECTORS Vc::int_v, Vc::ushort_v, Vc::double_v, Vc::uint_v, Vc::short_v, Vc::float_v
 #define SIMD_ARRAYS(N__)                                                                           \
-    Vc::simd_array<int, N__>, Vc::simd_array<unsigned short, N__>, Vc::simd_array<double, N__>,    \
-        Vc::simd_array<unsigned int, N__>, Vc::simd_array<short, N__>, Vc::simd_array<float, N__>
+    Vc::simdarray<int, N__>, Vc::simdarray<unsigned short, N__>, Vc::simdarray<double, N__>,    \
+        Vc::simdarray<unsigned int, N__>, Vc::simdarray<short, N__>, Vc::simdarray<float, N__>
 
 #define TEST(fun__)                                                                                \
     void fun__();                                                                                  \

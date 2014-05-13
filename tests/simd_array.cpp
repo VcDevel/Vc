@@ -18,7 +18,7 @@
 }}}*/
 
 #include "unittest.h"
-#include "../common/simd_array.h"
+#include "../common/simdarray.h"
 
 using namespace Vc;
 
@@ -34,7 +34,7 @@ using namespace Vc;
      SIMD_ARRAYS(2),                                                                               \
      SIMD_ARRAYS(1))
 
-template<typename T, size_t N> constexpr size_t captureN(simd_array<T, N>) { return N; }
+template<typename T, size_t N> constexpr size_t captureN(simdarray<T, N>) { return N; }
 
 TEST_TYPES(V, createArray, SIMD_ARRAY_LIST)
 {
@@ -133,14 +133,14 @@ TEST_TYPES(V, load, SIMD_ARRAY_LIST)
 
 TEST_TYPES(A,
            load_converting,
-           (simd_array<float, 32>,
-            simd_array<float, 17>,
-            simd_array<float, 16>,
-            simd_array<float, 8>,
-            simd_array<float, 4>,
-            simd_array<float, 3>,
-            simd_array<float, 2>,
-            simd_array<float, 1>))
+           (simdarray<float, 32>,
+            simdarray<float, 17>,
+            simdarray<float, 16>,
+            simdarray<float, 8>,
+            simdarray<float, 4>,
+            simdarray<float, 3>,
+            simdarray<float, 2>,
+            simdarray<float, 1>))
 {
     Vc::Memory<double_v, 34> data;
     for (size_t i = 0; i < data.entriesCount(); ++i) {

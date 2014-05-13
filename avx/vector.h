@@ -65,14 +65,14 @@ template<typename T> class Vector
 #ifdef VC_IMPL_AVX2
         typedef typename std::conditional<
             (Size >= 8),
-            simd_array<int, Size, int_v, 8>,
+            simdarray<int, Size, int_v, 8>,
             typename std::conditional<(Size >= 4),
-                                      simd_array<int, Size, SSE::int_v, 4>,
-                                      simd_array<int, Size, Scalar::int_v, 1>>>::type IndexType;
+                                      simdarray<int, Size, SSE::int_v, 4>,
+                                      simdarray<int, Size, Scalar::int_v, 1>>>::type IndexType;
 #else
         typedef typename std::conditional<(Size >= 4),
-                                          simd_array<int, Size, SSE::int_v, 4>,
-                                          simd_array<int, Size, Scalar::int_v, 1>>::type IndexType;
+                                          simdarray<int, Size, SSE::int_v, 4>,
+                                          simdarray<int, Size, Scalar::int_v, 1>>::type IndexType;
 #endif
         typedef Vc_AVX_NAMESPACE::Mask<T> Mask;
         using MaskType = Mask;

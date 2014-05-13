@@ -64,7 +64,7 @@
 # include "mic/simd_cast.h"
 #endif
 
-#include "common/simd_array.h"
+#include "common/simdarray.h"
 // XXX See bottom of common/simd_mask_array.h:
 //#include "common/simd_cast_caller.tcc"
 

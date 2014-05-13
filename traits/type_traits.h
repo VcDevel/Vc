@@ -123,7 +123,7 @@ struct is_simd_mask : public std::integral_constant<bool,
 
 /**
  * Identifies any SIMD vector type (independent of implementation or whether it's
- * simd_array<T, N>).
+ * simdarray<T, N>).
  */
 template <typename T>
 struct is_simd_vector
@@ -133,7 +133,7 @@ struct is_simd_vector
 {
 };
 
-/// Identifies any possible simd_array<T, N> type (independent of const/volatile or reference)
+/// Identifies any possible simdarray<T, N> type (independent of const/volatile or reference)
 template <typename T>
 struct is_simd_array : public is_simd_array_internal<decay<T>>
 {

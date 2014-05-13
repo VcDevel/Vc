@@ -21,7 +21,7 @@
 #define VECIO_H
 
 #include "vector.h"
-#include "simd_array"
+#include "simdarray"
 #include "Memory"
 #include <iostream>
 
@@ -168,7 +168,7 @@ inline std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<
 namespace Vc_VERSIONED_NAMESPACE
 {
 template<typename T, std::size_t N>
-inline std::ostream &operator<<(std::ostream &out, const simd_array<T, N> &v)
+inline std::ostream &operator<<(std::ostream &out, const simdarray<T, N> &v)
 {
     out << AnsiColor::green << '<' << v[0];
     for (size_t i = 1; i < N; ++i) {

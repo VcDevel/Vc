@@ -175,7 +175,7 @@ template <std::size_t secondOffset> struct Split/*{{{*/
         return std::forward<U>(x);
     }
 
-    // generic pointer arguments (simd_array pointers below)
+    // generic pointer arguments (simdarray pointers below)
     template <typename Op, typename U> static Vc_ALWAYS_INLINE U *lo(U *ptr) { return ptr; }
     template <typename Op, typename U>
     static Vc_ALWAYS_INLINE U *hi(
@@ -207,45 +207,45 @@ template <std::size_t secondOffset> struct Split/*{{{*/
         return {};
     }
 
-    // split composite simd_array
+    // split composite simdarray
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto lo(const simd_array<U, N, V, M> &x) -> decltype(internal_data0(x))
+    static Vc_INTRINSIC auto lo(const simdarray<U, N, V, M> &x) -> decltype(internal_data0(x))
     {
         return internal_data0(x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto hi(const simd_array<U, N, V, M> &x) -> decltype(internal_data1(x))
+    static Vc_INTRINSIC auto hi(const simdarray<U, N, V, M> &x) -> decltype(internal_data1(x))
     {
         return internal_data1(x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto lo(simd_array<U, N, V, M> *x) -> decltype(&internal_data0(*x))
+    static Vc_INTRINSIC auto lo(simdarray<U, N, V, M> *x) -> decltype(&internal_data0(*x))
     {
         return &internal_data0(*x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto hi(simd_array<U, N, V, M> *x) -> decltype(&internal_data1(*x))
+    static Vc_INTRINSIC auto hi(simdarray<U, N, V, M> *x) -> decltype(&internal_data1(*x))
     {
         return &internal_data1(*x);
     }
 
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V, 2, 0> lo(const simd_array<U, N, V, N> &x)
+    static Vc_INTRINSIC Segment<V, 2, 0> lo(const simdarray<U, N, V, N> &x)
     {
         return {internal_data(x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V, 2, 1> hi(const simd_array<U, N, V, N> &x)
+    static Vc_INTRINSIC Segment<V, 2, 1> hi(const simdarray<U, N, V, N> &x)
     {
         return {internal_data(x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V *, 2, 0> lo(const simd_array<U, N, V, N> *x)
+    static Vc_INTRINSIC Segment<V *, 2, 0> lo(const simdarray<U, N, V, N> *x)
     {
         return {&internal_data(*x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V *, 2, 1> hi(const simd_array<U, N, V, N> *x)
+    static Vc_INTRINSIC Segment<V *, 2, 1> hi(const simdarray<U, N, V, N> *x)
     {
         return {&internal_data(*x)};
     }
@@ -313,17 +313,17 @@ template <typename Op, typename U> static Vc_INTRINSIC U actual_value(Op, U &&x)
   return std::forward<U>(x);
 }
 template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC const V &actual_value(Op, const simd_array<U, M, V, M> &x)
+static Vc_INTRINSIC const V &actual_value(Op, const simdarray<U, M, V, M> &x)
 {
   return internal_data(x);
 }
 template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC const V &actual_value(Op, simd_array<U, M, V, M> &&x)
+static Vc_INTRINSIC const V &actual_value(Op, simdarray<U, M, V, M> &&x)
 {
   return internal_data(x);
 }
 template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC V *actual_value(Op, simd_array<U, M, V, M> *x)
+static Vc_INTRINSIC V *actual_value(Op, simdarray<U, M, V, M> *x)
 {
   return &internal_data(*x);
 }

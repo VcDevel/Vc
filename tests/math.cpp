@@ -723,7 +723,7 @@ template<typename T> struct _ExponentVector { typedef int_v Type; };
 template<typename V> void testFrexp()/*{{{*/
 {
     typedef typename V::EntryType T;
-    using ExpV = Vc::simd_array<int, V::Size>;
+    using ExpV = Vc::simdarray<int, V::Size>;
     Vc::Memory<V, 33> input;
     Vc::Memory<V, 33> expectedFraction;
     Vc::Memory<ExpV, 33> expectedExponent;
@@ -778,7 +778,7 @@ template<typename V> void testFrexp()/*{{{*/
 template<typename V> void testLdexp()/*{{{*/
 {
     typedef typename V::EntryType T;
-    using ExpV = Vc::simd_array<int, V::Size>;
+    using ExpV = Vc::simdarray<int, V::Size>;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
         const V v = (V::Random() - T(0.5)) * T(1000);
         ExpV e;
@@ -797,7 +797,7 @@ template<typename V> void testUlpDiff()/*{{{*/
     COMPARE(ulpDiffToReference(V::Zero(), std::numeric_limits<V>::min()), V::One());
     for (size_t count = 0; count < 1024 / V::Size; ++count) {
         const V base = (V::Random() - T(0.5)) * T(1000);
-        Vc::simd_array<int, V::Size> exp;
+        Vc::simdarray<int, V::Size> exp;
         Vc::frexp(base, &exp);
         const V eps = ldexp(V(std::numeric_limits<T>::epsilon()), exp - 1);
         //std::cout << base << ", " << exp << ", " << eps << std::endl;

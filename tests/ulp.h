@@ -59,9 +59,9 @@ static T ulpDiffToReferenceSigned(T val, T ref)
 }
 
 template<typename T> struct UlpExponentVector_ { typedef Vc::int_v Type; };
-template <typename T, std::size_t N> struct UlpExponentVector_<Vc::simd_array<T, N>>
+template <typename T, std::size_t N> struct UlpExponentVector_<Vc::simdarray<T, N>>
 {
-    using Type = Vc::simd_array<int, N>;
+    using Type = Vc::simdarray<int, N>;
 };
 
 template <typename V, typename = Vc::enable_if<Vc::is_simd_vector<V>::value>>
@@ -85,7 +85,7 @@ static V ulpDiffToReference(const V &_val, const V &_ref)
     val  (zeroMask)= std::numeric_limits<V>::min();
     diff (zeroMask)+= V::One();
 
-    Vc::simd_array<int, V::Size> exp;
+    Vc::simdarray<int, V::Size> exp;
     frexp(ref, &exp);
     diff += ldexp(abs(ref - val), std::numeric_limits<T>::digits - exp);
     diff.setZero(_val == _ref || (isnan(_val) && isnan(_ref)));

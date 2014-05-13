@@ -20,6 +20,6 @@
 #ifndef VC_VC_SIMD_ARRAY
 #define VC_VC_SIMD_ARRAY
 
-#include "common/simd_array.h"
+#include "common/simdarray.h"
 
 #endif // VC_VC_SIMD_ARRAY

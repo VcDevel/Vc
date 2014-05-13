@@ -57,7 +57,7 @@ public:
     using Mask = mask_type;
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
-    using Vector = simd_array<T, N, VectorType, N>;
+    using Vector = simdarray<T, N, VectorType, N>;
 
     FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
 
@@ -240,7 +240,7 @@ public:
     using Mask = mask_type;
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
-    using Vector = simd_array<T, N, VectorType, VectorType::Size>;
+    using Vector = simdarray<T, N, VectorType, VectorType::Size>;
 
     FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
 

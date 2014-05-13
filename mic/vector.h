@@ -73,7 +73,7 @@ public:
     typedef typename DetermineEntryType<T>::Type EntryType;
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
-    typedef simd_array<int, Size> IndexType;
+    typedef simdarray<int, Size> IndexType;
     enum Constants {
         MemoryAlignment = sizeof(EntryType) * Size,
         HasVectorDivision = true

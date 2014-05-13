@@ -38,7 +38,7 @@ template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T>
      * The return value will be in the range [0.5, 1.0[
      * The \p e value will be an integer defining the power-of-two exponent
      */
-inline double_v frexp(double_v::AsArg v, simd_array<int, 4, SSE::int_v, 4> *e)
+inline double_v frexp(double_v::AsArg v, simdarray<int, 4, SSE::int_v, 4> *e)
 {
     const m256d exponentBits = Const<double>::exponentMask().dataD();
     const m256d exponentPart = _mm256_and_pd(v.data(), exponentBits);
@@ -57,7 +57,7 @@ inline double_v frexp(double_v::AsArg v, simd_array<int, 4, SSE::int_v, 4> *e)
     internal_data(*e) = exponent;
     return ret;
 }
-inline float_v frexp(float_v::AsArg v, simd_array<int, 8, SSE::int_v, 4> *e)
+inline float_v frexp(float_v::AsArg v, simdarray<int, 8, SSE::int_v, 4> *e)
 {
     const m256 exponentBits = Const<float>::exponentMask().data();
     const m256 exponentPart = _mm256_and_ps(v.data(), exponentBits);
@@ -76,7 +76,7 @@ inline float_v frexp(float_v::AsArg v, simd_array<int, 8, SSE::int_v, 4> *e)
      * x == NaN    -> NaN
      * x == (-)inf -> (-)inf
      */
-inline double_v ldexp(double_v::AsArg v, const simd_array<int, 4, SSE::int_v, 4> &_e)
+inline double_v ldexp(double_v::AsArg v, const simdarray<int, 4, SSE::int_v, 4> &_e)
 {
     SSE::int_v e = internal_data(_e);
     e.setZero(SSE::int_m{v == double_v::Zero()});
@@ -84,7 +84,7 @@ inline double_v ldexp(double_v::AsArg v, const simd_array<int, 4, SSE::int_v, 4>
                                       _mm_slli_epi64(_mm_unpackhi_epi32(e.data(), e.data()), 52));
     return avx_cast<m256d>(_mm256_add_epi64(avx_cast<m256i>(v.data()), exponentBits));
 }
-inline float_v ldexp(float_v::AsArg v, simd_array<int, 8, SSE::int_v, 4> e)
+inline float_v ldexp(float_v::AsArg v, simdarray<int, 8, SSE::int_v, 4> e)
 {
     e.setZero(static_cast<decltype(e == e)>(v == float_v::Zero()));
     e <<= 23;
