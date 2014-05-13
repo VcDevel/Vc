@@ -77,7 +77,6 @@ template<typename T> class Vector
         typedef typename VectorTraits<T>::MaskType Mask;
         typedef typename Mask::Argument MaskArg;
         typedef typename Mask::Argument MaskArgument;
-        typedef Vc::Memory<Vector<T>, Size> Memory;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
         typedef const Vector<T> &AsArg;
 #else

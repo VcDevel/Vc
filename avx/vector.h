@@ -64,7 +64,6 @@ template<typename T> class Vector
         typedef Vc_AVX_NAMESPACE::Mask<T> Mask;
         typedef typename Mask::AsArg MaskArg;
         using MaskArgument = typename Mask::AsArg;
-        typedef Vc::Memory<Vector<T>, Size> Memory;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
         typedef const Vector<T> &AsArg;
         typedef const VectorType &VectorTypeArg;

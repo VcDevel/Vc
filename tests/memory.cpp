@@ -156,7 +156,7 @@ template<typename V, unsigned int Size> struct TestVectors2D { static void test(
 
 template<typename V, unsigned int Size> struct TestVectorReorganization { static void test()
 {
-    typename V::Memory init;
+    Vc::Memory<V, V::Size> init;
     for (unsigned int i = 0; i < V::Size; ++i) {
         init[i] = i;
     }

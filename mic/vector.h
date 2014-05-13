@@ -80,7 +80,6 @@ public:
     };
     typedef Vc_IMPL_NAMESPACE::Mask<T> Mask;
     typedef typename Mask::AsArg MaskArg;
-    typedef Vc::Memory<Vector<T>, Size> Memory;
     typedef Vector<T> AsArg; // for now only ICC can compile this code and it is not broken :)
     typedef VectorType VectorTypeArg;
 

@@ -284,24 +284,23 @@ template<typename Vec> void testMax()/*{{{*/
     COMPARE(Vc::max(a, b), c);
 }
 /*}}}*/
-    /*{{{*/
-#define FillHelperMemory(code) \
-    typename V::Memory data; \
-    typename V::Memory reference; \
-    for (size_t ii = 0; ii < V::Size; ++ii) { \
-        const T i = static_cast<T>(ii); \
-        data[ii] = i; \
-        reference[ii] = code; \
-    } do {} while (false)
+/*{{{*/
+template <typename V, typename F> void fillDataAndReference(V &data, V &reference, F f)
+{
+    using T = typename V::EntryType;
+    for (size_t i = 0; i < V::Size; ++i) {
+        data[i] = static_cast<T>(i);
+        reference[i] = f(data[i]);
+    }
+}
 /*}}}*/
 template<typename V> void testSqrt()/*{{{*/
 {
     typedef typename V::EntryType T;
-    FillHelperMemory(std::sqrt(i));
-    V a(data);
-    V b(reference);
+    V data, reference;
+    fillDataAndReference(data, reference, [](T x) { return std::sqrt(x); });
 
-    FUZZY_COMPARE(Vc::sqrt(a), b);
+    FUZZY_COMPARE(Vc::sqrt(data), reference);
 }
 /*}}}*/
 template<typename V> void testRSqrt()/*{{{*/
@@ -494,13 +493,14 @@ template<typename V> void testAtan2()/*{{{*/
 
     for (int xoffset = -100; xoffset < 54613; xoffset += 47 * V::Size) {
         for (int yoffset = -100; yoffset < 54613; yoffset += 47 * V::Size) {
-            FillHelperMemory(std::atan2((i + xoffset) * T(0.15), (i + yoffset) * T(0.15)));
-            const V a(data);
-            const V b(reference);
+            V data, reference;
+            fillDataAndReference(data, reference, [&](T x) {
+                return std::atan2((x + xoffset) * T(0.15), (x + yoffset) * T(0.15));
+            });
 
-            const V x = (a + xoffset) * T(0.15);
-            const V y = (a + yoffset) * T(0.15);
-            FUZZY_COMPARE(Vc::atan2(x, y), b) << ", x = " << x << ", y = " << y;
+            const V x = (data + xoffset) * T(0.15);
+            const V y = (data + yoffset) * T(0.15);
+            FUZZY_COMPARE(Vc::atan2(x, y), reference) << ", x = " << x << ", y = " << y;
         }
     }
 }
@@ -513,18 +513,16 @@ template<typename Vec> void testReciprocal()/*{{{*/
     const T one = 1;
     for (int offset = -1000; offset < 1000; offset += 10) {
         const T scale = T(0.1);
-        typename Vec::Memory data;
-        typename Vec::Memory reference;
+        Vec data;
+        Vec reference;
         for (size_t ii = 0; ii < Vec::Size; ++ii) {
             const T i = static_cast<T>(ii);
             data[ii] = i;
             T tmp = (i + offset) * scale;
             reference[ii] = one / tmp;
         }
-        Vec a(data);
-        Vec b(reference);
 
-        FUZZY_COMPARE(Vc::reciprocal((a + offset) * scale), b);
+        FUZZY_COMPARE(Vc::reciprocal((data + offset) * scale), reference);
     }
 }
 /*}}}*/

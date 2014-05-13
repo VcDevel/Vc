@@ -53,7 +53,6 @@ template <typename T> class Vector
         VectorType m_data;
 
     public:
-        typedef Vc::Memory<Vector<T>, 1> Memory;
         typedef Vector<unsigned int> IndexType;
         typedef Scalar::Mask<T> Mask;
         typedef Mask MaskArgument;

@@ -93,7 +93,7 @@ template<typename V> void testCall()
     const MI _odd = (_indexes & I(One)) > 0;
     const M odd(_odd);
     V a(_indexes);
-    Foo<T, typename V::Memory> f;
+    Foo<T, Vc::Memory<V, V::Size>> f;
     a.callWithValuesSorted(f);
     V b(f.d);
     COMPARE(b, a);
