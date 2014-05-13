@@ -173,6 +173,7 @@ macro(vc_add_test _name)
    endif()
 endmacro(vc_add_test)
 
+vc_add_test(types)
 vc_add_test(subscript)
 vc_add_test(type_traits)
 vc_add_test(stlcontainer)

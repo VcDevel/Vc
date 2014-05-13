@@ -47,6 +47,7 @@ template <typename T> class Vector
     public:
         typedef typename DetermineEntryType<T>::Type EntryType;
         using VectorEntryType = EntryType;
+        using value_type = EntryType;
         using VectorType = EntryType;
 
     protected:
