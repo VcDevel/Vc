@@ -80,6 +80,8 @@ macro(vc_add_test _name)
       endif()
    endforeach()
 
+   set(_run_targets)
+
    set(_target "${name}_scalar")
    list(FIND disabled_targets ${_target} _disabled)
    if(_disabled EQUAL -1 AND "${_targets}" MATCHES "Scalar")
@@ -87,6 +89,7 @@ macro(vc_add_test _name)
       add_file_dependencies(${_name}.cpp "${_extra_deps}")
       add_executable(${_target} ${_name}.cpp)
       vc_set_test_target_properties(${_target} Scalar "-DVC_IMPL=Scalar")
+      list(APPEND _run_targets "run_${_target}")
    endif()
 
    if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN AND "${_targets}" MATCHES "SSE")
@@ -106,6 +109,7 @@ macro(vc_add_test _name)
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} ${_name}.cpp)
          vc_set_test_target_properties(${_target} SSE "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
+         list(APPEND _run_targets "run_${_target}")
       endif()
    endif()
 
@@ -126,6 +130,7 @@ macro(vc_add_test _name)
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} ${_name}.cpp)
          vc_set_test_target_properties(${_target} AVX "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
+         list(APPEND _run_targets "run_${_target}")
       endif()
    endif()
 
@@ -138,6 +143,7 @@ macro(vc_add_test _name)
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} ${_name}.cpp)
          vc_set_test_target_properties(${_target} AVX2 "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
+         list(APPEND _run_targets "run_${_target}")
       endif()
    endif()
 
@@ -168,9 +174,17 @@ macro(vc_add_test _name)
                )
             set_property(TEST ${_target} PROPERTY LABELS "MIC")
             vc_add_run_target(${_target})
+            list(APPEND _run_targets "run_${_target}")
          endif()
       endif()
    endif()
+
+   add_custom_target(run_${name}_all
+      DEPENDS ${_run_targets}
+      COMMENT "Execute all ${name} tests"
+      VERBATIM
+      )
+
 endmacro(vc_add_test)
 
 vc_add_test(types)
