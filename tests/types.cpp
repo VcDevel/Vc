@@ -32,3 +32,11 @@ TEST_TYPES(V, check_EntryType, ALL_TYPES)
     static_assert(std::is_same<typename V::EntryType, decltype(scalar)>::value, "");
     static_assert(std::is_same<typename V::value_type, decltype(scalar)>::value, "");
 }
+
+TEST_TYPES(V, check_VectorType, (ALL_VECTORS))
+{
+    V v = V();
+    auto internalData = v.data();
+    static_assert(std::is_same<typename V::VectorType, decltype(internalData)>::value, "");
+    static_assert(std::is_same<typename V::vector_type, decltype(internalData)>::value, "");
+}

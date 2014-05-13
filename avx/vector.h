@@ -53,6 +53,7 @@ template<typename T> class Vector
         FREE_STORE_OPERATORS_ALIGNED(32)
 
         typedef typename VectorTypeHelper<T>::Type VectorType;
+        using vector_type = VectorType;
         typedef typename DetermineEntryType<T>::Type EntryType;
         using value_type = EntryType;
         typedef EntryType VectorEntryType;

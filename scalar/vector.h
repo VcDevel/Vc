@@ -49,6 +49,7 @@ template <typename T> class Vector
         using VectorEntryType = EntryType;
         using value_type = EntryType;
         using VectorType = EntryType;
+        using vector_type = VectorType;
 
     protected:
         VectorType m_data;
