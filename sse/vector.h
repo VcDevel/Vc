@@ -77,6 +77,8 @@ template<typename T> class Vector
         using VectorEntryType = EntryType;
         typedef typename VectorTraits<T>::IndexType IndexType;
         typedef typename VectorTraits<T>::MaskType Mask;
+        using MaskType = Mask;
+        using mask_type = Mask;
         typedef typename Mask::Argument MaskArg;
         typedef typename Mask::Argument MaskArgument;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN

@@ -28,7 +28,7 @@
 TEST_TYPES(V, check_EntryType, ALL_TYPES)
 {
     V v = V();
-    auto scalar = v[0];
+    auto scalar = v.sum();
     static_assert(std::is_same<typename V::EntryType, decltype(scalar)>::value, "");
     static_assert(std::is_same<typename V::value_type, decltype(scalar)>::value, "");
 }
@@ -39,4 +39,12 @@ TEST_TYPES(V, check_VectorType, (ALL_VECTORS))
     auto internalData = v.data();
     static_assert(std::is_same<typename V::VectorType, decltype(internalData)>::value, "");
     static_assert(std::is_same<typename V::vector_type, decltype(internalData)>::value, "");
+}
+
+TEST_TYPES(V, check_MaskType, ALL_TYPES)
+{
+    V v = V();
+    auto mask = v == v;
+    static_assert(std::is_same<typename V::MaskType, decltype(mask)>::value, "");
+    static_assert(std::is_same<typename V::mask_type, decltype(mask)>::value, "");
 }

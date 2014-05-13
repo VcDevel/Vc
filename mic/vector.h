@@ -79,6 +79,8 @@ public:
         HasVectorDivision = true
     };
     typedef Vc_IMPL_NAMESPACE::Mask<T> Mask;
+    using MaskType = Mask;
+    using mask_type = Mask;
     typedef typename Mask::AsArg MaskArg;
     typedef Vector<T> AsArg; // for now only ICC can compile this code and it is not broken :)
     typedef VectorType VectorTypeArg;

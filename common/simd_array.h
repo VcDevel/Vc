@@ -117,6 +117,7 @@ public:
     using index_type = simd_array<int, N>;
     static constexpr std::size_t size() { return N; }
     using Mask = mask_type;
+    using MaskType = Mask;
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
     using IndexType = index_type;
@@ -396,6 +397,7 @@ public:
     using index_type = simd_array<int, N>;
     static constexpr std::size_t size() { return N; }
     using Mask = mask_type;
+    using MaskType = Mask;
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
     using IndexType = index_type;

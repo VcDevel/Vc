@@ -64,6 +64,8 @@ template<typename T> class Vector
         };
         typedef Vector<typename IndexTypeHelper<T>::Type> IndexType;
         typedef Vc_AVX_NAMESPACE::Mask<T> Mask;
+        using MaskType = Mask;
+        using mask_type = Mask;
         typedef typename Mask::AsArg MaskArg;
         using MaskArgument = typename Mask::AsArg;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN

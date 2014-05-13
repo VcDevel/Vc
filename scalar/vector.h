@@ -57,6 +57,8 @@ template <typename T> class Vector
     public:
         typedef Vector<unsigned int> IndexType;
         typedef Scalar::Mask<T> Mask;
+        using MaskType = Mask;
+        using mask_type = Mask;
         typedef Mask MaskArgument;
         typedef Vector<T> AsArg;
 
