@@ -62,7 +62,18 @@ template<typename T> class Vector
             MemoryAlignment = alignof(VectorType),
             HasVectorDivision = HasVectorDivisionHelper<T>::Value
         };
-        typedef Vector<typename IndexTypeHelper<T>::Type> IndexType;
+#ifdef VC_IMPL_AVX2
+        typedef typename std::conditional<
+            (Size >= 8),
+            simd_array<int, Size, int_v, 8>,
+            typename std::conditional<(Size >= 4),
+                                      simd_array<int, Size, SSE::int_v, 4>,
+                                      simd_array<int, Size, Scalar::int_v, 1>>>::type IndexType;
+#else
+        typedef typename std::conditional<(Size >= 4),
+                                          simd_array<int, Size, SSE::int_v, 4>,
+                                          simd_array<int, Size, Scalar::int_v, 1>>::type IndexType;
+#endif
         typedef Vc_AVX_NAMESPACE::Mask<T> Mask;
         using MaskType = Mask;
         using mask_type = Mask;

@@ -75,7 +75,9 @@ template<typename T> class Vector
         typedef typename VectorTraits<T>::EntryType EntryType;
         using value_type = EntryType;
         using VectorEntryType = EntryType;
-        typedef typename VectorTraits<T>::IndexType IndexType;
+        typedef typename std::conditional<(Size >= 4),
+                                          simd_array<int, Size, int_v, 4>,
+                                          simd_array<int, Size, Scalar::int_v, 1>>::type IndexType;
         typedef typename VectorTraits<T>::MaskType Mask;
         using MaskType = Mask;
         using mask_type = Mask;

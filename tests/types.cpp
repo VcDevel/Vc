@@ -48,3 +48,9 @@ TEST_TYPES(V, check_MaskType, ALL_TYPES)
     static_assert(std::is_same<typename V::MaskType, decltype(mask)>::value, "");
     static_assert(std::is_same<typename V::mask_type, decltype(mask)>::value, "");
 }
+
+TEST_TYPES(V, check_IndexType, ALL_TYPES)
+{
+    static_assert(std::is_same<typename V::IndexType, Vc::simd_array<int, V::Size>>::value,
+                  "IndexType is not the expected simd_array");
+}

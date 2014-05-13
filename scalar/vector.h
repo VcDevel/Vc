@@ -55,7 +55,6 @@ template <typename T> class Vector
         VectorType m_data;
 
     public:
-        typedef Vector<unsigned int> IndexType;
         typedef Scalar::Mask<T> Mask;
         using MaskType = Mask;
         using mask_type = Mask;
@@ -69,6 +68,7 @@ template <typename T> class Vector
         enum Constants {
             MemoryAlignment = alignof(VectorType)
         };
+        typedef simd_array<int, Size, int_v, 1> IndexType;
 
 #include "../common/generalinterface.h"
 

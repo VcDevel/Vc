@@ -72,8 +72,8 @@ public:
     typedef typename VectorTypeHelper<T>::Type VectorType;
     typedef typename DetermineEntryType<T>::Type EntryType;
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
-    typedef Vector<unsigned int> IndexType;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
+    typedef simd_array<int, Size> IndexType;
     enum Constants {
         MemoryAlignment = sizeof(EntryType) * Size,
         HasVectorDivision = true
