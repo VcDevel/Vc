@@ -491,11 +491,12 @@ void Baker::createImage()
     const float_v imagMin2 = imagMin + imagStep * static_cast<float_v>(int_v::IndexesFromZero());
     for (float real = realMin; real <= realMax; real += realStep) {
         m_progress.setValue(99.f * (real - realMin) / (realMax - realMin));
-        for (float_v imag = imagMin2; imag <= imagMax; imag += imagStep2) {
+        for (float_v imag = imagMin2; all_of(imag <= imagMax); imag += imagStep2) {
             // FIXME: extra "tracks" if nSteps[1] is not a multiple of float_v::Size
             Z c(float_v(real), imag);
             Z c2 = Z(float_v(1.08f * real + 0.15f), imag);
-            if (fastNorm(Z(float_v(real + 1.f), imag)) < 0.06f || (std::real(c2) < 0.42f && fastNorm(c2) < 0.417f)) {
+            if (all_of(fastNorm(Z(float_v(real + 1.f), imag)) < 0.06f ||
+                       (std::real(c2) < 0.42f && fastNorm(c2) < 0.417f))) {
                 continue;
             }
             Z z = c;
@@ -529,7 +530,7 @@ void Baker::createImage()
                     canvas.addDot(x2[j], y2 [j], red, green, blue);
                     canvas.addDot(x2[j], yn2[j], red, green, blue);
                 }
-                if (fastNorm(z) >= S) { // optimization: skip some useless looping
+                if (all_of(fastNorm(z) >= S)) {  // optimization: skip some useless looping
                     break;
                 }
             }

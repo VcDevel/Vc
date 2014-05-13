@@ -316,8 +316,8 @@ TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
         NShifts = sizeof(T) * 8
     };
     for (Vec x = std::numeric_limits<Vec>::min() + Vec::IndexesFromZero();
-            x <  std::numeric_limits<Vec>::max() - step;
-            x += step) {
+         all_of(x < std::numeric_limits<Vec>::max() - step);
+         x += step) {
         for (size_t shift = 0; shift < NShifts; ++shift) {
             const Vec rightShift = x >> shift;
             const Vec leftShift  = x << shift;
