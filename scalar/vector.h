@@ -116,8 +116,8 @@ template <typename T> class Vector
         ///////////////////////////////////////////////////////////////////////////////////////////
         // zeroing
         Vc_ALWAYS_INLINE void setZero() { m_data = 0; }
-        Vc_ALWAYS_INLINE void setZero(Mask k) { if (k) m_data = 0; }
-        Vc_ALWAYS_INLINE void setZeroInverted(Mask k) { if (!k) m_data = 0; }
+        Vc_ALWAYS_INLINE void setZero(Mask k) { if (k.data()) m_data = 0; }
+        Vc_ALWAYS_INLINE void setZeroInverted(Mask k) { if (!k.data()) m_data = 0; }
 
         Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setQnan(Mask m) Vc_INTRINSIC_R;
@@ -231,13 +231,13 @@ template <typename T> class Vector
         Vc_ALWAYS_INLINE EntryType max(Mask) const { return m_data; }
         Vc_ALWAYS_INLINE EntryType product(Mask m) const
         {
-            if (m) {
+            if (m.data()) {
                 return m_data;
             } else {
                 return EntryType(1);
             }
         }
-        Vc_ALWAYS_INLINE EntryType sum(Mask m) const { if (m) return m_data; return static_cast<EntryType>(0); }
+        Vc_ALWAYS_INLINE EntryType sum(Mask m) const { if (m.data()) return m_data; return static_cast<EntryType>(0); }
 
         Vc_INTRINSIC Vector shifted(int amount, Vector shiftIn) const {
             VC_ASSERT(amount >= -1 && amount <= 1);
@@ -253,7 +253,7 @@ template <typename T> class Vector
 
         template <typename F> Vc_INTRINSIC void call(F &&f, Mask mask) const
         {
-            if (mask) {
+            if (mask.data()) {
                 f(m_data);
             }
         }
@@ -262,7 +262,7 @@ template <typename T> class Vector
 
         template <typename F> Vc_INTRINSIC Vector apply(F &&f, Mask mask) const
         {
-            if (mask) {
+            if (mask.data()) {
                 return Vector(f(m_data));
             } else {
                 return *this;

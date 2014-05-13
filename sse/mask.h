@@ -201,10 +201,6 @@ public:
 #endif
         }
 
-#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
-        Vc_ALWAYS_INLINE Vc_PURE operator bool() const { return isFull(); }
-#endif
-
         Vc_ALWAYS_INLINE Vc_PURE int shiftMask() const { return _mm_movemask_epi8(dataI()); }
 
         Vc_ALWAYS_INLINE Vc_PURE int toInt() const { return internal::mask_to_int<Size>(dataI()); }

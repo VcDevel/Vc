@@ -270,13 +270,13 @@ template<> Vc_INTRINSIC void double_v::setQnan()
 }
 template<typename T> Vc_INTRINSIC void Vector<T>::setQnan(Mask m)
 {
-    if (m) {
+    if (m.data()) {
         setQnan();
     }
 }
 template<> Vc_INTRINSIC void double_v::setQnan(Mask m)
 {
-    if (m) {
+    if (m.data()) {
         setQnan();
     }
 }

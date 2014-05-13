@@ -137,8 +137,6 @@ public:
     inline bool isMix  () const { return MaskHelper<Size>::isMix  (k); }
     inline bool isNotEmpty() const { return MaskHelper<Size>::isNotEmpty(k); }
 
-    inline operator bool() const { return isFull(); }
-
     inline MaskType data () const { return k; }
     inline MaskType dataI() const { return k; }
     inline MaskType dataD() const { return k; }

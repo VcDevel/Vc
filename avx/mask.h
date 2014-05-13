@@ -197,10 +197,6 @@ private:
         Vc_ALWAYS_INLINE bool isEmpty() const { return 0 != internal::testz(d.v(), d.v()); }
         Vc_ALWAYS_INLINE bool isMix  () const { return 0 != internal::testnzc(d.v(), internal::allone<VectorType>()); }
 
-#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
-        Vc_ALWAYS_INLINE operator bool() const { return isFull(); }
-#endif
-
         Vc_ALWAYS_INLINE Vc_PURE int shiftMask() const { return internal::movemask(dataI()); }
         Vc_ALWAYS_INLINE Vc_PURE int toInt() const { return internal::mask_to_int<Size>(dataI()); }
 

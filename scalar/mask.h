@@ -88,8 +88,8 @@ public:
 
         Vc_ALWAYS_INLINE void expand(Mask *x) { x[0].m = m; }
 
-        Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return Mask(m == rhs.m); }
-        Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return Mask(m != rhs.m); }
+        Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return m == rhs.m; }
+        Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return m != rhs.m; }
 
         Vc_ALWAYS_INLINE Mask operator&&(const Mask &rhs) const { return Mask(m && rhs.m); }
         Vc_ALWAYS_INLINE Mask operator& (const Mask &rhs) const { return Mask(m && rhs.m); }
@@ -110,10 +110,6 @@ public:
         Vc_ALWAYS_INLINE bool data () const { return m; }
         Vc_ALWAYS_INLINE bool dataI() const { return m; }
         Vc_ALWAYS_INLINE bool dataD() const { return m; }
-
-#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
-        Vc_ALWAYS_INLINE operator bool() const { return isFull(); }
-#endif
 
         template<unsigned int OtherSize>
             Vc_ALWAYS_INLINE Mask cast() const { return *this; }
