@@ -1,5 +1,5 @@
 #include <Vc/global.h>
-#if !(defined VC_GCC && VC_GCC < 0x40400)
+#if !(defined VC_GCC && VC_GCC < 0x40400) && !defined VC_MSVC
 #include <x86intrin.h>
 #endif
 #include <Vc/Vc>
