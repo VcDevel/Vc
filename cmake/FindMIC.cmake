@@ -168,7 +168,7 @@ if(MIC_NATIVE_FOUND OR MIC_OFFLOAD_FOUND)
       set(MIC_CXX_FLAGS)
    endif()
 else()
-   message(WARNING "MIC SDK was not found!")
+   message(STATUS "MIC SDK was not found!")
 endif()
 
 if(MIC_NATIVE_FOUND)
