@@ -1,5 +1,7 @@
 include(AddFileDependencies)
 
+add_custom_target(build_tests ALL VERBATIM)
+
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS) # -DVC_CHECK_ALIGNMENT)
 if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"
