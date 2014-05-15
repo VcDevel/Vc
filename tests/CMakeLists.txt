@@ -1,5 +1,7 @@
 include(AddFileDependencies)
 
+add_custom_target(build_tests ALL VERBATIM)
+
 # for the remaining targets unconditional Vc_ARCHITECTURE_FLAGS is mostly fine.
 add_definitions(${Vc_ARCHITECTURE_FLAGS})
 
