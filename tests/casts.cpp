@@ -252,46 +252,46 @@ template <typename To, typename From> void mask_cast_1(From mask)
         COMPARE(casted[i], false) << "i: " << i;
     }
 }
-template <typename To, typename From> void mask_cast_2(const From mask, Vc::enable_if<(To::size() > From::size())> = Vc::nullarg)
+template <typename To, typename From> void mask_cast_2(const From mask0, const From mask1, Vc::enable_if<(To::size() > From::size())> = Vc::nullarg)
 {
-    To casted = simd_cast<To>(mask, mask);
+    To casted = simd_cast<To>(mask0, mask1);
     std::size_t i = 0;
     for (; i < From::Size; ++i) {
-        COMPARE(casted[i], mask[i]) << "i: " << i;
+        COMPARE(casted[i], mask0[i]) << "i: " << i;
     }
     for (; i < std::min(To::Size, 2 * From::Size); ++i) {
-        COMPARE(casted[i], mask[i - From::Size]) << "i: " << i;
+        COMPARE(casted[i], mask1[i - From::Size]) << "i: " << i;
     }
     for (; i < To::Size; ++i) {
         COMPARE(casted[i], false) << "i: " << i;
     }
 }
 template <typename To, typename From>
-void mask_cast_2(const From, Vc::enable_if<!(To::size() > From::size())> = Vc::nullarg)
+void mask_cast_2(const From, const From, Vc::enable_if<!(To::size() > From::size())> = Vc::nullarg)
 {
 }
-template <typename To, typename From> void mask_cast_4(const From mask, Vc::enable_if<(To::size() > 2 * From::size())> = Vc::nullarg)
+template <typename To, typename From> void mask_cast_4(const From mask0, const From mask1, const From mask2, const From mask3, Vc::enable_if<(To::size() > 2 * From::size())> = Vc::nullarg)
 {
-    To casted = simd_cast<To>(mask, mask, mask, mask);
+    To casted = simd_cast<To>(mask0, mask1, mask2, mask3);
     std::size_t i = 0;
     for (; i < From::Size; ++i) {
-        COMPARE(casted[i], mask[i]) << "i: " << i;
+        COMPARE(casted[i], mask0[i]) << "i: " << i;
     }
     for (; i < std::min(To::Size, 2 * From::Size); ++i) {
-        COMPARE(casted[i], mask[i - From::Size]) << "i: " << i;
+        COMPARE(casted[i], mask1[i - From::Size]) << "i: " << i;
     }
     for (; i < std::min(To::Size, 3 * From::Size); ++i) {
-        COMPARE(casted[i], mask[i - 2 * From::Size]) << "i: " << i;
+        COMPARE(casted[i], mask2[i - 2 * From::Size]) << "i: " << i;
     }
     for (; i < std::min(To::Size, 4 * From::Size); ++i) {
-        COMPARE(casted[i], mask[i - 3 * From::Size]) << "i: " << i;
+        COMPARE(casted[i], mask3[i - 3 * From::Size]) << "i: " << i;
     }
     for (; i < To::Size; ++i) {
         COMPARE(casted[i], false) << "i: " << i;
     }
 }
 template <typename To, typename From>
-void mask_cast_4(const From, Vc::enable_if<!(To::size() > 2 * From::size())> = Vc::nullarg)
+void mask_cast_4(const From, const From, const From, const From, Vc::enable_if<!(To::size() > 2 * From::size())> = Vc::nullarg)
 {
 }
 template <typename To, typename From> void mask_cast_0_5(const From mask, Vc::enable_if<(To::size() < From::size())> = Vc::nullarg)
@@ -314,24 +314,28 @@ void mask_cast_0_5(const From, Vc::enable_if<!(To::size() < From::size())> = Vc:
 {
 }
 
-template <typename To, typename From> void mask_cast(From mask)
+template <typename To, typename From> void mask_cast(const std::vector<From> &masks)
 {
-    mask_cast_1<To>(mask);
-    mask_cast_2<To>(mask);
-    mask_cast_4<To>(mask);
-    mask_cast_0_5<To>(mask);
+    mask_cast_1<To>(masks[0]);
+    mask_cast_2<To>(masks[0], masks[1]);
+    mask_cast_4<To>(masks[0], masks[1], masks[2], masks[3]);
+    mask_cast_0_5<To>(masks[0]);
 }
 
 TEST_TYPES(V, cast_mask, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(4), SIMD_ARRAYS(8), SIMD_ARRAYS(16)))
 {
     using M = typename V::Mask;
-    UnitTest::withRandomMask<V>([](M mask) {
-        mask_cast<   int_m>(mask);
-        mask_cast<  uint_m>(mask);
-        mask_cast< short_m>(mask);
-        mask_cast<ushort_m>(mask);
-        mask_cast< float_m>(mask);
-        mask_cast<double_m>(mask);
+    std::vector<M> randomMasks(4, M{false});
+
+    UnitTest::withRandomMask<V>([&](M mask) {
+        std::rotate(randomMasks.begin(), randomMasks.begin() + 1, randomMasks.end());
+        randomMasks[0] = mask;
+        mask_cast<   int_m>(randomMasks);
+        mask_cast<  uint_m>(randomMasks);
+        mask_cast< short_m>(randomMasks);
+        mask_cast<ushort_m>(randomMasks);
+        mask_cast< float_m>(randomMasks);
+        mask_cast<double_m>(randomMasks);
     });
 }
 #if 0
