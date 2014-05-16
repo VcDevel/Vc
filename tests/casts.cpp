@@ -322,7 +322,7 @@ template <typename To, typename From> void mask_cast(From mask)
     mask_cast_0_5<To>(mask);
 }
 
-TEST_ALL_V(V, cast_mask)
+TEST_TYPES(V, cast_mask, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(4), SIMD_ARRAYS(8), SIMD_ARRAYS(16)))
 {
     using M = typename V::Mask;
     UnitTest::withRandomMask<V>([](M mask) {
