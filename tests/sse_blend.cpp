@@ -96,7 +96,7 @@ void blendepi16()
     __m128i a = _mm_set_epi16(17, 16, 15, 14, 13, 12, 11, 10);
     __m128i b = _mm_set_epi16(27, 26, 25, 24, 23, 22, 21, 20);
 
-#define CALL_2(_i, code) { enum { i = _i }; code } { enum { i = _i + 1 }; code }
+#define CALL_2(_i, code) { enum JustAnotherName__ { i = _i }; code } { enum JustAnotherName__ { i = _i + 1 }; code }
 #define CALL_4(_i, code) CALL_2(_i, code) CALL_2(_i + 2, code)
 #define CALL_8(_i, code) CALL_4(_i, code) CALL_4(_i + 4, code)
 #define CALL_16(_i, code) CALL_8(_i, code) CALL_8(_i + 8, code)
