@@ -120,7 +120,7 @@ static Array<Reference<T> > referenceData()
 template<typename T> struct Denormals { static T *data; };/*{{{*/
 template<> float  *Denormals<float >::data = 0;
 template<> double *Denormals<double>::data = 0;
-enum {
+enum NDenormalsEnum {
     NDenormals = 64
 };
 /*}}}*/
@@ -619,7 +619,7 @@ template<typename Vec> void testNaN()/*{{{*/
 template<typename Vec> void testRound()/*{{{*/
 {
     typedef typename Vec::EntryType T;
-    enum {
+    enum JustAnotherName__ {
         Count = (16 + Vec::Size) / Vec::Size
     };
     VectorMemoryHelper<Vec> mem1(Count);
@@ -677,7 +677,7 @@ template<typename Vec> void testReduceMax()/*{{{*/
 /*}}}*/
 template<typename Vec> void testReduceProduct()/*{{{*/
 {
-    enum {
+    enum JustAnotherName__ {
         Max = Vec::Size > 8 ? Vec::Size / 2 : Vec::Size
     };
     typedef typename Vec::EntryType T;
