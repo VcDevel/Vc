@@ -35,24 +35,57 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 
+// Scalar::Vector to Scalar::Vector
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
-    simd_cast(Scalar::Vector<From> x, enable_if<Scalar::Traits::is_vector<To>::value> = nullarg)
+    simd_cast(Scalar::Vector<From> x, enable_if<Scalar::is_vector<To>::value> = nullarg)
 {
     return static_cast<To>(x.data());
 }
 
+// simd_array to Scalar::Vector
+template <typename To, typename From>
+Vc_INTRINSIC Vc_CONST To simd_cast(
+    From &&x,
+    enable_if<Scalar::is_vector<To>::value && Traits::is_simd_array<From>::value> = nullarg)
+{
+    return static_cast<To>(x[0]);
+}
+
+
+// Scalar::Mask to Scalar::Mask
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
-    simd_cast(Scalar::Mask<From> x, enable_if<Scalar::Traits::is_mask<To>::value> = nullarg)
+    simd_cast(Scalar::Mask<From> x, enable_if<Scalar::is_mask<To>::value> = nullarg)
 {
     return static_cast<To>(x.data());
 }
 
+// simd_mask_array to Scalar::Mask
+template <typename To, typename From>
+Vc_INTRINSIC Vc_CONST To simd_cast(From &&x,
+                                   enable_if<Scalar::is_mask<To>::value &&
+                                             Traits::is_simd_mask_array<From>::value> = nullarg)
+{
+    return static_cast<To>(x[0]);
+}
+
+// Any vector (Vector<T> or simdarray) to multiple Scalar::Vector<T>
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Vc_CONST Return simd_cast(Scalar::Vector<T> x, enable_if<offset == 0> = nullarg)
+Vc_INTRINSIC Vc_CONST Return simd_cast(
+    T &&x,
+    enable_if<Traits::is_simd_vector<T>::value && Scalar::is_vector<Return>::value> = nullarg)
 {
-    return simd_cast<Return>(x);
+    return Return{x[offset]};
+}
+
+// Any mask (Mask<T> or simd_mask_array) to multiple Scalar::Mask<T>
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST Return simd_cast(
+    T &&x,
+    enable_if<Traits::is_simd_mask<T>::value && Scalar::is_mask<Return>::value> = nullarg)
+{
+    return Return{x[offset]};
 }
 
 }
