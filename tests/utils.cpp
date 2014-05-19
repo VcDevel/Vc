@@ -17,7 +17,7 @@
 
 */
 
-#include "unittest-old.h"
+#include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
 #include <Vc/cpuid.h>
@@ -25,7 +25,7 @@
 
 using namespace Vc;
 
-template<typename Vec> void testSort()
+TEST_TYPES(Vec, testSort, (ALL_VECTORS))
 {
     typedef typename Vec::IndexType IndexType;
 
@@ -83,7 +83,7 @@ template<typename T, typename Mem> struct Foo
     int i;
 };
 
-template<typename V> void testCall()
+TEST_TYPES(V, testCall, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
@@ -112,7 +112,7 @@ template<typename V> void testCall()
     }
 }
 
-template<typename V> void testForeachBit()
+TEST_TYPES(V, testForeachBit, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
@@ -144,7 +144,7 @@ template<typename V> void testForeachBit()
     }
 }
 
-template<typename V> void copySign()
+TEST_TYPES(V, copySign, (Vc::float_v, Vc::double_v))
 {
     V v(One);
     V positive(One);
@@ -159,7 +159,7 @@ void bzero(void *p, size_t n) { memset(p, 0, n); }
 #include <strings.h>
 #endif
 
-template<typename V> void Random()
+TEST_TYPES(V, testRandom, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     enum {
@@ -243,8 +243,8 @@ template<typename V, typename I> void FloatRandom()
     }
 }
 
-template<> void Random<float_v>() { FloatRandom<float_v, int_v>(); }
-template<> void Random<double_v>() { FloatRandom<double_v, int_v>(); }
+template<> void testRandom<float_v>::operator()() { FloatRandom<float_v, int_v>(); }
+template<> void testRandom<double_v>::operator()() { FloatRandom<double_v, int_v>(); }
 
 template<typename T> T add2(T x) { return x + T(2); }
 
@@ -269,8 +269,7 @@ class CallTester
         unsigned int i;
 };
 
-template<typename V>
-void applyAndCall()
+TEST_TYPES(V, applyAndCall, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
 
@@ -311,7 +310,7 @@ template<typename T, int value> T returnConstant() { return T(value); }
 template<typename T, int value> T returnConstantOffset(int i) { return T(value) + T(i); }
 template<typename T, int value> T returnConstantOffset2(unsigned short i) { return T(value) + T(i); }
 
-template<typename V> void fill()
+TEST_TYPES(V, fill, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
@@ -328,7 +327,7 @@ template<typename V> void fill()
     COMPARE(test, static_cast<V>(I::IndexesFromZero()));
 }
 
-template<typename V> void shifted()
+TEST_TYPES(V, shifted, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     constexpr int Size = V::Size;
@@ -345,7 +344,7 @@ template<typename V> void shifted()
     }
 }
 
-template<typename V> void rotated()
+TEST_TYPES(V, rotated, (ALL_VECTORS))
 {
     constexpr int Size = V::Size;
     for (int shift = -2 * Size; shift <= 2 * Size; ++shift) {
@@ -378,7 +377,7 @@ template <typename V, typename Shift> void shiftedInConstant(const V &data, Shif
     shiftedInConstant(data, std::integral_constant<int, Shift::value + 1>());
 }
 
-template<typename V> void shiftedIn()
+TEST_TYPES(V, shiftedIn, (ALL_VECTORS))
 {
     constexpr int Size = V::Size;
     for (int shift = -1 * Size; shift <= 1 * Size; ++shift) {
@@ -396,7 +395,7 @@ template<typename V> void shiftedIn()
     shiftedInConstant(V::Random(), std::integral_constant<int, -Size>());
 }
 
-void testMallocAlignment()
+TEST(testMallocAlignment)
 {
     int_v *a = Vc::malloc<int_v, Vc::AlignOnVector>(10);
 
@@ -420,7 +419,7 @@ void testMallocAlignment()
     COMPARE((reinterpret_cast<unsigned long>(&a[0]) & mask), 0ul);
 }
 
-template<typename V> void testIif()
+TEST_TYPES(V, testIif, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     const T one = T(1);
@@ -442,7 +441,7 @@ template<typename V> void testIif()
     }
 }
 
-template<typename V> void rangeFor()
+TEST_TYPES(V, rangeFor, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     typedef typename V::Mask M;
@@ -493,24 +492,4 @@ template<typename V> void rangeFor()
         COMPARE(test == V::One(), mask);
         COMPARE(count, mask.count());
     }
-}
-
-void testmain()
-{
-    testAllTypes(testCall);
-    testAllTypes(testForeachBit);
-    testAllTypes(testSort);
-    testRealTypes(copySign);
-
-    testAllTypes(shifted);
-    testAllTypes(rotated);
-    testAllTypes(shiftedIn);
-    testAllTypes(Random);
-
-    testAllTypes(applyAndCall);
-    testAllTypes(fill);
-
-    runTest(testMallocAlignment);
-    testAllTypes(testIif);
-    testAllTypes(rangeFor);
 }
