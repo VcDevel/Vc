@@ -363,6 +363,15 @@ public:
         return {data.apply(std::forward<F>(f), k)};
     }
 
+    Vc_INTRINSIC simdarray interleaveLow(simdarray x) const
+    {
+        return {data.interleaveLow(x.data)};
+    }
+    Vc_INTRINSIC simdarray interleaveHigh(simdarray x) const
+    {
+        return {data.interleaveHigh(x.data)};
+    }
+
     friend Vc_INTRINSIC VectorType &internal_data(simdarray &x) { return x.data; }
     friend Vc_INTRINSIC const VectorType &internal_data(const simdarray &x) { return x.data; }
 
@@ -700,6 +709,15 @@ public:
     template <typename F> Vc_INTRINSIC simdarray apply(F &&f, const mask_type &k) const
     {
         return {data0.apply(f, Split::lo(k)), data1.apply(f, Split::hi(k))};
+    }
+
+    Vc_INTRINSIC simdarray interleaveLow(simdarray x) const
+    {
+        return {data0.interleaveLow(x.data0), data1.interleaveLow(x.data1)};
+    }
+    Vc_INTRINSIC simdarray interleaveHigh(simdarray x) const
+    {
+        return {data0.interleaveHigh(x.data0), data1.interleaveHigh(x.data1)};
     }
 
     friend Vc_INTRINSIC storage_type0 &internal_data0(simdarray &x) { return x.data0; }

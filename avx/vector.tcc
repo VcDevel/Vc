@@ -1080,6 +1080,35 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
     }
     */
 }
+// interleaveLow/-High {{{1
+template <> Vc_INTRINSIC double_v double_v::interleaveLow (double_v x) const { return _mm256_unpacklo_pd(data(), x.data()); }
+template <> Vc_INTRINSIC double_v double_v::interleaveHigh(double_v x) const { return _mm256_unpackhi_pd(data(), x.data()); }
+template <> Vc_INTRINSIC  float_v  float_v::interleaveLow ( float_v x) const { return _mm256_unpacklo_ps(data(), x.data()); }
+template <> Vc_INTRINSIC  float_v  float_v::interleaveHigh( float_v x) const { return _mm256_unpackhi_ps(data(), x.data()); }
+#ifdef VC_IMPL_AVX2
+template <> Vc_INTRINSIC    int_v    int_v::interleaveLow (   int_v x) const { return _mm256_unpacklo_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC    int_v    int_v::interleaveHigh(   int_v x) const { return _mm256_unpackhi_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC   uint_v   uint_v::interleaveLow (  uint_v x) const { return _mm256_unpacklo_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC   uint_v   uint_v::interleaveHigh(  uint_v x) const { return _mm256_unpackhi_epi32(data(), x.data()); }
+// TODO:
+//template <> Vc_INTRINSIC  short_v  short_v::interleaveLow ( short_v x) const { return _mm256_unpacklo_epi16(data(), x.data()); }
+//template <> Vc_INTRINSIC  short_v  short_v::interleaveHigh( short_v x) const { return _mm256_unpackhi_epi16(data(), x.data()); }
+//template <> Vc_INTRINSIC ushort_v ushort_v::interleaveLow (ushort_v x) const { return _mm256_unpacklo_epi16(data(), x.data()); }
+//template <> Vc_INTRINSIC ushort_v ushort_v::interleaveHigh(ushort_v x) const { return _mm256_unpackhi_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC  short_v  short_v::interleaveLow ( short_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC  short_v  short_v::interleaveHigh( short_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC ushort_v ushort_v::interleaveLow (ushort_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC ushort_v ushort_v::interleaveHigh(ushort_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
+#else
+template <> Vc_INTRINSIC    int_v    int_v::interleaveLow (   int_v x) const { return avx_cast<m256i>(_mm256_unpacklo_ps(avx_cast<m256>(data()), avx_cast<m256>(x.data()))); }
+template <> Vc_INTRINSIC    int_v    int_v::interleaveHigh(   int_v x) const { return avx_cast<m256i>(_mm256_unpackhi_ps(avx_cast<m256>(data()), avx_cast<m256>(x.data()))); }
+template <> Vc_INTRINSIC   uint_v   uint_v::interleaveLow (  uint_v x) const { return avx_cast<m256i>(_mm256_unpacklo_ps(avx_cast<m256>(data()), avx_cast<m256>(x.data()))); }
+template <> Vc_INTRINSIC   uint_v   uint_v::interleaveHigh(  uint_v x) const { return avx_cast<m256i>(_mm256_unpackhi_ps(avx_cast<m256>(data()), avx_cast<m256>(x.data()))); }
+template <> Vc_INTRINSIC  short_v  short_v::interleaveLow ( short_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC  short_v  short_v::interleaveHigh( short_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC ushort_v ushort_v::interleaveLow (ushort_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC ushort_v ushort_v::interleaveHigh(ushort_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
+#endif
 // }}}1
 }
 }

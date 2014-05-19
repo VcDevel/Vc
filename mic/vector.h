@@ -413,6 +413,9 @@ public:
 
     Vc_INTRINSIC_L Vector copySign(AsArg reference) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
+
+    Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
+    Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
 template<typename T> constexpr size_t Vector<T>::Size;
 
