@@ -33,15 +33,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Common
-{
 template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
 std::pair<V, V> interleave(const V &a, const V &b)
 {
     return {a.interleaveLow(b), a.interleaveHigh(b)};
 }
-}
-}
+}  // namespace Vc
 
 #include "undomacros.h"
 
