@@ -45,7 +45,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # include "neon/vector.h"
 #endif
 
-Vc_VERSIONED_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 /**
  * \name Vector Type Aliases
  * \ingroup Vectors
