@@ -310,7 +310,6 @@ public:
     {
         return Vc::copysign(*this, reference);
     }
-
     Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") Vector exponent() const
     {
         return Vc::exponent(*this);
