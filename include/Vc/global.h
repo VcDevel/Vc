@@ -199,7 +199,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #  if defined(__MIC__)
 #    define Vc_IMPL_MIC 1
-#  elif defined(__ARM_NEON__)
+#  elif defined(__ARM_NEON)
 #    define Vc_IMPL_NEON 1
 #  elif defined(__AVX2__)
 #    define Vc_IMPL_AVX2 1
