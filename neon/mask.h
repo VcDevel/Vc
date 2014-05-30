@@ -1,4 +1,3 @@
-
 /*  This file is part of the Vc library. {{{
 Copyright © 2014-2016 Matthias Kretz <kretz@kde.org>
 All rights reserved.
