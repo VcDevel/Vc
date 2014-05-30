@@ -209,6 +209,8 @@ private:
     mask_type data;
 };
 
+template <typename T, std::size_t N, typename VectorType> constexpr std::size_t simd_mask_array<T, N, VectorType, N>::Size;
+
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_mask_array
 {
     static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
@@ -420,6 +422,7 @@ private:
     storage_type0 data0;
     storage_type1 data1;
 };
+template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t simd_mask_array<T, N, VectorType, M>::Size;
 
 }  // namespace Vc
 

@@ -380,6 +380,7 @@ public:
 private:
     VectorType data;
 };
+template <typename T, std::size_t N, typename VectorType> constexpr std::size_t simdarray<T, N, VectorType, N>::Size;
 
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simdarray
 {
@@ -734,6 +735,7 @@ private:
     storage_type0 data0;
     storage_type1 data1;
 };
+template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t simdarray<T, N, VectorType, M>::Size;
 
 // binary operators ////////////////////////////////////////////
 namespace result_vector_type_internal
