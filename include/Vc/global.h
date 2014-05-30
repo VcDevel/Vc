@@ -169,6 +169,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define AVX    0x00800000
 #define AVX2   0x00900000
 #define MIC    0x00A00000
+#define NEON   0x00B00000
 
 #define XOP    0x00000001
 #define FMA4   0x00000002
@@ -218,6 +219,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #  if defined(__MIC__)
 #    define Vc_IMPL_MIC 1
+#  elif defined(__ARM_NEON__)
+#    define Vc_IMPL_NEON 1
 #  elif defined(__AVX2__)
 #    define Vc_IMPL_AVX2 1
 #    define Vc_IMPL_AVX 1
@@ -282,6 +285,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    ifdef __POPCNT__
 #      define Vc_IMPL_POPCNT 1
 #    endif
+#  elif (Vc_IMPL & IMPL_MASK) == NEON
+#    define Vc_IMPL_NEON 1
 #  elif (Vc_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
 #    define Vc_IMPL_AVX2 1
 #    define Vc_IMPL_AVX 1
@@ -388,7 +393,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    endif
 #endif
 
-# if !defined(Vc_IMPL_Scalar) && !defined(Vc_IMPL_SSE) && !defined(Vc_IMPL_AVX) && !defined(Vc_IMPL_MIC)
+# if !defined(Vc_IMPL_Scalar) && !defined(Vc_IMPL_SSE) && !defined(Vc_IMPL_AVX) && !defined(Vc_IMPL_MIC) && !defined(Vc_IMPL_NEON)
 #  error "No suitable Vc implementation was selected! Probably Vc_IMPL was set to an invalid value."
 # elif defined(Vc_IMPL_SSE) && !defined(Vc_IMPL_SSE2)
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
@@ -404,6 +409,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef AVX
 #undef AVX2
 #undef MIC
+#undef NEON
 
 #undef XOP
 #undef FMA4
@@ -418,6 +424,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef Vc_IMPL_MIC
 #define Vc_DEFAULT_IMPL_MIC
+#elif defined Vc_IMPL_NEON
+#define Vc_DEFAULT_IMPL_NEON
 #elif defined Vc_IMPL_AVX2
 #define Vc_DEFAULT_IMPL_AVX2
 #elif defined Vc_IMPL_AVX
@@ -513,8 +521,9 @@ enum Implementation : std::uint_least32_t { // TODO: make enum class
     AVX2Impl,
     /// Intel Xeon Phi
     MICImpl,
-    ImplementationMask = 0xfff
-};
+    /// ARM NEON
+    NeonImpl,
+    ImplementationMask = 0xfff };
 
 /**
  * \ingroup Utilities
@@ -596,6 +605,8 @@ template <unsigned int Features> struct ImplementationT {
 using CurrentImplementation = ImplementationT<
 #ifdef Vc_IMPL_Scalar
     ScalarImpl
+#elif defined(Vc_IMPL_NEON)
+    NeonImpl
 #elif defined(Vc_IMPL_MIC)
     MICImpl
 #elif defined(Vc_IMPL_AVX2)

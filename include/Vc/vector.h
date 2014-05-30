@@ -41,6 +41,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # include "mic/vector.h"
 #endif
 
+#if defined(Vc_IMPL_NEON)
+# include "neon/vector.h"
+#endif
+
 namespace Vc_VERSIONED_NAMESPACE
 {
 /**
@@ -237,6 +241,10 @@ constexpr std::size_t MemoryAlignment = alignof(MemoryAlignedBase);
 # include "mic/helperimpl.h"
 # include "mic/math.h"
 # include "mic/simd_cast_caller.tcc"
+#endif
+#if defined(VC_IMPL_NEON)
+# include "neon/math.h"
+# include "neon/simd_cast_caller.tcc"
 #endif
 
 #include "common/math.h"
