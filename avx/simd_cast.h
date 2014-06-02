@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 
+// helper macros Vc_SIMD_CAST_AVX_[124] & Vc_SIMD_CAST_[124] {{{1
 #define Vc_SIMD_CAST_AVX_1(from__, to__)                                                           \
     template <typename To>                                                                         \
     Vc_INTRINSIC Vc_CONST To                                                                       \
@@ -60,6 +61,26 @@ namespace Vc_VERSIONED_NAMESPACE
                   Vc_AVX_NAMESPACE::from__ x3,                                                     \
                   enable_if<std::is_same<To, Vc_AVX_NAMESPACE::to__>::value> = nullarg)
 
+#define Vc_SIMD_CAST_1(from__, to__)                                                               \
+    template <typename To>                                                                         \
+    Vc_INTRINSIC Vc_CONST To                                                                       \
+        simd_cast(from__ x, enable_if<std::is_same<To, to__>::value> = nullarg)
+
+#define Vc_SIMD_CAST_2(from__, to__)                                                               \
+    template <typename To>                                                                         \
+    Vc_INTRINSIC Vc_CONST To                                                                       \
+        simd_cast(from__ x0, from__ x1, enable_if<std::is_same<To, to__>::value> = nullarg)
+
+#define Vc_SIMD_CAST_4(from__, to__)                                                               \
+    template <typename To>                                                                         \
+    Vc_INTRINSIC Vc_CONST To simd_cast(from__ x0,                                                  \
+                                       from__ x1,                                                  \
+                                       from__ x2,                                                  \
+                                       from__ x3,                                                  \
+                                       enable_if<std::is_same<To, to__>::value> = nullarg)
+
+// Vector casts {{{1
+//////////////////////////////////////////////////////////////////////////////////////////////
 Vc_SIMD_CAST_AVX_1( float_v,    int_v) { return _mm256_cvttps_epi32(x.data()); }
 Vc_SIMD_CAST_AVX_1(double_v,    int_v) { return AVX::zeroExtend(_mm256_cvttpd_epi32(x.data())); }
 Vc_SIMD_CAST_AVX_2(double_v,    int_v) { return AVX::concat(_mm256_cvttpd_epi32(x0.data()), _mm256_cvttpd_epi32(x1.data())); }
@@ -196,49 +217,6 @@ Vc_SIMD_CAST_AVX_1(  uint_v, double_v) {
 Vc_SIMD_CAST_AVX_1( short_v, double_v) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<Vc_AVX_NAMESPACE::int_v>(x)); }
 Vc_SIMD_CAST_AVX_1(ushort_v, double_v) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<Vc_AVX_NAMESPACE::int_v>(x)); }
 
-Vc_SIMD_CAST_AVX_2(double_m,  float_m) {
-    return AVX::concat(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
-                       _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
-}
-Vc_SIMD_CAST_AVX_2(double_m,    int_m) {
-    return AVX::concat(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
-                       _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
-}
-Vc_SIMD_CAST_AVX_2(double_m,   uint_m) {
-    return AVX::concat(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
-                       _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
-}
-Vc_SIMD_CAST_AVX_2(double_m,  short_m) {
-    return _mm_packs_epi16(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
-                           _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
-}
-Vc_SIMD_CAST_AVX_2(double_m, ushort_m) {
-    return _mm_packs_epi16(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
-                           _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
-}
-
-#undef Vc_SIMD_CAST_AVX_1
-#undef Vc_SIMD_CAST_AVX_2
-#undef Vc_SIMD_CAST_AVX_4
-
-#define Vc_SIMD_CAST_1(from__, to__)                                                               \
-    template <typename To>                                                                         \
-    Vc_INTRINSIC Vc_CONST To                                                                       \
-        simd_cast(from__ x, enable_if<std::is_same<To, to__>::value> = nullarg)
-
-#define Vc_SIMD_CAST_2(from__, to__)                                                               \
-    template <typename To>                                                                         \
-    Vc_INTRINSIC Vc_CONST To                                                                       \
-        simd_cast(from__ x0, from__ x1, enable_if<std::is_same<To, to__>::value> = nullarg)
-
-#define Vc_SIMD_CAST_4(from__, to__)                                                               \
-    template <typename To>                                                                         \
-    Vc_INTRINSIC Vc_CONST To simd_cast(from__ x0,                                                  \
-                                       from__ x1,                                                  \
-                                       from__ x2,                                                  \
-                                       from__ x3,                                                  \
-                                       enable_if<std::is_same<To, to__>::value> = nullarg)
-
 Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE:: short_v) { return simd_cast<SSE::short_v>(x).data(); }
 Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE:: short_v) { return simd_cast<SSE::short_v>(x0, x1).data(); }
 Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE::ushort_v) { return simd_cast<SSE::ushort_v>(x).data(); }
@@ -246,62 +224,34 @@ Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE::ushort_v) { return simd_cast<SSE::u
 Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE::double_v) { return _mm256_cvtepi32_pd(x.data()); }
 Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE:: float_v) { return AVX::zeroExtend(_mm_cvtepi32_ps(x.data())); }
 Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE:: float_v) { return _mm256_cvtepi32_ps(AVX::concat(x0.data(), x1.data())); }
-Vc_SIMD_CAST_1(SSE::int_m, Vc_AVX_NAMESPACE:: float_m) { return AVX::zeroExtend(x.data()); }
-Vc_SIMD_CAST_2(SSE::int_m, Vc_AVX_NAMESPACE:: float_m) { return AVX::concat(x0.data(), x1.data()); }
-Vc_SIMD_CAST_1(SSE::float_m, Vc_AVX_NAMESPACE::double_m) { return AVX::concat(_mm_unpacklo_epi32(x.dataI(), x.dataI()),
-                                                                              _mm_unpackhi_epi32(x.dataI(), x.dataI())); }
-
 Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE:: float_v, SSE::int_v) { return simd_cast<SSE::int_v>(SSE::float_v{AVX::lo128(x.data())}); }
-Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE::double_m, SSE::int_m) { return {_mm_packs_epi32(AVX::lo128(x.dataI()), AVX::hi128(x.dataI()))}; }
-Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE:: float_m, SSE::int_m) { return {AVX::lo128(x.data())}; }
 
-#undef Vc_SIMD_CAST_1
-#undef Vc_SIMD_CAST_2
-#undef Vc_SIMD_CAST_4
-
-// 1 AVX::Mask to 1 AVX::Mask
-template <typename Return, typename T>
+// 1 simdarray to 1 AVX::Vector
+template <typename Return, typename T, std::size_t N, typename V>
 Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
-              enable_if<AVX::is_mask<Return>::value || AVX2::is_mask<Return>::value> = nullarg)
+    simd_cast(const simdarray<T, N, V, N> &x,
+              enable_if<AVX2::is_vector<Return>::value || AVX::is_vector<Return>::value> = nullarg)
 {
-    return {Vc_AVX_NAMESPACE::internal::mask_cast<Vc_AVX_NAMESPACE::Mask<T>::Size,
-                                                  Return::Size,
-                                                  typename Return::VectorType>(k.dataI())};
+    return simd_cast<Return>(internal_data(x));
 }
 
-// 1 AVX::Mask to N AVX::Mask
-// It's rather limited: all AVX::Mask types except double_v have Size=8; and double_v::Size=4
-// Therefore Return is always double_m and k is either float_m == int_m == uint_m or
-// short_m == ushort_m
-template <typename Return, int offset, typename T>
+template <typename Return, typename T, std::size_t N, typename V>
 Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
-              enable_if<sizeof(k) == 32 && offset == 1 && AVX::is_mask<Return>::value> = nullarg)
+    simd_cast(const simdarray<T, 2 * N, V, N> &x,
+              enable_if<AVX2::is_vector<Return>::value || AVX::is_vector<Return>::value> = nullarg)
 {
-    const auto tmp = AVX::hi128(k.dataI());
-    return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
-}
-template <typename Return, int offset, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
-              enable_if<sizeof(k) == 16 && offset == 1 && AVX::is_mask<Return>::value> = nullarg)
-{
-    const auto tmp = _mm_unpackhi_epi16(k.dataI(), k.dataI());
-    return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
+    return simd_cast<Return>(internal_data(internal_data0(x)), internal_data(internal_data1(x)));
 }
 
-// 1 simd_mask_array to 1 AVX::Mask
-template <typename Return, typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simd_mask_array<T, N, V, M> &k,
-                                       enable_if<AVX::is_mask<Return>::value || AVX2::is_mask<Return>::value> = nullarg)
+template <typename Return, typename T, std::size_t N, typename V>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(const simdarray<T, 4 * N, V, N> &x,
+              enable_if<AVX2::is_vector<Return>::value || AVX::is_vector<Return>::value> = nullarg)
 {
-    // FIXME: this needs optimized implementation (unless compilers are smart enough)
-    Return r(false);
-    for (size_t i = 0; i < std::min(r.size(), k.size()); ++i) {
-        r[i] = k[i];
-    }
-    return r;
+    return simd_cast<Return>(internal_data(internal_data0(internal_data0(x))),
+                             internal_data(internal_data1(internal_data0(x))),
+                             internal_data(internal_data0(internal_data1(x))),
+                             internal_data(internal_data1(internal_data1(x))));
 }
 
 template <typename Return, int offset, typename T>
@@ -351,6 +301,83 @@ Vc_INTRINSIC Vc_CONST Return
         AVX::avx_cast<Intrin>(_mm_alignr_epi8(AVX::lo128(x.data()), AVX::hi128(x.data()), shift))});
 }
 
+// Mask casts {{{1
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+Vc_SIMD_CAST_AVX_2(double_m,  float_m) {
+    return AVX::concat(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
+                       _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
+}
+Vc_SIMD_CAST_AVX_2(double_m,    int_m) {
+    return AVX::concat(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
+                       _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
+}
+Vc_SIMD_CAST_AVX_2(double_m,   uint_m) {
+    return AVX::concat(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
+                       _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
+}
+Vc_SIMD_CAST_AVX_2(double_m,  short_m) {
+    return _mm_packs_epi16(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
+                           _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
+}
+Vc_SIMD_CAST_AVX_2(double_m, ushort_m) {
+    return _mm_packs_epi16(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())),
+                           _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI())));
+}
+
+Vc_SIMD_CAST_1(SSE::int_m, Vc_AVX_NAMESPACE:: float_m) { return AVX::zeroExtend(x.data()); }
+Vc_SIMD_CAST_2(SSE::int_m, Vc_AVX_NAMESPACE:: float_m) { return AVX::concat(x0.data(), x1.data()); }
+Vc_SIMD_CAST_1(SSE::float_m, Vc_AVX_NAMESPACE::double_m) { return AVX::concat(_mm_unpacklo_epi32(x.dataI(), x.dataI()),
+                                                                              _mm_unpackhi_epi32(x.dataI(), x.dataI())); }
+
+Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE::double_m, SSE::int_m) { return {_mm_packs_epi32(AVX::lo128(x.dataI()), AVX::hi128(x.dataI()))}; }
+Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE:: float_m, SSE::int_m) { return {AVX::lo128(x.data())}; }
+
+// 1 AVX::Mask to 1 AVX::Mask
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+              enable_if<AVX::is_mask<Return>::value || AVX2::is_mask<Return>::value> = nullarg)
+{
+    return {Vc_AVX_NAMESPACE::internal::mask_cast<Vc_AVX_NAMESPACE::Mask<T>::Size,
+                                                  Return::Size,
+                                                  typename Return::VectorType>(k.dataI())};
+}
+
+// 1 AVX::Mask to N AVX::Mask
+// It's rather limited: all AVX::Mask types except double_v have Size=8; and double_v::Size=4
+// Therefore Return is always double_m and k is either float_m == int_m == uint_m or
+// short_m == ushort_m
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+              enable_if<sizeof(k) == 32 && offset == 1 && AVX::is_mask<Return>::value> = nullarg)
+{
+    const auto tmp = AVX::hi128(k.dataI());
+    return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
+}
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+              enable_if<sizeof(k) == 16 && offset == 1 && AVX::is_mask<Return>::value> = nullarg)
+{
+    const auto tmp = _mm_unpackhi_epi16(k.dataI(), k.dataI());
+    return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
+}
+
+// 1 simd_mask_array to 1 AVX::Mask
+template <typename Return, typename T, std::size_t N, typename V, std::size_t M>
+Vc_INTRINSIC Vc_CONST Return simd_cast(const simd_mask_array<T, N, V, M> &k,
+                                       enable_if<AVX::is_mask<Return>::value || AVX2::is_mask<Return>::value> = nullarg)
+{
+    // FIXME: this needs optimized implementation (unless compilers are smart enough)
+    Return r(false);
+    for (size_t i = 0; i < std::min(r.size(), k.size()); ++i) {
+        r[i] = k[i];
+    }
+    return r;
+}
+
 // AVX to SSE (Mask<T>)
 template <typename Return, int offset, typename M>
 Vc_INTRINSIC Vc_CONST Return
@@ -367,16 +394,27 @@ Vc_INTRINSIC Vc_CONST Return
         AVX::avx_cast<Intrin>(_mm_alignr_epi8(AVX::lo128(x.dataI()), AVX::hi128(x.dataI()), shift))});
 }
 
-// offset == 0
+// offset == 0 {{{1
 template <typename Return, int offset, typename V>
 Vc_INTRINSIC Vc_CONST Return
-    simd_cast(V x,
-              enable_if<offset == 0 && (AVX::is_vector<V>::value || AVX::is_mask<V>::value ||
-                                        AVX2::is_vector<V>::value ||
-                                        AVX2::is_mask<V>::value)> = nullarg)
+    simd_cast(V &&x,
+              enable_if<offset == 0 && (AVX::is_vector<Traits::decay<V>>::value ||
+                                        AVX::is_mask<Traits::decay<V>>::value ||
+                                        AVX2::is_vector<Traits::decay<V>>::value ||
+                                        AVX2::is_mask<Traits::decay<V>>::value)> = nullarg)
 {
     return simd_cast<Return>(x);
 }
+
+// undef Vc_SIMD_CAST_AVX_[124] & Vc_SIMD_CAST_[124] {{{1
+#undef Vc_SIMD_CAST_AVX_1
+#undef Vc_SIMD_CAST_AVX_2
+#undef Vc_SIMD_CAST_AVX_4
+
+#undef Vc_SIMD_CAST_1
+#undef Vc_SIMD_CAST_2
+#undef Vc_SIMD_CAST_4
+// }}}1
 
 }  // namespace Vc
 
