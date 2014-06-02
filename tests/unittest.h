@@ -1081,10 +1081,9 @@ template <typename Vec> static typename Vec::Mask allMasks(size_t i)
 #ifdef VC_IMPL_MIC
     return ((1 << Vec::Size) - 1) - i;
 #else
-    typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
-    const I indexes(Vc::IndexesFromZero);
+    const Vec indexes(Vc::IndexesFromZero);
     M mask(true);
 
     for (int j = 0; j < 8 * sizeof(i); ++j) {
