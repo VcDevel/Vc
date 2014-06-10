@@ -17,8 +17,8 @@
 
 */
 
-#ifndef SSE_VECTOR_H
-#define SSE_VECTOR_H
+#ifndef VC_SSE_VECTOR_H__
+#define VC_SSE_VECTOR_H__
 
 #include "intrinsics.h"
 #include "types.h"
@@ -397,4 +397,4 @@ Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
 
 #include "undomacros.h"
 #include "vector.tcc"
-#endif // SSE_VECTOR_H
+#endif // VC_SSE_VECTOR_H__

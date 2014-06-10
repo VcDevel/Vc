@@ -29,7 +29,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SSE_SIMD_CAST_H
 #define VC_SSE_SIMD_CAST_H
 
-#include "intrinsics.h"
+#ifndef VC_SSE_VECTOR_H__
+#error "Vc/sse/vector.h needs to be included before Vc/sse/simd_cast.h"
+#endif
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
