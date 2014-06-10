@@ -146,7 +146,7 @@ Vc_SIMD_CAST_SSE_1(ushort_v, double_v) { return simd_cast<SSE::double_v>(simd_ca
  *  If the destination type is signed, the value is unchanged if it can be represented in the
  *  destination type (and bit-field width); otherwise, the value is implementation-defined.
  */
-#ifdef VC_GCC
+#if 1
 // GCC uses wrapping
 Vc_SIMD_CAST_SSE_2(   int_v,  short_v) {
     auto tmp0 = _mm_unpacklo_epi16(x0.data(), x1.data());  // 0 4 X X 1 5 X X
@@ -169,7 +169,7 @@ Vc_SIMD_CAST_SSE_1(  uint_v,  short_v) {
     return simd_cast<SSE::short_v>(x, SSE::uint_v::Zero());
 }
 #else
-// the default, which is probably incorrect for most compilers out there.
+// the alternative, which is probably incorrect for most compilers out there.
 Vc_SIMD_CAST_SSE_1(   int_v,  short_v) { return _mm_packs_epi32(x.data(), _mm_setzero_si128()); }
 Vc_SIMD_CAST_SSE_2(   int_v,  short_v) { return _mm_packs_epi32(x0.data(), x1.data()); }
 Vc_SIMD_CAST_SSE_1(  uint_v,  short_v) { return _mm_packs_epi32(x.data(), _mm_setzero_si128()); }
