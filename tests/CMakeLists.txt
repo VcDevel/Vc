@@ -180,10 +180,10 @@ macro(vc_add_test _name)
    endif()
 
    add_custom_target(run_${name}_all
-      DEPENDS ${_run_targets}
       COMMENT "Execute all ${name} tests"
       VERBATIM
       )
+   add_dependencies(run_${name}_all ${_run_targets})
 
 endmacro(vc_add_test)
 
