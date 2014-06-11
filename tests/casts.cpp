@@ -72,14 +72,21 @@ template <typename To, typename From> void simd_cast_1_impl(const From x)
               */
     const To reference = static_cast<T>(x[0]);
     if (To::size() > From::size()) {
-        COMPARE(simd_cast<To>(x), reference.shifted(To::size() - From::size())) << "casted to " << UnitTest::typeToString<To>() << ", reference = " << reference << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);;
+        COMPARE(simd_cast<To>(x), reference.shifted(To::size() - From::size()))
+            << "casted to " << UnitTest::typeToString<To>()
+            << ", reference = " << reference << ", x[0] = " << x[0]
+            << ", T(x[0]) = " << T(x[0]);
+        ;
     } else {
-        COMPARE(simd_cast<To>(x), reference) << "casted to " << UnitTest::typeToString<To>() << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+        COMPARE(simd_cast<To>(x), reference)
+            << "casted to " << UnitTest::typeToString<To>() << ", x[0] = " << x[0]
+            << ", T(x[0]) = " << T(x[0]);
     }
 }
 
 template <typename To, typename From>
-void simd_cast_2_impl(const From x, Vc::enable_if<(To::size() > From::size())> = Vc::nullarg)
+void simd_cast_2_impl(const From x,
+                      Vc::enable_if<(To::size() > From::size())> = Vc::nullarg)
 {
     using T = typename To::EntryType;
     if (is_conversion_undefined<T>(x[0])) {
@@ -93,22 +100,26 @@ void simd_cast_2_impl(const From x, Vc::enable_if<(To::size() > From::size())> =
     const To reference = static_cast<T>(x[0]);
     if (To::size() > 2 * From::size()) {
         COMPARE(simd_cast<To>(x, x), reference.shifted(To::size() - 2 * From::size()))
-            << "casted to " << UnitTest::typeToString<To>() << ", reference = " << reference
-            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+            << "casted to " << UnitTest::typeToString<To>()
+            << ", reference = " << reference << ", x[0] = " << x[0]
+            << ", T(x[0]) = " << T(x[0]);
         ;
     } else {
-        COMPARE(simd_cast<To>(x, x), reference) << "casted to " << UnitTest::typeToString<To>()
-                                                << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+        COMPARE(simd_cast<To>(x, x), reference)
+            << "casted to " << UnitTest::typeToString<To>() << ", x[0] = " << x[0]
+            << ", T(x[0]) = " << T(x[0]);
     }
 }
 
 template <typename To, typename From>
-void simd_cast_2_impl(const From, Vc::enable_if<(To::size() <= From::size())> = Vc::nullarg)
+void simd_cast_2_impl(const From,
+                      Vc::enable_if<(To::size() <= From::size())> = Vc::nullarg)
 {
 }
 
 template <typename To, typename From>
-void simd_cast_4_impl(const From x, Vc::enable_if<(To::size() > 2 * From::size())> = Vc::nullarg)
+void simd_cast_4_impl(const From x,
+                      Vc::enable_if<(To::size() > 2 * From::size())> = Vc::nullarg)
 {
     using T = typename To::EntryType;
     if (is_conversion_undefined<T>(x[0])) {
@@ -121,9 +132,11 @@ void simd_cast_4_impl(const From x, Vc::enable_if<(To::size() > 2 * From::size()
               */
     const To reference = static_cast<T>(x[0]);
     if (To::size() > 4 * From::size()) {
-        COMPARE(simd_cast<To>(x, x, x, x), reference.shifted(To::size() - 2 * From::size()))
-            << "casted to " << UnitTest::typeToString<To>() << ", reference = " << reference
-            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+        COMPARE(simd_cast<To>(x, x, x, x),
+                reference.shifted(To::size() - 2 * From::size()))
+            << "casted to " << UnitTest::typeToString<To>()
+            << ", reference = " << reference << ", x[0] = " << x[0]
+            << ", T(x[0]) = " << T(x[0]);
         ;
     } else {
         COMPARE(simd_cast<To>(x, x, x, x), reference)
@@ -133,36 +146,14 @@ void simd_cast_4_impl(const From x, Vc::enable_if<(To::size() > 2 * From::size()
 }
 
 template <typename To, typename From>
-void simd_cast_4_impl(const From, Vc::enable_if<(To::size() <= 2 * From::size())> = Vc::nullarg)
+void simd_cast_4_impl(const From,
+                      Vc::enable_if<(To::size() <= 2 * From::size())> = Vc::nullarg)
 {
 }
 
 template <typename To, typename From>
-void simd_cast_to2_impl(const From x, Vc::enable_if<(2 * To::size() <= From::size())> = Vc::nullarg)
-{
-    using T = typename To::EntryType;
-    if (is_conversion_undefined<T>(x[0])) {
-        return;
-    }
-    /*
-    std::cout << "conversion from " << UnitTest::typeToString<From>() << " to "
-              << UnitTest::typeToString<To>() << " value " << x[0] << " -> " << T(x[0]) << " vs. "
-              << simd_cast<To>(x)[0] << '\n';
-              */
-    const To reference = static_cast<T>(x[0]);
-    COMPARE((simd_cast<To, 0>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
-                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
-    COMPARE((simd_cast<To, 1>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
-                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
-}
-
-template <typename To, typename From>
-void simd_cast_to2_impl(const From, Vc::enable_if<(2 * To::size() > From::size())> = Vc::nullarg)
-{
-}
-
-template <typename To, typename From>
-void simd_cast_to4_impl(const From x, Vc::enable_if<(4 * To::size() <= From::size())> = Vc::nullarg)
+void simd_cast_to2_impl(const From x,
+                        Vc::enable_if<(2 * To::size() <= From::size())> = Vc::nullarg)
 {
     using T = typename To::EntryType;
     if (is_conversion_undefined<T>(x[0])) {
@@ -174,69 +165,109 @@ void simd_cast_to4_impl(const From x, Vc::enable_if<(4 * To::size() <= From::siz
               << simd_cast<To>(x)[0] << '\n';
               */
     const To reference = static_cast<T>(x[0]);
-    COMPARE((simd_cast<To, 0>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
-                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
-    COMPARE((simd_cast<To, 1>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
-                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
-    COMPARE((simd_cast<To, 2>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
-                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
-    COMPARE((simd_cast<To, 3>(x)), reference) << "casted to " << UnitTest::typeToString<To>()
-                                            << ", x[0] = " << x[0] << ", T(x[0]) = " << T(x[0]);
+    COMPARE((simd_cast<To, 0>(x)), reference)
+        << "casted to " << UnitTest::typeToString<To>() << ", x[0] = " << x[0]
+        << ", T(x[0]) = " << T(x[0]);
+    COMPARE((simd_cast<To, 1>(x)), reference)
+        << "casted to " << UnitTest::typeToString<To>() << ", x[0] = " << x[0]
+        << ", T(x[0]) = " << T(x[0]);
 }
 
 template <typename To, typename From>
-void simd_cast_to4_impl(const From, Vc::enable_if<(4 * To::size() > From::size())> = Vc::nullarg)
+void simd_cast_to2_impl(const From,
+                        Vc::enable_if<(2 * To::size() > From::size())> = Vc::nullarg)
+{
+}
+
+template <typename To, typename From>
+void simd_cast_to4_impl(const From x,
+                        Vc::enable_if<(4 * To::size() <= From::size())> = Vc::nullarg)
+{
+    using T = typename To::EntryType;
+    if (is_conversion_undefined<T>(x[0])) {
+        return;
+    }
+    /*
+    std::cout << "conversion from " << UnitTest::typeToString<From>() << " to "
+              << UnitTest::typeToString<To>() << " value " << x[0] << " -> " << T(x[0]) << " vs. "
+              << simd_cast<To>(x)[0] << '\n';
+              */
+    const To reference = static_cast<T>(x[0]);
+    COMPARE((simd_cast<To, 0>(x)), reference)
+        << "casted to " << UnitTest::typeToString<To>() << ", x[0] = " << x[0]
+        << ", T(x[0]) = " << T(x[0]);
+    COMPARE((simd_cast<To, 1>(x)), reference)
+        << "casted to " << UnitTest::typeToString<To>() << ", x[0] = " << x[0]
+        << ", T(x[0]) = " << T(x[0]);
+    COMPARE((simd_cast<To, 2>(x)), reference)
+        << "casted to " << UnitTest::typeToString<To>() << ", x[0] = " << x[0]
+        << ", T(x[0]) = " << T(x[0]);
+    COMPARE((simd_cast<To, 3>(x)), reference)
+        << "casted to " << UnitTest::typeToString<To>() << ", x[0] = " << x[0]
+        << ", T(x[0]) = " << T(x[0]);
+}
+
+template <typename To, typename From>
+void simd_cast_to4_impl(const From,
+                        Vc::enable_if<(4 * To::size() > From::size())> = Vc::nullarg)
 {
 }
 
 TEST_ALL_V(V, cast_vector)
 {
     using T = typename V::EntryType;
-    for (T x : {std::numeric_limits<T>::min(), T(0), T(-1), T(1), std::numeric_limits<T>::max(),
-                T(std::numeric_limits<T>::max() - 1), T(std::numeric_limits<T>::max() - 0xff),
+    for (T x : {std::numeric_limits<T>::min(),
+                T(0),
+                T(-1),
+                T(1),
+                std::numeric_limits<T>::max(),
+                T(std::numeric_limits<T>::max() - 1),
+                T(std::numeric_limits<T>::max() - 0xff),
                 T(std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 6 - 1)),
                 T(-std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 6 - 1)),
                 T(std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 4 - 1)),
                 T(-std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 4 - 1)),
                 T(std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 2 - 1)),
                 T(-std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 2 - 1)),
-                T(std::numeric_limits<T>::max() - 0xff), T(std::numeric_limits<T>::max() - 0x55),
-                T(-std::numeric_limits<T>::min()), T(-std::numeric_limits<T>::max())}) {
+                T(std::numeric_limits<T>::max() - 0xff),
+                T(std::numeric_limits<T>::max() - 0x55),
+                T(-std::numeric_limits<T>::min()),
+                T(-std::numeric_limits<T>::max())}) {
         const V v = x;
 
-        simd_cast_1_impl<   int_v>(v);
-        simd_cast_1_impl<  uint_v>(v);
-        simd_cast_1_impl< short_v>(v);
+        simd_cast_1_impl<int_v>(v);
+        simd_cast_1_impl<uint_v>(v);
+        simd_cast_1_impl<short_v>(v);
         simd_cast_1_impl<ushort_v>(v);
-        simd_cast_1_impl< float_v>(v);
+        simd_cast_1_impl<float_v>(v);
         simd_cast_1_impl<double_v>(v);
 
-        simd_cast_2_impl<   int_v>(v);
-        simd_cast_2_impl<  uint_v>(v);
-        simd_cast_2_impl< short_v>(v);
+        simd_cast_2_impl<int_v>(v);
+        simd_cast_2_impl<uint_v>(v);
+        simd_cast_2_impl<short_v>(v);
         simd_cast_2_impl<ushort_v>(v);
-        simd_cast_2_impl< float_v>(v);
+        simd_cast_2_impl<float_v>(v);
         simd_cast_2_impl<double_v>(v);
 
-        simd_cast_4_impl<   int_v>(v);
-        simd_cast_4_impl<  uint_v>(v);
-        simd_cast_4_impl< short_v>(v);
+        simd_cast_4_impl<int_v>(v);
+        simd_cast_4_impl<uint_v>(v);
+        simd_cast_4_impl<short_v>(v);
         simd_cast_4_impl<ushort_v>(v);
-        simd_cast_4_impl< float_v>(v);
+        simd_cast_4_impl<float_v>(v);
         simd_cast_4_impl<double_v>(v);
 
-        simd_cast_to2_impl<   int_v>(v);
-        simd_cast_to2_impl<  uint_v>(v);
-        simd_cast_to2_impl< short_v>(v);
+        simd_cast_to2_impl<int_v>(v);
+        simd_cast_to2_impl<uint_v>(v);
+        simd_cast_to2_impl<short_v>(v);
         simd_cast_to2_impl<ushort_v>(v);
-        simd_cast_to2_impl< float_v>(v);
+        simd_cast_to2_impl<float_v>(v);
         simd_cast_to2_impl<double_v>(v);
 
-        simd_cast_to4_impl<   int_v>(v);
-        simd_cast_to4_impl<  uint_v>(v);
-        simd_cast_to4_impl< short_v>(v);
+        simd_cast_to4_impl<int_v>(v);
+        simd_cast_to4_impl<uint_v>(v);
+        simd_cast_to4_impl<short_v>(v);
         simd_cast_to4_impl<ushort_v>(v);
-        simd_cast_to4_impl< float_v>(v);
+        simd_cast_to4_impl<float_v>(v);
         simd_cast_to4_impl<double_v>(v);
     }
 }
@@ -246,67 +277,106 @@ template <typename To, typename From> void mask_cast_1(From mask)
     To casted = simd_cast<To>(mask);
     std::size_t i = 0;
     for (; i < std::min(To::Size, From::Size); ++i) {
-        COMPARE(casted[i], mask[i]) << "i: " << i << ", " << mask << " got converted to " << UnitTest::typeToString<To>() << ": " << casted;
+        COMPARE(casted[i], mask[i]) << "i: " << i << ", " << mask << " got converted to "
+                                    << UnitTest::typeToString<To>() << ": " << casted;
     }
     for (; i < To::Size; ++i) {
-        COMPARE(casted[i], false) << "i: " << i << ", " << mask << " got converted to " << UnitTest::typeToString<To>() << ": " << casted;
+        COMPARE(casted[i], false) << "i: " << i << ", " << mask << " got converted to "
+                                  << UnitTest::typeToString<To>() << ": " << casted;
     }
 }
-template <typename To, typename From> void mask_cast_2(const From mask0, const From mask1, Vc::enable_if<(To::size() > From::size())> = Vc::nullarg)
+template <typename To, typename From>
+void mask_cast_2(const From mask0,
+                 const From mask1,
+                 Vc::enable_if<(To::size() > From::size())> = Vc::nullarg)
 {
     To casted = simd_cast<To>(mask0, mask1);
     std::size_t i = 0;
     for (; i < From::Size; ++i) {
-        COMPARE(casted[i], mask0[i]) << "i: " << i << mask0 << mask1 << " were converted to " << UnitTest::typeToString<To>() << ": " << casted;
+        COMPARE(casted[i], mask0[i]) << "i: " << i << mask0 << mask1
+                                     << " were converted to "
+                                     << UnitTest::typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 2 * From::Size); ++i) {
-        COMPARE(casted[i], mask1[i - From::Size]) << "i: " << i << mask0 << mask1 << " were converted to " << UnitTest::typeToString<To>() << ": " << casted;
+        COMPARE(casted[i], mask1[i - From::Size])
+            << "i: " << i << mask0 << mask1 << " were converted to "
+            << UnitTest::typeToString<To>() << ": " << casted;
     }
     for (; i < To::Size; ++i) {
-        COMPARE(casted[i], false) << "i: " << i << mask0 << mask1 << " were converted to " << UnitTest::typeToString<To>() << ": " << casted;
+        COMPARE(casted[i], false) << "i: " << i << mask0 << mask1 << " were converted to "
+                                  << UnitTest::typeToString<To>() << ": " << casted;
     }
 }
 template <typename To, typename From>
-void mask_cast_2(const From, const From, Vc::enable_if<!(To::size() > From::size())> = Vc::nullarg)
+void mask_cast_2(const From,
+                 const From,
+                 Vc::enable_if<!(To::size() > From::size())> = Vc::nullarg)
 {
 }
-template <typename To, typename From> void mask_cast_4(const From mask0, const From mask1, const From mask2, const From mask3, Vc::enable_if<(To::size() > 2 * From::size())> = Vc::nullarg)
+template <typename To, typename From>
+void mask_cast_4(const From mask0,
+                 const From mask1,
+                 const From mask2,
+                 const From mask3,
+                 Vc::enable_if<(To::size() > 2 * From::size())> = Vc::nullarg)
 {
     To casted = simd_cast<To>(mask0, mask1, mask2, mask3);
     std::size_t i = 0;
     for (; i < From::Size; ++i) {
-        COMPARE(casted[i], mask0[i]) << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to " << UnitTest::typeToString<To>() << ": " << casted;
+        COMPARE(casted[i], mask0[i]) << "i: " << i << mask0 << mask1 << mask2 << mask3
+                                     << " were converted to "
+                                     << UnitTest::typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 2 * From::Size); ++i) {
-        COMPARE(casted[i], mask1[i - From::Size]) << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to " << UnitTest::typeToString<To>() << ": " << casted;
+        COMPARE(casted[i], mask1[i - From::Size])
+            << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
+            << UnitTest::typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 3 * From::Size); ++i) {
-        COMPARE(casted[i], mask2[i - 2 * From::Size]) << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to " << UnitTest::typeToString<To>() << ": " << casted;
+        COMPARE(casted[i], mask2[i - 2 * From::Size])
+            << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
+            << UnitTest::typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 4 * From::Size); ++i) {
-        COMPARE(casted[i], mask3[i - 3 * From::Size]) << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to " << UnitTest::typeToString<To>() << ": " << casted;
+        COMPARE(casted[i], mask3[i - 3 * From::Size])
+            << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
+            << UnitTest::typeToString<To>() << ": " << casted;
     }
     for (; i < To::Size; ++i) {
-        COMPARE(casted[i], false) << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to " << UnitTest::typeToString<To>() << ": " << casted;
+        COMPARE(casted[i], false) << "i: " << i << mask0 << mask1 << mask2 << mask3
+                                  << " were converted to " << UnitTest::typeToString<To>()
+                                  << ": " << casted;
     }
 }
 template <typename To, typename From>
-void mask_cast_4(const From, const From, const From, const From, Vc::enable_if<!(To::size() > 2 * From::size())> = Vc::nullarg)
+void mask_cast_4(const From,
+                 const From,
+                 const From,
+                 const From,
+                 Vc::enable_if<!(To::size() > 2 * From::size())> = Vc::nullarg)
 {
 }
-template <typename To, typename From> void mask_cast_0_5(const From mask, Vc::enable_if<(To::size() < From::size())> = Vc::nullarg)
+template <typename To, typename From>
+void mask_cast_0_5(const From mask,
+                   Vc::enable_if<(To::size() < From::size())> = Vc::nullarg)
 {
     const To casted0 = simd_cast<To, 0>(mask);
     const To casted1 = simd_cast<To, 1>(mask);
     std::size_t i = 0;
     for (; i < To::Size; ++i) {
-        COMPARE(casted0[i], mask[i]) << "i: " << i << ", " << mask << " got converted to " << UnitTest::typeToString<To>() << ": " << casted0 << casted1;
+        COMPARE(casted0[i], mask[i]) << "i: " << i << ", " << mask << " got converted to "
+                                     << UnitTest::typeToString<To>() << ": " << casted0
+                                     << casted1;
     }
     for (; i < std::min(2 * To::Size, From::Size); ++i) {
-        COMPARE(casted1[i - To::Size], mask[i]) << "i: " << i << ", " << mask << " got converted to " << UnitTest::typeToString<To>() << ": " << casted0 << casted1;
+        COMPARE(casted1[i - To::Size], mask[i])
+            << "i: " << i << ", " << mask << " got converted to "
+            << UnitTest::typeToString<To>() << ": " << casted0 << casted1;
     }
     for (; i < 2 * To::Size; ++i) {
-        COMPARE(casted1[i - To::Size], false) << "i: " << i << ", " << mask << " got converted to " << UnitTest::typeToString<To>() << ": " << casted0 << casted1;
+        COMPARE(casted1[i - To::Size], false)
+            << "i: " << i << ", " << mask << " got converted to "
+            << UnitTest::typeToString<To>() << ": " << casted0 << casted1;
     }
 }
 template <typename To, typename From>
@@ -322,7 +392,15 @@ template <typename To, typename From> void mask_cast(const std::vector<From> &ma
     mask_cast_0_5<To>(masks[0]);
 }
 
-TEST_TYPES(V, cast_mask, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(4), SIMD_ARRAYS(8), SIMD_ARRAYS(16), SIMD_ARRAYS(17)))
+TEST_TYPES(V,
+           cast_mask,
+           (ALL_VECTORS,
+            SIMD_ARRAYS(1),
+            SIMD_ARRAYS(2),
+            SIMD_ARRAYS(4),
+            SIMD_ARRAYS(8),
+            SIMD_ARRAYS(16),
+            SIMD_ARRAYS(17)))
 {
     using M = typename V::Mask;
     std::vector<M> randomMasks(4, M{false});
@@ -330,11 +408,11 @@ TEST_TYPES(V, cast_mask, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRA
     UnitTest::withRandomMask<V>([&](M mask) {
         std::rotate(randomMasks.begin(), randomMasks.begin() + 1, randomMasks.end());
         randomMasks[0] = mask;
-        mask_cast<   int_m>(randomMasks);
-        mask_cast<  uint_m>(randomMasks);
-        mask_cast< short_m>(randomMasks);
+        mask_cast<int_m>(randomMasks);
+        mask_cast<uint_m>(randomMasks);
+        mask_cast<short_m>(randomMasks);
         mask_cast<ushort_m>(randomMasks);
-        mask_cast< float_m>(randomMasks);
+        mask_cast<float_m>(randomMasks);
         mask_cast<double_m>(randomMasks);
     });
 }
