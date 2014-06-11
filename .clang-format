@@ -45,7 +45,7 @@ BreakConstructorInitializersBeforeComma: true
 
 #    The column limit.
 #    A column limit of 0 means that there is no column limit. In this case, clang-format will respect the input’s line breaking decisions within statements.
-ColumnLimit: 100
+ColumnLimit: 90
 
 #    If the constructor initializers don’t fit on a line, put each initializer on its own line.
 #ConstructorInitializerAllOnOneLineOrOnePerLine (bool)
