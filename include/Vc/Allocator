@@ -235,6 +235,36 @@ namespace std
         const allocator &select_on_container_copy_construction() const { return *this; }
 #endif
     };
+    template <typename T>
+    class allocator<Vc::Mask<T>> : public ::Vc::Allocator<Vc::Mask<T>>
+    {
+    public:
+        template<typename U> struct rebind { typedef ::std::allocator<U> other; };
+#ifdef VC_MSVC
+        // MSVC brokenness: the following function is optional - just doesn't compile without it
+        const allocator &select_on_container_copy_construction() const { return *this; }
+#endif
+    };
+    template <typename T, std::size_t N, typename V, std::size_t M>
+    class allocator<Vc::simdarray<T, N, V, M>> : public ::Vc::Allocator<Vc::simdarray<T, N, V, M>>
+    {
+    public:
+        template<typename U> struct rebind { typedef ::std::allocator<U> other; };
+#ifdef VC_MSVC
+        // MSVC brokenness: the following function is optional - just doesn't compile without it
+        const allocator &select_on_container_copy_construction() const { return *this; }
+#endif
+    };
+    template <typename T, std::size_t N, typename V, std::size_t M>
+    class allocator<Vc::simd_mask_array<T, N, V, M>> : public ::Vc::Allocator<Vc::simd_mask_array<T, N, V, M>>
+    {
+    public:
+        template<typename U> struct rebind { typedef ::std::allocator<U> other; };
+#ifdef VC_MSVC
+        // MSVC brokenness: the following function is optional - just doesn't compile without it
+        const allocator &select_on_container_copy_construction() const { return *this; }
+#endif
+    };
 }
 
 #endif // VC_ALLOCATOR_H

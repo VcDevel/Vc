@@ -136,6 +136,7 @@ namespace Vc_VERSIONED_NAMESPACE
   using Vc_IMPL_NAMESPACE::isnan;
   using Vc_IMPL_NAMESPACE::forceToRegisters;
   using Vc_IMPL_NAMESPACE::Vector;
+  using Vc_IMPL_NAMESPACE::Mask;
 
   typedef Vc_IMPL_NAMESPACE::double_v double_v;
   typedef double_v::Mask double_m;
