@@ -518,12 +518,16 @@ Vc_INTRINSIC Vc_CONST Return
                              internal_data(x7));
 }
 
-// offset == 0 | convert from SSE::Mask/Vector {{{1
+// offset == 0 | convert from SSE::Mask/Vector to SSE/Scalar::Mask/Vector {{{1
 template <typename Return, int offset, typename V>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(V &&x,
-              enable_if<offset == 0 && (SSE::is_vector<Traits::decay<V>>::value ||
-                                        SSE::is_mask<Traits::decay<V>>::value)> = nullarg)
+Vc_INTRINSIC Vc_CONST Return simd_cast(
+    V &&x,
+    enable_if<offset == 0 &&
+              ((SSE::is_vector<Traits::decay<V>>::value &&
+                (SSE::is_vector<Return>::value || Scalar::is_vector<Return>::value)) ||
+               (SSE::is_mask<Traits::decay<V>>::value &&
+                (SSE::is_mask<Return>::value || Scalar::is_mask<Return>::value)))> =
+        nullarg)
 {
     return simd_cast<Return>(x);
 }
