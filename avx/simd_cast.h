@@ -79,6 +79,7 @@ namespace Vc_VERSIONED_NAMESPACE
                                        enable_if<std::is_same<To, to__>::value> = nullarg)
 
 // Vector casts without offset {{{1
+// AVX::Vector {{{2
 Vc_SIMD_CAST_AVX_1( float_v,    int_v) { return _mm256_cvttps_epi32(x.data()); }
 Vc_SIMD_CAST_AVX_1(double_v,    int_v) { return AVX::zeroExtend(_mm256_cvttpd_epi32(x.data())); }
 Vc_SIMD_CAST_AVX_2(double_v,    int_v) { return AVX::concat(_mm256_cvttpd_epi32(x0.data()), _mm256_cvttpd_epi32(x1.data())); }
@@ -215,6 +216,7 @@ Vc_SIMD_CAST_AVX_1(  uint_v, double_v) {
 Vc_SIMD_CAST_AVX_1( short_v, double_v) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<Vc_AVX_NAMESPACE::int_v>(x)); }
 Vc_SIMD_CAST_AVX_1(ushort_v, double_v) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<Vc_AVX_NAMESPACE::int_v>(x)); }
 
+// SSE::Vector to AVX::Vector {{{2
 Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE:: short_v) { return simd_cast<SSE::short_v>(x).data(); }
 Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE:: short_v) { return simd_cast<SSE::short_v>(x0, x1).data(); }
 Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE::ushort_v) { return simd_cast<SSE::ushort_v>(x).data(); }
@@ -222,8 +224,11 @@ Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE::ushort_v) { return simd_cast<SSE::u
 Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE::double_v) { return _mm256_cvtepi32_pd(x.data()); }
 Vc_SIMD_CAST_1(SSE::int_v, Vc_AVX_NAMESPACE:: float_v) { return AVX::zeroExtend(_mm_cvtepi32_ps(x.data())); }
 Vc_SIMD_CAST_2(SSE::int_v, Vc_AVX_NAMESPACE:: float_v) { return _mm256_cvtepi32_ps(AVX::concat(x0.data(), x1.data())); }
+
+// AVX::Vector to SSE::Vector {{{2
 Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE:: float_v, SSE::int_v) { return simd_cast<SSE::int_v>(SSE::float_v{AVX::lo128(x.data())}); }
 
+// AVX::Vector to Scalar::Vector {{{2
 #define Vc_SIMD_CAST_AVX_TO_SCALAR(to__)                                                 \
     template <typename To, typename FromT>                                               \
     Vc_INTRINSIC Vc_CONST To                                                             \
@@ -236,7 +241,7 @@ Vc_SIMD_CAST_1(Vc_AVX_NAMESPACE:: float_v, SSE::int_v) { return simd_cast<SSE::i
 VC_ALL_VECTOR_TYPES(Vc_SIMD_CAST_AVX_TO_SCALAR)
 #undef Vc_SIMD_CAST_AVX_TO_SCALAR
 
-// 1 simdarray to 1 AVX::Vector
+// 1 simdarray to 1 AVX::Vector {{{2
 template <typename Return, typename T, std::size_t N, typename V>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast(const simdarray<T, N, V, N> &x,
