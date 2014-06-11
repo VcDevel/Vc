@@ -424,77 +424,11 @@ Vc_INTRINSIC Vc_CONST Return
 VC_ALL_VECTOR_TYPES(Vc_SIMD_CAST_SSE_TO_SCALAR)
 #undef Vc_SIMD_CAST_SSE_TO_SCALAR
 
-// 4 simdarray to 1 SSE::Vector {{{2
-template <typename Return, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray<T, N, V, N> &x0,
-                                       const simdarray<T, N, V, N> &x1,
-                                       const simdarray<T, N, V, N> &x2,
-                                       const simdarray<T, N, V, N> &x3,
-                                       enable_if<SSE::is_vector<Return>::value> = nullarg)
-{
-    return simd_cast<Return>(
-        internal_data(x0), internal_data(x1), internal_data(x2), internal_data(x3));
-}
-
-template <typename Return, typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray<T, N, V, M> &x0,
-                                       const simdarray<T, N, V, M> &x1,
-                                       const simdarray<T, N, V, M> &x2,
-                                       const simdarray<T, N, V, M> &x3,
-                                       enable_if<SSE::is_vector<Return>::value> = nullarg)
-{
-    return simd_cast<Return>(internal_data0(x0),
-                             internal_data1(x0),
-                             internal_data0(x1),
-                             internal_data1(x1),
-                             internal_data0(x2),
-                             internal_data1(x2),
-                             internal_data0(x3),
-                             internal_data1(x3));
-}
-
-// 2 simdarray to 1 SSE::Vector {{{2
-template <typename Return, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray<T, N, V, N> &x0,
-                                       const simdarray<T, N, V, N> &x1,
-                                       enable_if<SSE::is_vector<Return>::value> = nullarg)
-{
-    return simd_cast<Return>(internal_data(x0), internal_data(x1));
-}
-
-template <typename Return, typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray<T, N, V, M> &x0,
-                                       const simdarray<T, N, V, M> &x1,
-                                       enable_if<SSE::is_vector<Return>::value> = nullarg)
-{
-    return simd_cast<Return>(
-        internal_data0(x0), internal_data1(x0), internal_data0(x1), internal_data1(x1));
-}
-
-// 1 simdarray to 1 SSE::Vector {{{2
-template <typename Return, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray<T, N, V, N> &x,
-                                       enable_if<SSE::is_vector<Return>::value> = nullarg)
-{
-    return simd_cast<Return>(internal_data(x));
-}
-
-template <typename Return, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray<T, 2 * N, V, N> &x,
-                                       enable_if<SSE::is_vector<Return>::value> = nullarg)
-{
-    return simd_cast<Return>(internal_data(internal_data0(x)), internal_data(internal_data1(x)));
-}
-
-template <typename Return, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray<T, 4 * N, V, N> &x,
-                                       enable_if<SSE::is_vector<Return>::value> = nullarg)
-{
-    return simd_cast<Return>(internal_data(internal_data0(internal_data0(x))),
-                             internal_data(internal_data1(internal_data0(x))),
-                             internal_data(internal_data0(internal_data1(x))),
-                             internal_data(internal_data1(internal_data1(x))));
-}
+// simdarray to SSE::Vector {{{2
+Vc_4_SIMDARRAY_TO_1__(simdarray, SSE::is_vector)
+Vc_3_SIMDARRAY_TO_1__(simdarray, SSE::is_vector)
+Vc_2_SIMDARRAY_TO_1__(simdarray, SSE::is_vector)
+Vc_1_SIMDARRAY_TO_1__(simdarray, SSE::is_vector)
 
 // Mask casts without offset {{{1
 // any one SSE Mask to one other SSE Mask
