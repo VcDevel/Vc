@@ -213,7 +213,7 @@ void simd_cast_to4_impl(const From,
 {
 }
 
-TEST_ALL_V(V, cast_vector)
+TEST_TYPES(V, cast_vector, (ALL_VECTORS, SIMD_ARRAYS(1)))
 {
     using T = typename V::EntryType;
     for (T x : {std::numeric_limits<T>::min(),
