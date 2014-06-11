@@ -291,15 +291,17 @@ Vc_SIMD_CAST_2(Scalar::ushort_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(
 Vc_SIMD_CAST_4(Scalar::ushort_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0); }
 Vc_SIMD_CAST_8(Scalar::ushort_v, SSE::ushort_v) { return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), x5.data(), x6.data(), x7.data()); }
 
-#define Vc_SIMD_CAST_SSE_TO_SCALAR(to__)                                                           \
-    template <typename To, typename FromT>                                                         \
-    Vc_INTRINSIC Vc_CONST To simd_cast(SSE::Vector<FromT> x,                                       \
-                                       enable_if<std::is_same<To, Scalar::to__>::value> = nullarg) \
-    {                                                                                              \
-        return simd_cast<SSE::to__>(x)[0];                                                         \
+#define Vc_SIMD_CAST_SSE_TO_SCALAR(to__)                                                 \
+    template <typename To, typename FromT>                                               \
+    Vc_INTRINSIC Vc_CONST To                                                             \
+        simd_cast(SSE::Vector<FromT> x,                                                  \
+                  enable_if<std::is_same<To, Scalar::to__>::value> = nullarg)            \
+    {                                                                                    \
+        return static_cast<To>(x[0]);                                                    \
     }
 
 VC_ALL_VECTOR_TYPES(Vc_SIMD_CAST_SSE_TO_SCALAR)
+#undef Vc_SIMD_CAST_SSE_TO_SCALAR
 
 // Mask casts without offset {{{1
 // any one SSE Mask to one other SSE Mask
