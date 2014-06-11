@@ -35,14 +35,34 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
-
+/**
+ * \internal
+ * Returns the next power of 2 larger than or equal to \p x.
+ */
 static constexpr std::size_t nextPowerOfTwo(std::size_t x)
 {
     return (x & (x - 1)) == 0 ? x : nextPowerOfTwo((x | (x >> 1)) + 1);
 }
 
+/**
+ * \internal
+ * Returns the size of the left/first simdarray member.
+ */
+static constexpr std::size_t left_size(std::size_t N)
+{
+    return Common::nextPowerOfTwo(N - N / 2);
 }
+/**
+ * \internal
+ * Returns the size of the right/second simdarray member.
+ */
+static constexpr std::size_t right_size(std::size_t N)
+{
+    return N - left_size(N);
 }
+
+}  // namespace Common
+}  // namespace Vc
 
 #include "undomacros.h"
 

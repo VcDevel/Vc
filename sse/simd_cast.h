@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SSE_SIMD_CAST_H
 #define VC_SSE_SIMD_CAST_H
 
+#include "../common/utility.h"
+
 #ifndef VC_SSE_VECTOR_H__
 #error "Vc/sse/vector.h needs to be included before Vc/sse/simd_cast.h"
 #endif
@@ -660,7 +662,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
 }
 
 // Vector casts with offset {{{1
-// SSE to SSE (Vector)
+// SSE to SSE (Vector) {{{2
 template <typename Return, int offset, typename V>
 Vc_INTRINSIC Vc_CONST Return simd_cast(
     V x,
@@ -672,7 +674,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
         _mm_srli_si128(SSE::sse_cast<__m128i>(x.data()), shift))});
 }
 
-// SSE to Scalar (Vector)
+// SSE to Scalar (Vector) {{{2
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast(SSE::Vector<T> x,
@@ -681,6 +683,65 @@ Vc_INTRINSIC Vc_CONST Return
     using RT = typename Return::EntryType;
     const auto tmp = simd_cast<SSE::Vector<RT>>(x);
     return tmp[offset];
+}
+
+// simdarray to SSE::Vector {{{2
+template <typename Return, int offset, typename T, std::size_t N, typename V>
+Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray<T, N, V, N> &x,
+                                       enable_if<SSE::is_vector<Return>::value> = nullarg)
+{
+    return simd_cast<Return, offset>(internal_data(x));
+}
+
+template <typename Return,
+          int offset,
+          typename T,
+          std::size_t N,
+          typename V,
+          std::size_t M>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(const simdarray<T, N, V, M> &x,
+              enable_if<(offset * Return::Size >= Common::left_size(N) &&
+                         SSE::is_vector<Return>::value)> = nullarg)
+{
+    return simd_cast<Return, offset - Common::left_size(N) / Return::Size>(internal_data1(x));
+}
+
+template <typename Return,
+          int offset,
+          typename T,
+          std::size_t N,
+          typename V,
+          std::size_t M>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(const simdarray<T, N, V, M> &x,
+              enable_if<(offset * Return::Size < Common::left_size(N) &&
+                         (offset + 1) * Return::Size <= Common::left_size(N) &&
+                         SSE::is_vector<Return>::value)> = nullarg)
+{
+    return simd_cast<Return, offset>(internal_data0(x));
+}
+
+template <typename Return,
+          int offset,
+          typename T,
+          std::size_t N,
+          typename V,
+          std::size_t M>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(const simdarray<T, N, V, M> &x,
+              enable_if<(offset * Return::Size < Common::left_size(N) &&
+                         (offset + 1) * Return::Size > Common::left_size(N) &&
+                         SSE::is_vector<Return>::value)> = nullarg)
+{
+    using R = typename Return::EntryType;
+    Return r{0};
+    for (std::size_t i = offset * Return::Size;
+         i < std::min(N, (offset + 1) * Return::Size);
+         ++i) {
+        r[i - offset * Return::Size] = static_cast<R>(x[i]);
+    }
+    return r;
 }
 
 // Mask casts with offset {{{1
