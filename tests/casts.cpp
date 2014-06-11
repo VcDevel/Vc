@@ -133,7 +133,7 @@ void simd_cast_4_impl(const From x,
     const To reference = static_cast<T>(x[0]);
     if (To::size() > 4 * From::size()) {
         COMPARE(simd_cast<To>(x, x, x, x),
-                reference.shifted(To::size() - 2 * From::size()))
+                reference.shifted(To::size() - 4 * From::size()))
             << "casted to " << UnitTest::typeToString<To>()
             << ", reference = " << reference << ", x[0] = " << x[0]
             << ", T(x[0]) = " << T(x[0]);
