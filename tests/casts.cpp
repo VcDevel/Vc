@@ -322,7 +322,7 @@ template <typename To, typename From> void mask_cast(const std::vector<From> &ma
     mask_cast_0_5<To>(masks[0]);
 }
 
-TEST_TYPES(V, cast_mask, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(4), SIMD_ARRAYS(8), SIMD_ARRAYS(16)))
+TEST_TYPES(V, cast_mask, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(4), SIMD_ARRAYS(8), SIMD_ARRAYS(16), SIMD_ARRAYS(17)))
 {
     using M = typename V::Mask;
     std::vector<M> randomMasks(4, M{false});
