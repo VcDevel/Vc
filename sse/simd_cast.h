@@ -520,118 +520,12 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(Scalar::Mask<T> x0,
     return m;
 }
 
-// any 1 simd_mask_array to 1 SSE::Mask
-template <typename Return, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simd_mask_array<T, N, V, N> &x,
-                                       enable_if<SSE::is_mask<Return>::value> = nullarg)
-{
-    return simd_cast<Return>(internal_data(x));
-}
-template <typename Return, typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC Vc_CONST Return simd_cast(
-    const simd_mask_array<T, N, V, M> &x,
-    enable_if<(SSE::is_mask<Return>::value &&
-               Traits::decay<decltype(internal_data0(x))>::Size >= Return::Size)> = nullarg)
-{
-    return simd_cast<Return>(internal_data0(x));
-}
-template <typename Return, typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC Vc_CONST Return simd_cast(
-    const simd_mask_array<T, N, V, M> &x,
-    enable_if<(SSE::is_mask<Return>::value &&
-               Traits::decay<decltype(internal_data0(x))>::Size < Return::Size)> = nullarg)
-{
-    return simd_cast<Return>(internal_data0(x), internal_data1(x));
-}
-
-// any 2 simd_mask_array to 1 SSE::Mask
-template <typename Return, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simd_mask_array<T, N, V, N> &x0,
-                                       const simd_mask_array<T, N, V, N> &x1,
-                                       enable_if<SSE::is_mask<Return>::value> = nullarg)
-{
-    return simd_cast<Return>(internal_data(x0), internal_data(x1));
-}
-template <typename Return, typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC Vc_CONST Return simd_cast(
-    const simd_mask_array<T, N, V, M> &x0,
-    const simd_mask_array<T, N, V, M> &x1,
-    enable_if<(SSE::is_mask<Return>::value &&
-               // make sure all four arguments to the forwarded simd_cast are *required*
-               N + Traits::decay<decltype(internal_data0(x1))>::Size < Return::Size)> = nullarg)
-{
-    return simd_cast<Return>(
-        internal_data0(x0), internal_data1(x0), internal_data0(x1), internal_data1(x1));
-}
-
-// any 4 simd_mask_array to 1 SSE::Mask
-template <typename Return, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simd_mask_array<T, N, V, N> &x0,
-                                       const simd_mask_array<T, N, V, N> &x1,
-                                       const simd_mask_array<T, N, V, N> &x2,
-                                       const simd_mask_array<T, N, V, N> &x3,
-                                       enable_if<SSE::is_mask<Return>::value> = nullarg)
-{
-    return simd_cast<Return>(
-        internal_data(x0), internal_data(x1), internal_data(x2), internal_data(x3));
-}
-template <typename Return, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simd_mask_array<T, 2 * N, V, N> &x0,
-                                       const simd_mask_array<T, 2 * N, V, N> &x1,
-                                       const simd_mask_array<T, 2 * N, V, N> &x2,
-                                       const simd_mask_array<T, 2 * N, V, N> &x3,
-                                       enable_if<SSE::is_mask<Return>::value> = nullarg)
-{
-    return simd_cast<Return>(internal_data0(x0),
-                             internal_data1(x0),
-                             internal_data0(x1),
-                             internal_data1(x1),
-                             internal_data0(x2),
-                             internal_data1(x2),
-                             internal_data0(x3),
-                             internal_data1(x3));
-}
-// any 8 simd_mask_array to 1 SSE::Mask
-template <typename Return, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const simd_mask_array<T, N, V, N> &x0,
-              const simd_mask_array<T, N, V, N> &x1,
-              const simd_mask_array<T, N, V, N> &x2,
-              const simd_mask_array<T, N, V, N> &x3,
-              const simd_mask_array<T, N, V, N> &,
-              const simd_mask_array<T, N, V, N> &,
-              const simd_mask_array<T, N, V, N> &,
-              const simd_mask_array<T, N, V, N> &,
-              enable_if<(SSE::is_mask<Return>::value && Return::Size <= N * 4)> = nullarg)
-{
-    return simd_cast<Return>(internal_data(x0),
-                             internal_data(x1),
-                             internal_data(x2),
-                             internal_data(x3));
-}
-template <typename Return, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const simd_mask_array<T, N, V, N> &x0,
-              const simd_mask_array<T, N, V, N> &x1,
-              const simd_mask_array<T, N, V, N> &x2,
-              const simd_mask_array<T, N, V, N> &x3,
-              const simd_mask_array<T, N, V, N> &x4,
-              const simd_mask_array<T, N, V, N> &x5,
-              const simd_mask_array<T, N, V, N> &x6,
-              const simd_mask_array<T, N, V, N> &x7,
-              enable_if<(SSE::is_mask<Return>::value && Return::Size > N * 4)> = nullarg)
-{
-    return simd_cast<Return>(internal_data(x0),
-                             internal_data(x1),
-                             internal_data(x2),
-                             internal_data(x3),
-                             internal_data(x4),
-                             internal_data(x5),
-                             internal_data(x6),
-                             internal_data(x7));
-}
-
-// offset == 0 | convert from SSE::Mask/Vector to SSE/Scalar::Mask/Vector {{{1
+// 1/2/3/4 simd_mask_arrays to 1 SSE::Mask {{{2
+Vc_1_SIMDARRAY_TO_1__(simd_mask_array, SSE::is_mask)
+Vc_2_SIMDARRAY_TO_1__(simd_mask_array, SSE::is_mask)
+Vc_3_SIMDARRAY_TO_1__(simd_mask_array, SSE::is_mask)
+Vc_4_SIMDARRAY_TO_1__(simd_mask_array, SSE::is_mask)
+// offset == 0 | convert from SSE/Scalar::Mask/Vector to SSE/Scalar::Mask/Vector {{{1
 template <typename Return, int offset, typename V>
 Vc_INTRINSIC Vc_CONST Return simd_cast(
     V &&x,
