@@ -645,6 +645,17 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     return simd_cast<Return>(x);
 }
 
+template <typename Return, int offset, typename V>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(V &&x,
+              enable_if<offset == 0 && ((Scalar::is_vector<Traits::decay<V>>::value &&
+                                         SSE::is_vector<Return>::value) ||
+                                        (Scalar::is_mask<Traits::decay<V>>::value &&
+                                         SSE::is_mask<Return>::value))> = nullarg)
+{
+    return simd_cast<Return>(x);
+}
+
 // Vector casts with offset {{{1
 // SSE to SSE (Vector) {{{2
 template <typename Return, int offset, typename V>
