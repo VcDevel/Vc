@@ -420,6 +420,20 @@ TEST_TYPES(V, cast_mask, ALL_TYPES)
         mask_cast<double_m>(randomMasks);
     });
 }
+
+TEST(fullConversion)
+{
+    float_v x = float_v::Random();
+    float_v r;
+    for (size_t i = 0; i < float_v::Size; i += double_v::Size) {
+        float_v tmp = static_cast<float_v>(0.1 * static_cast<double_v>(x.shifted(i)));
+        r = r.shifted(double_v::Size, tmp);
+    }
+    for (size_t i = 0; i < float_v::Size; ++i) {
+        COMPARE(r[i], static_cast<float>(x[i] * 0.1)) << "i = " << i;
+    }
+}
+
 #if 0
 
 template<typename T> constexpr bool may_overflow() { return std::is_integral<T>::value && std::is_unsigned<T>::value; }
@@ -532,73 +546,4 @@ template<typename V1, typename V2> void testCast2()
     COMPARE(static_cast<V2>(test), makeReference<V1>(V2::IndexesFromZero()));
 }
 
-template<typename T> void testCast()
-{
-    testCast2<typename T::V1, typename T::V2>();
-}
-
-#define _CONCAT(A, B) A ## _ ## B
-#define CONCAT(A, B) _CONCAT(A, B)
-template<typename T1, typename T2>
-struct T2Helper
-{
-    typedef T1 V1;
-    typedef T2 V2;
-};
-
-void fullConversion()
-{
-    float_v x = float_v::Random();
-    float_v r;
-    for (size_t i = 0; i < float_v::Size; i += double_v::Size) {
-        float_v tmp = static_cast<float_v>(0.1 * static_cast<double_v>(x.shifted(i)));
-        r = r.shifted(double_v::Size, tmp);
-    }
-    for (size_t i = 0; i < float_v::Size; ++i) {
-        COMPARE(r[i], static_cast<float>(x[i] * 0.1)) << "i = " << i;
-    }
-}
-
-void testmain()
-{
-#define TEST_CAST(v1, v2) \
-    typedef T2Helper<v1, v2> CONCAT(v1, v2); \
-    runTest(testCast<CONCAT(v1, v2)>)
-
-    TEST_CAST(double_v, double_v);
-    TEST_CAST(double_v,  float_v);
-    TEST_CAST(double_v,    int_v);
-    TEST_CAST(double_v,   uint_v);
-    //TEST_CAST(double_v,  short_v);
-    //TEST_CAST(double_v, ushort_v);
-
-    TEST_CAST(float_v, double_v);
-    TEST_CAST(float_v,  float_v);
-    TEST_CAST(float_v,    int_v);
-    TEST_CAST(float_v,   uint_v);
-    TEST_CAST(float_v,  short_v);
-    TEST_CAST(float_v, ushort_v);
-
-    TEST_CAST(int_v, double_v);
-    TEST_CAST(int_v, float_v);
-    TEST_CAST(int_v, int_v);
-    TEST_CAST(int_v, uint_v);
-    TEST_CAST(int_v, short_v);
-    TEST_CAST(int_v, ushort_v);
-
-    TEST_CAST(uint_v, double_v);
-    TEST_CAST(uint_v, float_v);
-    TEST_CAST(uint_v, int_v);
-    TEST_CAST(uint_v, uint_v);
-    TEST_CAST(uint_v, short_v);
-    TEST_CAST(uint_v, ushort_v);
-
-    TEST_CAST(ushort_v, short_v);
-    TEST_CAST(ushort_v, ushort_v);
-
-    TEST_CAST(short_v, short_v);
-    TEST_CAST(short_v, ushort_v);
-#undef TEST_CAST
-    runTest(fullConversion);
-}
 #endif
