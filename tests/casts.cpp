@@ -213,7 +213,19 @@ void simd_cast_to4_impl(const From,
 {
 }
 
-TEST_TYPES(V, cast_vector, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAYS(4), SIMD_ARRAYS(5), SIMD_ARRAYS(8), SIMD_ARRAYS(16), SIMD_ARRAYS(17), SIMD_ARRAYS(31)))
+#define ALL_TYPES                                                                        \
+    (ALL_VECTORS,                                                                        \
+     SIMD_ARRAYS(1),                                                                     \
+     SIMD_ARRAYS(2),                                                                     \
+     SIMD_ARRAYS(3),                                                                     \
+     SIMD_ARRAYS(4),                                                                     \
+     SIMD_ARRAYS(5),                                                                     \
+     SIMD_ARRAYS(8),                                                                     \
+     SIMD_ARRAYS(16),                                                                    \
+     SIMD_ARRAYS(17),                                                                    \
+     SIMD_ARRAYS(31))
+
+TEST_TYPES(V, cast_vector, ALL_TYPES)
 {
     using T = typename V::EntryType;
     for (T x : {std::numeric_limits<T>::min(),
@@ -392,15 +404,7 @@ template <typename To, typename From> void mask_cast(const std::vector<From> &ma
     mask_cast_0_5<To>(masks[0]);
 }
 
-TEST_TYPES(V,
-           cast_mask,
-           (ALL_VECTORS,
-            SIMD_ARRAYS(1),
-            SIMD_ARRAYS(2),
-            SIMD_ARRAYS(4),
-            SIMD_ARRAYS(8),
-            SIMD_ARRAYS(16),
-            SIMD_ARRAYS(17)))
+TEST_TYPES(V, cast_mask, ALL_TYPES)
 {
     using M = typename V::Mask;
     std::vector<M> randomMasks(4, M{false});
