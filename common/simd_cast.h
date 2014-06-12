@@ -53,7 +53,7 @@ inline To simd_cast(From x0,
 }
 */
 
-#define Vc_1_SIMDARRAY_TO_1__(simdarray_type__, trait__)                                 \
+#define Vc_1_SIMDARRAY_TO_1__(simdarray_type__, trait__) /*{{{1*/                                 \
     template <typename Return, typename T, std::size_t N, typename V>                    \
     Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray_type__<T, N, V, N> &k,        \
                                            enable_if<trait__<Return>::value> = nullarg)  \
@@ -93,7 +93,7 @@ inline To simd_cast(From x0,
         return r;                                                                        \
     }
 
-#define Vc_2_SIMDARRAY_TO_1__(simdarray_type__, trait__)                                 \
+#define Vc_2_SIMDARRAY_TO_1__(simdarray_type__, trait__) /*{{{1*/                                 \
     /* indivisible simdarray_type__ */                                                   \
     template <typename Return, typename T, std::size_t N, typename V>                    \
     Vc_INTRINSIC Vc_CONST Return simd_cast(                                              \
@@ -149,7 +149,7 @@ inline To simd_cast(From x0,
         return r;                                                                        \
     }
 
-#define Vc_3_SIMDARRAY_TO_1__(simdarray_type__, trait__)                                 \
+#define Vc_3_SIMDARRAY_TO_1__(simdarray_type__, trait__) /*{{{1*/                                 \
     /* indivisible simdarray_type__ */                                                   \
     template <typename Return, typename T, std::size_t N, typename V>                    \
     Vc_INTRINSIC Vc_CONST Return simd_cast(                                              \
@@ -196,7 +196,7 @@ inline To simd_cast(From x0,
         return r;                                                                        \
     }
 
-#define Vc_4_SIMDARRAY_TO_1__(simdarray_type__, trait__)                                 \
+#define Vc_4_SIMDARRAY_TO_1__(simdarray_type__, trait__) /*{{{1*/                        \
     /* indivisible simdarray_type__ */                                                   \
     template <typename Return, typename T, std::size_t N, typename V>                    \
     Vc_INTRINSIC Vc_CONST Return simd_cast(                                              \
@@ -245,6 +245,7 @@ inline To simd_cast(From x0,
         }                                                                                \
         return r;                                                                        \
     }
+// }}}1
 }
 
 #include "undomacros.h"
