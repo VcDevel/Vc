@@ -459,5 +459,26 @@ TEST_TYPES(V, boolConversion, ALL_TYPES) /*{{{*/
     });
 }
 /*}}}*/
+TEST_TYPES(V, testCompareOperators, ALL_TYPES) /*{{{*/
+{
+    typedef typename V::Mask M;
+    const M a(true);
+    const M b(false);
+    VERIFY(!(a == b));
+
+    for_all_masks(V, k)
+    {
+        VERIFY( ( k ==  k)) << k;
+        VERIFY(!(!k ==  k)) << k << !k;
+        VERIFY(!( k == !k)) << k << !k;
+        VERIFY( (!k == !k)) << k << !k;
+
+        VERIFY(!( k !=  k)) << k;
+        VERIFY( ( k != !k)) << k << !k;
+        VERIFY( (!k !=  k)) << k << !k;
+        VERIFY(!(!k != !k)) << k << !k;
+    }
+}
+/*}}}*/
 
 // vim: foldmethod=marker
