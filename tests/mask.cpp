@@ -449,6 +449,27 @@ template<typename V> void boolConversion()
     }
 }
 
+template <typename V> void testCompareOperators()
+{
+    typedef typename V::Mask M;
+    const M a(true);
+    const M b(false);
+    VERIFY(!(a == b));
+
+    for_all_masks(V, k)
+    {
+        VERIFY( ( k ==  k)) << k;
+        VERIFY(!(!k ==  k)) << k << !k;
+        VERIFY(!( k == !k)) << k << !k;
+        VERIFY( (!k == !k)) << k << !k;
+
+        VERIFY(!( k !=  k)) << k;
+        VERIFY( ( k != !k)) << k << !k;
+        VERIFY( (!k !=  k)) << k << !k;
+        VERIFY(!(!k != !k)) << k << !k;
+    }
+}
+
 void testmain()/*{{{*/
 {
     testAllTypes(maskInit);
@@ -467,6 +488,7 @@ void testmain()/*{{{*/
     testAllTypes(maskConversions);
     testAllTypes(testFirstOne);
     testAllTypes(maskReductions);
+    testAllTypes(testCompareOperators);
     runTest(testBinaryOperators);
     testAllTypes(boolConversion);
 }/*}}}*/
