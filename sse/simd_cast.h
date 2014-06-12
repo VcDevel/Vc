@@ -417,7 +417,7 @@ Vc_2_SIMDARRAY_TO_1__(simdarray, SSE::is_vector)
 Vc_1_SIMDARRAY_TO_1__(simdarray, SSE::is_vector)
 
 // Mask casts without offset {{{1
-// any one SSE Mask to one other SSE Mask
+// 1 SSE Mask to 1 SSE Mask {{{2
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast(SSE::Mask<T> x, enable_if<SSE::is_mask<Return>::value> = nullarg)
@@ -425,7 +425,7 @@ Vc_INTRINSIC Vc_CONST Return
     using M = SSE::Mask<T>;
     return {SSE::sse_cast<__m128>(SSE::internal::mask_cast<M::Size, Return::Size>(x.dataI()))};
 }
-// any two SSE Masks to one other SSE Mask
+// 2 SSE Masks to 1 SSE Mask {{{2
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast(
     SSE::Mask<T> x0,
@@ -443,7 +443,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     return SSE::sse_cast<__m128>(
         _mm_packs_epi16(_mm_packs_epi16(x0.dataI(), x1.dataI()), _mm_setzero_si128()));
 }
-// any four SSE Masks to one other SSE Mask
+// 4 SSE Masks to 1 SSE Mask {{{2
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast(
     SSE::Mask<T> x0,
@@ -456,7 +456,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
                                                  _mm_packs_epi16(x2.dataI(), x3.dataI())));
 }
 
-// 1 Scalar Mask to 1 SSE Mask
+// 1 Scalar Mask to 1 SSE Mask {{{2
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast(Scalar::Mask<T> x, enable_if<SSE::is_mask<Return>::value> = nullarg)
@@ -465,7 +465,7 @@ Vc_INTRINSIC Vc_CONST Return
     m[0] = x[0];
     return m;
 }
-// 2 Scalar Masks to 1 SSE Mask
+// 2 Scalar Masks to 1 SSE Mask {{{2
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast(Scalar::Mask<T> x0, Scalar::Mask<T> x1, enable_if<SSE::is_mask<Return>::value> = nullarg)
@@ -475,7 +475,7 @@ Vc_INTRINSIC Vc_CONST Return
     m[1] = x1[0];
     return m;
 }
-// 4 Scalar Masks to 1 SSE Mask
+// 4 Scalar Masks to 1 SSE Mask {{{2
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast(Scalar::Mask<T> x0,
                                        Scalar::Mask<T> x1,
@@ -492,7 +492,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(Scalar::Mask<T> x0,
     }
     return m;
 }
-// 8 Scalar Masks to 1 SSE Mask
+// 8 Scalar Masks to 1 SSE Mask {{{2
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast(Scalar::Mask<T> x0,
                                        Scalar::Mask<T> x1,
