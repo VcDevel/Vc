@@ -26,18 +26,7 @@
 
 Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
-template<unsigned int Size1> struct MaskHelper
-{
-#ifdef VC_USE_PTEST
-    static Vc_ALWAYS_INLINE Vc_CONST bool cmpeq (__m128 x, __m128 y) {
-        return 0 != _mm_testc_si128(_mm_castps_si128(x), _mm_castps_si128(y));
-    }
-    static Vc_ALWAYS_INLINE Vc_CONST bool cmpneq(__m128 x, __m128 y) {
-        return 0 == _mm_testc_si128(_mm_castps_si128(x), _mm_castps_si128(y));
-    }
-#endif
-};
-#ifndef VC_USE_PTEST
+template<unsigned int Size1> struct MaskHelper;
 template<> struct MaskHelper<2> {
     static Vc_ALWAYS_INLINE Vc_CONST bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) == _mm_movemask_pd(_mm_castps_pd(k2)); }
     static Vc_ALWAYS_INLINE Vc_CONST bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_pd(_mm_castps_pd(k1)) != _mm_movemask_pd(_mm_castps_pd(k2)); }
@@ -50,7 +39,6 @@ template<> struct MaskHelper<8> {
     static Vc_ALWAYS_INLINE Vc_CONST bool cmpeq (_M128 k1, _M128 k2) { return _mm_movemask_epi8(_mm_castps_si128(k1)) == _mm_movemask_epi8(_mm_castps_si128(k2)); }
     static Vc_ALWAYS_INLINE Vc_CONST bool cmpneq(_M128 k1, _M128 k2) { return _mm_movemask_epi8(_mm_castps_si128(k1)) != _mm_movemask_epi8(_mm_castps_si128(k2)); }
 };
-#endif
 
 namespace internal
 {
