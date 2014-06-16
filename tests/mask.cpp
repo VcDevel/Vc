@@ -468,15 +468,21 @@ TEST_TYPES(V, testCompareOperators, ALL_TYPES) /*{{{*/
 
     for_all_masks(V, k)
     {
-        VERIFY( ( k ==  k)) << k;
-        VERIFY(!(!k ==  k)) << k << !k;
-        VERIFY(!( k == !k)) << k << !k;
-        VERIFY( (!k == !k)) << k << !k;
+        M randomMask;
+        do {
+            randomMask = V::Random() < V::Random();
+        } while (randomMask.isEmpty());
+        const M k2 = k ^ randomMask;
 
-        VERIFY(!( k !=  k)) << k;
-        VERIFY( ( k != !k)) << k << !k;
-        VERIFY( (!k !=  k)) << k << !k;
-        VERIFY(!(!k != !k)) << k << !k;
+        VERIFY( (k  == k )) << k;
+        VERIFY(!(k2 == k )) << k << k2;
+        VERIFY(!(k  == k2)) << k << k2;
+        VERIFY( (k2 == k2)) << k << k2;
+
+        VERIFY(!(k  != k )) << k;
+        VERIFY( (k  != k2)) << k << k2;
+        VERIFY( (k2 != k )) << k << k2;
+        VERIFY(!(k2 != k2)) << k << k2;
     }
 }
 /*}}}*/
