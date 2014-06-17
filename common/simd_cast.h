@@ -34,11 +34,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+
+/**
+ * Casts the argument \p x from type \p From to type \p To.
+ *
+ * This function implements the trivial case where \p To and \p From are the same type.
+ */
 template <typename To, typename From>
-Vc_INTRINSIC Vc_CONST To simd_cast(From x, enable_if<std::is_same<To, From>::value> = nullarg)
+Vc_INTRINSIC Vc_CONST enable_if<std::is_same<To, From>::value, To> simd_cast(From x)
 {
     return x;
 }
+
+/**
+ * A cast from nothing results in default-initialization of \p To.
+ *
+ * This function can be useful in generic code where a parameter pack expands to nothing.
+ */
+template <typename To> Vc_INTRINSIC Vc_CONST To simd_cast() { return To(); }
 
 /*
  * I don't want to have the following visible in overload resolution:
