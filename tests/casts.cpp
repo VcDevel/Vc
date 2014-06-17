@@ -152,6 +152,35 @@ void simd_cast_4_impl(const From,
 }
 
 template <typename To, typename From>
+void simd_cast_8_impl(const From x,
+                      Vc::enable_if<(To::size() > 4 * From::size())> = Vc::nullarg)
+{
+    using T = typename To::EntryType;
+    if (is_conversion_undefined<T>(x[0])) {
+        return;
+    }
+    const To reference = static_cast<T>(x[0]);
+    if (To::size() > 8 * From::size()) {
+        COMPARE(simd_cast<To>(x, x, x, x, x, x, x, x),
+                reference.shifted(To::size() - 8 * From::size()))
+            << "casted to " << UnitTest::typeToString<To>()
+            << ", reference = " << reference << ", x[0] = " << x[0]
+            << ", T(x[0]) = " << T(x[0]);
+        ;
+    } else {
+        COMPARE(simd_cast<To>(x, x, x, x, x, x, x, x), reference)
+            << "casted to " << UnitTest::typeToString<To>() << ", x[0] = " << x[0]
+            << ", T(x[0]) = " << T(x[0]);
+    }
+}
+
+template <typename To, typename From>
+void simd_cast_8_impl(const From,
+                      Vc::enable_if<(To::size() <= 4 * From::size())> = Vc::nullarg)
+{
+}
+
+template <typename To, typename From>
 void simd_cast_to2_impl(const From x,
                         Vc::enable_if<(2 * To::size() <= From::size())> = Vc::nullarg)
 {
@@ -214,8 +243,7 @@ void simd_cast_to4_impl(const From,
 }
 
 #define ALL_TYPES                                                                        \
-    (ALL_VECTORS,                                                                        \
-     SIMD_ARRAYS(1),                                                                     \
+    (SIMD_ARRAYS(1),                                                                     \
      SIMD_ARRAYS(2),                                                                     \
      SIMD_ARRAYS(3),                                                                     \
      SIMD_ARRAYS(4),                                                                     \
@@ -223,7 +251,26 @@ void simd_cast_to4_impl(const From,
      SIMD_ARRAYS(8),                                                                     \
      SIMD_ARRAYS(16),                                                                    \
      SIMD_ARRAYS(17),                                                                    \
-     SIMD_ARRAYS(31))
+     SIMD_ARRAYS(31),                                                                    \
+     ALL_VECTORS)
+
+template <typename To, typename From>
+typename std::enable_if<is_vector<To>::value || is_vector<From>::value>::type
+    simd_cast_test(const From &v)
+{
+    simd_cast_1_impl<To>(v);
+    simd_cast_2_impl<To>(v);
+    simd_cast_4_impl<To>(v);
+    simd_cast_8_impl<To>(v);
+    simd_cast_to2_impl<To>(v);
+    simd_cast_to4_impl<To>(v);
+}
+
+template <typename To, typename From>
+typename std::enable_if<!(is_vector<To>::value || is_vector<From>::value)>::type
+    simd_cast_test(const From &)
+{
+}
 
 TEST_TYPES(V, cast_vector, ALL_TYPES)
 {
@@ -247,40 +294,12 @@ TEST_TYPES(V, cast_vector, ALL_TYPES)
                 T(-std::numeric_limits<T>::max())}) {
         const V v = x;
 
-        simd_cast_1_impl<int_v>(v);
-        simd_cast_1_impl<uint_v>(v);
-        simd_cast_1_impl<short_v>(v);
-        simd_cast_1_impl<ushort_v>(v);
-        simd_cast_1_impl<float_v>(v);
-        simd_cast_1_impl<double_v>(v);
-
-        simd_cast_2_impl<int_v>(v);
-        simd_cast_2_impl<uint_v>(v);
-        simd_cast_2_impl<short_v>(v);
-        simd_cast_2_impl<ushort_v>(v);
-        simd_cast_2_impl<float_v>(v);
-        simd_cast_2_impl<double_v>(v);
-
-        simd_cast_4_impl<int_v>(v);
-        simd_cast_4_impl<uint_v>(v);
-        simd_cast_4_impl<short_v>(v);
-        simd_cast_4_impl<ushort_v>(v);
-        simd_cast_4_impl<float_v>(v);
-        simd_cast_4_impl<double_v>(v);
-
-        simd_cast_to2_impl<int_v>(v);
-        simd_cast_to2_impl<uint_v>(v);
-        simd_cast_to2_impl<short_v>(v);
-        simd_cast_to2_impl<ushort_v>(v);
-        simd_cast_to2_impl<float_v>(v);
-        simd_cast_to2_impl<double_v>(v);
-
-        simd_cast_to4_impl<int_v>(v);
-        simd_cast_to4_impl<uint_v>(v);
-        simd_cast_to4_impl<short_v>(v);
-        simd_cast_to4_impl<ushort_v>(v);
-        simd_cast_to4_impl<float_v>(v);
-        simd_cast_to4_impl<double_v>(v);
+        simd_cast_test<int_v>(v);
+        simd_cast_test<uint_v>(v);
+        simd_cast_test<short_v>(v);
+        simd_cast_test<ushort_v>(v);
+        simd_cast_test<float_v>(v);
+        simd_cast_test<double_v>(v);
     }
 }
 
