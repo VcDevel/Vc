@@ -242,6 +242,28 @@ void simd_cast_to4_impl(const From,
 {
 }
 
+#ifdef VC_IMPL_Scalar
+#define EXTRA_IMPL_VECTORS
+template <typename T> using is_vector = Vc::Scalar::is_vector;
+#elif defined VC_IMPL_AVX
+#define EXTRA_IMPL_VECTORS                                                               \
+    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
+        Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,     \
+        Vc::SSE::double_v, Vc::SSE::uint_v, Vc::SSE::short_v, Vc::SSE::float_v
+template <typename T> using is_vector = Vc::AVX::is_vector<T>;
+#else
+#define EXTRA_IMPL_VECTORS                                                               \
+    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
+        Vc::Scalar::short_v, Vc::Scalar::float_v
+#ifdef VC_IMPL_SSE
+template <typename T> using is_vector = Vc::SSE::is_vector<T>;
+#elif defined VC_IMPL_MIC
+template <typename T> using is_vector = Vc::MIC::is_vector<T>;
+#else
+#error "Please add is_vector alias template for this implementation"
+#endif
+#endif
+
 #define ALL_TYPES                                                                        \
     (SIMD_ARRAYS(1),                                                                     \
      SIMD_ARRAYS(2),                                                                     \
@@ -252,6 +274,7 @@ void simd_cast_to4_impl(const From,
      SIMD_ARRAYS(16),                                                                    \
      SIMD_ARRAYS(17),                                                                    \
      SIMD_ARRAYS(31),                                                                    \
+     EXTRA_IMPL_VECTORS,                                                                 \
      ALL_VECTORS)
 
 template <typename To, typename From>
@@ -300,6 +323,22 @@ TEST_TYPES(V, cast_vector, ALL_TYPES)
         simd_cast_test<ushort_v>(v);
         simd_cast_test<float_v>(v);
         simd_cast_test<double_v>(v);
+#ifdef VC_IMPL_AVX
+        simd_cast_test<SSE::int_v>(v);
+        simd_cast_test<SSE::uint_v>(v);
+        simd_cast_test<SSE::short_v>(v);
+        simd_cast_test<SSE::ushort_v>(v);
+        simd_cast_test<SSE::float_v>(v);
+        simd_cast_test<SSE::double_v>(v);
+#endif
+#ifndef VC_IMPL_Scalar
+        simd_cast_test<Scalar::int_v>(v);
+        simd_cast_test<Scalar::uint_v>(v);
+        simd_cast_test<Scalar::short_v>(v);
+        simd_cast_test<Scalar::ushort_v>(v);
+        simd_cast_test<Scalar::float_v>(v);
+        simd_cast_test<Scalar::double_v>(v);
+#endif
     }
 }
 
