@@ -177,14 +177,32 @@ Vc_SIMD_CAST_SSE_1( float_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_ca
 Vc_SIMD_CAST_SSE_1(double_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x)); }
 Vc_SIMD_CAST_SSE_1( short_v, ushort_v) { return x.data(); }
 // 2 SSE::Vector to 1 SSE::Vector {{{2
-Vc_SIMD_CAST_SSE_2(double_v,    int_v) { return _mm_unpacklo_epi64(_mm_cvttpd_epi32(x0.data()), _mm_cvttpd_epi32(x1.data())); }  // XXX: improve with AVX
-Vc_SIMD_CAST_SSE_2(double_v,   uint_v) {  // XXX: improve with AVX
+Vc_SIMD_CAST_SSE_2(double_v,    int_v) {
+#ifdef VC_IMPL_AVX
+    return _mm256_cvttpd_epi32(AVX::concat(x0.data(), x1.data()));
+#else
+    return _mm_unpacklo_epi64(_mm_cvttpd_epi32(x0.data()), _mm_cvttpd_epi32(x1.data()));
+#endif
+}
+Vc_SIMD_CAST_SSE_2(double_v,   uint_v) {
     return _mm_add_epi32(
-        _mm_unpacklo_epi64(_mm_cvttpd_epi32(_mm_sub_pd(x0.data(), _mm_set1_pd(0x80000000u))),
-                           _mm_cvttpd_epi32(_mm_sub_pd(x1.data(), _mm_set1_pd(0x80000000u)))),
+#ifdef VC_IMPL_AVX
+        _mm256_cvttpd_epi32(_mm256_sub_pd(AVX::concat(x0.data(), x1.data()),
+                                          _mm256_set1_pd(0x80000000u))),
+#else
+        _mm_unpacklo_epi64(
+            _mm_cvttpd_epi32(_mm_sub_pd(x0.data(), _mm_set1_pd(0x80000000u))),
+            _mm_cvttpd_epi32(_mm_sub_pd(x1.data(), _mm_set1_pd(0x80000000u)))),
+#endif
         _mm_set1_epi32(0x80000000u));
 }
-Vc_SIMD_CAST_SSE_2(double_v,  float_v) { return _mm_movelh_ps(_mm_cvtpd_ps(x0.data()), _mm_cvtpd_ps(x1.data())); }  // XXX: improve with AVX
+Vc_SIMD_CAST_SSE_2(double_v,  float_v) {
+#ifdef VC_IMPL_AVX
+    return _mm256_cvtpd_ps(AVX::concat(x0.data(), x1.data()));
+#else
+    return _mm_movelh_ps(_mm_cvtpd_ps(x0.data()), _mm_cvtpd_ps(x1.data()));
+#endif
+}
 
 Vc_SIMD_CAST_SSE_2(   int_v,  short_v) { return SSE::convert_int32_to_int16(x0.data(), x1.data()); }
 Vc_SIMD_CAST_SSE_2(  uint_v,  short_v) { return SSE::convert_int32_to_int16(x0.data(), x1.data()); }

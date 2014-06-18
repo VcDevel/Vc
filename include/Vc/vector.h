@@ -40,7 +40,6 @@
 # define VC_IMPL ::Vc::SSE42Impl
 # define Vc_IMPL_NAMESPACE SSE
 # include "sse/vector.h"
-# include "sse/simd_cast.h"
 # undef VC_IMPL
 # undef Vc_IMPL_NAMESPACE
 # if defined(VC_IMPL_AVX2)
@@ -53,6 +52,7 @@
 #  error "I lost track of the targeted implementation now. Something is messed up or there's a bug in Vc."
 # endif
 # include "avx/vector.h"
+# include "sse/simd_cast.h"
 # include "avx/simd_cast.h"
 #elif defined(VC_IMPL_SSE)
 # include "sse/vector.h"
