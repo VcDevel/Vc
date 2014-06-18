@@ -76,7 +76,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     T &&x,
     enable_if<Traits::is_simd_vector<T>::value && Scalar::is_vector<Return>::value> = nullarg)
 {
-    return Return{x[offset]};
+    return Return(x[offset]);
 }
 
 // Any mask (Mask<T> or simd_mask_array) to multiple Scalar::Mask<T>
@@ -85,7 +85,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     T &&x,
     enable_if<Traits::is_simd_mask<T>::value && Scalar::is_mask<Return>::value> = nullarg)
 {
-    return Return{x[offset]};
+    return Return(x[offset]);
 }
 
 }
