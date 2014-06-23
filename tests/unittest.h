@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UNITTEST_H
 #define UNITTEST_H
 
+#include "typelist.h"
+
 #ifdef VC_ASSERT
 #error "include unittest.h before any Vc header"
 #endif
@@ -1112,7 +1114,7 @@ template <typename V, int Repetitions = 10000, typename F> void withRandomMask(F
 
 // typeToString {{{1
 template <typename T> inline std::string typeToString();
-
+// simdarray to string {{{2
 template <typename T, std::size_t N, typename V, std::size_t M> inline std::string typeToString_impl(Vc::simdarray<T, N, V, M>)
 {
     std::stringstream s;
@@ -1125,6 +1127,26 @@ template <typename T, std::size_t N, typename V, std::size_t M> inline std::stri
     s << "simd_mask_array<" << typeToString<T>() << ", " << N << ", " << typeToString<V>() << '>';
     return s.str();
 }
+// template parameter pack to a comma separated string {{{2
+template <typename T0> void typepackToString(std::stringstream &s)
+{
+    s << typeToString<T0>();
+}
+template <typename T0, typename T1, typename... Ts>
+void typepackToString(std::stringstream &s)
+{
+    s << typeToString<T0>() << ", ";
+    typepackToString<T1, Ts...>(s);
+}
+template <typename... Ts> std::string typeToString_impl(Typelist<Ts...>)
+{
+    std::stringstream s;
+    s << "Typelist<";
+    typepackToString<Ts...>(s);
+    s << '>';
+    return s.str();
+}
+// Vc::<Impl>::Vector<T> to string {{{2
 template <typename V>
 inline std::string typeToString_impl(
     V,
@@ -1144,7 +1166,7 @@ inline std::string typeToString_impl(
     s << "Vector<" << typeToString<T>() << '>';
     return s.str();
 }
-
+// generic fallback (typeid::name) {{{2
 template <typename T>
 inline std::string typeToString_impl(
     T,
@@ -1152,7 +1174,7 @@ inline std::string typeToString_impl(
 {
     return typeid(T).name();
 }
-
+// typeToString specializations {{{2
 template <typename T> inline std::string typeToString() { return typeToString_impl(T()); }
 template <> inline std::string typeToString<void>() { return ""; }
 
@@ -1226,45 +1248,55 @@ public:
 };
 
 // class Test2 {{{1
-template <template <typename V> class TestFunctor, typename... TestTypes> class Test2;
+template <template <typename V> class TestFunctor,
+          std::size_t Begin,
+          std::size_t N,
+          typename... TestTypes>
+class Test2Impl;
 
-template <template <typename V> class TestFunctor> class Test2<TestFunctor>
+template <template <typename V> class TestFunctor,
+          std::size_t Index,
+          typename... TestTypes>
+class Test2Impl<TestFunctor, Index, 1, TestTypes...>
 {
-protected:
-    explicit Test2(const std::string &) {}
-};
+    using T = extract_type<Index, TestTypes...>;
 
-template <template <typename V> class TestFunctor, typename TestType0>
-class Test2<TestFunctor, TestType0>
-{
 public:
-    static void call0() { TestFunctor<TestType0>()(); }
-
-    Test2(std::string name)
+    Vc_ALWAYS_INLINE static void call() { TestFunctor<T>()(); }
+    Vc_ALWAYS_INLINE explicit Test2Impl(const std::string &name)
     {
-        g_allTests.emplace_back(&call0, name + '<' + typeToString<TestType0>() + '>');
+        g_allTests.emplace_back(&call, name + '<' + typeToString<T>() + '>');
     }
 };
 
 template <template <typename V> class TestFunctor,
-          typename TestType0,
-          typename TestType1,
+          std::size_t Begin,
+          std::size_t N,
           typename... TestTypes>
-class Test2<TestFunctor, TestType0, TestType1, TestTypes...> : public Test2<TestFunctor,
-                                                                            TestTypes...>
+class Test2Impl
 {
-    typedef Test2<TestFunctor, TestTypes...> Base;
+    static constexpr std::size_t Split = Vc::Common::left_size(N);
+    Test2Impl<TestFunctor, Begin, Split, TestTypes...> left;
+    Test2Impl<TestFunctor, Begin + Split, N - Split, TestTypes...> right;
 
 public:
-    static void call0() { TestFunctor<TestType0>()(); }
-    static void call1() { TestFunctor<TestType1>()(); }
-
-    explicit Test2(std::string name) : Base(name)
+    Vc_ALWAYS_INLINE explicit Test2Impl(const std::string &name) : left(name), right(name)
     {
-        g_allTests.emplace_back(&call1, name + '<' + typeToString<TestType1>() + '>');
-        g_allTests.emplace_back(&call0, name + '<' + typeToString<TestType0>() + '>');
     }
 };
+
+template <template <typename V> class TestFunctor, typename... TestTypes>
+class Test2 : public Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>
+{
+    using Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>::Test2Impl;
+};
+template <template <typename V> class TestFunctor, typename... TestTypes>
+class Test2<TestFunctor, Typelist<TestTypes...>>
+    : public Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>
+{
+    using Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>::Test2Impl;
+};
+
 // hackTypelist {{{1
 template <template <typename V> class F, typename... Typelist>
 UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
