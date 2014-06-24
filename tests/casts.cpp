@@ -32,6 +32,47 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace Vc;
 
+#ifdef VC_IMPL_Scalar
+#define EXTRA_IMPL_VECTORS
+template <typename T> using is_vector = Vc::Scalar::is_vector;
+#elif defined VC_IMPL_AVX
+#define EXTRA_IMPL_VECTORS                                                               \
+    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
+        Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,     \
+        Vc::SSE::double_v, Vc::SSE::uint_v, Vc::SSE::short_v, Vc::SSE::float_v
+template <typename T> using is_vector = Vc::AVX::is_vector<T>;
+#else
+#define EXTRA_IMPL_VECTORS                                                               \
+    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
+        Vc::Scalar::short_v, Vc::Scalar::float_v
+#ifdef VC_IMPL_SSE
+template <typename T> using is_vector = Vc::SSE::is_vector<T>;
+#elif defined VC_IMPL_MIC
+template <typename T> using is_vector = Vc::MIC::is_vector<T>;
+#else
+#error "Please add is_vector alias template for this implementation"
+#endif
+#endif
+
+#ifdef VC_DEFAULT_TYPES
+using AllTestTypes = outer_product<Typelist<ALL_VECTORS>, Typelist<ALL_VECTORS>>;
+#elif defined VC_EXTRA_TYPES
+using AllTestTypes = concat<
+    outer_product<Typelist<ALL_VECTORS>, Typelist<EXTRA_IMPL_VECTORS>>,
+    outer_product<Typelist<EXTRA_IMPL_VECTORS>, Typelist<ALL_VECTORS>>>;
+#elif defined VC_EVEN_SIMDARRAY_TYPES
+using AllTestTypes = outer_product<Typelist<SIMD_ARRAYS(1),
+                                            SIMD_ARRAYS(2),
+                                            SIMD_ARRAYS(4),
+                                            SIMD_ARRAYS(8),
+                                            SIMD_ARRAYS(16)>,
+                                   Typelist<ALL_VECTORS>>;
+#elif defined VC_ODD_SIMDARRAY_TYPES
+using AllTestTypes = outer_product<
+    Typelist<SIMD_ARRAYS(3), SIMD_ARRAYS(5), SIMD_ARRAYS(17), SIMD_ARRAYS(31)>,
+    Typelist<ALL_VECTORS>>;
+#endif
+
 /* implementation-defined
  * ======================
  * §4.7 p3 (integral conversions)
@@ -242,62 +283,11 @@ void simd_cast_to4_impl(const From,
 {
 }
 
-#ifdef VC_IMPL_Scalar
-#define EXTRA_IMPL_VECTORS
-template <typename T> using is_vector = Vc::Scalar::is_vector;
-#elif defined VC_IMPL_AVX
-#define EXTRA_IMPL_VECTORS                                                               \
-    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
-        Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,     \
-        Vc::SSE::double_v, Vc::SSE::uint_v, Vc::SSE::short_v, Vc::SSE::float_v
-template <typename T> using is_vector = Vc::AVX::is_vector<T>;
-#else
-#define EXTRA_IMPL_VECTORS                                                               \
-    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
-        Vc::Scalar::short_v, Vc::Scalar::float_v
-#ifdef VC_IMPL_SSE
-template <typename T> using is_vector = Vc::SSE::is_vector<T>;
-#elif defined VC_IMPL_MIC
-template <typename T> using is_vector = Vc::MIC::is_vector<T>;
-#else
-#error "Please add is_vector alias template for this implementation"
-#endif
-#endif
-
-#define ALL_TYPES                                                                        \
-    (SIMD_ARRAYS(1),                                                                     \
-     SIMD_ARRAYS(2),                                                                     \
-     SIMD_ARRAYS(3),                                                                     \
-     SIMD_ARRAYS(4),                                                                     \
-     SIMD_ARRAYS(5),                                                                     \
-     SIMD_ARRAYS(8),                                                                     \
-     SIMD_ARRAYS(16),                                                                    \
-     SIMD_ARRAYS(17),                                                                    \
-     SIMD_ARRAYS(31),                                                                    \
-     EXTRA_IMPL_VECTORS,                                                                 \
-     ALL_VECTORS)
-
-template <typename To, typename From>
-typename std::enable_if<is_vector<To>::value || is_vector<From>::value>::type
-    simd_cast_test(const From &v)
+TEST_TYPES(TList, cast_vector, (AllTestTypes))
 {
-    simd_cast_1_impl<To>(v);
-    simd_cast_2_impl<To>(v);
-    simd_cast_4_impl<To>(v);
-    simd_cast_8_impl<To>(v);
-    simd_cast_to2_impl<To>(v);
-    simd_cast_to4_impl<To>(v);
-}
-
-template <typename To, typename From>
-typename std::enable_if<!(is_vector<To>::value || is_vector<From>::value)>::type
-    simd_cast_test(const From &)
-{
-}
-
-TEST_TYPES(V, cast_vector, ALL_TYPES)
-{
-    using T = typename V::EntryType;
+    using From = typename TList::template at<0>;
+    using To = typename TList::template at<1>;
+    using T = typename From::EntryType;
     for (T x : {std::numeric_limits<T>::min(),
                 T(0),
                 T(-1),
@@ -315,30 +305,14 @@ TEST_TYPES(V, cast_vector, ALL_TYPES)
                 T(std::numeric_limits<T>::max() - 0x55),
                 T(-std::numeric_limits<T>::min()),
                 T(-std::numeric_limits<T>::max())}) {
-        const V v = x;
+        const From v = x;
 
-        simd_cast_test<int_v>(v);
-        simd_cast_test<uint_v>(v);
-        simd_cast_test<short_v>(v);
-        simd_cast_test<ushort_v>(v);
-        simd_cast_test<float_v>(v);
-        simd_cast_test<double_v>(v);
-#ifdef VC_IMPL_AVX
-        simd_cast_test<SSE::int_v>(v);
-        simd_cast_test<SSE::uint_v>(v);
-        simd_cast_test<SSE::short_v>(v);
-        simd_cast_test<SSE::ushort_v>(v);
-        simd_cast_test<SSE::float_v>(v);
-        simd_cast_test<SSE::double_v>(v);
-#endif
-#ifndef VC_IMPL_Scalar
-        simd_cast_test<Scalar::int_v>(v);
-        simd_cast_test<Scalar::uint_v>(v);
-        simd_cast_test<Scalar::short_v>(v);
-        simd_cast_test<Scalar::ushort_v>(v);
-        simd_cast_test<Scalar::float_v>(v);
-        simd_cast_test<Scalar::double_v>(v);
-#endif
+        simd_cast_1_impl<To>(v);
+        simd_cast_2_impl<To>(v);
+        simd_cast_4_impl<To>(v);
+        simd_cast_8_impl<To>(v);
+        simd_cast_to2_impl<To>(v);
+        simd_cast_to4_impl<To>(v);
     }
 }
 
@@ -449,33 +423,27 @@ void mask_cast_0_5(const From mask,
             << UnitTest::typeToString<To>() << ": " << casted0 << casted1;
     }
 }
+
 template <typename To, typename From>
 void mask_cast_0_5(const From, Vc::enable_if<!(To::size() < From::size())> = Vc::nullarg)
 {
 }
 
-template <typename To, typename From> void mask_cast(const std::vector<From> &masks)
+TEST_TYPES(TList, cast_mask, (AllTestTypes))
 {
-    mask_cast_1<To>(masks[0]);
-    mask_cast_2<To>(masks[0], masks[1]);
-    mask_cast_4<To>(masks[0], masks[1], masks[2], masks[3]);
-    mask_cast_0_5<To>(masks[0]);
-}
-
-TEST_TYPES(V, cast_mask, ALL_TYPES)
-{
-    using M = typename V::Mask;
+    using From = typename TList::template at<0>;
+    using ToV = typename TList::template at<1>;
+    using To = typename ToV::Mask;
+    using M = typename From::Mask;
     std::vector<M> randomMasks(4, M{false});
 
-    UnitTest::withRandomMask<V>([&](M mask) {
+    UnitTest::withRandomMask<From>([&](M mask) {
         std::rotate(randomMasks.begin(), randomMasks.begin() + 1, randomMasks.end());
         randomMasks[0] = mask;
-        mask_cast<int_m>(randomMasks);
-        mask_cast<uint_m>(randomMasks);
-        mask_cast<short_m>(randomMasks);
-        mask_cast<ushort_m>(randomMasks);
-        mask_cast<float_m>(randomMasks);
-        mask_cast<double_m>(randomMasks);
+        mask_cast_1<To>(randomMasks[0]);
+        mask_cast_2<To>(randomMasks[0], randomMasks[1]);
+        mask_cast_4<To>(randomMasks[0], randomMasks[1], randomMasks[2], randomMasks[3]);
+        mask_cast_0_5<To>(randomMasks[0]);
     });
 }
 
