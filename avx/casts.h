@@ -75,7 +75,7 @@ namespace Casts
     template<> Vc_INTRINSIC m256d avx_cast(param128i v) { return _mm256_castpd128_pd256(_mm_castsi128_pd(v)); }
     template<> Vc_INTRINSIC m256d avx_cast(param128d v) { return _mm256_castpd128_pd256(v); }
 
-#ifdef VC_MSVC
+#if defined VC_MSVC || defined VC_CLANG
     static Vc_INTRINSIC Vc_CONST m256  zeroExtend(param128  v) { return _mm256_permute2f128_ps   (_mm256_castps128_ps256(v), _mm256_castps128_ps256(v), 0x80); }
     static Vc_INTRINSIC Vc_CONST m256i zeroExtend(param128i v) { return _mm256_permute2f128_si256(_mm256_castsi128_si256(v), _mm256_castsi128_si256(v), 0x80); }
     static Vc_INTRINSIC Vc_CONST m256d zeroExtend(param128d v) { return _mm256_permute2f128_pd   (_mm256_castpd128_pd256(v), _mm256_castpd128_pd256(v), 0x80); }
