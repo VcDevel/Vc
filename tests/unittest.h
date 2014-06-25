@@ -1254,6 +1254,12 @@ template <template <typename V> class TestFunctor,
           typename... TestTypes>
 class Test2Impl;
 
+template <template <typename V> class TestFunctor, std::size_t Index>
+class Test2Impl<TestFunctor, Index, 0>
+{
+public:
+    Vc_ALWAYS_INLINE explicit Test2Impl(const std::string &) {}
+};
 template <template <typename V> class TestFunctor,
           std::size_t Index,
           typename... TestTypes>

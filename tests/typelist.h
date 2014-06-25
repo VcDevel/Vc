@@ -58,6 +58,10 @@ struct concat_impl<Typelist<As...>, Typelist<Bs...>>
 // }}}
 // outer_product {{{
 template <typename A, typename B> struct outer_product_impl;
+template <typename... Bs> struct outer_product_impl<Typelist<>, Typelist<Bs...>>
+{
+    using type = Typelist<>;
+};
 template <typename A0, typename... Bs>
 struct outer_product_impl<Typelist<A0>, Typelist<Bs...>>
 {
