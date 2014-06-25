@@ -103,16 +103,10 @@ Vc_SIMD_CAST_AVX_1( float_v,   uint_v) {
                          _mm256_cmpge_ps(x.data(), _mm256_set1_ps(1u << 31))));
 }
 Vc_SIMD_CAST_AVX_1(double_v,   uint_v) {
-    return AVX::zeroExtend(
-        _mm_add_epi32(_mm256_cvttpd_epi32(_mm256_sub_pd(x.data(), _mm256_set1_pd(0x80000000u))),
-                      _mm_set1_epi32(0x80000000u)));
+    return AVX::zeroExtend(_mm256_cvttpd_epi32(x.data()));
 }
 Vc_SIMD_CAST_AVX_2(double_v,   uint_v) {
-    const auto lo = _mm256_cvttpd_epi32(_mm256_sub_pd(x0.data(), _mm256_set1_pd(0x80000000u)));
-    const auto hi = _mm256_cvttpd_epi32(_mm256_sub_pd(x1.data(), _mm256_set1_pd(0x80000000u)));
-    const auto offset = _mm_set1_epi32(0x80000000u);
-    return AVX::concat(_mm_add_epi32(_mm_unpacklo_epi64(lo, hi), offset),
-                       _mm_add_epi32(_mm_unpackhi_epi64(lo, hi), offset));
+    return AVX::concat(_mm256_cvttpd_epi32(x0.data()), _mm256_cvttpd_epi32(x1.data()));
 }
 Vc_SIMD_CAST_AVX_1(   int_v,   uint_v) { return x.data(); }
 Vc_SIMD_CAST_AVX_1( short_v,   uint_v) {

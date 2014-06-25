@@ -120,8 +120,7 @@ Vc_SIMD_CAST_SSE_1( float_v,   uint_v) {
                       _mm_cmpge_ps(x.data(), _mm_set1_ps(1u << 31))));
 }
 Vc_SIMD_CAST_SSE_1(double_v,   uint_v) {
-    return _mm_add_epi32(_mm_cvttpd_epi32(_mm_sub_pd(x.data(), _mm_set1_pd(0x80000000u))),
-                         _mm_cvtsi64_si128(0x8000000080000000ull));
+    return _mm_cvttpd_epi32(x.data());
 }
 Vc_SIMD_CAST_SSE_1(   int_v,   uint_v) { return x.data(); }
 Vc_SIMD_CAST_SSE_1( short_v,   uint_v) {
@@ -134,10 +133,30 @@ Vc_SIMD_CAST_SSE_1(double_v,  float_v) { return _mm_cvtpd_ps(x.data()); }
 Vc_SIMD_CAST_SSE_1(   int_v,  float_v) { return _mm_cvtepi32_ps(x.data()); }
 Vc_SIMD_CAST_SSE_1(  uint_v,  float_v) {
     using namespace SseIntrinsics;
-    return _mm_blendv_ps(_mm_cvtepi32_ps(x.data()),
-                         _mm_add_ps(_mm_cvtepi32_ps(_mm_sub_epi32(x.data(), _mm_setmin_epi32())),
-                                    _mm_set1_ps(1u << 31)),
-                         _mm_castsi128_ps(_mm_cmplt_epi32(x.data(), _mm_setzero_si128())));
+    const auto tooLarge = SSE::int_v(x) < SSE::int_v::Zero();
+    if (VC_IS_UNLIKELY(tooLarge.isNotEmpty())) {
+        const auto mask = tooLarge.dataI();
+#ifdef VC_IMPL_AVX
+        const auto offset = _mm256_and_pd(
+            _mm256_set1_pd(0x100000000ull),
+            _mm256_castsi256_pd(AVX::concat(_mm_unpacklo_epi32(mask, mask),
+                                            _mm_unpackhi_epi32(mask, mask))));
+        return _mm256_cvtpd_ps(_mm256_add_pd(_mm256_cvtepi32_pd(x.data()), offset));
+#else
+        const auto loOffset =
+            _mm_and_pd(_mm_set1_pd(0x100000000ull),
+                       _mm_castsi128_pd(_mm_unpacklo_epi32(mask, mask)));
+        const auto hiOffset =
+            _mm_and_pd(_mm_set1_pd(0x100000000ull),
+                       _mm_castsi128_pd(_mm_unpackhi_epi32(mask, mask)));
+        const auto lo = _mm_cvtepi32_pd(x.data());
+        const auto hi = _mm_cvtepi32_pd(_mm_castps_si128(
+            _mm_movehl_ps(_mm_castsi128_ps(x.data()), _mm_castsi128_ps(x.data()))));
+        return _mm_movelh_ps(_mm_cvtpd_ps(_mm_add_pd(lo, loOffset)),
+                             _mm_cvtpd_ps(_mm_add_pd(hi, hiOffset)));
+#endif
+    }
+    return _mm_cvtepi32_ps(x.data());
 }
 Vc_SIMD_CAST_SSE_1( short_v,  float_v) { return simd_cast<SSE::float_v>(simd_cast<SSE::int_v>(x)); }
 Vc_SIMD_CAST_SSE_1(ushort_v,  float_v) { return simd_cast<SSE::float_v>(simd_cast<SSE::int_v>(x)); }
@@ -185,16 +204,11 @@ Vc_SIMD_CAST_SSE_2(double_v,    int_v) {
 #endif
 }
 Vc_SIMD_CAST_SSE_2(double_v,   uint_v) {
-    return _mm_add_epi32(
 #ifdef VC_IMPL_AVX
-        _mm256_cvttpd_epi32(_mm256_sub_pd(AVX::concat(x0.data(), x1.data()),
-                                          _mm256_set1_pd(0x80000000u))),
+    return _mm256_cvttpd_epi32(AVX::concat(x0.data(), x1.data()));
 #else
-        _mm_unpacklo_epi64(
-            _mm_cvttpd_epi32(_mm_sub_pd(x0.data(), _mm_set1_pd(0x80000000u))),
-            _mm_cvttpd_epi32(_mm_sub_pd(x1.data(), _mm_set1_pd(0x80000000u)))),
+    return _mm_unpacklo_epi64(_mm_cvttpd_epi32(x0.data()), _mm_cvttpd_epi32(x1.data()));
 #endif
-        _mm_set1_epi32(0x80000000u));
 }
 Vc_SIMD_CAST_SSE_2(double_v,  float_v) {
 #ifdef VC_IMPL_AVX
