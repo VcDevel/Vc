@@ -430,23 +430,12 @@ Vc_INTRINSIC Vc_CONST Return
 }
 
 // SSE::Vector to Scalar::Vector {{{2
-#define Vc_SIMD_CAST_SSE_TO_SCALAR(to__)                                                 \
-    template <typename To, typename FromT>                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-        simd_cast(SSE::Vector<FromT> x,                                                  \
-                  enable_if<std::is_same<To, Scalar::to__>::value> = nullarg)            \
-    {                                                                                    \
-        return static_cast<To>(x[0]);                                                    \
-    }
-
-VC_ALL_VECTOR_TYPES(Vc_SIMD_CAST_SSE_TO_SCALAR)
-#undef Vc_SIMD_CAST_SSE_TO_SCALAR
-
-// simdarray to SSE::Vector {{{2
-Vc_4_SIMDARRAY_TO_1__(simdarray, SSE::is_vector)
-Vc_3_SIMDARRAY_TO_1__(simdarray, SSE::is_vector)
-Vc_2_SIMDARRAY_TO_1__(simdarray, SSE::is_vector)
-Vc_1_SIMDARRAY_TO_1__(simdarray, SSE::is_vector)
+template <typename To, typename FromT>
+Vc_INTRINSIC Vc_CONST To
+    simd_cast(SSE::Vector<FromT> x, enable_if<Scalar::is_vector<To>::value> = nullarg)
+{
+    return static_cast<To>(x[0]);
+}
 
 // Mask casts without offset {{{1
 // 1 SSE Mask to 1 SSE Mask {{{2
@@ -552,21 +541,20 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(Scalar::Mask<T> x0,
     return m;
 }
 
-// 1/2/3/4 simd_mask_arrays to 1 SSE::Mask {{{2
-Vc_1_SIMDARRAY_TO_1__(simd_mask_array, SSE::is_mask)
-Vc_2_SIMDARRAY_TO_1__(simd_mask_array, SSE::is_mask)
-Vc_3_SIMDARRAY_TO_1__(simd_mask_array, SSE::is_mask)
-Vc_4_SIMDARRAY_TO_1__(simd_mask_array, SSE::is_mask)
-// offset == 0 | convert from SSE/Scalar::Mask/Vector to SSE/Scalar::Mask/Vector {{{1
+// 1 SSE::Mask to 1 Scalar::Mask {{{2
+template <typename To, typename FromT>
+Vc_INTRINSIC Vc_CONST To
+    simd_cast(SSE::Mask<FromT> x, enable_if<Scalar::is_mask<To>::value> = nullarg)
+{
+    return static_cast<To>(x[0]);
+}
+// offset == 0 | convert from SSE::Mask/Vector to SSE::Mask/Vector {{{1
 template <typename Return, int offset, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(
-    V &&x,
-    enable_if<offset == 0 &&
-              ((SSE::is_vector<Traits::decay<V>>::value &&
-                (SSE::is_vector<Return>::value || Scalar::is_vector<Return>::value)) ||
-               (SSE::is_mask<Traits::decay<V>>::value &&
-                (SSE::is_mask<Return>::value || Scalar::is_mask<Return>::value)))> =
-        nullarg)
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast(V &&x, enable_if<offset == 0 && ((SSE::is_vector<Traits::decay<V>>::value &&
+                                                SSE::is_vector<Return>::value) ||
+                                               (SSE::is_mask<Traits::decay<V>>::value &&
+                                                SSE::is_mask<Return>::value))> = nullarg)
 {
     return simd_cast<Return>(x);
 }
@@ -601,68 +589,7 @@ Vc_INTRINSIC Vc_CONST Return
     simd_cast(SSE::Vector<T> x,
               enable_if<offset != 0 && Scalar::is_vector<Return>::value> = nullarg)
 {
-    using RT = typename Return::EntryType;
-    const auto tmp = simd_cast<SSE::Vector<RT>>(x);
-    return tmp[offset];
-}
-
-// simdarray to SSE::Vector {{{2
-template <typename Return, int offset, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray<T, N, V, N> &x,
-                                       enable_if<SSE::is_vector<Return>::value> = nullarg)
-{
-    return simd_cast<Return, offset>(internal_data(x));
-}
-
-template <typename Return,
-          int offset,
-          typename T,
-          std::size_t N,
-          typename V,
-          std::size_t M>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const simdarray<T, N, V, M> &x,
-              enable_if<(offset * Return::Size >= Common::left_size(N) &&
-                         SSE::is_vector<Return>::value)> = nullarg)
-{
-    return simd_cast<Return, offset - Common::left_size(N) / Return::Size>(internal_data1(x));
-}
-
-template <typename Return,
-          int offset,
-          typename T,
-          std::size_t N,
-          typename V,
-          std::size_t M>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const simdarray<T, N, V, M> &x,
-              enable_if<(offset * Return::Size < Common::left_size(N) &&
-                         (offset + 1) * Return::Size <= Common::left_size(N) &&
-                         SSE::is_vector<Return>::value)> = nullarg)
-{
-    return simd_cast<Return, offset>(internal_data0(x));
-}
-
-template <typename Return,
-          int offset,
-          typename T,
-          std::size_t N,
-          typename V,
-          std::size_t M>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const simdarray<T, N, V, M> &x,
-              enable_if<(offset * Return::Size < Common::left_size(N) &&
-                         (offset + 1) * Return::Size > Common::left_size(N) &&
-                         SSE::is_vector<Return>::value)> = nullarg)
-{
-    using R = typename Return::EntryType;
-    Return r{0};
-    for (std::size_t i = offset * Return::Size;
-         i < std::min(N, (offset + 1) * Return::Size);
-         ++i) {
-        r[i - offset * Return::Size] = static_cast<R>(x[i]);
-    }
-    return r;
+    return static_cast<typename Return::EntryType>(x[offset]);
 }
 
 // Mask casts with offset {{{1

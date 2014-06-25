@@ -79,6 +79,18 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     return Return(x[offset]);
 }
 
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<offset == 0 && Traits::is_simd_vector<Return>::value &&
+                                    !Scalar::is_vector<Return>::value,
+                                Return>
+    simd_cast(Scalar::Vector<T> x)
+{
+    Return r{};
+    r[0] = static_cast<typename Return::EntryType>(x.data());
+    return r;
+}
+
+
 // Any mask (Mask<T> or simd_mask_array) to multiple Scalar::Mask<T>
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast(

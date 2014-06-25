@@ -829,6 +829,226 @@ simdarray<T, N> ldexp(const simdarray<T, N> &x, const simdarray<int, N> &e)
     return simdarray<T, N>::fromOperation(Common::Operations::Ldexp(), x, e);
 }
 
+// simd_cast {{{1
+// simdarray to simdarray {{{2
+template <typename To, typename T, std::size_t N, typename V, std::size_t M>
+To simd_cast(const simdarray<T, N, V, M> &x,
+             enable_if<Traits::is_simd_array<To>::value> = nullarg)
+{
+    To r = 0;
+    for (size_t i = 0; i < std::min(N, To::Size); ++i) {
+        r[i] = x[i];
+    }
+    return r;
+}
+
+// simd_cast_impl_smaller_input {{{2
+template <typename Return, std::size_t N, typename T, typename... From>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_impl_smaller_input(const From &... xs, const T &last)
+{
+    Return r = simd_cast<Return>(xs...);
+    for (size_t i = 0; i < N; ++i) {
+        r[i + N * sizeof...(From)] = static_cast<typename Return::EntryType>(last[i]);
+    }
+    return r;
+}
+template <typename Return, std::size_t N, typename T, typename... From>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_impl_larger_input(const From &... xs, const T &last)
+{
+    Return r = simd_cast<Return>(xs...);
+    for (size_t i = N * sizeof...(From); i < Return::Size; ++i) {
+        r[i] = static_cast<typename Return::EntryType>(last[i - N * sizeof...(From)]);
+    }
+    return r;
+}
+template <typename Return, typename T, typename... From>
+Vc_INTRINSIC_L Vc_CONST_L Return
+    simd_cast_without_last(const From &... xs, const T &) Vc_INTRINSIC_R Vc_CONST_R;
+
+// are_all_types_equal {{{2
+template <typename... Ts> struct are_all_types_equal;
+template <typename T>
+struct are_all_types_equal<T> : public std::integral_constant<bool, true>
+{
+};
+template <typename T0, typename T1, typename... Ts>
+struct are_all_types_equal<T0, T1, Ts...>
+    : public std::integral_constant<
+          bool, std::is_same<T0, T1>::value && are_all_types_equal<T1, Ts...>::value>
+{
+};
+
+// simd_cast_interleaved_argument_order {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return simd_cast_interleaved_argument_order(const T &a, const T &b)
+{
+    return simd_cast<Return>(a, b);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d)
+{
+    return simd_cast<Return>(a, c, b, d);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f)
+{
+    return simd_cast<Return>(a, d, b, e, c, f);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f, const T &g, const T &h)
+{
+    return simd_cast<Return>(a, e, b, f, c, g, d, h);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f, const T &g, const T &h,
+                                         const T &i, const T &j, const T &k, const T &l,
+                                         const T &m, const T &n, const T &o, const T &p)
+{
+    return simd_cast<Return>(a, i, b, j, c, k, d, l, e, m, f, n, g, o, h, p);
+}
+
+// simd_cast<T>(xs...) {{{2
+#define Vc_SIMDARRAY_CASTS(simdarray_type__)                                             \
+    /* indivisible simdarray_type__ */                                                   \
+    template <typename Return, typename T, std::size_t N, typename V, typename... From>  \
+    Vc_INTRINSIC Vc_CONST                                                                \
+        enable_if<(are_all_types_equal<simdarray_type__<T, N, V, N>, From...>::value &&  \
+                   (sizeof...(From) == 0 || N * (1 + sizeof...(From)) <= Return::Size)), \
+                  Return> simd_cast(const simdarray_type__<T, N, V, N> &x0,              \
+                                    const From &... xs)                                  \
+    {                                                                                    \
+        return simd_cast<Return>(internal_data(x0), internal_data(xs)...);               \
+    }                                                                                    \
+    /* bisectable simdarray_type__ (N = 2^n) never too large */                          \
+    template <typename Return, typename T, std::size_t N, typename V, std::size_t M,     \
+              typename... From>                                                          \
+    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
+        (N != M && are_all_types_equal<simdarray_type__<T, N, V, M>, From...>::value &&  \
+         N * (1 + sizeof...(From)) <= Return::Size && ((N - 1) & N) == 0),               \
+        Return> simd_cast(const simdarray_type__<T, N, V, M> &x0, const From &... xs)    \
+    {                                                                                    \
+        return simd_cast_interleaved_argument_order<Return>(                             \
+            internal_data0(x0), internal_data0(xs)..., internal_data1(x0),               \
+            internal_data1(xs)...);                                                      \
+    }                                                                                    \
+    /* bisectable simdarray_type__ (N = 2^n) too large */                                \
+    template <typename Return, typename T, std::size_t N, typename V, std::size_t M,     \
+              typename... From>                                                          \
+    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
+        (N != M && are_all_types_equal<simdarray_type__<T, N, V, M>, From...>::value &&  \
+         N * (sizeof...(From)) >= Return::Size && ((N - 1) & N) == 0),                   \
+        Return> simd_cast(const simdarray_type__<T, N, V, M> &x0, const From &... xs)    \
+    {                                                                                    \
+        return simd_cast_without_last<Return, simdarray_type__<T, N, V, M>, From...>(    \
+            x0, xs...);                                                                  \
+    }                                                                                    \
+    /* a single bisectable simdarray_type__ (N = 2^n) too large */                       \
+    template <typename Return, typename T, std::size_t N, typename V, std::size_t M>     \
+    Vc_INTRINSIC Vc_CONST                                                                \
+        enable_if<(N != M && N >= 2 * Return::Size && ((N - 1) & N) == 0), Return>       \
+            simd_cast(const simdarray_type__<T, N, V, M> &x)                             \
+    {                                                                                    \
+        return simd_cast<Return>(internal_data0(x));                                     \
+    }                                                                                    \
+    template <typename Return, typename T, std::size_t N, typename V, std::size_t M>     \
+    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
+        (N != M && N > Return::Size && N < 2 * Return::Size && ((N - 1) & N) == 0),      \
+        Return> simd_cast(const simdarray_type__<T, N, V, M> &x)                         \
+    {                                                                                    \
+        return simd_cast<Return>(internal_data0(x), internal_data1(x));                  \
+    }                                                                                    \
+    /* remaining simdarray_type__ input never larger (N != 2^n) */                       \
+    template <typename Return, typename T, std::size_t N, typename V, std::size_t M,     \
+              typename... From>                                                          \
+    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
+        (N != M && are_all_types_equal<simdarray_type__<T, N, V, M>, From...>::value &&  \
+         N * (1 + sizeof...(From)) <= Return::Size && ((N - 1) & N) != 0),               \
+        Return> simd_cast(const simdarray_type__<T, N, V, M> &x0, const From &... xs)    \
+    {                                                                                    \
+        return simd_cast_impl_smaller_input<Return, N, simdarray_type__<T, N, V, M>,     \
+                                            From...>(x0, xs...);                         \
+    }                                                                                    \
+    /* remaining simdarray_type__ input larger (N != 2^n) */                             \
+    template <typename Return, typename T, std::size_t N, typename V, std::size_t M,     \
+              typename... From>                                                          \
+    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
+        (N != M && are_all_types_equal<simdarray_type__<T, N, V, M>, From...>::value &&  \
+         N * (1 + sizeof...(From)) > Return::Size && ((N - 1) & N) != 0),                \
+        Return> simd_cast(const simdarray_type__<T, N, V, M> &x0, const From &... xs)    \
+    {                                                                                    \
+        return simd_cast_impl_larger_input<Return, N, simdarray_type__<T, N, V, M>,      \
+                                           From...>(x0, xs...);                          \
+    }
+Vc_SIMDARRAY_CASTS(simdarray)
+Vc_SIMDARRAY_CASTS(simd_mask_array)
+#undef Vc_SIMDARRAY_CASTS
+
+// simd_cast<T, N>(x) {{{2
+// forward to V
+template <typename Return, int offset, typename T, std::size_t N, typename V>
+Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray<T, N, V, N> &x)
+{
+    return simd_cast<Return, offset>(internal_data(x));
+}
+// convert from right member of simdarray
+template <typename Return, int offset, typename T, std::size_t N, typename V,
+          std::size_t M>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(N != M && offset * Return::Size >= Common::left_size(N)), Return>
+        simd_cast(const simdarray<T, N, V, M> &x)
+{
+    static_assert(Common::left_size(N) % Return::Size == 0,
+                  "failed assumption in Vc: the skipped internal_data0(x) is not a "
+                  "multiple of Return::Size");
+    return simd_cast<Return, offset - Common::left_size(N) / Return::Size>(
+        internal_data1(x));
+}
+// convert from left member of simdarray
+template <typename Return, int offset, typename T, std::size_t N, typename V,
+          std::size_t M>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(N != M && /*offset * Return::Size < Common::left_size(N) &&*/
+               (offset + 1) * Return::Size <= Common::left_size(N)),
+              Return>
+        simd_cast(const simdarray<T, N, V, M> &x)
+{
+    return simd_cast<Return, offset>(internal_data0(x));
+}
+// fallback to copying scalars
+template <typename Return, int offset, typename T, std::size_t N, typename V,
+          std::size_t M>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(N != M && (offset * Return::Size < Common::left_size(N)) &&
+               (offset + 1) * Return::Size > Common::left_size(N)),
+              Return>
+        simd_cast(const simdarray<T, N, V, M> &x)
+{
+    using R = typename Return::EntryType;
+    Return r = Return::Zero();
+    for (std::size_t i = offset * Return::Size;
+         i < std::min(N, (offset + 1) * Return::Size); ++i) {
+        r[i - offset * Return::Size] = static_cast<R>(x[i]);
+    }
+    return r;
+}
+
+// simd_cast_without_last {{{2
+template <typename Return, typename T, typename... From>
+Vc_INTRINSIC Vc_CONST Return simd_cast_without_last(const From &... xs, const T &)
+{
+    return simd_cast<Return>(xs...);
+}
+
+// }}}1
 } // namespace Vc_VERSIONED_NAMESPACE
 
 #include "undomacros.h"
