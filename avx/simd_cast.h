@@ -78,6 +78,12 @@ namespace Vc_VERSIONED_NAMESPACE
                                        from__ x3,                                                  \
                                        enable_if<std::is_same<To, to__>::value> = nullarg)
 
+#define Vc_SIMD_CAST_OFFSET(from__, to__, offset__)                                      \
+    template <typename To, int offset>                                                   \
+    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
+        from__ x,                                                                        \
+        enable_if<(offset == offset__ && std::is_same<To, to__>::value)> = nullarg)
+
 // Vector casts without offset {{{1
 // AVX::Vector {{{2
 Vc_SIMD_CAST_AVX_1( float_v,    int_v) { return _mm256_cvttps_epi32(x.data()); }
@@ -576,7 +582,9 @@ Vc_INTRINSIC Vc_CONST Return
     return simd_cast<Return>(SseVector{
         AVX::avx_cast<Intrin>(_mm_alignr_epi8(AVX::lo128(x.data()), AVX::hi128(x.data()), shift))});
 }
-
+// SSE to AVX {{{2
+Vc_SIMD_CAST_OFFSET(SSE:: short_v, Vc_AVX_NAMESPACE::double_v, 1) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<SSE::int_v, 1>(x)); }
+Vc_SIMD_CAST_OFFSET(SSE::ushort_v, Vc_AVX_NAMESPACE::double_v, 1) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<SSE::int_v, 1>(x)); }
 // Mask casts with offset {{{1
 // 1 AVX::Mask to N AVX::Mask {{{2
 // It's rather limited: all AVX::Mask types except double_v have Size=8; and double_v::Size=4
@@ -600,17 +608,8 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
 }
 
 // 1 SSE::Mask to N AVX(2)::Mask {{{2
-#define Vc_SIMD_CAST_OFFSET(from__, to__, offset__)                                      \
-    template <typename To, int offset>                                                   \
-    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x,                                                                        \
-        enable_if<(offset == offset__ && std::is_same<To, to__>::value)> = nullarg)
-
 Vc_SIMD_CAST_OFFSET(SSE:: short_m, Vc_AVX_NAMESPACE::double_m, 1) { auto tmp = _mm_unpackhi_epi16(x.dataI(), x.dataI()); return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp)); }
 Vc_SIMD_CAST_OFFSET(SSE::ushort_m, Vc_AVX_NAMESPACE::double_m, 1) { auto tmp = _mm_unpackhi_epi16(x.dataI(), x.dataI()); return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp)); }
-
-#undef Vc_SIMD_CAST_OFFSET
-
 // AVX to SSE (Mask<T>) {{{2
 template <typename Return, int offset, typename M>
 Vc_INTRINSIC Vc_CONST Return simd_cast(
@@ -696,6 +695,8 @@ Vc_INTRINSIC Vc_CONST Return
 #undef Vc_SIMD_CAST_1
 #undef Vc_SIMD_CAST_2
 #undef Vc_SIMD_CAST_4
+
+#undef Vc_SIMD_CAST_OFFSET
 // }}}1
 
 }  // namespace Vc
