@@ -105,6 +105,9 @@ else()
             deinterleave_mic
             )
       endif()
+      # Disable warning "C++ exception specification ignored except to indicate a function is not __declspec(nothrow)"
+      # MSVC emits the warning for the _UnitTest_Compare desctructor which needs the throw declaration so that it doesn't std::terminate
+      AddCompilerFlag("/wd4290")
    endif()
 endif()
 
@@ -263,6 +266,7 @@ if(NOT ROOT_RELEASE)
    include (CTest)
    configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
    if(BUILD_TESTING)
+      add_custom_target(build_tests ALL VERBATIM)
       add_subdirectory(tests)
    endif(BUILD_TESTING)
 

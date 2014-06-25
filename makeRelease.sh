@@ -28,11 +28,29 @@ sed -i \
 	-e "s/VC_VERSION_NUMBER 0x.*\$/VC_VERSION_NUMBER $versionNumber/" \
 	include/Vc/version.h
 cat include/Vc/version.h
-git commit doc/Doxyfile include/Vc/version.h -m"change version to $versionString"
-git tag -m "Vc $versionString release" -s "$versionString"
+
+# Don't build tests with make all
+sed -i \
+  -e 's/add_custom_target(build_tests ALL VERBATIM)/add_custom_target(build_tests VERBATIM)/' \
+  CMakeLists.txt
+git commit CMakeLists.txt doc/Doxyfile include/Vc/version.h -s -F- <<EOF
+release: version $versionString
+
+* change version strings/numbers to $versionString
+* disable HTML_TIMESTAMP for doxygen
+* don't build tests with make all
+EOF
+
+git tag -m "Vc $versionString release" -s "$versionString" || exit
 
 # Create tarball
 git archive --format=tar --prefix="Vc-$versionString/" "$versionString" | gzip > ../"Vc-$versionString.tar.gz"
+
+# Create API docs tarball
+./makeApidox.sh
+mv doc/html/*.qch "../Vc-${versionString}.qch"
+mv doc/html "Vc-docs-$versionString" && tar -czf "../Vc-docs-$versionString".tar.gz "Vc-docs-$versionString"
+rm -rf "Vc-docs-$versionString"
 
 # Update the version number of the after-release code
 versionString="$versionString-dev"
@@ -46,4 +64,14 @@ sed -i \
 	-e "s/VC_VERSION_STRING \".*\"\$/VC_VERSION_STRING \"$versionString\"/" \
 	-e "s/VC_VERSION_NUMBER 0x.*\$/VC_VERSION_NUMBER $versionNumber/" \
 	include/Vc/version.h
-git commit doc/Doxyfile include/Vc/version.h -m"change version to $versionString"
+# Revert the build_tests change
+sed -i \
+  -e 's/add_custom_target(build_tests VERBATIM)/add_custom_target(build_tests ALL VERBATIM)/' \
+  CMakeLists.txt
+git commit CMakeLists.txt doc/Doxyfile include/Vc/version.h -s -F- <<EOF
+after release: version $versionString
+
+* change version strings/numbers to $versionString
+* enable HTML_TIMESTAMP for doxygen
+* build tests with make all
+EOF
