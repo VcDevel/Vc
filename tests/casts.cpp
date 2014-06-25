@@ -242,7 +242,8 @@ TEST_TYPES(TList, cast_vector, (AllTestTypes))  // {{{1
         T(-std::numeric_limits<T>::max())};
     rnd().store(&testData[17], Vc::Unaligned);
     for (int i = 0; i < 17 + From::Size; i += From::Size) {
-        const From v(&testData[i], Vc::Aligned);
+        const From v(&testData[i],
+                     Vc::Unaligned);  // Unaligned because From can be simdarray<T, Odd>
         cast_vector_impl<To>(v);
         cast_vector_impl<To>(rnd());
         cast_vector_impl<To>(v, rnd());
