@@ -280,6 +280,11 @@ template <typename T> class Vector
             m_data = f();
         }
 
+        template <typename G> static Vc_INTRINSIC Vector generate(G gen)
+        {
+            return gen(0);
+        }
+
         Vc_INTRINSIC_L Vector copySign(Vector reference) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
 

@@ -494,6 +494,8 @@ template<typename Functor> void call(const Functor &f, MASK_TYPE mask) const;
 void fill(ENTRY_TYPE (&f)());
 /// Fill the vector with the values [f(0), f(1), f(2), ...].
 template<typename IndexT> void fill(ENTRY_TYPE (&f)(IndexT));
+/// Generate a vector object from scalars (like fill)
+template<typename Functor> static VECTOR_TYPE generate(Functor f);
 //@}
 
 /**

@@ -411,6 +411,15 @@ public:
                 );
     }
 
+    template <typename G> static Vc_INTRINSIC Vector generate(G gen)
+    {
+        Vector r;
+        Common::unrolled_loop<std::size_t, 0, Size>([&](std::size_t i) {
+            r.d.m(i) = gen(i);
+        });
+        return r;
+    }
+
     Vc_INTRINSIC_L Vector copySign(AsArg reference) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
 

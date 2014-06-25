@@ -1109,6 +1109,31 @@ template <> Vc_INTRINSIC  short_v  short_v::interleaveHigh( short_v x) const { r
 template <> Vc_INTRINSIC ushort_v ushort_v::interleaveLow (ushort_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
 template <> Vc_INTRINSIC ushort_v ushort_v::interleaveHigh(ushort_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
 #endif
+// generate {{{1
+template <> template <typename G> Vc_INTRINSIC double_v double_v::generate(G gen)
+{
+    return _mm256_setr_pd(gen(0), gen(1), gen(2), gen(3));
+}
+template <> template <typename G> Vc_INTRINSIC float_v float_v::generate(G gen)
+{
+    return _mm256_setr_ps(gen(0), gen(1), gen(2), gen(3), gen(4), gen(5), gen(6), gen(7));
+}
+template <> template <typename G> Vc_INTRINSIC int_v int_v::generate(G gen)
+{
+    return _mm256_setr_epi32(gen(0), gen(1), gen(2), gen(3), gen(4), gen(5), gen(6), gen(7));
+}
+template <> template <typename G> Vc_INTRINSIC uint_v uint_v::generate(G gen)
+{
+    return _mm256_setr_epi32(gen(0), gen(1), gen(2), gen(3), gen(4), gen(5), gen(6), gen(7));
+}
+template <> template <typename G> Vc_INTRINSIC short_v short_v::generate(G gen)
+{
+    return _mm_setr_epi16(gen(0), gen(1), gen(2), gen(3), gen(4), gen(5), gen(6), gen(7));
+}
+template <> template <typename G> Vc_INTRINSIC ushort_v ushort_v::generate(G gen)
+{
+    return _mm_setr_epi16(gen(0), gen(1), gen(2), gen(3), gen(4), gen(5), gen(6), gen(7));
+}
 // }}}1
 }
 }
