@@ -27,7 +27,7 @@ AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: false
 
 #    If false, a function call’s or function definition’s parameters will either all be on the same line or will have one line each.
-BinPackParameters: false
+BinPackParameters: true
 
 #    If true, binary operators will be placed after line breaks.
 BreakBeforeBinaryOperators: false
