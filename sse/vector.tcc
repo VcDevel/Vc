@@ -847,24 +847,27 @@ template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
 // shifted / rotated {{{1
 template<typename T> Vc_INTRINSIC Vc_PURE Vector<T> Vector<T>::shifted(int amount) const
 {
+    enum {
+        EntryTypeSizeof = sizeof(EntryType)
+    };
     switch (amount) {
     case  0: return *this;
-    case  1: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 1 * sizeof(EntryType)));
-    case  2: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 2 * sizeof(EntryType)));
-    case  3: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 3 * sizeof(EntryType)));
-    case  4: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 4 * sizeof(EntryType)));
-    case  5: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 5 * sizeof(EntryType)));
-    case  6: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 6 * sizeof(EntryType)));
-    case  7: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 7 * sizeof(EntryType)));
-    case  8: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 8 * sizeof(EntryType)));
-    case -1: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 1 * sizeof(EntryType)));
-    case -2: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 2 * sizeof(EntryType)));
-    case -3: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 3 * sizeof(EntryType)));
-    case -4: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 4 * sizeof(EntryType)));
-    case -5: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 5 * sizeof(EntryType)));
-    case -6: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 6 * sizeof(EntryType)));
-    case -7: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 7 * sizeof(EntryType)));
-    case -8: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 8 * sizeof(EntryType)));
+    case  1: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 1 * EntryTypeSizeof));
+    case  2: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 2 * EntryTypeSizeof));
+    case  3: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 3 * EntryTypeSizeof));
+    case  4: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 4 * EntryTypeSizeof));
+    case  5: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 5 * EntryTypeSizeof));
+    case  6: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 6 * EntryTypeSizeof));
+    case  7: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 7 * EntryTypeSizeof));
+    case  8: return mm128_reinterpret_cast<VectorType>(_mm_srli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 8 * EntryTypeSizeof));
+    case -1: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 1 * EntryTypeSizeof));
+    case -2: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 2 * EntryTypeSizeof));
+    case -3: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 3 * EntryTypeSizeof));
+    case -4: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 4 * EntryTypeSizeof));
+    case -5: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 5 * EntryTypeSizeof));
+    case -6: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 6 * EntryTypeSizeof));
+    case -7: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 7 * EntryTypeSizeof));
+    case -8: return mm128_reinterpret_cast<VectorType>(_mm_slli_si128(mm128_reinterpret_cast<__m128i>(d.v()), 8 * EntryTypeSizeof));
     }
     return Zero();
 }
@@ -876,19 +879,22 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount, Vecto
 }
 template<typename T> Vc_INTRINSIC Vc_PURE Vector<T> Vector<T>::rotated(int amount) const
 {
+    enum {
+        EntryTypeSizeof = sizeof(EntryType)
+    };
     const __m128i v = mm128_reinterpret_cast<__m128i>(d.v());
     switch (static_cast<unsigned int>(amount) % Size) {
     case  0: return *this;
-    case  1: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 1 * sizeof(EntryType)));
-    case  2: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 2 * sizeof(EntryType)));
-    case  3: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 3 * sizeof(EntryType)));
+    case  1: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 1 * EntryTypeSizeof));
+    case  2: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 2 * EntryTypeSizeof));
+    case  3: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 3 * EntryTypeSizeof));
              // warning "Immediate parameter to intrinsic call too large" disabled in VcMacros.cmake.
              // ICC fails to see that the modulo operation (Size == sizeof(VectorType) / sizeof(EntryType))
              // disables the following four calls unless sizeof(EntryType) == 2.
-    case  4: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 4 * sizeof(EntryType)));
-    case  5: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 5 * sizeof(EntryType)));
-    case  6: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 6 * sizeof(EntryType)));
-    case  7: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 7 * sizeof(EntryType)));
+    case  4: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 4 * EntryTypeSizeof));
+    case  5: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 5 * EntryTypeSizeof));
+    case  6: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 6 * EntryTypeSizeof));
+    case  7: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 7 * EntryTypeSizeof));
     }
     return Zero();
 }
