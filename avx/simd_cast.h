@@ -195,12 +195,14 @@ Vc_SIMD_CAST_AVX_1(  uint_v,  float_v) {
     if (VC_IS_UNLIKELY(tooLarge.isNotEmpty())) {
         const auto loMask = AVX::lo128(tooLarge.dataI());
         const auto hiMask = AVX::hi128(tooLarge.dataI());
-        const auto loOffset = _mm256_and_pd(_mm256_set1_pd(0x100000000ull),
-                                            AVX::concat(_mm_unpacklo_epi32(loMask, loMask),
-                                                        _mm_unpackhi_epi16(loMask, loMask)));
-        const auto hiOffset = _mm256_and_pd(_mm256_set1_pd(0x100000000ull),
-                                            AVX::concat(_mm_unpacklo_epi32(hiMask, hiMask),
-                                                        _mm_unpackhi_epi16(hiMask, hiMask)));
+        const auto loOffset = _mm256_and_pd(
+            _mm256_set1_pd(0x100000000ull),
+            _mm256_castsi256_pd(AVX::concat(_mm_unpacklo_epi32(loMask, loMask),
+                                            _mm_unpackhi_epi16(loMask, loMask))));
+        const auto hiOffset = _mm256_and_pd(
+            _mm256_set1_pd(0x100000000ull),
+            _mm256_castsi256_pd(AVX::concat(_mm_unpacklo_epi32(hiMask, hiMask),
+                                            _mm_unpackhi_epi16(hiMask, hiMask))));
         const auto lo = _mm256_cvtepi32_pd(AVX::lo128(x.data()));
         const auto hi = _mm256_cvtepi32_pd(AVX::hi128(x.data()));
         return AVX::concat(_mm256_cvtpd_ps(_mm256_add_pd(lo, loOffset)),
