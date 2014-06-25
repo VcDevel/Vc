@@ -197,11 +197,22 @@ Vc_SIMD_CAST_AVX_2(double_v,  float_v) { return AVX::concat(_mm256_cvtpd_ps(x0.d
 Vc_SIMD_CAST_AVX_1(   int_v,  float_v) { return _mm256_cvtepi32_ps(x.data()); }
 Vc_SIMD_CAST_AVX_1(  uint_v,  float_v) {
     using namespace AvxIntrinsics;
-    return _mm256_blendv_ps(
-        _mm256_cvtepi32_ps(x.data()),
-        _mm256_add_ps(_mm256_cvtepi32_ps(_mm256_sub_epi32(x.data(), _mm256_setmin_epi32())),
-                      _mm256_set1_ps(1u << 31)),
-        _mm256_castsi256_ps(_mm256_cmplt_epi32(x.data(), _mm256_setzero_si256())));
+    const auto tooLarge = Vc_AVX_NAMESPACE::int_v(x) < Vc_AVX_NAMESPACE::int_v::Zero();
+    if (VC_IS_UNLIKELY(tooLarge.isNotEmpty())) {
+        const auto loMask = AVX::lo128(tooLarge.dataI());
+        const auto hiMask = AVX::hi128(tooLarge.dataI());
+        const auto loOffset = _mm256_and_pd(_mm256_set1_pd(0x100000000ull),
+                                            AVX::concat(_mm_unpacklo_epi32(loMask, loMask),
+                                                        _mm_unpackhi_epi16(loMask, loMask)));
+        const auto hiOffset = _mm256_and_pd(_mm256_set1_pd(0x100000000ull),
+                                            AVX::concat(_mm_unpacklo_epi32(hiMask, hiMask),
+                                                        _mm_unpackhi_epi16(hiMask, hiMask)));
+        const auto lo = _mm256_cvtepi32_pd(AVX::lo128(x.data()));
+        const auto hi = _mm256_cvtepi32_pd(AVX::hi128(x.data()));
+        return AVX::concat(_mm256_cvtpd_ps(_mm256_add_pd(lo, loOffset)),
+                           _mm256_cvtpd_ps(_mm256_add_pd(hi, hiOffset)));
+    }
+    return _mm256_cvtepi32_ps(x.data());
 }
 Vc_SIMD_CAST_AVX_1( short_v,  float_v) { return simd_cast<Vc_AVX_NAMESPACE::float_v>(simd_cast<Vc_AVX_NAMESPACE::int_v>(x)); }
 Vc_SIMD_CAST_AVX_1(ushort_v,  float_v) { return simd_cast<Vc_AVX_NAMESPACE::float_v>(simd_cast<Vc_AVX_NAMESPACE::int_v>(x)); }
