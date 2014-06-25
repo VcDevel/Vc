@@ -251,7 +251,7 @@ using std::tuple;
 using std::get;
 
 // printPass {{{1
-static inline void printPass() { std::cout << AnsiColor::green << " PASS: " << AnsiColor::normal; }
+static inline void printPass() { std::cout << Vc::AnsiColor::green << " PASS: " << Vc::AnsiColor::normal; }
 
 // verify_vector_unit_supported {{{1
 bool verify_vector_unit_supported()
@@ -342,7 +342,7 @@ static const char *failString()  // {{{1
     }
     static const char *str = 0;
     if (str == 0) {
-        if (mayUseColor(std::cout)) {
+        if (Vc::mayUseColor(std::cout)) {
             static const char *fail = " \033[1;40;31mFAIL:\033[0m ";
             str = fail;
         } else {
