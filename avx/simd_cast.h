@@ -883,12 +883,14 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
 Vc_SIMD_CAST_OFFSET(SSE:: short_m, Vc_AVX_NAMESPACE::double_m, 1) { auto tmp = _mm_unpackhi_epi16(x.dataI(), x.dataI()); return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp)); }
 Vc_SIMD_CAST_OFFSET(SSE::ushort_m, Vc_AVX_NAMESPACE::double_m, 1) { auto tmp = _mm_unpackhi_epi16(x.dataI(), x.dataI()); return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp)); }
 // AVX to SSE (Mask<T>) {{{2
-template <typename Return, int offset, typename M>
-Vc_INTRINSIC Vc_CONST Return simd_cast(
-    M x,
-    enable_if<offset != 0 && (AVX::is_mask<M>::value || AVX2::is_mask<M>::value) &&
-              SSE::is_mask<Return>::value> = nullarg)
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(offset != 0 && SSE::is_mask<Return>::value &&
+               sizeof(typename Vc_AVX_NAMESPACE::Mask<T>::VectorType) == 32),
+              Return>
+        simd_cast(Vc_AVX_NAMESPACE::Mask<T> x)
 {
+    using M = Vc_AVX_NAMESPACE::Mask<T>;
     constexpr int shift = sizeof(M) / M::Size * offset * Return::Size;
     static_assert(shift > 0, "");
     static_assert(shift < sizeof(M), "");
