@@ -178,6 +178,37 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE bool Mask<T>::operator[](size_t in
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 32>)
+{
+    return _mm256_setr_epi64x(
+        gen(0) ? 0xffffffffffffffffull : 0, gen(1) ? 0xffffffffffffffffull : 0,
+        gen(2) ? 0xffffffffffffffffull : 0, gen(3) ? 0xffffffffffffffffull : 0);
+}
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 32>)
+{
+    return _mm256_setr_epi32(gen(0) ? 0xfffffffful : 0, gen(1) ? 0xfffffffful : 0,
+                             gen(2) ? 0xfffffffful : 0, gen(3) ? 0xfffffffful : 0,
+                             gen(4) ? 0xfffffffful : 0, gen(5) ? 0xfffffffful : 0,
+                             gen(6) ? 0xfffffffful : 0, gen(7) ? 0xfffffffful : 0);
+}
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 16>)
+{
+    return _mm_setr_epi16(gen(0) ? 0xffffu : 0, gen(1) ? 0xffffu : 0,
+                          gen(2) ? 0xffffu : 0, gen(3) ? 0xffffu : 0,
+                          gen(4) ? 0xffffu : 0, gen(5) ? 0xffffu : 0,
+                          gen(6) ? 0xffffu : 0, gen(7) ? 0xffffu : 0);
+}
+template <typename T>
+template <typename G>
+Vc_INTRINSIC Mask<T> Mask<T>::generate(G &&gen)
+{
+    return generate_impl<Mask<T>>(std::forward<G>(gen),
+                                  std::integral_constant<int, Size + sizeof(Storage)>());
+}
+
 /*
 template<> Vc_ALWAYS_INLINE Mask< 4, 32> &Mask< 4, 32>::operator=(const std::array<bool, 4> &values) {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");

@@ -210,6 +210,8 @@ private:
         Vc_ALWAYS_INLINE Vc_PURE unsigned int count() const { return _mm_popcnt_u32(toInt()); }
         Vc_ALWAYS_INLINE Vc_PURE unsigned int firstOne() const { return _bit_scan_forward(toInt()); }
 
+        template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
+
     private:
 #ifndef VC_IMPL_POPCNT
         static Vc_ALWAYS_INLINE Vc_CONST unsigned int _mm_popcnt_u32(unsigned int n) {

@@ -219,6 +219,34 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE int Mask<T>::firstOne() const
 /*operators{{{*/
 /*}}}*/
 
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 2>)
+{
+    return _mm_set_epi64x(gen(1) ? 0xffffffffffffffffull : 0,
+                          gen(0) ? 0xffffffffffffffffull : 0);
+}
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4>)
+{
+    return _mm_setr_epi32(gen(0) ? 0xfffffffful : 0, gen(1) ? 0xfffffffful : 0,
+                          gen(2) ? 0xfffffffful : 0, gen(3) ? 0xfffffffful : 0);
+}
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8>)
+{
+    return _mm_setr_epi16(gen(0) ? 0xffffu : 0, gen(1) ? 0xffffu : 0,
+                          gen(2) ? 0xffffu : 0, gen(3) ? 0xffffu : 0,
+                          gen(4) ? 0xffffu : 0, gen(5) ? 0xffffu : 0,
+                          gen(6) ? 0xffffu : 0, gen(7) ? 0xffffu : 0);
+}
+template <typename T>
+template <typename G>
+Vc_INTRINSIC Mask<T> Mask<T>::generate(G &&gen)
+{
+    return generate_impl<Mask<T>>(std::forward<G>(gen),
+                                  std::integral_constant<int, Size>());
+}
+
 }
 }
 

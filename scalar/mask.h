@@ -127,6 +127,11 @@ public:
         Vc_ALWAYS_INLINE unsigned int firstOne() const { return 0; }
         Vc_ALWAYS_INLINE int toInt() const { return m ? 1 : 0; }
 
+        template <typename G> static Vc_INTRINSIC Mask generate(G &&gen)
+        {
+            return gen(0);
+        }
+
     private:
         bool m;
 };

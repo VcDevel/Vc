@@ -170,6 +170,15 @@ public:
 
     int toInt() const { return k; }
 
+    template <typename G> static Vc_INTRINSIC Mask generate(G &&gen)
+    {
+        unsigned int bits = 0;
+        Common::unrolled_loop<std::size_t, 0, Size>([&](std::size_t i) {
+            bits |= gen(i) << i;
+        });
+        return static_cast<MaskType>(bits);
+    }
+
 private:
     MaskType k;
 };
