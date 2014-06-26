@@ -100,6 +100,17 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     return Return(x[offset]);
 }
 
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<
+    offset == 0 && Traits::is_simd_mask<Return>::value && !Scalar::is_mask<Return>::value,
+    Return>
+    simd_cast(Scalar::Mask<T> x)
+{
+    Return r(false);
+    r[0] = x[0];
+    return r;
+}
+
 }
 
 #include "undomacros.h"
