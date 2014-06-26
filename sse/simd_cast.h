@@ -92,7 +92,7 @@ namespace Vc_VERSIONED_NAMESPACE
 // helper functions {{{2
 namespace SSE
 {
-__m128i convert_int32_to_int16(__m128i a, __m128i b)
+Vc_INTRINSIC __m128i convert_int32_to_int16(__m128i a, __m128i b)
 {
     auto tmp0 = _mm_unpacklo_epi16(a, b);        // 0 4 X X 1 5 X X
     auto tmp1 = _mm_unpackhi_epi16(a, b);        // 2 6 X X 3 7 X X
