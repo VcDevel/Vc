@@ -152,6 +152,14 @@ template <typename T> struct is_load_store_flag : public is_loadstoreflag_intern
 /// \internal Identifies the function signature of a cast
 template <typename... Args> struct is_cast_arguments : public is_cast_arguments_internal<sizeof...(Args), decay<Args>...> {};
 
+/// \internal Identifies a simdarray type with a single Vector member
+template <typename T> struct is_atomic_simdarray_internal : public std::false_type {};
+template <typename T> using is_atomic_simdarray = is_atomic_simdarray_internal<decay<T>>;
+
+/// \internal Identifies a simd_mask_array type with a single Mask member
+template <typename T> struct is_atomic_simd_mask_array_internal : public std::false_type {};
+template <typename T> using is_atomic_simd_mask_array = is_atomic_simd_mask_array_internal<decay<T>>;
+
 /**
  * The \p value member will either be the number of SIMD vector entries or 0 if \p T is not a SIMD
  * type.

@@ -43,6 +43,9 @@ template <typename T, std::size_t N, typename VectorType, std::size_t> class sim
 
 namespace Traits
 {
+template <typename T, std::size_t N, typename V> struct is_atomic_simdarray_internal<simdarray<T, N, V, N>> : public std::true_type {};
+template <typename T, std::size_t N, typename V> struct is_atomic_simd_mask_array_internal<simd_mask_array<T, N, V, N>> : public std::true_type {};
+
 template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simd_array_internal<simdarray<T, N, VectorType, M>> : public std::true_type {};
 template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simd_mask_array_internal<simd_mask_array<T, N, VectorType, M>> : public std::true_type {};
 template <typename T, std::size_t N, typename V, std::size_t M> struct is_integral_internal      <simdarray<T, N, V, M>, false> : public std::is_integral<T> {};
