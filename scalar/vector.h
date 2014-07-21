@@ -74,11 +74,6 @@ class Vector
         static Vc_ALWAYS_INLINE Vector IndexesFromZero() { return Zero(); }
         static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // copy
-        Vc_INTRINSIC Vector(const Vector &x) = default;
-        Vc_INTRINSIC Vector &operator=(const Vector &v) { m_data = v.data(); return *this; }
-
         // implict conversion from compatible Vector<U>
         template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
                 typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)

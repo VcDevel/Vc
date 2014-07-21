@@ -123,11 +123,6 @@ public:
     // internal: required to enable returning objects of VectorType
     Vc_INTRINSIC Vector(VectorType x) : d(x) {}
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // copy
-    Vc_INTRINSIC Vector(const Vector &x) = default; //: d(x.data()) {}
-    Vc_INTRINSIC Vector &operator=(const Vector &v) { d.v() = v.d.v(); return *this; }
-
     // implict conversion from compatible Vector<U>
     template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
             typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
