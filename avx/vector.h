@@ -116,11 +116,6 @@ template<typename T> class Vector
         Vc_ALWAYS_INLINE Vector(typename VectorType::Base x) : d(x) {}
 #endif
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // copy
-        Vc_INTRINSIC Vector(const Vector &x) = default;
-        Vc_INTRINSIC Vector &operator=(const Vector &v) { d.v() = v.d.v(); return *this; }
-
         // implict conversion from compatible Vector<U>
         template <typename U>
         Vc_INTRINSIC Vector(

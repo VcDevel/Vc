@@ -74,11 +74,6 @@ template <typename T> class Vector
 
         static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // copy
-        Vc_INTRINSIC Vector(const Vector &x) = default;
-        Vc_INTRINSIC Vector &operator=(const Vector &v) { m_data = v.data(); return *this; }
-
         // implict conversion from compatible Vector<U>
         template <typename U>
         Vc_INTRINSIC Vector(
