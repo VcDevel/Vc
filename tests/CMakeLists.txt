@@ -259,6 +259,13 @@ if(OBJDUMP)
          COMMAND ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl} -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
          )
       set_property(TEST ${_test} PROPERTY LABELS "${_impl}")
+      add_custom_target(run_${_target}
+         ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl} -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+         DEPENDS ${_target}
+         COMMENT "Execute ${_target} test"
+         VERBATIM
+         )
    endmacro()
 
    test_abi(SSE  ${_sse2_flag})
