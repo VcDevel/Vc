@@ -38,15 +38,17 @@ template <typename T,
 class alignas(Common::nextPowerOfTwo((N + VectorSize - 1) / VectorSize) *
               sizeof(typename VectorType::Mask)) simd_mask_array;
 
-template <typename T, std::size_t N, typename VectorType> class simd_mask_array<T, N, VectorType, N>
+template <typename T, std::size_t N, typename VectorType_> class simd_mask_array<T, N, VectorType_, N>
 {
+public:
+    using VectorType = VectorType_;
     using vector_type = VectorType;
-    using storage_type = typename vector_type::Mask;
+    using mask_type = typename vector_type::Mask;
+    using storage_type = mask_type;
+
     friend storage_type &internal_data(simd_mask_array &m) { return m.data; }
     friend const storage_type &internal_data(const simd_mask_array &m) { return m.data; }
 
-public:
-    using mask_type = typename vector_type::Mask;
     static constexpr std::size_t size() { return N; }
     static constexpr std::size_t Size = size();
     static_assert(Size == mask_type::Size, "size mismatch");
@@ -211,7 +213,7 @@ public:
     Vc_INTRINSIC simd_mask_array(mask_type &&x) : data(std::move(x)) {}
 
 private:
-    mask_type data;
+    storage_type data;
 };
 
 template <typename T, std::size_t N, typename VectorType> constexpr std::size_t simd_mask_array<T, N, VectorType, N>::Size;
@@ -224,6 +226,8 @@ template <typename T, std::size_t N, typename VectorType, std::size_t> class sim
     using storage_type1 = simd_mask_array<T, N - N0>;
 
     using Split = Common::Split<storage_type0::size()>;
+
+public:
     using vector_type = VectorType;
 
     friend storage_type0 &internal_data0(simd_mask_array &m) { return m.data0; }
@@ -231,7 +235,6 @@ template <typename T, std::size_t N, typename VectorType, std::size_t> class sim
     friend const storage_type0 &internal_data0(const simd_mask_array &m) { return m.data0; }
     friend const storage_type1 &internal_data1(const simd_mask_array &m) { return m.data1; }
 
-public:
     using mask_type = simd_mask_array;
     static constexpr std::size_t size() { return N; }
     static constexpr std::size_t Size = size();

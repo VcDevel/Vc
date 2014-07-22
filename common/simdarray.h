@@ -99,7 +99,7 @@ template <typename T,
 class alignas(Common::nextPowerOfTwo((N + VectorSize - 1) / VectorSize) *
               sizeof(typename VectorType::Mask)) simdarray;
 
-template <typename T, std::size_t N, typename VectorType> class simdarray<T, N, VectorType, N>
+template <typename T, std::size_t N, typename VectorType_> class simdarray<T, N, VectorType_, N>
 {
     static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value ||
                       std::is_same<T, int32_t>::value ||
@@ -110,7 +110,9 @@ template <typename T, std::size_t N, typename VectorType> class simdarray<T, N, 
                   "int16_t, uint16_t }");
 
 public:
+    using VectorType = VectorType_;
     using vector_type = VectorType;
+    using storage_type = vector_type;
     using vectorentry_type = typename vector_type::VectorEntryType;
     using value_type = T;
     using mask_type = simd_mask_array<T, N, vector_type>;
@@ -383,7 +385,7 @@ public:
     /// \internal
     Vc_INTRINSIC simdarray(VectorType &&x) : data(std::move(x)) {}
 private:
-    VectorType data;
+    storage_type data;
 };
 template <typename T, std::size_t N, typename VectorType> constexpr std::size_t simdarray<T, N, VectorType, N>::Size;
 
@@ -841,18 +843,6 @@ simdarray<T, N> ldexp(const simdarray<T, N> &x, const simdarray<int, N> &e)
 }
 
 // simd_cast {{{1
-// simdarray to simdarray {{{2
-template <typename To, typename T, std::size_t N, typename V, std::size_t M>
-To simd_cast(const simdarray<T, N, V, M> &x,
-             enable_if<Traits::is_simd_array<To>::value> = nullarg)
-{
-    To r = 0;
-    for (size_t i = 0; i < std::min(N, To::Size); ++i) {
-        r[i] = x[i];
-    }
-    return r;
-}
-
 // simd_cast_impl_smaller_input {{{2
 template <typename Return, std::size_t N, typename T, typename... From>
 Vc_INTRINSIC Vc_CONST Return
@@ -927,15 +917,150 @@ Vc_INTRINSIC Vc_CONST Return
     return simd_cast<Return>(a, i, b, j, c, k, d, l, e, m, f, n, g, o, h, p);
 }
 
-// simd_cast<T>(xs...) {{{2
+// simd_cast<T>(xs...) to simdarray/-mask {{{2
+template <typename Return, std::size_t offset, typename From, typename... Froms>
+Vc_INTRINSIC Vc_CONST enable_if<
+    (are_all_types_equal<From, Froms...>::value && From::Size >= offset), Return>
+    simd_cast_with_offset(From, Froms... xs)
+{
+    return simd_cast_with_offset<Return, offset - From::Size>(xs...);
+}
+template <typename Return, std::size_t offset, typename From, typename... Froms>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(are_all_types_equal<From, Froms...>::value && offset == 0), Return>
+        simd_cast_with_offset(From, Froms... xs)
+{
+    return simd_cast<Return>(xs...);
+}
+
+template <typename Return, typename... Froms, typename From>
+Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
+                                 sizeof...(Froms) * From::Size < Return::Size),
+                                Return>
+    simd_cast_drop_arguments(Froms... xs, From x)
+{
+    return simd_cast<Return>(xs..., x);
+}
+template <typename Return, typename... Froms, typename From>
+Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
+                                 sizeof...(Froms) * From::Size >= Return::Size),
+                                Return>
+    simd_cast_drop_arguments(Froms... xs, From x)
+{
+    return simd_cast_drop_arguments<Return, Froms...>(xs...);
+}
+
+#define Vc_SIMDARRAY_CASTS(simdarray_type__, trait_name__)                               \
+    template <typename Return, typename From, typename... Froms>                         \
+    Vc_INTRINSIC Vc_CONST                                                                \
+        enable_if<(Traits::is_atomic_##simdarray_type__<Return>::value &&                \
+                   !Traits::is_##simdarray_type__<From>::value &&                        \
+                   Traits::is_simd_##trait_name__<From>::value &&                        \
+                   are_all_types_equal<From, Froms...>::value),                          \
+                  Return> simd_cast(From x, Froms... xs)                                 \
+    {                                                                                    \
+        return {simd_cast<typename Return::storage_type>(x, xs...)};                     \
+    }                                                                                    \
+    template <typename Return, typename From, typename... Froms>                         \
+    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
+        (Traits::is_##simdarray_type__<Return>::value &&                                 \
+         !Traits::is_atomic_##simdarray_type__<Return>::value &&                         \
+         !Traits::is_##simdarray_type__<From>::value &&                                  \
+         Traits::is_simd_##trait_name__<From>::value &&                                  \
+         Common::left_size(Return::Size) >= From::Size * (1 + sizeof...(Froms)) &&       \
+         are_all_types_equal<From, Froms...>::value),                                    \
+        Return> simd_cast(From x, Froms... xs)                                           \
+    {                                                                                    \
+        return {                                                                         \
+            simd_cast<                                                                   \
+                Traits::decay<decltype(internal_data0(std::declval<Return &>()))>>(      \
+                x, xs...),                                                               \
+            Traits::decay<decltype(internal_data1(std::declval<Return &>()))>::Zero()};  \
+    }                                                                                    \
+    template <typename Return, typename From, typename... Froms>                         \
+    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
+        (Traits::is_##simdarray_type__<Return>::value &&                                 \
+         !Traits::is_atomic_##simdarray_type__<Return>::value &&                         \
+         !Traits::is_##simdarray_type__<From>::value &&                                  \
+         Traits::is_simd_##trait_name__<From>::value &&                                  \
+         Common::left_size(Return::Size) < From::Size * (1 + sizeof...(Froms)) &&        \
+         are_all_types_equal<From, Froms...>::value),                                    \
+        Return> simd_cast(From x, Froms... xs)                                           \
+    {                                                                                    \
+        return {simd_cast_drop_arguments<                                                \
+                    Traits::decay<decltype(internal_data0(std::declval<Return &>()))>,   \
+                    From, Froms...>(x, xs...),                                           \
+                simd_cast_with_offset<                                                   \
+                    Traits::decay<decltype(internal_data1(std::declval<Return &>()))>,   \
+                    Common::left_size(Return::Size)>(x, xs...)};                         \
+    }
+Vc_SIMDARRAY_CASTS(simdarray, vector)
+Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
+#undef Vc_SIMDARRAY_CASTS
+
+// simd_cast<simdarray/-mask, offset>(V) {{{2
+#define Vc_SIMDARRAY_CASTS(simdarray_type__, trait_name__)                               \
+    template <typename Return, int offset, typename From>                                \
+    Vc_INTRINSIC Vc_CONST                                                                \
+        enable_if<(Traits::is_atomic_##simdarray_type__<Return>::value &&                \
+                   !Traits::is_##simdarray_type__<From>::value &&                        \
+                   Traits::is_simd_##trait_name__<From>::value),                         \
+                  Return> simd_cast(From x)                                              \
+    {                                                                                    \
+        return {simd_cast<typename Return::storage_type, offset>(x)};                    \
+    }                                                                                    \
+    template <typename Return, int offset, typename From>                                \
+    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
+        (Traits::is_##simdarray_type__<Return>::value &&                                 \
+         !Traits::is_atomic_##simdarray_type__<Return>::value &&                         \
+         !Traits::is_##simdarray_type__<From>::value &&                                  \
+         Traits::is_simd_##trait_name__<From>::value &&                                  \
+         Return::Size * offset + Common::left_size(Return::Size) >= From::Size),         \
+        Return> simd_cast(From x)                                                        \
+    {                                                                                    \
+        constexpr int entries_offset = offset * Return::Size;                            \
+        static_assert(entries_offset % Common::left_size(Return::Size) == 0,             \
+                      "internal error in Vc");                                           \
+        return {                                                                         \
+            simd_cast<Traits::decay<decltype(internal_data0(std::declval<Return &>()))>, \
+                      entries_offset / Common::left_size(Return::Size)>(x),              \
+            Traits::decay<decltype(internal_data1(std::declval<Return &>()))>::Zero()};  \
+    }                                                                                    \
+    template <typename Return, int offset, typename From>                                \
+    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
+        (Traits::is_##simdarray_type__<Return>::value &&                                 \
+         !Traits::is_atomic_##simdarray_type__<Return>::value &&                         \
+         !Traits::is_##simdarray_type__<From>::value &&                                  \
+         Traits::is_simd_##trait_name__<From>::value &&                                  \
+         Return::Size * offset + Common::left_size(Return::Size) < From::Size),          \
+        Return> simd_cast(From x)                                                        \
+    {                                                                                    \
+        constexpr int entries_offset = offset * Return::Size;                            \
+        constexpr int entries_offset_right =                                             \
+            entries_offset + Common::left_size(Return::Size);                            \
+        static_assert(entries_offset % Common::left_size(Return::Size) == 0,             \
+                      "internal error in Vc");                                           \
+        static_assert(entries_offset_right % Common::right_size(Return::Size) == 0,      \
+                      "internal error in Vc");                                           \
+        return {                                                                         \
+            simd_cast<Traits::decay<decltype(internal_data0(std::declval<Return &>()))>, \
+                      entries_offset / Common::left_size(Return::Size)>(x),              \
+            simd_cast<Traits::decay<decltype(internal_data1(std::declval<Return &>()))>, \
+                      entries_offset_right / Common::right_size(Return::Size)>(x)};      \
+    }
+Vc_SIMDARRAY_CASTS(simdarray, vector)
+Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
+#undef Vc_SIMDARRAY_CASTS
+
+// simd_cast<T>(xs...) from simdarray/-mask {{{2
 #define Vc_SIMDARRAY_CASTS(simdarray_type__)                                             \
     /* indivisible simdarray_type__ */                                                   \
     template <typename Return, typename T, std::size_t N, typename V, typename... From>  \
-    Vc_INTRINSIC Vc_CONST                                                                \
-        enable_if<(are_all_types_equal<simdarray_type__<T, N, V, N>, From...>::value &&  \
-                   (sizeof...(From) == 0 || N * (1 + sizeof...(From)) <= Return::Size)), \
-                  Return> simd_cast(const simdarray_type__<T, N, V, N> &x0,              \
-                                    const From &... xs)                                  \
+    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
+        (are_all_types_equal<simdarray_type__<T, N, V, N>, From...>::value &&            \
+         (sizeof...(From) == 0 || N * (1 + sizeof...(From)) <= Return::Size) &&          \
+         !std::is_same<Return, simdarray_type__<T, N, V, N>>::value),                    \
+        Return> simd_cast(const simdarray_type__<T, N, V, N> &x0, const From &... xs)    \
     {                                                                                    \
         return simd_cast<Return>(internal_data(x0), internal_data(xs)...);               \
     }                                                                                    \
