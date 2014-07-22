@@ -41,9 +41,10 @@ namespace Vc_VERSIONED_NAMESPACE
  * This function implements the trivial case where \p To and \p From are the same type.
  */
 template <typename To, typename From>
-Vc_INTRINSIC Vc_CONST enable_if<std::is_same<To, From>::value, To> simd_cast(From x)
+Vc_INTRINSIC Vc_CONST enable_if<std::is_same<To, Traits::decay<From>>::value, To>
+    simd_cast(From &&x)
 {
-    return x;
+    return std::forward<From>(x);
 }
 
 /**
