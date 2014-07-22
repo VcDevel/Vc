@@ -115,8 +115,7 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
 
 TEST_TYPES(Vec, testIsMix, ALL_TYPES)
 {
-    typedef typename Vec::IndexType IT;
-    Vec a(IT::IndexesFromZero());
+    Vec a = Vec::IndexesFromZero();
     Vec b(Zero);
     Vec c(One);
     if (Vec::Size > 1) {
@@ -421,9 +420,8 @@ TEST_TYPES(Vec, testMin, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
-    typedef typename Vec::IndexType I;
 
-    Vec v(I::IndexesFromZero());
+    Vec v = Vec::IndexesFromZero();
 
     COMPARE(v.min(), static_cast<T>(0));
     COMPARE((T(Vec::Size) - v).min(), static_cast<T>(1));
@@ -443,9 +441,8 @@ TEST_TYPES(Vec, testMax, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
-    typedef typename Vec::IndexType I;
 
-    Vec v(I::IndexesFromZero());
+    Vec v = Vec::IndexesFromZero();
 
     COMPARE(v.max(), static_cast<T>(Vec::Size - 1));
     v = T(Vec::Size) - v;
@@ -530,13 +527,12 @@ TEST_TYPES(Vec, testSum, ALL_TYPES)
 
 TEST_TYPES(V, testPartialSum, ALL_TYPES)
 {
-    typedef typename V::IndexType I;
-
-    V reference(I::IndexesFromZero() + 1);
+    V reference = V::IndexesFromZero() + 1;
     COMPARE(V(1).partialSum(), reference);
     /* disabled until correct masking is implemented
 
-    reference = V(I(2) << I::IndexesFromZero());
+    typedef typename V::IndexType I;
+    reference = simd_cast<V>(I(2) << I::IndexesFromZero());
     COMPARE(V(2).partialSum([](const V &a, const V &b) { return a * b; }), reference);
     */
 }

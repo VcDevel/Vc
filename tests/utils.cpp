@@ -27,10 +27,7 @@ using namespace Vc;
 
 TEST_TYPES(Vec, testSort, (ALL_VECTORS))
 {
-    typedef typename Vec::IndexType IndexType;
-
-    const IndexType _ref(IndexesFromZero);
-    Vec ref(_ref);
+    Vec ref(Vc::IndexesFromZero);
     Vec a;
 //X     for (int i = 0; i < Vec::Size; ++i) {
 //X         a[i] = Vec::Size - i - 1;
@@ -313,18 +310,17 @@ template<typename T, int value> T returnConstantOffset2(unsigned short i) { retu
 TEST_TYPES(V, fill, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
     V test = V::Random();
     test.fill(returnConstant<T, 2>);
     COMPARE(test, V(T(2)));
 
     test = V::Random();
     test.fill(returnConstantOffset<T, 0>);
-    COMPARE(test, static_cast<V>(I::IndexesFromZero()));
+    COMPARE(test, static_cast<V>(V::IndexesFromZero()));
 
     test = V::Random();
     test.fill(returnConstantOffset2<T, 0>);
-    COMPARE(test, static_cast<V>(I::IndexesFromZero()));
+    COMPARE(test, static_cast<V>(V::IndexesFromZero()));
 }
 
 TEST_TYPES(V, shifted, (ALL_VECTORS))

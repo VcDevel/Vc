@@ -32,7 +32,7 @@ template<typename V> void reads()
         const T x = a[i];
         COMPARE(x, zero);
     }
-    a = static_cast<V>(I::IndexesFromZero());
+    a = V::IndexesFromZero();
     for (size_t i = 0; i < V::Size; ++i) {
         const T x = a[i];
         const T y = i;
@@ -80,7 +80,7 @@ template<typename V> void readsConstantIndex()
     typedef typename V::IndexType I;
 
     V a = V::Zero();
-    V b = static_cast<V>(I::IndexesFromZero());
+    V b = V::IndexesFromZero();
     ReadsConstantIndex<V, V::Size - 1>(a, b);
 }
 
@@ -93,7 +93,7 @@ template<typename V> void writes()
     for (size_t i = 0; i < V::Size; ++i) {
         a[i] = static_cast<T>(i);
     }
-    V b = static_cast<V>(I::IndexesFromZero());
+    V b = V::IndexesFromZero();
     COMPARE(a, b);
 
     const T one = 1;

@@ -145,7 +145,7 @@ template<typename V> void testTrunc()/*{{{*/
         V reference = x.apply([](T _x) { return std::trunc(_x); });
         COMPARE(Vc::trunc(x), reference) << ", x = " << x << ", i = " << i;
     }
-    V x = static_cast<V>(I::IndexesFromZero());
+    V x = V::IndexesFromZero();
     V reference = x.apply([](T _x) { return std::trunc(_x); });
     COMPARE(Vc::trunc(x), reference) << ", x = " << x;
 }
@@ -159,7 +159,7 @@ template<typename V> void testFloor()/*{{{*/
         V reference = x.apply([](T _x) { return std::floor(_x); });
         COMPARE(Vc::floor(x), reference) << ", x = " << x << ", i = " << i;
     }
-    V x = static_cast<V>(I::IndexesFromZero());
+    V x = V::IndexesFromZero();
     V reference = x.apply([](T _x) { return std::floor(_x); });
     COMPARE(Vc::floor(x), reference) << ", x = " << x;
 }
@@ -173,7 +173,7 @@ template<typename V> void testCeil()/*{{{*/
         V reference = x.apply([](T _x) { return std::ceil(_x); });
         COMPARE(Vc::ceil(x), reference) << ", x = " << x << ", i = " << i;
     }
-    V x = static_cast<V>(I::IndexesFromZero());
+    V x = V::IndexesFromZero();
     V reference = x.apply([](T _x) { return std::ceil(_x); });
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }

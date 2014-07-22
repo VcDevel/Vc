@@ -97,7 +97,7 @@ template<typename V, unsigned int Size> struct TestEntries2D { static void test(
 
 template<typename V, unsigned int Size> struct TestVectors { static void test()
 {
-    const V startX(V::IndexType::IndexesFromZero() + Size);
+    const V startX = V::IndexesFromZero() + Size;
     Memory<V, Size> m;
     const Memory<V, Size> &m2 = m;
     Memory<V> m3(Size);
@@ -125,7 +125,7 @@ template<typename V, unsigned int Size> struct TestVectors { static void test()
 
 template<typename V, unsigned int Size> struct TestVectors2D { static void test()
 {
-    const V startX(V::IndexType::IndexesFromZero() + Size);
+    const V startX = V::IndexesFromZero() + Size;
     Memory<V, Size, Size> m;
     const Memory<V, Size, Size> &m2 = m;
     V x = startX;

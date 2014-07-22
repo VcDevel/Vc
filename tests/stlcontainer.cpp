@@ -74,7 +74,7 @@ template<typename V, typename Container> void listInitialization()
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     const auto data = Vc::makeContainer<Container>({ T(1), T(2), T(3), T(4), T(5), T(6), T(7), T(8), T(9) });
-    V reference = V{ I::IndexesFromZero() + 1 };
+    V reference = V::IndexesFromZero() + 1;
     for (const auto &v : data) {
         reference.setZero(reference > 9);
         COMPARE(v, reference);
