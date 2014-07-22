@@ -372,6 +372,11 @@ public:
         return {data.interleaveHigh(x.data)};
     }
 
+    template <typename G> static Vc_INTRINSIC simdarray generate(const G &gen)
+    {
+        return {VectorType::generate(gen)};
+    }
+
     friend Vc_INTRINSIC VectorType &internal_data(simdarray &x) { return x.data; }
     friend Vc_INTRINSIC const VectorType &internal_data(const simdarray &x) { return x.data; }
 
@@ -719,6 +724,12 @@ public:
     Vc_INTRINSIC simdarray interleaveHigh(simdarray x) const
     {
         return {data0.interleaveHigh(x.data0), data1.interleaveHigh(x.data1)};
+    }
+
+    template <typename G> static Vc_INTRINSIC simdarray generate(const G &gen)
+    {
+        return {storage_type0::generate(gen),
+                storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
     }
 
     friend Vc_INTRINSIC storage_type0 &internal_data0(simdarray &x) { return x.data0; }

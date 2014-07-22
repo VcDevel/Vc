@@ -193,6 +193,11 @@ public:
      */
     Vc_INTRINSIC Vc_PURE int firstOne() const { return data.firstOne(); }
 
+    template <typename G> static Vc_INTRINSIC simd_mask_array generate(const G &gen)
+    {
+        return {mask_type::generate(gen)};
+    }
+
     /// \internal execute specified Operation
     template <typename Op, typename... Args>
     static Vc_INTRINSIC simd_mask_array fromOperation(Op op, Args &&... args)
@@ -400,6 +405,12 @@ public:
             return data1.firstOne() + storage_type0::size();
         }
         return data0.firstOne();
+    }
+
+    template <typename G> static Vc_INTRINSIC simd_mask_array generate(const G &gen)
+    {
+        return {storage_type0::generate(gen),
+                storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
     }
 
     /// \internal execute specified Operation
