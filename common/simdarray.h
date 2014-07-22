@@ -179,7 +179,7 @@ public:
     // implicit conversion from underlying vector_type
     template <
         typename V,
-        typename = enable_if<Traits::is_simd_vector<V>::value && !Traits::is_simd_array<V>::value>>
+        typename = enable_if<Traits::is_simd_vector<V>::value && !Traits::is_simdarray<V>::value>>
     explicit Vc_INTRINSIC simdarray(const V &x)
         : data(simd_cast<vector_type>(x))
     {
@@ -479,7 +479,7 @@ public:
         V &&x,
         enable_if<(Traits::is_simd_vector<V>::value && Traits::simd_vector_size<V>::value == N &&
                    !(std::is_convertible<Traits::entry_type_of<V>, T>::value &&
-                     Traits::is_simd_array<V>::value))> = nullarg)
+                     Traits::is_simdarray<V>::value))> = nullarg)
         : data0(Split::lo(x)), data1(Split::hi(x))
     {
     }
@@ -488,7 +488,7 @@ public:
     template <typename V>
     Vc_INTRINSIC simdarray(
         V &&x,
-        enable_if<(Traits::is_simd_array<V>::value && Traits::simd_vector_size<V>::value == N &&
+        enable_if<(Traits::is_simdarray<V>::value && Traits::simd_vector_size<V>::value == N &&
                    std::is_convertible<Traits::entry_type_of<V>, T>::value)> = nullarg)
         : data0(Split::lo(x)), data1(Split::hi(x))
     {
@@ -743,23 +743,23 @@ namespace result_vector_type_internal
 template <typename T>
 using type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
 
-template <typename L,
-          typename R,
-          std::size_t N = Traits::is_simd_array<L>::value ? Traits::simd_vector_size<L>::value
-                                                          : Traits::simd_vector_size<R>::value,
-          bool = (Traits::is_simd_array<L>::value ||
-                  Traits::is_simd_array<R>::value)  // one of the operands must be a simdarray
-                 &&
-                 !std::is_same<type<L>, type<R>>::value  // if the operands are of the same type
-                                                         // use the member function
-                 &&
-                 (std::is_arithmetic<type<L>>::value ||
-                  std::is_arithmetic<type<R>>::value  // one of the operands is a scalar type
-                  ||
-                  (Traits::is_simd_vector<L>::value && !Traits::is_simd_array<L>::value) ||
-                  (Traits::is_simd_vector<R>::value &&
-                   !Traits::is_simd_array<R>::value)  // or one of the operands is Vector<T>
-                  ) > struct evaluate;
+template <
+    typename L, typename R, std::size_t N = Traits::is_simdarray<L>::value
+                                                ? Traits::simd_vector_size<L>::value
+                                                : Traits::simd_vector_size<R>::value,
+    bool = (Traits::is_simdarray<L>::value ||
+            Traits::is_simdarray<R>::value)  // one of the operands must be a simdarray
+           &&
+           !std::is_same<type<L>, type<R>>::value  // if the operands are of the same type
+                                                   // use the member function
+           &&
+           (std::is_arithmetic<type<L>>::value ||
+            std::is_arithmetic<type<R>>::value  // one of the operands is a scalar type
+            ||
+            (Traits::is_simd_vector<L>::value && !Traits::is_simdarray<L>::value) ||
+            (Traits::is_simd_vector<R>::value &&
+             !Traits::is_simdarray<R>::value)  // or one of the operands is Vector<T>
+            ) > struct evaluate;
 
 template <typename L, typename R, std::size_t N> struct evaluate<L, R, N, true>
 {

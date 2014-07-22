@@ -280,7 +280,7 @@ template <std::size_t secondOffset> struct Split/*{{{*/
     struct is_vector_or_mask
         : public std::integral_constant<
               bool,
-              (Traits::is_simd_vector<T>::value && !Traits::is_simd_array<T>::value) ||
+              (Traits::is_simd_vector<T>::value && !Traits::is_simdarray<T>::value) ||
                   (Traits::is_simd_mask<T>::value && !Traits::is_simd_mask_array<T>::value)>
     {
     };

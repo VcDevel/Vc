@@ -55,7 +55,7 @@ namespace Traits
 template<typename T> struct is_simd_mask_internal : public std::false_type {};
 template<typename T> struct is_simd_vector_internal : public std::false_type {};
 template<typename T> struct is_subscript_operation_internal : public std::false_type {};
-template<typename T> struct is_simd_array_internal : public std::false_type {};
+template<typename T> struct is_simdarray_internal : public std::false_type {};
 template<typename T> struct is_simd_mask_array_internal : public std::false_type {};
 template<typename T> struct is_loadstoreflag_internal : public std::false_type {};
 
@@ -65,7 +65,7 @@ template <std::size_t, typename... Args> struct is_cast_arguments_internal : pub
 template <typename Arg>
 struct is_cast_arguments_internal<1, Arg> : public std::integral_constant<
                                                 bool,
-                                                is_simd_array_internal<Arg>::value ||
+                                                is_simdarray_internal<Arg>::value ||
                                                     is_simd_vector_internal<Arg>::value>
 {
 };
@@ -95,7 +95,7 @@ struct is_arithmetic_internal
 
 template <typename T,
           bool = (is_simd_vector_internal<T>::value || is_simd_mask_internal<T>::value ||
-                  is_simd_array_internal<T>::value ||
+                  is_simdarray_internal<T>::value ||
                   is_simd_mask_array_internal<T>::value)>
 struct vector_size_internal;
 
@@ -129,13 +129,13 @@ template <typename T>
 struct is_simd_vector
     : public std::integral_constant<bool,
                                     (is_simd_vector_internal<decay<T>>::value ||
-                                     is_simd_array_internal<decay<T>>::value)>
+                                     is_simdarray_internal<decay<T>>::value)>
 {
 };
 
 /// Identifies any possible simdarray<T, N> type (independent of const/volatile or reference)
 template <typename T>
-struct is_simd_array : public is_simd_array_internal<decay<T>>
+struct is_simdarray : public is_simdarray_internal<decay<T>>
 {
 };
 

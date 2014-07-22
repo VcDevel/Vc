@@ -47,7 +47,7 @@ Vc_INTRINSIC Vc_CONST To
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To simd_cast(
     From &&x,
-    enable_if<Scalar::is_vector<To>::value && Traits::is_simd_array<From>::value> = nullarg)
+    enable_if<Scalar::is_vector<To>::value && Traits::is_simdarray<From>::value> = nullarg)
 {
     return static_cast<To>(x[0]);
 }
