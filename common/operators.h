@@ -52,71 +52,104 @@ template<> struct DetermineReturnType< short_v, ushort_v> { typedef ushort_v typ
 template<typename T> struct DetermineReturnType<   int_v, T> { typedef typename conditional<!is_same<bool, T>::value && is_unsigned<T>::value,   uint_v,   int_v>::type type; };
 template<typename T> struct DetermineReturnType< short_v, T> { typedef typename conditional<!is_same<bool, T>::value && is_unsigned<T>::value, ushort_v, short_v>::type type; };
 
-template<typename L, typename R,
-    typename V = typename remove_cv<typename remove_reference<typename conditional< IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value, L, R>::type>::type>::type,
-    typename W = typename remove_cv<typename remove_reference<typename conditional<!IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value, L, R>::type>::type>::type,
-    bool = IsVector<V>::value // one operand has to be a vector
-        && !is_same<V, W>::value // if they're the same type it's already covered by Vector::operatorX
-        && (is_convertible<W, V>::value || (IsVector<W>::value && is_convertible<V, W>::value))
-        && !is_narrowing_float_conversion<W, typename V::EntryType>::value
-        > struct TypesForOperator
+template <
+    typename L,
+    typename R,
+    typename V = typename remove_cv<typename remove_reference<typename conditional<
+        IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value,
+        L,
+        R>::type>::type>::type,
+    typename W = typename remove_cv<typename remove_reference<typename conditional<
+        !IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value,
+        L,
+        R>::type>::type>::type,
+    bool = IsVector<V>::value &&     // one operand has to be a vector
+           !is_same<V, W>::value &&  // if they're the same type it's already covered by
+                                     // Vector::operatorX
+           (is_convertible<W, V>::value || (IsVector<W>::value && is_convertible<V, W>::value)) &&
+           !is_narrowing_float_conversion<W, typename V::EntryType>::value>
+struct TypesForOperator
 {
     // Vector<decltype(V::EntryType() + W::EntryType())> is not what we want since short_v * int should result in short_v not int_v
     typedef typename DetermineReturnType<V, W>::type type;
 };
 
-template<typename L, typename R, typename V, typename W> struct TypesForOperator<L, R, V, W, false> {
-    static_assert(!(
-            IsVector<V>::value // one operand has to be a vector
-            && !is_same<V, W>::value // if they're the same type it's allowed
-            && (is_narrowing_float_conversion<W, typename V::EntryType>::value
-                || (IsVector<W>::value && !is_convertible<V, W>::value && !is_convertible<W, V>::value)
-                || (std::is_arithmetic<W>::value && !is_convertible<W, V>::value)
-               )),
-            "invalid operands to binary expression. Vc does not allow operands that can have a differing size on some targets.");
+template <typename L, typename R, typename V, typename W> struct TypesForOperator<L, R, V, W, false>
+{
 };
 
-template<typename L, typename R,
-    typename V = typename remove_cv<typename remove_reference<typename conditional< IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value, L, R>::type>::type>::type,
-    typename W = typename remove_cv<typename remove_reference<typename conditional<!IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value, L, R>::type>::type>::type,
-    bool IsIncorrect = IsVector<V>::value // one operand has to be a vector
-        && !is_same<V, W>::value // if they're the same type it's allowed
-        && (is_narrowing_float_conversion<W, typename V::EntryType>::value
-            || (!is_convertible<W, V>::value && !(IsVector<W>::value && is_convertible<V, W>::value))
-           )
-    > struct IsIncorrectVectorOperands
+template <typename L,
+          typename R,
+          typename V = typename remove_cv<typename remove_reference<typename conditional<
+              IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value,
+              L,
+              R>::type>::type>::type,
+          typename W = typename remove_cv<typename remove_reference<typename conditional<
+              !IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value,
+              L,
+              R>::type>::type>::type,
+          bool IsIncorrect = IsVector<V>::value  // one operand has to be a vector
+                             &&
+                             !is_same<V, W>::value  // if they're the same type it's allowed
+                             &&
+                             (is_narrowing_float_conversion<W, typename V::EntryType>::value ||
+                              (IsVector<W>::value && !is_convertible<V, W>::value &&
+                               !is_convertible<W, V>::value) ||
+                              (std::is_arithmetic<W>::value && !is_convertible<W, V>::value))>
+struct IsIncorrectVectorOperands
 {
     typedef void type;
-    static constexpr bool correct = !IsIncorrect;
 };
-template<typename L, typename R, typename V, typename W> struct IsIncorrectVectorOperands<L, R, V, W, false> {
-    static constexpr bool correct = true;
+template <typename L, typename R, typename V, typename W>
+struct IsIncorrectVectorOperands<L, R, V, W, false>
+{
 };
 
-template<typename T> struct GetMaskType { typedef typename T::Mask type; };
+template <typename L, typename R>
+using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability =
+    typename IsIncorrectVectorOperands<L, R>::type;
+
+template <typename T> struct GetMaskType
+{
+    typedef typename T::Mask type;
+};
 
 #ifndef VC_ICC
 }
 #endif
 
-#define VC_GENERIC_OPERATOR(op) \
-template<typename L, typename R> Vc_ALWAYS_INLINE typename TypesForOperator<L, R>::type operator op(L &&x, R &&y) { typedef typename TypesForOperator<L, R>::type V; return V(std::forward<L>(x)) op V(std::forward<R>(y)); }
+#define VC_GENERIC_OPERATOR(op)                                                                    \
+    template <typename L, typename R>                                                              \
+    Vc_ALWAYS_INLINE typename TypesForOperator<L, R>::type operator op(L &&x, R &&y)               \
+    {                                                                                              \
+        typedef typename TypesForOperator<L, R>::type V;                                           \
+        return V(std::forward<L>(x)) op V(std::forward<R>(y));                                     \
+    }
 
-#define VC_COMPARE_OPERATOR(op) \
-template<typename L, typename R> Vc_ALWAYS_INLINE typename GetMaskType<typename TypesForOperator<L, R>::type>::type operator op(L &&x, R &&y) { typedef typename TypesForOperator<L, R>::type V; return V(std::forward<L>(x)) op V(std::forward<R>(y)); }
+#define VC_COMPARE_OPERATOR(op)                                                                    \
+    template <typename L, typename R>                                                              \
+    Vc_ALWAYS_INLINE typename GetMaskType<typename TypesForOperator<L, R>::type>::type             \
+        operator op(L &&x, R &&y)                                                                  \
+    {                                                                                              \
+        typedef typename TypesForOperator<L, R>::type V;                                           \
+        return V(std::forward<L>(x)) op V(std::forward<R>(y));                                     \
+    }
 
-#define VC_INVALID_OPERATOR(op) \
-template<typename L, typename R> typename IsIncorrectVectorOperands<L, R>::type operator op(L &&, R &&) { static_assert(IsIncorrectVectorOperands<L, R>::correct, "invalid operands to binary expression operator"#op". Vc does not allow operands that can have a differing size on some targets."); }
+#define VC_INVALID_OPERATOR(op)                                                                    \
+    template <typename L, typename R>                                                              \
+    Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability<L, R> operator op(L &&, R &&) = delete;
+// invalid operands to binary expression. Vc does not allow operands that can have a differing size
+// on some targets.
 
 VC_ALL_LOGICAL    (VC_GENERIC_OPERATOR)
 VC_ALL_BINARY     (VC_GENERIC_OPERATOR)
 VC_ALL_ARITHMETICS(VC_GENERIC_OPERATOR)
 VC_ALL_COMPARES   (VC_COMPARE_OPERATOR)
 
-//VC_ALL_LOGICAL    (VC_INVALID_OPERATOR)
-//VC_ALL_BINARY     (VC_INVALID_OPERATOR)
-//VC_ALL_ARITHMETICS(VC_INVALID_OPERATOR)
-//VC_ALL_COMPARES   (VC_INVALID_OPERATOR)
+VC_ALL_LOGICAL    (VC_INVALID_OPERATOR)
+VC_ALL_BINARY     (VC_INVALID_OPERATOR)
+VC_ALL_ARITHMETICS(VC_INVALID_OPERATOR)
+VC_ALL_COMPARES   (VC_INVALID_OPERATOR)
 
 #undef VC_GENERIC_OPERATOR
 #undef VC_COMPARE_OPERATOR
