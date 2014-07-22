@@ -76,16 +76,29 @@ using DetermineReturnType =
                 float_v,
                 CopyUnsigned<W, V>>;
 
+template <typename V, typename W> constexpr bool participateInOverloadResolution()
+{
+    return isVector<V>() &&            // one operand has to be a vector
+           !is_same<V, W>::value &&    // if they're the same type it's already
+                                       // covered by Vector::operatorX
+           convertsToSomeVector<W>();  // if the other operand is not convertible to a SIMD vector
+                                       // type at all then don't use our operator in overload
+                                       // resolution at all
+}
+
+template <typename V, typename W> constexpr enable_if<isVector<V>(), bool> isValidOperandTypes()
+{
+    // Vc does not allow operands that could possibly have different Vector::Size.
+    return isVector<W>()
+               ? (is_convertible<V, W>::value || is_convertible<W, V>::value)
+               : (is_convertible<W, DetermineReturnType<V, W>>::value &&
+                  !isNarrowingFloatConversion<W, typename DetermineReturnType<V, W>::EntryType>());
+}
+
 template <
     typename V,
     typename W,
-    bool VectorOperation = isVector<V>() &&           // one operand has to be a vector
-                           !is_same<V, W>::value &&   // if they're the same type it's already
-                                                      // covered by Vector::operatorX
-                           convertsToSomeVector<W>()  // if the other operand is not convertible to
-                                                      // a SIMD vector type at all then don't use
-                                                      // our operator in overload resolution at all
-    >
+    bool VectorOperation = participateInOverloadResolution<V, W>() && isValidOperandTypes<V, W>()>
 struct TypesForOperatorInternal
 {
 };
@@ -93,19 +106,29 @@ struct TypesForOperatorInternal
 template <typename V, typename W> struct TypesForOperatorInternal<V, W, true>
 {
     using type = DetermineReturnType<V, W>;
-
-    // meaningful compiler error when incompatible operands are used:
-    static_assert(isVector<W>() ? (is_convertible<V, W>::value || is_convertible<W, V>::value)
-                                : (is_convertible<W, type>::value &&
-                                   !isNarrowingFloatConversion<W, typename type::EntryType>()),
-                  "invalid operands to binary expression. Vc does not allow operands that could "
-                  "possibly have different Vector::Size.");
 };
 
 template <typename L, typename R>
 using TypesForOperator =
     typename TypesForOperatorInternal<Decay<Conditional< isVector<L>(), L, R>>,
                                       Decay<Conditional<!isVector<L>(), L, R>>>::type;
+
+template <
+    typename V,
+    typename W,
+    bool IsIncorrect = participateInOverloadResolution<V, W>() && !isValidOperandTypes<V, W>()>
+struct IsIncorrectVectorOperands
+{
+};
+template <typename V, typename W> struct IsIncorrectVectorOperands<V, W, true>
+{
+    using type = void;
+};
+
+template <typename L, typename R>
+using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability =
+    typename IsIncorrectVectorOperands<Decay<Conditional< isVector<L>(), L, R>>,
+                                       Decay<Conditional<!isVector<L>(), L, R>>>::type;
 
 #ifndef VC_ICC
 }
@@ -127,12 +150,24 @@ using TypesForOperator =
         return V(std::forward<L>(x)) op V(std::forward<R>(y));                                     \
     }
 
+#define VC_INVALID_OPERATOR(op)                                                                    \
+    template <typename L, typename R>                                                              \
+    Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability<L, R> operator op(L &&, R &&) = delete;
+// invalid operands to binary expression. Vc does not allow operands that can have a differing size
+// on some targets.
+
 VC_ALL_LOGICAL    (VC_GENERIC_OPERATOR)
 VC_ALL_BINARY     (VC_GENERIC_OPERATOR)
 VC_ALL_ARITHMETICS(VC_GENERIC_OPERATOR)
 VC_ALL_COMPARES   (VC_COMPARE_OPERATOR)
 
+VC_ALL_LOGICAL    (VC_INVALID_OPERATOR)
+VC_ALL_BINARY     (VC_INVALID_OPERATOR)
+VC_ALL_ARITHMETICS(VC_INVALID_OPERATOR)
+VC_ALL_COMPARES   (VC_INVALID_OPERATOR)
+
 #undef VC_GENERIC_OPERATOR
 #undef VC_COMPARE_OPERATOR
+#undef VC_INVALID_OPERATOR
 
 // }}}1

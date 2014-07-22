@@ -359,7 +359,7 @@ if(TEST_OPERATOR_FAILURES)
                   )
                set_property(TEST "${Vc_TEST_TARGET_PREFIX}${name}" PROPERTY LABELS "${impl}")
                set_tests_properties("${Vc_TEST_TARGET_PREFIX}${name}" PROPERTIES
-                  PASS_REGULAR_EXPRESSION "invalid operands to binary expression;error: no match for .*operator\\${op};error C267[789]: binary .*\\${op}.* no (global )?operator found;error: no operator \"\\${op}\" matches these operands"
+                  PASS_REGULAR_EXPRESSION "use of deleted function"
                   FAIL_REGULAR_EXPRESSION "no such file or directory;undefined reference to"
                   )
             endforeach()
