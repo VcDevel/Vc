@@ -53,17 +53,56 @@ using AllTestTypes = outer_product<Typelist<ALL_VECTORS>, Typelist<ALL_VECTORS>>
 using AllTestTypes =
     concat<outer_product<Typelist<ALL_VECTORS>, Typelist<EXTRA_IMPL_VECTORS>>,
            outer_product<Typelist<EXTRA_IMPL_VECTORS>, Typelist<ALL_VECTORS>>>;
-#elif defined VC_EVEN_SIMDARRAY_TYPES
-using AllTestTypes = outer_product<Typelist<SIMD_ARRAYS(1),
-                                            SIMD_ARRAYS(2),
-                                            SIMD_ARRAYS(4),
-                                            SIMD_ARRAYS(8),
-                                            SIMD_ARRAYS(16)>,
-                                   Typelist<ALL_VECTORS>>;
-#elif defined VC_ODD_SIMDARRAY_TYPES
+#elif defined VC_EVEN_SIMDARRAY_TYPES_1
+using AllTestTypes =
+    outer_product<Typelist<SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(4), SIMD_ARRAYS(8),
+                           SIMD_ARRAYS(16)>,
+                  Typelist<ALL_VECTORS>>;
+#elif defined VC_EVEN_SIMDARRAY_TYPES_2
+using AllTestTypes =
+    outer_product<Typelist<ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(4),
+                           SIMD_ARRAYS(8), SIMD_ARRAYS(16)>,
+                  Typelist<SIMD_ARRAYS(1)>>;
+#elif defined VC_EVEN_SIMDARRAY_TYPES_3
+using AllTestTypes =
+    outer_product<Typelist<ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(4),
+                           SIMD_ARRAYS(8), SIMD_ARRAYS(16)>,
+                  Typelist<SIMD_ARRAYS(2)>>;
+#elif defined VC_EVEN_SIMDARRAY_TYPES_4
+using AllTestTypes =
+    outer_product<Typelist<ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(4),
+                           SIMD_ARRAYS(8), SIMD_ARRAYS(16)>,
+                  Typelist<SIMD_ARRAYS(4)>>;
+#elif defined VC_EVEN_SIMDARRAY_TYPES_5
+using AllTestTypes =
+    outer_product<Typelist<ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(4),
+                           SIMD_ARRAYS(8), SIMD_ARRAYS(16)>,
+                  Typelist<SIMD_ARRAYS(8)>>;
+#elif defined VC_EVEN_SIMDARRAY_TYPES_6
+using AllTestTypes =
+    outer_product<Typelist<ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(4),
+                           SIMD_ARRAYS(8), SIMD_ARRAYS(16)>,
+                  Typelist<SIMD_ARRAYS(16)>>;
+#elif defined VC_ODD_SIMDARRAY_TYPES_1
 using AllTestTypes = outer_product<
     Typelist<SIMD_ARRAYS(3), SIMD_ARRAYS(5), SIMD_ARRAYS(17), SIMD_ARRAYS(31)>,
     Typelist<ALL_VECTORS>>;
+#elif defined VC_ODD_SIMDARRAY_TYPES_2
+using AllTestTypes = outer_product<Typelist<ALL_VECTORS, SIMD_ARRAYS(3), SIMD_ARRAYS(5),
+                                            SIMD_ARRAYS(17), SIMD_ARRAYS(31)>,
+                                   Typelist<SIMD_ARRAYS(3)>>;
+#elif defined VC_ODD_SIMDARRAY_TYPES_3
+using AllTestTypes = outer_product<Typelist<ALL_VECTORS, SIMD_ARRAYS(3), SIMD_ARRAYS(5),
+                                            SIMD_ARRAYS(17), SIMD_ARRAYS(31)>,
+                                   Typelist<SIMD_ARRAYS(5)>>;
+#elif defined VC_ODD_SIMDARRAY_TYPES_4
+using AllTestTypes = outer_product<Typelist<ALL_VECTORS, SIMD_ARRAYS(3), SIMD_ARRAYS(5),
+                                            SIMD_ARRAYS(17), SIMD_ARRAYS(31)>,
+                                   Typelist<SIMD_ARRAYS(17)>>;
+#elif defined VC_ODD_SIMDARRAY_TYPES_5
+using AllTestTypes = outer_product<Typelist<ALL_VECTORS, SIMD_ARRAYS(3), SIMD_ARRAYS(5),
+                                            SIMD_ARRAYS(17), SIMD_ARRAYS(31)>,
+                                   Typelist<SIMD_ARRAYS(31)>>;
 #endif
 
 // is_conversion_undefined {{{1
