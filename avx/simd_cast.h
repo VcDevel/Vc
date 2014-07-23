@@ -846,12 +846,13 @@ Vc_INTRINSIC Vc_CONST enable_if<(Vc_AVX_NAMESPACE::is_vector<Return>::value &&
         _mm_srli_si128(AVX::avx_cast<__m128i>(x.data()), shift))});
 }
 // AVX to SSE (Vector<T>) {{{2
-template <typename Return, int offset, typename V>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(V x,
-              enable_if<offset != 0 && (AVX::is_vector<V>::value || AVX2::is_vector<V>::value) &&
-                        SSE::is_vector<Return>::value> = nullarg)
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(offset != 0 && SSE::is_vector<Return>::value &&
+                                 sizeof(Vc_AVX_NAMESPACE::Vector<T>) == 32),
+                                Return>
+    simd_cast(Vc_AVX_NAMESPACE::Vector<T> x)
 {
+    using V = Vc_AVX_NAMESPACE::Vector<T>;
     constexpr int shift = sizeof(V) / V::Size * offset * Return::Size;
     static_assert(shift > 0, "");
     static_assert(shift < sizeof(V), "");
@@ -859,6 +860,19 @@ Vc_INTRINSIC Vc_CONST Return
     using Intrin = typename SseVector::VectorType;
     return simd_cast<Return>(SseVector{
         AVX::avx_cast<Intrin>(_mm_alignr_epi8(AVX::lo128(x.data()), AVX::hi128(x.data()), shift))});
+}
+template <typename Return, int offset, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(offset != 0 && SSE::is_vector<Return>::value &&
+                                 sizeof(Vc_AVX_NAMESPACE::Vector<T>) == 16),
+                                Return>
+    simd_cast(Vc_AVX_NAMESPACE::Vector<T> x)
+{
+    using V = Vc_AVX_NAMESPACE::Vector<T>;
+    constexpr int shift = sizeof(V) / V::Size * offset * Return::Size;
+    static_assert(shift > 0, "");
+    static_assert(shift < sizeof(V), "");
+    using SseVector = SSE::Vector<typename V::EntryType>;
+    return simd_cast<Return>(SseVector{_mm_srli_si128(x.data(), shift)});
 }
 // SSE to AVX {{{2
 Vc_SIMD_CAST_OFFSET(SSE:: short_v, Vc_AVX_NAMESPACE::double_v, 1) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<SSE::int_v, 1>(x)); }
