@@ -70,6 +70,8 @@ public:
     Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerOne::OEnum one) : data(one) {}
     Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerZero::ZEnum zero) : data(zero) {}
     Vc_INTRINSIC explicit simd_mask_array(bool b) : data(b) {}
+    Vc_INTRINSIC static simd_mask_array Zero() { return {storage_type::Zero()}; }
+    Vc_INTRINSIC static simd_mask_array One() { return {storage_type::One()}; }
 
     // conversion (casts)
     template <typename U, typename V>
@@ -298,6 +300,9 @@ public:
     {
     }
     Vc_INTRINSIC explicit simd_mask_array(bool b) : data0(b), data1(b) {}
+
+    Vc_INTRINSIC static simd_mask_array Zero() { return {storage_type0::Zero(), storage_type1::Zero()}; }
+    Vc_INTRINSIC static simd_mask_array One() { return {storage_type0::One(), storage_type1::One()}; }
 
     template <typename Flags = DefaultLoadTag>
     Vc_INTRINSIC explicit simd_mask_array(const bool *mem, Flags f = Flags())

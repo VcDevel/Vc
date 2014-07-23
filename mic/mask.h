@@ -89,6 +89,8 @@ public:
     inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(0) {}
     inline explicit Mask(VectorSpecialInitializerOne::OEnum) : k(Size == 16 ? 0xffff : 0xff) {}
     inline explicit Mask(bool b) : k(b ? (Size == 16 ? 0xffff : 0xff) : 0) {}
+    Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
+    Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
 
     template<typename U> Vc_ALWAYS_INLINE Mask(const Mask<U> &rhs,
       typename std::enable_if<is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)

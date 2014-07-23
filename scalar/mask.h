@@ -65,6 +65,8 @@ public:
         Vc_ALWAYS_INLINE explicit Mask(bool b) : m(b) {}
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
+        Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
+        Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
 
         template<typename U> Vc_ALWAYS_INLINE Mask(const Mask<U> &a,
           typename std::enable_if<is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)

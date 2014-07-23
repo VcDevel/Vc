@@ -136,6 +136,8 @@ private:
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : d(internal::zero<VectorType>()) {}
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerOne::OEnum) : d(internal::allone<VectorType>()) {}
         Vc_ALWAYS_INLINE explicit Mask(bool b) : d(b ? internal::allone<VectorType>() : VectorType(internal::zero<VectorType>())) {}
+        Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
+        Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
 
         template <typename U>
         using enable_if_implicitly_convertible = enable_if<
