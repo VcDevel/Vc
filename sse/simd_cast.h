@@ -605,49 +605,6 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
         _mm_srli_si128(SSE::sse_cast<__m128i>(x.data()), shift))});
 }
 
-// part of a simd_mask_array to SSE::Mask
-template <typename Return, int offset, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simd_mask_array<T, N, V, N> &x,
-                                       enable_if<SSE::is_mask<Return>::value> = nullarg)
-{
-    return simd_cast<Return, offset>(internal_data(x));
-}
-template <typename Return, int offset, typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC Vc_CONST Return simd_cast(
-    const simd_mask_array<T, N, V, M> &x,
-    enable_if<(N > M) &&
-              (Return::Size * offset < Traits::decay<decltype(internal_data0(x))>::Size) &&
-              (Return::Size * (offset + 1) > Traits::decay<decltype(internal_data0(x))>::Size) &&
-              SSE::is_mask<Return>::value> = nullarg)
-{
-    Return r;
-    for (std::size_t i = 0; i < Return::Size; ++i) {
-        r[i] = x[i + Return::Size * offset];
-    }
-    return r;
-}
-template <typename Return, int offset, typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC Vc_CONST Return simd_cast(
-    const simd_mask_array<T, N, V, M> &x,
-    enable_if<(N > M) &&
-              (Return::Size * offset < Traits::decay<decltype(internal_data0(x))>::Size) &&
-              (Return::Size * (offset + 1) <= Traits::decay<decltype(internal_data0(x))>::Size) &&
-              SSE::is_mask<Return>::value> = nullarg)
-{
-    return simd_cast<Return, offset>(internal_data0(x));
-}
-template <typename Return, int offset, typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const simd_mask_array<T, N, V, M> &x,
-              enable_if<(N > M) && (Return::Size * offset >=
-                                    Traits::decay<decltype(internal_data0(x))>::Size) &&
-                        SSE::is_mask<Return>::value> = nullarg)
-{
-    return simd_cast<Return,
-                     offset - Traits::decay<decltype(internal_data0(x))>::Size / Return::Size>(
-        internal_data1(x));
-}
-
 // undef Vc_SIMD_CAST_SSE_[124] & Vc_SIMD_CAST_[1248] {{{1
 #undef Vc_SIMD_CAST_SSE_1
 #undef Vc_SIMD_CAST_SSE_2

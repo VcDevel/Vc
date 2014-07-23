@@ -784,13 +784,17 @@ Vc_INTRINSIC Vc_CONST To simd_cast(Vc_AVX_NAMESPACE::Mask<FromT> x,
 }
 
 // offset == 0 | convert from AVX(2)::Mask/Vector {{{1
-template <typename Return, int offset, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(
-    V &&x,
-    enable_if<offset == 0 &&
-              !(Scalar::is_vector<Return>::value || Scalar::is_mask<Return>::value) &&
-              (Vc_AVX_NAMESPACE::is_vector<Traits::decay<V>>::value ||
-               Vc_AVX_NAMESPACE::is_mask<Traits::decay<V>>::value)> = nullarg)
+template <typename Return, int offset, typename From>
+Vc_INTRINSIC Vc_CONST enable_if<
+    (offset == 0 &&
+     ((Vc_AVX_NAMESPACE::is_vector<Traits::decay<From>>::value &&
+       !Scalar::is_vector<Return>::value && Traits::is_simd_vector<Return>::value &&
+       !Traits::is_simdarray<Return>::value) ||
+      (Vc_AVX_NAMESPACE::is_mask<Traits::decay<From>>::value &&
+       !Scalar::is_mask<Return>::value && Traits::is_simd_mask<Return>::value &&
+       !Traits::is_simd_mask_array<Return>::value))),
+    Return>
+    simd_cast(From &&x)
 {
     return simd_cast<Return>(x);
 }
@@ -810,9 +814,10 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
 // Vector casts with offset {{{1
 // AVX to AVX {{{2
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(Vc_AVX_NAMESPACE::Vector<T> x,
-              enable_if<(offset != 0 && sizeof(Return) <= 32 && sizeof(T) > 2)> = nullarg)
+Vc_INTRINSIC Vc_CONST enable_if<(Vc_AVX_NAMESPACE::is_vector<Return>::value &&
+                                 offset != 0 && sizeof(Return) <= 32 && sizeof(T) > 2),
+                                Return>
+    simd_cast(Vc_AVX_NAMESPACE::Vector<T> x)
 {
     using V = Vc_AVX_NAMESPACE::Vector<T>;
     constexpr int shift = sizeof(T) * offset * Return::Size;
@@ -829,9 +834,10 @@ Vc_INTRINSIC Vc_CONST Return
 }
 
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(Vc_AVX_NAMESPACE::Vector<T> x,
-              enable_if<(offset != 0 && sizeof(Return) <= 32 && sizeof(T) <= 2)> = nullarg)
+Vc_INTRINSIC Vc_CONST enable_if<(Vc_AVX_NAMESPACE::is_vector<Return>::value &&
+                                 offset != 0 && sizeof(Return) <= 32 && sizeof(T) <= 2),
+                                Return>
+    simd_cast(Vc_AVX_NAMESPACE::Vector<T> x)
 {
     using V = Vc_AVX_NAMESPACE::Vector<T>;
     constexpr int shift = sizeof(T) * offset * Return::Size;
@@ -906,67 +912,6 @@ Vc_INTRINSIC Vc_CONST enable_if<(offset != 0 && SSE::is_mask<Return>::value &&
     simd_cast(Vc_AVX_NAMESPACE::Mask<T> x)
 {
     return simd_cast<Return, offset>(simd_cast<SSE::Mask<T>>(x));
-}
-
-// part of a simd_mask_array to AVX::Mask {{{2
-template <typename Return, int offset, typename T, std::size_t N, typename V>
-Vc_INTRINSIC Vc_CONST Return simd_cast(const simd_mask_array<T, N, V, N> &x,
-                                       enable_if<AVX::is_mask<Return>::value> = nullarg)
-{
-    return simd_cast<Return, offset>(internal_data(x));
-}
-template <typename Return,
-          int offset,
-          typename T,
-          std::size_t N,
-          typename V,
-          std::size_t M>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const simd_mask_array<T, N, V, M> &x,
-              enable_if<(N > M) && (Return::Size * offset <
-                                    Traits::decay<decltype(internal_data0(x))>::Size) &&
-                        (Return::Size * (offset + 1) >
-                         Traits::decay<decltype(internal_data0(x))>::Size) &&
-                        AVX::is_mask<Return>::value> = nullarg)
-{
-    Return r;
-    for (std::size_t i = 0; i < Return::Size; ++i) {
-        r[i] = x[i + Return::Size * offset];
-    }
-    return r;
-}
-template <typename Return,
-          int offset,
-          typename T,
-          std::size_t N,
-          typename V,
-          std::size_t M>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const simd_mask_array<T, N, V, M> &x,
-              enable_if<(N > M) && (Return::Size * offset <
-                                    Traits::decay<decltype(internal_data0(x))>::Size) &&
-                        (Return::Size * (offset + 1) <=
-                         Traits::decay<decltype(internal_data0(x))>::Size) &&
-                        AVX::is_mask<Return>::value> = nullarg)
-{
-    return simd_cast<Return, offset>(internal_data0(x));
-}
-template <typename Return,
-          int offset,
-          typename T,
-          std::size_t N,
-          typename V,
-          std::size_t M>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast(const simd_mask_array<T, N, V, M> &x,
-              enable_if<(N > M) && (Return::Size * offset >=
-                                    Traits::decay<decltype(internal_data0(x))>::Size) &&
-                        AVX::is_mask<Return>::value> = nullarg)
-{
-    return simd_cast<
-        Return,
-        offset - Traits::decay<decltype(internal_data0(x))>::Size / Return::Size>(
-        internal_data1(x));
 }
 
 // undef Vc_SIMD_CAST_AVX_[124] & Vc_SIMD_CAST_[124] {{{1
