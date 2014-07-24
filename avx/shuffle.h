@@ -47,19 +47,19 @@ namespace
             static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
             static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
             return _mm256_permute2f128_ps(
-                x, x, (L == Const0 ? 0x4 : L) + (H == Const0 ? 0x40 : H * (1 << 4)));
+                x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
         }
         template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE m256d Vc_CONST permute128(param256d x) {
             static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
             static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
             return _mm256_permute2f128_pd(
-                x, x, (L == Const0 ? 0x4 : L) + (H == Const0 ? 0x40 : H * (1 << 4)));
+                x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
         }
         template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE m256i Vc_CONST permute128(param256i x) {
             static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
             static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
             return _mm256_permute2f128_si256(
-                x, x, (L == Const0 ? 0x4 : L) + (H == Const0 ? 0x40 : H * (1 << 4)));
+                x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
         }
         template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE m256 Vc_CONST shuffle128(param256 x, param256 y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
