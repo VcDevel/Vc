@@ -401,13 +401,13 @@ Vc::enable_if<(Index * To::Size < From::Size && To::Size < From::Size), void>
 }
 TEST_TYPES(TList, cast_mask, (AllTestTypes)) // {{{1
 {
-    using From = typename TList::template at<0>;
+    using FromV = typename TList::template at<0>;
     using ToV = typename TList::template at<1>;
+    using From = typename FromV::Mask;
     using To = typename ToV::Mask;
-    using M = typename From::Mask;
-    std::vector<M> randomMasks(4, M{false});
+    std::vector<From> randomMasks(4, From{false});
 
-    UnitTest::withRandomMask<From>([&](M mask) {
+    UnitTest::withRandomMask<FromV>([&](From mask) {
         std::rotate(randomMasks.begin(), randomMasks.begin() + 1, randomMasks.end());
         randomMasks[0] = mask;
         mask_cast_1<To>(randomMasks[0]);
