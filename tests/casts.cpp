@@ -389,7 +389,6 @@ template <typename To, typename From, std::size_t Index = 0>
 Vc::enable_if<(Index * To::Size < From::Size && To::Size < From::Size), void>
     cast_mask_split(const From x)
 {
-    using T = typename To::EntryType;
     const auto result = simd_cast<To, Index>(x);
     const To reference = To::generate([&](std::size_t i) {
         return i + Index * To::Size >= From::Size ? false : x[i + Index * To::Size];
