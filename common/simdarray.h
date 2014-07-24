@@ -756,6 +756,12 @@ namespace result_vector_type_internal
 template <typename T>
 using type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
 
+template <typename T>
+using is_integer_larger_than_int = std::integral_constant<
+    bool, std::is_integral<T>::value &&(sizeof(T) > sizeof(int) ||
+                                        std::is_same<T, long>::value ||
+                                        std::is_same<T, unsigned long>::value)>;
+
 template <
     typename L, typename R, std::size_t N = Traits::is_simdarray<L>::value
                                                 ? Traits::simd_vector_size<L>::value
@@ -766,8 +772,11 @@ template <
            !std::is_same<type<L>, type<R>>::value  // if the operands are of the same type
                                                    // use the member function
            &&
-           (std::is_arithmetic<type<L>>::value ||
-            std::is_arithmetic<type<R>>::value  // one of the operands is a scalar type
+           ((std::is_arithmetic<type<L>>::value &&
+             !is_integer_larger_than_int<type<L>>::value) ||
+            (std::is_arithmetic<type<R>>::value &&
+             !is_integer_larger_than_int<
+                 type<R>>::value)  // one of the operands is a scalar type
             ||
             (Traits::is_simd_vector<L>::value && !Traits::is_simdarray<L>::value) ||
             (Traits::is_simd_vector<R>::value &&
@@ -790,6 +799,10 @@ public:
     // types smaller than int are more or less useless - and you could use simdarray<int> from the
     // start. Therefore we special-case those operations where the scalar type of both operands is
     // integral and smaller than int.
+    // In addition to that there is no generic support for 64-bit int SIMD types. Therefore
+    // promotion to a 64-bit integral type (including `long` because it can potentially have 64
+    // bits) also is not done. But if one of the operands is a scalar type that is larger than int
+    // then the operator is disabled altogether. We do not want an implicit demotion.
     using type = simdarray<
         conditional<(std::is_integral<LScalar>::value &&std::is_integral<RScalar>::value &&
                      sizeof(LScalar) < sizeof(int) &&
