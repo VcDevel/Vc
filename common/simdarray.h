@@ -399,13 +399,13 @@ template <typename T, std::size_t N, typename VectorType, std::size_t> class sim
                   std::is_same<T, uint16_t>::value, "simdarray<T, N> may only be used with T = { double, float, int32_t, uint32_t, int16_t, uint16_t }");
 
     static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
-
-    using storage_type0 = simdarray<T, N0>;
-    using storage_type1 = simdarray<T, N - N0>;
-
-    using Split = Common::Split<storage_type0::size()>;
+    using Split = Common::Split<N0>;
 
 public:
+    using storage_type0 = simdarray<T, N0>;
+    using storage_type1 = simdarray<T, N - N0>;
+    static_assert(storage_type0::size() == N0, "");
+
     using vector_type = VectorType;
     using vectorentry_type = typename storage_type0::vectorentry_type;
     typedef vectorentry_type alias_type Vc_MAY_ALIAS;

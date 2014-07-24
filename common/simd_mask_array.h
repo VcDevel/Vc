@@ -224,12 +224,13 @@ template <typename T, std::size_t N, typename VectorType, std::size_t> class sim
 {
     static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
 
-    using storage_type0 = simd_mask_array<T, N0>;
-    using storage_type1 = simd_mask_array<T, N - N0>;
-
-    using Split = Common::Split<storage_type0::size()>;
+    using Split = Common::Split<N0>;
 
 public:
+    using storage_type0 = simd_mask_array<T, N0>;
+    using storage_type1 = simd_mask_array<T, N - N0>;
+    static_assert(storage_type0::size() == N0, "");
+
     using vector_type = VectorType;
 
     friend storage_type0 &internal_data0(simd_mask_array &m) { return m.data0; }
