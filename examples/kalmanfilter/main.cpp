@@ -2,6 +2,7 @@
 #include "runtimemean.h"
 #include "../tsc.h"
 
+#include <array>
 #include <assert.h>
 #include <cmath>
 #include <cstdlib>
@@ -355,6 +356,8 @@ typedef CovV CovVConventional;
 
 struct TrackV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 6, 1, TrackV>
 {
+    using ArrayPtr = std::unique_ptr<TrackV[]>;
+
     HitV vHits[MaxNStations];
 
     float_v T[6];  // x, y, tx, ty, qp, z
@@ -1333,12 +1336,12 @@ public:
 
     void fitTracks()
     {
-        std::unique_ptr<TrackV[]> TracksV{new TrackV[MaxNTracks / float_v::Size + 1]};
-        float_v *Z0 =
-            new float_v[MaxNTracks / float_v::Size + 1];  // mc - z, used for result comparison
-        float_v *Z0s[MaxNStations];
-        for (int is = 0; is < NStations; ++is) {
-            Z0s[is] = new float_v[MaxNTracks / float_v::Size + 1];
+        TrackV::ArrayPtr TracksV{new TrackV[MaxNTracks / float_v::Size + 1]};
+        std::unique_ptr<float_v[]> Z0{
+            new float_v[MaxNTracks / float_v::Size + 1]};  // mc - z, used for result comparison
+        std::array<std::unique_ptr<float_v[]>, MaxNStations> Z0s;
+        for (auto &tmp : Z0s) {
+            tmp.reset(new float_v[MaxNTracks / float_v::Size + 1]);
         }
 
         float_v::Memory Z0mem;
@@ -1452,20 +1455,14 @@ public:
                 }
             }
         }
-
-        delete[] Z0;
-        for (int is = 0; is < NStations; ++is) {
-            delete[] Z0s[is];
-        }
     }
 };
 
 int main()
 {
-    KalmanFilter *filter = new KalmanFilter;
+    std::unique_ptr<KalmanFilter> filter{new KalmanFilter};
     filter->readInput();
     filter->fitTracks();
     filter->writeOutput();
-    delete filter;
     return 0;
 }
