@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 
 #include <Vc/Vc>
 
@@ -208,6 +209,8 @@ struct Station : public Vc::VectorAlignedBase
     HitXYInfo XYInfo;
 
     FieldSlice Map;
+
+    using ArrayPtr = std::unique_ptr<Station[]>;
 };
 
 struct Hit : public Vc::VectorAlignedBase
@@ -430,7 +433,7 @@ class Jacobian_t{ // jacobian elements // j[0][0] - j[3][2] are j02 - j34
 class FitFunctional
 {  // base class for all approaches
 public:
-    void Fit(TrackV &t, Station vStations[], int NStations) const;
+    void Fit(TrackV &t, const Station::ArrayPtr &vStations, int NStations) const;
 
     /// extrapolates track parameters
     void ExtrapolateALight(float_v T[],
@@ -457,7 +460,7 @@ protected:
 
     void AddMaterial(CovV &C, float_v Q22, float_v Q32, float_v Q33) const;
     /// initial aproximation
-    void GuessVec(TrackV &t, Station *vStations, int NStations, bool dir = false) const;
+    void GuessVec(TrackV &t, const Station::ArrayPtr &vStations, int NStations, bool dir = false) const;
 
     void AddMaterial(TrackV &track, Station &st, const float_v qp0, bool isPipe = false) const;
 
@@ -489,14 +492,18 @@ private:
                               float_v w = float_v::Zero()) const;
 };
 
-inline void FitFunctional::GuessVec(TrackV &t, Station * vStations, int nStations, bool dir) const
+inline void FitFunctional::GuessVec(TrackV &t,
+                                    const Station::ArrayPtr &vStations,
+                                    int nStations,
+                                    bool dir) const
 {
     float_v * T = t.T;
 
     int NHits = nStations;
 
-    float_v A0, A1 = float_v::Zero(), A2 = float_v::Zero(), A3 = float_v::Zero(), A4 = float_v::Zero(), A5 = float_v::Zero(), a0, a1 = float_v::Zero(), a2 = float_v::Zero(),
-      b0, b1 = float_v::Zero(), b2 = float_v::Zero();
+    float_v A0, A1 = float_v::Zero(), A2 = float_v::Zero(), A3 = float_v::Zero(),
+                A4 = float_v::Zero(), A5 = float_v::Zero(), a0, a1 = float_v::Zero(),
+                a2 = float_v::Zero(), b0, b1 = float_v::Zero(), b2 = float_v::Zero();
     float_v z0, x, y, z, S, w, wz, wS;
 
     int i = NHits - 1;
@@ -508,22 +515,22 @@ inline void FitFunctional::GuessVec(TrackV &t, Station * vStations, int nStation
     a0 = w * hlst->x;
     b0 = w * hlst->y;
     HitV * h = t.vHits;
-    Station * st = vStations;
+    const Station *stationIt = &vStations[0];
     int st_add = 1;
     if (dir)
     {
         st_add = - 1;
         h += NHits - 1;
-        st += NHits - 1;
+        stationIt += NHits - 1;
     }
 
-    for (; h!= hlst; h += st_add, st += st_add) {
+    for (; h!= hlst; h += st_add, stationIt += st_add) {
         x = h->x;
         y = h->y;
         w = h->w;
-        z = st->zhit - z0;
-        if (!dir) S = st->SyL;
-        else S = st->SyF;
+        z = stationIt->zhit - z0;
+        if (!dir) S = stationIt->SyL;
+        else S = stationIt->SyF;
         wz = w * z;
         wS = w * S;
         A0 += w;
@@ -897,7 +904,9 @@ inline void FitFunctional::AddMaterial(TrackV &track, Station &st, const float_v
     AddMaterial(track.C, Q22, Q32, Q33);
 }
 
-inline void FitFunctional::Fit(TrackV &t, Station vStations[], int nStations) const
+inline void FitFunctional::Fit(TrackV &t,
+                               const std::unique_ptr<Station[]> &vStations,
+                               int nStations) const
 {
     // upstream
 
@@ -1089,15 +1098,13 @@ class KalmanFilter : public Vc::VectorAlignedBase
     FitFunctional fitter;
     Track vTracks[MaxNTracks];
     MCTrack vMCTracks[MaxNTracks];
-    Station * vStations;
+    std::unique_ptr<Station[]> vStations;
     int NStations;
     int NTracks;
     int NTracksV;
 
 public:
-    KalmanFilter() : vStations(new Station[MaxNStations]), NStations(0), NTracks(0), NTracksV(0) {}
-
-    ~KalmanFilter() { delete[] vStations; }
+    KalmanFilter() : vStations{new Station[MaxNStations]}, NStations(0), NTracks(0), NTracksV(0) {}
 
     void readInput()
     {
@@ -1326,7 +1333,7 @@ public:
 
     void fitTracks()
     {
-        TrackV *TracksV = new TrackV[MaxNTracks / float_v::Size + 1];
+        std::unique_ptr<TrackV[]> TracksV{new TrackV[MaxNTracks / float_v::Size + 1]};
         float_v *Z0 =
             new float_v[MaxNTracks / float_v::Size + 1];  // mc - z, used for result comparison
         float_v *Z0s[MaxNStations];
@@ -1450,7 +1457,6 @@ public:
         for (int is = 0; is < NStations; ++is) {
             delete[] Z0s[is];
         }
-        delete[] TracksV;
     }
 };
 
