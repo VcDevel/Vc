@@ -26,33 +26,41 @@ constexpr int MaxNStations = 10;
 using Vc::float_v;
 using Vc::float_m;
 
-inline std::istream & operator>>(std::istream &strm, float_v &a) {
+/// read one float from \p strm and broadcast it to \p a
+inline std::istream &operator>>(std::istream &strm, float_v &a)
+{
     float tmp;
     strm >> tmp;
     a = tmp;
     return strm;
 }
 
-inline float_v rcp(const float_v &a) {
-    return 1.f / a;
-}
+inline float_v rcp(const float_v &a) { return 1.f / a; }
 
-struct FieldVector : public Vc::VectorAlignedBase {
+struct FieldVector : public Vc::VectorAlignedBase
+{
     float_v X, Y, Z;
-    void Combine(FieldVector &H, const float_v &w) {
+    void Combine(FieldVector &H, const float_v &w)
+    {
         X += w * (H.X - X);
         Y += w * (H.Y - Y);
         Z += w * (H.Z - Z);
     }
 };
 
-struct FieldSlice : public Vc::VectorAlignedBase {
-    float_v X[21], Y[21], Z[21]; // polinom coeff.
+struct FieldSlice : public Vc::VectorAlignedBase
+{
+    float_v X[21], Y[21], Z[21];  // polinom coeff.
 
-    FieldSlice() { for (int i = 0; i < 21; i++) X[i] = Y[i] = Z[i] = 0; }
+    FieldSlice()
+    {
+        for (int i = 0; i < 21; i++) {
+            X[i] = Y[i] = Z[i] = 0;
+        }
+    }
 
-    void GetField(const float_v &x, const float_v &y, float_v &Hx, float_v &Hy, float_v &Hz) {
-
+    void GetField(const float_v &x, const float_v &y, float_v &Hx, float_v &Hy, float_v &Hz)
+    {
         float_v x2 = x * x;
         float_v y2 = y * y;
         float_v xy = x * y;
@@ -87,36 +95,37 @@ struct FieldSlice : public Vc::VectorAlignedBase {
             + Z[15] * x5 + Z[16] * x4y + Z[17] * x3y2 + Z[18] * x2y3 + Z[19] * xy4 + Z[20] * y5;
     }
 
-    void GetField(const float_v &x, const float_v &y, FieldVector &H) {
+    void GetField(const float_v &x, const float_v &y, FieldVector &H)
+    {
         GetField(x, y, H.X, H.Y, H.Z);
     }
 };
 
-struct FieldRegion : public Vc::VectorAlignedBase {
-    float_v x0, x1, x2 ; // Hx(Z) = x0 + x1 * (Z - z) + x2 * (Z - z)^2
-    float_v y0, y1, y2 ; // Hy(Z) = y0 + y1 * (Z - z) + y2 * (Z - z)^2
-    float_v z0, z1, z2 ; // Hz(Z) = z0 + z1 * (Z - z) + z2 * (Z - z)^2
+struct FieldRegion : public Vc::VectorAlignedBase
+{
+    float_v x0, x1, x2;  // Hx(Z) = x0 + x1 * (Z - z) + x2 * (Z - z)^2
+    float_v y0, y1, y2;  // Hy(Z) = y0 + y1 * (Z - z) + y2 * (Z - z)^2
+    float_v z0, z1, z2;  // Hz(Z) = z0 + z1 * (Z - z) + z2 * (Z - z)^2
     float_v z;
 
-    friend std::ostream& operator<<(std::ostream &os, const FieldRegion &a) {
-        os << a.x0 << endl
-            << a.x1 << endl
-            << a.x2 << endl
-            << a.y0 << endl
-            << a.y1 << endl
-            << a.y2 << endl
-            << a.z0 << endl
-            << a.z1 << endl
-            << a.z2 << endl
-            << a.z;
-        return os;
+    friend std::ostream &operator<<(std::ostream &os, const FieldRegion &a)
+    {
+        return os << a.x0 << '\n'
+                  << a.x1 << '\n'
+                  << a.x2 << '\n'
+                  << a.y0 << '\n'
+                  << a.y1 << '\n'
+                  << a.y2 << '\n'
+                  << a.z0 << '\n'
+                  << a.z1 << '\n'
+                  << a.z2 << '\n'
+                  << a.z;
     }
 
-    FieldRegion() {
-        x0 = x1 = x2 = y0 = y1 = y2 = z0 = z1 = z2 = z = 0.;
-    }
+    FieldRegion() { x0 = x1 = x2 = y0 = y1 = y2 = z0 = z1 = z2 = z = 0.; }
 
-    void Get(const float_v z_, float_v * B) const{
+    void Get(const float_v z_, float_v *B) const
+    {
         float_v dz = (z_ - z);
         float_v dz2 = dz * dz;
         B[0] = x0 + x1 * dz + x2 * dz2;
@@ -125,8 +134,9 @@ struct FieldRegion : public Vc::VectorAlignedBase {
     }
 
     void Set(const FieldVector &H0, const float_v &H0z,
-            const FieldVector &H1, const float_v &H1z,
-            const FieldVector &H2, const float_v &H2z) {
+             const FieldVector &H1, const float_v &H1z,
+             const FieldVector &H2, const float_v &H2z)
+    {
         z = H0z;
         float_v dz1 = H1z - H0z, dz2 = H2z - H0z;
         float_v det = rcp(dz1 * dz2 * (dz2 - dz1));
@@ -154,7 +164,8 @@ struct FieldRegion : public Vc::VectorAlignedBase {
         z2 = dH1 * w21 + dH2 * w22 ;
     }
 
-    void Shift(const float_v &Z0) {
+    void Shift(const float_v &Z0)
+    {
         float_v dz = Z0 - z;
         float_v x2dz = x2 * dz;
         float_v y2dz = y2 * dz;
@@ -170,10 +181,12 @@ struct FieldRegion : public Vc::VectorAlignedBase {
 
 };
 
-struct HitInfo : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 1, 2, HitInfo> { // strip info
+struct HitInfo : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 1, 2, HitInfo>
+{  // strip info
     float_v cos_phi, sin_phi, sigma2, sigma216;
 
-    const float_v operator()(size_t, size_t c) const {
+    const float_v operator()(size_t, size_t c) const
+    {
         switch (c) {
         case 0:  return cos_phi;
         default: return sin_phi;
@@ -181,41 +194,47 @@ struct HitInfo : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 1, 
     }
 };
 
-struct HitXYInfo : public Vc::VectorAlignedBase {
+struct HitXYInfo : public Vc::VectorAlignedBase
+{
     float_v C00, C10, C11;
 };
 
-struct Station : public Vc::VectorAlignedBase {
-    float_v z, thick, zhit, RL,  RadThick, logRadThick,
-      SyF, SyL; //  field intergals with respect to First(last) station
+struct Station : public Vc::VectorAlignedBase
+{
+    float_v z, thick, zhit, RL, RadThick, logRadThick,
+            SyF, SyL;  //  field intergals with respect to First(last) station
 
-    HitInfo UInfo, VInfo; // front and back
+    HitInfo UInfo, VInfo;  // front and back
     HitXYInfo XYInfo;
 
     FieldSlice Map;
 };
 
-struct Hit : public Vc::VectorAlignedBase {
+struct Hit : public Vc::VectorAlignedBase
+{
     float_v::EntryType x, y;
     float_v::EntryType tmp1;
     int ista;
 };
 
-struct MCPoint : public Vc::VectorAlignedBase {
+struct MCPoint : public Vc::VectorAlignedBase
+{
     float_v::EntryType x, y, z;
     float_v::EntryType px, py, pz;
     int ista;
 };
 
-struct MCTrack : public Vc::VectorAlignedBase {
+struct MCTrack : public Vc::VectorAlignedBase
+{
     float_v::EntryType MC_x, MC_y, MC_z, MC_px, MC_py, MC_pz, MC_q;
     MCPoint vPoints[MaxNStations * 2];
     int NMCPoints;
 };
 
-struct Track : public Vc::VectorAlignedBase {
-    float_v::EntryType T[6]; // x, y, tx, ty, qp, z
-    float_v::EntryType C[15]; // cov matr.
+struct Track : public Vc::VectorAlignedBase
+{
+    float_v::EntryType T[6];   // x, y, tx, ty, qp, z
+    float_v::EntryType C[15];  // cov matr.
     float_v::EntryType Chi2;
     Hit vHits[MaxNStations];
     int NHits;
@@ -229,19 +248,22 @@ struct Track : public Vc::VectorAlignedBase {
     float_v::EntryType & z() { return T[5]; }
 };
 
-struct HitV : public Vc::VectorAlignedBase {
+struct HitV : public Vc::VectorAlignedBase
+{
     float_v x, y, w;
     FieldVector H;
 };
 
-struct CovV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 5, 5, CovV> {
+struct CovV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 5, 5, CovV>
+{
     float_v C00,
-      C10, C11,
-      C20, C21, C22,
-      C30, C31, C32, C33,
-      C40, C41, C42, C43, C44;
+            C10, C11,
+            C20, C21, C22,
+            C30, C31, C32, C33,
+            C40, C41, C42, C43, C44;
 
-    inline const float_v operator()(size_t r, size_t c) const {
+    inline const float_v operator()(size_t r, size_t c) const
+    {
         switch (r) {
         case 0:
             switch (c) {
@@ -272,7 +294,9 @@ struct CovV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 5, 5, 
         return operator[](10 + c);
     }
 
-    template<typename RhsImpl> inline CovV &operator-=(const MatrixOperand<float_v, 5, 5, RhsImpl> &rhs) {
+    template <typename RhsImpl>
+    inline CovV &operator-=(const MatrixOperand<float_v, 5, 5, RhsImpl> &rhs)
+    {
         C00 -= rhs(0, 0);
         C10 -= rhs(1, 0);
         C11 -= rhs(1, 1);
@@ -290,28 +314,29 @@ struct CovV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 5, 5, 
         C44 -= rhs(4, 4);
         return *this;
     }
-    const float_v &operator[](int i) const {
+    const float_v &operator[](int i) const
+    {
         const float_v *p = &C00;
         return p[i];
     }
 
-    friend std::ostream& operator<<(std::ostream &os, const CovV &a) {
-        os << a.C00 << endl
-            << a.C10 << endl
-            << a.C11 << endl
-            << a.C20 << endl
-            << a.C21 << endl
-            << a.C22 << endl
-            << a.C30 << endl
-            << a.C31 << endl
-            << a.C32 << endl
-            << a.C33 << endl
-            << a.C40 << endl
-            << a.C41 << endl
-            << a.C42 << endl
-            << a.C43 << endl
-            << a.C44;
-        return os;
+    friend std::ostream &operator<<(std::ostream &os, const CovV &a)
+    {
+        return os << a.C00 << '\n'
+                  << a.C10 << '\n'
+                  << a.C11 << '\n'
+                  << a.C20 << '\n'
+                  << a.C21 << '\n'
+                  << a.C22 << '\n'
+                  << a.C30 << '\n'
+                  << a.C31 << '\n'
+                  << a.C32 << '\n'
+                  << a.C33 << '\n'
+                  << a.C40 << '\n'
+                  << a.C41 << '\n'
+                  << a.C42 << '\n'
+                  << a.C43 << '\n'
+                  << a.C44;
     }
 
     CovV()
@@ -325,16 +350,17 @@ struct CovV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 5, 5, 
 
 typedef CovV CovVConventional;
 
-struct TrackV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 6, 1, TrackV> {
+struct TrackV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 6, 1, TrackV>
+{
     HitV vHits[MaxNStations];
 
-    float_v T[6]; // x, y, tx, ty, qp, z
-    CovV   C;    // cov matr.
+    float_v T[6];  // x, y, tx, ty, qp, z
+    CovV C;        // cov matr.
 
     float_v Chi2;
     float_v NDF;
 
-    FieldRegion f; // field at first hit (needed for extrapolation to MC and check of results)
+    FieldRegion f;  // field at first hit (needed for extrapolation to MC and check of results)
 
     float_v &x() { return T[0]; }
     float_v &y() { return T[1]; }
@@ -343,9 +369,7 @@ struct TrackV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 6, 1
     float_v &qp() { return T[4]; }
     float_v &z() { return T[5]; }
 
-    TrackV()
-        : Chi2(Vc::Zero),
-        NDF(Vc::Zero)
+    TrackV() : Chi2(Vc::Zero), NDF(Vc::Zero)
     {
         T[0] = float_v::Zero();
         T[1] = float_v::Zero();
@@ -355,7 +379,8 @@ struct TrackV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 6, 1
         T[5] = float_v::Zero();
     }
 
-    template<typename RhsImpl> inline TrackV &operator-=(const MatrixOperand<float_v, 5, 1, RhsImpl> &rhs)
+    template <typename RhsImpl>
+    inline TrackV &operator-=(const MatrixOperand<float_v, 5, 1, RhsImpl> &rhs)
     {
         T[0] -= rhs(0);
         T[1] -= rhs(1);
@@ -365,7 +390,8 @@ struct TrackV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 6, 1
         return *this;
     }
 
-    template<typename RhsImpl> inline TrackV &operator-=(const MatrixOperand<float_v, 6, 1, RhsImpl> &rhs)
+    template <typename RhsImpl>
+    inline TrackV &operator-=(const MatrixOperand<float_v, 6, 1, RhsImpl> &rhs)
     {
         T[0] -= rhs(0);
         T[1] -= rhs(1);
@@ -375,20 +401,18 @@ struct TrackV : public Vc::VectorAlignedBase, public MatrixOperand<float_v, 6, 1
         T[5] -= rhs(5);
         return *this;
     }
-    inline const float_v operator()(size_t r, size_t = 0) const {
-        return T[r];
-    }
+
+    inline const float_v operator()(size_t r, size_t = 0) const { return T[r]; }
 };
 
 //constants
 #define cnst static const float_v
 
-cnst INF = .01f;
-cnst INF2 = .0001f;
-cnst c_light = 0.000299792458f;
-cnst c_light_i = 1.f / c_light;
-
-cnst PipeRadThick = 0.0009f;
+static const float_v INF = .01f;
+static const float_v INF2 = .0001f;
+static const float_v c_light = 0.000299792458f;
+static const float_v c_light_i = 1.f / c_light;
+static const float_v PipeRadThick = 0.0009f;
 
 class Jacobian_t{ // jacobian elements // j[0][0] - j[3][2] are j02 - j34
     public:
@@ -403,48 +427,66 @@ class Jacobian_t{ // jacobian elements // j[0][0] - j[3][2] are j02 - j34
         float_v fj[4][3];
 };
 
-class FitFunctional { // base class for all approaches
-    public:
-        void Fit(TrackV &t, Station vStations[], int NStations) const;
+class FitFunctional
+{  // base class for all approaches
+public:
+    void Fit(TrackV &t, Station vStations[], int NStations) const;
 
-        /// extrapolates track parameters
-        void ExtrapolateALight(float_v T[], CovV &C,  const float_v &z_out,  float_v& qp0, FieldRegion &F, float_v w = float_v::Zero()) const;
+    /// extrapolates track parameters
+    void ExtrapolateALight(float_v T[],
+                           CovV &C,
+                           const float_v &z_out,
+                           float_v &qp0,
+                           FieldRegion &F,
+                           float_v w = float_v::Zero()) const;
 
-    protected:
-        void Filter(TrackV &track, const HitInfo &info, const float_v u, const float_v w = float_v::One()) const;
-        void FilterFirst(TrackV &track, HitV &hit, Station &st) const;
+protected:
+    void Filter(TrackV &track,
+                const HitInfo &info,
+                const float_v u,
+                const float_v w = float_v::One()) const;
+    void FilterFirst(TrackV &track, HitV &hit, Station &st) const;
 
-        void ExtrapolateWithMaterial(TrackV &track, const float_v &z_out,  float_v& qp0, FieldRegion &F, Station &st, bool isPipe = false, float_v w = float_v::Zero()) const;
+    void ExtrapolateWithMaterial(TrackV &track,
+                                 const float_v &z_out,
+                                 float_v &qp0,
+                                 FieldRegion &F,
+                                 Station &st,
+                                 bool isPipe = false,
+                                 float_v w = float_v::Zero()) const;
 
-        void AddMaterial(CovV &C, float_v Q22, float_v Q32, float_v Q33) const;
-        /// initial aproximation
-        void GuessVec(TrackV &t, Station * vStations, int NStations, bool dir = false) const;
+    void AddMaterial(CovV &C, float_v Q22, float_v Q32, float_v Q33) const;
+    /// initial aproximation
+    void GuessVec(TrackV &t, Station *vStations, int NStations, bool dir = false) const;
 
-        void AddMaterial(TrackV &track, Station &st, const float_v qp0, bool isPipe = false) const;
+    void AddMaterial(TrackV &track, Station &st, const float_v qp0, bool isPipe = false) const;
 
-        /// extrapolates track parameters and returns jacobian for extrapolation of CovMatrix
-        void ExtrapolateJ (
-                float_v * T, // input track parameters (x,y,tx,ty,Q / p) and cov.matrix
-                float_v      z_out  , // extrapolate to this z position
-                float_v       qp0    , // use Q / p linearisation at this value
-                const FieldRegion &F,
-                Jacobian_t &j,
-                float_v w = float_v::Zero()) const;
+    /// extrapolates track parameters and returns jacobian for extrapolation of CovMatrix
+    void ExtrapolateJ(float_v *T,     // input track parameters (x,y,tx,ty,Q / p) and cov.matrix
+                      float_v z_out,  // extrapolate to this z position
+                      float_v qp0,    // use Q / p linearisation at this value
+                      const FieldRegion &F,
+                      Jacobian_t &j,
+                      float_v w = float_v::Zero()) const;
 
-        /// calculate covMatrix for Multiple Scattering
-        void GetMSMatrix(const float_v &tx, const float_v &ty, const float_v &radThick, const float_v &logRadThick, float_v qp0, float_v &Q22, float_v &Q32, float_v &Q33) const;
-    private:
+    /// calculate covMatrix for Multiple Scattering
+    void GetMSMatrix(const float_v &tx,
+                     const float_v &ty,
+                     const float_v &radThick,
+                     const float_v &logRadThick,
+                     float_v qp0,
+                     float_v &Q22,
+                     float_v &Q32,
+                     float_v &Q33) const;
 
-        /// extrapolates track parameters and returns jacobian for extrapolation of CovMatrix
-        void ExtrapolateJAnalytic
-            (
-             float_v T [], // input track parameters (x,y,tx,ty,Q / p)
-             float_v        z_out  , // extrapolate to this z position
-             float_v       qp0    , // use Q / p linearisation at this value
-             const FieldRegion &F,
-             Jacobian_t &j,
-             float_v w = float_v::Zero()) const;
-
+private:
+    /// extrapolates track parameters and returns jacobian for extrapolation of CovMatrix
+    void ExtrapolateJAnalytic(float_v T[],    // input track parameters (x,y,tx,ty,Q / p)
+                              float_v z_out,  // extrapolate to this z position
+                              float_v qp0,    // use Q / p linearisation at this value
+                              const FieldRegion &F,
+                              Jacobian_t &j,
+                              float_v w = float_v::Zero()) const;
 };
 
 inline void FitFunctional::GuessVec(TrackV &t, Station * vStations, int nStations, bool dir) const
@@ -523,15 +565,14 @@ inline void FitFunctional::GuessVec(TrackV &t, Station * vStations, int nStation
     T[5] = z0;
 }
 
-inline void FitFunctional::ExtrapolateJAnalytic // extrapolates track parameters and returns jacobian for extrapolation of CovMatrix
-(
- float_v T [], // input track parameters (x,y,tx,ty,Q / p)
- float_v        z_out  , // extrapolate to this z position
- float_v       qp0    , // use Q / p linearisation at this value
- const FieldRegion &F,
- Jacobian_t &j,
- float_v
- ) const
+inline void FitFunctional::ExtrapolateJAnalytic(  // extrapolates track parameters and returns
+                                                  // jacobian for extrapolation of CovMatrix
+    float_v T[],                                  // input track parameters (x,y,tx,ty,Q / p)
+    float_v z_out,                                // extrapolate to this z position
+    float_v qp0,                                  // use Q / p linearisation at this value
+    const FieldRegion &F,
+    Jacobian_t &j,
+    float_v) const
 {
     // cout << "Extrapolation..." << endl;
     //
@@ -644,14 +685,14 @@ inline void FitFunctional::ExtrapolateJAnalytic // extrapolates track parameters
         cnst c21 =  2.f * 21.f / 2520.f;
         cnst c22 =  2.f * 10.f / 2520.f;
         Syz = Fy0 * (c00 * Fz0 + c01 * Fz1 + c02 * Fz2)
-            +   Fy1 * (c10 * Fz0 + c11 * Fz1 + c12 * Fz2)
-            +   Fy2 * (c20 * Fz0 + c21 * Fz1 + c22 * Fz2) ;
+            + Fy1 * (c10 * Fz0 + c11 * Fz1 + c12 * Fz2)
+            + Fy2 * (c20 * Fz0 + c21 * Fz1 + c22 * Fz2);
     }
 
     const float_v syy  = sy * sy * c2i;
     const float_v syyy = syy * sy * c3i;
 
-    float_v Syy ;
+    float_v Syy;
     {
         cnst c00 = 420.f / 2520.f;
         cnst c01 =  21.f * 15.f / 2520.f;
@@ -787,21 +828,27 @@ inline void FitFunctional::ExtrapolateJAnalytic // extrapolates track parameters
     T[3] += (j(3,4) * dqp);
 }
 
-inline void FitFunctional::ExtrapolateJ // extrapolates track parameters and returns jacobian for extrapolation of CovMatrix
-(
- float_v * T, // input track parameters (x,y,tx,ty,Q / p) and cov.matrix
- float_v      z_out  , // extrapolate to this z position
- float_v       qp0    , // use Q / p linearisation at this value
- const FieldRegion &F,
- Jacobian_t &j,
- float_v w
- ) const
+inline void FitFunctional::ExtrapolateJ(  // extrapolates track parameters and returns jacobian for
+                                          // extrapolation of CovMatrix
+    float_v *T,                           // input track parameters (x,y,tx,ty,Q / p) and cov.matrix
+    float_v z_out,                        // extrapolate to this z position
+    float_v qp0,                          // use Q / p linearisation at this value
+    const FieldRegion &F,
+    Jacobian_t &j,
+    float_v w) const
 {
     ExtrapolateJAnalytic(T, z_out, qp0, F, j, w);
 }
 
 /// calculate covMatrix for Multiple Scattering
-inline void FitFunctional::GetMSMatrix(const float_v &tx, const float_v &ty, const float_v &radThick, const float_v &logRadThick, float_v qp0, float_v &Q22, float_v &Q32, float_v &Q33) const
+inline void FitFunctional::GetMSMatrix(const float_v &tx,
+                                       const float_v &ty,
+                                       const float_v &radThick,
+                                       const float_v &logRadThick,
+                                       float_v qp0,
+                                       float_v &Q22,
+                                       float_v &Q32,
+                                       float_v &Q33) const
 {
     cnst mass2 = 0.1396f * 0.1396f;
 
@@ -830,13 +877,22 @@ inline void FitFunctional::GetMSMatrix(const float_v &tx, const float_v &ty, con
     Q33 = (float_v::One() + tyty) * a;
 }
 
-inline void FitFunctional::AddMaterial(TrackV &track, Station &st, const float_v qp0, bool isPipe) const
+inline void FitFunctional::AddMaterial(TrackV &track, Station &st, const float_v qp0, bool isPipe)
+    const
 {
     float_v Q22, Q32, Q33;
-    if (isPipe)
-        GetMSMatrix(track.T[2], track.T[3], st.RadThick + PipeRadThick, log(st.RadThick + PipeRadThick), qp0, Q22, Q32, Q33);
-    else
+    if (isPipe) {
+        GetMSMatrix(track.T[2],
+                    track.T[3],
+                    st.RadThick + PipeRadThick,
+                    log(st.RadThick + PipeRadThick),
+                    qp0,
+                    Q22,
+                    Q32,
+                    Q33);
+    } else {
         GetMSMatrix(track.T[2], track.T[3], st.RadThick, st.logRadThick, qp0, Q22, Q32, Q33);
+    }
 
     AddMaterial(track.C, Q22, Q32, Q33);
 }
@@ -850,23 +906,23 @@ inline void FitFunctional::Fit(TrackV &t, Station vStations[], int nStations) co
     // downstream
 
     FieldRegion f;
-    float_v z0,z1,z2, dz;
+    float_v z0, z1, z2, dz;
     FieldVector H0, H1, H2;
 
     float_v qp0 = t.T[4];
     int i = nStations - 1;
-    HitV * h = &t.vHits[i];
+    HitV *h = &t.vHits[i];
 
-    FilterFirst(t, * h, vStations[i]);
-    AddMaterial(t, vStations[ i ], qp0);
+    FilterFirst(t, *h, vStations[i]);
+    AddMaterial(t, vStations[i], qp0);
 
-    z1 = vStations[ i ].z;
-    vStations[i].Map.GetField(t.T[0],t.T[1], H1);
+    z1 = vStations[i].z;
+    vStations[i].Map.GetField(t.T[0], t.T[1], H1);
     H1.Combine(h->H, h->w);
 
-    z2 = vStations[ i - 2 ].z;
+    z2 = vStations[i - 2].z;
     dz = z2 - z1;
-    vStations[ i - 2 ].Map.GetField(t.T[0] + t.T[2] * dz,t.T[1] + t.T[3] * dz,H2);
+    vStations[i - 2].Map.GetField(t.T[0] + t.T[2] * dz, t.T[1] + t.T[3] * dz, H2);
     h = &t.vHits[i - 2];
     H2.Combine(h->H, h->w);
 
@@ -876,19 +932,20 @@ inline void FitFunctional::Fit(TrackV &t, Station vStations[], int nStations) co
         Station &st = vStations[i];
         z0 = st.z;
         dz = (z1 - z0);
-        st.Map.GetField(t.T[0] - t.T[2] * dz,t.T[1] - t.T[3] * dz,H0);
+        st.Map.GetField(t.T[0] - t.T[2] * dz, t.T[1] - t.T[3] * dz, H0);
         H0.Combine(h->H, h->w);
         f.Set(H0, z0, H1, z1, H2, z2);
-        if (i == iFirstStation)
+        if (i == iFirstStation) {
             t.f = f;
+        }
 
         // ExtrapolateALight(t.T, t.C, st.zhit, qp0, f);
         // AddMaterial(t, st, qp0);
-        if (i == 1) { // 2nd MVD
-            ExtrapolateWithMaterial(t, st.zhit, qp0, f, st, true); // add pipe
-        }
-        else
+        if (i == 1) {                                               // 2nd MVD
+            ExtrapolateWithMaterial(t, st.zhit, qp0, f, st, true);  // add pipe
+        } else {
             ExtrapolateWithMaterial(t, st.zhit, qp0, f, st);
+        }
 
         float_v u = h->x * st.UInfo.cos_phi + h->y * st.UInfo.sin_phi;
         float_v v = h->x * st.VInfo.cos_phi + h->y * st.VInfo.sin_phi;
@@ -902,15 +959,12 @@ inline void FitFunctional::Fit(TrackV &t, Station vStations[], int nStations) co
 }
 
 // inline // --> causes a runtime overhead and problems for the MS compiler (error C2603)
-void FitFunctional::ExtrapolateALight
-(
- float_v T [], // input track parameters (x,y,tx,ty,Q / p)
- CovV &C,     // input covariance matrix
- const float_v &z_out  , // extrapolate to this z position
- float_v       &qp0    , // use Q / p linearisation at this value
- FieldRegion &F,
- float_v w
- ) const
+void FitFunctional::ExtrapolateALight(float_v T[],  // input track parameters (x,y,tx,ty,Q / p)
+                                      CovV &C,      // input covariance matrix
+                                      const float_v &z_out,  // extrapolate to this z position
+                                      float_v &qp0,  // use Q / p linearisation at this value
+                                      FieldRegion &F,
+                                      float_v w) const
 {
     //
     //  Part of the analytic extrapolation formula with error (c_light * B * dz)^4 / 4!
@@ -965,7 +1019,10 @@ void FitFunctional::ExtrapolateALight
  * \param u Is a measurement that we want to add - Strip coordinate (may be x or y)
  * \param w Weight. At this point either 1 or 0, simply masking invalid entries in the SIMD-vector.
  */
-inline void FitFunctional::Filter(TrackV &track, const HitInfo &measurementModel, const float_v m, const float_v weight) const
+inline void FitFunctional::Filter(TrackV &track,
+                                  const HitInfo &measurementModel,
+                                  const float_v m,
+                                  const float_v weight) const
 {
     static RuntimeMean timer;
     timer.start();
@@ -1014,10 +1071,16 @@ inline void FitFunctional::AddMaterial(CovV &C, float_v Q22, float_v Q32, float_
     C.C32 += Q32; C.C33 += Q33;
 }
 
-inline void FitFunctional::ExtrapolateWithMaterial(TrackV &track,  const float_v &z_out,  float_v& qp0, FieldRegion &F, Station &st, bool isPipe, float_v w) const
+inline void FitFunctional::ExtrapolateWithMaterial(TrackV &track,
+                                                   const float_v &z_out,
+                                                   float_v &qp0,
+                                                   FieldRegion &F,
+                                                   Station &st,
+                                                   bool isPipe,
+                                                   float_v w) const
 {
     ExtrapolateALight(track.T, track.C, z_out, qp0, F, w);
-    FitFunctional::AddMaterial(track, st, qp0, isPipe); // FIXME
+    FitFunctional::AddMaterial(track, st, qp0, isPipe);  // FIXME
 }
 
 class KalmanFilter : public Vc::VectorAlignedBase
@@ -1032,21 +1095,12 @@ class KalmanFilter : public Vc::VectorAlignedBase
     int NTracksV;
 
 public:
-    KalmanFilter()
-        : vStations(new Station[MaxNStations]),
-          NStations(0),
-          NTracks(0),
-          NTracksV(0)
+    KalmanFilter() : vStations(new Station[MaxNStations]), NStations(0), NTracks(0), NTracksV(0) {}
+
+    ~KalmanFilter() { delete[] vStations; }
+
+    void readInput()
     {
-    }
-
-    ~KalmanFilter()
-    {
-        delete[] vStations;
-    }
-
-    void readInput() {
-
         std::fstream FileGeo, FileTracks, FileMCTracks;
 
         FileGeo.open("geo.dat", std::ios::in);
@@ -1058,12 +1112,15 @@ public:
             for (int i = 0; i < 3; i++) {
                 float_v::EntryType Bx, By, Bz, z;
                 FileGeo >> z >> Bx >> By >> Bz;
-                Hz[i] = z; H[i].X = Bx;   H[i].Y = By; H[i].Z = Bz;
+                Hz[i] = z;
+                H[i].X = Bx;
+                H[i].Y = By;
+                H[i].Z = Bz;
 #ifndef MUTE
                 cout << "Input Magnetic field:" << z << " " << Bx << " " << By << " " << Bz << endl;
 #endif
             }
-            field0.Set(H[0],Hz[0], H[1],Hz[1], H[2],Hz[2]);
+            field0.Set(H[0], Hz[0], H[1], Hz[1], H[2], Hz[2]);
         }
         FileGeo >> NStations;
 #ifndef MUTE
@@ -1073,7 +1130,9 @@ public:
         for (int i = 0; i < NStations; i++) {
             int ist;
             FileGeo >> ist;
-            if (ist!= i) break;
+            if (ist != i) {
+                break;
+            }
             Station &st = vStations[i];
 
             FileGeo >> st.z >> st.thick >> st.RL >> st.UInfo.sigma2 >> st.VInfo.sigma2;
@@ -1082,20 +1141,20 @@ public:
             st.UInfo.sigma216 = st.UInfo.sigma2 * 16.f;
             st.VInfo.sigma216 = st.VInfo.sigma2 * 16.f;
 
-            if (i < 2) { // mvd // TODO From Geo File!!!
+            if (i < 2) {  // mvd // TODO From Geo File!!!
                 st.UInfo.cos_phi = float_v::One();
                 st.UInfo.sin_phi = float_v::Zero();
                 st.VInfo.cos_phi = float_v::Zero();
                 st.VInfo.sin_phi = float_v::One();
-            }
-            else{
+            } else {
                 st.UInfo.cos_phi = float_v::One();           // 0 degree
                 st.UInfo.sin_phi = float_v::Zero();
                 st.VInfo.cos_phi = 0.9659258244f; // 15 degree
                 st.VInfo.sin_phi = 0.2588190521f;
             }
 
-            float_v idet = st.UInfo.cos_phi * st.VInfo.sin_phi - st.UInfo.sin_phi * st.VInfo.cos_phi;
+            float_v idet =
+                st.UInfo.cos_phi * st.VInfo.sin_phi - st.UInfo.sin_phi * st.VInfo.cos_phi;
             idet = float_v::One() / (idet * idet);
             st.XYInfo.C00 = (st.VInfo.sin_phi * st.VInfo.sin_phi * st.UInfo.sigma2 +
                     st.UInfo.sin_phi * st.UInfo.sin_phi * st.VInfo.sigma2) * idet;
@@ -1122,7 +1181,7 @@ public:
         }
         {
             // field intergals with respect to Last station
-            float_v z0  = vStations[NStations - 1].z;
+            float_v z0 = vStations[NStations - 1].z;
             float_v sy = 0.f, Sy = 0.f;
             for (int i = NStations - 1; i >= 0; i--) {
                 Station &st = vStations[i];
@@ -1151,18 +1210,17 @@ public:
 
         NTracks = 0;
         int TrackIndex[MaxNTracks];
-        while(!FileTracks.eof()) {
-
+        while (!FileTracks.eof()) {
             int itr;
             FileTracks >> itr;
             // if (itr!= NTracks) break;
-            if (NTracks >= MaxNTracks) break;
+            if (NTracks >= MaxNTracks)
+                break;
 
             Track &t = vTracks[NTracks];
             MCTrack &mc = vMCTracks[NTracks];
-            FileTracks >> mc.MC_x   >> mc.MC_y  >> mc.MC_z
-                >> mc.MC_px >> mc.MC_py >> mc.MC_pz >> mc.MC_q
-                >> t.NHits;
+            FileTracks >> mc.MC_x >> mc.MC_y >> mc.MC_z >> mc.MC_px >> mc.MC_py >> mc.MC_pz >>
+                mc.MC_q >> t.NHits;
             for (int i = 0; i < t.NHits; i++) {
                 int ist;
                 FileTracks >> ist;
@@ -1170,32 +1228,31 @@ public:
                 FileTracks >> t.vHits[i].x >> t.vHits[i].y;
             }
             TrackIndex[NTracks] = itr;
-            if (t.NHits == NStations) NTracks++;
+            if (t.NHits == NStations)
+                NTracks++;
         }
         int NMCTracks = 0;
         int iPoint = 0;
-        while(!FileMCTracks.eof()) {
-
+        while (!FileMCTracks.eof()) {
             int itr;
             FileMCTracks >> itr;
             // if (itr!= NTracks) break;
-            if (NMCTracks >= MaxNTracks) break;
+            if (NMCTracks >= MaxNTracks)
+                break;
             MCTrack &mc = vMCTracks[NMCTracks];
             float_v::EntryType temp;
             int NMCPoints;
-            FileMCTracks >> temp   >> temp  >> temp
-                >> temp >> temp >> temp >> temp
-                >> NMCPoints;
+            FileMCTracks >> temp >> temp >> temp >> temp >> temp >> temp >> temp >> NMCPoints;
             mc.NMCPoints = NMCPoints;
             for (int i = 0; i < NMCPoints; i++) {
                 int ist;
                 FileMCTracks >> ist;
                 mc.vPoints[i].ista = ist;
-                FileMCTracks >> mc.vPoints[i].x >> mc.vPoints[i].y >> mc.vPoints[i].z >> mc.vPoints[i].px >> mc.vPoints[i].py >> mc.vPoints[i].pz;
-
+                FileMCTracks >> mc.vPoints[i].x >> mc.vPoints[i].y >> mc.vPoints[i].z >>
+                    mc.vPoints[i].px >> mc.vPoints[i].py >> mc.vPoints[i].pz;
             }
 
-            iPoint = 0; // compare paraments at the first station
+            iPoint = 0;  // compare paraments at the first station
             // iPoint = NMCPoints - 1;
             mc.MC_x = mc.vPoints[iPoint].x;
             mc.MC_y = mc.vPoints[iPoint].y;
@@ -1204,27 +1261,25 @@ public:
             mc.MC_py = mc.vPoints[iPoint].py;
             mc.MC_pz = mc.vPoints[iPoint].pz;
 
-            if (itr == TrackIndex[NMCTracks]) NMCTracks++;
+            if (itr == TrackIndex[NMCTracks])
+                NMCTracks++;
         }
-        //cout << NTracks << " " << NMCTracks << " reco and Mc tracks have been read" << endl;
+        // cout << NTracks << " " << NMCTracks << " reco and Mc tracks have been read" << endl;
         FileTracks.close();
         FileMCTracks.close();
 
         NTracksV = NTracks / float_v::Size;
-        NTracks =  NTracksV * float_v::Size;
+        NTracks = NTracksV * float_v::Size;
     }
 
 #define _STRINGIFY(_x) #_x
 #define STRINGIFY(_x) _STRINGIFY(_x)
 
-    void writeOutput() {
-
+    void writeOutput()
+    {
         std::fstream Out, Diff;
-
         Out.open(STRINGIFY(VC_IMPL) "_fit.dat", std::ios::out);
-
         Out << "Fitter" << endl;
-
         Out << MaxNTracks << endl;
 
         for (int it = 0, itt = 0; itt < NTracks; itt++) {
@@ -1235,9 +1290,12 @@ public:
             for (int i = 0; i < 6; i++) {
                 ok = ok && finite(t.T[i]);
             }
-            for (int i = 0; i < 15; i++) ok = ok && finite(t.C[i]);
-
-            if (!ok) { cout << " infinite " << endl; }
+            for (int i = 0; i < 15; i++) {
+                ok = ok && finite(t.C[i]);
+            }
+            if (!ok) {
+                cout << " infinite " << endl;
+            }
 
             const int iPoint = 0;
             Out << it << '\n'
@@ -1268,11 +1326,13 @@ public:
 
     void fitTracks()
     {
-        TrackV * TracksV = new TrackV[MaxNTracks / float_v::Size + 1];
-        float_v * Z0      = new float_v[MaxNTracks / float_v::Size + 1]; // mc - z, used for result comparison
-        float_v * Z0s[MaxNStations];
-        for (int is = 0; is < NStations; ++is)
+        TrackV *TracksV = new TrackV[MaxNTracks / float_v::Size + 1];
+        float_v *Z0 =
+            new float_v[MaxNTracks / float_v::Size + 1];  // mc - z, used for result comparison
+        float_v *Z0s[MaxNStations];
+        for (int is = 0; is < NStations; ++is) {
             Z0s[is] = new float_v[MaxNTracks / float_v::Size + 1];
+        }
 
         float_v::Memory Z0mem;
         float_v::Memory Z0smem[MaxNStations];
@@ -1282,9 +1342,11 @@ public:
         TimeStampCounter timer1;
         timer1.start();
 
-        for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
+        for (int iV = 0; iV < NTracksV; iV++) {  // loop on set of 4 tracks
 #ifndef MUTE
-            if (iV * float_v::Size%100 == 0) cout << iV * float_v::Size << endl;
+            if (iV * float_v::Size % 100 == 0) {
+                cout << iV *float_v::Size << endl;
+            }
 #endif
             TrackV &t = TracksV[iV];
             for (int ist = 0; ist < NStations; ist++) {
@@ -1302,12 +1364,15 @@ public:
                 Track &ts = vTracks[iV * float_v::Size + it];
 
                 Z0mem[it] = vMCTracks[iV * float_v::Size + it].MC_z;
-                for (int is = 0; is < NStations; ++is)
+                for (int is = 0; is < NStations; ++is) {
                     Z0smem[is][it] = vMCTracks[iV * float_v::Size + it].vPoints[is].z;
+                }
 
                 for (int ista = 0, ih = 0; ista < NStations; ista++) {
                     Hit &hs = ts.vHits[ih];
-                    if (hs.ista != ista) continue;
+                    if (hs.ista != ista) {
+                        continue;
+                    }
                     ih++;
 
                     t.vHits[ista].x[it] = hs.x;
@@ -1325,13 +1390,13 @@ public:
                 Z0s[is][iV] = Z0stemp;
             }
 
-            if (0) {    // output for check
+            if (0) {  // output for check
                 cout << "track " << iV << "  ";
-                for (int ista = 0; ista < NStations; ista++)
+                for (int ista = 0; ista < NStations; ista++) {
                     cout << t.vHits[ista].x << " ";
+                }
                 cout << endl;
             }
-
 
             for (int ist = 0; ist < NStations; ist++) {
                 HitV &h = t.vHits[ist];
@@ -1347,9 +1412,8 @@ public:
         for (int times = 0; times < Ntimes; times++) {
             int ifit;
             int iV;
-
             {
-                for (iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
+                for (iV = 0; iV < NTracksV; iV++) {  // loop on set of 4 tracks
                     for (ifit = 0; ifit < NFits; ifit++) {
                         fitter.Fit(TracksV[iV], vStations, NStations);
                     }
@@ -1358,7 +1422,7 @@ public:
         }
         timer.stop();
 
-        for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
+        for (int iV = 0; iV < NTracksV; iV++) {  // loop on set of 4 tracks
             TrackV &t = TracksV[iV];
             fitter.ExtrapolateALight(t.T, t.C, Z0[iV], TracksV[iV].T[4], t.f);
         }
@@ -1367,23 +1431,26 @@ public:
              << "cycles per track and fit: " << std::setw(8) << timer.cycles() / (NTracks * NFits) / Ntimes << '\n'
              << "     cycles for all fits: " << std::setw(8) << timer.cycles() << endl;
 
-        for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
+        for (int iV = 0; iV < NTracksV; iV++) {  // loop on set of 4 tracks
             TrackV &t = TracksV[iV];
 
             for (std::size_t it = 0; it < float_v::Size; it++) {
                 Track &ts = vTracks[iV * float_v::Size + it];
 
-                for (int i = 0; i < 6; i++)
+                for (int i = 0; i < 6; i++) {
                     ts.T[i] = t.T[i][it];
-                for (int i = 0; i < 15; i++)
+                }
+                for (int i = 0; i < 15; i++) {
                     ts.C[i] = t.C[i][it];
+                }
             }
         }
 
-        delete [] Z0;
-        for (int is = 0; is < NStations; ++is)
-            delete [] Z0s[is];
-        delete [] TracksV;
+        delete[] Z0;
+        for (int is = 0; is < NStations; ++is) {
+            delete[] Z0s[is];
+        }
+        delete[] TracksV;
     }
 };
 
