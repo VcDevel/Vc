@@ -16,10 +16,10 @@
 using std::cout;
 using std::endl;
 
-const int NFits = 1;
-const int MaxNTracks = 20000;
-const int Ntimes = 1;
-const int MaxNStations = 10;
+constexpr int NFits = 1;
+constexpr int MaxNTracks = 20000;
+constexpr int Ntimes = 1;
+constexpr int MaxNStations = 10;
 
 using Vc::float_v;
 using Vc::float_m;
