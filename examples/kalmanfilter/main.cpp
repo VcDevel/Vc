@@ -1,15 +1,17 @@
 #include "matrix.h"
 #include "runtimemean.h"
-#include <Vc/Vc>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <cstring>
-#include <cstdlib>
-#include <ctime>
-#include <cmath>
 #include "../tsc.h"
+
 #include <assert.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+
+#include <Vc/Vc>
 
 #define MUTE
 
