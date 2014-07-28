@@ -1300,7 +1300,7 @@ public:
                 h.H.Z = 0.;
             }
 
-            for (int it = 0; it < V::Size; it++) {
+            for (std::size_t it = 0; it < V::Size; it++) {
                 Track &ts = vTracks[iV * V::Size + it];
 
                 Z0mem[it] = vMCTracks[iV * V::Size + it].MC_z;
@@ -1372,7 +1372,7 @@ public:
         for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
             TrackV &t = TracksV[iV];
 
-            for (int it = 0; it < V::Size; it++) {
+            for (std::size_t it = 0; it < V::Size; it++) {
                 Track &ts = vTracks[iV * V::Size + it];
 
                 for (int i = 0; i < 6; i++)
