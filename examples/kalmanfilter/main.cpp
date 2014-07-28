@@ -13,9 +13,6 @@
 
 #define MUTE
 
-using std::istream;
-using std::ostream;
-using std::fstream;
 using std::cout;
 using std::endl;
 
@@ -28,7 +25,7 @@ typedef Vc::float_v V;
 using Vc::float_v;
 using Vc::float_m;
 
-inline istream & operator>>(istream &strm, V &a) {
+inline std::istream & operator>>(std::istream &strm, V &a) {
     float tmp;
     strm >> tmp;
     a = tmp;
@@ -100,7 +97,7 @@ struct FieldRegion : public Vc::VectorAlignedBase {
     V z0, z1, z2 ; // Hz(Z) = z0 + z1 * (Z - z) + z2 * (Z - z)^2
     V z;
 
-    friend ostream& operator<<(ostream &os, const FieldRegion &a) {
+    friend std::ostream& operator<<(std::ostream &os, const FieldRegion &a) {
         os << a.x0 << endl
             << a.x1 << endl
             << a.x2 << endl
@@ -297,7 +294,7 @@ struct CovV : public Vc::VectorAlignedBase, public MatrixOperand<V, 5, 5, CovV> 
         return p[i];
     }
 
-    friend ostream& operator<<(ostream &os, const CovV &a) {
+    friend std::ostream& operator<<(std::ostream &os, const CovV &a) {
         os << a.C00 << endl
             << a.C10 << endl
             << a.C11 << endl
@@ -1049,7 +1046,7 @@ public:
 
     void readInput() {
 
-        fstream FileGeo, FileTracks, FileMCTracks;
+        std::fstream FileGeo, FileTracks, FileMCTracks;
 
         FileGeo.open("geo.dat", std::ios::in);
         FileTracks.open("tracks.dat", std::ios::in);
@@ -1221,7 +1218,7 @@ public:
 
     void writeOutput() {
 
-        fstream Out, Diff;
+        std::fstream Out, Diff;
 
         Out.open(STRINGIFY(VC_IMPL) "_fit.dat", std::ios::out);
 
