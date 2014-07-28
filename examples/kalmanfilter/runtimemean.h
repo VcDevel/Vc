@@ -20,7 +20,7 @@
 #ifndef RUNTIMEMEAN_H
 #define RUNTIMEMEAN_H
 
-#include "../../tsc.h"
+#include "../tsc.h"
 #include <iostream>
 
 class RuntimeMean
@@ -32,10 +32,10 @@ public:
     RuntimeMean()
         : cycles(0), count(0)
     {}
-    inline void start() { tsc.Start(); }
+    inline void start() { tsc.start(); }
     inline void stop() {
-        tsc.Stop();
-        cycles += tsc.Cycles();
+        tsc.stop();
+        cycles += tsc.cycles();
         ++count;
     }
     ~RuntimeMean()

@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
-#include "../../tsc.h"
+#include "../tsc.h"
 #include <assert.h>
 
 #define MUTE
@@ -1282,7 +1282,7 @@ public:
         cout << "Prepare data..." << endl;
 #endif
         TimeStampCounter timer1;
-        timer1.Start();
+        timer1.start();
 
         for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
 #ifndef MUTE
@@ -1340,12 +1340,12 @@ public:
                 vStations[ist].Map.GetField(h.x, h.y, h.H);
             }
         }
-        timer1.Stop();
+        timer1.stop();
 #ifndef MUTE
         cout << "Start fit..." << endl;
 #endif
         TimeStampCounter timer;
-        timer.Start();
+        timer.start();
         for (int times = 0; times < Ntimes; times++) {
             int ifit;
             int iV;
@@ -1358,16 +1358,16 @@ public:
                 }
             }
         }
-        timer.Stop();
+        timer.stop();
 
         for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
             TrackV &t = TracksV[iV];
             fitter.ExtrapolateALight(t.T, t.C, Z0[iV], TracksV[iV].T[4], t.f);
         }
 
-        cout << "             preparation: " << std::setw(8) << timer1.Cycles() / NTracks / NFits << '\n'
-             << "cycles per track and fit: " << std::setw(8) << timer.Cycles() / (NTracks * NFits) / Ntimes << '\n'
-             << "     cycles for all fits: " << std::setw(8) << timer.Cycles() << endl;
+        cout << "             preparation: " << std::setw(8) << timer1.cycles() / NTracks / NFits << '\n'
+             << "cycles per track and fit: " << std::setw(8) << timer.cycles() / (NTracks * NFits) / Ntimes << '\n'
+             << "     cycles for all fits: " << std::setw(8) << timer.cycles() << endl;
 
         for (int iV = 0; iV < NTracksV; iV++) { // loop on set of 4 tracks
             TrackV &t = TracksV[iV];
