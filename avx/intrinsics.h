@@ -246,6 +246,23 @@ namespace AvxIntrinsics
     }
 #endif
 
+#ifdef VC_IMPL_AVX2
+    template <int shift> Vc_INTRINSIC Vc_CONST m256i alignr(param256i s1, param256i s2)
+    {
+        return _mm256_alignr_epi8(s1, s2, shift);
+    }
+#else
+    template <int shift> Vc_INTRINSIC Vc_CONST m256i alignr(param256i s1, param256i s2)
+    {
+        return _mm256_insertf128_si256(
+            _mm256_castsi128_si256(_mm_alignr_epi8(_mm256_castsi256_si128(s1),
+                                                   _mm256_castsi256_si128(s2), shift)),
+            _mm_alignr_epi8(_mm256_extractf128_si256(s1, 1),
+                            _mm256_extractf128_si256(s2, 1), shift),
+            1);
+    }
+#endif
+
 #define AVX_TO_SSE_2(name) \
     static Vc_INTRINSIC m256i Vc_CONST _mm256_##name(param256i a0, param256i b0) { \
         m128i a1 = _mm256_extractf128_si256(a0, 1); \
