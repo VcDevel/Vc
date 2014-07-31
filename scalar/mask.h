@@ -134,6 +134,15 @@ public:
             return Mask(gen(0));
         }
 
+        Vc_INTRINSIC Vc_PURE Mask shifted(int amount) const
+        {
+            if (amount == 0) {
+                return *this;
+            } else {
+                return Zero();
+            }
+        }
+
     private:
         bool m;
 };

@@ -208,6 +208,109 @@ Vc_INTRINSIC Mask<T> Mask<T>::generate(G &&gen)
     return generate_impl<Mask<T>>(std::forward<G>(gen),
                                   std::integral_constant<int, Size + sizeof(Storage)>());
 }
+// shifted {{{1
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount >= 16), T> shifted_impl(T k)
+{
+    return zeroExtend(_mm_srli_si128(hi128(k), amount - 16));
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount > 0 && amount < 16), T>
+    shifted_impl(T k)
+{
+    return alignr<amount>(Mem::permute128<X1, Const0>(k), Mem::permute128<X0, X1>(k));
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount <= -16), T> shifted_impl(T k)
+{
+    return Mem::permute128<Const0, X0>(avx_cast<m256i>(_mm_slli_si128(lo128(k), -16 - amount)));
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount > -16 && amount < 0), T>
+    shifted_impl(T k)
+{
+    return alignr<16 + amount>(k, Mem::permute128<Const0, X0>(k));
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 16 && amount > 0), T> shifted_impl(T k)
+{
+    return _mm_srli_si128(k, amount);
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 16 && amount < 0), T> shifted_impl(T k)
+{
+    return _mm_slli_si128(k, -amount);
+}
+template <typename T> Vc_INTRINSIC Vc_PURE Mask<T> Mask<T>::shifted(int amount) const
+{
+    switch (amount * int(sizeof(VectorEntryType))) {
+    case   0: return *this;
+    case   1: return shifted_impl<  1>(dataI());
+    case   2: return shifted_impl<  2>(dataI());
+    case   3: return shifted_impl<  3>(dataI());
+    case   4: return shifted_impl<  4>(dataI());
+    case   5: return shifted_impl<  5>(dataI());
+    case   6: return shifted_impl<  6>(dataI());
+    case   7: return shifted_impl<  7>(dataI());
+    case   8: return shifted_impl<  8>(dataI());
+    case   9: return shifted_impl<  9>(dataI());
+    case  10: return shifted_impl< 10>(dataI());
+    case  11: return shifted_impl< 11>(dataI());
+    case  12: return shifted_impl< 12>(dataI());
+    case  13: return shifted_impl< 13>(dataI());
+    case  14: return shifted_impl< 14>(dataI());
+    case  15: return shifted_impl< 15>(dataI());
+    case  16: return shifted_impl< 16>(dataI());
+    case  17: return shifted_impl< 17>(dataI());
+    case  18: return shifted_impl< 18>(dataI());
+    case  19: return shifted_impl< 19>(dataI());
+    case  20: return shifted_impl< 20>(dataI());
+    case  21: return shifted_impl< 21>(dataI());
+    case  22: return shifted_impl< 22>(dataI());
+    case  23: return shifted_impl< 23>(dataI());
+    case  24: return shifted_impl< 24>(dataI());
+    case  25: return shifted_impl< 25>(dataI());
+    case  26: return shifted_impl< 26>(dataI());
+    case  27: return shifted_impl< 27>(dataI());
+    case  28: return shifted_impl< 28>(dataI());
+    case  29: return shifted_impl< 29>(dataI());
+    case  30: return shifted_impl< 30>(dataI());
+    case  31: return shifted_impl< 31>(dataI());
+    case  -1: return shifted_impl< -1>(dataI());
+    case  -2: return shifted_impl< -2>(dataI());
+    case  -3: return shifted_impl< -3>(dataI());
+    case  -4: return shifted_impl< -4>(dataI());
+    case  -5: return shifted_impl< -5>(dataI());
+    case  -6: return shifted_impl< -6>(dataI());
+    case  -7: return shifted_impl< -7>(dataI());
+    case  -8: return shifted_impl< -8>(dataI());
+    case  -9: return shifted_impl< -9>(dataI());
+    case -10: return shifted_impl<-10>(dataI());
+    case -11: return shifted_impl<-11>(dataI());
+    case -12: return shifted_impl<-12>(dataI());
+    case -13: return shifted_impl<-13>(dataI());
+    case -14: return shifted_impl<-14>(dataI());
+    case -15: return shifted_impl<-15>(dataI());
+    case -16: return shifted_impl<-16>(dataI());
+    case -17: return shifted_impl<-17>(dataI());
+    case -18: return shifted_impl<-18>(dataI());
+    case -19: return shifted_impl<-19>(dataI());
+    case -20: return shifted_impl<-20>(dataI());
+    case -21: return shifted_impl<-21>(dataI());
+    case -22: return shifted_impl<-22>(dataI());
+    case -23: return shifted_impl<-23>(dataI());
+    case -24: return shifted_impl<-24>(dataI());
+    case -25: return shifted_impl<-25>(dataI());
+    case -26: return shifted_impl<-26>(dataI());
+    case -27: return shifted_impl<-27>(dataI());
+    case -28: return shifted_impl<-28>(dataI());
+    case -29: return shifted_impl<-29>(dataI());
+    case -30: return shifted_impl<-30>(dataI());
+    case -31: return shifted_impl<-31>(dataI());
+    }
+    return Zero();
+}
+// }}}1
 
 /*
 template<> Vc_ALWAYS_INLINE Mask< 4, 32> &Mask< 4, 32>::operator=(const std::array<bool, 4> &values) {

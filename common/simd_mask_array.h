@@ -202,6 +202,11 @@ public:
         return {mask_type::generate(gen)};
     }
 
+    Vc_INTRINSIC Vc_PURE simd_mask_array shifted(int amount) const
+    {
+        return {data.shifted(amount)};
+    }
+
     /// \internal execute specified Operation
     template <typename Op, typename... Args>
     static Vc_INTRINSIC simd_mask_array fromOperation(Op op, Args &&... args)
@@ -420,6 +425,24 @@ public:
     {
         return {storage_type0::generate(gen),
                 storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
+    }
+
+    inline Vc_PURE simd_mask_array shifted(int amount) const
+    {
+        if (VC_IS_UNLIKELY(amount == 0)) {
+            return *this;
+        }
+        simd_mask_array r{};
+        if (amount < 0) {
+            for (int i = 0; i < int(Size) + amount; ++i) {
+                r[i - amount] = operator[](i);
+            }
+        } else {
+            for (int i = 0; i < int(Size) - amount; ++i) {
+                r[i] = operator[](i + amount);
+            }
+        }
+        return r;
     }
 
     /// \internal execute specified Operation

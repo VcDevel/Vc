@@ -213,6 +213,7 @@ private:
         Vc_ALWAYS_INLINE Vc_PURE unsigned int firstOne() const { return _bit_scan_forward(toInt()); }
 
         template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vc_PURE_L Mask shifted(int amount) const Vc_INTRINSIC_R Vc_PURE_R;
 
     private:
 #ifndef VC_IMPL_POPCNT

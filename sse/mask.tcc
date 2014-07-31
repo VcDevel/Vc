@@ -246,6 +246,57 @@ Vc_INTRINSIC Mask<T> Mask<T>::generate(G &&gen)
     return generate_impl<Mask<T>>(std::forward<G>(gen),
                                   std::integral_constant<int, Size>());
 }
+// shifted {{{1
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(amount > 0), T> shifted_impl(T k)
+{
+    return _mm_srli_si128(k, amount);
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(amount < 0), T> shifted_impl(T k)
+{
+    return _mm_slli_si128(k, -amount);
+}
+template <typename T> Vc_INTRINSIC Vc_PURE Mask<T> Mask<T>::shifted(int amount) const
+{
+    switch (amount * int(sizeof(VectorEntryType))) {
+    case   0: return *this;
+    case   1: return shifted_impl<  1>(dataI());
+    case   2: return shifted_impl<  2>(dataI());
+    case   3: return shifted_impl<  3>(dataI());
+    case   4: return shifted_impl<  4>(dataI());
+    case   5: return shifted_impl<  5>(dataI());
+    case   6: return shifted_impl<  6>(dataI());
+    case   7: return shifted_impl<  7>(dataI());
+    case   8: return shifted_impl<  8>(dataI());
+    case   9: return shifted_impl<  9>(dataI());
+    case  10: return shifted_impl< 10>(dataI());
+    case  11: return shifted_impl< 11>(dataI());
+    case  12: return shifted_impl< 12>(dataI());
+    case  13: return shifted_impl< 13>(dataI());
+    case  14: return shifted_impl< 14>(dataI());
+    case  15: return shifted_impl< 15>(dataI());
+    case  16: return shifted_impl< 16>(dataI());
+    case  -1: return shifted_impl< -1>(dataI());
+    case  -2: return shifted_impl< -2>(dataI());
+    case  -3: return shifted_impl< -3>(dataI());
+    case  -4: return shifted_impl< -4>(dataI());
+    case  -5: return shifted_impl< -5>(dataI());
+    case  -6: return shifted_impl< -6>(dataI());
+    case  -7: return shifted_impl< -7>(dataI());
+    case  -8: return shifted_impl< -8>(dataI());
+    case  -9: return shifted_impl< -9>(dataI());
+    case -10: return shifted_impl<-10>(dataI());
+    case -11: return shifted_impl<-11>(dataI());
+    case -12: return shifted_impl<-12>(dataI());
+    case -13: return shifted_impl<-13>(dataI());
+    case -14: return shifted_impl<-14>(dataI());
+    case -15: return shifted_impl<-15>(dataI());
+    case -16: return shifted_impl<-16>(dataI());
+    }
+    return Zero();
+}
+// }}}1
 
 }
 }
