@@ -158,6 +158,7 @@ template<> Vc_ALWAYS_INLINE m256 mask_load<m256, 4>(const bool *mem)
 
 } // namespace internal
 
+// store {{{1
 template<> Vc_ALWAYS_INLINE void Mask<double>::store(bool *mem) const
 {
     typedef uint16_t boolAlias Vc_MAY_ALIAS;
@@ -169,15 +170,16 @@ template<typename T> Vc_ALWAYS_INLINE void Mask<T>::store(bool *mem) const
 {
     internal::mask_store<Size>(dataI(), mem);
 }
+// load {{{1
 template<typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
 {
     d.v() = internal::mask_load<VectorType, Size>(mem);
 }
-
+// operator[] {{{1
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE bool Mask<T>::operator[](size_t index) const { return toInt() & (1 << index); }
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
-
+// generate {{{1
 template <typename M, typename G>
 Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 32>)
 {
