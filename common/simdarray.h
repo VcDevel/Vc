@@ -877,6 +877,8 @@ Vc_INTRINSIC Vc_CONST Return
     }
     return r;
 }
+
+// simd_cast_without_last (declaration) {{{2
 template <typename Return, typename T, typename... From>
 Vc_INTRINSIC_L Vc_CONST_L Return
     simd_cast_without_last(const From &... xs, const T &) Vc_INTRINSIC_R Vc_CONST_R;
@@ -1101,8 +1103,9 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
          !std::is_same<Return, simdarray_type__<T, N, V, N>>::value),                    \
         Return> simd_cast(const simdarray_type__<T, N, V, N> &x0, const From &... xs)    \
     {                                                                                    \
-        return simd_cast_without_last<Return, simdarray_type__<T, N, V, N>, From...>(    \
-            internal_data(x0), internal_data(xs)...);                                    \
+        return simd_cast_without_last<                                                   \
+            Return, typename simdarray_type__<T, N, V, N>::storage_type,                 \
+            typename From::storage_type...>(internal_data(x0), internal_data(xs)...);    \
     }                                                                                    \
     /* bisectable simdarray_type__ (N = 2^n) && never too large */                       \
     template <typename Return, typename T, std::size_t N, typename V, std::size_t M,     \
@@ -1295,9 +1298,12 @@ Vc_INTRINSIC Vc_CONST
     return simd_cast<Return>(x, xs...);
 }
 
-// simd_cast_without_last (definitions) {{{2
+// simd_cast_without_last (definition) {{{2
 template <typename Return, typename T, typename... From>
-Vc_INTRINSIC Vc_CONST Return simd_cast_without_last(const From &... xs, const T &) { return simd_cast<Return>(xs...); }
+Vc_INTRINSIC Vc_CONST Return simd_cast_without_last(const From &... xs, const T &)
+{
+    return simd_cast<Return>(xs...);
+}
 
 // simd_cast_interleaved_argument_order (definitions) {{{2
 template <typename Return, typename T>
