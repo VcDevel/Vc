@@ -955,6 +955,14 @@ Vc_INTRINSIC Vc_CONST enable_if<
     return simd_cast_with_offset<Return, offset - From::Size>(xs...);
 }
 
+// offset > first and only argument (returns Zero) {{{3
+template <typename Return, std::size_t offset, typename From>
+Vc_INTRINSIC Vc_CONST enable_if<(From::Size <= offset), Return> simd_cast_with_offset(
+    From)
+{
+    return Return::Zero();
+}
+
 // first_type_of {{{2
 template <typename T, typename... Ts> struct first_type_of_impl
 {
