@@ -914,6 +914,22 @@ template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
                                          const T &e, const T &f, const T &g, const T &h,
+                                         const T &i, const T &j);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f, const T &g, const T &h,
+                                         const T &i, const T &j, const T &k, const T &l);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f, const T &g, const T &h,
+                                         const T &i, const T &j, const T &k, const T &l,
+                                         const T &m, const T &n);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f, const T &g, const T &h,
                                          const T &i, const T &j, const T &k, const T &l,
                                          const T &m, const T &n, const T &o, const T &p);
 
@@ -1330,6 +1346,31 @@ Vc_INTRINSIC Vc_CONST Return
                                          const T &e, const T &f, const T &g, const T &h)
 {
     return simd_cast<Return>(a, e, b, f, c, g, d, h);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f, const T &g, const T &h,
+                                         const T &i, const T &j)
+{
+    return simd_cast<Return>(a, f, b, g, c, h, d, i, e, j);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f, const T &g, const T &h,
+                                         const T &i, const T &j, const T &k, const T &l)
+{
+    return simd_cast<Return>(a, g, b, h, c, i, d, j, e, k, f, l);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f, const T &g, const T &h,
+                                         const T &i, const T &j, const T &k, const T &l,
+                                         const T &m, const T &n)
+{
+    return simd_cast<Return>(a, h, b, i, c, j, d, k, e, l, f, m, g, n);
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
