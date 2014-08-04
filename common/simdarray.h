@@ -894,51 +894,59 @@ struct are_all_types_equal<T0, T1, Ts...>
 {
 };
 
-// simd_cast_interleaved_argument_order {{{2
+// simd_cast_interleaved_argument_order (declarations) {{{2
 template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return simd_cast_interleaved_argument_order(const T &a, const T &b)
-{
-    return simd_cast<Return>(a, b);
-}
+Vc_INTRINSIC Vc_CONST Return simd_cast_interleaved_argument_order(const T &a, const T &b);
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d)
-{
-    return simd_cast<Return>(a, c, b, d);
-}
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d);
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f)
-{
-    return simd_cast<Return>(a, d, b, e, c, f);
-}
+                                         const T &e, const T &f);
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h)
-{
-    return simd_cast<Return>(a, e, b, f, c, g, d, h);
-}
+                                         const T &e, const T &f, const T &g, const T &h);
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
                                          const T &e, const T &f, const T &g, const T &h,
                                          const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n, const T &o, const T &p)
-{
-    return simd_cast<Return>(a, i, b, j, c, k, d, l, e, m, f, n, g, o, h, p);
-}
+                                         const T &m, const T &n, const T &o, const T &p);
 
-// simd_cast<T>(xs...) to simdarray/-mask {{{2
+// simd_cast_with_offset (declarations and one impl) {{{2
+// offset == 0 {{{3
 template <typename Return, std::size_t offset, typename From, typename... Froms>
 Vc_INTRINSIC Vc_CONST
     enable_if<(are_all_types_equal<From, Froms...>::value && offset == 0), Return>
         simd_cast_with_offset(From x, Froms... xs);
+// offset > 0 && offset divisible by Return::Size {{{3
 template <typename Return, std::size_t offset, typename From>
 Vc_INTRINSIC Vc_CONST
     enable_if<(From::Size > offset && offset > 0 && offset % Return::Size == 0), Return>
         simd_cast_with_offset(From x);
+// offset > 0 && offset NOT divisible && Return is non-atomic simd(mask)array {{{3
+template <typename Return, std::size_t offset, typename From>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(From::Size > offset && offset > 0 && offset % Return::Size != 0 &&
+               ((Traits::is_simdarray<Return>::value &&
+                 !Traits::is_atomic_simdarray<Return>::value) ||
+                (Traits::is_simd_mask_array<Return>::value &&
+                 !Traits::is_atomic_simd_mask_array<Return>::value))),
+              Return>
+        simd_cast_with_offset(From x);
+// offset > 0 && offset NOT divisible && Return is atomic simd(mask)array {{{3
+template <typename Return, std::size_t offset, typename From>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(From::Size > offset && offset > 0 && offset % Return::Size != 0 &&
+               ((Traits::is_simdarray<Return>::value &&
+                 Traits::is_atomic_simdarray<Return>::value) ||
+                (Traits::is_simd_mask_array<Return>::value &&
+                 Traits::is_atomic_simd_mask_array<Return>::value))),
+              Return>
+        simd_cast_with_offset(From x);
+// offset > first argument (drops first arg) {{{3
 template <typename Return, std::size_t offset, typename From, typename... Froms>
 Vc_INTRINSIC Vc_CONST enable_if<
     (are_all_types_equal<From, Froms...>::value && From::Size <= offset), Return>
@@ -947,12 +955,14 @@ Vc_INTRINSIC Vc_CONST enable_if<
     return simd_cast_with_offset<Return, offset - From::Size>(xs...);
 }
 
+// first_type_of {{{2
 template <typename T, typename... Ts> struct first_type_of_impl
 {
     using type = T;
 };
 template <typename... Ts> using first_type_of = typename first_type_of_impl<Ts...>::type;
 
+// simd_cast_drop_arguments (declarations) {{{2
 template <typename Return, typename From>
 Vc_INTRINSIC Vc_CONST Return simd_cast_drop_arguments(From x);
 template <typename Return, typename... Froms>
@@ -967,6 +977,7 @@ Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
                                 Return>
     simd_cast_drop_arguments(Froms... xs, From x, From);
 
+// simd_cast<T>(xs...) to simdarray/-mask {{{2
 #define Vc_SIMDARRAY_CASTS(simdarray_type__, trait_name__)                               \
     template <typename Return, typename From, typename... Froms>                         \
     Vc_INTRINSIC Vc_CONST                                                                \
@@ -1010,29 +1021,6 @@ Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
 Vc_SIMDARRAY_CASTS(simdarray, vector)
 Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
 #undef Vc_SIMDARRAY_CASTS
-
-template <typename Return, typename From>
-Vc_INTRINSIC Vc_CONST Return simd_cast_drop_arguments(From x)
-{
-    return simd_cast<Return>(x);
-}
-template <typename Return, typename... Froms>
-Vc_INTRINSIC Vc_CONST
-    enable_if<(are_all_types_equal<Froms...>::value &&
-               sizeof...(Froms) * first_type_of<Froms...>::Size < Return::Size),
-              Return>
-        simd_cast_drop_arguments(Froms... xs, first_type_of<Froms...> x)
-{
-    return simd_cast<Return>(xs..., x);
-}
-template <typename Return, typename From, typename... Froms>
-Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
-                                 (1 + sizeof...(Froms)) * From::Size >= Return::Size),
-                                Return>
-    simd_cast_drop_arguments(Froms... xs, From x, From)
-{
-    return simd_cast_drop_arguments<Return, Froms...>(xs..., x);
-}
 
 // simd_cast<simdarray/-mask, offset>(V) {{{2
 #define Vc_SIMDARRAY_CASTS(simdarray_type__, trait_name__)                               \
@@ -1223,13 +1211,64 @@ Vc_SIMDARRAY_CASTS(simd_mask_array)
 Vc_SIMDARRAY_CASTS(simdarray)
 Vc_SIMDARRAY_CASTS(simd_mask_array)
 #undef Vc_SIMDARRAY_CASTS
-
-template <typename Return, std::size_t offset, typename From>
+// simd_cast_drop_arguments (definitions) {{{2
+template <typename Return, typename From>
+Vc_INTRINSIC Vc_CONST Return simd_cast_drop_arguments(From x)
+{
+    return simd_cast<Return>(x);
+}
+template <typename Return, typename... Froms>
 Vc_INTRINSIC Vc_CONST
-    enable_if<(From::Size > offset && offset > 0 && offset % Return::Size == 0), Return>
-        simd_cast_with_offset(From x)
+    enable_if<(are_all_types_equal<Froms...>::value &&
+               sizeof...(Froms) * first_type_of<Froms...>::Size < Return::Size),
+              Return>
+        simd_cast_drop_arguments(Froms... xs, first_type_of<Froms...> x)
+{
+    return simd_cast<Return>(xs..., x);
+}
+template <typename Return, typename From, typename... Froms>
+Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
+                                 (1 + sizeof...(Froms)) * From::Size >= Return::Size),
+                                Return>
+    simd_cast_drop_arguments(Froms... xs, From x, From)
+{
+    return simd_cast_drop_arguments<Return, Froms...>(xs..., x);
+}
+
+// simd_cast_with_offset (definitions) {{{2
+    template <typename Return, std::size_t offset, typename From>
+    Vc_INTRINSIC Vc_CONST
+    enable_if<(From::Size > offset && offset > 0 && offset % Return::Size == 0),
+              Return> simd_cast_with_offset(From x)
 {
     return simd_cast<Return, offset / Return::Size>(x);
+}
+template <typename Return, std::size_t offset, typename From>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(From::Size > offset && offset > 0 && offset % Return::Size != 0 &&
+               ((Traits::is_simdarray<Return>::value &&
+                 !Traits::is_atomic_simdarray<Return>::value) ||
+                (Traits::is_simd_mask_array<Return>::value &&
+                 !Traits::is_atomic_simd_mask_array<Return>::value))),
+              Return>
+        simd_cast_with_offset(From x)
+{
+    using R0 = typename Return::storage_type0;
+    using R1 = typename Return::storage_type1;
+    return {simd_cast_with_offset<R0, offset>(x),
+            simd_cast_with_offset<R1, offset + R0::Size>(x)};
+}
+template <typename Return, std::size_t offset, typename From>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(From::Size > offset && offset > 0 && offset % Return::Size != 0 &&
+               ((Traits::is_simdarray<Return>::value &&
+                 Traits::is_atomic_simdarray<Return>::value) ||
+                (Traits::is_simd_mask_array<Return>::value &&
+                 Traits::is_atomic_simd_mask_array<Return>::value))),
+              Return>
+        simd_cast_with_offset(From x)
+{
+    return simd_cast<Return, offset / Return::Size>(x.shifted(offset % Return::Size));
 }
 template <typename Return, std::size_t offset, typename From, typename... Froms>
 Vc_INTRINSIC Vc_CONST
@@ -1239,11 +1278,44 @@ Vc_INTRINSIC Vc_CONST
     return simd_cast<Return>(x, xs...);
 }
 
-// simd_cast_without_last {{{2
+// simd_cast_without_last (definitions) {{{2
 template <typename Return, typename T, typename... From>
-Vc_INTRINSIC Vc_CONST Return simd_cast_without_last(const From &... xs, const T &)
+Vc_INTRINSIC Vc_CONST Return simd_cast_without_last(const From &... xs, const T &) { return simd_cast<Return>(xs...); }
+
+// simd_cast_interleaved_argument_order (definitions) {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return simd_cast_interleaved_argument_order(const T &a, const T &b)
 {
-    return simd_cast<Return>(xs...);
+    return simd_cast<Return>(a, b);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d)
+{
+    return simd_cast<Return>(a, c, b, d);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f)
+{
+    return simd_cast<Return>(a, d, b, e, c, f);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f, const T &g, const T &h)
+{
+    return simd_cast<Return>(a, e, b, f, c, g, d, h);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
+                                         const T &e, const T &f, const T &g, const T &h,
+                                         const T &i, const T &j, const T &k, const T &l,
+                                         const T &m, const T &n, const T &o, const T &p)
+{
+    return simd_cast<Return>(a, i, b, j, c, k, d, l, e, m, f, n, g, o, h, p);
 }
 
 // }}}1
