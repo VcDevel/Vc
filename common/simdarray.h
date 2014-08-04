@@ -1010,10 +1010,22 @@ Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
         enable_if<(Traits::is_atomic_##simdarray_type__<Return>::value &&                \
                    !Traits::is_##simdarray_type__<From>::value &&                        \
                    Traits::is_simd_##trait_name__<From>::value &&                        \
+                   From::Size * sizeof...(Froms) < Return::Size &&                       \
                    are_all_types_equal<From, Froms...>::value),                          \
                   Return> simd_cast(From x, Froms... xs)                                 \
     {                                                                                    \
         return {simd_cast<typename Return::storage_type>(x, xs...)};                     \
+    }                                                                                    \
+    template <typename Return, typename From, typename... Froms>                         \
+    Vc_INTRINSIC Vc_CONST                                                                \
+        enable_if<(Traits::is_atomic_##simdarray_type__<Return>::value &&                \
+                   !Traits::is_##simdarray_type__<From>::value &&                        \
+                   Traits::is_simd_##trait_name__<From>::value &&                        \
+                   From::Size * sizeof...(Froms) >= Return::Size &&                      \
+                   are_all_types_equal<From, Froms...>::value),                          \
+                  Return> simd_cast(From x, Froms... xs)                                 \
+    {                                                                                    \
+        return {simd_cast_without_last<Return, From, Froms...>(x, xs...)};               \
     }                                                                                    \
     template <typename Return, typename From, typename... Froms>                         \
     Vc_INTRINSIC Vc_CONST enable_if<                                                     \
