@@ -50,6 +50,15 @@ Vc_DEFINE_OPERATION(setZero);
 Vc_DEFINE_OPERATION(setZeroInverted);
 Vc_DEFINE_OPERATION(assign);
 #undef Vc_DEFINE_OPERATION
+#define Vc_DEFINE_OPERATION(name__, code__)                                              \
+    struct name__ : public tag                                                           \
+    {                                                                                    \
+        template <typename V> Vc_INTRINSIC void operator()(V & v) { code__; }            \
+    }
+Vc_DEFINE_OPERATION(increment, ++v);
+Vc_DEFINE_OPERATION(decrement, --v);
+Vc_DEFINE_OPERATION(random, v = V::Random());
+#undef Vc_DEFINE_OPERATION
 #define Vc_DEFINE_OPERATION(name__, code__)                                                        \
     struct name__ : public tag                                                                     \
     {                                                                                              \
@@ -59,10 +68,7 @@ Vc_DEFINE_OPERATION(assign);
             code__;                                                                                \
         }                                                                                          \
     }
-Vc_DEFINE_OPERATION(increment, ++v);
-Vc_DEFINE_OPERATION(decrement, --v);
-Vc_DEFINE_OPERATION(random, v = V::Random());
-Vc_DEFINE_OPERATION(Abs, v = abs(v));
+Vc_DEFINE_OPERATION(Abs, v = abs(std::forward<Args>(args)...));
 Vc_DEFINE_OPERATION(Isnan, v = isnan(std::forward<Args>(args)...));
 Vc_DEFINE_OPERATION(Frexp, v = frexp(std::forward<Args>(args)...));
 Vc_DEFINE_OPERATION(Ldexp, v = ldexp(std::forward<Args>(args)...));
