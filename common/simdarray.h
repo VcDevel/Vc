@@ -897,71 +897,28 @@ struct are_all_types_equal<T0, T1, Ts...>
 };
 
 // simd_cast_interleaved_argument_order (declarations) {{{2
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return simd_cast_interleaved_argument_order(const T &a, const T &b);
-template <typename Return, typename T>
+/*! \internal
+  The need for simd_cast_interleaved_argument_order stems from a shortcoming in pack
+  expansion of variadic templates in C++. For a simd_cast with simdarray arguments that
+  are bisectable (i.e.  \c storage_type0 and \c storage_type1 are equal) the generic
+  implementation needs to forward to a simd_cast of the \c internal_data0 and \c
+  internal_data1 of the arguments. But the required order of arguments is
+  `internal_data0(arg0), internal_data1(arg0), internal_data0(arg1), ...`. This is
+  impossible to achieve with pack expansion. It is only possible to write
+  `internal_data0(args)..., internal_data1(args)...` and thus have the argument order
+  mixed up. The simd_cast_interleaved_argument_order “simply” calls simd_cast with the
+  arguments correctly reordered (i.e. interleaved).
+
+  The implementation of simd_cast_interleaved_argument_order is done generically, so that
+  it supports any number of arguments. The central idea of the implementation is an
+  `extract` function which returns one value of an argument pack determined via an index
+  passed as template argument. This index is generated via an index_sequence. The
+  `extract` function uses two argument packs (of equal size) to easily return values from
+  the front and middle of the argument pack (for doing the deinterleave).
+ */
+template <typename Return, typename... Ts>
 Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d);
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f);
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h);
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j);
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l);
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n);
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n, const T &o, const T &p);
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n, const T &o, const T &p,
-                                         const T &q, const T &r);
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n, const T &o, const T &p,
-                                         const T &q, const T &r, const T &s, const T &t);
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n, const T &o, const T &p,
-                                         const T &q, const T &r, const T &s, const T &t,
-                                         const T &u, const T &v);
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n, const T &o, const T &p,
-                                         const T &q, const T &r, const T &s, const T &t,
-                                         const T &u, const T &v, const T &w, const T &x);
+    simd_cast_interleaved_argument_order(const Ts &... a, const Ts &... b);
 
 // simd_cast_with_offset (declarations and one impl) {{{2
 // offset == 0 {{{3
@@ -1173,9 +1130,10 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
          N * sizeof...(From) < Return::Size && ((N - 1) & N) == 0),                      \
         Return> simd_cast(const simdarray_type__<T, N, V, M> &x0, const From &... xs)    \
     {                                                                                    \
-        return simd_cast_interleaved_argument_order<Return>(                             \
-            internal_data0(x0), internal_data0(xs)..., internal_data1(x0),               \
-            internal_data1(xs)...);                                                      \
+        return simd_cast_interleaved_argument_order<                                     \
+            Return, typename simdarray_type__<T, N, V, M>::storage_type0,                \
+            typename From::storage_type0...>(internal_data0(x0), internal_data0(xs)...,  \
+                                             internal_data1(x0), internal_data1(xs)...); \
     }                                                                                    \
     /* bisectable simdarray_type__ (N = 2^n) && input so large that at least the last    \
      * input can be dropped */                                                           \
@@ -1364,108 +1322,89 @@ Vc_INTRINSIC Vc_CONST Return simd_cast_without_last(const From &... xs, const T 
 }
 
 // simd_cast_interleaved_argument_order (definitions) {{{2
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return simd_cast_interleaved_argument_order(const T &a, const T &b)
+/** \internal
+ * Helper class for a sequence of size_t values from 0 to N. This type will be included in
+ * C++14.
+ */
+template <std::size_t... I> struct index_sequence
 {
-    return simd_cast<Return>(a, b);
+    static constexpr std::size_t size() noexcept { return sizeof...(I); }
+};
+
+/** \internal
+ * This struct builds an index_sequence type from a given upper bound \p N.
+ * It does so recursively via appending N - 1 to make_index_sequence_impl<N - 1>.
+ */
+template <std::size_t N, typename Prev = void> struct make_index_sequence_impl;
+/// \internal constructs an empty index_sequence
+template <> struct make_index_sequence_impl<0, void>
+{
+    using type = index_sequence<>;
+};
+/// \internal appends `N-1` to make_index_sequence<N-1>
+template <std::size_t N> struct make_index_sequence_impl<N, void>
+{
+    using type = typename make_index_sequence_impl<
+        N, typename make_index_sequence_impl<N - 1>::type>::type;
+};
+/// \internal constructs the index_sequence `Ns..., N-1`
+template <std::size_t N, std::size_t... Ns>
+struct make_index_sequence_impl<N, index_sequence<Ns...>>
+{
+    using type = index_sequence<Ns..., N - 1>;
+};
+
+/** \internal
+ * Creates an index_sequence type for the upper bound \p N.
+ */
+template <std::size_t N>
+using make_index_sequence = typename make_index_sequence_impl<N>::type;
+
+/// \internal returns the first argument
+template <std::size_t I, typename T0, typename... Ts>
+Vc_INTRINSIC Vc_CONST enable_if<(I == 0), T0> extract_front(const T0 &a0, const Ts &... a,
+                                                            const T0 &b0, const Ts &... b)
+{
+    return a0;
 }
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d)
+/// \internal returns the center argument
+template <std::size_t I, typename T0, typename... Ts>
+Vc_INTRINSIC Vc_CONST enable_if<(I == 1), T0> extract_front(const T0 &a0, const Ts &... a,
+                                                            const T0 &b0, const Ts &... b)
 {
-    return simd_cast<Return>(a, c, b, d);
+    return b0;
 }
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f)
+/// \internal drops the first and center arguments and recurses
+template <std::size_t I, typename T0, typename... Ts>
+Vc_INTRINSIC Vc_CONST enable_if<(I > 1), T0> extract_front(const T0 &a0, const Ts &... a,
+                                                           const T0 &b0, const Ts &... b)
 {
-    return simd_cast<Return>(a, d, b, e, c, f);
+    return extract_front<I - 2, Ts...>(a..., b...);
 }
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h)
+/// \internal calls extract_front with the correct offset
+template <std::size_t I, typename T0, typename... Ts>
+Vc_INTRINSIC Vc_CONST T0
+    extract_back(const T0 &a0, const Ts &... a, const T0 &b0, const Ts &... b)
 {
-    return simd_cast<Return>(a, e, b, f, c, g, d, h);
+    return extract_front<I + 1 + sizeof...(Ts), T0, Ts...>(a0, a..., b0, b...);
 }
-template <typename Return, typename T>
+/// \internal calls simd_cast with correct argument order thanks to extract_front and extract_back.
+template <typename Return, typename... Ts, std::size_t... Indexes>
 Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j)
+    simd_cast_interleaved_argument_order_1(index_sequence<Indexes...>, const Ts &... a,
+                                           const Ts &... b)
 {
-    return simd_cast<Return>(a, f, b, g, c, h, d, i, e, j);
+    return simd_cast<Return>(extract_front<Indexes, Ts...>(a..., b...)...,
+                             extract_back<Indexes, Ts...>(a..., b...)...);
 }
-template <typename Return, typename T>
+/// \internal constructs the necessary index_sequence to pass it to
+/// simd_cast_interleaved_argument_order_1
+template <typename Return, typename... Ts>
 Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l)
+    simd_cast_interleaved_argument_order(const Ts &... a, const Ts &... b)
 {
-    return simd_cast<Return>(a, g, b, h, c, i, d, j, e, k, f, l);
-}
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n)
-{
-    return simd_cast<Return>(a, h, b, i, c, j, d, k, e, l, f, m, g, n);
-}
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n, const T &o, const T &p)
-{
-    return simd_cast<Return>(a, i, b, j, c, k, d, l, e, m, f, n, g, o, h, p);
-}
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n, const T &o, const T &p,
-                                         const T &q, const T &r)
-{
-    return simd_cast<Return>(a, j, b, k, c, l, d, m, e, n, f, o, g, p, h, q, i, r);
-}
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n, const T &o, const T &p,
-                                         const T &q, const T &r, const T &s, const T &t)
-{
-    return simd_cast<Return>(a, k, b, l, c, m, d, n, e, o, f, p, g, q, h, r, i, s, j, t);
-}
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n, const T &o, const T &p,
-                                         const T &q, const T &r, const T &s, const T &t,
-                                         const T &u, const T &v)
-{
-    return simd_cast<Return>(a, l, b, m, c, n, d, o, e, p, f, q, g, r, h, s, i, t, j, u,
-                             k, v);
-}
-template <typename Return, typename T>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_interleaved_argument_order(const T &a, const T &b, const T &c, const T &d,
-                                         const T &e, const T &f, const T &g, const T &h,
-                                         const T &i, const T &j, const T &k, const T &l,
-                                         const T &m, const T &n, const T &o, const T &p,
-                                         const T &q, const T &r, const T &s, const T &t,
-                                         const T &u, const T &v, const T &w, const T &x)
-{
-    return simd_cast<Return>(a, m, b, n, c, o, d, p, e, q, f, r, g, s, h, t, i, u, j, v,
-                             k, w, l, x);
+    using seq = make_index_sequence<sizeof...(Ts)>;
+    return simd_cast_interleaved_argument_order_1<Return, Ts...>(seq(), a..., b...);
 }
 
 // }}}1
