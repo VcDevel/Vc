@@ -64,7 +64,7 @@ template<typename Pair> void testDeinterleave()
     const bool isSigned = std::numeric_limits<M>::is_signed;
 
     const typename V::EntryType offset = isSigned ? -512 : 0;
-    const V _0246 = static_cast<V>(I::IndexesFromZero()) * 2 + offset;
+    const V _0246 = Vc::simd_cast<V>(I::IndexesFromZero()) * 2 + offset;
 
     M memory[1024];
     for (int i = 0; i < 1024; ++i) {
@@ -232,13 +232,13 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
         I indexes = (I::Random() >> 10) & I(NMask);
         VERIFY(all_of(indexes >= 0));
         VERIFY(all_of(indexes < N));
-        const V reference = static_cast<V>(indexes) * V(StructSize);
+        const V reference = Vc::simd_cast<V>(indexes) * V(StructSize);
 
         TestDeinterleaveGatherCompare<V, StructSize, true>::test(data_v, indexes, reference);
     }
 
-    for (size_t i = 0; i < N - V::Size; ++i) {
-        const V reference = static_cast<V>(i + I::IndexesFromZero()) * T(StructSize);
+    for (int i = 0; i < int(N - V::Size); ++i) {
+        const V reference = Vc::simd_cast<V>(i + I::IndexesFromZero()) * T(StructSize);
         TestDeinterleaveGatherCompare<V, StructSize, false>::test(data_v, i, reference);
     }
 }

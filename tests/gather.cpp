@@ -69,7 +69,7 @@ Vec incrementIndex(
     typename std::enable_if<!(Vc::is_integral<Vec>::value &&Vc::is_signed<Vec>::value),
                             void *>::type = nullptr)
 {
-    return static_cast<Vec>(i + i.One());
+    return Vc::simd_cast<Vec>(i + i.One());
 }
 
 template <typename Vec>
@@ -81,9 +81,10 @@ Vec incrementIndex(const typename Vec::IndexType &i,
     using T = typename Vec::EntryType;
     // if (i + 1) > std::numeric_limits<Vec>::max() it will overflow, which results in
     // undefined behavior for signed integers
-    const typename Vec::Mask overflowing{i >= static_cast<IT>(std::numeric_limits<T>::max())};
-    Vec r(i + IT::One());
-    where(overflowing) | r = static_cast<Vec>(i - std::numeric_limits<T>::max() + std::numeric_limits<T>::min());
+    const auto overflowing =
+        Vc::simd_cast<typename Vec::Mask>(i >= IT(std::numeric_limits<T>::max()));
+    Vec r = Vc::simd_cast<Vec>(i + IT::One());
+    where(overflowing) | r = Vc::simd_cast<Vec>(i - std::numeric_limits<T>::max() + std::numeric_limits<T>::min());
     return r;
 }
 
@@ -150,9 +151,9 @@ TEST_TYPES(Vec, gatherStruct, ALL_TYPES)
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         // if Vec is double_v the cast keeps only the lower two values, which is why the ==
         // comparison works
-        const Vec i0(i);
-        const Vec i1(i + 1);
-        const Vec i2(i + 2);
+        const Vec i0 = Vc::simd_cast<Vec>(i);
+        const Vec i1 = Vc::simd_cast<Vec>(i + 1);
+        const Vec i2 = Vc::simd_cast<Vec>(i + 2);
         const typename Vec::Mask castedMask(mask);
 
         if (castedMask.isFull()) {
@@ -204,7 +205,7 @@ TEST_TYPES(Vec, gather2dim, ALL_TYPES)
     typename It::Mask mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         for (It j = It(IndexesFromZero); !(mask &= (j < count)).isEmpty(); j += Vec::Size) {
-            const Vec i0(i * 2 + j + 1);
+            const Vec i0 = Vc::simd_cast<Vec>(i * 2 + j + 1);
             const typename Vec::Mask castedMask(mask);
 
             Vec a;

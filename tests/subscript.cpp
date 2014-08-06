@@ -97,9 +97,9 @@ TEST_TYPES(V, gathers, ALL_TYPES)
     for (int repetition = 0; repetition < 1024 / V::Size; ++repetition) {
         const IT indexes = randomIndexes<IT, 256>();
         test = data[indexes];
-        COMPARE(test, static_cast<V>(indexes));
+        COMPARE(test, Vc::simd_cast<V>(indexes));
         test = data2[indexes];
-        COMPARE(test, static_cast<V>(indexes));
+        COMPARE(test, Vc::simd_cast<V>(indexes));
     }
 }
 
@@ -216,16 +216,16 @@ TEST_TYPES(V, structGathers, ALL_TYPES)
     for (int repetition = 0; repetition < 1024 / V::Size; ++repetition) {
         const IT indexes = randomIndexes<IT, 256>();
         test = data1[indexes][&S<T>::b];
-        COMPARE(test, static_cast<V>(indexes + 1));
+        COMPARE(test, Vc::simd_cast<V>(indexes + 1));
 
         test = data2[indexes][&S<S<T>>::c][&S<T>::b];
-        COMPARE(test, static_cast<V>(indexes + 3));
+        COMPARE(test, Vc::simd_cast<V>(indexes + 3));
 
         test = data3[indexes][&S<S<S<T>>>::b][&S<S<T>>::c][&S<T>::b];
-        COMPARE(test, static_cast<V>(indexes + 4));
+        COMPARE(test, Vc::simd_cast<V>(indexes + 4));
 
         test = data4[indexes][&S<S<S<S<T>>>>::c][&S<S<S<T>>>::b][&S<S<T>>::c][&S<T>::b];
-        COMPARE(test, static_cast<V>(indexes + 6));
+        COMPARE(test, Vc::simd_cast<V>(indexes + 6));
     }
 }
 
@@ -257,7 +257,7 @@ TEST_TYPES(V, subarrayGathers, ALL_TYPES)
         const IT indexes2 = randomIndexes<IT, 256>();
 
         test = data1[indexes1][indexes2];
-        COMPARE(test, static_cast<V>(indexes1 + indexes2));
+        COMPARE(test, Vc::simd_cast<V>(indexes1 + indexes2));
     }
 
     Vc::vector<std::array<T, 256>> data2(64);
@@ -333,7 +333,7 @@ TEST(promotionOfIndexVectorType)
     }
 
     const Vc::short_v indexes = 1023 - Vc::short_v::IndexesFromZero();
-    Vc::int_v reference = static_cast<Vc::int_v>(indexes) * 1024;
+    Vc::int_v reference = Vc::simd_cast<Vc::int_v>(indexes) * 1024;
     Vc::int_v test = data[indexes][0];
     COMPARE(test, reference);
 }

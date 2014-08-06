@@ -189,9 +189,9 @@ TEST_TYPES(Vec, scatterStruct2, (ALL_TYPES)) //{{{1
         Vec a = Vec(); a(castedMask) = array[i][&S1::b][&S2::a];
         Vec b = Vec(); b(castedMask) = array[i][&S1::b][&S2::b];
         Vec c = Vec(); c(castedMask) = array[i][&S1::b][&S2::c];
-        COMPARE(a, static_cast<Vec>(makeReference(i, mask)));
-        COMPARE(b, static_cast<Vec>(makeReference(i + 1, mask)));
-        COMPARE(c, static_cast<Vec>(makeReference(i + 2, mask)));
+        COMPARE(a, Vc::simd_cast<Vec>(makeReference(i, mask)));
+        COMPARE(b, Vc::simd_cast<Vec>(makeReference(i + 1, mask)));
+        COMPARE(c, Vc::simd_cast<Vec>(makeReference(i + 2, mask)));
         where(castedMask) | out[i][&S1::b][&S2::a] = a;
         where(castedMask) | out[i][&S1::b][&S2::b] = b;
         where(castedMask) | out[i][&S1::b][&S2::c] = c;
