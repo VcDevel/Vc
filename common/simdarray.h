@@ -1079,7 +1079,6 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
         Return> simd_cast(From x)                                                        \
     {                                                                                    \
         using R0 = typename Return::storage_type0;                                       \
-        using R1 = typename Return::storage_type1;                                       \
         constexpr int entries_offset = offset * Return::Size;                            \
         constexpr int entries_offset_right = entries_offset + R0::Size;                  \
         return {                                                                         \
