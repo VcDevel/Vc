@@ -60,7 +60,7 @@ public:
     // explicitly enable Base::operator[] because the following would hide it
     using Base::operator[];
 
-    // forward to non-member subscript_operator function
+    /// \internal forward to non-member subscript_operator function
     template <typename I,
               typename = enable_if<
                   !std::is_arithmetic<typename std::decay<I>::type>::value>  // arithmetic types
