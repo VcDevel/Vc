@@ -462,9 +462,12 @@ public:
     template <typename U, typename... Args,
               typename = enable_if<Traits::is_gather_signature<U *, Args...>::value>>
     explicit Vc_INTRINSIC simdarray(U *mem, Args &&... args)
-        : data0(mem, Split::lo(args)...)  // no forward here - it could move and thus
-                                          // break the next line
-        , data1(mem, Split::hi(std::forward<Args>(args))...)
+        : data0(mem,
+                Split::lo(
+                    Common::Operations::gather(),
+                    args  // no forward here - it could move and thus break the next line
+                    )...)
+        , data1(mem, Split::hi(Common::Operations::gather(), std::forward<Args>(args))...)
     {
     }
 

@@ -181,6 +181,17 @@ template <std::size_t secondOffset> struct Split/*{{{*/
         return std::forward<U>(x);
     }
 
+    template <typename U>
+    static Vc_INTRINSIC const U *lo(Operations::gather, const U *ptr)
+    {
+        return ptr;
+    }
+    template <typename U>
+    static Vc_INTRINSIC const U *hi(Operations::gather, const U *ptr)
+    {
+        return ptr + secondOffset;
+    }
+
     // generic pointer arguments (simdarray pointers below)
     template <typename Op, typename U> static Vc_ALWAYS_INLINE U *lo(U *ptr) { return ptr; }
     template <typename Op, typename U>
