@@ -34,7 +34,10 @@ using namespace Vc;
      SIMD_ARRAYS(2),                                                                               \
      SIMD_ARRAYS(1))
 
-template<typename T, size_t N> constexpr size_t captureN(simdarray<T, N>) { return N; }
+template <typename T, size_t N> constexpr size_t captureN(const simdarray<T, N> &)
+{
+    return N;
+}
 
 TEST_TYPES(V, createArray, SIMD_ARRAY_LIST)
 {
