@@ -238,11 +238,7 @@ class SubscriptOperation
 
     IndexVectorScaled convertedIndexes() const
     {
-        IndexVectorScaled r(m_indexes.size());
-        auto it = begin(m_indexes);
-        for (auto &v : r) {
-            v = *it++;
-        }
+        IndexVectorScaled r(begin(m_indexes), end(m_indexes));
         return r;
     }
 
