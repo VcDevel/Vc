@@ -607,6 +607,7 @@ public:
     struct NoEq {};
     struct AbsoluteError {};
     struct RelativeError {};
+    struct Mem {};
 
     // Normal Compare ctor {{{2
     template <typename T1, typename T2>
@@ -634,6 +635,36 @@ public:
             print(std::setprecision(6));
             print(") -> ");
             print(a == b);
+        }
+    }
+
+    // Mem Compare ctor {{{2
+    template <typename T>
+    Vc_ALWAYS_INLINE Compare(const T &valueA,
+                             const T &valueB,
+                             const char *variableNameA,
+                             const char *variableNameB,
+                             const char *filename,
+                             int line,
+                             Mem)
+        : m_ip(getIp()), m_failed(0 != std::memcmp(&valueA, &valueB, sizeof(T)))
+    {
+        if (VC_IS_UNLIKELY(m_failed)) {
+            printFirst();
+            printPosition(filename, line);
+            print(":\nMEMCOMPARE(");
+            print(variableNameA);
+            print(", ");
+            print(variableNameB);
+            const int endian_test = 1;
+            if (reinterpret_cast<const char *>(&endian_test)[0] == 1) {
+                print("), memory contents (little-endian):\n");
+            } else {
+                print("), memory contents (big-endian):\n");
+            }
+            printMem(valueA);
+            print('\n');
+            printMem(valueB);
         }
     }
 
@@ -876,6 +907,24 @@ private:
 #endif
         return _ip;
     }
+    static char hexChar(char x)
+    {
+        return x + (x > 9 ? 87 : 48);
+    }
+    template <typename T> static void printMem(const T &x)  // {{{2
+    {
+        constexpr std::size_t length = sizeof(T) * 2 + sizeof(T) / 4;
+        std::unique_ptr<char[]> s{new char[length + 1]};
+        std::memset(s.get(), '\'', length - 1);
+        s[length - 1] = '\0';
+        s[length] = '\0';
+        const auto bytes = reinterpret_cast<const std::uint8_t *>(&x);
+        for (std::size_t i = 0; i < sizeof(T); ++i) {
+            s[i * 2 + i / 4] = hexChar(bytes[i] >> 4);
+            s[i * 2 + 1 + i / 4] = hexChar(bytes[i] & 0xf);
+        }
+        std::cout << s.get();
+    }
     // print overloads {{{2
     static void printFirst() { std::cout << failString() << "┍ "; }
     template <typename T> static inline void print(const T &x) { std::cout << x; }
@@ -1027,6 +1076,9 @@ inline void Compare::writePlotData(std::fstream &file,
 // COMPARE_NOEQ {{{1
 #define COMPARE_NOEQ(a, b)                                                                         \
     UnitTest::Compare(a, b, #a, #b, __FILE__, __LINE__, UnitTest::Compare::NoEq()) << ' '
+// MEMCOMPARE {{{1
+#define MEMCOMPARE(a, b)                                                                           \
+    UnitTest::Compare(a, b, #a, #b, __FILE__, __LINE__, UnitTest::Compare::Mem()) << ' '
 // VERIFY {{{1
 #define VERIFY(cond) UnitTest::Compare(cond, #cond, __FILE__, __LINE__) << ' '
 // FAIL {{{1
