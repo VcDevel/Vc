@@ -21,6 +21,7 @@
 #define VC_COMMON_ITERATORS_H
 
 #include <array>
+#include <iterator>
 #include "where.h"
 #include "macros.h"
 
@@ -32,7 +33,10 @@ namespace Common
 template<typename _V, typename Flags> class MemoryVector;
 template<typename _V, typename Flags> class MemoryVectorIterator;
 
-    template<typename V> class Iterator/*{{{*/
+// class Iterator {{{
+template <typename V>
+class Iterator : public std::iterator<std::bidirectional_iterator_tag,
+                                      Traits::decay<decltype(std::declval<V &>()[0])>>
     {
         V &v;
         size_t i;
