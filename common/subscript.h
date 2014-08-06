@@ -96,7 +96,7 @@ template <std::size_t Numerator, std::size_t Denominator> struct Fraction
     static Vc_ALWAYS_INLINE typename std::decay<T>::type apply(T &&x)
     {
         auto tmp = std::forward<T>(x) * value();
-        assert(tmp / value() == x);
+        VC_ASSERT(tmp / value() == x);
         return std::move(tmp);
     }
 
@@ -105,11 +105,8 @@ template <std::size_t Numerator, std::size_t Denominator> struct Fraction
     static Vc_ALWAYS_INLINE T apply(T x)
     {
         for (size_t i = 0; i < x.size(); ++i) {
-#ifndef NDEBUG
-            const auto ref = x[i];
-#endif
+            VC_ASSERT(x[i] * value() / value() == x[i]);
             x[i] *= value();
-            assert(x[i] / value() == ref);
         }
         return x;
     }
