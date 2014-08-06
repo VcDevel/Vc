@@ -1119,7 +1119,7 @@ template <typename T, std::size_t N, typename V, std::size_t M>
 inline std::string typeToString_impl(Vc::simdarray<T, N, V, M> const &)
 {
     std::stringstream s;
-    s << "simdarray<" << typeToString<T>() << ", " << N << ", " << typeToString<V>() << '>';
+    s << "simdarray<" << typeToString<T>() << ", " << N << '>';
     return s.str();
 }
 template <typename T, std::size_t N, typename V, std::size_t M>
@@ -1143,9 +1143,9 @@ void typepackToString(std::stringstream &s)
 template <typename... Ts> std::string typeToString_impl(Typelist<Ts...> const &)
 {
     std::stringstream s;
-    s << "Typelist<";
+    s << '{';
     typepackToString<Ts...>(s);
-    s << '>';
+    s << '}';
     return s.str();
 }
 // Vc::<Impl>::Vector<T> to string {{{2
