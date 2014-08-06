@@ -459,11 +459,11 @@ public:
     }
 
     // gather
-    template <typename U,
-              typename... Args,
+    template <typename U, typename... Args,
               typename = enable_if<Traits::is_gather_signature<U *, Args...>::value>>
     explicit Vc_INTRINSIC simdarray(U *mem, Args &&... args)
-        : data0(mem, Split::lo(std::forward<Args>(args))...)
+        : data0(mem, Split::lo(args)...)  // no forward here - it could move and thus
+                                          // break the next line
         , data1(mem, Split::hi(std::forward<Args>(args))...)
     {
     }
@@ -475,7 +475,8 @@ public:
                                    !Traits::is_gather_signature<Args...>::value &&
                                    !Traits::is_load_arguments<Args...>::value>>
     explicit Vc_INTRINSIC simdarray(Args &&... args)
-        : data0(Split::lo(std::forward<Args>(args))...)
+        : data0(Split::lo(args)...)  // no forward here - it could move and thus
+                                     // break the next line
         , data1(Split::hi(std::forward<Args>(args))...)
     {
     }
@@ -528,8 +529,11 @@ public:
     template <typename Op, typename... Args>
     static Vc_INTRINSIC simdarray fromOperation(Op op, Args &&... args)
     {
-        simdarray r = {storage_type0::fromOperation(op, Split::lo(std::forward<Args>(args))...),
-                        storage_type1::fromOperation(op, Split::lo(std::forward<Args>(args))...)};
+        simdarray r = {
+            storage_type0::fromOperation(op, Split::lo(args)...),  // no forward here - it
+                                                                   // could move and thus
+                                                                   // break the next line
+            storage_type1::fromOperation(op, Split::lo(std::forward<Args>(args))...)};
         return r;
     }
 
@@ -552,13 +556,15 @@ public:
 
     template <typename U, typename... Args> Vc_INTRINSIC void load(const U *mem, Args &&... args)
     {
-        data0.load(mem, Split::lo(std::forward<Args>(args))...);
+        data0.load(mem, Split::lo(args)...);  // no forward here - it could move and thus
+                                              // break the next line
         data1.load(mem + storage_type0::size(), Split::hi(std::forward<Args>(args))...);
     }
 
     template <typename U, typename... Args> Vc_INTRINSIC void store(U *mem, Args &&... args) const
     {
-        data0.store(mem, Split::lo(std::forward<Args>(args))...);
+        data0.store(mem, Split::lo(args)...);  // no forward here - it could move and thus
+                                               // break the next line
         data1.store(mem + storage_type0::size(), Split::hi(std::forward<Args>(args))...);
     }
 

@@ -450,7 +450,9 @@ public:
     static Vc_INTRINSIC simd_mask_array fromOperation(Op op, Args &&... args)
     {
         simd_mask_array r = {
-            storage_type0::fromOperation(op, Split::lo(std::forward<Args>(args))...),
+            storage_type0::fromOperation(op, Split::lo(args)...),  // no forward here - it
+                                                                   // could move and thus
+                                                                   // break the next line
             storage_type1::fromOperation(op, Split::lo(std::forward<Args>(args))...)};
         return r;
     }
