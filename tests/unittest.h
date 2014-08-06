@@ -1115,13 +1115,15 @@ template <typename V, int Repetitions = 10000, typename F> void withRandomMask(F
 // typeToString {{{1
 template <typename T> inline std::string typeToString();
 // simdarray to string {{{2
-template <typename T, std::size_t N, typename V, std::size_t M> inline std::string typeToString_impl(Vc::simdarray<T, N, V, M>)
+template <typename T, std::size_t N, typename V, std::size_t M>
+inline std::string typeToString_impl(Vc::simdarray<T, N, V, M> const &)
 {
     std::stringstream s;
     s << "simdarray<" << typeToString<T>() << ", " << N << ", " << typeToString<V>() << '>';
     return s.str();
 }
-template <typename T, std::size_t N, typename V, std::size_t M> inline std::string typeToString_impl(Vc::simd_mask_array<T, N, V, M>)
+template <typename T, std::size_t N, typename V, std::size_t M>
+inline std::string typeToString_impl(Vc::simd_mask_array<T, N, V, M> const &)
 {
     std::stringstream s;
     s << "simd_mask_array<" << typeToString<T>() << ", " << N << ", " << typeToString<V>() << '>';
@@ -1138,7 +1140,7 @@ void typepackToString(std::stringstream &s)
     s << typeToString<T0>() << ", ";
     typepackToString<T1, Ts...>(s);
 }
-template <typename... Ts> std::string typeToString_impl(Typelist<Ts...>)
+template <typename... Ts> std::string typeToString_impl(Typelist<Ts...> const &)
 {
     std::stringstream s;
     s << "Typelist<";
@@ -1149,8 +1151,7 @@ template <typename... Ts> std::string typeToString_impl(Typelist<Ts...>)
 // Vc::<Impl>::Vector<T> to string {{{2
 template <typename V>
 inline std::string typeToString_impl(
-    V,
-    typename std::enable_if<Vc::is_simd_vector<V>::value, int>::type = 0)
+    V const &, typename std::enable_if<Vc::is_simd_vector<V>::value, int>::type = 0)
 {
     using T = typename V::EntryType;
     std::stringstream s;
@@ -1169,8 +1170,7 @@ inline std::string typeToString_impl(
 // generic fallback (typeid::name) {{{2
 template <typename T>
 inline std::string typeToString_impl(
-    T,
-    typename std::enable_if<!Vc::is_simd_vector<T>::value, int>::type = 0)
+    T const &, typename std::enable_if<!Vc::is_simd_vector<T>::value, int>::type = 0)
 {
     return typeid(T).name();
 }
