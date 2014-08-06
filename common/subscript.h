@@ -269,7 +269,8 @@ public:
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector gather. Must be an arithmetic type.");
-        return V(m_address, Scale::apply(convertedIndexes()));
+        const IndexVectorScaled indexes = Scale::apply(convertedIndexes());
+        return V(m_address, &indexes[0]);
     }
 
     template <typename V,
@@ -279,7 +280,8 @@ public:
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector scatter. Must be an arithmetic type.");
-        rhs.scatter(m_address, Scale::apply(convertedIndexes()));
+        const IndexVectorScaled indexes = Scale::apply(convertedIndexes());
+        rhs.scatter(m_address, &indexes[0]);
         return *this;
     }
 
