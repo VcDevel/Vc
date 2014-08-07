@@ -27,6 +27,7 @@
 #include "simd_array_data.h"
 #include "simd_mask_array.h"
 #include "utility.h"
+#include "interleave.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -126,6 +127,7 @@ public:
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
     using IndexType = index_type;
+    using AsArg = const simdarray &;
     static constexpr std::size_t Size = size();
 
     // zero init
@@ -421,6 +423,7 @@ public:
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
     using IndexType = index_type;
+    using AsArg = const simdarray &;
     static constexpr std::size_t Size = size();
 
     //////////////////// constructors //////////////////

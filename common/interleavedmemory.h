@@ -43,6 +43,12 @@ public:
     constexpr Vc_PURE size_t data() const { return m_first; }
     constexpr Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first + rhs.m_first); }
     constexpr Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first * rhs.m_first); }
+
+    friend SuccessiveEntries &internal_data(SuccessiveEntries &x) { return x; }
+    friend const SuccessiveEntries &internal_data(const SuccessiveEntries &x)
+    {
+        return x;
+    }
 };
 
 /**
@@ -167,7 +173,7 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef typename V::AsArg VArg;
-    typedef typename I::AsArg IndexType;
+    typedef const I &IndexType;
     enum Constants { StructSize = sizeof(S) / sizeof(T) };
     typedef InterleavedMemoryAccess<StructSize, V> Access;
     typedef InterleavedMemoryReadAccess<StructSize, V> ReadAccess;

@@ -97,7 +97,7 @@ template<typename V, size_t StructSize, bool Random = true> struct Types
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef typename V::AsArg VArg;
-    typedef typename I::AsArg IArg;
+    typedef const I &IArg;
     typedef SomeStruct<T, StructSize> S;
     typedef const Vc::InterleavedMemoryWrapper<S, V> &Wrapper;
 };
@@ -398,7 +398,7 @@ template<typename V, size_t StructSize> void testInterleavingScatterImpl()
         I indexes = (I::Random() >> 10) & I(NMask);
         if (I::Size != 1) {
             // ensure the indexes are unique
-            while(!(indexes.sorted() == indexes.sorted().rotated(1)).isEmpty()) {
+            while(any_of(indexes.sorted() == rotate(indexes.sorted()))) {
                 indexes = (I::Random() >> 10) & I(NMask);
             }
         }
