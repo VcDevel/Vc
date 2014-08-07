@@ -412,7 +412,7 @@ TEST_TYPES(Vec, testNegate, ALL_TYPES)
         T i2 = static_cast<T>(i);
         Vec a(i2);
 
-        COMPARE(-a, -i2) << " i2: " << i2;
+        COMPARE(-a, Vec(-i2)) << " i2: " << i2;
     }
 }
 
@@ -495,7 +495,7 @@ TEST_TYPES(Vec, testProduct, ALL_TYPES)
                     FUZZY_COMPARE(v.product(m), x2) << v << ".product(" << m << ')';
                 }
             } else {
-                COMPARE(v.product(m), 1) << v << ".product(" << m << ')';
+                COMPARE(v.product(m), T(1)) << v << ".product(" << m << ')';
             }
         }
     }
@@ -519,7 +519,7 @@ TEST_TYPES(Vec, testSum, ALL_TYPES)
             if (any_of(m)) {
                 COMPARE(v.sum(m), static_cast<T>(x * m.count())) << m << v;
             } else {
-                COMPARE(v.sum(m), 0) << m << v;
+                COMPARE(v.sum(m), T(0)) << m << v;
             }
         }
     }
