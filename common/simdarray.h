@@ -100,8 +100,8 @@ template <typename T,
           std::size_t VectorSize = VectorType::size()  // this last parameter is only used for
                                                        // specialization of N == VectorSize
           >
-class alignas(Common::nextPowerOfTwo((N + VectorSize - 1) / VectorSize) *
-              sizeof(typename VectorType::Mask)) simdarray;
+class alignas((((Common::nextPowerOfTwo((N + VectorSize - 1) / VectorSize) *
+              sizeof(VectorType)) - 1) & 127) + 1) simdarray;
 
 template <typename T, std::size_t N, typename VectorType_> class simdarray<T, N, VectorType_, N>
 {

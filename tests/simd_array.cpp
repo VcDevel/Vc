@@ -49,6 +49,30 @@ TEST_TYPES(V, createArray, SIMD_ARRAY_LIST)
     VERIFY(sizeof(array) <= 2 * array.size() * sizeof(VT));
 }
 
+template <typename T, typename U> constexpr T bound(T x, U max)
+{
+    return x > max ? max : x;
+}
+
+TEST_TYPES(V, checkArrayAlignment, SIMD_ARRAY_LIST)
+{
+    using T = typename V::value_type;
+    using M = typename V::mask_type;
+
+    COMPARE(alignof(V), bound(sizeof(V), 128));  // sizeof must be at least as large as alignof to
+                                     // ensure proper padding in arrays. alignof is
+                                     // supposed to be at least as large as the actual
+                                     // data size requirements
+    COMPARE(alignof(M), bound(sizeof(M), 128));
+    VERIFY(alignof(V) >= bound(V::Size * sizeof(T), 128));
+    if (V::Size > 1) {
+        using V2 = simdarray<T, Vc::Common::left_size(V::Size)>;
+        using M2 = typename V2::mask_type;
+        VERIFY(alignof(V) >= bound(2 * alignof(V2), 128));
+        VERIFY(alignof(M) >= bound(2 * alignof(M2), 128));
+    }
+}
+
 TEST_TYPES(V, broadcast, SIMD_ARRAY_LIST)
 {
     typedef typename V::EntryType T;
