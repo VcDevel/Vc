@@ -139,7 +139,6 @@ template<typename Vec> void testAbs()/*{{{*/
 template<typename V> void testTrunc()/*{{{*/
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
         V reference = x.apply([](T _x) { return std::trunc(_x); });
@@ -153,7 +152,6 @@ template<typename V> void testTrunc()/*{{{*/
 template<typename V> void testFloor()/*{{{*/
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
         V reference = x.apply([](T _x) { return std::floor(_x); });
@@ -167,7 +165,6 @@ template<typename V> void testFloor()/*{{{*/
 template<typename V> void testCeil()/*{{{*/
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
         V reference = x.apply([](T _x) { return std::ceil(_x); });
