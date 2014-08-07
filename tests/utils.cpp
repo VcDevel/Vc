@@ -352,43 +352,68 @@ TEST_TYPES(V, rotated, (ALL_VECTORS))
     }
 }
 
-template <typename V> void shiftedInConstant(const V &, std::integral_constant<int, V::Size + 1>)
+template <typename V> V shiftReference(const V &data, int shift)
+{
+    constexpr int Size = V::Size;
+    using T = typename V::value_type;
+    return V::generate([&](int i) -> T {
+        if (shift < 0) {
+            i += shift;
+            if (i >= 0) {
+                return data[i];
+            }
+            i += Size;
+            if (i >= 0) {
+                return data[i] + 1;
+            }
+        } else {
+            i += shift;
+            if (i < Size) {
+                return data[i];
+            }
+            i -= Size;
+            if (i < Size) {
+                return data[i] + 1;
+            }
+        }
+        return 0;
+    });
+}
+
+template <typename V>
+void shiftedInConstant(const V &, std::integral_constant<int, 2 * V::Size>)
 {
 }
 
 template <typename V, typename Shift> void shiftedInConstant(const V &data, Shift)
 {
-    constexpr int Size = V::Size;
+    const V reference = shiftReference(data, Shift::value);
     const V test = data.shifted(Shift::value, data + V::One());
-    const V reference = data.rotated(Shift::value) +
-        iif(V::IndexesFromZero() + Size <
-            Size - Shift::value ||  // added Size on both sides of '<' to avoid
-            // overflow with unsigned integers
-            V::IndexesFromZero() >= Size - Shift::value,
-            V::One(),
-            V::Zero());
     COMPARE(test, reference) << "shift = " << Shift::value;
-    shiftedInConstant(data, std::integral_constant<int, Shift::value + 1>());
+    if ((Shift::value + 1) % V::Size != 0) {
+        shiftedInConstant(
+            data, std::integral_constant<
+                      int, ((Shift::value + 1) % V::Size == 0 ? 2 * int(V::Size)
+                                                              : Shift::value + 1)>());
+    }
 }
 
-TEST_TYPES(V, shiftedIn, (ALL_VECTORS))
+TEST_TYPES(V, shiftedIn, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(31), SIMD_ARRAYS(32), SIMD_ARRAYS(33)))
 {
     constexpr int Size = V::Size;
-    for (int shift = -1 * Size; shift <= 1 * Size; ++shift) {
-        const V data = V::Random();
+    const V data = V::Random();
+    for (int shift = -2 * Size + 1; shift <= 2 * Size -1; ++shift) {
+        const V reference = shiftReference(data, shift);
         const V test = data.shifted(shift, data + V::One());
-        const V reference = data.rotated(shift) +
-                            iif(V::IndexesFromZero() + Size <
-                                        Size - shift ||  // added Size on both sides of '<' to avoid
-                                                         // overflow with unsigned integers
-                                    V::IndexesFromZero() >= Size - shift,
-                                V::One(),
-                                V::Zero());
-        COMPARE(test, reference) << "shift = " << shift;
+        COMPARE(test, reference) << "\nshift = " << shift << "\ndata = " << data;
     }
+    shiftedInConstant(V::Random(), std::integral_constant<int, -2 * Size + 1>());
     shiftedInConstant(V::Random(), std::integral_constant<int, -Size>());
+    shiftedInConstant(V::Random(), std::integral_constant<int, 0>());
+    shiftedInConstant(V::Random(), std::integral_constant<int, Size>());
 }
 
+#if 0
 TEST(testMallocAlignment)
 {
     int_v *a = Vc::malloc<int_v, Vc::AlignOnVector>(10);
