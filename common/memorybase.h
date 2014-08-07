@@ -77,7 +77,7 @@ public:
          *
          * This function allows to assign this object to any object of type \p V.
          */
-        Vc_ALWAYS_INLINE Vc_PURE operator const V() const { return value(); }
+        Vc_ALWAYS_INLINE Vc_PURE operator V() const { return value(); }
 
         template<typename T>
         Vc_ALWAYS_INLINE enable_if_mutable<T, MemoryVector &> operator=(const T &x) {
