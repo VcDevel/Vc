@@ -294,20 +294,17 @@ template <std::size_t secondOffset> struct Split/*{{{*/
 
     // split Vector<T> and Mask<T>
     template <typename T>
-    struct is_vector_or_mask
-        : public std::integral_constant<
-              bool,
-              (Traits::is_simd_vector<T>::value && !Traits::is_simdarray<T>::value) ||
-                  (Traits::is_simd_mask<T>::value && !Traits::is_simd_mask_array<T>::value)>
-    {
-    };
+    static constexpr bool is_vector_or_mask(){
+        return (Traits::is_simd_vector<T>::value && !Traits::is_simdarray<T>::value) ||
+               (Traits::is_simd_mask<T>::value && !Traits::is_simd_mask_array<T>::value);
+    }
     template <typename V>
-    static Vc_INTRINSIC Segment<V, 2, 0> lo(V &&x, enable_if<is_vector_or_mask<V>::value> = nullarg)
+    static Vc_INTRINSIC Segment<V, 2, 0> lo(V &&x, enable_if<is_vector_or_mask<V>()> = nullarg)
     {
         return {std::forward<V>(x)};
     }
     template <typename V>
-    static Vc_INTRINSIC Segment<V, 2, 1> hi(V &&x, enable_if<is_vector_or_mask<V>::value> = nullarg)
+    static Vc_INTRINSIC Segment<V, 2, 1> hi(V &&x, enable_if<is_vector_or_mask<V>()> = nullarg)
     {
         return {std::forward<V>(x)};
     }
