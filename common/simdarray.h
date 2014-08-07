@@ -1376,22 +1376,22 @@ using make_index_sequence = typename make_index_sequence_impl<N>::type;
 
 /// \internal returns the first argument
 template <std::size_t I, typename T0, typename... Ts>
-Vc_INTRINSIC Vc_CONST enable_if<(I == 0), T0> extract_front(const T0 &a0, const Ts &... a,
-                                                            const T0 &b0, const Ts &... b)
+Vc_INTRINSIC Vc_CONST enable_if<(I == 0), T0> extract_front(const T0 &a0, const Ts &...,
+                                                            const T0 &, const Ts &...)
 {
     return a0;
 }
 /// \internal returns the center argument
 template <std::size_t I, typename T0, typename... Ts>
-Vc_INTRINSIC Vc_CONST enable_if<(I == 1), T0> extract_front(const T0 &a0, const Ts &... a,
-                                                            const T0 &b0, const Ts &... b)
+Vc_INTRINSIC Vc_CONST enable_if<(I == 1), T0> extract_front(const T0 &, const Ts &...,
+                                                            const T0 &b0, const Ts &...)
 {
     return b0;
 }
 /// \internal drops the first and center arguments and recurses
 template <std::size_t I, typename T0, typename... Ts>
-Vc_INTRINSIC Vc_CONST enable_if<(I > 1), T0> extract_front(const T0 &a0, const Ts &... a,
-                                                           const T0 &b0, const Ts &... b)
+Vc_INTRINSIC Vc_CONST enable_if<(I > 1), T0> extract_front(const T0 &, const Ts &... a,
+                                                           const T0 &, const Ts &... b)
 {
     return extract_front<I - 2, Ts...>(a..., b...);
 }
