@@ -52,7 +52,7 @@ template <typename T> class Vector
         using vector_type = VectorType;
 
     protected:
-        VectorType m_data;
+        VectorType m_data = VectorType();
 
     public:
         typedef Scalar::Mask<T> Mask;
