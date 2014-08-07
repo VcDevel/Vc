@@ -611,12 +611,13 @@ public:
 
     // Normal Compare ctor {{{2
     template <typename T1, typename T2>
-    Vc_ALWAYS_INLINE Compare(const T1 &a,
-                                       const T2 &b,
-                                       const char *_a,
-                                       const char *_b,
-                                       const char *_file,
-                                       int _line)
+    Vc_ALWAYS_INLINE Compare(
+        const T1 &a,
+        const T2 &b,
+        const char *_a,
+        const char *_b,
+        const char *_file,
+        typename std::enable_if<Vc::Traits::has_equality_operator<T1, T2>::value, int>::type _line)
         : m_ip(getIp()), m_failed(!unittest_compareHelper(a, b))
     {
         if (VC_IS_UNLIKELY(m_failed)) {
@@ -638,17 +639,32 @@ public:
         }
     }
 
+    template <typename T1, typename T2>
+    Vc_ALWAYS_INLINE Compare(
+        const T1 &a,
+        const T2 &b,
+        const char *_a,
+        const char *_b,
+        const char *_file,
+        typename std::enable_if<!Vc::Traits::has_equality_operator<T1, T2>::value, int>::type _line)
+        : Compare(a, b, _a, _b, _file, _line, Mem())
+    {
+    }
+
     // Mem Compare ctor {{{2
-    template <typename T>
-    Vc_ALWAYS_INLINE Compare(const T &valueA,
-                             const T &valueB,
+    template <typename T1, typename T2>
+    Vc_ALWAYS_INLINE Compare(const T1 &valueA,
+                             const T2 &valueB,
                              const char *variableNameA,
                              const char *variableNameB,
                              const char *filename,
                              int line,
                              Mem)
-        : m_ip(getIp()), m_failed(0 != std::memcmp(&valueA, &valueB, sizeof(T)))
+        : m_ip(getIp()), m_failed(0 != std::memcmp(&valueA, &valueB, sizeof(T1)))
     {
+        static_assert(
+            sizeof(T1) == sizeof(T2),
+            "MEMCOMPARE requires both of its arguments to have the same size (equal sizeof)");
         if (VC_IS_UNLIKELY(m_failed)) {
             printFirst();
             printPosition(filename, line);
