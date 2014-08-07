@@ -24,7 +24,6 @@ using namespace Vc;
 template<typename V> void reads()
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
 
     V a = V::Zero();
     const T zero = 0;
@@ -77,8 +76,6 @@ struct ReadsConstantIndex<V, 0>
 
 template<typename V> void readsConstantIndex()
 {
-    typedef typename V::IndexType I;
-
     V a = V::Zero();
     V b = V::IndexesFromZero();
     ReadsConstantIndex<V, V::Size - 1>(a, b);
@@ -87,7 +84,6 @@ template<typename V> void readsConstantIndex()
 template<typename V> void writes()
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
 
     V a;
     for (size_t i = 0; i < V::Size; ++i) {
