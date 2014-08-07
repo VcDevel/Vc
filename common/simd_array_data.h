@@ -157,61 +157,17 @@ template <typename T, std::size_t Offset> struct AddOffset
     constexpr AddOffset() = default;
 };
 
-/**
- * \internal
- * Helper type with static functions to generically adjust arguments for the data0 and data1
- * members.
+/** \internal
+  Helper type with static functions to generically adjust arguments for the \c data0 and
+  \c data1 members of simdarray and simd_mask_array.
+
+  \tparam secondOffset The offset in number of elements that \c data1 has in the simdarray
+                       / simd_mask_array. This is essentially equal to the number of
+                       elements in \c data0.
  */
-template <std::size_t secondOffset> struct Split/*{{{*/
+template <std::size_t secondOffset> class Split/*{{{*/
 {
-    template <typename Op = void, typename U>
-    static Vc_ALWAYS_INLINE U
-        lo(U &&x,
-           enable_if<(!Traits::is_simd_vector<U>::value && !Traits::is_simd_mask<U>::value &&
-                      !std::is_pointer<Traits::decay<U>>::value)> = nullarg)
-    {
-        return std::forward<U>(x);
-    }
-    template <typename Op = void, typename U>
-    static Vc_ALWAYS_INLINE U
-        hi(U &&x,
-           enable_if<(!Traits::is_simd_vector<U>::value && !Traits::is_simd_mask<U>::value &&
-                      !std::is_pointer<Traits::decay<U>>::value)> = nullarg)
-    {
-        return std::forward<U>(x);
-    }
-
-    template <typename U>
-    static Vc_INTRINSIC const U *lo(Operations::gather, const U *ptr)
-    {
-        return ptr;
-    }
-    template <typename U>
-    static Vc_INTRINSIC const U *hi(Operations::gather, const U *ptr)
-    {
-        return ptr + secondOffset;
-    }
-
-    // generic pointer arguments (simdarray pointers below)
-    template <typename Op, typename U> static Vc_ALWAYS_INLINE U *lo(U *ptr) { return ptr; }
-    template <typename Op, typename U>
-    static Vc_ALWAYS_INLINE U *hi(
-        U *ptr,
-        typename std::enable_if<std::is_same<Op, Operations::gather>::value ||
-                                std::is_same<Op, Operations::scatter>::value>::type = nullptr)
-    {
-        return ptr;
-    }
-    template <typename Op, typename U>
-    static Vc_ALWAYS_INLINE U *hi(
-        U *ptr,
-        typename std::enable_if<!std::is_same<Op, Operations::gather>::value &&
-                                !std::is_same<Op, Operations::scatter>::value>::type = nullptr)
-    {
-        return ptr + secondOffset;
-    }
-
-    static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, secondOffset> hi(
+    static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, secondOffset> hiImpl(
         VectorSpecialInitializerIndexesFromZero::IEnum)
     {
         return {};
@@ -219,74 +175,74 @@ template <std::size_t secondOffset> struct Split/*{{{*/
     template <std::size_t Offset>
     static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum,
                                Offset + secondOffset>
-        hi(AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, Offset>)
+        hiImpl(AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, Offset>)
     {
         return {};
     }
 
     // split composite simdarray
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto lo(const simdarray<U, N, V, M> &x) -> decltype(internal_data0(x))
+    static Vc_INTRINSIC auto loImpl(const simdarray<U, N, V, M> &x) -> decltype(internal_data0(x))
     {
         return internal_data0(x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto hi(const simdarray<U, N, V, M> &x) -> decltype(internal_data1(x))
+    static Vc_INTRINSIC auto hiImpl(const simdarray<U, N, V, M> &x) -> decltype(internal_data1(x))
     {
         return internal_data1(x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto lo(simdarray<U, N, V, M> *x) -> decltype(&internal_data0(*x))
+    static Vc_INTRINSIC auto loImpl(simdarray<U, N, V, M> *x) -> decltype(&internal_data0(*x))
     {
         return &internal_data0(*x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto hi(simdarray<U, N, V, M> *x) -> decltype(&internal_data1(*x))
+    static Vc_INTRINSIC auto hiImpl(simdarray<U, N, V, M> *x) -> decltype(&internal_data1(*x))
     {
         return &internal_data1(*x);
     }
 
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V, 2, 0> lo(const simdarray<U, N, V, N> &x)
+    static Vc_INTRINSIC Segment<V, 2, 0> loImpl(const simdarray<U, N, V, N> &x)
     {
         return {internal_data(x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V, 2, 1> hi(const simdarray<U, N, V, N> &x)
+    static Vc_INTRINSIC Segment<V, 2, 1> hiImpl(const simdarray<U, N, V, N> &x)
     {
         return {internal_data(x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V *, 2, 0> lo(const simdarray<U, N, V, N> *x)
+    static Vc_INTRINSIC Segment<V *, 2, 0> loImpl(const simdarray<U, N, V, N> *x)
     {
         return {&internal_data(*x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V *, 2, 1> hi(const simdarray<U, N, V, N> *x)
+    static Vc_INTRINSIC Segment<V *, 2, 1> hiImpl(const simdarray<U, N, V, N> *x)
     {
         return {&internal_data(*x)};
     }
 
     // split composite simd_mask_array
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto lo(const simd_mask_array<U, N, V, M> &x) -> decltype(internal_data0(x))
+    static Vc_INTRINSIC auto loImpl(const simd_mask_array<U, N, V, M> &x) -> decltype(internal_data0(x))
     {
         return internal_data0(x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto hi(const simd_mask_array<U, N, V, M> &x) -> decltype(internal_data1(x))
+    static Vc_INTRINSIC auto hiImpl(const simd_mask_array<U, N, V, M> &x) -> decltype(internal_data1(x))
     {
         return internal_data1(x);
     }
 
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<typename simd_mask_array<U, N, V, N>::mask_type, 2, 0> lo(
+    static Vc_INTRINSIC Segment<typename simd_mask_array<U, N, V, N>::mask_type, 2, 0> loImpl(
         const simd_mask_array<U, N, V, N> &x)
     {
         return {internal_data(x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<typename simd_mask_array<U, N, V, N>::mask_type, 2, 1> hi(
+    static Vc_INTRINSIC Segment<typename simd_mask_array<U, N, V, N>::mask_type, 2, 1> hiImpl(
         const simd_mask_array<U, N, V, N> &x)
     {
         return {internal_data(x)};
@@ -299,27 +255,112 @@ template <std::size_t secondOffset> struct Split/*{{{*/
                (Traits::is_simd_mask<T>::value && !Traits::is_simd_mask_array<T>::value);
     }
     template <typename V>
-    static Vc_INTRINSIC Segment<V, 2, 0> lo(V &&x, enable_if<is_vector_or_mask<V>()> = nullarg)
+    static Vc_INTRINSIC Segment<V, 2, 0> loImpl(V &&x, enable_if<is_vector_or_mask<V>()> = nullarg)
     {
         return {std::forward<V>(x)};
     }
     template <typename V>
-    static Vc_INTRINSIC Segment<V, 2, 1> hi(V &&x, enable_if<is_vector_or_mask<V>()> = nullarg)
+    static Vc_INTRINSIC Segment<V, 2, 1> hiImpl(V &&x, enable_if<is_vector_or_mask<V>()> = nullarg)
     {
         return {std::forward<V>(x)};
     }
 
     // generically split Segments
     template <typename V, std::size_t Pieces, std::size_t Index>
-    static Vc_INTRINSIC Segment<V, 2 * Pieces, Index *Pieces + 0> lo(Segment<V, Pieces, Index> &&x)
+    static Vc_INTRINSIC Segment<V, 2 * Pieces, Index *Pieces + 0> loImpl(const Segment<V, Pieces, Index> &x)
     {
         return {x.data};
     }
     template <typename V, std::size_t Pieces, std::size_t Index>
-    static Vc_INTRINSIC Segment<V, 2 * Pieces, Index *Pieces + 1> hi(Segment<V, Pieces, Index> &&x)
+    static Vc_INTRINSIC Segment<V, 2 * Pieces, Index *Pieces + 1> hiImpl(const Segment<V, Pieces, Index> &x)
     {
         return {x.data};
     }
+
+    /** \internal
+     * \name Checks for existence of \c loImpl / \c hiImpl
+     */
+    //@{
+    template <typename T, typename = decltype(loImpl(std::declval<T>()))>
+    static std::true_type have_lo_impl(int);
+    template <typename T> static std::false_type have_lo_impl(float);
+    template <typename T> static constexpr bool have_lo_impl()
+    {
+        return decltype(have_lo_impl<T>(1))::value;
+    }
+
+    template <typename T, typename = decltype(hiImpl(std::declval<T>()))>
+    static std::true_type have_hi_impl(int);
+    template <typename T> static std::false_type have_hi_impl(float);
+    template <typename T> static constexpr bool have_hi_impl()
+    {
+        return decltype(have_hi_impl<T>(1))::value;
+    }
+    //@}
+
+public:
+    /** \internal
+     * \name with Operations tag
+     *
+     * These functions don't overload on the data parameter. The first parameter (the tag) clearly
+     * identifies the intended function.
+     */
+    //@{
+    template <typename U>
+    static Vc_INTRINSIC const U *lo(Operations::gather, const U *ptr)
+    {
+        return ptr;
+    }
+    template <typename U>
+    static Vc_INTRINSIC const U *hi(Operations::gather, const U *ptr)
+    {
+        return ptr + secondOffset;
+    }
+    template <typename U>
+    static Vc_INTRINSIC const U *lo(Operations::scatter, const U *ptr)
+    {
+        return ptr;
+    }
+    template <typename U>
+    static Vc_INTRINSIC const U *hi(Operations::scatter, const U *ptr)
+    {
+        return ptr + secondOffset;
+    }
+    //@}
+
+    /** \internal
+      \name without Operations tag
+
+      These functions are not clearly tagged as to where they are used and therefore
+      behave differently depending on the type of the parameter. Different behavior is
+      implemented via overloads of \c loImpl and \c hiImpl. They are not overloads of \c
+      lo and \c hi directly because it's hard to compete against a universal reference
+      (i.e. an overload for `int` requires overloads for `int &`, `const int &`, and `int
+      &&`. If one of them were missing `U &&` would win in overload resolution).
+     */
+    //@{
+    template <typename U>
+    static Vc_ALWAYS_INLINE decltype(loImpl(std::declval<U>())) lo(U &&x)
+    {
+        return loImpl(std::forward<U>(x));
+    }
+    template <typename U>
+    static Vc_ALWAYS_INLINE decltype(hiImpl(std::declval<U>())) hi(U &&x)
+    {
+        return hiImpl(std::forward<U>(x));
+    }
+
+    template <typename U>
+    static Vc_ALWAYS_INLINE enable_if<!have_lo_impl<U>(), U> lo(U &&x)
+    {
+        return std::forward<U>(x);
+    }
+    template <typename U>
+    static Vc_ALWAYS_INLINE enable_if<!have_hi_impl<U>(), U> hi(U &&x)
+    {
+        return std::forward<U>(x);
+    }
+    //@}
 };/*}}}*/
 
 template <typename Op, typename U> static Vc_INTRINSIC U actual_value(Op, U &&x)
