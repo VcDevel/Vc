@@ -1129,4 +1129,13 @@ unsigned int versionNumber();
 #define VC_USHORT_V_SIZE
 //@}
 
+/**
+  \defgroup simdarray SIMD Array
+
+  This set of (template) classes provides types that allow an arbitrarily sized set of
+  values of an arithmetic type, much like a \c std::array. But in contrast to \c
+  std::array the types behave like the SIMD vector types, implementing all needed
+  operators and functions.
+ */
+
 } // namespace Vc

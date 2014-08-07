@@ -29,6 +29,9 @@
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+/// \addtogroup simdarray
+/// @{
+
 template <typename T,
           std::size_t N,
           typename VectorType = Common::select_best_vector_type<T, N>,
@@ -468,6 +471,8 @@ private:
     storage_type1 data1;
 };
 template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t simd_mask_array<T, N, VectorType, M>::Size;
+
+/// @}
 
 }  // namespace Vc
 

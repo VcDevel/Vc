@@ -28,7 +28,8 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Common
 {
 
-template<typename V, std::size_t N> struct ArrayData;
+/// \addtogroup simdarray
+/// @{
 
 namespace Operations/*{{{*/
 {
@@ -152,6 +153,15 @@ template <typename T_, std::size_t Pieces_, std::size_t Index_> struct Segment/*
     decltype(std::declval<type>()[0]) operator[](size_t i) const { return data[i + EntryOffset]; }
 };/*}}}*/
 
+/** \internal
+  Template class that is used to attach an offset value to an existing type. It is used
+  for IndexesFromZero construction in simdarray. The \c data1 constructor needs to know
+  that the IndexesFromZero constructor requires an offset so that the whole data is
+  constructed as a correct sequence from `0` to `Size - 1`.
+
+  \tparam T The original type that needs the offset attached.
+  \tparam Offset An integral value that determines the offset in the complete simdarray.
+ */
 template <typename T, std::size_t Offset> struct AddOffset
 {
     constexpr AddOffset() = default;
@@ -397,6 +407,8 @@ static Vc_INTRINSIC typename V::Mask *actual_value(Op, simd_mask_array<U, M, V, 
 {
   return &internal_data(*x);
 }
+
+/// @}
 
 }  // namespace Common
 }  // namespace Vc

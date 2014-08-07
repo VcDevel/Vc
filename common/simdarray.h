@@ -66,6 +66,9 @@ template <typename T> T Vc_INTRINSIC Vc_PURE product_helper__(const T &l, const 
 template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r) { return l + r; }
 }  // namespace internal
 
+/// \addtogroup simdarray
+/// @{
+
 // === having simdarray<T, N> in the Vc namespace leads to a ABI bug ===
 //
 // simdarray<double, 4> can be { double[4] }, { __m128d[2] }, or { __m256d } even though the type
@@ -1416,6 +1419,8 @@ Vc_INTRINSIC Vc_CONST Return
 }
 
 // }}}1
+/// @}
+
 } // namespace Vc_VERSIONED_NAMESPACE
 
 #include "undomacros.h"
