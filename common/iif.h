@@ -60,14 +60,9 @@ namespace
  */
 template<typename Mask, typename T> Vc_ALWAYS_INLINE
 typename std::enable_if<Vc::is_simd_mask<Mask>::value, typename assert_for_iif<T>::type>::type
-#ifndef VC_MSVC
-iif(Mask condition, T trueValue, T falseValue)
-{
-#else
 iif(const Mask &condition, const T &trueValue, const T &_falseValue)
 {
     T falseValue(_falseValue);
-#endif
     Vc::where(condition) | falseValue = trueValue;
     return falseValue;
 }
