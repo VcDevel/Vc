@@ -86,7 +86,7 @@ TEST_TYPES(V, testCall, (ALL_VECTORS))
     typedef typename V::IndexType I;
     typedef typename V::Mask M;
     const I _indexes(Vc::IndexesFromZero);
-    const M odd = static_cast<M>((_indexes & I(One)) > 0);
+    const M odd = Vc::simd_cast<M>((_indexes & I(One)) > 0);
     V a(Vc::IndexesFromZero);
     Foo<T, Vc::Memory<V, V::Size>> f;
     a.callWithValuesSorted(f);
