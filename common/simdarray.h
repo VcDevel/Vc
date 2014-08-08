@@ -20,6 +20,11 @@
 #ifndef VC_COMMON_SIMD_ARRAY_H
 #define VC_COMMON_SIMD_ARRAY_H
 
+//#define VC_DEBUG_SIMD_CAST 1
+#ifdef VC_DEBUG_SIMD_CAST
+#include <iostream>
+#endif
+
 #include <type_traits>
 #include <array>
 
@@ -1130,6 +1135,26 @@ Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
                                 Return>
     simd_cast_drop_arguments(Froms... xs, From x, From);
 
+namespace
+{
+#ifdef VC_DEBUG_SIMD_CAST
+void doNothing(const std::initializer_list<void *> &) {}
+template <typename T0, typename... Ts>
+inline void vc_debug_(const char *prefix, const char *suffix, const T0 &arg0,
+                      const Ts &... args)
+{
+    std::cerr << prefix << arg0;
+    doNothing({&(std::cerr << ", " << args)...});
+    std::cerr << suffix;
+}
+#else
+template <typename T0, typename... Ts>
+Vc_INTRINSIC void vc_debug_(const char *, const char *, const T0 &, const Ts &...)
+{
+}
+#endif
+}  // unnamed namespace
+
 // simd_cast<T>(xs...) to simdarray/-mask {{{2
 #define Vc_SIMDARRAY_CASTS(simdarray_type__, trait_name__)                               \
     template <typename Return, typename From, typename... Froms>                         \
@@ -1141,6 +1166,7 @@ Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
                    are_all_types_equal<From, Froms...>::value),                          \
                   Return> simd_cast(From x, Froms... xs)                                 \
     {                                                                                    \
+        vc_debug_("simd_cast{1}(", ")\n", x, xs...);                                     \
         return {simd_cast<typename Return::storage_type>(x, xs...)};                     \
     }                                                                                    \
     template <typename Return, typename From, typename... Froms>                         \
@@ -1152,6 +1178,7 @@ Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
                    are_all_types_equal<From, Froms...>::value),                          \
                   Return> simd_cast(From x, Froms... xs)                                 \
     {                                                                                    \
+        vc_debug_("simd_cast{2}(", ")\n", x, xs...);                                     \
         return {simd_cast_without_last<Return, From, Froms...>(x, xs...)};               \
     }                                                                                    \
     template <typename Return, typename From, typename... Froms>                         \
@@ -1164,6 +1191,7 @@ Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
          are_all_types_equal<From, Froms...>::value),                                    \
         Return> simd_cast(From x, Froms... xs)                                           \
     {                                                                                    \
+        vc_debug_("simd_cast{3}(", ")\n", x, xs...);                                     \
         using R0 = typename Return::storage_type0;                                       \
         using R1 = typename Return::storage_type1;                                       \
         return {simd_cast_drop_arguments<R0, Froms...>(x, xs...),                        \
@@ -1179,6 +1207,7 @@ Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
          are_all_types_equal<From, Froms...>::value),                                    \
         Return> simd_cast(From x, Froms... xs)                                           \
     {                                                                                    \
+        vc_debug_("simd_cast{4}(", ")\n", x, xs...);                                     \
         using R0 = typename Return::storage_type0;                                       \
         using R1 = typename Return::storage_type1;                                       \
         return {simd_cast<R0>(x, xs...), R1::Zero()};                                    \
@@ -1247,6 +1276,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
          !std::is_same<Return, simdarray_type__<T, N, V, N>>::value),                    \
         Return> simd_cast(const simdarray_type__<T, N, V, N> &x0, const From &... xs)    \
     {                                                                                    \
+        vc_debug_("simd_cast{indivisible}(", ")\n", x0, xs...);                          \
         return simd_cast<Return>(internal_data(x0), internal_data(xs)...);               \
     }                                                                                    \
     /* indivisible simdarray_type__ && can drop arguments from the end */                \
@@ -1257,6 +1287,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
          !std::is_same<Return, simdarray_type__<T, N, V, N>>::value),                    \
         Return> simd_cast(const simdarray_type__<T, N, V, N> &x0, const From &... xs)    \
     {                                                                                    \
+        vc_debug_("simd_cast{indivisible2}(", ")\n", x0, xs...);                         \
         return simd_cast_without_last<                                                   \
             Return, typename simdarray_type__<T, N, V, N>::storage_type,                 \
             typename From::storage_type...>(internal_data(x0), internal_data(xs)...);    \
@@ -1269,6 +1300,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
          N * sizeof...(From) < Return::Size && ((N - 1) & N) == 0),                      \
         Return> simd_cast(const simdarray_type__<T, N, V, M> &x0, const From &... xs)    \
     {                                                                                    \
+        vc_debug_("simd_cast{bisectable}(", ")\n", x0, xs...);                           \
         return simd_cast_interleaved_argument_order<                                     \
             Return, typename simdarray_type__<T, N, V, M>::storage_type0,                \
             typename From::storage_type0...>(internal_data0(x0), internal_data0(xs)...,  \
@@ -1283,6 +1315,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
          N * sizeof...(From) >= Return::Size && ((N - 1) & N) == 0),                     \
         Return> simd_cast(const simdarray_type__<T, N, V, M> &x0, const From &... xs)    \
     {                                                                                    \
+        vc_debug_("simd_cast{bisectable2}(", ")\n", x0, xs...);                          \
         return simd_cast_without_last<Return, simdarray_type__<T, N, V, M>, From...>(    \
             x0, xs...);                                                                  \
     }                                                                                    \
@@ -1294,6 +1327,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
          N * (1 + sizeof...(From)) <= Return::Size && ((N - 1) & N) != 0),               \
         Return> simd_cast(const simdarray_type__<T, N, V, M> &x0, const From &... xs)    \
     {                                                                                    \
+        vc_debug_("simd_cast{remaining}(", ")\n", x0, xs...);                            \
         return simd_cast_impl_smaller_input<Return, N, simdarray_type__<T, N, V, M>,     \
                                             From...>(x0, xs...);                         \
     }                                                                                    \
@@ -1305,6 +1339,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
          N * (1 + sizeof...(From)) > Return::Size && ((N - 1) & N) != 0),                \
         Return> simd_cast(const simdarray_type__<T, N, V, M> &x0, const From &... xs)    \
     {                                                                                    \
+        vc_debug_("simd_cast{remaining2}(", ")\n", x0, xs...);                           \
         return simd_cast_impl_larger_input<Return, N, simdarray_type__<T, N, V, M>,      \
                                            From...>(x0, xs...);                          \
     }                                                                                    \
@@ -1314,6 +1349,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
         enable_if<(N != M && N >= 2 * Return::Size && ((N - 1) & N) == 0), Return>       \
             simd_cast(const simdarray_type__<T, N, V, M> &x)                             \
     {                                                                                    \
+        vc_debug_("simd_cast{single bisectable}(", ")\n", x);                            \
         return simd_cast<Return>(internal_data0(x));                                     \
     }                                                                                    \
     template <typename Return, typename T, std::size_t N, typename V, std::size_t M>     \
@@ -1321,6 +1357,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
         (N != M && N > Return::Size && N < 2 * Return::Size && ((N - 1) & N) == 0),      \
         Return> simd_cast(const simdarray_type__<T, N, V, M> &x)                         \
     {                                                                                    \
+        vc_debug_("simd_cast{single bisectable2}(", ")\n", x);                           \
         return simd_cast<Return>(internal_data0(x), internal_data1(x));                  \
     }
 Vc_SIMDARRAY_CASTS(simdarray)
@@ -1333,6 +1370,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array)
     template <typename Return, int offset, typename T, std::size_t N, typename V>        \
     Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray_type__<T, N, V, N> &x)        \
     {                                                                                    \
+        vc_debug_("simd_cast{offset, forward}(", ")\n", offset, x);                      \
         return simd_cast<Return, offset>(internal_data(x));                              \
     }                                                                                    \
     /* convert from right member of simdarray */                                         \
@@ -1343,6 +1381,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array)
                    Common::left_size(N) % Return::Size == 0),                            \
                   Return> simd_cast(const simdarray_type__<T, N, V, M> &x)               \
     {                                                                                    \
+        vc_debug_("simd_cast{offset, right}(", ")\n", offset, x);                        \
         return simd_cast<Return, offset - Common::left_size(N) / Return::Size>(          \
             internal_data1(x));                                                          \
     }                                                                                    \
@@ -1355,6 +1394,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array)
                    Common::left_size(N) % Return::Size != 0),                            \
                   Return> simd_cast(const simdarray_type__<T, N, V, M> &x)               \
     {                                                                                    \
+        vc_debug_("simd_cast{offset, right, nofit}(", ")\n", offset, x);                 \
         return Return::generate([&](int i) { return x[i + offset * Return::Size]; });    \
     }                                                                                    \
     /* convert from left member of simdarray */                                          \
@@ -1365,6 +1405,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array)
                    (offset + 1) * Return::Size <= Common::left_size(N)),                 \
                   Return> simd_cast(const simdarray_type__<T, N, V, M> &x)               \
     {                                                                                    \
+        vc_debug_("simd_cast{offset, left}(", ")\n", offset, x);                         \
         return simd_cast<Return, offset>(internal_data0(x));                             \
     }                                                                                    \
     /* fallback to copying scalars */                                                    \
@@ -1375,6 +1416,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array)
                    (offset + 1) * Return::Size > Common::left_size(N)),                  \
                   Return> simd_cast(const simdarray_type__<T, N, V, M> &x)               \
     {                                                                                    \
+        vc_debug_("simd_cast{offset, copy scalars}(", ")\n", offset, x);                 \
         using R = typename Return::EntryType;                                            \
         Return r = Return::Zero();                                                       \
         for (std::size_t i = offset * Return::Size;                                      \
