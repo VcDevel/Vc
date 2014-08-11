@@ -1368,9 +1368,19 @@ Vc_SIMDARRAY_CASTS(simd_mask_array)
 
 // simd_cast<T, offset>(simdarray/-mask) {{{2
 #define Vc_SIMDARRAY_CASTS(simdarray_type__)                                             \
+    /* offset == 0 is like without offset */                                             \
+    template <typename Return, int offset, typename T, std::size_t N, typename V,        \
+              std::size_t M>                                                             \
+    Vc_INTRINSIC Vc_CONST enable_if<(offset == 0), Return> simd_cast(                    \
+        const simdarray_type__<T, N, V, M> &x)                                           \
+    {                                                                                    \
+        vc_debug_("simd_cast{offset == 0}(", ")\n", offset, x);                          \
+        return simd_cast<Return>(x);                                                     \
+    }                                                                                    \
     /* forward to V */                                                                   \
     template <typename Return, int offset, typename T, std::size_t N, typename V>        \
-    Vc_INTRINSIC Vc_CONST Return simd_cast(const simdarray_type__<T, N, V, N> &x)        \
+    Vc_INTRINSIC Vc_CONST enable_if<(offset != 0), Return> simd_cast(                    \
+        const simdarray_type__<T, N, V, N> &x)                                           \
     {                                                                                    \
         vc_debug_("simd_cast{offset, forward}(", ")\n", offset, x);                      \
         return simd_cast<Return, offset>(internal_data(x));                              \
@@ -1380,7 +1390,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array)
               std::size_t M>                                                             \
     Vc_INTRINSIC Vc_CONST                                                                \
         enable_if<(N != M && offset * Return::Size >= Common::left_size(N) &&            \
-                   Common::left_size(N) % Return::Size == 0),                            \
+                   offset != 0 && Common::left_size(N) % Return::Size == 0),             \
                   Return> simd_cast(const simdarray_type__<T, N, V, M> &x)               \
     {                                                                                    \
         vc_debug_("simd_cast{offset, right}(", ")\n", offset, x);                        \
@@ -1393,18 +1403,19 @@ Vc_SIMDARRAY_CASTS(simd_mask_array)
               std::size_t M>                                                             \
     Vc_INTRINSIC Vc_CONST                                                                \
         enable_if<(N != M && offset * Return::Size >= Common::left_size(N) &&            \
-                   Common::left_size(N) % Return::Size != 0),                            \
+                   offset != 0 && Common::left_size(N) % Return::Size != 0),             \
                   Return> simd_cast(const simdarray_type__<T, N, V, M> &x)               \
     {                                                                                    \
         vc_debug_("simd_cast{offset, right, nofit}(", ")\n", offset, x);                 \
-        return Return::generate([&](int i) { return x[i + offset * Return::Size]; });    \
+        return simd_cast_with_offset<                                                    \
+            Return, offset * Return::Size - Common::left_size(N)>(internal_data1(x));    \
     }                                                                                    \
     /* convert from left member of simdarray */                                          \
     template <typename Return, int offset, typename T, std::size_t N, typename V,        \
               std::size_t M>                                                             \
     Vc_INTRINSIC Vc_CONST                                                                \
         enable_if<(N != M && /*offset * Return::Size < Common::left_size(N) &&*/         \
-                   (offset + 1) * Return::Size <= Common::left_size(N)),                 \
+                   offset != 0 && (offset + 1) * Return::Size <= Common::left_size(N)),  \
                   Return> simd_cast(const simdarray_type__<T, N, V, M> &x)               \
     {                                                                                    \
         vc_debug_("simd_cast{offset, left}(", ")\n", offset, x);                         \
@@ -1415,7 +1426,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array)
               std::size_t M>                                                             \
     Vc_INTRINSIC Vc_CONST                                                                \
         enable_if<(N != M && (offset * Return::Size < Common::left_size(N)) &&           \
-                   (offset + 1) * Return::Size > Common::left_size(N)),                  \
+                   offset != 0 && (offset + 1) * Return::Size > Common::left_size(N)),   \
                   Return> simd_cast(const simdarray_type__<T, N, V, M> &x)               \
     {                                                                                    \
         vc_debug_("simd_cast{offset, copy scalars}(", ")\n", offset, x);                 \
