@@ -1270,22 +1270,24 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
 #define Vc_SIMDARRAY_CASTS(simdarray_type__)                                             \
     /* indivisible simdarray_type__ */                                                   \
     template <typename Return, typename T, std::size_t N, typename V, typename... From>  \
-    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
-        (are_all_types_equal<simdarray_type__<T, N, V, N>, From...>::value &&            \
-         (sizeof...(From) == 0 || N * (1 + sizeof...(From)) <= Return::Size) &&          \
-         !std::is_same<Return, simdarray_type__<T, N, V, N>>::value),                    \
-        Return> simd_cast(const simdarray_type__<T, N, V, N> &x0, const From &... xs)    \
+    Vc_INTRINSIC Vc_CONST                                                                \
+        enable_if<(are_all_types_equal<simdarray_type__<T, N, V, N>, From...>::value &&  \
+                   (sizeof...(From) == 0 || N * sizeof...(From) < Return::Size) &&       \
+                   !std::is_same<Return, simdarray_type__<T, N, V, N>>::value),          \
+                  Return> simd_cast(const simdarray_type__<T, N, V, N> &x0,              \
+                                    const From &... xs)                                  \
     {                                                                                    \
         vc_debug_("simd_cast{indivisible}(", ")\n", x0, xs...);                          \
         return simd_cast<Return>(internal_data(x0), internal_data(xs)...);               \
     }                                                                                    \
     /* indivisible simdarray_type__ && can drop arguments from the end */                \
     template <typename Return, typename T, std::size_t N, typename V, typename... From>  \
-    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
-        (are_all_types_equal<simdarray_type__<T, N, V, N>, From...>::value &&            \
-         (sizeof...(From) > 0 && (N * (1 + sizeof...(From)) > Return::Size)) &&          \
-         !std::is_same<Return, simdarray_type__<T, N, V, N>>::value),                    \
-        Return> simd_cast(const simdarray_type__<T, N, V, N> &x0, const From &... xs)    \
+    Vc_INTRINSIC Vc_CONST                                                                \
+        enable_if<(are_all_types_equal<simdarray_type__<T, N, V, N>, From...>::value &&  \
+                   (sizeof...(From) > 0 && (N * sizeof...(From) >= Return::Size)) &&     \
+                   !std::is_same<Return, simdarray_type__<T, N, V, N>>::value),          \
+                  Return> simd_cast(const simdarray_type__<T, N, V, N> &x0,              \
+                                    const From &... xs)                                  \
     {                                                                                    \
         vc_debug_("simd_cast{indivisible2}(", ")\n", x0, xs...);                         \
         return simd_cast_without_last<                                                   \
