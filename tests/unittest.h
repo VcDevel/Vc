@@ -945,6 +945,10 @@ private:
     static void printFirst() { std::cout << failString() << "┍ "; }
     template <typename T> static inline void print(const T &x) { std::cout << x; }
     static void print(const std::type_info &x) { std::cout << x.name(); }
+    static void print(const std::string &str)
+    {
+        print(str.c_str());
+    }
     static void print(const char *str)
     {
         const char *pos = 0;
