@@ -1235,10 +1235,30 @@ inline std::string typeToString_impl(
     s << "Vector<" << typeToString<T>() << '>';
     return s.str();
 }
+template <typename V>
+inline std::string typeToString_impl(
+    V const &, typename std::enable_if<Vc::is_simd_mask<V>::value, int>::type = 0)
+{
+    using T = typename V::EntryType;
+    std::stringstream s;
+    if (std::is_same<V, Vc::Scalar::Mask<T>>::value) {
+        s << "Scalar::";
+    } else if (std::is_same<V, Vc::SSE::Mask<T>>::value) {
+        s << "SSE::";
+    } else if (std::is_same<V, Vc::AVX::Mask<T>>::value) {
+        s << "AVX::";
+    } else if (std::is_same<V, Vc::MIC::Mask<T>>::value) {
+        s << "MIC::";
+    }
+    s << "Mask<" << typeToString<T>() << '>';
+    return s.str();
+}
 // generic fallback (typeid::name) {{{2
 template <typename T>
 inline std::string typeToString_impl(
-    T const &, typename std::enable_if<!Vc::is_simd_vector<T>::value, int>::type = 0)
+    T const &,
+    typename std::enable_if<!Vc::is_simd_vector<T>::value && !Vc::is_simd_mask<T>::value,
+                            int>::type = 0)
 {
     return typeid(T).name();
 }
