@@ -917,7 +917,7 @@ Vc_INTRINSIC Vc_CONST enable_if<(offset != 0 && SSE::is_mask<Return>::value &&
     using SseVector = SSE::Mask<Traits::entry_type_of<typename M::Vector>>;
     using Intrin = typename SseVector::VectorType;
     return simd_cast<Return>(SseVector{AVX::avx_cast<Intrin>(
-        _mm_alignr_epi8(AVX::lo128(x.dataI()), AVX::hi128(x.dataI()), shift))});
+        _mm_alignr_epi8(AVX::hi128(x.dataI()), AVX::lo128(x.dataI()), shift))});
 }
 
 template <typename Return, int offset, typename T>
