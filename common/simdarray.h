@@ -396,6 +396,11 @@ public:
         return {data.interleaveHigh(x.data)};
     }
 
+    Vc_INTRINSIC simdarray reversed() const
+    {
+        return {data.reversed()};
+    }
+
     template <typename G> static Vc_INTRINSIC simdarray generate(const G &gen)
     {
         return {VectorType::generate(gen)};
@@ -867,6 +872,17 @@ public:
     Vc_INTRINSIC simdarray interleaveLow(simdarray x) const
     {
         return {data0.interleaveLow(x.data0), data1.interleaveLow(x.data1)};
+    }
+    inline simdarray reversed() const
+    {
+        if (std::is_same<storage_type0, storage_type1>::value) {
+            return {simd_cast<storage_type0>(data1).reversed(),
+                    simd_cast<storage_type1>(data0).reversed()};
+        } else {
+            return {data0.shifted(storage_type1::Size, data1).reversed(),
+                    simd_cast<storage_type1>(data0.reversed().shifted(
+                        storage_type0::Size - storage_type1::Size))};
+        }
     }
     Vc_INTRINSIC simdarray interleaveHigh(simdarray x) const
     {

@@ -1147,6 +1147,39 @@ template <> template <typename G> Vc_INTRINSIC ushort_v ushort_v::generate(G gen
     return _mm_setr_epi16(gen(0), gen(1), gen(2), gen(3), gen(4), gen(5), gen(6), gen(7));
 }
 // }}}1
+// reversed {{{1
+template <> Vc_INTRINSIC Vc_PURE double_v double_v::reversed() const
+{
+    return Mem::permute128<X1, X0>(Mem::permute<X1, X0, X3, X2>(d.v()));
+}
+template <> Vc_INTRINSIC Vc_PURE float_v float_v::reversed() const
+{
+    return Mem::permute128<X1, X0>(Mem::permute<X3, X2, X1, X0>(d.v()));
+}
+#ifdef VC_IMPL_AVX2
+#else
+template <> Vc_INTRINSIC Vc_PURE int_v int_v::reversed() const
+{
+    return Mem::permute128<X1, X0>(Mem::permute<X3, X2, X1, X0>(d.v()));
+}
+template <> Vc_INTRINSIC Vc_PURE uint_v uint_v::reversed() const
+{
+    return Mem::permute128<X1, X0>(Mem::permute<X3, X2, X1, X0>(d.v()));
+}
+template <> Vc_INTRINSIC Vc_PURE short_v short_v::reversed() const
+{
+    return avx_cast<__m128i>(
+        Mem::shuffle<X1, Y0>(avx_cast<__m128d>(Mem::permuteHi<X7, X6, X5, X4>(d.v())),
+                             avx_cast<__m128d>(Mem::permuteLo<X3, X2, X1, X0>(d.v()))));
+}
+template <> Vc_INTRINSIC Vc_PURE ushort_v ushort_v::reversed() const
+{
+    return avx_cast<__m128i>(
+        Mem::shuffle<X1, Y0>(avx_cast<__m128d>(Mem::permuteHi<X7, X6, X5, X4>(d.v())),
+                             avx_cast<__m128d>(Mem::permuteLo<X3, X2, X1, X0>(d.v()))));
+}
+#endif
+// }}}1
 }
 }
 

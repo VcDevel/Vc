@@ -25,6 +25,13 @@
 
 using namespace Vc;
 
+TEST_TYPES(V, reversed, (ALL_VECTORS, SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAYS(15)))
+{
+    const V x = V::IndexesFromZero() + 1;
+    const V reference = V::generate([](int i) { return V::Size - i; });
+    COMPARE(x.reversed(), reference);
+}
+
 TEST_TYPES(Vec, testSort, (ALL_VECTORS))
 {
     Vec ref(Vc::IndexesFromZero);

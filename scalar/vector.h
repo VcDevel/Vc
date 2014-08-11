@@ -244,7 +244,8 @@ template <typename T> class Vector
         }
         Vc_INTRINSIC Vector shifted(int amount) const { return amount == 0 ? *this : Zero(); }
         Vc_INTRINSIC Vector rotated(int) const { return *this; }
-        Vector sorted() const { return *this; }
+        Vc_INTRINSIC Vector reversed() const { return *this; }
+        Vc_INTRINSIC Vector sorted() const { return *this; }
 
         template <typename F> void callWithValuesSorted(F &&f) { f(m_data); }
 
