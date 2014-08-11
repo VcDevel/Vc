@@ -1226,6 +1226,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
                    Traits::is_simd_##trait_name__<From>::value),                         \
                   Return> simd_cast(From x)                                              \
     {                                                                                    \
+        vc_debug_("simd_cast{offset, atomic}(", ")\n", offset, x);                       \
         return {simd_cast<typename Return::storage_type, offset>(x)};                    \
     }                                                                                    \
     /* both halves of Return array are extracted from argument */                        \
@@ -1238,6 +1239,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
          Return::Size * offset + Common::left_size(Return::Size) < From::Size),          \
         Return> simd_cast(From x)                                                        \
     {                                                                                    \
+        vc_debug_("simd_cast{offset, split Return}(", ")\n", offset, x);                 \
         using R0 = typename Return::storage_type0;                                       \
         constexpr int entries_offset = offset * Return::Size;                            \
         constexpr int entries_offset_right = entries_offset + R0::Size;                  \
@@ -1257,6 +1259,7 @@ Vc_SIMDARRAY_CASTS(simd_mask_array, mask)
          Return::Size * offset + Common::left_size(Return::Size) >= From::Size),         \
         Return> simd_cast(From x)                                                        \
     {                                                                                    \
+        vc_debug_("simd_cast{offset, R1::Zero}(", ")\n", offset, x);                     \
         using R0 = typename Return::storage_type0;                                       \
         using R1 = typename Return::storage_type1;                                       \
         constexpr int entries_offset = offset * Return::Size;                            \
