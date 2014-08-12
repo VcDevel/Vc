@@ -1386,13 +1386,25 @@ public:
 template <template <typename V> class TestFunctor, typename... TestTypes>
 class Test2 : public Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>
 {
+#ifdef VC_ICC
+//#warning "ICC does not fully implement the current C++ standard (yet). The workaround may be suboptimal/wrong."
+public:
+    explicit Test2(const std::string &name) : Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>(name) {}
+#else
     using Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>::Test2Impl;
+#endif
 };
 template <template <typename V> class TestFunctor, typename... TestTypes>
 class Test2<TestFunctor, Typelist<TestTypes...>>
     : public Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>
 {
+#ifdef VC_ICC
+//#warning "ICC does not fully implement the current C++ standard (yet). The workaround may be suboptimal/wrong."
+public:
+    explicit Test2(const std::string &name) : Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>(name) {}
+#else
     using Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>::Test2Impl;
+#endif
 };
 
 // hackTypelist {{{1
