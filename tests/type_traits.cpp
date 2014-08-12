@@ -45,3 +45,30 @@ TEST_TYPES(V, isSigned, (ALL_VECTORS))
     COMPARE(Vc::is_signed<V>::value, std::is_signed<T>::value);
     COMPARE(Vc::is_unsigned<V>::value, std::is_unsigned<T>::value);
 }
+
+TEST_TYPES(V, hasSubscript, (ALL_VECTORS))
+{
+    VERIFY(Vc::Traits::has_subscript_operator<V>::value);
+}
+
+TEST_TYPES(V, hasMultiply, (ALL_VECTORS))
+{
+    VERIFY(Vc::Traits::has_multiply_operator<V>::value);
+}
+
+TEST_TYPES(V, hasEquality, (ALL_VECTORS))
+{
+    VERIFY(Vc::Traits::has_equality_operator<V>::value);
+}
+
+TEST_TYPES(V, isSimdMask, (ALL_VECTORS))
+{
+    VERIFY(!Vc::is_simd_mask<V>::value);
+    VERIFY( Vc::is_simd_mask<typename V::Mask>::value);
+}
+
+TEST_TYPES(V, isSimdVector, (ALL_VECTORS))
+{
+    VERIFY( Vc::is_simd_vector<V>::value);
+    VERIFY(!Vc::is_simd_vector<typename V::Mask>::value);
+}
