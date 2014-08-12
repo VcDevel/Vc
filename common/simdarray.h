@@ -866,10 +866,33 @@ public:
         return Zero();
     }
 
-    Vc_INTRINSIC simdarray interleaveLow(simdarray x) const
+    Vc_INTRINSIC simdarray interleaveLow(const simdarray &x) const
     {
-        return {data0.interleaveLow(x.data0), data1.interleaveLow(x.data1)};
+        // return data0[0], x.data0[0], data0[1], x.data0[1], ...
+        return {data0.interleaveLow(x.data0),
+                simd_cast<storage_type1>(data0.interleaveHigh(x.data0))};
     }
+    Vc_INTRINSIC simdarray interleaveHigh(const simdarray &x) const
+    {
+        return interleaveHighImpl(
+            x,
+            std::integral_constant<bool, storage_type0::Size == storage_type1::Size>());
+    }
+
+private:
+    Vc_INTRINSIC simdarray interleaveHighImpl(const simdarray &x, std::true_type) const
+    {
+        return {data1.interleaveLow(x.data1), data1.interleaveHigh(x.data1)};
+    }
+    inline simdarray interleaveHighImpl(const simdarray &x, std::false_type) const
+    {
+        return {data0.interleaveHigh(x.data0)
+                    .shifted(storage_type1::Size,
+                             simd_cast<storage_type0>(data1.interleaveLow(x.data1))),
+                data1.interleaveHigh(x.data1)};
+    }
+
+public:
     inline simdarray reversed() const
     {
         if (std::is_same<storage_type0, storage_type1>::value) {
@@ -880,10 +903,6 @@ public:
                     simd_cast<storage_type1>(data0.reversed().shifted(
                         storage_type0::Size - storage_type1::Size))};
         }
-    }
-    Vc_INTRINSIC simdarray interleaveHigh(simdarray x) const
-    {
-        return {data0.interleaveHigh(x.data0), data1.interleaveHigh(x.data1)};
     }
 
     template <typename G> static Vc_INTRINSIC simdarray generate(const G &gen)
