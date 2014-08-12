@@ -1433,7 +1433,7 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
     Vc::simdarray<int, N__>, Vc::simdarray<unsigned short, N__>, Vc::simdarray<double, N__>,    \
         Vc::simdarray<unsigned int, N__>, Vc::simdarray<short, N__>, Vc::simdarray<float, N__>
 
-#define XTEST(fun__) void fun__()
+#define XTEST(fun__) template <typename T__> void fun__()
 #define TEST(fun__)                                                                                \
     void fun__();                                                                                  \
     static UnitTest::Test<void> test_##fun__##__(&fun__, #fun__);                                  \
