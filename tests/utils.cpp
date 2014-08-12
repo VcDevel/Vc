@@ -415,7 +415,6 @@ TEST_TYPES(V, shiftedIn, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(31), SIMD_ARR
     shiftedInConstant(V::Random(), std::integral_constant<int, Size>());
 }
 
-#if 0
 TEST(testMallocAlignment)
 {
     int_v *a = Vc::malloc<int_v, Vc::AlignOnVector>(10);
