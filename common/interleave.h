@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-/**
+/** \ingroup Utilities
  Interleaves the entries from \p a and \p b into two vectors of the same type. The order
  in the returned vector contains the elements `a[0], b[0], a[1], b[1], a[2], b[2], a[3],
  b[3], ...`.
