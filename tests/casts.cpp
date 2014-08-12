@@ -112,7 +112,7 @@ template <typename V> inline typename V::EntryType ith_scalar(std::size_t i, con
     return x[i];
 }
 template <typename V, typename... Vs, typename = Vc::enable_if<(sizeof...(Vs) > 0)>>
-inline typename V::EntryType ith_scalar(std::size_t i, V x, Vs... xs)
+inline typename V::EntryType ith_scalar(std::size_t i, const V &x, const Vs &... xs)
 {
     return i < V::Size ? x[i] : ith_scalar(i - V::Size, xs...);
 }
@@ -124,14 +124,15 @@ template <typename To, typename V> std::string extraInformation(const V &x0)
       << x0 << ')';
     return s.str();
 }
-template <typename To, typename V> std::string extraInformation(V x0, V x1)
+template <typename To, typename V> std::string extraInformation(const V &x0, const V &x1)
 {
     std::stringstream s;
     s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
       << x0 << ", " << x1 << ')';
     return s.str();
 }
-template <typename To, typename V> std::string extraInformation(V x0, V x1, V x2, V x3)
+template <typename To, typename V>
+std::string extraInformation(const V &x0, const V &x1, const V &x2, const V &x3)
 {
     std::stringstream s;
     s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
@@ -139,7 +140,8 @@ template <typename To, typename V> std::string extraInformation(V x0, V x1, V x2
     return s.str();
 }
 template <typename To, typename V>
-std::string extraInformation(V x0, V x1, V x2, V x3, V x4, V x5, V x6, V x7)
+std::string extraInformation(const V &x0, const V &x1, const V &x2, const V &x3,
+                             const V &x4, const V &x5, const V &x6, const V &x7)
 {
     std::stringstream s;
     s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
@@ -359,7 +361,7 @@ TEST_TYPES(TList, cast_mask, (AllTestTypes)) // {{{1
     using To = typename ToV::Mask;
     std::vector<From> randomMasks(4, From{false});
 
-    UnitTest::withRandomMask<FromV>([&](From mask) {
+    UnitTest::withRandomMask<FromV>([&](const From &mask) {
         std::rotate(randomMasks.begin(), randomMasks.begin() + 1, randomMasks.end());
         randomMasks[0] = mask;
         mask_cast_1<To>(randomMasks[0]);

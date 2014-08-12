@@ -1146,12 +1146,12 @@ Vc_INTRINSIC Vc_CONST Return
 template <typename Return, std::size_t offset, typename From, typename... Froms>
 Vc_INTRINSIC Vc_CONST
     enable_if<(are_all_types_equal<From, Froms...>::value && offset == 0), Return>
-        simd_cast_with_offset(From x, Froms... xs);
+        simd_cast_with_offset(const From &x, const Froms &... xs);
 // offset > 0 && offset divisible by Return::Size {{{3
 template <typename Return, std::size_t offset, typename From>
 Vc_INTRINSIC Vc_CONST
     enable_if<(From::Size > offset && offset > 0 && offset % Return::Size == 0), Return>
-        simd_cast_with_offset(From x);
+        simd_cast_with_offset(const From &x);
 // offset > 0 && offset NOT divisible && Return is non-atomic simd(mask)array {{{3
 template <typename Return, std::size_t offset, typename From>
 Vc_INTRINSIC Vc_CONST
@@ -1161,7 +1161,7 @@ Vc_INTRINSIC Vc_CONST
                 (Traits::is_simd_mask_array<Return>::value &&
                  !Traits::is_atomic_simd_mask_array<Return>::value))),
               Return>
-        simd_cast_with_offset(From x);
+        simd_cast_with_offset(const From &x);
 // offset > 0 && offset NOT divisible && Return is atomic simd(mask)array {{{3
 template <typename Return, std::size_t offset, typename From>
 Vc_INTRINSIC Vc_CONST
@@ -1171,12 +1171,12 @@ Vc_INTRINSIC Vc_CONST
                 (Traits::is_simd_mask_array<Return>::value &&
                  Traits::is_atomic_simd_mask_array<Return>::value))),
               Return>
-        simd_cast_with_offset(From x);
+        simd_cast_with_offset(const From &x);
 // offset > first argument (drops first arg) {{{3
 template <typename Return, std::size_t offset, typename From, typename... Froms>
 Vc_INTRINSIC Vc_CONST enable_if<
     (are_all_types_equal<From, Froms...>::value && From::Size <= offset), Return>
-    simd_cast_with_offset(From, Froms... xs)
+    simd_cast_with_offset(const From &, const Froms &... xs)
 {
     return simd_cast_with_offset<Return, offset - From::Size>(xs...);
 }
@@ -1184,7 +1184,7 @@ Vc_INTRINSIC Vc_CONST enable_if<
 // offset > first and only argument (returns Zero) {{{3
 template <typename Return, std::size_t offset, typename From>
 Vc_INTRINSIC Vc_CONST enable_if<(From::Size <= offset), Return> simd_cast_with_offset(
-    From)
+    const From &)
 {
     return Return::Zero();
 }
@@ -1548,7 +1548,7 @@ Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
     template <typename Return, std::size_t offset, typename From>
     Vc_INTRINSIC Vc_CONST
     enable_if<(From::Size > offset && offset > 0 && offset % Return::Size == 0),
-              Return> simd_cast_with_offset(From x)
+              Return> simd_cast_with_offset(const From &x)
 {
     return simd_cast<Return, offset / Return::Size>(x);
 }
@@ -1560,7 +1560,7 @@ Vc_INTRINSIC Vc_CONST
                 (Traits::is_simd_mask_array<Return>::value &&
                  !Traits::is_atomic_simd_mask_array<Return>::value))),
               Return>
-        simd_cast_with_offset(From x)
+        simd_cast_with_offset(const From &x)
 {
     using R0 = typename Return::storage_type0;
     using R1 = typename Return::storage_type1;
@@ -1575,14 +1575,14 @@ Vc_INTRINSIC Vc_CONST
                 (Traits::is_simd_mask_array<Return>::value &&
                  Traits::is_atomic_simd_mask_array<Return>::value))),
               Return>
-        simd_cast_with_offset(From x)
+        simd_cast_with_offset(const From &x)
 {
     return simd_cast<Return, offset / Return::Size>(x.shifted(offset % Return::Size));
 }
 template <typename Return, std::size_t offset, typename From, typename... Froms>
 Vc_INTRINSIC Vc_CONST
     enable_if<(are_all_types_equal<From, Froms...>::value && offset == 0), Return>
-        simd_cast_with_offset(From x, Froms... xs)
+        simd_cast_with_offset(const From &x, const Froms &... xs)
 {
     return simd_cast<Return>(x, xs...);
 }
