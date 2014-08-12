@@ -120,21 +120,21 @@ inline typename V::EntryType ith_scalar(std::size_t i, V x, Vs... xs)
 template <typename To, typename V> std::string extraInformation(const V &x0)
 {
     std::stringstream s;
-    s << "simd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
+    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
       << x0 << ')';
     return s.str();
 }
 template <typename To, typename V> std::string extraInformation(V x0, V x1)
 {
     std::stringstream s;
-    s << "simd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
+    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
       << x0 << ", " << x1 << ')';
     return s.str();
 }
 template <typename To, typename V> std::string extraInformation(V x0, V x1, V x2, V x3)
 {
     std::stringstream s;
-    s << "simd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
+    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
       << x0 << ", " << x1 << ", " << x2 << ", " << x3 << ')';
     return s.str();
 }
