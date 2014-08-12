@@ -32,14 +32,10 @@ TEST_TYPES(V, reversed, (ALL_VECTORS, SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAY
     COMPARE(x.reversed(), reference);
 }
 
-TEST_TYPES(Vec, testSort, (ALL_VECTORS))
+TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_ARRAYS(3), SIMD_ARRAYS(1)))
 {
     Vec ref(Vc::IndexesFromZero);
     Vec a;
-//X     for (int i = 0; i < Vec::Size; ++i) {
-//X         a[i] = Vec::Size - i - 1;
-//X     }
-//X     COMPARE(ref, a.sorted()) << ", a: " << a;
 
     int maxPerm = 1;
     for (int x = Vec::Size; x > 0 && maxPerm < 400000; --x) {
@@ -64,17 +60,16 @@ TEST_TYPES(Vec, testSort, (ALL_VECTORS))
                 }
             }
         }
-        //std::cout << a << a.sorted() << std::endl;
-        COMPARE(ref, a.sorted()) << ", a: " << a;
+        COMPARE(a.sorted(), ref) << ", a: " << a;
     }
 
     for (int repetition = 0; repetition < 1000; ++repetition) {
         Vec test = Vec::Random();
         Vc::Memory<Vec, Vec::Size> reference;
         reference.vector(0) = test;
-        std::sort(&reference[0], &reference[Vec::Size]);
+        std::sort(&reference[0], &reference[Vec::Size - 1] + 1);
         ref = reference.vector(0);
-        COMPARE(ref, test.sorted());
+        COMPARE(test.sorted(), ref);
     }
 }
 

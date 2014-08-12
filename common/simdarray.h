@@ -21,7 +21,8 @@
 #define VC_COMMON_SIMD_ARRAY_H
 
 //#define VC_DEBUG_SIMD_CAST 1
-#ifdef VC_DEBUG_SIMD_CAST
+//#define VC_DEBUG_SORTED 1
+#if defined VC_DEBUG_SIMD_CAST || defined VC_DEBUG_SORTED
 #include <iostream>
 #endif
 
@@ -398,6 +399,11 @@ public:
     Vc_INTRINSIC simdarray reversed() const
     {
         return {data.reversed()};
+    }
+
+    Vc_INTRINSIC simdarray sorted() const
+    {
+        return {data.sorted()};
     }
 
     template <typename G> static Vc_INTRINSIC simdarray generate(const G &gen)
@@ -903,6 +909,66 @@ public:
                     simd_cast<storage_type1>(data0.reversed().shifted(
                         storage_type0::Size - storage_type1::Size))};
         }
+    }
+    inline simdarray sorted() const
+    {
+        return sortedImpl(
+            std::integral_constant<bool, storage_type0::Size == storage_type1::Size>());
+    }
+
+    Vc_INTRINSIC simdarray sortedImpl(std::true_type) const
+    {
+#ifdef VC_DEBUG_SORTED
+        std::cerr << "-- " << data0 << data1 << '\n';
+#endif
+        auto a = data0.sorted();
+        auto b = data1.sorted().reversed();
+        for (auto i = data0.size(); i; i >>= 1) {
+            const auto smaller = a < b;
+            const auto lo = iif(smaller, a, b);
+            const auto hi = iif(smaller, b, a);
+            std::tie(a, b) = Vc::interleave(lo, hi);
+#ifdef VC_DEBUG_SORTED
+            std::cerr << i << ": " << lo << hi << " -> " << a << b << '\n';
+#endif
+        }
+        return {std::move(a), std::move(b)};
+    }
+
+    Vc_INTRINSIC simdarray sortedImpl(std::false_type) const
+    {
+        using SortableArray = simdarray<value_type, Common::nextPowerOfTwo(Size)>;
+        auto sortable = simd_cast<SortableArray>(*this);
+        for (std::size_t i = Size; i < SortableArray::Size; ++i) {
+            sortable[i] = std::numeric_limits<value_type>::max();
+        }
+        return simd_cast<simdarray>(sortable.sorted());
+
+        /* The following implementation appears to be less efficient. But this may need further
+         * work.
+        const auto a = data0.sorted();
+        const auto b = data1.sorted();
+#ifdef VC_DEBUG_SORTED
+        std::cerr << "== " << a << b << '\n';
+#endif
+        auto aIt = a.begin();
+        auto bIt = b.begin();
+        const auto aEnd = a.end();
+        const auto bEnd = b.end();
+        return simdarray::generate([&](std::size_t) {
+            if (aIt == aEnd) {
+                return *(bIt++);
+            }
+            if (bIt == bEnd) {
+                return *(aIt++);
+            }
+            if (*aIt < *bIt) {
+                return *(aIt++);
+            } else {
+                return *(bIt++);
+            }
+        });
+        */
     }
 
     template <typename G> static Vc_INTRINSIC simdarray generate(const G &gen)
