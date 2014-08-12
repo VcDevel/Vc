@@ -222,7 +222,12 @@ TEST_TYPES(TList, cast_vector, (AllTestTypes))  // {{{1
         }
     };
 
-    alignas(From) T testData[17 + 2 * From::Size] = {
+#ifdef VC_ICC
+    __attribute__((align(64)))
+#else
+    alignas(From)
+#endif
+        T testData[17 + 2 * From::Size] = {
         std::numeric_limits<T>::min(),
         T(0),
         T(-1),

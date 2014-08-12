@@ -100,14 +100,21 @@ template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r
 // simdarray<T, N>::vector_type != simdarray<T, N>::vector_type
 //
 // Therefore use simdarray<T, N, V>, where V follows from the above.
-template <typename T,
-          std::size_t N,
-          typename VectorType = Common::select_best_vector_type<T, N>,
-          std::size_t VectorSize = VectorType::size()  // this last parameter is only used for
-                                                       // specialization of N == VectorSize
-          >
-class alignas((((Common::nextPowerOfTwo((N + VectorSize - 1) / VectorSize) *
-              sizeof(VectorType)) - 1) & 127) + 1) simdarray;
+template <
+    typename T, std::size_t N,
+    typename VectorType = Common::select_best_vector_type<T, N>,
+    std::size_t VectorSize = VectorType::size()  // this last parameter is only used for
+                                                 // specialization of N == VectorSize
+    >
+class
+#ifndef VC_ICC
+    alignas((((Common::nextPowerOfTwo((N + VectorSize - 1) / VectorSize) *
+               sizeof(VectorType)) -
+              1) &
+             127) +
+            1)
+#endif
+    simdarray;
 
 template <typename T, std::size_t N, typename VectorType_> class simdarray<T, N, VectorType_, N>
 {

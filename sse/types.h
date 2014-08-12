@@ -20,8 +20,6 @@
 #ifndef SSE_TYPES_H
 #define SSE_TYPES_H
 
-#include "macros.h"
-
 #ifdef VC_DEFAULT_IMPL_SSE
 #define VC_DOUBLE_V_SIZE 2
 #define VC_FLOAT_V_SIZE 4
@@ -53,7 +51,12 @@ typedef Mask<unsigned int>     uint_m;
 typedef Mask<short>           short_m;
 typedef Mask<unsigned short> ushort_m;
 
-template <typename V = Vector<float>> class alignas(alignof(V)) VectorAlignedBaseT;
+template <typename V = Vector<float>>
+class
+#ifndef VC_ICC
+    alignas(alignof(V))
+#endif
+    VectorAlignedBaseT;
 
 template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
@@ -63,11 +66,9 @@ template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
 
 namespace Traits
 {
-template<typename T> struct is_simd_mask_internal<SSE::Mask<T>> : public std::true_type {};
-template<typename T> struct is_simd_vector_internal<SSE::Vector<T>> : public std::true_type {};
+template <typename T> struct is_simd_mask_internal<SSE::Mask<T>> : public std::true_type {};
+template <typename T> struct is_simd_vector_internal<SSE::Vector<T>> : public std::true_type {};
 }
 }
-
-#include "undomacros.h"
 
 #endif // SSE_TYPES_H
