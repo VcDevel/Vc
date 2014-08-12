@@ -108,6 +108,12 @@ namespace Mem
             return _mm_shuffle_ps(x, x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
 
+        template<VecPos Dst0, VecPos Dst1> static Vc_ALWAYS_INLINE Vc_CONST __m128d permute(__m128d x) {
+            static_assert(Dst0 >= X0 && Dst1 >= X0, "Incorrect_Range");
+            static_assert(Dst0 <= X1 && Dst1 <= X1, "Incorrect_Range");
+            return _mm_shuffle_pd(x, x, Dst0 + Dst1 * 4);
+        }
+
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m128i Vc_CONST permute(__m128i x) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
