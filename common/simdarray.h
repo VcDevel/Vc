@@ -332,20 +332,6 @@ public:
         data.assign(v.data, internal_data(k));
     }
 
-    Vc_INTRINSIC const vectorentry_type *begin() const
-    {
-        return reinterpret_cast<const vectorentry_type *>(&data.data());
-    }
-
-    Vc_INTRINSIC decltype(&std::declval<VectorType &>()[0]) begin()
-    {
-        return &data[0];
-    }
-
-    Vc_INTRINSIC const vectorentry_type *end() const { return begin() + Size; }
-
-    Vc_INTRINSIC auto end() -> decltype(this->begin()) { return begin() + Size; }
-
     // reductions ////////////////////////////////////////////////////////
 #define Vc_REDUCTION_FUNCTION__(name__)                                                            \
     Vc_INTRINSIC Vc_PURE value_type name__() const { return data.name__(); }                       \
@@ -690,19 +676,6 @@ public:
         data1.assign(v.data1, internal_data1(k));
     }
 
-    Vc_INTRINSIC const vectorentry_type *begin() const
-    {
-        return data0.begin();
-    }
-
-    Vc_INTRINSIC vectorentry_type *begin()
-    {
-        return data0.begin();
-    }
-
-    Vc_INTRINSIC const vectorentry_type *end() const { return data1.end(); }
-    Vc_INTRINSIC vectorentry_type *end() { return data1.end(); }
-
     // reductions ////////////////////////////////////////////////////////
 #define Vc_REDUCTION_FUNCTION__(name__, binary_fun__)                                              \
     template <typename ForSfinae = void>                                                           \
@@ -951,10 +924,10 @@ public:
 #ifdef VC_DEBUG_SORTED
         std::cerr << "== " << a << b << '\n';
 #endif
-        auto aIt = a.begin();
-        auto bIt = b.begin();
-        const auto aEnd = a.end();
-        const auto bEnd = b.end();
+        auto aIt = Vc::begin(a);
+        auto bIt = Vc::begin(b);
+        const auto aEnd = Vc::end(a);
+        const auto bEnd = Vc::end(b);
         return simdarray::generate([&](std::size_t) {
             if (aIt == aEnd) {
                 return *(bIt++);
