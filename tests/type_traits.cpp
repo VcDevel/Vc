@@ -17,7 +17,7 @@
 
 }}}*/
 
-#include "unittest-old.h"
+#include "unittest.h"
 #include <Vc/type_traits>
 
 using Vc::float_v;
@@ -27,33 +27,21 @@ using Vc::uint_v;
 using Vc::short_v;
 using Vc::ushort_v;
 
-template<typename V> void isSigned();
-template<> void isSigned< float_v>() { VERIFY( Vc::is_signed< float_v>::value); VERIFY(!Vc::is_unsigned< float_v>::value); }
-template<> void isSigned<double_v>() { VERIFY( Vc::is_signed<double_v>::value); VERIFY(!Vc::is_unsigned<double_v>::value); }
-template<> void isSigned<   int_v>() { VERIFY( Vc::is_signed<   int_v>::value); VERIFY(!Vc::is_unsigned<   int_v>::value); }
-template<> void isSigned<  uint_v>() { VERIFY(!Vc::is_signed<  uint_v>::value); VERIFY( Vc::is_unsigned<  uint_v>::value); }
-template<> void isSigned< short_v>() { VERIFY( Vc::is_signed< short_v>::value); VERIFY(!Vc::is_unsigned< short_v>::value); }
-template<> void isSigned<ushort_v>() { VERIFY(!Vc::is_signed<ushort_v>::value); VERIFY( Vc::is_unsigned<ushort_v>::value); }
-
-template<typename V> void isIntegral();
-template<> void isIntegral< float_v>() { VERIFY(!Vc::is_integral< float_v>::value); }
-template<> void isIntegral<double_v>() { VERIFY(!Vc::is_integral<double_v>::value); }
-template<> void isIntegral<   int_v>() { VERIFY( Vc::is_integral<   int_v>::value); }
-template<> void isIntegral<  uint_v>() { VERIFY( Vc::is_integral<  uint_v>::value); }
-template<> void isIntegral< short_v>() { VERIFY( Vc::is_integral< short_v>::value); }
-template<> void isIntegral<ushort_v>() { VERIFY( Vc::is_integral<ushort_v>::value); }
-
-template<typename V> void isFloatingPoint();
-template<> void isFloatingPoint< float_v>() { VERIFY( Vc::is_floating_point< float_v>::value); }
-template<> void isFloatingPoint<double_v>() { VERIFY( Vc::is_floating_point<double_v>::value); }
-template<> void isFloatingPoint<   int_v>() { VERIFY(!Vc::is_floating_point<   int_v>::value); }
-template<> void isFloatingPoint<  uint_v>() { VERIFY(!Vc::is_floating_point<  uint_v>::value); }
-template<> void isFloatingPoint< short_v>() { VERIFY(!Vc::is_floating_point< short_v>::value); }
-template<> void isFloatingPoint<ushort_v>() { VERIFY(!Vc::is_floating_point<ushort_v>::value); }
-
-void testmain()
+TEST_TYPES(V, isIntegral, (ALL_VECTORS))
 {
-    testAllTypes(isIntegral);
-    testAllTypes(isFloatingPoint);
-    testAllTypes(isSigned);
+    using T = typename V::EntryType;
+    COMPARE(Vc::is_integral<V>::value, std::is_integral<T>::value);
+}
+
+TEST_TYPES(V, isFloatingPoint, (ALL_VECTORS))
+{
+    using T = typename V::EntryType;
+    COMPARE(Vc::is_floating_point<V>::value, std::is_floating_point<T>::value);
+}
+
+TEST_TYPES(V, isSigned, (ALL_VECTORS))
+{
+    using T = typename V::EntryType;
+    COMPARE(Vc::is_signed<V>::value, std::is_signed<T>::value);
+    COMPARE(Vc::is_unsigned<V>::value, std::is_unsigned<T>::value);
 }
