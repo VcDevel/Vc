@@ -972,27 +972,57 @@ template <> Vc_INTRINSIC ushort_v ushort_v::interleaveHigh(ushort_v x) const { r
 // generate {{{1
 template <> template <typename G> Vc_INTRINSIC double_v double_v::generate(G gen)
 {
-    return _mm_setr_pd(gen(0), gen(1));
+    const auto tmp0 = gen(0);
+    const auto tmp1 = gen(1);
+    return _mm_setr_pd(tmp0, tmp1);
 }
 template <> template <typename G> Vc_INTRINSIC float_v float_v::generate(G gen)
 {
-    return _mm_setr_ps(gen(0), gen(1), gen(2), gen(3));
+    const auto tmp0 = gen(0);
+    const auto tmp1 = gen(1);
+    const auto tmp2 = gen(2);
+    const auto tmp3 = gen(3);
+    return _mm_setr_ps(tmp0, tmp1, tmp2, tmp3);
 }
 template <> template <typename G> Vc_INTRINSIC int_v int_v::generate(G gen)
 {
-    return _mm_setr_epi32(gen(0), gen(1), gen(2), gen(3));
+    const auto tmp0 = gen(0);
+    const auto tmp1 = gen(1);
+    const auto tmp2 = gen(2);
+    const auto tmp3 = gen(3);
+    return _mm_setr_epi32(tmp0, tmp1, tmp2, tmp3);
 }
 template <> template <typename G> Vc_INTRINSIC uint_v uint_v::generate(G gen)
 {
-    return _mm_setr_epi32(gen(0), gen(1), gen(2), gen(3));
+    const auto tmp0 = gen(0);
+    const auto tmp1 = gen(1);
+    const auto tmp2 = gen(2);
+    const auto tmp3 = gen(3);
+    return _mm_setr_epi32(tmp0, tmp1, tmp2, tmp3);
 }
 template <> template <typename G> Vc_INTRINSIC short_v short_v::generate(G gen)
 {
-    return _mm_setr_epi16(gen(0), gen(1), gen(2), gen(3), gen(4), gen(5), gen(6), gen(7));
+    const auto tmp0 = gen(0);
+    const auto tmp1 = gen(1);
+    const auto tmp2 = gen(2);
+    const auto tmp3 = gen(3);
+    const auto tmp4 = gen(4);
+    const auto tmp5 = gen(5);
+    const auto tmp6 = gen(6);
+    const auto tmp7 = gen(7);
+    return _mm_setr_epi16(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7);
 }
 template <> template <typename G> Vc_INTRINSIC ushort_v ushort_v::generate(G gen)
 {
-    return _mm_setr_epi16(gen(0), gen(1), gen(2), gen(3), gen(4), gen(5), gen(6), gen(7));
+    const auto tmp0 = gen(0);
+    const auto tmp1 = gen(1);
+    const auto tmp2 = gen(2);
+    const auto tmp3 = gen(3);
+    const auto tmp4 = gen(4);
+    const auto tmp5 = gen(5);
+    const auto tmp6 = gen(6);
+    const auto tmp7 = gen(7);
+    return _mm_setr_epi16(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7);
 }
 // }}}1
 // reversed {{{1
