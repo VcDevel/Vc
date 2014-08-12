@@ -1402,14 +1402,14 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
 }  // namespace UnitTest
 // TEST_BEGIN / TEST_END / TEST macros {{{1
 #define XTEST_ALL_V(V__, fun__) template <typename V__> void fun__()
-#define TEST_ALL_V(V__, fun__)                                                                     \
-    template <typename V__> void fun__();                                                          \
-    static UnitTest::Test< float_v> test_##fun__##__float_v__(&fun__< float_v>, #fun__);           \
-    static UnitTest::Test< short_v> test_##fun__##__short_v__(&fun__< short_v>, #fun__);           \
-    static UnitTest::Test<  uint_v> test_##fun__##_ushort_v__(&fun__<  uint_v>, #fun__);           \
-    static UnitTest::Test<double_v> test_##fun__##____int_v__(&fun__<double_v>, #fun__);           \
-    static UnitTest::Test<ushort_v> test_##fun__##_double_v__(&fun__<ushort_v>, #fun__);           \
-    static UnitTest::Test<   int_v> test_##fun__##___uint_v__(&fun__<   int_v>, #fun__);           \
+#define TEST_ALL_V(V__, fun__)                                                           \
+    template <typename V__> void fun__();                                                \
+    static UnitTest::Test<float_v> test_##fun__##__float_v__(&fun__<float_v>, #fun__);   \
+    static UnitTest::Test<short_v> test_##fun__##__short_v__(&fun__<short_v>, #fun__);   \
+    static UnitTest::Test<uint_v> test_##fun__##_ushort_v__(&fun__<uint_v>, #fun__);     \
+    static UnitTest::Test<double_v> test_##fun__##____int_v__(&fun__<double_v>, #fun__); \
+    static UnitTest::Test<ushort_v> test_##fun__##_double_v__(&fun__<ushort_v>, #fun__); \
+    static UnitTest::Test<int_v> test_##fun__##___uint_v__(&fun__<int_v>, #fun__);       \
     template <typename V__> void fun__()
 
 #define XTEST_TYPES(V__, fun__, typelist__)                                              \
@@ -1418,34 +1418,36 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
         void operator()();                                                               \
     };                                                                                   \
     template <typename V__> void fun__<V__>::operator()()
-#define TEST_TYPES(V__, fun__, typelist__)                                                         \
-    template <typename V__> struct fun__;                                                          \
-    static auto test_##fun__##__ =                                                                 \
-        decltype(UnitTest::hackTypelist<fun__>(std::declval<void typelist__>()))(#fun__);          \
-    template <typename V__> struct fun__                                                           \
-    {                                                                                              \
-        void operator()();                                                                         \
-    };                                                                                             \
+#define TEST_TYPES(V__, fun__, typelist__)                                               \
+    template <typename V__> struct fun__;                                                \
+    static auto test_##fun__##__ = decltype(                                             \
+        UnitTest::hackTypelist<fun__>(std::declval<void typelist__>()))(#fun__);         \
+    template <typename V__> struct fun__                                                 \
+    {                                                                                    \
+        void operator()();                                                               \
+    };                                                                                   \
     template <typename V__> void fun__<V__>::operator()()
 
-#define ALL_VECTORS Vc::int_v, Vc::ushort_v, Vc::double_v, Vc::uint_v, Vc::short_v, Vc::float_v
-#define SIMD_ARRAYS(N__)                                                                           \
-    Vc::simdarray<int, N__>, Vc::simdarray<unsigned short, N__>, Vc::simdarray<double, N__>,    \
-        Vc::simdarray<unsigned int, N__>, Vc::simdarray<short, N__>, Vc::simdarray<float, N__>
+#define ALL_VECTORS                                                                      \
+    Vc::int_v, Vc::ushort_v, Vc::double_v, Vc::uint_v, Vc::short_v, Vc::float_v
+#define SIMD_ARRAYS(N__)                                                                 \
+    Vc::simdarray<int, N__>, Vc::simdarray<unsigned short, N__>,                         \
+        Vc::simdarray<double, N__>, Vc::simdarray<unsigned int, N__>,                    \
+        Vc::simdarray<short, N__>, Vc::simdarray<float, N__>
 
 #define XTEST(fun__) template <typename T__> void fun__()
-#define TEST(fun__)                                                                                \
-    void fun__();                                                                                  \
-    static UnitTest::Test<void> test_##fun__##__(&fun__, #fun__);                                  \
+#define TEST(fun__)                                                                      \
+    void fun__();                                                                        \
+    static UnitTest::Test<void> test_##fun__##__(&fun__, #fun__);                        \
     void fun__()
 
 #define XTEST_CATCH(fun__, exception__) void fun__::test_function()
-#define TEST_CATCH(fun__, exception__)                                                             \
-    struct fun__                                                                                   \
-    {                                                                                              \
-        static void test_function();                                                               \
-    };                                                                                             \
-    static UnitTest::Test<void, exception__, fun__> test_##fun__##__(#fun__);                      \
+#define TEST_CATCH(fun__, exception__)                                                   \
+    struct fun__                                                                         \
+    {                                                                                    \
+        static void test_function();                                                     \
+    };                                                                                   \
+    static UnitTest::Test<void, exception__, fun__> test_##fun__##__(#fun__);            \
     void fun__::test_function()
 
 int main(int argc, char **argv)  //{{{1
