@@ -365,19 +365,6 @@ TEST_TYPES(V, maskInit, ALL_TYPES) /*{{{*/
     COMPARE(M(Vc::Zero), M(false));
 }
 /*}}}*/
-TEST_TYPES(V, maskCompare, ALL_TYPES) /*{{{*/
-{
-    int i = 0;
-    auto m0 = UnitTest::allMasks<V>(i);
-    auto m1 = UnitTest::allMasks<V>(i);
-    while (any_of(m0)) {
-        ++i;
-        VERIFY(m0 == m1);
-        m0 = UnitTest::allMasks<V>(i);
-        VERIFY(m0 != m1);
-        m1 = UnitTest::allMasks<V>(i);
-    }
-}/*}}}*/
 TEST_TYPES(V, maskScalarAccess, ALL_TYPES) /*{{{*/
 {
     typedef typename V::Mask M;
@@ -465,6 +452,9 @@ TEST_TYPES(V, testCompareOperators, ALL_TYPES) /*{{{*/
     const M a(true);
     const M b(false);
     VERIFY(!(a == b));
+    VERIFY(!(b == a));
+    VERIFY(a != b);
+    VERIFY(b != a);
 
     for_all_masks(V, k)
     {

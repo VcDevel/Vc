@@ -179,6 +179,13 @@ template<typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE bool Mask<T>::operator[](size_t index) const { return toInt() & (1 << index); }
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+// operator== {{{1
+template <> Vc_INTRINSIC Vc_PURE bool double_m::operator==(const double_m &rhs) const
+{ return internal::movemask(dataD()) == internal::movemask(rhs.dataD()); }
+template <> Vc_INTRINSIC Vc_PURE bool short_m::operator==(const short_m &rhs) const
+{ return internal::movemask(dataI()) == internal::movemask(rhs.dataI()); }
+template <> Vc_INTRINSIC Vc_PURE bool ushort_m::operator==(const ushort_m &rhs) const
+{ return internal::movemask(dataI()) == internal::movemask(rhs.dataI()); }
 // generate {{{1
 template <typename M, typename G>
 Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 32>)

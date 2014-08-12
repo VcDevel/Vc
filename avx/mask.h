@@ -176,8 +176,12 @@ private:
         Vc_ALWAYS_INLINE_L Mask &operator=(const std::array<bool, Size> &values) Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L operator std::array<bool, Size>() const Vc_ALWAYS_INLINE_R;
 
-        Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return internal::movemask(d.v()) == internal::movemask(rhs.d.v()); }
-        Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return internal::movemask(d.v()) != internal::movemask(rhs.d.v()); }
+        // specializations in mask.tcc
+        Vc_INTRINSIC Vc_PURE bool operator==(const Mask &rhs) const
+        { return internal::movemask(d.v()) == internal::movemask(rhs.d.v()); }
+
+        Vc_INTRINSIC Vc_PURE bool operator!=(const Mask &rhs) const
+        { return !operator==(rhs); }
 
         Vc_ALWAYS_INLINE Mask operator!() const { return internal::andnot_(data(), internal::allone<VectorType>()); }
 
