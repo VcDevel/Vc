@@ -154,7 +154,7 @@ Vc::enable_if<(To::size() > sizeof...(Froms) * From::size()), void> cast_vector_
     const From &x0, const Froms &... xs)
 {
     using T = typename To::EntryType;
-    const auto result = simd_cast<To>(x0, xs...);
+    auto result = simd_cast<To>(x0, xs...);
 #ifdef VC_GCC
     // workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47226
     // parameter pack expansion does not work inside lambda
@@ -168,10 +168,18 @@ Vc::enable_if<(To::size() > sizeof...(Froms) * From::size()), void> cast_vector_
             return T(0);
         }
 #ifdef VC_GCC
-        return is_conversion_undefined<T>(input[i]) ? result[i] : static_cast<T>(input[i]);
+        if (is_conversion_undefined<T>(input[i])) {
+            result[i] = 0;
+            return T(0);
+        }
+        return static_cast<T>(input[i]);
 #else
         const auto input = ith_scalar(i, x0, xs...);
-        return is_conversion_undefined<T>(input) ? result[i] : static_cast<T>(input);
+        if (is_conversion_undefined<T>(input)) {
+            result[i] = 0;
+            return T(0);
+        }
+        return static_cast<T>(input);
 #endif
     });
 
