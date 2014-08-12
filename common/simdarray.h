@@ -891,7 +891,12 @@ public:
 
     template <typename G> static Vc_INTRINSIC simdarray generate(const G &gen)
     {
-        return {storage_type0::generate(gen),
+        auto tmp = storage_type0::generate(gen);  // GCC bug: the order of evaluation in
+                                                  // an initializer list is well-defined
+                                                  // (front to back), but GCC 4.8 doesn't
+                                                  // implement this correctly. Therefore
+                                                  // we enforce correct order.
+        return {std::move(tmp),
                 storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
     }
 
