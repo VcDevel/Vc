@@ -107,7 +107,7 @@ typename std::enable_if<Vc::is_simd_vector<From>::value, typename From::Mask>::t
 }
 
 // ith_scalar {{{1
-template <typename V> inline typename V::EntryType ith_scalar(std::size_t i, V x)
+template <typename V> inline typename V::EntryType ith_scalar(std::size_t i, const V &x)
 {
     return x[i];
 }
@@ -117,7 +117,7 @@ inline typename V::EntryType ith_scalar(std::size_t i, V x, Vs... xs)
     return i < V::Size ? x[i] : ith_scalar(i - V::Size, xs...);
 }
 // cast_vector_impl {{{1
-template <typename To, typename V> std::string extraInformation(V x0)
+template <typename To, typename V> std::string extraInformation(const V &x0)
 {
     std::stringstream s;
     s << "simd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
@@ -142,15 +142,14 @@ template <typename To, typename V>
 std::string extraInformation(V x0, V x1, V x2, V x3, V x4, V x5, V x6, V x7)
 {
     std::stringstream s;
-    s << "simd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
+    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
       << x0 << ", " << x1 << ", " << x2 << ", " << x3 << ", " << x4 << ", " << x5 << ", "
       << x6 << ", " << x7 << ')';
     return s.str();
 }
 template <typename To, typename From, typename... Froms>
 Vc::enable_if<(To::size() > sizeof...(Froms) * From::size()), void> cast_vector_impl(
-    const From x0,
-    const Froms... xs)
+    const From &x0, const Froms &... xs)
 {
     using T = typename To::EntryType;
     const auto result = simd_cast<To>(x0, xs...);
@@ -179,19 +178,18 @@ Vc::enable_if<(To::size() > sizeof...(Froms) * From::size()), void> cast_vector_
 
 template <typename To, typename From, typename... Froms>
 Vc::enable_if<(To::size() <= sizeof...(Froms) * From::size()), void> cast_vector_impl(
-    const From,
-    const Froms...)
+    const From &, const Froms &...)
 {
 }
 // cast_vector_split {{{1
 template <typename To, typename From, std::size_t Index = 0>
 Vc::enable_if<!(Index * To::Size < From::Size && To::Size < From::Size), void>
-    cast_vector_split(const From)
+    cast_vector_split(const From &)
 {
 }
 template <typename To, typename From, std::size_t Index = 0>
 Vc::enable_if<(Index * To::Size < From::Size && To::Size < From::Size), void>
-    cast_vector_split(const From x)
+    cast_vector_split(const From &x)
 {
     using T = typename To::EntryType;
     const auto result = simd_cast<To, Index>(x);
@@ -254,7 +252,7 @@ TEST_TYPES(TList, cast_vector, (AllTestTypes))  // {{{1
     }
 }
 // mask_cast_1 {{{1
-template <typename To, typename From> void mask_cast_1(From mask)
+template <typename To, typename From> void mask_cast_1(const From &mask)
 {
     To casted = simd_cast<To>(mask);
     std::size_t i = 0;
@@ -269,8 +267,7 @@ template <typename To, typename From> void mask_cast_1(From mask)
 }
 // mask_cast_2 {{{1
 template <typename To, typename From>
-void mask_cast_2(const From mask0,
-                 const From mask1,
+void mask_cast_2(const From &mask0, const From &mask1,
                  Vc::enable_if<(To::size() > From::size())> = Vc::nullarg)
 {
     To casted = simd_cast<To>(mask0, mask1);
@@ -291,17 +288,14 @@ void mask_cast_2(const From mask0,
     }
 }
 template <typename To, typename From>
-void mask_cast_2(const From,
-                 const From,
+void mask_cast_2(const From &, const From &,
                  Vc::enable_if<!(To::size() > From::size())> = Vc::nullarg)
 {
 }
 // mask_cast_4 {{{1
 template <typename To, typename From>
-void mask_cast_4(const From mask0,
-                 const From mask1,
-                 const From mask2,
-                 const From mask3,
+void mask_cast_4(const From &mask0, const From &mask1, const From &mask2,
+                 const From &mask3,
                  Vc::enable_if<(To::size() > 2 * From::size())> = Vc::nullarg)
 {
     To casted = simd_cast<To>(mask0, mask1, mask2, mask3);
@@ -333,22 +327,19 @@ void mask_cast_4(const From mask0,
     }
 }
 template <typename To, typename From>
-void mask_cast_4(const From,
-                 const From,
-                 const From,
-                 const From,
+void mask_cast_4(const From &, const From &, const From &, const From &,
                  Vc::enable_if<!(To::size() > 2 * From::size())> = Vc::nullarg)
 {
 }
 // cast_mask_split {{{1
 template <typename To, typename From, std::size_t Index = 0>
 Vc::enable_if<!(Index * To::Size < From::Size && To::Size < From::Size), void>
-    cast_mask_split(const From)
+    cast_mask_split(const From &)
 {
 }
 template <typename To, typename From, std::size_t Index = 0>
 Vc::enable_if<(Index * To::Size < From::Size && To::Size < From::Size), void>
-    cast_mask_split(const From x)
+    cast_mask_split(const From &x)
 {
     const auto result = simd_cast<To, Index>(x);
     const To reference = To::generate([&](std::size_t i) {
