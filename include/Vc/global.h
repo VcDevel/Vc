@@ -80,8 +80,6 @@
 #ifndef alignof
 #define alignof(x) __alignof(x)
 #endif
-//#else
-//#warning "Please check whether ICC now understands: noexcept, alignof, &&"
 #endif
 #endif
 
