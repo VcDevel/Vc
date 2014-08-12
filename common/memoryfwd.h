@@ -24,7 +24,9 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
-    template<typename V, size_t Size1 = 0, size_t Size2 = 0, bool InitPadding = true> class Memory;
+template <typename V, std::size_t Size1 = 0, std::size_t Size2 = 0,
+          bool InitPadding = true>
+class Memory;
 }
 
 using Common::Memory;

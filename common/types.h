@@ -168,7 +168,7 @@ namespace Common
 
 template <typename T> using WidthT = std::integral_constant<std::size_t, sizeof(T)>;
 
-template<size_t Bytes> class MaskBool;
+template<std::size_t Bytes> class MaskBool;
 
 template <typename T, typename IndexVector, typename Scale> class SubscriptOperation;
 
