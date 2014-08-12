@@ -341,10 +341,9 @@ public:
         return &data[0];
     }
 
-    Vc_INTRINSIC const vectorentry_type *end() const
-    {
-        return reinterpret_cast<const vectorentry_type *>(&data + 1);
-    }
+    Vc_INTRINSIC const vectorentry_type *end() const { return begin() + Size; }
+
+    Vc_INTRINSIC auto end() -> decltype(this->begin()) { return begin() + Size; }
 
     // reductions ////////////////////////////////////////////////////////
 #define Vc_REDUCTION_FUNCTION__(name__)                                                            \
@@ -695,10 +694,8 @@ public:
         return data0.begin();
     }
 
-    Vc_INTRINSIC const vectorentry_type *end() const
-    {
-        return data0.end();
-    }
+    Vc_INTRINSIC const vectorentry_type *end() const { return data1.end(); }
+    Vc_INTRINSIC vectorentry_type *end() { return data1.end(); }
 
     // reductions ////////////////////////////////////////////////////////
 #define Vc_REDUCTION_FUNCTION__(name__, binary_fun__)                                              \
