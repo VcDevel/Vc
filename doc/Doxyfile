@@ -672,17 +672,7 @@ INPUT                  = ../include/Vc/global.h \
                          ../include/Vc/vector \
                          ./dox.h \
                          ./examples.h \
-                         ../common/algorithms.h \
-                         ../common/deinterleave.h \
-                         ../common/iif.h \
-                         ../common/interleavedmemory.h \
-                         ../common/makeContainer.h \
-                         ../common/memory.h \
-                         ../common/memorybase.h \
-                         ../common/simd_array.h \
-                         ../common/simd_mask_array.h \
-                         ../common/support.h \
-                         ../common/where.h \
+                         ../common
                          ../traits
 
 # This tag can be used to specify the character encoding of the source files
@@ -701,7 +691,7 @@ INPUT_ENCODING         = UTF-8
 # *.hxx *.hpp *.h++ *.idl *.odl *.cs *.php *.php3 *.inc *.m *.mm *.dox *.py
 # *.f90 *.f *.for *.vhd *.vhdl
 
-FILE_PATTERNS          =
+FILE_PATTERNS          = *.h
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories
 # should be searched for input files as well. Possible values are YES and NO.
@@ -1646,7 +1636,8 @@ PREDEFINED             = DOXYGEN \
                          Vc_CONST \
                          Vc_CONST_L \
                          Vc_CONST_R \
-                         Vc_WARN_UNUSED_RESULT
+                         Vc_WARN_UNUSED_RESULT \
+                         Vc_VERSIONED_NAMESPACE=Vc
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.

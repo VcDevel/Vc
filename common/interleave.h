@@ -33,6 +33,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+/**
+ Interleaves the entries from \p a and \p b into two vectors of the same type. The order
+ in the returned vector contains the elements `a[0], b[0], a[1], b[1], a[2], b[2], a[3],
+ b[3], ...`.
+
+Example:
+\code
+Vc::simdarray<int, 4> a = { 1, 2, 3, 4 };
+Vc::simdarray<int, 4> b = { 9, 8, 7, 6 };
+std::tie(a, b) = Vc::interleave(a, b);
+std::cout << a << b;
+// prints:
+// <1 9 2 8><3 7 4 6>
+\endcode
+
+ \param a input vector whose data will appear at even indexes in the output
+ \param b input vector whose data will appear at odd indexes in the output
+ \return two vectors with data from \p a and \p b interleaved
+ */
 template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
 std::pair<V, V> interleave(const V &a, const V &b)
 {
