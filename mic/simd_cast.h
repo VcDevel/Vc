@@ -160,6 +160,49 @@ Vc_INTRINSIC Vc_CONST enable_if<(is_vector<Return>::value && offset == 0), Retur
     simd_cast(Vector<T> x)
 { return simd_cast<Return>(x); }
 // }}}1
+// 1 MIC::Mask to 1 MIC::Mask
+template <typename Return, typename M>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(is_mask<Return>::value&& is_mask<M>::value &&
+               !std::is_same<Return, M>::value && Return::Size == M::Size),
+              Return>
+        simd_cast(M k)
+{
+    return {k.data()};
+}
+template <typename Return, typename M>
+Vc_INTRINSIC Vc_CONST enable_if<
+    (is_mask<Return>::value && is_mask<M>::value && Return::Size != M::Size), Return>
+    simd_cast(M k)
+{
+    return {static_cast<typename Return::MaskType>(_mm512_kand(k.data(), 0xff))};
+}
+// 2 MIC::Mask to 1 MIC::Mask
+template <typename Return, typename M>
+Vc_INTRINSIC Vc_CONST enable_if<
+    (is_mask<Return>::value&& is_mask<M>::value&& Return::Size == 2 * M::Size), Return>
+    simd_cast(M k0, M k1)
+{
+    return {_mm512_kmovlhb(k0.data(), k1.data())};
+}
+// 1 MIC::Mask to 2 MIC::Mask
+template <typename Return, int offset, typename M>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(is_mask<Return>::value&& is_mask<M>::value&& offset == 0), Return>
+        simd_cast(M k)
+{
+    return simd_cast<Return>(k);
+}
+template <typename Return, int offset, typename M>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(is_mask<Return>::value&& is_mask<M>::value&& Return::Size * 2 ==
+               M::Size&& offset == 1),
+              Return>
+        simd_cast(M k)
+{
+    return {static_cast<typename Return::MaskType>(_mm512_kswapb(k.data(), 0))};
+}
+
 }  // namespace MIC
 using MIC::simd_cast;
 }  // namespace Vc
