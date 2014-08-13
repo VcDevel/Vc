@@ -766,9 +766,9 @@ template<typename V> void testFrexp()/*{{{*/
             << ", fraction: " << fraction
             << ", expectedFraction: " << V(expectedFraction.vector(i))
             << ", delta: " << fraction - V(expectedFraction.vector(i));
-        for (size_t j = 0; j < V::Size; ++j) {
-            COMPARE(exp[j], expectedExponent[i * V::Size + j]) << ", i = " << i << ", j = " << j;
-        }
+        const ExpV reference = expectedExponent.vector(i);
+        COMPARE(exp, reference) << "\ninput: " << v << ", fraction: " << fraction
+                                << ", i: " << i;
     }
 }
 /*}}}*/
