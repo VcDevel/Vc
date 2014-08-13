@@ -263,6 +263,30 @@ namespace AvxIntrinsics
     }
 #endif
 
+#ifdef VC_IMPL_AVX2
+#define AVX_TO_SSE_2_NEW(name)                                                           \
+    Vc_INTRINSIC Vc_CONST m256i name(param256i a0, param256i b0)                         \
+    {                                                                                    \
+        return _mm256_##name(a0, b0);                                                    \
+    }
+#else
+/**\internal
+ * Defines the function \p name, which takes to __m256i arguments and calls `_mm_##name` on the low
+ * and high 128 bit halfs of the arguments.
+ *
+ * In case the AVX2 intrinsics are enabled, the arguments are directly passed to a single
+ * `_mm256_##name` call.
+ */
+#define AVX_TO_SSE_2_NEW(name)                                                           \
+    Vc_INTRINSIC Vc_CONST m256i name(param256i a0, param256i b0)                         \
+    {                                                                                    \
+        m128i a1 = _mm256_extractf128_si256(a0, 1);                                      \
+        m128i b1 = _mm256_extractf128_si256(b0, 1);                                      \
+        m128i r0 = _mm_##name(_mm256_castsi256_si128(a0), _mm256_castsi256_si128(b0));   \
+        m128i r1 = _mm_##name(a1, b1);                                                   \
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1);               \
+    }
+#endif
 #define AVX_TO_SSE_2(name) \
     static Vc_INTRINSIC m256i Vc_CONST _mm256_##name(param256i a0, param256i b0) { \
         m128i a1 = _mm256_extractf128_si256(a0, 1); \
@@ -657,6 +681,7 @@ static Vc_INTRINSIC void _mm256_maskstore(unsigned int *mem, const param256i mas
     _mm256_maskstore(reinterpret_cast<int *>(mem), mask, v);
 }
 
+#undef AVX_TO_SSE_2_NEW
 #undef AVX_TO_SSE_2
 #undef AVX_TO_SSE_2_si128_si256
 #undef AVX_TO_SSE_1
