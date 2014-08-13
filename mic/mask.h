@@ -111,13 +111,16 @@ public:
     Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
     Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
 
-    template<typename U> Vc_ALWAYS_INLINE Mask(const Mask<U> &rhs,
-      typename std::enable_if<is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
+    // implicit cast
+    template <typename U>
+    Vc_INTRINSIC Mask(U &&rhs, Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
         : k(MaskHelper<Size>::cast(rhs.data())) {}
 
-    template<typename U> Vc_ALWAYS_INLINE explicit Mask(const Mask<U> &rhs,
-      typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
-        : k(MaskHelper<Size>::cast(rhs.data())) {}
+    // explicit cast, implemented via simd_cast (in scalar/simd_cast_caller.h)
+    template <typename U>
+    Vc_INTRINSIC_L explicit Mask(U &&rhs,
+                                 Common::enable_if_mask_converts_explicitly<T, U> =
+                                     nullarg) Vc_INTRINSIC_R;
 
     inline explicit Mask(const bool *mem) { load(mem, Aligned); }
     template<typename Flags>

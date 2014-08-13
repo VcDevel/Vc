@@ -35,8 +35,12 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace MIC
 {
-}
-}
+template <typename T>
+template <typename U>
+Vc_INTRINSIC Mask<T>::Mask(U &&rhs, Common::enable_if_mask_converts_explicitly<T, U>)
+    : Mask(simd_cast<Mask>(std::forward<U>(rhs))) {}
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 
