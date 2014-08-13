@@ -70,10 +70,12 @@ template<typename T> class Vector : public StoreMixin<Vector<T>, T>
 public:
     FREE_STORE_OPERATORS_ALIGNED(64)
     typedef typename VectorTypeHelper<T>::Type VectorType;
+    using vector_type = VectorType;
     typedef typename DetermineEntryType<T>::Type EntryType;
+    using value_type = EntryType;
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
-    typedef simdarray<int, Size> IndexType;
+    typedef simdarray<int, 16, MIC::int_v, 16> IndexType;
     enum Constants {
         MemoryAlignment = sizeof(EntryType) * Size,
         HasVectorDivision = true

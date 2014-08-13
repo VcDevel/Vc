@@ -71,17 +71,35 @@ template<typename T> class Mask
     friend class Mask< int16_t>;
     friend class Mask<uint16_t>;
 
-    typedef typename MaskTypeHelper<T>::Type MaskType;
-    typedef typename VectorTypeHelper<T>::Type VectorType;
-    typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
-
 public:
+    /**
+     * The \c EntryType of masks is always bool, independent of \c T.
+     */
+    typedef bool EntryType;
+
+    /**
+     * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the
+     * SIMD implementation. This type is useful for the \c sizeof operator in generic
+     * functions.
+     */
+    using VectorEntryType = Common::MaskBool<sizeof(T)>;
+
+    /**
+     * The \c VectorType reveals the implementation-specific internal type used for the
+     * SIMD type.
+     */
+    typedef typename VectorTypeHelper<T>::Type VectorType;
+
     /**
      * The associated Vector<T> type.
      */
     using Vector = MIC::Vector<T>;
 
-    static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
+private:
+    typedef typename MaskTypeHelper<T>::Type MaskType;
+
+public:
+    static constexpr size_t Size = sizeof(MaskType) * 8;
     static constexpr std::size_t size() { return Size; }
     typedef Mask<T> AsArg; // for now only ICC can compile this code and it is not broken :)
     inline Mask() {}
