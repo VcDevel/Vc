@@ -300,6 +300,7 @@ public:
         return Vector<T>(fun(d.v(), x.d.v()));                                                     \
     }
 
+    Vc_OP(%, mod_<VectorEntryType>)
     Vc_OP(*, _mul<VectorEntryType>)
     Vc_OP(+, _add<VectorEntryType>)
     Vc_OP(-, _sub<VectorEntryType>)

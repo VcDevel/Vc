@@ -303,6 +303,13 @@ static Vc_INTRINSIC __m512i shuffle(__m512i v, _MM_PERM_ENUM perm) { return _mm5
     Vc_FUN2(_div)
 #undef Vc_FUN2
 
+template <typename T>
+Vc_INTRINSIC enable_if<std::is_signed<T>::value, __m512i> mod_(__m512i a, __m512i b)
+{ return _mm512_rem_epi32(a, b); }
+template <typename T>
+Vc_INTRINSIC enable_if<std::is_unsigned<T>::value, __m512i> mod_(__m512i a, __m512i b)
+{ return _mm512_rem_epu32(a, b); }
+
     template<typename> Vc_INTRINSIC __m512  _mul(__m512  a, __m512  b) { return _mm512_mul_ps(a, b); }
     template<typename> Vc_INTRINSIC __m512d _mul(__m512d a, __m512d b) { return _mm512_mul_pd(a, b); }
     template<typename> Vc_INTRINSIC __m512i _mul(__m512i a, __m512i b) { return _mm512_mullo_epi32(a, b); }
