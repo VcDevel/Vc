@@ -117,14 +117,8 @@ template<> Vc_ALWAYS_INLINE double_v::Vector(VectorSpecialInitializerIndexesFrom
     : d(StaticCastHelper<int, double>::cast(int_v::IndexesFromZero().data())) {}
 
 // loads {{{1
-template<typename T> template<typename Flags> Vc_INTRINSIC void Vector<T>::load(const EntryType *x, Flags flags) {
-    Common::handleLoadPrefetches(x, flags);
-    d.v() = LoadHelper<Vector<T>>::load(x, flags);
-}
 template <typename T>
-template <typename U,
-          typename Flags,
-          typename std::enable_if<std::is_arithmetic<U>::value, int>::type>
+template <typename U, typename Flags, typename>
 Vc_INTRINSIC void Vector<T>::load(const U *x, Flags flags)
 {
     Common::handleLoadPrefetches(x, flags);

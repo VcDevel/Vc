@@ -154,35 +154,7 @@ public:
         {
         }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // load ctors
-    explicit Vc_INTRINSIC Vector(const EntryType *x)
-    {
-        load(x);
-    }
-    template <typename Flags> explicit Vc_INTRINSIC Vector(const EntryType *x, Flags flags)
-    {
-        load(x, flags);
-    }
-    template <typename U,
-              typename Flags = DefaultLoadTag,
-              typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
-    explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
-    {
-        load(x, flags);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // load member functions
-    Vc_INTRINSIC void load(const EntryType *mem)
-    {
-        load<DefaultLoadTag>(mem, DefaultLoadTag());
-    }
-    template <typename Flags> Vc_INTRINSIC_L void load(const EntryType *mem, Flags) Vc_INTRINSIC_R;
-    template <typename U,
-              typename Flags = DefaultLoadTag,
-              typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
-    Vc_INTRINSIC_L void load(const U *mem, Flags = Flags()) Vc_INTRINSIC_R;
+#include "../common/loadinterface.h"
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
