@@ -98,6 +98,7 @@ public:
 
 template<typename T> struct DetermineEntryType { typedef T Type; };
 
+// TODO: convert to enum classes
 namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
 namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
