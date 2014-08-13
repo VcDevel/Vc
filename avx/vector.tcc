@@ -227,7 +227,7 @@ template<typename T> Vc_INTRINSIC void Vector<T>::setZeroInverted(const Mask &k)
 
 template<> Vc_INTRINSIC void Vector<double>::setQnan()
 {
-    data() = _mm256_setallone_pd();
+    data() = setallone_pd();
 }
 template<> Vc_INTRINSIC void Vector<double>::setQnan(MaskArg k)
 {
@@ -235,7 +235,7 @@ template<> Vc_INTRINSIC void Vector<double>::setQnan(MaskArg k)
 }
 template<> Vc_INTRINSIC void Vector<float>::setQnan()
 {
-    data() = _mm256_setallone_ps();
+    data() = setallone_ps();
 }
 template<> Vc_INTRINSIC void Vector<float>::setQnan(MaskArg k)
 {
@@ -403,8 +403,8 @@ static inline m256i Vc_CONST divUInt(param256i a, param256i b) {
     // It could be argued that for b this is not really important because division by a b >= 2^31 is
     // useless. But for full correctness it cannot be ignored.
 #ifdef VC_IMPL_AVX2
-    const m256i aa = _mm256_add_epi32(a, _mm256_set1_epi32(-2147483648));
-    const m256i bb = _mm256_add_epi32(b, _mm256_set1_epi32(-2147483648));
+    const m256i aa = add_epi32(a, _mm256_set1_epi32(-2147483648));
+    const m256i bb = add_epi32(b, _mm256_set1_epi32(-2147483648));
     const m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(aa)), _mm256_set1_pd(2147483648.));
     const m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(aa)), _mm256_set1_pd(2147483648.));
     const m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(bb)), _mm256_set1_pd(2147483648.));
@@ -425,7 +425,7 @@ static inline m256i Vc_CONST divUInt(param256i a, param256i b) {
                         _mm256_cvttpd_epi32(_mm256_div_pd(loa, lob)),
                         _mm256_cvttpd_epi32(_mm256_div_pd(hia, hib))
                         )), avx_cast<m256>(a), avx_cast<m256>(
-                            _mm256_cmpeq_epi32(b, _mm256_setone_epi32())
+                            cmpeq_epi32(b, setone_epi32())
                             )));
 }
 template<> Vc_ALWAYS_INLINE Vector<unsigned int> &Vector<unsigned int>::operator/=(VC_ALIGNED_PARAMETER(Vector<unsigned int>) x)
@@ -507,9 +507,9 @@ template <> inline Vc_PURE uint_v uint_v::operator%(const uint_v &n) const
         data(),
         HT::mul(
             n.data(),
-            _mm256_add_epi32(concat(cvt2(_mm256_div_pd(cvt(lo128(data())), cvt(lo128(n.data())))),
+            add_epi32(concat(cvt2(_mm256_div_pd(cvt(lo128(data())), cvt(lo128(n.data())))),
                                     cvt2(_mm256_div_pd(cvt(hi128(data())), cvt(hi128(n.data()))))),
-                             _mm256_set2power31_epu32())));
+                             set2power31_epu32())));
 }
 template <> inline Vc_PURE short_v short_v::operator%(const short_v &n) const
 {
@@ -591,12 +591,12 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator<<(in
 // isNegative {{{1
 template<> Vc_INTRINSIC Vc_PURE float_m float_v::isNegative() const
 {
-    return avx_cast<m256>(_mm256_srai_epi32(avx_cast<m256i>(_mm256_and_ps(_mm256_setsignmask_ps(), d.v())), 31));
+    return avx_cast<m256>(srai_epi32<31>(avx_cast<m256i>(_mm256_and_ps(setsignmask_ps(), d.v()))));
 }
 template<> Vc_INTRINSIC Vc_PURE double_m double_v::isNegative() const
 {
     return Mem::permute<X1, X1, X3, X3>(avx_cast<m256>(
-                _mm256_srai_epi32(avx_cast<m256i>(_mm256_and_pd(_mm256_setsignmask_pd(), d.v())), 31)
+                srai_epi32<31>(avx_cast<m256i>(_mm256_and_pd(setsignmask_pd(), d.v())))
                 ));
 }
 // gathers {{{1
@@ -766,15 +766,15 @@ namespace Internal
 {
 Vc_ALWAYS_INLINE Vc_CONST __m256 negate(__m256 v, std::integral_constant<std::size_t, 4>)
 {
-    return _mm256_xor_ps(v, _mm256_setsignmask_ps());
+    return _mm256_xor_ps(v, setsignmask_ps());
 }
 Vc_ALWAYS_INLINE Vc_CONST __m256d negate(__m256d v, std::integral_constant<std::size_t, 8>)
 {
-    return _mm256_xor_pd(v, _mm256_setsignmask_pd());
+    return _mm256_xor_pd(v, setsignmask_pd());
 }
 Vc_ALWAYS_INLINE Vc_CONST __m256i negate(__m256i v, std::integral_constant<std::size_t, 4>)
 {
-    return _mm256_sign_epi32(v, _mm256_setallone_si256());
+    return sign_epi32(v, setallone_si256());
 }
 Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 2>)
 {
@@ -852,15 +852,15 @@ template<typename T> Vc_ALWAYS_INLINE typename Vector<T>::EntryType Vector<T>::s
 template<> Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float>::AsArg reference) const
 {
     return _mm256_or_ps(
-            _mm256_and_ps(reference.d.v(), _mm256_setsignmask_ps()),
-            _mm256_and_ps(d.v(), _mm256_setabsmask_ps())
+            _mm256_and_ps(reference.d.v(), setsignmask_ps()),
+            _mm256_and_ps(d.v(), setabsmask_ps())
             );
 }
 template<> Vc_INTRINSIC Vector<double> Vector<double>::copySign(Vector<double>::AsArg reference) const
 {
     return _mm256_or_pd(
-            _mm256_and_pd(reference.d.v(), _mm256_setsignmask_pd()),
-            _mm256_and_pd(d.v(), _mm256_setabsmask_pd())
+            _mm256_and_pd(reference.d.v(), setsignmask_pd()),
+            _mm256_and_pd(d.v(), setabsmask_pd())
             );
 }//}}}1
 // exponent {{{1
@@ -882,7 +882,7 @@ static Vc_ALWAYS_INLINE uint_v _doRandomStep()
     state0.load(&Common::RandomState[0]);
     state1.load(&Common::RandomState[uint_v::Size]);
     (state1 * 0xdeece66du + 11).store(&Common::RandomState[uint_v::Size]);
-    uint_v(_mm256_xor_si256((state0 * 0xdeece66du + 11).data(), _mm256_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
+    uint_v(_mm256_xor_si256((state0 * 0xdeece66du + 11).data(), srli_epi32<16>(state1.data()))).store(&Common::RandomState[0]);
     return state0;
 }
 
@@ -895,7 +895,7 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::Random()
 template<> Vc_ALWAYS_INLINE Vector<float> Vector<float>::Random()
 {
     const Vector<unsigned int> state0 = _doRandomStep();
-    return HT::sub(HV::or_(_cast(_mm256_srli_epi32(state0.data(), 2)), HT::one()), HT::one());
+    return HT::sub(HV::or_(_cast(srli_epi32<2>(state0.data())), HT::one()), HT::one());
 }
 
 template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
@@ -906,7 +906,7 @@ template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
         const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);
         *reinterpret_cast<uint64 *>(&Common::RandomState[k]) = (stateX * 0x5deece66dull + 11);
     }
-    return HT::sub(HV::or_(_cast(_mm256_srli_epi64(state, 12)), HT::one()), HT::one());
+    return HT::sub(HV::or_(_cast(srli_epi64<12>(state)), HT::one()), HT::one());
 }
 // }}}1
 // shifted / rotated {{{1
@@ -987,7 +987,7 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount) const
 template <typename VectorType>
 Vc_INTRINSIC Vc_CONST VectorType shifted_shortcut(VectorType left, VectorType right, Common::WidthT<m128>)
 {
-    return Mem::shuffle<X1, Y0>(left, right);
+    return Mem::shuffle<X2, X3, Y0, Y1>(left, right);
 }
 template <typename VectorType>
 Vc_INTRINSIC Vc_CONST VectorType shifted_shortcut(VectorType left, VectorType right, Common::WidthT<m256>)
@@ -1114,15 +1114,15 @@ template <> Vc_INTRINSIC float_v float_v::interleaveHigh(float_v x) const
                                    _mm256_unpackhi_ps(data(), x.data()));
 }
 #ifdef VC_IMPL_AVX2
-template <> Vc_INTRINSIC    int_v    int_v::interleaveLow (   int_v x) const { return _mm256_unpacklo_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC    int_v    int_v::interleaveHigh(   int_v x) const { return _mm256_unpackhi_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC   uint_v   uint_v::interleaveLow (  uint_v x) const { return _mm256_unpacklo_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC   uint_v   uint_v::interleaveHigh(  uint_v x) const { return _mm256_unpackhi_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC    int_v    int_v::interleaveLow (   int_v x) const { return unpacklo_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC    int_v    int_v::interleaveHigh(   int_v x) const { return unpackhi_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC   uint_v   uint_v::interleaveLow (  uint_v x) const { return unpacklo_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC   uint_v   uint_v::interleaveHigh(  uint_v x) const { return unpackhi_epi32(data(), x.data()); }
 // TODO:
-//template <> Vc_INTRINSIC  short_v  short_v::interleaveLow ( short_v x) const { return _mm256_unpacklo_epi16(data(), x.data()); }
-//template <> Vc_INTRINSIC  short_v  short_v::interleaveHigh( short_v x) const { return _mm256_unpackhi_epi16(data(), x.data()); }
-//template <> Vc_INTRINSIC ushort_v ushort_v::interleaveLow (ushort_v x) const { return _mm256_unpacklo_epi16(data(), x.data()); }
-//template <> Vc_INTRINSIC ushort_v ushort_v::interleaveHigh(ushort_v x) const { return _mm256_unpackhi_epi16(data(), x.data()); }
+//template <> Vc_INTRINSIC  short_v  short_v::interleaveLow ( short_v x) const { return unpacklo_epi16(data(), x.data()); }
+//template <> Vc_INTRINSIC  short_v  short_v::interleaveHigh( short_v x) const { return unpackhi_epi16(data(), x.data()); }
+//template <> Vc_INTRINSIC ushort_v ushort_v::interleaveLow (ushort_v x) const { return unpacklo_epi16(data(), x.data()); }
+//template <> Vc_INTRINSIC ushort_v ushort_v::interleaveHigh(ushort_v x) const { return unpackhi_epi16(data(), x.data()); }
 template <> Vc_INTRINSIC  short_v  short_v::interleaveLow ( short_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
 template <> Vc_INTRINSIC  short_v  short_v::interleaveHigh( short_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
 template <> Vc_INTRINSIC ushort_v ushort_v::interleaveLow (ushort_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }

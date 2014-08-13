@@ -402,14 +402,14 @@ static_assert(Traits::is_simd_mask  <ushort_m>::value, "is_simd_mask  <ushort_m>
 
 template<typename T> class SwizzledVector : public Vector<T> {};
 
-static Vc_ALWAYS_INLINE int_v    min(const int_v    &x, const int_v    &y) { return _mm256_min_epi32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE uint_v   min(const uint_v   &x, const uint_v   &y) { return _mm256_min_epu32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE int_v    min(const int_v    &x, const int_v    &y) { return min_epi32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE uint_v   min(const uint_v   &x, const uint_v   &y) { return min_epu32(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE short_v  min(const short_v  &x, const short_v  &y) { return _mm_min_epi16(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE ushort_v min(const ushort_v &x, const ushort_v &y) { return _mm_min_epu16(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE float_v  min(const float_v  &x, const float_v  &y) { return _mm256_min_ps(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE double_v min(const double_v &x, const double_v &y) { return _mm256_min_pd(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE int_v    max(const int_v    &x, const int_v    &y) { return _mm256_max_epi32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE uint_v   max(const uint_v   &x, const uint_v   &y) { return _mm256_max_epu32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE int_v    max(const int_v    &x, const int_v    &y) { return max_epi32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE uint_v   max(const uint_v   &x, const uint_v   &y) { return max_epu32(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE short_v  max(const short_v  &x, const short_v  &y) { return _mm_max_epi16(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE ushort_v max(const ushort_v &x, const ushort_v &y) { return _mm_max_epu16(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE float_v  max(const float_v  &x, const float_v  &y) { return _mm256_max_ps(x.data(), y.data()); }

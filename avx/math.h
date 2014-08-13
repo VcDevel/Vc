@@ -44,9 +44,9 @@ inline double_v frexp(double_v::AsArg v, simdarray<int, 4, SSE::int_v, 4> *e)
     const m256d exponentPart = _mm256_and_pd(v.data(), exponentBits);
     auto lo = avx_cast<m128i>(lo128(exponentPart));
     auto hi = avx_cast<m128i>(hi128(exponentPart));
-    lo = _mm_sub_epi32(_mm_srli_epi64(lo, 52), _mm_set1_epi32(0x3fe));
-    hi = _mm_sub_epi32(_mm_srli_epi64(hi, 52), _mm_set1_epi32(0x3fe));
-    SSE::int_v exponent = _mm_packs_epi16(lo, hi);
+    lo = _mm_sub_epi32(_mm_srli_epi64(lo, 52), _mm_set1_epi64x(0x3fe));
+    hi = _mm_sub_epi32(_mm_srli_epi64(hi, 52), _mm_set1_epi64x(0x3fe));
+    SSE::int_v exponent = Mem::shuffle<X0, X2, Y0, Y2>(lo, hi);
     const m256d exponentMaximized = _mm256_or_pd(v.data(), exponentBits);
     double_v ret =
         _mm256_and_pd(exponentMaximized,
@@ -82,7 +82,7 @@ inline double_v ldexp(double_v::AsArg v, const simdarray<int, 4, SSE::int_v, 4> 
     e.setZero(SSE::int_m{v == double_v::Zero()});
     const m256i exponentBits = concat(_mm_slli_epi64(_mm_unpacklo_epi32(e.data(), e.data()), 52),
                                       _mm_slli_epi64(_mm_unpackhi_epi32(e.data(), e.data()), 52));
-    return avx_cast<m256d>(_mm256_add_epi64(avx_cast<m256i>(v.data()), exponentBits));
+    return avx_cast<m256d>(add_epi64(avx_cast<m256i>(v.data()), exponentBits));
 }
 inline float_v ldexp(float_v::AsArg v, simdarray<int, 8, SSE::int_v, 4> e)
 {

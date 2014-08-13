@@ -157,8 +157,8 @@ namespace Vc_IMPL_NAMESPACE
     template<> struct StaticCastHelper<float         , unsigned int  > { static inline Vc_CONST m256i  cast(param256  v) {
         return _mm256_castps_si256(_mm256_blendv_ps(
                 _mm256_castsi256_ps(_mm256_cvttps_epi32(v)),
-                _mm256_castsi256_ps(_mm256_add_epi32(m256i(_mm256_cvttps_epi32(_mm256_sub_ps(v, _mm256_set2power31_ps()))), _mm256_set2power31_epu32())),
-                _mm256_cmpge_ps(v, _mm256_set2power31_ps())
+                _mm256_castsi256_ps(add_epi32(m256i(_mm256_cvttps_epi32(_mm256_sub_ps(v, set2power31_ps()))), set2power31_epu32())),
+                cmpge_ps(v, set2power31_ps())
                 ));
 
     } };
@@ -177,8 +177,8 @@ namespace Vc_IMPL_NAMESPACE
     template<> struct StaticCastHelper<unsigned int  , float         > { static inline Vc_CONST m256   cast(param256i v) {
         return _mm256_blendv_ps(
                 _mm256_cvtepi32_ps(v),
-                _mm256_add_ps(_mm256_cvtepi32_ps(_mm256_sub_epi32(v, _mm256_set2power31_epu32())), _mm256_set2power31_ps()),
-                _mm256_castsi256_ps(_mm256_cmplt_epi32(v, _mm256_setzero_si256()))
+                _mm256_add_ps(_mm256_cvtepi32_ps(sub_epi32(v, set2power31_epu32())), set2power31_ps()),
+                _mm256_castsi256_ps(cmplt_epi32(v, _mm256_setzero_si256()))
                 );
     } };
     template<> struct StaticCastHelper<short         , float         > { static Vc_ALWAYS_INLINE Vc_CONST m256  cast(param128i v) { return _mm256_cvtepi32_ps(StaticCastHelper<short, int>::cast(v)); } };

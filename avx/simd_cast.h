@@ -103,10 +103,10 @@ Vc_SIMD_CAST_AVX_1( float_v,   uint_v) {
     using namespace AvxIntrinsics;
     return _mm256_castps_si256(
         _mm256_blendv_ps(_mm256_castsi256_ps(_mm256_cvttps_epi32(x.data())),
-                         _mm256_castsi256_ps(_mm256_add_epi32(
+                         _mm256_castsi256_ps(add_epi32(
                              _mm256_cvttps_epi32(_mm256_sub_ps(x.data(), _mm256_set1_ps(1u << 31))),
                              _mm256_set1_epi32(1 << 31))),
-                         _mm256_cmpge_ps(x.data(), _mm256_set1_ps(1u << 31))));
+                         cmpge_ps(x.data(), _mm256_set1_ps(1u << 31))));
 }
 Vc_SIMD_CAST_AVX_1(double_v,   uint_v) {
     return AVX::zeroExtend(_mm256_cvttpd_epi32(x.data()));

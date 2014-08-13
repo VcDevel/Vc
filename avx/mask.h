@@ -54,7 +54,7 @@ Vc_INTRINSIC Vc_CONST m256 or_(param256 a, param256 b) { return _mm256_or_ps(a, 
 Vc_INTRINSIC Vc_CONST m128 or_(param128 a, param128 b) { return _mm_or_ps(a, b); }
 Vc_INTRINSIC Vc_CONST m256 xor_(param256 a, param256 b) { return _mm256_xor_ps(a, b); }
 Vc_INTRINSIC Vc_CONST m128 xor_(param128 a, param128 b) { return _mm_xor_ps(a, b); }
-Vc_INTRINSIC Vc_CONST int movemask(param256i a) { return _mm256_movemask_epi8(a); }
+Vc_INTRINSIC Vc_CONST int movemask(param256i a) { return movemask_epi8(a); }
 Vc_INTRINSIC Vc_CONST int movemask(param128i a) { return _mm_movemask_epi8(a); }
 Vc_INTRINSIC Vc_CONST int movemask(param256d a) { return _mm256_movemask_pd(a); }
 Vc_INTRINSIC Vc_CONST int movemask(param128d a) { return _mm_movemask_pd(a); }
