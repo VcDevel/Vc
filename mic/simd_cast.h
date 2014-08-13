@@ -159,6 +159,75 @@ template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST enable_if<(is_vector<Return>::value && offset == 0), Return>
     simd_cast(Vector<T> x)
 { return simd_cast<Return>(x); }
+// MIC <-> Scalar Vector casts {{{1
+// 1 MIC::Vector to 1 Scalar::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(Scalar::is_vector<Return>::value), Return> simd_cast(
+    MIC::Vector<T> x)
+{
+    return {static_cast<typename Return::value_type>(x[0])};
+}
+// 1 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(MIC::is_vector<Return>::value), Return> simd_cast(
+    Scalar::Vector<T> x)
+{
+    Return r{};
+    r[0] = static_cast<typename Return::value_type>(x[0]);
+    return r;
+}
+// 2 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(MIC::is_vector<Return>::value), Return> simd_cast(
+    Scalar::Vector<T> x0, Scalar::Vector<T> x1)
+{
+    Return r{};
+    r[0] = static_cast<typename Return::value_type>(x0[0]);
+    r[1] = static_cast<typename Return::value_type>(x1[0]);
+    return r;
+}
+// 3 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(MIC::is_vector<Return>::value), Return> simd_cast(
+    Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2)
+{
+    Return r{};
+    r[0] = static_cast<typename Return::value_type>(x0[0]);
+    r[1] = static_cast<typename Return::value_type>(x1[0]);
+    r[2] = static_cast<typename Return::value_type>(x2[0]);
+    return r;
+}
+// 4 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(MIC::is_vector<Return>::value), Return> simd_cast(
+    Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+    Scalar::Vector<T> x3)
+{
+    Return r{};
+    r[0] = static_cast<typename Return::value_type>(x0[0]);
+    r[1] = static_cast<typename Return::value_type>(x1[0]);
+    r[2] = static_cast<typename Return::value_type>(x2[0]);
+    r[3] = static_cast<typename Return::value_type>(x3[0]);
+    return r;
+}
+// 8 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(MIC::is_vector<Return>::value), Return> simd_cast(
+    Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+    Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+    Scalar::Vector<T> x6, Scalar::Vector<T> x7)
+{
+    Return r{};
+    r[0] = static_cast<typename Return::value_type>(x0[0]);
+    r[1] = static_cast<typename Return::value_type>(x1[0]);
+    r[2] = static_cast<typename Return::value_type>(x2[0]);
+    r[3] = static_cast<typename Return::value_type>(x3[0]);
+    r[4] = static_cast<typename Return::value_type>(x4[0]);
+    r[5] = static_cast<typename Return::value_type>(x5[0]);
+    r[6] = static_cast<typename Return::value_type>(x6[0]);
+    r[7] = static_cast<typename Return::value_type>(x7[0]);
+    return r;
+}
 // MIC <-> MIC Mask casts {{{1
 // 1 MIC::Mask to 1 MIC::Mask {{{2
 template <typename Return, typename M>
@@ -202,6 +271,68 @@ Vc_INTRINSIC Vc_CONST
 {
     return {static_cast<typename Return::MaskType>(_mm512_kswapb(k.data(), 0))};
 }
+// MIC <-> Scalar Mask casts {{{1
+// 1 MIC::Mask to 1 Scalar::Mask {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC enable_if<Scalar::is_mask<Return>::value, Return> simd_cast(MIC::Mask<T> k)
+{
+    return Return(static_cast<bool>(k[0]));
+}
+// 1 Scalar::Mask to 1 MIC::Mask {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC enable_if<MIC::is_mask<Return>::value, Return> simd_cast(Scalar::Mask<T> k)
+{
+    Return r{};
+    r[0] = k[0];
+    return r;
+}
+// 2 Scalar::Mask to 1 MIC::Mask {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC enable_if<MIC::is_mask<Return>::value, Return> simd_cast(Scalar::Mask<T> k0,
+                                                                      Scalar::Mask<T> k1)
+{
+    Return r{};
+    r[0] = k0[0];
+    r[1] = k1[0];
+    return r;
+}
+// 4 Scalar::Mask to 1 MIC::Mask {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC enable_if<MIC::is_mask<Return>::value, Return> simd_cast(Scalar::Mask<T> k0,
+                                                                      Scalar::Mask<T> k1,
+                                                                      Scalar::Mask<T> k2,
+                                                                      Scalar::Mask<T> k3)
+{
+    Return r{};
+    r[0] = k0[0];
+    r[1] = k1[0];
+    r[2] = k2[0];
+    r[3] = k3[0];
+    return r;
+}
+// 8 Scalar::Mask to 1 MIC::Mask {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC enable_if<MIC::is_mask<Return>::value, Return> simd_cast(Scalar::Mask<T> k0,
+                                                                      Scalar::Mask<T> k1,
+                                                                      Scalar::Mask<T> k2,
+                                                                      Scalar::Mask<T> k3,
+                                                                      Scalar::Mask<T> k4,
+                                                                      Scalar::Mask<T> k5,
+                                                                      Scalar::Mask<T> k6,
+                                                                      Scalar::Mask<T> k7)
+{
+    Return r{};
+    r[0] = k0[0];
+    r[1] = k1[0];
+    r[2] = k2[0];
+    r[3] = k3[0];
+    r[4] = k4[0];
+    r[5] = k5[0];
+    r[6] = k6[0];
+    r[7] = k7[0];
+    return r;
+}
+//}}}1
 
 }  // namespace MIC
 using MIC::simd_cast;
