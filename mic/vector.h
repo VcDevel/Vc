@@ -83,7 +83,7 @@ public:
     typedef Vc_IMPL_NAMESPACE::Mask<T> Mask;
     using MaskType = Mask;
     using mask_type = Mask;
-    typedef typename Mask::AsArg MaskArg;
+    typedef typename Mask::AsArg MaskArgument;
     typedef Vector<T> AsArg; // for now only ICC can compile this code and it is not broken :)
     typedef VectorType VectorTypeArg;
 
@@ -193,11 +193,11 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
     // zeroing
     inline void setZero();
-    inline void setZero(MaskArg k);
-    inline void setZeroInverted(MaskArg k);
+    inline void setZero(MaskArgument k);
+    inline void setZeroInverted(MaskArgument k);
 
     inline void setQnan();
-    inline void setQnan(MaskArg k);
+    inline void setQnan(MaskArgument k);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // stores in StoreMixin
@@ -341,17 +341,17 @@ public:
     template<typename V2> Vc_INTRINSIC V2 staticCast() const { return V2(*this); }
     template<typename V2> Vc_INTRINSIC V2 reinterpretCast() const { return mic_cast<typename V2::VectorType>(d.v()); }
 
-    Vc_ALWAYS_INLINE WriteMaskedVector<T> operator()(MaskArg k) { return WriteMaskedVector<T>(this, k); }
+    Vc_ALWAYS_INLINE WriteMaskedVector<T> operator()(MaskArgument k) { return WriteMaskedVector<T>(this, k); }
 
     inline EntryType min() const { return HT::reduce_min(d.v()); }
     inline EntryType max() const { return HT::reduce_max(d.v()); }
     inline EntryType product() const { return HT::reduce_mul(d.v()); }
     inline EntryType sum() const { return HT::reduce_add(d.v()); }
     Vc_ALWAYS_INLINE_L Vector partialSum() const Vc_ALWAYS_INLINE_R;
-    inline EntryType min(MaskArg m) const;
-    inline EntryType max(MaskArg m) const;
-    inline EntryType product(MaskArg m) const;
-    inline EntryType sum(MaskArg m) const;
+    inline EntryType min(MaskArgument m) const;
+    inline EntryType max(MaskArgument m) const;
+    inline EntryType product(MaskArgument m) const;
+    inline EntryType sum(MaskArgument m) const;
 
     Vc_INTRINSIC_L Vector shifted(int amount, Vector shiftIn) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;

@@ -137,11 +137,11 @@ template<typename T> Vc_INTRINSIC void Vector<T>::setZero()
 {
     data() = HV::zero();
 }
-template<typename T> Vc_INTRINSIC void Vector<T>::setZero(MaskArg k)
+template<typename T> Vc_INTRINSIC void Vector<T>::setZero(MaskArgument k)
 {
     data() = _xor(data(), k.data(), data(), data());
 }
-template<typename T> Vc_INTRINSIC void Vector<T>::setZero(MaskArg k)
+template<typename T> Vc_INTRINSIC void Vector<T>::setZeroInverted(MaskArgument k)
 {
     data() = _xor(data(), _mm512_knot(k.data()), data(), data());
 }
@@ -150,7 +150,7 @@ template<typename T> Vc_INTRINSIC void Vector<T>::setQnan()
 {
     data() = _setallone<VectorType>();
 }
-template<typename T> Vc_INTRINSIC void Vector<T>::setQnan(MaskArg k)
+template<typename T> Vc_INTRINSIC void Vector<T>::setQnan(MaskArgument k)
 {
     data() = _mask_mov(data(), k.data(), _setallone<VectorType>());
 }
@@ -377,51 +377,51 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::partialSum() const
     if (Size > 16) tmp += tmp.shifted(-16);
     return tmp;
 }
-template<typename T> inline typename Vector<T>::EntryType Vector<T>::min(MaskArg m) const
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::min(MaskArgument m) const
 {
     return _mm512_mask_reduce_min_epi32(m.data(), data());
 }
-template<> inline float Vector<float>::min(MaskArg m) const
+template<> inline float Vector<float>::min(MaskArgument m) const
 {
     return _mm512_mask_reduce_min_ps(m.data(), data());
 }
-template<> inline double Vector<double>::min(MaskArg m) const
+template<> inline double Vector<double>::min(MaskArgument m) const
 {
     return _mm512_mask_reduce_min_pd(m.data(), data());
 }
-template<typename T> inline typename Vector<T>::EntryType Vector<T>::max(MaskArg m) const
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::max(MaskArgument m) const
 {
     return _mm512_mask_reduce_max_epi32(m.data(), data());
 }
-template<> inline float Vector<float>::max(MaskArg m) const
+template<> inline float Vector<float>::max(MaskArgument m) const
 {
     return _mm512_mask_reduce_max_ps(m.data(), data());
 }
-template<> inline double Vector<double>::max(MaskArg m) const
+template<> inline double Vector<double>::max(MaskArgument m) const
 {
     return _mm512_mask_reduce_max_pd(m.data(), data());
 }
-template<typename T> inline typename Vector<T>::EntryType Vector<T>::product(MaskArg m) const
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::product(MaskArgument m) const
 {
     return _mm512_mask_reduce_mul_epi32(m.data(), data());
 }
-template<> inline float Vector<float>::product(MaskArg m) const
+template<> inline float Vector<float>::product(MaskArgument m) const
 {
     return _mm512_mask_reduce_mul_ps(m.data(), data());
 }
-template<> inline double Vector<double>::product(MaskArg m) const
+template<> inline double Vector<double>::product(MaskArgument m) const
 {
     return _mm512_mask_reduce_mul_pd(m.data(), data());
 }
-template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(MaskArg m) const
+template<typename T> inline typename Vector<T>::EntryType Vector<T>::sum(MaskArgument m) const
 {
     return _mm512_mask_reduce_add_epi32(m.data(), data());
 }
-template<> inline float Vector<float>::sum(MaskArg m) const
+template<> inline float Vector<float>::sum(MaskArgument m) const
 {
     return _mm512_mask_reduce_add_ps(m.data(), data());
 }
-template<> inline double Vector<double>::sum(MaskArg m) const
+template<> inline double Vector<double>::sum(MaskArgument m) const
 {
     return _mm512_mask_reduce_add_pd(m.data(), data());
 }
@@ -817,7 +817,7 @@ template<typename T> template<typename Index> Vc_ALWAYS_INLINE Vc_FLATTEN void V
 {
     MicIntrinsics::scatter(mem, ensureVector(indexes), d.v(), UpDownC<EntryType>(), sizeof(EntryType));
 }
-template<typename T> template<typename Index> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(EntryType *mem, Index indexes, MaskArg mask) const
+template<typename T> template<typename Index> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(EntryType *mem, Index indexes, MaskArgument mask) const
 {
     MicIntrinsics::scatter(mask.data(), mem, ensureVector(indexes), d.v(), UpDownC<EntryType>(), sizeof(EntryType));
 }
@@ -827,7 +827,7 @@ template<typename T> template<typename S1, typename IT> Vc_ALWAYS_INLINE Vc_FLAT
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1)));
     MicIntrinsics::scatter(mem, ((indexes * sizeof(S1)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
 }
-template<typename T> template<typename S1, typename IT> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, EntryType S1::* member1, IT indexes, MaskArg mask) const
+template<typename T> template<typename S1, typename IT> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, EntryType S1::* member1, IT indexes, MaskArgument mask) const
 {
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1)));
@@ -839,7 +839,7 @@ template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_I
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
     MicIntrinsics::scatter(array, ((indexes * sizeof(S1)) + (offset - start)).data(), d.v(), UpDownC<EntryType>(), _MM_SCALE_1);
 }
-template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, MaskArg mask) const
+template<typename T> template<typename S1, typename S2, typename IT> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, MaskArgument mask) const
 {
     const char *start = reinterpret_cast<const char *>(array);
     const char *offset = reinterpret_cast<const char *>(&(array->*(member1).*(member2)));
@@ -851,7 +851,7 @@ template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS
             (array[innerIndexes[i]].*(ptrMember1))[outerIndexes[i]] = d.m(i);
             );
 }
-template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, MaskArg mask) const
+template<typename T> template<typename S1, typename IT1, typename IT2> Vc_ALWAYS_INLINE Vc_FLATTEN void Vector<T>::scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, MaskArgument mask) const
 {
     Vc_foreach_bit (size_t i, mask) {
         (array[outerIndexes[i]].*(ptrMember1))[innerIndexes[i]] = d.m(i);
