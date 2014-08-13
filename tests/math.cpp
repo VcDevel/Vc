@@ -775,7 +775,7 @@ template<typename V> void testFrexp()/*{{{*/
 template<typename V> void testLdexp()/*{{{*/
 {
     typedef typename V::EntryType T;
-    using ExpV = Vc::simdarray<int, V::Size>;
+    using ExpV = typename V::IndexType;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
         const V v = (V::Random() - T(0.5)) * T(1000);
         ExpV e;
