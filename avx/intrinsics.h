@@ -507,7 +507,6 @@ namespace AvxIntrinsics
     AVX_TO_SSE_2(sign_epi8)
     AVX_TO_SSE_2(sign_epi16)
     AVX_TO_SSE_2(sign_epi32)
-    // alignr_epi8(param128i __X, param128i __Y, const int __N)
     AVX_TO_SSE_1(abs_epi8)
     AVX_TO_SSE_1(abs_epi16)
     AVX_TO_SSE_1(abs_epi32)
