@@ -720,7 +720,7 @@ template<typename T> struct _ExponentVector { typedef int_v Type; };
 template<typename V> void testFrexp()/*{{{*/
 {
     typedef typename V::EntryType T;
-    using ExpV = Vc::simdarray<int, V::Size>;
+    using ExpV = typename V::IndexType;
     Vc::Memory<V, 33> input;
     Vc::Memory<V, 33> expectedFraction;
     Vc::Memory<ExpV, 33> expectedExponent;

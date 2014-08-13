@@ -85,7 +85,7 @@ static V ulpDiffToReference(const V &_val, const V &_ref)
     val  (zeroMask)= std::numeric_limits<V>::min();
     diff (zeroMask)+= V::One();
 
-    Vc::simdarray<int, V::Size> exp;
+    typename V::IndexType exp;
     frexp(ref, &exp);
     diff += ldexp(abs(ref - val), std::numeric_limits<T>::digits - exp);
     diff.setZero(_val == _ref || (isnan(_val) && isnan(_ref)));
