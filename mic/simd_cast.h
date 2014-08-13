@@ -38,18 +38,19 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace MIC
 {
-// 1 MIC::Vector to 1 MIC::Vector {{{1
+// MIC <-> MIC Vector casts {{{1
+// 1 MIC::Vector to 1 MIC::Vector {{{2
 #define Vc_CAST__(To__)                                                                  \
     template <typename Return>                                                           \
     Vc_INTRINSIC Vc_CONST enable_if<std::is_same<Return, To__>::value, Return>
-// to int_v {{{2
+// to int_v {{{3
 Vc_CAST__(   int_v) simd_cast( short_v x) { return x.data(); }
 Vc_CAST__(   int_v) simd_cast(ushort_v x) { return _mm512_and_epi32(x.data(), _mm512_set1_epi32(0xffff)); }
 Vc_CAST__(   int_v) simd_cast(  uint_v x) { return x.data(); }
 Vc_CAST__(   int_v) simd_cast(double_v x) { return _mm512_cvtfxpnt_roundpd_epi32lo(x.data(), _MM_ROUND_MODE_TOWARD_ZERO); }
 Vc_CAST__(   int_v) simd_cast( float_v x) { return _mm512_cvtfxpnt_round_adjustps_epi32(x.data(), _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); }
 
-// to uint_v {{{2
+// to uint_v {{{3
 Vc_CAST__(  uint_v) simd_cast( short_v x) { return x.data(); }
 Vc_CAST__(  uint_v) simd_cast(ushort_v x)
 { return _mm512_and_epi32(x.data(), _mm512_set1_epi32(0xffff)); }
@@ -68,14 +69,14 @@ Vc_CAST__(  uint_v) simd_cast( float_v x) {
         negative, x.data(), _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE);
 }
 
-// to short_v {{{2
+// to short_v {{{3
 Vc_CAST__( short_v) simd_cast(ushort_v x) { return _mm512_srai_epi32(_mm512_slli_epi32(x.data(), 16), 16); }
 Vc_CAST__( short_v) simd_cast(   int_v x) { return _mm512_srai_epi32(_mm512_slli_epi32(x.data(), 16), 16); }
 Vc_CAST__( short_v) simd_cast(  uint_v x) { return _mm512_srai_epi32(_mm512_slli_epi32(x.data(), 16), 16); }
 Vc_CAST__( short_v) simd_cast(double_v x) { return _mm512_cvtfxpnt_roundpd_epi32lo(x.data(), _MM_ROUND_MODE_TOWARD_ZERO); }
 Vc_CAST__( short_v) simd_cast( float_v x) { return _mm512_cvtfxpnt_round_adjustps_epi32(x.data(), _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); }
 
-// to ushort_v {{{2
+// to ushort_v {{{3
 Vc_CAST__(ushort_v) simd_cast( short_v x) { return x.data(); }
 Vc_CAST__(ushort_v) simd_cast(   int_v x) { return x.data(); }
 Vc_CAST__(ushort_v) simd_cast(  uint_v x) { return x.data(); }
@@ -90,7 +91,7 @@ Vc_CAST__(ushort_v) simd_cast( float_v x) {
     return _mm512_cvtfxpnt_round_adjustps_epi32(x.data(), _MM_ROUND_MODE_TOWARD_ZERO,
                                                 _MM_EXPADJ_NONE);
 }
-// to float_v {{{2
+// to float_v {{{3
 Vc_CAST__( float_v) simd_cast(   int_v x) {
     return _mm512_cvtfxpnt_round_adjustepi32_ps(x.data(), _MM_FROUND_CUR_DIRECTION,
                                                 _MM_EXPADJ_NONE);
@@ -102,14 +103,13 @@ Vc_CAST__( float_v) simd_cast(  uint_v x) {
 Vc_CAST__( float_v) simd_cast( short_v x) { return simd_cast<float_v>(simd_cast< int_v>(x)); }
 Vc_CAST__( float_v) simd_cast(ushort_v x) { return simd_cast<float_v>(simd_cast<uint_v>(x)); }
 Vc_CAST__( float_v) simd_cast(double_v x) { return _mm512_cvtpd_pslo(x.data()); }
-// to double_v {{{2
+// to double_v {{{3
 Vc_CAST__(double_v) simd_cast( float_v x) { return _mm512_cvtpslo_pd(x.data()); }
 Vc_CAST__(double_v) simd_cast(   int_v x) { return _mm512_cvtepi32lo_pd(x.data()); }
 Vc_CAST__(double_v) simd_cast(  uint_v x) { return _mm512_cvtepu32lo_pd(x.data()); }
 Vc_CAST__(double_v) simd_cast( short_v x) { return simd_cast<double_v>(simd_cast< int_v>(x)); }
 Vc_CAST__(double_v) simd_cast(ushort_v x) { return simd_cast<double_v>(simd_cast<uint_v>(x)); }
-// }}}2
-// 2 MIC::Vector to 1 MIC::Vector {{{1
+// 2 MIC::Vector to 1 MIC::Vector {{{2
 Vc_CAST__(ushort_v) simd_cast(double_v a, double_v b)
 {
     return _mm512_mask_permute4f128_epi32(
@@ -144,7 +144,7 @@ Vc_CAST__( float_v) simd_cast(double_v a, double_v b)
                                        _mm512_cvtpd_pslo(b.data()), _MM_PERM_BABA);
 }
 #undef Vc_CAST__
-// 1 MIC::Vector to 2 MIC::Vector {{{1
+// 1 MIC::Vector to 2 MIC::Vector {{{2
 #define Vc_CAST__(To__, Offset__)                                                        \
     template <typename Return, int offset>                                               \
     Vc_INTRINSIC Vc_CONST                                                                \
@@ -159,8 +159,8 @@ template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST enable_if<(is_vector<Return>::value && offset == 0), Return>
     simd_cast(Vector<T> x)
 { return simd_cast<Return>(x); }
-// }}}1
-// 1 MIC::Mask to 1 MIC::Mask
+// MIC <-> MIC Mask casts {{{1
+// 1 MIC::Mask to 1 MIC::Mask {{{2
 template <typename Return, typename M>
 Vc_INTRINSIC Vc_CONST
     enable_if<(is_mask<Return>::value&& is_mask<M>::value &&
@@ -177,7 +177,7 @@ Vc_INTRINSIC Vc_CONST enable_if<
 {
     return {static_cast<typename Return::MaskType>(_mm512_kand(k.data(), 0xff))};
 }
-// 2 MIC::Mask to 1 MIC::Mask
+// 2 MIC::Mask to 1 MIC::Mask {{{2
 template <typename Return, typename M>
 Vc_INTRINSIC Vc_CONST enable_if<
     (is_mask<Return>::value&& is_mask<M>::value&& Return::Size == 2 * M::Size), Return>
@@ -185,7 +185,7 @@ Vc_INTRINSIC Vc_CONST enable_if<
 {
     return {_mm512_kmovlhb(k0.data(), k1.data())};
 }
-// 1 MIC::Mask to 2 MIC::Mask
+// 1 MIC::Mask to 2 MIC::Mask {{{2
 template <typename Return, int offset, typename M>
 Vc_INTRINSIC Vc_CONST
     enable_if<(is_mask<Return>::value&& is_mask<M>::value&& offset == 0), Return>
