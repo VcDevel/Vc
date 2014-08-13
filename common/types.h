@@ -107,21 +107,7 @@ namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero
 namespace
 {
 #endif
-    template<typename T> struct CanConvertToInt : public std::is_convertible<T, int> {
-        static constexpr bool Value = std::is_convertible<T, int>::value;
-    };
-    template<> struct CanConvertToInt<bool>     { enum { Value = 0 }; };
-    //template<> struct CanConvertToInt<float>    { enum { Value = 0 }; };
-    //template<> struct CanConvertToInt<double>   { enum { Value = 0 }; };
-
     enum TestEnum {};
-    static_assert(CanConvertToInt<int>::Value == 1, "CanConvertToInt_is_broken");
-    static_assert(CanConvertToInt<unsigned char>::Value == 1, "CanConvertToInt_is_broken");
-    static_assert(CanConvertToInt<bool>::Value == 0, "CanConvertToInt_is_broken");
-    static_assert(CanConvertToInt<float>::Value == 1, "CanConvertToInt_is_broken");
-    static_assert(CanConvertToInt<double>::Value == 1, "CanConvertToInt_is_broken");
-    static_assert(CanConvertToInt<float*>::Value == 0, "CanConvertToInt_is_broken");
-    static_assert(CanConvertToInt<TestEnum>::Value == 1, "CanConvertToInt_is_broken");
 
     static_assert(std::is_convertible<TestEnum, short>          ::value ==  true, "HasImplicitCast0_is_broken");
     static_assert(std::is_convertible<int *, void *>            ::value ==  true, "HasImplicitCast1_is_broken");
@@ -144,9 +130,6 @@ namespace
     template<> struct is_implicit_cast_allowed<uint32_t,    float> : public std::true_type {};
     template<> struct is_implicit_cast_allowed_mask< float,  int32_t> : public std::true_type {};
     template<> struct is_implicit_cast_allowed_mask< float, uint32_t> : public std::true_type {};
-
-    template<typename T> struct IsLikeInteger { enum { Value = !std::is_floating_point<T>::value && CanConvertToInt<T>::Value }; };
-    template<typename T> struct IsLikeSignedInteger { enum { Value = IsLikeInteger<T>::Value && !std::is_unsigned<T>::value }; };
 #ifndef VC_ICC
 } // anonymous namespace
 #endif
