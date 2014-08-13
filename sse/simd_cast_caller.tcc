@@ -37,10 +37,8 @@ namespace SSE
 {
 template <typename T>
 template <typename U>
-Vc_INTRINSIC Mask<T>::Mask(U &&rhs, enable_if_explicitly_convertible<U>)
-    : Mask(Vc::simd_cast<Mask>(std::forward<U>(rhs)))
-{
-}
+Vc_INTRINSIC Mask<T>::Mask(U &&rhs, Common::enable_if_mask_converts_explicitly<T, U>)
+    : Mask(Vc::simd_cast<Mask>(std::forward<U>(rhs))) {}
 }
 }
 

@@ -139,29 +139,17 @@ private:
         Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
         Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
 
-        template <typename U>
-        using enable_if_implicitly_convertible = enable_if<
-            (Traits::is_simd_mask<U>::value && !Traits::is_simd_mask_array<U>::value &&
-             is_implicit_cast_allowed_mask<Traits::entry_type_of<typename Traits::decay<U>::Vector>,
-                                           T>::value)>;
-        template <typename U>
-        using enable_if_explicitly_convertible =
-            enable_if<(Traits::is_simd_mask_array<U>::value ||
-                       (Traits::is_simd_mask<U>::value &&
-                        !is_implicit_cast_allowed_mask<
-                             Traits::entry_type_of<typename Traits::decay<U>::Vector>,
-                             T>::value))>;
-
         // implicit cast
         template <typename U>
-        Vc_INTRINSIC Mask(U &&rhs, enable_if_implicitly_convertible<U> = nullarg)
-            : d(internal::mask_cast<Traits::decay<U>::Size, Size, VectorType>(rhs.dataI()))
-        {
-        }
+        Vc_INTRINSIC Mask(U &&rhs, Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
+            : d(internal::mask_cast<Traits::decay<U>::Size, Size, VectorType>(
+                  rhs.dataI())) {}
 
         // explicit cast, implemented via simd_cast (in avx/simd_cast_caller.h)
         template <typename U>
-        Vc_INTRINSIC explicit Mask(U &&rhs, enable_if_explicitly_convertible<U> = nullarg);
+        Vc_INTRINSIC explicit Mask(U &&rhs,
+                                   Common::enable_if_mask_converts_explicitly<T, U> =
+                                       nullarg);
 
         Vc_ALWAYS_INLINE explicit Mask(const bool *mem) { load(mem); }
         template<typename Flags> Vc_ALWAYS_INLINE explicit Mask(const bool *mem, Flags f) { load(mem, f); }

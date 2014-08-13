@@ -154,6 +154,18 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Common
 {
 
+template <typename T, typename U>
+using enable_if_mask_converts_implicitly =
+    enable_if<(Traits::is_simd_mask<U>::value && !Traits::is_simd_mask_array<U>::value &&
+               is_implicit_cast_allowed_mask<
+                   Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value)>;
+template <typename T, typename U>
+using enable_if_mask_converts_explicitly = enable_if<
+    (Traits::is_simd_mask_array<U>::value ||
+     (Traits::is_simd_mask<U>::value &&
+      !is_implicit_cast_allowed_mask<
+           Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value))>;
+
 template <typename T> using WidthT = std::integral_constant<std::size_t, sizeof(T)>;
 
 template<std::size_t Bytes> class MaskBool;
