@@ -78,7 +78,7 @@ TEST_TYPES(V, broadcast, SIMD_ARRAY_LIST)
     typedef typename V::EntryType T;
     V array = 0;
     array = 1;
-    V v0{T(1)};
+    V v0(T(1));
     V v1 = T(2);
     v0 = 2;
     v1 = 3;
@@ -115,13 +115,13 @@ TEST_TYPES(V, arithmetics, SIMD_ARRAY_LIST)
     V b = 1;
     V c = 10;
     COMPARE(a + b, b);
-    COMPARE(c + b, V{11});
-    COMPARE(c - b, V{9});
+    COMPARE(c + b, V(11));
+    COMPARE(c - b, V(9));
     COMPARE(b - a, b);
     COMPARE(b * a, a);
     COMPARE(b * b, b);
     COMPARE(c * b, c);
-    COMPARE(c * c, V{100});
+    COMPARE(c * c, V(100));
     COMPARE(c / c, b);
     COMPARE(a / c, a);
     COMPARE(c / b, c);
