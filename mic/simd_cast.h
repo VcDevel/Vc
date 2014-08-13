@@ -210,12 +210,41 @@ Vc_INTRINSIC Vc_CONST enable_if<(MIC::is_vector<Return>::value), Return> simd_ca
     r[3] = static_cast<typename Return::value_type>(x3[0]);
     return r;
 }
-// 8 Scalar::Vector to 1 MIC::Vector {{{2
+// 5 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(MIC::is_vector<Return>::value), Return> simd_cast(
+    Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+    Scalar::Vector<T> x3, Scalar::Vector<T> x4)
+{
+    Return r{};
+    r[0] = static_cast<typename Return::value_type>(x0[0]);
+    r[1] = static_cast<typename Return::value_type>(x1[0]);
+    r[2] = static_cast<typename Return::value_type>(x2[0]);
+    r[3] = static_cast<typename Return::value_type>(x3[0]);
+    r[4] = static_cast<typename Return::value_type>(x4[0]);
+    return r;
+}
+// 6 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(MIC::is_vector<Return>::value), Return> simd_cast(
+    Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+    Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5)
+{
+    Return r{};
+    r[0] = static_cast<typename Return::value_type>(x0[0]);
+    r[1] = static_cast<typename Return::value_type>(x1[0]);
+    r[2] = static_cast<typename Return::value_type>(x2[0]);
+    r[3] = static_cast<typename Return::value_type>(x3[0]);
+    r[4] = static_cast<typename Return::value_type>(x4[0]);
+    r[5] = static_cast<typename Return::value_type>(x5[0]);
+    return r;
+}
+// 7 Scalar::Vector to 1 MIC::Vector {{{2
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST enable_if<(MIC::is_vector<Return>::value), Return> simd_cast(
     Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
     Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
-    Scalar::Vector<T> x6, Scalar::Vector<T> x7)
+    Scalar::Vector<T> x6)
 {
     Return r{};
     r[0] = static_cast<typename Return::value_type>(x0[0]);
@@ -225,8 +254,234 @@ Vc_INTRINSIC Vc_CONST enable_if<(MIC::is_vector<Return>::value), Return> simd_ca
     r[4] = static_cast<typename Return::value_type>(x4[0]);
     r[5] = static_cast<typename Return::value_type>(x5[0]);
     r[6] = static_cast<typename Return::value_type>(x6[0]);
-    r[7] = static_cast<typename Return::value_type>(x7[0]);
     return r;
+}
+// 8 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(MIC::is_vector<Return>::value), Return> simd_cast(
+    Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+    Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+    Scalar::Vector<T> x6, Scalar::Vector<T> x7)
+{
+    Memory<Return, Return::Size> m;
+    m.setZero();
+    m[0] = static_cast<typename Return::value_type>(x0[0]);
+    m[1] = static_cast<typename Return::value_type>(x1[0]);
+    m[2] = static_cast<typename Return::value_type>(x2[0]);
+    m[3] = static_cast<typename Return::value_type>(x3[0]);
+    m[4] = static_cast<typename Return::value_type>(x4[0]);
+    m[5] = static_cast<typename Return::value_type>(x5[0]);
+    m[6] = static_cast<typename Return::value_type>(x6[0]);
+    m[7] = static_cast<typename Return::value_type>(x7[0]);
+    return m.firstVector();
+}
+// 9 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(MIC::is_vector<Return>::value && Return::Size == 16), Return>
+    simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+              Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+              Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8)
+{
+    Memory<Return, Return::Size> m;
+    m.setZero();
+    m[ 0] = static_cast<typename Return::value_type>(x0[0]);
+    m[ 1] = static_cast<typename Return::value_type>(x1[0]);
+    m[ 2] = static_cast<typename Return::value_type>(x2[0]);
+    m[ 3] = static_cast<typename Return::value_type>(x3[0]);
+    m[ 4] = static_cast<typename Return::value_type>(x4[0]);
+    m[ 5] = static_cast<typename Return::value_type>(x5[0]);
+    m[ 6] = static_cast<typename Return::value_type>(x6[0]);
+    m[ 7] = static_cast<typename Return::value_type>(x7[0]);
+    m[ 8] = static_cast<typename Return::value_type>(x8[0]);
+    return m.firstVector();
+}
+// 10 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(MIC::is_vector<Return>::value && Return::Size == 16), Return>
+    simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+              Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+              Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+              Scalar::Vector<T> x9)
+{
+    Memory<Return, Return::Size> m;
+    m.setZero();
+    m[ 0] = static_cast<typename Return::value_type>(x0[0]);
+    m[ 1] = static_cast<typename Return::value_type>(x1[0]);
+    m[ 2] = static_cast<typename Return::value_type>(x2[0]);
+    m[ 3] = static_cast<typename Return::value_type>(x3[0]);
+    m[ 4] = static_cast<typename Return::value_type>(x4[0]);
+    m[ 5] = static_cast<typename Return::value_type>(x5[0]);
+    m[ 6] = static_cast<typename Return::value_type>(x6[0]);
+    m[ 7] = static_cast<typename Return::value_type>(x7[0]);
+    m[ 8] = static_cast<typename Return::value_type>(x8[0]);
+    m[ 9] = static_cast<typename Return::value_type>(x9[0]);
+    return m.firstVector();
+}
+// 11 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(MIC::is_vector<Return>::value && Return::Size == 16), Return>
+    simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+              Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+              Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+              Scalar::Vector<T> x9, Scalar::Vector<T> x10)
+{
+    Memory<Return, Return::Size> m;
+    m.setZero();
+    m[ 0] = static_cast<typename Return::value_type>(x0[0]);
+    m[ 1] = static_cast<typename Return::value_type>(x1[0]);
+    m[ 2] = static_cast<typename Return::value_type>(x2[0]);
+    m[ 3] = static_cast<typename Return::value_type>(x3[0]);
+    m[ 4] = static_cast<typename Return::value_type>(x4[0]);
+    m[ 5] = static_cast<typename Return::value_type>(x5[0]);
+    m[ 6] = static_cast<typename Return::value_type>(x6[0]);
+    m[ 7] = static_cast<typename Return::value_type>(x7[0]);
+    m[ 8] = static_cast<typename Return::value_type>(x8[0]);
+    m[ 9] = static_cast<typename Return::value_type>(x9[0]);
+    m[10] = static_cast<typename Return::value_type>(x10[0]);
+    return m.firstVector();
+}
+// 12 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(MIC::is_vector<Return>::value && Return::Size == 16), Return>
+    simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+              Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+              Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+              Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11)
+{
+    Memory<Return, Return::Size> m;
+    m.setZero();
+    m[ 0] = static_cast<typename Return::value_type>(x0[0]);
+    m[ 1] = static_cast<typename Return::value_type>(x1[0]);
+    m[ 2] = static_cast<typename Return::value_type>(x2[0]);
+    m[ 3] = static_cast<typename Return::value_type>(x3[0]);
+    m[ 4] = static_cast<typename Return::value_type>(x4[0]);
+    m[ 5] = static_cast<typename Return::value_type>(x5[0]);
+    m[ 6] = static_cast<typename Return::value_type>(x6[0]);
+    m[ 7] = static_cast<typename Return::value_type>(x7[0]);
+    m[ 8] = static_cast<typename Return::value_type>(x8[0]);
+    m[ 9] = static_cast<typename Return::value_type>(x9[0]);
+    m[10] = static_cast<typename Return::value_type>(x10[0]);
+    m[11] = static_cast<typename Return::value_type>(x11[0]);
+    return m.firstVector();
+}
+// 13 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(MIC::is_vector<Return>::value && Return::Size == 16), Return>
+    simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+              Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+              Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+              Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+              Scalar::Vector<T> x12)
+{
+    Memory<Return, Return::Size> m;
+    m.setZero();
+    m[ 0] = static_cast<typename Return::value_type>(x0[0]);
+    m[ 1] = static_cast<typename Return::value_type>(x1[0]);
+    m[ 2] = static_cast<typename Return::value_type>(x2[0]);
+    m[ 3] = static_cast<typename Return::value_type>(x3[0]);
+    m[ 4] = static_cast<typename Return::value_type>(x4[0]);
+    m[ 5] = static_cast<typename Return::value_type>(x5[0]);
+    m[ 6] = static_cast<typename Return::value_type>(x6[0]);
+    m[ 7] = static_cast<typename Return::value_type>(x7[0]);
+    m[ 8] = static_cast<typename Return::value_type>(x8[0]);
+    m[ 9] = static_cast<typename Return::value_type>(x9[0]);
+    m[10] = static_cast<typename Return::value_type>(x10[0]);
+    m[11] = static_cast<typename Return::value_type>(x11[0]);
+    m[12] = static_cast<typename Return::value_type>(x12[0]);
+    return m.firstVector();
+}
+// 14 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(MIC::is_vector<Return>::value && Return::Size == 16), Return>
+    simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+              Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+              Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+              Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+              Scalar::Vector<T> x12, Scalar::Vector<T> x13)
+{
+    Memory<Return, Return::Size> m;
+    m.setZero();
+    m[ 0] = static_cast<typename Return::value_type>(x0[0]);
+    m[ 1] = static_cast<typename Return::value_type>(x1[0]);
+    m[ 2] = static_cast<typename Return::value_type>(x2[0]);
+    m[ 3] = static_cast<typename Return::value_type>(x3[0]);
+    m[ 4] = static_cast<typename Return::value_type>(x4[0]);
+    m[ 5] = static_cast<typename Return::value_type>(x5[0]);
+    m[ 6] = static_cast<typename Return::value_type>(x6[0]);
+    m[ 7] = static_cast<typename Return::value_type>(x7[0]);
+    m[ 8] = static_cast<typename Return::value_type>(x8[0]);
+    m[ 9] = static_cast<typename Return::value_type>(x9[0]);
+    m[10] = static_cast<typename Return::value_type>(x10[0]);
+    m[11] = static_cast<typename Return::value_type>(x11[0]);
+    m[12] = static_cast<typename Return::value_type>(x12[0]);
+    m[13] = static_cast<typename Return::value_type>(x13[0]);
+    return m.firstVector();
+}
+// 15 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(MIC::is_vector<Return>::value && Return::Size == 16), Return>
+    simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+              Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+              Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+              Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+              Scalar::Vector<T> x12, Scalar::Vector<T> x13, Scalar::Vector<T> x14)
+{
+    Memory<Return, Return::Size> m;
+    m.setZero();
+    m[ 0] = static_cast<typename Return::value_type>(x0[0]);
+    m[ 1] = static_cast<typename Return::value_type>(x1[0]);
+    m[ 2] = static_cast<typename Return::value_type>(x2[0]);
+    m[ 3] = static_cast<typename Return::value_type>(x3[0]);
+    m[ 4] = static_cast<typename Return::value_type>(x4[0]);
+    m[ 5] = static_cast<typename Return::value_type>(x5[0]);
+    m[ 6] = static_cast<typename Return::value_type>(x6[0]);
+    m[ 7] = static_cast<typename Return::value_type>(x7[0]);
+    m[ 8] = static_cast<typename Return::value_type>(x8[0]);
+    m[ 9] = static_cast<typename Return::value_type>(x9[0]);
+    m[10] = static_cast<typename Return::value_type>(x10[0]);
+    m[11] = static_cast<typename Return::value_type>(x11[0]);
+    m[12] = static_cast<typename Return::value_type>(x12[0]);
+    m[13] = static_cast<typename Return::value_type>(x13[0]);
+    m[14] = static_cast<typename Return::value_type>(x14[0]);
+    return m.firstVector();
+}
+// 16 Scalar::Vector to 1 MIC::Vector {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(MIC::is_vector<Return>::value && Return::Size == 16), Return>
+    simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+              Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+              Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+              Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+              Scalar::Vector<T> x12, Scalar::Vector<T> x13, Scalar::Vector<T> x14,
+              Scalar::Vector<T> x15)
+{
+    Memory<Return, Return::Size> m;
+    m.setZero();
+    m[ 0] = static_cast<typename Return::value_type>(x0[0]);
+    m[ 1] = static_cast<typename Return::value_type>(x1[0]);
+    m[ 2] = static_cast<typename Return::value_type>(x2[0]);
+    m[ 3] = static_cast<typename Return::value_type>(x3[0]);
+    m[ 4] = static_cast<typename Return::value_type>(x4[0]);
+    m[ 5] = static_cast<typename Return::value_type>(x5[0]);
+    m[ 6] = static_cast<typename Return::value_type>(x6[0]);
+    m[ 7] = static_cast<typename Return::value_type>(x7[0]);
+    m[ 8] = static_cast<typename Return::value_type>(x8[0]);
+    m[ 9] = static_cast<typename Return::value_type>(x9[0]);
+    m[10] = static_cast<typename Return::value_type>(x10[0]);
+    m[11] = static_cast<typename Return::value_type>(x11[0]);
+    m[12] = static_cast<typename Return::value_type>(x12[0]);
+    m[13] = static_cast<typename Return::value_type>(x13[0]);
+    m[14] = static_cast<typename Return::value_type>(x14[0]);
+    m[15] = static_cast<typename Return::value_type>(x15[0]);
+    return m.firstVector();
 }
 // MIC <-> MIC Mask casts {{{1
 // 1 MIC::Mask to 1 MIC::Mask {{{2
