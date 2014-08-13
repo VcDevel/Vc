@@ -1152,11 +1152,11 @@ void unittest_assert(bool cond, const char *code, const char *file, int line)
 // allMasks {{{1
 template <typename Vec> static typename Vec::Mask allMasks(size_t i)
 {
+    using M = typename Vec::Mask;
 #ifdef VC_IMPL_MIC
-    return ((1 << Vec::Size) - 1) - i;
+    decltype(std::declval<const M &>().data()) tmp = ((1 << Vec::Size) - 1) - i;
+    return M(tmp);
 #else
-    typedef typename Vec::Mask M;
-
     const Vec indexes(Vc::IndexesFromZero);
     M mask(true);
 
