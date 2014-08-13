@@ -102,11 +102,12 @@ public:
     static constexpr size_t Size = sizeof(MaskType) * 8;
     static constexpr std::size_t size() { return Size; }
     typedef Mask<T> AsArg; // for now only ICC can compile this code and it is not broken :)
-    inline Mask() {}
-    inline Mask(MaskType _k) : k(_k) {}
-    inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(0) {}
-    inline explicit Mask(VectorSpecialInitializerOne::OEnum) : k(Size == 16 ? 0xffff : 0xff) {}
-    inline explicit Mask(bool b) : k(b ? (Size == 16 ? 0xffff : 0xff) : 0) {}
+
+    Vc_INTRINSIC Mask() {}
+    Vc_INTRINSIC Mask(MaskType _k) : k(_k) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(0) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : k(Size == 16 ? 0xffff : 0xff) {}
+    Vc_INTRINSIC explicit Mask(bool b) : k(b ? (Size == 16 ? 0xffff : 0xff) : 0) {}
     Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
     Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
 
