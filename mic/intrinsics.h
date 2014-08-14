@@ -233,6 +233,19 @@ static Vc_INTRINSIC __m512i swizzle(__m512i v, _MM_SWIZZLE_ENUM swiz) { return _
 static Vc_INTRINSIC __m512  shuffle(__m512  v, _MM_PERM_ENUM perm) { return _mm512_castsi512_ps(_mm512_shuffle_epi32(_mm512_castps_si512(v), perm)); }
 static Vc_INTRINSIC __m512i shuffle(__m512i v, _MM_PERM_ENUM perm) { return _mm512_shuffle_epi32(v, perm); }
 
+static Vc_INTRINSIC __m512 permute128(__m512 v, _MM_PERM_ENUM perm)
+{
+    return _mm512_permute4f128_ps(v, perm);
+}
+static Vc_INTRINSIC __m512i permute128(__m512i v, _MM_PERM_ENUM perm)
+{
+    return _mm512_permute4f128_epi32(v, perm);
+}
+static Vc_INTRINSIC __m512d permute128(__m512d v, _MM_PERM_ENUM perm)
+{
+    return _mm512_castps_pd(_mm512_permute4f128_ps(_mm512_castpd_ps(v), perm));
+}
+
 #define _mm512_rsqrt_pd _mm512_invsqrt_pd
 #define _mm512_mask_rsqrt_pd _mm512_mask_invsqrt_pd
 #define _mm512_rsqrt_ps _mm512_invsqrt_ps

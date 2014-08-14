@@ -300,6 +300,7 @@ public:
     Vc_INTRINSIC_L Vector shifted(int amount, Vector shiftIn) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
+    Vc_INTRINSIC_L Vc_PURE_L Vector reversed() const Vc_INTRINSIC_R Vc_PURE_R;
     Vc_INTRINSIC Vector sorted() const { return SortHelper<T>::sort(d.v()); }
 
     template<typename F> void callWithValuesSorted(F &f) {
