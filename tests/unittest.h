@@ -1150,13 +1150,20 @@ void unittest_assert(bool cond, const char *code, const char *file, int line)
     }                                                                                              \
     global_unit_test_object_.expect_assert_failure = false
 // allMasks {{{1
-template <typename Vec> static typename Vec::Mask allMasks(size_t i)
+template <typename Vec>
+static Vc::enable_if<Vc::MIC::is_vector<Vec>::value, typename Vec::Mask> allMasks(
+    size_t i)
 {
     using M = typename Vec::Mask;
-#ifdef VC_IMPL_MIC
     decltype(std::declval<const M &>().data()) tmp = ((1 << Vec::Size) - 1) - i;
     return M(tmp);
-#else
+}
+
+template <typename Vec>
+static Vc::enable_if<!Vc::MIC::is_vector<Vec>::value, typename Vec::Mask> allMasks(
+    size_t i)
+{
+    using M = typename Vec::Mask;
     const Vec indexes(Vc::IndexesFromZero);
     M mask(true);
 
@@ -1166,7 +1173,6 @@ template <typename Vec> static typename Vec::Mask allMasks(size_t i)
         }
     }
     return mask;
-#endif
 }
 
 #define for_all_masks(VecType, _mask_)                                                             \
