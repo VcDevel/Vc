@@ -19,6 +19,7 @@
 
 #include "unittest.h"
 #include <Vc/type_traits>
+#include <memory>
 
 using Vc::float_v;
 using Vc::double_v;
@@ -71,4 +72,36 @@ TEST_TYPES(V, isSimdVector, (ALL_VECTORS))
 {
     VERIFY( Vc::is_simd_vector<V>::value);
     VERIFY(!Vc::is_simd_vector<typename V::Mask>::value);
+}
+
+template <typename T> void hasContiguousStorageImpl(T &&, const char *type)
+{
+    VERIFY(Vc::Traits::has_contiguous_storage<T>::value) << type;
+}
+
+TEST(hasContiguousStorage)
+{
+    std::unique_ptr<int[]> a(new int[3]);
+    int b[3] = {1, 2, 3};
+    const std::unique_ptr<int[]> c(new int[3]);
+    const int d[3] = {1, 2, 3};
+    auto &&e = {1, 2, 3};
+    const auto &f = {1, 2, 3};
+    std::vector<int> g;
+    std::array<int, 3> h;
+    hasContiguousStorageImpl(a.get(), "T[]");
+    hasContiguousStorageImpl(a, "std::unique_ptr<T[]>");
+    hasContiguousStorageImpl(&a[0], "T *");
+    hasContiguousStorageImpl(b, "T[3]");
+    hasContiguousStorageImpl(c.get(), "const T[]");
+    hasContiguousStorageImpl(c, "std::unique_ptr<const T[]>");
+    hasContiguousStorageImpl(&c[0], "const T *");
+    hasContiguousStorageImpl(d, "const T[3]");
+    hasContiguousStorageImpl(e, "std::initializer_list 1");
+    hasContiguousStorageImpl(f, "std::initializer_list 2");
+    hasContiguousStorageImpl(g, "std::vector<int>");
+    // no way to specialize for vector::iterator...
+    // hasContiguousStorageImpl(g.begin(), "std::vector<int>::iterator");
+    hasContiguousStorageImpl(h, "std::array<int, 3>");
+    hasContiguousStorageImpl(h.begin(), "std::array<int, 3>::iterator");
 }

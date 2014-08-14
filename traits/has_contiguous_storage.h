@@ -29,6 +29,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H
 #define VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H
 
+#include <initializer_list>
+#include <memory>
+
 namespace std
 {
 template <typename T, size_t N> struct array;
@@ -50,6 +53,9 @@ struct has_contiguous_storage
 };
 
 // spezializations:
+template <typename T> struct has_contiguous_storage_impl<T *> : public std::true_type {};
+template <typename T> struct has_contiguous_storage_impl<std::unique_ptr<T[]>> : public std::true_type {};
+template <typename T> struct has_contiguous_storage_impl<std::initializer_list<T>> : public std::true_type {};
 template <typename T, std::size_t N> struct has_contiguous_storage_impl<T[N]> : public std::true_type {};
 template <typename T, std::size_t N> struct has_contiguous_storage_impl<std::array<T, N>> : public std::true_type {};
 template <typename T, typename A> struct has_contiguous_storage_impl<std::vector<T, A>> : public std::true_type {};
