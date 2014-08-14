@@ -794,7 +794,7 @@ template<typename V> void testUlpDiff()/*{{{*/
     COMPARE(ulpDiffToReference(V::Zero(), std::numeric_limits<V>::min()), V::One());
     for (size_t count = 0; count < 1024 / V::Size; ++count) {
         const V base = (V::Random() - T(0.5)) * T(1000);
-        Vc::simdarray<int, V::Size> exp;
+        typename V::IndexType exp;
         Vc::frexp(base, &exp);
         const V eps = ldexp(V(std::numeric_limits<T>::epsilon()), exp - 1);
         //std::cout << base << ", " << exp << ", " << eps << std::endl;
