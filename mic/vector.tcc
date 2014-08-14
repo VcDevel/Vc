@@ -137,7 +137,7 @@ template<typename T> Vc_INTRINSIC void Vector<T>::setZero(MaskArgument k)
 }
 template<typename T> Vc_INTRINSIC void Vector<T>::setZeroInverted(MaskArgument k)
 {
-    data() = _xor(data(), _mm512_knot(k.data()), data(), data());
+    data() = _xor(data(), (!k).data(), data(), data());
 }
 
 template<typename T> Vc_INTRINSIC void Vector<T>::setQnan()
