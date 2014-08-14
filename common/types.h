@@ -41,10 +41,10 @@ template <typename T, std::size_t N> struct array;
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simdarray;
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_mask_array;
 
-template <typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC_L V &internal_data(simdarray<T, N, V, M> &x) Vc_INTRINSIC_R;
-template <typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC_L const V &internal_data(const simdarray<T, N, V, M> &x) Vc_INTRINSIC_R;
+template <typename T, std::size_t N, typename V>
+Vc_INTRINSIC_L V &internal_data(simdarray<T, N, V, N> &x) Vc_INTRINSIC_R;
+template <typename T, std::size_t N, typename V>
+Vc_INTRINSIC_L const V &internal_data(const simdarray<T, N, V, N> &x) Vc_INTRINSIC_R;
 
 namespace Traits
 {

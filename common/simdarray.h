@@ -404,8 +404,8 @@ public:
         return {VectorType::generate(gen)};
     }
 
-    friend Vc_INTRINSIC VectorType &internal_data(simdarray &x) { return x.data; }
-    friend Vc_INTRINSIC const VectorType &internal_data(const simdarray &x) { return x.data; }
+    friend VectorType &internal_data<>(simdarray &x);
+    friend const VectorType &internal_data<>(const simdarray &x);
 
     /// \internal
     Vc_INTRINSIC simdarray(VectorType &&x) : data(std::move(x)) {}
@@ -413,6 +413,16 @@ private:
     storage_type data;
 };
 template <typename T, std::size_t N, typename VectorType> constexpr std::size_t simdarray<T, N, VectorType, N>::Size;
+template <typename T, std::size_t N, typename VectorType>
+Vc_INTRINSIC VectorType &internal_data(simdarray<T, N, VectorType, N> &x)
+{
+    return x.data;
+}
+template <typename T, std::size_t N, typename VectorType>
+Vc_INTRINSIC const VectorType &internal_data(const simdarray<T, N, VectorType, N> &x)
+{
+    return x.data;
+}
 
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simdarray
 {
