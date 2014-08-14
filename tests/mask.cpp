@@ -279,8 +279,8 @@ TEST_TYPES(Vec, testFirstOne, ALL_TYPES) /*{{{*/
 TEST_TYPES(V, shifted, (ALL_VECTORS, SIMD_ARRAYS(16), SIMD_ARRAYS(31)))/*{{{*/
 {
     using M = typename V::Mask;
-    constexpr int Size = V::Size;
     UnitTest::withRandomMask<V>([](const M &reference) {
+        constexpr int Size = V::Size;
         for (int shift = -2 * Size; shift <= 2 * Size; ++shift) {
             const M test = reference.shifted(shift);
             for (int i = 0; i < Size; ++i) {
