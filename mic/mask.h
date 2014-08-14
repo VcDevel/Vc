@@ -156,6 +156,7 @@ public:
 
     inline Mask &operator&=(const Mask &rhs) { k = _mm512_kand(k, rhs.k); return *this; }
     inline Mask &operator|=(const Mask &rhs) { k = _mm512_kor (k, rhs.k); return *this; }
+    inline Mask &operator^=(const Mask &rhs) { k = _mm512_kxor(k, rhs.k); return *this; }
 
     inline bool isFull () const { return MaskHelper<Size>::isFull (k); }
     inline bool isEmpty() const { return MaskHelper<Size>::isEmpty(k); }
