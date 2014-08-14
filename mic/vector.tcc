@@ -435,7 +435,7 @@ template<> Vc_INTRINSIC double_v double_v::copySign(double_v::AsArg reference) c
             _and(d.v(), _mm512_setabsmask_pd())
             );
 }//}}}1
-// integer ops {{{1
+// (u)short compares {{{1
 // only unsigned integers have well-defined behavior on over-/underflow
 template<> Vc_ALWAYS_INLINE ushort_m ushort_v::operator==(ushort_v::AsArg x) const {
     return _mm512_cmpeq_epu32_mask(_and(d.v(), _set1(0xffff)), _and(x.d.v(), _set1(0xffff)));
@@ -456,6 +456,7 @@ template<> Vc_ALWAYS_INLINE ushort_m ushort_v::operator< (ushort_v::AsArg x) con
     return _mm512_cmplt_epu32_mask(_and(d.v(), _set1(0xffff)), _and(x.d.v(), _set1(0xffff)));
 }
 
+// integer ops {{{1
 template<> Vc_ALWAYS_INLINE    int_v    int_v::operator<<(   int_v::AsArg x) const { return _mm512_sllv_epi32(d.v(), x.d.v()); }
 template<> Vc_ALWAYS_INLINE   uint_v   uint_v::operator<<(  uint_v::AsArg x) const { return _mm512_sllv_epi32(d.v(), x.d.v()); }
 template<> Vc_ALWAYS_INLINE  short_v  short_v::operator<<( short_v::AsArg x) const { return _mm512_sllv_epi32(d.v(), x.d.v()); }

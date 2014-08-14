@@ -95,10 +95,11 @@ public:
      */
     using Vector = MIC::Vector<T>;
 
-private:
+    /** \internal
+     * The intrinsic type of the register/memory representation of the mask data.
+     */
     typedef typename MaskTypeHelper<T>::Type MaskType;
 
-public:
     static constexpr size_t Size = sizeof(MaskType) * 8;
     static constexpr std::size_t size() { return Size; }
     typedef Mask<T> AsArg; // for now only ICC can compile this code and it is not broken :)
