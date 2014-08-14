@@ -204,6 +204,17 @@ public:
         });
         return static_cast<MaskType>(bits);
     }
+    Vc_INTRINSIC Vc_PURE Mask shifted(int amount) const
+    {
+        if (amount > 0) {
+            if (amount < Size) {
+                return static_cast<MaskType>(k >> amount);
+            }
+        } else if (amount > -int(Size)) {
+            return static_cast<MaskType>(k << -amount);
+        }
+        return Zero();
+    }
 
 private:
     MaskType k;
