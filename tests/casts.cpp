@@ -116,39 +116,39 @@ inline typename V::EntryType ith_scalar(std::size_t i, const V &x, const Vs &...
 {
     return i < V::Size ? x[i] : ith_scalar(i - V::Size, xs...);
 }
+// extraInformation {{{1
+static void doNothing(const std::initializer_list<void *> &) {}
+template <typename To, typename V0, typename... Vs>
+std::string extraInformation(const V0 &arg0, const Vs &... args)
+{
+    std::stringstream s;
+    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20) << arg0;
+    doNothing({&(s << ", " << args)...});
+    s << ')';
+    return s.str();
+}
+// rnd {{{1
+template <typename To, typename From>
+static Vc::enable_if<(Vc::Traits::is_floating_point<From>::value), From> rnd()
+{
+    using T = typename From::value_type;
+    auto r = (From::Random() - T(0.5)) *
+             T(std::numeric_limits<typename To::value_type>::max());
+    r.setZero(isnan(r));
+    return r;
+}
+template <typename To, typename From>
+static Vc::enable_if<(!Vc::Traits::is_floating_point<From>::value), From> rnd()
+{
+    return From::Random();
+}
 // cast_vector_impl {{{1
-template <typename To, typename V> std::string extraInformation(const V &x0)
+template <typename To, typename From, typename... Froms>
+Vc::enable_if<(To::size() <= sizeof...(Froms) * From::size()), void> cast_vector_impl(
+    const From &, const Froms &...)
 {
-    std::stringstream s;
-    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
-      << x0 << ')';
-    return s.str();
 }
-template <typename To, typename V> std::string extraInformation(const V &x0, const V &x1)
-{
-    std::stringstream s;
-    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
-      << x0 << ", " << x1 << ')';
-    return s.str();
-}
-template <typename To, typename V>
-std::string extraInformation(const V &x0, const V &x1, const V &x2, const V &x3)
-{
-    std::stringstream s;
-    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
-      << x0 << ", " << x1 << ", " << x2 << ", " << x3 << ')';
-    return s.str();
-}
-template <typename To, typename V>
-std::string extraInformation(const V &x0, const V &x1, const V &x2, const V &x3,
-                             const V &x4, const V &x5, const V &x6, const V &x7)
-{
-    std::stringstream s;
-    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20)
-      << x0 << ", " << x1 << ", " << x2 << ", " << x3 << ", " << x4 << ", " << x5 << ", "
-      << x6 << ", " << x7 << ')';
-    return s.str();
-}
+
 template <typename To, typename From, typename... Froms>
 Vc::enable_if<(To::size() > sizeof...(Froms) * From::size()), void> cast_vector_impl(
     const From &x0, const Froms &... xs)
@@ -184,12 +184,7 @@ Vc::enable_if<(To::size() > sizeof...(Froms) * From::size()), void> cast_vector_
     });
 
     COMPARE(result, reference) << extraInformation<To>(x0, xs...);
-}
-
-template <typename To, typename From, typename... Froms>
-Vc::enable_if<(To::size() <= sizeof...(Froms) * From::size()), void> cast_vector_impl(
-    const From &, const Froms &...)
-{
+    cast_vector_impl<To>(x0, rnd<To, From>(), xs...);
 }
 // cast_vector_split {{{1
 template <typename To, typename From, std::size_t Index = 0>
@@ -222,14 +217,6 @@ TEST_TYPES(TList, cast_vector, (AllTestTypes))  // {{{1
     using To = typename TList::template at<1>;
     using T = typename From::EntryType;
 
-    auto rnd = []() {
-        if (std::is_floating_point<T>::value) {
-            return (From::Random() - T(0.5)) * T(std::numeric_limits<typename To::EntryType>::max());
-        } else {
-            return From::Random();
-        }
-    };
-
 #ifdef VC_ICC
     __attribute__((align(64)))
 #else
@@ -253,18 +240,14 @@ TEST_TYPES(TList, cast_vector, (AllTestTypes))  // {{{1
         T(std::numeric_limits<T>::max() - 0x55),
         T(-std::numeric_limits<T>::min()),
         T(-std::numeric_limits<T>::max())};
-    rnd().store(&testData[17], Vc::Unaligned);
+    rnd<To, From>().store(&testData[17], Vc::Unaligned);
     for (int i = 0; i < 17 + From::Size; i += From::Size) {
         const From v(&testData[i],
                      Vc::Unaligned);  // Unaligned because From can be simdarray<T, Odd>
         cast_vector_impl<To>(v);
-        cast_vector_impl<To>(rnd());
-        cast_vector_impl<To>(v, rnd());
-        cast_vector_impl<To>(v, rnd(), rnd(), rnd());
-        cast_vector_impl<To>(v, rnd(), rnd(), rnd(), rnd(), rnd(), rnd(), rnd());
         cast_vector_split<To>(v);
-        cast_vector_split<To>(rnd());
     }
+    cast_vector_split<To>(rnd<To, From>());
 }
 // mask_cast_1 {{{1
 template <typename To, typename From> void mask_cast_1(const From &mask)
@@ -512,3 +495,5 @@ template<typename V1, typename V2> void testCast2()
 }
 /*}}}*/
 #endif
+
+// vim: foldmethod=marker
