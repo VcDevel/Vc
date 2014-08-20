@@ -922,18 +922,11 @@ public:
 #ifdef VC_DEBUG_SORTED
         std::cerr << "-- " << data0 << data1 << '\n';
 #endif
-        auto a = data0.sorted();
-        auto b = data1.sorted().reversed();
-        for (auto i = data0.size(); i; i >>= 1) {
-            const auto smaller = a < b;
-            const auto lo = iif(smaller, a, b);
-            const auto hi = iif(smaller, b, a);
-            std::tie(a, b) = Vc::interleave(lo, hi);
-#ifdef VC_DEBUG_SORTED
-            std::cerr << i << ": " << lo << hi << " -> " << a << b << '\n';
-#endif
-        }
-        return {std::move(a), std::move(b)};
+        const auto a = data0.sorted();
+        const auto b = data1.sorted().reversed();
+        const auto lo = internal::min(a, b);
+        const auto hi = internal::max(a, b);
+        return {lo.sorted(), hi.sorted()};
     }
 
     Vc_INTRINSIC simdarray sortedImpl(std::false_type) const
