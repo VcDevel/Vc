@@ -38,6 +38,7 @@
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+// internal namespace (min/max helper) {{{1
 namespace internal
 {
 #define Vc_DECLARE_BINARY_FUNCTION__(name__)                                             \
@@ -69,6 +70,7 @@ template <typename T> T Vc_INTRINSIC Vc_PURE product_helper__(const T &l, const 
 template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r) { return l + r; }
 }  // namespace internal
 
+// simdarray class {{{1
 /// \addtogroup simdarray
 /// @{
 
@@ -112,6 +114,7 @@ class
 #endif
     simdarray;
 
+// atomic simdarray {{{1
 template <typename T, std::size_t N, typename VectorType_> class simdarray<T, N, VectorType_, N>
 {
     static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value ||
@@ -420,6 +423,7 @@ Vc_INTRINSIC const VectorType &internal_data(const simdarray<T, N, VectorType, N
     return x.data;
 }
 
+// generic simdarray {{{1
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simdarray
 {
     static_assert(std::is_same<T,   double>::value ||
@@ -613,6 +617,7 @@ public:
         return {-data0, -data1};
     }
 
+    // left/right shift operators {{{2
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
     Vc_INTRINSIC Vc_CONST simdarray operator<<(U x) const
@@ -642,6 +647,7 @@ public:
         return *this;
     }
 
+    // binary operators {{{2
 #define Vc_BINARY_OPERATOR_(op)                                                                    \
     Vc_INTRINSIC Vc_CONST simdarray operator op(const simdarray &rhs) const                      \
     {                                                                                              \
@@ -666,6 +672,7 @@ public:
     VC_ALL_COMPARES(Vc_COMPARES)
 #undef Vc_COMPARES
 
+    // operator[] {{{2
     Vc_INTRINSIC value_type operator[](std::size_t i) const
     {
         const auto tmp = reinterpret_cast<const alias_type *>(&data0);
@@ -678,18 +685,18 @@ public:
         return tmp[i];
     }
 
-    Vc_INTRINSIC Common::WriteMaskedVector<simdarray, mask_type> operator()(const mask_type &k)
+    Vc_INTRINSIC Common::WriteMaskedVector<simdarray, mask_type> operator()(const mask_type &k) //{{{2
     {
         return {this, k};
     }
 
-    Vc_INTRINSIC void assign(const simdarray &v, const mask_type &k)
+    Vc_INTRINSIC void assign(const simdarray &v, const mask_type &k) //{{{2
     {
         data0.assign(v.data0, internal_data0(k));
         data1.assign(v.data1, internal_data1(k));
     }
 
-    // reductions ////////////////////////////////////////////////////////
+    // reductions {{{2
 #define Vc_REDUCTION_FUNCTION__(name__, binary_fun__)                                              \
     template <typename ForSfinae = void>                                                           \
     Vc_INTRINSIC enable_if<                                                                        \
@@ -722,7 +729,7 @@ public:
     Vc_REDUCTION_FUNCTION__(product, internal::product_helper__)
     Vc_REDUCTION_FUNCTION__(sum, internal::sum_helper__)
 #undef Vc_REDUCTION_FUNCTION__
-    Vc_INTRINSIC Vc_PURE simdarray partialSum() const
+    Vc_INTRINSIC Vc_PURE simdarray partialSum() const //{{{2
     {
         auto ps0 = data0.partialSum();
         auto tmp = data1;
@@ -730,12 +737,13 @@ public:
         return {std::move(ps0), tmp.partialSum()};
     }
 
-    void fusedMultiplyAdd(const simdarray &factor, const simdarray &summand)
+    void fusedMultiplyAdd(const simdarray &factor, const simdarray &summand) //{{{2
     {
         data0.fusedMultiplyAdd(Split::lo(factor), Split::lo(summand));
         data1.fusedMultiplyAdd(Split::hi(factor), Split::hi(summand));
     }
 
+    // apply {{{2
     template <typename F> Vc_INTRINSIC simdarray apply(F &&f) const
     {
         return {data0.apply(f), data1.apply(f)};
@@ -745,6 +753,7 @@ public:
         return {data0.apply(f, Split::lo(k)), data1.apply(f, Split::hi(k))};
     }
 
+    // shifted {{{2
     inline simdarray shifted(int amount) const
     {
         constexpr int SSize = Size;
@@ -863,6 +872,7 @@ public:
         return Zero();
     }
 
+    // interleaveLow/-High {{{2
     Vc_INTRINSIC simdarray interleaveLow(const simdarray &x) const
     {
         // return data0[0], x.data0[0], data0[1], x.data0[1], ...
@@ -890,7 +900,7 @@ private:
     }
 
 public:
-    inline simdarray reversed() const
+    inline simdarray reversed() const //{{{2
     {
         if (std::is_same<storage_type0, storage_type1>::value) {
             return {simd_cast<storage_type0>(data1).reversed(),
@@ -901,7 +911,7 @@ public:
                         storage_type0::Size - storage_type1::Size))};
         }
     }
-    inline simdarray sorted() const
+    inline simdarray sorted() const  //{{{2
     {
         return sortedImpl(
             std::integral_constant<bool, storage_type0::Size == storage_type1::Size>());
@@ -962,7 +972,7 @@ public:
         */
     }
 
-    template <typename G> static Vc_INTRINSIC simdarray generate(const G &gen)
+    template <typename G> static Vc_INTRINSIC simdarray generate(const G &gen) // {{{2
     {
         auto tmp = storage_type0::generate(gen);  // GCC bug: the order of evaluation in
                                                   // an initializer list is well-defined
@@ -973,23 +983,24 @@ public:
                 storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
     }
 
+    // internal_data0/1 {{{2
     friend Vc_INTRINSIC storage_type0 &internal_data0(simdarray &x) { return x.data0; }
     friend Vc_INTRINSIC storage_type1 &internal_data1(simdarray &x) { return x.data1; }
     friend Vc_INTRINSIC const storage_type0 &internal_data0(const simdarray &x) { return x.data0; }
     friend Vc_INTRINSIC const storage_type1 &internal_data1(const simdarray &x) { return x.data1; }
 
     /// \internal
-    Vc_INTRINSIC simdarray(storage_type0 &&x, storage_type1 &&y)
+    Vc_INTRINSIC simdarray(storage_type0 &&x, storage_type1 &&y) //{{{2
         : data0(std::move(x)), data1(std::move(y))
     {
     }
-private:
+private: //{{{2
     storage_type0 data0;
     storage_type1 data1;
 };
 template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t simdarray<T, N, VectorType, M>::Size;
 
-// binary operators ////////////////////////////////////////////
+// binary operators {{{1
 namespace result_vector_type_internal
 {
 template <typename T>
@@ -1084,7 +1095,7 @@ VC_ALL_BINARY(Vc_BINARY_OPERATORS_)
 VC_ALL_COMPARES(Vc_BINARY_OPERATORS_)
 #undef Vc_BINARY_OPERATORS_
 
-// math functions
+// math functions {{{1
 template <typename T, std::size_t N> simdarray<T, N> abs(const simdarray<T, N> &x)
 {
     return simdarray<T, N>::fromOperation(Common::Operations::Abs(), x);
