@@ -40,23 +40,19 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace internal
 {
-#define Vc_BINARY_FUNCTION__(name__)                                                               \
-    template <typename T, std::size_t N, typename V, std::size_t M>                                \
-    simdarray<T, N, V, M> Vc_INTRINSIC Vc_PURE                                                    \
-        name__(const simdarray<T, N, V, M> &l, const simdarray<T, N, V, M> &r)                   \
-    {                                                                                              \
-        return {name__(internal_data0(l), internal_data0(r)),                                      \
-                name__(internal_data1(l), internal_data1(r))};                                     \
-    }                                                                                              \
-    template <typename T, std::size_t N, typename V>                                               \
-    simdarray<T, N, V, N> Vc_INTRINSIC Vc_PURE                                                    \
-        name__(const simdarray<T, N, V, N> &l, const simdarray<T, N, V, N> &r)                   \
-    {                                                                                              \
-        return {name__(internal_data(l), internal_data(r))};                                       \
-    }
-Vc_BINARY_FUNCTION__(min)
-Vc_BINARY_FUNCTION__(max)
-#undef Vc_BINARY_FUNCTION__
+#define Vc_DECLARE_BINARY_FUNCTION__(name__)                                             \
+    template <typename T, std::size_t N, typename V, std::size_t M>                      \
+    simdarray<T, N, V, M> Vc_INTRINSIC_L Vc_PURE_L                                       \
+        name__(const simdarray<T, N, V, M> &l, const simdarray<T, N, V, M> &r)           \
+            Vc_INTRINSIC_R Vc_PURE_R;                                                    \
+    template <typename T, std::size_t N, typename V>                                     \
+    simdarray<T, N, V, N> Vc_INTRINSIC_L Vc_PURE_L                                       \
+        name__(const simdarray<T, N, V, N> &l, const simdarray<T, N, V, N> &r)           \
+            Vc_INTRINSIC_R Vc_PURE_R;
+Vc_DECLARE_BINARY_FUNCTION__(min)
+Vc_DECLARE_BINARY_FUNCTION__(max)
+#undef Vc_DECLARE_BINARY_FUNCTION__
+
 template <typename T> Vc_INTRINSIC Vc_PURE T min(const T &l, const T &r)
 {
     T x = l;
@@ -1712,6 +1708,27 @@ Vc_INTRINSIC Vc_CONST Return
     return simd_cast_interleaved_argument_order_1<Return, Ts...>(seq(), a..., b...);
 }
 
+// binary min/max functions (internal) {{{1
+namespace internal
+{
+#define Vc_BINARY_FUNCTION__(name__)                                                     \
+    template <typename T, std::size_t N, typename V, std::size_t M>                      \
+    simdarray<T, N, V, M> Vc_INTRINSIC Vc_PURE                                           \
+        name__(const simdarray<T, N, V, M> &l, const simdarray<T, N, V, M> &r)           \
+    {                                                                                    \
+        return {name__(internal_data0(l), internal_data0(r)),                            \
+                name__(internal_data1(l), internal_data1(r))};                           \
+    }                                                                                    \
+    template <typename T, std::size_t N, typename V>                                     \
+    simdarray<T, N, V, N> Vc_INTRINSIC Vc_PURE                                           \
+        name__(const simdarray<T, N, V, N> &l, const simdarray<T, N, V, N> &r)           \
+    {                                                                                    \
+        return {name__(internal_data(l), internal_data(r))};                             \
+    }
+Vc_BINARY_FUNCTION__(min)
+Vc_BINARY_FUNCTION__(max)
+#undef Vc_BINARY_FUNCTION__
+}  // namespace internal
 // }}}1
 /// @}
 
