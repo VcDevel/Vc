@@ -38,6 +38,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+namespace SSE
+{
 
 // helper macros Vc_SIMD_CAST_SSE_[124] & Vc_SIMD_CAST_[1248] {{{1
 #define Vc_SIMD_CAST_SSE_1(from__, to__)                                                           \
@@ -90,8 +92,6 @@ namespace Vc_VERSIONED_NAMESPACE
 
 // Vector casts without offset {{{1
 // helper functions {{{2
-namespace SSE
-{
 Vc_INTRINSIC __m128i convert_int32_to_int16(__m128i a, __m128i b)
 {
     auto tmp0 = _mm_unpacklo_epi16(a, b);        // 0 4 X X 1 5 X X
@@ -101,7 +101,6 @@ Vc_INTRINSIC __m128i convert_int32_to_int16(__m128i a, __m128i b)
     return _mm_unpacklo_epi16(tmp2, tmp3);       // 0 1 2 3 4 5 6 7
 }
 
-}  // namespace SSE
 // 1 SSE::Vector to 1 SSE::Vector {{{2
 // to int_v {{{3
 Vc_SIMD_CAST_SSE_1( float_v,    int_v) { return _mm_cvttps_epi32(x.data()); }
@@ -227,9 +226,27 @@ Vc_SIMD_CAST_SSE_2(   int_v, ushort_v) { return SSE::convert_int32_to_int16(x0.d
 Vc_SIMD_CAST_SSE_2(  uint_v, ushort_v) { return SSE::convert_int32_to_int16(x0.data(), x1.data()); }
 Vc_SIMD_CAST_SSE_2( float_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x0), simd_cast<SSE::int_v>(x1)); }
 Vc_SIMD_CAST_SSE_2(double_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x0, x1)); }
+
+// 3 SSE::Vector to 1 SSE::Vector {{{2
+#define Vc_CAST__(To__)                                                                  \
+    template <typename Return>                                                           \
+    Vc_INTRINSIC Vc_CONST enable_if<std::is_same<Return, To__>::value, Return>
+Vc_CAST__(short_v) simd_cast(double_v a, double_v b, double_v c)
+{
+    return simd_cast<short_v>(simd_cast<int_v>(a, b), simd_cast<int_v>(c));
+}
+Vc_CAST__(ushort_v) simd_cast(double_v a, double_v b, double_v c)
+{
+    return simd_cast<ushort_v>(simd_cast<int_v>(a, b), simd_cast<int_v>(c));
+}
+#undef Vc_CAST__
+
 // 4 SSE::Vector to 1 SSE::Vector {{{2
 Vc_SIMD_CAST_SSE_4(double_v,  short_v) { return _mm_packs_epi32(simd_cast<SSE::int_v>(x0, x1).data(), simd_cast<SSE::int_v>(x2, x3).data()); }
 Vc_SIMD_CAST_SSE_4(double_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x0, x1), simd_cast<SSE::int_v>(x2, x3)); }
+}  // namespace SSE
+using SSE::simd_cast;
+
 // 1 Scalar::Vector to 1 SSE::Vector {{{2
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
