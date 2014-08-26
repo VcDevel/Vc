@@ -35,6 +35,7 @@
 #include "scalar/simd_cast.h"
 
 #ifdef VC_IMPL_AVX
+# include "avx/intrinsics.h"
 # undef VC_IMPL
 # undef Vc_IMPL_NAMESPACE
 # define VC_IMPL ::Vc::SSE42Impl
