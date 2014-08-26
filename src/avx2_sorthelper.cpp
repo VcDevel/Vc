@@ -17,6 +17,7 @@
 
 }}}*/
 
+#include <common/types.h>
 #include <avx/intrinsics.h>
 #include <avx/casts.h>
 #include <avx/sorthelper.h>

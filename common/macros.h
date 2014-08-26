@@ -128,13 +128,13 @@
 #endif
 
 #define FREE_STORE_OPERATORS_ALIGNED(alignment) \
-        Vc_ALWAYS_INLINE void *operator new(size_t size) { return _mm_malloc(size, alignment); } \
+        Vc_ALWAYS_INLINE void *operator new(size_t size) { return Common::aligned_malloc<alignment>(size); } \
         Vc_ALWAYS_INLINE void *operator new(size_t, void *p) { return p; } \
-        Vc_ALWAYS_INLINE void *operator new[](size_t size) { return _mm_malloc(size, alignment); } \
+        Vc_ALWAYS_INLINE void *operator new[](size_t size) { return Common::aligned_malloc<alignment>(size); } \
         Vc_ALWAYS_INLINE void *operator new[](size_t , void *p) { return p; } \
-        Vc_ALWAYS_INLINE void operator delete(void *ptr, size_t) { _mm_free(ptr); } \
+        Vc_ALWAYS_INLINE void operator delete(void *ptr, size_t) { Common::free(ptr); } \
         Vc_ALWAYS_INLINE void operator delete(void *, void *) {} \
-        Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t) { _mm_free(ptr); } \
+        Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t) { Common::free(ptr); } \
         Vc_ALWAYS_INLINE void operator delete[](void *, void *) {}
 
 #ifdef VC_GCC

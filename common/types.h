@@ -25,6 +25,7 @@
 #include <cstdio>
 #endif
 
+#include <Vc/global.h>
 #include "../traits/type_traits.h"
 #include "macros.h"
 
@@ -154,6 +155,9 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
+template <std::size_t alignment>
+Vc_INTRINSIC_L void *aligned_malloc(std::size_t n) Vc_INTRINSIC_R;
+Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 
 template <typename T, typename U>
 using enable_if_mask_converts_implicitly =
