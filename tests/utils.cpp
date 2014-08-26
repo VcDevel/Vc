@@ -36,6 +36,11 @@ TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_AR
 {
     Vec ref(Vc::IndexesFromZero);
     Vec a;
+    using limits = std::numeric_limits<typename Vec::value_type>;
+    if (limits::has_infinity) {
+        ref[0] = -std::numeric_limits<typename Vec::value_type>::infinity();
+        ref[Vec::Size - 1] = std::numeric_limits<typename Vec::value_type>::infinity();
+    }
 
     int maxPerm = 1;
     for (int x = Vec::Size; x > 0 && maxPerm < 400000; --x) {
@@ -59,6 +64,12 @@ TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_AR
                     j = -1;
                 }
             }
+        }
+        if (limits::has_infinity) {
+            where(a == 0) | a =
+                -std::numeric_limits<typename Vec::value_type>::infinity();
+            where(a == Vec::Size - 1) | a =
+                std::numeric_limits<typename Vec::value_type>::infinity();
         }
         COMPARE(a.sorted(), ref) << ", a: " << a;
     }
