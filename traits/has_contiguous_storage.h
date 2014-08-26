@@ -32,11 +32,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <initializer_list>
 #include <memory>
 
+#ifdef _LIBCPP_BEGIN_NAMESPACE_STD
+_LIBCPP_BEGIN_NAMESPACE_STD
+#else
 namespace std
 {
+#endif
 template <typename T, size_t N> struct array;
 template <typename T, typename Allocator> class vector;
+#ifdef _LIBCPP_END_NAMESPACE_STD
+_LIBCPP_END_NAMESPACE_STD
+#else
 }  // namespace std
+#endif
 
 namespace Vc_VERSIONED_NAMESPACE
 {
