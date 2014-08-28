@@ -81,17 +81,9 @@ template <typename T> struct make_vector_or_simdarray_impl<0, T, T, true>
     using type = Vc::Vector<T>;
 };
 
-template <std::size_t N, typename T0, template <typename...> class C,
-#ifdef VC_GCC
-          typename T1,
-#endif
+template <std::size_t N, typename T0, template <typename...> class C, typename T1,
           typename... Ts>
-struct make_vector_or_simdarray_impl<N, T0, C<
-#ifdef VC_GCC
-                                                T1,
-#endif
-                                                Ts...>,
-                                     false>;
+struct make_vector_or_simdarray_impl<N, T0, C<T1, Ts...>, false>;
 
 template <typename T0, template <typename, std::size_t> class C, typename T,
           std::size_t N, std::size_t M>
@@ -180,29 +172,13 @@ public:
     void operator delete[](void *, void *) {}
 };
 
-template <std::size_t N, typename T0, template <typename...> class C,
-#ifdef VC_GCC
-          typename T1,
-#endif
+template <std::size_t N, typename T0, template <typename...> class C, typename T1,
           typename... Ts>
-struct make_vector_or_simdarray_impl<N, T0, C<
-#ifdef VC_GCC
-                                                T1,
-#endif
-                                                Ts...>,
-                                     false>
+struct make_vector_or_simdarray_impl<N, T0, C<T1, Ts...>, false>
 {
 private:
-    using base = make_adapter_base_type<N, C,
-#ifdef VC_GCC
-                                        T1,
-#endif
-                                        Ts...>;
-    using CC = C<
-#ifdef VC_GCC
-        T1,
-#endif
-        Ts...>;
+    using base = make_adapter_base_type<N, C, T1, Ts...>;
+    using CC = C<T1, Ts...>;
 
 public:
     using type = typename std::conditional<std::is_same<base, CC>::value, CC,
