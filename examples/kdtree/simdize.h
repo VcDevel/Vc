@@ -50,7 +50,11 @@ template <std::size_t N,  // if non-zero requests that number of entries in "Vec
                  // need more recursion for transformation
                  // (or no transformation at all
           >
-struct make_vector_or_simdarray_impl;
+struct make_vector_or_simdarray_impl
+{
+    // fallback captures everything that isn't converted
+    using type = T;
+};
 
 template <std::size_t N, typename T0, typename T>
 struct make_vector_or_simdarray_impl<N, T0, T, true>
@@ -170,39 +174,29 @@ public:
 template <std::size_t N, typename T0, template <typename...> class C, typename... Ts>
 struct make_vector_or_simdarray_impl<N, T0, C<Ts...>, false>
 {
-    using type = Adapter<C<Ts...>, N>;
+private:
+    typedef make_adapter_base_type<N, C, Ts...> base;
+
+public:
+    using type = typename std::conditional<std::is_same<base, C<Ts...>>::value, C<Ts...>,
+                                           Adapter<C<Ts...>, N>>::type;
 };
 
 template <typename T0, template <typename, std::size_t> class C, typename T,
           std::size_t N, std::size_t M>
 struct make_vector_or_simdarray_impl<N, T0, C<T, M>, false>
 {
-    using type = Adapter<C<T, M>, N>;
+private:
+    typedef C<make_vector_or_simdarray<N, T>, M> base;
+
+public:
+    using type = typename std::conditional<std::is_same<base, C<T, M>>::value, C<T, M>,
+                                           Adapter<C<T, M>, N>>::type;
 };
 
 }  // namespace simdize_internal
 
-template <typename T> using simdize = simdize_internal::Adapter<T>;
-
-inline void f()
-{
-    using namespace std;
-    using namespace Vc;
-    using std::array;
-    static_assert(is_convertible<simdize<array<float, 3>>, array<float_v, 3>>::value, "");
-    static_assert(is_convertible<array<float_v, 3>, simdize<array<float, 3>>>::value, "");
-    static_assert(is_convertible<simdize<tuple<float>>, tuple<float_v>>::value, "");
-    static_assert(is_convertible<tuple<float_v>, simdize<tuple<float>>>::value, "");
-    static_assert(is_convertible<simdize<tuple<array<float, 3>>>, tuple<array<float_v, 3>>>::value, "");
-    static_assert(is_convertible<tuple<array<float_v, 3>>, simdize<tuple<array<float, 3>>>>::value, "");
-    static_assert(is_convertible<simdize<array<tuple<float>, 3>>, array<simdize<tuple<float>>, 3>>::value, "");
-    static_assert(is_convertible<array<tuple<float_v>, 3>, simdize<array<tuple<float>, 3>>>::value, "");
-    static_assert(is_convertible<vector<tuple<float_v>>, simdize<vector<tuple<float>>>>::value, "");
-    static_assert(is_convertible<
-                  tuple<float_v, array<pair<float_v, simdarray<double, 8>>, 3>>,
-                  simdize<tuple<float, array<pair<float, double>, 3>>>
-                  >::value, "");
-}
+template <typename T> using simdize = simdize_internal::make_vector_or_simdarray<0, T>;
 
 #endif  // VC_EXAMPLES_KDTREE_SIMDIZE_H_
 
