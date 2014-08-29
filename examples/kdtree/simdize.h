@@ -35,57 +35,87 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace simdize_internal
 {
-template <std::size_t N,  // if non-zero requests that number of entries in "Vector<T>",
-                          // which determines the choice between Vector<T> and
-                          // simdarray<T, N>
-          typename T0,  // This identifies the first type that was transformed and is used
-                        // when bool needs to be converted to a Vc::Mask type, in which
-                        // case the underlying type would be arbitrary. With T0 it can be
-                        // smarter and choose between Mask<T0> and simd_mask_array<T0, N>
-          typename T,   // The type to be converted to a Vector or Mask type.
-          bool = std::is_same<T, bool>::value || std::is_same<T, short>::value ||
-                 std::is_same<T, unsigned short>::value || std::is_same<T, int>::value ||
-                 std::is_same<T, unsigned int>::value || std::is_same<T, float>::value ||
-                 std::is_same<T, double>::value
-                 // Flag to easily distinguish types that
-                 // need more recursion for transformation
-                 // (or no transformation at all
-          >
+/**
+ * \internal
+ * \brief Replace arithmetic type T with Vc::Vector<T> or Mask<T> if T == bool and apply
+ *        recursively via the Adapter class if T is a template class.
+ *
+ * This general fallback case does not replace the type T and returns it unchanged it via
+ * the type member.
+ *
+ * \tparam N  if non-zero requests that number of entries in "Vector<T>", which determines
+ *            the choice between Vector<T> and simdarray<T, N>
+ * \tparam T0 This identifies the first type that was transformed and is used when bool
+ *            needs to be converted to a Vc::Mask type, in which case the underlying type
+ *            would be arbitrary. With T0 it can be smarter and choose between Mask<T0>
+ *            and simd_mask_array<T0, N>
+ * \tparam T  The type to be converted to a Vector or Mask type.
+ */
+template <std::size_t N, typename T0, typename T,
+          bool =  // Flag to easily distinguish types that need more recursion for
+                  // transformation (or no transformation at all
+          std::is_same<T, bool>::value || std::is_same<T, short>::value ||
+          std::is_same<T, unsigned short>::value || std::is_same<T, int>::value ||
+          std::is_same<T, unsigned int>::value || std::is_same<T, float>::value ||
+          std::is_same<T, double>::value>
 struct make_vector_or_simdarray_impl
 {
-    // fallback captures everything that isn't converted
     using type = T;
 };
 
+/** \internal
+ * Specialization for non-zero \p N and a type \p T that can be used with Vector<T> to
+ * create Vector<T> or simdarray<T, N>
+ */
 template <std::size_t N, typename T0, typename T>
 struct make_vector_or_simdarray_impl<N, T0, T, true>
 {
     using type = typename std::conditional<N == Vc::Vector<T>::Size, Vc::Vector<T>,
                                            Vc::simdarray<T, N>>::type;
 };
+/** \internal
+ * Specialization for non-zero \p N and bool to create Mask<T0> or simd_mask_array<T0, N>.
+ */
 template <std::size_t N, typename T0>
 struct make_vector_or_simdarray_impl<N, T0, bool, true>
 {
     using type = typename std::conditional<N == Vc::Mask<T0>::Size, Vc::Mask<T0>,
                                            Vc::simd_mask_array<T0, N>>::type;
 };
+/** \internal
+ * Specialization for \p N = 0 and bool to create Mask<T0>.
+ */
 template <typename T0> struct make_vector_or_simdarray_impl<0, T0, bool, true>
 {
     using type = Vc::Mask<T0>;
 };
+/** \internal
+ * Specialization for \p N = 0 and bool to create Mask<float> (because no usable T0 is
+ * given).
+ */
 template <> struct make_vector_or_simdarray_impl<0, bool, bool, true>
 {
     using type = Vc::Mask<float>;
 };
+/** \internal
+ * Specialization for \p N = 0 and arithmetic \p T to create Vector<T>.
+ */
 template <typename T> struct make_vector_or_simdarray_impl<0, T, T, true>
 {
     using type = Vc::Vector<T>;
 };
 
+/** \internal
+ * Specialization for a template class argument to recurse.
+ */
 template <std::size_t N, typename T0, template <typename...> class C, typename T1,
           typename... Ts>
 struct make_vector_or_simdarray_impl<N, T0, C<T1, Ts...>, false>;
 
+/** \internal
+ * Specialization for a template class argument with template arguments <type, size_t> to
+ * recurse.
+ */
 template <typename T0, template <typename, std::size_t> class C, typename T,
           std::size_t N, std::size_t M>
 struct make_vector_or_simdarray_impl<N, T0, C<T, M>, false>;
@@ -97,6 +127,9 @@ struct make_vector_or_simdarray_impl<N, T0, C<T, M>, false>;
 template <std::size_t N, typename T0, typename T = T0>
 using make_vector_or_simdarray = typename make_vector_or_simdarray_impl<N, T0, T>::type;
 
+/** \internal
+ * A type trait test for whether a type T supports std::tuple_size and std::tuple_element.
+ */
 namespace has_tuple_interface_impl
 {
 template <typename T, int = std::tuple_size<T>::value,
@@ -108,6 +141,16 @@ static_assert(decltype(test<std::array<int, 3>>(1))::value == true, "");
 static_assert(decltype(test<std::allocator<int>>(1))::value == false, "");
 }  // namespace has_tuple_interface_impl
 
+/** \internal
+ * \brief An adapter for making a simdized template class easier to use.
+ *
+ * \tparam T The type to simdize and adapt.
+ * \tparam N The requested SIMD vector size (0 means it is determined by the first type).
+ * \tparam HasTupleInterface Type information about \p T, whether it implements the
+ *                           std::tuple_size and std::tuple_element helpers. The flag is
+ *                           used to specialize tuple_size and tuple_element only for
+ *                           those types that do.
+ */
 template <typename T, std::size_t N = 0,
           bool HasTupleInterface = decltype(has_tuple_interface_impl::test<T>(1))::value>
 struct Adapter;
@@ -258,6 +301,23 @@ class tuple_element<I, simdize_internal::Adapter<C<T0, Ts...>, N, true>>
 };
 }  // namespace std
 
+/**
+ * \brief Convert the type \p T to a type where, recursively, all arithmetic
+ * types are replaced by their SIMD counterparts.
+ *
+ * Magic.
+ *
+ * \code
+ * using Data = std::tuple<float, int, bool>;
+ * Data x;
+ * using DataVec = simdize<Data>;
+ * Data v = x;
+ * // tuple_size<Data>::value == tuple_size<DataVec>
+ * get<0>(x) = 1.f;
+ * get<0>(v) = Vc::float_v::IndexesFromZero();
+ * x = simdize_get(v, 0); // extract one Data object at SIMD index 0.
+ * \endcode
+ */
 template <typename T> using simdize = simdize_internal::make_vector_or_simdarray<0, T>;
 
 template <typename T> T simdize_get(const simdize_internal::Adapter<T> &a, std::size_t i)
