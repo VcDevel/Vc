@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_EXAMPLES_KDTREE_SIMDIZE_H_
 
 #include <tuple>
+
 #include <Vc/Vc>
 
 namespace simdize_internal
@@ -96,16 +97,30 @@ struct make_vector_or_simdarray_impl<N, T0, C<T, M>, false>;
 template <std::size_t N, typename T0, typename T = T0>
 using make_vector_or_simdarray = typename make_vector_or_simdarray_impl<N, T0, T>::type;
 
-template <typename T, std::size_t N = 0> struct Adapter;
+namespace has_tuple_interface_impl
+{
+template <typename T, int = std::tuple_size<T>::value,
+          typename = typename std::tuple_element<0, T>::type>
+std::true_type test(int);
+template <typename T> std::false_type test(...);
+static_assert(decltype(test<std::tuple<int>>(1))::value == true, "");
+static_assert(decltype(test<std::array<int, 3>>(1))::value == true, "");
+static_assert(decltype(test<std::allocator<int>>(1))::value == false, "");
+}  // namespace has_tuple_interface_impl
+
+template <typename T, std::size_t N = 0,
+          bool HasTupleInterface = decltype(has_tuple_interface_impl::test<T>(1))::value>
+struct Adapter;
 
 template <template <typename, std::size_t> class C, typename T0, std::size_t N,
-          std::size_t M>
-class Adapter<C<T0, M>, N> : public C<make_vector_or_simdarray<N, T0>, M>
+          std::size_t M, bool HasTupleInterface>
+class Adapter<C<T0, M>, N, HasTupleInterface>
+    : public C<make_vector_or_simdarray<N, T0>, M>
 {
-    using Scalar = C<T0, M>;
-    using Vector = C<make_vector_or_simdarray<N, T0>, M>;
-
 public:
+    using ScalarBase = C<T0, M>;
+    using VectorBase = C<make_vector_or_simdarray<N, T0>, M>;
+
     using FirstVectorType = make_vector_or_simdarray<N, T0>;
     using VectorTypesTuple = std::tuple<FirstVectorType>;
 
@@ -115,12 +130,12 @@ public:
     // perfect forward all Base constructors
     template <typename... Args>
     Adapter(Args &&... arguments)
-        : Vector(std::forward<Args>(arguments)...)
+        : VectorBase(std::forward<Args>(arguments)...)
     {
     }
 
     // perfect forward Base constructors that accept an initializer_list
-    template <typename T> Adapter(const std::initializer_list<T> &l) : Vector(l) {}
+    template <typename T> Adapter(const std::initializer_list<T> &l) : VectorBase(l) {}
 
     void *operator new(size_t size) { return Vc::Common::aligned_malloc<alignof(Adapter)>(size); }
     void *operator new(size_t, void *p) { return p; }
@@ -138,13 +153,22 @@ using make_adapter_base_type = C<
     make_vector_or_simdarray<
         Vc::Traits::simd_vector_size<make_vector_or_simdarray<N, T0>>::value, T0, Ts>...>;
 
-template <template <typename...> class C, typename T0, typename... Ts, std::size_t N>
-class Adapter<C<T0, Ts...>, N> : public make_adapter_base_type<N, C, T0, Ts...>
+// dummy get<N>(...)
+namespace
 {
-    using Scalar = C<T0, Ts...>;
-    using Vector = make_adapter_base_type<N, C, T0, Ts...>;
+struct Dummy__;
+template <std::size_t> Dummy__ get(Dummy__ x);
+}  // unnamed namespace
 
+template <template <typename...> class C, typename T0, typename... Ts, std::size_t N,
+          bool HasTupleInterface>
+class Adapter<C<T0, Ts...>, N, HasTupleInterface>
+    : public make_adapter_base_type<N, C, T0, Ts...>
+{
 public:
+    using ScalarBase = C<T0, Ts...>;
+    using VectorBase = make_adapter_base_type<N, C, T0, Ts...>;
+
     using FirstVectorType = make_vector_or_simdarray<N, T0>;
     using VectorTypesTuple = std::tuple<
         FirstVectorType, make_vector_or_simdarray<FirstVectorType::Size, T0, Ts>...>;
@@ -152,15 +176,28 @@ public:
     static constexpr std::size_t Size = FirstVectorType::Size;
     static constexpr std::size_t size() { return Size; }
 
+    template <std::size_t... Indexes>
+    Adapter(const ScalarBase &x, Vc::index_sequence<Indexes...>)
+        : VectorBase{get<Indexes>(x)...}
+    {
+    }
+
+    template <typename U, typename S = std::tuple_size<U>,
+              typename Seq = Vc::make_index_sequence<S::value>>
+    Adapter(const U &x)
+        : Adapter(x, Seq())
+    {
+    }
+
     // perfect forward all Base constructors
     template <typename... Args>
     Adapter(Args &&... arguments)
-        : Vector(std::forward<Args>(arguments)...)
+        : VectorBase(std::forward<Args>(arguments)...)
     {
     }
 
     // perfect forward Base constructors that accept an initializer_list
-    template <typename T> Adapter(const std::initializer_list<T> &l) : Vector(l) {}
+    template <typename T> Adapter(const std::initializer_list<T> &l) : VectorBase(l) {}
 
     void *operator new(size_t size) { return Vc::Common::aligned_malloc<alignof(Adapter)>(size); }
     void *operator new(size_t, void *p) { return p; }
@@ -197,9 +234,38 @@ public:
                                            Adapter<C<T, M>, N>>::type;
 };
 
+template <typename T, std::size_t... Indexes>
+T simdize_get_impl(const Adapter<T> &a, std::size_t i, Vc::index_sequence<Indexes...>)
+{
+    return T{get<Indexes>(a)[i]...};
+}
 }  // namespace simdize_internal
 
+namespace std
+{
+// tuple_size
+template <template <typename...> class C, typename T0, typename... Ts, std::size_t N>
+class tuple_size<simdize_internal::Adapter<C<T0, Ts...>, N, true>>
+    : public tuple_size<C<T0, Ts...>>
+{
+};
+// tuple_element
+template <std::size_t I, template <typename...> class C, typename T0, typename... Ts,
+          std::size_t N>
+class tuple_element<I, simdize_internal::Adapter<C<T0, Ts...>, N, true>>
+    : public tuple_element<I, typename simdize_internal::Adapter<C<T0, Ts...>>::VectorBase>
+{
+};
+}  // namespace std
+
 template <typename T> using simdize = simdize_internal::make_vector_or_simdarray<0, T>;
+
+template <typename T> T simdize_get(const simdize_internal::Adapter<T> &a, std::size_t i)
+{
+    return simdize_internal::simdize_get_impl(
+        a, i, Vc::make_index_sequence<std::tuple_size<T>::value>());
+}
+
 
 #endif  // VC_EXAMPLES_KDTREE_SIMDIZE_H_
 
