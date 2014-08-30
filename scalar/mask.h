@@ -122,7 +122,7 @@ public:
         Vc_ALWAYS_INLINE bool &operator[](size_t) { return m; }
         Vc_ALWAYS_INLINE bool operator[](size_t) const { return m; }
 
-        Vc_ALWAYS_INLINE unsigned int count() const { return m ? 1 : 0; }
+        Vc_ALWAYS_INLINE int count() const { return m ? 1 : 0; }
 
         /**
          * Returns the index of the first one in the mask.
