@@ -155,6 +155,13 @@ template <typename T, std::size_t N = 0,
           bool HasTupleInterface = decltype(has_tuple_interface_impl::test<T>(1))::value>
 struct Adapter;
 
+// dummy get<N>(...)
+namespace
+{
+struct Dummy__;
+template <std::size_t> Dummy__ get(Dummy__ x);
+}  // unnamed namespace
+
 template <template <typename, std::size_t> class C, typename T0, std::size_t N,
           std::size_t M, bool HasTupleInterface>
 class Adapter<C<T0, M>, N, HasTupleInterface>
@@ -169,6 +176,19 @@ public:
 
     static constexpr std::size_t Size = FirstVectorType::Size;
     static constexpr std::size_t size() { return Size; }
+
+    template <std::size_t... Indexes>
+    Adapter(const ScalarBase &x, Vc::index_sequence<Indexes...>)
+        : VectorBase{get<Indexes>(x)...}
+    {
+    }
+
+    template <typename U, typename S = std::tuple_size<U>,
+              typename Seq = Vc::make_index_sequence<S::value>>
+    Adapter(const U &x)
+        : Adapter(x, Seq())
+    {
+    }
 
     // perfect forward all Base constructors
     template <typename... Args>
@@ -195,13 +215,6 @@ using make_adapter_base_type = C<
     make_vector_or_simdarray<N, T0>,
     make_vector_or_simdarray<
         Vc::Traits::simd_vector_size<make_vector_or_simdarray<N, T0>>::value, T0, Ts>...>;
-
-// dummy get<N>(...)
-namespace
-{
-struct Dummy__;
-template <std::size_t> Dummy__ get(Dummy__ x);
-}  // unnamed namespace
 
 template <template <typename...> class C, typename T0, typename... Ts, std::size_t N,
           bool HasTupleInterface>
