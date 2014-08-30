@@ -296,7 +296,7 @@ template<typename T> class Vector
         {
             EntryType value = d.m(0);
             f(value);
-            for (int i = 1; i < Size; ++i) {
+            for (std::size_t i = 1; i < Size; ++i) {
                 if (d.m(i) != value) {
                     value = d.m(i);
                     f(value);

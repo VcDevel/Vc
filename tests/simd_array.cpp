@@ -59,17 +59,17 @@ TEST_TYPES(V, checkArrayAlignment, SIMD_ARRAY_LIST)
     using T = typename V::value_type;
     using M = typename V::mask_type;
 
-    COMPARE(alignof(V), bound(sizeof(V), 128));  // sizeof must be at least as large as alignof to
+    COMPARE(alignof(V), bound(sizeof(V), 128u));  // sizeof must be at least as large as alignof to
                                      // ensure proper padding in arrays. alignof is
                                      // supposed to be at least as large as the actual
                                      // data size requirements
-    COMPARE(alignof(M), bound(sizeof(M), 128));
-    VERIFY(alignof(V) >= bound(V::Size * sizeof(T), 128));
+    COMPARE(alignof(M), bound(sizeof(M), 128u));
+    VERIFY(alignof(V) >= bound(V::Size * sizeof(T), 128u));
     if (V::Size > 1) {
         using V2 = simdarray<T, Vc::Common::left_size(V::Size)>;
         using M2 = typename V2::mask_type;
-        VERIFY(alignof(V) >= bound(2 * alignof(V2), 128));
-        VERIFY(alignof(M) >= bound(2 * alignof(M2), 128));
+        VERIFY(alignof(V) >= bound(2 * alignof(V2), 128u));
+        VERIFY(alignof(M) >= bound(2 * alignof(M2), 128u));
     }
 }
 
@@ -187,16 +187,17 @@ TEST_TYPES(A,
 
 TEST_TYPES(V, store, SIMD_ARRAY_LIST)
 {
+    using T = typename V::EntryType;
     Vc::Memory<V, 34> data;
     data = V::Zero();
 
     V a(Vc::IndexesFromZero);
     a.store(&data[0], Vc::Aligned);
-    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i], i);
+    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i], T(i));
     a.store(&data[1], Vc::Unaligned);
-    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i + 1], i);
+    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i + 1], T(i));
     a.store(&data[0], Vc::Aligned | Vc::Streaming);
-    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i], i);
+    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i], T(i));
     a.store(&data[1], Vc::Unaligned | Vc::Streaming);
-    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i + 1], i);
+    for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i + 1], T(i));
 }

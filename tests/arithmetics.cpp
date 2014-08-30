@@ -201,7 +201,7 @@ TEST_TYPES(Vec, testMulAdd, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     static_assert(std::is_arithmetic<T>::value, "The EntryType is not a builtin arithmetic type");
-    for (int rep = 0; rep < 10000 / Vec::Size; ++rep) {
+    for (std::size_t rep = 0; rep < 10000 / Vec::Size; ++rep) {
         Vec a = Vec::Random();
         if (std::is_floating_point<T>::value) {
             a *= std::sqrt(std::numeric_limits<T>::max());

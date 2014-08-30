@@ -33,7 +33,7 @@ TEST_TYPES(V, init, ALL_TYPES)
     typedef typename V::EntryType T;
     Vc::array<T, 256> data;
     Vc::vector<T> data2(256);
-    for (int i = 0; i < data.size(); ++i) {
+    for (std::size_t i = 0; i < data.size(); ++i) {
         data[i] = i;
         data2[i] = i;
     }
@@ -47,12 +47,12 @@ TEST_TYPES(V, init, ALL_TYPES)
     Vc::vector<T> ctorTest4 = initList2;
     Vc::vector<T> ctorTest5(initList1);
     Vc::vector<T> ctorTest6(initList2);
-    COMPARE(ctorTest1.size(), 6);
-    COMPARE(ctorTest2.size(), 2);
-    COMPARE(ctorTest3.size(), 2);
-    COMPARE(ctorTest4.size(), 2);
-    COMPARE(ctorTest5.size(), 2);
-    COMPARE(ctorTest6.size(), 2);
+    COMPARE(ctorTest1.size(), 6u);
+    COMPARE(ctorTest2.size(), 2u);
+    COMPARE(ctorTest3.size(), 2u);
+    COMPARE(ctorTest4.size(), 2u);
+    COMPARE(ctorTest5.size(), 2u);
+    COMPARE(ctorTest6.size(), 2u);
 }
 
 template <typename V>
@@ -84,7 +84,7 @@ TEST_TYPES(V, gathers, ALL_TYPES)
     typedef typename V::IndexType IT;
     Vc::array<T, 256> data;
     Vc::vector<T> data2(256);
-    for (int i = 0; i < data.size(); ++i) {
+    for (std::size_t i = 0; i < data.size(); ++i) {
         data[i] = i;
         data2[i] = i;
     }
@@ -94,7 +94,7 @@ TEST_TYPES(V, gathers, ALL_TYPES)
     test = data2[IT::IndexesFromZero()];
     COMPARE(test, V::IndexesFromZero());
 
-    for (int repetition = 0; repetition < 1024 / V::Size; ++repetition) {
+    for (std::size_t repetition = 0; repetition < 1024 / V::Size; ++repetition) {
         const IT indexes = randomIndexes<IT, 256>();
         test = data[indexes];
         COMPARE(test, Vc::simd_cast<V>(indexes));
@@ -132,11 +132,11 @@ TEST_TYPES(V, scatters, ALL_TYPES)
     data2[IT::IndexesFromZero()] = V::IndexesFromZero();
 
     for (size_t i = 0; i < V::Size; ++i) {
-        COMPARE(data1[i], i);
-        COMPARE(data2[i], i);
+        COMPARE(data1[i], T(i));
+        COMPARE(data2[i], T(i));
     }
 
-    for (int repetition = 0; repetition < 1024 / V::Size; ++repetition) {
+    for (std::size_t repetition = 0; repetition < 1024 / V::Size; ++repetition) {
         std::fill_n(&data1[0], 256, 0);
         std::fill_n(&data2[0], 256, 0);
 
@@ -147,8 +147,8 @@ TEST_TYPES(V, scatters, ALL_TYPES)
         //std::cerr << data1 << '\n';
 
         for (size_t i = 0; i < V::Size; ++i) {
-            COMPARE(data1[indexes[i]], i + 1) << indexes[i];
-            COMPARE(data2[indexes[i]], i + 1) << indexes[i];
+            COMPARE(data1[indexes[i]], T(i + 1)) << indexes[i];
+            COMPARE(data2[indexes[i]], T(i + 1)) << indexes[i];
         }
     }
 }
@@ -213,7 +213,7 @@ TEST_TYPES(V, structGathers, ALL_TYPES)
     test = data4[IT::IndexesFromZero()][&S<S<S<S<T>>>>::c][&S<S<S<T>>>::b][&S<S<T>>::b][&S<T>::c];
     COMPARE(test, V::IndexesFromZero() + 6);
 
-    for (int repetition = 0; repetition < 1024 / V::Size; ++repetition) {
+    for (std::size_t repetition = 0; repetition < 1024 / V::Size; ++repetition) {
         const IT indexes = randomIndexes<IT, 256>();
         test = data1[indexes][&S<T>::b];
         COMPARE(test, Vc::simd_cast<V>(indexes + 1));
@@ -252,7 +252,7 @@ TEST_TYPES(V, subarrayGathers, ALL_TYPES)
     test = data1[IT::IndexesFromZero()][IT::IndexesFromZero()];
     COMPARE(test, V::IndexesFromZero() * 2);
 
-    for (int repetition = 0; repetition < 1024 / V::Size; ++repetition) {
+    for (std::size_t repetition = 0; repetition < 1024 / V::Size; ++repetition) {
         const IT indexes1 = randomIndexes<IT, 256>();
         const IT indexes2 = randomIndexes<IT, 256>();
 
@@ -276,7 +276,7 @@ TEST_TYPES(V, fixedWidthGatherScatter4, (SIMD_ARRAYS(4)))
     typedef typename V::EntryType T;
     Vc::array<T, 256> data;
     Vc::vector<T> data2(256);
-    for (int i = 0; i < data.size(); ++i) {
+    for (std::size_t i = 0; i < data.size(); ++i) {
         data[i] = i;
         data2[i] = i;
     }
@@ -308,7 +308,7 @@ TEST_TYPES(V, fixedWidthGatherScatter32, (SIMD_ARRAYS(32)))
     typedef typename V::EntryType T;
     Vc::array<T, 256> data;
     Vc::vector<T> data2(256);
-    for (int i = 0; i < data.size(); ++i) {
+    for (std::size_t i = 0; i < data.size(); ++i) {
         data[i] = i;
         data2[i] = i;
     }

@@ -132,7 +132,7 @@ TEST_TYPES(V, testForeachBit, (ALL_VECTORS))
         }
         COMPARE(tmp == V::One(), mask);
 
-        unsigned int count = 0;
+        int count = 0;
         for (int j : where(mask)) {
             ++count;
             if (j >= 0) {
@@ -148,7 +148,7 @@ TEST_TYPES(V, testForeachBit, (ALL_VECTORS))
             }
             ++count;
         }
-        COMPARE(count, 0U);
+        COMPARE(count, 0);
     }
 }
 
@@ -269,7 +269,7 @@ class CallTester
 
         void reset() { v.setZero(); i = 0; }
 
-        unsigned int callCount() const { return i; }
+        int callCount() const { return i; }
         V callValues() const { return v; }
 
     private:
@@ -290,7 +290,7 @@ TEST_TYPES(V, applyAndCall, (ALL_VECTORS))
 
         CallTester<T, V> callTester;
         rand.call(callTester);
-        COMPARE(callTester.callCount(), static_cast<unsigned int>(V::Size));
+        COMPARE(callTester.callCount(), static_cast<int>(V::Size));
         COMPARE(callTester.callValues(), rand);
 
         for_all_masks(V, mask) {
@@ -513,7 +513,7 @@ TEST_TYPES(V, rangeFor, (ALL_VECTORS))
     }
 
     for_all_masks(V, mask) {
-        unsigned int count = 0;
+        int count = 0;
         V test = V::Zero();
         for (size_t i : where(mask)) {
             VERIFY(i < V::Size);

@@ -1167,7 +1167,7 @@ static Vc::enable_if<!Vc::MIC::is_vector<Vec>::value, typename Vec::Mask> allMas
     const Vec indexes(Vc::IndexesFromZero);
     M mask(true);
 
-    for (int j = 0; j < 8 * sizeof(i); ++j) {
+    for (int j = 0; j < int(8 * sizeof(i)); ++j) {
         if (i & (1u << j)) {
             mask ^= static_cast<M>(indexes == j);
         }

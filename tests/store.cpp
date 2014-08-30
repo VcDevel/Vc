@@ -158,7 +158,7 @@ template<typename Vec> void maskedStore()
         COMPARE(array[i], nullValue) << ", i: " << i << ", count: " << count << ", mask: " << mask << ", array:\n" << array;
     }
 
-    for (int offset = 0; offset < count - Vec::Size; ++offset) {
+    for (int offset = 0; offset < count - int(Vec::Size); ++offset) {
         auto mem = &array[offset];
         Vec::Zero().store(mem, Vc::Unaligned);
 
@@ -173,7 +173,7 @@ template<typename Vec> void maskedStore()
         const auto mean = (rand / T(Vec::Size)).sum();
         mask = rand < mean;
         rand.store(mem, mask, Vc::Unaligned);
-        for (int i = 0; i < Vec::Size; ++i) {
+        for (std::size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(mem[i], mask[i] ? rand[i] : T(0))
                 << ", i: " << i << ", mask: " << mask << "\nrand: " << rand << "\nmean: " << mean
                 << ", offset: " << offset << ", offset2: " << offset2 << ", mem: " << mem
