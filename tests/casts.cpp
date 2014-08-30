@@ -85,14 +85,25 @@ using AllTestTypes =
  *  behavior is undefined.
  */
 template <typename To, typename From>
-typename std::enable_if<std::is_arithmetic<From>::value, bool>::type
-    is_conversion_undefined(From x)
+typename std::enable_if<
+    (std::is_arithmetic<From>::value && std::is_floating_point<From>::value &&
+     std::is_integral<To>::value),
+    bool>::type
+is_conversion_undefined(From x)
 {
-    if (std::is_floating_point<From>::value && std::is_integral<To>::value) {
-        if (x > std::numeric_limits<To>::max() || x < std::numeric_limits<To>::min()) {
-            return true;
-        }
+    if (x > static_cast<From>(std::numeric_limits<To>::max()) ||
+        x < static_cast<From>(std::numeric_limits<To>::min())) {
+        return true;
     }
+    return false;
+}
+template <typename To, typename From>
+typename std::enable_if<
+    (std::is_arithmetic<From>::value &&
+     !(std::is_floating_point<From>::value && std::is_integral<To>::value)),
+    bool>::type
+is_conversion_undefined(From)
+{
     return false;
 }
 
