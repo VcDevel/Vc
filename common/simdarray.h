@@ -751,29 +751,32 @@ public:
 
     inline simdarray shifted(int amount) const
     {
+        constexpr int SSize = Size;
+        constexpr int SSize0 = storage_type0::Size;
+        constexpr int SSize1 = storage_type1::Size;
         if (amount == 0) {
             return *this;
         }
         if (amount < 0) {
-            if (amount > -storage_type0::Size) {
+            if (amount > -SSize0) {
                 return {data0.shifted(amount), data1.shifted(amount, data0)};
             }
-            if (amount == -storage_type0::Size) {
+            if (amount == -SSize0) {
                 return {storage_type0::Zero(), simd_cast<storage_type1>(data0)};
             }
-            if (amount < -storage_type0::Size) {
+            if (amount < -SSize0) {
                 return {storage_type0::Zero(), simd_cast<storage_type1>(data0.shifted(
-                                                   amount + storage_type0::Size))};
+                                                   amount + SSize0))};
             }
             return Zero();
         } else {
-            if (amount >= Size) {
+            if (amount >= SSize) {
                 return Zero();
-            } else if (amount >= storage_type0::Size) {
+            } else if (amount >= SSize0) {
                 return {
-                    simd_cast<storage_type0>(data1).shifted(amount - storage_type0::Size),
+                    simd_cast<storage_type0>(data1).shifted(amount - SSize0),
                     storage_type1::Zero()};
-            } else if (amount >= storage_type1::Size) {
+            } else if (amount >= SSize1) {
                 return {data0.shifted(amount, data1), storage_type1::Zero()};
             } else {
                 return {data0.shifted(amount, data1), data1.shifted(amount)};
@@ -788,23 +791,24 @@ public:
         simdarray>
         shifted(int amount, const simdarray<value_type, NN> &shiftIn) const
     {
+        constexpr int SSize = Size;
         if (amount < 0) {
             return simdarray::generate([&](int i) -> value_type {
                 i += amount;
                 if (i >= 0) {
                     return operator[](i);
-                } else if (i >= -Size) {
-                    return shiftIn[i + Size];
+                } else if (i >= -SSize) {
+                    return shiftIn[i + SSize];
                 }
                 return 0;
             });
         }
         return simdarray::generate([&](int i) -> value_type {
             i += amount;
-            if (i < Size) {
+            if (i < SSize) {
                 return operator[](i);
-            } else if (i < 2 * Size) {
-                return shiftIn[i - Size];
+            } else if (i < 2 * SSize) {
+                return shiftIn[i - SSize];
             }
             return 0;
         });
@@ -817,47 +821,48 @@ public:
                   simdarray>
             shifted(int amount, const simdarray<value_type, NN> &shiftIn) const
     {
+        constexpr int SSize = Size;
         if (amount < 0) {
-            if (amount > -storage_type0::Size) {
+            if (amount > -static_cast<int>(storage_type0::Size)) {
                 return {data0.shifted(amount, internal_data1(shiftIn)),
                         data1.shifted(amount, data0)};
             }
-            if (amount == -storage_type0::Size) {
+            if (amount == -static_cast<int>(storage_type0::Size)) {
                 return {storage_type0(internal_data1(shiftIn)), storage_type1(data0)};
             }
-            if (amount > -Size) {
+            if (amount > -SSize) {
                 return {
                     internal_data1(shiftIn)
-                        .shifted(amount + storage_type0::Size, internal_data0(shiftIn)),
-                    data0.shifted(amount + storage_type0::Size, internal_data1(shiftIn))};
+                        .shifted(amount + static_cast<int>(storage_type0::Size), internal_data0(shiftIn)),
+                    data0.shifted(amount + static_cast<int>(storage_type0::Size), internal_data1(shiftIn))};
             }
-            if (amount == -Size) {
+            if (amount == -SSize) {
                 return shiftIn;
             }
-            if (amount > -2 * Size) {
-                return shiftIn.shifted(amount + Size);
+            if (amount > -2 * SSize) {
+                return shiftIn.shifted(amount + SSize);
             }
         }
         if (amount == 0) {
             return *this;
         }
-        if (amount < storage_type0::Size) {
+        if (amount < static_cast<int>(storage_type0::Size)) {
             return {data0.shifted(amount, data1),
                     data1.shifted(amount, internal_data0(shiftIn))};
         }
-        if (amount == storage_type0::Size) {
+        if (amount == static_cast<int>(storage_type0::Size)) {
             return {storage_type0(data1), storage_type1(internal_data0(shiftIn))};
         }
-        if (amount < Size) {
-            return {data1.shifted(amount - storage_type0::Size, internal_data0(shiftIn)),
+        if (amount < SSize) {
+            return {data1.shifted(amount - static_cast<int>(storage_type0::Size), internal_data0(shiftIn)),
                     internal_data0(shiftIn)
-                        .shifted(amount - storage_type0::Size, internal_data1(shiftIn))};
+                        .shifted(amount - static_cast<int>(storage_type0::Size), internal_data1(shiftIn))};
         }
-        if (amount == Size) {
+        if (amount == SSize) {
             return shiftIn;
         }
-        if (amount < 2 * Size) {
-            return shiftIn.shifted(amount - Size);
+        if (amount < 2 * SSize) {
+            return shiftIn.shifted(amount - SSize);
         }
         return Zero();
     }
