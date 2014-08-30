@@ -141,25 +141,25 @@ template<typename Flags> struct LoadHelper<int, unsigned int, Flags> {
 template<typename Flags> struct LoadHelper<int, unsigned short, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned short *mem, Flags)
     {
-        return _mm_cvtepu16_epi32( _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+        return cvtepu16_epi32( _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<int, short, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const short *mem, Flags)
     {
-        return _mm_cvtepi16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+        return cvtepi16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<int, unsigned char, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned char *mem, Flags)
     {
-        return _mm_cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
+        return cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<int, signed char, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const signed char *mem, Flags)
     {
-        return _mm_cvtepi8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
+        return cvtepi8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
     }
 };
 
@@ -167,13 +167,13 @@ template<typename Flags> struct LoadHelper<int, signed char, Flags> {
 template<typename Flags> struct LoadHelper<unsigned int, unsigned short, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned short *mem, Flags)
     {
-        return _mm_cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+        return cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<unsigned int, unsigned char, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned char *mem, Flags)
     {
-        return _mm_cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
+        return cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
     }
 };
 
@@ -187,13 +187,13 @@ template<typename Flags> struct LoadHelper<short, unsigned short, Flags> {
 template<typename Flags> struct LoadHelper<short, unsigned char, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned char *mem, Flags)
     {
-        return _mm_cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+        return cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<short, signed char, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const signed char *mem, Flags)
     {
-        return _mm_cvtepi8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+        return cvtepi8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 
@@ -201,7 +201,7 @@ template<typename Flags> struct LoadHelper<short, signed char, Flags> {
 template<typename Flags> struct LoadHelper<unsigned short, unsigned char, Flags> {
     static Vc_ALWAYS_INLINE Vc_PURE __m128i load(const unsigned char *mem, Flags)
     {
-        return _mm_cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+        return cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 
@@ -671,7 +671,12 @@ inline void Vector<T>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument
 // operator[] {{{1
 template<typename T> Vc_INTRINSIC typename Vector<T>::EntryType Vc_PURE Vector<T>::operator[](size_t index) const
 {
+#ifdef VC_CLANG
+    typedef T TV __attribute__((__vector_size__(16)));
+    return static_cast<TV>(d.v())[index];
+#else
     return d.m(index);
+#endif
 }
 #ifdef VC_GCC
 template<> Vc_INTRINSIC double Vc_PURE Vector<double>::operator[](size_t index) const
@@ -688,30 +693,30 @@ template<> Vc_INTRINSIC float Vc_PURE Vector<float>::operator[](size_t index) co
 template<> Vc_INTRINSIC int Vc_PURE Vector<int>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
-#if VC_GCC >= 0x40601 || !defined(VC_USE_VEX_CODING) // GCC < 4.6.1 incorrectly uses vmovq instead of movq for the following
 #ifdef __x86_64__
         if (index == 0) return _mm_cvtsi128_si64(d.v()) & 0xFFFFFFFFull;
         if (index == 1) return _mm_cvtsi128_si64(d.v()) >> 32;
 #else
         if (index == 0) return _mm_cvtsi128_si32(d.v());
 #endif
-#endif
+#ifdef VC_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
+#endif
     }
     return d.m(index);
 }
 template<> Vc_INTRINSIC unsigned int Vc_PURE Vector<unsigned int>::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
-#if VC_GCC >= 0x40601 || !defined(VC_USE_VEX_CODING) // GCC < 4.6.1 incorrectly uses vmovq instead of movq for the following
 #ifdef __x86_64__
         if (index == 0) return _mm_cvtsi128_si64(d.v()) & 0xFFFFFFFFull;
         if (index == 1) return _mm_cvtsi128_si64(d.v()) >> 32;
 #else
         if (index == 0) return _mm_cvtsi128_si32(d.v());
 #endif
-#endif
+#ifdef VC_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
+#endif
     }
     return d.m(index);
 }
@@ -885,16 +890,16 @@ template<typename T> Vc_INTRINSIC Vc_PURE Vector<T> Vector<T>::rotated(int amoun
     const __m128i v = mm128_reinterpret_cast<__m128i>(d.v());
     switch (static_cast<unsigned int>(amount) % Size) {
     case  0: return *this;
-    case  1: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 1 * EntryTypeSizeof));
-    case  2: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 2 * EntryTypeSizeof));
-    case  3: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 3 * EntryTypeSizeof));
+    case  1: return mm128_reinterpret_cast<VectorType>(alignr_epi8<1 * EntryTypeSizeof>(v, v));
+    case  2: return mm128_reinterpret_cast<VectorType>(alignr_epi8<2 * EntryTypeSizeof>(v, v));
+    case  3: return mm128_reinterpret_cast<VectorType>(alignr_epi8<3 * EntryTypeSizeof>(v, v));
              // warning "Immediate parameter to intrinsic call too large" disabled in VcMacros.cmake.
              // ICC fails to see that the modulo operation (Size == sizeof(VectorType) / sizeof(EntryType))
              // disables the following four calls unless sizeof(EntryType) == 2.
-    case  4: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 4 * EntryTypeSizeof));
-    case  5: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 5 * EntryTypeSizeof));
-    case  6: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 6 * EntryTypeSizeof));
-    case  7: return mm128_reinterpret_cast<VectorType>(_mm_alignr_epi8(v, v, 7 * EntryTypeSizeof));
+    case  4: return mm128_reinterpret_cast<VectorType>(alignr_epi8<4 * EntryTypeSizeof>(v, v));
+    case  5: return mm128_reinterpret_cast<VectorType>(alignr_epi8<5 * EntryTypeSizeof>(v, v));
+    case  6: return mm128_reinterpret_cast<VectorType>(alignr_epi8<6 * EntryTypeSizeof>(v, v));
+    case  7: return mm128_reinterpret_cast<VectorType>(alignr_epi8<7 * EntryTypeSizeof>(v, v));
     }
     return Zero();
 }
@@ -903,19 +908,19 @@ template<> inline Vc_PURE uint_v uint_v::sorted() const
 {
     __m128i x = data();
     __m128i y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
-    __m128i l = _mm_min_epu32(x, y);
-    __m128i h = _mm_max_epu32(x, y);
+    __m128i l = min_epu32(x, y);
+    __m128i h = max_epu32(x, y);
     x = _mm_unpacklo_epi32(l, h);
     y = _mm_unpackhi_epi32(h, l);
 
     // sort quads
-    l = _mm_min_epu32(x, y);
-    h = _mm_max_epu32(x, y);
+    l = min_epu32(x, y);
+    h = max_epu32(x, y);
     x = _mm_unpacklo_epi32(l, h);
     y = _mm_unpackhi_epi64(x, x);
 
-    l = _mm_min_epu32(x, y);
-    h = _mm_max_epu32(x, y);
+    l = min_epu32(x, y);
+    h = max_epu32(x, y);
     return _mm_unpacklo_epi32(l, h);
 }
 template<> inline Vc_PURE ushort_v ushort_v::sorted() const
@@ -923,35 +928,35 @@ template<> inline Vc_PURE ushort_v ushort_v::sorted() const
     __m128i lo, hi, y, x = data();
     // sort pairs
     y = Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(x);
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
-    x = _mm_blend_epi16(lo, hi, 0xaa);
+    lo = min_epu16(x, y);
+    hi = max_epu16(x, y);
+    x = blend_epi16<0xaa>(lo, hi);
 
     // merge left and right quads
     y = Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(x);
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
-    x = _mm_blend_epi16(lo, hi, 0xcc);
+    lo = min_epu16(x, y);
+    hi = max_epu16(x, y);
+    x = blend_epi16<0xcc>(lo, hi);
     y = _mm_srli_si128(x, 2);
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
-    x = _mm_blend_epi16(lo, _mm_slli_si128(hi, 2), 0xaa);
+    lo = min_epu16(x, y);
+    hi = max_epu16(x, y);
+    x = blend_epi16<0xaa>(lo, _mm_slli_si128(hi, 2));
 
     // merge quads into octs
     y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
     y = _mm_shufflelo_epi16(y, _MM_SHUFFLE(0, 1, 2, 3));
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
+    lo = min_epu16(x, y);
+    hi = max_epu16(x, y);
 
     x = _mm_unpacklo_epi16(lo, hi);
     y = _mm_srli_si128(x, 8);
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
+    lo = min_epu16(x, y);
+    hi = max_epu16(x, y);
 
     x = _mm_unpacklo_epi16(lo, hi);
     y = _mm_srli_si128(x, 8);
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
+    lo = min_epu16(x, y);
+    hi = max_epu16(x, y);
 
     return _mm_unpacklo_epi16(lo, hi);
 }

@@ -79,7 +79,7 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
             OP2(xor_, _mm_xor_ps(a, b))
             OP2(and_, _mm_and_ps(a, b))
             OP2(andnot_, _mm_andnot_ps(a, b))
-            OP3(blend, _mm_blendv_ps(a, b, c))
+            OP3(blend, blendv_ps(a, b, c))
         };
 
 
@@ -105,7 +105,7 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
             OP2(xor_, _mm_xor_pd(a, b))
             OP2(and_, _mm_and_pd(a, b))
             OP2(andnot_, _mm_andnot_pd(a, b))
-            OP3(blend, _mm_blendv_pd(a, b, c))
+            OP3(blend, blendv_pd(a, b, c))
         };
 
         template<> struct VectorHelper<_M128I>
@@ -130,7 +130,7 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
             OP2(xor_, _mm_xor_si128(a, b))
             OP2(and_, _mm_and_si128(a, b))
             OP2(andnot_, _mm_andnot_si128(a, b))
-            OP3(blend, _mm_blendv_epi8(a, b, c))
+            OP3(blend, blendv_epi8(a, b, c))
         };
 
 #undef OP1
@@ -188,8 +188,8 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
                 const VectorType hh = mul(h1, h2);
                 // ll < lh < hh for all entries is certain
                 const VectorType lh_lt_v3 = cmplt(abs(lh), abs(v3)); // |lh| < |v3|
-                const VectorType b = _mm_blendv_pd(v3, lh, lh_lt_v3);
-                const VectorType c = _mm_blendv_pd(lh, v3, lh_lt_v3);
+                const VectorType b = blendv_pd(v3, lh, lh_lt_v3);
+                const VectorType c = blendv_pd(lh, v3, lh_lt_v3);
                 v1 = add(add(ll, b), add(c, hh));
             }
 #endif
@@ -213,7 +213,7 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
                 return _mm_cmpord_pd(x, _mm_mul_pd(zero(), x));
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType isInfinite(VectorType x) {
-                return _mm_castsi128_pd(_mm_cmpeq_epi64(_mm_castpd_si128(abs(x)), _mm_castpd_si128(_mm_load_pd(c_log<double>::d(1)))));
+                return _mm_castsi128_pd(cmpeq_epi64(_mm_castpd_si128(abs(x)), _mm_castpd_si128(_mm_load_pd(c_log<double>::d(1)))));
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) {
                 return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_pd());

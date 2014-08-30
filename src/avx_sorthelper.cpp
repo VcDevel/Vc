@@ -19,6 +19,7 @@
 
 #include <common/types.h>
 #include <avx/intrinsics.h>
+#include <avx/shuffle.h>
 #include <avx/casts.h>
 #include <avx/sorthelper.h>
 #include <avx/macros.h>

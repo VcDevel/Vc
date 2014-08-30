@@ -21,6 +21,7 @@
 #define VC_AVX_VECTOR_H__
 
 #include "intrinsics.h"
+#include "shuffle.h"
 #include "vectorhelper.h"
 #include "mask.h"
 #include "writemaskedvector.h"

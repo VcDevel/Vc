@@ -32,17 +32,17 @@ namespace SSE
         y = Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(x);
         lo = _mm_min_epi16(x, y);
         hi = _mm_max_epi16(x, y);
-        x = _mm_blend_epi16(lo, hi, 0xaa);
+        x = blend_epi16<0xaa>(lo, hi);
 
         // merge left and right quads
         y = Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(x);
         lo = _mm_min_epi16(x, y);
         hi = _mm_max_epi16(x, y);
-        x = _mm_blend_epi16(lo, hi, 0xcc);
+        x = blend_epi16<0xcc>(lo, hi);
         y = _mm_srli_si128(x, 2);
         lo = _mm_min_epi16(x, y);
         hi = _mm_max_epi16(x, y);
-        x = _mm_blend_epi16(lo, _mm_slli_si128(hi, 2), 0xaa);
+        x = blend_epi16<0xaa>(lo, _mm_slli_si128(hi, 2));
 
         // merge quads into octs
         y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
@@ -70,8 +70,8 @@ namespace SSE
         // x = [a b c d]
         // y = [c d a b]
         _M128I y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
-        _M128I l = _mm_min_epi32(x, y); // min[ac bd ac bd]
-        _M128I h = _mm_max_epi32(x, y); // max[ac bd ac bd]
+        _M128I l = min_epi32(x, y); // min[ac bd ac bd]
+        _M128I h = max_epi32(x, y); // max[ac bd ac bd]
         if (IS_UNLIKELY(_mm_cvtsi128_si32(h) <= l[1])) { // l[0] < h[0] < l[1] < h[1]
             return _mm_unpacklo_epi32(l, h);
         }
@@ -80,19 +80,19 @@ namespace SSE
 
         // sort pairs
         _M128I y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
-        _M128I l = _mm_min_epi32(x, y);
-        _M128I h = _mm_max_epi32(x, y);
+        _M128I l = min_epi32(x, y);
+        _M128I h = max_epi32(x, y);
         x = _mm_unpacklo_epi32(l, h);
         y = _mm_unpackhi_epi32(h, l);
 
         // sort quads
-        l = _mm_min_epi32(x, y);
-        h = _mm_max_epi32(x, y);
+        l = min_epi32(x, y);
+        h = max_epi32(x, y);
         x = _mm_unpacklo_epi32(l, h);
         y = _mm_unpackhi_epi64(x, x);
 
-        l = _mm_min_epi32(x, y);
-        h = _mm_max_epi32(x, y);
+        l = min_epi32(x, y);
+        h = max_epi32(x, y);
         return _mm_unpacklo_epi32(l, h);
     }
     template<> inline Vc_CONST _M128 SortHelper<_M128, 4>::sort(_M128 x)
@@ -113,15 +113,15 @@ namespace SSE
         return _mm_unpacklo_ps(l, h);
 //X         _M128 k = _mm_cmpgt_ps(x, y);
 //X         k = _mm_shuffle_ps(k, k, _MM_SHUFFLE(2, 2, 0, 0));
-//X         x = _mm_blendv_ps(x, y, k);
+//X         x = blendv_ps(x, y, k);
 //X         y = _mm_shuffle_ps(x, x, _MM_SHUFFLE(1, 0, 3, 2));
 //X         k = _mm_cmpgt_ps(x, y);
 //X         k = _mm_shuffle_ps(k, k, _MM_SHUFFLE(1, 0, 1, 0));
-//X         x = _mm_blendv_ps(x, y, k);
+//X         x = blendv_ps(x, y, k);
 //X         y = _mm_shuffle_ps(x, x, _MM_SHUFFLE(3, 1, 2, 0));
 //X         k = _mm_cmpgt_ps(x, y);
 //X         k = _mm_shuffle_ps(k, k, _MM_SHUFFLE(0, 1, 1, 0));
-//X         return _mm_blendv_ps(x, y, k);
+//X         return blendv_ps(x, y, k);
     }
     template<> inline Vc_CONST _M128D SortHelper<_M128D, 2>::sort(_M128D x)
     {

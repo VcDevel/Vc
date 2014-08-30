@@ -112,11 +112,11 @@ Vc_SIMD_CAST_SSE_1(ushort_v,    int_v) { return _mm_unpacklo_epi16(x.data(), _mm
 Vc_SIMD_CAST_SSE_1( float_v,   uint_v) {
     using namespace SseIntrinsics;
     return _mm_castps_si128(
-        _mm_blendv_ps(_mm_castsi128_ps(_mm_cvttps_epi32(x.data())),
-                      _mm_castsi128_ps(_mm_add_epi32(
-                          _mm_cvttps_epi32(_mm_sub_ps(x.data(), _mm_set1_ps(1u << 31))),
-                          _mm_set1_epi32(1 << 31))),
-                      _mm_cmpge_ps(x.data(), _mm_set1_ps(1u << 31))));
+        blendv_ps(_mm_castsi128_ps(_mm_cvttps_epi32(x.data())),
+                  _mm_castsi128_ps(_mm_add_epi32(
+                      _mm_cvttps_epi32(_mm_sub_ps(x.data(), _mm_set1_ps(1u << 31))),
+                      _mm_set1_epi32(1 << 31))),
+                  _mm_cmpge_ps(x.data(), _mm_set1_ps(1u << 31))));
 }
 Vc_SIMD_CAST_SSE_1(double_v,   uint_v) {
     return _mm_cvttpd_epi32(x.data());

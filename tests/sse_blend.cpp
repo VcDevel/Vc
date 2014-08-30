@@ -47,55 +47,41 @@ template<> inline bool unittest_compareHelper<__m128i, __m128i>(const __m128i &a
 
 void blendpd()
 {
-#ifdef VC_IMPL_SSE4_1
-#define blend _mm_blend_pd
-#else
-#define blend Vc::SSE::_mm_blend_pd
-#endif
+    using Vc::SSE::blend_pd;
     __m128d a = _mm_set_pd(11, 10);
     __m128d b = _mm_set_pd(21, 20);
 
-    COMPARE(_mm_movemask_pd(_mm_cmpeq_pd(blend(a, b, 0x0), a)), 0x3);
-    COMPARE(_mm_movemask_pd(_mm_cmpeq_pd(blend(a, b, 0x1), _mm_set_pd(11, 20))), 0x3);
-    COMPARE(_mm_movemask_pd(_mm_cmpeq_pd(blend(a, b, 0x2), _mm_set_pd(21, 10))), 0x3);
-    COMPARE(_mm_movemask_pd(_mm_cmpeq_pd(blend(a, b, 0x3), b)), 0x3);
-#undef blend
+    COMPARE(_mm_movemask_pd(_mm_cmpeq_pd(blend_pd<0x0>(a, b), a)), 0x3);
+    COMPARE(_mm_movemask_pd(_mm_cmpeq_pd(blend_pd<0x1>(a, b), _mm_set_pd(11, 20))), 0x3);
+    COMPARE(_mm_movemask_pd(_mm_cmpeq_pd(blend_pd<0x2>(a, b), _mm_set_pd(21, 10))), 0x3);
+    COMPARE(_mm_movemask_pd(_mm_cmpeq_pd(blend_pd<0x3>(a, b), b)), 0x3);
 }
 void blendps()
 {
-#ifdef VC_IMPL_SSE4_1
-#define blend _mm_blend_ps
-#else
-#define blend Vc::SSE::_mm_blend_ps
-#endif
+    using Vc::SSE::blend_ps;
     __m128 a = _mm_set_ps(13, 12, 11, 10);
     __m128 b = _mm_set_ps(23, 22, 21, 20);
 
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0x0), a)), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0x1), _mm_set_ps(13, 12, 11, 20))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0x2), _mm_set_ps(13, 12, 21, 10))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0x3), _mm_set_ps(13, 12, 21, 20))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0x4), _mm_set_ps(13, 22, 11, 10))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0x5), _mm_set_ps(13, 22, 11, 20))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0x6), _mm_set_ps(13, 22, 21, 10))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0x7), _mm_set_ps(13, 22, 21, 20))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0x8), _mm_set_ps(23, 12, 11, 10))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0x9), _mm_set_ps(23, 12, 11, 20))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0xa), _mm_set_ps(23, 12, 21, 10))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0xb), _mm_set_ps(23, 12, 21, 20))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0xc), _mm_set_ps(23, 22, 11, 10))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0xd), _mm_set_ps(23, 22, 11, 20))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0xe), _mm_set_ps(23, 22, 21, 10))), 0xf);
-    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend(a, b, 0xf), b)), 0xf);
-#undef blend
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0x0>(a, b), a)), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0x1>(a, b), _mm_set_ps(13, 12, 11, 20))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0x2>(a, b), _mm_set_ps(13, 12, 21, 10))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0x3>(a, b), _mm_set_ps(13, 12, 21, 20))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0x4>(a, b), _mm_set_ps(13, 22, 11, 10))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0x5>(a, b), _mm_set_ps(13, 22, 11, 20))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0x6>(a, b), _mm_set_ps(13, 22, 21, 10))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0x7>(a, b), _mm_set_ps(13, 22, 21, 20))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0x8>(a, b), _mm_set_ps(23, 12, 11, 10))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0x9>(a, b), _mm_set_ps(23, 12, 11, 20))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0xa>(a, b), _mm_set_ps(23, 12, 21, 10))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0xb>(a, b), _mm_set_ps(23, 12, 21, 20))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0xc>(a, b), _mm_set_ps(23, 22, 11, 10))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0xd>(a, b), _mm_set_ps(23, 22, 11, 20))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0xe>(a, b), _mm_set_ps(23, 22, 21, 10))), 0xf);
+    COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0xf>(a, b), b)), 0xf);
 }
 void blendepi16()
 {
-#ifdef VC_IMPL_SSE4_1
-#define blend _mm_blend_epi16
-#else
-#define blend Vc::SSE::_mm_blend_epi16
-#endif
+    using Vc::SSE::blend_epi16;
     __m128i a = _mm_set_epi16(17, 16, 15, 14, 13, 12, 11, 10);
     __m128i b = _mm_set_epi16(27, 26, 25, 24, 23, 22, 21, 20);
 
@@ -115,9 +101,8 @@ void blendepi16()
             r[j] = j + ((((i >> j) & 1) == 0) ? 10 : 20);
         }
         __m128i reference = _mm_set_epi16(r[7], r[6], r[5], r[4], r[3], r[2], r[1], r[0]);
-        COMPARE_NOEQ(blend(a, b, i), reference);
+        COMPARE_NOEQ(blend_epi16<i>(a, b), reference);
     )
-#undef blend
 }
 
 void testmain()

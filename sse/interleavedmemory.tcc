@@ -51,13 +51,13 @@ template<typename V> struct InterleaveImpl<V, 8> {
         *reinterpret_cast<int *>(&data[i[7]]) = tmp11 >> 32;
 #elif defined(VC_IMPL_SSE4_1)
         *reinterpret_cast<int *>(&data[i[0]]) = _mm_cvtsi128_si32(tmp0);
-        *reinterpret_cast<int *>(&data[i[1]]) = _mm_extract_epi32(tmp0, 1);
-        *reinterpret_cast<int *>(&data[i[2]]) = _mm_extract_epi32(tmp0, 2);
-        *reinterpret_cast<int *>(&data[i[3]]) = _mm_extract_epi32(tmp0, 3);
+        *reinterpret_cast<int *>(&data[i[1]]) = extract_epi32<1>(tmp0);
+        *reinterpret_cast<int *>(&data[i[2]]) = extract_epi32<2>(tmp0);
+        *reinterpret_cast<int *>(&data[i[3]]) = extract_epi32<3>(tmp0);
         *reinterpret_cast<int *>(&data[i[4]]) = _mm_cvtsi128_si32(tmp1);
-        *reinterpret_cast<int *>(&data[i[5]]) = _mm_extract_epi32(tmp1, 1);
-        *reinterpret_cast<int *>(&data[i[6]]) = _mm_extract_epi32(tmp1, 2);
-        *reinterpret_cast<int *>(&data[i[7]]) = _mm_extract_epi32(tmp1, 3);
+        *reinterpret_cast<int *>(&data[i[5]]) = extract_epi32<1>(tmp1);
+        *reinterpret_cast<int *>(&data[i[6]]) = extract_epi32<2>(tmp1);
+        *reinterpret_cast<int *>(&data[i[7]]) = extract_epi32<3>(tmp1);
 #else
         *reinterpret_cast<int *>(&data[i[0]]) = _mm_cvtsi128_si32(tmp0);
         *reinterpret_cast<int *>(&data[i[1]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 4));

@@ -20,6 +20,7 @@
 #ifndef VC_SSE_SHUFFLE_H
 #define VC_SSE_SHUFFLE_H
 
+#include "intrinsics.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -60,10 +61,7 @@ namespace Mem
         template<VecPos Dst0, VecPos Dst1> static Vc_ALWAYS_INLINE __m128d Vc_CONST blend(__m128d x, __m128d y) {
             static_assert(Dst0 == X0 || Dst0 == Y0, "Incorrect_Range");
             static_assert(Dst1 == X1 || Dst1 == Y1, "Incorrect_Range");
-#if !defined(VC_IMPL_SSE4_1) && !defined(VC_IMPL_AVX)
-            using Vc::SSE::_mm_blend_pd;
-#endif
-            return _mm_blend_pd(x, y, (Dst0 / Y0) + (Dst1 / Y0) * 2);
+            return Vc::SseIntrinsics::blend_pd<(Dst0 / Y0) + (Dst1 / Y0) * 2>(x, y);
         }
 
         // blend<X0, Y1>([x0 x1], [y0, y1]) = [x0 y1]
@@ -72,12 +70,8 @@ namespace Mem
             static_assert(Dst1 == X1 || Dst1 == Y1, "Incorrect_Range");
             static_assert(Dst2 == X2 || Dst2 == Y2, "Incorrect_Range");
             static_assert(Dst3 == X3 || Dst3 == Y3, "Incorrect_Range");
-#if !defined(VC_IMPL_SSE4_1) && !defined(VC_IMPL_AVX)
-            using Vc::SSE::_mm_blend_ps;
-#endif
-            return _mm_blend_ps(x, y,
-                    (Dst0 / Y0) *  1 + (Dst1 / Y1) *  2 +
-                    (Dst2 / Y2) *  4 + (Dst3 / Y3) *  8);
+            return Vc::SseIntrinsics::blend_ps<(Dst0 / Y0) * 1 + (Dst1 / Y1) * 2 +
+                                               (Dst2 / Y2) * 4 + (Dst3 / Y3) * 8>(x, y);
         }
 
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
@@ -90,15 +84,10 @@ namespace Mem
             static_assert(Dst5 == X5 || Dst5 == Y5, "Incorrect_Range");
             static_assert(Dst6 == X6 || Dst6 == Y6, "Incorrect_Range");
             static_assert(Dst7 == X7 || Dst7 == Y7, "Incorrect_Range");
-#if !defined(VC_IMPL_SSE4_1) && !defined(VC_IMPL_AVX)
-            using Vc::SSE::_mm_blend_epi16;
-#endif
-            return _mm_blend_epi16(x, y,
-                    (Dst0 / Y0) *  1 + (Dst1 / Y1) *  2 +
-                    (Dst2 / Y2) *  4 + (Dst3 / Y3) *  8 +
-                    (Dst4 / Y4) * 16 + (Dst5 / Y5) * 32 +
-                    (Dst6 / Y6) * 64 + (Dst7 / Y7) *128
-                    );
+            return Vc::SseIntrinsics::blend_epi16<
+                (Dst0 / Y0) * 1 + (Dst1 / Y1) * 2 + (Dst2 / Y2) * 4 + (Dst3 / Y3) * 8 +
+                (Dst4 / Y4) * 16 + (Dst5 / Y5) * 32 + (Dst6 / Y6) * 64 +
+                (Dst7 / Y7) * 128>(x, y);
         }
 
         // permute<X1, X2, Y0, Y2>([x0 x1 x2 x3], [y0 y1 y2 y3]) = [x1 x2 y0 y2]

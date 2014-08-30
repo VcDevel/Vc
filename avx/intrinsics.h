@@ -863,6 +863,4 @@ namespace Vc_AVX_NAMESPACE
 
 #include "undomacros.h"
 
-#include "shuffle.h"
-
 #endif // VC_AVX_INTRINSICS_H

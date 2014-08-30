@@ -161,7 +161,7 @@ template<> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
     *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(k2);
 #else
     *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si32(k2);
-    *reinterpret_cast<boolAlias *>(mem + 4) = _mm_extract_epi32(k2, 1);
+    *reinterpret_cast<boolAlias *>(mem + 4) = extract_epi32<1>(k2);
 #endif
 }
 /*}}}*/
