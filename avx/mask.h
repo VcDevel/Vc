@@ -202,7 +202,7 @@ private:
         Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         Vc_ALWAYS_INLINE Vc_PURE int count() const { return _mm_popcnt_u32(toInt()); }
-        Vc_ALWAYS_INLINE Vc_PURE unsigned int firstOne() const { return _bit_scan_forward(toInt()); }
+        Vc_ALWAYS_INLINE Vc_PURE int firstOne() const { return _bit_scan_forward(toInt()); }
 
         template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vc_PURE_L Mask shifted(int amount) const Vc_INTRINSIC_R Vc_PURE_R;
