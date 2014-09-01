@@ -295,6 +295,14 @@ T simdize_get_impl(const Adapter<T, N> &a, std::size_t i, Vc::index_sequence<Ind
 {
     return T{get<Indexes>(a)[i]...};
 }
+
+template <typename T, std::size_t N, std::size_t... Indexes>
+inline void simdize_assign_impl(Adapter<T, N> &a, std::size_t i, const T &x,
+                                Vc::index_sequence<Indexes...>)
+{
+    auto &&unused = {(get<Indexes>(a)[i] = x[Indexes])...};
+    if (&unused) {}
+}
 }  // namespace simdize_internal
 
 namespace std
@@ -345,6 +353,13 @@ T simdize_get(const simdize_internal::Adapter<T, N> &a, std::size_t i)
 {
     return simdize_internal::simdize_get_impl(
         a, i, Vc::make_index_sequence<std::tuple_size<T>::value>());
+}
+
+template <typename T, std::size_t N>
+inline void simdize_assign(simdize_internal::Adapter<T, N> &a, std::size_t i, const T &x)
+{
+    simdize_internal::simdize_assign_impl(
+        a, i, x, Vc::make_index_sequence<std::tuple_size<T>::value>());
 }
 
 
