@@ -1077,6 +1077,16 @@ static_assert(
 VC_ALL_ARITHMETICS(Vc_BINARY_OPERATORS_)
 VC_ALL_BINARY(Vc_BINARY_OPERATORS_)
 #undef Vc_BINARY_OPERATORS_
+#define Vc_BINARY_OPERATORS_(op__)                                                       \
+    template <typename L, typename R>                                                    \
+    Vc_INTRINSIC typename result_vector_type<L, R>::mask_type operator op__(L &&lhs,     \
+                                                                            R &&rhs)     \
+    {                                                                                    \
+        using Return = typename result_vector_type<L, R>::mask_type;                     \
+        return Return(std::forward<L>(lhs)) op__ Return(std::forward<R>(rhs));           \
+    }
+VC_ALL_COMPARES(Vc_BINARY_OPERATORS_)
+#undef Vc_BINARY_OPERATORS_
 
 // math functions
 template <typename T, std::size_t N> simdarray<T, N> abs(const simdarray<T, N> &x)
