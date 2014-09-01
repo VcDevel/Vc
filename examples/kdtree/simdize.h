@@ -183,17 +183,22 @@ public:
     {
     }
 
-    template <typename U, typename S = std::tuple_size<U>,
+    template <typename U, typename S = std::tuple_size<typename std::decay<U>::type>,
               typename Seq = Vc::make_index_sequence<S::value>>
-    Adapter(const U &x)
-        : Adapter(x, Seq())
+    Adapter(U &&x)
+        : Adapter(static_cast<const ScalarBase &>(x), Seq())
     {
     }
 
+    Adapter() = default;
+
     // perfect forward all Base constructors
-    template <typename... Args>
-    Adapter(Args &&... arguments)
-        : VectorBase(std::forward<Args>(arguments)...)
+    template <
+        typename A0, typename... Args,
+        typename = typename std::enable_if<
+            (sizeof...(Args) > 0 || !std::is_convertible<A0, ScalarBase>::value)>::type>
+    Adapter(A0 &&arg0, Args &&... arguments)
+        : VectorBase(std::forward<A0>(arg0), std::forward<Args>(arguments)...)
     {
     }
 
@@ -238,17 +243,22 @@ public:
     {
     }
 
-    template <typename U, typename S = std::tuple_size<U>,
+    template <typename U, typename S = std::tuple_size<typename std::decay<U>::type>,
               typename Seq = Vc::make_index_sequence<S::value>>
-    Adapter(const U &x)
-        : Adapter(x, Seq())
+    Adapter(U &&x)
+        : Adapter(static_cast<const ScalarBase &>(x), Seq())
     {
     }
 
+    Adapter() = default;
+
     // perfect forward all Base constructors
-    template <typename... Args>
-    Adapter(Args &&... arguments)
-        : VectorBase(std::forward<Args>(arguments)...)
+    template <
+        typename A0, typename... Args,
+        typename = typename std::enable_if<
+            (sizeof...(Args) > 0 || !std::is_convertible<A0, ScalarBase>::value)>::type>
+    Adapter(A0 &&arg0, Args &&... arguments)
+        : VectorBase(std::forward<A0>(arg0), std::forward<Args>(arguments)...)
     {
     }
 
