@@ -151,7 +151,7 @@ static_assert(decltype(test<std::allocator<int>>(1))::value == false, "");
  *                           used to specialize tuple_size and tuple_element only for
  *                           those types that do.
  */
-template <typename T, std::size_t N = 0,
+template <typename T, std::size_t N,
           bool HasTupleInterface = decltype(has_tuple_interface_impl::test<T>(1))::value>
 struct Adapter;
 
@@ -290,8 +290,8 @@ public:
                                            Adapter<C<T, M>, N>>::type;
 };
 
-template <typename T, std::size_t... Indexes>
-T simdize_get_impl(const Adapter<T> &a, std::size_t i, Vc::index_sequence<Indexes...>)
+template <typename T, std::size_t N, std::size_t... Indexes>
+T simdize_get_impl(const Adapter<T, N> &a, std::size_t i, Vc::index_sequence<Indexes...>)
 {
     return T{get<Indexes>(a)[i]...};
 }
@@ -309,7 +309,7 @@ class tuple_size<simdize_internal::Adapter<C<T0, Ts...>, N, true>>
 template <std::size_t I, template <typename...> class C, typename T0, typename... Ts,
           std::size_t N>
 class tuple_element<I, simdize_internal::Adapter<C<T0, Ts...>, N, true>>
-    : public tuple_element<I, typename simdize_internal::Adapter<C<T0, Ts...>>::VectorBase>
+    : public tuple_element<I, typename simdize_internal::Adapter<C<T0, Ts...>, N, true>::VectorBase>
 {
 };
 }  // namespace std
@@ -330,10 +330,18 @@ class tuple_element<I, simdize_internal::Adapter<C<T0, Ts...>, N, true>>
  * get<0>(v) = Vc::float_v::IndexesFromZero();
  * x = simdize_get(v, 0); // extract one Data object at SIMD index 0.
  * \endcode
+ *
+ * \tparam T The type to recursively translate to SIMD types.
+ *
+ * \tparam N Optionally, you can request the number of values in the vector types. This can lead to
+ *           make code more efficient for some specific platforms and badly optimized for others.
+ *           Thus, setting this value is a portability issue for performance. A possible way out is
+ *           to base the value on a native SIMD vector size, such as float_v::Size.
  */
-template <typename T> using simdize = simdize_internal::make_vector_or_simdarray<0, T>;
+template <typename T, std::size_t N = 0> using simdize = simdize_internal::make_vector_or_simdarray<N, T>;
 
-template <typename T> T simdize_get(const simdize_internal::Adapter<T> &a, std::size_t i)
+template <typename T, std::size_t N>
+T simdize_get(const simdize_internal::Adapter<T, N> &a, std::size_t i)
 {
     return simdize_internal::simdize_get_impl(
         a, i, Vc::make_index_sequence<std::tuple_size<T>::value>());
