@@ -1082,8 +1082,8 @@ VC_ALL_BINARY(Vc_BINARY_OPERATORS_)
     Vc_INTRINSIC typename result_vector_type<L, R>::mask_type operator op__(L &&lhs,     \
                                                                             R &&rhs)     \
     {                                                                                    \
-        using Return = typename result_vector_type<L, R>::mask_type;                     \
-        return Return(std::forward<L>(lhs)) op__ Return(std::forward<R>(rhs));           \
+        using Promote = result_vector_type<L, R>;                                        \
+        return Promote(std::forward<L>(lhs)) op__ Promote(std::forward<R>(rhs));         \
     }
 VC_ALL_COMPARES(Vc_BINARY_OPERATORS_)
 #undef Vc_BINARY_OPERATORS_
