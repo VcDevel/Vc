@@ -672,7 +672,7 @@ inline void Vector<T>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument
 template<typename T> Vc_INTRINSIC typename Vector<T>::EntryType Vc_PURE Vector<T>::operator[](size_t index) const
 {
 #ifdef VC_CLANG
-    typedef T TV __attribute__((__vector_size__(16)));
+    typedef typename Common::GccTypeHelper<T, VectorType>::Type TV;
     return static_cast<TV>(d.v())[index];
 #else
     return d.m(index);

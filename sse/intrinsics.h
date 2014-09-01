@@ -513,34 +513,34 @@ namespace SseIntrinsics
     }
 
     Vc_INTRINSIC Vc_CONST __m128i max_epi8 (__m128i a, __m128i b) {
-        return _mm_blendv_epi8(b, a, _mm_cmpgt_epi8 (a, b));
+        return blendv_epi8(b, a, _mm_cmpgt_epi8 (a, b));
     }
     Vc_INTRINSIC Vc_CONST __m128i max_epi32(__m128i a, __m128i b) {
-        return _mm_blendv_epi8(b, a, _mm_cmpgt_epi32(a, b));
+        return blendv_epi8(b, a, _mm_cmpgt_epi32(a, b));
     }
 //X         Vc_INTRINSIC Vc_CONST __m128i max_epu8 (__m128i a, __m128i b) {
 //X             return _mm_blendv_epi8(b, a, _mm_cmpgt_epu8 (a, b));
 //X         }
     Vc_INTRINSIC Vc_CONST __m128i max_epu16(__m128i a, __m128i b) {
-        return _mm_blendv_epi8(b, a, _mm_cmpgt_epu16(a, b));
+        return blendv_epi8(b, a, _mm_cmpgt_epu16(a, b));
     }
     Vc_INTRINSIC Vc_CONST __m128i max_epu32(__m128i a, __m128i b) {
-        return _mm_blendv_epi8(b, a, _mm_cmpgt_epu32(a, b));
+        return blendv_epi8(b, a, _mm_cmpgt_epu32(a, b));
     }
 //X         Vc_INTRINSIC Vc_CONST __m128i _mm_min_epu8 (__m128i a, __m128i b) {
 //X             return _mm_blendv_epi8(a, b, _mm_cmpgt_epu8 (a, b));
 //X         }
     Vc_INTRINSIC Vc_CONST __m128i min_epu16(__m128i a, __m128i b) {
-        return _mm_blendv_epi8(a, b, _mm_cmpgt_epu16(a, b));
+        return blendv_epi8(a, b, _mm_cmpgt_epu16(a, b));
     }
     Vc_INTRINSIC Vc_CONST __m128i min_epu32(__m128i a, __m128i b) {
-        return _mm_blendv_epi8(a, b, _mm_cmpgt_epu32(a, b));
+        return blendv_epi8(a, b, _mm_cmpgt_epu32(a, b));
     }
     Vc_INTRINSIC Vc_CONST __m128i min_epi8 (__m128i a, __m128i b) {
-        return _mm_blendv_epi8(a, b, _mm_cmpgt_epi8 (a, b));
+        return blendv_epi8(a, b, _mm_cmpgt_epi8 (a, b));
     }
     Vc_INTRINSIC Vc_CONST __m128i min_epi32(__m128i a, __m128i b) {
-        return _mm_blendv_epi8(a, b, _mm_cmpgt_epi32(a, b));
+        return blendv_epi8(a, b, _mm_cmpgt_epi32(a, b));
     }
     Vc_INTRINSIC Vc_CONST __m128i cvtepu8_epi16(__m128i epu8) {
         return _mm_unpacklo_epi8(epu8, _mm_setzero_si128());

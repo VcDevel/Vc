@@ -548,22 +548,14 @@ namespace AvxIntrinsics
     AVX_TO_SSE_1(abs_epi8)
     AVX_TO_SSE_1(abs_epi16)
     AVX_TO_SSE_1(abs_epi32)
-#if !defined(VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT)
-    m256i Vc_INTRINSIC Vc_CONST blend_epi16(param256i a0, param256i b0, const int m) {
+    template <int m> Vc_INTRINSIC Vc_CONST m256i blend_epi16(param256i a0, param256i b0)
+    {
         m128i a1 = _mm256_extractf128_si256(a0, 1);
         m128i b1 = _mm256_extractf128_si256(b0, 1);
         m128i r0 = _mm_blend_epi16(_mm256_castsi256_si128(a0), _mm256_castsi256_si128(b0), m & 0xff);
         m128i r1 = _mm_blend_epi16(a1, b1, m >> 8);
         return _mm256_insertf128_si256(_mm256_castsi128_si256(r0), r1, 1);
     }
-#else
-#   define blend_epi16(a0, b0, m) \
-    _mm256_insertf128_si256( \
-            _mm256_castsi128_si256( \
-                _mm_blend_epi16( \
-                    _mm256_castsi256_si128(a0), _mm256_castsi256_si128(b0), m & 0xff)), \
-            _mm_blend_epi16(_mm256_extractf128_si256(a0, 1), _mm256_extractf128_si256(b0, 1), m >> 8);, 1)
-#endif
     Vc_INTRINSIC Vc_CONST m256i blendv_epi8(param256i a0, param256i b0, param256i m0) {
         m128i a1 = _mm256_extractf128_si256(a0, 1);
         m128i b1 = _mm256_extractf128_si256(b0, 1);

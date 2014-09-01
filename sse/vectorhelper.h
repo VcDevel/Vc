@@ -355,9 +355,9 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
                 return CAT(_mm_srai_, SUFFIX)(a, shift);
             }
-            OP1(abs)
-
-            MINMAX
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) { return abs_epi32(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epi32(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return max_epi32(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
@@ -416,7 +416,8 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 #define SUFFIX epu32
             static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
 
-            MINMAX
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epu32(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return max_epu32(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
@@ -531,7 +532,7 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) {
                 v1 = add(mul(v1, v2), v3); }
 
-            OP1(abs)
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) { return abs_epi16(a); }
 
             OPx(mul, mullo)
             OP(min) OP(max)
@@ -619,7 +620,8 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 //X                 return mul(a, set(b));
 //X             }
 #if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || VC_IMPL_SSE4_1
-            OP(min) OP(max)
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epu16(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return max_epu16(a, b); }
 #endif
 #undef SUFFIX
 #define SUFFIX epi16
