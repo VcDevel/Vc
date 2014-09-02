@@ -104,9 +104,9 @@ Vc_SIMD_CAST_AVX_1( float_v,   uint_v) {
     return _mm256_castps_si256(
         _mm256_blendv_ps(_mm256_castsi256_ps(_mm256_cvttps_epi32(x.data())),
                          _mm256_castsi256_ps(add_epi32(
-                             _mm256_cvttps_epi32(_mm256_sub_ps(x.data(), _mm256_set1_ps(1u << 31))),
-                             _mm256_set1_epi32(1 << 31))),
-                         cmpge_ps(x.data(), _mm256_set1_ps(1u << 31))));
+                             _mm256_cvttps_epi32(_mm256_sub_ps(x.data(), set1_ps(1u << 31))),
+                             set1_epi32(1 << 31))),
+                         cmpge_ps(x.data(), set1_ps(1u << 31))));
 }
 Vc_SIMD_CAST_AVX_1(double_v,   uint_v) {
     return AVX::zeroExtend(_mm256_cvttpd_epi32(x.data()));
@@ -202,11 +202,11 @@ Vc_SIMD_CAST_AVX_1(  uint_v,  float_v) {
         const auto loMask = AVX::lo128(tooLarge.dataI());
         const auto hiMask = AVX::hi128(tooLarge.dataI());
         const auto loOffset = _mm256_and_pd(
-            _mm256_set1_pd(0x100000000ull),
+            set1_pd(0x100000000ull),
             _mm256_castsi256_pd(AVX::concat(_mm_unpacklo_epi32(loMask, loMask),
                                             _mm_unpackhi_epi16(loMask, loMask))));
         const auto hiOffset = _mm256_and_pd(
-            _mm256_set1_pd(0x100000000ull),
+            set1_pd(0x100000000ull),
             _mm256_castsi256_pd(AVX::concat(_mm_unpacklo_epi32(hiMask, hiMask),
                                             _mm_unpackhi_epi16(hiMask, hiMask))));
         const auto lo = _mm256_cvtepi32_pd(AVX::lo128(x.data()));
@@ -224,7 +224,7 @@ Vc_SIMD_CAST_AVX_1(   int_v, double_v) { return _mm256_cvtepi32_pd(AVX::lo128(x.
 Vc_SIMD_CAST_AVX_1(  uint_v, double_v) {
     using namespace AvxIntrinsics;
     return _mm256_add_pd(_mm256_cvtepi32_pd(_mm_sub_epi32(AVX::lo128(x.data()), _mm_setmin_epi32())),
-                      _mm256_set1_pd(1u << 31));
+                      set1_pd(1u << 31));
 }
 Vc_SIMD_CAST_AVX_1( short_v, double_v) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<Vc_AVX_NAMESPACE::int_v>(x)); }
 Vc_SIMD_CAST_AVX_1(ushort_v, double_v) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<Vc_AVX_NAMESPACE::int_v>(x)); }
@@ -243,7 +243,7 @@ Vc_SIMD_CAST_1(SSE::double_v, AVX             ::ushort_v) { return simd_cast<SSE
 // these retain more values than the SSE casts:
 Vc_SIMD_CAST_1(SSE:: float_v, Vc_AVX_NAMESPACE::double_v) { return _mm256_cvtps_pd(x.data()); }
 Vc_SIMD_CAST_1(SSE::   int_v, Vc_AVX_NAMESPACE::double_v) { return _mm256_cvtepi32_pd(x.data()); }
-Vc_SIMD_CAST_1(SSE::  uint_v, Vc_AVX_NAMESPACE::double_v) { using namespace AvxIntrinsics; return _mm256_add_pd(_mm256_cvtepi32_pd(_mm_sub_epi32(x.data(), _mm_setmin_epi32())), _mm256_set1_pd(1u << 31)); }
+Vc_SIMD_CAST_1(SSE::  uint_v, Vc_AVX_NAMESPACE::double_v) { using namespace AvxIntrinsics; return _mm256_add_pd(_mm256_cvtepi32_pd(_mm_sub_epi32(x.data(), _mm_setmin_epi32())), set1_pd(1u << 31)); }
 Vc_SIMD_CAST_1(SSE:: short_v, Vc_AVX_NAMESPACE::double_v) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<SSE::int_v>(x)); }
 Vc_SIMD_CAST_1(SSE::ushort_v, Vc_AVX_NAMESPACE::double_v) { return simd_cast<Vc_AVX_NAMESPACE::double_v>(simd_cast<SSE::int_v>(x)); }
 // size 4 to size 8 (256bit)

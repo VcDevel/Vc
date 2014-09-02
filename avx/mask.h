@@ -128,11 +128,6 @@ private:
         Vc_ALWAYS_INLINE Mask(VArg  x) : d(x) {}
         Vc_ALWAYS_INLINE Mask(VdArg x) : d(avx_cast<VectorType>(x)) {}
         Vc_ALWAYS_INLINE Mask(ViArg x) : d(avx_cast<VectorType>(x)) {}
-#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
-        //Vc_ALWAYS_INLINE Mask(__m256  x) : d(x) {}
-        //Vc_ALWAYS_INLINE Mask(__m256d x) : d(_mm256_castpd_ps(x)) {}
-        //Vc_ALWAYS_INLINE Mask(__m256i x) : d(_mm256_castsi256_ps(x)) {}
-#endif
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : d(internal::zero<VectorType>()) {}
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerOne::OEnum) : d(internal::allone<VectorType>()) {}
         Vc_ALWAYS_INLINE explicit Mask(bool b) : d(b ? internal::allone<VectorType>() : VectorType(internal::zero<VectorType>())) {}

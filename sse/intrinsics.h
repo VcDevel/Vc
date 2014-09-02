@@ -117,14 +117,14 @@ namespace SseIntrinsics
     //X         static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu8 (__m128i a, __m128i b) { return _mm_cmpgt_epi8 (
     //X                 _mm_xor_si128(a, _mm_setmin_epi8 ()), _mm_xor_si128(b, _mm_setmin_epi8 ())); }
 #if defined(VC_IMPL_XOP) && !defined(VC_CLANG)
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_cmplt_epu16(__m128i a, __m128i b) { return _mm_comlt_epu16(a, b); }
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu16(__m128i a, __m128i b) { return _mm_comgt_epu16(a, b); }
+    static Vc_INTRINSIC __m128i Vc_CONST cmplt_epu16(__m128i a, __m128i b) { return _mm_comlt_epu16(a, b); }
+    static Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu16(__m128i a, __m128i b) { return _mm_comgt_epu16(a, b); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_cmplt_epu32(__m128i a, __m128i b) { return _mm_comlt_epu32(a, b); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu32(__m128i a, __m128i b) { return _mm_comgt_epu32(a, b); }
 #else
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_cmplt_epu16(__m128i a, __m128i b) { return _mm_cmplt_epi16(
+    static Vc_INTRINSIC __m128i Vc_CONST cmplt_epu16(__m128i a, __m128i b) { return _mm_cmplt_epi16(
             _mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16())); }
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu16(__m128i a, __m128i b) { return _mm_cmpgt_epi16(
+    static Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu16(__m128i a, __m128i b) { return _mm_cmpgt_epi16(
             _mm_xor_si128(a, _mm_setmin_epi16()), _mm_xor_si128(b, _mm_setmin_epi16())); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_cmplt_epu32(__m128i a, __m128i b) { return _mm_cmplt_epi32(
             _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
@@ -522,7 +522,7 @@ namespace SseIntrinsics
 //X             return _mm_blendv_epi8(b, a, _mm_cmpgt_epu8 (a, b));
 //X         }
     Vc_INTRINSIC Vc_CONST __m128i max_epu16(__m128i a, __m128i b) {
-        return blendv_epi8(b, a, _mm_cmpgt_epu16(a, b));
+        return blendv_epi8(b, a, cmpgt_epu16(a, b));
     }
     Vc_INTRINSIC Vc_CONST __m128i max_epu32(__m128i a, __m128i b) {
         return blendv_epi8(b, a, _mm_cmpgt_epu32(a, b));
@@ -531,7 +531,7 @@ namespace SseIntrinsics
 //X             return _mm_blendv_epi8(a, b, _mm_cmpgt_epu8 (a, b));
 //X         }
     Vc_INTRINSIC Vc_CONST __m128i min_epu16(__m128i a, __m128i b) {
-        return blendv_epi8(a, b, _mm_cmpgt_epu16(a, b));
+        return blendv_epi8(a, b, cmpgt_epu16(a, b));
     }
     Vc_INTRINSIC Vc_CONST __m128i min_epu32(__m128i a, __m128i b) {
         return blendv_epi8(a, b, _mm_cmpgt_epu32(a, b));

@@ -97,12 +97,6 @@
 #define VC_USE_BUILTIN_VECTOR_TYPES
 #endif
 
-// ICC ships the AVX2 intrinsics inside the AVX1 header.
-// FIXME: the number 20120731 is too large, but I don't know which one is the right one
-#if (defined(VC_ICC) && VC_ICC >= 20120731) || (defined(VC_MSVC) && VC_MSVC >= 170000000)
-#define VC_UNCONDITIONAL_AVX2_INTRINSICS 1
-#endif
-
 /* Define the following strings to a unique integer, which is the only type the preprocessor can
  * compare. This allows to use -DVC_IMPL=SSE3. The preprocessor will then consider VC_IMPL and SSE3
  * to be equal. Of course, it is important to undefine the strings later on!

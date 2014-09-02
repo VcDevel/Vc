@@ -66,7 +66,7 @@ inline float_v frexp(float_v::AsArg v, simdarray<int, 8, SSE::int_v, 4> *e)
     internal_data(internal_data0(*e)) = _mm_sub_epi32(_mm_srli_epi32(lo, 23), _mm_set1_epi32(0x7e));
     internal_data(internal_data1(*e)) = _mm_sub_epi32(_mm_srli_epi32(hi, 23), _mm_set1_epi32(0x7e));
     const m256 exponentMaximized = _mm256_or_ps(v.data(), exponentBits);
-    float_v ret = _mm256_and_ps(exponentMaximized, avx_cast<m256>(_mm256_set1_epi32(0xbf7fffffu)));
+    float_v ret = _mm256_and_ps(exponentMaximized, avx_cast<m256>(set1_epi32(0xbf7fffffu)));
     ret(isnan(v) || !isfinite(v) || v == float_v::Zero()) = v;
     e->setZero(static_cast<decltype(*e == *e)>(v == float_v::Zero()));
     return ret;

@@ -403,21 +403,21 @@ static inline m256i Vc_CONST divUInt(param256i a, param256i b) {
     // It could be argued that for b this is not really important because division by a b >= 2^31 is
     // useless. But for full correctness it cannot be ignored.
 #ifdef VC_IMPL_AVX2
-    const m256i aa = add_epi32(a, _mm256_set1_epi32(-2147483648));
-    const m256i bb = add_epi32(b, _mm256_set1_epi32(-2147483648));
-    const m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(aa)), _mm256_set1_pd(2147483648.));
-    const m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(aa)), _mm256_set1_pd(2147483648.));
-    const m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(bb)), _mm256_set1_pd(2147483648.));
-    const m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(bb)), _mm256_set1_pd(2147483648.));
+    const m256i aa = add_epi32(a, set1_epi32(-2147483648));
+    const m256i bb = add_epi32(b, set1_epi32(-2147483648));
+    const m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(aa)), set1_pd(2147483648.));
+    const m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(aa)), set1_pd(2147483648.));
+    const m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(bb)), set1_pd(2147483648.));
+    const m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(bb)), set1_pd(2147483648.));
 #else
     const auto a0 = _mm_add_epi32(lo128(a), _mm_set1_epi32(-2147483648));
     const auto a1 = _mm_add_epi32(hi128(a), _mm_set1_epi32(-2147483648));
     const auto b0 = _mm_add_epi32(lo128(b), _mm_set1_epi32(-2147483648));
     const auto b1 = _mm_add_epi32(hi128(b), _mm_set1_epi32(-2147483648));
-    const m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(a0), _mm256_set1_pd(2147483648.));
-    const m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(a1), _mm256_set1_pd(2147483648.));
-    const m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(b0), _mm256_set1_pd(2147483648.));
-    const m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(b1), _mm256_set1_pd(2147483648.));
+    const m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(a0), set1_pd(2147483648.));
+    const m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(a1), set1_pd(2147483648.));
+    const m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(b0), set1_pd(2147483648.));
+    const m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(b1), set1_pd(2147483648.));
 #endif
     // there is one remaining problem: a >= 2^31 and b == 1
     // in that case the return value would be 2^31
@@ -497,11 +497,11 @@ template <> inline Vc_PURE uint_v uint_v::operator%(const uint_v &n) const
     auto cvt = [](m128i v) {
         return _mm256_add_pd(
             _mm256_cvtepi32_pd(_mm_sub_epi32(v, _mm_setmin_epi32())),
-            _mm256_set1_pd(1u << 31));
+            set1_pd(1u << 31));
     };
     auto cvt2 = [](m256d v) {
         return m128i(_mm256_cvttpd_epi32(
-                                 _mm256_sub_pd(_mm256_floor_pd(v), _mm256_set1_pd(0x80000000u))));
+                                 _mm256_sub_pd(_mm256_floor_pd(v), set1_pd(0x80000000u))));
     };
     return HT::sub(
         data(),
@@ -882,7 +882,7 @@ static Vc_ALWAYS_INLINE uint_v _doRandomStep()
     state0.load(&Common::RandomState[0]);
     state1.load(&Common::RandomState[uint_v::Size]);
     (state1 * 0xdeece66du + 11).store(&Common::RandomState[uint_v::Size]);
-    uint_v(_mm256_xor_si256((state0 * 0xdeece66du + 11).data(), srli_epi32<16>(state1.data()))).store(&Common::RandomState[0]);
+    uint_v(xor_si256((state0 * 0xdeece66du + 11).data(), srli_epi32<16>(state1.data()))).store(&Common::RandomState[0]);
     return state0;
 }
 
@@ -917,12 +917,12 @@ template<> struct VectorShift<32, 4, m256d, double>
     {
         switch (amount) {
         case  0: return v;
-        case  1: return avx_cast<m256d>(_mm256_srli_si256(avx_cast<m256i>(v), 1 * sizeof(double)));
-        case  2: return avx_cast<m256d>(_mm256_srli_si256(avx_cast<m256i>(v), 2 * sizeof(double)));
-        case  3: return avx_cast<m256d>(_mm256_srli_si256(avx_cast<m256i>(v), 3 * sizeof(double)));
-        case -1: return avx_cast<m256d>(_mm256_slli_si256(avx_cast<m256i>(v), 1 * sizeof(double)));
-        case -2: return avx_cast<m256d>(_mm256_slli_si256(avx_cast<m256i>(v), 2 * sizeof(double)));
-        case -3: return avx_cast<m256d>(_mm256_slli_si256(avx_cast<m256i>(v), 3 * sizeof(double)));
+        case  1: return avx_cast<m256d>(srli_si256<1 * sizeof(double)>(avx_cast<m256i>(v)));
+        case  2: return avx_cast<m256d>(srli_si256<2 * sizeof(double)>(avx_cast<m256i>(v)));
+        case  3: return avx_cast<m256d>(srli_si256<3 * sizeof(double)>(avx_cast<m256i>(v)));
+        case -1: return avx_cast<m256d>(slli_si256<1 * sizeof(double)>(avx_cast<m256i>(v)));
+        case -2: return avx_cast<m256d>(slli_si256<2 * sizeof(double)>(avx_cast<m256i>(v)));
+        case -3: return avx_cast<m256d>(slli_si256<3 * sizeof(double)>(avx_cast<m256i>(v)));
         }
         return _mm256_setzero_pd();
     }
@@ -934,20 +934,20 @@ template<typename VectorType, typename EntryType> struct VectorShift<32, 8, Vect
     {
         switch (amount) {
         case  0: return v;
-        case  1: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 1 * sizeof(EntryType)));
-        case  2: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 2 * sizeof(EntryType)));
-        case  3: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 3 * sizeof(EntryType)));
-        case  4: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 4 * sizeof(EntryType)));
-        case  5: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 5 * sizeof(EntryType)));
-        case  6: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 6 * sizeof(EntryType)));
-        case  7: return avx_cast<VectorType>(_mm256_srli_si256(avx_cast<m256i>(v), 7 * sizeof(EntryType)));
-        case -1: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 1 * sizeof(EntryType)));
-        case -2: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 2 * sizeof(EntryType)));
-        case -3: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 3 * sizeof(EntryType)));
-        case -4: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 4 * sizeof(EntryType)));
-        case -5: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 5 * sizeof(EntryType)));
-        case -6: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 6 * sizeof(EntryType)));
-        case -7: return avx_cast<VectorType>(_mm256_slli_si256(avx_cast<m256i>(v), 7 * sizeof(EntryType)));
+        case  1: return avx_cast<VectorType>(srli_si256<1 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case  2: return avx_cast<VectorType>(srli_si256<2 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case  3: return avx_cast<VectorType>(srli_si256<3 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case  4: return avx_cast<VectorType>(srli_si256<4 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case  5: return avx_cast<VectorType>(srli_si256<5 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case  6: return avx_cast<VectorType>(srli_si256<6 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case  7: return avx_cast<VectorType>(srli_si256<7 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case -1: return avx_cast<VectorType>(slli_si256<1 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case -2: return avx_cast<VectorType>(slli_si256<2 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case -3: return avx_cast<VectorType>(slli_si256<3 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case -4: return avx_cast<VectorType>(slli_si256<4 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case -5: return avx_cast<VectorType>(slli_si256<5 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case -6: return avx_cast<VectorType>(slli_si256<6 * sizeof(EntryType)>(avx_cast<m256i>(v)));
+        case -7: return avx_cast<VectorType>(slli_si256<7 * sizeof(EntryType)>(avx_cast<m256i>(v)));
         }
         return avx_cast<VectorType>(_mm256_setzero_ps());
     }

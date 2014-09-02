@@ -679,10 +679,10 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmplt(const VectorType a, const VectorType b) {
-                return _mm_cmplt_epu16(a, b);
+                return cmplt_epu16(a, b);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpgt(const VectorType a, const VectorType b) {
-                return _mm_cmpgt_epu16(a, b);
+                return cmpgt_epu16(a, b);
             }
 #else
             OPcmp(lt)

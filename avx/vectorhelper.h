@@ -163,10 +163,10 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 
             OP0(allone, setallone_si256())
             OP0(zero, _mm256_setzero_si256())
-            OP2(or_, _mm256_or_si256(a, b))
-            OP2(xor_, _mm256_xor_si256(a, b))
-            OP2(and_, _mm256_and_si256(a, b))
-            OP2(andnot_, _mm256_andnot_si256(a, b))
+            OP2(or_, or_si256(a, b))
+            OP2(xor_, xor_si256(a, b))
+            OP2(and_, and_si256(a, b))
+            OP2(andnot_, andnot_si256(a, b))
             OP3(blend, blendv_epi8(a, b, c))
         };
 
@@ -293,7 +293,7 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
                 return cmpord_pd(x, _mm256_mul_pd(zero(), x));
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType isInfinite(VectorType x) {
-                return _mm256_castsi256_pd(cmpeq_epi64(_mm256_castpd_si256(abs(x)), _mm256_castpd_si256(_mm256_set1_pd(c_log<double>::d(1)))));
+                return _mm256_castsi256_pd(cmpeq_epi64(_mm256_castpd_si256(abs(x)), _mm256_castpd_si256(set1_pd(c_log<double>::d(1)))));
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(VTArg a) {
                 return CAT(_mm256_and_, SUFFIX)(a, setabsmask_pd());
@@ -378,7 +378,7 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
                 return cmpord_ps(x, _mm256_mul_ps(zero(), x));
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType isInfinite(VectorType x) {
-                return _mm256_castsi256_ps(cmpeq_epi32(_mm256_castps_si256(abs(x)), _mm256_castps_si256(_mm256_set1_ps(c_log<float>::d(1)))));
+                return _mm256_castsi256_ps(cmpeq_epi32(_mm256_castps_si256(abs(x)), _mm256_castps_si256(set1_ps(c_log<float>::d(1)))));
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType reciprocal(VTArg x) {
                 return _mm256_rcp_ps(x);
@@ -430,9 +430,11 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             typedef long long ConcatType;
 #define SUFFIX si256
 
-            OP_(or_) OP_(and_) OP_(xor_)
+            static Vc_INTRINSIC Vc_CONST VectorType or_(VTArg a, VTArg b) { return or_si256(a, b); }
+            static Vc_INTRINSIC Vc_CONST VectorType and_(VTArg a, VTArg b) { return and_si256(a, b); }
+            static Vc_INTRINSIC Vc_CONST VectorType xor_(VTArg a, VTArg b) { return xor_si256(a, b); }
             static Vc_INTRINSIC VectorType Vc_CONST zero() { return CAT(_mm256_setzero_, SUFFIX)(); }
-            static Vc_INTRINSIC VectorType Vc_CONST notMaskedToZero(VTArg a, param256 mask) { return CAT(_mm256_and_, SUFFIX)(_mm256_castps_si256(mask), a); }
+            static Vc_INTRINSIC VectorType Vc_CONST notMaskedToZero(VTArg a, param256 mask) { return CAT(and_, SUFFIX)(_mm256_castps_si256(mask), a); }
 #undef SUFFIX
 #define SUFFIX epi32
             static Vc_INTRINSIC VectorType Vc_CONST one() { return CAT(setone_, SUFFIX)(); }
@@ -462,7 +464,7 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             {
                 return sra_epi32(a, _mm_cvtsi32_si128(shift));
             }
-            OP1(abs)
+            static Vc_INTRINSIC Vc_CONST VectorType abs(VTArg a) { return abs_epi32(a); }
 
             MINMAX
             static Vc_INTRINSIC EntryType Vc_CONST min(VTArg a) {
@@ -496,9 +498,9 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             OPcmp(eq)
             OPcmp(lt)
             OPcmp(gt)
-            static Vc_INTRINSIC VectorType Vc_CONST cmpneq(VTArg a, VTArg b) { m256i x = cmpeq(a, b); return _mm256_andnot_si256(x, setallone_si256()); }
-            static Vc_INTRINSIC VectorType Vc_CONST cmpnlt(VTArg a, VTArg b) { m256i x = cmplt(a, b); return _mm256_andnot_si256(x, setallone_si256()); }
-            static Vc_INTRINSIC VectorType Vc_CONST cmple (VTArg a, VTArg b) { m256i x = cmpgt(a, b); return _mm256_andnot_si256(x, setallone_si256()); }
+            static Vc_INTRINSIC VectorType Vc_CONST cmpneq(VTArg a, VTArg b) { m256i x = cmpeq(a, b); return andnot_si256(x, setallone_si256()); }
+            static Vc_INTRINSIC VectorType Vc_CONST cmpnlt(VTArg a, VTArg b) { m256i x = cmplt(a, b); return andnot_si256(x, setallone_si256()); }
+            static Vc_INTRINSIC VectorType Vc_CONST cmple (VTArg a, VTArg b) { m256i x = cmpgt(a, b); return andnot_si256(x, setallone_si256()); }
             static Vc_INTRINSIC VectorType Vc_CONST cmpnle(VTArg a, VTArg b) { return cmpgt(a, b); }
 #undef SUFFIX
             static Vc_INTRINSIC VectorType Vc_CONST round(VTArg a) { return a; }
@@ -516,7 +518,7 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 #define SUFFIX si256
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
             static Vc_INTRINSIC VectorType Vc_CONST zero() { return CAT(_mm256_setzero_, SUFFIX)(); }
-            static Vc_INTRINSIC VectorType Vc_CONST notMaskedToZero(VTArg a, param256 mask) { return CAT(_mm256_and_, SUFFIX)(_mm256_castps_si256(mask), a); }
+            static Vc_INTRINSIC VectorType Vc_CONST notMaskedToZero(VTArg a, param256 mask) { return CAT(and_, SUFFIX)(_mm256_castps_si256(mask), a); }
 
 #undef SUFFIX
 #define SUFFIX epu32
@@ -579,7 +581,7 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 
             OP(add) OP(sub)
             OPcmp(eq)
-            static Vc_INTRINSIC VectorType Vc_CONST cmpneq(VTArg a, VTArg b) { return _mm256_andnot_si256(cmpeq(a, b), setallone_si256()); }
+            static Vc_INTRINSIC VectorType Vc_CONST cmpneq(VTArg a, VTArg b) { return andnot_si256(cmpeq(a, b), setallone_si256()); }
 
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
             static Vc_INTRINSIC VectorType Vc_CONST cmplt(VTArg a, VTArg b) {
@@ -592,8 +594,8 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             OPcmp(lt)
             OPcmp(gt)
 #endif
-            static Vc_INTRINSIC VectorType Vc_CONST cmpnlt(VTArg a, VTArg b) { return _mm256_andnot_si256(cmplt(a, b), setallone_si256()); }
-            static Vc_INTRINSIC VectorType Vc_CONST cmple (VTArg a, VTArg b) { return _mm256_andnot_si256(cmpgt(a, b), setallone_si256()); }
+            static Vc_INTRINSIC VectorType Vc_CONST cmpnlt(VTArg a, VTArg b) { return andnot_si256(cmplt(a, b), setallone_si256()); }
+            static Vc_INTRINSIC VectorType Vc_CONST cmple (VTArg a, VTArg b) { return andnot_si256(cmpgt(a, b), setallone_si256()); }
             static Vc_INTRINSIC VectorType Vc_CONST cmpnle(VTArg a, VTArg b) { return cmpgt(a, b); }
 
 #undef SUFFIX
@@ -775,8 +777,8 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpneq(VTArg a, VTArg b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
 
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
-            static Vc_INTRINSIC VectorType Vc_CONST cmplt(VTArg a, VTArg b) { return _mm_cmplt_epu16(a, b); }
-            static Vc_INTRINSIC VectorType Vc_CONST cmpgt(VTArg a, VTArg b) { return _mm_cmpgt_epu16(a, b); }
+            static Vc_INTRINSIC VectorType Vc_CONST cmplt(VTArg a, VTArg b) { return cmplt_epu16(a, b); }
+            static Vc_INTRINSIC VectorType Vc_CONST cmpgt(VTArg a, VTArg b) { return cmpgt_epu16(a, b); }
 #else
             static Vc_INTRINSIC VectorType Vc_CONST cmplt(VTArg a, VTArg b) { return _mm_cmplt_epi16(a, b); }
             static Vc_INTRINSIC VectorType Vc_CONST cmpgt(VTArg a, VTArg b) { return _mm_cmpgt_epi16(a, b); }

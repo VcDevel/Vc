@@ -27,80 +27,64 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Mem
 {
-namespace
-{
-    using Vc_IMPL_NAMESPACE::m128;
-    using Vc_IMPL_NAMESPACE::m128d;
-    using Vc_IMPL_NAMESPACE::m128i;
-    using Vc_IMPL_NAMESPACE::m256;
-    using Vc_IMPL_NAMESPACE::m256d;
-    using Vc_IMPL_NAMESPACE::m256i;
-    using Vc_IMPL_NAMESPACE::param128;
-    using Vc_IMPL_NAMESPACE::param128d;
-    using Vc_IMPL_NAMESPACE::param128i;
-    using Vc_IMPL_NAMESPACE::param256;
-    using Vc_IMPL_NAMESPACE::param256d;
-    using Vc_IMPL_NAMESPACE::param256i;
-} // anonymous namespace
-
-        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE m256 Vc_CONST permute128(param256 x) {
+        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute128(__m256 x) {
             static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
             static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
             return _mm256_permute2f128_ps(
                 x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
         }
-        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE m256d Vc_CONST permute128(param256d x) {
+        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute128(__m256d x) {
             static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
             static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
             return _mm256_permute2f128_pd(
                 x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
         }
-        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE m256i Vc_CONST permute128(param256i x) {
+        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute128(__m256i x) {
             static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
             static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
             return _mm256_permute2f128_si256(
                 x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
         }
-        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE m256 Vc_CONST shuffle128(param256 x, param256 y) {
+        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle128(__m256 x, __m256 y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
             static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
             return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE m256i Vc_CONST shuffle128(param256i x, param256i y) {
+        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256i Vc_CONST shuffle128(__m256i x, __m256i y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
             static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
             return _mm256_permute2f128_si256(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE m256d Vc_CONST shuffle128(param256d x, param256d y) {
+        template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle128(__m256d x, __m256d y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
             static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
             return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE m256d Vc_CONST permute(param256d x) {
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute(__m256d x) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X2 && Dst3 >= X2, "Incorrect_Range");
             static_assert(Dst0 <= X1 && Dst1 <= X1 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
             return _mm256_permute_pd(x, Dst0 + Dst1 * 2 + (Dst2 - X2) * 4 + (Dst3 - X2) * 8);
         }
-        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE m256 Vc_CONST permute(param256 x) {
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
             return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
-        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE m256i Vc_CONST permute(param256i x) {
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute(__m256i x) {
             return _mm256_castps_si256(permute<Dst0, Dst1, Dst2, Dst3>(_mm256_castsi256_ps(x)));
         }
-        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE m256d Vc_CONST shuffle(param256d x, param256d y) {
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle(__m256d x, __m256d y) {
             static_assert(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, "Incorrect_Range");
             static_assert(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, "Incorrect_Range");
             return _mm256_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2 + (Dst2 - X2) * 4 + (Dst3 - Y2) * 8);
         }
-        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE m256 Vc_CONST shuffle(param256 x, param256 y) {
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle(__m256 x, __m256 y) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
             return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
         }
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
-        static Vc_ALWAYS_INLINE m256 Vc_CONST blend(param256 x, param256 y) {
+        static Vc_ALWAYS_INLINE __m256 Vc_CONST blend(__m256 x, __m256 y) {
             static_assert(Dst0 == X0 || Dst0 == Y0, "Incorrect_Range");
             static_assert(Dst1 == X1 || Dst1 == Y1, "Incorrect_Range");
             static_assert(Dst2 == X2 || Dst2 == Y2, "Incorrect_Range");
@@ -117,12 +101,12 @@ namespace
                     );
         }
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
-        static Vc_ALWAYS_INLINE m256i Vc_CONST blend(param256i x, param256i y) {
+        static Vc_ALWAYS_INLINE __m256i Vc_CONST blend(__m256i x, __m256i y) {
             return _mm256_castps_si256(blend<Dst0, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6, Dst7>(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
         }
         template<VecPos Dst> struct ScaleForBlend { enum { Value = Dst >= X4 ? Dst - X4 + Y0 : Dst }; };
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
-        static Vc_ALWAYS_INLINE m256 Vc_CONST permute(param256 x) {
+        static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
             static_assert(Dst0 >= X0 && Dst0 <= X7, "Incorrect_Range");
             static_assert(Dst1 >= X0 && Dst1 <= X7, "Incorrect_Range");
             static_assert(Dst2 >= X0 && Dst2 <= X7, "Incorrect_Range");
@@ -134,9 +118,9 @@ namespace
             if (Dst0 + X4 == Dst4 && Dst1 + X4 == Dst5 && Dst2 + X4 == Dst6 && Dst3 + X4 == Dst7) {
                 return permute<Dst0, Dst1, Dst2, Dst3>(x);
             }
-            const m128 loIn = _mm256_castps256_ps128(x);
-            const m128 hiIn = _mm256_extractf128_ps(x, 1);
-            m128 lo, hi;
+            const __m128 loIn = _mm256_castps256_ps128(x);
+            const __m128 hiIn = _mm256_extractf128_ps(x, 1);
+            __m128 lo, hi;
 
             if (Dst0 < X4 && Dst1 < X4 && Dst2 < X4 && Dst3 < X4) {
                 lo = _mm_permute_ps(loIn, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
@@ -195,63 +179,47 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Reg
 {
-namespace
-{
-    using Vc_IMPL_NAMESPACE::m128;
-    using Vc_IMPL_NAMESPACE::m128d;
-    using Vc_IMPL_NAMESPACE::m128i;
-    using Vc_IMPL_NAMESPACE::m256;
-    using Vc_IMPL_NAMESPACE::m256d;
-    using Vc_IMPL_NAMESPACE::m256i;
-    using Vc_IMPL_NAMESPACE::param128;
-    using Vc_IMPL_NAMESPACE::param128d;
-    using Vc_IMPL_NAMESPACE::param128i;
-    using Vc_IMPL_NAMESPACE::param256;
-    using Vc_IMPL_NAMESPACE::param256d;
-    using Vc_IMPL_NAMESPACE::param256i;
-} // anonymous namespace
-
-        template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE m256 Vc_CONST permute128(param256 x, param256 y) {
+        template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute128(__m256 x, __m256 y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
             static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
             return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE m256i Vc_CONST permute128(param256i x, param256i y) {
+        template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute128(__m256i x, __m256i y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
             static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
             return _mm256_permute2f128_si256(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE m256d Vc_CONST permute128(param256d x, param256d y) {
+        template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute128(__m256d x, __m256d y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
             static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
             return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
-        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE m256d Vc_CONST permute(param256d x) {
+        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute(__m256d x) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X2 && Dst3 >= X2, "Incorrect_Range");
             static_assert(Dst0 <= X1 && Dst1 <= X1 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
             return _mm256_permute_pd(x, Dst0 + Dst1 * 2 + (Dst2 - X2) * 4 + (Dst3 - X2) * 8);
         }
-        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE m256 Vc_CONST permute(param256 x) {
+        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
             return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
-        template<VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE m128d Vc_CONST permute(param128d x) {
+        template<VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128d Vc_CONST permute(__m128d x) {
             static_assert(Dst0 >= X0 && Dst1 >= X0, "Incorrect_Range");
             static_assert(Dst0 <= X1 && Dst1 <= X1, "Incorrect_Range");
             return _mm_permute_pd(x, Dst0 + Dst1 * 2);
         }
-        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE m128 Vc_CONST permute(param128 x) {
+        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128 Vc_CONST permute(__m128 x) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
             return _mm_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
-        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE m256d Vc_CONST shuffle(param256d x, param256d y) {
+        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle(__m256d x, __m256d y) {
             static_assert(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, "Incorrect_Range");
             static_assert(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, "Incorrect_Range");
             return _mm256_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2 + (Dst2 - X2) * 4 + (Dst3 - Y2) * 8);
         }
-        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE m256 Vc_CONST shuffle(param256 x, param256 y) {
+        template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle(__m256 x, __m256 y) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
             return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);

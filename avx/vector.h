@@ -113,9 +113,6 @@ template<typename T> class Vector
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType
         Vc_ALWAYS_INLINE Vector(VectorTypeArg x) : d(x) {}
-#ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
-        Vc_ALWAYS_INLINE Vector(typename VectorType::Base x) : d(x) {}
-#endif
 
         // implict conversion from compatible Vector<U>
         template <typename U>
