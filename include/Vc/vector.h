@@ -22,14 +22,17 @@
 
 #include "global.h"
 
-// first forward declare all possible SIMD impl types
+// 1. forward declare all possible SIMD impl types
 #include "common/types.h"
 #include "scalar/types.h"
 #include "sse/types.h"
 #include "avx/types.h"
 #include "mic/types.h"
 
-// next define all of Vc::Scalar - this one is always present, so it makes sense to put it first
+// 2. forward declare simdarray types
+#include "common/simdarrayfwd.h"
+
+// 3. define all of Vc::Scalar - this one is always present, so it makes sense to put it first
 #include "scalar/vector.h"
 #include "common/simd_cast.h"
 #include "scalar/simd_cast.h"

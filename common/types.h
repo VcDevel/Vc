@@ -80,27 +80,6 @@ enum class Operator : char {
 
 template <typename T, std::size_t N> struct array;
 
-template <typename T, std::size_t N, typename VectorType, std::size_t> class simdarray;
-template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_mask_array;
-
-template <typename T, std::size_t N, typename V>
-Vc_INTRINSIC_L V &internal_data(simdarray<T, N, V, N> &x) Vc_INTRINSIC_R;
-template <typename T, std::size_t N, typename V>
-Vc_INTRINSIC_L const V &internal_data(const simdarray<T, N, V, N> &x) Vc_INTRINSIC_R;
-
-namespace Traits
-{
-template <typename T, std::size_t N, typename V> struct is_atomic_simdarray_internal<simdarray<T, N, V, N>> : public std::true_type {};
-template <typename T, std::size_t N, typename V> struct is_atomic_simd_mask_array_internal<simd_mask_array<T, N, V, N>> : public std::true_type {};
-
-template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simdarray_internal<simdarray<T, N, VectorType, M>> : public std::true_type {};
-template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simd_mask_array_internal<simd_mask_array<T, N, VectorType, M>> : public std::true_type {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_integral_internal      <simdarray<T, N, V, M>, false> : public std::is_integral<T> {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_floating_point_internal<simdarray<T, N, V, M>, false> : public std::is_floating_point<T> {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_signed_internal        <simdarray<T, N, V, M>, false> : public std::is_signed<T> {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_unsigned_internal      <simdarray<T, N, V, M>, false> : public std::is_unsigned<T> {};
-}  // namespace Traits
-
 /* TODO: add type for half-float, something along these lines:
 class half_float
 {

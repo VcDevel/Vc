@@ -32,22 +32,6 @@ namespace Vc_VERSIONED_NAMESPACE
 /// \addtogroup simdarray
 /// @{
 
-template <
-    typename T, std::size_t N,
-    typename VectorType = Common::select_best_vector_type<T, N>,
-    std::size_t VectorSize = VectorType::size()  // this last parameter is only used for
-                                                 // specialization of N == VectorSize
-    >
-class
-#ifndef VC_ICC
-    alignas((((Common::nextPowerOfTwo((N + VectorSize - 1) / VectorSize) *
-               sizeof(typename VectorType::Mask)) -
-              1) &
-             127) +
-            1)
-#endif
-    simd_mask_array;
-
 template <typename T, std::size_t N, typename VectorType_> class simd_mask_array<T, N, VectorType_, N>
 {
 public:

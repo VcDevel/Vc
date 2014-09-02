@@ -26,7 +26,6 @@
 #include <iostream>
 #endif
 
-#include <type_traits>
 #include <array>
 
 #include "writemaskedvector.h"
@@ -73,46 +72,6 @@ template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r
 // simdarray class {{{1
 /// \addtogroup simdarray
 /// @{
-
-// === having simdarray<T, N> in the Vc namespace leads to a ABI bug ===
-//
-// simdarray<double, 4> can be { double[4] }, { __m128d[2] }, or { __m256d } even though the type
-// is the same.
-// The question is, what should simdarray focus on?
-// a) A type that makes interfacing between different implementations possible?
-// b) Or a type that makes fixed size SIMD easier and efficient?
-//
-// a) can be achieved by using a union with T[N] as one member. But this may have more serious
-// performance implications than only less efficient parameter passing (because compilers have a
-// much harder time wrt. aliasing issues). Also alignment would need to be set to the sizeof in
-// order to be compatible with targets with larger alignment requirements.
-// But, the in-memory representation of masks is not portable. Thus, at the latest with AVX-512,
-// there would be a problem with requiring simd_mask_array<T, N> to be an ABI compatible type.
-// AVX-512 uses one bit per boolean, whereas SSE/AVX use sizeof(T) Bytes per boolean. Conversion
-// between the two representations is not a trivial operation. Therefore choosing one or the other
-// representation will have a considerable impact for the targets that do not use this
-// representation. Since the future probably belongs to one bit per boolean representation, I would
-// go with that choice.
-//
-// b) requires that simdarray<T, N> != simdarray<T, N> if
-// simdarray<T, N>::vector_type != simdarray<T, N>::vector_type
-//
-// Therefore use simdarray<T, N, V>, where V follows from the above.
-template <
-    typename T, std::size_t N,
-    typename VectorType = Common::select_best_vector_type<T, N>,
-    std::size_t VectorSize = VectorType::size()  // this last parameter is only used for
-                                                 // specialization of N == VectorSize
-    >
-class
-#ifndef VC_ICC
-    alignas((((Common::nextPowerOfTwo((N + VectorSize - 1) / VectorSize) *
-               sizeof(VectorType)) -
-              1) &
-             127) +
-            1)
-#endif
-    simdarray;
 
 // atomic simdarray {{{1
 template <typename T, std::size_t N, typename VectorType_> class simdarray<T, N, VectorType_, N>
@@ -433,12 +392,14 @@ template <typename T, std::size_t N, typename VectorType, std::size_t> class sim
                   std::is_same<T,  int16_t>::value ||
                   std::is_same<T, uint16_t>::value, "simdarray<T, N> may only be used with T = { double, float, int32_t, uint32_t, int16_t, uint16_t }");
 
-    static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
+    using my_traits = simdarray_traits<T, N>;
+    static constexpr std::size_t N0 = my_traits::N0;
+    static constexpr std::size_t N1 = my_traits::N1;
     using Split = Common::Split<N0>;
 
 public:
-    using storage_type0 = simdarray<T, N0>;
-    using storage_type1 = simdarray<T, N - N0>;
+    using storage_type0 = typename my_traits::storage_type0;
+    using storage_type1 = typename my_traits::storage_type1;
     static_assert(storage_type0::size() == N0, "");
 
     using vector_type = VectorType;
@@ -977,10 +938,10 @@ public:
     }
 
     // internal_data0/1 {{{2
-    friend Vc_INTRINSIC storage_type0 &internal_data0(simdarray &x) { return x.data0; }
-    friend Vc_INTRINSIC storage_type1 &internal_data1(simdarray &x) { return x.data1; }
-    friend Vc_INTRINSIC const storage_type0 &internal_data0(const simdarray &x) { return x.data0; }
-    friend Vc_INTRINSIC const storage_type1 &internal_data1(const simdarray &x) { return x.data1; }
+    friend storage_type0 &internal_data0<>(simdarray &x);
+    friend storage_type1 &internal_data1<>(simdarray &x);
+    friend const storage_type0 &internal_data0<>(const simdarray &x);
+    friend const storage_type1 &internal_data1<>(const simdarray &x);
 
     /// \internal
     Vc_INTRINSIC simdarray(storage_type0 &&x, storage_type1 &&y) //{{{2
@@ -992,6 +953,32 @@ private: //{{{2
     storage_type1 data1;
 };
 template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t simdarray<T, N, VectorType, M>::Size;
+
+// internal_data0/1 (simdarray) {{{1
+template <typename T, std::size_t N, typename V, std::size_t M>
+Vc_INTRINSIC typename simdarray_traits<T, N>::storage_type0 &internal_data0(
+    simdarray<T, N, V, M> &x)
+{
+    return x.data0;
+}
+template <typename T, std::size_t N, typename V, std::size_t M>
+Vc_INTRINSIC typename simdarray_traits<T, N>::storage_type1 &internal_data1(
+    simdarray<T, N, V, M> &x)
+{
+    return x.data1;
+}
+template <typename T, std::size_t N, typename V, std::size_t M>
+Vc_INTRINSIC const typename simdarray_traits<T, N>::storage_type0 &internal_data0(
+    const simdarray<T, N, V, M> &x)
+{
+    return x.data0;
+}
+template <typename T, std::size_t N, typename V, std::size_t M>
+Vc_INTRINSIC const typename simdarray_traits<T, N>::storage_type1 &internal_data1(
+    const simdarray<T, N, V, M> &x)
+{
+    return x.data1;
+}
 
 // binary operators {{{1
 namespace result_vector_type_internal
@@ -1774,3 +1761,5 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 #include "undomacros.h"
 
 #endif // VC_COMMON_SIMD_ARRAY_H
+
+// vim: foldmethod=marker
