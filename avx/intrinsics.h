@@ -23,6 +23,7 @@
 #include "../common/windows_fix_intrin.h"
 
 #include <Vc/global.h>
+#include "../traits/type_traits.h"
 
 // see comment in sse/intrinsics.h
 extern "C" {
@@ -92,17 +93,32 @@ namespace AvxIntrinsics
      * Thus composition is the only solution.
      */
 #ifdef VC_UNCONDITIONAL_AVX2_INTRINSICS
-    template<typename T> struct Alias
+    template <typename T> class Alias
     {
+        T wrapped;
+
+    public:
         typedef T Base;
-        T _d;
-        Vc_ALWAYS_INLINE operator T &() { return _d; }
-        Vc_ALWAYS_INLINE operator const T &() const { return _d; }
-        Vc_ALWAYS_INLINE Alias() : _d() {}
-        Vc_ALWAYS_INLINE Alias(T x) : _d(x) {}
-        Vc_ALWAYS_INLINE Alias(const Alias &) = default;
-        Vc_ALWAYS_INLINE Alias &operator=(T x) { _d = x; return *this; }
-        Vc_ALWAYS_INLINE Alias &operator=(const Alias &) = default;
+
+        Vc_INTRINSIC operator T &() { return wrapped; }
+        Vc_INTRINSIC operator const T &() const { return wrapped; }
+        template <typename U, typename = enable_if<std::is_same<T, U>::value>>
+        Vc_INTRINSIC Alias(U x)
+            : wrapped(x)
+        {
+        }
+        template <typename U, typename = enable_if<std::is_same<T, U>::value>>
+        Vc_INTRINSIC Alias &operator=(U x)
+        {
+            wrapped = x;
+            return *this;
+        }
+
+        constexpr Alias() = default;
+        constexpr Alias(const Alias &) = default;
+        constexpr Alias(Alias &&) = default;
+        Vc_INTRINSIC Alias &operator=(const Alias &) = default;
+        Vc_INTRINSIC Alias &operator=(Alias &&) = default;
     };
     typedef Alias<__m128 > m128 ;
     typedef Alias<__m128d> m128d;
