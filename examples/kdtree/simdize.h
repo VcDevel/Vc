@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <tuple>
 
 #include <Vc/Vc>
+#include <common/macros.h>
 
 namespace simdize_internal
 {
@@ -300,6 +301,34 @@ public:
                                            Adapter<C<T, M>, N>>::type;
 };
 
+template <Vc::Operator Op, typename T, std::size_t N, typename M, typename U,
+          std::size_t Offset>
+Vc_INTRINSIC Vc::enable_if<(Offset >= std::tuple_size<T>::value), void>
+    conditional_assign(Adapter<T, N> &, M &&, U &&)
+{
+}
+template <Vc::Operator Op, typename T, std::size_t N, typename M, typename U,
+          std::size_t Offset = 0>
+Vc_INTRINSIC Vc::enable_if<(Offset < std::tuple_size<T>::value), void> conditional_assign(
+    Adapter<T, N> &lhs, M &&mask, U &&rhs)
+{
+    conditional_assign<Op>(get<Offset>(lhs), mask, get<Offset>(rhs));
+    conditional_assign<Op, T, N, M, U, Offset + 1>(lhs, std::forward<M>(mask),
+                                                   std::forward<U>(rhs));
+}
+template <Vc::Operator Op, typename T, std::size_t N, typename M, std::size_t Offset>
+Vc_INTRINSIC Vc::enable_if<(Offset >= std::tuple_size<T>::value), void>
+    conditional_assign(Adapter<T, N> &, M &&)
+{
+}
+template <Vc::Operator Op, typename T, std::size_t N, typename M, std::size_t Offset = 0>
+Vc_INTRINSIC Vc::enable_if<(Offset < std::tuple_size<T>::value), void> conditional_assign(
+    Adapter<T, N> &lhs, M &&mask)
+{
+    conditional_assign<Op>(get<Offset>(lhs), mask);
+    conditional_assign<Op, T, N, M, Offset + 1>(lhs, std::forward<M>(mask));
+}
+
 /** \internal
  * Generic implementation of simdize_get using the std::tuple get interface.
  */
@@ -386,6 +415,7 @@ inline void simdize_assign(simdize_internal::Adapter<T, N> &a, std::size_t i, co
         a, i, x, Vc::make_index_sequence<std::tuple_size<T>::value>());
 }
 
+#include <common/undomacros.h>
 
 #endif  // VC_EXAMPLES_KDTREE_SIMDIZE_H_
 
