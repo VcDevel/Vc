@@ -365,6 +365,17 @@ class tuple_element<I, simdize_internal::Adapter<C<T0, Ts...>, N, true>>
     : public tuple_element<I, typename simdize_internal::Adapter<C<T0, Ts...>, N, true>::VectorBase>
 {
 };
+
+template <typename T, std::size_t N>
+class allocator<simdize_internal::Adapter<T, N>>
+    : public Vc::Allocator<simdize_internal::Adapter<T, N>>
+{
+public:
+    template <typename U> struct rebind
+    {
+        typedef std::allocator<U> other;
+    };
+};
 }  // namespace std
 
 /**
