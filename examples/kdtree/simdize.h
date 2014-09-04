@@ -300,12 +300,18 @@ public:
                                            Adapter<C<T, M>, N>>::type;
 };
 
+/** \internal
+ * Generic implementation of simdize_get using the std::tuple get interface.
+ */
 template <typename T, std::size_t N, std::size_t... Indexes>
 T simdize_get_impl(const Adapter<T, N> &a, std::size_t i, Vc::index_sequence<Indexes...>)
 {
     return T{get<Indexes>(a)[i]...};
 }
 
+/** \internal
+ * Generic implementation of simdize_assign using the std::tuple get interface.
+ */
 template <typename T, std::size_t N, std::size_t... Indexes>
 inline void simdize_assign_impl(Adapter<T, N> &a, std::size_t i, const T &x,
                                 Vc::index_sequence<Indexes...>)
@@ -358,6 +364,10 @@ class tuple_element<I, simdize_internal::Adapter<C<T0, Ts...>, N, true>>
  */
 template <typename T, std::size_t N = 0> using simdize = simdize_internal::make_vector_or_simdarray<N, T>;
 
+/**
+ * Returns one scalar object, extracted from the SIMD slot at offset \p i from the
+ * simdized object \p a.
+ */
 template <typename T, std::size_t N>
 T simdize_get(const simdize_internal::Adapter<T, N> &a, std::size_t i)
 {
@@ -365,6 +375,10 @@ T simdize_get(const simdize_internal::Adapter<T, N> &a, std::size_t i)
         a, i, Vc::make_index_sequence<std::tuple_size<T>::value>());
 }
 
+/**
+ * Assigns one scalar object \p x to a SIMD slot at offset \p i in the simdized object \p
+ * a.
+ */
 template <typename T, std::size_t N>
 inline void simdize_assign(simdize_internal::Adapter<T, N> &a, std::size_t i, const T &x)
 {
