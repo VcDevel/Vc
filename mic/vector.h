@@ -426,8 +426,42 @@ Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
 
 #include "forcetoregisters.tcc"
 
-}
-}
+#define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
+    template <Operator O, typename T, typename M, typename U>                            \
+    Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \
+        Vector<T> &lhs, M &&mask, U &&rhs)                                               \
+    {                                                                                    \
+        lhs(mask) op__ rhs;                                                              \
+    }
+Vc_CONDITIONAL_ASSIGN(          Assign,  =)
+Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=)
+Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=)
+Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=)
+Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=)
+Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=)
+Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=)
+Vc_CONDITIONAL_ASSIGN(       AndAssign, &=)
+Vc_CONDITIONAL_ASSIGN(        OrAssign, |=)
+Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
+Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
+#undef Vc_CONDITIONAL_ASSIGN
+
+#define Vc_CONDITIONAL_ASSIGN(name__, expr__)                                            \
+    template <Operator O, typename T, typename M>                                        \
+    Vc_INTRINSIC enable_if<O == Operator::name__, Vector<T>> conditional_assign(         \
+        Vector<T> &lhs, M &&mask)                                                        \
+    {                                                                                    \
+        return expr__;                                                                   \
+    }
+Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++)
+Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask))
+Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--)
+Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
+#undef Vc_CONDITIONAL_ASSIGN
+
+} // namespace MIC
+using MIC::conditional_assign;
+} // namespace Vc
 
 #include "vector.tcc"
 #include "undomacros.h"

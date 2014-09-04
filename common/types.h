@@ -37,6 +37,47 @@ namespace Vc_IMPL_NAMESPACE
     template<typename T> class Mask;
 }
 
+enum class Operator : char {
+    Assign,
+    Multiply,
+    MultiplyAssign,
+    Divide,
+    DivideAssign,
+    Remainder,
+    RemainderAssign,
+    Plus,
+    PlusAssign,
+    Minus,
+    MinusAssign,
+    RightShift,
+    RightShiftAssign,
+    LeftShift,
+    LeftShiftAssign,
+    And,
+    AndAssign,
+    Xor,
+    XorAssign,
+    Or,
+    OrAssign,
+    PreIncrement,
+    PostIncrement,
+    PreDecrement,
+    PostDecrement,
+    LogicalAnd,
+    LogicalOr,
+    Comma,
+    UnaryPlus,
+    UnaryMinus,
+    UnaryNot,
+    UnaryOnesComplement,
+    CompareEqual,
+    CompareNotEqual,
+    CompareLess,
+    CompareGreater,
+    CompareLessEqual,
+    CompareGreaterEqual
+};
+
 template <typename T, std::size_t N> struct array;
 
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simdarray;

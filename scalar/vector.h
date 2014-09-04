@@ -416,8 +416,44 @@ template<typename T> class SwizzledVector : public Vector<T> {};
         const Vector<T13> &, const Vector<T14> &,
         const Vector<T15> &, const Vector<T16> &) {}
 
-}
-}
+#define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
+    template <Operator O, typename T, typename M, typename U>                            \
+    Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \
+        Vector<T> &lhs, M &&mask, U &&rhs)                                               \
+    {                                                                                    \
+        if (mask.isFull()) {                                                             \
+            lhs op__ std::forward<U>(rhs);                                               \
+        }                                                                                \
+    }
+Vc_CONDITIONAL_ASSIGN(          Assign,  =)
+Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=)
+Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=)
+Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=)
+Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=)
+Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=)
+Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=)
+Vc_CONDITIONAL_ASSIGN(       AndAssign, &=)
+Vc_CONDITIONAL_ASSIGN(        OrAssign, |=)
+Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
+Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
+#undef Vc_CONDITIONAL_ASSIGN
+
+#define Vc_CONDITIONAL_ASSIGN(name__, expr__)                                            \
+    template <Operator O, typename T, typename M>                                        \
+    Vc_INTRINSIC enable_if<O == Operator::name__, Vector<T>> conditional_assign(         \
+        Vector<T> &lhs, M &&mask)                                                        \
+    {                                                                                    \
+        return mask.isFull() ? (expr__) : lhs;                                           \
+    }
+Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs++)
+Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs)
+Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs--)
+Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs)
+#undef Vc_CONDITIONAL_ASSIGN
+
+}  // namespace Scalar
+using Scalar::conditional_assign;
+}  // namespace Vc
 
 #include "vector.tcc"
 #include "undomacros.h"

@@ -25,9 +25,14 @@
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+
 namespace WhereImpl
 {
 
+    /** \internal
+     * The default implementation covers Vc::Mask types and any \p _LValue type that implements an
+     * overload for the Vc::conditional_assign function.
+     */
     template<typename _Mask, typename _LValue> struct MaskedLValue
     {
         typedef _Mask Mask;
@@ -45,21 +50,21 @@ namespace WhereImpl
          * mask the code might get skipped completely, thus nothing can be returned. This would be
          * like requiring an if statement to return a value.
          */
-        template<typename T> Vc_ALWAYS_INLINE void operator  =(T &&rhs) { lhs(mask)   = std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator +=(T &&rhs) { lhs(mask)  += std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator -=(T &&rhs) { lhs(mask)  -= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator *=(T &&rhs) { lhs(mask)  *= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator /=(T &&rhs) { lhs(mask)  /= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator %=(T &&rhs) { lhs(mask)  %= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator ^=(T &&rhs) { lhs(mask)  ^= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator &=(T &&rhs) { lhs(mask)  &= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator |=(T &&rhs) { lhs(mask)  |= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator<<=(T &&rhs) { lhs(mask) <<= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator>>=(T &&rhs) { lhs(mask) >>= std::forward<T>(rhs); }
-        Vc_ALWAYS_INLINE void operator++()    { ++lhs(mask); }
-        Vc_ALWAYS_INLINE void operator++(int) { lhs(mask)++; }
-        Vc_ALWAYS_INLINE void operator--()    { --lhs(mask); }
-        Vc_ALWAYS_INLINE void operator--(int) { lhs(mask)--; }
+        template<typename T> Vc_ALWAYS_INLINE void operator  =(T &&rhs) { conditional_assign<Operator::          Assign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator +=(T &&rhs) { conditional_assign<Operator::      PlusAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator -=(T &&rhs) { conditional_assign<Operator::     MinusAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator *=(T &&rhs) { conditional_assign<Operator::  MultiplyAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator /=(T &&rhs) { conditional_assign<Operator::    DivideAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator %=(T &&rhs) { conditional_assign<Operator:: RemainderAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator ^=(T &&rhs) { conditional_assign<Operator::       XorAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator &=(T &&rhs) { conditional_assign<Operator::       AndAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator |=(T &&rhs) { conditional_assign<Operator::        OrAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator<<=(T &&rhs) { conditional_assign<Operator:: LeftShiftAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator>>=(T &&rhs) { conditional_assign<Operator::RightShiftAssign>(lhs, mask, std::forward<T>(rhs)); }
+        Vc_ALWAYS_INLINE void operator++()    { conditional_assign<Operator:: PreIncrement>(lhs, mask); }
+        Vc_ALWAYS_INLINE void operator++(int) { conditional_assign<Operator::PostIncrement>(lhs, mask); }
+        Vc_ALWAYS_INLINE void operator--()    { conditional_assign<Operator:: PreDecrement>(lhs, mask); }
+        Vc_ALWAYS_INLINE void operator--(int) { conditional_assign<Operator::PostDecrement>(lhs, mask); }
     };
 
     template <typename _Mask, typename T_, typename I_, typename S_>
