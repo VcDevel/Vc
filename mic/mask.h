@@ -104,7 +104,7 @@ public:
     static constexpr std::size_t size() { return Size; }
     typedef Mask<T> AsArg; // for now only ICC can compile this code and it is not broken :)
 
-    Vc_INTRINSIC Mask() {}
+    Vc_INTRINSIC Mask() : k() {}
     Vc_INTRINSIC Mask(MaskType _k) : k(_k) {}
     Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(0) {}
     Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : k(Size == 16 ? 0xffff : 0xff) {}
