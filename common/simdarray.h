@@ -1729,6 +1729,39 @@ Vc_BINARY_FUNCTION__(min)
 Vc_BINARY_FUNCTION__(max)
 #undef Vc_BINARY_FUNCTION__
 }  // namespace internal
+// conditional_assign {{{1
+#define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
+    template <Operator O, typename T, std::size_t N, typename M, typename U>             \
+    Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \
+        simdarray<T, N> &lhs, M &&mask, U &&rhs)                                         \
+    {                                                                                    \
+        lhs(mask) op__ rhs;                                                              \
+    }
+Vc_CONDITIONAL_ASSIGN(          Assign,  =)
+Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=)
+Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=)
+Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=)
+Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=)
+Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=)
+Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=)
+Vc_CONDITIONAL_ASSIGN(       AndAssign, &=)
+Vc_CONDITIONAL_ASSIGN(        OrAssign, |=)
+Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
+Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
+#undef Vc_CONDITIONAL_ASSIGN
+
+#define Vc_CONDITIONAL_ASSIGN(name__, expr__)                                            \
+    template <Operator O, typename T, std::size_t N, typename M>                         \
+    Vc_INTRINSIC enable_if<O == Operator::name__, simdarray<T, N>> conditional_assign(   \
+        simdarray<T, N> &lhs, M &&mask)                                                  \
+    {                                                                                    \
+        return expr__;                                                                   \
+    }
+Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++)
+Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask))
+Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--)
+Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
+#undef Vc_CONDITIONAL_ASSIGN
 // }}}1
 /// @}
 
