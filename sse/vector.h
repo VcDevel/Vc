@@ -133,11 +133,6 @@ template<typename T> class Vector
 #include "../common/storeinterface.h"
 
         ///////////////////////////////////////////////////////////////////////////////////////////
-        // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
-        explicit Vc_INTRINSIC_L Vector(const Vector<typename CtorTypeHelper<T>::Type> *a) Vc_INTRINSIC_R;
-        inline void expand(Vector<typename ExpandTypeHelper<T>::Type> *x) const;
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
         // zeroing
         Vc_INTRINSIC_L void setZero() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setZero(const Mask &k) Vc_INTRINSIC_R;

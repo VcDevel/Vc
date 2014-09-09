@@ -723,40 +723,6 @@ template <> struct IndexTypeHelper<16u>
     typedef unsigned char Type;
 };
 
-template <typename T> struct CtorTypeHelper
-{
-    typedef T Type;
-};
-template <> struct CtorTypeHelper<short>
-{
-    typedef int Type;
-};
-template <> struct CtorTypeHelper<unsigned short>
-{
-    typedef unsigned int Type;
-};
-template <> struct CtorTypeHelper<float>
-{
-    typedef double Type;
-};
-
-template <typename T> struct ExpandTypeHelper
-{
-    typedef T Type;
-};
-template <> struct ExpandTypeHelper<short>
-{
-    typedef int Type;
-};
-template <> struct ExpandTypeHelper<unsigned short>
-{
-    typedef unsigned int Type;
-};
-template <> struct ExpandTypeHelper<float>
-{
-    typedef double Type;
-};
-
 template <typename T> struct VectorTypeHelper
 {
     typedef __m128i Type;

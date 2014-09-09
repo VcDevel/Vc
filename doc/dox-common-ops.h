@@ -130,24 +130,6 @@ template<typename OtherVector> explicit VECTOR_TYPE(const OtherVector &);
 VECTOR_TYPE(ENTRY_TYPE x);
 
 /**
- * Construct a vector from an array of vectors with different Size.
- *
- * E.g. convert from two double_v to one float_v.
- *
- * \see expand
- */
-//VECTOR_TYPE(const OtherVector *array);
-
-/**
- * Expand the values into an array of vectors that have a different Size.
- *
- * E.g. convert from one float_v to two double_v.
- *
- * This is the reverse of the above constructor.
- */
-//void expand(OtherVector *array) const;
-
-/**
  * Load the vector entries from \p memory, overwriting the previous values.
  *
  * \param memory A pointer to data.

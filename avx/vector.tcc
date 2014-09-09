@@ -265,43 +265,6 @@ Vc_INTRINSIC void Vector<T>::store(U *mem, Mask mask, Flags flags) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX {{{1
-template<typename T> Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::Vector(const Vector<typename HT::ConcatType> *a)
-    : d(a[0])
-{
-}
-template<> Vc_ALWAYS_INLINE Vc_FLATTEN Vector<float>::Vector(const Vector<HT::ConcatType> *a)
-    : d(concat(_mm256_cvtpd_ps(a[0].data()), _mm256_cvtpd_ps(a[1].data())))
-{
-}
-template<> Vc_ALWAYS_INLINE Vc_FLATTEN Vector<short>::Vector(const Vector<HT::ConcatType> *a)
-    : d(_mm_packs_epi32(lo128(a->data()), hi128(a->data())))
-{
-}
-template<> Vc_ALWAYS_INLINE Vc_FLATTEN Vector<unsigned short>::Vector(const Vector<HT::ConcatType> *a)
-    : d(_mm_packus_epi32(lo128(a->data()), hi128(a->data())))
-{
-}
-template<typename T> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::expand(Vector<typename HT::ConcatType> *x) const
-{
-    x[0] = *this;
-}
-template<> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<float>::expand(Vector<HT::ConcatType> *x) const
-{
-    x[0].data() = _mm256_cvtps_pd(lo128(d.v()));
-    x[1].data() = _mm256_cvtps_pd(hi128(d.v()));
-}
-template<> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<short>::expand(Vector<HT::ConcatType> *x) const
-{
-    x[0].data() = concat(_mm_cvtepi16_epi32(d.v()),
-            _mm_cvtepi16_epi32(_mm_unpackhi_epi64(d.v(), d.v())));
-}
-template<> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<unsigned short>::expand(Vector<HT::ConcatType> *x) const
-{
-    x[0].data() = concat(_mm_cvtepu16_epi32(d.v()),
-            _mm_cvtepu16_epi32(_mm_unpackhi_epi64(d.v(), d.v())));
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 // swizzles {{{1
 template<typename T> Vc_INTRINSIC const Vector<T> Vc_PURE &Vector<T>::abcd() const { return *this; }

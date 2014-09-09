@@ -108,11 +108,6 @@ template <typename T> class Vector
 #include "../common/storeinterface.h"
 
         ///////////////////////////////////////////////////////////////////////////////////////////
-        // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
-        template<typename OtherT> Vc_ALWAYS_INLINE void expand(Vector<OtherT> *x) const { x->data() = static_cast<OtherT>(m_data); }
-        template<typename OtherT> explicit Vc_ALWAYS_INLINE Vector(const Vector<OtherT> *a) : m_data(static_cast<EntryType>(a->data())) {}
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
         // zeroing
         Vc_ALWAYS_INLINE void setZero() { m_data = 0; }
         Vc_ALWAYS_INLINE void setZero(Mask k) { if (k.data()) m_data = 0; }

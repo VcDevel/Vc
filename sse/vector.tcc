@@ -215,33 +215,6 @@ Vc_INTRINSIC void Vector<DstT>::load(const SrcT *mem, Flags flags)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// expand/combine {{{1
-template<typename T> Vc_INTRINSIC Vector<T>::Vector(const Vector<typename CtorTypeHelper<T>::Type> *a)
-    : d(VectorHelper<T>::concat(a[0].data(), a[1].data()))
-{
-}
-
-template<typename T> inline void Vector<T>::expand(Vector<typename ExpandTypeHelper<T>::Type> *x) const
-{
-    *x = *this;
-}
-
-template<> inline void float_v::expand(double_v *x) const
-{
-    x[0].data() = _mm_cvtps_pd(data());
-    x[1].data() = _mm_cvtps_pd(_mm_movehl_ps(data(), data()));
-}
-template<> inline void short_v::expand(int_v *x) const
-{
-    x[0].data() = HT::expand0(data());
-    x[1].data() = HT::expand1(data());
-}
-template<> inline void ushort_v::expand(uint_v *x) const
-{
-    x[0].data() = HT::expand0(data());
-    x[1].data() = HT::expand1(data());
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 // zeroing {{{1
 template<typename T> Vc_INTRINSIC void Vector<T>::setZero()

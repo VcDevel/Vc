@@ -237,7 +237,6 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             typedef const VectorType VTArg;
 #endif
             typedef double EntryType;
-            typedef double ConcatType;
 #define SUFFIX pd
 
             static Vc_ALWAYS_INLINE VectorType notMaskedToZero(VTArg a, param256 mask) { return CAT(_mm256_and_, SUFFIX)(_mm256_castps_pd(mask), a); }
@@ -335,7 +334,6 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 #else
             typedef const VectorType VTArg;
 #endif
-            typedef double ConcatType;
 #define SUFFIX ps
 
             static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VTArg a, param256 mask) { return CAT(_mm256_and_, SUFFIX)(mask, a); }
@@ -427,7 +425,6 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 #else
             typedef const VectorType VTArg;
 #endif
-            typedef long long ConcatType;
 #define SUFFIX si256
 
             static Vc_INTRINSIC Vc_CONST VectorType or_(VTArg a, VTArg b) { return or_si256(a, b); }
@@ -514,7 +511,6 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
 #else
             typedef const VectorType VTArg;
 #endif
-            typedef unsigned long long ConcatType;
 #define SUFFIX si256
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
             static Vc_INTRINSIC VectorType Vc_CONST zero() { return CAT(_mm256_setzero_, SUFFIX)(); }
@@ -610,7 +606,6 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             typedef const VectorType VTArg;
 #endif
             typedef signed short EntryType;
-            typedef int ConcatType;
 
             static Vc_INTRINSIC VectorType Vc_CONST or_(VTArg a, VTArg b) { return _mm_or_si128(a, b); }
             static Vc_INTRINSIC VectorType Vc_CONST and_(VTArg a, VTArg b) { return _mm_and_si128(a, b); }
@@ -702,7 +697,6 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             typedef const VectorType VTArg;
 #endif
             typedef unsigned short EntryType;
-            typedef unsigned int ConcatType;
 
             static Vc_INTRINSIC VectorType Vc_CONST or_(VTArg a, VTArg b) { return _mm_or_si128(a, b); }
             static Vc_INTRINSIC VectorType Vc_CONST and_(VTArg a, VTArg b) { return _mm_and_si128(a, b); }
@@ -806,7 +800,6 @@ template<> struct VectorHelper<char>
     typedef const VectorType VTArg;
 #endif
     typedef char EntryType;
-    typedef short ConcatType;
 };
 
 template<> struct VectorHelper<signed char>
@@ -818,7 +811,6 @@ template<> struct VectorHelper<signed char>
     typedef const VectorType VTArg;
 #endif
     typedef signed char EntryType;
-    typedef short ConcatType;
 };
 
 template<> struct VectorHelper<unsigned char>
@@ -830,7 +822,6 @@ template<> struct VectorHelper<unsigned char>
     typedef const VectorType VTArg;
 #endif
     typedef unsigned char EntryType;
-    typedef unsigned short ConcatType;
 };
 
 }

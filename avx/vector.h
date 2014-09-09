@@ -163,11 +163,6 @@ template<typename T> class Vector
 #include "../common/storeinterface.h"
 
         ///////////////////////////////////////////////////////////////////////////////////////////
-        // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
-        explicit inline Vector(const Vector<typename HT::ConcatType> *a);
-        inline void expand(Vector<typename HT::ConcatType> *x) const;
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
         // zeroing
         Vc_INTRINSIC_L void setZero() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setZero(const Mask &k) Vc_INTRINSIC_R;

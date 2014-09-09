@@ -91,8 +91,6 @@ public:
         Vc_ALWAYS_INLINE Mask &operator=(const Mask &rhs) { m = rhs.m; return *this; }
         Vc_ALWAYS_INLINE Mask &operator=(bool rhs) { m = rhs; return *this; }
 
-        Vc_ALWAYS_INLINE void expand(Mask *x) { x[0].m = m; }
-
         Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return m == rhs.m; }
         Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return m != rhs.m; }
 

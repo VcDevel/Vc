@@ -320,28 +320,6 @@ template<> Vc_INTRINSIC Vc_CONST double_v double_v::dcba() const {
     //ABCD
     return _mm512_swizzle_pd(_mm512_swizzle_pd(d.v(), _MM_SWIZ_REG_CDAB), _MM_SWIZ_REG_BADC);
 }
-// expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX {{{1
-template<typename T> Vc_ALWAYS_INLINE Vc_FLATTEN Vector<T>::Vector(const Vector<typename ConcatTypeHelper<T>::Type> *a)
-    : d(a[0].data())
-{
-}
-template<> Vc_ALWAYS_INLINE Vc_FLATTEN float_v::Vector(const double_v *a)
-    : d(mic_cast<__m512>(_mm512_mask_permute4f128_epi32(
-                    mic_cast<__m512i>(_mm512_cvtpd_pslo(a[0].data())), 0xff00,
-                    mic_cast<__m512i>(_mm512_cvtpd_pslo(a[1].data())), _MM_PERM_BABA)))
-{
-}
-
-template<typename T> Vc_ALWAYS_INLINE void Vc_FLATTEN Vector<T>::expand(Vector<typename ConcatTypeHelper<T>::Type> *x) const
-{
-    x[0].data() = data();
-}
-template<> Vc_ALWAYS_INLINE void Vc_FLATTEN float_v::expand(double_v *x) const
-{
-    x[0].data() = _mm512_cvtpslo_pd(d.v());
-    x[1].data() = _mm512_cvtpslo_pd(_mm512_permute4f128_ps(d.v(), _MM_PERM_DCDC));
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 // negation {{{1
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator-() const
