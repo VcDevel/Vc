@@ -59,7 +59,7 @@ template <std::size_t N, typename T0, typename T,
           std::is_same<T, unsigned short>::value || std::is_same<T, int>::value ||
           std::is_same<T, unsigned int>::value || std::is_same<T, float>::value ||
           std::is_same<T, double>::value>
-struct make_vector_or_simdarray_impl
+struct ReplaceTypes
 {
     using type = T;
 };
@@ -68,8 +68,7 @@ struct make_vector_or_simdarray_impl
  * Specialization for non-zero \p N and a type \p T that can be used with Vector<T> to
  * create Vector<T> or simdarray<T, N>
  */
-template <std::size_t N, typename T0, typename T>
-struct make_vector_or_simdarray_impl<N, T0, T, true>
+template <std::size_t N, typename T0, typename T> struct ReplaceTypes<N, T0, T, true>
 {
     using type = typename std::conditional<N == Vc::Vector<T>::Size, Vc::Vector<T>,
                                            Vc::simdarray<T, N>>::type;
@@ -77,8 +76,7 @@ struct make_vector_or_simdarray_impl<N, T0, T, true>
 /** \internal
  * Specialization for non-zero \p N and bool to create Mask<T0> or simd_mask_array<T0, N>.
  */
-template <std::size_t N, typename T0>
-struct make_vector_or_simdarray_impl<N, T0, bool, true>
+template <std::size_t N, typename T0> struct ReplaceTypes<N, T0, bool, true>
 {
     using type = typename std::conditional<N == Vc::Mask<T0>::Size, Vc::Mask<T0>,
                                            Vc::simd_mask_array<T0, N>>::type;
@@ -86,7 +84,7 @@ struct make_vector_or_simdarray_impl<N, T0, bool, true>
 /** \internal
  * Specialization for \p N = 0 and bool to create Mask<T0>.
  */
-template <typename T0> struct make_vector_or_simdarray_impl<0, T0, bool, true>
+template <typename T0> struct ReplaceTypes<0, T0, bool, true>
 {
     using type = Vc::Mask<T0>;
 };
@@ -94,14 +92,14 @@ template <typename T0> struct make_vector_or_simdarray_impl<0, T0, bool, true>
  * Specialization for \p N = 0 and bool to create Mask<float> (because no usable T0 is
  * given).
  */
-template <> struct make_vector_or_simdarray_impl<0, bool, bool, true>
+template <> struct ReplaceTypes<0, bool, bool, true>
 {
     using type = Vc::Mask<float>;
 };
 /** \internal
  * Specialization for \p N = 0 and arithmetic \p T to create Vector<T>.
  */
-template <typename T> struct make_vector_or_simdarray_impl<0, T, T, true>
+template <typename T> struct ReplaceTypes<0, T, T, true>
 {
     using type = Vc::Vector<T>;
 };
@@ -111,7 +109,7 @@ template <typename T> struct make_vector_or_simdarray_impl<0, T, T, true>
  */
 template <std::size_t N, typename T0, template <typename...> class C, typename T1,
           typename... Ts>
-struct make_vector_or_simdarray_impl<N, T0, C<T1, Ts...>, false>;
+struct ReplaceTypes<N, T0, C<T1, Ts...>, false>;
 
 /** \internal
  * Specialization for a template class argument with template arguments <type, size_t> to
@@ -119,14 +117,14 @@ struct make_vector_or_simdarray_impl<N, T0, C<T1, Ts...>, false>;
  */
 template <typename T0, template <typename, std::size_t> class C, typename T,
           std::size_t N, std::size_t M>
-struct make_vector_or_simdarray_impl<N, T0, C<T, M>, false>;
+struct ReplaceTypes<N, T0, C<T, M>, false>;
 
 /** \internal
  * A SIMD Vector type of \p T, either as Vc::simdarray or Vc::Vector, depending on \p N.
  * If Vector<T> has a size equal to N, Vector<T> is used, otherwise simdarray<T, N>.
  */
-template <std::size_t N, typename T0, typename T = T0>
-using make_vector_or_simdarray = typename make_vector_or_simdarray_impl<N, T0, T>::type;
+template <typename T0, std::size_t N, typename T = T0>
+using simdize = typename ReplaceTypes<N, T0, T>::type;
 
 /** \internal
  * A type trait test for whether a type T supports std::tuple_size and std::tuple_element.
@@ -165,14 +163,13 @@ template <std::size_t> Dummy__ get(Dummy__ x);
 
 template <template <typename, std::size_t> class C, typename T0, std::size_t N,
           std::size_t M, bool HasTupleInterface>
-class Adapter<C<T0, M>, N, HasTupleInterface>
-    : public C<make_vector_or_simdarray<N, T0>, M>
+class Adapter<C<T0, M>, N, HasTupleInterface> : public C<simdize<T0, N>, M>
 {
 public:
     using ScalarBase = C<T0, M>;
-    using VectorBase = C<make_vector_or_simdarray<N, T0>, M>;
+    using VectorBase = C<simdize<T0, N>, M>;
 
-    using FirstVectorType = make_vector_or_simdarray<N, T0>;
+    using FirstVectorType = simdize<T0, N>;
     using VectorTypesTuple = std::tuple<FirstVectorType>;
 
     static constexpr std::size_t Size = FirstVectorType::Size;
@@ -217,10 +214,9 @@ public:
 };
 
 template <std::size_t N, template <typename...> class C, typename T0, typename... Ts>
-using make_adapter_base_type = C<
-    make_vector_or_simdarray<N, T0>,
-    make_vector_or_simdarray<
-        Vc::Traits::simd_vector_size<make_vector_or_simdarray<N, T0>>::value, T0, Ts>...>;
+using make_adapter_base_type =
+    C<simdize<T0, N>,
+      simdize<T0, Vc::Traits::simd_vector_size<simdize<T0, N>>::value, Ts>...>;
 
 template <template <typename...> class C, typename T0, typename... Ts, std::size_t N,
           bool HasTupleInterface>
@@ -231,9 +227,9 @@ public:
     using ScalarBase = C<T0, Ts...>;
     using VectorBase = make_adapter_base_type<N, C, T0, Ts...>;
 
-    using FirstVectorType = make_vector_or_simdarray<N, T0>;
-    using VectorTypesTuple = std::tuple<
-        FirstVectorType, make_vector_or_simdarray<FirstVectorType::Size, T0, Ts>...>;
+    using FirstVectorType = simdize<T0, N>;
+    using VectorTypesTuple =
+        std::tuple<FirstVectorType, simdize<T0, FirstVectorType::Size, Ts>...>;
 
     static constexpr std::size_t Size = FirstVectorType::Size;
     static constexpr std::size_t size() { return Size; }
@@ -278,7 +274,7 @@ public:
 
 template <std::size_t N, typename T0, template <typename...> class C, typename T1,
           typename... Ts>
-struct make_vector_or_simdarray_impl<N, T0, C<T1, Ts...>, false>
+struct ReplaceTypes<N, T0, C<T1, Ts...>, false>
 {
 private:
     using base = make_adapter_base_type<N, C, T1, Ts...>;
@@ -291,10 +287,10 @@ public:
 
 template <typename T0, template <typename, std::size_t> class C, typename T,
           std::size_t N, std::size_t M>
-struct make_vector_or_simdarray_impl<N, T0, C<T, M>, false>
+struct ReplaceTypes<N, T0, C<T, M>, false>
 {
 private:
-    typedef C<make_vector_or_simdarray<N, T>, M> base;
+    typedef C<simdize<T, N>, M> base;
 
 public:
     using type = typename std::conditional<std::is_same<base, C<T, M>>::value, C<T, M>,
@@ -423,7 +419,7 @@ public:
  *           Thus, setting this value is a portability issue for performance. A possible way out is
  *           to base the value on a native SIMD vector size, such as float_v::Size.
  */
-template <typename T, std::size_t N = 0> using simdize = simdize_internal::make_vector_or_simdarray<N, T>;
+template <typename T, std::size_t N = 0> using simdize = simdize_internal::simdize<T, N>;
 
 #include <common/undomacros.h>
 
