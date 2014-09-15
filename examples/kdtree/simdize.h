@@ -344,8 +344,8 @@ template <typename T, std::size_t N, std::size_t... Indexes>
 inline void simdize_assign_impl(Adapter<T, N> &a, std::size_t i, const T &x,
                                 Vc::index_sequence<Indexes...>)
 {
-    auto &&unused = {(get<Indexes>(a)[i] = x[Indexes])...};
-    if (&unused) {}
+    auto &&unused = {&(get<Indexes>(a)[i] = x[Indexes])...};
+    if (&unused == &unused) {}
 }
 }  // namespace simdize_internal
 
