@@ -347,6 +347,25 @@ inline void simdize_assign_impl(Adapter<T, N> &a, std::size_t i, const T &x,
     auto &&unused = {&(get<Indexes>(a)[i] = x[Indexes])...};
     if (&unused == &unused) {}
 }
+
+/**
+ * Returns one scalar object, extracted from the SIMD slot at offset \p i from the
+ * simdized object \p a.
+ */
+template <typename T, std::size_t N> T simdize_get(const Adapter<T, N> &a, std::size_t i)
+{
+    return simdize_get_impl(a, i, Vc::make_index_sequence<std::tuple_size<T>::value>());
+}
+
+/**
+ * Assigns one scalar object \p x to a SIMD slot at offset \p i in the simdized object \p
+ * a.
+ */
+template <typename T, std::size_t N>
+inline void simdize_assign(Adapter<T, N> &a, std::size_t i, const T &x)
+{
+    simdize_assign_impl(a, i, x, Vc::make_index_sequence<std::tuple_size<T>::value>());
+}
 }  // namespace simdize_internal
 
 namespace std
@@ -364,7 +383,10 @@ class tuple_element<I, simdize_internal::Adapter<C<T0, Ts...>, N, true>>
     : public tuple_element<I, typename simdize_internal::Adapter<C<T0, Ts...>, N, true>::VectorBase>
 {
 };
+// std::get does not need additional work because simdize_internal::Adapter derives from the
+// C<Ts...> and therefore if get<N>(C<Ts...>) works it works for Adapter as well.
 
+// std::allocator<simdize_internal::Adapter<T, N>>
 template <typename T, std::size_t N>
 class allocator<simdize_internal::Adapter<T, N>>
     : public Vc::Allocator<simdize_internal::Adapter<T, N>>
@@ -387,7 +409,7 @@ public:
  * using Data = std::tuple<float, int, bool>;
  * Data x;
  * using DataVec = simdize<Data>;
- * Data v = x;
+ * DataVec v = x;
  * // tuple_size<Data>::value == tuple_size<DataVec>
  * get<0>(x) = 1.f;
  * get<0>(v) = Vc::float_v::IndexesFromZero();
@@ -396,34 +418,12 @@ public:
  *
  * \tparam T The type to recursively translate to SIMD types.
  *
- * \tparam N Optionally, you can request the number of values in the vector types. This can lead to
+ * \tparam N Optionally, you can request the number of values in the vector types. This can
  *           make code more efficient for some specific platforms and badly optimized for others.
  *           Thus, setting this value is a portability issue for performance. A possible way out is
  *           to base the value on a native SIMD vector size, such as float_v::Size.
  */
 template <typename T, std::size_t N = 0> using simdize = simdize_internal::make_vector_or_simdarray<N, T>;
-
-/**
- * Returns one scalar object, extracted from the SIMD slot at offset \p i from the
- * simdized object \p a.
- */
-template <typename T, std::size_t N>
-T simdize_get(const simdize_internal::Adapter<T, N> &a, std::size_t i)
-{
-    return simdize_internal::simdize_get_impl(
-        a, i, Vc::make_index_sequence<std::tuple_size<T>::value>());
-}
-
-/**
- * Assigns one scalar object \p x to a SIMD slot at offset \p i in the simdized object \p
- * a.
- */
-template <typename T, std::size_t N>
-inline void simdize_assign(simdize_internal::Adapter<T, N> &a, std::size_t i, const T &x)
-{
-    simdize_internal::simdize_assign_impl(
-        a, i, x, Vc::make_index_sequence<std::tuple_size<T>::value>());
-}
 
 #include <common/undomacros.h>
 
