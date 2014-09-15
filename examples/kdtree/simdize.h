@@ -304,29 +304,28 @@ public:
 template <Vc::Operator Op, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset>
 Vc_INTRINSIC Vc::enable_if<(Offset >= std::tuple_size<T>::value), void>
-    conditional_assign(Adapter<T, N> &, M &&, U &&)
+    conditional_assign(Adapter<T, N> &, const M &, const U &)
 {
 }
 template <Vc::Operator Op, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset = 0>
 Vc_INTRINSIC Vc::enable_if<(Offset < std::tuple_size<T>::value), void> conditional_assign(
-    Adapter<T, N> &lhs, M &&mask, U &&rhs)
+    Adapter<T, N> &lhs, const M &mask, const U &rhs)
 {
     conditional_assign<Op>(get<Offset>(lhs), mask, get<Offset>(rhs));
-    conditional_assign<Op, T, N, M, U, Offset + 1>(lhs, std::forward<M>(mask),
-                                                   std::forward<U>(rhs));
+    conditional_assign<Op, T, N, M, U, Offset + 1>(lhs, mask, rhs);
 }
 template <Vc::Operator Op, typename T, std::size_t N, typename M, std::size_t Offset>
 Vc_INTRINSIC Vc::enable_if<(Offset >= std::tuple_size<T>::value), void>
-    conditional_assign(Adapter<T, N> &, M &&)
+    conditional_assign(Adapter<T, N> &, const M &)
 {
 }
 template <Vc::Operator Op, typename T, std::size_t N, typename M, std::size_t Offset = 0>
 Vc_INTRINSIC Vc::enable_if<(Offset < std::tuple_size<T>::value), void> conditional_assign(
-    Adapter<T, N> &lhs, M &&mask)
+    Adapter<T, N> &lhs, const M &mask)
 {
     conditional_assign<Op>(get<Offset>(lhs), mask);
-    conditional_assign<Op, T, N, M, Offset + 1>(lhs, std::forward<M>(mask));
+    conditional_assign<Op, T, N, M, Offset + 1>(lhs, mask);
 }
 
 /** \internal
