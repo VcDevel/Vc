@@ -126,19 +126,34 @@ struct ReplaceTypes<N, T0, C<T, M>, false>;
 template <typename T0, std::size_t N, typename T = T0>
 using simdize = typename ReplaceTypes<N, T0, T>::type;
 
-/** \internal
- * A type trait test for whether a type T supports std::tuple_size and std::tuple_element.
- */
+// dummy get<N>(...)
+namespace
+{
+struct Dummy__;
+template <std::size_t> Dummy__ get(Dummy__ x);
+}  // unnamed namespace
+
 namespace has_tuple_interface_impl
 {
 template <typename T, int = std::tuple_size<T>::value,
-          typename = typename std::tuple_element<0, T>::type>
+          typename = typename std::tuple_element<0, T>::type,
+          typename = decltype(get<0>(std::declval<const T &>()))>
 std::true_type test(int);
 template <typename T> std::false_type test(...);
-static_assert(decltype(test<std::tuple<int>>(1))::value == true, "");
-static_assert(decltype(test<std::array<int, 3>>(1))::value == true, "");
-static_assert(decltype(test<std::allocator<int>>(1))::value == false, "");
 }  // namespace has_tuple_interface_impl
+
+/** \internal
+ * A type trait test for whether a type T supports std::tuple_size and std::tuple_element.
+ */
+template <typename T> constexpr bool has_tuple_interface()
+{
+    return decltype(has_tuple_interface_impl::test<Vc::Traits::decay<T>>(1))::value;
+}
+static_assert(has_tuple_interface<std::tuple<int>>(), "");
+static_assert(has_tuple_interface<const std::tuple<int> &>(), "");
+static_assert(has_tuple_interface<std::tuple<int> &&>(), "");
+static_assert(has_tuple_interface<std::array<int, 3>>(), "");
+static_assert(!has_tuple_interface<std::allocator<int>>(), "");
 
 /** \internal
  * \brief An adapter for making a simdized template class easier to use.
@@ -151,15 +166,8 @@ static_assert(decltype(test<std::allocator<int>>(1))::value == false, "");
  *                           those types that do.
  */
 template <typename T, std::size_t N,
-          bool HasTupleInterface = decltype(has_tuple_interface_impl::test<T>(1))::value>
+          bool HasTupleInterface = has_tuple_interface<T>()>
 struct Adapter;
-
-// dummy get<N>(...)
-namespace
-{
-struct Dummy__;
-template <std::size_t> Dummy__ get(Dummy__ x);
-}  // unnamed namespace
 
 template <template <typename, std::size_t> class C, typename T0, std::size_t N,
           std::size_t M, bool HasTupleInterface>
