@@ -155,6 +155,59 @@ static_assert(has_tuple_interface<std::tuple<int> &&>(), "");
 static_assert(has_tuple_interface<std::array<int, 3>>(), "");
 static_assert(!has_tuple_interface<std::allocator<int>>(), "");
 
+#ifdef VC_ICC
+template <typename Class, typename... Args>
+constexpr bool is_constructible_with_single_brace()
+{
+    return true;
+}
+template <typename Class, typename... Args>
+constexpr bool is_constructible_with_double_brace()
+{
+    return false;
+}
+#else
+namespace is_constructible_with_single_brace_impl
+{
+template <typename T> typename std::add_rvalue_reference<T>::type create();
+template <typename Class, typename... Args,
+          typename = decltype((Class{create<Args>()...}))>
+std::true_type test(int);
+template <typename Class, typename... Args> std::false_type test(...);
+}  // namespace is_constructible_with_single_brace_impl
+
+template <typename Class, typename... Args>
+constexpr bool is_constructible_with_single_brace()
+{
+    return decltype(
+        is_constructible_with_single_brace_impl::test<Class, Args...>(1))::value;
+}
+static_assert(
+    is_constructible_with_single_brace<std::tuple<int, int, int>, int, int, int>(), "");
+static_assert(is_constructible_with_single_brace<std::array<int, 3>, int, int, int>(),
+              "");
+
+namespace is_constructible_with_double_brace_impl
+{
+template <typename T> typename std::add_rvalue_reference<T>::type create();
+template <typename Class, typename... Args,
+          typename = decltype(Class{{create<Args>()...}})>
+std::true_type test(int);
+template <typename Class, typename... Args> std::false_type test(...);
+}  // namespace is_constructible_with_double_brace_impl
+
+template <typename Class, typename... Args>
+constexpr bool is_constructible_with_double_brace()
+{
+    return decltype(
+        is_constructible_with_double_brace_impl::test<Class, Args...>(1))::value;
+}
+static_assert(
+    !is_constructible_with_double_brace<std::tuple<int, int, int>, int, int, int>(), "");
+static_assert(is_constructible_with_double_brace<std::array<int, 3>, int, int, int>(),
+              "");
+#endif
+
 /** \internal
  * \brief An adapter for making a simdized template class easier to use.
  *
