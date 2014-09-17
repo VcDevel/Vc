@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2014 Matthias Kretz <kretz@kde.org>
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -25,6 +25,11 @@
 #include <intrin.h>
 #pragma intrinsic(__rdtsc)
 #endif
+
+#include <cmath>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 
 class TimeStampCounter
 {
@@ -67,6 +72,27 @@ inline void TimeStampCounter::stop()
 inline unsigned long long TimeStampCounter::cycles() const
 {
     return m_end.a - m_start.a;
+}
+
+inline std::ostream &operator<<(std::ostream &out, const TimeStampCounter &tsc)
+{
+    std::ostringstream o;
+    auto c = tsc.cycles();
+    int blocks[10];
+    int n = 0;
+    for (int digits = std::log10(c); digits > 0; digits -= 3) {
+        blocks[n++] = c % 1000;
+        c /= 1000;
+    }
+    if (n == 0) {
+        return out;
+    }
+    o.fill('0');
+    o << blocks[--n];
+    while (n > 0) {
+        o << '\'' << std::setw(3) << blocks[--n];
+    }
+    return out << o.str();
 }
 
 #endif // TSC_H
