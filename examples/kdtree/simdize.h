@@ -169,13 +169,14 @@ template <typename T, std::size_t N,
           bool HasTupleInterface = has_tuple_interface<T>()>
 struct Adapter;
 
-template <template <typename, std::size_t> class C, typename T0, std::size_t N,
-          std::size_t M, bool HasTupleInterface>
-class Adapter<C<T0, M>, N, HasTupleInterface> : public C<simdize<T0, N>, M>
+template <template <typename, std::size_t, std::size_t...> class C, typename T0,
+          std::size_t N, std::size_t M, std::size_t... Ms, bool HasTupleInterface>
+class Adapter<C<T0, M, Ms...>, N, HasTupleInterface>
+    : public C<simdize<T0, N>, M, Ms...>
 {
 public:
-    using ScalarBase = C<T0, M>;
-    using VectorBase = C<simdize<T0, N>, M>;
+    using ScalarBase = C<T0, M, Ms...>;
+    using VectorBase = C<simdize<T0, N>, M, Ms...>;
 
     using FirstVectorType = simdize<T0, N>;
     using VectorTypesTuple = std::tuple<FirstVectorType>;
