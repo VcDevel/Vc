@@ -54,6 +54,9 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 #include <tuple>
 #include <typeinfo>
 #include <vector>
+#ifdef __GNUC__
+#include <cxxabi.h>
+#endif
 #include <common/macros.h>
 
 #ifdef DOXYGEN
@@ -944,7 +947,17 @@ private:
     // print overloads {{{2
     static void printFirst() { std::cout << failString() << "┍ "; }
     template <typename T> static inline void print(const T &x) { std::cout << x; }
-    static void print(const std::type_info &x) { std::cout << x.name(); }
+    static void print(const std::type_info &x)
+    {
+#ifdef __GNUC__
+        char buf[1024];
+        size_t size = 1024;
+        abi::__cxa_demangle(x.name(), buf, &size, nullptr);
+        std::cout << buf;
+#else
+        std::cout << x.name();
+#endif
+    }
     static void print(const std::string &str)
     {
         print(str.c_str());
