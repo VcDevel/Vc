@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_NEON_MASK_H_
 #define VC_NEON_MASK_H_
 
+#include "../common/maskentry.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -39,11 +40,11 @@ template <typename T> class Mask
 {
 public:
     using EntryType = bool;
-    using VectorEntryType = bool Common::MaskBool<sizeof(T)>;
-    using VectorType = /*TODO*/;
+    using VectorEntryType = Common::MaskBool<sizeof(T)>;
     using Vector = NEON::Vector<T>;
+    using VectorType = typename Vector::VectorType;
 
-    static constexpr size_t Size = /*TODO*/;
+    static constexpr size_t Size = Vector::Size;
     static constexpr std::size_t size() { return Size; }
 
     FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
