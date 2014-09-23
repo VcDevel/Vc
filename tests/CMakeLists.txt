@@ -184,11 +184,13 @@ macro(vc_add_test _name)
       endif()
    endif()
 
-   add_custom_target(run_${name}_all
-      COMMENT "Execute all ${name} tests"
-      VERBATIM
-      )
-   add_dependencies(run_${name}_all ${_run_targets})
+   if(_run_targets)
+      add_custom_target(run_${name}_all
+         COMMENT "Execute all ${name} tests"
+         VERBATIM
+         )
+      add_dependencies(run_${name}_all ${_run_targets})
+   endif()
 
 endmacro(vc_add_test)
 
