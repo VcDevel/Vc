@@ -83,6 +83,8 @@ bool isImplementationSupported(Implementation impl)
     case MICImpl:
         return CpuId::processorFamily() == 0xB && CpuId::processorModel() == 0x1
             && CpuId::isIntel();
+    case NeonImpl:
+        return false;
     case ImplementationMask:
         return false;
     }
