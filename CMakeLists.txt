@@ -159,7 +159,7 @@ if(NOT ROOT_RELEASE)
 
    if(MIC_FOUND)
       add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
-      mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support.cpp src/mic_sorthelper.cpp
+      mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support_x86.cpp src/mic_sorthelper.cpp
          COMPILE_FLAGS ${libvc_mic_compile_flags})
       add_target_property(Vc_MIC LABELS "MIC")
       add_dependencies(MIC Vc_MIC)
@@ -167,7 +167,12 @@ if(NOT ROOT_RELEASE)
       install(FILES ${outputName} DESTINATION lib${LIB_SUFFIX})
    endif()
 
-   set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp)
+   set(_srcs src/const.cpp)
+   if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86")
+      list(APPEND _srcs src/cpuid.cpp src/support_x86.cpp)
+   else()
+      message(FATAL_ERROR "Unsupported target architecture '${CMAKE_SYSTEM_PROCESSOR}'. No support_???.cpp file exists for this architecture.")
+   endif()
    vc_compile_for_all_implementations(_srcs src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA AVX2)
    vc_compile_for_all_implementations(_srcs src/avx_sorthelper.cpp ONLY AVX)
    vc_compile_for_all_implementations(_srcs src/avx2_sorthelper.cpp ONLY AVX2)
