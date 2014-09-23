@@ -77,6 +77,11 @@ using select_best_vector_type =
 #elif defined(Vc_IMPL_MIC)
                                           Vc::MIC::Vector<T>,
                                           Vc::Scalar::Vector<T>
+#elif defined(Vc_IMPL_NEON)
+                                          Vc::NEON::Vector<T>,
+                                          Vc::Scalar::Vector<T>
+#else
+#error "Please add the necessary types for this implementation."
 #endif
                                           >::type;
 //}}}
