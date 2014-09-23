@@ -929,7 +929,7 @@ private:
         // asm volatile("call 1f\n\t1: pop %0" : "=r"(_ip));
         asm volatile("1: movl $1b,%0" : "=r"(_ip));
 #elif __arm__
-        asm volatile("mov pc,%0" : "=r"(_ip));
+        asm volatile("mov %0,pc" : "=r"(_ip));
 #else
         _ip = 0;
 #endif
