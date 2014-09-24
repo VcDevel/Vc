@@ -992,11 +992,10 @@ private:
                                      VC_ALIGNED_PARAMETER(T) a,
                                      VC_ALIGNED_PARAMETER(T) b);
     template <typename T>
-    static inline void printFuzzyInfo(VC_ALIGNED_PARAMETER(T), VC_ALIGNED_PARAMETER(T)) {}
+    static inline void printFuzzyInfo(VC_ALIGNED_PARAMETER(T), VC_ALIGNED_PARAMETER(T));
     template <typename T>
-    static inline void printFuzzyInfoImpl(VC_ALIGNED_PARAMETER(T) a,
-                                          VC_ALIGNED_PARAMETER(T) b,
-                                          double fuzzyness)
+    static inline void printFuzzyInfoImpl(std::true_type, VC_ALIGNED_PARAMETER(T) a,
+                                          VC_ALIGNED_PARAMETER(T) b, double fuzzyness)
     {
         print("\ndistance: ");
         print(ulpDiffToReferenceSigned(a, b));
@@ -1004,76 +1003,46 @@ private:
         print(fuzzyness);
         print(" ulp");
     }
+    template <typename T>
+    static inline void printFuzzyInfoImpl(std::false_type, VC_ALIGNED_PARAMETER(T),
+                                          VC_ALIGNED_PARAMETER(T), double)
+    {
+    }
     // member variables {{{2
     const size_t m_ip;
     const bool m_failed;
 };
 // printFuzzyInfo specializations for float and double {{{1
-template <>
-inline void Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(float) a,
-                                              VC_ALIGNED_PARAMETER(float) b)
+template <typename T>
+inline void printFuzzyInfo(VC_ALIGNED_PARAMETER(T) a, VC_ALIGNED_PARAMETER(T) b)
 {
-    printFuzzyInfoImpl(a, b, global_unit_test_object_.float_fuzzyness);
-}
-template <>
-inline void Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(double) a,
-                                              VC_ALIGNED_PARAMETER(double) b)
-{
-    printFuzzyInfoImpl(a, b, global_unit_test_object_.double_fuzzyness);
-}
-template <>
-inline void Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(Vc::float_v) a,
-                                              VC_ALIGNED_PARAMETER(Vc::float_v) b)
-{
-    printFuzzyInfoImpl(a, b, global_unit_test_object_.float_fuzzyness);
-}
-template <>
-inline void Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(Vc::double_v) a,
-                                              VC_ALIGNED_PARAMETER(Vc::double_v) b)
-{
-    printFuzzyInfoImpl(a, b, global_unit_test_object_.double_fuzzyness);
+  printFuzzyInfoImpl(std::integral_constant<bool, Vc::is_floating_point<T>::value>(), a,
+                     b,
+                     std::is_same<T, float>::value || std::is_same<T, Vc::float_v>::value
+                         ? global_unit_test_object_.float_fuzzyness
+                         : global_unit_test_object_.double_fuzzyness);
 }
 template <typename T>
-inline void Compare::writePlotData(std::fstream &,
-                                             VC_ALIGNED_PARAMETER(T),
-                                             VC_ALIGNED_PARAMETER(T))
+void writePlotDataImpl(std::true_type, std::fstream &file, VC_ALIGNED_PARAMETER(T) ref,
+                       VC_ALIGNED_PARAMETER(T) dist)
 {
-}
-template <>
-inline void Compare::writePlotData(std::fstream &file,
-                                             VC_ALIGNED_PARAMETER(float) a,
-                                             VC_ALIGNED_PARAMETER(float) b)
-{
-    file << std::setprecision(12) << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
-}
-template <>
-inline void Compare::writePlotData(std::fstream &file,
-                                             VC_ALIGNED_PARAMETER(double) a,
-                                             VC_ALIGNED_PARAMETER(double) b)
-{
-    file << std::setprecision(12) << b << "\t" << ulpDiffToReferenceSigned(a, b) << "\n";
-}
-template <>
-inline void Compare::writePlotData(std::fstream &file,
-                                             VC_ALIGNED_PARAMETER(Vc::float_v) a,
-                                             VC_ALIGNED_PARAMETER(Vc::float_v) b)
-{
-    const Vc::float_v ref = b;
-    const Vc::float_v dist = ulpDiffToReferenceSigned(a, b);
-    for (size_t i = 0; i < Vc::float_v::Size; ++i) {
+    for (size_t i = 0; i < T::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
-template <>
-inline void Compare::writePlotData(std::fstream &file,
-                                             VC_ALIGNED_PARAMETER(Vc::double_v) a,
-                                             VC_ALIGNED_PARAMETER(Vc::double_v) b)
+template <typename T>
+void writePlotDataImpl(std::false_type, std::fstream &file, VC_ALIGNED_PARAMETER(T) ref,
+                       VC_ALIGNED_PARAMETER(T) dist)
 {
-    const Vc::double_v ref = b;
-    const Vc::double_v dist = ulpDiffToReferenceSigned(a, b);
-    for (size_t i = 0; i < Vc::double_v::Size; ++i) {
-        file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
-    }
+    file << std::setprecision(12) << ref << "\t" << dist << "\n";
+}
+template <typename T>
+inline void Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(T) a,
+                                   VC_ALIGNED_PARAMETER(T) b)
+{
+    const T ref = b;
+    const T dist = ulpDiffToReferenceSigned(a, b);
+    writePlotDataImpl(std::integral_constant<bool, Vc::is_simd_vector<T>::value>(), file, ref, dist);
 }
 
 // FUZZY_COMPARE {{{1
