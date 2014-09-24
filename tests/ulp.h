@@ -53,7 +53,7 @@ static T ulpDiffToReference(T val, T ref)
 }
 
 template <typename T, typename = Vc::enable_if<std::is_floating_point<T>::value>>
-static T ulpDiffToReferenceSigned(T val, T ref)
+inline T ulpDiffToReferenceSigned(T val, T ref)
 {
     return ulpDiffToReference(val, ref) * (val - ref < 0 ? -1 : 1);
 }
@@ -92,9 +92,18 @@ static V ulpDiffToReference(const V &_val, const V &_ref)
     return diff;
 }
 
-template<typename T> static Vc::Vector<T> ulpDiffToReferenceSigned(const Vc::Vector<T> &_val, const Vc::Vector<T> &_ref)
+template <typename T>
+inline Vc::enable_if<Vc::is_simd_vector<T>::value && Vc::is_floating_point<T>::value, T> ulpDiffToReferenceSigned(
+    const T &_val, const T &_ref)
 {
     return ulpDiffToReference(_val, _ref).copySign(_val - _ref);
+}
+
+template <typename T>
+inline Vc::enable_if<!Vc::is_floating_point<T>::value, T> ulpDiffToReferenceSigned(
+    const T &, const T &)
+{
+    return 0;
 }
 
 #endif // TESTS_ULP_H
