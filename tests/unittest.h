@@ -1014,7 +1014,7 @@ private:
 };
 // printFuzzyInfo specializations for float and double {{{1
 template <typename T>
-inline void printFuzzyInfo(VC_ALIGNED_PARAMETER(T) a, VC_ALIGNED_PARAMETER(T) b)
+inline void Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(T) a, VC_ALIGNED_PARAMETER(T) b)
 {
   printFuzzyInfoImpl(std::integral_constant<bool, Vc::is_floating_point<T>::value>(), a,
                      b,
@@ -1023,7 +1023,7 @@ inline void printFuzzyInfo(VC_ALIGNED_PARAMETER(T) a, VC_ALIGNED_PARAMETER(T) b)
                          : global_unit_test_object_.double_fuzzyness);
 }
 template <typename T>
-void writePlotDataImpl(std::true_type, std::fstream &file, VC_ALIGNED_PARAMETER(T) ref,
+static inline void writePlotDataImpl(std::true_type, std::fstream &file, VC_ALIGNED_PARAMETER(T) ref,
                        VC_ALIGNED_PARAMETER(T) dist)
 {
     for (size_t i = 0; i < T::Size; ++i) {
@@ -1031,7 +1031,7 @@ void writePlotDataImpl(std::true_type, std::fstream &file, VC_ALIGNED_PARAMETER(
     }
 }
 template <typename T>
-void writePlotDataImpl(std::false_type, std::fstream &file, VC_ALIGNED_PARAMETER(T) ref,
+static inline void writePlotDataImpl(std::false_type, std::fstream &file, VC_ALIGNED_PARAMETER(T) ref,
                        VC_ALIGNED_PARAMETER(T) dist)
 {
     file << std::setprecision(12) << ref << "\t" << dist << "\n";
