@@ -42,7 +42,7 @@ public:
     template <typename U>
     Vc_INTRINSIC_L explicit Vector(U &&x,
                                    enable_if<Traits::is_simd_vector<U>::value &&
-                                             !std::is_same<Vector, Traits::decay<U>>::value>>
+                                             !std::is_same<Vector, Traits::decay<U>>::value>
                                    = nullarg) Vc_INTRINSIC_R;
 
     ///////////////////////////////////////////////////////////////////////////////////////////

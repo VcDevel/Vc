@@ -31,6 +31,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "intrinsics.h"
 #include "mask.h"
+#include "../common/storage.h"
+#include "../common/writemaskedvector.h"
+#include "../traits/type_traits.h"
 #include "macros.h"
 
 #ifdef isfinite
@@ -54,20 +57,23 @@ public:
 
     using VectorType = typename VectorTraits<T>::Type;
     using EntryType = T;
+    using VectorEntryType = EntryType;
 
     static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
     static constexpr size_t MemoryAlignment = alignof(VectorType);
 
-    using IndexType = simd_array<int, Size>;
+    using IndexType = simdarray<int, Size>;
     using MaskType = NEON::Mask<T>;
+    using Mask = NEON::Mask<T>;
+    using MaskArg = const Mask;
+    using MaskArgument = const Mask;
+    using AsArg = const Vector;
 
     // STL style member types:
     using vector_type = VectorType;
     using value_type = EntryType;
     using index_type = IndexType;
     using mask_type = MaskType;
-    // STL container interface:
-    static constexpr size_t size() { return Size; }
 
 private:
     using StorageType = Common::VectorMemoryUnion<VectorType, EntryType>;
@@ -81,7 +87,19 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
     // internal: required to enable returning objects of VectorType from functions with return
     // type Vector<T>
-    Vc_INTRINSIC Vector(VectorType x) : d(x) {}
+    template <typename U,
+              typename = enable_if<std::is_convertible<U, VectorType>::value &&
+                                   !std::is_same<VectorType, EntryType>::
+                                        value>  // we have a problem with double_v where
+                                                // EntryType == VectorType == double. In
+                                                // that case we need to disable this
+                                                // constructor overload to resolve the
+                                                // otherwise resulting ambiguity
+              >
+    Vc_INTRINSIC Vector(U x)
+        : d(x)
+    {
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // copy
@@ -95,11 +113,6 @@ public:
 #include "../common/vector/casts.h"
 #include "../common/loadinterface.h"
 #include "../common/storeinterface.h"
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // expand/merge 1 float_v <=> 2 double_v          XXX rationale? remove it for release? XXX
-    explicit inline Vector(const Vector<typename HT::ConcatType> *a);
-    inline void expand(Vector<typename HT::ConcatType> *x) const;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // zeroing
@@ -131,42 +144,17 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // prefix
-    Vc_ALWAYS_INLINE Vector &operator++()
-    {
-        data() = VectorHelper<T>::add(data(), VectorHelper<T>::one());
-        return *this;
-    }
-    Vc_ALWAYS_INLINE Vector &operator--()
-    {
-        data() = VectorHelper<T>::sub(data(), VectorHelper<T>::one());
-        return *this;
-    }
+    Vc_ALWAYS_INLINE Vector &operator++();
+    Vc_ALWAYS_INLINE Vector &operator--();
     // postfix
-    Vc_ALWAYS_INLINE Vector operator++(int)
-    {
-        const Vector<T> r = *this;
-        data() = VectorHelper<T>::add(data(), VectorHelper<T>::one());
-        return r;
-    }
-    Vc_ALWAYS_INLINE Vector operator--(int)
-    {
-        const Vector<T> r = *this;
-        data() = VectorHelper<T>::sub(data(), VectorHelper<T>::one());
-        return r;
-    }
+    Vc_ALWAYS_INLINE Vector operator++(int);
+    Vc_ALWAYS_INLINE Vector operator--(int);
 
     Vc_INTRINSIC decltype(d.m(0)) operator[](size_t index) { return d.m(index); }
     Vc_ALWAYS_INLINE EntryType operator[](size_t index) const { return d.m(index); }
 
     Vc_INTRINSIC Vc_PURE Mask operator!() const { return *this == Zero(); }
-    Vc_ALWAYS_INLINE Vector operator~() const
-    {
-#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
-        static_assert(std::is_integral<T>::value,
-                      "bit-complement can only be used with Vectors of integral type");
-#endif
-        return VectorHelper<VectorType>::andnot_(data(), VectorHelper<VectorType>::allone());
-    }
+    Vc_ALWAYS_INLINE Vector operator~() const;
     Vc_ALWAYS_INLINE_L Vc_PURE_L Vector operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
     Vc_INTRINSIC Vc_PURE Vector operator+() const { return *this; }
 
@@ -178,15 +166,8 @@ public:
     inline Vc_PURE Vector operator%(const Vector &x) const;
 
 #define OP(symbol, fun)                                                                            \
-    Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x)                                   \
-    {                                                                                              \
-        data() = VectorHelper<T>::fun(data(), x.data());                                           \
-        return *this;                                                                              \
-    }                                                                                              \
-    Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const                         \
-    {                                                                                              \
-        return Vector<T>(VectorHelper<T>::fun(data(), x.data()));                                  \
-    }
+    Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x);                                  \
+    Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const;
 
     OP(+, add)
     OP(-, sub)
@@ -218,37 +199,30 @@ public:
     Vc_ALWAYS_INLINE_L Vector<T> operator<<(int x) const Vc_ALWAYS_INLINE_R;
 
 #define OPcmp(symbol, fun)                                                                         \
-    Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const                           \
-    {                                                                                              \
-        return HT::fun(data(), x.data());                                                          \
-    }
+    Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const;
 
-    OPcmp(==, cmpeq) OPcmp(!=, cmpneq) OPcmp(>=, cmpnlt) OPcmp(>, cmpnle) OPcmp(<, cmplt)
-        OPcmp(<=, cmple)
+    OPcmp(==, cmpeq)
+    OPcmp(!=, cmpneq)
+    OPcmp(>=, cmpnlt)
+    OPcmp(>, cmpnle)
+    OPcmp(<, cmplt)
+    OPcmp(<=, cmple)
 #undef OPcmp
-        Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
+    Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
-    Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand)
-    {
-        VectorHelper<T>::fma(data(), factor.data(), summand.data());
-    }
+    Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand);
 
-    Vc_ALWAYS_INLINE void assign(const Vector<T> &v, const Mask &mask)
-    {
-        const VectorType k = avx_cast<VectorType>(mask.data());
-        data() = VectorHelper<VectorType>::blend(data(), v.data(), k);
-    }
+    Vc_ALWAYS_INLINE void assign(const Vector<T> &v, const Mask &mask);
 
     template <typename V2> Vc_ALWAYS_INLINE V2 staticCast() const { return V2(*this); }
-    template <typename V2> Vc_ALWAYS_INLINE V2 reinterpretCast() const
-    {
-        return avx_cast<typename V2::VectorType>(data());
-    }
+    template <typename V2> Vc_ALWAYS_INLINE V2 reinterpretCast() const;
 
-    Vc_ALWAYS_INLINE WriteMaskedVector<T> operator()(const Mask &k)
+    /*
+    Vc_ALWAYS_INLINE Common::WriteMaskedVector<T> operator()(const Mask &k)
     {
-        return WriteMaskedVector<T>(this, k);
+        return Common::WriteMaskedVector<T>(this, k);
     }
+    */
 
     /**
      * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have
@@ -262,10 +236,10 @@ public:
     Vc_ALWAYS_INLINE VectorType &data() { return d.v(); }
     Vc_ALWAYS_INLINE const VectorType &data() const { return d.v(); }
 
-    Vc_ALWAYS_INLINE EntryType min() const { return VectorHelper<T>::min(data()); }
-    Vc_ALWAYS_INLINE EntryType max() const { return VectorHelper<T>::max(data()); }
-    Vc_ALWAYS_INLINE EntryType product() const { return VectorHelper<T>::mul(data()); }
-    Vc_ALWAYS_INLINE EntryType sum() const { return VectorHelper<T>::add(data()); }
+    Vc_ALWAYS_INLINE EntryType min() const;
+    Vc_ALWAYS_INLINE EntryType max() const;
+    Vc_ALWAYS_INLINE EntryType product() const;
+    Vc_ALWAYS_INLINE EntryType sum() const;
     Vc_ALWAYS_INLINE_L Vector partialSum() const Vc_ALWAYS_INLINE_R;
     // template<typename BinaryOperation> Vc_ALWAYS_INLINE_L Vector partialSum(BinaryOperation op)
     // const Vc_ALWAYS_INLINE_R;
@@ -277,7 +251,7 @@ public:
     Vc_INTRINSIC_L Vector shifted(int amount, Vector shiftIn) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
-    Vc_ALWAYS_INLINE Vector sorted() const { return SortHelper<T>::sort(data()); }
+    Vc_ALWAYS_INLINE Vector sorted() const;
 
     template <typename F> void callWithValuesSorted(F &&f)
     {
@@ -342,98 +316,6 @@ static_assert(Traits::is_simd_mask<int_m>::value, "is_simd_mask  <   int_m>::val
 static_assert(Traits::is_simd_mask<uint_m>::value, "is_simd_mask  <  uint_m>::value");
 static_assert(Traits::is_simd_mask<short_m>::value, "is_simd_mask  < short_m>::value");
 static_assert(Traits::is_simd_mask<ushort_m>::value, "is_simd_mask  <ushort_m>::value");
-
-template <typename T> class SwizzledVector : public Vector<T>
-{
-};
-
-static Vc_ALWAYS_INLINE int_v min(const int_v &x, const int_v &y)
-{
-    return _mm256_min_epi32(x.data(), y.data());
-}
-static Vc_ALWAYS_INLINE uint_v min(const uint_v &x, const uint_v &y)
-{
-    return _mm256_min_epu32(x.data(), y.data());
-}
-static Vc_ALWAYS_INLINE short_v min(const short_v &x, const short_v &y)
-{
-    return _mm_min_epi16(x.data(), y.data());
-}
-static Vc_ALWAYS_INLINE ushort_v min(const ushort_v &x, const ushort_v &y)
-{
-    return _mm_min_epu16(x.data(), y.data());
-}
-static Vc_ALWAYS_INLINE float_v min(const float_v &x, const float_v &y)
-{
-    return _mm256_min_ps(x.data(), y.data());
-}
-static Vc_ALWAYS_INLINE double_v min(const double_v &x, const double_v &y)
-{
-    return _mm256_min_pd(x.data(), y.data());
-}
-static Vc_ALWAYS_INLINE int_v max(const int_v &x, const int_v &y)
-{
-    return _mm256_max_epi32(x.data(), y.data());
-}
-static Vc_ALWAYS_INLINE uint_v max(const uint_v &x, const uint_v &y)
-{
-    return _mm256_max_epu32(x.data(), y.data());
-}
-static Vc_ALWAYS_INLINE short_v max(const short_v &x, const short_v &y)
-{
-    return _mm_max_epi16(x.data(), y.data());
-}
-static Vc_ALWAYS_INLINE ushort_v max(const ushort_v &x, const ushort_v &y)
-{
-    return _mm_max_epu16(x.data(), y.data());
-}
-static Vc_ALWAYS_INLINE float_v max(const float_v &x, const float_v &y)
-{
-    return _mm256_max_ps(x.data(), y.data());
-}
-static Vc_ALWAYS_INLINE double_v max(const double_v &x, const double_v &y)
-{
-    return _mm256_max_pd(x.data(), y.data());
-}
-
-template <typename T,
-          typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
-                               std::is_same<T, short>::value ||
-                               std::is_same<T, int>::value>>
-Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
-{
-    return VectorHelper<T>::abs(x.data());
-}
-
-template <typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> sqrt(const Vector<T> &x)
-{
-    return VectorHelper<T>::sqrt(x.data());
-}
-template <typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> rsqrt(const Vector<T> &x)
-{
-    return VectorHelper<T>::rsqrt(x.data());
-}
-template <typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> reciprocal(const Vector<T> &x)
-{
-    return VectorHelper<T>::reciprocal(x.data());
-}
-template <typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> round(const Vector<T> &x)
-{
-    return VectorHelper<T>::round(x.data());
-}
-
-template <typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isfinite(const Vector<T> &x)
-{
-    return VectorHelper<T>::isFinite(x.data());
-}
-template <typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isinf(const Vector<T> &x)
-{
-    return VectorHelper<T>::isInfinite(x.data());
-}
-template <typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isnan(const Vector<T> &x)
-{
-    return VectorHelper<T>::isNaN(x.data());
-}
 
 static_assert(!std::is_convertible<float *, short_v>::value,
               "A float* should never implicitly convert to short_v. Something is broken.");

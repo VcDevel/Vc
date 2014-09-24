@@ -29,10 +29,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_NEON_TYPES_H_
 #define VC_NEON_TYPES_H_
 
+#include "intrinsics.h"
 #include "macros.h"
 
 #ifdef VC_DEFAULT_IMPL_NEON
-#define VC_DOUBLE_V_SIZE 2
+#define VC_DOUBLE_V_SIZE 1
 #define VC_FLOAT_V_SIZE 4
 #define VC_INT_V_SIZE 4
 #define VC_UINT_V_SIZE 4
@@ -68,6 +69,14 @@ template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
 template <typename T> struct is_mask : public std::false_type {};
 template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
+
+template <typename T> struct VectorTraits;
+template <> struct VectorTraits<int> { typedef int32x4_t Type; };
+template <> struct VectorTraits<unsigned int> { typedef uint32x4_t Type; };
+template <> struct VectorTraits<short> { typedef int16x8_t Type; };
+template <> struct VectorTraits<unsigned short> { typedef uint16x8_t Type; };
+template <> struct VectorTraits<float> { typedef float32x4_t Type; };
+template <> struct VectorTraits<double> { typedef double Type; };
 }
 
 namespace Traits

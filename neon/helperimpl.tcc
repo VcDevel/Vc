@@ -26,24 +26,32 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_NEON_INTRINSICS_H_
-#define VC_NEON_INTRINSICS_H_
+#ifndef VC_NEON_HELPERIMPL_TCC_
+#define VC_NEON_HELPERIMPL_TCC_
 
-#include "arm_neon.h"
-#include "macros.h"
+#include "../common/malloc.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace NEON
+namespace Internal
 {
 
-// helper functions that abstract some architecture specific intrinsics go here
+template<Vc::MallocAlignment A>
+inline void *HelperImpl<NeonImpl>::malloc(size_t n)
+{
+    return Common::malloc<A>(n);
+}
+
+inline void HelperImpl<NeonImpl>::free(void *p)
+{
+    Common::free(p);
+}
 
 }
 }
 
 #include "undomacros.h"
 
-#endif  // VC_NEON_INTRINSICS_H_
+#endif  // VC_NEON_HELPERIMPL_TCC_
 
 // vim: foldmethod=marker

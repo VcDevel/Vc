@@ -26,10 +26,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_NEON_INTRINSICS_H_
-#define VC_NEON_INTRINSICS_H_
+#ifndef VC_NEON_SIMD_CAST_H_
+#define VC_NEON_SIMD_CAST_H_
 
-#include "arm_neon.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -37,13 +36,11 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace NEON
 {
 
-// helper functions that abstract some architecture specific intrinsics go here
-
 }
 }
 
 #include "undomacros.h"
 
-#endif  // VC_NEON_INTRINSICS_H_
+#endif  // VC_NEON_SIMD_CAST_H_
 
 // vim: foldmethod=marker

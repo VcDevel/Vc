@@ -43,6 +43,7 @@ public:
     using VectorEntryType = Common::MaskBool<sizeof(T)>;
     using Vector = NEON::Vector<T>;
     using VectorType = typename Vector::VectorType;
+    using EntryReference = VectorEntryType &;
 
     static constexpr size_t Size = Vector::Size;
     static constexpr std::size_t size() { return Size; }
