@@ -37,6 +37,13 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace NEON
 {
 
+template <> struct VectorTraits<int> { typedef int32x4_t Type; };
+template <> struct VectorTraits<unsigned int> { typedef uint32x4_t Type; };
+template <> struct VectorTraits<short> { typedef int16x8_t Type; };
+template <> struct VectorTraits<unsigned short> { typedef uint16x8_t Type; };
+template <> struct VectorTraits<float> { typedef float32x4_t Type; };
+template <> struct VectorTraits<double> { typedef double Type; };
+
 // helper functions that abstract some architecture specific intrinsics go here
 
 template <typename V> class alignas(alignof(V)) VectorAlignedBaseT
