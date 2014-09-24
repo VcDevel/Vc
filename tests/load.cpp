@@ -96,7 +96,7 @@ TEST_TYPES(Vec, loadArrayShort, (short_v, ushort_v, simdarray<short, 32>, simdar
 TEST_TYPES(Vec, loadArray, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
-    if (sizeof(T) < 32) {
+    if (sizeof(T) < 4) {
         return;
     }
 
