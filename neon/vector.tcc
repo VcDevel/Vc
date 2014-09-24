@@ -40,6 +40,29 @@ template <> Vc_INTRINSIC int_v::Vector(VectorSpecialInitializerZero::ZEnum)
 {
 }
 
+static const int IndexesFromZeroData[4] = {0, 1, 2, 3};
+template <>
+Vc_INTRINSIC int_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(vld1q_s32(IndexesFromZeroData))
+{
+}
+
+template <> Vc_INTRINSIC int_v::Vector(int x) : d(vdupq_n_s32(x))
+{
+}
+template <> Vc_INTRINSIC int_v &int_v::operator+=(const int_v &x)
+{
+    d.v() = vaddq_s32(d.v(), x.d.v());
+    return *this;
+}
+
+template <>
+template <typename U, typename Flags, typename>
+Vc_INTRINSIC void int_v::load(const U *mem, Flags)
+{
+    d.v() = vld1q_s32(mem);
+}
+
 template <>
 template <typename U, typename Flags, typename>
 Vc_INTRINSIC void int_v::store(U *mem, Flags) const
