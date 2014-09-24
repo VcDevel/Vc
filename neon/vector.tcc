@@ -62,11 +62,15 @@ Vc_INTRINSIC void int_v::load(const U *mem, Flags)
 {
     d.v() = vld1q_s32(mem);
 }
-
 template <>
 template <typename U, typename Flags, typename>
 Vc_INTRINSIC void int_v::store(U *mem, Flags) const
 {
+}
+
+template <> Vc_INTRINSIC void int_v::setZero()
+{
+    d.v() = VectorType();
 }
 
 }  // namespace NEON
