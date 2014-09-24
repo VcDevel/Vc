@@ -36,8 +36,18 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace NEON
 {
 
+template <> Vc_INTRINSIC int_v::Vector(VectorSpecialInitializerZero::ZEnum)
+{
 }
+
+template <>
+template <typename U, typename Flags, typename>
+Vc_INTRINSIC void int_v::store(U *mem, Flags) const
+{
 }
+
+}  // namespace NEON
+}  // namespace Vc
 
 #include "undomacros.h"
 
