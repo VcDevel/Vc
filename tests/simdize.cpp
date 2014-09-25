@@ -68,4 +68,45 @@ TEST(test_simdize)
         typeid(Adapter<tuple<float_v, simdize<double, float_v::Size>>, float_v::Size>));
 }
 
+TEST(simdize_bools)
+{
+    using namespace std;
+    using namespace Vc;
+    COMPARE(typeid(simdize<bool>), typeid(float_m));
+    COMPARE(typeid(simdize<bool, float_m::Size>), typeid(float_m));
+    COMPARE(typeid(simdize<bool, 0, int>), typeid(int_m));
+    COMPARE(typeid(simdize<bool, int_m::Size, int>), typeid(int_m));
+    COMPARE(typeid(simdize<bool, float_m::Size + 1>),
+            typeid(simd_mask_array<float, float_m::Size + 1>));
+    COMPARE(typeid(simdize<bool, int_m::Size + 1, int>),
+            typeid(simd_mask_array<int, int_m::Size + 1>));
+
+    COMPARE(typeid(simdize<tuple<bool>>), typeid(Adapter<tuple<float_m>, float_m::Size>));
+    COMPARE(typeid(simdize<tuple<bool>, float_m::Size>),
+            typeid(Adapter<tuple<float_m>, float_m::Size>));
+    COMPARE(typeid(simdize<tuple<bool>, float_m::Size + 1>),
+            typeid(Adapter<tuple<simd_mask_array<float, float_m::Size + 1>>,
+                           float_m::Size + 1>));
+
+    COMPARE(typeid(simdize<tuple<int, bool>>), typeid(Adapter<tuple<int_v, int_m>, int_v::Size>));
+    COMPARE(typeid(simdize<tuple<int, bool>, 3>),
+            typeid(Adapter<tuple<simdarray<int, 3>, simd_mask_array<float, 3>>, 3>));
+
+    COMPARE(typeid(simdize<tuple<bool, double, bool>>),
+            typeid(Adapter<tuple<float_m, simdarray<double, float_m::Size>, float_m>,
+                           float_m::Size>));
+    COMPARE(typeid(simdize<tuple<bool, double, bool>, float_m::Size + 1>),
+            typeid(Adapter<tuple<simd_mask_array<float, float_m::Size + 1>,
+                                 simdarray<double, float_m::Size + 1>,
+                                 simd_mask_array<float, float_m::Size + 1>>,
+                           float_m::Size + 1>));
+    COMPARE(typeid(simdize<tuple<bool, double, bool>, 0, double>),
+            typeid(Adapter<tuple<double_m, double_v, double_m>, double_m::Size>));
+
+    COMPARE(typeid(simdize<tuple<int, double, bool>, 0, double>),
+            typeid(Adapter<
+                tuple<int_v, simdize<double, int_v::Size>, simdize<bool, int_v::Size, double>>,
+                int_v::Size>));
+}
+
 // vim: foldmethod=marker
