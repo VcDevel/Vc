@@ -28,8 +28,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef VC_NEON_VECTOR_TCC_
 #define VC_NEON_VECTOR_TCC_
-
+#include <random>
 #include "macros.h"
+
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -55,7 +56,21 @@ template <> Vc_INTRINSIC int_v &int_v::operator+=(const int_v &x)
     d.v() = vaddq_s32(d.v(), x.d.v());
     return *this;
 }
+template <> Vc_INTRINSIC Vc_PURE int_v int_v::operator+(const int_v &x) const
+{
+    return vaddq_s32(d.v(), x.d.v());
+}
 
+template <> Vc_INTRINSIC int_v int_v::Random()
+{
+    int_v a;
+    static std::default_random_engine ram;
+    a.d.v() = vsetq_lane_s32(ram(), a.d.v(), 0);
+    a.d.v() = vsetq_lane_s32(ram(), a.d.v(), 1);
+    a.d.v() = vsetq_lane_s32(ram(), a.d.v(), 2);
+    a.d.v() = vsetq_lane_s32(ram(), a.d.v(), 3);
+    return a;
+}
 template <>
 template <typename U, typename Flags, typename>
 Vc_INTRINSIC void int_v::load(const U *mem, Flags)

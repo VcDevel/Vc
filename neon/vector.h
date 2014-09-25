@@ -165,13 +165,13 @@ public:
     }
     inline Vc_PURE Vector operator%(const Vector &x) const;
 
-#define OP(symbol, fun)                                                                            \
+#define OP(symbol)                                                                            \
     Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x);                                  \
     Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const;
 
-    OP(+, add)
-    OP(-, sub)
-    OP(*, mul)
+    OP(+)
+    OP(-)
+    OP(*)
 #undef OP
     inline Vector &operator/=(EntryType x);
     inline Vector &operator/=(Vector x);
