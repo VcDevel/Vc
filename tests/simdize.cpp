@@ -109,4 +109,21 @@ TEST(simdize_bools)
                 int_v::Size>));
 }
 
+template <typename, int...> struct Foo
+{
+};
+
+TEST(nontype_template_parameters)
+{
+    using namespace std;
+    using namespace Vc;
+    using std::array;
+    COMPARE(typeid(simdize<array<float, 3>>),
+            typeid(Adapter<array<float_v, 3>, float_v::Size>));
+    COMPARE(typeid(simdize<array<bool, 3>>),
+            typeid(Adapter<array<float_m, 3>, float_m::Size>));
+    COMPARE(typeid(simdize<Foo<float, 3, 5, 6>>),
+            typeid(Adapter<Foo<float_v, 3, 5, 6>, float_v::Size>));
+}
+
 // vim: foldmethod=marker

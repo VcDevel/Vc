@@ -109,14 +109,18 @@ public:
 };
 
 // specialization for ending the recursion and setting the return type
-template <std::size_t N_, typename MT, typename... Replaced>
-struct SubstituteOneByOne<N_, MT, Typelist<Replaced...>>
+template <std::size_t N_, typename MT, typename Replaced0, typename... Replaced>
+struct SubstituteOneByOne<N_, MT, Typelist<Replaced0, Replaced...>>
 {
     // Return type for returning the vector width and list of substituted types
     struct type
     {
         static constexpr auto N = N_;
-        template <template <typename...> class C> using Substituted = C<Replaced...>;
+        template <template <typename...> class C>
+        using Substituted = C<Replaced0, Replaced...>;
+        template <typename ValueT, template <typename, ValueT...> class C,
+                  ValueT... Values>
+        using Substituted1 = C<Replaced0, Values...>;
     };
 };
 
@@ -130,6 +134,35 @@ struct ReplaceTypes<C<Ts...>, N, MT, false>
     typedef typename std::conditional<std::is_same<C<Ts...>, Substituted>::value,
                                       C<Ts...>, Adapter<Substituted, NN>>::type type;
 };
+
+// specialization for class templates where all template arguments need to be substituted
+#define Vc_DEFINE_NONTYPE_REPLACETYPES__(ValueType__)                                    \
+    template <template <typename, ValueType__...> class C, typename Ts,                  \
+              ValueType__ Value0, ValueType__... Values, std::size_t N, typename MT>     \
+    struct ReplaceTypes<C<Ts, Value0, Values...>, N, MT, false>                          \
+    {                                                                                    \
+        typedef typename SubstituteOneByOne<N, MT, Typelist<>, Ts>::type tmp;            \
+        typedef typename tmp::template Substituted1<ValueType__, C, Value0, Values...>   \
+            Substituted;                                                                 \
+        static constexpr auto NN = tmp::N;                                               \
+        typedef typename std::conditional<                                               \
+            std::is_same<C<Ts, Value0, Values...>, Substituted>::value,                  \
+            C<Ts, Value0, Values...>, Adapter<Substituted, NN>>::type type;              \
+    }
+Vc_DEFINE_NONTYPE_REPLACETYPES__(bool);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(wchar_t);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(char);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed char);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned char);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed short);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned short);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed int);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned int);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed long);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed long long);
+Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long long);
+#undef Vc_DEFINE_NONTYPE_REPLACETYPES__
 
 }  // namespace Vc
 
