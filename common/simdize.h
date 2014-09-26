@@ -69,17 +69,6 @@ struct ReplaceTypes<bool, N, void, false> : public ReplaceTypes<bool, N, float, 
 {
 };
 
-// Adapter wrapper class
-template <typename Base, std::size_t N> class Adapter : public Base
-{
-public:
-    static constexpr std::size_t Size = N;
-    static constexpr std::size_t size() { return N; }
-
-    using base_type = Base;
-};
-template <typename Base, std::size_t N> constexpr std::size_t Adapter<Base, N>::Size;
-
 // Typelist to support multiple parameter packs in one class template
 template <typename... Ts> struct Typelist;
 
@@ -124,6 +113,8 @@ struct SubstituteOneByOne<N_, MT, Typelist<Replaced0, Replaced...>>
     };
 };
 
+template <typename Base, std::size_t N> class Adapter;
+
 // specialization for class templates where all template arguments need to be substituted
 template <template <typename...> class C, typename... Ts, std::size_t N, typename MT>
 struct ReplaceTypes<C<Ts...>, N, MT, false>
@@ -164,7 +155,45 @@ Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed long long);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long long);
 #undef Vc_DEFINE_NONTYPE_REPLACETYPES__
 
+// Adapter wrapper class
+template <typename Base, std::size_t N> class Adapter : public Base
+{
+public:
+    static constexpr std::size_t Size = N;
+    static constexpr std::size_t size() { return N; }
+
+    using base_type = Base;
+};
+template <typename Base, std::size_t N> constexpr std::size_t Adapter<Base, N>::Size;
+
 }  // namespace Vc
+
+namespace std
+{
+// tuple_size
+template <typename Base, std::size_t N>
+class tuple_size<Vc::Adapter<Base, N>> : public tuple_size<Base>
+{
+};
+// tuple_element
+template <std::size_t I, typename Base, std::size_t N>
+class tuple_element<I, Vc::Adapter<Base, N>> : public tuple_element<I, Base>
+{
+};
+// std::get does not need additional work because Vc::Adapter derives from
+// C<Ts...> and therefore if get<N>(C<Ts...>) works it works for Adapter as well.
+
+// std::allocator<Vc::Adapter<T, N>>
+template <typename T, std::size_t N>
+class allocator<Vc::Adapter<T, N>> : public Vc::Allocator<Vc::Adapter<T, N>>
+{
+public:
+    template <typename U> struct rebind
+    {
+        typedef std::allocator<U> other;
+    };
+};
+}  // namespace std
 
 #include "undomacros.h"
 

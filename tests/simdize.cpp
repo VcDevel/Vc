@@ -126,4 +126,21 @@ TEST(nontype_template_parameters)
             typeid(Adapter<Foo<float_v, 3, 5, 6>, float_v::Size>));
 }
 
+TEST(tuple_interface)
+{
+    using namespace Vc;
+    using V0 = simdize<std::tuple<int, bool>>;
+    COMPARE(std::tuple_size<V0>::value, 2);
+    COMPARE(typeid(typename std::tuple_element<0, V0>::type), typeid(int_v));
+    COMPARE(typeid(typename std::tuple_element<1, V0>::type), typeid(int_m));
+
+    V0 v;
+    COMPARE(typeid(decltype(std::get<0>(v))), typeid(int_v));
+    COMPARE(typeid(decltype(std::get<1>(v))), typeid(int_m));
+    std::get<0>(v) = int_v::IndexesFromZero();
+    COMPARE(std::get<0>(v), int_v::IndexesFromZero());
+    std::get<0>(v) += 1;
+    COMPARE(std::get<0>(v), int_v::IndexesFromZero() + 1);
+}
+
 // vim: foldmethod=marker
