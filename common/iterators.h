@@ -35,8 +35,8 @@ template<typename _V, typename Flags> class MemoryVectorIterator;
 
 // class Iterator {{{
 template <typename V>
-class Iterator : public std::iterator<std::bidirectional_iterator_tag,
-                                      Traits::decay<decltype(std::declval<V &>()[0])>>
+class Iterator
+    : public std::iterator<std::bidirectional_iterator_tag, typename V::EntryType>
     {
         V &v;
         size_t i;
