@@ -759,6 +759,10 @@ namespace Vc_AVX_NAMESPACE
     template<> struct VectorTypeHelper<unsigned short> { typedef __m128i Type; };
     template<> struct VectorTypeHelper<         int  > { typedef __m256i Type; };
     template<> struct VectorTypeHelper<unsigned int  > { typedef __m256i Type; };
+    template<> struct VectorTypeHelper<         long > { typedef __m256i Type; };
+    template<> struct VectorTypeHelper<unsigned long > { typedef __m256i Type; };
+    template<> struct VectorTypeHelper<         long long> { typedef __m256i Type; };
+    template<> struct VectorTypeHelper<unsigned long long> { typedef __m256i Type; };
     template<> struct VectorTypeHelper<         float> { typedef __m256  Type; };
     template<> struct VectorTypeHelper<        double> { typedef __m256d Type; };
 

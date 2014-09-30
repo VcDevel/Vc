@@ -59,3 +59,10 @@ TEST_TYPES(V, check_IndexType, ALL_TYPES)
     static_assert(std::is_same<typename IndexType::value_type, int>::value,
                   "IndexType does not have the expected value_type");
 }
+
+TEST_TYPES(V, checkIntegerType, (Vc::int64_v, Vc::uint64_v, Vc::int32_v, Vc::uint32_v,
+                                 Vc::int16_v, Vc::uint16_v, Vc::int8_v, Vc::uint8_v))
+{
+    V v;
+    MEMCOMPARE(v, v);
+}
