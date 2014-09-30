@@ -705,24 +705,6 @@ template <typename T> struct VectorHelper
 {
 };
 
-template <unsigned int Size> struct IndexTypeHelper;
-template <> struct IndexTypeHelper<2u>
-{
-    typedef int Type;
-};
-template <> struct IndexTypeHelper<4u>
-{
-    typedef int Type;
-};
-template <> struct IndexTypeHelper<8u>
-{
-    typedef unsigned short Type;
-};
-template <> struct IndexTypeHelper<16u>
-{
-    typedef unsigned char Type;
-};
-
 template <typename T> struct VectorTypeHelper
 {
     typedef __m128i Type;
@@ -749,7 +731,6 @@ template <typename T> struct VectorTraits
     enum Constants { HasVectorDivision = !std::is_integral<T>::value };
     typedef Mask<T> MaskType;
     typedef typename DetermineGatherMask<MaskType>::Type GatherMaskType;
-    typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
     typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
 };
 
