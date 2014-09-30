@@ -131,8 +131,8 @@ namespace SseIntrinsics
     static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu32(__m128i a, __m128i b) { return _mm_cmpgt_epi32(
             _mm_xor_si128(a, _mm_setmin_epi32()), _mm_xor_si128(b, _mm_setmin_epi32())); }
 #endif
-}
-}
+}  // namespace SseIntrinsics
+}  // namespace Vc
 
 // SSE3
 #ifdef VC_IMPL_SSE3
@@ -166,8 +166,8 @@ namespace SseIntrinsics
     {
         return _mm_alignr_epi8(a, b, s);
     }
-}
-}
+}  // namespace SseIntrinsics
+}  // namespace Vc
 
 #else
 
@@ -238,8 +238,8 @@ namespace SseIntrinsics
         }
         return _mm_setzero_si128();
     }
-}
-}
+}  // namespace SseIntrinsics
+}  // namespace Vc
 
 #endif
 
@@ -565,8 +565,8 @@ namespace SseIntrinsics
     Vc_INTRINSIC Vc_PURE __m128i stream_load_si128(__m128i *mem) {
         return _mm_load_si128(mem);
     }
-}
-}
+}  // namespace SseIntrinsics
+}  // namespace Vc
 
 #endif
 
@@ -685,8 +685,8 @@ namespace SseIntrinsics
     }
 #endif
 
-}
-}
+}  // namespace SseIntrinsics
+}  // namespace Vc
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -742,8 +742,8 @@ public:
     FREE_STORE_OPERATORS_ALIGNED(16)
 };
 
-}
-}
+}  // namespace SSE
+}  // namespace Vc
 
 #include "undomacros.h"
 #include "shuffle.h"

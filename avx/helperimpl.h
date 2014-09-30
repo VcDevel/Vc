@@ -88,8 +88,8 @@ template<> struct HelperImpl<VC_IMPL>
     static Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 };
 
-}
-}
+}  // namespace Internal
+}  // namespace Vc
 
 #include "deinterleave.tcc"
 #include "prefetches.tcc"

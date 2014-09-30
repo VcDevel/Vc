@@ -101,7 +101,7 @@ namespace SSE
     template<> struct StaticCastHelper<short         , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
     template<> struct StaticCastHelper<unsigned short, unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
     template<> struct StaticCastHelper<double        , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128D &v) { return StaticCastHelper<int, unsigned short>::cast(StaticCastHelper<double, int>::cast(v)); } };
-}
-}
+}  // namespace SSE
+}  // namespace Vc
 
 #endif // SSE_CASTS_H

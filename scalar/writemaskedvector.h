@@ -39,8 +39,8 @@ namespace Scalar
 
 template<typename T> using WriteMaskedVector = Common::WriteMaskedVector<Vector<T>, Mask<T>>;
 
-}
-}
+}  // namespace Scalar
+}  // namespace Vc
 
 #include "undomacros.h"
 

@@ -47,8 +47,8 @@ template<> struct HelperImpl<Vc::ScalarImpl>
     static Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 };
 
-}
-}
+}  // namespace Internal
+}  // namespace Vc
 
 #include "helperimpl.tcc"
 #include "undomacros.h"

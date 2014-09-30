@@ -68,8 +68,8 @@ template<> struct HelperImpl<SSSE3Impl> : public HelperImpl<SSE3Impl> {};
 template<> struct HelperImpl<SSE41Impl> : public HelperImpl<SSSE3Impl> {};
 template<> struct HelperImpl<SSE42Impl> : public HelperImpl<SSE41Impl> {};
 
-}
-}
+}  // namespace Internal
+}  // namespace Vc
 
 #include "deinterleave.tcc"
 #include "prefetches.tcc"

@@ -87,7 +87,7 @@ template <int sign, unsigned int mantissa, int exponent> constexpr float floatCo
            sign;
 }
 
-}
-}
+}  // namespace Internal
+}  // namespace Vc
 
 #endif // VC_COMMON_CONST_H

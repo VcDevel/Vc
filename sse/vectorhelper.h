@@ -702,8 +702,8 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 #undef OP_CAST_
 #undef MINMAX
 
-}
-}
+}  // namespace SSE
+}  // namespace Vc
 
 #include "vectorhelper.tcc"
 #include "undomacros.h"

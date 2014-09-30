@@ -126,10 +126,8 @@ _VC_VECTORTUPLE_SPECIALIZATION(7, (l.l.l.l.l.l, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r,
 _VC_VECTORTUPLE_SPECIALIZATION(8, (l.l.l.l.l.l.l, l.l.l.l.l.l.r, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
 //        static_assert(false, "You_are_gathering_too_many_vectors__This_is_not_implemented");
 
-}
-}
-namespace Vc_VERSIONED_NAMESPACE
-{
+}  // namespace Common
+
 namespace Vc_IMPL_NAMESPACE
 {
 
@@ -145,8 +143,8 @@ constexpr Common::VectorTuple<2, const Vc::Vector<T> > operator,(const Vc::Vecto
     return Common::VectorTuple<2, const Vc::Vector<T> >(a, b);
 }
 
-}
-}
+}  // namespace Vc_IMPL_NAMESPACE
+}  // namespace Vc
 
 #include "undomacros.h"
 

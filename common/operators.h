@@ -131,7 +131,7 @@ using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_S
         Traits::decay<Conditional<!isVector<L>(), L, R>>>::type;
 
 #ifndef VC_ICC
-}
+}  // unnamed namespace
 #endif
 
 #define VC_GENERIC_OPERATOR(op)                                                                    \

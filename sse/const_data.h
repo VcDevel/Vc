@@ -68,8 +68,8 @@ template<> struct c_log<double>
     ALIGN(64) static const unsigned long long data[];
 };
 
-}
-}
+}  // namespace SSE
+}  // namespace Vc
 
 #include "undomacros.h"
 

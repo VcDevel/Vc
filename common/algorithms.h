@@ -103,36 +103,36 @@ namespace Scalar
     using Vc::any_of;
     using Vc::none_of;
     using Vc::some_of;
-}
+}  // namespace Scalar
 namespace SSE
 {
     using Vc::all_of;
     using Vc::any_of;
     using Vc::none_of;
     using Vc::some_of;
-}
+}  // namespace SSE
 namespace AVX
 {
     using Vc::all_of;
     using Vc::any_of;
     using Vc::none_of;
     using Vc::some_of;
-}
+}  // namespace AVX
 namespace AVX2
 {
     using Vc::all_of;
     using Vc::any_of;
     using Vc::none_of;
     using Vc::some_of;
-}
+}  // namespace AVX2
 namespace MIC
 {
     using Vc::all_of;
     using Vc::any_of;
     using Vc::none_of;
     using Vc::some_of;
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 

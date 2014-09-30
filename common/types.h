@@ -35,7 +35,7 @@ namespace Vc_IMPL_NAMESPACE
 {
     template<typename T> class Vector;
     template<typename T> class Mask;
-}
+}  // namespace Vc_IMPL_NAMESPACE
 
 enum class Operator : char {
     Assign,
@@ -169,10 +169,6 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 }
 #endif
 
-}
-
-namespace Vc_VERSIONED_NAMESPACE
-{
 namespace Common
 {
 template <std::size_t alignment>

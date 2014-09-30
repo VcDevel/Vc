@@ -34,8 +34,8 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Traits
 {
 template <typename T> using decay = typename std::decay<T>::type;
-}
-}
+}  // namespace Traits
+}  // namespace Vc
 
 #endif  // VC_TRAITS_DECAY_H_
 

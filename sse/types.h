@@ -62,13 +62,13 @@ template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
 template <typename T> struct is_mask : public std::false_type {};
 template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
-}
+}  // namespace SSE
 
 namespace Traits
 {
 template <typename T> struct is_simd_mask_internal<SSE::Mask<T>> : public std::true_type {};
 template <typename T> struct is_simd_vector_internal<SSE::Vector<T>> : public std::true_type {};
-}
-}
+}  // namespace Traits
+}  // namespace Vc
 
 #endif // SSE_TYPES_H

@@ -54,7 +54,7 @@ Vc_INTRINSIC Vc_CONST enable_if<std::is_same<To, Traits::decay<From>>::value, To
  */
 template <typename To> Vc_INTRINSIC Vc_CONST To simd_cast() { return To(); }
 
-}
+}  // namespace Vc
 
 #include "undomacros.h"
 

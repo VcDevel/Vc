@@ -101,8 +101,8 @@ namespace Vc_IMPL_NAMESPACE
 
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float>  Const<float>::highMask() { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask() { return _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)); }
-}
-}
+}  // namespace AVX(2)
+}  // namespace Vc
 
 #include "undomacros.h"
 

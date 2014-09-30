@@ -121,8 +121,8 @@ namespace Vc_IMPL_NAMESPACE
     template<> struct ReinterpretCastHelper<double      , double      > { static __m512d cast(__m512d v) { return v; } };
     template<> struct ReinterpretCastHelper<int         , double      > { static __m512d cast(__m512i v) { return _mm512_castsi512_pd(v); } };
     template<> struct ReinterpretCastHelper<unsigned int, double      > { static __m512d cast(__m512i v) { return _mm512_castsi512_pd(v); } };
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 

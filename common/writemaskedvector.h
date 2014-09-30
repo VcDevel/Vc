@@ -133,8 +133,8 @@ private:
     Mask mask;
     V *const vec;
 };
-}
-}
+}  // namespace Common
+}  // namespace Vc
 
 #include "undomacros.h"
 

@@ -29,8 +29,8 @@ namespace Common
 ALIGN(64) extern unsigned int RandomState[];
 ALIGN(32) extern const unsigned int AllBitsSet[8];
 
-}
-}
+}  // namespace Common
+}  // namespace Vc
 #include "undomacros.h"
 
 #endif // VC_COMMON_CONST_DATA_H

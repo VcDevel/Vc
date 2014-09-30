@@ -74,7 +74,7 @@ template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
 template <typename T> struct is_mask : public std::false_type {};
 template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
-}
+}  // namespace AVX
 namespace AVX2
 {
 constexpr std::size_t VectorAlignment = 32;
@@ -106,7 +106,7 @@ template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
 template <typename T> struct is_mask : public std::false_type {};
 template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
-}
+}  // namespace AVX2
 
 namespace Traits
 {
@@ -114,8 +114,8 @@ template<typename T> struct is_simd_mask_internal<AVX::Mask<T>> : public std::tr
 template<typename T> struct is_simd_mask_internal<AVX2::Mask<T>> : public std::true_type {};
 template<typename T> struct is_simd_vector_internal<AVX::Vector<T>> : public std::true_type {};
 template<typename T> struct is_simd_vector_internal<AVX2::Vector<T>> : public std::true_type {};
-}
-}
+}  // namespace Traits
+}  // namespace Vc
 
 #include "undomacros.h"
 

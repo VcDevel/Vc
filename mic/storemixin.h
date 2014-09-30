@@ -77,6 +77,6 @@ public:
     inline void store(VectorEntryType *mem, decltype(Streaming)) const;
 };
 
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 #endif // VC_MIC_STOREMIXIN_H

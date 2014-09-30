@@ -68,7 +68,7 @@ template <typename T, std::size_t N> struct has_contiguous_storage_impl<T[N]> : 
 template <typename T, std::size_t N> struct has_contiguous_storage_impl<std::array<T, N>> : public std::true_type {};
 template <typename T, typename A> struct has_contiguous_storage_impl<std::vector<T, A>> : public std::true_type {};
 
-}
-}
+}  // namespace Traits
+}  // namespace Vc
 
 #endif // VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H

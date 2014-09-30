@@ -78,8 +78,8 @@ namespace
                 static_cast<unsigned short>(x3), static_cast<unsigned short>(x4), static_cast<unsigned short>(x5),
                 static_cast<unsigned short>(x6), static_cast<unsigned short>(x7));
     }
-} // anonymous namespace
-}
+}  // anonymous namespace
+}  // namespace Vc
 #include "undomacros.h"
 
 #endif // VC_COMMON_SET_H

@@ -37,7 +37,7 @@ template<typename T> struct SortHelper
     static VectorType sort(VTArg);
     static void sort(VectorType &, VectorType &);
 };
-}
-}
+}  // namespace AVX(2)
+}  // namespace Vc
 
 #endif // VC_AVX_SORTHELPER_H

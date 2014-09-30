@@ -649,7 +649,7 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *addr)
 {
     Internal::Helper::prefetchFar(addr);
 }
-}
+}  // namespace Common
 
 using Common::malloc;
 using Common::free;
@@ -659,7 +659,7 @@ using Common::prefetchForModify;
 using Common::prefetchClose;
 using Common::prefetchMid;
 using Common::prefetchFar;
-}
+}  // namespace Vc
 
 namespace std
 {

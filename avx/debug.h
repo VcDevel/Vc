@@ -94,7 +94,7 @@ class DebugStream
 
 #define VC_DEBUG ::Vc::Vc_IMPL_NAMESPACE::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 
-}
-}
+}  // namespace AVX(2)
+}  // namespace Vc
 
 #endif // VC_AVX_DEBUG_H

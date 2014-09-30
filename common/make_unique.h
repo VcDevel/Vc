@@ -43,8 +43,8 @@ inline std::unique_ptr<T, Deleter<T>> make_unique(Args&&... args)
     return std::unique_ptr<T, Deleter<T>>(new(Vc::malloc<T, A>(1)) T(std::forward<Args>(args)...));
 }
 
-}
-}
+}  // namespace Common
+}  // namespace Vc
 
 #include "undomacros.h"
 

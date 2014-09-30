@@ -166,8 +166,8 @@ namespace Mem
 
             return _mm256_insertf128_ps(_mm256_castps128_ps256(lo), hi, 1);
         }
-}
-}
+}  // namespace Mem
+}  // namespace Vc
 
     // little endian has the lo bits on the right and high bits on the left
     // with vectors this becomes greatly confusing:
@@ -224,8 +224,8 @@ namespace Reg
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
             return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
         }
-}
-}
+}  // namespace Reg
+}  // namespace Vc
 #include "undomacros.h"
 
 #endif // VC_AVX_SHUFFLE_H

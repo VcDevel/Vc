@@ -27,7 +27,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Scalar
 {
 using Vc::where;
-}
-}
+}  // namespace Scalar
+}  // namespace Vc
 
 #endif // VC_SCALAR_WHERE_H

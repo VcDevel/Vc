@@ -31,7 +31,7 @@ using ::Vc::Common::begin;
 using ::Vc::Common::end;
 using ::Vc::Common::makeIterator;
 
-}
-}
+}  // namespace SSE
+}  // namespace Vc
 
 #endif // VC_SSE_ITERATORS_H

@@ -106,24 +106,24 @@ template<typename T> constexpr T iif (bool condition, const T &trueValue, const 
 namespace Scalar
 {
     using Vc::iif;
-}
+}  // namespace Scalar
 namespace SSE
 {
     using Vc::iif;
-}
+}  // namespace SSE
 namespace AVX
 {
     using Vc::iif;
-}
+}  // namespace AVX
 namespace AVX2
 {
     using Vc::iif;
-}
+}  // namespace AVX2
 namespace MIC
 {
     using Vc::iif;
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 

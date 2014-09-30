@@ -121,7 +121,7 @@ namespace Vc_VERSIONED_NAMESPACE
         return makeContainer<Container, T>(list);
     }
 
-}
+}  // namespace Vc
 
 #include "undomacros.h"
 

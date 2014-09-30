@@ -31,7 +31,7 @@ using ::Vc::Common::begin;
 using ::Vc::Common::end;
 using ::Vc::Common::makeIterator;
 
-}
-}
+}  // namespace Scalar
+}  // namespace Vc
 
 #endif // VC_SCALAR_ITERATORS_H

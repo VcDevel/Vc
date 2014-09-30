@@ -51,8 +51,8 @@ struct is_initializer_list
     : public is_initializer_list_impl::test<decay<Args>...>
 {
 };
-}
-}
+}  // namespace Traits
+}  // namespace Vc
 
 #endif  // VC_TRAITS_IS_INITIALIZER_LIST_H_
 

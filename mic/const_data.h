@@ -45,8 +45,8 @@ struct STRUCT_ALIGN1(64) c_general
     static const unsigned char frexpAndMask[16];
 } STRUCT_ALIGN2(64);
 
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 

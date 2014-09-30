@@ -143,8 +143,8 @@ Vc_ALWAYS_INLINE void executeScatter(PopcntSwitchT,
 }
 #endif
 
-}
-}
+}  // namespace Common
+}  // namespace Vc
 
 #include "undomacros.h"
 

@@ -96,7 +96,7 @@ private:
     typename MaskTypeHelper<EntryType>::Type mask;
 };
 
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #endif // VC_MIC_WRITEMASKEDVECTOR_H

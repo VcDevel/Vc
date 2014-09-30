@@ -27,9 +27,9 @@ namespace Common
 template <typename V, std::size_t Size1 = 0, std::size_t Size2 = 0,
           bool InitPadding = true>
 class Memory;
-}
+}  // namespace Common
 
 using Common::Memory;
-}
+}  // namespace Vc
 
 #endif // VC_COMMON_MEMORYFWD_H

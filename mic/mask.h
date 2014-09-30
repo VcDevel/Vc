@@ -267,8 +267,8 @@ struct ForeachHelper
             _Vc_foreach_bit_helper.step()) \
         for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
 
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 #include "mask.tcc"

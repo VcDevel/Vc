@@ -123,16 +123,13 @@ template<typename Flags> Vc_INTRINSIC void handleStorePrefetches(const void *add
 } // anonymous namespace
 /*}}}*/
 
-}
-}
+}  // namespace Common
 
-namespace Vc_VERSIONED_NAMESPACE
-{
 using Common::prefetchForOneRead;
 using Common::prefetchClose;
 using Common::prefetchMid;
 using Common::prefetchFar;
-}
+}  // namespace Vc
 
 #include "undomacros.h"
 

@@ -111,7 +111,7 @@ Vc_INTRINSIC Vc_CONST enable_if<
     return r;
 }
 
-}
+}  // namespace Vc
 
 #include "undomacros.h"
 

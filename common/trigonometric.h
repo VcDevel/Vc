@@ -36,11 +36,8 @@ template<Vc::Implementation Impl> using TrigonometricImplementation =
     + Vc::Fma4Instructions
 #endif
     >;
-}
-}
+}  // namespace Internal
 
-namespace Vc_VERSIONED_NAMESPACE
-{
 namespace Common
 {
 template<typename Impl> struct Trigonometric
@@ -52,12 +49,9 @@ template<typename Impl> struct Trigonometric
     template<typename T> static T atan (const T &_x);
     template<typename T> static T atan2(const T &y, const T &x);
 };
-}
-}
+}  // namespace Common
 
 #ifdef VC_IMPL_AVX
-namespace Vc_VERSIONED_NAMESPACE
-{
 namespace AVX
 {
 using Trigonometric = Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<AVXImpl>>;
@@ -67,13 +61,10 @@ template<typename T> Vc_ALWAYS_INLINE void sincos(const T &x, T *sin, T *cos) { 
 template<typename T> Vc_ALWAYS_INLINE T asin(const T &x) { return Trigonometric::asin(x); }
 template<typename T> Vc_ALWAYS_INLINE T atan(const T &x) { return Trigonometric::atan(x); }
 template<typename T> Vc_ALWAYS_INLINE T atan2(const T &y, const T &x) { return Trigonometric::atan2(y, x); }
-}
-}
+}  // namespace AVX
 #endif
 
 #ifdef VC_IMPL_SSE
-namespace Vc_VERSIONED_NAMESPACE
-{
 namespace SSE
 {
 // FIXME is SSE42Impl right? Probably yes, but explain why...
@@ -84,12 +75,9 @@ template<typename T> Vc_ALWAYS_INLINE void sincos(const T &x, T *sin, T *cos) { 
 template<typename T> Vc_ALWAYS_INLINE T asin(const T &x) { return Trigonometric::asin(x); }
 template<typename T> Vc_ALWAYS_INLINE T atan(const T &x) { return Trigonometric::atan(x); }
 template<typename T> Vc_ALWAYS_INLINE T atan2(const T &y, const T &x) { return Trigonometric::atan2(y, x); }
-}
-}
+}  // namespace SSE
 
 // only needed for AVX2, AVX, or SSE:
-namespace Vc_VERSIONED_NAMESPACE
-{
 namespace Vc_IMPL_NAMESPACE
 {
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> sin(const Vector<T> &_x) {
@@ -110,9 +98,9 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> atan (const Vector<T> &_
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> atan2(const Vector<T> &y, const Vector<T> &x) {
     return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan2(y, x);
 }
-}
-}
+}  // namespace Vc_IMPL_NAMESPACE
 #endif
+}  // namespace Vc
 
 #include "undomacros.h"
 #endif // VC_COMMON_TRIGONOMETRIC_H

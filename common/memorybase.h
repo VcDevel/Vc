@@ -755,8 +755,8 @@ inline void copyVectors(MemoryBase<V, ParentL, Dimension, RowMemoryL> &dst,
 }
 } // namespace Internal2
 
-}
-}
+}  // namespace Common
+}  // namespace Vc
 
 #include "undomacros.h"
 

@@ -246,8 +246,8 @@ template<> struct VectorHelper<unsigned int> {
 #undef OPx
 #undef OPcmp
 
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #include "vectorhelper.tcc"
 

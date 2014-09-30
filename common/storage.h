@@ -218,8 +218,8 @@ template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<unsigned long long> &VectorMemoryUn
 }
 #endif
 
-}
-}
+}  // namespace Common
+}  // namespace Vc
 
 #include "undomacros.h"
 

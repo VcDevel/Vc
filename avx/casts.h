@@ -194,8 +194,8 @@ namespace Vc_IMPL_NAMESPACE
     template<> struct StaticCastHelper<float         , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(__m256  v) { return StaticCastHelper<unsigned int, unsigned short>::cast(StaticCastHelper<float, unsigned int>::cast(v)); } };
     template<> struct StaticCastHelper<short         , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(__m128i v) { return v; } };
     template<> struct StaticCastHelper<unsigned short, unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(__m128i v) { return v; } };
-}
-}
+}  // namespace AVX(2)
+}  // namespace Vc
 
 #include "undomacros.h"
 

@@ -164,8 +164,8 @@ template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T>
         return v;
     }
 #endif
-}
-}
+}  // namespace SSE
+}  // namespace Vc
 
 #include "undomacros.h"
 

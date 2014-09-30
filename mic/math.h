@@ -137,8 +137,8 @@ Vc_ALWAYS_INLINE float_v ldexp(float_v::AsArg v, simdarray<int, 16, MIC::int_v, 
     return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
 }
 //}}}1
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 

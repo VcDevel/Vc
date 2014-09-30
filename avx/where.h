@@ -27,7 +27,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Vc_IMPL_NAMESPACE
 {
 using Vc::where;
-}
-}
+}  // namespace AVX(2)
+}  // namespace Vc
 
 #endif // VC_AVX_WHERE_H

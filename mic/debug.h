@@ -82,7 +82,7 @@ class DebugStream
 
 #define VC_DEBUG DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #endif // VC_MIC_DEBUG_H

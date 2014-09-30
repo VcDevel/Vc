@@ -27,7 +27,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace SSE
 {
 using Vc::where;
-}
-}
+}  // namespace SSE
+}  // namespace Vc
 
 #endif // VC_SSE_WHERE_H

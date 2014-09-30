@@ -76,7 +76,7 @@ template<typename V, typename M> Vc_ALWAYS_INLINE void deinterleave(V *a, V *b,
     Internal::Helper::deinterleave(*a, *b, memory, Aligned);
 }
 
-}
+}  // namespace Vc
 
 #include "undomacros.h"
 

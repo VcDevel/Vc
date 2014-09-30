@@ -30,10 +30,7 @@ namespace Vc_VERSIONED_NAMESPACE
         Y0, Y1, Y2, Y3, Y4, Y5, Y6, Y7,
         Const0
     };
-}
 
-namespace Vc_VERSIONED_NAMESPACE
-{
 namespace Mem
 {
         // shuffle<X1, X2, Y0, Y2>([x0 x1 x2 x3], [y0 y1 y2 y3]) = [x1 x2 y0 y2]
@@ -135,12 +132,9 @@ namespace Mem
             }
             return x;
         }
-}
-}
+}  // namespace Mem
 
     // The shuffles and permutes above use memory ordering. The ones below use register ordering:
-namespace Vc_VERSIONED_NAMESPACE
-{
 namespace Reg
 {
         // shuffle<Y2, Y0, X2, X1>([x3 x2 x1 x0], [y3 y2 y1 y0]) = [y2 y0 x2 x1]
@@ -175,8 +169,8 @@ namespace Reg
         template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128 Vc_CONST blend(__m128 x, __m128 y) {
             return Mem::blend<Dst0, Dst1, Dst2, Dst3>(x, y);
         }
-}
-}
+}  // namespace Reg
+}  // namespace Vc
 
 #include "undomacros.h"
 

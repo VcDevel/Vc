@@ -227,7 +227,7 @@ template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereImpl::WhereMask<M> _if
     return { m };
 }
 
-}
+}  // namespace Vc
 
 #include "undomacros.h"
 

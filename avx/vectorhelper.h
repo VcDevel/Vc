@@ -824,8 +824,8 @@ template<> struct VectorHelper<unsigned char>
     typedef unsigned char EntryType;
 };
 
-}
-}
+}  // namespace AVX(2)
+}  // namespace Vc
 
 #include "vectorhelper.tcc"
 #include "undomacros.h"

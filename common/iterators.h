@@ -208,8 +208,8 @@ template<typename V, typename Flags, typename FlagsX> Vc_ALWAYS_INLINE MemoryVec
     return new(&mv) MemoryVector<const V, Flags>;
 }
 
-}
-}
+}  // namespace Common
+}  // namespace Vc
 
 #include "undomacros.h"
 

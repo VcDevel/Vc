@@ -27,7 +27,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Vc_IMPL_NAMESPACE
 {
 using Vc::where;
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #endif // VC_MIC_WHERE_H

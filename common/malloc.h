@@ -94,8 +94,8 @@ Vc_ALWAYS_INLINE void free(void *p)
 #endif
 }
 
-}
-}
+}  // namespace Common
+}  // namespace Vc
 
 #include "undomacros.h"
 

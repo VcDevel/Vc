@@ -526,8 +526,8 @@ template <typename V> class __attribute__((align(64))) VectorAlignedBaseT
 public:
     FREE_STORE_OPERATORS_ALIGNED(alignof(V))
 };
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 

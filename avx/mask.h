@@ -221,8 +221,8 @@ private:
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 
-}
-}
+}  // namespace AVX(2)
+}  // namespace Vc
 
 #include "mask.tcc"
 #include "undomacros.h"

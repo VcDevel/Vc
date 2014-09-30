@@ -97,8 +97,8 @@ constexpr bool operator!=(A &&a, B &&b)
 static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
 static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
 
-}
-}
+}  // namespace Common
+}  // namespace Vc
 
 #include "undomacros.h"
 

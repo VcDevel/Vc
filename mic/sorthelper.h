@@ -36,8 +36,8 @@ template<typename T> struct SortHelper
     template<typename... Vs> static std::tuple<Vs...> sort(VC_ALIGNED_PARAMETER(std::tuple<Vs...>));
 };
 
-}
-}
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 

@@ -43,8 +43,8 @@ struct is_load_arguments<U, F> : public std::integral_constant<
                                      std::is_pointer<U>::value&& is_load_store_flag<F>::value>
 {
 };
-}
-}
+}  // namespace Traits
+}  // namespace Vc
 
 #endif  // VC_TRAITS_IS_LOAD_ARGUMENTS_H_
 

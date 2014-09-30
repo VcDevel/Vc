@@ -31,7 +31,7 @@ using ::Vc::Common::begin;
 using ::Vc::Common::end;
 using ::Vc::Common::makeIterator;
 
-}
-}
+}  // namespace AVX(2)
+}  // namespace Vc
 
 #endif // VC_AVX_ITERATORS_H

@@ -736,19 +736,19 @@ Vc_INTRINSIC Vc_PURE __m128i _mm_cvtsi64_si128(int64_t x) {
 }
 #endif
 
-}
-}
+}  // namespace AvxIntrinsics
+}  // namespace Vc
 
 namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
     using namespace AvxIntrinsics;
-}
+}  // namespace AVX
 namespace AVX2
 {
     using namespace AvxIntrinsics;
-}
+}  // namespace AVX2
 namespace Vc_AVX_NAMESPACE
 {
     template<typename T> struct VectorTypeHelper;
@@ -800,8 +800,8 @@ namespace Vc_AVX_NAMESPACE
     public:
         FREE_STORE_OPERATORS_ALIGNED(alignof(V))
     };
-}  // namespace Vc_AVX_NAMESPACE
-}
+}  // namespace AVX(2)
+}  // namespace Vc
 
 #include "undomacros.h"
 

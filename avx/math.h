@@ -101,8 +101,8 @@ inline float_v ldexp(float_v::AsArg v, simdarray<int, 8, SSE::int_v, 4> e)
 
     static Vc_ALWAYS_INLINE float_v ceil(float_v::AsArg v) { return _mm256_ceil_ps(v.data()); }
     static Vc_ALWAYS_INLINE double_v ceil(double_v::AsArg v) { return _mm256_ceil_pd(v.data()); }
-}
-}
+}  // namespace AVX(2)
+}  // namespace Vc
 
 #include "undomacros.h"
 

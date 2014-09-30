@@ -66,8 +66,8 @@ template<> struct c_log<double>
     ALIGN(64) static const unsigned long long data[];
 };
 
-}
-}
+}  // namespace AVX
+}  // namespace Vc
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -79,8 +79,8 @@ namespace AVX2
     using AVX::c_general;
     using AVX::c_trig;
     using AVX::c_log;
-}
-}
+}  // namespace AVX2
+}  // namespace Vc
 
 #include "undomacros.h"
 

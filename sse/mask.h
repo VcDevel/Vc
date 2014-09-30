@@ -210,8 +210,8 @@ public:
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 
-}
-}
+}  // namespace SSE
+}  // namespace Vc
 
 #include "undomacros.h"
 #include "mask.tcc"

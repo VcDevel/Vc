@@ -220,8 +220,8 @@ Vc_ALWAYS_INLINE Vector<double> ldexp(Vector<double> x, const simdarray<int, 1, 
     return double_v(std::ldexp(x.data(), internal_data(e).data()));
 }
 
-}
-}
+}  // namespace Scalar
+}  // namespace Vc
 
 #include "undomacros.h"
 
