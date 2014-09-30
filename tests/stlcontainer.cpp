@@ -90,3 +90,17 @@ TEST_TYPES(V, listInitialization, (ALL_VECTORS))
     //listInitialization<V, std::forward_list<V>>();
     //listInitialization<V, std::list<V>>();
 }
+
+#ifdef VC_CXX14
+TEST_TYPES(V, simdForEach, (ALL_VECTORS))
+{
+    typedef typename V::EntryType T;
+    std::vector<T> data;
+    data.reserve(99);
+    for (int i = 0; i < 99; ++i) {
+        data.push_back(T(i));
+    }
+    Vc::simd_for_each(data.begin(), data.end(), [](auto x) { std::cout << x << ' '; });
+    std::cout << '\n';
+}
+#endif
