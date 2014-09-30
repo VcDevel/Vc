@@ -43,6 +43,8 @@
 #else
 #error "Vc requires support for C++11."
 #endif
+#elif __cplusplus >= 201402L
+# define VC_CXX14 1
 #endif
 
 // Features/Quirks defines
