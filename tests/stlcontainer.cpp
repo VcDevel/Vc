@@ -21,7 +21,7 @@
 
 }}}*/
 
-#include "unittest-old.h"
+#include "unittest.h"
 #include <Vc/Allocator>
 #include <vector>
 #include <array>
@@ -43,7 +43,7 @@ template<typename Vec> size_t alignmentMask()
 
 template<typename T> struct SomeStruct { char a; T x; };
 
-template<typename V> void stdVectorAlignment()
+TEST_TYPES(V, stdVectorAlignment, (ALL_VECTORS))
 {
     const size_t mask = alignmentMask<V>();
     const char *const null = 0;
@@ -69,7 +69,7 @@ template<typename V> void stdVectorAlignment()
     }
 }
 
-template<typename V, typename Container> void listInitialization()
+template<typename V, typename Container> void listInitializationImpl()
 {
     typedef typename V::EntryType T;
     const auto data = Vc::makeContainer<Container>({ T(1), T(2), T(3), T(4), T(5), T(6), T(7), T(8), T(9) });
@@ -80,20 +80,13 @@ template<typename V, typename Container> void listInitialization()
         reference += V::Size;
     }
 }
-template<typename V> void listInitialization()
+TEST_TYPES(V, listInitialization, (ALL_VECTORS))
 {
-    listInitialization<V, std::vector<V>>();
-    listInitialization<V, std::array<V, 9>>();
-    listInitialization<V, std::deque<V>>();
+    listInitializationImpl<V, std::vector<V>>();
+    listInitializationImpl<V, std::array<V, 9>>();
+    listInitializationImpl<V, std::deque<V>>();
 
     // The following two crash (at least with AVX). Probably unaligned memory access.
     //listInitialization<V, std::forward_list<V>>();
     //listInitialization<V, std::list<V>>();
-}
-
-void testmain()
-{
-    using namespace Vc;
-    testAllTypes(stdVectorAlignment);
-    testAllTypes(listInitialization);
 }
