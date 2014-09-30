@@ -7,24 +7,23 @@ namespace
 template <bool C, typename T, typename F>
 using Conditional = typename std::conditional<C, T, F>::type;
 
-template <typename T> using Decay = typename std::decay<T>::type;
-
 using std::is_convertible;
 using std::is_floating_point;
 using std::is_integral;
 using std::is_same;
 
-template <typename T> struct IsUnsignedInternal : public std::is_unsigned<T> {};
-template <typename T> struct IsUnsignedInternal<Vector<T>> : public std::is_unsigned<T> {};
-template <typename T> constexpr bool isUnsigned() { return !std::is_same<Decay<T>, bool>::value && IsUnsignedInternal<Decay<T>>::value; }
-
-template <typename T> struct IsIntegralInternal : public std::is_integral<T> {};
-template <typename T> struct IsIntegralInternal<Vector<T>> : public std::is_integral<T> {};
-template <typename T> constexpr bool isIntegral() { return IsIntegralInternal<Decay<T>>::value; }
-
-template <typename T> struct IsVectorInternal             { static constexpr bool value = false; };
-template <typename T> struct IsVectorInternal<Vector<T> > { static constexpr bool value =  true; };
-template <typename T> constexpr bool isVector() { return IsVectorInternal<Decay<T>>::value; }
+template <typename T> constexpr bool isUnsigned()
+{
+    return !std::is_same<Traits::decay<T>, bool>::value && Traits::is_unsigned<T>::value;
+}
+template <typename T> constexpr bool isIntegral()
+{
+    return Traits::is_integral<T>::value;
+}
+template <typename T> constexpr bool isVector()
+{
+    return Traits::is_simd_vector_internal<Traits::decay<T>>::value;
+}
 
 template <typename T, bool = isIntegral<T>()> struct MakeUnsignedInternal;
 template <typename T> struct MakeUnsignedInternal<Vector<T>, true > { using type = Vector<typename std::make_unsigned<T>::type>; };
@@ -109,9 +108,9 @@ template <typename V, typename W> struct TypesForOperatorInternal<V, W, true>
 };
 
 template <typename L, typename R>
-using TypesForOperator =
-    typename TypesForOperatorInternal<Decay<Conditional< isVector<L>(), L, R>>,
-                                      Decay<Conditional<!isVector<L>(), L, R>>>::type;
+using TypesForOperator = typename TypesForOperatorInternal<
+    Traits::decay<Conditional<isVector<L>(), L, R>>,
+    Traits::decay<Conditional<!isVector<L>(), L, R>>>::type;
 
 template <
     typename V,
@@ -127,8 +126,9 @@ template <typename V, typename W> struct IsIncorrectVectorOperands<V, W, true>
 
 template <typename L, typename R>
 using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability =
-    typename IsIncorrectVectorOperands<Decay<Conditional< isVector<L>(), L, R>>,
-                                       Decay<Conditional<!isVector<L>(), L, R>>>::type;
+    typename IsIncorrectVectorOperands<
+        Traits::decay<Conditional<isVector<L>(), L, R>>,
+        Traits::decay<Conditional<!isVector<L>(), L, R>>>::type;
 
 #ifndef VC_ICC
 }
