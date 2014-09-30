@@ -69,26 +69,64 @@ template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix()
 constexpr bool some_of(bool) { return false; }
 
 template <typename InputIt, typename UnaryFunction>
-enable_if<std::is_arithmetic<typename InputIt::value_type>::value, UnaryFunction> simd_for_each(
-    InputIt first, InputIt last, UnaryFunction f)
+inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
+                     Traits::is_functor_argument_immutable<
+                         UnaryFunction, Vector<typename InputIt::value_type>>::value,
+                 UnaryFunction>
+simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 {
     typedef Vector<typename InputIt::value_type> V;
-    for (; std::addressof(*first) & (V::MemoryAlignment - 1) && first != last; ++first) {
-        f(*first);
+    typedef Scalar::Vector<typename InputIt::value_type> V1;
+    for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
+                   (V::MemoryAlignment - 1) &&
+               first != last;
+         ++first) {
+        f(V1(std::addressof(*first), Vc::Aligned));
     }
     const auto lastV = last - (V::Size + 1);
-    for (; first != last; first += V::Size) {
+    for (; first < lastV; first += V::Size) {
         f(V(std::addressof(*first), Vc::Aligned));
     }
     for (; first != last; ++first) {
-        f(*first);
+        f(V1(std::addressof(*first), Vc::Aligned));
     }
     return std::move(f);
 }
 
 template <typename InputIt, typename UnaryFunction>
-enable_if<!std::is_arithmetic<typename InputIt::value_type>::value, UnaryFunction> simd_for_each(
-    InputIt first, InputIt last, UnaryFunction f)
+inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
+                     !Traits::is_functor_argument_immutable<
+                         UnaryFunction, Vector<typename InputIt::value_type>>::value,
+                 UnaryFunction>
+simd_for_each(InputIt first, InputIt last, UnaryFunction f)
+{
+    typedef Vector<typename InputIt::value_type> V;
+    typedef Scalar::Vector<typename InputIt::value_type> V1;
+    for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
+                   (V::MemoryAlignment - 1) &&
+               first != last;
+         ++first) {
+        V1 tmp(std::addressof(*first), Vc::Aligned);
+        f(tmp);
+        tmp.store(std::addressof(*first), Vc::Aligned);
+    }
+    const auto lastV = last - (V::Size + 1);
+    for (; first < lastV; first += V::Size) {
+        V tmp(std::addressof(*first), Vc::Aligned);
+        f(tmp);
+        tmp.store(std::addressof(*first), Vc::Aligned);
+    }
+    for (; first != last; ++first) {
+        V1 tmp(std::addressof(*first), Vc::Aligned);
+        f(tmp);
+        tmp.store(std::addressof(*first), Vc::Aligned);
+    }
+    return std::move(f);
+}
+
+template <typename InputIt, typename UnaryFunction>
+inline enable_if<!std::is_arithmetic<typename InputIt::value_type>::value, UnaryFunction>
+simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 {
     return std::for_each(first, last, std::move(f));
 }

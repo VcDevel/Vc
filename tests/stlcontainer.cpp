@@ -100,7 +100,43 @@ TEST_TYPES(V, simdForEach, (ALL_VECTORS))
     for (int i = 0; i < 99; ++i) {
         data.push_back(T(i));
     }
-    Vc::simd_for_each(data.begin(), data.end(), [](auto x) { std::cout << x << ' '; });
-    std::cout << '\n';
+    T reference = 1;
+    int called_with_scalar = 0;
+    int called_with_V = 0;
+    Vc::simd_for_each(std::next(data.begin()), data.end(), [&](auto &x) {
+        const auto ref = reference + x.IndexesFromZero();
+        COMPARE(ref, x);
+        reference += x.Size;
+        x += 1;
+        if (std::is_same<decltype(x), Vc::Scalar::Vector<T> &>::value) {
+            ++called_with_scalar;
+        }
+        if (std::is_same<decltype(x), V &>::value) {
+            ++called_with_V;
+        }
+    });
+    VERIFY(called_with_scalar > 0);
+    VERIFY(called_with_V > 0);
+    if (std::is_same<V, Vc::Scalar::Vector<T>>::value) {
+        // in this case called_with_V and called_with_scalar will have been incremented both on
+        // every call
+        COMPARE(called_with_V * V::Size + called_with_scalar, 2 * 98);
+    } else {
+        COMPARE(called_with_V * V::Size + called_with_scalar, 98);
+    }
+
+    reference = 2;
+    Vc::simd_for_each(std::next(data.begin()), data.end(), [&reference](auto x) {
+        const auto ref = reference + x.IndexesFromZero();
+        COMPARE(ref, x);
+        reference += x.Size;
+        x += 1;
+    });
+    reference = 2;
+    Vc::simd_for_each(std::next(data.begin()), data.end(), [&reference](auto x) {
+        const auto ref = reference + x.IndexesFromZero();
+        COMPARE(ref, x);
+        reference += x.Size;
+    });
 }
 #endif

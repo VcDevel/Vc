@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "has_contiguous_storage.h"
 #include "is_initializer_list.h"
 #include "is_load_arguments.h"
+#include "is_functor_argument_immutable.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
