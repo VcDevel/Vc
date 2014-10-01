@@ -103,6 +103,7 @@ TEST_TYPES(V, simdForEach, (ALL_VECTORS))
     T reference = 1;
     int called_with_scalar = 0;
     int called_with_V = 0;
+    int position = 1;
     Vc::simd_for_each(std::next(data.begin()), data.end(), [&](auto &x) {
         const auto ref = reference + x.IndexesFromZero();
         COMPARE(ref, x);
@@ -113,6 +114,10 @@ TEST_TYPES(V, simdForEach, (ALL_VECTORS))
         }
         if (std::is_same<decltype(x), V &>::value) {
             ++called_with_V;
+        }
+        for (std::size_t i = 0; i < x.Size; ++i) {
+            data[position++] += T(2);  // modify the container directly - if it is not
+                                       // undone by simd_for_each we have a bug
         }
     });
     VERIFY(called_with_scalar > 0);
@@ -126,16 +131,21 @@ TEST_TYPES(V, simdForEach, (ALL_VECTORS))
     }
 
     reference = 2;
-    Vc::simd_for_each(std::next(data.begin()), data.end(), [&reference](auto x) {
+    position = 1;
+    Vc::simd_for_each(std::next(data.begin()), data.end(), [&](auto x) {
         const auto ref = reference + x.IndexesFromZero();
         COMPARE(ref, x);
         reference += x.Size;
         x += 1;
+        for (std::size_t i = 0; i < x.Size; ++i) {
+            data[position++] += T(2);  // modify the container directly - if it is undone
+                                       // by simd_for_each we have a bug
+        }
     });
-    reference = 2;
+    reference = 4;
     Vc::simd_for_each(std::next(data.begin()), data.end(), [&reference](auto x) {
         const auto ref = reference + x.IndexesFromZero();
-        COMPARE(ref, x);
+        COMPARE(ref, x) << "if ref == x + 2 then simd_for_each wrote back the closure argument, even though it should not have";
         reference += x.Size;
     });
 }
