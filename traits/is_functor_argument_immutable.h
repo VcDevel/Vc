@@ -35,11 +35,15 @@ namespace Traits
 {
 namespace is_functor_argument_immutable_impl
 {
+#if !defined VC_GCC || VC_GCC >= 0x40900
+// GCC 4.8: internal compiler error: in cp_parser_abort_tentative_parse, at
+// cp/parser.c:23778
 template <typename F, typename A,
           typename R = decltype(std::declval<F &>()(std::declval<A &>())),
           typename FF =
               decltype(static_cast<R (&)(A &)>(F::operator())(std::declval<const A &>()))>
 std::true_type test(int);
+#endif
 template <typename F, typename A> std::false_type test(...);
 }  // namespace is_functor_argument_immutable_impl
 
