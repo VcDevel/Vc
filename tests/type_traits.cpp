@@ -114,9 +114,24 @@ struct F1
 {
     template <typename T> void operator()(const T &) const {}
 };
+struct F2
+{
+    template <typename T> void operator()(T) const {}
+};
+struct F3
+{
+    template <typename T> void operator()(const T) const {}
+};
+struct F4
+{
+    template <typename T> void operator()(T &&) const {}
+};
 
 TEST(test_is_functor_argument_immutable)
 {
     VERIFY(!(Vc::Traits::is_functor_argument_immutable<F0, int>::value));
-    VERIFY((Vc::Traits::is_functor_argument_immutable<F1, int>::value));
+    VERIFY( (Vc::Traits::is_functor_argument_immutable<F1, int>::value));
+    VERIFY( (Vc::Traits::is_functor_argument_immutable<F2, int>::value));
+    VERIFY( (Vc::Traits::is_functor_argument_immutable<F3, int>::value));
+    VERIFY(!(Vc::Traits::is_functor_argument_immutable<F4, int>::value));
 }
