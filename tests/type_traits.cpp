@@ -105,3 +105,22 @@ TEST(hasContiguousStorage)
     hasContiguousStorageImpl(h, "std::array<int, 3>");
     hasContiguousStorageImpl(h.begin(), "std::array<int, 3>::iterator");
 }
+
+struct F0
+{
+    template <typename T> void operator()(T &) const {}
+};
+struct F1
+{
+    template <typename T> void operator()(const T &) const {}
+};
+
+TEST(test_is_functor_argument_immutable)
+{
+    VERIFY(!(Vc::Traits::is_functor_argument_immutable<F0, int>::value));
+#if !defined VC_GCC || VC_GCC >= 0x40900
+    // GCC's parser ICEs in the implementation of the trait and therefore always returns false as
+    // workaround
+    VERIFY((Vc::Traits::is_functor_argument_immutable<F1, int>::value));
+#endif
+}
