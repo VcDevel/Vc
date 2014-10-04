@@ -278,22 +278,22 @@ public:
                                                           std::is_union<T>::value)>>
     Vc_ALWAYS_INLINE auto operator[](U S::*member)
         -> SubscriptOperation<
-              typename std::remove_reference<decltype(m_address->*member)>::type,
-              IndexVector,
+              typename std::remove_reference<U>::type, IndexVector,
               std::ratio_multiply<
                   Scale,
                   std::ratio<sizeof(S),
-                             sizeof(m_address->*
-                                    member)>>  // By passing the scale factor as a
-                                               // fraction of integers in the template
-                                               // arguments the value does not lose
-                                               // information if the division yields a
-                                               // non-integral value. This could happen
-                                               // e.g. for a struct of struct (S2 { S1,
-                                               // char }, with sizeof(S1) = 16, sizeof(S2)
-                                               // = 20. Then scale would be 20/16)
+                             sizeof(U)>>  // By passing the scale factor as a fraction of
+                                          // integers in the template arguments the value
+                                          // does not lose information if the division
+                                          // yields a non-integral value. This could
+                                          // happen e.g. for a struct of struct (S2 { S1,
+                                          // char }, with sizeof(S1) = 16, sizeof(S2) =
+                                          // 20. Then scale would be 20/16)
               >
     {
+        static_assert(std::is_same<Traits::decay<decltype(m_address->*member)>,
+                                   Traits::decay<U>>::value,
+                      "Type mismatch that should be impossible.");
         // TODO: check whether scale really works for unions correctly
         return {&(m_address->*member), m_indexes};
     }
