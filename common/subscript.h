@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_SUBSCRIPT_H
 
 #include <initializer_list>
+#include <ratio>
 #include <type_traits>
 #include <vector>
 #include "types.h"
@@ -82,106 +83,87 @@ public:
         return subscript_operator(*this, std::forward<I>(arg__));
     }
 };
-// Fraction {{{1
-template <std::size_t Numerator, std::size_t Denominator> struct Fraction
+// apply Scale (std::ratio) functions {{{1
+template <typename Scale, typename T>
+Vc_ALWAYS_INLINE enable_if<Scale::num == Scale::den, Traits::decay<T>> applyScale(T &&x)
 {
-    static constexpr std::size_t value()
-    {
-        return Numerator / Denominator;
-    }
-    template <std::size_t Numerator2, std::size_t Denominator2>
-    using Multiply = Fraction<Numerator2 *Numerator, Denominator2 *Denominator>;
+    return std::forward<T>(x);
+}
 
-    template <typename T,
-              typename = enable_if<Traits::has_multiply_operator<T, decltype(value())>::value>>
-    static Vc_ALWAYS_INLINE typename std::decay<T>::type apply(T &&x)
-    {
-        auto tmp = std::forward<T>(x) * value();
-        VC_ASSERT(tmp / value() == x);
-        return std::move(tmp);
-    }
-
-    template <typename T,
-              typename = enable_if<!Traits::has_multiply_operator<T, decltype(value())>::value>>
-    static Vc_ALWAYS_INLINE T apply(T x)
-    {
-        for (size_t i = 0; i < x.size(); ++i) {
-            VC_ASSERT(x[i] * value() / value() == x[i]);
-            x[i] *= value();
-        }
-        return x;
-    }
-
-    template <typename T,
-              typename U,
-              typename = enable_if<Traits::has_multiply_operator<T, decltype(value())>::value &&
-                                       Traits::has_addition_operator<T, U>::value>>
-    static Vc_ALWAYS_INLINE typename std::decay<T>::type applyAndAdd(T &&x, U &&y)
-    {
-        return std::forward<T>(x) * value() + std::forward<U>(y);
-    }
-
-    template <typename T,
-              typename U,
-              typename = enable_if<!(Traits::has_multiply_operator<T &, decltype(value())>::value &&
-                                         Traits::has_addition_operator<T &, decltype(std::declval<U>()[0])>::value) &&
-                                   Traits::has_subscript_operator<U>::value>>
-    static Vc_ALWAYS_INLINE T applyAndAdd(T x, U &&y)
-    {
-        for (size_t i = 0; i < x.size(); ++i) {
-            x[i] = x[i] * value() + y[i];
-        }
-        return x;
-    }
-
-    template <typename T, typename U>
-    static Vc_ALWAYS_INLINE enable_if<!(Traits::has_multiply_operator<T &, decltype(value())>::
-                                            value &&Traits::has_addition_operator<T &, U>::value) &&
-                                          !Traits::has_subscript_operator<U>::value,
-                                      T> applyAndAdd(T x, U &&y)
-    {
-        for (size_t i = 0; i < x.size(); ++i) {
-            x[i] = x[i] * value() + y;
-        }
-        return x;
-    }
-};
-
-template <> struct Fraction<1, 1>
+template <typename Scale, typename T>
+Vc_ALWAYS_INLINE enable_if<
+    Scale::num != Scale::den && Traits::has_multiply_operator<T, std::intmax_t>::value,
+    Traits::decay<T>>
+    applyScale(T &&x)
 {
-    static constexpr std::size_t value()
-    {
-        return 1;
-    }
-    template <std::size_t Numerator2, std::size_t Denominator2>
-    using Multiply = Fraction<Numerator2, Denominator2>;
+    constexpr auto value = Scale::num / Scale::den;
+    VC_ASSERT((x * value) / value == x);
+    return std::forward<T>(x) * value;
+}
 
-    template <typename T> static Vc_ALWAYS_INLINE T apply(T &&x)
-    {
-        return std::forward<T>(x);
+template <typename Scale, typename T>
+Vc_ALWAYS_INLINE enable_if<
+    Scale::num != Scale::den && !Traits::has_multiply_operator<T, std::intmax_t>::value,
+    T>
+    applyScale(T x)
+{
+    constexpr auto value = Scale::num / Scale::den;
+    for (size_t i = 0; i < x.size(); ++i) {
+        VC_ASSERT((x[i] * value) / value == x[i]);
+        x[i] *= value;
     }
+    return x;
+}
 
-    template <typename T, typename U>
-    static Vc_ALWAYS_INLINE decltype(std::declval<T>() + std::declval<U>())  // this return type
-                                                                             // leads to a
-                                                                             // substitution failure
-                                                                             // if operator+ does
-                                                                             // not exist
-        applyAndAdd(T &&x, U &&y)
-    {
+template <typename Scale, typename T, typename U,
+          typename = enable_if<Traits::has_multiply_operator<T, std::intmax_t>::value &&
+                               Traits::has_addition_operator<T, U>::value>>
+Vc_ALWAYS_INLINE typename std::decay<T>::type applyScaleAndAdd(T &&x, U &&y)
+{
+    constexpr auto value = Scale::num / Scale::den;
+    if (value == 1) {  // static evaluation
         return std::forward<T>(x) + std::forward<U>(y);
     }
+    return std::forward<T>(x) * value + std::forward<U>(y);
+}
 
-    template <typename T, typename U> static Vc_ALWAYS_INLINE T applyAndAdd(T x, U &&y)
-    {
-        auto yIt = begin(y);
-        for (auto &entry : x) {
-            entry += *yIt;
-            ++yIt;
+template <
+    typename Scale, typename T, typename U,
+    typename = enable_if<
+        !(Traits::has_multiply_operator<T &, std::intmax_t>::value &&
+          Traits::has_addition_operator<T &, decltype(std::declval<U>()[0])>::value) &&
+        Traits::has_subscript_operator<U>::value>>
+Vc_ALWAYS_INLINE T applyScaleAndAdd(T x, U &&y)
+{
+    constexpr auto value = Scale::num / Scale::den;
+    for (size_t i = 0; i < x.size(); ++i) {
+        if (value == 1) {  // static evaluation
+            x[i] = x[i] + y[i];
+        } else {
+            x[i] = x[i] * value + y[i];
         }
-        return x;
     }
-};
+    return x;
+}
+
+template <typename Scale, typename T, typename U>
+Vc_ALWAYS_INLINE enable_if<!(Traits::has_multiply_operator<T &, std::intmax_t>::value &&
+                             Traits::has_addition_operator<T &, U>::value) &&
+                               !Traits::has_subscript_operator<U>::value,
+                           T>
+    applyScaleAndAdd(T x, U &&y)
+{
+    constexpr auto value = Scale::num / Scale::den;
+    for (size_t i = 0; i < x.size(); ++i) {
+        if (value == 1) {  // static evaluation
+            x[i] = x[i] + y;
+        } else {
+            x[i] = x[i] * value + y;
+        }
+    }
+    return x;
+}
+
 // IndexVectorSizeMatches {{{1
 template <std::size_t MinSize,
           typename IndexT,
@@ -222,7 +204,7 @@ struct IndexVectorSizeMatches<MinSize,
 {
 };
 // SubscriptOperation {{{1
-template <typename T, typename IndexVector, typename Scale = Fraction<1, 1>>
+template <typename T, typename IndexVector, typename Scale = std::ratio<1, 1>>
 class SubscriptOperation
 {
     const IndexVector m_indexes;
@@ -253,14 +235,14 @@ public:
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector gather. Must be an arithmetic type.");
-        return {Scale::apply(convertedIndexes()), m_address};
+        return {applyScale<Scale>(convertedIndexes()), m_address};
     }
 
     Vc_ALWAYS_INLINE ScatterArguments<T, IndexVectorScaled> scatterArguments() const
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector scatter. Must be an arithmetic type.");
-        return {Scale::apply(convertedIndexes()), m_address};
+        return {applyScale<Scale>(convertedIndexes()), m_address};
     }
 
     template <typename V,
@@ -270,7 +252,7 @@ public:
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector gather. Must be an arithmetic type.");
-        const IndexVectorScaled indexes = Scale::apply(convertedIndexes());
+        const IndexVectorScaled indexes = applyScale<Scale>(convertedIndexes());
         return V(m_address, &indexes[0]);
     }
 
@@ -281,30 +263,35 @@ public:
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector scatter. Must be an arithmetic type.");
-        const IndexVectorScaled indexes = Scale::apply(convertedIndexes());
+        const IndexVectorScaled indexes = applyScale<Scale>(convertedIndexes());
         rhs.scatter(m_address, &indexes[0]);
         return *this;
     }
 
     // precondition: m_address points to a struct/class/union
-    template <typename U,
-              typename S,  // S must be equal to T. Still we require this template parameter -
-                           // otherwise instantiation of SubscriptOperation would only be valid for
-                           // structs/unions.
-              typename = enable_if<
-                  std::is_same<S, T>::value &&(std::is_class<T>::value || std::is_union<T>::value)>>
+    template <
+        typename U,
+        typename S,  // S must be equal to T. Still we require this template parameter -
+        // otherwise instantiation of SubscriptOperation would only be valid for
+        // structs/unions.
+        typename = enable_if<std::is_same<S, T>::value &&(std::is_class<T>::value ||
+                                                          std::is_union<T>::value)>>
     Vc_ALWAYS_INLINE auto operator[](U S::*member)
         -> SubscriptOperation<
               typename std::remove_reference<decltype(m_address->*member)>::type,
               IndexVector,
-              typename Scale::template Multiply<
-                  sizeof(S),
-                  sizeof(m_address->*member)>  // By passing the scale factor as a fraction of
-                                               // integers in the template arguments the value does
-                                               // not lose information if the division yields a
-                                               // non-integral value. This could happen e.g. for a
-                                               // struct of struct (S2 { S1, char }, with sizeof(S1)
-                                               // = 16, sizeof(S2) = 20. Then scale would be 20/16)
+              std::ratio_multiply<
+                  Scale,
+                  std::ratio<sizeof(S),
+                             sizeof(m_address->*
+                                    member)>>  // By passing the scale factor as a
+                                               // fraction of integers in the template
+                                               // arguments the value does not lose
+                                               // information if the division yields a
+                                               // non-integral value. This could happen
+                                               // e.g. for a struct of struct (S2 { S1,
+                                               // char }, with sizeof(S1) = 16, sizeof(S2)
+                                               // = 20. Then scale would be 20/16)
               >
     {
         // TODO: check whether scale really works for unions correctly
@@ -327,20 +314,24 @@ public:
      */
 
     // precondition: m_address points to a type that implements the subscript operator
-    template <typename U = T>  // U is only required to delay name lookup to the 2nd phase (on use).
-                               // This is necessary because m_address[0][index] is only a correct
-                               // expression if has_subscript_operator<T>::value is true.
-    Vc_ALWAYS_INLINE auto operator[](
-        enable_if<
+    template <
+        typename U =
+            T>  // U is only required to delay name lookup to the 2nd phase (on use).
+                // This is necessary because m_address[0][index] is only a correct
+                // expression if has_subscript_operator<T>::value is true.
+    Vc_ALWAYS_INLINE auto
+        operator[](enable_if<
 #ifndef VC_IMPROVE_ERROR_MESSAGES
-            Traits::has_no_allocated_data<T>::value &&Traits::has_subscript_operator<T>::value &&
+                       Traits::has_no_allocated_data<T>::value &&
+                           Traits::has_subscript_operator<T>::value &&
 #endif
-                std::is_same<T, U>::value,
-            std::size_t> index)
-        -> SubscriptOperation<
-              typename std::remove_reference<decltype(m_address[0][index])>::type,
-              IndexVector,
-              typename Scale::template Multiply<sizeof(T), sizeof(m_address[0][index])>>
+                           std::is_same<T, U>::value,
+                       std::size_t> index)
+            -> SubscriptOperation<
+                  typename std::remove_reference<decltype(m_address[0][index])>::type,
+                  IndexVector,
+                  std::ratio_multiply<Scale,
+                                      std::ratio<sizeof(T), sizeof(m_address[0][index])>>>
     {
         static_assert(Traits::has_subscript_operator<T>::value,
                       "The subscript operator was called on a type that does not implement it.\n");
@@ -370,7 +361,7 @@ public:
                          // m_address[0][0] expression dependent on IT
                          )>::type,
             IndexVectorScaled,
-            Fraction<1, 1>  // reset Scale to 1 since it is applied below
+            std::ratio<1, 1>  // reset Scale to 1 since it is applied below
             >>
         operator[](const IT &index)
     {
@@ -384,8 +375,10 @@ public:
                       "generically at compile time you need to spezialize the "
                       "Vc::Traits::has_no_allocated_data_impl<T> type-trait for custom types that "
                       "meet the requirements.\n");
-        using ScaleHere = typename Scale::template Multiply<sizeof(T), sizeof(m_address[0][0])>;
-        return {&(m_address[0][0]), ScaleHere::applyAndAdd(convertedIndexes(), index)};
+        return {&(m_address[0][0]),
+                applyScaleAndAdd<std::ratio_multiply<
+                    Scale, std::ratio<sizeof(T), sizeof(m_address[0][0])>>>(
+                    convertedIndexes(), index)};
     }
 };
 // subscript_operator {{{1
