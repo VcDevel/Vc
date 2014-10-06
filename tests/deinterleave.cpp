@@ -219,8 +219,18 @@ size_t createNMask(size_t N)
     return NMask;
 }
 
-template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
+TEST_TYPES(Param, testDeinterleaveGather,
+           (outer_product<Typelist<ALL_VECTORS>,
+                          Typelist<std::integral_constant<std::size_t, 2>,
+                                   std::integral_constant<std::size_t, 3>,
+                                   std::integral_constant<std::size_t, 4>,
+                                   std::integral_constant<std::size_t, 5>,
+                                   std::integral_constant<std::size_t, 6>,
+                                   std::integral_constant<std::size_t, 7>,
+                                   std::integral_constant<std::size_t, 8>>>))
 {
+    typedef typename Param::template at<0> V;
+    constexpr auto StructSize = Param::template at<1>::value;
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef SomeStruct<T, StructSize> S;
@@ -249,17 +259,6 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
         const V reference = Vc::simd_cast<V>(i + I::IndexesFromZero()) * T(StructSize);
         TestDeinterleaveGatherCompare<V, StructSize, false>::test(data_v, i, reference);
     }
-}
-
-TEST_TYPES(V, testDeinterleaveGather, (ALL_VECTORS))
-{
-    testDeinterleaveGatherImpl<V, 2>();
-    testDeinterleaveGatherImpl<V, 3>();
-    testDeinterleaveGatherImpl<V, 4>();
-    testDeinterleaveGatherImpl<V, 5>();
-    testDeinterleaveGatherImpl<V, 6>();
-    testDeinterleaveGatherImpl<V, 7>();
-    testDeinterleaveGatherImpl<V, 8>();
 }
 
 template<typename V, size_t StructSize, bool Random> struct TestInterleavingScatterCompare;
@@ -403,8 +402,18 @@ template <typename T, std::size_t N> Vc::simdarray<T, N> rotate(const Vc::simdar
     return r;
 }
 
-template<typename V, size_t StructSize> void testInterleavingScatterImpl()
+TEST_TYPES(Param, testInterleavingScatter,
+           (outer_product<Typelist<ALL_VECTORS>,
+                          Typelist<std::integral_constant<std::size_t, 2>,
+                                   std::integral_constant<std::size_t, 3>,
+                                   std::integral_constant<std::size_t, 4>,
+                                   std::integral_constant<std::size_t, 5>,
+                                   std::integral_constant<std::size_t, 6>,
+                                   std::integral_constant<std::size_t, 7>,
+                                   std::integral_constant<std::size_t, 8>>>))
 {
+    typedef typename Param::template at<0> V;
+    constexpr auto StructSize = Param::template at<1>::value;
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef SomeStruct<T, StructSize> S;
@@ -433,15 +442,4 @@ template<typename V, size_t StructSize> void testInterleavingScatterImpl()
     for (size_t i = 0; i < N - V::Size; ++i) {
         TestInterleavingScatterCompare<V, StructSize, false>::test(data_v, i);
     }
-}
-
-TEST_TYPES(V, testInterleavingScatter, (ALL_VECTORS))
-{
-    testInterleavingScatterImpl<V, 2>();
-    testInterleavingScatterImpl<V, 3>();
-    testInterleavingScatterImpl<V, 4>();
-    testInterleavingScatterImpl<V, 5>();
-    testInterleavingScatterImpl<V, 6>();
-    testInterleavingScatterImpl<V, 7>();
-    testInterleavingScatterImpl<V, 8>();
 }
