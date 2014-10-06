@@ -20,7 +20,6 @@
 #ifndef VC_COMMON_SIMD_ARRAY_DATA_H
 #define VC_COMMON_SIMD_ARRAY_DATA_H
 
-#include "subscript.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
