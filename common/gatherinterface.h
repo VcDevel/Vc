@@ -48,6 +48,22 @@ private:
     template <typename MT, typename IT>
     inline void gatherImplementation(const MT *mem, IT &&indexes, MaskArgument mask);
 
+    template <typename IT, typename = enable_if<std::is_pointer<IT>::value ||
+                                                Traits::is_simd_vector<IT>::value>>
+    static Vc_INTRINSIC IT adjustIndexParameter(IT &&i)
+    {
+        return std::forward<IT>(i);
+    }
+    template <typename IT,
+              typename = enable_if<
+                  !std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+                  std::is_lvalue_reference<decltype(std::declval<IT>()[0])>::value>>
+    static Vc_INTRINSIC decltype(std::addressof(std::declval<IT>()[0]))
+        adjustIndexParameter(IT &&i)
+    {
+        return std::addressof(i[0]);
+    }
+
 public:
     #define VC_ASSERT_GATHER_PARAMETER_TYPES__                                                     \
         static_assert(std::is_convertible<MT, EntryType>::value,                                   \
@@ -65,24 +81,22 @@ public:
                       "If you use a simple array for the indexes parameter, the array must have "  \
                       "at least as many entries as this SIMD vector.")
 
-    template <typename MT,
-              typename IT,
-              typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
-    Vc_INTRINSIC Vector(const MT *mem, IT &&indexes)
+    template <typename MT, typename IT,
+              typename = enable_if<Traits::has_subscript_operator<IT>::value>>
+    Vc_INTRINSIC VC_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes)
     {
         VC_ASSERT_GATHER_PARAMETER_TYPES__;
         setZero();
-        gatherImplementation(mem, std::forward<IT>(indexes));
+        gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)));
     }
 
-    template <typename MT,
-              typename IT,
+    template <typename MT, typename IT,
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
-    Vc_INTRINSIC Vector(const MT *mem, IT &&indexes, MaskArgument mask)
+    Vc_INTRINSIC VC_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes, MaskArgument mask)
     {
         VC_ASSERT_GATHER_PARAMETER_TYPES__;
         setZero();
-        gatherImplementation(mem, std::forward<IT>(indexes), mask);
+        gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
     }
 
     template <typename MT,
@@ -91,7 +105,7 @@ public:
     Vc_INTRINSIC void gather(const MT *mem, IT &&indexes)
     {
         VC_ASSERT_GATHER_PARAMETER_TYPES__;
-        gatherImplementation(mem, std::forward<IT>(indexes));
+        gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)));
     }
 
     template <typename MT,
@@ -100,19 +114,19 @@ public:
     Vc_INTRINSIC void gather(const MT *mem, IT &&indexes, MaskArgument mask)
     {
         VC_ASSERT_GATHER_PARAMETER_TYPES__;
-        gatherImplementation(mem, std::forward<IT>(indexes), mask);
+        gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
     }
 
     template <typename MT, typename IT>
     Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args)
     {
-        gather(args.address, args.indexes);
+        gather(args.address, adjustIndexParameter(args.indexes));
     }
 
     template <typename MT, typename IT>
     Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args, MaskArgument mask)
     {
-        gather(args.address, args.indexes, mask);
+        gather(args.address, adjustIndexParameter(args.indexes), mask);
     }
 
 #undef VC_ASSERT_GATHER_PARAMETER_TYPES__
