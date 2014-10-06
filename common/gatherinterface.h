@@ -86,7 +86,6 @@ public:
     Vc_INTRINSIC VC_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes)
     {
         VC_ASSERT_GATHER_PARAMETER_TYPES__;
-        setZero();
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)));
     }
 
@@ -95,7 +94,6 @@ public:
     Vc_INTRINSIC VC_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes, MaskArgument mask)
     {
         VC_ASSERT_GATHER_PARAMETER_TYPES__;
-        setZero();
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
     }
 
