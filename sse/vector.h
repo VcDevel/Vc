@@ -49,6 +49,7 @@ namespace SSE
 
 template <typename T> using WriteMaskedVector = Common::WriteMaskedVector<Vector<T>, Mask<T>>;
 
+#define VC_CURRENT_CLASS_NAME Vector
 template<typename T> class Vector
 {
     static_assert(std::is_arithmetic<T>::value,
@@ -349,6 +350,7 @@ template<typename T> class Vector
         Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
+#undef VC_CURRENT_CLASS_NAME
 template<typename T> constexpr size_t Vector<T>::Size;
 
 template<typename T> class SwizzledVector : public Vector<T> {};

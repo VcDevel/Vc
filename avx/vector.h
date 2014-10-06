@@ -45,6 +45,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Vc_AVX_NAMESPACE
 {
+#define VC_CURRENT_CLASS_NAME Vector
 template<typename T> class Vector
 {
     static_assert(std::is_arithmetic<T>::value,
@@ -378,6 +379,7 @@ template<typename T> class Vector
         Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
+#undef VC_CURRENT_CLASS_NAME
 template<typename T> constexpr size_t Vector<T>::Size;
 
 static_assert(Traits::is_simd_vector<double_v>::value, "is_simd_vector<double_v>::value");

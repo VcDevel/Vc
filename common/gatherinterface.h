@@ -26,6 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+#ifndef VC_CURRENT_CLASS_NAME
+#error "incorrect use of common/gatherinterface.h: VC_CURRENT_CLASS_NAME must be defined to the current class name for declaring constructors."
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 // gathers
 // A gather takes the following arguments:

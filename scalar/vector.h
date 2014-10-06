@@ -39,6 +39,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Scalar
 {
+#define VC_CURRENT_CLASS_NAME Vector
 template <typename T> class Vector
 {
     static_assert(std::is_arithmetic<T>::value,
@@ -282,6 +283,7 @@ template <typename T> class Vector
         Vc_INTRINSIC Vector interleaveLow(Vector) const { return *this; }
         Vc_INTRINSIC Vector interleaveHigh(Vector x) const { return x; }
 };
+#undef VC_CURRENT_CLASS_NAME
 template<typename T> constexpr size_t Vector<T>::Size;
 
 template<typename T> class SwizzledVector : public Vector<T> {};

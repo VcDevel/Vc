@@ -74,6 +74,7 @@ template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r
 /// @{
 
 // atomic simdarray {{{1
+#define VC_CURRENT_CLASS_NAME simdarray
 template <typename T, std::size_t N, typename VectorType_> class simdarray<T, N, VectorType_, N>
 {
     static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value ||
@@ -952,6 +953,7 @@ private: //{{{2
     storage_type0 data0;
     storage_type1 data1;
 };
+#undef VC_CURRENT_CLASS_NAME
 template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t simdarray<T, N, VectorType, M>::Size;
 
 // internal_data0/1 (simdarray) {{{1

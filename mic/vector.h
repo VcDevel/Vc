@@ -52,6 +52,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Vc_IMPL_NAMESPACE
 {
 
+#define VC_CURRENT_CLASS_NAME Vector
 template<typename T> class Vector : public StoreMixin<Vector<T>, T>
 {
     static_assert(std::is_arithmetic<T>::value,
@@ -362,6 +363,7 @@ public:
     Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
+#undef VC_CURRENT_CLASS_NAME
 template<typename T> constexpr size_t Vector<T>::Size;
 
 template<typename T> struct SwizzledVector
