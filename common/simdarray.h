@@ -96,6 +96,7 @@ public:
     static constexpr std::size_t size() { return N; }
     using Mask = mask_type;
     using MaskType = Mask;
+    using MaskArgument = const MaskType &;
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
     using IndexType = index_type;
@@ -164,9 +165,12 @@ public:
     {
     }
 
+#include "gatherinterface.h"
+
     // forward all remaining ctors
     template <typename... Args,
               typename = enable_if<!Traits::is_cast_arguments<Args...>::value &&
+                                   !Traits::is_gather_signature<Args...>::value &&
                                    !Traits::is_initializer_list<Args...>::value>>
     explicit Vc_INTRINSIC simdarray(Args &&... args)
         : data(std::forward<Args>(args)...)
@@ -383,6 +387,23 @@ Vc_INTRINSIC const VectorType &internal_data(const simdarray<T, N, VectorType, N
     return x.data;
 }
 
+// gatherImplementation {{{2
+template <typename T, std::size_t N, typename VectorType>
+template <typename MT, typename IT>
+inline void simdarray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
+                                                                 IT &&indexes)
+{
+    data.gather(mem, std::forward<IT>(indexes));
+}
+template <typename T, std::size_t N, typename VectorType>
+template <typename MT, typename IT>
+inline void simdarray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
+                                                                 IT &&indexes,
+                                                                 MaskArgument mask)
+{
+    data.gather(mem, std::forward<IT>(indexes), mask);
+}
+
 // generic simdarray {{{1
 template <typename T, std::size_t N, typename VectorType, std::size_t> class simdarray
 {
@@ -412,6 +433,7 @@ public:
     static constexpr std::size_t size() { return N; }
     using Mask = mask_type;
     using MaskType = Mask;
+    using MaskArgument = const MaskType &;
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
     using IndexType = index_type;
@@ -456,18 +478,7 @@ public:
         VC_ASSERT(init.size() == size());
     }
 
-    // gather
-    template <typename U, typename... Args,
-              typename = enable_if<Traits::is_gather_signature<U *, Args...>::value>>
-    explicit Vc_INTRINSIC simdarray(U *mem, Args &&... args)
-        : data0(mem,
-                Split::lo(
-                    Common::Operations::gather(),
-                    args  // no forward here - it could move and thus break the next line
-                    )...)
-        , data1(mem, Split::hi(Common::Operations::gather(), std::forward<Args>(args))...)
-    {
-    }
+#include "gatherinterface.h"
 
     // forward all remaining ctors
     template <typename... Args,
@@ -955,6 +966,29 @@ private: //{{{2
 };
 #undef VC_CURRENT_CLASS_NAME
 template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t simdarray<T, N, VectorType, M>::Size;
+
+// gatherImplementation {{{2
+template <typename T, std::size_t N, typename VectorType, std::size_t M>
+template <typename MT, typename IT>
+inline void simdarray<T, N, VectorType, M>::gatherImplementation(const MT *mem,
+                                                                 IT &&indexes)
+{
+    data0.gather(mem, Split::lo(Common::Operations::gather(),
+                                indexes));  // don't forward indexes - it could move and
+                                            // thus break the next line
+    data1.gather(mem, Split::hi(Common::Operations::gather(), std::forward<IT>(indexes)));
+}
+template <typename T, std::size_t N, typename VectorType, std::size_t M>
+template <typename MT, typename IT>
+inline void simdarray<T, N, VectorType, M>::gatherImplementation(const MT *mem,
+                                                                 IT &&indexes, MaskArgument mask)
+{
+    data0.gather(mem, Split::lo(Common::Operations::gather(), indexes),
+                 Split::lo(mask));  // don't forward indexes - it could move and
+                                    // thus break the next line
+    data1.gather(mem, Split::hi(Common::Operations::gather(), std::forward<IT>(indexes)),
+                 Split::lo(mask));
+}
 
 // internal_data0/1 (simdarray) {{{1
 template <typename T, std::size_t N, typename V, std::size_t M>
