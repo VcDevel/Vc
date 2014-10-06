@@ -328,6 +328,9 @@ public:
                            std::is_same<T, U>::value,
                        std::size_t> index)
             -> SubscriptOperation<
+                  // the following decltype expression must depend on index and cannot
+                  // simply use [0][0] because it would yield an invalid expression in
+                  // case m_address[0] returns a struct/union
                   typename std::remove_reference<decltype(m_address[0][index])>::type,
                   IndexVector,
                   std::ratio_multiply<Scale,
