@@ -63,6 +63,15 @@ private:
     {
         return std::addressof(i[0]);
     }
+    template <typename IT>
+    static Vc_INTRINSIC
+        enable_if<!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+                      !std::is_lvalue_reference<decltype(std::declval<IT>()[0])>::value,
+                  IT>
+            adjustIndexParameter(IT &&i)
+    {
+        return std::forward<IT>(i);
+    }
 
 public:
     #define VC_ASSERT_GATHER_PARAMETER_TYPES__                                                     \
