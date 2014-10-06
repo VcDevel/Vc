@@ -34,6 +34,7 @@
 
 #include "traits/has_no_allocated_data.h"
 #include "traits/has_contiguous_storage.h"
+#include "common/subscript.h"
 #include "common/macros.h"
 
 #pragma GCC system_header

@@ -97,7 +97,7 @@ Vc_ALWAYS_INLINE enable_if<
     applyScale(T &&x)
 {
     constexpr auto value = Scale::num / Scale::den;
-    VC_ASSERT((x * value) / value == x);
+    VC_ASSERT(Vc::all_of((x * value) / value == x));
     return std::forward<T>(x) * value;
 }
 
@@ -203,6 +203,84 @@ struct IndexVectorSizeMatches<MinSize,
                               false> : public std::integral_constant<bool, (MinSize <= ArraySize)>
 {
 };
+// convertIndexVector {{{1
+// if the argument is a Vector<T> already we definitely want to keep it that way
+template <typename IV>
+enable_if<
+    (Traits::is_simd_vector<IV>::value && sizeof(typename IV::EntryType) >= sizeof(int)),
+    const IV &>
+    convertIndexVector(const IV &indexVector)
+{
+    return indexVector;
+}
+
+// but if the scalar (integral) type is smaller than int we convert it up to int. Otherwise it's
+// very likely that the calculations we have to perform will overflow.
+template <typename IV>
+enable_if<
+    (Traits::is_simd_vector<IV>::value && sizeof(typename IV::EntryType) < sizeof(int)),
+    simdarray<int, IV::Size>>
+    convertIndexVector(const IV &indexVector)
+{
+    return static_cast<simdarray<int, IV::Size>>(indexVector);
+}
+
+// helper for promoting int types to int or higher
+template<typename T> using promoted_type = decltype(std::declval<T>() + 1);
+
+// std::array, Vc::array, and C-array are fixed size and can therefore be converted to a
+// simdarray of the same size
+template <typename T, std::size_t N>
+enable_if<std::is_integral<T>::value, simdarray<promoted_type<T>, N>> convertIndexVector(
+    const std::array<T, N> &indexVector)
+{
+    return {std::addressof(indexVector[0]), Vc::Unaligned};
+}
+template <typename T, std::size_t N>
+enable_if<std::is_integral<T>::value, simdarray<promoted_type<T>, N>> convertIndexVector(
+    const Vc::array<T, N> &indexVector)
+{
+    return {std::addressof(indexVector[0]), Vc::Unaligned};
+}
+template <typename T, std::size_t N>
+enable_if<std::is_integral<T>::value, simdarray<promoted_type<T>, N>> convertIndexVector(
+    const T indexVector[N])
+{
+    return {std::addressof(indexVector[0]), Vc::Unaligned};
+}
+
+// a plain pointer won't work. Because we need some information on the number of values in
+// the index argument
+template <typename T>
+std::vector<promoted_type<T>> convertIndexVector(const T *indexVector)
+{
+    return {begin(indexVector), end(indexVector)};
+}
+
+// an initializer_list works, but is runtime-sized (before C++14, at least) so we have to
+// fall back to std::vector
+template <typename T>
+std::vector<promoted_type<T>> convertIndexVector(
+    const std::initializer_list<T> &indexVector)
+{
+    return {begin(indexVector), end(indexVector)};
+}
+
+// a std::vector cannot be converted to anything better
+template <typename T>
+enable_if<(std::is_integral<T>::value && sizeof(T) >= sizeof(int)), std::vector<T>>
+    convertIndexVector(const std::vector<T> &indexVector)
+{
+    return indexVector;
+}
+template <typename T>
+enable_if<(std::is_integral<T>::value && sizeof(T) < sizeof(int)),
+          std::vector<promoted_type<T>>>
+    convertIndexVector(const std::vector<T> &indexVector)
+{
+    return {std::begin(indexVector), std::end(indexVector)};
+}
+
 // SubscriptOperation {{{1
 template <typename T, typename IndexVector, typename Scale = std::ratio<1, 1>>
 class SubscriptOperation
@@ -211,19 +289,7 @@ class SubscriptOperation
     T *const m_address;
     using ScalarType = typename std::decay<T>::type;
 
-    using IndexVectorScaled = std::vector<unsigned int>;// typename std::conditional<
-        //(sizeof(std::declval<const IndexVector &>()[0]) < sizeof(int)),
-        //typename std::conditional<
-            //Traits::is_simd_vector<IndexVector>::value,
-            //Vc::simdarray<unsigned int, IndexVector::Size>,
-            //std::vector<unsigned int>/*>::type*/,
-        //IndexVector>::type;
-
-    IndexVectorScaled convertedIndexes() const
-    {
-        IndexVectorScaled r(begin(m_indexes), end(m_indexes));
-        return r;
-    }
+    using IndexVectorScaled = Traits::decay<decltype(convertIndexVector(std::declval<const IndexVector &>()))>;
 
 public:
     constexpr Vc_ALWAYS_INLINE SubscriptOperation(T *address, const IndexVector &indexes)
@@ -235,14 +301,14 @@ public:
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector gather. Must be an arithmetic type.");
-        return {applyScale<Scale>(convertedIndexes()), m_address};
+        return {applyScale<Scale>(convertIndexVector(m_indexes)), m_address};
     }
 
     Vc_ALWAYS_INLINE ScatterArguments<T, IndexVectorScaled> scatterArguments() const
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector scatter. Must be an arithmetic type.");
-        return {applyScale<Scale>(convertedIndexes()), m_address};
+        return {applyScale<Scale>(convertIndexVector(m_indexes)), m_address};
     }
 
     template <typename V,
@@ -252,8 +318,8 @@ public:
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector gather. Must be an arithmetic type.");
-        const IndexVectorScaled indexes = applyScale<Scale>(convertedIndexes());
-        return V(m_address, &indexes[0]);
+        const auto indexes = applyScale<Scale>(convertIndexVector(m_indexes));
+        return V(m_address, indexes);
     }
 
     template <typename V,
@@ -263,8 +329,8 @@ public:
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector scatter. Must be an arithmetic type.");
-        const IndexVectorScaled indexes = applyScale<Scale>(convertedIndexes());
-        rhs.scatter(m_address, &indexes[0]);
+        const auto indexes = applyScale<Scale>(convertIndexVector(m_indexes));
+        rhs.scatter(m_address, indexes);
         return *this;
     }
 
@@ -381,7 +447,7 @@ public:
         return {&(m_address[0][0]),
                 applyScaleAndAdd<std::ratio_multiply<
                     Scale, std::ratio<sizeof(T), sizeof(m_address[0][0])>>>(
-                    convertedIndexes(), index)};
+                    convertIndexVector(m_indexes), index)};
     }
 };
 // subscript_operator {{{1

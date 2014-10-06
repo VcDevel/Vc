@@ -24,7 +24,6 @@
 #include "unittest.h"
 #include <Vc/array>
 #include <Vc/vector>
-#include "../common/subscript.h"
 
 #define ALL_TYPES (ALL_VECTORS)
 
