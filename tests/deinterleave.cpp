@@ -1,23 +1,32 @@
-/*  This file is part of the Vc library.
+/*{{{
+Copyright © 2010-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2010-2011 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+}}}*/
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
-
-#include "unittest-old.h"
+#include "unittest.h"
 #include <iostream>
 #include <limits>
 
@@ -27,7 +36,6 @@ using Vc::int_v;
 using Vc::uint_v;
 using Vc::short_v;
 using Vc::ushort_v;
-
 
 /*
  *   V \  M | float | double | ushort | short | uint | int
@@ -39,26 +47,26 @@ using Vc::ushort_v;
  *  short_v |       |        |        |   X   |      |
  * ushort_v |       |        |    X   |       |      |
  */
-template<typename A, typename B> struct TPair { typedef A V; typedef B M; };
+typedef Typelist<float_v, float> float_float;
+typedef Typelist<float_v, unsigned short> float_ushort;
+typedef Typelist<float_v, short> float_short;
 
-typedef TPair<float_v, float> float_float;
-typedef TPair<float_v, unsigned short> float_ushort;
-typedef TPair<float_v, short> float_short;
+typedef Typelist<double_v, double> double_double;
+typedef Typelist<short_v, short> short_short;
+typedef Typelist<ushort_v, unsigned short> ushort_ushort;
 
-typedef TPair<double_v, double> double_double;
-typedef TPair<short_v, short> short_short;
-typedef TPair<ushort_v, unsigned short> ushort_ushort;
+typedef Typelist<int_v, int> int_int;
+typedef Typelist<int_v, short> int_short;
 
-typedef TPair<int_v, int> int_int;
-typedef TPair<int_v, short> int_short;
+typedef Typelist<uint_v, unsigned int> uint_uint;
+typedef Typelist<uint_v, unsigned short> uint_ushort;
 
-typedef TPair<uint_v, unsigned int> uint_uint;
-typedef TPair<uint_v, unsigned short> uint_ushort;
-
-template<typename Pair> void testDeinterleave()
+TEST_TYPES(Pair, testDeinterleave,
+           (float_float, float_ushort, float_short, double_double, int_int, int_short,
+            uint_uint, uint_ushort, short_short, ushort_ushort))
 {
-    typedef typename Pair::V V;
-    typedef typename Pair::M M;
+    typedef typename Pair::template at<0> V;
+    typedef typename Pair::template at<1> M;
     typedef typename V::IndexType I;
 
     const bool isSigned = std::numeric_limits<M>::is_signed;
@@ -243,7 +251,7 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
     }
 }
 
-template<typename V> void testDeinterleaveGather()
+TEST_TYPES(V, testDeinterleaveGather, (ALL_VECTORS))
 {
     testDeinterleaveGatherImpl<V, 2>();
     testDeinterleaveGatherImpl<V, 3>();
@@ -427,7 +435,7 @@ template<typename V, size_t StructSize> void testInterleavingScatterImpl()
     }
 }
 
-template<typename V> void testInterleavingScatter()
+TEST_TYPES(V, testInterleavingScatter, (ALL_VECTORS))
 {
     testInterleavingScatterImpl<V, 2>();
     testInterleavingScatterImpl<V, 3>();
@@ -436,21 +444,4 @@ template<typename V> void testInterleavingScatter()
     testInterleavingScatterImpl<V, 6>();
     testInterleavingScatterImpl<V, 7>();
     testInterleavingScatterImpl<V, 8>();
-}
-
-void testmain()
-{
-    runTest(testDeinterleave<float_float>);
-    runTest(testDeinterleave<float_ushort>);
-    runTest(testDeinterleave<float_short>);
-    runTest(testDeinterleave<double_double>);
-    runTest(testDeinterleave<int_int>);
-    runTest(testDeinterleave<int_short>);
-    runTest(testDeinterleave<uint_uint>);
-    runTest(testDeinterleave<uint_ushort>);
-    runTest(testDeinterleave<short_short>);
-    runTest(testDeinterleave<ushort_ushort>);
-
-    testAllTypes(testDeinterleaveGather);
-    testAllTypes(testInterleavingScatter);
 }
