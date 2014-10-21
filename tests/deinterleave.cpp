@@ -123,7 +123,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5, v6, v7;
-        (v0, v1, v2, v3, v4, v5, v6, v7) = data_v[indexes];
+        tie(v0, v1, v2, v3, v4, v5, v6, v7) = data_v[indexes];
         COMPARE(v0, reference + 0) << "N = 8";
         COMPARE(v1, reference + 1) << "N = 8";
         COMPARE(v2, reference + 2) << "N = 8";
@@ -139,7 +139,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5, v6;
-        (v0, v1, v2, v3, v4, v5, v6) = data_v[indexes];
+        tie(v0, v1, v2, v3, v4, v5, v6) = data_v[indexes];
         COMPARE(v0, reference + 0) << "N = 7";
         COMPARE(v1, reference + 1) << "N = 7";
         COMPARE(v2, reference + 2) << "N = 7";
@@ -154,7 +154,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5;
-        (v0, v1, v2, v3, v4, v5) = data_v[indexes];
+        tie(v0, v1, v2, v3, v4, v5) = data_v[indexes];
         COMPARE(v0, reference + 0) << "N = 6";
         COMPARE(v1, reference + 1) << "N = 6";
         COMPARE(v2, reference + 2) << "N = 6";
@@ -168,7 +168,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4;
-        (v0, v1, v2, v3, v4) = data_v[indexes];
+        tie(v0, v1, v2, v3, v4) = data_v[indexes];
         COMPARE(v0, reference + 0) << "N = 5";
         COMPARE(v1, reference + 1) << "N = 5";
         COMPARE(v2, reference + 2) << "N = 5";
@@ -181,7 +181,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b, c, d;
-        (a, b, c, d) = data_v[indexes];
+        tie(a, b, c, d) = data_v[indexes];
         COMPARE(a, reference + 0) << "N = 4";
         COMPARE(b, reference + 1) << "N = 4";
         COMPARE(c, reference + 2) << "N = 4";
@@ -193,7 +193,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b, c;
-        (a, b, c) = data_v[indexes];
+        tie(a, b, c) = data_v[indexes];
         COMPARE(a, reference + 0) << "N = 3";
         COMPARE(b, reference + 1) << "N = 3";
         COMPARE(c, reference + 2) << "N = 3";
@@ -204,7 +204,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b;
-        (a, b) = data_v[indexes];
+        tie(a, b) = data_v[indexes];
         COMPARE(a, reference + 0) << "N = 2";
         COMPARE(b, reference + 1) << "N = 2";
     }
@@ -280,8 +280,8 @@ _IMPL(2,
         const V v1 = V::Random();
         V t0;
         V t1;
-        data[i] = (v0, v1);
-        (t0, t1) = data[i];
+        data[i] = tie(v0, v1);
+        tie(t0, t1) = data[i];
         COMPARE(t0, v0) << 2;
         COMPARE(t1, v1) << 2;
      );
@@ -290,8 +290,8 @@ _IMPL(3,
         const V v1 = V::Random();
         const V v2 = V::Random();
         V t0; V t1; V t2;
-        data[i] = (v0, v1, v2);
-        (t0, t1, t2) = data[i];
+        data[i] = tie(v0, v1, v2);
+        tie(t0, t1, t2) = data[i];
         COMPARE(t0, v0) << 3;
         COMPARE(t1, v1) << 3;
         COMPARE(t2, v2) << 3;
@@ -303,8 +303,8 @@ _IMPL(4,
         const V v2 = V::Random();
         const V v3 = V::Random();
         V t0; V t1; V t2; V t3;
-        data[i] = (v0, v1, v2, v3);
-        (t0, t1, t2, t3) = data[i];
+        data[i] = tie(v0, v1, v2, v3);
+        tie(t0, t1, t2, t3) = data[i];
         COMPARE(t0, v0) << 4;
         COMPARE(t1, v1) << 4;
         COMPARE(t2, v2) << 4;
@@ -318,8 +318,8 @@ _IMPL(5,
         const V v3 = V::Random();
         const V v4 = V::Random();
         V t0; V t1; V t2; V t3; V t4;
-        data[i] = (v0, v1, v2, v3, v4);
-        (t0, t1, t2, t3, t4) = data[i];
+        data[i] = tie(v0, v1, v2, v3, v4);
+        tie(t0, t1, t2, t3, t4) = data[i];
         COMPARE(t0, v0) << 5;
         COMPARE(t1, v1) << 5;
         COMPARE(t2, v2) << 5;
@@ -335,8 +335,8 @@ _IMPL(6,
         const V v4 = V::Random();
         const V v5 = V::Random();
         V t0; V t1; V t2; V t3; V t4; V t5;
-        data[i] = (v0, v1, v2, v3, v4, v5);
-        (t0, t1, t2, t3, t4, t5) = data[i];
+        data[i] = tie(v0, v1, v2, v3, v4, v5);
+        tie(t0, t1, t2, t3, t4, t5) = data[i];
         COMPARE(t0, v0) << 6;
         COMPARE(t1, v1) << 6;
         COMPARE(t2, v2) << 6;
@@ -354,8 +354,8 @@ _IMPL(7,
         const V v5 = V::Random();
         const V v6 = V::Random();
         V t0; V t1; V t2; V t3; V t4; V t5; V t6;
-        data[i] = (v0, v1, v2, v3, v4, v5, v6);
-        (t0, t1, t2, t3, t4, t5, t6) = data[i];
+        data[i] = tie(v0, v1, v2, v3, v4, v5, v6);
+        tie(t0, t1, t2, t3, t4, t5, t6) = data[i];
         COMPARE(t0, v0) << 7;
         COMPARE(t1, v1) << 7;
         COMPARE(t2, v2) << 7;
@@ -375,8 +375,8 @@ _IMPL(8,
         const V v6 = V::Random();
         const V v7 = V::Random();
         V t0; V t1; V t2; V t3; V t4; V t5; V t6; V t7;
-        data[i] = (v0, v1, v2, v3, v4, v5, v6, v7);
-        (t0, t1, t2, t3, t4, t5, t6, t7) = data[i];
+        data[i] = tie(v0, v1, v2, v3, v4, v5, v6, v7);
+        tie(t0, t1, t2, t3, t4, t5, t6, t7) = data[i];
         COMPARE(t0, v0) << 8;
         COMPARE(t1, v1) << 8;
         COMPARE(t2, v2) << 8;

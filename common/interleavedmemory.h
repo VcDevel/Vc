@@ -1,19 +1,28 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2012-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
@@ -86,6 +95,13 @@ template<typename V, typename I> struct InterleavedMemoryAccessBase
     inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5);
     inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6);
     inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6, VArg v7);
+
+protected:
+    template <typename T, std::size_t... Indexes>
+    Vc_INTRINSIC void callInterleave(T &&a, index_sequence<Indexes...>)
+    {
+        interleave(a[Indexes]...);
+    }
 };
 
 /**
@@ -123,7 +139,8 @@ template<size_t S> struct CheckIndexesUnique<SuccessiveEntries<S> >
 /**
  * \internal
  */
-template<size_t StructSize, typename V, typename I = typename V::IndexType> struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, V, I>
+template <size_t StructSize, typename V, typename I = typename V::IndexType>
+struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, V, I>
 {
     typedef InterleavedMemoryAccessBase<V, I> Base;
     typedef typename Base::Ta Ta;
@@ -134,27 +151,18 @@ template<size_t StructSize, typename V, typename I = typename V::IndexType> stru
         CheckIndexesUnique<I>::test(indexes);
     }
 
-#define _VC_SCATTER_ASSIGNMENT(LENGTH, parameters) \
-    Vc_ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, V> &rhs) \
-    { \
-        static_assert(LENGTH <= StructSize, "You_are_trying_to_scatter_more_data_into_the_struct_than_it_has"); \
-        this->interleave parameters ; \
-    } \
-    Vc_ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, const V> &rhs) \
-    { \
-        static_assert(LENGTH <= StructSize, "You_are_trying_to_scatter_more_data_into_the_struct_than_it_has"); \
-        this->interleave parameters ; \
+    template <int N> Vc_ALWAYS_INLINE void operator=(VectorReferenceArray<N, V> &&rhs)
+    {
+        static_assert(N <= StructSize,
+                      "You_are_trying_to_scatter_more_data_into_the_struct_than_it_has");
+        this->callInterleave(std::move(rhs), make_index_sequence<N>());
     }
-    _VC_SCATTER_ASSIGNMENT(2, (rhs.l, rhs.r))
-    _VC_SCATTER_ASSIGNMENT(3, (rhs.l.l, rhs.l.r, rhs.r));
-    _VC_SCATTER_ASSIGNMENT(4, (rhs.l.l.l, rhs.l.l.r, rhs.l.r, rhs.r));
-    _VC_SCATTER_ASSIGNMENT(5, (rhs.l.l.l.l, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
-    _VC_SCATTER_ASSIGNMENT(6, (rhs.l.l.l.l.l, rhs.l.l.l.l.r, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
-    _VC_SCATTER_ASSIGNMENT(7, (rhs.l.l.l.l.l.l, rhs.l.l.l.l.l.r, rhs.l.l.l.l.r, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
-    _VC_SCATTER_ASSIGNMENT(8, (rhs.l.l.l.l.l.l.l, rhs.l.l.l.l.l.l.r, rhs.l.l.l.l.l.r, rhs.l.l.l.l.r, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
-#undef _VC_SCATTER_ASSIGNMENT
-
-private:
+    template <int N> Vc_ALWAYS_INLINE void operator=(VectorReferenceArray<N, const V> &&rhs)
+    {
+        static_assert(N <= StructSize,
+                      "You_are_trying_to_scatter_more_data_into_the_struct_than_it_has");
+        this->callInterleave(std::move(rhs), make_index_sequence<N>());
+    }
 };
 
 /**
