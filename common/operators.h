@@ -1,11 +1,33 @@
-#ifndef VC_ICC
-// ICC ICEs if the following type-traits are in the anonymous namespace
-namespace
-{
-#endif
+/*  This file is part of the Vc library. {{{
+Copyright © 2012-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+}}}*/
 
 template <bool C, typename T, typename F>
-using Conditional = typename std::conditional<C, T, F>::type;
+using conditional_t = typename std::conditional<C, T, F>::type;
 
 using std::is_convertible;
 using std::is_floating_point;
@@ -70,7 +92,7 @@ static_assert(false == ((is_convertible<double, float_v>::value ||
 
 template <typename V, typename W>
 using DetermineReturnType =
-    Conditional<(is_same<V, int_v>::value || is_same<V, uint_v>::value) &&
+    conditional_t<(is_same<V, int_v>::value || is_same<V, uint_v>::value) &&
                     (is_same<W, float>::value || is_same<W, float_v>::value),
                 float_v,
                 CopyUnsigned<W, V>>;
@@ -109,8 +131,8 @@ template <typename V, typename W> struct TypesForOperatorInternal<V, W, true>
 
 template <typename L, typename R>
 using TypesForOperator = typename TypesForOperatorInternal<
-    Traits::decay<Conditional<isVector<L>(), L, R>>,
-    Traits::decay<Conditional<!isVector<L>(), L, R>>>::type;
+    Traits::decay<conditional_t<isVector<L>(), L, R>>,
+    Traits::decay<conditional_t<!isVector<L>(), L, R>>>::type;
 
 template <
     typename V,
@@ -127,12 +149,8 @@ template <typename V, typename W> struct IsIncorrectVectorOperands<V, W, true>
 template <typename L, typename R>
 using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability =
     typename IsIncorrectVectorOperands<
-        Traits::decay<Conditional<isVector<L>(), L, R>>,
-        Traits::decay<Conditional<!isVector<L>(), L, R>>>::type;
-
-#ifndef VC_ICC
-}  // unnamed namespace
-#endif
+        Traits::decay<conditional_t<isVector<L>(), L, R>>,
+        Traits::decay<conditional_t<!isVector<L>(), L, R>>>::type;
 
 #define VC_GENERIC_OPERATOR(op)                                                                    \
     template <typename L, typename R>                                                              \
@@ -169,5 +187,3 @@ VC_ALL_COMPARES   (VC_INVALID_OPERATOR)
 #undef VC_GENERIC_OPERATOR
 #undef VC_COMPARE_OPERATOR
 #undef VC_INVALID_OPERATOR
-
-// }}}1
