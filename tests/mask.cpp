@@ -122,7 +122,7 @@ TEST_TYPES(Vec, testPlusEq, ALL_TYPES) /*{{{*/
         Vec b(&data[Vec::Size]);
         Vec c = a;
         Mask m = a < border;
-        COMPARE(a(m) += two<T>(), b);
+        a(m) += two<T>();
         COMPARE(a, b);
         where(m) | c += two<T>();
         COMPARE(c, b);
@@ -149,7 +149,7 @@ TEST_TYPES(Vec, testMinusEq, ALL_TYPES) /*{{{*/
         where(m) | c -= two<T>();
         COMPARE(c, b);
 
-        COMPARE(a(m) -= two<T>(), b);
+        a(m) -= two<T>();
         COMPARE(a, b);
     }
 }
@@ -174,7 +174,7 @@ TEST_TYPES(Vec, testTimesEq, ALL_TYPES) /*{{{*/
         where(m) | c *= two<T>();
         COMPARE(c, b);
 
-        COMPARE(a(m) *= two<T>(), b);
+        a(m) *= two<T>();
         COMPARE(a, b);
     }
 }
@@ -199,7 +199,7 @@ TEST_TYPES(Vec, testDivEq, ALL_TYPES) /*{{{*/
         where(m) | c /= three<T>();
         COMPARE(c, b);
 
-        COMPARE(a(m) /= three<T>(), b);
+        a(m) /= three<T>();
         COMPARE(a, b);
     }
 }
@@ -224,7 +224,7 @@ TEST_TYPES(Vec, testAssign, ALL_TYPES) /*{{{*/
         where(m) | c = b;
         COMPARE(c, b);
 
-        COMPARE(a(m) = b, b);
+        a(m) = b;
         COMPARE(a, b);
     }
 }

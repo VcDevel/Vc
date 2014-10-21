@@ -82,34 +82,25 @@ public:
         return ret;
     }
 
-#define VC_OPERATOR__(op)                                                                          \
-    template <typename U> Vc_ALWAYS_INLINE V &operator op##=(U &&x)                                \
-    {                                                                                              \
-        return operator=(static_cast<V>(*vec op std::forward<U>(x)));                              \
+#define VC_OPERATOR__(op)                                                                \
+    template <typename U> Vc_ALWAYS_INLINE void operator op##=(U &&x)                    \
+    {                                                                                    \
+        operator=(static_cast<V>(*vec op std::forward<U>(x)));                           \
     }
     VC_ALL_BINARY(VC_OPERATOR__)
     VC_ALL_ARITHMETICS(VC_OPERATOR__)
     VC_ALL_SHIFTS(VC_OPERATOR__)
 #undef VC_OPERATOR__
 
-    Vc_ALWAYS_INLINE V &operator=(const V &x)
+    Vc_ALWAYS_INLINE void operator=(const V &x)
     {
         vec->assign(x, mask);
-        return *vec;
     }
 
-    template<typename T, typename IndexVector>
-    Vc_ALWAYS_INLINE V &operator=(const GatherArguments<T, IndexVector> &x)
+    template <typename T, typename I, typename S>
+    Vc_ALWAYS_INLINE void operator=(SubscriptOperation<T, I, S> &&x)
     {
-        vec->gather(x, mask);
-        return *vec;
-    }
-
-    template <typename T, typename = enable_if<Traits::is_subscript_operation<T>::value>>
-    Vc_ALWAYS_INLINE V &operator=(T &&x)
-    {
-        vec->gather(std::forward<T>(x).gatherArguments(), mask);
-        return *vec;
+        vec->gather(x.gatherArguments(), mask);
     }
 
     template <typename F> Vc_INTRINSIC void call(const F &f) const
