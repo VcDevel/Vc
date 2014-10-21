@@ -33,6 +33,7 @@
 #include "simd_mask_array.h"
 #include "utility.h"
 #include "interleave.h"
+#include "indexsequence.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -1650,43 +1651,6 @@ Vc_INTRINSIC Vc_CONST Return simd_cast_without_last(const From &... xs, const T 
 }
 
 // simd_cast_interleaved_argument_order (definitions) {{{2
-/** \internal
- * Helper class for a sequence of size_t values from 0 to N. This type will be included in
- * C++14.
- */
-template <std::size_t... I> struct index_sequence
-{
-    static constexpr std::size_t size() noexcept { return sizeof...(I); }
-};
-
-/** \internal
- * This struct builds an index_sequence type from a given upper bound \p N.
- * It does so recursively via appending N - 1 to make_index_sequence_impl<N - 1>.
- */
-template <std::size_t N, typename Prev = void> struct make_index_sequence_impl;
-/// \internal constructs an empty index_sequence
-template <> struct make_index_sequence_impl<0, void>
-{
-    using type = index_sequence<>;
-};
-/// \internal appends `N-1` to make_index_sequence<N-1>
-template <std::size_t N> struct make_index_sequence_impl<N, void>
-{
-    using type = typename make_index_sequence_impl<
-        N, typename make_index_sequence_impl<N - 1>::type>::type;
-};
-/// \internal constructs the index_sequence `Ns..., N-1`
-template <std::size_t N, std::size_t... Ns>
-struct make_index_sequence_impl<N, index_sequence<Ns...>>
-{
-    using type = index_sequence<Ns..., N - 1>;
-};
-
-/** \internal
- * Creates an index_sequence type for the upper bound \p N.
- */
-template <std::size_t N>
-using make_index_sequence = typename make_index_sequence_impl<N>::type;
 
 /// \internal returns the first argument
 template <std::size_t I, typename T0, typename... Ts>
