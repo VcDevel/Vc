@@ -199,7 +199,7 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     typedef typename V::IndexType I;
     typedef typename V::AsArg VArg;
     typedef const I &IndexType;
-    enum Constants { StructSize = sizeof(S) / sizeof(T) };
+    static constexpr std::size_t StructSize = sizeof(S) / sizeof(T);
     typedef InterleavedMemoryAccess<StructSize, V> Access;
     typedef InterleavedMemoryReadAccess<StructSize, V> ReadAccess;
     typedef InterleavedMemoryAccess<StructSize, V, SuccessiveEntries<StructSize> > AccessSuccessiveEntries;
@@ -207,7 +207,8 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     typedef T Ta Vc_MAY_ALIAS;
     Ta *const m_data;
 
-    static_assert((sizeof(S) / sizeof(T)) * sizeof(T) == sizeof(S), "InterleavedMemoryAccess_does_not_support_packed_structs");
+    static_assert(StructSize * sizeof(T) == sizeof(S),
+                  "InterleavedMemoryAccess_does_not_support_packed_structs");
 
 public:
     /**
