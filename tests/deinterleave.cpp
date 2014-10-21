@@ -397,7 +397,7 @@ template <typename T, std::size_t N> Vc::simdarray<T, N> rotate(const Vc::simdar
     Vc::simdarray<T, N> r;
     r[0] = x[N - 1];
     for (std::size_t i = 0; i < N - 1; ++i) {
-        r[i + 1] = x[0];
+        r[i + 1] = x[i];
     }
     return r;
 }
