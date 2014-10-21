@@ -117,6 +117,23 @@ template<size_t StructSize, typename V, typename I = typename V::IndexType> stru
         : Base(indexes * I(StructSize), data)
     {
     }
+
+    template <typename T, std::size_t... Indexes>
+    Vc_ALWAYS_INLINE T deinterleave_unpack(index_sequence<Indexes...>) const
+    {
+        T r;
+        this->deinterleave(std::get<Indexes>(r)...);
+        return r;
+    }
+
+    template <typename T,
+              typename = enable_if<(std::is_default_constructible<T>::value &&
+                                    std::is_same<V, Traits::decay<decltype(std::get<0>(
+                                                        std::declval<T &>()))>>::value)>>
+    Vc_ALWAYS_INLINE operator T() const
+    {
+        return deinterleave_unpack<T>(make_index_sequence<std::tuple_size<T>::value>());
+    }
 };
 
 template<typename I> struct CheckIndexesUnique
