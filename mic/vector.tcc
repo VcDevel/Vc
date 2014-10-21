@@ -457,8 +457,6 @@ template<> Vc_ALWAYS_INLINE ushort_v ushort_v::operator>>(unsigned int x) const 
 template<typename T> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator<<=(unsigned int x) { return *this = *this << x; }
 template<typename T> Vc_ALWAYS_INLINE Vector<T> &Vector<T>::operator>>=(unsigned int x) { return *this = *this >> x; }
 
-// operators {{{1
-#include "../common/operators.h"
 
 // this specialization is required because overflow is well defined (mod 2^16) for unsigned short,
 // but a / b is not independent of the high bits (in contrast to mul, add, and sub)
