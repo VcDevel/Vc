@@ -261,133 +261,6 @@ TEST_TYPES(Param, testDeinterleaveGather,
     }
 }
 
-template<typename V, size_t StructSize, bool Random> struct TestInterleavingScatterCompare;
-#define _IMPL(STRUCTSIZE, _code_) \
-template<typename V> struct TestInterleavingScatterCompare<V, STRUCTSIZE, true> { \
-    typedef TestInterleavingScatterCompare<V, STRUCTSIZE - 1, true> NextTest; \
-    template<typename Wrapper> static void test(Wrapper &data, const typename V::IndexType &i) { \
-        _code_ \
-    } \
-}; \
-template<typename V> struct TestInterleavingScatterCompare<V, STRUCTSIZE, false> { \
-    typedef TestInterleavingScatterCompare<V, STRUCTSIZE - 1, false> NextTest; \
-    template<typename Wrapper, typename I> static void test(Wrapper &data, const I &i) { \
-        _code_ \
-    } \
-}
-_IMPL(2,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        V t0;
-        V t1;
-        data[i] = tie(v0, v1);
-        tie(t0, t1) = data[i];
-        COMPARE(t0, v0) << 2;
-        COMPARE(t1, v1) << 2;
-     );
-_IMPL(3,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        V t0; V t1; V t2;
-        data[i] = tie(v0, v1, v2);
-        tie(t0, t1, t2) = data[i];
-        COMPARE(t0, v0) << 3;
-        COMPARE(t1, v1) << 3;
-        COMPARE(t2, v2) << 3;
-        NextTest::test(data, i);
-     );
-_IMPL(4,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        const V v3 = V::Random();
-        V t0; V t1; V t2; V t3;
-        data[i] = tie(v0, v1, v2, v3);
-        tie(t0, t1, t2, t3) = data[i];
-        COMPARE(t0, v0) << 4;
-        COMPARE(t1, v1) << 4;
-        COMPARE(t2, v2) << 4;
-        COMPARE(t3, v3) << 4;
-        NextTest::test(data, i);
-     );
-_IMPL(5,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        const V v3 = V::Random();
-        const V v4 = V::Random();
-        V t0; V t1; V t2; V t3; V t4;
-        data[i] = tie(v0, v1, v2, v3, v4);
-        tie(t0, t1, t2, t3, t4) = data[i];
-        COMPARE(t0, v0) << 5;
-        COMPARE(t1, v1) << 5;
-        COMPARE(t2, v2) << 5;
-        COMPARE(t3, v3) << 5;
-        COMPARE(t4, v4) << 5;
-        NextTest::test(data, i);
-     );
-_IMPL(6,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        const V v3 = V::Random();
-        const V v4 = V::Random();
-        const V v5 = V::Random();
-        V t0; V t1; V t2; V t3; V t4; V t5;
-        data[i] = tie(v0, v1, v2, v3, v4, v5);
-        tie(t0, t1, t2, t3, t4, t5) = data[i];
-        COMPARE(t0, v0) << 6;
-        COMPARE(t1, v1) << 6;
-        COMPARE(t2, v2) << 6;
-        COMPARE(t3, v3) << 6;
-        COMPARE(t4, v4) << 6;
-        COMPARE(t5, v5) << 6;
-        NextTest::test(data, i);
-     );
-_IMPL(7,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        const V v3 = V::Random();
-        const V v4 = V::Random();
-        const V v5 = V::Random();
-        const V v6 = V::Random();
-        V t0; V t1; V t2; V t3; V t4; V t5; V t6;
-        data[i] = tie(v0, v1, v2, v3, v4, v5, v6);
-        tie(t0, t1, t2, t3, t4, t5, t6) = data[i];
-        COMPARE(t0, v0) << 7;
-        COMPARE(t1, v1) << 7;
-        COMPARE(t2, v2) << 7;
-        COMPARE(t3, v3) << 7;
-        COMPARE(t4, v4) << 7;
-        COMPARE(t5, v5) << 7;
-        COMPARE(t6, v6) << 7;
-        NextTest::test(data, i);
-     );
-_IMPL(8,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        const V v3 = V::Random();
-        const V v4 = V::Random();
-        const V v5 = V::Random();
-        const V v6 = V::Random();
-        const V v7 = V::Random();
-        V t0; V t1; V t2; V t3; V t4; V t5; V t6; V t7;
-        data[i] = tie(v0, v1, v2, v3, v4, v5, v6, v7);
-        tie(t0, t1, t2, t3, t4, t5, t6, t7) = data[i];
-        COMPARE(t0, v0) << 8;
-        COMPARE(t1, v1) << 8;
-        COMPARE(t2, v2) << 8;
-        COMPARE(t3, v3) << 8;
-        COMPARE(t4, v4) << 8;
-        COMPARE(t5, v5) << 8;
-        COMPARE(t6, v6) << 8;
-        COMPARE(t7, v7) << 8;
-        NextTest::test(data, i);
-     );
-
 template <typename T> T rotate(T x)
 {
     return x.rotated(1);
@@ -400,6 +273,50 @@ template <typename T, std::size_t N> Vc::simdarray<T, N> rotate(const Vc::simdar
         r[i + 1] = x[i];
     }
     return r;
+}
+
+template <typename T, std::size_t N>
+inline std::ostream &operator<<(std::ostream &out, const std::array<T, N> &a)
+{
+    out << "\narray{" << a[0];
+    for (std::size_t i = 1; i < N; ++i) {
+        out << ", " << a[i];
+    }
+    return out << '}';
+}
+template <typename T, std::size_t N>
+inline bool operator==(const std::array<Vc::Vector<T>, N> &a, const std::array<Vc::Vector<T>, N> &b)
+{
+    for (std::size_t i = 0; i < N; ++i) {
+        if (!Vc::all_of(a[i] == b[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <typename V, typename Wrapper, typename IndexType, std::size_t... Indexes>
+void testInterleavingScatterCompare(Wrapper &data, const IndexType &i,
+                                    Vc::index_sequence<Indexes...>)
+{
+    const std::array<V, sizeof...(Indexes)> reference = {
+        {(V::Random() + (Indexes - Indexes))...}};
+
+    data[i] = tie(reference[Indexes]...);
+    std::array<V, sizeof...(Indexes)> t = data[i];
+    COMPARE(t, reference);
+
+    for (auto &x : t) {
+        x.setZero();
+    }
+    tie(t[Indexes]...) = data[i];
+    COMPARE(t, reference);
+
+    if (sizeof...(Indexes) > 2) {
+        testInterleavingScatterCompare<V>(
+            data, i, Vc::make_index_sequence<
+                         (sizeof...(Indexes) > 2 ? sizeof...(Indexes) - 1 : 2)>());
+    }
 }
 
 TEST_TYPES(Param, testInterleavingScatter,
@@ -436,10 +353,12 @@ TEST_TYPES(Param, testInterleavingScatter,
         VERIFY(all_of(indexes >= 0));
         VERIFY(all_of(indexes < N));
 
-        TestInterleavingScatterCompare<V, StructSize, true>::test(data_v, indexes);
+        testInterleavingScatterCompare<V>(data_v, indexes,
+                                          Vc::make_index_sequence<StructSize>());
     }
 
     for (size_t i = 0; i < N - V::Size; ++i) {
-        TestInterleavingScatterCompare<V, StructSize, false>::test(data_v, i);
+        testInterleavingScatterCompare<V>(data_v, i,
+                                          Vc::make_index_sequence<StructSize>());
     }
 }
