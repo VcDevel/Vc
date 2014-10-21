@@ -47,9 +47,16 @@ template <typename T> constexpr bool isVector()
     return Traits::is_simd_vector_internal<Traits::decay<T>>::value;
 }
 
-template <typename T, bool = isIntegral<T>()> struct MakeUnsignedInternal;
-template <typename T> struct MakeUnsignedInternal<Vector<T>, true > { using type = Vector<typename std::make_unsigned<T>::type>; };
-template <typename T> struct MakeUnsignedInternal<Vector<T>, false> { using type = Vector<T>; };
+template <typename T, bool = isIntegral<T>(), bool = isVector<T>()> struct MakeUnsignedInternal;
+template <template <typename> class Vector__, typename T>
+struct MakeUnsignedInternal<Vector__<T>, true, true>
+{
+    using type = Vector__<typename std::make_unsigned<T>::type>;
+};
+template <typename T> struct MakeUnsignedInternal<T, false, true>
+{
+    using type = T;
+};
 
 template <typename Test, typename T>
 using CopyUnsigned = typename MakeUnsignedInternal<T, isIntegral<T>() && isUnsigned<Test>()>::type;
