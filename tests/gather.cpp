@@ -215,6 +215,10 @@ TEST_TYPES(Vec, gather2dim, ALL_TYPES)
             Vec b(Zero);
             where(castedMask) | b = array[i][&S::data][j];
             COMPARE(castedMask, (b == i0));
+
+            b.setZero();
+            b(castedMask) = array[i][&S::data][j];
+            COMPARE(castedMask, (b == i0));
             if (!castedMask.isFull()) {
                 COMPARE(!castedMask, b == Vec(Zero));
             } else {
