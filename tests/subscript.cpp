@@ -193,6 +193,16 @@ TEST_TYPES(V, structGathers, ALL_TYPES)
     test = data1[IT::IndexesFromZero()][&S<T>::c];
     COMPARE(test, V::IndexesFromZero() + 2);
 
+    test = -V(data1[IT::IndexesFromZero()][&S<T>::a]);
+    COMPARE(test, -V::IndexesFromZero());
+    test = data1[IT::IndexesFromZero()][&S<T>::a] + V::One();
+    COMPARE(test, V::IndexesFromZero() + 1);
+    // TODO: should this work? if yes, how? a gather needs to know the type it gets converted to,
+    // applying a unary operator before conversion implies that all operations must be delayed until
+    // conversion. => expression templates?
+    //test = -data1[IT::IndexesFromZero()][&S<T>::a];
+    //COMPARE(test, -V::IndexesFromZero());
+
     test = data2[IT::IndexesFromZero()][&S<S<T>>::a][&S<T>::a];
     COMPARE(test, V::IndexesFromZero());
     test = data2[IT::IndexesFromZero()][&S<S<T>>::b][&S<T>::c];
