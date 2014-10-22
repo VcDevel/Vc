@@ -302,6 +302,15 @@
  *
  * \page ex-finitediff Finite Differences
  *
+ * Finite difference method example
+ *
+ * We calculate central differences for a given function and compare it to the analytical solution.
+ *
+ * \snippet finitediff/main.cpp includes
+ * \snippet finitediff/main.cpp constants
+ * \snippet finitediff/main.cpp functions
+ * \snippet finitediff/main.cpp cleanup
+ *
  *********************************************************************************
  *
  * \page ex-matrix Matrix Class

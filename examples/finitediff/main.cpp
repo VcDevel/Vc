@@ -30,6 +30,7 @@
 
 */
 
+//! [includes]
 #include <Vc/Vc>
 #include <iostream>
 #include <iomanip>
@@ -37,15 +38,21 @@
 #include "../tsc.h"
 #include <common/macros.h>
 
+using Vc::float_v;
+//! [includes]
+
 #define USE_SCALAR_SINCOS
 
+//! [constants]
 static constexpr std::size_t N = 10240000, PrintStep = 1000000;
 
 static constexpr float epsilon = 1e-7f;
 static constexpr float lower = 0.f;
 static constexpr float upper = 40000.f;
 static constexpr float h = (upper - lower) / N;
+//! [constants]
 
+//! [functions]
 // dfu is the derivative of fu. This is really easy for sine and cosine:
 static inline float  fu(float x) { return ( std::sin(x) ); }
 static inline float dfu(float x) { return ( std::cos(x) ); }
@@ -73,8 +80,7 @@ static inline Vc::float_v dfu(Vc::float_v::AsArg x) {
   return Vc::cos(x);
 #endif
 }
-
-using Vc::float_v;
+//! [functions]
 
 // It is important for this example that the following variables (especially dy_points) are global
 // variables. Else the compiler can optimze all calculations of dy away except for the few places
@@ -261,7 +267,9 @@ int main()
     }
     speedup /= timer.cycles();
     std::cout << "Speedup: " << speedup << "\n";
+//! [cleanup]
 
     Vc::free(dy_points - float_v::Size + 1);
     return 0;
 }
+//! [cleanup]
