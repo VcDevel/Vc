@@ -271,6 +271,18 @@ public:
     {
         return ptr + secondOffset;
     }
+    template <typename U, typename = enable_if<!std::is_pointer<U>::value>>
+    static Vc_ALWAYS_INLINE decltype(loImpl(std::declval<U>()))
+        lo(Operations::gather, U &&x)
+    {
+        return loImpl(std::forward<U>(x));
+    }
+    template <typename U, typename = enable_if<!std::is_pointer<U>::value>>
+    static Vc_ALWAYS_INLINE decltype(hiImpl(std::declval<U>()))
+        hi(Operations::gather, U &&x)
+    {
+        return hiImpl(std::forward<U>(x));
+    }
     template <typename U>
     static Vc_INTRINSIC const U *lo(Operations::scatter, const U *ptr)
     {
