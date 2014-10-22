@@ -242,7 +242,8 @@
  * Finally we arrive at the conversion of the Cartesian coordinates to polar coordinates.
  * The for loop is equivalent to the one above.
  *
- * Inside the loop we first assign the x and y values to local variables.
+ * \note
+ * Inside the loop we first assign the \c x and \c y values to local variables.
  * This is not necessary; but it can help the compiler with optimization. The issue is that when you
  * access values from some memory area, the compiler cannot always be sure that the pointers to
  * memory do not alias (i.e. point to the same location). Thus, the compiler might rather take the
@@ -251,9 +252,51 @@
  * register. This is a general issue, and not a special issue with SIMD. In this case mainly serves
  * to make the following code more readable.
  *
+ * The radius (\c r) is easily calculated as the square root of the sum of squares.
+ * It is then directly assigned to the right vector in \c r_mem.
  *
+ * \subsection ex_polarcoord_complete_masking Masked Assignment
  *
+ * The \c phi value, on the other hand, is determined as a value between -pi and pi.
+ * Since we want to have a value between 0 and 360, the value has to be scaled with 180/pi.
+ * Then, all \c phi values that are less than zero must be modified.
+ * This is where SIMD code differs significantly from the scalar code you are used to:
+ * An \c if statement cannot be used directly with a SIMD mask.
+ * Thus, <tt>if (phi < 0)</tt> would be ill-formed.
+ * This is obvious once you realize that <tt>phi < 0</tt> is an object that contains multiple boolean values.
+ * Therefore, the meaning of <tt>if (phi < 0)</tt> is ambiguous.
+ * You can make your intent clear by using a reduction function for the mask, such as one of:
+ * \code
+ *   if (all_of(phi < 0))  // ...
+ *   if (any_of(phi < 0))  // ...
+ *   if (none_of(phi < 0)) // ...
+ *   if (some_of(phi < 0)) // ...
+ * \endcode
+ *
+ * In most cases a reduction is useful as a shortcut, but not as a general solution.
+ * This is where masked assignment (or write-masking) comes into play.
+ * The idea is to assign only a subset of the values in a SIMD vector and leave the remaining ones
+ * unchanged.
+ * The %Vc syntax for this uses a predicate (mask) in parenthesis before the assignment operator.
+ * Thus, <tt>x(mask) = y;</tt> requests that \c x is assigned the values from \c y where the
+ * corresponding entries in \c mask are \c true.
+ * Read it as: "where mask is true, assign y to x".
+ *
+ * Therefore, the transformation of \c phi is written as <tt>phi(phi < 0.f) += 360.f</tt>.
+ * (Note that the assignment operator can be any compound assignment, as well.)
+ *
+ * \note
+ * %Vc also supports an alternative syntax using the \ref Vc::where function, which enables generic
+ * implementations that work for fundamental arithmetic types as well as the %Vc vector types.
+ *
+ * \subsection ex_polarcoord_complete_output Console Output
+ *
+ * At the end of the program the results are printed to \c stdout:
  * \snippet polarcoord/main.cpp output
+ *
+ * The loop iterates over the Vc::Memory objects using Vc::Memory::entriesCount, thus iterating over scalar
+ * values, not SIMD vectors.
+ * The code therefore should be clear, as it doesn't use any SIMD functionality.
  *
  *********************************************************************************
  *
