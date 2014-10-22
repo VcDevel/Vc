@@ -39,15 +39,12 @@
 
 #define USE_SCALAR_SINCOS
 
-enum {
-  N = 10240000,
-  PrintStep = 1000000
-};
+static constexpr std::size_t N = 10240000, PrintStep = 1000000;
 
-static const float epsilon = 1e-7f;
-static const float lower = 0.f;
-static const float upper = 40000.f;
-static const float h = (upper - lower) / N;
+static constexpr float epsilon = 1e-7f;
+static constexpr float lower = 0.f;
+static constexpr float upper = 40000.f;
+static constexpr float h = (upper - lower) / N;
 
 // dfu is the derivative of fu. This is really easy for sine and cosine:
 static inline float  fu(float x) { return ( std::sin(x) ); }
@@ -94,7 +91,7 @@ void printResults()
         << std::setw(15) << "FD fu'(x_i)"
         << std::setw(15) << "SYM fu'(x)"
         << std::setw(15) << "error %\n";
-    for (int i = 0; i < N; i += PrintStep) {
+    for (std::size_t i = 0; i < N; i += PrintStep) {
         std::cout
             << std::setw(15) << y_points[i]
             << std::setw(15) << dy_points[i]
@@ -133,7 +130,7 @@ int main()
         dy_points[0] = (y_points[1] - y_points[0]) / h;
         // GCC auto-vectorizes the following loop. It is interesting to see that both Vc::Scalar and
         // Vc::SSE are faster, though.
-        for ( int i = 1; i < N - 1; ++i) {
+        for (std::size_t i = 1; i < N - 1; ++i) {
             dy_points[i] = (y_points[i + 1] - y_points[i - 1]) * oneOver2h;
         }
         dy_points[N - 1] = (y_points[N - 1] - y_points[N - 2]) / h;
@@ -149,7 +146,7 @@ int main()
         dy_points[0] = (y_points[1] - y_points[0]) / h;
         // GCC auto-vectorizes the following loop. It is interesting to see that both Vc::Scalar and
         // Vc::SSE are faster, though.
-        for ( int i = 1; i < N - 1; ++i) {
+        for (std::size_t i = 1; i < N - 1; ++i) {
             dy_points[i] = (y_points[i + 1] - y_points[i - 1]) * oneOver2h;
         }
         dy_points[N - 1] = (y_points[N - 1] - y_points[N - 2]) / h;
