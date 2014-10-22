@@ -68,10 +68,10 @@ namespace WhereImpl
     };
 
     template <typename _Mask, typename T_, typename I_, typename S_>
-    struct MaskedLValue<_Mask, Common::SubscriptOperation<T_, I_, S_>>
+    struct MaskedLValue<_Mask, Common::SubscriptOperation<T_, I_, S_, true>>
     {
         typedef _Mask Mask;
-        typedef Common::SubscriptOperation<T_, I_, S_> SO;
+        typedef Common::SubscriptOperation<T_, I_, S_, true> SO;
 
         const Mask &mask;
         const SO lhs;
@@ -152,8 +152,9 @@ namespace WhereImpl
         WhereMask(const WhereMask &) = delete;
 
         template <typename T, typename I, typename S>
-        constexpr Vc_WARN_UNUSED_RESULT MaskedLValue<Mask, Common::SubscriptOperation<T, I, S>> operator|(
-            Common::SubscriptOperation<T, I, S> &&lhs) const
+        constexpr Vc_WARN_UNUSED_RESULT
+            MaskedLValue<Mask, Common::SubscriptOperation<T, I, S, true>>
+            operator|(Common::SubscriptOperation<T, I, S, true> &&lhs) const
         {
             static_assert(!std::is_const<T>::value,
                           "masked scatter to constant memory not possible.");

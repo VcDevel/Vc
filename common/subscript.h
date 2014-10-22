@@ -244,18 +244,15 @@ enable_if<std::is_integral<T>::value, simdarray<promoted_type<T>, N>> convertInd
 }
 template <typename T, std::size_t N>
 enable_if<std::is_integral<T>::value, simdarray<promoted_type<T>, N>> convertIndexVector(
-    const T indexVector[N])
+    const T (&indexVector)[N])
 {
-    return {std::addressof(indexVector[0]), Vc::Unaligned};
+    return simdarray<promoted_type<T>, N>{std::addressof(indexVector[0]), Vc::Unaligned};
 }
 
 // a plain pointer won't work. Because we need some information on the number of values in
 // the index argument
 template <typename T>
-std::vector<promoted_type<T>> convertIndexVector(const T *indexVector)
-{
-    return {begin(indexVector), end(indexVector)};
-}
+enable_if<std::is_pointer<T>::value, void> convertIndexVector(T indexVector) = delete;
 
 // an initializer_list works, but is runtime-sized (before C++14, at least) so we have to
 // fall back to std::vector
@@ -281,8 +278,14 @@ enable_if<(std::is_integral<T>::value && sizeof(T) < sizeof(int)),
     return {std::begin(indexVector), std::end(indexVector)};
 }
 
+template <typename T, typename = decltype(convertIndexVector(std::declval<T>()))>
+std::true_type is_valid_indexvector(T &&);
+std::false_type is_valid_indexvector(...);
+
 // SubscriptOperation {{{1
-template <typename T, typename IndexVector, typename Scale = std::ratio<1, 1>>
+template <
+    typename T, typename IndexVector, typename Scale = std::ratio<1, 1>,
+    bool = decltype(is_valid_indexvector(std::declval<const IndexVector &>()))::value>
 class SubscriptOperation
 {
     const IndexVector m_indexes;
@@ -292,8 +295,31 @@ class SubscriptOperation
     using IndexVectorScaled = Traits::decay<decltype(convertIndexVector(std::declval<const IndexVector &>()))>;
 
 public:
-    constexpr Vc_ALWAYS_INLINE SubscriptOperation(T *address, const IndexVector &indexes)
+    template <typename U,
+              typename = enable_if<((std::is_convertible<const U &, IndexVector>::value ||
+                                     std::is_same<U, IndexVector>::value) &&
+                                    std::is_copy_constructible<IndexVector>::value)>>
+    constexpr Vc_ALWAYS_INLINE SubscriptOperation(T *address, const U &indexes)
         : m_indexes(indexes), m_address(address)
+    {
+    }
+
+    template <std::size_t... Indexes>
+    constexpr Vc_ALWAYS_INLINE SubscriptOperation(T *address, const IndexVector &indexes,
+                                                  index_sequence<Indexes...>)
+        : m_indexes{indexes[Indexes]...}, m_address(address)
+    {}
+
+    template <typename U>
+    constexpr Vc_ALWAYS_INLINE SubscriptOperation(
+        T *address, const U &indexes,
+        enable_if<((std::is_convertible<const U &, IndexVector>::value ||
+                    std::is_same<U, IndexVector>::value) &&
+                   !std::is_copy_constructible<IndexVector>::value &&
+                   std::is_array<IndexVector>::value &&
+                   std::extent<IndexVector>::value > 0)> = nullarg)
+        : SubscriptOperation(address, indexes,
+                             make_index_sequence<std::extent<IndexVector>::value>())
     {
     }
 
@@ -450,6 +476,11 @@ public:
                     convertIndexVector(m_indexes), index)};
     }
 };
+
+// specialization for invalid IndexVector type
+template <typename T, typename IndexVector, typename Scale>
+class SubscriptOperation<T, IndexVector, Scale, false>;
+
 // subscript_operator {{{1
 template <
     typename Container,
@@ -488,9 +519,12 @@ Vc_ALWAYS_INLINE SubscriptOperation<
 }
 
 
-static_assert(Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int *>, int>::value, "");
-static_assert(Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int *>, int[4]>::value, "");
+static_assert(!Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int *>, int>::value, "");
+static_assert(!Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int *>, int[4]>::value, "");
 static_assert(!Traits::has_subscript_operator<SubscriptOperation<std::vector<int>, const int *>, int[4]>::value, "");
+static_assert( Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int[4]>, int>::value, "");
+static_assert( Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int[4]>, int[4]>::value, "");
+static_assert(!Traits::has_subscript_operator<SubscriptOperation<std::vector<int>, const int[4]>, int[4]>::value, "");
 
 /**
  * \internal

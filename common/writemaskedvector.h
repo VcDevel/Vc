@@ -98,7 +98,7 @@ public:
     }
 
     template <typename T, typename I, typename S>
-    Vc_ALWAYS_INLINE void operator=(SubscriptOperation<T, I, S> &&x)
+    Vc_ALWAYS_INLINE void operator=(SubscriptOperation<T, I, S, true> &&x)
     {
         vec->gather(x.gatherArguments(), mask);
     }

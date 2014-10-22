@@ -277,7 +277,7 @@ TEST_TYPES(V, fixedWidthGatherScatter4, (SIMD_ARRAYS(4)))
     Vc::vector<T> data2(256);
     for (std::size_t i = 0; i < data.size(); ++i) {
         data[i] = i;
-        data2[i] = i;
+        data2[i] = i + 1;
     }
     V test;
 
@@ -286,7 +286,14 @@ TEST_TYPES(V, fixedWidthGatherScatter4, (SIMD_ARRAYS(4)))
     const V reference = {0, 5, 8, 3};
     COMPARE(test, reference);
     test = data2[indexes];
-    COMPARE(test, reference);
+    COMPARE(test, reference + 1);
+
+    const int indexes2[4] = {3, 8, 5, 0};
+    test = data[indexes2];
+    const V reference2 = {3, 8, 5, 0};
+    COMPARE(test, reference2);
+    test = data2[indexes2];
+    COMPARE(test, reference2 + 1);
 
     /*
     test = V::Random();

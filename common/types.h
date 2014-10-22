@@ -191,7 +191,7 @@ template <typename T> using WidthT = std::integral_constant<std::size_t, sizeof(
 
 template<std::size_t Bytes> class MaskBool;
 
-template <typename T, typename IndexVector, typename Scale> class SubscriptOperation;
+template <typename T, typename IndexVector, typename Scale, bool> class SubscriptOperation;
 
 /**
  * \internal
