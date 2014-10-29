@@ -509,7 +509,7 @@ namespace
 {
 template <typename IT>
 Vc_ALWAYS_INLINE enable_if<MIC::is_vector<IT>::value, __m512i> ensureVector(IT indexes)
-{ return indexes; }
+{ return indexes.data(); }
 
 template <typename IT>
 Vc_ALWAYS_INLINE enable_if<Traits::is_atomic_simdarray<IT>::value, __m512i> ensureVector(
