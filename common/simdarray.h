@@ -1663,40 +1663,39 @@ Vc_INTRINSIC Vc_CONST Return simd_cast_without_last(const From &... xs, const T 
 
 /// \internal returns the first argument
 template <std::size_t I, typename T0, typename... Ts>
-Vc_INTRINSIC Vc_CONST enable_if<(I == 0), T0> extract_front(const T0 &a0, const Ts &...,
-                                                            const T0 &, const Ts &...)
+Vc_INTRINSIC Vc_CONST enable_if<(I == 0), T0> extract_interleaved(const T0 &a0,
+                                                                  const Ts &...,
+                                                                  const T0 &,
+                                                                  const Ts &...)
 {
     return a0;
 }
 /// \internal returns the center argument
 template <std::size_t I, typename T0, typename... Ts>
-Vc_INTRINSIC Vc_CONST enable_if<(I == 1), T0> extract_front(const T0 &, const Ts &...,
-                                                            const T0 &b0, const Ts &...)
+Vc_INTRINSIC Vc_CONST enable_if<(I == 1), T0> extract_interleaved(const T0 &,
+                                                                  const Ts &...,
+                                                                  const T0 &b0,
+                                                                  const Ts &...)
 {
     return b0;
 }
 /// \internal drops the first and center arguments and recurses
 template <std::size_t I, typename T0, typename... Ts>
-Vc_INTRINSIC Vc_CONST enable_if<(I > 1), T0> extract_front(const T0 &, const Ts &... a,
-                                                           const T0 &, const Ts &... b)
+Vc_INTRINSIC Vc_CONST enable_if<(I > 1), T0> extract_interleaved(const T0 &,
+                                                                 const Ts &... a,
+                                                                 const T0 &,
+                                                                 const Ts &... b)
 {
-    return extract_front<I - 2, Ts...>(a..., b...);
+    return extract_interleaved<I - 2, Ts...>(a..., b...);
 }
-/// \internal calls extract_front with the correct offset
-template <std::size_t I, typename T0, typename... Ts>
-Vc_INTRINSIC Vc_CONST T0
-    extract_back(const T0 &a0, const Ts &... a, const T0 &b0, const Ts &... b)
-{
-    return extract_front<I + 1 + sizeof...(Ts), T0, Ts...>(a0, a..., b0, b...);
-}
-/// \internal calls simd_cast with correct argument order thanks to extract_front and extract_back.
+/// \internal calls simd_cast with correct argument order thanks to extract_interleaved
+/// and extract_back.
 template <typename Return, typename... Ts, std::size_t... Indexes>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast_interleaved_argument_order_1(index_sequence<Indexes...>, const Ts &... a,
                                            const Ts &... b)
 {
-    return simd_cast<Return>(extract_front<Indexes, Ts...>(a..., b...)...,
-                             extract_back<Indexes, Ts...>(a..., b...)...);
+    return simd_cast<Return>(extract_interleaved<Indexes, Ts...>(a..., b...)...);
 }
 /// \internal constructs the necessary index_sequence to pass it to
 /// simd_cast_interleaved_argument_order_1
@@ -1704,7 +1703,7 @@ template <typename Return, typename... Ts>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast_interleaved_argument_order(const Ts &... a, const Ts &... b)
 {
-    using seq = make_index_sequence<sizeof...(Ts)>;
+    using seq = make_index_sequence<sizeof...(Ts)*2>;
     return simd_cast_interleaved_argument_order_1<Return, Ts...>(seq(), a..., b...);
 }
 
