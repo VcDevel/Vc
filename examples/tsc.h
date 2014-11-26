@@ -80,7 +80,7 @@ inline std::ostream &operator<<(std::ostream &out, const TimeStampCounter &tsc)
     auto c = tsc.cycles();
     int blocks[10];
     int n = 0;
-    for (int digits = std::log10(c); digits > 0; digits -= 3) {
+    for (int digits = std::ceil(std::log10(c)); digits > 0; digits -= 3) {
         blocks[n++] = c % 1000;
         c /= 1000;
     }
