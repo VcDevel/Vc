@@ -36,6 +36,47 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace simdize_internal
 {
+enum TypeCategories {
+    None = 0x0,
+    ArithmeticVectorizable = 0x1,
+    ForwardIterator = 0x2,
+    RandomAccessIterator = 0x6,
+    TemplateClass = 0x8
+};
+
+template <typename T,
+          typename Category = typename std::iterator_traits<T>::iterator_category>
+constexpr unsigned iteratorCategories(int)
+{
+    return std::is_base_of<std::random_access_iterator_tag, Category>::value
+               ? RandomAccessIterator
+               : std::is_base_of<std::forward_iterator_tag, Category>::value
+                     ? ForwardIterator
+                     : 0;
+}
+template <typename T> constexpr unsigned iteratorCategories(...) { return 0; }
+
+template <typename T> struct is_template_class : public std::false_type
+{
+};
+template <template <typename...> class C, typename... Ts>
+struct is_template_class<C<Ts...>> : public std::true_type
+{
+};
+
+template <typename T> constexpr unsigned typeCategories()
+{
+    return (std::is_same<T, bool>::value || std::is_same<T, short>::value ||
+            std::is_same<T, unsigned short>::value || std::is_same<T, int>::value ||
+            std::is_same<T, unsigned int>::value || std::is_same<T, float>::value ||
+            std::is_same<T, double>::value)
+               ? unsigned(ArithmeticVectorizable)
+               : iteratorCategories<T>(int()) != 0
+                     ? iteratorCategories<T>(int())
+                     : is_template_class<T>::value ? unsigned(TemplateClass)
+                                                   : unsigned(None);
+}
+
 /**
  * \internal
  * \brief Replace arithmetic type T with Vc::Vector<T> or Mask<T> if T == bool and apply
@@ -53,12 +94,10 @@ namespace simdize_internal
  * \tparam T  The type to be converted to a Vector or Mask type.
  */
 template <std::size_t N, typename T0, typename T,
-          bool =  // Flag to easily distinguish types that need more recursion for
-                  // transformation (or no transformation at all
-          std::is_same<T, bool>::value || std::is_same<T, short>::value ||
-          std::is_same<T, unsigned short>::value || std::is_same<T, int>::value ||
-          std::is_same<T, unsigned int>::value || std::is_same<T, float>::value ||
-          std::is_same<T, double>::value>
+          unsigned = typeCategories<T>()
+          // Flag to easily distinguish types that need more recursion for
+          // transformation (or no transformation at all
+          >
 struct ReplaceTypes
 {
     using type = T;
@@ -68,7 +107,7 @@ struct ReplaceTypes
  * Specialization for non-zero \p N and a type \p T that can be used with Vector<T> to
  * create Vector<T> or simdarray<T, N>
  */
-template <std::size_t N, typename T0, typename T> struct ReplaceTypes<N, T0, T, true>
+template <std::size_t N, typename T0, typename T> struct ReplaceTypes<N, T0, T, ArithmeticVectorizable>
 {
     using type = typename std::conditional<N == Vc::Vector<T>::Size, Vc::Vector<T>,
                                            Vc::simdarray<T, N>>::type;
@@ -76,7 +115,7 @@ template <std::size_t N, typename T0, typename T> struct ReplaceTypes<N, T0, T, 
 /** \internal
  * Specialization for non-zero \p N and bool to create Mask<T0> or simd_mask_array<T0, N>.
  */
-template <std::size_t N, typename T0> struct ReplaceTypes<N, T0, bool, true>
+template <std::size_t N, typename T0> struct ReplaceTypes<N, T0, bool, ArithmeticVectorizable>
 {
     using type = typename std::conditional<N == Vc::Mask<T0>::Size, Vc::Mask<T0>,
                                            Vc::simd_mask_array<T0, N>>::type;
@@ -84,7 +123,7 @@ template <std::size_t N, typename T0> struct ReplaceTypes<N, T0, bool, true>
 /** \internal
  * Specialization for \p N = 0 and bool to create Mask<T0>.
  */
-template <typename T0> struct ReplaceTypes<0, T0, bool, true>
+template <typename T0> struct ReplaceTypes<0, T0, bool, ArithmeticVectorizable>
 {
     using type = Vc::Mask<T0>;
 };
@@ -92,14 +131,14 @@ template <typename T0> struct ReplaceTypes<0, T0, bool, true>
  * Specialization for \p N = 0 and bool to create Mask<float> (because no usable T0 is
  * given).
  */
-template <> struct ReplaceTypes<0, bool, bool, true>
+template <> struct ReplaceTypes<0, bool, bool, ArithmeticVectorizable>
 {
     using type = Vc::Mask<float>;
 };
 /** \internal
  * Specialization for \p N = 0 and arithmetic \p T to create Vector<T>.
  */
-template <typename T> struct ReplaceTypes<0, T, T, true>
+template <typename T> struct ReplaceTypes<0, T, T, ArithmeticVectorizable>
 {
     using type = Vc::Vector<T>;
 };
@@ -109,7 +148,7 @@ template <typename T> struct ReplaceTypes<0, T, T, true>
  */
 template <std::size_t N, typename T0, template <typename...> class C, typename T1,
           typename... Ts>
-struct ReplaceTypes<N, T0, C<T1, Ts...>, false>;
+struct ReplaceTypes<N, T0, C<T1, Ts...>, TemplateClass>;
 
 /** \internal
  * Specialization for a template class argument with template arguments <type, size_t> to
@@ -117,7 +156,7 @@ struct ReplaceTypes<N, T0, C<T1, Ts...>, false>;
  */
 template <typename T0, template <typename, std::size_t> class C, typename T,
           std::size_t N, std::size_t M>
-struct ReplaceTypes<N, T0, C<T, M>, false>;
+struct ReplaceTypes<N, T0, C<T, M>, None /*TODO*/>;
 
 /** \internal
  * A SIMD Vector type of \p T, either as Vc::simdarray or Vc::Vector, depending on \p N.
@@ -322,7 +361,12 @@ public:
     }
 
     // perfect forward Base constructors that accept an initializer_list
-    template <typename T> Adapter(const std::initializer_list<T> &l) : VectorBase(l) {}
+    template <typename T, typename = decltype(VectorBase(
+                              std::declval<const std::initializer_list<T> &>()))>
+    Adapter(const std::initializer_list<T> &l)
+        : VectorBase(l)
+    {
+    }
 
     void *operator new(size_t size) { return Vc::Common::aligned_malloc<alignof(Adapter)>(size); }
     void *operator new(size_t, void *p) { return p; }
@@ -336,7 +380,7 @@ public:
 
 template <std::size_t N, typename T0, template <typename...> class C, typename T1,
           typename... Ts>
-struct ReplaceTypes<N, T0, C<T1, Ts...>, false>
+struct ReplaceTypes<N, T0, C<T1, Ts...>, TemplateClass>
 {
 private:
     using base = make_adapter_base_type<N, C, T1, Ts...>;
@@ -349,7 +393,7 @@ public:
 
 template <typename T0, template <typename, std::size_t> class C, typename T,
           std::size_t N, std::size_t M>
-struct ReplaceTypes<N, T0, C<T, M>, false>
+struct ReplaceTypes<N, T0, C<T, M>, None/*TODO*/>
 {
 private:
     typedef C<simdize<T, N>, M> base;
@@ -424,6 +468,82 @@ inline void simdize_assign(Adapter<T, N> &a, std::size_t i, const T &x)
 {
     simdize_assign_impl(a, i, x, Vc::make_index_sequence<std::tuple_size<T>::value>());
 }
+
+template <std::size_t N, typename T0, typename T>
+struct ReplaceTypes<N, T0, T, RandomAccessIterator>
+{
+private:
+    using value_type = typename std::iterator_traits<T>::value_type;
+    using value_vector = simdize<value_type, N>;
+    static constexpr auto Size = value_vector::size();
+
+public:
+    class type : public std::iterator<std::random_access_iterator_tag, value_vector>
+    {
+    public:
+        type() = default;
+
+        type(const T &x) : scalar_it(x) {}
+        type(T &&x) : scalar_it(std::move(x)) {}
+        type &operator=(const T &x) { scalar_it = x; }
+        type &operator=(T &&x) { scalar_it = std::move(x); }
+
+        type(const type &) = default;
+        type(type &&) = default;
+        type &operator=(const type &) = default;
+        type &operator=(type &&) = default;
+
+        type &operator++()
+        {
+            scalar_it += Size;
+            return *this;
+        }
+        type operator++(int)
+        {
+            type copy(*this);
+            operator++();
+            return copy;
+        }
+        type &operator--()
+        {
+            scalar_it -= Size;
+            return *this;
+        }
+        type operator--(int)
+        {
+            type copy(*this);
+            operator--();
+            return copy;
+        }
+
+        bool operator<(const type &rhs) const
+        {
+            assert((rhs.scalar_it - scalar_it) % Size == 0);  // The two iterators must be
+                                                              // a multiple of Size apart.
+                                                              // Otherwise we'd compare
+                                                              // apples and oranges.
+            return scalar_it < rhs.scalar_it;
+        }
+        struct proxy
+        {
+            value_type *ptr;
+            operator value_vector() const { return load(); }
+            proxy &operator=(value_vector x) { x.store(ptr); }
+        private:
+            value_vector load() const { return value_vector(ptr, Vc::Aligned); }
+        };
+        proxy operator*()
+        {
+            return {&*scalar_it};
+        }
+
+        const T &scalar() const { return scalar_it; }
+
+    private:
+        T scalar_it;
+    };
+};
+
 }  // namespace simdize_internal
 
 namespace std
