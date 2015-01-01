@@ -121,13 +121,52 @@ inline Iterator find(Iterator first, Iterator last, const T &value)
     }
     return last;
 }
+
+template <class Iterator, class V>
+inline std::array<Iterator, V::size()> find_parallel(Iterator first, Iterator last,
+                                                     const V &value)
+{
+    std::array<Iterator, V::size()> matches;
+    for (auto &x : matches) {
+        x = last;
+    }
+    typename V::mask_type found(false);
+    for (; first < last; ++first) {
+        const auto mask = *first == value && !found;
+        if (any_of(mask)) {
+            found |= mask;
+            for (int i : where(mask)) {
+                matches[i] = first;
+            }
+            if (all_of(found)) {
+                break;
+            }
+        }
+    }
+    return matches;
+}
 }  // namespace Vc
+
+template <typename _InputIterator, typename _Tp>
+inline _InputIterator simple_find(_InputIterator first, _InputIterator last,
+                           const _Tp &val) {
+  for (; first != last; ++first) {
+    if (*first == val) {
+      break;
+    }
+  }
+  return first;
+}
 
 int main()
 {
-    std::cout << std::setw(15) << "N" << std::setw(30) << "std" << std::setw(15)
-              << "stddev" << std::setw(30) << "Vc" << std::setw(15) << "stddev"
-              << std::setw(15) << "speedup" << std::setw(15) << "stddev" << '\n';
+    std::cout << std::setw(15) << "N";
+    std::cout << std::setw(15) << "std" << std::setw(15) << "stddev";
+    std::cout << std::setw(15) << "Vc" << std::setw(15) << "stddev";
+    std::cout << std::setw(15) << "par" << std::setw(15) << "stddev";
+    //std::cout << std::setw(15) << "binary" << std::setw(15) << "stddev";
+    std::cout << std::setw(15) << "std/Vc" << std::setw(15) << "stddev";
+    std::cout << std::setw(15) << "std/par" << std::setw(15) << "stddev" << '\n';
 
     // create data
     std::vector<float, Vc::Allocator<float>> data;
@@ -139,7 +178,10 @@ int main()
         data.push_back(uniform_dist(rne));
     }
 
-    for (std::size_t N = float_v::size() * 1024; N <= NMax; N *= 2) {
+    auto sorted = data;
+    std::sort(sorted.begin(), sorted.end());
+
+    for (std::size_t N = float_v::size() * 2; N <= NMax; N *= 2) {
         const std::size_t Repetitions = 100 + 1024 * 32 / N;
 
         // create search values
@@ -150,28 +192,33 @@ int main()
                 data[std::uniform_int_distribution<std::size_t>(0, N - 1)(rne)]);
         }
 
-        enum { std, vec };
+        enum { std, vec, par };
 
-        std::vector<decltype(data.begin())> iterators[2];
+        std::vector<decltype(data.begin())> iterators[3];
         iterators[std].resize(search_values.size());
         iterators[vec].resize(search_values.size());
-        TimeStampCounter tsc;
-        std::vector<decltype(tsc.cycles())> cycles[2];
-        cycles[std].resize(Repetitions);
-        cycles[vec].resize(Repetitions);
+        iterators[par].resize(search_values.size());
 
-        double mean[2] = {};
-        double stddev[2] = {};
+        double mean[3] = {};
+        double stddev[3] = {};
         do {
+            for (int i : {std, vec, par}) {
+                mean[i] = 0;
+                stddev[i] = 0;
+            }
+            TimeStampCounter tsc;
+
             // search (std)
             for (auto n = Repetitions; n; --n) {
                 tsc.start();
                 for (std::size_t i = 0; i < search_values.size(); ++i) {
                     iterators[std][i] =
-                        std::find(data.begin(), data.begin() + N, search_values[i]);
+                        simple_find(data.begin(), data.begin() + N, search_values[i]);
                 }
                 tsc.stop();
-                cycles[std][Repetitions - n] = tsc.cycles();
+                double x = tsc.cycles();
+                mean[std] += x;
+                stddev[std] += x * x;
             }
 
             // search (vec)
@@ -182,45 +229,71 @@ int main()
                         Vc::find(data.begin(), data.begin() + N, search_values[i]);
                 }
                 tsc.stop();
-                cycles[vec][Repetitions - n] = tsc.cycles();
+                double x = tsc.cycles();
+                mean[vec] += x;
+                stddev[vec] += x * x;
             }
+
+            // seach (par)
+            for (auto n = Repetitions; n; --n) {
+                tsc.start();
+                for (std::size_t i = 0; i < search_values.size();) {
+                    for (const auto &it :
+                         Vc::find_parallel(data.begin(), data.begin() + N,
+                                           float_v(&search_values[i]))) {
+                        iterators[par][i++] = it;
+                    }
+                }
+                tsc.stop();
+                double x = tsc.cycles();
+                mean[par] += x;
+                stddev[par] += x * x;
+            }
+
+            // search (bin)
+            /*for (auto n = Repetitions; n; --n) {
+                tsc.start();
+                for (std::size_t i = 0; i < search_values.size(); ++i) {
+                    iterators[bin][i] =
+                        std::lower_bound(data.begin(), data.begin() + N, search_values[i]);
+                }
+                tsc.stop();
+                double x = tsc.cycles();
+                mean[bin] += x;
+                stddev[bin] += x * x;
+            }*/
 
             // test that the results are equal
             for (std::size_t i = 0; i < iterators[vec].size(); ++i) {
                 assert(iterators[std][i] == iterators[vec][i]);
+                assert(iterators[std][i] == iterators[par][i]);
             }
 
             // output results
             std::cout << std::setw(15) << N;
-            double median[2] = {};
-            for (int i : {std, vec}) {
-                mean[i] = 0;
-                stddev[i] = 0;
-                std::sort(cycles[i].begin(), cycles[i].end());
-                median[i] = cycles[i][cycles[i].size() / 2];
-                for (double x : cycles[i]) {
-                    mean[i] += x;
-                    stddev[i] += x * x;
-                }
-                mean[i] /= cycles[i].size();
-                stddev[i] /= cycles[i].size();
+            for (int i : {std, vec, par}) {
+                mean[i] /= Repetitions;
+                stddev[i] /= Repetitions;
                 stddev[i] = std::sqrt(stddev[i] - mean[i] * mean[i]);
-                // stddev[i] /= std::sqrt(float(cycles[i].size()));  // stddev of mean
+
+                std::cout << std::setw(15) << mean[i] / search_values.size();
+                std::cout << std::setw(15) << stddev[i] / search_values.size();
             }
-            std::cout << std::setw(15) << median[std] / search_values.size();
-            std::cout << std::setw(15) << mean[std] / search_values.size();
-            std::cout << std::setw(15) << stddev[std] / search_values.size();
-            std::cout << std::setw(15) << median[vec] / search_values.size();
-            std::cout << std::setw(15) << mean[vec] / search_values.size();
-            std::cout << std::setw(15) << stddev[vec] / search_values.size();
             std::cout << std::setw(15) << std::setprecision(4) << mean[std] / mean[vec];
             std::cout << std::setw(15)
                       << mean[std] / mean[vec] *
                              std::sqrt(
                                  stddev[std] * stddev[std] / (mean[std] * mean[std]) +
                                  stddev[vec] * stddev[vec] / (mean[vec] * mean[vec]));
+            std::cout << std::setw(15) << std::setprecision(4) << mean[std] / mean[par];
+            std::cout << std::setw(15)
+                      << mean[std] / mean[par] *
+                             std::sqrt(
+                                 stddev[std] * stddev[std] / (mean[std] * mean[std]) +
+                                 stddev[par] * stddev[par] / (mean[par] * mean[par]));
             std::cout << std::endl;
-        } while (stddev[std] * 20 > mean[std] || stddev[vec] * 20 > mean[vec]);
+        } while (stddev[std] * 20 > mean[std] || stddev[vec] * 20 > mean[vec] ||
+                 stddev[par] * 20 > mean[par]);
     }
 
     return 0;
