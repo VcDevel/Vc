@@ -84,7 +84,7 @@ int main()
 
     simdize<tuple<float, int, double>> x = {float_v::IndexesFromZero(), 1, 1.};
     static_assert(
-        std::is_same<decltype(simdize_get(x, 0)), tuple<float, int, double>>::value, "");
+        std::is_same<decltype(simdize_extract(x, 0)), tuple<float, int, double>>::value, "");
     static_assert(std::is_same<decltype(get<0>(x)), float_v &>::value, "");
     static_assert(std::is_same<decltype(get<1>(x)), int_v &>::value, "");
     static_assert(

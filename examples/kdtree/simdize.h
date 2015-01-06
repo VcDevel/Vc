@@ -431,7 +431,7 @@ Vc_INTRINSIC Vc::enable_if<(Offset < std::tuple_size<T>::value), void> condition
 }
 
 /** \internal
- * Generic implementation of simdize_get using the std::tuple get interface.
+ * Generic implementation of simdize_extract using the std::tuple get interface.
  */
 template <typename T, std::size_t N, std::size_t... Indexes>
 T simdize_get_impl(const Adapter<T, N> &a, std::size_t i, Vc::index_sequence<Indexes...>)
@@ -440,7 +440,7 @@ T simdize_get_impl(const Adapter<T, N> &a, std::size_t i, Vc::index_sequence<Ind
 }
 
 /** \internal
- * Generic implementation of simdize_assign using the std::tuple get interface.
+ * Generic implementation of simdize_insert using the std::tuple get interface.
  */
 template <typename T, std::size_t N, std::size_t... Indexes>
 inline void simdize_assign_impl(Adapter<T, N> &a, std::size_t i, const T &x,
@@ -454,7 +454,7 @@ inline void simdize_assign_impl(Adapter<T, N> &a, std::size_t i, const T &x,
  * Returns one scalar object, extracted from the SIMD slot at offset \p i from the
  * simdized object \p a.
  */
-template <typename T, std::size_t N> T simdize_get(const Adapter<T, N> &a, std::size_t i)
+template <typename T, std::size_t N> T simdize_extract(const Adapter<T, N> &a, std::size_t i)
 {
     return simdize_get_impl(a, i, Vc::make_index_sequence<std::tuple_size<T>::value>());
 }
@@ -464,7 +464,7 @@ template <typename T, std::size_t N> T simdize_get(const Adapter<T, N> &a, std::
  * a.
  */
 template <typename T, std::size_t N>
-inline void simdize_assign(Adapter<T, N> &a, std::size_t i, const T &x)
+inline void simdize_insert(Adapter<T, N> &a, std::size_t i, const T &x)
 {
     simdize_assign_impl(a, i, x, Vc::make_index_sequence<std::tuple_size<T>::value>());
 }
@@ -591,7 +591,7 @@ public:
  * // tuple_size<Data>::value == tuple_size<DataVec>
  * get<0>(x) = 1.f;
  * get<0>(v) = Vc::float_v::IndexesFromZero();
- * x = simdize_get(v, 0); // extract one Data object at SIMD index 0.
+ * x = simdize_extract(v, 0); // extract one Data object at SIMD index 0.
  * \endcode
  *
  * \tparam T The type to recursively translate to SIMD types.
