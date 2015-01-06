@@ -450,6 +450,17 @@ inline void simdize_assign_impl(Adapter<T, N> &a, std::size_t i, const T &x,
     if (&unused == &unused) {}
 }
 
+/** \internal
+ * Generic implementation of simdize_swap using the std::tuple get interface.
+ */
+template <typename T, std::size_t N, std::size_t... Indexes>
+inline void simdize_swap_impl(Adapter<T, N> &a, std::size_t i, T &x,
+                              Vc::index_sequence<Indexes...>)
+{
+    auto &&unused = {(std::swap(get<Indexes>(a)[i], x[Indexes]), 0)...};
+    if (&unused == &unused) {}
+}
+
 /**
  * Returns one scalar object, extracted from the SIMD slot at offset \p i from the
  * simdized object \p a.
@@ -467,6 +478,16 @@ template <typename T, std::size_t N>
 inline void simdize_insert(Adapter<T, N> &a, std::size_t i, const T &x)
 {
     simdize_assign_impl(a, i, x, Vc::make_index_sequence<std::tuple_size<T>::value>());
+}
+
+/**
+ * Swaps one scalar object \p x with a SIMD slot at offset \p i in the simdized object \p
+ * a.
+ */
+template <typename T, std::size_t N>
+inline void simdize_swap(Adapter<T, N> &a, std::size_t i, T &x)
+{
+    simdize_swap_impl(a, i, x, Vc::make_index_sequence<std::tuple_size<T>::value>());
 }
 
 template <std::size_t N, typename T0, typename T>
