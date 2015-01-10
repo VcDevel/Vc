@@ -539,7 +539,7 @@ inline T simdize_extract(const Adapter<T, N> &a, std::size_t i)
  * a.
  */
 template <typename T, std::size_t N>
-inline void simdize_insert(Adapter<T, N> &a, std::size_t i, const T &x)
+inline void simdize_assign(Adapter<T, N> &a, std::size_t i, const T &x)
 {
     simdize_assign_impl(a, i, x, Vc::make_index_sequence<std::tuple_size<T>::value>());
 }
