@@ -437,7 +437,8 @@ Vc_INTRINSIC Vc::enable_if<(Offset < std::tuple_size<T>::value), void> condition
  * Generic implementation of simdize_extract using the std::tuple get interface.
  */
 template <typename T, std::size_t N, std::size_t... Indexes>
-T simdize_get_impl(const Adapter<T, N> &a, std::size_t i, Vc::index_sequence<Indexes...>)
+inline T simdize_get_impl(const Adapter<T, N> &a, std::size_t i,
+                          Vc::index_sequence<Indexes...>)
 {
     return T{get<Indexes>(a)[i]...};
 }
@@ -475,7 +476,8 @@ inline void simdize_swap_impl(Adapter<T, N> &a, std::size_t i, T &x,
  * Returns one scalar object, extracted from the SIMD slot at offset \p i from the
  * simdized object \p a.
  */
-template <typename T, std::size_t N> T simdize_extract(const Adapter<T, N> &a, std::size_t i)
+template <typename T, std::size_t N>
+inline T simdize_extract(const Adapter<T, N> &a, std::size_t i)
 {
     return simdize_get_impl(a, i, Vc::make_index_sequence<std::tuple_size<T>::value>());
 }
