@@ -1238,6 +1238,19 @@ template <> Vc_INTRINSIC float_v float_v::operator[](int_v perm) const
     */
         return _mm256_permutevar_ps(d.v(), perm.data());
 }
+// broadcast from constexpr index {{{1
+template <> template <int Index> Vc_INTRINSIC float_v float_v::broadcast() const
+{
+    constexpr VecPos Inner = static_cast<VecPos>(Index & 0x3);
+    constexpr VecPos Outer = static_cast<VecPos>((Index & 0x4) / 4);
+    return Mem::permute<Inner, Inner, Inner, Inner>(Mem::permute128<Outer, Outer>(d.v()));
+}
+template <> template <int Index> Vc_INTRINSIC double_v double_v::broadcast() const
+{
+    constexpr VecPos Inner = static_cast<VecPos>(Index & 0x1);
+    constexpr VecPos Outer = static_cast<VecPos>((Index & 0x2) / 2);
+    return Mem::permute<Inner, Inner>(Mem::permute128<Outer, Outer>(d.v()));
+}
 // }}}1
 }
 }
