@@ -457,6 +457,60 @@ inline void simdize_assign_impl(Adapter<T, N> &a, std::size_t i, const T &x,
 template <typename T> static inline T decay_workaround(const T &x) { return x; }
 
 /** \internal
+ */
+template <typename T, std::size_t N, std::size_t... Indexes>
+inline void simdize_insert_and_shift_impl(Adapter<T, N> &a, std::size_t i, T &x,
+                                          Vc::index_sequence<Indexes...>)
+{
+    constexpr auto Size = a.size();
+    simdize<int, Size> permutation(Vc::IndexesFromZero);
+    if (i > Size / 2) {
+        const std::tuple<decltype(decay_workaround(get<Indexes>(a)[0]))...> tmp{
+            decay_workaround(get<Indexes>(a)[Size - 1])...};
+        auto &&unused = {(get<Indexes>(a)[Size - 1] = x[Indexes], 0)...};
+        auto &&unused2 = {(x[Indexes] = get<Indexes>(tmp), 0)...};
+        if (&unused == &unused2) {}
+
+        --where(permutation > i)(permutation);
+        permutation[i] = Size - 1;
+    } else {
+        const std::tuple<decltype(decay_workaround(get<Indexes>(a)[0]))...> tmp{
+            decay_workaround(get<Indexes>(a)[0])...};
+        auto &&unused = {(get<Indexes>(a)[0] = x[Indexes], 0)...};
+        auto &&unused2 = {(x[Indexes] = get<Indexes>(tmp), 0)...};
+        if (&unused == &unused2) {}
+
+        ++where(permutation < i)(permutation);
+        permutation[i] = 0;
+    }
+    const std::tuple<decltype(get<Indexes>(a)[permutation])...> &permuted{
+        get<Indexes>(a)[permutation]...};
+    auto &&unused3 = {(get<Indexes>(a) = std::get<Indexes>(permuted), 0)...};
+    if (&unused3 == &unused3) {}
+}
+
+template <typename T, std::size_t N, std::size_t... Indexes>
+inline Adapter<T, N> simdize_permuted_impl(const Adapter<T, N> &a,
+                                           simdize<int, N> permutation,
+                                           Vc::index_sequence<Indexes...>)
+{
+    Adapter<T, N> r;
+    auto &&unused = {(get<Indexes>(r) = get<Indexes>(a)[permutation], 0)...};
+    if (&unused == &unused) {}
+    return r;
+}
+
+template <typename T, std::size_t N, std::size_t... Indexes>
+inline Adapter<T, N> simdize_shifted_impl(const Adapter<T, N> &a, int shift,
+                                          Vc::index_sequence<Indexes...>)
+{
+    Adapter<T, N> r;
+    auto &&unused = {(get<Indexes>(r) = get<Indexes>(a).shifted(shift), 0)...};
+    if (&unused == &unused) {}
+    return r;
+}
+
+/** \internal
  * Generic implementation of simdize_swap using the std::tuple get interface.
  */
 template <typename T, std::size_t N, std::size_t... Indexes>
@@ -488,6 +542,27 @@ template <typename T, std::size_t N>
 inline void simdize_insert(Adapter<T, N> &a, std::size_t i, const T &x)
 {
     simdize_assign_impl(a, i, x, Vc::make_index_sequence<std::tuple_size<T>::value>());
+}
+
+template <typename T, std::size_t N>
+inline void simdize_insert_and_shift(Adapter<T, N> &a, std::size_t i, T &x)
+{
+    simdize_insert_and_shift_impl(a, i, x,
+                                  Vc::make_index_sequence<std::tuple_size<T>::value>());
+}
+
+template <typename T, std::size_t N>
+inline Adapter<T, N> simdize_permuted(const Adapter<T, N> &a, simdize<int, N> permutation)
+{
+    return simdize_permuted_impl(a, permutation,
+                                 Vc::make_index_sequence<std::tuple_size<T>::value>());
+}
+
+template <typename T, std::size_t N>
+inline Adapter<T, N> simdize_shifted(const Adapter<T, N> &a, int shift)
+{
+    return simdize_shifted_impl(a, shift,
+                                Vc::make_index_sequence<std::tuple_size<T>::value>());
 }
 
 /**
