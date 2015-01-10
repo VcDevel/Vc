@@ -313,6 +313,9 @@ template<typename T> class Vector
         template<int Index>
         Vc_INTRINSIC_L Vector broadcast() const Vc_INTRINSIC_R;
 
+        Vc_INTRINSIC_L std::pair<Vector<T>, int> minIndex() const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L std::pair<Vector<T>, int> maxIndex() const Vc_INTRINSIC_R;
+
         Vc_ALWAYS_INLINE EntryType min() const { return VectorHelper<T>::min(data()); }
         Vc_ALWAYS_INLINE EntryType max() const { return VectorHelper<T>::max(data()); }
         Vc_ALWAYS_INLINE EntryType product() const { return VectorHelper<T>::mul(data()); }

@@ -760,6 +760,71 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator-() c
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // horizontal ops {{{1
+template <typename T> Vc_INTRINSIC std::pair<Vector<T>, int> Vector<T>::minIndex() const
+{
+    Vector<T> x = min();
+    return std::make_pair(x, (*this == x).firstOne());
+}
+template <typename T> Vc_INTRINSIC std::pair<Vector<T>, int> Vector<T>::maxIndex() const
+{
+    Vector<T> x = max();
+    return std::make_pair(x, (*this == x).firstOne());
+}
+template <> Vc_INTRINSIC std::pair<float_v, int> float_v::minIndex() const
+{
+    /*
+    // 28 cycles latency:
+    __m256 x = _mm256_min_ps(Mem::permute128<X1, X0>(d.v()), d.v());
+    x = _mm256_min_ps(x, Reg::permute<X2, X3, X0, X1>(x));
+    float_v xx = _mm256_min_ps(x, Reg::permute<X1, X0, X3, X2>(x));
+    uint_v idx = uint_v::IndexesFromZero();
+    idx = _mm256_castps_si256(
+        _mm256_or_ps((*this != xx).data(), _mm256_castsi256_ps(idx.data())));
+    return std::make_pair(xx, (*this == xx).firstOne());
+
+    __m128 loData = lo128(d.v());
+    __m128 hiData = hi128(d.v());
+    const __m128 less2 = _mm_cmplt_ps(hiData, loData);
+    loData = _mm_min_ps(loData, hiData);
+    hiData = Mem::permute<X2, X3, X0, X1>(loData);
+    const __m128 less1 = _mm_cmplt_ps(hiData, loData);
+    loData = _mm_min_ps(loData, hiData);
+    hiData = Mem::permute<X1, X0, X3, X2>(loData);
+    const __m128 less0 = _mm_cmplt_ps(hiData, loData);
+    unsigned bits = _mm_movemask_ps(less0) & 0x1;
+    bits |= ((_mm_movemask_ps(less1) << 1) - bits) & 0x2;
+    bits |= ((_mm_movemask_ps(less2) << 3) - bits) & 0x4;
+    loData = _mm_min_ps(loData, hiData);
+    return std::make_pair(concat(loData, loData), bits);
+    */
+
+    // 28 cycles Latency:
+    __m256 x = d.v();
+    __m256 idx = _mm256_castsi256_ps(
+        VectorHelper<__m256i>::load<AlignedTag>(IndexesFromZeroData<int>::address()));
+    __m256 y = Mem::permute128<X1, X0>(x);
+    __m256 idy = Mem::permute128<X1, X0>(idx);
+    __m256 less = cmplt_ps(x, y);
+
+    x = _mm256_blendv_ps(y, x, less);
+    idx = _mm256_blendv_ps(idy, idx, less);
+    y = Reg::permute<X2, X3, X0, X1>(x);
+    idy = Reg::permute<X2, X3, X0, X1>(idx);
+    less = cmplt_ps(x, y);
+
+    x = _mm256_blendv_ps(y, x, less);
+    idx = _mm256_blendv_ps(idy, idx, less);
+    y = Reg::permute<X1, X0, X3, X2>(x);
+    idy = Reg::permute<X1, X0, X3, X2>(idx);
+    less = cmplt_ps(x, y);
+
+    idx = _mm256_blendv_ps(idy, idx, less);
+
+    const auto index = _mm_cvtsi128_si32(avx_cast<__m128i>(idx));
+    __asm__ __volatile__(""); // help GCC to order the instructions better
+    x = _mm256_blendv_ps(y, x, less);
+    return std::make_pair(x, index);
+}
 template<typename T> Vc_ALWAYS_INLINE Vector<T> Vector<T>::partialSum() const
 {
     //   a    b    c    d    e    f    g    h
