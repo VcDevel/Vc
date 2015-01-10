@@ -444,7 +444,7 @@ inline T simdize_get_impl(const Adapter<T, N> &a, std::size_t i,
 }
 
 /** \internal
- * Generic implementation of simdize_insert using the std::tuple get interface.
+ * Generic implementation of simdize_assign using the std::tuple get interface.
  */
 template <typename T, std::size_t N, std::size_t... Indexes>
 inline void simdize_assign_impl(Adapter<T, N> &a, std::size_t i, const T &x,
@@ -454,12 +454,7 @@ inline void simdize_assign_impl(Adapter<T, N> &a, std::size_t i, const T &x,
     if (&unused == &unused) {}
 }
 
-template <typename T> void myswap(T &a, T &b)
-{
-    const auto tmp = a;
-    a = b;
-    b = tmp;
-}
+template <typename T> static inline T decay_workaround(const T &x) { return x; }
 
 /** \internal
  * Generic implementation of simdize_swap using the std::tuple get interface.
@@ -468,8 +463,11 @@ template <typename T, std::size_t N, std::size_t... Indexes>
 inline void simdize_swap_impl(Adapter<T, N> &a, std::size_t i, T &x,
                               Vc::index_sequence<Indexes...>)
 {
-    auto &&unused = {(myswap(get<Indexes>(a)[i], x[Indexes]), 0)...};
-    if (&unused == &unused) {}
+    const std::tuple<decltype(decay_workaround(get<Indexes>(a)[0]))...> tmp{
+        decay_workaround(get<Indexes>(a)[i])...};
+    auto &&unused = {(get<Indexes>(a)[i] = x[Indexes], 0)...};
+    auto &&unused2 = {(x[Indexes] = get<Indexes>(tmp), 0)...};
+    if (&unused == &unused2) {}
 }
 
 /**
