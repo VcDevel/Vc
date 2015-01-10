@@ -397,7 +397,7 @@ Vc_INTRINSIC Vc_CONST m256d exponent(param256d v)
             static Vc_INTRINSIC VectorType Vc_CONST min(VTArg a, VTArg b) { return _mm256_min_ps(a, b); }
             static Vc_INTRINSIC VectorType Vc_CONST max(VTArg a, VTArg b) { return _mm256_max_ps(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VTArg a) {
-                m128 b = _mm_min_ps(avx_cast<m128>(a), _mm256_extractf128_ps(a, 1));
+                m128 b = _mm_min_ps(lo128(a), hi128(a));
                 b = _mm_min_ps(b, _mm_movehl_ps(b, b));   // b = min(a0, a2), min(a1, a3), min(a2, a2), min(a3, a3)
                 b = _mm_min_ss(b, _mm_shuffle_ps(b, b, _MM_SHUFFLE(1, 1, 1, 1))); // b = min(a0, a1), a1, a2, a3
                 return _mm_cvtss_f32(b);
