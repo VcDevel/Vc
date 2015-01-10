@@ -1224,6 +1224,20 @@ template <> Vc_INTRINSIC Vc_PURE ushort_v ushort_v::reversed() const
                              avx_cast<__m128d>(Mem::permuteLo<X3, X2, X1, X0>(d.v()))));
 }
 #endif
+// permutation via operator[] {{{1
+template <> Vc_INTRINSIC float_v float_v::operator[](int_v perm) const
+{
+    /*
+    const int_m cross128 = concat(_mm_cmpgt_epi32(lo128(perm.data()), _mm_set1_epi32(3)),
+                                  _mm_cmplt_epi32(hi128(perm.data()), _mm_set1_epi32(4)));
+    if (cross128.isNotEmpty()) {
+        float_v x = _mm256_permutevar_ps(d.v(), perm.data());
+        x(cross128) = _mm256_permutevar_ps(Mem::permute128<X1, X0>(d.v()), perm.data());
+        return x;
+    } else {
+    */
+        return _mm256_permutevar_ps(d.v(), perm.data());
+}
 // }}}1
 }
 }

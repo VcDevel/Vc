@@ -215,6 +215,8 @@ template<typename T> class Vector
             return d.m(index);
         }
 
+        Vc_INTRINSIC_L Vector operator[](int_v perm) const Vc_INTRINSIC_R;
+
         Vc_INTRINSIC Vc_PURE Mask operator!() const
         {
             return *this == Zero();
