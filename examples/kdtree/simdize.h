@@ -414,8 +414,11 @@ template <Vc::Operator Op, typename T, std::size_t N, typename M, typename U,
 Vc_INTRINSIC Vc::enable_if<(Offset < std::tuple_size<T>::value), void> conditional_assign(
     Adapter<T, N> &lhs, const M &mask, const U &rhs)
 {
-    conditional_assign<Op>(get<Offset>(lhs), mask, get<Offset>(rhs));
+    typename std::decay<decltype(get<Offset>(lhs))>::type left = get<Offset>(lhs);
+    const auto &right = get<Offset>(rhs);
+    conditional_assign<Op>(left, mask, right);
     conditional_assign<Op, T, N, M, U, Offset + 1>(lhs, mask, rhs);
+    get<Offset>(lhs) = left;
 }
 template <Vc::Operator Op, typename T, std::size_t N, typename M, std::size_t Offset>
 Vc_INTRINSIC Vc::enable_if<(Offset >= std::tuple_size<T>::value), void>
