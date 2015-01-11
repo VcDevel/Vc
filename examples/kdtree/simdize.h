@@ -276,9 +276,11 @@ public:
     static constexpr std::size_t Size = FirstVectorType::Size;
     static constexpr std::size_t size() { return Size; }
 
-    template <std::size_t... Indexes>
+    template <std::size_t... Indexes,
+              typename Tuple =
+                  std::tuple<typename std::tuple_element<Indexes, VectorBase>::type...>>
     Adapter(const ScalarBase &x, Vc::index_sequence<Indexes...>)
-        : VectorBase{get<Indexes>(x)...}
+        : VectorBase{std::get<Indexes>(Tuple(get<Indexes>(x)...))...}
     {
     }
 
@@ -433,6 +435,8 @@ Vc_INTRINSIC Vc::enable_if<(Offset < std::tuple_size<T>::value), void> condition
     conditional_assign<Op, T, N, M, Offset + 1>(lhs, mask);
 }
 
+template <typename T> static inline T decay_workaround(const T &x) { return x; }
+
 /** \internal
  * Generic implementation of simdize_extract using the std::tuple get interface.
  */
@@ -440,7 +444,10 @@ template <typename T, std::size_t N, std::size_t... Indexes>
 inline T simdize_get_impl(const Adapter<T, N> &a, std::size_t i,
                           Vc::index_sequence<Indexes...>)
 {
-    return T{get<Indexes>(a)[i]...};
+    const std::tuple<decltype(decay_workaround(get<Indexes>(a)[i]))...> tmp(
+        decay_workaround(get<Indexes>(a)[i])...);
+    //__asm__ __volatile__(""); // fence for loads and stores
+    return T(get<Indexes>(tmp)...);
 }
 
 /** \internal
@@ -450,11 +457,12 @@ template <typename T, std::size_t N, std::size_t... Indexes>
 inline void simdize_assign_impl(Adapter<T, N> &a, std::size_t i, const T &x,
                                 Vc::index_sequence<Indexes...>)
 {
-    auto &&unused = {&(get<Indexes>(a)[i] = x[Indexes])...};
+    //auto &&unused = {&(get<Indexes>(a)[i] = x[Indexes])...};
+    const std::tuple<decltype(decay_workaround(x[Indexes]))...> tmp(
+        decay_workaround(x[Indexes])...);
+    auto &&unused = {(get<Indexes>(a)[i] = get<Indexes>(tmp), 0)...};
     if (&unused == &unused) {}
 }
-
-template <typename T> static inline T decay_workaround(const T &x) { return x; }
 
 /** \internal
  */
