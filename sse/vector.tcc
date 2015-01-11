@@ -1040,6 +1040,36 @@ template <> Vc_INTRINSIC Vc_PURE ushort_v ushort_v::reversed() const
                              sse_cast<__m128d>(Mem::permuteLo<X3, X2, X1, X0>(d.v()))));
 }
 // }}}1
+// permutation via operator[] {{{1
+template <> Vc_INTRINSIC float_v float_v::operator[](int_v perm) const
+{
+    /*
+    const int_m cross128 = concat(_mm_cmpgt_epi32(lo128(perm.data()), _mm_set1_epi32(3)),
+                                  _mm_cmplt_epi32(hi128(perm.data()), _mm_set1_epi32(4)));
+    if (cross128.isNotEmpty()) {
+        float_v x = _mm256_permutevar_ps(d.v(), perm.data());
+        x(cross128) = _mm256_permutevar_ps(Mem::permute128<X1, X0>(d.v()), perm.data());
+        return x;
+    } else {
+    */
+#ifdef VC_IMPL_AVX
+    return _mm_permutevar_ps(d.v(), perm.data());
+#else
+    return *this;//TODO
+#endif
+}
+// broadcast from constexpr index {{{1
+template <> template <int Index> Vc_INTRINSIC float_v float_v::broadcast() const
+{
+    constexpr VecPos Inner = static_cast<VecPos>(Index & 0x3);
+    return Mem::permute<Inner, Inner, Inner, Inner>(d.v());
+}
+template <> template <int Index> Vc_INTRINSIC double_v double_v::broadcast() const
+{
+    constexpr VecPos Inner = static_cast<VecPos>(Index & 0x1);
+    return Mem::permute<Inner, Inner>(d.v());
+}
+// }}}1
 }
 }
 

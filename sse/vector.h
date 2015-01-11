@@ -185,6 +185,8 @@ template<typename T> class Vector
         }
         Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_PURE Vc_INTRINSIC_R;
 
+        Vc_INTRINSIC_L Vector operator[](int_v perm) const Vc_INTRINSIC_R;
+
         Vc_INTRINSIC Vc_PURE Mask operator!() const
         {
             return *this == Zero();
@@ -280,6 +282,9 @@ template<typename T> class Vector
 
         Vc_ALWAYS_INLINE Vc_PURE VectorType &data() { return d.v(); }
         Vc_ALWAYS_INLINE Vc_PURE const VectorType &data() const { return d.v(); }
+
+        template<int Index>
+        Vc_INTRINSIC_L Vector broadcast() const Vc_INTRINSIC_R;
 
         Vc_INTRINSIC EntryType min() const { return VectorHelper<T>::min(data()); }
         Vc_INTRINSIC EntryType max() const { return VectorHelper<T>::max(data()); }
