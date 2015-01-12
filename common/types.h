@@ -229,12 +229,12 @@ template <typename T, typename IndexVector> struct ScatterArguments
 };
 
 template <typename I, I Begin, I End, typename F>
-Vc_INTRINSIC enable_if<(Begin == End), void> unrolled_loop(F &&)
+Vc_INTRINSIC enable_if<(Begin >= End), void> unrolled_loop(F &&)
 {
 }
 
 template <typename I, I Begin, I End, typename F>
-Vc_INTRINSIC enable_if<(Begin < End), void> unrolled_loop(F &&f)
+Vc_INTRINSIC Vc_FLATTEN enable_if<(Begin < End), void> unrolled_loop(F &&f)
 {
     f(Begin);
     unrolled_loop<I, Begin + 1, End>(f);
