@@ -10,13 +10,13 @@
 class AliTPCParam;
 class AliTPCTransform;
 
-class AliHLTTPCSpline2D3D
+class Spline
 {
 public:
-    AliHLTTPCSpline2D3D();
-    AliHLTTPCSpline2D3D(float minA, float maxA, int nBinsA, float minB,
+    Spline();
+    Spline(float minA, float maxA, int nBinsA, float minB,
                         float maxB, int nBinsB);
-    ~AliHLTTPCSpline2D3D();
+    ~Spline();
     void Init(float minA, float maxA, int nBinsA, float minB, float maxB,
               int nBinsB);
 
@@ -49,9 +49,9 @@ public:
 
 private:
     /** copy constructor prohibited */
-    AliHLTTPCSpline2D3D(const AliHLTTPCSpline2D3D &);
+    Spline(const Spline &);
     /** assignment operator prohibited */
-    AliHLTTPCSpline2D3D &operator=(const AliHLTTPCSpline2D3D &);
+    Spline &operator=(const Spline &);
 
     /** spline 3-st order,  4 points, da = a - point 1 */
     static float GetSpline3(float v0, float v1, float v2, float v3, float da);
@@ -72,7 +72,7 @@ private:
     float *fXYZ;    // array of points, {X,Y,Z,0} values
 };
 
-inline AliHLTTPCSpline2D3D::AliHLTTPCSpline2D3D()
+inline Spline::Spline()
     : fNA(0)
     , fNB(0)
     , fN(0)
@@ -86,7 +86,7 @@ inline AliHLTTPCSpline2D3D::AliHLTTPCSpline2D3D()
 {
 }
 
-inline AliHLTTPCSpline2D3D::AliHLTTPCSpline2D3D(float minA, float maxA, int nBinsA,
+inline Spline::Spline(float minA, float maxA, int nBinsA,
                                                 float minB, float maxB, int nBinsB)
     : fNA(0)
     , fNB(0)
@@ -102,7 +102,7 @@ inline AliHLTTPCSpline2D3D::AliHLTTPCSpline2D3D(float minA, float maxA, int nBin
     Init(minA, maxA, nBinsA, minB, maxB, nBinsB);
 }
 
-inline void AliHLTTPCSpline2D3D::Fill(int ind, float x, float y, float z)
+inline void Spline::Fill(int ind, float x, float y, float z)
 {
     int ind4 = ind * 4;
     fXYZ[ind4] = x;
@@ -110,17 +110,17 @@ inline void AliHLTTPCSpline2D3D::Fill(int ind, float x, float y, float z)
     fXYZ[ind4 + 2] = z;
 }
 
-inline void AliHLTTPCSpline2D3D::Fill(int ind, float XYZ[])
+inline void Spline::Fill(int ind, float XYZ[])
 {
     Fill(ind, XYZ[0], XYZ[1], XYZ[2]);
 }
 
-inline void AliHLTTPCSpline2D3D::Fill(int ind, double XYZ[])
+inline void Spline::Fill(int ind, double XYZ[])
 {
     Fill(ind, XYZ[0], XYZ[1], XYZ[2]);
 }
 
-inline void AliHLTTPCSpline2D3D::Fill(void (*func)(float a, float b, float xyz[]))
+inline void Spline::Fill(void (*func)(float a, float b, float xyz[]))
 {
     for (int i = 0; i < GetNPoints(); i++) {
         float a, b, xyz[3];
@@ -130,17 +130,17 @@ inline void AliHLTTPCSpline2D3D::Fill(void (*func)(float a, float b, float xyz[]
     }
 }
 
-inline void AliHLTTPCSpline2D3D::GetAB(int ind, float &A, float &B) const
+inline void Spline::GetAB(int ind, float &A, float &B) const
 {
     A = fMinA + (ind / fNB) * fStepA;
     B = fMinB + (ind % fNB) * fStepB;
 }
 
-inline int AliHLTTPCSpline2D3D::GetMapSize() const { return 4 * sizeof(float) * fN; }
+inline int Spline::GetMapSize() const { return 4 * sizeof(float) * fN; }
 
-inline int AliHLTTPCSpline2D3D::GetNPoints() const { return fN; }
+inline int Spline::GetNPoints() const { return fN; }
 
-inline float AliHLTTPCSpline2D3D::GetSpline3(float v0, float v1, float v2,
+inline float Spline::GetSpline3(float v0, float v1, float v2,
                                                float v3, float x)
 {
     float dv = v2 - v1;
@@ -149,17 +149,17 @@ inline float AliHLTTPCSpline2D3D::GetSpline3(float v0, float v1, float v2,
     return x * x * ((z1 - dv + z0 - dv) * (x - 1) - (z0 - dv)) + z0 * x + v1;
 }
 
-inline float AliHLTTPCSpline2D3D::GetSpline3(float *v, float x)
+inline float Spline::GetSpline3(float *v, float x)
 {
     return GetSpline3(v[0], v[1], v[2], v[3], x);
 }
 
-inline float AliHLTTPCSpline2D3D::GetSpline2(float *v, float x)
+inline float Spline::GetSpline2(float *v, float x)
 {
     return 0.5 * x * ((v[0] + v[2] - v[1] - v[1]) * x + v[2] - v[0]) + v[1];
 }
 
-inline void AliHLTTPCSpline2D3D::GetValue(float A, float B, double XYZ[]) const
+inline void Spline::GetValue(float A, float B, double XYZ[]) const
 {
     float fxyz[3];
     GetValue(A, B, fxyz);
