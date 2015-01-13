@@ -25,8 +25,8 @@
 
 using namespace std;
 
-void Spline::Init(Float_t minA, Float_t maxA, Int_t nBinsA, Float_t minB,
-                               Float_t maxB, Int_t nBinsB)
+void Spline::Init(float minA, float maxA, int nBinsA, float minB,
+                               float maxB, int nBinsB)
 {
     //
     // Initialisation
@@ -54,7 +54,7 @@ void Spline::Init(Float_t minA, Float_t maxA, Int_t nBinsA, Float_t minB,
 
     Vc::free(fXYZ);
     fXYZ = Vc::malloc<float, Vc::AlignOnCacheline>(4 * fN);
-    memset(fXYZ, 0, fN * 4 * sizeof(Float_t));
+    memset(fXYZ, 0, fN * 4 * sizeof(float));
 }
 
 Spline::~Spline() { Vc::free(fXYZ); }
@@ -65,7 +65,7 @@ void Spline::Consolidate()
     // Consolidate the map
     //
 
-    Float_t *m = fXYZ;
+    float *m = fXYZ;
     for (int iXYZ = 0; iXYZ < 3; iXYZ++) {
         for (int iA = 0; iA < fNA; iA++) {
             {
@@ -111,21 +111,21 @@ inline Vc::float_v GetSpline3Vc(Vc::float_v v0, Vc::float_v v1, Vc::float_v v2,
     return x2 * ((z1 - dv + z0 - dv) * (x - 1) - (z0 - dv)) + z0 * x + v1;
 }
 
-void Spline::GetValue(Float_t A, Float_t B, Float_t XYZ[]) const
+void Spline::GetValue(float A, float B, float XYZ[]) const
 {
     //
     //  Get Interpolated value at A,B
     //
 
-    Float_t lA = (A - fMinA) * fScaleA - 1.f;
-    Int_t iA = (int)lA;
+    float lA = (A - fMinA) * fScaleA - 1.f;
+    int iA = (int)lA;
     if (lA < 0)
         iA = 0;
     else if (iA > fNA - 4)
         iA = fNA - 4;
 
-    Float_t lB = (B - fMinB) * fScaleB - 1.f;
-    Int_t iB = (int)lB;
+    float lB = (B - fMinB) * fScaleB - 1.f;
+    int iB = (int)lB;
     if (lB < 0)
         iB = 0;
     else if (iB > fNB - 4)
@@ -137,10 +137,10 @@ void Spline::GetValue(Float_t A, Float_t B, Float_t XYZ[]) const
         Vc::float_v db2 = db * db;
 
         Vc::float_v v[4];
-        Int_t ind = iA * fNB + iB;
+        int ind = iA * fNB + iB;
         const Vc::float_v *m = reinterpret_cast<const Vc::float_v *>(fXYZ);
 
-        for (Int_t i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             v[i] = GetSpline3Vc(m[ind + 0], m[ind + 1], m[ind + 2], m[ind + 3], db, db2);
             ind += fNB;
         }
@@ -149,14 +149,14 @@ void Spline::GetValue(Float_t A, Float_t B, Float_t XYZ[]) const
         XYZ[1] = res[1];
         XYZ[2] = res[2];
     } else {
-        Float_t da = lA - iA;
-        Float_t db = lB - iB;
+        float da = lA - iA;
+        float db = lB - iB;
 
-        Float_t vx[4];
-        Float_t vy[4];
-        Float_t vz[4];
-        Int_t ind = iA * fNB + iB;
-        for (Int_t i = 0; i < 4; i++) {
+        float vx[4];
+        float vy[4];
+        float vz[4];
+        int ind = iA * fNB + iB;
+        for (int i = 0; i < 4; i++) {
             int ind4 = ind * 4;
             vx[i] = GetSpline3(fXYZ[ind4 + 0], fXYZ[ind4 + 4], fXYZ[ind4 + 8],
                                fXYZ[ind4 + 12], db);
