@@ -156,7 +156,7 @@ inline float Spline::GetSpline3(float *v, float x)
 
 inline float Spline::GetSpline2(float *v, float x)
 {
-    return 0.5 * x * ((v[0] + v[2] - v[1] - v[1]) * x + v[2] - v[0]) + v[1];
+    return 0.5f * x * ((v[0] + v[2] - v[1] - v[1]) * x + v[2] - v[0]) + v[1];
 }
 
 inline void Spline::GetValue(float A, float B, double XYZ[]) const

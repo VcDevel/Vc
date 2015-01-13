@@ -49,8 +49,8 @@ void Spline::Init(float minA, float maxA, int nBinsA, float minB,
 
     fStepA = (maxA - minA) / (nBinsA - 1);
     fStepB = (maxB - minB) / (nBinsB - 1);
-    fScaleA = 1. / fStepA;
-    fScaleB = 1. / fStepB;
+    fScaleA = 1.f / fStepA;
+    fScaleB = 1.f / fStepB;
 
     Vc::free(fXYZ);
     fXYZ = Vc::malloc<float, Vc::AlignOnCacheline>(4 * fN);
@@ -73,14 +73,14 @@ void Spline::Consolidate()
                 int i1 = i0 + 4;
                 int i2 = i0 + 4 * 2;
                 int i3 = i0 + 4 * 3;
-                m[i0] = 0.5 * (m[i3] + m[i0] + 3 * (m[i1] - m[i2]));
+                m[i0] = 0.5f * (m[i3] + m[i0] + 3 * (m[i1] - m[i2]));
             }
             {
                 int i0 = 4 * (iA * fNB + fNB - 4) + iXYZ;
                 int i1 = i0 + 4;
                 int i2 = i0 + 4 * 2;
                 int i3 = i0 + 4 * 3;
-                m[i3] = 0.5 * (m[i0] + m[i3] + 3 * (m[i2] - m[i1]));
+                m[i3] = 0.5f * (m[i0] + m[i3] + 3 * (m[i2] - m[i1]));
             }
         }
         for (int iB = 0; iB < fNB; iB++) {
@@ -89,14 +89,14 @@ void Spline::Consolidate()
                 int i1 = i0 + 4 * fNB;
                 int i2 = i1 + 4 * fNB;
                 int i3 = i2 + 4 * fNB;
-                m[i0] = 0.5 * (m[i3] + m[i0] + 3 * (m[i1] - m[i2]));
+                m[i0] = 0.5f * (m[i3] + m[i0] + 3 * (m[i1] - m[i2]));
             }
             {
                 int i0 = 4 * ((fNA - 4) * fNB + iB) + iXYZ;
                 int i1 = i0 + 4 * fNB;
                 int i2 = i1 + 4 * fNB;
                 int i3 = i2 + 4 * fNB;
-                m[i3] = 0.5 * (m[i0] + m[i3] + 3 * (m[i2] - m[i1]));
+                m[i3] = 0.5f * (m[i0] + m[i3] + 3 * (m[i2] - m[i1]));
             }
         }
     }
