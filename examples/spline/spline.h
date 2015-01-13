@@ -36,10 +36,7 @@ public:
     void Consolidate();
 
     /**  Get Interpolated value at A,B */
-    void GetValue(float A, float B, float XYZ[]) const;
-
-    /**  Get Interpolated value at A,B */
-    void GetValue(float A, float B, double XYZ[]) const;
+    std::array<float, 3> GetValue(float A, float B) const;
 
     /**  Get size of the grid */
     int GetMapSize() const;
@@ -157,14 +154,6 @@ inline float Spline::GetSpline3(float *v, float x)
 inline float Spline::GetSpline2(float *v, float x)
 {
     return 0.5f * x * ((v[0] + v[2] - v[1] - v[1]) * x + v[2] - v[0]) + v[1];
-}
-
-inline void Spline::GetValue(float A, float B, double XYZ[]) const
-{
-    float fxyz[3];
-    GetValue(A, B, fxyz);
-    for (int i = 0; i < 3; i++)
-        XYZ[i] = fxyz[i];
 }
 
 #endif  // SPLINE_H_

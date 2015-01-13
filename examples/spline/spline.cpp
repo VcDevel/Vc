@@ -111,7 +111,7 @@ inline Vc::float_v GetSpline3Vc(Vc::float_v v0, Vc::float_v v1, Vc::float_v v2,
     return x2 * ((z1 - dv + z0 - dv) * (x - 1) - (z0 - dv)) + z0 * x + v1;
 }
 
-void Spline::GetValue(float A, float B, float XYZ[]) const
+std::array<float, 3> void Spline::GetValue(float A, float B) const
 {
     //
     //  Get Interpolated value at A,B
@@ -131,6 +131,7 @@ void Spline::GetValue(float A, float B, float XYZ[]) const
     else if (iB > fNB - 4)
         iB = fNB - 4;
 
+    std::array<float, 3> XYZ;
     if (Vc::float_v::Size == 4) {
         Vc::float_v da = lA - iA;
         Vc::float_v db = lB - iB;
@@ -170,4 +171,5 @@ void Spline::GetValue(float A, float B, float XYZ[]) const
         XYZ[1] = GetSpline3(vy, da);
         XYZ[2] = GetSpline3(vz, da);
     }
+    return XYZ;
 }
