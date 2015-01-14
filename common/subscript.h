@@ -366,22 +366,20 @@ public:
         typename S,  // S must be equal to T. Still we require this template parameter -
         // otherwise instantiation of SubscriptOperation would only be valid for
         // structs/unions.
-        typename = enable_if<std::is_same<S, T>::value &&(std::is_class<T>::value ||
-                                                          std::is_union<T>::value)>>
+        typename = enable_if<std::is_same<S, typename std::remove_cv<T>::type>::value &&(
+            std::is_class<T>::value || std::is_union<T>::value)>>
     Vc_ALWAYS_INLINE auto operator[](U S::*member)
         -> SubscriptOperation<
-              typename std::remove_reference<U>::type, IndexVector,
-              std::ratio_multiply<
-                  Scale,
-                  std::ratio<sizeof(S),
-                             sizeof(U)>>  // By passing the scale factor as a fraction of
-                                          // integers in the template arguments the value
-                                          // does not lose information if the division
-                                          // yields a non-integral value. This could
-                                          // happen e.g. for a struct of struct (S2 { S1,
-                                          // char }, with sizeof(S1) = 16, sizeof(S2) =
-                                          // 20. Then scale would be 20/16)
-              >
+              typename std::conditional<std::is_const<T>::value,
+                                        const typename std::remove_reference<U>::type,
+                                        typename std::remove_reference<U>::type>::type,
+              IndexVector,
+              // By passing the scale factor as a fraction of integers in the template
+              // arguments the value does not lose information if the division yields a
+              // non-integral value. This could happen e.g. for a struct of struct (S2 {
+              // S1, char }, with sizeof(S1) = 16, sizeof(S2) = 20. Then scale would be
+              // 20/16)
+              std::ratio_multiply<Scale, std::ratio<sizeof(S), sizeof(U)>>>
     {
         static_assert(std::is_same<Traits::decay<decltype(m_address->*member)>,
                                    Traits::decay<U>>::value,
