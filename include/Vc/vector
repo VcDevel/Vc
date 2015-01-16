@@ -21,6 +21,9 @@
 
 }}}*/
 
+#ifndef VC_VECTOR__
+#define VC_VECTOR__
+
 #include "common/subscript.h"
 #include <vector>
 
@@ -37,4 +40,5 @@ struct has_contiguous_storage_impl<Vc::vector<T, A>> : public std::true_type {};
 
 }  // namespace
 
+#endif  // VC_VECTOR__
 // vim: ft=cpp
