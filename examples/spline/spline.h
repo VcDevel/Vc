@@ -1,11 +1,15 @@
 #ifndef SPLINE_H_
 #define SPLINE_H_
 
+#include <utility>
+#include <array>
+#include <tuple>
+#include "../kdtree/simdize.h"
+#include <Vc/vector>
+
 //* This file is property of and copyright by the ALICE HLT Project        *
 //* ALICE Experiment at CERN, All rights reserved.                         *
 //* See cxx source for full Copyright notice                               *
-
-#include "Rtypes.h"
 
 class AliTPCParam;
 class AliTPCTransform;
@@ -13,30 +17,31 @@ class AliTPCTransform;
 class Spline
 {
 public:
-    Spline();
-    Spline(float minA, float maxA, int nBinsA, float minB,
-                        float maxB, int nBinsB);
-    ~Spline();
-    void Init(float minA, float maxA, int nBinsA, float minB, float maxB,
-              int nBinsB);
+    typedef std::array<float, 2> Point2;
+    typedef std::array<float, 3> Point3;
+
+    typedef simdize<Point2> Point2V;
+    typedef simdize<Point3> Point3V;
+
+    Spline(float minA, float maxA, int nBinsA, float minB, float maxB, int nBinsB);
 
     /**  Filling of points */
-    void Fill(void (*func)(float a, float b, float xyz[]));
+    template <typename F> void Fill(F &&func);
     /**  Filling of points */
     void Fill(int ind, float x, float y, float z);
     /**  Filling of points */
-    void Fill(int ind, float XYZ[]);
-    /**  Filling of points */
-    void Fill(int ind, double XYZ[]);
+    void Fill(int ind, const float XYZ[]);
 
     /**  Get A,B by the point index */
-    void GetAB(int ind, float &A, float &B) const;
+    std::pair<float, float> GetAB(int ind) const;
 
     /** Consolidate the map*/
     void Consolidate();
 
-    /**  Get Interpolated value at A,B */
-    std::array<float, 3> GetValue(float A, float B) const;
+    /** Calculate interpolated value at the given point(s) */
+    Point3 GetValue(Point2) const;
+    Point3 GetValueScalar(Point2) const;
+    Point3V GetValue(const Point2V &) const;
 
     /**  Get size of the grid */
     int GetMapSize() const;
@@ -50,106 +55,55 @@ private:
     /** assignment operator prohibited */
     Spline &operator=(const Spline &);
 
-    /** spline 3-st order,  4 points, da = a - point 1 */
-    static float GetSpline3(float v0, float v1, float v2, float v3, float da);
-    static float GetSpline3(float *v, float da);
-
     /** spline 2-nd order, 3 points, da = a - point 1 */
     static float GetSpline2(float *v, float da);
 
-    int fNA;        // N points A axis
-    int fNB;        // N points A axis
-    int fN;         // N points total
-    float fMinA;    // min A axis
-    float fMinB;    // min B axis
-    float fStepA;   // step between points A axis
-    float fStepB;   // step between points B axis
-    float fScaleA;  // scale A axis
-    float fScaleB;  // scale B axis
-    float *fXYZ;    // array of points, {X,Y,Z,0} values
+    const int fNA;        // N points A axis
+    const int fNB;        // N points A axis
+    const int fN;         // N points total
+    const float fMinA;    // min A axis
+    const float fMinB;    // min B axis
+    const float fStepA;   // step between points A axis
+    const float fStepB;   // step between points B axis
+    const float fScaleA;  // scale A axis
+    const float fScaleB;  // scale B axis
+    struct DataPoint
+    {
+        float x, y, z, padding__;
+    };
+    Vc::vector<DataPoint, Vc::Allocator<DataPoint>> fXYZ;  // array of points, {X,Y,Z,0} values
 };
-
-inline Spline::Spline()
-    : fNA(0)
-    , fNB(0)
-    , fN(0)
-    , fMinA(0)
-    , fMinB(0)
-    , fStepA(0)
-    , fStepB(0)
-    , fScaleA(0)
-    , fScaleB(0)
-    , fXYZ(0)
-{
-}
-
-inline Spline::Spline(float minA, float maxA, int nBinsA,
-                                                float minB, float maxB, int nBinsB)
-    : fNA(0)
-    , fNB(0)
-    , fN(0)
-    , fMinA(0)
-    , fMinB(0)
-    , fStepA(0)
-    , fStepB(0)
-    , fScaleA(0)
-    , fScaleB(0)
-    , fXYZ(0)
-{
-    Init(minA, maxA, nBinsA, minB, maxB, nBinsB);
-}
 
 inline void Spline::Fill(int ind, float x, float y, float z)
 {
-    int ind4 = ind * 4;
-    fXYZ[ind4] = x;
-    fXYZ[ind4 + 1] = y;
-    fXYZ[ind4 + 2] = z;
+    fXYZ[ind].x = x;
+    fXYZ[ind].y = y;
+    fXYZ[ind].z = z;
 }
 
-inline void Spline::Fill(int ind, float XYZ[])
+inline void Spline::Fill(int ind, const float XYZ[])
 {
     Fill(ind, XYZ[0], XYZ[1], XYZ[2]);
 }
 
-inline void Spline::Fill(int ind, double XYZ[])
-{
-    Fill(ind, XYZ[0], XYZ[1], XYZ[2]);
-}
-
-inline void Spline::Fill(void (*func)(float a, float b, float xyz[]))
+template <typename F> inline void Spline::Fill(F &&func)
 {
     for (int i = 0; i < GetNPoints(); i++) {
-        float a, b, xyz[3];
-        GetAB(i, a, b);
-        (*func)(a, b, xyz);
-        Fill(i, xyz);
+        float a, b;
+        std::tie(a, b) = GetAB(i);
+        std::array<float, 3> xyz = func(a, b);
+        Fill(i, xyz[0], xyz[1], xyz[2]);
     }
 }
 
-inline void Spline::GetAB(int ind, float &A, float &B) const
+inline std::pair<float, float> Spline::GetAB(int ind) const
 {
-    A = fMinA + (ind / fNB) * fStepA;
-    B = fMinB + (ind % fNB) * fStepB;
+    return std::make_pair(fMinA + (ind / fNA) * fStepA, fMinB + (ind % fNB) * fStepB);
 }
 
 inline int Spline::GetMapSize() const { return 4 * sizeof(float) * fN; }
 
 inline int Spline::GetNPoints() const { return fN; }
-
-inline float Spline::GetSpline3(float v0, float v1, float v2,
-                                               float v3, float x)
-{
-    float dv = v2 - v1;
-    float z0 = 0.5f * (v2 - v0);
-    float z1 = 0.5f * (v3 - v1);
-    return x * x * ((z1 - dv + z0 - dv) * (x - 1) - (z0 - dv)) + z0 * x + v1;
-}
-
-inline float Spline::GetSpline3(float *v, float x)
-{
-    return GetSpline3(v[0], v[1], v[2], v[3], x);
-}
 
 inline float Spline::GetSpline2(float *v, float x)
 {
