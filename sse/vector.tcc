@@ -1041,7 +1041,12 @@ template <> Vc_INTRINSIC Vc_PURE ushort_v ushort_v::reversed() const
 }
 // }}}1
 // permutation via operator[] {{{1
-template <> Vc_INTRINSIC float_v float_v::operator[](int_v perm) const
+template <>
+Vc_INTRINSIC float_v float_v::operator[](int_v
+#ifdef VC_IMPL_AVX
+                                             perm
+#endif
+                                         ) const
 {
     /*
     const int_m cross128 = concat(_mm_cmpgt_epi32(lo128(perm.data()), _mm_set1_epi32(3)),
