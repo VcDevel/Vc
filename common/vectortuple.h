@@ -36,13 +36,13 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Common
 {
 
-template<size_t StructSize, typename V, typename I> struct InterleavedMemoryReadAccess;
+template<size_t StructSize, typename V, typename I, bool Readonly = true> struct InterleavedMemoryReadAccess;
 
 template <int Length, typename V> class VectorReferenceArray
 {
     typedef typename V::EntryType T;
     typedef V &VC_RESTRICT Reference;
-    V *VC_RESTRICT r[Length];
+    std::array<V * VC_RESTRICT, Length> r;
 
     typedef make_index_sequence<Length> IndexSequence;
 
@@ -62,7 +62,7 @@ template <int Length, typename V> class VectorReferenceArray
 public:
     template <typename... Us, typename = enable_if<(sizeof...(Us) == Length)>>
     constexpr VectorReferenceArray(Us &&... args)
-        : r{std::addressof(std::forward<Us>(args))...}
+        : r{{std::addressof(std::forward<Us>(args))...}}
     {
     }
 

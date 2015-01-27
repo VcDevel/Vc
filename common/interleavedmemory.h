@@ -63,12 +63,14 @@ public:
 /**
  * \internal
  */
-template<typename V, typename I> struct InterleavedMemoryAccessBase
+template<typename V, typename I, bool Readonly> struct InterleavedMemoryAccessBase
 {
     // Partial specialization doesn't work for functions without partial specialization of the whole
     // class. Therefore we capture the contents of InterleavedMemoryAccessBase in a macro to easily
     // copy it into its specializations.
-    typedef typename V::EntryType T;
+    typedef typename std::conditional<
+        Readonly, typename std::add_const<typename V::EntryType>::type,
+        typename V::EntryType>::type T;
     typedef typename V::AsArg VArg;
     typedef T Ta Vc_MAY_ALIAS;
     const I m_indexes;
@@ -108,9 +110,11 @@ protected:
  * \internal
  */
 // delay execution of the deinterleaving gather until operator=
-template<size_t StructSize, typename V, typename I = typename V::IndexType> struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V, I>
+template <size_t StructSize, typename V, typename I = typename V::IndexType,
+          bool Readonly>
+struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V, I, Readonly>
 {
-    typedef InterleavedMemoryAccessBase<V, I> Base;
+    typedef InterleavedMemoryAccessBase<V, I, Readonly> Base;
     typedef typename Base::Ta Ta;
 
     Vc_ALWAYS_INLINE InterleavedMemoryReadAccess(Ta *data, typename I::AsArg indexes)
@@ -157,9 +161,9 @@ template<size_t S> struct CheckIndexesUnique<SuccessiveEntries<S> >
  * \internal
  */
 template <size_t StructSize, typename V, typename I = typename V::IndexType>
-struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, V, I>
+struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, V, I, false>
 {
-    typedef InterleavedMemoryAccessBase<V, I> Base;
+    typedef InterleavedMemoryAccessBase<V, I, false> Base;
     typedef typename Base::Ta Ta;
 
     Vc_ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, typename I::AsArg indexes)
@@ -195,7 +199,9 @@ struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, 
  */
 template<typename S, typename V> class InterleavedMemoryWrapper
 {
-    typedef typename V::EntryType T;
+    typedef typename std::conditional<std::is_const<S>::value,
+                                      const typename V::EntryType,
+                                      typename V::EntryType>::type T;
     typedef typename V::IndexType I;
     typedef typename V::AsArg VArg;
     typedef const I &IndexType;
@@ -273,7 +279,10 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
      * \warning If \p indexes contains non-unique entries on scatter, the result is undefined. If
      * \c NDEBUG is not defined the implementation will assert that the \p indexes entries are unique.
      */
-    Vc_ALWAYS_INLINE Access operator[](IndexType indexes)
+    template <typename IT>
+    Vc_ALWAYS_INLINE enable_if<
+        std::is_convertible<IT, IndexType>::value && !std::is_const<S>::value, Access>
+        operator[](IT indexes)
     {
         return Access(m_data, indexes);
     }

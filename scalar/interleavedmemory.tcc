@@ -35,20 +35,20 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Common
 {
 
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::interleave(const typename V::AsArg v0,/*{{{*/
         const typename V::AsArg v1)
 {
     m_data[internal_data(m_indexes).data() + 0] = v0.data();
     m_data[internal_data(m_indexes).data() + 1] = v1.data();
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::interleave(const typename V::AsArg v0,/*{{{*/
         const typename V::AsArg v1, const typename V::AsArg v2)
 {
     m_data[internal_data(m_indexes).data() + 0] = v0.data();
     m_data[internal_data(m_indexes).data() + 1] = v1.data();
     m_data[internal_data(m_indexes).data() + 2] = v2.data();
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::interleave(const typename V::AsArg v0,/*{{{*/
         const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3)
 {
     m_data[internal_data(m_indexes).data() + 0] = v0.data();
@@ -56,7 +56,7 @@ template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBa
     m_data[internal_data(m_indexes).data() + 2] = v2.data();
     m_data[internal_data(m_indexes).data() + 3] = v3.data();
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::interleave(const typename V::AsArg v0,/*{{{*/
         const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4)
 {
     m_data[internal_data(m_indexes).data() + 0] = v0.data();
@@ -65,7 +65,7 @@ template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBa
     m_data[internal_data(m_indexes).data() + 3] = v3.data();
     m_data[internal_data(m_indexes).data() + 4] = v4.data();
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::interleave(const typename V::AsArg v0,/*{{{*/
         const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4,
         const typename V::AsArg v5)
 {
@@ -76,7 +76,7 @@ template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBa
     m_data[internal_data(m_indexes).data() + 4] = v4.data();
     m_data[internal_data(m_indexes).data() + 5] = v5.data();
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::interleave(const typename V::AsArg v0,/*{{{*/
         const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4,
         const typename V::AsArg v5, const typename V::AsArg v6)
 {
@@ -88,7 +88,7 @@ template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBa
     m_data[internal_data(m_indexes).data() + 5] = v5.data();
     m_data[internal_data(m_indexes).data() + 6] = v6.data();
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::interleave(const typename V::AsArg v0,/*{{{*/
         const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4,
         const typename V::AsArg v5, const typename V::AsArg v6, const typename V::AsArg v7)
 {
@@ -101,25 +101,25 @@ template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBa
     m_data[internal_data(m_indexes).data() + 6] = v6.data();
     m_data[internal_data(m_indexes).data() + 7] = v7.data();
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1) const/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1) const/*{{{*/
 {
     v0.data() = m_data[internal_data(m_indexes).data() + 0];
     v1.data() = m_data[internal_data(m_indexes).data() + 1];
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2) const/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2) const/*{{{*/
 {
     v0.data() = m_data[internal_data(m_indexes).data() + 0];
     v1.data() = m_data[internal_data(m_indexes).data() + 1];
     v2.data() = m_data[internal_data(m_indexes).data() + 2];
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2, V &v3) const/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2, V &v3) const/*{{{*/
 {
     v0.data() = m_data[internal_data(m_indexes).data() + 0];
     v1.data() = m_data[internal_data(m_indexes).data() + 1];
     v2.data() = m_data[internal_data(m_indexes).data() + 2];
     v3.data() = m_data[internal_data(m_indexes).data() + 3];
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4) const/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4) const/*{{{*/
 {
     v0.data() = m_data[internal_data(m_indexes).data() + 0];
     v1.data() = m_data[internal_data(m_indexes).data() + 1];
@@ -127,7 +127,7 @@ template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBa
     v3.data() = m_data[internal_data(m_indexes).data() + 3];
     v4.data() = m_data[internal_data(m_indexes).data() + 4];
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5) const/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5) const/*{{{*/
 {
     v0.data() = m_data[internal_data(m_indexes).data() + 0];
     v1.data() = m_data[internal_data(m_indexes).data() + 1];
@@ -136,7 +136,7 @@ template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBa
     v4.data() = m_data[internal_data(m_indexes).data() + 4];
     v5.data() = m_data[internal_data(m_indexes).data() + 5];
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6) const/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6) const/*{{{*/
 {
     v0.data() = m_data[internal_data(m_indexes).data() + 0];
     v1.data() = m_data[internal_data(m_indexes).data() + 1];
@@ -146,7 +146,7 @@ template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBa
     v5.data() = m_data[internal_data(m_indexes).data() + 5];
     v6.data() = m_data[internal_data(m_indexes).data() + 6];
 }/*}}}*/
-template<typename V, typename I> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7) const/*{{{*/
+template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7) const/*{{{*/
 {
     v0.data() = m_data[internal_data(m_indexes).data() + 0];
     v1.data() = m_data[internal_data(m_indexes).data() + 1];
