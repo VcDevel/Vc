@@ -59,12 +59,12 @@ typedef Spline::Point3V Point3V;
 std::ostream &operator<<(std::ostream &s, const Point2 &xyz)
 {
     using std::setw;
-    return s << '[' << setw(5) << xyz[0] << ", " << setw(5) << xyz[1] << ']';
+    return s << '[' << setw(7) << xyz[0] << ", " << setw(7) << xyz[1] << ']';
 }
 std::ostream &operator<<(std::ostream &s, const Point3 &xyz)
 {
     using std::setw;
-    return s << '[' << setw(5) << xyz[0] << ", " << setw(5) << xyz[1] << ", " << setw(5)
+    return s << '[' << setw(7) << xyz[0] << ", " << setw(7) << xyz[1] << ", " << setw(7)
              << xyz[2] << ']';
 }
 
