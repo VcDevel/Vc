@@ -32,15 +32,12 @@
 // settings {{{1
 constexpr int NumberOfEvaluations = 10000;
 constexpr int FirstMapSize = 4;
-constexpr int MaxMapSize = 1024;
-constexpr int MapSize = 4;
+constexpr int MaxMapSize = 256;
 constexpr int MinRepeat = 100;
 constexpr auto StepMultiplier = 1.25;
 
 enum DisabledTests {
     DisabledTestsBegin = -999999,
-    Horizontal,
-    Horizontal2,
     DisabledTestsEnd
 };
 enum EnabledTests {
@@ -48,6 +45,8 @@ enum EnabledTests {
     Vectorized,
     Vec2,
     Vec16,
+    Horizontal,
+    Horizontal2,
     NBenchmarks
 };
 
@@ -230,10 +229,10 @@ int main()  // {{{1
     }
 
     // MapSize loop {{{2
-    //for (int MapSize = FirstMapSize; MapSize <= MaxMapSize; MapSize *= StepMultiplier) {
+    for (int MapSize = FirstMapSize; MapSize <= MaxMapSize; MapSize *= StepMultiplier) {
         // initialize map with random values {{{2
         Spline spline(-1.f, 1.f, MapSize, -1.f, 1.f, MapSize);
-        Spline2<MapSize, MapSize> spline2(-1.f, 1.f, -1.f, 1.f);
+        Spline2 spline2(-1.f, 1.f, MapSize, -1.f, 1.f, MapSize);
         for (int i = 0; i < spline.GetNPoints(); ++i) {
             const float xyz[3] = {uniform(randomEngine), uniform(randomEngine),
                                   uniform(randomEngine)};
@@ -300,12 +299,14 @@ int main()  // {{{1
 
         // print search timings {{{2
         runner.printRatio(Scalar, Vectorized);
+        runner.printRatio(Scalar, Vec16);
         runner.printRatio(Scalar, Vec2);
         runner.printRatio(Scalar, Horizontal);
+        runner.printRatio(Scalar, Horizontal2);
         cout << std::flush;
 
         // verify equivalence {{{2
-        if (TestInfo(Scalar)) {
+        {
             bool failed = false;
             VectorizeBuffer<Point2> vectorizer2;
             VectorizeBuffer<Point3> vectorizer3;
@@ -361,8 +362,8 @@ int main()  // {{{1
                         const auto &pv = spline2.GetValue(vectorizer2.input);
                         for (int i = 0; i < 3; ++i) {
                             if (any_of(abs(vectorizer3.input[i] - pv[i]) > 0.00001f)) {
-                                cout << "\nHorizontal2 not equal at " << vectorizer2.input
-                                     << ": " << vectorizer3.input << " vs. " << pv;
+                                cout << "\nHorizontal2 not equal at \n" << vectorizer2.input
+                                     << ":\n" << vectorizer3.input << " vs.\n" << pv;
                                 failed = true;
                                 break;
                             }
@@ -378,7 +379,7 @@ int main()  // {{{1
             }
         }
         cout << std::endl;
-    //}
+    }
     return 0;
 }  // }}}1
 
