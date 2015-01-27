@@ -40,6 +40,7 @@ constexpr auto StepMultiplier = 1.25;
 enum DisabledTests {
     DisabledTestsBegin = -999999,
     Horizontal,
+    Horizontal2,
     DisabledTestsEnd
 };
 enum EnabledTests {
@@ -62,11 +63,19 @@ std::ostream &operator<<(std::ostream &s, const Point2 &xyz)
     using std::setw;
     return s << '[' << setw(7) << xyz[0] << ", " << setw(7) << xyz[1] << ']';
 }
+std::ostream &operator<<(std::ostream &s, const Point2V &xyz)
+{
+    return s << '[' << xyz[0] << ", " << xyz[1] << ']';
+}
 std::ostream &operator<<(std::ostream &s, const Point3 &xyz)
 {
     using std::setw;
     return s << '[' << setw(7) << xyz[0] << ", " << setw(7) << xyz[1] << ", " << setw(7)
              << xyz[2] << ']';
+}
+std::ostream &operator<<(std::ostream &s, const Point3V &xyz)
+{
+    return s << '[' << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ']';
 }
 
 // VectorizeBuffer {{{1
@@ -189,6 +198,9 @@ int main()  // {{{1
     if (TestInfo(Horizontal)) {
         cout << setw(18) << "Horizontal";
     }
+    if (TestInfo(Horizontal2)) {
+        cout << setw(18) << "Horizontal2";
+    }
     if (TestInfo(Scalar) && TestInfo(Vectorized)) {
         cout << setw(18) << "Scalar/Vectorized";
     }
@@ -200,6 +212,9 @@ int main()  // {{{1
     }
     if (TestInfo(Scalar) && TestInfo(Horizontal)) {
         cout << setw(18) << "Scalar/Horizontal";
+    }
+    if (TestInfo(Scalar) && TestInfo(Horizontal2)) {
+        cout << setw(18) << "Scalar/Horizontal2";
     }
     cout << std::endl;
 
@@ -272,6 +287,17 @@ int main()  // {{{1
             }
         });
 
+        // Horizontal2 {{{2
+        runner.benchmark(Horizontal2, [&] {
+            VectorizeBuffer<Point2> vectorizer;
+            for (const auto &p : searchPoints) {
+                if (0 == vectorizer(p)) {
+                    const auto &p2 = spline2.GetValue(vectorizer.input);
+                    asm("" ::"m"(p2));
+                }
+            }
+        });
+
         // print search timings {{{2
         runner.printRatio(Scalar, Vectorized);
         runner.printRatio(Scalar, Vec2);
@@ -325,6 +351,17 @@ int main()  // {{{1
                         for (int i = 0; i < 3; ++i) {
                             if (any_of(abs(vectorizer3.input[i] - pv[i]) > 0.00001f)) {
                                 cout << "\nHorizontal not equal at " << vectorizer2.input
+                                     << ": " << vectorizer3.input << " vs. " << pv;
+                                failed = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (TestInfo(Horizontal2)) {  //{{{3
+                        const auto &pv = spline2.GetValue(vectorizer2.input);
+                        for (int i = 0; i < 3; ++i) {
+                            if (any_of(abs(vectorizer3.input[i] - pv[i]) > 0.00001f)) {
+                                cout << "\nHorizontal2 not equal at " << vectorizer2.input
                                      << ": " << vectorizer3.input << " vs. " << pv;
                                 failed = true;
                                 break;

@@ -38,6 +38,7 @@ public:
 
     /** Calculate interpolated value at the given point(s) */
     Point3 GetValue(Point2) const;
+    Point3V GetValue(Point2V ab) const;
 
     /**  Get size of the grid */
     int GetMapSize() const;
@@ -119,6 +120,11 @@ template <typename T> static inline T GetSpline3(T v0, T v1, T v2, T v3, T x)
     return (x * x) * ((z1 - dv) * (x - 1) + (z0 - dv) * (x - 2)) + (z0 * x + v1);
 }
 
+template <typename T> static inline T GetSpline3(const T v[], T x)
+{
+    return GetSpline3(v[0], v[1], v[2], v[3], x);
+}
+
 template <int NBinsA, int NBinsB>
 inline std::array<float, 3> Spline2<NBinsA, NBinsB>::GetValue(std::array<float, 2> ab) const  //{{{1
 {
@@ -155,6 +161,50 @@ inline std::array<float, 3> Spline2<NBinsA, NBinsB>::GetValue(std::array<float, 
     XYZ[1] = res[1];
     XYZ[2] = res[2];
     return XYZ;
+}
+
+template <int NBinsA, int NBinsB>
+inline typename Spline2<NBinsA, NBinsB>::Point3V Spline2<NBinsA, NBinsB>::GetValue(
+    Point2V ab) const  //{{{1
+{
+    using Vc::float_v;
+    const float_v lA = (ab[0] - fMinA) * fScaleA - 1.f;
+    const float_v iA = max(0, min(fNA - 4, trunc(lA)));
+
+    const float_v lB = (ab[1] - fMinB) * fScaleB - 1.f;
+    const float_v iB = max(0, min(fNB - 4, trunc(lB)));
+
+    const float_v da = lA - iA;
+    const float_v db = lB - iB;
+
+    auto ind = static_cast<float_v::IndexType>(iA + iB * fNA);
+    typedef std::array<float, 4> float4;
+    const Vc::InterleavedMemoryWrapper<const float4, float_v> map(
+        reinterpret_cast<const float4 *>(&fXYZ[0]));
+
+    float_v x[4][4], y[4][4], z[4][4];
+    Point3V xyz;
+    Vc::tie(x[0][0], x[1][0], x[2][0], x[3][0]) = map[ind + 0 * fNA];
+    Vc::tie(x[0][1], x[1][1], x[2][1], x[3][1]) = map[ind + 1 * fNA];
+    Vc::tie(x[0][2], x[1][2], x[2][2], x[3][2]) = map[ind + 2 * fNA];
+    Vc::tie(x[0][3], x[1][3], x[2][3], x[3][3]) = map[ind + 3 * fNA];
+    xyz[0] = GetSpline3(GetSpline3(x[0], db), GetSpline3(x[1], db), GetSpline3(x[2], db),
+                        GetSpline3(x[3], db), da);
+    ind += fN;
+    Vc::tie(y[0][0], y[1][0], y[2][0], y[3][0]) = map[ind + 0 * fNA];
+    Vc::tie(y[0][1], y[1][1], y[2][1], y[3][1]) = map[ind + 1 * fNA];
+    Vc::tie(y[0][2], y[1][2], y[2][2], y[3][2]) = map[ind + 2 * fNA];
+    Vc::tie(y[0][3], y[1][3], y[2][3], y[3][3]) = map[ind + 3 * fNA];
+    xyz[1] = GetSpline3(GetSpline3(y[0], db), GetSpline3(y[1], db), GetSpline3(y[2], db),
+                        GetSpline3(y[3], db), da);
+    ind += fN;
+    Vc::tie(z[0][0], z[1][0], z[2][0], z[3][0]) = map[ind + 0 * fNA];
+    Vc::tie(z[0][1], z[1][1], z[2][1], z[3][1]) = map[ind + 1 * fNA];
+    Vc::tie(z[0][2], z[1][2], z[2][2], z[3][2]) = map[ind + 2 * fNA];
+    Vc::tie(z[0][3], z[1][3], z[2][3], z[3][3]) = map[ind + 3 * fNA];
+    xyz[2] = GetSpline3(GetSpline3(z[0], db), GetSpline3(z[1], db), GetSpline3(z[2], db),
+                        GetSpline3(z[3], db), da);
+    return xyz;
 }
 
 template <int NBinsA, int NBinsB>
