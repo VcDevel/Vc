@@ -70,23 +70,18 @@ std::ostream &operator<<(std::ostream &s, const Point3 &xyz)
 }
 
 // VectorizeBuffer {{{1
- struct VectorizeBuffer
+template <typename Input> struct VectorizeBuffer
 {
-    Point2V input;
+    typedef simdize<Input> InputV;
+    InputV input;
     int entries = 0;
-    int operator()(Point2 x)
+    int operator()(Input x)
     {
         simdize_assign(input, entries, x);
-        entries = (entries + 1) % Point2V::size();
+        entries = (entries + 1) % InputV::size();
         return entries;
     }
-    //VectorizeBuffer(F c) : callback(std::move(c)) {}
 };
-
-VectorizeBuffer make_vectorizer()
-{
-    return {};
-}
 
 // TestInfo {{{1
 struct TestInfo
@@ -268,7 +263,7 @@ int main()  // {{{1
 
         // Horizontal {{{2
         runner.benchmark(Horizontal, [&] {
-            auto vectorizer = make_vectorizer();
+            VectorizeBuffer<Point2> vectorizer;
             for (const auto &p : searchPoints) {
                 if (0 == vectorizer(p)) {
                     const auto &p2 = spline.GetValue(vectorizer.input);
@@ -286,6 +281,8 @@ int main()  // {{{1
         // verify equivalence {{{2
         if (TestInfo(Scalar)) {
             bool failed = false;
+            VectorizeBuffer<Point2> vectorizer2;
+            VectorizeBuffer<Point3> vectorizer3;
             for (const auto &p : searchPoints) {
                 const auto &ps = spline.GetValueScalar(p);
                 if (TestInfo(Vectorized)) {  //{{{3
@@ -318,6 +315,20 @@ int main()  // {{{1
                                       << " vs. " << pv;
                             failed = true;
                             break;
+                        }
+                    }
+                }
+                vectorizer3(ps);
+                if (0 == vectorizer2(p)) {
+                    if (TestInfo(Horizontal)) {  //{{{3
+                        const auto &pv = spline.GetValue(vectorizer2.input);
+                        for (int i = 0; i < 3; ++i) {
+                            if (any_of(abs(vectorizer3.input[i] - pv[i]) > 0.00001f)) {
+                                cout << "\nHorizontal not equal at " << vectorizer2.input
+                                     << ": " << vectorizer3.input << " vs. " << pv;
+                                failed = true;
+                                break;
+                            }
                         }
                     }
                 }
