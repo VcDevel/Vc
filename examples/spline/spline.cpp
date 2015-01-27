@@ -211,24 +211,24 @@ Spline::Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
 {
     using Vc::float_v;
 
-    const auto lA = (ab[0] - fMinA) * fScaleA - 1.f;
-    auto iA = trunc(lA);
+    const float_v lA = (ab[0] - fMinA) * fScaleA - 1.f;
+    float_v iA = trunc(lA);
     iA.setZero(lA < 0);
     where(iA > fNA - 4) | iA = fNA - 4;
 
-    const auto lB = (ab[1] - fMinB) * fScaleB - 1.f;
-    auto iB = trunc(lB);
+    const float_v lB = (ab[1] - fMinB) * fScaleB - 1.f;
+    float_v iB = trunc(lB);
     iB.setZero(lB < 0);
     where(iB > fNB - 4) | iB = fNB - 4;
 
-    const auto da = lA - iA;
-    const auto db = lB - iB;
+    const float_v da = lA - iA;
+    const float_v db = lB - iB;
 
     float_v vx[4];
     float_v vy[4];
     float_v vz[4];
     auto ind = static_cast<float_v::IndexType>(iA * fNB + iB);
-    auto map = Vc::make_interleave_wrapper<float_v>(&fXYZ[0]);
+    const auto map = Vc::make_interleave_wrapper<float_v>(&fXYZ[0]);
     //std::cerr << typeid(map).name() << std::endl; exit(1);
     for (int i = 0; i < 4; i++) {
         float_v x[4], y[4], z[4];
