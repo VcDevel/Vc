@@ -46,6 +46,7 @@ enum EnabledTests {
     Scalar,
     Vectorized,
     Vec2,
+    Vec16,
     NBenchmarks
 };
 
@@ -184,6 +185,9 @@ int main()  // {{{1
     if (TestInfo(Vectorized)) {
         cout << setw(18) << "Vectorized";
     }
+    if (TestInfo(Vec16)) {
+        cout << setw(18) << "Vec16";
+    }
     if (TestInfo(Vec2)) {
         cout << setw(18) << "Vec2";
     }
@@ -192,6 +196,9 @@ int main()  // {{{1
     }
     if (TestInfo(Scalar) && TestInfo(Vectorized)) {
         cout << setw(18) << "Scalar/Vectorized";
+    }
+    if (TestInfo(Scalar) && TestInfo(Vec16)) {
+        cout << setw(18) << "Scalar/Vec16";
     }
     if (TestInfo(Scalar) && TestInfo(Vec2)) {
         cout << setw(18) << "Scalar/Vec2";
@@ -243,7 +250,15 @@ int main()  // {{{1
             }
         });
 
-        // Vectorized {{{2
+        // Vec16 {{{2
+        runner.benchmark(Vec16, [&] {
+            for (const auto &p : searchPoints) {
+                const auto &p2 = spline.GetValue16(p);
+                asm("" ::"m"(p2));
+            }
+        });
+
+        // Vec2 {{{2
         runner.benchmark(Vec2, [&] {
             for (const auto &p : searchPoints) {
                 const auto &p2 = spline2.GetValue(p);
@@ -269,27 +284,40 @@ int main()  // {{{1
         cout << std::flush;
 
         // verify equivalence {{{2
-        if (TestInfo(Scalar, Vectorized)) {
+        if (TestInfo(Scalar)) {
             bool failed = false;
             for (const auto &p : searchPoints) {
                 const auto &ps = spline.GetValueScalar(p);
-                if (TestInfo(Vectorized)) {
+                if (TestInfo(Vectorized)) {  //{{{3
                     const auto &pv = spline.GetValue(p);
                     for (int i = 0; i < 3; ++i) {
                         if (std::abs(ps[i] - pv[i]) > 0.00001f) {
                             std::cout << "\nVectorized not equal at " << p << ": " << ps
-                                      << " vs. " << pv << std::endl;
+                                      << " vs. " << pv;
                             failed = true;
+                            break;
                         }
                     }
                 }
-                if (TestInfo(Vec2)) {
+                if (TestInfo(Vec16)) {  //{{{3
+                    const auto &pv = spline.GetValue16(p);
+                    for (int i = 0; i < 3; ++i) {
+                        if (std::abs(ps[i] - pv[i]) > 0.00001f) {
+                            std::cout << "\nVec16 not equal at " << p << ": " << ps
+                                      << " vs. " << pv;
+                            failed = true;
+                            break;
+                        }
+                    }
+                }
+                if (TestInfo(Vec2)) {  //{{{3
                     const auto &pv = spline2.GetValue(p);
                     for (int i = 0; i < 3; ++i) {
                         if (std::abs(ps[i] - pv[i]) > 0.00001f) {
                             std::cout << "\nVec2 not equal at " << p << ": " << ps
-                                      << " vs. " << pv << std::endl;
+                                      << " vs. " << pv;
                             failed = true;
+                            break;
                         }
                     }
                 }

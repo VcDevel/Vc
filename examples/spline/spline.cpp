@@ -122,6 +122,52 @@ std::array<float, 3> Spline::GetValue(std::array<float, 2> ab) const  //{{{1
     return XYZ;
 }
 
+std::array<float, 3> Spline::GetValue16(std::array<float, 2> ab) const  //{{{1
+{
+    float lA = (ab[0] - fMinA) * fScaleA - 1.f;
+    int iA = static_cast<int>(lA);
+    if (lA < 0)
+        iA = 0;
+    else if (iA > fNA - 4)
+        iA = fNA - 4;
+
+    float lB = (ab[1] - fMinB) * fScaleB - 1.f;
+    int iB = static_cast<int>(lB);
+    if (lB < 0)
+        iB = 0;
+    else if (iB > fNB - 4)
+        iB = fNB - 4;
+
+    typedef Vc::simdarray<float, 4> float4;
+    typedef Vc::simdarray<float, 16> float16;
+    const float4 da = lA - iA;
+    const float16 db = lB - iB;
+
+    const float *m0 = &fXYZ[iA * fNB + iB].x;
+    const float *m1 = m0 + fNB * 4;
+    const float *m2 = m1 + fNB * 4;
+    const float *m3 = m2 + fNB * 4;
+    const float16 v0123 = GetSpline3(
+        Vc::simd_cast<float16>(float4(m0, Vc::Aligned), float4(m1, Vc::Aligned),
+                               float4(m2, Vc::Aligned), float4(m3, Vc::Aligned)),
+        Vc::simd_cast<float16>(float4(m0 + 4, Vc::Aligned), float4(m1 + 4, Vc::Aligned),
+                               float4(m2 + 4, Vc::Aligned), float4(m3 + 4, Vc::Aligned)),
+        Vc::simd_cast<float16>(float4(m0 + 8, Vc::Aligned), float4(m1 + 8, Vc::Aligned),
+                               float4(m2 + 8, Vc::Aligned), float4(m3 + 8, Vc::Aligned)),
+        Vc::simd_cast<float16>(float4(m0 + 12, Vc::Aligned), float4(m1 + 12, Vc::Aligned),
+                               float4(m2 + 12, Vc::Aligned),
+                               float4(m3 + 12, Vc::Aligned)),
+        db);
+    const float4 res =
+        GetSpline3(Vc::simd_cast<float4, 0>(v0123), Vc::simd_cast<float4, 1>(v0123),
+                   Vc::simd_cast<float4, 2>(v0123), Vc::simd_cast<float4, 3>(v0123), da);
+    std::array<float, 3> XYZ;
+    XYZ[0] = res[0];
+    XYZ[1] = res[1];
+    XYZ[2] = res[2];
+    return XYZ;
+}
+
 std::array<float, 3> Spline::GetValueScalar(std::array<float, 2> ab) const  //{{{1
 {
     float lA = (ab[0] - fMinA) * fScaleA - 1.f;
