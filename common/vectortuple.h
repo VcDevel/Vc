@@ -92,6 +92,17 @@ public:
         const InterleavedMemoryReadAccess<StructSize, V, I> &access) =
         delete;  //("You are trying to extract more data from the struct than it has");
 
+    template <typename T, typename IndexVector, typename Scale, bool Flag>
+    void operator=(const SubscriptOperation<T, IndexVector, Scale, Flag> &sub)
+    {
+        const auto &args = sub.gatherArguments();
+        //const IndexVector args.indexes;
+        //const T *const args.address;
+        Common::InterleavedMemoryReadAccess<1, V, Traits::decay<decltype(args.indexes)>>
+            deinterleaver(args.address, args.indexes);
+        callDeinterleave(deinterleaver, IndexSequence());
+    }
+
     Vc_ALWAYS_INLINE Reference operator[](std::size_t i) { return *r[i]; }
 };
 
