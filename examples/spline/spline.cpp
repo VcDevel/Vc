@@ -34,7 +34,7 @@ Spline::Spline(float minA, float maxA, int nBinsA, float minB, float maxB,  //{{
     , fStepB(((maxB <= minB ? minB + 1 : maxB) - minB) / (fNB - 1))
     , fScaleA(1.f / fStepA)
     , fScaleB(1.f / fStepB)
-    , fXYZ(fN, DataPoint{0.f, 0.f, 0.f, 0.f})
+    , fXYZ(fN, DataPoint::Zero())
 {
 }
 
@@ -69,19 +69,19 @@ std::array<float, 3> Spline::GetValue(std::array<float, 2> ab) const  //{{{1
     else if (iB > fNB - 4)
         iB = fNB - 4;
 
-    typedef simdize<float, 4> float_v;
-    float_v da = lA - iA;
-    float_v db = lB - iB;
+    typedef Vc::simdarray<float, 4> float4;
+    float4 da = lA - iA;
+    float4 db = lB - iB;
 
-    float_v v[4];
+    float4 v[4];
     int ind = iA * fNB + iB;
-    const float_v *m = reinterpret_cast<const float_v *>(&fXYZ[0]);
+    const float4 *m = &fXYZ[0];
 
     for (int i = 0; i < 4; i++) {
         v[i] = GetSpline3(m[ind + 0], m[ind + 1], m[ind + 2], m[ind + 3], db);
         ind += fNB;
     }
-    float_v res = GetSpline3(v[0], v[1], v[2], v[3], da);
+    float4 res = GetSpline3(v[0], v[1], v[2], v[3], da);
     std::array<float, 3> XYZ;
     XYZ[0] = res[0];
     XYZ[1] = res[1];
@@ -110,21 +110,15 @@ std::array<float, 3> Spline::GetValue16(std::array<float, 2> ab) const  //{{{1
     const float4 da = lA - iA;
     const float16 db = lB - iB;
 
-    const float *m0 = &fXYZ[iA * fNB + iB].x;
-    const float *m1 = m0 + fNB * 4;
-    const float *m2 = m1 + fNB * 4;
-    const float *m3 = m2 + fNB * 4;
-    const float16 v0123 = GetSpline3(
-        Vc::simd_cast<float16>(float4(m0, Vc::Aligned), float4(m1, Vc::Aligned),
-                               float4(m2, Vc::Aligned), float4(m3, Vc::Aligned)),
-        Vc::simd_cast<float16>(float4(m0 + 4, Vc::Aligned), float4(m1 + 4, Vc::Aligned),
-                               float4(m2 + 4, Vc::Aligned), float4(m3 + 4, Vc::Aligned)),
-        Vc::simd_cast<float16>(float4(m0 + 8, Vc::Aligned), float4(m1 + 8, Vc::Aligned),
-                               float4(m2 + 8, Vc::Aligned), float4(m3 + 8, Vc::Aligned)),
-        Vc::simd_cast<float16>(float4(m0 + 12, Vc::Aligned), float4(m1 + 12, Vc::Aligned),
-                               float4(m2 + 12, Vc::Aligned),
-                               float4(m3 + 12, Vc::Aligned)),
-        db);
+    const float4 *m0 = &fXYZ[iA * fNB + iB];
+    const float4 *m1 = m0 + fNB;
+    const float4 *m2 = m1 + fNB;
+    const float4 *m3 = m2 + fNB;
+    const float16 v0123 =
+        GetSpline3(Vc::simd_cast<float16>(m0[0], m1[0], m2[0], m3[0]),
+                   Vc::simd_cast<float16>(m0[1], m1[1], m2[1], m3[1]),
+                   Vc::simd_cast<float16>(m0[2], m1[2], m2[2], m3[2]),
+                   Vc::simd_cast<float16>(m0[3], m1[3], m2[3], m3[3]), db);
     const float4 res =
         GetSpline3(Vc::simd_cast<float4, 0>(v0123), Vc::simd_cast<float4, 1>(v0123),
                    Vc::simd_cast<float4, 2>(v0123), Vc::simd_cast<float4, 3>(v0123), da);
@@ -159,12 +153,12 @@ std::array<float, 3> Spline::GetValueScalar(std::array<float, 2> ab) const  //{{
     float vz[4];
     int ind = iA * fNB + iB;
     for (int i = 0; i < 4; i++) {
-        vx[i] = GetSpline3(fXYZ[ind].x, fXYZ[ind + 1].x, fXYZ[ind + 2].x,
-                           fXYZ[ind + 3].x, db);
-        vy[i] = GetSpline3(fXYZ[ind].y, fXYZ[ind + 1].y, fXYZ[ind + 2].y,
-                           fXYZ[ind + 3].y, db);
-        vz[i] = GetSpline3(fXYZ[ind].z, fXYZ[ind + 1].z, fXYZ[ind + 2].z,
-                           fXYZ[ind + 3].z, db);
+        vx[i] = GetSpline3(fXYZ[ind][0], fXYZ[ind + 1][0], fXYZ[ind + 2][0],
+                           fXYZ[ind + 3][0], db);
+        vy[i] = GetSpline3(fXYZ[ind][1], fXYZ[ind + 1][1], fXYZ[ind + 2][1],
+                           fXYZ[ind + 3][1], db);
+        vz[i] = GetSpline3(fXYZ[ind][2], fXYZ[ind + 1][2], fXYZ[ind + 2][2],
+                           fXYZ[ind + 3][2], db);
         ind += fNB;
     }
     std::array<float, 3> XYZ;

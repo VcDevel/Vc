@@ -65,18 +65,15 @@ private:
     const float fStepB;   // step between points B axis
     const float fScaleA;  // scale A axis
     const float fScaleB;  // scale B axis
-    struct DataPoint
-    {
-        float x, y, z, padding__;
-    };
-    Vc::vector<DataPoint, Vc::Allocator<DataPoint>> fXYZ;  // array of points, {X,Y,Z,0} values
+    typedef Vc::simdarray<float, 4> DataPoint;
+    Vc::vector<DataPoint> fXYZ;  // array of points, {X,Y,Z,0} values
 };
 
 inline void Spline::Fill(int ind, float x, float y, float z)
 {
-    fXYZ[ind].x = x;
-    fXYZ[ind].y = y;
-    fXYZ[ind].z = z;
+    fXYZ[ind][0] = x;
+    fXYZ[ind][1] = y;
+    fXYZ[ind][2] = z;
 }
 
 inline void Spline::Fill(int ind, const float XYZ[])
