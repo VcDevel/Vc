@@ -35,9 +35,6 @@ public:
     /**  Get A,B by the point index */
     std::pair<float, float> GetAB(int ind) const;
 
-    /** Consolidate the map*/
-    void Consolidate();
-
     /** Calculate interpolated value at the given point(s) */
     Point3 GetValue(Point2) const;
     Point3 GetValue16(Point2 ab) const;

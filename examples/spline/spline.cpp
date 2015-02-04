@@ -38,39 +38,6 @@ Spline::Spline(float minA, float maxA, int nBinsA, float minB, float maxB,  //{{
 {
 }
 
-void Spline::Consolidate()  //{{{1
-{
-    //
-    // Consolidate the map
-    //
-
-    DataPoint *m = &fXYZ[0];
-    for (float DataPoint::*member : {&DataPoint::x, &DataPoint::y, &DataPoint::z}) {
-        for (int iA = 0; iA < fNA; ++iA) {
-            {
-                int i0 = iA * fNB;
-                m[i0].*member = 0.5f * (m[i0 + 3].*member + m[i0].*member +
-                                        3 * (m[i0 + 1].*member - m[i0 + 2].*member));
-            }{
-                int i0 = iA * fNB + fNB - 4;
-                m[i0 + 3].*member = 0.5f * (m[i0].*member + m[i0 + 3].*member +
-                                            3 * (m[i0 + 2].*member - m[i0 + 1].*member));
-            }
-        }
-        for (int iB = 0; iB < fNB; iB++) {
-            {
-                int i0 = iB;
-                m[i0].*member = 0.5f * (m[i0 + 3].*member + m[i0].*member +
-                                        3 * (m[i0 + 1].*member - m[i0 + 2].*member));
-            }{
-                int i0 = (fNA - 4) * fNB + iB;
-                m[i0 + 3].*member = 0.5f * (m[i0].*member + m[i0 + 3].*member +
-                                            3 * (m[i0 + 2].*member - m[i0 + 1].*member));
-            }
-        }
-    }
-}
-
 // spline 3-st order,  4 points, da = a - point 1 {{{1
 template <typename T> static inline T GetSpline3(T v0, T v1, T v2, T v3, T x)
 {
