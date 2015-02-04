@@ -28,6 +28,7 @@
 #include "../tsc.h"
 #include "spline.h"
 #include "spline2.h"
+#include "spline3.h"
 
 // settings {{{1
 constexpr int NumberOfEvaluations = 10000;
@@ -45,6 +46,7 @@ enum EnabledTests {
     Vectorized,
     Vec2,
     Vec16,
+    Vec12,
     Horizontal,
     Horizontal2,
     NBenchmarks
@@ -194,6 +196,9 @@ int main()  // {{{1
     if (TestInfo(Vec2)) {
         cout << setw(18) << "Vec2";
     }
+    if (TestInfo(Vec12)) {
+        cout << setw(18) << "Vec12";
+    }
     if (TestInfo(Horizontal)) {
         cout << setw(18) << "Horizontal";
     }
@@ -212,6 +217,9 @@ int main()  // {{{1
                     break;
                 case Vec2:
                     cout << setw(18) << "Scalar/Vec2";
+                    break;
+                case Vec12:
+                    cout << setw(18) << "Scalar/Vec12";
                     break;
                 case Horizontal:
                     cout << setw(18) << "Scalar/Horizontal";
@@ -244,11 +252,13 @@ int main()  // {{{1
         // initialize map with random values {{{2
         Spline spline(-1.f, 1.f, MapSize, -1.f, 1.f, MapSize);
         Spline2 spline2(-1.f, 1.f, MapSize, -1.f, 1.f, MapSize);
+        Spline3 spline3(-1.f, 1.f, MapSize, -1.f, 1.f, MapSize);
         for (int i = 0; i < spline.GetNPoints(); ++i) {
             const float xyz[3] = {uniform(randomEngine), uniform(randomEngine),
                                   uniform(randomEngine)};
             spline.Fill(i, xyz);
             spline2.Fill(i, xyz);
+            spline3.Fill(i, xyz);
         }
 
         Runner runner(MinRepeat, MapSize);
@@ -282,6 +292,14 @@ int main()  // {{{1
         runner.benchmark(Vec2, [&] {
             for (const auto &p : searchPoints) {
                 const auto &p2 = spline2.GetValue(p);
+                asm("" ::"m"(p2));
+            }
+        });
+
+        // Vec12 {{{2
+        runner.benchmark(Vec12, [&] {
+            for (const auto &p : searchPoints) {
+                const auto &p2 = spline3.GetValue(p);
                 asm("" ::"m"(p2));
             }
         });
@@ -352,6 +370,17 @@ int main()  // {{{1
                     for (int i = 0; i < 3; ++i) {
                         if (std::abs(ps[i] - pv[i]) > 0.00001f) {
                             std::cout << "\nVec2 not equal at " << p << ": " << ps
+                                      << " vs. " << pv;
+                            failed = true;
+                            break;
+                        }
+                    }
+                }
+                if (TestInfo(Vec12)) {  //{{{3
+                    const auto &pv = spline3.GetValue(p);
+                    for (int i = 0; i < 3; ++i) {
+                        if (std::abs(ps[i] - pv[i]) > 0.00001f) {
+                            std::cout << "\nVec12 not equal at " << p << ": " << ps
                                       << " vs. " << pv;
                             failed = true;
                             break;
