@@ -200,20 +200,31 @@ int main()  // {{{1
     if (TestInfo(Horizontal2)) {
         cout << setw(18) << "Horizontal2";
     }
-    if (TestInfo(Scalar) && TestInfo(Vectorized)) {
-        cout << setw(18) << "Scalar/Vectorized";
-    }
-    if (TestInfo(Scalar) && TestInfo(Vec16)) {
-        cout << setw(18) << "Scalar/Vec16";
-    }
-    if (TestInfo(Scalar) && TestInfo(Vec2)) {
-        cout << setw(18) << "Scalar/Vec2";
-    }
-    if (TestInfo(Scalar) && TestInfo(Horizontal)) {
-        cout << setw(18) << "Scalar/Horizontal";
-    }
-    if (TestInfo(Scalar) && TestInfo(Horizontal2)) {
-        cout << setw(18) << "Scalar/Horizontal2";
+    if (TestInfo(Scalar)) {
+        for (int i = 0; i < NBenchmarks; ++i) {
+            if (i != Scalar) {
+                switch (i) {
+                case Vectorized:
+                    cout << setw(18) << "Scalar/Vectorized";
+                    break;
+                case Vec16:
+                    cout << setw(18) << "Scalar/Vec16";
+                    break;
+                case Vec2:
+                    cout << setw(18) << "Scalar/Vec2";
+                    break;
+                case Horizontal:
+                    cout << setw(18) << "Scalar/Horizontal";
+                    break;
+                case Horizontal2:
+                    cout << setw(18) << "Scalar/Horizontal2";
+                    break;
+                default:
+                    cout << setw(18) << "Scalar/<unknown>";
+                    break;
+                }
+            }
+        }
     }
     cout << std::endl;
 
@@ -298,11 +309,13 @@ int main()  // {{{1
         });
 
         // print search timings {{{2
-        runner.printRatio(Scalar, Vectorized);
-        runner.printRatio(Scalar, Vec16);
-        runner.printRatio(Scalar, Vec2);
-        runner.printRatio(Scalar, Horizontal);
-        runner.printRatio(Scalar, Horizontal2);
+        if (TestInfo(Scalar)) {
+            for (int i = 0; i < NBenchmarks; ++i) {
+                if (i != Scalar) {
+                    runner.printRatio(Scalar, static_cast<EnabledTests>(i));
+                }
+            }
+        }
         cout << std::flush;
 
         // verify equivalence {{{2
