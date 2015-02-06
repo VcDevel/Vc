@@ -1812,6 +1812,16 @@ namespace Common
     }
     */
 }  // namespace Common
+
+// Traits static assertions {{{1
+static_assert(Traits::has_no_allocated_data<const volatile Vc::simdarray<int, 4> &>::value, "");
+static_assert(Traits::has_no_allocated_data<const volatile Vc::simdarray<int, 4>>::value, "");
+static_assert(Traits::has_no_allocated_data<volatile Vc::simdarray<int, 4> &>::value, "");
+static_assert(Traits::has_no_allocated_data<volatile Vc::simdarray<int, 4>>::value, "");
+static_assert(Traits::has_no_allocated_data<const Vc::simdarray<int, 4> &>::value, "");
+static_assert(Traits::has_no_allocated_data<const Vc::simdarray<int, 4>>::value, "");
+static_assert(Traits::has_no_allocated_data<Vc::simdarray<int, 4>>::value, "");
+static_assert(Traits::has_no_allocated_data<Vc::simdarray<int, 4> &&>::value, "");
 // }}}1
 /// @}
 

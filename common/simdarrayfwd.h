@@ -192,6 +192,8 @@ template <typename T, std::size_t N, typename V, std::size_t M> struct is_integr
 template <typename T, std::size_t N, typename V, std::size_t M> struct is_floating_point_internal<simdarray<T, N, V, M>, false> : public std::is_floating_point<T> {};
 template <typename T, std::size_t N, typename V, std::size_t M> struct is_signed_internal        <simdarray<T, N, V, M>, false> : public std::is_signed<T> {};
 template <typename T, std::size_t N, typename V, std::size_t M> struct is_unsigned_internal      <simdarray<T, N, V, M>, false> : public std::is_unsigned<T> {};
+
+template<typename T, std::size_t N> struct has_no_allocated_data_impl<Vc::simdarray<T, N>> : public std::true_type {};
 }  // namespace Traits
 
 }  // namespace Vc
