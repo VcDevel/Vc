@@ -436,6 +436,10 @@ public:
                       "generically at compile time you need to spezialize the "
                       "Vc::Traits::has_no_allocated_data_impl<T> type-trait for custom types that "
                       "meet the requirements.\n");
+        static_assert(std::is_lvalue_reference<decltype(m_address[0][index])>::value,
+                      "The container does not return an lvalue reference to the data at "
+                      "the requested offset. This makes it impossible to execute a "
+                      "gather operation.\n");
         return {&(m_address[0][index]), m_indexes};
     }
 
