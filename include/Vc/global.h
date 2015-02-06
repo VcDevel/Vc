@@ -105,7 +105,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #if defined(VC_GCC) || defined(VC_CLANG)
-#define VC_USE_BUILTIN_VECTOR_TYPES
+#define VC_USE_BUILTIN_VECTOR_TYPES 1
 #endif
 
 /* Define the following strings to a unique integer, which is the only type the preprocessor can

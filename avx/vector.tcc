@@ -729,7 +729,7 @@ Vc_ALWAYS_INLINE void ushort_v::scatterImplementation(MT *mem, IT &&indexes) con
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator-() const
 {
-    return VectorType(-d.gcc());
+    return VectorType(-d.builtin());
 }
 #else
 namespace Internal

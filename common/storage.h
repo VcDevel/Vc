@@ -82,32 +82,33 @@ template<> Vc_ALWAYS_INLINE unsigned int  accessScalar<unsigned int , __m256i>(c
 #endif
 #endif
 
+template<typename EntryType, typename VectorType> struct BuiltinTypeHelper { typedef VectorType Type; };
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
-template<typename EntryType, typename VectorType> struct GccTypeHelper;
-template<> struct GccTypeHelper<double        , __m128d> { typedef  __v2df Type; };
-template<> struct GccTypeHelper<float         , __m128 > { typedef  __v4sf Type; };
-template<> struct GccTypeHelper<long long     , __m128i> { typedef  __v2di Type; };
-template<> struct GccTypeHelper<unsigned long long, __m128i> { typedef  __v2di Type; };
-template<> struct GccTypeHelper<int           , __m128i> { typedef  __v4si Type; };
-template<> struct GccTypeHelper<unsigned int  , __m128i> { typedef  __v4si Type; };
-template<> struct GccTypeHelper<short         , __m128i> { typedef  __v8hi Type; };
-template<> struct GccTypeHelper<unsigned short, __m128i> { typedef  __v8hi Type; };
-template<> struct GccTypeHelper<char          , __m128i> { typedef __v16qi Type; };
-template<> struct GccTypeHelper<unsigned char , __m128i> { typedef __v16qi Type; };
+template<> struct BuiltinTypeHelper<double        , __m128d> { typedef         double Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<float         , __m128 > { typedef          float Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<long long     , __m128i> { typedef      long long Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<unsigned long long, __m128i> { typedef  unsigned long long Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<int           , __m128i> { typedef            int Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<unsigned int  , __m128i> { typedef   unsigned int Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<short         , __m128i> { typedef          short Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<unsigned short, __m128i> { typedef unsigned short Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<char          , __m128i> { typedef           char Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<unsigned char , __m128i> { typedef  unsigned char Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<  signed char , __m128i> { typedef    signed char Type __attribute__((__vector_size__(16))); };
 #ifdef VC_IMPL_SSE
-template<typename VectorType> struct GccTypeHelper<float, VectorType> { typedef  __v4sf Type; };
+template<typename VectorType> struct BuiltinTypeHelper<float, VectorType> { typedef  __v4sf Type; };
 #endif
 #ifdef VC_IMPL_AVX
-template<> struct GccTypeHelper<double        , __m256d> { typedef  __v4df Type; };
-template<> struct GccTypeHelper<float         , __m256 > { typedef  __v8sf Type; };
-template<> struct GccTypeHelper<long long     , __m256i> { typedef  __v4di Type; };
-template<> struct GccTypeHelper<unsigned long long, __m256i> { typedef  __v4di Type; };
-template<> struct GccTypeHelper<int           , __m256i> { typedef  __v8si Type; };
-template<> struct GccTypeHelper<unsigned int  , __m256i> { typedef  __v8si Type; };
-template<> struct GccTypeHelper<short         , __m256i> { typedef __v16hi Type; };
-template<> struct GccTypeHelper<unsigned short, __m256i> { typedef __v16hi Type; };
-template<> struct GccTypeHelper<char          , __m256i> { typedef __v32qi Type; };
-template<> struct GccTypeHelper<unsigned char , __m256i> { typedef __v32qi Type; };
+template<> struct BuiltinTypeHelper<double        , __m256d> { typedef  __v4df Type; };
+template<> struct BuiltinTypeHelper<float         , __m256 > { typedef  __v8sf Type; };
+template<> struct BuiltinTypeHelper<long long     , __m256i> { typedef  __v4di Type; };
+template<> struct BuiltinTypeHelper<unsigned long long, __m256i> { typedef  __v4di Type; };
+template<> struct BuiltinTypeHelper<int           , __m256i> { typedef  __v8si Type; };
+template<> struct BuiltinTypeHelper<unsigned int  , __m256i> { typedef  __v8si Type; };
+template<> struct BuiltinTypeHelper<short         , __m256i> { typedef __v16hi Type; };
+template<> struct BuiltinTypeHelper<unsigned short, __m256i> { typedef __v16hi Type; };
+template<> struct BuiltinTypeHelper<char          , __m256i> { typedef __v32qi Type; };
+template<> struct BuiltinTypeHelper<unsigned char , __m256i> { typedef __v32qi Type; };
 #endif
 #endif
 
@@ -165,13 +166,19 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
             EntryType m[];
         } data;
 #else
-        Vc_ALWAYS_INLINE VectorMemoryUnion(VC_ALIGNED_PARAMETER(VectorType) x) : data(x) { assertCorrectAlignment(&data); }
-        Vc_ALWAYS_INLINE VectorMemoryUnion &operator=(VC_ALIGNED_PARAMETER(VectorType) x) {
-            data = x; return *this;
+        typedef typename BuiltinTypeHelper<EntryType, VectorType>::Type BuiltinType;
+        typedef BuiltinType BuiltinTypeAlias Vc_MAY_ALIAS;
+
+        Vc_ALWAYS_INLINE VectorMemoryUnion(VectorType x)
+            // this copies from x to data, so aliasing is covered via the localized
+            // may_alias
+            : data(reinterpret_cast<const BuiltinTypeAlias &>(x))
+        {
+            assertCorrectAlignment(&data);
         }
 
-        Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return data; }
-        Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return data; }
+        Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return reinterpret_cast<VectorType &>(data); }
+        Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return reinterpret_cast<const VectorType &>(data); }
 
 #ifdef VC_MSVC
         Vc_ALWAYS_INLINE EntryType &m(size_t index) {
@@ -180,6 +187,14 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
 
         Vc_ALWAYS_INLINE EntryType m(size_t index) const {
             return accessScalar<EntryType>(data, index);
+        }
+#elif VC_USE_BUILTIN_VECTOR_TYPES
+        Vc_ALWAYS_INLINE EntryType &m(size_t index) {
+            return reinterpret_cast<EntryType &>(data[index]);
+        }
+
+        Vc_ALWAYS_INLINE const EntryType &m(size_t index) const {
+            return reinterpret_cast<const EntryType &>(data[index]);
         }
 #else
         Vc_ALWAYS_INLINE Vc_PURE MayAlias<EntryType> &m(size_t index) {
@@ -191,17 +206,15 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
         }
 #endif
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
-        template<typename JustForSfinae = void>
-        Vc_ALWAYS_INLINE Vc_PURE
-        typename GccTypeHelper<typename std::conditional<true, EntryType, JustForSfinae>::type, VectorType>::Type
-        gcc() const { return typename GccTypeHelper<EntryType, VectorType>::Type(data); }
+        Vc_ALWAYS_INLINE BuiltinType &builtin() { return data; }
+        Vc_ALWAYS_INLINE const BuiltinType &builtin() const { return data; }
 #endif
 
     private:
 #ifdef VC_COMPILE_BENCHMARKS
     public:
 #endif
-        VectorType data;
+        typename BuiltinTypeHelper<EntryType, VectorType>::Type data;
 #endif
 };
 
