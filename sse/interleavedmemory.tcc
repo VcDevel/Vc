@@ -586,6 +586,13 @@ template<typename V> struct InterleaveImpl<V, 2> {
 } // anonymous namespace
 
 // InterleavedMemoryAccessBase::interleave {{{1
+// 2 args {{{2
+template <typename V, typename I, bool RO>
+Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::interleave(
+    const typename V::AsArg v0, const typename V::AsArg v1)
+{
+    InterleaveImpl<V, V::Size>::interleave(m_data, m_indexes, v0, v1);
+}
 // 3 args {{{2
 template <typename V, typename I, bool RO>
 Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::interleave(
