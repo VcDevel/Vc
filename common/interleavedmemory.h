@@ -178,7 +178,7 @@ struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, 
     typedef typename Base::Ta Ta;
 
     Vc_ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, typename I::AsArg indexes)
-        : InterleavedMemoryReadAccess<StructSize, V, I>(data, indexes)
+        : InterleavedMemoryReadAccess<StructSize, V, I, false>(data, indexes)
     {
         CheckIndexesUnique<I>::test(indexes);
     }

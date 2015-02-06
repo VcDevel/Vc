@@ -80,16 +80,16 @@ public:
         return appendOneReference(a, IndexSequence());
     }
 
-    template <size_t StructSize, typename I>
+    template <size_t StructSize, typename I, bool RO>
     Vc_ALWAYS_INLINE enable_if<(Length <= StructSize), void> operator=(
-        const InterleavedMemoryReadAccess<StructSize, V, I> &access)
+        const InterleavedMemoryReadAccess<StructSize, V, I, RO> &access)
     {
         callDeinterleave(access, IndexSequence());
     }
 
-    template <size_t StructSize, typename I>
+    template <size_t StructSize, typename I, bool RO>
     enable_if<(Length > StructSize), void> operator=(
-        const InterleavedMemoryReadAccess<StructSize, V, I> &access) =
+        const InterleavedMemoryReadAccess<StructSize, V, I, RO> &access) =
         delete;  //("You are trying to extract more data from the struct than it has");
 
     template <typename T, typename IndexVector, typename Scale, bool Flag>
