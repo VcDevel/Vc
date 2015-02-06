@@ -34,23 +34,45 @@
 constexpr int NumberOfEvaluations = 10000;
 constexpr int FirstMapSize = 4;
 constexpr int MaxMapSize = 256;
-constexpr int MinRepeat = 100;
+constexpr int Repetitions = 100;
 constexpr auto StepMultiplier = 1.25;
 
 enum DisabledTests {
     DisabledTestsBegin = -999999,
+    Horizontal3,
     DisabledTestsEnd
 };
 enum EnabledTests {
     Scalar,
-    Vectorized,
-    Vec2,
-    Vec16,
-    Vec12,
-    Horizontal,
+    Float4,
+    Float16,
+    Float12,
+    Float12Interleaved,
+    Horizontal1,
     Horizontal2,
     NBenchmarks
 };
+
+std::string testName(int i)
+{
+    switch (i) {
+    case Scalar:             return "Scalar";
+    case Float4:             return "Float4";
+    case Float16:            return "Float16";
+    case Float12:            return "Float12";
+    case Float12Interleaved: return "F12Interl.";
+    case Horizontal1:        return "Horiz.1";
+    case Horizontal2:        return "Horiz.2";
+    case Horizontal3:        return "Horiz.3";
+    default:                 return "<unknown>";
+    }
+}
+
+// EnabledTests::operator++ {{{1
+EnabledTests &operator++(EnabledTests &x)
+{
+    return x = static_cast<EnabledTests>(static_cast<int>(x) + 1);
+}
 
 // types {{{1
 typedef Spline::Point2 Point2;
@@ -123,14 +145,13 @@ struct TestInfo
 struct Runner
 {
     // data members{{{2
-    const int Repetitions = MinRepeat;
-    const int MapSize;
     TimeStampCounter tsc;
     double mean[NBenchmarks] = {};
     double stddev[NBenchmarks] = {};
+    const std::vector<Point2> &searchPoints;
 
     // Runner::Runner{{{2
-    Runner(int R, int S) : Repetitions(R), MapSize(S) {}
+    Runner(const std::vector<Point2> &p) : searchPoints(p) {}
 
     void recordTsc(int Test, double norm)  //{{{2
     {
@@ -151,27 +172,29 @@ struct Runner
     // benchmarkSearch{{{2
     template <typename F> void benchmark(const TestInfo Test, F &&fun, double err = 20)
     {
-        if (Test) {
-            do {
-                mean[Test] = 0;
-                stddev[Test] = 0;
+        do {
+            mean[Test] = 0;
+            stddev[Test] = 0;
 
-                fun(); // one cache warm-up run to remove one outlier
-                for (auto rep = Repetitions; rep; --rep) {
-                    tsc.start();
-                    fun();
-                    tsc.stop();
-                    recordTsc(Test, NumberOfEvaluations);
+            for (const auto &p : searchPoints) {
+                fun(p);
+            }  // one cache warm-up run to remove one outlier
+            for (auto rep = Repetitions; rep; --rep) {
+                tsc.start();
+                for (const auto &p : searchPoints) {
+                    fun(p);
                 }
+                tsc.stop();
+                recordTsc(Test, NumberOfEvaluations);
+            }
 
-                mean[Test] /= Repetitions;
-                stddev[Test] /= Repetitions;
-                stddev[Test] = std::sqrt(stddev[Test] - mean[Test] * mean[Test]);
-            } while (stddev[Test] * err > mean[Test]);
-            std::cout << std::setw(9) << std::setprecision(3) << mean[Test];
-            std::cout << std::setw(9) << std::setprecision(3) << stddev[Test];
-            std::cout << std::flush;
-        }
+            mean[Test] /= Repetitions;
+            stddev[Test] /= Repetitions;
+            stddev[Test] = std::sqrt(stddev[Test] - mean[Test] * mean[Test]);
+        } while (stddev[Test] * err > mean[Test]);
+        std::cout << std::setw(9) << std::setprecision(3) << mean[Test];
+        std::cout << std::setw(9) << std::setprecision(3) << stddev[Test];
+        std::cout << std::flush;
     }
     //}}}2
 };
@@ -182,55 +205,15 @@ int main()  // {{{1
     using std::setw;
     using std::setprecision;
     cout << "NumberOfEvaluations: " << NumberOfEvaluations << '\n';
-    cout << "MinRepeat: " << MinRepeat << '\n';
+    cout << "Repetitions: " << Repetitions << '\n';
     cout << setw(8) << "MapSize";
-    if (TestInfo(Scalar)) {
-        cout << setw(18) << "Scalar";
-    }
-    if (TestInfo(Vectorized)) {
-        cout << setw(18) << "Vectorized";
-    }
-    if (TestInfo(Vec16)) {
-        cout << setw(18) << "Vec16";
-    }
-    if (TestInfo(Vec2)) {
-        cout << setw(18) << "Vec2";
-    }
-    if (TestInfo(Vec12)) {
-        cout << setw(18) << "Vec12";
-    }
-    if (TestInfo(Horizontal)) {
-        cout << setw(18) << "Horizontal";
-    }
-    if (TestInfo(Horizontal2)) {
-        cout << setw(18) << "Horizontal2";
+    for (int i = 0; i < NBenchmarks; ++i) {
+        cout << setw(18) << testName(i);
     }
     if (TestInfo(Scalar)) {
         for (int i = 0; i < NBenchmarks; ++i) {
             if (i != Scalar) {
-                switch (i) {
-                case Vectorized:
-                    cout << setw(18) << "Scalar/Vectorized";
-                    break;
-                case Vec16:
-                    cout << setw(18) << "Scalar/Vec16";
-                    break;
-                case Vec2:
-                    cout << setw(18) << "Scalar/Vec2";
-                    break;
-                case Vec12:
-                    cout << setw(18) << "Scalar/Vec12";
-                    break;
-                case Horizontal:
-                    cout << setw(18) << "Scalar/Horizontal";
-                    break;
-                case Horizontal2:
-                    cout << setw(18) << "Scalar/Horizontal2";
-                    break;
-                default:
-                    cout << setw(18) << "Scalar/<unknown>";
-                    break;
-                }
+                cout << setw(18) << "Scalar/" + testName(i);
             }
         }
     }
@@ -251,6 +234,9 @@ int main()  // {{{1
 
     // MapSize loop {{{2
     for (int MapSize = FirstMapSize; MapSize <= MaxMapSize; MapSize *= StepMultiplier) {
+        Runner runner(searchPoints);
+        cout << setw(8) << MapSize * MapSize << std::flush;
+
         // initialize map with random values {{{2
         Spline spline(-1.f, 1.f, MapSize, -1.f, 1.f, MapSize);
         Spline2 spline2(-1.f, 1.f, MapSize, -1.f, 1.f, MapSize);
@@ -263,76 +249,73 @@ int main()  // {{{1
             spline3.Fill(i, xyz);
         }
 
-        Runner runner(MinRepeat, MapSize);
-        cout << setw(8) << spline.GetMapSize() << std::flush;
-
-        // Scalar {{{2
-        runner.benchmark(Scalar, [&] {
-            for (const auto &p : searchPoints) {
-                const auto &p2 = spline.GetValueScalar(p);
-                asm("" ::"m"(p2));
-            }
-        });
-
-        // Vectorized {{{2
-        runner.benchmark(Vectorized, [&] {
-            for (const auto &p : searchPoints) {
-                const auto &p2 = spline.GetValue(p);
-                asm("" ::"m"(p2));
-            }
-        });
-
-        // Vec16 {{{2
-        runner.benchmark(Vec16, [&] {
-            for (const auto &p : searchPoints) {
-                const auto &p2 = spline.GetValue16(p);
-                asm("" ::"m"(p2));
-            }
-        });
-
-        // Vec2 {{{2
-        runner.benchmark(Vec2, [&] {
-            for (const auto &p : searchPoints) {
-                const auto &p2 = spline2.GetValue(p);
-                asm("" ::"m"(p2));
-            }
-        });
-
-        // Vec12 {{{2
-        runner.benchmark(Vec12, [&] {
-            for (const auto &p : searchPoints) {
-                const auto &p2 = spline3.GetValue(p);
-                asm("" ::"m"(p2));
-            }
-        });
-
-        // Horizontal {{{2
-        runner.benchmark(Horizontal, [&] {
+        // run Benchmarks {{{2
+        for (EnabledTests i = EnabledTests(0); i < NBenchmarks; ++i) {
             VectorizeBuffer<Point2> vectorizer;
-            for (const auto &p : searchPoints) {
-                if (0 == vectorizer(p)) {
-                    const auto &p2 = spline.GetValue(vectorizer.input);
+            switch (i) {
+            case Scalar:  // {{{3
+                runner.benchmark(Scalar, [&](const Point2 &p) {
+                    const auto &p2 = spline.GetValueScalar(p);
                     asm("" ::"m"(p2));
-                }
-            }
-        });
-
-        // Horizontal2 {{{2
-        runner.benchmark(Horizontal2, [&] {
-            VectorizeBuffer<Point2> vectorizer;
-            for (const auto &p : searchPoints) {
-                if (0 == vectorizer(p)) {
-                    const auto &p2 = spline2.GetValue(vectorizer.input);
+                });
+                break;
+            case Float4:  // {{{3
+                runner.benchmark(Float4, [&](const Point2 &p) {
+                    const auto &p2 = spline.GetValue(p);
                     asm("" ::"m"(p2));
-                }
+                });
+                break;
+            case Float16:  // {{{3
+                runner.benchmark(Float16, [&](const Point2 &p) {
+                    const auto &p2 = spline.GetValue16(p);
+                    asm("" ::"m"(p2));
+                });
+                break;
+            case Float12:  // {{{3
+                runner.benchmark(Float12, [&](const Point2 &p) {
+                    const auto &p2 = spline2.GetValue(p);
+                    asm("" ::"m"(p2));
+                });
+                break;
+            case Float12Interleaved:  // {{{3
+                runner.benchmark(Float12Interleaved, [&](const Point2 &p) {
+                    const auto &p2 = spline3.GetValue(p);
+                    asm("" ::"m"(p2));
+                });
+                break;
+            case Horizontal1:  // {{{3
+                runner.benchmark(Horizontal1, [&](const Point2 &p) {
+                    if (0 == vectorizer(p)) {
+                        const auto &p2 = spline.GetValue(vectorizer.input);
+                        asm("" ::"m"(p2));
+                    }
+                });
+                break;
+            case Horizontal2:  // {{{3
+                runner.benchmark(Horizontal2, [&](const Point2 &p) {
+                    if (0 == vectorizer(p)) {
+                        const auto &p2 = spline2.GetValue(vectorizer.input);
+                        asm("" ::"m"(p2));
+                    }
+                });
+                break;
+            case Horizontal3:  // {{{3
+                runner.benchmark(Horizontal3, [&](const Point2 &p) {
+                    if (0 == vectorizer(p)) {
+                        const auto &p2 = spline3.GetValue(vectorizer.input);
+                        asm("" ::"m"(p2));
+                    }
+                });
+                break;
+            default:  // {{{3
+                break;
             }
-        });
-
+        }
         // print search timings {{{2
         if (TestInfo(Scalar)) {
-            for (int i = 0; i < NBenchmarks; ++i) {
+            for (EnabledTests i = EnabledTests(0); i < NBenchmarks; ++i) {
                 if (i != Scalar) {
-                    runner.printRatio(Scalar, static_cast<EnabledTests>(i));
+                    runner.printRatio(Scalar, i);
                 }
             }
         }
@@ -345,7 +328,7 @@ int main()  // {{{1
             VectorizeBuffer<Point3> vectorizer3;
             for (const auto &p : searchPoints) {
                 const auto &ps = spline.GetValueScalar(p);
-                if (TestInfo(Vectorized)) {  //{{{3
+                if (TestInfo(Float4)) {  //{{{3
                     const auto &pv = spline.GetValue(p);
                     for (int i = 0; i < 3; ++i) {
                         if (std::abs(ps[i] - pv[i]) > 0.00001f) {
@@ -356,7 +339,7 @@ int main()  // {{{1
                         }
                     }
                 }
-                if (TestInfo(Vec16)) {  //{{{3
+                if (TestInfo(Float16)) {  //{{{3
                     const auto &pv = spline.GetValue16(p);
                     for (int i = 0; i < 3; ++i) {
                         if (std::abs(ps[i] - pv[i]) > 0.00001f) {
@@ -367,7 +350,7 @@ int main()  // {{{1
                         }
                     }
                 }
-                if (TestInfo(Vec2)) {  //{{{3
+                if (TestInfo(Float12)) {  //{{{3
                     const auto &pv = spline2.GetValue(p);
                     for (int i = 0; i < 3; ++i) {
                         if (std::abs(ps[i] - pv[i]) > 0.00001f) {
@@ -378,7 +361,7 @@ int main()  // {{{1
                         }
                     }
                 }
-                if (TestInfo(Vec12)) {  //{{{3
+                if (TestInfo(Float12Interleaved)) {  //{{{3
                     const auto &pv = spline3.GetValue(p);
                     for (int i = 0; i < 3; ++i) {
                         if (std::abs(ps[i] - pv[i]) > 0.00001f) {
@@ -391,7 +374,7 @@ int main()  // {{{1
                 }
                 vectorizer3(ps);
                 if (0 == vectorizer2(p)) {
-                    if (TestInfo(Horizontal)) {  //{{{3
+                    if (TestInfo(Horizontal1)) {  //{{{3
                         const auto &pv = spline.GetValue(vectorizer2.input);
                         for (int i = 0; i < 3; ++i) {
                             if (any_of(abs(vectorizer3.input[i] - pv[i]) > 0.00001f)) {
@@ -413,7 +396,18 @@ int main()  // {{{1
                             }
                         }
                     }
-                }
+                    if (TestInfo(Horizontal3)) {  //{{{3
+                        const auto &pv = spline3.GetValue(vectorizer2.input);
+                        for (int i = 0; i < 3; ++i) {
+                            if (any_of(abs(vectorizer3.input[i] - pv[i]) > 0.00001f)) {
+                                cout << "\nHorizontal3 not equal at \n" << vectorizer2.input
+                                     << ":\n" << vectorizer3.input << " vs.\n" << pv;
+                                failed = true;
+                                break;
+                            }
+                        }
+                    }
+                }  //{{{3
             }
             if (failed) {
                 //std::cout << '\n' << spline. << '\n';
