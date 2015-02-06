@@ -243,7 +243,9 @@ int main()  // {{{1
     // random search points {{{2
     std::vector<Point2> searchPoints;
     searchPoints.reserve(NumberOfEvaluations);
-    for (int i = 0; i < NumberOfEvaluations; ++i) {
+    searchPoints.emplace_back(Point2{-1.f, -1.f});
+    searchPoints.emplace_back(Point2{+1.f, +1.f});
+    for (int i = 2; i < NumberOfEvaluations; ++i) {
         searchPoints.emplace_back(Point2{uniform(randomEngine), uniform(randomEngine)});
     }
 
