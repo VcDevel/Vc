@@ -44,7 +44,7 @@ namespace Common
  */
 template<size_t StructSize> class SuccessiveEntries
 {
-    size_t m_first;
+    std::size_t m_first;
 public:
     typedef SuccessiveEntries AsArg;
     constexpr SuccessiveEntries(size_t first) : m_first(first) {}
@@ -52,6 +52,7 @@ public:
     constexpr Vc_PURE size_t data() const { return m_first; }
     constexpr Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first + rhs.m_first); }
     constexpr Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first * rhs.m_first); }
+    constexpr Vc_PURE SuccessiveEntries operator<<(std::size_t x) const { return {m_first << x}; }
 
     friend SuccessiveEntries &internal_data(SuccessiveEntries &x) { return x; }
     friend const SuccessiveEntries &internal_data(const SuccessiveEntries &x)
@@ -118,7 +119,17 @@ struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V, I, Re
     typedef typename Base::Ta Ta;
 
     Vc_ALWAYS_INLINE InterleavedMemoryReadAccess(Ta *data, typename I::AsArg indexes)
-        : Base(indexes * I(StructSize), data)
+        : Base(
+              StructSize == 1 ? indexes : StructSize == 2
+                                              ? indexes << 1
+                                              : StructSize == 4
+                                                    ? indexes << 2
+                                                    : StructSize == 8
+                                                          ? indexes << 3
+                                                          : StructSize == 16
+                                                                ? indexes << 4
+                                                                : indexes * I(StructSize),
+              data)
     {
     }
 
