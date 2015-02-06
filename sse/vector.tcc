@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/set.h"
 #include "../common/gatherimplementation.h"
 #include "../common/scatterimplementation.h"
+#include "../common/transpose.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -1076,6 +1077,29 @@ template <> template <int Index> Vc_INTRINSIC double_v double_v::broadcast() con
 }
 // }}}1
 }
+
+namespace Common
+{
+// transpose_impl {{{1
+Vc_ALWAYS_INLINE void transpose_impl(
+    std::array<SSE::float_v * VC_RESTRICT, 4> &r,
+    const TransposeProxy<SSE::float_v, SSE::float_v, SSE::float_v, SSE::float_v> &proxy)
+{
+    const auto in0 = std::get<0>(proxy.in).data();
+    const auto in1 = std::get<1>(proxy.in).data();
+    const auto in2 = std::get<2>(proxy.in).data();
+    const auto in3 = std::get<3>(proxy.in).data();
+    const auto tmp0 = _mm_unpacklo_ps(in0, in2);
+    const auto tmp1 = _mm_unpacklo_ps(in1, in3);
+    const auto tmp2 = _mm_unpackhi_ps(in0, in2);
+    const auto tmp3 = _mm_unpackhi_ps(in1, in3);
+    *r[0] = _mm_unpacklo_ps(tmp0, tmp1);
+    *r[1] = _mm_unpackhi_ps(tmp0, tmp1);
+    *r[2] = _mm_unpacklo_ps(tmp2, tmp3);
+    *r[3] = _mm_unpackhi_ps(tmp2, tmp3);
+}
+// }}}1
+}  // namespace Common
 }
 
 #include "undomacros.h"

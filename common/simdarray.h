@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "utility.h"
 #include "interleave.h"
 #include "indexsequence.h"
+#include "transpose.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -1761,6 +1762,56 @@ Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask))
 Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--)
 Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 #undef Vc_CONDITIONAL_ASSIGN
+// transpose_impl {{{1
+namespace Common
+{
+    template <typename T, std::size_t N, typename V>
+    inline void transpose_impl(
+        std::array<simdarray<T, N, V, N> * VC_RESTRICT, 4> & r,
+        const TransposeProxy<simdarray<T, N, V, N>, simdarray<T, N, V, N>,
+                             simdarray<T, N, V, N>, simdarray<T, N, V, N>> &proxy)
+    {
+        std::array<V * VC_RESTRICT, 4> r2 = {
+            {&internal_data(*r[0]), &internal_data(*r[1]), &internal_data(*r[2]),
+             &internal_data(*r[3])}};
+        transpose_impl(r2,
+                       TransposeProxy<V, V, V, V>{internal_data(std::get<0>(proxy.in)),
+                                                  internal_data(std::get<1>(proxy.in)),
+                                                  internal_data(std::get<2>(proxy.in)),
+                                                  internal_data(std::get<3>(proxy.in))});
+    }
+    /* TODO:
+    template <typename T, std::size_t N, typename V, std::size_t VSize>
+    inline enable_if<(N > VSize), void> transpose_impl(
+        std::array<simdarray<T, N, V, VSize> * VC_RESTRICT, 4> & r,
+        const TransposeProxy<simdarray<T, N, V, VSize>, simdarray<T, N, V, VSize>,
+                             simdarray<T, N, V, VSize>, simdarray<T, N, V, VSize>> &proxy)
+    {
+        typedef simdarray<T, N, V, VSize> SA;
+        std::array<typename SA::storage_type0 * VC_RESTRICT, 4> r0 = {
+            {&internal_data0(*r[0]), &internal_data0(*r[1]), &internal_data0(*r[2]),
+             &internal_data0(*r[3])}};
+        transpose_impl(
+            r0, TransposeProxy<typename SA::storage_type0, typename SA::storage_type0,
+                               typename SA::storage_type0, typename SA::storage_type0>{
+                    internal_data0(std::get<0>(proxy.in)),
+                    internal_data0(std::get<1>(proxy.in)),
+                    internal_data0(std::get<2>(proxy.in)),
+                    internal_data0(std::get<3>(proxy.in))});
+
+        std::array<typename SA::storage_type1 * VC_RESTRICT, 4> r1 = {
+            {&internal_data1(*r[0]), &internal_data1(*r[1]), &internal_data1(*r[2]),
+             &internal_data1(*r[3])}};
+        transpose_impl(
+            r1, TransposeProxy<typename SA::storage_type1, typename SA::storage_type1,
+                               typename SA::storage_type1, typename SA::storage_type1>{
+                    internal_data1(std::get<0>(proxy.in)),
+                    internal_data1(std::get<1>(proxy.in)),
+                    internal_data1(std::get<2>(proxy.in)),
+                    internal_data1(std::get<3>(proxy.in))});
+    }
+    */
+}  // namespace Common
 // }}}1
 /// @}
 

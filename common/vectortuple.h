@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_VECTORTUPLE_H
 #define VC_COMMON_VECTORTUPLE_H
 
+#include "transpose.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -91,6 +92,11 @@ public:
     enable_if<(Length > StructSize), void> operator=(
         const InterleavedMemoryReadAccess<StructSize, V, I, RO> &access) =
         delete;  //("You are trying to extract more data from the struct than it has");
+
+    template <typename... Inputs> void operator=(TransposeProxy<Inputs...> &&proxy)
+    {
+        transpose_impl(r, proxy);
+    }
 
     template <typename T, typename IndexVector, typename Scale, bool Flag>
     void operator=(const SubscriptOperation<T, IndexVector, Scale, Flag> &sub)
