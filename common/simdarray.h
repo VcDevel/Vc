@@ -123,7 +123,9 @@ public:
     simdarray &operator=(const simdarray &) = default;
 
     // broadcast
-    Vc_INTRINSIC simdarray(value_type a) : data(a) {}
+    Vc_INTRINSIC simdarray(const value_type &a) : data(a) {}
+    Vc_INTRINSIC simdarray(value_type &a) : data(a) {}
+    Vc_INTRINSIC simdarray(value_type &&a) : data(a) {}
     template <
         typename U,
         typename = enable_if<std::is_same<U, int>::value && !std::is_same<int, value_type>::value>>
