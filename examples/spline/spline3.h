@@ -70,6 +70,7 @@ public:
 
     /** Calculate interpolated value at the given point(s) */
     Point3 GetValue(Point2) const;
+    Point3V GetValue(const Point2V &ab) const;
 
     /**  Get size of the grid */
     int GetMapSize() const;
@@ -156,6 +157,34 @@ inline std::array<float, 3> Spline3::GetValue(std::array<float, 2> ab) const  //
     XYZ[0] = res[0];
     XYZ[1] = res[1];
     XYZ[2] = res[2];
+    return XYZ;
+}
+
+Point3V Spline3::GetValue(const Point2V &ab) const  //{{{1
+{
+    float_v iA, iB, da, db;
+    std::tie(iA, iB, da, db) =
+        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
+
+    float_v vx[4];
+    float_v vy[4];
+    float_v vz[4];
+    auto ind = static_cast<float_v::IndexType>(iA + iB * fNA);
+    for (int i = 0; i < 4; i++) {
+        float_v x[4], y[4], z[4];
+        Vc::tie(x[0], y[0], z[0]) = fXYZ[ind][0];
+        Vc::tie(x[1], y[1], z[1]) = fXYZ[ind + fNA][0];
+        Vc::tie(x[2], y[2], z[2]) = fXYZ[ind + 2 * fNA][0];
+        Vc::tie(x[3], y[3], z[3]) = fXYZ[ind + 3 * fNA][0];
+        vx[i] = GetSpline3<float_v>(x[0], x[1], x[2], x[3], db);
+        vy[i] = GetSpline3<float_v>(y[0], y[1], y[2], y[3], db);
+        vz[i] = GetSpline3<float_v>(z[0], z[1], z[2], z[3], db);
+        ind += 1;
+    }
+    Point3V XYZ;
+    XYZ[0] = GetSpline3<float_v>(vx, da);
+    XYZ[1] = GetSpline3<float_v>(vy, da);
+    XYZ[2] = GetSpline3<float_v>(vz, da);
     return XYZ;
 }
 
