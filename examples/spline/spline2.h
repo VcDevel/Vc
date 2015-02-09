@@ -1,3 +1,43 @@
+/*{{{
+    Copyright © 2015 Matthias Kretz <kretz@kde.org>
+
+    Permission to use, copy, modify, and distribute this software
+    and its documentation for any purpose and without fee is hereby
+    granted, provided that the above copyright notice appear in all
+    copies and that both that the copyright notice and this
+    permission notice and warranty disclaimer appear in supporting
+    documentation, and that the name of the author not be used in
+    advertising or publicity pertaining to distribution of the
+    software without specific, written prior permission.
+
+    The author disclaim all warranties with regard to this
+    software, including all implied warranties of merchantability
+    and fitness.  In no event shall the author be liable for any
+    special, indirect or consequential damages or any damages
+    whatsoever resulting from loss of use, data or profits, whether
+    in an action of contract, negligence or other tortious action,
+    arising out of or in connection with the use or performance of
+    this software.
+
+
+This work is derived from a class in ALICE with the following copyright notice:
+    **************************************************************************
+    * This file is property of and copyright by the ALICE HLT Project        *
+    * ALICE Experiment at CERN, All rights reserved.                         *
+    *                                                                        *
+    * Primary Authors: Sergey Gorbunov <sergey.gorbunov@cern.ch>             *
+    *                  for The ALICE HLT Project.                            *
+    *                                                                        *
+    * Permission to use, copy, modify and distribute this software and its   *
+    * documentation strictly for non-commercial purposes is hereby granted   *
+    * without fee, provided that the above copyright notice appears in all   *
+    * copies and that both the copyright notice and this permission notice   *
+    * appear in the supporting documentation. The authors make no claims     *
+    * about the suitability of this software for any purpose. It is          *
+    * provided "as is" without express or implied warranty.                  *
+    **************************************************************************
+}}}*/
+
 #ifndef SPLINE2_H_
 #define SPLINE2_H_
 
