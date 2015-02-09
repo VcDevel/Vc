@@ -11,9 +11,6 @@
 //* ALICE Experiment at CERN, All rights reserved.                         *
 //* See cxx source for full Copyright notice                               *
 
-class AliTPCParam;
-class AliTPCTransform;
-
 typedef std::array<float, 2> Point2;
 typedef std::array<float, 3> Point3;
 
