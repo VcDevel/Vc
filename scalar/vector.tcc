@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/data.h"
 #include "where.h"
 #include "iterators.h"
+#include "../common/transpose.h"
 #include "macros.h"
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -288,6 +289,18 @@ template<> Vc_INTRINSIC void double_v::setQnan(Mask m)
 }
 // }}}1
 }
+
+namespace Common
+{
+// transpose_impl {{{1
+template <int L>
+Vc_ALWAYS_INLINE enable_if<L == 1, void> transpose_impl(
+    Scalar::float_v *VC_RESTRICT r[], const TransposeProxy<Scalar::float_v> &proxy)
+{
+    *r[0] = std::get<0>(proxy.in).data();
+}
+// }}}1
+}  // namespace Common
 }
 #include "undomacros.h"
 // vim: foldmethod=marker

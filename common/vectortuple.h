@@ -95,7 +95,7 @@ public:
 
     template <typename... Inputs> void operator=(TransposeProxy<Inputs...> &&proxy)
     {
-        transpose_impl(r, proxy);
+        transpose_impl<Length>(&r[0], proxy);
     }
 
     template <typename T, typename IndexVector, typename Scale, bool Flag>

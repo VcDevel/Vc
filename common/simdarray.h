@@ -1767,20 +1767,19 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 // transpose_impl {{{1
 namespace Common
 {
-    template <typename T, std::size_t N, typename V>
-    inline void transpose_impl(
-        std::array<simdarray<T, N, V, N> * VC_RESTRICT, 4> & r,
+    template <int L, typename T, std::size_t N, typename V>
+    inline enable_if<L == 4, void> transpose_impl(
+        simdarray<T, N, V, N> * VC_RESTRICT r[],
         const TransposeProxy<simdarray<T, N, V, N>, simdarray<T, N, V, N>,
                              simdarray<T, N, V, N>, simdarray<T, N, V, N>> &proxy)
     {
-        std::array<V * VC_RESTRICT, 4> r2 = {
-            {&internal_data(*r[0]), &internal_data(*r[1]), &internal_data(*r[2]),
-             &internal_data(*r[3])}};
-        transpose_impl(r2,
-                       TransposeProxy<V, V, V, V>{internal_data(std::get<0>(proxy.in)),
-                                                  internal_data(std::get<1>(proxy.in)),
-                                                  internal_data(std::get<2>(proxy.in)),
-                                                  internal_data(std::get<3>(proxy.in))});
+        V *VC_RESTRICT r2[L] = {&internal_data(*r[0]), &internal_data(*r[1]),
+                                &internal_data(*r[2]), &internal_data(*r[3])};
+        transpose_impl<L>(
+            &r2[0], TransposeProxy<V, V, V, V>{internal_data(std::get<0>(proxy.in)),
+                                               internal_data(std::get<1>(proxy.in)),
+                                               internal_data(std::get<2>(proxy.in)),
+                                               internal_data(std::get<3>(proxy.in))});
     }
     /* TODO:
     template <typename T, std::size_t N, typename V, std::size_t VSize>
