@@ -16,9 +16,6 @@
 class Spline3
 {
 public:
-    typedef std::array<float, 2> Point2;
-    typedef std::array<float, 3> Point3;
-
     Spline3(float minA, float maxA, int nBinsA, float minB, float maxB, int nBinsB);
 
     /**  Filling of points */

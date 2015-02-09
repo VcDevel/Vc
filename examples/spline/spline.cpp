@@ -168,7 +168,7 @@ std::array<float, 3> Spline::GetValueScalar(std::array<float, 2> ab) const  //{{
     return XYZ;
 }
 
-Spline::Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
+Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
 {
     using Vc::float_v;
 

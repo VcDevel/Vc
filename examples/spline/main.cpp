@@ -74,12 +74,6 @@ EnabledTests &operator++(EnabledTests &x)
     return x = static_cast<EnabledTests>(static_cast<int>(x) + 1);
 }
 
-// types {{{1
-typedef Spline::Point2 Point2;
-typedef Spline::Point3 Point3;
-typedef Spline::Point2V Point2V;
-typedef Spline::Point3V Point3V;
-
 // operator<< overloads {{{1
 std::ostream &operator<<(std::ostream &s, const Point2 &xyz)
 {

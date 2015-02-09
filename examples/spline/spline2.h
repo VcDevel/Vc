@@ -7,6 +7,7 @@
 #include <Vc/Vc>
 #include "../kdtree/simdize.h"
 #include <Vc/vector>
+#include "spline.h"
 
 //* This file is property of and copyright by the ALICE HLT Project        *
 //* ALICE Experiment at CERN, All rights reserved.                         *

@@ -14,15 +14,15 @@
 class AliTPCParam;
 class AliTPCTransform;
 
+typedef std::array<float, 2> Point2;
+typedef std::array<float, 3> Point3;
+
+typedef simdize<Point2> Point2V;
+typedef simdize<Point3> Point3V;
+
 class Spline
 {
 public:
-    typedef std::array<float, 2> Point2;
-    typedef std::array<float, 3> Point3;
-
-    typedef simdize<Point2> Point2V;
-    typedef simdize<Point3> Point3V;
-
     Spline(float minA, float maxA, int nBinsA, float minB, float maxB, int nBinsB);
 
     /**  Filling of points */
