@@ -173,10 +173,9 @@ Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
     float_v vz[4];
     auto ind = static_cast<float_v::IndexType>(iA * fNB + iB);
     const auto map = Vc::make_interleave_wrapper<float_v>(&fXYZ[0]);
-    //std::cerr << typeid(map).name() << std::endl; exit(1);
     for (int i = 0; i < 4; i++) {
         float_v x[4], y[4], z[4];
-        Vc::tie(x[0], y[0], z[0]) = map[ind + 0];
+        Vc::tie(x[0], y[0], z[0]) = map[ind];
         Vc::tie(x[1], y[1], z[1]) = map[ind + 1];
         Vc::tie(x[2], y[2], z[2]) = map[ind + 2];
         Vc::tie(x[3], y[3], z[3]) = map[ind + 3];
