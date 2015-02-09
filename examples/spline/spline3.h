@@ -89,16 +89,15 @@ inline int Spline3::GetNPoints() const { return fN; }
 
 inline std::array<float, 3> Spline3::GetValue(std::array<float, 2> ab) const  //{{{1
 {
-    float lA = (ab[0] - fMinA) * fScaleA - 1.f;
-    const int iA = std::max(0, std::min(fNA - 4, static_cast<int>(lA)));
-
-    float lB = (ab[1] - fMinB) * fScaleB - 1.f;
-    const int iB = std::max(0, std::min(fNB - 4, static_cast<int>(lB)));
+    float da1, db1;
+    unsigned iA, iB;
+    std::tie(iA, iB, da1, db1) =
+        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
     typedef Vc::simdarray<float, 4> float4;
     typedef Vc::simdarray<float, 12> float12;
-    const float4 da = lA - iA;
-    const float12 db = lB - iB;
+    const float4 da = da1;
+    const float12 db = db1;
 
     const float *m0 = &fXYZ[iA + iB * fNA][0];
     const float *m1 = m0 + fNA * 3;

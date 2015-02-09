@@ -105,4 +105,39 @@ inline float Spline::GetSpline2(float *v, float x)
     return 0.5f * x * ((v[0] + v[2] - v[1] - v[1]) * x + v[2] - v[0]) + v[1];
 }
 
+inline std::tuple<unsigned, unsigned, float, float> evaluatePosition(Point2 ab,
+                                                                     Point2 min,
+                                                                     Point2 scale, int na,
+                                                                     int nb)
+{
+    const float lA = (ab[0] - min[0]) * scale[0] - 1.f;
+    const unsigned iA = std::min(na - 4.f, std::max(lA, 0.f));
+
+    const float lB = (ab[1] - min[1]) * scale[1] - 1.f;
+    const unsigned iB = std::min(nb - 4.f, std::max(lB, 0.f));
+
+    const float da = lA - iA;
+    const float db = lB - iB;
+
+    return std::make_tuple(iA, iB, da, db);
+}
+
+using Vc::float_v;
+inline std::tuple<float_v, float_v, float_v, float_v> evaluatePosition(Point2V ab,
+                                                                       Point2 min,
+                                                                       Point2 scale,
+                                                                       int na, int nb)
+{
+    const float_v lA = (ab[0] - min[0]) * scale[0] - 1.f;
+    const float_v iA = std::floor(std::min(na - 4.f, std::max(lA, 0.f)));
+
+    const float_v lB = (ab[1] - min[1]) * scale[1] - 1.f;
+    const float_v iB = std::floor(std::min(nb - 4.f, std::max(lB, 0.f)));
+
+    const float_v da = lA - iA;
+    const float_v db = lB - iB;
+
+    return std::make_tuple(iA, iB, da, db);
+}
+
 #endif  // SPLINE_H_

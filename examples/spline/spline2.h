@@ -121,16 +121,15 @@ template <typename T> static inline T GetSpline3(const T v[], T x)
 
 inline std::array<float, 3> Spline2::GetValue(std::array<float, 2> ab) const  //{{{1
 {
-    float lA = (ab[0] - fMinA) * fScaleA - 1.f;
-    const int iA = std::max(0, std::min(fNA - 4, static_cast<int>(lA)));
-
-    float lB = (ab[1] - fMinB) * fScaleB - 1.f;
-    const int iB = std::max(0, std::min(fNB - 4, static_cast<int>(lB)));
+    float da1, db1;
+    unsigned iA, iB;
+    std::tie(iA, iB, da1, db1) =
+        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
     typedef Vc::simdarray<float, 4> float4;
     typedef Vc::simdarray<float, 12> float12;
-    const float4 da = lA - iA;
-    const float12 db = lB - iB;
+    const float4 da = da1;
+    const float12 db = db1;
 
     const float *m0 = &fXYZ[iA + iB * fNA];
     const float *m1 = m0 + fNA;
@@ -158,15 +157,9 @@ inline std::array<float, 3> Spline2::GetValue(std::array<float, 2> ab) const  //
 
 inline Spline2::Point3V Spline2::GetValue(Point2V ab) const  //{{{1
 {
-    using Vc::float_v;
-    const float_v lA = (ab[0] - fMinA) * fScaleA - 1.f;
-    const float_v iA = max(0, min(fNA - 4, trunc(lA)));
-
-    const float_v lB = (ab[1] - fMinB) * fScaleB - 1.f;
-    const float_v iB = max(0, min(fNB - 4, trunc(lB)));
-
-    const float_v da = lA - iA;
-    const float_v db = lB - iB;
+    float_v iA, iB, da, db;
+    std::tie(iA, iB, da, db) =
+        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
     auto ind = static_cast<float_v::IndexType>(iA + iB * fNA);
     Point3V xyz;

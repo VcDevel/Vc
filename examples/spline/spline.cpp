@@ -55,26 +55,17 @@ template <typename T> static inline T GetSpline3(const T *v, T x)
 
 std::array<float, 3> Spline::GetValue(std::array<float, 2> ab) const  //{{{1
 {
-    float lA = (ab[0] - fMinA) * fScaleA - 1.f;
-    int iA = static_cast<int>(lA);
-    if (lA < 0)
-        iA = 0;
-    else if (iA > fNA - 4)
-        iA = fNA - 4;
-
-    float lB = (ab[1] - fMinB) * fScaleB - 1.f;
-    int iB = static_cast<int>(lB);
-    if (lB < 0)
-        iB = 0;
-    else if (iB > fNB - 4)
-        iB = fNB - 4;
+    float da1, db1;
+    unsigned iA, iB;
+    std::tie(iA, iB, da1, db1) =
+        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
+    unsigned ind = iA * fNB + iB;
 
     typedef Vc::simdarray<float, 4> float4;
-    float4 da = lA - iA;
-    float4 db = lB - iB;
+    const float4 da = da1;
+    const float4 db = db1;
 
     float4 v[4];
-    int ind = iA * fNB + iB;
     const float4 *m = &fXYZ[0];
 
     for (int i = 0; i < 4; i++) {
@@ -91,24 +82,15 @@ std::array<float, 3> Spline::GetValue(std::array<float, 2> ab) const  //{{{1
 
 std::array<float, 3> Spline::GetValue16(std::array<float, 2> ab) const  //{{{1
 {
-    float lA = (ab[0] - fMinA) * fScaleA - 1.f;
-    int iA = static_cast<int>(lA);
-    if (lA < 0)
-        iA = 0;
-    else if (iA > fNA - 4)
-        iA = fNA - 4;
-
-    float lB = (ab[1] - fMinB) * fScaleB - 1.f;
-    int iB = static_cast<int>(lB);
-    if (lB < 0)
-        iB = 0;
-    else if (iB > fNB - 4)
-        iB = fNB - 4;
+    float da1, db1;
+    unsigned iA, iB;
+    std::tie(iA, iB, da1, db1) =
+        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
     typedef Vc::simdarray<float, 4> float4;
     typedef Vc::simdarray<float, 16> float16;
-    const float4 da = lA - iA;
-    const float16 db = lB - iB;
+    const float4 da = da1;
+    const float16 db = db1;
 
     const float4 *m0 = &fXYZ[iA * fNB + iB];
     const float4 *m1 = m0 + fNB;
@@ -131,27 +113,15 @@ std::array<float, 3> Spline::GetValue16(std::array<float, 2> ab) const  //{{{1
 
 std::array<float, 3> Spline::GetValueScalar(std::array<float, 2> ab) const  //{{{1
 {
-    float lA = (ab[0] - fMinA) * fScaleA - 1.f;
-    int iA = static_cast<int>(lA);
-    if (lA < 0)
-        iA = 0;
-    else if (iA > fNA - 4)
-        iA = fNA - 4;
-
-    float lB = (ab[1] - fMinB) * fScaleB - 1.f;
-    int iB = static_cast<int>(lB);
-    if (lB < 0)
-        iB = 0;
-    else if (iB > fNB - 4)
-        iB = fNB - 4;
-
-    float da = lA - iA;
-    float db = lB - iB;
+    float da, db;
+    unsigned iA, iB;
+    std::tie(iA, iB, da, db) =
+        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
+    unsigned ind = iA * fNB + iB;
 
     float vx[4];
     float vy[4];
     float vz[4];
-    int ind = iA * fNB + iB;
     for (int i = 0; i < 4; i++) {
         vx[i] = GetSpline3(fXYZ[ind][0], fXYZ[ind + 1][0], fXYZ[ind + 2][0],
                            fXYZ[ind + 3][0], db);
@@ -170,20 +140,9 @@ std::array<float, 3> Spline::GetValueScalar(std::array<float, 2> ab) const  //{{
 
 Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
 {
-    using Vc::float_v;
-
-    const float_v lA = (ab[0] - fMinA) * fScaleA - 1.f;
-    float_v iA = trunc(lA);
-    iA.setZero(lA < 0);
-    where(iA > fNA - 4) | iA = fNA - 4;
-
-    const float_v lB = (ab[1] - fMinB) * fScaleB - 1.f;
-    float_v iB = trunc(lB);
-    iB.setZero(lB < 0);
-    where(iB > fNB - 4) | iB = fNB - 4;
-
-    const float_v da = lA - iA;
-    const float_v db = lB - iB;
+    float_v iA, iB, da, db;
+    std::tie(iA, iB, da, db) =
+        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
     float_v vx[4];
     float_v vy[4];
