@@ -859,9 +859,39 @@ template<typename T> Vc_INTRINSIC Vc_PURE Vector<T> Vector<T>::shifted(int amoun
 }
 template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount, Vector shiftIn) const
 {
-    return shifted(amount) | (amount > 0 ?
-                              shiftIn.shifted(amount - Size) :
-                              shiftIn.shifted(Size + amount));
+    if (amount >= -int(size())) {
+        enum { EntryTypeSizeof = sizeof(EntryType) };
+        const __m128i v0 = sse_cast<__m128i>(d.v());
+        const __m128i v1 = sse_cast<__m128i>(shiftIn.d.v());
+        auto &&fixup = sse_cast<VectorType, __m128i>;
+        switch (amount) {
+        case  0: return *this;
+                 // alignr_epi8: [arg1 arg0] << n
+        case -1: return fixup(alignr_epi8<(size() - 1) * EntryTypeSizeof>(v0, v1));
+        case -2: return fixup(alignr_epi8<(size() - 2) * EntryTypeSizeof>(v0, v1));
+        case -3: return fixup(alignr_epi8<(size() - 3) * EntryTypeSizeof>(v0, v1));
+        case -4: return fixup(alignr_epi8<(size() - 4) * EntryTypeSizeof>(v0, v1));
+        case -5: return fixup(alignr_epi8<(size() - 5) * EntryTypeSizeof>(v0, v1));
+        case -6: return fixup(alignr_epi8<(size() - 6) * EntryTypeSizeof>(v0, v1));
+        case -7: return fixup(alignr_epi8<(size() - 7) * EntryTypeSizeof>(v0, v1));
+        case  1: return fixup(alignr_epi8< 1 * EntryTypeSizeof>(v1, v0));
+        case  2: return fixup(alignr_epi8< 2 * EntryTypeSizeof>(v1, v0));
+        case  3: return fixup(alignr_epi8< 3 * EntryTypeSizeof>(v1, v0));
+        case  4: return fixup(alignr_epi8< 4 * EntryTypeSizeof>(v1, v0));
+        case  5: return fixup(alignr_epi8< 5 * EntryTypeSizeof>(v1, v0));
+        case  6: return fixup(alignr_epi8< 6 * EntryTypeSizeof>(v1, v0));
+        case  7: return fixup(alignr_epi8< 7 * EntryTypeSizeof>(v1, v0));
+        case  8: return fixup(alignr_epi8< 8 * EntryTypeSizeof>(v1, v0));
+        case  9: return fixup(alignr_epi8< 9 * EntryTypeSizeof>(v1, v0));
+        case 10: return fixup(alignr_epi8<10 * EntryTypeSizeof>(v1, v0));
+        case 11: return fixup(alignr_epi8<11 * EntryTypeSizeof>(v1, v0));
+        case 12: return fixup(alignr_epi8<12 * EntryTypeSizeof>(v1, v0));
+        case 13: return fixup(alignr_epi8<13 * EntryTypeSizeof>(v1, v0));
+        case 14: return fixup(alignr_epi8<14 * EntryTypeSizeof>(v1, v0));
+        case 15: return fixup(alignr_epi8<15 * EntryTypeSizeof>(v1, v0));
+        }
+    }
+    return shiftIn.shifted(size() + amount);
 }
 template<typename T> Vc_INTRINSIC Vc_PURE Vector<T> Vector<T>::rotated(int amount) const
 {
