@@ -185,11 +185,7 @@ inline Point3 Spline2::GetValue(Point2 ab) const  //{{{1
                       Vc::simd_cast<float4, 2>(xyz), float4::Zero());
 
     float4 res = GetSpline3(v[0], v[1], v[2], v[3], da);
-    std::array<float, 3> XYZ;
-    XYZ[0] = res[0];
-    XYZ[1] = res[1];
-    XYZ[2] = res[2];
-    return XYZ;
+    return {res[0], res[1], res[2]};
 }
 
 inline Spline2::Point3V Spline2::GetValue(Point2V ab) const  //{{{1

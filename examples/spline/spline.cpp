@@ -97,11 +97,7 @@ Point3 Spline::GetValue(Point2 ab) const  //{{{1
         ind += fNB;
     }
     float4 res = GetSpline3(v[0], v[1], v[2], v[3], da);
-    std::array<float, 3> XYZ;
-    XYZ[0] = res[0];
-    XYZ[1] = res[1];
-    XYZ[2] = res[2];
-    return XYZ;
+    return {res[0], res[1], res[2]};
 }
 
 Point3 Spline::GetValue16(Point2 ab) const  //{{{1
@@ -128,11 +124,7 @@ Point3 Spline::GetValue16(Point2 ab) const  //{{{1
     const float4 res =
         GetSpline3(Vc::simd_cast<float4, 0>(v0123), Vc::simd_cast<float4, 1>(v0123),
                    Vc::simd_cast<float4, 2>(v0123), Vc::simd_cast<float4, 3>(v0123), da);
-    std::array<float, 3> XYZ;
-    XYZ[0] = res[0];
-    XYZ[1] = res[1];
-    XYZ[2] = res[2];
-    return XYZ;
+    return {res[0], res[1], res[2]};
 }
 
 Point3 Spline::GetValueScalar(Point2 ab) const  //{{{1
@@ -155,11 +147,7 @@ Point3 Spline::GetValueScalar(Point2 ab) const  //{{{1
                            fXYZ[ind + 3][2], db);
         ind += fNB;
     }
-    std::array<float, 3> XYZ;
-    XYZ[0] = GetSpline3(vx, da);
-    XYZ[1] = GetSpline3(vy, da);
-    XYZ[2] = GetSpline3(vz, da);
-    return XYZ;
+    return {GetSpline3(vx, da), GetSpline3(vy, da), GetSpline3(vz, da)};
 }
 
 Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
