@@ -857,6 +857,9 @@ Vc_INTRINSIC Vc_CONST enable_if<(offset != 0 && SSE::is_vector<Return>::value &&
     static_assert(shift > 0, "");
     static_assert(shift < sizeof(V), "");
     using SseVector = SSE::Vector<typename V::EntryType>;
+    if (shift == 16) {
+        return simd_cast<Return>(SseVector{AVX::hi128(x.data())});
+    }
     using Intrin = typename SseVector::VectorType;
     return simd_cast<Return>(SseVector{AVX::avx_cast<Intrin>(
         _mm_alignr_epi8(AVX::avx_cast<__m128i>(AVX::hi128(x.data())),
@@ -915,6 +918,9 @@ Vc_INTRINSIC Vc_CONST enable_if<(offset != 0 && SSE::is_mask<Return>::value &&
     static_assert(shift > 0, "");
     static_assert(shift < sizeof(M), "");
     using SseVector = SSE::Mask<Traits::entry_type_of<typename M::Vector>>;
+    if (shift == 16) {
+        return simd_cast<Return>(SseVector{AVX::hi128(x.data())});
+    }
     using Intrin = typename SseVector::VectorType;
     return simd_cast<Return>(SseVector{AVX::avx_cast<Intrin>(
         _mm_alignr_epi8(AVX::hi128(x.dataI()), AVX::lo128(x.dataI()), shift))});
