@@ -77,7 +77,7 @@ template <typename T> static inline T GetSpline3(const T *v, T x)
     return GetSpline3(v[0], v[1], v[2], v[3], x);
 }
 
-std::array<float, 3> Spline::GetValue(std::array<float, 2> ab) const  //{{{1
+Point3 Spline::GetValue(Point2 ab) const  //{{{1
 {
     float da1, db1;
     unsigned iA, iB;
@@ -104,7 +104,7 @@ std::array<float, 3> Spline::GetValue(std::array<float, 2> ab) const  //{{{1
     return XYZ;
 }
 
-std::array<float, 3> Spline::GetValue16(std::array<float, 2> ab) const  //{{{1
+Point3 Spline::GetValue16(Point2 ab) const  //{{{1
 {
     float da1, db1;
     unsigned iA, iB;
@@ -135,7 +135,7 @@ std::array<float, 3> Spline::GetValue16(std::array<float, 2> ab) const  //{{{1
     return XYZ;
 }
 
-std::array<float, 3> Spline::GetValueScalar(std::array<float, 2> ab) const  //{{{1
+Point3 Spline::GetValueScalar(Point2 ab) const  //{{{1
 {
     float da, db;
     unsigned iA, iB;

@@ -156,7 +156,7 @@ template <typename T> static inline T GetSpline3(const T v[], T x)
     return GetSpline3(v[0], v[1], v[2], v[3], x);
 }
 
-inline std::array<float, 3> Spline2::GetValue(std::array<float, 2> ab) const  //{{{1
+inline Point3 Spline2::GetValue(Point2 ab) const  //{{{1
 {
     float da1, db1;
     unsigned iA, iB;

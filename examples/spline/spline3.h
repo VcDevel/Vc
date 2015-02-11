@@ -128,7 +128,7 @@ inline int Spline3::GetMapSize() const { return 4 * sizeof(float) * fN; }
 
 inline int Spline3::GetNPoints() const { return fN; }
 
-inline std::array<float, 3> Spline3::GetValue(std::array<float, 2> ab) const  //{{{1
+inline Point3 Spline3::GetValue(Point2 ab) const  //{{{1
 {
     float da1, db1;
     unsigned iA, iB;
