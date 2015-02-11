@@ -44,12 +44,14 @@ enum DisabledTests {
 };
 enum EnabledTests {
     Scalar,
+    Alice,
     Float4,
     Float16,
     Float12,
     Float12Interleaved,
     Horizontal1,
     Horizontal2,
+    Autovectorized,
     NBenchmarks
 };
 
@@ -57,6 +59,7 @@ std::string testName(int i)
 {
     switch (i) {
     case Scalar:             return "Scalar";
+    case Alice:              return "Alice";
     case Float4:             return "Float4";
     case Float16:            return "Float16";
     case Float12:            return "Float12";
@@ -64,6 +67,7 @@ std::string testName(int i)
     case Horizontal1:        return "Horiz.1";
     case Horizontal2:        return "Horiz.2";
     case Horizontal3:        return "Horiz.3";
+    case Autovectorized:     return "Autovec";
     default:                 return "<unknown>";
     }
 }
@@ -253,6 +257,18 @@ int main()  // {{{1
                     asm("" ::"m"(p2));
                 });
                 break;
+            case Alice:  // {{{3
+                runner.benchmark(i, [&](const Point2 &p) {
+                    const auto &p2 = spline.GetValueAlice(p);
+                    asm("" ::"m"(p2));
+                });
+                break;
+            case Autovectorized:  // {{{3
+                runner.benchmark(i, [&](const Point2 &p) {
+                    const auto &p2 = spline.GetValueAutovec(p);
+                    asm("" ::"m"(p2));
+                });
+                break;
             case Float4:  // {{{3
                 runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline.GetValue(p);
@@ -322,6 +338,28 @@ int main()  // {{{1
             VectorizeBuffer<Point3> vectorizer3;
             for (const auto &p : searchPoints) {
                 const auto &ps = spline.GetValueScalar(p);
+                if (TestInfo(Alice)) {  //{{{3
+                    const auto &pv = spline.GetValueAlice(p);
+                    for (int i = 0; i < 3; ++i) {
+                        if (std::abs(ps[i] - pv[i]) > 0.00001f) {
+                            std::cout << "\nAlice not equal at " << p << ": " << ps
+                                      << " vs. " << pv;
+                            failed = true;
+                            break;
+                        }
+                    }
+                }
+                if (TestInfo(Autovectorized)) {  //{{{3
+                    const auto &pv = spline.GetValueAutovec(p);
+                    for (int i = 0; i < 3; ++i) {
+                        if (std::abs(ps[i] - pv[i]) > 0.00001f) {
+                            std::cout << "\nAutovectorized not equal at " << p << ": " << ps
+                                      << " vs. " << pv;
+                            failed = true;
+                            break;
+                        }
+                    }
+                }
                 if (TestInfo(Float4)) {  //{{{3
                     const auto &pv = spline.GetValue(p);
                     for (int i = 0; i < 3; ++i) {

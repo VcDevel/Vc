@@ -76,7 +76,9 @@ public:
     Point3 GetValue(Point2) const;
     Point3 GetValue16(Point2 ab) const;
     Point3 GetValueScalar(Point2) const;
+    Point3 GetValueAutovec(Point2 ab) const;
     Point3V GetValue(const Point2V &) const;
+    Point3 GetValueAlice(Point2 ab) const;
 
     /**  Get size of the grid */
     int GetMapSize() const;

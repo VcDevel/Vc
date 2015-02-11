@@ -150,6 +150,28 @@ Point3 Spline::GetValueScalar(Point2 ab) const  //{{{1
     return {GetSpline3(vx, da), GetSpline3(vy, da), GetSpline3(vz, da)};
 }
 
+Point3 Spline::GetValueAutovec(Point2 ab) const  //{{{1
+{
+    float da, db;
+    int iA, iB;
+    std::tie(iA, iB, da, db) =
+        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
+    int ind = iA * fNB + iB;
+
+    float vx[4];
+    float vy[4];
+    float vz[4];
+    const float *m = reinterpret_cast<const float *>(&fXYZ[0]);
+    for (int i = 0; i < 4; i++) {
+        int ind4 = ind * 4;
+        vx[i] = GetSpline3(m[ind4 + 0], m[ind4 + 4], m[ind4 + 8], m[ind4 + 12], db);
+        vy[i] = GetSpline3(m[ind4 + 1], m[ind4 + 5], m[ind4 + 9], m[ind4 + 13], db);
+        vz[i] = GetSpline3(m[ind4 + 2], m[ind4 + 6], m[ind4 + 10], m[ind4 + 14], db);
+        ind += fNB;
+    }
+    return {GetSpline3(vx, da), GetSpline3(vy, da), GetSpline3(vz, da)};
+}
+
 Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
 {
     index_v iA, iB;
@@ -180,4 +202,58 @@ Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
     return XYZ;
 }
 
+// Point3 Spline::GetValueAlice(Point2 ab) const {{{1
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+__attribute__((optimize("no-tree-vectorize")))
+Point3 Spline::GetValueAlice(Point2 ab) const
+{
+    float lA = (ab[0] - fMinA) * fScaleA - 1.f;
+    int iA = (int)lA;
+    if (lA < 0) iA = 0;
+    else if (iA > fNA - 4) iA = fNA - 4;
+
+    float lB = (ab[1] - fMinB) * fScaleB - 1.f;
+    int iB = (int)lB;
+    if (lB < 0) iB = 0;
+    else if (iB > fNB - 4) iB = fNB - 4;
+
+    Point3 XYZ;
+    if (Vc::float_v::Size == 4) {
+        Vc::float_v da = lA - iA;
+        Vc::float_v db = lB - iB;
+
+        Vc::float_v v[4];
+        int ind = iA * fNB + iB;
+        const Vc::float_v *m = reinterpret_cast<const Vc::float_v *>(&fXYZ[0]);
+
+        for (int i = 0; i < 4; i++) {
+            v[i] = GetSpline3(m[ind + 0], m[ind + 1], m[ind + 2], m[ind + 3], db);
+            ind += fNB;
+        }
+        Vc::float_v res = GetSpline3(v[0], v[1], v[2], v[3], da);
+        XYZ[0] = res[0];
+        XYZ[1] = res[1];
+        XYZ[2] = res[2];
+    } else {
+        float da = lA - iA;
+        float db = lB - iB;
+
+        float vx[4];
+        float vy[4];
+        float vz[4];
+        int ind = iA * fNB + iB;
+        const float *m = reinterpret_cast<const float *>(&fXYZ[0]);
+        for (int i = 0; i < 4; i++) {
+            int ind4 = ind * 4;
+            vx[i] = GetSpline3(m[ind4 + 0], m[ind4 + 4], m[ind4 + 8], m[ind4 + 12], db);
+            vy[i] = GetSpline3(m[ind4 + 1], m[ind4 + 5], m[ind4 + 9], m[ind4 + 13], db);
+            vz[i] = GetSpline3(m[ind4 + 2], m[ind4 + 6], m[ind4 + 10], m[ind4 + 14], db);
+            ind += fNB;
+        }
+        XYZ[0] = GetSpline3(vx, da);
+        XYZ[1] = GetSpline3(vy, da);
+        XYZ[2] = GetSpline3(vz, da);
+    }
+    return XYZ;
+}
 // vim: foldmethod=marker
