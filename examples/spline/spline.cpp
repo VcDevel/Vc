@@ -80,10 +80,10 @@ template <typename T> static inline T GetSpline3(const T *v, T x)
 Point3 Spline::GetValue(Point2 ab) const  //{{{1
 {
     float da1, db1;
-    unsigned iA, iB;
+    int iA, iB;
     std::tie(iA, iB, da1, db1) =
         evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
-    unsigned ind = iA * fNB + iB;
+    int ind = iA * fNB + iB;
 
     typedef Vc::simdarray<float, 4> float4;
     const float4 da = da1;
@@ -103,7 +103,7 @@ Point3 Spline::GetValue(Point2 ab) const  //{{{1
 Point3 Spline::GetValue16(Point2 ab) const  //{{{1
 {
     float da1, db1;
-    unsigned iA, iB;
+    int iA, iB;
     std::tie(iA, iB, da1, db1) =
         evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
@@ -130,10 +130,10 @@ Point3 Spline::GetValue16(Point2 ab) const  //{{{1
 Point3 Spline::GetValueScalar(Point2 ab) const  //{{{1
 {
     float da, db;
-    unsigned iA, iB;
+    int iA, iB;
     std::tie(iA, iB, da, db) =
         evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
-    unsigned ind = iA * fNB + iB;
+    int ind = iA * fNB + iB;
 
     float vx[4];
     float vy[4];
@@ -152,14 +152,15 @@ Point3 Spline::GetValueScalar(Point2 ab) const  //{{{1
 
 Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
 {
-    float_v iA, iB, da, db;
+    index_v iA, iB;
+    float_v da, db;
     std::tie(iA, iB, da, db) =
         evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
     float_v vx[4];
     float_v vy[4];
     float_v vz[4];
-    auto ind = static_cast<float_v::IndexType>(iA * fNB + iB);
+    auto ind = iA * fNB + iB;
     const auto map = Vc::make_interleave_wrapper<float_v>(&fXYZ[0]);
     for (int i = 0; i < 4; i++) {
         float_v x[4], y[4], z[4];

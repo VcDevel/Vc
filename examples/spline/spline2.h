@@ -159,7 +159,7 @@ template <typename T> static __attribute__((always_inline)) inline T GetSpline3(
 inline Point3 Spline2::GetValue(Point2 ab) const  //{{{1
 {
     float da1, db1;
-    unsigned iA, iB;
+    int iA, iB;
     std::tie(iA, iB, da1, db1) =
         evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
@@ -190,11 +190,12 @@ inline Point3 Spline2::GetValue(Point2 ab) const  //{{{1
 
 inline Spline2::Point3V Spline2::GetValue(Point2V ab) const  //{{{1
 {
-    float_v iA, iB, da, db;
+    index_v iA, iB;
+    float_v da, db;
     std::tie(iA, iB, da, db) =
         evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
-    auto ind = static_cast<float_v::IndexType>(iA + iB * fNA);
+    auto ind = iA + iB * fNA;
     Point3V xyz;
 
     {

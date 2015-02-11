@@ -131,7 +131,7 @@ inline int Spline3::GetNPoints() const { return fN; }
 inline Point3 Spline3::GetValue(Point2 ab) const  //{{{1
 {
     float da1, db1;
-    unsigned iA, iB;
+    int iA, iB;
     std::tie(iA, iB, da1, db1) =
         evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
@@ -159,14 +159,15 @@ inline Point3 Spline3::GetValue(Point2 ab) const  //{{{1
 
 Point3V Spline3::GetValue(const Point2V &ab) const  //{{{1
 {
-    float_v iA, iB, da, db;
+    index_v iA, iB;
+    float_v da, db;
     std::tie(iA, iB, da, db) =
         evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
     float_v vx[4];
     float_v vy[4];
     float_v vz[4];
-    auto ind = static_cast<float_v::IndexType>(iA + iB * fNA);
+    auto ind = iA + iB * fNA;
     for (int i = 0; i < 4; i++) {
         float_v x[4], y[4], z[4];
         Vc::tie(x[0], y[0], z[0]) = fXYZ[ind][0];
