@@ -246,39 +246,39 @@ int main()  // {{{1
         // run Benchmarks {{{2
         for (EnabledTests i = EnabledTests(0); i < NBenchmarks; ++i) {
             VectorizeBuffer<Point2> vectorizer;
-            switch (i) {
+            switch (int(i)) {
             case Scalar:  // {{{3
-                runner.benchmark(Scalar, [&](const Point2 &p) {
+                runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline.GetValueScalar(p);
                     asm("" ::"m"(p2));
                 });
                 break;
             case Float4:  // {{{3
-                runner.benchmark(Float4, [&](const Point2 &p) {
+                runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline.GetValue(p);
                     asm("" ::"m"(p2));
                 });
                 break;
             case Float16:  // {{{3
-                runner.benchmark(Float16, [&](const Point2 &p) {
+                runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline.GetValue16(p);
                     asm("" ::"m"(p2));
                 });
                 break;
             case Float12:  // {{{3
-                runner.benchmark(Float12, [&](const Point2 &p) {
+                runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline2.GetValue(p);
                     asm("" ::"m"(p2));
                 });
                 break;
             case Float12Interleaved:  // {{{3
-                runner.benchmark(Float12Interleaved, [&](const Point2 &p) {
+                runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline3.GetValue(p);
                     asm("" ::"m"(p2));
                 });
                 break;
             case Horizontal1:  // {{{3
-                runner.benchmark(Horizontal1, [&](const Point2 &p) {
+                runner.benchmark(i, [&](const Point2 &p) {
                     if (0 == vectorizer(p)) {
                         const auto &p2 = spline.GetValue(vectorizer.input);
                         asm("" ::"m"(p2));
@@ -286,7 +286,7 @@ int main()  // {{{1
                 });
                 break;
             case Horizontal2:  // {{{3
-                runner.benchmark(Horizontal2, [&](const Point2 &p) {
+                runner.benchmark(i, [&](const Point2 &p) {
                     if (0 == vectorizer(p)) {
                         const auto &p2 = spline2.GetValue(vectorizer.input);
                         asm("" ::"m"(p2));
@@ -294,7 +294,7 @@ int main()  // {{{1
                 });
                 break;
             case Horizontal3:  // {{{3
-                runner.benchmark(Horizontal3, [&](const Point2 &p) {
+                runner.benchmark(i, [&](const Point2 &p) {
                     if (0 == vectorizer(p)) {
                         const auto &p2 = spline3.GetValue(vectorizer.input);
                         asm("" ::"m"(p2));
@@ -326,7 +326,7 @@ int main()  // {{{1
                     const auto &pv = spline.GetValue(p);
                     for (int i = 0; i < 3; ++i) {
                         if (std::abs(ps[i] - pv[i]) > 0.00001f) {
-                            std::cout << "\nVectorized not equal at " << p << ": " << ps
+                            std::cout << "\nFloat4 not equal at " << p << ": " << ps
                                       << " vs. " << pv;
                             failed = true;
                             break;
@@ -337,7 +337,7 @@ int main()  // {{{1
                     const auto &pv = spline.GetValue16(p);
                     for (int i = 0; i < 3; ++i) {
                         if (std::abs(ps[i] - pv[i]) > 0.00001f) {
-                            std::cout << "\nVec16 not equal at " << p << ": " << ps
+                            std::cout << "\nFloat16 not equal at " << p << ": " << ps
                                       << " vs. " << pv;
                             failed = true;
                             break;
@@ -348,7 +348,7 @@ int main()  // {{{1
                     const auto &pv = spline2.GetValue(p);
                     for (int i = 0; i < 3; ++i) {
                         if (std::abs(ps[i] - pv[i]) > 0.00001f) {
-                            std::cout << "\nVec2 not equal at " << p << ": " << ps
+                            std::cout << "\nFloat12 not equal at " << p << ": " << ps
                                       << " vs. " << pv;
                             failed = true;
                             break;
@@ -359,7 +359,7 @@ int main()  // {{{1
                     const auto &pv = spline3.GetValue(p);
                     for (int i = 0; i < 3; ++i) {
                         if (std::abs(ps[i] - pv[i]) > 0.00001f) {
-                            std::cout << "\nVec12 not equal at " << p << ": " << ps
+                            std::cout << "\nFloat12Interleaved not equal at " << p << ": " << ps
                                       << " vs. " << pv;
                             failed = true;
                             break;
@@ -372,7 +372,7 @@ int main()  // {{{1
                         const auto &pv = spline.GetValue(vectorizer2.input);
                         for (int i = 0; i < 3; ++i) {
                             if (any_of(abs(vectorizer3.input[i] - pv[i]) > 0.00001f)) {
-                                cout << "\nHorizontal not equal at " << vectorizer2.input
+                                cout << "\nHorizontal1 not equal at " << vectorizer2.input
                                      << ": " << vectorizer3.input << " vs. " << pv;
                                 failed = true;
                                 break;
