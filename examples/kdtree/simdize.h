@@ -441,7 +441,7 @@ template <typename T> static inline T decay_workaround(const T &x) { return x; }
  * Generic implementation of simdize_extract using the std::tuple get interface.
  */
 template <typename T, std::size_t N, std::size_t... Indexes>
-inline T simdize_get_impl(const Adapter<T, N> &a, std::size_t i,
+Vc_INTRINSIC T simdize_get_impl(const Adapter<T, N> &a, std::size_t i,
                           Vc::index_sequence<Indexes...>)
 {
     const std::tuple<decltype(decay_workaround(get<Indexes>(a)[i]))...> tmp(
@@ -537,7 +537,7 @@ inline void simdize_swap_impl(Adapter<T, N> &a, std::size_t i, T &x,
  * simdized object \p a.
  */
 template <typename T, std::size_t N>
-inline T simdize_extract(const Adapter<T, N> &a, std::size_t i)
+Vc_INTRINSIC T simdize_extract(const Adapter<T, N> &a, std::size_t i)
 {
     return simdize_get_impl(a, i, Vc::make_index_sequence<std::tuple_size<T>::value>());
 }
