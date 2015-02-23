@@ -113,7 +113,7 @@ struct SubstituteOneByOne<N_, MT, Typelist<Replaced0, Replaced...>>
     };
 };
 
-template <typename Base, std::size_t N> class Adapter;
+template <typename Scalar, typename Base, std::size_t N> class SimdizeAdapter;
 
 // specialization for class templates where all template arguments need to be substituted
 template <template <typename...> class C, typename... Ts, std::size_t N, typename MT>
@@ -122,8 +122,9 @@ struct ReplaceTypes<C<Ts...>, N, MT, false>
     typedef typename SubstituteOneByOne<N, MT, Typelist<>, Ts...>::type tmp;
     typedef typename tmp::template Substituted<C> Substituted;
     static constexpr auto NN = tmp::N;
-    typedef typename std::conditional<std::is_same<C<Ts...>, Substituted>::value,
-                                      C<Ts...>, Adapter<Substituted, NN>>::type type;
+    typedef typename std::conditional<
+        std::is_same<C<Ts...>, Substituted>::value, C<Ts...>,
+        SimdizeAdapter<C<Ts...>, Substituted, NN>>::type type;
 };
 
 // specialization for class templates where all template arguments need to be substituted
@@ -138,7 +139,8 @@ struct ReplaceTypes<C<Ts...>, N, MT, false>
         static constexpr auto NN = tmp::N;                                               \
         typedef typename std::conditional<                                               \
             std::is_same<C<Ts, Value0, Values...>, Substituted>::value,                  \
-            C<Ts, Value0, Values...>, Adapter<Substituted, NN>>::type type;              \
+            C<Ts, Value0, Values...>,                                                    \
+            SimdizeAdapter<C<Ts, Value0, Values...>, Substituted, NN>>::type type;       \
     }
 Vc_DEFINE_NONTYPE_REPLACETYPES__(bool);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(wchar_t);
@@ -155,37 +157,42 @@ Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed long long);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long long);
 #undef Vc_DEFINE_NONTYPE_REPLACETYPES__
 
-// Adapter wrapper class
-template <typename Base, std::size_t N> class Adapter : public Base
+// SimdizeAdapter wrapper class
+template <typename Scalar, typename Base, std::size_t N>
+class SimdizeAdapter : public Base
 {
 public:
     static constexpr std::size_t Size = N;
     static constexpr std::size_t size() { return N; }
 
     using base_type = Base;
+    using scalar_type = Scalar;
 };
-template <typename Base, std::size_t N> constexpr std::size_t Adapter<Base, N>::Size;
+template <typename Scalar, typename Base, std::size_t N>
+constexpr std::size_t SimdizeAdapter<Scalar, Base, N>::Size;
 
 }  // namespace Vc
 
 namespace std
 {
 // tuple_size
-template <typename Base, std::size_t N>
-class tuple_size<Vc::Adapter<Base, N>> : public tuple_size<Base>
+template <typename Scalar, typename Base, std::size_t N>
+class tuple_size<Vc::SimdizeAdapter<Scalar, Base, N>> : public tuple_size<Base>
 {
 };
 // tuple_element
-template <std::size_t I, typename Base, std::size_t N>
-class tuple_element<I, Vc::Adapter<Base, N>> : public tuple_element<I, Base>
+template <std::size_t I, typename Scalar, typename Base, std::size_t N>
+class tuple_element<I, Vc::SimdizeAdapter<Scalar, Base, N>>
+    : public tuple_element<I, Base>
 {
 };
-// std::get does not need additional work because Vc::Adapter derives from
-// C<Ts...> and therefore if get<N>(C<Ts...>) works it works for Adapter as well.
+// std::get does not need additional work because Vc::SimdizeAdapter derives from
+// C<Ts...> and therefore if get<N>(C<Ts...>) works it works for SimdizeAdapter as well.
 
-// std::allocator<Vc::Adapter<T, N>>
-template <typename T, std::size_t N>
-class allocator<Vc::Adapter<T, N>> : public Vc::Allocator<Vc::Adapter<T, N>>
+// std::allocator<Vc::SimdizeAdapter<T, N>>
+template <typename S, typename T, std::size_t N>
+class allocator<Vc::SimdizeAdapter<S, T, N>>
+    : public Vc::Allocator<Vc::SimdizeAdapter<S, T, N>>
 {
 public:
     template <typename U> struct rebind
