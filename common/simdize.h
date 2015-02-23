@@ -202,6 +202,51 @@ public:
 };
 }  // namespace std
 
+namespace Vc_VERSIONED_NAMESPACE
+{
+// dummy get<N>(...)
+namespace
+{
+struct Dummy__;
+template <std::size_t> Dummy__ get(Dummy__ x);
+}  // unnamed namespace
+
+template <typename T, std::size_t TupleSize = std::tuple_size<T>::value>
+constexpr std::size_t determine_tuple_size()
+{
+    return TupleSize;
+}
+template <typename T>
+constexpr std::size_t determine_tuple_size(std::size_t N = T::tuple_size)
+{
+    return N;
+}
+
+template <typename T> static inline T decay_workaround(const T &x) { return x; }
+/** \internal
+ * Generic implementation of simdize_assign using the std::tuple get interface.
+ */
+template <typename S, typename T, std::size_t N, std::size_t... Indexes>
+inline void simdize_assign_impl(SimdizeAdapter<S, T, N> &a, std::size_t i, const S &x,
+                                Vc::index_sequence<Indexes...>)
+{
+    const std::tuple<decltype(decay_workaround(get<Indexes>(x)))...> tmp(
+        decay_workaround(get<Indexes>(x))...);
+    auto &&unused = {(get<Indexes>(a)[i] = get<Indexes>(tmp), 0)...};
+    if (&unused == &unused) {}
+}
+
+/**
+ * Assigns one scalar object \p x to a SIMD slot at offset \p i in the simdized object \p
+ * a.
+ */
+template <typename S, typename T, std::size_t N>
+inline void simdize_assign(SimdizeAdapter<S, T, N> &a, std::size_t i, const S &x)
+{
+    simdize_assign_impl(a, i, x, Vc::make_index_sequence<determine_tuple_size<T>()>());
+}
+}  // namespace Vc
+
 #include "undomacros.h"
 
 #endif  // VC_COMMON_SIMDIZE_H_
