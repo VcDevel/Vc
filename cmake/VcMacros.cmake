@@ -265,6 +265,9 @@ macro(vc_set_preferred_compiler_flags)
       vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 913")
       # Disable warning #13211 "Immediate parameter to intrinsic call too large". (sse/vector.tcc rotated(int))
       vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 13211")
+      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 61") # warning #61: integer operation result is out of range
+      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 173") # warning #173: floating-point value does not fit in required integral type
+      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 264") # warning #264: floating-point value does not fit in required floating-point type
       if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
          set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
          if(ENABLE_STRICT_ALIASING)
