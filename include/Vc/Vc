@@ -26,6 +26,7 @@
 #include "Allocator"
 #include "iterators"
 #include "simdarray"
+#include "simdize"
 #endif // VC_VC
 
 // vim: ft=cpp
