@@ -85,6 +85,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #if defined(VC_ICC)
+#define __POPCNT__
 #if VC_ICC <= 20130728
 // ICC doesn't know noexcept, alignof, and move ctors
 #define Vc__NO_NOEXCEPT 1
