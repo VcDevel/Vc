@@ -207,7 +207,7 @@ template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(cons
     return typename Vector<T>::Mask(
 #ifdef _MSC_VER
             !!_isnan(x.data())
-#elif defined(__INTEL_COMPILER)
+#elif defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1500
             ::isnan(x.data())
 #else
             std::isnan(x.data())
