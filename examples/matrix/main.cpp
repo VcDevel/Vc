@@ -193,6 +193,8 @@ std::ostream &operator<<(std::ostream &out, const M<T, N> &m)
     return out << " ⎦\n";
 }
 
+template <typename T> void unused(const T &) {}
+
 int main()
 {
     static constexpr size_t N = 23;
@@ -221,6 +223,7 @@ int main()
         tsc.start();
         auto CS = scalar_mul(A, B);
         tsc.stop();
+        unused(CS);
         std::cout << tsc << " Cycles for " << N * N * (N + N - 1) << " FLOP => ";
         std::cout << double(N * N * (N + N - 1)) / tsc.cycles() << " FLOP/cycle (scalar)\n";
     }
@@ -228,6 +231,7 @@ int main()
         tsc.start();
         auto C = A * B;
         tsc.stop();
+        unused(C);
         std::cout << tsc << " Cycles for " << N * N * (N + N - 1) << " FLOP => ";
         std::cout << double(N * N * (N + N - 1)) / tsc.cycles() << " FLOP/cycle (vector)\n";
     }
@@ -235,6 +239,7 @@ int main()
         tsc.start();
         auto C = AV * BV;
         tsc.stop();
+        unused(C);
         std::cout << tsc << " Cycles for " << N * N * (N + N - 1) << " FLOP => ";
         std::cout << double(N * N * (N + N - 1)) / tsc.cycles() << " FLOP/cycle (valarray)\n";
     }
