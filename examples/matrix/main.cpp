@@ -120,16 +120,16 @@ inline Matrix<T, N> operator*(const Matrix<T, N> &a, const Matrix<T, N> &b)
     for (size_t j = 0; j < N; j += V::size()) {
         V c_ij[UnrollOuterloop];
         for (size_t n = N0; n < N; ++n) {
-            c_ij[n] = a[n][0] * V(&b[0][j], Vc::Aligned);
+            c_ij[n - N0] = a[n][0] * V(&b[0][j], Vc::Aligned);
         }
         for (size_t k = 1; k < N - 1; ++k) {
             for (size_t n = N0; n < N; ++n) {
-                c_ij[n] += a[n][k] * V(&b[k][j], Vc::Aligned);
+                c_ij[n - N0] += a[n][k] * V(&b[k][j], Vc::Aligned);
             }
         }
         for (size_t n = N0; n < N; ++n) {
-            c_ij[n] += a[n][N - 1] * V(&b[N - 1][j], Vc::Aligned);
-            c_ij[n].store(&c[n][j], Vc::Aligned);
+            c_ij[n - N0] += a[n][N - 1] * V(&b[N - 1][j], Vc::Aligned);
+            c_ij[n - N0].store(&c[n][j], Vc::Aligned);
         }
     }
     return c;
