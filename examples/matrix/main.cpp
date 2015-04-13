@@ -25,12 +25,43 @@
 #include <Vc/IO>
 #include <iostream>
 #include <iomanip>
+#include <valarray>
 #include "../tsc.h"
 
 static constexpr size_t UnrollOuterloop = 4;
 
+template <typename T, size_t N> class MatrixValarray
+{
+    using V = std::valarray<T>;
+    V data[N];
+
+public:
+    MatrixValarray()
+    {
+        for (auto &v : data) {
+            v.resize(N);
+        }
+    }
+    std::valarray<T> &operator[](std::size_t i) { return data[i]; }
+    const std::valarray<T> &operator[](std::size_t i) const { return data[i]; }
+};
+
 template <typename T, size_t N>
-class Matrix {
+inline MatrixValarray<T, N> operator*(const MatrixValarray<T, N> &a,
+                                      const MatrixValarray<T, N> &b)
+{
+    MatrixValarray<T, N> c;
+    for (size_t i = 0; i < N; ++i) {
+        c[i] = a[i][0] * b[0];
+        for (size_t k = 1; k < N; ++k) {
+            c[i] += a[i][k] * b[k];
+        }
+    }
+    return c;
+}
+
+template <typename T, size_t N> class Matrix
+{
   using V = Vc::Vector<T>;
 
   // round up to the next multiple of V::size()
@@ -104,7 +135,7 @@ inline Matrix<T, N> operator*(const Matrix<T, N> &a, const Matrix<T, N> &b)
     return c;
 }
 
-// scalar vector multiplication
+// scalar matrix multiplication
 template <typename T, size_t N>
 Matrix<T, N> scalar_mul(const Matrix<T, N> &a, const Matrix<T, N> &b)
 {
@@ -120,8 +151,26 @@ Matrix<T, N> scalar_mul(const Matrix<T, N> &a, const Matrix<T, N> &b)
     return c;
 }
 
-template<typename T, size_t N>
-std::ostream &operator<<(std::ostream &out, const Matrix<T, N> &m)
+// valarray matrix multiplication
+template <typename T, size_t N>
+Matrix<T, N> valarray_mul(const Matrix<T, N> &a, const Matrix<T, N> &b)
+{
+    Matrix<T, N> c;
+    using V = std::valarray<T>;
+    for (size_t i = 0; i < N; ++i) {
+        V c_i = a[i][0] * V(&b[0][0], N);
+        for (size_t k = 1; k < N; ++k) {
+            c_i += a[i][k] * V(&b[k][0], N);
+        }
+        std::copy(std::begin(c_i), std::end(c_i), &c[i][0]);
+    }
+    return c;
+}
+
+template <template <typename, size_t> class M, typename T, size_t N,
+          typename = Vc::enable_if<(std::is_same<M<T, N>, Matrix<T, N>>::value ||
+                                    std::is_same<M<T, N>, MatrixValarray<T, N>>::value)>>
+std::ostream &operator<<(std::ostream &out, const M<T, N> &m)
 {
     out.precision(3);
     auto &&w = std::setw(6);
@@ -148,11 +197,15 @@ int main()
 {
     static constexpr size_t N = 23;
     Matrix<float, N> A;
-    Matrix<float, N> B ;
+    Matrix<float, N> B;
+    MatrixValarray<float, N> AV;
+    MatrixValarray<float, N> BV;
     for (size_t i = 0; i < N; ++i) {
         for (size_t j = 0; j < N; ++j) {
             A[i][j] = 0.01 * (i + j);
             B[i][j] = 0.01 * (N + i - j);
+            AV[i][j] = 0.01 * (i + j);
+            BV[i][j] = 0.01 * (N + i - j);
         }
     }
     {
@@ -160,6 +213,8 @@ int main()
         std::cout << A << "times\n" << B << "=\n" << C;
         auto CS = scalar_mul(A, B);
         std::cout << "scalar=\n" << CS;
+        auto CV = AV * BV;
+        std::cout << "valarray=\n" << CV;
     }
     TimeStampCounter tsc;
     for (int i = 0; i < 10; ++i) {
@@ -175,6 +230,13 @@ int main()
         tsc.stop();
         std::cout << tsc << " Cycles for " << N * N * (N + N - 1) << " FLOP => ";
         std::cout << double(N * N * (N + N - 1)) / tsc.cycles() << " FLOP/cycle (vector)\n";
+    }
+    for (int i = 0; i < 10; ++i) {
+        tsc.start();
+        auto C = AV * BV;
+        tsc.stop();
+        std::cout << tsc << " Cycles for " << N * N * (N + N - 1) << " FLOP => ";
+        std::cout << double(N * N * (N + N - 1)) / tsc.cycles() << " FLOP/cycle (valarray)\n";
     }
     return 0;
 }
