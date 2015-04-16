@@ -63,9 +63,10 @@ TEST(test_simdize)
     COMPARE(typeid(Test4_2), typeid(simdize<float, double_v::Size>));
     COMPARE(typeid(simdize<tuple<std::string>>), typeid(tuple<std::string>));
     COMPARE(typeid(simdize<float>), typeid(float_v));
-    COMPARE(
-        typeid(Test1),
-        typeid(Adapter<tuple<float_v, simdize<double, float_v::Size>>, float_v::Size>));
+    COMPARE(typeid(Test1),
+            typeid(SimdizeAdapter<tuple<float, double>,
+                                  tuple<float_v, simdize<double, float_v::Size>>,
+                                  float_v::Size>));
 }
 
 TEST(simdize_bools)
@@ -81,32 +82,43 @@ TEST(simdize_bools)
     COMPARE(typeid(simdize<bool, int_m::Size + 1, int>),
             typeid(simd_mask_array<int, int_m::Size + 1>));
 
-    COMPARE(typeid(simdize<tuple<bool>>), typeid(Adapter<tuple<float_m>, float_m::Size>));
+    COMPARE(typeid(simdize<tuple<bool>>),
+            typeid(SimdizeAdapter<tuple<bool>, tuple<float_m>, float_m::Size>));
     COMPARE(typeid(simdize<tuple<bool>, float_m::Size>),
-            typeid(Adapter<tuple<float_m>, float_m::Size>));
-    COMPARE(typeid(simdize<tuple<bool>, float_m::Size + 1>),
-            typeid(Adapter<tuple<simd_mask_array<float, float_m::Size + 1>>,
+            typeid(SimdizeAdapter<tuple<bool>, tuple<float_m>, float_m::Size>));
+    COMPARE(
+        typeid(simdize<tuple<bool>, float_m::Size + 1>),
+        typeid(
+            SimdizeAdapter<tuple<bool>, tuple<simd_mask_array<float, float_m::Size + 1>>,
                            float_m::Size + 1>));
 
-    COMPARE(typeid(simdize<tuple<int, bool>>), typeid(Adapter<tuple<int_v, int_m>, int_v::Size>));
-    COMPARE(typeid(simdize<tuple<int, bool>, 3>),
-            typeid(Adapter<tuple<simdarray<int, 3>, simd_mask_array<float, 3>>, 3>));
+    COMPARE(typeid(simdize<tuple<int, bool>>),
+            typeid(SimdizeAdapter<tuple<int, bool>, tuple<int_v, int_m>, int_v::Size>));
+    COMPARE(
+        typeid(simdize<tuple<int, bool>, 3>),
+        typeid(SimdizeAdapter<tuple<int, bool>,
+                              tuple<simdarray<int, 3>, simd_mask_array<float, 3>>, 3>));
 
-    COMPARE(typeid(simdize<tuple<bool, double, bool>>),
-            typeid(Adapter<tuple<float_m, simdarray<double, float_m::Size>, float_m>,
-                           float_m::Size>));
+    COMPARE(
+        typeid(simdize<tuple<bool, double, bool>>),
+        typeid(SimdizeAdapter<tuple<bool, double, bool>,
+                              tuple<float_m, simdarray<double, float_m::Size>, float_m>,
+                              float_m::Size>));
     COMPARE(typeid(simdize<tuple<bool, double, bool>, float_m::Size + 1>),
-            typeid(Adapter<tuple<simd_mask_array<float, float_m::Size + 1>,
-                                 simdarray<double, float_m::Size + 1>,
-                                 simd_mask_array<float, float_m::Size + 1>>,
-                           float_m::Size + 1>));
+            typeid(SimdizeAdapter<tuple<bool, double, bool>,
+                                  tuple<simd_mask_array<float, float_m::Size + 1>,
+                                        simdarray<double, float_m::Size + 1>,
+                                        simd_mask_array<float, float_m::Size + 1>>,
+                                  float_m::Size + 1>));
     COMPARE(typeid(simdize<tuple<bool, double, bool>, 0, double>),
-            typeid(Adapter<tuple<double_m, double_v, double_m>, double_m::Size>));
+            typeid(SimdizeAdapter<tuple<bool, double, bool>,
+                                  tuple<double_m, double_v, double_m>, double_m::Size>));
 
     COMPARE(typeid(simdize<tuple<int, double, bool>, 0, double>),
-            typeid(Adapter<
-                tuple<int_v, simdize<double, int_v::Size>, simdize<bool, int_v::Size, double>>,
-                int_v::Size>));
+            typeid(SimdizeAdapter<tuple<int, double, bool>,
+                                  tuple<int_v, simdize<double, int_v::Size>,
+                                        simdize<bool, int_v::Size, double>>,
+                                  int_v::Size>));
 }
 
 template <typename, int...> struct Foo
@@ -119,18 +131,20 @@ TEST(nontype_template_parameters)
     using namespace Vc;
     using std::array;
     COMPARE(typeid(simdize<array<float, 3>>),
-            typeid(Adapter<array<float_v, 3>, float_v::Size>));
+            typeid(SimdizeAdapter<array<float, 3>, array<float_v, 3>, float_v::Size>));
     COMPARE(typeid(simdize<array<bool, 3>>),
-            typeid(Adapter<array<float_m, 3>, float_m::Size>));
-    COMPARE(typeid(simdize<Foo<float, 3, 5, 6>>),
-            typeid(Adapter<Foo<float_v, 3, 5, 6>, float_v::Size>));
+            typeid(SimdizeAdapter<array<bool, 3>, array<float_m, 3>, float_m::Size>));
+    COMPARE(
+        typeid(simdize<Foo<float, 3, 5, 6>>),
+        typeid(
+            SimdizeAdapter<Foo<float, 3, 5, 6>, Foo<float_v, 3, 5, 6>, float_v::Size>));
 }
 
 TEST(tuple_interface)
 {
     using namespace Vc;
     using V0 = simdize<std::tuple<int, bool>>;
-    COMPARE(std::tuple_size<V0>::value, 2);
+    COMPARE(std::tuple_size<V0>::value, 2u);
     COMPARE(typeid(typename std::tuple_element<0, V0>::type), typeid(int_v));
     COMPARE(typeid(typename std::tuple_element<1, V0>::type), typeid(int_m));
 
