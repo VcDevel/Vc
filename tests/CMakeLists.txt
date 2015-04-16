@@ -36,7 +36,7 @@ macro(vc_add_run_target _target)
       if(MIC_NATIVELOAD)
          get_target_property(_exe "${_target}" OUTPUT_NAME)
          add_custom_target(run_${_target}
-            ${MIC_NATIVELOAD} "${_exe}"
+            ${MIC_NATIVELOAD} "${_exe}" -v
             DEPENDS ${_target}
             COMMENT "Execute ${_target} test"
             VERBATIM
@@ -44,7 +44,7 @@ macro(vc_add_run_target _target)
       endif()
    else()
       add_custom_target(run_${_target}
-         ${_target}
+         ${_target} -v
          DEPENDS ${_target}
          COMMENT "Execute ${_target} test"
          VERBATIM
