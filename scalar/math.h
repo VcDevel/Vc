@@ -189,7 +189,7 @@ template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isfinite(c
     return typename Vector<T>::Mask(
 #ifdef _MSC_VER
             !!_finite(x.data())
-#elif defined(__INTEL_COMPILER)
+#elif defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1500
             ::isfinite(x.data())
 #else
             std::isfinite(x.data())
