@@ -956,7 +956,13 @@ private:
         }
     }
     // print overloads {{{2
-    template <typename T> static inline void print(const T &x) { std::cout << x; }
+    template <typename T, typename = decltype(std::cout << std::declval<const T &>())>
+    static inline void printImpl(const T &x, int)
+    {
+        std::cout << x;
+    }
+    template <typename T> static inline void printImpl(const T &x, ...) { printMem(x); }
+    template <typename T> static inline void print(const T &x) { printImpl(x, int()); }
     static void print(const std::type_info &x)
     {
 #ifdef __GNUC__
