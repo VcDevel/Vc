@@ -549,6 +549,20 @@ inline void assign(Adapter<S, T, N> &a, size_t i, const S &x)
     assign_impl(a, i, x, Vc::make_index_sequence<determine_tuple_size<T>()>());
 }
 
+template <typename S, typename T, size_t N, size_t... Indexes>
+inline S extract_impl(const Adapter<S, T, N> &a, size_t i, Vc::index_sequence<Indexes...>)
+{
+    const std::tuple<decltype(decay_workaround(get<Indexes>(a)[i]))...> tmp(
+        decay_workaround(get<Indexes>(a)[i])...);
+    return S(get<Indexes>(tmp)...);
+}
+
+template <typename S, typename T, size_t N>
+inline S extract(const Adapter<S, T, N> &a, size_t i)
+{
+    return extract_impl(a, i, Vc::make_index_sequence<determine_tuple_size<S>()>());
+}
+
 }  // namespace SimdizeDetail
 
 template <typename T, size_t N = 0, typename MT = void>

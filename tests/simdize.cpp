@@ -187,6 +187,25 @@ TEST(assign)
     }
 }
 
+TEST(extract)
+{
+    using T = std::tuple<float, unsigned>;
+    using V = Vc::simdize<T>;
+    V v;
+    for (unsigned i = 0; i < v.size(); ++i) {
+        assign(v, i, T{1.f * i, i});
+        COMPARE(std::get<0>(v)[i], 1.f * i);
+        COMPARE(std::get<1>(v)[i], i);
+    }
+    for (unsigned i = 0; i < v.size(); ++i) {
+        COMPARE(std::get<0>(v)[i], 1.f * i);
+        COMPARE(std::get<1>(v)[i], i);
+    }
+    for (unsigned i = 0; i < v.size(); ++i) {
+        COMPARE(extract(v, i), T(1.f * i, i));
+    }
+}
+
 TEST(iterators)
 {
 
