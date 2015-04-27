@@ -563,6 +563,55 @@ inline S extract(const Adapter<S, T, N> &a, size_t i)
     return extract_impl(a, i, Vc::make_index_sequence<determine_tuple_size<S>()>());
 }
 
+template <typename A> class Scalar
+{
+    using reference = typename std::add_lvalue_reference<A>::type;
+    using S = typename A::scalar_type;
+    using IndexSeq = Vc::make_index_sequence<determine_tuple_size<S>()>;
+
+public:
+    Scalar(reference aa, size_t ii) : a(aa), i(ii) {}
+    void operator=(const S &x) { assign_impl(a, i, x, IndexSeq()); }
+    operator S() const { return extract_impl(a, i, IndexSeq()); }
+
+private:
+    reference a;
+    size_t i;
+};
+
+template <typename A> class Interface
+{
+    using reference = typename std::add_lvalue_reference<A>::type;
+
+public:
+    Interface(reference aa) : a(aa) {}
+
+    Scalar<A> operator[](size_t i)
+    {
+        return {a, i};
+    }
+    typename A::scalar_type operator[](size_t i) const
+    {
+        return extract_impl(
+            a, i,
+            Vc::make_index_sequence<determine_tuple_size<typename A::scalar_type>()>());
+    }
+
+private:
+    reference a;
+};
+
+template <typename S, typename T, size_t N>
+Interface<Adapter<S, T, N>> decorate(Adapter<S, T, N> &a)
+{
+    return {a};
+}
+template <typename S, typename T, size_t N>
+const Interface<const Adapter<S, T, N>> decorate(const Adapter<S, T, N> &a)
+{
+    return {a};
+}
+
 }  // namespace SimdizeDetail
 
 template <typename T, size_t N = 0, typename MT = void>
