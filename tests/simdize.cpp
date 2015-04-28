@@ -109,9 +109,13 @@ TEST(simdize_bools)
 
     COMPARE(
         typeid(simdize<tuple<bool, double, bool>>),
-        typeid(SimdizeAdapter<tuple<bool, double, bool>,
-                              tuple<float_m, simdarray<double, float_m::size()>, float_m>,
-                              float_m::size()>));
+        typeid(SimdizeAdapter<
+            tuple<bool, double, bool>,
+            tuple<float_m,
+                  typename std::conditional<float_m::size() == double_v::size(), double_v,
+                                            simdarray<double, float_m::size()>>::type,
+                  float_m>,
+            float_m::size()>));
     COMPARE(typeid(simdize<tuple<bool, double, bool>, float_m::size() + 1>),
             typeid(SimdizeAdapter<tuple<bool, double, bool>,
                                   tuple<simd_mask_array<float, float_m::size() + 1>,
