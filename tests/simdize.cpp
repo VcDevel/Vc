@@ -27,7 +27,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #include "unittest.h"
-#include "../common/simdize.h"
+
+using Vc::simdize;
+using Vc::float_v;
+using Vc::int_v;
+using Vc::int_m;
 
 template <typename Scalar, typename Base, std::size_t N>
 using SimdizeAdapter = Vc::SimdizeDetail::Adapter<Scalar, Base, N>;
@@ -156,7 +160,6 @@ TEST(nontype_template_parameters)
 
 TEST(tuple_interface)
 {
-    using namespace Vc;
     using V0 = simdize<std::tuple<int, bool>>;
     COMPARE(std::tuple_size<V0>::value, 2u);
     COMPARE(typeid(typename std::tuple_element<0, V0>::type), typeid(int_v));
@@ -174,7 +177,7 @@ TEST(tuple_interface)
 TEST(assign)
 {
     using T = std::tuple<float, unsigned>;
-    using V = Vc::simdize<T>;
+    using V = simdize<T>;
     V v;
     for (unsigned i = 0; i < v.size(); ++i) {
         assign(v, i, T{1.f * i, i});
@@ -190,7 +193,7 @@ TEST(assign)
 TEST(extract)
 {
     using T = std::tuple<float, unsigned>;
-    using V = Vc::simdize<T>;
+    using V = simdize<T>;
     V v;
     for (unsigned i = 0; i < v.size(); ++i) {
         assign(v, i, T{1.f * i, i});
@@ -209,10 +212,11 @@ TEST(extract)
 TEST(decorate)
 {
     using T = std::tuple<float, unsigned>;
-    using V = Vc::simdize<T>;
+    using V = simdize<T>;
     V v;
+    auto vv = decorate(v);
     for (unsigned i = 0; i < v.size(); ++i) {
-        decorate(v)[i] = T{1.f * i, i};
+        vv[i] = T{1.f * i, i};
         COMPARE(std::get<0>(v)[i], 1.f * i);
         COMPARE(std::get<1>(v)[i], i);
     }
@@ -221,7 +225,7 @@ TEST(decorate)
         COMPARE(std::get<1>(v)[i], i);
     }
     for (unsigned i = 0; i < v.size(); ++i) {
-        T x = decorate(v)[i];
+        T x = vv[i];
         COMPARE(x, T(1.f * i, i));
     }
     const V &v2 = v;
@@ -231,9 +235,26 @@ TEST(decorate)
     }
 }
 
-TEST(iterators)
+TEST(broadcast)
 {
+    {
+        using T = std::tuple<float, int>;
+        using V = simdize<T>;
 
+        T scalar(2.f, 3);
+        V vector(scalar);
+        COMPARE(std::get<0>(vector), float_v(2.f));
+        COMPARE(std::get<1>(vector), (simdize<int, V::size()>(3)));
+    }
+    {
+        using T = std::array<int, 3>;
+        using V = simdize<T>;
+        T scalar{1, 2, 3};
+        V vector(scalar);
+        COMPARE(vector[0], int_v(1));
+        COMPARE(vector[1], int_v(2));
+        COMPARE(vector[2], int_v(3));
+    }
 }
 
 // vim: foldmethod=marker

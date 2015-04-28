@@ -436,9 +436,102 @@ Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed long long);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long long);
 #undef Vc_DEFINE_NONTYPE_REPLACETYPES__
 
+#ifdef VC_ICC
+template <typename Class, typename... Args>
+constexpr bool is_constructible_with_single_brace()
+{
+    return true;
+}
+template <typename Class, typename... Args>
+constexpr bool is_constructible_with_double_brace()
+{
+    return false;
+}
+#else
+namespace is_constructible_with_single_brace_impl
+{
+template <typename T> T create();
+template <typename Class, typename... Args,
+          typename = decltype((Class{create<Args>()...}))>
+std::true_type test(int);
+template <typename Class, typename... Args> std::false_type test(...);
+}  // namespace is_constructible_with_single_brace_impl
+
+template <typename Class, typename... Args>
+constexpr bool is_constructible_with_single_brace()
+{
+    return decltype(
+        is_constructible_with_single_brace_impl::test<Class, Args...>(1))::value;
+}
+static_assert(
+    is_constructible_with_single_brace<std::tuple<int, int, int>, int, int, int>(), "");
+static_assert(is_constructible_with_single_brace<std::array<int, 3>, int, int, int>(),
+              "");
+
+namespace is_constructible_with_double_brace_impl
+{
+template <typename T> T create();
+template <typename Class, typename... Args,
+          typename = decltype(Class{{create<Args>()...}})>
+std::true_type test(int);
+template <typename Class, typename... Args> std::false_type test(...);
+}  // namespace is_constructible_with_double_brace_impl
+
+template <typename Class, typename... Args>
+constexpr bool is_constructible_with_double_brace()
+{
+    return decltype(
+        is_constructible_with_double_brace_impl::test<Class, Args...>(1))::value;
+}
+static_assert(
+    !is_constructible_with_double_brace<std::tuple<int, int, int>, int, int, int>(), "");
+static_assert(is_constructible_with_double_brace<std::array<int, 3>, int, int, int>(),
+              "");
+#endif
+
 // see above
 template <typename Scalar, typename Base, size_t N> class Adapter : public Base
 {
+private:
+    /// helper for the broadcast ctor below using double braces for Base initialization
+    template <std::size_t... Indexes>
+    Adapter(
+        enable_if<is_constructible_with_double_brace<
+                      Base, decltype(get<Indexes>(std::declval<const Scalar &>()))...>(),
+                  const Scalar &> x,
+        Vc::index_sequence<Indexes...>)
+        : Base{{get<Indexes>(x)...}}
+    {
+    }
+
+    /// helper for the broadcast ctor below using single braces for Base initialization
+    template <std::size_t... Indexes>
+    Adapter(
+        enable_if<
+            is_constructible_with_single_brace<
+                Base, decltype(get<Indexes>(std::declval<const Scalar &>()))...>() &&
+                !is_constructible_with_double_brace<
+                    Base, decltype(get<Indexes>(std::declval<const Scalar &>()))...>(),
+            const Scalar &> x,
+        Vc::index_sequence<Indexes...>)
+        : Base{get<Indexes>(x)...}
+    {
+    }
+
+    /// helper for the broadcast ctor below using parenthesis for Base initialization
+    template <std::size_t... Indexes>
+    Adapter(
+        enable_if<
+            !is_constructible_with_single_brace<
+                Base, decltype(get<Indexes>(std::declval<const Scalar &>()))...>() &&
+                !is_constructible_with_double_brace<
+                    Base, decltype(get<Indexes>(std::declval<const Scalar &>()))...>(),
+            const Scalar &> x,
+        Vc::index_sequence<Indexes...>)
+        : Base(get<Indexes>(x)...)
+    {
+    }
+
 public:
     /// The SIMD vector width of the members.
     static constexpr size_t size() { return N; }
@@ -448,7 +541,76 @@ public:
     /// The original non-vectorized class template instantiation that was passed to the
     /// simdize expression.
     using scalar_type = Scalar;
+
+    /// Allow default construction. This is automatically ill-formed if Base() is
+    /// ill-formed.
+    Adapter() = default;
+
+    /// Broadcast constructor
+    template <typename U, size_t TupleSize = determine_tuple_size<Traits::decay<U>>(),
+              typename Seq = Vc::make_index_sequence<TupleSize>>
+    Adapter(U &&x)
+        : Adapter(static_cast<const Scalar &>(x), Seq())
+    {
+    }
+
+    /// perfect forward all Base constructors
+    template <typename A0, typename... Args,
+              typename = typename std::enable_if<
+                  (sizeof...(Args) > 0 || !std::is_convertible<A0, Scalar>::value)>::type>
+    Adapter(A0 &&arg0, Args &&... arguments)
+        : Base(std::forward<A0>(arg0), std::forward<Args>(arguments)...)
+    {
+    }
+
+    /// perfect forward Base constructors that accept an initializer_list
+    template <typename T,
+              typename = decltype(Base(std::declval<const std::initializer_list<T> &>()))>
+    Adapter(const std::initializer_list<T> &l)
+        : Base(l)
+    {
+    }
+
+    /// Overload the new operator to adhere to the alignment requirements which C++11
+    /// ignores by default.
+    void *operator new(size_t size) { return Vc::Common::aligned_malloc<alignof(Adapter)>(size); }
+    void *operator new(size_t, void *p) { return p; }
+    void *operator new[](size_t size) { return Vc::Common::aligned_malloc<alignof(Adapter)>(size); }
+    void *operator new[](size_t , void *p) { return p; }
+    void operator delete(void *ptr, size_t) { Vc::Common::free(ptr); }
+    void operator delete(void *, void *) {}
+    void operator delete[](void *ptr, size_t) { Vc::Common::free(ptr); }
+    void operator delete[](void *, void *) {}
 };
+
+/**internal
+ * Delete compare operators for simdize<tuple<...>> types because the tuple compares
+ * require the compares to be bool based.
+ */
+template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
+inline bool operator==(
+    const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
+    const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
+template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
+inline bool operator!=(
+    const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
+    const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
+template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
+inline bool operator<=(
+    const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
+    const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
+template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
+inline bool operator>=(
+    const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
+    const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
+template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
+inline bool operator<(
+    const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
+    const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
+template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
+inline bool operator>(
+    const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
+    const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 
 }  // namespace SimdizeDetail
 }  // namespace Vc
