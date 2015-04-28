@@ -460,24 +460,9 @@ void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
     }
 }
 
-// is_simd {{{1
-template <typename T>
-struct is_simd
-    : public std::integral_constant<bool, Vc::is_simd_vector<T>::value>
-{
-};
-
 // unittest_compareHelper {{{1
 template <typename T1, typename T2>
-Vc_ALWAYS_INLINE typename std::enable_if<!(is_simd<T1>::value || is_simd<T2>::value), bool>::type
-    unittest_compareHelper(const T1 &a, const T2 &b)
-{
-    return a == b;
-}
-
-template <typename T1, typename T2>
-Vc_ALWAYS_INLINE typename std::enable_if<(is_simd<T1>::value || is_simd<T2>::value), bool>::type
-    unittest_compareHelper(const T1 &a, const T2 &b)
+Vc_ALWAYS_INLINE bool unittest_compareHelper(const T1 &a, const T2 &b)
 {
     return Vc::all_of(a == b);
 }
