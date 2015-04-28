@@ -27,6 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #include "unittest.h"
+#include <list>
 
 using Vc::simdize;
 using Vc::float_v;
@@ -254,6 +255,53 @@ TEST(broadcast)
         COMPARE(vector[0], int_v(1));
         COMPARE(vector[1], int_v(2));
         COMPARE(vector[2], int_v(3));
+    }
+}
+
+TEST(list_iterator_vectorization)
+{
+    {
+        using L = std::list<float>;
+        using LIV = simdize<L::iterator>;
+        L list;
+        for (auto i = 1024; i; --i) {
+            list.push_back(i);
+        }
+        LIV b = list.begin();
+        LIV e = list.end();
+        float_v reference = list.size() - float_v::IndexesFromZero();
+        for (; b != e; ++b, reference -= float_v::size()) {
+            float_v x = *b;
+            COMPARE(x, reference);
+            COMPARE(*b, reference);
+            *b = x + 1;
+            COMPARE(*b, reference + 1);
+        }
+        reference = list.size() - float_v::IndexesFromZero() + 1;
+        for (b = list.begin(); b != e; ++b, reference -= float_v::size()) {
+            float_v x = *b;
+            COMPARE(x, reference);
+            COMPARE(*b, reference);
+        }
+    }
+    {
+        using T = std::tuple<float, unsigned, float>;
+        using V = simdize<T>;
+        using L = std::list<T>;
+        using LIV = simdize<L::iterator>;
+        L list;
+        for (auto i = 1024; i; --i) {
+            list.push_back(T(i, i * 2, i * 3));
+        }
+        LIV b = list.begin();
+        LIV e = list.end();
+        auto reference1 = list.size() - float_v::IndexesFromZero();
+        auto reference2 = list.size() - simdize<unsigned, V::size()>::IndexesFromZero();
+        for (; b != e; ++b, reference1 -= V::size(), reference2 -= V::size()) {
+            V x = *b;
+            COMPARE(x, V(reference1, reference2 * 2, reference1 * 3));
+            COMPARE(std::get<0>(*b), reference1);
+        }
     }
 }
 

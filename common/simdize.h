@@ -121,6 +121,33 @@ template <typename T> constexpr Category typeCategory()
                      : is_class_template<T>::value ? Category::ClassTemplate
                                                    : Category::None;
 }
+
+/**\internal
+ * Trait determining the number of data members that get<N>(x) can access.
+ * The type \p T either has to provide a std::tuple_size specialization or contain a
+ * constexpr tuple_size member.
+ */
+template <typename T, size_t TupleSize = std::tuple_size<T>::value>
+constexpr size_t determine_tuple_size()
+{
+    return TupleSize;
+}
+template <typename T, size_t TupleSize = T::tuple_size>
+constexpr size_t determine_tuple_size(size_t = T::tuple_size)
+{
+    return TupleSize;
+}
+
+namespace
+{
+struct Dummy__;
+/**\internal
+ * Dummy get<N>(x) function to enable compilation of the following code. This code is
+ * never meant to be called or used.
+ */
+template <size_t> Dummy__ get(Dummy__ x);
+}  // unnamed namespace
+
 /**\internal
  * The type behind the simdize expression whose member type \c type determines the
  * transformed type.
@@ -655,32 +682,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SimdizeDetail
 {
-namespace
-{
-struct Dummy__;
-/**\internal
- * Dummy get<N>(x) function to enable compilation of the following code. This code is
- * never meant to be called or used.
- */
-template <size_t> Dummy__ get(Dummy__ x);
-}  // unnamed namespace
-
-/**\internal
- * Trait determining the number of data members that get<N>(x) can access.
- * The type \p T either has to provide a std::tuple_size specialization or contain a
- * constexpr tuple_size member.
- */
-template <typename T, size_t TupleSize = std::tuple_size<T>::value>
-constexpr size_t determine_tuple_size()
-{
-    return TupleSize;
-}
-template <typename T, size_t TupleSize = T::tuple_size>
-constexpr size_t determine_tuple_size(size_t = T::tuple_size)
-{
-    return TupleSize;
-}
-
 /**\internal
  * Since std::decay can ICE GCC (with types that are declared as may_alias), this is used
  * as an alternative approach. Using decltype the template type deduction implements the
@@ -710,7 +711,18 @@ inline void assign(Adapter<S, T, N> &a, size_t i, const S &x)
 {
     assign_impl(a, i, x, Vc::make_index_sequence<determine_tuple_size<T>()>());
 }
+/**\internal
+ * Overload for standard Vector/simdarray types.
+ */
+template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
+inline void assign(V &v, size_t i, typename V::EntryType x)
+{
+    v[i] = x;
+}
 
+/**\internal
+ * index_sequence based implementation for extract below.
+ */
 template <typename S, typename T, size_t N, size_t... Indexes>
 inline S extract_impl(const Adapter<S, T, N> &a, size_t i, Vc::index_sequence<Indexes...>)
 {
@@ -719,10 +731,22 @@ inline S extract_impl(const Adapter<S, T, N> &a, size_t i, Vc::index_sequence<In
     return S(get<Indexes>(tmp)...);
 }
 
+/**
+ * Extracts and returns one scalar object from a SIMD slot at offset \p i in the simdized
+ * object \p a.
+ */
 template <typename S, typename T, size_t N>
 inline S extract(const Adapter<S, T, N> &a, size_t i)
 {
     return extract_impl(a, i, Vc::make_index_sequence<determine_tuple_size<S>()>());
+}
+/**\internal
+ * Overload for standard Vector/simdarray types.
+ */
+template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
+inline typename V::EntryType extract(V v, size_t i)
+{
+    return v[i];
 }
 
 template <typename A> class Scalar
@@ -773,6 +797,157 @@ const Interface<const Adapter<S, T, N>> decorate(const Adapter<S, T, N> &a)
 {
     return {a};
 }
+
+/**\internal
+ *
+ * Creates a member type \p type that acts as a vectorizing forward iterator.
+ *
+ * \tparam T The forward iterator type to be transformed.
+ * \tparam N The width the resulting vectorized type should have.
+ * \tparam MT The base type to use for mask types. Ignored for this specialization.
+ */
+template <typename T, size_t N, typename MT>
+struct ReplaceTypes<T, N, MT, Category::ForwardIterator>
+{
+    /// The value returned when dereferencing a scalar iterator.
+    using value_type = typename std::iterator_traits<T>::value_type;
+    /// The simdized type of value_type.
+    using value_vector = simdize<value_type, N>;
+    /// The SIMD width.
+    static constexpr auto Size = value_vector::size();
+
+    /**
+     * This is the iterator type created when applying simdize to a forward iterator type.
+     */
+    class type : public std::iterator<std::forward_iterator_tag, value_vector>
+    {
+    public:
+        type() = default;
+
+        /**
+         * A vectorizing iterator is typically initialized from a scalar iterator. The
+         * scalar iterator points to the first entry to place into the vectorized object.
+         * Subsequent entries returned by the iterator are used to fill the rest of the
+         * vectorized object.
+         */
+        type(const T &x) : scalar_it(x) {}
+        /**
+         * Move optimization of the above constructor.
+         */
+        type(T &&x) : scalar_it(std::move(x)) {}
+        /**
+         * Reset the vectorizing iterator to the given start point \p x.
+         */
+        type &operator=(const T &x)
+        {
+            scalar_it = x;
+            return *this;
+        }
+        /**
+         * Move optimization of the above constructor.
+         */
+        type &operator=(T &&x)
+        {
+            scalar_it = std::move(x);
+            return *this;
+        }
+
+        /// Default copy constructor.
+        type(const type &) = default;
+        /// Default move constructor.
+        type(type &&) = default;
+        /// Default copy assignment.
+        type &operator=(const type &) = default;
+        /// Default move assignment.
+        type &operator=(type &&) = default;
+
+        /// Advances the iterator by one vector width, or respectively N scalar steps.
+        type &operator++()
+        {
+            std::advance(scalar_it, Size);
+            return *this;
+        }
+        /// Postfix overload of the above.
+        type operator++(int)
+        {
+            type copy(*this);
+            operator++();
+            return copy;
+        }
+
+        /**
+         * Returns whether the two iterators point to the same scalar entry.
+         *
+         * \warning If the end iterator you compare against is not a multiple of the SIMD
+         * width away from the incrementing iterator then the two iterators may pass each
+         * other without ever comparing equal. In debug builds (when NDEBUG is not
+         * defined) an assertion tries to locate such passing iterators.
+         */
+        bool operator==(const type &rhs) const {
+            T it(scalar_it);
+            for (size_t i = 1; i < Size; ++i) {
+                VC_ASSERT((++it != rhs.scalar_it));
+            }
+            return scalar_it == rhs.scalar_it;
+        }
+        /**
+         * Returns whether the two iterators point to different scalar entries.
+         *
+         * \warning If the end iterator you compare against is not a multiple of the SIMD
+         * width away from the incrementing iterator then the two iterators may pass each
+         * other without ever comparing equal. In debug builds (when NDEBUG is not
+         * defined) an assertion tries to locate such passing iterators.
+         */
+        bool operator!=(const type &rhs) const {
+            T it(scalar_it);
+            for (size_t i = 1; i < Size; ++i) {
+                VC_ASSERT((++it != rhs.scalar_it));
+            }
+            return scalar_it != rhs.scalar_it;
+        }
+
+        class proxy : public value_vector
+        {
+            friend class type;
+            using reference = typename std::add_lvalue_reference<T>::type;
+            using const_reference = typename std::add_const<reference>::type;
+            reference scalar_it;
+
+            proxy(reference first_it) : scalar_it(first_it)
+            {
+                auto it = scalar_it;
+                value_vector &r = *this;
+                for (size_t i = 0; i < Size; ++i, ++it) {
+                    assign(r, i, *it);
+                }
+            }
+
+        public:
+            void operator=(const value_vector &x)
+            {
+                auto it = scalar_it;
+                for (size_t i = 0; i < Size; ++i, ++it) {
+                    *it = extract(x, i);
+                }
+            }
+        };
+        proxy operator*()
+        {
+            return {scalar_it};
+        }
+        value_vector operator*() const
+        {
+            auto it = scalar_it;
+            value_vector r;
+            for (size_t i = 0; i < Size; ++i, ++it) {
+                assign(r, i, *it);
+            }
+        }
+
+    private:
+        T scalar_it;
+    };
+};
 
 }  // namespace SimdizeDetail
 
