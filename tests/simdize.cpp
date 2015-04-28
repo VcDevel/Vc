@@ -325,6 +325,8 @@ TEST(shifted)
         V test = shifted(v, shift);
         COMPARE(std::get<0>(test), (V0::IndexesFromZero() + 1).shifted(shift));
         COMPARE(std::get<1>(test), (V1::IndexesFromZero() + 1).shifted(shift));
+        V test2 = decorate(v).shifted(shift);
+        COMPARE(test2, test);
     }
 
     V test = shifted(v, int(V::size()));

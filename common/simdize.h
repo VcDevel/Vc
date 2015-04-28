@@ -788,6 +788,8 @@ private:
 template <typename A> class Interface
 {
     using reference = typename std::add_lvalue_reference<A>::type;
+    using IndexSeq =
+        Vc::make_index_sequence<determine_tuple_size<typename A::scalar_type>()>;
 
 public:
     Interface(reference aa) : a(aa) {}
@@ -798,9 +800,12 @@ public:
     }
     typename A::scalar_type operator[](size_t i) const
     {
-        return extract_impl(
-            a, i,
-            Vc::make_index_sequence<determine_tuple_size<typename A::scalar_type>()>());
+        return extract_impl(a, i, IndexSeq());
+    }
+
+    A shifted(int amount) const
+    {
+        return shifted_impl(a, amount, IndexSeq());
     }
 
 private:
