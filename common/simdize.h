@@ -749,6 +749,26 @@ inline typename V::EntryType extract(V v, size_t i)
     return v[i];
 }
 
+template <typename S, typename T, std::size_t N, std::size_t... Indexes>
+inline Adapter<S, T, N> shifted_impl(const Adapter<S, T, N> &a, int shift,
+                                     Vc::index_sequence<Indexes...>)
+{
+    Adapter<S, T, N> r;
+    auto &&unused = {(get<Indexes>(r) = get<Indexes>(a).shifted(shift), 0)...};
+    if (&unused == &unused) {}
+    return r;
+}
+
+/**
+ * Returns a new vectorized object where each entry is shifted by \p shift. This basically
+ * calls Vector<T>::shifted on every entry.
+ */
+template <typename S, typename T, size_t N>
+inline Adapter<S, T, N> shifted(const Adapter<S, T, N> &a, int shift)
+{
+    return shifted_impl(a, shift, Vc::make_index_sequence<determine_tuple_size<T>()>());
+}
+
 template <typename A> class Scalar
 {
     using reference = typename std::add_lvalue_reference<A>::type;

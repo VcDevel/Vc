@@ -309,4 +309,39 @@ TEST(list_iterator_vectorization)
     }
 }
 
+TEST(shifted)
+{
+    using T = std::tuple<float, int>;
+    using V = simdize<T>;
+
+    using V0 = float_v;
+    using V1 = simdize<int, V::size()>;
+
+    V v;
+    std::get<0>(v) = V0::IndexesFromZero() + 1;
+    std::get<1>(v) = V1::IndexesFromZero() + 1;
+
+    for (int shift = -int(V::size()); shift <= int(V::size()); ++shift) {
+        V test = shifted(v, shift);
+        COMPARE(std::get<0>(test), (V0::IndexesFromZero() + 1).shifted(shift));
+        COMPARE(std::get<1>(test), (V1::IndexesFromZero() + 1).shifted(shift));
+    }
+
+    V test = shifted(v, int(V::size()));
+    COMPARE(test, V{});
+
+    test = shifted(v, -int(V::size()));
+    COMPARE(test, V{});
+
+    V reference{};
+    assign(reference, 0, T(V::size(), V::size()));
+    test = shifted(v, int(V::size()) - 1);
+    COMPARE(test, reference);
+
+    reference = {};
+    assign(reference, V::size() - 1, T(1, 1));
+    test = shifted(v, -int(V::size()) + 1);
+    COMPARE(test, reference);
+}
+
 // vim: foldmethod=marker
