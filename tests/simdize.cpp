@@ -346,4 +346,56 @@ TEST(shifted)
     COMPARE(test, reference);
 }
 
+TEST(swap)
+{
+    using T = std::tuple<float, int>;
+    using V = simdize<T>;
+
+    using V0 = float_v;
+    using V1 = simdize<int, V::size()>;
+
+    V v;
+    std::get<0>(v) = V0::IndexesFromZero() + 1;
+    std::get<1>(v) = V1::IndexesFromZero() + 1;
+    for (std::size_t i = 0; i < V::size(); ++i) {
+        const T atI(1 + i, 1 + i);
+
+        T scalar(V::size() + 1, V::size() + 1);
+        T copy = scalar;
+
+        COMPARE(extract(v, i), atI);
+        swap(v, i, scalar);
+        COMPARE(scalar, atI);
+        COMPARE(extract(v, i), copy);
+
+        for (std::size_t j = 0; j < V::size(); ++j) {
+            if (j != i) {
+                COMPARE(extract(v, j), T(j + 1, j + 1));
+            }
+        }
+
+        std::swap(scalar, decorate(v)[i]);
+        COMPARE(scalar, copy);
+        COMPARE(extract(v, i), atI);
+
+        for (std::size_t j = 0; j < V::size(); ++j) {
+            if (j != i) {
+                COMPARE(extract(v, j), T(j + 1, j + 1));
+            }
+        }
+    }
+
+    if (V::size() > 1) {
+        auto vv = decorate(v);
+        COMPARE(T(vv[0]), T(1, 1));
+        COMPARE(T(vv[1]), T(2, 2));
+        std::swap(vv[0], vv[1]);
+        COMPARE(T(vv[0]), T(2, 2));
+        COMPARE(T(vv[1]), T(1, 1));
+        swap(v, 0, v, 1);
+        COMPARE(T(vv[0]), T(1, 1));
+        COMPARE(T(vv[1]), T(2, 2));
+    }
+}
+
 // vim: foldmethod=marker

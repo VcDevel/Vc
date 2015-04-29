@@ -769,6 +769,45 @@ inline Adapter<S, T, N> shifted(const Adapter<S, T, N> &a, int shift)
     return shifted_impl(a, shift, Vc::make_index_sequence<determine_tuple_size<T>()>());
 }
 
+/** \internal
+ * Generic implementation of simdize_swap using the std::tuple get interface.
+ */
+template <typename S, typename T, std::size_t N, std::size_t... Indexes>
+inline void swap_impl(Adapter<S, T, N> &a, std::size_t i, S &x,
+                      Vc::index_sequence<Indexes...>)
+{
+    const std::tuple<decltype(decay_workaround(get<Indexes>(a)[0]))...> tmp{
+        decay_workaround(get<Indexes>(a)[i])...};
+    auto &&unused = {(get<Indexes>(a)[i] = get<Indexes>(x), 0)...};
+    auto &&unused2 = {(get<Indexes>(x) = get<Indexes>(tmp), 0)...};
+    if (&unused == &unused2) {}
+}
+template <typename S, typename T, std::size_t N, std::size_t... Indexes>
+inline void swap_impl(Adapter<S, T, N> &a, std::size_t i, Adapter<S, T, N> &b,
+                      std::size_t j, Vc::index_sequence<Indexes...>)
+{
+    const std::tuple<decltype(decay_workaround(get<Indexes>(a)[0]))...> tmp{
+        decay_workaround(get<Indexes>(a)[i])...};
+    auto &&unused = {(get<Indexes>(a)[i] = get<Indexes>(b)[j], 0)...};
+    auto &&unused2 = {(get<Indexes>(b)[j] = get<Indexes>(tmp), 0)...};
+    if (&unused == &unused2) {}
+}
+
+/**
+ * Swaps one scalar object \p x with a SIMD slot at offset \p i in the simdized object \p
+ * a.
+ */
+template <typename S, typename T, std::size_t N>
+inline void swap(Adapter<S, T, N> &a, std::size_t i, S &x)
+{
+    swap_impl(a, i, x, Vc::make_index_sequence<determine_tuple_size<T>()>());
+}
+template <typename S, typename T, std::size_t N>
+inline void swap(Adapter<S, T, N> &a, std::size_t i, Adapter<S, T, N> &b, std::size_t j)
+{
+    swap_impl(a, i, b, j, Vc::make_index_sequence<determine_tuple_size<T>()>());
+}
+
 template <typename A> class Scalar
 {
     using reference = typename std::add_lvalue_reference<A>::type;
@@ -777,13 +816,44 @@ template <typename A> class Scalar
 
 public:
     Scalar(reference aa, size_t ii) : a(aa), i(ii) {}
+
+    // delete copy and move to keep the type a pure proxy temporary object.
+    Scalar(const Scalar &) = delete;
+    Scalar(Scalar &&) = delete;
+    Scalar &operator=(const Scalar &) = delete;
+    Scalar &operator=(Scalar &&) = delete;
+
     void operator=(const S &x) { assign_impl(a, i, x, IndexSeq()); }
     operator S() const { return extract_impl(a, i, IndexSeq()); }
+
+    template <typename AA>
+    friend inline void swap(Scalar<AA> &&a, typename AA::scalar_type &b);
+    template <typename AA>
+    friend inline void swap(typename AA::scalar_type &b, Scalar<AA> &&a);
+    template <typename AA> friend inline void swap(Scalar<AA> &&a, Scalar<AA> &&b);
 
 private:
     reference a;
     size_t i;
 };
+
+/// std::swap interface to swapping one scalar object with a (virtual) reference to
+/// another object inside a vectorized object
+template <typename A> inline void swap(Scalar<A> &&a, typename A::scalar_type &b)
+{
+    swap_impl(a.a, a.i, b, typename Scalar<A>::IndexSeq());
+}
+/// std::swap interface to swapping one scalar object with a (virtual) reference to
+/// another object inside a vectorized object
+template <typename A> inline void swap(typename A::scalar_type &b, Scalar<A> &&a)
+{
+    swap_impl(a.a, a.i, b, typename Scalar<A>::IndexSeq());
+}
+
+template <typename A> inline void swap(Scalar<A> &&a, Scalar<A> &&b)
+{
+    swap_impl(a.a, a.i, b.a, b.i, typename Scalar<A>::IndexSeq());
+}
 
 template <typename A> class Interface
 {
@@ -980,6 +1050,11 @@ template <typename T, size_t N = 0, typename MT = void>
 using simdize = SimdizeDetail::simdize<T, N, MT>;
 
 }  // namespace Vc
+
+namespace std
+{
+using Vc::SimdizeDetail::swap;
+}  // namespace std
 
 #include "undomacros.h"
 
