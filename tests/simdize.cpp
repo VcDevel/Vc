@@ -133,9 +133,18 @@ TEST(simdize_bools)
                                   int_v::size()>));
 }
 
-template <typename, int...> struct Foo1 {};
-template <typename, typename, unsigned...> struct Foo2 {};
-template <typename, typename, typename, std::size_t...> struct Foo3 {};
+template <typename, int...> struct Foo1
+{
+    static constexpr std::size_t tuple_size = 1;
+};
+template <typename, typename, unsigned...> struct Foo2
+{
+    static constexpr std::size_t tuple_size = 2;
+};
+template <typename, typename, typename, std::size_t...> struct Foo3
+{
+    static constexpr std::size_t tuple_size = 3;
+};
 
 TEST(nontype_template_parameters)
 {
