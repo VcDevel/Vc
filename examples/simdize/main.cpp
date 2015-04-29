@@ -39,7 +39,7 @@ template <typename T> class Vectorizer
 public:
     using value_type = Vc::simdize<T>;
 
-    void append(const T &x) { simdize_assign(data, count++, x); }
+    void append(const T &x) { decorate(data)[count++] = x; }
     bool isFull() const { return count == data.size(); }
     const value_type &contents() const { return data; }
 
