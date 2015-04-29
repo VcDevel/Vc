@@ -1044,6 +1044,38 @@ struct ReplaceTypes<T, N, MT, Category::ForwardIterator>
     };
 };
 
+/**\internal
+ * Implementation for conditional assignment of whole vectorized objects.
+ */
+template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
+          std::size_t Offset>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>()), void>
+    conditional_assign(Adapter<S, T, N> &, const M &, const U &)
+{
+}
+template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
+          std::size_t Offset = 0>
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>()), void> conditional_assign(
+    Adapter<S, T, N> &lhs, const M &mask, const U &rhs)
+{
+    conditional_assign<Op>(get<Offset>(lhs), mask, get<Offset>(rhs));
+    conditional_assign<Op, S, T, N, M, U, Offset + 1>(lhs, mask, rhs);
+}
+template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
+          std::size_t Offset>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>()), void>
+    conditional_assign(Adapter<S, T, N> &, const M &)
+{
+}
+template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
+          std::size_t Offset = 0>
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>()), void> conditional_assign(
+    Adapter<S, T, N> &lhs, const M &mask)
+{
+    conditional_assign<Op>(get<Offset>(lhs), mask);
+    conditional_assign<Op, S, T, N, M, Offset + 1>(lhs, mask);
+}
+
 }  // namespace SimdizeDetail
 
 template <typename T, size_t N = 0, typename MT = void>

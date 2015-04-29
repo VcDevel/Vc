@@ -398,4 +398,44 @@ TEST(swap)
     }
 }
 
+TEST(conditional_assignment)
+{
+    using T = std::tuple<float, int, double>;
+    using V = simdize<T>;
+
+    using V0 = float_v;
+    using V1 = simdize<int, V::size()>;
+    using V2 = simdize<double, V::size()>;
+    using M0 = typename V0::mask_type;
+    using M1 = typename V1::mask_type;
+    using M2 = typename V2::mask_type;
+
+    V v;
+    UnitTest::withRandomMask<V0, 1000>([&](M0 m) {
+        std::get<0>(v) = V0::IndexesFromZero() + 1;
+        std::get<1>(v) = V1::IndexesFromZero() + 1;
+        std::get<2>(v) = V2::IndexesFromZero() + 1;
+
+        where(m) | v = V{};
+        COMPARE(std::get<0>(v) == V0::Zero(), m) << std::get<0>(v);
+        COMPARE(std::get<1>(v) == V1::Zero(), M1(m)) << std::get<1>(v);
+        COMPARE(std::get<2>(v) == V2::Zero(), M2(m)) << std::get<2>(v);
+
+        where(m) | v += V{T{V::size() + 2, V::size() + 2, V::size() + 2}};
+        COMPARE(std::get<0>(v) == V0(V::size() + 2), m) << std::get<0>(v);
+        COMPARE(std::get<1>(v) == V1(V::size() + 2), M1(m)) << std::get<1>(v);
+        COMPARE(std::get<2>(v) == V2(V::size() + 2), M2(m)) << std::get<2>(v);
+
+        where(m) | v *= V{T{2, 2, 2}};
+        COMPARE(std::get<0>(v) == V0(2 * (V::size() + 2)), m) << std::get<0>(v);
+        COMPARE(std::get<1>(v) == V1(2 * (V::size() + 2)), M1(m)) << std::get<1>(v);
+        COMPARE(std::get<2>(v) == V2(2 * (V::size() + 2)), M2(m)) << std::get<2>(v);
+
+        where(m) | v -= V{T{V::size() + 2, V::size() + 2, V::size() + 2}};
+        COMPARE(std::get<0>(v) == V0(V::size() + 2), m) << std::get<0>(v);
+        COMPARE(std::get<1>(v) == V1(V::size() + 2), M1(m)) << std::get<1>(v);
+        COMPARE(std::get<2>(v) == V2(V::size() + 2), M2(m)) << std::get<2>(v);
+    });
+}
+
 // vim: foldmethod=marker
