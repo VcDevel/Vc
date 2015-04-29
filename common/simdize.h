@@ -146,6 +146,7 @@ struct Dummy__;
  * never meant to be called or used.
  */
 template <size_t> Dummy__ get(Dummy__ x);
+template <typename T> struct The_simdization_for_the_requested_type_is_not_implemented;
 }  // unnamed namespace
 
 /**\internal
@@ -161,7 +162,15 @@ template <size_t> Dummy__ get(Dummy__ x);
  *                  (via template specialization).
  */
 template <typename T, size_t N, typename MT, Category = typeCategory<T>()>
-struct ReplaceTypes
+struct ReplaceTypes : public The_simdization_for_the_requested_type_is_not_implemented<T>
+{
+};
+
+/**\internal
+ * Specialization of ReplaceTypes that is used for types that should not be transformed by
+ * simdize.
+ */
+template <typename T, size_t N, typename MT> struct ReplaceTypes<T, N, MT, Category::None>
 {
     typedef T type;
 };
