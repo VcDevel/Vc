@@ -583,7 +583,7 @@ public:
     Adapter &operator=(Adapter &&) = default;
 
     /// Broadcast constructor
-    template <typename U, size_t TupleSize = determine_tuple_size<Traits::decay<U>>(),
+    template <typename U, size_t TupleSize = determine_tuple_size<Scalar>(),
               typename Seq = Vc::make_index_sequence<TupleSize>,
               typename = enable_if<std::is_convertible<U, Scalar>::value>>
     Adapter(U &&x)
