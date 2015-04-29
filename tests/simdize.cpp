@@ -438,4 +438,21 @@ TEST(conditional_assignment)
     });
 }
 
+TEST(copy_simdized_objects)
+{
+    using T = std::tuple<float, double>;
+    using V = simdize<T>;
+
+    using V0 = typename std::tuple_element<0, V>::type;
+    using V1 = typename std::tuple_element<1, V>::type;
+
+    V v;
+    V v2 = v;
+    v = v2;
+    v2 = std::move(v);
+    V v3 = std::move(v2);
+    COMPARE(std::get<0>(v3), V0::Zero());
+    COMPARE(std::get<1>(v3), V1::Zero());
+}
+
 // vim: foldmethod=marker

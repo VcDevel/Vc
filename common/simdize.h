@@ -573,9 +573,19 @@ public:
     /// ill-formed.
     Adapter() = default;
 
+    /// Defaulted copy and move construction and assignment
+    Adapter(const Adapter &) = default;
+    /// Defaulted copy and move construction and assignment
+    Adapter(Adapter &&) = default;
+    /// Defaulted copy and move construction and assignment
+    Adapter &operator=(const Adapter &) = default;
+    /// Defaulted copy and move construction and assignment
+    Adapter &operator=(Adapter &&) = default;
+
     /// Broadcast constructor
     template <typename U, size_t TupleSize = determine_tuple_size<Traits::decay<U>>(),
-              typename Seq = Vc::make_index_sequence<TupleSize>>
+              typename Seq = Vc::make_index_sequence<TupleSize>,
+              typename = enable_if<std::is_convertible<U, Scalar>::value>>
     Adapter(U &&x)
         : Adapter(static_cast<const Scalar &>(x), Seq())
     {
