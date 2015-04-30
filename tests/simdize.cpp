@@ -318,6 +318,88 @@ TEST(list_iterator_vectorization)
     }
 }
 
+TEST(vector_iterator_vectorization)
+{
+    {
+        using L = std::vector<float>;
+        using LIV = simdize<L::iterator>;
+        L list;
+        for (auto i = 1024; i; --i) {
+            list.push_back(i);
+        }
+        LIV b = list.begin();
+        LIV e = list.end();
+        const auto &bconst = b;
+
+        COMPARE(b->sum(), (1024 - float_v::IndexesFromZero()).sum());
+        COMPARE(bconst->sum(), (1024 - float_v::IndexesFromZero()).sum());
+        COMPARE((*b).sum(), (1024 - float_v::IndexesFromZero()).sum());
+        COMPARE((*bconst).sum(), (1024 - float_v::IndexesFromZero()).sum());
+        COMPARE((e - 1)->sum(), (1 + float_v::IndexesFromZero()).sum());
+        COMPARE((e + -1)->sum(), (1 + float_v::IndexesFromZero()).sum());
+        COMPARE((-1 + e)->sum(), (1 + float_v::IndexesFromZero()).sum());
+        COMPARE((b + 1)->sum(), (1024 - b.size() - float_v::IndexesFromZero()).sum());
+        COMPARE((1 + b)->sum(), (1024 - b.size() - float_v::IndexesFromZero()).sum());
+        COMPARE(e - b, static_cast<LIV::difference_type>(1024 / b.size()));
+        COMPARE(b - e, -static_cast<LIV::difference_type>(1024 / b.size()));
+
+        VERIFY(b < e);
+        VERIFY(!(b > e));
+        VERIFY(e > b);
+        VERIFY(!(e < b));
+        VERIFY(b <= e);
+        VERIFY(!(b >= e));
+        VERIFY(e >= b);
+        VERIFY(!(e <= b));
+        VERIFY(b != e);
+        VERIFY(!(b == e));
+
+        VERIFY(!(b < b));
+        VERIFY(!(b > b));
+        if (b.size() > 1) {
+            VERIFY(!(b <= b));
+            VERIFY(!(b >= b));
+        } else {
+            VERIFY(b <= b);
+            VERIFY(b >= b);
+        }
+        VERIFY(b == b);
+        VERIFY(!(b != b));
+
+        auto next = b + 1;
+        VERIFY(next > b);
+        VERIFY(!(b > next));
+        VERIFY(!(next < b));
+        VERIFY(b < next);
+        VERIFY(next >= b);
+        VERIFY(!(b >= next));
+        VERIFY(!(next <= b));
+        VERIFY(b <= next);
+        VERIFY(b != next);
+        VERIFY(!(b == next));
+
+        next--;
+        COMPARE(next, b);
+        COMPARE(*next, *b);
+
+
+        float_v reference = list.size() - float_v::IndexesFromZero();
+        for (; b != e; ++b, reference -= float_v::size()) {
+            float_v x = *b;
+            COMPARE(x, reference);
+            COMPARE(*b, reference);
+            *b = x + 1;
+            COMPARE(*b, reference + 1);
+        }
+        reference = list.size() - float_v::IndexesFromZero() + 1;
+        for (b = list.begin(); b != e; ++b, reference -= float_v::size()) {
+            float_v x = *b;
+            COMPARE(x, reference);
+            COMPARE(*b, reference);
+        }
+    }
+}
+
 TEST(shifted)
 {
     using T = std::tuple<float, int>;

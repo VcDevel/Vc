@@ -64,15 +64,21 @@ template <typename... Ts> struct Typelist;
  */
 enum class Category {
     /// No transformation
-    None = 0x0,
+    None,
     /// simple Vector<T> transformation
-    ArithmeticVectorizable = 0x1,
+    ArithmeticVectorizable,
+    /// transform an input iterator to return vectorized entries
+    InputIterator,
     /// transform a forward iterator to return vectorized entries
-    ForwardIterator = 0x2,
+    OutputIterator,
+    /// transform an output iterator to return vectorized entries
+    ForwardIterator,
+    /// transform a bidirectional iterator to return vectorized entries
+    BidirectionalIterator,
     /// transform a random access iterator to return vectorized entries
-    RandomAccessIterator = 0x6,
+    RandomAccessIterator,
     /// transform a class template recursively
-    ClassTemplate = 0x8
+    ClassTemplate
 };
 
 /**\internal
@@ -85,9 +91,15 @@ constexpr Category iteratorCategories(int)
 {
     return is_base_of<std::random_access_iterator_tag, ItCat>::value
                ? Category::RandomAccessIterator
-               : is_base_of<std::forward_iterator_tag, ItCat>::value
-                     ? Category::ForwardIterator
-                     : Category::None;
+               : is_base_of<std::bidirectional_iterator_tag, ItCat>::value
+                     ? Category::BidirectionalIterator
+                     : is_base_of<std::forward_iterator_tag, ItCat>::value
+                           ? Category::ForwardIterator
+                           : is_base_of<std::output_iterator_tag, ItCat>::value
+                                 ? Category::OutputIterator
+                                 : is_base_of<std::input_iterator_tag, ItCat>::value
+                                       ? Category::InputIterator
+                                       : Category::None;
 }
 /**\internal
  * This overload is selected if T does not work with iterator_traits.
@@ -910,155 +922,395 @@ const Interface<const Adapter<S, T, N>> decorate(const Adapter<S, T, N> &a)
     return {a};
 }
 
+namespace IteratorDetails
+{
+enum class Mutable { Yes, No };
+
+// Note: §13.5.6 says: “An expression x->m is interpreted as (x.operator->())->m for a
+// class object x of type T if T::operator->() exists and if the operator is selected as
+// the best match function by the overload resolution mechanism (13.3).”
+template <typename T, typename value_vector, Mutable> class Pointer;
+template <typename T, typename value_vector> class Pointer<T, value_vector, Mutable::Yes>
+{
+    static constexpr auto Size = value_vector::size();
+
+public:
+    value_vector *operator->() { return &data; }
+
+    Pointer() = delete;
+    Pointer(const Pointer &) = delete;
+    Pointer &operator=(const Pointer &) = delete;
+    Pointer &operator=(Pointer &&) = delete;
+
+    Pointer(Pointer &&) = default;  // required for returning the Pointer
+
+    /**
+     * Writes back the vectorized object to the scalar objects referenced by the
+     * iterator.
+     */
+    ~Pointer()
+    {
+        // store data back to where it came from
+        for (size_t i = 0; i < Size; ++i, ++begin_iterator) {
+            *begin_iterator = extract(data, i);
+        }
+    }
+
+    Pointer(T it) : begin_iterator(it)
+    {
+        for (size_t i = 0; i < Size; ++i, ++it) {
+            assign(data, i, *it);
+        }
+    }
+
+private:
+    value_vector data;
+    T begin_iterator;
+};
+template <typename T, typename value_vector> class Pointer<T, value_vector, Mutable::No>
+{
+    static constexpr auto Size = value_vector::size();
+
+public:
+    const value_vector *operator->() const { return &data; }
+
+    Pointer() = delete;
+    Pointer(const Pointer &) = delete;
+    Pointer &operator=(const Pointer &) = delete;
+    Pointer &operator=(Pointer &&) = delete;
+
+    Pointer(Pointer &&) = default;  // required for returning the Pointer
+
+    Pointer(T it)
+    {
+        for (size_t i = 0; i < Size; ++i, ++it) {
+            assign(data, i, *it);
+        }
+    }
+
+private:
+    value_vector data;
+};
+
+template <typename T, typename value_vector, Mutable> class Reference;
+template <typename T, typename value_vector>
+class Reference<T, value_vector, Mutable::Yes> : public value_vector
+{
+    static constexpr auto Size = value_vector::size();
+
+    using reference = typename std::add_lvalue_reference<T>::type;
+    reference scalar_it;
+
+public:
+    Reference(reference first_it) : scalar_it(first_it)
+    {
+        auto it = scalar_it;
+        value_vector &r = *this;
+        for (size_t i = 0; i < Size; ++i, ++it) {
+            assign(r, i, *it);
+        }
+    }
+
+    Reference(const Reference &) = delete;
+    Reference(Reference &&) = default;
+    Reference &operator=(const Reference &) = delete;
+    Reference &operator=(Reference &&) = delete;
+
+    void operator=(const value_vector &x)
+    {
+        auto it = scalar_it;
+        for (size_t i = 0; i < Size; ++i, ++it) {
+            *it = extract(x, i);
+        }
+    }
+};
+template <typename T, typename value_vector>
+class Reference<T, value_vector, Mutable::No> : public value_vector
+{
+    static constexpr auto Size = value_vector::size();
+
+public:
+    Reference(T it)
+    {
+        value_vector &r = *this;
+        for (size_t i = 0; i < Size; ++i, ++it) {
+            assign(r, i, *it);
+        }
+    }
+
+    Reference(const Reference &) = delete;
+    Reference(Reference &&) = default;
+    Reference &operator=(const Reference &) = delete;
+    Reference &operator=(Reference &&) = delete;
+
+    void operator=(const value_vector &x) = delete;
+};
+
+template <typename T, size_t N,
+          IteratorDetails::Mutable M =
+              (Traits::is_output_iterator<T>::value ? Mutable::Yes : Mutable::No),
+          typename V = simdize<typename std::iterator_traits<T>::value_type, N>,
+          size_t Size = V::size(),
+          typename = typename std::iterator_traits<T>::iterator_category>
+class Iterator;
+
+template <typename T, size_t N, IteratorDetails::Mutable M, typename V, size_t Size>
+class Iterator<T, N, M, V, Size, std::forward_iterator_tag>
+    : public std::iterator<typename std::iterator_traits<T>::iterator_category, V,
+                           typename std::iterator_traits<T>::difference_type,
+                           IteratorDetails::Pointer<T, V, M>,
+                           IteratorDetails::Reference<T, V, M>>
+{
+public:
+    using pointer = IteratorDetails::Pointer<T, V, M>;
+    using reference = IteratorDetails::Reference<T, V, M>;
+    using const_pointer = IteratorDetails::Pointer<T, V, IteratorDetails::Mutable::No>;
+    using const_reference =
+        IteratorDetails::Reference<T, V, IteratorDetails::Mutable::No>;
+
+    /// Returns the vector width the iterator covers with each step.
+    static constexpr std::size_t size() { return Size; }
+
+    Iterator() = default;
+
+    /**
+     * A vectorizing iterator is typically initialized from a scalar iterator. The
+     * scalar iterator points to the first entry to place into the vectorized object.
+     * Subsequent entries returned by the iterator are used to fill the rest of the
+     * vectorized object.
+     */
+    Iterator(const T &x) : scalar_it(x) {}
+    /**
+     * Move optimization of the above constructor.
+     */
+    Iterator(T &&x) : scalar_it(std::move(x)) {}
+    /**
+     * Reset the vectorizing iterator to the given start point \p x.
+     */
+    Iterator &operator=(const T &x)
+    {
+        scalar_it = x;
+        return *this;
+    }
+    /**
+     * Move optimization of the above constructor.
+     */
+    Iterator &operator=(T &&x)
+    {
+        scalar_it = std::move(x);
+        return *this;
+    }
+
+    /// Default copy constructor.
+    Iterator(const Iterator &) = default;
+    /// Default move constructor.
+    Iterator(Iterator &&) = default;
+    /// Default copy assignment.
+    Iterator &operator=(const Iterator &) = default;
+    /// Default move assignment.
+    Iterator &operator=(Iterator &&) = default;
+
+    /// Advances the iterator by one vector width, or respectively N scalar steps.
+    Iterator &operator++()
+    {
+        std::advance(scalar_it, Size);
+        return *this;
+    }
+    /// Postfix overload of the above.
+    Iterator operator++(int)
+    {
+        Iterator copy(*this);
+        operator++();
+        return copy;
+    }
+
+    /**
+     * Returns whether the two iterators point to the same scalar entry.
+     *
+     * \warning If the end iterator you compare against is not a multiple of the SIMD
+     * width away from the incrementing iterator then the two iterators may pass each
+     * other without ever comparing equal. In debug builds (when NDEBUG is not
+     * defined) an assertion tries to locate such passing iterators.
+     */
+    bool operator==(const Iterator &rhs) const
+    {
+        T it(scalar_it);
+        for (size_t i = 1; i < Size; ++i) {
+            VC_ASSERT((++it != rhs.scalar_it));
+        }
+        return scalar_it == rhs.scalar_it;
+    }
+    /**
+     * Returns whether the two iterators point to different scalar entries.
+     *
+     * \warning If the end iterator you compare against is not a multiple of the SIMD
+     * width away from the incrementing iterator then the two iterators may pass each
+     * other without ever comparing equal. In debug builds (when NDEBUG is not
+     * defined) an assertion tries to locate such passing iterators.
+     */
+    bool operator!=(const Iterator &rhs) const
+    {
+        T it(scalar_it);
+        for (size_t i = 1; i < Size; ++i) {
+            VC_ASSERT((++it != rhs.scalar_it));
+        }
+        return scalar_it != rhs.scalar_it;
+    }
+
+    pointer operator->() { return scalar_it; }
+    reference operator*() { return scalar_it; }
+
+    const_pointer operator->() const { return scalar_it; }
+    const_reference operator*() const { return scalar_it; }
+
+protected:
+    T scalar_it;
+};
+
+/**
+ * This is the iterator type created when applying simdize to a bidirectional
+ * iterator type.
+ */
+template <typename T, size_t N, IteratorDetails::Mutable M, typename V, size_t Size>
+class Iterator<T, N, M, V, Size, std::bidirectional_iterator_tag>
+    : public Iterator<T, N, M, V, Size, std::forward_iterator_tag>
+{
+    using Base = Iterator<T, N, M, V, Size, std::forward_iterator_tag>;
+
+protected:
+    using Base::scalar_it;
+
+public:
+    using pointer = typename Base::pointer;
+    using reference = typename Base::reference;
+    using const_pointer = typename Base::const_pointer;
+    using const_reference = typename Base::const_reference;
+
+    using Base::Iterator;
+    /// Advances the iterator by one vector width, or respectively N scalar steps.
+    Iterator &operator--()
+    {
+        std::advance(scalar_it, -Size);
+        return *this;
+    }
+    /// Postfix overload of the above.
+    Iterator operator--(int)
+    {
+        Iterator copy(*this);
+        operator--();
+        return copy;
+    }
+};
+
+/**
+ * This is the iterator type created when applying simdize to a random access iterator
+ * type.
+ */
+template <typename T, size_t N, IteratorDetails::Mutable M, typename V, size_t Size>
+class Iterator<T, N, M, V, Size, std::random_access_iterator_tag>
+    : public Iterator<T, N, M, V, Size, std::bidirectional_iterator_tag>
+{
+    using Base = Iterator<T, N, M, V, Size, std::bidirectional_iterator_tag>;
+
+protected:
+    using Base::scalar_it;
+
+public:
+    using pointer = typename Base::pointer;
+    using reference = typename Base::reference;
+    using const_pointer = typename Base::const_pointer;
+    using const_reference = typename Base::const_reference;
+    using difference_type = typename std::iterator_traits<T>::difference_type;
+
+    using Base::Iterator;
+
+    Iterator &operator+=(difference_type n)
+    {
+        scalar_it += n * Size;
+        return *this;
+    }
+    Iterator operator+(difference_type n) const { return Iterator(*this) += n; }
+
+    Iterator &operator-=(difference_type n)
+    {
+        scalar_it -= n * Size;
+        return *this;
+    }
+    Iterator operator-(difference_type n) const { return Iterator(*this) -= n; }
+
+    difference_type operator-(const Iterator &rhs) const
+    {
+        constexpr difference_type n = Size;
+        VC_ASSERT((scalar_it - rhs.scalar_it) % n ==
+                  0);  // if this fails the two iterators are not a multiple of the vector
+                       // width apart. The distance would be fractional and that doesn't
+                       // make too much sense for iteration. Therefore, it is a
+                       // precondition for the distance of the two iterators to be a
+                       // multiple of Size.
+        return (scalar_it - rhs.scalar_it) / n;
+    }
+
+    /**
+     * Returns whether all entries accessed via iterator dereferencing come before the
+     * iterator \p rhs.
+     */
+    bool operator<(const Iterator &rhs) const
+    {
+        return scalar_it + Size <= rhs.scalar_it;
+    }
+
+    bool operator>(const Iterator &rhs) const
+    {
+        return scalar_it >= rhs.scalar_it + Size;
+    }
+
+    bool operator<=(const Iterator &rhs) const
+    {
+        return scalar_it + (Size - 1) <= rhs.scalar_it;
+    }
+
+    bool operator>=(const Iterator &rhs) const
+    {
+        return scalar_it >= rhs.scalar_it + (Size - 1);
+    }
+
+    reference operator[](difference_type i) { return *(*this + i); }
+    const_reference operator[](difference_type i) const { return *(*this + i); }
+};
+
+template <typename T, size_t N, IteratorDetails::Mutable M, typename V, size_t Size>
+Iterator<T, N, M, V, Size, std::random_access_iterator_tag> operator+(
+    typename Iterator<T, N, M, V, Size, std::random_access_iterator_tag>::difference_type
+        n,
+    const Iterator<T, N, M, V, Size, std::random_access_iterator_tag> &i)
+{
+    return i + n;
+}
+
+}  // namespace IteratorDetails
+
 /**\internal
  *
- * Creates a member type \p type that acts as a vectorizing forward iterator.
+ * Creates a member type \p type that acts as a vectorizing bidirectional iterator.
  *
- * \tparam T The forward iterator type to be transformed.
+ * \tparam T The bidirectional iterator type to be transformed.
  * \tparam N The width the resulting vectorized type should have.
  * \tparam MT The base type to use for mask types. Ignored for this specialization.
  */
 template <typename T, size_t N, typename MT>
 struct ReplaceTypes<T, N, MT, Category::ForwardIterator>
 {
-    /// The value returned when dereferencing a scalar iterator.
-    using value_type = typename std::iterator_traits<T>::value_type;
-    /// The simdized type of value_type.
-    using value_vector = simdize<value_type, N>;
-    /// The SIMD width.
-    static constexpr auto Size = value_vector::size();
-
-    /**
-     * This is the iterator type created when applying simdize to a forward iterator type.
-     */
-    class type : public std::iterator<std::forward_iterator_tag, value_vector>
-    {
-    public:
-        type() = default;
-
-        /**
-         * A vectorizing iterator is typically initialized from a scalar iterator. The
-         * scalar iterator points to the first entry to place into the vectorized object.
-         * Subsequent entries returned by the iterator are used to fill the rest of the
-         * vectorized object.
-         */
-        type(const T &x) : scalar_it(x) {}
-        /**
-         * Move optimization of the above constructor.
-         */
-        type(T &&x) : scalar_it(std::move(x)) {}
-        /**
-         * Reset the vectorizing iterator to the given start point \p x.
-         */
-        type &operator=(const T &x)
-        {
-            scalar_it = x;
-            return *this;
-        }
-        /**
-         * Move optimization of the above constructor.
-         */
-        type &operator=(T &&x)
-        {
-            scalar_it = std::move(x);
-            return *this;
-        }
-
-        /// Default copy constructor.
-        type(const type &) = default;
-        /// Default move constructor.
-        type(type &&) = default;
-        /// Default copy assignment.
-        type &operator=(const type &) = default;
-        /// Default move assignment.
-        type &operator=(type &&) = default;
-
-        /// Advances the iterator by one vector width, or respectively N scalar steps.
-        type &operator++()
-        {
-            std::advance(scalar_it, Size);
-            return *this;
-        }
-        /// Postfix overload of the above.
-        type operator++(int)
-        {
-            type copy(*this);
-            operator++();
-            return copy;
-        }
-
-        /**
-         * Returns whether the two iterators point to the same scalar entry.
-         *
-         * \warning If the end iterator you compare against is not a multiple of the SIMD
-         * width away from the incrementing iterator then the two iterators may pass each
-         * other without ever comparing equal. In debug builds (when NDEBUG is not
-         * defined) an assertion tries to locate such passing iterators.
-         */
-        bool operator==(const type &rhs) const {
-            T it(scalar_it);
-            for (size_t i = 1; i < Size; ++i) {
-                VC_ASSERT((++it != rhs.scalar_it));
-            }
-            return scalar_it == rhs.scalar_it;
-        }
-        /**
-         * Returns whether the two iterators point to different scalar entries.
-         *
-         * \warning If the end iterator you compare against is not a multiple of the SIMD
-         * width away from the incrementing iterator then the two iterators may pass each
-         * other without ever comparing equal. In debug builds (when NDEBUG is not
-         * defined) an assertion tries to locate such passing iterators.
-         */
-        bool operator!=(const type &rhs) const {
-            T it(scalar_it);
-            for (size_t i = 1; i < Size; ++i) {
-                VC_ASSERT((++it != rhs.scalar_it));
-            }
-            return scalar_it != rhs.scalar_it;
-        }
-
-        class proxy : public value_vector
-        {
-            friend class type;
-            using reference = typename std::add_lvalue_reference<T>::type;
-            using const_reference = typename std::add_const<reference>::type;
-            reference scalar_it;
-
-            proxy(reference first_it) : scalar_it(first_it)
-            {
-                auto it = scalar_it;
-                value_vector &r = *this;
-                for (size_t i = 0; i < Size; ++i, ++it) {
-                    assign(r, i, *it);
-                }
-            }
-
-        public:
-            void operator=(const value_vector &x)
-            {
-                auto it = scalar_it;
-                for (size_t i = 0; i < Size; ++i, ++it) {
-                    *it = extract(x, i);
-                }
-            }
-        };
-        proxy operator*()
-        {
-            return {scalar_it};
-        }
-        value_vector operator*() const
-        {
-            auto it = scalar_it;
-            value_vector r;
-            for (size_t i = 0; i < Size; ++i, ++it) {
-                assign(r, i, *it);
-            }
-        }
-
-    private:
-        T scalar_it;
-    };
+    using type = IteratorDetails::Iterator<T, N>;
+};
+template <typename T, size_t N, typename MT>
+struct ReplaceTypes<T, N, MT, Category::BidirectionalIterator>
+{
+    using type = IteratorDetails::Iterator<T, N>;
+};
+template <typename T, size_t N, typename MT>
+struct ReplaceTypes<T, N, MT, Category::RandomAccessIterator>
+{
+    using type = IteratorDetails::Iterator<T, N>;
 };
 
 /**\internal
