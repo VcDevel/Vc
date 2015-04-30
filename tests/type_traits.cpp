@@ -144,3 +144,11 @@ TEST(test_is_functor_argument_immutable)
     VERIFY( (Vc::Traits::is_functor_argument_immutable<F3, int>::value));
     VERIFY(!(Vc::Traits::is_functor_argument_immutable<F4, int>::value));
 }
+
+TEST(test_is_output_iterator)
+{
+    VERIFY( (Vc::Traits::is_output_iterator<std::vector<int>::iterator>::value));
+    VERIFY(!(Vc::Traits::is_output_iterator<std::vector<int>::const_iterator>::value));
+    VERIFY( (Vc::Traits::is_output_iterator<std::ostream_iterator<int>>::value));
+    VERIFY(!(Vc::Traits::is_output_iterator<std::istream_iterator<int>>::value));
+}

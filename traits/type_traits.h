@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "is_initializer_list.h"
 #include "is_load_arguments.h"
 #include "is_functor_argument_immutable.h"
+#include "is_output_iterator.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
