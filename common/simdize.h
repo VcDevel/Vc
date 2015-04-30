@@ -50,6 +50,8 @@ using std::true_type;
 using std::iterator_traits;
 using std::conditional;
 using std::size_t;
+template <bool B, typename T, typename F>
+using conditional_t = typename conditional<B, T, F>::type;
 
 /**\internal
  * Typelist is a simple helper class for supporting multiple parameter packs in one class
@@ -251,10 +253,8 @@ private:
      * This is normally the old \p MT type. However, if N != NewN and MT = void, NewMT is
      * set to either \c float or \p T, depending on whether \p T is \c bool or not.
      */
-    typedef typename conditional<
-        (N != NewN && is_same<MT, void>::value),
-        typename conditional<is_same<T, bool>::value, float, T>::type,
-        MT>::type NewMT;
+    typedef conditional_t<(N != NewN && is_same<MT, void>::value),
+                          conditional_t<is_same<T, bool>::value, float, T>, MT> NewMT;
 
 public:
     /// An alias to the type member of the completed recursion over SubstituteOneByOne.
@@ -358,9 +358,8 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
      * template parameter substitution was done in SubstituteOneByOne. Otherwise, the type
      * aliases an Adapter instantiation.
      */
-    using type =
-        typename conditional<is_same<C<Ts...>, Vectorized>::value, C<Ts...>,
-                             Adapter<C<Ts...>, Vectorized, SubstitutionResult::N>>::type;
+    using type = conditional_t<is_same<C<Ts...>, Vectorized>::value, C<Ts...>,
+                               Adapter<C<Ts...>, Vectorized, SubstitutionResult::N>>;
 };
 
 /**\internal
@@ -423,10 +422,9 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
         typedef typename tmp::template Substituted1<ValueType__, C, Value0, Values...>   \
             Substituted;                                                                 \
         static constexpr auto NN = tmp::N;                                               \
-        typedef typename conditional<                                                    \
-            is_same<C<T0, Value0, Values...>, Substituted>::value,                       \
-            C<T0, Value0, Values...>,                                                    \
-            Adapter<C<T0, Value0, Values...>, Substituted, NN>>::type type;              \
+        typedef conditional_t<is_same<C<T0, Value0, Values...>, Substituted>::value,     \
+                              C<T0, Value0, Values...>,                                  \
+                              Adapter<C<T0, Value0, Values...>, Substituted, NN>> type;  \
     };                                                                                   \
     template <template <typename, typename, ValueType__...> class C, typename T0,        \
               typename T1, ValueType__ Value0, ValueType__... Values, size_t N,          \
@@ -437,10 +435,10 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
         typedef typename tmp::template Substituted2<ValueType__, C, Value0, Values...>   \
             Substituted;                                                                 \
         static constexpr auto NN = tmp::N;                                               \
-        typedef typename conditional<                                                    \
-            is_same<C<T0, T1, Value0, Values...>, Substituted>::value,                   \
-            C<T0, T1, Value0, Values...>,                                                \
-            Adapter<C<T0, T1, Value0, Values...>, Substituted, NN>>::type type;          \
+        typedef conditional_t<is_same<C<T0, T1, Value0, Values...>, Substituted>::value, \
+                              C<T0, T1, Value0, Values...>,                              \
+                              Adapter<C<T0, T1, Value0, Values...>, Substituted, NN>>    \
+            type;                                                                        \
     };                                                                                   \
     template <template <typename, typename, typename, ValueType__...> class C,           \
               typename T0, typename T1, typename T2, ValueType__ Value0,                 \
@@ -452,10 +450,10 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
         typedef typename tmp::template Substituted3<ValueType__, C, Value0, Values...>   \
             Substituted;                                                                 \
         static constexpr auto NN = tmp::N;                                               \
-        typedef typename conditional<                                                    \
+        typedef conditional_t<                                                           \
             is_same<C<T0, T1, T2, Value0, Values...>, Substituted>::value,               \
             C<T0, T1, T2, Value0, Values...>,                                            \
-            Adapter<C<T0, T1, T2, Value0, Values...>, Substituted, NN>>::type type;      \
+            Adapter<C<T0, T1, T2, Value0, Values...>, Substituted, NN>> type;            \
     }
 Vc_DEFINE_NONTYPE_REPLACETYPES__(bool);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(wchar_t);
