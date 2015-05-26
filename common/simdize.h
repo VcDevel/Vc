@@ -926,10 +926,50 @@ namespace IteratorDetails
 {
 enum class Mutable { Yes, No };
 
+template <typename It, typename V, size_t I, size_t End>
+Vc_INTRINSIC V fromIteratorImpl(enable_if<(I == End), It>)
+{
+    return {};
+}
+template <typename It, typename V, size_t I, size_t End>
+Vc_INTRINSIC V fromIteratorImpl(enable_if<(I < End), It> it)
+{
+    V r = fromIteratorImpl<It, V, I + 1, End>(it);
+    Traits::decay<decltype(get<I>(r))> tmp;
+    for (size_t j = 0; j < V::size(); ++j, ++it) {
+        tmp[j] = get<I>(*it);
+    }
+    get<I>(r) = tmp;
+    return r;
+}
+template <typename It, typename V>
+Vc_INTRINSIC V fromIterator(enable_if<!Traits::is_simd_vector<V>::value, const It &> it)
+{
+    return fromIteratorImpl<It, V, 0, determine_tuple_size<V>()>(it);
+}
+template <typename It, typename V>
+Vc_INTRINSIC V fromIterator(enable_if<Traits::is_simd_vector<V>::value, It> it)
+{
+    V r;
+    for (size_t j = 0; j < V::size(); ++j, ++it) {
+        r[j] = *it;
+    }
+    return r;
+}
+
 // Note: §13.5.6 says: “An expression x->m is interpreted as (x.operator->())->m for a
 // class object x of type T if T::operator->() exists and if the operator is selected as
 // the best match function by the overload resolution mechanism (13.3).”
 template <typename T, typename value_vector, Mutable> class Pointer;
+
+/**\internal
+ * Proxy type for a pointer returned from operator->(). The mutable variant requires at
+ * least a ForwardIterator. An InputIterator cannot work since no valid copies and
+ * independent iteration can be guaranteed.
+ *
+ * The implementation creates the pointer-like behavior by creating an lvalue for the
+ * proxied data. This
+ */
 template <typename T, typename value_vector> class Pointer<T, value_vector, Mutable::Yes>
 {
     static constexpr auto Size = value_vector::size();
@@ -956,12 +996,7 @@ public:
         }
     }
 
-    Pointer(T it) : begin_iterator(it)
-    {
-        for (size_t i = 0; i < Size; ++i, ++it) {
-            assign(data, i, *it);
-        }
-    }
+    Pointer(const T &it) : data(fromIterator<T, value_vector>(it)), begin_iterator(it) {}
 
 private:
     value_vector data;
@@ -981,12 +1016,7 @@ public:
 
     Pointer(Pointer &&) = default;  // required for returning the Pointer
 
-    Pointer(T it)
-    {
-        for (size_t i = 0; i < Size; ++i, ++it) {
-            assign(data, i, *it);
-        }
-    }
+    Pointer(const T &it) : data(fromIterator<T, value_vector>(it)) {}
 
 private:
     value_vector data;
@@ -1002,13 +1032,9 @@ class Reference<T, value_vector, Mutable::Yes> : public value_vector
     reference scalar_it;
 
 public:
-    Reference(reference first_it) : scalar_it(first_it)
+    Reference(reference first_it)
+        : value_vector(fromIterator<T, value_vector>(first_it)), scalar_it(first_it)
     {
-        auto it = scalar_it;
-        value_vector &r = *this;
-        for (size_t i = 0; i < Size; ++i, ++it) {
-            assign(r, i, *it);
-        }
     }
 
     Reference(const Reference &) = delete;
@@ -1030,13 +1056,7 @@ class Reference<T, value_vector, Mutable::No> : public value_vector
     static constexpr auto Size = value_vector::size();
 
 public:
-    Reference(T it)
-    {
-        value_vector &r = *this;
-        for (size_t i = 0; i < Size; ++i, ++it) {
-            assign(r, i, *it);
-        }
-    }
+    Reference(const T &it) : value_vector(fromIterator<T, value_vector>(it)) {}
 
     Reference(const Reference &) = delete;
     Reference(Reference &&) = default;
