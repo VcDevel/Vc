@@ -744,7 +744,7 @@ inline void assign(Adapter<S, T, N> &a, size_t i, const S &x)
  * Overload for standard Vector/simdarray types.
  */
 template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
-inline void assign(V &v, size_t i, typename V::EntryType x)
+Vc_INTRINSIC void assign(V &v, size_t i, typename V::EntryType x)
 {
     v[i] = x;
 }
@@ -773,7 +773,7 @@ inline S extract(const Adapter<S, T, N> &a, size_t i)
  * Overload for standard Vector/simdarray types.
  */
 template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
-inline typename V::EntryType extract(V v, size_t i)
+Vc_INTRINSIC typename V::EntryType extract(const V &v, size_t i)
 {
     return v[i];
 }
