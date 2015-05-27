@@ -975,18 +975,25 @@ template <typename T, typename value_vector> class Pointer<T, value_vector, Muta
     static constexpr auto Size = value_vector::size();
 
 public:
+    /// \returns a pointer to the (temporary) member object.
     value_vector *operator->() { return &data; }
 
+    /**
+     * A Pointer can only be constructed from a scalar iterator or move constructed (for
+     * function returns).
+     */
     Pointer() = delete;
     Pointer(const Pointer &) = delete;
     Pointer &operator=(const Pointer &) = delete;
     Pointer &operator=(Pointer &&) = delete;
 
-    Pointer(Pointer &&) = default;  // required for returning the Pointer
+    /// required for returning the Pointer
+    Pointer(Pointer &&) = default;
 
     /**
-     * Writes back the vectorized object to the scalar objects referenced by the
-     * iterator.
+     * Writes the vectorized object back to the scalar objects referenced by the
+     * iterator. This store is done unconditionally for the mutable variant of the
+     * Pointer. The immutable Pointer OTOH does not store back at all.
      */
     ~Pointer()
     {
@@ -996,12 +1003,20 @@ public:
         }
     }
 
+    /// Construct the Pointer object from the values returned by the scalar iterator \p it.
     Pointer(const T &it) : data(fromIterator<T, value_vector>(it)), begin_iterator(it) {}
 
 private:
+    /// The vectorized object needed for dereferencing the pointer.
     value_vector data;
+    /// A copy of the scalar iterator, used for storing the results back.
     T begin_iterator;
 };
+/**\internal
+ * The immutable variant of the Pointer class specialization above. It behaves the same as
+ * the mutable Pointer except that it returns a const pointer from \c operator-> and
+ * avoids the write back in the destructor.
+ */
 template <typename T, typename value_vector> class Pointer<T, value_vector, Mutable::No>
 {
     static constexpr auto Size = value_vector::size();
@@ -1022,7 +1037,21 @@ private:
     value_vector data;
 };
 
-template <typename T, typename value_vector, Mutable> class Reference;
+/**\internal
+ * The Reference class behaves as much as possible like a reference to an object of type
+ * \p value_vector. The \p Mutable parameter determines whether the referenced object my
+ * be modified or not (basically whether it's a ref or a const-ref, though the semantics
+ * of mutable are actually stricter than that of const. Const only determines the logical
+ * constness whereas mutability identifies the constness on the bit-level.)
+ *
+ * \tparam T The scalar iterator type.
+ * \tparam value_vector The vector object the scalar iterator needs to fill.
+ * \tparam M A flag that determines whether the reference acts as a mutable or immutable
+ *           reference.
+ */
+template <typename T, typename value_vector, Mutable M> class Reference;
+
+///\internal mutable specialization of the Reference proxy class
 template <typename T, typename value_vector>
 class Reference<T, value_vector, Mutable::Yes> : public value_vector
 {
@@ -1032,16 +1061,24 @@ class Reference<T, value_vector, Mutable::Yes> : public value_vector
     reference scalar_it;
 
 public:
+    /// Construct the reference from the given iterator \p first_it and store a reference
+    /// to the iterator for write back in the assignment operator.
     Reference(reference first_it)
         : value_vector(fromIterator<T, value_vector>(first_it)), scalar_it(first_it)
     {
     }
 
+    /// disable all copy and move operations, except the one needed for function returns
     Reference(const Reference &) = delete;
     Reference(Reference &&) = default;
     Reference &operator=(const Reference &) = delete;
     Reference &operator=(Reference &&) = delete;
 
+    /**
+     * Assignment to the reference assigns to the storage pointed to by the scalar
+     * iterator as well as the reference object itself. (The compiler should eliminate the
+     * store to \c this if its never used since it is clearly a dead store.)
+     */
     void operator=(const value_vector &x)
     {
         static_cast<value_vector &>(*this) = x;
@@ -1051,6 +1088,8 @@ public:
         }
     }
 };
+
+///\internal immutable specialization of the Reference proxy class
 template <typename T, typename value_vector>
 class Reference<T, value_vector, Mutable::No> : public value_vector
 {
@@ -1064,6 +1103,7 @@ public:
     Reference &operator=(const Reference &) = delete;
     Reference &operator=(Reference &&) = delete;
 
+    /// Explicitly disable assignment to an immutable reference.
     void operator=(const value_vector &x) = delete;
 };
 
@@ -1179,9 +1219,24 @@ public:
     }
 
     pointer operator->() { return scalar_it; }
+
+    /**
+     * Returns a copy of the objects behind the iterator in a vectorized type. You can use
+     * the assignment operator to modify the values in the container referenced by the
+     * iterator. Use of any other mutating operation is undefined behavior and will most
+     * likely not be reflected in the container.
+     */
     reference operator*() { return scalar_it; }
 
     const_pointer operator->() const { return scalar_it; }
+
+    /**
+     * Returns a copy of the objects behind the iterator in a vectorized type.
+     *
+     * \warning This does not behave like the standard iterator interface as it does not
+     * return an lvalue reference. Thus, changes to the container the iterator references
+     * will not be reflected in the reference object you receive.
+     */
     const_reference operator*() const { return scalar_it; }
 
 protected:
