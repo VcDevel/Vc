@@ -1044,6 +1044,7 @@ public:
 
     void operator=(const value_vector &x)
     {
+        static_cast<value_vector &>(*this) = x;
         auto it = scalar_it;
         for (size_t i = 0; i < Size; ++i, ++it) {
             *it = extract(x, i);

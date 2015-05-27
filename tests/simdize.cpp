@@ -289,6 +289,13 @@ TEST(list_iterator_vectorization)
             COMPARE(*b, reference);
             *b = x + 1;
             COMPARE(*b, reference + 1);
+            auto &&ref = *b;
+            ref = x + 2;
+            COMPARE(*b, reference + 2);
+            COMPARE(ref, reference + 2);
+            ref = x + 1;
+            COMPARE(*b, reference + 1);
+            COMPARE(ref, reference + 1);
         }
         reference = list.size() - float_v::IndexesFromZero() + 1;
         for (b = list.begin(); b != e; ++b, reference -= float_v::size()) {
