@@ -186,6 +186,35 @@ if(NOT ROOT_RELEASE)
       set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "YES")
       set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
       set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+   elseif(UNIX AND Vc_COMPILER_IS_CLANG)
+      # On UNIX (Linux) the standard library used by default typically is libstdc++ (GCC).
+      # To get the full clang deal we rather want to build against libc++. This requires
+      # additionally the libc++abi and libsupc++ libraries in all linker invokations.
+      option(USE_LIBC++ "Use libc++ instead of the system default C++ standard library." ON)
+      if(USE_LIBC++)
+         AddCompilerFlag(-stdlib=libc++ CXX_FLAGS CMAKE_CXX_FLAGS CXX_RESULT _use_libcxx)
+         if(_use_libcxx)
+            find_library(LIBC++ABI c++abi)
+            if(LIBC++ABI)
+               set(CMAKE_REQUIRED_LIBRARIES "${LIBC++ABI};supc++")
+               CHECK_CXX_SOURCE_COMPILES("#include <stdexcept>
+               #include <iostream>
+               void foo() {
+                 std::cout << 'h' << std::flush << std::endl;
+                 throw std::exception();
+               }
+               int main() {
+                 try { foo(); }
+                 catch (int) { return 0; }
+                 return 1;
+               }" libcxx_compiles)
+               unset(CMAKE_REQUIRED_LIBRARIES)
+               if(libcxx_compiles)
+                  link_libraries(${LIBC++ABI} supc++)
+               endif()
+            endif()
+         endif()
+      endif()
    endif()
    add_dependencies(other Vc)
 
