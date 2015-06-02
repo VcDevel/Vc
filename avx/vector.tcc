@@ -327,17 +327,13 @@ template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
     if (HasVectorDivision) {
         return operator/=(Vector<T>(x));
     }
-    for_all_vector_entries(i,
-            d.m(i) /= x;
-            );
+    for_all_vector_entries(i, { d.set(i, d.m(i) / x); });
     return *this;
 }
 // per default fall back to scalar division
 template<typename T> inline Vector<T> &Vector<T>::operator/=(VC_ALIGNED_PARAMETER(Vector<T>) x)
 {
-    for_all_vector_entries(i,
-            d.m(i) /= x.d.m(i);
-            );
+    for_all_vector_entries(i, { d.set(i, d.m(i) / x.d.m(i)); });
     return *this;
 }
 

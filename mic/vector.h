@@ -205,7 +205,7 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // aliasing scalar access
-    Vc_INTRINSIC_L auto operator[](size_t index)Vc_INTRINSIC_R -> decltype(d.m(0)) & ;
+    Vc_INTRINSIC_L auto operator[](size_t index)Vc_INTRINSIC_R -> decltype(d.ref(0)) &;
     Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_INTRINSIC_R;
 
     ///////////////////////////////////////////////////////////////////////////////////////////

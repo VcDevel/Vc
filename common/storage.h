@@ -148,7 +148,7 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
         Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return data.v; }
         Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return data.v; }
 
-        Vc_ALWAYS_INLINE Vc_PURE EntryType &m(size_t index) {
+        Vc_ALWAYS_INLINE Vc_PURE EntryType &ref(size_t index) {
             return data.m[index];
         }
         Vc_ALWAYS_INLINE Vc_PURE EntryType m(size_t index) const {
@@ -181,7 +181,7 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
         Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return reinterpret_cast<const VectorType &>(data); }
 
 #ifdef VC_MSVC
-        Vc_ALWAYS_INLINE EntryType &m(size_t index) {
+        Vc_ALWAYS_INLINE EntryType &ref(size_t index) {
             return accessScalar<EntryType>(data, index);
         }
 
@@ -196,15 +196,12 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
 #elif VC_USE_BUILTIN_VECTOR_TYPES
         Vc_INTRINSIC void set(size_t index, EntryType x) { data[index] = x; }
 
-        Vc_ALWAYS_INLINE EntryType &m(size_t index) {
-            return reinterpret_cast<EntryType &>(data[index]);
-        }
-
-        Vc_ALWAYS_INLINE const EntryType &m(size_t index) const {
-            return reinterpret_cast<const EntryType &>(data[index]);
+        Vc_ALWAYS_INLINE EntryType m(size_t index) const { return data[index]; }
+        Vc_ALWAYS_INLINE EntryType &ref(size_t index) {
+            return data[index];
         }
 #else
-        Vc_ALWAYS_INLINE Vc_PURE MayAlias<EntryType> &m(size_t index) {
+        Vc_ALWAYS_INLINE Vc_PURE MayAlias<EntryType> &ref(size_t index) {
             return reinterpret_cast<MayAlias<EntryType> *>(&data)[index];
         }
 
@@ -212,7 +209,7 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
             return reinterpret_cast<const MayAlias<EntryType> *>(&data)[index];
         }
 
-        Vc_INTRINSIC void set(size_t index, EntryType x) { m(index) = x; }
+        Vc_INTRINSIC void set(size_t index, EntryType x) { ref(index) = x; }
 #endif
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
         Vc_ALWAYS_INLINE BuiltinType &builtin() { return data; }
@@ -238,13 +235,13 @@ template<typename T, typename V> static Vc_ALWAYS_INLINE Vc_CONST T &vectorMemor
         return reinterpret_cast<T *>(data)[index];
     }
 }
-template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<double> &VectorMemoryUnion<__m128d, double>::m(size_t index) {
+template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<double> &VectorMemoryUnion<__m128d, double>::ref(size_t index) {
     return vectorMemoryUnionAliasedMember<MayAlias<EntryType>>(&data, index);
 }
-template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<long long> &VectorMemoryUnion<__m128i, long long>::m(size_t index) {
+template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<long long> &VectorMemoryUnion<__m128i, long long>::ref(size_t index) {
     return vectorMemoryUnionAliasedMember<MayAlias<EntryType>>(&data, index);
 }
-template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<unsigned long long> &VectorMemoryUnion<__m128i, unsigned long long>::m(size_t index) {
+template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<unsigned long long> &VectorMemoryUnion<__m128i, unsigned long long>::ref(size_t index) {
     return vectorMemoryUnionAliasedMember<MayAlias<EntryType>>(&data, index);
 }
 #endif

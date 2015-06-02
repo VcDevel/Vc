@@ -177,12 +177,7 @@ template<typename T> class Vector
         Vc_INTRINSIC Vector operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
         Vc_INTRINSIC Vector operator--(int) { const Vector<T> r = *this; data() = VectorHelper<T>::sub(data(), VectorHelper<T>::one()); return r; }
 
-        Vc_INTRINSIC decltype(d.m(0)) operator[](size_t index) {
-#if defined(VC_GCC) && VC_GCC >= 0x40300 && VC_GCC < 0x40400
-            ::Vc::Warnings::_operator_bracket_warning();
-#endif
-            return d.m(index);
-        }
+        Vc_INTRINSIC decltype(d.ref(0)) operator[](size_t index) { return d.ref(index); }
         Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_PURE Vc_INTRINSIC_R;
 
         Vc_INTRINSIC_L Vector operator[](int_v perm) const Vc_INTRINSIC_R;

@@ -208,9 +208,7 @@ template<typename T> class Vector
         Vc_ALWAYS_INLINE Vector operator++(int) { const Vector<T> r = *this; data() = VectorHelper<T>::add(data(), VectorHelper<T>::one()); return r; }
         Vc_ALWAYS_INLINE Vector operator--(int) { const Vector<T> r = *this; data() = VectorHelper<T>::sub(data(), VectorHelper<T>::one()); return r; }
 
-        Vc_INTRINSIC decltype(d.m(0)) operator[](size_t index) {
-            return d.m(index);
-        }
+        Vc_INTRINSIC decltype(d.ref(0)) operator[](size_t index) { return d.ref(index); }
         Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
             return d.m(index);
         }
