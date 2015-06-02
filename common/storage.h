@@ -197,9 +197,17 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
         Vc_INTRINSIC void set(size_t index, EntryType x) { data[index] = x; }
 
         Vc_ALWAYS_INLINE EntryType m(size_t index) const { return data[index]; }
+#ifdef VC_CLANG
+        // clang does not allow lvalue reference binding to vector subscripts
+        Vc_INTRINSIC Vc_PURE MayAlias<EntryType> &ref(size_t index)
+        {
+            return reinterpret_cast<MayAlias<EntryType> *>(&data)[index];
+        }
+#else
         Vc_ALWAYS_INLINE EntryType &ref(size_t index) {
             return data[index];
         }
+#endif
 #else
         Vc_ALWAYS_INLINE Vc_PURE MayAlias<EntryType> &ref(size_t index) {
             return reinterpret_cast<MayAlias<EntryType> *>(&data)[index];
