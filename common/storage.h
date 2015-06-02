@@ -188,7 +188,14 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
         Vc_ALWAYS_INLINE EntryType m(size_t index) const {
             return accessScalar<EntryType>(data, index);
         }
+
+        Vc_INTRINSIC void set(size_t index, EntryType x)
+        {
+            accessScalar<EntryType>(data, index) = x;
+        }
 #elif VC_USE_BUILTIN_VECTOR_TYPES
+        Vc_INTRINSIC void set(size_t index, EntryType x) { data[index] = x; }
+
         Vc_ALWAYS_INLINE EntryType &m(size_t index) {
             return reinterpret_cast<EntryType &>(data[index]);
         }
@@ -204,6 +211,8 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
         Vc_ALWAYS_INLINE Vc_PURE EntryType m(size_t index) const {
             return reinterpret_cast<const MayAlias<EntryType> *>(&data)[index];
         }
+
+        Vc_INTRINSIC void set(size_t index, EntryType x) { m(index) = x; }
 #endif
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
         Vc_ALWAYS_INLINE BuiltinType &builtin() { return data; }

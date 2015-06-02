@@ -100,7 +100,7 @@ Vc_ALWAYS_INLINE void executeGather(BitScanLoopT,
     while (bits) {
         const int i = _bit_scan_forward(bits);
         bits &= ~(1 << i); // btr?
-        d.m(i) = ith_value(i);
+        d.set(i, ith_value(i));
     }
     */
 }

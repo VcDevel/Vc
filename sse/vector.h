@@ -332,7 +332,7 @@ template<typename T> class Vector
         {
             Vector<T> r;
             for_all_vector_entries(i,
-                    r.d.m(i) = f(EntryType(d.m(i)));
+                    r.d.set(i, f(EntryType(d.m(i))));
                     );
             return r;
         }
@@ -340,19 +340,19 @@ template<typename T> class Vector
         {
             Vector<T> r(*this);
             for (size_t i : where(mask)) {
-                r.d.m(i) = f(EntryType(r.d.m(i)));
+                r.d.set(i, f(EntryType(r.d.m(i))));
             }
             return r;
         }
 
         template<typename IndexT> Vc_INTRINSIC void fill(EntryType (&f)(IndexT)) {
             for_all_vector_entries(i,
-                    d.m(i) = f(i);
+                    d.set(i, f(i));
                     );
         }
         Vc_INTRINSIC void fill(EntryType (&f)()) {
             for_all_vector_entries(i,
-                    d.m(i) = f();
+                    d.set(i, f());
                     );
         }
 

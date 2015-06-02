@@ -333,7 +333,7 @@ public:
     template<typename F> Vc_INTRINSIC Vector<T> apply(F &&f) const {
         Vector<T> r;
         for_all_vector_entries(i,
-                r.d.m(i) = f(EntryType(d.m(i)));
+                r.d.set(i, f(EntryType(d.m(i))));
                 );
         return r;
     }
@@ -341,19 +341,19 @@ public:
     template<typename F> Vc_INTRINSIC Vector<T> apply(F &&f, const Mask &mask) const {
         Vector<T> r(*this);
         Vc_foreach_bit (size_t i, mask) {
-            r.d.m(i) = f(EntryType(r.d.m(i)));
+            r.d.set(i, f(EntryType(r.d.m(i))));
         }
         return r;
     }
 
     template<typename IndexT> Vc_INTRINSIC void fill(EntryType (&f)(IndexT)) {
         for_all_vector_entries(i,
-                d.m(i) = f(i);
+                d.set(i, f(i));
                 );
     }
     Vc_INTRINSIC void fill(EntryType (&f)()) {
         for_all_vector_entries(i,
-                d.m(i) = f();
+                d.set(i, f());
                 );
     }
 
@@ -361,7 +361,7 @@ public:
     {
         Vector r;
         Common::unrolled_loop<std::size_t, 0, Size>([&](std::size_t i) {
-            r.d.m(i) = gen(i);
+            r.d.set(i, gen(i));
         });
         return r;
     }

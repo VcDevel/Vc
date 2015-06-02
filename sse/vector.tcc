@@ -284,17 +284,13 @@ template<typename T> inline Vector<T> &Vector<T>::operator/=(EntryType x)
     if (VectorTraits<T>::HasVectorDivision) {
         return operator/=(Vector<T>(x));
     }
-    for_all_vector_entries(i,
-            d.m(i) /= x;
-            );
+    for_all_vector_entries(i, { d.set(i, d.m(i) / x); });
     return *this;
 }
 
 template<typename T> inline Vector<T> &Vector<T>::operator/=(VC_ALIGNED_PARAMETER(Vector<T>) x)
 {
-    for_all_vector_entries(i,
-            d.m(i) /= x.d.m(i);
-            );
+    for_all_vector_entries(i, { d.set(i, d.m(i) / x.d.m(i)); });
     return *this;
 }
 
@@ -302,7 +298,7 @@ template<typename T> inline Vc_PURE Vector<T> Vector<T>::operator/(VC_ALIGNED_PA
 {
     Vector<T> r;
     for_all_vector_entries(i,
-            r.d.m(i) = d.m(i) / x.d.m(i);
+            r.d.set(i, d.m(i) / x.d.m(i));
             );
     return r;
 }
@@ -470,22 +466,20 @@ VC_APPLY_2(VC_LIST_INT_VECTOR_TYPES, _VC_OP, >>, shiftRight)
 #define VC_WORKAROUND Vc_INTRINSIC
 #endif
 
-#define OP_IMPL(T, symbol) \
-template<> VC_WORKAROUND Vector<T> &Vector<T>::operator symbol##=(Vector<T>::AsArg x) \
-{ \
-    for_all_vector_entries(i, \
-            d.m(i) symbol##= x.d.m(i); \
-            ); \
-    return *this; \
-} \
-template<> inline Vc_PURE Vector<T>  Vector<T>::operator symbol(Vector<T>::AsArg x) const \
-{ \
-    Vector<T> r; \
-    for_all_vector_entries(i, \
-            r.d.m(i) = d.m(i) symbol x.d.m(i); \
-            ); \
-    return r; \
-}
+#define OP_IMPL(T, symbol)                                                               \
+    template <>                                                                          \
+    VC_WORKAROUND Vector<T> &Vector<T>::operator symbol##=(Vector<T>::AsArg x)           \
+    {                                                                                    \
+        for_all_vector_entries(i, d.set(i, d.m(i) symbol x.d.m(i)););                    \
+        return *this;                                                                    \
+    }                                                                                    \
+    template <>                                                                          \
+    inline Vc_PURE Vector<T> Vector<T>::operator symbol(Vector<T>::AsArg x) const        \
+    {                                                                                    \
+        Vector<T> r;                                                                     \
+        for_all_vector_entries(i, r.d.set(i, d.m(i) symbol x.d.m(i)););                  \
+        return r;                                                                        \
+    }
 OP_IMPL(int, <<)
 OP_IMPL(int, >>)
 OP_IMPL(unsigned int, <<)
