@@ -40,18 +40,26 @@ template<typename M> class MaskEntry
 {
     M &mask;
     size_t offset;
+
 public:
     constexpr MaskEntry(M &m, size_t o) : mask(m), offset(o) {}
-    constexpr MaskEntry(const MaskEntry &) = default;
-    constexpr MaskEntry(MaskEntry &&) = default;
 
-    template <typename B, typename std::enable_if<std::is_same<B, bool>::value, int>::type = 0>
-    Vc_ALWAYS_INLINE Vc_PURE operator B() const
+    /**\internal
+     * allow only returning the object (it allows more, but I can't restrict it further)
+     */
+    constexpr MaskEntry(MaskEntry &&) = default;
+    MaskEntry(const MaskEntry &) = delete;
+    MaskEntry &operator=(const MaskEntry &) = delete;
+    MaskEntry &operator=(MaskEntry &&) = delete;
+
+    template <typename B, typename = enable_if<std::is_same<B, bool>::value>>
+    Vc_INTRINSIC Vc_PURE operator B() const
     {
         const M &m = mask;
         return m[offset];
     }
-    Vc_ALWAYS_INLINE MaskEntry &operator=(bool x) {
+    Vc_INTRINSIC MaskEntry &operator=(bool x)
+    {
         mask.setEntry(offset, x);
         return *this;
     }
@@ -77,10 +85,13 @@ public:
     Vc_ALWAYS_INLINE MaskBool(const MaskBool &) = default;
     Vc_ALWAYS_INLINE MaskBool &operator=(const MaskBool &) = default;
 
-    template <typename B, typename std::enable_if<std::is_same<B, bool>::value, int>::type = 0>
-    constexpr operator B() const
+    template <typename T, typename = enable_if<(std::is_same<T, bool>::value ||
+                                                (std::is_fundamental<T>::value &&
+                                                 sizeof(storage_type) == sizeof(T)))>>
+    constexpr operator T() const
     {
-        return (data & 1) != 0;
+        return std::is_same<T, bool>::value ? T((data & 1) != 0)
+                                            : reinterpret_cast<const MayAlias<T> &>(data);
     }
 } Vc_MAY_ALIAS;
 

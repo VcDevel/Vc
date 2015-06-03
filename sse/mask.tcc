@@ -203,8 +203,8 @@ template<typename T> Vc_ALWAYS_INLINE void Mask<T>::store(bool *mem) const
 }
 template<> Vc_ALWAYS_INLINE void Mask<double>::load(const bool *mem)
 {
-    d.m(0) = mem[0];
-    d.m(1) = mem[1];
+    d.set(0, MaskBool(mem[0]));
+    d.set(1, MaskBool(mem[1]));
 }
 template<typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
 {

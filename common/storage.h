@@ -95,20 +95,17 @@ template<> struct BuiltinTypeHelper<unsigned short, __m128i> { typedef unsigned 
 template<> struct BuiltinTypeHelper<char          , __m128i> { typedef           char Type __attribute__((__vector_size__(16))); };
 template<> struct BuiltinTypeHelper<unsigned char , __m128i> { typedef  unsigned char Type __attribute__((__vector_size__(16))); };
 template<> struct BuiltinTypeHelper<  signed char , __m128i> { typedef    signed char Type __attribute__((__vector_size__(16))); };
-#ifdef VC_IMPL_SSE
-template<typename VectorType> struct BuiltinTypeHelper<float, VectorType> { typedef  __v4sf Type; };
-#endif
 #ifdef VC_IMPL_AVX
-template<> struct BuiltinTypeHelper<double        , __m256d> { typedef  __v4df Type; };
-template<> struct BuiltinTypeHelper<float         , __m256 > { typedef  __v8sf Type; };
-template<> struct BuiltinTypeHelper<long long     , __m256i> { typedef  __v4di Type; };
-template<> struct BuiltinTypeHelper<unsigned long long, __m256i> { typedef  __v4di Type; };
-template<> struct BuiltinTypeHelper<int           , __m256i> { typedef  __v8si Type; };
-template<> struct BuiltinTypeHelper<unsigned int  , __m256i> { typedef  __v8si Type; };
-template<> struct BuiltinTypeHelper<short         , __m256i> { typedef __v16hi Type; };
-template<> struct BuiltinTypeHelper<unsigned short, __m256i> { typedef __v16hi Type; };
-template<> struct BuiltinTypeHelper<char          , __m256i> { typedef __v32qi Type; };
-template<> struct BuiltinTypeHelper<unsigned char , __m256i> { typedef __v32qi Type; };
+template<> struct BuiltinTypeHelper<double            , __m256d> { typedef double             Type __attribute__((__vector_size__(32))); };
+template<> struct BuiltinTypeHelper<float             , __m256 > { typedef float              Type __attribute__((__vector_size__(32))); };
+template<> struct BuiltinTypeHelper<long long         , __m256i> { typedef long long          Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<unsigned long long, __m256i> { typedef unsigned long long Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<int               , __m256i> { typedef int                Type __attribute__((__vector_size__(32))); };
+template<> struct BuiltinTypeHelper<unsigned int      , __m256i> { typedef unsigned int       Type __attribute__((__vector_size__(32))); };
+template<> struct BuiltinTypeHelper<short             , __m256i> { typedef short              Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<unsigned short    , __m256i> { typedef unsigned short     Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<char              , __m256i> { typedef char               Type __attribute__((__vector_size__(16))); };
+template<> struct BuiltinTypeHelper<unsigned char     , __m256i> { typedef unsigned char      Type __attribute__((__vector_size__(16))); };
 #endif
 #endif
 
@@ -204,9 +201,7 @@ template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
             return reinterpret_cast<MayAlias<EntryType> *>(&data)[index];
         }
 #else
-        Vc_ALWAYS_INLINE EntryType &ref(size_t index) {
-            return data[index];
-        }
+        Vc_ALWAYS_INLINE Vc_PURE EntryType &ref(size_t index) { return data[index]; }
 #endif
 #else
         Vc_ALWAYS_INLINE Vc_PURE MayAlias<EntryType> &ref(size_t index) {

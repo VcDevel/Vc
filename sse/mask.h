@@ -73,7 +73,8 @@ template<typename T> class Mask
      */
     typedef Common::MaskBool<sizeof(T)> MaskBool;
 
-    typedef Common::VectorMemoryUnion<__m128, MaskBool> Storage;
+    typedef Common::VectorMemoryUnion<typename VectorTypeHelper<T>::Type, MaskBool>
+        Storage;
 
 public:
 
@@ -91,7 +92,7 @@ public:
     /**
      * The \c VectorType reveals the implementation-specific internal type used for the SIMD type.
      */
-    typedef __m128 VectorType;
+    typedef typename VectorTypeHelper<T>::Type VectorType;
 
     /**
      * The associated Vector<T> type.
@@ -110,22 +111,25 @@ public:
         typedef Mask<T> Argument;
 #endif
 
-        Vc_ALWAYS_INLINE Mask() {}
-        Vc_ALWAYS_INLINE Mask(const __m128  &x) : d(x) {}
-        Vc_ALWAYS_INLINE Mask(const __m128d &x) : d(_mm_castpd_ps(x)) {}
-        Vc_ALWAYS_INLINE Mask(const __m128i &x) : d(_mm_castsi128_ps(x)) {}
-        Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : d(_mm_setzero_ps()) {}
-        Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerOne::OEnum) : d(_mm_setallone_ps()) {}
-        Vc_ALWAYS_INLINE explicit Mask(bool b) : d(b ? _mm_setallone_ps() : _mm_setzero_ps()) {}
+        Vc_INTRINSIC Mask() {}
+        Vc_INTRINSIC Mask(const __m128  &x) : d(sse_cast<VectorType>(x)) {}
+        Vc_INTRINSIC Mask(const __m128d &x) : d(sse_cast<VectorType>(x)) {}
+        Vc_INTRINSIC Mask(const __m128i &x) : d(sse_cast<VectorType>(x)) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : Mask(_mm_setzero_ps()) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : Mask(_mm_setallone_ps()) {}
+        Vc_INTRINSIC explicit Mask(bool b) : Mask(b ? _mm_setallone_ps() : _mm_setzero_ps()) {}
         Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
         Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
 
         // implicit cast
         template <typename U>
-        Vc_INTRINSIC Mask(U &&rhs, Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
-            : d(sse_cast<__m128>(
+        Vc_INTRINSIC Mask(U &&rhs,
+                          Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
+            : d(sse_cast<VectorType>(
                   internal::mask_cast<Traits::simd_vector_size<U>::value, Size>(
-                      rhs.dataI()))) {}
+                      rhs.dataI())))
+        {
+        }
 
         // explicit cast, implemented via simd_cast (implementation in sse/simd_cast.h)
         template <typename U>
@@ -142,14 +146,14 @@ public:
         Vc_ALWAYS_INLINE_L void store(bool *) const Vc_ALWAYS_INLINE_R;
         template<typename Flags> Vc_ALWAYS_INLINE void store(bool *mem, Flags) const { store(mem); }
 
-        Vc_ALWAYS_INLINE Vc_PURE bool operator==(const Mask &rhs) const { return MaskHelper<Size>::cmpeq (d.v(), rhs.d.v()); }
-        Vc_ALWAYS_INLINE Vc_PURE bool operator!=(const Mask &rhs) const { return MaskHelper<Size>::cmpneq(d.v(), rhs.d.v()); }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator==(const Mask &rhs) const { return MaskHelper<Size>::cmpeq (data(), rhs.data()); }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator!=(const Mask &rhs) const { return MaskHelper<Size>::cmpneq(data(), rhs.data()); }
 
         Vc_ALWAYS_INLINE Vc_PURE Mask operator!() const { return _mm_andnot_si128(dataI(), _mm_setallone_si128()); }
 
-        Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { d.v() = _mm_and_ps(d.v(), rhs.d.v()); return *this; }
-        Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) { d.v() = _mm_or_ps (d.v(), rhs.d.v()); return *this; }
-        Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { d.v() = _mm_xor_ps(d.v(), rhs.d.v()); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { d.v() = sse_cast<VectorType>(_mm_and_ps(data(), rhs.data())); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) { d.v() = sse_cast<VectorType>(_mm_or_ps (data(), rhs.data())); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { d.v() = sse_cast<VectorType>(_mm_xor_ps(data(), rhs.data())); return *this; }
 
         Vc_ALWAYS_INLINE Vc_PURE Mask operator&(const Mask &rhs) const { return _mm_and_ps(data(), rhs.data()); }
         Vc_ALWAYS_INLINE Vc_PURE Mask operator|(const Mask &rhs) const { return _mm_or_ps (data(), rhs.data()); }
@@ -192,12 +196,19 @@ public:
 
         Vc_ALWAYS_INLINE Vc_PURE int toInt() const { return internal::mask_to_int<Size>(dataI()); }
 
-        Vc_ALWAYS_INLINE Vc_PURE _M128  data () const { return d.v(); }
-        Vc_ALWAYS_INLINE Vc_PURE _M128I dataI() const { return _mm_castps_si128(d.v()); }
-        Vc_ALWAYS_INLINE Vc_PURE _M128D dataD() const { return _mm_castps_pd(d.v()); }
+        Vc_ALWAYS_INLINE Vc_PURE __m128  data () const { return sse_cast<__m128 >(d.v()); }
+        Vc_ALWAYS_INLINE Vc_PURE __m128i dataI() const { return sse_cast<__m128i>(d.v()); }
+        Vc_ALWAYS_INLINE Vc_PURE __m128d dataD() const { return sse_cast<__m128d>(d.v()); }
 
-        Vc_ALWAYS_INLINE decltype(std::declval<Storage &>().m(0)) operator[](size_t index) { return d.m(index); }
-        Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const { return toInt() & (1 << index); }
+        Vc_ALWAYS_INLINE decltype(std::declval<Storage &>().ref(0)) operator[](
+            size_t index)
+        {
+            return d.ref(index);
+        }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const
+        {
+            return toInt() & (1 << index);
+        }
 
         Vc_ALWAYS_INLINE Vc_PURE int count() const { return internal::mask_count<Size>(dataI()); }
 
