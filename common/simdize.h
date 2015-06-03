@@ -274,6 +274,52 @@ public:
                                              Remaining...>::type;
 };
 
+template <size_t Size, typename... Replaced> struct SubstitutedBase;
+template <typename... Replaced> struct SubstitutedBase<1, Replaced...> {
+    template <typename ValueT, template <typename, ValueT...> class C, ValueT... Values>
+    using SubstitutedWithValues = C<Replaced..., Values...>;
+};
+template <typename... Replaced> struct SubstitutedBase<2, Replaced...> {
+    template <typename ValueT, template <typename, typename, ValueT...> class C,
+              ValueT... Values>
+    using SubstitutedWithValues = C<Replaced..., Values...>;
+};
+template <typename... Replaced> struct SubstitutedBase<3, Replaced...> {
+    template <typename ValueT, template <typename, typename, typename, ValueT...> class C,
+              ValueT... Values>
+    using SubstitutedWithValues = C<Replaced..., Values...>;
+};
+template <typename... Replaced> struct SubstitutedBase<4, Replaced...> {
+    template <typename ValueT,
+              template <typename, typename, typename, typename, ValueT...> class C,
+              ValueT... Values>
+    using SubstitutedWithValues = C<Replaced..., Values...>;
+};
+template <typename... Replaced> struct SubstitutedBase<5, Replaced...> {
+    template <typename ValueT, template <typename, typename, typename, typename, typename,
+                                         ValueT...> class C,
+              ValueT... Values>
+    using SubstitutedWithValues = C<Replaced..., Values...>;
+};
+template <typename... Replaced> struct SubstitutedBase<6, Replaced...> {
+    template <typename ValueT, template <typename, typename, typename, typename, typename,
+                                         typename, ValueT...> class C,
+              ValueT... Values>
+    using SubstitutedWithValues = C<Replaced..., Values...>;
+};
+template <typename... Replaced> struct SubstitutedBase<7, Replaced...> {
+    template <typename ValueT, template <typename, typename, typename, typename, typename,
+                                         typename, typename, ValueT...> class C,
+              ValueT... Values>
+    using SubstitutedWithValues = C<Replaced..., Values...>;
+};
+template <typename... Replaced> struct SubstitutedBase<8, Replaced...> {
+    template <typename ValueT, template <typename, typename, typename, typename, typename,
+                                         typename, typename, typename, ValueT...> class C,
+              ValueT... Values>
+    using SubstitutedWithValues = C<Replaced..., Values...>;
+};
+
 /**\internal
  * Template specialization that ends the recursion and determines the return type \p type.
  * The end of the recursion is identified by an empty typelist (i.e. no template
@@ -284,7 +330,7 @@ struct SubstituteOneByOne<N_, MT, Typelist<Replaced0, Replaced...>>
 {
     /// Return type for returning the vector width and list of substituted types
     struct type
-    {
+        : public SubstitutedBase<sizeof...(Replaced) + 1, Replaced0, Replaced...> {
         static constexpr auto N = N_;
         /**
          * Alias template to construct a class template instantiation with the replaced
@@ -292,42 +338,6 @@ struct SubstituteOneByOne<N_, MT, Typelist<Replaced0, Replaced...>>
          */
         template <template <typename...> class C>
         using Substituted = C<Replaced0, Replaced...>;
-        /**
-         * Alias template to construct a class template instantiation with only one
-         * replaced type but several values. This is a hack for supporting e.g.
-         * std::array<T, N>.
-         */
-        template <typename ValueT, template <typename, ValueT...> class C,
-                  ValueT... Values>
-        using Substituted1 = C<Replaced0, Values...>;
-        template <typename ValueT, template <typename, typename, ValueT...> class C,
-                  ValueT... Values>
-        using Substituted2 = C<Replaced0, Replaced..., Values...>;
-        template <typename ValueT, template <typename, typename, typename, ValueT...>
-                                   class C, ValueT... Values>
-        using Substituted3 = C<Replaced0, Replaced..., Values...>;
-        template <typename ValueT,
-                  template <typename, typename, typename, typename, ValueT...> class C,
-                  ValueT... Values>
-        using Substituted4 = C<Replaced0, Replaced..., Values...>;
-        template <typename ValueT,
-                  template <typename, typename, typename, typename, typename, ValueT...>
-                  class C, ValueT... Values>
-        using Substituted5 = C<Replaced0, Replaced..., Values...>;
-        template <typename ValueT, template <typename, typename, typename, typename,
-                                             typename, typename, ValueT...> class C,
-                  ValueT... Values>
-        using Substituted6 = C<Replaced0, Replaced..., Values...>;
-        template <typename ValueT,
-                  template <typename, typename, typename, typename, typename, typename,
-                            typename, ValueT...> class C,
-                  ValueT... Values>
-        using Substituted7 = C<Replaced0, Replaced..., Values...>;
-        template <typename ValueT,
-                  template <typename, typename, typename, typename, typename, typename,
-                            typename, typename, ValueT...> class C,
-                  ValueT... Values>
-        using Substituted8 = C<Replaced0, Replaced..., Values...>;
     };
 };
 
@@ -382,57 +392,49 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
 #define Vc_DEFINE_NONTYPE_REPLACETYPES__(ValueType__)                                    \
     template <template <typename, ValueType__...> class C, typename T,                   \
               ValueType__ Value0, ValueType__... Values>                                 \
-    struct is_class_template<C<T, Value0, Values...>> : public true_type                 \
-    {                                                                                    \
+    struct is_class_template<C<T, Value0, Values...>> : public true_type {               \
     };                                                                                   \
     template <template <typename, typename, ValueType__...> class C, typename T0,        \
               typename T1, ValueType__ Value0, ValueType__... Values>                    \
-    struct is_class_template<C<T0, T1, Value0, Values...>> : public true_type            \
-    {                                                                                    \
+    struct is_class_template<C<T0, T1, Value0, Values...>> : public true_type {          \
     };                                                                                   \
     template <template <typename, typename, typename, ValueType__...> class C,           \
               typename T0, typename T1, typename T2, ValueType__ Value0,                 \
               ValueType__... Values>                                                     \
-    struct is_class_template<C<T0, T1, T2, Value0, Values...>> : public true_type        \
-    {                                                                                    \
+    struct is_class_template<C<T0, T1, T2, Value0, Values...>> : public true_type {      \
     };                                                                                   \
     template <template <typename, typename, typename, typename, ValueType__...> class C, \
               typename T0, typename T1, typename T2, typename T3, ValueType__ Value0,    \
               ValueType__... Values>                                                     \
-    struct is_class_template<C<T0, T1, T2, T3, Value0, Values...>> : public true_type    \
-    {                                                                                    \
+    struct is_class_template<C<T0, T1, T2, T3, Value0, Values...>> : public true_type {  \
     };                                                                                   \
-    template <                                                                           \
-        template <typename, typename, typename, typename, typename, ValueType__...>      \
-        class C, typename T0, typename T1, typename T2, typename T3, typename T4,        \
-        ValueType__ Value0, ValueType__... Values>                                       \
+    template <template <typename, typename, typename, typename, typename,                \
+                        ValueType__...> class C,                                         \
+              typename T0, typename T1, typename T2, typename T3, typename T4,           \
+              ValueType__ Value0, ValueType__... Values>                                 \
     struct is_class_template<C<T0, T1, T2, T3, T4, Value0, Values...>>                   \
-        : public true_type                                                               \
-    {                                                                                    \
+        : public true_type {                                                             \
     };                                                                                   \
     template <template <typename, typename, typename, typename, typename, typename,      \
                         ValueType__...> class C,                                         \
               typename T0, typename T1, typename T2, typename T3, typename T4,           \
               typename T5, ValueType__ Value0, ValueType__... Values>                    \
     struct is_class_template<C<T0, T1, T2, T3, T4, T5, Value0, Values...>>               \
-        : public true_type                                                               \
-    {                                                                                    \
+        : public true_type {                                                             \
     };                                                                                   \
     template <template <typename, typename, typename, typename, typename, typename,      \
                         typename, ValueType__...> class C,                               \
               typename T0, typename T1, typename T2, typename T3, typename T4,           \
               typename T5, typename T6, ValueType__ Value0, ValueType__... Values>       \
     struct is_class_template<C<T0, T1, T2, T3, T4, T5, T6, Value0, Values...>>           \
-        : public true_type                                                               \
-    {                                                                                    \
+        : public true_type {                                                             \
     };                                                                                   \
     template <template <typename, ValueType__...> class C, typename T0,                  \
               ValueType__ Value0, ValueType__... Values, size_t N, typename MT>          \
-    struct ReplaceTypes<C<T0, Value0, Values...>, N, MT, Category::ClassTemplate>        \
-    {                                                                                    \
+    struct ReplaceTypes<C<T0, Value0, Values...>, N, MT, Category::ClassTemplate> {      \
         typedef typename SubstituteOneByOne<N, MT, Typelist<>, T0>::type tmp;            \
-        typedef typename tmp::template Substituted1<ValueType__, C, Value0, Values...>   \
-            Substituted;                                                                 \
+        typedef typename tmp::template SubstitutedWithValues<ValueType__, C, Value0,     \
+                                                             Values...> Substituted;     \
         static constexpr auto NN = tmp::N;                                               \
         typedef conditional_t<is_same<C<T0, Value0, Values...>, Substituted>::value,     \
                               C<T0, Value0, Values...>,                                  \
@@ -441,11 +443,10 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
     template <template <typename, typename, ValueType__...> class C, typename T0,        \
               typename T1, ValueType__ Value0, ValueType__... Values, size_t N,          \
               typename MT>                                                               \
-    struct ReplaceTypes<C<T0, T1, Value0, Values...>, N, MT, Category::ClassTemplate>    \
-    {                                                                                    \
+    struct ReplaceTypes<C<T0, T1, Value0, Values...>, N, MT, Category::ClassTemplate> {  \
         typedef typename SubstituteOneByOne<N, MT, Typelist<>, T0, T1>::type tmp;        \
-        typedef typename tmp::template Substituted2<ValueType__, C, Value0, Values...>   \
-            Substituted;                                                                 \
+        typedef typename tmp::template SubstitutedWithValues<ValueType__, C, Value0,     \
+                                                             Values...> Substituted;     \
         static constexpr auto NN = tmp::N;                                               \
         typedef conditional_t<is_same<C<T0, T1, Value0, Values...>, Substituted>::value, \
                               C<T0, T1, Value0, Values...>,                              \
@@ -456,11 +457,10 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
               typename T0, typename T1, typename T2, ValueType__ Value0,                 \
               ValueType__... Values, size_t N, typename MT>                              \
     struct ReplaceTypes<C<T0, T1, T2, Value0, Values...>, N, MT,                         \
-                        Category::ClassTemplate>                                         \
-    {                                                                                    \
+                        Category::ClassTemplate> {                                       \
         typedef typename SubstituteOneByOne<N, MT, Typelist<>, T0, T1, T2>::type tmp;    \
-        typedef typename tmp::template Substituted3<ValueType__, C, Value0, Values...>   \
-            Substituted;                                                                 \
+        typedef typename tmp::template SubstitutedWithValues<ValueType__, C, Value0,     \
+                                                             Values...> Substituted;     \
         static constexpr auto NN = tmp::N;                                               \
         typedef conditional_t<                                                           \
             is_same<C<T0, T1, T2, Value0, Values...>, Substituted>::value,               \
