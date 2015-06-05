@@ -571,9 +571,10 @@ Vc_INTRINSIC Vc_CONST Return
     simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
               enable_if<AVX::is_mask<Return>::value || AVX2::is_mask<Return>::value> = nullarg)
 {
-    return {Vc_AVX_NAMESPACE::internal::mask_cast<Vc_AVX_NAMESPACE::Mask<T>::Size,
-                                                  Return::Size,
-                                                  typename Return::VectorType>(k.dataI())};
+    return {
+        Vc_AVX_NAMESPACE::internal::mask_cast<Vc_AVX_NAMESPACE::Mask<T>::Size,
+                                              Return::Size, typename Return::VectorTypeF>(
+            k.dataI())};
 }
 
 // 2 AVX::Mask to 1 AVX::Mask {{{2

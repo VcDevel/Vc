@@ -206,9 +206,9 @@ template<> Vc_ALWAYS_INLINE void Mask<double>::load(const bool *mem)
     d.set(0, MaskBool(mem[0]));
     d.set(1, MaskBool(mem[1]));
 }
-template<typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
+template <typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
 {
-    d.v() = internal::mask_load<Size>(mem);
+    d.v() = sse_cast<VectorType>(internal::mask_load<Size>(mem));
 }
 
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }

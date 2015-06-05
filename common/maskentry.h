@@ -81,6 +81,13 @@ template<size_t Bytes> class MaskBool
 public:
     constexpr MaskBool(bool x) : data(x ? -1 : 0) {}
     Vc_ALWAYS_INLINE MaskBool &operator=(bool x) { data = x ? -1 : 0; return *this; }
+    template <typename T, typename = enable_if<(!std::is_same<T, bool>::value &&
+                                                std::is_fundamental<T>::value)>>
+    Vc_ALWAYS_INLINE MaskBool &operator=(T x)
+    {
+        data = reinterpret_cast<const storage_type &>(x);
+        return *this;
+    }
 
     Vc_ALWAYS_INLINE MaskBool(const MaskBool &) = default;
     Vc_ALWAYS_INLINE MaskBool &operator=(const MaskBool &) = default;

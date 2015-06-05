@@ -97,7 +97,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     T &&x,
     enable_if<Traits::is_simd_mask<T>::value && Scalar::is_mask<Return>::value> = nullarg)
 {
-    return Return(x[offset]);
+    return Return(bool(x[offset]));
 }
 
 template <typename Return, int offset, typename T>

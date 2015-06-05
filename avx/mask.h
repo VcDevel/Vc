@@ -80,6 +80,7 @@ template<typename T> class Mask
     friend class Mask<uint32_t>;
     friend class Mask< int16_t>;
     friend class Mask<uint16_t>;
+    friend Common::MaskEntry<Mask>;
 
 public:
     /**
@@ -94,38 +95,43 @@ public:
     using VectorEntryType = Common::MaskBool<sizeof(T)>;
 
     /**
-     * The \c VectorType reveals the implementation-specific internal type used for the SIMD type.
-     */
-    typedef typename FloatVectorType<typename VectorTypeHelper<T>::Type>::Type VectorType;
-
-    /**
      * The associated Vector<T> type.
      */
     using Vector = Vc_AVX_NAMESPACE::Vector<T>;
 
+    ///\internal
+    using VectorTypeF = FloatVectorType<typename VectorTypeHelper<T>::Type>;
+    ///\internal
+    using VectorTypeD = DoubleVectorType<VectorTypeF>;
+    ///\internal
+    using VectorTypeI = IntegerVectorType<VectorTypeF>;
+
 private:
-    typedef typename  DoubleVectorType<VectorType>::Type VectorTypeD;
-    typedef typename IntegerVectorType<VectorType>::Type VectorTypeI;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-    typedef const VectorType  &VArg;
+    typedef const VectorTypeF &VArg;
     typedef const VectorTypeD &VdArg;
     typedef const VectorTypeI &ViArg;
 #else
-    typedef const VectorType  VArg;
+    typedef const VectorTypeF VArg;
     typedef const VectorTypeD VdArg;
     typedef const VectorTypeI ViArg;
 #endif
-    static constexpr size_t VSize = sizeof(VectorType);
 
-    public:
-        static constexpr size_t Size = VSize / sizeof(T);
-        static constexpr std::size_t size() { return Size; }
-        FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
+public:
+    static constexpr size_t Size = sizeof(VectorTypeF) / sizeof(T);
+    static constexpr std::size_t size() { return Size; }
+    FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
-    private:
-        typedef Common::VectorMemoryUnion<VectorType, VectorEntryType> Storage;
+private:
+    typedef Common::Storage<T, size()> Storage;
 
-    public:
+public:
+    /**
+     * The \c VectorType reveals the implementation-specific internal type used for the
+     * SIMD type.
+     */
+    using VectorType = typename Storage::VectorType;
+
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
 #if defined VC_MSVC && defined _WIN32
         typedef const Mask<T> &AsArg;
@@ -134,20 +140,27 @@ private:
 #endif
 
         Vc_ALWAYS_INLINE Mask() {}
-        Vc_ALWAYS_INLINE Mask(VArg  x) : d(x) {}
+        Vc_ALWAYS_INLINE Mask(VArg  x) : d(avx_cast<VectorType>(x)) {}
         Vc_ALWAYS_INLINE Mask(VdArg x) : d(avx_cast<VectorType>(x)) {}
         Vc_ALWAYS_INLINE Mask(ViArg x) : d(avx_cast<VectorType>(x)) {}
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : d(internal::zero<VectorType>()) {}
         Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerOne::OEnum) : d(internal::allone<VectorType>()) {}
-        Vc_ALWAYS_INLINE explicit Mask(bool b) : d(b ? internal::allone<VectorType>() : VectorType(internal::zero<VectorType>())) {}
+        Vc_ALWAYS_INLINE explicit Mask(bool b)
+            : d(b ? internal::allone<VectorType>() : internal::zero<VectorType>())
+        {
+        }
         Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
         Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
 
         // implicit cast
         template <typename U>
-        Vc_INTRINSIC Mask(U &&rhs, Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
-            : d(internal::mask_cast<Traits::decay<U>::Size, Size, VectorType>(
-                  rhs.dataI())) {}
+        Vc_INTRINSIC Mask(U &&rhs,
+                          Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
+            : d(avx_cast<VectorType>(
+                  internal::mask_cast<Traits::decay<U>::Size, Size, VectorTypeF>(
+                      rhs.dataI())))
+        {
+        }
 
         // explicit cast, implemented via simd_cast (in avx/simd_cast_caller.h)
         template <typename U>
@@ -175,11 +188,11 @@ private:
         Vc_INTRINSIC Vc_PURE bool operator!=(const Mask &rhs) const
         { return !operator==(rhs); }
 
-        Vc_ALWAYS_INLINE Mask operator!() const { return internal::andnot_(data(), internal::allone<VectorType>()); }
+        Vc_ALWAYS_INLINE Mask operator!() const { return internal::andnot_(data(), internal::allone<VectorTypeF>()); }
 
-        Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { d.v() = internal::and_(d.v(), rhs.d.v()); return *this; }
-        Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) { d.v() = internal::or_(d.v(), rhs.d.v()); return *this; }
-        Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { d.v() = internal::xor_(d.v(), rhs.d.v()); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { d.v() = avx_cast<VectorType>(internal::and_(data(), rhs.data())); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) { d.v() = avx_cast<VectorType>(internal::or_ (data(), rhs.data())); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { d.v() = avx_cast<VectorType>(internal::xor_(data(), rhs.data())); return *this; }
 
         Vc_ALWAYS_INLINE Vc_PURE Mask operator&(const Mask &rhs) const { return internal::and_(data(), rhs.data()); }
         Vc_ALWAYS_INLINE Vc_PURE Mask operator|(const Mask &rhs) const { return internal::or_(data(), rhs.data()); }
@@ -190,19 +203,22 @@ private:
 
         // no need for expression template optimizations because cmp(n)eq for floats are not bitwise
         // compares
-        Vc_ALWAYS_INLINE bool isFull () const { return 0 != internal::testc(d.v(), internal::allone<VectorType>()); }
-        Vc_ALWAYS_INLINE bool isNotEmpty() const { return 0 == internal::testz(d.v(), d.v()); }
-        Vc_ALWAYS_INLINE bool isEmpty() const { return 0 != internal::testz(d.v(), d.v()); }
-        Vc_ALWAYS_INLINE bool isMix  () const { return 0 != internal::testnzc(d.v(), internal::allone<VectorType>()); }
+        Vc_ALWAYS_INLINE bool isFull () const { return 0 != internal::testc(data(), internal::allone<VectorTypeF>()); }
+        Vc_ALWAYS_INLINE bool isNotEmpty() const { return 0 == internal::testz(data(), data()); }
+        Vc_ALWAYS_INLINE bool isEmpty() const { return 0 != internal::testz(data(), data()); }
+        Vc_ALWAYS_INLINE bool isMix  () const { return 0 != internal::testnzc(data(), internal::allone<VectorTypeF>()); }
 
         Vc_ALWAYS_INLINE Vc_PURE int shiftMask() const { return internal::movemask(dataI()); }
         Vc_ALWAYS_INLINE Vc_PURE int toInt() const { return internal::mask_to_int<Size>(dataI()); }
 
-        Vc_ALWAYS_INLINE VectorType  data () const { return d.v(); }
+        Vc_ALWAYS_INLINE VectorTypeF data () const { return avx_cast<VectorTypeF>(d.v()); }
         Vc_ALWAYS_INLINE VectorTypeI dataI() const { return avx_cast<VectorTypeI>(d.v()); }
         Vc_ALWAYS_INLINE VectorTypeD dataD() const { return avx_cast<VectorTypeD>(d.v()); }
 
-        Vc_ALWAYS_INLINE decltype(std::declval<Storage &>().m(0)) operator[](size_t index) { return d.m(index); }
+        Vc_ALWAYS_INLINE Common::MaskEntry<Mask> operator[](size_t index)
+        {
+            return Common::MaskEntry<Mask>(*this, index);
+        }
         Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         Vc_ALWAYS_INLINE Vc_PURE int count() const { return _mm_popcnt_u32(toInt()); }
@@ -227,6 +243,8 @@ private:
     public:
 #endif
         Storage d;
+
+        void setEntry(size_t i, bool x) { d.set(i, x); }
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 

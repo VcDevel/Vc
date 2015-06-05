@@ -34,13 +34,19 @@ namespace Vc_IMPL_NAMESPACE
 namespace internal
 {
 
-template<> Vc_ALWAYS_INLINE Vc_CONST m128 zero<m128>() { return _mm_setzero_ps(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m256 zero<m256>() { return _mm256_setzero_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128  zero<m128 >() { return _mm_setzero_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128i zero<m128i>() { return _mm_setzero_si128(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128d zero<m128d>() { return _mm_setzero_pd(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256  zero<m256 >() { return _mm256_setzero_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256i zero<m256i>() { return _mm256_setzero_si256(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256d zero<m256d>() { return _mm256_setzero_pd(); }
 
-template<> Vc_ALWAYS_INLINE Vc_CONST m128 allone<m128>() { return _mm_setallone_ps(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m256 allone<m256>() { return setallone_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128  allone<m128 >() { return _mm_setallone_ps(); }
 template<> Vc_ALWAYS_INLINE Vc_CONST m128i allone<m128i>() { return _mm_setallone_si128(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128d allone<m128d>() { return _mm_setallone_pd(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256  allone<m256 >() { return setallone_ps(); }
 template<> Vc_ALWAYS_INLINE Vc_CONST m256i allone<m256i>() { return setallone_si256(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256d allone<m256d>() { return setallone_pd(); }
 
 // mask_cast/*{{{*/
 template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE Vc_CONST R mask_cast(m128i k)
@@ -182,7 +188,7 @@ template<typename T> Vc_ALWAYS_INLINE void Mask<T>::store(bool *mem) const
 // load {{{1
 template<typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
 {
-    d.v() = internal::mask_load<VectorType, Size>(mem);
+    d.v() = avx_cast<VectorType>(internal::mask_load<VectorTypeF, Size>(mem));
 }
 // operator[] {{{1
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE bool Mask<T>::operator[](size_t index) const { return toInt() & (1 << index); }

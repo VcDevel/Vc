@@ -31,212 +31,323 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "aliasingentryhelper.h"
 #include "types.h"
+#include "maskentry.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
-
-#ifdef VC_MSVC
-#ifdef VC_IMPL_AVX
-template<typename EntryType, typename VectorType> inline EntryType &accessScalar(VectorType &d, size_t i) { return accessScalar<EntryType>(d._d, i); }
-template<typename EntryType, typename VectorType> inline EntryType accessScalar(const VectorType &d, size_t i) { return accessScalar<EntryType>(d._d, i); }
-#else
-template<typename EntryType, typename VectorType> inline EntryType &accessScalar(VectorType &d, size_t i) { return accessScalar<EntryType>(d[i/4], i % 4); }
-template<typename EntryType, typename VectorType> inline EntryType accessScalar(const VectorType &d, size_t i) { return accessScalar<EntryType>(d[i/4], i % 4); }
-#endif
-
-template<> Vc_ALWAYS_INLINE double &accessScalar<double, __m128d>(__m128d &d, size_t i) { return d.m128d_f64[i]; }
-template<> Vc_ALWAYS_INLINE float  &accessScalar<float , __m128 >(__m128  &d, size_t i) { return d.m128_f32[i]; }
-template<> Vc_ALWAYS_INLINE short  &accessScalar<short , __m128i>(__m128i &d, size_t i) { return d.m128i_i16[i]; }
-template<> Vc_ALWAYS_INLINE unsigned short  &accessScalar<unsigned short , __m128i>(__m128i &d, size_t i) { return d.m128i_u16[i]; }
-template<> Vc_ALWAYS_INLINE int  &accessScalar<int , __m128i>(__m128i &d, size_t i) { return d.m128i_i32[i]; }
-template<> Vc_ALWAYS_INLINE unsigned int  &accessScalar<unsigned int , __m128i>(__m128i &d, size_t i) { return d.m128i_u32[i]; }
-template<> Vc_ALWAYS_INLINE char  &accessScalar<char , __m128i>(__m128i &d, size_t i) { return d.m128i_i8[i]; }
-template<> Vc_ALWAYS_INLINE unsigned char  &accessScalar<unsigned char , __m128i>(__m128i &d, size_t i) { return d.m128i_u8[i]; }
-
-template<> Vc_ALWAYS_INLINE double accessScalar<double, __m128d>(const __m128d &d, size_t i) { return d.m128d_f64[i]; }
-template<> Vc_ALWAYS_INLINE float  accessScalar<float , __m128 >(const __m128  &d, size_t i) { return d.m128_f32[i]; }
-template<> Vc_ALWAYS_INLINE short  accessScalar<short , __m128i>(const __m128i &d, size_t i) { return d.m128i_i16[i]; }
-template<> Vc_ALWAYS_INLINE unsigned short  accessScalar<unsigned short , __m128i>(const __m128i &d, size_t i) { return d.m128i_u16[i]; }
-template<> Vc_ALWAYS_INLINE int  accessScalar<int , __m128i>(const __m128i &d, size_t i) { return d.m128i_i32[i]; }
-template<> Vc_ALWAYS_INLINE unsigned int  accessScalar<unsigned int , __m128i>(const __m128i &d, size_t i) { return d.m128i_u32[i]; }
-template<> Vc_ALWAYS_INLINE char  accessScalar<char , __m128i>(const __m128i &d, size_t i) { return d.m128i_i8[i]; }
-template<> Vc_ALWAYS_INLINE unsigned char  accessScalar<unsigned char , __m128i>(const __m128i &d, size_t i) { return d.m128i_u8[i]; }
-
-#ifdef VC_IMPL_AVX
-template<> Vc_ALWAYS_INLINE double &accessScalar<double, __m256d>(__m256d &d, size_t i) { return d.m256d_f64[i]; }
-template<> Vc_ALWAYS_INLINE float  &accessScalar<float , __m256 >(__m256  &d, size_t i) { return d.m256_f32[i]; }
-template<> Vc_ALWAYS_INLINE short  &accessScalar<short , __m256i>(__m256i &d, size_t i) { return d.m256i_i16[i]; }
-template<> Vc_ALWAYS_INLINE unsigned short  &accessScalar<unsigned short , __m256i>(__m256i &d, size_t i) { return d.m256i_u16[i]; }
-template<> Vc_ALWAYS_INLINE int  &accessScalar<int , __m256i>(__m256i &d, size_t i) { return d.m256i_i32[i]; }
-template<> Vc_ALWAYS_INLINE unsigned int  &accessScalar<unsigned int , __m256i>(__m256i &d, size_t i) { return d.m256i_u32[i]; }
-
-template<> Vc_ALWAYS_INLINE double accessScalar<double, __m256d>(const __m256d &d, size_t i) { return d.m256d_f64[i]; }
-template<> Vc_ALWAYS_INLINE float  accessScalar<float , __m256 >(const __m256  &d, size_t i) { return d.m256_f32[i]; }
-template<> Vc_ALWAYS_INLINE short  accessScalar<short , __m256i>(const __m256i &d, size_t i) { return d.m256i_i16[i]; }
-template<> Vc_ALWAYS_INLINE unsigned short  accessScalar<unsigned short , __m256i>(const __m256i &d, size_t i) { return d.m256i_u16[i]; }
-template<> Vc_ALWAYS_INLINE int  accessScalar<int , __m256i>(const __m256i &d, size_t i) { return d.m256i_i32[i]; }
-template<> Vc_ALWAYS_INLINE unsigned int  accessScalar<unsigned int , __m256i>(const __m256i &d, size_t i) { return d.m256i_u32[i]; }
-#endif
-#endif
-
-template<typename EntryType, typename VectorType> struct BuiltinTypeHelper { typedef VectorType Type; };
-#ifdef VC_USE_BUILTIN_VECTOR_TYPES
-template<> struct BuiltinTypeHelper<double        , __m128d> { typedef         double Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<float         , __m128 > { typedef          float Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<long long     , __m128i> { typedef      long long Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<unsigned long long, __m128i> { typedef  unsigned long long Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<int           , __m128i> { typedef            int Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<unsigned int  , __m128i> { typedef   unsigned int Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<short         , __m128i> { typedef          short Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<unsigned short, __m128i> { typedef unsigned short Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<char          , __m128i> { typedef           char Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<unsigned char , __m128i> { typedef  unsigned char Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<  signed char , __m128i> { typedef    signed char Type __attribute__((__vector_size__(16))); };
-#ifdef VC_IMPL_AVX
-template<> struct BuiltinTypeHelper<double            , __m256d> { typedef double             Type __attribute__((__vector_size__(32))); };
-template<> struct BuiltinTypeHelper<float             , __m256 > { typedef float              Type __attribute__((__vector_size__(32))); };
-template<> struct BuiltinTypeHelper<long long         , __m256i> { typedef long long          Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<unsigned long long, __m256i> { typedef unsigned long long Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<int               , __m256i> { typedef int                Type __attribute__((__vector_size__(32))); };
-template<> struct BuiltinTypeHelper<unsigned int      , __m256i> { typedef unsigned int       Type __attribute__((__vector_size__(32))); };
-template<> struct BuiltinTypeHelper<short             , __m256i> { typedef short              Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<unsigned short    , __m256i> { typedef unsigned short     Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<char              , __m256i> { typedef char               Type __attribute__((__vector_size__(16))); };
-template<> struct BuiltinTypeHelper<unsigned char     , __m256i> { typedef unsigned char      Type __attribute__((__vector_size__(16))); };
-#endif
-#endif
-
-/**
- * \internal
- * Helper class that abstracts the hackery needed for aliasing SIMD and fundamental types to the
- * same memory. The C++ standard says that two pointers of different type may be assumed by the
- * compiler to point to different memory. But all supported compilers have some extension that
- * allows to work around this limitation. GCC (and compatible compilers) can use the `may_alias`
- * attribute to specify memory aliasing exactly where it happens. Other compilers provide unions to
- * allow memory aliasing. VectorMemoryUnion hides all this behind one common interface.
- */
-template<typename _VectorType, typename _EntryType> class VectorMemoryUnion
+namespace Detail
 {
-    public:
-        typedef _VectorType VectorType;
-        typedef _EntryType EntryType;
-        Vc_ALWAYS_INLINE VectorMemoryUnion() : data() { assertCorrectAlignment(&v()); }
-#if defined VC_ICC
-        Vc_ALWAYS_INLINE VectorMemoryUnion(const VectorType &x) : data(x) { assertCorrectAlignment(&data.v); }
-        Vc_ALWAYS_INLINE VectorMemoryUnion &operator=(const VectorType &x) {
-            data.v = x; return *this;
-        }
-        VectorMemoryUnion(const VectorMemoryUnion &) = default;
-
-        Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return data.v; }
-        Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return data.v; }
-
-        Vc_ALWAYS_INLINE Vc_PURE EntryType &ref(size_t index) {
-            return data.m[index];
-        }
-        Vc_ALWAYS_INLINE Vc_PURE EntryType m(size_t index) const {
-            return data.m[index];
-        }
-
-#ifdef VC_COMPILE_BENCHMARKS
-    public:
-#endif
-    private:
-        union VectorScalarUnion {
-            Vc_INTRINSIC VectorScalarUnion() : v() {}
-            Vc_INTRINSIC VectorScalarUnion(VectorType vv) : v(vv) {}
-            VectorType v;
-            EntryType m[];
-        } data;
+#ifdef VC_IMPL_AVX
+template <typename ValueType, size_t Size> struct IntrinsicType {
+    using type = typename std::conditional<
+        std::is_integral<ValueType>::value,
+        typename std::conditional<sizeof(ValueType) * Size == 16, __m128i, __m256i>::type,
+        typename std::conditional<
+            std::is_same<ValueType, double>::value,
+            typename std::conditional<sizeof(ValueType) * Size == 16, __m128d,
+                                      __m256d>::type,
+            typename std::conditional<sizeof(ValueType) * Size == 16, __m128,
+                                      __m256>::type>::type>::type;
+};
+#elif defined VC_IMPL_SSE
+template <typename ValueType, size_t Size> struct IntrinsicType {
+    using type = typename std::conditional<
+        std::is_integral<ValueType>::value, __m128i,
+        typename std::conditional<std::is_same<ValueType, double>::value, __m128d,
+                                  __m128>::type>::type;
+};
 #else
-        typedef typename BuiltinTypeHelper<EntryType, VectorType>::Type BuiltinType;
-        typedef BuiltinType BuiltinTypeAlias Vc_MAY_ALIAS;
-
-        Vc_ALWAYS_INLINE VectorMemoryUnion(VectorType x)
-            // this copies from x to data, so aliasing is covered via the localized
-            // may_alias
-            : data(reinterpret_cast<const BuiltinTypeAlias &>(x))
-        {
-            assertCorrectAlignment(&data);
-        }
-
-        Vc_ALWAYS_INLINE Vc_PURE VectorType &v() { return reinterpret_cast<VectorType &>(data); }
-        Vc_ALWAYS_INLINE Vc_PURE const VectorType &v() const { return reinterpret_cast<const VectorType &>(data); }
-
-#ifdef VC_MSVC
-        Vc_ALWAYS_INLINE EntryType &ref(size_t index) {
-            return accessScalar<EntryType>(data, index);
-        }
-
-        Vc_ALWAYS_INLINE EntryType m(size_t index) const {
-            return accessScalar<EntryType>(data, index);
-        }
-
-        Vc_INTRINSIC void set(size_t index, EntryType x)
-        {
-            accessScalar<EntryType>(data, index) = x;
-        }
-#elif VC_USE_BUILTIN_VECTOR_TYPES
-        Vc_INTRINSIC void set(size_t index, EntryType x) { data[index] = x; }
-
-        Vc_ALWAYS_INLINE EntryType m(size_t index) const { return data[index]; }
-#ifdef VC_CLANG
-        // clang does not allow lvalue reference binding to vector subscripts
-        Vc_INTRINSIC Vc_PURE MayAlias<EntryType> &ref(size_t index)
-        {
-            return reinterpret_cast<MayAlias<EntryType> *>(&data)[index];
-        }
-#else
-        Vc_ALWAYS_INLINE Vc_PURE EntryType &ref(size_t index) { return data[index]; }
+template <typename ValueType, size_t Size> struct IntrinsicType {
+    static_assert(Size == 1,
+                  "IntrinsicType without SIMD target support may only have Size = 1");
+    using type = ValueType;
+};
 #endif
-#else
-        Vc_ALWAYS_INLINE Vc_PURE MayAlias<EntryType> &ref(size_t index) {
-            return reinterpret_cast<MayAlias<EntryType> *>(&data)[index];
-        }
-
-        Vc_ALWAYS_INLINE Vc_PURE EntryType m(size_t index) const {
-            return reinterpret_cast<const MayAlias<EntryType> *>(&data)[index];
-        }
-
-        Vc_INTRINSIC void set(size_t index, EntryType x) { ref(index) = x; }
-#endif
+template <typename ValueType, size_t Size, size_t Bytes = sizeof(ValueType) * Size>
+struct BuiltinType;
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
-        Vc_ALWAYS_INLINE BuiltinType &builtin() { return data; }
-        Vc_ALWAYS_INLINE const BuiltinType &builtin() const { return data; }
+#define Vc_VECBUILTIN __attribute__((__vector_size__(16)))
+template <size_t Size> struct BuiltinType<         double   , Size, 16> { typedef          double    type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         float    , Size, 16> { typedef          float     type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         long long, Size, 16> { typedef          long long type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<unsigned long long, Size, 16> { typedef unsigned long long type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         long     , Size, 16> { typedef          long      type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<unsigned long     , Size, 16> { typedef unsigned long      type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         int      , Size, 16> { typedef          int       type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<unsigned int      , Size, 16> { typedef unsigned int       type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         short    , Size, 16> { typedef          short     type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<unsigned short    , Size, 16> { typedef unsigned short     type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         char     , Size, 16> { typedef          char      type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<unsigned char     , Size, 16> { typedef unsigned char      type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<  signed char     , Size, 16> { typedef   signed char      type Vc_VECBUILTIN; };
+#undef Vc_VECBUILTIN
+#define Vc_VECBUILTIN __attribute__((__vector_size__(32)))
+template <size_t Size> struct BuiltinType<         double   , Size, 32> { typedef          double    type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         float    , Size, 32> { typedef          float     type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         long long, Size, 32> { typedef          long long type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<unsigned long long, Size, 32> { typedef unsigned long long type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         long     , Size, 32> { typedef          long      type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<unsigned long     , Size, 32> { typedef unsigned long      type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         int      , Size, 32> { typedef          int       type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<unsigned int      , Size, 32> { typedef unsigned int       type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         short    , Size, 32> { typedef          short     type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<unsigned short    , Size, 32> { typedef unsigned short     type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         char     , Size, 32> { typedef          char      type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<unsigned char     , Size, 32> { typedef unsigned char      type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<  signed char     , Size, 32> { typedef   signed char      type Vc_VECBUILTIN; };
+#undef Vc_VECBUILTIN
+#endif
+}  // namespace Detail
+
+template <typename ValueType, size_t Size>
+using IntrinsicType = typename Detail::IntrinsicType<ValueType, Size>::type;
+
+template <typename ValueType, size_t Size>
+using BuiltinType = typename Detail::BuiltinType<ValueType, Size>::type;
+
+namespace AliasStrategy
+{
+struct Union {};
+struct MayAlias {};
+struct VectorBuiltin {};
+struct UnionMembers {};
+}  // namespace AliasStrategy
+
+using DefaultStrategy =
+#if defined VC_USE_BUILTIN_VECTOR_TYPES
+    AliasStrategy::VectorBuiltin;
+#elif defined VC_MSVC
+    AliasStrategy::UnionMembers;
+#elif defined VC_ICC
+    AliasStrategy::Union;
+#elif defined __GNUC__
+    AliasStrategy::MayAlias;
+#else
+    AliasStrategy::Union;
 #endif
 
-    private:
-#ifdef VC_COMPILE_BENCHMARKS
-    public:
+template <typename ValueType, size_t Size, typename Strategy = DefaultStrategy>
+class Storage;
+
+template <typename ValueType, size_t Size>
+class Storage<ValueType, Size, AliasStrategy::Union>
+{
+    static_assert(std::is_fundamental<ValueType>::value &&
+                      std::is_arithmetic<ValueType>::value,
+                  "Only works for fundamental arithmetic types.");
+
+public:
+    using VectorType = IntrinsicType<ValueType, Size>;
+    using EntryType = ValueType;
+
+    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data.v); }
+    Vc_INTRINSIC Storage(const VectorType &x) : data(x)
+    {
+        assertCorrectAlignment(&data.v);
+    }
+    Vc_INTRINSIC Storage &operator=(const VectorType &x)
+    {
+        data.v = x;
+        return *this;
+    }
+
+    Vc_INTRINSIC Storage(const Storage &) = default;
+    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
+
+    Vc_INTRINSIC Vc_PURE VectorType &v() { return data.v; }
+    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data.v; }
+
+    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data.m[i]; }
+    Vc_INTRINSIC Vc_PURE void set(size_t i, EntryType x) { data.m[i] = x; }
+    Vc_INTRINSIC Vc_PURE EntryType &ref(size_t i) { return data.m[i]; }
+
+private:
+    union VectorScalarUnion {
+        Vc_INTRINSIC VectorScalarUnion() : v() {}
+        Vc_INTRINSIC VectorScalarUnion(VectorType vv) : v(vv) {}
+        VectorType v;
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #endif
-        typename BuiltinTypeHelper<EntryType, VectorType>::Type data;
+        EntryType m[];
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
 #endif
+    } data;
 };
 
-#if defined(VC_GCC) && (VC_GCC == 0x40700 || (VC_GCC >= 0x40600 && VC_GCC <= 0x40603))
-// workaround bug 52736 in GCC
-template<typename T, typename V> static Vc_ALWAYS_INLINE Vc_CONST T &vectorMemoryUnionAliasedMember(V *data, size_t index) {
-    if (__builtin_constant_p(index) && index == 0) {
-        T *ret;
-        asm("mov %1,%0" : "=r"(ret) : "r"(data));
-        return *ret;
-    } else {
-        return reinterpret_cast<T *>(data)[index];
+template <typename ValueType, size_t Size>
+class Storage<ValueType, Size, AliasStrategy::MayAlias>
+{
+    static_assert(std::is_fundamental<ValueType>::value &&
+                      std::is_arithmetic<ValueType>::value,
+                  "Only works for fundamental arithmetic types.");
+
+public:
+    using VectorType = IntrinsicType<ValueType, Size>;
+    using EntryType = ValueType;
+
+    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage(const VectorType &x) : data(x)
+    {
+        assertCorrectAlignment(&data);
     }
-}
-template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<double> &VectorMemoryUnion<__m128d, double>::ref(size_t index) {
-    return vectorMemoryUnionAliasedMember<MayAlias<EntryType>>(&data, index);
-}
-template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<long long> &VectorMemoryUnion<__m128i, long long>::ref(size_t index) {
-    return vectorMemoryUnionAliasedMember<MayAlias<EntryType>>(&data, index);
-}
-template<> Vc_ALWAYS_INLINE Vc_PURE MayAlias<unsigned long long> &VectorMemoryUnion<__m128i, unsigned long long>::ref(size_t index) {
-    return vectorMemoryUnionAliasedMember<MayAlias<EntryType>>(&data, index);
-}
+    Vc_INTRINSIC Storage &operator=(const VectorType &x)
+    {
+        data = x;
+        return *this;
+    }
+
+    Vc_INTRINSIC Storage(const Storage &) = default;
+    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
+
+    Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
+    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
+
+    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const
+    {
+        return reinterpret_cast<MayAlias<EntryType> *>(&data)[i];
+    }
+    Vc_INTRINSIC Vc_PURE void set(size_t i, EntryType x)
+    {
+        reinterpret_cast<MayAlias<EntryType> *>(&data)[i] = x;
+    }
+    Vc_INTRINSIC Vc_PURE MayAlias<EntryType> &ref(size_t i)
+    {
+        return reinterpret_cast<MayAlias<EntryType> *>(&data)[i];
+    }
+
+private:
+    VectorType data;
+};
+
+template <typename ValueType, size_t Size>
+class Storage<ValueType, Size, AliasStrategy::VectorBuiltin>
+{
+    static_assert(std::is_fundamental<ValueType>::value &&
+                      std::is_arithmetic<ValueType>::value,
+                  "Only works for fundamental arithmetic types.");
+
+    using Builtin = BuiltinType<ValueType, Size>;
+
+public:
+    using VectorType = IntrinsicType<ValueType, Size>;
+    using EntryType = ValueType;
+
+    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage(const VectorType &x)
+        : data(reinterpret_cast<const MayAlias<Builtin> &>(x))
+    {
+        assertCorrectAlignment(&data);
+    }
+    Vc_INTRINSIC Storage &operator=(const VectorType &x)
+    {
+        data = reinterpret_cast<const MayAlias<Builtin> &>(x);
+        return *this;
+    }
+
+    Vc_INTRINSIC Storage(const Storage &) = default;
+    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
+
+    Vc_INTRINSIC Vc_PURE VectorType &v() { return reinterpret_cast<VectorType &>(data); }
+    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return reinterpret_cast<const VectorType &>(data); }
+
+    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data[i]; }
+    Vc_INTRINSIC Vc_PURE void set(size_t i, EntryType x) { data[i] = x; }
+    Vc_INTRINSIC Vc_PURE MayAlias<EntryType> &ref(size_t i)
+    {
+        return reinterpret_cast<MayAlias<EntryType> *>(&data)[i];
+    }
+
+    Vc_INTRINSIC Builtin &builtin() { return data; }
+    Vc_INTRINSIC const Builtin &builtin() const { return data; }
+
+private:
+    Builtin data;
+};
+
+template <typename ValueType, size_t Size>
+class Storage<ValueType, Size, AliasStrategy::UnionMembers>
+{
+    static_assert(std::is_fundamental<ValueType>::value &&
+                      std::is_arithmetic<ValueType>::value,
+                  "Only works for fundamental arithmetic types.");
+
+public:
+    using VectorType = IntrinsicType<ValueType, Size>;
+    using EntryType = ValueType;
+
+    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data.v); }
+    Vc_INTRINSIC Storage(const VectorType &x) : data(x)
+    {
+        assertCorrectAlignment(&data.v);
+    }
+    Vc_INTRINSIC Storage &operator=(const VectorType &x)
+    {
+        data.v = x;
+        return *this;
+    }
+
+    Vc_INTRINSIC Storage(const Storage &) = default;
+    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
+
+    Vc_INTRINSIC Vc_PURE VectorType &v() { return data.v; }
+    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data.v; }
+
+    Vc_INTRINSIC_L Vc_PURE_L EntryType m(size_t i) const Vc_INTRINSIC_R Vc_PURE_R;
+    Vc_INTRINSIC_L Vc_PURE_L EntryType &ref(size_t i) Vc_INTRINSIC_R Vc_PURE_R;
+    Vc_INTRINSIC Vc_PURE void set(size_t i, EntryType x) { ref(i) = x; }
+
+private:
+    VectorType data;
+};
+
+#ifdef VC_MSVC
+template <> Vc_INTRINSIC Vc_PURE          double Storage<         double, 2, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128d_f64[i]; }
+template <> Vc_INTRINSIC Vc_PURE          float  Storage<         float , 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128_f32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed int    Storage<  signed int   , 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed short  Storage<  signed short , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i16[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed char   Storage<  signed char  ,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i8[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned int    Storage<unsigned int   , 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned short  Storage<unsigned short , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u16[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned char   Storage<unsigned char  ,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u8[i]; }
+
+template <> Vc_INTRINSIC Vc_PURE          double &Storage<         double, 2, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128d_f64[i]; }
+template <> Vc_INTRINSIC Vc_PURE          float  &Storage<         float , 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128_f32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed int    &Storage<  signed int   , 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed short  &Storage<  signed short , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i16[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed char   &Storage<  signed char  ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i8[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned int    &Storage<unsigned int   , 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned short  &Storage<unsigned short , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u16[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned char   &Storage<unsigned char  ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u8[i]; }
+
+#ifdef VC_IMPL_AVX
+template <> Vc_INTRINSIC Vc_PURE          double Storage<         double, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256d_f64[i]; }
+template <> Vc_INTRINSIC Vc_PURE          float  Storage<         float , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256_f32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed int    Storage<  signed int   , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed short  Storage<  signed short ,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i16[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed char   Storage<  signed char  ,32, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i8[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned int    Storage<unsigned int   , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned short  Storage<unsigned short ,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u16[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned char   Storage<unsigned char  ,32, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u8[i]; }
+
+template <> Vc_INTRINSIC Vc_PURE          double &Storage<         double, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256d_f64[i]; }
+template <> Vc_INTRINSIC Vc_PURE          float  &Storage<         float , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256_f32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed int    &Storage<  signed int   , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed short  &Storage<  signed short ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i16[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed char   &Storage<  signed char  ,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i8[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned int    &Storage<unsigned int   , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned short  &Storage<unsigned short ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u16[i]; }
+template <> Vc_INTRINSIC Vc_PURE unsigned char   &Storage<unsigned char  ,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u8[i]; }
 #endif
+#endif  // VC_MSVC
+
+template <typename VectorType, typename EntryType>
+using VectorMemoryUnion = Storage<EntryType, sizeof(VectorType) / sizeof(EntryType)>;
 
 }  // namespace Common
 }  // namespace Vc

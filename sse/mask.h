@@ -73,8 +73,7 @@ template<typename T> class Mask
      */
     typedef Common::MaskBool<sizeof(T)> MaskBool;
 
-    typedef Common::VectorMemoryUnion<typename VectorTypeHelper<T>::Type, MaskBool>
-        Storage;
+    typedef Common::Storage<T, VectorTraits<T>::Size> Storage;
 
 public:
 
@@ -92,16 +91,16 @@ public:
     /**
      * The \c VectorType reveals the implementation-specific internal type used for the SIMD type.
      */
-    typedef typename VectorTypeHelper<T>::Type VectorType;
+    using VectorType = typename Storage::VectorType;
 
     /**
      * The associated Vector<T> type.
      */
     using Vector = SSE::Vector<T>;
 
-    public:
-        FREE_STORE_OPERATORS_ALIGNED(16)
-        static constexpr size_t Size = VectorTraits<T>::Size;
+public:
+    FREE_STORE_OPERATORS_ALIGNED(16)
+    static constexpr size_t Size = VectorTraits<T>::Size;
     static constexpr std::size_t size() { return Size; }
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here

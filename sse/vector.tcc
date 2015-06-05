@@ -849,7 +849,7 @@ template<typename T> Vc_INTRINSIC Vc_PURE Vector<T> Vector<T>::shifted(int amoun
 template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::shifted(int amount, Vector shiftIn) const
 {
     if (amount >= -int(size())) {
-        enum { EntryTypeSizeof = sizeof(EntryType) };
+        constexpr auto EntryTypeSizeof = sizeof(EntryType);
         const __m128i v0 = sse_cast<__m128i>(d.v());
         const __m128i v1 = sse_cast<__m128i>(shiftIn.d.v());
         auto &&fixup = sse_cast<VectorType, __m128i>;
