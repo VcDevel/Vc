@@ -67,6 +67,7 @@ template<typename T> class Mask
     friend class Mask<uint32_t>;
     friend class Mask< int16_t>;
     friend class Mask<uint16_t>;
+    friend class Common::MaskEntry<Mask>;
 
     /**
      * A helper type for aliasing the entries in the mask but behaving like a bool.
@@ -199,10 +200,9 @@ public:
         Vc_ALWAYS_INLINE Vc_PURE __m128i dataI() const { return sse_cast<__m128i>(d.v()); }
         Vc_ALWAYS_INLINE Vc_PURE __m128d dataD() const { return sse_cast<__m128d>(d.v()); }
 
-        Vc_ALWAYS_INLINE decltype(std::declval<Storage &>().ref(0)) operator[](
-            size_t index)
+        Vc_ALWAYS_INLINE Common::MaskEntry<Mask> operator[](size_t index)
         {
-            return d.ref(index);
+            return Common::MaskEntry<Mask>(*this, index);
         }
         Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const
         {
@@ -226,6 +226,8 @@ public:
     public:
 #endif
         Storage d;
+
+        void setEntry(size_t i, bool x) { d.set(i, MaskBool(x)); }
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 
