@@ -210,7 +210,7 @@ public:
 
     Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const
     {
-        return reinterpret_cast<MayAlias<EntryType> *>(&data)[i];
+        return reinterpret_cast<const MayAlias<EntryType> *>(&data)[i];
     }
     Vc_INTRINSIC Vc_PURE void set(size_t i, EntryType x)
     {
