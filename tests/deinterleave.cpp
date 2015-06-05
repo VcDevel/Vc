@@ -275,6 +275,8 @@ template <typename T, std::size_t N> Vc::simdarray<T, N> rotate(const Vc::simdar
     return r;
 }
 
+namespace std
+{
 template <typename T, std::size_t N>
 inline std::ostream &operator<<(std::ostream &out, const std::array<T, N> &a)
 {
@@ -294,6 +296,7 @@ inline bool operator==(const std::array<Vc::Vector<T>, N> &a, const std::array<V
     }
     return true;
 }
+}  // namespace std
 
 template <typename V, typename Wrapper, typename IndexType, std::size_t... Indexes>
 void testInterleavingScatterCompare(Wrapper &data, const IndexType &i,
