@@ -109,17 +109,6 @@ template<> struct BuiltinTypeHelper<unsigned char     , __m256i> { typedef unsig
 #endif
 #endif
 
-template<typename T> struct MayAliasImpl { typedef T Type Vc_MAY_ALIAS; };
-template<size_t Bytes> struct MayAliasImpl<MaskBool<Bytes>> { typedef MaskBool<Bytes> Type; };
-/**
- * \internal
- * Helper MayAlias<T> that turns T into the type to be used for an aliasing pointer. This
- * adds the may_alias attribute to T (with compilers that support it). But for MaskBool this
- * attribute is already part of the type and applying it a second times leads to warnings/errors,
- * therefore MaskBool is simply forwarded as is.
- */
-template<typename T> using MayAlias = typename MayAliasImpl<T>::Type;
-
 /**
  * \internal
  * Helper class that abstracts the hackery needed for aliasing SIMD and fundamental types to the

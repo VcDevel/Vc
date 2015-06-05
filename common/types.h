@@ -40,11 +40,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+using std::size_t;
+
 namespace Vc_IMPL_NAMESPACE
 {
     template<typename T> class Vector;
     template<typename T> class Mask;
 }  // namespace Vc_IMPL_NAMESPACE
+
+namespace Detail
+{
+template<typename T> struct MayAlias { typedef T type Vc_MAY_ALIAS; };
+//template<size_t Bytes> struct MayAlias<MaskBool<Bytes>> { typedef MaskBool<Bytes> type; };
+/**\internal
+ * Helper MayAlias<T> that turns T into the type to be used for an aliasing pointer. This
+ * adds the may_alias attribute to T (with compilers that support it). But for MaskBool this
+ * attribute is already part of the type and applying it a second times leads to warnings/errors,
+ * therefore MaskBool is simply forwarded as is.
+ */
+}  // namespace Detail
+template <typename T> using MayAlias = typename Detail::MayAlias<T>::type;
 
 enum class Operator : char {
     Assign,
