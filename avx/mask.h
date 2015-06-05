@@ -244,7 +244,7 @@ public:
 #endif
         Storage d;
 
-        void setEntry(size_t i, bool x) { d.set(i, x); }
+        void setEntry(size_t i, bool x) { d.set(i, Common::MaskBool<sizeof(T)>(x)); }
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 
