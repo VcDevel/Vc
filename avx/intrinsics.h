@@ -783,14 +783,15 @@ namespace Vc_AVX_NAMESPACE
     template<> struct SseVectorType<__m128i> { typedef __m128i Type; };
     template<> struct SseVectorType<__m128d> { typedef __m128d Type; };
 
-    template<typename T, size_t = sizeof(T)> struct IntegerVectorType { typedef __m256i Type; };
-    template<typename T> struct IntegerVectorType<T, 16> { typedef __m128i Type; };
-
-    template<typename T, size_t = sizeof(T)> struct DoubleVectorType { typedef __m256d Type; };
-    template<typename T> struct DoubleVectorType<T, 16> { typedef __m128d Type; };
-
-    template<typename T, size_t = sizeof(T)> struct FloatVectorType { typedef __m256 Type; };
-    template<typename T> struct FloatVectorType<T, 16> { typedef __m128 Type; };
+    template <typename T>
+    using IntegerVectorType =
+        typename std::conditional<sizeof(T) == 16, __m128i, __m256i>::type;
+    template <typename T>
+    using DoubleVectorType =
+        typename std::conditional<sizeof(T) == 16, __m128d, __m256d>::type;
+    template <typename T>
+    using FloatVectorType =
+        typename std::conditional<sizeof(T) == 16, __m128, __m256>::type;
 
     template<typename T> struct VectorHelper {};
     template<typename T> struct GatherHelper;
