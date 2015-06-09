@@ -67,7 +67,11 @@ template <typename ValueType, size_t Size> struct IntrinsicType {
 };
 #endif
 template <typename ValueType, size_t Size, size_t Bytes = sizeof(ValueType) * Size>
-struct BuiltinType;
+struct BuiltinType {
+    // this is required for expressions which should be substitution failures in an
+    // enable_if:
+    typedef ValueType type;
+};
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
 #define Vc_VECBUILTIN __attribute__((__vector_size__(16)))
 template <size_t Size> struct BuiltinType<         double   , Size, 16> { typedef          double    type Vc_VECBUILTIN; };
