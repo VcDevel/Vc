@@ -54,6 +54,8 @@ public:
      */
     typedef bool EntryType;
 
+    using EntryReference = bool &;
+
     /**
      * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the SIMD
      * implementation. This type is useful for the \c sizeof operator in generic functions.
@@ -126,7 +128,7 @@ public:
         template<unsigned int OtherSize>
             Vc_ALWAYS_INLINE Mask cast() const { return *this; }
 
-        Vc_ALWAYS_INLINE bool &operator[](size_t) { return m; }
+        Vc_ALWAYS_INLINE EntryReference operator[](size_t) { return m; }
         Vc_ALWAYS_INLINE bool operator[](size_t) const { return m; }
 
         Vc_ALWAYS_INLINE int count() const { return m ? 1 : 0; }
@@ -152,6 +154,9 @@ public:
                 return Zero();
             }
         }
+
+        ///\internal Called indirectly from operator[]
+        void setEntry(size_t, bool x) { m = x; }
 
     private:
         bool m;

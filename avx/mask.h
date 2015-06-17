@@ -132,6 +132,8 @@ public:
      */
     using VectorType = typename Storage::VectorType;
 
+    using EntryReference = Common::MaskEntry<Mask>;
+
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
 #if defined VC_MSVC && defined _WIN32
         typedef const Mask<T> &AsArg;
@@ -215,9 +217,9 @@ public:
         Vc_ALWAYS_INLINE VectorTypeI dataI() const { return avx_cast<VectorTypeI>(d.v()); }
         Vc_ALWAYS_INLINE VectorTypeD dataD() const { return avx_cast<VectorTypeD>(d.v()); }
 
-        Vc_ALWAYS_INLINE Common::MaskEntry<Mask> operator[](size_t index)
+        Vc_ALWAYS_INLINE EntryReference operator[](size_t index)
         {
-            return Common::MaskEntry<Mask>(*this, index);
+            return {*this, index};
         }
         Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
@@ -226,6 +228,9 @@ public:
 
         template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vc_PURE_L Mask shifted(int amount) const Vc_INTRINSIC_R Vc_PURE_R;
+
+        ///\internal Called indirectly from operator[]
+        void setEntry(size_t i, bool x) { d.set(i, Common::MaskBool<sizeof(T)>(x)); }
 
     private:
 #ifndef VC_IMPL_POPCNT
@@ -243,8 +248,6 @@ public:
     public:
 #endif
         Storage d;
-
-        void setEntry(size_t i, bool x) { d.set(i, Common::MaskBool<sizeof(T)>(x)); }
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 

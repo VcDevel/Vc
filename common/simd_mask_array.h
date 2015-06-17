@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <array>
 #include "simd_array_data.h"
 #include "utility.h"
+#include "maskentry.h"
 
 #include "macros.h"
 
@@ -62,6 +63,7 @@ public:
     using Mask = mask_type;
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
+    using EntryReference = typename mask_type::EntryReference;
     using Vector = simdarray<T, N, VectorType, N>;
 
     FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
@@ -185,7 +187,7 @@ public:
 
     Vc_INTRINSIC Vc_PURE int toInt() const { return data.toInt(); }
 
-    Vc_INTRINSIC Vc_PURE vectorentry_reference operator[](size_t index)
+    Vc_INTRINSIC Vc_PURE EntryReference operator[](size_t index)
     {
         return data[index];
     }
@@ -222,6 +224,9 @@ public:
     /// \internal
     Vc_INTRINSIC simd_mask_array(mask_type &&x) : data(std::move(x)) {}
 
+    ///\internal Called indirectly from operator[]
+    void setEntry(size_t index, bool x) { data.setEntry(index, x); }
+
 private:
     storage_type data;
 };
@@ -253,14 +258,14 @@ public:
 
     using vectorentry_type = typename storage_type0::VectorEntryType;
     using vectorentry_reference = vectorentry_type &;
-    /* FIXME:
-    static_assert(std::is_same<vectorentry_type, typename storage_type1::VectorEntryType>::value,
-                  "incompatible mask types combined: this will break operator[]");
-     */
     using value_type = typename storage_type0::EntryType;
     using Mask = mask_type;
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
+    using EntryReference = typename std::conditional<
+        std::is_same<typename storage_type0::EntryReference,
+                     typename storage_type1::EntryReference>::value,
+        typename storage_type0::EntryReference, Common::MaskEntry<simd_mask_array>>::type;
     using Vector = simdarray<T, N, VectorType, VectorType::Size>;
 
     FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
@@ -406,13 +411,48 @@ public:
         return data0.toInt() | (data1.toInt() << data0.size());
     }
 
-    Vc_INTRINSIC Vc_PURE vectorentry_reference operator[](size_t index) {
-        auto alias = reinterpret_cast<vectorentry_type *>(&data0);
-        return alias[index];
+private:
+    template <typename R>
+    R subscript_impl(
+        size_t index,
+        enable_if<std::is_same<R, typename storage_type0::EntryReference>::value> =
+            nullarg)
+    {
+        if (index < storage_type0::size()) {
+            return data0[index];
+        } else {
+            return data1[index - storage_type0::size()];
+        }
+    }
+    template <typename R>
+    R subscript_impl(
+        size_t index,
+        enable_if<!std::is_same<R, typename storage_type0::EntryReference>::value> =
+            nullarg)
+    {
+        return {*this, index};
+    }
+
+public:
+    ///\internal Called indirectly from operator[]
+    void setEntry(size_t index, bool x)
+    {
+        if (index < data0.size()) {
+            data0.setEntry(index, x);
+        } else {
+            data1.setEntry(index - data0.size(), x);
+        }
+    }
+
+    Vc_INTRINSIC Vc_PURE EntryReference operator[](size_t index) {
+        return subscript_impl<EntryReference>(index);
     }
     Vc_INTRINSIC Vc_PURE bool operator[](size_t index) const {
-        auto alias = reinterpret_cast<const vectorentry_type *>(&data0);
-        return alias[index];
+        if (index < storage_type0::size()) {
+            return data0[index];
+        } else {
+            return data1[index - storage_type0::size()];
+        }
     }
 
     Vc_INTRINSIC Vc_PURE int count() const { return data0.count() + data1.count(); }

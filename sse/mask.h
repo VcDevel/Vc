@@ -84,6 +84,11 @@ public:
     typedef bool EntryType;
 
     /**
+     * The return type of the non-const subscript operator.
+     */
+    using EntryReference = Common::MaskEntry<Mask>;
+
+    /**
      * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the SIMD
      * implementation. This type is useful for the \c sizeof operator in generic functions.
      */
@@ -200,9 +205,9 @@ public:
         Vc_ALWAYS_INLINE Vc_PURE __m128i dataI() const { return sse_cast<__m128i>(d.v()); }
         Vc_ALWAYS_INLINE Vc_PURE __m128d dataD() const { return sse_cast<__m128d>(d.v()); }
 
-        Vc_ALWAYS_INLINE Common::MaskEntry<Mask> operator[](size_t index)
+        Vc_ALWAYS_INLINE EntryReference operator[](size_t index)
         {
-            return Common::MaskEntry<Mask>(*this, index);
+            return {*this, index};
         }
         Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const
         {
@@ -221,13 +226,14 @@ public:
         template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vc_PURE_L Mask shifted(int amount) const Vc_INTRINSIC_R Vc_PURE_R;
 
+        ///\internal Called indirectly from operator[]
+        void setEntry(size_t i, bool x) { d.set(i, MaskBool(x)); }
+
     private:
 #ifdef VC_COMPILE_BENCHMARKS
     public:
 #endif
         Storage d;
-
-        void setEntry(size_t i, bool x) { d.set(i, MaskBool(x)); }
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 
