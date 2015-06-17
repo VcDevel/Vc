@@ -107,7 +107,7 @@ template<typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal: required to enable returning objects of VectorType
-        Vc_ALWAYS_INLINE Vector(const VectorType &x) : d(x) {}
+        Vc_ALWAYS_INLINE Vector(VectorType x) : d(x) {}
 
         // implict conversion from compatible Vector<U>
         template <typename U>

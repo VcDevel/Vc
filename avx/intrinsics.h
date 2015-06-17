@@ -122,6 +122,7 @@ namespace AvxIntrinsics
     static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epi16()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::one16))); }
     static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
     static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epi32()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epu32()  { return _mm_setone_epi32(); }
 
     static Vc_INTRINSIC m256i Vc_CONST setone_epi8 ()  { return _mm256_set1_epi8(1); }
     static Vc_INTRINSIC m256i Vc_CONST setone_epu8 ()  { return setone_epi8(); }
@@ -139,7 +140,9 @@ namespace AvxIntrinsics
     static Vc_INTRINSIC m256  Vc_CONST setsignmask_ps(){ return _mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1])); }
 
     static Vc_INTRINSIC m256  Vc_CONST set2power31_ps()    { return _mm256_broadcast_ss(&c_general::_2power31); }
+    static Vc_INTRINSIC m128  Vc_CONST _mm_set2power31_ps()    { return _mm_broadcast_ss(&c_general::_2power31); }
     static Vc_INTRINSIC m256i Vc_CONST set2power31_epu32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
+    static Vc_INTRINSIC m128i Vc_CONST _mm_set2power31_epu32() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
 
     //X         static Vc_INTRINSIC m256i Vc_CONST setmin_epi8 () { return _mm256_slli_epi8 (setallone_si256(),  7); }
     static Vc_INTRINSIC m128i Vc_CONST _mm_setmin_epi16() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
@@ -761,17 +764,31 @@ namespace AVX2
 namespace Vc_AVX_NAMESPACE
 {
     template<typename T> struct VectorTypeHelper;
-    template<> struct VectorTypeHelper<         char > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<  signed char > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<unsigned char > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<         short> { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<unsigned short> { typedef __m128i Type; };
+#ifdef VC_IMPL_AVX2
+    template<> struct VectorTypeHelper<         char > { typedef __m256i Type; };
+    template<> struct VectorTypeHelper<  signed char > { typedef __m256i Type; };
+    template<> struct VectorTypeHelper<unsigned char > { typedef __m256i Type; };
+    template<> struct VectorTypeHelper<         short> { typedef __m256i Type; };
+    template<> struct VectorTypeHelper<unsigned short> { typedef __m256i Type; };
     template<> struct VectorTypeHelper<         int  > { typedef __m256i Type; };
     template<> struct VectorTypeHelper<unsigned int  > { typedef __m256i Type; };
     template<> struct VectorTypeHelper<         long > { typedef __m256i Type; };
     template<> struct VectorTypeHelper<unsigned long > { typedef __m256i Type; };
     template<> struct VectorTypeHelper<         long long> { typedef __m256i Type; };
     template<> struct VectorTypeHelper<unsigned long long> { typedef __m256i Type; };
+#else
+    template<> struct VectorTypeHelper<         char > { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<  signed char > { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<unsigned char > { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<         short> { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<unsigned short> { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<         int  > { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<unsigned int  > { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<         long > { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<unsigned long > { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<         long long> { typedef __m128i Type; };
+    template<> struct VectorTypeHelper<unsigned long long> { typedef __m128i Type; };
+#endif
     template<> struct VectorTypeHelper<         float> { typedef __m256  Type; };
     template<> struct VectorTypeHelper<        double> { typedef __m256d Type; };
 

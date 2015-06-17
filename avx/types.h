@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,17 +35,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef VC_DEFAULT_IMPL_AVX2
 #define VC_DOUBLE_V_SIZE 4
 #define VC_FLOAT_V_SIZE 8
+// TODO: 16
 #define VC_INT_V_SIZE 8
 #define VC_UINT_V_SIZE 8
-// TODO: 16
 #define VC_SHORT_V_SIZE 8
 #define VC_USHORT_V_SIZE 8
 #elif defined VC_DEFAULT_IMPL_AVX
 #define VC_DOUBLE_V_SIZE 4
 #define VC_FLOAT_V_SIZE 8
-// TODO: 4
-#define VC_INT_V_SIZE 8
-#define VC_UINT_V_SIZE 8
+#define VC_INT_V_SIZE 4
+#define VC_UINT_V_SIZE 4
 #define VC_SHORT_V_SIZE 8
 #define VC_USHORT_V_SIZE 8
 #endif

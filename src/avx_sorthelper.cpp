@@ -113,94 +113,49 @@ template<> __m128i SortHelper<unsigned short>::sort(VTArg _x)
 
     return _mm_unpacklo_epi16(lo, hi);
 }
+
+template <> __m128i SortHelper<int>::sort(VTArg x_)
+{
+    auto x = x_;
+    // sort pairs
+    __m128i y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
+    __m128i l = _mm_min_epi32(x, y);
+    __m128i h = _mm_max_epi32(x, y);
+    x = _mm_unpacklo_epi32(l, h);
+    y = _mm_unpackhi_epi32(h, l);
+
+    // sort quads
+    l = _mm_min_epi32(x, y);
+    h = _mm_max_epi32(x, y);
+    x = _mm_unpacklo_epi32(l, h);
+    y = _mm_unpackhi_epi64(x, x);
+
+    l = _mm_min_epi32(x, y);
+    h = _mm_max_epi32(x, y);
+    return _mm_unpacklo_epi32(l, h);
+}
+
+template <> __m128i SortHelper<unsigned int>::sort(VTArg x_)
+{
+    auto x = x_;
+    // sort pairs
+    __m128i y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
+    __m128i l = _mm_min_epu32(x, y);
+    __m128i h = _mm_max_epu32(x, y);
+    x = _mm_unpacklo_epi32(l, h);
+    y = _mm_unpackhi_epi32(h, l);
+
+    // sort quads
+    l = _mm_min_epu32(x, y);
+    h = _mm_max_epu32(x, y);
+    x = _mm_unpacklo_epi32(l, h);
+    y = _mm_unpackhi_epi64(x, x);
+
+    l = _mm_min_epu32(x, y);
+    h = _mm_max_epu32(x, y);
+    return _mm_unpacklo_epi32(l, h);
+}
 #endif
-
-template<> __m256i SortHelper<int>::sort(VTArg _hgfedcba)
-{
-    VectorType hgfedcba = _hgfedcba;
-    const m128i hgfe = hi128(hgfedcba);
-    const m128i dcba = lo128(hgfedcba);
-    m128i l = _mm_min_epi32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
-    m128i h = _mm_max_epi32(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
-
-    m128i x = _mm_unpacklo_epi32(l, h); // ↑fb ↓fb ↑ea ↓ea
-    m128i y = _mm_unpackhi_epi32(l, h); // ↑hd ↓hd ↑gc ↓gc
-
-    l = _mm_min_epi32(x, y); // ↓(↑fb,↑hd) ↓hfdb ↓(↑ea,↑gc) ↓geca
-    h = _mm_max_epi32(x, y); // ↑hfdb ↑(↓fb,↓hd) ↑geca ↑(↓ea,↓gc)
-
-    x = _mm_min_epi32(l, Reg::permute<X2, X2, X0, X0>(h)); // 2(hfdb) 1(hfdb) 2(geca) 1(geca)
-    y = _mm_max_epi32(h, Reg::permute<X3, X3, X1, X1>(l)); // 4(hfdb) 3(hfdb) 4(geca) 3(geca)
-
-    m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
-    m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
-
-    // _mm_extract_epi32 may return an unsigned int, breaking these comparisons.
-    if (VC_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 2)) >= static_cast<int>(_mm_extract_epi32(y, 1)))) {
-        return concat(Reg::permute<X0, X1, X2, X3>(b), a);
-    } else if (VC_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 0)) >= static_cast<int>(_mm_extract_epi32(y, 3)))) {
-        return concat(a, Reg::permute<X0, X1, X2, X3>(b));
-    }
-
-    // merge
-    l = _mm_min_epi32(a, b); // ↓a3b3 ↓a2b2 ↓a1b1 ↓a0b0
-    h = _mm_max_epi32(a, b); // ↑a3b3 ↑a2b2 ↑a1b1 ↑a0b0
-
-    a = _mm_unpacklo_epi32(l, h); // ↑a1b1 ↓a1b1 ↑a0b0 ↓a0b0
-    b = _mm_unpackhi_epi32(l, h); // ↑a3b3 ↓a3b3 ↑a2b2 ↓a2b2
-    l = _mm_min_epi32(a, b);      // ↓(↑a1b1,↑a3b3) ↓a1b3 ↓(↑a0b0,↑a2b2) ↓a0b2
-    h = _mm_max_epi32(a, b);      // ↑a3b1 ↑(↓a1b1,↓a3b3) ↑a2b0 ↑(↓a0b0,↓a2b2)
-
-    a = _mm_unpacklo_epi32(l, h); // ↑a2b0 ↓(↑a0b0,↑a2b2) ↑(↓a0b0,↓a2b2) ↓a0b2
-    b = _mm_unpackhi_epi32(l, h); // ↑a3b1 ↓(↑a1b1,↑a3b3) ↑(↓a1b1,↓a3b3) ↓a1b3
-    l = _mm_min_epi32(a, b); // ↓(↑a2b0,↑a3b1) ↓(↑a0b0,↑a2b2,↑a1b1,↑a3b3) ↓(↑(↓a0b0,↓a2b2) ↑(↓a1b1,↓a3b3)) ↓a0b3
-    h = _mm_max_epi32(a, b); // ↑a3b0 ↑(↓(↑a0b0,↑a2b2) ↓(↑a1b1,↑a3b3)) ↑(↓a0b0,↓a2b2,↓a1b1,↓a3b3) ↑(↓a0b2,↓a1b3)
-
-    return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
-}
-
-template<> __m256i SortHelper<unsigned int>::sort(VTArg _hgfedcba)
-{
-    VectorType hgfedcba = _hgfedcba;
-    const m128i hgfe = hi128(hgfedcba);
-    const m128i dcba = lo128(hgfedcba);
-    m128i l = _mm_min_epu32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
-    m128i h = _mm_max_epu32(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
-
-    m128i x = _mm_unpacklo_epi32(l, h); // ↑fb ↓fb ↑ea ↓ea
-    m128i y = _mm_unpackhi_epi32(l, h); // ↑hd ↓hd ↑gc ↓gc
-
-    l = _mm_min_epu32(x, y); // ↓(↑fb,↑hd) ↓hfdb ↓(↑ea,↑gc) ↓geca
-    h = _mm_max_epu32(x, y); // ↑hfdb ↑(↓fb,↓hd) ↑geca ↑(↓ea,↓gc)
-
-    x = _mm_min_epu32(l, Reg::permute<X2, X2, X0, X0>(h)); // 2(hfdb) 1(hfdb) 2(geca) 1(geca)
-    y = _mm_max_epu32(h, Reg::permute<X3, X3, X1, X1>(l)); // 4(hfdb) 3(hfdb) 4(geca) 3(geca)
-
-    m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
-    m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
-
-    if (VC_IS_UNLIKELY(extract_epu32<2>(x) >= extract_epu32<1>(y))) {
-        return concat(Reg::permute<X0, X1, X2, X3>(b), a);
-    } else if (VC_IS_UNLIKELY(extract_epu32<0>(x) >= extract_epu32<3>(y))) {
-        return concat(a, Reg::permute<X0, X1, X2, X3>(b));
-    }
-
-    // merge
-    l = _mm_min_epu32(a, b); // ↓a3b3 ↓a2b2 ↓a1b1 ↓a0b0
-    h = _mm_max_epu32(a, b); // ↑a3b3 ↑a2b2 ↑a1b1 ↑a0b0
-
-    a = _mm_unpacklo_epi32(l, h); // ↑a1b1 ↓a1b1 ↑a0b0 ↓a0b0
-    b = _mm_unpackhi_epi32(l, h); // ↑a3b3 ↓a3b3 ↑a2b2 ↓a2b2
-    l = _mm_min_epu32(a, b);      // ↓(↑a1b1,↑a3b3) ↓a1b3 ↓(↑a0b0,↑a2b2) ↓a0b2
-    h = _mm_max_epu32(a, b);      // ↑a3b1 ↑(↓a1b1,↓a3b3) ↑a2b0 ↑(↓a0b0,↓a2b2)
-
-    a = _mm_unpacklo_epi32(l, h); // ↑a2b0 ↓(↑a0b0,↑a2b2) ↑(↓a0b0,↓a2b2) ↓a0b2
-    b = _mm_unpackhi_epi32(l, h); // ↑a3b1 ↓(↑a1b1,↑a3b3) ↑(↓a1b1,↓a3b3) ↓a1b3
-    l = _mm_min_epu32(a, b); // ↓(↑a2b0,↑a3b1) ↓(↑a0b0,↑a2b2,↑a1b1,↑a3b3) ↓(↑(↓a0b0,↓a2b2) ↑(↓a1b1,↓a3b3)) ↓a0b3
-    h = _mm_max_epu32(a, b); // ↑a3b0 ↑(↓(↑a0b0,↑a2b2) ↓(↑a1b1,↑a3b3)) ↑(↓a0b0,↓a2b2,↓a1b1,↓a3b3) ↑(↓a0b2,↓a1b3)
-
-    return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
-}
 
 template<> __m256 SortHelper<float>::sort(VTArg _hgfedcba)
 {

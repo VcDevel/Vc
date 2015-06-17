@@ -316,7 +316,8 @@ TEST(list_iterator_vectorization)
         LIV b = list.begin();
         LIV e = list.end();
         auto reference1 = list.size() - float_v::IndexesFromZero();
-        auto reference2 = list.size() - simdize<unsigned, V::size()>::IndexesFromZero();
+        auto reference2 =
+            unsigned(list.size()) - simdize<unsigned, V::size()>::IndexesFromZero();
         for (; b != e; ++b, reference1 -= V::size(), reference2 -= V::size()) {
             V x = *b;
             COMPARE(x, V(reference1, reference2 * 2, reference1 * 3));

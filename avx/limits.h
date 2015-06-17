@@ -51,8 +51,8 @@ template<> struct numeric_limits< ::Vc::Vc_IMPL_NAMESPACE::Vector<T> > : public 
 
 _VC_NUM_LIM(unsigned short, ::Vc::Vc_IMPL_NAMESPACE::_mm_setallone_si128(), _mm_setzero_si128());
 _VC_NUM_LIM(         short, _mm_srli_epi16(::Vc::Vc_IMPL_NAMESPACE::_mm_setallone_si128(), 1), ::Vc::Vc_IMPL_NAMESPACE::_mm_setmin_epi16());
-_VC_NUM_LIM(  unsigned int, ::Vc::AvxIntrinsics::setallone_si256(), _mm256_setzero_si256());
-_VC_NUM_LIM(           int, Vc::AvxIntrinsics::srli_epi32<1>(::Vc::AvxIntrinsics::setallone_si256()), ::Vc::Vc_IMPL_NAMESPACE::setmin_epi32());
+_VC_NUM_LIM(  unsigned int, Vc::AvxIntrinsics::_mm_setallone_si128(), _mm_setzero_si128());
+_VC_NUM_LIM(           int, _mm_srli_epi32(::Vc::AvxIntrinsics::_mm_setallone_si128(), 1), Vc::Vc_IMPL_NAMESPACE::_mm_setmin_epi32());
 #undef _VC_NUM_LIM
 
 } // namespace std

@@ -100,7 +100,7 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
             if(all_of(Vec(Zero) >= Vec(j))) {
                 std::cout << j << " " << Vec(j) << " " << (Vec(Zero) >= Vec(j)) << std::endl;
             }
-            VERIFY(all_of(Vec(Zero) < Vec(j)));
+            VERIFY(all_of(Vec(Zero) < Vec(j))) << (Vec(Zero) < Vec(j)) << ", j = " << j << ", step = " << step;
             VERIFY(all_of(Vec(j) > Vec(Zero)));
             VERIFY(none_of(Vec(Zero) >= Vec(j)));
             VERIFY(none_of(Vec(j) <= Vec(Zero)));
