@@ -84,6 +84,12 @@ bool isImplementationSupported(Implementation impl)
     case MICImpl:
         return CpuId::processorFamily() == 0xB && CpuId::processorModel() == 0x1
             && CpuId::isIntel();
+    case CUDAImpl:
+#ifdef __NVCC__
+        return true;
+#else
+        return false;
+#endif
     case ImplementationMask:
         return false;
     }

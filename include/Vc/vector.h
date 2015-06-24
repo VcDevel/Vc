@@ -77,6 +77,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # include "mic/simd_cast.h"
 #endif
 
+#if defined(VC_IMPL_CUDA)
+# include "cuda/vector.h"
+# include "cuda/simd_cast.h"
+#endif
+
 namespace Vc_VERSIONED_NAMESPACE
 {
   using Vc_IMPL_NAMESPACE::Vector;
@@ -198,6 +203,11 @@ namespace Vc_VERSIONED_NAMESPACE {
 # include "mic/helperimpl.h"
 # include "mic/math.h"
 # include "mic/simd_cast_caller.tcc"
+#endif
+#if defined(VC_IMPL_CUDA)
+# include "cuda/helperimpl.h"
+# include "cuda/math.h"
+# include "cuda/simd_cast_caller.tcc"
 #endif
 
 #include "common/math.h"

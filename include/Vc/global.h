@@ -34,6 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Compiler defines
 #ifdef __INTEL_COMPILER
 #define VC_ICC __INTEL_COMPILER_BUILD_DATE
+#elif defined(__NVCC__)
+#define VC_NVCC 1
 #elif defined(__OPENCC__)
 #define VC_OPEN64 1
 #elif defined(__clang__)
@@ -122,6 +124,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define AVX    0x00800000
 #define AVX2   0x00900000
 #define MIC    0x00A00000
+#define CUDA   0x00B00000
 
 #define XOP    0x00000001
 #define FMA4   0x00000002
@@ -160,6 +163,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #  if defined(__MIC__)
 #    define VC_IMPL_MIC 1
+#  elif defined(__NVCC__)
+#    define VC_IMPL_CUDA 1
 #  elif defined(__AVX2__)
 #    define VC_IMPL_AVX2 1
 #    define VC_IMPL_AVX 1
@@ -221,6 +226,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    ifdef __POPCNT__
 #      define VC_IMPL_POPCNT 1
 #    endif
+#  elif (VC_IMPL & IMPL_MASK) == CUDA // CUDA superseded AVX2
+#    define VC_IMPL_CUDA 1
 #  elif (VC_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
 #    define VC_IMPL_AVX2 1
 #    define VC_IMPL_AVX 1
@@ -314,7 +321,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    define VC_IMPL_SSE 1
 #endif
 
-# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX) && !defined(VC_IMPL_MIC)
+# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX) && !defined(VC_IMPL_MIC) && !defined(VC_IMPL_CUDA)
 #  error "No suitable Vc implementation was selected! Probably VC_IMPL was set to an invalid value."
 # elif defined(VC_IMPL_SSE) && !defined(VC_IMPL_SSE2)
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
@@ -330,6 +337,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef AVX
 #undef AVX2
 #undef MIC
+#undef CUDA
 
 #undef XOP
 #undef FMA4
@@ -343,6 +351,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef VC_IMPL_MIC
 #define VC_DEFAULT_IMPL_MIC
+#elif defined VC_IMPL_CUDA
+#define VC_DEFAULT_IMPL_CUDA
 #elif defined VC_IMPL_AVX2
 #define VC_DEFAULT_IMPL_AVX2
 #elif defined VC_IMPL_AVX
@@ -456,6 +466,8 @@ enum Implementation { // TODO: make enum class of uint32_t
     AVX2Impl,
     /// Intel Xeon Phi
     MICImpl,
+    /// NVIDIA CUDA
+    CUDAImpl,
     ImplementationMask = 0xfff
 };
 
@@ -496,6 +508,9 @@ enum ExtraInstructions { // TODO: make enum class of uint32_t
 #elif defined(VC_IMPL_MIC)
 #define VC_IMPL ::Vc::MICImpl
 #define Vc_IMPL_NAMESPACE MIC
+#elif defined(VC_IMPL_CUDA)
+#define VC_IMPL ::Vc::CUDAImpl
+#define Vc_IMPL_NAMESPACE CUDA
 #elif defined(VC_IMPL_AVX2)
 #define VC_IMPL ::Vc::AVX2Impl
 #define Vc_IMPL_NAMESPACE AVX2

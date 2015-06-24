@@ -235,7 +235,8 @@ macro(vc_set_preferred_compiler_flags)
       #                                              GCC                                               #
       ##################################################################################################
       if(_add_warning_flags)
-         foreach(_f -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -pedantic -Wshadow -Wundef -Wold-style-cast -Wno-variadic-macros)
+          #foreach(_f -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -pedantic -Wshadow -Wundef -Wold-style-cast -Wno-variadic-macros)
+          foreach(_f -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wshadow -Wno-variadic-macros)
             AddCompilerFlag("${_f}")
          endforeach()
       endif()
