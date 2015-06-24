@@ -32,8 +32,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <initializer_list>
 #include <type_traits>
 
+//#include "../common/loadstoreflags.h"
+//#include "../traits/type_traits.h"
+
 #include "global.h"
-#include "intrinsics.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -48,22 +50,19 @@ class Vector
                   "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 
     public:
-        // typedef typename DetermineEntryType<T>::Type EntryType;
         typedef T EntryType;
-        typedef typename VectorTypeHelper<T>::Type VectorType;
+        typedef EntryType* VectorType;
 
         typedef EntryType VectorEntryType;
         typedef EntryType value_type;
         typedef VectorType vector_type;
 
     protected:
-        VectorType m_data = VectorType();
+        VectorType m_data;
 
     public:
-        //Vc_ALWAYS_INLINE
-        inline VectorType &data() { return m_data; }
-        //Vc_ALWAYS_INLINE
-        inline const VectorType &data() const { return m_data; }
+        Vc_ALWAYS_INLINE VectorType &data() { return m_data; }
+        Vc_ALWAYS_INLINE const VectorType &data() const { return m_data; }
 
         static constexpr size_t Size = CUDA_VECTOR_SIZE;
         enum Constants {
@@ -71,8 +70,21 @@ class Vector
         };
 
         ///////////////////////////////////////////////////////////////////////////////////////////
+        // Destructor
+        ~Vector()
+        {
+            if(m_data != nullptr)
+                cudaFree(m_data);
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
-        Vector(EntryType a) : m_data(a) {}
+        Vector(EntryType a) : m_data{nullptr}
+        {
+            cudaMalloc(&m_data, sizeof(float) * CUDA_VECTOR_SIZE);
+            for(std::size_t i = 0; i < CUDA_VECTOR_SIZE; ++i)
+                m_data[i] = a;
+        }
         
         template<typename U>
         Vector(U a, typename std::enable_if<std::is_same<U, int>::value &&
@@ -89,8 +101,31 @@ class Vector
                             "because the number of entries in the vector is target-dependent.");
         }
 
-#include "../common/loadinterface.h"
-//#include "../common/storeinterface.h"
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // load interface
+        explicit Vc_INTRINSIC Vector(const EntryType *x)
+            : m_data{nullptr}
+        {
+            load(x);
+        }
+
+        Vc_INTRINSIC void load(const EntryType *mem)
+        {
+            if(m_data == nullptr)
+                cudaMalloc(&m_data, sizeof(float) * CUDA_VECTOR_SIZE);
+
+            cudaMemcpy(m_data, mem, sizeof(float) * CUDA_VECTOR_SIZE, cudaMemcpyDeviceToDevice);
+        }
+        
+        //////////////////////////////////////////////////////////////////////////////////////////
+        // store interface
+        template <
+            typename U>
+        Vc_INTRINSIC_L void store(U *mem) const Vc_INTRINSIC_R
+        {
+            if(m_data != nullptr && mem != nullptr)
+                cudaMemcpy(mem, m_data, sizeof(float) * CUDA_VECTOR_SIZE, cudaMemcpyDeviceToDevice);
+        }
 };
 } // namespace CUDA
 } // namespace Vc

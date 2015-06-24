@@ -28,6 +28,8 @@
 # include "scalar/interleavedmemory.tcc"
 #elif defined(VC_IMPL_MIC)
 # include "mic/interleavedmemory.tcc"
+#elif defined(VC_IMPL_CUDA)
+# include "cuda/interleavedmemory.tcc"
 #elif defined(VC_IMPL_AVX)
 # include "avx/interleavedmemory.tcc"
 #elif defined(VC_IMPL_SSE)
