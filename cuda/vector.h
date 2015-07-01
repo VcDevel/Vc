@@ -42,6 +42,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace CUDA
 {
+// TODO: make an incomplete type in case someone calls this in CPU code
 #define VC_CURRENT_CLASS_NAME Vector
 template <typename T>
 class Vector
@@ -51,7 +52,7 @@ class Vector
 
     public:
         typedef T EntryType;
-        typedef EntryType* VectorType;
+        typedef T VectorType[CUDA_VECTOR_SIZE];
 
         typedef EntryType VectorEntryType;
         typedef EntryType value_type;
@@ -61,8 +62,8 @@ class Vector
         VectorType m_data;
 
     public:
-        CUDA_CALLABLE Vc_ALWAYS_INLINE VectorType &data() { return m_data; }
-        CUDA_CALLABLE Vc_ALWAYS_INLINE const VectorType &data() const { return m_data; }
+        __device__ Vc_ALWAYS_INLINE VectorType &data() { return m_data; }
+        __device__ Vc_ALWAYS_INLINE const VectorType &data() const { return m_data; }
 
         static constexpr size_t Size = CUDA_VECTOR_SIZE;
         enum Constants {
@@ -71,34 +72,19 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Destructor
-        CUDA_CALLABLE ~Vector()
+        __device__ ~Vector()
         {
-            if(m_data != nullptr)
-            {
-#               ifdef __CUDA_ARCH__
-                block_free(m_data);
-#               else
-                cudaFree(m_data);
-#               endif
-            }
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
-        CUDA_CALLABLE Vector(EntryType a) : m_data{nullptr}
+        __device__ Vector(EntryType a)
         {
-#           ifdef __CUDA_ARCH__
-            m_data = static_cast<float*>(block_malloc(sizeof(float) * CUDA_VECTOR_SIZE));
             m_data[getThreadId()] = a;
-#           else
-            cudaMalloc(&m_data, sizeof(float) * CUDA_VECTOR_SIZE);
-            for(std::size_t i = 0; i < CUDA_VECTOR_SIZE; ++i)
-                m_data[i] = a;
-#           endif
         }
         
         template<typename U>
-        CUDA_CALLABLE
+        __device__
         Vector(U a, typename std::enable_if<std::is_same<U, int>::value &&
                                                 !std::is_same<U, EntryType>::value,
                                                 void *>::type = nullptr)
@@ -106,7 +92,7 @@ class Vector
         {
         }
 
-        CUDA_CALLABLE explicit Vector(std::initializer_list<EntryType>)
+        __device__ explicit Vector(std::initializer_list<EntryType>)
         {
             static_assert(std::is_same<EntryType, void>::value,
                             "A SIMD vector object cannot be initialized from an initializer list "
@@ -115,45 +101,28 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load interface
-        CUDA_CALLABLE explicit Vc_INTRINSIC Vector(const EntryType *x)
-            : m_data{nullptr}
+        __device__ explicit Vc_INTRINSIC Vector(const EntryType *x)
         {
             load(x);
         }
 
-        CUDA_CALLABLE Vc_INTRINSIC void load(const EntryType *mem)
+        __device__ Vc_INTRINSIC void load(const EntryType *mem)
         {
-            if(m_data == nullptr)
-            {
-#               ifdef __CUDA_ARCH__
-                m_data = static_cast<float*>(block_malloc(sizeof(float) * CUDA_VECTOR_SIZE));;
-#               else
-                cudaMalloc(&m_data, sizeof(float) * CUDA_VECTOR_SIZE);
-#               endif
-
-            }
-
-#           ifdef __CUDA_ARCH__
-            memcpy(m_data, mem, sizeof(float) * CUDA_VECTOR_SIZE);
-#           else
-            cudaMemcpy(m_data, mem, sizeof(float) * CUDA_VECTOR_SIZE, cudaMemcpyDeviceToDevice);
-#           endif
+            if(mem != nullptr)
+                memcpy(m_data, mem, sizeof(float) * CUDA_VECTOR_SIZE);
         }
         
         //////////////////////////////////////////////////////////////////////////////////////////
         // store interface
         template <
             typename U>
-        CUDA_CALLABLE Vc_INTRINSIC void store(U *mem) const
+        __device__ Vc_INTRINSIC void store(U *mem) const
         {
-            if(m_data != nullptr && mem != nullptr)
-#               ifdef __CUDA_ARCH__
+            if(m_data != nullptr)
                 memcpy(mem, m_data, sizeof(float) * CUDA_VECTOR_SIZE);
-#               else
-                cudaMemcpy(mem, m_data, sizeof(float) * CUDA_VECTOR_SIZE, cudaMemcpyDeviceToDevice);
-#               endif
         }
 };
+
 } // namespace CUDA
 } // namespace Vc
 

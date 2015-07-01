@@ -31,18 +31,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define CUDA_VECTOR_SIZE    32
 
-#ifdef __NVCC__
-#define CUDA_CALLABLE __host__ __device__
-#else
-#define CUDA_CALLABLE
-#endif
-
 __device__ inline int getThreadId()
 {
     return blockIdx.x * blockDim.x + threadIdx.x;
 }
 
-// allocates memory that is to be shared within a thread of blocks
+// allocates memory that is to be shared within a thread of blocks --
 // this is likely to be slower than pre-allocating the memory on
 // the host, so use with caution
 __device__ void* block_malloc(std::size_t bytes)
