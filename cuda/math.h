@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_CUDA_MATH_H
 #define VC_CUDA_MATH_H
 
+#include "global.h"
 #include "vector.h"
 #include "macros.h"
 
@@ -36,23 +37,15 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace CUDA
 {
-namespace Impl
-{
-    __global__ void sqrt(const float *in, float *out)
-    {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        out[idx] = ::sqrtf(in[idx]);
-    }
-} // namespace Impl
 
-template <typename T> static Vc_ALWAYS_INLINE Vector<T> sqrt(const Vector<T> &x)
+template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> sqrt(const Vector<T> &x)
 {
-    float *result;
-    cudaMalloc(&result, sizeof(float) * CUDA_VECTOR_SIZE);
-    Impl::sqrt<<<1, CUDA_VECTOR_SIZE>>>(x.data(), result);
-    Vector<T> ret(result);
-    cudaFree(result);
-    return ret;
+    float *result = static_cast<float*>(block_malloc(sizeof(float) * CUDA_VECTOR_SIZE));
+    int id = getThreadId();
+    result[id] = ::sqrtf(x.data()[id]);
+    Vector<T> resultVec(result);
+    block_free(result);
+    return resultVec;
 }
 
 } // namespace CUDA

@@ -61,8 +61,8 @@ class Vector
         VectorType m_data;
 
     public:
-        Vc_ALWAYS_INLINE VectorType &data() { return m_data; }
-        Vc_ALWAYS_INLINE const VectorType &data() const { return m_data; }
+        CUDA_CALLABLE Vc_ALWAYS_INLINE VectorType &data() { return m_data; }
+        CUDA_CALLABLE Vc_ALWAYS_INLINE const VectorType &data() const { return m_data; }
 
         static constexpr size_t Size = CUDA_VECTOR_SIZE;
         enum Constants {
@@ -71,22 +71,34 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Destructor
-        ~Vector()
+        CUDA_CALLABLE ~Vector()
         {
             if(m_data != nullptr)
+            {
+#               ifdef __CUDA_ARCH__
+                block_free(m_data);
+#               else
                 cudaFree(m_data);
+#               endif
+            }
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
-        Vector(EntryType a) : m_data{nullptr}
+        CUDA_CALLABLE Vector(EntryType a) : m_data{nullptr}
         {
+#           ifdef __CUDA_ARCH__
+            m_data = static_cast<float*>(block_malloc(sizeof(float) * CUDA_VECTOR_SIZE));
+            m_data[getThreadId()] = a;
+#           else
             cudaMalloc(&m_data, sizeof(float) * CUDA_VECTOR_SIZE);
             for(std::size_t i = 0; i < CUDA_VECTOR_SIZE; ++i)
                 m_data[i] = a;
+#           endif
         }
         
         template<typename U>
+        CUDA_CALLABLE
         Vector(U a, typename std::enable_if<std::is_same<U, int>::value &&
                                                 !std::is_same<U, EntryType>::value,
                                                 void *>::type = nullptr)
@@ -94,7 +106,7 @@ class Vector
         {
         }
 
-        explicit Vector(std::initializer_list<EntryType>)
+        CUDA_CALLABLE explicit Vector(std::initializer_list<EntryType>)
         {
             static_assert(std::is_same<EntryType, void>::value,
                             "A SIMD vector object cannot be initialized from an initializer list "
@@ -103,28 +115,43 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // load interface
-        explicit Vc_INTRINSIC Vector(const EntryType *x)
+        CUDA_CALLABLE explicit Vc_INTRINSIC Vector(const EntryType *x)
             : m_data{nullptr}
         {
             load(x);
         }
 
-        Vc_INTRINSIC void load(const EntryType *mem)
+        CUDA_CALLABLE Vc_INTRINSIC void load(const EntryType *mem)
         {
             if(m_data == nullptr)
+            {
+#               ifdef __CUDA_ARCH__
+                m_data = static_cast<float*>(block_malloc(sizeof(float) * CUDA_VECTOR_SIZE));;
+#               else
                 cudaMalloc(&m_data, sizeof(float) * CUDA_VECTOR_SIZE);
+#               endif
 
+            }
+
+#           ifdef __CUDA_ARCH__
+            memcpy(m_data, mem, sizeof(float) * CUDA_VECTOR_SIZE);
+#           else
             cudaMemcpy(m_data, mem, sizeof(float) * CUDA_VECTOR_SIZE, cudaMemcpyDeviceToDevice);
+#           endif
         }
         
         //////////////////////////////////////////////////////////////////////////////////////////
         // store interface
         template <
             typename U>
-        Vc_INTRINSIC_L void store(U *mem) const Vc_INTRINSIC_R
+        CUDA_CALLABLE Vc_INTRINSIC void store(U *mem) const
         {
             if(m_data != nullptr && mem != nullptr)
+#               ifdef __CUDA_ARCH__
+                memcpy(mem, m_data, sizeof(float) * CUDA_VECTOR_SIZE);
+#               else
                 cudaMemcpy(mem, m_data, sizeof(float) * CUDA_VECTOR_SIZE, cudaMemcpyDeviceToDevice);
+#               endif
         }
 };
 } // namespace CUDA
