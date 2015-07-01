@@ -8,7 +8,7 @@
 __global__ void my_kernel(const float *in, float *out)
 {
     Vc::CUDA::Vector<float> inVec(in);
-    Vc::CUDA::Vector<float> outVec = Vc::CUDA::sqrt(inVec);
+    Vc::CUDA::Vector<float> outVec = sqrt(inVec);
     outVec.store(out);
 }
 

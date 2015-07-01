@@ -40,11 +40,10 @@ namespace CUDA
 
 template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> sqrt(const Vector<T> &x)
 {
-    float *result = static_cast<float*>(block_malloc(sizeof(float) * CUDA_VECTOR_SIZE));
+    __shared__ float result[CUDA_VECTOR_SIZE];
     int id = getThreadId();
-    result[id] = ::sqrtf(x.data()[id]);
+    result[id] = sqrtf(x.data()[id]);
     Vector<T> resultVec(result);
-    block_free(result);
     return resultVec;
 }
 
