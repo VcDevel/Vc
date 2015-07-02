@@ -71,11 +71,24 @@ class Vector
         };
 
         ///////////////////////////////////////////////////////////////////////////////////////////
-        // Destructor
-        __device__ ~Vector()
-        {
-        }
+        // general interface - we have to redefine it here as the declarations in
+        // common/generalinterface.h don't have the __device__ annotations
+         
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // init to zero
+        __device__ Vector() = default;
+        
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // types
 
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // constants
+        static constexpr std::size_t size() { return Size; }
+        
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // constant Vectors
+        // TODO: include these
+        
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         __device__ Vector(EntryType a)
@@ -120,6 +133,17 @@ class Vector
         {
             if(m_data != nullptr)
                 memcpy(mem, m_data, sizeof(float) * CUDA_VECTOR_SIZE);
+        }
+
+        __device__ Vc_ALWAYS_INLINE EntryType& operator[](std::size_t index)
+        {
+            // FIXME: Find a suitable alternative for assert()
+            return m_data[index];
+        }
+
+        __device__ Vc_ALWAYS_INLINE EntryType operator[](std::size_t index) const
+        {
+            return m_data[index];
         }
 };
 
