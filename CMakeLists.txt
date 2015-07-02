@@ -145,7 +145,7 @@ if(NOT ROOT_RELEASE)
    add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
    add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
 
-   AddCompilerFlag(-ftemplate-depth=32)
+   AddCompilerFlag(-ftemplate-depth=128)
 
    set(libvc_compile_flags "-DVC_COMPILE_LIB")
    set(libvc_mic_compile_flags "-DVC_COMPILE_LIB")
