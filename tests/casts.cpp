@@ -35,6 +35,13 @@ using namespace Vc;
 // EXTRA_IMPL_VECTORS {{{1
 #ifdef VC_IMPL_Scalar
 #define EXTRA_IMPL_VECTORS
+#elif defined VC_IMPL_AVX2
+#define EXTRA_IMPL_VECTORS                                                               \
+    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
+        Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,     \
+        Vc::SSE::double_v, Vc::SSE::uint_v, Vc::SSE::short_v, Vc::SSE::float_v,          \
+        Vc::AVX::int_v, Vc::AVX::ushort_v, Vc::AVX::double_v, Vc::AVX::uint_v,           \
+        Vc::AVX::short_v, Vc::AVX::float_v
 #elif defined VC_IMPL_AVX
 #define EXTRA_IMPL_VECTORS                                                               \
     Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
