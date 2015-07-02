@@ -29,32 +29,46 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef CUDA_GLOBAL_H
 #define CUDA_GLOBAL_H
 
+#include "macros.h"
+
 #define CUDA_VECTOR_SIZE    32
 
-__device__ inline int getThreadId()
+namespace Vc_VERSIONED_NAMESPACE
 {
-    return blockIdx.x * blockDim.x + threadIdx.x;
-}
+namespace CUDA
+{
+namespace Internal
+{
+    __device__ Vc_ALWAYS_INLINE int getThreadId()
+    {
+        return blockIdx.x * blockDim.x + threadIdx.x;
+    }
 
-// allocates memory that is to be shared within a thread of blocks --
-// this is likely to be slower than pre-allocating the memory on
-// the host, so use with caution
-__device__ void* block_malloc(std::size_t bytes)
-{
-    __shared__ void *ptr;
-    if(threadIdx.x == 0)
-        ptr = malloc(bytes);
-    
-    __syncthreads();
-    return ptr;
-}
+    // allocates memory that is to be shared within a thread of blocks --
+    // this is likely to be slower than pre-allocating the memory on
+    // the host, so use with caution
+    __device__ void* block_malloc(std::size_t bytes)
+    {
+        __shared__ void *ptr;
+        if(threadIdx.x == 0)
+            ptr = malloc(bytes);
+        
+        __syncthreads();
+        return ptr;
+    }
 
-__device__ void block_free(void *ptr)
-{
-    __syncthreads();
-    if(threadIdx.x == 0)
-       free(ptr);
-}
+    __device__ void block_free(void *ptr)
+    {
+        __syncthreads();
+        if(threadIdx.x == 0)
+           free(ptr);
+    }
+
+} // namespace Internal
+} // namespace CUDA
+} // namespace Vc
+
+#include "undomacros.h"
 
 #endif
 

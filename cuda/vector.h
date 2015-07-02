@@ -80,7 +80,7 @@ class Vector
         // broadcast
         __device__ Vector(EntryType a)
         {
-            m_data[getThreadId()] = a;
+            m_data[Internal::getThreadId()] = a;
         }
         
         template<typename U>
