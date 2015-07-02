@@ -267,6 +267,12 @@ Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 32>)
                              gen(6) ? 0xfffffffful : 0, gen(7) ? 0xfffffffful : 0);
 }
 template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 16>)
+{
+    return _mm_setr_epi32(gen(0) ? 0xffffffffu : 0, gen(1) ? 0xffffffffu : 0,
+                          gen(2) ? 0xffffffffu : 0, gen(3) ? 0xffffffffu : 0);
+}
+template <typename M, typename G>
 Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 16>)
 {
     return _mm_setr_epi16(gen(0) ? 0xffffu : 0, gen(1) ? 0xffffu : 0,
