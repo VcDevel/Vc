@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2010 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,15 +26,32 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include "../common/macros.h"
+#ifndef VC_CUDA_INITFLAGS_H
+#define VC_CUDA_INITFLAGS_H
 
-#ifndef VC_CUDA_MACROS_H
-#define VC_CUDA_MACROS_H
+#include "macros.h"
 
-#ifdef VC_ASSERT
-#undef VC_ASSERT
-#endif
-#define VC_ASSERT(x)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace CUDA
+{
+namespace InitFlags
+{
 
-#endif // VC_CUDA_MACROS_H
+template<typename... Flags> struct InitFlags
+{
+};
+
+} // namespace InitFlags
+
+typedef InitFlags::InitFlags<> InternalInitTag;
+
+constexpr InternalInitTag InternalInit;
+
+} // namespace CUDA
+} // namespace Vc
+
+#include "undomacros.h"
+
+#endif // VC_CUDA_INITFLAGS_H
 

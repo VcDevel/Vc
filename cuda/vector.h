@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#include "../traits/type_traits.h"
 
 #include "global.h"
+#include "initflags.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -113,6 +114,13 @@ class Vector
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
+        // internal init
+        __device__ Vc_INTRINSIC Vector(InternalInitTag, EntryType x)
+        {
+            m_data[Internal::getThreadId()] = x;
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////////////////
         // load interface
         __device__ explicit Vc_INTRINSIC Vector(const EntryType *x)
         {
@@ -137,12 +145,13 @@ class Vector
 
         __device__ Vc_ALWAYS_INLINE EntryType& operator[](std::size_t index)
         {
-            // FIXME: Find a suitable alternative for assert()
+            VC_ASSERT(index < CUDA_VECTOR_SIZE);
             return m_data[index];
         }
 
         __device__ Vc_ALWAYS_INLINE EntryType operator[](std::size_t index) const
         {
+            VC_ASSERT(index < CUDA_VECTOR_SIZE);
             return m_data[index];
         }
 };

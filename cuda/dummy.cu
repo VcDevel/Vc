@@ -4,12 +4,20 @@
 
 #include "math.h"
 #include "vector.h"
+#include "macros.h"
 
 __global__ void my_kernel(const float *in, float *out)
 {
     Vc::CUDA::Vector<float> inVec(in);
-    Vc::CUDA::Vector<float> outVec = sqrt(inVec);
+    Vc::CUDA::Vector<float> outVec;
+    outVec = sqrt(inVec);
     outVec.store(out);
+}
+
+template <typename... Arguments>
+Vc_ALWAYS_INLINE void spawn(void(*kernel)(Arguments... args), Arguments... args)
+{
+    kernel<<<1, CUDA_VECTOR_SIZE>>>(args...);
 }
 
 int main()
@@ -33,7 +41,8 @@ int main()
     cudaMemcpy(devData, data, sizeof(float) * CUDA_VECTOR_SIZE, cudaMemcpyHostToDevice);
 
     // run kernel
-    my_kernel<<<1, CUDA_VECTOR_SIZE>>>(devData, devResult);
+    //my_kernel<<<1, CUDA_VECTOR_SIZE>>>(devData, devResult);
+    spawn(my_kernel, (const float*) devData, devResult);
 
     // copy result from device
     cudaMemcpy(result, devResult, sizeof(float) * CUDA_VECTOR_SIZE, cudaMemcpyDeviceToHost);
@@ -48,4 +57,6 @@ int main()
  
     return 0;
 }
+
+#include "undomacros.h"
 

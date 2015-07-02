@@ -44,6 +44,7 @@ template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> sqrt(const Ve
     int id = Internal::getThreadId();
     resultVec[id] = sqrtf(x[id]);
     return resultVec;
+    //return {InternalInitTag(), sqrtf(x[Internal::getThreadId()])};
 }
 
 } // namespace CUDA
