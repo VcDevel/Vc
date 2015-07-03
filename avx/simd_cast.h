@@ -701,26 +701,29 @@ Vc_SIMD_CAST_OFFSET(SSE::ushort_v, AVX::uint_v, 1);
 
 // Declarations: Mask casts with offset {{{1
 // 1 AVX::Mask to N AVX::Mask {{{2
+/* This declaration confuses GCC (4.9.2). If the declarations are there the definitions
+ * are ignored by the compiler. ;-(
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Vc_CONST Return
-simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+Vc_INTRINSIC_L Vc_CONST_L Return
+simd_cast(const AVX::Mask<T> &k,
           enable_if<sizeof(k) == 32 && sizeof(Return) == 32 && offset == 1 &&
-                    AVX::is_mask<Return>::value> = nullarg);
+                    AVX::is_mask<Return>::value> = nullarg) Vc_INTRINSIC_R Vc_CONST_R;
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Vc_CONST Return
-simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+Vc_INTRINSIC_L Vc_CONST_L Return
+simd_cast(const AVX::Mask<T> &k,
           enable_if<sizeof(k) == 32 && sizeof(Return) == 16 && offset == 1 &&
-                    AVX::is_mask<Return>::value> = nullarg);
+                    AVX::is_mask<Return>::value> = nullarg) Vc_INTRINSIC_R Vc_CONST_R;
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Vc_CONST Return
-simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+Vc_INTRINSIC_L Vc_CONST_L Return
+simd_cast(const AVX::Mask<T> &k,
           enable_if<sizeof(k) == 16 && sizeof(Return) == 32 && offset == 1 &&
-                    AVX::is_mask<Return>::value> = nullarg);
+                    AVX::is_mask<Return>::value> = nullarg) Vc_INTRINSIC_R Vc_CONST_R;
 template <typename Return, int offset, typename T>
-Vc_INTRINSIC Vc_CONST Return
-simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+Vc_INTRINSIC_L Vc_CONST_L Return
+simd_cast(const AVX::Mask<T> &k,
           enable_if<sizeof(k) == 16 && sizeof(Return) == 16 && offset == 1 &&
-                    AVX::is_mask<Return>::value> = nullarg);
+                    AVX::is_mask<Return>::value> = nullarg) Vc_INTRINSIC_R Vc_CONST_R;
+                    */
 
 // 1 SSE::Mask to N AVX(2)::Mask {{{2
 Vc_SIMD_CAST_OFFSET(SSE:: short_m, Vc_AVX_NAMESPACE::double_m, 1);
@@ -1836,35 +1839,35 @@ Vc_SIMD_CAST_OFFSET(SSE::ushort_v, AVX::uint_v, 1) { return simd_cast<AVX::uint_
 // (float types have 32 bits, integral types have 16 bits.)
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
-simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+simd_cast(const AVX::Mask<T> &k,
           enable_if<sizeof(k) == 32 && sizeof(Return) == 32 && offset == 1 &&
-                    AVX::is_mask<Return>::value>)
+                    AVX::is_mask<Return>::value> = nullarg)
 {
     const auto tmp = AVX::hi128(k.dataI());
     return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
 }
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
-simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+simd_cast(const AVX::Mask<T> &k,
           enable_if<sizeof(k) == 32 && sizeof(Return) == 16 && offset == 1 &&
-                    AVX::is_mask<Return>::value>)
+                    AVX::is_mask<Return>::value> = nullarg)
 {
     return AVX::hi128(k.dataI());
 }
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
-simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+simd_cast(const AVX::Mask<T> &k,
           enable_if<sizeof(k) == 16 && sizeof(Return) == 32 && offset == 1 &&
-                    AVX::is_mask<Return>::value>)
+                    AVX::is_mask<Return>::value> = nullarg)
 {
     const auto tmp = _mm_unpackhi_epi16(k.dataI(), k.dataI());
     return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
 }
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
-simd_cast(const Vc_AVX_NAMESPACE::Mask<T> &k,
+simd_cast(const AVX::Mask<T> &k,
           enable_if<sizeof(k) == 16 && sizeof(Return) == 16 && offset == 1 &&
-                    AVX::is_mask<Return>::value>)
+                    AVX::is_mask<Return>::value> = nullarg)
 {
     return _mm_unpackhi_epi16(k.dataI(), k.dataI());
 }
