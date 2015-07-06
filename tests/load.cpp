@@ -160,86 +160,64 @@ TEST_TYPES(Vec, streamingLoad, ALL_TYPES)
     }
 }
 
-template<typename T, typename Current = void> struct SupportedConversions { typedef void Next; };
-template<> struct SupportedConversions<float, void>           { typedef double         Next; };
-template<> struct SupportedConversions<float, double>         { typedef int            Next; };
-template<> struct SupportedConversions<float, int>            { typedef unsigned int   Next; };
-template<> struct SupportedConversions<float, unsigned int>   { typedef short          Next; };
-template<> struct SupportedConversions<float, short>          { typedef unsigned short Next; };
-template<> struct SupportedConversions<float, unsigned short> { typedef signed char    Next; };
-template<> struct SupportedConversions<float, signed char>    { typedef unsigned char  Next; };
-template<> struct SupportedConversions<float, unsigned char>  { typedef void           Next; };
-template<> struct SupportedConversions<int  , void          > { typedef unsigned int   Next; };
-template<> struct SupportedConversions<int  , unsigned int  > { typedef short          Next; };
-template<> struct SupportedConversions<int  , short         > { typedef unsigned short Next; };
-template<> struct SupportedConversions<int  , unsigned short> { typedef signed char    Next; };
-template<> struct SupportedConversions<int  , signed char   > { typedef unsigned char  Next; };
-template<> struct SupportedConversions<int  , unsigned char > { typedef void           Next; };
-template<> struct SupportedConversions<unsigned int, void          > { typedef unsigned short Next; };
-template<> struct SupportedConversions<unsigned int, unsigned short> { typedef unsigned char  Next; };
-template<> struct SupportedConversions<unsigned int, unsigned char > { typedef void           Next; };
-template<> struct SupportedConversions<unsigned short, void          > { typedef unsigned char  Next; };
-template<> struct SupportedConversions<unsigned short, unsigned char > { typedef void           Next; };
-template<> struct SupportedConversions<         short, void          > { typedef unsigned char  Next; };
-template<> struct SupportedConversions<         short, unsigned char > { typedef signed char    Next; };
-template<> struct SupportedConversions<         short,   signed char > { typedef void           Next; };
-
-template<typename Vec, typename MemT> struct LoadCvt {
-    static void test() {
-        typedef typename Vec::EntryType VecT;
-        MemT *data = Vc::malloc<MemT, Vc::AlignOnCacheline>(128);
-        for (size_t i = 0; i < 128; ++i) {
-            data[i] = static_cast<MemT>(i - 64);
-        }
-
-        for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
-            Vec v;
-            if (i % (2 * Vec::Size) == 0) {
-                v = Vec(&data[i]);
-            } else if (i % Vec::Size == 0) {
-                v = Vec(&data[i], Vc::Aligned);
-            } else {
-                v = Vec(&data[i], Vc::Unaligned);
-            }
-            for (size_t j = 0; j < Vec::Size; ++j) {
-                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << UnitTest::typeToString<MemT>();
-            }
-        }
-        for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
-            Vec v;
-            if (i % (2 * Vec::Size) == 0) {
-                v.load(&data[i]);
-            } else if (i % Vec::Size == 0) {
-                v.load(&data[i], Vc::Aligned);
-            } else {
-                v.load(&data[i], Vc::Unaligned);
-            }
-            for (size_t j = 0; j < Vec::Size; ++j) {
-                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << UnitTest::typeToString<MemT>();
-            }
-        }
-        for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
-            Vec v;
-            if (i % (2 * Vec::Size) == 0) {
-                v = Vec(&data[i], Vc::Streaming);
-            } else if (i % Vec::Size == 0) {
-                v = Vec(&data[i], Vc::Streaming | Vc::Aligned);
-            } else {
-                v = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
-            }
-            for (size_t j = 0; j < Vec::Size; ++j) {
-                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << UnitTest::typeToString<MemT>();
-            }
-        }
-
-        UnitTest::ADD_PASS() << "loadCvt: load " << UnitTest::typeToString<MemT>() << "* as " << UnitTest::typeToString<Vec>();
-        LoadCvt<Vec, typename SupportedConversions<VecT, MemT>::Next>::test();
-    }
-};
-template<typename Vec> struct LoadCvt<Vec, void> { static void test() {} };
-
-TEST_TYPES(Vec, loadCvt, ALL_TYPES)
+TEST_TYPES(
+    Pair, loadCvt,
+    (concat<
+        outer_product<Typelist<float>,
+                      Typelist<double, int, unsigned int, short, unsigned short,
+                               signed char, unsigned char>>,
+        outer_product<Typelist<int>, Typelist<unsigned int, short, unsigned short,
+                                              signed char, unsigned char>>,
+        outer_product<Typelist<unsigned int>, Typelist<unsigned short, unsigned char>>,
+        outer_product<Typelist<short>, Typelist<unsigned char, unsigned char>>,
+        outer_product<Typelist<unsigned short>, Typelist<unsigned char>>>))
 {
-    typedef typename Vec::EntryType T;
-    LoadCvt<Vec, typename SupportedConversions<T>::Next>::test();
+    using Vec = Vector<typename Pair::template at<0>>;
+    using MemT = typename Pair::template at<1>;
+
+    typedef typename Vec::EntryType VecT;
+    MemT *data = Vc::malloc<MemT, Vc::AlignOnCacheline>(128);
+    for (size_t i = 0; i < 128; ++i) {
+        data[i] = static_cast<MemT>(i - 64);
+    }
+
+    for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
+        Vec v;
+        if (i % (2 * Vec::Size) == 0) {
+            v = Vec(&data[i]);
+        } else if (i % Vec::Size == 0) {
+            v = Vec(&data[i], Vc::Aligned);
+        } else {
+            v = Vec(&data[i], Vc::Unaligned);
+        }
+        for (size_t j = 0; j < Vec::Size; ++j) {
+            COMPARE(v[j], static_cast<VecT>(data[i + j]));
+        }
+    }
+    for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
+        Vec v;
+        if (i % (2 * Vec::Size) == 0) {
+            v.load(&data[i]);
+        } else if (i % Vec::Size == 0) {
+            v.load(&data[i], Vc::Aligned);
+        } else {
+            v.load(&data[i], Vc::Unaligned);
+        }
+        for (size_t j = 0; j < Vec::Size; ++j) {
+            COMPARE(v[j], static_cast<VecT>(data[i + j]));
+        }
+    }
+    for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
+        Vec v;
+        if (i % (2 * Vec::Size) == 0) {
+            v = Vec(&data[i], Vc::Streaming);
+        } else if (i % Vec::Size == 0) {
+            v = Vec(&data[i], Vc::Streaming | Vc::Aligned);
+        } else {
+            v = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
+        }
+        for (size_t j = 0; j < Vec::Size; ++j) {
+            COMPARE(v[j], static_cast<VecT>(data[i + j]));
+        }
+    }
 }
