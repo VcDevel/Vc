@@ -33,27 +33,29 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 template <typename... Ts> struct Typelist;
 // concat {{{
-template <typename A, typename B> struct concat_impl;
+template <typename A, typename B, typename... More> struct concat_impl;
 /**
  * Concatenate two type arguments into a single Typelist.
  */
-template <typename A, typename B> using concat = typename concat_impl<A, B>::type;
-template <typename A, typename B> struct concat_impl
-{
+template <typename... Ts> using concat = typename concat_impl<Ts...>::type;
+
+// concat implementation:
+template <typename A, typename B> struct concat_impl<A, B> {
     using type = Typelist<A, B>;
 };
-template <typename... As, typename B> struct concat_impl<Typelist<As...>, B>
-{
+template <typename... As, typename B> struct concat_impl<Typelist<As...>, B> {
     using type = Typelist<As..., B>;
 };
-template <typename A, typename... Bs> struct concat_impl<A, Typelist<Bs...>>
-{
+template <typename A, typename... Bs> struct concat_impl<A, Typelist<Bs...>> {
     using type = Typelist<A, Bs...>;
 };
 template <typename... As, typename... Bs>
-struct concat_impl<Typelist<As...>, Typelist<Bs...>>
-{
+struct concat_impl<Typelist<As...>, Typelist<Bs...>> {
     using type = Typelist<As..., Bs...>;
+};
+template <typename A, typename B, typename C, typename... More>
+struct concat_impl<A, B, C, More...> {
+    using type = typename concat_impl<typename concat_impl<A, B>::type, C, More...>::type;
 };
 // }}}
 // outer_product {{{
