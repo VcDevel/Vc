@@ -27,7 +27,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #include "unittest.h"
-#include <iostream>
 #include "vectormemoryhelper.h"
 #include <Vc/cpuid.h>
 #include <Vc/iterators>
@@ -39,63 +38,6 @@ TEST_TYPES(V, reversed, (ALL_VECTORS, SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAY
     const V x = V::IndexesFromZero() + 1;
     const V reference = V::generate([](int i) { return V::Size - i; });
     COMPARE(x.reversed(), reference);
-}
-
-TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_ARRAYS(3), SIMD_ARRAYS(1)))
-{
-    Vec ref(Vc::IndexesFromZero);
-    Vec a;
-    using limits = std::numeric_limits<typename Vec::value_type>;
-    if (limits::has_infinity) {
-        ref[0] = -std::numeric_limits<typename Vec::value_type>::infinity();
-        if (Vec::size() > 2) {
-            ref[Vec::Size - 1] =
-                std::numeric_limits<typename Vec::value_type>::infinity();
-        }
-    }
-
-    int maxPerm = 1;
-    for (int x = Vec::Size; x > 0 && maxPerm < 400000; --x) {
-        maxPerm *= x;
-    }
-    for (int perm = 0; perm < maxPerm; ++perm) {
-        int rest = perm;
-        for (size_t i = 0; i < Vec::Size; ++i) {
-            a[i] = 0;
-            for (size_t j = 0; j < i; ++j) {
-                if (a[i] == a[j]) {
-                    ++a[i];
-                    j = -1;
-                }
-            }
-            a[i] += rest % (Vec::Size - i);
-            rest /= (Vec::Size - i);
-            for (size_t j = 0; j < i; ++j) {
-                if (a[i] == a[j]) {
-                    ++a[i];
-                    j = -1;
-                }
-            }
-        }
-        if (limits::has_infinity) {
-            where(a == 0) | a =
-                -std::numeric_limits<typename Vec::value_type>::infinity();
-            if (Vec::size() > 2) {
-                where(a == Vec::Size - 1) | a =
-                    std::numeric_limits<typename Vec::value_type>::infinity();
-            }
-        }
-        COMPARE(a.sorted(), ref) << ", a: " << a;
-    }
-
-    for (int repetition = 0; repetition < 1000; ++repetition) {
-        Vec test = Vec::Random();
-        Vc::Memory<Vec, Vec::Size> reference;
-        reference.vector(0) = test;
-        std::sort(&reference[0], &reference[Vec::Size - 1] + 1);
-        ref = reference.vector(0);
-        COMPARE(test.sorted(), ref);
-    }
 }
 
 template<typename T, typename Mem> struct Foo
@@ -173,105 +115,6 @@ TEST_TYPES(V, copySign, (Vc::float_v, Vc::double_v))
     V negative = -positive;
     COMPARE(v, v.copySign(positive));
     COMPARE(-v, v.copySign(negative));
-}
-
-#ifdef _WIN32
-void bzero(void *p, size_t n) { memset(p, 0, n); }
-#else
-#include <strings.h>
-#endif
-
-TEST_TYPES(V, testRandom, (ALL_VECTORS))
-{
-    typedef typename V::EntryType T;
-    enum {
-        NBits = 3,
-        NBins = 1 << NBits,                        // short int
-        TotalBits = sizeof(T) * 8,                 //    16  32
-        RightShift = TotalBits - NBits,            //    13  29
-        NHistograms = TotalBits - NBits + 1,       //    14  30
-        LeftShift = (RightShift + 1) / NHistograms,//     1   1
-        Mean = 135791,
-        MinGood = Mean - Mean/10,
-        MaxGood = Mean + Mean/10
-    };
-    const V mask((1 << NBits) - 1);
-    int histogram[NHistograms][NBins];
-    bzero(&histogram[0][0], sizeof(histogram));
-    for (size_t i = 0; i < NBins * Mean / V::Size; ++i) {
-        const V rand = V::Random();
-        for (size_t hist = 0; hist < NHistograms; ++hist) {
-            const V bin = ((rand << (hist * LeftShift)) >> RightShift) & mask;
-            for (size_t k = 0; k < V::Size; ++k) {
-                ++histogram[hist][bin[k]];
-            }
-        }
-    }
-//#define PRINT_RANDOM_HISTOGRAM
-#ifdef PRINT_RANDOM_HISTOGRAM
-    for (size_t hist = 0; hist < NHistograms; ++hist) {
-        std::cout << "histogram[" << std::setw(2) << hist << "]: ";
-        for (size_t bin = 0; bin < NBins; ++bin) {
-            std::cout << std::setw(3) << (histogram[hist][bin] - Mean) * 1000 / Mean << "|";
-        }
-        std::cout << std::endl;
-    }
-#endif
-    for (size_t hist = 0; hist < NHistograms; ++hist) {
-        for (size_t bin = 0; bin < NBins; ++bin) {
-            VERIFY(histogram[hist][bin] > MinGood)
-                << " bin = " << bin << " is " << histogram[0][bin];
-            VERIFY(histogram[hist][bin] < MaxGood)
-                << " bin = " << bin << " is " << histogram[0][bin];
-        }
-    }
-}
-
-template<typename V, typename I> void FloatRandom()
-{
-    typedef typename V::EntryType T;
-    enum {
-        NBins = 64,
-        NHistograms = 1,
-        Mean = 135791,
-        MinGood = Mean - Mean/10,
-        MaxGood = Mean + Mean/10
-    };
-    int histogram[NHistograms][NBins];
-    bzero(&histogram[0][0], sizeof(histogram));
-    for (size_t i = 0; i < NBins * Mean / V::Size; ++i) {
-        const V rand = V::Random();
-        const I bin = static_cast<I>(rand * T(NBins));
-        for (size_t k = 0; k < V::Size; ++k) {
-            ++histogram[0][bin[k]];
-        }
-    }
-#ifdef PRINT_RANDOM_HISTOGRAM
-    for (size_t hist = 0; hist < NHistograms; ++hist) {
-        std::cout << "histogram[" << std::setw(2) << hist << "]: ";
-        for (size_t bin = 0; bin < NBins; ++bin) {
-            std::cout << std::setw(3) << (histogram[hist][bin] - Mean) * 1000 / Mean << "|";
-        }
-        std::cout << std::endl;
-    }
-#endif
-    for (size_t hist = 0; hist < NHistograms; ++hist) {
-        for (size_t bin = 0; bin < NBins; ++bin) {
-            VERIFY(histogram[hist][bin] > MinGood)
-                << " bin = " << bin << " is " << histogram[0][bin];
-            VERIFY(histogram[hist][bin] < MaxGood)
-                << " bin = " << bin << " is " << histogram[0][bin];
-        }
-    }
-}
-
-template <> void testRandom<float_v>::operator()()
-{
-    FloatRandom<float_v, simdarray<int, float_v::size()>>();
-}
-template <> void testRandom<double_v>::operator()()
-{
-    FloatRandom<double_v, simdarray<int, double_v::size()>>();
 }
 
 template<typename T> T add2(T x) { return x + T(2); }
