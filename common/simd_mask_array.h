@@ -496,7 +496,7 @@ public:
             storage_type0::fromOperation(op, Split::lo(args)...),  // no forward here - it
                                                                    // could move and thus
                                                                    // break the next line
-            storage_type1::fromOperation(op, Split::lo(std::forward<Args>(args))...)};
+            storage_type1::fromOperation(op, Split::hi(std::forward<Args>(args))...)};
         return r;
     }
 
