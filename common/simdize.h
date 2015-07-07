@@ -276,48 +276,65 @@ public:
 
 template <size_t Size, typename... Replaced> struct SubstitutedBase;
 template <typename... Replaced> struct SubstitutedBase<1, Replaced...> {
+// ICC barfs on packs of values
+#ifndef VC_ICC
     template <typename ValueT, template <typename, ValueT...> class C, ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
+#endif // VC_ICC
 };
 template <typename... Replaced> struct SubstitutedBase<2, Replaced...> {
+#ifndef VC_ICC
     template <typename ValueT, template <typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
+#endif // VC_ICC
 };
 template <typename... Replaced> struct SubstitutedBase<3, Replaced...> {
+#ifndef VC_ICC
     template <typename ValueT, template <typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
+#endif // VC_ICC
 };
 template <typename... Replaced> struct SubstitutedBase<4, Replaced...> {
+#ifndef VC_ICC
     template <typename ValueT,
               template <typename, typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
+#endif // VC_ICC
 };
 template <typename... Replaced> struct SubstitutedBase<5, Replaced...> {
+#ifndef VC_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
+#endif // VC_ICC
 };
 template <typename... Replaced> struct SubstitutedBase<6, Replaced...> {
+#ifndef VC_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
+#endif // VC_ICC
 };
 template <typename... Replaced> struct SubstitutedBase<7, Replaced...> {
+#ifndef VC_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
+#endif // VC_ICC
 };
 template <typename... Replaced> struct SubstitutedBase<8, Replaced...> {
+#ifndef VC_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
+#endif // VC_ICC
 };
 
 /**\internal
@@ -467,6 +484,8 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
             C<T0, T1, T2, Value0, Values...>,                                            \
             Adapter<C<T0, T1, T2, Value0, Values...>, Substituted, NN>> type;            \
     }
+// ICC barfs on packs of values
+#ifndef VC_ICC
 Vc_DEFINE_NONTYPE_REPLACETYPES__(bool);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(wchar_t);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(char);
@@ -480,6 +499,7 @@ Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed long);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed long long);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long long);
+#endif // VC_ICC
 #undef Vc_DEFINE_NONTYPE_REPLACETYPES__
 
 #ifdef VC_ICC
