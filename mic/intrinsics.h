@@ -530,7 +530,7 @@ template <> struct UpDownConversion<int, unsigned int>
     constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
 };
 
-template <typename V> class __attribute__((align(64))) VectorAlignedBaseT
+template <typename V> class alignas(64) VectorAlignedBaseT
 {
 public:
     FREE_STORE_OPERATORS_ALIGNED(alignof(V))
