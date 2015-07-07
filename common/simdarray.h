@@ -930,7 +930,12 @@ public:
         using SortableArray = simdarray<value_type, Common::nextPowerOfTwo(Size)>;
         auto sortable = simd_cast<SortableArray>(*this);
         for (std::size_t i = Size; i < SortableArray::Size; ++i) {
-            sortable[i] = std::numeric_limits<value_type>::max();
+            using limits = std::numeric_limits<value_type>;
+            if (limits::has_infinity) {
+                sortable[i] = limits::infinity();
+            } else {
+                sortable[i] = std::numeric_limits<value_type>::max();
+            }
         }
         return simd_cast<simdarray>(sortable.sorted());
 
