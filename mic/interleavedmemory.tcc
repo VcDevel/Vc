@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2012-2013 Matthias Kretz <kretz@kde.org>
+Copyright © 2012-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -337,74 +337,123 @@ template<typename V> struct InterleaveImpl {
 };
 } // anonymous namespace
 
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
-        const typename V::AsArg v1)
+// InterleavedMemoryAccessBase::interleave {{{1
+// 2 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::interleave(const typename V::AsArg v0,
+                                                              const typename V::AsArg v1)
 {
     InterleaveImpl<V>::interleave(m_indexes, m_data, v0, v1);
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
-        const typename V::AsArg v1, const typename V::AsArg v2)
+}
+// 3 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::interleave(const typename V::AsArg v0,
+                                                              const typename V::AsArg v1,
+                                                              const typename V::AsArg v2)
 {
     InterleaveImpl<V>::interleave(m_indexes, m_data, v0, v1, v2);
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
-        const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3)
+}
+// 4 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::interleave(const typename V::AsArg v0,
+                                                              const typename V::AsArg v1,
+                                                              const typename V::AsArg v2,
+                                                              const typename V::AsArg v3)
 {
     InterleaveImpl<V>::interleave(m_indexes, m_data, v0, v1, v2, v3);
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
-        const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4)
+}
+// 5 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::interleave(const typename V::AsArg v0,
+                                                              const typename V::AsArg v1,
+                                                              const typename V::AsArg v2,
+                                                              const typename V::AsArg v3,
+                                                              const typename V::AsArg v4)
 {
     InterleaveImpl<V>::interleave(m_indexes, m_data, v0, v1, v2, v3, v4);
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
-        const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4,
-        const typename V::AsArg v5)
+}
+// 6 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::interleave(
+    const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2,
+    const typename V::AsArg v3, const typename V::AsArg v4, const typename V::AsArg v5)
 {
     InterleaveImpl<V>::interleave(m_indexes, m_data, v0, v1, v2, v3, v4, v5);
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
-        const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4,
-        const typename V::AsArg v5, const typename V::AsArg v6)
+}
+// 7 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::interleave(
+    const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2,
+    const typename V::AsArg v3, const typename V::AsArg v4, const typename V::AsArg v5,
+    const typename V::AsArg v6)
 {
     InterleaveImpl<V>::interleave(m_indexes, m_data, v0, v1, v2, v3, v4, v5, v6);
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::interleave(const typename V::AsArg v0,/*{{{*/
-        const typename V::AsArg v1, const typename V::AsArg v2, const typename V::AsArg v3, const typename V::AsArg v4,
-        const typename V::AsArg v5, const typename V::AsArg v6, const typename V::AsArg v7)
+}
+// 8 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::interleave(
+    const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2,
+    const typename V::AsArg v3, const typename V::AsArg v4, const typename V::AsArg v5,
+    const typename V::AsArg v6, const typename V::AsArg v7)
 {
     InterleaveImpl<V>::interleave(m_indexes, m_data, v0, v1, v2, v3, v4, v5, v6, v7);
-}/*}}}*/
+}
 
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1) const/*{{{*/
+// InterleavedMemoryAccessBase::deinterleave {{{1
+// 2 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1) const
 {
     std::tie(v0, v1) = InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size2());
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2) const/*{{{*/
+}
+// 3 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2) const
 {
     std::tie(v0, v1, v2) = InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size3());
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2, V &v3) const/*{{{*/
+}
+// 4 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2,
+                                                                V &v3) const
 {
-    std::tie(v0, v1, v2, v3) = InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size4());
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4) const/*{{{*/
+    std::tie(v0, v1, v2, v3) =
+        InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size4());
+}
+// 5 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2,
+                                                                V &v3, V &v4) const
 {
-    std::tie(v0, v1, v2, v3, v4) = InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size5());
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5) const/*{{{*/
+    std::tie(v0, v1, v2, v3, v4) =
+        InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size5());
+}
+// 6 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2,
+                                                                V &v3, V &v4, V &v5) const
 {
-    std::tie(v0, v1, v2, v3, v4, v5) = InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size6());
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6) const/*{{{*/
+    std::tie(v0, v1, v2, v3, v4, v5) =
+        InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size6());
+}
+// 7 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2,
+                                                                V &v3, V &v4, V &v5,
+                                                                V &v6) const
 {
-    std::tie(v0, v1, v2, v3, v4, v5, v6) = InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size7());
-}/*}}}*/
-template<typename V, typename I> inline void InterleavedMemoryAccessBase<V, I>::deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7) const/*{{{*/
+    std::tie(v0, v1, v2, v3, v4, v5, v6) =
+        InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size7());
+}
+// 8 args {{{2
+template <typename V, typename I, bool RO>
+inline void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V &v2,
+                                                                V &v3, V &v4, V &v5,
+                                                                V &v6, V &v7) const
 {
-    std::tie(v0, v1, v2, v3, v4, v5, v6, v7) = InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size8());
-}/*}}}*/
-
+    std::tie(v0, v1, v2, v3, v4, v5, v6, v7) =
+        InterleaveImpl<V>::deinterleave(m_indexes, m_data, Size8());
+}
 }
 }
 
