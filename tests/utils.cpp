@@ -293,9 +293,9 @@ TEST(testMallocAlignment)
 {
     int_v *a = Vc::malloc<int_v, Vc::AlignOnVector>(10);
 
-    size_t mask = VectorAlignment - 1;
+    std::uintptr_t mask = int_v::MemoryAlignment - 1;
     for (int i = 0; i < 10; ++i) {
-        VERIFY((reinterpret_cast<unsigned long>(&a[i]) & mask) == 0);
+        VERIFY((reinterpret_cast<std::uintptr_t>(&a[i]) & mask) == 0);
     }
     const char *data = reinterpret_cast<const char *>(&a[0]);
     for (int i = 0; i < 10; ++i) {
@@ -304,13 +304,13 @@ TEST(testMallocAlignment)
 
     a = Vc::malloc<int_v, Vc::AlignOnCacheline>(10);
     mask = CpuId::cacheLineSize() - 1;
-    COMPARE((reinterpret_cast<unsigned long>(&a[0]) & mask), 0ul);
+    COMPARE((reinterpret_cast<std::uintptr_t>(&a[0]) & mask), 0ul);
 
     // I don't know how to properly check page alignment. So we check for 4 KiB alignment as this is
     // the minimum page size on x86
     a = Vc::malloc<int_v, Vc::AlignOnPage>(10);
     mask = 4096 - 1;
-    COMPARE((reinterpret_cast<unsigned long>(&a[0]) & mask), 0ul);
+    COMPARE((reinterpret_cast<std::uintptr_t>(&a[0]) & mask), 0ul);
 }
 
 TEST_TYPES(V, testIif, (ALL_VECTORS))
