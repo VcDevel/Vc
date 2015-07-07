@@ -265,8 +265,14 @@ template<typename V, typename I> void FloatRandom()
     }
 }
 
-template<> void testRandom<float_v>::operator()() { FloatRandom<float_v, int_v>(); }
-template<> void testRandom<double_v>::operator()() { FloatRandom<double_v, int_v>(); }
+template <> void testRandom<float_v>::operator()()
+{
+    FloatRandom<float_v, simdarray<int, float_v::size()>>();
+}
+template <> void testRandom<double_v>::operator()()
+{
+    FloatRandom<double_v, simdarray<int, double_v::size()>>();
+}
 
 template<typename T> T add2(T x) { return x + T(2); }
 
