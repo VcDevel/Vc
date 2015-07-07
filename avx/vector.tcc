@@ -171,15 +171,17 @@ template<typename Flags> struct LoadHelper<float, short, Flags> {
     }
 };
 template<typename Flags> struct LoadHelper<float, unsigned char, Flags> {
-    static m256 load(const unsigned char *mem, Flags f)
+    static m256 load(const unsigned char *mem, Flags)
     {
-        return StaticCastHelper<unsigned int, float>::cast(LoadHelper<unsigned int, unsigned char, Flags>::load(mem, f));
+        return _mm256_cvtepi32_ps(
+            cvtepu8_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem))));
     }
 };
 template<typename Flags> struct LoadHelper<float, signed char, Flags> {
-    static m256 load(const signed char *mem, Flags f)
+    static m256 load(const signed char *mem, Flags)
     {
-        return StaticCastHelper<int, float>::cast(LoadHelper<int, signed char, Flags>::load(mem, f));
+        return _mm256_cvtepi32_ps(
+            cvtepi8_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem))));
     }
 };
 
@@ -193,33 +195,29 @@ template<typename Flags> struct LoadHelper<int, unsigned int, Flags> {
 template<typename Flags> struct LoadHelper<int, unsigned short, Flags> {
     static m128i load(const unsigned short *mem, Flags)
     {
-        return StaticCastHelper<unsigned short, unsigned int>::cast(VectorHelper<m128i>::load<Flags>(mem));
+        return StaticCastHelper<unsigned short, unsigned int>::cast(
+            _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<int, short, Flags> {
-    static m128i load(const short *mem, Flags)
+    static Vc_INTRINSIC m128i load(const short *mem, Flags)
     {
-        return StaticCastHelper<short, int>::cast(VectorHelper<m128i>::load<Flags>(mem));
+        return StaticCastHelper<short, int>::cast(
+            _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<int, unsigned char, Flags> {
     static m128i load(const unsigned char *mem, Flags)
     {
-        // the only available streaming load loads 16 bytes - twice as much as we need => can't use
-        // it, or we risk an out-of-bounds read and an unaligned load exception
-        const m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
-        const m128i epu16 = _mm_cvtepu8_epi16(epu8);
-        return StaticCastHelper<unsigned short, unsigned int>::cast(epu16);
+        return SseIntrinsics::cvtepu8_epi32(
+            _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<int, signed char, Flags> {
     static m128i load(const signed char *mem, Flags)
     {
-        // the only available streaming load loads 16 bytes - twice as much as we need => can't use
-        // it, or we risk an out-of-bounds read and an unaligned load exception
-        const m128i epi8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
-        const m128i epi16 = _mm_cvtepi8_epi16(epi8);
-        return StaticCastHelper<short, int>::cast(epi16);
+        return SseIntrinsics::cvtepi8_epi32(
+            _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
     }
 };
 
@@ -227,17 +225,15 @@ template<typename Flags> struct LoadHelper<int, signed char, Flags> {
 template<typename Flags> struct LoadHelper<unsigned int, unsigned short, Flags> {
     static m128i load(const unsigned short *mem, Flags)
     {
-        return StaticCastHelper<unsigned short, unsigned int>::cast(VectorHelper<m128i>::load<Flags>(mem));
+        return StaticCastHelper<unsigned short, unsigned int>::cast(
+            _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
     }
 };
 template<typename Flags> struct LoadHelper<unsigned int, unsigned char, Flags> {
     static m128i load(const unsigned char *mem, Flags)
     {
-        // the only available streaming load loads 16 bytes - twice as much as we need => can't use
-        // it, or we risk an out-of-bounds read and an unaligned load exception
-        const m128i epu8 = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
-        const m128i epu16 = _mm_cvtepu8_epi16(epu8);
-        return StaticCastHelper<unsigned short, unsigned int>::cast(epu16);
+        return SseIntrinsics::cvtepu8_epi32(
+            _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
     }
 };
 
