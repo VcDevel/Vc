@@ -93,6 +93,8 @@ public:
      */
     using VectorEntryType = Common::MaskBool<sizeof(T)>;
 
+    using EntryReference = Common::MaskEntry<Mask>;
+
     /**
      * The \c VectorType reveals the implementation-specific internal type used for the
      * SIMD type.
@@ -185,7 +187,7 @@ public:
         }
     }
 
-    inline Common::MaskEntry<Mask<T>> operator[](size_t index) { return Common::MaskEntry<Mask<T>>(*this, index); }
+    inline EntryReference operator[](size_t index) { return Common::MaskEntry<Mask<T>>(*this, index); }
     inline bool operator[](size_t index) const { return static_cast<bool>(k & (1 << index)); }
 
     Vc_ALWAYS_INLINE Vc_PURE int count() const {
