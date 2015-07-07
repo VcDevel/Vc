@@ -339,12 +339,9 @@ TEST(testBinaryOperators) /*{{{*/
 
     testBinaryOperatorsImpl<   int_m,    int_m>();
     testBinaryOperatorsImpl<   int_m,   uint_m>();
-    testBinaryOperatorsImpl<   int_m,  float_m>();
     testBinaryOperatorsImpl<  uint_m,    int_m>();
     testBinaryOperatorsImpl<  uint_m,   uint_m>();
-    testBinaryOperatorsImpl<  uint_m,  float_m>();
-    testBinaryOperatorsImpl< float_m,    int_m>();
-    testBinaryOperatorsImpl< float_m,   uint_m>();
+
     testBinaryOperatorsImpl< float_m,  float_m>();
 
     testBinaryOperatorsImpl<double_m, double_m>();
