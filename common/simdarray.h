@@ -249,6 +249,11 @@ public:
         return {-data};
     }
 
+    Vc_INTRINSIC simdarray operator~() const
+    {
+        return {~data};
+    }
+
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
     Vc_INTRINSIC Vc_CONST simdarray operator<<(U x) const
@@ -601,6 +606,11 @@ public:
     Vc_INTRINSIC simdarray operator-() const
     {
         return {-data0, -data1};
+    }
+
+    Vc_INTRINSIC simdarray operator~() const
+    {
+        return {~data0, ~data1};
     }
 
     // left/right shift operators {{{2

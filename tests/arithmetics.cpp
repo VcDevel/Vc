@@ -363,7 +363,9 @@ TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
     }
 }
 
-TEST_TYPES(Vec, testOnesComplement, (int_v, ushort_v, uint_v, short_v))
+TEST_TYPES(Vec, testOnesComplement, (int_v, ushort_v, uint_v, short_v, simdarray<int, 17>,
+                                     simdarray<unsigned short, 17>,
+                                     simdarray<unsigned int, 17>, simdarray<short, 17>))
 {
     Vec a(One);
     Vec b = ~a;
