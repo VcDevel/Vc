@@ -45,6 +45,12 @@ namespace
     using Vc::double_v;
     using Vc_IMPL_NAMESPACE::Const;
 
+    template <typename V>
+    using best_int_v_for = typename std::conditional<(V::size() <= int_v::size()), int_v,
+                                                     simdarray<int, V::size()>>::type;
+    using float_int_v = best_int_v_for<float_v>;
+    using double_int_v = best_int_v_for<double_v>;
+
     template<typename T> static Vc_ALWAYS_INLINE Vector<T> cosSeries(const Vector<T> &x)
     {
         typedef Const<T> C;
@@ -87,7 +93,6 @@ namespace
                     C::sinCoeff(0)) * (x2 * x)
             + x;
     }
-    template<typename V> struct signed_integer { typedef   int_v type; };
 
     template<typename _T, typename IV> static Vc_ALWAYS_INLINE Vector<_T> foldInput(const Vector<_T> &_x, IV &quadrant)
     {
@@ -107,7 +112,7 @@ namespace
 
         return ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
     }
-    static Vc_ALWAYS_INLINE double_v foldInput(const double_v &_x, int_v &quadrant)
+    static Vc_ALWAYS_INLINE double_v foldInput(const double_v &_x, double_int_v &quadrant)
     {
         typedef double_v V;
         typedef Const<double> C;
@@ -115,8 +120,8 @@ namespace
         const V x = abs(_x);
         V y = trunc(x / C::_pi_4()); // * C::_4_pi() would work, but is >twice as imprecise
         V z = y - trunc(y * C::_1_16()) * C::_16(); // y modulo 16
-        quadrant = static_cast<int_v>(z);
-        int_m mask = (quadrant & int_v::One()) != int_v::Zero();
+        quadrant = static_cast<double_int_v>(z);
+        int_m mask = (quadrant & double_int_v::One()) != double_int_v::Zero();
         ++quadrant(mask);
         y(static_cast<double_m>(mask)) += V::One();
         quadrant &= 7;
@@ -146,7 +151,7 @@ namespace
 template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sin(const V &_x)
 {
     typedef typename V::Mask M;
-    typedef typename signed_integer<V>::type IV;
+    using IV = best_int_v_for<V>;
 
     IV quadrant;
     const V z = foldInput(_x, quadrant);
@@ -154,7 +159,7 @@ template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImple
     quadrant(quadrant > 3) -= 4;
 
     V y = sinSeries(z);
-    y(quadrant == IV::One() || quadrant == 2) = cosSeries(z);
+    y(simd_cast<M>(quadrant == IV::One() || quadrant == 2)) = cosSeries(z);
     y(sign) = -y;
     return y;
 }
@@ -164,29 +169,29 @@ template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplemen
     typedef double_v V;
     typedef V::Mask M;
 
-    int_v quadrant;
+    double_int_v quadrant;
     M sign = _x < V::Zero();
     const V x = foldInput(_x, quadrant);
     sign ^= static_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
 
     V y = sinSeries(x);
-    y(static_cast<M>(quadrant == int_v::One() || quadrant == 2)) = cosSeries(x);
+    y(static_cast<M>(quadrant == double_int_v::One() || quadrant == 2)) = cosSeries(x);
     y(sign) = -y;
     return y;
 }
 template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::cos(const V &_x) {
     typedef typename V::Mask M;
-    typedef typename signed_integer<V>::type IV;
+    using IV = best_int_v_for<V>;
 
     IV quadrant;
     const V x = foldInput(_x, quadrant);
-    M sign = quadrant > 3;
+    M sign = simd_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
-    sign ^= quadrant > IV::One();
+    sign ^= simd_cast<M>(quadrant > IV::One());
 
     V y = cosSeries(x);
-    y(quadrant == IV::One() || quadrant == 2) = sinSeries(x);
+    y(simd_cast<M>(quadrant == IV::One() || quadrant == 2)) = sinSeries(x);
     y(sign) = -y;
     return y;
 }
@@ -195,20 +200,20 @@ template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplemen
     typedef double_v V;
     typedef V::Mask M;
 
-    int_v quadrant;
+    double_int_v quadrant;
     const V x = foldInput(_x, quadrant);
     M sign = static_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
-    sign ^= static_cast<M>(quadrant > int_v::One());
+    sign ^= static_cast<M>(quadrant > double_int_v::One());
 
     V y = cosSeries(x);
-    y(static_cast<M>(quadrant == int_v::One() || quadrant == 2)) = sinSeries(x);
+    y(static_cast<M>(quadrant == double_int_v::One() || quadrant == 2)) = sinSeries(x);
     y(sign) = -y;
     return y;
 }
 template<> template<typename V> void Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sincos(const V &_x, V *_sin, V *_cos) {
     typedef typename V::Mask M;
-    typedef typename signed_integer<V>::type IV;
+    using IV = best_int_v_for<V>;
 
     IV quadrant;
     const V x = foldInput(_x, quadrant);
@@ -232,7 +237,7 @@ template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementati
     typedef double_v V;
     typedef V::Mask M;
 
-    int_v quadrant;
+    double_int_v quadrant;
     const V x = foldInput(_x, quadrant);
     M sign = static_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
@@ -241,12 +246,12 @@ template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementati
     const V sin_s = sinSeries(x);
 
     V c = cos_s;
-    c(static_cast<M>(quadrant == int_v::One() || quadrant == 2)) = sin_s;
-    c(sign ^ static_cast<M>(quadrant > int_v::One())) = -c;
+    c(static_cast<M>(quadrant == double_int_v::One() || quadrant == 2)) = sin_s;
+    c(sign ^ static_cast<M>(quadrant > double_int_v::One())) = -c;
     *_cos = c;
 
     V s = sin_s;
-    s(static_cast<M>(quadrant == int_v::One() || quadrant == 2)) = cos_s;
+    s(static_cast<M>(quadrant == double_int_v::One() || quadrant == 2)) = cos_s;
     s(sign ^ static_cast<M>(_x < V::Zero())) = -s;
     *_sin = s;
 }
