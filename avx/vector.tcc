@@ -1017,17 +1017,21 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32), V> shifted(
     case  1: return avx_cast<V>(srli_si256<sanitize<V>(1 * sizeof(T))>(avx_cast<m256i>(v)));
     case  2: return avx_cast<V>(srli_si256<sanitize<V>(2 * sizeof(T))>(avx_cast<m256i>(v)));
     case  3: return avx_cast<V>(srli_si256<sanitize<V>(3 * sizeof(T))>(avx_cast<m256i>(v)));
-    case  4: return avx_cast<V>(srli_si256<sanitize<V>(4 * sizeof(T))>(avx_cast<m256i>(v)));
-    case  5: return avx_cast<V>(srli_si256<sanitize<V>(5 * sizeof(T))>(avx_cast<m256i>(v)));
-    case  6: return avx_cast<V>(srli_si256<sanitize<V>(6 * sizeof(T))>(avx_cast<m256i>(v)));
-    case  7: return avx_cast<V>(srli_si256<sanitize<V>(7 * sizeof(T))>(avx_cast<m256i>(v)));
     case -1: return avx_cast<V>(slli_si256<sanitize<V>(1 * sizeof(T))>(avx_cast<m256i>(v)));
     case -2: return avx_cast<V>(slli_si256<sanitize<V>(2 * sizeof(T))>(avx_cast<m256i>(v)));
     case -3: return avx_cast<V>(slli_si256<sanitize<V>(3 * sizeof(T))>(avx_cast<m256i>(v)));
-    case -4: return avx_cast<V>(slli_si256<sanitize<V>(4 * sizeof(T))>(avx_cast<m256i>(v)));
-    case -5: return avx_cast<V>(slli_si256<sanitize<V>(5 * sizeof(T))>(avx_cast<m256i>(v)));
-    case -6: return avx_cast<V>(slli_si256<sanitize<V>(6 * sizeof(T))>(avx_cast<m256i>(v)));
-    case -7: return avx_cast<V>(slli_si256<sanitize<V>(7 * sizeof(T))>(avx_cast<m256i>(v)));
+    }
+    if (sizeof(T) <= 4) {
+        switch (amount) {
+        case  4: return avx_cast<V>(srli_si256<sanitize<V>(4 * sizeof(T))>(avx_cast<m256i>(v)));
+        case  5: return avx_cast<V>(srli_si256<sanitize<V>(5 * sizeof(T))>(avx_cast<m256i>(v)));
+        case  6: return avx_cast<V>(srli_si256<sanitize<V>(6 * sizeof(T))>(avx_cast<m256i>(v)));
+        case  7: return avx_cast<V>(srli_si256<sanitize<V>(7 * sizeof(T))>(avx_cast<m256i>(v)));
+        case -4: return avx_cast<V>(slli_si256<sanitize<V>(4 * sizeof(T))>(avx_cast<m256i>(v)));
+        case -5: return avx_cast<V>(slli_si256<sanitize<V>(5 * sizeof(T))>(avx_cast<m256i>(v)));
+        case -6: return avx_cast<V>(slli_si256<sanitize<V>(6 * sizeof(T))>(avx_cast<m256i>(v)));
+        case -7: return avx_cast<V>(slli_si256<sanitize<V>(7 * sizeof(T))>(avx_cast<m256i>(v)));
+        }
     }
     return avx_cast<V>(_mm256_setzero_ps());
 }
@@ -1041,17 +1045,21 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> shifted(
     case  1: return avx_cast<V>(_mm_srli_si128(avx_cast<m128i>(v), sanitize<V>(1 * sizeof(T))));
     case  2: return avx_cast<V>(_mm_srli_si128(avx_cast<m128i>(v), sanitize<V>(2 * sizeof(T))));
     case  3: return avx_cast<V>(_mm_srli_si128(avx_cast<m128i>(v), sanitize<V>(3 * sizeof(T))));
-    case  4: return avx_cast<V>(_mm_srli_si128(avx_cast<m128i>(v), sanitize<V>(4 * sizeof(T))));
-    case  5: return avx_cast<V>(_mm_srli_si128(avx_cast<m128i>(v), sanitize<V>(5 * sizeof(T))));
-    case  6: return avx_cast<V>(_mm_srli_si128(avx_cast<m128i>(v), sanitize<V>(6 * sizeof(T))));
-    case  7: return avx_cast<V>(_mm_srli_si128(avx_cast<m128i>(v), sanitize<V>(7 * sizeof(T))));
     case -1: return avx_cast<V>(_mm_slli_si128(avx_cast<m128i>(v), sanitize<V>(1 * sizeof(T))));
     case -2: return avx_cast<V>(_mm_slli_si128(avx_cast<m128i>(v), sanitize<V>(2 * sizeof(T))));
     case -3: return avx_cast<V>(_mm_slli_si128(avx_cast<m128i>(v), sanitize<V>(3 * sizeof(T))));
-    case -4: return avx_cast<V>(_mm_slli_si128(avx_cast<m128i>(v), sanitize<V>(4 * sizeof(T))));
-    case -5: return avx_cast<V>(_mm_slli_si128(avx_cast<m128i>(v), sanitize<V>(5 * sizeof(T))));
-    case -6: return avx_cast<V>(_mm_slli_si128(avx_cast<m128i>(v), sanitize<V>(6 * sizeof(T))));
-    case -7: return avx_cast<V>(_mm_slli_si128(avx_cast<m128i>(v), sanitize<V>(7 * sizeof(T))));
+    }
+    if (sizeof(T) <= 2) {
+        switch (amount) {
+        case  4: return avx_cast<V>(_mm_srli_si128(avx_cast<m128i>(v), sanitize<V>(4 * sizeof(T))));
+        case  5: return avx_cast<V>(_mm_srli_si128(avx_cast<m128i>(v), sanitize<V>(5 * sizeof(T))));
+        case  6: return avx_cast<V>(_mm_srli_si128(avx_cast<m128i>(v), sanitize<V>(6 * sizeof(T))));
+        case  7: return avx_cast<V>(_mm_srli_si128(avx_cast<m128i>(v), sanitize<V>(7 * sizeof(T))));
+        case -4: return avx_cast<V>(_mm_slli_si128(avx_cast<m128i>(v), sanitize<V>(4 * sizeof(T))));
+        case -5: return avx_cast<V>(_mm_slli_si128(avx_cast<m128i>(v), sanitize<V>(5 * sizeof(T))));
+        case -6: return avx_cast<V>(_mm_slli_si128(avx_cast<m128i>(v), sanitize<V>(6 * sizeof(T))));
+        case -7: return avx_cast<V>(_mm_slli_si128(avx_cast<m128i>(v), sanitize<V>(7 * sizeof(T))));
+        }
     }
     return avx_cast<V>(_mm_setzero_ps());
 }
