@@ -1262,7 +1262,10 @@ public:
     using const_pointer = typename Base::const_pointer;
     using const_reference = typename Base::const_reference;
 
-    using Base::Iterator;
+    using Iterator<T, N, M, V, Size,
+                   std::forward_iterator_tag>::Iterator;  // in short: "using
+                                                          // Base::Iterator", but that
+                                                          // confuses ICC
     /// Advances the iterator by one vector width, or respectively N scalar steps.
     Iterator &operator--()
     {
@@ -1298,7 +1301,8 @@ public:
     using const_reference = typename Base::const_reference;
     using difference_type = typename std::iterator_traits<T>::difference_type;
 
-    using Base::Iterator;
+    using Iterator<T, N, M, V, Size, std::bidirectional_iterator_tag>::
+        Iterator;  // in short: "using Base::Iterator", but that confuses ICC
 
     Iterator &operator+=(difference_type n)
     {
