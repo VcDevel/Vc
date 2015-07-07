@@ -274,7 +274,7 @@ template <typename V, typename Shift> void shiftedInConstant(const V &data, Shif
     }
 }
 
-TEST_TYPES(V, shiftedIn, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(31), SIMD_ARRAYS(32), SIMD_ARRAYS(33)))
+TEST_TYPES(V, shiftedIn, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(16), SIMD_ARRAYS(17)))
 {
     constexpr int Size = V::Size;
     const V data = V::Random();
