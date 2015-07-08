@@ -53,289 +53,186 @@ template<typename V> struct InterleaveImpl {
     typedef typename V::VectorEntryType VT;
     typedef MIC::UpDownConversion<VT, T> UpDownC;
 
-    template<typename I> static inline std::tuple<V, V> deinterleave(I indexes, T *const data, Size2)/*{{{*/
+    template <int N> static inline __m512i fixup(const simdarray<int, 16> &i)
     {
-        std::tuple<V, V> r;
-        indexes *= 2;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<size_t StructSize> static inline std::tuple<V, V> deinterleave(SuccessiveEntries<StructSize> firstIndex, T *const data, Size2)/*{{{*/
+        return (internal_data(i) * N).data();
+    }
+    template <int N, size_t StructSize>
+    static inline __m512i fixup(const SuccessiveEntries<StructSize> &i)
     {
-        std::tuple<V, V> r;
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 2;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<typename I> static inline std::tuple<V, V, V> deinterleave(I indexes, T *const data, Size3)/*{{{*/
-    {
-        std::tuple<V, V, V> r;
-        indexes *= 3;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<size_t StructSize> static inline std::tuple<V, V, V> deinterleave(SuccessiveEntries<StructSize> firstIndex, T *const data, Size3)/*{{{*/
-    {
-        std::tuple<V, V, V> r;
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 3;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<typename I> static inline std::tuple<V, V, V, V> deinterleave(I indexes, T *const data, Size4)/*{{{*/
-    {
-        std::tuple<V, V, V, V> r;
-        indexes *= 4;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        std::get<3>(r).data() = gather(indexes.data(), data + 3, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<size_t StructSize> static inline std::tuple<V, V, V, V> deinterleave(SuccessiveEntries<StructSize> firstIndex, T *const data, Size4)/*{{{*/
-    {
-        std::tuple<V, V, V, V> r;
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 4;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        std::get<3>(r).data() = gather(indexes.data(), data + 3, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<typename I> static inline std::tuple<V, V, V, V, V> deinterleave(I indexes, T *const data, Size5)/*{{{*/
-    {
-        std::tuple<V, V, V, V, V> r;
-        indexes *= 5;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        std::get<3>(r).data() = gather(indexes.data(), data + 3, UpDownC());
-        std::get<4>(r).data() = gather(indexes.data(), data + 4, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<size_t StructSize> static inline std::tuple<V, V, V, V, V> deinterleave(SuccessiveEntries<StructSize> firstIndex, T *const data, Size5)/*{{{*/
-    {
-        std::tuple<V, V, V, V, V> r;
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 5;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        std::get<3>(r).data() = gather(indexes.data(), data + 3, UpDownC());
-        std::get<4>(r).data() = gather(indexes.data(), data + 4, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<typename I> static inline std::tuple<V, V, V, V, V, V> deinterleave(I indexes, T *const data, Size6)/*{{{*/
-    {
-        std::tuple<V, V, V, V, V, V> r;
-        indexes *= 6;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        std::get<3>(r).data() = gather(indexes.data(), data + 3, UpDownC());
-        std::get<4>(r).data() = gather(indexes.data(), data + 4, UpDownC());
-        std::get<5>(r).data() = gather(indexes.data(), data + 5, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<size_t StructSize> static inline std::tuple<V, V, V, V, V, V> deinterleave(SuccessiveEntries<StructSize> firstIndex, T *const data, Size6)/*{{{*/
-    {
-        std::tuple<V, V, V, V, V, V> r;
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 6;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        std::get<3>(r).data() = gather(indexes.data(), data + 3, UpDownC());
-        std::get<4>(r).data() = gather(indexes.data(), data + 4, UpDownC());
-        std::get<5>(r).data() = gather(indexes.data(), data + 5, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<typename I> static inline std::tuple<V, V, V, V, V, V, V> deinterleave(I indexes, T *const data, Size7)/*{{{*/
-    {
-        std::tuple<V, V, V, V, V, V, V> r;
-        indexes *= 7;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        std::get<3>(r).data() = gather(indexes.data(), data + 3, UpDownC());
-        std::get<4>(r).data() = gather(indexes.data(), data + 4, UpDownC());
-        std::get<5>(r).data() = gather(indexes.data(), data + 5, UpDownC());
-        std::get<6>(r).data() = gather(indexes.data(), data + 6, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<size_t StructSize> static inline std::tuple<V, V, V, V, V, V, V> deinterleave(SuccessiveEntries<StructSize> firstIndex, T *const data, Size7)/*{{{*/
-    {
-        std::tuple<V, V, V, V, V, V, V> r;
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 7;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        std::get<3>(r).data() = gather(indexes.data(), data + 3, UpDownC());
-        std::get<4>(r).data() = gather(indexes.data(), data + 4, UpDownC());
-        std::get<5>(r).data() = gather(indexes.data(), data + 5, UpDownC());
-        std::get<6>(r).data() = gather(indexes.data(), data + 6, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<typename I> static inline std::tuple<V, V, V, V, V, V, V, V> deinterleave(I indexes, T *const data, Size8)/*{{{*/
-    {
-        std::tuple<V, V, V, V, V, V, V, V> r;
-        indexes *= 8;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        std::get<3>(r).data() = gather(indexes.data(), data + 3, UpDownC());
-        std::get<4>(r).data() = gather(indexes.data(), data + 4, UpDownC());
-        std::get<5>(r).data() = gather(indexes.data(), data + 5, UpDownC());
-        std::get<6>(r).data() = gather(indexes.data(), data + 6, UpDownC());
-        std::get<7>(r).data() = gather(indexes.data(), data + 7, UpDownC());
-        return std::move(r);
-    }/*}}}*/
-    template<size_t StructSize> static inline std::tuple<V, V, V, V, V, V, V, V> deinterleave(SuccessiveEntries<StructSize> firstIndex, T *const data, Size8)/*{{{*/
-    {
-        std::tuple<V, V, V, V, V, V, V, V> r;
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 8;
-        std::get<0>(r).data() = gather(indexes.data(), data + 0, UpDownC());
-        std::get<1>(r).data() = gather(indexes.data(), data + 1, UpDownC());
-        std::get<2>(r).data() = gather(indexes.data(), data + 2, UpDownC());
-        std::get<3>(r).data() = gather(indexes.data(), data + 3, UpDownC());
-        std::get<4>(r).data() = gather(indexes.data(), data + 4, UpDownC());
-        std::get<5>(r).data() = gather(indexes.data(), data + 5, UpDownC());
-        std::get<6>(r).data() = gather(indexes.data(), data + 6, UpDownC());
-        std::get<7>(r).data() = gather(indexes.data(), data + 7, UpDownC());
-        return std::move(r);
-    }/*}}}*/
+        return ((int_v::IndexesFromZero() + i.data()) * N).data();
+    }
 
-    template<typename I> static inline void interleave(I indexes, T *const data, V v0, V v1)/*{{{*/
+    // deinterleave 2 {{{1
+    template <typename I>
+    static inline std::tuple<V, V> deinterleave(I &&indexes, const T *const data, Size2)
     {
-        indexes *= 2;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<size_t StructSize> static inline void interleave(SuccessiveEntries<StructSize> firstIndex, T *const data, V v0, V v1)/*{{{*/
+        const auto i = fixup<2>(std::forward<I>(indexes));
+        return std::tuple<V, V>{gather(i, data + 0, UpDownC()),
+                                gather(i, data + 1, UpDownC())};
+    }
+
+    // deinterleave 3 {{{1
+    template <typename I>
+    static inline std::tuple<V, V, V> deinterleave(I &&indexes, const T *const data, Size3)
     {
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 2;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<typename I> static inline void interleave(I indexes, T *const data, V v0, V v1, V v2)/*{{{*/
+        const auto i = fixup<3>(std::forward<I>(indexes));
+        return std::tuple<V, V, V>{gather(i, data + 0, UpDownC()),
+                                   gather(i, data + 1, UpDownC()),
+                                   gather(i, data + 2, UpDownC())};
+    }
+
+    // deinterleave 4 {{{1
+    template <typename I>
+    static inline std::tuple<V, V, V, V> deinterleave(I &&indexes, const T *const data,
+                                                      Size4)
     {
-        indexes *= 3;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<size_t StructSize> static inline void interleave(SuccessiveEntries<StructSize> firstIndex, T *const data, V v0, V v1, V v2)/*{{{*/
+        const auto i = fixup<4>(std::forward<I>(indexes));
+        return std::tuple<V, V, V, V>{
+            gather(i, data + 0, UpDownC()), gather(i, data + 1, UpDownC()),
+            gather(i, data + 2, UpDownC()), gather(i, data + 3, UpDownC())};
+    }
+
+    // deinterleave 5 {{{1
+    template <typename I>
+    static inline std::tuple<V, V, V, V, V> deinterleave(I &&indexes, const T *const data,
+                                                         Size5)
     {
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 3;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<typename I> static inline void interleave(I indexes, T *const data, V v0, V v1, V v2, V v3)/*{{{*/
+        const auto i = fixup<5>(std::forward<I>(indexes));
+        return std::tuple<V, V, V, V, V>{
+            gather(i, data + 0, UpDownC()), gather(i, data + 1, UpDownC()),
+            gather(i, data + 2, UpDownC()), gather(i, data + 3, UpDownC()),
+            gather(i, data + 4, UpDownC())};
+    }
+
+    // deinterleave 6 {{{1
+    template <typename I>
+    static inline std::tuple<V, V, V, V, V, V> deinterleave(I &&indexes,
+                                                            const T *const data, Size6)
     {
-        indexes *= 4;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, indexes.data(), v3.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<size_t StructSize> static inline void interleave(SuccessiveEntries<StructSize> firstIndex, T *const data, V v0, V v1, V v2, V v3)/*{{{*/
+        const auto i = fixup<6>(std::forward<I>(indexes));
+        return std::tuple<V, V, V, V, V, V>{
+            gather(i, data + 0, UpDownC()), gather(i, data + 1, UpDownC()),
+            gather(i, data + 2, UpDownC()), gather(i, data + 3, UpDownC()),
+            gather(i, data + 4, UpDownC()), gather(i, data + 5, UpDownC())};
+    }
+
+    // deinterleave 7 {{{1
+    template <typename I>
+    static inline std::tuple<V, V, V, V, V, V, V> deinterleave(I &&indexes,
+                                                               const T *const data, Size7)
     {
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 4;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, indexes.data(), v3.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<typename I> static inline void interleave(I indexes, T *const data, V v0, V v1, V v2, V v3, V v4)/*{{{*/
+        const auto i = fixup<7>(std::forward<I>(indexes));
+        return std::tuple<V, V, V, V, V, V, V>{
+            gather(i, data + 0, UpDownC()), gather(i, data + 1, UpDownC()),
+            gather(i, data + 2, UpDownC()), gather(i, data + 3, UpDownC()),
+            gather(i, data + 4, UpDownC()), gather(i, data + 5, UpDownC()),
+            gather(i, data + 6, UpDownC())};
+    }
+
+    // deinterleave 8 {{{1
+    template <typename I>
+    static inline std::tuple<V, V, V, V, V, V, V, V> deinterleave(I &&indexes,
+                                                                  const T *const data,
+                                                                  Size8)
     {
-        indexes *= 5;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, indexes.data(), v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, indexes.data(), v4.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<size_t StructSize> static inline void interleave(SuccessiveEntries<StructSize> firstIndex, T *const data, V v0, V v1, V v2, V v3, V v4)/*{{{*/
+        const auto i = fixup<8>(std::forward<I>(indexes));
+        return std::tuple<V, V, V, V, V, V, V, V>{
+            gather(i, data + 0, UpDownC()), gather(i, data + 1, UpDownC()),
+            gather(i, data + 2, UpDownC()), gather(i, data + 3, UpDownC()),
+            gather(i, data + 4, UpDownC()), gather(i, data + 5, UpDownC()),
+            gather(i, data + 6, UpDownC()), gather(i, data + 7, UpDownC())};
+    }
+
+    // interleave 2 {{{1
+    template <typename I>
+    static inline void interleave(I &&indexes, T *const data, V v0, V v1)
     {
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 5;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, indexes.data(), v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, indexes.data(), v4.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<typename I> static inline void interleave(I indexes, T *const data, V v0, V v1, V v2, V v3, V v4, V v5)/*{{{*/
+        const auto i = fixup<2>(indexes);
+        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
+        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
+    }
+
+    // interleave 3 {{{1
+    template <typename I>
+    static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2)
     {
-        indexes *= 6;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, indexes.data(), v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, indexes.data(), v4.data(), UpDownC(), sizeof(T));
-        scatter(data + 5, indexes.data(), v5.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<size_t StructSize> static inline void interleave(SuccessiveEntries<StructSize> firstIndex, T *const data, V v0, V v1, V v2, V v3, V v4, V v5)/*{{{*/
+        const auto i = fixup<3>(indexes);
+        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
+        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
+        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
+    }
+
+    // interleave 4 {{{1
+    template <typename I>
+    static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3)
     {
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 6;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, indexes.data(), v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, indexes.data(), v4.data(), UpDownC(), sizeof(T));
-        scatter(data + 5, indexes.data(), v5.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<typename I> static inline void interleave(I indexes, T *const data, V v0, V v1, V v2, V v3, V v4, V v5, V v6)/*{{{*/
+        const auto i = fixup<4>(indexes);
+        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
+        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
+        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
+        scatter(data + 3, i, v3.data(), UpDownC(), sizeof(T));
+    }
+
+    // interleave 5 {{{1
+    template <typename I>
+    static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
+                                  V v4)
     {
-        indexes *= 7;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, indexes.data(), v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, indexes.data(), v4.data(), UpDownC(), sizeof(T));
-        scatter(data + 5, indexes.data(), v5.data(), UpDownC(), sizeof(T));
-        scatter(data + 6, indexes.data(), v6.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<size_t StructSize> static inline void interleave(SuccessiveEntries<StructSize> firstIndex, T *const data, V v0, V v1, V v2, V v3, V v4, V v5, V v6)/*{{{*/
+        const auto i = fixup<5>(indexes);
+        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
+        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
+        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
+        scatter(data + 3, i, v3.data(), UpDownC(), sizeof(T));
+        scatter(data + 4, i, v4.data(), UpDownC(), sizeof(T));
+    }
+
+    // interleave 6 {{{1
+    template <typename I>
+    static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
+                                  V v4, V v5)
     {
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 7;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, indexes.data(), v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, indexes.data(), v4.data(), UpDownC(), sizeof(T));
-        scatter(data + 5, indexes.data(), v5.data(), UpDownC(), sizeof(T));
-        scatter(data + 6, indexes.data(), v6.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<typename I> static inline void interleave(I indexes, T *const data, V v0, V v1, V v2, V v3, V v4, V v5, V v6, V v7)/*{{{*/
+        const auto i = fixup<6>(indexes);
+        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
+        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
+        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
+        scatter(data + 3, i, v3.data(), UpDownC(), sizeof(T));
+        scatter(data + 4, i, v4.data(), UpDownC(), sizeof(T));
+        scatter(data + 5, i, v5.data(), UpDownC(), sizeof(T));
+    }
+
+    // interleave 7 {{{1
+    template <typename I>
+    static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
+                                  V v4, V v5, V v6)
     {
-        indexes *= 8;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, indexes.data(), v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, indexes.data(), v4.data(), UpDownC(), sizeof(T));
-        scatter(data + 5, indexes.data(), v5.data(), UpDownC(), sizeof(T));
-        scatter(data + 6, indexes.data(), v6.data(), UpDownC(), sizeof(T));
-        scatter(data + 7, indexes.data(), v7.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
-    template<size_t StructSize> static inline void interleave(SuccessiveEntries<StructSize> firstIndex, T *const data, V v0, V v1, V v2, V v3, V v4, V v5, V v6, V v7)/*{{{*/
+        const auto i = fixup<7>(indexes);
+        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
+        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
+        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
+        scatter(data + 3, i, v3.data(), UpDownC(), sizeof(T));
+        scatter(data + 4, i, v4.data(), UpDownC(), sizeof(T));
+        scatter(data + 5, i, v5.data(), UpDownC(), sizeof(T));
+        scatter(data + 6, i, v6.data(), UpDownC(), sizeof(T));
+    }
+
+    // interleave 8 {{{1
+    template <typename I>
+    static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
+                                  V v4, V v5, V v6, V v7)
     {
-        const IT indexes = (IT::IndexesFromZero() + firstIndex.data()) * 8;
-        scatter(data + 0, indexes.data(), v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, indexes.data(), v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, indexes.data(), v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, indexes.data(), v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, indexes.data(), v4.data(), UpDownC(), sizeof(T));
-        scatter(data + 5, indexes.data(), v5.data(), UpDownC(), sizeof(T));
-        scatter(data + 6, indexes.data(), v6.data(), UpDownC(), sizeof(T));
-        scatter(data + 7, indexes.data(), v7.data(), UpDownC(), sizeof(T));
-    }/*}}}*/
+        const auto i = fixup<8>(indexes);
+        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
+        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
+        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
+        scatter(data + 3, i, v3.data(), UpDownC(), sizeof(T));
+        scatter(data + 4, i, v4.data(), UpDownC(), sizeof(T));
+        scatter(data + 5, i, v5.data(), UpDownC(), sizeof(T));
+        scatter(data + 6, i, v6.data(), UpDownC(), sizeof(T));
+        scatter(data + 7, i, v7.data(), UpDownC(), sizeof(T));
+    }
 };
-} // anonymous namespace
+}  // anonymous namespace
 
 // InterleavedMemoryAccessBase::interleave {{{1
 // 2 args {{{2
