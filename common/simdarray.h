@@ -1161,13 +1161,25 @@ simdarray<T, N> ldexp(const simdarray<T, N> &x, const simdarray<int, N> &e)
 
 // simd_cast {{{1
 // simd_cast_impl_smaller_input {{{2
+// The following function can be implemented without the sizeof...(From) overload.
+// However, ICC has a bug (Premier Issue #6000116338) which leads to an ICE. Splitting the
+// function in two works around the issue.
 template <typename Return, std::size_t N, typename T, typename... From>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_impl_smaller_input(const From &... xs, const T &last)
+Vc_INTRINSIC Vc_CONST enable_if<sizeof...(From) != 0, Return>
+simd_cast_impl_smaller_input(const From &... xs, const T &last)
 {
     Return r = simd_cast<Return>(xs...);
     for (size_t i = 0; i < N; ++i) {
         r[i + N * sizeof...(From)] = static_cast<typename Return::EntryType>(last[i]);
+    }
+    return r;
+}
+template <typename Return, std::size_t N, typename T>
+Vc_INTRINSIC Vc_CONST Return simd_cast_impl_smaller_input(const T &last)
+{
+    Return r;
+    for (size_t i = 0; i < N; ++i) {
+        r[i] = static_cast<typename Return::EntryType>(last[i]);
     }
     return r;
 }
@@ -1288,11 +1300,19 @@ Vc_INTRINSIC Vc_CONST
                sizeof...(Froms) * first_type_of<Froms...>::Size < Return::Size),
               Return>
         simd_cast_drop_arguments(Froms... xs, first_type_of<Froms...> x);
+// The following function can be implemented without the sizeof...(From) overload.
+// However, ICC has a bug (Premier Issue #6000116338) which leads to an ICE. Splitting the
+// function in two works around the issue.
 template <typename Return, typename From, typename... Froms>
-Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
-                                 (1 + sizeof...(Froms)) * From::Size >= Return::Size),
-                                Return>
-    simd_cast_drop_arguments(Froms... xs, From x, From);
+Vc_INTRINSIC Vc_CONST enable_if<
+    (are_all_types_equal<From, Froms...>::value &&
+     (1 + sizeof...(Froms)) * From::Size >= Return::Size && sizeof...(Froms) != 0),
+    Return>
+simd_cast_drop_arguments(Froms... xs, From x, From);
+template <typename Return, typename From>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(are_all_types_equal<From>::value && From::Size >= Return::Size), Return>
+    simd_cast_drop_arguments(From x, From);
 
 namespace
 {
@@ -1618,13 +1638,24 @@ Vc_INTRINSIC Vc_CONST
 {
     return simd_cast<Return>(xs..., x);
 }
+// The following function can be implemented without the sizeof...(From) overload.
+// However, ICC has a bug (Premier Issue #6000116338) which leads to an ICE. Splitting the
+// function in two works around the issue.
 template <typename Return, typename From, typename... Froms>
-Vc_INTRINSIC Vc_CONST enable_if<(are_all_types_equal<From, Froms...>::value &&
-                                 (1 + sizeof...(Froms)) * From::Size >= Return::Size),
-                                Return>
-    simd_cast_drop_arguments(Froms... xs, From x, From)
+Vc_INTRINSIC Vc_CONST enable_if<
+    (are_all_types_equal<From, Froms...>::value &&
+     (1 + sizeof...(Froms)) * From::Size >= Return::Size && sizeof...(Froms) != 0),
+    Return>
+simd_cast_drop_arguments(Froms... xs, From x, From)
 {
     return simd_cast_drop_arguments<Return, Froms...>(xs..., x);
+}
+template <typename Return, typename From>
+Vc_INTRINSIC Vc_CONST
+    enable_if<(are_all_types_equal<From>::value && From::Size >= Return::Size), Return>
+    simd_cast_drop_arguments(From x, From)
+{
+    return simd_cast_drop_arguments<Return>(x);
 }
 
 // simd_cast_with_offset (definitions) {{{2
