@@ -231,12 +231,14 @@ template <std::size_t secondOffset> class Split/*{{{*/
 
     // generically split Segments
     template <typename V, std::size_t Pieces, std::size_t Index>
-    static Vc_INTRINSIC Segment<V, 2 * Pieces, Index *Pieces + 0> loImpl(const Segment<V, Pieces, Index> &x)
+    static Vc_INTRINSIC Segment<V, 2 * Pieces, 2 * Index> loImpl(
+        const Segment<V, Pieces, Index> &x)
     {
         return {x.data};
     }
     template <typename V, std::size_t Pieces, std::size_t Index>
-    static Vc_INTRINSIC Segment<V, 2 * Pieces, Index *Pieces + 1> hiImpl(const Segment<V, Pieces, Index> &x)
+    static Vc_INTRINSIC Segment<V, 2 * Pieces, 2 * Index + 1> hiImpl(
+        const Segment<V, Pieces, Index> &x)
     {
         return {x.data};
     }
