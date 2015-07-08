@@ -927,7 +927,7 @@ public:
 
     Vc_INTRINSIC simdarray sortedImpl(std::false_type) const
     {
-        using SortableArray = simdarray<value_type, Common::nextPowerOfTwo(Size)>;
+        using SortableArray = simdarray<value_type, Common::nextPowerOfTwo(size())>;
         auto sortable = simd_cast<SortableArray>(*this);
         for (std::size_t i = Size; i < SortableArray::Size; ++i) {
             using limits = std::numeric_limits<value_type>;
